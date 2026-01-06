@@ -27,6 +27,8 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_vfont_types.h"
 
+namespace blender {
+
 extern const void *builtin_font_data;
 extern int builtin_font_size;
 
@@ -61,7 +63,7 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
     BKE_vfontdata_metrics_get_defaults(&vfd->metrics);
   }
 
-  vfd->characters = MEM_new<blender::Map<uint, VChar *>>(__func__);
+  vfd->characters = MEM_new<Map<uint, VChar *>>(__func__);
   vfd->characters->reserve(255);
 
   BLF_unload_id(fontid);
@@ -74,7 +76,7 @@ VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int /*flag*/)
   VFontData *vfont_dst = static_cast<VFontData *>(MEM_dupallocN(vfont_src));
 
   if (vfont_src->characters != nullptr) {
-    vfont_dst->characters = MEM_new<blender::Map<uint, VChar *>>(__func__);
+    vfont_dst->characters = MEM_new<Map<uint, VChar *>>(__func__);
     vfont_dst->characters->reserve(vfont_src->characters->size());
     for (const auto &item : vfont_src->characters->items()) {
       VChar *vchar_src = item.value;
@@ -149,3 +151,5 @@ VChar *BKE_vfontdata_char_copy(const VChar *vchar_src)
 
   return vchar_dst;
 }
+
+}  // namespace blender

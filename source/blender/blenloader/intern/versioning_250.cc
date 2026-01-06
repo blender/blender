@@ -80,6 +80,8 @@
 #include <algorithm>
 #include <cerrno>
 
+namespace blender {
+
 /* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
@@ -679,7 +681,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     for (Scene &scene : bmain->scenes) {
       if (scene.ed) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_sound_proxy_update_cb, bmain);
+        seq::foreach_strip(&scene.ed->seqbase, strip_sound_proxy_update_cb, bmain);
       }
     }
 
@@ -1023,7 +1025,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         bNode *node = static_cast<bNode *>(ntree->nodes.first);
 
         while (node) {
-          blender::bke::node_unique_name(*ntree, *node);
+          bke::node_unique_name(*ntree, *node);
           node = node->next;
         }
 
@@ -1335,7 +1337,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         sce.r.ffcodecdata.audio_codec = 0x0; /* `CODEC_ID_NONE` */
       }
       if (sce.ed) {
-        blender::seq::foreach_strip(&sce.ed->seqbase, strip_set_volume_cb, nullptr);
+        seq::foreach_strip(&sce.ed->seqbase, strip_set_volume_cb, nullptr);
       }
     }
 
@@ -1561,7 +1563,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     for (Scene &scene : bmain->scenes) {
       if (scene.ed) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_set_sat_cb, nullptr);
+        seq::foreach_strip(&scene.ed->seqbase, strip_set_sat_cb, nullptr);
       }
     }
 
@@ -1853,7 +1855,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
           }
         }
         for (bNodeSocket &sock : node.outputs) {
-          if (blender::bke::node_count_socket_links(ntree, sock) == 0 &&
+          if (bke::node_count_socket_links(ntree, sock) == 0 &&
               !((sock.flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0))
           {
             bNodeSocket *gsock = do_versions_node_group_add_socket_2_56_2(
@@ -1989,7 +1991,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       scene.r.ffcodecdata.audio_channels = 2;
       scene.audio.volume = 1.0f;
       if (scene.ed) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_set_pitch_cb, nullptr);
+        seq::foreach_strip(&scene.ed->seqbase, strip_set_pitch_cb, nullptr);
       }
     }
 
@@ -2122,3 +2124,5 @@ void do_versions_after_linking_250(Main *bmain)
     FOREACH_MAIN_ID_END;
   }
 }
+
+}  // namespace blender

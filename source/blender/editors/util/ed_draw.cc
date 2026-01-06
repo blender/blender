@@ -44,6 +44,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Slider
  *
@@ -121,7 +123,7 @@ static void draw_overshoot_triangle(const uint8_t color[4],
                                     const float y)
 {
   const uint shdr_pos_2d = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_polygon_smooth(true);
@@ -177,10 +179,10 @@ static void draw_ticks(const float start_factor,
     tick_rect.ymax = line_start[1] + (tick_height / 2);
 
     if (tick_percentage < 0 || tick_percentage > 100) {
-      blender::ui::draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_overshoot, 255);
+      ui::draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_overshoot, 255);
     }
     else {
-      blender::ui::draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_line, 255);
+      ui::draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_line, 255);
     }
     tick_percentage += tick_increment;
   }
@@ -215,19 +217,18 @@ static void draw_main_line(const rctf *main_line_rect,
     right_overshoot_line_rect.ymin = main_line_rect->ymin;
     right_overshoot_line_rect.ymax = main_line_rect->ymax;
 
-    blender::ui::draw_roundbox_3ub_alpha(&left_overshoot_line_rect, true, 0, color_overshoot, 255);
-    blender::ui::draw_roundbox_3ub_alpha(
-        &right_overshoot_line_rect, true, 0, color_overshoot, 255);
+    ui::draw_roundbox_3ub_alpha(&left_overshoot_line_rect, true, 0, color_overshoot, 255);
+    ui::draw_roundbox_3ub_alpha(&right_overshoot_line_rect, true, 0, color_overshoot, 255);
 
     rctf non_overshoot_line_rect{};
     non_overshoot_line_rect.xmin = clamped_line_zero_percent;
     non_overshoot_line_rect.xmax = clamped_line_hundred_percent;
     non_overshoot_line_rect.ymin = main_line_rect->ymin;
     non_overshoot_line_rect.ymax = main_line_rect->ymax;
-    blender::ui::draw_roundbox_3ub_alpha(&non_overshoot_line_rect, true, 0, color_line, 255);
+    ui::draw_roundbox_3ub_alpha(&non_overshoot_line_rect, true, 0, color_line, 255);
   }
   else {
-    blender::ui::draw_roundbox_3ub_alpha(main_line_rect, true, 0, color_line, 255);
+    ui::draw_roundbox_3ub_alpha(main_line_rect, true, 0, color_line, 255);
   }
 }
 
@@ -259,8 +260,8 @@ static void draw_backdrop(const int fontid,
   backdrop_rect.xmax = main_line_rect->xmax + percent_string_pixel_size[0] + pad[0];
   backdrop_rect.ymin = pad[1];
   backdrop_rect.ymax = region_y_size - pad[1];
-  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
-  blender::ui::draw_roundbox_3ub_alpha(&backdrop_rect, true, 4.0f, color_bg, color_bg[3]);
+  ui::draw_roundbox_corner_set(ui::CNR_ALL);
+  ui::draw_roundbox_3ub_alpha(&backdrop_rect, true, 4.0f, color_bg, color_bg[3]);
 }
 
 /**
@@ -282,11 +283,11 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
   uint8_t color_bg[4];
 
   /* Get theme colors. */
-  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT_HI, color_handle);
-  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_text);
-  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_line);
-  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_overshoot);
-  blender::ui::theme::get_color_4ubv(TH_HEADER, color_bg);
+  ui::theme::get_color_4ubv(TH_HEADER_TEXT_HI, color_handle);
+  ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_text);
+  ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_line);
+  ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_overshoot);
+  ui::theme::get_color_4ubv(TH_HEADER, color_bg);
 
   color_overshoot[0] = color_overshoot[0] * 0.8;
   color_overshoot[1] = color_overshoot[1] * 0.8;
@@ -294,7 +295,7 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
   color_bg[3] = 160;
 
   /* Get the default font. */
-  const uiStyle *style = blender::ui::style_get();
+  const uiStyle *style = ui::style_get();
   const uiFontStyle *fstyle = &style->widget;
   const int fontid = fstyle->uifont_id;
   BLF_color3ubv(fontid, color_text);
@@ -362,7 +363,7 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
   handle_rect.ymin = line_y - (base_tick_height / 2);
   handle_rect.ymax = line_y + (base_tick_height / 2);
 
-  blender::ui::draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
+  ui::draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
 
   char factor_string[256];
   switch (slider->slider_mode) {
@@ -676,7 +677,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
   };
 
   const uint shdr_pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   GPU_line_width(1.0f);
 
@@ -927,7 +928,7 @@ static void text_info_row(const char *text,
   const int font_id = BLF_default();
   float text_color[4];
 
-  blender::ui::theme::get_color_4fv(TH_TEXT_HI, text_color);
+  ui::theme::get_color_4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(font_id, text_color);
 
   /* Ensure text is visible against bright background. */
@@ -957,7 +958,7 @@ void ED_region_image_overlay_info_text_draw(const int render_size_x,
 {
   BLF_set_default();
   const int font_id = BLF_default();
-  int overlay_lineheight = (blender::ui::style_get()->widget.points * UI_SCALE_FAC * 1.6f);
+  int overlay_lineheight = (ui::style_get()->widget.points * UI_SCALE_FAC * 1.6f);
 
   const char render_size_name[MAX_NAME] = "Render Size";
   const char viewer_size_name[MAX_NAME] = "Image Size";
@@ -998,7 +999,7 @@ void ED_region_image_render_region_draw(
   GPU_matrix_scale_2f(zoomx, zoomy);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1021,7 +1022,7 @@ void ED_region_image_render_region_draw(
   }
 
   float wire_color[3];
-  blender::ui::theme::get_color_3fv(TH_WIRE_EDIT, wire_color);
+  ui::theme::get_color_3fv(TH_WIRE_EDIT, wire_color);
   immUniformColor4f(wire_color[0], wire_color[1], wire_color[2], 1);
 
   /* The bounding box must be drawn last to ensure it remains visible
@@ -1037,7 +1038,7 @@ void ED_region_image_render_region_draw(
 void ED_region_image_metadata_draw(
     int x, int y, const ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy)
 {
-  const uiStyle *style = blender::ui::style_get_dpi();
+  const uiStyle *style = ui::style_get_dpi();
 
   if (!ibuf->metadata) {
     return;
@@ -1063,7 +1064,7 @@ void ED_region_image_metadata_draw(
     BLI_rctf_init(&rect, frame->xmin, frame->xmax, frame->ymax, frame->ymax + box_y);
     /* draw top box */
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColorAlpha(TH_METADATA_BG, 1.0f);
     immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -1072,7 +1073,7 @@ void ED_region_image_metadata_draw(
     BLF_clipping(blf_mono_font, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     BLF_enable(blf_mono_font, BLF_CLIPPING);
 
-    blender::ui::theme::font_theme_color_set(blf_mono_font, TH_METADATA_TEXT);
+    ui::theme::font_theme_color_set(blf_mono_font, TH_METADATA_TEXT);
     metadata_draw_imbuf(ibuf, &rect, blf_mono_font, true);
 
     BLF_disable(blf_mono_font, BLF_CLIPPING);
@@ -1088,7 +1089,7 @@ void ED_region_image_metadata_draw(
     BLI_rctf_init(&rect, frame->xmin, frame->xmax, frame->ymin - box_y, frame->ymin);
     /* draw top box */
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColorAlpha(TH_METADATA_BG, 1.0f);
     immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -1097,7 +1098,7 @@ void ED_region_image_metadata_draw(
     BLF_clipping(blf_mono_font, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     BLF_enable(blf_mono_font, BLF_CLIPPING);
 
-    blender::ui::theme::font_theme_color_set(blf_mono_font, TH_METADATA_TEXT);
+    ui::theme::font_theme_color_set(blf_mono_font, TH_METADATA_TEXT);
     metadata_draw_imbuf(ibuf, &rect, blf_mono_font, false);
 
     BLF_disable(blf_mono_font, BLF_CLIPPING);
@@ -1107,3 +1108,5 @@ void ED_region_image_metadata_draw(
 }
 
 #undef MAX_METADATA_STR
+
+}  // namespace blender

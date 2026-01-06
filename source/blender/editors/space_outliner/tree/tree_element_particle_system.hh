@@ -10,10 +10,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct Object;
 struct ParticleSystem;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementParticleSystem final : public AbstractTreeElement {
   /* Not needed right now, avoid unused member variable warning. */
@@ -24,4 +26,5 @@ class TreeElementParticleSystem final : public AbstractTreeElement {
   TreeElementParticleSystem(TreeElement &legacy_te, Object &object, ParticleSystem &psys);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

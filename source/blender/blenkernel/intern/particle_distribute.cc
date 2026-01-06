@@ -33,6 +33,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 static void alloc_child_particles(ParticleSystem *psys, int tot)
 {
   if (psys->child) {
@@ -96,7 +98,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
 {
   ParticleData *pa = nullptr;
   float min[3], max[3], delta[3], d;
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const Span<float3> positions = mesh->vert_positions();
   int totvert = mesh->verts_num, from = psys->part->from;
   int i, j, k, p, res = psys->part->grid_res, size[3], axis;
 
@@ -499,13 +501,13 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 
 #if ONLY_WORKING_WITH_PA_VERTS
   if (ctx->tree) {
-    blender::KDTreeNearest_3d ptn[3];
+    KDTreeNearest_3d ptn[3];
     int w, maxw;
 
     psys_particle_on_dm(
         ctx->mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co1, 0, 0, 0, orco1, 0);
     BKE_mesh_orco_verts_transform(ob->data, &orco1, 1, true);
-    maxw = blender::kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
+    maxw = kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
 
     for (w = 0; w < maxw; w++) {
       pa->verts[w] = ptn->num;
@@ -581,7 +583,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
   MFace *mface;
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const Span<float3> positions = mesh->vert_positions();
 
   pa->num = i = ctx->index[p];
   MFace *mfaces = static_cast<MFace *>(
@@ -721,7 +723,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
   cpa->num = ctx->index[p];
 
   if (ctx->tree) {
-    blender::KDTreeNearest_3d ptn[10];
+    KDTreeNearest_3d ptn[10];
     int w, maxw;  //, do_seams;
     float maxd /*, mind,dd */, totw = 0.0f;
     int parent[10];
@@ -738,8 +740,8 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
                         nullptr,
                         nullptr,
                         orco1);
-    BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &orco1, 1, true);
-    maxw = blender::kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
+    BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), &orco1, 1, true);
+    maxw = kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
 
     maxd = ptn[maxw - 1].dist;
     // mind=ptn[0].dist; /* UNUSED */
@@ -896,7 +898,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   ParticleData *pa = nullptr, *tpars = nullptr;
   ParticleSettings *part;
   ParticleSeam *seams = nullptr;
-  blender::KDTree_3d *tree = nullptr;
+  KDTree_3d *tree = nullptr;
   Mesh *mesh = nullptr;
   float *jit = nullptr;
   int i, p = 0;
@@ -951,7 +953,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         mesh = final_mesh;
       }
       else {
-        mesh = blender::id_cast<Mesh *>(BKE_id_copy_ex(
+        mesh = id_cast<Mesh *>(BKE_id_copy_ex(
             nullptr, static_cast<const ID *>(ob->data), nullptr, LIB_ID_COPY_LOCALIZE));
       }
       BKE_mesh_tessface_ensure(mesh);
@@ -980,7 +982,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     children = 1;
 
-    tree = blender::kdtree_3d_new(totpart);
+    tree = kdtree_3d_new(totpart);
 
     for (p = 0, pa = psys->particles; p < totpart; p++, pa++) {
       psys_particle_on_dm(mesh,
@@ -994,11 +996,11 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
                           nullptr,
                           nullptr,
                           orco);
-      BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &orco, 1, true);
-      blender::kdtree_3d_insert(tree, p, orco);
+      BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), &orco, 1, true);
+      kdtree_3d_insert(tree, p, orco);
     }
 
-    blender::kdtree_3d_balance(tree);
+    kdtree_3d_balance(tree);
 
     totpart = psys_get_tot_child(scene, psys, use_render_params);
     cfrom = from = PART_FROM_FACE;
@@ -1012,7 +1014,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       mesh = final_mesh;
     }
     else {
-      mesh = blender::id_cast<Mesh *>(BKE_id_copy_ex(
+      mesh = id_cast<Mesh *>(BKE_id_copy_ex(
           nullptr, static_cast<const ID *>(ob->data), nullptr, LIB_ID_COPY_LOCALIZE));
     }
 
@@ -1022,25 +1024,25 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     BKE_mesh_orco_ensure(ob, mesh);
 
     if (from == PART_FROM_VERT) {
-      const blender::Span<blender::float3> positions = mesh->vert_positions();
+      const Span<float3> positions = mesh->vert_positions();
       const float (*orcodata)[3] = static_cast<const float (*)[3]>(
           CustomData_get_layer(&mesh->vert_data, CD_ORCO));
       int totvert = mesh->verts_num;
 
-      tree = blender::kdtree_3d_new(totvert);
+      tree = kdtree_3d_new(totvert);
 
       for (p = 0; p < totvert; p++) {
         if (orcodata) {
           copy_v3_v3(co, orcodata[p]);
-          BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co, 1, true);
+          BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), &co, 1, true);
         }
         else {
           copy_v3_v3(co, positions[p]);
         }
-        blender::kdtree_3d_insert(tree, p, co);
+        kdtree_3d_insert(tree, p, co);
       }
 
-      blender::kdtree_3d_balance(tree);
+      kdtree_3d_balance(tree);
     }
   }
 
@@ -1058,7 +1060,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       BKE_id_free(nullptr, mesh);
     }
 
-    blender::kdtree_3d_free(tree);
+    kdtree_3d_free(tree);
     BLI_rng_free(rng);
 
     return 0;
@@ -1085,16 +1087,16 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         copy_v3_v3(co1, orcodata[mf->v1]);
         copy_v3_v3(co2, orcodata[mf->v2]);
         copy_v3_v3(co3, orcodata[mf->v3]);
-        BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co1, 1, true);
-        BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co2, 1, true);
-        BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co3, 1, true);
+        BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), &co1, 1, true);
+        BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), &co2, 1, true);
+        BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), &co3, 1, true);
         if (mf->v4) {
           copy_v3_v3(co4, orcodata[mf->v4]);
-          BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), &co4, 1, true);
+          BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), &co4, 1, true);
         }
       }
       else {
-        blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+        MutableSpan<float3> positions = mesh->vert_positions_for_write();
         copy_v3_v3(co1, positions[mf->v1]);
         copy_v3_v3(co2, positions[mf->v2]);
         copy_v3_v3(co3, positions[mf->v3]);
@@ -1170,7 +1172,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     if (mesh != final_mesh) {
       BKE_id_free(nullptr, mesh);
     }
-    blender::kdtree_3d_free(tree);
+    kdtree_3d_free(tree);
     BLI_rng_free(rng);
     MEM_freeN(element_weight);
     MEM_freeN(particle_element);
@@ -1349,7 +1351,7 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
   TaskPool *task_pool = BLI_task_pool_create(&ctx, TASK_PRIORITY_HIGH);
 
   const int totpart = (from == PART_FROM_CHILD ? sim->psys->totchild : sim->psys->totpart);
-  blender::Vector<ParticleTask> tasks = psys_tasks_create(&ctx, 0, totpart);
+  Vector<ParticleTask> tasks = psys_tasks_create(&ctx, 0, totpart);
   for (ParticleTask &task : tasks) {
     psys_task_init_distribute(&task, sim);
     if (from == PART_FROM_CHILD) {
@@ -1405,3 +1407,5 @@ void distribute_particles(ParticleSimulationData *sim, int from)
     fprintf(stderr, "Particle distribution error!\n");
   }
 }
+
+}  // namespace blender

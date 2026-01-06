@@ -482,7 +482,7 @@ void Instance::render_sync()
   begin_sync();
 
   DRW_render_object_iter(
-      render, depsgraph, [this](blender::draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
+      render, depsgraph, [this](draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
         this->object_sync(ob_ref, *this->manager);
       });
 

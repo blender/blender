@@ -16,7 +16,9 @@
 
 #include "paint_intern.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender {
+
+namespace ed::sculpt_paint {
 
 constexpr int AntiAliasingSamplesPerTexelAxisMin = 3;
 constexpr int AntiAliasingSamplesPerTexelAxisMax = 16;
@@ -159,7 +161,7 @@ static void curve_mask_allocate(CurveMaskCache *curve_mask_cache, const int diam
   curve_mask_cache->curve_mask_size = curve_mask_size;
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
 
 using namespace blender::ed::sculpt_paint;
 
@@ -185,3 +187,5 @@ void paint_curve_mask_cache_update(CurveMaskCache *curve_mask_cache,
   }
   update_curve_mask(curve_mask_cache, brush, diameter, radius, cursor_position);
 }
+
+}  // namespace blender

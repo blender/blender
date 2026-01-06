@@ -13,9 +13,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** Anti-Aliasing (SMAA 1x) ******************** */
 
-namespace blender::nodes::node_composite_antialiasing_cc {
+namespace nodes::node_composite_antialiasing_cc {
 
 static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
 {
@@ -96,13 +98,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new AntiAliasingOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_antialiasing_cc
+}  // namespace nodes::node_composite_antialiasing_cc
 
 static void register_node_type_cmp_antialiasing()
 {
-  namespace file_ns = blender::nodes::node_composite_antialiasing_cc;
+  namespace file_ns = nodes::node_composite_antialiasing_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeAntiAliasing", CMP_NODE_ANTIALIASING);
   ntype.ui_name = "Anti-Aliasing";
@@ -111,9 +113,11 @@ static void register_node_type_cmp_antialiasing()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_antialiasing_declare;
   ntype.flag |= NODE_PREVIEW;
-  blender::bke::node_type_size(ntype, 175, 140, 200);
+  bke::node_type_size(ntype, 175, 140, 200);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_antialiasing)
+
+}  // namespace blender

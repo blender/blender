@@ -82,7 +82,7 @@ ShaderFxData *shaderfx_add(
   BKE_shaderfx_unique_name(&ob->shader_fx, new_fx);
 
   BLI_assert(ob->type == OB_GREASE_PENCIL);
-  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -254,8 +254,7 @@ static bool edit_shaderfx_poll_generic(bContext *C,
                                        const bool is_liboverride_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", rna_type);
-  Object *ob = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
-                                context_active_object(C);
+  Object *ob = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   ShaderFxData *fx = static_cast<ShaderFxData *>(ptr.data); /* May be nullptr. */
 
   if (!ED_operator_object_active_editable_ex(C, ob)) {

@@ -14,6 +14,8 @@
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_enums.h"
 
+namespace blender {
+
 struct Base;
 struct Bone;
 struct Depsgraph;
@@ -41,7 +43,7 @@ struct wmOperator;
 #define BONESEL_ANY (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
 
 #define EBONE_SELECTABLE(arm, ebone) \
-  (blender::animrig::bone_is_visible(arm, ebone) && !((ebone)->flag & BONE_UNSELECTABLE))
+  (animrig::bone_is_visible(arm, ebone) && !((ebone)->flag & BONE_UNSELECTABLE))
 
 #define EBONE_EDITABLE(ebone) \
   (CHECK_TYPE_INLINE(ebone, EditBone *), \
@@ -135,25 +137,25 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op);
 
 /* `armature_select.cc` */
 
-Base *ED_armature_base_and_ebone_from_select_buffer(blender::Span<Base *> bases,
+Base *ED_armature_base_and_ebone_from_select_buffer(Span<Base *> bases,
                                                     unsigned int select_id,
                                                     EditBone **r_ebone);
-Object *ED_armature_object_and_ebone_from_select_buffer(blender::Span<Object *> objects,
+Object *ED_armature_object_and_ebone_from_select_buffer(Span<Object *> objects,
                                                         unsigned int select_id,
                                                         EditBone **r_ebone);
-Base *ED_armature_base_and_pchan_from_select_buffer(blender::Span<Base *> bases,
+Base *ED_armature_base_and_pchan_from_select_buffer(Span<Base *> bases,
                                                     unsigned int select_id,
                                                     bPoseChannel **r_pchan);
 /**
  * For callers that don't need the pose channel.
  */
-Base *ED_armature_base_and_bone_from_select_buffer(blender::Span<Base *> bases,
+Base *ED_armature_base_and_bone_from_select_buffer(Span<Base *> bases,
                                                    unsigned int select_id,
                                                    Bone **r_bone);
 bool ED_armature_edit_deselect_all(Object *obedit);
 bool ED_armature_edit_deselect_all_visible(Object *obedit);
-bool ED_armature_edit_deselect_all_multi_ex(blender::Span<Base *> bases);
-bool ED_armature_edit_deselect_all_visible_multi_ex(blender::Span<Base *> bases);
+bool ED_armature_edit_deselect_all_multi_ex(Span<Base *> bases);
+bool ED_armature_edit_deselect_all_visible_multi_ex(Span<Base *> bases);
 bool ED_armature_edit_deselect_all_visible_multi(bContext *C);
 /**
  * \return True when pick finds an element or the selection changed.
@@ -313,9 +315,7 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
 void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
                                             ViewLayer *view_layer,
                                             Base *base_select);
-bool ED_pose_deselect_all_multi_ex(blender::Span<Base *> bases,
-                                   int select_mode,
-                                   bool ignore_visibility);
+bool ED_pose_deselect_all_multi_ex(Span<Base *> bases, int select_mode, bool ignore_visibility);
 bool ED_pose_deselect_all_multi(bContext *C, int select_mode, bool ignore_visibility);
 /**
  * 'select_mode' is usual SEL_SELECT/SEL_DESELECT/SEL_TOGGLE/SEL_INVERT.
@@ -343,3 +343,5 @@ void ED_mesh_deform_bind_callback(Object *object,
 EditBone *ED_armature_pick_ebone(bContext *C, const int xy[2], bool findunsel, Base **r_base);
 bPoseChannel *ED_armature_pick_pchan(bContext *C, const int xy[2], bool findunsel, Base **r_base);
 Bone *ED_armature_pick_bone(bContext *C, const int xy[2], bool findunsel, Base **r_base);
+
+}  // namespace blender

@@ -10,6 +10,8 @@
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 
+namespace blender {
+
 /* Regularized Kelvinlets: Sculpting Brushes based on Fundamental Solutions of Elasticity
  * Pixar Technical Memo #17-03 */
 
@@ -200,3 +202,5 @@ void BKE_kelvinlet_twist(float radius_elem_disp[3],
   sculpt_kelvinet_integrate(
       kelvinlet_twist, radius_elem_disp, elem_orig_co, brush_location, surface_normal, params);
 }
+
+}  // namespace blender

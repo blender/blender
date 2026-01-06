@@ -10,7 +10,9 @@
 
 #include "DNA_vec_types.h"
 
-namespace blender::ui {
+namespace blender {
+
+namespace ui {
 struct SmoothView2DStore;
 }
 
@@ -182,6 +184,8 @@ struct View2D {
   float page_size_y = 0;
 
   /* animated smooth view */
-  blender::ui::SmoothView2DStore *sms = nullptr;
+  ui::SmoothView2DStore *sms = nullptr;
   struct wmTimer *smooth_timer = nullptr;
 };
+
+}  // namespace blender

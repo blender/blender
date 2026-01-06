@@ -26,6 +26,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_operators_private.hh"
 
+namespace blender {
+
 static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot *slot_targetmap)
 {
   BMIter liter;
@@ -73,13 +75,13 @@ static BMFace *remdoubles_createface(BMesh *bm,
   BMEdge *e_new;
 
   /* New ordered edges. */
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_buf(f->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_buf(f->len);
   BMEdge **edges = edges_buf.data();
   /* New ordered verts. */
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts_buf(f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts_buf(f->len);
   BMVert **verts = verts_buf.data();
   /* Original ordered loops to copy attributes into the new face. */
-  blender::Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> loops_buf(f->len);
+  Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> loops_buf(f->len);
   BMLoop **loops = loops_buf.data();
 
   STACK_DECLARE(edges);
@@ -196,10 +198,10 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
   /* Maintain selection history. */
   const bool has_selected = !BLI_listbase_is_empty(&bm->selected);
   const bool use_targetmap_all = has_selected;
-  blender::Map<void *, void *> targetmap_all;
+  Map<void *, void *> targetmap_all;
 
   /* Used when use_centroid is true. */
-  blender::MultiValueMap<BMVert *, BMVert *> clusters;
+  MultiValueMap<BMVert *, BMVert *> clusters;
 
   /* Mark merge verts for deletion. */
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -228,7 +230,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
     /* Compute centroid for each survivor. */
     for (const auto &item : clusters.items()) {
       BMVert *v_dst = item.key;
-      blender::Span<BMVert *> cluster = item.value;
+      Span<BMVert *> cluster = item.value;
 
       float centroid[3];
       copy_v3_v3(centroid, v_dst->co);
@@ -666,9 +668,9 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
   bool found_duplicates = false;
   bool has_self_index = false;
 
-  blender::KDTree_3d *tree = blender::kdtree_3d_new(verts_len);
+  KDTree_3d *tree = kdtree_3d_new(verts_len);
   for (int i = 0; i < verts_len; i++) {
-    blender::kdtree_3d_insert(tree, i, verts[i]->co);
+    kdtree_3d_insert(tree, i, verts[i]->co);
     if (has_keep_vert && BMO_vert_flag_test(bm, verts[i], VERT_KEEP)) {
       duplicates[i] = i;
       has_self_index = true;
@@ -678,7 +680,7 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     }
   }
 
-  blender::kdtree_3d_balance(tree);
+  kdtree_3d_balance(tree);
 
   /* Given a cluster of duplicates, pick the index to keep. */
   auto deduplicate_target_calc_fn = [&verts](const int *cluster, const int cluster_num) -> int {
@@ -689,9 +691,9 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     }
     BLI_assert(cluster_num > 2);
 
-    blender::float3 centroid{0.0f};
+    float3 centroid{0.0f};
     for (int i = 0; i < cluster_num; i++) {
-      centroid += blender::float3(verts[cluster[i]]->co);
+      centroid += float3(verts[cluster[i]]->co);
     }
     centroid /= float(cluster_num);
 
@@ -718,10 +720,10 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     return i_best;
   };
 
-  found_duplicates = blender::kdtree_calc_duplicates_cb_cpp<blender::float3>(
+  found_duplicates = kdtree_calc_duplicates_cb_cpp<float3>(
                          tree, dist, duplicates, has_self_index, deduplicate_target_calc_fn) != 0;
 
-  blender::kdtree_3d_free(tree);
+  kdtree_3d_free(tree);
 
   if (!found_duplicates) {
     MEM_freeN(duplicates);
@@ -740,8 +742,8 @@ static int *bmesh_find_doubles_by_distance_connected_impl(BMesh *bm,
   int *duplicates = MEM_malloc_arrayN<int>(verts_len, __func__);
   bool found_duplicates = false;
 
-  blender::Stack<int> vert_stack;
-  blender::Map<BMVert *, int> vert_to_index_map;
+  Stack<int> vert_stack;
+  Map<BMVert *, int> vert_to_index_map;
 
   for (int i = 0; i < verts_len; i++) {
     if (has_keep_vert && BMO_vert_flag_test(bm, verts[i], VERT_KEEP)) {
@@ -753,7 +755,7 @@ static int *bmesh_find_doubles_by_distance_connected_impl(BMesh *bm,
     vert_to_index_map.add(verts[i], i);
   }
 
-  const float dist_sq = blender::math::square(dist);
+  const float dist_sq = math::square(dist);
 
   for (int i = 0; i < verts_len; i++) {
     if (!ELEM(duplicates[i], -1, i)) {
@@ -896,3 +898,5 @@ void bmo_find_doubles_exec(BMesh *bm, BMOperator *op)
   slot_targetmap_out = BMO_slot_get(op->slots_out, "targetmap.out");
   bmesh_find_doubles_common(bm, op, op, slot_targetmap_out);
 }
+
+}  // namespace blender

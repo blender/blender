@@ -24,6 +24,8 @@
 
 #include "MOD_meshcache_util.hh" /* own include */
 
+namespace blender {
+
 struct MDDHead {
   int frame_tot;
   int verts_tot;
@@ -310,3 +312,5 @@ bool MOD_meshcache_read_mdd_times(const char *filepath,
   fclose(fp);
   return ok;
 }
+
+}  // namespace blender

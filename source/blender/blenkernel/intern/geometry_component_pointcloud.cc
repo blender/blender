@@ -8,7 +8,9 @@
 #include "BKE_lib_id.hh"
 #include "BKE_pointcloud.hh"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
@@ -113,9 +115,9 @@ void PointCloudComponent::count_memory(MemoryCounter &memory) const
 
 /** \} */
 
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::bke {
+namespace bke {
 
 /* -------------------------------------------------------------------- */
 /** \name Attribute Access
@@ -134,4 +136,5 @@ std::optional<MutableAttributeAccessor> PointCloudComponent::attributes_for_writ
 
 /** \} */
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

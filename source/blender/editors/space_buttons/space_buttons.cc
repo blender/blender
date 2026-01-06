@@ -55,6 +55,8 @@
 
 #include "buttons_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Default Callbacks for Properties Space
  * \{ */
@@ -165,13 +167,13 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 /** \name Property Editor Layout
  * \{ */
 
-void ED_buttons_visible_tabs_menu(bContext *C, blender::ui::Layout *layout, void * /*arg*/)
+void ED_buttons_visible_tabs_menu(bContext *C, ui::Layout *layout, void * /*arg*/)
 {
   PointerRNA ptr = RNA_pointer_create_discrete(
       reinterpret_cast<ID *>(CTX_wm_screen(C)), &RNA_SpaceProperties, CTX_wm_space_properties(C));
 
   /* These can be reordered freely. */
-  constexpr std::array<blender::StringRefNull, BCONTEXT_TOT> filter_items = {
+  constexpr std::array<StringRefNull, BCONTEXT_TOT> filter_items = {
       "show_properties_tool",        "show_properties_render",
       "show_properties_output",      "show_properties_view_layer",
       "show_properties_scene",       "show_properties_world",
@@ -184,22 +186,21 @@ void ED_buttons_visible_tabs_menu(bContext *C, blender::ui::Layout *layout, void
       "show_properties_strip",       "show_properties_strip_modifier",
   };
 
-  for (blender::StringRefNull item : filter_items) {
-    layout->prop(&ptr, item, blender::ui::ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
+  for (StringRefNull item : filter_items) {
+    layout->prop(&ptr, item, ui::ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
   }
 }
 
-void ED_buttons_navbar_menu(bContext *C, blender::ui::Layout *layout, void * /*arg*/)
+void ED_buttons_navbar_menu(bContext *C, ui::Layout *layout, void * /*arg*/)
 {
   ED_screens_region_flip_menu_create(C, layout, nullptr);
-  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
+  layout->operator_context_set(wm::OpCallContext::InvokeDefault);
   layout->op("SCREEN_OT_region_toggle", IFACE_("Hide"), ICON_NONE);
 }
 
-blender::Vector<eSpaceButtons_Context> ED_buttons_tabs_list(const SpaceProperties *sbuts,
-                                                            bool apply_filter)
+Vector<eSpaceButtons_Context> ED_buttons_tabs_list(const SpaceProperties *sbuts, bool apply_filter)
 {
-  blender::Vector<eSpaceButtons_Context> tabs;
+  Vector<eSpaceButtons_Context> tabs;
   const int filter = sbuts->visible_tabs;
 
   auto add_spacer = [&]() {
@@ -314,7 +315,7 @@ static void buttons_main_region_layout_properties(const bContext *C,
   ED_region_panels_layout_ex(C,
                              region,
                              &region->runtime->type->paneltypes,
-                             blender::wm::OpCallContext::InvokeRegionWin,
+                             wm::OpCallContext::InvokeRegionWin,
                              contexts,
                              nullptr);
 }
@@ -365,7 +366,7 @@ static bool property_search_for_context(const bContext *C, ARegion *region, Spac
 }
 
 static void property_search_move_to_next_tab_with_results(
-    SpaceProperties *sbuts, blender::Span<eSpaceButtons_Context> context_tabs_array)
+    SpaceProperties *sbuts, Span<eSpaceButtons_Context> context_tabs_array)
 {
   /* As long as all-tab search in the tool is disabled in the tool context, don't move from it. */
   if (sbuts->mainb == BCONTEXT_TOOL) {
@@ -400,12 +401,12 @@ static void property_search_move_to_next_tab_with_results(
 static void property_search_all_tabs(const bContext *C,
                                      SpaceProperties *sbuts,
                                      ARegion *region_original,
-                                     blender::Span<eSpaceButtons_Context> context_tabs_array)
+                                     Span<eSpaceButtons_Context> context_tabs_array)
 {
   /* Use local copies of the area and duplicate the region as a mainly-paranoid protection
    * against changing any of the space / region data while running the search. */
   ScrArea *area_original = CTX_wm_area(C);
-  ScrArea area_copy = blender::dna::shallow_copy(*area_original);
+  ScrArea area_copy = dna::shallow_copy(*area_original);
   ARegion *region_copy = BKE_area_region_copy(area_copy.type, region_original);
   /* Set the region visible field. Otherwise some layout code thinks we're drawing in a popup.
    * This likely isn't necessary, but it's nice to emulate a "real" region where possible. */
@@ -413,7 +414,7 @@ static void property_search_all_tabs(const bContext *C,
   CTX_wm_area_set(const_cast<bContext *>(C), &area_copy);
   CTX_wm_region_set(const_cast<bContext *>(C), region_copy);
 
-  SpaceProperties sbuts_copy = blender::dna::shallow_copy(*sbuts);
+  SpaceProperties sbuts_copy = dna::shallow_copy(*sbuts);
   sbuts_copy.path = nullptr;
   sbuts_copy.texuser = nullptr;
   sbuts_copy.runtime = MEM_new<SpaceProperties_Runtime>(__func__, *sbuts->runtime);
@@ -440,7 +441,7 @@ static void property_search_all_tabs(const bContext *C,
                    i,
                    property_search_for_context(C, region_copy, &sbuts_copy));
 
-    blender::ui::blocklist_free(C, region_copy);
+    ui::blocklist_free(C, region_copy);
   }
 
   BKE_area_region_free(area_copy.type, region_copy);
@@ -460,14 +461,14 @@ static void buttons_main_region_property_search(const bContext *C,
                                                 ARegion *region)
 {
   /* Theoretical maximum of every context shown with a spacer between every tab. */
-  const blender::Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
+  const Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
 
   property_search_all_tabs(C, sbuts, region, context_tabs_array);
 
   /* Check whether the current tab has a search match. */
   bool current_tab_has_search_match = false;
   for (Panel &panel : region->panels) {
-    if (blender::ui::panel_is_active(&panel) && blender::ui::panel_matches_search_filter(&panel)) {
+    if (ui::panel_is_active(&panel) && ui::panel_matches_search_filter(&panel)) {
       current_tab_has_search_match = true;
     }
   }
@@ -501,7 +502,6 @@ static void buttons_main_region_property_search(const bContext *C,
 
 static eSpaceButtons_Context find_new_properties_tab(const SpaceProperties *sbuts, int iter_step)
 {
-  using namespace blender;
   const Vector<eSpaceButtons_Context> tabs_array_no_filter = ED_buttons_tabs_list(sbuts, false);
   const Vector<eSpaceButtons_Context> tabs_array = ED_buttons_tabs_list(sbuts);
 
@@ -560,7 +560,7 @@ static void buttons_main_region_layout(const bContext *C, ARegion *region)
   buttons_context_compute(C, sbuts);
 
   if (ED_buttons_tabs_list(sbuts).is_empty()) {
-    View2D *v2d = blender::ui::view2d_fromcontext(C);
+    View2D *v2d = ui::view2d_fromcontext(C);
     v2d->scroll &= ~V2D_SCROLL_VERTICAL;
     return;
   }
@@ -947,7 +947,7 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
 
 static void buttons_id_remap(ScrArea * /*area*/,
                              SpaceLink *slink,
-                             const blender::bke::id::IDRemapper &mappings)
+                             const bke::id::IDRemapper &mappings)
 {
   SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(slink);
 
@@ -1128,7 +1128,7 @@ void ED_spacetype_buttons()
   /* Register the panel types from strip modifiers. The actual panels are built per strip modifier
    * rather than per modifier type. */
   for (int i = 0; i < NUM_STRIP_MODIFIER_TYPES; i++) {
-    const blender::seq::StripModifierTypeInfo *mti = blender::seq::modifier_type_info_get(i);
+    const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(i);
     if (mti != nullptr && mti->panel_register != nullptr) {
       mti->panel_register(art);
     }
@@ -1159,3 +1159,5 @@ void ED_spacetype_buttons()
 }
 
 /** \} */
+
+}  // namespace blender

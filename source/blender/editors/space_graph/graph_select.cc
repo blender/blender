@@ -40,6 +40,8 @@
 
 #include "graph_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Keyframe Utilities
  * \{ */
@@ -108,11 +110,11 @@ static void nearest_fcurve_vert_store(ListBaseT<tNearestVertInfo> *matches,
     /* convert from data-space to screen coordinates
      * NOTE: `hpoint +1` gives us 0,1,2 respectively for each handle,
      * needed to access the relevant vertex coordinates in the 3x3 'vec' matrix */
-    if (blender::ui::view2d_view_to_region_clip(v2d,
-                                                bezt->vec[hpoint + 1][0],
-                                                (bezt->vec[hpoint + 1][1] + offset) * unit_scale,
-                                                &screen_co[0],
-                                                &screen_co[1]) &&
+    if (ui::view2d_view_to_region_clip(v2d,
+                                       bezt->vec[hpoint + 1][0],
+                                       (bezt->vec[hpoint + 1][1] + offset) * unit_scale,
+                                       &screen_co[0],
+                                       &screen_co[1]) &&
         /* check if distance from mouse cursor to vert in screen space is within tolerance */
         ((dist = len_v2v2_int(mval, screen_co)) <= GVERTSEL_TOL))
     {
@@ -513,7 +515,7 @@ static rctf initialize_box_select_coords(const bAnimContext *ac, const rctf *rec
 
   /* Convert mouse coordinates to frame ranges and
    * channel coordinates corrected for view pan/zoom. */
-  blender::ui::view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
+  ui::view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
   return rectf;
 }
 
@@ -1642,7 +1644,7 @@ static wmOperatorStatus graphkeys_select_leftright_invoke(bContext *C,
     float x;
 
     /* determine which side of the current frame mouse is on */
-    x = blender::ui::view2d_region_to_view_x(v2d, event->mval[0]);
+    x = ui::view2d_region_to_view_x(v2d, event->mval[0]);
     if (x < scene->r.cfra) {
       RNA_enum_set(op->ptr, "mode", GRAPHKEYS_LRSEL_LEFT);
     }
@@ -2208,3 +2210,5 @@ void GRAPH_OT_select_key_handles(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

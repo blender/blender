@@ -69,7 +69,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
   BLI_assert(t->mode == TFM_SKIN_RESIZE);
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    Mesh *mesh = blender::id_cast<Mesh *>(tc->obedit->data);
+    Mesh *mesh = id_cast<Mesh *>(tc->obedit->data);
     BMesh *bm = em->bm;
     BMVert *eve;
     BMIter iter;

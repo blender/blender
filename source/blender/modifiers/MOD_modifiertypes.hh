@@ -10,6 +10,8 @@
 
 #include "BKE_modifier.hh"
 
+namespace blender {
+
 /* ****************** Type structures for all modifiers ****************** */
 
 extern ModifierTypeInfo modifierType_None;
@@ -106,3 +108,5 @@ extern ModifierTypeInfo modifierType_GreasePencilTexture;
  * Only called by `BKE_modifier.hh/modifier.cc`
  */
 void modifier_type_init(ModifierTypeInfo *types[]);
+
+}  // namespace blender

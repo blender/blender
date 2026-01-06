@@ -18,6 +18,8 @@
 
 #include "ED_curves.hh"
 
+namespace blender {
+
 struct ARegion;
 struct Brush;
 struct Depsgraph;
@@ -26,13 +28,13 @@ struct RegionView3D;
 struct Scene;
 struct View3D;
 
-namespace blender::bke {
+namespace bke {
 struct BVHTreeFromMesh;
 }
 
 struct ReportList;
 
-namespace blender::ed::sculpt_paint {
+namespace ed::sculpt_paint {
 
 using bke::CurvesGeometry;
 using bke::CurvesSurfaceTransforms;
@@ -193,4 +195,6 @@ struct CurvesConstraintSolver {
 bool curves_sculpt_poll(bContext *C);
 bool curves_sculpt_poll_view3d(bContext *C);
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
+
+}  // namespace blender

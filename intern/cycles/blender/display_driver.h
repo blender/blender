@@ -10,13 +10,15 @@
 
 #include "util/unique_ptr.h"
 
+namespace blender {
 struct GPUContext;
 struct GPUFence;
 struct RenderEngine;
 struct Scene;
-namespace blender::gpu {
+namespace gpu {
 class Shader;
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender
 
 CCL_NAMESPACE_BEGIN
 
@@ -27,7 +29,8 @@ class BlenderDisplayShader {
   static constexpr const char *tex_coord_attribute_name = "texCoord";
 
   /* Create shader implementation suitable for the given render engine and scene configuration. */
-  static unique_ptr<BlenderDisplayShader> create(::RenderEngine &b_engine, ::Scene &b_scene);
+  static unique_ptr<BlenderDisplayShader> create(blender::RenderEngine &b_engine,
+                                                 blender::Scene &b_scene);
 
   BlenderDisplayShader() = default;
   virtual ~BlenderDisplayShader() = default;
@@ -76,7 +79,7 @@ class BlenderFallbackDisplayShader : public BlenderDisplayShader {
 
 class BlenderDisplaySpaceShader : public BlenderDisplayShader {
  public:
-  BlenderDisplaySpaceShader(::RenderEngine &b_engine, ::Scene &b_scene);
+  BlenderDisplaySpaceShader(blender::RenderEngine &b_engine, blender::Scene &b_scene);
 
   blender::gpu::Shader *bind(const int width, const int height) override;
   void unbind() override;
@@ -84,8 +87,8 @@ class BlenderDisplaySpaceShader : public BlenderDisplayShader {
  protected:
   blender::gpu::Shader *get_shader_program() override;
 
-  ::RenderEngine &b_engine_;
-  ::Scene &b_scene_;
+  blender::RenderEngine &b_engine_;
+  blender::Scene &b_scene_;
 
   /* Cached values of various OpenGL resources. */
   blender::gpu::Shader *shader_program_ = nullptr;
@@ -94,7 +97,9 @@ class BlenderDisplaySpaceShader : public BlenderDisplayShader {
 /* Display driver implementation which is specific for Blender viewport integration. */
 class BlenderDisplayDriver : public DisplayDriver {
  public:
-  BlenderDisplayDriver(::RenderEngine &b_engine, ::Scene &b_scene, const bool background);
+  BlenderDisplayDriver(blender::RenderEngine &b_engine,
+                       blender::Scene &b_scene,
+                       const bool background);
   ~BlenderDisplayDriver() override;
 
   void graphics_interop_activate() override;
@@ -136,7 +141,7 @@ class BlenderDisplayDriver : public DisplayDriver {
   /* Destroy all GPU resources which are being used by this object. */
   void gpu_resources_destroy();
 
-  ::RenderEngine &b_engine_;
+  blender::RenderEngine &b_engine_;
   bool background_;
 
   /* Content of the display is to be filled with zeroes. */
@@ -148,8 +153,8 @@ class BlenderDisplayDriver : public DisplayDriver {
   struct Tiles;
   unique_ptr<Tiles> tiles_;
 
-  GPUFence *gpu_render_sync_ = nullptr;
-  GPUFence *gpu_upload_sync_ = nullptr;
+  blender::GPUFence *gpu_render_sync_ = nullptr;
+  blender::GPUFence *gpu_upload_sync_ = nullptr;
 
   float2 zoom_ = make_float2(1.0f, 1.0f);
 };

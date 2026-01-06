@@ -10,9 +10,11 @@
 
 #include "tree_element_id.hh"
 
+namespace blender {
+
 struct Library;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementIDLibrary final : public TreeElementID {
  public:
@@ -21,4 +23,5 @@ class TreeElementIDLibrary final : public TreeElementID {
   StringRefNull get_warning() const override;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

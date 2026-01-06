@@ -2080,4 +2080,5 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
 }
 
 }  // namespace blender::geometry::boolean
+
 #endif  // WITH_MANIFOLD

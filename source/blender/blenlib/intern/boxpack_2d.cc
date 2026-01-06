@@ -21,6 +21,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* de-duplicate as we pack */
 #define USE_MERGE
 /* use strip-free */
@@ -742,3 +744,5 @@ void BLI_box_pack_2d_fixedarea(ListBaseT<FixedSizeBoxPack> *boxes,
 
   BLI_freelistN(&spaces);
 }
+
+}  // namespace blender

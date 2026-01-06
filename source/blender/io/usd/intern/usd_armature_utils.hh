@@ -12,25 +12,27 @@
 #include <pxr/base/tf/token.h>
 #include <pxr/usd/usdSkel/animation.h>
 
+namespace blender {
+
 struct Bone;
 struct Depsgraph;
 struct FCurve;
 struct ModifierData;
 struct Object;
 
-namespace blender::animrig {
+namespace animrig {
 class Channelbag;
 struct FCurveDescriptor;
-}  // namespace blender::animrig
+}  // namespace animrig
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /* Custom Blender Primvar name used for storing armature bone lengths. */
 inline const pxr::TfToken BlenderBoneLengths("blender:bone_lengths", pxr::TfToken::Immortal);
 
 /* Utility: create new fcurve and add it as a channel to a group. */
-FCurve *create_fcurve(blender::animrig::Channelbag &channelbag,
-                      const blender::animrig::FCurveDescriptor &fcurve_descriptor,
+FCurve *create_fcurve(animrig::Channelbag &channelbag,
+                      const animrig::FCurveDescriptor &fcurve_descriptor,
                       const int sample_count);
 
 /* Utility: fill in a single fcurve sample at the provided index. */
@@ -142,4 +144,5 @@ bool can_export_skinned_mesh(const Object &obj, const Depsgraph *depsgraph);
  */
 void init_deform_bones_map(const Object *obj, Map<StringRef, const Bone *> *deform_map);
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

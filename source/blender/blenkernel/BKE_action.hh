@@ -12,6 +12,8 @@
 #include "BLI_function_ref.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
@@ -32,7 +34,7 @@ struct bPose;
 struct bPoseChannel;
 struct bPoseChannel_Runtime;
 
-namespace blender::animrig {
+namespace animrig {
 
 /**
  * Action slot handle type.
@@ -49,7 +51,7 @@ namespace blender::animrig {
  */
 using slot_handle_t = int32_t;
 
-}  // namespace blender::animrig
+}  // namespace animrig
 
 /* Action Lib Stuff ----------------- */
 
@@ -383,9 +385,9 @@ void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose
  * Flip the action so it can be applied as a mirror. Only data of slots that are related to the
  * given objects is mirrored.
  */
-void BKE_action_flip_with_pose(bAction *act, blender::Span<Object *> objects) ATTR_NONNULL(1);
+void BKE_action_flip_with_pose(bAction *act, Span<Object *> objects) ATTR_NONNULL(1);
 
-namespace blender::bke {
+namespace bke {
 
 using FoundFCurveCallback = FunctionRef<void(FCurve *fcurve, const char *bone_name)>;
 using FoundFCurveCallbackConst = FunctionRef<void(const FCurve *fcurve, const char *bone_name)>;
@@ -396,10 +398,12 @@ using FoundFCurveCallbackConst = FunctionRef<void(const FCurve *fcurve, const ch
  * \param slot_handle: only FCurves from the given action slot are visited.
  */
 void BKE_action_find_fcurves_with_bones(bAction *action,
-                                        blender::animrig::slot_handle_t slot_handle,
+                                        animrig::slot_handle_t slot_handle,
                                         FoundFCurveCallback callback);
 void BKE_action_find_fcurves_with_bones(const bAction *action,
-                                        blender::animrig::slot_handle_t slot_handle,
+                                        animrig::slot_handle_t slot_handle,
                                         FoundFCurveCallbackConst callback);
 
-};  // namespace blender::bke
+};  // namespace bke
+
+}  // namespace blender

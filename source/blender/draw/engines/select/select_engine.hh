@@ -10,6 +10,8 @@
 
 #include "DRW_render.hh"
 
+namespace blender {
+
 /* `select_engine.cc` */
 
 #ifdef WITH_DRAW_DEBUG
@@ -28,20 +30,20 @@ struct Engine : public DrawEngine::Pointer {
 #endif
 
 struct SELECTID_Context *DRW_select_engine_context_get();
-blender::gpu::FrameBuffer *DRW_engine_select_framebuffer_get();
-blender::gpu::Texture *DRW_engine_select_texture_get();
+gpu::FrameBuffer *DRW_engine_select_framebuffer_get();
+gpu::Texture *DRW_engine_select_texture_get();
 
 /* select_instance.cc */
 
-namespace blender::draw::select {
+namespace draw::select {
 
 struct Engine : public DrawEngine::Pointer {
   DrawEngine *create_instance() final;
 };
 
-}  // namespace blender::draw::select
+}  // namespace draw::select
 
-namespace blender::draw::edit_select {
+namespace draw::edit_select {
 
 struct Engine : public DrawEngine::Pointer {
   DrawEngine *create_instance() final;
@@ -49,4 +51,6 @@ struct Engine : public DrawEngine::Pointer {
   static void free_static();
 };
 
-}  // namespace blender::draw::edit_select
+}  // namespace draw::edit_select
+
+}  // namespace blender

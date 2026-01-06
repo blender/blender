@@ -31,6 +31,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 static size_t str_utf8_truncate_at_size_unchecked(char *str, const size_t str_size);
 
 /* -------------------------------------------------------------------- */
@@ -1512,3 +1514,5 @@ int BLI_str_utf8_column_count(const char *str, size_t str_len)
 }
 
 /** \} */
+
+}  // namespace blender

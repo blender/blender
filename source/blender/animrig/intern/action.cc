@@ -52,9 +52,11 @@
 #include <cstdio>
 #include <cstring>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"anim.action"};
 
-namespace blender::animrig {
+namespace animrig {
 
 namespace {
 /**
@@ -89,7 +91,7 @@ template<typename T> static void grow_array(T **array, int *num, const int add_n
   const int new_array_num = *num + add_num;
   T *new_array = MEM_calloc_arrayN<T>(new_array_num, "animrig::action/grow_array");
 
-  blender::uninitialized_relocate_n(*array, *num, new_array);
+  uninitialized_relocate_n(*array, *num, new_array);
   MEM_SAFE_FREE(*array);
 
   *array = new_array;
@@ -109,9 +111,9 @@ static void grow_array_and_insert(T **array, int *num, const int index, T item)
   const int new_array_num = *num + 1;
   T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
-  blender::uninitialized_relocate_n(*array, index, new_array);
+  uninitialized_relocate_n(*array, index, new_array);
   new_array[index] = item;
-  blender::uninitialized_relocate_n(*array + index, *num - index, new_array + index + 1);
+  uninitialized_relocate_n(*array + index, *num - index, new_array + index + 1);
 
   MEM_SAFE_FREE(*array);
 
@@ -132,7 +134,7 @@ template<typename T> static void shrink_array(T **array, int *num, const int shr
 
   T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
-  blender::uninitialized_move_n(*array, new_array_num, new_array);
+  uninitialized_move_n(*array, new_array_num, new_array);
   MEM_freeN(*array);
 
   *array = new_array;
@@ -145,8 +147,8 @@ template<typename T> static void shrink_array_and_remove(T **array, int *num, co
   const int new_array_num = *num - 1;
   T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
-  blender::uninitialized_move_n(*array, index, new_array);
-  blender::uninitialized_move_n(*array + index + 1, *num - index - 1, new_array + index);
+  uninitialized_move_n(*array, index, new_array);
+  uninitialized_move_n(*array + index + 1, *num - index - 1, new_array + index);
   MEM_freeN(*array);
 
   *array = new_array;
@@ -164,10 +166,10 @@ template<typename T> static void shrink_array_and_swap_remove(T **array, int *nu
   const int new_array_num = *num - 1;
   T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
-  blender::uninitialized_move_n(*array, index, new_array);
+  uninitialized_move_n(*array, index, new_array);
   if (index < new_array_num) {
     new_array[index] = (*array)[new_array_num];
-    blender::uninitialized_move_n(*array + index + 1, *num - index - 2, new_array + index + 1);
+    uninitialized_move_n(*array + index + 1, *num - index - 2, new_array + index + 1);
   }
   MEM_freeN(*array);
 
@@ -262,7 +264,8 @@ Layer &Action::layer_add(const std::optional<StringRefNull> name)
     STRNCPY_UTF8(new_layer.name, DATA_(layer_default_name));
   }
 
-  grow_array_and_append<::ActionLayer *>(&this->layer_array, &this->layer_array_num, &new_layer);
+  grow_array_and_append<blender::ActionLayer *>(
+      &this->layer_array, &this->layer_array_num, &new_layer);
   this->layer_active_index = this->layer_array_num - 1;
 
   /* If this is the first layer in this Action, it means that it could have been
@@ -506,7 +509,7 @@ Slot &Action::slot_add()
   BLI_strncpy_utf8(slot.identifier + 2, DATA_(slot_default_name), ARRAY_SIZE(slot.identifier) - 2);
 
   /* Append the Slot to the Action. */
-  grow_array_and_append<::ActionSlot *>(&this->slot_array, &this->slot_array_num, &slot);
+  grow_array_and_append<blender::ActionSlot *>(&this->slot_array, &this->slot_array_num, &slot);
 
   slot_identifier_ensure_unique(*this, slot);
 
@@ -937,7 +940,8 @@ Strip &Layer::strip_add(Action &owning_action, const Strip::Type strip_type)
   Strip &strip = Strip::create(owning_action, strip_type);
 
   /* Add the new strip to the strip array. */
-  grow_array_and_append<::ActionStrip *>(&this->strip_array, &this->strip_array_num, &strip);
+  grow_array_and_append<blender::ActionStrip *>(
+      &this->strip_array, &this->strip_array_num, &strip);
 
   return strip;
 }
@@ -2911,7 +2915,7 @@ ID *action_slot_get_id_best_guess(Main &bmain, Slot &slot, ID *primary_id)
   return users[0];
 }
 
-slot_handle_t first_slot_handle(const ::bAction &dna_action)
+slot_handle_t first_slot_handle(const blender::bAction &dna_action)
 {
   const Action &action = dna_action.wrap();
   if (action.slot_array_num == 0) {
@@ -3109,4 +3113,5 @@ Slot &duplicate_slot(Action &action, const Slot &slot)
   return cloned_slot;
 }
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

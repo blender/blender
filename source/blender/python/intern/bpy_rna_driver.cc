@@ -20,6 +20,8 @@
 
 #include "bpy_rna_driver.hh" /* own include */
 
+namespace blender {
+
 PyObject *pyrna_driver_get_variable_value(const AnimationEvalContext *anim_eval_context,
                                           ChannelDriver *driver,
                                           DriverVar *dvar,
@@ -84,3 +86,5 @@ bool pyrna_driver_is_equal_anim_rna(const PathResolvedRNA *anim_rna, const PyObj
   }
   return false;
 }
+
+}  // namespace blender

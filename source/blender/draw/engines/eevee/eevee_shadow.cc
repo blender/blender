@@ -587,7 +587,7 @@ void ShadowModule::init()
     ShadowModule::shadow_technique = ShadowTechnique::ATOMIC_RASTER;
   }
 
-  ::Scene &scene = *inst_.scene;
+  blender::Scene &scene = *inst_.scene;
 
   global_lod_bias_ = (1.0f - scene.eevee.shadow_resolution_scale) * SHADOW_TILEMAP_LOD;
 

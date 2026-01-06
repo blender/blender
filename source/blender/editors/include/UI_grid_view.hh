@@ -20,10 +20,12 @@
 #include "UI_abstract_view.hh"
 #include "UI_resources.hh"
 
+namespace blender {
+
 struct bContext;
 struct View2D;
 
-namespace blender::ui {
+namespace ui {
 
 class AbstractGridView;
 class GridViewItemDropTarget;
@@ -251,4 +253,5 @@ template<class ViewType> ViewType &GridViewItemDropTarget::get_view() const
   return dynamic_cast<ViewType &>(view_);
 }
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

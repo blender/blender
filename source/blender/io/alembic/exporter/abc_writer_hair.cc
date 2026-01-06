@@ -23,6 +23,9 @@
 #include "BKE_particle.h"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.alembic"};
 
 using Alembic::Abc::P3fArraySamplePtr;
@@ -31,7 +34,7 @@ using Alembic::AbcGeom::OCurvesSchema;
 using Alembic::AbcGeom::ON3fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 ABCHairWriter::ABCHairWriter(const ABCWriterConstructorArgs &args)
     : ABCAbstractWriter(args), uv_warning_shown_(false)
@@ -328,4 +331,5 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
   }
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

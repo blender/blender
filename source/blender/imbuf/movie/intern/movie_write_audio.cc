@@ -36,6 +36,8 @@
 
 #  include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"video.write"};
 
 /* If any of these codecs, we prefer the float sample format (if supported) */
@@ -451,5 +453,7 @@ void write_audio_frames(MovieWriter *context, double to_pts)
   UNUSED_VARS(context, to_pts);
 #  endif
 }
+
+}  // namespace blender
 
 #endif /* WITH_FFMPEG */

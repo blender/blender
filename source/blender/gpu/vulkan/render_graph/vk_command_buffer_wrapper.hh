@@ -10,11 +10,13 @@
 
 #include "vk_common.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 struct VKExtensions;
 }
 
-namespace blender::gpu::render_graph {
+namespace gpu::render_graph {
 class VKCommandBufferInterface {
  public:
   bool use_dynamic_rendering_local_read = true;
@@ -276,4 +278,6 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT *vk_debug_utils_label) override;
   void end_debug_utils_label() override;
 };
-}  // namespace blender::gpu::render_graph
+}  // namespace gpu::render_graph
+
+}  // namespace blender

@@ -44,6 +44,8 @@
 #include "bmesh_py_types_meshdata.hh"
 #include "bmesh_py_types_select.hh"
 
+namespace blender {
+
 static void bm_dealloc_editmode_warn(BPy_BMesh *self);
 
 /* Common Flags
@@ -1466,7 +1468,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   }
   else {
     if (use_cage) {
-      mesh_eval = blender::bke::mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &data_masks);
+      mesh_eval = bke::mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &data_masks);
     }
     else {
       mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
@@ -1954,9 +1956,9 @@ static PyObject *bpy_bmesh_uv_select_foreach_set(BPy_BMesh *self, PyObject *args
     BM_mesh_uvselect_set_elem_shared(bm,
                                      use_select,
                                      cd_loop_uv_offset,
-                                     blender::Span(loop_vert_array, loop_vert_array_num),
-                                     blender::Span(loop_edge_array, loop_edge_array_num),
-                                     blender::Span(face_array, face_array_num));
+                                     Span(loop_vert_array, loop_vert_array_num),
+                                     Span(loop_edge_array, loop_edge_array_num),
+                                     Span(face_array, face_array_num));
   }
 
   PyMem_FREE(loop_vert_array);
@@ -2093,9 +2095,9 @@ static PyObject *bpy_bmesh_uv_select_foreach_set_from_mesh(BPy_BMesh *self,
     BM_mesh_uvselect_set_elem_from_mesh(bm,
                                         use_select,
                                         uv_pick_params,
-                                        blender::Span(vert_array, vert_array_num),
-                                        blender::Span(edge_array, edge_array_num),
-                                        blender::Span(face_array, face_array_num));
+                                        Span(vert_array, vert_array_num),
+                                        Span(edge_array, edge_array_num),
+                                        Span(face_array, face_array_num));
   }
 
   PyMem_FREE(vert_array);
@@ -2250,7 +2252,7 @@ static PyObject *bpy_bmesh_calc_loop_triangles(BPy_BMElem *self)
   BMesh *bm = self->bm;
 
   corner_tris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  blender::Array<std::array<BMLoop *, 3>> corner_tris(corner_tris_tot);
+  Array<std::array<BMLoop *, 3>> corner_tris(corner_tris_tot);
   BM_mesh_calc_tessellation(bm, corner_tris);
 
   ret = PyList_New(corner_tris_tot);
@@ -5635,3 +5637,5 @@ static void bm_dealloc_editmode_warn(BPy_BMesh *self)
     /* Currently NOP - this works without warnings now. */
   }
 }
+
+}  // namespace blender

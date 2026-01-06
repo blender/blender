@@ -11,12 +11,12 @@
 
 #include "GEO_reverse_uv_sampler.hh"
 
-struct Mesh;
 namespace blender {
-template<typename CoordT> struct KDTree;
-}  // namespace blender
 
-namespace blender::geometry {
+struct Mesh;
+template<typename CoordT> struct KDTree;
+
+namespace geometry {
 
 struct AddCurvesOnMeshInputs {
   /** UV Coordinates at which the new curves should be added. */
@@ -65,4 +65,5 @@ float3 compute_surface_point_normal(const int3 &tri,
                                     const float3 &bary_coord,
                                     Span<float3> corner_normals);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

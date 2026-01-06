@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /* Box Packer */
 
 struct BoxPack {
@@ -68,3 +70,5 @@ void BLI_box_pack_2d_fixedarea(ListBaseT<FixedSizeBoxPack> *boxes,
                                int width,
                                int height,
                                ListBaseT<FixedSizeBoxPack> *packed);
+
+}  // namespace blender

@@ -173,6 +173,10 @@ struct [[host_shared]] OVERLAY_GridData {
 #  define MOTIONPATH_VERT_KEY (1u << 1)
 
 #else
+#  define CURVE_HANDLE_SELECTED blender::CURVE_HANDLE_SELECTED
+#  define CURVE_HANDLE_ALL blender::CURVE_HANDLE_ALL
+#  define MOTIONPATH_VERT_SEL blender::MOTIONPATH_VERT_SEL
+#  define MOTIONPATH_VERT_KEY blender::MOTIONPATH_VERT_KEY
 /* TODO(fclem): Find a better way to share enums/defines from DNA files with GLSL. */
 BLI_STATIC_ASSERT(CURVE_HANDLE_SELECTED == 0u, "Ensure value is sync");
 BLI_STATIC_ASSERT(CURVE_HANDLE_ALL == 1u, "Ensure value is sync");

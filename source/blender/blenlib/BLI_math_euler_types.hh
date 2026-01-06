@@ -10,8 +10,8 @@
  * Euler rotations are represented as a triple of angle representing a rotation around each basis
  * vector. The order in which the three rotations are applied changes the resulting orientation.
  *
- * A `blender::math::EulerXYZ` represent an Euler triple with fixed axis order (XYZ).
- * A `blender::math::Euler3` represents an Euler triple with arbitrary axis order.
+ * A `math::EulerXYZ` represent an Euler triple with fixed axis order (XYZ).
+ * A `math::Euler3` represents an Euler triple with arbitrary axis order.
  *
  * They are prone to gimbal lock and are not suited for many applications. However they are more
  * intuitive than other rotation types. Their main use is for converting user facing rotation

@@ -26,6 +26,8 @@
 #include "../generic/python_compat.hh"
 #include "../generic/python_utildefines.hh"
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_vert_collapse_edge_doc,
@@ -582,7 +584,7 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject * /*self*/, PyObject *
   }
 
   /* --- main function body --- */
-  blender::Vector<BMFace *> face_arr;
+  Vector<BMFace *> face_arr;
   ok = BM_face_split_edgenet(bm, py_face->f, edge_array, edge_array_num, &face_arr);
 
   PyMem_FREE(edge_array);
@@ -1000,3 +1002,5 @@ PyObject *BPyInit_bmesh_utils()
 
   return submodule;
 }
+
+}  // namespace blender

@@ -12,9 +12,11 @@
 #include "material.hh"
 #include "object.hh"
 
+namespace blender {
+
 struct ParticleSystem;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
 class HydraSceneDelegate;
 
@@ -71,4 +73,5 @@ class HairData : public CurvesData {
   void write_curves() override;
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

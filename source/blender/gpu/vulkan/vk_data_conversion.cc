@@ -1089,15 +1089,15 @@ static void convert_buffer(void *dst_memory,
          * regarding Inf and NaNs. Use make finite version to avoid unexpected black pixels on
          * certain implementation. For platform parity we clamp these infinite values to finite
          * values. */
-        blender::math::float_to_half_make_finite_array(
+        math::float_to_half_make_finite_array(
             src.slice(range).data(), dst.slice(range).data(), range.size());
       });
       break;
     }
     case ConversionType::HALF_TO_FLOAT:
-      blender::math::half_to_float_array(static_cast<const uint16_t *>(src_memory),
-                                         static_cast<float *>(dst_memory),
-                                         to_component_len(device_format) * buffer_size);
+      math::half_to_float_array(static_cast<const uint16_t *>(src_memory),
+                                static_cast<float *>(dst_memory),
+                                to_component_len(device_format) * buffer_size);
       break;
 
     case ConversionType::FLOAT_TO_B10F_G11F_R11F:

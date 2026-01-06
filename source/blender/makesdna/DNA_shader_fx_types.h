@@ -1,3 +1,6 @@
+struct DRWShadingGroup;
+namespace blender {
+
 /* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -69,8 +72,6 @@ enum eShadowShaderFx_Flag {
 enum eSwirlShaderFx_Flag {
   FX_SWIRL_MAKE_TRANSPARENT = (1 << 0),
 };
-
-struct DRWShadingGroup;
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
@@ -235,3 +236,5 @@ struct WaveShaderFxData {
   char _pad[4] = {};
   ShaderFxData_Runtime runtime;
 };
+
+}  // namespace blender

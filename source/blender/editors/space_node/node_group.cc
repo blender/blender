@@ -160,7 +160,7 @@ static void remap_pairing(bNodeTree &dst_tree,
       }
       output_node_id = identifier_map.lookup_default(output_node_id, 0);
       if (output_node_id == 0) {
-        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
+        nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
       }
     }
   }
@@ -191,7 +191,7 @@ static wmOperatorStatus node_group_edit_exec(bContext *C, wmOperator *op)
   bNode *gnode = node_group_get_active(C, node_idname);
 
   if (gnode && !exit) {
-    bNodeTree *ngroup = blender::id_cast<bNodeTree *>(gnode->id);
+    bNodeTree *ngroup = id_cast<bNodeTree *>(gnode->id);
 
     if (ngroup) {
       ED_node_tree_push(region, snode, ngroup, gnode);
@@ -257,7 +257,7 @@ static wmOperatorStatus node_group_enter_exit_invoke(bContext *C,
   if (node->is_custom_group()) {
     return OPERATOR_PASS_THROUGH;
   }
-  bNodeTree *group = blender::id_cast<bNodeTree *>(node->id);
+  bNodeTree *group = id_cast<bNodeTree *>(node->id);
   if (!group || ID_MISSING(group)) {
     return OPERATOR_PASS_THROUGH;
   }
@@ -1229,7 +1229,7 @@ static bNode *node_group_make_from_nodes(const bContext &C,
 
   /* make group node */
   bNode *gnode = bke::node_add_node(&C, ntree, ntype);
-  gnode->id = blender::id_cast<ID *>(ngroup);
+  gnode->id = id_cast<ID *>(ngroup);
 
   gnode->location[0] = 0.5f * (min[0] + max[0]);
   gnode->location[1] = 0.5f * (min[1] + max[1]);
@@ -1513,7 +1513,7 @@ static wmOperatorStatus node_group_make_exec(bContext *C, wmOperator *op)
   }
 
   if (gnode) {
-    bNodeTree *ngroup = blender::id_cast<bNodeTree *>(gnode->id);
+    bNodeTree *ngroup = id_cast<bNodeTree *>(gnode->id);
 
     bke::node_set_active(ntree, *gnode);
     if (ngroup) {

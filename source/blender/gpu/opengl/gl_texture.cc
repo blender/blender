@@ -255,7 +255,7 @@ void GLTexture::update_sub(int mip,
        * regarding Inf and NaNs. Use make finite version to avoid unexpected black pixels on
        * certain implementation. For platform parity we clamp these infinite values to finite
        * values. */
-      blender::math::float_to_half_make_finite_array(
+      math::float_to_half_make_finite_array(
           src.slice(range).data(), dst.slice(range).data(), range.size());
     });
 

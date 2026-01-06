@@ -26,6 +26,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* Shadow loading etc. ================== */
 
 LineartElementLinkNode *lineart_find_matching_eln(ListBaseT<LineartElementLinkNode> *shadow_elns,
@@ -741,7 +743,6 @@ static bool lineart_shadow_cast_onto_triangle(LineartData *ld,
                                               double *r_gloc_2,
                                               bool *r_facing_light)
 {
-  using namespace blender;
   double *LFBC = sedge->fbc1, *RFBC = sedge->fbc2, *FBC0 = tri->v[0]->fbcoord,
          *FBC1 = tri->v[1]->fbcoord, *FBC2 = tri->v[2]->fbcoord;
 
@@ -1174,7 +1175,7 @@ bool lineart_main_try_generate_shadow_v3(
   bool is_persp = true;
 
   if (lmd->light_contour_object->type == OB_LAMP) {
-    Light *la = blender::id_cast<Light *>(lmd->light_contour_object->data);
+    Light *la = id_cast<Light *>(lmd->light_contour_object->data);
     if (la->type == LA_SUN) {
       is_persp = false;
     }
@@ -1257,8 +1258,7 @@ bool lineart_main_try_generate_shadow_v3(
   lineart_main_get_view_vector(ld);
 
   LineartModifierRuntime *runtime = reinterpret_cast<LineartModifierRuntime *>(lmd->runtime);
-  blender::Set<const Object *> *included_objects = runtime ? &runtime->object_dependencies :
-                                                             nullptr;
+  Set<const Object *> *included_objects = runtime ? &runtime->object_dependencies : nullptr;
 
   lineart_main_load_geometries(depsgraph,
                                scene,
@@ -1329,7 +1329,7 @@ bool lineart_main_try_generate_shadow(
 {
   bool ret = false;
   GreasePencilLineartModifierData lmd;
-  blender::bke::greasepencil::convert::lineart_wrap_v3(lmd_legacy, &lmd);
+  bke::greasepencil::convert::lineart_wrap_v3(lmd_legacy, &lmd);
   ret = lineart_main_try_generate_shadow_v3(depsgraph,
                                             scene,
                                             original_ld,
@@ -1339,7 +1339,7 @@ bool lineart_main_try_generate_shadow(
                                             r_eeln,
                                             r_calculated_edges_eln_list,
                                             r_shadow_ld_if_reproject);
-  blender::bke::greasepencil::convert::lineart_unwrap_v3(lmd_legacy, &lmd);
+  bke::greasepencil::convert::lineart_unwrap_v3(lmd_legacy, &lmd);
   return ret;
 }
 
@@ -1484,3 +1484,5 @@ void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
     printf("Line art shadow stage 2 total time: %f\n", t_elapsed);
   }
 }
+
+}  // namespace blender

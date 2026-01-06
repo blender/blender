@@ -26,6 +26,8 @@
 #include "io_drop_import_file.hh"
 #include "io_utils.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"io.drop_import_file"};
 
 /**
@@ -33,10 +35,9 @@ static CLG_LogRef LOG = {"io.drop_import_file"};
  * `poll_drop` returns #true. Unlike `bke::file_handlers_poll_file_drop`, it ensures that file
  * handlers have a valid import operator.
  */
-static blender::Vector<blender::bke::FileHandlerType *> drop_import_file_poll_file_handlers(
-    const bContext *C, const blender::Span<std::string> paths, const bool quiet = true)
+static Vector<bke::FileHandlerType *> drop_import_file_poll_file_handlers(
+    const bContext *C, const Span<std::string> paths, const bool quiet = true)
 {
-  using namespace blender;
   auto file_handlers = bke::file_handlers_poll_file_drop(C, paths);
   file_handlers.remove_if([quiet](const bke::FileHandlerType *file_handler) {
     return WM_operatortype_find(file_handler->import_operator, quiet) == nullptr;
@@ -47,10 +48,9 @@ static blender::Vector<blender::bke::FileHandlerType *> drop_import_file_poll_fi
 /**
  * Sets in the RNA pointer all file paths supported by the file handler.
  */
-static void file_handler_import_operator_write_ptr(
-    const blender::bke::FileHandlerType *file_handler,
-    PointerRNA &props,
-    const blender::Span<std::string> paths)
+static void file_handler_import_operator_write_ptr(const bke::FileHandlerType *file_handler,
+                                                   PointerRNA &props,
+                                                   const Span<std::string> paths)
 {
 
   const auto supported_paths = file_handler->filter_supported_paths(paths);
@@ -108,7 +108,7 @@ static void file_handler_import_operator_write_ptr(
 
 static wmOperatorStatus wm_drop_import_file_exec(bContext *C, wmOperator *op)
 {
-  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
+  const auto paths = ed::io::paths_from_operator_properties(op->ptr);
   if (paths.is_empty()) {
     return OPERATOR_CANCELLED;
   }
@@ -122,8 +122,7 @@ static wmOperatorStatus wm_drop_import_file_exec(bContext *C, wmOperator *op)
   PointerRNA file_props = WM_operator_properties_create_ptr(ot);
   file_handler_import_operator_write_ptr(file_handlers[0], file_props, paths);
 
-  WM_operator_name_call_ptr(
-      C, ot, blender::wm::OpCallContext::InvokeDefault, &file_props, nullptr);
+  WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &file_props, nullptr);
   WM_operator_properties_free(&file_props);
   return OPERATOR_FINISHED;
 }
@@ -132,7 +131,7 @@ static wmOperatorStatus wm_drop_import_file_invoke(bContext *C,
                                                    wmOperator *op,
                                                    const wmEvent * /*event*/)
 {
-  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
+  const auto paths = ed::io::paths_from_operator_properties(op->ptr);
   if (paths.is_empty()) {
     return OPERATOR_CANCELLED;
   }
@@ -146,16 +145,16 @@ static wmOperatorStatus wm_drop_import_file_invoke(bContext *C,
    * Create a menu with all file handler import operators that can support any files in paths and
    * let user decide which to use.
    */
-  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, "", ICON_NONE);
-  blender::ui::Layout &layout = *popup_menu_layout(pup);
-  layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, "", ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
+  layout.operator_context_set(wm::OpCallContext::InvokeDefault);
 
   for (auto *file_handler : file_handlers) {
     wmOperatorType *ot = WM_operatortype_find(file_handler->import_operator, false);
     PointerRNA file_props = layout.op(ot,
                                       CTX_TIP_(ot->translation_context, ot->name),
                                       ICON_NONE,
-                                      blender::wm::OpCallContext::InvokeDefault,
+                                      wm::OpCallContext::InvokeDefault,
                                       UI_ITEM_NONE);
     file_handler_import_operator_write_ptr(file_handler, file_props, paths);
   }
@@ -185,7 +184,7 @@ void WM_OT_drop_import_file(wmOperatorType *ot)
 
 static void drop_import_file_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
-  blender::ed::io::paths_to_operator_properties(drop->ptr, WM_drag_get_paths(drag));
+  ed::io::paths_to_operator_properties(drop->ptr, WM_drag_get_paths(drag));
 }
 
 static bool drop_import_file_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
@@ -222,3 +221,5 @@ void ED_dropbox_drop_import_file()
                  nullptr,
                  drop_import_file_tooltip);
 }
+
+}  // namespace blender

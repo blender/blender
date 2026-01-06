@@ -18,7 +18,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender {
+
+namespace nodes {
 
 void get_closest_in_bvhtree(bke::BVHTreeFromMesh &tree_data,
                             const VArray<float3> &positions,
@@ -50,9 +52,9 @@ void get_closest_in_bvhtree(bke::BVHTreeFromMesh &tree_data,
   });
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
 
-namespace blender::nodes::node_geo_sample_nearest_cc {
+namespace nodes::node_geo_sample_nearest_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -343,7 +345,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSampleNearest", GEO_NODE_SAMPLE_NEAREST);
   ntype.ui_name = "Sample Nearest";
@@ -356,10 +358,12 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_geo_sample_nearest_cc
+}  // namespace nodes::node_geo_sample_nearest_cc
+
+}  // namespace blender

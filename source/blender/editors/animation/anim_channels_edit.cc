@@ -71,6 +71,8 @@
 
 #include "BLT_translation.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Channel helper functions
  * \{ */
@@ -414,8 +416,6 @@ void ANIM_set_active_channel(bAnimContext *ac,
 
 bool ANIM_is_active_channel(bAnimListElem *ale)
 {
-  using namespace blender;
-
   switch (ale->type) {
     case ANIMTYPE_FILLACTD:        /* Action Expander */
     case ANIMTYPE_FILLACT_LAYERED: /* Animation Expander */
@@ -459,8 +459,7 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
     }
     case ANIMTYPE_GREASE_PENCIL_LAYER: {
       GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
-      return grease_pencil->is_layer_active(
-          static_cast<blender::bke::greasepencil::Layer *>(ale->data));
+      return grease_pencil->is_layer_active(static_cast<bke::greasepencil::Layer *>(ale->data));
     }
     case ANIMTYPE_ACTION_SLOT: {
       animrig::Slot *slot = reinterpret_cast<animrig::Slot *>(ale->data);
@@ -680,8 +679,6 @@ static void anim_channels_select_set(bAnimContext *ac,
                                      const ListBaseT<bAnimListElem> anim_data,
                                      eAnimChannels_SetFlag sel)
 {
-  using namespace blender;
-
   /* Boolean to keep active channel status during range selection. */
   const bool change_active = (sel != ACHANNEL_SETFLAG_EXTEND_RANGE);
 
@@ -1621,9 +1618,8 @@ static bool rearrange_layered_action_slots(bAnimContext *ac, const eRearrangeAni
     case REARRANGE_ANIMCHAN_UP: {
       for (bAnimListElem &ale : anim_data_selected_visible) {
         BLI_assert(ale.type == ANIMTYPE_ACTION_SLOT);
-        blender::animrig::Slot &slot = static_cast<ActionSlot *>(ale.data)->wrap();
-        blender::animrig::Action &action =
-            reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
+        animrig::Slot &slot = static_cast<ActionSlot *>(ale.data)->wrap();
+        animrig::Action &action = reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
 
         const int current_index = action.slots().first_index_try(&slot);
         const int to_index = current_index - 1;
@@ -1646,9 +1642,8 @@ static bool rearrange_layered_action_slots(bAnimContext *ac, const eRearrangeAni
     case REARRANGE_ANIMCHAN_TOP: {
       for (bAnimListElem &ale : anim_data_selected_visible.items_reversed()) {
         BLI_assert(ale.type == ANIMTYPE_ACTION_SLOT);
-        blender::animrig::Slot &slot = static_cast<ActionSlot *>(ale.data)->wrap();
-        blender::animrig::Action &action =
-            reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
+        animrig::Slot &slot = static_cast<ActionSlot *>(ale.data)->wrap();
+        animrig::Action &action = reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
 
         const int current_index = action.slots().first_index_try(&slot);
         const int to_index = 0;
@@ -1663,9 +1658,8 @@ static bool rearrange_layered_action_slots(bAnimContext *ac, const eRearrangeAni
     case REARRANGE_ANIMCHAN_DOWN: {
       for (bAnimListElem &ale : anim_data_selected_visible.items_reversed()) {
         BLI_assert(ale.type == ANIMTYPE_ACTION_SLOT);
-        blender::animrig::Slot &slot = static_cast<ActionSlot *>(ale.data)->wrap();
-        blender::animrig::Action &action =
-            reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
+        animrig::Slot &slot = static_cast<ActionSlot *>(ale.data)->wrap();
+        animrig::Action &action = reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
 
         const int current_index = action.slots().first_index_try(&slot);
         const int to_index = current_index + 1;
@@ -1688,9 +1682,8 @@ static bool rearrange_layered_action_slots(bAnimContext *ac, const eRearrangeAni
     case REARRANGE_ANIMCHAN_BOTTOM: {
       for (bAnimListElem &ale : anim_data_selected_visible) {
         BLI_assert(ale.type == ANIMTYPE_ACTION_SLOT);
-        blender::animrig::Slot &slot = static_cast<ActionSlot *>(ale.data)->wrap();
-        blender::animrig::Action &action =
-            reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
+        animrig::Slot &slot = static_cast<ActionSlot *>(ale.data)->wrap();
+        animrig::Action &action = reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
 
         const int current_index = action.slots().first_index_try(&slot);
         const int to_index = action.slots().size() - 1;
@@ -1727,7 +1720,7 @@ static bool rearrange_layered_action_slots(bAnimContext *ac, const eRearrangeAni
  * we have more time.
  */
 static void rearrange_layered_action_channel_groups(bAnimContext *ac,
-                                                    blender::animrig::Action &action,
+                                                    animrig::Action &action,
                                                     const eRearrangeAnimChan_Mode mode)
 {
   ListBaseT<bAnimListElem> anim_data_visible = {nullptr, nullptr};
@@ -1750,7 +1743,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
         if (!SEL_AGRP(group)) {
           continue;
         }
-        blender::animrig::Channelbag &bag = group->channelbag->wrap();
+        animrig::Channelbag &bag = group->channelbag->wrap();
         const int group_index = bag.channel_groups().first_index_try(group);
         const int to_index = group_index - 1;
         BLI_assert(group_index >= 0);
@@ -1778,7 +1771,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
         if (!SEL_AGRP(group)) {
           continue;
         }
-        blender::animrig::Channelbag &bag = group->channelbag->wrap();
+        animrig::Channelbag &bag = group->channelbag->wrap();
         bag.channel_group_move_to_index(*group, 0);
       }
       break;
@@ -1794,7 +1787,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
         if (!SEL_AGRP(group)) {
           continue;
         }
-        blender::animrig::Channelbag &bag = group->channelbag->wrap();
+        animrig::Channelbag &bag = group->channelbag->wrap();
         const int group_index = bag.channel_groups().first_index_try(group);
         const int to_index = group_index + 1;
         BLI_assert(group_index >= 0);
@@ -1822,7 +1815,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
         if (!SEL_AGRP(group)) {
           continue;
         }
-        blender::animrig::Channelbag &bag = group->channelbag->wrap();
+        animrig::Channelbag &bag = group->channelbag->wrap();
         bag.channel_group_move_to_index(*group, bag.channel_groups().size() - 1);
       }
       break;
@@ -1850,7 +1843,7 @@ static void rearrange_layered_action_channel_groups(bAnimContext *ac,
  * revisiting when we have more time.
  */
 static void rearrange_layered_action_fcurves(bAnimContext *ac,
-                                             blender::animrig::Action &action,
+                                             animrig::Action &action,
                                              const eRearrangeAnimChan_Mode mode)
 {
   ListBaseT<bAnimListElem> anim_data_visible = {nullptr, nullptr};
@@ -1875,8 +1868,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
       return *fcurve->grp;
     }
 
-    blender::animrig::Channelbag *bag = channelbag_for_action_slot(action,
-                                                                   fcurve_ale->slot_handle);
+    animrig::Channelbag *bag = channelbag_for_action_slot(action, fcurve_ale->slot_handle);
     BLI_assert(bag != nullptr);
 
     bActionGroup group = {};
@@ -1914,7 +1906,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
           continue;
         }
 
-        blender::animrig::Channelbag &bag = group.channelbag->wrap();
+        animrig::Channelbag &bag = group.channelbag->wrap();
         const int fcurve_index = bag.fcurves().first_index_try(fcurve);
         const int to_index = fcurve_index - 1;
 
@@ -1944,7 +1936,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
           continue;
         }
 
-        blender::animrig::Channelbag &bag = group.channelbag->wrap();
+        animrig::Channelbag &bag = group.channelbag->wrap();
         bag.fcurve_move_to_index(*fcurve, group.fcurve_range_start);
       }
       break;
@@ -1963,7 +1955,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
           continue;
         }
 
-        blender::animrig::Channelbag &bag = group.channelbag->wrap();
+        animrig::Channelbag &bag = group.channelbag->wrap();
         const int fcurve_index = bag.fcurves().first_index_try(fcurve);
         const int to_index = fcurve_index + 1;
 
@@ -1995,7 +1987,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
           continue;
         }
 
-        blender::animrig::Channelbag &bag = group.channelbag->wrap();
+        animrig::Channelbag &bag = group.channelbag->wrap();
         bag.fcurve_move_to_index(*fcurve,
                                  group.fcurve_range_start + group.fcurve_range_length - 1);
       }
@@ -2061,7 +2053,7 @@ static void rearrange_grease_pencil_channels(bAnimContext *ac, eRearrangeAnimCha
 {
   using namespace blender::bke::greasepencil;
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  blender::Vector<Layer *> layer_list;
+  Vector<Layer *> layer_list;
   int filter = ANIMFILTER_DATA_VISIBLE;
 
   ANIM_animdata_filter(
@@ -2206,7 +2198,7 @@ static wmOperatorStatus animchannels_rearrange_exec(bContext *C, wmOperator *op)
 
     /* Rearranging an Action should only happen once, as that inspects all the
      * selected & visible channels of that Action anyway. */
-    blender::Set<bAction *> visited_actions;
+    Set<bAction *> visited_actions;
 
     for (bAnimListElem &ale : anim_data) {
       AnimData *adt = static_cast<AnimData *>(ale.data);
@@ -2377,12 +2369,11 @@ static void animchannels_group_channels(bAnimContext *ac,
    * each fcurve individually (each of which is an O(N) operation), but it's
    * also the simplest thing we can do given the data we have. In the future we
    * can do something smarter, particularly if it becomes a performance issue. */
-  blender::animrig::Channelbag *last_channelbag = nullptr;
+  animrig::Channelbag *last_channelbag = nullptr;
   bActionGroup *group = nullptr;
   for (bAnimListElem &ale : anim_data) {
     FCurve *fcu = static_cast<FCurve *>(ale.data);
-    blender::animrig::Channelbag *channelbag = channelbag_for_action_slot(act->wrap(),
-                                                                          ale.slot_handle);
+    animrig::Channelbag *channelbag = channelbag_for_action_slot(act->wrap(), ale.slot_handle);
 
     if (channelbag != last_channelbag) {
       last_channelbag = channelbag;
@@ -2579,9 +2570,8 @@ static bool animchannels_delete_containers(const bContext *C, bAnimContext *ac)
         BLI_assert_msg(GS(ale.fcurve_owner_id->name) == ID_AC,
                        "fcurve_owner_id should be an Action");
 
-        blender::animrig::Action &action =
-            reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
-        blender::animrig::Slot &slot_to_remove = static_cast<ActionSlot *>(ale.data)->wrap();
+        animrig::Action &action = reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
+        animrig::Slot &slot_to_remove = static_cast<ActionSlot *>(ale.data)->wrap();
 
         action.slot_remove(slot_to_remove);
 
@@ -2618,7 +2608,7 @@ static bool animchannels_delete_containers(const bContext *C, bAnimContext *ac)
          * along with the group. This difference in behavior is replicated
          * from legacy actions. */
 
-        blender::animrig::Channelbag &channelbag = agrp->channelbag->wrap();
+        animrig::Channelbag &channelbag = agrp->channelbag->wrap();
 
         /* Remove all the fcurves in the group, which also automatically
          * deletes the group when the last fcurve is deleted. Since the group
@@ -2707,13 +2697,12 @@ void ED_anim_ale_fcurve_delete(bAnimContext &ac, bAnimListElem &ale)
         /* F-Curves can be owned by Actions assigned to NLA strips, which
          * `animrig::animdata_fcurve_delete()` (below) cannot handle. */
         BLI_assert_msg(!fcu->driver, "Drivers are not expected to be owned by Actions");
-        blender::animrig::Action &action =
-            reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
+        animrig::Action &action = reinterpret_cast<bAction *>(ale.fcurve_owner_id)->wrap();
         action_fcurve_remove(action, *fcu);
       }
       else if (fcu->driver || adt->action) {
         /* This function only works for drivers & directly-assigned Actions: */
-        blender::animrig::animdata_fcurve_delete(adt, fcu);
+        animrig::animdata_fcurve_delete(adt, fcu);
       }
       else {
         BLI_assert_unreachable();
@@ -3491,7 +3480,7 @@ static wmOperatorStatus animchannels_select_filter_modal(bContext *C,
   }
 
   ARegion *region = CTX_wm_region(C);
-  if (blender::ui::textbutton_activate_rna(C, region, ac.ads, "filter_text")) {
+  if (ui::textbutton_activate_rna(C, region, ac.ads, "filter_text")) {
     /* Redraw to make sure it shows the cursor after activating */
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
   }
@@ -3589,8 +3578,8 @@ static void box_select_anim_channels(bAnimContext *ac, const rcti &rect, short s
   rctf rectf;
 
   /* convert border-region to view coordinates */
-  blender::ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
-  blender::ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
+  ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
+  ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -3868,28 +3857,28 @@ static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
   v2d = &region->v2d;
 
   /* Figure out which channel user clicked in. */
-  blender::ui::view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+  ui::view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 
   if (ac->datatype == ANIMCONT_NLA) {
     SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
-    blender::ui::view2d_listview_view_to_cell(NLATRACK_NAMEWIDTH,
-                                              NLATRACK_STEP(snla),
-                                              0,
-                                              NLATRACK_FIRST_TOP(ac),
-                                              x,
-                                              y,
-                                              nullptr,
-                                              &channel_index);
+    ui::view2d_listview_view_to_cell(NLATRACK_NAMEWIDTH,
+                                     NLATRACK_STEP(snla),
+                                     0,
+                                     NLATRACK_FIRST_TOP(ac),
+                                     x,
+                                     y,
+                                     nullptr,
+                                     &channel_index);
   }
   else {
-    blender::ui::view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
-                                              ANIM_UI_get_channel_step(),
-                                              0,
-                                              ANIM_UI_get_first_channel_top(v2d),
-                                              x,
-                                              y,
-                                              nullptr,
-                                              &channel_index);
+    ui::view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
+                                     ANIM_UI_get_channel_step(),
+                                     0,
+                                     ANIM_UI_get_first_channel_top(v2d),
+                                     x,
+                                     y,
+                                     nullptr,
+                                     &channel_index);
   }
 
   return channel_index;
@@ -4260,8 +4249,6 @@ static int click_select_channel_action_slot(bAnimContext *ac,
                                             bAnimListElem *ale,
                                             short /* eEditKeyframes_Select or -1 */ selectmode)
 {
-  using namespace blender;
-
   BLI_assert_msg(GS(ale->fcurve_owner_id->name) == ID_AC,
                  "fcurve_owner_id of an Action Slot should be an Action");
   animrig::Action *action = reinterpret_cast<animrig::Action *>(ale->fcurve_owner_id);
@@ -4647,15 +4634,15 @@ static wmOperatorStatus animchannels_mouseclick_invoke(bContext *C,
   }
 
   /* figure out which channel user clicked in */
-  blender::ui::view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
-  blender::ui::view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
-                                            ANIM_UI_get_channel_step(),
-                                            0,
-                                            ANIM_UI_get_first_channel_top(v2d),
-                                            x,
-                                            y,
-                                            nullptr,
-                                            &channel_index);
+  ui::view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
+  ui::view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
+                                   ANIM_UI_get_channel_step(),
+                                   0,
+                                   ANIM_UI_get_first_channel_top(v2d),
+                                   x,
+                                   y,
+                                   nullptr,
+                                   &channel_index);
 
   /* handle mouse-click in the relevant channel then */
   notifierFlags = mouse_anim_channels(C, &ac, channel_index, selectmode);
@@ -4897,7 +4884,7 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
   }
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  blender::ui::view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
+  ui::view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
@@ -4988,7 +4975,7 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
   }
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  blender::ui::view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
+  ui::view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
@@ -5051,7 +5038,7 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
 
   Scene *scene = CTX_data_scene(C);
 
-  blender::int2 frame_range;
+  int2 frame_range;
   if (scene->r.flag & SCER_PRV_RANGE) {
     frame_range = {scene->r.psfra, scene->r.pefra};
   }
@@ -5061,7 +5048,7 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
 
   /* The range property will default to the scene or preview range, but only if it hasn't been set
    * before. */
-  blender::int2 rna_range;
+  int2 rna_range;
   RNA_int_get_array(op->ptr, "range", rna_range);
   if (rna_range[0] == 0 && rna_range[1] == 0) {
     RNA_int_set_array(op->ptr, "range", frame_range);
@@ -5084,12 +5071,12 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
     if (!fcu->bezt) {
       continue;
     }
-    blender::int2 nla_mapped_range = {
+    int2 nla_mapped_range = {
         int(ANIM_nla_tweakedit_remap(&ale, frame_range[0], NLATIME_CONVERT_UNMAP)),
         int(ANIM_nla_tweakedit_remap(&ale, frame_range[1], NLATIME_CONVERT_UNMAP)),
     };
     /* Save current state of modifier flags so they can be reapplied after baking. */
-    blender::Vector<short> modifier_flags;
+    Vector<short> modifier_flags;
     if (!bake_modifiers) {
       for (FModifier &modifier : fcu->modifiers) {
         modifier_flags.append(modifier.flag);
@@ -5234,7 +5221,7 @@ static wmOperatorStatus slot_channels_move_to_new_action_exec(bContext *C, wmOpe
     return OPERATOR_CANCELLED;
   }
 
-  blender::Vector<std::pair<Slot *, bAction *>> slots;
+  Vector<std::pair<Slot *, bAction *>> slots;
   for (bAnimListElem &ale : anim_data) {
     if (ale.type != ANIMTYPE_ACTION_SLOT) {
       continue;
@@ -5351,7 +5338,7 @@ static bool separate_slots_poll(bContext *C)
     return false;
   }
 
-  blender::animrig::Action *action = blender::animrig::get_action(active_object->id);
+  animrig::Action *action = animrig::get_action(active_object->id);
   if (!action) {
     CTX_wm_operator_poll_msg_set(C, "Active object isn't animated");
     return false;
@@ -5422,7 +5409,7 @@ static void deselect_all_fcurves(bAnimContext *ac, const bool hide)
   ANIM_animdata_freelist(&anim_data);
 }
 
-static int count_fcurves_hidden_by_filter(bAnimContext *ac, const blender::Span<FCurve *> fcurves)
+static int count_fcurves_hidden_by_filter(bAnimContext *ac, const Span<FCurve *> fcurves)
 {
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   if (ac->sl->spacetype != SPACE_GRAPH) {
@@ -5433,7 +5420,7 @@ static int count_fcurves_hidden_by_filter(bAnimContext *ac, const blender::Span<
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* Adding FCurves to a map for quicker lookup times. */
-  blender::Map<FCurve *, bool> filtered_fcurves;
+  Map<FCurve *, bool> filtered_fcurves;
   for (bAnimListElem &ale : anim_data) {
     FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     filtered_fcurves.add(fcu, true);
@@ -5449,11 +5436,9 @@ static int count_fcurves_hidden_by_filter(bAnimContext *ac, const blender::Span<
   return hidden_fcurve_count;
 }
 
-static blender::Vector<FCurve *> get_fcurves_of_property(
+static Vector<FCurve *> get_fcurves_of_property(
     ID *id, PointerRNA *ptr, PropertyRNA *prop, const bool whole_array, const int index)
 {
-  using namespace blender;
-
   AnimData *anim_data = BKE_animdata_from_id(id);
   if (anim_data == nullptr) {
     return Vector<FCurve *>();
@@ -5485,7 +5470,7 @@ static blender::Vector<FCurve *> get_fcurves_of_property(
 static rctf calculate_fcurve_bounds_and_unhide(SpaceLink *space_link,
                                                Scene *scene,
                                                ID *id,
-                                               const blender::Span<FCurve *> fcurves)
+                                               const Span<FCurve *> fcurves)
 {
   rctf bounds;
   bounds.xmin = INFINITY;
@@ -5527,9 +5512,9 @@ static rctf calculate_fcurve_bounds_and_unhide(SpaceLink *space_link,
 }
 
 static rctf calculate_selection_fcurve_bounds(bAnimContext *ac,
-                                              blender::Span<PointerRNA> selection,
+                                              Span<PointerRNA> selection,
                                               PropertyRNA *prop,
-                                              const blender::StringRefNull id_to_prop_path,
+                                              const StringRefNull id_to_prop_path,
                                               const int index,
                                               const bool whole_array,
                                               int *r_filtered_fcurve_count)
@@ -5558,7 +5543,7 @@ static rctf calculate_selection_fcurve_bounds(bAnimContext *ac,
       resolved_ptr = selected;
       resolved_prop = prop;
     }
-    blender::Vector<FCurve *> fcurves = get_fcurves_of_property(
+    Vector<FCurve *> fcurves = get_fcurves_of_property(
         selected_id, &resolved_ptr, resolved_prop, whole_array, index);
     *r_filtered_fcurve_count += count_fcurves_hidden_by_filter(ac, fcurves);
     rctf fcu_bounds = calculate_fcurve_bounds_and_unhide(ac->sl, ac->scene, selected_id, fcurves);
@@ -5574,17 +5559,17 @@ static wmOperatorStatus view_curve_in_graph_editor_exec(bContext *C, wmOperator 
 {
   PointerRNA button_ptr = {};
   PropertyRNA *button_prop = nullptr;
-  blender::ui::Button *but;
+  ui::Button *but;
   int index;
 
-  if (!(but = blender::ui::context_active_but_prop_get(C, &button_ptr, &button_prop, &index))) {
+  if (!(but = ui::context_active_but_prop_get(C, &button_ptr, &button_prop, &index))) {
     /* Pass event on if no active button found. */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
   wmOperatorStatus retval = OPERATOR_FINISHED;
 
-  blender::Vector<PointerRNA> selection;
+  Vector<PointerRNA> selection;
 
   struct {
     wmWindow *win;
@@ -5594,7 +5579,7 @@ static wmOperatorStatus view_curve_in_graph_editor_exec(bContext *C, wmOperator 
 
   bool path_from_id;
   std::optional<std::string> id_to_prop_path;
-  const bool selected_list_success = blender::ui::context_copy_to_selected_list(
+  const bool selected_list_success = ui::context_copy_to_selected_list(
       C, &button_ptr, button_prop, &selection, &path_from_id, &id_to_prop_path);
 
   if (!context_find_graph_editor(
@@ -5645,7 +5630,7 @@ static wmOperatorStatus view_curve_in_graph_editor_exec(bContext *C, wmOperator 
       }
 
       /* The object to which the button belongs might not be selected, or selectable. */
-      blender::Vector<FCurve *> button_fcurves = get_fcurves_of_property(
+      Vector<FCurve *> button_fcurves = get_fcurves_of_property(
           button_ptr.owner_id, &button_ptr, button_prop, whole_array, index);
       filtered_fcurve_count += count_fcurves_hidden_by_filter(&ac, button_fcurves);
       rctf button_bounds = calculate_fcurve_bounds_and_unhide(
@@ -5670,7 +5655,7 @@ static wmOperatorStatus view_curve_in_graph_editor_exec(bContext *C, wmOperator 
         add_region_padding(C, region, &bounds);
 
         const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-        blender::ui::view2d_smooth_view(C, region, &bounds, smooth_viewtx);
+        ui::view2d_smooth_view(C, region, &bounds, smooth_viewtx);
 
         /* This ensures the channel list updates. */
         ED_area_tag_redraw(area);
@@ -5764,3 +5749,5 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 }
 
 /** \} */
+
+}  // namespace blender

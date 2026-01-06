@@ -18,6 +18,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define EDGE_OUT 1
 #define FACE_MARK 1
 
@@ -265,3 +267,5 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
 }
+
+}  // namespace blender

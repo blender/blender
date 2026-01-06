@@ -10,6 +10,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /* ******************* Registration Function ********************** */
 
 struct ARegion;
@@ -25,7 +27,7 @@ struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmOperatorType;
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 void keymap_transform(wmKeyConfig *keyconf);
 void transform_operatortypes();
@@ -222,4 +224,5 @@ bool snap_sequencer_calc_drag_drop(Scene *scene,
 
 void snap_sequencer_draw_drag_drop(ARegion *region, float snap_point);
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

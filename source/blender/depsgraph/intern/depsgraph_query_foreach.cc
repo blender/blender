@@ -20,11 +20,11 @@
 #include "intern/node/deg_node_id.hh"
 #include "intern/node/deg_node_operation.hh"
 
-namespace deg = blender::deg;
+namespace blender {
 
 /* ************************ DEG TRAVERSAL ********************* */
 
-namespace blender::deg {
+namespace deg {
 namespace {
 
 using TraversalQueue = std::deque<OperationNode *>;
@@ -239,7 +239,7 @@ void deg_foreach_id(const Depsgraph *depsgraph, DEGForeachIDCallback callback)
 }
 
 }  // namespace
-}  // namespace blender::deg
+}  // namespace deg
 
 void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
                               const ID *id,
@@ -272,3 +272,5 @@ void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback)
 {
   deg::deg_foreach_id(reinterpret_cast<const deg::Depsgraph *>(depsgraph), callback);
 }
+
+}  // namespace blender

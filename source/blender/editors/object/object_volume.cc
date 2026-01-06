@@ -87,7 +87,7 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
     BLI_path_extension_strip(filename);
 
     Object *object = object_volume_add(C, op, filename);
-    Volume *volume = blender::id_cast<Volume *>(object->data);
+    Volume *volume = id_cast<Volume *>(object->data);
 
     STRNCPY(volume->filepath, range.filepath);
     if (is_relative_path) {

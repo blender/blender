@@ -17,6 +17,8 @@
 
 #include "WM_api.hh"
 
+namespace blender {
+
 static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject * /*kw*/)
 {
   /* NOTE(@ideasman42): This doesn't have to match Blender shutting down exactly,
@@ -109,3 +111,5 @@ void BPY_atexit_unregister()
   atexit_func_call("unregister", func_bpy_atregister);
   func_bpy_atregister = nullptr; /* don't really need to set but just in case */
 }
+
+}  // namespace blender

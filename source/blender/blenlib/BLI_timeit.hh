@@ -67,7 +67,7 @@ class ScopedTimerAveraged {
 
 }  // namespace blender::timeit
 
-#define SCOPED_TIMER(name) blender::timeit::ScopedTimer scoped_timer(name)
+#define SCOPED_TIMER(name) timeit::ScopedTimer scoped_timer(name)
 
 /**
  * Print the average and minimum runtime of the timer's scope.
@@ -75,9 +75,9 @@ class ScopedTimerAveraged {
  */
 #define SCOPED_TIMER_AVERAGED(name) \
   static int64_t total_count_; \
-  static blender::timeit::Nanoseconds total_time_; \
-  static blender::timeit::Nanoseconds min_time_ = blender::timeit::Nanoseconds::max(); \
-  blender::timeit::ScopedTimerAveraged scoped_timer( \
+  static timeit::Nanoseconds total_time_; \
+  static timeit::Nanoseconds min_time_ = timeit::Nanoseconds::max(); \
+  timeit::ScopedTimerAveraged scoped_timer( \
       name, total_count_, total_time_, min_time_, std::nullopt)
 
 /**
@@ -86,7 +86,6 @@ class ScopedTimerAveraged {
  */
 #define SCOPED_TIMER_ROLLING_AVERAGED(name, window_size) \
   static int64_t total_count_; \
-  static blender::timeit::Nanoseconds total_time_; \
-  static blender::timeit::Nanoseconds min_time_ = blender::timeit::Nanoseconds::max(); \
-  blender::timeit::ScopedTimerAveraged scoped_timer( \
-      name, total_count_, total_time_, min_time_, window_size)
+  static timeit::Nanoseconds total_time_; \
+  static timeit::Nanoseconds min_time_ = timeit::Nanoseconds::max(); \
+  timeit::ScopedTimerAveraged scoped_timer(name, total_count_, total_time_, min_time_, window_size)

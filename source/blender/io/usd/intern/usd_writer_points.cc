@@ -25,7 +25,7 @@ void USDPointsWriter::do_write(HierarchyContext &context)
   const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
   const pxr::UsdTimeCode time = get_export_time_code();
 
-  const PointCloud *points = blender::id_cast<const PointCloud *>(context.object->data);
+  const PointCloud *points = id_cast<const PointCloud *>(context.object->data);
   Span<pxr::GfVec3f> positions = points->positions().cast<pxr::GfVec3f>();
   VArray<float> radii = points->radius();
 
@@ -126,7 +126,7 @@ void USDPointsWriter::write_ids(const PointCloud *points,
                                 const pxr::UsdGeomPoints &usd_points,
                                 const pxr::UsdTimeCode time)
 {
-  const VArraySpan ids = *points->attributes().lookup<int>("id", blender::bke::AttrDomain::Point);
+  const VArraySpan ids = *points->attributes().lookup<int>("id", bke::AttrDomain::Point);
   if (ids.is_empty()) {
     return;
   }
@@ -140,8 +140,8 @@ void USDPointsWriter::write_velocities(const PointCloud *points,
                                        const pxr::UsdGeomPoints &usd_points,
                                        const pxr::UsdTimeCode time)
 {
-  const VArraySpan velocity = *points->attributes().lookup<float3>(
-      "velocity", blender::bke::AttrDomain::Point);
+  const VArraySpan velocity = *points->attributes().lookup<float3>("velocity",
+                                                                   bke::AttrDomain::Point);
   if (velocity.is_empty()) {
     return;
   }

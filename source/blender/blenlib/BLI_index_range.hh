@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::IndexRange` wraps an interval of non-negative integers. It can be used to reference
+ * A `IndexRange` wraps an interval of non-negative integers. It can be used to reference
  * consecutive elements in an array. Furthermore, it can make for loops more convenient and less
  * error prone, especially when using nested loops.
  *
@@ -22,7 +22,7 @@
  *    for (int64_t j : IndexRange(20)) {
  *      for (int64_t k : IndexRange(30)) {
  *
- * Some containers like blender::Vector have an index_range() method. This will return the
+ * Some containers like Vector have an index_range() method. This will return the
  * IndexRange that contains all indices that can be used to access the container. This is
  * particularly useful when you want to iterate over the indices and the elements (much like
  * Python's enumerate(), just worse). Again, I think the second example here is better:

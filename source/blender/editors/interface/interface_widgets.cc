@@ -2375,7 +2375,7 @@ static void widget_draw_node_link_socket(const uiWidgetColors *wcol,
     widgetbase_draw_cache_flush();
     GPU_blend(GPU_BLEND_NONE);
 
-    blender::ed::space_node::node_socket_draw(
+    ed::space_node::node_socket_draw(
         static_cast<bNodeSocket *>(but->custom_data), rect, col, scale);
   }
   else {
@@ -4023,12 +4023,12 @@ static void widget_nodesocket(Button *but,
   widgetbase_draw_cache_flush();
   GPU_blend(GPU_BLEND_NONE);
 
-  blender::ed::space_node::node_draw_nodesocket(&socket_rect,
-                                                socket_color,
-                                                outline_color,
-                                                U.pixelsize,
-                                                SOCK_DISPLAY_SHAPE_CIRCLE,
-                                                1.0f / zoom);
+  ed::space_node::node_draw_nodesocket(&socket_rect,
+                                       socket_color,
+                                       outline_color,
+                                       U.pixelsize,
+                                       SOCK_DISPLAY_SHAPE_CIRCLE,
+                                       1.0f / zoom);
 }
 
 static void widget_numslider(Button *but,
@@ -4211,8 +4211,7 @@ static void widget_swatch(Button *but,
 
   widgetbase_draw_color(&wtb, wcol, col, show_alpha_checkers);
   if (color_but->is_pallete_color &&
-      (blender::id_cast<Palette *>(but->rnapoin.owner_id))->active_color ==
-          color_but->palette_color_index)
+      (id_cast<Palette *>(but->rnapoin.owner_id))->active_color == color_but->palette_color_index)
   {
     const float width = rect->xmax - rect->xmin;
     const float height = rect->ymax - rect->ymin;

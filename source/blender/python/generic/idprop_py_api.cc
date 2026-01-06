@@ -31,6 +31,8 @@
 
 #include "python_utildefines.hh"
 
+namespace blender {
+
 extern bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
 extern PyObject *pyrna_id_CreatePyObject(ID *id);
 extern bool pyrna_id_CheckPyObject(PyObject *obj);
@@ -471,7 +473,7 @@ static IDProperty *idp_from_PyFloat(IDProperty *prop_exist,
     }
   }
   if (!prop && can_create) {
-    prop = blender::bke::idprop::create(name, value).release();
+    prop = bke::idprop::create(name, value).release();
   }
   return prop;
 }
@@ -508,7 +510,7 @@ static IDProperty *idp_from_PyBool(IDProperty *prop_exist,
     }
   }
   if (!prop && can_create) {
-    prop = blender::bke::idprop::create_bool(name, value).release();
+    prop = bke::idprop::create_bool(name, value).release();
   }
   return prop;
 }
@@ -559,7 +561,7 @@ static IDProperty *idp_from_PyLong(IDProperty *prop_exist,
     if (value == -1 && PyErr_Occurred()) {
       return prop;
     }
-    prop = blender::bke::idprop::create(name, value).release();
+    prop = bke::idprop::create(name, value).release();
   }
   return prop;
 }
@@ -960,7 +962,7 @@ static IDProperty *idp_from_PyMapping(IDProperty * /*prop_exist*/,
 
   /* We allocate the group first; if we hit any invalid data,
    * we can delete it easily enough. */
-  prop = blender::bke::idprop::create_group(name).release();
+  prop = bke::idprop::create_group(name).release();
   len = PyMapping_Length(ob);
   for (i = 0; i < len; i++) {
     key = PySequence_GetItem(keys, i);
@@ -1005,7 +1007,7 @@ static IDProperty *idp_from_DatablockPointer(IDProperty *prop_exist,
     /* No conversion. */
   }
   if (!prop && can_create) {
-    prop = blender::bke::idprop::create(name, value).release();
+    prop = bke::idprop::create(name, value).release();
   }
   return prop;
 }
@@ -2717,3 +2719,5 @@ PyObject *BPyInit_idprop()
 }
 
 /** \} */
+
+}  // namespace blender

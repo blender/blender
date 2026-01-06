@@ -23,8 +23,7 @@
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* own include */
 
-using blender::Bounds;
-using blender::float3;
+namespace blender {
 
 #ifdef WITH_INPUT_NDOF
 static bool ndof_orbit_center_is_valid(const RegionView3D *rv3d, const float3 &center);
@@ -137,7 +136,7 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData &ndof,
     return;
   }
 
-  blender::float3 pan_vec = WM_event_ndof_translation_get_for_navigation(ndof);
+  float3 pan_vec = WM_event_ndof_translation_get_for_navigation(ndof);
   if (has_zoom) {
     /* zoom with Z */
 
@@ -306,7 +305,7 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
     float zvec[3] = {0, 0, 1};
 
     /* only use XY, ignore Z */
-    blender::float3 rot = WM_event_ndof_rotation_get_for_navigation(ndof);
+    float3 rot = WM_event_ndof_rotation_get_for_navigation(ndof);
 
     /* Determine the direction of the X vector (for rotating up and down). */
     mul_qt_v3(view_inv, xvec);
@@ -407,7 +406,7 @@ void view3d_ndof_fly(const wmNDOFMotionData &ndof,
       speed *= 0.2f;
     }
 
-    blender::float3 trans = (speed * ndof.time_delta) * WM_event_ndof_translation_get(ndof);
+    float3 trans = (speed * ndof.time_delta) * WM_event_ndof_translation_get(ndof);
     trans_orig_y = trans[1];
 
     if (U.ndof_flag & NDOF_FLY_HELICOPTER) {
@@ -659,7 +658,7 @@ static std::optional<float3> ndof_orbit_center_calc_from_zbuf(Depsgraph *depsgra
     return std::nullopt;
   }
 
-  blender::float3 zbuf_center;
+  float3 zbuf_center;
   if (!ED_view3d_unproject_v3(region, UNPACK3(*min_depth_pt), zbuf_center)) {
     return std::nullopt;
   }
@@ -746,7 +745,7 @@ static wmOperatorStatus view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod,
     return OPERATOR_PASS_THROUGH;
   }
 
-  blender::float3 pan_vec = WM_event_ndof_translation_get_for_navigation(ndof);
+  float3 pan_vec = WM_event_ndof_translation_get_for_navigation(ndof);
   const float pan_speed = NDOF_PIXELS_PER_SECOND;
   const bool has_translate = !is_zero_v2(pan_vec);
   const bool has_zoom = pan_vec[2] != 0.0f;
@@ -1178,3 +1177,5 @@ const ViewOpsType ViewOpsType_ndof_all = {
 #endif /* WITH_INPUT_NDOF */
 
 /** \} */
+
+}  // namespace blender

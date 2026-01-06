@@ -56,6 +56,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* ********* general editor util functions, not BKE stuff please! ********* */
 
 void ED_editors_init_for_undo(Main *bmain)
@@ -168,7 +170,7 @@ void ED_editors_init(bContext *C)
     else if (mode & OB_MODE_ALL_SCULPT) {
       if (obact == &ob) {
         if (mode == OB_MODE_SCULPT) {
-          blender::ed::sculpt_paint::object_sculpt_mode_enter(
+          ed::sculpt_paint::object_sculpt_mode_enter(
               *bmain, *depsgraph, *scene, ob, true, reports);
         }
         else if (mode == OB_MODE_VERTEX_PAINT) {
@@ -377,11 +379,11 @@ void unpack_menu(bContext *C,
   wmOperatorType *ot = WM_operatortype_find(opname, true);
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);
-  blender::ui::Layout &layout = *popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
 
   PointerRNA props_ptr = layout.op(
-      ot, IFACE_("Remove Pack"), ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+      ot, IFACE_("Remove Pack"), ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
   RNA_enum_set(&props_ptr, "method", PF_REMOVE);
   RNA_string_set(&props_ptr, "id", id_name);
 
@@ -394,30 +396,26 @@ void unpack_menu(bContext *C,
       switch (BKE_packedfile_compare_to_file(blendfile_path, local_name, pf)) {
         case PF_CMP_NOFILE:
           SNPRINTF_UTF8(line, IFACE_("Create %s"), local_name);
-          props_ptr = layout.op(
-              ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+          props_ptr = layout.op(ot, line, ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
           break;
         case PF_CMP_EQUAL:
           SNPRINTF_UTF8(line, IFACE_("Use %s (identical)"), local_name);
-          props_ptr = layout.op(
-              ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+          props_ptr = layout.op(ot, line, ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
           break;
         case PF_CMP_DIFFERS:
           SNPRINTF_UTF8(line, IFACE_("Use %s (differs)"), local_name);
-          props_ptr = layout.op(
-              ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+          props_ptr = layout.op(ot, line, ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
           SNPRINTF_UTF8(line, IFACE_("Overwrite %s"), local_name);
-          props_ptr = layout.op(
-              ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+          props_ptr = layout.op(ot, line, ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
           break;
@@ -428,28 +426,24 @@ void unpack_menu(bContext *C,
   switch (BKE_packedfile_compare_to_file(blendfile_path, abs_name, pf)) {
     case PF_CMP_NOFILE:
       SNPRINTF_UTF8(line, IFACE_("Create %s"), abs_name);
-      props_ptr = layout.op(
-          ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+      props_ptr = layout.op(ot, line, ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_EQUAL:
       SNPRINTF_UTF8(line, IFACE_("Use %s (identical)"), abs_name);
-      props_ptr = layout.op(
-          ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+      props_ptr = layout.op(ot, line, ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_DIFFERS:
       SNPRINTF_UTF8(line, IFACE_("Use %s (differs)"), abs_name);
-      props_ptr = layout.op(
-          ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+      props_ptr = layout.op(ot, line, ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
 
       SNPRINTF_UTF8(line, IFACE_("Overwrite %s"), abs_name);
-      props_ptr = layout.op(
-          ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
+      props_ptr = layout.op(ot, line, ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
@@ -458,9 +452,7 @@ void unpack_menu(bContext *C,
   popup_menu_end(C, pup);
 }
 
-void ED_spacedata_id_remap(ScrArea *area,
-                           SpaceLink *sl,
-                           const blender::bke::id::IDRemapper &mappings)
+void ED_spacedata_id_remap(ScrArea *area, SpaceLink *sl, const bke::id::IDRemapper &mappings)
 {
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
   if (st && st->id_remap) {
@@ -473,8 +465,10 @@ void ED_spacedata_id_remap_single(ScrArea *area, SpaceLink *sl, ID *old_id, ID *
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
 
   if (st && st->id_remap) {
-    blender::bke::id::IDRemapper mappings;
+    bke::id::IDRemapper mappings;
     mappings.add(old_id, new_id);
     st->id_remap(area, sl, mappings);
   }
 }
+
+}  // namespace blender

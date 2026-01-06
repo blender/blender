@@ -26,6 +26,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Structs & Constants
  * \{ */
@@ -1217,3 +1219,5 @@ double BLI_gset_calc_quality(const GSet *gs)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -10,6 +10,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 enum class FontShadowType {
   None = 0,
   Blur3x3 = 3,
@@ -63,3 +65,5 @@ enum FontFlags {
   BLF_NO_FALLBACK = 1 << 19,
 };
 ENUM_OPERATORS(FontFlags);
+
+}  // namespace blender

@@ -20,6 +20,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /********************************* Init **************************************/
 
 void zero_m3(float m[3][3])
@@ -2966,3 +2968,5 @@ void BLI_space_transform_invert_normal(const SpaceTransform *data, float no[3])
   mul_mat3_m4_v3((const_cast<SpaceTransform *>(data))->target2local, no);
   normalize_v3(no);
 }
+
+}  // namespace blender

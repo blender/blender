@@ -22,6 +22,8 @@
 
 #include "ANIM_keyframing.hh"
 
+namespace blender {
+
 /* Own includes. */
 
 /* -------------------------------------------------------------------- */
@@ -313,14 +315,12 @@ void WM_gizmo_target_property_anim_autokey(bContext *C,
     const float cfra = float(scene->r.cfra);
     const int index = gz_prop->index == -1 ? 0 : gz_prop->index;
     ANIM_deselect_keys_in_animation_editors(C);
-    blender::animrig::autokeyframe_property(
-        C, scene, &gz_prop->ptr, gz_prop->prop, index, cfra, false);
+    animrig::autokeyframe_property(C, scene, &gz_prop->ptr, gz_prop->prop, index, cfra, false);
   }
   else if (gz_prop->custom_func.foreach_rna_prop_fn) {
     Scene *scene = CTX_data_scene(C);
     auto autokey_fn = [C, scene](PointerRNA &ptr, PropertyRNA *prop, int index) {
-      blender::animrig::autokeyframe_property(
-          C, scene, &ptr, prop, index, float(scene->r.cfra), false);
+      animrig::autokeyframe_property(C, scene, &ptr, prop, index, float(scene->r.cfra), false);
     };
     ANIM_deselect_keys_in_animation_editors(C);
     gz_prop->custom_func.foreach_rna_prop_fn(gz_prop, autokey_fn);
@@ -328,3 +328,5 @@ void WM_gizmo_target_property_anim_autokey(bContext *C,
 }
 
 /** \} */
+
+}  // namespace blender

@@ -9,6 +9,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct Library;
 struct TestStruct;
 
@@ -41,3 +43,5 @@ struct TestStruct {
 
   int _pad2;
 };
+
+}  // namespace blender

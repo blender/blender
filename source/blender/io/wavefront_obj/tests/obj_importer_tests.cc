@@ -24,8 +24,8 @@ TEST(obj_import, BufferRefillTest)
 
   OBJImportParams params;
   /* nurbs_cyclic.obj file has quite long lines, good to test read buffer refill. */
-  std::string obj_path = blender::tests::flags_test_asset_dir() +
-                         SEP_STR "io_tests" SEP_STR "obj" SEP_STR + "nurbs_cyclic.obj";
+  std::string obj_path = tests::flags_test_asset_dir() + SEP_STR "io_tests" SEP_STR "obj" SEP_STR +
+                         "nurbs_cyclic.obj";
   STRNCPY(params.filepath, obj_path.c_str());
 
   /* Use a small read buffer size to test buffer refilling behavior. */

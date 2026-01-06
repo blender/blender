@@ -14,6 +14,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /**
  * A reasonable standard buffer size, big enough to not cause much internal fragmentation,
  * small enough not to waste resources
@@ -71,3 +73,5 @@ void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src) ATTR_NONNULL(1, 2);
  * otherwise be freed and recreated.
  */
 void BLI_memarena_clear(MemArena *ma) ATTR_NONNULL(1);
+
+}  // namespace blender

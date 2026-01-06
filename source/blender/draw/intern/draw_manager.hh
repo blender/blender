@@ -25,7 +25,9 @@
 
 #include <atomic>
 
-namespace blender::draw {
+namespace blender {
+
+namespace draw {
 
 /* Forward declarations. */
 
@@ -495,8 +497,10 @@ inline void Manager::register_layer_attributes(GPUMaterial *material)
   }
 }
 
-}  // namespace blender::draw
+}  // namespace draw
 
 /* TODO(@fclem): This is for testing. The manager should be passed to the engine through the
  * callbacks. */
-blender::draw::Manager *DRW_manager_get();
+draw::Manager *DRW_manager_get();
+
+}  // namespace blender

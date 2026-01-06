@@ -17,6 +17,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 /********* Right-hand faces implementation ****** */
 
 #define FACE_FLAG (1 << 0)
@@ -297,3 +299,5 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
   MEM_freeN(groups_array);
   MEM_freeN(group_index);
 }
+
+}  // namespace blender

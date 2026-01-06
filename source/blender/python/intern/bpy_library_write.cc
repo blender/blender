@@ -32,6 +32,8 @@
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
+namespace blender {
+
 using namespace blender::bke::blendfile;
 
 PyDoc_STRVAR(
@@ -205,3 +207,5 @@ PyMethodDef BPY_library_write_method_def = {
 #    pragma GCC diagnostic pop
 #  endif
 #endif
+
+}  // namespace blender

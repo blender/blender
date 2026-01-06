@@ -47,6 +47,8 @@
 #include "rna_access_internal.hh"
 #include "rna_internal.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"rna.access_compare_override"};
 
 /**
@@ -83,7 +85,7 @@ static ID *rna_property_override_property_real_id_owner(Main * /*bmain*/,
 
     switch (GS(id->name)) {
       case ID_KE:
-        owner_id = (blender::id_cast<Key *>(id))->from;
+        owner_id = (id_cast<Key *>(id))->from;
         rna_path_prefix = "shape_keys.";
         break;
       case ID_GR:
@@ -646,15 +648,13 @@ bool RNA_struct_override_matches(Main *bmain,
      * missing updates (possibly due to dependencies?). Since calling this function on same ID
      * several time is almost free, and safe even in a threaded context as long as it has been done
      * at least once first outside of threaded processing, we do it another time here. */
-    Object *ob_local = blender::id_cast<Object *>(ptr_local->owner_id);
+    Object *ob_local = id_cast<Object *>(ptr_local->owner_id);
     if (ob_local->type == OB_ARMATURE) {
-      Object *ob_reference = blender::id_cast<Object *>(
-          ptr_local->owner_id->override_library->reference);
+      Object *ob_reference = id_cast<Object *>(ptr_local->owner_id->override_library->reference);
       BLI_assert(ob_local->data != nullptr);
       BLI_assert(ob_reference->data != nullptr);
-      BKE_pose_ensure(bmain, ob_local, blender::id_cast<bArmature *>(ob_local->data), true);
-      BKE_pose_ensure(
-          bmain, ob_reference, blender::id_cast<bArmature *>(ob_reference->data), true);
+      BKE_pose_ensure(bmain, ob_local, id_cast<bArmature *>(ob_local->data), true);
+      BKE_pose_ensure(bmain, ob_reference, id_cast<bArmature *>(ob_reference->data), true);
     }
   }
 
@@ -1766,3 +1766,5 @@ eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,
 
   return override_status;
 }
+
+}  // namespace blender

@@ -37,6 +37,8 @@
 
 #include "eigen_capi.h"
 
+namespace blender {
+
 enum {
   LAPDEFORM_SYSTEM_NOT_CHANGE = 0,
   LAPDEFORM_SYSTEM_IS_DIFFERENT,
@@ -152,8 +154,8 @@ static void deleteLaplacianSystem(LaplacianSystem *sys)
 }
 
 static void createFaceRingMap(const int mvert_tot,
-                              blender::Span<blender::int3> corner_tris,
-                              blender::Span<int> corner_verts,
+                              Span<int3> corner_tris,
+                              Span<int> corner_verts,
                               MeshElemMap **r_map,
                               int **r_indices)
 {
@@ -162,7 +164,7 @@ static void createFaceRingMap(const int mvert_tot,
   MeshElemMap *map = MEM_calloc_arrayN<MeshElemMap>(mvert_tot, __func__);
 
   for (const int i : corner_tris.index_range()) {
-    const blender::int3 &tri = corner_tris[i];
+    const int3 &tri = corner_tris[i];
     for (int j = 0; j < 3; j++) {
       const int v_index = corner_verts[tri[j]];
       map[v_index].count++;
@@ -177,7 +179,7 @@ static void createFaceRingMap(const int mvert_tot,
     map[i].count = 0;
   }
   for (const int i : corner_tris.index_range()) {
-    const blender::int3 &tri = corner_tris[i];
+    const int3 &tri = corner_tris[i];
     for (int j = 0; j < 3; j++) {
       const int v_index = corner_verts[tri[j]];
       map[v_index].indices[map[v_index].count] = i;
@@ -189,7 +191,7 @@ static void createFaceRingMap(const int mvert_tot,
 }
 
 static void createVertRingMap(const int mvert_tot,
-                              const blender::Span<blender::int2> edges,
+                              const Span<int2> edges,
                               MeshElemMap **r_map,
                               int **r_indices)
 {
@@ -559,9 +561,9 @@ static void initSystem(
       }
     }
 
-    const blender::Span<blender::int2> edges = mesh->edges();
-    const blender::Span<int> corner_verts = mesh->corner_verts();
-    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    const Span<int2> edges = mesh->edges();
+    const Span<int> corner_verts = mesh->corner_verts();
+    const Span<int3> corner_tris = mesh->corner_tris();
 
     anchors_num = STACK_SIZE(index_anchors);
     lmd->cache_system = initLaplacianSystem(verts_num,
@@ -575,7 +577,7 @@ static void initSystem(
     memcpy(sys->co, vertexCos, sizeof(float[3]) * verts_num);
     MEM_freeN(index_anchors);
     lmd->vertexco = MEM_malloc_arrayN<float>(3 * size_t(verts_num), __func__);
-    lmd->vertexco_sharing_info = blender::implicit_sharing::info_for_mem_free(lmd->vertexco);
+    lmd->vertexco_sharing_info = implicit_sharing::info_for_mem_free(lmd->vertexco);
     memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * verts_num);
     lmd->verts_num = verts_num;
 
@@ -702,7 +704,7 @@ static void LaplacianDeformModifier_do(
     else if (lmd->verts_num > 0 && lmd->verts_num == verts_num) {
       filevertexCos = MEM_malloc_arrayN<float[3]>(size_t(verts_num), "TempDeformCoordinates");
       memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * verts_num);
-      blender::implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
+      implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
       lmd->verts_num = 0;
       initSystem(lmd, ob, mesh, filevertexCos, verts_num);
       sys = static_cast<LaplacianSystem *>(lmd->cache_system);
@@ -734,7 +736,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
   BKE_modifier_copydata_generic(md, target, flag);
 
-  blender::implicit_sharing::copy_shared_pointer(
+  implicit_sharing::copy_shared_pointer(
       lmd->vertexco, lmd->vertexco_sharing_info, &tlmd->vertexco, &tlmd->vertexco_sharing_info);
   tlmd->cache_system = nullptr;
 }
@@ -760,7 +762,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   LaplacianDeformModifier_do(reinterpret_cast<LaplacianDeformModifierData *>(md),
                              ctx->object,
@@ -776,13 +778,13 @@ static void free_data(ModifierData *md)
   if (sys) {
     deleteLaplacianSystem(sys);
   }
-  blender::implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
+  implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
   lmd->verts_num = 0;
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -798,7 +800,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.separator();
 
-  blender::ui::Layout &row = layout.row(true);
+  ui::Layout &row = layout.row(true);
   row.enabled_set(has_vertex_group);
   row.op("OBJECT_OT_laplaciandeform_bind", is_bind ? IFACE_("Unbind") : IFACE_("Bind"), ICON_NONE);
 
@@ -844,7 +846,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   if (lmd->vertexco) {
     lmd->vertexco_sharing_info = BLO_read_shared(reader, &lmd->vertexco, [&]() {
       BLO_read_float3_array(reader, lmd->verts_num, &lmd->vertexco);
-      return blender::implicit_sharing::info_for_mem_free(lmd->vertexco);
+      return implicit_sharing::info_for_mem_free(lmd->vertexco);
     });
   }
   lmd->cache_system = nullptr;
@@ -884,3 +886,5 @@ ModifierTypeInfo modifierType_LaplacianDeform = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

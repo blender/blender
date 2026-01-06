@@ -54,6 +54,8 @@
 
 #include "graph_intern.hh" /* own include */
 
+namespace blender {
+
 #define B_REDR 1
 
 /* -------------------------------------------------------------------- */
@@ -123,7 +125,7 @@ static void graph_panel_cursor_header(const bContext *C, Panel *panel)
   PointerRNA spaceptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceGraphEditor, sipo);
 
   /* 2D-Cursor */
-  blender::ui::Layout &col = panel->layout->column(false);
+  ui::Layout &col = panel->layout->column(false);
   col.prop(&spaceptr, "show_cursor", UI_ITEM_NONE, "", ICON_NONE);
 }
 
@@ -132,7 +134,7 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
   bScreen *screen = CTX_wm_screen(C);
   SpaceGraph *sipo = CTX_wm_space_graph(C);
   Scene *scene = CTX_data_scene(C);
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   /* get RNA pointers for use when creating the UI elements */
   PointerRNA sceneptr = RNA_id_pointer_create(&scene->id);
@@ -142,10 +144,10 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
   layout.use_property_decorate_set(false);
 
   /* 2D-Cursor */
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.active_set(RNA_boolean_get(&spaceptr, "show_cursor"));
 
-  blender::ui::Layout &pos_sub = col.column(true);
+  ui::Layout &pos_sub = col.column(true);
   if (sipo->mode == SIPO_MODE_DRIVERS) {
     pos_sub.prop(&spaceptr, "cursor_position_x", UI_ITEM_NONE, IFACE_("Cursor X"), ICON_NONE);
   }
@@ -155,7 +157,7 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
 
   pos_sub.prop(&spaceptr, "cursor_position_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  blender::ui::Layout &sub = col.column(true);
+  ui::Layout &sub = col.column(true);
   sub.op("GRAPH_OT_frame_jump", IFACE_("Cursor to Selection"), ICON_NONE);
   sub.op("GRAPH_OT_snap_cursor_value", IFACE_("Cursor Value to Selection"), ICON_NONE);
 }
@@ -170,7 +172,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
 {
   bAnimListElem *ale;
   FCurve *fcu;
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
   char name[256];
   int icon = 0;
 
@@ -182,7 +184,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   PointerRNA fcu_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, &RNA_FCurve, fcu);
 
   /* user-friendly 'name' for F-Curve */
-  blender::ui::Layout &name_col = layout.column(false);
+  ui::Layout &name_col = layout.column(false);
   if (ale->type == ANIMTYPE_FCURVE) {
     /* get user-friendly name for F-Curve */
     const std::optional<int> optional_icon = getname_anim_fcurve(name, ale->id, fcu);
@@ -220,13 +222,13 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   layout.use_property_decorate_set(false);
 
   /* RNA-Path Editing - only really should be enabled when things aren't working */
-  blender::ui::Layout &rna_col = layout.column(false);
+  ui::Layout &rna_col = layout.column(false);
   rna_col.enabled_set((fcu->flag & FCURVE_DISABLED) != 0);
   rna_col.prop(&fcu_ptr, "data_path", UI_ITEM_NONE, "", ICON_RNA);
   rna_col.prop(&fcu_ptr, "array_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   /* color settings */
-  blender::ui::Layout &color_col = layout.column(true);
+  ui::Layout &color_col = layout.column(true);
   color_col.prop(&fcu_ptr, "color_mode", UI_ITEM_NONE, IFACE_("Display Color"), ICON_NONE);
 
   if (fcu->color_mode == FCURVE_COLOR_CUSTOM) {
@@ -234,7 +236,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   }
 
   /* smoothing setting */
-  blender::ui::Layout &smooth_col = layout.column(true);
+  ui::Layout &smooth_col = layout.column(true);
   smooth_col.prop(&fcu_ptr, "auto_smoothing", UI_ITEM_NONE, IFACE_("Handle Smoothing"), ICON_NONE);
 
   MEM_freeN(ale);
@@ -365,7 +367,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   FCurve *fcu;
   BezTriple *bezt, *prevbezt;
 
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
   const ARegion *region = CTX_wm_region(C);
   /* Just a width big enough so buttons use entire layout width (will be clamped by it then). */
   const int but_max_width = region->winx;
@@ -374,7 +376,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     return;
   }
 
-  blender::ui::Block *block = layout.block();
+  ui::Block *block = layout.block();
   // block_func_handle_set(block, do_graph_region_buttons, nullptr);
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
@@ -383,7 +385,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   if (get_active_fcurve_keyframe_edit(fcu, &bezt, &prevbezt)) {
     PointerRNA fcu_prop_ptr;
     PropertyRNA *fcu_prop = nullptr;
-    blender::ui::Button *but;
+    ui::Button *but;
     int unit = B_UNIT_NONE;
 
     /* RNA pointer to keyframe, to allow editing */
@@ -397,9 +399,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     }
 
     /* interpolation */
-    blender::ui::Layout &interpolation_col = layout.column(false);
+    ui::Layout &interpolation_col = layout.column(false);
     if (fcu->flag & FCURVE_DISCRETE_VALUES) {
-      blender::ui::Layout &split = interpolation_col.split(0.33f, true);
+      ui::Layout &split = interpolation_col.split(0.33f, true);
       split.label(IFACE_("Interpolation:"), ICON_NONE);
       split.label(IFACE_("None for Enum/Boolean"), ICON_IPO_CONSTANT);
     }
@@ -415,12 +417,12 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     /* easing extra */
     switch (bezt->ipo) {
       case BEZT_IPO_BACK: {
-        blender::ui::Layout &col = layout.column(true);
+        ui::Layout &col = layout.column(true);
         col.prop(&bezt_ptr, "back", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
       }
       case BEZT_IPO_ELASTIC: {
-        blender::ui::Layout &col = layout.column(true);
+        ui::Layout &col = layout.column(true);
         col.prop(&bezt_ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         col.prop(&bezt_ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
@@ -435,10 +437,10 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
      */
     /* keyframe itself */
     {
-      blender::ui::Layout &col = layout.column(true);
+      ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Key Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButtonType::Num,
+                      ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -455,7 +457,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButtonType::Num,
+                      ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -475,10 +477,10 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     /* previous handle - only if previous was Bezier interpolation */
     if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ)) {
 
-      blender::ui::Layout &col = layout.column(true);
+      ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Left Handle Type"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButtonType::Menu,
+                      ui::ButtonType::Menu,
                       std::nullopt,
                       0,
                       0,
@@ -495,7 +497,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButtonType::Num,
+                      ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -512,7 +514,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButtonType::Num,
+                      ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -533,10 +535,10 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     if (bezt->ipo == BEZT_IPO_BEZ) {
       /* NOTE: special update callbacks are needed on the coords here due to #39911 */
 
-      blender::ui::Layout &col = layout.column(true);
+      ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Right Handle Type"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButtonType::Menu,
+                      ui::ButtonType::Menu,
                       std::nullopt,
                       0,
                       0,
@@ -553,7 +555,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButtonType::Num,
+                      ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -570,7 +572,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButtonType::Num,
+                      ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -681,9 +683,9 @@ static void driver_delete_var_cb(bContext *C, void *driver_v, void *dvar_v)
 /* callback to report why a driver variable is invalid */
 static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * /*arg*/)
 {
-  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(
+  ui::PopupMenu *pup = ui::popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Invalid Variable Name"), ICON_NONE);
-  blender::ui::Layout &layout = *popup_menu_layout(pup);
+  ui::Layout &layout = *popup_menu_layout(pup);
 
   DriverVar *dvar = static_cast<DriverVar *>(dvar_v);
 
@@ -738,12 +740,12 @@ static bool graph_panel_drivers_poll(const bContext *C, PanelType * /*pt*/)
   return graph_panel_context(C, nullptr, nullptr);
 }
 
-static void graph_panel_driverVar_fallback(blender::ui::Layout &layout,
+static void graph_panel_driverVar_fallback(ui::Layout &layout,
                                            const DriverTarget *dtar,
                                            PointerRNA *dtar_ptr)
 {
   if (dtar->options & DTAR_OPTION_USE_FALLBACK) {
-    blender::ui::Layout &row = layout.row(true);
+    ui::Layout &row = layout.row(true);
     row.prop(dtar_ptr, "use_fallback_value", UI_ITEM_NONE, "", ICON_NONE);
     row.prop(dtar_ptr, "fallback_value", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -753,7 +755,7 @@ static void graph_panel_driverVar_fallback(blender::ui::Layout &layout,
 }
 
 /* settings for 'single property' driver variable type */
-static void graph_panel_driverVar__singleProp(blender::ui::Layout &layout, ID *id, DriverVar *dvar)
+static void graph_panel_driverVar__singleProp(ui::Layout &layout, ID *id, DriverVar *dvar)
 {
   DriverTarget *dtar = &dvar->targets[0];
 
@@ -761,7 +763,7 @@ static void graph_panel_driverVar__singleProp(blender::ui::Layout &layout, ID *i
   PointerRNA dtar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverTarget, dtar);
 
   /* Target ID */
-  blender::ui::Layout &row = layout.row(false);
+  ui::Layout &row = layout.row(false);
   row.red_alert_set((dtar->flag & DTAR_FLAG_INVALID) && !dtar->id);
   template_any_id(&row, &dtar_ptr, "id", "id_type", IFACE_("Prop:"));
 
@@ -771,7 +773,7 @@ static void graph_panel_driverVar__singleProp(blender::ui::Layout &layout, ID *i
     PointerRNA root_ptr = RNA_id_pointer_create(dtar->id);
 
     /* rna path */
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
     col.red_alert_set(dtar->flag & (DTAR_FLAG_INVALID | DTAR_FLAG_FALLBACK_USED));
     template_path_builder(&col,
                           &dtar_ptr,
@@ -786,19 +788,19 @@ static void graph_panel_driverVar__singleProp(blender::ui::Layout &layout, ID *i
 
 /* settings for 'rotation difference' driver variable type */
 /* FIXME: 1) Must be same armature for both dtars, 2) Alignment issues... */
-static void graph_panel_driverVar__rotDiff(blender::ui::Layout &layout, ID *id, DriverVar *dvar)
+static void graph_panel_driverVar__rotDiff(ui::Layout &layout, ID *id, DriverVar *dvar)
 {
-  for (int i : blender::IndexRange(2)) {
+  for (int i : IndexRange(2)) {
     DriverTarget *dtar = &dvar->targets[i];
     /* Initialize RNA pointer to the target */
     PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_DriverTarget, dtar);
 
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
     col.red_alert_set(dtar->flag & DTAR_FLAG_INVALID); /* XXX: per field... */
-    blender::StringRef name = i == 1 ? IFACE_("Object 1") : IFACE_("Object 2");
+    StringRef name = i == 1 ? IFACE_("Object 1") : IFACE_("Object 2");
     col.prop(&ptr, "id", UI_ITEM_NONE, name, ICON_NONE);
 
-    Object *ob = blender::id_cast<Object *>(dtar->id);
+    Object *ob = id_cast<Object *>(dtar->id);
     if (dtar->id && GS(dtar->id->name) == ID_OB && ob->pose) {
       PointerRNA tar_ptr = RNA_pointer_create_discrete(dtar->id, &RNA_Pose, ob->pose);
       col.prop_search(&ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
@@ -808,20 +810,20 @@ static void graph_panel_driverVar__rotDiff(blender::ui::Layout &layout, ID *id, 
 
 /* settings for 'location difference' driver variable type */
 
-static void graph_panel_driverVar__locDiff(blender::ui::Layout &layout, ID *id, DriverVar *dvar)
+static void graph_panel_driverVar__locDiff(ui::Layout &layout, ID *id, DriverVar *dvar)
 {
 
-  for (int i : blender::IndexRange(2)) {
+  for (int i : IndexRange(2)) {
     DriverTarget *dtar = &dvar->targets[i];
     /* Initialize RNA pointer to the target */
     PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_DriverTarget, dtar);
 
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
     col.red_alert_set(dtar->flag & DTAR_FLAG_INVALID); /* XXX: per field... */
-    blender::StringRef name = i == 1 ? IFACE_("Object 1") : IFACE_("Object 2");
+    StringRef name = i == 1 ? IFACE_("Object 1") : IFACE_("Object 2");
     col.prop(&ptr, "id", UI_ITEM_NONE, name, ICON_NONE);
 
-    Object *ob = blender::id_cast<Object *>(dtar->id);
+    Object *ob = id_cast<Object *>(dtar->id);
 
     if (dtar->id && GS(dtar->id->name) == ID_OB && ob->pose) {
       PointerRNA tar_ptr = RNA_pointer_create_discrete(dtar->id, &RNA_Pose, ob->pose);
@@ -836,16 +838,16 @@ static void graph_panel_driverVar__locDiff(blender::ui::Layout &layout, ID *id, 
 }
 
 /* settings for 'transform channel' driver variable type */
-static void graph_panel_driverVar__transChan(blender::ui::Layout &layout, ID *id, DriverVar *dvar)
+static void graph_panel_driverVar__transChan(ui::Layout &layout, ID *id, DriverVar *dvar)
 {
   DriverTarget *dtar = &dvar->targets[0];
-  Object *ob = blender::id_cast<Object *>(dtar->id);
+  Object *ob = id_cast<Object *>(dtar->id);
 
   /* initialize RNA pointer to the target */
   PointerRNA dtar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverTarget, dtar);
 
   /* properties */
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.red_alert_set(dtar->flag & DTAR_FLAG_INVALID); /* XXX: per field... */
   col.prop(&dtar_ptr, "id", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 
@@ -854,7 +856,7 @@ static void graph_panel_driverVar__transChan(blender::ui::Layout &layout, ID *id
     col.prop_search(&dtar_ptr, "bone_target", &tar_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
-  blender::ui::Layout &sub = layout.column(true);
+  ui::Layout &sub = layout.column(true);
   sub.prop(&dtar_ptr, "transform_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(dtar->transChan,
@@ -870,9 +872,7 @@ static void graph_panel_driverVar__transChan(blender::ui::Layout &layout, ID *id
 }
 
 /* Settings for 'Context Property' driver variable type. */
-static void graph_panel_driverVar__contextProp(blender::ui::Layout &layout,
-                                               ID *id,
-                                               DriverVar *dvar)
+static void graph_panel_driverVar__contextProp(ui::Layout &layout, ID *id, DriverVar *dvar)
 {
   DriverTarget *dtar = &dvar->targets[0];
 
@@ -881,13 +881,13 @@ static void graph_panel_driverVar__contextProp(blender::ui::Layout &layout,
 
   /* Target Property. */
   {
-    blender::ui::Layout &row = layout.row(false);
+    ui::Layout &row = layout.row(false);
     row.prop(&dtar_ptr, "context_property", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   /* Target Path */
   {
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
     col.red_alert_set(dtar->flag & (DTAR_FLAG_INVALID | DTAR_FLAG_FALLBACK_USED));
     template_path_builder(&col,
                           &dtar_ptr,
@@ -904,16 +904,16 @@ static void graph_panel_driverVar__contextProp(blender::ui::Layout &layout,
 
 /* property driven by the driver - duplicates Active FCurve, but useful for clarity */
 
-static void graph_draw_driven_property_enabled_btn(blender::ui::Layout &layout,
+static void graph_draw_driven_property_enabled_btn(ui::Layout &layout,
                                                    ID *id,
                                                    FCurve *fcu,
                                                    const char *label)
 {
   PointerRNA fcurve_ptr = RNA_pointer_create_discrete(id, &RNA_FCurve, fcu);
 
-  blender::ui::Block *block = layout.block();
+  ui::Block *block = layout.block();
   uiDefButR(block,
-            blender::ui::ButtonType::CheckboxN,
+            ui::ButtonType::CheckboxN,
             label,
             0,
             0,
@@ -939,7 +939,7 @@ static void graph_panel_drivers_header(const bContext *C, Panel *panel)
   MEM_freeN(ale);
 }
 
-static void graph_draw_driven_property_panel(blender::ui::Layout &layout, ID *id, FCurve *fcu)
+static void graph_draw_driven_property_panel(ui::Layout &layout, ID *id, FCurve *fcu)
 {
   char name[256];
   int icon = 0;
@@ -954,8 +954,8 @@ static void graph_draw_driven_property_panel(blender::ui::Layout &layout, ID *id
   }
 
   /* panel layout... */
-  blender::ui::Layout &row = layout.row(true);
-  row.alignment_set(blender::ui::LayoutAlign::Left);
+  ui::Layout &row = layout.row(true);
+  row.alignment_set(ui::LayoutAlign::Left);
 
   /* -> user friendly 'name' for datablock that owns F-Curve */
   /* XXX: Actually, we may need the datablock icons only...
@@ -968,15 +968,15 @@ static void graph_draw_driven_property_panel(blender::ui::Layout &layout, ID *id
 }
 
 /* UI properties panel layout for driver settings - shared for Drivers Editor and for */
-static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
+static void graph_draw_driver_settings_panel(ui::Layout &layout,
                                              ID *id,
                                              FCurve *fcu,
                                              const bool is_popover)
 {
   ChannelDriver *driver = fcu->driver;
-  blender::ui::Block *block = layout.block();
+  ui::Block *block = layout.block();
 
-  blender::ui::Button *but;
+  ui::Button *but;
 
   /* set event handler for panel */
   block_func_handle_set(block, do_graph_region_driver_buttons, id);
@@ -985,13 +985,13 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
   PointerRNA driver_ptr = RNA_pointer_create_discrete(id, &RNA_Driver, driver);
 
   {
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
     col.prop(&driver_ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     char valBuf[32];
 
     /* value of driver */
-    blender::ui::Layout &row = col.row(true);
+    ui::Layout &row = col.row(true);
     row.label(IFACE_("Driver Value:"), ICON_NONE);
     SNPRINTF_UTF8(valBuf, "%.3f", driver->curval);
     row.label(valBuf, ICON_NONE);
@@ -1008,14 +1008,14 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
     /* expression */
     /* TODO: "Show syntax hints" button */
-    blender::ui::Layout &expr_col = layout.column(true);
+    ui::Layout &expr_col = layout.column(true);
 
     expr_col.label(IFACE_("Expression:"), ICON_NONE);
     expr_col.prop(&driver_ptr, "expression", UI_ITEM_NONE, "", ICON_NONE);
     expr_col.prop(&driver_ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     /* errors? */
-    blender::ui::Layout &error_col = layout.column(true);
+    ui::Layout &error_col = layout.column(true);
 
     if (driver->flag & DRIVER_FLAG_PYTHON_BLOCKED) {
       /* TODO: Add button to enable? */
@@ -1045,7 +1045,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
   }
   else {
     /* errors? */
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
 
     if (driver->flag & DRIVER_FLAG_INVALID) {
       col.label(RPT_("ERROR: Invalid target channel(s)"), ICON_ERROR);
@@ -1070,14 +1070,14 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
   layout.separator();
 
   /* add/copy/paste driver variables */
-  blender::ui::Layout &row = layout.row(false);
+  ui::Layout &row = layout.row(false);
 
   {
     /* Add driver variable - add blank. */
-    blender::ui::Layout &sub = row.row(true);
+    ui::Layout &sub = row.row(true);
     but = uiDefIconTextBut(
         block,
-        blender::ui::ButtonType::But,
+        ui::ButtonType::But,
         ICON_ADD,
         IFACE_("Add Input Variable"),
         0,
@@ -1098,7 +1098,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
   {
     /* copy/paste (as sub-row) */
-    blender::ui::Layout &sub = row.row(true);
+    ui::Layout &sub = row.row(true);
 
     sub.op("GRAPH_OT_driver_variables_copy", "", ICON_COPYDOWN);
     sub.op("GRAPH_OT_driver_variables_paste", "", ICON_PASTEDOWN);
@@ -1108,41 +1108,41 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
   for (DriverVar &dvar : driver->variables) {
 
     /* sub-layout column for this variable's settings */
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
 
     /* 1) header panel */
-    blender::ui::Layout &header_box = col.box();
+    ui::Layout &header_box = col.box();
     PointerRNA dvar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverVariable, &dvar);
 
     /* 1.1) variable type and name */
-    blender::ui::Layout &sub = header_box.row(false).row(true);
+    ui::Layout &sub = header_box.row(false).row(true);
 
     /* 1.1.1) variable type */
 
     /* HACK: special group just for the enum,
      * otherwise we get ugly layout with text included too... */
-    blender::ui::Layout &type_sub = sub.row(true);
+    ui::Layout &type_sub = sub.row(true);
 
-    type_sub.alignment_set(blender::ui::LayoutAlign::Left);
+    type_sub.alignment_set(ui::LayoutAlign::Left);
 
-    type_sub.prop(&dvar_ptr, "type", blender::ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
+    type_sub.prop(&dvar_ptr, "type", ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
 
     /* 1.1.2) variable name */
 
     /* HACK: special group to counteract the effects of the previous enum,
      * which now pushes everything too far right */
-    blender::ui::Layout &name_sub = sub.row(true);
+    ui::Layout &name_sub = sub.row(true);
 
-    name_sub.alignment_set(blender::ui::LayoutAlign::Expand);
+    name_sub.alignment_set(ui::LayoutAlign::Expand);
 
     name_sub.prop(&dvar_ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 
     /* 1.2) invalid name? */
-    block_emboss_set(block, blender::ui::EmbossType::None);
+    block_emboss_set(block, ui::EmbossType::None);
 
     if (dvar.flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
-                         blender::ui::ButtonType::But,
+                         ui::ButtonType::But,
                          ICON_ERROR,
                          290,
                          0,
@@ -1158,7 +1158,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
     /* 1.3) remove button */
     but = uiDefIconBut(block,
-                       blender::ui::ButtonType::But,
+                       ui::ButtonType::But,
                        ICON_X,
                        290,
                        0,
@@ -1170,10 +1170,10 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
                        TIP_("Delete target variable"));
     button_retval_set(but, B_IPO_DEPCHANGE);
     button_func_set(but, driver_delete_var_cb, driver, &dvar);
-    block_emboss_set(block, blender::ui::EmbossType::Emboss);
+    block_emboss_set(block, ui::EmbossType::Emboss);
 
     /* 2) variable type settings */
-    blender::ui::Layout &box = col.box();
+    ui::Layout &box = col.box();
     /* controls to draw depends on the type of variable */
     switch (dvar.type) {
       case DVAR_TYPE_SINGLE_PROP: /* single property */
@@ -1197,7 +1197,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
     {
       char valBuf[32];
 
-      blender::ui::Layout &sub = col.box().row(true);
+      ui::Layout &sub = col.box().row(true);
       sub.label(IFACE_("Value:"), ICON_NONE);
 
       if ((dvar.type == DVAR_TYPE_ROT_DIFF) ||
@@ -1229,7 +1229,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
    * so keep this around for a while longer as a "last resort" */
   layout.row(true);
   but = uiDefIconTextBut(block,
-                         blender::ui::ButtonType::But,
+                         ui::ButtonType::But,
                          ICON_FILE_REFRESH,
                          IFACE_("Update Dependencies"),
                          0,
@@ -1291,15 +1291,15 @@ static bool graph_panel_drivers_popover_poll(const bContext *C, PanelType * /*pt
 /* popover panel for driver editing anywhere in ui */
 static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index = -1;
-  blender::ui::Button *but = nullptr;
+  ui::Button *but = nullptr;
 
   /* Get active property to show driver properties for */
-  but = blender::ui::region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);
+  but = ui::region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);
   if (but) {
     FCurve *fcu;
     bool driven, special;
@@ -1385,12 +1385,12 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
     return;
   }
 
-  blender::ui::Block *block = panel->layout->block();
+  ui::Block *block = panel->layout->block();
   block_func_handle_set(block, do_graph_region_modifier_buttons, nullptr);
 
   /* 'add modifier' button at top of panel */
   {
-    blender::ui::Layout &row = panel->layout->row(false);
+    ui::Layout &row = panel->layout->row(false);
 
     /* this is an operator button which calls a 'add modifier' operator...
      * a menu might be nicer but would be tricky as we need some custom filtering
@@ -1398,7 +1398,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
     row.op_menu_enum(C, "GRAPH_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 
     /* copy/paste (as sub-row) */
-    blender::ui::Layout &sub = row.row(true);
+    ui::Layout &sub = row.row(true);
     sub.op("GRAPH_OT_fmodifier_copy", "", ICON_COPYDOWN);
     sub.op("GRAPH_OT_fmodifier_paste", "", ICON_PASTEDOWN);
   }
@@ -1491,3 +1491,5 @@ void graph_buttons_register(ARegionType *art)
 }
 
 /** \} */
+
+}  // namespace blender

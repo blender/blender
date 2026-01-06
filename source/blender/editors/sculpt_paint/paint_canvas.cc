@@ -18,7 +18,9 @@
 
 #include "ED_paint.hh"
 
-namespace blender::ed::sculpt_paint::canvas {
+namespace blender {
+
+namespace ed::sculpt_paint::canvas {
 static TexPaintSlot *get_active_slot(Object &ob)
 {
   Material *mat = BKE_object_material_get(&ob, ob.actcol);
@@ -36,12 +38,12 @@ static TexPaintSlot *get_active_slot(Object &ob)
   return slot;
 }
 
-}  // namespace blender::ed::sculpt_paint::canvas
+}  // namespace ed::sculpt_paint::canvas
 
 using namespace blender::ed::sculpt_paint::canvas;
 
 /* Does the paint tool with the given idname use a canvas. */
-static bool paint_tool_uses_canvas(blender::StringRef idname)
+static bool paint_tool_uses_canvas(StringRef idname)
 {
   return ELEM(idname, "builtin.color_filter");
 }
@@ -57,7 +59,7 @@ static bool paint_brush_uses_canvas(bContext *C)
   return ELEM(brush->sculpt_brush_type, SCULPT_BRUSH_TYPE_PAINT, SCULPT_BRUSH_TYPE_SMEAR);
 }
 
-static bool paint_brush_type_shading_color_follows_last_used(blender::StringRef idname)
+static bool paint_brush_type_shading_color_follows_last_used(StringRef idname)
 {
   /* TODO(jbakker): complete this list. */
   return ELEM(idname, "builtin_brush.Mask");
@@ -154,3 +156,5 @@ eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
 
   return color_type;
 }
+
+}  // namespace blender

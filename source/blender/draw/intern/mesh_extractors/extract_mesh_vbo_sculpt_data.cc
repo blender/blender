@@ -117,7 +117,7 @@ gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
 
   if (const VArray mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point)) {
     GPUVertFormat mask_format = {0};
-    GPU_vertformat_attr_add(&mask_format, "msk", blender::gpu::VertAttrType::SFLOAT_32);
+    GPU_vertformat_attr_add(&mask_format, "msk", gpu::VertAttrType::SFLOAT_32);
     const Span<int> corner_verts = coarse_mesh.corner_verts();
     mask_vbo = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format(*mask_vbo, mask_format);
@@ -134,7 +134,7 @@ gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
 
   /* Then, gather face sets. */
   GPUVertFormat face_set_format = {0};
-  GPU_vertformat_attr_add(&face_set_format, "msk", blender::gpu::VertAttrType::UNORM_8_8_8_8);
+  GPU_vertformat_attr_add(&face_set_format, "msk", gpu::VertAttrType::UNORM_8_8_8_8);
 
   gpu::VertBuf *face_set_vbo = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format(*face_set_vbo, face_set_format);

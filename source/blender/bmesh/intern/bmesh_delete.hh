@@ -12,6 +12,8 @@
 
 #include "BLI_function_ref.hh"
 
+namespace blender {
+
 void BMO_mesh_delete_oflag_tagged(BMesh *bm, short oflag, char htype);
 void BM_mesh_delete_hflag_tagged(BMesh *bm, char hflag, char htype);
 
@@ -26,10 +28,12 @@ void BM_mesh_delete_hflag_tagged(BMesh *bm, char hflag, char htype);
 void BMO_mesh_delete_oflag_context(BMesh *bm,
                                    short oflag,
                                    int type,
-                                   blender::FunctionRef<void()> prepare_fn);
+                                   FunctionRef<void()> prepare_fn);
 
 /**
  * \param oflag: Geometry tagged with this operator flag is deleted.
  * This flag applies to different types in some contexts, not just the type being removed.
  */
 void BM_mesh_delete_hflag_context(BMesh *bm, char hflag, int type);
+
+}  // namespace blender

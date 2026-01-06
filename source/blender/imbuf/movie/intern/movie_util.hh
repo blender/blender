@@ -18,6 +18,8 @@ extern "C" {
 
 struct AVFrame;
 
+namespace blender {
+
 int ffmpeg_deinterlace(
     AVFrame *dst, const AVFrame *src, enum AVPixelFormat pix_fmt, int width, int height);
 
@@ -44,5 +46,7 @@ int MOV_codec_valid_bit_depths(AVCodecID codec_id);
  * Returns thread count to be used for ffmpeg.
  */
 int MOV_thread_count();
+
+}  // namespace blender
 
 #endif /* WITH_FFMPEG */

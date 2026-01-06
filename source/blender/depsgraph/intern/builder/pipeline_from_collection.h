@@ -10,9 +10,11 @@
 
 #include "pipeline.h"
 
+namespace blender {
+
 struct Collection;
 
-namespace blender::deg {
+namespace deg {
 
 /* Optimized builders for dependency graph built from a given Collection.
  *
@@ -26,7 +28,7 @@ namespace blender::deg {
 
 class FromCollectionBuilderPipeline : public AbstractBuilderPipeline {
  public:
-  FromCollectionBuilderPipeline(::Depsgraph *graph, Collection *collection);
+  FromCollectionBuilderPipeline(blender::Depsgraph *graph, Collection *collection);
 
  protected:
   std::unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;
@@ -39,4 +41,5 @@ class FromCollectionBuilderPipeline : public AbstractBuilderPipeline {
   Set<ID *> ids_;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

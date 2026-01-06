@@ -13,6 +13,8 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 struct Camera;
 struct ImBuf;
 struct MovieClip;
@@ -810,3 +812,5 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(const MovieTracking *track
 
 #define PLANE_TRACK_VIEW_SELECTED(plane_track) \
   ((((plane_track)->flag & PLANE_TRACK_HIDDEN) == 0) && ((plane_track)->flag & SELECT))
+
+}  // namespace blender

@@ -7,40 +7,40 @@
 /** \file
  * \ingroup bli
  *
- * An `blender::Span<T>` references an array that is owned by someone else. It is just a
+ * An `Span<T>` references an array that is owned by someone else. It is just a
  * pointer and a size. Since the memory is not owned, Span should not be used to transfer
  * ownership. The array cannot be modified through the Span. However, if T is a non-const
  * pointer, the pointed-to elements can be modified.
  *
- * There is also `blender::MutableSpan<T>`. It is mostly the same as Span, but allows the
+ * There is also `MutableSpan<T>`. It is mostly the same as Span, but allows the
  * array to be modified.
  *
  * A (Mutable)Span can refer to data owned by many different data structures including
- * blender::Vector, blender::Array, blender::VectorSet, std::vector, std::array, std::string,
+ * Vector, Array, VectorSet, std::vector, std::array, std::string,
  * std::initializer_list and c-style array.
  *
- * `blender::Span` is very similar to `std::span` (C++20). However, there are a few differences:
- * - `blender::Span` is const by default. This is to avoid making things mutable when they don't
- *   have to be. To get a non-const span, you need to use `blender::MutableSpan`. Below is a list
+ * `Span` is very similar to `std::span` (C++20). However, there are a few differences:
+ * - `Span` is const by default. This is to avoid making things mutable when they don't
+ *   have to be. To get a non-const span, you need to use `MutableSpan`. Below is a list
  *   of const-behavior-equivalent pairs of data structures:
- *   - std::span<int>                <==>  blender::MutableSpan<int>
- *   - std::span<const int>          <==>  blender::Span<int>
- *   - std::span<int *>              <==>  blender::MutableSpan<int *>
- *   - std::span<const int *>        <==>  blender::MutableSpan<const int *>
- *   - std::span<int * const>        <==>  blender::Span<int *>
- *   - std::span<const int * const>  <==>  blender::Span<const int *>
- * - `blender::Span` always has a dynamic extent, while `std::span` can have a size that is
+ *   - std::span<int>                <==>  MutableSpan<int>
+ *   - std::span<const int>          <==>  Span<int>
+ *   - std::span<int *>              <==>  MutableSpan<int *>
+ *   - std::span<const int *>        <==>  MutableSpan<const int *>
+ *   - std::span<int * const>        <==>  Span<int *>
+ *   - std::span<const int * const>  <==>  Span<const int *>
+ * - `Span` always has a dynamic extent, while `std::span` can have a size that is
  *   determined at compile time. I did not have a use case for that yet. If we need it, we can
- *   decide to add this functionality to `blender::Span` or introduce a new type like
- *   `blender::FixedSpan<T, N>`.
+ *   decide to add this functionality to `Span` or introduce a new type like
+ *   `FixedSpan<T, N>`.
  *
- * `blender::Span<T>` should be your default choice when you have to pass a read-only array
+ * `Span<T>` should be your default choice when you have to pass a read-only array
  * into a function. It is better than passing a `const Vector &`, because e.g. then the function
  * only works for vectors and not arrays. Using Span as function parameter makes it usable in more
  * contexts, better expresses the intent and does not sacrifice performance. It is also better than
  * passing a raw pointer and size separately, because it is more convenient and safe.
  *
- * `blender::MutableSpan<T>` can be used when a function is supposed to return an array, the
+ * `MutableSpan<T>` can be used when a function is supposed to return an array, the
  * size of which is known before the function is called. One advantage of this approach is that the
  * caller is responsible for allocation and deallocation. Furthermore, the function can focus on
  * its task, without having to worry about memory allocation. Alternatively, a function could
@@ -754,4 +754,4 @@ template<typename T> class MutableSpan {
   }
 };
 
-} /* namespace blender */
+}  // namespace blender

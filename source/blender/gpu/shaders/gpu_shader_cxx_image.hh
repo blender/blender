@@ -12,6 +12,8 @@
 
 #include "gpu_shader_cxx_vector.hh"
 
+namespace blender {
+
 /* Some compilers complain about lack of return values. Keep it short. */
 #define RET \
   { \
@@ -113,3 +115,5 @@ using uimage2DArrayAtomic = ImageBase<uint, 2, true, true>;
 /** \} */
 
 #undef RET
+
+}  // namespace blender

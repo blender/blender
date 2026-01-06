@@ -14,6 +14,8 @@
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 
+namespace blender {
+
 struct Main;
 struct UndoStep;
 struct UndoType;
@@ -344,3 +346,5 @@ void BKE_undosys_foreach_ID_ref(UndoStack *ustack,
 #endif
 
 void BKE_undosys_print(UndoStack *ustack);
+
+}  // namespace blender

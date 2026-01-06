@@ -36,6 +36,8 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* Prototypes. */
 static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname);
 
@@ -231,7 +233,6 @@ void ViewOpsData::init_navigation(bContext *C,
                                   const float dyn_ofs_override[3],
                                   const bool use_cursor_init)
 {
-  using namespace blender;
   this->nav_type = nav_type;
   eViewOpsFlag viewops_flag = nav_type->flag & viewops_flag_from_prefs();
   constexpr eViewOpsFlag viewops_flag_dynamic_ofs = VIEWOPS_FLAG_DEPTH_NAVIGATE |
@@ -812,7 +813,6 @@ void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat_new[4])
 
 bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 {
-  using namespace blender;
   float3 ofs = float3(0);
   bool is_set = false;
 
@@ -847,7 +847,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     is_set = true;
   }
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
-    Curve *cu = blender::id_cast<Curve *>(ob_act_eval->data);
+    Curve *cu = id_cast<Curve *>(ob_act_eval->data);
     EditFont *ef = cu->editfont;
 
     ofs = float3(0);
@@ -890,7 +890,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   else {
     /* If there's no selection, `ofs` is unmodified, the last offset will be used if set.
      * Otherwise the value of `ofs` is zero and should not be used. */
-    is_set = blender::ed::transform::calc_pivot_pos(C, V3D_AROUND_CENTER_MEDIAN, ofs);
+    is_set = ed::transform::calc_pivot_pos(C, V3D_AROUND_CENTER_MEDIAN, ofs);
   }
 
   if (is_set) {
@@ -1081,7 +1081,7 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
  * `wmKeyMapItem::idname`) */
 static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
 {
-  const blender::Array<const ViewOpsType *> nav_types = {
+  const Array<const ViewOpsType *> nav_types = {
       &ViewOpsType_zoom,
       &ViewOpsType_rotate,
       &ViewOpsType_move,
@@ -1198,3 +1198,5 @@ void ED_view3d_navigation_free(bContext *C, ViewOpsData *vod)
 }
 
 /** \} */
+
+}  // namespace blender

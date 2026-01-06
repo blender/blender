@@ -23,6 +23,8 @@
 #include "gpu_py_framebuffer.hh"
 #include "gpu_py_state.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Helper Functions
  * \{ */
@@ -500,7 +502,7 @@ static PyObject *pygpu_state_active_framebuffer_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
   return BPyGPUFrameBuffer_CreatePyObject(fb, true);
 }
 
@@ -639,3 +641,5 @@ PyObject *bpygpu_state_init()
 }
 
 /** \} */
+
+}  // namespace blender

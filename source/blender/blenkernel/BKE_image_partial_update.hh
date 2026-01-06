@@ -9,7 +9,7 @@
  * image that are changed. These areas are organized in chunks. Changes that happen over time are
  * organized in changesets.
  *
- * A common use case is to update #blender::gpu::Texture for drawing where only that part is
+ * A common use case is to update #gpu::Texture for drawing where only that part is
  * uploaded that only changed.
  */
 
@@ -21,12 +21,13 @@
 #include "BKE_image_wrappers.hh"
 
 #include "DNA_image_types.h"
+struct PartialUpdateUser;
+namespace blender {
 
 extern "C" {
-struct PartialUpdateUser;
 }
 
-namespace blender::bke::image::partial_update {
+namespace bke::image::partial_update {
 
 /* --- image_partial_update.cc --- */
 /** Image partial updates. */
@@ -280,4 +281,6 @@ template<typename TileData = NoTileData> struct PartialUpdateChecker {
   }
 };
 
-}  // namespace blender::bke::image::partial_update
+}  // namespace bke::image::partial_update
+
+}  // namespace blender

@@ -29,6 +29,8 @@
 
 #include "BLO_readfile.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"lib.override.proxy_conversion"};
 
 bool BKE_lib_override_library_proxy_convert(Main *bmain,
@@ -51,7 +53,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
     if (ob_proxy->proxy != nullptr) {
       ob_proxy->proxy->proxy_from = nullptr;
     }
-    id_us_min(blender::id_cast<ID *>(ob_proxy->proxy));
+    id_us_min(id_cast<ID *>(ob_proxy->proxy));
     ob_proxy->proxy = ob_proxy->proxy_group = nullptr;
     return false;
   }
@@ -161,8 +163,10 @@ void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadRepor
       if (object.proxy != nullptr) {
         object.proxy->proxy_from = nullptr;
       }
-      id_us_min(blender::id_cast<ID *>(object.proxy));
+      id_us_min(id_cast<ID *>(object.proxy));
       object.proxy = object.proxy_group = nullptr;
     }
   }
 }
+
+}  // namespace blender

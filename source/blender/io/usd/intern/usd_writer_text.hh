@@ -5,10 +5,12 @@
 
 #include "usd_writer_mesh.hh"
 
+namespace blender {
+
 struct Mesh;
 struct Object;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDTextWriter : public USDGenericMeshWriter {
  public:
@@ -19,4 +21,5 @@ class USDTextWriter : public USDGenericMeshWriter {
   void free_export_mesh(Mesh *mesh) override;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

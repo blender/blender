@@ -44,6 +44,8 @@
 
 #include "armature_intern.hh"
 
+namespace blender {
+
 /* *********************************************** */
 /* Contents of this File:
  *
@@ -79,7 +81,7 @@ static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
   if (!ob.adt || !ob.adt->action) {
     return eAction_TransformFlags(0);
   }
-  blender::animrig::Action &action = ob.adt->action->wrap();
+  animrig::Action &action = ob.adt->action->wrap();
 
   short flags = 0;
 
@@ -95,70 +97,69 @@ static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
   /* Search F-Curves for the given properties
    * - we cannot use the groups, since they may not be grouped in that way...
    */
-  blender::animrig::foreach_fcurve_in_action_slot(
-      action, ob.adt->slot_handle, [&](FCurve &fcurve) {
-        const char *bPtr = nullptr, *pPtr = nullptr;
+  animrig::foreach_fcurve_in_action_slot(action, ob.adt->slot_handle, [&](FCurve &fcurve) {
+    const char *bPtr = nullptr, *pPtr = nullptr;
 
-        if (fcurve.rna_path == nullptr) {
-          return;
-        }
+    if (fcurve.rna_path == nullptr) {
+      return;
+    }
 
-        /* Step 1: check for matching base path */
-        bPtr = strstr(fcurve.rna_path, basePath->c_str());
+    /* Step 1: check for matching base path */
+    bPtr = strstr(fcurve.rna_path, basePath->c_str());
 
-        if (!bPtr) {
-          return;
-        }
+    if (!bPtr) {
+      return;
+    }
 
-        /* We must add `len(basePath)` bytes to the match so that we are at the end of the
-         * base path so that we don't get false positives with these strings in the names
-         */
-        bPtr += strlen(basePath->c_str());
+    /* We must add `len(basePath)` bytes to the match so that we are at the end of the
+     * base path so that we don't get false positives with these strings in the names
+     */
+    bPtr += strlen(basePath->c_str());
 
-        /* Step 2: check for some property with transforms
-         * - once a match has been found, the curve cannot possibly be any other one
-         */
-        pPtr = strstr(bPtr, "location");
-        if (pPtr) {
-          flags |= ACT_TRANS_LOC;
+    /* Step 2: check for some property with transforms
+     * - once a match has been found, the curve cannot possibly be any other one
+     */
+    pPtr = strstr(bPtr, "location");
+    if (pPtr) {
+      flags |= ACT_TRANS_LOC;
 
-          BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
-          return;
-        }
+      BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
+      return;
+    }
 
-        pPtr = strstr(bPtr, "scale");
-        if (pPtr) {
-          flags |= ACT_TRANS_SCALE;
+    pPtr = strstr(bPtr, "scale");
+    if (pPtr) {
+      flags |= ACT_TRANS_SCALE;
 
-          BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
-          return;
-        }
+      BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
+      return;
+    }
 
-        pPtr = strstr(bPtr, "rotation");
-        if (pPtr) {
-          flags |= ACT_TRANS_ROT;
+    pPtr = strstr(bPtr, "rotation");
+    if (pPtr) {
+      flags |= ACT_TRANS_ROT;
 
-          BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
-          return;
-        }
+      BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
+      return;
+    }
 
-        pPtr = strstr(bPtr, "bbone_");
-        if (pPtr) {
-          flags |= ACT_TRANS_BBONE;
+    pPtr = strstr(bPtr, "bbone_");
+    if (pPtr) {
+      flags |= ACT_TRANS_BBONE;
 
-          BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
-          return;
-        }
+      BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
+      return;
+    }
 
-        /* Custom properties only. */
-        pPtr = strstr(bPtr, "[\"");
-        if (pPtr) {
-          flags |= ACT_TRANS_PROP;
+    /* Custom properties only. */
+    pPtr = strstr(bPtr, "[\"");
+    if (pPtr) {
+      flags |= ACT_TRANS_PROP;
 
-          BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
-          return;
-        }
-      });
+      BLI_addtail(&r_curves, BLI_genericNodeN(&fcurve));
+      return;
+    }
+  });
 
   /* return flags found */
   return eAction_TransformFlags(flags);
@@ -393,7 +394,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C,
       continue;
     }
 
-    if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
+    if (animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
       ob->id.tag |= ID_TAG_DOIT;
       skip = false;
     }
@@ -405,9 +406,8 @@ void poseAnim_mapping_autoKeyframe(bContext *C,
   }
 
   /* Insert keyframes as necessary if auto-key-framing. */
-  KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene,
-                                                                 ANIM_KS_WHOLE_CHARACTER_ID);
-  blender::Vector<PointerRNA> sources;
+  KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
+  Vector<PointerRNA> sources;
 
   /* iterate over each pose-channel affected, tagging bones to be keyed */
   /* XXX: here we already have the information about what transforms exist, though
@@ -421,12 +421,11 @@ void poseAnim_mapping_autoKeyframe(bContext *C,
     }
 
     /* Add data-source override for the PoseChannel, to be used later. */
-    blender::animrig::relative_keyingset_add_source(sources, &pfl.ob->id, &RNA_PoseBone, pchan);
+    animrig::relative_keyingset_add_source(sources, &pfl.ob->id, &RNA_PoseBone, pchan);
   }
 
   /* insert keyframes for all relevant bones in one go */
-  blender::animrig::apply_keyingset(
-      C, &sources, ks, blender::animrig::ModifyKeyMode::INSERT, cframe);
+  animrig::apply_keyingset(C, &sources, ks, animrig::ModifyKeyMode::INSERT, cframe);
 
   /* do the bone paths
    * - only do this if keyframes should have been added
@@ -470,3 +469,5 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBaseT<LinkData> *fcuLinks,
 }
 
 /* *********************************************** */
+
+}  // namespace blender

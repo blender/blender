@@ -18,9 +18,11 @@
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct ID;
 
-namespace blender::bke::cryptomatte {
+namespace bke::cryptomatte {
 
 /**
  * Format to a cryptomatte meta data key.
@@ -138,4 +140,5 @@ struct CryptomatteSessionDeleter {
 
 using CryptomatteSessionPtr = std::unique_ptr<CryptomatteSession, CryptomatteSessionDeleter>;
 
-}  // namespace blender::bke::cryptomatte
+}  // namespace bke::cryptomatte
+}  // namespace blender

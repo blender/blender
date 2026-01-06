@@ -11,12 +11,14 @@
 #include "BLI_map.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Editing;
 struct Scene;
 struct Strip;
 struct SeqRetimingKey;
 
-namespace blender::seq {
+namespace seq {
 
 MutableSpan<SeqRetimingKey> retiming_keys_get(const Strip *strip);
 Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed);
@@ -74,4 +76,5 @@ bool retiming_selection_contains(const Editing *ed, const SeqRetimingKey *key);
 bool retiming_selection_has_whole_transition(const Editing *ed, SeqRetimingKey *key);
 bool retiming_data_is_editable(const Strip *strip);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

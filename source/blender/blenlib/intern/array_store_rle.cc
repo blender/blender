@@ -49,6 +49,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -422,3 +424,5 @@ void BLI_array_store_rle_decode(const uint8_t *data_enc,
 }
 
 /** \} */
+
+}  // namespace blender

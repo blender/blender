@@ -284,7 +284,7 @@ bool jump_to_bone(bContext *C, Object *ob, const char *bone_name, const bool rev
     return false;
   }
 
-  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+  bArmature *arm = id_cast<bArmature *>(ob->data);
 
   /* Activate the armature object. */
   if (!jump_to_object(C, ob, reveal_hidden)) {
@@ -588,10 +588,10 @@ void select_linked_by_id(bContext *C, ID *id)
     changed = object_select_all_by_obdata(C, id);
   }
   else if (idtype == ID_MA) {
-    changed = object_select_all_by_material(C, blender::id_cast<Material *>(id));
+    changed = object_select_all_by_material(C, id_cast<Material *>(id));
   }
   else if (idtype == ID_LI) {
-    changed = object_select_all_by_library(C, blender::id_cast<Library *>(id));
+    changed = object_select_all_by_library(C, id_cast<Library *>(id));
   }
 
   if (changed) {
@@ -888,13 +888,13 @@ static bool select_grouped_siblings(bContext *C, Object *ob)
 }
 static bool select_grouped_lighttype(bContext *C, Object *ob)
 {
-  Light *la = blender::id_cast<Light *>(ob->data);
+  Light *la = id_cast<Light *>(ob->data);
 
   bool changed = false;
 
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
     if (base->object->type == OB_LAMP) {
-      Light *la_test = blender::id_cast<Light *>(base->object->data);
+      Light *la_test = id_cast<Light *>(base->object->data);
       if ((la->type == la_test->type) && ((base->flag & BASE_SELECTED) == 0)) {
         base_select(base, BA_SELECT);
         changed = true;
@@ -950,7 +950,7 @@ static bool select_grouped_color(bContext *C, Object *ob)
 
 static bool select_grouped_keyingset(bContext *C, Object * /*ob*/, ReportList *reports)
 {
-  KeyingSet *ks = blender::animrig::scene_get_active_keyingset(CTX_data_scene(C));
+  KeyingSet *ks = animrig::scene_get_active_keyingset(CTX_data_scene(C));
   bool changed = false;
 
   /* firstly, validate KeyingSet */
@@ -958,9 +958,7 @@ static bool select_grouped_keyingset(bContext *C, Object * /*ob*/, ReportList *r
     BKE_report(reports, RPT_ERROR, "No active Keying Set to use");
     return false;
   }
-  if (blender::animrig::validate_keyingset(C, nullptr, ks) !=
-      blender::animrig::ModifyKeyReturn::SUCCESS)
-  {
+  if (animrig::validate_keyingset(C, nullptr, ks) != animrig::ModifyKeyReturn::SUCCESS) {
     if (ks->paths.first == nullptr) {
       if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
         BKE_report(reports,
@@ -1165,8 +1163,7 @@ static wmOperatorStatus object_select_same_collection_exec(bContext *C, wmOperat
 
   RNA_string_get(op->ptr, "collection", collection_name);
 
-  collection = blender::id_cast<Collection *>(
-      BKE_libblock_find_name(bmain, ID_GR, collection_name));
+  collection = id_cast<Collection *>(BKE_libblock_find_name(bmain, ID_GR, collection_name));
 
   if (!collection) {
     return OPERATOR_PASS_THROUGH;
@@ -1234,7 +1231,7 @@ static wmOperatorStatus object_select_mirror_exec(bContext *C, wmOperator *op)
     BLI_string_flip_side_name(name_flip, primbase->object->id.name + 2, true, sizeof(name_flip));
 
     if (!STREQ(name_flip, primbase->object->id.name + 2)) {
-      Object *ob = blender::id_cast<Object *>(BKE_libblock_find_name(bmain, ID_OB, name_flip));
+      Object *ob = id_cast<Object *>(BKE_libblock_find_name(bmain, ID_OB, name_flip));
       if (ob) {
         BKE_view_layer_synced_ensure(scene, view_layer);
         Base *secbase = BKE_view_layer_base_find(view_layer, ob);

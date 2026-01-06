@@ -40,6 +40,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
@@ -128,7 +130,7 @@ static void waveModifier_do(WaveModifierData *wmd,
   float falloff_fac = 1.0f; /* when falloff == 0.0f this stays at 1.0f */
   const bool invert_group = (wmd->flag & MOD_WAVE_INVERT_VGROUP) != 0;
 
-  blender::Span<blender::float3> vert_normals;
+  Span<float3> vert_normals;
   if ((wmd->flag & MOD_WAVE_NORM) && (mesh != nullptr)) {
     vert_normals = mesh->vert_normals();
   }
@@ -276,7 +278,7 @@ static void waveModifier_do(WaveModifierData *wmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
   waveModifier_do(wmd,
@@ -289,40 +291,34 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout *row = &layout.row(true, IFACE_("Motion"));
-  row->prop(ptr,
-            "use_x",
-            blender::ui::ITEM_R_TOGGLE | blender::ui::ITEM_R_FORCE_BLANK_DECORATE,
-            std::nullopt,
-            ICON_NONE);
-  row->prop(ptr,
-            "use_y",
-            blender::ui::ITEM_R_TOGGLE | blender::ui::ITEM_R_FORCE_BLANK_DECORATE,
-            std::nullopt,
-            ICON_NONE);
+  ui::Layout *row = &layout.row(true, IFACE_("Motion"));
+  row->prop(
+      ptr, "use_x", ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE, std::nullopt, ICON_NONE);
+  row->prop(
+      ptr, "use_y", ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE, std::nullopt, ICON_NONE);
 
   layout.prop(ptr, "use_cyclic", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = &layout.row(true, IFACE_("Along Normals"));
   row->prop(ptr, "use_normal", UI_ITEM_NONE, "", ICON_NONE);
-  blender::ui::Layout &sub = row->row(true);
+  ui::Layout &sub = row->row(true);
   sub.active_set(RNA_boolean_get(ptr, "use_normal"));
-  sub.prop(ptr, "use_normal_x", blender::ui::ITEM_R_TOGGLE, IFACE_("X"), ICON_NONE);
-  sub.prop(ptr, "use_normal_y", blender::ui::ITEM_R_TOGGLE, IFACE_("Y"), ICON_NONE);
-  sub.prop(ptr, "use_normal_z", blender::ui::ITEM_R_TOGGLE, IFACE_("Z"), ICON_NONE);
+  sub.prop(ptr, "use_normal_x", ui::ITEM_R_TOGGLE, IFACE_("X"), ICON_NONE);
+  sub.prop(ptr, "use_normal_y", ui::ITEM_R_TOGGLE, IFACE_("Y"), ICON_NONE);
+  sub.prop(ptr, "use_normal_z", ui::ITEM_R_TOGGLE, IFACE_("Z"), ICON_NONE);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "falloff_radius", UI_ITEM_NONE, IFACE_("Falloff"), ICON_NONE);
-  col.prop(ptr, "height", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  col.prop(ptr, "width", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  col.prop(ptr, "narrowness", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "height", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "width", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "narrowness", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
@@ -331,7 +327,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void position_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -339,29 +335,29 @@ static void position_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "start_position_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.prop(ptr, "start_position_x", UI_ITEM_NONE, IFACE_("Start Position X"), ICON_NONE);
   col.prop(ptr, "start_position_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 }
 
 static void time_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "time_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
   col.prop(ptr, "lifetime", UI_ITEM_NONE, IFACE_("Life"), ICON_NONE);
   col.prop(ptr, "damping_time", UI_ITEM_NONE, IFACE_("Damping"), ICON_NONE);
-  col.prop(ptr, "speed", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "speed", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void texture_panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -372,7 +368,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
     col.prop(ptr, "texture_coords_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
@@ -441,3 +437,5 @@ ModifierTypeInfo modifierType_Wave = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

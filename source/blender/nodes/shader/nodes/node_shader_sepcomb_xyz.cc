@@ -14,7 +14,9 @@
 #include "NOD_multi_function.hh"
 #include "NOD_value_elem_eval.hh"
 
-namespace blender::nodes::node_shader_sepcomb_xyz_cc::sep {
+namespace blender {
+
+namespace nodes::node_shader_sepcomb_xyz_cc::sep {
 
 static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
 {
@@ -131,13 +133,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_sepcomb_xyz_cc::sep
+}  // namespace nodes::node_shader_sepcomb_xyz_cc::sep
 
 void register_node_type_sh_sepxyz()
 {
-  namespace file_ns = blender::nodes::node_shader_sepcomb_xyz_cc::sep;
+  namespace file_ns = nodes::node_shader_sepcomb_xyz_cc::sep;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeSeparateXYZ", SH_NODE_SEPXYZ);
   ntype.ui_name = "Separate XYZ";
@@ -152,10 +154,10 @@ void register_node_type_sh_sepxyz()
   ntype.eval_inverse_elem = file_ns::sh_node_sepxyz_eval_inverse_elem;
   ntype.eval_inverse = file_ns::sh_node_sepxyz_eval_inverse;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 
-namespace blender::nodes::node_shader_sepcomb_xyz_cc::comb {
+namespace nodes::node_shader_sepcomb_xyz_cc::comb {
 
 static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
 {
@@ -223,13 +225,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_sepcomb_xyz_cc::comb
+}  // namespace nodes::node_shader_sepcomb_xyz_cc::comb
 
 void register_node_type_sh_combxyz()
 {
-  namespace file_ns = blender::nodes::node_shader_sepcomb_xyz_cc::comb;
+  namespace file_ns = nodes::node_shader_sepcomb_xyz_cc::comb;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeCombineXYZ", SH_NODE_COMBXYZ);
   ntype.ui_name = "Combine XYZ";
@@ -244,5 +246,7 @@ void register_node_type_sh_combxyz()
   ntype.eval_inverse_elem = file_ns::sh_node_combxyz_eval_inverse_elem;
   ntype.eval_inverse = file_ns::sh_node_combxyz_eval_inverse;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

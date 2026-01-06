@@ -47,14 +47,9 @@
 #include "node_common.h"
 #include "node_util.hh"
 
-using blender::Map;
-using blender::MultiValueMap;
-using blender::Set;
-using blender::Stack;
-using blender::StringRef;
-using blender::Vector;
+namespace blender {
 
-namespace node_interface = blender::bke::node_interface;
+namespace node_interface = bke::node_interface;
 
 /* -------------------------------------------------------------------- */
 /** \name Node Group
@@ -70,12 +65,12 @@ static bNodeSocket *find_matching_socket(ListBaseT<bNodeSocket> &sockets, String
   return nullptr;
 }
 
-bNodeSocket *node_group_find_input_socket(bNode *groupnode, const blender::StringRef identifier)
+bNodeSocket *node_group_find_input_socket(bNode *groupnode, const StringRef identifier)
 {
   return find_matching_socket(groupnode->inputs, identifier);
 }
 
-bNodeSocket *node_group_find_output_socket(bNode *groupnode, const blender::StringRef identifier)
+bNodeSocket *node_group_find_output_socket(bNode *groupnode, const StringRef identifier)
 {
   return find_matching_socket(groupnode->outputs, identifier);
 }
@@ -97,40 +92,40 @@ int node_group_ui_class(const bNode *node)
   if (!group) {
     return NODE_CLASS_GROUP;
   }
-  switch (blender::bke::NodeColorTag(group->color_tag)) {
-    case blender::bke::NodeColorTag::None:
+  switch (bke::NodeColorTag(group->color_tag)) {
+    case bke::NodeColorTag::None:
       return NODE_CLASS_GROUP;
-    case blender::bke::NodeColorTag::Attribute:
+    case bke::NodeColorTag::Attribute:
       return NODE_CLASS_ATTRIBUTE;
-    case blender::bke::NodeColorTag::Color:
+    case bke::NodeColorTag::Color:
       return NODE_CLASS_OP_COLOR;
-    case blender::bke::NodeColorTag::Converter:
+    case bke::NodeColorTag::Converter:
       return NODE_CLASS_CONVERTER;
-    case blender::bke::NodeColorTag::Distort:
+    case bke::NodeColorTag::Distort:
       return NODE_CLASS_DISTORT;
-    case blender::bke::NodeColorTag::Filter:
+    case bke::NodeColorTag::Filter:
       return NODE_CLASS_OP_FILTER;
-    case blender::bke::NodeColorTag::Geometry:
+    case bke::NodeColorTag::Geometry:
       return NODE_CLASS_GEOMETRY;
-    case blender::bke::NodeColorTag::Input:
+    case bke::NodeColorTag::Input:
       return NODE_CLASS_INPUT;
-    case blender::bke::NodeColorTag::Matte:
+    case bke::NodeColorTag::Matte:
       return NODE_CLASS_MATTE;
-    case blender::bke::NodeColorTag::Output:
+    case bke::NodeColorTag::Output:
       return NODE_CLASS_OUTPUT;
-    case blender::bke::NodeColorTag::Script:
+    case bke::NodeColorTag::Script:
       return NODE_CLASS_SCRIPT;
-    case blender::bke::NodeColorTag::Shader:
+    case bke::NodeColorTag::Shader:
       return NODE_CLASS_SHADER;
-    case blender::bke::NodeColorTag::Texture:
+    case bke::NodeColorTag::Texture:
       return NODE_CLASS_TEXTURE;
-    case blender::bke::NodeColorTag::Vector:
+    case bke::NodeColorTag::Vector:
       return NODE_CLASS_OP_VECTOR;
-    case blender::bke::NodeColorTag::Pattern:
+    case bke::NodeColorTag::Pattern:
       return NODE_CLASS_PATTERN;
-    case blender::bke::NodeColorTag::Interface:
+    case bke::NodeColorTag::Interface:
       return NODE_CLASS_INTERFACE;
-    case blender::bke::NodeColorTag::Group:
+    case bke::NodeColorTag::Group:
       return NODE_CLASS_GROUP;
   }
   return NODE_CLASS_GROUP;
@@ -147,7 +142,7 @@ bool node_group_poll_instance(const bNode *node,
   if (!grouptree) {
     return true;
   }
-  return blender::bke::node_group_poll(nodetree, grouptree, r_disabled_hint);
+  return bke::node_group_poll(nodetree, grouptree, r_disabled_hint);
 }
 
 std::string node_group_ui_description(const bNode &node)
@@ -167,9 +162,9 @@ std::string node_group_ui_description(const bNode &node)
   return group->description;
 }
 
-bool blender::bke::node_group_poll(const bNodeTree *nodetree,
-                                   const bNodeTree *grouptree,
-                                   const char **r_disabled_hint)
+bool bke::node_group_poll(const bNodeTree *nodetree,
+                          const bNodeTree *grouptree,
+                          const char **r_disabled_hint)
 {
   /* unspecified node group, generally allowed
    * (if anything, should be avoided on operator level)
@@ -201,7 +196,7 @@ bool blender::bke::node_group_poll(const bNodeTree *nodetree,
   return true;
 }
 
-namespace blender::nodes {
+namespace nodes {
 
 static std::function<ID *(const bNode &node)> get_default_id_getter(
     const bNodeTreeInterface &tree_interface, const bNodeTreeInterfaceSocket &io_socket)
@@ -249,7 +244,7 @@ get_init_socket_fn(const bNodeTreeInterface &interface, const bNodeTreeInterface
     }
     const bNodeTreeInterfaceSocket &io_socket =
         node_interface::get_item_as<bNodeTreeInterfaceSocket>(*io_item);
-    blender::bke::bNodeSocketType *typeinfo = io_socket.socket_typeinfo();
+    bke::bNodeSocketType *typeinfo = io_socket.socket_typeinfo();
     if (typeinfo && typeinfo->interface_init_socket) {
       typeinfo->interface_init_socket(&ntree.id, &io_socket, &node, &socket, data_path);
     }
@@ -263,8 +258,7 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
     const eNodeSocketInOut in_out,
     DeclarationListBuilder &b)
 {
-  blender::bke::bNodeSocketType *base_typeinfo = blender::bke::node_socket_type_find(
-      io_socket.socket_type);
+  bke::bNodeSocketType *base_typeinfo = bke::node_socket_type_find(io_socket.socket_type);
   eNodeSocketDatatype datatype = SOCK_CUSTOM;
 
   const StringRef name = io_socket.name;
@@ -539,7 +533,7 @@ void node_group_declare(NodeDeclarationBuilder &b)
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
 
 /** \} */
 
@@ -560,10 +554,10 @@ static void node_frame_init(bNodeTree * /*ntree*/, bNode *node)
 void register_node_type_frame()
 {
   /* frame type is used for all tree types, needs dynamic allocation */
-  blender::bke::bNodeType *ntype = MEM_new<blender::bke::bNodeType>("frame node type");
-  ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
+  bke::bNodeType *ntype = MEM_new<bke::bNodeType>("frame node type");
+  ntype->free_self = [](bke::bNodeType *type) { MEM_delete(type); };
 
-  blender::bke::node_type_base(*ntype, "NodeFrame", NODE_FRAME);
+  bke::node_type_base(*ntype, "NodeFrame", NODE_FRAME);
   ntype->ui_name = "Frame";
   ntype->ui_description =
       "Collect related nodes together in a common area. Useful for organization when the "
@@ -571,12 +565,12 @@ void register_node_type_frame()
   ntype->nclass = NODE_CLASS_LAYOUT;
   ntype->enum_name_legacy = "FRAME";
   ntype->initfunc = node_frame_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       *ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::node_type_size(*ntype, 150, 100, 0);
+  bke::node_type_size(*ntype, 150, 100, 0);
   ntype->flag |= NODE_BACKGROUND;
 
-  blender::bke::node_register_type(*ntype);
+  bke::node_register_type(*ntype);
 }
 
 /** \} */
@@ -585,21 +579,20 @@ void register_node_type_frame()
 /** \name Node Re-Route
  * \{ */
 
-static void node_reroute_declare(blender::nodes::NodeDeclarationBuilder &b)
+static void node_reroute_declare(nodes::NodeDeclarationBuilder &b)
 {
   const bNode *node = b.node_or_null();
   if (node == nullptr) {
     return;
   }
 
-  const blender::StringRefNull socket_idname(
-      static_cast<const NodeReroute *>(node->storage)->type_idname);
-  b.add_input<blender::nodes::decl::Custom>("Input")
+  const StringRefNull socket_idname(static_cast<const NodeReroute *>(node->storage)->type_idname);
+  b.add_input<nodes::decl::Custom>("Input")
       .idname(socket_idname.c_str())
-      .structure_type(blender::nodes::StructureType::Dynamic);
-  b.add_output<blender::nodes::decl::Custom>("Output")
+      .structure_type(nodes::StructureType::Dynamic);
+  b.add_output<nodes::decl::Custom>("Output")
       .idname(socket_idname.c_str())
-      .structure_type(blender::nodes::StructureType::Dynamic);
+      .structure_type(nodes::StructureType::Dynamic);
 }
 
 static void node_reroute_init(bNodeTree * /*ntree*/, bNode *node)
@@ -612,10 +605,10 @@ static void node_reroute_init(bNodeTree * /*ntree*/, bNode *node)
 void register_node_type_reroute()
 {
   /* frame type is used for all tree types, needs dynamic allocation */
-  blender::bke::bNodeType *ntype = MEM_new<blender::bke::bNodeType>("frame node type");
-  ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
+  bke::bNodeType *ntype = MEM_new<bke::bNodeType>("frame node type");
+  ntype->free_self = [](bke::bNodeType *type) { MEM_delete(type); };
 
-  blender::bke::node_type_base(*ntype, "NodeReroute", NODE_REROUTE);
+  bke::node_type_base(*ntype, "NodeReroute", NODE_REROUTE);
   ntype->ui_name = "Reroute";
   ntype->ui_description =
       "A single-socket organization tool that supports one input and multiple outputs";
@@ -625,7 +618,7 @@ void register_node_type_reroute()
   ntype->initfunc = node_reroute_init;
   node_type_storage(*ntype, "NodeReroute", node_free_standard_storage, node_copy_standard_storage);
 
-  blender::bke::node_register_type(*ntype);
+  bke::node_register_type(*ntype);
 }
 
 struct RerouteTargetPriority {
@@ -649,7 +642,6 @@ struct RerouteTargetPriority {
 
 void ntree_update_reroute_nodes(bNodeTree *ntree)
 {
-  using namespace blender;
   ntree->ensure_topology_cache();
 
   const Span<bNode *> all_reroute_nodes = ntree->nodes_by_type("NodeReroute");
@@ -761,7 +753,7 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
   }
 }
 
-bool blender::bke::node_is_connected_to_output(const bNodeTree &ntree, const bNode &node)
+bool bke::node_is_connected_to_output(const bNodeTree &ntree, const bNode &node)
 {
   ntree.ensure_topology_cache();
   Stack<const bNode *> nodes_to_check;
@@ -803,7 +795,7 @@ bNodeSocket *node_group_input_find_socket(bNode *node, const StringRef identifie
   return nullptr;
 }
 
-namespace blender::nodes {
+namespace nodes {
 
 static void group_input_declare(NodeDeclarationBuilder &b)
 {
@@ -860,7 +852,7 @@ static void group_output_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Extend>("", "__extend__");
 }
 
-static bool group_input_insert_link(blender::bke::NodeInsertLinkParams &params)
+static bool group_input_insert_link(bke::NodeInsertLinkParams &params)
 {
   BLI_assert(params.link.tonode != &params.node);
   BLI_assert(params.link.tosock->in_out == SOCK_IN);
@@ -881,7 +873,7 @@ static bool group_input_insert_link(blender::bke::NodeInsertLinkParams &params)
   return true;
 }
 
-static bool group_output_insert_link(blender::bke::NodeInsertLinkParams &params)
+static bool group_output_insert_link(bke::NodeInsertLinkParams &params)
 {
   BLI_assert(params.link.fromnode != &params.node);
   BLI_assert(params.link.fromsock->in_out == SOCK_OUT);
@@ -912,9 +904,9 @@ static void node_group_output_layout(ui::Layout &layout, bContext *C, PointerRNA
   ed::space_node::node_tree_interface_draw(*C, layout, *id_cast<bNodeTree *>(ptr->owner_id));
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
 
-static void node_group_input_extra_info(blender::nodes::NodeExtraInfoParams &params)
+static void node_group_input_extra_info(nodes::NodeExtraInfoParams &params)
 {
   get_compositor_group_input_extra_info(params);
 }
@@ -922,24 +914,24 @@ static void node_group_input_extra_info(blender::nodes::NodeExtraInfoParams &par
 void register_node_type_group_input()
 {
   /* used for all tree types, needs dynamic allocation */
-  blender::bke::bNodeType *ntype = MEM_new<blender::bke::bNodeType>("node type");
-  ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
+  bke::bNodeType *ntype = MEM_new<bke::bNodeType>("node type");
+  ntype->free_self = [](bke::bNodeType *type) { MEM_delete(type); };
 
-  blender::bke::node_type_base(*ntype, "NodeGroupInput", NODE_GROUP_INPUT);
+  bke::node_type_base(*ntype, "NodeGroupInput", NODE_GROUP_INPUT);
   ntype->ui_name = "Group Input";
   ntype->ui_description =
       "Expose connected data from inside a node group as inputs to its interface";
   ntype->enum_name_legacy = "GROUP_INPUT";
   ntype->nclass = NODE_CLASS_INTERFACE;
-  blender::bke::node_type_size(*ntype, 140, 80, 400);
-  ntype->declare = blender::nodes::group_input_declare;
-  ntype->insert_link = blender::nodes::group_input_insert_link;
+  bke::node_type_size(*ntype, 140, 80, 400);
+  ntype->declare = nodes::group_input_declare;
+  ntype->insert_link = nodes::group_input_insert_link;
   ntype->get_extra_info = node_group_input_extra_info;
-  ntype->get_compositor_operation = blender::nodes::get_group_input_compositor_operation;
-  ntype->draw_buttons_ex = blender::nodes::node_group_input_layout;
+  ntype->get_compositor_operation = nodes::get_group_input_compositor_operation;
+  ntype->draw_buttons_ex = nodes::node_group_input_layout;
   ntype->no_muting = true;
 
-  blender::bke::node_register_type(*ntype);
+  bke::node_register_type(*ntype);
 }
 
 bNodeSocket *node_group_output_find_socket(bNode *node, const StringRef identifier)
@@ -952,18 +944,17 @@ bNodeSocket *node_group_output_find_socket(bNode *node, const StringRef identifi
   return nullptr;
 }
 
-static void node_group_output_extra_info(blender::nodes::NodeExtraInfoParams &params)
+static void node_group_output_extra_info(nodes::NodeExtraInfoParams &params)
 {
   get_compositor_group_output_extra_info(params);
-  const blender::Span<const bNode *> group_output_nodes = params.tree.nodes_by_type(
-      "NodeGroupOutput");
+  const Span<const bNode *> group_output_nodes = params.tree.nodes_by_type("NodeGroupOutput");
   if (group_output_nodes.size() <= 1) {
     return;
   }
   if (params.node.flag & NODE_DO_OUTPUT) {
     return;
   }
-  blender::nodes::NodeExtraInfoRow row;
+  nodes::NodeExtraInfoRow row;
   row.text = IFACE_("Unused Output");
   row.icon = ICON_ERROR;
   row.tooltip = TIP_("There are multiple group output nodes and this one is not active");
@@ -973,24 +964,26 @@ static void node_group_output_extra_info(blender::nodes::NodeExtraInfoParams &pa
 void register_node_type_group_output()
 {
   /* used for all tree types, needs dynamic allocation */
-  blender::bke::bNodeType *ntype = MEM_new<blender::bke::bNodeType>("node type");
-  ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
+  bke::bNodeType *ntype = MEM_new<bke::bNodeType>("node type");
+  ntype->free_self = [](bke::bNodeType *type) { MEM_delete(type); };
 
-  blender::bke::node_type_base(*ntype, "NodeGroupOutput", NODE_GROUP_OUTPUT);
+  bke::node_type_base(*ntype, "NodeGroupOutput", NODE_GROUP_OUTPUT);
   ntype->ui_name = "Group Output";
   ntype->ui_description = "Output data from inside of a node group";
   ntype->enum_name_legacy = "GROUP_OUTPUT";
   ntype->nclass = NODE_CLASS_INTERFACE;
-  blender::bke::node_type_size(*ntype, 140, 80, 400);
-  ntype->declare = blender::nodes::group_output_declare;
-  ntype->insert_link = blender::nodes::group_output_insert_link;
+  bke::node_type_size(*ntype, 140, 80, 400);
+  ntype->declare = nodes::group_output_declare;
+  ntype->insert_link = nodes::group_output_insert_link;
   ntype->get_extra_info = node_group_output_extra_info;
-  ntype->draw_buttons_ex = blender::nodes::node_group_output_layout;
-  ntype->get_compositor_operation = blender::nodes::get_group_output_compositor_operation;
+  ntype->draw_buttons_ex = nodes::node_group_output_layout;
+  ntype->get_compositor_operation = nodes::get_group_output_compositor_operation;
 
   ntype->no_muting = true;
 
-  blender::bke::node_register_type(*ntype);
+  bke::node_register_type(*ntype);
 }
 
 /** \} */
+
+}  // namespace blender

@@ -257,7 +257,7 @@ class MotionPath : Overlay {
 
   /* Just convert the CPU cache to GPU cache. */
   /* TODO(fclem) This should go into a draw_cache_impl_motionpath. */
-  blender::gpu::VertBuf *mpath_vbo_get(bMotionPath *mpath)
+  gpu::VertBuf *mpath_vbo_get(bMotionPath *mpath)
   {
     if (!mpath->points_vbo) {
       GPUVertFormat format = {0};
@@ -272,7 +272,7 @@ class MotionPath : Overlay {
     return mpath->points_vbo;
   }
 
-  blender::gpu::Batch *mpath_batch_points_get(bMotionPath *mpath)
+  gpu::Batch *mpath_batch_points_get(bMotionPath *mpath)
   {
     if (!mpath->batch_points) {
       mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), nullptr);

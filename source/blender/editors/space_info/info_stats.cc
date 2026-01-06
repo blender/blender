@@ -62,6 +62,8 @@
 
 #include "GPU_capabilities.hh"
 
+namespace blender {
+
 ENUM_OPERATORS(eUserpref_StatusBar_Flag)
 
 struct SceneStats {
@@ -152,7 +154,7 @@ static bool stats_mesheval(const Mesh *mesh_eval, bool is_selected, SceneStats *
 static void stats_object(Object *ob,
                          const View3D *v3d_local,
                          SceneStats *stats,
-                         blender::Set<const Mesh *> &objects_gset)
+                         Set<const Mesh *> &objects_gset)
 {
   if ((ob->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
     return;
@@ -190,18 +192,18 @@ static void stats_object(Object *ob,
         break;
       }
 
-      const GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
+      const GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
 
       for (const GreasePencilDrawingBase *drawing_base : grease_pencil->drawings()) {
         const GreasePencilDrawing *drawing = reinterpret_cast<const GreasePencilDrawing *>(
             drawing_base);
-        const blender::bke::CurvesGeometry &curves = drawing->wrap().strokes();
+        const bke::CurvesGeometry &curves = drawing->wrap().strokes();
 
         stats->totpoints += curves.points_num();
         stats->totgpstroke += curves.curves_num();
       }
 
-      for (const blender::bke::greasepencil::Layer *layer : grease_pencil->layers()) {
+      for (const bke::greasepencil::Layer *layer : grease_pencil->layers()) {
         stats->totgpframe += layer->frames().size();
       }
 
@@ -209,8 +211,7 @@ static void stats_object(Object *ob,
       break;
     }
     case OB_CURVES: {
-      using namespace blender;
-      const Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
+      const Curves &curves_id = *id_cast<Curves *>(ob->data);
       const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       stats->totpoints += curves.points_num();
       break;
@@ -240,7 +241,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_ARMATURE) {
     /* Armature Edit */
-    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
+    bArmature *arm = id_cast<bArmature *>(obedit->data);
 
     for (EditBone &ebo : *arm->edbo) {
       stats->totbone++;
@@ -272,7 +273,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) { /* OB_FONT has no cu->editnurb */
     /* Curve Edit */
-    Curve *cu = blender::id_cast<Curve *>(obedit->data);
+    Curve *cu = id_cast<Curve *>(obedit->data);
     BezTriple *bezt;
     BPoint *bp;
     int a;
@@ -311,7 +312,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_MBALL) {
     /* MetaBall Edit */
-    MetaBall *mball = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mball = id_cast<MetaBall *>(obedit->data);
 
     for (MetaElem &ml : *mball->editelems) {
       stats->totvert++;
@@ -322,7 +323,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_LATTICE) {
     /* Lattice Edit */
-    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
+    Lattice *lt = id_cast<Lattice *>(obedit->data);
     Lattice *editlatt = lt->editlatt->latt;
     BPoint *bp;
     int a;
@@ -339,8 +340,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     }
   }
   else if (obedit->type == OB_CURVES) {
-    using namespace blender;
-    const Curves &curves_id = *blender::id_cast<Curves *>(obedit->data);
+    const Curves &curves_id = *id_cast<Curves *>(obedit->data);
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
         ".selection", bke::AttrDomain::Point, true);
@@ -348,8 +348,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     stats->totpoints += curves.points_num();
   }
   else if (obedit->type == OB_POINTCLOUD) {
-    using namespace blender;
-    PointCloud &pointcloud = *blender::id_cast<PointCloud *>(obedit->data);
+    PointCloud &pointcloud = *id_cast<PointCloud *>(obedit->data);
     const VArray<bool> selection = *pointcloud.attributes().lookup_or_default<bool>(
         ".selection", bke::AttrDomain::Point, true);
     stats->totvertsel = array_utils::count_booleans(selection);
@@ -360,7 +359,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 static void stats_object_pose(const Object *ob, SceneStats *stats)
 {
   if (ob->pose) {
-    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
 
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       stats->totbone++;
@@ -384,23 +383,23 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
   switch (ob->type) {
     case OB_MESH: {
       const SculptSession *ss = ob->sculpt;
-      const blender::bke::pbvh::Tree *pbvh = blender::bke::object::pbvh_get(*ob);
+      const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob);
       if (ss == nullptr || pbvh == nullptr) {
         return;
       }
 
       switch (pbvh->type()) {
-        case blender::bke::pbvh::Type::Mesh: {
-          const Mesh &mesh = *blender::id_cast<const Mesh *>(ob->data);
+        case bke::pbvh::Type::Mesh: {
+          const Mesh &mesh = *id_cast<const Mesh *>(ob->data);
           stats->totvertsculpt = mesh.verts_num;
           stats->totfacesculpt = mesh.faces_num;
           break;
         }
-        case blender::bke::pbvh::Type::BMesh:
+        case bke::pbvh::Type::BMesh:
           stats->totvertsculpt = ob->sculpt->bm->totvert;
           stats->tottri = ob->sculpt->bm->totface;
           break;
-        case blender::bke::pbvh::Type::Grids:
+        case bke::pbvh::Type::Grids:
           stats->totvertsculpt = BKE_sculpt_get_grid_num_verts(*ob);
           stats->totfacesculpt = BKE_sculpt_get_grid_num_faces(*ob);
           break;
@@ -408,8 +407,8 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
       break;
     }
     case OB_CURVES: {
-      const Curves &curves_id = *blender::id_cast<Curves *>(ob->data);
-      const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+      const Curves &curves_id = *id_cast<Curves *>(ob->data);
+      const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       stats->totvertsculpt += curves.points_num();
       break;
     }
@@ -476,7 +475,7 @@ static void stats_update(Depsgraph *depsgraph,
   }
   else {
     /* Objects. */
-    blender::Set<const Mesh *> objects_gset;
+    Set<const Mesh *> objects_gset;
     DEGObjectIterSettings deg_iter_settings{};
     deg_iter_settings.depsgraph = depsgraph;
     deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
@@ -949,3 +948,5 @@ void ED_info_draw_stats(
     stats_row(col1, labels[TRIS], col2, stats_fmt.tottrisel, stats_fmt.tottri, y, height);
   }
 }
+
+}  // namespace blender

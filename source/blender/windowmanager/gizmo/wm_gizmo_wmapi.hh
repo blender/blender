@@ -17,6 +17,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct bContext;
 struct wmEvent;
 struct wmEventHandler_Gizmo;
@@ -110,3 +112,5 @@ ListBaseT<wmGizmoGroup> *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 void wm_gizmomaptypes_free();
 
 /** \} */
+
+}  // namespace blender

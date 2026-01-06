@@ -22,6 +22,8 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_collection_color_items[] = {
     {COLLECTION_COLOR_NONE, "NONE", ICON_X, "None", "Assign no color tag to the collection"},
     {COLLECTION_COLOR_01, "COLOR_01", ICON_COLLECTION_COLOR_01, "Color 01", ""},
@@ -37,6 +39,8 @@ const EnumPropertyItem rna_enum_collection_color_items[] = {
 /* Minus 1 for NONE & 1 for the nullptr sentinel. */
 BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_COLOR_TOT,
                   "Collection color total is an invalid size");
+
+}  // namespace blender
 
 #ifdef RNA_RUNTIME
 
@@ -64,6 +68,8 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_
 #  include "WM_api.hh"
 
 #  include "RNA_access.hh"
+
+namespace blender {
 
 static void rna_Collection_all_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -186,7 +192,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
                  "Unsupported RNA override operation on collections' objects");
   UNUSED_VARS_NDEBUG(opop);
 
-  Collection *coll_dst = blender::id_cast<Collection *>(ptr_dst->owner_id);
+  Collection *coll_dst = id_cast<Collection *>(ptr_dst->owner_id);
 
   if (ptr_item_dst->type == nullptr || ptr_item_src->type == nullptr) {
     // BLI_assert_msg(0, "invalid source or destination object.");
@@ -314,7 +320,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
                  "Unsupported RNA override operation on collections' children");
   UNUSED_VARS_NDEBUG(opop);
 
-  Collection *coll_dst = blender::id_cast<Collection *>(ptr_dst->owner_id);
+  Collection *coll_dst = id_cast<Collection *>(ptr_dst->owner_id);
 
   if (ptr_item_dst->type == nullptr || ptr_item_src->type == nullptr) {
     /* This can happen when reference and overrides differ, just ignore then. */
@@ -420,7 +426,7 @@ static void rna_Collection_instance_offset_update(Main * /*bmain*/,
 
 static std::optional<std::string> rna_CollectionLightLinking_path(const PointerRNA *ptr)
 {
-  Collection *collection = blender::id_cast<Collection *>(ptr->owner_id);
+  Collection *collection = id_cast<Collection *>(ptr->owner_id);
   CollectionLightLinking *collection_light_linking = static_cast<CollectionLightLinking *>(
       ptr->data);
 
@@ -467,9 +473,8 @@ static CollectionExport *rna_CollectionExport_new(Collection *collection,
                                                   int type,
                                                   const char *name)
 {
-  blender::bke::FileHandlerType *fh = nullptr;
-  blender::Span<std::unique_ptr<blender::bke::FileHandlerType>> types =
-      blender::bke::file_handlers();
+  bke::FileHandlerType *fh = nullptr;
+  Span<std::unique_ptr<bke::FileHandlerType>> types = bke::file_handlers();
   if (types.index_range().contains(type)) {
     fh = types[type].get();
   }
@@ -516,11 +521,10 @@ static const EnumPropertyItem *rna_CollectionExport_type_itemf(bContext * /*C*/,
 {
   EnumPropertyItem *item = nullptr, item_tmp = {0};
   int totitem = 0;
-  blender::Span<std::unique_ptr<blender::bke::FileHandlerType>> types =
-      blender::bke::file_handlers();
+  Span<std::unique_ptr<bke::FileHandlerType>> types = bke::file_handlers();
 
   for (const int i : types.index_range()) {
-    blender::bke::FileHandlerType *fh = types[i].get();
+    bke::FileHandlerType *fh = types[i].get();
     if (WM_operatortype_find(fh->export_operator, true)) {
       item_tmp.value = i;
       item_tmp.identifier = fh->idname;
@@ -547,7 +551,7 @@ static PointerRNA rna_CollectionExport_export_properties_get(PointerRNA *ptr)
 
   /* If the File Handler or Operator is missing, we allow the data to be accessible
    * as generic ID properties. */
-  blender::bke::FileHandlerType *fh = blender::bke::file_handler_find(data->fh_idname);
+  bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
   if (!fh) {
     return RNA_pointer_create_discrete(
         ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
@@ -611,7 +615,11 @@ static void rna_CollectionExport_filepath_set(PointerRNA *ptr, const char *value
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 /* collection.objects */
 static void rna_def_collection_objects(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1026,5 +1034,7 @@ void RNA_def_collections(BlenderRNA *brna)
   rna_def_collection_child(brna);
   rna_def_collection_exporter_data(brna);
 }
+
+}  // namespace blender
 
 #endif

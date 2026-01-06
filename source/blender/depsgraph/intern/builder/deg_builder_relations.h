@@ -30,6 +30,8 @@
 #include "intern/node/deg_node_id.hh"
 #include "intern/node/deg_node_operation.hh"
 
+namespace blender {
+
 struct CacheFile;
 struct Camera;
 struct Collection;
@@ -66,7 +68,7 @@ struct bNodeTree;
 struct bPoseChannel;
 struct bSound;
 
-namespace blender::deg {
+namespace deg {
 
 struct ComponentNode;
 struct DepsNodeHandle;
@@ -362,6 +364,7 @@ struct DepsNodeHandle {
   const char *default_name;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender
 
 #include "intern/builder/deg_builder_relations_impl.h"  // IWYU pragma: export

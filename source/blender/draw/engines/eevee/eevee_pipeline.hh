@@ -23,9 +23,11 @@
 #include "eevee_subsurface.hh"
 #include "eevee_uniform_shared.hh"
 
+namespace blender {
+
 struct Camera;
 
-namespace blender::eevee {
+namespace eevee {
 
 class Instance;
 struct RayTraceBuffer;
@@ -127,7 +129,7 @@ class ShadowPipeline {
  public:
   ShadowPipeline(Instance &inst) : inst_(inst) {};
 
-  PassMain::Sub *surface_material_add(::Material *material, GPUMaterial *gpumat);
+  PassMain::Sub *surface_material_add(blender::Material *material, GPUMaterial *gpumat);
 
   void sync();
 
@@ -187,14 +189,16 @@ class ForwardPipeline {
   void sync();
   void end_sync();
 
-  PassMain::Sub *prepass_opaque_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
-  PassMain::Sub *material_opaque_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *prepass_opaque_add(blender::Material *blender_mat,
+                                    GPUMaterial *gpumat,
+                                    bool has_motion);
+  PassMain::Sub *material_opaque_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   PassMain::Sub *prepass_transparent_add(const Object *ob,
-                                         ::Material *blender_mat,
+                                         blender::Material *blender_mat,
                                          GPUMaterial *gpumat);
   PassMain::Sub *material_transparent_add(const Object *ob,
-                                          ::Material *blender_mat,
+                                          blender::Material *blender_mat,
                                           GPUMaterial *gpumat);
 
   bool use_colored_transparency() const;
@@ -355,8 +359,8 @@ class DeferredLayer : DeferredLayerBase {
   void begin_sync();
   void end_sync(bool is_first_pass, bool is_last_pass, bool next_layer_has_transmission);
 
-  PassMain::Sub *prepass_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
-  PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *prepass_add(blender::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
+  PassMain::Sub *material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   bool is_empty() const
   {
@@ -404,8 +408,8 @@ class DeferredPipeline {
   void begin_sync();
   void end_sync();
 
-  PassMain::Sub *prepass_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
-  PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *prepass_add(blender::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
+  PassMain::Sub *material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &main_view,
               View &render_view,
@@ -496,10 +500,10 @@ class VolumeLayer {
   }
 
   PassMain::Sub *occupancy_add(const Object *ob,
-                               const ::Material *blender_mat,
+                               const blender::Material *blender_mat,
                                GPUMaterial *gpumat);
   PassMain::Sub *material_add(const Object *ob,
-                              const ::Material *blender_mat,
+                              const blender::Material *blender_mat,
                               GPUMaterial *gpumat);
 
   /* Return true if the given bounds overlaps any of the contained object in this layer. */
@@ -588,8 +592,8 @@ class DeferredProbePipeline {
   void begin_sync();
   void end_sync();
 
-  PassMain::Sub *prepass_add(::Material *blender_mat, GPUMaterial *gpumat);
-  PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *prepass_add(blender::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &view,
               Framebuffer &prepass_fb,
@@ -642,8 +646,8 @@ class PlanarProbePipeline : DeferredLayerBase {
   void begin_sync();
   void end_sync();
 
-  PassMain::Sub *prepass_add(::Material *blender_mat, GPUMaterial *gpumat);
-  PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *prepass_add(blender::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &view,
               gpu::Texture *depth_layer_tx,
@@ -668,7 +672,7 @@ class CapturePipeline {
  public:
   CapturePipeline(Instance &inst) : inst_(inst) {};
 
-  PassMain::Sub *surface_material_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *surface_material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   void sync();
   void render(View &view);
@@ -810,7 +814,7 @@ class PipelineModule {
   }
 
   PassMain::Sub *material_add(Object * /*ob*/ /* TODO remove. */,
-                              ::Material *blender_mat,
+                              blender::Material *blender_mat,
                               GPUMaterial *gpumat,
                               eMaterialPipeline pipeline_type,
                               eMaterialProbe probe_capture)
@@ -877,4 +881,5 @@ class PipelineModule {
 
 /** \} */
 
-}  // namespace blender::eevee
+}  // namespace eevee
+}  // namespace blender

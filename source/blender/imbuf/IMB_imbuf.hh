@@ -16,6 +16,8 @@
 
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 struct ImBuf;
 struct rctf;
 struct rcti;
@@ -556,20 +558,19 @@ void IMB_transform(const ImBuf *src,
                    ImBuf *dst,
                    eIMBTransformMode mode,
                    eIMBInterpolationFilterMode filter,
-                   const blender::float3x3 &transform_matrix,
+                   const float3x3 &transform_matrix,
                    const rctf *src_crop);
 
-blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
-                                              ImBuf *ibuf,
-                                              bool use_high_bitdepth,
-                                              bool use_premult);
+gpu::Texture *IMB_create_gpu_texture(const char *name,
+                                     ImBuf *ibuf,
+                                     bool use_high_bitdepth,
+                                     bool use_premult);
 
-blender::gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
-                                                       bool high_bitdepth,
-                                                       bool use_grayscale);
+gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
+                                              bool high_bitdepth,
+                                              bool use_grayscale);
 
-bool IMB_gpu_get_compressed_format(const ImBuf *ibuf,
-                                   blender::gpu::TextureFormat *r_texture_format);
+bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, gpu::TextureFormat *r_texture_format);
 
 /**
  * Ensures that values stored in the float rect can safely loaded into half float gpu textures.
@@ -582,19 +583,19 @@ void IMB_gpu_clamp_half_float(ImBuf *image_buffer);
  * The `ibuf` is only here to detect the storage type. The produced texture will have undefined
  * content. It will need to be populated by using #IMB_update_gpu_texture_sub().
  */
-blender::gpu::Texture *IMB_touch_gpu_texture(const char *name,
-                                             ImBuf *ibuf,
-                                             int w,
-                                             int h,
-                                             int layers,
-                                             bool use_high_bitdepth,
-                                             bool use_grayscale);
+gpu::Texture *IMB_touch_gpu_texture(const char *name,
+                                    ImBuf *ibuf,
+                                    int w,
+                                    int h,
+                                    int layers,
+                                    bool use_high_bitdepth,
+                                    bool use_grayscale);
 
 /**
- * Will update a #blender::gpu::Texture using the content of the #ImBuf. Only one layer will be
+ * Will update a #gpu::Texture using the content of the #ImBuf. Only one layer will be
  * updated. Will resize the ibuf if needed. Z is the layer to update. Unused if the texture is 2D.
  */
-void IMB_update_gpu_texture_sub(blender::gpu::Texture *tex,
+void IMB_update_gpu_texture_sub(gpu::Texture *tex,
                                 ImBuf *ibuf,
                                 int x,
                                 int y,
@@ -620,3 +621,5 @@ void IMB_ImBufFromStereo3d(const Stereo3dFormat *s3d,
                            ImBuf *ibuf_stereo3d,
                            ImBuf **r_ibuf_left,
                            ImBuf **r_ibuf_right);
+
+}  // namespace blender

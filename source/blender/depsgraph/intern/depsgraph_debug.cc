@@ -26,7 +26,7 @@
 
 #include "BLI_math_bits.h"
 
-namespace deg = blender::deg;
+namespace blender {
 
 void DEG_debug_flags_set(Depsgraph *depsgraph, int flags)
 {
@@ -392,3 +392,5 @@ std::string DEG_stringify_recalc_flags(uint flags)
   }
   return result;
 }
+
+}  // namespace blender

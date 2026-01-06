@@ -55,7 +55,7 @@ class Metaballs : Overlay {
     for (const MetaElem &ml : *(mb.editelems)) {
       const bool is_selected = (ml.flag & SELECT) != 0;
       const bool is_scale_radius = (ml.flag & MB_SCALE_RAD) != 0;
-      blender::float2 radius_stiffness = BKE_mball_element_display_radius_calc_with_stiffness(&ml);
+      float2 radius_stiffness = BKE_mball_element_display_radius_calc_with_stiffness(&ml);
       const float3 position = float3(&ml.x);
 
       const select::ID radius_id = res.select_id(ob_ref, MBALLSEL_RADIUS | elem_num);

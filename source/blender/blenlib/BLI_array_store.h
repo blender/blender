@@ -11,6 +11,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 struct BArrayState;
 struct BArrayStore;
 
@@ -125,3 +127,5 @@ void BLI_array_store_rle_decode(const uint8_t *data_enc,
                                 const size_t data_enc_len,
                                 void *data_dec_v,
                                 const size_t data_dec_len);
+
+}  // namespace blender

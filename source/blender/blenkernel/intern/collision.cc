@@ -32,6 +32,8 @@
 #include "DEG_depsgraph_physics.hh"
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 #ifdef WITH_ELTOPO
 #  include "eltopo-capi.h"
 #endif
@@ -82,13 +84,13 @@ void collision_move_object(CollisionModifierData *collmd,
   bvhtree_update_from_mvert(collmd->bvhtree,
                             collmd->current_xnew,
                             collmd->current_x,
-                            reinterpret_cast<const blender::int3 *>(collmd->vert_tris),
+                            reinterpret_cast<const int3 *>(collmd->vert_tris),
                             collmd->tri_num,
                             moving_bvh);
 }
 
 BVHTree *bvhtree_build_from_mvert(const float (*positions)[3],
-                                  const blender::int3 *vert_tris,
+                                  const int3 *vert_tris,
                                   int tri_num,
                                   float epsilon)
 {
@@ -114,7 +116,7 @@ BVHTree *bvhtree_build_from_mvert(const float (*positions)[3],
 void bvhtree_update_from_mvert(BVHTree *bvhtree,
                                const float (*positions)[3],
                                const float (*positions_moving)[3],
-                               const blender::int3 *vert_tris,
+                               const int3 *vert_tris,
                                int tri_num,
                                bool moving)
 {
@@ -941,7 +943,7 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
 
 static bool cloth_bvh_collision_is_active(const ClothModifierData * /*clmd*/,
                                           const Cloth *cloth,
-                                          const blender::int3 vert_tri_a)
+                                          const int3 vert_tri_a)
 {
   const ClothVertex *verts = cloth->verts;
 
@@ -971,8 +973,8 @@ static void cloth_collision(void *__restrict userdata,
   float epsilon2 = BLI_bvhtree_get_epsilon(collmd->bvhtree);
   float pa[3], pb[3], vect[3];
 
-  const blender::int3 vert_tri_a = clmd->clothObject->vert_tris[data->overlap[index].indexA];
-  const blender::int3 vert_tri_b = collmd->vert_tris[data->overlap[index].indexB];
+  const int3 vert_tri_a = clmd->clothObject->vert_tris[data->overlap[index].indexA];
+  const int3 vert_tri_b = collmd->vert_tris[data->overlap[index].indexB];
 
   /* Compute distance and normal. */
   distance = compute_collision_point_tri_tri(verts1[vert_tri_a[0]].tx,
@@ -1031,8 +1033,8 @@ static void cloth_collision(void *__restrict userdata,
 
 static bool cloth_bvh_selfcollision_is_active(const ClothModifierData *clmd,
                                               const Cloth *cloth,
-                                              const blender::int3 vert_tri_a,
-                                              const blender::int3 vert_tri_b)
+                                              const int3 vert_tri_a,
+                                              const int3 vert_tri_b)
 {
   const ClothVertex *verts = cloth->verts;
 
@@ -1091,8 +1093,8 @@ static void cloth_selfcollision(void *__restrict userdata,
     std::swap(indexA, indexB);
   }
 
-  const blender::int3 vert_tri_a = clmd->clothObject->vert_tris[indexA];
-  const blender::int3 vert_tri_b = clmd->clothObject->vert_tris[indexB];
+  const int3 vert_tri_a = clmd->clothObject->vert_tris[indexA];
+  const int3 vert_tri_b = clmd->clothObject->vert_tris[indexB];
 
   BLI_assert(cloth_bvh_selfcollision_is_active(clmd, clmd->clothObject, vert_tri_a, vert_tri_b));
 
@@ -1168,9 +1170,9 @@ static void hair_collision(void *__restrict userdata,
 
   /* TODO: This is not efficient. Might be wise to instead build an array before iterating, to
    * avoid walking the list every time. */
-  const blender::int2 &edge_coll = reinterpret_cast<const blender::int2 *>(
+  const int2 &edge_coll = reinterpret_cast<const int2 *>(
       clmd->clothObject->edges)[data->overlap[index].indexA];
-  const blender::int3 tri_coll = collmd->vert_tris[data->overlap[index].indexB];
+  const int3 tri_coll = collmd->vert_tris[data->overlap[index].indexB];
 
   /* Compute distance and normal. */
   distance = compute_collision_point_edge_tri(verts1[edge_coll[0]].tx,
@@ -1521,7 +1523,7 @@ static bool cloth_bvh_obj_overlap_cb(void *userdata, int index_a, int /*index_b*
 {
   ClothModifierData *clmd = static_cast<ClothModifierData *>(userdata);
   Cloth *clothObject = clmd->clothObject;
-  const blender::int3 tri_a = clothObject->vert_tris[index_a];
+  const int3 tri_a = clothObject->vert_tris[index_a];
 
   return cloth_bvh_collision_is_active(clmd, clothObject, tri_a);
 }
@@ -1533,8 +1535,8 @@ static bool cloth_bvh_self_overlap_cb(void *userdata, int index_a, int index_b, 
   if (index_a != index_b) {
     ClothModifierData *clmd = static_cast<ClothModifierData *>(userdata);
     Cloth *clothObject = clmd->clothObject;
-    const blender::int3 tri_a = clothObject->vert_tris[index_a];
-    const blender::int3 tri_b = clothObject->vert_tris[index_b];
+    const int3 tri_a = clothObject->vert_tris[index_a];
+    const int3 tri_b = clothObject->vert_tris[index_b];
 
     if (cloth_bvh_selfcollision_is_active(clmd, clothObject, tri_a, tri_b)) {
       return true;
@@ -1747,3 +1749,5 @@ void collision_get_collider_velocity(float vel_old[3],
   /* XXX assume constant velocity of the collider for now */
   copy_v3_v3(vel_old, vel_new);
 }
+
+}  // namespace blender

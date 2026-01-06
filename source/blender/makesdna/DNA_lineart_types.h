@@ -8,6 +8,8 @@
  * \ingroup DNA
  */
 
+namespace blender {
+
 /* Notice that we need to have this file although no struct defines.
  * Edge flags and usage flags are used by with scene/object/gpencil modifier bits, and those values
  * needs to stay consistent throughout. */
@@ -72,3 +74,5 @@ enum eLineartEdgeFlag {
 #define MOD_LINEART_EDGE_FLAG_ALL_TYPE 0x01ff
 #define MOD_LINEART_EDGE_FLAG_INIT_TYPE 0x37 /* Without material & light contour */
 #define MOD_LINEART_EDGE_FLAG_TYPE_MAX_BITS 7
+
+}  // namespace blender

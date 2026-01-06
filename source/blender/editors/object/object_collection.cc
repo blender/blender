@@ -475,7 +475,6 @@ static bool collection_export_all_poll(bContext *C)
 
 static wmOperatorStatus collection_exporter_add_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Collection *collection = CTX_data_collection(C);
 
   char name[MAX_ID_NAME - 2]; /* id name */
@@ -571,7 +570,6 @@ static void COLLECTION_OT_exporter_remove(wmOperatorType *ot)
 
 static wmOperatorStatus collection_exporter_move_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Collection *collection = CTX_data_collection(C);
   const int dir = RNA_enum_get(op->ptr, "direction");
   const int from = collection->active_exporter_index;
@@ -621,7 +619,6 @@ static wmOperatorStatus collection_exporter_export(bContext *C,
                                                    Collection *collection,
                                                    const bool report_success)
 {
-  using namespace blender;
   bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
   if (!fh) {
     BKE_reportf(op->reports, RPT_ERROR, "File handler '%s' not found", data->fh_idname);

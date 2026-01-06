@@ -42,6 +42,8 @@
 
 #include "undo_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
  * \{ */
@@ -112,7 +114,7 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
   if (id != nullptr && !ID_IS_LINKED(id) && (id->tag & ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) == 0) {
     bool do_stop_iter = true;
     if (GS(self_id->name) == ID_OB) {
-      Object *ob_self = blender::id_cast<Object *>(self_id);
+      Object *ob_self = id_cast<Object *>(self_id);
       if (ob_self->type == OB_ARMATURE) {
         if (ob_self->data == id) {
           BLI_assert(GS(id->name) == ID_AR);
@@ -250,14 +252,14 @@ static void memfile_undosys_step_decode(
         if (scene->compositing_node_group) {
           /* Ensure undo calls from the UI update the interactive compositor preview depsgraph, see
            * #compo_initjob. */
-          blender::bke::CompositorRuntime &compositor_runtime = scene->runtime->compositor;
+          bke::CompositorRuntime &compositor_runtime = scene->runtime->compositor;
           DEG_graph_free(compositor_runtime.preview_depsgraph);
           compositor_runtime.preview_depsgraph = nullptr;
         }
 
         if (scene->runtime->sequencer.depsgraph) {
           /* Ensure that the depsgraph created in #get_depsgraph_for_scene_strip are updated. */
-          blender::bke::SequencerRuntime &seq_runtime = scene->runtime->sequencer;
+          bke::SequencerRuntime &seq_runtime = scene->runtime->sequencer;
           DEG_graph_free(seq_runtime.depsgraph);
           seq_runtime.depsgraph = nullptr;
         }
@@ -276,7 +278,7 @@ static void memfile_undosys_step_decode(
         DEG_id_tag_update_ex(bmain, id, recalc_flags);
       }
 
-      bNodeTree *nodetree = blender::bke::node_tree_from_id(id);
+      bNodeTree *nodetree = bke::node_tree_from_id(id);
       if (nodetree != nullptr) {
         recalc_flags = nodetree->id.recalc;
         if (id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
@@ -287,7 +289,7 @@ static void memfile_undosys_step_decode(
         }
       }
       if (GS(id->name) == ID_SCE) {
-        Scene *scene = blender::id_cast<Scene *>(id);
+        Scene *scene = id_cast<Scene *>(id);
         if (scene->master_collection != nullptr) {
           recalc_flags = scene->master_collection->id.recalc;
           if (id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
@@ -313,12 +315,12 @@ static void memfile_undosys_step_decode(
        * are already part of the current undo state. This is done in a second
        * loop because DEG_id_tag_update may set tags on other datablocks. */
       id->recalc_after_undo_push = 0;
-      bNodeTree *nodetree = blender::bke::node_tree_from_id(id);
+      bNodeTree *nodetree = bke::node_tree_from_id(id);
       if (nodetree != nullptr) {
         nodetree->id.recalc_after_undo_push = 0;
       }
       if (GS(id->name) == ID_SCE) {
-        Scene *scene = blender::id_cast<Scene *>(id);
+        Scene *scene = id_cast<Scene *>(id);
         if (scene->master_collection != nullptr) {
           scene->master_collection->id.recalc_after_undo_push = 0;
         }
@@ -411,3 +413,5 @@ void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -18,6 +18,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 void hsv_to_rgb(float h, float s, float v, float *r_r, float *r_g, float *r_b)
 {
   float nr, ng, nb;
@@ -840,7 +842,7 @@ void BLI_init_srgb_conversion()
   }
 }
 
-namespace blender::math {
+namespace math {
 
 struct locus_entry_t {
   float mired; /* Inverse temperature */
@@ -958,4 +960,5 @@ float3x3 chromatic_adaption_matrix(const float3 &from_XYZ, const float3 &to_XYZ)
   return invert(bradford) * from_scale<float3x3>(to_LMS / from_LMS) * bradford;
 }
 
-}  // namespace blender::math
+}  // namespace math
+}  // namespace blender

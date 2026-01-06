@@ -46,6 +46,8 @@
 
 #include "action_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
@@ -55,7 +57,7 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
   { /* Support use from the layout.template_action() UI template. */
     PointerRNA ptr = {};
     PropertyRNA *prop = nullptr;
-    blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
+    ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
     /* template_action() sets a RNA_AnimData pointer, whereas other code may set
      * other pointer types. This code here only deals with the former. */
     if (prop && ptr.type == &RNA_AnimData) {
@@ -118,7 +120,7 @@ static bAction *action_create_new(bContext *C, bAction *oldact)
    */
   if (oldact && GS(oldact->id.name) == ID_AC) {
     /* make a copy of the existing action */
-    action = blender::id_cast<bAction *>(BKE_id_copy(CTX_data_main(C), &oldact->id));
+    action = id_cast<bAction *>(BKE_id_copy(CTX_data_main(C), &oldact->id));
   }
   else {
     /* just make a new (empty) action */
@@ -152,7 +154,7 @@ static bool action_new_poll(bContext *C)
   { /* Support use from the layout.template_action() UI template. */
     PointerRNA ptr = {};
     PropertyRNA *prop = nullptr;
-    blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
+    ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
     if (prop) {
       return RNA_property_editable(&ptr, prop);
     }
@@ -204,14 +206,14 @@ static wmOperatorStatus action_new_exec(bContext *C, wmOperator * /*op*/)
   AnimData *adt = nullptr;
   ID *adt_id_owner = nullptr;
   /* hook into UI */
-  blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
+  ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
     /* The operator was called from a button. */
     PointerRNA oldptr;
 
     oldptr = RNA_property_pointer_get(&ptr, prop);
-    oldact = blender::id_cast<bAction *>(oldptr.owner_id);
+    oldact = id_cast<bAction *>(oldptr.owner_id);
 
     /* stash the old action to prevent it from being lost */
     if (ptr.type == &RNA_AnimData) {
@@ -308,7 +310,7 @@ static wmOperatorStatus action_pushdown_exec(bContext *C, wmOperator * /*op*/)
 
   /* Do the deed... */
   if (adt && adt->action) {
-    blender::animrig::Action &action = adt->action->wrap();
+    animrig::Action &action = adt->action->wrap();
 
     /* action can be safely added */
     BKE_nla_action_pushdown({*adt_id_owner, *adt}, ID_IS_OVERRIDE_LIBRARY(adt_id_owner));
@@ -360,7 +362,7 @@ static wmOperatorStatus action_stash_exec(bContext *C, wmOperator *op)
       BKE_report(op->reports, RPT_ERROR, "Action+Slot has already been stashed");
     }
 
-    if (!blender::animrig::unassign_action({*adt_id_owner, *adt})) {
+    if (!animrig::unassign_action({*adt_id_owner, *adt})) {
       BKE_report(op->reports, RPT_ERROR, "Could not unassign the active Action");
     }
   }
@@ -444,7 +446,7 @@ static wmOperatorStatus action_stash_create_exec(bContext *C, wmOperator *op)
   if (adt->action == nullptr) {
     /* just create a new action */
     bAction *action = action_create_new(C, nullptr);
-    if (!blender::animrig::assign_action(action, {*adt_id_owner, *adt})) {
+    if (!animrig::assign_action(action, {*adt_id_owner, *adt})) {
       BKE_reportf(
           op->reports, RPT_ERROR, "Could not assign a new Action to %s", adt_id_owner->name + 2);
     }
@@ -457,7 +459,7 @@ static wmOperatorStatus action_stash_create_exec(bContext *C, wmOperator *op)
       /* Create new action not based on the old one
        * (since the "new" operator already does that). */
       new_action = action_create_new(C, nullptr);
-      if (!blender::animrig::assign_action(new_action, {*adt_id_owner, *adt})) {
+      if (!animrig::assign_action(new_action, {*adt_id_owner, *adt})) {
         BKE_reportf(
             op->reports, RPT_ERROR, "Could not assign a new Action to %s", adt_id_owner->name + 2);
       }
@@ -465,7 +467,7 @@ static wmOperatorStatus action_stash_create_exec(bContext *C, wmOperator *op)
     else {
       /* action has already been added - simply warn about this, and clear */
       BKE_report(op->reports, RPT_ERROR, "Action+Slot has already been stashed");
-      if (!blender::animrig::unassign_action({*adt_id_owner, *adt})) {
+      if (!animrig::unassign_action({*adt_id_owner, *adt})) {
         BKE_reportf(
             op->reports, RPT_ERROR, "Could not un-assign Action from %s", adt_id_owner->name + 2);
       }
@@ -647,3 +649,5 @@ void ACTION_OT_unlink(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

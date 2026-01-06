@@ -32,7 +32,7 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-using namespace blender;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
@@ -259,3 +259,5 @@ ModifierTypeInfo modifierType_Mirror = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

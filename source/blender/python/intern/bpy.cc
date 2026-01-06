@@ -61,6 +61,8 @@
 #  include "BPy_Freestyle.h"
 #endif
 
+namespace blender {
+
 PyObject *bpy_package_py = nullptr;
 
 PyDoc_STRVAR(
@@ -837,3 +839,5 @@ void BPy_init_modules(bContext *C)
   /* add our own modules dir, this is a python package */
   bpy_package_py = bpy_import_test("bpy");
 }
+
+}  // namespace blender

@@ -735,7 +735,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeCompare", FN_NODE_COMPARE);
   ntype.ui_name = "Compare";
   ntype.ui_description = "Perform a comparison operation on the two given inputs";
@@ -745,12 +745,12 @@ static void node_register()
   ntype.labelfunc = node_label;
   ntype.updatefunc = node_update;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeFunctionCompare", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = node_build_multi_function;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

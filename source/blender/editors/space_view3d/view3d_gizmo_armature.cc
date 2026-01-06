@@ -31,6 +31,8 @@
 
 #include "view3d_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Armature Spline Gizmo
  * \{ */
@@ -117,7 +119,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = BKE_object_pose_armature_get(base->object);
     if (ob) {
-      const bArmature *arm = blender::id_cast<const bArmature *>(ob->data);
+      const bArmature *arm = id_cast<const bArmature *>(ob->data);
       if (arm->drawtype == ARM_DRAW_TYPE_B_BONE) {
         bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
         if (pchan && pchan->bone->segments > 1) {
@@ -154,8 +156,8 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
                  ED_GIZMO_MOVE_DRAW_FLAG_FILL | ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
 
-    blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
-    blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
+    ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+    ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
     gz->scale_basis = 0.06f;
 
@@ -214,3 +216,5 @@ void VIEW3D_GGT_armature_spline(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender

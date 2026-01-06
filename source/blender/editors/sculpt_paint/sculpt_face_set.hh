@@ -15,13 +15,15 @@
 
 #include "BKE_attribute.hh"
 
+namespace blender {
+
 struct BMVert;
 struct Mesh;
 struct Object;
 struct SubdivCCG;
 struct SubdivCCGCoord;
 
-namespace blender::ed::sculpt_paint::face_set {
+namespace ed::sculpt_paint::face_set {
 
 int active_face_set_get(const Object &object);
 int vert_face_set_get(GroupedSpan<int> vert_to_face_map, Span<int> face_sets, int vert);
@@ -78,4 +80,6 @@ void filter_verts_with_unique_face_sets_bmesh(int face_set_offset,
                                               const Set<BMVert *, 0> &verts,
                                               MutableSpan<float> factors);
 
-}  // namespace blender::ed::sculpt_paint::face_set
+}  // namespace ed::sculpt_paint::face_set
+
+}  // namespace blender

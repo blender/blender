@@ -20,9 +20,12 @@
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /* Store incoming USD data privately and expose Blender-friendly Spans publicly. */
 struct USDCurveData {
@@ -467,4 +470,5 @@ void USDNurbsReader::read_curve_sample(Curves *curves_id, const pxr::UsdTimeCode
   }
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

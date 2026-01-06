@@ -38,11 +38,7 @@
 #include "clip_intern.hh"         /* own include */
 #include "tracking_ops_intern.hh" /* own include */
 
-using blender::Array;
-using blender::int2;
-using blender::Span;
-
-namespace math = blender::math;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Point track marker picking.
@@ -1228,3 +1224,5 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
                "Action",
                "Clear action to execute");
 }
+
+}  // namespace blender

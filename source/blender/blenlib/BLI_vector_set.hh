@@ -7,8 +7,8 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::VectorSet<Key>` is an ordered container for elements of type `Key`. It has the same
- * interface as `blender::Set` with the following extensions:
+ * A `VectorSet<Key>` is an ordered container for elements of type `Key`. It has the same
+ * interface as `Set` with the following extensions:
  * - The insertion order of keys is maintained as long as no elements are removed.
  *   - Once elements are removed, the order of keys is only maintained for the elements added
  *     _before_ any removed element.
@@ -24,8 +24,8 @@
  *   the keys are stored in a set. With a VectorSet, one can get a Span containing all keys
  *   without additional copies.
  *
- * blender::VectorSet is implemented using open addressing in a slot array with a power-of-two
- * size. Other than in blender::Set, a slot does not contain the key though. Instead it only
+ * VectorSet is implemented using open addressing in a slot array with a power-of-two
+ * size. Other than in Set, a slot does not contain the key though. Instead it only
  * contains an index into an array of keys that is stored separately.
  *
  * Some noteworthy information:

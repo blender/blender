@@ -29,7 +29,9 @@
 #include <algorithm>
 #include <cmath>
 
-namespace blender::render::texturemargin {
+namespace blender {
+
+namespace render::texturemargin {
 
 /**
  * The map class contains both a pixel map which maps out face indices for all UV-polygons and
@@ -306,7 +308,7 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_face_map_ = blender::bke::mesh::build_corner_to_face_map(faces_);
+    loop_to_face_map_ = bke::mesh::build_corner_to_face_map(faces_);
 
     loop_adjacency_map_.resize(corner_edges_.size(), -1);
 
@@ -565,28 +567,29 @@ static void generate_margin(ImBuf *ibuf,
   MEM_freeN(mask);
 }
 
-}  // namespace blender::render::texturemargin
+}  // namespace render::texturemargin
 
 void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                              char *mask,
                                              const int margin,
                                              const Mesh *mesh,
-                                             blender::StringRef uv_layer,
+                                             StringRef uv_layer,
                                              const float uv_offset[2])
 {
-  using namespace blender;
   const StringRef name = uv_layer.is_empty() ? mesh->active_uv_map_name() : uv_layer;
-  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan<float2> uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
 
-  blender::render::texturemargin::generate_margin(ibuf,
-                                                  mask,
-                                                  margin,
-                                                  mesh->vert_positions(),
-                                                  mesh->edges_num,
-                                                  mesh->faces(),
-                                                  mesh->corner_edges(),
-                                                  mesh->corner_verts(),
-                                                  uv_map,
-                                                  uv_offset);
+  render::texturemargin::generate_margin(ibuf,
+                                         mask,
+                                         margin,
+                                         mesh->vert_positions(),
+                                         mesh->edges_num,
+                                         mesh->faces(),
+                                         mesh->corner_edges(),
+                                         mesh->corner_verts(),
+                                         uv_map,
+                                         uv_offset);
 }
+
+}  // namespace blender

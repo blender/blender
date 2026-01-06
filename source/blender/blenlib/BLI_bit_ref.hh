@@ -21,7 +21,9 @@
 
 #include <iosfwd>
 
-namespace blender::bits {
+namespace blender {
+
+namespace bits {
 
 /** Using a large integer type is better because then it's easier to process many bits at once. */
 using BitInt = uint64_t;
@@ -236,9 +238,9 @@ class MutableBitRef {
 std::ostream &operator<<(std::ostream &stream, const BitRef &bit);
 std::ostream &operator<<(std::ostream &stream, const MutableBitRef &bit);
 
-}  // namespace blender::bits
+}  // namespace bits
 
-namespace blender {
 using bits::BitRef;
 using bits::MutableBitRef;
+
 }  // namespace blender

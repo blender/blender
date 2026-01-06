@@ -17,6 +17,8 @@
 #include "volume.hh"
 #include "world.hh"
 
+namespace blender {
+
 struct Depsgraph;
 struct ID;
 struct Main;
@@ -26,9 +28,9 @@ struct ParticleSystem;
 struct Scene;
 struct View3D;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
-extern struct CLG_LogRef *LOG_HYDRA_SCENE;
+extern CLG_LogRef *LOG_HYDRA_SCENE;
 
 class Engine;
 class CameraDelegate;
@@ -118,4 +120,5 @@ class HydraSceneDelegate : public pxr::HdSceneDelegate {
   bool set_world_shading_settings();
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

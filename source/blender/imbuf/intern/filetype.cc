@@ -21,6 +21,8 @@
 #  include "openexr/openexr_api.h"
 #endif
 
+namespace blender {
+
 const ImFileType IMB_FILE_TYPES[] = {
     {
         /*init*/ nullptr,
@@ -257,3 +259,5 @@ void imb_filetypes_exit()
     }
   }
 }
+
+}  // namespace blender

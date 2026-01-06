@@ -8,13 +8,15 @@
 
 #pragma once
 
+namespace blender {
+
 struct Mesh;
 
 #include "BLI_virtual_array_fwd.hh"
 
 #include "BKE_attribute_filter.hh"
 
-namespace blender::bke {
+namespace bke {
 
 class CurvesGeometry;
 
@@ -40,4 +42,5 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 Mesh *curve_to_wire_mesh(const CurvesGeometry &curve,
                          const bke::AttributeFilter &attribute_filter = {});
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

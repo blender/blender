@@ -19,7 +19,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_ellipsemask_cc {
+namespace blender {
+
+namespace nodes::node_composite_ellipsemask_cc {
 
 static const EnumPropertyItem operation_items[] = {
     {CMP_NODE_MASKTYPE_ADD, "ADD", 0, N_("Add"), ""},
@@ -248,13 +250,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new EllipseMaskOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_ellipsemask_cc
+}  // namespace nodes::node_composite_ellipsemask_cc
 
 static void register_node_type_cmp_ellipsemask()
 {
-  namespace file_ns = blender::nodes::node_composite_ellipsemask_cc;
+  namespace file_ns = nodes::node_composite_ellipsemask_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeEllipseMask", CMP_NODE_MASK_ELLIPSE);
   ntype.ui_name = "Ellipse Mask";
@@ -265,6 +267,8 @@ static void register_node_type_cmp_ellipsemask()
   ntype.declare = file_ns::cmp_node_ellipsemask_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_ellipsemask)
+
+}  // namespace blender

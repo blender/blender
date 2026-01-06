@@ -30,15 +30,12 @@
 #include "RNA_types.hh"
 
 #ifdef WITH_INTERNATIONAL
-
 #  include "BLI_map.hh"
 #  include "BLI_string_ref.hh"
 #  include "BLI_string_utf8.h"
-
-using blender::StringRef;
-using blender::StringRefNull;
-
 #endif
+
+namespace blender {
 
 /* ------------------------------------------------------------------- */
 /** \name Local Struct to Store Translation
@@ -78,7 +75,7 @@ struct MessageKeyRef {
   {
     BLI_assert(this->context == BLT_I18NCONTEXT_DEFAULT_BPYRNA ||
                !BLT_is_default_context(this->context));
-    return blender::get_default_hash(this->context, this->str);
+    return get_default_hash(this->context, this->str);
   }
 };
 
@@ -88,7 +85,7 @@ struct MessageKey {
 
   uint64_t hash() const
   {
-    return blender::get_default_hash(this->context, this->str);
+    return get_default_hash(this->context, this->str);
   }
 
   static uint64_t hash_as(const MessageKeyRef &key)
@@ -120,9 +117,9 @@ inline bool operator==(const MessageKeyRef &a, const MessageKey &b)
  * so let's try to optimize the latter as much as we can!
  * Note changing of locale, as well as (un)registering a message dict, invalidate that cache.
  */
-static std::unique_ptr<blender::Map<MessageKey, std::string>> &get_translations_cache()
+static std::unique_ptr<Map<MessageKey, std::string>> &get_translations_cache()
 {
-  static std::unique_ptr<blender::Map<MessageKey, std::string>> translations;
+  static std::unique_ptr<Map<MessageKey, std::string>> translations;
   return translations;
 }
 
@@ -142,9 +139,9 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
   BLT_lang_locale_explode(
       locale, &language, nullptr, nullptr, &language_country, &language_variant);
 
-  /* Clear the cached #blender::Map if needed, and create a new one. */
+  /* Clear the cached #Map if needed, and create a new one. */
   _clear_translations_cache();
-  get_translations_cache() = std::make_unique<blender::Map<MessageKey, std::string>>();
+  get_translations_cache() = std::make_unique<Map<MessageKey, std::string>>();
 
   /* Iterate over all Python dictionaries. */
   while (PyDict_Next(py_messages, &pos, &uuid, &uuid_dict)) {
@@ -1012,3 +1009,5 @@ void BPY_app_translations_end()
 }
 
 /** \} */
+
+}  // namespace blender

@@ -35,7 +35,6 @@
 #include <fstream>
 #include <string>
 
-using namespace blender;
 using namespace blender::gpu;
 
 /* Fire off a single dispatch per encoder. Can make debugging view clearer for texture resources

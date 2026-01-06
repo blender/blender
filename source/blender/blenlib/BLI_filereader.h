@@ -18,6 +18,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #if defined(_MSC_VER) || defined(__APPLE__) || defined(__HAIKU__) || defined(__NetBSD__) || \
     defined(__OpenBSD__)
 typedef int64_t off64_t;
@@ -57,3 +59,5 @@ FileReader *BLI_filereader_new_memory(const void *data, size_t len) ATTR_WARN_UN
 FileReader *BLI_filereader_new_zstd(FileReader *base) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /** Create #FileReader from applying `Gzip` decompression on an underlying file. */
 FileReader *BLI_filereader_new_gzip(FileReader *base) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+}  // namespace blender

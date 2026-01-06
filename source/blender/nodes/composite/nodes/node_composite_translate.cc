@@ -17,7 +17,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_translate_cc {
+namespace blender {
+
+namespace nodes::node_composite_translate_cc {
 
 static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
 {
@@ -136,13 +138,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new TranslateOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_translate_cc
+}  // namespace nodes::node_composite_translate_cc
 
 static void register_node_type_cmp_translate()
 {
-  namespace file_ns = blender::nodes::node_composite_translate_cc;
+  namespace file_ns = nodes::node_composite_translate_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeTranslate", CMP_NODE_TRANSLATE);
   ntype.ui_name = "Translate";
@@ -151,10 +153,12 @@ static void register_node_type_cmp_translate()
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_translate_declare;
   ntype.initfunc = file_ns::node_composit_init_translate;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTranslateData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_translate)
+
+}  // namespace blender

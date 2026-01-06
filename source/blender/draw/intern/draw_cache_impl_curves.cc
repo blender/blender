@@ -604,7 +604,7 @@ void CurvesEvalCache::ensure_attribute(CurvesModule &module,
   GPUVertFormat format = {0};
   /* All attributes use float4, see comment below. */
   /* TODO(fclem): Other types. */
-  GPU_vertformat_attr_add(&format, sampler_name, blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
+  GPU_vertformat_attr_add(&format, sampler_name, gpu::VertAttrType::SFLOAT_32_32_32_32);
 
   gpu::VertBufPtr attr_buf = ensure_control_point_attribute(
       curves, name, format, attributes_point_domain[index]);

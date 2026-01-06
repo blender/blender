@@ -8,6 +8,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  */
@@ -20,7 +22,7 @@ struct VFont;
 struct Nurb;
 
 struct CharTrans {
-  blender::float2 offset;
+  float2 offset;
   float rotate;
   short linenr, charnr;
 
@@ -48,7 +50,7 @@ struct EditFont {
   float font_size_eval;
 
   /** Array of rectangles & rotation. */
-  blender::float2 textcurs[4];
+  float2 textcurs[4];
   EditFontSelBox *selboxes;
   int selboxes_len;
 
@@ -132,7 +134,7 @@ void BKE_vfont_clipboard_get(char32_t **r_text_buf,
  * See `vfont_curve.c`.
  * \{ */
 
-int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_location);
+int BKE_vfont_cursor_to_text_index(Object *ob, const float2 &cursor_location);
 
 /**
  * \warning Expects to have access to evaluated data (i.e. passed object should be evaluated one).
@@ -143,7 +145,7 @@ void BKE_vfont_char_build(const Curve &cu,
                           unsigned int charcode,
                           const CharInfo *info,
                           bool is_smallcaps,
-                          const blender::float2 &offset,
+                          const float2 &offset,
                           float rotate,
                           int charidx,
                           float fsize);
@@ -160,3 +162,5 @@ bool BKE_vfont_to_curve_ex(Object *ob,
 bool BKE_vfont_to_curve_nubase(Object *ob, eEditFontMode mode, ListBaseT<Nurb> *r_nubase);
 
 /** \} */
+
+}  // namespace blender

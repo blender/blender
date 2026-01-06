@@ -10,6 +10,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /**
  * \brief Universally Unique Identifier according to RFC4122.
  *
@@ -29,3 +31,5 @@ struct bUUID {
  * This is 36 characters for the string + a trailing zero byte.
  */
 #define UUID_STRING_SIZE 37
+
+}  // namespace blender

@@ -8,6 +8,14 @@
 
 #pragma once
 
+#include "BKE_report.hh"
+
+#include "DNA_windowmanager_types.h"
+
+#include "BLI_set.hh"
+
+namespace blender {
+
 struct UndoStack;
 struct wmMsgBus;
 struct wmKeyConfig;
@@ -20,13 +28,7 @@ struct wmDrag;
 struct wmPaintCursor;
 struct WindowDrawCB;
 
-#include "BKE_report.hh"
-
-#include "DNA_windowmanager_types.h"
-
-#include "BLI_set.hh"
-
-namespace blender::bke {
+namespace bke {
 
 struct wmNotifierHashForQueue {
   uint64_t operator()(const wmNotifier *note) const;
@@ -180,4 +182,5 @@ struct WindowRuntime {
   ~WindowRuntime();
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

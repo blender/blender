@@ -32,6 +32,8 @@
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 #include "../generic/python_utildefines.hh"
 
+namespace blender {
+
 /* ---------------------------------INTERSECTION FUNCTIONS-------------------- */
 
 PyDoc_STRVAR(
@@ -1591,7 +1593,7 @@ static PyObject *M_Geometry_box_fit_2d(PyObject * /*self*/, PyObject *pointlist)
 
   if (len) {
     /* Non Python function */
-    angle = BLI_convexhull_aabb_fit_points_2d({reinterpret_cast<blender::float2 *>(points), len});
+    angle = BLI_convexhull_aabb_fit_points_2d({reinterpret_cast<float2 *>(points), len});
 
     PyMem_Free(points);
   }
@@ -1630,7 +1632,7 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject * /*self*/, PyObject *pointl
     index_map = MEM_malloc_arrayN<int>(size_t(len), __func__);
 
     /* Non Python function */
-    len_ret = BLI_convexhull_2d({reinterpret_cast<blender::float2 *>(points), len}, index_map);
+    len_ret = BLI_convexhull_2d({reinterpret_cast<float2 *>(points), len}, index_map);
 
     ret = PyList_New(len_ret);
     for (i = 0; i < len_ret; i++) {
@@ -1652,14 +1654,14 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject * /*self*/, PyObject *pointl
  * to fill values, with start_table and len_table giving the start index
  * and length of the toplevel_len sub-lists.
  */
-static PyObject *list_of_lists_from_arrays(const blender::Span<blender::Vector<int>> data)
+static PyObject *list_of_lists_from_arrays(const Span<Vector<int>> data)
 {
   if (data.is_empty()) {
     return PyList_New(0);
   }
   PyObject *ret = PyList_New(data.size());
   for (const int i : data.index_range()) {
-    const blender::Span<int> group = data[i];
+    const Span<int> group = data[i];
     PyObject *sublist = PyList_New(group.size());
     for (const int j : group.index_range()) {
       PyList_SET_ITEM(sublist, j, PyLong_FromLong(group[j]));
@@ -1715,7 +1717,6 @@ PyDoc_STRVAR(
     "list[list[int]]]\n");
 static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
 {
-  using namespace blender;
   const char *error_prefix = "delaunay_2d_cdt";
   PyObject *vert_coords, *edges, *faces;
   int output_type;
@@ -1978,3 +1979,5 @@ PyMODINIT_FUNC PyInit_mathutils_geometry()
   PyObject *submodule = PyModule_Create(&M_Geometry_module_def);
   return submodule;
 }
+
+}  // namespace blender

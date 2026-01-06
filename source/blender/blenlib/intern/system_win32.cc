@@ -23,6 +23,8 @@
 
 #include "BLI_system.h" /* Own include. */
 
+namespace blender {
+
 static const char *bli_windows_get_exception_description(const DWORD exceptioncode)
 {
   switch (exceptioncode) {
@@ -694,3 +696,5 @@ void BLI_windows_exception_show_dialog(const char *filepath_crashlog,
 }
 
 /** \} */
+
+}  // namespace blender

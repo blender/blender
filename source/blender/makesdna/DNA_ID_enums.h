@@ -9,9 +9,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace blender {
 
 enum eIconSizes {
   ICON_SIZE_ICON = 0,
@@ -172,6 +170,4 @@ enum ID_Type {
 /* fluidsim Ipo */
 #define ID_FLUIDSIM MAKE_ID2('F', 'S')
 
-#ifdef __cplusplus
-}
-#endif
+}  // namespace blender

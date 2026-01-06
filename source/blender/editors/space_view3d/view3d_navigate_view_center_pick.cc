@@ -16,6 +16,8 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Center Pick Operator
  * \{ */
@@ -74,3 +76,5 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

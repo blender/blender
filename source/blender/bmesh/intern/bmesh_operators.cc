@@ -21,6 +21,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
+namespace blender {
+
 /* forward declarations */
 static void bmo_flag_layer_alloc(BMesh *bm);
 static void bmo_flag_layer_free(BMesh *bm);
@@ -1896,3 +1898,5 @@ bool BMO_op_callf(BMesh *bm, const int flag, const char *fmt, ...)
   va_end(list);
   return true;
 }
+
+}  // namespace blender

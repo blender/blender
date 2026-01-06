@@ -15,6 +15,8 @@
 #include "ED_anim_api.hh"
 #include "ED_keyframes_keylist.hh"
 
+namespace blender {
+
 struct AnimData;
 struct ChannelDrawList;
 struct FCurve;
@@ -85,8 +87,8 @@ void ED_add_action_layered_channel(ChannelDrawList *channel_list,
 void ED_add_action_slot_channel(ChannelDrawList *channel_list,
                                 bAnimContext *ac,
                                 bAnimListElem *ale,
-                                blender::animrig::Action &action,
-                                blender::animrig::Slot &slot,
+                                animrig::Action &action,
+                                animrig::Slot &slot,
                                 float ypos,
                                 float yscale_fac,
                                 int saction_flag);
@@ -157,3 +159,5 @@ ChannelDrawList *ED_channel_draw_list_create();
 void ED_channel_list_flush(ChannelDrawList *channel_list, View2D *v2d);
 
 void ED_channel_list_free(ChannelDrawList *channel_list);
+
+}  // namespace blender

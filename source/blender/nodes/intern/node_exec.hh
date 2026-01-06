@@ -14,6 +14,8 @@
 
 #include "node_util.hh"
 
+namespace blender {
+
 struct bNode;
 struct bNodeStack;
 struct bNodeThreadStack;
@@ -26,7 +28,7 @@ struct bNodeExec {
   bNodeExecData data;
 
   /** Free function, stored in exec itself to avoid dangling node pointer access. */
-  blender::bke::NodeFreeExecFunction free_exec_fn;
+  bke::NodeFreeExecFunction free_exec_fn;
 };
 
 /* Execution Data for each instance of node tree execution */
@@ -57,3 +59,5 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
                                 bNodeTree *ntree,
                                 bNodeInstanceKey parent_key);
 void ntree_exec_end(bNodeTreeExec *exec);
+
+}  // namespace blender

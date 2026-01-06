@@ -34,7 +34,7 @@ void Camera::init()
   CameraData &data = data_;
 
   if (camera_eval && camera_eval->type == OB_CAMERA) {
-    const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
+    const blender::Camera *cam = reinterpret_cast<const blender::Camera *>(camera_eval->data);
     switch (cam->type) {
       default:
       case CAM_PERSP:
@@ -197,7 +197,7 @@ void Camera::sync()
 
   is_camera_object_ = false;
   if (camera_eval && camera_eval->type == OB_CAMERA) {
-    const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
+    const blender::Camera *cam = reinterpret_cast<const blender::Camera *>(camera_eval->data);
     data.clip_near = cam->clip_start;
     data.clip_far = cam->clip_end;
 #if 0 /* TODO(fclem): Make fisheye properties inside blender. */

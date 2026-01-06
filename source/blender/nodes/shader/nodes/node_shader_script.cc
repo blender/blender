@@ -13,7 +13,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_script_cc {
+namespace blender {
+
+namespace nodes::node_shader_script_cc {
 
 static void node_shader_buts_script(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
@@ -79,13 +81,13 @@ static void node_copy_script(bNodeTree * /*dst_ntree*/, bNode *dest_node, const 
   dest_node->storage = dest_nss;
 }
 
-}  // namespace blender::nodes::node_shader_script_cc
+}  // namespace nodes::node_shader_script_cc
 
 void register_node_type_sh_script()
 {
-  namespace file_ns = blender::nodes::node_shader_script_cc;
+  namespace file_ns = nodes::node_shader_script_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeScript", SH_NODE_SCRIPT);
   ntype.ui_name = "Script";
@@ -97,8 +99,10 @@ void register_node_type_sh_script()
   ntype.draw_buttons = file_ns::node_shader_buts_script;
   ntype.draw_buttons_ex = file_ns::node_shader_buts_script_ex;
   ntype.initfunc = file_ns::init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

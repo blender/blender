@@ -34,6 +34,8 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   BuildModifierData *bmd = reinterpret_cast<BuildModifierData *>(md);
@@ -47,7 +49,6 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  using namespace blender;
   Mesh *result;
   BuildModifierData *bmd = reinterpret_cast<BuildModifierData *>(md);
   int i, j, k;
@@ -61,7 +62,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   Map<int, int> edgeHash2;
 
   const int vert_src_num = mesh->verts_num;
-  const Span<blender::int2> edges_src = mesh->edges();
+  const Span<int2> edges_src = mesh->edges();
   const OffsetIndices faces_src = mesh->faces();
   const Span<int> corner_verts_src = mesh->corner_verts();
   const Span<int> corner_edges_src = mesh->corner_edges();
@@ -115,7 +116,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     hash_num = 0;
     hash_num_alt = 0;
     for (i = 0; i < edges_src.size(); i++, hash_num_alt++) {
-      const blender::int2 &edge = edges_src[i];
+      const int2 &edge = edges_src[i];
 
       if (vertHash.contains(edge[0]) && vertHash.contains(edge[1])) {
         edgeHash.add(hash_num, hash_num_alt);
@@ -135,11 +136,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     /* get the set of all vert indices that will be in the final mesh,
      * mapped to the new indices
      */
-    const blender::int2 *edges = edges_src.data();
+    const int2 *edges = edges_src.data();
     hash_num = 0;
     BLI_assert(hash_num == vertHash.size());
     for (i = 0; i < edges_dst_num; i++) {
-      const blender::int2 &edge = edges[edgeMap[i]];
+      const int2 &edge = edges[edgeMap[i]];
       if (vertHash.add(edge[0], hash_num)) {
         hash_num++;
       }
@@ -175,7 +176,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* now we know the number of verts, edges and faces, we can create the mesh. */
   result = BKE_mesh_new_nomain_from_template(
       mesh, vertHash.size(), edgeHash.size(), faces_dst_num, loops_dst_num);
-  MutableSpan<blender::int2> result_edges = result->edges_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
   MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
   MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
@@ -194,8 +195,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   /* copy the edges across, remapping indices */
   for (i = 0; i < edgeHash.size(); i++) {
-    blender::int2 source;
-    blender::int2 *dest;
+    int2 source;
+    int2 *dest;
     int oldIndex = edgeHash.lookup(i);
 
     source = edges_src[oldIndex];
@@ -236,7 +237,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -251,7 +252,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void random_panel_header_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -260,7 +261,7 @@ static void random_panel_header_draw(const bContext * /*C*/, Panel *panel)
 
 static void random_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -312,3 +313,5 @@ ModifierTypeInfo modifierType_Build = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

@@ -26,6 +26,8 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 static bool space_clip_dopesheet_poll(bContext *C)
 {
   if (ED_space_clip_tracking_poll(C)) {
@@ -107,7 +109,7 @@ static wmOperatorStatus dopesheet_select_channel_invoke(bContext *C,
   ARegion *region = CTX_wm_region(C);
   float location[2];
 
-  blender::ui::view2d_region_to_view(
+  ui::view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
   RNA_float_set_array(op->ptr, "location", location);
 
@@ -197,3 +199,5 @@ void CLIP_OT_dopesheet_view_all(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

@@ -25,6 +25,8 @@
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* Own include. */
 
+namespace blender {
+
 static void view3d_smoothview_apply_with_interp(
     bContext *C, View3D *v3d, RegionView3D *rv3d, const bool use_autokey, const float factor);
 
@@ -334,7 +336,7 @@ void ED_view3d_smooth_view_ex(
       /* Use orthographic if we move from an orthographic view to an orthographic camera. */
       Object *ob_camera_eval = DEG_get_evaluated(depsgraph, sview->camera);
       rv3d->persp = ((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
-                     (blender::id_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
+                     (id_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
                         RV3D_ORTHO :
                         RV3D_PERSP;
     }
@@ -626,3 +628,5 @@ void view3d_smooth_free(RegionView3D *rv3d)
 }
 
 /** \} */
+
+}  // namespace blender

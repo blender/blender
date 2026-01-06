@@ -29,7 +29,9 @@
 /* Include after `BLI_winstuff.h` to avoid APIENTRY redefinition. */
 #  include <epoxy/gl.h>
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 class SubprocessShader {
   GLuint comp_ = 0;
@@ -143,11 +145,10 @@ std::string GL_shader_cache_dir_get()
   return cache_dir;
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 void GPU_compilation_subprocess_run(const char *subprocess_name)
 {
-  using namespace blender;
   using namespace blender::gpu;
 
 #  ifndef _WIN32
@@ -306,7 +307,7 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   GHOST_DisposeSystem(ghost_system);
 }
 
-namespace blender::gpu {
+namespace gpu {
 void GL_shader_cache_dir_clear_old()
 {
   std::string cache_dir = GL_shader_cache_dir_get();
@@ -326,6 +327,7 @@ void GL_shader_cache_dir_clear_old()
   }
   BLI_filelist_free(entries, dir_len);
 }
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender
 
 #endif

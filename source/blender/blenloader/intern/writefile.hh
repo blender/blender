@@ -19,6 +19,8 @@
 
 #include "BLO_undofile.hh"
 
+namespace blender {
+
 class WriteWrap;
 
 struct WriteDataStableAddressIDs {
@@ -26,7 +28,7 @@ struct WriteDataStableAddressIDs {
    * Knows which DNA members are pointers. Those members are overridden when serializing the
    * .blend file to get more stable pointer identifiers.
    */
-  std::shared_ptr<blender::dna::pointers::PointersInDNA> sdna_pointers;
+  std::shared_ptr<dna::pointers::PointersInDNA> sdna_pointers;
   /**
    * Maps each runtime-pointer to a unique identifier that's written in the .blend file.
    *
@@ -36,14 +38,14 @@ struct WriteDataStableAddressIDs {
    * address id stability in some situations. In the future this could be improved by clearing
    * such temporary pointers before writing the next data-block.
    */
-  blender::Map<const void *, uint64_t> pointer_map;
+  Map<const void *, uint64_t> pointer_map;
   /**
    * Contains all the #pointer_map.values(). This is used to make sure that the same id is never
    * reused for a different pointer. While this is technically allowed in .blend files (when the
    * pointers are local data of different objects), we currently don't always know what type a
    * pointer points to when writing it. So we can't determine if a pointer is local or not.
    */
-  blender::Set<uint64_t> used_ids;
+  Set<uint64_t> used_ids;
   /**
    * The next stable address id is derived from this. This is modified in
    * two cases:
@@ -96,7 +98,7 @@ struct WriteData {
      * A set of all 'old' addresses used as UID of written blocks for the current ID. Allows
      * detecting invalid re-uses of the same address multiple times.
      */
-    blender::Set<const void *> per_id_addresses_set;
+    Set<const void *> per_id_addresses_set;
   } validation_data;
 
   /**
@@ -112,7 +114,7 @@ struct WriteData {
    * Keeps track of which shared data has been written for the current ID. This is necessary to
    * avoid writing the same data more than once.
    */
-  blender::Set<const void *> per_id_written_shared_addresses;
+  Set<const void *> per_id_written_shared_addresses;
 
   /** #MemFile writing (used for undo). */
   MemFileWriteData mem;
@@ -131,3 +133,5 @@ struct WriteData {
    */
   double timestamp_init;
 };
+
+}  // namespace blender

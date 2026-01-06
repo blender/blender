@@ -27,6 +27,8 @@
 #  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
 
+namespace blender {
+
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
 static bool rna_Main_use_autopack_get(PointerRNA * /*ptr*/)
@@ -207,7 +209,11 @@ static PointerRNA rna_Test_test_get(PointerRNA *ptr)
 
 #  endif
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 /* local convenience types */
 using CollectionDefFunc = void(BlenderRNA *brna, PropertyRNA *cprop);
@@ -596,5 +602,7 @@ void RNA_def_main(BlenderRNA *brna)
 
 #  endif
 }
+
+}  // namespace blender
 
 #endif

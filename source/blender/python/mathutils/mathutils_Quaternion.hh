@@ -12,6 +12,8 @@
 
 #include "mathutils.hh"
 
+namespace blender {
+
 extern PyTypeObject quaternion_Type;
 
 #define QuaternionObject_Check(v) PyObject_TypeCheck((v), &quaternion_Type)
@@ -34,3 +36,5 @@ struct QuaternionObject {
 [[nodiscard]] PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user,
                                                      unsigned char cb_type,
                                                      unsigned char cb_subtype);
+
+}  // namespace blender

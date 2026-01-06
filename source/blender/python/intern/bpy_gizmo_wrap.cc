@@ -29,6 +29,8 @@
 #include "../generic/py_capi_rna.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
+namespace blender {
+
 /* we may want to add, but not now */
 
 /* -------------------------------------------------------------------- */
@@ -203,3 +205,5 @@ void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata)
 }
 
 /** \} */
+
+}  // namespace blender

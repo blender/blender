@@ -27,6 +27,8 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 static void rna_FCurve_convert_to_samples(FCurve *fcu, ReportList *reports, int start, int end)
 {
   /* XXX fcurve_store_samples uses end frame included,
@@ -72,7 +74,7 @@ static void rna_FCurve_bake(FCurve *fcu,
                             float step,
                             int remove_existing_as_int)
 {
-  using namespace blender::animrig;
+  using namespace animrig;
   if (start_frame >= end_frame) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -87,21 +89,25 @@ static void rna_FCurve_bake(FCurve *fcu,
   WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 }
 
+}  // namespace blender
+
 #else
 
+namespace blender {
+
 static const EnumPropertyItem channel_bake_remove_options[] = {
-    {int(blender::animrig::BakeCurveRemove::NONE), "NONE", 0, "None", "Keep all keys"},
-    {int(blender::animrig::BakeCurveRemove::IN_RANGE),
+    {int(animrig::BakeCurveRemove::NONE), "NONE", 0, "None", "Keep all keys"},
+    {int(animrig::BakeCurveRemove::IN_RANGE),
      "IN_RANGE",
      0,
      "In Range",
      "Remove all keys within the defined range"},
-    {int(blender::animrig::BakeCurveRemove::OUT_RANGE),
+    {int(animrig::BakeCurveRemove::OUT_RANGE),
      "OUT_RANGE",
      0,
      "Outside Range",
      "Remove all keys outside the defined range"},
-    {int(blender::animrig::BakeCurveRemove::ALL), "ALL", 0, "All", "Remove all existing keys"},
+    {int(animrig::BakeCurveRemove::ALL), "ALL", 0, "All", "Remove all existing keys"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -160,7 +166,7 @@ void RNA_api_fcurves(StructRNA *srna)
   RNA_def_enum(func,
                "remove",
                channel_bake_remove_options,
-               int(blender::animrig::BakeCurveRemove::IN_RANGE),
+               int(animrig::BakeCurveRemove::IN_RANGE),
                "Remove Options",
                "Choose which keys should be automatically removed by the bake");
 }
@@ -170,5 +176,7 @@ void RNA_api_drivers(StructRNA * /*srna*/)
   // FunctionRNA *func;
   // PropertyRNA *parm;
 }
+
+}  // namespace blender
 
 #endif

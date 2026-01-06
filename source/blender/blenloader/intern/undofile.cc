@@ -36,6 +36,8 @@
 
 #include "writefile.hh"
 
+namespace blender {
+
 /* **************** support for memory-write, for undo buffers *************** */
 
 void BLO_memfile_free(MemFile *memfile)
@@ -53,7 +55,7 @@ void BLO_memfile_free(MemFile *memfile)
 
 MemFileSharedStorage::~MemFileSharedStorage()
 {
-  for (const blender::ImplicitSharingInfoAndData &data : sharing_info_by_address_id.values()) {
+  for (const ImplicitSharingInfoAndData &data : sharing_info_by_address_id.values()) {
     /* Removing the user makes sure shared data is freed when the undo step was its last owner. */
     data.sharing_info->remove_user_and_delete_if_last();
   }
@@ -63,7 +65,7 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
 {
   /* We use this mapping to store the memory buffers from second memfile chunks which are not owned
    * by it (i.e. shared with some previous memory steps). */
-  blender::Map<const char *, MemFileChunk *> buffer_to_second_memchunk;
+  Map<const char *, MemFileChunk *> buffer_to_second_memchunk;
 
   /* First, detect all memchunks in second memfile that are not owned by it. */
   for (MemFileChunk &sc : second->chunks) {
@@ -289,3 +291,5 @@ FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction)
 
   return reinterpret_cast<FileReader *>(undo);
 }
+
+}  // namespace blender

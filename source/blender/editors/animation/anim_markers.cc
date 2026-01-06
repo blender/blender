@@ -59,6 +59,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Marker API
  * \{ */
@@ -129,8 +131,8 @@ int ED_markers_post_apply_transform(
   for (TimeMarker &marker : *markers) {
     if (marker.flag & SELECT) {
       switch (mode) {
-        case blender::ed::transform::TFM_TIME_TRANSLATE:
-        case blender::ed::transform::TFM_TIME_EXTEND: {
+        case ed::transform::TFM_TIME_TRANSLATE:
+        case ed::transform::TFM_TIME_EXTEND: {
           /* apply delta if marker is on the right side of the current frame */
           if ((side == 'B') || (side == 'L' && marker.frame < cfra) ||
               (side == 'R' && marker.frame >= cfra))
@@ -140,7 +142,7 @@ int ED_markers_post_apply_transform(
           }
           break;
         }
-        case blender::ed::transform::TFM_TIME_SCALE: {
+        case ed::transform::TFM_TIME_SCALE: {
           /* rescale the distance between the marker and the current frame */
           marker.frame = cfra + round_fl_to_int(float(marker.frame - cfra) * value);
           changed_tot++;
@@ -268,9 +270,9 @@ static TimeMarker *region_position_is_over_marker(const View2D *v2d,
     return nullptr;
   }
 
-  float frame_at_position = blender::ui::view2d_region_to_view_x(v2d, region_x);
+  float frame_at_position = ui::view2d_region_to_view_x(v2d, region_x);
   TimeMarker *nearest_marker = ED_markers_find_nearest_marker(markers, frame_at_position);
-  float pixel_distance = blender::ui::view2d_scale_get_x(v2d) *
+  float pixel_distance = ui::view2d_scale_get_x(v2d) *
                          fabsf(nearest_marker->frame - frame_at_position);
 
   if (pixel_distance <= UI_ICON_SIZE) {
@@ -460,12 +462,12 @@ void debug_markers_print_list(ListBaseT<TimeMarker> *markers)
 static void marker_color_get(const TimeMarker *marker, uchar *r_text_color, uchar *r_line_color)
 {
   if (marker->flag & SELECT) {
-    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_text_color);
-    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_line_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_text_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_line_color);
   }
   else {
-    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_text_color);
-    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_line_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_text_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_line_color);
   }
 }
 
@@ -490,8 +492,8 @@ static void draw_marker_name(const uchar *text_color,
   }
 
   const int icon_half_width = UI_ICON_SIZE * 0.6;
-  blender::ui::FontStyleDrawParams fs_params{};
-  fs_params.align = blender::ui::UI_STYLE_TEXT_LEFT;
+  ui::FontStyleDrawParams fs_params{};
+  fs_params.align = ui::UI_STYLE_TEXT_LEFT;
   fs_params.word_wrap = 0;
 
   rcti rect{};
@@ -506,7 +508,7 @@ static void draw_marker_name(const uchar *text_color,
 static void draw_marker_line(const uchar *color, int xpos, int ymin, int ymax)
 {
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -558,23 +560,23 @@ static void draw_marker(const uiFontStyle *fstyle,
 
   uchar marker_color[4];
   if (marker->flag & SELECT) {
-    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, marker_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, marker_color);
   }
   else {
-    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, marker_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, marker_color);
   }
 
   constexpr int marker_y = 10;
 
-  blender::ui::icon_draw_ex(xpos - (0.5f * UI_ICON_SIZE) - (0.5f * U.pixelsize),
-                            UI_SCALE_FAC * marker_y,
-                            icon_id,
-                            UI_INV_SCALE_FAC,
-                            1.0f,
-                            0.0f,
-                            marker_color,
-                            false,
-                            UI_NO_ICON_OVERLAY_TEXT);
+  ui::icon_draw_ex(xpos - (0.5f * UI_ICON_SIZE) - (0.5f * U.pixelsize),
+                   UI_SCALE_FAC * marker_y,
+                   icon_id,
+                   UI_INV_SCALE_FAC,
+                   1.0f,
+                   0.0f,
+                   marker_color,
+                   false,
+                   UI_NO_ICON_OVERLAY_TEXT);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -589,12 +591,11 @@ static void draw_marker(const uiFontStyle *fstyle,
 
 static void draw_markers_background(const rctf *rect)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   uchar shade[4];
-  blender::ui::theme::get_color_4ubv(TH_TIME_SCRUB_BACKGROUND, shade);
+  ui::theme::get_color_4ubv(TH_TIME_SCRUB_BACKGROUND, shade);
 
   immUniformColor4ubv(shade);
 
@@ -651,7 +652,7 @@ void ED_markers_draw(const bContext *C, int flag)
   }
 
   ARegion *region = CTX_wm_region(C);
-  View2D *v2d = blender::ui::view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
   int cfra = CTX_data_scene(C)->r.cfra;
 
   GPU_line_width(1.0f);
@@ -663,7 +664,7 @@ void ED_markers_draw(const bContext *C, int flag)
 
   /* no time correction for framelen! space is drawn with old values */
   float xscale, dummy;
-  blender::ui::view2d_scale_get(v2d, &xscale, &dummy);
+  ui::view2d_scale_get(v2d, &xscale, &dummy);
   GPU_matrix_push();
   GPU_matrix_scale_2f(1.0f / xscale, 1.0f);
 
@@ -1135,7 +1136,7 @@ static wmOperatorStatus ed_marker_move_modal(bContext *C, wmOperator *op, const 
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
   Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   MarkerMove *mm = static_cast<MarkerMove *>(op->customdata);
-  View2D *v2d = blender::ui::view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
   const bool has_numinput = hasNumInput(&mm->num);
   const bool use_time = ed_marker_move_use_time(mm);
 
@@ -1435,10 +1436,10 @@ static wmOperatorStatus ed_marker_select(bContext *C,
   ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
                                                   ED_context_get_markers(C);
 
-  const View2D *v2d = blender::ui::view2d_fromcontext(C);
+  const View2D *v2d = ui::view2d_fromcontext(C);
   wmOperatorStatus ret_val = OPERATOR_FINISHED;
   TimeMarker *nearest_marker = region_position_is_over_marker(v2d, markers, mval[0]);
-  const float frame_at_mouse_position = blender::ui::view2d_region_to_view_x(v2d, mval[0]);
+  const float frame_at_mouse_position = ui::view2d_region_to_view_x(v2d, mval[0]);
   const int cfra = ED_markers_find_nearest_marker_time(markers, frame_at_mouse_position);
   const bool found = (nearest_marker != nullptr);
   const bool is_selected = (nearest_marker && nearest_marker->flag & SELECT);
@@ -1604,14 +1605,14 @@ static wmOperatorStatus ed_marker_box_select_invoke(bContext *C,
 
 static wmOperatorStatus ed_marker_box_select_exec(bContext *C, wmOperator *op)
 {
-  View2D *v2d = blender::ui::view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
   ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
                                                   ED_context_get_markers(C);
   rctf rect;
 
   WM_operator_properties_border_to_rctf(op, &rect);
-  blender::ui::view2d_region_to_view_rctf(v2d, &rect, &rect);
+  ui::view2d_region_to_view_rctf(v2d, &rect, &rect);
 
   if (markers == nullptr) {
     return OPERATOR_CANCELLED;
@@ -1834,7 +1835,7 @@ static wmOperatorStatus ed_marker_delete_invoke(bContext *C,
                                   IFACE_("Delete selected markers?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return ed_marker_delete_exec(C, op);
@@ -2099,3 +2100,5 @@ void ED_keymap_marker(wmKeyConfig *keyconf)
 }
 
 /** \} */
+
+}  // namespace blender

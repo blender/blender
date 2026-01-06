@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 struct RawFileReader {
   FileReader reader;
 
@@ -63,3 +65,5 @@ FileReader *BLI_filereader_new_file(int filedes)
 
   return reinterpret_cast<FileReader *>(rawfile);
 }
+
+}  // namespace blender

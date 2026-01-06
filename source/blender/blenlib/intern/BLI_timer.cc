@@ -12,6 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 #define GET_TIME() BLI_time_now_seconds()
 
 struct TimedFunction {
@@ -145,3 +147,5 @@ void BLI_timer_on_file_load()
 {
   remove_non_persistent_functions();
 }
+
+}  // namespace blender

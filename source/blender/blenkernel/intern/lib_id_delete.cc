@@ -43,7 +43,9 @@
 #  include "BPY_extern.hh"
 #endif
 
-using namespace blender::bke::id;
+namespace blender {
+
+using namespace bke::id;
 
 void BKE_libblock_free_data(ID *id, const bool do_id_user)
 {
@@ -256,9 +258,7 @@ void BKE_id_free_us(Main *bmain, void *idv) /* test users */
   }
 }
 
-static size_t id_delete(Main *bmain,
-                        blender::Set<ID *> &ids_to_delete,
-                        const int extra_remapping_flags)
+static size_t id_delete(Main *bmain, Set<ID *> &ids_to_delete, const int extra_remapping_flags)
 {
   bool has_deleted_library = false;
 
@@ -341,10 +341,10 @@ static size_t id_delete(Main *bmain,
 
   /* Remapping above may have left some Library::runtime::archived_libraries items to nullptr,
    * clean this up and shrink the vector accordingly. */
-  blender::bke::library::main_cleanup_parent_archives(*bmain);
+  bke::library::main_cleanup_parent_archives(*bmain);
 
   /* Since we removed IDs from Main, their own other IDs usages need to be removed 'manually'. */
-  blender::Vector<ID *> cleanup_ids{ids_to_delete.begin(), ids_to_delete.end()};
+  Vector<ID *> cleanup_ids{ids_to_delete.begin(), ids_to_delete.end()};
   BKE_libblock_relink_multiple(
       bmain,
       cleanup_ids,
@@ -388,7 +388,7 @@ void BKE_id_delete_ex(Main *bmain, void *idv, const int extra_remapping_flags)
   ID *id = static_cast<ID *>(idv);
   BLI_assert_msg((id->tag & ID_TAG_NO_MAIN) == 0, "Cannot be used with IDs outside of Main");
 
-  blender::Set<ID *> ids_to_delete = {id};
+  Set<ID *> ids_to_delete = {id};
   id_delete(bmain, ids_to_delete, extra_remapping_flags);
 }
 
@@ -399,7 +399,7 @@ void BKE_id_delete(Main *bmain, void *idv)
 
 size_t BKE_id_multi_tagged_delete(Main *bmain)
 {
-  blender::Set<ID *> ids_to_delete;
+  Set<ID *> ids_to_delete;
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     if (id_iter->tag & ID_TAG_DOIT) {
@@ -410,7 +410,7 @@ size_t BKE_id_multi_tagged_delete(Main *bmain)
   return id_delete(bmain, ids_to_delete, 0);
 }
 
-size_t BKE_id_multi_delete(Main *bmain, blender::Set<ID *> &ids_to_delete)
+size_t BKE_id_multi_delete(Main *bmain, Set<ID *> &ids_to_delete)
 {
   return id_delete(bmain, ids_to_delete, 0);
 }
@@ -434,3 +434,5 @@ void BKE_libblock_free_data_py(ID *id)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -10,6 +10,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 /* ************************************************ */
 /* F-Curve DataTypes */
 
@@ -577,3 +579,5 @@ enum eAnimData_Flag {
 
 /* From: `DNA_object_types.h`, see its doc-string there. */
 #define SELECT 1
+
+}  // namespace blender

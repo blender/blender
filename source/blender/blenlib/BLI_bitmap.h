@@ -10,6 +10,8 @@
 
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 typedef unsigned int BLI_bitmap;
 
 /* WARNING: the bitmap does not keep track of its own size or check
@@ -144,3 +146,5 @@ void BLI_bitmap_or_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits);
  * Returns -1 if all the bits are set.
  */
 int BLI_bitmap_find_first_unset(const BLI_bitmap *bitmap, size_t bits);
+
+}  // namespace blender

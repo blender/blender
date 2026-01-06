@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Text;
 
 struct SuggItem {
@@ -52,3 +54,5 @@ SuggItem *texttool_suggest_last(void);
 void texttool_suggest_select(SuggItem *sel);
 SuggItem *texttool_suggest_selected(void);
 int *texttool_suggest_top(void);
+
+}  // namespace blender

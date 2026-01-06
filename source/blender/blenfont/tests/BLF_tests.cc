@@ -11,11 +11,8 @@ namespace blender::tests {
 static std::string font_path(std::string font_name)
 {
   char path[FILE_MAX];
-  BLI_path_join(path,
-                sizeof(path),
-                blender::tests::flags_test_asset_dir().c_str(),
-                "blenfont",
-                font_name.c_str());
+  BLI_path_join(
+      path, sizeof(path), tests::flags_test_asset_dir().c_str(), "blenfont", font_name.c_str());
   return std::string(path);
 }
 

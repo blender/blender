@@ -30,6 +30,8 @@
 /* For '_FLAG_OVERLAP'. */
 #include "bmesh_private.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Recounting total selection.
  * \{ */
@@ -1287,9 +1289,9 @@ GHash *BM_select_history_map_create(BMesh *bm)
 }
 
 void BM_select_history_merge_from_targetmap(BMesh *bm,
-                                            blender::Map<void *, void *> *vert_map,
-                                            blender::Map<void *, void *> *edge_map,
-                                            blender::Map<void *, void *> *face_map,
+                                            Map<void *, void *> *vert_map,
+                                            Map<void *, void *> *edge_map,
+                                            Map<void *, void *> *face_map,
                                             const bool use_chain)
 {
 
@@ -1303,7 +1305,7 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
     BM_ELEM_API_FLAG_ENABLE(ese.ele, _FLAG_OVERLAP);
 
     /* Only loop when (use_chain == true). */
-    blender::Map<void *, void *> *map = nullptr;
+    Map<void *, void *> *map = nullptr;
     switch (ese.ele->head.htype) {
       case BM_VERT:
         map = vert_map;
@@ -1633,3 +1635,5 @@ void _bm_elem_hide_set(BMesh *bm, BMHeader *head, const bool hide)
       break;
   }
 }
+
+}  // namespace blender

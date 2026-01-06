@@ -13,6 +13,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 
+namespace blender {
+
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
 
@@ -199,3 +201,5 @@ BLI_INLINE void BM_iter_parallel(BMesh *bm,
 }
 
 #endif /* __BLI_TASK_H__ */
+
+}  // namespace blender

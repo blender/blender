@@ -33,6 +33,8 @@
 
 #include "view3d_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Toggle Matcap Flip Operator
  * \{ */
@@ -73,7 +75,7 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 /** \name UI Templates
  * \{ */
 
-void uiTemplateEditModeSelection(blender::ui::Layout *layout, bContext *C)
+void uiTemplateEditModeSelection(ui::Layout *layout, bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (!obedit || obedit->type != OB_MESH) {
@@ -81,31 +83,31 @@ void uiTemplateEditModeSelection(blender::ui::Layout *layout, bContext *C)
   }
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  blender::ui::Layout &row = layout->row(true);
+  ui::Layout &row = layout->row(true);
 
   wmOperatorType *ot = WM_operatortype_find("MESH_OT_select_mode", true);
   PointerRNA op_ptr = row.op(ot,
                              "",
                              ICON_VERTEXSEL,
-                             blender::wm::OpCallContext::InvokeDefault,
-                             (em->selectmode & SCE_SELECT_VERTEX) ? blender::ui::ITEM_O_DEPRESS :
+                             wm::OpCallContext::InvokeDefault,
+                             (em->selectmode & SCE_SELECT_VERTEX) ? ui::ITEM_O_DEPRESS :
                                                                     UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_VERTEX);
   op_ptr = row.op(ot,
                   "",
                   ICON_EDGESEL,
-                  blender::wm::OpCallContext::InvokeDefault,
-                  (em->selectmode & SCE_SELECT_EDGE) ? blender::ui::ITEM_O_DEPRESS : UI_ITEM_NONE);
+                  wm::OpCallContext::InvokeDefault,
+                  (em->selectmode & SCE_SELECT_EDGE) ? ui::ITEM_O_DEPRESS : UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_EDGE);
   op_ptr = row.op(ot,
                   "",
                   ICON_FACESEL,
-                  blender::wm::OpCallContext::InvokeDefault,
-                  (em->selectmode & SCE_SELECT_FACE) ? blender::ui::ITEM_O_DEPRESS : UI_ITEM_NONE);
+                  wm::OpCallContext::InvokeDefault,
+                  (em->selectmode & SCE_SELECT_FACE) ? ui::ITEM_O_DEPRESS : UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_FACE);
 }
 
-static void uiTemplatePaintModeSelection(blender::ui::Layout *layout, bContext *C)
+static void uiTemplatePaintModeSelection(ui::Layout *layout, bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -118,24 +120,23 @@ static void uiTemplatePaintModeSelection(blender::ui::Layout *layout, bContext *
     PointerRNA meshptr = RNA_pointer_create_discrete(
         static_cast<ID *>(ob->data), &RNA_Mesh, ob->data);
     if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-      layout->prop(&meshptr, "use_paint_mask", blender::ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
+      layout->prop(&meshptr, "use_paint_mask", ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
     }
     else {
-      blender::ui::Layout &row = layout->row(true);
-      row.prop(&meshptr, "use_paint_mask", blender::ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
-      row.prop(&meshptr, "use_paint_mask_vertex", blender::ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
+      ui::Layout &row = layout->row(true);
+      row.prop(&meshptr, "use_paint_mask", ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
+      row.prop(&meshptr, "use_paint_mask_vertex", ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
 
       /* Show the bone selection mode icon only if there is a pose mode armature */
       Object *ob_armature = BKE_object_pose_armature_get(ob);
       if (ob_armature) {
-        row.prop(
-            &meshptr, "use_paint_bone_selection", blender::ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
+        row.prop(&meshptr, "use_paint_bone_selection", ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
       }
     }
   }
 }
 
-void template_header3D_mode(blender::ui::Layout *layout, bContext *C)
+void template_header3D_mode(ui::Layout *layout, bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -156,3 +157,5 @@ void template_header3D_mode(blender::ui::Layout *layout, bContext *C)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -9,6 +9,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /** Based on #BKE_addon_pref_type_init and friends */
 
 struct UserDef;
@@ -69,3 +71,5 @@ void BKE_keyconfig_pref_filter_items(struct UserDef *userdef,
                                      const struct wmKeyConfigFilterItemParams *params,
                                      bool (*filter_fn)(struct wmKeyMapItem *kmi, void *user_data),
                                      void *user_data);
+
+}  // namespace blender

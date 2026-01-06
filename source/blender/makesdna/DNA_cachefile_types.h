@@ -12,6 +12,8 @@
 
 #include "BLI_set.hh"
 
+namespace blender {
+
 /* CacheFile::type */
 enum eCacheFileType {
   CACHEFILE_TYPE_ALEMBIC = 1,
@@ -59,7 +61,7 @@ struct CacheFileLayer {
 };
 
 struct CacheReader;
-using CacheFileHandleReaderSet = blender::Set<CacheReader **>;
+using CacheFileHandleReaderSet = Set<CacheReader **>;
 
 struct CacheFile {
 #ifdef __cplusplus
@@ -112,3 +114,5 @@ struct CacheFile {
   char handle_filepath[/*FILE_MAX*/ 1024] = "";
   CacheFileHandleReaderSet *handle_readers = nullptr;
 };
+
+}  // namespace blender

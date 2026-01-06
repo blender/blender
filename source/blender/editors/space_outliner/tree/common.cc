@@ -47,7 +47,7 @@ void outliner_make_object_parent_hierarchy(ListBaseT<TreeElement> *lb)
     TreeStoreElem *tselem = TREESTORE(te);
 
     if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_OB) {
-      Object *ob = blender::id_cast<Object *>(tselem->id);
+      Object *ob = id_cast<Object *>(tselem->id);
       if (ob->parent && ob->parent->id.newid) {
         BLI_remlink(lb, te);
         TreeElement *tep = reinterpret_cast<TreeElement *>(ob->parent->id.newid);

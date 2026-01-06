@@ -74,17 +74,10 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /** Using STACK_FIXED_DEPTH to keep the implementation in line with `pbvh.cc`. */
 #define STACK_FIXED_DEPTH 100
-
-using blender::float3;
-using blender::int2;
-using blender::MutableSpan;
-using blender::OffsetIndices;
-using blender::Span;
-using blender::StringRef;
-using blender::VArray;
-using blender::Vector;
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
 
@@ -99,8 +92,8 @@ static void mesh_init_data(ID *id)
   CustomData_reset(&mesh->face_data);
   CustomData_reset(&mesh->corner_data);
 
-  new (&mesh->attribute_storage.wrap()) blender::bke::AttributeStorage();
-  mesh->runtime = new blender::bke::MeshRuntime();
+  new (&mesh->attribute_storage.wrap()) bke::AttributeStorage();
+  mesh->runtime = new bke::MeshRuntime();
 
   mesh->face_sets_color_seed = BLI_hash_int(BLI_time_now_seconds_i() & UINT_MAX);
 }
@@ -114,7 +107,7 @@ static void mesh_copy_data(Main *bmain,
   Mesh *mesh_dst = reinterpret_cast<Mesh *>(id_dst);
   const Mesh *mesh_src = reinterpret_cast<const Mesh *>(id_src);
 
-  mesh_dst->runtime = new blender::bke::MeshRuntime();
+  mesh_dst->runtime = new bke::MeshRuntime();
   mesh_dst->runtime->deformed_only = mesh_src->runtime->deformed_only;
   /* Subd runtime.mesh_eval is not copied, will need to be reevaluated. */
   mesh_dst->runtime->wrapper_type = (mesh_src->runtime->wrapper_type == ME_WRAPPER_TYPE_SUBD) ?
@@ -175,7 +168,7 @@ static void mesh_copy_data(Main *bmain,
       mesh_src->runtime->bvh_cache_loose_edges_no_hidden;
   mesh_dst->runtime->max_material_index = mesh_src->runtime->max_material_index;
   if (mesh_src->runtime->bake_materials) {
-    mesh_dst->runtime->bake_materials = std::make_unique<blender::bke::bake::BakeMaterialsList>(
+    mesh_dst->runtime->bake_materials = std::make_unique<bke::bake::BakeMaterialsList>(
         *mesh_src->runtime->bake_materials);
   }
 
@@ -191,8 +184,8 @@ static void mesh_copy_data(Main *bmain,
     /* Meshes copied during evaluation pass the edit mesh pointer to determine whether a mapping
      * from the evaluated to the original state is possible. */
     mesh_dst->runtime->edit_mesh = mesh_src->runtime->edit_mesh;
-    if (const blender::bke::EditMeshData *edit_data = mesh_src->runtime->edit_data.get()) {
-      mesh_dst->runtime->edit_data = std::make_unique<blender::bke::EditMeshData>(*edit_data);
+    if (const bke::EditMeshData *edit_data = mesh_src->runtime->edit_data.get()) {
+      mesh_dst->runtime->edit_data = std::make_unique<bke::EditMeshData>(*edit_data);
     }
   }
 
@@ -221,11 +214,11 @@ static void mesh_copy_data(Main *bmain,
   CustomData_init_from(
       &mesh_src->face_data, &mesh_dst->face_data, mask.pmask, mesh_dst->faces_num);
   new (&mesh_dst->attribute_storage.wrap())
-      blender::bke::AttributeStorage(mesh_src->attribute_storage.wrap());
-  blender::implicit_sharing::copy_shared_pointer(mesh_src->face_offset_indices,
-                                                 mesh_src->runtime->face_offsets_sharing_info,
-                                                 &mesh_dst->face_offset_indices,
-                                                 &mesh_dst->runtime->face_offsets_sharing_info);
+      bke::AttributeStorage(mesh_src->attribute_storage.wrap());
+  implicit_sharing::copy_shared_pointer(mesh_src->face_offset_indices,
+                                        mesh_src->runtime->face_offsets_sharing_info,
+                                        &mesh_dst->face_offset_indices,
+                                        &mesh_dst->runtime->face_offsets_sharing_info);
   if (do_tessface) {
     CustomData_init_from(
         &mesh_src->fdata_legacy, &mesh_dst->fdata_legacy, mask.fmask, mesh_dst->totface_legacy);
@@ -264,8 +257,8 @@ static void mesh_free_data(ID *id)
   MEM_SAFE_FREE(mesh->clone_uv_map_attribute);
   mesh->attribute_storage.wrap().~AttributeStorage();
   if (mesh->face_offset_indices) {
-    blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
-                                                &mesh->runtime->face_offsets_sharing_info);
+    implicit_sharing::free_shared_data(&mesh->face_offset_indices,
+                                       &mesh->runtime->face_offsets_sharing_info);
   }
   MEM_SAFE_FREE(mesh->mselect);
   MEM_SAFE_FREE(mesh->mat);
@@ -304,10 +297,9 @@ static void mesh_foreach_working_space_color(ID *id, const IDTypeForeachColorFun
     for (int i = 0; i < customdata->totlayer; i++) {
       CustomDataLayer *layer = &customdata->layers[i];
       if (layer->data && layer->type == CD_PROP_COLOR) {
-        fn.implicit_sharing_array(
-            *reinterpret_cast<blender::ImplicitSharingPtr<> *>(&layer->sharing_info),
-            reinterpret_cast<blender::ColorGeometry4f *&>(layer->data),
-            size);
+        fn.implicit_sharing_array(*reinterpret_cast<ImplicitSharingPtr<> *>(&layer->sharing_info),
+                                  reinterpret_cast<ColorGeometry4f *&>(layer->data),
+                                  size);
       }
     }
   };
@@ -321,7 +313,6 @@ static void mesh_foreach_working_space_color(ID *id, const IDTypeForeachColorFun
 
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  using namespace blender;
   using namespace blender::bke;
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
@@ -377,7 +368,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     }
   }
 
-  const blender::bke::MeshRuntime *mesh_runtime = mesh->runtime;
+  const bke::MeshRuntime *mesh_runtime = mesh->runtime;
   mesh->runtime = nullptr;
 
   BLO_write_shared_tag(writer, mesh->face_offset_indices);
@@ -462,17 +453,17 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_string(reader, &mesh->clone_uv_map_attribute);
 
   /* Forward compatibility. To be removed when runtime format changes. */
-  blender::bke::mesh_convert_storage_to_customdata(*mesh);
+  bke::mesh_convert_storage_to_customdata(*mesh);
 
   mesh->texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO_EVALUATED;
 
-  mesh->runtime = new blender::bke::MeshRuntime();
+  mesh->runtime = new bke::MeshRuntime();
 
   if (mesh->face_offset_indices) {
     mesh->runtime->face_offsets_sharing_info = BLO_read_shared(
         reader, &mesh->face_offset_indices, [&]() {
           BLO_read_int32_array(reader, mesh->faces_num + 1, &mesh->face_offset_indices);
-          return blender::implicit_sharing::info_for_mem_free(mesh->face_offset_indices);
+          return implicit_sharing::info_for_mem_free(mesh->face_offset_indices);
         });
   }
 
@@ -565,7 +556,7 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
   return mesh->attributes().contains("custom_normal");
 }
 
-namespace blender::bke {
+namespace bke {
 
 void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
                                                 const StringRef id,
@@ -665,7 +656,7 @@ static void partition_faces_recursively(const Span<float3> face_centers,
                                         int target_group_size)
 {
   if (face_indices.size() <= target_group_size || depth >= STACK_FIXED_DEPTH - 1) {
-    if (!blender::bke::pbvh::leaf_needs_material_split(face_indices, material_indices)) {
+    if (!bke::pbvh::leaf_needs_material_split(face_indices, material_indices)) {
       groups[node_index].children_offset = 0;
       groups[node_index].faces = Array<int>(face_indices.size(), NoInitialization());
       std::copy(face_indices.begin(), face_indices.end(), groups[node_index].faces.begin());
@@ -701,11 +692,11 @@ static void partition_faces_recursively(const Span<float3> face_centers,
     }
     const int axis = math::dominant_axis(bounds.max - bounds.min);
 
-    split = blender::bke::pbvh::partition_along_axis(
+    split = bke::pbvh::partition_along_axis(
         face_centers, face_indices, axis, math::midpoint(bounds.min[axis], bounds.max[axis]));
   }
   else {
-    split = blender::bke::pbvh::partition_material_indices(material_indices, face_indices);
+    split = bke::pbvh::partition_material_indices(material_indices, face_indices);
   }
 
   partition_faces_recursively(face_centers,
@@ -811,7 +802,7 @@ static Vector<NonContiguousGroup> compute_local_mesh_groups(Mesh &mesh)
       [&](const IndexRange range, const Bounds<float3> &init) {
         Bounds<float3> current = init;
         for (const int face : range) {
-          const Bounds<float3> bounds = blender::bke::pbvh::calc_face_bounds(
+          const Bounds<float3> bounds = bke::pbvh::calc_face_bounds(
               vert_positions, corner_verts.slice(faces[face]));
           face_centers[face] = bounds.center();
           current = bounds::merge(current, bounds);
@@ -1001,7 +992,7 @@ void mesh_apply_spatial_organization(Mesh &mesh)
   mesh.runtime->spatial_groups = std::make_unique<Array<MeshGroup>>(std::move(nodes));
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 /**
  * \note on data that this function intentionally doesn't free:
@@ -1022,10 +1013,10 @@ static void mesh_clear_geometry(Mesh &mesh)
   CustomData_free(&mesh.fdata_legacy);
   CustomData_free(&mesh.corner_data);
   CustomData_free(&mesh.face_data);
-  mesh.attribute_storage.wrap() = blender::bke::AttributeStorage();
+  mesh.attribute_storage.wrap() = bke::AttributeStorage();
   if (mesh.face_offset_indices) {
-    blender::implicit_sharing::free_shared_data(&mesh.face_offset_indices,
-                                                &mesh.runtime->face_offsets_sharing_info);
+    implicit_sharing::free_shared_data(&mesh.face_offset_indices,
+                                       &mesh.runtime->face_offsets_sharing_info);
   }
   MEM_SAFE_FREE(mesh.mselect);
 
@@ -1087,7 +1078,7 @@ void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)
     return;
   }
   mesh->face_offset_indices = MEM_malloc_arrayN<int>(size_t(mesh->faces_num) + 1, __func__);
-  mesh->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+  mesh->runtime->face_offsets_sharing_info = implicit_sharing::info_for_mem_free(
       mesh->face_offset_indices);
 
 #ifndef NDEBUG
@@ -1141,7 +1132,7 @@ MutableSpan<int> Mesh::face_offsets_for_write()
   if (this->faces_num == 0) {
     return {};
   }
-  blender::implicit_sharing::make_trivial_data_mutable(
+  implicit_sharing::make_trivial_data_mutable(
       &this->face_offset_indices, &this->runtime->face_offsets_sharing_info, this->faces_num + 1);
   return {this->face_offset_indices, this->faces_num + 1};
 }
@@ -1193,7 +1184,7 @@ MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
           this->verts_num};
 }
 
-void Mesh::count_memory(blender::MemoryCounter &memory) const
+void Mesh::count_memory(MemoryCounter &memory) const
 {
   memory.add_shared(this->runtime->face_offsets_sharing_info,
                     this->face_offsets().size_in_bytes());
@@ -1203,29 +1194,28 @@ void Mesh::count_memory(blender::MemoryCounter &memory) const
   CustomData_count_memory(this->corner_data, this->corners_num, memory);
 }
 
-blender::bke::AttributeAccessor Mesh::attributes() const
+bke::AttributeAccessor Mesh::attributes() const
 {
-  return blender::bke::AttributeAccessor(this, blender::bke::mesh_attribute_accessor_functions());
+  return bke::AttributeAccessor(this, bke::mesh_attribute_accessor_functions());
 }
 
-blender::bke::MutableAttributeAccessor Mesh::attributes_for_write()
+bke::MutableAttributeAccessor Mesh::attributes_for_write()
 {
-  return blender::bke::MutableAttributeAccessor(this,
-                                                blender::bke::mesh_attribute_accessor_functions());
+  return bke::MutableAttributeAccessor(this, bke::mesh_attribute_accessor_functions());
 }
 
-blender::VectorSet<blender::StringRefNull> Mesh::uv_map_names() const
+VectorSet<StringRefNull> Mesh::uv_map_names() const
 {
-  blender::VectorSet<blender::StringRefNull> names;
-  this->attributes().foreach_attribute([&](const blender::bke::AttributeIter &iter) {
-    if (blender::bke::mesh::is_uv_map({iter.domain, iter.data_type})) {
+  VectorSet<StringRefNull> names;
+  this->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (bke::mesh::is_uv_map({iter.domain, iter.data_type})) {
       names.add_new(iter.name);
     }
   });
   return names;
 }
 
-blender::StringRefNull Mesh::active_uv_map_name() const
+StringRefNull Mesh::active_uv_map_name() const
 {
   if (BMEditMesh *em = this->runtime->edit_mesh.get()) {
     const char *name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
@@ -1234,7 +1224,7 @@ blender::StringRefNull Mesh::active_uv_map_name() const
   return this->active_uv_map_attribute ? this->active_uv_map_attribute : "";
 }
 
-blender::StringRefNull Mesh::default_uv_map_name() const
+StringRefNull Mesh::default_uv_map_name() const
 {
   if (BMEditMesh *em = this->runtime->edit_mesh.get()) {
     const char *name = CustomData_get_render_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
@@ -1287,13 +1277,13 @@ Mesh *BKE_mesh_new_nomain(const int verts_num,
   mesh->faces_num = faces_num;
   mesh->corners_num = corners_num;
 
-  blender::bke::mesh_ensure_required_data_layers(*mesh);
+  bke::mesh_ensure_required_data_layers(*mesh);
   BKE_mesh_face_offsets_ensure_alloc(mesh);
 
   return mesh;
 }
 
-namespace blender::bke {
+namespace bke {
 
 namespace mesh {
 
@@ -1307,17 +1297,13 @@ bool is_uv_map(const std::optional<AttributeMetaData> &meta_data)
   return meta_data && is_uv_map(*meta_data);
 }
 
-bool is_color_attribute(const blender::bke::AttributeMetaData &meta_data)
+bool is_color_attribute(const bke::AttributeMetaData &meta_data)
 {
-  return ELEM(meta_data.domain,
-              blender::bke::AttrDomain::Point,
-              blender::bke::AttrDomain::Corner) &&
-         ELEM(meta_data.data_type,
-              blender::bke::AttrType::ColorByte,
-              blender::bke::AttrType::ColorFloat);
+  return ELEM(meta_data.domain, bke::AttrDomain::Point, bke::AttrDomain::Corner) &&
+         ELEM(meta_data.data_type, bke::AttrType::ColorByte, bke::AttrType::ColorFloat);
 }
 
-bool is_color_attribute(const std::optional<blender::bke::AttributeMetaData> &meta_data)
+bool is_color_attribute(const std::optional<bke::AttributeMetaData> &meta_data)
 {
   return meta_data && is_color_attribute(*meta_data);
 }
@@ -1340,7 +1326,7 @@ Mesh *mesh_new_no_attributes(const int verts_num,
   return mesh;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 static void copy_attribute_names(const Mesh &mesh_src, Mesh &mesh_dst)
 {
@@ -1456,7 +1442,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   /* The destination mesh should at least have valid primary CD layers,
    * even in cases where the source mesh does not. */
-  blender::bke::mesh_ensure_required_data_layers(*me_dst);
+  bke::mesh_ensure_required_data_layers(*me_dst);
   BKE_mesh_face_offsets_ensure_alloc(me_dst);
   if (do_tessface && !CustomData_get_layer(&me_dst->fdata_legacy, CD_MFACE)) {
     CustomData_add_layer(&me_dst->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, me_dst->totface_legacy);
@@ -1553,7 +1539,6 @@ void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
 
 void BKE_mesh_texspace_calc(Mesh *mesh)
 {
-  using namespace blender;
   if (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
     const Bounds<float3> bounds = mesh->bounds_min_max().value_or(
         Bounds(float3(-1.0f), float3(1.0f)));
@@ -1623,12 +1608,12 @@ void BKE_mesh_texspace_get_reference(Mesh *mesh,
   }
 }
 
-blender::Array<float3> BKE_mesh_orco_verts_get(const Object *ob)
+Array<float3> BKE_mesh_orco_verts_get(const Object *ob)
 {
-  const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = id_cast<const Mesh *>(ob->data);
   const Mesh *tme = mesh->texcomesh ? mesh->texcomesh : mesh;
 
-  blender::Array<float3> result(mesh->verts_num);
+  Array<float3> result(mesh->verts_num);
   const Span<float3> positions = tme->vert_positions();
   result.as_mutable_span().take_front(positions.size()).copy_from(positions);
   result.as_mutable_span().drop_front(positions.size()).fill(float3(0));
@@ -1671,7 +1656,7 @@ void BKE_mesh_orco_ensure(Object *ob, Mesh *mesh)
   }
 
   /* Orcos are stored in normalized 0..1 range by convention. */
-  blender::Array<float3> orcodata = BKE_mesh_orco_verts_get(ob);
+  Array<float3> orcodata = BKE_mesh_orco_verts_get(ob);
   BKE_mesh_orco_verts_transform(mesh, orcodata, false);
   float3 *data = static_cast<float3 *>(
       CustomData_add_layer(&mesh->vert_data, CD_ORCO, CD_CONSTRUCT, mesh->verts_num));
@@ -1684,7 +1669,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
     return nullptr;
   }
   if (ob->type == OB_MESH) {
-    return blender::id_cast<Mesh *>(ob->data);
+    return id_cast<Mesh *>(ob->data);
   }
 
   return nullptr;
@@ -1705,18 +1690,17 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *mesh)
     if (old) {
       id_us_min(old);
     }
-    ob->data = blender::id_cast<ID *>(mesh);
+    ob->data = id_cast<ID *>(mesh);
     id_us_plus(ob->data);
   }
 
-  BKE_object_materials_sync_length(bmain, ob, blender::id_cast<ID *>(mesh));
+  BKE_object_materials_sync_length(bmain, ob, id_cast<ID *>(mesh));
 
   BKE_modifiers_test_object(ob);
 }
 
 void BKE_mesh_material_index_remove(Mesh *mesh, short index)
 {
-  using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   AttributeWriter<int> material_indices = attributes.lookup_for_write<int>("material_index");
@@ -1741,7 +1725,6 @@ void BKE_mesh_material_index_remove(Mesh *mesh, short index)
 
 bool BKE_mesh_material_index_used(Mesh *mesh, short index)
 {
-  using namespace blender;
   using namespace blender::bke;
   const AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
@@ -1755,7 +1738,6 @@ bool BKE_mesh_material_index_used(Mesh *mesh, short index)
 
 void BKE_mesh_material_index_clear(Mesh *mesh)
 {
-  using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   attributes.remove("material_index");
@@ -1765,7 +1747,6 @@ void BKE_mesh_material_index_clear(Mesh *mesh)
 
 void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
 {
-  using namespace blender;
   using namespace blender::bke;
   const short remap_len_short = short(remap_len);
 
@@ -1801,7 +1782,7 @@ void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
 #undef MAT_NR_REMAP
 }
 
-namespace blender::bke {
+namespace bke {
 
 void mesh_smooth_set(Mesh &mesh, const bool use_smooth, const bool keep_sharp_edges)
 {
@@ -1845,11 +1826,10 @@ void mesh_sharp_edges_set_from_angle(Mesh &mesh, const float angle, const bool k
   sharp_edges.finish();
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
-std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
+std::optional<Bounds<float3>> Mesh::bounds_min_max() const
 {
-  using namespace blender;
   const int verts_num = BKE_mesh_wrapper_vert_len(this);
   if (verts_num == 0) {
     return std::nullopt;
@@ -1869,9 +1849,9 @@ std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
   return this->runtime->bounds_cache.data();
 }
 
-void Mesh::bounds_set_eager(const blender::Bounds<float3> &bounds)
+void Mesh::bounds_set_eager(const Bounds<float3> &bounds)
 {
-  this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = bounds; });
+  this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_data) { r_data = bounds; });
 }
 
 static bool use_bmesh_material_indices(const Mesh &mesh)
@@ -1902,9 +1882,9 @@ std::optional<int> Mesh::material_index_max() const
       value = std::nullopt;
       return;
     }
-    value = blender::bounds::max<int>(
+    value = bounds::max<int>(
         this->attributes()
-            .lookup_or_default<int>("material_index", blender::bke::AttrDomain::Face, 0)
+            .lookup_or_default<int>("material_index", bke::AttrDomain::Face, 0)
             .varray);
     if (value.has_value()) {
       value = std::clamp(*value, 0, MAXMAT);
@@ -1913,9 +1893,8 @@ std::optional<int> Mesh::material_index_max() const
   return this->runtime->max_material_index.data();
 }
 
-const blender::VectorSet<int> &Mesh::material_indices_used() const
+const VectorSet<int> &Mesh::material_indices_used() const
 {
-  using namespace blender;
   this->runtime->used_material_indices.ensure([&](VectorSet<int> &r_data) {
     const std::optional<int> max_material_index_opt = this->material_index_max();
     r_data.clear();
@@ -1964,7 +1943,7 @@ const blender::VectorSet<int> &Mesh::material_indices_used() const
   return this->runtime->used_material_indices.data();
 }
 
-namespace blender::bke {
+namespace bke {
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
 {
@@ -2018,7 +1997,7 @@ void mesh_transform(Mesh &mesh, const float4x4 &transform, bool do_shape_keys)
   mesh.tag_positions_changed();
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 void BKE_mesh_tessface_clear(Mesh *mesh)
 {
@@ -2036,7 +2015,6 @@ void BKE_mesh_mselect_clear(Mesh *mesh)
 
 void BKE_mesh_mselect_validate(Mesh *mesh)
 {
-  using namespace blender;
   using namespace blender::bke;
   MSelect *mselect_src, *mselect_dst;
   int i_src, i_dst;
@@ -2181,3 +2159,5 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
     }
   }
 }
+
+}  // namespace blender

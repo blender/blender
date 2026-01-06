@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct ClothModifierData;
 struct Depsgraph;
 struct EffectorCache;
@@ -38,3 +40,5 @@ int SIM_cloth_solve(struct Depsgraph *depsgraph,
                     ListBaseT<EffectorCache> *effectors);
 void SIM_cloth_solver_set_positions(struct ClothModifierData *clmd);
 void SIM_cloth_solver_set_volume(struct ClothModifierData *clmd);
+
+}  // namespace blender

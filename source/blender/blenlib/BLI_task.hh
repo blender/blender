@@ -48,9 +48,7 @@ struct GrainSize {
   explicit constexpr GrainSize(const int64_t grain_size) : value(grain_size) {}
 };
 
-}  // namespace blender
-
-namespace blender::threading {
+namespace threading {
 
 template<typename Range, typename Function>
 inline void parallel_for_each(Range &&range, const Function &function)
@@ -277,4 +275,5 @@ inline void memory_bandwidth_bound_task(const int64_t approximate_bytes_touched,
   detail::memory_bandwidth_bound_task_impl(function);
 }
 
-}  // namespace blender::threading
+}  // namespace threading
+}  // namespace blender

@@ -64,4 +64,5 @@ int incircle(const mpq2 &a, const mpq2 &b, const mpq2 &c, const mpq2 &d);
  */
 int orient3d(const mpq3 &a, const mpq3 &b, const mpq3 &c, const mpq3 &d);
 #endif
+
 }  // namespace blender

@@ -12,6 +12,8 @@
 
 #include <stdbool.h>
 
+namespace blender {
+
 struct ScanFillVert;
 struct ScanFillEdge;
 struct ScanFillFace;
@@ -118,3 +120,5 @@ void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
 bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
                                   ListBaseT<ScanFillVert> *remvertbase,
                                   ListBaseT<ScanFillEdge> *remedgebase);
+
+}  // namespace blender

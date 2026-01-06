@@ -27,6 +27,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 static constexpr int MASK_RESOL_MAX = 128;
 
 int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
@@ -949,3 +951,5 @@ void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
   }
   mask->runtime.last_update = DEG_get_update_count(depsgraph);
 }
+
+}  // namespace blender

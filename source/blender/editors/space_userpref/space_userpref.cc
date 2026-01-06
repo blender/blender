@@ -29,6 +29,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /* ******************** default callbacks for userpref space ***************** */
 
 static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
@@ -131,7 +133,7 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout_ex(C,
                              region,
                              &region->runtime->type->paneltypes,
-                             blender::wm::OpCallContext::InvokeRegionWin,
+                             wm::OpCallContext::InvokeRegionWin,
                              contexts,
                              nullptr);
 }
@@ -255,3 +257,5 @@ void ED_spacetype_userpref()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

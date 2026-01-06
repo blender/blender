@@ -15,10 +15,12 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 
+namespace blender {
+
 struct Base;
 struct Object;
 
-using ObjectBasesMap = blender::Map<const Object *, Base *>;
+using ObjectBasesMap = Map<const Object *, Base *>;
 
 /**
  * Render-passes for EEVEE.
@@ -278,3 +280,5 @@ struct ViewLayer {
   struct Base **object_bases_array = nullptr;
   ObjectBasesMap *object_bases_hash = nullptr;
 };
+
+}  // namespace blender

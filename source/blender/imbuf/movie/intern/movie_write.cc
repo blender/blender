@@ -47,7 +47,11 @@
 
 #  include "ffmpeg_swscale.hh"
 #  include "movie_util.hh"
+#endif
 
+namespace blender {
+
+#ifdef WITH_FFMPEG
 static CLG_LogRef LOG = {"video.write"};
 static constexpr int64_t ffmpeg_autosplit_size = 2'000'000'000;
 
@@ -163,20 +167,20 @@ static void add_hdr_mastering_display_metadata(AVCodecParameters *codecpar,
   else if (c->color_trc == AVCOL_TRC_SMPTEST2084) {
     /* PQ uses heuristic based on view transform name. In the future this could become
      * a user control, but this solves the common cases. */
-    blender::StringRefNull view_name = imf->view_settings.view_transform;
-    if (view_name.find("HDR 500 nits") != blender::StringRef::not_found) {
+    StringRefNull view_name = imf->view_settings.view_transform;
+    if (view_name.find("HDR 500 nits") != StringRef::not_found) {
       max_luminance = 500;
     }
-    else if (view_name.find("HDR 1000 nits") != blender::StringRef::not_found) {
+    else if (view_name.find("HDR 1000 nits") != StringRef::not_found) {
       max_luminance = 1000;
     }
-    else if (view_name.find("HDR 2000 nits") != blender::StringRef::not_found) {
+    else if (view_name.find("HDR 2000 nits") != StringRef::not_found) {
       max_luminance = 2000;
     }
-    else if (view_name.find("HDR 4000 nits") != blender::StringRef::not_found) {
+    else if (view_name.find("HDR 4000 nits") != StringRef::not_found) {
       max_luminance = 4000;
     }
-    else if (view_name.find("HDR 10000 nits") != blender::StringRef::not_found) {
+    else if (view_name.find("HDR 10000 nits") != StringRef::not_found) {
       max_luminance = 10000;
     }
   }
@@ -1301,13 +1305,13 @@ static bool start_ffmpeg_impl(MovieWriter *context,
     if ((video_codec == AV_CODEC_ID_AV1) || (video_codec == AV_CODEC_ID_H264) ||
         (video_codec == AV_CODEC_ID_H265))
     {
-      context->ffmpeg_crf = blender::math::clamp(context->ffmpeg_crf, 0, 51);
+      context->ffmpeg_crf = math::clamp(context->ffmpeg_crf, 0, 51);
     }
     else if (video_codec == AV_CODEC_ID_VP9) {
-      context->ffmpeg_crf = blender::math::clamp(context->ffmpeg_crf, 0, 63);
+      context->ffmpeg_crf = math::clamp(context->ffmpeg_crf, 0, 63);
     }
     else if (video_codec == AV_CODEC_ID_MPEG4) {
-      context->ffmpeg_crf = blender::math::clamp(context->ffmpeg_crf, 1, 31);
+      context->ffmpeg_crf = math::clamp(context->ffmpeg_crf, 1, 31);
     }
   }
 
@@ -1507,11 +1511,11 @@ static bool ffmpeg_filepath_get(MovieWriter *context,
 
   BLI_strncpy(filepath, rd->pic, FILE_MAX);
 
-  blender::bke::path_templates::VariableMap template_variables;
+  bke::path_templates::VariableMap template_variables;
   BKE_add_template_variables_general(template_variables, &scene->id);
   BKE_add_template_variables_for_render_path(template_variables, *scene);
 
-  const blender::Vector<blender::bke::path_templates::Error> errors = BKE_path_apply_template(
+  const Vector<bke::path_templates::Error> errors = BKE_path_apply_template(
       filepath, FILE_MAX, template_variables);
   if (!errors.is_empty()) {
     BKE_report_path_template_errors(reports, RPT_ERROR, filepath, errors);
@@ -1810,3 +1814,5 @@ void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
 #endif
   filepath[0] = '\0';
 }
+
+}  // namespace blender

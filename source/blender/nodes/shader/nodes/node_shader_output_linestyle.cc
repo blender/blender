@@ -7,7 +7,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_output_linestyle_cc {
+namespace blender {
+
+namespace nodes::node_shader_output_linestyle_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -33,14 +35,14 @@ static void node_buts_output_linestyle(ui::Layout &layout, bContext * /*C*/, Poi
   col.prop(ptr, "use_clamp", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-}  // namespace blender::nodes::node_shader_output_linestyle_cc
+}  // namespace nodes::node_shader_output_linestyle_cc
 
 /* node type definition */
 void register_node_type_sh_output_linestyle()
 {
-  namespace file_ns = blender::nodes::node_shader_output_linestyle_cc;
+  namespace file_ns = nodes::node_shader_output_linestyle_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeOutputLineStyle", SH_NODE_OUTPUT_LINESTYLE);
   ntype.ui_name = "Line Style Output";
@@ -53,5 +55,7 @@ void register_node_type_sh_output_linestyle()
   ntype.draw_buttons = file_ns::node_buts_output_linestyle;
   ntype.no_muting = true;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

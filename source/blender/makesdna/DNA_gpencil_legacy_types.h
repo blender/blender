@@ -12,6 +12,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct AnimData;
 struct MDeformVert;
 
@@ -800,3 +802,5 @@ struct bGPdata {
 
   bGPdata_Runtime runtime;
 };
+
+}  // namespace blender

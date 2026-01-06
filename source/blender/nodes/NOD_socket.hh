@@ -10,12 +10,14 @@
 
 #include "BKE_node.hh"
 
+namespace blender {
+
 struct bNode;
 struct bNodeTree;
 
 bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
                                            bNode *node,
-                                           blender::bke::bNodeSocketTemplate *stemp,
+                                           bke::bNodeSocketTemplate *stemp,
                                            eNodeSocketInOut in_out);
 
 void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user);
@@ -26,11 +28,12 @@ void node_socket_init_default_value(bNodeSocket *sock);
 void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from);
 void register_standard_node_socket_types();
 
-namespace blender::nodes {
+namespace nodes {
 
 void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node);
 bool socket_type_supports_fields(eNodeSocketDatatype socket_type);
 bool socket_type_supports_grids(eNodeSocketDatatype socket_type);
 bool socket_type_always_single(eNodeSocketDatatype socket_type);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

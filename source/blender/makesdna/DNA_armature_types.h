@@ -16,7 +16,9 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_span.hh"
 
-namespace blender::animrig {
+namespace blender {
+
+namespace animrig {
 class BoneColor;
 }
 
@@ -101,8 +103,8 @@ enum eBone_Flag {
    *
    * However the bone may not be visible to the user since the bones collection
    * may be hidden.
-   * In most cases `blender::animrig::bone_is_visible` or
-   * `blender::animrig::bone_is_visible` should be used to check if the bone is visible to
+   * In most cases `animrig::bone_is_visible` or
+   * `animrig::bone_is_visible` should be used to check if the bone is visible to
    * the user before operating on them.
    */
   BONE_SELECTED = (1 << 0),
@@ -281,8 +283,8 @@ struct BoneColor {
   uint8_t _pad0[7] = {};
   ThemeWireColor custom = {};
 #ifdef __cplusplus
-  blender::animrig::BoneColor &wrap();
-  const blender::animrig::BoneColor &wrap() const;
+  animrig::BoneColor &wrap();
+  const animrig::BoneColor &wrap() const;
 #endif
 };
 
@@ -481,16 +483,16 @@ struct bArmature {
 
 #ifdef __cplusplus
   /* Collection array access for convenient for-loop iteration. */
-  blender::Span<const BoneCollection *> collections_span() const;
-  blender::Span<BoneCollection *> collections_span();
+  Span<const BoneCollection *> collections_span() const;
+  Span<BoneCollection *> collections_span();
 
   /* Span of all root collections. */
-  blender::Span<const BoneCollection *> collections_roots() const;
-  blender::Span<BoneCollection *> collections_roots();
+  Span<const BoneCollection *> collections_roots() const;
+  Span<BoneCollection *> collections_roots();
 
   /* Return the span of children of the given bone collection. */
-  blender::Span<const BoneCollection *> collection_children(const BoneCollection *parent) const;
-  blender::Span<BoneCollection *> collection_children(BoneCollection *parent);
+  Span<const BoneCollection *> collection_children(const BoneCollection *parent) const;
+  Span<BoneCollection *> collection_children(BoneCollection *parent);
 #endif
 };
 
@@ -591,12 +593,14 @@ struct BoneCollectionReference {
 
 #ifdef __cplusplus
 
-inline blender::animrig::BoneColor &BoneColor::wrap()
+inline animrig::BoneColor &BoneColor::wrap()
 {
-  return *reinterpret_cast<blender::animrig::BoneColor *>(this);
+  return *reinterpret_cast<animrig::BoneColor *>(this);
 }
-inline const blender::animrig::BoneColor &BoneColor::wrap() const
+inline const animrig::BoneColor &BoneColor::wrap() const
 {
-  return *reinterpret_cast<const blender::animrig::BoneColor *>(this);
+  return *reinterpret_cast<const animrig::BoneColor *>(this);
 }
 #endif
+
+}  // namespace blender

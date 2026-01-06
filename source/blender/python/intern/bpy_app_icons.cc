@@ -19,6 +19,8 @@
 
 #include "bpy_app_icons.hh"
 
+namespace blender {
+
 /* We may want to load direct from file. */
 PyDoc_STRVAR(
     /* Wrap. */
@@ -212,3 +214,5 @@ PyObject *BPY_app_icons_module()
 
   return mod;
 }
+
+}  // namespace blender

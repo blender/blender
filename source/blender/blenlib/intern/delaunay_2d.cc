@@ -2788,4 +2788,4 @@ CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<mpq_class> &input,
 }
 #endif
 
-} /* namespace blender::meshintersect */
+}  // namespace blender::meshintersect

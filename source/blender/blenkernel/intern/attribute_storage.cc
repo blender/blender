@@ -24,9 +24,11 @@
 #include "BKE_attribute_storage_blend_write.hh"
 #include "BKE_idtype.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"geom.attribute"};
 
-namespace blender::bke {
+namespace bke {
 
 class ArrayDataImplicitSharing : public ImplicitSharingInfo {
  private:
@@ -264,8 +266,8 @@ int AttributeStorage::index_of(StringRef name) const
 
 const Attribute *AttributeStorage::lookup(const StringRef name) const
 {
-  const std::unique_ptr<blender::bke::Attribute> *attribute =
-      this->runtime->attributes.lookup_key_ptr_as(name);
+  const std::unique_ptr<bke::Attribute> *attribute = this->runtime->attributes.lookup_key_ptr_as(
+      name);
   if (!attribute) {
     return nullptr;
   }
@@ -274,8 +276,8 @@ const Attribute *AttributeStorage::lookup(const StringRef name) const
 
 Attribute *AttributeStorage::lookup(const StringRef name)
 {
-  const std::unique_ptr<blender::bke::Attribute> *attribute =
-      this->runtime->attributes.lookup_key_ptr_as(name);
+  const std::unique_ptr<bke::Attribute> *attribute = this->runtime->attributes.lookup_key_ptr_as(
+      name);
   if (!attribute) {
     return nullptr;
   }
@@ -423,12 +425,12 @@ static void read_shared_array(BlendDataReader &reader,
 static std::optional<Attribute::DataVariant> read_attr_data(BlendDataReader &reader,
                                                             const int8_t dna_storage_type,
                                                             const int8_t dna_attr_type,
-                                                            ::Attribute &dna_attr)
+                                                            blender::Attribute &dna_attr)
 {
   switch (dna_storage_type) {
     case int8_t(AttrStorageType::Array): {
       BLO_read_struct(&reader, AttributeArray, &dna_attr.data);
-      auto &data = *static_cast<::AttributeArray *>(dna_attr.data);
+      auto &data = *static_cast<blender::AttributeArray *>(dna_attr.data);
       read_shared_array(reader, dna_attr_type, data.size, &data.data, &data.sharing_info);
       if (data.size != 0 && !data.data) {
         return std::nullopt;
@@ -437,7 +439,7 @@ static std::optional<Attribute::DataVariant> read_attr_data(BlendDataReader &rea
     }
     case int8_t(AttrStorageType::Single): {
       BLO_read_struct(&reader, AttributeSingle, &dna_attr.data);
-      auto &data = *static_cast<::AttributeSingle *>(dna_attr.data);
+      auto &data = *static_cast<blender::AttributeSingle *>(dna_attr.data);
       read_shared_array(reader, dna_attr_type, 1, &data.data, &data.sharing_info);
       if (!data.data) {
         return std::nullopt;
@@ -486,9 +488,10 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
   this->runtime = MEM_new<AttributeStorageRuntime>(__func__);
   this->runtime->attributes.reserve(this->dna_attributes_num);
 
-  BLO_read_struct_array(&reader, ::Attribute, this->dna_attributes_num, &this->dna_attributes);
+  BLO_read_struct_array(
+      &reader, blender::Attribute, this->dna_attributes_num, &this->dna_attributes);
   for (const int i : IndexRange(this->dna_attributes_num)) {
-    ::Attribute &dna_attr = this->dna_attributes[i];
+    blender::Attribute &dna_attr = this->dna_attributes[i];
     BLO_read_string(&reader, &dna_attr.name);
     BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(dna_attr.name); });
 
@@ -574,7 +577,7 @@ void attribute_storage_blend_write_prepare(AttributeStorage &data,
                                            AttributeStorage::BlendWriteData &write_data)
 {
   data.foreach([&](Attribute &attr) {
-    ::Attribute attribute_dna{};
+    blender::Attribute attribute_dna{};
     attribute_dna.name = attr.name().c_str();
     attribute_dna.data_type = int16_t(attr.data_type());
     attribute_dna.domain = int8_t(attr.domain());
@@ -588,14 +591,14 @@ void attribute_storage_blend_write_prepare(AttributeStorage &data,
      * array for every storage type. */
 
     if (const auto *data = std::get_if<Attribute::ArrayData>(&attr.data())) {
-      auto &array_dna = write_data.scope.construct<::AttributeArray>();
+      auto &array_dna = write_data.scope.construct<blender::AttributeArray>();
       array_dna.data = data->data;
       array_dna.sharing_info = data->sharing_info.get();
       array_dna.size = data->size;
       attribute_dna.data = &array_dna;
     }
     else if (const auto *data = std::get_if<Attribute::SingleData>(&attr.data())) {
-      auto &single_dna = write_data.scope.construct<::AttributeSingle>();
+      auto &single_dna = write_data.scope.construct<blender::AttributeSingle>();
       single_dna.data = data->value;
       single_dna.sharing_info = data->sharing_info.get();
       attribute_dna.data = &single_dna;
@@ -619,7 +622,7 @@ static void write_shared_array(BlendWriter &writer,
 }
 
 AttributeStorage::BlendWriteData::BlendWriteData(ResourceScope &scope)
-    : scope(scope), attributes(scope.construct<Vector<::Attribute, 16>>())
+    : scope(scope), attributes(scope.construct<Vector<blender::Attribute, 16>>())
 {
 }
 
@@ -629,18 +632,19 @@ void AttributeStorage::blend_write(BlendWriter &writer,
   /* Use string argument to avoid confusion with the C++ class with the same name. */
   writer.write_struct_array_by_name(
       "Attribute", write_data.attributes.size(), write_data.attributes.data());
-  for (const ::Attribute &attr_dna : write_data.attributes) {
+  for (const blender::Attribute &attr_dna : write_data.attributes) {
     BLO_write_string(&writer, attr_dna.name);
     switch (AttrStorageType(attr_dna.storage_type)) {
       case AttrStorageType::Single: {
-        ::AttributeSingle *single_dna = static_cast<::AttributeSingle *>(attr_dna.data);
+        blender::AttributeSingle *single_dna = static_cast<blender::AttributeSingle *>(
+            attr_dna.data);
         write_shared_array(
             writer, AttrType(attr_dna.data_type), single_dna->data, 1, single_dna->sharing_info);
         writer.write_struct(single_dna);
         break;
       }
       case AttrStorageType::Array: {
-        ::AttributeArray *array_dna = static_cast<::AttributeArray *>(attr_dna.data);
+        blender::AttributeArray *array_dna = static_cast<blender::AttributeArray *>(attr_dna.data);
         write_shared_array(writer,
                            AttrType(attr_dna.data_type),
                            array_dna->data,
@@ -659,7 +663,7 @@ void AttributeStorage::blend_write(BlendWriter &writer,
 void AttributeStorage::foreach_working_space_color(const IDTypeForeachColorFunctionCallback &fn)
 {
   for (const std::unique_ptr<Attribute> &attribute : this->runtime->attributes) {
-    if (attribute->type_ == blender::bke::AttrType::ColorFloat) {
+    if (attribute->type_ == bke::AttrType::ColorFloat) {
       if (auto *data = std::get_if<Attribute::ArrayData>(&attribute->data_)) {
         fn.implicit_sharing_array(
             data->sharing_info, reinterpret_cast<ColorGeometry4f *&>(data->data), data->size);
@@ -673,4 +677,5 @@ void AttributeStorage::foreach_working_space_color(const IDTypeForeachColorFunct
   };
 }
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

@@ -47,7 +47,9 @@
 #include "fmt/format.h"
 #include "interface_intern.hh"
 
-namespace blender::ui {
+namespace blender {
+
+namespace ui {
 
 struct ButtonItem;
 
@@ -6036,7 +6038,7 @@ Layout *uiItemsAlertBox(Block *block,
   const float split_factor = (float(icon_size) + icon_padding) /
                              float(dialog_width - style->columnspace);
 
-  Layout &block_layout = blender::ui::block_layout(
+  Layout &block_layout = ui::block_layout(
       block, LayoutDirection::Vertical, LayoutType::Panel, 0, 0, dialog_width, 0, 0, style);
 
   if (icon == AlertIcon::Info) {
@@ -6117,4 +6119,5 @@ EmbossType Layout::emboss_or_undefined() const
   return emboss_;
 }
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

@@ -27,6 +27,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* Maximum length of text sample in char32_t, including null terminator. */
 #define BLF_SAMPLE_LEN 5
 
@@ -419,3 +421,5 @@ bool BLF_thumb_preview(
   /* Return success if we printed at least one glyph. */
   return glyph_count > 0;
 }
+
+}  // namespace blender

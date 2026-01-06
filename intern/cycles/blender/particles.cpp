@@ -19,13 +19,13 @@ CCL_NAMESPACE_BEGIN
 
 /* Utilities */
 
-bool BlenderSync::sync_dupli_particle(::Object &b_parent,
-                                      ::DEGObjectIterData &b_deg_iter_data,
-                                      ::Object &b_ob,
+bool BlenderSync::sync_dupli_particle(blender::Object &b_parent,
+                                      blender::DEGObjectIterData &b_deg_iter_data,
+                                      blender::Object &b_ob,
                                       Object *object)
 {
   /* Test if this dupli was generated from a particle system. */
-  ::ParticleSystem *b_psys = b_deg_iter_data.dupli_object_current->particle_system;
+  blender::ParticleSystem *b_psys = b_deg_iter_data.dupli_object_current->particle_system;
   if (!b_psys) {
     return false;
   }
@@ -65,7 +65,7 @@ bool BlenderSync::sync_dupli_particle(::Object &b_parent,
   }
 
   /* add particle */
-  ::ParticleData &b_pa = b_psys->particles[persistent_id[0]];
+  blender::ParticleData &b_pa = b_psys->particles[persistent_id[0]];
   Particle pa;
 
   pa.index = persistent_id[0];

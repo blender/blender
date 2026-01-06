@@ -22,23 +22,25 @@
 
 #include <cstring>
 
+namespace blender {
+
 static void speaker_init_data(ID *id)
 {
-  Speaker *speaker = blender::id_cast<Speaker *>(id);
+  Speaker *speaker = id_cast<Speaker *>(id);
 
   INIT_DEFAULT_STRUCT_AFTER(speaker, id);
 }
 
 static void speaker_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Speaker *speaker = blender::id_cast<Speaker *>(id);
+  Speaker *speaker = id_cast<Speaker *>(id);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, speaker->sound, IDWALK_CB_USER);
 }
 
 static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Speaker *spk = blender::id_cast<Speaker *>(id);
+  Speaker *spk = id_cast<Speaker *>(id);
 
   /* write LibData */
   BLO_write_id_struct(writer, Speaker, id_address, &spk->id);
@@ -84,3 +86,5 @@ Speaker *BKE_speaker_add(Main *bmain, const char *name)
 
   return spk;
 }
+
+}  // namespace blender

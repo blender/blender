@@ -21,6 +21,8 @@
 #include "gpu_py.hh"
 #include "gpu_py_element.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name IndexBuf Type
  * \{ */
@@ -249,7 +251,7 @@ PyTypeObject BPyGPUIndexBuf_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUIndexBuf_CreatePyObject(blender::gpu::IndexBuf *elem)
+PyObject *BPyGPUIndexBuf_CreatePyObject(gpu::IndexBuf *elem)
 {
   BPyGPUIndexBuf *self;
 
@@ -260,3 +262,5 @@ PyObject *BPyGPUIndexBuf_CreatePyObject(blender::gpu::IndexBuf *elem)
 }
 
 /** \} */
+
+}  // namespace blender

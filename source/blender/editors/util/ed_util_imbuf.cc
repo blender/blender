@@ -42,6 +42,8 @@
 /* Own define. */
 #include "ED_util_imbuf.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Image Pixel Sample Struct (Operator Custom Data)
  * \{ */
@@ -160,7 +162,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
   Image *image = ED_space_image(sima);
 
   float uv[2];
-  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &uv[0], &uv[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &uv[0], &uv[1]);
   int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, nullptr);
 
   void *lock;
@@ -277,7 +279,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   ARegion *region = CTX_wm_region(C);
-  ImBuf *ibuf = blender::ed::vse::sequencer_ibuf_get(C, scene->r.cfra, nullptr);
+  ImBuf *ibuf = ed::vse::sequencer_ibuf_get(C, scene->r.cfra, nullptr);
   ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
   float fx, fy;
 
@@ -286,7 +288,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
     return;
   }
 
-  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fx, &fy);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
   fx /= scene->r.xasp / scene->r.yasp;
 
@@ -340,7 +342,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
       /* sequencer's image buffers are in non-linear space, need to make them linear */
       copy_v4_v4(info->linearcol, info->colf);
-      blender::seq::render_pixel_from_sequencer_space_v4(scene, info->linearcol);
+      seq::render_pixel_from_sequencer_space_v4(scene, info->linearcol);
 
       info->color_manage = true;
     }
@@ -409,7 +411,7 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
 
       SpaceImage *sima = CTX_wm_space_image(C);
       GPUVertFormat *format = immVertexFormat();
-      uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
       const float color[3] = {1, 1, 1};
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -418,8 +420,8 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
       /* TODO(@ideasman42): lock to pixels. */
       rctf sample_rect_fl;
       BLI_rctf_init_pt_radius(&sample_rect_fl,
-                              blender::float2{float(event->xy[0] - region->winrct.xmin),
-                                              float(event->xy[1] - region->winrct.ymin)},
+                              float2{float(event->xy[0] - region->winrct.xmin),
+                                     float(event->xy[1] - region->winrct.ymin)},
                               float(info->sample_size / 2.0f) * sima->zoom);
 
       GPU_logic_op_xor_set(true);
@@ -539,7 +541,7 @@ bool ED_imbuf_sample_poll(bContext *C)
       if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
         return false;
       }
-      if (blender::seq::editing_get(CTX_data_sequencer_scene(C)) == nullptr) {
+      if (seq::editing_get(CTX_data_sequencer_scene(C)) == nullptr) {
         return false;
       }
       ARegion *region = CTX_wm_region(C);
@@ -554,3 +556,5 @@ bool ED_imbuf_sample_poll(bContext *C)
 }
 
 /** \} */
+
+}  // namespace blender

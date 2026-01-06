@@ -31,7 +31,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_viewer_cc {
+namespace blender {
+
+namespace nodes::node_geo_viewer_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryViewer)
 
@@ -476,15 +478,14 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeViewer", GEO_NODE_VIEWER);
   ntype.ui_name = "Viewer";
   ntype.ui_description = "Display the input data in the Spreadsheet Editor";
   ntype.enum_name_legacy = "VIEWER";
   ntype.nclass = NODE_CLASS_OUTPUT;
-  blender::bke::node_type_storage(
-      ntype, "NodeGeometryViewer", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeGeometryViewer", node_free_storage, node_copy_storage);
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
@@ -496,13 +497,13 @@ static void node_register()
   ntype.get_extra_info = node_extra_info;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_geo_viewer_cc
+}  // namespace nodes::node_geo_viewer_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 StructRNA *GeoViewerItemsAccessor::item_srna = &RNA_NodeGeometryViewerItem;
 
@@ -525,4 +526,5 @@ void geo_viewer_node_log(const bNode &node,
   node_geo_viewer_cc::geo_viewer_node_log_impl(node, input_values, r_log);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

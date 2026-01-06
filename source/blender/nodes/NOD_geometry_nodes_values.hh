@@ -23,15 +23,15 @@
 #include "NOD_geometry_nodes_list_fwd.hh"
 
 namespace blender {
+
 namespace bke {
 class SocketValueVariant;
 }
 namespace nodes {
 struct GeoNodesUserData;
 }
-}  // namespace blender
 
-namespace blender::nodes {
+namespace nodes {
 
 template<typename T> struct GeoNodesMultiInput {
   using value_type = T;
@@ -93,4 +93,5 @@ const fn::lazy_function::LazyFunction *build_implicit_conversion_lazy_function(
     const bke::bNodeSocketType &to_type,
     ResourceScope &scope);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

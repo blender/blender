@@ -264,7 +264,7 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
 static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
   layout.use_property_split_set(true);
 

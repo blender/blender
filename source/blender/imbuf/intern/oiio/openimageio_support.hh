@@ -15,9 +15,11 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 struct ImFileColorSpace;
 
-namespace blender::imbuf {
+namespace imbuf {
 
 /**
  * Parameters and settings used while reading image formats.
@@ -102,4 +104,5 @@ OIIO::ImageSpec imb_create_write_spec(const WriteContext &ctx,
                                       int file_channels,
                                       OIIO::TypeDesc data_format);
 
-}  // namespace blender::imbuf
+}  // namespace imbuf
+}  // namespace blender

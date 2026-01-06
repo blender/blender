@@ -96,9 +96,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"render"};
 
-namespace path_templates = blender::bke::path_templates;
+namespace path_templates = bke::path_templates;
 
 /* render flow
  *
@@ -138,7 +140,7 @@ static struct {
    * bound for compositing and rendering at the same time, so those renders are essentially used to
    * get a persistent dedicated GPU context to interactive compositor execution.
    */
-  blender::Map<const void *, Render *> interactive_compositor_renders;
+  Map<const void *, Render *> interactive_compositor_renders;
 } RenderGlobal;
 
 /** \} */
@@ -190,7 +192,7 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
 
   /* Compositor calls this from multiple threads, mutex lock to ensure we don't
    * get garbled output. */
-  static blender::Mutex mutex;
+  static Mutex mutex;
   std::scoped_lock lock(mutex);
 
   const bool show_info = CLOG_CHECK(&LOG, CLG_LEVEL_INFO);
@@ -763,7 +765,7 @@ void render_copy_renderdata(RenderData *to, RenderData *from)
   /* Mostly shallow copy referencing pointers in scene renderdata. */
   BKE_curvemapping_free_data(&to->mblur_shutter_curve);
 
-  *to = blender::dna::shallow_copy(*from);
+  *to = dna::shallow_copy(*from);
 
   BKE_curvemapping_copy_data(&to->mblur_shutter_curve, &from->mblur_shutter_curve);
 }
@@ -1165,7 +1167,7 @@ static void do_render_compositor_scenes(Render *re)
 
   /* For each node that requires a scene we do a full render. Results are stored in a way
    * compositor will find it. */
-  blender::Set<Scene *> scenes_rendered;
+  Set<Scene *> scenes_rendered;
   for (bNode *node : re->scene->compositing_node_group->all_nodes()) {
     Scene *node_scene = get_scene_referenced_by_node(node);
     if (!node_scene) {
@@ -1272,16 +1274,14 @@ static void do_render_compositor(Render *re)
           /* If we have consistent depsgraph now would be a time to update them. */
         }
 
-        blender::compositor::OutputTypes needed_outputs =
-            blender::compositor::OutputTypes::Composite |
-            blender::compositor::OutputTypes::FileOutput;
+        compositor::OutputTypes needed_outputs = compositor::OutputTypes::Composite |
+                                                 compositor::OutputTypes::FileOutput;
         if (!G.background) {
-          needed_outputs |= blender::compositor::OutputTypes::Viewer |
-                            blender::compositor::OutputTypes::Previews;
+          needed_outputs |= compositor::OutputTypes::Viewer | compositor::OutputTypes::Previews;
         }
 
         CLOG_STR_INFO(&LOG, "Executing compositor");
-        blender::compositor::RenderContext compositor_render_context;
+        compositor::RenderContext compositor_render_context;
         compositor_render_context.is_animation_render = re->flag & R_ANIMATION;
         for (RenderView &rv : re->result->views) {
           COM_execute(re,
@@ -1359,7 +1359,7 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
   }
 
   for (Strip &strip : ed->seqbase) {
-    if (strip.type != STRIP_TYPE_SOUND && !blender::seq::render_is_muted(&ed->channels, &strip)) {
+    if (strip.type != STRIP_TYPE_SOUND && !seq::render_is_muted(&ed->channels, &strip)) {
       return true;
     }
   }
@@ -1400,7 +1400,7 @@ static ImBuf *seq_process_render_image(ImBuf *src,
   else {
     /* Duplicate sequencer output and ensure it is in needed color space. */
     dst = IMB_dupImBuf(src);
-    blender::seq::render_imbuf_from_sequencer_space(scene, dst);
+    seq::render_imbuf_from_sequencer_space(scene, dst);
   }
   IMB_metadata_copy(dst, src);
   IMB_freeImBuf(src);
@@ -1415,7 +1415,7 @@ static void do_render_sequencer(Render *re)
   ImBuf *out;
   RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
   int cfra = re->r.cfra;
-  blender::seq::RenderData context;
+  seq::RenderData context;
   int view_id, tot_views;
   int re_x, re_y;
 
@@ -1437,7 +1437,7 @@ static void do_render_sequencer(Render *re)
   }
 
   tot_views = BKE_scene_multiview_num_views_get(&re->r);
-  blender::Vector<ImBuf *> ibuf_arr(tot_views);
+  Vector<ImBuf *> ibuf_arr(tot_views);
 
   render_new_render_data(re->main,
                          re->pipeline_depsgraph,
@@ -1480,9 +1480,8 @@ static void do_render_sequencer(Render *re)
       if (recurs_depth == 0) { /* With nested scenes, only free on top-level. */
         Editing *ed = re->pipeline_scene_eval->ed;
         if (ed) {
-          blender::seq::relations_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
-          blender::seq::cache_cleanup(re->pipeline_scene_eval,
-                                      blender::seq::CacheCleanup::FinalAndIntra);
+          seq::relations_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
+          seq::cache_cleanup(re->pipeline_scene_eval, seq::CacheCleanup::FinalAndIntra);
         }
       }
       IMB_freeImBuf(ibuf_arr[view_id]);
@@ -1528,7 +1527,7 @@ static void do_render_full_pipeline(Render *re)
 
   /* ensure no rendered results are cached from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
-  blender::seq::cache_cleanup(re->scene, blender::seq::CacheCleanup::FinalAndIntra);
+  seq::cache_cleanup(re->scene, seq::CacheCleanup::FinalAndIntra);
 
   if (RE_engine_render(re, true)) {
     /* in this case external render overrides all */
@@ -1576,7 +1575,7 @@ static bool check_valid_compositing_camera(Scene *scene,
   if (scene->r.scemode & R_DOCOMP && scene->compositing_node_group) {
     for (bNode *node : scene->compositing_node_group->all_nodes()) {
       if (node->type_legacy == CMP_NODE_R_LAYERS && !node->is_muted()) {
-        Scene *sce = node->id ? blender::id_cast<Scene *>(node->id) : scene;
+        Scene *sce = node->id ? id_cast<Scene *>(node->id) : scene;
         if (sce->camera == nullptr) {
           sce->camera = BKE_view_layer_camera_find(sce, BKE_view_layer_default_render(sce));
         }
@@ -1963,7 +1962,7 @@ void RE_RenderFrame(Render *re,
   if (render_init_from_main(
           re, &scene->r, bmain, scene, single_layer, camera_override, false, false))
   {
-    RenderData rd = blender::dna::shallow_copy(scene->r);
+    RenderData rd = dna::shallow_copy(scene->r);
     MEM_reset_peak_memory();
 
     render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
@@ -1988,7 +1987,7 @@ void RE_RenderFrame(Render *re,
         BKE_add_template_variables_general(template_variables, &scene->id);
         BKE_add_template_variables_for_render_path(template_variables, *scene);
 
-        const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+        const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
             filepath_override,
             rd.pic,
             relbase,
@@ -2224,7 +2223,7 @@ static bool do_write_image_or_movie(
         BKE_add_template_variables_general(template_variables, &scene->id);
         BKE_add_template_variables_for_render_path(template_variables, *scene);
 
-        const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+        const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
             filepath,
             scene->r.pic,
             relbase,
@@ -2348,7 +2347,7 @@ void RE_RenderAnim(Render *re,
    * copying (e.g. alter the output path). */
   render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_INIT);
 
-  RenderData rd = blender::dna::shallow_copy(scene->r);
+  RenderData rd = dna::shallow_copy(scene->r);
   const int cfra_old = rd.cfra;
   const float subframe_old = rd.subframe;
   int nfra, totrendered = 0, totskipped = 0;
@@ -2459,7 +2458,7 @@ void RE_RenderAnim(Render *re,
       BKE_add_template_variables_general(template_variables, &scene->id);
       BKE_add_template_variables_for_render_path(template_variables, *scene);
 
-      const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+      const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
           filepath,
           rd.pic,
           BKE_main_blendfile_path(bmain),
@@ -2871,3 +2870,5 @@ void RE_init_threadcount(Render *re)
 }
 
 /** \} */
+
+}  // namespace blender

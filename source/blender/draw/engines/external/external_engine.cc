@@ -44,9 +44,11 @@
 
 #include "external_engine.h" /* own include */
 
+namespace blender {
+
 /* Shaders */
 
-namespace blender::draw::external {
+namespace draw::external {
 
 /**
  * A depth pass that write surface depth when it is needed.
@@ -217,7 +219,7 @@ class Instance : public DrawEngine {
     }
   }
 
-  void object_sync(blender::draw::ObjectRef &ob_ref, blender::draw::Manager &manager) final
+  void object_sync(draw::ObjectRef &ob_ref, draw::Manager &manager) final
   {
     if (do_prepass) {
       prepass.object_sync(manager, ob_ref, *draw_ctx);
@@ -226,12 +228,12 @@ class Instance : public DrawEngine {
 
   void end_sync() final {}
 
-  void draw_scene_do_v3d(blender::draw::Manager &manager, draw::View &view)
+  void draw_scene_do_v3d(draw::Manager &manager, draw::View &view)
   {
     RegionView3D *rv3d = draw_ctx->rv3d;
     ARegion *region = draw_ctx->region;
 
-    blender::draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
+    draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
 
     /* The external engine can use the OpenGL rendering API directly, so make sure the state is
      * already applied. */
@@ -294,8 +296,8 @@ class Instance : public DrawEngine {
     /* Apply current view as transformation matrix.
      * This will configure drawing for normalized space with current zoom and pan applied. */
 
-    float4x4 view_matrix = blender::draw::View::default_get().viewmat();
-    float4x4 projection_matrix = blender::draw::View::default_get().winmat();
+    float4x4 view_matrix = draw::View::default_get().viewmat();
+    float4x4 projection_matrix = draw::View::default_get().winmat();
 
     GPU_matrix_projection_set(projection_matrix.ptr());
     GPU_matrix_set(view_matrix.ptr());
@@ -337,7 +339,7 @@ class Instance : public DrawEngine {
     BLI_assert(re != nullptr);
     BLI_assert(engine != nullptr);
 
-    blender::draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
+    draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
 
     /* The external engine can use the OpenGL rendering API directly, so make sure the state is
      * already applied. */
@@ -370,12 +372,12 @@ class Instance : public DrawEngine {
     GPU_matrix_pop();
     GPU_matrix_pop_projection();
 
-    blender::draw::command::StateSet::set();
+    draw::command::StateSet::set();
 
     RE_engine_draw_release(re);
   }
 
-  void draw_scene_do(blender::draw::Manager &manager, View &view)
+  void draw_scene_do(draw::Manager &manager, View &view)
   {
     if (draw_ctx->v3d != nullptr) {
       draw_scene_do_v3d(manager, view);
@@ -393,7 +395,7 @@ class Instance : public DrawEngine {
     }
   }
 
-  void draw(blender::draw::Manager &manager) final
+  void draw(draw::Manager &manager) final
   {
     /* TODO(fclem): Remove global access. */
     View &view = View::default_get();
@@ -422,7 +424,7 @@ DrawEngine *Engine::create_instance()
   return new Instance();
 }
 
-}  // namespace blender::draw::external
+}  // namespace draw::external
 
 /* Functions */
 
@@ -509,3 +511,5 @@ void DRW_engine_external_free(RegionView3D *rv3d)
     }
   }
 }
+
+}  // namespace blender

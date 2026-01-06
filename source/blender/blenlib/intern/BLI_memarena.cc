@@ -34,6 +34,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 struct MemBuf {
   MemBuf *next;
   uchar data[0];
@@ -237,3 +239,5 @@ void BLI_memarena_clear(MemArena *ma)
   VALGRIND_DESTROY_MEMPOOL(ma);
   VALGRIND_CREATE_MEMPOOL(ma, 0, false);
 }
+
+}  // namespace blender

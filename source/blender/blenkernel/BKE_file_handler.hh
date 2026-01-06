@@ -14,9 +14,11 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct bContext;
 
-namespace blender::bke {
+namespace bke {
 
 #define FH_MAX_FILE_EXTENSIONS_STR 512
 
@@ -84,4 +86,5 @@ Span<std::unique_ptr<FileHandlerType>> file_handlers();
 Vector<FileHandlerType *> file_handlers_poll_file_drop(const bContext *C,
                                                        const Span<std::string> paths);
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

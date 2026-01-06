@@ -59,7 +59,7 @@ enum class ResultPrecision : uint8_t {
 
 /* The type of storage used to hold the result data. */
 enum class ResultStorageType : uint8_t {
-  /* Stored as a blender::gpu::Texture on the GPU. */
+  /* Stored as a gpu::Texture on the GPU. */
   GPU,
   /* Stored as a buffer on the CPU and wrapped in a GMutableSpan. */
   CPU,
@@ -120,7 +120,7 @@ class Result {
    * value of which will be identical to that of the value member. See class description for more
    * information. */
   union {
-    blender::gpu::Texture *gpu_texture_ = nullptr;
+    gpu::Texture *gpu_texture_ = nullptr;
     GMutableSpan cpu_data_;
   };
   /* The number of users that currently needs this result. Operations initializes this by calling
@@ -178,7 +178,7 @@ class Result {
 
   /* Construct a result of an appropriate type and precision based on the given GPU texture format
    * within the given context. */
-  Result(Context &context, blender::gpu::TextureFormat format);
+  Result(Context &context, gpu::TextureFormat format);
 
   /* Returns true if the given type can only be used with single value results. Consequently, it is
    * always allocated on the CPU and GPU code paths needn't support the type. */
@@ -188,22 +188,21 @@ class Result {
    * special case is given to ResultType::Float3, because 3-component textures can't be used as
    * write targets in shaders, so we need to allocate 4-component textures for them, and ignore the
    * fourth channel during processing. */
-  static blender::gpu::TextureFormat gpu_texture_format(ResultType type,
-                                                        ResultPrecision precision);
+  static gpu::TextureFormat gpu_texture_format(ResultType type, ResultPrecision precision);
 
   /* Returns the GPU data format that corresponds to the give result type. */
   static eGPUDataFormat gpu_data_format(const ResultType type);
 
   /* Returns the GPU texture format that corresponds to the give one, but whose precision is the
    * given precision. */
-  static blender::gpu::TextureFormat gpu_texture_format(blender::gpu::TextureFormat format,
-                                                        ResultPrecision precision);
+  static gpu::TextureFormat gpu_texture_format(gpu::TextureFormat format,
+                                               ResultPrecision precision);
 
   /* Returns the precision of the given GPU texture format. */
-  static ResultPrecision precision(blender::gpu::TextureFormat format);
+  static ResultPrecision precision(gpu::TextureFormat format);
 
   /* Returns the type of the given GPU texture format. */
-  static ResultType type(blender::gpu::TextureFormat format);
+  static ResultType type(gpu::TextureFormat format);
 
   /* Returns the CPP type corresponding to the given result type. */
   static const CPPType &cpp_type(const ResultType type);
@@ -212,7 +211,7 @@ class Result {
   static const char *type_name(const ResultType type);
 
   /* Implicit conversion to the internal GPU texture. */
-  operator blender::gpu::Texture *() const;
+  operator gpu::Texture *() const;
 
   /* Returns the CPP type of the result. */
   const CPPType &get_cpp_type() const;
@@ -222,7 +221,7 @@ class Result {
    * texture, with one exception. Results of type ResultType::Float3 that wrap external textures
    * might hold a 3-component texture as opposed to a 4-component one, which would have been
    * created by uploading data from CPU. */
-  blender::gpu::TextureFormat get_gpu_texture_format() const;
+  gpu::TextureFormat get_gpu_texture_format() const;
 
   /* Identical to gpu_data_format but assumes the result's type. */
   eGPUDataFormat get_gpu_data_format() const;
@@ -297,7 +296,7 @@ class Result {
    * size as the texture, and the texture will be set to the given texture. See the is_external_
    * member for more information. The given texture should have the same format as the result and
    * is assumed to have a lifetime that covers the evaluation of the compositor. */
-  void wrap_external(blender::gpu::Texture *texture);
+  void wrap_external(gpu::Texture *texture);
 
   /* Identical to GPU variant of wrap_external but wraps a CPU buffer instead. */
   void wrap_external(void *data, int2 size);
@@ -373,7 +372,7 @@ class Result {
   /* Computes the size of the result's data in bytes. */
   int64_t size_in_bytes() const;
 
-  blender::gpu::Texture *gpu_texture() const;
+  gpu::Texture *gpu_texture() const;
 
   GSpan cpu_data() const;
   GMutableSpan cpu_data();
@@ -510,7 +509,7 @@ BLI_INLINE_METHOD int64_t Result::channels_count() const
   return 4;
 }
 
-BLI_INLINE_METHOD blender::gpu::Texture *Result::gpu_texture() const
+BLI_INLINE_METHOD gpu::Texture *Result::gpu_texture() const
 {
   BLI_assert(storage_type_ == ResultStorageType::GPU);
   return gpu_texture_;

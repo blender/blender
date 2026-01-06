@@ -44,12 +44,14 @@
 
 #  include "manta_fluid_API.h"
 
+namespace blender {
+
 static void rna_Fluid_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
 
   /* Needed for liquid domain objects */
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
@@ -235,7 +237,7 @@ static void rna_Fluid_parts_delete(Main *bmain, PointerRNA *ptr, int ptype)
 
 static bool rna_Fluid_parts_exists(PointerRNA *ptr, int ptype)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   ParticleSystem *psys;
 
   for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = psys->next) {
@@ -248,7 +250,7 @@ static bool rna_Fluid_parts_exists(PointerRNA *ptr, int ptype)
 
 static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_FLIP);
@@ -276,7 +278,7 @@ static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *p
 
 static void rna_Fluid_spray_parts_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAY);
@@ -294,7 +296,7 @@ static void rna_Fluid_spray_parts_update(Main *bmain, Scene * /*scene*/, Pointer
 
 static void rna_Fluid_bubble_parts_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_BUBBLE);
@@ -316,7 +318,7 @@ static void rna_Fluid_bubble_parts_update(Main *bmain, Scene * /*scene*/, Pointe
 
 static void rna_Fluid_foam_parts_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_FOAM);
@@ -334,7 +336,7 @@ static void rna_Fluid_foam_parts_update(Main *bmain, Scene * /*scene*/, PointerR
 
 static void rna_Fluid_tracer_parts_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_TRACER);
@@ -356,7 +358,7 @@ static void rna_Fluid_tracer_parts_update(Main *bmain, Scene * /*scene*/, Pointe
 
 static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
 
@@ -855,7 +857,7 @@ static const EnumPropertyItem *rna_Fluid_data_depth_itemf(bContext * /*C*/,
 static void rna_Fluid_domaintype_set(PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   BKE_fluid_domain_type_set(ob, settings, value);
   BKE_fluid_fields_sanitize(settings);
 }
@@ -1254,7 +1256,11 @@ static void rna_Fluid_flowtype_set(PointerRNA *ptr, int value)
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 {
@@ -3026,5 +3032,7 @@ void RNA_def_fluid(BlenderRNA *brna)
   rna_def_fluid_flow_settings(brna);
   rna_def_fluid_effector_settings(brna);
 }
+
+}  // namespace blender
 
 #endif

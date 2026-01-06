@@ -25,7 +25,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_map_range_cc {
+namespace blender {
+
+namespace nodes::node_shader_map_range_cc {
 
 NODE_STORAGE_FUNCS(NodeMapRange)
 
@@ -515,13 +517,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_map_range_cc
+}  // namespace nodes::node_shader_map_range_cc
 
 void register_node_type_sh_map_range()
 {
-  namespace file_ns = blender::nodes::node_shader_map_range_cc;
+  namespace file_ns = nodes::node_shader_map_range_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeMapRange", SH_NODE_MAP_RANGE);
   ntype.ui_name = "Map Range";
@@ -532,12 +534,14 @@ void register_node_type_sh_map_range()
   ntype.draw_buttons = file_ns::node_shader_buts_map_range;
   ntype.ui_class = file_ns::node_shader_map_range_ui_class;
   ntype.initfunc = file_ns::node_shader_init_map_range;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::node_shader_update_map_range;
   ntype.gpu_fn = file_ns::gpu_shader_map_range;
   ntype.build_multi_function = file_ns::sh_node_map_range_build_multi_function;
   ntype.gather_link_search_ops = file_ns::node_map_range_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

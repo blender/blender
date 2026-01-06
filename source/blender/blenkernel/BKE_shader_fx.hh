@@ -14,6 +14,8 @@
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
 
+namespace blender {
+
 struct ARegionType;
 struct BlendDataReader;
 struct BlendWriter;
@@ -182,3 +184,5 @@ void BKE_shaderfx_blend_write(BlendWriter *writer, ListBaseT<ShaderFxData> *fxba
 void BKE_shaderfx_blend_read_data(BlendDataReader *reader,
                                   ListBaseT<ShaderFxData> *lb,
                                   Object *ob);
+
+}  // namespace blender

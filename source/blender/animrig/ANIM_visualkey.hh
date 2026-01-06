@@ -10,10 +10,12 @@
 
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender::animrig {
+namespace animrig {
 
 /**
  * This helper function determines if visual-keyframing should be used when
@@ -31,4 +33,5 @@ bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop);
  */
 Vector<float> visualkey_get_values(PointerRNA *ptr, PropertyRNA *prop);
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

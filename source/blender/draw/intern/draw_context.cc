@@ -111,6 +111,8 @@
 
 #include "DRW_select_buffer.hh"
 
+namespace blender {
+
 thread_local DRWContext *DRWContext::g_context = nullptr;
 
 DRWContext::DRWContext(Mode mode_,
@@ -183,7 +185,7 @@ DRWContext::DRWContext(Mode mode_,
 {
   this->viewport = viewport;
 
-  blender::draw::color_management::viewport_color_management_set(*viewport, *this);
+  draw::color_management::viewport_color_management_set(*viewport, *this);
 }
 
 DRWContext::~DRWContext()
@@ -192,7 +194,7 @@ DRWContext::~DRWContext()
   g_context = nullptr;
 }
 
-blender::gpu::FrameBuffer *DRWContext::default_framebuffer()
+gpu::FrameBuffer *DRWContext::default_framebuffer()
 {
   return view_data_active->dfbl.default_fb;
 }
@@ -375,7 +377,7 @@ DRWData *DRW_viewport_data_create()
 {
   DRWData *drw_data = MEM_callocN<DRWData>("DRWData");
 
-  drw_data->default_view = new blender::draw::View("DrawDefaultView");
+  drw_data->default_view = new draw::View("DrawDefaultView");
 
   for (int i = 0; i < 2; i++) {
     drw_data->view_data[i] = new DRWViewData();
@@ -430,7 +432,7 @@ void DRWContext::acquire_data()
 {
   BLI_assert(GPU_context_active_get() != nullptr);
 
-  blender::gpu::TexturePool::get().reset();
+  gpu::TexturePool::get().reset();
 
   {
     /* Acquire DRWData. */
@@ -458,8 +460,7 @@ void DRWContext::acquire_data()
   {
     /* Create the default view. */
     if (this->rv3d != nullptr) {
-      blender::draw::View::default_set(float4x4(this->rv3d->viewmat),
-                                       float4x4(this->rv3d->winmat));
+      draw::View::default_set(float4x4(this->rv3d->viewmat), float4x4(this->rv3d->winmat));
     }
     else if (this->region) {
       /* Assume that if rv3d is nullptr, we are drawing for a 2D area. */
@@ -473,7 +474,7 @@ void DRWContext::acquire_data()
       winmat[0][0] = winmat[1][1] = 2.0f;
       winmat[3][0] = winmat[3][1] = -1.0f;
 
-      blender::draw::View::default_set(viewmat, winmat);
+      draw::View::default_set(viewmat, winmat);
     }
     else {
       /* Assume that this is the render mode or custom mode and
@@ -493,7 +494,7 @@ void DRWContext::release_data()
   this->data->modules_exit();
 
   /* Reset drawing state to avoid to side-effects. */
-  blender::draw::command::StateSet::set();
+  draw::command::StateSet::set();
 
   DRW_view_data_reset(this->view_data_active);
 
@@ -504,10 +505,10 @@ void DRWContext::release_data()
   this->viewport = nullptr;
 }
 
-blender::draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name)
+draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name)
 {
   return *drw_get().view_data_active->viewport_compositor_passes.lookup_or_add_cb(
-      pass_name, [&]() { return std::make_unique<blender::draw::TextureFromPool>(pass_name); });
+      pass_name, [&]() { return std::make_unique<draw::TextureFromPool>(pass_name); });
 }
 
 void DRW_viewport_request_redraw()
@@ -540,7 +541,7 @@ struct DupliCacheManager {
 
     uint64_t hash() const
     {
-      return blender::get_default_hash(this->ob, this->ob_data);
+      return get_default_hash(this->ob, this->ob_data);
     }
 
     friend bool operator==(const DupliKey &a, const DupliKey &b)
@@ -554,14 +555,14 @@ struct DupliCacheManager {
   DupliKey last_key_ = {};
 
   /* Set containing all visited Dupli source object. */
-  blender::Set<DupliKey> *dupli_set_ = nullptr;
+  Set<DupliKey> *dupli_set_ = nullptr;
 
  public:
-  void try_add(blender::draw::ObjectRef &ob_ref);
+  void try_add(draw::ObjectRef &ob_ref);
   void extract_all(ExtractionGraph &extraction);
 };
 
-void DupliCacheManager::try_add(blender::draw::ObjectRef &ob_ref)
+void DupliCacheManager::try_add(draw::ObjectRef &ob_ref)
 {
   if (ob_ref.is_dupli() == false) {
     return;
@@ -574,7 +575,7 @@ void DupliCacheManager::try_add(blender::draw::ObjectRef &ob_ref)
   last_key_ = ob_ref.dupli_object_;
 
   if (dupli_set_ == nullptr) {
-    dupli_set_ = MEM_new<blender::Set<DupliKey>>("DupliCacheManager::dupli_set_");
+    dupli_set_ = MEM_new<Set<DupliKey>>("DupliCacheManager::dupli_set_");
   }
 
   if (dupli_set_->add(last_key_)) {
@@ -585,7 +586,7 @@ void DupliCacheManager::try_add(blender::draw::ObjectRef &ob_ref)
      * object (e.g. Text evaluated as Mesh, Geometry node instance etc...).
      * In this case, key.ob is not going to have the same data type as ob_ref.object nor the same
      * data at all. */
-    blender::draw::drw_batch_cache_validate(ob_ref.object);
+    draw::drw_batch_cache_validate(ob_ref.object);
   }
 }
 
@@ -600,10 +601,10 @@ void DupliCacheManager::extract_all(ExtractionGraph &extraction)
 
   /* Note these can referenced by the temporary object pointer `Object *ob` and needs to have at
    * least the same lifetime. */
-  blender::bke::ObjectRuntime tmp_runtime;
+  bke::ObjectRuntime tmp_runtime;
   Object tmp_object;
 
-  using Iter = blender::Set<DupliKey>::Iterator;
+  using Iter = Set<DupliKey>::Iterator;
   Iter begin = dupli_set_->begin();
   Iter end = dupli_set_->end();
   for (Iter iter = begin; iter != end; ++iter) {
@@ -613,7 +614,7 @@ void DupliCacheManager::extract_all(ExtractionGraph &extraction)
     if (key.ob_data != ob->data) {
       /* Copy both object data and runtime. */
       tmp_runtime = *ob->runtime;
-      tmp_object = blender::dna::shallow_copy(*ob);
+      tmp_object = dna::shallow_copy(*ob);
       tmp_object.runtime = &tmp_runtime;
       /* Geometry instances shouldn't be rendered with edit mode overlays. */
       tmp_object.mode = OB_MODE_OBJECT;
@@ -623,7 +624,7 @@ void DupliCacheManager::extract_all(ExtractionGraph &extraction)
       ob = &tmp_object;
     }
 
-    blender::draw::drw_batch_cache_generate_requested(ob, *extraction.graph);
+    draw::drw_batch_cache_generate_requested(ob, *extraction.graph);
   }
 
   /* TODO(fclem): Could eventually keep the set allocated. */
@@ -636,7 +637,7 @@ void DupliCacheManager::extract_all(ExtractionGraph &extraction)
 /** \name ObjectRef
  * \{ */
 
-namespace blender::draw {
+namespace draw {
 
 ObjectRef::ObjectRef(Object *ob, Object *dupli_parent, DupliObject *dupli_object)
     : dupli_object_(dupli_object), dupli_parent_(dupli_parent), object(ob)
@@ -648,7 +649,7 @@ ObjectRef::ObjectRef(Object &ob, Object *dupli_parent, const VectorList<DupliObj
 {
 }
 
-}  // namespace blender::draw
+}  // namespace draw
 
 /** \} */
 
@@ -656,7 +657,7 @@ ObjectRef::ObjectRef(Object &ob, Object *dupli_parent, const VectorList<DupliObj
 /** \name Scene Iteration
  * \{ */
 
-namespace blender::draw {
+namespace draw {
 
 static bool supports_handle_ranges(DupliObject *dupli, Object *parent)
 {
@@ -702,14 +703,14 @@ struct InstancesKey {
 
   Object *object;
   ID *ob_data;
-  const blender::bke::GeometrySet *preview_base_geometry;
+  const bke::GeometrySet *preview_base_geometry;
   int preview_instance_index;
   InstancesFlags flags;
 
   InstancesKey(Object *object,
                ID *ob_data,
                InstancesFlags flags,
-               const blender::bke::GeometrySet *preview_base_geometry,
+               const bke::GeometrySet *preview_base_geometry,
                int preview_instance_index)
       : object(object),
         ob_data(ob_data),
@@ -849,7 +850,7 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
         tmp_object.runtime->object_to_world = float4x4(dupli.mat);
         tmp_object.runtime->world_to_object = invert(tmp_object.runtime->object_to_world);
 
-        blender::draw::ObjectRef ob_ref(&tmp_object, ob, &dupli);
+        draw::ObjectRef ob_ref(&tmp_object, ob, &dupli);
         draw_object_cb(ob_ref);
 
         evil::DEG_iterator_temp_object_free_properties(&dupli, &tmp_object);
@@ -887,7 +888,7 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
       tmp_object.runtime->object_to_world = float4x4();
       tmp_object.runtime->world_to_object = float4x4();
 
-      blender::draw::ObjectRef ob_ref(tmp_object, ob, instances);
+      draw::ObjectRef ob_ref(tmp_object, ob, instances);
       draw_object_cb(ob_ref);
 
       evil::DEG_iterator_temp_object_free_properties(first_dupli, &tmp_object);
@@ -896,7 +897,7 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
   DEG_OBJECT_ITER_END;
 }
 
-}  // namespace blender::draw
+}  // namespace draw
 
 /** \} */
 
@@ -945,12 +946,12 @@ void DRW_cache_free_old_batches(Main *bmain)
 /** \name Rendering (DRW_engines)
  * \{ */
 
-static void drw_engines_cache_populate(blender::draw::ObjectRef &ref,
+static void drw_engines_cache_populate(draw::ObjectRef &ref,
                                        DupliCacheManager &dupli_cache,
                                        ExtractionGraph &extraction)
 {
   if (ref.is_dupli() == false) {
-    blender::draw::drw_batch_cache_validate(ref.object);
+    draw::drw_batch_cache_validate(ref.object);
   }
   else {
     dupli_cache.try_add(ref);
@@ -963,7 +964,7 @@ static void drw_engines_cache_populate(blender::draw::ObjectRef &ref,
   /* TODO: in the future it would be nice to generate once for all viewports.
    * But we need threaded DRW manager first. */
   if (ref.is_dupli() == false) {
-    blender::draw::drw_batch_cache_generate_requested(ref.object, *extraction.graph);
+    draw::drw_batch_cache_generate_requested(ref.object, *extraction.graph);
   }
   /* Batch generation for duplis happens after iter_callback. */
 }
@@ -981,8 +982,7 @@ void DRWContext::sync(iter_callback_t iter_callback)
 
   dupli_handler.extract_all(extraction);
   for (Object *object : this->delayed_extraction) {
-    blender::draw::drw_batch_cache_generate_requested_evaluated_mesh_or_curve(object,
-                                                                              *extraction.graph);
+    draw::drw_batch_cache_generate_requested_evaluated_mesh_or_curve(object, *extraction.graph);
   }
   this->delayed_extraction.clear();
 
@@ -1014,7 +1014,7 @@ void DRWContext::engines_draw_scene()
 {
   double start_time = BLI_time_now_seconds();
   /* Start Drawing */
-  blender::draw::command::StateSet::set();
+  draw::command::StateSet::set();
 
   view_data_active->foreach_enabled_engine([&](DrawEngine &instance) {
 #ifdef __APPLE__
@@ -1029,7 +1029,7 @@ void DRWContext::engines_draw_scene()
   });
 
   /* Reset state after drawing */
-  blender::draw::command::StateSet::set();
+  draw::command::StateSet::set();
 
   /* Fix 3D view "lagging" on APPLE and WIN32+NVIDIA. (See #56996, #61474) */
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
@@ -1175,7 +1175,7 @@ static void drw_callbacks_pre_scene(DRWContext &draw_ctx)
   GPU_matrix_set(rv3d->viewmat);
 
   if (draw_ctx.evil_C) {
-    blender::draw::command::StateSet::set();
+    draw::command::StateSet::set();
     DRW_submission_start();
     ED_region_draw_cb_draw(draw_ctx.evil_C, draw_ctx.region, REGION_DRAW_PRE_VIEW);
     DRW_submission_end();
@@ -1242,7 +1242,7 @@ static void drw_callbacks_post_scene(DRWContext &draw_ctx)
 
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
-    blender::draw::command::StateSet::set();
+    draw::command::StateSet::set();
 
     /* Needed so gizmo isn't occluded. */
     if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
@@ -1282,7 +1282,7 @@ static void drw_callbacks_post_scene(DRWContext &draw_ctx)
     if ((v3d->flag & V3D_XR_SESSION_SURFACE) != 0) {
       DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
 
-      blender::draw::command::StateSet::set();
+      draw::command::StateSet::set();
 
       GPU_framebuffer_bind(dfbl->overlay_fb);
 
@@ -1312,7 +1312,7 @@ static void drw_callbacks_post_scene(DRWContext &draw_ctx)
           }
         }
 
-        blender::draw::command::StateSet::set();
+        draw::command::StateSet::set();
       }
 
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
@@ -1321,13 +1321,13 @@ static void drw_callbacks_post_scene(DRWContext &draw_ctx)
   }
   DRW_submission_end();
 
-  blender::draw::command::StateSet::set();
+  draw::command::StateSet::set();
 }
 
 static void drw_callbacks_pre_scene_2D(DRWContext &draw_ctx)
 {
   if (draw_ctx.evil_C) {
-    blender::draw::command::StateSet::set();
+    draw::command::StateSet::set();
     DRW_submission_start();
     ED_region_draw_cb_draw(draw_ctx.evil_C, draw_ctx.region, REGION_DRAW_PRE_VIEW);
     DRW_submission_end();
@@ -1365,7 +1365,7 @@ static void drw_callbacks_post_scene_2D(DRWContext &draw_ctx, View2D &v2d)
     GPU_matrix_pop_projection();
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
-    blender::draw::command::StateSet::set();
+    draw::command::StateSet::set();
 
     GPU_depth_test(GPU_DEPTH_NONE);
 
@@ -1383,7 +1383,7 @@ static void drw_callbacks_post_scene_2D(DRWContext &draw_ctx, View2D &v2d)
 
   DRW_submission_end();
 
-  blender::draw::command::StateSet::set();
+  draw::command::StateSet::set();
 }
 
 DRWTextStore *DRW_text_cache_ensure()
@@ -1472,7 +1472,7 @@ static void drw_draw_render_loop_2d(DRWContext &draw_ctx)
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-        blender::draw::ObjectRef ob_ref(ob);
+        draw::ObjectRef ob_ref(ob);
         drw_engines_cache_populate(ob_ref, duplis, extraction);
       }
       DEG_OBJECT_ITER_END;
@@ -1674,7 +1674,7 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
 
   GPU_depth_test(GPU_DEPTH_NONE);
 
-  blender::gpu::TexturePool::get().reset(true);
+  gpu::TexturePool::get().reset(true);
 
   draw_ctx.release_data();
 
@@ -1743,7 +1743,7 @@ void DRW_render_to_image(
 
   GPU_framebuffer_restore();
 
-  blender::gpu::TexturePool::get().reset(true);
+  gpu::TexturePool::get().reset(true);
 
   draw_ctx.release_data();
   DRW_cache_free_old_subdiv();
@@ -1755,7 +1755,7 @@ void DRW_render_to_image(
 void DRW_render_object_iter(
     RenderEngine *engine,
     Depsgraph *depsgraph,
-    std::function<void(blender::draw::ObjectRef &, RenderEngine *, Depsgraph *)> callback)
+    std::function<void(draw::ObjectRef &, RenderEngine *, Depsgraph *)> callback)
 {
   using namespace blender::draw;
 
@@ -1772,14 +1772,14 @@ void DRW_render_object_iter(
   draw_ctx.sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
     foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
       if (ob_ref.is_dupli() == false) {
-        blender::draw::drw_batch_cache_validate(ob_ref.object);
+        draw::drw_batch_cache_validate(ob_ref.object);
       }
       else {
         duplis.try_add(ob_ref);
       }
       callback(ob_ref, engine, depsgraph);
       if (ob_ref.is_dupli() == false) {
-        blender::draw::drw_batch_cache_generate_requested(ob_ref.object, *extraction.graph);
+        draw::drw_batch_cache_generate_requested(ob_ref.object, *extraction.graph);
       }
       /* Batch generation for duplis happens after iter_callback. */
     });
@@ -1805,7 +1805,7 @@ void DRW_custom_pipeline_end(DRWContext &draw_ctx)
     GPU_finish();
   }
 
-  blender::gpu::TexturePool::get().reset(true);
+  gpu::TexturePool::get().reset(true);
   draw_ctx.release_data();
 }
 
@@ -1827,8 +1827,8 @@ void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, 
 }
 
 static struct DRWSelectBuffer {
-  blender::gpu::FrameBuffer *framebuffer_depth_only;
-  blender::gpu::Texture *texture_depth;
+  gpu::FrameBuffer *framebuffer_depth_only;
+  gpu::Texture *texture_depth;
 } g_select_buffer = {nullptr};
 
 static void draw_select_framebuffer_depth_only_setup(const int size[2])
@@ -1848,13 +1848,7 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
   if (g_select_buffer.texture_depth == nullptr) {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     g_select_buffer.texture_depth = GPU_texture_create_2d(
-        "select_depth",
-        size[0],
-        size[1],
-        1,
-        blender::gpu::TextureFormat::SFLOAT_32_DEPTH,
-        usage,
-        nullptr);
+        "select_depth", size[0], size[1], 1, gpu::TextureFormat::SFLOAT_32_DEPTH, usage, nullptr);
 
     GPU_framebuffer_texture_attach(
         g_select_buffer.framebuffer_depth_only, g_select_buffer.texture_depth, 0, 0);
@@ -1951,7 +1945,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
          * So we have to do it manually. */
         ob_iter->runtime->select_id = DEG_get_original(ob_iter)->runtime->select_id;
 
-        blender::draw::ObjectRef ob_ref(ob_iter);
+        draw::ObjectRef ob_ref(ob_iter);
         drw_engines_cache_populate(ob_ref, duplis, extraction);
       }
       FOREACH_OBJECT_IN_MODE_END;
@@ -2062,7 +2056,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
     };
 
     if (use_only_active_object) {
-      blender::draw::ObjectRef ob_ref(draw_ctx.obact);
+      draw::ObjectRef ob_ref(draw_ctx.obact);
       drw_engines_cache_populate(ob_ref, duplis, extraction);
     }
     else {
@@ -2073,8 +2067,8 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   });
 
   /* Setup frame-buffer. */
-  blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
-  blender::gpu::FrameBuffer *depth_fb = nullptr;
+  gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
+  gpu::FrameBuffer *depth_fb = nullptr;
   GPU_framebuffer_ensure_config(&depth_fb,
                                 {
                                     GPU_ATTACHMENT_TEXTURE(depth_tx),
@@ -2107,14 +2101,14 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
   using namespace blender::draw;
 
   /* Make sure select engine gets the correct vertex size. */
-  blender::ui::theme::theme_set(SPACE_VIEW3D, RGN_TYPE_WINDOW);
+  ui::theme::theme_set(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   DRWContext draw_ctx(DRWContext::SELECT_EDIT_MESH, depsgraph, viewport, nullptr, region, v3d);
   draw_ctx.acquire_data();
   draw_ctx.enable_engines();
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
     for (Object *obj_eval : sel_ctx->objects) {
-      blender::draw::ObjectRef ob_ref(obj_eval);
+      draw::ObjectRef ob_ref(obj_eval);
       drw_engines_cache_populate(ob_ref, duplis, extraction);
     }
 
@@ -2231,14 +2225,14 @@ void DRW_engines_register()
 
 void DRW_engines_free()
 {
-  blender::eevee::Engine::free_static();
-  blender::workbench::Engine::free_static();
-  blender::draw::gpencil::Engine::free_static();
-  blender::image_engine::Engine::free_static();
-  blender::draw::overlay::Engine::free_static();
-  blender::draw::edit_select::Engine::free_static();
+  eevee::Engine::free_static();
+  workbench::Engine::free_static();
+  draw::gpencil::Engine::free_static();
+  image_engine::Engine::free_static();
+  draw::overlay::Engine::free_static();
+  draw::edit_select::Engine::free_static();
 #ifdef WITH_DRAW_DEBUG
-  blender::draw::edit_select_debug::Engine::free_static();
+  draw::edit_select_debug::Engine::free_static();
 #endif
 }
 
@@ -2288,3 +2282,5 @@ void DRW_module_exit()
 }
 
 /** \} */
+
+}  // namespace blender

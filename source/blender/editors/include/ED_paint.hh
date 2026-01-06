@@ -12,6 +12,8 @@
 
 #include <cstdint>
 
+namespace blender {
+
 enum class PaintMode : int8_t;
 struct bContext;
 struct bToolRef;
@@ -159,3 +161,5 @@ void ED_object_texture_paint_mode_enter(bContext *C);
 
 void ED_object_texture_paint_mode_exit_ex(Main &bmain, Scene &scene, Object &ob);
 void ED_object_texture_paint_mode_exit(bContext *C);
+
+}  // namespace blender

@@ -6,7 +6,7 @@
  * \ingroup bli
  */
 
-/* The #blender::meshintersect API needs GMP. */
+/* The #meshintersect API needs GMP. */
 #ifdef WITH_GMP
 
 #  include <algorithm>

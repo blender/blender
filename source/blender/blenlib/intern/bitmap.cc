@@ -14,6 +14,8 @@
 #include "BLI_bitmap.h"
 #include "BLI_math_bits.h"
 
+namespace blender {
+
 void BLI_bitmap_set_all(BLI_bitmap *bitmap, bool set, size_t bits)
 {
   memset(bitmap, set ? UCHAR_MAX : 0, BLI_BITMAP_SIZE(bits));
@@ -66,3 +68,5 @@ int BLI_bitmap_find_first_unset(const BLI_bitmap *bitmap, const size_t bits)
   }
   return result;
 }
+
+}  // namespace blender

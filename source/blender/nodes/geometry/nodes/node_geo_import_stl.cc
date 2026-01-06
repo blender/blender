@@ -89,7 +89,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeImportSTL", GEO_NODE_IMPORT_STL);
   ntype.ui_name = "Import STL";
@@ -99,7 +99,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

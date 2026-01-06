@@ -32,11 +32,13 @@
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph_light_linking.hh"
 
+namespace blender {
+
 struct ID;
 struct Scene;
 struct ViewLayer;
 
-namespace blender::deg {
+namespace deg {
 
 struct IDNode;
 struct Node;
@@ -200,4 +202,5 @@ struct Depsgraph {
   MEM_CXX_CLASS_ALLOC_FUNCS("Depsgraph");
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

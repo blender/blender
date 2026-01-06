@@ -18,7 +18,9 @@
 
 #include "NOD_socket_search_link.hh"
 
-namespace blender::nodes::node_shader_tex_sky_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_sky_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -353,14 +355,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-}  // namespace blender::nodes::node_shader_tex_sky_cc
+}  // namespace nodes::node_shader_tex_sky_cc
 
 /* node type definition */
 void register_node_type_sh_tex_sky()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_sky_cc;
+  namespace file_ns = nodes::node_shader_tex_sky_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeTexSky", SH_NODE_TEX_SKY);
   ntype.ui_name = "Sky Texture";
@@ -369,13 +371,15 @@ void register_node_type_sh_tex_sky()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_sky;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Default);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Default);
   ntype.initfunc = file_ns::node_shader_init_tex_sky;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_sky;
   ntype.updatefunc = file_ns::node_shader_update_sky;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

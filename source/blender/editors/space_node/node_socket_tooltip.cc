@@ -29,9 +29,11 @@
 
 #include "node_intern.hh"
 
-namespace geo_log = blender::nodes::geo_eval_log;
+namespace blender {
 
-namespace blender::ed::space_node {
+namespace geo_log = nodes::geo_eval_log;
+
+namespace ed::space_node {
 
 class SocketTooltipBuilder {
  private:
@@ -358,7 +360,7 @@ class SocketTooltipBuilder {
     const T *data = *value.get<T *>();
     std::string value_str;
     if (data) {
-      value_str = BKE_id_name(blender::id_cast<const ID &>(*data));
+      value_str = BKE_id_name(id_cast<const ID &>(*data));
     }
     else {
       value_str = TIP_("None");
@@ -560,7 +562,7 @@ class SocketTooltipBuilder {
     if (base_type.is<float>()) {
       return TIP_("Float Field");
     }
-    if (base_type.is<blender::float3>()) {
+    if (base_type.is<float3>()) {
       return TIP_("3D Float Vector Field");
     }
     if (base_type.is<bool>()) {
@@ -569,13 +571,13 @@ class SocketTooltipBuilder {
     if (base_type.is<std::string>()) {
       return TIP_("String Field");
     }
-    if (base_type.is<blender::ColorGeometry4f>()) {
+    if (base_type.is<ColorGeometry4f>()) {
       return TIP_("Color Field");
     }
     if (base_type.is<math::Quaternion>()) {
       return TIP_("Rotation Field");
     }
-    if (base_type.is<blender::float4x4>()) {
+    if (base_type.is<float4x4>()) {
       return TIP_("Matrix Field");
     }
     BLI_assert_unreachable();
@@ -910,4 +912,6 @@ void build_socket_tooltip(ui::TooltipData &tip_data,
   builder.build();
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

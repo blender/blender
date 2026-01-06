@@ -16,6 +16,8 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
+namespace blender {
+
 /* Extended file attribute used by OneDrive to mark placeholder files. */
 static const char *ONEDRIVE_RECALLONOPEN_ATTRIBUTE = "com.microsoft.OneDrive.RecallOnOpen";
 
@@ -206,3 +208,5 @@ bool BLI_change_working_dir(const char *dir)
     return false;
   }
 }
+
+}  // namespace blender

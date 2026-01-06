@@ -31,6 +31,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
+namespace blender {
+
 BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
   BMLoop *l = BM_face_edge_share_loop(f, e);
@@ -1813,7 +1815,7 @@ finally:
 
 bool BM_face_exists_multi_edge(BMEdge **earr, int len)
 {
-  blender::Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> varr(len);
+  Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> varr(len);
 
   /* first check if verts have edges, if not we can bail out early */
   if (!BM_verts_from_edges(varr.data(), earr, len)) {
@@ -2061,8 +2063,8 @@ bool BM_face_is_normal_valid(const BMFace *f)
 static double bm_mesh_calc_volume_face(const BMFace *f)
 {
   const int tottri = f->len - 2;
-  blender::Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> loops(f->len);
-  blender::Array<std::array<uint, 3>, BM_DEFAULT_NGON_STACK_SIZE> index(tottri);
+  Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> loops(f->len);
+  Array<std::array<uint, 3>, BM_DEFAULT_NGON_STACK_SIZE> index(tottri);
   double vol = 0.0;
 
   BM_face_calc_tessellation(f, false, loops.data(), reinterpret_cast<uint(*)[3]>(index.data()));
@@ -2497,3 +2499,5 @@ float bmesh_subd_falloff_calc(const int falloff, float val)
 
   return val;
 }
+
+}  // namespace blender

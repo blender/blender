@@ -35,6 +35,8 @@
 #include "DNA_sdna_pointers.hh"
 #include "DNA_sdna_types.h" /* for SDNA ;-) */
 
+namespace blender {
+
 /**
  * \section dna_genfile Overview
  *
@@ -451,7 +453,7 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
   }
 
   /* Safety check, to ensure that there is no multiple usages of a same struct index. */
-  blender::Set<short> struct_indices;
+  Set<short> struct_indices;
   sp = reinterpret_cast<short *>(data);
   for (int struct_index = 0; struct_index < sdna->structs_num; struct_index++) {
     /* NOTE: this is endianness-sensitive. */
@@ -540,7 +542,7 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
     if (mat4x4f_struct_index > 0) {
       const SDNA_Struct *struct_info = sdna->structs[mat4x4f_struct_index];
       const int mat4x4f_type_index = struct_info->type_index;
-      sdna->types_alignment[mat4x4f_type_index] = alignof(blender::float4x4);
+      sdna->types_alignment[mat4x4f_type_index] = alignof(float4x4);
     }
   }
 
@@ -1965,7 +1967,7 @@ void DNA_sdna_alias_data_ensure_structs_map(SDNA *sdna)
 #endif
 }
 
-namespace blender::dna::pointers {
+namespace dna::pointers {
 
 PointersInDNA::PointersInDNA(const SDNA &sdna) : sdna_(sdna)
 {
@@ -2015,7 +2017,7 @@ void PointersInDNA::gather_pointer_members_recursive(const SDNA_Struct &sdna_str
   }
 }
 
-}  // namespace blender::dna::pointers
+}  // namespace dna::pointers
 
 /** \} */
 
@@ -2024,7 +2026,7 @@ void PointersInDNA::gather_pointer_members_recursive(const SDNA_Struct &sdna_str
  *
  * \{ */
 
-namespace blender::dna {
+namespace dna {
 
 static void print_struct_array_recursive(const SDNA &sdna,
                                          const SDNA_Struct &sdna_struct,
@@ -2086,7 +2088,6 @@ static void print_single_struct_recursive(const SDNA &sdna,
                                           const int indent,
                                           fmt::appender &dst)
 {
-  using namespace blender;
   const void *data = initial_data;
 
   for (const int member_i : IndexRange(sdna_struct.members_num)) {
@@ -2222,6 +2223,8 @@ void print_struct_by_id(const int struct_id, const void *data)
   print_structs_at_address(sdna, struct_id, data, data, 1, std::cout);
 }
 
-}  // namespace blender::dna
+}  // namespace dna
 
 /** \} */
+
+}  // namespace blender

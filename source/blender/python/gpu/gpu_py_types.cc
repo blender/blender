@@ -13,6 +13,8 @@
 
 #include "gpu_py_types.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name GPU Types Module
  * \{ */
@@ -89,3 +91,5 @@ PyObject *bpygpu_types_init()
 }
 
 /** \} */
+
+}  // namespace blender

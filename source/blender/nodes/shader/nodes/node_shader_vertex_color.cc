@@ -14,7 +14,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_vertex_color_cc {
+namespace blender {
+
+namespace nodes::node_shader_vertex_color_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -82,13 +84,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_vertex_color_cc
+}  // namespace nodes::node_shader_vertex_color_cc
 
 void register_node_type_sh_vertex_color()
 {
-  namespace file_ns = blender::nodes::node_shader_vertex_color_cc;
+  namespace file_ns = nodes::node_shader_vertex_color_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeVertexColor", SH_NODE_VERTEX_COLOR);
   ntype.ui_name = "Color Attribute";
@@ -99,10 +101,12 @@ void register_node_type_sh_vertex_color()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_vertex_color;
   ntype.initfunc = file_ns::node_shader_init_vertex_color;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderVertexColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_vertex_color;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

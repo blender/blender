@@ -15,7 +15,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tex_gabor_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_gabor_cc {
 
 NODE_STORAGE_FUNCS(NodeTexGabor)
 
@@ -199,13 +201,13 @@ static void build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.construct_and_set_matching_fn<GaborNoiseFunction>(NodeGaborType(storage.type));
 }
 
-}  // namespace blender::nodes::node_shader_tex_gabor_cc
+}  // namespace nodes::node_shader_tex_gabor_cc
 
 void register_node_type_sh_tex_gabor()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_gabor_cc;
+  namespace file_ns = nodes::node_shader_tex_gabor_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeTexGabor", SH_NODE_TEX_GABOR);
   ntype.ui_name = "Gabor Texture";
@@ -222,3 +224,5 @@ void register_node_type_sh_tex_gabor()
 
   node_register_type(ntype);
 }
+
+}  // namespace blender

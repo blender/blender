@@ -36,6 +36,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /** We only need this locally. */
 static CLG_LogRef LOG = {"undo.mball"};
 
@@ -115,7 +117,7 @@ static Object *editmball_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_MBALL) {
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     if (mb->editelems != nullptr) {
       return obedit;
     }
@@ -157,7 +159,7 @@ static bool mball_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  blender::Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
+  Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
   us->elems = MEM_calloc_arrayN<MBallUndoStep_Elem>(objects.size(), __func__);
@@ -168,7 +170,7 @@ static bool mball_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
     MBallUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    MetaBall *mb = blender::id_cast<MetaBall *>(ob->data);
+    MetaBall *mb = id_cast<MetaBall *>(ob->data);
     editmball_from_undomball(&elem->data, mb);
     mb->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
@@ -195,7 +197,7 @@ static void mball_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     MBallUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     if (mb->editelems == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
@@ -261,3 +263,5 @@ void ED_mball_undosys_type(UndoType *ut)
 }
 
 /** \} */
+
+}  // namespace blender

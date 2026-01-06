@@ -13,6 +13,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_rect.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Forward Declarations
  * \{ */
@@ -34,7 +36,7 @@ struct wmOperatorType;
 
 /** \} */
 
-namespace blender::ui {
+namespace ui {
 
 /* -------------------------------------------------------------------- */
 /** \name General Defines
@@ -596,4 +598,5 @@ void view2d_edge_pan_operator_init(bContext *C, View2DEdgePanData *vpd, wmOperat
 
 /** \} */
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

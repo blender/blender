@@ -26,6 +26,8 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* ******************** default callbacks for statusbar space ******************** */
 
 static SpaceLink *statusbar_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -158,3 +160,5 @@ void ED_spacetype_statusbar()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

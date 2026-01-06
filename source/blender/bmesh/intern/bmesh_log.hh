@@ -1,3 +1,6 @@
+struct RangeTreeUInt;
+namespace blender {
+
 /* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -11,7 +14,6 @@
 struct BMFace;
 struct BMVert;
 struct BMesh;
-struct RangeTreeUInt;
 struct BMLog;
 struct BMLogEntry;
 
@@ -199,3 +201,5 @@ struct RangeTreeUInt *BM_log_unused_ids(BMLog *log);
 void BM_log_print(const BMLog *log, const char *description);
 void BM_log_print_entry(BMesh *bm, BMLogEntry *entry);
 #endif
+
+}  // namespace blender

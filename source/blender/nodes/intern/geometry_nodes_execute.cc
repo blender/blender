@@ -34,10 +34,12 @@
 
 #include "UI_resources.hh"
 
-namespace lf = blender::fn::lazy_function;
-namespace geo_log = blender::nodes::geo_eval_log;
+namespace blender {
 
-namespace blender::nodes {
+namespace lf = fn::lazy_function;
+namespace geo_log = nodes::geo_eval_log;
+
+namespace nodes {
 
 bool socket_type_has_attribute_toggle(const eNodeSocketDatatype type)
 {
@@ -600,7 +602,7 @@ static bke::SocketValueVariant init_socket_cpp_value_from_property(
     }
     case SOCK_OBJECT: {
       ID *id = IDP_ID_get(&property);
-      Object *object = (id && GS(id->name) == ID_OB) ? blender::id_cast<Object *>(id) : nullptr;
+      Object *object = (id && GS(id->name) == ID_OB) ? id_cast<Object *>(id) : nullptr;
       return bke::SocketValueVariant::From(object);
     }
     case SOCK_COLLECTION: {
@@ -611,18 +613,17 @@ static bke::SocketValueVariant init_socket_cpp_value_from_property(
     }
     case SOCK_TEXTURE: {
       ID *id = IDP_ID_get(&property);
-      Tex *texture = (id && GS(id->name) == ID_TE) ? blender::id_cast<Tex *>(id) : nullptr;
+      Tex *texture = (id && GS(id->name) == ID_TE) ? id_cast<Tex *>(id) : nullptr;
       return bke::SocketValueVariant::From(texture);
     }
     case SOCK_IMAGE: {
       ID *id = IDP_ID_get(&property);
-      Image *image = (id && GS(id->name) == ID_IM) ? blender::id_cast<Image *>(id) : nullptr;
+      Image *image = (id && GS(id->name) == ID_IM) ? id_cast<Image *>(id) : nullptr;
       return bke::SocketValueVariant::From(image);
     }
     case SOCK_MATERIAL: {
       ID *id = IDP_ID_get(&property);
-      Material *material = (id && GS(id->name) == ID_MA) ? blender::id_cast<Material *>(id) :
-                                                           nullptr;
+      Material *material = (id && GS(id->name) == ID_MA) ? id_cast<Material *>(id) : nullptr;
       return bke::SocketValueVariant::From(material);
     }
     case SOCK_FONT: {
@@ -632,7 +633,7 @@ static bke::SocketValueVariant init_socket_cpp_value_from_property(
     }
     case SOCK_SCENE: {
       ID *id = IDP_ID_get(&property);
-      Scene *scene = (id && GS(id->name) == ID_SCE) ? blender::id_cast<Scene *>(id) : nullptr;
+      Scene *scene = (id && GS(id->name) == ID_SCE) ? id_cast<Scene *>(id) : nullptr;
       return bke::SocketValueVariant::From(scene);
     }
     case SOCK_TEXT_ID: {
@@ -1169,4 +1170,5 @@ Vector<InferenceValue> get_geometry_nodes_input_inference_values(const bNodeTree
   return inference_values;
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

@@ -19,9 +19,11 @@
 
 #  include "DEG_depsgraph.hh"
 
+namespace blender {
+
 static const char *rna_Lattice_unit_test_compare(Lattice *lt, Lattice *lt2, float threshold)
 {
-  using namespace blender::bke::compare_geometry;
+  using namespace bke::compare_geometry;
   const std::optional<GeoMismatch> mismatch = compare_lattices(*lt, *lt2, threshold);
 
   if (!mismatch) {
@@ -43,7 +45,11 @@ static void rna_Lattice_update_gpu_tag(Lattice *lt)
   BKE_lattice_batch_cache_dirty_tag(lt, BKE_LATTICE_BATCH_DIRTY_ALL);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_lattice(StructRNA *srna)
 {
@@ -74,5 +80,7 @@ void RNA_api_lattice(StructRNA *srna)
       func, "result", "nothing", 64, "Return value", "String description of result of comparison");
   RNA_def_function_return(func, parm);
 }
+
+}  // namespace blender
 
 #endif

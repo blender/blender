@@ -38,6 +38,8 @@
 
 #include "BLI_hash.h"
 
+namespace blender {
+
 #ifdef WITH_OCEANSIM
 
 /* Ocean code */
@@ -1141,7 +1143,7 @@ static void cache_filepath(
 
   BLI_path_join(cachepath, sizeof(cachepath), dirname, filename);
 
-  const blender::Vector<blender::bke::path_templates::Error> errors = BKE_image_path_from_imtype(
+  const Vector<bke::path_templates::Error> errors = BKE_image_path_from_imtype(
       filepath, cachepath, relbase, nullptr, frame, R_IMF_IMTYPE_OPENEXR, true, true, "");
   BLI_assert_msg(errors.is_empty(),
                  "Path parsing errors should only occur when a variable map is provided.");
@@ -1673,3 +1675,5 @@ void BKE_ocean_free_modifier_cache(OceanModifierData *omd)
   omd->oceancache = nullptr;
   omd->cached = false;
 }
+
+}  // namespace blender

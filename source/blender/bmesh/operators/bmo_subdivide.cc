@@ -25,7 +25,7 @@
 #include "intern/bmesh_operators_private.hh"
 #include "intern/bmesh_private.hh"
 
-using blender::Vector;
+namespace blender {
 
 struct SubDParams {
   int numcuts;
@@ -1430,3 +1430,5 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 
   BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, params.shape_info.tmpkey);
 }
+
+}  // namespace blender

@@ -238,8 +238,6 @@ inline Bounds<VecBase<T, 3>> transform_bounds(const MatBase<T, D, D> &matrix,
   return {math::min(Span(points)), math::max(Span(points))};
 }
 
-}  // namespace bounds
-
 namespace detail {
 
 template<typename T, int Size>
@@ -282,7 +280,7 @@ template<typename T> [[nodiscard]] inline bool any_less_than(const T &a, const T
     return a < b;
   }
   else {
-    return detail::any_less_than_v(a, b);
+    return any_less_than_v(a, b);
   }
 }
 
@@ -292,7 +290,7 @@ template<typename T> [[nodiscard]] inline bool any_greater_than(const T &a, cons
     return a > b;
   }
   else {
-    return detail::any_greater_than_v(a, b);
+    return any_greater_than_v(a, b);
   }
 }
 
@@ -302,7 +300,7 @@ template<typename T> [[nodiscard]] inline bool any_less_or_equal_than(const T &a
     return a <= b;
   }
   else {
-    return detail::any_less_or_equal_than_v(a, b);
+    return any_less_or_equal_than_v(a, b);
   }
 }
 
@@ -381,10 +379,11 @@ template<typename T, int Size>
 }
 
 }  // namespace detail
+}  // namespace bounds
 
 template<typename T> inline bool Bounds<T>::is_empty() const
 {
-  return detail::any_less_or_equal_than(this->max, this->min);
+  return bounds::detail::any_less_or_equal_than(this->max, this->min);
 }
 
 template<typename T> inline T Bounds<T>::center() const
@@ -433,10 +432,10 @@ inline void Bounds<T>::pad(const PaddingT &padding)
 
 template<typename T> inline bool Bounds<T>::contains(const T &point)
 {
-  if (detail::any_less_than(point, this->min)) {
+  if (bounds::detail::any_less_than(point, this->min)) {
     return false;
   }
-  if (detail::any_greater_than(point, this->max)) {
+  if (bounds::detail::any_greater_than(point, this->max)) {
     return false;
   }
   return true;
@@ -456,7 +455,7 @@ template<typename T> inline bool Bounds<T>::intersects_segment(const T &start, c
   if (this->contains(start) || this->contains(end)) {
     return true;
   }
-  if (!this->intersects(detail::segment_bounds(start, end))) {
+  if (!this->intersects(bounds::detail::segment_bounds(start, end))) {
     return false;
   }
   if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
@@ -465,7 +464,7 @@ template<typename T> inline bool Bounds<T>::intersects_segment(const T &start, c
   }
   else {
     /* Check if the segment is entering and exiting the bounds. */
-    return detail::segment_enter_exit_bounds(*this, start, end);
+    return bounds::detail::segment_enter_exit_bounds(*this, start, end);
   }
 }
 

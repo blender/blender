@@ -11,6 +11,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 TEST(LockfreeLinkList, Init)
 {
   LockfreeLinkList list;
@@ -113,3 +115,5 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   BLI_linklist_lockfree_free(&list, MEM_freeN);
   BLI_task_pool_free(pool);
 }
+
+}  // namespace blender

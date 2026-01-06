@@ -12,6 +12,8 @@
 
 #include "DNA_sequence_types.h"
 
+namespace blender {
+
 struct ARegionType;
 struct BlendDataReader;
 struct BlendWriter;
@@ -20,7 +22,7 @@ struct Strip;
 struct StripModifierData;
 struct ID;
 
-namespace blender::seq {
+namespace seq {
 
 struct ModifierApplyContext;
 
@@ -93,4 +95,5 @@ void modifier_type_panel_id(eStripModifierType type, char *r_idname);
 /* Iterate over all the modifiers and call the callback function for every referenced ID. */
 void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

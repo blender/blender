@@ -16,6 +16,9 @@
 /**
  * Returns true if the vertex is used in a given face.
  */
+
+namespace blender {
+
 bool BM_vert_in_face(BMVert *v, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * Compares the number of vertices in an array
@@ -776,5 +779,7 @@ int BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
 
 /* Not really any good place to put this. */
 float bmesh_subd_falloff_calc(int falloff, float val) ATTR_WARN_UNUSED_RESULT;
+
+}  // namespace blender
 
 #include "bmesh_query_inline.hh" /* IWYU pragma: export */

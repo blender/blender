@@ -17,6 +17,8 @@
 #include "gpu_py.hh"
 #include "gpu_py_vertex_format.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Enum Conversion
  *
@@ -263,3 +265,5 @@ PyObject *BPyGPUVertFormat_CreatePyObject(GPUVertFormat *fmt)
 }
 
 /** \} */
+
+}  // namespace blender

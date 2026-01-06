@@ -10,10 +10,12 @@
 
 #pragma once
 
-struct bContext;
-
 /* For 'FILE'. */
 #include <cstdio>
+
+namespace blender {
+
+struct bContext;
 
 /* `bpy_interface.cc` */
 
@@ -29,3 +31,5 @@ void BPY_python_backtrace(FILE *fp);
 
 /* Access `main_args_help_as_string` needed to resolve bad level call. */
 extern char *(*BPY_python_app_help_text_fn)(bool all);
+
+}  // namespace blender

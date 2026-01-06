@@ -25,6 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Key-Config Preference (UserDef) API
  *
@@ -42,7 +44,7 @@ wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idna
   }
   if (kpt->prop == nullptr) {
     /* name is unimportant. */
-    kpt->prop = blender::bke::idprop::create_group(kc_idname).release();
+    kpt->prop = bke::idprop::create_group(kc_idname).release();
   }
   return kpt;
 }
@@ -114,7 +116,7 @@ void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool overr
   wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, WM_KEYCONFIG_STR_DEFAULT);
   IDProperty *idprop = IDP_GetPropertyFromGroup(kpt->prop, "select_mouse");
   if (!idprop) {
-    IDP_AddToGroup(kpt->prop, blender::bke::idprop::create("select_mouse", value).release());
+    IDP_AddToGroup(kpt->prop, bke::idprop::create("select_mouse", value).release());
   }
   else if (override) {
     IDP_int_set(idprop, value);
@@ -202,3 +204,5 @@ void BKE_keyconfig_pref_filter_items(UserDef *userdef,
 }
 
 /** \} */
+
+}  // namespace blender

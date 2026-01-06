@@ -33,6 +33,8 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_colormanagement_intern.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.read"};
 
 static void imb_handle_colorspace_and_alpha(ImBuf *ibuf,
@@ -265,3 +267,5 @@ ImBuf *IMB_thumb_load_image(const char *filepath,
 
   return ibuf;
 }
+
+}  // namespace blender

@@ -16,6 +16,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
 {
   /* - `BMVert.flag & BM_ELEM_TAG`: Shows we touched this vert.
@@ -41,3 +43,5 @@ void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
   /* do all the real work here */
   BM_mesh_decimate_unsubdivide_ex(bm, iterations, true);
 }
+
+}  // namespace blender

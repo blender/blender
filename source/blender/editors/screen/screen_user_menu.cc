@@ -34,6 +34,8 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -95,7 +97,7 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBaseT<bUserMenuItem
                                                          const wmOperatorType *ot,
                                                          IDProperty *prop,
                                                          const char *op_prop_enum,
-                                                         blender::wm::OpCallContext opcontext)
+                                                         wm::OpCallContext opcontext)
 {
   for (bUserMenuItem &umi : *lb) {
     if (umi.type == USER_MENU_TYPE_OPERATOR) {
@@ -105,8 +107,7 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBaseT<bUserMenuItem
                                     STREQ(umi_op->op_prop_enum, op_prop_enum) :
                                     true;
       if (STREQ(ot->idname, umi_op->op_idname) &&
-          (opcontext == blender::wm::OpCallContext(umi_op->opcontext)) && ok_idprop &&
-          ok_prop_enum)
+          (opcontext == wm::OpCallContext(umi_op->opcontext)) && ok_idprop && ok_prop_enum)
       {
         return umi_op;
       }
@@ -152,7 +153,7 @@ void ED_screen_user_menu_item_add_operator(ListBaseT<bUserMenuItem> *lb,
                                            const wmOperatorType *ot,
                                            const IDProperty *prop,
                                            const char *op_prop_enum,
-                                           blender::wm::OpCallContext opcontext)
+                                           wm::OpCallContext opcontext)
 {
   bUserMenuItem_Op *umi_op = reinterpret_cast<bUserMenuItem_Op *>(
       BKE_blender_user_menu_item_add(lb, USER_MENU_TYPE_OPERATOR));
@@ -205,7 +206,6 @@ void ED_screen_user_menu_item_remove(ListBaseT<bUserMenuItem> *lb, bUserMenuItem
 
 static void screen_user_menu_draw(const bContext *C, Menu *menu)
 {
-  using namespace blender;
   /* Enable when we have the ability to edit menus. */
   const bool show_missing = false;
   char label[512];
@@ -333,3 +333,5 @@ void ED_screen_user_menu_register()
 }
 
 /** \} */
+
+}  // namespace blender

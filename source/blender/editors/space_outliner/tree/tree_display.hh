@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <memory>
 
+namespace blender {
+
 struct ID;
 struct LayerCollection;
 struct Library;
@@ -37,7 +39,7 @@ struct SpaceOutliner;
 struct ViewLayer;
 struct WorkSpace;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 struct TreeElement;
 class TreeElementID;
@@ -289,4 +291,5 @@ class TreeDisplayDataAPI final : public AbstractTreeDisplay {
   bool is_lazy_built() const override;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

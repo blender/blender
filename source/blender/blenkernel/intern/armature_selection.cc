@@ -24,7 +24,7 @@ void find_selected_bones__visit_bone(const bArmature *armature,
                                      SelectedBonesResult &result,
                                      Bone *bone)
 {
-  const bool is_selected = blender::animrig::bone_is_selected(armature, bone);
+  const bool is_selected = animrig::bone_is_selected(armature, bone);
   result.all_bones_selected &= is_selected;
   result.no_bones_selected &= !is_selected;
 

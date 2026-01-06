@@ -18,9 +18,10 @@
 
 #include "multires_reshape.hh"
 
+namespace blender {
+
 static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = mesh->vert_positions();
   const OffsetIndices faces = mesh->faces();
@@ -56,7 +57,7 @@ static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
 void multires_subdivide_create_tangent_displacement_linear_grids(Object *object,
                                                                  MultiresModifierData *mmd)
 {
-  Mesh *coarse_mesh = blender::id_cast<Mesh *>(object->data);
+  Mesh *coarse_mesh = id_cast<Mesh *>(object->data);
   multires_force_sculpt_rebuild(object);
 
   MultiresReshapeContext reshape_context;
@@ -86,3 +87,5 @@ void multires_subdivide_create_tangent_displacement_linear_grids(Object *object,
   multires_reshape_object_grids_to_tangent_displacement(&reshape_context);
   multires_reshape_context_free(&reshape_context);
 }
+
+}  // namespace blender

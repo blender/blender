@@ -50,6 +50,8 @@
 
 #include "action_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Default Callbacks for Action Space
  * \{ */
@@ -179,8 +181,7 @@ static void action_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  view2d_region_reinit(
-      &region->v2d, blender::ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Dopesheet", SPACE_ACTION, RGN_TYPE_WINDOW);
@@ -199,7 +200,7 @@ static void set_v2d_height(View2D *v2d, const size_t item_count, const bool add_
   /* Add padding for the collapsed redo panel. */
   pad_bottom += HEADERY;
   v2d->tot.ymin = -(height + pad_bottom);
-  blender::ui::view2d_curRect_clamp_y(v2d);
+  ui::view2d_curRect_clamp_y(v2d);
 }
 
 static void action_main_region_draw(const bContext *C, ARegion *region)
@@ -234,16 +235,16 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
     set_v2d_height(v2d, items, !BLI_listbase_is_empty(ac.markers));
   }
 
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* clear and setup matrix */
-  blender::ui::theme::frame_buffer_clear(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* time grid */
   if (region->winy > min_height) {
-    blender::ui::view2d_draw_lines_x__discrete_frames_or_seconds(
+    ui::view2d_draw_lines_x__discrete_frames_or_seconds(
         v2d, scene, saction->flag & SACTION_DRAWTIME, true);
   }
 
@@ -266,7 +267,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  blender::ui::view2d_view_orthoSpecial(region, v2d, true);
+  ui::view2d_view_orthoSpecial(region, v2d, true);
 
   marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
                 DRAW_MARKERS_MARGIN;
@@ -276,17 +277,17 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* preview range */
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   ANIM_draw_previewrange(scene, v2d, 0);
 
   ANIM_draw_scene_strip_range(C, v2d);
 
   /* callback */
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
-  blender::ui::view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* gizmos */
   WM_gizmomap_draw(region->runtime->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
@@ -306,7 +307,7 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
 
   /* caches */
   GPU_matrix_push_projection();
-  blender::ui::view2d_view_orthoSpecial(region, v2d, true);
+  ui::view2d_view_orthoSpecial(region, v2d, true);
   timeline_draw_cache(saction, obact, scene);
   GPU_matrix_pop_projection();
 
@@ -316,7 +317,7 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
 
   /* scrollers */
   const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
-  blender::ui::view2d_scrollers_draw(v2d, &scroller_mask);
+  ui::view2d_scrollers_draw(v2d, &scroller_mask);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -327,7 +328,7 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *region)
   /* ensure the 2d view sync works - main region has bottom scroller */
   region->v2d.scroll = V2D_SCROLL_BOTTOM;
 
-  view2d_region_reinit(&region->v2d, blender::ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(
@@ -346,7 +347,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   const bool has_valid_animcontext = ANIM_animdata_get_context(C, &ac);
 
   /* clear and setup matrix */
-  blender::ui::theme::frame_buffer_clear(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   if (!has_valid_animcontext) {
     return;
@@ -364,14 +365,14 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
    * uses the View2D's `cur` rect which might be modified when setting the height. */
   set_v2d_height(v2d, item_count, !BLI_listbase_is_empty(ac.markers));
 
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   draw_channel_names(const_cast<bContext *>(C), &ac, region, anim_data);
 
   /* channel filter next to scrubbing area */
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
 
   /* reset view matrix */
-  blender::ui::view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* no scrollers here */
   ANIM_animdata_freelist(&anim_data);
@@ -870,7 +871,7 @@ static void action_refresh(const bContext *C, ScrArea *area)
 
 static void action_id_remap(ScrArea * /*area*/,
                             SpaceLink *slink,
-                            const blender::bke::id::IDRemapper &mappings)
+                            const bke::id::IDRemapper &mappings)
 {
   SpaceAction *sact = reinterpret_cast<SpaceAction *>(slink);
 
@@ -927,7 +928,7 @@ static void action_space_subtype_item_extend(bContext * /*C*/,
   RNA_enum_items_add(item, totitem, rna_enum_space_action_mode_items);
 }
 
-static blender::StringRefNull action_space_name_get(const ScrArea *area)
+static StringRefNull action_space_name_get(const ScrArea *area)
 {
   SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
   const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
@@ -1044,10 +1045,12 @@ void ED_spacetype_action()
 
   action_buttons_register(art);
 
-  art = blender::ui::ED_area_type_hud(st->spaceid);
+  art = ui::ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(std::move(st));
 }
 
 /** \} */
+
+}  // namespace blender

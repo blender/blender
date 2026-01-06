@@ -11,15 +11,17 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
+namespace blender {
+
 /* **************** SCALAR MATH ******************** */
-static blender::bke::bNodeSocketTemplate inputs[] = {
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_FLOAT, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
     {SOCK_FLOAT, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
     {SOCK_FLOAT, N_("Value"), 0.0f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
     {-1, ""},
 };
 
-static blender::bke::bNodeSocketTemplate outputs[] = {
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, N_("Value")},
     {-1, ""},
 };
@@ -384,16 +386,18 @@ static void exec(void *data,
 
 void register_node_type_tex_math()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeMath", TEX_NODE_MATH);
   ntype.ui_name = "Math";
   ntype.enum_name_legacy = "MATH";
   ntype.nclass = NODE_CLASS_CONVERTER;
-  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.labelfunc = node_math_label;
   ntype.exec_fn = exec;
   ntype.updatefunc = node_update;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

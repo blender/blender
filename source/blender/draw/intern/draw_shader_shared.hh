@@ -11,6 +11,10 @@
 #  include "GPU_shader.hh"
 #  include "draw_defines.hh"
 
+#  if defined(__cplusplus) && !defined(GPU_SHADER)
+namespace blender {
+#  endif
+
 struct ViewCullingData;
 struct ViewMatrices;
 struct ObjectMatrices;
@@ -37,13 +41,13 @@ struct ViewLayer;
 struct GPUUniformAttr;
 struct GPULayerAttr;
 
-namespace blender::draw {
+namespace draw {
 
 class ObjectRef;
 
-}  // namespace blender::draw
+}  // namespace draw
 
-using namespace blender::math;
+using namespace math;
 
 #  endif
 #endif
@@ -175,7 +179,7 @@ struct [[host_shared]] ObjectInfos {
 
 #ifndef GPU_SHADER
   void sync();
-  void sync(const blender::draw::ObjectRef ref, bool is_active_object, bool is_active_edit_mode);
+  void sync(const draw::ObjectRef ref, bool is_active_object, bool is_active_edit_mode);
 #endif
 };
 
@@ -271,7 +275,7 @@ struct [[host_shared]] ObjectAttribute {
    * Go through all possible source of the given object uniform attribute.
    * Returns true if the attribute was correctly filled.
    */
-  bool sync(const blender::draw::ObjectRef &ref, const GPUUniformAttr &attr);
+  bool sync(const draw::ObjectRef &ref, const GPUUniformAttr &attr);
 #endif
 };
 #pragma pack(pop)
@@ -410,3 +414,7 @@ struct [[host_shared]] DRWDebugDrawBuffer {
 #define drw_debug_draw_offset 1
 
 /** \} */
+
+#if !defined(GPU_SHADER)
+}  // namespace blender
+#endif

@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /* surface type */
 enum {
   MOD_DPAINT_SURFACE_T_PAINT = 0,
@@ -242,3 +244,5 @@ struct DynamicPaintBrushSettings {
   float wave_factor = 0, wave_clamp = 0;
   float max_velocity = 0, smudge_strength = 0;
 };
+
+}  // namespace blender

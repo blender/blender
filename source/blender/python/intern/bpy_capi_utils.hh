@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 #if PY_VERSION_HEX < 0x030b0000
 #  error "Python 3.11 or greater is required, you'll need to update your Python."
 #endif
@@ -50,3 +52,5 @@ extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
  * Context should be used but not now because it causes some bugs.
  */
 extern void bpy_context_clear(struct bContext *C, const PyGILState_STATE *gilstate);
+
+}  // namespace blender

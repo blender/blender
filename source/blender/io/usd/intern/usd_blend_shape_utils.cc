@@ -29,6 +29,9 @@
 #include <vector>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
@@ -60,7 +63,7 @@ struct BlendShapeMergeInfo {
  * Attempt to add the given name to the 'names' set as a unique entry, modifying
  * the name with a numerical suffix if necessary, and return the unique name that
  * was added to the set. */
-std::string add_unique_name(blender::Set<std::string> &names, const std::string &name)
+std::string add_unique_name(Set<std::string> &names, const std::string &name)
 {
   std::string unique_name = name;
   int suffix = 2;
@@ -73,7 +76,7 @@ std::string add_unique_name(blender::Set<std::string> &names, const std::string 
 
 }  // namespace
 
-namespace blender::io::usd {
+namespace io::usd {
 
 pxr::TfToken TempBlendShapeWeightsPrimvarName("temp:weights", pxr::TfToken::Immortal);
 
@@ -178,7 +181,7 @@ const Key *get_mesh_shape_key(const Object *obj)
     return nullptr;
   }
 
-  const Mesh *mesh = blender::id_cast<const Mesh *>(obj->data);
+  const Mesh *mesh = id_cast<const Mesh *>(obj->data);
 
   return mesh->key;
 }
@@ -460,4 +463,5 @@ Mesh *get_shape_key_basis_mesh(Object *obj)
   return temp_mesh;
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

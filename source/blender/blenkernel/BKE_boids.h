@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct BoidSettings;
 struct BoidState;
 struct Object;
@@ -47,3 +49,5 @@ struct BoidState *boid_duplicate_state(struct BoidSettings *boids, struct BoidSt
 void boid_free_settings(struct BoidSettings *boids);
 struct BoidSettings *boid_copy_settings(const struct BoidSettings *boids);
 struct BoidState *boid_get_current_state(struct BoidSettings *boids);
+
+}  // namespace blender

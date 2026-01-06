@@ -25,8 +25,8 @@ BlenderViewportParameters::BlenderViewportParameters()
 {
 }
 
-BlenderViewportParameters::BlenderViewportParameters(::bScreen *b_screen,
-                                                     ::View3D *b_v3d,
+BlenderViewportParameters::BlenderViewportParameters(blender::bScreen *b_screen,
+                                                     blender::View3D *b_v3d,
                                                      bool use_developer_ui)
     : BlenderViewportParameters()
 {
@@ -34,22 +34,23 @@ BlenderViewportParameters::BlenderViewportParameters(::bScreen *b_screen,
     return;
   }
 
-  ::View3DShading shading = b_v3d->shading;
-  PointerRNA v3d_rna_ptr = RNA_pointer_create_discrete(&b_screen->id, &RNA_SpaceView3D, b_v3d);
-  PointerRNA shading_rna_ptr = RNA_pointer_get(&v3d_rna_ptr, "shading");
+  blender::View3DShading shading = b_v3d->shading;
+  blender::PointerRNA v3d_rna_ptr = RNA_pointer_create_discrete(
+      &b_screen->id, &blender::RNA_SpaceView3D, b_v3d);
+  blender::PointerRNA shading_rna_ptr = RNA_pointer_get(&v3d_rna_ptr, "shading");
 
   /* We only copy the shading parameters if we are in look-dev mode.
    * Otherwise defaults are being used. These defaults mimic normal render settings. */
-  if (shading.type == OB_RENDER) {
-    use_scene_world = shading.flag & V3D_SHADING_SCENE_WORLD_RENDER;
-    use_scene_lights = shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER;
+  if (shading.type == blender::OB_RENDER) {
+    use_scene_world = shading.flag & blender::V3D_SHADING_SCENE_WORLD_RENDER;
+    use_scene_lights = shading.flag & blender::V3D_SHADING_SCENE_LIGHTS_RENDER;
 
     if (!use_scene_world) {
       studiolight_rotate_z = shading.studiolight_rot_z;
       studiolight_intensity = shading.studiolight_intensity;
       studiolight_background_alpha = shading.studiolight_background;
-      PointerRNA selected_studiolight_rna_ptr = RNA_pointer_get(&shading_rna_ptr,
-                                                                "selected_studio_light");
+      blender::PointerRNA selected_studiolight_rna_ptr = RNA_pointer_get(&shading_rna_ptr,
+                                                                         "selected_studio_light");
       studiolight_path = RNA_string_get(&selected_studiolight_rna_ptr, "path");
     }
   }
@@ -62,7 +63,7 @@ BlenderViewportParameters::BlenderViewportParameters(::bScreen *b_screen,
 
   display_pass = PASS_COMBINED;
 
-  PointerRNA cycles_shading_ptr = RNA_pointer_get(&shading_rna_ptr, "cycles");
+  blender::PointerRNA cycles_shading_ptr = RNA_pointer_get(&shading_rna_ptr, "cycles");
   const string display_pass_identifier = get_enum_identifier(cycles_shading_ptr, "render_pass");
   if (!display_pass_identifier.empty()) {
     const ustring pass_type_identifier(string_to_lower(display_pass_identifier));

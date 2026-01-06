@@ -9,6 +9,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /**
  * The struct index representing type-less bytes buffers.
  *
@@ -19,6 +21,7 @@
 #define SDNA_RAW_DATA_STRUCT_INDEX 0
 
 struct MemArena;
+struct GHash;
 
 #
 #
@@ -119,7 +122,7 @@ struct SDNA {
    *
    * Requires WITH_DNA_GHASH to be used for now.
    */
-  struct GHash *types_to_structs_map;
+  GHash *types_to_structs_map;
 
   /**
    * Runtime versions of data stored in DNA, lazy initialized, only different when renaming is
@@ -135,9 +138,11 @@ struct SDNA {
     /** Aligned with #SDNA.members, same pointers when unchanged. */
     const char **members;
     /** A version of #SDNA.types_to_structs_map that uses #SDNA.alias.types for its keys. */
-    struct GHash *types_to_structs_map;
+    GHash *types_to_structs_map;
   } alias;
 
   /** Temporary memory currently only used for version patching DNA. */
-  struct MemArena *mem_arena;
+  MemArena *mem_arena;
 };
+
+}  // namespace blender

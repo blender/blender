@@ -45,6 +45,8 @@
 
 #include "wm_files.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Set Working Color Space Operator
  * \{ */
@@ -111,19 +113,19 @@ static wmOperatorStatus wm_set_working_color_space_exec(bContext *C, wmOperator 
     const bool depsgraph_tag = true;
     IMB_colormanagement_working_space_convert(bmain,
                                               bmain->colorspace.scene_linear_to_xyz,
-                                              blender::colorspace::xyz_to_scene_linear,
+                                              colorspace::xyz_to_scene_linear,
                                               depsgraph_tag);
   }
 
   STRNCPY(bmain->colorspace.scene_linear_name, working_space);
-  bmain->colorspace.scene_linear_to_xyz = blender::colorspace::scene_linear_to_xyz;
+  bmain->colorspace.scene_linear_to_xyz = colorspace::scene_linear_to_xyz;
 
   /* Free all render, compositor and sequencer caches. */
   RE_FreeAllRenderResults();
   RE_FreeInteractiveCompositorRenders();
-  blender::seq::prefetch_stop_all();
+  seq::prefetch_stop_all();
   for (Scene &scene : bmain->scenes) {
-    blender::seq::cache_cleanup(&scene, blender::seq::CacheCleanup::All);
+    seq::cache_cleanup(&scene, seq::CacheCleanup::All);
   }
 
   /* Free all images, they may have scene linear float buffers. */
@@ -209,3 +211,5 @@ void WM_OT_set_working_color_space(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

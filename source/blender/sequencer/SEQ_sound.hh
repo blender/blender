@@ -6,6 +6,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /** \file
  * \ingroup sequencer
  */
@@ -20,7 +22,7 @@ struct BlendWriter;
 struct BlendDataReader;
 struct SoundEqualizerModifierData;
 
-namespace blender::seq {
+namespace seq {
 
 struct SoundModifierWorkerInfo {
   int type;
@@ -71,4 +73,5 @@ void *echomodifier_recreator(Strip * /*strip*/,
                              void *sound,
                              bool &needs_update);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

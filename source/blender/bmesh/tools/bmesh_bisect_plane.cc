@@ -32,6 +32,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Math Functions
  * \{ */
@@ -138,7 +140,7 @@ static void bm_face_bisect_verts(
 {
   /* Unlikely more than 2 verts are needed. */
   const uint f_len_orig = uint(f->len);
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vert_split_arr_buf(f_len_orig);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vert_split_arr_buf(f_len_orig);
   BMVert **vert_split_arr = vert_split_arr_buf.data();
   STACK_DECLARE(vert_split_arr);
   BMLoop *l_iter, *l_first;
@@ -251,8 +253,7 @@ static void bm_face_bisect_verts(
         } while ((l_iter = l_iter->next) != l_first_non_center);
       }
 
-      blender::Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> face_split_arr_buf(
-          STACK_SIZE(vert_split_arr));
+      Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> face_split_arr_buf(STACK_SIZE(vert_split_arr));
       BMFace **face_split_arr = face_split_arr_buf.data();
       STACK_DECLARE(face_split_arr);
 
@@ -539,3 +540,5 @@ void BM_mesh_bisect_plane(BMesh *bm,
 }
 
 /** \} */
+
+}  // namespace blender

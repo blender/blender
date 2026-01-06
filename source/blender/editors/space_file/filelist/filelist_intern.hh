@@ -17,13 +17,14 @@
 #include "DNA_listBase.h"
 #include "DNA_space_enums.h"
 #include "DNA_space_types.h"
+struct BlendHandle;
+namespace blender {
 
 #define FILEDIR_NBR_ENTRIES_UNSET -1
 
 using FileUID = uint32_t;
 
 struct AssetLibraryReference;
-struct BlendHandle;
 struct FileDirEntry;
 struct FileIndexerType;
 struct GHash;
@@ -32,7 +33,6 @@ struct PreviewImage;
 struct ThreadQueue;
 struct TaskPool;
 
-namespace blender {
 namespace asset_system {
 class AssetLibrary;
 class AssetRepresentation;
@@ -40,7 +40,6 @@ class AssetRepresentation;
 namespace ed::asset_browser {
 class AssetCatalogFilterSettings;
 }
-}  // namespace blender
 
 /* ------------------FILELIST------------------------ */
 
@@ -81,7 +80,7 @@ struct FileListInternEntry {
    *
    * Weak pointer so access is protected in case the asset library gets destructed externally.
    */
-  std::weak_ptr<blender::asset_system::AssetRepresentation> asset;
+  std::weak_ptr<asset_system::AssetRepresentation> asset;
 
   /* See #FILE_ENTRY_BLENDERLIB_NO_PREVIEW. */
   bool blenderlib_has_no_preview = false;
@@ -94,9 +93,9 @@ struct FileListInternEntry {
    * Be careful not to use the returned asset pointer in a context where it might be dangling, e.g.
    * because the file list or the asset library were destroyed.
    */
-  blender::asset_system::AssetRepresentation *get_asset() const
+  asset_system::AssetRepresentation *get_asset() const
   {
-    if (std::shared_ptr<blender::asset_system::AssetRepresentation> asset_ptr = asset.lock()) {
+    if (std::shared_ptr<asset_system::AssetRepresentation> asset_ptr = asset.lock()) {
       /* Returning a raw pointer from a shared pointer and destructing the shared pointer
        * immediately afterwards isn't entirely clean. But it's just a way to get the raw pointer
        * from the weak pointer. Nothing should free the asset in the asset library meanwhile, so
@@ -137,10 +136,10 @@ struct FileListEntryCache {
    * NOTE: Not 100% sure we actually need that, time will say. */
   int misc_cursor = 0;
   int *misc_entries_indices = nullptr;
-  blender::Map<int, FileDirEntry *> misc_entries;
+  Map<int, FileDirEntry *> misc_entries;
 
   /* Allows to quickly get a cached entry from its UID. */
-  blender::Map<int, FileDirEntry *> uids;
+  Map<int, FileDirEntry *> uids;
 
   /* Previews handling. */
   TaskPool *previews_pool = nullptr;
@@ -180,7 +179,7 @@ struct FileListFilter {
   char filter_search[66]; /* + 2 for heading/trailing implicit '*' wildcards. */
   short flags;
 
-  blender::ed::asset_browser::AssetCatalogFilterSettings *asset_catalog_filter;
+  ed::asset_browser::AssetCatalogFilterSettings *asset_catalog_filter;
 };
 
 /** #FileListFilter.flags */
@@ -199,7 +198,7 @@ struct FileList {
   eFileSelectType type;
   /* The library this list was created for. Stored here so we know when to re-read. */
   AssetLibraryReference *asset_library_ref;
-  blender::asset_system::AssetLibrary *asset_library; /* Non-owning. */
+  asset_system::AssetLibrary *asset_library; /* Non-owning. */
 
   short flags;
 
@@ -308,3 +307,5 @@ bool is_filtered_main_assets(FileListInternEntry *file,
 bool is_filtered_asset_library(FileListInternEntry *file,
                                const char *root,
                                FileListFilter *filter);
+
+}  // namespace blender

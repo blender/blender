@@ -49,7 +49,7 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-using namespace blender;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
@@ -66,7 +66,7 @@ struct ScrewVertConnect {
   /** 2 verts on either side of this one. */
   uint v[2];
   /** Edges on either side, a bit of a waste since each edge ref's 2 edges. */
-  blender::int2 *e[2];
+  int2 *e[2];
   char flag;
 };
 
@@ -74,7 +74,7 @@ struct ScrewVertIter {
   ScrewVertConnect *v_array;
   ScrewVertConnect *v_poin;
   uint v, v_other;
-  blender::int2 *e;
+  int2 *e;
 };
 
 #define SV_UNUSED (UINT_MAX)
@@ -121,7 +121,7 @@ static void screwvert_iter_step(ScrewVertIter *iter)
 }
 
 static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
-                                         MutableSpan<blender::float3> vert_positions_new,
+                                         MutableSpan<float3> vert_positions_new,
                                          const uint totvert,
                                          const uint step_tot,
                                          const float axis_vec[3],
@@ -192,7 +192,6 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
 {
-  using namespace blender;
   const Mesh *mesh = meshData;
   Mesh *result;
   ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
@@ -228,7 +227,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   /* UV Coords */
   const VectorSet<StringRefNull> uv_map_names = mesh->uv_map_names();
-  blender::Array<bke::SpanAttributeWriter<float2>> uv_map_layers(uv_map_names.size());
+  Array<bke::SpanAttributeWriter<float2>> uv_map_layers(uv_map_names.size());
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
   float uv_v_range_inv;
@@ -252,7 +251,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   uint edge_offset;
 
-  blender::int2 *edge_new, *med_new_firstloop;
+  int2 *edge_new, *med_new_firstloop;
   Object *ob_axis = ltmd->ob_axis;
 
   ScrewVertConnect *vc, *vc_tmp, *vert_connect = nullptr;
@@ -451,7 +450,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* Set the locations of the first set of verts */
 
   /* Copy the first set of edges */
-  const blender::int2 *edge_orig = edges_orig.data();
+  const int2 *edge_orig = edges_orig.data();
   edge_new = edges_new.data();
   for (uint i = 0; i < totedge; i++, edge_orig++, edge_new++) {
     *edge_new = *edge_orig;
@@ -896,7 +895,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
           const float uv_u_offset_a = float(step) * uv_u_scale;
           const float uv_u_offset_b = float(step + 1) * uv_u_scale;
           for (const int64_t uv_lay : uv_map_layers.index_range()) {
-            blender::float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
+            float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
 
             mluv[quad_ord[0]][0] += uv_u_offset_a;
             mluv[quad_ord[1]][0] += uv_u_offset_a;
@@ -910,7 +909,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
           const float uv_u_offset_a = float(step) * uv_u_scale;
           const float uv_u_offset_b = float(step + 1) * uv_u_scale;
           for (const int64_t uv_lay : uv_map_layers.index_range()) {
-            blender::float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
+            float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
 
             copy_v2_fl2(mluv[quad_ord[0]], uv_u_offset_a, uv_v_offset_a);
             copy_v2_fl2(mluv[quad_ord[1]], uv_u_offset_a, uv_v_offset_b);
@@ -1040,10 +1039,9 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout *sub, *row, *col;
-  blender::ui::Layout &layout = *panel->layout;
-  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::ITEM_R_TOGGLE |
-                                                  blender::ui::ITEM_R_FORCE_BLANK_DECORATE;
+  ui::Layout *sub, *row, *col;
+  ui::Layout &layout = *panel->layout;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -1062,7 +1060,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.separator();
   col = &layout.column(false);
   row = &col->row(false);
-  row->prop(ptr, "axis", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(ptr, "axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   col->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Axis Object"), ICON_NONE);
   sub = &col->column(false);
   sub->active_set(!RNA_pointer_is_null(&screw_obj_ptr));
@@ -1093,13 +1091,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "use_normal_calculate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "use_normal_flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1149,3 +1147,5 @@ ModifierTypeInfo modifierType_Screw = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

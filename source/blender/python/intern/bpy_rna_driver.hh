@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 struct AnimationEvalContext;
 struct ChannelDriver;
 struct DriverTarget;
@@ -28,3 +30,5 @@ struct PathResolvedRNA;
 [[nodiscard]] PyObject *pyrna_driver_self_from_anim_rna(PathResolvedRNA *anim_rna);
 [[nodiscard]] bool pyrna_driver_is_equal_anim_rna(const PathResolvedRNA *anim_rna,
                                                   const PyObject *py_anim_rna);
+
+}  // namespace blender

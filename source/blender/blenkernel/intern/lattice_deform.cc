@@ -38,6 +38,8 @@
 
 #include "BKE_deform.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Lattice Deform API
  * \{ */
@@ -365,10 +367,10 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
         dvert = me_target->deform_verts().data();
       }
       else if (ob_target->type == OB_LATTICE) {
-        dvert = (blender::id_cast<Lattice *>(ob_target->data))->dvert;
+        dvert = (id_cast<Lattice *>(ob_target->data))->dvert;
       }
       else {
-        dvert = (blender::id_cast<Mesh *>(ob_target->data))->deform_verts().data();
+        dvert = (id_cast<Mesh *>(ob_target->data))->deform_verts().data();
       }
     }
   }
@@ -469,3 +471,5 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
 }
 
 /** \} */
+
+}  // namespace blender

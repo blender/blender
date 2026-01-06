@@ -19,6 +19,8 @@
 #  include "opensubdiv_capi.hh"
 #endif
 
+namespace blender {
+
 static PyTypeObject BlenderAppOpenSubdivType;
 
 static PyStructSequence_Field app_opensubdiv_info_fields[] = {
@@ -91,3 +93,5 @@ PyObject *BPY_app_opensubdiv_struct()
 
   return ret;
 }
+
+}  // namespace blender

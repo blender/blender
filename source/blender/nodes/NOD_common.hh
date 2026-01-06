@@ -10,22 +10,25 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct bNode;
 struct bNodeSocket;
-namespace blender::nodes {
+namespace nodes {
 class NodeDeclarationBuilder;
-}  // namespace blender::nodes
+}  // namespace nodes
 
-bNodeSocket *node_group_find_input_socket(bNode *groupnode, blender::StringRef identifier);
-bNodeSocket *node_group_find_output_socket(bNode *groupnode, blender::StringRef identifier);
+bNodeSocket *node_group_find_input_socket(bNode *groupnode, StringRef identifier);
+bNodeSocket *node_group_find_output_socket(bNode *groupnode, StringRef identifier);
 
-bNodeSocket *node_group_input_find_socket(bNode *node, blender::StringRef identifier);
-bNodeSocket *node_group_output_find_socket(bNode *node, blender::StringRef identifier);
+bNodeSocket *node_group_input_find_socket(bNode *node, StringRef identifier);
+bNodeSocket *node_group_output_find_socket(bNode *node, StringRef identifier);
 
 int node_group_ui_class(const bNode *node);
 
-namespace blender::nodes {
+namespace nodes {
 
 void node_group_declare(NodeDeclarationBuilder &b);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

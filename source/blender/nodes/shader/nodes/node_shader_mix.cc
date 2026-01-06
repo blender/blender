@@ -30,7 +30,9 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
-namespace blender::nodes::node_sh_mix_cc {
+namespace blender {
+
+namespace nodes::node_sh_mix_cc {
 
 NODE_STORAGE_FUNCS(NodeShaderMix)
 
@@ -607,13 +609,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_sh_mix_cc
+}  // namespace nodes::node_sh_mix_cc
 
 void register_node_type_sh_mix()
 {
-  namespace file_ns = blender::nodes::node_sh_mix_cc;
+  namespace file_ns = nodes::node_sh_mix_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   common_node_type_base(&ntype, "ShaderNodeMix", SH_NODE_MIX);
   ntype.ui_name = "Mix";
   ntype.ui_description = "Mix values by a factor";
@@ -624,7 +626,7 @@ void register_node_type_sh_mix()
   ntype.gpu_fn = file_ns::gpu_shader_mix;
   ntype.updatefunc = file_ns::sh_node_mix_update;
   ntype.initfunc = file_ns::node_mix_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderMix", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = file_ns::sh_node_mix_build_multi_function;
   ntype.draw_buttons = file_ns::sh_node_mix_layout;
@@ -632,5 +634,7 @@ void register_node_type_sh_mix()
   ntype.gather_link_search_ops = file_ns::node_mix_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

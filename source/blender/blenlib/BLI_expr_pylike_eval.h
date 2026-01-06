@@ -8,6 +8,8 @@
  * \ingroup bli
  */
 
+namespace blender {
+
 /** Opaque structure containing pre-parsed data for evaluation. */
 struct ExprPyLike_Parsed;
 
@@ -55,3 +57,5 @@ eExprPyLike_EvalStatus BLI_expr_pylike_eval(struct ExprPyLike_Parsed *expr,
                                             const double *param_values,
                                             int param_values_len,
                                             double *r_result);
+
+}  // namespace blender

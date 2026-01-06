@@ -38,6 +38,8 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 /******************** common graph-editing utilities ********************/
 
 static bool space_clip_graph_poll(bContext *C)
@@ -190,9 +192,8 @@ static bool mouse_select_knot(bContext *C, const float co[2], bool extend)
     if (userdata.marker) {
       int x1, y1, x2, y2;
 
-      if (blender::ui::view2d_view_to_region_clip(v2d, co[0], co[1], &x1, &y1) &&
-          blender::ui::view2d_view_to_region_clip(
-              v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2) &&
+      if (ui::view2d_view_to_region_clip(v2d, co[0], co[1], &x1, &y1) &&
+          ui::view2d_view_to_region_clip(v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2) &&
           (abs(x2 - x1) <= delta && abs(y2 - y1) <= delta))
       {
         if (!extend) {
@@ -311,7 +312,7 @@ static wmOperatorStatus select_invoke(bContext *C, wmOperator *op, const wmEvent
   ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   return select_exec(C, op);
@@ -412,7 +413,7 @@ static wmOperatorStatus box_select_graph_exec(bContext *C, wmOperator *op)
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rect);
-  blender::ui::view2d_region_to_view_rctf(&region->v2d, &rect, &userdata.rect);
+  ui::view2d_region_to_view_rctf(&region->v2d, &rect, &userdata.rect);
 
   userdata.changed = false;
   userdata.select = !RNA_boolean_get(op->ptr, "deselect");
@@ -541,7 +542,7 @@ static wmOperatorStatus delete_curve_invoke(bContext *C, wmOperator *op, const w
                                   IFACE_("Delete track corresponding to the selected curve?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return delete_curve_exec(C, op);
@@ -781,3 +782,5 @@ void CLIP_OT_graph_disable_markers(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Disable action to execute");
 }
+
+}  // namespace blender

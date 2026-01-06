@@ -53,10 +53,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#ifdef WITH_BULLET
-static CLG_LogRef LOG = {"physics.rigidbody"};
-#endif
-
 #ifndef WITH_BULLET
 /* #RBI_api.h is not included, some types still need to be declared. */
 struct rbCollisionShape;
@@ -64,6 +60,12 @@ struct rbConstraint;
 struct rbDynamicsWorld;
 struct rbRigidBody;
 #endif /* !WITH_BULLET */
+
+namespace blender {
+
+#ifdef WITH_BULLET
+static CLG_LogRef LOG = {"physics.rigidbody"};
+#endif
 
 /* ************************************** */
 /* Memory Management */
@@ -83,7 +85,7 @@ static void RB_constraint_delete(void * /*con*/) {}
 
 struct RigidBodyWorld_Runtime {
   rbDynamicsWorld *physics_world = nullptr;
-  blender::Mutex mutex;
+  Mutex mutex;
 
   ~RigidBodyWorld_Runtime()
   {
@@ -322,11 +324,11 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       return nullptr;
     }
 
-    const blender::Span<blender::float3> positions = mesh->vert_positions();
+    const Span<float3> positions = mesh->vert_positions();
     const int totvert = mesh->verts_num;
-    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    const Span<int3> corner_tris = mesh->corner_tris();
     const int tottri = corner_tris.size();
-    const blender::Span<int> corner_verts = mesh->corner_verts();
+    const Span<int> corner_verts = mesh->corner_verts();
 
     /* sanity checking - potential case when no data will be present */
     if ((totvert == 0) || (tottri == 0)) {
@@ -348,7 +350,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       if (positions.data()) {
         for (i = 0; i < tottri; i++) {
           /* add first triangle - verts 1,2,3 */
-          const blender::int3 &tri = corner_tris[i];
+          const int3 &tri = corner_tris[i];
           int vtri[3];
 
           vtri[0] = corner_verts[tri[0]];
@@ -412,7 +414,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
    */
   /* XXX: all dimensions are auto-determined now... later can add stored settings for this */
   /* get object dimensions without scaling */
-  if (const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob)) {
+  if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob)) {
     copy_v3_v3(size, bounds->max - bounds->min);
   }
   mul_v3_fl(size, 0.5f);
@@ -595,9 +597,9 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
           return;
         }
 
-        const blender::Span<blender::float3> positions = mesh->vert_positions();
-        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
-        const blender::Span<int> corner_verts = mesh->corner_verts();
+        const Span<float3> positions = mesh->vert_positions();
+        const Span<int3> corner_tris = mesh->corner_tris();
+        const Span<int> corner_verts = mesh->corner_verts();
 
         if (!positions.is_empty() && !corner_tris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float (*)[3]>(positions.data()),
@@ -669,8 +671,8 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
           return;
         }
 
-        const blender::Span<blender::float3> positions = mesh->vert_positions();
-        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+        const Span<float3> positions = mesh->vert_positions();
+        const Span<int3> corner_tris = mesh->corner_tris();
 
         if (!positions.is_empty() && !corner_tris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float (*)[3]>(positions.data()),
@@ -1680,7 +1682,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
       const float (*positions)[3] = reinterpret_cast<const float (*)[3]>(
           mesh->vert_positions().data());
       int totvert = mesh->verts_num;
-      const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob);
+      const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob);
 
       RB_shape_trimesh_update(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
                               (float *)positions,
@@ -2513,3 +2515,5 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
     }
   }
 }
+
+}  // namespace blender

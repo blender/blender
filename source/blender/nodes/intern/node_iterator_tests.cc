@@ -37,7 +37,7 @@ class NodeTest : public ::testing::Test {
     CLG_init();
     BKE_idtype_init();
     RNA_init();
-    blender::bke::node_system_init();
+    bke::node_system_init();
     BKE_appdir_init();
     IMB_init();
     BKE_materials_init();
@@ -120,7 +120,7 @@ TEST_F(NodeTest, tree_iterator_1_mat)
   TestData context;
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  blender::nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
+  nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
 
   IteratorResult iter_result = this->get_node_trees(context.bmain);
 
@@ -135,7 +135,7 @@ TEST_F(NodeTest, tree_iterator_scene_no_tree)
   TestData context;
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  blender::nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
+  nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
 
   BKE_scene_add(context.bmain, "Scene");
 
@@ -153,7 +153,7 @@ TEST_F(NodeTest, tree_iterator_1mat_1scene)
   const char SCENE_NAME[MAX_ID_NAME] = "Scene for testing";
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  blender::nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
+  nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
 
   Scene *scene = BKE_scene_add(context.bmain, SCENE_NAME);
   /* Embedded compositing trees are deprecated, but still relevant for versioning/backward
@@ -184,11 +184,11 @@ TEST_F(NodeTest, tree_iterator_1mat_3scenes)
   const char SCENE_NAME_2[MAX_ID_NAME] = "Scene 2";
   const char SCENE_NAME_3[MAX_ID_NAME] = "Scene 3";
   const char NTREE_NAME[MAX_NAME] = "Test Composisiting Nodetree";
-  /* Name is hard-coded in #blender::nodes::node_tree_shader_default(). */
+  /* Name is hard-coded in #nodes::node_tree_shader_default(). */
   const char MATERIAL_NTREE_NAME[MAX_NAME] = "Shader Nodetree";
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  blender::nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
+  nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
 
   BKE_scene_add(context.bmain, SCENE_NAME_1);
   /* Note: no node tree for scene 1. */
@@ -229,7 +229,7 @@ TEST_F(NodeTest, tree_iterator_1mat_1scene_2compositing_trees)
   const char MATERIAL_NTREE_NAME[MAX_NAME] = "Shader Nodetree";
 
   Material *material = BKE_material_add(context.bmain, "Material");
-  blender::nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
+  nodes::node_tree_shader_default(context.C, context.bmain, &material->id);
 
   BKE_scene_add(context.bmain, SCENE_NAME_1);
 

@@ -798,10 +798,10 @@ namespace detail {
  * Use when we want to loop over nodes ordered by index.
  * Requires indices to be aligned with nodes.
  */
-template<typename CoordT> static blender::Vector<int> kdtree_order(const KDTree<CoordT> *tree)
+template<typename CoordT> static Vector<int> kdtree_order(const KDTree<CoordT> *tree)
 {
   const KDTreeNode<CoordT> *nodes = tree->nodes;
-  blender::Vector<int> order(tree->max_node_index + 1, -1);
+  Vector<int> order(tree->max_node_index + 1, -1);
   for (uint i = 0; i < tree->nodes_len; i++) {
     order[nodes[i].index] = int(i);
   }
@@ -891,7 +891,7 @@ inline int kdtree_calc_duplicates_fast(const KDTree<CoordT> *tree,
   p.duplicates_found = &found;
 
   if (use_index_order) {
-    blender::Vector<int> order = detail::kdtree_order<CoordT>(tree);
+    Vector<int> order = detail::kdtree_order<CoordT>(tree);
     for (int i = 0; i < tree->max_node_index + 1; i++) {
       const int node_index = order[i];
       if (node_index == -1) {
@@ -990,7 +990,7 @@ inline int kdtree_calc_duplicates_cb(const KDTree<CoordT> *tree,
 
   /* Use `index_to_node_index` so coordinates are looked up in order first to last. */
   const uint nodes_len = tree->nodes_len;
-  blender::Array<int> index_to_node_index(tree->max_node_index + 1);
+  Array<int> index_to_node_index(tree->max_node_index + 1);
   for (uint i = 0; i < nodes_len; i++) {
     index_to_node_index[tree->nodes[i].index] = int(i);
   }
@@ -999,8 +999,7 @@ inline int kdtree_calc_duplicates_cb(const KDTree<CoordT> *tree,
 
   /* First pass, handle merging into self-index (if any exist). */
   if (has_self_index) {
-    blender::Array<typename KDTree<CoordT>::ValueType> duplicates_dist_sq(tree->max_node_index +
-                                                                          1);
+    Array<typename KDTree<CoordT>::ValueType> duplicates_dist_sq(tree->max_node_index + 1);
     for (uint i = 0; i < nodes_len; i++) {
       const int node_index = tree->nodes[i].index;
       if (node_index != duplicates[node_index]) {
@@ -1040,7 +1039,7 @@ inline int kdtree_calc_duplicates_cb(const KDTree<CoordT> *tree,
   /* Second pass, de-duplicate clusters that weren't handled in the first pass. */
 
   /* Could be inline, declare here to avoid re-allocation. */
-  blender::Vector<int> cluster;
+  Vector<int> cluster;
   for (uint i = 0; i < nodes_len; i++) {
     const int node_index = tree->nodes[i].index;
     if (duplicates[node_index] != -1) {
@@ -1190,10 +1189,6 @@ template<typename CoordT> inline int kdtree_deduplicate(KDTree<CoordT> *tree)
 }
 
 /** \} */
-
-}  //  namespace blender
-
-namespace blender {
 
 constexpr inline auto kdtree_1d_new = kdtree_new<float1>;
 constexpr inline auto kdtree_2d_new = kdtree_new<float2>;

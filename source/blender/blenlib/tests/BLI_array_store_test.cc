@@ -15,6 +15,8 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /* print memory savings */
 // #define DEBUG_PRINT
 
@@ -1151,3 +1153,5 @@ TEST(array_store, PlainTextFiles)
 #endif
 
 /** \} */
+
+}  // namespace blender

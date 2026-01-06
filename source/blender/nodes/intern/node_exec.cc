@@ -21,6 +21,8 @@
 #include "node_exec.hh"
 #include "node_util.hh"
 
+namespace blender {
+
 static int node_exec_socket_use_stack(bNodeSocket *sock)
 {
   /* NOTE: INT and BOOL supported as FLOAT. Only for EEVEE. */
@@ -71,7 +73,7 @@ static void node_init_input_index(bNodeSocket *sock, int *index)
 
 static void node_init_output_index_muted(bNodeSocket *sock,
                                          int *index,
-                                         const blender::MutableSpan<bNodeLink> internal_links)
+                                         const MutableSpan<bNodeLink> internal_links)
 {
   const bNodeLink *link;
   /* copy the stack index from internally connected input to skip the node */
@@ -143,9 +145,8 @@ static bNodeStack *setup_stack(bNodeStack *stack, bNodeTree *ntree, bNode *node,
   return ns;
 }
 
-static blender::Vector<bNode *> get_node_code_gen_order(bNodeTree &ntree)
+static Vector<bNode *> get_node_code_gen_order(bNodeTree &ntree)
 {
-  using namespace blender;
   ntree.ensure_topology_cache();
   Vector<bNode *> nodes = ntree.toposort_left_to_right();
   const bke::bNodeTreeZones *zones = ntree.zones();
@@ -184,7 +185,6 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
                                 bNodeTree *ntree,
                                 bNodeInstanceKey parent_key)
 {
-  using namespace blender;
   bNodeTreeExec *exec;
   bNode *node;
   bNodeExec *nodeexec;
@@ -295,3 +295,5 @@ void ntree_exec_end(bNodeTreeExec *exec)
 
   MEM_freeN(exec);
 }
+
+}  // namespace blender

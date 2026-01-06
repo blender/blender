@@ -18,6 +18,8 @@
 #  include <string>
 #endif
 
+namespace blender {
+
 /* Buffer size of maximum `uint64` plus commas and terminator. */
 #define BLI_STR_FORMAT_UINT64_GROUPED_SIZE 27
 
@@ -694,3 +696,5 @@ template<size_t N> inline char *STRNCPY(char (&dst)[N], const char *src)
 {
   return BLI_strncpy(dst, src, N);
 }
+
+}  // namespace blender

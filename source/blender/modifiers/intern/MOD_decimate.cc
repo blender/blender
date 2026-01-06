@@ -44,6 +44,8 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   DecimateModifierData *dmd = reinterpret_cast<DecimateModifierData *>(md);
@@ -204,7 +206,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   BM_mesh_free(bm);
 
-  blender::geometry::debug_randomize_mesh_order(result);
+  geometry::debug_randomize_mesh_order(result);
 
 #ifdef USE_TIMEIT
   TIMEIT_END(decim);
@@ -215,7 +217,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -224,20 +226,20 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   char count_info[64];
   SNPRINTF(count_info, RPT_("Face Count: %d"), RNA_int_get(ptr, "face_count"));
 
-  layout.prop(ptr, "decimate_type", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "decimate_type", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
   if (decimate_type == MOD_DECIM_MODE_COLLAPSE) {
-    layout.prop(ptr, "ratio", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "ratio", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-    blender::ui::Layout &row = layout.row(true, IFACE_("Symmetry"));
+    ui::Layout &row = layout.row(true, IFACE_("Symmetry"));
     row.use_property_decorate_set(false);
-    blender::ui::Layout *sub = &row.row(true);
+    ui::Layout *sub = &row.row(true);
     sub->prop(ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
     sub = &sub->row(true);
     sub->active_set(RNA_boolean_get(ptr, "use_symmetry"));
-    sub->prop(ptr, "symmetry_axis", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    sub->prop(ptr, "symmetry_axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     row.decorator(ptr, "symmetry_axis", 0);
 
     layout.prop(ptr, "use_collapse_triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -253,7 +255,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
   else { /* decimate_type == MOD_DECIM_MODE_DISSOLVE. */
     layout.prop(ptr, "angle_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    blender::ui::Layout &col = layout.column(false);
+    ui::Layout &col = layout.column(false);
     col.prop(ptr, "delimit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     layout.prop(ptr, "use_dissolve_boundaries", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -302,3 +304,5 @@ ModifierTypeInfo modifierType_Decimate = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

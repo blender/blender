@@ -90,7 +90,8 @@ void Sampling::init(const Scene *scene)
 void Sampling::init(const Object &probe_object)
 {
   BLI_assert(inst_.is_baking());
-  const ::LightProbe &lightprobe = DRW_object_get_data_for_drawing<::LightProbe>(probe_object);
+  const blender::LightProbe &lightprobe = DRW_object_get_data_for_drawing<blender::LightProbe>(
+      probe_object);
 
   sample_count_ = max_ii(1, lightprobe.grid_bake_samples);
   sample_ = 0;

@@ -72,6 +72,8 @@
 
 #include "paint_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Image Paint Tile Utilities (Partial Update)
  * \{ */
@@ -364,7 +366,7 @@ bool paint_use_opacity_masking(const Paint *paint, const Brush *brush)
 
 void paint_brush_color_get(const Paint *paint,
                            Brush *br,
-                           std::optional<blender::float3> &initial_hsv_jitter,
+                           std::optional<float3> &initial_hsv_jitter,
                            bool invert,
                            float distance,
                            float pressure,
@@ -398,7 +400,7 @@ void paint_brush_color_get(const Paint *paint,
       /* Perform color jitter with sRGB transfer function. This is inconsistent with other
        * paint modes which do it in linear space. But arguably it's better to do it in the
        * more perceptually uniform color space. */
-      blender::float3 color = BKE_brush_color_get(paint, br);
+      float3 color = BKE_brush_color_get(paint, br);
       linearrgb_to_srgb_v3_v3(color, color);
       color = BKE_paint_randomize_color(
           *color_jitter_settings, *initial_hsv_jitter, distance, pressure, color);
@@ -572,10 +574,9 @@ static wmOperatorStatus grab_clone_modal(bContext *C, wmOperator *op, const wmEv
       return OPERATOR_FINISHED;
     case MOUSEMOVE:
       /* mouse moved, so move the clone image */
-      blender::ui::view2d_region_to_view(
+      ui::view2d_region_to_view(
           &region->v2d, cmv->startx - xmin, cmv->starty - ymin, &startfx, &startfy);
-      blender::ui::view2d_region_to_view(
-          &region->v2d, event->xy[0] - xmin, event->xy[1] - ymin, &fx, &fy);
+      ui::view2d_region_to_view(&region->v2d, event->xy[0] - xmin, event->xy[1] - ymin, &fx, &fy);
 
       delta[0] = fx - startfx;
       delta[1] = fy - startfy;
@@ -635,12 +636,11 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 /** \name Texture Paint Toggle Operator
  * \{ */
 
-static blender::float3 paint_init_pivot_mesh(Object *ob)
+static float3 paint_init_pivot_mesh(Object *ob)
 {
-  using namespace blender;
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   if (!mesh_eval) {
-    mesh_eval = blender::id_cast<const Mesh *>(ob->data);
+    mesh_eval = id_cast<const Mesh *>(ob->data);
   }
 
   const std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max();
@@ -651,24 +651,22 @@ static blender::float3 paint_init_pivot_mesh(Object *ob)
   return math::midpoint(bounds->min, bounds->max);
 }
 
-static blender::float3 paint_init_pivot_curves(Object *ob)
+static float3 paint_init_pivot_curves(Object *ob)
 {
-  const Curves &curves = *blender::id_cast<const Curves *>(ob->data);
-  const std::optional<blender::Bounds<blender::float3>> bounds =
-      curves.geometry.wrap().bounds_min_max();
+  const Curves &curves = *id_cast<const Curves *>(ob->data);
+  const std::optional<Bounds<float3>> bounds = curves.geometry.wrap().bounds_min_max();
   if (bounds.has_value()) {
-    return blender::math::midpoint(bounds->min, bounds->max);
+    return math::midpoint(bounds->min, bounds->max);
   }
-  return blender::float3(0);
+  return float3(0);
 }
 
-static blender::float3 paint_init_pivot_grease_pencil(Object *ob, const int frame)
+static float3 paint_init_pivot_grease_pencil(Object *ob, const int frame)
 {
-  using namespace blender;
-  const GreasePencil &grease_pencil = *blender::id_cast<const GreasePencil *>(ob->data);
+  const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(ob->data);
   const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max(frame);
   if (bounds.has_value()) {
-    return blender::math::midpoint(bounds->min, bounds->max);
+    return math::midpoint(bounds->min, bounds->max);
   }
   return float3(0.0f);
 }
@@ -676,9 +674,9 @@ static blender::float3 paint_init_pivot_grease_pencil(Object *ob, const int fram
 /* TODO: Move this out of paint image... */
 void paint_init_pivot(Object *ob, Scene *scene, Paint *paint)
 {
-  blender::bke::PaintRuntime &paint_runtime = *paint->runtime;
+  bke::PaintRuntime &paint_runtime = *paint->runtime;
 
-  blender::float3 location;
+  float3 location;
   switch (ob->type) {
     case OB_MESH:
       location = paint_init_pivot_mesh(ob);
@@ -897,8 +895,8 @@ static bool brush_colors_flip_poll(bContext *C)
       if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT | OB_MODE_SCULPT)) {
         return true;
       }
-      if (blender::ed::greasepencil::grease_pencil_painting_poll(C) ||
-          blender::ed::greasepencil::grease_pencil_vertex_painting_poll(C))
+      if (ed::greasepencil::grease_pencil_painting_poll(C) ||
+          ed::greasepencil::grease_pencil_vertex_painting_poll(C))
       {
         return true;
       }
@@ -957,10 +955,10 @@ static bool texture_paint_poll(bContext *C)
   return false;
 }
 
-blender::float3 seed_hsv_jitter()
+float3 seed_hsv_jitter()
 {
-  blender::RandomNumberGenerator rng = blender::RandomNumberGenerator::from_random_seed();
-  return blender::float3{rng.get_float(), rng.get_float(), rng.get_float()};
+  RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
+  return float3{rng.get_float(), rng.get_float(), rng.get_float()};
 }
 
 bool image_texture_paint_poll(bContext *C)
@@ -984,3 +982,5 @@ bool mask_paint_poll(bContext *C)
 }
 
 /** \} */
+
+}  // namespace blender

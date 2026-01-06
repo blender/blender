@@ -35,14 +35,16 @@
 #include "BKE_attribute_storage.hh"
 #include "BKE_geometry_set.hh"
 
+namespace blender {
+
 struct Object;
 struct Collection;
-namespace blender::bke {
+namespace bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::bke {
+namespace bke {
 
 struct GeometrySet;
 struct AttributeAccessorFunctions;
@@ -319,4 +321,5 @@ inline const AttributeStorage &Instances::attribute_storage() const
 
 /** \} */
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

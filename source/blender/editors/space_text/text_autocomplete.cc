@@ -33,6 +33,8 @@
 #include "text_format.hh"
 #include "text_intern.hh" /* Own include. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Public API
  * \{ */
@@ -581,3 +583,5 @@ void TEXT_OT_autocomplete(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

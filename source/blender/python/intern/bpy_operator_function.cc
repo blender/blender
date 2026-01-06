@@ -30,6 +30,8 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Private Utility Functions
  * \{ */
@@ -593,3 +595,5 @@ PyObject *pyop_create_function(PyObject * /*self*/, PyObject *args)
 }
 
 /** \} */
+
+}  // namespace blender

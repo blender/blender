@@ -28,6 +28,8 @@
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
 
+namespace blender {
+
 /* FILE_MAXDIR + FILE_MAXFILE */
 
 int BLI_windows_get_executable_dir(char r_dirpath[/*FILE_MAXDIR*/])
@@ -589,6 +591,8 @@ void BLI_windows_process_set_qos(QoSMode qos_mode, QoSPrecedence qos_precedence)
   }
   qos_precedence_last = qos_precedence;
 }
+
+}  // namespace blender
 
 #else
 

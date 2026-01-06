@@ -58,6 +58,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /* NOTE: The implementation for Apple lives in storage_apple.mm. */
 #if !defined(__APPLE__)
 bool BLI_change_working_dir(const char *dir)
@@ -622,3 +624,5 @@ bool BLI_file_older(const char *file1, const char *file2)
   }
   return (st1.st_mtime < st2.st_mtime);
 }
+
+}  // namespace blender

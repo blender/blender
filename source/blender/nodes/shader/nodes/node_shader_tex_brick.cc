@@ -17,7 +17,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tex_brick_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_brick_cc {
 
 static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
@@ -291,13 +293,13 @@ static void sh_node_brick_build_multi_function(NodeMultiFunctionBuilder &builder
       tex->offset, tex->offset_freq, tex->squash, tex->squash_freq);
 }
 
-}  // namespace blender::nodes::node_shader_tex_brick_cc
+}  // namespace nodes::node_shader_tex_brick_cc
 
 void register_node_type_sh_tex_brick()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_brick_cc;
+  namespace file_ns = nodes::node_shader_tex_brick_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeTexBrick", SH_NODE_TEX_BRICK);
   ntype.ui_name = "Brick Texture";
@@ -306,13 +308,15 @@ void register_node_type_sh_tex_brick()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_brick_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_brick;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_tex_brick;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexBrick", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_brick;
   ntype.build_multi_function = file_ns::sh_node_brick_build_multi_function;
-  blender::bke::node_type_size(ntype, 165, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 165, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

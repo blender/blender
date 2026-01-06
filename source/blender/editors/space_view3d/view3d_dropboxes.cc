@@ -46,6 +46,8 @@
 
 #include "view3d_intern.hh" /* own include */
 
+namespace blender {
+
 static bool view3d_drop_in_main_region_poll(bContext *C, const wmEvent *event)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -124,7 +126,7 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
 
   float dimensions[3] = {0.0f};
   if (drag->type == WM_DRAG_ID) {
-    Object *ob = blender::id_cast<Object *>(WM_drag_get_local_ID(drag, ID_OB));
+    Object *ob = id_cast<Object *>(WM_drag_get_local_ID(drag, ID_OB));
     BKE_object_dimensions_eval_cached_get(ob, dimensions);
   }
   else {
@@ -137,7 +139,7 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
 
   if (!is_zero_v3(dimensions)) {
     mul_v3_v3fl(state->box_dimensions, dimensions, 0.5f);
-    blender::ui::theme::get_color_4ubv(TH_GIZMO_PRIMARY, state->color_box);
+    ui::theme::get_color_4ubv(TH_GIZMO_PRIMARY, state->color_box);
     state->draw_box = true;
   }
 }
@@ -211,7 +213,7 @@ static std::string view3d_mat_drop_tooltip(bContext *C,
       xy[0] - region->winrct.xmin,
       xy[1] - region->winrct.ymin,
   };
-  return blender::ed::object::drop_named_material_tooltip(C, name, mval);
+  return ed::object::drop_named_material_tooltip(C, name, mval);
 }
 
 static bool view3d_world_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -332,14 +334,13 @@ static std::string view3d_geometry_nodes_drop_tooltip(bContext *C,
 {
   ARegion *region = CTX_wm_region(C);
   int mval[2] = {xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin};
-  return blender::ed::object::drop_geometry_nodes_tooltip(C, drop->ptr, mval);
+  return ed::object::drop_geometry_nodes_tooltip(C, drop->ptr, mval);
 }
 
 static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
                                             Object *ob,
                                             float obmat_final[4][4])
 {
-  using namespace blender;
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   BLI_assert(snap_state->draw_box || snap_state->draw_plane);
   UNUSED_VARS_NDEBUG(snap_state);
@@ -369,7 +370,7 @@ static void view3d_ob_drop_copy_local_id(bContext * /*C*/, wmDrag *drag, wmDropB
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   float obmat_final[4][4];
 
-  view3d_ob_drop_matrix_from_snap(snap_state, blender::id_cast<Object *>(id), obmat_final);
+  view3d_ob_drop_matrix_from_snap(snap_state, id_cast<Object *>(id), obmat_final);
 
   RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
 }
@@ -387,7 +388,7 @@ static void make_selected_objects_local(Main &bmain,
                                         View3D &v3d,
                                         const bool localize_parent_collections)
 {
-  blender::Set<Collection *> collections_to_localize;
+  Set<Collection *> collections_to_localize;
 
   if (localize_parent_collections) {
     /* Collect the collections containing the selected objects. */
@@ -409,7 +410,7 @@ static void make_selected_objects_local(Main &bmain,
     }
   }
 
-  blender::Vector<ID *> localized_ids;
+  Vector<ID *> localized_ids;
 
   /* Make IDs local. When an ID gets made local, pointers to it will be remapped to the new local
    * version. However, this doesn't work if the pointer is owned by linked data too.
@@ -446,7 +447,7 @@ static void make_selected_objects_local(Main &bmain,
 
   /* Make sure all remaining pointers from the linked IDs are replaced by the new one. */
   {
-    blender::bke::id::IDRemapper remapper;
+    bke::id::IDRemapper remapper;
     for (ID *id : localized_ids) {
       remapper.add(id, id->newid);
     }
@@ -481,7 +482,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Base *base = BKE_view_layer_base_find(view_layer, blender::id_cast<Object *>(id));
+  Base *base = BKE_view_layer_base_find(view_layer, id_cast<Object *>(id));
   if (base != nullptr) {
     BKE_view_layer_base_select_and_set_active(view_layer, base);
     WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
@@ -512,7 +513,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   if (snap_state) {
     float obmat_final[4][4];
 
-    view3d_ob_drop_matrix_from_snap(snap_state, blender::id_cast<Object *>(id), obmat_final);
+    view3d_ob_drop_matrix_from_snap(snap_state, id_cast<Object *>(id), obmat_final);
 
     RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
   }
@@ -536,7 +537,6 @@ static void view3d_collection_drop_matrix_from_snap(V3DSnapCursorState *snap_sta
                                                     float r_loc[3],
                                                     float r_rot[3])
 {
-  using namespace blender;
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   BLI_assert(snap_state->draw_box || snap_state->draw_plane);
   UNUSED_VARS_NDEBUG(snap_state);
@@ -579,7 +579,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   if (!id) {
     return;
   }
-  Collection *collection = blender::id_cast<Collection *>(id);
+  Collection *collection = id_cast<Collection *>(id);
 
   /* Reset temporary override. */
   asset_drag->import_settings.use_instance_collections = use_instance_collections;
@@ -604,7 +604,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
     make_selected_objects_local(*bmain, *scene, *view_layer, *CTX_wm_view3d(C), true);
 
     /* Making the IDs local might result in a new, copied ID. */
-    collection = blender::id_cast<Collection *>(id->newid ? id->newid : id);
+    collection = id_cast<Collection *>(id->newid ? id->newid : id);
     id = &collection->id;
   }
 
@@ -756,3 +756,5 @@ void view3d_dropboxes()
                  WM_drag_free_imported_drag_ID,
                  nullptr);
 }
+
+}  // namespace blender

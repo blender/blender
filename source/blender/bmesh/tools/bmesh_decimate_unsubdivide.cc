@@ -13,6 +13,8 @@
 #include "bmesh.hh"
 #include "bmesh_decimate.hh" /* own include */
 
+namespace blender {
+
 static bool bm_vert_dissolve_fan_test(BMVert *v)
 {
   /* check if we should walk over these verts */
@@ -299,3 +301,5 @@ void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations)
 {
   BM_mesh_decimate_unsubdivide_ex(bm, iterations, false);
 }
+
+}  // namespace blender

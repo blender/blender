@@ -23,6 +23,8 @@
 #include "gpu_py.hh"
 #include "gpu_py_select.hh" /* Own include. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Methods
  * \{ */
@@ -86,3 +88,5 @@ PyObject *bpygpu_select_init()
 }
 
 /** \} */
+
+}  // namespace blender

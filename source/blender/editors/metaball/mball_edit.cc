@@ -52,8 +52,7 @@
 
 #include "mball_intern.hh"
 
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Edit Mode Functions
@@ -61,7 +60,7 @@ using blender::Vector;
 
 void ED_mball_editmball_free(Object *obedit)
 {
-  MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+  MetaBall *mb = id_cast<MetaBall *>(obedit->data);
 
   mb->editelems = nullptr;
   mb->lastelem = nullptr;
@@ -69,7 +68,7 @@ void ED_mball_editmball_free(Object *obedit)
 
 void ED_mball_editmball_make(Object *obedit)
 {
-  MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+  MetaBall *mb = id_cast<MetaBall *>(obedit->data);
   MetaElem *ml; /*, *newml;*/
 
   ml = static_cast<MetaElem *>(mb->elems.first);
@@ -110,7 +109,7 @@ bool ED_mball_deselect_all_multi(bContext *C)
 MetaElem *ED_mball_add_primitive(
     bContext * /*C*/, Object *obedit, bool obedit_is_new, float mat[4][4], float dia, int type)
 {
-  MetaBall *mball = blender::id_cast<MetaBall *>(obedit->data);
+  MetaBall *mball = id_cast<MetaBall *>(obedit->data);
   MetaElem *ml;
 
   /* Deselect all existing metaelems */
@@ -173,7 +172,7 @@ static wmOperatorStatus mball_select_all_exec(bContext *C, wmOperator *op)
 
   for (Base *base : bases) {
     Object *obedit = base->object;
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
   }
@@ -219,11 +218,8 @@ static const EnumPropertyItem prop_similar_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void mball_select_similar_type_get(Object *obedit,
-                                          MetaBall *mb,
-                                          int type,
-                                          blender::KDTree_1d *tree_1d,
-                                          blender::KDTree_3d *tree_3d)
+static void mball_select_similar_type_get(
+    Object *obedit, MetaBall *mb, int type, KDTree_1d *tree_1d, KDTree_3d *tree_3d)
 {
   float tree_entry[3] = {0.0f, 0.0f, 0.0f};
   int tree_index = 0;
@@ -256,10 +252,10 @@ static void mball_select_similar_type_get(Object *obedit,
         }
       }
       if (tree_1d) {
-        blender::kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
+        kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
       }
       else {
-        blender::kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
+        kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
       }
     }
   }
@@ -268,8 +264,8 @@ static void mball_select_similar_type_get(Object *obedit,
 static bool mball_select_similar_type(Object *obedit,
                                       MetaBall *mb,
                                       int type,
-                                      const blender::KDTree_1d *tree_1d,
-                                      const blender::KDTree_3d *tree_3d,
+                                      const KDTree_1d *tree_1d,
+                                      const KDTree_3d *tree_3d,
                                       const float thresh)
 {
   bool changed = false;
@@ -307,8 +303,8 @@ static bool mball_select_similar_type(Object *obedit,
 
         float thresh_cos = cosf(thresh * float(M_PI_2));
 
-        blender::KDTreeNearest_3d nearest;
-        if (blender::kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
+        KDTreeNearest_3d nearest;
+        if (kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
           float orient = angle_normalized_v3v3(dir, nearest.co);
           /* Map to 0-1 to compare orientation. */
           float delta = thresh_cos - fabsf(cosf(orient));
@@ -342,23 +338,23 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
   tot_mball_selected_all = BKE_mball_select_count_multi(bases);
 
   short type_ref = 0;
-  blender::KDTree_1d *tree_1d = nullptr;
-  blender::KDTree_3d *tree_3d = nullptr;
+  KDTree_1d *tree_1d = nullptr;
+  KDTree_3d *tree_3d = nullptr;
 
   switch (type) {
     case SIMMBALL_RADIUS:
     case SIMMBALL_STIFFNESS:
-      tree_1d = blender::kdtree_1d_new(tot_mball_selected_all);
+      tree_1d = kdtree_1d_new(tot_mball_selected_all);
       break;
     case SIMMBALL_ROTATION:
-      tree_3d = blender::kdtree_3d_new(tot_mball_selected_all);
+      tree_3d = kdtree_3d_new(tot_mball_selected_all);
       break;
   }
 
   /* Get type of selected MetaBall */
   for (Base *base : bases) {
     Object *obedit = base->object;
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
 
     switch (type) {
       case SIMMBALL_TYPE: {
@@ -382,17 +378,17 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
   }
 
   if (tree_1d != nullptr) {
-    blender::kdtree_1d_deduplicate(tree_1d);
-    blender::kdtree_1d_balance(tree_1d);
+    kdtree_1d_deduplicate(tree_1d);
+    kdtree_1d_balance(tree_1d);
   }
   if (tree_3d != nullptr) {
-    blender::kdtree_3d_deduplicate(tree_3d);
-    blender::kdtree_3d_balance(tree_3d);
+    kdtree_3d_deduplicate(tree_3d);
+    kdtree_3d_balance(tree_3d);
   }
   /* Select MetaBalls with desired type. */
   for (Base *base : bases) {
     Object *obedit = base->object;
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     bool changed = false;
 
     switch (type) {
@@ -423,10 +419,10 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
   }
 
   if (tree_1d != nullptr) {
-    blender::kdtree_1d_free(tree_1d);
+    kdtree_1d_free(tree_1d);
   }
   if (tree_3d != nullptr) {
-    blender::kdtree_3d_free(tree_3d);
+    kdtree_3d_free(tree_3d);
   }
   return OPERATOR_FINISHED;
 }
@@ -470,7 +466,7 @@ static wmOperatorStatus select_random_metaelems_exec(bContext *C, wmOperator *op
       scene, view_layer, CTX_wm_view3d(C));
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     if (!BKE_mball_is_any_unselected(mb)) {
       continue;
     }
@@ -534,7 +530,7 @@ static wmOperatorStatus duplicate_metaelems_exec(bContext *C, wmOperator * /*op*
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     MetaElem *ml, *newml;
 
     if (!BKE_mball_is_any_selected(mb)) {
@@ -589,7 +585,7 @@ static wmOperatorStatus delete_metaelems_exec(bContext *C, wmOperator * /*op*/)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     MetaElem *ml, *next;
 
     if (!BKE_mball_is_any_selected(mb)) {
@@ -626,7 +622,7 @@ static wmOperatorStatus delete_metaelems_invoke(bContext *C,
                                   IFACE_("Delete selected metaball elements?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return delete_metaelems_exec(C, op);
@@ -658,7 +654,7 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 static wmOperatorStatus hide_metaelems_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+  MetaBall *mb = id_cast<MetaBall *>(obedit->data);
   MetaElem *ml;
   const bool invert = RNA_boolean_get(op->ptr, "unselected") ? SELECT : false;
 
@@ -706,7 +702,7 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 static wmOperatorStatus reveal_metaelems_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+  MetaBall *mb = id_cast<MetaBall *>(obedit->data);
   const bool select = RNA_boolean_get(op->ptr, "select");
   bool changed = false;
 
@@ -765,7 +761,7 @@ Base *ED_mball_base_and_elem_from_select_buffer(const Span<Base *> bases,
   }
   if (base != nullptr) {
     const uint hit_elem = (select_id & ~MBALLSEL_ANY) >> 16;
-    MetaBall *mb = blender::id_cast<MetaBall *>(base->object->data);
+    MetaBall *mb = id_cast<MetaBall *>(base->object->data);
     ml = static_cast<MetaElem *>(BLI_findlink(mb->editelems, hit_elem));
   }
   *r_ml = ml;
@@ -806,7 +802,7 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
   if (use_cycle) {
     /* When cycling, use the hit directly after the current active meta-element (when set). */
     const int base_index = vc.obact->runtime->select_id;
-    MetaBall *mb = blender::id_cast<MetaBall *>(vc.obact->data);
+    MetaBall *mb = id_cast<MetaBall *>(vc.obact->data);
     MetaElem *ml = mb->lastelem;
     if (ml && (ml->flag & SELECT)) {
       const int ml_index = BLI_findindex(mb->editelems, ml);
@@ -911,7 +907,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Param
     }
     const Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    MetaBall *mb = blender::id_cast<MetaBall *>(base->object->data);
+    MetaBall *mb = id_cast<MetaBall *>(base->object->data);
     mb->lastelem = ml;
 
     DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
@@ -919,7 +915,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Param
 
     BKE_view_layer_synced_ensure(scene, view_layer);
     if (BKE_view_layer_active_base_get(view_layer) != base) {
-      blender::ed::object::base_activate(C, base);
+      ed::object::base_activate(C, base);
     }
 
     changed = true;
@@ -929,3 +925,5 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Param
 }
 
 /** \} */
+
+}  // namespace blender

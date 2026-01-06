@@ -6,13 +6,14 @@
  * \ingroup bli
  */
 
+#pragma once
+
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 
 #include <cmath>
 
-#ifndef __MATH_COLOR_INLINE_C__
-#  define __MATH_COLOR_INLINE_C__
+namespace blender {
 
 /******************************** Color Space ********************************/
 
@@ -354,4 +355,4 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
   }
 }
 
-#endif /* !__MATH_COLOR_INLINE_C__ */
+}  // namespace blender

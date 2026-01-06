@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Scene;
 struct ScrArea;
 struct TimeMarker;
@@ -131,3 +133,5 @@ void ED_keymap_marker(wmKeyConfig *keyconf);
 void debug_markers_print_list(ListBaseT<TimeMarker> *markers);
 
 /** \} */
+
+}  // namespace blender

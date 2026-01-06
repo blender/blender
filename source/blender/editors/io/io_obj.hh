@@ -8,11 +8,15 @@
 
 #pragma once
 
+namespace blender {
+
 struct wmOperatorType;
 
 void WM_OT_obj_export(wmOperatorType *ot);
 void WM_OT_obj_import(wmOperatorType *ot);
 
-namespace blender::ed::io {
+namespace ed::io {
 void obj_file_handler_add();
 }
+
+}  // namespace blender

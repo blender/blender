@@ -18,7 +18,9 @@
 
 #include "GPU_format.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 enum class VertAttrType : uint8_t {
   Invalid = 0,
@@ -151,7 +153,7 @@ inline constexpr DataFormat to_data_format(VertAttrType format)
 
 class Shader;
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 constexpr static int GPU_VERT_ATTR_MAX_LEN = 16;
 constexpr static int GPU_VERT_ATTR_MAX_NAMES = 6;
@@ -186,7 +188,7 @@ enum GPUVertFetchMode {
 struct GPUVertAttr {
   /* To replace fetch_mode, comp_type, comp_len, size. */
   struct Type {
-    blender::gpu::VertAttrType format;
+    gpu::VertAttrType format;
 
     size_t size() const
     {
@@ -232,12 +234,11 @@ struct GPUVertFormat {
   char names[GPU_VERT_ATTR_NAMES_BUF_LEN];
 
   void pack();
-  uint attribute_add(blender::StringRef name, blender::gpu::VertAttrType type, size_t offset = -1);
+  uint attribute_add(StringRef name, gpu::VertAttrType type, size_t offset = -1);
 };
 
 #define GPU_VERTEX_FORMAT_ADD_ATTR(attr) \
-  format.attribute_add( \
-      #attr, blender::gpu::AttrType<decltype(attr)>::type, offsetof(VertT, attr)); \
+  format.attribute_add(#attr, gpu::AttrType<decltype(attr)>::type, offsetof(VertT, attr)); \
   BLI_STATIC_ASSERT(offsetof(VertT, attr) < 255, #attr " has offset greater than 255") \
   BLI_STATIC_ASSERT(offsetof(VertT, attr) % 4 == 0, #attr " is not aligned to 4 bytes")
 
@@ -306,7 +307,7 @@ struct GPUVertFormat {
     return format; \
   }
 
-namespace blender::gpu {
+namespace gpu {
 
 /** Generic vertex format for single attribute buffers. */
 template<typename T> struct GenericVertexFormat {
@@ -338,28 +339,25 @@ template<> struct GenericVertexFormat<bool> {
   GPU_VERTEX_FORMAT_FUNC(GenericVertexFormat, attr);
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 void GPU_vertformat_clear(GPUVertFormat *);
 void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat &src);
-void GPU_vertformat_from_shader(GPUVertFormat *format, const blender::gpu::Shader *shader);
+void GPU_vertformat_from_shader(GPUVertFormat *format, const gpu::Shader *shader);
 
-uint GPU_vertformat_attr_add(GPUVertFormat *format,
-                             blender::StringRef name,
-                             blender::gpu::VertAttrType type);
+uint GPU_vertformat_attr_add(GPUVertFormat *format, StringRef name, gpu::VertAttrType type);
 /* Legacy/unsafe version.
  * TODO: Replace by vertex_format_combine. */
 uint GPU_vertformat_attr_add_legacy(
-    GPUVertFormat *, blender::StringRef name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
+    GPUVertFormat *, StringRef name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
 
-void GPU_vertformat_alias_add(GPUVertFormat *, blender::StringRef alias);
+void GPU_vertformat_alias_add(GPUVertFormat *, StringRef alias);
 
 /**
  * Return a vertex format from a single attribute description.
  * The attribute ID is ensured to be 0.
  */
-GPUVertFormat GPU_vertformat_from_attribute(blender::StringRef name,
-                                            blender::gpu::VertAttrType type);
+GPUVertFormat GPU_vertformat_from_attribute(StringRef name, gpu::VertAttrType type);
 
 /**
  * Makes vertex attribute from the next vertices to be accessible in the vertex shader.
@@ -390,7 +388,7 @@ void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count);
  */
 void GPU_vertformat_deinterleave(GPUVertFormat *format);
 
-int GPU_vertformat_attr_id_get(const GPUVertFormat *, blender::StringRef name);
+int GPU_vertformat_attr_id_get(const GPUVertFormat *, StringRef name);
 
 BLI_INLINE const char *GPU_vertformat_attr_name_get(const GPUVertFormat *format,
                                                     const GPUVertAttr *attr,
@@ -409,4 +407,6 @@ void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr, const char *new
  * \warning Always add a prefix to the result of this function as
  * the generated string can start with a number and not be a valid attribute name.
  */
-void GPU_vertformat_safe_attr_name(blender::StringRef attr_name, char *r_safe_name, uint max_len);
+void GPU_vertformat_safe_attr_name(StringRef attr_name, char *r_safe_name, uint max_len);
+
+}  // namespace blender

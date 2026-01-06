@@ -21,8 +21,7 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-using blender::int2;
-using blender::Span;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Draw Line
@@ -476,3 +475,5 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
 }
 
 /** \} */
+
+}  // namespace blender

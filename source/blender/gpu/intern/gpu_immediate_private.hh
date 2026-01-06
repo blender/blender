@@ -17,7 +17,9 @@
 #include "GPU_shader.hh"
 #include "GPU_vertex_format.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 class Immediate {
  public:
@@ -61,7 +63,9 @@ class Immediate {
   void polyline_draw_workaround(uint64_t offset);
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 void immActivate();
 void immDeactivate();
+
+}  // namespace blender

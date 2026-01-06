@@ -422,19 +422,19 @@ void template_collection_exporters(Layout *layout, bContext *C)
   /* Draw exporter list and controls. */
   PointerRNA collection_ptr = RNA_id_pointer_create(&collection->id);
   Layout &row = layout->row(false);
-  blender::ui::template_list(&row,
-                             C,
-                             exporter_item_list->idname,
-                             "",
-                             &collection_ptr,
-                             "exporters",
-                             &collection_ptr,
-                             "active_exporter_index",
-                             nullptr,
-                             3,
-                             5,
-                             UILST_LAYOUT_DEFAULT,
-                             TEMPLATE_LIST_FLAG_NONE);
+  ui::template_list(&row,
+                    C,
+                    exporter_item_list->idname,
+                    "",
+                    &collection_ptr,
+                    "exporters",
+                    &collection_ptr,
+                    "active_exporter_index",
+                    nullptr,
+                    3,
+                    5,
+                    UILST_LAYOUT_DEFAULT,
+                    TEMPLATE_LIST_FLAG_NONE);
 
   Layout *col = &row.column(true);
   col->menu("COLLECTION_MT_exporter_add", "", ICON_ADD);

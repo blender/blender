@@ -33,10 +33,13 @@
 #  include <mntent.h>
 
 #  include "CLG_log.h"
+
 static CLG_LogRef LOG = {"system.path"};
 #endif
 
 #include "fsmenu.hh"
+
+namespace blender {
 
 struct FSMenu;
 
@@ -272,3 +275,5 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
     }
   }
 }
+
+}  // namespace blender

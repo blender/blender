@@ -24,15 +24,17 @@
 #include "../asset/ED_asset_filter.hh"  // IWYU pragma: export
 #include "../asset/ED_asset_import.hh"  // IWYU pragma: export
 
+namespace blender {
+
 /** From UI_resources.hh. */
 using BIFIconID = int;
 
 struct PointerRNA;
-namespace blender::ui {
+namespace ui {
 struct TooltipData;
 }
 
-namespace blender::ed::asset {
+namespace ed::asset {
 
 void asset_tooltip(const asset_system::AssetRepresentation &asset,
                    ui::TooltipData &tip,
@@ -63,4 +65,5 @@ void visit_library_catalogs_catalog_for_search(
     StringRef edit_text,
     const FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
-}  // namespace blender::ed::asset
+}  // namespace ed::asset
+}  // namespace blender

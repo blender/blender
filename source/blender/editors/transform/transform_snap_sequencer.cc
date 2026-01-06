@@ -391,17 +391,17 @@ static void points_build_3x3_grid(const Scene *scene, TransSeqSnapData *snap_dat
   }
 
   /* Middle top, bottom and center of the image. */
-  const float2 tm = blender::math::interpolate(strip_image_quad[0], strip_image_quad[3], 0.5f);
-  const float2 bm = blender::math::interpolate(strip_image_quad[1], strip_image_quad[2], 0.5f);
-  const float2 mm = blender::math::interpolate(bm, tm, 0.5f);
+  const float2 tm = math::interpolate(strip_image_quad[0], strip_image_quad[3], 0.5f);
+  const float2 bm = math::interpolate(strip_image_quad[1], strip_image_quad[2], 0.5f);
+  const float2 mm = math::interpolate(bm, tm, 0.5f);
   snap_data->target_snap_points.append(tm);
   snap_data->target_snap_points.append(mm);
   snap_data->target_snap_points.append(bm);
   /* Left and right. */
   snap_data->target_snap_points.append(
-      blender::math::interpolate(strip_image_quad[2], strip_image_quad[3], 0.5f));
+      math::interpolate(strip_image_quad[2], strip_image_quad[3], 0.5f));
   snap_data->target_snap_points.append(
-      blender::math::interpolate(strip_image_quad[0], strip_image_quad[1], 0.5f));
+      math::interpolate(strip_image_quad[0], strip_image_quad[1], 0.5f));
 }
 
 static void points_build_targets_preview_origin(const Scene *scene,
@@ -571,7 +571,7 @@ static bool snap_calc_preview_origin(TransInfo *t, const TransSeqSnapData *snap_
       /* First update snaps in x direction, then y direction. */
       const float2 transformed_point(snap_source_point.x + t->values[0],
                                      snap_source_point.y + t->values[1]);
-      const float dist = blender::math::distance(snap_target_point, transformed_point);
+      const float dist = math::distance(snap_target_point, transformed_point);
       if (dist > best_dist) {
         continue;
       }

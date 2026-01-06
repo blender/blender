@@ -198,12 +198,8 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
     storage->loop_uv_indices = MEM_malloc_arrayN<int>(size_t(mesh->corners_num),
                                                       "loop uv vertex index");
   }
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(storage->faces,
-                                                       storage->corner_verts,
-                                                       uv_map,
-                                                       num_vert,
-                                                       blender::float2(STD_UV_CONNECT_LIMIT),
-                                                       true);
+  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
+      storage->faces, storage->corner_verts, uv_map, num_vert, float2(STD_UV_CONNECT_LIMIT), true);
   /* NOTE: First UV vertex is supposed to be always marked as separate. */
   storage->num_uv_coordinates = -1;
   for (int vertex_index = 0; vertex_index < num_vert; vertex_index++) {

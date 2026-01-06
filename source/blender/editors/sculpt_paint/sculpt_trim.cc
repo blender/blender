@@ -136,8 +136,8 @@ struct TrimOperation {
   bool use_cursor_depth;
 
   bool initial_hit;
-  blender::float3 initial_location;
-  blender::float3 initial_normal;
+  float3 initial_location;
+  float3 initial_normal;
 
   OperationType mode;
   geometry::boolean::Solver solver_mode;
@@ -538,7 +538,7 @@ static void apply_trim(gesture::GestureData &gesture_data)
 {
   TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   Object *object = gesture_data.vc.obact;
-  Mesh &sculpt_mesh = *blender::id_cast<Mesh *>(object->data);
+  Mesh &sculpt_mesh = *id_cast<Mesh *>(object->data);
   Mesh &trim_mesh = *trim_operation->mesh;
 
   geometry::boolean::Operation boolean_op;
@@ -614,7 +614,7 @@ static void free_geometry(gesture::GestureData &gesture_data)
 static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
   Object *object = gesture_data.vc.obact;
-  Mesh *mesh = blender::id_cast<Mesh *>(object->data);
+  Mesh *mesh = id_cast<Mesh *>(object->data);
 
   /* Assign a new face set ID to the new faces created by the trim operation. */
   const int next_face_set_id = face_set::find_next_available_id(*object);
@@ -713,7 +713,7 @@ static bool can_invoke(const bContext &C)
   return true;
 }
 
-static void report_invalid_mode(const blender::bke::pbvh::Type pbvh_type, ReportList &reports)
+static void report_invalid_mode(const bke::pbvh::Type pbvh_type, ReportList &reports)
 {
   if (pbvh_type == bke::pbvh::Type::BMesh) {
     BKE_report(&reports, RPT_ERROR, "Not supported in dynamic topology mode");
@@ -736,7 +736,7 @@ static bool can_exec(const bContext &C, ReportList &reports)
     return false;
   }
 
-  if (blender::id_cast<const Mesh *>(object.data)->faces_num == 0) {
+  if (id_cast<const Mesh *>(object.data)->faces_num == 0) {
     /* No geometry to trim or to detect a valid position for the trimming shape. */
     return false;
   }

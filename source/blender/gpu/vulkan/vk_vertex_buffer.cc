@@ -17,9 +17,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 VKVertexBuffer::~VKVertexBuffer()
 {
@@ -212,4 +214,5 @@ void VKVertexBuffer::allocate()
   debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

@@ -4,13 +4,16 @@
 
 #include <pxr/usd/usdGeom/primvar.h>
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 void read_generic_mesh_primvar(Mesh *mesh,
                                const pxr::UsdGeomPrimvar &primvar,
                                pxr::UsdTimeCode time,
                                bool is_left_handed);
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

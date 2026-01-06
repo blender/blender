@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * A specialization of `blender::DefaultHash<T>` provides a hash function for values of type T.
+ * A specialization of `DefaultHash<T>` provides a hash function for values of type T.
  * This hash function is used by default in hash table implementations in blenlib.
  *
  * The actual hash function is in the `operator()` method of `DefaultHash<T>`. The following code
@@ -17,7 +17,7 @@
  *   DefaultHash<T> hash_function;
  *   uint32_t hash = hash_function(value);
  *
- * Hash table implementations like blender::Set support heterogeneous key lookups. That means that
+ * Hash table implementations like Set support heterogeneous key lookups. That means that
  * one can do a lookup with a key of type A in a hash table that stores keys of type B. This is
  * commonly done when B is std::string, because the conversion from e.g. a #StringRef to
  * std::string can be costly and is unnecessary. To make this work, values of type A and B that
@@ -44,7 +44,7 @@
  *   specialization to the #DefaultHash struct. This can be done by writing code like below in
  *   either global or `blender` namespace.
  *
- *     template<> struct blender::DefaultHash<TheType> {
+ *     template<> struct DefaultHash<TheType> {
  *       uint64_t operator()(const TheType &value) const {
  *         return ...;
  *       }
@@ -216,7 +216,7 @@ template<typename T> struct DefaultHash<T *> {
   }
 };
 
-namespace detail {
+namespace blenlib_detail {
 static constexpr std::array<uint64_t, 5> default_hash_factors = {
     19349669, 83492791, 3632623, 8789800933, 7235126189};
 
@@ -228,13 +228,14 @@ inline uint64_t get_default_hash_array(std::index_sequence<I...> /*indices*/, co
   return (0 ^ ... ^ (default_hash_factors[I] * DefaultHash<std::decay_t<Args>>{}(args)));
 }
 
-}  // namespace detail
+}  // namespace blenlib_detail
 
 template<typename T, typename... Args>
 inline uint64_t get_default_hash(const T &v, const Args &...args)
 {
   return DefaultHash<std::decay_t<T>>{}(v) ^
-         detail::get_default_hash_array(std::make_index_sequence<sizeof...(Args)>(), args...);
+         blenlib_detail::get_default_hash_array(std::make_index_sequence<sizeof...(Args)>(),
+                                                args...);
 }
 
 /** Support hashing different kinds of pointer types. */

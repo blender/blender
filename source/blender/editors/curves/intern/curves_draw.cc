@@ -41,11 +41,13 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.hh"
 
+namespace blender {
+
 extern "C" {
 #include "curve_fit_nd.h"
 }
 
-namespace blender::ed::curves {
+namespace ed::curves {
 
 /* Distance between input samples */
 #define STROKE_SAMPLE_DIST_MIN_PX 1
@@ -403,8 +405,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
 
     {
       GPUVertFormat *format = immVertexFormat();
-      uint pos = GPU_vertformat_attr_add(
-          format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+      uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       GPU_depth_test(GPU_DEPTH_NONE);
@@ -768,7 +769,7 @@ static wmOperatorStatus curves_draw_exec(bContext *C, wmOperator *op)
   const float radius_max = cps->radius_max;
   const float radius_range = cps->radius_max - cps->radius_min;
 
-  Curves *curves_id = blender::id_cast<Curves *>(obedit->data);
+  Curves *curves_id = id_cast<Curves *>(obedit->data);
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   const int curve_index = curves.curves_num();
 
@@ -1368,4 +1369,5 @@ void CURVES_OT_draw(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-}  // namespace blender::ed::curves
+}  // namespace ed::curves
+}  // namespace blender

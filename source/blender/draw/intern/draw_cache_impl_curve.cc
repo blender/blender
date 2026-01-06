@@ -551,10 +551,8 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata,
     GPUVertFormat format{};
     attr_id.pos = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     attr_id.rad = GPU_vertformat_attr_add(&format, "rad", gpu::VertAttrType::SFLOAT_32);
-    attr_id.nor = GPU_vertformat_attr_add(
-        &format, "nor", blender::gpu::VertAttrType::SNORM_10_10_10_2);
-    attr_id.tan = GPU_vertformat_attr_add(
-        &format, "tangent", blender::gpu::VertAttrType::SNORM_10_10_10_2);
+    attr_id.nor = GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SNORM_10_10_10_2);
+    attr_id.tan = GPU_vertformat_attr_add(&format, "tangent", gpu::VertAttrType::SNORM_10_10_10_2);
     return format;
   }();
 
@@ -847,7 +845,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene)
 {
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT));
 
-  Curve *cu = blender::id_cast<Curve *>(ob->data);
+  Curve *cu = id_cast<Curve *>(ob->data);
   CurveBatchCache *cache = curve_batch_cache_get(cu);
 
   /* Init batches and request VBOs & IBOs */

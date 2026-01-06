@@ -15,6 +15,8 @@
 
 #ifdef RNA_RUNTIME
 
+namespace blender {
+
 #  include "DNA_vfont_types.h"
 
 #  include "BKE_lib_id.hh"
@@ -44,7 +46,11 @@ static void rna_VectorFont_unpack(VFont *vfont, Main *bmain, ReportList *reports
   BKE_packedfile_unpack_vfont(bmain, reports, vfont, ePF_FileStatus(method));
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_vfont(StructRNA *srna)
 {
@@ -60,5 +66,7 @@ void RNA_api_vfont(StructRNA *srna)
   RNA_def_enum(
       func, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "method", "How to unpack");
 }
+
+}  // namespace blender
 
 #endif

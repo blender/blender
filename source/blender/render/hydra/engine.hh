@@ -22,13 +22,16 @@
 #include "light_tasks_delegate.hh"
 #include "render_task_delegate.hh"
 
-struct bContext;
-struct RenderEngine;
 struct CLG_LogRef;
 
-namespace blender::render::hydra {
+namespace blender {
 
-extern struct CLG_LogRef *LOG_HYDRA_RENDER;
+struct bContext;
+struct RenderEngine;
+
+namespace render::hydra {
+
+extern CLG_LogRef *LOG_HYDRA_RENDER;
 
 class Engine {
  protected:
@@ -69,4 +72,5 @@ class Engine {
                              const std::string &info) = 0;
 };
 
-}  // namespace blender::render::hydra
+}  // namespace render::hydra
+}  // namespace blender

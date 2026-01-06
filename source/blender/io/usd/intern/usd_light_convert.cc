@@ -44,6 +44,9 @@
 #include <string>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
@@ -54,11 +57,10 @@ static const pxr::TfToken pole_axis_z("Z", pxr::TfToken::Immortal);
 namespace {
 
 struct WorldNtreeSearchPayload {
-  const blender::io::usd::USDExportParams &params;
+  const io::usd::USDExportParams &params;
   pxr::UsdStageRefPtr stage;
 
-  WorldNtreeSearchPayload(const blender::io::usd::USDExportParams &in_params,
-                          pxr::UsdStageRefPtr in_stage)
+  WorldNtreeSearchPayload(const io::usd::USDExportParams &in_params, pxr::UsdStageRefPtr in_stage)
       : params(in_params), stage(in_stage)
   {
   }
@@ -66,7 +68,7 @@ struct WorldNtreeSearchPayload {
 
 }  // End anonymous namespace.
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /**
  * Load the image at the given path.  Handle packing and copying based in the import options.
@@ -484,4 +486,5 @@ void world_material_to_dome_light(const Scene *scene, WorldToDomeLight &res)
   }
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

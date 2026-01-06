@@ -19,11 +19,11 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 #define NL "\r\n"
 
-namespace deg = blender::deg;
-
-namespace blender::deg {
+namespace deg {
 namespace {
 
 struct DebugContext {
@@ -133,7 +133,7 @@ void deg_debug_stats_gnuplot(const DebugContext &ctx)
 }
 
 }  // namespace
-}  // namespace blender::deg
+}  // namespace deg
 
 void DEG_debug_stats_gnuplot(const Depsgraph *depsgraph,
                              FILE *fp,
@@ -150,3 +150,5 @@ void DEG_debug_stats_gnuplot(const Depsgraph *depsgraph,
   ctx.output_filename = output_filename;
   deg::deg_debug_stats_gnuplot(ctx);
 }
+
+}  // namespace blender

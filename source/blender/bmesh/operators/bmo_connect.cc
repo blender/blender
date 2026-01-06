@@ -19,6 +19,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define VERT_INPUT 1
 
 #define EDGE_OUT 1
@@ -32,12 +34,10 @@
 static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenerate)
 {
   const uint pair_split_max = f->len / 2;
-  blender::Array<std::array<BMLoop *, 2>, BM_DEFAULT_NGON_STACK_SIZE> loops_split_buf(
-      pair_split_max);
+  Array<std::array<BMLoop *, 2>, BM_DEFAULT_NGON_STACK_SIZE> loops_split_buf(pair_split_max);
   BMLoop *(*loops_split)[2] = reinterpret_cast<BMLoop *(*)[2]>(loops_split_buf.data());
   STACK_DECLARE(loops_split);
-  blender::Array<std::array<BMVert *, 2>, BM_DEFAULT_NGON_STACK_SIZE> verts_pair_buf(
-      pair_split_max);
+  Array<std::array<BMVert *, 2>, BM_DEFAULT_NGON_STACK_SIZE> verts_pair_buf(pair_split_max);
   std::array<BMVert *, 2> *verts_pair = verts_pair_buf.data();
   STACK_DECLARE(verts_pair);
 
@@ -216,3 +216,5 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_from_enabled_flag(
       bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT | EDGE_OUT_ADJ);
 }
+
+}  // namespace blender

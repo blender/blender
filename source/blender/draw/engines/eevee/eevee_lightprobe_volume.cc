@@ -756,7 +756,8 @@ void IrradianceBake::init(const Object &probe_object)
 {
   float max_axis_len = math::reduce_max(math::to_scale(probe_object.object_to_world()));
 
-  const ::LightProbe &lightprobe = DRW_object_get_data_for_drawing<::LightProbe>(probe_object);
+  const blender::LightProbe &lightprobe = DRW_object_get_data_for_drawing<blender::LightProbe>(
+      probe_object);
   surfel_density_ = lightprobe.grid_surfel_density / max_axis_len;
   min_distance_to_surface_ = lightprobe.grid_surface_bias;
   max_virtual_offset_ = lightprobe.grid_escape_bias;
@@ -989,7 +990,8 @@ void IrradianceBake::surfels_create(const Object &probe_object)
    */
   using namespace blender::math;
 
-  const ::LightProbe &lightprobe = DRW_object_get_data_for_drawing<::LightProbe>(probe_object);
+  const blender::LightProbe &lightprobe = DRW_object_get_data_for_drawing<blender::LightProbe>(
+      probe_object);
 
   int3 grid_resolution = int3(&lightprobe.grid_resolution_x);
   float4x4 grid_local_to_world = invert(probe_object.world_to_object());

@@ -41,6 +41,8 @@
 #  include "dualcon.h"
 #endif
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   RemeshModifierData *rmd = reinterpret_cast<RemeshModifierData *>(md);
@@ -54,17 +56,17 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   memset(input, 0, sizeof(DualConInput));
 
   input->co = (DualConCo)mesh->vert_positions().data();
-  input->co_stride = sizeof(blender::float3);
+  input->co_stride = sizeof(float3);
   input->totco = mesh->verts_num;
 
   input->corner_verts = (DualConCornerVerts)mesh->corner_verts().data();
   input->corner_verts_stride = sizeof(int);
 
   input->corner_tris = (DualConTri)mesh->corner_tris().data();
-  input->tri_stride = sizeof(blender::int3);
+  input->tri_stride = sizeof(int3);
   input->tottri = BKE_mesh_runtime_corner_tris_len(mesh);
 
-  const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
+  const Bounds<float3> bounds = *mesh->bounds_min_max();
   copy_v3_v3(input->min, bounds.min);
   copy_v3_v3(input->max, bounds.max);
 }
@@ -73,7 +75,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
  * keep track of the current elements */
 struct DualConOutput {
   Mesh *mesh;
-  blender::float3 *vert_positions;
+  float3 *vert_positions;
   int *face_offsets;
   int *corner_verts;
   int curvert, curface;
@@ -125,7 +127,6 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  using namespace blender;
   RemeshModifierData *rmd = (RemeshModifierData *)md;
   Mesh *result;
 
@@ -199,7 +200,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   BKE_mesh_copy_parameters_for_eval(result, mesh);
   bke::mesh_calc_edges(*result, true, false);
 
-  blender::geometry::debug_randomize_mesh_order(result);
+  geometry::debug_randomize_mesh_order(result);
 
   return result;
 }
@@ -215,7 +216,7 @@ static Mesh *modify_mesh(ModifierData * /*md*/, const ModifierEvalContext * /*ct
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 #ifdef WITH_MOD_REMESH
 
   PointerRNA ob_ptr;
@@ -223,11 +224,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout.prop(ptr, "mode", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   if (mode == MOD_REMESH_VOXEL) {
     col.prop(ptr, "voxel_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "adaptivity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -241,7 +242,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     }
 
     layout.prop(ptr, "use_remove_disconnected", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    blender::ui::Layout &row = layout.row(false);
+    ui::Layout &row = layout.row(false);
     row.active_set(RNA_boolean_get(ptr, "use_remove_disconnected"));
     row.prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -295,3 +296,5 @@ ModifierTypeInfo modifierType_Remesh = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

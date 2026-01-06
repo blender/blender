@@ -12,6 +12,8 @@
 
 #include "BLI_math_vector.h"
 
+namespace blender {
+
 struct Dial {
   /* center of the dial */
   float center[2];
@@ -93,3 +95,5 @@ float BLI_dial_angle(Dial *dial, const float current_position[2])
 
   return dial->last_angle;
 }
+
+}  // namespace blender

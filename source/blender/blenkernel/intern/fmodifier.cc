@@ -29,6 +29,8 @@
 
 #include "BKE_fcurve.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"anim.fmodifier"};
 
 /* -------------------------------------------------------------------- */
@@ -838,8 +840,8 @@ static void fcm_noise_evaluate(const FCurve * /*fcu*/,
     const float offset = 0.61803398874;
     /* Using float2 to generate a phase offset. Offsetting the evaltime by `offset` to ensure that
      * the noise at full frames isn't always at 0. */
-    noise = blender::noise::perlin_fbm<blender::float2>(
-        blender::float2((evaltime - data->offset) * scale + offset, data->phase),
+    noise = noise::perlin_fbm<float2>(
+        float2((evaltime - data->offset) * scale + offset, data->phase),
         data->depth,
         data->roughness,
         data->lacunarity,
@@ -1513,3 +1515,5 @@ void fcurve_bake_modifiers(FCurve *fcu, int start, int end)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -14,9 +14,11 @@
 
 #include "node_function_util.hh"
 
+namespace blender {
+
 static_assert(-1 == ~0, "Two's complement must be used for bitwise operations.");
 
-namespace blender::nodes::node_fn_bit_math_cc {
+namespace nodes::node_fn_bit_math_cc {
 
 enum BitMathOperation : int16_t {
   And = 0,
@@ -203,7 +205,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeBitMath");
   ntype.ui_name = "Bit Math";
@@ -215,9 +217,11 @@ static void node_register()
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.ui_description = "Perform bitwise operations on 32-bit integers";
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_fn_bit_math_cc
+}  // namespace nodes::node_fn_bit_math_cc
+
+}  // namespace blender

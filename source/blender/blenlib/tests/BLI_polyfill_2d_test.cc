@@ -30,6 +30,8 @@
 #  include "BLI_polyfill_2d_beautify.h"
 #endif
 
+namespace blender {
+
 static void polyfill_to_obj(const char *id,
                             const float poly[][2],
                             const uint poly_num,
@@ -93,7 +95,7 @@ static void test_polyfill_topology(const float /*poly*/[][2],
                                    const uint tris[][3],
                                    const uint tris_num)
 {
-  blender::Map<blender::OrderedEdge, int> edgehash;
+  Map<OrderedEdge, int> edgehash;
   uint i;
   for (i = 0; i < tris_num; i++) {
     uint j;
@@ -784,3 +786,5 @@ TEST(polyfill2d, Issue103913_axis_align_co_linear_no_zero_area_tri)
   };
   TEST_POLYFILL_TEMPLATE_STATIC(poly, POLYFILL2D_TEST_NO_ZERO_AREA_TRIS);
 }
+
+}  // namespace blender

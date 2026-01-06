@@ -17,14 +17,14 @@ namespace Freestyle {
 
 class RenderMonitor {
  public:
-  inline RenderMonitor(Render *re)
+  inline RenderMonitor(blender::Render *re)
   {
     _re = re;
   }
 
   virtual ~RenderMonitor() {}
 
-  inline void setInfo(string info)
+  inline void setInfo(std::string info)
   {
     if (_re && !info.empty()) {
       _re->i.infostr = info.c_str();
@@ -46,7 +46,7 @@ class RenderMonitor {
   }
 
  protected:
-  Render *_re;
+  blender::Render *_re;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:RenderMonitor")
 };

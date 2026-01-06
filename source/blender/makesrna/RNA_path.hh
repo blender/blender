@@ -22,6 +22,8 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct IDProperty;
 
 /**
@@ -320,3 +322,5 @@ std::optional<std::string> RNA_path_struct_property_py(PointerRNA *ptr,
  *   some_prop[10]
  */
 std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);
+
+}  // namespace blender

@@ -314,7 +314,7 @@ static void tonemapmodifier_apply(ModifierApplyContext &context,
 static void tonemapmodifier_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
   const int tonemap_type = RNA_enum_get(ptr, "tonemap_type");
 

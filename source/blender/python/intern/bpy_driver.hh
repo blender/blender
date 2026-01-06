@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 /**
  * For faster execution we keep a special dictionary for py-drivers, with
  * the needed modules and aliases.
@@ -28,3 +30,5 @@ extern bool BPY_driver_secure_bytecode_test_ex(PyObject *expr_code,
 extern bool BPY_driver_secure_bytecode_test(PyObject *expr_code,
                                             PyObject *py_namespace,
                                             const bool verbose);
+
+}  // namespace blender

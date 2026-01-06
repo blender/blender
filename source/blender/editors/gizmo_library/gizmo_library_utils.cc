@@ -36,6 +36,8 @@
 /* own includes */
 #include "gizmo_library_intern.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"tool.gizmo"};
 
 /* factor for precision tweaking */
@@ -289,3 +291,5 @@ wmGizmo *gizmo_find_from_properties(const IDProperty *properties,
 }
 
 /** \} */
+
+}  // namespace blender

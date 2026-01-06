@@ -17,6 +17,8 @@
 
 #include <stdio.h> /* for #FILE */
 
+namespace blender {
+
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non-inclusive (they won't remove the cfra) */
 #define PTCACHE_CLEAR_ALL 0
@@ -289,7 +291,7 @@ void BKE_ptcache_ids_from_object(ListBaseT<PTCacheID> *lb,
                                  struct Scene *scene,
                                  int duplis);
 
-using PointCacheIdFn = blender::FunctionRef<bool(PTCacheID &pid, ModifierData *md)>;
+using PointCacheIdFn = FunctionRef<bool(PTCacheID &pid, ModifierData *md)>;
 void BKE_ptcache_foreach_object_cache(struct Object &ob,
                                       struct Scene &scene,
                                       bool duplis,
@@ -415,3 +417,5 @@ void BKE_ptcache_blend_read_data(struct BlendDataReader *reader,
                                  ListBaseT<PointCache> *ptcaches,
                                  struct PointCache **ocache,
                                  int force_disk);
+
+}  // namespace blender

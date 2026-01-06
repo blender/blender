@@ -12,11 +12,12 @@
 #include "mtl_backend.hh"
 #include "mtl_shader_generate.hh"
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
-namespace blender::gpu {
+namespace gpu {
 
 struct Separator {};
 
@@ -1516,4 +1517,5 @@ void patch_create_info_atomic_workaround(std::unique_ptr<PatchedShaderCreateInfo
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

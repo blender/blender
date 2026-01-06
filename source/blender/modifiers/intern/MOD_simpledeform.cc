@@ -30,6 +30,8 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 #define BEND_EPS 0.000001f
 
 BLI_ALIGN_STRUCT struct DeformUserData {
@@ -421,7 +423,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   SimpleDeformModifierData *sdmd = reinterpret_cast<SimpleDeformModifierData *>(md);
   SimpleDeformModifier_do(sdmd,
@@ -434,15 +436,15 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int deform_method = RNA_enum_get(ptr, "deform_method");
 
-  blender::ui::Layout &row = layout.row(false);
-  row.prop(ptr, "deform_method", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  ui::Layout &row = layout.row(false);
+  row.prop(ptr, "deform_method", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -454,16 +456,15 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   layout.prop(ptr, "origin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "deform_axis", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "deform_axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
 
 static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
-  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::ITEM_R_TOGGLE |
-                                                  blender::ui::ITEM_R_FORCE_BLANK_DECORATE;
+  ui::Layout &layout = *panel->layout;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -472,7 +473,7 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  layout.prop(ptr, "limits", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "limits", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (ELEM(deform_method,
            MOD_SIMPLEDEFORM_MODE_TAPER,
@@ -481,7 +482,7 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
   {
     int deform_axis = RNA_enum_get(ptr, "deform_axis");
 
-    blender::ui::Layout &row = layout.row(true, IFACE_("Lock"));
+    ui::Layout &row = layout.row(true, IFACE_("Lock"));
     if (deform_axis != 0) {
       row.prop(ptr, "lock_x", toggles_flag, std::nullopt, ICON_NONE);
     }
@@ -542,3 +543,5 @@ ModifierTypeInfo modifierType_SimpleDeform = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

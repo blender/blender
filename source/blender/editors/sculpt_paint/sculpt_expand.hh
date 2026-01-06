@@ -13,13 +13,15 @@
 #include "BLI_set.hh"
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 struct Brush;
 struct Scene;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 class Node;
 }
 
-namespace blender::ed::sculpt_paint::expand {
+namespace ed::sculpt_paint::expand {
 
 enum class FalloffType {
   Geodesic,
@@ -176,4 +178,6 @@ struct Cache {
   int normal_falloff_blur_steps;
 };
 
-}  // namespace blender::ed::sculpt_paint::expand
+}  // namespace ed::sculpt_paint::expand
+
+}  // namespace blender

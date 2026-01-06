@@ -19,6 +19,8 @@
 #include "WM_types.hh"
 #include "message_bus/intern/wm_message_bus_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------------- */
 
 static uint wm_msg_static_gset_hash(const void *key_p)
@@ -133,3 +135,5 @@ void WM_msg_subscribe_static(wmMsgBus *mbus,
   params.event = event;
   WM_msg_subscribe_static_params(mbus, &params, msg_val_params, id_repr);
 }
+
+}  // namespace blender

@@ -40,6 +40,8 @@
 
 #include "UI_resources.hh"
 
+namespace blender {
+
 /* ************************************************** */
 /* GREASE PENCIL DRAWING */
 
@@ -109,7 +111,7 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
                                           short dflag,
                                           const float ink[4])
 {
-  bGPdata_Runtime runtime = blender::dna::shallow_copy(gps->runtime);
+  bGPdata_Runtime runtime = dna::shallow_copy(gps->runtime);
   const tGPspoint *points = static_cast<const tGPspoint *>(runtime.sbuffer);
   int totpoints = runtime.sbuffer_used;
   short sflag = runtime.sbuffer_sflag;
@@ -132,7 +134,7 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   const tGPspoint *pt = points;
 
@@ -266,7 +268,7 @@ static void annotation_draw_stroke_point(const bGPDspoint *points,
   copy_v3_v3(fpt, &pt->x);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   if (sflag & GP_STROKE_3DSPACE) {
     immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
@@ -310,7 +312,7 @@ static void annotation_draw_stroke_3d(
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
@@ -396,7 +398,7 @@ static void annotation_draw_stroke_2d(const bGPDspoint *points,
   float thickness = float(thickness_s);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   const bGPDspoint *pt;
   const bGPDspoint *pt_prev;
@@ -589,7 +591,7 @@ static void annotation_draw_onionskins(
     copy_v3_v3(color, gpl->gcolor_prev);
   }
   else {
-    blender::ui::theme::get_color_3fv(TH_FRAME_BEFORE, color);
+    ui::theme::get_color_3fv(TH_FRAME_BEFORE, color);
   }
 
   if (gpl->gstep > 0) {
@@ -626,7 +628,7 @@ static void annotation_draw_onionskins(
     copy_v3_v3(color, gpl->gcolor_next);
   }
   else {
-    blender::ui::theme::get_color_3fv(TH_FRAME_AFTER, color);
+    ui::theme::get_color_3fv(TH_FRAME_AFTER, color);
   }
 
   if (gpl->gstep_next > 0) {
@@ -950,3 +952,5 @@ void ED_annotation_draw_ex(
 }
 
 /* ************************************************** */
+
+}  // namespace blender

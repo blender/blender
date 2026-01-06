@@ -11,9 +11,11 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_defaults.h"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Texture;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /**
  * #FluidDomainSettings.flags
@@ -546,19 +548,19 @@ struct FluidDomainSettings {
   struct Collection *fluid_group = nullptr;
   struct Collection *force_group = nullptr;    /* UNUSED */
   struct Collection *effector_group = nullptr; /* Effector objects group. */
-  blender::gpu::Texture *tex_density = nullptr;
-  blender::gpu::Texture *tex_color = nullptr;
-  blender::gpu::Texture *tex_wt = nullptr;
-  blender::gpu::Texture *tex_shadow = nullptr;
-  blender::gpu::Texture *tex_flame = nullptr;
-  blender::gpu::Texture *tex_flame_coba = nullptr;
-  blender::gpu::Texture *tex_coba = nullptr;
-  blender::gpu::Texture *tex_field = nullptr;
-  blender::gpu::Texture *tex_velocity_x = nullptr;
-  blender::gpu::Texture *tex_velocity_y = nullptr;
-  blender::gpu::Texture *tex_velocity_z = nullptr;
-  blender::gpu::Texture *tex_flags = nullptr;
-  blender::gpu::Texture *tex_range_field = nullptr;
+  gpu::Texture *tex_density = nullptr;
+  gpu::Texture *tex_color = nullptr;
+  gpu::Texture *tex_wt = nullptr;
+  gpu::Texture *tex_shadow = nullptr;
+  gpu::Texture *tex_flame = nullptr;
+  gpu::Texture *tex_flame_coba = nullptr;
+  gpu::Texture *tex_coba = nullptr;
+  gpu::Texture *tex_field = nullptr;
+  gpu::Texture *tex_velocity_x = nullptr;
+  gpu::Texture *tex_velocity_y = nullptr;
+  gpu::Texture *tex_velocity_z = nullptr;
+  gpu::Texture *tex_flags = nullptr;
+  gpu::Texture *tex_range_field = nullptr;
   struct Object *guide_parent = nullptr;
   struct EffectorWeights *effector_weights = nullptr; /* #BKE_effector_add_weights. */
 
@@ -852,3 +854,5 @@ struct FluidEffectorSettings {
   short guide_mode = FLUID_EFFECTOR_GUIDE_OVERRIDE;
   char _pad2[2] = {};
 };
+
+}  // namespace blender

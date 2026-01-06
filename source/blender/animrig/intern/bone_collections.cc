@@ -32,6 +32,8 @@
 
 #include <cstring>
 
+namespace blender {
+
 using std::strcmp;
 
 using namespace blender::animrig;
@@ -127,7 +129,7 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
 {
   /* Cannot capture armature & bcoll by reference in the lambda, as that would change its signature
    * and no longer be compatible with BLI_uniquename_cb(). */
-  auto bonecoll_name_is_duplicate = [&](const blender::StringRef name) -> bool {
+  auto bonecoll_name_is_duplicate = [&](const StringRef name) -> bool {
     for (BoneCollection *bcoll_iter : armature->collections_span()) {
       if (bcoll_iter != bcoll && bcoll_iter->name == name) {
         return true;
@@ -165,7 +167,7 @@ static void bonecoll_insert_at_index(bArmature *armature, BoneCollection *bcoll,
   armature->collection_array_num++;
 
   const int rotate_count = armature->collection_array_num - index - 1;
-  internal::bonecolls_rotate_block(armature, index, rotate_count, +1);
+  animrig::internal::bonecolls_rotate_block(armature, index, rotate_count, +1);
 
   if (armature->runtime.active_collection_index >= index) {
     ANIM_armature_bonecoll_active_index_set(armature,
@@ -494,7 +496,7 @@ bool ANIM_armature_bonecoll_move_to_index(bArmature *armature,
 
   if (parent_index < 0) {
     /* Roots can just be moved around, as there is no `child_index` to update in this case. */
-    internal::bonecolls_move_to_index(armature, from_index, to_index);
+    animrig::internal::bonecolls_move_to_index(armature, from_index, to_index);
     return true;
   }
 
@@ -503,7 +505,7 @@ bool ANIM_armature_bonecoll_move_to_index(bArmature *armature,
   BoneCollection *parent_bcoll = armature->collection_array[parent_index];
   const int old_parent_child_index = parent_bcoll->child_index;
 
-  internal::bonecolls_move_to_index(armature, from_index, to_index);
+  animrig::internal::bonecolls_move_to_index(armature, from_index, to_index);
 
   parent_bcoll->child_index = old_parent_child_index;
 
@@ -636,11 +638,11 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
     );
 
     /* Both 'index' and 'parent_bcoll_index' can change each iteration. */
-    index = internal::bonecolls_find_index_near(armature, bcoll, index);
+    index = animrig::internal::bonecolls_find_index_near(armature, bcoll, index);
     BLI_assert_msg(index >= 0, "could not find bone collection after moving things around");
 
     if (parent_bcoll_index >= 0) { /* If there is no parent, its index should stay -1. */
-      parent_bcoll_index = internal::bonecolls_find_index_near(
+      parent_bcoll_index = animrig::internal::bonecolls_find_index_near(
           armature, parent_bcoll, parent_bcoll_index);
       BLI_assert_msg(parent_bcoll_index >= 0,
                      "could not find bone collection parent after moving things around");
@@ -663,7 +665,7 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
   }
 
   /* Rotate the to-be-removed collection to the last array element. */
-  internal::bonecolls_move_to_index(armature, index, armature->collection_array_num - 1);
+  animrig::internal::bonecolls_move_to_index(armature, index, armature->collection_array_num - 1);
 
   /* NOTE: we don't bother to shrink the allocation.  It's okay if the
    * capacity has extra space, because the number of valid items is tracked. */
@@ -695,7 +697,7 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
   }
 
   const bool is_solo = bcoll->is_solo();
-  internal::bonecoll_unassign_and_free(armature, bcoll);
+  animrig::internal::bonecoll_unassign_and_free(armature, bcoll);
   if (is_solo) {
     /* This might have been the last solo'ed bone collection, so check whether
      * solo'ing should still be active on the armature. */
@@ -711,8 +713,8 @@ void ANIM_armature_bonecoll_remove(bArmature *armature, BoneCollection *bcoll)
 }
 
 template<typename MaybeConstBoneCollection>
-static MaybeConstBoneCollection *bonecolls_get_by_name(
-    blender::Span<MaybeConstBoneCollection *> bonecolls, const char *name)
+static MaybeConstBoneCollection *bonecolls_get_by_name(Span<MaybeConstBoneCollection *> bonecolls,
+                                                       const char *name)
 {
   for (MaybeConstBoneCollection *bcoll : bonecolls) {
     if (STREQ(bcoll->name, name)) {
@@ -1113,7 +1115,7 @@ void ANIM_armature_bonecoll_show_from_pchan(bArmature *armature, const bPoseChan
 
 /* ********* */
 /* C++ only. */
-namespace blender::animrig {
+namespace animrig {
 
 int armature_bonecoll_find_index(const bArmature *armature, const BoneCollection *bcoll)
 {
@@ -1149,7 +1151,8 @@ int armature_bonecoll_find_parent_index(const bArmature *armature, const int bco
   return -1;
 }
 
-int armature_bonecoll_child_number_find(const bArmature *armature, const ::BoneCollection *bcoll)
+int armature_bonecoll_child_number_find(const bArmature *armature,
+                                        const blender::BoneCollection *bcoll)
 {
   const int bcoll_index = armature_bonecoll_find_index(armature, bcoll);
   const int parent_index = armature_bonecoll_find_parent_index(armature, bcoll_index);
@@ -1157,7 +1160,7 @@ int armature_bonecoll_child_number_find(const bArmature *armature, const ::BoneC
 }
 
 int armature_bonecoll_child_number_set(bArmature *armature,
-                                       ::BoneCollection *bcoll,
+                                       blender::BoneCollection *bcoll,
                                        int new_child_number)
 {
   const int bcoll_index = armature_bonecoll_find_index(armature, bcoll);
@@ -1186,7 +1189,7 @@ int armature_bonecoll_child_number_set(bArmature *armature,
    * (bonecolls_move_to_index() will keep it pointing at that first child). */
   const int old_parent_child_index = parent_bcoll->child_index;
   const int to_index = parent_bcoll->child_index + new_child_number;
-  internal::bonecolls_move_to_index(armature, bcoll_index, to_index);
+  animrig::internal::bonecolls_move_to_index(armature, bcoll_index, to_index);
 
   parent_bcoll->child_index = old_parent_child_index;
 
@@ -1353,7 +1356,7 @@ int armature_bonecoll_move_to_parent(bArmature *armature,
   /* bonecolls_move_to_index() will try and keep the hierarchy correct, and thus change
    * to_parent->child_index to keep pointing to its current-first child. */
   const bool becomes_new_first_child = to_child_num == 0 || to_parent->child_count == 0;
-  internal::bonecolls_move_to_index(armature, from_bcoll_index, to_bcoll_index);
+  animrig::internal::bonecolls_move_to_index(armature, from_bcoll_index, to_bcoll_index);
 
   /* Update child index & count of the old parent. */
   from_parent->child_count--;
@@ -1593,4 +1596,5 @@ void bonecoll_unassign_and_free(bArmature *armature, BoneCollection *bcoll)
 
 }  // namespace internal
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

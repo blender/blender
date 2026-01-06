@@ -9,12 +9,14 @@
  * \brief A general argument parsing module.
  */
 
-struct bArgs;
-
 #include <stdarg.h> /* For `va_list`. */
 #include <stdbool.h>
 
 #include "BLI_compiler_attrs.h"
+
+namespace blender {
+
+struct bArgs;
 
 /**
  * Returns the number of extra arguments consumed by the function.
@@ -66,3 +68,5 @@ void BLI_args_print_other_doc(struct bArgs *ba);
 bool BLI_args_has_other_doc(const struct bArgs *ba);
 
 void BLI_args_print(const struct bArgs *ba);
+
+}  // namespace blender

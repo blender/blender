@@ -17,12 +17,14 @@
 
 #include "DNA_modifier_types.h"
 
+namespace blender {
+
 struct NodesModifierData;
 struct Main;
 struct Object;
 struct Scene;
 
-namespace blender::bke::bake {
+namespace bke::bake {
 
 enum class CacheStatus {
   /** The cache is up-to-date with the inputs. */
@@ -147,4 +149,5 @@ std::string get_default_node_bake_directory(const Main &bmain,
                                             const NodesModifierData &nmd,
                                             int node_id);
 
-}  // namespace blender::bke::bake
+}  // namespace bke::bake
+}  // namespace blender

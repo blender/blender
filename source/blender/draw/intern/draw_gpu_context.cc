@@ -21,6 +21,8 @@
 #include "WM_api.hh"
 #include "wm_window.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Submission critical section
  *
@@ -449,3 +451,5 @@ void DRW_gpu_context_activate(bool drw_state)
 }
 
 /** \} */
+
+}  // namespace blender

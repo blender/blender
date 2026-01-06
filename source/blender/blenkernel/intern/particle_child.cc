@@ -19,6 +19,8 @@
 
 #include "particle_private.h"
 
+namespace blender {
+
 /* ------------------------------------------------------------------------- */
 
 struct ParticlePathIterator {
@@ -894,3 +896,5 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
     }
   }
 }
+
+}  // namespace blender

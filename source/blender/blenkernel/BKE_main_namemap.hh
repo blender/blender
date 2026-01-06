@@ -21,6 +21,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct ID;
 struct Library;
 struct Main;
@@ -44,15 +46,12 @@ void BKE_main_namemap_clear(Main &bmain);
  *
  * \return true if the name is already in use.
  */
-bool BKE_main_global_namemap_contain_name(Main &bmain, short id_type, blender::StringRef name);
+bool BKE_main_global_namemap_contain_name(Main &bmain, short id_type, StringRef name);
 /**
  * Same as #BKE_main_global_namemap_contain_name, but only search in the local or related library
  * namemap.
  */
-bool BKE_main_namemap_contain_name(Main &bmain,
-                                   Library *lib,
-                                   short id_type,
-                                   blender::StringRef name);
+bool BKE_main_namemap_contain_name(Main &bmain, Library *lib, short id_type, StringRef name);
 
 /**
  * Ensures the given name is unique within the given ID type, in the whole Main data-base (local
@@ -91,3 +90,5 @@ bool BKE_main_namemap_validate(Main &bmain);
  * This is typically only used in `do_versions` code to fix broken files.
  */
 bool BKE_main_namemap_validate_and_fix(Main &bmain);
+
+}  // namespace blender

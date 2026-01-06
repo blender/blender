@@ -16,6 +16,8 @@
 #include "BLI_mempool_private.h"
 #include "BLI_task.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Macros
  * \{ */
@@ -154,3 +156,5 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
 #undef MALLOCA_FREE
 
 /** \} */
+
+}  // namespace blender

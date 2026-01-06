@@ -40,6 +40,8 @@
 /* own includes */
 #include "../gizmo_library_intern.hh"
 
+namespace blender {
+
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 
 static void gizmo_calc_matrix_final_no_offset(const wmGizmo *gz,
@@ -124,8 +126,7 @@ static void cage3d_draw_box_corners(const float r[3],
                                     const float color[3],
                                     const float line_width)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   UNUSED_VARS(margin);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
@@ -136,7 +137,7 @@ static void cage3d_draw_box_corners(const float r[3],
   immUniform2fv("viewportSize", &viewport[2]);
   immUniform1f("lineWidth", line_width * U.pixelsize);
 
-  imm_draw_cube_wire_3d(pos, blender::float3(0.0f), r);
+  imm_draw_cube_wire_3d(pos, float3(0.0f), r);
 
   immUnbindProgram();
 }
@@ -173,7 +174,7 @@ static void cage3d_draw_box_interaction(const RegionView3D *rv3d,
 
     {
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+          immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor3fv(color);
       imm_draw_cube_fill_3d(pos, co, rad_scale);
@@ -207,8 +208,7 @@ static void cage3d_draw_circle_wire(const float r[3],
                                     const int draw_options,
                                     const float line_width)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
   immUniformColor3fv(color);
@@ -218,7 +218,7 @@ static void cage3d_draw_circle_wire(const float r[3],
   immUniform2fv("viewportSize", &viewport[2]);
   immUniform1f("lineWidth", line_width * U.pixelsize);
 
-  imm_draw_cube_wire_3d(pos, blender::float3(0.0f), r);
+  imm_draw_cube_wire_3d(pos, float3(0.0f), r);
 
 #if 0
   if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
@@ -249,8 +249,7 @@ static void cage3d_draw_circle_handles(const RegionView3D *rv3d,
                                        bool solid,
                                        const float handle_scale)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   const float rad[3] = {margin[0] / 3, margin[1] / 3, margin[2] / 3};
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -304,7 +303,7 @@ static void gizmo_cage3d_draw_intern(
   if (false) {
     GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4f(1, 1, 1, 0.5f);
     float s = 0.5f;
@@ -456,9 +455,7 @@ static wmOperatorStatus gizmo_cage3d_invoke(bContext *C, wmGizmo *gz, const wmEv
   copy_m4_m4(data->orig_matrix_offset, gz->matrix_offset);
   gizmo_calc_matrix_final_no_offset(gz, data->orig_matrix_final_no_offset, true);
 
-  if (gizmo_window_project_3d(
-          C, gz, blender::float2(blender::int2(event->mval)), false, data->orig_mouse) == 0)
-  {
+  if (gizmo_window_project_3d(C, gz, float2(int2(event->mval)), false, data->orig_mouse) == 0) {
     zero_v3(data->orig_mouse);
   }
 
@@ -494,8 +491,7 @@ static wmOperatorStatus gizmo_cage3d_modal(bContext *C,
     copy_m4_m4(matrix_back, gz->matrix_offset);
     copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);
 
-    bool ok = gizmo_window_project_3d(
-        C, gz, blender::float2(blender::int2(event->mval)), false, point_local);
+    bool ok = gizmo_window_project_3d(C, gz, float2(int2(event->mval)), false, point_local);
     copy_m4_m4(gz->matrix_offset, matrix_back);
     if (!ok) {
       return OPERATOR_RUNNING_MODAL;
@@ -579,8 +575,8 @@ static wmOperatorStatus gizmo_cage3d_modal(bContext *C,
     mul_v3_fl(matrix_scale[1], scale[1]);
     mul_v3_fl(matrix_scale[2], scale[2]);
 
-    transform_pivot_set_m4(
-        matrix_scale, blender::float3(pivot[0] * dims[0], pivot[1] * dims[1], pivot[2] * dims[2]));
+    transform_pivot_set_m4(matrix_scale,
+                           float3(pivot[0] * dims[0], pivot[1] * dims[1], pivot[2] * dims[2]));
     mul_m4_m4m4(gz->matrix_offset, data->orig_matrix_offset, matrix_scale);
   }
 
@@ -691,3 +687,5 @@ void ED_gizmotypes_cage_3d()
 }
 
 /** \} */
+
+}  // namespace blender

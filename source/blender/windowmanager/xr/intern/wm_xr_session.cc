@@ -47,6 +47,8 @@
 #include "wm_window.hh"
 #include "wm_xr_intern.hh"
 
+namespace blender {
+
 static wmSurface *g_xr_surface = nullptr;
 static CLG_LogRef LOG = {"xr"};
 
@@ -352,8 +354,6 @@ static void wm_xr_session_state_update_navigation_scale(wmXrSessionState *state,
                                                         const wmXrDrawData *draw_data,
                                                         const XrSessionSettings *settings)
 {
-  using namespace blender;
-
   /* Set the navigation scale from the scene unit scale and VR view scale. */
   const float scene_scale = draw_data->scene->unit.scale_length;
   const float new_nav_scale = scene_scale * settings->view_scale;
@@ -1494,23 +1494,23 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
   bool failure = false;
 
   /* Initialize with some unsupported format to check following switch statement. */
-  blender::gpu::TextureFormat format = blender::gpu::TextureFormat::UNORM_8;
+  gpu::TextureFormat format = gpu::TextureFormat::UNORM_8;
 
   switch (draw_view->swapchain_format) {
     case GHOST_kXrSwapchainFormatRGBA8:
-      format = blender::gpu::TextureFormat::UNORM_8_8_8_8;
+      format = gpu::TextureFormat::UNORM_8_8_8_8;
       break;
     case GHOST_kXrSwapchainFormatRGBA16:
-      format = blender::gpu::TextureFormat::UNORM_16_16_16_16;
+      format = gpu::TextureFormat::UNORM_16_16_16_16;
       break;
     case GHOST_kXrSwapchainFormatRGBA16F:
-      format = blender::gpu::TextureFormat::SFLOAT_16_16_16_16;
+      format = gpu::TextureFormat::SFLOAT_16_16_16_16;
       break;
     case GHOST_kXrSwapchainFormatRGB10_A2:
-      format = blender::gpu::TextureFormat::UNORM_10_10_10_2;
+      format = gpu::TextureFormat::UNORM_10_10_10_2;
       break;
   }
-  BLI_assert(format != blender::gpu::TextureFormat::UNORM_8);
+  BLI_assert(format != gpu::TextureFormat::UNORM_8);
 
   offscreen = vp->offscreen = GPU_offscreen_create(draw_view->width,
                                                    draw_view->height,
@@ -1630,3 +1630,5 @@ ARegionType *WM_xr_surface_controller_region_type_get()
 }
 
 /** \} */ /* XR-Session Surface. */
+
+}  // namespace blender

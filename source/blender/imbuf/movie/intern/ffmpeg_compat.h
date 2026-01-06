@@ -11,8 +11,7 @@
  * separately.
  */
 
-#ifndef __FFMPEG_COMPAT_H__
-#define __FFMPEG_COMPAT_H__
+#pragma once
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -252,6 +251,4 @@ FFMPEG_INLINE const int *ffmpeg_get_sample_rates(struct AVCodecContext * /*conte
 {
   return codec->supported_samplerates;
 }
-#endif
-
 #endif

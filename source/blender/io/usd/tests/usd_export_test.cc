@@ -103,7 +103,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     ASSERT_TRUE(bool(bsdf_prim));
 
     for (const auto *socket : bsdf_node->input_sockets()) {
-      const pxr::TfToken attribute_token = blender::io::usd::token_for_input(socket->name);
+      const pxr::TfToken attribute_token = io::usd::token_for_input(socket->name);
       if (attribute_token.IsEmpty()) {
         /* This socket is not translated between Blender and USD. */
         continue;
@@ -221,7 +221,7 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
    * Run the mesh comparison for all Meshes in the original scene.
    */
   for (Object &object : bfile->main->objects) {
-    const Mesh *mesh = blender::id_cast<Mesh *>(object.data);
+    const Mesh *mesh = id_cast<Mesh *>(object.data);
     const StringRefNull object_name(object.id.name + 2);
 
     const pxr::SdfPath sdf_path("/" + pxr::TfMakeValidIdentifier(object_name.c_str()));

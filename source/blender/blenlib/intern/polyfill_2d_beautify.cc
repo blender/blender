@@ -34,6 +34,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* Used to find matching edges. */
 struct OrderEdge {
   uint verts[2];
@@ -482,3 +484,5 @@ void BLI_polyfill_beautify(const float (*coords)[2],
     }
   }
 }
+
+}  // namespace blender

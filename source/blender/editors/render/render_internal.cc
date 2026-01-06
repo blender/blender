@@ -67,6 +67,8 @@
 
 #include "render_intern.hh"
 
+namespace blender {
+
 /* Render Callbacks */
 static bool render_break(void *rjv);
 
@@ -397,7 +399,7 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
    * otherwise, invalidated cache entries can make their way into
    * the output rendering. We can't put that into RE_RenderFrame,
    * since sequence rendering can call that recursively... */
-  blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::FinalAndIntra);
+  seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
 
   RE_SetReports(re, op->reports);
 
@@ -1091,9 +1093,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
 
   /* Reports are done inside check function, and it will return false if there are other strips to
    * render. */
-  if ((scene->r.scemode & R_DOSEQ) &&
-      blender::seq::relations_check_scene_recursion(scene, op->reports))
-  {
+  if ((scene->r.scemode & R_DOSEQ) && seq::relations_check_scene_recursion(scene, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1112,7 +1112,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   ED_editors_flush_edits_ex(bmain, true, false);
 
   /* Cleanup VSE cache, since it is not guaranteed that stored images are invalid. */
-  blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::FinalAndIntra);
+  seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
 
   /* store spare
    * get view3d layer, local layer, make this nice API call to render
@@ -1404,3 +1404,5 @@ void RENDER_OT_shutter_curve_preset(wmOperatorType *ot)
   RNA_def_property_translation_context(prop,
                                        BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
 }
+
+}  // namespace blender

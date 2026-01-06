@@ -21,6 +21,8 @@
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.hh"
+struct DummyVolumeGridData;
+namespace blender {
 
 const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_BOOLEAN, "BOOLEAN", 0, "Boolean", "Boolean"},
@@ -41,14 +43,14 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}
+
 /**
  * Dummy type used as a stand-in for the actual #VolumeGridData class. Generated RNA callbacks need
  * a C struct as the main "self" argument. The struct does not have to be an actual DNA struct.
  * This dummy struct is used as a placeholder for the callbacks and reinterpreted as the actual
  * VolumeGrid type.
  */
-struct DummyVolumeGridData;
-
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_base.h"
@@ -60,6 +62,8 @@ struct DummyVolumeGridData;
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"
+
+namespace blender {
 
 static std::optional<std::string> rna_VolumeRender_path(const PointerRNA * /*ptr*/)
 {
@@ -75,13 +79,13 @@ static std::optional<std::string> rna_VolumeDisplay_path(const PointerRNA * /*pt
 
 static void rna_Volume_update_display(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Volume *volume = blender::id_cast<Volume *>(ptr->owner_id);
+  Volume *volume = id_cast<Volume *>(ptr->owner_id);
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
 }
 
 static void rna_Volume_update_filepath(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Volume *volume = blender::id_cast<Volume *>(ptr->owner_id);
+  Volume *volume = id_cast<Volume *>(ptr->owner_id);
   BKE_volume_unload(volume);
   DEG_id_tag_update(&volume->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
@@ -106,46 +110,45 @@ static void rna_Volume_velocity_grid_set(PointerRNA *ptr, const char *value)
 
 static void rna_VolumeGrid_name_get(PointerRNA *ptr, char *value)
 {
-  auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  strcpy(value, blender::bke::volume_grid::get_name(*grid).c_str());
+  auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  strcpy(value, bke::volume_grid::get_name(*grid).c_str());
 }
 
 static int rna_VolumeGrid_name_length(PointerRNA *ptr)
 {
-  auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  return blender::bke::volume_grid::get_name(*grid).size();
+  auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  return bke::volume_grid::get_name(*grid).size();
 }
 
 static int rna_VolumeGrid_data_type_get(PointerRNA *ptr)
 {
-  const auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  return blender::bke::volume_grid::get_type(*grid);
+  const auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  return bke::volume_grid::get_type(*grid);
 }
 
 static int rna_VolumeGrid_channels_get(PointerRNA *ptr)
 {
-  const auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  return blender::bke::volume_grid::get_channels_num(blender::bke::volume_grid::get_type(*grid));
+  const auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  return bke::volume_grid::get_channels_num(bke::volume_grid::get_type(*grid));
 }
 
 static void rna_VolumeGrid_matrix_object_get(PointerRNA *ptr, float *value)
 {
-  auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  *reinterpret_cast<blender::float4x4 *>(value) = blender::bke::volume_grid::get_transform_matrix(
-      *grid);
+  auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  *reinterpret_cast<float4x4 *>(value) = bke::volume_grid::get_transform_matrix(*grid);
 }
 
 static bool rna_VolumeGrid_is_loaded_get(PointerRNA *ptr)
 {
-  auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  return blender::bke::volume_grid::is_loaded(*grid);
+  auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  return bke::volume_grid::is_loaded(*grid);
 }
 
 static bool rna_VolumeGrid_load(ID * /*id*/, DummyVolumeGridData *dummy_grid)
 {
-  auto *grid = reinterpret_cast<const blender::bke::VolumeGridData *>(dummy_grid);
-  blender::bke::volume_grid::load(*grid);
-  return blender::bke::volume_grid::error_message_from_load(*grid).empty();
+  auto *grid = reinterpret_cast<const bke::VolumeGridData *>(dummy_grid);
+  bke::volume_grid::load(*grid);
+  return bke::volume_grid::error_message_from_load(*grid).empty();
 }
 
 static void rna_VolumeGrid_unload(ID * /*id*/, DummyVolumeGridData * /*dummy_grid*/)
@@ -178,8 +181,7 @@ static void rna_Volume_grids_end(CollectionPropertyIterator * /*iter*/) {}
 static PointerRNA rna_Volume_grids_get(CollectionPropertyIterator *iter)
 {
   Volume *volume = static_cast<Volume *>(iter->internal.count.ptr);
-  const blender::bke::VolumeGridData *grid = BKE_volume_grid_get(volume,
-                                                                 iter->internal.count.item);
+  const bke::VolumeGridData *grid = BKE_volume_grid_get(volume, iter->internal.count.item);
   return RNA_pointer_create_with_parent(iter->parent, &RNA_VolumeGrid, (void *)grid);
 }
 
@@ -259,7 +261,11 @@ static bool rna_Volume_save(Volume *volume, Main *bmain, ReportList *reports, co
   return BKE_volume_save(volume, bmain, reports, filepath);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_volume_grid(BlenderRNA *brna)
 {
@@ -736,5 +742,7 @@ void RNA_def_volume(BlenderRNA *brna)
   rna_def_volume_render(brna);
   rna_def_volume(brna);
 }
+
+}  // namespace blender
 
 #endif

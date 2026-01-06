@@ -17,9 +17,11 @@
 
 #include "UI_interface_layout.hh"
 
+namespace blender {
+
 struct bContext;
 
-namespace blender::ui {
+namespace ui {
 
 #define CURVE_ZOOM_MAX (1.0f / 25.0f)
 #define ERROR_LIBDATA_MESSAGE N_("Cannot edit external library data")
@@ -78,4 +80,5 @@ Block *template_common_search_menu(const bContext *C,
                                    const int preview_cols,
                                    float scale);
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

@@ -34,6 +34,8 @@
 
 #include "../shader_tool/metadata.hh"
 
+namespace blender {
+
 extern "C" {
 #define SHADER_SOURCE(filename_underscore, filename, filepath) \
   extern char datatoc_##filename_underscore[];
@@ -49,7 +51,7 @@ extern "C" {
 
 static CLG_LogRef LOG = {"shader.dependencies"};
 
-namespace blender::gpu::shader {
+namespace gpu::shader {
 
 static bool g_shader_use_printf = false;
 
@@ -111,9 +113,9 @@ shader::BuiltinBits convert_builtin_bit(shader::metadata::Builtin builtin)
   return BuiltinBits::NONE;
 }
 
-}  // namespace blender::gpu::shader
+}  // namespace gpu::shader
 
-namespace blender::gpu {
+namespace gpu {
 
 using GPUPrintFormatMap = Map<uint32_t, shader::PrintfFormat>;
 using GPUSourceDictionary = Map<StringRef, GPUSource *>;
@@ -486,7 +488,7 @@ namespace shader {
 
 }  // namespace shader
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 using namespace blender::gpu;
 
@@ -508,7 +510,7 @@ void gpu_shader_dependency_init()
                                    datatoc_##filename_underscore, \
                                    g_functions, \
                                    g_formats, \
-                                   blender::gpu::shader::metadata_##filename_underscore));
+                                   gpu::shader::metadata_##filename_underscore));
 
 #include "glsl_compositor_source_list.h"
 #include "glsl_draw_source_list.h"
@@ -519,7 +521,7 @@ void gpu_shader_dependency_init()
 #endif
 #undef SHADER_SOURCE
 #ifdef WITH_OPENSUBDIV
-  const blender::StringRefNull patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
+  const StringRefNull patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
   auto source_ptr_opt = g_sources->pop_try("osd_patch_basis.glsl");
   if (source_ptr_opt) {
     delete source_ptr_opt.value();
@@ -580,8 +582,7 @@ GPUFunction *gpu_material_library_get_function(const char *name)
   return function;
 }
 
-void gpu_material_library_use_function(blender::Set<blender::StringRefNull> &used_libraries,
-                                       const char *name)
+void gpu_material_library_use_function(Set<StringRefNull> &used_libraries, const char *name)
 {
   GPUFunction *function = g_functions->lookup_default(name, nullptr);
   BLI_assert_msg(function != nullptr, "Requested function not in the function library");
@@ -589,7 +590,7 @@ void gpu_material_library_use_function(blender::Set<blender::StringRefNull> &use
   used_libraries.add(source->filename.c_str());
 }
 
-namespace blender::gpu::shader {
+namespace gpu::shader {
 
 bool gpu_shader_dependency_force_gpu_print_injection()
 {
@@ -679,4 +680,5 @@ StringRefNull gpu_shader_dependency_get_filename_from_source_string(const String
   return "";
 }
 
-}  // namespace blender::gpu::shader
+}  // namespace gpu::shader
+}  // namespace blender

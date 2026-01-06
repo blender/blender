@@ -22,6 +22,8 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_fileops_types.h"
 
+namespace blender {
+
 #ifndef PATH_MAX
 #  define PATH_MAX 4096
 #endif
@@ -462,3 +464,5 @@ void BLI_get_short_name(char short_name[256], const char *filepath);
 #endif
 
 /** \} */
+
+}  // namespace blender

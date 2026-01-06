@@ -12,6 +12,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /*----------- BMOP error system ----------*/
 
 /**
@@ -91,3 +93,5 @@ void BMO_error_clear(BMesh *bm);
                     _BMESH_DUMMY_ABORT(), \
                     NULL)) : \
                   NULL)
+
+}  // namespace blender

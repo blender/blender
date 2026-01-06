@@ -845,12 +845,12 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
     for (int i = 0; i < objects.size(); i++) {
       TransDataContainer *tc = &t->data_container[i];
       if (!(t->flag & T_NO_MIRROR) && (objects[i]->type == OB_MESH)) {
-        tc->use_mirror_axis_x = ((blender::id_cast<Mesh *>(objects[i]->data))->symmetry &
-                                 ME_SYMMETRY_X) != 0;
-        tc->use_mirror_axis_y = ((blender::id_cast<Mesh *>(objects[i]->data))->symmetry &
-                                 ME_SYMMETRY_Y) != 0;
-        tc->use_mirror_axis_z = ((blender::id_cast<Mesh *>(objects[i]->data))->symmetry &
-                                 ME_SYMMETRY_Z) != 0;
+        tc->use_mirror_axis_x = ((id_cast<Mesh *>(objects[i]->data))->symmetry & ME_SYMMETRY_X) !=
+                                0;
+        tc->use_mirror_axis_y = ((id_cast<Mesh *>(objects[i]->data))->symmetry & ME_SYMMETRY_Y) !=
+                                0;
+        tc->use_mirror_axis_z = ((id_cast<Mesh *>(objects[i]->data))->symmetry & ME_SYMMETRY_Z) !=
+                                0;
       }
 
       if (object_mode & OB_MODE_EDIT) {

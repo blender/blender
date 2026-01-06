@@ -19,6 +19,8 @@
 #include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 
+namespace blender {
+
 using namespace blender::bke;
 
 subdiv::Settings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
@@ -145,3 +147,5 @@ int BKE_subsurf_modifier_eval_required_mode(bool is_final_render, bool is_edit_m
 
   return eModifierMode_Realtime | (is_edit_mode ? int(eModifierMode_Editmode) : 0);
 }
+
+}  // namespace blender

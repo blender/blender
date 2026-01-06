@@ -13,6 +13,8 @@
 #include "BLI_ressource_strings.h"
 #include "BLI_string.h"
 
+namespace blender {
+
 TEST(memiter, Nop)
 {
   BLI_memiter *mi = BLI_memiter_create(64);
@@ -278,3 +280,5 @@ TEST_WORDS10K_AT_CHUNK_SIZE(2)
 TEST_WORDS10K_AT_CHUNK_SIZE(3)
 TEST_WORDS10K_AT_CHUNK_SIZE(13)
 TEST_WORDS10K_AT_CHUNK_SIZE(256)
+
+}  // namespace blender

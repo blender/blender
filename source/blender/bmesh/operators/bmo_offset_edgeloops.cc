@@ -23,6 +23,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define USE_CAP_OPTION
 
 #define ELE_NEW (1 << 0)
@@ -49,7 +51,7 @@ static BMFace *bm_face_split_walk_back(BMesh *bm, BMLoop *l_src, BMLoop **r_l)
 
   BLI_assert(num != 0);
 
-  blender::Array<blender::float3, BM_DEFAULT_NGON_STACK_SIZE> cos_buf(num);
+  Array<float3, BM_DEFAULT_NGON_STACK_SIZE> cos_buf(num);
   cos = reinterpret_cast<float (*)[3]>(cos_buf.data());
 
   for (l_dst = l_src->prev, i = 0; BM_elem_index_get(l_dst->prev->v) != -1;
@@ -229,7 +231,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 
 #ifdef USE_CAP_OPTION
   if (use_cap_endpoint == false) {
-    blender::Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> varr_buf(v_edges_max);
+    Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> varr_buf(v_edges_max);
     BMVert **varr = varr_buf.data();
     STACK_DECLARE(varr);
     BMVert *v;
@@ -265,3 +267,5 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_NEW);
 }
+
+}  // namespace blender

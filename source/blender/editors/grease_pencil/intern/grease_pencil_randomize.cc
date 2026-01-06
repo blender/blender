@@ -142,10 +142,9 @@ ColorGeometry4f randomize_color(const BrushGpencilSettings &settings,
   if (!use_random || !jitter) {
     return color;
   }
-  blender::float3 initial_hsv_jitter = {
-      stroke_hue_factor, stroke_saturation_factor, stroke_value_factor};
+  float3 initial_hsv_jitter = {stroke_hue_factor, stroke_saturation_factor, stroke_value_factor};
 
-  blender::float3 jittered = BKE_paint_randomize_color(
+  float3 jittered = BKE_paint_randomize_color(
       *jitter, initial_hsv_jitter, distance, pressure, {color.r, color.g, color.b});
 
   return {jittered[0], jittered[1], jittered[2], color.a};

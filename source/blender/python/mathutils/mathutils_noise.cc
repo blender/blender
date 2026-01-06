@@ -27,6 +27,8 @@
 #include "mathutils.hh"
 #include "mathutils_noise.hh"
 
+namespace blender {
+
 /*-----------------------------------------*/
 /* 'mersenne twister' random number generator */
 
@@ -1195,3 +1197,5 @@ PyMODINIT_FUNC PyInit_mathutils_noise()
 
   return submodule;
 }
+
+}  // namespace blender

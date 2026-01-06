@@ -10,7 +10,7 @@
  * Classes to represent rotation angles. They can be used as 2D rotation or as building blocks for
  * other rotation types.
  *
- * Each `blender::math::Angle***<T>` implements the same interface and can be swapped easily.
+ * Each `math::Angle***<T>` implements the same interface and can be swapped easily.
  * However, they differ in each operation's efficiency, storage size and the range or group of
  * angles that can be stored.
  *
@@ -25,7 +25,7 @@
 namespace blender::math {
 
 /**
- * A `blender::math::AngleRadianBase<T>` is a typical radian angle.
+ * A `math::AngleRadianBase<T>` is a typical radian angle.
  * - Storage : `1 * sizeof(T)`
  * - Range : [-inf..inf]
  * - Fast : Everything not slow.
@@ -154,7 +154,7 @@ template<typename T> struct AngleRadianBase {
 };
 
 /**
- * A `blender::math::AngleCartesianBase<T>` stores the angle as cosine + sine tuple.
+ * A `math::AngleCartesianBase<T>` stores the angle as cosine + sine tuple.
  * - Storage : `2 * sizeof(T)`
  * - Range : [-pi..pi]
  * - Fast : `cos()`, `sin()`, `tan()`, `AngleCartesian(cos, sin)`
@@ -350,7 +350,7 @@ template<typename T> struct AngleCartesianBase {
 };
 
 /**
- * A `blender::math::AngleFraction<T>` stores a radian angle as quotient.
+ * A `math::AngleFraction<T>` stores a radian angle as quotient.
  * - Storage : `2 * sizeof(int64_t)`
  * - Range : [-INT64_MAX..INT64_MAX] but angle must be expressed as fraction (be in Q subset).
  * - Fast : Everything not slow.
@@ -364,7 +364,7 @@ template<typename T> struct AngleCartesianBase {
  * not as cheap as a `AngleRadian`. Another nice property is that the `cos()` and `sin()` functions
  * give symmetric results around the circle.
  *
- * NOTE: Prefer converting to `blender::math::AngleCartesianBase<T>` if both `cos()` and `sin()`
+ * NOTE: Prefer converting to `math::AngleCartesianBase<T>` if both `cos()` and `sin()`
  * are needed. This will save some computation.
  *
  * Any operation becomes undefined if either the numerator or the denominator overflows.

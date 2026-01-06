@@ -9,9 +9,11 @@
 
 #include "BLI_compiler_compat.h"
 
+namespace blender {
+
 struct Object;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 /* TODO(kevin): for now keeping these transformations hardcoded to make sure
  * everything works properly, and also because Alembic is almost exclusively
@@ -92,4 +94,5 @@ void create_transform_matrix(Object *obj,
                              AbcMatrixMode mode,
                              Object *proxy_from);
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

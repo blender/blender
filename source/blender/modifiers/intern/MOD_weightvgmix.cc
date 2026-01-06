@@ -43,6 +43,8 @@
 #include "MOD_util.hh"
 #include "MOD_weightvg_util.hh"
 
+namespace blender {
+
 /**
  * This mixes the old weight with the new weight factor.
  */
@@ -438,7 +440,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -466,7 +468,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void influence_panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -518,3 +520,5 @@ ModifierTypeInfo modifierType_WeightVGMix = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

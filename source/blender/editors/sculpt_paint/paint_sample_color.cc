@@ -348,11 +348,10 @@ static float3 paint_sample_color(bContext *C,
   /* No sample found; sample directly from the GPU front buffer. */
   if (!sampled_color) {
     float3 rgb_f;
-    WM_window_pixels_read_sample(
-        C,
-        CTX_wm_window(C),
-        blender::int2(mval.x + region->winrct.xmin, mval.y + region->winrct.ymin),
-        rgb_f);
+    WM_window_pixels_read_sample(C,
+                                 CTX_wm_window(C),
+                                 int2(mval.x + region->winrct.xmin, mval.y + region->winrct.ymin),
+                                 rgb_f);
 
     /* The sampled color is in display colorspace, convert to scene linear. */
     const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
@@ -541,8 +540,8 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
 static bool sample_color_poll(bContext *C)
 {
   return (image_paint_poll_ignore_tool(C) || vertex_paint_poll_ignore_tool(C) ||
-          SCULPT_mode_poll(C) || blender::ed::greasepencil::grease_pencil_painting_poll(C) ||
-          blender::ed::greasepencil::grease_pencil_vertex_painting_poll(C));
+          SCULPT_mode_poll(C) || ed::greasepencil::grease_pencil_painting_poll(C) ||
+          ed::greasepencil::grease_pencil_vertex_painting_poll(C));
 }
 
 void PAINT_OT_sample_color(wmOperatorType *ot)

@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /** NOTE: Keep in sync with eUserPref_GPUBackendType. */
 enum GPUBackendType {
   GPU_BACKEND_NONE = 0,
@@ -16,3 +18,5 @@ enum GPUBackendType {
   GPU_BACKEND_VULKAN = 1 << 3,
   GPU_BACKEND_ANY = 0xFFFFFFFFu
 };
+
+}  // namespace blender

@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* General note on iterating verts/loops/edges/faces and end mode.
  *
  * The edit mesh pointer is set for both final and cage meshes in both cases when there are
@@ -42,8 +44,8 @@ void BKE_mesh_foreach_mapped_vert(
     BMVert *eve;
     int i;
     if (!mesh->runtime->edit_data->vert_positions.is_empty()) {
-      const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vert_positions;
-      blender::Span<blender::float3> vert_normals;
+      const Span<float3> positions = mesh->runtime->edit_data->vert_positions;
+      Span<float3> vert_normals;
       if (flag & MESH_FOREACH_USE_NORMAL) {
         vert_normals = BKE_editmesh_cache_ensure_vert_normals(*em, *mesh->runtime->edit_data);
       }
@@ -60,10 +62,10 @@ void BKE_mesh_foreach_mapped_vert(
     }
   }
   else {
-    const blender::Span<blender::float3> positions = mesh->vert_positions();
+    const Span<float3> positions = mesh->vert_positions();
     const int *index = static_cast<const int *>(
         CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX));
-    blender::Span<blender::float3> vert_normals;
+    Span<float3> vert_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       vert_normals = mesh->vert_normals();
     }
@@ -100,7 +102,7 @@ void BKE_mesh_foreach_mapped_edge(
     BMEdge *eed;
     int i;
     if (!mesh->runtime->edit_data->vert_positions.is_empty()) {
-      const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vert_positions;
+      const Span<float3> positions = mesh->runtime->edit_data->vert_positions;
       BM_mesh_elem_index_ensure(bm, BM_VERT);
       BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
         func(user_data,
@@ -116,8 +118,8 @@ void BKE_mesh_foreach_mapped_edge(
     }
   }
   else {
-    const blender::Span<blender::float3> positions = mesh->vert_positions();
-    const blender::Span<blender::int2> edges = mesh->edges();
+    const Span<float3> positions = mesh->vert_positions();
+    const Span<int2> edges = mesh->edges();
     const int *index = static_cast<const int *>(
         CustomData_get_layer(&mesh->edge_data, CD_ORIGINDEX));
 
@@ -158,10 +160,10 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     BMIter iter;
     BMFace *efa;
 
-    const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vert_positions;
+    const Span<float3> positions = mesh->runtime->edit_data->vert_positions;
 
     /* XXX: investigate using EditMesh data. */
-    blender::Span<blender::float3> corner_normals;
+    Span<float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       corner_normals = mesh->corner_normals();
     }
@@ -180,20 +182,20 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
         func(user_data,
              v_idx,
              f_idx,
-             positions.is_empty() ? positions[v_idx] : blender::float3(eve->co),
+             positions.is_empty() ? positions[v_idx] : float3(eve->co),
              corner_normals.is_empty() ? nullptr : &corner_normals[BM_elem_index_get(l_iter)].x);
       } while ((l_iter = l_iter->next) != l_first);
     }
   }
   else {
-    blender::Span<blender::float3> corner_normals;
+    Span<float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       corner_normals = mesh->corner_normals();
     }
 
-    const blender::Span<blender::float3> positions = mesh->vert_positions();
-    const blender::OffsetIndices faces = mesh->faces();
-    const blender::Span<int> corner_verts = mesh->corner_verts();
+    const Span<float3> positions = mesh->vert_positions();
+    const OffsetIndices faces = mesh->faces();
+    const Span<int> corner_verts = mesh->corner_verts();
     const int *v_index = static_cast<const int *>(
         CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX));
     const int *f_index = static_cast<const int *>(
@@ -231,7 +233,6 @@ void BKE_mesh_foreach_mapped_face_center(
     void *user_data,
     MeshForeachFlag flag)
 {
-  using namespace blender;
   if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
     BMEditMesh *em = mesh->runtime->edit_mesh.get();
     BMesh *bm = em->bm;
@@ -306,16 +307,16 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
     void *user_data,
     MeshForeachFlag flag)
 {
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices faces = mesh->faces();
-  const blender::Span<int> corner_verts = mesh->corner_verts();
-  blender::Span<blender::float3> vert_normals;
+  const Span<float3> positions = mesh->vert_positions();
+  const OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
+  Span<float3> vert_normals;
   if (flag & MESH_FOREACH_USE_NORMAL) {
     vert_normals = mesh->vert_normals();
   }
   const int *index = static_cast<const int *>(
       CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
-  const blender::BitSpan facedot_tags = mesh->runtime->subsurf_face_dot_tags;
+  const BitSpan facedot_tags = mesh->runtime->subsurf_face_dot_tags;
 
   if (index) {
     for (const int i : faces.index_range()) {
@@ -381,3 +382,5 @@ void BKE_mesh_foreach_mapped_vert_coords_get(const Mesh *mesh_eval,
   BKE_mesh_foreach_mapped_vert(mesh_eval, get_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
   MEM_freeN(user_data.vertex_visit);
 }
+
+}  // namespace blender

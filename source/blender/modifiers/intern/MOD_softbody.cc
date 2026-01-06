@@ -26,10 +26,12 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void deform_verts(ModifierData * /*md*/,
                          const ModifierEvalContext *ctx,
                          Mesh * /*mesh*/,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   sbObjectStep(ctx->depsgraph,
@@ -64,7 +66,7 @@ static void update_depsgraph(ModifierData * /*md*/, const ModifierUpdateDepsgrap
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -115,3 +117,5 @@ ModifierTypeInfo modifierType_Softbody = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

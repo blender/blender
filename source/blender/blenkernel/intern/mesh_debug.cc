@@ -25,6 +25,8 @@
 
 #  include "BLI_dynstr.h"
 
+namespace blender {
+
 char *BKE_mesh_debug_info(const Mesh *mesh)
 {
   DynStr *dynstr = BLI_dynstr_new();
@@ -77,5 +79,7 @@ void BKE_mesh_debug_print(const Mesh *mesh)
   fflush(stdout);
   MEM_freeN(str);
 }
+
+}  // namespace blender
 
 #endif /* !NDEBUG */

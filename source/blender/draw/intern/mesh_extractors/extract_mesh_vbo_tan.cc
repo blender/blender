@@ -108,7 +108,7 @@ static Array<Array<float4>> extract_tan_init_common(const MeshRenderData &mr,
   }
 
   if (uv_names.is_empty()) {
-    GPU_vertformat_attr_add(format, "dummy", blender::gpu::VertAttrType::SFLOAT_32);
+    GPU_vertformat_attr_add(format, "dummy", gpu::VertAttrType::SFLOAT_32);
     return {};
   }
 
@@ -138,7 +138,7 @@ static Array<Array<float4>> extract_tan_init_common(const MeshRenderData &mr,
   }
 
   if (format->attr_len == 0) {
-    GPU_vertformat_attr_add(format, "dummy", blender::gpu::VertAttrType::SFLOAT_32);
+    GPU_vertformat_attr_add(format, "dummy", gpu::VertAttrType::SFLOAT_32);
   }
 
   return results;

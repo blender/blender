@@ -19,6 +19,8 @@
 #  include "ABC_alembic.h"
 #endif
 
+namespace blender {
+
 static PyTypeObject BlenderAppABCType;
 
 static PyStructSequence_Field app_alembic_info_fields[] = {
@@ -91,3 +93,5 @@ PyObject *BPY_app_alembic_struct()
 
   return ret;
 }
+
+}  // namespace blender

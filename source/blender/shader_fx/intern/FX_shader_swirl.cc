@@ -28,6 +28,8 @@
 
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *md)
 {
   SwirlShaderFxData *gpmd = reinterpret_cast<SwirlShaderFxData *>(md);
@@ -65,7 +67,7 @@ static void foreach_ID_link(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -101,3 +103,5 @@ ShaderFxTypeInfo shaderfx_Type_Swirl = {
     /*foreach_working_space_color*/ nullptr,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

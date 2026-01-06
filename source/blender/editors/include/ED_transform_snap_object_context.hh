@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 // #define DEBUG_SNAP_TIME
 
 struct BMEdge;
@@ -23,7 +25,7 @@ struct Object;
 struct Scene;
 struct View3D;
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 /* `transform_snap_object.cc` */
 
@@ -223,4 +225,5 @@ void ED_transform_snap_object_time_average_print();
 #  define ED_transform_snap_object_time_average_print() void(0)
 #endif
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

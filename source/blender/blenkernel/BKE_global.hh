@@ -13,6 +13,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Main;
 struct RecentFile;
 
@@ -369,3 +371,5 @@ extern Global G;
  * helps with cleanup task.
  */
 #define G_MAIN (G).main
+
+}  // namespace blender

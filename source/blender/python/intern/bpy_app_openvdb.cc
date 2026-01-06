@@ -15,6 +15,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 #ifdef WITH_OPENVDB
 #  include "openvdb_capi.h"
 #endif
@@ -95,3 +97,5 @@ PyObject *BPY_app_openvdb_struct()
 
   return ret;
 }
+
+}  // namespace blender

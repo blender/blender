@@ -85,7 +85,7 @@ PropertyRNA *rna_property_for_type(PointerRNA &ptr, const bke::AttrType type)
 
 void register_rna_properties_for_attribute_types(StructRNA &srna)
 {
-  static blender::float4 color_default(1);
+  static float4 color_default(1);
 
   RNA_def_float(&srna, "value_float", 0.0f, -FLT_MAX, FLT_MAX, "Value", "", -FLT_MAX, FLT_MAX);
   RNA_def_float_array(&srna,
@@ -739,7 +739,7 @@ static wmOperatorStatus geometry_color_attribute_set_render_exec(bContext *C, wm
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  Mesh *mesh = blender::id_cast<Mesh *>(id);
+  Mesh *mesh = id_cast<Mesh *>(id);
   if (mesh->runtime->edit_mesh) {
     const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, name);
     if (!attr) {
@@ -1000,7 +1000,7 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
   if (GS(id->name) != ID_ME) {
     return false;
   }
-  const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = id_cast<const Mesh *>(ob->data);
   const char *name = mesh->active_color_attribute;
   const bke::AttributeAccessor attributes = mesh->attributes();
   if (!bke::mesh::is_color_attribute(attributes.lookup_meta_data(name))) {
@@ -1013,7 +1013,7 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
 static wmOperatorStatus geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   convert_attribute(
       owner,
@@ -1032,7 +1032,7 @@ static wmOperatorStatus geometry_color_attribute_convert_invoke(bContext *C,
                                                                 const wmEvent * /*event*/)
 {
   Object *ob = object::context_object(C);
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   const char *name = mesh->active_color_attribute;
   const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(name);
 

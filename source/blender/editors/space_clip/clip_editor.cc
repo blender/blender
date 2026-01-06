@@ -49,6 +49,8 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Operator Poll Functions
  * \{ */
@@ -497,7 +499,7 @@ void ED_clip_point_stable_pos(
   ED_space_clip_get_zoom(sc, region, &zoomx, &zoomy);
   ED_space_clip_get_size(sc, &width, &height);
 
-  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
+  ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
   pos[0] = (x - sx) / zoomx;
   pos[1] = (y - sy) / zoomy;
@@ -534,7 +536,7 @@ void ED_clip_point_stable_pos__reverse(const SpaceClip *sc,
   int width, height;
   int sx, sy;
 
-  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
+  ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
   ED_space_clip_get_size(sc, &width, &height);
   ED_space_clip_get_zoom(sc, region, &zoomx, &zoomy);
 
@@ -597,7 +599,7 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
   old_clip = sc->clip;
   sc->clip = clip;
 
-  id_us_ensure_real(blender::id_cast<ID *>(sc->clip));
+  id_us_ensure_real(id_cast<ID *>(sc->clip));
 
   if (screen && sc->view == SC_VIEW_CLIP) {
     for (ScrArea &area : screen->areabase) {
@@ -647,7 +649,7 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
 {
   sc->mask_info.mask = mask;
 
-  id_us_ensure_real(blender::id_cast<ID *>(sc->mask_info.mask));
+  id_us_ensure_real(id_cast<ID *>(sc->mask_info.mask));
 
   if (C) {
     WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);
@@ -684,7 +686,7 @@ struct PrefetchQueue {
    */
   bool forward;
 
-  blender::Mutex mutex;
+  Mutex mutex;
 
   bool *stop;
   bool *do_update;
@@ -1195,3 +1197,5 @@ void ED_clip_view_lock_state_restore_no_jump(const bContext *C, const ClipViewLo
 }
 
 /** \} */
+
+}  // namespace blender

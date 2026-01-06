@@ -33,14 +33,17 @@
 
 #include "CLG_log.h"
 
+#ifdef WITH_INTERNATIONAL
+#  include "BLI_fileops.h"
+#  include "BLI_linklist.h"
+#  include "messages.hh"
+#endif
+
+namespace blender {
+
 static CLG_LogRef LOG = {"translation"};
 
 #ifdef WITH_INTERNATIONAL
-
-#  include "BLI_fileops.h"
-#  include "BLI_linklist.h"
-
-#  include "messages.hh"
 
 /* Locale options. */
 static const char **locales = nullptr;
@@ -226,7 +229,7 @@ void BLT_lang_init()
 void BLT_lang_free()
 {
 #ifdef WITH_INTERNATIONAL
-  blender::locale::free();
+  locale::free();
   free_locales();
 #endif
 }
@@ -253,9 +256,9 @@ void BLT_lang_set(const char *str)
   int ulang = ULANGUAGE;
   std::string locale_name = str ? str : LOCALE(ulang);
 
-  /* #blender::locale assumes UTF8, no need to put it in the name. */
+  /* #locale assumes UTF8, no need to put it in the name. */
   const std::optional<std::string> messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
-  blender::locale::init(locale_name, {TEXT_DOMAIN_NAME}, {messagepath.value_or("")});
+  locale::init(locale_name, {TEXT_DOMAIN_NAME}, {messagepath.value_or("")});
 
 #else
   (void)str;
@@ -269,7 +272,7 @@ const char *BLT_lang_get()
     const char *locale = LOCALE(ULANGUAGE);
     if (locale[0] == '\0') {
       /* Default locale, we have to find which one we are actually using! */
-      locale = blender::locale::full_name();
+      locale = locale::full_name();
     }
     return locale;
   }
@@ -342,3 +345,5 @@ void BLT_lang_locale_explode(const char *locale,
     MEM_freeN(_t);
   }
 }
+
+}  // namespace blender

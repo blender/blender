@@ -10,6 +10,8 @@
 
 #include "DNA_view3d_types.h"
 
+namespace blender {
+
 enum eXrSessionFlag {
   XR_SESSION_USE_POSITION_TRACKING = (1 << 0),
   XR_SESSION_USE_ABSOLUTE_TRACKING = (1 << 1),
@@ -210,3 +212,5 @@ struct XrActionMap {
 };
 
 /* -------------------------------------------------------------------- */
+
+}  // namespace blender

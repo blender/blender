@@ -43,6 +43,8 @@
 #  include "io_obj.hh"
 #  include "io_utils.hh"
 
+namespace blender {
+
 static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {DAG_EVAL_RENDER, "DAG_EVAL_RENDER", 0, "Render", "Export objects as they appear in render"},
     {DAG_EVAL_VIEWPORT,
@@ -135,7 +137,7 @@ static wmOperatorStatus wm_obj_export_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void ui_obj_export_settings(const bContext *C, blender::ui::Layout &layout, PointerRNA *ptr)
+static void ui_obj_export_settings(const bContext *C, ui::Layout &layout, PointerRNA *ptr)
 {
   const bool export_animation = RNA_boolean_get(ptr, "export_animation");
   const bool export_smooth_groups = RNA_boolean_get(ptr, "export_smooth_groups");
@@ -145,12 +147,11 @@ static void ui_obj_export_settings(const bContext *C, blender::ui::Layout &layou
   layout.use_property_decorate_set(false);
 
   /* Object General options. */
-  if (blender::ui::Layout *panel = layout.panel(C, "OBJ_export_general", false, IFACE_("General")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "OBJ_export_general", false, IFACE_("General"))) {
+    ui::Layout &col = panel->column(false);
 
     if (CTX_wm_space_file(C)) {
-      blender::ui::Layout &sub = col.column(false, IFACE_("Include"));
+      ui::Layout &sub = col.column(false, IFACE_("Include"));
       sub.prop(ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
     }
 
@@ -160,10 +161,8 @@ static void ui_obj_export_settings(const bContext *C, blender::ui::Layout &layou
   }
 
   /* Geometry options. */
-  if (blender::ui::Layout *panel = layout.panel(
-          C, "OBJ_export_geometry", false, IFACE_("Geometry")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "OBJ_export_geometry", false, IFACE_("Geometry"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
     col.prop(ptr, "export_normals", UI_ITEM_NONE, IFACE_("Normals"), ICON_NONE);
     col.prop(ptr, "export_colors", UI_ITEM_NONE, IFACE_("Colors"), ICON_NONE);
@@ -177,27 +176,25 @@ static void ui_obj_export_settings(const bContext *C, blender::ui::Layout &layou
   }
 
   /* Grouping options. */
-  if (blender::ui::Layout *panel = layout.panel(
-          C, "OBJ_export_grouping", false, IFACE_("Grouping")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "OBJ_export_grouping", false, IFACE_("Grouping"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "export_object_groups", UI_ITEM_NONE, IFACE_("Object Groups"), ICON_NONE);
     col.prop(ptr, "export_material_groups", UI_ITEM_NONE, IFACE_("Material Groups"), ICON_NONE);
     col.prop(ptr, "export_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
     col.prop(ptr, "export_smooth_groups", UI_ITEM_NONE, IFACE_("Smooth Groups"), ICON_NONE);
-    blender::ui::Layout &sub = col.column(false);
+    ui::Layout &sub = col.column(false);
     sub.enabled_set(export_smooth_groups);
     sub.prop(
         ptr, "smooth_group_bitflags", UI_ITEM_NONE, IFACE_("Smooth Group Bitflags"), ICON_NONE);
   }
 
   /* Material options. */
-  blender::ui::PanelLayout panel = layout.panel(C, "OBJ_export_materials", false);
+  ui::PanelLayout panel = layout.panel(C, "OBJ_export_materials", false);
   panel.header->use_property_split_set(false);
   panel.header->prop(ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
   panel.header->label(IFACE_("Materials"), ICON_NONE);
   if (panel.body) {
-    blender::ui::Layout &col = panel.body->column(false);
+    ui::Layout &col = panel.body->column(false);
     col.enabled_set(export_materials);
 
     col.prop(ptr, "export_pbr_extensions", UI_ITEM_NONE, IFACE_("PBR Extensions"), ICON_NONE);
@@ -210,7 +207,7 @@ static void ui_obj_export_settings(const bContext *C, blender::ui::Layout &layou
   panel.header->prop(ptr, "export_animation", UI_ITEM_NONE, "", ICON_NONE);
   panel.header->label(IFACE_("Animation"), ICON_NONE);
   if (panel.body) {
-    blender::ui::Layout &col = panel.body->column(false);
+    ui::Layout &col = panel.body->column(false);
     col.enabled_set(export_animation);
 
     col.prop(ptr, "start_frame", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
@@ -448,7 +445,7 @@ static wmOperatorStatus wm_obj_import_exec(bContext *C, wmOperator *op)
 
   import_params.reports = op->reports;
 
-  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
+  const auto paths = ed::io::paths_from_operator_properties(op->ptr);
 
   if (paths.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
@@ -470,23 +467,21 @@ static wmOperatorStatus wm_obj_import_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void ui_obj_import_settings(const bContext *C, blender::ui::Layout &layout, PointerRNA *ptr)
+static void ui_obj_import_settings(const bContext *C, ui::Layout &layout, PointerRNA *ptr)
 {
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  if (blender::ui::Layout *panel = layout.panel(C, "OBJ_import_general", false, IFACE_("General")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "OBJ_import_general", false, IFACE_("General"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "clamp_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
     col.prop(ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
   }
 
-  if (blender::ui::Layout *panel = layout.panel(C, "OBJ_import_options", false, IFACE_("Options")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "OBJ_import_options", false, IFACE_("Options"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "use_split_objects", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "use_split_groups", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "import_vertex_groups", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -495,10 +490,8 @@ static void ui_obj_import_settings(const bContext *C, blender::ui::Layout &layou
     col.prop(ptr, "collection_separator", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (blender::ui::Layout *panel = layout.panel(
-          C, "OBJ_import_materials", false, IFACE_("Materials")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "OBJ_import_materials", false, IFACE_("Materials"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "mtl_name_collision_mode", UI_ITEM_NONE, IFACE_("Name Collision"), ICON_NONE);
   }
 }
@@ -517,7 +510,7 @@ void WM_OT_obj_import(wmOperatorType *ot)
   ot->idname = "WM_OT_obj_import";
   ot->flag = OPTYPE_UNDO | OPTYPE_PRESET;
 
-  ot->invoke = blender::ed::io::filesel_drop_import_invoke;
+  ot->invoke = ed::io::filesel_drop_import_invoke;
   ot->exec = wm_obj_import_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_obj_import_draw;
@@ -605,7 +598,7 @@ void WM_OT_obj_import(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-namespace blender::ed::io {
+namespace ed::io {
 void obj_file_handler_add()
 {
   auto fh = std::make_unique<bke::FileHandlerType>();
@@ -617,6 +610,7 @@ void obj_file_handler_add()
   fh->poll_drop = poll_file_object_drop;
   bke::file_handler_add(std::move(fh));
 }
-}  // namespace blender::ed::io
+}  // namespace ed::io
+}  // namespace blender
 
 #endif /* WITH_IO_WAVEFRONT_OBJ */

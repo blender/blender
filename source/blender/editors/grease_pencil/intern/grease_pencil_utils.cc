@@ -818,9 +818,7 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
 }
 
 Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
-    const Scene &scene,
-    GreasePencil &grease_pencil,
-    const blender::bke::greasepencil::Layer &layer)
+    const Scene &scene, GreasePencil &grease_pencil, const bke::greasepencil::Layer &layer)
 {
   using namespace blender::bke::greasepencil;
   const int current_frame = scene.r.cfra;
@@ -842,9 +840,7 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
 }
 
 Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer_with_falloff(
-    const Scene &scene,
-    GreasePencil &grease_pencil,
-    const blender::bke::greasepencil::Layer &layer)
+    const Scene &scene, GreasePencil &grease_pencil, const bke::greasepencil::Layer &layer)
 {
   using namespace blender::bke::greasepencil;
   const int current_frame = scene.r.cfra;
@@ -961,7 +957,6 @@ IndexMask retrieve_editable_strokes(Object &object,
                                     int layer_index,
                                     IndexMaskMemory &memory)
 {
-  using namespace blender;
   const bke::CurvesGeometry &curves = drawing.strokes();
   const IndexRange curves_range = curves.curves_range();
 
@@ -969,7 +964,7 @@ IndexMask retrieve_editable_strokes(Object &object,
     return IndexMask(curves_range);
   }
 
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
   const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
 
   /* If we're not using material locking, the entire curves range is editable. */
@@ -1005,7 +1000,6 @@ IndexMask retrieve_editable_fill_strokes(Object &object,
                                          int layer_index,
                                          IndexMaskMemory &memory)
 {
-  using namespace blender;
   const IndexMask editable_strokes = retrieve_editable_strokes(
       object, drawing, layer_index, memory);
   if (editable_strokes.is_empty()) {
@@ -1039,8 +1033,6 @@ IndexMask retrieve_editable_strokes_by_material(Object &object,
                                                 const int mat_i,
                                                 IndexMaskMemory &memory)
 {
-  using namespace blender;
-
   const bke::CurvesGeometry &curves = drawing.strokes();
   const IndexRange curves_range = curves.curves_range();
 
@@ -1081,7 +1073,7 @@ IndexMask retrieve_editable_points(Object &object,
     return IndexMask(points_range);
   }
 
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
   const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
 
   /* If we're not using material locking, the entire points range is editable. */
@@ -1133,8 +1125,6 @@ IndexMask retrieve_visible_strokes(Object &object,
                                    const bke::greasepencil::Drawing &drawing,
                                    IndexMaskMemory &memory)
 {
-  using namespace blender;
-
   /* Get all the hidden material indices. */
   VectorSet<int> hidden_material_indices = get_hidden_material_indices(object);
 
@@ -1322,7 +1312,6 @@ IndexMask retrieve_editable_and_selected_strokes(Object &object,
                                                  int layer_index,
                                                  IndexMaskMemory &memory)
 {
-  using namespace blender;
   const bke::CurvesGeometry &curves = drawing.strokes();
 
   const IndexMask editable_strokes = retrieve_editable_strokes(
@@ -1337,7 +1326,6 @@ IndexMask retrieve_editable_and_selected_fill_strokes(Object &object,
                                                       int layer_index,
                                                       IndexMaskMemory &memory)
 {
-  using namespace blender;
   const bke::CurvesGeometry &curves = drawing.strokes();
 
   const IndexMask editable_strokes = retrieve_editable_fill_strokes(
@@ -1674,7 +1662,7 @@ wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   if (!grease_pencil.has_active_layer()) {
     BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
     return OPERATOR_CANCELLED;
@@ -1762,7 +1750,7 @@ GreasePencil *from_context(bContext &C)
   if (grease_pencil == nullptr) {
     Object *object = CTX_data_active_object(&C);
     if (object && object->type == OB_GREASE_PENCIL) {
-      grease_pencil = blender::id_cast<GreasePencil *>(object->data);
+      grease_pencil = id_cast<GreasePencil *>(object->data);
     }
   }
   return grease_pencil;
@@ -2002,7 +1990,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
     Drawing *drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
 
     if (drawing_orig && drawing_eval) {
-      CurvesGeometry &eval_strokes = drawing_eval->strokes_for_write();
+      bke::CurvesGeometry &eval_strokes = drawing_eval->strokes_for_write();
 
       /* Check for new vertex groups in CurvesGeometry. */
       for (bDeformGroup &dg : eval_strokes.vertex_group_names) {

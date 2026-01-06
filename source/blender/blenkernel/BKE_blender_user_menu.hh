@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct bUserMenu;
 struct bUserMenuItem;
 
@@ -23,3 +25,5 @@ bUserMenu *BKE_blender_user_menu_ensure(ListBaseT<bUserMenu> *lb,
 bUserMenuItem *BKE_blender_user_menu_item_add(ListBaseT<bUserMenuItem> *lb, int type);
 void BKE_blender_user_menu_item_free(bUserMenuItem *umi);
 void BKE_blender_user_menu_item_free_list(ListBaseT<bUserMenuItem> *lb);
+
+}  // namespace blender

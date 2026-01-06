@@ -31,6 +31,8 @@
 
 #include "gpu_py_shader.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Enum Conversion.
  * \{ */
@@ -98,7 +100,7 @@ static const PyC_StringEnumItems pygpu_shader_config_items[] = {
     {0, nullptr},
 };
 
-static int pygpu_shader_uniform_location_get(blender::gpu::Shader *shader,
+static int pygpu_shader_uniform_location_get(gpu::Shader *shader,
                                              const char *name,
                                              const char *error_prefix)
 {
@@ -647,10 +649,10 @@ static PyObject *pygpu_shader_format_calc(BPyGPUShader *self, PyObject * /*arg*/
 
     /* WORKAROUND: Special case for POLYLINE shader. */
     if (GPU_shader_get_ssbo_binding(self->shader, "pos") >= 0) {
-      GPU_vertformat_attr_add(&ret->fmt, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+      GPU_vertformat_attr_add(&ret->fmt, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     }
     if (GPU_shader_get_ssbo_binding(self->shader, "color") >= 0) {
-      GPU_vertformat_attr_add(&ret->fmt, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
+      GPU_vertformat_attr_add(&ret->fmt, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
     }
   }
   else {
@@ -979,7 +981,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, 
     return nullptr;
   }
 
-  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader_with_config(
+  gpu::Shader *shader = GPU_shader_get_builtin_shader_with_config(
       GPUBuiltinShader(pygpu_bultinshader.value_found), GPUShaderConfig(pygpu_config.value_found));
 
   if (shader == nullptr) {
@@ -1016,7 +1018,7 @@ static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUSh
     return nullptr;
   }
 
-  blender::gpu::Shader *shader = GPU_shader_create_from_info_python(o->info);
+  gpu::Shader *shader = GPU_shader_create_from_info_python(o->info);
   if (!shader) {
     PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
     return nullptr;
@@ -1095,7 +1097,7 @@ static PyModuleDef pygpu_shader_module_def = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUShader_CreatePyObject(blender::gpu::Shader *shader, bool is_builtin)
+PyObject *BPyGPUShader_CreatePyObject(gpu::Shader *shader, bool is_builtin)
 {
   BPyGPUShader *self;
 
@@ -1115,7 +1117,7 @@ PyObject *bpygpu_shader_init()
   return submodule;
 }
 
-bool bpygpu_shader_is_polyline(blender::gpu::Shader *shader)
+bool bpygpu_shader_is_polyline(gpu::Shader *shader)
 {
   return ELEM(shader,
               GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_FLAT_COLOR),
@@ -1124,3 +1126,5 @@ bool bpygpu_shader_is_polyline(blender::gpu::Shader *shader)
 }
 
 /** \} */
+
+}  // namespace blender

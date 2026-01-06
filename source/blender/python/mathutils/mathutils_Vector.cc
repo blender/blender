@@ -24,6 +24,8 @@
 #  include "BLI_dynstr.h"
 #endif
 
+namespace blender {
+
 /**
  * Higher dimensions are supported, for many common operations
  * (dealing with vector/matrix multiply or handling as 3D locations)
@@ -3706,3 +3708,5 @@ PyObject *Vector_CreatePyObject_alloc(float *vec, const int vec_num, PyTypeObjec
 }
 
 /** \} */
+
+}  // namespace blender

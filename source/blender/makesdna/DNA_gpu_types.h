@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /* Keep for 'Camera' versioning. */
 /** Properties for DOF effect. */
 struct GPUDOFSettings {
@@ -21,3 +23,5 @@ struct GPUDOFSettings {
   int num_blades = 0;
   int high_quality = 0;
 };
+
+}  // namespace blender

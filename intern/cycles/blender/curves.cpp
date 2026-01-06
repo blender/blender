@@ -34,7 +34,9 @@
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_particle.h"
 
+namespace blender {
 struct ModifierData;
+}
 
 CCL_NAMESPACE_BEGIN
 
@@ -62,8 +64,8 @@ static float shaperadius(const float shape, const float root, const float tip, c
 /* curve functions */
 
 static bool ObtainCacheParticleData(Hair *hair,
-                                    const ::Mesh *b_mesh,
-                                    const ::Object *b_ob,
+                                    const blender::Mesh *b_mesh,
+                                    const blender::Object *b_ob,
                                     ParticleCurveData *CData,
                                     bool background)
 {
@@ -77,16 +79,16 @@ static bool ObtainCacheParticleData(Hair *hair,
   const Transform tfm = get_transform(b_ob->object_to_world());
   const Transform itfm = transform_inverse(tfm);
 
-  for (const ::ModifierData &b_mod : b_ob->modifiers) {
-    if ((b_mod.type == eModifierType_ParticleSystem) &&
-        (background ? ((b_mod.mode & eModifierMode_Render) != 0) :
-                      ((b_mod.mode & eModifierMode_Realtime) != 0)))
+  for (const blender::ModifierData &b_mod : b_ob->modifiers) {
+    if ((b_mod.type == blender::eModifierType_ParticleSystem) &&
+        (background ? ((b_mod.mode & blender::eModifierMode_Render) != 0) :
+                      ((b_mod.mode & blender::eModifierMode_Realtime) != 0)))
     {
-      const auto *psmd = reinterpret_cast<const ::ParticleSystemModifierData *>(&b_mod);
-      ::ParticleSystem *b_psys = psmd->psys;
-      ::ParticleSettings *b_part = b_psys->part;
+      const auto *psmd = reinterpret_cast<const blender::ParticleSystemModifierData *>(&b_mod);
+      blender::ParticleSystem *b_psys = psmd->psys;
+      blender::ParticleSettings *b_part = b_psys->part;
 
-      if ((b_part->ren_as == PART_DRAW_PATH) && (b_part->type == PART_HAIR)) {
+      if ((b_part->ren_as == blender::PART_DRAW_PATH) && (b_part->type == blender::PART_HAIR)) {
         const int shader = clamp(b_part->omat - 1, 0, hair->get_used_shaders().size() - 1);
         const int display_step = background ? b_part->ren_step : b_part->draw_step;
         const int totparts = b_psys->totpart;
@@ -104,7 +106,7 @@ static bool ObtainCacheParticleData(Hair *hair,
         }
 
         int ren_step = (1 << display_step) + 1;
-        if (b_part->kink == PART_KINK_SPIRAL) {
+        if (b_part->kink == blender::PART_KINK_SPIRAL) {
           ren_step += b_part->kink_extra_steps;
         }
 
@@ -117,7 +119,8 @@ static bool ObtainCacheParticleData(Hair *hair,
         CData->psys_rootradius.push_back_slow(radius * b_part->rad_root);
         CData->psys_tipradius.push_back_slow(radius * b_part->rad_tip);
         CData->psys_shape.push_back_slow(b_part->shape);
-        CData->psys_closetip.push_back_slow((b_part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0);
+        CData->psys_closetip.push_back_slow((b_part->shape_flag & blender::PART_SHAPE_CLOSE_TIP) !=
+                                            0);
 
         int pa_no = 0;
         if (!(b_part->childtype == 0) && totchild != 0) {
@@ -166,8 +169,8 @@ static bool ObtainCacheParticleData(Hair *hair,
 }
 
 static bool ObtainCacheParticleUV(Hair *hair,
-                                  const ::Mesh *b_mesh,
-                                  const ::Object *b_ob,
+                                  const blender::Mesh *b_mesh,
+                                  const blender::Object *b_ob,
                                   ParticleCurveData *CData,
                                   bool background,
                                   const int uv_num)
@@ -178,16 +181,16 @@ static bool ObtainCacheParticleUV(Hair *hair,
 
   CData->curve_uv.clear();
 
-  for (::ModifierData &b_mod : b_ob->modifiers) {
-    if ((b_mod.type == eModifierType_ParticleSystem) &&
-        (background ? ((b_mod.mode & eModifierMode_Render) != 0) :
-                      ((b_mod.mode & eModifierMode_Realtime) != 0)))
+  for (blender::ModifierData &b_mod : b_ob->modifiers) {
+    if ((b_mod.type == blender::eModifierType_ParticleSystem) &&
+        (background ? ((b_mod.mode & blender::eModifierMode_Render) != 0) :
+                      ((b_mod.mode & blender::eModifierMode_Realtime) != 0)))
     {
-      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(&b_mod);
-      ::ParticleSystem *b_psys = psmd->psys;
-      ::ParticleSettings *b_part = b_psys->part;
+      auto *psmd = reinterpret_cast<blender::ParticleSystemModifierData *>(&b_mod);
+      blender::ParticleSystem *b_psys = psmd->psys;
+      blender::ParticleSettings *b_part = b_psys->part;
 
-      if ((b_part->ren_as == PART_DRAW_PATH) && (b_part->type == PART_HAIR)) {
+      if ((b_part->ren_as == blender::PART_DRAW_PATH) && (b_part->type == blender::PART_HAIR)) {
         const int totparts = b_psys->totpart;
         const int totchild = background ?
                                  b_psys->totchild :
@@ -210,7 +213,8 @@ static bool ObtainCacheParticleUV(Hair *hair,
         const int num_add = (totparts + totchild - pa_no);
         CData->curve_uv.reserve(CData->curve_uv.size() + num_add);
 
-        blender::MutableSpan<::ParticleData> b_psys_particles(b_psys->particles, b_psys->totpart);
+        blender::MutableSpan<blender::ParticleData> b_psys_particles(b_psys->particles,
+                                                                     b_psys->totpart);
         auto *b_pa = b_psys_particles.begin();
         for (; pa_no < totparts + totchild; pa_no++) {
           /* Add UVs */
@@ -230,8 +234,8 @@ static bool ObtainCacheParticleUV(Hair *hair,
 }
 
 static bool ObtainCacheParticleVcol(Hair *hair,
-                                    const ::Mesh *b_mesh,
-                                    const ::Object *b_ob,
+                                    const blender::Mesh *b_mesh,
+                                    const blender::Object *b_ob,
                                     ParticleCurveData *CData,
                                     bool background,
                                     const int vcol_num)
@@ -242,16 +246,16 @@ static bool ObtainCacheParticleVcol(Hair *hair,
 
   CData->curve_vcol.clear();
 
-  for (::ModifierData &b_mod : b_ob->modifiers) {
-    if ((b_mod.type == eModifierType_ParticleSystem) &&
-        (background ? ((b_mod.mode & eModifierMode_Render) != 0) :
-                      ((b_mod.mode & eModifierMode_Realtime) != 0)))
+  for (blender::ModifierData &b_mod : b_ob->modifiers) {
+    if ((b_mod.type == blender::eModifierType_ParticleSystem) &&
+        (background ? ((b_mod.mode & blender::eModifierMode_Render) != 0) :
+                      ((b_mod.mode & blender::eModifierMode_Realtime) != 0)))
     {
-      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(&b_mod);
-      ::ParticleSystem *b_psys = psmd->psys;
-      ::ParticleSettings *b_part = b_psys->part;
+      auto *psmd = reinterpret_cast<blender::ParticleSystemModifierData *>(&b_mod);
+      blender::ParticleSystem *b_psys = psmd->psys;
+      blender::ParticleSettings *b_part = b_psys->part;
 
-      if ((b_part->ren_as == PART_DRAW_PATH) && (b_part->type == PART_HAIR)) {
+      if ((b_part->ren_as == blender::PART_DRAW_PATH) && (b_part->type == blender::PART_HAIR)) {
         const int totparts = b_psys->totpart;
         const int totchild = background ?
                                  b_psys->totchild :
@@ -274,7 +278,8 @@ static bool ObtainCacheParticleVcol(Hair *hair,
         const int num_add = (totparts + totchild - pa_no);
         CData->curve_vcol.reserve(CData->curve_vcol.size() + num_add);
 
-        blender::MutableSpan<::ParticleData> b_psys_particles(b_psys->particles, b_psys->totpart);
+        blender::MutableSpan<blender::ParticleData> b_psys_particles(b_psys->particles,
+                                                                     b_psys->totpart);
         auto *b_pa = b_psys_particles.begin();
         for (; pa_no < totparts + totchild; pa_no++) {
           /* Add vertex colors */
@@ -547,19 +552,19 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, cons
 
 /* Hair Curve Sync */
 
-bool BlenderSync::object_has_particle_hair(::Object *b_ob)
+bool BlenderSync::object_has_particle_hair(blender::Object *b_ob)
 {
   /* Test if the object has a particle modifier with hair. */
-  for (::ModifierData &b_mod : b_ob->modifiers) {
-    if ((b_mod.type == eModifierType_ParticleSystem) &&
-        (preview ? ((b_mod.mode & eModifierMode_Realtime) != 0) :
-                   ((b_mod.mode & eModifierMode_Render) != 0)))
+  for (blender::ModifierData &b_mod : b_ob->modifiers) {
+    if ((b_mod.type == blender::eModifierType_ParticleSystem) &&
+        (preview ? ((b_mod.mode & blender::eModifierMode_Realtime) != 0) :
+                   ((b_mod.mode & blender::eModifierMode_Render) != 0)))
     {
-      auto *psmd = reinterpret_cast<::ParticleSystemModifierData *>(&b_mod);
-      ::ParticleSystem *b_psys = psmd->psys;
-      ::ParticleSettings *b_part = b_psys->part;
+      auto *psmd = reinterpret_cast<blender::ParticleSystemModifierData *>(&b_mod);
+      blender::ParticleSystem *b_psys = psmd->psys;
+      blender::ParticleSettings *b_part = b_psys->part;
 
-      if ((b_part->ren_as == PART_DRAW_PATH) && (b_part->type == PART_HAIR)) {
+      if ((b_part->ren_as == blender::PART_DRAW_PATH) && (b_part->type == blender::PART_HAIR)) {
         return true;
       }
     }
@@ -569,16 +574,19 @@ bool BlenderSync::object_has_particle_hair(::Object *b_ob)
 }
 
 /* Old particle hair. */
-void BlenderSync::sync_particle_hair(
-    Hair *hair, const ::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, const int motion_step)
+void BlenderSync::sync_particle_hair(Hair *hair,
+                                     const blender::Mesh &b_mesh,
+                                     BObjectInfo &b_ob_info,
+                                     bool motion,
+                                     const int motion_step)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;
   }
-  const ::Object &b_ob = *b_ob_info.real_object;
+  const blender::Object &b_ob = *b_ob_info.real_object;
 
   /* obtain general settings */
-  if (b_ob.mode == OB_MODE_PARTICLE_EDIT || b_ob.mode == OB_MODE_EDIT) {
+  if (b_ob.mode == blender::OB_MODE_PARTICLE_EDIT || b_ob.mode == blender::OB_MODE_EDIT) {
     return;
   }
 
@@ -1008,7 +1016,7 @@ void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, con
 
   /* Convert Blender hair to Cycles curves. */
   const blender::bke::CurvesGeometry &b_curves(
-      blender::id_cast<const ::Curves *>(b_ob_info.object_data)->geometry.wrap());
+      blender::id_cast<const blender::Curves *>(b_ob_info.object_data)->geometry.wrap());
   if (motion) {
     export_hair_curves_motion(hair, b_curves, motion_step);
   }
@@ -1018,7 +1026,7 @@ void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, con
 
   const blender::VArray<int8_t> b_types = b_curves.curve_types();
   /* This does not handle cases where the curve type is not the same across all curves */
-  if (!b_types.is_empty() && b_types[0] == CURVE_TYPE_POLY) {
+  if (!b_types.is_empty() && b_types[0] == blender::CURVE_TYPE_POLY) {
     hair->curve_shape = CURVE_THICK_LINEAR;
   }
   else {
@@ -1036,13 +1044,13 @@ void BlenderSync::sync_hair(BObjectInfo &b_ob_info, Hair *hair)
   new_hair.set_used_shaders(used_shaders);
 
   if (view_layer.use_hair) {
-    if (GS(b_ob_info.object_data->name) == ID_CV) {
+    if (GS(b_ob_info.object_data->name) == blender::ID_CV) {
       /* Hair object. */
       sync_hair(&new_hair, b_ob_info, false);
     }
     else {
       /* Particle hair. */
-      ::Mesh *b_mesh = object_to_mesh(b_ob_info);
+      blender::Mesh *b_mesh = object_to_mesh(b_ob_info);
 
       if (b_mesh) {
         sync_particle_hair(&new_hair, *b_mesh, b_ob_info, false);
@@ -1083,14 +1091,14 @@ void BlenderSync::sync_hair_motion(BObjectInfo &b_ob_info, Hair *hair, const int
 
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene, preview)) {
-    if (GS(b_ob_info.object_data->name) == ID_CV) {
+    if (GS(b_ob_info.object_data->name) == blender::ID_CV) {
       /* Hair object. */
       sync_hair(hair, b_ob_info, true, motion_step);
       return;
     }
 
     /* Particle hair. */
-    ::Mesh *b_mesh = object_to_mesh(b_ob_info);
+    blender::Mesh *b_mesh = object_to_mesh(b_ob_info);
     if (b_mesh) {
       sync_particle_hair(hair, *b_mesh, b_ob_info, true, motion_step);
       free_object_to_mesh(b_ob_info, *b_mesh);

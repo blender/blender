@@ -18,6 +18,8 @@
 
 #include "tracking_ops_intern.hh" /* own include */
 
+namespace blender {
+
 void clip_tracking_clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
 {
   eTrackArea hidden = TRACK_AREA_NONE;
@@ -50,3 +52,5 @@ void clip_tracking_show_cursor(bContext *C)
   wmWindow *win = CTX_wm_window(C);
   WM_cursor_set(win, WM_CURSOR_DEFAULT);
 }
+
+}  // namespace blender

@@ -27,6 +27,8 @@
 #include "FX_shader_types.hh"
 #include "FX_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *md)
 {
   GlowShaderFxData *gpfx = reinterpret_cast<GlowShaderFxData *>(md);
@@ -44,7 +46,7 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -104,3 +106,5 @@ ShaderFxTypeInfo shaderfx_Type_Glow = {
     /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

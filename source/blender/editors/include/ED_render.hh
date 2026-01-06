@@ -12,6 +12,8 @@
 #include "DNA_material_types.h"
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 struct DEGEditorUpdateContext;
 struct Depsgraph;
 struct ID;
@@ -129,3 +131,5 @@ void ED_previews_tag_dirty_by_id(const Main &bmain, const ID &id);
 void ED_render_clear_mtex_copybuf();
 
 void ED_render_internal_init();
+
+}  // namespace blender

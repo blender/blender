@@ -593,7 +593,7 @@ class SlotAllocator {
   bool vertex_id_overflow_ = false;
 
  public:
-  void reserve_slots(const blender::gpu::shader::ShaderCreateInfo &info)
+  void reserve_slots(const gpu::shader::ShaderCreateInfo &info)
   {
     using namespace blender::gpu::shader;
     for (const ShaderCreateInfo::VertIn &vert_in : info.vertex_inputs_) {
@@ -646,7 +646,7 @@ class SlotAllocator {
   }
 };
 
-static SlotAllocator add_pipeline_create_info(blender::gpu::shader::ShaderCreateInfo &info,
+static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &info,
                                               eMaterialPipeline pipeline_type,
                                               eMaterialGeometry geometry_type,
                                               const bool use_shader_to_rgba)
@@ -1279,7 +1279,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
 
 struct CallbackThunk {
   ShaderModule *shader_module;
-  ::Material *default_mat;
+  blender::Material *default_mat;
 };
 
 /* WATCH: This can be called from another thread! Needs to not touch the shader module in any
@@ -1296,7 +1296,7 @@ static GPUPass *pass_replacement_cb(void *void_thunk, GPUMaterial *mat)
 
   CallbackThunk *thunk = static_cast<CallbackThunk *>(void_thunk);
 
-  const ::Material *blender_mat = GPU_material_get_material(mat);
+  const blender::Material *blender_mat = GPU_material_get_material(mat);
 
   uint64_t shader_uuid = GPU_material_uuid_get(mat);
 
@@ -1363,12 +1363,12 @@ static void store_node_tree_errors(GPUMaterialFromNodeTreeResult &material_from_
   }
 }
 
-GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
+GPUMaterial *ShaderModule::material_shader_get(blender::Material *blender_mat,
                                                bNodeTree *nodetree,
                                                eMaterialPipeline pipeline_type,
                                                eMaterialGeometry geometry_type,
                                                bool deferred_compilation,
-                                               ::Material *default_mat)
+                                               blender::Material *default_mat)
 {
   eMaterialDisplacement displacement_type = to_displacement_type(blender_mat->displacement_method);
   eMaterialThickness thickness_type = to_thickness_type(blender_mat->thickness_mode);
@@ -1396,7 +1396,7 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
   return material_from_tree.material;
 }
 
-GPUMaterial *ShaderModule::world_shader_get(::World *blender_world,
+GPUMaterial *ShaderModule::world_shader_get(blender::World *blender_world,
                                             bNodeTree *nodetree,
                                             eMaterialPipeline pipeline_type,
                                             bool deferred_compilation)

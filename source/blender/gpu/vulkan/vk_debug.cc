@@ -18,9 +18,11 @@
 
 #include "gpu_profile_report.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 void VKContext::debug_group_begin(const char *name, int)
 {
   render_graph().debug_group_begin(name, debug::get_debug_group_color(name));
@@ -155,9 +157,9 @@ void VKContext::debug_capture_scope_end(void *scope)
 #endif
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
-namespace blender::gpu::debug {
+namespace gpu::debug {
 
 void VKDebuggingTools::init(VkInstance vk_instance)
 {
@@ -183,9 +185,9 @@ void object_label(VkObjectType vk_object_type, uint64_t object_handle, const cha
   }
 }
 
-}  // namespace blender::gpu::debug
+}  // namespace gpu::debug
 
-namespace blender::gpu::debug {
+namespace gpu::debug {
 
 void VKDebuggingTools::print_labels(const VkDebugUtilsMessengerCallbackDataEXT *callback_data)
 {
@@ -297,4 +299,6 @@ void VKDebuggingTools::destroy_messenger(VkInstance vk_instance)
   return;
 }
 
-};  // namespace blender::gpu::debug
+};  // namespace gpu::debug
+
+}  // namespace blender

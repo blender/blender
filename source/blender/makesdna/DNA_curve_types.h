@@ -18,6 +18,8 @@
 
 #include <optional>
 
+namespace blender {
+
 struct AnimData;
 struct Curves;
 struct CurveProfile;
@@ -177,7 +179,7 @@ struct TextBox {
   float x = 0, y = 0, w = 0, h = 0;
 };
 
-using CVKeyIndexMap = blender::Map<const void *, struct CVKeyIndex *>;
+using CVKeyIndexMap = Map<const void *, struct CVKeyIndex *>;
 
 /* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
@@ -411,3 +413,5 @@ struct Curve {
 
 #define BEZT_IS_AUTOH(bezt) \
   (ELEM((bezt)->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM((bezt)->h2, HD_AUTO, HD_AUTO_ANIM))
+
+}  // namespace blender

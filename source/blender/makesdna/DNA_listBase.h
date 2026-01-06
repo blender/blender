@@ -12,6 +12,8 @@
 
 #pragma once
 
+namespace blender {
+
 /** Generic - all structs which are put into linked lists begin with this. */
 struct Link {
   struct Link *next, *prev;
@@ -111,3 +113,5 @@ template<typename T> struct ListBaseT : public ListBase {
 #endif
 
 /* 8 byte alignment! */
+
+}  // namespace blender

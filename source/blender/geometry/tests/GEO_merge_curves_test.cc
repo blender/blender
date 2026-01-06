@@ -10,9 +10,11 @@
 
 #include "testing/testing.h"
 
+namespace blender {
+
 using namespace blender::bke;
 
-namespace blender::geometry::tests {
+namespace geometry::tests {
 
 static bke::CurvesGeometry create_test_curves(Span<int> offsets, Span<bool> cyclic)
 {
@@ -194,4 +196,5 @@ TEST(merge_curves, Branching)
   EXPECT_EQ_SPAN(Span({0, 1, 2, 6, 7, 8, 3, 4, 5, 9, 10, 11}), dst_indices);
 }
 
-}  // namespace blender::geometry::tests
+}  // namespace geometry::tests
+}  // namespace blender

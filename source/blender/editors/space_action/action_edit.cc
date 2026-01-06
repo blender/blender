@@ -60,6 +60,8 @@
 
 #include "action_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Pose Markers: Localize Markers
  * \{ */
@@ -198,8 +200,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         }
       }
       else if (ale.datatype == ALE_GREASE_PENCIL_CEL) {
-        const blender::bke::greasepencil::Layer &layer =
-            static_cast<GreasePencilLayer *>(ale.data)->wrap();
+        const bke::greasepencil::Layer &layer = static_cast<GreasePencilLayer *>(ale.data)->wrap();
 
         for (const auto [key, frame] : layer.frames().items()) {
           if (onlySel && !frame.is_selected()) {
@@ -418,13 +419,13 @@ static wmOperatorStatus actkeys_viewall(bContext *C, const bool only_sel)
       float ymid = (ymax - ymin) / 2.0f + ymin;
       float x_center;
 
-      blender::ui::view2d_center_get(v2d, &x_center, nullptr);
-      blender::ui::view2d_center_set(v2d, x_center, ymid);
+      ui::view2d_center_get(v2d, &x_center, nullptr);
+      ui::view2d_center_set(v2d, x_center, ymid);
     }
   }
 
   /* do View2D syncing */
-  blender::ui::view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+  ui::view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 
   /* just redraw this view */
   ED_area_tag_redraw(CTX_wm_area(C));
@@ -594,9 +595,9 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
 
 /* ------------------- */
 
-static blender::ed::greasepencil::KeyframeClipboard &get_grease_pencil_keyframe_clipboard()
+static ed::greasepencil::KeyframeClipboard &get_grease_pencil_keyframe_clipboard()
 {
-  static blender::ed::greasepencil::KeyframeClipboard clipboard;
+  static ed::greasepencil::KeyframeClipboard clipboard;
   return clipboard;
 }
 
@@ -612,7 +613,7 @@ static wmOperatorStatus actkeys_copy_exec(bContext *C, wmOperator *op)
   /* copy keyframes */
   if (ac.datatype == ANIMCONT_GPENCIL) {
     if (ED_gpencil_anim_copybuf_copy(&ac) == false &&
-        blender::ed::greasepencil::grease_pencil_copy_keyframes(
+        ed::greasepencil::grease_pencil_copy_keyframes(
             &ac, get_grease_pencil_keyframe_clipboard()) == false)
     {
       /* check if anything ended up in the buffer */
@@ -629,7 +630,7 @@ static wmOperatorStatus actkeys_copy_exec(bContext *C, wmOperator *op)
     /* Both copy function needs to be evaluated to account for mixed selection */
     const bool kf_ok = copy_action_keys(&ac);
     const bool gpf_ok = ED_gpencil_anim_copybuf_copy(&ac) ||
-                        blender::ed::greasepencil::grease_pencil_copy_keyframes(
+                        ed::greasepencil::grease_pencil_copy_keyframes(
                             &ac, get_grease_pencil_keyframe_clipboard());
 
     if (!kf_ok && !gpf_ok) {
@@ -677,7 +678,7 @@ static wmOperatorStatus actkeys_paste_exec(bContext *C, wmOperator *op)
   /* paste keyframes */
   if (ac.datatype == ANIMCONT_GPENCIL) {
     if (ED_gpencil_anim_copybuf_paste(&ac, offset_mode) == false &&
-        blender::ed::greasepencil::grease_pencil_paste_keyframes(
+        ed::greasepencil::grease_pencil_paste_keyframes(
             &ac, offset_mode, merge_mode, get_grease_pencil_keyframe_clipboard()) == false)
     {
       BKE_report(op->reports, RPT_ERROR, "No data in the internal clipboard to paste");
@@ -696,7 +697,7 @@ static wmOperatorStatus actkeys_paste_exec(bContext *C, wmOperator *op)
     const eKeyPasteError kf_empty = paste_action_keys(&ac, offset_mode, merge_mode, flipped);
     /* non-zero return means an error occurred while trying to paste */
     gpframes_inbuf = ED_gpencil_anim_copybuf_paste(&ac, offset_mode) ||
-                     blender::ed::greasepencil::grease_pencil_paste_keyframes(
+                     ed::greasepencil::grease_pencil_paste_keyframes(
                          &ac, offset_mode, merge_mode, get_grease_pencil_keyframe_clipboard());
 
     /* Only report an error if nothing was pasted, i.e. when both FCurve and GPencil failed. */
@@ -799,7 +800,7 @@ static void insert_gpencil_key(bAnimContext *ac,
                                bGPdata **gpd_old)
 {
   Scene *scene = ac->scene;
-  bGPdata *gpd = blender::id_cast<bGPdata *>(ale->id);
+  bGPdata *gpd = id_cast<bGPdata *>(ale->id);
   bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
   BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, add_frame_mode);
   /* Check if the gpd changes to tag only once. */
@@ -873,9 +874,8 @@ static void insert_fcurve_key(bAnimContext *ac,
    * normal keyframing code path.  Otherwise, just directly key the fcurve
    * itself. */
   if (id) {
-    const std::optional<blender::StringRefNull> channel_group = fcu->grp ?
-                                                                    std::optional(fcu->grp->name) :
-                                                                    std::nullopt;
+    const std::optional<StringRefNull> channel_group = fcu->grp ? std::optional(fcu->grp->name) :
+                                                                  std::nullopt;
     PointerRNA id_rna_pointer = RNA_id_pointer_create(id);
     CombinedKeyingResult result = insert_keyframes(ac->bmain,
                                                    &id_rna_pointer,
@@ -933,7 +933,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* Init keyframing flag. */
-  flag = blender::animrig::get_keyframing_flags(scene);
+  flag = animrig::get_keyframing_flags(scene);
 
   /* GPLayers specific flags */
   if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
@@ -1050,7 +1050,7 @@ static bool duplicate_action_keys(bAnimContext *ac)
       changed |= ED_gpencil_layer_frame_select_check(static_cast<bGPDlayer *>(ale.data));
     }
     else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      changed |= blender::ed::greasepencil::duplicate_selected_frames(
+      changed |= ed::greasepencil::duplicate_selected_frames(
           *reinterpret_cast<GreasePencil *>(ale.id),
           static_cast<GreasePencilLayer *>(ale.data)->wrap());
     }
@@ -1133,7 +1133,7 @@ static bool delete_action_keys(bAnimContext *ac)
     }
     else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
       GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
-      changed = blender::ed::greasepencil::remove_all_selected_frames(
+      changed = ed::greasepencil::remove_all_selected_frames(
           *grease_pencil, static_cast<GreasePencilLayer *>(ale.data)->wrap());
 
       if (changed) {
@@ -1197,7 +1197,7 @@ static wmOperatorStatus actkeys_delete_invoke(bContext *C,
                                   IFACE_("Delete selected keyframes?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return actkeys_delete_exec(C, op);
@@ -1324,7 +1324,7 @@ static void bake_action_keys(bAnimContext *ac)
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
   for (bAnimListElem &ale : anim_data) {
-    blender::animrig::bake_fcurve_segments(static_cast<FCurve *>(ale.key_data));
+    animrig::bake_fcurve_segments(static_cast<FCurve *>(ale.key_data));
 
     ale.update |= ANIM_UPDATE_DEPS;
   }
@@ -1738,7 +1738,7 @@ static void setkeytype_action_keys(bAnimContext *ac, eBezTriple_KeyframeType mod
         break;
 
       case ANIMTYPE_GREASE_PENCIL_LAYER:
-        blender::ed::greasepencil::set_selected_frames_type(
+        ed::greasepencil::set_selected_frames_type(
             static_cast<GreasePencilLayer *>(ale.data)->wrap(), mode);
         ale.update |= ANIM_UPDATE_DEPS;
         break;
@@ -1980,7 +1980,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
       GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
       GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ale.data);
 
-      const bool changed = blender::ed::greasepencil::snap_selected_frames(
+      const bool changed = ed::greasepencil::snap_selected_frames(
           *grease_pencil, layer->wrap(), *(ac->scene), static_cast<eEditKeyframes_Snap>(mode));
 
       if (changed) {
@@ -2116,7 +2116,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
       GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
       GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ale.data);
 
-      const bool changed = blender::ed::greasepencil::mirror_selected_frames(
+      const bool changed = ed::greasepencil::mirror_selected_frames(
           *grease_pencil, layer->wrap(), *(ac->scene), static_cast<eEditKeyframes_Mirror>(mode));
 
       if (changed) {
@@ -2184,3 +2184,5 @@ void ACTION_OT_mirror(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -10,6 +10,8 @@
 
 #include "DNA_defs.h"
 
+namespace blender {
+
 struct ID;
 
 /** #TreeStoreElem.flag */
@@ -133,3 +135,5 @@ struct TreeStore {
    */
   TreeStoreElem *data = nullptr;
 };
+
+}  // namespace blender

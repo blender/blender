@@ -29,6 +29,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static ShaderFxTypeInfo *shader_fx_types[NUM_SHADER_FX_TYPES] = {nullptr};
 
 /* *************************************************** */
@@ -290,3 +292,5 @@ void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBaseT<ShaderFxDat
     }
   }
 }
+
+}  // namespace blender

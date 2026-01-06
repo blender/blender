@@ -13,6 +13,8 @@
 
 #include "action_intern.hh" /* own include */
 
+namespace blender {
+
 /* ******************* action editor space & buttons ************** */
 
 /* ******************* general ******************************** */
@@ -49,3 +51,5 @@ void action_buttons_register(ARegionType * /*art*/)
   BLI_addtail(&art->paneltypes, pt);
 #endif
 }
+
+}  // namespace blender

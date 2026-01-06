@@ -39,6 +39,8 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 struct SDefAdjacency {
   SDefAdjacency *next;
   uint index;
@@ -57,16 +59,16 @@ struct SDefEdgePolys {
 };
 
 struct SDefBindCalcData {
-  blender::bke::BVHTreeFromMesh *treeData;
+  bke::BVHTreeFromMesh *treeData;
   const SDefAdjacencyArray *vert_edges;
   const SDefEdgePolys *edge_polys;
   SDefVert *bind_verts;
-  blender::Span<blender::int2> edges;
-  blender::OffsetIndices<int> polys;
-  blender::Span<int> corner_verts;
-  blender::Span<int> corner_edges;
-  blender::Span<blender::int3> corner_tris;
-  blender::Span<int> tri_faces;
+  Span<int2> edges;
+  OffsetIndices<int> polys;
+  Span<int> corner_verts;
+  Span<int> corner_edges;
+  Span<int3> corner_tris;
+  Span<int> tri_faces;
 
   /** Coordinates to bind to, transformed into local space (compatible with `vertexCos`). */
   float (*targetCos)[3];
@@ -204,7 +206,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
   }
 }
 
-class BindVertsImplicitSharing : public blender::ImplicitSharingInfo {
+class BindVertsImplicitSharing : public ImplicitSharingInfo {
  public:
   SDefVert *verts;
   int bind_verts_num;
@@ -234,7 +236,7 @@ class BindVertsImplicitSharing : public blender::ImplicitSharingInfo {
 static void free_data(ModifierData *md)
 {
   SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(md);
-  blender::implicit_sharing::free_shared_data(&smd->verts, &smd->verts_sharing_info);
+  implicit_sharing::free_shared_data(&smd->verts, &smd->verts_sharing_info);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
@@ -244,7 +246,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
   BKE_modifier_copydata_generic(md, target, flag);
 
-  blender::implicit_sharing::copy_shared_pointer(
+  implicit_sharing::copy_shared_pointer(
       smd->verts, smd->verts_sharing_info, &tsmd->verts, &tsmd->verts_sharing_info);
 }
 
@@ -275,9 +277,9 @@ static void freeAdjacencyMap(SDefAdjacencyArray *const vert_edges,
   MEM_freeN(vert_edges);
 }
 
-static int buildAdjacencyMap(const blender::OffsetIndices<int> polys,
-                             const blender::Span<blender::int2> edges,
-                             const blender::Span<int> corner_edges,
+static int buildAdjacencyMap(const OffsetIndices<int> polys,
+                             const Span<int2> edges,
+                             const Span<int> corner_edges,
                              SDefAdjacencyArray *const vert_edges,
                              SDefAdjacency *adj,
                              SDefEdgePolys *const edge_polys)
@@ -302,7 +304,7 @@ static int buildAdjacencyMap(const blender::OffsetIndices<int> polys,
 
   /* Find edges adjacent to vertices */
   for (const int i : edges.index_range()) {
-    const blender::int2 &edge = edges[i];
+    const int2 &edge = edges[i];
     adj->next = vert_edges[edge[0]].first;
     adj->index = i;
     vert_edges[edge[0]].first = adj;
@@ -376,11 +378,11 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
   BLI_bvhtree_find_nearest(
       data->treeData->tree, t_point, &nearest, data->treeData->nearest_callback, data->treeData);
 
-  const blender::IndexRange face = data->polys[data->tri_faces[nearest.index]];
+  const IndexRange face = data->polys[data->tri_faces[nearest.index]];
 
   for (int i = 0; i < face.size(); i++) {
     const int edge_i = data->corner_edges[face.start() + i];
-    const blender::int2 &edge = data->edges[edge_i];
+    const int2 &edge = data->edges[edge_i];
     dist = dist_squared_to_line_segment_v3(
         point_co, data->targetCos[edge[0]], data->targetCos[edge[1]]);
 
@@ -390,7 +392,7 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
     }
   }
 
-  const blender::int2 &edge = data->edges[index];
+  const int2 &edge = data->edges[index];
   if (len_squared_v3v3(point_co, data->targetCos[edge[0]]) <
       len_squared_v3v3(point_co, data->targetCos[edge[1]]))
   {
@@ -525,7 +527,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         bpoly->coords_v2 = nullptr;
 
         /* Copy face data */
-        const blender::IndexRange face = data->polys[bpoly->index];
+        const IndexRange face = data->polys[bpoly->index];
 
         bpoly->verts_num = face.size();
         bpoly->loopstart = face.start();
@@ -1170,9 +1172,8 @@ static bool surfacedeformBind(Object *ob,
                               Mesh *target,
                               Mesh *mesh)
 {
-  using namespace blender;
-  const Span<blender::float3> positions = target->vert_positions();
-  const Span<blender::int2> edges = target->edges();
+  const Span<float3> positions = target->vert_positions();
+  const Span<int2> edges = target->edges();
   const OffsetIndices polys = target->faces();
   const Span<int> corner_verts = target->corner_verts();
   const Span<int> corner_edges = target->corner_edges();
@@ -1216,7 +1217,7 @@ static bool surfacedeformBind(Object *ob,
   smd_orig->verts_sharing_info = MEM_new<BindVertsImplicitSharing>(
       __func__, smd_orig->verts, verts_num);
 
-  blender::bke::BVHTreeFromMesh treeData = target->bvh_corner_tris();
+  bke::BVHTreeFromMesh treeData = target->bvh_corner_tris();
   if (treeData.tree == nullptr) {
     BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(smd_eval), "Out of memory");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);
@@ -1369,7 +1370,7 @@ static void deformVert(void *__restrict userdata,
   }
 
   /* Allocate a `coords_buffer` that fits all the temp-data. */
-  blender::Array<blender::float3, 256> coords_buffer(max_verts);
+  Array<float3, 256> coords_buffer(max_verts);
 
   for (int j = 0; j < sdbind_num; j++, sdbind++) {
     for (int k = 0; k < sdbind->verts_num; k++) {
@@ -1568,7 +1569,7 @@ static void surfacedeformModifier_do(ModifierData *md,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   surfacedeformModifier_do(md,
                            ctx,
@@ -1593,7 +1594,7 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -1604,7 +1605,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout *col = &layout.column(false);
+  ui::Layout *col = &layout.column(false);
   col->active_set(!is_bound);
   col->prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(ptr, "falloff", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1756,3 +1757,5 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

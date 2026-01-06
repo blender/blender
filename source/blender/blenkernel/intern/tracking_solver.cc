@@ -30,6 +30,8 @@
 #include "libmv-capi.h"
 #include "tracking_private.hh"
 
+namespace blender {
+
 struct MovieReconstructContext {
   libmv_Tracks *tracks;
   bool select_keyframes;
@@ -551,3 +553,5 @@ void BKE_tracking_reconstruction_scale(MovieTracking *tracking, float scale[3])
     tracking_scale_reconstruction(&object.tracks, &object.reconstruction, scale);
   }
 }
+
+}  // namespace blender

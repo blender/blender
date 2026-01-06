@@ -177,7 +177,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
                                                     const float2 &brush_pos_re,
                                                     const float brush_radius_re)
 {
-  const Curves &curves_id = *blender::id_cast<Curves *>(curves_object.data);
+  const Curves &curves_id = *id_cast<Curves *>(curves_object.data);
   const CurvesGeometry &curves = curves_id.geometry.wrap();
   Object *surface_object = curves_id.surface;
   Object *surface_object_eval = DEG_get_evaluated(&depsgraph, surface_object);

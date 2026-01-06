@@ -15,6 +15,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 struct ZstdReader {
   FileReader reader;
 
@@ -325,3 +327,5 @@ FileReader *BLI_filereader_new_zstd(FileReader *base)
 
   return reinterpret_cast<FileReader *>(zstd);
 }
+
+}  // namespace blender

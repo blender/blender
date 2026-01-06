@@ -15,15 +15,17 @@
 
 #include "BKE_subdiv_ccg.hh"
 
+namespace blender {
+
 struct BMVert;
 struct Object;
 struct SubdivCCG;
 struct SubdivCCGCoord;
-namespace blender::bke {
+namespace bke {
 enum class AttrDomain : int8_t;
 }
 
-namespace blender::ed::sculpt_paint::smooth {
+namespace ed::sculpt_paint::smooth {
 
 /**
  * For bmesh: Average surrounding verts based on an orthogonality measure.
@@ -128,4 +130,6 @@ void calc_relaxed_translations_bmesh(const Set<BMVert *, 0> &verts,
                                      Span<float> factors,
                                      MutableSpan<float3> translations);
 
-}  // namespace blender::ed::sculpt_paint::smooth
+}  // namespace ed::sculpt_paint::smooth
+
+}  // namespace blender

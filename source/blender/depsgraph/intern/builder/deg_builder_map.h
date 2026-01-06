@@ -11,9 +11,11 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 
+namespace blender {
+
 struct ID;
 
-namespace blender::deg {
+namespace deg {
 
 class BuilderMap {
  public:
@@ -73,4 +75,5 @@ class BuilderMap {
   Map<ID *, int> id_tags_;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

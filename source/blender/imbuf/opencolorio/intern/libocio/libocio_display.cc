@@ -20,9 +20,11 @@
 #  include "libocio_cpu_processor.hh"
 #  include "libocio_display_processor.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"color_management"};
 
-namespace blender::ocio {
+namespace ocio {
 
 static OCIO_NAMESPACE::ConstColorSpaceRcPtr get_display_view_colorspace(
     const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config, const char *display, const char *view)
@@ -307,6 +309,7 @@ void LibOCIODisplay::clear_caches()
   from_scene_linear_emulation_cpu_processor_ = CPUProcessorCache();
 }
 
-}  // namespace blender::ocio
+}  // namespace ocio
+}  // namespace blender
 
 #endif

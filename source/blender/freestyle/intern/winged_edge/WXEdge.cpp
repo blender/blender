@@ -118,7 +118,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
     RetrieveCuspEdgesIndices(cuspEdgesIndices);
     // We should have only one EdgeCusp:
     if (cuspEdgesIndices.size() != 1) {
-      if (G.debug & G_DEBUG_FREESTYLE) {
+      if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Warning in BuildSmoothEdge: weird WXFace configuration" << endl;
       }
       _pSmoothEdge = nullptr;

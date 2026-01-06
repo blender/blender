@@ -16,6 +16,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 /**
  * TODO(@ideasman42): Many connected edge loops can cause an error attempting
  * to create faces with duplicate vertices. While this needs to be investigated,
@@ -660,3 +662,5 @@ cleanup:
     }
   }
 }
+
+}  // namespace blender

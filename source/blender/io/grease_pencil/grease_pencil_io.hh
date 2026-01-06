@@ -6,6 +6,8 @@
 
 #include "DNA_view3d_types.h"
 
+namespace blender {
+
 #pragma once
 
 /** \file
@@ -13,13 +15,12 @@
  */
 
 struct ARegion;
+struct Depsgraph;
 struct View3D;
 struct bContext;
 struct Scene;
 struct ReportList;
-struct Depsgraph;
-
-namespace blender::io::grease_pencil {
+namespace io::grease_pencil {
 
 struct IOContext {
   ReportList *reports;
@@ -91,4 +92,6 @@ bool export_pdf(const IOContext &context,
                 Scene &scene,
                 StringRefNull filepath);
 
-}  // namespace blender::io::grease_pencil
+}  // namespace io::grease_pencil
+
+}  // namespace blender

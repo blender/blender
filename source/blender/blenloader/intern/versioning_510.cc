@@ -40,6 +40,9 @@
 #include "versioning_common.hh"
 
 // #include "CLG_log.h"
+
+namespace blender {
+
 // static CLG_LogRef LOG = {"blend.doversion"};
 
 /* The Mix mode of the Mix node previously assumed the alpha of the first input as opposed to
@@ -56,8 +59,8 @@ static void do_version_mix_node_mix_mode_compositor(bNodeTree &node_tree, bNode 
     return;
   }
 
-  bNodeSocket *first_input = blender::bke::node_find_socket(node, SOCK_IN, "A_Color");
-  bNodeSocket *output = blender::bke::node_find_socket(node, SOCK_OUT, "Result_Color");
+  bNodeSocket *first_input = bke::node_find_socket(node, SOCK_IN, "A_Color");
+  bNodeSocket *output = bke::node_find_socket(node, SOCK_OUT, "Result_Color");
 
   /* Find the link going into the inputs of the node. */
   bNodeLink *first_link = nullptr;
@@ -112,7 +115,7 @@ static void do_version_mix_node_mix_mode_compositor(bNodeTree &node_tree, bNode 
     if (link.fromsock == output && link.tonode != &set_alpha_node) {
       version_node_add_link(
           node_tree, set_alpha_node, set_alpha_output, *link.tonode, *link.tosock);
-      blender::bke::node_remove_link(&node_tree, link);
+      bke::node_remove_link(&node_tree, link);
     }
   }
 }
@@ -131,8 +134,8 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
     return;
   }
 
-  bNodeSocket *first_input = blender::bke::node_find_socket(node, SOCK_IN, "A_Color");
-  bNodeSocket *output = blender::bke::node_find_socket(node, SOCK_OUT, "Result_Color");
+  bNodeSocket *first_input = bke::node_find_socket(node, SOCK_IN, "A_Color");
+  bNodeSocket *output = bke::node_find_socket(node, SOCK_OUT, "Result_Color");
 
   /* Find the link going into the inputs of the node. */
   bNodeLink *first_link = nullptr;
@@ -228,14 +231,13 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
     if (link.fromsock == output && link.tonode != &separate_color_node) {
       version_node_add_link(
           node_tree, combine_color_node, combine_color_output, *link.tonode, *link.tosock);
-      blender::bke::node_remove_link(&node_tree, link);
+      bke::node_remove_link(&node_tree, link);
     }
   }
 }
 
 static void init_node_tool_operator_idnames(Main &bmain)
 {
-  using namespace blender;
   for (bNodeTree &group : bmain.nodetrees) {
     if (group.type != NTREE_GEOMETRY) {
       continue;
@@ -304,9 +306,9 @@ static void version_mesh_uv_map_strings(Main &bmain)
 static void version_clear_unused_strip_flags(Main &bmain)
 {
   for (Scene &scene : bmain.scenes) {
-    Editing *ed = blender::seq::editing_get(&scene);
+    Editing *ed = seq::editing_get(&scene);
     if (ed != nullptr) {
-      blender::seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
+      seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
         constexpr int flag_overlap = 1 << 3;
         constexpr int flag_ipo_frame_locked = 1 << 8;
         constexpr int flag_effect_not_loaded = 1 << 9;
@@ -398,7 +400,7 @@ static void do_version_light_remove_use_nodes(Main *bmain, Light *light)
   bNodeTree *ntree = light->nodetree;
   if (ntree == nullptr) {
     /* In case the light was defined through Python API it might have been missing a node tree. */
-    ntree = blender::bke::node_tree_add_tree_embedded(
+    ntree = bke::node_tree_add_tree_embedded(
         bmain, &light->id, "Light Node Tree Versioning", "ShaderNodeTree");
   }
 
@@ -620,3 +622,5 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
    * \note Keep this message at the bottom of the function.
    */
 }
+
+}  // namespace blender

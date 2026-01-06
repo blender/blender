@@ -13,6 +13,8 @@
 
 #include "BLI_math_geom.h"
 
+namespace blender {
+
 #ifndef MATH_STANDALONE /* define when building outside blender */
 #  include "MEM_guardedalloc.h"
 #endif
@@ -114,3 +116,5 @@ PyMODINIT_FUNC PyInit_mathutils_interpolate()
   PyObject *submodule = PyModule_Create(&M_Interpolate_module_def);
   return submodule;
 }
+
+}  // namespace blender

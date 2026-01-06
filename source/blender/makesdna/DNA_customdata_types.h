@@ -14,6 +14,8 @@
 
 #include "BLI_implicit_sharing.h"
 
+namespace blender {
+
 /** #CustomDataLayer.type */
 enum eCustomDataType {
   /**
@@ -261,3 +263,5 @@ struct CustomData_MeshMasks {
   uint64_t pmask = 0;
   uint64_t lmask = 0;
 };
+
+}  // namespace blender

@@ -9,7 +9,9 @@
 #include "BLI_color.hh"
 #include "IMB_colormanagement.hh"
 
-namespace blender::nodes::node_shader_blackbody_cc {
+namespace blender {
+
+namespace nodes::node_shader_blackbody_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -61,14 +63,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_blackbody_cc
+}  // namespace nodes::node_shader_blackbody_cc
 
 /* node type definition */
 void register_node_type_sh_blackbody()
 {
-  namespace file_ns = blender::nodes::node_shader_blackbody_cc;
+  namespace file_ns = nodes::node_shader_blackbody_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeBlackbody", SH_NODE_BLACKBODY);
   ntype.ui_name = "Blackbody";
@@ -76,10 +78,12 @@ void register_node_type_sh_blackbody()
   ntype.enum_name_legacy = "BLACKBODY";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::node_declare;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.gpu_fn = file_ns::node_shader_gpu_blackbody;
   ntype.build_multi_function = file_ns::sh_node_blackbody_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

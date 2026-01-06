@@ -22,6 +22,8 @@
 
 #include "bmesh_wireframe.hh"
 
+namespace blender {
+
 static BMLoop *bm_edge_tag_faceloop(BMEdge *e)
 {
   BMLoop *l, *l_first;
@@ -583,3 +585,5 @@ void BM_mesh_wireframe(BMesh *bm,
   MEM_freeN(verts_pos);
   MEM_freeN(verts_loop);
 }
+
+}  // namespace blender

@@ -16,6 +16,8 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct AnimationEvalContext;
 
 /* --------------- NLA Evaluation DataTypes ----------------------- */
@@ -65,7 +67,7 @@ struct NlaEvalChannelKey {
 
   uint64_t hash() const
   {
-    return blender::get_default_hash(this->ptr.data, this->prop);
+    return get_default_hash(this->ptr.data, this->prop);
   }
 };
 
@@ -142,7 +144,7 @@ struct NlaEvalData {
 
   /* Mapping of paths and NlaEvalChannelKeys to channels. */
   GHash *path_hash;
-  blender::Map<NlaEvalChannelKey, NlaEvalChannel *> *key_hash;
+  Map<NlaEvalChannelKey, NlaEvalChannel *> *key_hash;
 
   /* Base snapshot. */
   int num_channels;
@@ -302,3 +304,5 @@ void nlasnapshot_blend_strip_no_blend(PointerRNA *ptr,
                                       NlaEvalStrip *nes,
                                       NlaEvalSnapshot *snapshot,
                                       const struct AnimationEvalContext *anim_eval_context);
+
+}  // namespace blender

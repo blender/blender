@@ -32,6 +32,8 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 static void rna_EditBone_align_roll(EditBone *ebo, const float no[3])
 {
   ebo->roll = ED_armature_ebone_roll_to_vector(ebo, no, false);
@@ -182,7 +184,11 @@ static bool rna_BoneCollection_unassign(BoneCollection *bcoll,
                                             ANIM_armature_bonecoll_unassign_editbone);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_armature_edit_bone(StructRNA *srna)
 {
@@ -324,5 +330,7 @@ void RNA_api_bonecollection(StructRNA *srna)
                          "not a member of the collection to begin with");
   RNA_def_function_return(func, parm);
 }
+
+}  // namespace blender
 
 #endif

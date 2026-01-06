@@ -53,6 +53,8 @@
 
 #include "itasc_plugin.h"
 
+namespace blender {
+
 /* default parameters */
 static bItasc DefIKParam;
 
@@ -2016,3 +2018,5 @@ void itasc_test_constraint(Object * /*ob*/, bConstraint *cons)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -32,11 +32,7 @@
 
 #include "intern/bmesh_private.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::IndexRange;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 /* Smooth angle to use when tagging edges is disabled entirely. */
 #define EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS -FLT_MAX
@@ -80,7 +76,7 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
   if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
     dotprod = -dotprod;
   }
-  const float fac = blender::math::safe_acos_approx(-dotprod);
+  const float fac = math::safe_acos_approx(-dotprod);
   /* Shouldn't happen as normalizing edge-vectors cause degenerate values to be zeroed out. */
   BLI_assert(!isnan(fac));
   madd_v3_v3fl(v_no, f_no, fac);
@@ -275,7 +271,6 @@ void BM_mesh_normals_update_with_partial_ex(BMesh * /*bm*/,
                                             const BMPartialUpdate *bmpinfo,
                                             const BMeshNormalsUpdate_Params *params)
 {
-  using namespace blender;
   BLI_assert(bmpinfo->params.do_normals);
   /* While harmless, exit early if there is nothing to do. */
   if (UNLIKELY(bmpinfo->verts.is_empty() && bmpinfo->faces.is_empty())) {
@@ -465,7 +460,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
                                                const int cd_loop_clnors_offset,
                                                const bool has_clnors,
                                                /* Cache. */
-                                               blender::Vector<blender::float3, 16> *edge_vectors,
+                                               Vector<float3, 16> *edge_vectors,
                                                /* Iterate. */
                                                BMLoop *l_curr,
                                                /* Result. */
@@ -637,7 +632,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         /* Code similar to accumulate_vertex_normals_poly_v3. */
         /* Calculate angle between the two face edges incident on this vertex. */
         const BMFace *f = lfan_pivot->f;
-        const float fac = blender::math::safe_acos_approx(dot_v3v3(vec_next, vec_curr));
+        const float fac = math::safe_acos_approx(dot_v3v3(vec_next, vec_curr));
         const float3 &no = !fnos.is_empty() ? fnos[BM_elem_index_get(f)] : float3(f->no);
         /* Accumulate */
         madd_v3_v3fl(lnor, no, fac);
@@ -865,20 +860,19 @@ static void bm_edge_tag_from_smooth_and_set_sharp(const Span<float3> fnos,
  * operating on vertices this is needed for multi-threading
  * so there is a guarantee that each thread has isolated loops.
  */
-static void bm_mesh_loops_calc_normals_for_vert_with_clnors(
-    BMesh *bm,
-    const Span<float3> vcos,
-    const Span<float3> fnos,
-    MutableSpan<float3> r_lnos,
-    const short (*clnors_data)[2],
-    const int cd_loop_clnors_offset,
-    const bool do_rebuild,
-    const float split_angle_cos,
-    /* TLS */
-    MLoopNorSpaceArray *r_lnors_spacearr,
-    blender::Vector<blender::float3, 16> *edge_vectors,
-    /* Iterate over. */
-    BMVert *v)
+static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
+                                                            const Span<float3> vcos,
+                                                            const Span<float3> fnos,
+                                                            MutableSpan<float3> r_lnos,
+                                                            const short (*clnors_data)[2],
+                                                            const int cd_loop_clnors_offset,
+                                                            const bool do_rebuild,
+                                                            const float split_angle_cos,
+                                                            /* TLS */
+                                                            MLoopNorSpaceArray *r_lnors_spacearr,
+                                                            Vector<float3, 16> *edge_vectors,
+                                                            /* Iterate over. */
+                                                            BMVert *v)
 {
   /* Respecting face order is necessary so the initial starting loop is consistent
    * with looping over loops of all faces.
@@ -996,7 +990,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
     const float split_angle_cos,
     /* TLS */
     MLoopNorSpaceArray *r_lnors_spacearr,
-    blender::Vector<blender::float3, 16> *edge_vectors,
+    Vector<float3, 16> *edge_vectors,
     /* Iterate over. */
     BMVert *v)
 {
@@ -1083,7 +1077,7 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
 
   MLoopNorSpaceArray _lnors_spacearr = {nullptr};
 
-  std::unique_ptr<blender::Vector<blender::float3, 16>> edge_vectors = nullptr;
+  std::unique_ptr<Vector<float3, 16>> edge_vectors = nullptr;
 
   {
     char htype = 0;
@@ -1100,7 +1094,7 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
   }
   if (r_lnors_spacearr) {
     BKE_lnor_spacearr_init(r_lnors_spacearr, bm->totloop, MLNOR_SPACEARR_BMLOOP_PTR);
-    edge_vectors = std::make_unique<blender::Vector<blender::float3, 16>>();
+    edge_vectors = std::make_unique<Vector<float3, 16>>();
   }
 
   /* Clear all loops' tags (means none are to be skipped for now). */
@@ -1174,7 +1168,7 @@ struct BMLoopsCalcNormalsWithCoordsData {
 };
 
 struct BMLoopsCalcNormalsWithCoords_TLS {
-  blender::Vector<blender::float3, 16> *edge_vectors;
+  Vector<float3, 16> *edge_vectors;
 
   /** Copied from #BMLoopsCalcNormalsWithCoordsData.r_lnors_spacearr when it's not nullptr. */
   MLoopNorSpaceArray *lnors_spacearr;
@@ -1187,7 +1181,7 @@ static void bm_mesh_loops_calc_normals_for_vert_init_fn(const void *__restrict u
   const auto *data = static_cast<const BMLoopsCalcNormalsWithCoordsData *>(userdata);
   auto *tls_data = static_cast<BMLoopsCalcNormalsWithCoords_TLS *>(chunk);
   if (data->r_lnors_spacearr) {
-    tls_data->edge_vectors = MEM_new<blender::Vector<blender::float3, 16>>(__func__);
+    tls_data->edge_vectors = MEM_new<Vector<float3, 16>>(__func__);
     BKE_lnor_spacearr_tls_init(data->r_lnors_spacearr, &tls_data->lnors_spacearr_buf);
     tls_data->lnors_spacearr = &tls_data->lnors_spacearr_buf;
   }
@@ -2396,3 +2390,5 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
 }
 
 /** \} */
+
+}  // namespace blender

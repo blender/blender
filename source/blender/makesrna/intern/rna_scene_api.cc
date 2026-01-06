@@ -51,6 +51,8 @@
 #    include "BPY_extern.hh"
 #  endif
 
+namespace blender {
+
 static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subframe)
 {
   double cfra = double(frame) + double(subframe);
@@ -129,22 +131,22 @@ static void rna_SceneRender_get_frame_path(ID *id,
     MOV_filepath_from_settings(filepath, scene, rd, preview != 0, suffix, reports);
   }
   else {
-    blender::bke::path_templates::VariableMap template_variables;
+    bke::path_templates::VariableMap template_variables;
     BKE_add_template_variables_general(template_variables, &scene->id);
     BKE_add_template_variables_for_render_path(template_variables, *scene);
 
     const char *relbase = BKE_main_blendfile_path(bmain);
 
-    const blender::Vector<blender::bke::path_templates::Error> errors =
-        BKE_image_path_from_imformat(filepath,
-                                     rd->pic,
-                                     relbase,
-                                     &template_variables,
-                                     (frame == INT_MIN) ? rd->cfra : frame,
-                                     &rd->im_format,
-                                     (rd->scemode & R_EXTENSION) != 0,
-                                     true,
-                                     suffix);
+    const Vector<bke::path_templates::Error> errors = BKE_image_path_from_imformat(
+        filepath,
+        rd->pic,
+        relbase,
+        &template_variables,
+        (frame == INT_MIN) ? rd->cfra : frame,
+        &rd->im_format,
+        (rd->scemode & R_EXTENSION) != 0,
+        true,
+        suffix);
 
     if (!errors.is_empty()) {
       BKE_report_path_template_errors(reports, RPT_ERROR, rd->pic, errors);
@@ -166,27 +168,26 @@ static void rna_Scene_ray_cast(Scene *scene,
 {
   float direction_unit[3];
   normalize_v3_v3(direction_unit, direction);
-  blender::ed::transform::SnapObjectContext *sctx =
-      blender::ed::transform::snap_object_context_create(scene, 0);
+  ed::transform::SnapObjectContext *sctx = ed::transform::snap_object_context_create(scene, 0);
 
-  blender::ed::transform::SnapObjectParams snap_object_params{};
+  ed::transform::SnapObjectParams snap_object_params{};
   snap_object_params.snap_target_select = SCE_SNAP_TARGET_ALL;
   snap_object_params.ignore_editmode_filtering = true;
 
-  bool ret = blender::ed::transform::snap_object_project_ray_ex(sctx,
-                                                                depsgraph,
-                                                                nullptr,
-                                                                &snap_object_params,
-                                                                origin,
-                                                                direction_unit,
-                                                                &ray_dist,
-                                                                r_location,
-                                                                r_normal,
-                                                                r_index,
-                                                                (const Object **)(r_ob),
-                                                                (float (*)[4])r_obmat);
+  bool ret = ed::transform::snap_object_project_ray_ex(sctx,
+                                                       depsgraph,
+                                                       nullptr,
+                                                       &snap_object_params,
+                                                       origin,
+                                                       direction_unit,
+                                                       &ray_dist,
+                                                       r_location,
+                                                       r_normal,
+                                                       r_index,
+                                                       (const Object **)(r_ob),
+                                                       (float (*)[4])r_obmat);
 
-  blender::ed::transform::snap_object_context_destroy(sctx);
+  ed::transform::snap_object_context_destroy(sctx);
 
   if (r_ob != nullptr && *r_ob != nullptr) {
     *r_ob = DEG_get_original(*r_ob);
@@ -206,10 +207,14 @@ static void rna_Scene_ray_cast(Scene *scene,
 
 static void rna_Scene_sequencer_editing_free(Scene *scene)
 {
-  blender::seq::editing_free(scene, true);
+  seq::editing_free(scene, true);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_scene(StructRNA *srna)
 {
@@ -291,7 +296,7 @@ void RNA_api_scene(StructRNA *srna)
   RNA_def_function_output(func, parm);
 
   /* Sequencer. */
-  func = RNA_def_function(srna, "sequence_editor_create", "blender::seq::editing_ensure");
+  func = RNA_def_function(srna, "sequence_editor_create", "seq::editing_ensure");
   RNA_def_function_ui_description(func, "Ensure sequence editor is valid in this scene");
   parm = RNA_def_pointer(
       func, "sequence_editor", "SequenceEditor", "", "New sequence editor data or nullptr");
@@ -336,5 +341,7 @@ void RNA_api_scene_render(StructRNA *srna)
       parm, PROP_THICK_WRAP, ParameterFlag(0)); /* needed for string return value */
   RNA_def_function_output(func, parm);
 }
+
+}  // namespace blender
 
 #endif

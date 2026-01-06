@@ -65,9 +65,11 @@
 
 #include <fmt/core.h>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
-namespace blender::io::usd {
+namespace io::usd {
 
 static void decref(USDPrimReader *reader)
 {
@@ -631,7 +633,7 @@ void USDStageReader::import_all_materials(Main *bmain)
       continue;
     }
 
-    if (blender::io::usd::find_existing_material(
+    if (io::usd::find_existing_material(
             prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat))
     {
       /* The material already exists. */
@@ -702,7 +704,7 @@ void USDStageReader::call_material_import_hooks(Main *bmain) const
       continue;
     }
 
-    bool success = blender::io::usd::call_material_import_hooks(
+    bool success = io::usd::call_material_import_hooks(
         stage_, item.value, usd_mtl, params_, reports());
 
     if (!success) {
@@ -747,7 +749,7 @@ void USDStageReader::clear_readers()
 
 void USDStageReader::sort_readers()
 {
-  blender::parallel_sort(
+  parallel_sort(
       readers_.begin(), readers_.end(), [](const USDPrimReader *a, const USDPrimReader *b) {
         int result = BLI_strcasecmp(a->name().c_str(), b->name().c_str());
 
@@ -971,4 +973,5 @@ UsdPathSet USDStageReader::collect_point_instancer_proto_paths() const
   return result;
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

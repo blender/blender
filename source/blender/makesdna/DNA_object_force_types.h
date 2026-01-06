@@ -11,6 +11,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct BodySpring;
 
 /** #EffectorWeights::flag */
@@ -402,3 +404,5 @@ struct SoftBody {
 
   int last_frame = 0;
 };
+
+}  // namespace blender

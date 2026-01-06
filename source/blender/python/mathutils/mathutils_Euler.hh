@@ -12,6 +12,8 @@
 
 #include "mathutils.hh"
 
+namespace blender {
+
 extern PyTypeObject euler_Type;
 #define EulerObject_Check(v) PyObject_TypeCheck((v), &euler_Type)
 #define EulerObject_CheckExact(v) (Py_TYPE(v) == &euler_Type)
@@ -40,3 +42,5 @@ struct EulerObject {
                                                 unsigned char cb_subtype);
 
 [[nodiscard]] short euler_order_from_string(const char *str, const char *error_prefix);
+
+}  // namespace blender

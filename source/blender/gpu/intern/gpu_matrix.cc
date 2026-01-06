@@ -20,6 +20,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 using namespace blender::gpu;
 
 constexpr static int MATRIX_STACK_DEPTH = 32;
@@ -607,7 +609,7 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3]
   return m;
 }
 
-void GPU_matrix_bind(blender::gpu::Shader *shader)
+void GPU_matrix_bind(gpu::Shader *shader)
 {
   /* set uniform values to matrix stack values
    * call this before a draw call if desired matrices are dirty
@@ -747,3 +749,5 @@ void GPU_polygon_offset(float viewdist, float dist)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -34,6 +34,8 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   CurveModifierData *cmd = reinterpret_cast<CurveModifierData *>(md);
@@ -90,7 +92,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   CurveModifierData *cmd = reinterpret_cast<CurveModifierData *>(md);
 
@@ -115,7 +117,7 @@ static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             const BMEditMesh *em,
                             Mesh *mesh,
-                            blender::MutableSpan<blender::float3> positions)
+                            MutableSpan<float3> positions)
 {
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     deform_verts(md, ctx, mesh, positions);
@@ -158,7 +160,7 @@ static void deform_verts_EM(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -214,3 +216,5 @@ ModifierTypeInfo modifierType_Curve = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

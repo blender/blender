@@ -19,13 +19,15 @@
 
 #include "ED_view3d.hh"
 
+namespace blender {
+
 struct SculptSession;
 struct wmOperatorType;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 class Node;
 }
 
-namespace blender::ed::sculpt_paint::gesture {
+namespace ed::sculpt_paint::gesture {
 enum ShapeType {
   Box = 0,
 
@@ -48,7 +50,7 @@ struct LassoData {
   int width;
 
   /* 2D bitmap to test if a vertex is affected by the surrounding shape. */
-  blender::BitVector<> mask_px;
+  BitVector<> mask_px;
 };
 
 struct LineData {
@@ -153,4 +155,6 @@ void operator_properties(wmOperatorType *ot, ShapeType shapeType);
 /* Apply the gesture action to the selected nodes. */
 void apply(bContext &C, GestureData &gesture_data, wmOperator &op);
 
-}  // namespace blender::ed::sculpt_paint::gesture
+}  // namespace ed::sculpt_paint::gesture
+
+}  // namespace blender

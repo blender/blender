@@ -18,6 +18,8 @@
 #include <math.h>
 #include <string.h>
 
+namespace blender {
+
 struct LineartBoundingArea;
 struct LineartEdge;
 struct LineartData;
@@ -131,7 +133,7 @@ void lineart_main_load_geometries(struct Depsgraph *depsgraph,
                                   bool allow_duplicates,
                                   bool do_shadow_casting,
                                   ListBaseT<LineartElementLinkNode> *shadow_elns,
-                                  blender::Set<const Object *> *included_objects);
+                                  Set<const Object *> *included_objects);
 /**
  * The calculated view vector will point towards the far-plane from the camera position.
  */
@@ -243,3 +245,5 @@ void lineart_edge_cut(struct LineartData *ld,
 void lineart_add_edge_to_array(struct LineartPendingEdges *pe, struct LineartEdge *e);
 void lineart_finalize_object_edge_array_reserve(struct LineartPendingEdges *pe, int count);
 void lineart_destroy_render_data_keep_init(struct LineartData *ld);
+
+}  // namespace blender

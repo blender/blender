@@ -41,7 +41,9 @@
 
 #include "outliner_intern.hh" /* own include */
 
-namespace blender::ed::outliner {
+namespace blender {
+
+namespace ed::outliner {
 
 /* -------------------------------------------------------------------- */
 /** \name Utility API
@@ -80,11 +82,11 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
     return lc->collection;
   }
   if (ELEM(tselem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
-    Scene *scene = blender::id_cast<Scene *>(tselem->id);
+    Scene *scene = id_cast<Scene *>(tselem->id);
     return scene->master_collection;
   }
   if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_GR)) {
-    return blender::id_cast<Collection *>(tselem->id);
+    return id_cast<Collection *>(tselem->id);
   }
 
   return nullptr;
@@ -141,7 +143,7 @@ TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *cus
   return TRAVERSE_CONTINUE;
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
 
 void ED_outliner_selected_objects_get(const bContext *C, ListBaseT<LinkData> *objects)
 {
@@ -157,13 +159,13 @@ void ED_outliner_selected_objects_get(const bContext *C, ListBaseT<LinkData> *ob
                          &data);
   for (LinkData &link : data.selected_array) {
     TreeElement *ten_selected = static_cast<TreeElement *>(link.data);
-    Object *ob = blender::id_cast<Object *>(TREESTORE(ten_selected)->id);
+    Object *ob = id_cast<Object *>(TREESTORE(ten_selected)->id);
     BLI_addtail(objects, BLI_genericNodeN(ob));
   }
   BLI_freelistN(&data.selected_array);
 }
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 /** \} */
 
@@ -171,7 +173,7 @@ namespace blender::ed::outliner {
 /** \name Poll Functions
  * \{ */
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
 
 bool ED_outliner_collections_editor_poll(bContext *C)
 {
@@ -180,7 +182,7 @@ bool ED_outliner_collections_editor_poll(bContext *C)
          ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
 }
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 static bool outliner_view_layer_collections_editor_poll(bContext *C)
 {
@@ -1505,7 +1507,7 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
     }
   }
   else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-    Object *ob = blender::id_cast<Object *>(tselem->id);
+    Object *ob = id_cast<Object *>(tselem->id);
     BKE_view_layer_synced_ensure(data->scene, data->view_layer);
     Base *base = BKE_view_layer_base_find(data->view_layer, ob);
     data->bases_to_edit.add(base);
@@ -1663,4 +1665,5 @@ void OUTLINER_OT_collection_color_tag_set(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

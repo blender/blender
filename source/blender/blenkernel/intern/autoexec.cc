@@ -23,6 +23,8 @@
 
 #include "BKE_autoexec.hh" /* own include */
 
+namespace blender {
+
 bool BKE_autoexec_match(const char *path)
 {
   bPathCompare *path_cmp;
@@ -53,3 +55,5 @@ bool BKE_autoexec_match(const char *path)
 
   return false;
 }
+
+}  // namespace blender

@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_space_enums.h"
 
+namespace blender {
+
 struct Depsgraph;
 struct GPUOffScreen;
 struct GPUViewport;
@@ -22,7 +24,7 @@ struct SeqTimelineChannel;
 struct Strip;
 struct StripElem;
 
-namespace blender::seq {
+namespace seq {
 
 enum eTaskId {
   SEQ_TASK_MAIN_RENDER,
@@ -91,4 +93,5 @@ bool render_is_muted(const ListBaseT<SeqTimelineChannel> *channels, const Strip 
 float get_render_scale_factor(eSpaceSeq_Proxy_RenderSize render_size, short scene_render_scale);
 float get_render_scale_factor(const RenderData &context);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

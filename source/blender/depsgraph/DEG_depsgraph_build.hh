@@ -15,13 +15,16 @@
 /* ************************************************* */
 
 /* Dependency Graph */
-struct Depsgraph;
+
+namespace blender {
 
 /* ------------------------------------------------ */
 
 struct CacheFile;
 struct Collection;
 struct CustomData_MeshMasks;
+struct Depsgraph;
+struct DepsNodeHandle;
 struct ID;
 struct Main;
 struct Object;
@@ -60,7 +63,7 @@ void DEG_graph_build_from_collection(Depsgraph *graph, Collection *collection);
 /**
  * Builds the minimal dependency graph needed for evaluation of the given IDs.
  */
-void DEG_graph_build_from_ids(Depsgraph *graph, blender::Span<ID *> ids);
+void DEG_graph_build_from_ids(Depsgraph *graph, Span<ID *> ids);
 
 /** Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(Depsgraph *graph);
@@ -79,8 +82,6 @@ void DEG_relations_tag_update(Main *bmain);
  * as a symbolic reference to the current DepsNode.
  * All relations will be defined in reference to that node.
  */
-struct DepsNodeHandle;
-
 enum eDepsSceneComponentType {
   /* Parameters Component - Default when nothing else fits
    * (i.e. just SDNA property setting). */
@@ -186,3 +187,5 @@ Depsgraph *DEG_get_graph_from_handle(DepsNodeHandle *node_handle);
 bool DEG_object_has_geometry_component(Object *object);
 
 /* ************************************************ */
+
+}  // namespace blender

@@ -52,7 +52,7 @@ bool CulledOccluderSource::next()
       return true;
     }
   }
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     std::cout << "Finished generating occluders. Rejected " << rejected << " faces." << std::endl;
   }
   return false;
@@ -102,7 +102,7 @@ void CulledOccluderSource::cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSe
   real prosceniumOrigin[2];
   prosceniumOrigin[0] = (viewProscenium[1] - viewProscenium[0]) / 2.0;
   prosceniumOrigin[1] = (viewProscenium[3] - viewProscenium[2]) / 2.0;
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Proscenium culling:" << endl;
     cout << "Proscenium: [" << viewProscenium[0] << ", " << viewProscenium[1] << ", "
          << viewProscenium[2] << ", " << viewProscenium[3] << "]" << endl;

@@ -14,6 +14,8 @@
 
 #include "DNA_linestyle_types.h"
 
+namespace blender {
+
 #define LS_MODIFIER_TYPE_COLOR 1
 #define LS_MODIFIER_TYPE_ALPHA 2
 #define LS_MODIFIER_TYPE_THICKNESS 3
@@ -89,3 +91,5 @@ std::optional<std::string> BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *
 bool BKE_linestyle_use_textures(FreestyleLineStyle *linestyle, bool use_shading_nodes);
 
 void BKE_linestyle_default_shader(const struct bContext *C, FreestyleLineStyle *linestyle);
+
+}  // namespace blender

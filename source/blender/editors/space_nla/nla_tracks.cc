@@ -43,6 +43,8 @@
 
 #include "nla_intern.hh" /* own include */
 
+namespace blender {
+
 /* *********************************************** */
 /* Operators for NLA track-list which need to be different
  * from the standard Animation Editor ones */
@@ -115,7 +117,7 @@ static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, shor
         /* set selection status */
         if (selectmode == SELECT_INVERT) {
           /* swap select */
-          blender::ed::object::base_select(base, blender::ed::object::BA_INVERT);
+          ed::object::base_select(base, ed::object::BA_INVERT);
 
           if (adt) {
             adt->flag ^= ADT_UI_SELECTED;
@@ -126,21 +128,21 @@ static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, shor
           /* TODO: should this deselect all other types of tracks too? */
           BKE_view_layer_synced_ensure(ac->scene, view_layer);
           for (Base &b : *BKE_view_layer_object_bases_get(view_layer)) {
-            blender::ed::object::base_select(&b, blender::ed::object::BA_DESELECT);
+            ed::object::base_select(&b, ed::object::BA_DESELECT);
             if (b.object->adt) {
               b.object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);
             }
           }
 
           /* select object now */
-          blender::ed::object::base_select(base, blender::ed::object::BA_SELECT);
+          ed::object::base_select(base, ed::object::BA_SELECT);
           if (adt) {
             adt->flag |= ADT_UI_SELECTED;
           }
         }
 
         /* change active object - regardless of whether it is now selected [#37883] */
-        blender::ed::object::base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
+        ed::object::base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
         if ((adt) && (adt->flag & ADT_UI_SELECTED)) {
           adt->flag |= ADT_UI_ACTIVE;
@@ -316,15 +318,15 @@ static wmOperatorStatus nlatracks_mouseclick_invoke(bContext *C,
   }
 
   /* Figure out which track user clicked in. */
-  blender::ui::view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
-  blender::ui::view2d_listview_view_to_cell(NLATRACK_NAMEWIDTH,
-                                            NLATRACK_STEP(snla),
-                                            0,
-                                            NLATRACK_FIRST_TOP(&ac),
-                                            x,
-                                            y,
-                                            nullptr,
-                                            &track_index);
+  ui::view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
+  ui::view2d_listview_view_to_cell(NLATRACK_NAMEWIDTH,
+                                   NLATRACK_STEP(snla),
+                                   0,
+                                   NLATRACK_FIRST_TOP(&ac),
+                                   x,
+                                   y,
+                                   nullptr,
+                                   &track_index);
 
   /* handle mouse-click in the relevant track then */
   notifierFlags = mouse_nla_tracks(C, &ac, track_index, selectmode);
@@ -825,3 +827,5 @@ void NLA_OT_selected_objects_add(wmOperatorType *ot)
 }
 
 /* *********************************************** */
+
+}  // namespace blender

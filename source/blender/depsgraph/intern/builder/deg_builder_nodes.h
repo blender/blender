@@ -24,6 +24,8 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 struct BoneCollection;
 struct CacheFile;
 struct Camera;
@@ -59,7 +61,7 @@ struct bPoseChannel;
 struct bSound;
 struct PointerRNA;
 
-namespace blender::deg {
+namespace deg {
 
 struct ComponentNode;
 struct Depsgraph;
@@ -352,4 +354,5 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   BuilderMap built_map_;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

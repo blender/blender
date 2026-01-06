@@ -114,9 +114,11 @@
 #include "bmesh.hh"
 #include "versioning_common.hh"
 
-using blender::bke::CompositorRuntime;
-using blender::bke::SceneRuntime;
-using blender::bke::SequencerRuntime;
+namespace blender {
+
+using bke::CompositorRuntime;
+using bke::SceneRuntime;
+using bke::SequencerRuntime;
 
 CompositorRuntime::~CompositorRuntime()
 {
@@ -156,7 +158,7 @@ CurveMapping *BKE_paint_default_curve()
 
 static void scene_init_data(ID *id)
 {
-  Scene *scene = blender::id_cast<Scene *>(id);
+  Scene *scene = id_cast<Scene *>(id);
   const char *colorspace_name;
   SceneRenderView *srv;
   CurveMapping *mblur_shutter_curve;
@@ -245,7 +247,7 @@ static void scene_init_data(ID *id)
   scene->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
 
   /* Sequencer */
-  scene->toolsettings->sequencer_tool_settings = blender::seq::tool_settings_init();
+  scene->toolsettings->sequencer_tool_settings = seq::tool_settings_init();
 
   for (size_t i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
     scene->orientation_slots[i].index_custom = -1;
@@ -265,8 +267,8 @@ static void scene_copy_data(Main *bmain,
                             const ID *id_src,
                             const int flag)
 {
-  Scene *scene_dst = blender::id_cast<Scene *>(id_dst);
-  const Scene *scene_src = blender::id_cast<const Scene *>(id_src);
+  Scene *scene_dst = id_cast<Scene *>(id_dst);
+  const Scene *scene_src = id_cast<const Scene *>(id_src);
   /* Never handle user-count here for own sub-data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
   /* Always need allocation of the embedded ID data. */
@@ -336,16 +338,15 @@ static void scene_copy_data(Main *bmain,
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
     STRNCPY(scene_dst->ed->proxy_dir, scene_src->ed->proxy_dir);
-    blender::seq::seqbase_duplicate_recursive(
-        bmain,
-        scene_src,
-        scene_dst,
-        &scene_dst->ed->seqbase,
-        &scene_src->ed->seqbase,
-        /* NOTE: Never use #StripDuplicate::Data here (would generate recursive ID duplication not,
-         * supported at all here). */
-        blender::seq::StripDuplicate::All,
-        flag_subdata);
+    seq::seqbase_duplicate_recursive(bmain,
+                                     scene_src,
+                                     scene_dst,
+                                     &scene_dst->ed->seqbase,
+                                     &scene_src->ed->seqbase,
+                                     /* NOTE: Never use #StripDuplicate::Data here (would generate
+                                      * recursive ID duplication not, supported at all here). */
+                                     seq::StripDuplicate::All,
+                                     flag_subdata);
     BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
   }
 
@@ -374,10 +375,10 @@ static void scene_free_markers(Scene *scene, bool do_id_user)
 
 static void scene_free_data(ID *id)
 {
-  Scene *scene = blender::id_cast<Scene *>(id);
+  Scene *scene = id_cast<Scene *>(id);
   const bool do_id_user = false;
 
-  blender::seq::editing_free(scene, do_id_user);
+  seq::editing_free(scene, do_id_user);
 
   BKE_keyingsets_free(&scene->keyingsets);
 
@@ -853,7 +854,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
   if (scene->ed) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
-        data, blender::seq::foreach_strip(&scene->ed->seqbase, strip_foreach_member_id_cb, data));
+        data, seq::foreach_strip(&scene->ed->seqbase, strip_foreach_member_id_cb, data));
   }
 
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
@@ -997,15 +998,15 @@ static bool strip_foreach_path_callback(Strip *strip, void *user_data)
 
 static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Scene *scene = blender::id_cast<Scene *>(id);
+  Scene *scene = id_cast<Scene *>(id);
   if (scene->ed != nullptr) {
-    blender::seq::foreach_strip(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
+    seq::foreach_strip(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
   }
 }
 
 static void scene_foreach_working_space_color(ID *id, const IDTypeForeachColorFunctionCallback &fn)
 {
-  Scene *scene = blender::id_cast<Scene *>(id);
+  Scene *scene = id_cast<Scene *>(id);
 
   BKE_paint_settings_foreach_mode(scene->toolsettings, [&fn](Paint *paint) {
     fn.single(paint->unified_paint_settings.color);
@@ -1017,7 +1018,7 @@ static void scene_foreach_cache(ID *id,
                                 IDTypeForeachCacheFunctionCallback function_callback,
                                 void *user_data)
 {
-  Scene *scene = blender::id_cast<Scene *>(id);
+  Scene *scene = id_cast<Scene *>(id);
   if (scene->ed != nullptr) {
     IDCacheKey key;
     key.id_session_uid = id->session_uid;
@@ -1032,7 +1033,7 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
                                                         const bNodeTree &compositing_node_group,
                                                         BlendWriter *writer)
 {
-  bNodeTree *temp_nodetree_copy = blender::bke::node_tree_copy_tree_ex(
+  bNodeTree *temp_nodetree_copy = bke::node_tree_copy_tree_ex(
       compositing_node_group, nullptr, false);
 
   temp_nodetree_copy->id.flag |= ID_FLAG_EMBEDDED_DATA;
@@ -1046,7 +1047,7 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
   bNodeSocket *group_output_first_input = nullptr;
   bNode *composite_node = nullptr;
   bNodeSocket *composite_input = nullptr;
-  blender::bke::bNodeType ntype;
+  bke::bNodeType ntype;
   for (bNode &node : temp_nodetree_copy->nodes.items_mutable()) {
     if (node.is_type("NodeGroupOutput") && (node.flag & NODE_DO_OUTPUT)) {
       composite_node = &version_node_add_unknown(*temp_nodetree_copy,
@@ -1089,9 +1090,9 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
 
   /* Todo(#140111): Forward compatibility support will be removed in 6.0. Do not write an embedded
    * nodetree at `scene->nodetree` anymore. */
-  blender::bke::node_tree_blend_write(writer, temp_nodetree);
+  bke::node_tree_blend_write(writer, temp_nodetree);
 
-  blender::bke::node_tree_free_embedded_tree(temp_nodetree_copy);
+  bke::node_tree_free_embedded_tree(temp_nodetree_copy);
   MEM_freeN(temp_nodetree_copy);
   temp_nodetree_copy = nullptr;
   MEM_freeN(reinterpret_cast<void *>(scene.nodetree));
@@ -1100,7 +1101,7 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
 
 static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Scene *sce = blender::id_cast<Scene *>(id);
+  Scene *sce = id_cast<Scene *>(id);
   const bool is_write_undo = BLO_write_is_undo(writer);
 
   if (is_write_undo) {
@@ -1217,7 +1218,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (ed) {
     writer->write_struct(ed);
 
-    blender::seq::blend_write(writer, &ed->seqbase);
+    seq::blend_write(writer, &ed->seqbase);
     for (SeqTimelineChannel &channel : ed->channels) {
       writer->write_struct(&channel);
     }
@@ -1297,7 +1298,7 @@ static void link_recurs_seq(BlendDataReader *reader, ListBaseT<Strip> *lb)
 
   for (Strip &strip : lb->items_mutable()) {
     /* Sanity check. */
-    if (!blender::seq::is_valid_strip_channel(&strip)) {
+    if (!seq::is_valid_strip_channel(&strip)) {
       BLI_freelinkN(lb, &strip);
       BLO_read_data_reports(reader)->count.sequence_strips_skipped++;
     }
@@ -1309,7 +1310,7 @@ static void link_recurs_seq(BlendDataReader *reader, ListBaseT<Strip> *lb)
 
 static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Scene *sce = blender::id_cast<Scene *>(id);
+  Scene *sce = id_cast<Scene *>(id);
 
   sce->depsgraph_hash = nullptr;
   sce->fps_info = nullptr;
@@ -1443,7 +1444,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     link_recurs_seq(reader, &ed->seqbase);
 
     /* Read in sequence member data. */
-    blender::seq::blend_read(reader, &ed->seqbase);
+    seq::blend_read(reader, &ed->seqbase);
     BLO_read_struct_list(reader, SeqTimelineChannel, &ed->channels);
 
     /* stack */
@@ -1570,8 +1571,8 @@ static void scene_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 
 static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 {
-  Scene *scene_new = blender::id_cast<Scene *>(id_new);
-  Scene *scene_old = blender::id_cast<Scene *>(id_old);
+  Scene *scene_new = id_cast<Scene *>(id_new);
+  Scene *scene_old = id_cast<Scene *>(id_old);
 
   std::swap(scene_old->cursor, scene_new->cursor);
   if (scene_new->toolsettings != nullptr && scene_old->toolsettings != nullptr) {
@@ -1580,13 +1581,13 @@ static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
      * (like object ones). */
     scene_foreach_toolsettings(
         nullptr, scene_new->toolsettings, true, reader, scene_old->toolsettings);
-    blender::dna::shallow_swap(*scene_old->toolsettings, *scene_new->toolsettings);
+    dna::shallow_swap(*scene_old->toolsettings, *scene_new->toolsettings);
   }
 }
 
 static void scene_lib_override_apply_post(ID *id_dst, ID * /*id_src*/)
 {
-  Scene *scene = blender::id_cast<Scene *>(id_dst);
+  Scene *scene = id_cast<Scene *>(id_dst);
 
   if (scene->rigidbody_world != nullptr) {
     PTCacheID pid;
@@ -1657,8 +1658,6 @@ const char *RE_engine_id_CYCLES = "CYCLES";
 
 static void remove_sequencer_fcurves(Scene *sce)
 {
-  using namespace blender;
-
   std::optional<std::pair<animrig::Action *, animrig::Slot *>> action_and_slot =
       animrig::get_action_slot_pair(sce->id);
   if (!action_and_slot) {
@@ -1759,8 +1758,7 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
   ts->custom_bevel_profile_preset = BKE_curveprofile_copy(
       toolsettings->custom_bevel_profile_preset);
 
-  ts->sequencer_tool_settings = blender::seq::tool_settings_copy(
-      toolsettings->sequencer_tool_settings);
+  ts->sequencer_tool_settings = seq::tool_settings_copy(toolsettings->sequencer_tool_settings);
   return ts;
 }
 
@@ -1841,7 +1839,7 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
   }
 
   if (toolsettings->sequencer_tool_settings) {
-    blender::seq::tool_settings_free(toolsettings->sequencer_tool_settings);
+    seq::tool_settings_free(toolsettings->sequencer_tool_settings);
   }
 
   MEM_freeN(toolsettings);
@@ -1850,7 +1848,7 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
 void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
 {
   /* Copy eevee data between scenes. */
-  sce_dst->eevee = blender::dna::shallow_copy(sce_src->eevee);
+  sce_dst->eevee = dna::shallow_copy(sce_src->eevee);
 }
 
 Scene *BKE_scene_duplicate(Main *bmain,
@@ -1870,7 +1868,7 @@ Scene *BKE_scene_duplicate(Main *bmain,
 
     rv = sce_copy->r.views;
     BKE_curvemapping_free_data(&sce_copy->r.mblur_shutter_curve);
-    sce_copy->r = blender::dna::shallow_copy(sce->r);
+    sce_copy->r = dna::shallow_copy(sce->r);
     sce_copy->r.views = rv;
     sce_copy->unit = sce->unit;
     sce_copy->physics_settings = sce->physics_settings;
@@ -1938,14 +1936,14 @@ Scene *BKE_scene_duplicate(Main *bmain,
 
   if (is_subprocess) {
     if (sce->id.newid != nullptr) {
-      return blender::id_cast<Scene *>(sce->id.newid);
+      return id_cast<Scene *>(sce->id.newid);
     }
-    sce_copy = blender::id_cast<Scene *>(BKE_id_copy_for_duplicate(
-        bmain, blender::id_cast<ID *>(sce), duplicate_flags, copy_flags));
+    sce_copy = id_cast<Scene *>(
+        BKE_id_copy_for_duplicate(bmain, id_cast<ID *>(sce), duplicate_flags, copy_flags));
   }
   else {
     BLI_assert(sce->id.newid == nullptr);
-    sce_copy = blender::id_cast<Scene *>(BKE_id_copy(bmain, blender::id_cast<ID *>(sce)));
+    sce_copy = id_cast<Scene *>(BKE_id_copy(bmain, id_cast<ID *>(sce)));
     id_us_min(&sce_copy->id);
     /* Usages of the duplicated scene also need to be remapped in new duplicated IDs. */
     ID_NEW_SET(sce, sce_copy);
@@ -1969,17 +1967,15 @@ Scene *BKE_scene_duplicate(Main *bmain,
     for (ViewLayer &view_layer_dst : sce_copy->view_layers) {
       for (FreestyleLineSet &lineset : view_layer_dst.freestyle_config.linesets) {
         BKE_id_copy_for_duplicate(
-            bmain, blender::id_cast<ID *>(lineset.linestyle), duplicate_flags, copy_flags);
+            bmain, id_cast<ID *>(lineset.linestyle), duplicate_flags, copy_flags);
       }
     }
 
     /* Full copy of world (included animations) */
-    BKE_id_copy_for_duplicate(
-        bmain, blender::id_cast<ID *>(sce->world), duplicate_flags, copy_flags);
+    BKE_id_copy_for_duplicate(bmain, id_cast<ID *>(sce->world), duplicate_flags, copy_flags);
 
     /* Full copy of GreasePencil. */
-    BKE_id_copy_for_duplicate(
-        bmain, blender::id_cast<ID *>(sce->gpd), duplicate_flags, copy_flags);
+    BKE_id_copy_for_duplicate(bmain, id_cast<ID *>(sce->gpd), duplicate_flags, copy_flags);
 
     /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
      * duplicate along the object itself). */
@@ -2015,7 +2011,7 @@ Scene *BKE_scene_duplicate(Main *bmain,
     /* Remove sequencer if not full copy */
     /* XXX Why in Hell? :/ */
     remove_sequencer_fcurves(sce_copy);
-    blender::seq::editing_free(sce_copy, true);
+    seq::editing_free(sce_copy, true);
   }
 
   /* The final step is to ensure that all of the newly duplicated IDs are used by other newly
@@ -2079,7 +2075,7 @@ bool BKE_scene_can_be_removed(const Main *bmain, const Scene *scene)
 
 Scene *BKE_scene_find_replacement(const Main &bmain,
                                   const Scene &scene,
-                                  blender::FunctionRef<bool(const Scene &scene)> scene_validate_cb)
+                                  FunctionRef<bool(const Scene &scene)> scene_validate_cb)
 {
   UNUSED_VARS_NDEBUG(bmain);
   BLI_assert(BLI_findindex(&bmain.scenes, &scene) >= 0);
@@ -2164,7 +2160,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 
 Scene *BKE_scene_set_name(Main *bmain, const char *name)
 {
-  Scene *sce = blender::id_cast<Scene *>(BKE_libblock_find_name(bmain, ID_SCE, name));
+  Scene *sce = id_cast<Scene *>(BKE_libblock_find_name(bmain, ID_SCE, name));
   if (sce) {
     BKE_scene_set_background(bmain, sce);
     printf("Scene switch for render: '%s' in file: '%s'\n", name, BKE_main_blendfile_path(bmain));
@@ -2605,7 +2601,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
         ((obedit->id.recalc & ID_RECALC_ALL) || (obedit->data->recalc & ID_RECALC_ALL)))
     {
       if (check_rendered_viewport_visible(bmain)) {
-        Mesh *mesh = blender::id_cast<Mesh *>(obedit->data);
+        Mesh *mesh = id_cast<Mesh *>(obedit->data);
         BMesh *bm = mesh->runtime->edit_mesh->bm;
         BMeshToMeshParams params{};
         params.calc_object_remap = true;
@@ -3377,7 +3373,7 @@ struct DepsgraphKey {
 
   uint64_t hash() const
   {
-    return blender::get_default_hash(this->view_layer);
+    return get_default_hash(this->view_layer);
   }
 
   BLI_STRUCT_EQUALITY_OPERATORS_1(DepsgraphKey, view_layer)
@@ -3625,9 +3621,9 @@ int BKE_scene_transform_orientation_get_index(const Scene *scene,
  * Matches #BKE_object_rot_to_mat3 and #BKE_object_mat3_to_rot.
  * \{ */
 
-template<> blender::float3x3 View3DCursor::matrix<blender::float3x3>() const
+template<> float3x3 View3DCursor::matrix<float3x3>() const
 {
-  blender::float3x3 mat;
+  float3x3 mat;
   if (this->rotation_mode > 0) {
     eulO_to_mat3(mat.ptr(), this->rotation_euler, this->rotation_mode);
   }
@@ -3642,9 +3638,9 @@ template<> blender::float3x3 View3DCursor::matrix<blender::float3x3>() const
   return mat;
 }
 
-blender::math::Quaternion View3DCursor::rotation() const
+math::Quaternion View3DCursor::rotation() const
 {
-  blender::math::Quaternion quat;
+  math::Quaternion quat;
   if (this->rotation_mode > 0) {
     eulO_to_quat(&quat.w, this->rotation_euler, this->rotation_mode);
   }
@@ -3657,7 +3653,7 @@ blender::math::Quaternion View3DCursor::rotation() const
   return quat;
 }
 
-void View3DCursor::set_matrix(const blender::float3x3 &mat, const bool use_compat)
+void View3DCursor::set_matrix(const float3x3 &mat, const bool use_compat)
 {
   BLI_ASSERT_UNIT_M3(mat.ptr());
 
@@ -3692,7 +3688,7 @@ void View3DCursor::set_matrix(const blender::float3x3 &mat, const bool use_compa
   }
 }
 
-void View3DCursor::set_rotation(const blender::math::Quaternion &quat, bool use_compat)
+void View3DCursor::set_rotation(const math::Quaternion &quat, bool use_compat)
 {
   BLI_ASSERT_UNIT_QUAT(&quat.w);
 
@@ -3725,17 +3721,19 @@ void View3DCursor::set_rotation(const blender::math::Quaternion &quat, bool use_
   }
 }
 
-template<> blender::float4x4 View3DCursor::matrix<blender::float4x4>() const
+template<> float4x4 View3DCursor::matrix<float4x4>() const
 {
-  blender::float4x4 mat(this->matrix<blender::float3x3>());
-  mat.location() = blender::float3(this->location);
+  float4x4 mat(this->matrix<float3x3>());
+  mat.location() = float3(this->location);
   return mat;
 }
 
-void View3DCursor::set_matrix(const blender::float4x4 &mat, const bool use_compat)
+void View3DCursor::set_matrix(const float4x4 &mat, const bool use_compat)
 {
-  this->set_matrix(blender::float3x3(mat), use_compat);
+  this->set_matrix(float3x3(mat), use_compat);
   copy_v3_v3(this->location, mat.location());
 }
 
 /** \} */
+
+}  // namespace blender

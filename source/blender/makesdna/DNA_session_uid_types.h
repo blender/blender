@@ -10,6 +10,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /**
  * Is a structure because of the following considerations:
  *
@@ -24,3 +26,5 @@ struct SessionUID {
    */
   uint64_t uid_ = 0;
 };
+
+}  // namespace blender

@@ -19,6 +19,8 @@
 #include "bmesh.hh"
 #include "bmesh_path_region.hh" /* own include */
 
+namespace blender {
+
 /**
  * Special handling of vertices with 2 edges
  * (act as if the edge-chain is a single edge).
@@ -117,7 +119,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
                                             const char path_htype)
 {
   int ele_verts_len[2];
-  blender::Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> ele_verts_buf[2];
+  Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> ele_verts_buf[2];
   BMVert **ele_verts[2];
 
   /* Get vertices from any `ele_src/ele_dst` elements. */
@@ -474,3 +476,5 @@ LinkNode *BM_mesh_calc_path_region_face(BMesh *bm,
 }
 
 /** \} */
+
+}  // namespace blender

@@ -867,8 +867,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
     const StringRef menu_input_identifier, const Array<int> menu_values)
 {
   this->make_available([menu_input_identifier, menu_values](bNode &node) {
-    bNodeSocket &menu_socket = *blender::bke::node_find_socket(
-        node, SOCK_IN, menu_input_identifier);
+    bNodeSocket &menu_socket = *bke::node_find_socket(node, SOCK_IN, menu_input_identifier);
     const SocketDeclaration &socket_declaration = *menu_socket.runtime->declaration;
     socket_declaration.make_available(node);
     bNodeSocketValueMenu *value = menu_socket.default_value_typed<bNodeSocketValueMenu>();
@@ -900,7 +899,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
           }
         }
 
-        const bNodeSocket &menu_socket = *blender::bke::node_find_socket(
+        const bNodeSocket &menu_socket = *bke::node_find_socket(
             params.node, SOCK_IN, menu_input_identifier);
         const SocketDeclaration &menu_socket_declaration = *menu_socket.runtime->declaration;
         if (!menu_socket_declaration.usage_inference_fn) {

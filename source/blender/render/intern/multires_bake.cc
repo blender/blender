@@ -103,7 +103,9 @@
 
 #include "RE_texture_margin.h"
 
-namespace blender::render {
+namespace blender {
+
+namespace render {
 namespace {
 
 namespace subdiv = bke::subdiv;
@@ -1698,7 +1700,7 @@ static Mesh *create_bake_level_mesh(const Mesh &base_mesh,
 /** \} */
 
 }  // namespace
-}  // namespace blender::render
+}  // namespace render
 
 void RE_multires_bake_images(MultiresBakeRender &bake)
 {
@@ -1726,3 +1728,5 @@ void RE_multires_bake_images(MultiresBakeRender &bake)
     BKE_id_free(nullptr, bake_level_mesh);
   }
 }
+
+}  // namespace blender

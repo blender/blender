@@ -18,6 +18,8 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 struct ARegion;
 struct ARegionType;
 struct PanelType;
@@ -31,13 +33,13 @@ struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
 struct Panel_Runtime;
-namespace blender::bke {
+namespace bke {
 struct ARegionRuntime;
 struct FileHandlerType;
-}  // namespace blender::bke
-namespace blender::ui {
+}  // namespace bke
+namespace ui {
 struct Layout;
-}  // namespace blender::ui
+}  // namespace ui
 
 /** #bScreen.flag */
 enum {
@@ -245,7 +247,7 @@ struct Panel {
   /** Runtime. */
   struct PanelType *type = nullptr;
   /** Runtime for drawing. */
-  blender::ui::Layout *layout = nullptr;
+  ui::Layout *layout = nullptr;
 
   char panelname[/*BKE_ST_MAXNAME*/ 64] = "";
   /** Panel name is identifier for restoring location. */
@@ -269,7 +271,7 @@ struct Panel {
   /**
    *  This stores the open-close-state of layout-panels created with
    * `layout.panel(...)` in Python. For more information on layout-panels, see
-   * `blender::ui::Layout::panel_prop`.
+   * `ui::Layout::panel_prop`.
    */
   ListBaseT<LayoutPanelState> layout_panel_states = {nullptr, nullptr};
   /**
@@ -808,7 +810,7 @@ struct ARegion {
   /** XXX 2.50, need spacedata equivalent? */
   void *regiondata = nullptr;
 
-  blender::bke::ARegionRuntime *runtime = nullptr;
+  bke::ARegionRuntime *runtime = nullptr;
 };
 
 /* #AssetShelfSettings.display_flag */
@@ -897,5 +899,7 @@ struct RegionAssetShelf {
 struct FileHandler {
   DNA_DEFINE_CXX_METHODS(FileHandler)
   /** Runtime. */
-  blender::bke::FileHandlerType *type = nullptr;
+  bke::FileHandlerType *type = nullptr;
 };
+
+}  // namespace blender

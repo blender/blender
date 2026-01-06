@@ -29,7 +29,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_trackpos_cc {
+namespace blender {
+
+namespace nodes::node_composite_trackpos_cc {
 
 NODE_STORAGE_FUNCS(NodeTrackPosData)
 
@@ -105,7 +107,7 @@ static void node_composit_buts_trackpos(ui::Layout &layout, bContext *C, Pointer
   template_id(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 
   if (node->id) {
-    MovieClip *clip = blender::id_cast<MovieClip *>(node->id);
+    MovieClip *clip = id_cast<MovieClip *>(node->id);
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *tracking_object;
     NodeTrackPosData *data = (NodeTrackPosData *)node->storage;
@@ -353,7 +355,7 @@ class TrackPositionOperation : public NodeOperation {
 
   MovieClip *get_movie_clip()
   {
-    return blender::id_cast<MovieClip *>(node().id);
+    return id_cast<MovieClip *>(node().id);
   }
 };
 
@@ -362,13 +364,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new TrackPositionOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_trackpos_cc
+}  // namespace nodes::node_composite_trackpos_cc
 
 static void register_node_type_cmp_trackpos()
 {
-  namespace file_ns = blender::nodes::node_composite_trackpos_cc;
+  namespace file_ns = nodes::node_composite_trackpos_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeTrackPos", CMP_NODE_TRACKPOS);
   ntype.ui_name = "Track Position";
@@ -379,10 +381,12 @@ static void register_node_type_cmp_trackpos()
   ntype.declare = file_ns::cmp_node_trackpos_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_trackpos;
   ntype.initfunc_api = file_ns::init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_trackpos)
+
+}  // namespace blender

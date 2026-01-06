@@ -10,9 +10,11 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 struct PackedFile;
 
-namespace blender::bke {
+namespace bke {
 struct VolumeRuntime;
 }
 
@@ -147,8 +149,10 @@ struct Volume {
   void *batch_cache = nullptr;
 
   /* Runtime Data */
-  blender::bke::VolumeRuntime *runtime = nullptr;
+  bke::VolumeRuntime *runtime = nullptr;
 };
 
 /* Only one material supported currently. */
 #define VOLUME_MATERIAL_NR 1
+
+}  // namespace blender

@@ -10,11 +10,13 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Collection;
 struct CollisionRelation;
 struct EffectorRelation;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -24,4 +26,5 @@ ListBaseT<CollisionRelation> *build_collision_relations(Depsgraph *graph,
                                                         unsigned int modifier_type);
 void clear_physics_relations(Depsgraph *graph);
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

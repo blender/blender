@@ -10,6 +10,8 @@
 
 #include "BKE_customdata.hh"
 
+namespace blender {
+
 struct BMVert;
 struct BMEdge;
 struct BMFace;
@@ -48,18 +50,15 @@ UvNearestHit uv_nearest_hit_init_max_default();
 bool uv_find_nearest_vert(
     Scene *scene, Object *obedit, const float co[2], float penalty_dist, UvNearestHit *hit);
 bool uv_find_nearest_vert_multi(Scene *scene,
-                                blender::Span<Object *> objects,
+                                Span<Object *> objects,
                                 const float co[2],
                                 float penalty_dist,
                                 UvNearestHit *hit);
 
 bool uv_find_nearest_edge(
     Scene *scene, Object *obedit, const float co[2], float penalty, UvNearestHit *hit);
-bool uv_find_nearest_edge_multi(Scene *scene,
-                                blender::Span<Object *> objects,
-                                const float co[2],
-                                float penalty,
-                                UvNearestHit *hit);
+bool uv_find_nearest_edge_multi(
+    Scene *scene, Span<Object *> objects, const float co[2], float penalty, UvNearestHit *hit);
 
 /**
  * \param only_in_face: when true, only hit faces which `co` is inside.
@@ -73,13 +72,10 @@ bool uv_find_nearest_edge_multi(Scene *scene,
 bool uv_find_nearest_face_ex(
     Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit, bool only_in_face);
 bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit);
-bool uv_find_nearest_face_multi_ex(Scene *scene,
-                                   blender::Span<Object *> objects,
-                                   const float co[2],
-                                   UvNearestHit *hit,
-                                   bool only_in_face);
+bool uv_find_nearest_face_multi_ex(
+    Scene *scene, Span<Object *> objects, const float co[2], UvNearestHit *hit, bool only_in_face);
 bool uv_find_nearest_face_multi(Scene *scene,
-                                blender::Span<Object *> objects,
+                                Span<Object *> objects,
                                 const float co[2],
                                 UvNearestHit *hit);
 
@@ -164,7 +160,7 @@ void uvedit_select_prepare_sync_select(const Scene *scene, BMesh *bm);
 void uvedit_select_prepare_UNUSED(const Scene *scene, BMesh *bm);
 
 bool uvedit_select_is_any_selected(const Scene *scene, BMesh *bm);
-bool uvedit_select_is_any_selected_multi(const Scene *scene, blender::Span<Object *> objects);
+bool uvedit_select_is_any_selected_multi(const Scene *scene, Span<Object *> objects);
 /**
  * \warning This returns first selected UV,
  * not ideal in many cases since there could be multiple.
@@ -195,3 +191,5 @@ void UV_OT_custom_region_set(wmOperatorType *ot);
 
 /* Used only when UV sync select is disabled. */
 void UV_OT_select_mode(wmOperatorType *ot);
+
+}  // namespace blender

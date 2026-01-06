@@ -15,10 +15,12 @@
 
 #include "BLI_enum_flags.hh"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 class CurvesGeometry;
 class CurvesGeometryRuntime;
-}  // namespace blender::bke
+}  // namespace bke
 
 enum CurveType {
   /**
@@ -160,7 +162,7 @@ struct CurvesGeometry {
   /**
    * Runtime data for curves, stored as a pointer to allow defining this as a C++ class.
    */
-  blender::bke::CurvesGeometryRuntime *runtime = nullptr;
+  bke::CurvesGeometryRuntime *runtime = nullptr;
 
   /**
    * Knot values for NURBS curves with NURBS_KNOT_MODE_CUSTOM mode.
@@ -175,8 +177,8 @@ struct CurvesGeometry {
   char _pad[4] = {};
 
 #ifdef __cplusplus
-  blender::bke::CurvesGeometry &wrap();
-  const blender::bke::CurvesGeometry &wrap() const;
+  bke::CurvesGeometry &wrap();
+  const bke::CurvesGeometry &wrap() const;
 #endif
 };
 
@@ -243,3 +245,5 @@ struct Curves {
 
 /* Only one material supported currently. */
 #define CURVES_MATERIAL_NR 1
+
+}  // namespace blender

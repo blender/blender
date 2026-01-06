@@ -129,7 +129,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeRotateEuler", FN_NODE_ROTATE_EULER);
   ntype.ui_name = "Rotate Euler";
@@ -141,7 +141,7 @@ static void node_register()
   ntype.updatefunc = node_update;
   ntype.build_multi_function = node_build_multi_function;
   ntype.deprecation_notice = N_("Use the \"Rotate Rotation\" node instead");
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

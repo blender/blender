@@ -18,6 +18,8 @@
 
 #include <type_traits>
 
+namespace blender {
+
 /**
  * Returns the position of \a vlink within \a listbase, numbering from 0, or -1 if not found.
  */
@@ -381,3 +383,5 @@ T *BLI_listbase_find(const ListBaseT<T> &listbase, Fn &&predicate)
   }
   return nullptr;
 }
+
+}  // namespace blender

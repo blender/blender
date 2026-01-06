@@ -27,6 +27,8 @@
 #  include "BLI_array_utils.h" /* #BLI_array_is_zeroed */
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion
  * \{ */
@@ -178,3 +180,5 @@ void ED_paintcurve_undo_push_end(bContext *C)
 }
 
 /** \} */
+
+}  // namespace blender

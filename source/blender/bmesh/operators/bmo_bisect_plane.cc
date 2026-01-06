@@ -19,6 +19,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define ELE_NEW 1
 #define ELE_CUT 2
 #define ELE_INPUT 4
@@ -92,3 +94,5 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_from_enabled_flag(
       bm, op, op->slots_out, "geom_cut.out", BM_VERT | BM_EDGE, ELE_CUT);
 }
+
+}  // namespace blender

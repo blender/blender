@@ -58,6 +58,8 @@
 
 #include "WM_api.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Render Engines
  * \{ */
@@ -310,18 +312,18 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
   Scene *changed_scene = update_ctx->scene;
 
   if (GS(id->name) != ID_SCE) {
-    blender::seq::relations_invalidate_scene_strips(bmain, changed_scene);
+    seq::relations_invalidate_scene_strips(bmain, changed_scene);
   }
 
   /* Invalidate rendered VSE caches in `changed_scene`, because strip animation may have been
    * updated. */
   if (GS(id->name) == ID_AC) {
-    Editing *ed = blender::seq::editing_get(changed_scene);
-    if (ed != nullptr && blender::seq::animation_keyframes_exist(changed_scene) &&
+    Editing *ed = seq::editing_get(changed_scene);
+    if (ed != nullptr && seq::animation_keyframes_exist(changed_scene) &&
         &changed_scene->adt->action->id == id)
     {
-      blender::seq::prefetch_stop(changed_scene);
-      blender::seq::cache_cleanup(changed_scene, blender::seq::CacheCleanup::FinalAndIntra);
+      seq::prefetch_stop(changed_scene);
+      seq::cache_cleanup(changed_scene, seq::CacheCleanup::FinalAndIntra);
     }
   }
 
@@ -329,7 +331,7 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
   if (GS(id->name) == ID_NT) {
     const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
     if (node_tree->type == NTREE_COMPOSIT) {
-      blender::seq::relations_invalidate_compositor_modifiers(bmain, node_tree);
+      seq::relations_invalidate_compositor_modifiers(bmain, node_tree);
     }
   }
 }
@@ -346,22 +348,22 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
   /* Internal ID update handlers. */
   switch (GS(id->name)) {
     case ID_MA:
-      material_changed(bmain, blender::id_cast<Material *>(id));
+      material_changed(bmain, id_cast<Material *>(id));
       break;
     case ID_TE:
-      texture_changed(bmain, blender::id_cast<Tex *>(id));
+      texture_changed(bmain, id_cast<Tex *>(id));
       break;
     case ID_WO:
-      world_changed(bmain, blender::id_cast<World *>(id));
+      world_changed(bmain, id_cast<World *>(id));
       break;
     case ID_LA:
-      lamp_changed(bmain, blender::id_cast<Light *>(id));
+      lamp_changed(bmain, id_cast<Light *>(id));
       break;
     case ID_IM:
-      image_changed(bmain, blender::id_cast<Image *>(id));
+      image_changed(bmain, id_cast<Image *>(id));
       break;
     case ID_SCE:
-      scene_changed(bmain, blender::id_cast<Scene *>(id));
+      scene_changed(bmain, id_cast<Scene *>(id));
       break;
     case ID_BR:
       BKE_brush_tag_unsaved_changes(reinterpret_cast<Brush *>(id));
@@ -374,3 +376,5 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 }
 
 /** \} */
+
+}  // namespace blender

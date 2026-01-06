@@ -35,12 +35,14 @@
 #include "rna_access_internal.hh"
 #include "rna_internal.hh"
 
+namespace blender {
+
 int64_t RNAPath::hash() const
 {
   if (key.has_value()) {
-    return blender::get_default_hash(path, key.value());
+    return get_default_hash(path, key.value());
   }
-  return blender::get_default_hash(path, index.value_or(0));
+  return get_default_hash(path, index.value_or(0));
 };
 
 bool operator==(const RNAPath &left, const RNAPath &right)
@@ -983,7 +985,7 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
 
 static std::optional<std::string> rna_prepend_real_ID_path(Main * /*bmain*/,
                                                            ID *id,
-                                                           const blender::StringRef path,
+                                                           const StringRef path,
                                                            ID **r_real_id)
 {
   if (r_real_id != nullptr) {
@@ -1109,7 +1111,7 @@ static std::string rna_path_from_ptr_to_property_index_ex(const PointerRNA *ptr,
                                                           PropertyRNA *prop,
                                                           int index_dim,
                                                           int index,
-                                                          const blender::StringRef path_prefix)
+                                                          const StringRef path_prefix)
 {
   const bool is_rna = (prop->magic == RNA_MAGIC);
 
@@ -1215,7 +1217,7 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
       if (RNA_struct_is_a(prop_elem.ptr.type, type)) {
         if (const std::optional<std::string> ref_path = RNA_path_from_ID_to_struct(&prop_elem.ptr))
         {
-          path = blender::StringRef(*full_path).drop_prefix(ref_path->size() + 1);
+          path = StringRef(*full_path).drop_prefix(ref_path->size() + 1);
         }
         break;
       }
@@ -1358,3 +1360,5 @@ std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int i
   const int index_dim = (index == -1) ? 0 : 1;
   return RNA_path_from_ptr_to_property_index(ptr, prop, index_dim, index);
 }
+
+}  // namespace blender

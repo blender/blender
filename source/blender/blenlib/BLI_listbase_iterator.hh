@@ -8,6 +8,10 @@
 
 #include <iterator>
 
+namespace blender {
+
+struct Link;
+
 /** An iterator for use with #ListBase.  */
 template<typename T> struct ListBaseTIterator {
  public:
@@ -318,3 +322,5 @@ template<typename T> struct ListBaseMutableBackwardWrapper {
     return ListBaseMutableBackwardIterator<T>(nullptr);
   }
 };
+
+}  // namespace blender

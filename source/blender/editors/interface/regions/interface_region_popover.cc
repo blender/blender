@@ -329,8 +329,8 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
   else {
     Popover *pup = popover_begin(C, U.widget_unit * pt->ui_units_x, false);
     layout = popover_layout(pup);
-    blender::ui::UI_paneltype_draw(C, pt, layout);
-    blender::ui::popover_end(C, pup, nullptr);
+    ui::UI_paneltype_draw(C, pt, layout);
+    ui::popover_end(C, pup, nullptr);
     block = pup->block;
   }
 

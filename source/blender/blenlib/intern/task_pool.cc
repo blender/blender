@@ -29,6 +29,8 @@
 #  include <tbb/task_group.h>
 #endif
 
+namespace blender {
+
 struct ThreadSlot;
 
 /**
@@ -167,7 +169,7 @@ struct TaskPool {
   std::unique_ptr<TBBTaskGroup> tbb_group;
 #endif
   volatile bool is_suspended = false;
-  blender::Vector<Task> suspended_tasks;
+  Vector<Task> suspended_tasks;
 
   /* Background task pool. */
   ListBaseT<ThreadSlot> background_threads;
@@ -553,3 +555,5 @@ void *BLI_task_pool_user_data(TaskPool *pool)
 {
   return pool->userdata;
 }
+
+}  // namespace blender

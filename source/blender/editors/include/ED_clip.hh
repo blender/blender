@@ -17,6 +17,8 @@ struct SpaceClip;
 struct bContext;
 struct bScreen;
 
+namespace blender {
+
 /* `clip_editor.cc` */
 
 /**
@@ -174,3 +176,5 @@ void ED_clip_view_lock_state_restore_no_jump(const bContext *C, const ClipViewLo
 
 /* `clip_ops.cc` */
 void ED_operatormacros_clip();
+
+}  // namespace blender

@@ -18,9 +18,11 @@
 
 #include "testing/testing.h"
 
+namespace blender {
+
 using namespace blender::bke;
 
-namespace blender::geometry::tests {
+namespace geometry::tests {
 
 class RealizeInstancesTest : public testing::Test {
  public:
@@ -81,4 +83,5 @@ TEST_F(RealizeInstancesTest, InstanceAttributeToBuiltinCurvesAttribute)
       geometry::realize_instances(instances_geometry, options).geometry;
 }
 
-}  // namespace blender::geometry::tests
+}  // namespace geometry::tests
+}  // namespace blender

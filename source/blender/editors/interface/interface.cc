@@ -76,9 +76,11 @@
 
 #include "interface_intern.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"ui"};
 
-namespace blender::ui {
+namespace ui {
 
 /* prototypes. */
 static void ui_def_but_rna__menu(bContext *C, Layout *layout, void *but_p);
@@ -7013,4 +7015,5 @@ void interface_tag_script_reload()
   interface_tag_script_reload_queries();
 }
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

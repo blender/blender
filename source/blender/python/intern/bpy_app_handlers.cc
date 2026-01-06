@@ -24,6 +24,8 @@
 
 #include "BPY_extern.hh"
 
+namespace blender {
+
 void bpy_app_generic_callback(Main *main,
                               PointerRNA **pointers,
                               const int pointers_num,
@@ -437,3 +439,5 @@ void bpy_app_generic_callback(Main * /*main*/,
     PyGILState_Release(gilstate);
   }
 }
+
+}  // namespace blender

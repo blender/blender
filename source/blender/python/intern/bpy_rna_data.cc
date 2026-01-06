@@ -30,6 +30,8 @@
 #include "bpy_rna.hh"
 #include "bpy_rna_data.hh"
 
+namespace blender {
+
 struct BPy_DataContext {
   PyObject_HEAD /* Required Python macro. */
   BPy_StructRNA *data_rna;
@@ -229,3 +231,5 @@ int BPY_rna_data_context_type_ready()
 
   return 0;
 }
+
+}  // namespace blender

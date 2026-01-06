@@ -23,8 +23,7 @@
 
 #include "bmesh.hh"
 
-using blender::float3;
-using blender::Span;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Edge Ring Pre-Select
@@ -161,8 +160,7 @@ void EDBM_preselect_edgering_draw(EditMesh_PreSelEdgeRing *psel, const float mat
   GPU_matrix_push();
   GPU_matrix_mul(matrix);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   if (psel->edges_len > 0) {
     float viewport[4];
@@ -189,10 +187,9 @@ void EDBM_preselect_edgering_draw(EditMesh_PreSelEdgeRing *psel, const float mat
     immUniformThemeColor3(TH_GIZMO_PRIMARY);
 
     /* Same size as an edit mode vertex */
-    immUniform1f(
-        "size",
-        2.0 * U.pixelsize *
-            max_ff(1.0f, blender::ui::theme::get_value_f(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f));
+    immUniform1f("size",
+                 2.0 * U.pixelsize *
+                     max_ff(1.0f, ui::theme::get_value_f(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f));
 
     immBegin(GPU_PRIM_POINTS, psel->verts_len);
 
@@ -369,3 +366,5 @@ void EDBM_preselect_edgering_update_from_edge(EditMesh_PreSelEdgeRing *psel,
 }
 
 /** \} */
+
+}  // namespace blender

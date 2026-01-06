@@ -42,7 +42,6 @@
 
 #include "GHOST_C-api.h"
 
-using namespace blender;
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 

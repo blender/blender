@@ -44,6 +44,8 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 static void rna_ImagePackedFile_save(ImagePackedFile *imapf, Main *bmain, ReportList *reports)
 {
   if (BKE_packedfile_write_to_file(
@@ -224,7 +226,7 @@ static int rna_Image_gl_load(
     BKE_image_multilayer_index(image->rr, &iuser);
   }
 
-  blender::gpu::Texture *tex = BKE_image_get_gpu_texture(image, &iuser);
+  gpu::Texture *tex = BKE_image_get_gpu_texture(image, &iuser);
 
   if (tex == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Failed to load image texture '%s'", image->id.name + 2);
@@ -267,7 +269,11 @@ static void rna_Image_buffers_free(Image *image)
   BKE_image_free_buffers_ex(image, true);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_image_packed_file(StructRNA *srna)
 {
@@ -452,5 +458,7 @@ void RNA_api_image(StructRNA *srna)
 
   /* TODO: pack/unpack, maybe should be generic functions? */
 }
+
+}  // namespace blender
 
 #endif

@@ -60,11 +60,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const auto reference_dimension = CMPNodeRelativeToPixelReferenceDimension(node->custom2);
 
   bNodeSocket *float_input = bke::node_find_socket(*node, SOCK_IN, "Float Value");
-  blender::bke::node_set_socket_availability(
+  bke::node_set_socket_availability(
       *ntree, *float_input, data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT);
 
   bNodeSocket *vector_input = bke::node_find_socket(*node, SOCK_IN, "Vector Value");
-  blender::bke::node_set_socket_availability(
+  bke::node_set_socket_availability(
       *ntree, *vector_input, data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_VECTOR);
 
   /* The float output doesn't exist if the reference is per dimension, since each dimension can be
@@ -72,18 +72,18 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const bool is_per_dimension = reference_dimension ==
                                 CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION;
   bNodeSocket *float_output = bke::node_find_socket(*node, SOCK_OUT, "Float Value");
-  blender::bke::node_set_socket_availability(
-      *ntree,
-      *float_output,
-      data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT && !is_per_dimension);
+  bke::node_set_socket_availability(*ntree,
+                                    *float_output,
+                                    data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT &&
+                                        !is_per_dimension);
 
   /* The vector output exist if the reference is per dimension even if the data type is float,
    * since each dimension can be different. */
   bNodeSocket *vector_output = bke::node_find_socket(*node, SOCK_OUT, "Vector Value");
-  blender::bke::node_set_socket_availability(
-      *ntree,
-      *vector_output,
-      data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_VECTOR || is_per_dimension);
+  bke::node_set_socket_availability(*ntree,
+                                    *vector_output,
+                                    data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_VECTOR ||
+                                        is_per_dimension);
 }
 
 static void node_rna(StructRNA *srna)
@@ -415,7 +415,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeRelativeToPixel");
   ntype.ui_name = "Relative To Pixel";
@@ -428,7 +428,7 @@ static void register_node()
   ntype.draw_buttons = node_layout;
   ntype.get_compositor_operation = get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

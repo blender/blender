@@ -53,6 +53,8 @@
 
 #include "DNA_camera_types.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Camera to View Operator
  * \{ */
@@ -555,7 +557,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
                          eV3DSelectObjectFilter select_filter,
                          const bool do_material_slot_selection)
 {
-  blender::ui::theme::bThemeState theme_state;
+  ui::theme::bThemeState theme_state;
   const wmWindowManager *wm = CTX_wm_manager(vc->C);
   Depsgraph *depsgraph = vc->depsgraph;
   Scene *scene = vc->scene;
@@ -648,8 +650,8 @@ int view3d_gpu_select_ex(const ViewContext *vc,
   }
 
   /* Tools may request depth outside of regular drawing code. */
-  blender::ui::theme::theme_store(&theme_state);
-  blender::ui::theme::theme_set(SPACE_VIEW3D, RGN_TYPE_WINDOW);
+  ui::theme::theme_store(&theme_state);
+  ui::theme::theme_set(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   /* All of the queries need to be perform on the drawing context. */
   DRW_gpu_context_enable();
@@ -732,7 +734,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
 
   DRW_gpu_context_disable();
 
-  blender::ui::theme::theme_restore(&theme_state);
+  ui::theme::theme_restore(&theme_state);
 
   return hits;
 }
@@ -815,7 +817,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
                                   ReportList *reports)
 {
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  blender::float3 min, max, box;
+  float3 min, max, box;
   float size = 0.0f;
   uint local_view_bit;
   bool changed = false;
@@ -884,7 +886,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
   }
 
   v3d->localvd = MEM_new_for_free<View3D>("localview");
-  *v3d->localvd = blender::dna::shallow_copy(*v3d);
+  *v3d->localvd = dna::shallow_copy(*v3d);
   v3d->local_view_uid = local_view_bit;
 
   for (ARegion &region : area->regionbase) {
@@ -896,8 +898,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
       Object *camera_old = nullptr;
       float dist_new, ofs_new[3];
 
-      rv3d->localvd = MEM_new_for_free<RegionView3D>("localview region",
-                                                     blender::dna::shallow_copy(*rv3d));
+      rv3d->localvd = MEM_new_for_free<RegionView3D>("localview region", dna::shallow_copy(*rv3d));
 
       if (frame_selected) {
         float mid[3];
@@ -906,7 +907,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
 
         if (rv3d->persp == RV3D_CAMOB) {
           camera_old = v3d->camera;
-          const Camera &camera = *blender::id_cast<Camera *>(camera_old->data);
+          const Camera &camera = *id_cast<Camera *>(camera_old->data);
           rv3d->persp = (camera.type == CAM_ORTHO) ? RV3D_ORTHO : RV3D_PERSP;
         }
 
@@ -1138,7 +1139,7 @@ static wmOperatorStatus localview_remove_from_exec(bContext *C, wmOperator *op)
   for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
     if (BASE_SELECTED(v3d, &base)) {
       base.local_view_bits &= ~v3d->local_view_uid;
-      blender::ed::object::base_select(&base, blender::ed::object::BA_DESELECT);
+      ed::object::base_select(&base, ed::object::BA_DESELECT);
 
       if (&base == view_layer->basact) {
         view_layer->basact = nullptr;
@@ -1414,3 +1415,5 @@ bool ED_view3d_is_region_xr_mirror_active(const wmWindowManager *wm,
 #endif
 
 /** \} */
+
+}  // namespace blender

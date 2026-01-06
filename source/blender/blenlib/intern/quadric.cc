@@ -26,6 +26,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define QUADRIC_FLT_TOT (sizeof(Quadric) / sizeof(double))
 
 void BLI_quadric_from_plane(Quadric *q, const double v[4])
@@ -157,3 +159,5 @@ bool BLI_quadric_optimize(const Quadric *q, double v[3], const double epsilon)
 
   return false;
 }
+
+}  // namespace blender

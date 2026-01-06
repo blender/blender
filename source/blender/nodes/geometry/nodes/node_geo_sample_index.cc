@@ -258,7 +258,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSampleIndex", GEO_NODE_SAMPLE_INDEX);
   ntype.ui_name = "Sample Index";
@@ -267,12 +267,12 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometrySampleIndex", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

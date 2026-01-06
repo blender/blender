@@ -35,9 +35,9 @@
 #include "intern/node/deg_node_operation.hh"
 #include "intern/node/deg_node_time.hh"
 
-namespace deg = blender::deg;
+namespace blender {
 
-namespace blender::deg {
+namespace deg {
 
 Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(nullptr),
@@ -271,7 +271,7 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
   return id_node->id_cow;
 }
 
-}  // namespace blender::deg
+}  // namespace deg
 
 /* **************** */
 /* Public Graph API */
@@ -358,3 +358,5 @@ uint64_t DEG_get_update_count(const Depsgraph *depsgraph)
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(depsgraph);
   return deg_graph->update_count;
 }
+
+}  // namespace blender

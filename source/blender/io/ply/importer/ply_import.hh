@@ -11,13 +11,15 @@
 #include "IO_ply.hh"
 #include "ply_data.hh"
 
+namespace blender {
+
 struct bContext;
 struct Mesh;
 struct Main;
 struct Scene;
 struct ViewLayer;
 
-namespace blender::io::ply {
+namespace io::ply {
 
 class PlyReadBuffer;
 
@@ -34,4 +36,5 @@ void importer_main(Main *bmain,
 
 const char *read_header(PlyReadBuffer &file, PlyHeader &r_header);
 
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

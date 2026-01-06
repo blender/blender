@@ -73,7 +73,7 @@ DIR *opendir(const char *path)
   return newd;
 }
 
-static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
+static char *bli_alloc_utf_8_from_16(wchar_t *in16, size_t add)
 {
   size_t bsize = count_utf_8_from_16(in16);
   char *out8 = nullptr;
@@ -85,7 +85,7 @@ static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
   return out8;
 }
 
-static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8)(char *in8, size_t add)
+static wchar_t *UNUSED_FUNCTION(bli_alloc_utf16_from_8)(char *in8, size_t add)
 {
   size_t bsize = count_utf_16_from_8(in8);
   wchar_t *out16 = nullptr;
@@ -112,12 +112,12 @@ struct dirent *readdir(DIR *dp)
       return nullptr;
     }
 
-    dp->direntry.d_name = BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
+    dp->direntry.d_name = bli_alloc_utf_8_from_16(dp->data.cFileName, 0);
 
     return &dp->direntry;
   }
   else if (FindNextFileW(dp->handle, &(dp->data))) {
-    dp->direntry.d_name = BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
+    dp->direntry.d_name = bli_alloc_utf_8_from_16(dp->data.cFileName, 0);
 
     return &dp->direntry;
   }

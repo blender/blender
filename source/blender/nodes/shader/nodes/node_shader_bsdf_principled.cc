@@ -13,7 +13,9 @@
 
 #include "BKE_node_runtime.hh"
 
-namespace blender::nodes::node_shader_bsdf_principled_cc {
+namespace blender {
+
+namespace nodes::node_shader_bsdf_principled_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -725,14 +727,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_bsdf_principled_cc
+}  // namespace nodes::node_shader_bsdf_principled_cc
 
 /* node type definition */
 void register_node_type_sh_bsdf_principled()
 {
-  namespace file_ns = blender::nodes::node_shader_bsdf_principled_cc;
+  namespace file_ns = nodes::node_shader_bsdf_principled_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeBsdfPrincipled", SH_NODE_BSDF_PRINCIPLED);
   ntype.ui_name = "Principled BSDF";
@@ -743,11 +745,13 @@ void register_node_type_sh_bsdf_principled()
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
   ntype.initfunc = file_ns::node_shader_init_principled;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_principled;
   ntype.updatefunc = file_ns::node_shader_update_principled;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

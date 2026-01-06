@@ -25,6 +25,8 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
+struct IconTextOverlay;
+namespace blender {
 
 struct AnimationEvalContext;
 struct ARegion;
@@ -32,21 +34,20 @@ struct bContext;
 struct bContextStore;
 struct CurveMapping;
 struct CurveProfile;
-namespace blender::gpu {
+namespace gpu {
 class Batch;
 }
-struct IconTextOverlay;
 struct ID;
 struct ImBuf;
 struct LayoutPanelHeader;
 struct Main;
 struct Scene;
-namespace blender::ui {
+namespace ui {
 struct SafetyRect;
 struct HandleButtonData;
 struct Layout;
 struct UndoStack_Text;
-}  // namespace blender::ui
+}  // namespace ui
 struct uiListType;
 struct uiStyle;
 struct uiWidgetColors;
@@ -56,7 +57,7 @@ struct wmKeyConfig;
 struct wmOperatorType;
 struct wmTimer;
 
-namespace blender::ui {
+namespace ui {
 
 /* ****************** general defines ************** */
 
@@ -1736,4 +1737,5 @@ int paste_property_drivers(Span<FCurve *> src_drivers,
 
 }  // namespace internal
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

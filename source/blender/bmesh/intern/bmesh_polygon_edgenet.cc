@@ -28,6 +28,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Face Split Edge-Net
  *
@@ -470,11 +472,8 @@ static bool bm_face_split_edgenet_find_loop(BMVert *v_init,
   return true;
 }
 
-bool BM_face_split_edgenet(BMesh *bm,
-                           BMFace *f,
-                           BMEdge **edge_net,
-                           const int edge_net_len,
-                           blender::Vector<BMFace *> *r_face_arr)
+bool BM_face_split_edgenet(
+    BMesh *bm, BMFace *f, BMEdge **edge_net, const int edge_net_len, Vector<BMFace *> *r_face_arr)
 {
   /* re-use for new face verts */
   BMVert **face_verts;
@@ -550,7 +549,7 @@ bool BM_face_split_edgenet(BMesh *bm,
   STACK_PUSH(vert_queue, l_first->v);
   BM_ELEM_API_FLAG_ENABLE(l_first->v, VERT_IN_QUEUE);
 
-  blender::Vector<BMFace *> face_arr;
+  Vector<BMFace *> face_arr;
   while ((v = STACK_POP(vert_queue))) {
     bool check_face_exists = false;
     BM_ELEM_API_FLAG_DISABLE(v, VERT_IN_QUEUE);
@@ -613,9 +612,9 @@ bool BM_face_split_edgenet(BMesh *bm,
     BMLoop *l_other;
 
     /* See: #BM_loop_interp_from_face for similar logic. */
-    blender::Array<void *, BM_DEFAULT_NGON_STACK_SIZE> blocks_buf(f->len);
-    blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> cos_2d_buf(f->len);
-    blender::Array<float, BM_DEFAULT_NGON_STACK_SIZE> w(f->len);
+    Array<void *, BM_DEFAULT_NGON_STACK_SIZE> blocks_buf(f->len);
+    Array<float2, BM_DEFAULT_NGON_STACK_SIZE> cos_2d_buf(f->len);
+    Array<float, BM_DEFAULT_NGON_STACK_SIZE> w(f->len);
     void **blocks = blocks_buf.data();
     float (*cos_2d)[2] = reinterpret_cast<float (*)[2]>(cos_2d_buf.data());
     float axis_mat[3][3];
@@ -1736,3 +1735,5 @@ finally:
 #undef SORT_AXIS
 
 /** \} */
+
+}  // namespace blender

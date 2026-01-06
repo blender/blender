@@ -97,7 +97,7 @@
 
 #include "anim_intern.hh"
 
-using namespace blender;
+namespace blender {
 
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */
@@ -646,7 +646,7 @@ static void key_data_from_adt(bAnimListElem &ale, AnimData *adt)
     return;
   }
 
-  blender::animrig::Action &action = adt->action->wrap();
+  animrig::Action &action = adt->action->wrap();
   ale.key_data = &action;
   ale.datatype = ALE_ACTION_LAYERED;
 }
@@ -920,7 +920,7 @@ static bAnimListElem *make_new_animlistelem(
           /* Try to find the F-Curve which corresponds to this exactly. */
           if (std::optional<std::string> rna_path = BKE_keyblock_curval_rnapath_get(key, kb)) {
             ale->key_data = static_cast<void *>(
-                blender::animrig::fcurve_find_in_assigned_slot(*ale->adt, {*rna_path, 0}));
+                animrig::fcurve_find_in_assigned_slot(*ale->adt, {*rna_path, 0}));
           }
         }
         ale->datatype = (ale->key_data) ? ALE_FCURVE : ALE_NONE;
@@ -1036,10 +1036,10 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
         /* If only visible channels,
          * skip if bone not visible unless user wants channels from hidden data too. */
         if (skip_hidden) {
-          bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+          bArmature *arm = id_cast<bArmature *>(ob->data);
 
           /* Skipping - is currently hidden. */
-          if (!blender::animrig::bone_is_visible(arm, pchan)) {
+          if (!animrig::bone_is_visible(arm, pchan)) {
             return true;
           }
         }
@@ -1063,9 +1063,9 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
         BLI_str_quoted_substr(fcu->rna_path, "strips_all[", strip_name, sizeof(strip_name)))
     {
       /* Get strip name, and check if this strip is selected. */
-      Editing *ed = blender::seq::editing_get(scene);
+      Editing *ed = seq::editing_get(scene);
       if (ed) {
-        strip = blender::seq::get_strip_by_name(ed->current_strips(), strip_name, false);
+        strip = seq::get_strip_by_name(ed->current_strips(), strip_name, false);
       }
 
       /* Can only add this F-Curve if it is selected. */
@@ -2050,7 +2050,7 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
 static size_t animdata_filter_grease_pencil_layer(bAnimContext *ac,
                                                   ListBaseT<bAnimListElem> *anim_data,
                                                   GreasePencil *grease_pencil,
-                                                  blender::bke::greasepencil::Layer &layer,
+                                                  bke::greasepencil::Layer &layer,
                                                   const eAnimFilter_Flags filter_mode)
 {
 
@@ -2090,7 +2090,7 @@ static size_t animdata_filter_grease_pencil_layer_node_recursive(
     bAnimContext *ac,
     ListBaseT<bAnimListElem> *anim_data,
     GreasePencil *grease_pencil,
-    blender::bke::greasepencil::TreeNode &node,
+    bke::greasepencil::TreeNode &node,
     eAnimFilter_Flags filter_mode)
 {
   using namespace blender::bke::greasepencil;
@@ -2209,8 +2209,6 @@ static size_t animdata_filter_grease_pencil_data(bAnimContext *ac,
                                                  GreasePencil *grease_pencil,
                                                  eAnimFilter_Flags filter_mode)
 {
-  using namespace blender;
-
   size_t items = 0;
 
   /* The Grease Pencil mode is not supposed to show channels for regular F-Curves from regular
@@ -2310,7 +2308,7 @@ static size_t animdata_filter_grease_pencil(bAnimContext *ac,
     }
 
     items += animdata_filter_grease_pencil_data(
-        ac, anim_data, blender::id_cast<GreasePencil *>(ob->data), filter_mode);
+        ac, anim_data, id_cast<GreasePencil *>(ob->data), filter_mode);
   }
 
   /* Return the number of items added to the list */
@@ -2941,7 +2939,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
   switch (ob->type) {
     case OB_CAMERA: /* ------- Camera ------------ */
     {
-      Camera *ca = blender::id_cast<Camera *>(ob->data);
+      Camera *ca = id_cast<Camera *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOCAM) {
         return 0;
@@ -2953,7 +2951,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_LAMP: /* ---------- Light ----------- */
     {
-      Light *la = blender::id_cast<Light *>(ob->data);
+      Light *la = id_cast<Light *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOLAM) {
         return 0;
@@ -2967,7 +2965,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     case OB_SURF:          /* ------- Nurbs Surface ---------- */
     case OB_FONT:          /* ------- Text Curve ---------- */
     {
-      Curve *cu = blender::id_cast<Curve *>(ob->data);
+      Curve *cu = id_cast<Curve *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOCUR) {
         return 0;
@@ -2979,7 +2977,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_MBALL: /* ------- MetaBall ---------- */
     {
-      MetaBall *mb = blender::id_cast<MetaBall *>(ob->data);
+      MetaBall *mb = id_cast<MetaBall *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOMBA) {
         return 0;
@@ -2991,7 +2989,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_ARMATURE: /* ------- Armature ---------- */
     {
-      bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+      bArmature *arm = id_cast<bArmature *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOARM) {
         return 0;
@@ -3003,7 +3001,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_MESH: /* ------- Mesh ---------- */
     {
-      Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+      Mesh *mesh = id_cast<Mesh *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOMESH) {
         return 0;
@@ -3015,7 +3013,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_LATTICE: /* ---- Lattice ---- */
     {
-      Lattice *lt = blender::id_cast<Lattice *>(ob->data);
+      Lattice *lt = id_cast<Lattice *>(ob->data);
 
       if (ads_filterflag & ADS_FILTER_NOLAT) {
         return 0;
@@ -3027,7 +3025,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_SPEAKER: /* ---------- Speaker ----------- */
     {
-      Speaker *spk = blender::id_cast<Speaker *>(ob->data);
+      Speaker *spk = id_cast<Speaker *>(ob->data);
 
       type = ANIMTYPE_DSSPK;
       expanded = FILTER_SPK_OBJD(spk);
@@ -3035,7 +3033,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_CURVES: /* ---------- Curves ----------- */
     {
-      Curves *curves = blender::id_cast<Curves *>(ob->data);
+      Curves *curves = id_cast<Curves *>(ob->data);
 
       if (ads_filterflag2 & ADS_FILTER_NOHAIR) {
         return 0;
@@ -3047,7 +3045,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_POINTCLOUD: /* ---------- PointCloud ----------- */
     {
-      PointCloud *pointcloud = blender::id_cast<PointCloud *>(ob->data);
+      PointCloud *pointcloud = id_cast<PointCloud *>(ob->data);
 
       if (ads_filterflag2 & ADS_FILTER_NOPOINTCLOUD) {
         return 0;
@@ -3059,7 +3057,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_VOLUME: /* ---------- Volume ----------- */
     {
-      Volume *volume = blender::id_cast<Volume *>(ob->data);
+      Volume *volume = id_cast<Volume *>(ob->data);
 
       if (ads_filterflag2 & ADS_FILTER_NOVOLUME) {
         return 0;
@@ -3071,7 +3069,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     }
     case OB_LIGHTPROBE: /* ---------- LightProbe ----------- */
     {
-      LightProbe *probe = blender::id_cast<LightProbe *>(ob->data);
+      LightProbe *probe = id_cast<LightProbe *>(ob->data);
 
       if (ads_filterflag2 & ADS_FILTER_NOLIGHTPROBE) {
         return 0;
@@ -3092,7 +3090,7 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
     switch (ob->type) {
       case OB_LAMP: /* light - textures + nodetree */
       {
-        Light *la = blender::id_cast<Light *>(ob->data);
+        Light *la = id_cast<Light *>(ob->data);
         bNodeTree *ntree = la->nodetree;
 
         /* nodetree */
@@ -3281,7 +3279,7 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac,
     /* grease pencil */
     if (ob->type == OB_GREASE_PENCIL && (ob->data) && !(ads_filterflag & ADS_FILTER_NOGPENCIL)) {
       tmp_items += animdata_filter_grease_pencil_data(
-          ac, &tmp_data, blender::id_cast<GreasePencil *>(ob->data), filter_mode);
+          ac, &tmp_data, id_cast<GreasePencil *>(ob->data), filter_mode);
     }
   }
   END_ANIMFILTER_SUBCHANNELS;
@@ -4081,3 +4079,5 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
 }
 
 /* ************************************************************ */
+
+}  // namespace blender

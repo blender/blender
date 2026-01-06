@@ -45,9 +45,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 #define MAX_GLARE_ITERATIONS 5
 
-namespace blender::nodes::node_composite_glare_cc {
+namespace nodes::node_composite_glare_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_GLARE_BLOOM, "BLOOM", 0, N_("Bloom"), ""},
@@ -258,7 +260,7 @@ class SocketSearchOp {
   void operator()(LinkSearchOpParams &params)
   {
     bNode &node = params.add_node("CompositorNodeGlare");
-    bNodeSocket &type_socket = *blender::bke::node_find_socket(node, SOCK_IN, "Type");
+    bNodeSocket &type_socket = *bke::node_find_socket(node, SOCK_IN, "Type");
     type_socket.default_value_typed<bNodeSocketValueMenu>()->value = this->type;
     params.update_and_connect_available_socket(node, "Image");
   }
@@ -2797,13 +2799,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new GlareOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_glare_cc
+}  // namespace nodes::node_composite_glare_cc
 
 static void register_node_type_cmp_glare()
 {
-  namespace file_ns = blender::nodes::node_composite_glare_cc;
+  namespace file_ns = nodes::node_composite_glare_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeGlare", CMP_NODE_GLARE);
   ntype.ui_name = "Glare";
@@ -2813,10 +2815,12 @@ static void register_node_type_cmp_glare()
   ntype.declare = file_ns::cmp_node_glare_declare;
   ntype.initfunc = file_ns::node_composit_init_glare;
   ntype.gather_link_search_ops = file_ns::gather_link_searches;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_glare)
+
+}  // namespace blender

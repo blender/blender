@@ -22,31 +22,31 @@
 #include "BLI_vector.hh"
 
 namespace blender {
+
 template<typename T> class Span;
 template<typename T> class MutableSpan;
 class IndexRange;
 class StringRef;
 class StringRefNull;
-}  // namespace blender
-namespace blender::nodes {
+namespace nodes {
 class NodeDeclaration;
 class SocketDeclaration;
-}  // namespace blender::nodes
-namespace blender::bke {
+}  // namespace nodes
+namespace bke {
 class bNodeTreeRuntime;
 class bNodeRuntime;
 class bNodeSocketRuntime;
-}  // namespace blender::bke
-namespace blender::bke {
+}  // namespace bke
+namespace bke {
 class bNodeTreeZones;
 class bNodeTreeZone;
 struct bNodeTreeType;
 struct bNodeType;
 struct bNodeSocketType;
-}  // namespace blender::bke
-namespace blender::bke {
+}  // namespace bke
+namespace bke {
 struct RuntimeNodeEnumItems;
-}  // namespace blender::bke
+}  // namespace bke
 
 struct AnimData;
 struct Collection;
@@ -1392,7 +1392,7 @@ struct bNodeSocket {
   /** Input/output type. */
   short in_out = 0;
   /** Runtime type information. */
-  blender::bke::bNodeSocketType *typeinfo = nullptr;
+  bke::bNodeSocketType *typeinfo = nullptr;
   /** Runtime type identifier. */
   char idname[64] = "";
 
@@ -1437,7 +1437,7 @@ struct bNodeSocket {
   /** Custom data for inputs, only UI writes in this. */
   DNA_DEPRECATED bNodeStack ns;
 
-  blender::bke::bNodeSocketRuntime *runtime = nullptr;
+  bke::bNodeSocketRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
   /**
@@ -1519,17 +1519,17 @@ struct bNodeSocket {
   const bNodeTree &owner_tree() const;
 
   /** Links which are incident to this socket. */
-  blender::Span<bNodeLink *> directly_linked_links();
-  blender::Span<const bNodeLink *> directly_linked_links() const;
+  Span<bNodeLink *> directly_linked_links();
+  Span<const bNodeLink *> directly_linked_links() const;
   /** Sockets which are connected to this socket with a link. */
-  blender::Span<bNodeSocket *> directly_linked_sockets();
-  blender::Span<const bNodeSocket *> directly_linked_sockets() const;
+  Span<bNodeSocket *> directly_linked_sockets();
+  Span<const bNodeSocket *> directly_linked_sockets() const;
   bool is_directly_linked() const;
   /**
    * Sockets which are connected to this socket when reroutes and muted nodes are taken into
    * account.
    */
-  blender::Span<const bNodeSocket *> logically_linked_sockets() const;
+  Span<const bNodeSocket *> logically_linked_sockets() const;
   bool is_logically_linked() const;
 
   /**
@@ -1582,7 +1582,7 @@ struct bNode {
   char idname[64] = "";
 
   /** Type information retrieved from the #idname. TODO: Move to runtime data. */
-  blender::bke::bNodeType *typeinfo = nullptr;
+  bke::bNodeType *typeinfo = nullptr;
 
   /**
    * Legacy integer type for nodes. It does not uniquely identify a node type, only the `idname`
@@ -1665,12 +1665,12 @@ struct bNode {
   int num_panel_states = 0;
   bNodePanelState *panel_states_array = nullptr;
 
-  blender::bke::bNodeRuntime *runtime = nullptr;
+  bke::bNodeRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
   /** The index in the owner node tree. */
   int index() const;
-  blender::StringRefNull label_or_name() const;
+  StringRefNull label_or_name() const;
   bool is_muted() const;
   bool is_reroute() const;
   bool is_frame() const;
@@ -1687,11 +1687,11 @@ struct bNode {
    * to catch typos earlier. One can compare with `bNodeType::idname` directly if the idname might
    * not be registered.
    */
-  bool is_type(blender::StringRef query_idname) const;
+  bool is_type(StringRef query_idname) const;
 
-  const blender::nodes::NodeDeclaration *declaration() const;
+  const nodes::NodeDeclaration *declaration() const;
   /** A span containing all internal links when the node is muted. */
-  blender::Span<bNodeLink> internal_links() const;
+  Span<bNodeLink> internal_links() const;
 
   /* This node is reroute which is not logically connected to any source of value. */
   bool is_dangling_reroute() const;
@@ -1700,15 +1700,15 @@ struct bNode {
    * called. */
 
   /** A span containing all input sockets of the node (including unavailable sockets). */
-  blender::Span<bNodeSocket *> input_sockets();
-  blender::Span<const bNodeSocket *> input_sockets() const;
-  blender::IndexRange input_socket_indices_in_tree() const;
-  blender::IndexRange input_socket_indices_in_all_inputs() const;
+  Span<bNodeSocket *> input_sockets();
+  Span<const bNodeSocket *> input_sockets() const;
+  IndexRange input_socket_indices_in_tree() const;
+  IndexRange input_socket_indices_in_all_inputs() const;
   /** A span containing all output sockets of the node (including unavailable sockets). */
-  blender::Span<bNodeSocket *> output_sockets();
-  blender::Span<const bNodeSocket *> output_sockets() const;
-  blender::IndexRange output_socket_indices_in_tree() const;
-  blender::IndexRange output_socket_indices_in_all_outputs() const;
+  Span<bNodeSocket *> output_sockets();
+  Span<const bNodeSocket *> output_sockets() const;
+  IndexRange output_socket_indices_in_tree() const;
+  IndexRange output_socket_indices_in_all_outputs() const;
   /** Utility to get an input socket by its index. */
   bNodeSocket &input_socket(int index);
   const bNodeSocket &input_socket(int index) const;
@@ -1716,17 +1716,17 @@ struct bNode {
   bNodeSocket &output_socket(int index);
   const bNodeSocket &output_socket(int index) const;
   /** Lookup socket of this node by its identifier. */
-  const bNodeSocket *input_by_identifier(blender::StringRef identifier) const;
-  const bNodeSocket *output_by_identifier(blender::StringRef identifier) const;
-  bNodeSocket *input_by_identifier(blender::StringRef identifier);
-  bNodeSocket *output_by_identifier(blender::StringRef identifier);
+  const bNodeSocket *input_by_identifier(StringRef identifier) const;
+  const bNodeSocket *output_by_identifier(StringRef identifier) const;
+  bNodeSocket *input_by_identifier(StringRef identifier);
+  bNodeSocket *output_by_identifier(StringRef identifier);
   /** Lookup socket by its declaration. */
-  const bNodeSocket &socket_by_decl(const blender::nodes::SocketDeclaration &decl) const;
-  bNodeSocket &socket_by_decl(const blender::nodes::SocketDeclaration &decl);
+  const bNodeSocket &socket_by_decl(const nodes::SocketDeclaration &decl) const;
+  bNodeSocket &socket_by_decl(const nodes::SocketDeclaration &decl);
   /** If node is frame, will return all children nodes. */
-  blender::Span<bNode *> direct_children_in_frame() const;
-  blender::Span<bNodePanelState> panel_states() const;
-  blender::MutableSpan<bNodePanelState> panel_states();
+  Span<bNode *> direct_children_in_frame() const;
+  Span<bNodePanelState> panel_states() const;
+  MutableSpan<bNodePanelState> panel_states();
   /** Node tree this node belongs to. */
   const bNodeTree &owner_tree() const;
   bNodeTree &owner_tree();
@@ -1836,7 +1836,7 @@ struct bNodeTree {
   ID *owner_id = nullptr;
 
   /** Runtime type information. */
-  blender::bke::bNodeTreeType *typeinfo = nullptr;
+  bke::bNodeTreeType *typeinfo = nullptr;
   /** Runtime type identifier. */
   char idname[64] = "";
   /** User-defined description of the node tree. */
@@ -1866,7 +1866,7 @@ struct bNodeTree {
   /** Precision used by the GPU execution of the compositor tree. */
   DNA_DEPRECATED int precision = 0;
 
-  /** #blender::bke::NodeColorTag. */
+  /** #bke::NodeColorTag. */
   int color_tag = 0;
 
   /**
@@ -1905,26 +1905,26 @@ struct bNodeTree {
   /** Image representing what the node group does. */
   struct PreviewImage *preview = nullptr;
 
-  blender::bke::bNodeTreeRuntime *runtime = nullptr;
+  bke::bNodeTreeRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
 
   /** A span containing all nodes in the node tree. */
-  blender::Span<bNode *> all_nodes();
-  blender::Span<const bNode *> all_nodes() const;
+  Span<bNode *> all_nodes();
+  Span<const bNode *> all_nodes() const;
 
   /** Retrieve a node based on its persistent integer identifier. */
   struct bNode *node_by_id(int32_t identifier);
   const struct bNode *node_by_id(int32_t identifier) const;
 
-  blender::MutableSpan<bNestedNodeRef> nested_node_refs_span();
-  blender::Span<bNestedNodeRef> nested_node_refs_span() const;
+  MutableSpan<bNestedNodeRef> nested_node_refs_span();
+  Span<bNestedNodeRef> nested_node_refs_span() const;
 
   const bNestedNodeRef *find_nested_node_ref(int32_t nested_node_id) const;
   /** Conversions between node id paths and their corresponding nested node ref. */
-  const bNestedNodeRef *nested_node_ref_from_node_id_path(blender::Span<int> node_ids) const;
+  const bNestedNodeRef *nested_node_ref_from_node_id_path(Span<int> node_ids) const;
   [[nodiscard]] bool node_id_path_from_nested_node_ref(const int32_t nested_node_id,
-                                                       blender::Vector<int32_t> &r_node_ids) const;
+                                                       Vector<int32_t> &r_node_ids) const;
   const bNode *find_nested_node(int32_t nested_node_id, const bNodeTree **r_tree = nullptr) const;
 
   /**
@@ -1937,34 +1937,34 @@ struct bNodeTree {
    * called. */
 
   /** A span containing all group nodes in the node tree. */
-  blender::Span<bNode *> group_nodes();
-  blender::Span<const bNode *> group_nodes() const;
+  Span<bNode *> group_nodes();
+  Span<const bNode *> group_nodes() const;
   /** A span containing all input sockets in the node tree. */
-  blender::Span<bNodeSocket *> all_input_sockets();
-  blender::Span<const bNodeSocket *> all_input_sockets() const;
+  Span<bNodeSocket *> all_input_sockets();
+  Span<const bNodeSocket *> all_input_sockets() const;
   /** A span containing all output sockets in the node tree. */
-  blender::Span<bNodeSocket *> all_output_sockets();
-  blender::Span<const bNodeSocket *> all_output_sockets() const;
+  Span<bNodeSocket *> all_output_sockets();
+  Span<const bNodeSocket *> all_output_sockets() const;
   /** A span containing all sockets in the node tree. */
-  blender::Span<bNodeSocket *> all_sockets();
-  blender::Span<const bNodeSocket *> all_sockets() const;
+  Span<bNodeSocket *> all_sockets();
+  Span<const bNodeSocket *> all_sockets() const;
   /** Efficient lookup of all nodes with a specific type. */
-  blender::Span<bNode *> nodes_by_type(blender::StringRefNull type_idname);
-  blender::Span<const bNode *> nodes_by_type(blender::StringRefNull type_idname) const;
+  Span<bNode *> nodes_by_type(StringRefNull type_idname);
+  Span<const bNode *> nodes_by_type(StringRefNull type_idname) const;
   /** Frame nodes without any parents. */
-  blender::Span<bNode *> root_frames() const;
+  Span<bNode *> root_frames() const;
   /** A span containing all links in the node tree. */
-  blender::Span<bNodeLink *> all_links();
-  blender::Span<const bNodeLink *> all_links() const;
+  Span<bNodeLink *> all_links();
+  Span<const bNodeLink *> all_links() const;
   /**
    * Cached toposort of all nodes. If there are cycles, the returned array is not actually a
    * toposort. However, if a connected component does not contain a cycle, this component is sorted
    * correctly. Use #has_available_link_cycle to check for cycles.
    */
-  blender::Span<bNode *> toposort_left_to_right();
-  blender::Span<const bNode *> toposort_left_to_right() const;
-  blender::Span<bNode *> toposort_right_to_left();
-  blender::Span<const bNode *> toposort_right_to_left() const;
+  Span<bNode *> toposort_left_to_right();
+  Span<const bNode *> toposort_left_to_right() const;
+  Span<bNode *> toposort_right_to_left();
+  Span<const bNode *> toposort_right_to_left() const;
   /** True when there are any cycles in the node tree. */
   bool has_available_link_cycle() const;
   /**
@@ -1977,11 +1977,11 @@ struct bNodeTree {
   bNode *group_output_node();
   const bNode *group_output_node() const;
   /** Get all input nodes of the node group. */
-  blender::Span<bNode *> group_input_nodes();
-  blender::Span<const bNode *> group_input_nodes() const;
+  Span<bNode *> group_input_nodes();
+  Span<const bNode *> group_input_nodes() const;
 
   /** Zones in the node tree. Currently there are only simulation zones in geometry nodes. */
-  const blender::bke::bNodeTreeZones *zones() const;
+  const bke::bNodeTreeZones *zones() const;
 
   /**
    * Update a run-time cache for the node tree interface based on its current state.
@@ -1990,12 +1990,12 @@ struct bNodeTree {
   void ensure_interface_cache() const;
 
   /* Cached interface item lists. */
-  blender::Span<bNodeTreeInterfaceSocket *> interface_inputs();
-  blender::Span<const bNodeTreeInterfaceSocket *> interface_inputs() const;
-  blender::Span<bNodeTreeInterfaceSocket *> interface_outputs();
-  blender::Span<const bNodeTreeInterfaceSocket *> interface_outputs() const;
-  blender::Span<bNodeTreeInterfaceItem *> interface_items();
-  blender::Span<const bNodeTreeInterfaceItem *> interface_items() const;
+  Span<bNodeTreeInterfaceSocket *> interface_inputs();
+  Span<const bNodeTreeInterfaceSocket *> interface_inputs() const;
+  Span<bNodeTreeInterfaceSocket *> interface_outputs();
+  Span<const bNodeTreeInterfaceSocket *> interface_outputs() const;
+  Span<bNodeTreeInterfaceItem *> interface_items();
+  Span<const bNodeTreeInterfaceItem *> interface_items() const;
 
   int interface_input_index(const bNodeTreeInterfaceSocket &io_socket) const;
   int interface_output_index(const bNodeTreeInterfaceSocket &io_socket) const;
@@ -2095,7 +2095,7 @@ struct bNodeSocketValueMenu {
   /* #NodeSocketValueMenuRuntimeFlag */
   int runtime_flag = 0;
   /* Immutable runtime enum definition. */
-  const blender::bke::RuntimeNodeEnumItems *enum_items = nullptr;
+  const bke::RuntimeNodeEnumItems *enum_items = nullptr;
 
 #ifdef __cplusplus
   bool has_conflict() const;
@@ -3097,8 +3097,8 @@ struct NodeEnumDefinition {
   char _pad[4] = {};
 
 #ifdef __cplusplus
-  blender::Span<NodeEnumItem> items() const;
-  blender::MutableSpan<NodeEnumItem> items();
+  Span<NodeEnumItem> items() const;
+  MutableSpan<NodeEnumItem> items();
 #endif
 };
 
@@ -3428,8 +3428,8 @@ struct NodeGeometrySimulationOutput {
   int _pad = {};
 
 #ifdef __cplusplus
-  blender::Span<NodeSimulationItem> items_span() const;
-  blender::MutableSpan<NodeSimulationItem> items_span();
+  Span<NodeSimulationItem> items_span() const;
+  MutableSpan<NodeSimulationItem> items_span();
 #endif
 };
 
@@ -3463,8 +3463,8 @@ struct NodeGeometryRepeatOutput {
   int inspection_index = 0;
 
 #ifdef __cplusplus
-  blender::Span<NodeRepeatItem> items_span() const;
-  blender::MutableSpan<NodeRepeatItem> items_span();
+  Span<NodeRepeatItem> items_span() const;
+  MutableSpan<NodeRepeatItem> items_span();
 #endif
 };
 
@@ -3677,8 +3677,8 @@ struct NodeIndexSwitch {
 
   char _pad[4] = {};
 #ifdef __cplusplus
-  blender::Span<IndexSwitchItem> items_span() const;
-  blender::MutableSpan<IndexSwitchItem> items_span();
+  Span<IndexSwitchItem> items_span() const;
+  MutableSpan<IndexSwitchItem> items_span();
 #endif
 };
 
@@ -3841,3 +3841,5 @@ struct NodeFunctionFormatString {
   int active_index = 0;
   char _pad[4] = {};
 };
+
+}  // namespace blender

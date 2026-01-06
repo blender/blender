@@ -19,7 +19,9 @@
 #include "node_geometry_util.hh"
 #include "shader/node_shader_util.hh"
 
-namespace blender::nodes::node_geo_evaluate_closure_cc {
+namespace blender {
+
+namespace nodes::node_geo_evaluate_closure_cc {
 
 NODE_STORAGE_FUNCS(NodeEvaluateClosure)
 
@@ -74,8 +76,8 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void node_copy_storage(bNodeTree * /*tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeEvaluateClosure &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_new_for_free<NodeEvaluateClosure>(
-      __func__, blender::dna::shallow_copy(src_storage));
+  auto *dst_storage = MEM_new_for_free<NodeEvaluateClosure>(__func__,
+                                                            dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<EvaluateClosureInputItemsAccessor>(*src_node, *dst_node);
@@ -219,7 +221,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_geo_node_type_base(&ntype, "NodeEvaluateClosure", NODE_EVALUATE_CLOSURE);
   ntype.ui_name = "Evaluate Closure";
@@ -235,13 +237,13 @@ static void node_register()
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   bke::node_type_storage(ntype, "NodeEvaluateClosure", node_free_storage, node_copy_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_geo_evaluate_closure_cc
+}  // namespace nodes::node_geo_evaluate_closure_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 StructRNA *EvaluateClosureInputItemsAccessor::item_srna = &RNA_NodeEvaluateClosureInputItem;
 
@@ -294,4 +296,5 @@ const bNodeSocket *evaluate_closure_node_internally_linked_input(const bNodeSock
   return nullptr;
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

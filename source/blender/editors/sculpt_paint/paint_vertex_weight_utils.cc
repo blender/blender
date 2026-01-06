@@ -36,6 +36,8 @@
 
 #include "paint_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Weight Paint Sanity Checks
  * \{ */
@@ -73,7 +75,7 @@ bool ED_wpaint_ensure_data(bContext *C,
   if (mesh->vertex_group_active_index <= 0) {
     Object *modob;
     if ((modob = BKE_modifiers_is_deformed_by_armature(ob))) {
-      Bone *actbone = (blender::id_cast<bArmature *>(modob->data))->act_bone;
+      Bone *actbone = (id_cast<bArmature *>(modob->data))->act_bone;
       if (actbone) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(modob->pose, actbone->name);
 
@@ -304,3 +306,5 @@ float ED_wpaint_blend_tool(const int tool,
 }
 
 /** \} */
+
+}  // namespace blender

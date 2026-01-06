@@ -122,7 +122,6 @@ void transverts_update_curves(bke::CurvesGeometry &curves,
 
 float (*point_normals_array_create(const Curves *curves_id))[3]
 {
-  using namespace blender;
   const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   const int size = curves.points_num();
   float3 *data = MEM_malloc_arrayN<float3>(size, __func__);

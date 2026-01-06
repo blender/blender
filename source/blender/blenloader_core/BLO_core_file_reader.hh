@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct FileReader;
 
 /**
@@ -28,3 +30,5 @@ FileReader *BLO_file_reader_uncompressed_from_descriptor(int filedes);
  * the memory is *not* passed to the function. So the caller remains responsible for freeing it.
  */
 FileReader *BLO_file_reader_uncompressed_from_memory(const void *mem, const int memsize);
+
+}  // namespace blender

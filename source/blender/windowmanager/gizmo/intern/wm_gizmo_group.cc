@@ -44,7 +44,7 @@
 #  include "BPY_extern.hh"
 #endif
 
-using blender::StringRef;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoGroup
@@ -215,7 +215,7 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
                                                 wmGizmoGroup *gzgroup,
                                                 const int event_modifier,
-                                                blender::Vector<wmGizmo *, 128> *r_visible_gizmos)
+                                                Vector<wmGizmo *, 128> *r_visible_gizmos)
 {
   int gzgroup_keymap_uses_modifier = -1;
   for (wmGizmo &gz : gzgroup->gizmos.items_reversed()) {
@@ -1291,3 +1291,5 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 }
 
 /** \} */
+
+}  // namespace blender

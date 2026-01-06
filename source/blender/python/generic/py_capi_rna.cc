@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Enum Utilities
  * \{ */
@@ -244,3 +246,5 @@ int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
 }
 
 /** \} */
+
+}  // namespace blender

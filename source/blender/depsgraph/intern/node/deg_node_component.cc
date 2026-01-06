@@ -270,7 +270,7 @@ void BoneComponentNode::init(const ID *id, const char *subdata)
   // this->name = subdata;
 
   /* bone-specific node data */
-  Object *object = blender::id_cast<Object *>(const_cast<ID *>(id));
+  Object *object = id_cast<Object *>(const_cast<ID *>(id));
   this->pchan = BKE_pose_channel_find_name(object->pose, subdata);
 }
 

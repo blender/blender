@@ -19,6 +19,8 @@
 #include "IO_orientation.hh"
 #include "IO_path_util_types.hh"
 
+namespace blender {
+
 struct bContext;
 struct ReportList;
 
@@ -106,7 +108,7 @@ struct OBJImportParams {
  * Reads and returns just the meshes in the obj file
  */
 void OBJ_import_geometries(const OBJImportParams *import_params,
-                           blender::Vector<blender::bke::GeometrySet> &geometries);
+                           Vector<bke::GeometrySet> &geometries);
 
 /**
  * Perform the full import process.
@@ -119,3 +121,5 @@ void OBJ_import(bContext *C, const OBJImportParams *import_params);
  * Perform the full export process.
  */
 void OBJ_export(bContext *C, const OBJExportParams *export_params);
+
+}  // namespace blender

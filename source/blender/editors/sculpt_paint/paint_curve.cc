@@ -40,6 +40,8 @@
 
 #include "paint_intern.hh"
 
+namespace blender {
+
 #define PAINT_CURVE_SELECT_THRESHOLD 40.0f
 #define PAINT_CURVE_POINT_SELECT(pcp, i) (*(&pcp->bez.f1 + i) = SELECT)
 
@@ -709,8 +711,7 @@ static wmOperatorStatus paintcurve_draw_exec(bContext *C, wmOperator * /*op*/)
       return OPERATOR_PASS_THROUGH;
   }
 
-  return WM_operator_name_call(
-      C, name, blender::wm::OpCallContext::InvokeDefault, nullptr, nullptr);
+  return WM_operator_name_call(C, name, wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
 void PAINTCURVE_OT_draw(wmOperatorType *ot)
@@ -744,7 +745,7 @@ static wmOperatorStatus paintcurve_cursor_invoke(bContext *C,
         return OPERATOR_CANCELLED;
       }
 
-      blender::ui::view2d_region_to_view(
+      ui::view2d_region_to_view(
           &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
       copy_v2_v2(sima->cursor, location);
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, nullptr);
@@ -772,3 +773,5 @@ void PAINTCURVE_OT_cursor(wmOperatorType *ot)
   /* flags */
   ot->flag = 0;
 }
+
+}  // namespace blender

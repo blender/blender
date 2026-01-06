@@ -56,7 +56,7 @@ bool action_is_layered(const bAction &dna_action)
 void convert_legacy_animato_actions(Main &bmain)
 {
   for (bAction &dna_action : bmain.actions) {
-    blender::animrig::Action &action = dna_action.wrap();
+    animrig::Action &action = dna_action.wrap();
 
     if (action_is_layered(action) && !action.is_empty()) {
       /* This is just a safety net. Blender files that trigger this versioning code are not
@@ -94,8 +94,7 @@ void convert_legacy_animato_action(bAction &dna_action)
   action.slot_identifier_define(slot, slot_identifier);
 
   Layer &layer = action.layer_add(DATA_(legacy::DEFAULT_LEGACY_LAYER_NAME));
-  blender::animrig::Strip &strip = layer.strip_add(action,
-                                                   blender::animrig::Strip::Type::Keyframe);
+  animrig::Strip &strip = layer.strip_add(action, animrig::Strip::Type::Keyframe);
   Channelbag &bag = strip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
   const int fcu_count = BLI_listbase_count(&action.curves);
   const int group_count = BLI_listbase_count(&action.groups);
@@ -164,7 +163,7 @@ void tag_action_users_for_slotted_actions_conversion(Main &bmain)
      * have their own Action+Slot. Unfortunately there is no generic looper
      * for embedded IDs. At this moment the only animatable embedded ID is a
      * node tree. */
-    bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
+    bNodeTree *node_tree = bke::node_tree_from_id(id);
     if (node_tree) {
       foreach_action_slot_use_with_references(node_tree->id, flag_adt);
     }
@@ -256,7 +255,7 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
      * have their own Action+Slot. Unfortunately there is no generic looper
      * for embedded IDs. At this moment the only animatable embedded ID is a
      * node tree. */
-    bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
+    bNodeTree *node_tree = bke::node_tree_from_id(id);
     if (node_tree && BLO_readfile_id_runtime_tags(node_tree->id).action_assignment_needs_slot) {
       foreach_action_slot_use_with_rna(node_tree->id, version_slot_assignment);
     }

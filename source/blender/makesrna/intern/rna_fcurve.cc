@@ -26,6 +26,8 @@
 
 #include <fmt/format.h>
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
     {FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
     {FMODIFIER_TYPE_GENERATOR,
@@ -176,6 +178,8 @@ static const EnumPropertyItem rna_enum_driver_target_context_property_items[] = 
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
@@ -200,6 +204,8 @@ static const EnumPropertyItem rna_enum_driver_target_context_property_items[] = 
 #  include "DEG_depsgraph_build.hh"
 
 #  include "WM_api.hh"
+
+namespace blender {
 
 static StructRNA *rna_FModifierType_refine(PointerRNA *ptr)
 {
@@ -571,7 +577,6 @@ static void rna_FKeyframe_ctrlpoint_ui_set(PointerRNA *ptr, const float *values)
 
 static std::optional<std::string> rna_FCurve_path(const PointerRNA *ptr)
 {
-  using namespace blender;
   FCurve *fcurve = reinterpret_cast<FCurve *>(ptr->data);
 
   /* If the F-Curve is not owned by an Action, bail out early. It could be a driver, NLA control
@@ -666,7 +671,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value, ReportList *
   if (GS(pid->name) == ID_AC && GS(vid->name) == ID_AC) {
     /* The ID given is the action already -
      * usually when F-Curve is obtained from an action's pointer. */
-    act = blender::id_cast<bAction *>(pid);
+    act = id_cast<bAction *>(pid);
   }
   else {
     /* the ID given is the owner of the F-Curve (for drivers) */
@@ -690,7 +695,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value, ReportList *
     return;
   }
 
-  blender::animrig::Action &action = act->wrap();
+  animrig::Action &action = act->wrap();
 
   /* Legacy action. */
   if (!action.is_action_layered()) {
@@ -723,7 +728,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value, ReportList *
   bActionGroup *group = static_cast<bActionGroup *>(value.data);
 
   BLI_assert(group->channelbag != nullptr);
-  blender::animrig::Channelbag &channelbag = group->channelbag->wrap();
+  animrig::Channelbag &channelbag = group->channelbag->wrap();
 
   if (!channelbag.fcurve_assign_to_channel_group(*fcu, *group)) {
     printf(
@@ -1114,7 +1119,7 @@ static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
 static BezTriple *rna_FKeyframe_points_insert(
     ID *id, FCurve *fcu, Main *bmain, float frame, float value, int flag, int keyframe_type)
 {
-  using namespace blender::animrig;
+  using namespace animrig;
   KeyframeSettings settings = get_keyframe_settings(false);
   settings.keyframe_type = eBezTriple_KeyframeType(keyframe_type);
   const SingleKeyingResult result = insert_vert_fcurve(
@@ -1282,7 +1287,11 @@ static void rna_FModifier_show_expanded_set(PointerRNA *ptr, bool value)
   SET_FLAG_FROM_TEST(fcm->ui_expand_flag, value, UI_PANEL_DATA_EXPAND_ROOT);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
 {
@@ -2801,5 +2810,7 @@ void RNA_def_fcurve(BlenderRNA *brna)
   rna_def_fmodifier_noise(brna);
   rna_def_fmodifier_stepped(brna);
 }
+
+}  // namespace blender
 
 #endif

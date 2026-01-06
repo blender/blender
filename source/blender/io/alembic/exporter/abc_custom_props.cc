@@ -19,6 +19,8 @@
 #include "BKE_idprop.hh"
 #include "DNA_ID.h"
 
+namespace blender {
+
 using Alembic::Abc::ArraySample;
 using Alembic::Abc::OArrayProperty;
 using Alembic::Abc::OBoolArrayProperty;
@@ -28,7 +30,7 @@ using Alembic::Abc::OFloatArrayProperty;
 using Alembic::Abc::OInt32ArrayProperty;
 using Alembic::Abc::OStringArrayProperty;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 CustomPropertiesExporter::CustomPropertiesExporter(ABCAbstractWriter *owner) : owner_(owner) {}
 
@@ -253,4 +255,5 @@ OArrayProperty CustomPropertiesExporter::create_abc_property(const StringRef pro
   return abc_property;
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

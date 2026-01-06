@@ -30,6 +30,8 @@
 
 #include "wm_xr_intern.hh"
 
+namespace blender {
+
 struct wmXrErrorHandlerData {
   wmWindowManager *wm;
 };
@@ -65,7 +67,7 @@ bool wm_xr_init(wmWindowManager *wm)
   GHOST_XrErrorHandler(wm_xr_error_handler, &error_customdata);
 
   {
-    blender::Vector<GHOST_TXrGraphicsBinding> gpu_bindings_candidates;
+    Vector<GHOST_TXrGraphicsBinding> gpu_bindings_candidates;
     switch (GPU_backend_get_type()) {
 #ifdef WITH_OPENGL_BACKEND
       case GPU_BACKEND_OPENGL:
@@ -204,3 +206,5 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
 }
 
 /** \} */ /* XR Runtime Data. */
+
+}  // namespace blender

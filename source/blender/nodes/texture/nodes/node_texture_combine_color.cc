@@ -10,14 +10,16 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
-static blender::bke::bNodeSocketTemplate inputs[] = {
+namespace blender {
+
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_FLOAT, N_("Red"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_FLOAT, N_("Green"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_FLOAT, N_("Blue"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
     {-1, ""},
 };
-static blender::bke::bNodeSocketTemplate outputs[] = {
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
 };
@@ -66,15 +68,17 @@ static void exec(void *data,
 
 void register_node_type_tex_combine_color()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeCombineColor", TEX_NODE_COMBINE_COLOR);
   ntype.ui_name = "Combine Color";
   ntype.enum_name_legacy = "COMBINE_COLOR";
   ntype.nclass = NODE_CLASS_OP_COLOR;
-  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
   ntype.updatefunc = update;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

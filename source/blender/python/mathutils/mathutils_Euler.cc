@@ -22,6 +22,8 @@
 #  include "BLI_dynstr.h"
 #endif
 
+namespace blender {
+
 #define EULER_SIZE 3
 
 /* -------------------------------------------------------------------- */
@@ -1092,3 +1094,5 @@ PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
 }
 
 /** \} */
+
+}  // namespace blender

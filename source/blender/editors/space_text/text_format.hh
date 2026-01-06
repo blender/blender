@@ -10,7 +10,7 @@
 
 #include "BLI_span.hh"
 
-using blender::Span;
+namespace blender {
 
 struct SpaceText;
 struct Text;
@@ -145,3 +145,5 @@ int text_format_string_literal_find(Span<const char *> string_literals, const ch
 bool text_format_string_literals_check_sorted_array(Span<const char *> string_literals);
 
 #endif
+
+}  // namespace blender

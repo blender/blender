@@ -33,9 +33,11 @@
 
 #include "node_intern.hh"
 
+namespace blender {
+
 struct Material;
 
-namespace blender::ed::space_node {
+namespace ed::space_node {
 
 static void context_path_add_object_data(Vector<ui::ContextPathItem> &path, Object &object)
 {
@@ -261,4 +263,6 @@ Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C)
   return context_path;
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

@@ -513,7 +513,7 @@ void ensure_nodes_constraints(const Sculpt &sd,
             const int node_index = cloth_sim.node_state_index.lookup(&nodes[i]);
             return cloth_sim.node_state[node_index] == SCULPT_CLOTH_NODE_UNINITIALIZED;
           });
-      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<const Mesh *>(object.data);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1269,7 +1269,7 @@ static void calc_constraint_factors(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<const Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -1430,7 +1430,7 @@ void do_simulation_step(const Depsgraph &depsgraph,
             const int node_index = cloth_sim.node_state_index.lookup(&nodes[i]);
             return cloth_sim.node_state[node_index] == SCULPT_CLOTH_NODE_ACTIVE;
           });
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       active_nodes.foreach_index(GrainSize(1), [&](const int i) {
@@ -1602,7 +1602,7 @@ static void cloth_brush_apply_brush_forces(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
+      const Mesh &mesh = *id_cast<Mesh *>(ob.data);
       const MeshAttributeData attribute_data(mesh);
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, ob);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, ob);
@@ -2327,7 +2327,7 @@ static wmOperatorStatus sculpt_cloth_filter_modal(bContext *C,
     case bke::pbvh::Type::Mesh: {
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(*depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(*depsgraph, object);
-      const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<const Mesh *>(object.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const MeshAttributeData attribute_data(mesh);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -2349,7 +2349,7 @@ static wmOperatorStatus sculpt_cloth_filter_modal(bContext *C,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const Mesh &base_mesh = *blender::id_cast<const Mesh *>(object.data);
+      const Mesh &base_mesh = *id_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = base_mesh.attributes();
       const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
                                                            bke::AttrDomain::Face);

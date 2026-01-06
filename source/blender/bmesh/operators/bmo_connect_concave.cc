@@ -34,6 +34,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define EDGE_OUT (1 << 0)
 #define FACE_OUT (1 << 1)
 
@@ -47,8 +49,8 @@ static bool bm_face_split_by_concave(BMesh *bm,
   const int f_base_len = f_base->len;
   int faces_array_tot = f_base_len - 3;
   int edges_array_tot = f_base_len - 3;
-  blender::Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> faces_array(faces_array_tot);
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_array(edges_array_tot);
+  Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> faces_array(faces_array_tot);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_array(edges_array_tot);
   const int quad_method = 0, ngon_method = 0; /* beauty */
   LinkNode *faces_double = nullptr;
 
@@ -204,3 +206,5 @@ void bmo_connect_verts_concave_exec(BMesh *bm, BMOperator *op)
   BLI_memarena_free(pf_arena);
   BLI_heap_free(pf_heap, nullptr);
 }
+
+}  // namespace blender

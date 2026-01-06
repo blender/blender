@@ -23,7 +23,9 @@
 
 #include "node_function_util.hh"
 
-namespace blender::nodes::node_fn_format_string_cc {
+namespace blender {
+
+namespace nodes::node_fn_format_string_cc {
 
 NODE_STORAGE_FUNCS(NodeFunctionFormatString)
 
@@ -773,15 +775,14 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeFormatString");
   ntype.ui_name = "Format String";
   ntype.ui_description =
       "Insert values into a string using a Python and path template compatible formatting syntax";
   ntype.nclass = NODE_CLASS_CONVERTER;
-  blender::bke::node_type_storage(
-      ntype, "NodeFunctionFormatString", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeFunctionFormatString", node_free_storage, node_copy_storage);
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
   ntype.initfunc = node_init;
@@ -790,13 +791,13 @@ static void node_register()
   ntype.register_operators = node_operators;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_fn_format_string_cc
+}  // namespace nodes::node_fn_format_string_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 StructRNA *FormatStringItemsAccessor::item_srna = &RNA_NodeFunctionFormatStringItem;
 
@@ -868,4 +869,5 @@ std::string FormatStringItemsAccessor::validate_name(const StringRef name)
   return result;
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

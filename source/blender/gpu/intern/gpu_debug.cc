@@ -16,7 +16,8 @@
 
 #include "GPU_debug.hh"
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::gpu;
 
 void GPU_debug_group_begin(const char *name)
@@ -187,7 +188,7 @@ void GPU_debug_capture_scope_end(void *scope)
   ctx->debug_capture_scope_end(scope);
 }
 
-namespace blender::gpu {
+namespace gpu {
 
 void debug_validate_binding_image_format()
 {
@@ -221,4 +222,5 @@ void debug_validate_binding_image_format()
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

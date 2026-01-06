@@ -22,6 +22,8 @@
 #include "message_bus/intern/wm_message_bus_intern.hh"
 #include "message_bus/wm_message_bus.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------------- */
 /** \name Public API
  * \{ */
@@ -233,3 +235,5 @@ void wm_msg_subscribe_value_free(wmMsgSubscribeKey *msg_key, wmMsgSubscribeValue
 }
 
 /** \} */
+
+}  // namespace blender

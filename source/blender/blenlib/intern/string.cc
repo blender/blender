@@ -23,6 +23,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name String Duplicate/Copy
  * \{ */
@@ -1343,3 +1345,5 @@ void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy)
 #endif /* WITH_STRSIZE_DEBUG */
 
 /** \} */
+
+}  // namespace blender

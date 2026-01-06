@@ -47,6 +47,8 @@
 
 #include "gpencil_intern.hh"
 
+namespace blender {
+
 /* ************************************************ */
 /* Datablock Operators */
 
@@ -343,3 +345,5 @@ void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
+
+}  // namespace blender

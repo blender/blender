@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * This file contains slot types that are supposed to be used with blender::Map.
+ * This file contains slot types that are supposed to be used with Map.
  *
  * Every slot type has to be able to hold a value of type Key, a value of type Value and state
  * information. A map slot has three possible states: empty, occupied and removed.

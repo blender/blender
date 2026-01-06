@@ -27,7 +27,7 @@
 
 namespace blender::deg {
 
-void deg_evaluate_object_node_visibility(::Depsgraph *depsgraph, IDNode *id_node)
+void deg_evaluate_object_node_visibility(blender::Depsgraph *depsgraph, IDNode *id_node)
 {
   BLI_assert(GS(id_node->id_cow->name) == ID_OB);
 
@@ -51,7 +51,8 @@ void deg_evaluate_object_node_visibility(::Depsgraph *depsgraph, IDNode *id_node
   }
 }
 
-void deg_evaluate_object_modifiers_mode_node_visibility(::Depsgraph *depsgraph, IDNode *id_node)
+void deg_evaluate_object_modifiers_mode_node_visibility(blender::Depsgraph *depsgraph,
+                                                        IDNode *id_node)
 {
   BLI_assert(GS(id_node->id_cow->name) == ID_OB);
 

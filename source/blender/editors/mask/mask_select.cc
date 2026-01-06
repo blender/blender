@@ -31,9 +31,7 @@
 
 #include "mask_intern.hh" /* own include */
 
-using blender::Array;
-using blender::int2;
-using blender::Span;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Public Mask Selection API
@@ -997,3 +995,5 @@ void MASK_OT_select_less(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

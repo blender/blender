@@ -29,7 +29,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Screw Operator
@@ -147,7 +147,7 @@ static wmOperatorStatus edbm_screw_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   if (failed_axis_len == objects.size() - objects_empty_len) {
@@ -216,3 +216,5 @@ void MESH_OT_screw(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

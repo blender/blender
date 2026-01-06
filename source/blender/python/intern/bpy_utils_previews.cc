@@ -26,6 +26,8 @@
 
 #include "BKE_preview_image.hh"
 
+namespace blender {
+
 #define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT'"
 
 PyDoc_STRVAR(
@@ -207,3 +209,5 @@ PyObject *BPY_utils_previews_module()
 
   return submodule;
 }
+
+}  // namespace blender

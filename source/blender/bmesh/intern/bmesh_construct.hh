@@ -11,6 +11,8 @@
 #include "bmesh_class.hh"
 #include "bmesh_core.hh"
 
+namespace blender {
+
 struct BMAllocTemplate;
 struct BMCustomDataCopyMap;
 struct Mesh;
@@ -184,3 +186,5 @@ void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
                                              char htype,
                                              const BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);
+
+}  // namespace blender

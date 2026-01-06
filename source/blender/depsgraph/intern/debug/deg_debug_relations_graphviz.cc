@@ -25,13 +25,12 @@
 
 #include <sstream>
 
-namespace deg = blender::deg;
-namespace dot_export = blender::dot_export;
+namespace blender {
 
 /* ****************** */
 /* Graphviz Debugging */
 
-namespace blender::deg {
+namespace deg {
 
 /* Only one should be enabled, defines whether graphviz nodes
  * get colored by individual types or classes.
@@ -500,9 +499,9 @@ static void deg_debug_graphviz_graph_relations(DotExportContext &ctx, const Deps
   }
 }
 
-}  // namespace blender::deg
+}  // namespace deg
 
-std::string DEG_debug_graph_to_dot(const Depsgraph &graph, const blender::StringRef label)
+std::string DEG_debug_graph_to_dot(const Depsgraph &graph, const StringRef label)
 {
   const deg::Depsgraph &deg_graph = reinterpret_cast<const deg::Depsgraph &>(graph);
 
@@ -525,3 +524,5 @@ std::string DEG_debug_graph_to_dot(const Depsgraph &graph, const blender::String
 
   return digraph.to_dot_string();
 }
+
+}  // namespace blender

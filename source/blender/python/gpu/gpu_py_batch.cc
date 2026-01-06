@@ -29,6 +29,8 @@
 
 #include "gpu_py_batch.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
  * \{ */
@@ -101,9 +103,9 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, Py
     return nullptr;
   }
 
-  blender::gpu::Batch *batch = GPU_batch_create(GPUPrimType(prim_type.value_found),
-                                                py_vertbuf->buf,
-                                                py_indexbuf ? py_indexbuf->elem : nullptr);
+  gpu::Batch *batch = GPU_batch_create(GPUPrimType(prim_type.value_found),
+                                       py_vertbuf->buf,
+                                       py_indexbuf ? py_indexbuf->elem : nullptr);
 
   BPyGPUBatch *ret = reinterpret_cast<BPyGPUBatch *>(BPyGPUBatch_CreatePyObject(batch));
 
@@ -201,7 +203,7 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
     return nullptr;
   }
 
-  blender::gpu::Shader *shader = py_shader->shader;
+  gpu::Shader *shader = py_shader->shader;
   GPU_batch_set_shader(self->batch, shader);
 
 #ifdef USE_GPU_PY_REFERENCES
@@ -229,7 +231,7 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
  * Verify if the Shader is compatible with the batch and can be used for rendering.
  * Derived from `polyline_draw_workaround` in `gpu_immediate.cc`.
  */
-static const char *pygpu_shader_check_compatibility(blender::gpu::Batch *batch)
+static const char *pygpu_shader_check_compatibility(gpu::Batch *batch)
 {
   if (!batch->shader) {
     return nullptr;
@@ -241,7 +243,7 @@ static const char *pygpu_shader_check_compatibility(blender::gpu::Batch *batch)
   }
 
   /* Check batch compatibility with shader. */
-  for (auto *vert : blender::Span(batch->verts, ARRAY_SIZE(batch->verts))) {
+  for (auto *vert : Span(batch->verts, ARRAY_SIZE(batch->verts))) {
     if (!vert) {
       continue;
     }
@@ -257,7 +259,7 @@ static const char *pygpu_shader_check_compatibility(blender::gpu::Batch *batch)
       if ((a->offset % 4) != 0) {
         return "For POLYLINE shaders, only 4-byte aligned attributes are supported";
       }
-      const blender::StringRefNull name = GPU_vertformat_attr_name_get(&format, a, 0);
+      const StringRefNull name = GPU_vertformat_attr_name_get(&format, a, 0);
       if (pos_attr_id == -1 && name == "pos") {
         if (!ELEM(a->type.comp_type(), GPU_COMP_F32)) {
           return "For POLYLINE shaders, the 'pos' attribute needs to be 'F32'";
@@ -324,7 +326,7 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
   if (py_shader && py_shader->is_builtin &&
       ELEM(self->batch->prim_type, GPU_PRIM_LINES, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINE_LOOP))
   {
-    blender::gpu::Shader *shader = py_shader->shader;
+    gpu::Shader *shader = py_shader->shader;
     const float line_width = GPU_line_width_get();
     const bool use_linesmooth = GPU_line_smooth_get();
     if (line_width > 1.0f || use_linesmooth) {
@@ -355,7 +357,7 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
   /* Emit a warning when trying to draw points with a regular shader as it is too late to
    * automatically switch to a point shader. */
   if (py_shader && py_shader->is_builtin && self->batch->prim_type == GPU_PRIM_POINTS) {
-    blender::gpu::Shader *shader = py_shader->shader;
+    gpu::Shader *shader = py_shader->shader;
     if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR)) {
       PyErr_WarnEx(PyExc_DeprecationWarning,
                    "Calling GPUBatch.draw to draw points with "
@@ -668,7 +670,7 @@ PyTypeObject BPyGPUBatch_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch)
+PyObject *BPyGPUBatch_CreatePyObject(gpu::Batch *batch)
 {
   BPyGPUBatch *self;
 
@@ -687,3 +689,5 @@ PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch)
 /** \} */
 
 #undef BPY_GPU_BATCH_CHECK_OBJ
+
+}  // namespace blender

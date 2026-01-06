@@ -16,6 +16,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define ELE_NEW 1
 #define ELE_OUT 2
 
@@ -293,3 +295,5 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
     MEM_freeN(vert_arr);
   }
 }
+
+}  // namespace blender

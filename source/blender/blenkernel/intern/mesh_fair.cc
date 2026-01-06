@@ -18,12 +18,8 @@
 
 #include "eigen_capi.h"
 
-using blender::Array;
-using blender::float3;
-using blender::Map;
-using blender::MutableSpan;
-using blender::Span;
-using blender::Vector;
+namespace blender {
+
 using std::array;
 
 class VertexWeight {
@@ -84,7 +80,7 @@ class FairingContext {
   int totvert_;
   int totloop_;
 
-  blender::GroupedSpan<int> vlmap_;
+  GroupedSpan<int> vlmap_;
 
  private:
   void fair_setup_fairing(const int v,
@@ -214,7 +210,6 @@ class MeshFairingContext : public FairingContext {
                                   float r_adj_next[3],
                                   float r_adj_prev[3]) override
   {
-    using namespace blender;
     const int vert = corner_verts_[loop];
     const IndexRange face = faces[loop_to_face_map_[loop]];
     const int2 adjacent_verts = bke::mesh::face_find_adjacent_verts(face, corner_verts_, vert);
@@ -224,16 +219,16 @@ class MeshFairingContext : public FairingContext {
 
   int other_vertex_index_from_loop(const int loop, const int v) override
   {
-    const blender::int2 &edge = edges_[corner_edges_[loop]];
-    return blender::bke::mesh::edge_other_vert(edge, v);
+    const int2 &edge = edges_[corner_edges_[loop]];
+    return bke::mesh::edge_other_vert(edge, v);
   }
 
  protected:
   Mesh *mesh_;
   Span<int> corner_verts_;
   Span<int> corner_edges_;
-  blender::OffsetIndices<int> faces;
-  Span<blender::int2> edges_;
+  OffsetIndices<int> faces;
+  Span<int2> edges_;
   Span<int> loop_to_face_map_;
 };
 
@@ -370,7 +365,7 @@ static void prefair_and_fair_verts(FairingContext &fairing_context,
 }
 
 void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
-                                     blender::MutableSpan<float3> deform_vert_positions,
+                                     MutableSpan<float3> deform_vert_positions,
                                      const bool affected_verts[],
                                      const eMeshFairingDepth depth)
 {
@@ -381,3 +376,5 @@ void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
   MeshFairingContext fairing_context(mesh, deform_positions_span);
   prefair_and_fair_verts(fairing_context, affected_verts, depth);
 }
+
+}  // namespace blender

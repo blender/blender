@@ -23,8 +23,10 @@
 #include "gpu_py.hh"
 #include "gpu_py_uniformbuffer.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
-/** \name blender::gpu::UniformBuf Common Utilities
+/** \name gpu::UniformBuf Common Utilities
  * \{ */
 
 static int pygpu_uniformbuffer_valid_check(BPyGPUUniformBuf *bpygpu_ub)
@@ -53,7 +55,7 @@ static int pygpu_uniformbuffer_valid_check(BPyGPUUniformBuf *bpygpu_ub)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name blender::gpu::UniformBuf Type
+/** \name gpu::UniformBuf Type
  * \{ */
 
 static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject * /*self*/,
@@ -62,7 +64,7 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject * /*self*/,
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  blender::gpu::UniformBuf *ubo = nullptr;
+  gpu::UniformBuf *ubo = nullptr;
   PyObject *pybuffer_obj;
   char err_out[256] = "unknown error. See console";
 
@@ -234,7 +236,7 @@ PyTypeObject BPyGPUUniformBuf_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUUniformBuf_CreatePyObject(blender::gpu::UniformBuf *ubo)
+PyObject *BPyGPUUniformBuf_CreatePyObject(gpu::UniformBuf *ubo)
 {
   BPyGPUUniformBuf *self;
 
@@ -247,3 +249,5 @@ PyObject *BPyGPUUniformBuf_CreatePyObject(blender::gpu::UniformBuf *ubo)
 /** \} */
 
 #undef BPYGPU_UNIFORMBUF_CHECK_OBJ
+
+}  // namespace blender

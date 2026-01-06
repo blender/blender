@@ -10,6 +10,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup sequencer
  */
@@ -17,7 +19,7 @@
 struct Strip;
 struct VFont;
 
-namespace blender::seq {
+namespace seq {
 
 void effect_ensure_initialized(Strip *strip);
 void effect_free(Strip *strip);
@@ -51,4 +53,5 @@ struct TextVarsRuntime {
   bool editing_is_active; /* UI uses this to differentiate behavior. */
 };
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

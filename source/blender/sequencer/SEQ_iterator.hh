@@ -12,11 +12,13 @@
 #include "BLI_vector_set.hh"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Scene;
 struct SeqTimelineChannel;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 /**
  * Callback format for the for_each function below.
@@ -169,4 +171,5 @@ Vector<Strip *> query_rendered_strips_sorted(const Scene *scene,
  * \note: Take care when changing the logic of this function since order matters.
  * */
 bool must_render_strip(const VectorSet<Strip *> &strip_stack, Strip *target_strip);
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

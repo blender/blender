@@ -9,13 +9,15 @@
 #include "node_texture_util.hh"
 #include <cmath>
 
-static blender::bke::bNodeSocketTemplate inputs[] = {
+namespace blender {
+
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color1"), 1.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_RGBA, N_("Color2"), 1.0f, 1.0f, 1.0f, 1.0f},
     {SOCK_FLOAT, N_("Size"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 100.0f, PROP_UNSIGNED},
     {-1, ""},
 };
-static blender::bke::bNodeSocketTemplate outputs[] = {
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
 };
@@ -52,15 +54,17 @@ static void exec(void *data,
 
 void register_node_type_tex_checker()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeChecker", TEX_NODE_CHECKER);
   ntype.ui_name = "Checker";
   ntype.enum_name_legacy = "CHECKER";
   ntype.nclass = NODE_CLASS_PATTERN;
-  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
   ntype.flag |= NODE_PREVIEW;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

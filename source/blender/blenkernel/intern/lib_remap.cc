@@ -37,6 +37,8 @@
 
 #include "lib_intern.hh" /* own include */
 
+namespace blender {
+
 using namespace blender::bke::id;
 
 static CLG_LogRef LOG = {"lib.remap"};
@@ -132,7 +134,7 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
       if (GS(id_self->name) == ID_NT) {
         /* Make sure that the node tree is updated after a property in it changed. Ideally, we
          * would know which nodes property was changed so that only this node is tagged. */
-        BKE_ntree_update_tag_all(blender::id_cast<bNodeTree *>(id_self));
+        BKE_ntree_update_tag_all(id_cast<bNodeTree *>(id_self));
       }
     }
   }
@@ -243,8 +245,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   const bool is_obj = (GS(id_owner->name) == ID_OB);
   /* NOTE: Edit Mode is a 'skip direct' case, unless specifically requested, obdata should not be
    * remapped in this situation. */
-  const bool is_obj_editmode = (is_obj &&
-                                BKE_object_is_in_editmode(blender::id_cast<Object *>(id_owner)) &&
+  const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode(id_cast<Object *>(id_owner)) &&
                                 (id_remap_data->flag & ID_REMAP_FORCE_OBDATA_IN_EDITMODE) == 0);
   const bool violates_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) &&
                                     (expected_mapping_result ==
@@ -279,7 +280,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
    * (otherwise, we follow common NEVER_NULL flags).
    * (skipped_indirect too). */
   if ((violates_never_null && skip_never_null) ||
-      (is_obj_editmode && ((blender::id_cast<Object *>(id_owner))->data == *id_p) &&
+      (is_obj_editmode && ((id_cast<Object *>(id_owner))->data == *id_p) &&
        (expected_mapping_result == ID_REMAP_RESULT_SOURCE_REMAPPED)) ||
       (skip_indirect && is_indirect) || (is_reference && skip_reference))
   {
@@ -346,7 +347,7 @@ static void libblock_remap_data_preprocess(ID *id_owner,
 {
   switch (GS(id_owner->name)) {
     case ID_OB: {
-      Object *ob = blender::id_cast<Object *>(id_owner);
+      Object *ob = id_cast<Object *>(id_owner);
       libblock_remap_data_preprocess_ob(ob, remap_type, id_remapper);
       break;
     }
@@ -438,7 +439,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
 static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new_id)
 {
   /* Update all group nodes using a node group. */
-  blender::bke::node_tree_update_all_users(bmain, new_id);
+  bke::node_tree_update_all_users(bmain, new_id);
 }
 
 static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, IDRemap *id_remap_data)
@@ -615,13 +616,11 @@ static void libblock_remap_foreach_idpair(ID *old_id, ID *new_id, Main *bmain, i
   switch (GS(old_id->name)) {
     case ID_OB:
       libblock_remap_data_postprocess_object_update(
-          bmain, blender::id_cast<Object *>(old_id), blender::id_cast<Object *>(new_id), true);
+          bmain, id_cast<Object *>(old_id), id_cast<Object *>(new_id), true);
       break;
     case ID_GR:
-      libblock_remap_data_postprocess_collection_update(bmain,
-                                                        nullptr,
-                                                        blender::id_cast<Collection *>(old_id),
-                                                        blender::id_cast<Collection *>(new_id));
+      libblock_remap_data_postprocess_collection_update(
+          bmain, nullptr, id_cast<Collection *>(old_id), id_cast<Collection *>(new_id));
       break;
     case ID_ME:
     case ID_CU_LEGACY:
@@ -742,7 +741,7 @@ void BKE_libblock_unlink(Main *bmain, void *idv, const bool do_skip_indirect)
 static void libblock_relink_foreach_idpair(ID *old_id,
                                            ID *new_id,
                                            Main *bmain,
-                                           const blender::Span<ID *> ids)
+                                           const Span<ID *> ids)
 {
   BLI_assert(old_id != nullptr);
   BLI_assert((new_id == nullptr) || GS(old_id->name) == GS(new_id->name));
@@ -762,24 +761,21 @@ static void libblock_relink_foreach_idpair(ID *old_id,
          * This is also a required fix in case `id` would not be in Main anymore, which can happen
          * e.g. when called from `id_delete`. */
         Collection *owner_collection = (GS(id_iter->name) == ID_GR) ?
-                                           blender::id_cast<Collection *>(id_iter) :
-                                           (blender::id_cast<Scene *>(id_iter))->master_collection;
+                                           id_cast<Collection *>(id_iter) :
+                                           (id_cast<Scene *>(id_iter))->master_collection;
         switch (GS(old_id->name)) {
           case ID_OB:
             if (!is_object_update_processed) {
-              libblock_remap_data_postprocess_object_update(bmain,
-                                                            blender::id_cast<Object *>(old_id),
-                                                            blender::id_cast<Object *>(new_id),
-                                                            true);
+              libblock_remap_data_postprocess_object_update(
+                  bmain, id_cast<Object *>(old_id), id_cast<Object *>(new_id), true);
               is_object_update_processed = true;
             }
             break;
           case ID_GR:
-            libblock_remap_data_postprocess_collection_update(
-                bmain,
-                owner_collection,
-                blender::id_cast<Collection *>(old_id),
-                blender::id_cast<Collection *>(new_id));
+            libblock_remap_data_postprocess_collection_update(bmain,
+                                                              owner_collection,
+                                                              id_cast<Collection *>(old_id),
+                                                              id_cast<Collection *>(new_id));
             break;
           default:
             break;
@@ -788,8 +784,7 @@ static void libblock_relink_foreach_idpair(ID *old_id,
       }
       case ID_OB:
         if (new_id != nullptr) { /* Only affects us in case obdata was relinked (changed). */
-          libblock_remap_data_postprocess_obdata_relink(
-              bmain, blender::id_cast<Object *>(id_iter), new_id);
+          libblock_remap_data_postprocess_obdata_relink(bmain, id_cast<Object *>(id_iter), new_id);
         }
         break;
       default:
@@ -799,7 +794,7 @@ static void libblock_relink_foreach_idpair(ID *old_id,
 }
 
 void BKE_libblock_relink_multiple(Main *bmain,
-                                  const blender::Span<ID *> ids,
+                                  const Span<ID *> ids,
                                   const eIDRemapType remap_type,
                                   IDRemapper &id_remapper,
                                   const int remap_flags)
@@ -831,10 +826,9 @@ void BKE_libblock_relink_multiple(Main *bmain,
              * children detection we can only process that one. This is also a required fix in case
              * `id` would not be in Main anymore, which can happen e.g. when called from
              * `id_delete`. */
-            Collection *owner_collection =
-                (GS(id_iter->name) == ID_GR) ?
-                    blender::id_cast<Collection *>(id_iter) :
-                    (blender::id_cast<Scene *>(id_iter))->master_collection;
+            Collection *owner_collection = (GS(id_iter->name) == ID_GR) ?
+                                               id_cast<Collection *>(id_iter) :
+                                               (id_cast<Scene *>(id_iter))->master_collection;
             /* No choice but to check whole objects once, and all children collections. */
             if (!is_object_update_processed) {
               /* We only want to affect Object pointers here, not Collection ones, LayerCollections
@@ -870,7 +864,7 @@ void BKE_libblock_relink_ex(
   ID *id = static_cast<ID *>(idv);
   ID *old_id = static_cast<ID *>(old_idv);
   ID *new_id = static_cast<ID *>(new_idv);
-  blender::Array<ID *> ids = {id};
+  Array<ID *> ids = {id};
 
   /* No need to lock here, we are only affecting given ID, not bmain database. */
   IDRemapper id_remapper;
@@ -892,7 +886,7 @@ void BKE_libblock_relink_ex(
 }
 
 struct RelinkToNewIDData {
-  blender::Vector<ID *> ids;
+  Vector<ID *> ids;
   IDRemapper id_remapper;
 };
 
@@ -955,3 +949,5 @@ void BKE_libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag)
   BKE_libblock_relink_multiple(
       bmain, relink_data.ids, ID_REMAP_TYPE_REMAP, relink_data.id_remapper, remap_flag_final);
 }
+
+}  // namespace blender

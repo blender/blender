@@ -73,14 +73,14 @@ class GVMutableArrayImpl : public GVArrayImpl {
 /** \name #GVArray and #GVMutableArray
  * \{ */
 
-namespace detail {
+namespace blenlib_detail {
 struct GVArrayAnyExtraInfo {
   const GVArrayImpl *(*get_varray)(const void *buffer) =
       [](const void * /*buffer*/) -> const GVArrayImpl * { return nullptr; };
 
   template<typename StorageT> static constexpr GVArrayAnyExtraInfo get();
 };
-}  // namespace detail
+}  // namespace blenlib_detail
 
 class GVMutableArray;
 
@@ -94,7 +94,7 @@ class GVArrayCommon {
    * See #VArrayCommon for more information. The inline buffer is a bit larger here, because
    * generic virtual array implementations often require a bit more space than typed ones.
    */
-  using Storage = Any<detail::GVArrayAnyExtraInfo, 40, 8>;
+  using Storage = Any<blenlib_detail::GVArrayAnyExtraInfo, 40, 8>;
 
   const GVArrayImpl *impl_ = nullptr;
   Storage storage_;
@@ -806,7 +806,7 @@ inline GVArray::GVArray(varray_tag::single_ref /*tag*/,
   this->emplace<GVArrayImpl_For_SingleValueRef_final>(type, size, value);
 }
 
-namespace detail {
+namespace blenlib_detail {
 template<typename StorageT> constexpr GVArrayAnyExtraInfo GVArrayAnyExtraInfo::get()
 {
   static_assert(std::is_base_of_v<GVArrayImpl, StorageT> ||
@@ -828,7 +828,7 @@ template<typename StorageT> constexpr GVArrayAnyExtraInfo GVArrayAnyExtraInfo::g
     return {};
   }
 }
-}  // namespace detail
+}  // namespace blenlib_detail
 
 template<typename ImplT, typename... Args> inline GVArray GVArray::from(Args &&...args)
 {

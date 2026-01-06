@@ -25,13 +25,15 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define hash BLI_noise_hash_uchar_512
 
 /**
  * Random Number Generator.
  */
 struct RNG {
-  blender::RandomNumberGenerator rng;
+  RandomNumberGenerator rng;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("RNG")
 };
@@ -67,7 +69,7 @@ void BLI_rng_srandom(RNG *rng, uint seed)
 
 void BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len)
 {
-  rng->rng.get_bytes(blender::MutableSpan(bytes, int64_t(bytes_len)));
+  rng->rng.get_bytes(MutableSpan(bytes, int64_t(bytes_len)));
 }
 
 int BLI_rng_get_int(RNG *rng)
@@ -282,8 +284,6 @@ void BLI_hammersley_1d(uint n, double *r)
 {
   *r = radical_inverse(n);
 }
-
-namespace blender {
 
 RandomNumberGenerator RandomNumberGenerator::from_random_seed()
 {

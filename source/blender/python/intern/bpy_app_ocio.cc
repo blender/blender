@@ -17,7 +17,7 @@
 
 #include "OCIO_version.hh"
 
-namespace ocio = blender::ocio;
+namespace blender {
 
 static PyTypeObject BlenderAppOCIOType;
 
@@ -90,3 +90,5 @@ PyObject *BPY_app_ocio_struct()
 
   return ret;
 }
+
+}  // namespace blender

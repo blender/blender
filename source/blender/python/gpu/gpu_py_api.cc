@@ -24,6 +24,8 @@
 
 #include "gpu_py_api.hh" /* Own include. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name GPU Module
  * \{ */
@@ -84,3 +86,5 @@ PyObject *BPyInit_gpu()
 }
 
 /** \} */
+
+}  // namespace blender

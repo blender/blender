@@ -23,6 +23,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name IDProp Repr
  *
@@ -314,3 +316,5 @@ const char *IDP_type_str(const IDProperty *prop)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -22,6 +22,8 @@
 #include "BKE_lib_id.hh"
 #include "BKE_linestyle.h"
 
+namespace blender {
+
 /* Function declarations. */
 static FreestyleLineSet *alloc_lineset();
 static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset, const int flag);
@@ -103,8 +105,8 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
   STRNCPY_UTF8(new_lineset->name, lineset->name);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus(blender::id_cast<ID *>(new_lineset->linestyle));
-    id_us_plus(blender::id_cast<ID *>(new_lineset->group));
+    id_us_plus(id_cast<ID *>(new_lineset->linestyle));
+    id_us_plus(id_cast<ID *>(new_lineset->group));
   }
 }
 
@@ -250,3 +252,5 @@ void BKE_freestyle_lineset_set_active_index(FreestyleConfig *config, short index
     }
   }
 }
+
+}  // namespace blender

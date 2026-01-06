@@ -6,12 +6,13 @@
  * \ingroup bli
  */
 
-#ifndef __MATH_GEOM_INLINE_C__
-#define __MATH_GEOM_INLINE_C__
+#pragma once
 
 #include "BLI_math_vector.h"
 
 #include <cstring>
+
+namespace blender {
 
 /* A few small defines. Keep them local! */
 #define SMALL_NUMBER 1.e-8f
@@ -166,4 +167,4 @@ MINLINE float shell_v2v2_mid_normalized_to_dist(const float a[2], const float b[
 
 #undef SMALL_NUMBER
 
-#endif /* __MATH_GEOM_INLINE_C__ */
+}  // namespace blender

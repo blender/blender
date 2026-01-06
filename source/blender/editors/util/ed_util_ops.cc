@@ -37,13 +37,15 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Context Query Helpers
  * \{ */
 
-blender::Vector<PointerRNA> ED_operator_single_id_from_context_as_vec(const bContext *C)
+Vector<PointerRNA> ED_operator_single_id_from_context_as_vec(const bContext *C)
 {
-  blender::Vector<PointerRNA> ids;
+  Vector<PointerRNA> ids;
   PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
   if (idptr.data) {
     ids.append(idptr);
@@ -51,9 +53,9 @@ blender::Vector<PointerRNA> ED_operator_single_id_from_context_as_vec(const bCon
   return ids;
 }
 
-blender::Vector<PointerRNA> ED_operator_get_ids_from_context_as_vec(const bContext *C)
+Vector<PointerRNA> ED_operator_get_ids_from_context_as_vec(const bContext *C)
 {
-  blender::Vector<PointerRNA> ids;
+  Vector<PointerRNA> ids;
 
   /* "selected_ids" context member. */
   CTX_data_selected_ids(C, &ids);
@@ -190,9 +192,9 @@ static void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
  * Helper for batch editing previews. Gets selected or active IDs from context and calls \a
  * foreach_id for each ID that supports previews.
  */
-static void lib_id_batch_edit_previews(bContext *C, blender::FunctionRef<void(ID *)> foreach_id)
+static void lib_id_batch_edit_previews(bContext *C, FunctionRef<void(ID *)> foreach_id)
 {
-  blender::Vector<PointerRNA> id_pointers = ED_operator_get_ids_from_context_as_vec(C);
+  Vector<PointerRNA> id_pointers = ED_operator_get_ids_from_context_as_vec(C);
   for (PointerRNA &idptr : id_pointers) {
     ID *id = static_cast<ID *>(idptr.data);
 
@@ -213,10 +215,9 @@ static void lib_id_batch_edit_previews(bContext *C, blender::FunctionRef<void(ID
  */
 static bool lib_id_batch_editing_preview_poll(
     bContext *C,
-    blender::FunctionRef<bool(const ID *, const char **r_disabled_hint)> additional_condition =
-        nullptr)
+    FunctionRef<bool(const ID *, const char **r_disabled_hint)> additional_condition = nullptr)
 {
-  blender::Vector<PointerRNA> id_pointers = ED_operator_get_ids_from_context_as_vec(C);
+  Vector<PointerRNA> id_pointers = ED_operator_get_ids_from_context_as_vec(C);
   if (id_pointers.is_empty()) {
     CTX_wm_operator_poll_msg_set(C, "No data-block selected or active");
     return false;
@@ -272,7 +273,7 @@ static wmOperatorStatus lib_id_generate_preview_exec(bContext *C, wmOperator * /
         BKE_previewimg_clear(preview);
       }
 
-      blender::ui::icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
+      ui::icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
     }
   });
 
@@ -331,7 +332,7 @@ static wmOperatorStatus lib_id_generate_preview_from_object_exec(bContext *C, wm
     BKE_previewimg_id_free(id);
 
     PreviewImage *preview_image = BKE_previewimg_id_ensure(id);
-    blender::ui::icon_render_id_ex(
+    ui::icon_render_id_ex(
         C, nullptr, &object_to_render->id, ICON_SIZE_PREVIEW, true, preview_image);
   });
 
@@ -411,7 +412,7 @@ static wmOperatorStatus lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op
   PropertyPointerRNA pprop;
   PointerRNA idptr = PointerRNA_NULL;
 
-  blender::ui::context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
   if (pprop.prop) {
     idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);
@@ -461,7 +462,7 @@ static wmOperatorStatus lib_id_unlink_exec(bContext *C, wmOperator *op)
   PropertyPointerRNA pprop;
   PointerRNA idptr;
 
-  blender::ui::context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
   if (pprop.prop) {
     idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);
@@ -589,3 +590,5 @@ void ED_operatortypes_edutils()
   WM_operatortype_append(ED_OT_undo_redo);
   WM_operatortype_append(ED_OT_undo_history);
 }
+
+}  // namespace blender

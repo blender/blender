@@ -18,9 +18,11 @@
 
 #include "tree_element_id_object.hh"
 
+namespace blender {
+
 struct bConstraint;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 TreeElementIDObject::TreeElementIDObject(TreeElement &legacy_te, Object &object)
     : TreeElementID(legacy_te, object.id), object_(object)
@@ -132,4 +134,5 @@ void TreeElementIDObject::expand_duplicated_group() const
   }
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

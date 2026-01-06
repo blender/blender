@@ -22,11 +22,7 @@
 /* interface */
 #include "mikktspace.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::float4;
-using blender::Span;
-using blender::StringRef;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Tangent Space Calculation
@@ -185,7 +181,6 @@ Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMEditMesh *em,
                                                    const Span<float3> corner_normals,
                                                    const Span<StringRef> uv_names)
 {
-  using namespace blender;
   if (em->looptris.is_empty()) {
     return {};
   }
@@ -285,3 +280,5 @@ Array<float4> BKE_editmesh_orco_tangents_calc(BMEditMesh *em,
 }
 
 /** \} */
+
+}  // namespace blender

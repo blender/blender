@@ -21,11 +21,13 @@
 
 #include "FN_lazy_function.hh"
 
-namespace blender::dot_export {
+namespace blender {
+
+namespace dot_export {
 class DirectedEdge;
 }
 
-namespace blender::fn::lazy_function {
+namespace fn::lazy_function {
 
 class Socket;
 class InputSocket;
@@ -547,4 +549,6 @@ inline int Graph::socket_num() const
 
 /** \} */
 
-}  // namespace blender::fn::lazy_function
+}  // namespace fn::lazy_function
+
+}  // namespace blender

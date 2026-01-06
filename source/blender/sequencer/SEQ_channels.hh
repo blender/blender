@@ -10,11 +10,13 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Editing;
 struct SeqTimelineChannel;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 /** The active displayed channels list, either from the root sequence or from a meta-strip. */
 ListBaseT<SeqTimelineChannel> *channels_displayed_get(const Editing *ed);
@@ -37,4 +39,5 @@ bool channel_is_muted(const SeqTimelineChannel *channel);
 int channel_index_get(const SeqTimelineChannel *channel);
 ListBaseT<SeqTimelineChannel> *get_channels_by_strip(Editing *ed, const Strip *strip);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

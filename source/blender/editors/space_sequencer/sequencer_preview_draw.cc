@@ -306,7 +306,7 @@ static void sequencer_stop_running_jobs(const bContext *C, Scene *scene)
 
 static void sequencer_preview_clear()
 {
-  blender::ui::theme::frame_buffer_clear(TH_SEQ_PREVIEW);
+  ui::theme::frame_buffer_clear(TH_SEQ_PREVIEW);
 }
 
 /* Semantic utility to get a rectangle with positions that correspond to a full frame drawn in the

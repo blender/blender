@@ -21,7 +21,7 @@
 
 #include "intern/bmesh_operators_private.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* ***_ISGC: mark for garbage-collection */
 
@@ -961,3 +961,5 @@ void bmo_dissolve_degenerate_exec(BMesh *bm, BMOperator *op)
 }
 
 /** \} */
+
+}  // namespace blender

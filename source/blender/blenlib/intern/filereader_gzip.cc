@@ -13,6 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 struct GzipReader {
   FileReader reader;
 
@@ -91,3 +93,5 @@ FileReader *BLI_filereader_new_gzip(FileReader *base)
 
   return reinterpret_cast<FileReader *>(gzip);
 }
+
+}  // namespace blender

@@ -39,6 +39,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #ifdef WITH_ASAN
 #  define POISON_REDZONE_SIZE 32
 #else
@@ -854,3 +856,5 @@ void BLI_mempool_set_memory_debug()
   mempool_debug_memset = true;
 }
 #endif
+
+}  // namespace blender

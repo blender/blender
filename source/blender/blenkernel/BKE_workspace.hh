@@ -16,6 +16,8 @@
 
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct Main;
 struct bScreen;
 struct bToolRef;
@@ -24,7 +26,7 @@ struct WorkSpaceInstanceHook;
 struct WorkSpaceLayout;
 struct WorkSpaceDataRelation;
 
-namespace blender::bke {
+namespace bke {
 
 struct WorkSpaceStatusItem {
   int icon = 0;
@@ -37,7 +39,7 @@ struct WorkSpaceRuntime {
   Vector<WorkSpaceStatusItem> status;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
 
 /* -------------------------------------------------------------------- */
 /** \name Create, Delete, Initialize
@@ -191,3 +193,5 @@ void BKE_workspace_status_clear(WorkSpace *workspace);
 #undef SETTER_ATTRS
 
 /** \} */
+
+}  // namespace blender

@@ -146,9 +146,9 @@ static float4 alpha_over_conjoint(const float4 &background,
   return math::interpolate(background, mix_result, factor);
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto function = mf::build::SI5_SO<Color, Color, float, MenuValue, bool, Color>(
       "Alpha Over",
@@ -177,7 +177,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 static void register_node_type_cmp_alphaover()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeAlphaOver", CMP_NODE_ALPHAOVER);
   ntype.ui_name = "Alpha Over";
@@ -188,7 +188,7 @@ static void register_node_type_cmp_alphaover()
   ntype.gpu_fn = node_gpu_material;
   ntype.build_multi_function = node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_alphaover)
 

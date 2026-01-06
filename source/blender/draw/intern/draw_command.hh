@@ -24,13 +24,15 @@
 #include "draw_state.hh"
 #include "draw_view.hh"
 
+namespace blender {
+
 /* Forward declarations. */
-namespace blender::draw::detail {
+namespace draw::detail {
 template<typename T, int64_t block_size> class SubPassVector;
 template<typename DrawCommandBufType> class PassBase;
-}  // namespace blender::draw::detail
+}  // namespace draw::detail
 
-namespace blender::draw::command {
+namespace draw::command {
 
 class DrawCommandBuf;
 class DrawMultiBuf;
@@ -756,4 +758,6 @@ class DrawMultiBuf {
 
 /** \} */
 
-};  // namespace blender::draw::command
+};  // namespace draw::command
+
+}  // namespace blender

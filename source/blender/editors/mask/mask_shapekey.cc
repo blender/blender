@@ -28,6 +28,8 @@
 
 #include "mask_intern.hh" /* own include */
 
+namespace blender {
+
 static void select_only_layer_shape(MaskLayer *mask_layer, MaskLayerShape *mask_layer_shape)
 {
   for (MaskLayerShape &mask_layer_shape_iter : mask_layer->splines_shapes) {
@@ -423,3 +425,5 @@ bool ED_mask_layer_shape_auto_key_select(Mask *mask, const int frame)
 
   return changed;
 }
+
+}  // namespace blender

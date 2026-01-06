@@ -14,7 +14,9 @@
 #include "DNA_asset_types.h"
 #include "DNA_viewer_path_types.h"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 struct WorkSpaceRuntime;
 }
 
@@ -178,7 +180,7 @@ struct WorkSpace {
   int order = 0;
 
   /** Info text from modal operators (runtime). */
-  blender::bke::WorkSpaceRuntime *runtime = nullptr;
+  bke::WorkSpaceRuntime *runtime = nullptr;
 
   /** Workspace-wide active asset library, for asset UIs to use (e.g. asset view UI template). The
    * Asset Browser has its own and doesn't use this. */
@@ -245,3 +247,5 @@ struct WorkSpaceInstanceHook {
   WorkSpace *temp_workspace_store = nullptr;
   struct WorkSpaceLayout *temp_layout_store = nullptr;
 };
+
+}  // namespace blender

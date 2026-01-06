@@ -20,6 +20,8 @@
 #include "bmesh_py_ops.hh" /* own include */
 #include "bmesh_py_ops_call.hh"
 
+namespace blender {
+
 /* bmesh operator 'bmesh.ops.*' callable types
  * ******************************************* */
 
@@ -280,3 +282,5 @@ PyObject *BPyInit_bmesh_ops()
 
   return submodule;
 }
+
+}  // namespace blender

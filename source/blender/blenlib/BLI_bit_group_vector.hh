@@ -11,7 +11,9 @@
 #include "BLI_bit_span_ops.hh"
 #include "BLI_bit_vector.hh"
 
-namespace blender::bits {
+namespace blender {
+
+namespace bits {
 
 /**
  * A #BitGroupVector is a compact data structure that allows storing an arbitrary but fixed number
@@ -157,8 +159,8 @@ class BitGroupVector {
   }
 };
 
-}  // namespace blender::bits
+}  // namespace bits
 
-namespace blender {
 using bits::BitGroupVector;
-}
+
+}  // namespace blender

@@ -8,7 +8,7 @@ namespace blender::draw {
 
 /* Base class for draw test cases. It will setup and tear down the GPU part around each test. */
 #ifdef WITH_OPENGL_BACKEND
-class DrawOpenGLTest : public blender::gpu::GPUOpenGLTest {
+class DrawOpenGLTest : public gpu::GPUOpenGLTest {
  public:
   void SetUp() override;
   void TearDown() override;
@@ -24,7 +24,7 @@ class DrawOpenGLTest : public blender::gpu::GPUOpenGLTest {
 #endif
 
 #ifdef WITH_METAL_BACKEND
-class DrawMetalTest : public blender::gpu::GPUMetalTest {
+class DrawMetalTest : public gpu::GPUMetalTest {
  public:
   void SetUp() override;
   void TearDown() override;
@@ -40,7 +40,7 @@ class DrawMetalTest : public blender::gpu::GPUMetalTest {
 #endif
 
 #ifdef WITH_VULKAN_BACKEND
-class DrawVulkanTest : public blender::gpu::GPUVulkanTest {
+class DrawVulkanTest : public gpu::GPUVulkanTest {
  public:
   void SetUp() override;
   void TearDown() override;

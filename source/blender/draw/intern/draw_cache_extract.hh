@@ -21,17 +21,19 @@
 
 #include "draw_attributes.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Batch;
 class IndexBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct Mesh;
 struct Object;
 struct Scene;
 struct TaskGraph;
 struct ToolSettings;
 
-namespace blender::draw {
+namespace draw {
 
 struct MeshRenderData;
 struct DRWSubdivCache;
@@ -345,4 +347,5 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
                                                DRWSubdivCache &subdiv_cache,
                                                MeshRenderData &mr);
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

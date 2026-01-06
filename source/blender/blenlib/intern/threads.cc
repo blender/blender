@@ -37,6 +37,8 @@
 
 #include "atomic_ops.h"
 
+namespace blender {
+
 /**
  * Basic Thread Control API
  * ========================
@@ -874,3 +876,5 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 
   pthread_mutex_unlock(&queue->mutex);
 }
+
+}  // namespace blender

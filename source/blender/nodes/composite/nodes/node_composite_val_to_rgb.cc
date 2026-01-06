@@ -21,7 +21,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_rgb_to_bw_cc {
+namespace blender {
+
+namespace nodes::node_composite_rgb_to_bw_cc {
 
 static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
 {
@@ -45,14 +47,14 @@ static int node_gpu_material(GPUMaterial *material,
       material, node, "color_to_luminance", inputs, outputs, GPU_constant(luminance_coefficients));
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
 static float color_to_luminance(const float4 &color, const float3 &luminance_coefficients)
 {
   return math::dot(color.xyz(), luminance_coefficients);
 }
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   float3 luminance_coefficients;
   IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
@@ -67,13 +69,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   });
 }
 
-}  // namespace blender::nodes::node_composite_rgb_to_bw_cc
+}  // namespace nodes::node_composite_rgb_to_bw_cc
 
 static void register_node_type_cmp_rgbtobw()
 {
-  namespace file_ns = blender::nodes::node_composite_rgb_to_bw_cc;
+  namespace file_ns = nodes::node_composite_rgb_to_bw_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeRGBToBW", CMP_NODE_RGBTOBW);
   ntype.ui_name = "RGB to BW";
@@ -81,10 +83,12 @@ static void register_node_type_cmp_rgbtobw()
   ntype.enum_name_legacy = "RGBTOBW";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_rgbtobw_declare;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Default);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Default);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_rgbtobw)
+
+}  // namespace blender

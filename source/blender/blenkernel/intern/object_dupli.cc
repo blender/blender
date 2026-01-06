@@ -69,18 +69,12 @@
 
 #include "MOD_nodes.hh"
 
-using blender::Array;
-using blender::float2;
-using blender::float3;
-using blender::float4x4;
-using blender::Set;
-using blender::Span;
-using blender::Vector;
-using blender::VectorList;
-using blender::bke::GeometrySet;
-using blender::bke::InstanceReference;
-using blender::bke::Instances;
-namespace geo_log = blender::nodes::geo_eval_log;
+namespace blender {
+
+using bke::GeometrySet;
+using bke::InstanceReference;
+using bke::Instances;
+namespace geo_log = nodes::geo_eval_log;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Duplicate Context
@@ -158,7 +152,7 @@ static void init_context(DupliContext *r_ctx,
                          Scene *scene,
                          Object *ob,
                          const float space_mat[4][4],
-                         blender::Set<const Object *> *include_objects,
+                         Set<const Object *> *include_objects,
                          Vector<Object *> &instance_stack,
                          Vector<short> &dupli_gen_type_stack,
                          DupliList &duplilist)
@@ -222,8 +216,8 @@ static bool copy_dupli_context(DupliContext *r_ctx,
   ++r_ctx->level;
 
   if (r_ctx->level == MAX_DUPLI_RECUR - 1) {
-    const blender::StringRef object_name = ob ? ob->id.name + 2 : "";
-    const blender::StringRef geometry_name = geometry ? geometry->name : "";
+    const StringRef object_name = ob ? ob->id.name + 2 : "";
+    const StringRef geometry_name = geometry ? geometry->name : "";
 
     if (geometry_name.is_empty() && !object_name.is_empty()) {
       std::cerr << fmt::format(
@@ -503,7 +497,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
      * We could change this but it matches 2.7x behavior. */
     mesh_eval = BKE_object_get_editmesh_eval_cage(ob);
     if ((mesh_eval == nullptr) || (mesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
-      blender::bke::EditMeshData *emd = mesh_eval ? mesh_eval->runtime->edit_data.get() : nullptr;
+      bke::EditMeshData *emd = mesh_eval ? mesh_eval->runtime->edit_data.get() : nullptr;
 
       /* Only assign edit-mesh in the case we can't use `mesh_eval`. */
       *r_em = em;
@@ -837,7 +831,7 @@ static void make_duplis_font(const DupliContext *ctx)
   Object *par = ctx->object;
   GHash *family_gh;
   Object *ob;
-  Curve *cu = blender::id_cast<Curve *>(par->data);
+  Curve *cu = id_cast<Curve *>(par->data);
   CharTrans *ct, *chartransdata = nullptr;
   float vec[3], obmat[4][4], pmat[4][4];
   int text_len, a;
@@ -857,7 +851,7 @@ static void make_duplis_font(const DupliContext *ctx)
   }
 
   const float fsize = cu->fsize;
-  const blender::float2 cu_offset = {cu->xof, cu->yof};
+  const float2 cu_offset = {cu->xof, cu->yof};
 
   ct = chartransdata;
 
@@ -941,9 +935,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
     }
   }
   if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
-    if (const blender::bke::CurveComponent *component =
-            geometry_set.get_component<blender::bke::CurveComponent>())
-    {
+    if (const bke::CurveComponent *component = geometry_set.get_component<bke::CurveComponent>()) {
       if (use_new_curves_type) {
         if (const Curves *curves = component->get()) {
           make_dupli(ctx, ctx->object, &curves->id, parent_transform, component_index++);
@@ -1110,7 +1102,7 @@ struct FaceDupliData_Mesh {
   FaceDupliData_Params params;
 
   int totface;
-  blender::OffsetIndices<int> faces;
+  OffsetIndices<int> faces;
   Span<int> corner_verts;
   Span<float3> vert_positions;
   const float (*orco)[3];
@@ -1270,8 +1262,8 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
   mul_m4_m4m4(child_imat, inst_ob->world_to_object().ptr(), ctx->object->object_to_world().ptr());
   const float scale_fac = ctx->object->instance_faces_scale;
 
-  for (const int a : blender::IndexRange(totface)) {
-    const blender::IndexRange face = fdd->faces[a];
+  for (const int a : IndexRange(totface)) {
+    const IndexRange face = fdd->faces[a];
     const Span<int> face_verts = fdd->corner_verts.slice(face);
     DupliObject *dob = face_dupli_from_mesh(fdd->params.ctx,
                                             inst_ob,
@@ -1337,7 +1329,6 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
 
 static void make_duplis_faces(const DupliContext *ctx)
 {
-  using namespace blender;
   Object *parent = ctx->object;
 
   /* Gather mesh info. */
@@ -1777,7 +1768,7 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   }
 
   if (ctx->object->runtime->geometry_set_eval != nullptr) {
-    if (blender::bke::object_has_geometry_set_instances(*ctx->object)) {
+    if (bke::object_has_geometry_set_instances(*ctx->object)) {
       return &gen_dupli_geometry_set;
     }
   }
@@ -1865,7 +1856,7 @@ void object_duplilist_preview(Depsgraph *depsgraph,
     if (const geo_log::ViewerNodeLog *viewer_log =
             geo_log::GeoNodesLog::find_viewer_node_log_for_path(*viewer_path))
     {
-      if (const blender::bke::GeometrySet *viewer_geometry = viewer_log->main_geometry()) {
+      if (const bke::GeometrySet *viewer_geometry = viewer_log->main_geometry()) {
         ctx.preview_base_geometry = &*viewer_geometry;
         make_duplis_geometry_set_impl(&ctx,
                                       *viewer_geometry,
@@ -1877,12 +1868,8 @@ void object_duplilist_preview(Depsgraph *depsgraph,
   }
 }
 
-blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
-                                                          Scene &scene,
-                                                          Object &ob)
+bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph, Scene &scene, Object &ob)
 {
-  using namespace blender;
-
   DupliContext ctx;
   DupliList duplilist;
   Vector<Object *> instance_stack({&ob});
@@ -1968,7 +1955,6 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
                                         const char *name,
                                         float r_value[4])
 {
-  using namespace blender;
   using namespace blender::bke;
 
   /* Loop over layers from innermost to outermost. */
@@ -2144,3 +2130,5 @@ bool BKE_view_layer_find_rgba_attribute(const Scene *scene,
 }
 
 /** \} */
+
+}  // namespace blender

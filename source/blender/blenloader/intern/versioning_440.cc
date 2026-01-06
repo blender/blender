@@ -52,6 +52,8 @@
 
 #include "versioning_common.hh"
 
+namespace blender {
+
 /* The Threshold, Mix, and Size properties of the node were converted into node inputs, and
  * two new outputs were added.
  *
@@ -113,27 +115,25 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
 
   /* Function to remap the Mix property to the range of the new Strength input. See function
    * description. */
-  auto mix_to_strength = [](const float mix) {
-    return 1.0f - blender::math::clamp(-mix, 0.0f, 1.0f);
-  };
+  auto mix_to_strength = [](const float mix) { return 1.0f - math::clamp(-mix, 0.0f, 1.0f); };
 
   /* Find the render size to guess the Size value. The node tree might not belong to a scene, so we
    * just assume an arbitrary HDTV 1080p render size. */
-  blender::int2 render_size;
+  int2 render_size;
   if (scene) {
     BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
   }
   else {
-    render_size = blender::int2(1920, 1080);
+    render_size = int2(1920, 1080);
   }
 
   /* Function to remap the Size property to its new range. See function description. */
-  const int max_render_size = blender::math::reduce_max(render_size);
+  const int max_render_size = math::reduce_max(render_size);
   auto size_to_linear = [&](const int size) {
     if (storage->type == CMP_NODE_GLARE_BLOOM) {
-      return blender::math::pow(2.0f, float(size - 9));
+      return math::pow(2.0f, float(size - 9));
     }
-    return blender::math::min(1.0f, float((1 << size) + 1) / float(max_render_size));
+    return math::min(1.0f, float((1 << size) + 1) / float(max_render_size));
   };
 
   /* Assign the inputs the values from the old deprecated properties. */
@@ -154,7 +154,7 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
   BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
     /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
      * path. */
-    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+    if (!StringRef(fcurve->rna_path).startswith(node_rna_path)) {
       return;
     }
 
@@ -210,16 +210,14 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
       }
 
       /* Relink from the Image output to the Glare output. */
-      blender::bke::node_add_link(*node_tree, *node, *glare_output, *link.tonode, *link.tosock);
-      blender::bke::node_remove_link(node_tree, link);
+      bke::node_add_link(*node_tree, *node, *glare_output, *link.tonode, *link.tosock);
+      bke::node_remove_link(node_tree, link);
     }
   }
 }
 
 static void do_version_glare_node_options_to_inputs_recursive(
-    const Scene *scene,
-    bNodeTree *node_tree,
-    blender::Set<bNodeTree *> &node_trees_already_versioned)
+    const Scene *scene, bNodeTree *node_tree, Set<bNodeTree *> &node_trees_already_versioned)
 {
   if (node_trees_already_versioned.contains(node_tree)) {
     return;
@@ -263,24 +261,24 @@ static void do_version_glare_node_bloom_strength(const Scene *scene,
 
   /* Find the render size to guess the Strength value. The node tree might not belong to a scene,
    * so we just assume an arbitrary HDTV 1080p render size. */
-  blender::int2 render_size;
+  int2 render_size;
   if (scene) {
     BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
   }
   else {
-    render_size = blender::int2(1920, 1080);
+    render_size = int2(1920, 1080);
   }
 
-  const blender::int2 highlights_size = render_size / quality_factor;
+  const int2 highlights_size = render_size / quality_factor;
 
   bNodeSocket *size = version_node_add_socket_if_not_exist(
       node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Size", "Size");
   const float size_value = size->default_value_typed<bNodeSocketValueFloat>()->value;
 
   /* See the compute_bloom_chain_length method in the glare code. */
-  const int smaller_dimension = blender::math::reduce_min(highlights_size);
+  const int smaller_dimension = math::reduce_min(highlights_size);
   const float scaled_dimension = smaller_dimension * size_value;
-  const int chain_length = int(std::log2(blender::math::max(1.0f, scaled_dimension)));
+  const int chain_length = int(std::log2(math::max(1.0f, scaled_dimension)));
 
   auto scale_strength = [chain_length](const float strength) { return strength * chain_length; };
 
@@ -305,9 +303,7 @@ static void do_version_glare_node_bloom_strength(const Scene *scene,
 }
 
 static void do_version_glare_node_bloom_strength_recursive(
-    const Scene *scene,
-    bNodeTree *node_tree,
-    blender::Set<bNodeTree *> &node_trees_already_versioned)
+    const Scene *scene, bNodeTree *node_tree, Set<bNodeTree *> &node_trees_already_versioned)
 {
   if (node_trees_already_versioned.contains(node_tree)) {
     return;
@@ -337,7 +333,7 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
   /* Stores a mapping between an output and the final link of the versioning node tree that was
    * added for it, in order to share the same versioning node tree with potentially multiple
    * outgoing links from that same output. */
-  blender::Map<bNodeSocket *, bNodeLink *> color_to_float_links;
+  Map<bNodeSocket *, bNodeLink *> color_to_float_links;
   for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
     if (!(link.fromsock->type == SOCK_RGBA && link.tosock->type == SOCK_FLOAT)) {
       continue;
@@ -351,33 +347,30 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
                             *existing_link->fromsock,
                             *link.tonode,
                             *link.tosock);
-      blender::bke::node_remove_link(node_tree, link);
+      bke::node_remove_link(node_tree, link);
       continue;
     }
 
     /* Add a hidden dot product node. */
-    bNode *dot_product_node = blender::bke::node_add_static_node(
-        nullptr, *node_tree, SH_NODE_VECTOR_MATH);
+    bNode *dot_product_node = bke::node_add_static_node(nullptr, *node_tree, SH_NODE_VECTOR_MATH);
     dot_product_node->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
     dot_product_node->flag |= NODE_COLLAPSED;
     dot_product_node->location[0] = link.fromnode->location[0] + link.fromnode->width + 10.0f;
     dot_product_node->location[1] = link.fromnode->location[1];
 
     /* Link the source socket to the dot product input. */
-    bNodeSocket *dot_product_a_input = blender::bke::node_find_socket(
-        *dot_product_node, SOCK_IN, "Vector");
+    bNodeSocket *dot_product_a_input = bke::node_find_socket(*dot_product_node, SOCK_IN, "Vector");
     version_node_add_link(
         *node_tree, *link.fromnode, *link.fromsock, *dot_product_node, *dot_product_a_input);
 
     /* Set the dot product vector to 1 / 3 to compute the average. */
-    bNodeSocket *dot_product_b_input = blender::bke::node_find_socket(
+    bNodeSocket *dot_product_b_input = bke::node_find_socket(
         *dot_product_node, SOCK_IN, "Vector_001");
     copy_v3_fl(dot_product_b_input->default_value_typed<bNodeSocketValueVector>()->value,
                1.0f / 3.0f);
 
     /* Link the dot product node output to the link target. */
-    bNodeSocket *dot_product_output = blender::bke::node_find_socket(
-        *dot_product_node, SOCK_OUT, "Value");
+    bNodeSocket *dot_product_output = bke::node_find_socket(*dot_product_node, SOCK_OUT, "Value");
     bNodeLink *output_link = &version_node_add_link(
         *node_tree, *dot_product_node, *dot_product_output, *link.tonode, *link.tosock);
 
@@ -385,7 +378,7 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
     color_to_float_links.add_new(link.fromsock, output_link);
 
     /* Remove the old link. */
-    blender::bke::node_remove_link(node_tree, link);
+    bke::node_remove_link(node_tree, link);
   }
 }
 
@@ -396,8 +389,7 @@ static void do_version_bump_filter_width(bNodeTree *node_tree)
       continue;
     }
 
-    bNodeSocket *filter_width_input = blender::bke::node_find_socket(
-        node, SOCK_IN, "Filter Width");
+    bNodeSocket *filter_width_input = bke::node_find_socket(node, SOCK_IN, "Filter Width");
     if (filter_width_input) {
       *version_cycles_node_socket_float_value(filter_width_input) = 1.0f;
     }
@@ -407,9 +399,9 @@ static void do_version_bump_filter_width(bNodeTree *node_tree)
 void do_versions_after_linking_440(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
-    blender::animrig::versioning::convert_legacy_animato_actions(*bmain);
-    blender::animrig::versioning::tag_action_users_for_slotted_actions_conversion(*bmain);
-    blender::animrig::versioning::convert_legacy_action_assignments(*bmain, fd->reports->reports);
+    animrig::versioning::convert_legacy_animato_actions(*bmain);
+    animrig::versioning::tag_action_users_for_slotted_actions_conversion(*bmain);
+    animrig::versioning::convert_legacy_action_assignments(*bmain, fd->reports->reports);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 7)) {
@@ -425,7 +417,7 @@ void do_versions_after_linking_440(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 18)) {
-    blender::Set<bNodeTree *> node_trees_already_versioned;
+    Set<bNodeTree *> node_trees_already_versioned;
     for (Scene &scene : bmain->scenes) {
       bNodeTree *node_tree = scene.nodetree;
       if (!node_tree) {
@@ -464,7 +456,7 @@ void do_versions_after_linking_440(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 21)) {
-    blender::Set<bNodeTree *> node_trees_already_versioned;
+    Set<bNodeTree *> node_trees_already_versioned;
     for (Scene &scene : bmain->scenes) {
       bNodeTree *node_tree = scene.nodetree;
       if (!node_tree) {
@@ -497,7 +489,6 @@ void do_versions_after_linking_440(FileData *fd, Main *bmain)
       if (!scene.adt) {
         continue;
       }
-      using namespace blender;
       auto replace_rna_path_prefix =
           [](FCurve &fcurve, const StringRef old_prefix, const StringRef new_prefix) {
             const StringRef rna_path = fcurve.rna_path;
@@ -564,7 +555,6 @@ static void add_subsurf_node_limit_surface_option(Main &bmain)
 
 static void remove_triangulate_node_min_size_input(bNodeTree *tree)
 {
-  using namespace blender;
   Set<bNode *> triangulate_nodes;
   for (bNode &node : tree->nodes) {
     if (node.type_legacy == GEO_NODE_TRIANGULATE) {
@@ -778,9 +768,9 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 1)) {
     for (Scene &scene : bmain->scenes) {
-      Editing *ed = blender::seq::editing_get(&scene);
+      Editing *ed = seq::editing_get(&scene);
       if (ed != nullptr) {
-        blender::seq::foreach_strip(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
+        seq::foreach_strip(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
       }
     }
   }
@@ -815,8 +805,8 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 10)) {
     for (bAction &dna_action : bmain->actions) {
-      blender::animrig::Action &action = dna_action.wrap();
-      blender::animrig::foreach_fcurve_in_action(
+      animrig::Action &action = dna_action.wrap();
+      animrig::foreach_fcurve_in_action(
           action, [&](FCurve &fcurve) { version_fcurve_noise_modifier(fcurve); });
     }
 
@@ -867,7 +857,7 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
           if (idprop.type != IDP_STRING) {
             continue;
           }
-          blender::StringRef prop_name(idprop.name);
+          StringRef prop_name(idprop.name);
           if (prop_name.endswith("_attribute_name") || prop_name.endswith("_use_attribute")) {
             idprop.flag |= IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE;
           }
@@ -884,9 +874,9 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 15)) {
     for (Scene &scene : bmain->scenes) {
-      Editing *ed = blender::seq::editing_get(&scene);
+      Editing *ed = seq::editing_get(&scene);
       if (ed != nullptr) {
-        blender::seq::foreach_strip(&ed->seqbase, versioning_clear_strip_unused_flag, &scene);
+        seq::foreach_strip(&ed->seqbase, versioning_clear_strip_unused_flag, &scene);
       }
     }
   }
@@ -977,7 +967,7 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 28)) {
     for (Scene &scene : bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(&scene);
+      SequencerToolSettings *sequencer_tool_settings = seq::tool_settings_ensure(&scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_RETIMING;
     }
   }
@@ -1007,3 +997,5 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 }
+
+}  // namespace blender

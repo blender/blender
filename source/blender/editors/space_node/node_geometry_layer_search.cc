@@ -33,9 +33,11 @@
 
 #include "node_intern.hh"
 
-using blender::nodes::geo_eval_log::GeometryInfoLog;
+namespace blender {
 
-namespace blender::ed::space_node {
+using nodes::geo_eval_log::GeometryInfoLog;
+
+namespace ed::space_node {
 
 struct LayerSearchData {
   int32_t node_id;
@@ -214,4 +216,6 @@ void node_geometry_add_layer_search_button(const bContext & /*C*/,
                          nullptr);
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

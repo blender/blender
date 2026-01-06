@@ -13,6 +13,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
+namespace blender {
+
 /**
  * MISC utility functions.
  */
@@ -567,3 +569,5 @@ bool bmesh_loop_validate(BMFace *f)
 
   return true;
 }
+
+}  // namespace blender

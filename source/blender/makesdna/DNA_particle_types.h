@@ -13,10 +13,10 @@
 #include "DNA_defs.h"
 
 namespace blender {
+
 template<typename CoordT> struct KDTree;
 template<typename T, int Size> struct VecBase;
-}  // namespace blender
-using KDTree3d = blender::KDTree<blender::VecBase<float, 3>>;
+using KDTree3d = KDTree<VecBase<float, 3>>;
 
 struct AnimData;
 
@@ -760,3 +760,5 @@ struct ParticleSystem {
    */
   struct ParticleSystem *orig_psys = nullptr;
 };
+
+}  // namespace blender

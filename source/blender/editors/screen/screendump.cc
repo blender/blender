@@ -44,6 +44,8 @@
 
 #include "screen_intern.hh"
 
+namespace blender {
+
 struct ScreenshotData {
   uint8_t *dumprect = nullptr;
   int dumpsx = 0, dumpsy = 0;
@@ -210,7 +212,7 @@ static bool screenshot_draw_check_prop(PointerRNA * /*ptr*/,
 
 static void screenshot_draw(bContext *C, wmOperator *op)
 {
-  blender::ui::Layout &layout = *op->layout;
+  ui::Layout &layout = *op->layout;
   ScreenshotData *scd = static_cast<ScreenshotData *>(op->customdata);
 
   layout.use_property_split_set(true);
@@ -226,7 +228,7 @@ static void screenshot_draw(bContext *C, wmOperator *op)
                    screenshot_draw_check_prop,
                    nullptr,
                    nullptr,
-                   blender::ui::BUT_LABEL_ALIGN_NONE,
+                   ui::BUT_LABEL_ALIGN_NONE,
                    false);
 }
 
@@ -279,3 +281,5 @@ void SCREEN_OT_screenshot_area(wmOperatorType *ot)
 
   ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
 }
+
+}  // namespace blender

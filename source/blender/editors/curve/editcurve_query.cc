@@ -20,7 +20,7 @@
 
 #include "curve_intern.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Cursor Picking API
@@ -236,3 +236,5 @@ bool ED_curve_active_center(Curve *cu, float center[3])
 }
 
 /** \} */
+
+}  // namespace blender

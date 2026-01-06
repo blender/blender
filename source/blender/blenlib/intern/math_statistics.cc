@@ -14,6 +14,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /********************************** Covariance Matrices *********************************/
 
 struct CovarianceData {
@@ -127,3 +129,5 @@ void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
                          use_sample_correction,
                          reinterpret_cast<float *>(r_covmat));
 }
+
+}  // namespace blender

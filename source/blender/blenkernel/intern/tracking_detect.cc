@@ -18,6 +18,8 @@
 
 #include "libmv-capi.h"
 
+namespace blender {
+
 /* Check whether point is inside grease pencil stroke. */
 static bool check_point_in_stroke(bGPDstroke *stroke, float x, float y)
 {
@@ -172,3 +174,5 @@ void BKE_tracking_detect_harris(MovieTracking *tracking,
   run_configured_detector(
       tracking, tracksbase, ibuf, framenr, layer, place_outside_layer, &options);
 }
+
+}  // namespace blender

@@ -11,9 +11,10 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_interp.hh"
 
+namespace blender {
+
 void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, float scene_linear_rgb[3])
 {
-  using namespace blender;
   if (ibuf->float_buffer.data) {
     float rgba[4];
     imbuf::interpolate_nearest_border_fl(ibuf, rgba, x, y);
@@ -27,3 +28,5 @@ void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, float scene_linear
                                                       ibuf->byte_buffer.colorspace);
   }
 }
+
+}  // namespace blender

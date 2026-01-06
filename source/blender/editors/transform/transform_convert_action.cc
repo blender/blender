@@ -1232,7 +1232,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
       switch (ale.datatype) {
         case ALE_GPFRAME:
           ale.id->tag &= ~ID_TAG_DOIT;
-          posttrans_gpd_clean(blender::id_cast<bGPdata *>(ale.id));
+          posttrans_gpd_clean(id_cast<bGPdata *>(ale.id));
           break;
 
         case ALE_FCURVE: {
@@ -1313,7 +1313,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
           /* Grease Pencil legacy. */
           if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
             ale.id->tag &= ~ID_TAG_DOIT;
-            posttrans_gpd_clean(blender::id_cast<bGPdata *>(ale.id));
+            posttrans_gpd_clean(id_cast<bGPdata *>(ale.id));
           }
           break;
 
@@ -1352,7 +1352,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
       for (bAnimListElem &ale : anim_data) {
         if (ale.datatype == ALE_MASKLAY) {
           ale.id->tag &= ~ID_TAG_DOIT;
-          posttrans_mask_clean(blender::id_cast<Mask *>(ale.id));
+          posttrans_mask_clean(id_cast<Mask *>(ale.id));
         }
       }
       ANIM_animdata_freelist(&anim_data);

@@ -19,10 +19,12 @@
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct ID;
 struct bPoseChannel;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 struct IDNode;
@@ -255,4 +257,5 @@ struct AudioComponentNode : public ComponentNode {
 
 void deg_register_component_depsnodes();
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

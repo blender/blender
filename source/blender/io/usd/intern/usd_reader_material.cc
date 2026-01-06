@@ -42,6 +42,9 @@
 #include <pxr/usd/usdShade/shader.h>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
@@ -100,12 +103,12 @@ static const pxr::TfToken UsdUVTexture("UsdUVTexture", pxr::TfToken::Immortal);
 static const pxr::TfToken UsdTransform2d("UsdTransform2d", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-using blender::io::usd::ShaderToNodeMap;
+using io::usd::ShaderToNodeMap;
 
 /* Add a node of the given type at the given location coordinates. */
-static bNode *add_node(bNodeTree *ntree, const int type, const blender::float2 loc)
+static bNode *add_node(bNodeTree *ntree, const int type, const float2 loc)
 {
-  bNode *new_node = blender::bke::node_add_static_node(nullptr, *ntree, type);
+  bNode *new_node = bke::node_add_static_node(nullptr, *ntree, type);
   new_node->location[0] = loc.x;
   new_node->location[1] = loc.y;
 
@@ -115,25 +118,25 @@ static bNode *add_node(bNodeTree *ntree, const int type, const blender::float2 l
 /* Connect the output socket of node 'source' to the input socket of node 'dest'. */
 static void link_nodes(bNodeTree *ntree,
                        bNode *source,
-                       const blender::StringRefNull sock_out,
+                       const StringRefNull sock_out,
                        bNode *dest,
-                       const blender::StringRefNull sock_in)
+                       const StringRefNull sock_in)
 {
-  bNodeSocket *source_socket = blender::bke::node_find_socket(*source, SOCK_OUT, sock_out);
+  bNodeSocket *source_socket = bke::node_find_socket(*source, SOCK_OUT, sock_out);
   if (!source_socket) {
     CLOG_ERROR(&LOG, "Couldn't find output socket %s", sock_out.c_str());
     return;
   }
 
-  bNodeSocket *dest_socket = blender::bke::node_find_socket(*dest, SOCK_IN, sock_in);
+  bNodeSocket *dest_socket = bke::node_find_socket(*dest, SOCK_IN, sock_in);
   if (!dest_socket) {
     CLOG_ERROR(&LOG, "Couldn't find input socket %s", sock_in.c_str());
     return;
   }
 
   /* Only add the link if this is the first one to be connected. */
-  if (blender::bke::node_count_socket_links(*ntree, *dest_socket) == 0) {
-    blender::bke::node_add_link(*ntree, *source, *source_socket, *dest, *dest_socket);
+  if (bke::node_count_socket_links(*ntree, *dest_socket) == 0) {
+    bke::node_add_link(*ntree, *source, *source_socket, *dest, *dest_socket);
   }
 }
 
@@ -154,12 +157,12 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
 
 /* For the given UDIM path (assumed to contain the UDIM token), returns an array
  * containing valid tile indices. */
-static blender::Vector<int> get_udim_tiles(const std::string &file_path)
+static Vector<int> get_udim_tiles(const std::string &file_path)
 {
   char base_udim_path[FILE_MAX];
   STRNCPY(base_udim_path, file_path.c_str());
 
-  blender::Vector<int> udim_tiles;
+  Vector<int> udim_tiles;
 
   /* Extract the tile numbers from all files on disk. */
   ListBaseT<LinkData> tiles = {nullptr, nullptr};
@@ -178,7 +181,7 @@ static blender::Vector<int> get_udim_tiles(const std::string &file_path)
 }
 
 /* Add tiles with the given indices to the given image. */
-static void add_udim_tiles(Image *image, const blender::Vector<int> &indices)
+static void add_udim_tiles(Image *image, const Vector<int> &indices)
 {
   image->source = IMA_SRC_TILED;
 
@@ -394,10 +397,10 @@ static pxr::UsdShadeInput get_input(const pxr::UsdShadeShader &usd_shader,
 }
 
 static bNodeSocket *get_input_socket(bNode *node,
-                                     const blender::StringRefNull identifier,
+                                     const StringRefNull identifier,
                                      ReportList *reports)
 {
-  bNodeSocket *sock = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  bNodeSocket *sock = bke::node_find_socket(*node, SOCK_IN, identifier);
   if (!sock) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -410,7 +413,7 @@ static bNodeSocket *get_input_socket(bNode *node,
   return sock;
 }
 
-namespace blender::io::usd {
+namespace io::usd {
 
 float2 NodePlacementContext::compute_node_loc(const int column)
 {
@@ -476,7 +479,7 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 
   /* Create the material. */
   Material *mtl = BKE_material_add(&bmain_, mtl_name.c_str());
-  mtl->nodetree = blender::bke::node_tree_add_tree_embedded(
+  mtl->nodetree = bke::node_tree_add_tree_embedded(
       &bmain_, &mtl->id, "USD Material Node Tree", "ShaderNodeTree");
   id_us_min(&mtl->id);
 
@@ -521,7 +524,7 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
   /* Add the node tree. */
   bNodeTree *ntree = mtl->nodetree;
   if (mtl->nodetree == nullptr) {
-    ntree = blender::bke::node_tree_add_tree_embedded(
+    ntree = bke::node_tree_add_tree_embedded(
         nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
   }
 
@@ -544,7 +547,7 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
     }
   }
 
-  blender::bke::node_set_active(*ntree, *output);
+  bke::node_set_active(*ntree, *output);
 
   BKE_ntree_update_after_single_tree_change(bmain_, *ntree);
 
@@ -587,7 +590,7 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
     }
   }
 
-  bNodeSocket *emission_strength_sock = blender::bke::node_find_socket(
+  bNodeSocket *emission_strength_sock = bke::node_find_socket(
       *principled, SOCK_IN, "Emission Strength");
   emission_strength_sock->default_value_typed<bNodeSocketValueFloat>()->value = emission_strength;
 
@@ -655,10 +658,9 @@ bool USDMaterialReader::set_displacement_node_inputs(bNodeTree *ntree,
    * a lossy conversion from the UsdPreviewSurface. We adjust the Height input assuming a
    * Midlevel of 0.5 and Scale of 1 as that closely matches the scene in `usdview`. */
   if (!displacement_input.HasConnectedSource()) {
-    bNodeSocket *sock_height = blender::bke::node_find_socket(*displacement_node, SOCK_IN, height);
-    bNodeSocket *sock_mid = blender::bke::node_find_socket(
-        *displacement_node, SOCK_IN, "Midlevel");
-    bNodeSocket *sock_scale = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
+    bNodeSocket *sock_height = bke::node_find_socket(*displacement_node, SOCK_IN, height);
+    bNodeSocket *sock_mid = bke::node_find_socket(*displacement_node, SOCK_IN, "Midlevel");
+    bNodeSocket *sock_scale = bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
 
     sock_height->default_value_typed<bNodeSocketValueFloat>()->value += 0.5f;
     sock_mid->default_value_typed<bNodeSocketValueFloat>()->value = 0.5f;
@@ -690,7 +692,7 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
 
   /* Set the destination node socket value from the USD shader input value. */
 
-  bNodeSocket *sock = blender::bke::node_find_socket(*dest_node, SOCK_IN, dest_socket_name);
+  bNodeSocket *sock = bke::node_find_socket(*dest_node, SOCK_IN, dest_socket_name);
   if (!sock) {
     CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name.c_str());
     return false;
@@ -820,9 +822,8 @@ static IntermediateNode add_scale_bias(const pxr::UsdShadeShader &usd_shader,
   scale_bias.sock_input_name = "Vector";
   scale_bias.sock_output_name = "Vector";
 
-  bNodeSocket *sock_scale = blender::bke::node_find_socket(
-      *scale_bias.node, SOCK_IN, "Vector_001");
-  bNodeSocket *sock_bias = blender::bke::node_find_socket(*scale_bias.node, SOCK_IN, "Vector_002");
+  bNodeSocket *sock_scale = bke::node_find_socket(*scale_bias.node, SOCK_IN, "Vector_001");
+  bNodeSocket *sock_bias = bke::node_find_socket(*scale_bias.node, SOCK_IN, "Vector_002");
   copy_v3_v3(sock_scale->default_value_typed<bNodeSocketValueVector>()->value, scale.data());
   copy_v3_v3(sock_bias->default_value_typed<bNodeSocketValueVector>()->value, bias.data());
 
@@ -841,8 +842,8 @@ static IntermediateNode add_scale_bias_adjust(bNodeTree *ntree,
   adjust.sock_input_name = "Vector";
   adjust.sock_output_name = "Vector";
 
-  bNodeSocket *sock_scale = blender::bke::node_find_socket(*adjust.node, SOCK_IN, "Vector_001");
-  bNodeSocket *sock_bias = blender::bke::node_find_socket(*adjust.node, SOCK_IN, "Vector_002");
+  bNodeSocket *sock_scale = bke::node_find_socket(*adjust.node, SOCK_IN, "Vector_001");
+  bNodeSocket *sock_bias = bke::node_find_socket(*adjust.node, SOCK_IN, "Vector_002");
   copy_v3_fl3(sock_scale->default_value_typed<bNodeSocketValueVector>()->value, 0.5f, 0.5f, 0.5f);
   copy_v3_fl3(sock_bias->default_value_typed<bNodeSocketValueVector>()->value, 0.5f, 0.5f, 0.5f);
 
@@ -900,7 +901,7 @@ static IntermediateNode add_lessthan(bNodeTree *ntree,
   lessthan.sock_input_name = "Value";
   lessthan.sock_output_name = "Value";
 
-  bNodeSocket *thresh_sock = blender::bke::node_find_socket(*lessthan.node, SOCK_IN, "Value_001");
+  bNodeSocket *thresh_sock = bke::node_find_socket(*lessthan.node, SOCK_IN, "Value_001");
   thresh_sock->default_value_typed<bNodeSocketValueFloat>()->value = threshold;
 
   return lessthan;
@@ -943,8 +944,8 @@ static void configure_displacement(const pxr::UsdShadeShader &usd_shader, bNode 
   const float scale_avg = (scale[0] + scale[1] + scale[2]) / 3.0f;
   const float bias_avg = (bias[0] + bias[1] + bias[2]) / 3.0f;
 
-  bNodeSocket *sock_mid = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Midlevel");
-  bNodeSocket *sock_scale = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
+  bNodeSocket *sock_mid = bke::node_find_socket(*displacement_node, SOCK_IN, "Midlevel");
+  bNodeSocket *sock_scale = bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
   sock_mid->default_value_typed<bNodeSocketValueFloat>()->value = -1.0f * (bias_avg / scale_avg);
   sock_scale->default_value_typed<bNodeSocketValueFloat>()->value = scale_avg;
 }
@@ -1587,4 +1588,5 @@ Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
   return mat_map.lookup_default(usd_mat_path.GetName(), nullptr);
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

@@ -80,6 +80,8 @@
 
 #endif /* WITH_FLUID */
 
+namespace blender {
+
 /** Time step default value for nice appearance. */
 #define DT_DEFAULT 0.1f
 
@@ -97,7 +99,7 @@ static CLG_LogRef LOG = {"physics.fluid"};
 /** \name Fluid API
  * \{ */
 
-static blender::Mutex object_update_lock;
+static Mutex object_update_lock;
 
 #  define ADD_IF_LOWER_POS(a, b) min_ff((a) + (b), max_ff((a), (b)))
 #  define ADD_IF_LOWER_NEG(a, b) max_ff((a) + (b), min_ff((a), (b)))
@@ -407,7 +409,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
   float size[3];
 
-  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   float scale = 0.0;
   int res;
 
@@ -555,7 +557,7 @@ static float calc_voxel_transp(
     float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct);
 static void update_distances(int index,
                              float *distance_map,
-                             blender::bke::BVHTreeFromMesh *tree_data,
+                             bke::BVHTreeFromMesh *tree_data,
                              const float ray_start[3],
                              float surface_thickness,
                              bool use_plane_init);
@@ -568,7 +570,7 @@ static int get_light(Scene *scene, ViewLayer *view_layer, float *light)
   BKE_view_layer_synced_ensure(scene, view_layer);
   for (Base &base_tmp : *BKE_view_layer_object_bases_get(view_layer)) {
     if (base_tmp.object->type == OB_LAMP) {
-      Light *la = blender::id_cast<Light *>(base_tmp.object->data);
+      Light *la = id_cast<Light *>(base_tmp.object->data);
 
       if (la->type == LA_LOCAL) {
         copy_v3_v3(light, base_tmp.object->object_to_world().location());
@@ -849,12 +851,12 @@ BLI_INLINE void apply_effector_fields(FluidEffectorSettings * /*fes*/,
 }
 
 static void update_velocities(FluidEffectorSettings *fes,
-                              const blender::Span<blender::float3> vert_positions,
+                              const Span<float3> vert_positions,
                               const int *corner_verts,
-                              const blender::int3 *corner_tris,
+                              const int3 *corner_tris,
                               float *velocity_map,
                               int index,
-                              blender::bke::BVHTreeFromMesh *tree_data,
+                              bke::BVHTreeFromMesh *tree_data,
                               const float ray_start[3],
                               const float *vert_vel,
                               bool has_velocity)
@@ -893,10 +895,10 @@ static void update_velocities(FluidEffectorSettings *fes,
       mul_v3_fl(hit_vel, fes->vel_multi);
 
       /* Absolute representation of new object velocity. */
-      blender::float3 abs_hit_vel = blender::math::abs(blender::float3(hit_vel));
+      float3 abs_hit_vel = math::abs(float3(hit_vel));
 
       /* Absolute representation of current object velocity. */
-      blender::float3 abs_vel = blender::math::abs(blender::float3(&velocity_map[index * 3]));
+      float3 abs_vel = math::abs(float3(&velocity_map[index * 3]));
 
       switch (fes->guide_mode) {
         case FLUID_EFFECTOR_GUIDE_AVERAGED:
@@ -945,11 +947,11 @@ static void update_velocities(FluidEffectorSettings *fes,
 struct ObstaclesFromDMData {
   FluidEffectorSettings *fes;
 
-  blender::Span<blender::float3> vert_positions;
-  blender::Span<int> corner_verts;
-  blender::Span<blender::int3> corner_tris;
+  Span<float3> vert_positions;
+  Span<int> corner_verts;
+  Span<int3> corner_tris;
 
-  blender::bke::BVHTreeFromMesh *tree;
+  bke::BVHTreeFromMesh *tree;
   FluidObjectBB *bb;
 
   bool has_velocity;
@@ -1011,12 +1013,12 @@ static void obstacles_from_mesh(Object *coll_ob,
     bool has_velocity = false;
 
     Mesh *mesh = BKE_mesh_copy_for_eval(*fes->mesh);
-    blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+    MutableSpan<float3> positions = mesh->vert_positions_for_write();
 
     int min[3], max[3], res[3];
 
-    const blender::Span<int> corner_verts = mesh->corner_verts();
-    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    const Span<int> corner_verts = mesh->corner_verts();
+    const Span<int3> corner_tris = mesh->corner_tris();
     numverts = mesh->verts_num;
 
     /* TODO(sebbas): Make initialization of vertex velocities optional? */
@@ -1074,7 +1076,7 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     /* Skip effector sampling loop if object has disabled effector. */
     bool use_effector = fes->flags & FLUID_EFFECTOR_USE_EFFEC;
-    blender::bke::BVHTreeFromMesh tree_data = mesh->bvh_corner_tris();
+    bke::BVHTreeFromMesh tree_data = mesh->bvh_corner_tris();
     if (use_effector && tree_data.tree != nullptr) {
       ObstaclesFromDMData data{};
       data.fes = fes;
@@ -1472,7 +1474,7 @@ static void update_obstacles(Depsgraph *depsgraph,
 
 struct EmitFromParticlesData {
   FluidFlowSettings *ffs;
-  blender::KDTree_3d *tree;
+  KDTree_3d *tree;
 
   FluidObjectBB *bb;
   float *particle_vel;
@@ -1497,9 +1499,9 @@ static void emit_from_particles_task_cb(void *__restrict userdata,
       const float ray_start[3] = {float(x) + 0.5f, float(y) + 0.5f, float(z) + 0.5f};
 
       /* Find particle distance from the kdtree. */
-      blender::KDTreeNearest_3d nearest;
+      KDTreeNearest_3d nearest;
       const float range = data->solid + data->smooth;
-      blender::kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
+      kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
 
       if (nearest.dist < range) {
         bb->influence[index] = (nearest.dist < data->solid) ?
@@ -1538,7 +1540,7 @@ static void emit_from_particles(Object *flow_ob,
     /* radius based flow */
     const float solid = ffs->particle_size * 0.5f;
     const float smooth = 0.5f; /* add 0.5 cells of linear falloff to reduce aliasing */
-    blender::KDTree_3d *tree = nullptr;
+    KDTree_3d *tree = nullptr;
 
     sim.depsgraph = depsgraph;
     sim.scene = scene;
@@ -1563,7 +1565,7 @@ static void emit_from_particles(Object *flow_ob,
 
     /* setup particle radius emission if enabled */
     if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-      tree = blender::kdtree_3d_new(psys->totpart + psys->totchild);
+      tree = kdtree_3d_new(psys->totpart + psys->totchild);
       bounds_margin = int(ceil(solid + smooth));
     }
 
@@ -1602,7 +1604,7 @@ static void emit_from_particles(Object *flow_ob,
       mul_mat3_m4_v3(fds->imat, &particle_vel[valid_particles * 3]);
 
       if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-        blender::kdtree_3d_insert(tree, valid_particles, pos);
+        kdtree_3d_insert(tree, valid_particles, pos);
       }
 
       /* calculate emission map bounds */
@@ -1655,7 +1657,7 @@ static void emit_from_particles(Object *flow_ob,
         res[i] = bb->res[i];
       }
 
-      blender::kdtree_3d_balance(tree);
+      kdtree_3d_balance(tree);
 
       EmitFromParticlesData data{};
       data.ffs = ffs;
@@ -1675,7 +1677,7 @@ static void emit_from_particles(Object *flow_ob,
     }
 
     if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-      blender::kdtree_3d_free(tree);
+      kdtree_3d_free(tree);
     }
 
     /* free data */
@@ -1694,7 +1696,7 @@ static void emit_from_particles(Object *flow_ob,
  * positive, inside negative. */
 static void update_distances(int index,
                              float *distance_map,
-                             blender::bke::BVHTreeFromMesh *tree_data,
+                             bke::BVHTreeFromMesh *tree_data,
                              const float ray_start[3],
                              float surface_thickness,
                              bool use_plane_init)
@@ -1794,18 +1796,18 @@ static void update_distances(int index,
 }
 
 static void sample_mesh(FluidFlowSettings *ffs,
-                        blender::Span<blender::float3> vert_positions,
-                        const blender::Span<blender::float3> vert_normals,
+                        Span<float3> vert_positions,
+                        const Span<float3> vert_normals,
                         const int *corner_verts,
-                        const blender::int3 *corner_tris,
-                        blender::Span<blender::float2> uv_map,
+                        const int3 *corner_tris,
+                        Span<float2> uv_map,
                         float *influence_map,
                         float *velocity_map,
                         int index,
                         const int base_res[3],
                         const float global_size[3],
                         const float flow_center[3],
-                        blender::bke::BVHTreeFromMesh *tree_data,
+                        bke::BVHTreeFromMesh *tree_data,
                         const float ray_start[3],
                         const float *vert_vel,
                         bool has_velocity,
@@ -1992,15 +1994,15 @@ struct EmitFromDMData {
   FluidDomainSettings *fds;
   FluidFlowSettings *ffs;
 
-  blender::Span<blender::float3> vert_positions;
-  blender::Span<blender::float3> vert_normals;
-  blender::Span<int> corner_verts;
-  blender::Span<blender::int3> corner_tris;
-  blender::Span<blender::float2> uv_map;
+  Span<float3> vert_positions;
+  Span<float3> vert_normals;
+  Span<int> corner_verts;
+  Span<int3> corner_tris;
+  Span<float2> uv_map;
   const MDeformVert *dvert;
   int defgrp_index;
 
-  blender::bke::BVHTreeFromMesh *tree;
+  bke::BVHTreeFromMesh *tree;
   FluidObjectBB *bb;
 
   bool has_velocity;
@@ -2075,15 +2077,15 @@ static void emit_from_mesh(
     /* Copy mesh for thread safety as we modify it.
      * Main issue is its VertArray being modified, then replaced and freed. */
     Mesh *mesh = BKE_mesh_copy_for_eval(*ffs->mesh);
-    blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+    MutableSpan<float3> positions = mesh->vert_positions_for_write();
 
-    const blender::Span<int> corner_verts = mesh->corner_verts();
-    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    const Span<int> corner_verts = mesh->corner_verts();
+    const Span<int3> corner_tris = mesh->corner_tris();
     const int numverts = mesh->verts_num;
     const MDeformVert *dvert = mesh->deform_verts().data();
-    const blender::bke::AttributeAccessor attributes = mesh->attributes();
-    const blender::VArraySpan uv_map = *attributes.lookup<blender::float2>(
-        ffs->uvlayer_name, blender::bke::AttrDomain::Corner);
+    const bke::AttributeAccessor attributes = mesh->attributes();
+    const VArraySpan uv_map = *attributes.lookup<float2>(ffs->uvlayer_name,
+                                                         bke::AttrDomain::Corner);
 
     if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
       vert_vel = MEM_calloc_arrayN<float>(3 * size_t(numverts), "manta_flow_velocity");
@@ -2140,7 +2142,7 @@ static void emit_from_mesh(
 
     /* Skip flow sampling loop if object has disabled flow. */
     bool use_flow = ffs->flags & FLUID_FLOW_USE_INFLOW;
-    blender::bke::BVHTreeFromMesh tree_data = mesh->bvh_corner_tris();
+    bke::BVHTreeFromMesh tree_data = mesh->bvh_corner_tris();
     if (use_flow && tree_data.tree != nullptr) {
 
       EmitFromDMData data{};
@@ -3183,7 +3185,6 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
                                     Mesh *orgmesh,
                                     Object *ob)
 {
-  using namespace blender;
   using namespace blender::bke;
   Mesh *mesh;
   float min[3];
@@ -3219,7 +3220,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   if (!mesh) {
     return nullptr;
   }
-  MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
@@ -3343,7 +3344,6 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 
 static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Object *ob)
 {
-  using namespace blender;
   using namespace blender::bke;
   Mesh *result;
   float min[3];
@@ -3362,7 +3362,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   }
 
   result = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 4);
-  MutableSpan<blender::float3> positions = result->vert_positions_for_write();
+  MutableSpan<float3> positions = result->vert_positions_for_write();
   MutableSpan<int> face_offsets = result->face_offsets_for_write();
   MutableSpan<int> corner_verts = result->corner_verts_for_write();
 
@@ -3408,7 +3408,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     co[2] = min[2];
 
     face_offsets.fill(4);
-    blender::offset_indices::accumulate_counts_to_offsets(face_offsets);
+    offset_indices::accumulate_counts_to_offsets(face_offsets);
 
     /* Create faces. */
     /* Top side. */
@@ -5078,3 +5078,5 @@ void BKE_fluid_cache_new_name_for_current_session(int maxlen, char *r_name)
 }
 
 /** \} */
+
+}  // namespace blender

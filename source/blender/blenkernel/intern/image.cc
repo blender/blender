@@ -115,7 +115,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-using blender::Array;
+namespace blender {
 
 static CLG_LogRef LOG = {"image"};
 
@@ -139,7 +139,7 @@ static void image_runtime_free_data(Image *image)
 
 static void image_init_data(ID *id)
 {
-  Image *image = blender::id_cast<Image *>(id);
+  Image *image = id_cast<Image *>(id);
 
   if (image != nullptr) {
     image_init(image, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -152,9 +152,9 @@ static void image_copy_data(Main * /*bmain*/,
                             const ID *id_src,
                             const int flag)
 {
-  const Image *image_src = blender::id_cast<const Image *>(id_src);
-  Image *image_dst = blender::id_cast<Image *>(id_dst);
-  image_dst->runtime = MEM_new<blender::bke::ImageRuntime>(__func__);
+  const Image *image_src = id_cast<const Image *>(id_src);
+  Image *image_dst = id_cast<Image *>(id_dst);
+  image_dst->runtime = MEM_new<bke::ImageRuntime>(__func__);
 
   BKE_color_managed_colorspace_settings_copy(&image_dst->colorspace_settings,
                                              &image_src->colorspace_settings);
@@ -187,7 +187,7 @@ static void image_copy_data(Main * /*bmain*/,
 
 static void image_free_data(ID *id)
 {
-  Image *image = blender::id_cast<Image *>(id);
+  Image *image = id_cast<Image *>(id);
 
   /* Also frees animations (#Image.anims list). */
   BKE_image_free_buffers(image);
@@ -218,7 +218,7 @@ static void image_foreach_cache(ID *id,
                                 IDTypeForeachCacheFunctionCallback function_callback,
                                 void *user_data)
 {
-  Image *image = blender::id_cast<Image *>(id);
+  Image *image = id_cast<Image *>(id);
   IDCacheKey key;
   key.id_session_uid = id->session_uid;
 
@@ -238,12 +238,12 @@ static void image_foreach_cache(ID *id,
   /* Ensure we don't collide with the identifiers used above. */
   constexpr size_t runtime_base_id = size_t(1) << 32u;
 
-  key.identifier = runtime_base_id + offsetof(blender::bke::ImageRuntime, cache);
+  key.identifier = runtime_base_id + offsetof(bke::ImageRuntime, cache);
   function_callback(id, &key, reinterpret_cast<void **>(&image->runtime->cache), 0, user_data);
 
   auto gputexture_offset = [image](int target, int eye) {
-    constexpr size_t base_offset = offsetof(blender::bke::ImageRuntime, gputexture);
-    blender::gpu::Texture **first = &image->runtime->gputexture[0][0];
+    constexpr size_t base_offset = offsetof(bke::ImageRuntime, gputexture);
+    gpu::Texture **first = &image->runtime->gputexture[0][0];
     const size_t array_offset = sizeof(*first) *
                                 (&image->runtime->gputexture[target][eye] - first);
     return base_offset + array_offset;
@@ -251,7 +251,7 @@ static void image_foreach_cache(ID *id,
 
   for (int eye = 0; eye < 2; eye++) {
     for (int a = 0; a < TEXTARGET_COUNT; a++) {
-      const blender::gpu::Texture *texture = image->runtime->gputexture[a][eye];
+      const gpu::Texture *texture = image->runtime->gputexture[a][eye];
       if (texture == nullptr) {
         continue;
       }
@@ -264,7 +264,7 @@ static void image_foreach_cache(ID *id,
 
 static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Image *ima = blender::id_cast<Image *>(id);
+  Image *ima = id_cast<Image *>(id);
   const eBPathForeachFlag flag = bpath_data->flag;
 
   if (BKE_image_has_packedfile(ima) && (flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0) {
@@ -324,7 +324,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void image_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Image *ima = blender::id_cast<Image *>(id);
+  Image *ima = id_cast<Image *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   /* Clear all data that isn't read to reduce false detection of changed image during memfile undo.
@@ -375,7 +375,7 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void image_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Image *ima = blender::id_cast<Image *>(id);
+  Image *ima = id_cast<Image *>(id);
   BLO_read_struct_list(reader, ImageTile, &ima->tiles);
 
   BLO_read_struct_list(reader, RenderSlot, &(ima->renderslots));
@@ -406,7 +406,7 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, ima->preview);
   BLO_read_struct(reader, Stereo3dFormat, &ima->stereo3d_format);
 
-  ima->runtime = MEM_new<blender::bke::ImageRuntime>(__func__);
+  ima->runtime = MEM_new<bke::ImageRuntime>(__func__);
 }
 
 static void image_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
@@ -658,7 +658,7 @@ static void image_init(Image *ima, short source, short type)
     }
   }
 
-  ima->runtime = MEM_new<blender::bke::ImageRuntime>(__func__);
+  ima->runtime = MEM_new<bke::ImageRuntime>(__func__);
 
   BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
   ima->stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Image Stereo Format");
@@ -1833,7 +1833,7 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_SEQSTRIP) {
-    const Strip *strip = blender::seq::strip_topmost_get(scene, scene->r.cfra);
+    const Strip *strip = seq::strip_topmost_get(scene, scene->r.cfra);
 
     if (strip) {
       STRNCPY_UTF8(text, strip->name + 2);
@@ -2781,12 +2781,12 @@ static void image_walk_ntree_all_users(
         if (node->id) {
           if (node->type_legacy == SH_NODE_TEX_IMAGE) {
             NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
-            Image *ima = blender::id_cast<Image *>(node->id);
+            Image *ima = id_cast<Image *>(node->id);
             callback(ima, id, &tex->iuser, customdata);
           }
           if (node->type_legacy == SH_NODE_TEX_ENVIRONMENT) {
             NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
-            Image *ima = blender::id_cast<Image *>(node->id);
+            Image *ima = id_cast<Image *>(node->id);
             callback(ima, id, &tex->iuser, customdata);
           }
         }
@@ -2795,7 +2795,7 @@ static void image_walk_ntree_all_users(
     case NTREE_TEXTURE:
       for (bNode *node : ntree->all_nodes()) {
         if (node->id && node->type_legacy == TEX_NODE_IMAGE) {
-          Image *ima = blender::id_cast<Image *>(node->id);
+          Image *ima = id_cast<Image *>(node->id);
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           callback(ima, id, iuser, customdata);
         }
@@ -2804,14 +2804,14 @@ static void image_walk_ntree_all_users(
     case NTREE_COMPOSIT:
       for (bNode *node : ntree->all_nodes()) {
         if (node->id && node->type_legacy == CMP_NODE_IMAGE) {
-          Image *ima = blender::id_cast<Image *>(node->id);
+          Image *ima = id_cast<Image *>(node->id);
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           callback(ima, id, iuser, customdata);
         }
         if (node->type_legacy == CMP_NODE_CRYPTOMATTE) {
           CMPNodeCryptomatteSource source = static_cast<CMPNodeCryptomatteSource>(node->custom1);
           if (source == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
-            Image *image = blender::id_cast<Image *>(node->id);
+            Image *image = id_cast<Image *>(node->id);
             ImageUser *image_user = &static_cast<NodeCryptomatte *>(node->storage)->iuser;
             callback(image, id, image_user, customdata);
           }
@@ -2846,14 +2846,14 @@ static void image_walk_id_all_users(
 {
   switch (GS(id->name)) {
     case ID_OB: {
-      Object *ob = blender::id_cast<Object *>(id);
+      Object *ob = id_cast<Object *>(id);
       if (ob->empty_drawtype == OB_EMPTY_IMAGE && ob->data) {
-        callback(blender::id_cast<Image *>(ob->data), &ob->id, ob->iuser, customdata);
+        callback(id_cast<Image *>(ob->data), &ob->id, ob->iuser, customdata);
       }
       break;
     }
     case ID_MA: {
-      Material *ma = blender::id_cast<Material *>(id);
+      Material *ma = id_cast<Material *>(id);
       if (ma->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(ma->nodetree, &ma->id, customdata, callback);
       }
@@ -2861,14 +2861,14 @@ static void image_walk_id_all_users(
       break;
     }
     case ID_LA: {
-      Light *light = blender::id_cast<Light *>(id);
+      Light *light = id_cast<Light *>(id);
       if (light->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(light->nodetree, &light->id, customdata, callback);
       }
       break;
     }
     case ID_WO: {
-      World *world = blender::id_cast<World *>(id);
+      World *world = id_cast<World *>(id);
       if (world->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(world->nodetree, &world->id, customdata, callback);
       }
@@ -2876,7 +2876,7 @@ static void image_walk_id_all_users(
       break;
     }
     case ID_TE: {
-      Tex *tex = blender::id_cast<Tex *>(id);
+      Tex *tex = id_cast<Tex *>(id);
       if (tex->type == TEX_IMAGE && tex->ima) {
         callback(tex->ima, &tex->id, &tex->iuser, customdata);
       }
@@ -2886,19 +2886,19 @@ static void image_walk_id_all_users(
       break;
     }
     case ID_NT: {
-      bNodeTree *ntree = blender::id_cast<bNodeTree *>(id);
+      bNodeTree *ntree = id_cast<bNodeTree *>(id);
       image_walk_ntree_all_users(ntree, &ntree->id, customdata, callback);
       break;
     }
     case ID_CA: {
-      Camera *cam = blender::id_cast<Camera *>(id);
+      Camera *cam = id_cast<Camera *>(id);
       for (CameraBGImage &bgpic : cam->bg_images) {
         callback(bgpic.ima, nullptr, &bgpic.iuser, customdata);
       }
       break;
     }
     case ID_WM: {
-      wmWindowManager *wm = blender::id_cast<wmWindowManager *>(id);
+      wmWindowManager *wm = id_cast<wmWindowManager *>(id);
       for (wmWindow &win : wm->windows) {
         const bScreen *screen = BKE_workspace_active_screen_get(win.workspace_hook);
 
@@ -4888,7 +4888,7 @@ struct ImagePoolItem {
 struct ImagePool {
   ListBaseT<ImagePoolItem> image_buffers = {};
   BLI_mempool *memory_pool = nullptr;
-  blender::Mutex mutex;
+  Mutex mutex;
 };
 
 ImagePool *BKE_image_pool_new()
@@ -5696,3 +5696,5 @@ RenderSlot *BKE_image_get_renderslot(Image *ima, int index)
 }
 
 /** \} */
+
+}  // namespace blender

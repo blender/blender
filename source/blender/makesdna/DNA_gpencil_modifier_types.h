@@ -17,6 +17,8 @@
 #include "DNA_modifier_enums.h"
 #include "DNA_vec_defaults.h"
 
+namespace blender {
+
 struct LatticeDeformData;
 struct ShrinkwrapTreeData;
 
@@ -1219,3 +1221,5 @@ struct EnvelopeGpencilModifierData {
 
   char _pad[4] = {};
 };
+
+}  // namespace blender

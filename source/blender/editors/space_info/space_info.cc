@@ -31,6 +31,8 @@
 
 #include "info_intern.hh" /* own include */
 
+namespace blender {
+
 /* ******************** default callbacks for info space ***************** */
 
 static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -93,8 +95,7 @@ static void info_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  view2d_region_reinit(
-      &region->v2d, blender::ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Info", SPACE_INFO, RGN_TYPE_WINDOW);
@@ -106,7 +107,7 @@ static void info_textview_update_rect(const bContext *C, ARegion *region)
   SpaceInfo *sinfo = CTX_wm_space_info(C);
   View2D *v2d = &region->v2d;
 
-  blender::ui::view2d_totRect_set(
+  ui::view2d_totRect_set(
       v2d, region->winx - 1, info_textview_height(sinfo, region, CTX_wm_reports(C)));
 }
 
@@ -117,7 +118,7 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  blender::ui::theme::frame_buffer_clear(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   /* quick way to avoid drawing if not bug enough */
   if (region->winy < 16) {
@@ -127,15 +128,15 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
   info_textview_update_rect(C, region);
 
   /* Works best with no view2d matrix set. */
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   info_textview_main(sinfo, region, CTX_wm_reports(C));
 
   /* reset view matrix */
-  blender::ui::view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* scrollers */
-  blender::ui::view2d_scrollers_draw(v2d, nullptr);
+  ui::view2d_scrollers_draw(v2d, nullptr);
 }
 
 static void info_operatortypes()
@@ -292,3 +293,5 @@ void ED_spacetype_info()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

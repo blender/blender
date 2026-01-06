@@ -12,6 +12,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 extern struct PyC_StringEnumItems bpygpu_primtype_items[];
 extern struct PyC_StringEnumItems bpygpu_dataformat_items[];
 
@@ -27,3 +29,5 @@ extern struct PyC_StringEnumItems bpygpu_dataformat_items[];
     return -1; \
   } \
   ((void)0)
+
+}  // namespace blender

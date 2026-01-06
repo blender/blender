@@ -37,6 +37,8 @@ extern "C" {
 #    include <AUD_Types.h>
 #  endif
 
+namespace blender {
+
 struct Scene;
 struct ReportList;
 struct StampData;
@@ -102,5 +104,7 @@ AVStream *alloc_audio_stream(MovieWriter *context,
                              int error_size,
                              ReportList *reports);
 void write_audio_frames(MovieWriter *context, double to_pts);
+
+}  // namespace blender
 
 #endif /* WITH_FFMPEG */

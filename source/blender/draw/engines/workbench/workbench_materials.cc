@@ -19,7 +19,7 @@
 
 namespace blender::workbench {
 
-Material::Material(::Object &ob, bool random)
+Material::Material(blender::Object &ob, bool random)
 {
   if (random) {
     uint hash = BLI_ghashutil_strhash_p_murmur(ob.id.name);
@@ -38,9 +38,9 @@ Material::Material(::Object &ob, bool random)
 
 MaterialTexture::MaterialTexture(Object *ob, int material_index)
 {
-  const ::bNode *node = nullptr;
+  const blender::bNode *node = nullptr;
 
-  ::Image *image = nullptr;
+  blender::Image *image = nullptr;
   ImageUser *user = nullptr;
   ED_object_get_active_image(ob, material_index + 1, &image, &user, &node, nullptr);
   if (!node || !image) {
@@ -89,7 +89,7 @@ MaterialTexture::MaterialTexture(Object *ob, int material_index)
   name = image->id.name;
 }
 
-MaterialTexture::MaterialTexture(::Image *image, ImageUser *user /* = nullptr */)
+MaterialTexture::MaterialTexture(blender::Image *image, ImageUser *user /* = nullptr */)
 {
   gpu = BKE_image_get_gpu_material_texture(image, user, true);
   premultiplied = image->alpha_mode == IMA_ALPHA_PREMUL;

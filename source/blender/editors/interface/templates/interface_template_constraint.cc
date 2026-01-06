@@ -35,8 +35,8 @@ namespace blender::ui {
 
 static void constraint_active_func(bContext * /*C*/, void *ob_v, void *con_v)
 {
-  blender::ed::object::constraint_active_set(static_cast<Object *>(ob_v),
-                                             static_cast<bConstraint *>(con_v));
+  ed::object::constraint_active_set(static_cast<Object *>(ob_v),
+                                    static_cast<bConstraint *>(con_v));
 }
 
 static void constraint_ops_extra_draw(bContext *C, Layout *layout, void *con_v)
@@ -44,7 +44,7 @@ static void constraint_ops_extra_draw(bContext *C, Layout *layout, void *con_v)
   PointerRNA op_ptr;
   bConstraint *con = static_cast<bConstraint *>(con_v);
 
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
   layout->context_ptr_set("constraint", &ptr);
@@ -87,7 +87,7 @@ static void constraint_ops_extra_draw(bContext *C, Layout *layout, void *con_v)
                    ICON_TRIA_DOWN,
                    wm::OpCallContext::InvokeDefault,
                    UI_ITEM_NONE);
-  ListBaseT<bConstraint> *constraint_list = blender::ed::object::constraint_list_from_constraint(
+  ListBaseT<bConstraint> *constraint_list = ed::object::constraint_list_from_constraint(
       ob, con, nullptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);
   if (!con->next) {
@@ -153,7 +153,7 @@ void template_constraint_header(Layout *layout, PointerRNA *ptr)
     return;
   }
 
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   bConstraint *con = static_cast<bConstraint *>(ptr->data);
 
   if (!ob || !(GS(ob->id.name) == ID_OB)) {
@@ -262,10 +262,10 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
 {
   ARegion *region = CTX_wm_region(C);
 
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   ListBaseT<bConstraint> *constraints = {nullptr};
   if (use_bone_constraints) {
-    constraints = blender::ed::object::pose_constraint_list(C);
+    constraints = ed::object::pose_constraint_list(C);
   }
   else if (ob != nullptr) {
     constraints = &ob->constraints;

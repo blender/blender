@@ -27,7 +27,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_dilate_cc {
+namespace blender {
+
+namespace nodes::node_composite_dilate_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_DILATE_ERODE_STEP, "STEP", 0, N_("Steps"), ""},
@@ -565,13 +567,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new DilateErodeOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_dilate_cc
+}  // namespace nodes::node_composite_dilate_cc
 
 static void register_node_type_cmp_dilateerode()
 {
-  namespace file_ns = blender::nodes::node_composite_dilate_cc;
+  namespace file_ns = nodes::node_composite_dilate_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDilateErode", CMP_NODE_DILATEERODE);
   ntype.ui_name = "Dilate/Erode";
@@ -580,10 +582,12 @@ static void register_node_type_cmp_dilateerode()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_dilate_declare;
   ntype.initfunc = file_ns::node_composit_init_dilateerode;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_dilateerode)
+
+}  // namespace blender

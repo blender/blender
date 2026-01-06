@@ -36,7 +36,9 @@ struct ImageUsage {
   const void *last_scene = nullptr;
 
   ImageUsage() = default;
-  ImageUsage(const ::Image *image, const ::ImageUser *image_user, bool do_tile_drawing)
+  ImageUsage(const blender::Image *image,
+             const blender::ImageUser *image_user,
+             bool do_tile_drawing)
   {
     pass = image_user ? image_user->pass : 0;
     layer = image_user ? image_user->layer : 0;

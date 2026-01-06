@@ -39,7 +39,9 @@
 
 #include "workbench_engine.h" /* Own include. */
 
-namespace blender::workbench {
+namespace blender {
+
+namespace workbench {
 
 using namespace draw;
 
@@ -143,7 +145,7 @@ class Instance : public DrawEngine {
       case V3D_SHADING_TEXTURE_COLOR:
         ATTR_FALLTHROUGH;
       case V3D_SHADING_MATERIAL_COLOR:
-        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
+        if (blender::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
           return Material(*_mat);
         }
         ATTR_FALLTHROUGH;
@@ -587,13 +589,11 @@ void Engine::free_static()
   ShaderCache::release();
 }
 
-}  // namespace blender::workbench
+}  // namespace workbench
 
 /* -------------------------------------------------------------------- */
 /** \name Interface with legacy C DRW manager
  * \{ */
-
-using namespace blender;
 
 /* RENDER */
 
@@ -689,7 +689,7 @@ static void write_render_z_output(RenderLayer *layer,
     int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
     /* Convert GPU depth [0..1] to view Z [near..far] */
-    if (blender::draw::View::default_get().is_persp()) {
+    if (draw::View::default_get().is_persp()) {
       for (float &z : MutableSpan(rp->ibuf->float_buffer.data, pix_num)) {
         if (z == 1.0f) {
           z = 1e10f; /* Background */
@@ -702,8 +702,8 @@ static void write_render_z_output(RenderLayer *layer,
     }
     else {
       /* Keep in mind, near and far distance are negatives. */
-      float near = blender::draw::View::default_get().near_clip();
-      float far = blender::draw::View::default_get().far_clip();
+      float near = draw::View::default_get().near_clip();
+      float far = draw::View::default_get().far_clip();
       float range = fabsf(far - near);
 
       for (float &z : MutableSpan(rp->ibuf->float_buffer.data, pix_num)) {
@@ -746,7 +746,7 @@ static void workbench_render_to_image(RenderEngine *engine, RenderLayer *layer, 
   /* Render */
   /* TODO: Remove old draw manager calls. */
   DRW_cache_restart();
-  blender::draw::View::default_set(float4x4(viewmat), float4x4(winmat));
+  draw::View::default_set(float4x4(viewmat), float4x4(winmat));
 
   instance.init(depsgraph, camera_ob);
 
@@ -757,7 +757,7 @@ static void workbench_render_to_image(RenderEngine *engine, RenderLayer *layer, 
   DRW_render_object_iter(
       engine,
       depsgraph,
-      [&](blender::draw::ObjectRef &ob_ref, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
+      [&](draw::ObjectRef &ob_ref, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
         instance.object_sync(ob_ref, manager);
       });
   instance.end_sync();
@@ -820,3 +820,5 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
 };
 
 /** \} */
+
+}  // namespace blender

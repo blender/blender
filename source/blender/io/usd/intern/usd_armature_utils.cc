@@ -24,8 +24,8 @@
 namespace blender::io::usd {
 
 /* Utility: create new fcurve and add it as a channel to a group. */
-FCurve *create_fcurve(blender::animrig::Channelbag &channelbag,
-                      const blender::animrig::FCurveDescriptor &fcurve_descriptor,
+FCurve *create_fcurve(animrig::Channelbag &channelbag,
+                      const animrig::FCurveDescriptor &fcurve_descriptor,
                       const int sample_count)
 {
   FCurve *fcurve = channelbag.fcurve_create_unique(nullptr, fcurve_descriptor);
@@ -99,7 +99,7 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor)
     return;
   }
 
-  const bArmature *armature = blender::id_cast<bArmature *>(ob_arm->data);
+  const bArmature *armature = id_cast<bArmature *>(ob_arm->data);
   for (const Bone &bone : armature->bonebase) {
     visit_bones(&bone, visitor);
   }
@@ -181,7 +181,7 @@ bool is_armature_modifier_bone_name(const Object &obj,
     return false;
   }
 
-  bArmature *arm = blender::id_cast<bArmature *>(arm_mod->object->data);
+  bArmature *arm = id_cast<bArmature *>(arm_mod->object->data);
 
   return BKE_armature_find_bone_name(arm, name.c_str());
 }

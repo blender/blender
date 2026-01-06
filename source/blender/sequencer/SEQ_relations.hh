@@ -14,6 +14,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 struct Main;
 struct MovieClip;
 struct ReportList;
@@ -21,7 +23,7 @@ struct bNodeTree;
 struct Scene;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 /**
  * Check if one strip is input to the other.
@@ -112,4 +114,5 @@ size_t final_image_cache_calc_memory_size(const Scene *scene);
 
 bool exists_in_seqbase(const Strip *strip, const ListBaseT<Strip> *seqbase);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

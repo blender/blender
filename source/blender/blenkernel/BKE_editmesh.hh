@@ -19,6 +19,8 @@
 
 #include "bmesh.hh"
 
+namespace blender {
+
 struct BMLoop;
 struct BMPartialUpdate;
 struct BMesh;
@@ -47,7 +49,7 @@ struct BMEditMesh {
    *
    * \see #Mesh::corner_tris() as the documentation gives useful hints that apply to this data too.
    */
-  blender::Array<std::array<BMLoop *, 3>> looptris;
+  Array<std::array<BMLoop *, 3>> looptris;
 
   /** Selection mode (#SCE_SELECT_VERTEX, #SCE_SELECT_EDGE & #SCE_SELECT_FACE). */
   short selectmode;
@@ -106,16 +108,14 @@ bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mes
  */
 void BKE_editmesh_free_data(BMEditMesh *em);
 
-blender::Array<blender::float3> BKE_editmesh_vert_coords_alloc(Depsgraph *depsgraph,
-                                                               BMEditMesh *em,
-                                                               Scene *scene,
-                                                               Object *ob);
-blender::Array<blender::float3> BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em);
-blender::Span<blender::float3> BKE_editmesh_vert_coords_when_deformed(
-    Depsgraph *depsgraph,
-    BMEditMesh *em,
-    Scene *scene,
-    Object *obedit,
-    blender::Array<blender::float3> &r_alloc);
+Array<float3> BKE_editmesh_vert_coords_alloc(Depsgraph *depsgraph,
+                                             BMEditMesh *em,
+                                             Scene *scene,
+                                             Object *ob);
+Array<float3> BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em);
+Span<float3> BKE_editmesh_vert_coords_when_deformed(
+    Depsgraph *depsgraph, BMEditMesh *em, Scene *scene, Object *obedit, Array<float3> &r_alloc);
 
 void BKE_editmesh_lnorspace_update(BMEditMesh *em);
+
+}  // namespace blender

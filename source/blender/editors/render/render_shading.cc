@@ -104,7 +104,7 @@
 
 #include "render_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 static bool object_materials_supported_poll_ex(bContext *C, const Object *ob);
 
@@ -130,7 +130,7 @@ static bool object_array_for_shading_edit_mode_enabled_filter(const Object *ob, 
 
 static Vector<Object *> object_array_for_shading_edit_mode_enabled(bContext *C)
 {
-  return blender::ed::object::objects_in_mode_or_selected(
+  return ed::object::objects_in_mode_or_selected(
       C, object_array_for_shading_edit_mode_enabled_filter, C);
 }
 
@@ -147,7 +147,7 @@ static bool object_array_for_shading_edit_mode_disabled_filter(const Object *ob,
 
 static Vector<Object *> object_array_for_shading_edit_mode_disabled(bContext *C)
 {
-  return blender::ed::object::objects_in_mode_or_selected(
+  return ed::object::objects_in_mode_or_selected(
       C, object_array_for_shading_edit_mode_disabled_filter, C);
 }
 
@@ -178,7 +178,7 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob)
 
 static bool object_materials_supported_poll(bContext *C)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   return object_materials_supported_poll_ex(C, ob);
 }
 
@@ -199,7 +199,7 @@ static bool material_slot_populated_poll(bContext *C)
 static wmOperatorStatus material_slot_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
 
   if (!ob) {
     return OPERATOR_CANCELLED;
@@ -243,7 +243,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 
 static bool material_slot_remove_poll(bContext *C)
 {
-  const Object *ob = blender::ed::object::context_object(C);
+  const Object *ob = ed::object::context_object(C);
 
   if (!object_materials_supported_poll_ex(C, ob)) {
     return false;
@@ -263,7 +263,7 @@ static bool material_slot_remove_poll(bContext *C)
 
 static wmOperatorStatus material_slot_remove_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
 
   if (!ob) {
     return OPERATOR_CANCELLED;
@@ -357,7 +357,7 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(blender::id_cast<Curve *>(ob->data));
+      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(id_cast<Curve *>(ob->data));
 
       if (nurbs) {
         for (Nurb &nu : *nurbs) {
@@ -369,7 +369,7 @@ static wmOperatorStatus material_slot_assign_exec(bContext *C, wmOperator * /*op
       }
     }
     else if (ob->type == OB_FONT) {
-      const Curve *cu = blender::id_cast<const Curve *>(ob->data);
+      const Curve *cu = id_cast<const Curve *>(ob->data);
       EditFont *ef = cu->editfont;
       int i, selstart, selend;
 
@@ -441,7 +441,7 @@ static wmOperatorStatus material_slot_de_select(bContext *C, bool select)
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(blender::id_cast<Curve *>(ob->data));
+      ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(id_cast<Curve *>(ob->data));
       BPoint *bp;
       BezTriple *bezt;
       int a;
@@ -547,7 +547,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 static wmOperatorStatus material_slot_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   Material ***matar_obdata;
 
   if (!ob || !(matar_obdata = BKE_object_material_array_p(ob))) {
@@ -619,7 +619,7 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 
 static wmOperatorStatus material_slot_move_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
 
   uint *slot_remap;
   int index_pair[2];
@@ -834,14 +834,14 @@ static wmOperatorStatus new_material_exec(bContext *C, wmOperator * /*op*/)
   PropertyRNA *prop;
 
   /* hook into UI */
-  blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
+  ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   Object *ob = static_cast<Object *>((prop && RNA_struct_is_a(ptr.type, &RNA_Object)) ? ptr.data :
                                                                                         nullptr);
 
   /* add or copy material */
   if (ma) {
-    Material *new_ma = blender::id_cast<Material *>(
+    Material *new_ma = id_cast<Material *>(
         BKE_id_copy_ex(bmain, &ma->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
     ma = new_ma;
   }
@@ -853,7 +853,7 @@ static wmOperatorStatus new_material_exec(bContext *C, wmOperator * /*op*/)
     else {
       ma = BKE_gpencil_material_add(bmain, name);
     }
-    blender::nodes::node_tree_shader_default(C, bmain, &ma->id);
+    nodes::node_tree_shader_default(C, bmain, &ma->id);
   }
 
   if (prop) {
@@ -913,14 +913,14 @@ static wmOperatorStatus new_texture_exec(bContext *C, wmOperator *op)
 
   /* add or copy texture */
   if (tex) {
-    tex = blender::id_cast<Tex *>(BKE_id_copy(bmain, &tex->id));
+    tex = id_cast<Tex *>(BKE_id_copy(bmain, &tex->id));
   }
   else {
     tex = BKE_texture_add(bmain, DATA_("Texture"));
   }
 
   /* hook into UI */
-  blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
+  ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   bool linked_id_created = false;
   if (prop) {
@@ -976,17 +976,17 @@ static wmOperatorStatus new_world_exec(bContext *C, wmOperator * /*op*/)
 
   /* add or copy world */
   if (wo) {
-    World *new_wo = blender::id_cast<World *>(
+    World *new_wo = id_cast<World *>(
         BKE_id_copy_ex(bmain, &wo->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
     wo = new_wo;
   }
   else {
     wo = BKE_world_add(bmain, CTX_DATA_(BLT_I18NCONTEXT_ID_WORLD, "World"));
-    blender::nodes::node_tree_shader_default(C, bmain, &wo->id);
+    nodes::node_tree_shader_default(C, bmain, &wo->id);
   }
 
   /* hook into UI */
-  blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
+  ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
     /* when creating new ID blocks, use is already 1, but RNA
@@ -1333,9 +1333,9 @@ void SCENE_OT_view_layer_remove_lightgroup(wmOperatorType *ot)
 /** \name View Layer Add Used Lightgroups Operator
  * \{ */
 
-static blender::Set<blender::StringRefNull> get_used_lightgroups(Scene *scene)
+static Set<StringRefNull> get_used_lightgroups(Scene *scene)
 {
-  blender::Set<blender::StringRefNull> used_lightgroups;
+  Set<StringRefNull> used_lightgroups;
 
   FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
     if (ob->lightgroup && ob->lightgroup->name[0]) {
@@ -1356,8 +1356,8 @@ static wmOperatorStatus view_layer_add_used_lightgroups_exec(bContext *C, wmOper
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  blender::Set<blender::StringRefNull> used_lightgroups = get_used_lightgroups(scene);
-  for (const blender::StringRefNull used_lightgroup : used_lightgroups) {
+  Set<StringRefNull> used_lightgroups = get_used_lightgroups(scene);
+  for (const StringRefNull used_lightgroup : used_lightgroups) {
     if (!BLI_findstring(&view_layer->lightgroups,
                         used_lightgroup.c_str(),
                         offsetof(ViewLayerLightgroup, name)))
@@ -1402,7 +1402,7 @@ static wmOperatorStatus view_layer_remove_unused_lightgroups_exec(bContext *C, w
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  blender::Set<blender::StringRefNull> used_lightgroups = get_used_lightgroups(scene);
+  Set<StringRefNull> used_lightgroups = get_used_lightgroups(scene);
   for (ViewLayerLightgroup &lightgroup : view_layer->lightgroups.items_mutable()) {
     if (!used_lightgroups.contains_as(lightgroup.name)) {
       BKE_view_layer_remove_lightgroup(view_layer, &lightgroup);
@@ -1446,18 +1446,17 @@ enum {
   LIGHTCACHE_SUBSET_ACTIVE,
 };
 
-static blender::Vector<Object *> lightprobe_cache_irradiance_volume_subset_get(bContext *C,
-                                                                               wmOperator *op)
+static Vector<Object *> lightprobe_cache_irradiance_volume_subset_get(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
 
   auto is_irradiance_volume = [](Object *ob) -> bool {
     return ob->type == OB_LIGHTPROBE &&
-           blender::id_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_VOLUME;
+           id_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_VOLUME;
   };
 
-  blender::Vector<Object *> probes;
+  Vector<Object *> probes;
 
   auto irradiance_volume_setup = [&](Object *ob) {
     BKE_lightprobe_cache_free(ob);
@@ -1524,7 +1523,7 @@ static wmOperatorStatus lightprobe_cache_bake_invoke(bContext *C,
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  blender::Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
+  Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
 
   if (probes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -1603,7 +1602,7 @@ static wmOperatorStatus lightprobe_cache_bake_exec(bContext *C, wmOperator *op)
 
   G.is_break = false;
 
-  blender::Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
+  Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
 
   std::string report;
   void *rj = EEVEE_lightbake_job_data_alloc(
@@ -1670,7 +1669,7 @@ static wmOperatorStatus lightprobe_cache_free_exec(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
 
-  blender::Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
+  Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
 
   for (Object *object : probes) {
     if (object->lightprobe_cache == nullptr) {
@@ -2164,7 +2163,7 @@ static wmOperatorStatus freestyle_linestyle_new_exec(bContext *C, wmOperator *op
   }
   if (lineset->linestyle) {
     id_us_min(&lineset->linestyle->id);
-    lineset->linestyle = blender::id_cast<FreestyleLineStyle *>(
+    lineset->linestyle = id_cast<FreestyleLineStyle *>(
         BKE_id_copy(bmain, &lineset->linestyle->id));
   }
   else {
@@ -2880,7 +2879,7 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
     BKE_library_foreach_ID_link(
         bmain, &nodetree->id, paste_material_nodetree_ids_decref, nullptr, IDWALK_NOP);
 
-    blender::bke::node_tree_free_embedded_tree(nodetree);
+    bke::node_tree_free_embedded_tree(nodetree);
     MEM_freeN(nodetree);
     ma->nodetree = nullptr;
   }
@@ -2990,19 +2989,19 @@ static void copy_mtex_copybuf(ID *id)
 
   switch (GS(id->name)) {
     case ID_PA:
-      mtex = &((blender::id_cast<ParticleSettings *>(id))
-                   ->mtex[int((blender::id_cast<ParticleSettings *>(id))->texact)]);
+      mtex = &(
+          (id_cast<ParticleSettings *>(id))->mtex[int((id_cast<ParticleSettings *>(id))->texact)]);
       break;
     case ID_LS:
-      mtex = &((blender::id_cast<FreestyleLineStyle *>(id))
-                   ->mtex[int((blender::id_cast<FreestyleLineStyle *>(id))->texact)]);
+      mtex = &((id_cast<FreestyleLineStyle *>(id))
+                   ->mtex[int((id_cast<FreestyleLineStyle *>(id))->texact)]);
       break;
     default:
       break;
   }
 
   if (mtex && *mtex) {
-    mtexcopybuf = blender::dna::shallow_copy(**mtex);
+    mtexcopybuf = dna::shallow_copy(**mtex);
     mtexcopied = 1;
   }
   else {
@@ -3020,12 +3019,12 @@ static void paste_mtex_copybuf(ID *id)
 
   switch (GS(id->name)) {
     case ID_PA:
-      mtex = &((blender::id_cast<ParticleSettings *>(id))
-                   ->mtex[int((blender::id_cast<ParticleSettings *>(id))->texact)]);
+      mtex = &(
+          (id_cast<ParticleSettings *>(id))->mtex[int((id_cast<ParticleSettings *>(id))->texact)]);
       break;
     case ID_LS:
-      mtex = &((blender::id_cast<FreestyleLineStyle *>(id))
-                   ->mtex[int((blender::id_cast<FreestyleLineStyle *>(id))->texact)]);
+      mtex = &((id_cast<FreestyleLineStyle *>(id))
+                   ->mtex[int((id_cast<FreestyleLineStyle *>(id))->texact)]);
       break;
     default:
       BLI_assert_msg(0, "invalid id type");
@@ -3040,7 +3039,7 @@ static void paste_mtex_copybuf(ID *id)
       id_us_min(&(*mtex)->tex->id);
     }
 
-    **mtex = blender::dna::shallow_copy(mtexcopybuf);
+    **mtex = dna::shallow_copy(mtexcopybuf);
 
     /* NOTE(@ideasman42): the simple memory copy has no special handling for ID data-blocks.
      * Ideally this would use `BKE_copybuffer_*` API's, however for common using
@@ -3056,8 +3055,8 @@ static void paste_mtex_copybuf(ID *id)
     if ((*mtex)->object && (BLI_findindex(&G_MAIN->objects, (*mtex)->object) == -1)) {
       (*mtex)->object = nullptr;
     }
-    id_us_plus(blender::id_cast<ID *>((*mtex)->tex));
-    id_lib_extern(blender::id_cast<ID *>((*mtex)->object));
+    id_us_plus(id_cast<ID *>((*mtex)->tex));
+    id_lib_extern(id_cast<ID *>((*mtex)->object));
   }
 }
 
@@ -3168,3 +3167,5 @@ void TEXTURE_OT_slot_paste(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

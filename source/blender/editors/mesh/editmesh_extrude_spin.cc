@@ -29,7 +29,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 #define USE_GIZMO
 
@@ -99,7 +99,7 @@ static wmOperatorStatus edbm_spin_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -227,3 +227,5 @@ void MESH_OT_spin(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

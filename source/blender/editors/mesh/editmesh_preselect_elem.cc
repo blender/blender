@@ -22,8 +22,7 @@
 
 #include "bmesh.hh"
 
-using blender::float3;
-using blender::Span;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Element Pre-Select
@@ -145,8 +144,7 @@ void EDBM_preselect_elem_draw(EditMesh_PreSelElem *psel, const float matrix[4][4
   GPU_matrix_push();
   GPU_matrix_mul(matrix);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -420,3 +418,5 @@ void EDBM_preselect_elem_update_preview(
 }
 
 /** \} */
+
+}  // namespace blender

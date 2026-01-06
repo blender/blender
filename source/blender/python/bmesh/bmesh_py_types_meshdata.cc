@@ -38,6 +38,8 @@
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_utildefines.hh"
 
+namespace blender {
+
 /* Mesh Loop UV
  * ************ */
 
@@ -779,3 +781,5 @@ void BPy_BM_init_types_meshdata()
   bm_init_types_bmdvert();
   bm_init_types_bmvertskin();
 }
+
+}  // namespace blender

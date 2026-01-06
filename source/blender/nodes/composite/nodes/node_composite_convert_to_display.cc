@@ -202,8 +202,8 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 static void register_node_type_cmp_convert_to_display()
 {
-  namespace file_ns = blender::nodes::node_composite_convert_to_display_cc;
-  static blender::bke::bNodeType ntype;
+  namespace file_ns = nodes::node_composite_convert_to_display_cc;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeConvertToDisplay", CMP_NODE_CONVERT_TO_DISPLAY);
   ntype.ui_name = "Convert to Display";
@@ -214,15 +214,15 @@ static void register_node_type_cmp_convert_to_display()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_draw_buttons;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype, "NodeConvertToDisplay", node_free, node_copy);
+  bke::node_type_storage(ntype, "NodeConvertToDisplay", node_free, node_copy);
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.get_compositor_operation = get_compositor_operation;
-  blender::bke::node_type_size(ntype, 240, 150, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 240, 150, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_convert_to_display)
 

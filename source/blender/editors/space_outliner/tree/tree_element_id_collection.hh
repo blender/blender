@@ -10,9 +10,11 @@
 
 #include "tree_element_id.hh"
 
+namespace blender {
+
 struct Collection;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementIDCollection final : public TreeElementID {
   Collection &collection_;
@@ -23,4 +25,5 @@ class TreeElementIDCollection final : public TreeElementID {
   void expand(SpaceOutliner & /*soops*/) const override;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

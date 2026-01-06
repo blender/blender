@@ -12,7 +12,9 @@
 
 #include "FN_multi_function.hh"
 
-namespace blender::fn::multi_function::build {
+namespace blender {
+
+namespace fn::multi_function::build {
 
 /**
  * These presets determine what code is generated for a #CustomMF. Different presets make different
@@ -805,9 +807,9 @@ inline auto SI1_SO4(const char *name,
   return detail::CustomMF(name, call_fn, param_tags);
 }
 
-}  // namespace blender::fn::multi_function::build
+}  // namespace fn::multi_function::build
 
-namespace blender::fn::multi_function {
+namespace fn::multi_function {
 
 /**
  * A multi-function that outputs the same value every time. The value is not owned by an instance
@@ -909,4 +911,6 @@ class CustomMF_GenericCopy : public MultiFunction {
   void call(const IndexMask &mask, Params params, Context context) const override;
 };
 
-}  // namespace blender::fn::multi_function
+}  // namespace fn::multi_function
+
+}  // namespace blender

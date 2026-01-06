@@ -8,9 +8,11 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct bContext;
 
-namespace blender::ui {
+namespace ui {
 struct Block;
 struct Button;
 struct Layout;
@@ -48,9 +50,11 @@ using ButtonToolTipFunc = std::string (*)(bContext *C, void *argN, StringRef tip
  */
 using ButtonToolTipCustomFunc = void (*)(bContext &C, TooltipData &data, Button *but, void *argN);
 
-}  // namespace blender::ui
+}  // namespace ui
 
-namespace blender::ocio {
+namespace ocio {
 class Display;
-}  // namespace blender::ocio
-using ColorManagedDisplay = blender::ocio::Display;
+}  // namespace ocio
+using ColorManagedDisplay = ocio::Display;
+
+}  // namespace blender

@@ -21,7 +21,7 @@
 
 #include "bmesh.hh"
 
-using blender::MutableSpan;
+namespace blender {
 
 /**
  * On systems with 32+ cores,
@@ -562,3 +562,5 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, MutableSpan<std::array<BMLoop *
 }
 
 /** \} */
+
+}  // namespace blender

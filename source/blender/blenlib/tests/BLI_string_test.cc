@@ -18,6 +18,8 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 using std::initializer_list;
 using std::pair;
 using std::string;
@@ -1442,3 +1444,5 @@ TEST(BLI_string, EndsWith)
   EXPECT_TRUE(BLI_str_endswith("ab", ""));
   EXPECT_TRUE(BLI_str_endswith("", ""));
 }
+
+}  // namespace blender

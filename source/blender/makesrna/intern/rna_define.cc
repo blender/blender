@@ -42,14 +42,16 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"rna.define"};
-
 #ifdef RNA_RUNTIME
 #  include "RNA_prototypes.hh"
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.hh"
 #  endif
 #endif
+
+static CLG_LogRef LOG = {"rna.define"};
+
+namespace blender {
 
 #ifndef NDEBUG
 #  define ASSERT_SOFT_HARD_LIMITS \
@@ -1009,7 +1011,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
   else {
     RNA_def_struct_flag(srna, STRUCT_RUNTIME);
     srna->cont.prop_lookup_set =
-        MEM_new<blender::CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter>>(__func__);
+        MEM_new<CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter>>(__func__);
   }
 
   if (srnafrom) {
@@ -5450,3 +5452,5 @@ const char *RNA_property_typename(PropertyType type)
 
   return "PROP_UNKNOWN";
 }
+
+}  // namespace blender

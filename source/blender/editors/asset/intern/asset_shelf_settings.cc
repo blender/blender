@@ -26,7 +26,8 @@
 
 #include "asset_shelf.hh"
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::ed::asset;
 
 AssetShelfSettings::AssetShelfSettings() = default;
@@ -71,7 +72,7 @@ AssetShelfSettings::~AssetShelfSettings()
   MEM_SAFE_FREE(active_catalog_path);
 }
 
-namespace blender::ed::asset::shelf {
+namespace ed::asset::shelf {
 
 void settings_blend_write(BlendWriter *writer, const AssetShelfSettings &settings)
 {
@@ -187,4 +188,5 @@ void settings_foreach_enabled_catalog_path(
   }
 }
 
-}  // namespace blender::ed::asset::shelf
+}  // namespace ed::asset::shelf
+}  // namespace blender

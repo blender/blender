@@ -13,6 +13,8 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define SIZE 1024
 
 static void range_fl(float *array_tar, const int size)
@@ -121,3 +123,5 @@ TEST(heap, SimpleRand100)
 {
   random_heapsimple_helper(100, 4321);
 }
+
+}  // namespace blender

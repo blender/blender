@@ -149,7 +149,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
       add_customdata_mask(data->poletar, DEGCustomDataMeshMasks::MaskVert(CD_MASK_MDEFORMVERT));
     }
   }
-  DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
+  DEG_DEBUG_PRINTF((blender::Depsgraph *)graph_,
                    BUILD,
                    "\nStarting IK Build: pchan = %s, target = (%s, %s), "
                    "segcount = %d\n",
@@ -189,7 +189,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
     parchan->flag |= POSE_DONE;
     root_map->add_bone(parchan->name, rootchan->name);
     /* continue up chain, until we reach target number of items. */
-    DEG_DEBUG_PRINTF((::Depsgraph *)graph_, BUILD, "  %d = %s\n", segcount, parchan->name);
+    DEG_DEBUG_PRINTF((blender::Depsgraph *)graph_, BUILD, "  %d = %s\n", segcount, parchan->name);
     /* TODO(sergey): This is an arbitrary value, which was just following
      * old code convention. */
     segcount++;
@@ -289,7 +289,7 @@ void DepsgraphRelationBuilder::build_inter_ik_chains(Object *object,
 void DepsgraphRelationBuilder::build_rig(Object *object)
 {
   /* Armature-Data */
-  bArmature *armature = blender::id_cast<bArmature *>(object->data);
+  bArmature *armature = id_cast<bArmature *>(object->data);
   /* TODO: selection status? */
   /* Attach links between pose operations. */
   ComponentKey local_transform(&object->id, NodeType::TRANSFORM);

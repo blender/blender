@@ -30,7 +30,7 @@ class BundleTest : public ::testing::Test {
     CLG_init();
     BKE_idtype_init();
     RNA_init();
-    blender::bke::node_system_init();
+    bke::node_system_init();
     BKE_appdir_init();
     IMB_init();
     BKE_materials_init();

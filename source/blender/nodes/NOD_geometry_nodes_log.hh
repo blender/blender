@@ -52,11 +52,13 @@
 
 #include "DNA_node_types.h"
 
+namespace blender {
+
 struct SpaceNode;
 struct NodesModifierData;
 struct Report;
 
-namespace blender::nodes::geo_eval_log {
+namespace nodes::geo_eval_log {
 
 using fn::GField;
 
@@ -508,4 +510,6 @@ class GeoNodesLog {
   static const ViewerNodeLog *find_viewer_node_log_for_path(const ViewerPath &viewer_path);
 };
 
-}  // namespace blender::nodes::geo_eval_log
+}  // namespace nodes::geo_eval_log
+
+}  // namespace blender

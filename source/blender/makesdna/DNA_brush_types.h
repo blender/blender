@@ -15,6 +15,8 @@
 #include "DNA_object_enums.h"
 #include "DNA_texture_types.h" /* for MTex */
 
+namespace blender {
+
 struct CurveMapping;
 struct Image;
 struct MTex;
@@ -490,3 +492,5 @@ struct PaintCurve {
   /** Index where next point will be added. */
   int add_index = 0;
 };
+
+}  // namespace blender

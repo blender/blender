@@ -23,6 +23,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /** Number of points in high resolution table is dynamic up to a maximum. */
 #define PROF_TABLE_MAX 512
 
@@ -1063,3 +1065,5 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
 }
 
 /** \} */
+
+}  // namespace blender

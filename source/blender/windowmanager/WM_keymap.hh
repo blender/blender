@@ -14,6 +14,8 @@
 #include "DNA_windowmanager_types.h"
 #include "WM_types.hh"
 
+namespace blender {
+
 #ifdef hyper /* MSVC defines. */
 #  undef hyper
 #endif
@@ -222,14 +224,14 @@ std::optional<std::string> WM_keymap_item_raw_to_string(int8_t shift,
  */
 wmKeyMapItem *WM_key_event_operator(const bContext *C,
                                     const char *opname,
-                                    blender::wm::OpCallContext opcontext,
+                                    wm::OpCallContext opcontext,
                                     IDProperty *properties,
                                     short include_mask,
                                     short exclude_mask,
                                     wmKeyMap **r_keymap);
 std::optional<std::string> WM_key_event_operator_string(const bContext *C,
                                                         const char *opname,
-                                                        blender::wm::OpCallContext opcontext,
+                                                        wm::OpCallContext opcontext,
                                                         IDProperty *properties,
                                                         bool is_strict);
 
@@ -240,3 +242,5 @@ wmKeyMapItem *WM_key_event_operator_from_keymap(wmKeyMap *keymap,
                                                 short exclude_mask);
 
 const char *WM_bool_as_string(bool test);
+
+}  // namespace blender

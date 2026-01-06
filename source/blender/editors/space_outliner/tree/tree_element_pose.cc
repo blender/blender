@@ -18,9 +18,11 @@
 
 #include "tree_element_pose.hh"
 
+namespace blender {
+
 struct bConstraint;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 TreeElementPoseBase::TreeElementPoseBase(TreeElement &legacy_te, Object &object)
     : AbstractTreeElement(legacy_te), object_(object)
@@ -31,7 +33,7 @@ TreeElementPoseBase::TreeElementPoseBase(TreeElement &legacy_te, Object &object)
 
 void TreeElementPoseBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  bArmature *arm = blender::id_cast<bArmature *>(object_.data);
+  bArmature *arm = id_cast<bArmature *>(object_.data);
 
   /* channels undefined in editmode, but we want the 'tenla' pose icon itself */
   if ((arm->edbo == nullptr) && (object_.mode & OB_MODE_POSE)) {
@@ -86,4 +88,5 @@ TreeElementPoseChannel::TreeElementPoseChannel(TreeElement &legacy_te,
   legacy_te.directdata = &pchan_;
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

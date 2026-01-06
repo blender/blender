@@ -49,6 +49,8 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.hh"
 
+namespace blender {
+
 // /** To use custom arrows exported to `geom_arrow_gizmo.cc`. */
 // #define USE_GIZMO_CUSTOM_ARROWS
 
@@ -80,8 +82,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow,
                             const float color[4],
                             const float arrow_length)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   bool unbind_shader = true;
   const int draw_style = RNA_enum_get(arrow->gizmo.ptr, "draw_style");
   const int draw_options = RNA_enum_get(arrow->gizmo.ptr, "draw_options");
@@ -249,8 +250,7 @@ static void arrow_draw_intern(ArrowGizmo3D *arrow, const bool select, const bool
     GPU_matrix_mul(arrow_inter->inter.init_matrix_final);
 
     GPU_blend(GPU_BLEND_ALPHA);
-    arrow_draw_geom(
-        arrow, select, blender::float4{0.5f, 0.5f, 0.5f, 0.5f}, arrow_inter->init_arrow_length);
+    arrow_draw_geom(arrow, select, float4{0.5f, 0.5f, 0.5f, 0.5f}, arrow_inter->init_arrow_length);
     GPU_blend(GPU_BLEND_NONE);
 
     GPU_matrix_pop();
@@ -350,7 +350,7 @@ static wmOperatorStatus gizmo_arrow_modal(bContext *C,
 
   /* A pair: (source, destination). */
   struct {
-    blender::float2 mval;
+    float2 mval;
     float ray_origin[3], ray_direction[3];
     float location[3];
   } proj[2] = {};
@@ -598,3 +598,5 @@ void ED_gizmotypes_arrow_3d()
 }
 
 /** \} */
+
+}  // namespace blender

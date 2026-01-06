@@ -20,6 +20,8 @@
 #include "RNA_define.hh"
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct BlenderRNA;
 struct CollectionPropertyIterator;
 struct ContainerRNA;
@@ -327,14 +329,14 @@ struct RNAPropertyOverrideApplyContext {
 using RNAPropOverrideApply = bool (*)(Main *bmain, RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
 struct PropertyRNAIdentifierGetter {
-  blender::StringRef operator()(const PropertyRNA *prop) const;
+  StringRef operator()(const PropertyRNA *prop) const;
 };
 
 /** Container - generic abstracted container of RNA properties */
 struct ContainerRNA {
   void *next, *prev;
 
-  blender::CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter> *prop_lookup_set;
+  CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter> *prop_lookup_set;
   ListBaseT<PropertyRNA> properties;
 };
 
@@ -458,7 +460,7 @@ struct PropertyRNA {
   void *py_data;
 };
 
-inline blender::StringRef PropertyRNAIdentifierGetter::operator()(const PropertyRNA *prop) const
+inline StringRef PropertyRNAIdentifierGetter::operator()(const PropertyRNA *prop) const
 {
   return prop->identifier;
 }
@@ -754,12 +756,14 @@ struct StructRNA {
  * Root RNA data structure that lists all struct types.
  */
 struct BlenderRNA {
-  blender::Vector<StructRNA *> structs;
+  Vector<StructRNA *> structs;
   /**
    * A map of structs: `{StructRNA.identifier -> StructRNA}`
    * These are ensured to have unique names (with #STRUCT_PUBLIC_NAMESPACE enabled).
    */
-  blender::Map<blender::StringRef, StructRNA *> structs_map;
+  Map<StringRef, StructRNA *> structs_map;
 };
 
 #define CONTAINER_RNA_ID(cont) (*(const char **)(((ContainerRNA *)(cont)) + 1))
+
+}  // namespace blender

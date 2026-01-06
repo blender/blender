@@ -12,6 +12,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /**
  * Intersect tessellated faces
  * leaving the resulting edges tagged.
@@ -21,7 +23,7 @@
  * \return true if the mesh is changed (intersections cut or faces removed from boolean).
  */
 bool BM_mesh_intersect(BMesh *bm,
-                       blender::Span<std::array<BMLoop *, 3>> looptris,
+                       Span<std::array<BMLoop *, 3>> looptris,
                        int (*test_fn)(BMFace *f, void *user_data),
                        void *user_data,
                        bool use_self,
@@ -40,3 +42,5 @@ enum {
   BMESH_ISECT_BOOLEAN_UNION = 1,
   BMESH_ISECT_BOOLEAN_DIFFERENCE = 2,
 };
+
+}  // namespace blender

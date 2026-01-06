@@ -21,16 +21,18 @@
 #include "GPU_shader.hh"  /* for GPUShaderCreateInfo */
 #include "GPU_texture.hh" /* for GPUSamplerState */
 
+namespace blender {
+
 struct GHash;
 struct GPUMaterial;
 struct GPUInput;
 struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUPass;
-namespace blender::gpu {
+namespace gpu {
 class Texture;
 class UniformBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct Image;
 struct ImageUser;
 struct Main;
@@ -114,7 +116,7 @@ struct GPUMaterialFromNodeTreeResult {
     const bNode *node;
     std::string message;
   };
-  blender::Vector<Error> errors;
+  Vector<Error> errors;
 };
 
 /** WARNING: gpumaterials thread safety must be ensured by the caller. */
@@ -148,7 +150,7 @@ void GPU_materials_free(Main *bmain);
 
 GPUPass *GPU_material_get_pass(GPUMaterial *material);
 /** Return the most optimal shader configuration for the given material. */
-blender::gpu::Shader *GPU_material_get_shader(GPUMaterial *material);
+gpu::Shader *GPU_material_get_shader(GPUMaterial *material);
 
 const char *GPU_material_get_name(GPUMaterial *material);
 
@@ -168,7 +170,7 @@ eGPUMaterialOptimizationStatus GPU_material_optimization_status(GPUMaterial *mat
 
 uint64_t GPU_material_compilation_timestamp(GPUMaterial *mat);
 
-blender::gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
+gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
 /**
  * Create dynamic UBO from parameters
  *
@@ -260,8 +262,8 @@ struct GPUMaterialTexture {
   Image *ima;
   ImageUser iuser;
   bool iuser_available;
-  blender::gpu::Texture **colorband;
-  blender::gpu::Texture **sky;
+  gpu::Texture **colorband;
+  gpu::Texture **sky;
   char sampler_name[32];       /* Name of sampler in GLSL. */
   char tiled_mapping_name[32]; /* Name of tile mapping sampler in GLSL. */
   int users;
@@ -331,7 +333,7 @@ struct GPUNodeStack {
 
 struct GPUGraphOutput {
   std::string serialized;
-  blender::Vector<blender::StringRefNull> dependencies;
+  Vector<StringRefNull> dependencies;
 
   bool empty() const
   {
@@ -352,7 +354,7 @@ struct GPUCodegenOutput {
   GPUGraphOutput volume;
   GPUGraphOutput thickness;
   GPUGraphOutput composite;
-  blender::Vector<GPUGraphOutput> material_functions;
+  Vector<GPUGraphOutput> material_functions;
 
   GPUShaderCreateInfo *create_info;
 };
@@ -449,3 +451,5 @@ eGPUMaterialFlag GPU_material_flag(const GPUMaterial *mat);
 GHash *GPU_uniform_attr_list_hash_new(const char *info);
 void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, const GPUUniformAttrList *src);
 void GPU_uniform_attr_list_free(GPUUniformAttrList *set);
+
+}  // namespace blender

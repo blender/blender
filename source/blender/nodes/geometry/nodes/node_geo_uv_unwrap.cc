@@ -134,7 +134,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     geometry::uv_parametrizer_edge_set_seam(handle, vkeys);
   });
 
-  blender::geometry::UVPackIsland_Params params;
+  geometry::UVPackIsland_Params params;
   params.margin = margin;
   params.rotate_method = ED_UVPACK_ROTATION_ANY;
 
@@ -235,7 +235,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeUVUnwrap", GEO_NODE_UV_UNWRAP);
   ntype.ui_name = "UV Unwrap";
@@ -243,11 +243,11 @@ static void node_register()
   ntype.enum_name_legacy = "UV_UNWRAP";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryUVUnwrap", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

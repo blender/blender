@@ -28,6 +28,8 @@
 #  define STREAM_FILE(stream) static_cast<FILE *>(stream->descriptor.pointer)
 #  define FT_THROW(e) -1
 
+using namespace blender;
+
 static void ft_ansi_stream_close(FT_Stream stream)
 {
   fclose(STREAM_FILE(stream));

@@ -24,6 +24,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 void _bli_array_reverse(void *arr_v, uint arr_len, size_t arr_stride)
 {
   const uint arr_stride_uint = uint(arr_stride);
@@ -367,3 +369,5 @@ bool _bli_array_iter_spiral_square(const void *arr_v,
   }
   return false;
 }
+
+}  // namespace blender

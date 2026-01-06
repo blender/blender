@@ -556,7 +556,7 @@ class MeshUVs : Overlay {
 
     const ToolSettings *tool_setting = state.scene->toolsettings;
     const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(state.space_data);
-    ::Image *image = space_image->image;
+    blender::Image *image = space_image->image;
     const bool space_mode_is_paint = space_image->mode == SI_MODE_PAINT;
     const bool space_mode_is_mask = space_image->mode == SI_MODE_MASK;
     const bool space_mode_is_uv = space_image->mode == SI_MODE_UV;
@@ -815,8 +815,7 @@ class MeshUVs : Overlay {
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(ob);
 
     const Object *ob_orig = DEG_get_original(ob_ref.object);
-    const Mesh &mesh_orig = ob_orig->type == OB_MESH ? *blender::id_cast<Mesh *>(ob_orig->data) :
-                                                       mesh;
+    const Mesh &mesh_orig = ob_orig->type == OB_MESH ? *id_cast<Mesh *>(ob_orig->data) : mesh;
 
     const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(state.space_data);
     const bool is_edit_object = DRW_object_is_in_edit_mode(&ob);
@@ -928,7 +927,7 @@ class MeshUVs : Overlay {
 
     const ToolSettings *tool_setting = state.scene->toolsettings;
     const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(state.space_data);
-    ::Image *image = space_image->image;
+    blender::Image *image = space_image->image;
 
     if (show_tiled_image_border_) {
       float4 theme_color;
@@ -994,7 +993,7 @@ class MeshUVs : Overlay {
                      DRW_STATE_BLEND_ALPHA_PREMUL);
 
       const ImagePaintSettings &image_paint_settings = tool_setting->imapaint;
-      ::Image *stencil_image = image_paint_settings.clone;
+      blender::Image *stencil_image = image_paint_settings.clone;
       TextureRef stencil_texture;
       stencil_texture.wrap(BKE_image_get_gpu_texture(stencil_image, nullptr));
 

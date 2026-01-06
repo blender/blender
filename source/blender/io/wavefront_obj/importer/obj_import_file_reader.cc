@@ -26,9 +26,12 @@
 #include <charconv>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.obj"};
 
-namespace blender::io::obj {
+namespace io::obj {
 
 using std::string;
 
@@ -967,4 +970,5 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
 
   MEM_freeN(buffer);
 }
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

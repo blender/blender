@@ -30,12 +30,14 @@
 
 #include <cstring> /* memcpy */
 
+namespace blender {
+
 #define USE_NONUNIFORM_SCALE
 
 /* ********************** THE IK SOLVER ******************* */
 
 static void find_ik_constraints(ListBaseT<bConstraint> *constraints,
-                                blender::Vector<bConstraint *> &ik_constraints)
+                                Vector<bConstraint *> &ik_constraints)
 {
   for (bConstraint &con : *constraints) {
     if (con.type == CONSTRAINT_TYPE_KINEMATIC) {
@@ -63,7 +65,7 @@ static void find_ik_constraints(ListBaseT<bConstraint> *constraints,
  * in drawarmature.c and in transform_conversions.c */
 static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
 {
-  blender::Vector<bConstraint *> ik_constraints;
+  Vector<bConstraint *> ik_constraints;
   find_ik_constraints(&pchan_tip->constraints, ik_constraints);
 
   if (ik_constraints.is_empty()) {
@@ -686,3 +688,5 @@ void iksolver_clear_data(bPose *pose)
     }
   }
 }
+
+}  // namespace blender

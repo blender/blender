@@ -428,7 +428,7 @@ static void test_constraint(
             con->flag |= CONSTRAINT_DISABLE;
           }
           else {
-            Curve *cu = blender::id_cast<Curve *>(ct.tar->data);
+            Curve *cu = id_cast<Curve *>(ct.tar->data);
 
             /* auto-set 'Path' setting on curve so this works. */
             cu->flag |= CU_PATH;
@@ -575,8 +575,7 @@ static bool edit_constraint_poll_generic(bContext *C,
                                          const bool is_liboverride_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", rna_type);
-  Object *ob = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
-                                context_active_object(C);
+  Object *ob = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   bConstraint *con = static_cast<bConstraint *>(ptr.data);
 
   if (!ED_operator_object_active_editable_ex(C, ob)) {
@@ -633,8 +632,7 @@ static bool edit_constraint_invoke_properties(bContext *C,
                                               wmOperatorStatus *r_retval)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
-  Object *ob = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
-                                context_active_object(C);
+  Object *ob = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   bConstraint *con;
   ListBaseT<bConstraint> *list;
 
@@ -1024,7 +1022,7 @@ static wmOperatorStatus followpath_path_animate_exec(bContext *C, wmOperator *op
 
   /* add F-Curve as appropriate */
   if (data->tar) {
-    Curve *cu = blender::id_cast<Curve *>(data->tar->data);
+    Curve *cu = id_cast<Curve *>(data->tar->data);
 
     if (ELEM(nullptr, cu->adt, cu->adt->action) ||
         (animrig::fcurve_find_in_assigned_slot(*cu->adt, {"eval_time", 0}) == nullptr))
@@ -1709,7 +1707,7 @@ static wmOperatorStatus constraint_copy_to_selected_exec(bContext *C, wmOperator
       }
 
       BKE_pose_tag_recalc(bmain, ob->pose);
-      DEG_id_tag_update(blender::id_cast<ID *>(ob), ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(id_cast<ID *>(ob), ID_RECALC_GEOMETRY);
       prev_ob = ob;
     }
     CTX_DATA_END;
@@ -1752,8 +1750,7 @@ static wmOperatorStatus constraint_copy_to_selected_invoke(bContext *C,
 static bool constraint_copy_to_selected_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
-  Object *obact = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
-                                   context_active_object(C);
+  Object *obact = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   bConstraint *con = static_cast<bConstraint *>(ptr.data);
   bPoseChannel *pchan;
   constraint_list_from_constraint(obact, con, &pchan);
@@ -2108,7 +2105,7 @@ static wmOperatorStatus pose_constraint_copy_exec(bContext *C, wmOperator *op)
 
       if (prev_ob != ob) {
         BKE_pose_tag_recalc(bmain, ob->pose);
-        DEG_id_tag_update(blender::id_cast<ID *>(ob), ID_RECALC_GEOMETRY);
+        DEG_id_tag_update(id_cast<ID *>(ob), ID_RECALC_GEOMETRY);
         prev_ob = ob;
       }
     }
@@ -2295,7 +2292,7 @@ static bool get_new_constraint_target(
           if (only_curve) {
             /* Curve-Path option must be enabled for follow-path constraints to be able to work
              */
-            Curve *cu = blender::id_cast<Curve *>(ob->data);
+            Curve *cu = id_cast<Curve *>(ob->data);
             cu->flag |= CU_PATH;
           }
 

@@ -4,7 +4,9 @@
 
 #include "node_shader_util.hh"
 
-namespace blender::nodes::node_shader_geometry_cc {
+namespace blender {
+
+namespace nodes::node_shader_geometry_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -81,14 +83,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_geometry_cc
+}  // namespace nodes::node_shader_geometry_cc
 
 /* node type definition */
 void register_node_type_sh_geometry()
 {
-  namespace file_ns = blender::nodes::node_shader_geometry_cc;
+  namespace file_ns = nodes::node_shader_geometry_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeNewGeometry", SH_NODE_NEW_GEOMETRY);
   ntype.ui_name = "Geometry";
@@ -99,5 +101,7 @@ void register_node_type_sh_geometry()
   ntype.gpu_fn = file_ns::node_shader_gpu_geometry;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

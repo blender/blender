@@ -28,6 +28,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* Struct Declarations */
 
 struct ARegion;
@@ -73,10 +75,10 @@ struct wmOperator;
 struct wmOperatorType;
 struct wmRegionListenerParams;
 struct wmWindow;
-namespace blender::ed::asset {
+namespace ed::asset {
 struct AssetFilterSettings;
 }
-namespace blender::ui {
+namespace ui {
 class AbstractView;
 class AbstractViewItem;
 struct Layout;
@@ -86,11 +88,11 @@ struct ButtonExtraOpIcon;
 struct TooltipData;
 struct PopupBlockHandle;
 struct Block;
-}  // namespace blender::ui
+}  // namespace ui
 
 /* Defines */
 
-namespace blender::ui {
+namespace ui {
 
 /**
  * Character used for splitting labels (right align text after this character).
@@ -915,9 +917,9 @@ void block_end(const bContext *C, Block *block);
  * Uses local copy of style, to scale things down, and allow widgets to change stuff.
  */
 void block_draw(const bContext *C, Block *block);
-void blocklist_update_window_matrix(const bContext *C, const ListBaseT<blender::ui::Block> *lb);
-void blocklist_update_view_for_buttons(const bContext *C, const ListBaseT<blender::ui::Block> *lb);
-void blocklist_draw(const bContext *C, const ListBaseT<blender::ui::Block> *lb);
+void blocklist_update_window_matrix(const bContext *C, const ListBaseT<ui::Block> *lb);
+void blocklist_update_view_for_buttons(const bContext *C, const ListBaseT<ui::Block> *lb);
+void blocklist_draw(const bContext *C, const ListBaseT<ui::Block> *lb);
 void block_update_from_old(const bContext *C, Block *block);
 
 enum {
@@ -1021,7 +1023,7 @@ void block_bounds_set_menu(Block *block, int addval, const int bounds_offset[2])
 void block_bounds_set_centered(Block *block, int addval);
 void block_bounds_set_explicit(Block *block, int minx, int miny, int maxx, int maxy);
 
-int blocklist_min_y_get(ListBaseT<blender::ui::Block> *lb);
+int blocklist_min_y_get(ListBaseT<ui::Block> *lb);
 
 void block_direction_set(Block *block, char direction);
 /**
@@ -2455,27 +2457,27 @@ void template_layers(Layout *layout,
                      const char *used_propname,
                      int active_layer);
 
-}  // namespace blender::ui
+}  // namespace ui
 
-void uiTemplateImage(blender::ui::Layout *layout,
+void uiTemplateImage(ui::Layout *layout,
                      bContext *C,
                      PointerRNA *ptr,
-                     blender::StringRefNull propname,
+                     StringRefNull propname,
                      PointerRNA *userptr,
                      bool compact,
                      bool multiview);
-void uiTemplateImageSettings(blender::ui::Layout *layout,
+void uiTemplateImageSettings(ui::Layout *layout,
                              bContext *C,
                              PointerRNA *imfptr,
                              bool color_management,
                              const char *panel_idname = nullptr);
-void uiTemplateImageStereo3d(blender::ui::Layout *layout, PointerRNA *stereo3d_format_ptr);
-void uiTemplateImageViews(blender::ui::Layout *layout, PointerRNA *imaptr);
-void uiTemplateImageFormatViews(blender::ui::Layout *layout, PointerRNA *imfptr, PointerRNA *ptr);
-void uiTemplateImageLayers(blender::ui::Layout *layout, bContext *C, Image *ima, ImageUser *iuser);
-void uiTemplateImageInfo(blender::ui::Layout *layout, bContext *C, Image *ima, ImageUser *iuser);
+void uiTemplateImageStereo3d(ui::Layout *layout, PointerRNA *stereo3d_format_ptr);
+void uiTemplateImageViews(ui::Layout *layout, PointerRNA *imaptr);
+void uiTemplateImageFormatViews(ui::Layout *layout, PointerRNA *imfptr, PointerRNA *ptr);
+void uiTemplateImageLayers(ui::Layout *layout, bContext *C, Image *ima, ImageUser *iuser);
+void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser *iuser);
 
-namespace blender::ui {
+namespace ui {
 void template_running_jobs(Layout *layout, bContext *C);
 void button_func_operator_search(Button *but);
 void uiTemplateOperatorSearch(Layout *layout);
@@ -2490,10 +2492,10 @@ void uiTemplateMenuSearch(Layout *layout);
  */
 void uiTemplateOperatorPropertyButs(
     const bContext *C, Layout *layout, wmOperator *op, eButLabelAlign label_align, short flag);
-}  // namespace blender::ui
-void template_header3D_mode(blender::ui::Layout *layout, bContext *C);
-void uiTemplateEditModeSelection(blender::ui::Layout *layout, bContext *C);
-namespace blender::ui {
+}  // namespace ui
+void template_header3D_mode(ui::Layout *layout, bContext *C);
+void uiTemplateEditModeSelection(ui::Layout *layout, bContext *C);
+namespace ui {
 void uiTemplateReportsBanner(Layout *layout, bContext *C);
 void uiTemplateInputStatus(Layout *layout, bContext *C);
 void uiTemplateStatusInfo(Layout *layout, bContext *C);
@@ -2572,42 +2574,37 @@ void template_list(Layout *layout,
                    int maxrows,
                    int layout_type,
                    enum TemplateListFlags flags);
-}  // namespace blender::ui
+}  // namespace ui
 
 void uiTemplateNodeLink(
-    blender::ui::Layout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input);
+    ui::Layout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input);
 void uiTemplateNodeView(
-    blender::ui::Layout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input);
+    ui::Layout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input);
 
-void uiTemplateTextureUser(blender::ui::Layout *layout, bContext *C);
+void uiTemplateTextureUser(ui::Layout *layout, bContext *C);
 
 /**
  * Button to quickly show texture in Properties Editor texture tab.
  */
-void uiTemplateTextureShow(blender::ui::Layout *layout,
+void uiTemplateTextureShow(ui::Layout *layout,
                            const bContext *C,
                            PointerRNA *ptr,
                            PropertyRNA *prop);
 
-void uiTemplateMovieClip(blender::ui::Layout *layout,
-                         bContext *C,
-                         PointerRNA *ptr,
-                         blender::StringRefNull propname,
-                         bool compact);
-void uiTemplateTrack(blender::ui::Layout *layout,
-                     PointerRNA *ptr,
-                     blender::StringRefNull propname);
-void uiTemplateMarker(blender::ui::Layout *layout,
+void uiTemplateMovieClip(
+    ui::Layout *layout, bContext *C, PointerRNA *ptr, StringRefNull propname, bool compact);
+void uiTemplateTrack(ui::Layout *layout, PointerRNA *ptr, StringRefNull propname);
+void uiTemplateMarker(ui::Layout *layout,
                       PointerRNA *ptr,
-                      blender::StringRefNull propname,
+                      StringRefNull propname,
                       PointerRNA *userptr,
                       PointerRNA *trackptr,
                       bool compact);
-void uiTemplateMovieclipInformation(blender::ui::Layout *layout,
+void uiTemplateMovieclipInformation(ui::Layout *layout,
                                     PointerRNA *ptr,
-                                    blender::StringRefNull propname,
+                                    StringRefNull propname,
                                     PointerRNA *userptr);
-namespace blender::ui {
+namespace ui {
 
 void template_colorspace_settings(Layout *layout, PointerRNA *ptr, StringRefNull propname);
 void template_colormanaged_view_settings(Layout *layout,
@@ -2635,13 +2632,13 @@ void template_node_inputs(Layout *layout, bContext *C, PointerRNA *ptr);
 
 void template_collection_exporters(Layout *layout, bContext *C);
 
-}  // namespace blender::ui
+}  // namespace ui
 
-namespace blender::ed::object::shapekey {
+namespace ed::object::shapekey {
 void template_tree(ui::Layout *layout, bContext *C);
 }
 
-namespace blender::ui {
+namespace ui {
 /**
  * \return: True if the list item with unfiltered, unordered index \a item_idx is visible given the
  *          current filter settings.
@@ -2936,8 +2933,8 @@ ARegion *tooltip_create_from_search_item_generic(bContext *C,
 #define UI_PRECISION_FLOAT_SCALE 0.01f
 
 /* Typical UI text */
-#define UI_FSTYLE_WIDGET (const uiFontStyle *)&(blender::ui::style_get()->widget)
-#define UI_FSTYLE_TOOLTIP (const uiFontStyle *)&(blender::ui::style_get()->tooltip)
+#define UI_FSTYLE_WIDGET (const uiFontStyle *)&(ui::style_get()->widget)
+#define UI_FSTYLE_TOOLTIP (const uiFontStyle *)&(ui::style_get()->tooltip)
 
 /**
  * Returns the best "UI" precision for given floating value,
@@ -3005,4 +3002,5 @@ AbstractViewItem *region_views_find_active_item(const ARegion *region);
 Button *region_views_find_active_item_but(const ARegion *region);
 void region_views_clear_search_highlight(const ARegion *region);
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

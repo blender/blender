@@ -20,6 +20,8 @@
 
 #include "WM_api.hh"
 
+namespace blender {
+
 void wmViewport(const rcti *winrct)
 {
   int width = BLI_rcti_size_x(winrct) + 1;
@@ -75,7 +77,7 @@ static void wmOrtho2_offset(const float x, const float y, const float ofs);
 
 void wmWindowViewport_ex(const wmWindow *win, float offset)
 {
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
 
   GPU_viewport(0, 0, win_size[0], win_size[1]);
   GPU_scissor(0, 0, win_size[0], win_size[1]);
@@ -144,3 +146,5 @@ void wmGetProjectionMatrix(float mat[4][4], const rcti *winrct)
                   GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT,
                   GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT);
 }
+
+}  // namespace blender

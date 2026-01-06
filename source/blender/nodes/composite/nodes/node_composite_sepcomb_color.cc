@@ -16,6 +16,8 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeCMPCombSepColor *data = MEM_new_for_free<NodeCMPCombSepColor>(__func__);
@@ -26,7 +28,7 @@ static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
 
 /* **************** SEPARATE COLOR ******************** */
 
-namespace blender::nodes::node_composite_separate_color_cc {
+namespace nodes::node_composite_separate_color_cc {
 
 NODE_STORAGE_FUNCS(NodeCMPCombSepColor)
 
@@ -114,9 +116,9 @@ static int node_gpu_material(GPUMaterial *material,
   return false;
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto rgba_function = mf::build::SI1_SO4<Color, float, float, float, float>(
       "Separate Color RGBA",
@@ -213,13 +215,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   }
 }
 
-}  // namespace blender::nodes::node_composite_separate_color_cc
+}  // namespace nodes::node_composite_separate_color_cc
 
 static void register_node_type_cmp_separate_color()
 {
-  namespace file_ns = blender::nodes::node_composite_separate_color_cc;
+  namespace file_ns = nodes::node_composite_separate_color_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeSeparateColor", CMP_NODE_SEPARATE_COLOR);
   ntype.ui_name = "Separate Color";
@@ -228,18 +230,18 @@ static void register_node_type_cmp_separate_color()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_separate_color_declare;
   ntype.initfunc = node_cmp_combsep_color_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_separate_color)
 
 /* **************** COMBINE COLOR ******************** */
 
-namespace blender::nodes::node_composite_combine_color_cc {
+namespace nodes::node_composite_combine_color_cc {
 
 NODE_STORAGE_FUNCS(NodeCMPCombSepColor)
 
@@ -342,9 +344,9 @@ static int node_gpu_material(GPUMaterial *material,
   return false;
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto rgba_function = mf::build::SI4_SO<float, float, float, float, Color>(
       "Combine Color RGBA",
@@ -459,13 +461,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   }
 }
 
-}  // namespace blender::nodes::node_composite_combine_color_cc
+}  // namespace nodes::node_composite_combine_color_cc
 
 static void register_node_type_cmp_combine_color()
 {
-  namespace file_ns = blender::nodes::node_composite_combine_color_cc;
+  namespace file_ns = nodes::node_composite_combine_color_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeCombineColor", CMP_NODE_COMBINE_COLOR);
   ntype.ui_name = "Combine Color";
@@ -474,11 +476,13 @@ static void register_node_type_cmp_combine_color()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_combine_color_declare;
   ntype.initfunc = node_cmp_combsep_color_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_combine_color)
+
+}  // namespace blender

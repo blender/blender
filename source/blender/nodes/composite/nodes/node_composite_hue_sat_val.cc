@@ -21,9 +21,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** Hue/Saturation/Value ******************** */
 
-namespace blender::nodes::node_composite_hue_sat_val_cc {
+namespace nodes::node_composite_hue_sat_val_cc {
 
 static void cmp_node_huesatval_declare(NodeDeclarationBuilder &b)
 {
@@ -83,9 +85,9 @@ static float4 hue_saturation_value(const float4 &color,
   return float4(math::interpolate(color.xyz(), rgb_result, factor), color.w);
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto function = mf::build::SI5_SO<Color, float, float, float, float, Color>(
       "Hue Saturation Value",
@@ -100,13 +102,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   builder.set_matching_fn(function);
 }
 
-}  // namespace blender::nodes::node_composite_hue_sat_val_cc
+}  // namespace nodes::node_composite_hue_sat_val_cc
 
 static void register_node_type_cmp_hue_sat()
 {
-  namespace file_ns = blender::nodes::node_composite_hue_sat_val_cc;
+  namespace file_ns = nodes::node_composite_hue_sat_val_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeHueSat", CMP_NODE_HUE_SAT);
   ntype.ui_name = "Hue/Saturation/Value";
@@ -117,6 +119,8 @@ static void register_node_type_cmp_hue_sat()
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_hue_sat)
+
+}  // namespace blender

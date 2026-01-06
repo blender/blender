@@ -11,10 +11,12 @@
 #include "BLI_vector_set.hh"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Strip;
 struct StripConnection;
 
-namespace blender::seq {
+namespace seq {
 
 void connections_duplicate(ListBaseT<StripConnection> *connections_dst,
                            ListBaseT<StripConnection> *connections_src);
@@ -57,4 +59,5 @@ bool is_strip_connected(const Strip *strip);
  */
 bool are_strips_connected_together(VectorSet<Strip *> &strip_list);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

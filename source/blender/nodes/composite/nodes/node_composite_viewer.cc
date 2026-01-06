@@ -6,7 +6,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_viewer_cc {
+namespace blender {
+
+namespace nodes::node_composite_viewer_cc {
 
 static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
 {
@@ -54,13 +56,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new ViewerOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_viewer_cc
+}  // namespace nodes::node_composite_viewer_cc
 
 static void register_node_type_cmp_viewer()
 {
-  namespace file_ns = blender::nodes::node_composite_viewer_cc;
+  namespace file_ns = nodes::node_composite_viewer_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeViewer", CMP_NODE_VIEWER);
   ntype.ui_name = "Viewer";
@@ -70,12 +72,14 @@ static void register_node_type_cmp_viewer()
   ntype.nclass = NODE_CLASS_OUTPUT;
   ntype.declare = file_ns::cmp_node_viewer_declare;
   ntype.initfunc = file_ns::node_composit_init_viewer;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   ntype.no_muting = true;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_viewer)
+
+}  // namespace blender

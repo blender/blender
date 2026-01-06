@@ -35,6 +35,8 @@
 
 #include "libmv-capi.h"
 
+namespace blender {
+
 /* Uncomment this to have caching-specific debug prints. */
 // #define DEBUG_CACHE
 
@@ -58,7 +60,7 @@ TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 
   map->tracks = MEM_new_array_for_free<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
 
-  map->hash = MEM_new<blender::Map<MovieTrackingTrack *, MovieTrackingTrack *>>("TracksMap hash");
+  map->hash = MEM_new<Map<MovieTrackingTrack *, MovieTrackingTrack *>>("TracksMap hash");
 
   BLI_spin_init(&map->spin_lock);
 
@@ -917,3 +919,5 @@ void tracking_image_accessor_destroy(TrackingImageAccessor *accessor)
 }
 
 /** \} */
+
+}  // namespace blender

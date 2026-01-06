@@ -22,7 +22,9 @@
 #include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
 
-namespace blender::bke::pbvh::pixels {
+namespace blender {
+
+namespace bke::pbvh::pixels {
 
 /**
  * Calculate the delta of two neighbor UV coordinates in the given image buffer.
@@ -337,7 +339,7 @@ static bool update_pixels(const Depsgraph &depsgraph,
     return false;
   }
 
-  const Mesh &mesh = *blender::id_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const StringRef active_uv_name = mesh.active_uv_map_name();
   if (active_uv_name.is_empty()) {
     return false;
@@ -476,9 +478,9 @@ void collect_dirty_tiles(Node &node, Vector<image::TileNumber> &r_dirty_tiles)
   node_data->collect_dirty_tiles(r_dirty_tiles);
 }
 
-}  // namespace blender::bke::pbvh::pixels
+}  // namespace bke::pbvh::pixels
 
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user)
 {
@@ -505,4 +507,5 @@ void pixels_free(Tree *pbvh)
   pbvh->pixels_ = nullptr;
 }
 
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
+}  // namespace blender

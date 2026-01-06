@@ -15,11 +15,12 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
+struct Depsgraph;
 struct bNode;
 struct Material;
-struct Depsgraph;
-
-namespace blender::nodes::materialx {
+namespace nodes::materialx {
 
 /*
  * Wrapper around MaterialX graph.
@@ -66,4 +67,5 @@ struct NodeGraph {
   std::string node_name_prefix_;
 };
 
-}  // namespace blender::nodes::materialx
+}  // namespace nodes::materialx
+}  // namespace blender

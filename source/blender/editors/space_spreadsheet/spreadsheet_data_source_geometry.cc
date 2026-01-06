@@ -51,9 +51,11 @@
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 
+namespace blender {
+
 uint64_t SpreadsheetInstanceID::hash() const
 {
-  return blender::get_default_hash(this->reference_index);
+  return get_default_hash(this->reference_index);
 }
 
 bool operator==(const SpreadsheetInstanceID &a, const SpreadsheetInstanceID &b)
@@ -76,7 +78,7 @@ bool operator!=(const SpreadsheetBundlePathElem &a, const SpreadsheetBundlePathE
   return !(a == b);
 }
 
-namespace blender::ed::spreadsheet {
+namespace ed::spreadsheet {
 
 static void add_mesh_debug_column_names(
     const Mesh &mesh,
@@ -533,7 +535,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       BLI_assert(object_orig_->type == OB_MESH);
       BLI_assert(object_orig_->mode == OB_MODE_EDIT);
       const Mesh *mesh_eval = geometry_set_.get_mesh();
-      const Mesh *mesh_orig = blender::id_cast<const Mesh *>(object_orig_->data);
+      const Mesh *mesh_orig = id_cast<const Mesh *>(object_orig_->data);
       return calc_mesh_selection_mask(*mesh_eval, *mesh_orig, domain_, memory);
     }
     case bke::GeometryComponent::Type::Curve: {
@@ -1056,7 +1058,7 @@ bke::SocketValueVariant geometry_display_data_get(const SpaceSpreadsheet *ssprea
   if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     const Object *object_orig = DEG_get_original(object_eval);
     if (object_orig->type == OB_MESH) {
-      const Mesh *mesh = blender::id_cast<const Mesh *>(object_orig->data);
+      const Mesh *mesh = id_cast<const Mesh *>(object_orig->data);
       if (object_orig->mode == OB_MODE_EDIT) {
         if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
           Mesh *new_mesh = BKE_id_new_nomain<Mesh>(nullptr);
@@ -1073,18 +1075,17 @@ bke::SocketValueVariant geometry_display_data_get(const SpaceSpreadsheet *ssprea
       }
     }
     else if (object_orig->type == OB_POINTCLOUD) {
-      const PointCloud *pointcloud = blender::id_cast<const PointCloud *>(object_orig->data);
+      const PointCloud *pointcloud = id_cast<const PointCloud *>(object_orig->data);
       return bke::SocketValueVariant::From(bke::GeometrySet::from_pointcloud(
           const_cast<PointCloud *>(pointcloud), bke::GeometryOwnershipType::ReadOnly));
     }
     else if (object_orig->type == OB_CURVES) {
-      const Curves &curves_id = *blender::id_cast<const Curves *>(object_orig->data);
+      const Curves &curves_id = *id_cast<const Curves *>(object_orig->data);
       return bke::SocketValueVariant::From(bke::GeometrySet::from_curves(
           &const_cast<Curves &>(curves_id), bke::GeometryOwnershipType::ReadOnly));
     }
     else if (object_orig->type == OB_GREASE_PENCIL) {
-      const GreasePencil &grease_pencil = *blender::id_cast<const GreasePencil *>(
-          object_orig->data);
+      const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(object_orig->data);
       return bke::SocketValueVariant::From(bke::GeometrySet::from_grease_pencil(
           &const_cast<GreasePencil &>(grease_pencil), bke::GeometryOwnershipType::ReadOnly));
     }
@@ -1262,4 +1263,5 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   return std::make_unique<SingleValueDataSource>(ptr);
 }
 
-}  // namespace blender::ed::spreadsheet
+}  // namespace ed::spreadsheet
+}  // namespace blender

@@ -302,7 +302,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
   if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
     if (id_type == ID_IM) {
-      Image *ima = blender::id_cast<Image *>(id);
+      Image *ima = id_cast<Image *>(id);
       PointerRNA itemptr;
       char dir[FILE_MAX], file[FILE_MAX];
       BLI_path_split_dir_file(ima->filepath, dir, sizeof(dir), file, sizeof(file));
@@ -312,12 +312,12 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       RNA_string_set(&itemptr, "name", file);
     }
     else if (id_type == ID_MC) {
-      MovieClip *clip = blender::id_cast<MovieClip *>(id);
+      MovieClip *clip = id_cast<MovieClip *>(id);
       RNA_string_set(drop->ptr, "filepath", clip->filepath);
       RNA_struct_property_unset(drop->ptr, "name");
     }
     else if (id_type == ID_SO) {
-      bSound *sound = blender::id_cast<bSound *>(id);
+      bSound *sound = id_cast<bSound *>(id);
       RNA_string_set(drop->ptr, "filepath", sound->filepath);
       RNA_struct_property_unset(drop->ptr, "name");
     }
@@ -353,15 +353,15 @@ static void get_drag_path(const bContext *C, wmDrag *drag, char r_path[FILE_MAX]
   if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
     if (id_type == ID_IM) {
-      Image *ima = blender::id_cast<Image *>(id);
+      Image *ima = id_cast<Image *>(id);
       BLI_strncpy(r_path, ima->filepath, FILE_MAX);
     }
     else if (id_type == ID_MC) {
-      MovieClip *clip = blender::id_cast<MovieClip *>(id);
+      MovieClip *clip = id_cast<MovieClip *>(id);
       BLI_strncpy(r_path, clip->filepath, FILE_MAX);
     }
     else if (id_type == ID_SO) {
-      bSound *sound = blender::id_cast<bSound *>(id);
+      bSound *sound = id_cast<bSound *>(id);
       BLI_strncpy(r_path, sound->filepath, FILE_MAX);
     }
     BLI_path_abs(r_path, ID_BLEND_PATH_FROM_GLOBAL(id));
@@ -391,9 +391,9 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
 
   /* Sometimes the active theme is not the sequencer theme, e.g. when an operator invokes the
    * file browser. This makes sure we get the right color values for the theme. */
-  blender::ui::theme::bThemeState theme_state;
-  blender::ui::theme::theme_store(&theme_state);
-  blender::ui::theme::theme_set(SPACE_SEQ, RGN_TYPE_WINDOW);
+  ui::theme::bThemeState theme_state;
+  ui::theme::theme_store(&theme_state);
+  ui::theme::theme_set(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   if (coords->use_snapping) {
     ui::view2d_view_ortho(&region->v2d);
@@ -512,7 +512,7 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
   batch.flush_batch();
 
   /* Clean after drawing up. */
-  blender::ui::theme::theme_restore(&theme_state);
+  ui::theme::theme_restore(&theme_state);
   GPU_matrix_pop();
   GPU_blend(GPU_BLEND_NONE);
 

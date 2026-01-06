@@ -38,9 +38,11 @@
 
 #include <fmt/format.h>
 
+namespace blender {
+
 using namespace blender::asset_system;
 
-namespace blender::ed::asset_browser {
+namespace ed::asset_browser {
 
 class AssetCatalogTreeViewAllItem;
 
@@ -712,7 +714,7 @@ void file_delete_asset_catalog_filter_settings(AssetCatalogFilterSettings **filt
 bool file_set_asset_catalog_filter_settings(
     AssetCatalogFilterSettings *filter_settings,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
-    const ::bUUID &catalog_id)
+    const bUUID &catalog_id)
 {
   bool needs_update = false;
 
@@ -780,4 +782,6 @@ void file_create_asset_catalog_tree_view_in_layout(const bContext *C,
   ui::TreeViewBuilder::build_tree_view(*C, *tree_view, layout);
 }
 
-}  // namespace blender::ed::asset_browser
+}  // namespace ed::asset_browser
+
+}  // namespace blender

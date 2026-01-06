@@ -35,11 +35,13 @@
 
 #include "eevee_lightcache.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Light Probe Baking
  * \{ */
 
-namespace blender::eevee {
+namespace eevee {
 
 class LightBake {
  private:
@@ -283,7 +285,7 @@ class LightBake {
   }
 };
 
-}  // namespace blender::eevee
+}  // namespace eevee
 
 /** \} */
 
@@ -298,7 +300,7 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
                                   Main *bmain,
                                   ViewLayer *view_layer,
                                   Scene *scene,
-                                  blender::Vector<Object *> original_probes,
+                                  Vector<Object *> original_probes,
                                   std::string &report,
                                   int delay_ms,
                                   int frame)
@@ -334,7 +336,7 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
 void *EEVEE_lightbake_job_data_alloc(Main *bmain,
                                      ViewLayer *view_layer,
                                      Scene *scene,
-                                     blender::Vector<Object *> original_probes,
+                                     Vector<Object *> original_probes,
                                      std::string &report,
                                      int frame)
 {
@@ -361,3 +363,5 @@ void EEVEE_lightbake_job(void *job_data, wmJobWorkerStatus *worker_status)
 }
 
 /** \} */
+
+}  // namespace blender

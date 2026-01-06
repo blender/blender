@@ -11,13 +11,15 @@
 
 #include <optional>
 
+namespace blender {
+
+struct Depsgraph;
 struct ID;
 struct Main;
 struct Material;
 struct Object;
 struct Scene;
 struct bNode;
-struct Depsgraph;
 struct MaterialGPencilStyle;
 
 /* -------------------------------------------------------------------- */
@@ -239,3 +241,5 @@ void BKE_material_defaults_free_gpu();
 void BKE_material_eval(Depsgraph *depsgraph, Material *material);
 
 /** \} */
+
+}  // namespace blender

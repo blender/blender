@@ -51,7 +51,7 @@
 
 #include "armature_intern.hh"
 
-using namespace blender;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Unique Bone Name Utility (Edit Mode)
@@ -222,7 +222,7 @@ void ED_armature_bone_rename(Main *bmain,
     {
 
       /* we have the object using the armature */
-      if (blender::id_cast<const ID *>(arm) == ob->data) {
+      if (id_cast<const ID *>(arm) == ob->data) {
         Object *cob;
 
         /* Rename the pose channel, if it exists */
@@ -263,7 +263,7 @@ void ED_armature_bone_rename(Main *bmain,
       }
 
       /* See if an object is parented to this armature */
-      if (ob->parent && (ob->parent->data == blender::id_cast<const ID *>(arm))) {
+      if (ob->parent && (ob->parent->data == id_cast<const ID *>(arm))) {
         if (ob->partype == PARBONE) {
           /* bone name in object */
           if (STREQ(ob->parsubstr, oldname)) {
@@ -302,7 +302,7 @@ void ED_armature_bone_rename(Main *bmain,
           case eModifierType_Hook: {
             HookModifierData *hmd = reinterpret_cast<HookModifierData *>(&md);
 
-            if (hmd->object && (hmd->object->data == blender::id_cast<const ID *>(arm))) {
+            if (hmd->object && (hmd->object->data == id_cast<const ID *>(arm))) {
               if (STREQ(hmd->subtarget, oldname)) {
                 STRNCPY_UTF8(hmd->subtarget, newname);
               }
@@ -312,12 +312,12 @@ void ED_armature_bone_rename(Main *bmain,
           case eModifierType_UVWarp: {
             UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(&md);
 
-            if (umd->object_src && (umd->object_src->data == blender::id_cast<const ID *>(arm))) {
+            if (umd->object_src && (umd->object_src->data == id_cast<const ID *>(arm))) {
               if (STREQ(umd->bone_src, oldname)) {
                 STRNCPY_UTF8(umd->bone_src, newname);
               }
             }
-            if (umd->object_dst && (umd->object_dst->data == blender::id_cast<const ID *>(arm))) {
+            if (umd->object_dst && (umd->object_dst->data == id_cast<const ID *>(arm))) {
               if (STREQ(umd->bone_dst, oldname)) {
                 STRNCPY_UTF8(umd->bone_dst, newname);
               }
@@ -331,9 +331,9 @@ void ED_armature_bone_rename(Main *bmain,
 
       /* fix camera focus */
       if (ob->type == OB_CAMERA) {
-        Camera *cam = blender::id_cast<Camera *>(ob->data);
+        Camera *cam = id_cast<Camera *>(ob->data);
         if ((cam->dof.focus_object != nullptr) &&
-            (cam->dof.focus_object->data == blender::id_cast<const ID *>(arm)))
+            (cam->dof.focus_object->data == id_cast<const ID *>(arm)))
         {
           if (STREQ(cam->dof.focus_subtarget, oldname)) {
             STRNCPY_UTF8(cam->dof.focus_subtarget, newname);
@@ -343,8 +343,7 @@ void ED_armature_bone_rename(Main *bmain,
       }
 
       if (ob->type == OB_GREASE_PENCIL) {
-        using namespace blender;
-        GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
+        GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob->data);
         for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
           Object *parent = layer->parent;
           if (parent == nullptr) {
@@ -382,7 +381,7 @@ void ED_armature_bone_rename(Main *bmain,
           for (SpaceLink &sl : area.spacedata) {
             if (sl.spacetype == SPACE_VIEW3D) {
               View3D *v3d = reinterpret_cast<View3D *>(&sl);
-              if (v3d->ob_center && v3d->ob_center->data == blender::id_cast<const ID *>(arm)) {
+              if (v3d->ob_center && v3d->ob_center->data == id_cast<const ID *>(arm)) {
                 if (STREQ(v3d->ob_center_bone, oldname)) {
                   STRNCPY_UTF8(v3d->ob_center_bone, newname);
                 }
@@ -463,7 +462,7 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
 
     /* Paranoia check. */
     if (ob_active->pose == nullptr) {
@@ -473,7 +472,7 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
     ListBaseT<LinkData> bones_names = {nullptr};
 
     for (EditBone &ebone : *arm->edbo) {
-      if (blender::animrig::bone_is_selected(arm, &ebone)) {
+      if (animrig::bone_is_selected(arm, &ebone)) {
         BLI_addtail(&bones_names, BLI_genericNodeN(ebone.name));
 
         if (arm->flag & ARM_MIRROR_EDIT) {
@@ -547,7 +546,7 @@ static wmOperatorStatus armature_autoside_names_exec(bContext *C, wmOperator *op
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     /* Paranoia checks. */
@@ -623,3 +622,5 @@ void ARMATURE_OT_autoside_names(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

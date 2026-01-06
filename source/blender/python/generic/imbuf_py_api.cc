@@ -27,6 +27,8 @@
 #include <cerrno>
 #include <fcntl.h>
 
+namespace blender {
+
 static PyObject *BPyInit_imbuf_types();
 
 static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf);
@@ -862,3 +864,5 @@ ImBuf *BPy_ImBuf_FromPyObject(PyObject *py_imbuf)
 }
 
 /** \} */
+
+}  // namespace blender

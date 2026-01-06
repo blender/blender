@@ -7,7 +7,8 @@
 #include "BLI_color.hh"
 #include "BLI_math_interp.hh"
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::math;
 
 static constexpr float float_tolerance = 0.00005f;
@@ -501,3 +502,5 @@ TEST(math_interp, CubicMitchellFloatPartiallyOutsideImage)
   res = interpolate_cubic_mitchell_fl(image_fl[0][0], image_width, image_height, 2.2f, -0.1f);
   EXPECT_V4_NEAR(exp3, res, float_tolerance);
 }
+
+}  // namespace blender

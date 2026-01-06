@@ -27,6 +27,8 @@
 #define LISTBASE_FOREACH_BACKWARD(type, var, list) \
   for (type var = (type)((list)->last); var != nullptr; var = (type)(((Link *)(var))->prev))
 
+namespace blender {
+
 void BLI_movelisttolist(ListBase *dst, ListBase *src)
 {
   if (src->first == nullptr) {
@@ -945,3 +947,5 @@ LinkData *BLI_genericNodeN(void *data)
 
   return ld;
 }
+
+}  // namespace blender

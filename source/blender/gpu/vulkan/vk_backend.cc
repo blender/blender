@@ -36,9 +36,11 @@
 
 #include "vk_backend.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 static const char *vk_extension_get(int index)
 {
@@ -757,4 +759,5 @@ void VKBackend::capabilities_init(VKDevice &device)
   detect_workarounds(device);
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

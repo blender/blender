@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace blender {
+
 void register_node_tree_type_sh();
 
 void register_node_type_sh_group();
@@ -108,3 +110,5 @@ void register_node_type_sh_volume_scatter();
 void register_node_type_sh_volume_coefficients();
 void register_node_type_sh_wavelength();
 void register_node_type_sh_wireframe();
+
+}  // namespace blender

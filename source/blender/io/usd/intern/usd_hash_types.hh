@@ -11,6 +11,7 @@
 #include <pxr/usd/sdf/valueTypeName.h>
 
 namespace blender {
+
 template<> struct DefaultHash<pxr::SdfValueTypeName> {
   uint64_t operator()(const pxr::SdfValueTypeName &value) const
   {
@@ -31,4 +32,5 @@ template<> struct DefaultHash<pxr::SdfPath> {
     return value.GetHash();
   }
 };
+
 }  // namespace blender

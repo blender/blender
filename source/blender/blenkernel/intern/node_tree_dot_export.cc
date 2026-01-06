@@ -33,7 +33,7 @@ void bNodeTreeToDotOptions::add_edge_attributes(const bNodeLink &link,
 
 std::string node_tree_to_dot(const bNodeTree &tree, const bNodeTreeToDotOptions &options)
 {
-  namespace dot = blender::dot_export;
+  namespace dot = dot_export;
   tree.ensure_topology_cache();
 
   dot_export::DirectedGraph digraph;

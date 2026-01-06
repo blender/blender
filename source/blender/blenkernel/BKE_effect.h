@@ -9,9 +9,11 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Collection;
-struct Depsgraph;
 struct ColliderCache;
+struct Depsgraph;
 struct RNG;
 struct Object;
 struct ParticleData;
@@ -274,3 +276,5 @@ void BKE_sim_debug_data_remove_element(unsigned int hash);
 
 void BKE_sim_debug_data_clear(void);
 void BKE_sim_debug_data_clear_category(const char *category);
+
+}  // namespace blender

@@ -40,6 +40,8 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_node_socket_in_out_items[] = {{SOCK_IN, "IN", 0, "Input", ""},
                                                               {SOCK_OUT, "OUT", 0, "Output", ""},
                                                               {0, nullptr, 0, nullptr, nullptr}};
@@ -72,27 +74,27 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
 };
 
 const EnumPropertyItem rna_enum_node_color_tag_items[] = {
-    {int(blender::bke::NodeColorTag::None),
+    {int(bke::NodeColorTag::None),
      "NONE",
      0,
      "None",
      "Default color tag for new nodes and node groups"},
-    {int(blender::bke::NodeColorTag::Attribute), "ATTRIBUTE", 0, "Attribute", ""},
-    {int(blender::bke::NodeColorTag::Color), "COLOR", 0, "Color", ""},
-    {int(blender::bke::NodeColorTag::Converter), "CONVERTER", 0, "Converter", ""},
-    {int(blender::bke::NodeColorTag::Distort), "DISTORT", 0, "Distort", ""},
-    {int(blender::bke::NodeColorTag::Filter), "FILTER", 0, "Filter", ""},
-    {int(blender::bke::NodeColorTag::Geometry), "GEOMETRY", 0, "Geometry", ""},
-    {int(blender::bke::NodeColorTag::Input), "INPUT", 0, "Input", ""},
-    {int(blender::bke::NodeColorTag::Matte), "MATTE", 0, "Matte", ""},
-    {int(blender::bke::NodeColorTag::Output), "OUTPUT", 0, "Output", ""},
-    {int(blender::bke::NodeColorTag::Script), "SCRIPT", 0, "Script", ""},
-    {int(blender::bke::NodeColorTag::Shader), "SHADER", 0, "Shader", ""},
-    {int(blender::bke::NodeColorTag::Texture), "TEXTURE", 0, "Texture", ""},
-    {int(blender::bke::NodeColorTag::Vector), "VECTOR", 0, "Vector", ""},
-    {int(blender::bke::NodeColorTag::Pattern), "PATTERN", 0, "Pattern", ""},
-    {int(blender::bke::NodeColorTag::Interface), "INTERFACE", 0, "Interface", ""},
-    {int(blender::bke::NodeColorTag::Group), "GROUP", 0, "Group", ""},
+    {int(bke::NodeColorTag::Attribute), "ATTRIBUTE", 0, "Attribute", ""},
+    {int(bke::NodeColorTag::Color), "COLOR", 0, "Color", ""},
+    {int(bke::NodeColorTag::Converter), "CONVERTER", 0, "Converter", ""},
+    {int(bke::NodeColorTag::Distort), "DISTORT", 0, "Distort", ""},
+    {int(bke::NodeColorTag::Filter), "FILTER", 0, "Filter", ""},
+    {int(bke::NodeColorTag::Geometry), "GEOMETRY", 0, "Geometry", ""},
+    {int(bke::NodeColorTag::Input), "INPUT", 0, "Input", ""},
+    {int(bke::NodeColorTag::Matte), "MATTE", 0, "Matte", ""},
+    {int(bke::NodeColorTag::Output), "OUTPUT", 0, "Output", ""},
+    {int(bke::NodeColorTag::Script), "SCRIPT", 0, "Script", ""},
+    {int(bke::NodeColorTag::Shader), "SHADER", 0, "Shader", ""},
+    {int(bke::NodeColorTag::Texture), "TEXTURE", 0, "Texture", ""},
+    {int(bke::NodeColorTag::Vector), "VECTOR", 0, "Vector", ""},
+    {int(bke::NodeColorTag::Pattern), "PATTERN", 0, "Pattern", ""},
+    {int(bke::NodeColorTag::Interface), "INTERFACE", 0, "Interface", ""},
+    {int(bke::NodeColorTag::Group), "GROUP", 0, "Group", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -602,6 +604,8 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #undef ITEM_COLOR
 #undef ITEM_BOOLEAN
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
@@ -664,26 +668,27 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 
 #  include "DEG_depsgraph_query.hh"
 
-using blender::float2;
-using blender::nodes::BakeItemsAccessor;
-using blender::nodes::CaptureAttributeItemsAccessor;
-using blender::nodes::ClosureInputItemsAccessor;
-using blender::nodes::ClosureOutputItemsAccessor;
-using blender::nodes::CombineBundleItemsAccessor;
-using blender::nodes::EvaluateClosureInputItemsAccessor;
-using blender::nodes::EvaluateClosureOutputItemsAccessor;
-using blender::nodes::FieldToGridItemsAccessor;
-using blender::nodes::FileOutputItemsAccessor;
-using blender::nodes::ForeachGeometryElementGenerationItemsAccessor;
-using blender::nodes::ForeachGeometryElementInputItemsAccessor;
-using blender::nodes::ForeachGeometryElementMainItemsAccessor;
-using blender::nodes::FormatStringItemsAccessor;
-using blender::nodes::GeoViewerItemsAccessor;
-using blender::nodes::IndexSwitchItemsAccessor;
-using blender::nodes::MenuSwitchItemsAccessor;
-using blender::nodes::RepeatItemsAccessor;
-using blender::nodes::SeparateBundleItemsAccessor;
-using blender::nodes::SimulationItemsAccessor;
+namespace blender {
+
+using nodes::BakeItemsAccessor;
+using nodes::CaptureAttributeItemsAccessor;
+using nodes::ClosureInputItemsAccessor;
+using nodes::ClosureOutputItemsAccessor;
+using nodes::CombineBundleItemsAccessor;
+using nodes::EvaluateClosureInputItemsAccessor;
+using nodes::EvaluateClosureOutputItemsAccessor;
+using nodes::FieldToGridItemsAccessor;
+using nodes::FileOutputItemsAccessor;
+using nodes::ForeachGeometryElementGenerationItemsAccessor;
+using nodes::ForeachGeometryElementInputItemsAccessor;
+using nodes::ForeachGeometryElementMainItemsAccessor;
+using nodes::FormatStringItemsAccessor;
+using nodes::GeoViewerItemsAccessor;
+using nodes::IndexSwitchItemsAccessor;
+using nodes::MenuSwitchItemsAccessor;
+using nodes::RepeatItemsAccessor;
+using nodes::SeparateBundleItemsAccessor;
+using nodes::SimulationItemsAccessor;
 
 extern FunctionRNA rna_NodeTree_poll_func;
 extern FunctionRNA rna_NodeTree_update_func;
@@ -704,7 +709,6 @@ void rna_Node_socket_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr);
 
 int rna_node_tree_idname_to_enum(const char *idname)
 {
-  using namespace blender;
   Span<const bke::bNodeTreeType *> types = bke::node_tree_types_get();
   for (const int i : types.index_range()) {
     const bke::bNodeTreeType *nt = types[i];
@@ -715,16 +719,16 @@ int rna_node_tree_idname_to_enum(const char *idname)
   return -1;
 }
 
-blender::bke::bNodeTreeType *rna_node_tree_type_from_enum(int value)
+bke::bNodeTreeType *rna_node_tree_type_from_enum(int value)
 {
-  blender::Span<blender::bke::bNodeTreeType *> types = blender::bke::node_tree_types_get();
+  Span<bke::bNodeTreeType *> types = bke::node_tree_types_get();
   return types.index_range().contains(value) ? types[value] : nullptr;
 }
 
-const EnumPropertyItem *rna_node_tree_type_itemf(
-    void *data, bool (*poll)(void *data, blender::bke::bNodeTreeType *), bool *r_free)
+const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
+                                                 bool (*poll)(void *data, bke::bNodeTreeType *),
+                                                 bool *r_free)
 {
-  using namespace blender;
   EnumPropertyItem tmp = {0};
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
@@ -758,8 +762,6 @@ const EnumPropertyItem *rna_node_tree_type_itemf(
 
 int rna_node_socket_idname_to_enum(const char *idname)
 {
-  using namespace blender;
-
   bke::bNodeSocketType *socket_type = bke::node_socket_type_find(idname);
 
   /* Regular socket types use the base type as their enum value.
@@ -774,16 +776,15 @@ int rna_node_socket_idname_to_enum(const char *idname)
   return bke::node_socket_types_get().first_index(base_socket_type);
 }
 
-blender::bke::bNodeSocketType *rna_node_socket_type_from_enum(int value)
+bke::bNodeSocketType *rna_node_socket_type_from_enum(int value)
 {
-  blender::Span<blender::bke::bNodeSocketType *> types = blender::bke::node_socket_types_get();
+  Span<bke::bNodeSocketType *> types = bke::node_socket_types_get();
   return types.index_range().contains(value) ? types[value] : nullptr;
 }
 
 const EnumPropertyItem *rna_node_socket_type_itemf(
-    void *data, bool (*poll)(void *data, blender::bke::bNodeSocketType *), bool *r_free)
+    void *data, bool (*poll)(void *data, bke::bNodeSocketType *), bool *r_free)
 {
-  using namespace blender;
   EnumPropertyItem *item = nullptr;
   EnumPropertyItem tmp = {0};
   int totitem = 0;
@@ -800,7 +801,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(
     tmp.value = i;
     tmp.identifier = stype->idname.c_str();
     tmp.icon = RNA_struct_ui_icon(srna);
-    tmp.name = blender::bke::node_socket_type_label(*stype).c_str();
+    tmp.name = bke::node_socket_type_label(*stype).c_str();
     tmp.description = RNA_struct_ui_description(srna);
 
     RNA_enum_item_add(&item, &totitem, &tmp);
@@ -820,7 +821,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(
 static const char *get_legacy_node_type(const PointerRNA *ptr)
 {
   const bNode *node = ptr->data_as<bNode>();
-  const blender::bke::bNodeType *ntype = node->typeinfo;
+  const bke::bNodeType *ntype = node->typeinfo;
   if (ntype->type_legacy == NODE_CUSTOM) {
     return "CUSTOM";
   }
@@ -853,63 +854,63 @@ static void rna_node_type_get(PointerRNA *ptr, char *value)
 static void rna_Node_bl_idname_get(PointerRNA *ptr, char *value)
 {
   const bNode *node = ptr->data_as<bNode>();
-  const blender::bke::bNodeType *ntype = node->typeinfo;
-  blender::StringRef(ntype->idname).copy_unsafe(value);
+  const bke::bNodeType *ntype = node->typeinfo;
+  StringRef(ntype->idname).copy_unsafe(value);
 }
 
 static int rna_Node_bl_idname_length(PointerRNA *ptr)
 {
   const bNode *node = ptr->data_as<bNode>();
-  const blender::bke::bNodeType *ntype = node->typeinfo;
+  const bke::bNodeType *ntype = node->typeinfo;
   return ntype->idname.size();
 }
 
 static void rna_Node_bl_idname_set(PointerRNA *ptr, const char *value)
 {
   bNode *node = ptr->data_as<bNode>();
-  blender::bke::bNodeType *ntype = node->typeinfo;
+  bke::bNodeType *ntype = node->typeinfo;
   ntype->idname = value;
 }
 
 static void rna_Node_bl_label_get(PointerRNA *ptr, char *value)
 {
   const bNode *node = ptr->data_as<bNode>();
-  const blender::bke::bNodeType *ntype = node->typeinfo;
-  blender::StringRef(ntype->ui_name).copy_unsafe(value);
+  const bke::bNodeType *ntype = node->typeinfo;
+  StringRef(ntype->ui_name).copy_unsafe(value);
 }
 
 static int rna_Node_bl_label_length(PointerRNA *ptr)
 {
   const bNode *node = ptr->data_as<bNode>();
-  const blender::bke::bNodeType *ntype = node->typeinfo;
+  const bke::bNodeType *ntype = node->typeinfo;
   return ntype->ui_name.size();
 }
 
 static void rna_Node_bl_label_set(PointerRNA *ptr, const char *value)
 {
   bNode *node = ptr->data_as<bNode>();
-  blender::bke::bNodeType *ntype = node->typeinfo;
+  bke::bNodeType *ntype = node->typeinfo;
   ntype->ui_name = value;
 }
 
 static void rna_Node_bl_description_get(PointerRNA *ptr, char *value)
 {
   const bNode *node = ptr->data_as<bNode>();
-  const blender::bke::bNodeType *ntype = node->typeinfo;
-  blender::StringRef(ntype->ui_description).copy_unsafe(value);
+  const bke::bNodeType *ntype = node->typeinfo;
+  StringRef(ntype->ui_description).copy_unsafe(value);
 }
 
 static int rna_Node_bl_description_length(PointerRNA *ptr)
 {
   const bNode *node = ptr->data_as<bNode>();
-  const blender::bke::bNodeType *ntype = node->typeinfo;
+  const bke::bNodeType *ntype = node->typeinfo;
   return ntype->ui_description.size();
 }
 
 static void rna_Node_bl_description_set(PointerRNA *ptr, const char *value)
 {
   bNode *node = ptr->data_as<bNode>();
-  blender::bke::bNodeType *ntype = node->typeinfo;
+  bke::bNodeType *ntype = node->typeinfo;
   ntype->ui_description = value;
 }
 
@@ -960,7 +961,7 @@ static StructRNA *rna_NodeTree_refine(PointerRNA *ptr)
   }
 }
 
-static bool rna_NodeTree_poll(const bContext *C, blender::bke::bNodeTreeType *ntreetype)
+static bool rna_NodeTree_poll(const bContext *C, bke::bNodeTreeType *ntreetype)
 {
   ParameterList list;
   FunctionRNA *func;
@@ -997,11 +998,8 @@ static void rna_NodeTree_update_reg(bNodeTree *ntree)
   RNA_parameter_list_free(&list);
 }
 
-static void rna_NodeTree_get_from_context(const bContext *C,
-                                          blender::bke::bNodeTreeType *ntreetype,
-                                          bNodeTree **r_ntree,
-                                          ID **r_id,
-                                          ID **r_from)
+static void rna_NodeTree_get_from_context(
+    const bContext *C, bke::bNodeTreeType *ntreetype, bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
   ParameterList list;
   FunctionRNA *func;
@@ -1026,8 +1024,8 @@ static void rna_NodeTree_get_from_context(const bContext *C,
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_NodeTree_valid_socket_type(blender::bke::bNodeTreeType *ntreetype,
-                                           blender::bke::bNodeSocketType *socket_type)
+static bool rna_NodeTree_valid_socket_type(bke::bNodeTreeType *ntreetype,
+                                           bke::bNodeSocketType *socket_type)
 {
   ParameterList list;
   FunctionRNA *func;
@@ -1052,8 +1050,7 @@ static bool rna_NodeTree_valid_socket_type(blender::bke::bNodeTreeType *ntreetyp
 
 static bool rna_NodeTree_unregister(Main *bmain, StructRNA *type)
 {
-  blender::bke::bNodeTreeType *nt = static_cast<blender::bke::bNodeTreeType *>(
-      RNA_struct_blender_type_get(type));
+  bke::bNodeTreeType *nt = static_cast<bke::bNodeTreeType *>(RNA_struct_blender_type_get(type));
 
   if (!nt) {
     return false;
@@ -1062,7 +1059,7 @@ static bool rna_NodeTree_unregister(Main *bmain, StructRNA *type)
   RNA_struct_free_extension(type, &nt->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
-  blender::bke::node_tree_type_free_link(*nt);
+  bke::node_tree_type_free_link(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -1078,12 +1075,12 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                                         StructCallbackFunc call,
                                         StructFreeFunc free)
 {
-  blender::bke::bNodeTreeType *nt;
+  bke::bNodeTreeType *nt;
   bNodeTree dummy_ntree = {};
   bool have_function[4];
 
   /* setup dummy tree & tree type to store static properties in */
-  blender::bke::bNodeTreeType dummy_nt = {};
+  bke::bNodeTreeType dummy_nt = {};
   dummy_ntree.typeinfo = &dummy_nt;
   PointerRNA dummy_ntree_ptr = RNA_pointer_create_discrete(nullptr, &RNA_NodeTree, &dummy_ntree);
 
@@ -1102,7 +1099,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   }
 
   /* check if we have registered this tree type before, and remove it */
-  nt = blender::bke::node_tree_type_find(dummy_nt.idname);
+  nt = bke::node_tree_type_find(dummy_nt.idname);
   if (nt) {
     BKE_reportf(reports,
                 RPT_INFO,
@@ -1123,7 +1120,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   }
 
   /* create a new node tree type */
-  nt = MEM_new<blender::bke::bNodeTreeType>(__func__, dummy_nt);
+  nt = MEM_new<bke::bNodeTreeType>(__func__, dummy_nt);
 
   nt->type = NTREE_CUSTOM;
 
@@ -1141,7 +1138,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   nt->get_from_context = (have_function[2]) ? rna_NodeTree_get_from_context : nullptr;
   nt->valid_socket_type = (have_function[3]) ? rna_NodeTree_valid_socket_type : nullptr;
 
-  blender::bke::node_tree_type_add(*nt);
+  bke::node_tree_type_add(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -1151,7 +1148,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
 
 static bool rna_NodeTree_check(bNodeTree *ntree, ReportList *reports)
 {
-  if (!blender::bke::node_tree_is_registered(*ntree)) {
+  if (!bke::node_tree_is_registered(*ntree)) {
     if (reports) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -1180,7 +1177,7 @@ static void rna_NodeTree_update_asset(Main *bmain, Scene *scene, PointerRNA *ptr
 {
   rna_NodeTree_update(bmain, scene, ptr);
   WM_main_add_notifier(NC_NODE | ND_NODE_ASSET_DATA, nullptr);
-  blender::bke::node_update_asset_metadata(*reinterpret_cast<bNodeTree *>(ptr->owner_id));
+  bke::node_update_asset_metadata(*reinterpret_cast<bNodeTree *>(ptr->owner_id));
 }
 
 static const EnumPropertyItem *rna_NodeTree_color_tag_itemf(bContext * /*C*/,
@@ -1194,32 +1191,32 @@ static const EnumPropertyItem *rna_NodeTree_color_tag_itemf(bContext * /*C*/,
   int items_num = 0;
 
   for (const EnumPropertyItem *item = rna_enum_node_color_tag_items; item->identifier; item++) {
-    switch (blender::bke::NodeColorTag(item->value)) {
-      case blender::bke::NodeColorTag::Attribute:
-      case blender::bke::NodeColorTag::Geometry: {
+    switch (bke::NodeColorTag(item->value)) {
+      case bke::NodeColorTag::Attribute:
+      case bke::NodeColorTag::Geometry: {
         if (ntree.type == NTREE_GEOMETRY) {
           RNA_enum_item_add(&items, &items_num, item);
         }
         break;
       }
-      case blender::bke::NodeColorTag::Shader:
-      case blender::bke::NodeColorTag::Script: {
+      case bke::NodeColorTag::Shader:
+      case bke::NodeColorTag::Script: {
         if (ntree.type == NTREE_SHADER) {
           RNA_enum_item_add(&items, &items_num, item);
         }
         break;
       }
-      case blender::bke::NodeColorTag::Distort:
-      case blender::bke::NodeColorTag::Filter:
-      case blender::bke::NodeColorTag::Matte: {
+      case bke::NodeColorTag::Distort:
+      case bke::NodeColorTag::Filter:
+      case bke::NodeColorTag::Matte: {
         if (ntree.type == NTREE_COMPOSIT) {
           RNA_enum_item_add(&items, &items_num, item);
         }
         break;
       }
-      case blender::bke::NodeColorTag::Pattern:
-      case blender::bke::NodeColorTag::Interface:
-      case blender::bke::NodeColorTag::Group: {
+      case bke::NodeColorTag::Pattern:
+      case bke::NodeColorTag::Interface:
+      case bke::NodeColorTag::Group: {
         break;
       }
       default: {
@@ -1238,9 +1235,9 @@ static const EnumPropertyItem *rna_NodeTree_color_tag_itemf(bContext * /*C*/,
 static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
                                     bContext *C,
                                     ReportList *reports,
-                                    blender::StringRefNull type)
+                                    StringRefNull type)
 {
-  blender::bke::bNodeType *ntype;
+  bke::bNodeType *ntype;
   bNode *node;
 
   if (!rna_NodeTree_check(ntree, reports)) {
@@ -1248,9 +1245,9 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
   }
 
   /* If the given idname is an alias, translate it to the proper idname. */
-  type = blender::bke::node_type_find_alias(type);
+  type = bke::node_type_find_alias(type);
 
-  ntype = blender::bke::node_type_find(type);
+  ntype = bke::node_type_find(type);
   if (!ntype) {
     BKE_reportf(reports, RPT_ERROR, "Node type %s undefined", type.c_str());
     return nullptr;
@@ -1277,7 +1274,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
     }
   }
 
-  node = blender::bke::node_add_node(C, *ntree, type);
+  node = bke::node_add_node(C, *ntree, type);
   BLI_assert(node && node->typeinfo);
 
   if (ntree->type == NTREE_TEXTURE) {
@@ -1307,7 +1304,7 @@ static void rna_NodeTree_node_remove(bNodeTree *ntree,
     return;
   }
 
-  blender::bke::node_remove_node(bmain, *ntree, *node, true);
+  bke::node_remove_node(bmain, *ntree, *node, true);
 
   node_ptr->invalidate();
 
@@ -1326,7 +1323,7 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree, Main *bmain, ReportList *r
   while (node) {
     bNode *next_node = node->next;
 
-    blender::bke::node_remove_node(bmain, *ntree, *node, true);
+    bke::node_remove_node(bmain, *ntree, *node, true);
 
     node = next_node;
   }
@@ -1338,7 +1335,7 @@ static void rna_NodeTree_node_clear(bNodeTree *ntree, Main *bmain, ReportList *r
 static PointerRNA rna_NodeTree_active_node_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = ptr->data_as<bNodeTree>();
-  bNode *node = blender::bke::node_get_active(*ntree);
+  bNode *node = bke::node_get_active(*ntree);
   return RNA_pointer_create_with_parent(*ptr, &RNA_Node, node);
 }
 
@@ -1350,7 +1347,7 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr,
   bNode *node = static_cast<bNode *>(value.data);
 
   if (node && BLI_findindex(&ntree->nodes, node) != -1) {
-    blender::bke::node_set_active(*ntree, *node);
+    bke::node_set_active(*ntree, *node);
 
     /* Handle NODE_DO_OUTPUT as well. */
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->type_legacy != CMP_NODE_OUTPUT_FILE) {
@@ -1362,12 +1359,12 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr,
         }
       }
       node->flag |= NODE_DO_OUTPUT;
-      blender::bke::node_tree_set_output(*ntree);
+      bke::node_tree_set_output(*ntree);
       BKE_ntree_update_tag_active_output_changed(ntree);
     }
   }
   else {
-    blender::bke::node_clear_active(*ntree);
+    bke::node_clear_active(*ntree);
   }
 }
 
@@ -1413,8 +1410,8 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     return nullptr;
   }
 
-  bNode *fromnode = blender::bke::node_find_node_try(*ntree, *fromsock);
-  bNode *tonode = blender::bke::node_find_node_try(*ntree, *tosock);
+  bNode *fromnode = bke::node_find_node_try(*ntree, *fromsock);
+  bNode *tonode = bke::node_find_node_try(*ntree, *tosock);
   /* check validity of the sockets:
    * if sockets from different trees are passed in this will fail!
    */
@@ -1440,13 +1437,13 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     new_link.tosock = tosock;
 
     if (fromnode->typeinfo->insert_link) {
-      blender::bke::NodeInsertLinkParams params{*ntree, *fromnode, new_link};
+      bke::NodeInsertLinkParams params{*ntree, *fromnode, new_link};
       if (!fromnode->typeinfo->insert_link(params)) {
         return nullptr;
       }
     }
     if (tonode->typeinfo->insert_link) {
-      blender::bke::NodeInsertLinkParams params{*ntree, *tonode, new_link};
+      bke::NodeInsertLinkParams params{*ntree, *tonode, new_link};
       if (!tonode->typeinfo->insert_link(params)) {
         return nullptr;
       }
@@ -1458,26 +1455,24 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
 
   if (verify_limits) {
     /* remove other socket links if limit is exceeded */
-    if (blender::bke::node_count_socket_links(*ntree, *fromsock) + 1 >
-        blender::bke::node_socket_link_limit(*fromsock))
+    if (bke::node_count_socket_links(*ntree, *fromsock) + 1 >
+        bke::node_socket_link_limit(*fromsock))
     {
-      blender::bke::node_remove_socket_links(*ntree, *fromsock);
+      bke::node_remove_socket_links(*ntree, *fromsock);
     }
-    if (blender::bke::node_count_socket_links(*ntree, *tosock) + 1 >
-        blender::bke::node_socket_link_limit(*tosock))
-    {
-      blender::bke::node_remove_socket_links(*ntree, *tosock);
+    if (bke::node_count_socket_links(*ntree, *tosock) + 1 > bke::node_socket_link_limit(*tosock)) {
+      bke::node_remove_socket_links(*ntree, *tosock);
     }
     if (tosock->flag & SOCK_MULTI_INPUT) {
       for (bNodeLink &link : ntree->links.items_mutable()) {
         if (link.fromsock == fromsock && link.tosock == tosock) {
-          blender::bke::node_remove_link(ntree, link);
+          bke::node_remove_link(ntree, link);
         }
       }
     }
   }
 
-  bNodeLink &ret = blender::bke::node_add_link(*ntree, *fromnode, *fromsock, *tonode, *tosock);
+  bNodeLink &ret = bke::node_add_link(*ntree, *fromnode, *fromsock, *tonode, *tosock);
 
   /* not an issue from the UI, clear hidden from API to keep valid state. */
   fromsock->flag &= ~SOCK_HIDDEN;
@@ -1505,7 +1500,7 @@ static void rna_NodeTree_link_remove(bNodeTree *ntree,
     return;
   }
 
-  blender::bke::node_remove_link(ntree, *link);
+  bke::node_remove_link(ntree, *link);
   link_ptr->invalidate();
 
   BKE_main_ensure_invariants(*bmain, ntree->id);
@@ -1523,7 +1518,7 @@ static void rna_NodeTree_link_clear(bNodeTree *ntree, Main *bmain, ReportList *r
   while (link) {
     bNodeLink *next_link = link->next;
 
-    blender::bke::node_remove_link(ntree, *link);
+    bke::node_remove_link(ntree, *link);
 
     link = next_link;
   }
@@ -1533,69 +1528,69 @@ static void rna_NodeTree_link_clear(bNodeTree *ntree, Main *bmain, ReportList *r
 
 static bool rna_NodeTree_contains_tree(bNodeTree *tree, bNodeTree *sub_tree)
 {
-  return blender::bke::node_tree_contains_tree(*tree, *sub_tree);
+  return bke::node_tree_contains_tree(*tree, *sub_tree);
 }
 
 static void rna_NodeTree_bl_idname_get(PointerRNA *ptr, char *value)
 {
   const bNodeTree *node = ptr->data_as<bNodeTree>();
-  const blender::bke::bNodeTreeType *ntype = node->typeinfo;
-  blender::StringRef(ntype->idname).copy_unsafe(value);
+  const bke::bNodeTreeType *ntype = node->typeinfo;
+  StringRef(ntype->idname).copy_unsafe(value);
 }
 
 static int rna_NodeTree_bl_idname_length(PointerRNA *ptr)
 {
   const bNodeTree *node = ptr->data_as<bNodeTree>();
-  const blender::bke::bNodeTreeType *ntype = node->typeinfo;
+  const bke::bNodeTreeType *ntype = node->typeinfo;
   return ntype->idname.size();
 }
 
 static void rna_NodeTree_bl_idname_set(PointerRNA *ptr, const char *value)
 {
   bNodeTree *node = ptr->data_as<bNodeTree>();
-  blender::bke::bNodeTreeType *ntype = node->typeinfo;
+  bke::bNodeTreeType *ntype = node->typeinfo;
   ntype->idname = value;
 }
 
 static void rna_NodeTree_bl_label_get(PointerRNA *ptr, char *value)
 {
   const bNodeTree *node = ptr->data_as<bNodeTree>();
-  const blender::bke::bNodeTreeType *ntype = node->typeinfo;
-  blender::StringRef(ntype->ui_name).copy_unsafe(value);
+  const bke::bNodeTreeType *ntype = node->typeinfo;
+  StringRef(ntype->ui_name).copy_unsafe(value);
 }
 
 static int rna_NodeTree_bl_label_length(PointerRNA *ptr)
 {
   const bNodeTree *node = ptr->data_as<bNodeTree>();
-  const blender::bke::bNodeTreeType *ntype = node->typeinfo;
+  const bke::bNodeTreeType *ntype = node->typeinfo;
   return ntype->ui_name.size();
 }
 
 static void rna_NodeTree_bl_label_set(PointerRNA *ptr, const char *value)
 {
   bNodeTree *node = ptr->data_as<bNodeTree>();
-  blender::bke::bNodeTreeType *ntype = node->typeinfo;
+  bke::bNodeTreeType *ntype = node->typeinfo;
   ntype->ui_name = value;
 }
 
 static void rna_NodeTree_bl_description_get(PointerRNA *ptr, char *value)
 {
   const bNodeTree *node = ptr->data_as<bNodeTree>();
-  const blender::bke::bNodeTreeType *ntype = node->typeinfo;
-  blender::StringRef(ntype->ui_description).copy_unsafe(value);
+  const bke::bNodeTreeType *ntype = node->typeinfo;
+  StringRef(ntype->ui_description).copy_unsafe(value);
 }
 
 static int rna_NodeTree_bl_description_length(PointerRNA *ptr)
 {
   const bNodeTree *node = ptr->data_as<bNodeTree>();
-  const blender::bke::bNodeTreeType *ntype = node->typeinfo;
+  const bke::bNodeTreeType *ntype = node->typeinfo;
   return ntype->ui_description.size();
 }
 
 static void rna_NodeTree_bl_description_set(PointerRNA *ptr, const char *value)
 {
   bNodeTree *node = ptr->data_as<bNodeTree>();
-  blender::bke::bNodeTreeType *ntype = node->typeinfo;
+  bke::bNodeTreeType *ntype = node->typeinfo;
   ntype->ui_description = value;
 }
 
@@ -1656,7 +1651,7 @@ static void rna_NodeTree_debug_zone_lazy_function_graph(
     return;
   }
   /* By creating this data we tell the evaluation that we want to log it. */
-  tree->runtime->logged_zone_graphs = std::make_unique<blender::bke::LoggedZoneGraphs>();
+  tree->runtime->logged_zone_graphs = std::make_unique<bke::LoggedZoneGraphs>();
   BLI_SCOPED_DEFER([&]() { tree->runtime->logged_zone_graphs.reset(); })
 
   /* Make sure that dependencies of this tree will be evaluated. */
@@ -1686,7 +1681,7 @@ static void rna_NodeTree_interface_update(bNodeTree *ntree, bContext *C)
 static bool rna_NodeLink_is_hidden_get(PointerRNA *ptr)
 {
   bNodeLink *link = static_cast<bNodeLink *>(ptr->data);
-  return blender::bke::node_link_is_hidden(*link);
+  return bke::node_link_is_hidden(*link);
 }
 
 static void rna_NodeLink_swap_multi_input_sort_id(
@@ -1763,7 +1758,7 @@ std::optional<std::string> rna_Node_ImageUser_path(const PointerRNA *ptr)
   return std::nullopt;
 }
 
-static bool rna_Node_poll(const blender::bke::bNodeType *ntype,
+static bool rna_Node_poll(const bke::bNodeType *ntype,
                           const bNodeTree *ntree,
                           const char ** /*r_disabled_hint*/)
 {
@@ -1835,7 +1830,7 @@ static void rna_Node_update_reg(bNodeTree *ntree, bNode *node)
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_Node_insert_link(blender::bke::NodeInsertLinkParams &params)
+static bool rna_Node_insert_link(bke::NodeInsertLinkParams &params)
 {
   ParameterList list;
   FunctionRNA *func;
@@ -1896,7 +1891,7 @@ static void rna_Node_free(PointerRNA *ptr)
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_draw_buttons(blender::ui::Layout &layout, bContext *C, PointerRNA *ptr)
+static void rna_Node_draw_buttons(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
   ParameterList list;
@@ -1906,14 +1901,14 @@ static void rna_Node_draw_buttons(blender::ui::Layout &layout, bContext *C, Poin
 
   RNA_parameter_list_create(&list, ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
-  blender::ui::Layout *layout_ptr = &layout;
+  ui::Layout *layout_ptr = &layout;
   RNA_parameter_set_lookup(&list, "layout", &layout_ptr);
   node->typeinfo->rna_ext.call(C, ptr, func, &list);
 
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_draw_buttons_ext(blender::ui::Layout &layout, bContext *C, PointerRNA *ptr)
+static void rna_Node_draw_buttons_ext(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
   ParameterList list;
@@ -1924,7 +1919,7 @@ static void rna_Node_draw_buttons_ext(blender::ui::Layout &layout, bContext *C, 
 
   RNA_parameter_list_create(&list, ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
-  blender::ui::Layout *layout_ptr = &layout;
+  ui::Layout *layout_ptr = &layout;
   RNA_parameter_set_lookup(&list, "layout", &layout_ptr);
   node->typeinfo->rna_ext.call(C, ptr, func, &list);
 
@@ -1960,7 +1955,7 @@ static bool rna_Node_is_registered_node_type(StructRNA *type)
   return (RNA_struct_blender_type_get(type) != nullptr);
 }
 
-static bool rna_Node_is_builtin(blender::bke::bNodeType *nt)
+static bool rna_Node_is_builtin(bke::bNodeType *nt)
 {
   BLI_assert(nt);
 
@@ -1980,8 +1975,7 @@ static void rna_Node_is_registered_node_type_runtime(bContext * /*C*/,
 
 static bool rna_Node_unregister(Main *bmain, StructRNA *type)
 {
-  blender::bke::bNodeType *nt = static_cast<blender::bke::bNodeType *>(
-      RNA_struct_blender_type_get(type));
+  bke::bNodeType *nt = static_cast<bke::bNodeType *>(RNA_struct_blender_type_get(type));
 
   if (!nt || rna_Node_is_builtin(nt)) {
     return false;
@@ -1991,7 +1985,7 @@ static bool rna_Node_unregister(Main *bmain, StructRNA *type)
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
   /* this also frees the allocated nt pointer, no MEM_free call needed! */
-  blender::bke::node_unregister_type(*nt);
+  bke::node_unregister_type(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -2002,25 +1996,25 @@ static bool rna_Node_unregister(Main *bmain, StructRNA *type)
 /* Generic internal registration function.
  * Can be used to implement callbacks for registerable RNA node sub-types.
  */
-static blender::bke::bNodeType *rna_Node_register_base(Main *bmain,
-                                                       ReportList *reports,
-                                                       StructRNA *basetype,
-                                                       void *data,
-                                                       const char *identifier,
-                                                       StructValidateFunc validate,
-                                                       StructCallbackFunc call,
-                                                       StructFreeFunc free)
+static bke::bNodeType *rna_Node_register_base(Main *bmain,
+                                              ReportList *reports,
+                                              StructRNA *basetype,
+                                              void *data,
+                                              const char *identifier,
+                                              StructValidateFunc validate,
+                                              StructCallbackFunc call,
+                                              StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt;
+  bke::bNodeType *nt;
   bNode dummy_node = {};
   FunctionRNA *func;
   PropertyRNA *parm;
   bool have_function[10];
 
   /* setup dummy node & node type to store static properties in */
-  blender::bke::bNodeType dummy_nt = {};
+  bke::bNodeType dummy_nt = {};
   /* this does some additional initialization of default values */
-  blender::bke::node_type_base_custom(dummy_nt, identifier, "", "CUSTOM", 0);
+  bke::node_type_base_custom(dummy_nt, identifier, "", "CUSTOM", 0);
 
   dummy_node.typeinfo = &dummy_nt;
   PointerRNA dummy_node_ptr = RNA_pointer_create_discrete(nullptr, basetype, &dummy_node);
@@ -2040,7 +2034,7 @@ static blender::bke::bNodeType *rna_Node_register_base(Main *bmain,
   }
 
   /* check if we have registered this node type before, and remove it */
-  nt = blender::bke::node_type_find(dummy_nt.idname);
+  nt = bke::node_type_find(dummy_nt.idname);
   if (nt) {
     /* If it's an internal node, we cannot proceed. */
     if (rna_Node_is_builtin(nt)) {
@@ -2071,8 +2065,8 @@ static blender::bke::bNodeType *rna_Node_register_base(Main *bmain,
   }
 
   /* create a new node type */
-  nt = MEM_new<blender::bke::bNodeType>(__func__, dummy_nt);
-  nt->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
+  nt = MEM_new<bke::bNodeType>(__func__, dummy_nt);
+  nt->free_self = [](bke::bNodeType *type) { MEM_delete(type); };
 
   nt->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), nt->idname.c_str(), basetype);
   nt->rna_ext.data = data;
@@ -2125,13 +2119,13 @@ static StructRNA *rna_Node_register(Main *bmain,
                                     StructCallbackFunc call,
                                     StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_Node, data, identifier, validate, call, free);
   if (!nt) {
     return nullptr;
   }
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -2141,7 +2135,7 @@ static StructRNA *rna_Node_register(Main *bmain,
 
 static const EnumPropertyItem *itemf_function_check(
     const EnumPropertyItem *original_item_array,
-    blender::FunctionRef<bool(const EnumPropertyItem *item)> value_supported)
+    FunctionRef<bool(const EnumPropertyItem *item)> value_supported)
 {
   EnumPropertyItem *item_array = nullptr;
   int items_len = 0;
@@ -2367,7 +2361,6 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_with_socket_it
 static const EnumPropertyItem *rna_GeometryNodeAttributeDomain_attribute_domain_itemf(
     bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
 {
-  using namespace blender;
   EnumPropertyItem *item_array = nullptr;
   int items_len = 0;
 
@@ -2390,13 +2383,13 @@ static StructRNA *rna_ShaderNode_register(Main *bmain,
                                           StructCallbackFunc call,
                                           StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_ShaderNode, data, identifier, validate, call, free);
   if (!nt) {
     return nullptr;
   }
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -2412,13 +2405,13 @@ static StructRNA *rna_CompositorNode_register(Main *bmain,
                                               StructCallbackFunc call,
                                               StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_CompositorNode, data, identifier, validate, call, free);
   if (!nt) {
     return nullptr;
   }
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -2434,13 +2427,13 @@ static StructRNA *rna_TextureNode_register(Main *bmain,
                                            StructCallbackFunc call,
                                            StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_TextureNode, data, identifier, validate, call, free);
   if (!nt) {
     return nullptr;
   }
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -2456,13 +2449,13 @@ static StructRNA *rna_GeometryNode_register(Main *bmain,
                                             StructCallbackFunc call,
                                             StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_GeometryNode, data, identifier, validate, call, free);
   if (!nt) {
     return nullptr;
   }
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -2478,13 +2471,13 @@ static StructRNA *rna_FunctionNode_register(Main *bmain,
                                             StructCallbackFunc call,
                                             StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_FunctionNode, data, identifier, validate, call, free);
   if (!nt) {
     return nullptr;
   }
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -2512,7 +2505,7 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * 
   const bNodeTree *parent_ntree = reinterpret_cast<bNodeTree *>(value.owner_id);
 
   if (!parent) {
-    blender::bke::node_detach_node(*ntree, *node);
+    bke::node_detach_node(*ntree, *node);
     return;
   }
 
@@ -2523,7 +2516,7 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * 
     return;
   }
 
-  if (blender::bke::node_is_parent_and_child(*node, *parent)) {
+  if (bke::node_is_parent_and_child(*node, *parent)) {
     return;
   }
 
@@ -2532,8 +2525,8 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * 
     return;
   }
 
-  blender::bke::node_detach_node(*ntree, *node);
-  blender::bke::node_attach_node(*ntree, *node, *parent);
+  bke::node_detach_node(*ntree, *node);
+  bke::node_attach_node(*ntree, *node, *parent);
 }
 
 static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -2541,7 +2534,7 @@ static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, Poin
   bNode *node = ptr->data_as<bNode>();
   bNodeLink *begin;
   int len;
-  blender::bke::node_internal_links(*node, &begin, &len);
+  bke::node_internal_links(*node, &begin, &len);
   rna_iterator_array_begin(iter, ptr, begin, sizeof(bNodeLink), len, false, nullptr);
 }
 
@@ -2564,7 +2557,7 @@ static bool allow_identifier_lookup(const bNode &node)
 
 static bNodeSocket *find_socket_by_key(bNode &node,
                                        const eNodeSocketInOut in_out,
-                                       const blender::StringRef key)
+                                       const StringRef key)
 {
   ListBaseT<bNodeSocket> *sockets = in_out == SOCK_IN ? &node.inputs : &node.outputs;
   if (allow_identifier_lookup(node)) {
@@ -2618,7 +2611,7 @@ static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
     return false;
   }
 
-  if (node->is_frame() && blender::bke::node_is_parent_and_child(*node, *parent)) {
+  if (node->is_frame() && bke::node_is_parent_and_child(*node, *parent)) {
     return false;
   }
 
@@ -2648,7 +2641,7 @@ static void rna_Node_socket_value_update(ID *id, bNode * /*node*/, bContext *C)
 static void rna_Node_select_set(PointerRNA *ptr, bool value)
 {
   bNode *node = ptr->data_as<bNode>();
-  blender::bke::node_set_selected(*node, value);
+  bke::node_set_selected(*node, value);
 }
 
 static void rna_Node_mute_set(PointerRNA *ptr, bool value)
@@ -2670,7 +2663,7 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
   /* set new name */
   STRNCPY_UTF8(node->name, value);
 
-  blender::bke::node_unique_name(*ntree, *node);
+  bke::node_unique_name(*ntree, *node);
 
   /* fix all the animation data which may link to this */
   BKE_animdata_fix_paths_rename_all(nullptr, "nodes", oldname, node->name);
@@ -2679,7 +2672,7 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 static int rna_Node_color_tag_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
-  return int(blender::bke::node_color_tag(*node));
+  return int(bke::node_color_tag(*node));
 }
 
 static bool allow_adding_sockets(const bNode &node)
@@ -2711,8 +2704,7 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
   }
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  bNodeSocket *sock = blender::bke::node_add_socket(
-      *ntree, *node, SOCK_IN, type, identifier, name);
+  bNodeSocket *sock = bke::node_add_socket(*ntree, *node, SOCK_IN, type, identifier, name);
 
   if (sock == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to create socket");
@@ -2753,8 +2745,7 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
   }
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  bNodeSocket *sock = blender::bke::node_add_socket(
-      *ntree, *node, SOCK_OUT, type, identifier, name);
+  bNodeSocket *sock = bke::node_add_socket(*ntree, *node, SOCK_OUT, type, identifier, name);
 
   if (sock == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to create socket");
@@ -2781,7 +2772,7 @@ static void rna_Node_socket_remove(
     BKE_reportf(reports, RPT_ERROR, "Unable to locate socket '%s' in node", sock->identifier);
   }
   else {
-    blender::bke::node_remove_socket(*ntree, *node, *sock);
+    bke::node_remove_socket(*ntree, *node, *sock);
 
     BKE_main_ensure_invariants(*bmain, ntree->id);
     WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
@@ -2800,7 +2791,7 @@ static void rna_Node_inputs_clear(ID *id, bNode *node, Main *bmain, ReportList *
 
   for (sock = static_cast<bNodeSocket *>(node->inputs.first); sock; sock = nextsock) {
     nextsock = sock->next;
-    blender::bke::node_remove_socket(*ntree, *node, *sock);
+    bke::node_remove_socket(*ntree, *node, *sock);
   }
 
   BKE_main_ensure_invariants(*bmain, ntree->id);
@@ -2819,7 +2810,7 @@ static void rna_Node_outputs_clear(ID *id, bNode *node, Main *bmain, ReportList 
 
   for (sock = static_cast<bNodeSocket *>(node->outputs.first); sock; sock = nextsock) {
     nextsock = sock->next;
-    blender::bke::node_remove_socket(*ntree, *node, *sock);
+    bke::node_remove_socket(*ntree, *node, *sock);
   }
 
   BKE_main_ensure_invariants(*bmain, ntree->id);
@@ -2923,7 +2914,7 @@ static void rna_Node_height_range(
 static void rna_Node_dimensions_get(PointerRNA *ptr, float *value)
 {
   bNode *node = ptr->data_as<bNode>();
-  const float2 dimensions = blender::bke::node_dimensions_get(*node);
+  const float2 dimensions = bke::node_dimensions_get(*node);
   value[0] = dimensions[0];
   value[1] = dimensions[1];
 }
@@ -2932,45 +2923,39 @@ static void rna_Node_dimensions_get(PointerRNA *ptr, float *value)
 
 static void rna_NodeInternalSocketTemplate_name_get(PointerRNA *ptr, char *value)
 {
-  blender::bke::bNodeSocketTemplate *stemp = static_cast<blender::bke::bNodeSocketTemplate *>(
-      ptr->data);
+  bke::bNodeSocketTemplate *stemp = static_cast<bke::bNodeSocketTemplate *>(ptr->data);
   strcpy(value, stemp->name);
 }
 
 static int rna_NodeInternalSocketTemplate_name_length(PointerRNA *ptr)
 {
-  blender::bke::bNodeSocketTemplate *stemp = static_cast<blender::bke::bNodeSocketTemplate *>(
-      ptr->data);
+  bke::bNodeSocketTemplate *stemp = static_cast<bke::bNodeSocketTemplate *>(ptr->data);
   return strlen(stemp->name);
 }
 
 static void rna_NodeInternalSocketTemplate_identifier_get(PointerRNA *ptr, char *value)
 {
-  blender::bke::bNodeSocketTemplate *stemp = static_cast<blender::bke::bNodeSocketTemplate *>(
-      ptr->data);
+  bke::bNodeSocketTemplate *stemp = static_cast<bke::bNodeSocketTemplate *>(ptr->data);
   strcpy(value, stemp->identifier);
 }
 
 static int rna_NodeInternalSocketTemplate_identifier_length(PointerRNA *ptr)
 {
-  blender::bke::bNodeSocketTemplate *stemp = static_cast<blender::bke::bNodeSocketTemplate *>(
-      ptr->data);
+  bke::bNodeSocketTemplate *stemp = static_cast<bke::bNodeSocketTemplate *>(ptr->data);
   return strlen(stemp->identifier);
 }
 
 static int rna_NodeInternalSocketTemplate_type_get(PointerRNA *ptr)
 {
-  blender::bke::bNodeSocketTemplate *stemp = static_cast<blender::bke::bNodeSocketTemplate *>(
-      ptr->data);
+  bke::bNodeSocketTemplate *stemp = static_cast<bke::bNodeSocketTemplate *>(ptr->data);
   return stemp->type;
 }
 
 static PointerRNA rna_NodeInternal_input_template(StructRNA *srna, int index)
 {
-  blender::bke::bNodeType *ntype = static_cast<blender::bke::bNodeType *>(
-      RNA_struct_blender_type_get(srna));
+  bke::bNodeType *ntype = static_cast<bke::bNodeType *>(RNA_struct_blender_type_get(srna));
   if (ntype && ntype->inputs) {
-    blender::bke::bNodeSocketTemplate *stemp = ntype->inputs;
+    bke::bNodeSocketTemplate *stemp = ntype->inputs;
     int i = 0;
     while (i < index && stemp->type >= 0) {
       i++;
@@ -2987,10 +2972,9 @@ static PointerRNA rna_NodeInternal_input_template(StructRNA *srna, int index)
 
 static PointerRNA rna_NodeInternal_output_template(StructRNA *srna, int index)
 {
-  blender::bke::bNodeType *ntype = static_cast<blender::bke::bNodeType *>(
-      RNA_struct_blender_type_get(srna));
+  bke::bNodeType *ntype = static_cast<bke::bNodeType *>(RNA_struct_blender_type_get(srna));
   if (ntype && ntype->outputs) {
-    blender::bke::bNodeSocketTemplate *stemp = ntype->outputs;
+    bke::bNodeSocketTemplate *stemp = ntype->outputs;
     int i = 0;
     while (i < index && stemp->type >= 0) {
       i++;
@@ -3007,15 +2991,14 @@ static PointerRNA rna_NodeInternal_output_template(StructRNA *srna, int index)
 
 static bool rna_NodeInternal_poll(StructRNA *srna, bNodeTree *ntree)
 {
-  blender::bke::bNodeType *ntype = static_cast<blender::bke::bNodeType *>(
-      RNA_struct_blender_type_get(srna));
+  bke::bNodeType *ntype = static_cast<bke::bNodeType *>(RNA_struct_blender_type_get(srna));
   const char *disabled_hint;
   return ntype && (!ntype->poll || ntype->poll(ntype, ntree, &disabled_hint));
 }
 
 static bool rna_NodeInternal_poll_instance(bNode *node, bNodeTree *ntree)
 {
-  blender::bke::bNodeType *ntype = node->typeinfo;
+  bke::bNodeType *ntype = node->typeinfo;
   const char *disabled_hint;
   if (ntype->poll_instance) {
     return ntype->poll_instance(node, ntree, &disabled_hint);
@@ -3033,10 +3016,7 @@ static void rna_NodeInternal_update(ID *id, bNode *node, Main *bmain)
   BKE_main_ensure_invariants(*bmain, ntree->id);
 }
 
-static void rna_NodeInternal_draw_buttons(ID *id,
-                                          bNode *node,
-                                          bContext *C,
-                                          blender::ui::Layout *layout)
+static void rna_NodeInternal_draw_buttons(ID *id, bNode *node, bContext *C, ui::Layout *layout)
 {
   if (node->typeinfo->draw_buttons) {
     PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_Node, node);
@@ -3044,10 +3024,7 @@ static void rna_NodeInternal_draw_buttons(ID *id,
   }
 }
 
-static void rna_NodeInternal_draw_buttons_ext(ID *id,
-                                              bNode *node,
-                                              bContext *C,
-                                              blender::ui::Layout *layout)
+static void rna_NodeInternal_draw_buttons_ext(ID *id, bNode *node, bContext *C, ui::Layout *layout)
 {
   if (node->typeinfo->draw_buttons_ex) {
     PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_Node, node);
@@ -3067,13 +3044,13 @@ static StructRNA *rna_NodeCustomGroup_register(Main *bmain,
                                                StructCallbackFunc call,
                                                StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_NodeCustomGroup, data, identifier, validate, call, free);
   if (!nt) {
     return nullptr;
   }
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -3089,7 +3066,7 @@ static StructRNA *rna_GeometryNodeCustomGroup_register(Main *bmain,
                                                        StructCallbackFunc call,
                                                        StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_GeometryNodeCustomGroup, data, identifier, validate, call, free);
 
   if (!nt) {
@@ -3101,14 +3078,14 @@ static StructRNA *rna_GeometryNodeCustomGroup_register(Main *bmain,
 
   register_node_type_geo_custom_group(nt);
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
 
   return nt->rna_ext.srna;
 }
 
-void register_node_type_geo_custom_group(blender::bke::bNodeType *ntype);
+void register_node_type_geo_custom_group(bke::bNodeType *ntype);
 
 static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
                                                      ReportList *reports,
@@ -3118,7 +3095,7 @@ static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
                                                      StructCallbackFunc call,
                                                      StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_ShaderNodeCustomGroup, data, identifier, validate, call, free);
 
   if (!nt) {
@@ -3130,7 +3107,7 @@ static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
 
   register_node_type_sh_custom_group(nt);
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
 
@@ -3145,7 +3122,7 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
                                                          StructCallbackFunc call,
                                                          StructFreeFunc free)
 {
-  blender::bke::bNodeType *nt = rna_Node_register_base(
+  bke::bNodeType *nt = rna_Node_register_base(
       bmain, reports, &RNA_CompositorNodeCustomGroup, data, identifier, validate, call, free);
   if (!nt) {
     return nullptr;
@@ -3156,7 +3133,7 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
 
   register_node_type_cmp_custom_group(nt);
 
-  blender::bke::node_register_type(*nt);
+  bke::node_register_type(*nt);
 
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
 
@@ -3198,7 +3175,7 @@ static void rna_NodeGroup_node_tree_set(PointerRNA *ptr,
   bNodeTree *ngroup = static_cast<bNodeTree *>(value.data);
 
   const char *disabled_hint = nullptr;
-  if (blender::bke::node_group_poll(ntree, ngroup, &disabled_hint)) {
+  if (bke::node_group_poll(ntree, ngroup, &disabled_hint)) {
     if (node->id) {
       id_us_min(node->id);
     }
@@ -3221,7 +3198,7 @@ static bool rna_NodeGroup_node_tree_poll(PointerRNA *ptr, const PointerRNA value
   }
 
   const char *disabled_hint = nullptr;
-  return blender::bke::node_group_poll(ntree, ngroup, &disabled_hint);
+  return bke::node_group_poll(ntree, ngroup, &disabled_hint);
 }
 
 static void rna_Node_scene_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -3453,7 +3430,7 @@ static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
 
-  blender::bke::node_tag_update_id(*node);
+  bke::node_tag_update_id(*node);
   rna_Node_update_relations(bmain, scene, ptr);
 }
 
@@ -3464,9 +3441,8 @@ static void rna_Image_Node_update_id(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_NodeColorBalance_input_whitepoint_get(PointerRNA *ptr, float value[3])
 {
   bNode *node = ptr->data_as<bNode>();
-  bNodeSocket *temperature_input = blender::bke::node_find_socket(
-      *node, SOCK_IN, "Input Temperature");
-  bNodeSocket *tint_input = blender::bke::node_find_socket(*node, SOCK_IN, "Input Tint");
+  bNodeSocket *temperature_input = bke::node_find_socket(*node, SOCK_IN, "Input Temperature");
+  bNodeSocket *tint_input = bke::node_find_socket(*node, SOCK_IN, "Input Tint");
   IMB_colormanagement_get_whitepoint(
       temperature_input->default_value_typed<bNodeSocketValueFloat>()->value,
       tint_input->default_value_typed<bNodeSocketValueFloat>()->value,
@@ -3476,9 +3452,8 @@ static void rna_NodeColorBalance_input_whitepoint_get(PointerRNA *ptr, float val
 static void rna_NodeColorBalance_input_whitepoint_set(PointerRNA *ptr, const float value[3])
 {
   bNode *node = ptr->data_as<bNode>();
-  bNodeSocket *temperature_input = blender::bke::node_find_socket(
-      *node, SOCK_IN, "Input Temperature");
-  bNodeSocket *tint_input = blender::bke::node_find_socket(*node, SOCK_IN, "Input Tint");
+  bNodeSocket *temperature_input = bke::node_find_socket(*node, SOCK_IN, "Input Temperature");
+  bNodeSocket *tint_input = bke::node_find_socket(*node, SOCK_IN, "Input Tint");
   IMB_colormanagement_set_whitepoint(
       value,
       temperature_input->default_value_typed<bNodeSocketValueFloat>()->value,
@@ -3488,9 +3463,8 @@ static void rna_NodeColorBalance_input_whitepoint_set(PointerRNA *ptr, const flo
 static void rna_NodeColorBalance_output_whitepoint_get(PointerRNA *ptr, float value[3])
 {
   bNode *node = ptr->data_as<bNode>();
-  bNodeSocket *temperature_input = blender::bke::node_find_socket(
-      *node, SOCK_IN, "Output Temperature");
-  bNodeSocket *tint_input = blender::bke::node_find_socket(*node, SOCK_IN, "Output Tint");
+  bNodeSocket *temperature_input = bke::node_find_socket(*node, SOCK_IN, "Output Temperature");
+  bNodeSocket *tint_input = bke::node_find_socket(*node, SOCK_IN, "Output Tint");
   IMB_colormanagement_get_whitepoint(
       temperature_input->default_value_typed<bNodeSocketValueFloat>()->value,
       tint_input->default_value_typed<bNodeSocketValueFloat>()->value,
@@ -3500,9 +3474,8 @@ static void rna_NodeColorBalance_output_whitepoint_get(PointerRNA *ptr, float va
 static void rna_NodeColorBalance_output_whitepoint_set(PointerRNA *ptr, const float value[3])
 {
   bNode *node = ptr->data_as<bNode>();
-  bNodeSocket *temperature_input = blender::bke::node_find_socket(
-      *node, SOCK_IN, "Output Temperature");
-  bNodeSocket *tint_input = blender::bke::node_find_socket(*node, SOCK_IN, "Output Tint");
+  bNodeSocket *temperature_input = bke::node_find_socket(*node, SOCK_IN, "Output Temperature");
+  bNodeSocket *tint_input = bke::node_find_socket(*node, SOCK_IN, "Output Tint");
   IMB_colormanagement_set_whitepoint(
       value,
       temperature_input->default_value_typed<bNodeSocketValueFloat>()->value,
@@ -3658,8 +3631,7 @@ static PointerRNA rna_Node_paired_output_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode *node = ptr->data_as<bNode>();
-  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(
-      node->type_legacy);
+  const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(node->type_legacy);
   bNode *output_node = zone_type.get_corresponding_output(*ntree, *node);
   PointerRNA ptr_result = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, output_node);
   return ptr_result;
@@ -3669,8 +3641,7 @@ static bool rna_Node_pair_with_output(
     ID *id, bNode *node, bContext *C, ReportList *reports, bNode *output_node)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(
-      node->type_legacy);
+  const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(node->type_legacy);
   if (output_node->type_legacy != zone_type.output_type) {
     BKE_reportf(
         reports,
@@ -3708,7 +3679,7 @@ static void rna_Node_ItemArray_remove(ID *id,
                                       ReportList *reports,
                                       typename Accessor::ItemT *item_to_remove)
 {
-  blender::nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
+  nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
   if (item_to_remove < *ref.items || item_to_remove >= *ref.items + *ref.items_num) {
     if constexpr (Accessor::has_name) {
       char **name_ptr = Accessor::get_name(*item_to_remove);
@@ -3723,7 +3694,7 @@ static void rna_Node_ItemArray_remove(ID *id,
     return;
   }
   const int remove_index = item_to_remove - *ref.items;
-  blender::dna::array::remove_index(
+  dna::array::remove_index(
       ref.items, ref.items_num, ref.active_index, remove_index, Accessor::destruct_item);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -3734,8 +3705,8 @@ static void rna_Node_ItemArray_remove(ID *id,
 
 template<typename Accessor> static void rna_Node_ItemArray_clear(ID *id, bNode *node, Main *bmain)
 {
-  blender::nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
-  blender::dna::array::clear(ref.items, ref.items_num, ref.active_index, Accessor::destruct_item);
+  nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
+  dna::array::clear(ref.items, ref.items_num, ref.active_index, Accessor::destruct_item);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_node_property(ntree, node);
@@ -3747,12 +3718,12 @@ template<typename Accessor>
 static void rna_Node_ItemArray_move(
     ID *id, bNode *node, Main *bmain, const int from_index, const int to_index)
 {
-  blender::nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
+  nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
   const int items_num = *ref.items_num;
   if (from_index < 0 || to_index < 0 || from_index >= items_num || to_index >= items_num) {
     return;
   }
-  blender::dna::array::move_index(*ref.items, items_num, from_index, to_index);
+  dna::array::move_index(*ref.items, items_num, from_index, to_index);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_node_property(ntree, node);
@@ -3763,7 +3734,7 @@ static void rna_Node_ItemArray_move(
 template<typename Accessor> static PointerRNA rna_Node_ItemArray_active_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
-  blender::nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
+  nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
   typename Accessor::ItemT *active_item = nullptr;
   const int active_index = *ref.active_index;
   const int items_num = *ref.items_num;
@@ -3781,7 +3752,7 @@ static void rna_Node_ItemArray_active_set(PointerRNA *ptr,
   bNode *node = ptr->data_as<bNode>();
   ItemT *item = static_cast<ItemT *>(value.data);
 
-  blender::nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
+  nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
   if (item >= *ref.items && item < *ref.items + *ref.items_num) {
     *ref.active_index = item - *ref.items;
   }
@@ -3793,7 +3764,7 @@ static void rna_Node_ItemArray_item_update(Main *bmain, Scene * /*scene*/, Point
   using ItemT = typename Accessor::ItemT;
   bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   ItemT &item = *static_cast<ItemT *>(ptr->data);
-  bNode *node = blender::nodes::socket_items::find_node_by_item<Accessor>(ntree, item);
+  bNode *node = nodes::socket_items::find_node_by_item<Accessor>(ntree, item);
   BLI_assert(node != nullptr);
 
   BKE_ntree_update_tag_node_property(&ntree, node);
@@ -3820,9 +3791,9 @@ static void rna_Node_ItemArray_item_name_set(PointerRNA *ptr, const char *value)
   using ItemT = typename Accessor::ItemT;
   bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   ItemT &item = *static_cast<ItemT *>(ptr->data);
-  bNode *node = blender::nodes::socket_items::find_node_by_item<Accessor>(ntree, item);
+  bNode *node = nodes::socket_items::find_node_by_item<Accessor>(ntree, item);
   BLI_assert(node != nullptr);
-  blender::nodes::socket_items::set_item_name_and_make_unique<Accessor>(*node, item, value);
+  nodes::socket_items::set_item_name_and_make_unique<Accessor>(*node, item, value);
 }
 
 template<typename Accessors>
@@ -3830,7 +3801,7 @@ static void rna_Node_ItemArray_item_color_get(PointerRNA *ptr, float *values)
 {
   using ItemT = typename Accessors::ItemT;
   ItemT &item = *static_cast<ItemT *>(ptr->data);
-  const blender::StringRefNull socket_type_idname = *blender::bke::node_static_socket_type(
+  const StringRefNull socket_type_idname = *bke::node_static_socket_type(
       Accessors::get_socket_type(item), 0);
   ED_node_type_draw_color(socket_type_idname.c_str(), values);
 }
@@ -3846,7 +3817,7 @@ typename Accessor::ItemT *rna_Node_ItemArray_new_with_socket_and_name(
     BKE_report(reports, RPT_ERROR, "Unable to create item with this socket type");
     return nullptr;
   }
-  ItemT *new_item = blender::nodes::socket_items::add_item_with_socket_type_and_name<Accessor>(
+  ItemT *new_item = nodes::socket_items::add_item_with_socket_type_and_name<Accessor>(
       *ntree, *node, eNodeSocketDatatype(socket_type), name);
 
   BKE_ntree_update_tag_node_property(ntree, node);
@@ -3872,8 +3843,7 @@ static const EnumPropertyItem *rna_Node_ItemArray_structure_type_itemf(bContext 
 
 static IndexSwitchItem *rna_NodeIndexSwitchItems_new(ID *id, bNode *node, Main *bmain)
 {
-  IndexSwitchItem *new_item = blender::nodes::socket_items::add_item<IndexSwitchItemsAccessor>(
-      *node);
+  IndexSwitchItem *new_item = nodes::socket_items::add_item<IndexSwitchItemsAccessor>(*node);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_node_property(ntree, node);
@@ -3892,7 +3862,7 @@ static const EnumPropertyItem *rna_NodeFieldToGridItem_data_type_itemf(bContext 
   *r_free = true;
   return itemf_function_check(
       rna_enum_node_socket_data_type_items, [](const EnumPropertyItem *item) {
-        return blender::nodes::socket_type_supports_grids(eNodeSocketDatatype(item->value));
+        return nodes::socket_type_supports_grids(eNodeSocketDatatype(item->value));
       });
 }
 
@@ -4115,14 +4085,14 @@ static void rna_NodeConvertColorSpace_to_color_space_set(PointerRNA *ptr, int va
 static void rna_reroute_node_socket_type_set(PointerRNA *ptr, const char *value)
 {
   const bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  blender::bke::bNodeTreeType *ntree_type = ntree.typeinfo;
+  bke::bNodeTreeType *ntree_type = ntree.typeinfo;
 
   bNode &node = *ptr->data_as<bNode>();
 
   if (value == nullptr) {
     return;
   }
-  blender::bke::bNodeSocketType *socket_type = blender::bke::node_socket_type_find(value);
+  bke::bNodeSocketType *socket_type = bke::node_socket_type_find(value);
   if (socket_type == nullptr) {
     return;
   }
@@ -4157,8 +4127,8 @@ static NodeEnumItem *rna_NodeMenuSwitchItems_new(ID *id,
                                                  Main *bmain,
                                                  const char *name)
 {
-  NodeEnumItem *new_item =
-      blender::nodes::socket_items::add_item_with_name<MenuSwitchItemsAccessor>(*node, name);
+  NodeEnumItem *new_item = nodes::socket_items::add_item_with_name<MenuSwitchItemsAccessor>(*node,
+                                                                                            name);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_node_property(ntree, node);
@@ -4175,7 +4145,11 @@ static PointerRNA rna_NodeMenuSwitch_enum_definition_get(PointerRNA *ptr)
   return *ptr;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static const EnumPropertyItem prop_image_layer_items[] = {
     {0, "PLACEHOLDER", 0, "Placeholder", ""},
@@ -4430,7 +4404,7 @@ static void rna_def_node_item_array_socket_item_common(
     const bool add_socket_type,
     const bool add_vector_socket_dimensions = false)
 {
-  static blender::LinearAllocator<> allocator;
+  static LinearAllocator<> allocator;
   PropertyRNA *prop;
 
   char name_set_func[128];
@@ -4485,7 +4459,7 @@ static void rna_def_node_item_array_common_functions(StructRNA *srna,
                                                      const char *item_name,
                                                      const char *accessor_name)
 {
-  static blender::LinearAllocator<> allocator;
+  static LinearAllocator<> allocator;
   PropertyRNA *parm;
   FunctionRNA *func;
 
@@ -4521,7 +4495,7 @@ static void rna_def_node_item_array_new_with_socket_and_name(StructRNA *srna,
                                                              const char *item_name,
                                                              const char *accessor_name)
 {
-  static blender::LinearAllocator<> allocator;
+  static LinearAllocator<> allocator;
   PropertyRNA *parm;
   FunctionRNA *func;
 
@@ -8315,7 +8289,6 @@ static void def_fn_rotate_euler(BlenderRNA * /*brna*/, StructRNA *srna)
 
 static void def_geo_sample_index(BlenderRNA * /*brna*/, StructRNA *srna)
 {
-  using namespace blender;
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeGeometrySampleIndex", "storage");
@@ -10432,5 +10405,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 
 /* clean up macro definition */
 #  undef NODE_DEFINE_SUBTYPES
+
+}  // namespace blender
 
 #endif

@@ -1528,7 +1528,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeExtrudeMesh", GEO_NODE_EXTRUDE_MESH);
   ntype.ui_name = "Extrude Mesh";
   ntype.ui_description =
@@ -1539,10 +1539,10 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryExtrudeMesh", node_free_standard_storage, node_copy_standard_storage);
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

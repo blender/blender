@@ -18,6 +18,8 @@
 #include "UI_interface_layout.hh"
 #include "UI_view2d.hh"
 
+namespace blender {
+
 struct ARegion;
 struct NodeInsertOfsData;
 struct View2D;
@@ -34,11 +36,11 @@ extern "C" {
 extern const char *node_context_dir[];
 };
 
-namespace blender::ed::asset {
+namespace ed::asset {
 struct AssetItemTree;
 }
 
-namespace blender::ed::space_node {
+namespace ed::space_node {
 struct NestedTreePreviews;
 
 /** Temporary data used in node link drag modal operator. */
@@ -479,4 +481,6 @@ void build_socket_tooltip(ui::TooltipData &tip_data,
 
 void node_tree_interface_panel_register(ARegionType *art);
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

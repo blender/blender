@@ -22,6 +22,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG_READ = {"image.read"};
 static CLG_LogRef LOG_WRITE = {"image.write"};
 
@@ -30,7 +32,7 @@ OIIO_NAMESPACE_USING
 using std::string;
 using std::unique_ptr;
 
-namespace blender::imbuf {
+namespace imbuf {
 
 /* An OIIO IOProxy used during file packing to write into an in-memory #ImBuf buffer. */
 class ImBufMemWriter : public Filesystem::IOProxy {
@@ -496,4 +498,5 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
   return file_spec;
 }
 
-}  // namespace blender::imbuf
+}  // namespace imbuf
+}  // namespace blender

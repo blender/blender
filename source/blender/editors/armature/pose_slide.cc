@@ -70,7 +70,7 @@
 
 #include "armature_intern.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* **************************************************** */
 /* A) Push & Relax, Breakdowner */
@@ -158,7 +158,7 @@ struct tPoseSlideOp {
   /** Numeric input. */
   NumInput num;
 
-  blender::Array<tPoseSlideObject> ob_data_array;
+  Array<tPoseSlideObject> ob_data_array;
 };
 
 /** Property enum for #ePoseSlide_Channels. */
@@ -1974,3 +1974,5 @@ void POSE_OT_propagate(wmOperatorType *ot)
 }
 
 /* **************************************************** */
+
+}  // namespace blender

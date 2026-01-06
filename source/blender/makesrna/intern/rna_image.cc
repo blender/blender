@@ -21,6 +21,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_image_generated_type_items[] = {
     {IMA_GENTYPE_BLANK, "BLANK", 0, "Blank", "Generate a blank image"},
     {IMA_GENTYPE_GRID, "UV_GRID", 0, "UV Grid", "Generated grid to test UV mappings"},
@@ -41,6 +43,8 @@ static const EnumPropertyItem image_source_items[] = {
     {IMA_SRC_TILED, "TILED", 0, "UDIM Tiles", "Tiled UDIM image texture"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+}  // namespace blender
 
 #ifdef RNA_RUNTIME
 
@@ -74,6 +78,8 @@ static const EnumPropertyItem image_source_items[] = {
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static bool rna_Image_is_stereo_3d_get(PointerRNA *ptr)
 {
   return BKE_image_is_stereo(static_cast<Image *>(ptr->data));
@@ -91,7 +97,7 @@ static bool rna_Image_dirty_get(PointerRNA *ptr)
 
 static void rna_Image_source_set(PointerRNA *ptr, int value)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
 
   if (value != ima->source) {
     ima->source = value;
@@ -109,7 +115,7 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 
 static void rna_Image_reload_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_RELOAD);
   WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
   DEG_id_tag_update(&ima->id, 0);
@@ -195,7 +201,7 @@ void rna_Image_generated_color_set(PointerRNA *ptr, const float values[4])
 
 static void rna_Image_generated_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_FREE);
   BKE_image_partial_update_mark_full_update(ima);
   DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
@@ -203,7 +209,7 @@ static void rna_Image_generated_update(Main *bmain, Scene * /*scene*/, PointerRN
 
 static void rna_Image_colormanage_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_COLORMANAGE);
   DEG_id_tag_update(&ima->id, 0);
   DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
@@ -213,7 +219,7 @@ static void rna_Image_colormanage_update(Main *bmain, Scene * /*scene*/, Pointer
 
 static void rna_Image_alpha_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   /* When operating on a generated image, avoid re-generating when changing the alpha-mode
    * as it doesn't impact generated images, causing them to reload pixel data, see #82785. */
   if (ima->source == IMA_SRC_GENERATED) {
@@ -224,7 +230,7 @@ static void rna_Image_alpha_mode_update(Main *bmain, Scene *scene, PointerRNA *p
 
 static void rna_Image_views_format_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   ImBuf *ibuf;
   void *lock;
 
@@ -253,7 +259,7 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   if (id) {
     if (GS(id->name) == ID_NT) {
       /* Special update for node-trees. */
-      BKE_ntree_update_tag_image_user_changed(blender::id_cast<bNodeTree *>(id), iuser);
+      BKE_ntree_update_tag_image_user_changed(id_cast<bNodeTree *>(id), iuser);
       BKE_main_ensure_invariants(*bmain);
     }
     else {
@@ -307,7 +313,7 @@ static std::optional<std::string> rna_ImageUser_path(const PointerRNA *ptr)
 
 static void rna_Image_gpu_texture_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
 
   if (!G.background) {
     BKE_image_free_gputextures(ima);
@@ -367,7 +373,7 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 static void rna_UDIMTile_size_get(PointerRNA *ptr, int *values)
 {
   ImageTile *tile = static_cast<ImageTile *>(ptr->data);
-  Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  Image *image = id_cast<Image *>(ptr->owner_id);
 
   ImageUser image_user;
   BKE_imageuser_default(&image_user);
@@ -390,7 +396,7 @@ static void rna_UDIMTile_size_get(PointerRNA *ptr, int *values)
 static int rna_UDIMTile_channels_get(PointerRNA *ptr)
 {
   ImageTile *tile = static_cast<ImageTile *>(ptr->data);
-  Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  Image *image = id_cast<Image *>(ptr->owner_id);
 
   ImageUser image_user;
   BKE_imageuser_default(&image_user);
@@ -412,7 +418,7 @@ static int rna_UDIMTile_channels_get(PointerRNA *ptr)
 static void rna_UDIMTile_label_get(PointerRNA *ptr, char *value)
 {
   const ImageTile *tile = static_cast<ImageTile *>(ptr->data);
-  const Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  const Image *image = id_cast<Image *>(ptr->owner_id);
 
   /* Pass in a fixed size buffer as the value may be allocated based on the callbacks length. */
   char value_buf[sizeof(tile->label)];
@@ -423,7 +429,7 @@ static void rna_UDIMTile_label_get(PointerRNA *ptr, char *value)
 static int rna_UDIMTile_label_length(PointerRNA *ptr)
 {
   const ImageTile *tile = static_cast<ImageTile *>(ptr->data);
-  const Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  const Image *image = id_cast<Image *>(ptr->owner_id);
 
   char label[sizeof(tile->label)];
   return BKE_image_get_tile_label(image, tile, label, sizeof(label));
@@ -432,7 +438,7 @@ static int rna_UDIMTile_label_length(PointerRNA *ptr)
 static void rna_UDIMTile_tile_number_set(PointerRNA *ptr, int value)
 {
   ImageTile *tile = static_cast<ImageTile *>(ptr->data);
-  Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  Image *image = id_cast<Image *>(ptr->owner_id);
 
   /* Check that no other tile already has that number. */
   ImageTile *cur_tile = BKE_image_get_tile(image, value);
@@ -443,7 +449,7 @@ static void rna_UDIMTile_tile_number_set(PointerRNA *ptr, int value)
 
 static void rna_UDIMTile_generated_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   ImageTile *tile = static_cast<ImageTile *>(ptr->data);
 
   /* If the tile is still marked as generated, then update the tile as requested. */
@@ -582,7 +588,7 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 
 static int rna_Image_frame_duration_get(PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   int duration = 1;
 
   if (!BKE_image_has_anim(ima)) {
@@ -604,7 +610,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
 
 static int rna_Image_pixels_get_length(const PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   ImBuf *ibuf;
   void *lock;
 
@@ -624,7 +630,7 @@ static int rna_Image_pixels_get_length(const PointerRNA *ptr, int length[RNA_MAX
 
 static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   ImBuf *ibuf;
   void *lock;
 
@@ -648,7 +654,7 @@ static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
 
 static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
   ImBuf *ibuf;
   void *lock;
 
@@ -718,7 +724,7 @@ static bool rna_Image_is_float_get(PointerRNA *ptr)
 
 static PointerRNA rna_Image_packed_file_get(PointerRNA *ptr)
 {
-  Image *ima = blender::id_cast<Image *>(ptr->owner_id);
+  Image *ima = id_cast<Image *>(ptr->owner_id);
 
   if (BKE_image_has_packedfile(ima)) {
     ImagePackedFile *imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first);
@@ -729,7 +735,7 @@ static PointerRNA rna_Image_packed_file_get(PointerRNA *ptr)
 
 static void rna_RenderSlot_clear(ID *id, RenderSlot *slot, ImageUser *iuser)
 {
-  Image *image = blender::id_cast<Image *>(id);
+  Image *image = id_cast<Image *>(id);
   int index = BLI_findindex(&image->renderslots, slot);
   BKE_image_clear_renderslot(image, iuser, index);
 
@@ -738,7 +744,7 @@ static void rna_RenderSlot_clear(ID *id, RenderSlot *slot, ImageUser *iuser)
 
 static PointerRNA rna_render_slots_active_get(PointerRNA *ptr)
 {
-  Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  Image *image = id_cast<Image *>(ptr->owner_id);
   RenderSlot *render_slot = BKE_image_get_renderslot(image, image->render_slot);
 
   return RNA_pointer_create_with_parent(*ptr, &RNA_RenderSlot, render_slot);
@@ -748,7 +754,7 @@ static void rna_render_slots_active_set(PointerRNA *ptr,
                                         PointerRNA value,
                                         ReportList * /*reports*/)
 {
-  Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  Image *image = id_cast<Image *>(ptr->owner_id);
   if (value.owner_id == &image->id) {
     RenderSlot *slot = static_cast<RenderSlot *>(value.data);
     int index = BLI_findindex(&image->renderslots, slot);
@@ -761,13 +767,13 @@ static void rna_render_slots_active_set(PointerRNA *ptr,
 
 static int rna_render_slots_active_index_get(PointerRNA *ptr)
 {
-  Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  Image *image = id_cast<Image *>(ptr->owner_id);
   return image->render_slot;
 }
 
 static void rna_render_slots_active_index_set(PointerRNA *ptr, int value)
 {
-  Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  Image *image = id_cast<Image *>(ptr->owner_id);
   int num_slots = BLI_listbase_count(&image->renderslots);
   image->render_slot = value;
   BKE_image_partial_update_mark_full_update(image);
@@ -777,7 +783,7 @@ static void rna_render_slots_active_index_set(PointerRNA *ptr, int value)
 static void rna_render_slots_active_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  Image *image = blender::id_cast<Image *>(ptr->owner_id);
+  Image *image = id_cast<Image *>(ptr->owner_id);
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&image->renderslots) - 1);
 }
@@ -799,7 +805,11 @@ static void rna_UDIMTile_remove(Image *image, PointerRNA *ptr)
   WM_main_add_notifier(NC_IMAGE | ND_DRAW, nullptr);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_imageuser(BlenderRNA *brna)
 {
@@ -1422,5 +1432,7 @@ void RNA_def_image(BlenderRNA *brna)
   rna_def_imageuser(brna);
   rna_def_image_packed_files(brna);
 }
+
+}  // namespace blender
 
 #endif

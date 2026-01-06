@@ -7,14 +7,14 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::Map<Key, Value>` is an unordered associative container that stores key-value pairs.
+ * A `Map<Key, Value>` is an unordered associative container that stores key-value pairs.
  * The keys have to be unique. It is designed to be a more convenient and efficient replacement for
  * `std::unordered_map`. All core operations (add, lookup, remove and contains) can be done in O(1)
  * amortized expected time.
  *
- * Your default choice for a hash map in Blender should be `blender::Map`.
+ * Your default choice for a hash map in Blender should be `Map`.
  *
- * blender::Map is implemented using open addressing in a slot array with a power-of-two size.
+ * Map is implemented using open addressing in a slot array with a power-of-two size.
  * Every slot is in one of three states: empty, occupied or removed. If a slot is occupied, it
  * contains a Key and Value instance.
  *
@@ -25,7 +25,7 @@
  * that allow it to be optimized for a specific use case.
  *
  * A rudimentary benchmark can be found in BLI_map_test.cc. The results of that benchmark are there
- * as well. The numbers show that in this specific case blender::Map outperforms std::unordered_map
+ * as well. The numbers show that in this specific case Map outperforms std::unordered_map
  * consistently by a good amount.
  *
  * Some noteworthy information:

@@ -46,6 +46,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 #ifndef _MSC_VER
 #  include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 #endif
@@ -94,7 +96,7 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
                                          sizeof(id->library_weak_reference->library_filepath));
   }
 
-  bNodeTree *embedded_node_tree = blender::bke::node_tree_from_id(id);
+  bNodeTree *embedded_node_tree = bke::node_tree_from_id(id);
   if (embedded_node_tree != nullptr) {
     BKE_bpath_foreach_path_id(bpath_data, &embedded_node_tree->id);
   }
@@ -727,3 +729,5 @@ void BKE_bpath_list_free(void *path_list_handle)
 }
 
 /** \} */
+
+}  // namespace blender

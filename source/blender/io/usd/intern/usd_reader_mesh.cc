@@ -50,6 +50,9 @@
 #include <algorithm>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
@@ -58,7 +61,7 @@ static const pxr::TfToken st("st", pxr::TfToken::Immortal);
 static const pxr::TfToken normalsPrimvar("normals", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-namespace blender::io::usd {
+namespace io::usd {
 
 namespace utils {
 
@@ -171,12 +174,12 @@ void USDMeshReader::create_object(Main *bmain)
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
 
   object_ = BKE_object_add_only_object(bmain, OB_MESH, name_.c_str());
-  object_->data = blender::id_cast<ID *>(mesh);
+  object_->data = id_cast<ID *>(mesh);
 }
 
 void USDMeshReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(object_->data);
+  Mesh *mesh = id_cast<Mesh *>(object_->data);
 
   is_initial_load_ = true;
   const USDMeshReadParams params = create_mesh_read_params(time.GetValue(),
@@ -1040,4 +1043,5 @@ std::optional<XformResult> USDMeshReader::get_local_usd_xform(const pxr::UsdTime
   return USDXformReader::get_local_usd_xform(time);
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

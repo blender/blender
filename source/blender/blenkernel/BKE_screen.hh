@@ -25,18 +25,20 @@
 
 #include "BKE_context.hh"
 
-namespace blender::bke::id {
+namespace blender {
+
+namespace bke::id {
 class IDRemapper;
 }
 
-namespace blender::asset_system {
+namespace asset_system {
 class AssetRepresentation;
 }
 
-namespace blender::ui {
+namespace ui {
 struct Layout;
 struct Block;
-}  // namespace blender::ui
+}  // namespace ui
 
 struct ARegion;
 struct ARegionType;
@@ -141,7 +143,7 @@ struct SpaceType {
   bContextDataCallback context;
 
   /** Used when we want to replace an ID by another (or NULL). */
-  void (*id_remap)(ScrArea *area, SpaceLink *sl, const blender::bke::id::IDRemapper &mappings);
+  void (*id_remap)(ScrArea *area, SpaceLink *sl, const bke::id::IDRemapper &mappings);
 
   /**
    * foreach_id callback to process all ID pointers of the editor. Used indirectly by lib_query's
@@ -155,7 +157,7 @@ struct SpaceType {
   void (*space_subtype_item_extend)(bContext *C, EnumPropertyItem **item, int *totitem);
 
   /** Return a custom name, based on subtype or other reason. */
-  blender::StringRefNull (*space_name_get)(const ScrArea *area);
+  StringRefNull (*space_name_get)(const ScrArea *area);
   /** Return a custom icon, based on subtype or other reason. */
   int (*space_icon_get)(const ScrArea *area);
 
@@ -371,7 +373,7 @@ struct PanelType {
    * For popovers, position the popover at the given offset (multiplied by #UI_UNIT_X/#UI_UNIT_Y)
    * relative to the top left corner, if it's not attached to a button.
    */
-  blender::float2 offset_units_xy;
+  float2 offset_units_xy;
   int order;
 
   int flag;
@@ -443,7 +445,7 @@ struct LayoutPanelBody {
 };
 
 /**
- * "Layout Panels" are panels which are defined as part of the #blender::ui::Layout. As such they
+ * "Layout Panels" are panels which are defined as part of the #ui::Layout. As such they
  * have a specific place in the layout and can not be freely dragged around like top level panels.
  *
  * This struct gathers information about the layout panels created by layout code. This is then
@@ -451,8 +453,8 @@ struct LayoutPanelBody {
  * multiple panels with a single mouse gesture.
  */
 struct LayoutPanels {
-  blender::Vector<LayoutPanelHeader> headers;
-  blender::Vector<LayoutPanelBody> bodies;
+  Vector<LayoutPanelHeader> headers;
+  Vector<LayoutPanelBody> bodies;
 
   void clear()
   {
@@ -478,7 +480,7 @@ struct Panel_Runtime {
    * Pointer to the panel's block. Useful when changes to panel #ui::Blocks
    * need some context from traversal of the panel "tree".
    */
-  blender::ui::Block *block = nullptr;
+  ui::Block *block = nullptr;
 
   /** Non-owning pointer. The context is stored in the block. */
   bContextStore *context = nullptr;
@@ -487,7 +489,7 @@ struct Panel_Runtime {
   LayoutPanels layout_panels;
 };
 
-namespace blender::bke {
+namespace bke {
 
 /** #ARegionRuntime.quadview_index */
 enum class ARegionQuadviewIndex : uint8_t {
@@ -524,7 +526,7 @@ struct ARegionRuntime {
   const char *category = nullptr;
 
   /** Maps #ui::Block::name to ui::Block for faster lookups. */
-  Map<std::string, blender::ui::Block *> block_name_map;
+  Map<std::string, ui::Block *> block_name_map;
   ListBaseT<ui::Block> uiblocks = {};
 
   ListBaseT<wmEventHandler> handlers = {};
@@ -558,14 +560,14 @@ struct ARegionRuntime {
   Panel *popup_block_panel = nullptr;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
 
 /* #uiList types. */
 
 /** Draw an item in the `ui_list`. */
 using uiListDrawItemFunc = void (*)(uiList *ui_list,
                                     const bContext *C,
-                                    blender::ui::Layout &layout,
+                                    ui::Layout &layout,
                                     PointerRNA *dataptr,
                                     PointerRNA *itemptr,
                                     int icon,
@@ -575,9 +577,7 @@ using uiListDrawItemFunc = void (*)(uiList *ui_list,
                                     int flt_flag);
 
 /** Draw the filtering part of an uiList. */
-using uiListDrawFilterFunc = void (*)(uiList *ui_list,
-                                      const bContext *C,
-                                      blender::ui::Layout &layout);
+using uiListDrawFilterFunc = void (*)(uiList *ui_list, const bContext *C, ui::Layout &layout);
 
 /** Filter items of an uiList. */
 using uiListFilterItemsFunc = void (*)(uiList *ui_list,
@@ -626,7 +626,7 @@ struct Header {
   /** Runtime. */
   HeaderType *type;
   /** Runtime for drawing. */
-  blender::ui::Layout *layout;
+  ui::Layout *layout;
 };
 
 /* Menu types. */
@@ -672,7 +672,7 @@ struct Menu {
   /** Runtime. */
   MenuType *type;
   /** Runtime for drawing. */
-  blender::ui::Layout *layout;
+  ui::Layout *layout;
 };
 
 /* Asset shelf types. */
@@ -728,17 +728,17 @@ struct AssetShelfType {
 
   /**
    * Determine if an individual asset should be visible or not.
-   * Don't use directly, use #blender::ed::asset::shelf::type_asset_poll() (does additional
+   * Don't use directly, use #ed::asset::shelf::type_asset_poll() (does additional
    * pre-filtering based on the ID-type).
    */
   bool (*asset_poll)(const AssetShelfType *shelf_type,
-                     const blender::asset_system::AssetRepresentation *asset);
+                     const asset_system::AssetRepresentation *asset);
 
   /** Asset shelves can define their own context menu via this layout definition callback. */
   void (*draw_context_menu)(const bContext *C,
                             const AssetShelfType *shelf_type,
-                            const blender::asset_system::AssetRepresentation *asset,
-                            blender::ui::Layout &layout);
+                            const asset_system::AssetRepresentation *asset,
+                            ui::Layout &layout);
 
   const AssetWeakReference *(*get_active_asset)(const AssetShelfType *shelf_type);
 
@@ -750,7 +750,7 @@ struct AssetShelfType {
 
 SpaceType *BKE_spacetype_from_id(int spaceid);
 ARegionType *BKE_regiontype_from_id(const SpaceType *st, int regionid);
-blender::Span<std::unique_ptr<SpaceType>> BKE_spacetypes_list();
+Span<std::unique_ptr<SpaceType>> BKE_spacetypes_list();
 void BKE_spacetype_register(std::unique_ptr<SpaceType> st);
 bool BKE_spacetype_exists(int spaceid);
 /** Only for quitting blender. */
@@ -823,7 +823,7 @@ void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(wmGizmoMap *)
  * panel state with the given default value.
  */
 LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
-                                                      blender::StringRef idname,
+                                                      StringRef idname,
                                                       bool default_closed);
 
 /**
@@ -963,3 +963,5 @@ void BKE_screen_area_blend_read_after_liblink(BlendLibReader *reader,
  * Cannot use #IDTypeInfo callback yet, because of the return value.
  */
 bool BKE_screen_blend_read_data(BlendDataReader *reader, bScreen *screen);
+
+}  // namespace blender

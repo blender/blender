@@ -15,6 +15,8 @@
 
 #include "asset_shelf.hh"
 
+namespace blender {
+
 RegionAssetShelf *RegionAssetShelf::get_from_asset_shelf_region(const ARegion &region)
 {
   if (region.regiontype != RGN_TYPE_ASSET_SHELF) {
@@ -38,7 +40,7 @@ RegionAssetShelf *RegionAssetShelf::ensure_from_asset_shelf_region(ARegion &regi
   return static_cast<RegionAssetShelf *>(region.regiondata);
 }
 
-namespace blender::ed::asset::shelf {
+namespace ed::asset::shelf {
 
 RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata)
 {
@@ -50,8 +52,7 @@ RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata)
 
   BLI_listbase_clear(&new_shelf_regiondata->shelves);
   for (const AssetShelf &shelf : shelf_regiondata->shelves) {
-    AssetShelf *new_shelf = MEM_new<AssetShelf>("duplicate asset shelf",
-                                                blender::dna::shallow_copy(shelf));
+    AssetShelf *new_shelf = MEM_new<AssetShelf>("duplicate asset shelf", dna::shallow_copy(shelf));
     new_shelf->settings = shelf.settings;
     BLI_addtail(&new_shelf_regiondata->shelves, new_shelf);
     if (shelf_regiondata->active_shelf == &shelf) {
@@ -97,4 +98,5 @@ void regiondata_blend_read_data(BlendDataReader *reader, RegionAssetShelf **shel
   }
 }
 
-}  // namespace blender::ed::asset::shelf
+}  // namespace ed::asset::shelf
+}  // namespace blender

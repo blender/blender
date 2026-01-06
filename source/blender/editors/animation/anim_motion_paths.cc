@@ -41,6 +41,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"anim.motion_paths"};
 
 /* Motion path needing to be baked (mpt). */
@@ -69,13 +71,13 @@ static void motionpaths_calc_update_scene(Depsgraph *depsgraph)
 Depsgraph *animviz_depsgraph_build(Main *bmain,
                                    Scene *scene,
                                    ViewLayer *view_layer,
-                                   blender::Span<MPathTarget *> targets)
+                                   Span<MPathTarget *> targets)
 {
   /* Allocate dependency graph. */
   Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
 
   /* Make a flat array of IDs for the DEG API. */
-  blender::Array<ID *> ids(targets.size());
+  Array<ID *> ids(targets.size());
   int current_id_index = 0;
   for (const MPathTarget *mpt : targets) {
     ids[current_id_index++] = &mpt->ob->id;
@@ -89,7 +91,7 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
   return depsgraph;
 }
 
-void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *> &r_targets)
+void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget *> &r_targets)
 {
   /* TODO: it would be nice in future to be able to update objects dependent on these bones too? */
 
@@ -107,7 +109,7 @@ void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *>
 
   /* Bones. */
   if ((ob->pose) && (ob->pose->avs.recalc & ANIMVIZ_RECALC_PATHS)) {
-    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       if ((pchan.bone) && ANIM_bonecoll_is_visible_pchan(arm, &pchan) && (pchan.mpath)) {
         /* New target for bone. */
@@ -121,7 +123,7 @@ void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *>
   }
 }
 
-void animviz_free_motionpath_targets(blender::Vector<MPathTarget *> &targets)
+void animviz_free_motionpath_targets(Vector<MPathTarget *> &targets)
 {
   for (MPathTarget *mpt : targets) {
     MEM_freeN(mpt);
@@ -132,12 +134,11 @@ void animviz_free_motionpath_targets(blender::Vector<MPathTarget *> &targets)
 /* ........ */
 
 /* Perform baking for the targets on the current frame. */
-static void motionpaths_calc_bake_targets(blender::Span<MPathTarget *> targets,
+static void motionpaths_calc_bake_targets(Span<MPathTarget *> targets,
                                           int cframe,
                                           Depsgraph *depsgraph,
                                           Object *camera)
 {
-  using namespace blender;
   /* For each target, check if it can be baked on the current frame. */
   for (const MPathTarget *mpt : targets) {
     bMotionPath *mpath = mpt->mpath;
@@ -226,9 +227,7 @@ static bAnimVizSettings *animviz_target_settings_get(const MPathTarget *mpt)
   return &mpt->ob->avs;
 }
 
-static void motionpath_get_global_framerange(blender::Span<MPathTarget *> targets,
-                                             int *r_sfra,
-                                             int *r_efra)
+static void motionpath_get_global_framerange(Span<MPathTarget *> targets, int *r_sfra, int *r_efra)
 {
   *r_sfra = INT_MAX;
   *r_efra = INT_MIN;
@@ -288,7 +287,7 @@ static int motionpath_get_next_next_keyframe(MPathTarget *mpt,
 
 static bool motionpath_check_can_use_keyframe_range(MPathTarget * /*mpt*/,
                                                     AnimData *adt,
-                                                    blender::Span<FCurve *> fcurves)
+                                                    Span<FCurve *> fcurves)
 {
   if (adt == nullptr || fcurves.is_empty()) {
     return false;
@@ -300,7 +299,7 @@ static bool motionpath_check_can_use_keyframe_range(MPathTarget * /*mpt*/,
 
 static void motionpath_calculate_update_range(MPathTarget *mpt,
                                               AnimData *adt,
-                                              blender::Vector<FCurve *> fcurves,
+                                              Vector<FCurve *> fcurves,
                                               int current_frame,
                                               int *r_sfra,
                                               int *r_efra)
@@ -350,7 +349,7 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
   }
 }
 
-static void motionpath_free_free_tree_data(blender::MutableSpan<MPathTarget *> targets)
+static void motionpath_free_free_tree_data(MutableSpan<MPathTarget *> targets)
 {
   for (MPathTarget *mpt : targets) {
     ED_keylist_free(mpt->keylist);
@@ -368,7 +367,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
 
   const bool has_action = ob->adt && ob->adt->action;
   if (avs->path_range == MOTIONPATH_RANGE_SCENE || !has_action ||
-      !blender::animrig::legacy::assigned_action_has_keyframes(ob->adt))
+      !animrig::legacy::assigned_action_has_keyframes(ob->adt))
   {
     /* Default to the scene (preview) range if there is no animation data to
      * find selected keys in. */
@@ -378,11 +377,11 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
   }
 
   AnimKeylist *keylist = ED_keylist_create();
-  for (FCurve *fcu : blender::animrig::legacy::fcurves_for_assigned_action(ob->adt)) {
+  for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(ob->adt)) {
     fcurve_to_keylist(ob->adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, true);
   }
 
-  blender::Bounds<float> frame_range;
+  Bounds<float> frame_range;
   switch (avs->path_range) {
     case MOTIONPATH_RANGE_KEYS_SELECTED:
       if (ED_keylist_selected_keys_frame_range(keylist, &frame_range)) {
@@ -406,7 +405,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
-                              blender::MutableSpan<MPathTarget *> targets,
+                              MutableSpan<MPathTarget *> targets,
                               eAnimvizCalcRange range,
                               bool restore)
 {
@@ -466,7 +465,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     /* Build list of all keyframes in active action for object or pchan. */
     mpt->keylist = ED_keylist_create();
 
-    blender::Vector<FCurve *> fcurves;
+    Vector<FCurve *> fcurves;
     if (adt && adt->action) {
       /* Get pointer to animviz settings for each target. */
       bAnimVizSettings *avs = animviz_target_settings_get(mpt);
@@ -481,13 +480,13 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
         agrp = cbag ? cbag->channel_group_find(mpt->pchan->name) : nullptr;
 
         if (agrp) {
-          fcurves = blender::listbase_to_vector<FCurve>(agrp->channels);
+          fcurves = listbase_to_vector<FCurve>(agrp->channels);
           action_group_to_keylist(adt, agrp, mpt->keylist, 0, {-FLT_MAX, FLT_MAX});
         }
       }
       else {
         Action &action = adt->action->wrap();
-        fcurves = blender::Vector<FCurve *>(
+        fcurves = Vector<FCurve *>(
             channelbag_for_action_slot(action, adt->slot_handle)->fcurves());
         action_to_keylist(adt, adt->action, mpt->keylist, 0, {-FLT_MAX, FLT_MAX});
       }
@@ -561,3 +560,5 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     GPU_BATCH_DISCARD_SAFE(mpath->batch_points);
   }
 }
+
+}  // namespace blender

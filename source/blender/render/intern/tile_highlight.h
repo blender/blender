@@ -14,9 +14,11 @@
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct RenderResult;
 
-namespace blender::render {
+namespace render {
 
 class TilesHighlight {
  public:
@@ -64,4 +66,5 @@ class TilesHighlight {
   mutable Vector<rcti> cached_highlighted_tiles_;
 };
 
-}  // namespace blender::render
+}  // namespace render
+}  // namespace blender

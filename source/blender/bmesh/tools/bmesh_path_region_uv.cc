@@ -23,6 +23,8 @@
 #include "bmesh.hh"
 #include "bmesh_path_region_uv.hh" /* own include */
 
+namespace blender {
+
 /**
  * Special handling of vertices with 2 edges
  * (act as if the edge-chain is a single edge).
@@ -117,7 +119,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
 {
   BLI_assert(cd_loop_uv_offset >= 0);
   int ele_loops_len[2];
-  blender::Vector<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> ele_loops_buf[2];
+  Vector<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> ele_loops_buf[2];
   BMLoop **ele_loops[2];
 
   /* Get vertices from any `ele_src/ele_dst` elements. */
@@ -497,3 +499,5 @@ LinkNode *BM_mesh_calc_path_uv_region_face(BMesh *bm,
 }
 
 /** \} */
+
+}  // namespace blender

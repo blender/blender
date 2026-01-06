@@ -30,6 +30,8 @@
 
 #include "fsmenu.hh"
 
+namespace blender {
+
 struct FSMenu;
 
 /* Add Windows Quick Access items to the System list. */
@@ -308,3 +310,5 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
     fsmenu_add_windows_quick_access(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_INSERT_LAST);
   }
 }
+
+}  // namespace blender

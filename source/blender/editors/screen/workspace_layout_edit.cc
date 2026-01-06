@@ -26,6 +26,8 @@
 
 #include "screen_intern.hh"
 
+namespace blender {
+
 WorkSpaceLayout *ED_workspace_layout_add(Main *bmain,
                                          WorkSpace *workspace,
                                          wmWindow *win,
@@ -213,3 +215,5 @@ bool ED_workspace_layout_cycle(WorkSpace *workspace, const short direction, bCon
 
   return false;
 }
+
+}  // namespace blender

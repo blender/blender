@@ -36,9 +36,11 @@
 
 #include <sstream>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"asset.index"};
 
-namespace blender::ed::asset::index {
+namespace ed::asset::index {
 
 using namespace blender::asset_system;
 using namespace blender::io::serialize;
@@ -752,4 +754,5 @@ constexpr FileIndexerType asset_indexer()
 
 const FileIndexerType file_indexer_asset = asset_indexer();
 
-}  // namespace blender::ed::asset::index
+}  // namespace ed::asset::index
+}  // namespace blender

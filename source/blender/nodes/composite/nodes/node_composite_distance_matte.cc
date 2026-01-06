@@ -17,7 +17,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_distance_matte_cc {
+namespace blender {
+
+namespace nodes::node_composite_distance_matte_cc {
 
 static const EnumPropertyItem color_space_items[] = {
     {CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA, "RGB", 0, N_("RGB"), N_("RGB color space")},
@@ -113,9 +115,9 @@ static void distance_key(const float4 color,
   result = color * matte;
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto function = mf::build::SI5_SO2<Color, Color, MenuValue, float, float, Color, float>(
       "Distance Key",
@@ -140,13 +142,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   builder.set_matching_fn(function);
 }
 
-}  // namespace blender::nodes::node_composite_distance_matte_cc
+}  // namespace nodes::node_composite_distance_matte_cc
 
 static void register_node_type_cmp_distance_matte()
 {
-  namespace file_ns = blender::nodes::node_composite_distance_matte_cc;
+  namespace file_ns = nodes::node_composite_distance_matte_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDistanceMatte", CMP_NODE_DIST_MATTE);
   ntype.ui_name = "Distance Key";
@@ -156,12 +158,14 @@ static void register_node_type_cmp_distance_matte()
   ntype.declare = file_ns::cmp_node_distance_matte_declare;
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc = file_ns::node_composit_init_distance_matte;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
-  blender::bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_distance_matte)
+
+}  // namespace blender

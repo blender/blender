@@ -50,6 +50,8 @@
 
 #include "ED_screen.hh"
 
+namespace blender {
+
 struct wmKeyMapItemFind_Params {
   bool (*filter_fn)(const wmKeyMap *km, const wmKeyMapItem *kmi, void *user_data);
   void *user_data;
@@ -1206,7 +1208,7 @@ std::optional<std::string> WM_keymap_item_raw_to_string(const int8_t shift,
                                                         const bool compact)
 {
   /* TODO: also support (some) value, like e.g. double-click? */
-  blender::Vector<std::string_view, 12> result_array;
+  Vector<std::string_view, 12> result_array;
 
   const char *space = " ";
 
@@ -1393,7 +1395,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
                                                   wmWindow *win,
                                                   ListBaseT<wmEventHandler> *handlers,
                                                   const char *opname,
-                                                  blender::wm::OpCallContext /*opcontext*/,
+                                                  wm::OpCallContext /*opcontext*/,
                                                   const IDProperty *properties,
                                                   const bool is_strict,
                                                   const wmKeyMapItemFind_Params *params,
@@ -1429,7 +1431,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
 
 static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
                                                const char *opname,
-                                               blender::wm::OpCallContext opcontext,
+                                               wm::OpCallContext opcontext,
                                                const IDProperty *properties,
                                                const bool is_strict,
                                                const wmKeyMapItemFind_Params *params,
@@ -1473,10 +1475,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
   }
 
   if (found == nullptr) {
-    if (ELEM(opcontext,
-             blender::wm::OpCallContext::ExecRegionWin,
-             blender::wm::OpCallContext::InvokeRegionWin))
-    {
+    if (ELEM(opcontext, wm::OpCallContext::ExecRegionWin, wm::OpCallContext::InvokeRegionWin)) {
       if (area) {
         if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
           region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
@@ -1497,8 +1496,8 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
       }
     }
     else if (ELEM(opcontext,
-                  blender::wm::OpCallContext::ExecRegionChannels,
-                  blender::wm::OpCallContext::InvokeRegionChannels))
+                  wm::OpCallContext::ExecRegionChannels,
+                  wm::OpCallContext::InvokeRegionChannels))
     {
       if (!(region && region->regiontype == RGN_TYPE_CHANNELS)) {
         region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
@@ -1518,8 +1517,8 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
       }
     }
     else if (ELEM(opcontext,
-                  blender::wm::OpCallContext::ExecRegionPreview,
-                  blender::wm::OpCallContext::InvokeRegionPreview))
+                  wm::OpCallContext::ExecRegionPreview,
+                  wm::OpCallContext::InvokeRegionPreview))
     {
       if (!(region && region->regiontype == RGN_TYPE_PREVIEW)) {
         region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
@@ -1559,7 +1558,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
 
 static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
                                          const char *opname,
-                                         blender::wm::OpCallContext opcontext,
+                                         wm::OpCallContext opcontext,
                                          IDProperty *properties,
                                          bool is_strict,
                                          const wmKeyMapItemFind_Params *params,
@@ -1655,7 +1654,7 @@ static bool kmi_filter_is_visible(const wmKeyMap * /*km*/,
 
 std::optional<std::string> WM_key_event_operator_string(const bContext *C,
                                                         const char *opname,
-                                                        blender::wm::OpCallContext opcontext,
+                                                        wm::OpCallContext opcontext,
                                                         IDProperty *properties,
                                                         const bool is_strict)
 {
@@ -1683,7 +1682,7 @@ static bool kmi_filter_is_visible_type_mask(const wmKeyMap *km,
 
 wmKeyMapItem *WM_key_event_operator(const bContext *C,
                                     const char *opname,
-                                    blender::wm::OpCallContext opcontext,
+                                    wm::OpCallContext opcontext,
                                     IDProperty *properties,
                                     const short include_mask,
                                     const short exclude_mask,
@@ -2276,3 +2275,5 @@ wmKeyMapItem *WM_keymap_item_find_match(wmKeyMap *km_base,
 }
 
 /** \} */
+
+}  // namespace blender

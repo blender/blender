@@ -71,7 +71,7 @@ static void maskmodifier_apply(ModifierApplyContext &context,
 static void maskmodifier_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
   draw_mask_input_type_settings(C, layout, ptr);
 }

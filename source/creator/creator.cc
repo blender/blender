@@ -104,6 +104,8 @@
 
 #include "creator_intern.h" /* Own include. */
 
+namespace blender {
+
 BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
 
 /* -------------------------------------------------------------------- */
@@ -290,6 +292,8 @@ static void restore_ld_preload()
 
 /** \} */
 
+}  // namespace blender
+
 /* -------------------------------------------------------------------- */
 /** \name Main Function
  * \{ */
@@ -313,6 +317,8 @@ int main(int argc,
 #endif
 )
 {
+  using namespace blender;
+
   bContext *C;
 #ifndef WITH_PYTHON_MODULE
   bArgs *ba;
@@ -464,7 +470,7 @@ int main(int argc,
   BKE_cpp_types_init();
   BKE_idtype_init();
   BKE_modifier_init();
-  blender::seq::modifiers_init();
+  seq::modifiers_init();
   BKE_shaderfx_init();
   BKE_volumes_init();
   DEG_register_node_types();
@@ -496,7 +502,7 @@ int main(int argc,
   BLI_task_scheduler_init();
 
   /* Initialize FFTW threading support. */
-  blender::fftw::initialize_float();
+  fftw::initialize_float();
 
 #ifndef WITH_PYTHON_MODULE
   /* The settings pass includes:
@@ -530,7 +536,7 @@ int main(int argc,
 
   RE_texture_rng_init();
   RE_engines_init();
-  blender::bke::node_system_init();
+  bke::node_system_init();
 
   BKE_brush_system_init();
   BKE_particle_init_rng();

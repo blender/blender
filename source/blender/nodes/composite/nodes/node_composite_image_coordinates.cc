@@ -91,7 +91,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeImageCoordinates");
   ntype.ui_name = "Image Coordinates";
@@ -100,7 +100,7 @@ static void register_node()
   ntype.declare = node_declare;
   ntype.get_compositor_operation = get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node)
 

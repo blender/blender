@@ -14,11 +14,13 @@
 
 #ifdef RNA_RUNTIME
 
+namespace blender {
+
 /**
  * Get the Action slot, given this slot handle.
  */
 PointerRNA rna_generic_action_slot_get(bAction *dna_action,
-                                       const blender::animrig::slot_handle_t slot_handle);
+                                       const animrig::slot_handle_t slot_handle);
 
 /**
  * Set the Action slot.
@@ -28,7 +30,7 @@ PointerRNA rna_generic_action_slot_get(bAction *dna_action,
 void rna_generic_action_slot_set(PointerRNA rna_slot_to_assign,
                                  ID &animated_id,
                                  bAction *&action_ptr_ref,
-                                 blender::animrig::slot_handle_t &slot_handle_ref,
+                                 animrig::slot_handle_t &slot_handle_ref,
                                  char *slot_name,
                                  ReportList *reports);
 
@@ -38,10 +40,10 @@ void rna_generic_action_slot_set(PointerRNA rna_slot_to_assign,
  * Requires that there is an Action already assigned, unless the slot to assign
  * is Slot::unassigned (that always works).
  */
-void rna_generic_action_slot_handle_set(blender::animrig::slot_handle_t slot_handle_to_assign,
+void rna_generic_action_slot_handle_set(animrig::slot_handle_t slot_handle_to_assign,
                                         ID &animated_id,
                                         bAction *&action_ptr_ref,
-                                        blender::animrig::slot_handle_t &slot_handle_ref,
+                                        animrig::slot_handle_t &slot_handle_ref,
                                         char *slot_name);
 
 /**
@@ -73,5 +75,7 @@ void rna_generic_action_slot_handle_override_diff(Main *bmain,
                                                   RNAPropertyOverrideDiffContext &rnadiff_ctx,
                                                   const bAction *action_a,
                                                   const bAction *action_b);
+
+}  // namespace blender
 
 #endif /* RNA_RUNTIME */

@@ -10,6 +10,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Ordered Selection Storage
  * \{ */
@@ -443,3 +445,5 @@ struct MRecast {
 #endif
 
 /** \} */
+
+}  // namespace blender

@@ -28,7 +28,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
 
-using namespace blender;
+namespace blender {
 
 /**
  * Increase to a large number (8k or so) to test many permutations,
@@ -530,3 +530,5 @@ TEST(convexhull_2d, Random)
 #endif
 
 /** \} */
+
+}  // namespace blender

@@ -18,6 +18,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define ELE_VERT_ADJUST (1 << 0)
 #define ELE_FACE_ADJUST (1 << 1)
 
@@ -63,7 +65,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
     BMO_face_flag_enable(bm, f, ELE_FACE_ADJUST);
   }
 
-  blender::Map<BMVert *, VertAccum> vaccum_map;
+  Map<BMVert *, VertAccum> vaccum_map;
   vaccum_map.reserve(shared_vert_num);
 
   for (iter_step = 0; iter_step < iterations; iter_step++) {
@@ -128,3 +130,5 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 
   MEM_freeN(faces_center);
 }
+
+}  // namespace blender

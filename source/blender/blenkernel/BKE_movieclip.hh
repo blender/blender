@@ -11,14 +11,16 @@
 #include "BLI_enum_flags.hh"
 #include "DNA_movieclip_types.h"
 
+namespace blender {
+
 struct Depsgraph;
 struct ImBuf;
 struct Main;
 struct MovieDistortion;
 
-namespace blender::gpu {
+namespace gpu {
 class Texture;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 enum class MovieClipCacheFlag {
   None = 0,
@@ -130,10 +132,12 @@ ImBuf *BKE_movieclip_anim_ibuf_for_frame_no_lock(MovieClip *clip, const MovieCli
 bool BKE_movieclip_has_cached_frame(MovieClip *clip, const MovieClipUser *user);
 bool BKE_movieclip_put_frame_if_possible(MovieClip *clip, const MovieClipUser *user, ImBuf *ibuf);
 
-blender::gpu::Texture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser);
+gpu::Texture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser);
 
 void BKE_movieclip_free_gputexture(MovieClip *clip);
 
 /* Dependency graph evaluation. */
 
 void BKE_movieclip_eval_update(Depsgraph *depsgraph, Main *bmain, MovieClip *clip);
+
+}  // namespace blender

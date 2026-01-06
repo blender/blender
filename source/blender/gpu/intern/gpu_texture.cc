@@ -17,7 +17,9 @@
 
 #include "gpu_texture_private.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Creation & Deletion
@@ -230,13 +232,12 @@ void Texture::update(eGPUDataFormat format, const void *data)
 
 /** \} */
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /* -------------------------------------------------------------------- */
 /** \name C-API
  * \{ */
 
-using namespace blender;
 using namespace blender::gpu;
 
 /* ------ Memory Management ------ */
@@ -1037,3 +1038,5 @@ size_t GPU_texture_dataformat_size(eGPUDataFormat data_format)
 }
 
 /** \} */
+
+}  // namespace blender

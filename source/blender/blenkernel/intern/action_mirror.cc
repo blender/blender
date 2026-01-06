@@ -33,7 +33,7 @@
 
 #include "DEG_depsgraph.hh"
 
-using namespace blender;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Flip the Action (Armature/Pose Objects)
@@ -270,7 +270,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
 
     /* Temporary pose channel to write values into,
      * using the `fkc_pchan` values, falling back to the values in the pose channel. */
-    bPoseChannel pchan_temp = blender::dna::shallow_copy(*pchan);
+    bPoseChannel pchan_temp = dna::shallow_copy(*pchan);
 
 /* Load the values into the channel. */
 #define READ_VALUE_FLT(id) \
@@ -396,11 +396,11 @@ static void action_flip_pchan_rna_paths(bAction *act)
   const int path_pose_prefix_len = strlen(path_pose_prefix);
 
   /* Tag curves that have renamed f-curves. */
-  for (bActionGroup *agrp : blender::animrig::legacy::channel_groups_all(act)) {
+  for (bActionGroup *agrp : animrig::legacy::channel_groups_all(act)) {
     agrp->flag &= ~AGRP_TEMP;
   }
 
-  for (FCurve *fcu : blender::animrig::legacy::fcurves_all(act)) {
+  for (FCurve *fcu : animrig::legacy::fcurves_all(act)) {
     if (!STRPREFIX(fcu->rna_path, path_pose_prefix)) {
       continue;
     }
@@ -440,7 +440,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
   }
 
   /* Rename tagged groups. */
-  for (bActionGroup *agrp : blender::animrig::legacy::channel_groups_all(act)) {
+  for (bActionGroup *agrp : animrig::legacy::channel_groups_all(act)) {
     if ((agrp->flag & AGRP_TEMP) == 0) {
       continue;
     }
@@ -483,3 +483,5 @@ void BKE_action_flip_with_pose(bAction *act, Span<Object *> objects)
 }
 
 /** \} */
+
+}  // namespace blender

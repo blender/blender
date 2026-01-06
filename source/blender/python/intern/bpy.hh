@@ -10,6 +10,10 @@
 
 #include <Python.h>
 
+struct CLG_LogRef;
+
+namespace blender {
+
 struct bContext;
 
 /** Creates the `bpy` module and adds it to `sys.modules` for importing. */
@@ -22,5 +26,7 @@ extern PyObject *bpy_package_py;
 void BPY_atexit_register();
 void BPY_atexit_unregister();
 
-extern struct CLG_LogRef *BPY_LOG_RNA;
-extern struct CLG_LogRef *BPY_LOG_INTERFACE;
+extern CLG_LogRef *BPY_LOG_RNA;
+extern CLG_LogRef *BPY_LOG_INTERFACE;
+
+}  // namespace blender

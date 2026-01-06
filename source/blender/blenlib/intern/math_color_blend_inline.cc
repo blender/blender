@@ -15,6 +15,8 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
+namespace blender {
+
 #ifndef __MATH_COLOR_BLEND_INLINE_C__
 #  define __MATH_COLOR_BLEND_INLINE_C__
 
@@ -1130,3 +1132,5 @@ MINLINE void blend_color_interpolate_float(float dst[4],
 #  undef EPS_ALPHA
 
 #endif /* __MATH_COLOR_BLEND_INLINE_C__ */
+
+}  // namespace blender

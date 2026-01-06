@@ -6,11 +6,12 @@
  * \ingroup bli
  */
 
-#ifndef __MATH_VECTOR_INLINE_C__
-#define __MATH_VECTOR_INLINE_C__
+#pragma once
 
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
+
+namespace blender {
 
 /********************************** Init *************************************/
 
@@ -1071,4 +1072,4 @@ MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const flo
 
 /** \} */
 
-#endif /* __MATH_VECTOR_INLINE_C__ */
+}  // namespace blender

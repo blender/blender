@@ -16,6 +16,8 @@
 
 #include "mesh_intern.hh" /* own include */
 
+namespace blender {
+
 /**************************** registration **********************************/
 
 void ED_operatortypes_mesh()
@@ -364,3 +366,5 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
   point_normals_modal_keymap(keyconf);
   bevel_modal_keymap(keyconf);
 }
+
+}  // namespace blender

@@ -123,7 +123,7 @@ void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage &oImage) co
     float xfac = float(rectx) / float(xmax - xmin);
     float yfac = float(recty) / float(ymax - ymin);
 #if 0
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n",
              w,
              h,
@@ -172,7 +172,7 @@ void AppCanvas::readDepthPixels(int x, int y, int w, int h, GrayImage &oImage) c
     float xfac = float(rectx) / float(xmax - xmin);
     float yfac = float(recty) / float(ymax - ymin);
 #if 0
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n",
              w,
              h,

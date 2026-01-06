@@ -22,6 +22,8 @@
 
 #pragma comment(lib, "shlwapi.lib")
 
+using namespace blender;
+
 /**
  * This thumbnail provider implements #IInitializeWithStream to enable being hosted
  * in an isolated process for robustness.

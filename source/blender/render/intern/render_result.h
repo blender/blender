@@ -10,6 +10,8 @@
 
 #include "BKE_global.hh" /* IWYU pragma: keep. Used in macro. */
 
+namespace blender {
+
 #define PASS_VECTOR_MAX 10000.0f
 
 #define RR_ALL_LAYERS NULL
@@ -159,3 +161,5 @@ void render_result_free_gpu_texture_caches(struct RenderResult *rr);
   } \
   } \
   ((void)0)
+
+}  // namespace blender

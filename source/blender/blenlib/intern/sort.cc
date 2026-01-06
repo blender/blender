@@ -10,6 +10,8 @@
 
 #include "BLI_sort.h"
 
+namespace blender {
+
 #ifdef min /* For MSVC. */
 #  undef min
 #endif
@@ -167,3 +169,5 @@ loop:
 #ifdef __clang__
 #  pragma clang diagnostic pop
 #endif
+
+}  // namespace blender

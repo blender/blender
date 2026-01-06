@@ -32,6 +32,8 @@
 
 #include "view3d_intern.hh" /* own include */
 
+namespace blender {
+
 static const char *handle_normal_id = "VIEW3D_GGT_tool_generic_handle_normal";
 static const char *handle_free_id = "VIEW3D_GGT_tool_generic_handle_free";
 
@@ -67,8 +69,8 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
   wmGizmo *gz = WM_gizmo_new("GIZMO_GT_button_2d", gzgroup, nullptr);
   gz->flag |= WM_GIZMO_OPERATOR_TOOL_INIT;
 
-  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
-  blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
+  ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
   unit_m4(gz->matrix_offset);
 
@@ -144,11 +146,11 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
     }
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(CTX_wm_region_data(C));
-    blender::ed::transform::TransformBounds tbounds;
-    blender::ed::transform::TransformCalcParams params{};
+    ed::transform::TransformBounds tbounds;
+    ed::transform::TransformCalcParams params{};
     params.use_only_center = true;
     params.orientation_index = orientation + 1;
-    const bool hide = blender::ed::transform::calc_gizmo_stats(C, &params, &tbounds, rv3d) == 0;
+    const bool hide = ed::transform::calc_gizmo_stats(C, &params, &tbounds, rv3d) == 0;
 
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, hide);
     if (hide) {
@@ -247,3 +249,5 @@ void VIEW3D_GGT_tool_generic_handle_free(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender

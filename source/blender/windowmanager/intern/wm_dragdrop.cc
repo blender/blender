@@ -66,6 +66,9 @@
 #include "wm_window.hh"
 
 #include <fmt/format.h>
+
+namespace blender {
+
 /* ****************************************************** */
 
 struct wmDropBoxMap;
@@ -294,10 +297,10 @@ wmDrag *WM_drag_data_create(bContext *C, int icon, eWM_DragDataType type, void *
       /* The asset-list case is special: We get multiple assets from context and attach them to the
        * drag item. */
     case WM_DRAG_ASSET_LIST: {
-      blender::Vector<PointerRNA> asset_links = CTX_data_collection_get(C, "selected_assets");
+      Vector<PointerRNA> asset_links = CTX_data_collection_get(C, "selected_assets");
       for (const PointerRNA &ptr : asset_links) {
-        const blender::asset_system::AssetRepresentation *asset =
-            static_cast<const blender::asset_system::AssetRepresentation *>(ptr.data);
+        const asset_system::AssetRepresentation *asset =
+            static_cast<const asset_system::AssetRepresentation *>(ptr.data);
         WM_drag_add_asset_list_item(drag, asset);
       }
       break;
@@ -347,7 +350,7 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
 
 static std::unique_ptr<bContextStore> wm_drop_ui_context_create(const bContext *C)
 {
-  blender::ui::Button *active_but = blender::ui::region_active_but_get(CTX_wm_region(C));
+  ui::Button *active_but = ui::region_active_but_get(CTX_wm_region(C));
   if (!active_but) {
     return nullptr;
   }
@@ -373,9 +376,8 @@ void WM_event_drag_path_override_poin_data_with_space_file_paths(const bContext 
   if (!sfile) {
     return;
   }
-  const blender::Vector<std::string> selected_paths = ED_fileselect_selected_files_full_paths(
-      sfile);
-  blender::Vector<const char *> paths;
+  const Vector<std::string> selected_paths = ED_fileselect_selected_files_full_paths(sfile);
+  Vector<const char *> paths;
   for (const std::string &path : selected_paths) {
     paths.append(path.c_str());
   }
@@ -480,7 +482,7 @@ static wmDropBox *dropbox_active(bContext *C,
             continue;
           }
 
-          const blender::wm::OpCallContext opcontext = wm_drop_operator_context_get(&drop);
+          const wm::OpCallContext opcontext = wm_drop_operator_context_get(&drop);
           if (drop.ot && WM_operator_poll_context(C, drop.ot, opcontext)) {
             /* Get dropbox tooltip now, #wm_drag_draw_tooltip can use a different draw context. */
             drag->drop_state.tooltip = dropbox_tooltip(C, drag, event->xy, &drop);
@@ -544,7 +546,7 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
 static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
 
   /* For multi-window drags, we only do this if mouse inside. */
   if (event->xy[0] < 0 || event->xy[1] < 0 || event->xy[0] > win_size[0] ||
@@ -580,7 +582,7 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
 
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
-  const blender::wm::OpCallContext opcontext = wm_drop_operator_context_get(drop);
+  const wm::OpCallContext opcontext = wm_drop_operator_context_get(drop);
 
   if (drag->drop_state.ui_context) {
     CTX_store_set(C, drag->drop_state.ui_context.get());
@@ -621,9 +623,9 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
   }
 }
 
-blender::wm::OpCallContext wm_drop_operator_context_get(const wmDropBox * /*drop*/)
+wm::OpCallContext wm_drop_operator_context_get(const wmDropBox * /*drop*/)
 {
-  return blender::wm::OpCallContext::InvokeDefault;
+  return wm::OpCallContext::InvokeDefault;
 }
 
 /* ************** IDs ***************** */
@@ -681,7 +683,7 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
   return WM_drag_get_local_ID(drag, idcode) || WM_drag_get_asset_data(drag, idcode);
 }
 
-wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
+wmDragAsset *WM_drag_create_asset_data(const asset_system::AssetRepresentation *asset,
                                        const AssetImportSettings &import_settings)
 {
   wmDragAsset *asset_drag = MEM_new<wmDragAsset>(__func__);
@@ -728,8 +730,6 @@ AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode)
 
 ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const int flag_extra)
 {
-  using namespace blender::ed;
-
   /* Only support passing in limited flags. */
   BLI_assert(flag_extra == (flag_extra & FILE_AUTOSELECT));
   /* #eFileSel_Params_Flag + #eBLOLibLinkFlags */
@@ -739,19 +739,19 @@ ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const in
     flag |= BLO_LIBLINK_COLLECTION_INSTANCE;
   }
 
-  asset::ImportInstantiateContext instantiate_context;
+  ed::asset::ImportInstantiateContext instantiate_context;
   instantiate_context.scene = CTX_data_scene(C);
   instantiate_context.view_layer = CTX_data_view_layer(C);
   instantiate_context.view3d = CTX_wm_view3d(C);
 
   /* FIXME: Link/Append should happens in the operator called at the end of drop process, not from
    * here. */
-  return asset::asset_local_id_ensure_imported(*CTX_data_main(C),
-                                               *asset_drag->asset,
-                                               flag,
-                                               asset_drag->import_settings.method,
-                                               instantiate_context,
-                                               CTX_wm_reports(C));
+  return ed::asset::asset_local_id_ensure_imported(*CTX_data_main(C),
+                                                   *asset_drag->asset,
+                                                   flag,
+                                                   asset_drag->import_settings.method,
+                                                   instantiate_context,
+                                                   CTX_wm_reports(C));
 }
 
 bool WM_drag_asset_will_import_linked(const wmDrag *drag)
@@ -827,8 +827,7 @@ wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const wmDrag *drag)
   return static_cast<wmDragAssetCatalog *>(drag->poin);
 }
 
-void WM_drag_add_asset_list_item(wmDrag *drag,
-                                 const blender::asset_system::AssetRepresentation *asset)
+void WM_drag_add_asset_list_item(wmDrag *drag, const asset_system::AssetRepresentation *asset)
 {
   BLI_assert(drag->type == WM_DRAG_ASSET_LIST);
 
@@ -884,7 +883,7 @@ std::optional<bool> wm_drag_asset_path_exists(const wmDrag *drag)
   return false;
 }
 
-wmDragPath *WM_drag_create_path_data(blender::Span<const char *> paths)
+wmDragPath *WM_drag_create_path_data(Span<const char *> paths)
 {
   BLI_assert(!paths.is_empty());
   wmDragPath *path_data = MEM_new<wmDragPath>("wmDragPath");
@@ -928,7 +927,7 @@ const char *WM_drag_get_single_path(const wmDrag *drag, int file_type)
     return nullptr;
   }
   const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
-  const blender::Span<int> file_types = path_data->file_types;
+  const Span<int> file_types = path_data->file_types;
 
   const auto *itr = std::find_if(
       file_types.begin(), file_types.end(), [file_type](const int file_fype_test) {
@@ -951,10 +950,10 @@ bool WM_drag_has_path_file_type(const wmDrag *drag, int file_type)
   return bool(path_data->file_types_bit_flag & file_type);
 }
 
-blender::Span<std::string> WM_drag_get_paths(const wmDrag *drag)
+Span<std::string> WM_drag_get_paths(const wmDrag *drag)
 {
   if (drag->type != WM_DRAG_PATH) {
-    return blender::Span<std::string>();
+    return Span<std::string>();
   }
 
   const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
@@ -991,32 +990,32 @@ std::string WM_drag_get_string_firstline(const wmDrag *drag)
 
 /* ************** draw ***************** */
 
-static void wm_drop_operator_draw(const blender::StringRef name, int x, int y)
+static void wm_drop_operator_draw(const StringRef name, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
   /* Use the theme settings from tooltips. */
-  const bTheme *btheme = blender::ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
   float col_fg[4], col_bg[4];
   rgba_uchar_to_float(col_fg, wcol->text);
   rgba_uchar_to_float(col_bg, wcol->inner);
 
-  blender::ui::fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
+  ui::fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }
 
-static void wm_drop_redalert_draw(const blender::StringRef redalert_str, int x, int y)
+static void wm_drop_redalert_draw(const StringRef redalert_str, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  const bTheme *btheme = blender::ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
   float col_fg[4], col_bg[4];
-  blender::ui::theme::get_color_4fv(TH_REDALERT, col_fg);
+  ui::theme::get_color_4fv(TH_REDALERT, col_fg);
   rgba_uchar_to_float(col_bg, wcol->inner);
 
-  blender::ui::fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
+  ui::fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
 }
 
 const char *WM_drag_get_item_name(wmDrag *drag)
@@ -1075,7 +1074,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     x = xy[0] - int(8.0f * scale);
     y = xy[1] - int(scale);
     const uchar text_col[] = {255, 255, 255, 255};
-    blender::ui::IconTextOverlay text_overlay;
+    ui::IconTextOverlay text_overlay;
     icon_text_overlay_init_from_count(&text_overlay, path_count);
     icon_draw_ex(x, y, ICON_DOCUMENTS, 1.0f / scale, 1.0f, 0.0f, text_col, false, &text_overlay);
   }
@@ -1095,7 +1094,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
                                   y,
                                   drag->imb->x,
                                   drag->imb->y,
-                                  blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                  gpu::TextureFormat::UNORM_8_8_8_8,
                                   false,
                                   drag->imb->byte_buffer.data,
                                   drag->imbuf_scale,
@@ -1109,7 +1108,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     x = xy[0] - (size / 2);
     y = xy[1] - (size / 2);
 
-    blender::ui::icon_draw_preview(x, y, drag->preview_icon_id, 1.0, 0.8, size);
+    ui::icon_draw_preview(x, y, drag->preview_icon_id, 1.0, 0.8, size);
   }
   else {
     int padding = 4 * UI_SCALE_FAC;
@@ -1117,7 +1116,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     y = xy[1] - 2 * UI_SCALE_FAC;
 
     const uchar text_col[] = {255, 255, 255, 255};
-    blender::ui::icon_draw_ex(
+    ui::icon_draw_ex(
         x, y, drag->icon, UI_INV_SCALE_FAC, 0.8, 0.0f, text_col, false, UI_NO_ICON_OVERLAY_TEXT);
   }
 }
@@ -1126,7 +1125,7 @@ static void wm_drag_draw_item_name(wmDrag *drag, const int x, const int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const uchar text_col[] = {255, 255, 255, 255};
-  blender::ui::fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
+  ui::fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
 }
 
 void WM_drag_draw_item_name_fn(bContext * /*C*/, wmWindow *win, wmDrag *drag, const int xy[2])
@@ -1147,7 +1146,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   }
   int iconsize = UI_ICON_SIZE;
   int padding = 4 * UI_SCALE_FAC;
-  blender::StringRef tooltip = drag->drop_state.tooltip;
+  StringRef tooltip = drag->drop_state.tooltip;
   const bool has_disabled_info = drag->drop_state.disabled_info &&
                                  drag->drop_state.disabled_info.value()[0];
   if (tooltip.is_empty() && !has_disabled_info) {
@@ -1302,3 +1301,5 @@ void wm_drags_draw(bContext *C, wmWindow *win)
   CTX_wm_region_set(C, nullptr);
   CTX_store_set(C, nullptr);
 }
+
+}  // namespace blender

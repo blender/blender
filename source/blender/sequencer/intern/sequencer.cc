@@ -68,7 +68,8 @@
 
 #include "BKE_scene_runtime.hh"
 
-namespace blender::seq {
+namespace blender {
+namespace seq {
 
 /* -------------------------------------------------------------------- */
 /** \name Allocate / Free Functions
@@ -181,7 +182,7 @@ static void seq_strip_free_ex(Scene *scene,
   }
 
   if (strip->sound && do_id_user) {
-    id_us_min(blender::id_cast<ID *>(strip->sound));
+    id_us_min(id_cast<ID *>(strip->sound));
   }
 
   if (strip->clip && do_id_user) {
@@ -702,7 +703,7 @@ static Strip *strip_duplicate(StripDuplicateContext &ctx,
     strip_new->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(strip->data->stripdata));
     strip_new->runtime->scene_sound = nullptr;
     if ((ctx.copy_flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-      id_us_plus(blender::id_cast<ID *>(strip_new->sound));
+      id_us_plus(id_cast<ID *>(strip_new->sound));
     }
   }
   else if (strip->type == STRIP_TYPE_IMAGE) {
@@ -1206,7 +1207,7 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBaseT<Strip> *seqbase)
   sound_update_bounds_all(scene);
 }
 
-}  // namespace blender::seq
+}  // namespace seq
 
 ListBaseT<Strip> *Editing::current_strips()
 {
@@ -1248,3 +1249,5 @@ bool Strip::is_effect() const
          (this->type >= STRIP_TYPE_WIPE && this->type <= STRIP_TYPE_ADJUSTMENT) ||
          (this->type >= STRIP_TYPE_GAUSSIAN_BLUR && this->type <= STRIP_TYPE_COLORMIX);
 }
+
+}  // namespace blender

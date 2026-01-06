@@ -8,9 +8,11 @@
 
 #pragma once
 
+namespace blender {
+
 struct wmOperatorType;
 
-namespace blender::ed::geometry {
+namespace ed::geometry {
 
 /* *** geometry_attributes.cc *** */
 void GEOMETRY_OT_attribute_add(wmOperatorType *ot);
@@ -23,4 +25,5 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot);
 void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot);
 void GEOMETRY_OT_geometry_randomization(wmOperatorType *ot);
 
-}  // namespace blender::ed::geometry
+}  // namespace ed::geometry
+}  // namespace blender

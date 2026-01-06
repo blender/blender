@@ -29,7 +29,7 @@ namespace blender::animrig {
  */
 template<typename CB> static void ANIM_armature_foreach_bone(ListBaseT<Bone> *bones, CB callback)
 {
-  for (Bone *bone : blender::ListBaseWrapper<Bone>(bones)) {
+  for (Bone *bone : ListBaseWrapper<Bone>(bones)) {
     callback(bone);
     ANIM_armature_foreach_bone(&bone->childbase, callback);
   }
@@ -46,7 +46,7 @@ template<typename CB> static void ANIM_armature_foreach_bone(ListBaseT<Bone> *bo
 template<typename CB>
 static void ANIM_armature_foreach_bone(const ListBaseT<Bone> *bones, CB callback)
 {
-  for (const Bone *bone : blender::ConstListBaseWrapper<Bone>(bones)) {
+  for (const Bone *bone : ConstListBaseWrapper<Bone>(bones)) {
     callback(bone);
     ANIM_armature_foreach_bone(&bone->childbase, callback);
   }

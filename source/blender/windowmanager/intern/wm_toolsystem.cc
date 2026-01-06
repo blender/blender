@@ -55,6 +55,8 @@
 #include "WM_toolsystem.hh" /* Own include. */
 #include "WM_types.hh"
 
+namespace blender {
+
 static void toolsystem_reinit_with_toolref(bContext *C, WorkSpace * /*workspace*/, bToolRef *tref);
 static bToolRef *toolsystem_reinit_ensure_toolref(bContext *C,
                                                   WorkSpace *workspace,
@@ -256,7 +258,7 @@ static void toolsystem_main_brush_binding_update_from_active(Paint *paint)
 
   if (paint->brush != nullptr) {
     if (std::optional<AssetWeakReference> brush_asset_reference =
-            blender::bke::asset_edit_weak_reference_from_id(paint->brush->id))
+            bke::asset_edit_weak_reference_from_id(paint->brush->id))
     {
       paint->tool_brush_bindings.main_brush_asset_reference = MEM_new<AssetWeakReference>(
           __func__, *brush_asset_reference);
@@ -976,7 +978,7 @@ bToolRef *WM_toolsystem_ref_set_by_id_ex(
   RNA_enum_set(&op_props, "space_type", tkey->space_type);
   RNA_boolean_set(&op_props, "cycle", cycle);
 
-  WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::ExecDefault, &op_props, nullptr);
+  WM_operator_name_call_ptr(C, ot, wm::OpCallContext::ExecDefault, &op_props, nullptr);
   WM_operator_properties_free(&op_props);
 
   bToolRef *tref = WM_toolsystem_ref_find(workspace, tkey);
@@ -1033,7 +1035,7 @@ static void toolsystem_ref_set_by_brush_type(bContext *C, const char *brush_type
 
   RNA_enum_set(&op_props, "space_type", tkey.space_type);
 
-  WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::ExecDefault, &op_props, nullptr);
+  WM_operator_name_call_ptr(C, ot, wm::OpCallContext::ExecDefault, &op_props, nullptr);
   WM_operator_properties_free(&op_props);
 
   bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
@@ -1270,7 +1272,7 @@ static IDProperty *idprops_ensure_named_group(IDProperty *group, const char *idn
 {
   IDProperty *prop = IDP_GetPropertyFromGroup(group, idname);
   if ((prop == nullptr) || (prop->type != IDP_GROUP)) {
-    prop = blender::bke::idprop::create_group(__func__).release();
+    prop = bke::idprop::create_group(__func__).release();
     STRNCPY_UTF8(prop->name, idname);
     IDP_ReplaceInGroup_ex(group, prop, nullptr, 0);
   }
@@ -1289,7 +1291,7 @@ IDProperty *WM_toolsystem_ref_properties_get_idprops(bToolRef *tref)
 IDProperty *WM_toolsystem_ref_properties_ensure_idprops(bToolRef *tref)
 {
   if (tref->properties == nullptr) {
-    tref->properties = blender::bke::idprop::create_group(__func__).release();
+    tref->properties = bke::idprop::create_group(__func__).release();
   }
   return idprops_ensure_named_group(tref->properties, tref->idname);
 }
@@ -1325,7 +1327,7 @@ void WM_toolsystem_ref_properties_init_for_keymap(bToolRef *tref,
     dst_ptr->data = IDP_CopyProperty(static_cast<const IDProperty *>(dst_ptr->data));
   }
   else {
-    dst_ptr->data = blender::bke::idprop::create_group("wmOpItemProp").release();
+    dst_ptr->data = bke::idprop::create_group("wmOpItemProp").release();
   }
   IDProperty *group = WM_toolsystem_ref_properties_get_idprops(tref);
   if (group != nullptr) {
@@ -1342,3 +1344,5 @@ void WM_toolsystem_ref_properties_init_for_keymap(bToolRef *tref,
     }
   }
 }
+
+}  // namespace blender

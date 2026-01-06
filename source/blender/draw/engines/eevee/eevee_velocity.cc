@@ -102,11 +102,10 @@ void VelocityModule::step_sync(eVelocityStep step, float time)
   object_steps_usage[step_] = 0;
   step_camera_sync();
 
-  DRW_render_object_iter(inst_.render,
-                         inst_.depsgraph,
-                         [&](blender::draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
-                           step_object_sync_render(inst_, ob_ref);
-                         });
+  DRW_render_object_iter(
+      inst_.render, inst_.depsgraph, [&](draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
+        step_object_sync_render(inst_, ob_ref);
+      });
 
   geometry_steps_fill();
 }

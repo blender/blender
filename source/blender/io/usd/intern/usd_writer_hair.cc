@@ -47,7 +47,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
 
   /* Reverse current transform since the Hair curves will be placed under the object's Xform and we
    * don't want a double-transform to happen. */
-  const blender::float4x4 inv = blender::math::invert(context.object->object_to_world());
+  const float4x4 inv = math::invert(context.object->object_to_world());
 
   ParticleCacheKey *strand;
   for (int strand_index = 0; strand_index < psys->totpart; ++strand_index) {
@@ -57,7 +57,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
     curve_point_counts.push_back(point_count);
 
     for (int point_index = 0; point_index < point_count; ++point_index, ++strand) {
-      const float3 vert = blender::math::transform_point(inv, float3(strand->co));
+      const float3 vert = math::transform_point(inv, float3(strand->co));
       points.push_back(pxr::GfVec3f(vert.x, vert.y, vert.z));
     }
   }

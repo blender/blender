@@ -14,6 +14,8 @@
 
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct wmGizmoMap;
 struct wmGizmoGroupType;
 struct wmGizmoMapType;
@@ -80,7 +82,7 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
                                                 wmGizmoGroup *gzgroup,
                                                 int event_modifier,
-                                                blender::Vector<wmGizmo *, 128> *r_visible_gizmos);
+                                                Vector<wmGizmo *, 128> *r_visible_gizmos);
 bool wm_gizmogroup_is_visible_in_drawstep(const wmGizmoGroup *gzgroup,
                                           eWM_GizmoFlagMapDrawStep drawstep);
 
@@ -158,3 +160,5 @@ bool wm_gizmomap_deselect_all(wmGizmoMap *gzmap);
 void wm_gizmomap_select_array_shrink(wmGizmoMap *gzmap, int len_subtract);
 void wm_gizmomap_select_array_push_back(wmGizmoMap *gzmap, wmGizmo *gz);
 void wm_gizmomap_select_array_remove(wmGizmoMap *gzmap, wmGizmo *gz);
+
+}  // namespace blender

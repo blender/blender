@@ -13,12 +13,14 @@
 
 #include <cfloat>
 
+namespace blender {
+
 struct BVHTree;
 struct ClothVertex;
 struct ClothModifierData;
 struct CollisionModifierData;
-struct Implicit_Data;
 struct Depsgraph;
+struct Implicit_Data;
 struct LinkNode;
 struct Mesh;
 struct Object;
@@ -76,14 +78,14 @@ struct Cloth {
   short pad3;
   BVHTree *bvhtree;     /* collision tree for this cloth object */
   BVHTree *bvhselftree; /* Collision tree for this cloth object (may be same as BVH-tree). */
-  blender::int3 *vert_tris;
-  Implicit_Data *implicit;                    /* our implicit solver connects to this pointer */
-  blender::Set<blender::OrderedEdge> edgeset; /* Used for self-collisions. */
+  int3 *vert_tris;
+  Implicit_Data *implicit;  /* our implicit solver connects to this pointer */
+  Set<OrderedEdge> edgeset; /* Used for self-collisions. */
   int last_frame;
-  float initial_mesh_volume;     /* Initial volume of the mesh. Used for pressure */
-  float average_acceleration[3]; /* Moving average of overall acceleration. */
-  const blender::int2 *edges;    /* Used for hair collisions. */
-  blender::Set<blender::OrderedEdge> sew_edge_graph; /* Sewing edges. */
+  float initial_mesh_volume;       /* Initial volume of the mesh. Used for pressure */
+  float average_acceleration[3];   /* Moving average of overall acceleration. */
+  const int2 *edges;               /* Used for hair collisions. */
+  Set<OrderedEdge> sew_edge_graph; /* Sewing edges. */
 };
 
 /**
@@ -241,3 +243,5 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr);
 void cloth_parallel_transport_hair_frame(float mat[3][3],
                                          const float dir_old[3],
                                          const float dir_new[3]);
+
+}  // namespace blender

@@ -13,9 +13,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 VKBuffer::~VKBuffer()
 {
@@ -250,4 +252,5 @@ void VKBuffer::free_immediately(VKDevice &device)
   vk_buffer_ = VK_NULL_HANDLE;
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

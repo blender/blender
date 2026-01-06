@@ -382,8 +382,7 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
     nested_nt->tree_interface.add_socket(
         route_name, "", nested_socket_iter->idname, NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
     BKE_ntree_update_after_single_tree_change(*G.pr_main, *nested_nt);
-    bNodeSocket *out_socket = blender::bke::node_find_enabled_input_socket(*output_node,
-                                                                           route_name);
+    bNodeSocket *out_socket = bke::node_find_enabled_input_socket(*output_node, route_name);
 
     bke::node_add_link(
         *nested_nt, *nested_node_iter, *nested_socket_iter, *output_node, *out_socket);
@@ -399,8 +398,7 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
 
     /* Now use the newly created socket of the node-group as previewing socket of the node-group
      * instance node. */
-    nested_socket_iter = blender::bke::node_find_enabled_output_socket(*nested_node_iter,
-                                                                       route_name);
+    nested_socket_iter = bke::node_find_enabled_output_socket(*nested_node_iter, route_name);
   }
 
   bke::node_add_link(*treepath.first()->nodetree,
@@ -474,7 +472,7 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
         switch (socket_preview->type) {
           case SOCK_FLOAT:
             ptr = RNA_pointer_create_discrete(
-                blender::id_cast<ID *>(active_nt), &RNA_NodeSocket, socket_preview);
+                id_cast<ID *>(active_nt), &RNA_NodeSocket, socket_preview);
             vec[0] = RNA_float_get(&ptr, "default_value");
             vec[1] = vec[0];
             vec[2] = vec[0];
@@ -482,12 +480,11 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
           case SOCK_VECTOR:
           case SOCK_RGBA:
             ptr = RNA_pointer_create_discrete(
-                blender::id_cast<ID *>(active_nt), &RNA_NodeSocket, socket_preview);
+                id_cast<ID *>(active_nt), &RNA_NodeSocket, socket_preview);
             RNA_float_get_array(&ptr, "default_value", vec);
             break;
         }
-        ptr = RNA_pointer_create_discrete(
-            blender::id_cast<ID *>(active_nt), &RNA_NodeSocket, aov_socket);
+        ptr = RNA_pointer_create_discrete(id_cast<ID *>(active_nt), &RNA_NodeSocket, aov_socket);
         RNA_float_set_array(&ptr, "default_value", vec);
         continue;
       }

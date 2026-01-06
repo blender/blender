@@ -10,6 +10,8 @@
 
 #include "IMB_imbuf.hh"
 
+namespace blender {
+
 struct ImBuf;
 struct ImFileColorSpace;
 
@@ -302,3 +304,5 @@ ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
                                        size_t *r_height);
 
 /** \} */
+
+}  // namespace blender

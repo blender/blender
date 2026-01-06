@@ -29,6 +29,8 @@
 
 #include "bpy_rna.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Parsing Utility Functions
  *
@@ -710,3 +712,5 @@ bool BPY_rna_gizmo_module(PyObject *mod_par)
 }
 
 /** \} */
+
+}  // namespace blender

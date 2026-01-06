@@ -24,19 +24,21 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Node Input Buttons Template
  * \{ */
 
-using blender::nodes::ItemDeclaration;
-using blender::nodes::LayoutDeclaration;
-using blender::nodes::NodeDeclaration;
-using blender::nodes::PanelDeclaration;
-using blender::nodes::SocketDeclaration;
+using nodes::ItemDeclaration;
+using nodes::LayoutDeclaration;
+using nodes::NodeDeclaration;
+using nodes::PanelDeclaration;
+using nodes::SocketDeclaration;
 
-using ItemIterator = blender::Vector<blender::nodes::ItemDeclarationPtr>::const_iterator;
+using ItemIterator = Vector<nodes::ItemDeclarationPtr>::const_iterator;
 
-namespace blender::ui {
+namespace ui {
 namespace nodes {
 
 static void draw_node_input(bContext *C, Layout &layout, PointerRNA *node_ptr, bNodeSocket &socket)
@@ -74,10 +76,9 @@ static void draw_node_input(bContext *C, Layout &layout, PointerRNA *node_ptr, b
   socket.typeinfo->draw(C, &row, &socket_ptr, node_ptr, text);
 }
 
-static bool panel_has_used_inputs(const bNode &node,
-                                  const blender::nodes::PanelDeclaration &panel_decl)
+static bool panel_has_used_inputs(const bNode &node, const PanelDeclaration &panel_decl)
 {
-  for (const blender::nodes::ItemDeclaration *item_decl : panel_decl.items) {
+  for (const ItemDeclaration *item_decl : panel_decl.items) {
     if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
       if (socket_decl->in_out == SOCK_OUT) {
         continue;
@@ -100,7 +101,7 @@ static void draw_node_inputs_recursive(bContext *C,
                                        Layout &layout,
                                        bNode &node,
                                        PointerRNA *node_ptr,
-                                       const blender::nodes::PanelDeclaration &panel_decl)
+                                       const PanelDeclaration &panel_decl)
 {
   /* TODO: Use flag on the panel state instead which is better for dynamic panel amounts. */
   const std::string panel_idname = "NodePanel" + std::to_string(panel_decl.identifier);
@@ -192,4 +193,5 @@ void template_node_inputs(Layout *layout, bContext *C, PointerRNA *ptr)
 
 /** \} */
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

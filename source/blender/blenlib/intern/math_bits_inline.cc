@@ -6,8 +6,7 @@
  * \ingroup bli
  */
 
-#ifndef __MATH_BITS_INLINE_C__
-#define __MATH_BITS_INLINE_C__
+#pragma once
 
 #ifdef _MSC_VER
 #  include <intrin.h>
@@ -15,6 +14,8 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_bits.h"
+
+namespace blender {
 
 MINLINE unsigned int bitscan_forward_uint(unsigned int a)
 {
@@ -181,4 +182,4 @@ MINLINE float xor_fl(float x, int y)
   return int_as_float(float_as_int(x) ^ y);
 }
 
-#endif /* __MATH_BITS_INLINE_C__ */
+}  // namespace blender

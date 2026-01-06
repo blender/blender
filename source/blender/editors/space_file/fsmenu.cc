@@ -31,6 +31,8 @@
 
 #include "fsmenu.hh" /* include ourselves */
 
+namespace blender {
+
 /* FSMENU HANDLING */
 
 struct FSMenu {
@@ -560,3 +562,5 @@ void fsmenu_add_common_platform_directories(FSMenu *fsmenu)
   add_user_dir(U.sounddir, ICON_FILE_SOUND);
   add_user_dir(U.tempdir, ICON_TEMP);
 }
+
+}  // namespace blender

@@ -29,7 +29,7 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
     const int tot = RNA_property_array_length(&but->rnapoin, but->rnaprop);
 
     BLI_assert(cur < tot);
-    blender::Array<bool, RNA_STACK_ARRAY> value_array(tot);
+    Array<bool, RNA_STACK_ARRAY> value_array(tot);
     value_array.fill(false);
     value_array[cur] = true;
 

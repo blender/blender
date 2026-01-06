@@ -20,6 +20,8 @@
 
 #include "bpy_cli_command.hh" /* Own include. */
 
+namespace blender {
+
 static const char *bpy_cli_command_capsule_name = "bpy_cli_command";
 static const char *bpy_cli_command_capsule_name_invalid = "bpy_cli_command<invalid>";
 
@@ -322,3 +324,5 @@ PyMethodDef BPY_cli_command_unregister_def = {
 #endif
 
 /** \} */
+
+}  // namespace blender

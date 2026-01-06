@@ -18,6 +18,9 @@
 #include <charconv>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.ply"};
 
 static bool is_whitespace(char c)
@@ -97,7 +100,7 @@ static void endian_switch_array(uint8_t *ptr, int type_size, int size)
   }
 }
 
-namespace blender::io::ply {
+namespace io::ply {
 
 static const int data_type_size[] = {0, 1, 1, 2, 2, 4, 4, 4, 8};
 static_assert(std::size(data_type_size) == PLY_TYPE_COUNT, "PLY data type size table mismatch");
@@ -680,4 +683,5 @@ std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
   return data;
 }
 
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

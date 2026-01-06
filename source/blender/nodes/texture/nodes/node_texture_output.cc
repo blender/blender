@@ -13,8 +13,10 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
+namespace blender {
+
 /* **************** COMPOSITE ******************** */
-static blender::bke::bNodeSocketTemplate inputs[] = {
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
@@ -136,20 +138,22 @@ static void copy(bNodeTree *dest_ntree, bNode *dest_node, const bNode *src_node)
 
 void register_node_type_tex_output()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeOutput", TEX_NODE_OUTPUT);
   ntype.ui_name = "Output";
   ntype.enum_name_legacy = "OUTPUT";
   ntype.nclass = NODE_CLASS_OUTPUT;
-  blender::bke::node_type_socket_templates(&ntype, inputs, nullptr);
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_socket_templates(&ntype, inputs, nullptr);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = init;
-  blender::bke::node_type_storage(ntype, "TexNodeOutput", node_free_standard_storage, copy);
+  bke::node_type_storage(ntype, "TexNodeOutput", node_free_standard_storage, copy);
   ntype.exec_fn = exec;
 
   ntype.flag |= NODE_PREVIEW;
   ntype.no_muting = true;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

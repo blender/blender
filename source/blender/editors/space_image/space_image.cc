@@ -56,6 +56,8 @@
 
 #include "image_intern.hh"
 
+namespace blender {
+
 /**************************** common state *****************************/
 
 static void image_scopes_tag_refresh(ScrArea *area)
@@ -457,7 +459,7 @@ static int /*eContextResult*/ image_context(const bContext *C,
     // return CTX_RESULT_OK; /* TODO(@sybren). */
   }
   else if (CTX_data_equals(member, "edit_image")) {
-    CTX_data_id_pointer_set(result, blender::id_cast<ID *>(ED_space_image(sima)));
+    CTX_data_id_pointer_set(result, id_cast<ID *>(ED_space_image(sima)));
     return CTX_RESULT_OK;
   }
   else if (CTX_data_equals(member, "edit_mask")) {
@@ -481,7 +483,7 @@ static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  blender::ed::transform::ED_widgetgroup_gizmo2d_xform_callbacks_set(gzgt);
+  ed::transform::ED_widgetgroup_gizmo2d_xform_callbacks_set(gzgt);
 }
 
 static void IMAGE_GGT_gizmo2d_translate(wmGizmoGroupType *gzgt)
@@ -495,7 +497,7 @@ static void IMAGE_GGT_gizmo2d_translate(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  blender::ed::transform::ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(gzgt);
+  ed::transform::ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(gzgt);
 }
 
 static void IMAGE_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
@@ -509,7 +511,7 @@ static void IMAGE_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  blender::ed::transform::ED_widgetgroup_gizmo2d_resize_callbacks_set(gzgt);
+  ed::transform::ED_widgetgroup_gizmo2d_resize_callbacks_set(gzgt);
 }
 
 static void IMAGE_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
@@ -523,12 +525,12 @@ static void IMAGE_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_IMAGE;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  blender::ed::transform::ED_widgetgroup_gizmo2d_rotate_callbacks_set(gzgt);
+  ed::transform::ED_widgetgroup_gizmo2d_rotate_callbacks_set(gzgt);
 }
 
 static void IMAGE_GGT_navigate(wmGizmoGroupType *gzgt)
 {
-  blender::ui::VIEW2D_GGT_navigate_impl(gzgt, "IMAGE_GGT_navigate");
+  ui::VIEW2D_GGT_navigate_impl(gzgt, "IMAGE_GGT_navigate");
 }
 
 static void image_widgets()
@@ -696,7 +698,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
     rcti render_region;
     BLI_rcti_init(
         &render_region, center_x, render_size_x + center_x, center_y, render_size_y + center_y);
-    blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+    ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
     ED_region_image_render_region_draw(
         x, y, &render_region, zoomx, zoomy, sima->overlay.passepartout_alpha);
@@ -717,7 +719,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
       int x, y;
       rctf frame;
       BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
-      blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+      ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
       ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
     }
     ED_space_image_release_buffer(sima, ibuf, lock);
@@ -741,9 +743,9 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* sample line */
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   draw_image_sample_line(sima);
-  blender::ui::view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   if (mask) {
     int width, height;
@@ -881,7 +883,7 @@ static void image_buttons_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout_ex(C,
                              region,
                              &region->runtime->type->paneltypes,
-                             blender::wm::OpCallContext::InvokeRegionWin,
+                             wm::OpCallContext::InvokeRegionWin,
                              contexts_base,
                              nullptr);
 }
@@ -894,7 +896,7 @@ static void image_buttons_region_draw(const bContext *C, ARegion *region)
   /* TODO(lukas): Support tiles in scopes? */
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
   /* XXX performance regression if name of scopes category changes! */
-  PanelCategoryStack *category = blender::ui::panel_category_active_find(region, "Scopes");
+  PanelCategoryStack *category = ui::panel_category_active_find(region, "Scopes");
 
   /* only update scopes if scope category is active */
   if (category) {
@@ -1031,8 +1033,8 @@ static void image_tools_header_region_draw(const bContext *C, ARegion *region)
       C,
       region,
       (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
-          blender::ui::ButtonSectionsAlign::Top :
-          blender::ui::ButtonSectionsAlign::Bottom);
+          ui::ButtonSectionsAlign::Top :
+          ui::ButtonSectionsAlign::Bottom);
 }
 
 /************************* header region **************************/
@@ -1105,7 +1107,7 @@ static void image_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 
 static void image_id_remap(ScrArea * /*area*/,
                            SpaceLink *slink,
-                           const blender::bke::id::IDRemapper &mappings)
+                           const bke::id::IDRemapper &mappings)
 {
   SpaceImage *simg = reinterpret_cast<SpaceImage *>(slink);
 
@@ -1167,7 +1169,7 @@ static void image_space_subtype_item_extend(bContext * /*C*/,
   RNA_enum_items_add(item, totitem, rna_enum_space_image_mode_items);
 }
 
-static blender::StringRefNull image_space_name_get(const ScrArea *area)
+static StringRefNull image_space_name_get(const ScrArea *area)
 {
   SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
   int index = RNA_enum_from_value(rna_enum_space_image_mode_items, sima->mode);
@@ -1342,8 +1344,10 @@ void ED_spacetype_image()
   asset::shelf::types_register(art, SPACE_IMAGE);
 
   /* regions: hud */
-  art = blender::ui::ED_area_type_hud(st->spaceid);
+  art = ui::ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

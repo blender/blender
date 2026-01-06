@@ -22,7 +22,7 @@
 #include "../filelist.hh"
 #include "filelist_intern.hh"
 
-using namespace blender;
+namespace blender {
 
 /* True if should be hidden, based on current filtering. */
 static bool is_filtered_hidden(const char *filename,
@@ -415,3 +415,5 @@ void filelist_setfilter_options(FileList *filelist,
     filelist_tag_needs_filtering(filelist);
   }
 }
+
+}  // namespace blender

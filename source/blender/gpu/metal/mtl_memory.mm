@@ -13,7 +13,6 @@
 #include "mtl_memory.hh"
 #include "mtl_storage_buffer.hh"
 
-using namespace blender;
 using namespace blender::gpu;
 
 /* Allows a scratch buffer to temporarily grow beyond its maximum, which allows submission

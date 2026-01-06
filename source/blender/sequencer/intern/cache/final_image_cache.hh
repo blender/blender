@@ -18,11 +18,13 @@
 
 #include "BLI_math_vector_types.hh"
 
+namespace blender {
+
 struct ImBuf;
 struct Strip;
 struct Scene;
 
-namespace blender::seq {
+namespace seq {
 
 void final_image_cache_put(Scene *scene,
                            float timeline_frame,
@@ -45,4 +47,5 @@ bool final_image_cache_evict(Scene *scene);
 
 size_t final_image_cache_get_image_count(const Scene *scene);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

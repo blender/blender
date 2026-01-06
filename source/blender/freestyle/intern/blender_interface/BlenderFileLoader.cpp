@@ -29,7 +29,9 @@ using blender::Span;
 
 namespace Freestyle {
 
-BlenderFileLoader::BlenderFileLoader(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
+BlenderFileLoader::BlenderFileLoader(blender::Render *re,
+                                     blender::ViewLayer *view_layer,
+                                     blender::Depsgraph *depsgraph)
 {
   _re = re;
   _depsgraph = depsgraph;
@@ -38,7 +40,7 @@ BlenderFileLoader::BlenderFileLoader(Render *re, ViewLayer *view_layer, Depsgrap
 #if 0
   _minEdgeSize = DBL_MAX;
 #endif
-  _smooth = (view_layer->freestyle_config.flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) != 0;
+  _smooth = (view_layer->freestyle_config.flags & blender::FREESTYLE_FACE_SMOOTHNESS_FLAG) != 0;
   _pRenderMonitor = nullptr;
 }
 
@@ -49,7 +51,7 @@ BlenderFileLoader::~BlenderFileLoader()
 
 NodeGroup *BlenderFileLoader::Load()
 {
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "\n===  Importing triangular meshes into Blender  ===" << endl;
   }
 
@@ -72,34 +74,40 @@ NodeGroup *BlenderFileLoader::Load()
   }
 
   int id = 0;
-  const eEvaluationMode eval_mode = DEG_get_mode(_depsgraph);
+  const blender::eEvaluationMode eval_mode = blender::DEG_get_mode(_depsgraph);
 
-  DEGObjectIterSettings deg_iter_settings{};
+  using blender::DEG_iterator_objects_end;
+  using blender::DEGObjectIterData;
+  using blender::Object;
+
+  blender::DEGObjectIterSettings deg_iter_settings{};
   deg_iter_settings.depsgraph = _depsgraph;
-  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                            DEG_ITER_OBJECT_FLAG_DUPLI;
+  deg_iter_settings.flags = blender::DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            blender::DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+                            blender::DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            blender::DEG_ITER_OBJECT_FLAG_DUPLI;
+
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
       break;
     }
 
-    if ((ob->base_flag & (BASE_HOLDOUT | BASE_INDIRECT_ONLY)) ||
-        (ob->visibility_flag & OB_HOLDOUT))
+    if ((ob->base_flag & (blender::BASE_HOLDOUT | blender::BASE_INDIRECT_ONLY)) ||
+        (ob->visibility_flag & blender::OB_HOLDOUT))
     {
       continue;
     }
 
-    if (!(BKE_object_visibility(ob, eval_mode) & OB_VISIBLE_SELF)) {
+    if (!(BKE_object_visibility(ob, eval_mode) & blender::OB_VISIBLE_SELF)) {
       continue;
     }
 
     /* Evaluated meta-balls will appear as mesh objects in the iterator. */
-    if (ob->type == OB_MBALL) {
+    if (ob->type == blender::OB_MBALL) {
       continue;
     }
 
-    Mesh *mesh = BKE_object_to_mesh(nullptr, ob, false);
+    blender::Mesh *mesh = BKE_object_to_mesh(nullptr, ob, false);
 
     if (mesh) {
       insertShapeNode(ob, mesh, ++id);
@@ -140,7 +148,7 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
       clip[i] = NOT_CLIPPED;
     }
 #if 0
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       printf("%d %s\n",
              i,
              (clip[i] == NOT_CLIPPED)     ? "not" :
@@ -238,13 +246,13 @@ void BlenderFileLoader::clipTriangle(int numTris,
   for (i = 0; i < 3; i++) {
     j = (i + 1) % 3;
     if (clip[i] == NOT_CLIPPED) {
-      copy_v3_v3(triCoords[k], v[i]);
-      copy_v3_v3(triNormals[k], n[i]);
+      blender::copy_v3_v3(triCoords[k], v[i]);
+      blender::copy_v3_v3(triNormals[k], n[i]);
       edgeMarks[k] = em[i];
       k++;
       if (clip[j] != NOT_CLIPPED) {
         clipLine(v[i], v[j], triCoords[k], (clip[j] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
-        copy_v3_v3(triNormals[k], n[j]);
+        blender::copy_v3_v3(triNormals[k], n[j]);
         edgeMarks[k] = false;
         k++;
       }
@@ -252,17 +260,17 @@ void BlenderFileLoader::clipTriangle(int numTris,
     else if (clip[i] != clip[j]) {
       if (clip[j] == NOT_CLIPPED) {
         clipLine(v[i], v[j], triCoords[k], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
-        copy_v3_v3(triNormals[k], n[i]);
+        blender::copy_v3_v3(triNormals[k], n[i]);
         edgeMarks[k] = em[i];
         k++;
       }
       else {
         clipLine(v[i], v[j], triCoords[k], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
-        copy_v3_v3(triNormals[k], n[i]);
+        blender::copy_v3_v3(triNormals[k], n[i]);
         edgeMarks[k] = em[i];
         k++;
         clipLine(v[i], v[j], triCoords[k], (clip[j] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
-        copy_v3_v3(triNormals[k], n[j]);
+        blender::copy_v3_v3(triNormals[k], n[j]);
         edgeMarks[k] = false;
         k++;
       }
@@ -293,8 +301,8 @@ void BlenderFileLoader::addTriangle(LoaderState *ls,
 
   // initialize the bounding box by the first vertex
   if (ls->currentIndex == 0) {
-    copy_v3_v3(ls->minBBox, v1);
-    copy_v3_v3(ls->maxBBox, v1);
+    blender::copy_v3_v3(ls->minBBox, v1);
+    blender::copy_v3_v3(ls->maxBBox, v1);
   }
 
   fv[0] = v1;
@@ -304,9 +312,8 @@ void BlenderFileLoader::addTriangle(LoaderState *ls,
   fv[2] = v3;
   fn[2] = n3;
   for (i = 0; i < 3; i++) {
-
-    copy_v3_v3(ls->pv, fv[i]);
-    copy_v3_v3(ls->pn, fn[i]);
+    blender::copy_v3_v3(ls->pv, fv[i]);
+    blender::copy_v3_v3(ls->pn, fn[i]);
 
     // update the bounding box
     for (j = 0; j < 3; j++) {
@@ -368,34 +375,35 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
   bool verbose = (area < 1.0e-6);
 #endif
 
-  if (equals_v3v3(v1, v2) || equals_v3v3(v2, v3) || equals_v3v3(v1, v3)) {
+  if (blender::equals_v3v3(v1, v2) || blender::equals_v3v3(v2, v3) || blender::equals_v3v3(v1, v3))
+  {
 #if 0
-    if (verbose && G.debug & G_DEBUG_FREESTYLE) {
+    if (verbose && G.debug & blender::G_DEBUG_FREESTYLE) {
       printf("BlenderFileLoader::testDegenerateTriangle = 1\n");
     }
 #endif
     return 1;
   }
-  if (dist_squared_to_line_segment_v3(v1, v2, v3) < eps_sq ||
-      dist_squared_to_line_segment_v3(v2, v1, v3) < eps_sq ||
-      dist_squared_to_line_segment_v3(v3, v1, v2) < eps_sq)
+  if (blender::dist_squared_to_line_segment_v3(v1, v2, v3) < eps_sq ||
+      blender::dist_squared_to_line_segment_v3(v2, v1, v3) < eps_sq ||
+      blender::dist_squared_to_line_segment_v3(v3, v1, v2) < eps_sq)
   {
 #if 0
-    if (verbose && G.debug & G_DEBUG_FREESTYLE) {
+    if (verbose && G.debug & blender::G_DEBUG_FREESTYLE) {
       printf("BlenderFileLoader::testDegenerateTriangle = 2\n");
     }
 #endif
     return 2;
   }
 #if 0
-  if (verbose && G.debug & G_DEBUG_FREESTYLE) {
+  if (verbose && G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("BlenderFileLoader::testDegenerateTriangle = 0\n");
   }
 #endif
   return 0;
 }
 
-static bool testEdgeMark(Mesh *mesh,
+static bool testEdgeMark(blender::Mesh *mesh,
                          const blender::VArray<bool> &fed,
                          const blender::int3 &tri,
                          int i)
@@ -416,7 +424,7 @@ static bool testEdgeMark(Mesh *mesh,
   return fed[corner_edges[corner]];
 }
 
-void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
+void BlenderFileLoader::insertShapeNode(blender::Object *ob, blender::Mesh *mesh, int id)
 {
   using namespace blender;
   char *name = ob->id.name + 2;
@@ -476,7 +484,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
     numFaces += countClippedFaces(v1, v2, v3, clip);
   }
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "numFaces " << numFaces << endl;
   }
 #endif
@@ -773,7 +781,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
         cleanVertices[detri.viP + 2] += 1.0e-5 * detri.v.z();
       }
     }
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       printf("Warning: Object %s contains %lu degenerated triangle%s (strokes may be incorrect)\n",
              name,
              ulong(detriList.size()),

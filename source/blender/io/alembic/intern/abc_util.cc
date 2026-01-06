@@ -20,11 +20,13 @@
 
 #include <algorithm>
 
+namespace blender {
+
 using Alembic::Abc::IV3fArrayProperty;
 using Alembic::Abc::PropertyHeader;
 using Alembic::Abc::V3fArraySamplePtr;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 std::string get_valid_abc_name(const char *name)
 {
@@ -204,4 +206,5 @@ AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSe
   return reader;
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

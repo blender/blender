@@ -329,7 +329,7 @@ static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeGridAdvect");
   ntype.ui_name = "Advect Grid";
   ntype.ui_description =
@@ -342,7 +342,7 @@ static void node_register()
   ntype.gather_link_search_ops = node_gather_link_search_ops;
   ntype.internally_linked_input = node_internally_linked_input;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)

@@ -20,18 +20,18 @@ namespace Freestyle {
 
 class NodeViewLayer : public Node {
  public:
-  inline NodeViewLayer(Scene &scene, ViewLayer &view_layer)
+  inline NodeViewLayer(blender::Scene &scene, blender::ViewLayer &view_layer)
       : Node(), _Scene(scene), _ViewLayer(view_layer)
   {
   }
   virtual ~NodeViewLayer() {}
 
-  inline struct Scene &scene() const
+  inline struct blender::Scene &scene() const
   {
     return _Scene;
   }
 
-  inline struct ViewLayer &sceneLayer() const
+  inline struct blender::ViewLayer &sceneLayer() const
   {
     return _ViewLayer;
   }
@@ -40,8 +40,8 @@ class NodeViewLayer : public Node {
   virtual void accept(SceneVisitor &v);
 
  protected:
-  Scene &_Scene;
-  ViewLayer &_ViewLayer;
+  blender::Scene &_Scene;
+  blender::ViewLayer &_ViewLayer;
 };
 
 } /* namespace Freestyle */

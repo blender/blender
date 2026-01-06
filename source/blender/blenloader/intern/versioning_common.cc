@@ -51,8 +51,7 @@
 #include "readfile.hh"
 #include "versioning_common.hh"
 
-using blender::Map;
-using blender::StringRef;
+namespace blender {
 
 short do_versions_new_to_old_idcode_get(const short id_code_new)
 {
@@ -239,16 +238,16 @@ StringRef legacy_socket_idname_to_socket_type(StringRef idname)
 
 bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
 {
-  blender::bke::bNodeType *ntype = blender::bke::node_type_find(idname);
+  bke::bNodeType *ntype = bke::node_type_find(idname);
 
   bNode *node = MEM_new_for_free<bNode>(__func__);
-  node->runtime = MEM_new<blender::bke::bNodeRuntime>(__func__);
+  node->runtime = MEM_new<bke::bNodeRuntime>(__func__);
   BLI_addtail(&ntree.nodes, node);
-  blender::bke::node_unique_id(ntree, *node);
+  bke::node_unique_id(ntree, *node);
 
   STRNCPY(node->idname, idname);
   DATA_(ntype->ui_name).copy_utf8_truncated(node->name);
-  blender::bke::node_unique_name(ntree, *node);
+  bke::node_unique_name(ntree, *node);
 
   node->flag = NODE_SELECT | NODE_OPTIONS | NODE_INIT;
   node->width = ntype->width;
@@ -262,7 +261,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
 }
 
 bNode &version_node_add_unknown(bNodeTree &ntree,
-                                blender::bke::bNodeType &ntype,
+                                bke::bNodeType &ntype,
                                 const char *idname,
                                 const int16_t legacy_type,
                                 const std::string &ui_name,
@@ -313,11 +312,11 @@ bNode &version_node_add_unknown(bNodeTree &ntree,
 
 void version_node_remove(bNodeTree &ntree, bNode &node)
 {
-  blender::bke::node_unlink_node(ntree, node);
-  blender::bke::node_unlink_attached(&ntree, &node);
+  bke::node_unlink_node(ntree, node);
+  bke::node_unlink_attached(&ntree, &node);
 
-  blender::bke::node_free_node(&ntree, node);
-  blender::bke::node_rebuild_id_vector(ntree);
+  bke::node_free_node(&ntree, node);
+  bke::node_rebuild_id_vector(ntree);
 }
 
 bNodeSocket &version_node_add_socket(bNodeTree &ntree,
@@ -326,10 +325,10 @@ bNodeSocket &version_node_add_socket(bNodeTree &ntree,
                                      const char *idname,
                                      const char *identifier)
 {
-  blender::bke::bNodeSocketType *stype = blender::bke::node_socket_type_find(idname);
+  bke::bNodeSocketType *stype = bke::node_socket_type_find(idname);
 
   bNodeSocket *socket = MEM_new_for_free<bNodeSocket>(__func__);
-  socket->runtime = MEM_new<blender::bke::bNodeSocketRuntime>(__func__);
+  socket->runtime = MEM_new<bke::bNodeSocketRuntime>(__func__);
   socket->in_out = in_out;
   socket->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
   socket->type = stype->type;
@@ -383,11 +382,11 @@ bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
                                                   const char *identifier,
                                                   const char *name)
 {
-  bNodeSocket *sock = blender::bke::node_find_socket(*node, eNodeSocketInOut(in_out), identifier);
+  bNodeSocket *sock = bke::node_find_socket(*node, eNodeSocketInOut(in_out), identifier);
   if (sock != nullptr) {
     return sock;
   }
-  return blender::bke::node_add_static_socket(
+  return bke::node_add_static_socket(
       *ntree, *node, eNodeSocketInOut(in_out), type, subtype, identifier, name);
 }
 
@@ -478,8 +477,7 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
       bNodeSocket *old_socket = link.tosock;
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
-          bNodeSocket *new_socket = blender::bke::node_find_socket(
-              *&new_node, SOCK_IN, *new_identifier);
+          bNodeSocket *new_socket = bke::node_find_socket(*&new_node, SOCK_IN, *new_identifier);
           link.tonode = &new_node;
           link.tosock = new_socket;
           old_socket->link = nullptr;
@@ -490,8 +488,7 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
       bNodeSocket *old_socket = link.fromsock;
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
-          bNodeSocket *new_socket = blender::bke::node_find_socket(
-              *&new_node, SOCK_OUT, *new_identifier);
+          bNodeSocket *new_socket = bke::node_find_socket(*&new_node, SOCK_OUT, *new_identifier);
           link.fromnode = &new_node;
           link.fromsock = new_socket;
           old_socket->link = nullptr;
@@ -501,9 +498,9 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
   }
 }
 
-static blender::Vector<bNodeLink *> find_connected_links(bNodeTree *ntree, bNodeSocket *in_socket)
+static Vector<bNodeLink *> find_connected_links(bNodeTree *ntree, bNodeSocket *in_socket)
 {
-  blender::Vector<bNodeLink *> links;
+  Vector<bNodeLink *> links;
   for (bNodeLink &link : ntree->links) {
     if (link.tosock == in_socket) {
       links.append(&link);
@@ -517,23 +514,22 @@ void add_realize_instances_before_socket(bNodeTree *ntree,
                                          bNodeSocket *geometry_socket)
 {
   BLI_assert(geometry_socket->type == SOCK_GEOMETRY);
-  blender::Vector<bNodeLink *> links = find_connected_links(ntree, geometry_socket);
+  Vector<bNodeLink *> links = find_connected_links(ntree, geometry_socket);
   for (bNodeLink *link : links) {
     /* If the realize instances node is already before this socket, no need to continue. */
     if (link->fromnode->type_legacy == GEO_NODE_REALIZE_INSTANCES) {
       return;
     }
 
-    bNode *realize_node = blender::bke::node_add_static_node(
-        nullptr, *ntree, GEO_NODE_REALIZE_INSTANCES);
+    bNode *realize_node = bke::node_add_static_node(nullptr, *ntree, GEO_NODE_REALIZE_INSTANCES);
     realize_node->parent = node->parent;
     realize_node->locx_legacy = node->locx_legacy - 100;
     realize_node->locy_legacy = node->locy_legacy;
-    blender::bke::node_add_link(*ntree,
-                                *link->fromnode,
-                                *link->fromsock,
-                                *realize_node,
-                                *static_cast<bNodeSocket *>(realize_node->inputs.first));
+    bke::node_add_link(*ntree,
+                       *link->fromnode,
+                       *link->fromsock,
+                       *realize_node,
+                       *static_cast<bNodeSocket *>(realize_node->inputs.first));
     link->fromnode = realize_node;
     link->fromsock = static_cast<bNodeSocket *>(realize_node->outputs.first);
   }
@@ -594,7 +590,7 @@ void version_cycles_property_int_set(IDProperty *idprop, const char *name, int v
     IDP_int_set(prop, value);
   }
   else {
-    IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
+    IDP_AddToGroup(idprop, bke::idprop::create(name, value).release());
   }
 }
 
@@ -637,7 +633,7 @@ void version_update_node_input(
     }
 
     /* Replace links with updated equivalent */
-    blender::bke::node_remove_link(ntree, link);
+    bke::node_remove_link(ntree, link);
     update_input_link(fromnode, fromsock, tonode, tosock);
 
     need_update = true;
@@ -647,7 +643,7 @@ void version_update_node_input(
    * Do this after the link update in case it changes the identifier. */
   for (bNode &node : ntree->nodes) {
     if (check_node(&node)) {
-      bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, socket_identifier);
+      bNodeSocket *input = bke::node_find_socket(node, SOCK_IN, socket_identifier);
       if (input != nullptr) {
         update_input(&node, input);
       }
@@ -691,7 +687,7 @@ bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type)
   return output_node;
 }
 
-bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
+bool all_scenes_use(Main *bmain, const Span<const char *> engines)
 {
   if (!bmain->scenes.first) {
     return false;
@@ -779,7 +775,7 @@ void do_versions_after_setup(Main *new_bmain,
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
     for (Scene &scene : new_bmain->scenes) {
       if (scene.ed) {
-        blender::seq::doversion_250_sound_proxy_update(new_bmain, scene.ed);
+        seq::doversion_250_sound_proxy_update(new_bmain, scene.ed);
       }
     }
   }
@@ -806,12 +802,12 @@ void do_versions_after_setup(Main *new_bmain,
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 404, 2)) {
     /* Version all the action assignments of just-versioned datablocks. This MUST happen before the
      * GreasePencil conversion, as that assumes the Action Slots have already been assigned. */
-    blender::animrig::versioning::convert_legacy_action_assignments(*new_bmain, reports->reports);
+    animrig::versioning::convert_legacy_action_assignments(*new_bmain, reports->reports);
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 403, 3)) {
     /* Convert all the legacy grease pencil objects. This does not touch annotations. */
-    blender::bke::greasepencil::convert::legacy_main(*new_bmain, lapp_context, *reports);
+    bke::greasepencil::convert::legacy_main(*new_bmain, lapp_context, *reports);
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 500, 4)) {
@@ -834,3 +830,5 @@ void do_versions_after_setup(Main *new_bmain,
     }
   }
 }
+
+}  // namespace blender

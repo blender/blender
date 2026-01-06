@@ -61,7 +61,7 @@ void WorldData::init()
       }
     }
     else if (res.color_found) {
-      const std::string File_path = blender::io::usd::cache_image_color(res.color);
+      const std::string File_path = io::usd::cache_image_color(res.color);
       texture_file = pxr::SdfAssetPath(File_path, File_path);
       intensity = res.intensity;
     }

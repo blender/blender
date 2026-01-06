@@ -33,7 +33,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     return retval;
   }
 
-  bArmature *arm = blender::id_cast<bArmature *>(ob_eval->data);
+  bArmature *arm = id_cast<bArmature *>(ob_eval->data);
 
   SnapData nearest2d(sctx, obmat);
 
@@ -49,7 +49,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
 
   if (arm->edbo) {
     for (EditBone &eBone : *arm->edbo) {
-      if (blender::animrig::bone_is_visible(arm, &eBone)) {
+      if (animrig::bone_is_visible(arm, &eBone)) {
         const bool is_selected = (eBone.flag & (BONE_ROOTSEL | BONE_TIPSEL)) != 0;
         if (is_selected && skip_selected) {
           continue;
@@ -64,7 +64,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
   }
   else if (ob_eval->pose && ob_eval->pose->chanbase.first) {
     for (bPoseChannel &pchan : ob_eval->pose->chanbase) {
-      if (!blender::animrig::bone_is_visible(arm, &pchan)) {
+      if (!animrig::bone_is_visible(arm, &pchan)) {
         /* Skip hidden bones. */
         continue;
       }

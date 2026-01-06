@@ -41,6 +41,8 @@
 
 #include "ED_transverts.hh" /* own include */
 
+namespace blender {
+
 void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
 {
   /* NOTE: copied from  `editobject.c`, now uses (almost) proper depsgraph. */
@@ -55,7 +57,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     BM_mesh_normals_update(em->bm);
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = blender::id_cast<Curve *>(obedit->data);
+    Curve *cu = id_cast<Curve *>(obedit->data);
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = static_cast<Nurb *>(nurbs->first);
 
@@ -113,13 +115,13 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
   }
   else if (obedit->type == OB_ARMATURE) {
-    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
+    bArmature *arm = id_cast<bArmature *>(obedit->data);
     TransVert *tv = tvs->transverts;
     int a = 0;
 
     /* Ensure all bone tails are correctly adjusted */
     for (EditBone &ebo : *arm->edbo) {
-      if (!blender::animrig::bone_is_visible(arm, &ebo)) {
+      if (!animrig::bone_is_visible(arm, &ebo)) {
         continue;
       }
       /* adjust tip if both ends selected */
@@ -142,8 +144,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     for (EditBone &ebo : *arm->edbo) {
       if ((ebo.flag & BONE_CONNECTED) && ebo.parent) {
         /* If this bone has a parent tip that has been moved */
-        if (blender::animrig::bone_is_visible(arm, ebo.parent) && (ebo.parent->flag & BONE_TIPSEL))
-        {
+        if (animrig::bone_is_visible(arm, ebo.parent) && (ebo.parent->flag & BONE_TIPSEL)) {
           copy_v3_v3(ebo.head, ebo.parent->tail);
         }
         /* If this bone has a parent tip that has NOT been moved */
@@ -157,19 +158,19 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
+    Lattice *lt = id_cast<Lattice *>(obedit->data);
 
     if (lt->editlatt->latt->flag & LT_OUTSIDE) {
       outside_lattice(lt->editlatt->latt);
     }
   }
   else if (obedit->type == OB_CURVES) {
-    Curves *curves_id = blender::id_cast<Curves *>(obedit->data);
-    blender::ed::curves::transverts_update_curves(
+    Curves *curves_id = id_cast<Curves *>(obedit->data);
+    ed::curves::transverts_update_curves(
         curves_id->geometry.wrap(), tvs, (mode & TM_SKIP_HANDLES) != 0);
   }
   else if (obedit->type == OB_POINTCLOUD) {
-    PointCloud *pointcloud = blender::id_cast<PointCloud *>(obedit->data);
+    PointCloud *pointcloud = id_cast<PointCloud *>(obedit->data);
     pointcloud->tag_positions_changed();
   }
 }
@@ -215,7 +216,6 @@ bool ED_transverts_check_obedit(const Object *obedit)
 
 void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit, const int mode)
 {
-  using namespace blender;
   BLI_assert(DEG_is_evaluated(obedit));
 
   Nurb *nu;
@@ -230,7 +230,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
   if (obedit->type == OB_MESH) {
     const Object *object_orig = DEG_get_original(obedit);
-    const Mesh &mesh = *blender::id_cast<Mesh *>(object_orig->data);
+    const Mesh &mesh = *id_cast<Mesh *>(object_orig->data);
     BMEditMesh *em = mesh.runtime->edit_mesh.get();
     BMesh *bm = em->bm;
     BMIter iter;
@@ -339,7 +339,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_ARMATURE) {
-    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
+    bArmature *arm = id_cast<bArmature *>(obedit->data);
     int totmalloc = BLI_listbase_count(arm->edbo);
 
     totmalloc *= 2; /* probably overkill but bones can have 2 trans verts each */
@@ -347,12 +347,12 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(totmalloc, __func__);
 
     for (EditBone &ebo : *arm->edbo) {
-      if (blender::animrig::bone_is_visible(arm, &ebo)) {
+      if (animrig::bone_is_visible(arm, &ebo)) {
         const bool tipsel = (ebo.flag & BONE_TIPSEL) != 0;
         const bool rootsel = (ebo.flag & BONE_ROOTSEL) != 0;
-        const bool rootok = !(ebo.parent && (ebo.flag & BONE_CONNECTED) &&
-                              (blender::animrig::bone_is_visible(arm, ebo.parent) &&
-                               (ebo.parent->flag & BONE_TIPSEL)));
+        const bool rootok = !(
+            ebo.parent && (ebo.flag & BONE_CONNECTED) &&
+            (animrig::bone_is_visible(arm, ebo.parent) && (ebo.parent->flag & BONE_TIPSEL)));
 
         if ((tipsel && rootsel) || (rootsel)) {
           /* Don't add the tip (unless mode & TM_ALL_JOINTS, for getting all joints),
@@ -386,7 +386,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = blender::id_cast<Curve *>(obedit->data);
+    Curve *cu = id_cast<Curve *>(obedit->data);
     int totmalloc = 0;
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
@@ -475,7 +475,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_MBALL) {
-    MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+    MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     int totmalloc = BLI_listbase_count(mb->editelems);
 
     tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(totmalloc, __func__);
@@ -493,7 +493,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
+    Lattice *lt = id_cast<Lattice *>(obedit->data);
 
     bp = lt->editlatt->latt->def;
 
@@ -515,16 +515,15 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_CURVES) {
-    Curves *curves_id = blender::id_cast<Curves *>(obedit->data);
-    blender::ed::curves::transverts_from_curves_positions_create(
+    Curves *curves_id = id_cast<Curves *>(obedit->data);
+    ed::curves::transverts_from_curves_positions_create(
         curves_id->geometry.wrap(), tvs, ((mode & TM_SKIP_HANDLES) != 0));
   }
   else if (obedit->type == OB_POINTCLOUD) {
-    PointCloud *pointcloud = blender::id_cast<PointCloud *>(obedit->data);
+    PointCloud *pointcloud = id_cast<PointCloud *>(obedit->data);
 
     IndexMaskMemory memory;
-    const IndexMask selection = blender::ed::pointcloud::retrieve_selected_points(*pointcloud,
-                                                                                  memory);
+    const IndexMask selection = ed::pointcloud::retrieve_selected_points(*pointcloud, memory);
     MutableSpan<float3> positions = pointcloud->positions_for_write();
 
     tvs->transverts = MEM_calloc_arrayN<TransVert>(selection.size(), __func__);
@@ -564,3 +563,5 @@ bool ED_transverts_poll(bContext *C)
   }
   return false;
 }
+
+}  // namespace blender

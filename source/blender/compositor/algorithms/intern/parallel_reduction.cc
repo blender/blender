@@ -35,19 +35,19 @@ namespace blender::compositor {
  * to be derived from the compositor_parallel_reduction.glsl shader, see that file for more
  * information. Also see the compositor_parallel_reduction_info.hh file for example shader
  * definitions. */
-static float *parallel_reduction_dispatch(blender::gpu::Texture *texture,
+static float *parallel_reduction_dispatch(gpu::Texture *texture,
                                           gpu::Shader *shader,
-                                          blender::gpu::TextureFormat format)
+                                          gpu::TextureFormat format)
 {
   GPU_shader_uniform_1b(shader, "is_initial_reduction", true);
 
-  blender::gpu::Texture *texture_to_reduce = texture;
+  gpu::Texture *texture_to_reduce = texture;
   int2 size_to_reduce = int2(GPU_texture_width(texture), GPU_texture_height(texture));
 
   /* Dispatch the reduction shader until the texture reduces to a single pixel. */
   while (size_to_reduce != int2(1)) {
     const int2 reduced_size = math::divide_ceil(size_to_reduce, int2(16));
-    blender::gpu::Texture *reduced_texture = gpu::TexturePool::get().acquire_texture(
+    gpu::Texture *reduced_texture = gpu::TexturePool::get().acquire_texture(
         reduced_size.x, reduced_size.y, format, GPU_TEXTURE_USAGE_GENERAL);
 
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);

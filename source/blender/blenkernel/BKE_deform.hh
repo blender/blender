@@ -14,6 +14,8 @@
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array_fwd.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  * \brief support for deformation groups and hooks.
@@ -49,22 +51,19 @@ void BKE_object_defgroup_active_index_set(Object *ob, int new_index);
  */
 const ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get(const ID *id);
 ListBaseT<bDeformGroup> *BKE_id_defgroup_list_get_mutable(ID *id);
-int BKE_defgroup_name_index(const ListBaseT<bDeformGroup> *defbase, blender::StringRef name);
-int BKE_id_defgroup_name_index(const ID *id, blender::StringRef name);
+int BKE_defgroup_name_index(const ListBaseT<bDeformGroup> *defbase, StringRef name);
+int BKE_id_defgroup_name_index(const ID *id, StringRef name);
 bool BKE_defgroup_listbase_name_find(ListBaseT<bDeformGroup> *defbase,
-                                     blender::StringRef name,
+                                     StringRef name,
                                      int *r_index,
                                      bDeformGroup **r_group);
-bool BKE_id_defgroup_name_find(ID *id,
-                               blender::StringRef name,
-                               int *r_index,
-                               bDeformGroup **r_group);
+bool BKE_id_defgroup_name_find(ID *id, StringRef name, int *r_index, bDeformGroup **r_group);
 
-bDeformGroup *BKE_object_defgroup_new(Object *ob, blender::StringRef name);
+bDeformGroup *BKE_object_defgroup_new(Object *ob, StringRef name);
 void BKE_defgroup_copy_list(ListBaseT<bDeformGroup> *outbase,
                             const ListBaseT<bDeformGroup> *inbase);
 bDeformGroup *BKE_defgroup_duplicate(const bDeformGroup *ingroup);
-bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, blender::StringRef name);
+bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, StringRef name);
 /**
  * Returns flip map for the vertex-groups of `ob`.
  *
@@ -95,7 +94,7 @@ int *BKE_object_defgroup_flip_map_single(const Object *ob,
                                          int defgroup,
                                          int *r_flip_map_num);
 int BKE_object_defgroup_flip_index(const Object *ob, int index, bool use_default);
-int BKE_object_defgroup_name_index(const Object *ob, blender::StringRef name);
+int BKE_object_defgroup_name_index(const Object *ob, StringRef name);
 void BKE_object_defgroup_unique_name(bDeformGroup *dg, Object *ob);
 void BKE_object_defgroup_set_name(bDeformGroup *dg, Object *ob, const char *new_name);
 
@@ -257,7 +256,7 @@ void BKE_defvert_normalize(MDeformVert &dvert);
  *
  * See #BKE_defvert_normalize_ex() for parameter documentation.
  */
-void BKE_defvert_normalize_subset(MDeformVert &dvert, blender::Span<bool> subset_flags);
+void BKE_defvert_normalize_subset(MDeformVert &dvert, Span<bool> subset_flags);
 
 /**
  * Normalize a subset of vertex group weights among themselves, but leaving
@@ -266,8 +265,8 @@ void BKE_defvert_normalize_subset(MDeformVert &dvert, blender::Span<bool> subset
  * See #BKE_defvert_normalize_ex() for parameter documentation.
  */
 void BKE_defvert_normalize_lock_map(MDeformVert &dvert,
-                                    blender::Span<bool> subset_flags,
-                                    blender::Span<bool> lock_flags);
+                                    Span<bool> subset_flags,
+                                    Span<bool> lock_flags);
 
 /**
  * Normalize the vertex groups of a vertex, with all the bells and whistles.
@@ -299,9 +298,9 @@ void BKE_defvert_normalize_lock_map(MDeformVert &dvert,
  * number of vertex groups in the source data (e.g. the mesh).
  */
 void BKE_defvert_normalize_ex(MDeformVert &dvert,
-                              blender::Span<bool> vgroup_subset,
-                              blender::Span<bool> lock_flags,
-                              blender::Span<bool> soft_lock_flags);
+                              Span<bool> vgroup_subset,
+                              Span<bool> lock_flags,
+                              Span<bool> soft_lock_flags);
 
 /* Utilities to 'extract' a given vgroup into a simple float array,
  * for verts, but also edges/faces/loops. */
@@ -316,21 +315,21 @@ void BKE_defvert_extract_vgroup_to_vertweights(
 void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                int defgroup,
                                                int verts_num,
-                                               blender::Span<blender::int2> edges,
+                                               Span<int2> edges,
                                                bool invert_vgroup,
                                                float *r_weights);
 void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                int defgroup,
                                                int verts_num,
-                                               blender::Span<int> corner_verts,
+                                               Span<int> corner_verts,
                                                bool invert_vgroup,
                                                float *r_weights);
 
 void BKE_defvert_extract_vgroup_to_faceweights(const MDeformVert *dvert,
                                                int defgroup,
                                                int verts_num,
-                                               const blender::Span<int> corner_verts,
-                                               blender::OffsetIndices<int> faces,
+                                               const Span<int> corner_verts,
+                                               OffsetIndices<int> faces,
                                                bool invert_vgroup,
                                                float *r_weights);
 
@@ -340,7 +339,7 @@ void BKE_defvert_blend_write(BlendWriter *writer, int count, const MDeformVert *
 void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdverts);
 void BKE_defbase_blend_write(BlendWriter *writer, const ListBaseT<bDeformGroup> *defbase);
 
-namespace blender::bke {
+namespace bke {
 
 VArray<float> varray_for_deform_verts(Span<MDeformVert> dverts, int defgroup_index);
 VMutableArray<float> varray_for_mutable_deform_verts(MutableSpan<MDeformVert> dverts,
@@ -365,4 +364,5 @@ MDeformVert mix_deform_verts(const Span<MDeformVert> src,
                              const Span<float> weights,
                              MDeformWeightSet &dw_buffer);
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

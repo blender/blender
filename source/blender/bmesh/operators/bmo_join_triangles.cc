@@ -27,6 +27,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 /**
  *  Used to keep track of our math for the error values and ensure it's not getting out of control.
  */
@@ -1132,3 +1134,5 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   /* Return the selection results. */
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 }
+
+}  // namespace blender

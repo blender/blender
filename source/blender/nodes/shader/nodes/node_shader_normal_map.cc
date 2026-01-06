@@ -16,7 +16,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_normal_map_cc {
+namespace blender {
+
+namespace nodes::node_shader_normal_map_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -171,14 +173,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_normal_map_cc
+}  // namespace nodes::node_shader_normal_map_cc
 
 /* node type definition */
 void register_node_type_sh_normal_map()
 {
-  namespace file_ns = blender::nodes::node_shader_normal_map_cc;
+  namespace file_ns = nodes::node_shader_normal_map_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeNormalMap", SH_NODE_NORMAL_MAP);
   ntype.ui_name = "Normal Map";
@@ -189,12 +191,14 @@ void register_node_type_sh_normal_map()
   ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_normal_map;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_normal_map;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::gpu_shader_normal_map;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

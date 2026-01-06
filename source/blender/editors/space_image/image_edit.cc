@@ -37,6 +37,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 Image *ED_space_image(const SpaceImage *sima)
 {
   /* NOTE: image_panel_properties() uses pointer to `sima->image` directly. */
@@ -62,7 +64,7 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automati
     BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
   }
 
-  id_us_ensure_real(blender::id_cast<ID *>(sima->image));
+  id_us_ensure_real(id_cast<ID *>(sima->image));
 
   WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, nullptr);
 }
@@ -134,7 +136,7 @@ void ED_space_image_set_mask(bContext *C, SpaceImage *sima, Mask *mask)
   sima->mask_info.mask = mask;
 
   /* weak, but same as image/space */
-  id_us_ensure_real(blender::id_cast<ID *>(sima->mask_info.mask));
+  id_us_ensure_real(id_cast<ID *>(sima->mask_info.mask));
 
   if (C) {
     WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);
@@ -330,7 +332,7 @@ void ED_image_mouse_pos(SpaceImage *sima, const ARegion *region, const int mval[
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
   ED_space_image_get_size(sima, &width, &height);
 
-  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
+  ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
   co[0] = ((mval[0] - sx) / zoomx) / width;
   co[1] = ((mval[1] - sy) / zoomy) / height;
@@ -357,7 +359,7 @@ void ED_image_point_pos(
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
   ED_space_image_get_size(sima, &width, &height);
 
-  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
+  ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
   *r_x = ((x - sx) / zoomx) / width;
   *r_y = ((y - sy) / zoomy) / height;
@@ -372,7 +374,7 @@ void ED_image_point_pos__reverse(SpaceImage *sima,
   int width, height;
   int sx, sy;
 
-  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
+  ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
   ED_space_image_get_size(sima, &width, &height);
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
@@ -561,3 +563,5 @@ bool ED_space_image_cursor_poll(bContext *C)
   return ED_operator_uvedit_space_image(C) || ED_space_image_maskedit_poll(C) ||
          ED_space_image_paint_curve(C);
 }
+
+}  // namespace blender

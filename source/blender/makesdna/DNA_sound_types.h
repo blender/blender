@@ -9,9 +9,11 @@
 
 #include "DNA_ID.h"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 struct SoundRuntime;
-}  // namespace blender::bke
+}  // namespace bke
 
 struct PackedFile;
 
@@ -62,6 +64,8 @@ struct bSound {
   short flags = 0;
   char _pad1[6] = {};
 
-  blender::bke::SoundRuntime *runtime = nullptr;
+  bke::SoundRuntime *runtime = nullptr;
   void *_pad2 = nullptr;
 };
+
+}  // namespace blender

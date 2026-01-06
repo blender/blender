@@ -34,6 +34,8 @@
 
 #include <cstring>
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Validation
  * \{ */
@@ -281,7 +283,7 @@ void armature_select_mirrored_ex(bArmature *arm, const int flag)
   /* Select mirrored bones */
   if (arm->flag & ARM_MIRROR_EDIT) {
     for (EditBone &curBone : *arm->edbo) {
-      if (blender::animrig::bone_is_visible(arm, &curBone)) {
+      if (animrig::bone_is_visible(arm, &curBone)) {
         if (curBone.flag & flag) {
           EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, &curBone);
           if (ebone_mirr) {
@@ -308,7 +310,7 @@ void armature_tag_select_mirrored(bArmature *arm)
   /* Select mirrored bones */
   if (arm->flag & ARM_MIRROR_EDIT) {
     for (EditBone &curBone : *arm->edbo) {
-      if (blender::animrig::bone_is_visible(arm, &curBone)) {
+      if (animrig::bone_is_visible(arm, &curBone)) {
         if (curBone.flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) {
           EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, &curBone);
           if (ebone_mirr && (ebone_mirr->flag & BONE_SELECTED) == 0) {
@@ -348,7 +350,7 @@ void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bo
 
   /* no layer check, correct mirror is more important */
   if (!check_select ||
-      (blender::animrig::bone_is_visible(arm, ebo) && (ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL))))
+      (animrig::bone_is_visible(arm, ebo) && (ebo->flag & (BONE_TIPSEL | BONE_ROOTSEL))))
   {
     EditBone *eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
     if (eboflip) {
@@ -417,7 +419,7 @@ void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bo
 
 void ED_armature_edit_transform_mirror_update(Object *obedit)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
+  bArmature *arm = id_cast<bArmature *>(obedit->data);
   for (EditBone &ebo : *arm->edbo) {
     ED_armature_ebone_transform_mirror_update(arm, &ebo, true);
   }
@@ -674,7 +676,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     constexpr float adjusted_bone_length = 2 * bone_length_threshold;
 
     /* Build a map from parent to its children, to speed up the loop below. */
-    blender::Map<EditBone *, blender::VectorSet<EditBone *>> parent_to_children;
+    Map<EditBone *, VectorSet<EditBone *>> parent_to_children;
     for (EditBone &eBone : *arm->edbo) {
       parent_to_children.lookup_or_add_default(eBone.parent).add_new(&eBone);
     }
@@ -716,7 +718,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
         printf("Warning: elongated (almost) zero sized bone: %s\n", eBone.name);
       }
 
-      blender::VectorSet<EditBone *> *children = parent_to_children.lookup_ptr(&eBone);
+      VectorSet<EditBone *> *children = parent_to_children.lookup_ptr(&eBone);
       if (children) {
         for (EditBone *child : *children) {
           child->flag &= ~BONE_CONNECTED;
@@ -829,7 +831,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   for (obt = static_cast<Object *>(bmain->objects.first); obt;
        obt = static_cast<Object *>(obt->id.next))
   {
-    if (obt->data == blender::id_cast<const ID *>(arm)) {
+    if (obt->data == id_cast<const ID *>(arm)) {
       BKE_pose_rebuild(bmain, obt, arm, true);
     }
   }
@@ -1002,3 +1004,5 @@ void ED_armature_ebone_select_set(EditBone *ebone, bool select)
 }
 
 /** \} */
+
+}  // namespace blender

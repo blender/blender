@@ -20,6 +20,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define CHUNK_LIST_SIZE 16
 
 struct BLI_memblock {
@@ -180,3 +182,5 @@ void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem)
   elem = elem % elem_per_chunk;
   return static_cast<char *>(mblk->chunk_list[chunk]) + mblk->elem_size * elem;
 }
+
+}  // namespace blender

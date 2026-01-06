@@ -17,6 +17,8 @@
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /* disable holes for now,
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES
@@ -729,3 +731,5 @@ using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user
 
 /** Minimum number of elements before using threading. */
 #define BM_THREAD_LIMIT 10000
+
+}  // namespace blender

@@ -19,6 +19,8 @@
 
 #include "gpu_py.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name GPU Enums
  * \{ */
@@ -65,3 +67,5 @@ bool bpygpu_is_init_or_error()
 }
 
 /** \} */
+
+}  // namespace blender

@@ -12,6 +12,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 extern PyTypeObject BPyGPU_BufferType;
 
 #define BPyGPU_Buffer_Check(v) (Py_TYPE(v) == &BPyGPU_BufferType)
@@ -51,3 +53,5 @@ struct BPyGPUBuffer {
                                                          const Py_ssize_t *shape,
                                                          int shape_len,
                                                          void *buffer);
+
+}  // namespace blender

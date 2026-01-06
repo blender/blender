@@ -31,6 +31,8 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
  * This file contains code for editing Grease Pencil data in the Action Editor
@@ -648,3 +650,5 @@ void ED_gpencil_layer_mirror_frames(bGPDlayer *gpl, Scene *scene, short mode)
 }
 
 /* ***************************************** */
+
+}  // namespace blender

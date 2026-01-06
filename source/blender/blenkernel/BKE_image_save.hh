@@ -5,6 +5,8 @@
 
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  */
@@ -80,3 +82,5 @@ bool BKE_image_render_write(ReportList *reports,
                             const char *filepath_basis,
                             const ImageFormatData *format = nullptr,
                             bool save_as_render = true);
+
+}  // namespace blender

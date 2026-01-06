@@ -35,6 +35,8 @@
 
 #include "texture_common.h"
 
+namespace blender {
+
 static void boxsample(ImBuf *ibuf,
                       float minx,
                       float miny,
@@ -786,3 +788,5 @@ void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float resu
 
   copy_v4_v4(result, texres.trgba);
 }
+
+}  // namespace blender

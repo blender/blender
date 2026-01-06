@@ -25,6 +25,8 @@
 #  include "BKE_paint.hh"
 #  include "BKE_report.hh"
 
+namespace blender {
+
 static PaletteColor *rna_Palette_color_new(Palette *palette)
 {
   if (!ID_IS_EDITABLE(palette) || ID_IS_OVERRIDE_LIBRARY(palette)) {
@@ -100,7 +102,11 @@ static void rna_Palette_active_color_set(PointerRNA *ptr,
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 /* palette.colors */
 static void rna_def_palettecolors(BlenderRNA *brna, PropertyRNA *cprop)
@@ -190,5 +196,7 @@ void RNA_def_palette(BlenderRNA *brna)
   rna_def_palette(brna);
   RNA_define_animate_sdna(true);
 }
+
+}  // namespace blender
 
 #endif

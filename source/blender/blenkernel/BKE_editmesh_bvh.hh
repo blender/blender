@@ -11,6 +11,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct BMBVHTree;
 struct BMEditMesh;
 struct BMFace;
@@ -23,19 +25,19 @@ typedef bool (*BMBVHTree_FaceFilter)(struct BMFace *f, void *userdata);
 
 BMBVHTree *BKE_bmbvh_new_from_editmesh(struct BMEditMesh *em,
                                        int flag,
-                                       const blender::float3 *cos_cage,
+                                       const float3 *cos_cage,
                                        bool cos_cage_free);
 BMBVHTree *BKE_bmbvh_new_ex(struct BMesh *bm,
-                            blender::Span<std::array<BMLoop *, 3>> looptris,
+                            Span<std::array<BMLoop *, 3>> looptris,
                             int flag,
-                            const blender::float3 *cos_cage,
+                            const float3 *cos_cage,
                             bool cos_cage_free,
                             bool (*test_fn)(struct BMFace *, void *user_data),
                             void *user_data);
 BMBVHTree *BKE_bmbvh_new(struct BMesh *bm,
-                         blender::Span<std::array<BMLoop *, 3>> looptris,
+                         Span<std::array<BMLoop *, 3>> looptris,
                          int flag,
-                         const blender::float3 *cos_cage,
+                         const float3 *cos_cage,
                          bool cos_cage_free);
 void BKE_bmbvh_free(BMBVHTree *tree);
 struct BVHTree *BKE_bmbvh_tree_get(BMBVHTree *tree);
@@ -90,3 +92,5 @@ enum {
   /** Omit hidden geometry. */
   BMBVH_RESPECT_HIDDEN = (1 << 2),
 };
+
+}  // namespace blender

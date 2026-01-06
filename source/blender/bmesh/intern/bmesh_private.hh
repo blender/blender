@@ -27,6 +27,9 @@
  * BMESH_TODO, when this raises an error the output is incredibly confusing.
  * need to have some nice way to print/debug what the heck's going on.
  */
+
+namespace blender {
+
 int bmesh_elem_check(void *element, char htype);
 #  define BM_CHECK_ELEMENT(el) \
     { \
@@ -86,6 +89,8 @@ enum {
  * normal is pointing towards the mesh Z axis
  */
 void poly_rotate_plane(const float normal[3], float (*verts)[3], uint nverts);
+
+}  // namespace blender
 
 /* include the rest of our private declarations */
 #include "bmesh_structure.hh" /* IWYU pragma: export */

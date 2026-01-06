@@ -20,6 +20,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct BezTriple;
 struct BevList;
 struct BMEditMesh;
@@ -107,7 +109,7 @@ void BKE_curve_texspace_ensure(Curve *cu);
 
 /* Basic vertex data functions. */
 
-std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu, bool use_radius);
+std::optional<Bounds<float3>> BKE_curve_minmax(const Curve *cu, bool use_radius);
 bool BKE_curve_center_median(Curve *cu, float cent[3]);
 void BKE_curve_transform_ex(
     Curve *cu, const float mat[4][4], bool do_keys, bool do_props, float unit_scale);
@@ -144,21 +146,19 @@ void BKE_curve_nurb_vert_active_set(Curve *cu, const Nurb *nu, const void *vert)
 bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert);
 void BKE_curve_nurb_vert_active_validate(Curve *cu);
 
-blender::Array<blender::float3> BKE_curve_nurbs_vert_coords_alloc(const ListBaseT<Nurb> *lb);
-void BKE_curve_nurbs_vert_coords_get(const ListBaseT<Nurb> *lb,
-                                     blender::MutableSpan<blender::float3> vert_coords);
+Array<float3> BKE_curve_nurbs_vert_coords_alloc(const ListBaseT<Nurb> *lb);
+void BKE_curve_nurbs_vert_coords_get(const ListBaseT<Nurb> *lb, MutableSpan<float3> vert_coords);
 
 void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBaseT<Nurb> *lb,
-                                                 const blender::Span<blender::float3>,
-                                                 const blender::float4x4 &transform,
+                                                 const Span<float3>,
+                                                 const float4x4 &transform,
                                                  bool constrain_2d);
 
 void BKE_curve_nurbs_vert_coords_apply(ListBaseT<Nurb> *lb,
-                                       const blender::Span<blender::float3> vert_coords,
+                                       const Span<float3> vert_coords,
                                        bool constrain_2d);
 
-blender::Array<blender::float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBaseT<Nurb> *lb,
-                                                                      const float *key);
+Array<float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBaseT<Nurb> *lb, const float *key);
 void BKE_curve_nurbs_key_vert_tilts_apply(ListBaseT<Nurb> *lb, const float *key);
 
 void BKE_curve_editNurb_keyIndex_delCV(CVKeyIndexMap *keyindex, const void *cv);
@@ -456,3 +456,5 @@ void BKE_curve_deform_co(const Object *ob_curve,
  * applied on the control points of the splines.
  */
 Curve *BKE_curve_new_from_object(Object *object, Depsgraph *depsgraph, bool apply_modifiers);
+
+}  // namespace blender

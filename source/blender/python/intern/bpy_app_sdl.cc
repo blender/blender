@@ -15,6 +15,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 #ifdef WITH_SDL
 /* SDL force defines __SSE__ and __SSE2__ flags, which generates warnings
  * because we pass those defines via command line as well. For until there's
@@ -107,3 +109,5 @@ PyObject *BPY_app_sdl_struct()
 
   return ret;
 }
+
+}  // namespace blender

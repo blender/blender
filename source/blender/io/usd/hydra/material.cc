@@ -25,13 +25,14 @@
 #include "intern/usd_writer_material.hh"
 
 #ifdef WITH_MATERIALX
-
 #  include "shader/materialx/material.h"
 #endif
 
+namespace blender {
+
 using namespace blender::io::usd;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
 MaterialData::MaterialData(HydraSceneDelegate *scene_delegate,
                            const Material *material,
@@ -43,8 +44,8 @@ MaterialData::MaterialData(HydraSceneDelegate *scene_delegate,
 void MaterialData::init()
 {
   ID_LOGN("");
-  double_sided = ((blender::id_cast<Material *>(const_cast<ID *>(id)))->blend_flag &
-                  MA_BL_CULL_BACKFACE) == 0;
+  double_sided = ((id_cast<Material *>(const_cast<ID *>(id)))->blend_flag & MA_BL_CULL_BACKFACE) ==
+                 0;
   material_network_map_ = pxr::VtValue();
 
   /* Create temporary in memory stage. */
@@ -67,16 +68,16 @@ void MaterialData::init()
                                          material_library_path,
                                          get_time_code,
                                          export_params,
-                                         blender::io::usd::image_cache_file_path(),
+                                         io::usd::image_cache_file_path(),
                                          cache_or_get_image_file};
   /* Create USD material. */
   pxr::UsdShadeMaterial usd_material;
 #ifdef WITH_MATERIALX
   if (scene_delegate_->use_materialx) {
     std::string material_name = pxr::TfMakeValidIdentifier(id->name);
-    blender::nodes::materialx::ExportParams materialx_export_params{
+    nodes::materialx::ExportParams materialx_export_params{
         material_name, cache_or_get_image_file, "st", "UVMap"};
-    MaterialX::DocumentPtr doc = blender::nodes::materialx::export_to_materialx(
+    MaterialX::DocumentPtr doc = nodes::materialx::export_to_materialx(
         scene_delegate_->depsgraph, (Material *)id, materialx_export_params);
     pxr::UsdMtlxRead(doc, stage);
 
@@ -169,4 +170,5 @@ pxr::HdCullStyle MaterialData::cull_style() const
   return double_sided ? pxr::HdCullStyle::HdCullStyleNothing : pxr::HdCullStyle::HdCullStyleBack;
 }
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

@@ -12,6 +12,8 @@
 
 #include "DNA_defs.h"
 
+namespace blender {
+
 /* SIMULATION FLAGS: goal flags, etc. */
 /* These are the bits used in SimSettings.flags. */
 enum CLOTH_SIMSETTINGS_FLAGS {
@@ -244,3 +246,5 @@ struct ClothCollSettings {
   /** Impulse clamp for self collisions. */
   float self_clamp = 0.0f;
 };
+
+}  // namespace blender

@@ -10,11 +10,14 @@
 
 #include "BLI_span.hh"
 
+namespace blender {
+
+struct Editing;
 struct Scene;
 struct Strip;
 struct StripProxy;
 
-namespace blender::seq {
+namespace seq {
 
 /**
  * Cache must be freed before calling this function
@@ -33,4 +36,5 @@ StripProxy *seq_strip_proxy_alloc();
  */
 Span<Strip *> SEQ_lookup_effects_by_strip(Editing *ed, const Strip *key);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

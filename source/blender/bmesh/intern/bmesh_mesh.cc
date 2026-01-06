@@ -21,11 +21,7 @@
 
 #include "bmesh.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::float4x4;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
@@ -740,9 +736,9 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
 void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx)
 {
   /* Mapping old to new pointers. */
-  blender::Map<BMVert *, BMVert *> *vptr_map = nullptr;
-  blender::Map<BMEdge *, BMEdge *> *eptr_map = nullptr;
-  blender::Map<BMFace *, BMFace *> *fptr_map = nullptr;
+  Map<BMVert *, BMVert *> *vptr_map = nullptr;
+  Map<BMEdge *, BMEdge *> *eptr_map = nullptr;
+  Map<BMFace *, BMFace *> *fptr_map = nullptr;
   BMIter iter, iterl;
   BMVert *ve;
   BMEdge *ed;
@@ -782,7 +778,7 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     }
 
     /* Init the old-to-new vert pointers mapping. */
-    vptr_map = MEM_new<blender::Map<BMVert *, BMVert *>>(__func__);
+    vptr_map = MEM_new<Map<BMVert *, BMVert *>>(__func__);
     vptr_map->reserve(bm->totvert);
 
     /* Copy back verts to their new place, and update old2new pointers mapping. */
@@ -837,7 +833,7 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     }
 
     /* Init the old-to-new vert pointers mapping. */
-    eptr_map = MEM_new<blender::Map<BMEdge *, BMEdge *>>(__func__);
+    eptr_map = MEM_new<Map<BMEdge *, BMEdge *>>(__func__);
     eptr_map->reserve(totedge);
 
     /* Copy back verts to their new place, and update old2new pointers mapping. */
@@ -892,7 +888,7 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     }
 
     /* Init the old-to-new vert pointers mapping. */
-    fptr_map = MEM_new<blender::Map<BMFace *, BMFace *>>(__func__);
+    fptr_map = MEM_new<Map<BMFace *, BMFace *>>(__func__);
     fptr_map->reserve(totface);
 
     /* Copy back verts to their new place, and update old2new pointers mapping. */
@@ -1358,3 +1354,5 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
 }
 
 /** \} */
+
+}  // namespace blender

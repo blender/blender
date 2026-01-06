@@ -24,8 +24,6 @@ namespace blender::seq {
 static void glow_blur_bitmap(
     const float4 *src, float4 *map, int width, int height, float blur, int quality)
 {
-  using namespace blender;
-
   /* If we're not really blurring, bail out */
   if (blur <= 0) {
     return;
@@ -102,7 +100,6 @@ static void blur_isolate_highlights(const float4 *in,
                                     float boost,
                                     float clamp)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
     const float4 clampv = float4(clamp);
     for (const int y : y_range) {
@@ -151,13 +148,11 @@ static void do_glow_effect_byte(Strip *strip,
                                 uchar * /*rect2*/,
                                 uchar *out)
 {
-  using namespace blender;
   GlowVars *glow = static_cast<GlowVars *>(strip->effectdata);
 
   Array<float4> inbuf(x * y);
   Array<float4> outbuf(x * y);
 
-  using namespace blender;
   IMB_colormanagement_transform_byte_to_float(*inbuf.data(), rect1, x, y, 4, "sRGB", "sRGB");
 
   blur_isolate_highlights(
@@ -194,7 +189,6 @@ static void do_glow_effect_float(Strip *strip,
                                  float * /*rect2*/,
                                  float *out)
 {
-  using namespace blender;
   float4 *outbuf = reinterpret_cast<float4 *>(out);
   float4 *inbuf = reinterpret_cast<float4 *>(rect1);
   GlowVars *glow = static_cast<GlowVars *>(strip->effectdata);

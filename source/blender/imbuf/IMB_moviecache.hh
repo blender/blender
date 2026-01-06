@@ -9,6 +9,8 @@
  */
 
 #include "BLI_ghash.h"
+struct MovieCacheIter;
+namespace blender {
 
 /* Cache system for movie data - now supports storing ImBufs only
  * Supposed to provide unified cache system for movie clips, sequencer and
@@ -56,10 +58,11 @@ void IMB_moviecache_cleanup(MovieCache *cache,
 void IMB_moviecache_get_cache_segments(
     MovieCache *cache, int proxy, int render_flags, int *r_totseg, int **r_points);
 
-struct MovieCacheIter;
 MovieCacheIter *IMB_moviecacheIter_new(MovieCache *cache);
 void IMB_moviecacheIter_free(MovieCacheIter *iter);
 bool IMB_moviecacheIter_done(MovieCacheIter *iter);
 void IMB_moviecacheIter_step(MovieCacheIter *iter);
 ImBuf *IMB_moviecacheIter_getImBuf(MovieCacheIter *iter);
 void *IMB_moviecacheIter_getUserKey(MovieCacheIter *iter);
+
+}  // namespace blender

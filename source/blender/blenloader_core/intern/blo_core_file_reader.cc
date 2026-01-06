@@ -16,6 +16,8 @@
 
 #include "BLO_core_file_reader.hh"
 
+namespace blender {
+
 FileReader *BLO_file_reader_uncompressed_from_descriptor(int filedes)
 {
   if (FileReader *mmap_reader = BLI_filereader_new_mmap(filedes)) {
@@ -59,3 +61,5 @@ FileReader *BLO_file_reader_uncompressed(FileReader *rawfile)
   rawfile->close(rawfile);
   return nullptr;
 }
+
+}  // namespace blender

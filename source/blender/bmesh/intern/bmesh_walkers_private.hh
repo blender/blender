@@ -12,6 +12,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 struct BMWalker;
 
 extern BMWalker *bm_walker_types[];
@@ -92,3 +94,5 @@ struct BMwConnectedVertexWalker {
   BMwGenericWalker header;
   BMVert *curvert;
 };
+
+}  // namespace blender

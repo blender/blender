@@ -11,6 +11,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 struct EnumPropertyItem;
 
 /**
@@ -76,3 +78,5 @@ struct BPy_EnumProperty_Parse {
  * Use with #PyArg_ParseTuple's `O&` formatting.
  */
 [[nodiscard]] int pyrna_enum_bitfield_parse_set(PyObject *o, void *p);
+
+}  // namespace blender

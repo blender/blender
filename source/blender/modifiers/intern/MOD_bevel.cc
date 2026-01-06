@@ -42,6 +42,8 @@
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(md);
@@ -70,12 +72,11 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 }
 
 static std::string ensure_weight_attribute_meta_data(Mesh &mesh,
-                                                     const blender::StringRef name,
-                                                     const blender::bke::AttrDomain domain,
+                                                     const StringRef name,
+                                                     const bke::AttrDomain domain,
                                                      bool &r_attr_converted)
 {
-  using namespace blender;
-  if (!blender::bke::allow_procedural_attribute_access(name)) {
+  if (!bke::allow_procedural_attribute_access(name)) {
     return "";
   }
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -104,7 +105,6 @@ static std::string ensure_weight_attribute_meta_data(Mesh &mesh,
  */
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  using namespace blender;
   if (mesh->verts_num == 0) {
     return mesh;
   }
@@ -261,7 +261,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     result->attributes_for_write().remove(edge_weight_name);
   }
 
-  blender::geometry::debug_randomize_mesh_order(result);
+  geometry::debug_randomize_mesh_order(result);
 
   return result;
 }
@@ -280,18 +280,18 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  layout.prop(ptr, "affect", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "affect", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout *col = &layout.column(false);
+  ui::Layout *col = &layout.column(false);
   col->prop(ptr, "offset_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "offset_type") == BEVEL_AMT_PERCENT) {
     col->prop(ptr, "width_pct", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -308,7 +308,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   col->prop(ptr, "limit_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   int limit_method = RNA_enum_get(ptr, "limit_method");
   if (limit_method == MOD_BEVEL_ANGLE) {
-    blender::ui::Layout &sub = col->column(false);
+    ui::Layout &sub = col->column(false);
     sub.active_set(edge_bevel);
     sub.prop(ptr, "angle_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -325,7 +325,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -334,25 +334,25 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
   int miter_outer = RNA_enum_get(ptr, "miter_outer");
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  layout.prop(ptr, "profile_type", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "profile_type", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
   if (ELEM(profile_type, MOD_BEVEL_PROFILE_SUPERELLIPSE, MOD_BEVEL_PROFILE_CUSTOM)) {
-    blender::ui::Layout &row = layout.row(false);
+    ui::Layout &row = layout.row(false);
     row.active_set(
         profile_type == MOD_BEVEL_PROFILE_SUPERELLIPSE ||
         (profile_type == MOD_BEVEL_PROFILE_CUSTOM && edge_bevel &&
          !((miter_inner == MOD_BEVEL_MITER_SHARP) && (miter_outer == MOD_BEVEL_MITER_SHARP))));
     row.prop(ptr,
              "profile",
-             blender::ui::ITEM_R_SLIDER,
+             ui::ITEM_R_SLIDER,
              (profile_type == MOD_BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Shape") :
                                                                 IFACE_("Miter Shape"),
              ICON_NONE);
 
     if (profile_type == MOD_BEVEL_PROFILE_CUSTOM) {
-      blender::ui::Layout &sub = layout.column(false);
+      ui::Layout &sub = layout.column(false);
       sub.use_property_decorate_set(false);
       template_curve_profile(&sub, ptr, "custom_profile");
     }
@@ -361,7 +361,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void geometry_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -369,7 +369,7 @@ static void geometry_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout *row = &layout.row(false);
+  ui::Layout *row = &layout.row(false);
   row->active_set(edge_bevel);
   row->prop(ptr, "miter_outer", UI_ITEM_NONE, IFACE_("Miter Outer"), ICON_NONE);
   row = &layout.row(false);
@@ -393,7 +393,7 @@ static void geometry_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void shading_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -403,7 +403,7 @@ static void shading_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "harden_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  blender::ui::Layout &col = layout.column(true, IFACE_("Mark"));
+  ui::Layout &col = layout.column(true, IFACE_("Mark"));
   col.active_set(edge_bevel);
   col.prop(ptr, "mark_seam", UI_ITEM_NONE, IFACE_("Seam"), ICON_NONE);
   col.prop(ptr, "mark_sharp", UI_ITEM_NONE, IFACE_("Sharp"), ICON_NONE);
@@ -477,3 +477,5 @@ ModifierTypeInfo modifierType_Bevel = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

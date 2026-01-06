@@ -64,12 +64,10 @@
 
 #include "mesh_intern.hh" /* Own include. */
 
+namespace blender {
+
 /** use #BMesh operator flags for a few operators. */
 #define BMO_ELE_TAG 1
-
-using blender::float3;
-using blender::Span;
-using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Poll Functions
@@ -280,7 +278,7 @@ static bool UNUSED_FUNCTION(EDBM_select_mirrored_extend_all)(Object *obedit, BME
     BMIter iter;
 
     if (selectmode & SCE_SELECT_FACE) {
-      blender::Vector<BMFace *> source_faces;
+      Vector<BMFace *> source_faces;
       source_faces.reserve(bm->totfacesel);
       BMFace *f;
       BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
@@ -297,7 +295,7 @@ static bool UNUSED_FUNCTION(EDBM_select_mirrored_extend_all)(Object *obedit, BME
       }
     }
     if (selectmode & SCE_SELECT_EDGE) {
-      blender::Vector<BMEdge *> source_edges;
+      Vector<BMEdge *> source_edges;
       source_edges.reserve(bm->totedgesel);
       BMEdge *e;
       BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
@@ -314,7 +312,7 @@ static bool UNUSED_FUNCTION(EDBM_select_mirrored_extend_all)(Object *obedit, BME
       }
     }
     if (selectmode & SCE_SELECT_VERTEX) {
-      blender::Vector<BMVert *> source_verts;
+      Vector<BMVert *> source_verts;
       source_verts.reserve(bm->totvertsel);
       BMVert *v;
       BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -2441,7 +2439,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
     EDBM_selectmode_flush(em);
 
     if (efa) {
-      blender::ed::object::material_active_index_set(obedit, efa->mat_nr);
+      ed::object::material_active_index_set(obedit, efa->mat_nr);
       em->mat_nr = efa->mat_nr;
     }
 
@@ -2449,7 +2447,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
      * switch UV layers, vgroups for eg. */
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      blender::ed::object::base_activate(C, basact);
+      ed::object::base_activate(C, basact);
     }
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
@@ -4390,12 +4388,8 @@ static wmOperatorStatus edbm_select_mirror_exec(bContext *C, wmOperator *op)
 
     for (int axis = 0; axis < 3; axis++) {
       if ((1 << axis) & axis_flag) {
-        EDBM_select_mirrored(em,
-                             blender::id_cast<const Mesh *>(obedit->data),
-                             axis,
-                             extend,
-                             &tot_mirr_iter,
-                             &tot_fail_iter);
+        EDBM_select_mirrored(
+            em, id_cast<const Mesh *>(obedit->data), axis, extend, &tot_mirr_iter, &tot_fail_iter);
       }
     }
 
@@ -5046,7 +5040,7 @@ static wmOperatorStatus edbm_select_nth_exec(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = false;
       params.is_destructive = false;
-      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(id_cast<Mesh *>(obedit->data), &params);
     }
   }
 
@@ -5193,7 +5187,7 @@ static wmOperatorStatus edbm_select_linked_flat_faces_exec(bContext *C, wmOperat
       continue;
     }
 
-    blender::Vector<BMFace *> stack;
+    Vector<BMFace *> stack;
 
     BMIter iter, liter, liter2;
     BMFace *f;
@@ -5624,15 +5618,15 @@ static wmOperatorStatus edbm_select_axis_exec(bContext *C, wmOperator *op)
   float axis_mat[3][3];
 
   /* 3D view variables may be nullptr, (no need to check in poll function). */
-  blender::ed::transform::calc_orientation_from_type_ex(scene,
-                                                        view_layer,
-                                                        CTX_wm_view3d(C),
-                                                        CTX_wm_region_view3d(C),
-                                                        obedit,
-                                                        obedit,
-                                                        orientation,
-                                                        V3D_AROUND_ACTIVE,
-                                                        axis_mat);
+  ed::transform::calc_orientation_from_type_ex(scene,
+                                               view_layer,
+                                               CTX_wm_view3d(C),
+                                               CTX_wm_region_view3d(C),
+                                               obedit,
+                                               obedit,
+                                               orientation,
+                                               V3D_AROUND_ACTIVE,
+                                               axis_mat);
 
   const float *axis_vector = axis_mat[axis];
 
@@ -5829,11 +5823,11 @@ void MESH_OT_region_to_loop(wmOperatorType *ot)
 
 static int loop_find_region(BMLoop *l,
                             int flag,
-                            blender::Set<BMFace *> &visit_face_set,
+                            Set<BMFace *> &visit_face_set,
                             BMFace ***region_out)
 {
-  blender::Vector<BMFace *> stack;
-  blender::Vector<BMFace *> region;
+  Vector<BMFace *> stack;
+  Vector<BMFace *> region;
 
   stack.append(l->f);
   visit_face_set.add(l->f);
@@ -5900,7 +5894,7 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
   BMEdge *e;
   int count = 0, i;
 
-  blender::Set<BMFace *> visit_face_set;
+  Set<BMFace *> visit_face_set;
   BMEdge **edges = MEM_malloc_arrayN<BMEdge *>(edges_len, __func__);
 
   i = 0;
@@ -6047,12 +6041,11 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
 
 static bool edbm_select_by_attribute_poll(bContext *C)
 {
-  using namespace blender;
   if (!ED_operator_editmesh(C)) {
     return false;
   }
   Object *obedit = CTX_data_edit_object(C);
-  const Mesh *mesh = blender::id_cast<const Mesh *>(obedit->data);
+  const Mesh *mesh = id_cast<const Mesh *>(obedit->data);
   AttributeOwner owner = AttributeOwner::from_id(&const_cast<ID &>(mesh->id));
   const std::optional<StringRef> name = BKE_attributes_active_name_get(owner);
   if (!name) {
@@ -6072,9 +6065,8 @@ static bool edbm_select_by_attribute_poll(bContext *C)
   return true;
 }
 
-static std::optional<BMIterType> domain_to_iter_type(const blender::bke::AttrDomain domain)
+static std::optional<BMIterType> domain_to_iter_type(const bke::AttrDomain domain)
 {
-  using namespace blender;
   switch (domain) {
     case bke::AttrDomain::Point:
       return BM_VERTS_OF_MESH;
@@ -6089,13 +6081,12 @@ static std::optional<BMIterType> domain_to_iter_type(const blender::bke::AttrDom
 
 static wmOperatorStatus edbm_select_by_attribute_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    Mesh *mesh = blender::id_cast<Mesh *>(obedit->data);
+    Mesh *mesh = id_cast<Mesh *>(obedit->data);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
@@ -6156,3 +6147,5 @@ void MESH_OT_select_by_attribute(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

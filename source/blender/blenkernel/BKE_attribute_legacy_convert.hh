@@ -10,15 +10,17 @@
 #include "BKE_attribute.hh"
 #include "BKE_attribute_storage.hh"
 
+namespace blender {
+
 struct CustomData;
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
 }
 struct PointCloud;
 struct GreasePencil;
 struct Mesh;
 
-namespace blender::bke {
+namespace bke {
 
 const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
 eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
@@ -70,4 +72,5 @@ class LegacyMeshInterpolator {
   void mix(Span<int> src_indices, std::optional<Span<float>> weights, int dst_index) const;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

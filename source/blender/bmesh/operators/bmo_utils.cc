@@ -26,6 +26,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define ELE_NEW 1
 
 void bmo_create_vert_exec(BMesh *bm, BMOperator *op)
@@ -548,7 +550,7 @@ static void bm_face_reverse_uvs(BMFace *f, const int cd_loop_uv_offset)
   BMLoop *l;
   int i;
 
-  blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> uvs(f->len);
+  Array<float2, BM_DEFAULT_NGON_STACK_SIZE> uvs(f->len);
 
   BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
@@ -585,7 +587,7 @@ static void bmo_get_loop_color_ref(BMesh *bm,
                                    std::optional<eCustomDataType> *r_cd_color_type)
 {
   int color_index = 0;
-  for (const CustomDataLayer &layer : blender::Span(bm->ldata.layers, bm->ldata.totlayer)) {
+  for (const CustomDataLayer &layer : Span(bm->ldata.layers, bm->ldata.totlayer)) {
     if (CD_TYPE_AS_MASK(eCustomDataType(layer.type)) & CD_MASK_COLOR_ALL) {
       if (color_index == index) {
         *r_cd_color_offset = layer.offset;
@@ -721,3 +723,5 @@ void bmo_reverse_colors_exec(BMesh *bm, BMOperator *op)
     bm_face_reverse_colors(f, cd_loop_color_offset, *cd_loop_color_type);
   }
 }
+
+}  // namespace blender

@@ -120,7 +120,7 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *
   Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   BKE_object_eval_reset(ob_eval);
   if (ob->type == OB_MESH) {
-    Mesh *mesh_eval = blender::bke::mesh_create_eval_final(
+    Mesh *mesh_eval = bke::mesh_create_eval_final(
         depsgraph, scene_eval, ob_eval, &CD_MASK_DERIVEDMESH);
     BKE_id_free(nullptr, mesh_eval);
   }
@@ -223,7 +223,7 @@ ModifierData *modifier_add(
     }
     else if (type == eModifierType_Skin) {
       /* ensure skin-node customdata exists */
-      BKE_mesh_ensure_skin_customdata(blender::id_cast<Mesh *>(ob->data));
+      BKE_mesh_ensure_skin_customdata(id_cast<Mesh *>(ob->data));
     }
   }
 
@@ -351,7 +351,7 @@ static bool object_modifier_remove(
   else if (md->type == eModifierType_Multires) {
     /* Delete MDisps layer if not used by another multires modifier */
     if (object_modifier_safe_to_delete(bmain, ob, md, eModifierType_Multires)) {
-      multires_customdata_delete(blender::id_cast<Mesh *>(ob->data));
+      multires_customdata_delete(id_cast<Mesh *>(ob->data));
     }
   }
   else if (md->type == eModifierType_Skin) {
@@ -724,7 +724,7 @@ bool convert_psys_to_mesh(ReportList * /*reports*/,
   select_vert.finish();
 
   Object *obn = BKE_object_add(bmain, scene, view_layer, OB_MESH, nullptr);
-  BKE_mesh_nomain_to_mesh(mesh, blender::id_cast<Mesh *>(obn->data), obn);
+  BKE_mesh_nomain_to_mesh(mesh, id_cast<Mesh *>(obn->data), obn);
 
   DEG_relations_tag_update(bmain);
 
@@ -882,7 +882,7 @@ static bool modifier_apply_shape(Main *bmain,
    * we can look into supporting them. */
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
     Key *key = mesh->key;
 
     if (!BKE_modifier_is_same_topology(md_eval) || mti->type == ModifierTypeType::NonGeometrical) {
@@ -903,7 +903,7 @@ static bool modifier_apply_shape(Main *bmain,
     }
 
     if (key == nullptr) {
-      key = mesh->key = BKE_key_add(bmain, blender::id_cast<ID *>(mesh));
+      key = mesh->key = BKE_key_add(bmain, id_cast<ID *>(mesh));
       key->type = KEY_RELATIVE;
       /* if that was the first key block added, then it was the basis.
        * Initialize it with the mesh, and add another for the modifier */
@@ -1060,7 +1060,7 @@ static bool modifier_apply_obdata(ReportList *reports,
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
     MultiresModifierData *mmd = find_multires_modifier_before(scene, md_eval);
 
     if (mesh->key && mti->type != ModifierTypeType::NonGeometrical) {
@@ -1113,8 +1113,8 @@ static bool modifier_apply_obdata(ReportList *reports,
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Object *object_eval = DEG_get_evaluated(depsgraph, ob);
-    Curve *curve = blender::id_cast<Curve *>(ob->data);
-    Curve *curve_eval = blender::id_cast<Curve *>(object_eval->data);
+    Curve *curve = id_cast<Curve *>(ob->data);
+    Curve *curve_eval = id_cast<Curve *>(object_eval->data);
     ModifierEvalContext mectx = {depsgraph, object_eval, MOD_APPLY_TO_ORIGINAL};
 
     if (ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive)) {
@@ -1137,7 +1137,7 @@ static bool modifier_apply_obdata(ReportList *reports,
   }
   else if (ob->type == OB_LATTICE) {
     Object *object_eval = DEG_get_evaluated(depsgraph, ob);
-    Lattice *lattice = blender::id_cast<Lattice *>(ob->data);
+    Lattice *lattice = id_cast<Lattice *>(ob->data);
     ModifierEvalContext mectx = {depsgraph, object_eval, MOD_APPLY_TO_ORIGINAL};
 
     if (ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive)) {
@@ -1152,7 +1152,7 @@ static bool modifier_apply_obdata(ReportList *reports,
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   else if (ob->type == OB_CURVES) {
-    Curves &curves = *blender::id_cast<Curves *>(ob->data);
+    Curves &curves = *id_cast<Curves *>(ob->data);
     if (mti->modify_geometry_set == nullptr) {
       BLI_assert_unreachable();
       return false;
@@ -1177,7 +1177,7 @@ static bool modifier_apply_obdata(ReportList *reports,
     BKE_object_material_from_eval_data(bmain, ob, &curves_eval.id);
   }
   else if (ob->type == OB_POINTCLOUD) {
-    PointCloud &points = *blender::id_cast<PointCloud *>(ob->data);
+    PointCloud &points = *id_cast<PointCloud *>(ob->data);
     if (mti->modify_geometry_set == nullptr) {
       BLI_assert_unreachable();
       return false;
@@ -1208,7 +1208,7 @@ static bool modifier_apply_obdata(ReportList *reports,
       BKE_report(reports, RPT_ERROR, "Cannot apply this modifier to Grease Pencil geometry");
       return false;
     }
-    GreasePencil &grease_pencil_orig = *blender::id_cast<GreasePencil *>(ob->data);
+    GreasePencil &grease_pencil_orig = *id_cast<GreasePencil *>(ob->data);
     bool success = false;
     if (do_all_keyframes) {
       /* The function #apply_grease_pencil_for_modifier_all_keyframes will retrieve
@@ -1517,8 +1517,7 @@ bool edit_modifier_poll_generic(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
-  Object *ob = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
-                                context_active_object(C);
+  Object *ob = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   ModifierData *mod = static_cast<ModifierData *>(ptr.data); /* May be nullptr. */
 
   if (mod == nullptr && ob != nullptr) {
@@ -1951,7 +1950,7 @@ static bool modifier_apply_poll(bContext *C)
 
   Scene *scene = CTX_data_scene(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
-  Object *ob = (ptr.owner_id != nullptr) ? blender::id_cast<Object *>(ptr.owner_id) :
+  Object *ob = (ptr.owner_id != nullptr) ? id_cast<Object *>(ptr.owner_id) :
                                            context_active_object(C);
   ModifierData *md = static_cast<ModifierData *>(ptr.data); /* May be nullptr. */
 
@@ -2031,7 +2030,7 @@ static wmOperatorStatus modifier_apply_exec_ex(bContext *C,
     if (ob->type == OB_MESH && do_merge_customdata &&
         ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive))
     {
-      BKE_mesh_merge_customdata_for_apply_modifier(blender::id_cast<Mesh *>(ob->data));
+      BKE_mesh_merge_customdata_for_apply_modifier(id_cast<Mesh *>(ob->data));
     }
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -2064,7 +2063,7 @@ static wmOperatorStatus modifier_apply_invoke(bContext *C, wmOperator *op, const
   wmOperatorStatus retval;
   if (edit_modifier_invoke_properties_with_hover(C, op, event, &retval)) {
     PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
-    Object *ob = (ptr.owner_id != nullptr) ? blender::id_cast<Object *>(ptr.owner_id) :
+    Object *ob = (ptr.owner_id != nullptr) ? id_cast<Object *>(ptr.owner_id) :
                                              context_active_object(C);
 
     if ((ob->data != nullptr) && ID_REAL_USERS(ob->data) > 1) {
@@ -2404,8 +2403,7 @@ static wmOperatorStatus modifier_copy_to_selected_invoke(bContext *C,
 static bool modifier_copy_to_selected_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
-  Object *obact = (ptr.owner_id) ? blender::id_cast<Object *>(ptr.owner_id) :
-                                   context_active_object(C);
+  Object *obact = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   ModifierData *md = static_cast<ModifierData *>(ptr.data);
 
   /* This just mirrors the check in #BKE_object_copy_modifier,
@@ -2535,7 +2533,7 @@ void OBJECT_OT_modifiers_copy_to_selected(wmOperatorType *ot)
 
 static void modifier_skin_customdata_delete(Object *ob)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
   }
@@ -2584,7 +2582,7 @@ static wmOperatorStatus skin_root_mark_exec(bContext *C, wmOperator * /*op*/)
 
   Set<BMVert *> visited;
 
-  BKE_mesh_ensure_skin_customdata(blender::id_cast<Mesh *>(ob->data));
+  BKE_mesh_ensure_skin_customdata(id_cast<Mesh *>(ob->data));
 
   const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 
@@ -2760,8 +2758,8 @@ static void skin_armature_bone_create(Object *skin_ob,
     /* add bDeformGroup */
     bDeformGroup *dg = BKE_object_defgroup_add_name(skin_ob, bone->name);
     if (dg != nullptr) {
-      blender::ed::object::vgroup_vert_add(skin_ob, dg, parent_v, 1, WEIGHT_REPLACE);
-      blender::ed::object::vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
+      ed::object::vgroup_vert_add(skin_ob, dg, parent_v, 1, WEIGHT_REPLACE);
+      ed::object::vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
     }
 
     skin_armature_bone_create(skin_ob, positions, edges, arm, edges_visited, emap, bone, v);
@@ -2770,14 +2768,14 @@ static void skin_armature_bone_create(Object *skin_ob,
 
 static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, Object *skin_ob)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(skin_ob->data);
+  Mesh *mesh = id_cast<Mesh *>(skin_ob->data);
   const Span<float3> me_positions = mesh->vert_positions();
   const Span<int2> me_edges = mesh->edges();
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated(depsgraph, skin_ob);
 
-  const Mesh *me_eval_deform = blender::bke::mesh_get_eval_deform(
+  const Mesh *me_eval_deform = bke::mesh_get_eval_deform(
       depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
   const Span<float3> positions_eval = me_eval_deform->vert_positions();
 
@@ -2788,7 +2786,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
   Object *arm_ob = BKE_object_add(bmain, scene, view_layer, OB_ARMATURE, nullptr);
   BKE_object_transform_copy(arm_ob, skin_ob);
-  bArmature *arm = blender::id_cast<bArmature *>(arm_ob->data);
+  bArmature *arm = id_cast<bArmature *>(arm_ob->data);
   ANIM_armature_bonecoll_show_all(arm);
   arm_ob->dtx |= OB_DRAW_IN_FRONT;
   arm->drawtype = ARM_DRAW_TYPE_STICK;
@@ -2843,7 +2841,7 @@ static wmOperatorStatus skin_armature_create_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = CTX_data_active_object(C);
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   ModifierData *skin_md;
 
   if (!CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
@@ -2992,7 +2990,6 @@ static bool meshdeform_poll(bContext *C)
 
 static wmOperatorStatus meshdeform_bind_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = context_active_object(C);
   MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(
@@ -3242,7 +3239,7 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                       f);
     BKE_animsys_evaluate_animdata(
-        blender::id_cast<ID *>(ob), ob->adt, &anim_eval_context, ADT_RECALC_ANIM, false);
+        id_cast<ID *>(ob), ob->adt, &anim_eval_context, ADT_RECALC_ANIM, false);
 
     och->time[i] = omd->time;
     i++;
@@ -3549,7 +3546,7 @@ static wmOperatorStatus geometry_node_tree_copy_assign_exec(bContext *C, wmOpera
     return OPERATOR_CANCELLED;
   }
 
-  bNodeTree *new_tree = blender::id_cast<bNodeTree *>(
+  bNodeTree *new_tree = id_cast<bNodeTree *>(
       BKE_id_copy_ex(bmain, &tree->id, nullptr, LIB_ID_COPY_ACTIONS | LIB_ID_COPY_DEFAULT));
 
   nmd->flag &= ~NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;

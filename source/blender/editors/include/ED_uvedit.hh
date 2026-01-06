@@ -15,6 +15,8 @@
 
 #include "BKE_customdata.hh"
 
+namespace blender {
+
 struct ARegion;
 struct ARegionType;
 struct BMEdge;
@@ -53,18 +55,18 @@ void ED_uvedit_foreach_uv(const Scene *scene,
                           BMesh *bm,
                           const bool skip_invisible,
                           const bool selected,
-                          blender::FunctionRef<void(float[2])> user_fn);
+                          FunctionRef<void(float[2])> user_fn);
 void ED_uvedit_foreach_uv_multi(const Scene *scene,
-                                blender::Span<Object *> objects_edit,
+                                Span<Object *> objects_edit,
                                 const bool skip_invisible,
                                 const bool skip_nonselected,
-                                blender::FunctionRef<void(float[2])> user_fn);
+                                FunctionRef<void(float[2])> user_fn);
 bool ED_uvedit_minmax_multi(const Scene *scene,
-                            blender::Span<Object *> objects_edit,
+                            Span<Object *> objects_edit,
                             float r_min[2],
                             float r_max[2]);
 bool ED_uvedit_center_multi(const Scene *scene,
-                            blender::Span<Object *> objects_edit,
+                            Span<Object *> objects_edit,
                             float r_cent[2],
                             char mode);
 
@@ -87,7 +89,7 @@ bool ED_uvedit_test(Object *obedit);
 
 /* `uvedit_select.cc` */
 
-namespace blender::ed::uv {
+namespace ed::uv {
 
 /**
  * Abstract away the details of syncing selection from the mesh (viewport)
@@ -141,7 +143,7 @@ class UVSyncSelectFromMesh : NonCopyable {
   void face_select_set(BMFace *f, bool value);
 };
 
-}  // namespace blender::ed::uv
+}  // namespace ed::uv
 
 bool ED_uvedit_sync_uvselect_ignore(const ToolSettings *ts);
 bool ED_uvedit_sync_uvselect_is_valid_or_ignore(const ToolSettings *ts, const BMesh *bm);
@@ -298,7 +300,7 @@ void uvedit_select_flush_from_verts(const Scene *scene, BMesh *bm, bool select);
 
 bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
                                 const Scene *scene,
-                                blender::Span<Object *> objects,
+                                Span<Object *> objects,
                                 const float mval_fl[2],
                                 const bool ignore_selected,
                                 float *dist_sq,
@@ -349,7 +351,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, struct wmWindow *
 void ED_uvedit_live_unwrap_re_solve();
 void ED_uvedit_live_unwrap_end(bool cancel);
 
-void ED_uvedit_live_unwrap(const Scene *scene, blender::Span<Object *> objects);
+void ED_uvedit_live_unwrap(const Scene *scene, Span<Object *> objects);
 void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob);
 
 /* `uvedit_draw.cc` */
@@ -391,3 +393,5 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
  * Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
  */
 bool uv_coords_isect_udim(const Image *image, const int udim_grid[2], const float coords[2]);
+
+}  // namespace blender

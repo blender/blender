@@ -18,6 +18,8 @@
 
 #include "file_intern.hh"
 
+namespace blender {
+
 void file_tile_boundbox(const ARegion *region, FileLayout *layout, const int file, rcti *r_bounds)
 {
   int xmin, ymax;
@@ -38,3 +40,5 @@ void file_path_to_ui_path(const char *path, char *r_path, int r_path_maxncpy)
   BLI_path_slash_rstrip(tmp_path);
   BLI_strncpy(r_path, BKE_blendfile_extension_check(tmp_path) ? tmp_path : path, r_path_maxncpy);
 }
+
+}  // namespace blender

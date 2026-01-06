@@ -6,13 +6,15 @@
 
 #include "session/output_driver.h"
 
+namespace blender {
 struct RenderEngine;
+}
 
 CCL_NAMESPACE_BEGIN
 
 class BlenderOutputDriver : public OutputDriver {
  public:
-  explicit BlenderOutputDriver(::RenderEngine &b_engine);
+  explicit BlenderOutputDriver(blender::RenderEngine &b_engine);
   ~BlenderOutputDriver() override;
 
   void write_render_tile(const Tile &tile) override;
@@ -20,7 +22,7 @@ class BlenderOutputDriver : public OutputDriver {
   bool read_render_tile(const Tile &tile) override;
 
  protected:
-  ::RenderEngine &b_engine_;
+  blender::RenderEngine &b_engine_;
 };
 
 CCL_NAMESPACE_END

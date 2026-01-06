@@ -54,6 +54,8 @@
 
 #  include "creator_intern.h" /* Own include. */
 
+namespace blender {
+
 #  if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 /**
  * Set breakpoints here when running in debug mode, useful to catch floating point errors.
@@ -260,5 +262,7 @@ void main_signal_setup_fpe()
 #    endif /* _WIN32 && _MSC_VER */
 #  endif
 }
+
+}  // namespace blender
 
 #endif /* WITH_PYTHON_MODULE */

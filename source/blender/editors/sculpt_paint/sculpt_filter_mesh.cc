@@ -348,7 +348,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
@@ -407,7 +407,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const Mesh &base_mesh = *blender::id_cast<const Mesh *>(object.data);
+      const Mesh &base_mesh = *id_cast<const Mesh *>(object.data);
       const OffsetIndices faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
 
@@ -517,7 +517,7 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
       const VArraySpan mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
@@ -623,7 +623,7 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
@@ -737,7 +737,7 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const PositionDeformData position_data(depsgraph, object);
       const MeshAttributeData attribute_data(mesh);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
@@ -847,7 +847,7 @@ static void calc_random_filter(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
@@ -956,7 +956,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       Vector<float3> translations;
     };
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
@@ -1006,7 +1006,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
         Vector<float3> positions;
         Vector<float3> translations;
       };
-      const Mesh &base_mesh = *blender::id_cast<const Mesh *>(object.data);
+      const Mesh &base_mesh = *id_cast<const Mesh *>(object.data);
       const OffsetIndices faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = base_mesh.vert_to_face_map();
@@ -1110,7 +1110,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
         Vector<float3> positions;
         Vector<float3> translations;
       };
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
@@ -1163,7 +1163,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
         Vector<float3> positions;
         Vector<float3> translations;
       };
-      const Mesh &base_mesh = *blender::id_cast<const Mesh *>(object.data);
+      const Mesh &base_mesh = *id_cast<const Mesh *>(object.data);
       const OffsetIndices faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = base_mesh.vert_to_face_map();
@@ -1279,7 +1279,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
   const MutableSpan<float3> all_laplacian_disp = ss.filter_cache->surface_smooth_laplacian_disp;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
@@ -1561,7 +1561,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
 
@@ -1813,7 +1813,7 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       threading::EnumerableThreadSpecific<LocalData> all_tls;
@@ -2015,7 +2015,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
   {
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
-        Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+        Mesh &mesh = *id_cast<Mesh *>(object.data);
         const OffsetIndices faces = mesh.faces();
         const Span<int> corner_verts = mesh.corner_verts();
         const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();

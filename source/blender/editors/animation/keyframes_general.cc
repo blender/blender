@@ -44,6 +44,8 @@
 
 #include "keyframes_general_intern.hh"
 
+namespace blender {
+
 /* This file contains code for various keyframe-editing tools which are 'destructive'
  * (i.e. they will modify the order of the keyframes, and change the size of the array).
  * While some of these tools may eventually be moved out into blenkernel, for now, it is
@@ -121,7 +123,7 @@ void clean_fcurve(bAnimListElem *ale,
 
   /* now insert first keyframe, as it should be ok */
   bezt = old_bezts;
-  blender::animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+  animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
   if (!(bezt->f2 & SELECT)) {
     lastb = fcu->bezt;
     lastb->f1 = lastb->f2 = lastb->f3 = 0;
@@ -153,7 +155,7 @@ void clean_fcurve(bAnimListElem *ale,
     cur[1] = bezt->vec[1][1];
 
     if (only_selected_keys && !(bezt->f2 & SELECT)) {
-      blender::animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+      animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
       lastb = (fcu->bezt + (fcu->totvert - 1));
       lastb->f1 = lastb->f2 = lastb->f3 = 0;
       continue;
@@ -170,7 +172,7 @@ void clean_fcurve(bAnimListElem *ale,
         if (cur[1] > next[1]) {
           if (IS_EQT(cur[1], prev[1], thresh) == 0) {
             /* add new keyframe */
-            blender::animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+            animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
           }
         }
       }
@@ -178,7 +180,7 @@ void clean_fcurve(bAnimListElem *ale,
         /* only add if values are a considerable distance apart */
         if (IS_EQT(cur[1], prev[1], thresh) == 0) {
           /* add new keyframe */
-          blender::animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
         }
       }
     }
@@ -188,18 +190,18 @@ void clean_fcurve(bAnimListElem *ale,
         /* does current have same value as previous and next? */
         if (IS_EQT(cur[1], prev[1], thresh) == 0) {
           /* add new keyframe */
-          blender::animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
         }
         else if (IS_EQT(cur[1], next[1], thresh) == 0) {
           /* add new keyframe */
-          blender::animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
         }
       }
       else {
         /* add if value doesn't equal that of previous */
         if (IS_EQT(cur[1], prev[1], thresh) == 0) {
           /* add new keyframe */
-          blender::animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
         }
       }
     }
@@ -231,7 +233,7 @@ void clean_fcurve(bAnimListElem *ale,
       /* check if curve is really unused and if it is, return signal for deletion */
       if (BKE_fcurve_is_empty(fcu)) {
         AnimData *adt = ale->adt;
-        blender::animrig::animdata_fcurve_delete(adt, fcu);
+        animrig::animdata_fcurve_delete(adt, fcu);
         ale->key_data = nullptr;
       }
     }
@@ -1119,7 +1121,7 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
     BezTriple *bezt = (old_bezts + i);
     bezt->f2 &= ~BEZT_FLAG_IGNORE_TAG;
     if ((bezt->f2 & BEZT_FLAG_TEMP_TAG) == 0) {
-      blender::animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+      animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
     }
   }
   /* now free the memory used by the old BezTriples */
@@ -1251,7 +1253,7 @@ void smooth_fcurve(FCurve *fcu)
  * - The earliest frame is calculated per copy operation.
  * \{ */
 
-namespace blender::ed::animation {
+namespace ed::animation {
 
 KeyframeCopyBuffer *keyframe_copy_buffer = nullptr;
 
@@ -1340,7 +1342,7 @@ void KeyframeCopyBuffer::debug_print() const
   }
 }
 
-}  // namespace blender::ed::animation
+}  // namespace ed::animation
 
 void ANIM_fcurves_copybuf_reset()
 {
@@ -1388,7 +1390,6 @@ static bool is_animating_bone(const bAnimListElem *ale)
 
 namespace {
 
-using namespace blender;
 using namespace blender::animrig;
 using namespace blender::ed::animation;
 
@@ -1564,7 +1565,7 @@ bool copy_animedit_keys(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
   return !keyframe_copy_buffer->is_empty();
 }
 
-namespace blender::ed::animation {
+namespace ed::animation {
 
 std::optional<std::string> flip_names(const StringRefNull rna_path)
 {
@@ -1588,7 +1589,7 @@ std::optional<std::string> flip_names(const StringRefNull rna_path)
 using pastebuf_match_func = bool (*)(Main *bmain,
                                      const FCurve &fcurve_to_match,
                                      const FCurve &fcurve_in_copy_buffer,
-                                     blender::animrig::slot_handle_t slot_handle_in_copy_buffer,
+                                     animrig::slot_handle_t slot_handle_in_copy_buffer,
                                      bool from_single,
                                      bool to_single,
                                      bool flip);
@@ -1781,7 +1782,7 @@ static const FCurve *pastebuf_find_matching_copybuf_item(const pastebuf_match_fu
 bool pastebuf_match_path_full(Main * /*bmain*/,
                               const FCurve &fcurve_to_match,
                               const FCurve &fcurve_in_copy_buffer,
-                              blender::animrig::slot_handle_t /*slot_handle_in_copy_buffer*/,
+                              animrig::slot_handle_t /*slot_handle_in_copy_buffer*/,
                               const bool from_single,
                               const bool to_single,
                               const bool flip)
@@ -1801,7 +1802,7 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
   }
 
   if (!to_single && flip && keyframe_copy_buffer->is_bone(fcurve_in_copy_buffer)) {
-    const std::optional<std::string> with_flipped_name = blender::ed::animation::flip_names(
+    const std::optional<std::string> with_flipped_name = ed::animation::flip_names(
         fcurve_in_copy_buffer.rna_path);
     return with_flipped_name && with_flipped_name == fcurve_to_match.rna_path;
   }
@@ -1812,7 +1813,7 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
 bool pastebuf_match_path_property(Main *bmain,
                                   const FCurve &fcurve_to_match,
                                   const FCurve &fcurve_in_copy_buffer,
-                                  blender::animrig::slot_handle_t slot_handle_in_copy_buffer,
+                                  animrig::slot_handle_t slot_handle_in_copy_buffer,
                                   const bool from_single,
                                   const bool /*to_single*/,
                                   const bool /*flip*/)
@@ -1873,7 +1874,7 @@ bool pastebuf_match_path_property(Main *bmain,
 bool pastebuf_match_index_only(Main * /*bmain*/,
                                const FCurve &fcurve_to_match,
                                const FCurve &fcurve_in_copy_buffer,
-                               blender::animrig::slot_handle_t /* slot_handle_in_copy_buffer */,
+                               animrig::slot_handle_t /* slot_handle_in_copy_buffer */,
                                const bool from_single,
                                const bool /*to_single*/,
                                const bool /*flip*/)
@@ -1997,13 +1998,13 @@ static void paste_animedit_keys_fcurve(FCurve *fcu,
     BEZT_SEL_ALL(&bezt_copy);
 
     /* Only now that it has the right values, do the pasting into the F-Curve. */
-    blender::animrig::insert_bezt_fcurve(fcu, &bezt_copy, INSERTKEY_OVERWRITE_FULL);
+    animrig::insert_bezt_fcurve(fcu, &bezt_copy, INSERTKEY_OVERWRITE_FULL);
   }
 
   /* recalculate F-Curve's handles? */
   BKE_fcurve_handles_recalc(fcu);
 }
-}  // namespace blender::ed::animation
+}  // namespace ed::animation
 
 const EnumPropertyItem rna_enum_keyframe_paste_offset_items[] = {
     {KEYFRAME_PASTE_OFFSET_CFRA_START,
@@ -2217,3 +2218,5 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
 }
 
 /** \} */
+
+}  // namespace blender

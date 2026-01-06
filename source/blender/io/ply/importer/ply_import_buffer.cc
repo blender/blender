@@ -11,12 +11,14 @@
 #include <cstring>
 #include <stdexcept>
 
+namespace blender {
+
 static inline bool is_newline(char ch)
 {
   return ch == '\n';
 }
 
-namespace blender::io::ply {
+namespace io::ply {
 
 PlyReadBuffer::PlyReadBuffer(const char *file_path, size_t read_buffer_size)
     : buffer_(read_buffer_size), read_buffer_size_(read_buffer_size)
@@ -125,4 +127,5 @@ bool PlyReadBuffer::refill_buffer()
   return true;
 }
 
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

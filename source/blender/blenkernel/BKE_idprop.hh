@@ -20,16 +20,18 @@
 #include "BLI_sys_types.h"
 #include "BLI_vector_set.hh"
 
+namespace blender {
+
 struct BlendDataReader;
 struct BlendWriter;
 struct ID;
 struct IDProperty;
 struct IDPropertyUIData;
 struct IDPropertyUIDataEnumItem;
-namespace blender::io::serialize {
+namespace io::serialize {
 class ArrayValue;
 class Value;
-}  // namespace blender::io::serialize
+}  // namespace io::serialize
 
 union IDPropertyTemplate {
   int i;
@@ -56,7 +58,7 @@ union IDPropertyTemplate {
  * \note as a start to move away from the stupid #IDP_New function,
  * this type has its own allocation function.
  */
-IDProperty *IDP_NewIDPArray(blender::StringRef name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+IDProperty *IDP_NewIDPArray(StringRef name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * \param flag: the ID creation/copying flags (`LIB_ID_CREATE_...`), same as passed to
  * #BKE_id_copy_ex.
@@ -91,10 +93,10 @@ void IDP_FreeArray(IDProperty *prop);
  */
 IDProperty *IDP_NewStringMaxSize(const char *st,
                                  size_t st_maxncpy,
-                                 blender::StringRef name,
+                                 StringRef name,
                                  eIDPropertyFlag flags = {}) ATTR_WARN_UNUSED_RESULT;
 IDProperty *IDP_NewString(const char *st,
-                          blender::StringRef name,
+                          StringRef name,
                           eIDPropertyFlag flags = {}) ATTR_WARN_UNUSED_RESULT;
 IDProperty *IDP_NewString(blender::StringRef value,
                           blender::StringRef name,
@@ -188,17 +190,16 @@ void IDP_RemoveFromGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 
 IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop,
-                                     blender::StringRef name) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+                                     StringRef name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /** Same as above, but allows the property to be null, in which case null is returned. */
 IDProperty *IDP_GetPropertyFromGroup_null(const IDProperty *prop,
-                                          blender::StringRef name) ATTR_WARN_UNUSED_RESULT;
+                                          StringRef name) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Same as #IDP_GetPropertyFromGroup but ensure the `type` matches.
  */
 IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
-                                         blender::StringRef name,
+                                         StringRef name,
                                          char type) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /*-------- Main Functions --------*/
@@ -273,7 +274,7 @@ bool IDP_EqualsProperties(const IDProperty *prop1,
  */
 IDProperty *IDP_New(char type,
                     const IDPropertyTemplate *val,
-                    blender::StringRef name,
+                    StringRef name,
                     eIDPropertyFlag flags = {}) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
@@ -395,7 +396,7 @@ double IDP_coerce_to_double_or_zero(const IDProperty *prop);
  */
 void IDP_foreach_property(IDProperty *id_property_root,
                           int type_filter,
-                          blender::FunctionRef<void(IDProperty *id_property)> callback);
+                          FunctionRef<void(IDProperty *id_property)> callback);
 
 /* Format IDProperty as strings */
 char *IDP_reprN(const IDProperty *prop, uint *r_len);
@@ -449,7 +450,7 @@ IDPropertyUIData *IDP_TryConvertUIData(IDPropertyUIData *src,
                                        eIDPropertyUIDataType src_type,
                                        eIDPropertyUIDataType dst_type);
 
-namespace blender::bke::idprop {
+namespace bke::idprop {
 
 /**
  * \brief Convert the given `properties` to `Value` objects for serialization.
@@ -458,13 +459,13 @@ namespace blender::bke::idprop {
  *
  * UI data such as max/min will not be serialized.
  */
-std::unique_ptr<blender::io::serialize::ArrayValue> convert_to_serialize_values(
+std::unique_ptr<io::serialize::ArrayValue> convert_to_serialize_values(
     const IDProperty *properties);
 
 /**
  * \brief Convert the given `value` to an `IDProperty`.
  */
-IDProperty *convert_from_serialize_value(const blender::io::serialize::Value &value);
+IDProperty *convert_from_serialize_value(const io::serialize::Value &value);
 
 class IDPropertyDeleter {
  public:
@@ -551,4 +552,5 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRef prop_name,
 std::unique_ptr<IDProperty, IDPropertyDeleter> create_group(StringRef prop_name,
                                                             eIDPropertyFlag flags = {});
 
-}  // namespace blender::bke::idprop
+}  // namespace bke::idprop
+}  // namespace blender

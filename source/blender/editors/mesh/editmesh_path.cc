@@ -45,7 +45,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Path Select Struct & Properties
@@ -201,7 +201,7 @@ static void mouse_mesh_shortest_path_vert(Scene * /*scene*/,
       break;
   }
 
-  UserData user_data = {bm, blender::id_cast<Mesh *>(obedit->data), cd_offset, op_params};
+  UserData user_data = {bm, id_cast<Mesh *>(obedit->data), cd_offset, op_params};
   LinkNode *path = nullptr;
   bool is_path_ordered = false;
 
@@ -280,7 +280,7 @@ static void mouse_mesh_shortest_path_vert(Scene * /*scene*/,
   params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
-  EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+  EDBM_update(id_cast<Mesh *>(obedit->data), &params);
 }
 
 /** \} */
@@ -400,11 +400,11 @@ static void mouse_mesh_shortest_path_edge(
       break;
   }
 
-  UserData user_data = {bm, blender::id_cast<Mesh *>(obedit->data), cd_offset, op_params};
+  UserData user_data = {bm, id_cast<Mesh *>(obedit->data), cd_offset, op_params};
   LinkNode *path = nullptr;
   bool is_path_ordered = false;
 
-  edgetag_ensure_cd_flag(blender::id_cast<Mesh *>(obedit->data), op_params->edge_mode);
+  edgetag_ensure_cd_flag(id_cast<Mesh *>(obedit->data), op_params->edge_mode);
 
   if (e_act && (e_act != e_dst)) {
     if (op_params->use_fill) {
@@ -461,7 +461,7 @@ static void mouse_mesh_shortest_path_edge(
   }
   else {
     const bool is_act = !edgetag_test_cb(e_dst, &user_data);
-    edgetag_ensure_cd_flag(blender::id_cast<Mesh *>(obedit->data), op_params->edge_mode);
+    edgetag_ensure_cd_flag(id_cast<Mesh *>(obedit->data), op_params->edge_mode);
     edgetag_set_cb(e_dst, is_act, &user_data); /* switch the edge option */
   }
 
@@ -495,7 +495,7 @@ static void mouse_mesh_shortest_path_edge(
   params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
-  EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+  EDBM_update(id_cast<Mesh *>(obedit->data), &params);
 
   if (op_params->edge_mode == EDGE_MODE_TAG_SEAM) {
     ED_uvedit_live_unwrap(scene, {obedit});
@@ -551,7 +551,7 @@ static void mouse_mesh_shortest_path_face(Scene * /*scene*/,
       break;
   }
 
-  UserData user_data = {bm, blender::id_cast<Mesh *>(obedit->data), cd_offset, op_params};
+  UserData user_data = {bm, id_cast<Mesh *>(obedit->data), cd_offset, op_params};
   LinkNode *path = nullptr;
   bool is_path_ordered = false;
 
@@ -628,7 +628,7 @@ static void mouse_mesh_shortest_path_face(Scene * /*scene*/,
     }
     BM_mesh_active_face_set(bm, f_dst_last);
 
-    blender::ed::object::material_active_index_set(obedit, f_dst_last->mat_nr);
+    ed::object::material_active_index_set(obedit, f_dst_last->mat_nr);
     em->mat_nr = f_dst_last->mat_nr;
   }
 
@@ -636,7 +636,7 @@ static void mouse_mesh_shortest_path_face(Scene * /*scene*/,
   params.calc_looptris = false;
   params.calc_normals = false;
   params.is_destructive = false;
-  EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+  EDBM_update(id_cast<Mesh *>(obedit->data), &params);
 }
 
 /** \} */
@@ -793,7 +793,7 @@ static wmOperatorStatus edbm_shortest_path_pick_invoke(bContext *C,
 
   BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
   if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-    blender::ed::object::base_activate(C, basact);
+    ed::object::base_activate(C, basact);
   }
 
   /* to support redo */
@@ -985,3 +985,5 @@ void MESH_OT_shortest_path_select(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

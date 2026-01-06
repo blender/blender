@@ -73,6 +73,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* this is rather and annoying hack, use define to isolate it.
  * problem is caused by scanfill removing edges on us. */
 #define USE_SCANFILL_EDGE_WORKAROUND
@@ -1506,3 +1508,5 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
   settings.use_threading = (size_t(height) * width > 10000);
   BLI_task_parallel_range(0, int(height), &data, maskrasterize_buffer_cb, &settings);
 }
+
+}  // namespace blender

@@ -41,6 +41,8 @@
 #  include "BPY_extern.hh"
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Prototypes
  * \{ */
@@ -61,7 +63,7 @@ static TextLine *txt_line_malloc() ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 
 static void text_init_data(ID *id)
 {
-  Text *text = blender::id_cast<Text *>(id);
+  Text *text = id_cast<Text *>(id);
 
   INIT_DEFAULT_STRUCT_AFTER(text, id);
 
@@ -108,8 +110,8 @@ static void text_copy_data(Main * /*bmain*/,
                            const ID *id_src,
                            const int /*flag*/)
 {
-  Text *text_dst = blender::id_cast<Text *>(id_dst);
-  const Text *text_src = blender::id_cast<Text *>(const_cast<ID *>(id_src));
+  Text *text_dst = id_cast<Text *>(id_dst);
+  const Text *text_src = id_cast<Text *>(const_cast<ID *>(id_src));
 
   /* File name can be nullptr. */
   if (text_src->filepath) {
@@ -141,7 +143,7 @@ static void text_copy_data(Main * /*bmain*/,
 static void text_free_data(ID *id)
 {
   /* No animation-data here. */
-  Text *text = blender::id_cast<Text *>(id);
+  Text *text = id_cast<Text *>(id);
 
   BKE_text_free_lines(text);
 
@@ -153,7 +155,7 @@ static void text_free_data(ID *id)
 
 static void text_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Text *text = blender::id_cast<Text *>(id);
+  Text *text = id_cast<Text *>(id);
 
   if (text->filepath != nullptr && text->filepath[0] != '\0') {
     BKE_bpath_foreach_path_allocated_process(bpath_data, &text->filepath);
@@ -162,7 +164,7 @@ static void text_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Text *text = blender::id_cast<Text *>(id);
+  Text *text = id_cast<Text *>(id);
 
   /* NOTE: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */
   if ((text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) {
@@ -194,7 +196,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
 static void text_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Text *text = blender::id_cast<Text *>(id);
+  Text *text = id_cast<Text *>(id);
   BLO_read_string(reader, &text->filepath);
 
   text->compiled = nullptr;
@@ -2393,3 +2395,5 @@ int text_find_identifier_start(const char *str, int i)
 }
 
 /** \} */
+
+}  // namespace blender

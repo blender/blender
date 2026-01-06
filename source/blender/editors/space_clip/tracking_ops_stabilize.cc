@@ -25,6 +25,8 @@
 
 #include "clip_intern.hh"
 
+namespace blender {
+
 /********************* add 2d stabilization tracks operator ********************/
 
 static bool stabilize_2d_poll(bContext *C)
@@ -293,3 +295,5 @@ void CLIP_OT_stabilize_2d_rotation_select(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

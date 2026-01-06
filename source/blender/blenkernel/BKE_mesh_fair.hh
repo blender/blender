@@ -13,6 +13,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Mesh;
 
 /* Mesh Fairing. */
@@ -29,6 +31,8 @@ enum eMeshFairingDepth {
  * fairing result. When NULL, the function will use mesh positions directly.
  */
 void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
-                                     blender::MutableSpan<blender::float3> deform_vert_positions,
+                                     MutableSpan<float3> deform_vert_positions,
                                      const bool affected_verts[],
                                      eMeshFairingDepth depth);
+
+}  // namespace blender

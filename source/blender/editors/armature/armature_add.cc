@@ -57,7 +57,7 @@
 
 #include "armature_intern.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* *************** Adding stuff in editmode *************** */
 
@@ -106,7 +106,7 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm,
                                           const float length,
                                           const bool view_aligned)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(obedit_arm->data);
+  bArmature *arm = id_cast<bArmature *>(obedit_arm->data);
   EditBone *bone;
 
   ED_armature_edit_deselect_all(obedit_arm);
@@ -147,11 +147,11 @@ static wmOperatorStatus armature_click_extrude_exec(bContext *C, wmOperator * /*
 
   scene = CTX_data_scene(C);
   obedit = CTX_data_edit_object(C);
-  arm = blender::id_cast<bArmature *>(obedit->data);
+  arm = id_cast<bArmature *>(obedit->data);
 
   /* find the active or selected bone */
   for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
-    if (!blender::animrig::bone_is_visible(arm, ebone)) {
+    if (!animrig::bone_is_visible(arm, ebone)) {
       continue;
     }
     if (ebone->flag & BONE_TIPSEL || arm->act_edbone == ebone) {
@@ -161,7 +161,7 @@ static wmOperatorStatus armature_click_extrude_exec(bContext *C, wmOperator * /*
 
   if (ebone == nullptr) {
     for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
-      if (!blender::animrig::bone_is_visible(arm, ebone)) {
+      if (!animrig::bone_is_visible(arm, ebone)) {
         continue;
       }
       if (ebone->flag & BONE_ROOTSEL || arm->act_edbone == ebone) {
@@ -294,7 +294,7 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 {
   EditBone *ebo;
 
-  ebo = ED_armature_ebone_add(blender::id_cast<bArmature *>(obedit->data), DATA_("Bone"));
+  ebo = ED_armature_ebone_add(id_cast<bArmature *>(obedit->data), DATA_("Bone"));
 
   copy_v3_v3(ebo->head, head);
   copy_v3_v3(ebo->tail, tail);
@@ -312,14 +312,13 @@ static void pre_edit_bone_duplicate(ListBaseT<EditBone> *editbones)
  * Helper function for #post_edit_bone_duplicate,
  * return the destination pchan from the original.
  */
-static bPoseChannel *pchan_duplicate_map(
-    const bPose *pose,
-    const blender::Map<blender::StringRefNull, blender::StringRefNull> &name_map,
-    bPoseChannel *pchan_src)
+static bPoseChannel *pchan_duplicate_map(const bPose *pose,
+                                         const Map<StringRefNull, StringRefNull> &name_map,
+                                         bPoseChannel *pchan_src)
 {
   bPoseChannel *pchan_dst = nullptr;
   const char *name_src = pchan_src->name;
-  const blender::StringRefNull name_dst = name_map.lookup_default(name_src, "");
+  const StringRefNull name_dst = name_map.lookup_default(name_src, "");
   if (!name_dst.is_empty()) {
     pchan_dst = BKE_pose_channel_find_name(pose, name_dst.c_str());
   }
@@ -340,7 +339,7 @@ static void post_edit_bone_duplicate(ListBaseT<EditBone> *editbones, Object *ob)
   BKE_pose_channels_hash_free(ob->pose);
   BKE_pose_channels_hash_ensure(ob->pose);
 
-  blender::Map<blender::StringRefNull, blender::StringRefNull> name_map;
+  Map<StringRefNull, StringRefNull> name_map;
 
   for (EditBone &ebone_src : *editbones) {
     EditBone *ebone_dst = ebone_src.temp.ebone;
@@ -415,7 +414,7 @@ static void update_duplicate_subtarget(EditBone *dup_bone,
         /* Can only mirror armature. */
         continue;
       }
-      bArmature *target_armature = blender::id_cast<bArmature *>(target_ob->data);
+      bArmature *target_armature = id_cast<bArmature *>(target_ob->data);
       /* Was the subtarget bone duplicated too? If
        * so, update the constraint to point at the
        * duplicate of the old subtarget.
@@ -517,16 +516,15 @@ static void update_duplicate_action_constraint_settings(
   /* See if there is any channels that uses this bone */
   bAction *act = static_cast<bAction *>(act_con->act);
   if (act) {
-    blender::animrig::Action &action = act->wrap();
-    blender::animrig::Channelbag *cbag = blender::animrig::channelbag_for_action_slot(
-        action, act_con->action_slot_handle);
+    animrig::Action &action = act->wrap();
+    animrig::Channelbag *cbag = animrig::channelbag_for_action_slot(action,
+                                                                    act_con->action_slot_handle);
 
     /* Create a copy and mirror the animation */
     auto bone_name_filter = [&](const FCurve &fcurve) -> bool {
-      return blender::animrig::fcurve_matches_collection_path(
-          fcurve, "pose.bones[", orig_bone->name);
+      return animrig::fcurve_matches_collection_path(fcurve, "pose.bones[", orig_bone->name);
     };
-    Vector<FCurve *> fcurves = blender::animrig::fcurves_in_action_slot_filtered(
+    Vector<FCurve *> fcurves = animrig::fcurves_in_action_slot_filtered(
         act, act_con->action_slot_handle, bone_name_filter);
     for (const FCurve *old_curve : fcurves) {
       FCurve *new_curve = BKE_fcurve_copy(old_curve);
@@ -997,8 +995,8 @@ static void mirror_bone_collection_assignments(bArmature &armature,
   BLI_assert_msg(armature.edbo != nullptr, "Expecting the armature to be in edit mode");
   char name_flip[64];
   /* Avoiding modification of the ListBaseT in the iteration. */
-  blender::Vector<BoneCollection *> unassign_collections;
-  blender::Vector<BoneCollection *> assign_collections;
+  Vector<BoneCollection *> unassign_collections;
+  Vector<BoneCollection *> assign_collections;
 
   /* Find all collections from source_bone that can be flipped. */
   for (BoneCollectionReference &collection_reference : source_bone.bone_collections) {
@@ -1010,10 +1008,9 @@ static void mirror_bone_collection_assignments(bArmature &armature,
     }
     BoneCollection *flipped_collection = ANIM_armature_bonecoll_get_by_name(&armature, name_flip);
     if (!flipped_collection) {
-      const int bcoll_index = blender::animrig::armature_bonecoll_find_index(&armature,
-                                                                             collection);
-      const int parent_index = blender::animrig::armature_bonecoll_find_parent_index(&armature,
-                                                                                     bcoll_index);
+      const int bcoll_index = animrig::armature_bonecoll_find_index(&armature, collection);
+      const int parent_index = animrig::armature_bonecoll_find_parent_index(&armature,
+                                                                            bcoll_index);
       flipped_collection = ANIM_armature_bonecoll_new(&armature, name_flip, parent_index);
     }
     BLI_assert(flipped_collection != nullptr);
@@ -1120,7 +1117,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
     /* The beginning of the duplicated bones in the edbo list */
     EditBone *ebone_first_dupe = nullptr;
 
-    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
 
     ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
 
@@ -1129,7 +1126,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
     /* Select mirrored bones */
     if (arm->flag & ARM_MIRROR_EDIT) {
       for (EditBone &ebone_iter : *arm->edbo) {
-        if (blender::animrig::bone_is_selected(arm, &ebone_iter)) {
+        if (animrig::bone_is_selected(arm, &ebone_iter)) {
           EditBone *ebone;
 
           ebone = ED_armature_ebone_get_mirrored(arm->edbo, &ebone_iter);
@@ -1145,7 +1142,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (blender::animrig::bone_is_selected(arm, ebone_iter)) {
+      if (animrig::bone_is_selected(arm, ebone_iter)) {
         EditBone *ebone;
         char new_bone_name_buff[MAXBONENAME];
         const char *new_bone_name = ebone_iter->name;
@@ -1174,7 +1171,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (blender::animrig::bone_is_selected(arm, ebone_iter)) {
+      if (animrig::bone_is_selected(arm, ebone_iter)) {
         EditBone *ebone = ebone_iter->temp.ebone;
 
         if (!ebone_iter->parent) {
@@ -1220,7 +1217,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (blender::animrig::bone_is_visible(arm, ebone_iter)) {
+      if (animrig::bone_is_visible(arm, ebone_iter)) {
         ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       }
     }
@@ -1296,7 +1293,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
     /* The beginning of the duplicated mirrored bones in the edbo list */
     EditBone *ebone_first_dupe = nullptr;
 
-    bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
+    bArmature *arm = id_cast<bArmature *>(obedit->data);
 
     ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
 
@@ -1308,9 +1305,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
      *
      * Storing temp pointers to mirrored unselected ebones. */
     for (EditBone &ebone_iter : *arm->edbo) {
-      if (!(blender::animrig::bone_is_visible(arm, &ebone_iter) &&
-            (ebone_iter.flag & BONE_SELECTED)))
-      {
+      if (!(animrig::bone_is_visible(arm, &ebone_iter) && (ebone_iter.flag & BONE_SELECTED))) {
         /* Skipping invisible selected bones. */
         continue;
       }
@@ -1370,7 +1365,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (blender::animrig::bone_is_selected(arm, ebone_iter)) {
+      if (animrig::bone_is_selected(arm, ebone_iter)) {
         if (ebone_iter->temp.ebone != nullptr) {
           /* This will be set if the mirror bone already exists (no need to make a new one)
            * but we do need to make sure that the 'pchan' settings (constraints etc)
@@ -1490,7 +1485,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (blender::animrig::bone_is_visible(arm, ebone_iter)) {
+      if (animrig::bone_is_visible(arm, ebone_iter)) {
         ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       }
     }
@@ -1574,7 +1569,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
   };
 
   for (Object *ob : objects) {
-    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
     bool forked_iter = forked;
 
     EditBone *newbone = nullptr, *ebone, *flipbone, *first = nullptr;
@@ -1583,7 +1578,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
 
     /* since we allow root extrude too, we have to make sure selection is OK */
     for (EditBone &ebone : *arm->edbo) {
-      if (blender::animrig::bone_is_visible(arm, &ebone)) {
+      if (animrig::bone_is_visible(arm, &ebone)) {
         if (ebone.flag & BONE_ROOTSEL) {
           if (ebone.parent && (ebone.flag & BONE_CONNECTED)) {
             if (ebone.parent->flag & BONE_TIPSEL) {
@@ -1598,7 +1593,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
     for (ebone = static_cast<EditBone *>(arm->edbo->first); ((ebone) && (ebone != first));
          ebone = ebone->next)
     {
-      if (!blender::animrig::bone_is_visible(arm, ebone)) {
+      if (!animrig::bone_is_visible(arm, ebone)) {
         continue;
       }
       /* We extrude per definition the tip. */
@@ -1803,10 +1798,10 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   ED_armature_edit_deselect_all(obedit);
 
   /* Create a bone. */
-  bone = ED_armature_ebone_add(blender::id_cast<bArmature *>(obedit->data), name);
-  ANIM_armature_bonecoll_assign_active(blender::id_cast<bArmature *>(obedit->data), bone);
+  bone = ED_armature_ebone_add(id_cast<bArmature *>(obedit->data), name);
+  ANIM_armature_bonecoll_assign_active(id_cast<bArmature *>(obedit->data), bone);
 
-  bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
+  bArmature *arm = id_cast<bArmature *>(obedit->data);
   if (BLI_listbase_is_empty(&bone->bone_collections) && (arm->flag & ARM_BCOLL_SOLO_ACTIVE)) {
     BKE_report(op->reports,
                RPT_WARNING,
@@ -1978,3 +1973,5 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
    * _very_ high poly meshes and annoy users (or worse crash) */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+
+}  // namespace blender

@@ -35,6 +35,8 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
@@ -223,7 +225,7 @@ static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, voi
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -272,3 +274,5 @@ ModifierTypeInfo modifierType_Fluid = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

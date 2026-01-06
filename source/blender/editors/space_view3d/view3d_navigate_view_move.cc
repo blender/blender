@@ -15,6 +15,8 @@
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Move (Pan) Operator
  * \{ */
@@ -137,3 +139,5 @@ const ViewOpsType ViewOpsType_move = {
     /*init_fn*/ viewmove_invoke_impl,
     /*apply_fn*/ viewmove_modal_impl,
 };
+
+}  // namespace blender

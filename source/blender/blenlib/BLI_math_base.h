@@ -66,6 +66,8 @@ static const int NAN_INT = 0x7FC00000;
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
 
+namespace blender {
+
 /******************************* Float ******************************/
 
 /* `powf` is really slow for raising to integer powers. */
@@ -369,3 +371,5 @@ float ceil_power_of_10(float f);
 #  define BLI_ASSERT_ZERO_M4(m) (void)(m)
 #  define BLI_ASSERT_UNIT_M3(m) (void)(m)
 #endif
+
+}  // namespace blender

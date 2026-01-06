@@ -19,6 +19,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /* ******************************************************************** */
 /* Animation Visualization */
 
@@ -238,3 +240,5 @@ void animviz_motionpath_blend_read_data(BlendDataReader *reader, bMotionPath *mp
   mpath->batch_line = nullptr;
   mpath->batch_points = nullptr;
 }
+
+}  // namespace blender

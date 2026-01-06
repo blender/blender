@@ -10,9 +10,11 @@
 
 #include "tree_display.hh"
 
+namespace blender {
+
 using namespace blender::ed::outliner;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 std::unique_ptr<AbstractTreeDisplay> AbstractTreeDisplay::create_from_display_mode(
     int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner)
@@ -54,4 +56,5 @@ bool AbstractTreeDisplay::is_lazy_built() const
   return false;
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

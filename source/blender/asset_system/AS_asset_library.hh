@@ -22,13 +22,15 @@
 
 #include "BKE_callbacks.hh"
 
+namespace blender {
+
 struct Main;
 
-namespace blender::bke::id {
+namespace bke::id {
 class IDRemapper;
 }
 
-namespace blender::asset_system {
+namespace asset_system {
 
 class AssetRepresentation;
 
@@ -171,7 +173,7 @@ class AssetLibrary {
    * mapped to null (typically when an ID gets removed), the asset is removed, because we don't
    * support such empty/null assets.
    */
-  void remap_ids_and_remove_invalid(const blender::bke::id::IDRemapper &mappings);
+  void remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappings);
 
   /**
    * Update `catalog_simple_name` by looking up the asset's catalog by its ID.
@@ -204,7 +206,7 @@ AssetLibraryReference all_library_reference();
 AssetLibraryReference current_file_library_reference();
 void all_library_reload_catalogs_if_dirty();
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
 
 /**
  * Load the data for an asset library, but not the asset representations themselves (loading these
@@ -217,8 +219,8 @@ void all_library_reload_catalogs_if_dirty();
  * \warning Catalogs are reloaded, invalidating catalog pointers. Do not store catalog pointers,
  *          store CatalogIDs instead and lookup the catalog where needed.
  */
-blender::asset_system::AssetLibrary *AS_asset_library_load(
-    const Main *bmain, const AssetLibraryReference &library_reference);
+asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
+                                                  const AssetLibraryReference &library_reference);
 
 std::string AS_asset_library_root_path_from_library_ref(
     const AssetLibraryReference &library_reference);
@@ -244,7 +246,7 @@ std::string AS_asset_library_root_path_from_library_ref(
  * \return True if the function could find a valid, that is, a non-empty path to return in \a
  *         r_library_path.
  */
-std::string AS_asset_library_find_suitable_root_path_from_path(blender::StringRefNull input_path);
+std::string AS_asset_library_find_suitable_root_path_from_path(StringRefNull input_path);
 
 /**
  * Uses the current location on disk of the file represented by \a bmain as input to
@@ -272,8 +274,8 @@ void AS_asset_libraries_exit();
  *
  * To get the in-memory-only "current file" asset library, pass an empty path.
  */
-blender::asset_system::AssetLibrary *AS_asset_library_load_from_directory(
-    const char *name, const char *library_dirpath);
+asset_system::AssetLibrary *AS_asset_library_load_from_directory(const char *name,
+                                                                 const char *library_dirpath);
 
 /** Return whether any loaded AssetLibrary has unsaved changes to its catalogs. */
 bool AS_asset_library_has_any_unsaved_catalogs();
@@ -282,7 +284,7 @@ bool AS_asset_library_has_any_unsaved_catalogs();
  * An asset library can include local IDs (IDs in the current file). Their pointers need to be
  * remapped on change (or assets removed as IDs gets removed).
  */
-void AS_asset_library_remap_ids(const blender::bke::id::IDRemapper &mappings);
+void AS_asset_library_remap_ids(const bke::id::IDRemapper &mappings);
 
 /**
  * Attempt to resolve a full path to an asset based on the currently available (not necessary
@@ -319,3 +321,5 @@ void AS_asset_library_import_method_ensure_valid(Main &bmain);
  * when run during versioning).
  */
 void AS_asset_library_essential_import_method_update();
+
+}  // namespace blender

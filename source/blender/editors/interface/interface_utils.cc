@@ -608,7 +608,7 @@ int icon_from_id(const ID *id)
 
   /* exception for objects */
   if (GS(id->name) == ID_OB) {
-    Object *ob = blender::id_cast<Object *>(const_cast<ID *>(id));
+    Object *ob = id_cast<Object *>(const_cast<ID *>(id));
 
     if (ob->type == OB_EMPTY) {
       return ICON_EMPTY_DATA;

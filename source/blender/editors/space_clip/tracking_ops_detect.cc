@@ -30,6 +30,8 @@
 #include "clip_intern.hh"
 #include "tracking_ops_intern.hh"
 
+namespace blender {
+
 /********************** detect features operator *********************/
 
 static bGPDlayer *detect_get_layer(MovieClip *clip)
@@ -156,3 +158,5 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
               0,
               300);
 }
+
+}  // namespace blender

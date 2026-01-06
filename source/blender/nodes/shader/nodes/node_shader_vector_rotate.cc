@@ -20,7 +20,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_vector_rotate_cc {
+namespace blender {
+
+namespace nodes::node_shader_vector_rotate_cc {
 
 static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
 {
@@ -263,13 +265,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_vector_rotate_cc
+}  // namespace nodes::node_shader_vector_rotate_cc
 
 void register_node_type_sh_vector_rotate()
 {
-  namespace file_ns = blender::nodes::node_shader_vector_rotate_cc;
+  namespace file_ns = nodes::node_shader_vector_rotate_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeVectorRotate", SH_NODE_VECTOR_ROTATE);
   ntype.ui_name = "Vector Rotate";
@@ -283,5 +285,7 @@ void register_node_type_sh_vector_rotate()
   ntype.build_multi_function = file_ns::sh_node_vector_rotate_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

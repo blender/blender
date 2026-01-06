@@ -13,6 +13,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /* internal exports only */
 struct BPoint;
 struct Base;
@@ -246,3 +248,5 @@ void CURVE_OT_draw(wmOperatorType *ot);
 
 void CURVE_OT_pen(wmOperatorType *ot);
 wmKeyMap *curve_pen_modal_keymap(wmKeyConfig *keyconf);
+
+}  // namespace blender

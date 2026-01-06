@@ -199,7 +199,7 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
         return {SampleResult::NO_BONE_3DVIEW};
       }
       Object *ob = base->object;
-      bArmature *armature = blender::id_cast<bArmature *>(ob->data);
+      bArmature *armature = id_cast<bArmature *>(ob->data);
       if (bdr.search_ptr.type == &RNA_Pose && &ob->id != bdr.search_ptr.owner_id) {
         return {SampleResult::WRONG_ARMATURE};
       }
@@ -223,7 +223,7 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
         return {SampleResult::NO_BONE_3DVIEW};
       }
       Object *ob = base->object;
-      bArmature *armature = blender::id_cast<bArmature *>(ob->data);
+      bArmature *armature = id_cast<bArmature *>(ob->data);
       if (!armature || &armature->id != bdr.search_ptr.owner_id) {
         return {SampleResult::WRONG_ARMATURE};
       }
@@ -293,7 +293,7 @@ static BoneSampleData sample_data_from_outliner(bContext *C,
     if (bdr.search_ptr.type == &RNA_Armature) {
       /* Expecting Pose Bones to be stored on the object. */
       BLI_assert(GS(sample_data.bone_rna.owner_id->name) == ID_OB);
-      Object *armature_object = blender::id_cast<Object *>(sample_data.bone_rna.owner_id);
+      Object *armature_object = id_cast<Object *>(sample_data.bone_rna.owner_id);
       if (armature_object->data != bdr.search_ptr.owner_id) {
         sample_data.sample_result = SampleResult::WRONG_ARMATURE;
         return sample_data;

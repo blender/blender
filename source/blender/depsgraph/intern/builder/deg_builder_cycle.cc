@@ -23,9 +23,11 @@
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"depsgraph"};
 
-namespace blender::deg {
+namespace deg {
 
 namespace {
 
@@ -215,4 +217,5 @@ void deg_graph_detect_cycles(Depsgraph *graph)
   }
 }
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

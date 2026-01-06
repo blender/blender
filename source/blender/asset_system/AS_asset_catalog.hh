@@ -29,7 +29,7 @@ class AssetCatalogDefinitionFile;
 class AssetCatalogFilter;
 class AssetCatalogTree;
 
-using CatalogID = bUUID;
+using CatalogID = UUID;
 using CatalogPathComponent = std::string;
 /* Would be nice to be able to use `std::filesystem::path` for this, but it's currently not
  * available on the minimum macOS target version. */

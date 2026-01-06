@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /** Span fill in method, is also used to localize data for Z-buffering. */
 struct ZSpan {
   int rectx, recty; /* range for clipping */
@@ -33,3 +35,5 @@ void zspan_scanconvert(struct ZSpan *zspan,
                        float *v2,
                        float *v3,
                        void (*func)(void *, int, int, float, float));
+
+}  // namespace blender

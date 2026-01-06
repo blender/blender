@@ -42,7 +42,7 @@
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 #include "../generic/python_utildefines.hh"
 
-using blender::Array;
+namespace blender {
 
 /* Disabled duplicating strings because the array can still be freed and
  * the strings from it referenced, for now we can't support dynamically
@@ -2042,9 +2042,7 @@ static std::string bpy_prop_string_set_transform_fn(PointerRNA *ptr,
 }
 
 static bool bpy_prop_string_visit_fn_call(
-    PyObject *py_func,
-    PyObject *item,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+    PyObject *py_func, PyObject *item, FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   const char *text;
   const char *info = nullptr;
@@ -2093,7 +2091,7 @@ static void bpy_prop_string_visit_for_search_fn(
     PointerRNA *ptr,
     PropertyRNA *prop,
     const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   PyGILState_STATE gilstate;
   if (C) {
@@ -5779,3 +5777,5 @@ void BPY_rna_props_clear_all()
 }
 
 /** \} */
+
+}  // namespace blender

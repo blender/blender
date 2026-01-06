@@ -102,6 +102,8 @@
 #include "ANIM_action.hh"
 #include "ANIM_pose.hh"
 
+namespace blender {
+
 #ifndef NDEBUG
 /* Used for database init assert(). */
 #  include "BLI_threads.h"
@@ -335,7 +337,7 @@ static void switch_preview_floor_visibility(Main *pr_main,
       }
       if (base.object->type == OB_MESH) {
         switch_preview_floor_material(
-            pr_main, blender::id_cast<Mesh *>(base.object->data), scene, pr_method);
+            pr_main, id_cast<Mesh *>(base.object->data), scene, pr_method);
       }
     }
   }
@@ -366,7 +368,7 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
                                nullptr,
                                LIB_ID_CREATE_LOCAL | LIB_ID_COPY_LOCALIZE |
                                    LIB_ID_COPY_NO_ANIMDATA);
-  sp->worldcopy = blender::id_cast<World *>(id_copy);
+  sp->worldcopy = id_cast<World *>(id_copy);
   BLI_addtail(&sp->pr_main->worlds, sp->worldcopy);
   return sp->worldcopy;
 }
@@ -377,7 +379,7 @@ World *ED_preview_prepare_world_simple(Main *pr_main)
 
   World *world = BKE_world_add(pr_main, "SimpleWorld");
   bNodeTree *ntree = world->nodetree;
-  ntree = blender::bke::node_tree_add_tree_embedded(
+  ntree = bke::node_tree_add_tree_embedded(
       nullptr, &world->id, "World Nodetree", "ShaderNodeTree");
 
   bNode *background = node_add_node(nullptr, *ntree, "ShaderNodeBackground");
@@ -397,11 +399,11 @@ void ED_preview_world_simple_set_rgb(World *world, const float color[4])
 {
   BLI_assert(world != nullptr);
 
-  bNode *background = blender::bke::node_find_node_by_name(*world->nodetree, "Background");
+  bNode *background = bke::node_find_node_by_name(*world->nodetree, "Background");
   BLI_assert(background != nullptr);
 
   auto color_socket = static_cast<bNodeSocketValueRGBA *>(
-      blender::bke::node_find_socket(*background, SOCK_IN, "Color")->default_value);
+      bke::node_find_socket(*background, SOCK_IN, "Color")->default_value);
   copy_v4_v4(color_socket->value, color);
 }
 
@@ -430,7 +432,7 @@ static ID *duplicate_ids(ID *id, const bool allow_failure)
       /* Doesn't really duplicate the collection. Just creates a collection instance empty. */
       BLI_assert(BKE_previewimg_id_supports_jobs(id));
       Object *instance_empty = BKE_object_add_only_object(nullptr, OB_EMPTY, nullptr);
-      instance_empty->instance_collection = blender::id_cast<Collection *>(id);
+      instance_empty->instance_collection = id_cast<Collection *>(id);
       instance_empty->transflag |= OB_DUPLICOLLECTION;
       return &instance_empty->id;
     }
@@ -552,12 +554,12 @@ static Scene *preview_prepare_scene(
     }
 
     if (id_type == ID_MA) {
-      Material *mat = nullptr, *origmat = blender::id_cast<Material *>(id);
+      Material *mat = nullptr, *origmat = id_cast<Material *>(id);
 
       if (origmat) {
         /* work on a copy */
         BLI_assert(sp->id_copy != nullptr);
-        mat = sp->matcopy = blender::id_cast<Material *>(sp->id_copy);
+        mat = sp->matcopy = id_cast<Material *>(sp->id_copy);
         sp->id_copy = nullptr;
         BLI_addtail(&pr_main->materials, mat);
 
@@ -611,22 +613,22 @@ static Scene *preview_prepare_scene(
       }
     }
     else if (id_type == ID_TE) {
-      Tex *tex = nullptr, *origtex = blender::id_cast<Tex *>(id);
+      Tex *tex = nullptr, *origtex = id_cast<Tex *>(id);
 
       if (origtex) {
         BLI_assert(sp->id_copy != nullptr);
-        tex = sp->texcopy = blender::id_cast<Tex *>(sp->id_copy);
+        tex = sp->texcopy = id_cast<Tex *>(sp->id_copy);
         sp->id_copy = nullptr;
         BLI_addtail(&pr_main->textures, tex);
       }
     }
     else if (id_type == ID_LA) {
-      Light *la = nullptr, *origla = blender::id_cast<Light *>(id);
+      Light *la = nullptr, *origla = id_cast<Light *>(id);
 
       /* work on a copy */
       if (origla) {
         BLI_assert(sp->id_copy != nullptr);
-        la = sp->lampcopy = blender::id_cast<Light *>(sp->id_copy);
+        la = sp->lampcopy = id_cast<Light *>(sp->id_copy);
         sp->id_copy = nullptr;
         BLI_addtail(&pr_main->lights, la);
       }
@@ -644,17 +646,17 @@ static Scene *preview_prepare_scene(
       for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
         if (base.object->id.name[2] == 'p') {
           if (base.object->type == OB_LAMP) {
-            base.object->data = blender::id_cast<ID *>(la);
+            base.object->data = id_cast<ID *>(la);
           }
         }
       }
     }
     else if (id_type == ID_WO) {
-      World *wrld = nullptr, *origwrld = blender::id_cast<World *>(id);
+      World *wrld = nullptr, *origwrld = id_cast<World *>(id);
 
       if (origwrld) {
         BLI_assert(sp->id_copy != nullptr);
-        wrld = sp->worldcopy = blender::id_cast<World *>(sp->id_copy);
+        wrld = sp->worldcopy = id_cast<World *>(sp->id_copy);
         sp->id_copy = nullptr;
         BLI_addtail(&pr_main->worlds, wrld);
       }
@@ -845,7 +847,7 @@ static Object *object_preview_camera_create(Main *preview_main,
   mat3_to_quat(camera->quat, rotmat);
 
   /* Nice focal length for close portraiture. */
-  (blender::id_cast<Camera *>(camera->data))->lens = 85;
+  (id_cast<Camera *>(camera->data))->lens = 85;
 
   return camera;
 }
@@ -902,7 +904,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
   ObjectPreviewData preview_data = {};
   preview_data.pr_main = preview_main;
   /* Act on a copy. */
-  preview_data.object = blender::id_cast<Object *>(preview->id_copy);
+  preview_data.object = id_cast<Object *>(preview->id_copy);
   preview_data.cfra = preview->scene->r.cfra;
   preview_data.sizex = preview_sized->sizex;
   preview_data.sizey = preview_sized->sizey;
@@ -974,22 +976,20 @@ static PoseBackup *action_preview_render_prepare(IconPreview *preview)
   }
 
   /* Create a backup of the current pose. */
-  blender::animrig::Action &pose_action = reinterpret_cast<bAction *>(preview->id)->wrap();
+  animrig::Action &pose_action = reinterpret_cast<bAction *>(preview->id)->wrap();
 
   if (pose_action.slot_array_num == 0) {
     WM_global_report(RPT_WARNING, "Action has no data, cannot render preview");
     return nullptr;
   }
 
-  blender::animrig::Slot &slot = blender::animrig::get_best_pose_slot_for_id(object->id,
-                                                                             pose_action);
+  animrig::Slot &slot = animrig::get_best_pose_slot_for_id(object->id, pose_action);
   PoseBackup *pose_backup = BKE_pose_backup_create_all_bones({object}, &pose_action);
 
   /* Apply the Action as pose, so that it can be rendered. This assumes the Action represents a
    * single pose, and that thus the evaluation time doesn't matter. */
   AnimationEvalContext anim_eval_context = {preview->depsgraph, 0.0f};
-  blender::animrig::pose_apply_action_all_bones(
-      object, &pose_action, slot.handle, &anim_eval_context);
+  animrig::pose_apply_action_all_bones(object, &pose_action, slot.handle, &anim_eval_context);
 
   /* Force evaluation of the new pose, before the preview is rendered. */
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
@@ -1273,21 +1273,21 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   RE_test_break_cb(re, sp, shader_preview_break);
 
   /* lens adjust */
-  oldlens = (blender::id_cast<Camera *>(sce->camera->data))->lens;
+  oldlens = (id_cast<Camera *>(sce->camera->data))->lens;
   if (sizex > sp->sizey) {
-    (blender::id_cast<Camera *>(sce->camera->data))->lens *= float(sp->sizey) / float(sizex);
+    (id_cast<Camera *>(sce->camera->data))->lens *= float(sp->sizey) / float(sizex);
   }
 
   /* entire cycle for render engine */
   if (idtype == ID_TE) {
-    shader_preview_texture(sp, blender::id_cast<Tex *>(id), sce, re);
+    shader_preview_texture(sp, id_cast<Tex *>(id), sce, re);
   }
   else {
     /* Render preview scene */
     RE_PreviewRender(re, pr_main, sce);
   }
 
-  (blender::id_cast<Camera *>(sce->camera->data))->lens = oldlens;
+  (id_cast<Camera *>(sce->camera->data))->lens = oldlens;
 
   /* handle results */
   if (sp->pr_method == PR_ICON_RENDER) {
@@ -1346,27 +1346,27 @@ static void shader_preview_free(void *customdata)
   ID *sub_id_copy = nullptr;
 
   if (sp->matcopy) {
-    main_id_copy = blender::id_cast<ID *>(sp->matcopy);
+    main_id_copy = id_cast<ID *>(sp->matcopy);
     BLI_remlink(&pr_main->materials, sp->matcopy);
   }
   if (sp->texcopy) {
     BLI_assert(main_id_copy == nullptr);
-    main_id_copy = blender::id_cast<ID *>(sp->texcopy);
+    main_id_copy = id_cast<ID *>(sp->texcopy);
     BLI_remlink(&pr_main->textures, sp->texcopy);
   }
   if (sp->worldcopy) {
     /* worldcopy is also created for material with `Preview World` enabled */
     if (main_id_copy) {
-      sub_id_copy = blender::id_cast<ID *>(sp->worldcopy);
+      sub_id_copy = id_cast<ID *>(sp->worldcopy);
     }
     else {
-      main_id_copy = blender::id_cast<ID *>(sp->worldcopy);
+      main_id_copy = id_cast<ID *>(sp->worldcopy);
     }
     BLI_remlink(&pr_main->worlds, sp->worldcopy);
   }
   if (sp->lampcopy) {
     BLI_assert(main_id_copy == nullptr);
-    main_id_copy = blender::id_cast<ID *>(sp->lampcopy);
+    main_id_copy = id_cast<ID *>(sp->lampcopy);
     BLI_remlink(&pr_main->lights, sp->lampcopy);
   }
   if (sp->own_id_copy) {
@@ -1462,7 +1462,7 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
   BLI_assert(id != nullptr);
 
   if (idtype == ID_IM) {
-    Image *ima = blender::id_cast<Image *>(id);
+    Image *ima = id_cast<Image *>(id);
     ImBuf *ibuf = nullptr;
     ImageUser iuser;
     BKE_imageuser_default(&iuser);
@@ -1551,7 +1551,7 @@ static void other_id_types_preview_render(IconPreview *ip,
 
     /* grease pencil use its own preview file */
     if (GS(ip->id->name) == ID_MA) {
-      ma = blender::id_cast<Material *>(ip->id);
+      ma = id_cast<Material *>(ip->id);
     }
 
     if ((ma == nullptr) || (ma->gp_style == nullptr)) {
@@ -1638,7 +1638,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
     if (ip->id != nullptr) {
       switch (GS(ip->id->name)) {
         case ID_OB:
-          if (object_preview_is_type_supported(blender::id_cast<Object *>(ip->id))) {
+          if (object_preview_is_type_supported(id_cast<Object *>(ip->id))) {
             /* Much simpler than the ShaderPreview mess used for other ID types. */
             object_preview_render(ip, &cur_size);
           }
@@ -1971,7 +1971,7 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
       case ID_NT:
         return {false, RPT_("Node groups do not support automatic previews")};
       case ID_OB:
-        return {object_preview_is_type_supported(blender::id_cast<const Object *>(id)),
+        return {object_preview_is_type_supported(id_cast<const Object *>(id)),
                 RPT_("Object type does not support automatic previews")};
       case ID_GR:
         return {
@@ -1979,7 +1979,7 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
             RPT_("Collection does not contain object types that can be rendered for the automatic "
                  "preview")};
       case ID_SCE:
-        return {scene_preview_is_supported(blender::id_cast<const Scene *>(id)),
+        return {scene_preview_is_supported(id_cast<const Scene *>(id)),
                 RPT_("Scenes without a camera do not support previews")};
       case ID_BR:
         return {false, RPT_("Brushes do not support automatic previews")};
@@ -2173,7 +2173,7 @@ void ED_preview_shader_job(const bContext *C,
 
   /* grease pencil use its own preview file */
   if (id_type == ID_MA) {
-    ma = blender::id_cast<Material *>(id);
+    ma = id_cast<Material *>(id);
   }
 
   if ((ma == nullptr) || (ma->gp_style == nullptr)) {
@@ -2250,10 +2250,12 @@ void ED_preview_restart_queue_work(const bContext *C)
     }
 
     BKE_previewimg_clear_single(preview, queue_entry.size);
-    blender::ui::icon_render_id(C, nullptr, queue_entry.id, queue_entry.size, true);
+    ui::icon_render_id(C, nullptr, queue_entry.id, queue_entry.size, true);
 
     BLI_freelinkN(&G_restart_previews_queue, &queue_entry);
   }
 }
 
 /** \} */
+
+}  // namespace blender

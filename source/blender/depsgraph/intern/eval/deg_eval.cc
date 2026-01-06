@@ -86,7 +86,7 @@ struct DepsgraphEvalState {
 
 void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_node)
 {
-  ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(state->graph);
+  blender::Depsgraph *depsgraph = reinterpret_cast<blender::Depsgraph *>(state->graph);
 
   /* Sanity checks. */
   BLI_assert_msg(!operation_node->is_noop(), "NOOP nodes should not actually be scheduled");

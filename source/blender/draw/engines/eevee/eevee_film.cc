@@ -153,7 +153,7 @@ gpu::Texture *Film::get_aov_texture(ViewLayerAOV *aov)
 void Film::sync_mist()
 {
   const CameraData &cam = inst_.camera.data_get();
-  const ::World *world = inst_.scene->world;
+  const blender::World *world = inst_.scene->world;
   float mist_start = world ? world->miststa : cam.clip_near;
   float mist_distance = world ? world->mistdist : fabsf(cam.clip_far - cam.clip_near);
   int mist_type = world ? world->mistype : int(WO_MIST_LINEAR);

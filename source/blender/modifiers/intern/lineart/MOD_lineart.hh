@@ -20,6 +20,9 @@
 #include <algorithm>
 #include <cmath>
 
+namespace blender {
+
+struct Depsgraph;
 struct LineartBoundingArea;
 struct LineartEdge;
 struct LineartEdgeChain;
@@ -37,7 +40,7 @@ struct LineartModifierRuntime {
   /* This list is constructed during `update_depsgraph()` call, and stays valid until the next
    * update. This way line art can load objects from this list instead of iterating over all
    * objects that may or may not have finished evaluating. */
-  blender::Set<const Object *> object_dependencies;
+  Set<const Object *> object_dependencies;
 };
 
 struct LineartStaticMemPoolNode {
@@ -441,7 +444,7 @@ struct LineartData {
 };
 
 struct LineartCache {
-  blender::ed::greasepencil::LineartLimitInfo LimitInfo;
+  ed::greasepencil::LineartLimitInfo LimitInfo;
   /** Separate memory pool for chain data and shadow, this goes to the cache, so when we free the
    * main pool, chains and shadows will still be available. */
   LineartStaticMemPool chain_data_pool;
@@ -878,7 +881,6 @@ BLI_INLINE int lineart_line_isec_2d_ignore_line2pos(const double a1[2],
 
 struct bGPDframe;
 struct bGPDlayer;
-struct Depsgraph;
 struct LineartGpencilModifierData;
 struct GreasePencilLineartModifierData;
 struct LineartData;
@@ -929,13 +931,13 @@ LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartData *ld, doubl
  */
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, double y);
 
-namespace blender::bke::greasepencil {
+namespace bke::greasepencil {
 class Drawing;
 }
 void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
-                                     const blender::float4x4 &mat,
+                                     const float4x4 &mat,
                                      Depsgraph *depsgraph,
-                                     blender::bke::greasepencil::Drawing &drawing,
+                                     bke::greasepencil::Drawing &drawing,
                                      int8_t source_type,
                                      Object *source_object,
                                      Collection *source_collection,
@@ -962,3 +964,5 @@ float MOD_lineart_chain_compute_length(LineartEdgeChain *ec);
 
 LineartCache *MOD_lineart_init_cache();
 void MOD_lineart_clear_cache(LineartCache **lc);
+
+}  // namespace blender

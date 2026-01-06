@@ -45,7 +45,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const blender::bke::bNodeType &node_type = params.node_type();
+  const bke::bNodeType &node_type = params.node_type();
   const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
@@ -89,7 +89,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeFieldOnDomain", GEO_NODE_EVALUATE_ON_DOMAIN);
   ntype.ui_name = "Evaluate on Domain";
@@ -102,7 +102,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

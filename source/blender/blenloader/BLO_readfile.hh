@@ -10,6 +10,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utility_mixins.hh"
+struct BlendHandle;
+namespace blender {
 
 /** \file
  * \ingroup blenloader
@@ -19,7 +21,6 @@
 struct AssetMetaData;
 struct BHead;
 struct BlendfileLinkAppendContext;
-struct BlendHandle;
 struct BlendThumbnail;
 struct FileData;
 struct FileReader;
@@ -56,7 +57,7 @@ enum eBlenFileType {
   // BLENFILETYPE_RUNTIME = 3, /* UNUSED */
 };
 
-struct BlendFileData : blender::NonCopyable, blender::NonMovable {
+struct BlendFileData : NonCopyable, NonMovable {
   Main *main = nullptr;
   UserDef *user = nullptr;
 
@@ -273,7 +274,7 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem,
                                          BlendFileReadReport *reports);
 
 /** Returns the major and minor version number of Blender used to create the file. */
-blender::int3 BLO_blendhandle_get_version(const BlendHandle *bh);
+int3 BLO_blendhandle_get_version(const BlendHandle *bh);
 
 /**
  * Gets the names of all the data-blocks in a file of a certain type
@@ -622,3 +623,5 @@ void BLO_readfile_id_runtime_data_free_all(Main &bmain);
 void BLO_readfile_id_runtime_data_free(ID &id);
 
 #define BLEN_THUMB_MEMSIZE_FILE(_x, _y) (sizeof(int) * (2 + (size_t)(_x) * (size_t)(_y)))
+
+}  // namespace blender

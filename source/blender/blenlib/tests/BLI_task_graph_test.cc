@@ -6,6 +6,8 @@
 
 #include "BLI_task.h"
 
+namespace blender {
+
 struct TaskData {
   int value;
   int store;
@@ -188,3 +190,5 @@ TEST(task, GraphTaskData)
   EXPECT_EQ(1, data.value);
   EXPECT_EQ(0, data.store);
 }
+
+}  // namespace blender

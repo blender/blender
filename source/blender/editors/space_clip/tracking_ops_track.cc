@@ -33,6 +33,8 @@
 #include "clip_intern.hh" /* own include */
 #include "tracking_ops_intern.hh"
 
+namespace blender {
+
 /********************** Track operator *********************/
 
 struct TrackMarkersJob {
@@ -480,3 +482,5 @@ void CLIP_OT_refine_markers(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna, "backwards", false, "Backwards", "Do backwards tracking");
 }
+
+}  // namespace blender

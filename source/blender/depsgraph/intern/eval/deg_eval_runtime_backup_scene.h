@@ -12,9 +12,11 @@
 
 #include "intern/eval/deg_eval_runtime_backup_sequencer.h"
 
+namespace blender {
+
 struct Scene;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -33,4 +35,5 @@ class SceneBackup {
   SequencerBackup sequencer_backup;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

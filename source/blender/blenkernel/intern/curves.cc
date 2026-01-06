@@ -43,21 +43,16 @@
 
 #include "BLO_read_write.hh"
 
-using blender::float3;
-using blender::IndexRange;
-using blender::MutableSpan;
-using blender::RandomNumberGenerator;
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 static const char *ATTR_POSITION = "position";
 
 static void curves_init_data(ID *id)
 {
-  Curves *curves = blender::id_cast<Curves *>(id);
+  Curves *curves = id_cast<Curves *>(id);
   INIT_DEFAULT_STRUCT_AFTER(curves, id);
 
-  new (&curves->geometry) blender::bke::CurvesGeometry();
+  new (&curves->geometry) bke::CurvesGeometry();
 }
 
 static void curves_copy_data(Main * /*bmain*/,
@@ -66,11 +61,11 @@ static void curves_copy_data(Main * /*bmain*/,
                              const ID *id_src,
                              const int /*flag*/)
 {
-  Curves *curves_dst = blender::id_cast<Curves *>(id_dst);
-  const Curves *curves_src = blender::id_cast<const Curves *>(id_src);
+  Curves *curves_dst = id_cast<Curves *>(id_dst);
+  const Curves *curves_src = id_cast<const Curves *>(id_src);
   curves_dst->mat = static_cast<Material **>(MEM_dupallocN(curves_src->mat));
 
-  new (&curves_dst->geometry) blender::bke::CurvesGeometry(curves_src->geometry.wrap());
+  new (&curves_dst->geometry) bke::CurvesGeometry(curves_src->geometry.wrap());
 
   if (curves_src->surface_uv_map != nullptr) {
     curves_dst->surface_uv_map = BLI_strdup(curves_src->surface_uv_map);
@@ -81,7 +76,7 @@ static void curves_copy_data(Main * /*bmain*/,
 
 static void curves_free_data(ID *id)
 {
-  Curves *curves = blender::id_cast<Curves *>(id);
+  Curves *curves = id_cast<Curves *>(id);
   BKE_animdata_free(&curves->id, false);
 
   curves->geometry.wrap().~CurvesGeometry();
@@ -94,7 +89,7 @@ static void curves_free_data(ID *id)
 
 static void curves_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Curves *curves = blender::id_cast<Curves *>(id);
+  Curves *curves = id_cast<Curves *>(id);
   for (int i = 0; i < curves->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curves->mat[i], IDWALK_CB_USER);
   }
@@ -110,13 +105,13 @@ static void curves_foreach_working_space_color(ID *id,
 
 static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Curves *curves = blender::id_cast<Curves *>(id);
+  Curves *curves = id_cast<Curves *>(id);
 
   /* Only for forward compatibility. */
   curves->attributes_active_index_legacy = curves->geometry.attributes_active_index;
 
-  blender::ResourceScope scope;
-  blender::bke::CurvesGeometry::BlendWriteData write_data(scope);
+  ResourceScope scope;
+  bke::CurvesGeometry::BlendWriteData write_data(scope);
   curves->geometry.wrap().blend_write_prepare(write_data);
 
   BLO_write_shared_tag(writer, curves->geometry.curve_offsets);
@@ -136,7 +131,7 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
 static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Curves *curves = blender::id_cast<Curves *>(id);
+  Curves *curves = id_cast<Curves *>(id);
 
   /* Geometry */
   curves->geometry.wrap().blend_read(*reader);
@@ -185,7 +180,7 @@ Curves *BKE_curves_add(Main *bmain, const char *name)
   return curves;
 }
 
-bool BKE_curves_attribute_required(const Curves * /*curves*/, const blender::StringRef name)
+bool BKE_curves_attribute_required(const Curves * /*curves*/, const StringRef name)
 {
   return name == ATTR_POSITION;
 }
@@ -199,7 +194,7 @@ Curves *BKE_curves_copy_for_eval(const Curves *curves_src)
 static void curves_evaluate_modifiers(Depsgraph *depsgraph,
                                       Scene *scene,
                                       Object *object,
-                                      blender::bke::GeometrySet &geometry_set)
+                                      bke::GeometrySet &geometry_set)
 {
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -225,7 +220,7 @@ static void curves_evaluate_modifiers(Depsgraph *depsgraph,
       continue;
     }
 
-    blender::bke::ScopedModifierTimer modifier_timer{*md};
+    bke::ScopedModifierTimer modifier_timer{*md};
 
     if (mti->modify_geometry_set != nullptr) {
       mti->modify_geometry_set(md, &mectx, &geometry_set);
@@ -235,13 +230,12 @@ static void curves_evaluate_modifiers(Depsgraph *depsgraph,
 
 void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
-  using namespace blender;
   using namespace blender::bke;
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);
 
   /* Evaluate modifiers. */
-  Curves *curves = blender::id_cast<Curves *>(object->data);
+  Curves *curves = id_cast<Curves *>(object->data);
   GeometrySet geometry_set = GeometrySet::from_curves(curves, GeometryOwnershipType::ReadOnly);
   if (ELEM(object->mode, OB_MODE_EDIT, OB_MODE_SCULPT_CURVES)) {
     /* Try to propagate deformation data through modifier evaluation, so that sculpt mode can work
@@ -249,7 +243,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
     GeometryComponentEditData &edit_component =
         geometry_set.get_component_for_write<GeometryComponentEditData>();
     edit_component.curves_edit_hints_ = std::make_unique<CurvesEditHints>(
-        *blender::id_cast<const Curves *>(DEG_get_original(object)->data));
+        *id_cast<const Curves *>(DEG_get_original(object)->data));
   }
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
@@ -284,7 +278,7 @@ void BKE_curves_batch_cache_free(Curves *curves)
   }
 }
 
-namespace blender::bke {
+namespace bke {
 
 Curves *curves_new_nomain(const int points_num, const int curves_num)
 {
@@ -397,4 +391,5 @@ void curves_normals_point_domain_calc(const CurvesGeometry &curves, MutableSpan<
   evaluator.evaluate();
 }
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

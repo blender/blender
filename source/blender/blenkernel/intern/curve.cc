@@ -55,12 +55,7 @@
 
 #include "BLO_read_write.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::float4x4;
-using blender::IndexRange;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 /* globals */
 
@@ -77,7 +72,7 @@ enum class NURBSValidationStatus {
 
 static void curve_init_data(ID *id)
 {
-  Curve *curve = blender::id_cast<Curve *>(id);
+  Curve *curve = id_cast<Curve *>(id);
 
   INIT_DEFAULT_STRUCT_AFTER(curve, id);
 }
@@ -88,8 +83,8 @@ static void curve_copy_data(Main *bmain,
                             const ID *id_src,
                             const int flag)
 {
-  Curve *curve_dst = blender::id_cast<Curve *>(id_dst);
-  const Curve *curve_src = blender::id_cast<const Curve *>(id_src);
+  Curve *curve_dst = id_cast<Curve *>(id_dst);
+  const Curve *curve_src = id_cast<const Curve *>(id_src);
 
   BLI_listbase_clear(&curve_dst->nurb);
   BKE_nurbList_duplicate(&(curve_dst->nurb), &(curve_src->nurb));
@@ -118,7 +113,7 @@ static void curve_copy_data(Main *bmain,
 
 static void curve_free_data(ID *id)
 {
-  Curve *curve = blender::id_cast<Curve *>(id);
+  Curve *curve = id_cast<Curve *>(id);
 
   BKE_curve_batch_cache_free(curve);
 
@@ -157,7 +152,7 @@ static void curve_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Curve *cu = blender::id_cast<Curve *>(id);
+  Curve *cu = id_cast<Curve *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   cu->editnurb = nullptr;
@@ -204,7 +199,7 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void curve_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Curve *cu = blender::id_cast<Curve *>(id);
+  Curve *cu = id_cast<Curve *>(id);
 
   BLO_read_string(reader, &cu->str);
 
@@ -454,7 +449,7 @@ void BKE_curve_dimension_update(Curve *cu)
 
 void BKE_curve_type_test(Object *ob, const bool dimension_update)
 {
-  Curve *cu = blender::id_cast<Curve *>(ob->data);
+  Curve *cu = id_cast<Curve *>(ob->data);
   ob->type = cu->ob_type;
 
   if (dimension_update) {
@@ -469,9 +464,9 @@ void BKE_curve_type_test(Object *ob, const bool dimension_update)
 void BKE_curve_texspace_calc(Curve *cu)
 {
   if (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO) {
-    std::optional<blender::Bounds<blender::float3>> bounds = BKE_curve_minmax(cu, true);
+    std::optional<Bounds<float3>> bounds = BKE_curve_minmax(cu, true);
     if (!bounds) {
-      bounds = blender::Bounds<blender::float3>{float3(-FLT_MAX), -float3(FLT_MAX)};
+      bounds = Bounds<float3>{float3(-FLT_MAX), -float3(FLT_MAX)};
     }
 
     float texspace_location[3], texspace_size[3];
@@ -616,7 +611,7 @@ Nurb *BKE_nurb_duplicate(const Nurb *nu)
   if (newnu == nullptr) {
     return nullptr;
   }
-  *newnu = blender::dna::shallow_copy(*nu);
+  *newnu = dna::shallow_copy(*nu);
 
   if (nu->bezt) {
     newnu->bezt = MEM_malloc_arrayN<BezTriple>(size_t(nu->pntsu), "duplicateNurb2");
@@ -650,7 +645,7 @@ Nurb *BKE_nurb_duplicate(const Nurb *nu)
 Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
 {
   Nurb *newnu = MEM_new_for_free<Nurb>("copyNurb");
-  *newnu = blender::dna::shallow_copy(*src);
+  *newnu = dna::shallow_copy(*src);
 
   if (pntsu == 1) {
     std::swap(pntsu, pntsv);
@@ -2545,7 +2540,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBaseT<Nurb> *nurbs, const bo
    */
 
   /* This function needs an object, because of `tflag` and `upflag`. */
-  Curve *cu = blender::id_cast<Curve *>(ob->data);
+  Curve *cu = id_cast<Curve *>(ob->data);
   BezTriple *bezt, *prevbezt;
   BPoint *bp;
   BevList *blnew;
@@ -5084,8 +5079,8 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
   }
 }
 
-static std::optional<blender::Bounds<blender::float3>> calc_nurblist_bounds(
-    const ListBaseT<Nurb> *nurbs, const bool use_radius)
+static std::optional<Bounds<float3>> calc_nurblist_bounds(const ListBaseT<Nurb> *nurbs,
+                                                          const bool use_radius)
 {
   if (BLI_listbase_is_empty(nurbs)) {
     return std::nullopt;
@@ -5095,10 +5090,10 @@ static std::optional<blender::Bounds<blender::float3>> calc_nurblist_bounds(
   for (const Nurb &nu : *nurbs) {
     calc_nurb_minmax(&nu, use_radius, min, max);
   }
-  return blender::Bounds<float3>{min, max};
+  return Bounds<float3>{min, max};
 }
 
-std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu, bool use_radius)
+std::optional<Bounds<float3>> BKE_curve_minmax(const Curve *cu, bool use_radius)
 {
   const ListBaseT<Nurb> *nurb_lb = BKE_curve_nurbs_get_for_read(cu);
   const bool is_font = BLI_listbase_is_empty(nurb_lb) && (cu->len != 0);
@@ -5515,3 +5510,5 @@ void BKE_curve_batch_cache_free(Curve *cu)
     BKE_curve_batch_cache_free_cb(cu);
   }
 }
+
+}  // namespace blender

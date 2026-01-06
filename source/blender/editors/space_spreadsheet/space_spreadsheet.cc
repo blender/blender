@@ -154,7 +154,7 @@ static void spreadsheet_keymap(wmKeyConfig *keyconf)
 
 static void spreadsheet_id_remap(ScrArea * /*area*/,
                                  SpaceLink *slink,
-                                 const blender::bke::id::IDRemapper &mappings)
+                                 const bke::id::IDRemapper &mappings)
 {
   SpaceSpreadsheet *sspreadsheet = reinterpret_cast<SpaceSpreadsheet *>(slink);
   spreadsheet_table_id_remap_id(sspreadsheet->geometry_id.base, mappings);
@@ -226,11 +226,11 @@ static void view_active_object(const bContext *C, SpaceSpreadsheet *sspreadsheet
 
 static void spreadsheet_update_context(const bContext *C)
 {
-  using blender::ed::viewer_path::ViewerPathForGeometryNodesViewer;
+  using ed::viewer_path::ViewerPathForGeometryNodesViewer;
 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   Object *active_object = CTX_data_active_object(C);
-  Object *context_object = blender::ed::viewer_path::parse_object_only(
+  Object *context_object = ed::viewer_path::parse_object_only(
       sspreadsheet->geometry_id.viewer_path);
   switch (eSpaceSpreadsheet_ObjectEvalState(sspreadsheet->geometry_id.object_eval_state)) {
     case SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL:
@@ -261,10 +261,9 @@ static void spreadsheet_update_context(const bContext *C)
       WorkSpace *workspace = CTX_wm_workspace(C);
       if (sspreadsheet->flag & SPREADSHEET_FLAG_PINNED) {
         const std::optional<ViewerPathForGeometryNodesViewer> parsed_path =
-            blender::ed::viewer_path::parse_geometry_nodes_viewer(
-                sspreadsheet->geometry_id.viewer_path);
+            ed::viewer_path::parse_geometry_nodes_viewer(sspreadsheet->geometry_id.viewer_path);
         if (parsed_path.has_value()) {
-          if (blender::ed::viewer_path::exists_geometry_nodes_viewer(*parsed_path)) {
+          if (ed::viewer_path::exists_geometry_nodes_viewer(*parsed_path)) {
             /* The pinned path is still valid, do nothing. */
             break;
           }
@@ -278,7 +277,7 @@ static void spreadsheet_update_context(const bContext *C)
       }
       /* Now try to update the viewer path from the workspace. */
       const std::optional<ViewerPathForGeometryNodesViewer> workspace_parsed_path =
-          blender::ed::viewer_path::parse_geometry_nodes_viewer(workspace->viewer_path);
+          ed::viewer_path::parse_geometry_nodes_viewer(workspace->viewer_path);
       if (workspace_parsed_path.has_value()) {
         if (BKE_viewer_path_equal(&sspreadsheet->geometry_id.viewer_path,
                                   &workspace->viewer_path,
@@ -313,7 +312,7 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
   if (id_type != ID_OB) {
     return nullptr;
   }
-  Object *object_orig = blender::id_cast<Object *>(used_id);
+  Object *object_orig = id_cast<Object *>(used_id);
   if (!ELEM(object_orig->type,
             OB_MESH,
             OB_POINTCLOUD,

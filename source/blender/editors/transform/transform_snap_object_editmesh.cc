@@ -34,7 +34,7 @@ static const Mesh *get_mesh_ref(const Object *ob_eval)
     return me;
   }
 
-  return blender::id_cast<const Mesh *>(ob_eval->data);
+  return id_cast<const Mesh *>(ob_eval->data);
 }
 
 /**

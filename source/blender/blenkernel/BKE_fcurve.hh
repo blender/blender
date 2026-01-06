@@ -15,6 +15,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct ChannelDriver;
 struct FCM_EnvelopeData;
 struct FCurve;
@@ -236,7 +238,7 @@ void BKE_fcurves_copy(ListBaseT<FCurve> *dst, ListBaseT<FCurve> *src);
 /**
  * Set the RNA path of a F-Curve.
  */
-void BKE_fcurve_rnapath_set(FCurve &fcu, blender::StringRef rna_path);
+void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path);
 
 /* Set fcurve modifier name and ensure uniqueness.
  * Pass new name string when it's been edited otherwise pass empty string. */
@@ -258,8 +260,8 @@ void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data);
  * \note ONLY use this on a list of F-Curves that is NOT from an Action. Example
  * of a good use would be on `adt->drivers`, or `nlastrip->fcurves`.
  *
- * \see #blender::animrig::fcurve_find_in_action
- * \see #blender::animrig::fcurve_find_in_action_slot
+ * \see #animrig::fcurve_find_in_action
+ * \see #animrig::fcurve_find_in_action_slot
  */
 FCurve *BKE_fcurve_find(ListBaseT<FCurve> *list, const char rna_path[], int array_index);
 
@@ -350,7 +352,7 @@ int BKE_fcurve_bezt_binarysearch_index(const BezTriple array[],
 /**
  * Cached f-curve look-ups, use when this needs to be done many times.
  */
-FCurvePathCache *BKE_fcurve_pathcache_create(blender::Span<FCurve *> fcurves);
+FCurvePathCache *BKE_fcurve_pathcache_create(Span<FCurve *> fcurves);
 void BKE_fcurve_pathcache_destroy(FCurvePathCache *fcache);
 FCurve *BKE_fcurve_pathcache_find(const FCurvePathCache *fcache,
                                   const char rna_path[],
@@ -512,7 +514,7 @@ void BKE_fcurve_delete_key(FCurve *fcu, int index);
  *
  * \param index_range: is right exclusive.
  */
-void BKE_fcurve_delete_keys(FCurve *fcu, blender::uint2 index_range);
+void BKE_fcurve_delete_keys(FCurve *fcu, uint2 index_range);
 
 /**
  * Delete selected keyframes from an F-curve.
@@ -685,3 +687,5 @@ void BKE_fcurve_blend_write_data(BlendWriter *writer, FCurve *fcu);
 void BKE_fcurve_blend_write_listbase(BlendWriter *writer, ListBaseT<FCurve> *fcurves);
 void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu);
 void BKE_fcurve_blend_read_data_listbase(BlendDataReader *reader, ListBaseT<FCurve> *fcurves);
+
+}  // namespace blender

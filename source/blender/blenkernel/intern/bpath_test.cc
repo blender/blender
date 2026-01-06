@@ -20,9 +20,11 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
+namespace blender {
+
 struct PathStore;
 
-namespace blender::bke::tests {
+namespace bke::tests {
 
 #ifdef WIN32
 #  define ABSOLUTE_ROOT "C:" SEP_STR
@@ -165,4 +167,5 @@ TEST_F(BPathTest, list_backup_restore)
   BKE_bpath_list_free(path_list_handle);
 }
 
-}  // namespace blender::bke::tests
+}  // namespace bke::tests
+}  // namespace blender

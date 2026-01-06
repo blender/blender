@@ -57,6 +57,8 @@
 #include "nla_intern.hh"
 #include "nla_private.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Public Utilities
  * \{ */
@@ -519,13 +521,13 @@ static wmOperatorStatus nlaedit_viewall(bContext *C, const bool only_sel)
       float ymid = (ymax - ymin) / 2.0f + ymin;
       float x_center;
 
-      blender::ui::view2d_center_get(v2d, &x_center, nullptr);
-      blender::ui::view2d_center_set(v2d, x_center, ymid);
+      ui::view2d_center_get(v2d, &x_center, nullptr);
+      ui::view2d_center_set(v2d, x_center, ymid);
     }
   }
 
   /* do View2D syncing */
-  blender::ui::view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+  ui::view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 
   /* just redraw this view */
   ED_area_tag_redraw(CTX_wm_area(C));
@@ -941,8 +943,7 @@ static wmOperatorStatus nlaedit_add_sound_exec(bContext *C, wmOperator * /*op*/)
     }
 
     /* create a new strip, and offset it to start on the current frame */
-    NlaStrip *strip = BKE_nla_add_soundstrip(
-        bmain, ac.scene, blender::id_cast<Speaker *>(ob->data));
+    NlaStrip *strip = BKE_nla_add_soundstrip(bmain, ac.scene, id_cast<Speaker *>(ob->data));
 
     strip->start += cfra;
     strip->end += cfra;
@@ -2120,7 +2121,7 @@ static wmOperatorStatus nlaedit_make_single_user_invoke(bContext *C,
         IFACE_("Make Selected Strips Single-User"),
         IFACE_("Linked actions will be duplicated for each selected strip."),
         IFACE_("Make Single"),
-        blender::ui::AlertIcon::Warning,
+        ui::AlertIcon::Warning,
         false);
   }
   return nlaedit_make_single_user_exec(C, op);
@@ -2215,9 +2216,9 @@ static wmOperatorStatus nlaedit_apply_scale_exec(bContext *C, wmOperator * /*op*
 
         /* setup iterator, and iterate over all the keyframes in the action,
          * applying this scaling */
-        blender::animrig::Action &action = strip.act->wrap();
-        blender::Span<FCurve *> fcurves = blender::animrig::fcurves_for_action_slot(
-            action, strip.action_slot_handle);
+        animrig::Action &action = strip.act->wrap();
+        Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action,
+                                                                  strip.action_slot_handle);
         ked.data = &strip;
         for (FCurve *fcurve : fcurves) {
           ANIM_fcurve_keyframes_loop(
@@ -2842,3 +2843,5 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

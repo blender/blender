@@ -25,6 +25,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"addon"};
 
 /* -------------------------------------------------------------------- */
@@ -127,3 +129,5 @@ void BKE_addon_pref_type_free()
 }
 
 /** \} */
+
+}  // namespace blender

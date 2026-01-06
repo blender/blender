@@ -37,6 +37,8 @@
 
 #include "BLT_lang.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
     {USER_SECTION_VIEWPORT, "VIEWPORT", 0, "Viewport", ""},
@@ -204,6 +206,8 @@ static const EnumPropertyItem rna_enum_preferences_asset_import_method_items[] =
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_listbase.h"
@@ -251,6 +255,8 @@ static const EnumPropertyItem rna_enum_preferences_asset_import_method_items[] =
 #  include "UI_interface.hh"
 
 #  include "AS_asset_library.hh"
+
+namespace blender {
 
 static void rna_userdef_version_get(PointerRNA *ptr, int *value)
 {
@@ -301,7 +307,7 @@ static void rna_userdef_theme_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_userdef_theme_text_style_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  const uiStyle *style = blender::ui::style_get();
+  const uiStyle *style = ui::style_get();
   BLF_default_size(style->widget.points);
 
   rna_userdef_update(bmain, scene, ptr);
@@ -353,15 +359,15 @@ static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, 
 static void rna_userdef_font_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {
   BLF_cache_clear();
-  blender::ui::reinit_font();
-  blender::ui::update_text_styles();
+  ui::reinit_font();
+  ui::update_text_styles();
 }
 
 static void rna_userdef_language_update(Main *bmain, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {
   BLT_lang_set(nullptr);
 
-  if (!blender::bke::preferences::exists()) {
+  if (!bke::preferences::exists()) {
     /* If changing language without current userprefs, enable all usage options. */
     U.transopts |= (USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_REPORTS | USER_TR_NEWDATANAME);
   }
@@ -391,7 +397,7 @@ static void rna_userdef_asset_library_path_set(PointerRNA *ptr, const char *valu
 
 static void rna_userdef_asset_library_update(bContext *C, PointerRNA *ptr)
 {
-  blender::ed::asset::list::clear_all_library(C);
+  ed::asset::list::clear_all_library(C);
   rna_userdef_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
@@ -614,7 +620,7 @@ static bUserAssetLibrary *rna_userdef_asset_library_new(const bContext *C,
   bUserAssetLibrary *new_library = BKE_preferences_asset_library_add(
       &U, name ? name : "", directory ? directory : "");
 
-  blender::ed::asset::list::clear_all_library(C);
+  ed::asset::list::clear_all_library(C);
 
   /* Trigger refresh for the Asset Browser. */
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
@@ -633,7 +639,7 @@ static void rna_userdef_asset_library_remove(bContext *C, ReportList *reports, P
   }
 
   BKE_preferences_asset_library_remove(&U, library);
-  blender::ed::asset::list::clear_all_library(C);
+  ed::asset::list::clear_all_library(C);
 
   /* Update active library index to be in range. */
   const int count_remaining = BLI_listbase_count(&U.asset_libraries);
@@ -943,7 +949,7 @@ static void rna_Userdef_memcache_update(Main * /*bmain*/, Scene * /*scene*/, Poi
 {
   const int64_t new_limit = int64_t(U.memcachelimit) * 1024 * 1024;
   MEM_CacheLimiter_set_maximum(new_limit);
-  blender::memory_cache::set_approximate_size_limit(new_limit);
+  memory_cache::set_approximate_size_limit(new_limit);
   USERDEF_TAG_DIRTY;
 }
 
@@ -1055,7 +1061,7 @@ static void rna_userdef_temp_update(Main * /*bmain*/, Scene * /*scene*/, Pointer
 static void rna_userdef_text_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {
   BLF_cache_clear();
-  blender::ui::reinit_font();
+  ui::reinit_font();
   WM_main_add_notifier(NC_WINDOW, nullptr);
   USERDEF_TAG_DIRTY;
 }
@@ -1189,8 +1195,7 @@ static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
   if (apt) {
     if (addon->prop == nullptr) {
       /* name is unimportant. */
-      addon->prop =
-          blender::bke::idprop::create_group(addon->module, IDP_FLAG_STATIC_TYPE).release();
+      addon->prop = bke::idprop::create_group(addon->module, IDP_FLAG_STATIC_TYPE).release();
     }
     return RNA_pointer_create_with_parent(*ptr, apt->rna_ext.srna, addon->prop);
   }
@@ -1506,7 +1511,7 @@ static void rna_preference_gpu_preferred_device_set(PointerRNA *ptr, int value)
   UserDef *preferences = static_cast<UserDef *>(ptr->data);
   if (value > 0) {
     value -= 1;
-    blender::Span<GPUDevice> devices = GPU_platform_devices_list();
+    Span<GPUDevice> devices = GPU_platform_devices_list();
     if (value < devices.size()) {
       const GPUDevice &device = devices[value];
       preferences->gpu_preferred_index = device.index;
@@ -1568,7 +1573,11 @@ static void rna_experimental_no_data_block_packing_update(bContext *C, PointerRN
   rna_userdef_asset_library_update(C, ptr);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 #  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE \
     RNA_define_fallback_property_update(0, "rna_userdef_is_dirty_update")
@@ -7721,5 +7730,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 
   USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;
 }
+
+}  // namespace blender
 
 #endif

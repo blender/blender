@@ -63,7 +63,7 @@
 #include "text_format.hh"
 #include "text_intern.hh"
 
-using blender::VectorSet;
+namespace blender {
 
 static void space_text_screen_clamp(SpaceText *st, const ARegion *region);
 
@@ -355,7 +355,7 @@ static wmOperatorStatus text_new_exec(bContext *C, wmOperator * /*op*/)
   text = BKE_text_add(bmain, DATA_("Text"));
 
   /* Hook into UI. */
-  blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
+  ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
     PointerRNA idptr = RNA_id_pointer_create(&text->id);
@@ -402,7 +402,7 @@ static void text_open_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop = MEM_new<PropertyPointerRNA>(__func__);
 
   op->customdata = pprop;
-  blender::ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static void text_open_cancel(bContext * /*C*/, wmOperator *op)
@@ -574,7 +574,7 @@ static wmOperatorStatus text_reload_invoke(bContext *C, wmOperator *op, const wm
                                 IFACE_("Reload active text file?"),
                                 nullptr,
                                 IFACE_("Reload"),
-                                blender::ui::AlertIcon::None,
+                                ui::AlertIcon::None,
                                 false);
 }
 
@@ -636,7 +636,7 @@ static wmOperatorStatus text_unlink_invoke(bContext *C, wmOperator *op, const wm
                                 IFACE_("Delete active text file?"),
                                 nullptr,
                                 IFACE_("Delete"),
-                                blender::ui::AlertIcon::None,
+                                ui::AlertIcon::None,
                                 false);
 }
 
@@ -774,8 +774,7 @@ static wmOperatorStatus text_save_invoke(bContext *C, wmOperator *op, const wmEv
 
   /* Internal and texts without a filepath will go to "Save As". */
   if (text->filepath == nullptr || (text->flags & TXT_ISMEM)) {
-    WM_operator_name_call(
-        C, "TEXT_OT_save_as", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
+    WM_operator_name_call(C, "TEXT_OT_save_as", wm::OpCallContext::InvokeDefault, nullptr, event);
     return OPERATOR_CANCELLED;
   }
   return text_save_exec(C, op);
@@ -1169,11 +1168,10 @@ static wmOperatorStatus text_indent_or_autocomplete_exec(bContext *C, wmOperator
   bool text_before_cursor = text->curc != 0 && !ELEM(line->line[text->curc - 1], ' ', '\t');
   if (text_before_cursor && (txt_has_sel(text) == false)) {
     WM_operator_name_call(
-        C, "TEXT_OT_autocomplete", blender::wm::OpCallContext::InvokeDefault, nullptr, nullptr);
+        C, "TEXT_OT_autocomplete", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
   }
   else {
-    WM_operator_name_call(
-        C, "TEXT_OT_indent", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
+    WM_operator_name_call(C, "TEXT_OT_indent", wm::OpCallContext::ExecDefault, nullptr, nullptr);
   }
   return OPERATOR_FINISHED;
 }
@@ -4227,9 +4225,9 @@ static wmOperatorStatus text_resolve_conflict_invoke(bContext *C,
     case 1:
       if (text->flags & TXT_ISDIRTY) {
         /* Modified locally and externally, ah. offer more possibilities. */
-        blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(
+        ui::PopupMenu *pup = ui::popup_menu_begin(
             C, IFACE_("File Modified Outside and Inside Blender"), ICON_NONE);
-        blender::ui::Layout &layout = *popup_menu_layout(pup);
+        ui::Layout &layout = *popup_menu_layout(pup);
         PointerRNA op_ptr = layout.op(
             op->type, IFACE_("Reload from disk (ignore local changes)"), ICON_NONE);
         RNA_enum_set(&op_ptr, "resolution", RESOLVE_RELOAD);
@@ -4240,9 +4238,9 @@ static wmOperatorStatus text_resolve_conflict_invoke(bContext *C,
         popup_menu_end(C, pup);
       }
       else {
-        blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(
+        ui::PopupMenu *pup = ui::popup_menu_begin(
             C, IFACE_("File Modified Outside Blender"), ICON_NONE);
-        blender::ui::Layout &layout = *popup_menu_layout(pup);
+        ui::Layout &layout = *popup_menu_layout(pup);
         PointerRNA op_ptr = layout.op(op->type, IFACE_("Reload from disk"), ICON_NONE);
         RNA_enum_set(&op_ptr, "resolution", RESOLVE_RELOAD);
         op_ptr = layout.op(op->type, IFACE_("Make text internal (separate copy)"), ICON_NONE);
@@ -4253,9 +4251,9 @@ static wmOperatorStatus text_resolve_conflict_invoke(bContext *C,
       }
       break;
     case 2:
-      blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(
+      ui::PopupMenu *pup = ui::popup_menu_begin(
           C, IFACE_("File Deleted Outside Blender"), ICON_NONE);
-      blender::ui::Layout &layout = *popup_menu_layout(pup);
+      ui::Layout &layout = *popup_menu_layout(pup);
       PointerRNA op_ptr = layout.op(op->type, IFACE_("Make text internal"), ICON_NONE);
       RNA_enum_set(&op_ptr, "resolution", RESOLVE_MAKE_INTERNAL);
       op_ptr = layout.op(op->type, IFACE_("Recreate file"), ICON_NONE);
@@ -4362,7 +4360,7 @@ static bool text_update_shader_text_recursive(RenderEngine *engine,
   /* Update each script that is using this text datablock. */
   for (bNode *node : ntree->all_nodes()) {
     if (node->type_legacy == NODE_GROUP) {
-      bNodeTree *ngroup = blender::id_cast<bNodeTree *>(node->id);
+      bNodeTree *ngroup = id_cast<bNodeTree *>(node->id);
       if (ngroup && !done_trees.contains(ngroup)) {
         found |= text_update_shader_text_recursive(engine, type, ngroup, text, done_trees);
       }
@@ -4437,3 +4435,5 @@ void TEXT_OT_update_shader(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

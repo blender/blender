@@ -22,6 +22,8 @@
 
 #include "BLI_hash_mm2a.hh" /* own include */
 
+namespace blender {
+
 /* Helpers. */
 #define MM2A_M 0x5bd1e995
 
@@ -127,3 +129,5 @@ uint32_t BLI_hash_mm2(const uchar *data, size_t len, uint32_t seed)
 
   return h;
 }
+
+}  // namespace blender

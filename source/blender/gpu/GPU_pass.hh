@@ -13,6 +13,8 @@
 #include "GPU_material.hh"
 #include "GPU_shader.hh"
 
+namespace blender {
+
 struct GPUNodeGraph;
 
 struct GPUPass;
@@ -35,7 +37,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 GPUPassStatus GPU_pass_status(GPUPass *pass);
 bool GPU_pass_should_optimize(GPUPass *pass);
 void GPU_pass_ensure_its_ready(GPUPass *pass);
-blender::gpu::Shader *GPU_pass_shader_get(GPUPass *pass);
+gpu::Shader *GPU_pass_shader_get(GPUPass *pass);
 void GPU_pass_acquire(GPUPass *pass);
 void GPU_pass_release(GPUPass *pass);
 
@@ -46,3 +48,5 @@ void GPU_pass_cache_init();
 void GPU_pass_cache_update();
 void GPU_pass_cache_wait_for_all();
 void GPU_pass_cache_free();
+
+}  // namespace blender

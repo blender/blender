@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct bAnimListElem;
 struct ARegion;
 struct ARegionType;
@@ -142,3 +144,5 @@ enum eActKeys_Mirror_Mode {
 
 void action_operatortypes();
 void action_keymap(wmKeyConfig *keyconf);
+
+}  // namespace blender

@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct Depsgraph;
 struct Object;
 struct Scene;
@@ -31,3 +33,5 @@ struct IKPlugin {
 };
 
 using IKPlugin = struct IKPlugin;
+
+}  // namespace blender

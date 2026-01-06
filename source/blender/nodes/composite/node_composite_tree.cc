@@ -34,13 +34,14 @@
 #include "NOD_composite.hh"
 #include "node_composite_util.hh"
 
+namespace blender {
+
 static void composite_get_from_context(const bContext *C,
-                                       blender::bke::bNodeTreeType * /*treetype*/,
+                                       bke::bNodeTreeType * /*treetype*/,
                                        bNodeTree **r_ntree,
                                        ID **r_id,
                                        ID **r_from)
 {
-  using namespace blender;
   const SpaceNode *snode = CTX_wm_space_node(C);
   if (snode->node_tree_sub_type == SNODE_COMPOSITOR_SEQUENCER) {
     Scene *sequencer_scene = CTX_data_sequencer_scene(C);
@@ -82,7 +83,7 @@ static void composite_get_from_context(const bContext *C,
   *r_ntree = scene->compositing_node_group;
 }
 
-static void foreach_nodeclass(void *calldata, blender::bke::bNodeClassCallback func)
+static void foreach_nodeclass(void *calldata, bke::bNodeClassCallback func)
 {
   func(calldata, NODE_CLASS_INPUT, N_("Input"));
   func(calldata, NODE_CLASS_OUTPUT, N_("Output"));
@@ -110,7 +111,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
     local_node->runtime->original = node;
 
     /* move over the compbufs */
-    /* right after #blender::bke::node_tree_copy_tree() `oldsock` pointers are valid */
+    /* right after #bke::node_tree_copy_tree() `oldsock` pointers are valid */
 
     node = node->next;
     local_node = local_node->next;
@@ -120,10 +121,10 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 static void local_merge(Main * /*bmain*/, bNodeTree *localtree, bNodeTree *ntree)
 {
   /* move over the compbufs and previews */
-  blender::bke::node_preview_merge_tree(ntree, localtree, true);
+  bke::node_preview_merge_tree(ntree, localtree, true);
 
   for (bNode &lnode : localtree->nodes) {
-    if (bNode *orig_node = blender::bke::node_find_node_by_name(*ntree, lnode.name)) {
+    if (bNode *orig_node = bke::node_find_node_by_name(*ntree, lnode.name)) {
       if (lnode.type_legacy == CMP_NODE_MOVIEDISTORTION) {
         /* special case for distortion node: distortion context is allocating in exec function
          * and to achieve much better performance on further calls this context should be
@@ -142,7 +143,7 @@ static void local_merge(Main * /*bmain*/, bNodeTree *localtree, bNodeTree *ntree
 
 static void update(bNodeTree *ntree)
 {
-  blender::bke::node_tree_set_output(*ntree);
+  bke::node_tree_set_output(*ntree);
 
   ntree_update_reroute_nodes(ntree);
 }
@@ -157,17 +158,17 @@ static void composite_node_add_init(bNodeTree * /*bnodetree*/, bNode *bnode)
   }
 }
 
-static bool composite_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /*ntreetype*/,
-                                                  blender::bke::bNodeSocketType *socket_type)
+static bool composite_node_tree_socket_type_valid(bke::bNodeTreeType * /*ntreetype*/,
+                                                  bke::bNodeSocketType *socket_type)
 {
-  return blender::bke::node_is_static_socket_type(*socket_type) && ELEM(socket_type->type,
-                                                                        SOCK_FLOAT,
-                                                                        SOCK_INT,
-                                                                        SOCK_BOOLEAN,
-                                                                        SOCK_VECTOR,
-                                                                        SOCK_RGBA,
-                                                                        SOCK_MENU,
-                                                                        SOCK_STRING);
+  return bke::node_is_static_socket_type(*socket_type) && ELEM(socket_type->type,
+                                                               SOCK_FLOAT,
+                                                               SOCK_INT,
+                                                               SOCK_BOOLEAN,
+                                                               SOCK_VECTOR,
+                                                               SOCK_RGBA,
+                                                               SOCK_MENU,
+                                                               SOCK_STRING);
 }
 
 /**
@@ -186,12 +187,11 @@ static bool composite_validate_link(eNodeSocketDatatype from_type, eNodeSocketDa
   return from_type == to_type;
 }
 
-blender::bke::bNodeTreeType *ntreeType_Composite;
+bke::bNodeTreeType *ntreeType_Composite;
 
 void register_node_tree_type_cmp()
 {
-  blender::bke::bNodeTreeType *tt = ntreeType_Composite = MEM_new<blender::bke::bNodeTreeType>(
-      __func__);
+  bke::bNodeTreeType *tt = ntreeType_Composite = MEM_new<bke::bNodeTreeType>(__func__);
 
   tt->type = NTREE_COMPOSIT;
   tt->idname = "CompositorNodeTree";
@@ -211,7 +211,7 @@ void register_node_tree_type_cmp()
 
   tt->rna_ext.srna = &RNA_CompositorNodeTree;
 
-  blender::bke::node_tree_type_add(*tt);
+  bke::node_tree_type_add(*tt);
 }
 
 /* *********************************************** */
@@ -248,7 +248,7 @@ void ntreeCompositClearTags(bNodeTree *ntree)
   for (bNode *node : ntree->all_nodes()) {
     node->runtime->need_exec = 0;
     if (node->is_group()) {
-      ntreeCompositClearTags(blender::id_cast<bNodeTree *>(node->id));
+      ntreeCompositClearTags(id_cast<bNodeTree *>(node->id));
     }
   }
 }
@@ -257,3 +257,5 @@ void ntreeCompositTagNeedExec(bNode *node)
 {
   node->runtime->need_exec = true;
 }
+
+}  // namespace blender

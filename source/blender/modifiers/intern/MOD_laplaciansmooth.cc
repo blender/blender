@@ -31,6 +31,8 @@
 
 #include "eigen_capi.h"
 
+namespace blender {
+
 namespace {
 
 struct LaplacianSystem {
@@ -46,9 +48,9 @@ struct LaplacianSystem {
 
   /* Pointers to data. */
   float (*vertexCos)[3] = nullptr;
-  blender::Span<blender::int2> edges = {};
-  blender::OffsetIndices<int> faces = {};
-  blender::Span<int> corner_verts = {};
+  Span<int2> edges = {};
+  OffsetIndices<int> faces = {};
+  Span<int> corner_verts = {};
   LinearSolver *context = nullptr;
 
   /* Data. */
@@ -108,13 +110,13 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, in
 
 static float compute_volume(const float center[3],
                             float (*vertexCos)[3],
-                            const blender::OffsetIndices<int> faces,
-                            const blender::Span<int> corner_verts)
+                            const OffsetIndices<int> faces,
+                            const Span<int> corner_verts)
 {
   float vol = 0.0f;
 
   for (const int i : faces.index_range()) {
-    const blender::IndexRange face = faces[i];
+    const IndexRange face = faces[i];
     int corner_first = face.start();
     int corner_prev = corner_first + 1;
     int corner_curr = corner_first + 2;
@@ -184,10 +186,10 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     sys->eweights[i] = w1;
   }
 
-  const blender::Span<int> corner_verts = sys->corner_verts;
+  const Span<int> corner_verts = sys->corner_verts;
 
   for (const int i : sys->faces.index_range()) {
-    const blender::IndexRange face = sys->faces[i];
+    const IndexRange face = sys->faces[i];
     int corner_next = face.start();
     int corner_term = corner_next + face.size();
     int corner_prev = corner_term - 2;
@@ -243,10 +245,10 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   int i;
   uint idv1, idv2;
 
-  const blender::Span<int> corner_verts = sys->corner_verts;
+  const Span<int> corner_verts = sys->corner_verts;
 
   for (const int i : sys->faces.index_range()) {
-    const blender::IndexRange face = sys->faces[i];
+    const IndexRange face = sys->faces[i];
     int corner_next = face.start();
     int corner_term = corner_next + face.size();
     int corner_prev = corner_term - 2;
@@ -498,7 +500,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   if (positions.is_empty()) {
     return;
@@ -513,9 +515,8 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
-  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::ITEM_R_TOGGLE |
-                                                  blender::ui::ITEM_R_FORCE_BLANK_DECORATE;
+  ui::Layout &layout = *panel->layout;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -524,7 +525,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  blender::ui::Layout &row = layout.row(true, IFACE_("Axis"));
+  ui::Layout &row = layout.row(true, IFACE_("Axis"));
   row.prop(ptr, "use_x", toggles_flag, std::nullopt, ICON_NONE);
   row.prop(ptr, "use_y", toggles_flag, std::nullopt, ICON_NONE);
   row.prop(ptr, "use_z", toggles_flag, std::nullopt, ICON_NONE);
@@ -580,3 +581,5 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

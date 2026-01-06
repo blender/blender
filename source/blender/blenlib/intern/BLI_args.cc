@@ -18,6 +18,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /**
  * Needed so printing `--help` doesn't cause a naming collision with:
  * The `-a` argument which is used twice.
@@ -379,3 +381,5 @@ void BLI_args_parse(bArgs *ba, int pass, BA_ArgCallback default_cb, void *defaul
     }
   }
 }
+
+}  // namespace blender

@@ -22,6 +22,8 @@
 #include "libmv-capi.h"
 #include "tracking_private.hh"
 
+namespace blender {
+
 /* **** utility functions for tracking **** */
 
 /** Convert from float and byte RGBA to gray-scale. Supports different coefficients for RGB. */
@@ -375,3 +377,5 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   IMB_freeImBuf(reference_ibuf);
   IMB_freeImBuf(destination_ibuf);
 }
+
+}  // namespace blender

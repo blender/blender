@@ -19,6 +19,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct bDeformGroup;
 struct BMEditMesh;
 struct Bone;
@@ -110,7 +112,7 @@ struct EditBone {
   /** connected child temporary during drawing */
   EditBone *bbone_child = nullptr;
 
-  ::BoneColor color; /* MUST be named the same as in bPoseChannel and Bone structs. */
+  BoneColor color; /* MUST be named the same as in bPoseChannel and Bone structs. */
   ListBaseT<BoneCollectionReference> bone_collections = {};
 
   /* Used to store temporary data */
@@ -159,7 +161,7 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], bool do_props
 /**
  * Return the posed Armature bounding box in object-local coordinate space.
  */
-std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob);
+std::optional<Bounds<float3>> BKE_armature_min_max(const Object *ob);
 
 /**
  * Calculate the axis-aligned bounds of `pchan` in object-space,
@@ -179,8 +181,8 @@ std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Objec
 void BKE_pchan_minmax(const Object *ob,
                       const bPoseChannel *pchan,
                       const bool use_empty_drawtype,
-                      blender::float3 &r_min,
-                      blender::float3 &r_max);
+                      float3 &r_min,
+                      float3 &r_max);
 /**
  * Calculate the axis aligned bounds of the pose of `ob` in object-space.
  *
@@ -193,7 +195,7 @@ void BKE_pchan_minmax(const Object *ob,
  * \param use_select: When true, only consider selected bones. When false, selection state is
  * ignored and all bones are included in the bounds.
  */
-std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob, bool use_select);
+std::optional<Bounds<float3>> BKE_pose_minmax(const Object *ob, bool use_select);
 
 /**
  * Finds the best possible extension to the name on a particular axis.
@@ -222,9 +224,9 @@ bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag);
 /**
  * Bone influence factor from envelope distance.
  */
-float distfactor_to_bone(const blender::float3 &position,
-                         const blender::float3 &head,
-                         const blender::float3 &tail,
+float distfactor_to_bone(const float3 &position,
+                         const float3 &head,
+                         const float3 &tail,
                          float radius_head,
                          float radius_tail,
                          float falloff_distance);
@@ -574,7 +576,7 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
        _pchan = _pchan->next) \
   { \
-    if (blender::animrig::bone_is_visible(((bArmature *)(_ob)->data), _pchan) && \
+    if (animrig::bone_is_visible(((bArmature *)(_ob)->data), _pchan) && \
         ((_pchan)->flag & POSE_SELECTED)) \
     {
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_END \
@@ -586,7 +588,7 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
        _pchan = _pchan->next) \
   { \
-    if (blender::animrig::bone_is_visible(((bArmature *)(_ob)->data), _pchan)) {
+    if (animrig::bone_is_visible(((bArmature *)(_ob)->data), _pchan)) {
 #define FOREACH_PCHAN_VISIBLE_IN_OBJECT_END \
   } \
   } \
@@ -643,40 +645,38 @@ void BKE_pose_eval_cleanup(Depsgraph *depsgraph, Scene *scene, Object *object);
 /* Note that we could have a #BKE_armature_deform_coords that doesn't take object data
  * currently there are no callers for this though. */
 
-void BKE_armature_deform_coords_with_curves(
-    const Object &ob_arm,
-    const Object &ob_target,
-    const ListBaseT<bDeformGroup> *defbase,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
-    blender::Span<MDeformVert> dverts,
-    int deformflag,
-    blender::StringRefNull defgrp_name);
+void BKE_armature_deform_coords_with_curves(const Object &ob_arm,
+                                            const Object &ob_target,
+                                            const ListBaseT<bDeformGroup> *defbase,
+                                            MutableSpan<float3> vert_coords,
+                                            std::optional<Span<float3>> vert_coords_prev,
+                                            std::optional<MutableSpan<float3x3>> vert_deform_mats,
+                                            Span<MDeformVert> dverts,
+                                            int deformflag,
+                                            StringRefNull defgrp_name);
 
-void BKE_armature_deform_coords_with_mesh(
-    const Object &ob_arm,
-    const Object &ob_target,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
-    int deformflag,
-    blender::StringRefNull defgrp_name,
-    const Mesh *me_target);
+void BKE_armature_deform_coords_with_mesh(const Object &ob_arm,
+                                          const Object &ob_target,
+                                          MutableSpan<float3> vert_coords,
+                                          std::optional<Span<float3>> vert_coords_prev,
+                                          std::optional<MutableSpan<float3x3>> vert_deform_mats,
+                                          int deformflag,
+                                          StringRefNull defgrp_name,
+                                          const Mesh *me_target);
 
 void BKE_armature_deform_coords_with_editmesh(
     const Object &ob_arm,
     const Object &ob_target,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
+    MutableSpan<float3> vert_coords,
+    std::optional<Span<float3>> vert_coords_prev,
+    std::optional<MutableSpan<float3x3>> vert_deform_mats,
     int deformflag,
-    blender::StringRefNull defgrp_name,
+    StringRefNull defgrp_name,
     const BMEditMesh &em_target);
 
 /** \} */
 
-namespace blender::bke {
+namespace bke {
 
 struct SelectedBonesResult {
   bool all_bones_selected = true;
@@ -694,4 +694,6 @@ using BoneNameSet = Set<std::string>;
 BoneNameSet BKE_armature_find_selected_bone_names(const bArmature *armature);
 
 BoneNameSet BKE_pose_channel_find_selected_names(const Object *object);
-};  // namespace blender::bke
+};  // namespace bke
+
+}  // namespace blender

@@ -32,6 +32,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* IDPropertyTemplate is a union in DNA_ID.h */
 
 /**
@@ -64,7 +66,7 @@ static size_t idp_size_table[] = {
 
 #define GETPROP(prop, i) &(IDP_property_array_get(prop)[i])
 
-IDProperty *IDP_NewIDPArray(const blender::StringRef name)
+IDProperty *IDP_NewIDPArray(const StringRef name)
 {
   IDProperty *prop = MEM_new_for_free<IDProperty>("IDProperty prop array");
   prop->type = IDP_IDPARRAY;
@@ -145,7 +147,7 @@ static void idp_group_children_map_ensure(IDProperty &prop)
 {
   BLI_assert(prop.type == IDP_GROUP);
   if (!prop.data.children_map) {
-    prop.data.children_map = MEM_new<blender::bke::idprop::IDPropertyGroupChildrenSet>(__func__);
+    prop.data.children_map = MEM_new<bke::idprop::IDPropertyGroupChildrenSet>(__func__);
   }
 }
 
@@ -209,7 +211,7 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
     /* bigger */
     IDProperty **array = static_cast<IDProperty **>(newarr);
     for (int a = prop->len; a < newlen; a++) {
-      array[a] = blender::bke::idprop::create_group("IDP_ResizeArray group").release();
+      array[a] = bke::idprop::create_group("IDP_ResizeArray group").release();
     }
   }
   else {
@@ -279,7 +281,7 @@ IDPropertyUIData *IDP_ui_data_copy(const IDProperty *prop)
       IDPropertyUIDataInt *dst = reinterpret_cast<IDPropertyUIDataInt *>(dst_ui_data);
       dst->default_array = static_cast<int *>(MEM_dupallocN(src->default_array));
       dst->enum_items = static_cast<IDPropertyUIDataEnumItem *>(MEM_dupallocN(src->enum_items));
-      for (const int64_t i : blender::IndexRange(src->enum_items_num)) {
+      for (const int64_t i : IndexRange(src->enum_items_num)) {
         const IDPropertyUIDataEnumItem &src_item = src->enum_items[i];
         IDPropertyUIDataEnumItem &dst_item = dst->enum_items[i];
         dst_item.identifier = BLI_strdup(src_item.identifier);
@@ -361,7 +363,7 @@ static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
 
 IDProperty *IDP_NewStringMaxSize(const char *st,
                                  const size_t st_maxncpy,
-                                 const blender::StringRef name,
+                                 const StringRef name,
                                  const eIDPropertyFlag flags)
 {
   IDProperty *prop = MEM_new_for_free<IDProperty>("IDProperty string");
@@ -395,16 +397,12 @@ IDProperty *IDP_NewStringMaxSize(const char *st,
   return prop;
 }
 
-IDProperty *IDP_NewString(const char *st,
-                          const blender::StringRef name,
-                          const eIDPropertyFlag flags)
+IDProperty *IDP_NewString(const char *st, const StringRef name, const eIDPropertyFlag flags)
 {
   return IDP_NewStringMaxSize(st, 0, name, flags);
 }
 
-IDProperty *IDP_NewString(const blender::StringRef value,
-                          const blender::StringRef name,
-                          const eIDPropertyFlag flags)
+IDProperty *IDP_NewString(const StringRef value, const StringRef name, const eIDPropertyFlag flags)
 {
   BLI_assert(value.size() >= 0);
   /* Adding one is needed for the null byte. */
@@ -467,7 +465,7 @@ void IDP_FreeString(IDProperty *prop)
 
 static void IDP_int_ui_data_free_enum_items(IDPropertyUIDataInt *ui_data)
 {
-  for (const int64_t i : blender::IndexRange(ui_data->enum_items_num)) {
+  for (const int64_t i : IndexRange(ui_data->enum_items_num)) {
     IDPropertyUIDataEnumItem &item = ui_data->enum_items[i];
     MEM_SAFE_FREE(item.identifier);
     MEM_SAFE_FREE(item.name);
@@ -483,9 +481,7 @@ const IDPropertyUIDataEnumItem *IDP_EnumItemFind(const IDProperty *prop)
       prop->ui_data);
 
   const int value = IDP_int_get(prop);
-  for (const IDPropertyUIDataEnumItem &item :
-       blender::Span(ui_data->enum_items, ui_data->enum_items_num))
-  {
+  for (const IDPropertyUIDataEnumItem &item : Span(ui_data->enum_items, ui_data->enum_items_num)) {
     if (item.value == value) {
       return &item;
     }
@@ -497,13 +493,13 @@ bool IDP_EnumItemsValidate(const IDPropertyUIDataEnumItem *items,
                            const int items_num,
                            void (*error_fn)(const char *))
 {
-  blender::Set<int> used_values;
-  blender::Set<const char *> used_identifiers;
+  Set<int> used_values;
+  Set<const char *> used_identifiers;
   used_values.reserve(items_num);
   used_identifiers.reserve(items_num);
 
   bool is_valid = true;
-  for (const int64_t i : blender::IndexRange(items_num)) {
+  for (const int64_t i : IndexRange(items_num)) {
     const IDPropertyUIDataEnumItem &item = items[i];
     if (item.identifier == nullptr || item.identifier[0] == '\0') {
       if (error_fn) {
@@ -753,7 +749,7 @@ void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop)
   IDP_FreeProperty(prop);
 }
 
-IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const blender::StringRef name)
+IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const StringRef name)
 {
   BLI_assert(prop->type == IDP_GROUP);
   if (prop->len == 0) {
@@ -766,7 +762,7 @@ IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const blender::Stri
   return prop->data.children_map->children.lookup_key_default_as(name, nullptr);
 }
 
-IDProperty *IDP_GetPropertyFromGroup_null(const IDProperty *prop, const blender::StringRef name)
+IDProperty *IDP_GetPropertyFromGroup_null(const IDProperty *prop, const StringRef name)
 {
   if (!prop) {
     return nullptr;
@@ -775,7 +771,7 @@ IDProperty *IDP_GetPropertyFromGroup_null(const IDProperty *prop, const blender:
 }
 
 IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
-                                         const blender::StringRef name,
+                                         const StringRef name,
                                          const char type)
 {
   IDProperty *idprop = IDP_GetPropertyFromGroup(prop, name);
@@ -1017,7 +1013,7 @@ bool IDP_EqualsProperties(const IDProperty *prop1, const IDProperty *prop2)
 
 IDProperty *IDP_New(const char type,
                     const IDPropertyTemplate *val,
-                    const blender::StringRef name,
+                    const StringRef name,
                     const eIDPropertyFlag flags)
 {
   IDProperty *prop = nullptr;
@@ -1286,7 +1282,7 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
 
 void IDP_foreach_property(IDProperty *id_property_root,
                           const int type_filter,
-                          const blender::FunctionRef<void(IDProperty *id_property)> callback)
+                          const FunctionRef<void(IDProperty *id_property)> callback)
 {
   if (!id_property_root) {
     return;
@@ -1344,7 +1340,7 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
       }
       BLO_write_struct_array(
           writer, IDPropertyUIDataEnumItem, ui_data_int->enum_items_num, ui_data_int->enum_items);
-      for (const int64_t i : blender::IndexRange(ui_data_int->enum_items_num)) {
+      for (const int64_t i : IndexRange(ui_data_int->enum_items_num)) {
         IDPropertyUIDataEnumItem &item = ui_data_int->enum_items[i];
         BLO_write_string(writer, item.identifier);
         BLO_write_string(writer, item.name);
@@ -1513,7 +1509,7 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
                             IDPropertyUIDataEnumItem,
                             size_t(ui_data_int->enum_items_num),
                             &ui_data_int->enum_items);
-      for (const int64_t i : blender::IndexRange(ui_data_int->enum_items_num)) {
+      for (const int64_t i : IndexRange(ui_data_int->enum_items_num)) {
         IDPropertyUIDataEnumItem &item = ui_data_int->enum_items[i];
         BLO_read_string(reader, &item.identifier);
         BLO_read_string(reader, &item.name);
@@ -2016,3 +2012,5 @@ const IDProperty *_IDP_assert_type_mask(const IDProperty *prop, const int ty_mas
 #endif /* !NDEBUG */
 
 /** \} */
+
+}  // namespace blender

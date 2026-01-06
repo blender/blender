@@ -1606,5 +1606,4 @@ void make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
 /** \} */
 
 }  // namespace theme
-
 }  // namespace blender::ui

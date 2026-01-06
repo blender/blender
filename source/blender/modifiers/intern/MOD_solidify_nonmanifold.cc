@@ -27,6 +27,8 @@
 #include "MOD_solidify_util.hh" /* Own include. */
 #include "MOD_util.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
  * \{ */
@@ -79,7 +81,7 @@ static float clamp_nonzero(const float value, const float epsilon)
 struct NewEdgeRef;
 
 struct NewFaceRef {
-  blender::IndexRange face = {};
+  IndexRange face = {};
   uint index = 0;
   bool reversed = false;
   NewEdgeRef **link_edges = nullptr;
@@ -137,7 +139,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                                           const ModifierEvalContext *ctx,
                                           Mesh *mesh)
 {
-  using namespace blender;
   Mesh *result;
   const SolidifyModifierData *smd = reinterpret_cast<SolidifyModifierData *>(md);
 
@@ -188,7 +189,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   const bool do_flat_faces = dvert && (smd->flag & MOD_SOLIDIFY_NONMANIFOLD_FLAT_FACES);
 
-  const Span<blender::float3> orig_vert_positions = mesh->vert_positions();
+  const Span<float3> orig_vert_positions = mesh->vert_positions();
   const Span<int2> orig_edges = mesh->edges();
   const OffsetIndices orig_faces = mesh->faces();
   const Span<int> orig_corner_verts = mesh->corner_verts();
@@ -211,9 +212,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 #define MOD_SOLIDIFY_EMPTY_TAG uint(-1)
 
   /* Calculate only face normals. Copied because they are modified directly below. */
-  blender::Array<blender::float3> face_nors = mesh->face_normals_true();
+  Array<float3> face_nors = mesh->face_normals_true();
 
-  blender::Array<NewFaceRef> face_sides_arr(faces_num * 2);
+  Array<NewFaceRef> face_sides_arr(faces_num * 2);
   bool *null_faces = (smd->nonmanifold_offset_mode ==
                       MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_CONSTRAINTS) ?
                          MEM_calloc_arrayN<bool>(faces_num, __func__) :
@@ -2017,7 +2018,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       (bevel_convex != 0.0f || !orig_vert_bweight.is_empty()))
   {
     result_edge_bweight = result_attributes.lookup_or_add_for_write_span<float>(
-        "bevel_weight_edge", blender::bke::AttrDomain::Edge);
+        "bevel_weight_edge", bke::AttrDomain::Edge);
   }
 
   /* Checks that result has dvert data. */
@@ -2034,7 +2035,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   if (!vertex_crease.is_empty() || !orig_edge_crease.is_empty()) {
     result_edge_crease = result_attributes.lookup_or_add_for_write_span<float>(
-        "crease_edge", blender::bke::AttrDomain::Edge);
+        "crease_edge", bke::AttrDomain::Edge);
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
       result_attributes.remove("crease_vert");
@@ -2689,3 +2690,5 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 }
 
 /** \} */
+
+}  // namespace blender

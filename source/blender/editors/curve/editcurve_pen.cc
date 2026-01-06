@@ -35,6 +35,8 @@
 
 #include <cfloat>
 
+namespace blender {
+
 #define FOREACH_SELECTED_BEZT_BEGIN(bezt, nurbs) \
   for (Nurb &nu : nurbs) { \
     if (nu.type == CU_BEZIER) { \
@@ -142,7 +144,7 @@ static const EnumPropertyItem prop_close_spline_method[] = {
 
 static void update_location_for_2d_curve(const ViewContext *vc, float location[3])
 {
-  Curve *cu = blender::id_cast<Curve *>(vc->obedit->data);
+  Curve *cu = id_cast<Curve *>(vc->obedit->data);
   if (CU_IS_2D(cu)) {
     const float eps = 1e-6f;
 
@@ -845,7 +847,7 @@ static CutData init_cut_data(const wmEvent *event)
 
 static bool insert_point_to_segment(const ViewContext *vc, const wmEvent *event)
 {
-  Curve *cu = blender::id_cast<Curve *>(vc->obedit->data);
+  Curve *cu = id_cast<Curve *>(vc->obedit->data);
   CutData cd = init_cut_data(event);
   const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
   const float threshold_dist_px = ED_view3d_select_dist_px() * SEL_DIST_FACTOR;
@@ -1090,7 +1092,7 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
                                                   const wmEvent *event,
                                                   const int extrude_handle)
 {
-  Curve *cu = blender::id_cast<Curve *>(vc->obedit->data);
+  Curve *cu = id_cast<Curve *>(vc->obedit->data);
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
   float center[3] = {0.0f, 0.0f, 0.0f};
   deselect_all_center_vertices(nurbs);
@@ -1147,7 +1149,7 @@ static bool is_spline_nearby(ViewContext *vc,
                              const wmEvent *event,
                              const float sel_dist)
 {
-  Curve *cu = blender::id_cast<Curve *>(vc->obedit->data);
+  Curve *cu = id_cast<Curve *>(vc->obedit->data);
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
   CutData cd = init_cut_data(event);
 
@@ -1292,7 +1294,7 @@ static bool delete_point_under_mouse(const ViewContext *vc, const wmEvent *event
   BPoint *bp = nullptr;
   Nurb *nu = nullptr;
   int temp = 0;
-  Curve *cu = blender::id_cast<Curve *>(vc->obedit->data);
+  Curve *cu = id_cast<Curve *>(vc->obedit->data);
   EditNurb *editnurb = cu->editnurb;
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
   const float mouse_point[2] = {float(event->mval[0]), float(event->mval[1])};
@@ -1367,7 +1369,7 @@ static void move_adjacent_handle(const ViewContext *vc,
     }
     adj_bezt->h1 = adj_bezt->h2 = HD_FREE;
 
-    blender::int2 displacement = blender::int2(event->xy) - blender::int2(event->prev_xy);
+    int2 displacement = int2(event->xy) - int2(event->prev_xy);
     const float disp_fl[2] = {float(displacement[0]), float(displacement[1])};
     move_bezt_handle_or_vertex_by_displacement(
         vc, adj_bezt, bezt_idx, disp_fl, 0.0f, false, false);
@@ -1396,7 +1398,7 @@ static bool make_cyclic_if_endpoints(const ViewContext *vc,
     Nurb *nu = nullptr;
     BezTriple *bezt = nullptr;
     BPoint *bp = nullptr;
-    Curve *cu = blender::id_cast<Curve *>(vc->obedit->data);
+    Curve *cu = id_cast<Curve *>(vc->obedit->data);
     int bezt_idx;
     const float mval_fl[2] = {float(vc->mval[0]), float(vc->mval[1])};
 
@@ -1557,7 +1559,7 @@ static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEve
   Object *obedit = CTX_data_edit_object(C);
 
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-  Curve *cu = blender::id_cast<Curve *>(vc.obedit->data);
+  Curve *cu = id_cast<Curve *>(vc.obedit->data);
   ListBaseT<Nurb> *nurbs = &cu->editnurb->nurbs;
   const float threshold_dist_px = ED_view3d_select_dist_px() * SEL_DIST_FACTOR;
 
@@ -1745,7 +1747,7 @@ static wmOperatorStatus curve_pen_invoke(bContext *C, wmOperator *op, const wmEv
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-  Curve *cu = blender::id_cast<Curve *>(vc.obedit->data);
+  Curve *cu = id_cast<Curve *>(vc.obedit->data);
   ListBaseT<Nurb> *nurbs = &cu->editnurb->nurbs;
 
   BezTriple *bezt = nullptr;
@@ -1885,3 +1887,5 @@ void CURVE_OT_pen(wmOperatorType *ot)
                   "Cycle Handle Type",
                   "Cycle between all four handle types");
 }
+
+}  // namespace blender

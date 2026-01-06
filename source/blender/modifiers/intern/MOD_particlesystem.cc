@@ -35,6 +35,8 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
@@ -54,7 +56,7 @@ static void free_data(ModifierData *md)
   }
   psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
 
-  /* blender::ed::object::modifier_remove may have freed this first before calling
+  /* ed::object::modifier_remove may have freed this first before calling
    * BKE_modifier_free (which calls this function) */
   if (psmd->psys) {
     psmd->psys->flag |= PSYS_DELETE;
@@ -91,7 +93,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
   ParticleSystem *psys = nullptr;
@@ -159,7 +161,7 @@ static void deform_verts(ModifierData *md,
       }
       else {
         /* Otherwise get regular mesh. */
-        mesh_original = blender::id_cast<Mesh *>(ctx->object->data);
+        mesh_original = id_cast<Mesh *>(ctx->object->data);
       }
     }
     else {
@@ -210,7 +212,7 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -290,3 +292,5 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

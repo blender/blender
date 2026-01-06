@@ -78,6 +78,8 @@
 
 #include <zstd.h>
 
+namespace blender {
+
 #define PTCACHE_DATA_FROM(data, type, from) \
   if (data[type]) { \
     memcpy(data[type], from, ptcache_data_size[type]); \
@@ -648,7 +650,7 @@ static void ptcache_cloth_error(const ID *owner_id, void *cloth_v, const char *m
   if (clmd->hairdata == nullptr) {
     /* If there is hair data, this modifier does not actually exist on the object. */
     BKE_modifier_set_error(
-        blender::id_cast<Object *>(const_cast<ID *>(owner_id)), &clmd->modifier, "%s", message);
+        id_cast<Object *>(const_cast<ID *>(owner_id)), &clmd->modifier, "%s", message);
   }
 }
 
@@ -1356,7 +1358,7 @@ static size_t ptcache_filepath_ext_append(PTCacheID *pid,
   if (pid->cache->index < 0) {
     BLI_assert(GS(pid->owner_id->name) == ID_OB);
     pid->cache->index = pid->stack_index = BKE_object_insert_ptcache(
-        blender::id_cast<Object *>(pid->owner_id));
+        id_cast<Object *>(pid->owner_id));
   }
 
   const char *ext = ptcache_file_extension(pid);
@@ -1540,7 +1542,7 @@ static int ptcache_file_compressed_read(PTCacheFile *pf,
 
       /* Un-filter the decompressed data, if needed. */
       if (compressed == PTCACHE_COMPRESS_ZSTD_FILTERED) {
-        blender::unfilter_transpose_delta(decomp_result, result, items_num, item_size);
+        unfilter_transpose_delta(decomp_result, result, items_num, item_size);
         MEM_freeN(decomp_result);
       }
     }
@@ -1561,11 +1563,11 @@ static void ptcache_file_compressed_write(PTCacheFile *pf,
   const PointCacheCompression compression = PTCACHE_COMPRESS_ZSTD_FILTERED;
   const uint data_size = items_num * item_size;
   size_t out_len = ZSTD_compressBound(data_size);
-  blender::Array<uchar> out(out_len);
+  Array<uchar> out(out_len);
 
   /* Filter the data: transpose by bytes; delta-encode. */
-  blender::Array<uchar> filtered(data_size);
-  blender::filter_transpose_delta(
+  Array<uchar> filtered(data_size);
+  filter_transpose_delta(
       static_cast<const uint8_t *>(data), filtered.data(), items_num, item_size);
 
   /* Do compression: always zstd level 3. */
@@ -3116,7 +3118,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
         ListBaseT<PTCacheID> pidlist2;
         BLI_assert(GS(pid->owner_id->name) == ID_OB);
         BKE_ptcache_ids_from_object(
-            &pidlist2, blender::id_cast<Object *>(pid->owner_id), scene, MAX_DUPLI_RECUR);
+            &pidlist2, id_cast<Object *>(pid->owner_id), scene, MAX_DUPLI_RECUR);
         for (PTCacheID &pid2 : pidlist2) {
           if (pid2.type == PTCACHE_TYPE_SMOKE_DOMAIN) {
             if (pid2.cache && !(pid2.cache->flag & PTCACHE_BAKED)) {
@@ -3438,7 +3440,7 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 
   if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
     if (cache->index) {
-      BKE_object_delete_ptcache(blender::id_cast<Object *>(pid->owner_id), cache->index);
+      BKE_object_delete_ptcache(id_cast<Object *>(pid->owner_id), cache->index);
       cache->index = -1;
     }
   }
@@ -3845,3 +3847,5 @@ void BKE_ptcache_blend_read_data(BlendDataReader *reader,
     ptcaches->first = ptcaches->last = *ocache;
   }
 }
+
+}  // namespace blender

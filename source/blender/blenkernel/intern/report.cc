@@ -28,6 +28,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"reports"};
 
 void BKE_report_log(eReportType type, const char *message, CLG_LogRef *log)
@@ -429,3 +431,5 @@ bool BKE_report_write_file(const char *filepath, ReportList *reports, const char
 
   return true;
 }
+
+}  // namespace blender

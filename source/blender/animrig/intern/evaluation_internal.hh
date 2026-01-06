@@ -5,13 +5,13 @@
 #pragma once
 
 #include "ANIM_evaluation.hh"
+struct Action;
+struct Layer;
+namespace blender {
 
 struct AnimationEvalContext;
 struct PointerRNA;
-struct Action;
-struct Layer;
-
-namespace blender::animrig::internal {
+namespace animrig::internal {
 
 /**
  * Evaluate the animation data on the given layer, for the given slot. This
@@ -24,4 +24,5 @@ EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
                                 slot_handle_t slot_handle,
                                 const AnimationEvalContext &anim_eval_context);
 
-}  // namespace blender::animrig::internal
+}  // namespace animrig::internal
+}  // namespace blender

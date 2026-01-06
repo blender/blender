@@ -10,6 +10,8 @@
 
 #include "ikplugin_api.h"
 
+namespace blender {
+
 void itasc_initialize_tree(struct Depsgraph *depsgraph,
                            struct Scene *scene,
                            struct Object *ob,
@@ -24,3 +26,5 @@ void itasc_clear_data(struct bPose *pose);
 void itasc_clear_cache(struct bPose *pose);
 void itasc_update_param(struct bPose *pose);
 void itasc_test_constraint(struct Object *ob, struct bConstraint *cons);
+
+}  // namespace blender

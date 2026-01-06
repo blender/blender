@@ -490,7 +490,7 @@ USDMeshReadParams create_mesh_read_params(const double motion_sample_time, const
 
 void USD_read_geometry(CacheReader *reader,
                        const Object *ob,
-                       blender::bke::GeometrySet &geometry_set,
+                       bke::GeometrySet &geometry_set,
                        const USDMeshReadParams params,
                        const char **r_err_str)
 {

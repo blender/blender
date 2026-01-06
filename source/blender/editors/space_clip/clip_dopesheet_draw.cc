@@ -37,20 +37,22 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 static void track_channel_color(MovieTrackingTrack *track, bool default_color, float color[3])
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     float bg[3];
-    blender::ui::theme::get_color_3fv(TH_HEADER, bg);
+    ui::theme::get_color_3fv(TH_HEADER, bg);
 
     interp_v3_v3v3(color, track->color, bg, 0.5);
   }
   else {
     if (default_color) {
-      blender::ui::theme::get_color_4fv(TH_CHANNEL_SELECT, color);
+      ui::theme::get_color_4fv(TH_CHANNEL_SELECT, color);
     }
     else {
-      blender::ui::theme::get_color_3fv(TH_CHANNEL, color);
+      ui::theme::get_color_3fv(TH_CHANNEL, color);
     }
   }
 }
@@ -60,10 +62,10 @@ static void draw_keyframe_shape(
 {
   float color[4];
   if (sel) {
-    blender::ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME_SELECT, color);
+    ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME_SELECT, color);
   }
   else {
-    blender::ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME, color);
+    ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME, color);
   }
   color[3] = alpha;
 
@@ -101,7 +103,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
   View2D *v2d = &region->v2d;
 
   /* Frame and preview range. */
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   ANIM_draw_framerange(scene, v2d);
   ANIM_draw_previewrange(scene, v2d, 0);
 
@@ -114,7 +116,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     uint keyframe_len = 0;
 
     GPUVertFormat *format = immVertexFormat();
-    uint pos_id = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos_id = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* don't use totrect set, as the width stays the same
@@ -125,8 +127,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     float y = (CHANNEL_FIRST);
 
     /* setup colors for regular and selected strips */
-    blender::ui::theme::get_color_4fv(TH_LONGKEY, strip);
-    blender::ui::theme::get_color_4fv(TH_LONGKEY_SELECT, selected_strip);
+    ui::theme::get_color_4fv(TH_LONGKEY, strip);
+    ui::theme::get_color_4fv(TH_LONGKEY_SELECT, selected_strip);
 
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -197,15 +199,13 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     if (keyframe_len > 0) {
       /* draw keyframe markers */
       format = immVertexFormat();
-      pos_id = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-      uint size_id = GPU_vertformat_attr_add(
-          format, "size", blender::gpu::VertAttrType::SFLOAT_32);
+      pos_id = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+      uint size_id = GPU_vertformat_attr_add(format, "size", gpu::VertAttrType::SFLOAT_32);
       uint color_id = GPU_vertformat_attr_add(
-          format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
+          format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
       uint outline_color_id = GPU_vertformat_attr_add(
-          format, "outlineColor", blender::gpu::VertAttrType::UNORM_8_8_8_8);
-      uint flags_id = GPU_vertformat_attr_add(
-          format, "flags", blender::gpu::VertAttrType::UINT_32);
+          format, "outlineColor", gpu::VertAttrType::UNORM_8_8_8_8);
+      uint flags_id = GPU_vertformat_attr_add(format, "flags", gpu::VertAttrType::UINT_32);
 
       GPU_program_point_size(true);
       immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
@@ -283,7 +283,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   SpaceClip *sc = CTX_wm_space_clip(C);
   View2D *v2d = &region->v2d;
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  const uiStyle *style = blender::ui::style_get();
+  const uiStyle *style = ui::style_get();
   int fontid = style->widget.uifont_id;
 
   if (!clip) {
@@ -303,7 +303,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
-  blender::ui::view2d_sync(nullptr, area, v2d, V2D_LOCK_COPY);
+  ui::view2d_sync(nullptr, area, v2d, V2D_LOCK_COPY);
 
   /* loop through channels, and set up drawing depending on their type
    * first pass: just the standard GL-drawing for backdrop + text
@@ -311,7 +311,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   float y = (CHANNEL_FIRST);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -356,7 +356,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
       MovieTrackingTrack *track = channel.track;
       bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
-      blender::ui::theme::font_theme_color_set(fontid, sel ? TH_TEXT_HI : TH_TEXT);
+      ui::theme::font_theme_color_set(fontid, sel ? TH_TEXT_HI : TH_TEXT);
 
       float font_height = BLF_height(fontid, channel.name, sizeof(channel.name));
       BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD, y - font_height / 2.0f, 0.0f);
@@ -368,7 +368,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   }
 
   /* third pass: widgets */
-  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   y = (CHANNEL_FIRST);
 
   /* get RNA properties (once) */
@@ -388,22 +388,22 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
       const int icon = (track->flag & TRACK_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
       PointerRNA ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTrackingTrack, track);
 
-      block_emboss_set(block, blender::ui::EmbossType::None);
-      blender::ui::Button *but = uiDefIconButR_prop(block,
-                                                    blender::ui::ButtonType::IconToggle,
-                                                    icon,
-                                                    v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD,
-                                                    y - UI_UNIT_Y / 2.0f,
-                                                    UI_UNIT_X,
-                                                    UI_UNIT_Y,
-                                                    &ptr,
-                                                    chan_prop_lock,
-                                                    0,
-                                                    0,
-                                                    0,
-                                                    std::nullopt);
+      block_emboss_set(block, ui::EmbossType::None);
+      ui::Button *but = uiDefIconButR_prop(block,
+                                           ui::ButtonType::IconToggle,
+                                           icon,
+                                           v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD,
+                                           y - UI_UNIT_Y / 2.0f,
+                                           UI_UNIT_X,
+                                           UI_UNIT_Y,
+                                           &ptr,
+                                           chan_prop_lock,
+                                           0,
+                                           0,
+                                           0,
+                                           std::nullopt);
       button_retval_set(but, 1);
-      block_emboss_set(block, blender::ui::EmbossType::Emboss);
+      block_emboss_set(block, ui::EmbossType::Emboss);
     }
 
     /* adjust y-position for next one */
@@ -414,3 +414,5 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   block_end(C, block);
   block_draw(C, block);
 }
+
+}  // namespace blender

@@ -19,11 +19,13 @@
 
 #include "RNA_access.hh"
 
+namespace blender {
+
 /**** GROUP ****/
 
 static void group_gpu_copy_inputs(bNode *gnode, GPUNodeStack *in, bNodeStack *gstack)
 {
-  bNodeTree *ngroup = blender::id_cast<bNodeTree *>(gnode->id);
+  bNodeTree *ngroup = id_cast<bNodeTree *>(gnode->id);
 
   for (bNode *node : ngroup->all_nodes()) {
     if (node->is_group_input()) {
@@ -78,13 +80,12 @@ static int gpu_group_execute(
 
 void register_node_type_sh_group()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   /* NOTE: cannot use #sh_node_type_base for node group, because it would map the node type
    * to the shared #NODE_GROUP integer type id. */
 
-  blender::bke::node_type_base_custom(
-      ntype, "ShaderNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
+  bke::node_type_base_custom(ntype, "ShaderNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.enum_name_legacy = "GROUP";
   ntype.type_legacy = NODE_GROUP;
   ntype.poll = sh_node_poll_default;
@@ -96,16 +97,15 @@ void register_node_type_sh_group()
   BLI_assert(ntype.rna_ext.srna != nullptr);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
 
-  blender::bke::node_type_size(
-      ntype, GROUP_NODE_DEFAULT_WIDTH, GROUP_NODE_MIN_WIDTH, GROUP_NODE_MAX_WIDTH);
+  bke::node_type_size(ntype, GROUP_NODE_DEFAULT_WIDTH, GROUP_NODE_MIN_WIDTH, GROUP_NODE_MAX_WIDTH);
   ntype.labelfunc = node_group_label;
-  ntype.declare = blender::nodes::node_group_declare;
+  ntype.declare = nodes::node_group_declare;
   ntype.gpu_fn = gpu_group_execute;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 
-void register_node_type_sh_custom_group(blender::bke::bNodeType *ntype)
+void register_node_type_sh_custom_group(bke::bNodeType *ntype)
 {
   /* These methods can be overridden but need a default implementation otherwise. */
   if (ntype->poll == nullptr) {
@@ -114,6 +114,8 @@ void register_node_type_sh_custom_group(blender::bke::bNodeType *ntype)
   if (ntype->insert_link == nullptr) {
     ntype->insert_link = node_insert_link_default;
   }
-  ntype->declare = blender::nodes::node_group_declare;
+  ntype->declare = nodes::node_group_declare;
   ntype->gpu_fn = gpu_group_execute;
 }
+
+}  // namespace blender

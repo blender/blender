@@ -22,6 +22,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /**
  * The algorithm used to create the convex hull is susceptible to errors when
  * the shape contains *nearly* overlapping vertices on polygons using large values.
@@ -52,8 +54,6 @@
  * \note This may fail when #USE_CONVEX_CROSS_PRODUCT_ENSURE isn't defined.
  */
 #define USE_ANGLE_ITER_ORDER_ASSERT
-
-using blender::float2;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Math Functions
@@ -115,7 +115,7 @@ static float is_left(const float2 &p0, const float2 &p1, const float2 &p2)
  */
 static void convexhull_2d_stack_finalize(const float2 *points,
                                          const int r_points[],
-                                         blender::int2 &r_points_range)
+                                         int2 &r_points_range)
 {
 #ifdef USE_CONVEX_CROSS_PRODUCT_ENSURE
   int bot = r_points_range[0];
@@ -299,17 +299,15 @@ static int convexhull_2d_sorted_impl(const float2 *points, const int points_num,
  * this avoids removing elements from the beginning of the array in favor of skipping them
  * to keep the order of points predictable.
  */
-static blender::int2 convexhull_2d_sorted(const float2 *points,
-                                          const int points_num,
-                                          int r_points[])
+static int2 convexhull_2d_sorted(const float2 *points, const int points_num, int r_points[])
 {
   const int top = convexhull_2d_sorted_impl(points, points_num, r_points);
-  blender::int2 points_range = {0, top};
+  int2 points_range = {0, top};
   convexhull_2d_stack_finalize(points, r_points, points_range);
   return points_range;
 }
 
-int BLI_convexhull_2d(blender::Span<float2> points, int r_points[])
+int BLI_convexhull_2d(Span<float2> points, int r_points[])
 {
   const int points_num = int(points.size());
   BLI_assert(points_num >= 0);
@@ -349,7 +347,7 @@ int BLI_convexhull_2d(blender::Span<float2> points, int r_points[])
     copy_v2_v2(points_sort[i], points[points_map[i]]);
   }
 
-  const blender::int2 points_hull_range = convexhull_2d_sorted(points_sort, points_num, r_points);
+  const int2 points_hull_range = convexhull_2d_sorted(points_sort, points_num, r_points);
 
   /* Map back to the unsorted index values. */
   for (int i = points_hull_range[0]; i <= points_hull_range[1]; i++) {
@@ -381,13 +379,13 @@ static float2 convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)
     const int i_next = (i + 1) % points_hull_num;
     /* 2D rotation matrix. */
     float dvec_length = 0.0f;
-    const float2 sincos = blender::math::normalize_and_get_length(
+    const float2 sincos = math::normalize_and_get_length(
         float2(points_hull[i_next]) - float2(points_hull[i]), dvec_length);
     if (UNLIKELY(dvec_length == 0.0f)) {
       continue;
     }
 
-    blender::Bounds<float> bounds[2] = {
+    Bounds<float> bounds[2] = {
         {std::numeric_limits<float>::max(), -std::numeric_limits<float>::max()},
         {std::numeric_limits<float>::max(), -std::numeric_limits<float>::max()},
     };
@@ -399,10 +397,10 @@ static float2 convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)
           sincos_rotate_cw_y(sincos, points_hull[j]),
       };
 
-      bounds[0].min = blender::math::min(bounds[0].min, tvec[0]);
-      bounds[0].max = blender::math::max(bounds[0].max, tvec[0]);
-      bounds[1].min = blender::math::min(bounds[1].min, tvec[1]);
-      bounds[1].max = blender::math::max(bounds[1].max, tvec[1]);
+      bounds[0].min = math::min(bounds[0].min, tvec[0]);
+      bounds[0].max = math::max(bounds[0].max, tvec[0]);
+      bounds[1].min = math::min(bounds[1].min, tvec[1]);
+      bounds[1].max = math::max(bounds[1].max, tvec[1]);
 
       area_test = (bounds[0].max - bounds[0].min) * (bounds[1].max - bounds[1].min);
       if (area_test > area_best) {
@@ -561,7 +559,7 @@ static bool convexhull_2d_angle_iter_step_on_axis(const HullAngleIter &hiter, Hu
     const int i_next = (hstep.index + 1) % hiter.points_hull_num;
     const float2 dir = float2(hiter.points_hull[i_next]) - float2(hiter.points_hull[i_curr]);
     float dir_length = 0.0f;
-    const float2 sincos_test = blender::math::normalize_and_get_length(dir, dir_length);
+    const float2 sincos_test = math::normalize_and_get_length(dir, dir_length);
     hstep.index = i_next;
     if (LIKELY(dir_length != 0.0f)) {
       hstep.angle.sincos = sincos_test;
@@ -620,11 +618,11 @@ static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2]
        * (in the case of an axis-aligned edge) or not at all. */
       while ((i_prev = (i_curr + points_hull_num_minus_1) % points_hull_num) != i_orig) {
         float dir_length = 0.0f;
-        const float2 sincos_test = blender::math::normalize_and_get_length(
+        const float2 sincos_test = math::normalize_and_get_length(
             float2(points_hull[i_curr]) - float2(points_hull[i_prev]), dir_length);
         if (LIKELY(dir_length != 0.0f)) {
           /* Account for 90 degree corners that may also have an axis-aligned canonical angle. */
-          if (blender::math::abs(sincos_test[axis]) > 0.5f) {
+          if (math::abs(sincos_test[axis]) > 0.5f) {
             break;
           }
           const float2 sincos_test_canonical = sincos_canonical(sincos_test);
@@ -731,7 +729,7 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
   int index_best = std::numeric_limits<int>::max();
 
   /* Initialize to zero because the first pass uses the first index to set the bounds. */
-  blender::Bounds<int> bounds_index[2] = {{0, 0}, {0, 0}};
+  Bounds<int> bounds_index[2] = {{0, 0}, {0, 0}};
 
   HullAngleIter hull_iter = convexhull_2d_angle_iter_init(points_hull, points_hull_num);
 
@@ -742,7 +740,7 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
   bounds_index[1].max = hull_iter.axis[1][1].angle.index;
   while (const HullAngleStep *hstep = hull_iter.axis_ordered) {
     /* Step the calipers to the new rotation `sincos`, returning the bounds at the same time. */
-    blender::Bounds<float> bounds_test[2] = {
+    Bounds<float> bounds_test[2] = {
         {convexhull_2d_compute_extent_on_axis<0, -1>(
              points_hull, points_hull_num, hstep->angle.sincos_canonical, &bounds_index[0].min),
          convexhull_2d_compute_extent_on_axis<0, 1>(
@@ -787,7 +785,7 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
   return angle;
 }
 
-float BLI_convexhull_aabb_fit_points_2d(blender::Span<float2> points)
+float BLI_convexhull_aabb_fit_points_2d(Span<float2> points)
 {
   const int points_num = int(points.size());
   BLI_assert(points_num >= 0);
@@ -813,3 +811,5 @@ float BLI_convexhull_aabb_fit_points_2d(blender::Span<float2> points)
 }
 
 /** \} */
+
+}  // namespace blender

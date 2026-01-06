@@ -16,6 +16,8 @@
 #include "wm_window.hh"
 #include "wm_window_private.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Window Title Bar Layout
  *
@@ -183,7 +185,7 @@ void WM_window_csd_rect_calc(const wmWindow *win, rcti *r_rect)
 
   GHOST_CSD_Elem csd_elems[GHOST_kCSDType_NUM];
 
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
   const int decor_num = WM_window_csd_layout_callback(
       win_size, fractional_scale, GHOST_TWindowState(win->windowstate), csd_layout, csd_elems);
 
@@ -208,3 +210,5 @@ void WM_window_csd_rect_calc(const wmWindow *win, rcti *r_rect)
 }
 
 /** \} */
+
+}  // namespace blender

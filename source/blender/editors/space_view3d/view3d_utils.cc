@@ -63,6 +63,8 @@
 
 #include "view3d_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Data Access Utilities
  * \{ */
@@ -80,7 +82,7 @@ void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float
     return;
   }
 
-  blender::ui::theme::get_color_3fv(TH_BACK, r_color);
+  ui::theme::get_color_3fv(TH_BACK, r_color);
 }
 
 void ED_view3d_text_colors_get(const Scene *scene,
@@ -94,7 +96,7 @@ void ED_view3d_text_colors_get(const Scene *scene,
 
   /* Default text color from TH_TEXT_HI. If it is too close
    * to the background color, darken or lighten it. */
-  blender::ui::theme::get_color_3fv(TH_TEXT_HI, r_text_color);
+  ui::theme::get_color_3fv(TH_TEXT_HI, r_text_color);
   float text_lightness = srgb_to_grayscale(r_text_color);
   float bg_color[3];
   ED_view3d_background_color_get(scene, v3d, bg_color);
@@ -144,7 +146,7 @@ Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)
   /* establish the camera object,
    * so we can default to view mapping if anything is wrong with it */
   if ((rv3d->persp == RV3D_CAMOB) && v3d->camera && (v3d->camera->type == OB_CAMERA)) {
-    return blender::id_cast<Camera *>(v3d->camera->data);
+    return id_cast<Camera *>(v3d->camera->data);
   }
   return nullptr;
 }
@@ -154,7 +156,7 @@ float ED_view3d_dist_soft_min_get(const View3D *v3d, const bool use_persp_range)
   return use_persp_range ? (v3d->clip_start * 1.5f) : v3d->grid * 0.001f;
 }
 
-blender::Bounds<float> ED_view3d_dist_soft_range_get(const View3D *v3d, const bool use_persp_range)
+Bounds<float> ED_view3d_dist_soft_range_get(const View3D *v3d, const bool use_persp_range)
 {
   return {
       ED_view3d_dist_soft_min_get(v3d, use_persp_range),
@@ -690,11 +692,9 @@ bool ED_view3d_camera_autokey(
     const Scene *scene, ID *id_key, bContext *C, const bool do_rotate, const bool do_translate)
 {
   BLI_assert(GS(id_key->name) == ID_OB);
-  using namespace blender;
-
   /* While `autokeyframe_object` does already call `autokeyframe_cfra_can_key` we need this here
    * because at the time of writing this it returns void. Once the keying result is returned, like
-   * implemented for `blender::animrig::insert_keyframes`, this `if` can be removed. */
+   * implemented for `animrig::insert_keyframes`, this `if` can be removed. */
   if (!animrig::autokeyframe_cfra_can_key(scene, id_key)) {
     return false;
   }
@@ -1685,9 +1685,9 @@ static bool view3d_camera_to_view_selected_impl(Main *bmain,
     bool is_ortho_camera = false;
 
     if ((camera_ob_eval->type == OB_CAMERA) &&
-        ((blender::id_cast<Camera *>(camera_ob_eval->data))->type == CAM_ORTHO))
+        ((id_cast<Camera *>(camera_ob_eval->data))->type == CAM_ORTHO))
     {
-      (blender::id_cast<Camera *>(camera_ob->data))->ortho_scale = scale;
+      (id_cast<Camera *>(camera_ob->data))->ortho_scale = scale;
       is_ortho_camera = true;
     }
 
@@ -1730,13 +1730,13 @@ bool ED_view3d_camera_to_view_selected_with_set_clipping(Main *bmain,
           bmain, depsgraph, scene, camera_ob, &clip_start, &clip_end))
   {
 
-    (blender::id_cast<Camera *>(camera_ob->data))->clip_start = clip_start;
-    (blender::id_cast<Camera *>(camera_ob->data))->clip_end = clip_end;
+    (id_cast<Camera *>(camera_ob->data))->clip_start = clip_start;
+    (id_cast<Camera *>(camera_ob->data))->clip_end = clip_end;
 
     /* TODO: Support update via #ID_RECALC_PARAMETERS. */
     Object *camera_ob_eval = DEG_get_evaluated(depsgraph, camera_ob);
-    (blender::id_cast<Camera *>(camera_ob_eval->data))->clip_start = clip_start;
-    (blender::id_cast<Camera *>(camera_ob_eval->data))->clip_end = clip_end;
+    (id_cast<Camera *>(camera_ob_eval->data))->clip_start = clip_start;
+    (id_cast<Camera *>(camera_ob_eval->data))->clip_end = clip_end;
 
     return true;
   }
@@ -1879,3 +1879,5 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
 }
 
 /** \} */
+
+}  // namespace blender

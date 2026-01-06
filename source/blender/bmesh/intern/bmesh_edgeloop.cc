@@ -21,6 +21,8 @@
 
 #include "bmesh_edgeloop.hh" /* own include */
 
+namespace blender {
+
 struct BMEdgeLoopStore {
   BMEdgeLoopStore *next, *prev;
   ListBaseT<LinkData> verts;
@@ -677,11 +679,8 @@ void BM_edgeloop_flip(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
   BLI_listbase_reverse(&el_store->verts);
 }
 
-void BM_edgeloop_expand(BMesh *bm,
-                        BMEdgeLoopStore *el_store,
-                        int el_store_len,
-                        bool split,
-                        blender::Set<BMEdge *> *split_edges)
+void BM_edgeloop_expand(
+    BMesh *bm, BMEdgeLoopStore *el_store, int el_store_len, bool split, Set<BMEdge *> *split_edges)
 {
   bool split_swap = true;
 
@@ -800,3 +799,5 @@ bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_
   }
   return false;
 }
+
+}  // namespace blender

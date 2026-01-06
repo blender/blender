@@ -30,6 +30,8 @@
 
 #include "DNA_meshdata_types.h"
 
+namespace blender {
+
 static CustomData *bpy_bm_customdata_get(BMesh *bm, char htype)
 {
   switch (htype) {
@@ -1369,3 +1371,5 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 
   return ret;
 }
+
+}  // namespace blender

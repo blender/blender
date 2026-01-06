@@ -80,6 +80,8 @@
 
 #include <cerrno>
 
+namespace blender {
+
 /* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
@@ -214,7 +216,7 @@ static void ntree_version_245(FileData *fd, Library * /*lib*/, bNodeTree *ntree)
       nodeid = static_cast<ID *>(
           blo_do_versions_newlibadr(fd, &ntree->id, ID_IS_LINKED(ntree), node.id));
       if (node.storage && nodeid && GS(nodeid->name) == ID_IM) {
-        image = blender::id_cast<Image *>(nodeid);
+        image = id_cast<Image *>(nodeid);
         iuser = static_cast<ImageUser *>(node.storage);
         if (iuser->flag & IMA_OLD_PREMUL) {
           iuser->flag &= ~IMA_OLD_PREMUL;
@@ -1190,7 +1192,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (sce) {
       ed = sce->ed;
       if (ed) {
-        blender::seq::foreach_strip(&sce->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
+        seq::foreach_strip(&sce->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
       }
 
       sce = static_cast<Scene *>(sce->id.next);
@@ -2365,7 +2367,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          sce = static_cast<Scene *>(sce->id.next))
     {
       if (sce->ed) {
-        blender::seq::foreach_strip(&sce->ed->seqbase, strip_set_blend_mode_cb, nullptr);
+        seq::foreach_strip(&sce->ed->seqbase, strip_set_blend_mode_cb, nullptr);
       }
     }
   }
@@ -2518,7 +2520,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (sce) {
       ed = sce->ed;
       if (ed) {
-        for (Strip &strip : *blender::seq::active_seqbase_get(ed)) {
+        for (Strip &strip : *seq::active_seqbase_get(ed)) {
           if (strip.data && strip.data->proxy) {
             strip.data->proxy->quality = 90;
           }
@@ -2529,3 +2531,5 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
   }
 }
+
+}  // namespace blender

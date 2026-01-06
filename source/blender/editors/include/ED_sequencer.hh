@@ -10,13 +10,15 @@
 
 #include "BLI_vector_set.hh"
 
+namespace blender {
+
 struct Scene;
 struct Strip;
 struct SpaceSeq;
 struct bContext;
 struct View2D;
 
-namespace blender::ed::vse {
+namespace ed::vse {
 
 enum eStripHandle {
   STRIP_HANDLE_NONE,
@@ -89,4 +91,5 @@ bool is_scene_time_sync_needed(const bContext &C);
 const Strip *get_scene_strip_for_time_sync(const Scene *sequencer_scene);
 void sync_active_scene_and_time_with_scene_strip(bContext &C);
 
-}  // namespace blender::ed::vse
+}  // namespace ed::vse
+}  // namespace blender

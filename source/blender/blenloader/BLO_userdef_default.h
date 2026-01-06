@@ -6,6 +6,8 @@
 
 #include "DNA_userdef_types.h"
 
+namespace blender {
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -16,3 +18,5 @@ extern const bTheme U_theme_default;
 #ifdef __cplusplus
 }
 #endif
+
+}  // namespace blender

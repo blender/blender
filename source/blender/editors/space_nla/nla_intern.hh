@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct ARegion;
 struct ARegionType;
 struct PointerRNA;
@@ -166,3 +168,5 @@ bool nlaedit_is_tweakmode_on(bAnimContext *ac);
 
 void nla_operatortypes();
 void nla_keymap(wmKeyConfig *keyconf);
+
+}  // namespace blender

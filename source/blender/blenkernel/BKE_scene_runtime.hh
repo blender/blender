@@ -15,9 +15,11 @@
 
 #include "DNA_node_types.h"
 
+namespace blender {
+
 struct Depsgraph;
 
-namespace blender::bke {
+namespace bke {
 
 /* Runtime data specific to the compositing trees. */
 class CompositorRuntime {
@@ -58,4 +60,5 @@ class SceneRuntime : NonCopyable, NonMovable {
   SceneAudioRuntime audio;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

@@ -49,9 +49,9 @@
 
 #include "nla_private.h"
 
-static CLG_LogRef LOG = {"anim.nla"};
+namespace blender {
 
-using namespace blender;
+static CLG_LogRef LOG = {"anim.nla"};
 
 /**
  * Find the active track and strip.
@@ -548,7 +548,7 @@ NlaStrip *BKE_nlastrip_new(bAction *act, ID &animated_id)
 }
 
 NlaStrip *BKE_nlastrip_new_for_slot(bAction *act,
-                                    blender::animrig::slot_handle_t slot_handle,
+                                    animrig::slot_handle_t slot_handle,
                                     ID &animated_id)
 {
   using namespace blender::animrig;
@@ -2148,7 +2148,7 @@ void BKE_nla_validate_state(AnimData *adt)
 
 bool BKE_nla_action_slot_is_stashed(AnimData *adt,
                                     bAction *act,
-                                    const blender::animrig::slot_handle_t slot_handle)
+                                    const animrig::slot_handle_t slot_handle)
 {
   for (NlaTrack &nlt : adt->nla_tracks) {
     if (strstr(nlt.name, STASH_TRACK_NAME)) {
@@ -2813,7 +2813,7 @@ static bool visit_strip(NlaStrip *strip, FunctionRef<bool(NlaStrip *)> callback)
   return true;
 }
 
-namespace blender::bke::nla {
+namespace bke::nla {
 
 bool foreach_strip(ID *id, FunctionRef<bool(NlaStrip *)> callback)
 {
@@ -2837,4 +2837,5 @@ bool foreach_strip_adt(const AnimData &adt, FunctionRef<bool(NlaStrip *)> callba
   return true;
 }
 
-}  // namespace blender::bke::nla
+}  // namespace bke::nla
+}  // namespace blender

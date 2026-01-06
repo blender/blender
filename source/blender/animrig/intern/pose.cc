@@ -33,9 +33,7 @@ void pose_apply_restore_fcurves(const Span<FCurve *> fcurves)
 
 /* Returns a vector of all FCurves on which the fcurve flag was modified. */
 Vector<FCurve *> pose_apply_disable_fcurves_for_unselected_bones(
-    bAction *action,
-    const slot_handle_t slot_handle,
-    const blender::bke::BoneNameSet &selected_bone_names)
+    bAction *action, const slot_handle_t slot_handle, const bke::BoneNameSet &selected_bone_names)
 {
   Vector<FCurve *> modified_fcurves;
   auto disable_unselected_fcurve = [&](FCurve *fcu, const char *bone_name) {
@@ -48,7 +46,7 @@ Vector<FCurve *> pose_apply_disable_fcurves_for_unselected_bones(
       fcu->flag |= FCURVE_DISABLED;
     }
   };
-  blender::bke::BKE_action_find_fcurves_with_bones(action, slot_handle, disable_unselected_fcurve);
+  bke::BKE_action_find_fcurves_with_bones(action, slot_handle, disable_unselected_fcurve);
   return modified_fcurves;
 }
 
@@ -67,8 +65,7 @@ void pose_apply(Object *ob,
     return;
   }
 
-  const blender::bke::BoneNameSet selected_bone_names =
-      blender::bke::BKE_pose_channel_find_selected_names(ob);
+  const bke::BoneNameSet selected_bone_names = bke::BKE_pose_channel_find_selected_names(ob);
 
   /* Mute all FCurves that are not associated with selected bones. This separates the concept of
    * bone selection from the FCurve evaluation code. */

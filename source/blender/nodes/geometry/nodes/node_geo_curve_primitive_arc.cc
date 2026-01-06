@@ -369,21 +369,21 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeCurveArc", GEO_NODE_CURVE_PRIMITIVE_ARC);
   ntype.ui_name = "Arc";
   ntype.ui_description = "Generate a poly spline arc";
   ntype.enum_name_legacy = "CURVE_PRIMITIVE_ARC";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryCurvePrimitiveArc",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryCurvePrimitiveArc",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

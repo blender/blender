@@ -38,6 +38,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* used for iterative_raycast */
 // #define USE_SKIP_LINKS
 
@@ -2196,8 +2198,8 @@ static void bvhtree_nearest_projected_dfs_recursive(BVHNearestProjectedData *__r
       data->nearest.index = node->index;
       data->nearest.dist_sq = dist_squared_to_projected_aabb(
           &data->precalc,
-          blender::float3{node->bv[0], node->bv[2], node->bv[4]},
-          blender::float3{node->bv[1], node->bv[3], node->bv[5]},
+          float3{node->bv[0], node->bv[2], node->bv[4]},
+          float3{node->bv[1], node->bv[3], node->bv[5]},
           data->closest_axis);
     }
   }
@@ -2208,8 +2210,8 @@ static void bvhtree_nearest_projected_dfs_recursive(BVHNearestProjectedData *__r
         const float *bv = node->children[i]->bv;
 
         if (dist_squared_to_projected_aabb(&data->precalc,
-                                           blender::float3{bv[0], bv[2], bv[4]},
-                                           blender::float3{bv[1], bv[3], bv[5]},
+                                           float3{bv[0], bv[2], bv[4]},
+                                           float3{bv[1], bv[3], bv[5]},
                                            data->closest_axis) <= data->nearest.dist_sq)
         {
           bvhtree_nearest_projected_dfs_recursive(data, node->children[i]);
@@ -2221,8 +2223,8 @@ static void bvhtree_nearest_projected_dfs_recursive(BVHNearestProjectedData *__r
         const float *bv = node->children[i]->bv;
 
         if (dist_squared_to_projected_aabb(&data->precalc,
-                                           blender::float3{bv[0], bv[2], bv[4]},
-                                           blender::float3{bv[1], bv[3], bv[5]},
+                                           float3{bv[0], bv[2], bv[4]},
+                                           float3{bv[1], bv[3], bv[5]},
                                            data->closest_axis) <= data->nearest.dist_sq)
         {
           bvhtree_nearest_projected_dfs_recursive(data, node->children[i]);
@@ -2248,8 +2250,8 @@ static void bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(
       data->nearest.index = node->index;
       data->nearest.dist_sq = dist_squared_to_projected_aabb(
           &data->precalc,
-          blender::float3{node->bv[0], node->bv[2], node->bv[4]},
-          blender::float3{node->bv[1], node->bv[3], node->bv[5]},
+          float3{node->bv[0], node->bv[2], node->bv[4]},
+          float3{node->bv[1], node->bv[3], node->bv[5]},
           data->closest_axis);
     }
   }
@@ -2380,3 +2382,5 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
 }
 
 /** \} */
+
+}  // namespace blender

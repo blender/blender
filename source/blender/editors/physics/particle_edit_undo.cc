@@ -34,6 +34,8 @@
 
 #include "particle_edit_utildefines.h"
 
+namespace blender {
+
 /** Only needed this locally. */
 static CLG_LogRef LOG = {"undo.particle"};
 
@@ -301,3 +303,5 @@ void ED_particle_undosys_type(UndoType *ut)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -20,8 +20,7 @@
 
 #include <mutex>
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class GLVaoCache;
 
@@ -173,5 +172,4 @@ class GLContext : public Context {
   MEM_CXX_CLASS_ALLOC_FUNCS("GLContext")
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

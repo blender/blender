@@ -13,6 +13,8 @@
 /* For uint declaration. */
 #include "gpu_shader_cxx_vector.hh"  // IWYU pragma: export
 
+namespace blender {
+
 /**
  * Placeholder type for the actual shading language type.
  * This string type is much like the OSL string.
@@ -32,3 +34,5 @@ uint as_uint(string_t)
 {
   return 1;
 }
+
+}  // namespace blender

@@ -8,11 +8,13 @@
  * \ingroup sequencer
  */
 
+namespace blender {
+
 struct ImBuf;
 struct MovieReader;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 struct RenderData;
 
@@ -22,4 +24,5 @@ bool seq_proxy_get_custom_file_filepath(Strip *strip, char *filepath, int view_i
 void free_strip_proxy(Strip *strip);
 void seq_proxy_index_dir_set(MovieReader *anim, const char *base_dir);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

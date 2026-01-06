@@ -15,9 +15,11 @@
 
 #include "asset_catalog_definition_file.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"asset.catalog"};
 
-namespace blender::asset_system {
+namespace asset_system {
 
 const int AssetCatalogDefinitionFile::SUPPORTED_VERSION = 1;
 const std::string AssetCatalogDefinitionFile::VERSION_MARKER = "VERSION ";
@@ -291,4 +293,6 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogDefinitionFile::copy_and
   return copy;
 }
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
+
+}  // namespace blender

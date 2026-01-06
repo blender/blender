@@ -14,13 +14,15 @@
 
 #include <string>
 
+namespace blender {
+
 struct Main;
 struct Material;
 struct bNode;
 struct bNodeTree;
 struct ReportList;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 using ShaderToNodeMap = Map<std::string, bNode *>;
 
@@ -227,4 +229,5 @@ Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
                                  const Map<std::string, Material *> &mat_map,
                                  const Map<pxr::SdfPath, Material *> &usd_path_to_mat);
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

@@ -23,6 +23,8 @@
 
 #include "gpu_state_private.hh"
 
+namespace blender {
+
 using namespace blender::gpu;
 
 #define SET_STATE(_prefix, _state, _value) \
@@ -370,3 +372,5 @@ StateManager::StateManager()
 }
 
 /** \} */
+
+}  // namespace blender

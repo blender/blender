@@ -16,6 +16,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define USE_TOTELEM
 
 #define CHUNK_EMPTY size_t(-1)
@@ -255,3 +257,5 @@ bool BLI_stack_is_empty(const BLI_Stack *stack)
 #endif
   return (stack->chunk_curr == nullptr);
 }
+
+}  // namespace blender

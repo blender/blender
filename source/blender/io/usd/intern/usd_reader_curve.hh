@@ -12,15 +12,17 @@
 #include <pxr/usd/usdGeom/basisCurves.h>
 #include <pxr/usd/usdGeom/curves.h>
 
+namespace blender {
+
 struct Curves;
 struct Main;
 
-namespace blender::bke {
+namespace bke {
 struct GeometrySet;
 class CurvesGeometry;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDCurvesReader : public USDGeomReader {
  public:
@@ -68,4 +70,5 @@ class USDBasisCurvesReader : public USDCurvesReader {
   void read_curve_sample(Curves *curves_id, pxr::UsdTimeCode time) override;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

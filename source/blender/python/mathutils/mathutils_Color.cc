@@ -27,6 +27,8 @@
 
 #define COLOR_SIZE 3
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
@@ -1508,3 +1510,5 @@ PyObject *Color_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar cb_sub
 }
 
 /** \} */
+
+}  // namespace blender

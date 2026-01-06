@@ -80,9 +80,9 @@
 #  include "BLI_time_utildefines.h"
 #endif
 
-using blender::Vector;
+namespace blender {
 
-using namespace blender::bke::id;
+using namespace bke::id;
 
 static CLG_LogRef LOG = {"lib.id"};
 
@@ -428,12 +428,12 @@ void BKE_id_newptr_and_tag_clear(ID *id)
   if (key != nullptr) {
     BKE_id_newptr_and_tag_clear(&key->id);
   }
-  bNodeTree *ntree = blender::bke::node_tree_from_id(id);
+  bNodeTree *ntree = bke::node_tree_from_id(id);
   if (ntree != nullptr) {
     BKE_id_newptr_and_tag_clear(&ntree->id);
   }
   if (GS(id->name) == ID_SCE) {
-    Collection *master_collection = (blender::id_cast<Scene *>(id))->master_collection;
+    Collection *master_collection = (id_cast<Scene *>(id))->master_collection;
     if (master_collection != nullptr) {
       BKE_id_newptr_and_tag_clear(&master_collection->id);
     }
@@ -575,14 +575,13 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
       if (key && key_new) {
         ID_NEW_SET(key, key_new);
       }
-      bNodeTree *ntree = blender::bke::node_tree_from_id(id),
-                *ntree_new = blender::bke::node_tree_from_id(id_new);
+      bNodeTree *ntree = bke::node_tree_from_id(id), *ntree_new = bke::node_tree_from_id(id_new);
       if (ntree && ntree_new) {
         ID_NEW_SET(ntree, ntree_new);
       }
       if (GS(id->name) == ID_SCE) {
-        Collection *master_collection = (blender::id_cast<Scene *>(id))->master_collection,
-                   *master_collection_new = (blender::id_cast<Scene *>(id_new))->master_collection;
+        Collection *master_collection = (id_cast<Scene *>(id))->master_collection,
+                   *master_collection_new = (id_cast<Scene *>(id_new))->master_collection;
         if (master_collection && master_collection_new) {
           ID_NEW_SET(master_collection, master_collection_new);
         }
@@ -805,8 +804,8 @@ ID *BKE_id_copy_for_duplicate(Main *bmain,
     ID_NEW_SET(id, id_new);
 
     /* Shape keys are always copied with their owner ID, by default. */
-    ID *key_new = blender::id_cast<ID *>(BKE_key_from_id(id_new));
-    ID *key = blender::id_cast<ID *>(BKE_key_from_id(id));
+    ID *key_new = id_cast<ID *>(BKE_key_from_id(id_new));
+    ID *key = id_cast<ID *>(BKE_key_from_id(id));
     if (key != nullptr) {
       ID_NEW_SET(key, key_new);
     }
@@ -962,14 +961,14 @@ static void id_swap(Main *bmain,
   }
 
   id_embedded_swap(bmain,
-                   reinterpret_cast<ID **>(blender::bke::node_tree_ptr_from_id(id_a)),
-                   reinterpret_cast<ID **>(blender::bke::node_tree_ptr_from_id(id_b)),
+                   reinterpret_cast<ID **>(bke::node_tree_ptr_from_id(id_a)),
+                   reinterpret_cast<ID **>(bke::node_tree_ptr_from_id(id_b)),
                    do_full_id,
                    remapper_id_a,
                    remapper_id_b);
   if (GS(id_a->name) == ID_SCE) {
-    Scene *scene_a = blender::id_cast<Scene *>(id_a);
-    Scene *scene_b = blender::id_cast<Scene *>(id_b);
+    Scene *scene_a = id_cast<Scene *>(id_a);
+    Scene *scene_b = id_cast<Scene *>(id_b);
     id_embedded_swap(bmain,
                      reinterpret_cast<ID **>(&scene_a->master_collection),
                      reinterpret_cast<ID **>(&scene_b->master_collection),
@@ -1006,7 +1005,7 @@ static void id_swap(Main *bmain,
      *   WMs cannot be animated.
      * - Palette undo code (`palette_undo_preserve()`). Fine because palettes
      *   cannot be animated. */
-    blender::bke::animdata::action_slots_user_cache_invalidate(*bmain);
+    bke::animdata::action_slots_user_cache_invalidate(*bmain);
   }
 
   if (input_remapper_id_a == nullptr && remapper_id_a != nullptr) {
@@ -1146,7 +1145,7 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
       /* If the packed ID is currently using a regular library, find or create a suitable archive
        * one, and assign it to the id before adding it to the Main. */
       bool is_new_;
-      Library *archive_lib = blender::bke::library::ensure_archive_library(
+      Library *archive_lib = bke::library::ensure_archive_library(
           *bmain, *id, *id->lib, id->deep_hash, is_new_);
       id->lib = archive_lib;
     }
@@ -1282,7 +1281,7 @@ void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBaseT<ID> *lb)
 
   /* Fill an array because renaming sorts. */
   ID **id_array = MEM_malloc_arrayN<ID *>(size_t(lb_len), __func__);
-  blender::Set<blender::StringRef> name_set;
+  Set<StringRef> name_set;
   int i = 0;
   for (ID &id : *lb) {
     if (!ID_IS_LINKED(&id)) {
@@ -1328,7 +1327,7 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
 void BKE_libblock_runtime_ensure(ID &id)
 {
   if (!id.runtime) {
-    id.runtime = MEM_new<blender::bke::id::ID_Runtime>(__func__);
+    id.runtime = MEM_new<bke::id::ID_Runtime>(__func__);
   }
 }
 
@@ -2077,9 +2076,9 @@ void BKE_main_id_refcount_recompute(Main *bmain, const bool do_linked_only)
 }
 
 static void library_make_local_copying_check(ID *id,
-                                             blender::Set<ID *> &loop_tags,
+                                             Set<ID *> &loop_tags,
                                              MainIDRelations *id_relations,
-                                             blender::Set<ID *> &done_ids)
+                                             Set<ID *> &done_ids)
 {
   if (done_ids.contains(id)) {
     return; /* Already checked, nothing else to do. */
@@ -2102,7 +2101,7 @@ static void library_make_local_copying_check(ID *id,
      * (since they cannot be linked), so we have to switch effective parent to their owner.
      */
     if (GS(from_id->name) == ID_KE) {
-      from_id = (blender::id_cast<Key *>(from_id))->from;
+      from_id = (id_cast<Key *>(from_id))->from;
     }
 
     if (!ID_IS_LINKED(from_id)) {
@@ -2158,7 +2157,7 @@ void BKE_library_make_local(Main *bmain,
   LinkNode *copied_ids = nullptr;
   MemArena *linklist_mem = BLI_memarena_new(512 * sizeof(*todo_ids), __func__);
 
-  blender::Set<ID *> done_ids;
+  Set<ID *> done_ids;
 
 #ifdef DEBUG_TIME
   TIMEIT_START(make_local);
@@ -2180,7 +2179,7 @@ void BKE_library_make_local(Main *bmain,
     const bool do_skip = (id && !BKE_idtype_idcode_is_linkable(GS(id->name)));
 
     for (; id; id = static_cast<ID *>(id->next)) {
-      ID *ntree = blender::id_cast<ID *>(blender::bke::node_tree_from_id(id));
+      ID *ntree = id_cast<ID *>(bke::node_tree_from_id(id));
 
       id->tag &= ~ID_TAG_DOIT;
       if (ntree != nullptr) {
@@ -2240,7 +2239,7 @@ void BKE_library_make_local(Main *bmain,
   /* Step 2: Check which data-blocks we can directly make local
    * (because they are only used by already, or future, local data),
    * others will need to be duplicated. */
-  blender::Set<ID *> loop_tags;
+  Set<ID *> loop_tags;
   for (LinkNode *it = todo_ids; it; it = it->next) {
     library_make_local_copying_check(
         static_cast<ID *>(it->link), loop_tags, bmain->relations, done_ids);
@@ -2274,7 +2273,7 @@ void BKE_library_make_local(Main *bmain,
       id->tag &= ~ID_TAG_DOIT;
 
       if (GS(id->name) == ID_OB) {
-        BKE_rigidbody_ensure_local_object(bmain, blender::id_cast<Object *>(id));
+        BKE_rigidbody_ensure_local_object(bmain, id_cast<Object *>(id));
       }
     }
     else {
@@ -2283,7 +2282,7 @@ void BKE_library_make_local(Main *bmain,
 
       if (id->newid) {
         if (GS(id->newid->name) == ID_OB) {
-          BKE_rigidbody_ensure_local_object(bmain, blender::id_cast<Object *>(id->newid));
+          BKE_rigidbody_ensure_local_object(bmain, id_cast<Object *>(id->newid));
         }
 
         /* Reuse already allocated LinkNode (transferring it from todo_ids to copied_ids). */
@@ -2358,7 +2357,7 @@ void BKE_library_make_local(Main *bmain,
     if (ob->data != nullptr && ob->type == OB_ARMATURE && ob->pose != nullptr &&
         ob->pose->flag & POSE_RECALC)
     {
-      BKE_pose_rebuild(bmain, ob, blender::id_cast<bArmature *>(ob->data), true);
+      BKE_pose_rebuild(bmain, ob, id_cast<bArmature *>(ob->data), true);
     }
   }
 
@@ -2378,7 +2377,7 @@ void BKE_library_make_local(Main *bmain,
 
 IDNewNameResult BKE_libblock_rename(Main &bmain,
                                     ID &id,
-                                    blender::StringRefNull name,
+                                    StringRefNull name,
                                     const IDNewNameMode mode)
 {
   BLI_assert(BKE_id_is_in_main(&bmain, &id));
@@ -2398,10 +2397,7 @@ IDNewNameResult BKE_libblock_rename(Main &bmain,
   return result;
 }
 
-IDNewNameResult BKE_id_rename(Main &bmain,
-                              ID &id,
-                              blender::StringRefNull name,
-                              const IDNewNameMode mode)
+IDNewNameResult BKE_id_rename(Main &bmain, ID &id, StringRefNull name, const IDNewNameMode mode)
 {
   const IDNewNameResult result = BKE_libblock_rename(bmain, id, name, mode);
 
@@ -2555,7 +2551,7 @@ static int *id_order_get(ID *id)
   /* Only for workspace tabs currently. */
   switch (GS(id->name)) {
     case ID_WS:
-      return &(blender::id_cast<WorkSpace *>(id))->order;
+      return &(id_cast<WorkSpace *>(id))->order;
     default:
       return nullptr;
   }
@@ -2683,10 +2679,12 @@ struct SomeTypeWithIDMember {
   int id;
 };
 
-static_assert(blender::dna::is_ID_v<ID>);
-static_assert(blender::dna::is_ID_v<Object>);
-static_assert(!blender::dna::is_ID_v<int>);
-static_assert(!blender::dna::is_ID_v<ID *>);
-static_assert(!blender::dna::is_ID_v<const ID>);
-static_assert(!blender::dna::is_ID_v<ListBase>);
-static_assert(!blender::dna::is_ID_v<SomeTypeWithIDMember>);
+static_assert(dna::is_ID_v<ID>);
+static_assert(dna::is_ID_v<Object>);
+static_assert(!dna::is_ID_v<int>);
+static_assert(!dna::is_ID_v<ID *>);
+static_assert(!dna::is_ID_v<const ID>);
+static_assert(!dna::is_ID_v<ListBase>);
+static_assert(!dna::is_ID_v<SomeTypeWithIDMember>);
+
+}  // namespace blender

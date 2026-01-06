@@ -39,7 +39,7 @@ const ThemeWireColor *BoneColor::effective_color() const
     return &this->custom;
   }
 
-  const bTheme *btheme = blender::ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   return &btheme->tarm[(color_index - 1)];
 }
 

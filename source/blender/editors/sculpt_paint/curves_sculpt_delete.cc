@@ -37,7 +37,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-using blender::bke::CurvesGeometry;
+using bke::CurvesGeometry;
 
 class DeleteOperation : public CurvesSculptStrokeOperation {
  private:
@@ -83,7 +83,7 @@ struct DeleteOperationExecutor {
     self_ = &self;
     object_ = ctx_.object;
 
-    curves_id_ = blender::id_cast<Curves *>(object_->data);
+    curves_id_ = id_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
 
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);

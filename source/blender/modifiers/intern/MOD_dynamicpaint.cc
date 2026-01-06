@@ -35,6 +35,8 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
@@ -167,7 +169,7 @@ static void foreach_tex_link(ModifierData * /*md*/,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -217,3 +219,5 @@ ModifierTypeInfo modifierType_DynamicPaint = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

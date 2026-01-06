@@ -16,6 +16,8 @@
 
 #include "mball_intern.hh"
 
+namespace blender {
+
 void ED_operatortypes_metaball()
 {
   WM_operatortype_append(MBALL_OT_delete_metaelems);
@@ -48,3 +50,5 @@ void ED_keymap_metaball(wmKeyConfig *keyconf)
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Metaball", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_editmball;
 }
+
+}  // namespace blender

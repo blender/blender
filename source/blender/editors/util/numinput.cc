@@ -34,6 +34,8 @@
 
 #include "UI_interface.hh"
 
+namespace blender {
+
 /* Numeric input which isn't allowing full numeric editing. */
 #define USE_FAKE_EDIT
 
@@ -102,7 +104,7 @@ void outputNumInput(NumInput *n, char *str, const UnitSettings &unit_settings)
 
     if (n->val_flag[i] & NUM_EDITED) {
       /* Get the best precision, allows us to draw '10.0001' as '10' instead! */
-      prec = blender::ui::calc_float_precision(prec, double(n->val[i]));
+      prec = ui::calc_float_precision(prec, double(n->val[i]));
       if (i == n->idx) {
         const char *heading_exp = "", *trailing_exp = "";
         char before_cursor[NUM_STR_REP_LEN];
@@ -628,3 +630,5 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
   /* REDRAW SINCE NUMBERS HAVE CHANGED */
   return true;
 }
+
+}  // namespace blender

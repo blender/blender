@@ -40,6 +40,8 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
@@ -48,7 +50,6 @@ static void init_data(ModifierData *md)
 
 static void free_data(ModifierData *md)
 {
-  using namespace blender;
   MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
 
   implicit_sharing::free_shared_data(&mmd->bindinfluences, &mmd->bindinfluences_sharing_info);
@@ -67,7 +68,6 @@ static void free_data(ModifierData *md)
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  using namespace blender;
   const MeshDeformModifierData *mmd = reinterpret_cast<const MeshDeformModifierData *>(md);
   MeshDeformModifierData *tmmd = reinterpret_cast<MeshDeformModifierData *>(target);
 
@@ -380,7 +380,7 @@ static void meshdeformModifier_do(ModifierData *md,
   /* We allocate 1 element extra to make it possible to
    * load the values to SSE registers, which are float4.
    */
-  blender::Array<blender::float3> dco(cage_verts_num + 1);
+  Array<float3> dco(cage_verts_num + 1);
   zero_v3(dco[cage_verts_num]);
 
   /* setup deformation data */
@@ -416,7 +416,7 @@ static void meshdeformModifier_do(ModifierData *md,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   /* if next modifier needs original vertices */
   MOD_previous_vcos_store(md, reinterpret_cast<float (*)[3]>(positions.data()));
@@ -428,7 +428,6 @@ static void deform_verts(ModifierData *md,
 
 void BKE_modifier_mdef_compact_influences(ModifierData *md)
 {
-  using namespace blender;
   MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(md);
   float weight, totweight;
   int influences_num, verts_num, cage_verts_num, a, b;
@@ -495,7 +494,7 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -504,7 +503,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout *col = &layout.column(true);
+  ui::Layout *col = &layout.column(true);
   col->enabled_set(!is_bound);
   col->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -614,7 +613,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   if (mmd->bindinfluences) {
     mmd->bindinfluences_sharing_info = BLO_read_shared(reader, &mmd->bindinfluences, [&]() {
       BLO_read_struct_array(reader, MDefInfluence, mmd->influences_num, &mmd->bindinfluences);
-      return blender::implicit_sharing::info_for_mem_free(mmd->bindinfluences);
+      return implicit_sharing::info_for_mem_free(mmd->bindinfluences);
     });
   }
 
@@ -624,7 +623,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
     if (mmd->bindoffsets) {
       mmd->bindoffsets_sharing_info = BLO_read_shared(reader, &mmd->bindoffsets, [&]() {
         BLO_read_int32_array(reader, mmd->verts_num + 1, &mmd->bindoffsets);
-        return blender::implicit_sharing::info_for_mem_free(mmd->bindoffsets);
+        return implicit_sharing::info_for_mem_free(mmd->bindoffsets);
       });
     }
   }
@@ -632,25 +631,25 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   if (mmd->bindcagecos) {
     mmd->bindcagecos_sharing_info = BLO_read_shared(reader, &mmd->bindcagecos, [&]() {
       BLO_read_float3_array(reader, mmd->cage_verts_num, &mmd->bindcagecos);
-      return blender::implicit_sharing::info_for_mem_free(mmd->bindcagecos);
+      return implicit_sharing::info_for_mem_free(mmd->bindcagecos);
     });
   }
   if (mmd->dyngrid) {
     mmd->dyngrid_sharing_info = BLO_read_shared(reader, &mmd->dyngrid, [&]() {
       BLO_read_struct_array(reader, MDefCell, size * size * size, &mmd->dyngrid);
-      return blender::implicit_sharing::info_for_mem_free(mmd->dyngrid);
+      return implicit_sharing::info_for_mem_free(mmd->dyngrid);
     });
   }
   if (mmd->dyninfluences) {
     mmd->dyninfluences_sharing_info = BLO_read_shared(reader, &mmd->dyninfluences, [&]() {
       BLO_read_struct_array(reader, MDefInfluence, mmd->influences_num, &mmd->dyninfluences);
-      return blender::implicit_sharing::info_for_mem_free(mmd->dyninfluences);
+      return implicit_sharing::info_for_mem_free(mmd->dyninfluences);
     });
   }
   if (mmd->dynverts) {
     mmd->dynverts_sharing_info = BLO_read_shared(reader, &mmd->dynverts, [&]() {
       BLO_read_int32_array(reader, mmd->verts_num, &mmd->dynverts);
-      return blender::implicit_sharing::info_for_mem_free(mmd->dynverts);
+      return implicit_sharing::info_for_mem_free(mmd->dynverts);
     });
   }
 
@@ -695,3 +694,5 @@ ModifierTypeInfo modifierType_MeshDeform = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

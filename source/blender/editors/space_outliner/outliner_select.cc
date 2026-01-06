@@ -191,7 +191,7 @@ void outliner_item_mode_toggle(bContext *C,
   TreeStoreElem *tselem = TREESTORE(te);
 
   if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-    Object *ob = blender::id_cast<Object *>(tselem->id);
+    Object *ob = id_cast<Object *>(tselem->id);
     BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
     Base *base = BKE_view_layer_base_find(tvc.view_layer, ob);
 
@@ -259,7 +259,7 @@ static void do_outliner_object_select_recursive(const Scene *scene,
 static void do_outliner_bone_select_recursive(bArmature *arm, Bone *bone_parent, bool select)
 {
   for (Bone &bone : bone_parent->childbase) {
-    if (select && blender::animrig::bone_is_selectable(arm, &bone)) {
+    if (select && animrig::bone_is_selectable(arm, &bone)) {
       bone.flag |= BONE_SELECTED;
     }
     else {
@@ -300,13 +300,13 @@ static void tree_element_object_activate(bContext *C,
 
   /* if id is not object, we search back */
   if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-    ob = blender::id_cast<Object *>(tselem->id);
+    ob = id_cast<Object *>(tselem->id);
   }
   else {
     parent_te = outliner_search_back_te(te, ID_OB);
     if (parent_te) {
       parent_tselem = TREESTORE(parent_te);
-      ob = blender::id_cast<Object *>(parent_tselem->id);
+      ob = id_cast<Object *>(parent_tselem->id);
 
       /* Don't return when activating children of the previous active object. */
       BKE_view_layer_synced_ensure(scene, view_layer);
@@ -319,7 +319,7 @@ static void tree_element_object_activate(bContext *C,
     return;
   }
 
-  sce = blender::id_cast<Scene *>(outliner_search_back(te, ID_SCE));
+  sce = id_cast<Scene *>(outliner_search_back(te, ID_SCE));
   if (sce && scene != sce) {
     WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), sce);
     view_layer = WM_window_get_active_view_layer(CTX_wm_window(C));
@@ -407,7 +407,7 @@ static void tree_element_material_activate(bContext *C,
                                            TreeElement *te)
 {
   /* we search for the object parent */
-  Object *ob = blender::id_cast<Object *>(outliner_search_back(te, ID_OB));
+  Object *ob = id_cast<Object *>(outliner_search_back(te, ID_OB));
   /* NOTE: `ob->matbits` can be nullptr when a local object points to a library mesh. */
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
@@ -431,13 +431,13 @@ static void tree_element_material_activate(bContext *C,
   /* Tagging object for update seems a bit stupid here, but looks like we have to do it
    * for render views to update. See #42973.
    * Note that RNA material update does it too, see e.g. rna_MaterialSlot_update(). */
-  DEG_id_tag_update(blender::id_cast<ID *>(ob), ID_RECALC_TRANSFORM);
+  DEG_id_tag_update(id_cast<ID *>(ob), ID_RECALC_TRANSFORM);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
 }
 
 static void tree_element_camera_activate(bContext *C, Scene *scene, TreeElement *te)
 {
-  Object *ob = blender::id_cast<Object *>(outliner_search_back(te, ID_OB));
+  Object *ob = id_cast<Object *>(outliner_search_back(te, ID_OB));
 
   if (ob == nullptr) {
     /* Happens in "Blender File" view (there is simply no object up in the hierarchy in this case).
@@ -464,7 +464,7 @@ static void tree_element_world_activate(bContext *C, Scene *scene, TreeElement *
   if (tep) {
     TreeStoreElem *tselem = TREESTORE(tep);
     if (tselem->type == TSE_SOME_ID) {
-      sce = blender::id_cast<Scene *>(tselem->id);
+      sce = id_cast<Scene *>(tselem->id);
     }
   }
 
@@ -477,7 +477,7 @@ static void tree_element_world_activate(bContext *C, Scene *scene, TreeElement *
 static void tree_element_defgroup_activate(bContext *C, TreeElement *te, TreeStoreElem *tselem)
 {
   /* id in tselem is object */
-  Object *ob = blender::id_cast<Object *>(tselem->id);
+  Object *ob = id_cast<Object *>(tselem->id);
   BLI_assert(te->index + 1 >= 0);
   BKE_object_defgroup_active_index_set(ob, te->index + 1);
 
@@ -487,7 +487,7 @@ static void tree_element_defgroup_activate(bContext *C, TreeElement *te, TreeSto
 
 static void tree_element_gplayer_activate(bContext *C, TreeElement *te, TreeStoreElem *tselem)
 {
-  bGPdata *gpd = blender::id_cast<bGPdata *>(tselem->id);
+  bGPdata *gpd = id_cast<bGPdata *>(tselem->id);
   bGPDlayer *gpl = static_cast<bGPDlayer *>(te->directdata);
 
   /* We can only have a single "active" layer at a time
@@ -553,8 +553,8 @@ static void tree_element_posechannel_activate(bContext *C,
                                               const eOLSetState set,
                                               bool recursive)
 {
-  Object *ob = blender::id_cast<Object *>(tselem->id);
-  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+  Object *ob = id_cast<Object *>(tselem->id);
+  bArmature *arm = id_cast<bArmature *>(ob->data);
   bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 
   if (set != OL_SETSEL_EXTEND) {
@@ -570,7 +570,7 @@ static void tree_element_posechannel_activate(bContext *C,
       }
 
       for (bPoseChannel &pchannel : ob_iter->pose->chanbase) {
-        blender::animrig::bone_deselect(&pchannel);
+        animrig::bone_deselect(&pchannel);
       }
 
       if (ob != ob_iter) {
@@ -580,11 +580,11 @@ static void tree_element_posechannel_activate(bContext *C,
   }
 
   if ((set == OL_SETSEL_EXTEND) && (pchan->flag & POSE_SELECTED)) {
-    blender::animrig::bone_deselect(pchan);
+    animrig::bone_deselect(pchan);
   }
   else {
-    if (blender::animrig::bone_is_visible(arm, pchan)) {
-      blender::animrig::bone_select(pchan);
+    if (animrig::bone_is_visible(arm, pchan)) {
+      animrig::bone_select(pchan);
     }
     arm->act_bone = pchan->bone;
   }
@@ -606,7 +606,7 @@ static void tree_element_bone_activate(bContext *C,
                                        const eOLSetState set,
                                        bool recursive)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
+  bArmature *arm = id_cast<bArmature *>(tselem->id);
   Bone *bone = static_cast<Bone *>(te->directdata);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -627,7 +627,7 @@ static void tree_element_bone_activate(bContext *C,
     bone->flag &= ~BONE_SELECTED;
   }
   else {
-    if (blender::animrig::bone_is_visible(arm, bone) && ((bone->flag & BONE_UNSELECTABLE) == 0)) {
+    if (animrig::bone_is_visible(arm, bone) && ((bone->flag & BONE_UNSELECTABLE) == 0)) {
       bone->flag |= BONE_SELECTED;
     }
     arm->act_bone = bone;
@@ -661,7 +661,7 @@ static void tree_element_ebone_activate(bContext *C,
                                         const eOLSetState set,
                                         bool recursive)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
+  bArmature *arm = id_cast<bArmature *>(tselem->id);
   EditBone *ebone = static_cast<EditBone *>(te->directdata);
 
   if (set == OL_SETSEL_NORMAL) {
@@ -696,7 +696,7 @@ static void tree_element_modifier_activate(bContext *C,
                                            TreeStoreElem *tselem,
                                            const eOLSetState set)
 {
-  Object *ob = blender::id_cast<Object *>(tselem->id);
+  Object *ob = id_cast<Object *>(tselem->id);
   ModifierData *md = static_cast<ModifierData *>(te->directdata);
 
   if (set == OL_SETSEL_NORMAL) {
@@ -707,7 +707,7 @@ static void tree_element_modifier_activate(bContext *C,
 
 static void tree_element_psys_activate(bContext *C, TreeStoreElem *tselem)
 {
-  Object *ob = blender::id_cast<Object *>(tselem->id);
+  Object *ob = id_cast<Object *>(tselem->id);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
 }
@@ -719,7 +719,7 @@ static void tree_element_constraint_activate(bContext *C,
                                              TreeStoreElem *tselem,
                                              const eOLSetState set)
 {
-  Object *ob = blender::id_cast<Object *>(tselem->id);
+  Object *ob = id_cast<Object *>(tselem->id);
 
   /* Activate the parent bone if this is a bone constraint. */
   te = te->parent;
@@ -921,7 +921,7 @@ static eOLDrawState tree_element_defgroup_state_get(const Scene *scene,
                                                     const TreeElement *te,
                                                     const TreeStoreElem *tselem)
 {
-  const Object *ob = blender::id_cast<const Object *>(tselem->id);
+  const Object *ob = id_cast<const Object *>(tselem->id);
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == BKE_view_layer_active_object_get(view_layer)) {
     if (BKE_object_defgroup_active_index_get(ob) == te->index + 1) {
@@ -936,11 +936,11 @@ static eOLDrawState tree_element_bone_state_get(const Scene *scene,
                                                 const TreeElement *te,
                                                 const TreeStoreElem *tselem)
 {
-  const bArmature *arm = blender::id_cast<const bArmature *>(tselem->id);
+  const bArmature *arm = id_cast<const bArmature *>(tselem->id);
   const Bone *bone = static_cast<Bone *>(te->directdata);
   BKE_view_layer_synced_ensure(scene, view_layer);
   const Object *ob = BKE_view_layer_active_object_get(view_layer);
-  if (ob && ob->data == blender::id_cast<const ID *>(arm)) {
+  if (ob && ob->data == id_cast<const ID *>(arm)) {
     if (bone->flag & BONE_SELECTED) {
       return OL_DRAWSEL_NORMAL;
     }
@@ -960,7 +960,7 @@ static eOLDrawState tree_element_ebone_state_get(const TreeElement *te)
 static eOLDrawState tree_element_modifier_state_get(const TreeElement *te,
                                                     const TreeStoreElem *tselem)
 {
-  const Object *ob = blender::id_cast<const Object *>(tselem->id);
+  const Object *ob = id_cast<const Object *>(tselem->id);
   const ModifierData *md = static_cast<const ModifierData *>(te->directdata);
 
   return (BKE_object_active_modifier(ob) == md) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
@@ -976,7 +976,7 @@ static eOLDrawState tree_element_pose_state_get(const Scene *scene,
                                                 const ViewLayer *view_layer,
                                                 const TreeStoreElem *tselem)
 {
-  const Object *ob = blender::id_cast<const Object *>(tselem->id);
+  const Object *ob = id_cast<const Object *>(tselem->id);
   /* This will just lookup in a cache, it will not change the arguments. */
   BKE_view_layer_synced_ensure(scene, const_cast<ViewLayer *>(view_layer));
   const Base *base = BKE_view_layer_base_find(const_cast<ViewLayer *>(view_layer),
@@ -996,7 +996,7 @@ static eOLDrawState tree_element_posechannel_state_get(const Object *ob_pose,
                                                        const TreeElement *te,
                                                        const TreeStoreElem *tselem)
 {
-  const Object *ob = blender::id_cast<const Object *>(tselem->id);
+  const Object *ob = id_cast<const Object *>(tselem->id);
   const bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
   if (ob == ob_pose && ob->pose) {
     if (pchan->flag & POSE_SELECTED) {
@@ -1096,7 +1096,7 @@ static eOLDrawState tree_element_active_material_get(const Scene *scene,
                                                      const TreeElement *te)
 {
   /* we search for the object parent */
-  const Object *ob = blender::id_cast<const Object *>(
+  const Object *ob = id_cast<const Object *>(
       outliner_search_back(const_cast<TreeElement *>(te), ID_OB));
   /* NOTE: `ob->matbits` can be nullptr when a local object points to a library mesh. */
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -1154,7 +1154,7 @@ static eOLDrawState tree_element_active_world_get(const Scene *scene, const Tree
 
 static eOLDrawState tree_element_active_camera_get(const Scene *scene, const TreeElement *te)
 {
-  const Object *ob = blender::id_cast<const Object *>(
+  const Object *ob = id_cast<const Object *>(
       outliner_search_back(const_cast<TreeElement *>(te), ID_OB));
 
   return (scene->camera == ob) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
@@ -1372,7 +1372,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         }
         break;
       case TSE_BONE: {
-        bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
+        bArmature *arm = id_cast<bArmature *>(tselem->id);
         Bone *bone = static_cast<Bone *>(te->directdata);
 
         ptr = RNA_pointer_create_discrete(&arm->id, &RNA_Bone, bone);
@@ -1380,7 +1380,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         break;
       }
       case TSE_EBONE: {
-        bArmature *arm = blender::id_cast<bArmature *>(tselem->id);
+        bArmature *arm = id_cast<bArmature *>(tselem->id);
         EditBone *ebone = static_cast<EditBone *>(te->directdata);
 
         ptr = RNA_pointer_create_discrete(&arm->id, &RNA_EditBone, ebone);
@@ -1388,8 +1388,8 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         break;
       }
       case TSE_POSE_CHANNEL: {
-        Object *ob = blender::id_cast<Object *>(tselem->id);
-        bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+        Object *ob = id_cast<Object *>(tselem->id);
+        bArmature *arm = id_cast<bArmature *>(ob->data);
         bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 
         ptr = RNA_pointer_create_discrete(&arm->id, &RNA_PoseBone, pchan);
@@ -1397,8 +1397,8 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         break;
       }
       case TSE_POSE_BASE: {
-        Object *ob = blender::id_cast<Object *>(tselem->id);
-        bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+        Object *ob = id_cast<Object *>(tselem->id);
+        bArmature *arm = id_cast<bArmature *>(ob->data);
 
         ptr = RNA_pointer_create_discrete(&arm->id, &RNA_Armature, arm);
         context = BCONTEXT_DATA;
@@ -1412,7 +1412,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         break;
       }
       case TSE_LINKED_PSYS: {
-        Object *ob = blender::id_cast<Object *>(tselem->id);
+        Object *ob = id_cast<Object *>(tselem->id);
         ParticleSystem *psys = psys_get_current(ob);
 
         ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ParticleSystem, psys);
@@ -1499,11 +1499,11 @@ static void do_outliner_item_activate_tree_element(bContext *C,
     else if (te->idcode == ID_SCE) {
       if (tvc.scene != id_cast<Scene *>(tselem->id)) {
         WM_window_set_active_scene(
-            CTX_data_main(C), C, CTX_wm_window(C), blender::id_cast<Scene *>(tselem->id));
+            CTX_data_main(C), C, CTX_wm_window(C), id_cast<Scene *>(tselem->id));
       }
     }
     else if ((te->idcode == ID_GR) && (space_outliner->outlinevis != SO_VIEW_LAYER)) {
-      Collection *gr = blender::id_cast<Collection *>(tselem->id);
+      Collection *gr = id_cast<Collection *>(tselem->id);
       BKE_view_layer_synced_ensure(tvc.scene, tvc.view_layer);
 
       if (extend) {

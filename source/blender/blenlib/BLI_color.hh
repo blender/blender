@@ -152,5 +152,4 @@ BLI_INLINE ColorTheme4b to_theme4b(const ColorSceneLinear4f<eAlpha::Straight> &s
 }
 
 }  // namespace color
-
 }  // namespace blender

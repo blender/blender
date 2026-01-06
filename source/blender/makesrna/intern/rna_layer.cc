@@ -50,9 +50,11 @@
 
 /***********************************/
 
+namespace blender {
+
 static PointerRNA rna_ViewLayer_active_layer_collection_get(PointerRNA *ptr)
 {
-  const Scene *scene = blender::id_cast<const Scene *>(ptr->owner_id);
+  const Scene *scene = id_cast<const Scene *>(ptr->owner_id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   BKE_view_layer_synced_ensure(scene, view_layer);
   LayerCollection *lc = BKE_view_layer_active_collection_get(view_layer);
@@ -63,7 +65,7 @@ static void rna_ViewLayer_active_layer_collection_set(PointerRNA *ptr,
                                                       PointerRNA value,
                                                       ReportList * /*reports*/)
 {
-  const Scene *scene = blender::id_cast<const Scene *>(ptr->owner_id);
+  const Scene *scene = id_cast<const Scene *>(ptr->owner_id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   LayerCollection *lc = static_cast<LayerCollection *>(value.data);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -75,7 +77,7 @@ static void rna_ViewLayer_active_layer_collection_set(PointerRNA *ptr,
 
 static PointerRNA rna_LayerObjects_active_object_get(PointerRNA *ptr)
 {
-  const Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  const Scene *scene = id_cast<Scene *>(ptr->owner_id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   BKE_view_layer_synced_ensure(scene, view_layer);
   return RNA_id_pointer_create(
@@ -86,7 +88,7 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
                                                PointerRNA value,
                                                ReportList *reports)
 {
-  const Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  const Scene *scene = id_cast<Scene *>(ptr->owner_id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   if (value.data) {
     Object *ob = static_cast<Object *>(value.data);
@@ -155,7 +157,7 @@ static bool rna_LayerCollection_visible_get(LayerCollection *layer_collection, b
 
 static void rna_ViewLayer_update_render_passes(ID *id, Main *bmain)
 {
-  Scene *scene = blender::id_cast<Scene *>(id);
+  Scene *scene = id_cast<Scene *>(id);
   BKE_ntree_update_tag_id_changed(bmain, &scene->id);
   BKE_ntree_update(*bmain);
 
@@ -197,7 +199,7 @@ static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_SCE) {
-    Scene *scene = blender::id_cast<Scene *>(id);
+    Scene *scene = id_cast<Scene *>(id);
     ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
     return RNA_pointer_create_with_parent(*ptr, &RNA_Depsgraph, depsgraph);
@@ -226,7 +228,7 @@ static void rna_ViewLayer_update_tagged(ID *id_ptr,
                                         Main *bmain,
                                         ReportList *reports)
 {
-  Scene *scene = blender::id_cast<Scene *>(id_ptr);
+  Scene *scene = id_cast<Scene *>(id_ptr);
   Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
 
   if (DEG_is_evaluating(depsgraph)) {
@@ -256,9 +258,8 @@ static void rna_ViewLayer_update_tagged(ID *id_ptr,
 static void rna_ObjectBase_select_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Base *base = static_cast<Base *>(ptr->data);
-  short mode = (base->flag & BASE_SELECTED) ? blender::ed::object::BA_SELECT :
-                                              blender::ed::object::BA_DESELECT;
-  blender::ed::object::base_select(base, blender::ed::object::eObjectSelect_Mode(mode));
+  short mode = (base->flag & BASE_SELECTED) ? ed::object::BA_SELECT : ed::object::BA_DESELECT;
+  ed::object::base_select(base, ed::object::eObjectSelect_Mode(mode));
 }
 
 static void rna_ObjectBase_hide_viewport_update(bContext *C, PointerRNA * /*ptr*/)
@@ -272,13 +273,13 @@ static void rna_ObjectBase_hide_viewport_update(bContext *C, PointerRNA * /*ptr*
 
 static void rna_LayerCollection_name_get(PointerRNA *ptr, char *value)
 {
-  ID *id = blender::id_cast<ID *>((static_cast<LayerCollection *>(ptr->data))->collection);
+  ID *id = id_cast<ID *>((static_cast<LayerCollection *>(ptr->data))->collection);
   strcpy(value, id->name + 2);
 }
 
 int rna_LayerCollection_name_length(PointerRNA *ptr)
 {
-  ID *id = blender::id_cast<ID *>((static_cast<LayerCollection *>(ptr->data))->collection);
+  ID *id = id_cast<ID *>((static_cast<LayerCollection *>(ptr->data))->collection);
   return strlen(id->name + 2);
 }
 
@@ -321,7 +322,7 @@ static void rna_LayerCollection_hide_viewport_set(PointerRNA *ptr, bool value)
 
 static void rna_LayerCollection_exclude_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
   LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
 
@@ -344,13 +345,13 @@ static void rna_LayerCollection_exclude_update(Main *bmain, Scene * /*scene*/, P
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, nullptr);
   if (exclude) {
-    blender::ed::object::base_active_refresh(bmain, scene, view_layer);
+    ed::object::base_active_refresh(bmain, scene, view_layer);
   }
 }
 
 static void rna_LayerCollection_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
   LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
 
@@ -383,7 +384,7 @@ static bool rna_LayerCollection_has_selected_objects(LayerCollection *lc,
 
 void rna_LayerCollection_children_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
   LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -393,7 +394,7 @@ void rna_LayerCollection_children_begin(CollectionPropertyIterator *iter, Pointe
 
 static bool rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, PointerRNA *r_ptr)
 {
-  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
   LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   /* TODO: replace by using RNA ancestors. */
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
@@ -412,7 +413,7 @@ static bool rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
                                                       const char *key,
                                                       PointerRNA *r_ptr)
 {
-  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
   LayerCollection *lc = static_cast<LayerCollection *>(ptr->data);
   /* TODO: replace by using RNA ancestors. */
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
@@ -427,7 +428,11 @@ static bool rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
   return false;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_layer_collection(BlenderRNA *brna)
 {
@@ -555,7 +560,7 @@ static void rna_def_layer_objects(BlenderRNA *brna, PropertyRNA *cprop)
                                  nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Object", "Active object for this layer");
-  /* Could call: `blender::ed::object::base_activate(C, view_layer->basact);`
+  /* Could call: `ed::object::base_activate(C, view_layer->basact);`
    * but would be a bad level call and it seems the notifier is enough */
   RNA_def_property_update(prop, NC_SCENE | ND_OB_ACTIVE, nullptr);
 
@@ -722,5 +727,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
   RNA_define_animate_sdna(true);
   /* *** Animated *** */
 }
+
+}  // namespace blender
 
 #endif

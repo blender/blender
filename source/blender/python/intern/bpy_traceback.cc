@@ -20,6 +20,8 @@
 
 #include "bpy_traceback.hh"
 
+namespace blender {
+
 #define MAKE_PY_IDENTIFIER_EX(varname, value) static _Py_Identifier varname{value, -1};
 #define MAKE_PY_IDENTIFIER(varname) MAKE_PY_IDENTIFIER_EX(PyId_##varname, #varname)
 
@@ -274,3 +276,5 @@ bool python_script_error_jump(
 
   return success;
 }
+
+}  // namespace blender

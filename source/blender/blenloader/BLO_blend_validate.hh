@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace blender {
+
 /** \file
  * \ingroup blenloader
  * \brief Utilities ensuring `.blend` file (i.e. Main)
@@ -41,3 +43,5 @@ void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList *reports);
  * cloud gallery (https://cloud.blender.org/p/gallery/5b642e25bf419c1042056fc6).
  */
 void BLO_main_validate_embedded_flag(Main *bmain, ReportList *reports);
+
+}  // namespace blender

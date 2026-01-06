@@ -24,6 +24,8 @@
 
 #include "../generic/python_utildefines.hh"
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmeditselseq_active_doc,
@@ -475,3 +477,5 @@ int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value)
   PyMem_FREE(value_array);
   return 0;
 }
+
+}  // namespace blender

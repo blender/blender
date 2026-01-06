@@ -53,7 +53,7 @@ static void attr_create_motion_from_velocity(PointCloud *pointcloud,
 }
 
 static void copy_attributes(PointCloud *pointcloud,
-                            const ::PointCloud &b_pointcloud,
+                            const blender::PointCloud &b_pointcloud,
                             const bool need_motion,
                             const float motion_scale)
 {
@@ -96,7 +96,7 @@ static void copy_attributes(PointCloud *pointcloud,
 
 static void export_pointcloud(Scene *scene,
                               PointCloud *pointcloud,
-                              const ::PointCloud &b_pointcloud,
+                              const blender::PointCloud &b_pointcloud,
                               const bool need_motion,
                               const float motion_scale)
 {
@@ -135,7 +135,7 @@ static void export_pointcloud(Scene *scene,
 }
 
 static void export_pointcloud_motion(PointCloud *pointcloud,
-                                     const ::PointCloud &b_pointcloud,
+                                     const blender::PointCloud &b_pointcloud,
                                      const int motion_step)
 {
   /* Find or add attribute. */
@@ -194,7 +194,8 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
   new_pointcloud.set_used_shaders(used_shaders);
 
   /* TODO: add option to filter out points in the view layer. */
-  const ::PointCloud *b_pointcloud = blender::id_cast<::PointCloud *>(b_ob_info.object_data);
+  const blender::PointCloud *b_pointcloud = blender::id_cast<blender::PointCloud *>(
+      b_ob_info.object_data);
   /* Motion blur attribute is relative to seconds, we need it relative to frames. */
   const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
   const float motion_scale = (need_motion) ? scene->motion_shutter_time() /
@@ -232,7 +233,8 @@ void BlenderSync::sync_pointcloud_motion(PointCloud *pointcloud,
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene, preview)) {
     /* PointCloud object. */
-    const ::PointCloud *b_pointcloud = blender::id_cast<::PointCloud *>(b_ob_info.object_data);
+    const blender::PointCloud *b_pointcloud = blender::id_cast<blender::PointCloud *>(
+        b_ob_info.object_data);
     export_pointcloud_motion(pointcloud, *b_pointcloud, motion_step);
   }
   else {

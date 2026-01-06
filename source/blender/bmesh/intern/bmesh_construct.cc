@@ -22,6 +22,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
+namespace blender {
+
 bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len)
 {
   int i, i_prev = len - 1;
@@ -209,8 +211,8 @@ BMFace *BM_face_create_ngon(BMesh *bm,
                             const BMFace *f_example,
                             const eBMCreateFlag create_flag)
 {
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_sort(len);
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts_sort(len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_sort(len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts_sort(len);
 
   BLI_assert(len && v1 && v2 && edges && bm);
 
@@ -229,7 +231,7 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm,
                                   const bool calc_winding,
                                   const bool create_edges)
 {
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edge_arr(len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edge_arr(len);
 
   uint winding[2] = {0, 0};
   int i, i_prev = len - 1;
@@ -296,8 +298,8 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm,
 void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
 {
   using AngleIndex = std::pair<float, int>;
-  blender::Array<AngleIndex, BM_DEFAULT_NGON_STACK_SIZE> vang(len);
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vert_arr_map(len);
+  Array<AngleIndex, BM_DEFAULT_NGON_STACK_SIZE> vang(len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vert_arr_map(len);
 
   float nor[3], cent[3];
   int index_tangent = 0;
@@ -410,9 +412,9 @@ static BMFace *bm_mesh_copy_new_face(BMesh *bm_new,
                                      BMEdge **etable,
                                      BMFace *f)
 {
-  blender::Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> loops(f->len);
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(f->len);
+  Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> loops(f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(f->len);
 
   BMFace *f_new;
   BMLoop *l_iter, *l_first;
@@ -688,3 +690,5 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
   return bm_new;
 }
+
+}  // namespace blender

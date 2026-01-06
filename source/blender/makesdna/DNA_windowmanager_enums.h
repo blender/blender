@@ -10,6 +10,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 /**
  * Operator type return flags: exec(), invoke() modal(), return values.
  */
@@ -69,3 +71,5 @@ enum {
    */
   OP_IS_MODAL_CURSOR_REGION = (1 << 4),
 };
+
+}  // namespace blender

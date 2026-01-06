@@ -8,6 +8,8 @@
 #include "BLI_stack.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define SIZE 1024
 
 /* number of items per chunk. use a small value to expose bugs */
@@ -215,3 +217,5 @@ TEST(stack, Reuse)
 
   BLI_stack_free(stack);
 }
+
+}  // namespace blender

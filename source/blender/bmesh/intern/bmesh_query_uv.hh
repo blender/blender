@@ -12,6 +12,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /**
  * Retrieve the custom data offsets for the UV map.
  * \param layer: The layer index (where 0 is the first UV map).
@@ -88,3 +90,5 @@ bool BM_loop_uv_share_vert_check(const BMLoop *l_a,
 bool BM_face_uv_point_inside_test(const BMFace *f,
                                   const float co[2],
                                   int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+}  // namespace blender

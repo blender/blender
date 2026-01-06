@@ -103,7 +103,7 @@ void GHOST_XrContext::createOpenXRInstance(
 {
   XrInstanceCreateInfo create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
 
-  STRNCPY(create_info.applicationInfo.applicationName, "Blender");
+  blender::STRNCPY(create_info.applicationInfo.applicationName, "Blender");
   create_info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
   getAPILayersToEnable(enabled_layers_);

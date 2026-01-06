@@ -5,7 +5,7 @@
 /** \file
  * \ingroup pythonintern
  *
- * This adds helpers to #blender::ui::Layout which can't be added easily to RNA itself.
+ * This adds helpers to #ui::Layout which can't be added easily to RNA itself.
  */
 
 #include <Python.h>
@@ -19,6 +19,8 @@
 #include "bpy_rna.hh"
 #include "bpy_rna_ui.hh" /* Declare #BPY_rna_uilayout_introspect_method_def. */
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_rna_uilayout_introspect_doc,
@@ -30,7 +32,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_rna_uilayout_introspect(PyObject *self)
 {
   BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(self);
-  blender::ui::Layout *layout = pyrna->ptr->data_as<blender::ui::Layout>();
+  ui::Layout *layout = pyrna->ptr->data_as<ui::Layout>();
 
   std::string expr = layout_introspect(layout);
   PyObject *main_mod = PyC_MainModule_Backup();
@@ -65,3 +67,5 @@ PyMethodDef BPY_rna_uilayout_introspect_method_def = {
 #    pragma GCC diagnostic pop
 #  endif
 #endif
+
+}  // namespace blender

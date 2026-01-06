@@ -31,6 +31,8 @@
 
 #include "bmesh_py_api.hh" /* own include */
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_new_doc,
@@ -228,3 +230,5 @@ PyObject *BPyInit_bmesh()
 
   return mod;
 }
+
+}  // namespace blender

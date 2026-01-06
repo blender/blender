@@ -10,4 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 [[nodiscard]] PyObject *BPY_operator_module();
+
+}  // namespace blender

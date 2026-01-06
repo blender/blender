@@ -8,8 +8,11 @@
 
 #pragma once
 
+namespace blender {
+
 struct Mesh;
 struct ModifierData;
+struct Object;
 struct ReportList;
 
 Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh);
@@ -30,6 +33,8 @@ Mesh *BKE_mesh_remesh_quadriflow(const Mesh *mesh,
                                  void (*update_cb)(void *, float progress, int *cancel),
                                  void *update_cb_data);
 
-namespace blender::bke {
+namespace bke {
 void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst);
 }
+
+}  // namespace blender

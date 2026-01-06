@@ -1478,7 +1478,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransDataExtension *tx = nullptr;
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    Mesh *mesh = blender::id_cast<Mesh *>(tc->obedit->data);
+    Mesh *mesh = id_cast<Mesh *>(tc->obedit->data);
     BMesh *bm = em->bm;
     BMVert *eve;
     BMIter iter;
@@ -1768,7 +1768,7 @@ static BMPartialUpdate *mesh_partial_ensure(TransInfo *t,
   Array<int> verts_group;
   int verts_group_count = 0; /* Number of non-zero elements in `verts_group`. */
 
-  blender::BitVector<> verts_mask;
+  BitVector<> verts_mask;
   int verts_mask_count = 0; /* Number of elements enabled in `verts_mask`. */
 
   if ((partial_type == PARTIAL_TYPE_GROUP) && ((t->flag & T_PROP_EDIT) || tc->use_mirror_axis_any))

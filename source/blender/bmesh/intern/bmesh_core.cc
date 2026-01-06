@@ -22,7 +22,7 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */
@@ -383,8 +383,8 @@ static BMFace *bm_face_copy_impl(BMesh *bm_dst,
                                  const bool copy_verts,
                                  const bool copy_edges)
 {
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(f->len);
   BMLoop *l_iter;
   BMLoop *l_first;
   BMFace *f_copy;
@@ -600,7 +600,7 @@ BMFace *BM_face_create_verts(BMesh *bm,
                              const eBMCreateFlag create_flag,
                              const bool create_edges)
 {
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edge_arr(len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edge_arr(len);
 
   if (create_edges) {
     BM_edges_from_verts_ensure(bm, edge_arr.data(), vert_arr, len);
@@ -931,7 +931,7 @@ static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
 
 void BM_face_edges_kill(BMesh *bm, BMFace *f)
 {
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(f->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(f->len);
   BMLoop *l_iter;
   BMLoop *l_first;
   int i = 0;
@@ -948,7 +948,7 @@ void BM_face_edges_kill(BMesh *bm, BMFace *f)
 
 void BM_face_verts_kill(BMesh *bm, BMFace *f)
 {
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
   BMLoop *l_iter;
   BMLoop *l_first;
   int i = 0;
@@ -1430,7 +1430,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
     /* handle multi-res data */
     if (cd_loop_mdisp_offset != -1) {
       float f_center[3];
-      blender::Array<blender::float3, BM_DEFAULT_TOPOLOGY_STACK_SIZE> faces_center(totface);
+      Array<float3, BM_DEFAULT_TOPOLOGY_STACK_SIZE> faces_center(totface);
 
       BM_face_calc_center_median(f_new, f_center);
       for (i = 0; i < totface; i++) {
@@ -2217,9 +2217,9 @@ bool BM_vert_splice_check_double_face(BMVert *v_a, BMVert *v_b)
   }
 
   BMVert *v_pair[2] = {v_a, v_b};
-  blender::Vector<BMLoop *, BM_DEFAULT_ITER_STACK_SIZE> loops_pair[2];
+  Vector<BMLoop *, BM_DEFAULT_ITER_STACK_SIZE> loops_pair[2];
 
-  for (const int side : blender::IndexRange(2)) {
+  for (const int side : IndexRange(2)) {
     BMEdge *e_iter = v_pair[side]->e;
     do {
       if (BMLoop *l = e_iter->l) {
@@ -2235,7 +2235,7 @@ bool BM_vert_splice_check_double_face(BMVert *v_a, BMVert *v_b)
     }
   }
 
-  for (const int side : blender::IndexRange(2)) {
+  for (const int side : IndexRange(2)) {
     if (loops_pair[side].size() > 1) {
       std::sort(loops_pair[side].begin(), loops_pair[side].end(), [](BMLoop *a, BMLoop *b) {
         return a->f->len < b->f->len;
@@ -2842,7 +2842,7 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
     }
   }
 
-  blender::Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> edges_buf(edges_len);
+  Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> edges_buf(edges_len);
   BMEdge **edges = edges_buf.data();
   STACK_DECLARE(edges);
 
@@ -3016,3 +3016,5 @@ void bmesh_face_swap_data(BMFace *f_a, BMFace *f_b)
   std::swap(f_a->head.data, f_b->head.data);
   std::swap(f_a->head.index, f_b->head.index);
 }
+
+}  // namespace blender

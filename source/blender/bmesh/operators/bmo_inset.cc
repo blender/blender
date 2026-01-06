@@ -26,6 +26,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 /* Merge loop-data that diverges, see: #41445 */
 #define USE_LOOP_CUSTOMDATA_MERGE
 
@@ -268,10 +270,10 @@ static void bmo_face_inset_individual(BMesh *bm,
   InterpFace *iface = nullptr;
 
   /* stores verts split away from the face (aligned with face verts) */
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
   /* store edge normals (aligned with face-loop-edges) */
-  blender::Array<blender::float3, BM_DEFAULT_NGON_STACK_SIZE> edge_nors(f->len);
-  blender::Array<blender::float3, BM_DEFAULT_NGON_STACK_SIZE> coords(f->len);
+  Array<float3, BM_DEFAULT_NGON_STACK_SIZE> edge_nors(f->len);
+  Array<float3, BM_DEFAULT_NGON_STACK_SIZE> coords(f->len);
 
   BMLoop *l_iter, *l_first;
   BMLoop *l_other;
@@ -699,7 +701,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
   /* BMVert original location storage */
   const bool use_vert_coords_orig = use_edge_rail;
-  blender::Map<BMVert *, blender::float3> vert_coords;
+  Map<BMVert *, float3> vert_coords;
 
   BMVert *v;
   BMEdge *e;
@@ -933,7 +935,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
                 if (l_other_a->v == l_other_b->v) {
                   /* both edges faces are adjacent, but we don't need to know the shared edge
                    * having both verts is enough. */
-                  blender::float3 co_other;
+                  float3 co_other;
 
                   /* note that we can't use 'l_other_a->v' directly since it
                    * may be inset and give a feedback loop. */
@@ -1366,3 +1368,5 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 }
 
 /** \} */
+
+}  // namespace blender

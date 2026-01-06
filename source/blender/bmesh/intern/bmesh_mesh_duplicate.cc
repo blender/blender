@@ -14,6 +14,8 @@
 
 #include "bmesh.hh"
 
+namespace blender {
+
 static BMVert *bm_vert_copy(BMesh *bm_dst,
                             const std::optional<BMCustomDataCopyMap> &cd_vert_map,
                             BMVert *v_src)
@@ -53,8 +55,8 @@ static BMFace *bm_face_copy_with_arrays(BMesh *bm_dst,
                                         BMEdge **edges_dst)
 {
   BMFace *f_dst;
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vtar(f_src->len);
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edar(f_src->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vtar(f_src->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edar(f_src->len);
   BMLoop *l_iter_src, *l_iter_dst, *l_first_src;
   int i;
 
@@ -160,3 +162,5 @@ void BM_mesh_copy_arrays(BMesh *bm_src,
   MEM_freeN(verts_dst);
   MEM_freeN(edges_dst);
 }
+
+}  // namespace blender

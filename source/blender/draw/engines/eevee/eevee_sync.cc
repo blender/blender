@@ -44,7 +44,7 @@ ObjectHandle &SyncModule::sync_object(const ObjectRef &ob_ref)
   return handle;
 }
 
-WorldHandle SyncModule::sync_world(const ::World &world)
+WorldHandle SyncModule::sync_world(const blender::World &world)
 {
   WorldHandle handle;
   handle.recalc = inst_.get_recalc_flags(world);
@@ -148,7 +148,7 @@ void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle, const ObjectRef 
     is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;
     has_transparent_shadows = has_transparent_shadows || material.has_transparent_shadows;
 
-    ::Material *mat = GPU_material_get_material(gpu_material);
+    blender::Material *mat = GPU_material_get_material(gpu_material);
     inst_.cryptomatte.sync_material(mat);
 
     if (GPU_material_has_displacement_output(gpu_material)) {
@@ -226,7 +226,7 @@ bool SyncModule::sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRe
     has_transparent_shadows = has_transparent_shadows || material.has_transparent_shadows;
 
     GPUMaterial *gpu_material = material_array.gpu_materials[batch.material_slot];
-    ::Material *mat = GPU_material_get_material(gpu_material);
+    blender::Material *mat = GPU_material_get_material(gpu_material);
     inst_.cryptomatte.sync_material(mat);
 
     if (GPU_material_has_displacement_output(gpu_material)) {
@@ -310,7 +310,7 @@ void SyncModule::sync_pointcloud(Object *ob, ObjectHandle &ob_handle, const Obje
 
   inst_.cryptomatte.sync_object(ob, res_handle);
   GPUMaterial *gpu_material = material.shading.gpumat;
-  ::Material *mat = GPU_material_get_material(gpu_material);
+  blender::Material *mat = GPU_material_get_material(gpu_material);
   inst_.cryptomatte.sync_material(mat);
 
   if (GPU_material_has_displacement_output(gpu_material) && mat->inflate_bounds != 0.0f) {
@@ -468,7 +468,7 @@ void SyncModule::sync_curves(Object *ob,
 
   inst_.cryptomatte.sync_object(ob, res_handle);
   GPUMaterial *gpu_material = material.shading.gpumat;
-  ::Material *mat = GPU_material_get_material(gpu_material);
+  blender::Material *mat = GPU_material_get_material(gpu_material);
   inst_.cryptomatte.sync_material(mat);
 
   if (GPU_material_has_displacement_output(gpu_material) && mat->inflate_bounds != 0.0f) {

@@ -12,11 +12,13 @@
 
 #include "RNA_access.hh"
 
-namespace blender::nodes {
+namespace blender {
+
+namespace nodes {
 
 static void register_node_type_geo_group()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   bke::node_type_base_custom(ntype, "GeometryNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.enum_name_legacy = "GROUP";
@@ -34,13 +36,13 @@ static void register_node_type_geo_group()
   ntype.labelfunc = node_group_label;
   ntype.declare = node_group_declare;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_geo_group)
 
-}  // namespace blender::nodes
+}  // namespace nodes
 
-void register_node_type_geo_custom_group(blender::bke::bNodeType *ntype)
+void register_node_type_geo_custom_group(bke::bNodeType *ntype)
 {
   /* These methods can be overridden but need a default implementation otherwise. */
   if (ntype->poll == nullptr) {
@@ -49,5 +51,7 @@ void register_node_type_geo_custom_group(blender::bke::bNodeType *ntype)
   if (ntype->insert_link == nullptr) {
     ntype->insert_link = node_insert_link_default;
   }
-  ntype->declare = blender::nodes::node_group_declare;
+  ntype->declare = nodes::node_group_declare;
 }
+
+}  // namespace blender

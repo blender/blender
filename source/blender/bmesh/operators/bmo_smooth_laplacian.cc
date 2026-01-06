@@ -19,6 +19,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 // #define SMOOTH_LAPLACIAN_AREA_FACTOR 4.0f  /* UNUSED */
 // #define SMOOTH_LAPLACIAN_EDGE_FACTOR 2.0f  /* UNUSED */
 #define SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE 1.8f
@@ -494,3 +496,5 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 
   delete_laplacian_system(sys);
 }
+
+}  // namespace blender

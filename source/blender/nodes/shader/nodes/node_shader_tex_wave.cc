@@ -17,7 +17,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tex_wave_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_wave_cc {
 
 static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 {
@@ -327,13 +329,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tex_wave_cc
+}  // namespace nodes::node_shader_tex_wave_cc
 
 void register_node_type_sh_tex_wave()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_wave_cc;
+  namespace file_ns = nodes::node_shader_tex_wave_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeTexWave", SH_NODE_TEX_WAVE);
   ntype.ui_name = "Wave Texture";
@@ -342,14 +344,16 @@ void register_node_type_sh_tex_wave()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_wave_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_wave;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_tex_wave;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_wave;
   ntype.build_multi_function = file_ns::sh_node_wave_tex_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
-  blender::bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

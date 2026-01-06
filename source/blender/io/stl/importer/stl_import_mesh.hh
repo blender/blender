@@ -15,9 +15,11 @@
 #include "BLI_vector_set.hh"
 #include "stl_data.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::io::stl {
+namespace io::stl {
 class Triangle {
  public:
   int v1, v2, v3;
@@ -67,4 +69,5 @@ class STLMeshHelper {
   Mesh *to_mesh();
 };
 
-}  // namespace blender::io::stl
+}  // namespace io::stl
+}  // namespace blender

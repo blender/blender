@@ -14,6 +14,8 @@
 
 #include "BLI_set.hh"
 
+namespace blender {
+
 struct BMEdgeLoopStore;
 struct LinkData;
 
@@ -73,7 +75,7 @@ void BM_edgeloop_expand(BMesh *bm,
                         BMEdgeLoopStore *el_store,
                         int el_store_len,
                         bool split,
-                        blender::Set<BMEdge *> *split_edges);
+                        Set<BMEdge *> *split_edges);
 
 bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_store_b);
 
@@ -85,3 +87,5 @@ bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_
 
 #define BM_EDGELOOP_NEXT(el_store) \
   (CHECK_TYPE_INLINE(el_store, BMEdgeLoopStore *), (BMEdgeLoopStore *)((LinkData *)el_store)->next)
+
+}  // namespace blender

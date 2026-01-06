@@ -26,9 +26,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* ******************* Chroma Key ********************************************************** */
 
-namespace blender::nodes::node_composite_chroma_matte_cc {
+namespace nodes::node_composite_chroma_matte_cc {
 
 static void cmp_node_chroma_matte_declare(NodeDeclarationBuilder &b)
 {
@@ -117,9 +119,9 @@ static void chroma_matte(const float4 &color,
   result = color * matte;
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   builder.construct_and_set_matching_fn_cb([=]() {
     return mf::build::SI5_SO2<Color, Color, float, float, float, Color, float>(
@@ -140,13 +142,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   });
 }
 
-}  // namespace blender::nodes::node_composite_chroma_matte_cc
+}  // namespace nodes::node_composite_chroma_matte_cc
 
 static void register_node_type_cmp_chroma_matte()
 {
-  namespace file_ns = blender::nodes::node_composite_chroma_matte_cc;
+  namespace file_ns = nodes::node_composite_chroma_matte_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeChromaMatte", CMP_NODE_CHROMA_MATTE);
   ntype.ui_name = "Chroma Key";
@@ -157,8 +159,10 @@ static void register_node_type_cmp_chroma_matte()
   ntype.flag |= NODE_PREVIEW;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
-  blender::bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_chroma_matte)
+
+}  // namespace blender

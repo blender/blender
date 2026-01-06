@@ -27,6 +27,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 // #define DEBUG_PRINT
 
 /* Alloc number for depths */
@@ -485,7 +487,7 @@ bool gpu_select_pick_load_id(uint id, bool end)
     }
 
     const uint rect_len = ps->src.rect_len;
-    blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
+    gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
     GPU_framebuffer_read_depth(
         fb, UNPACK4(ps->gpu.clip_readpixels), GPU_DATA_UINT, ps->gpu.rect_depth_test->buf);
     /* Perform initial check since most cases the array remains unchanged. */
@@ -749,3 +751,5 @@ void gpu_select_pick_cache_load_id()
 }
 
 /** \} */
+
+}  // namespace blender

@@ -84,7 +84,7 @@
 #include "../filelist.hh"
 #include "filelist_intern.hh"
 
-using namespace blender;
+namespace blender {
 
 static ImBuf *gSpecialFileImages[int(SpecialFileImages::_Max)];
 
@@ -127,12 +127,12 @@ void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
 void filelist_set_asset_catalog_filter_options(
     FileList *filelist,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
-    const ::bUUID *catalog_id)
+    const bUUID *catalog_id)
 {
   if (!filelist->filter_data.asset_catalog_filter) {
     /* There's no filter data yet. */
     filelist->filter_data.asset_catalog_filter =
-        blender::ed::asset_browser::file_create_asset_catalog_filter_settings();
+        ed::asset_browser::file_create_asset_catalog_filter_settings();
   }
 
   const bool needs_update = file_set_asset_catalog_filter_settings(
@@ -247,7 +247,7 @@ static ImBuf *filelist_ensure_special_file_image(SpecialFileImages image, int ic
   if (ibuf) {
     return ibuf;
   }
-  return gSpecialFileImages[int(image)] = blender::ui::svg_icon_bitmap(icon, 256.0f, false);
+  return gSpecialFileImages[int(image)] = ui::svg_icon_bitmap(icon, 256.0f, false);
 }
 
 ImBuf *filelist_geticon_special_file_image_ex(const FileDirEntry *file)
@@ -381,7 +381,7 @@ static int filelist_geticon_file_type_ex(const FileList *filelist,
     return ICON_FILE_ARCHIVE;
   }
   if (typeflag & FILE_TYPE_BLENDERLIB) {
-    const int ret = blender::ui::icon_from_idcode(file->blentype);
+    const int ret = ui::icon_from_idcode(file->blentype);
     if (ret != ICON_NONE) {
       return ret;
     }
@@ -1024,7 +1024,7 @@ void filelist_free(FileList *filelist)
   MEM_freeN(filelist);
 }
 
-blender::asset_system::AssetLibrary *filelist_asset_library(FileList *filelist)
+asset_system::AssetLibrary *filelist_asset_library(FileList *filelist)
 {
   return filelist->asset_library;
 }
@@ -3450,3 +3450,5 @@ int filelist_readjob_running(FileList *filelist, wmWindowManager *wm)
 {
   return WM_jobs_test(wm, filelist, filelist_jobtype_get(filelist));
 }
+
+}  // namespace blender

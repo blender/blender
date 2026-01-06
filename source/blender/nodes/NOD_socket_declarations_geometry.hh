@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 #include "BKE_geometry_set.hh"
 
 #include "NOD_node_declaration.hh"

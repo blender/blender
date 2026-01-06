@@ -48,9 +48,11 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
-namespace bake = blender::bke::bake;
+namespace blender {
 
-namespace blender::ed::object::bake_simulation {
+namespace bake = bke::bake;
+
+namespace ed::object::bake_simulation {
 
 static bool simulate_to_frame_poll(bContext *C)
 {
@@ -396,22 +398,22 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
     packed_bake->blob_files = MEM_new_array_for_free<NodesModifierBakeFile>(
         packed_bake->blob_files_num, __func__);
 
-    auto transfer_to_bake =
-        [&](NodesModifierBakeFile *bake_files, MemoryBakeFile *memory_bake_files, const int num) {
-          for (const int i : IndexRange(num)) {
-            NodesModifierBakeFile &bake_file = bake_files[i];
-            MemoryBakeFile &memory = memory_bake_files[i];
-            bake_file.name = BLI_strdup_null(memory.name.c_str());
-            const int64_t data_size = memory.data.size();
-            if (data_size == 0) {
-              continue;
-            }
-            const auto *sharing_info = new blender::ImplicitSharedValue<std::string>(
-                std::move(memory.data));
-            const void *data = sharing_info->data.data();
-            bake_file.packed_file = BKE_packedfile_new_from_memory(data, data_size, sharing_info);
-          }
-        };
+    auto transfer_to_bake = [&](NodesModifierBakeFile *bake_files,
+                                MemoryBakeFile *memory_bake_files,
+                                const int num) {
+      for (const int i : IndexRange(num)) {
+        NodesModifierBakeFile &bake_file = bake_files[i];
+        MemoryBakeFile &memory = memory_bake_files[i];
+        bake_file.name = BLI_strdup_null(memory.name.c_str());
+        const int64_t data_size = memory.data.size();
+        if (data_size == 0) {
+          continue;
+        }
+        const auto *sharing_info = new ImplicitSharedValue<std::string>(std::move(memory.data));
+        const void *data = sharing_info->data.data();
+        bake_file.packed_file = BKE_packedfile_new_from_memory(data, data_size, sharing_info);
+      }
+    };
 
     transfer_to_bake(
         packed_bake->meta_files, packed_data->meta_files.data(), packed_bake->meta_files_num);
@@ -1282,4 +1284,6 @@ void OBJECT_OT_geometry_node_bake_unpack_single(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "method", method_items, PF_USE_LOCAL, "Method", "How to unpack");
 }
 
-}  // namespace blender::ed::object::bake_simulation
+}  // namespace ed::object::bake_simulation
+
+}  // namespace blender

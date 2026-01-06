@@ -38,6 +38,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* Declarations. */
 
 static int BLI_path_unc_prefix_len(const char *path);
@@ -2063,3 +2065,5 @@ bool BLI_path_has_hidden_component(const char *path)
   /* Nothing was hidden. */
   return false;
 }
+
+}  // namespace blender

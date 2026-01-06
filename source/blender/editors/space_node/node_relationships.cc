@@ -51,6 +51,8 @@
 
 #include "node_intern.hh" /* own include */
 
+namespace blender {
+
 struct NodeInsertOfsData {
   bNodeTree *ntree;
   bNode *insert;      /* Inserted node. */
@@ -61,7 +63,7 @@ struct NodeInsertOfsData {
   float offset_x; /* Offset to apply to node chain. */
 };
 
-namespace blender::ed::space_node {
+namespace ed::space_node {
 
 static void clear_picking_highlight(ListBaseT<bNodeLink> *links)
 {
@@ -3125,4 +3127,6 @@ void NODE_OT_insert_offset(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

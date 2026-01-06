@@ -18,11 +18,13 @@
 
 #include "BKE_main.hh"
 
+namespace blender {
+
 struct FileData;
 struct Main;
 struct UniqueName_Map;
 
-namespace blender::bke::library {
+namespace bke::library {
 
 struct LibraryRuntime {
   /** Used for efficient calculations of unique names. */
@@ -113,7 +115,7 @@ void main_cleanup_parent_archives(Main &bmain);
 Library *ensure_archive_library(
     Main &bmain, ID &id, Library &reference_library, const IDHash &id_deep_hash, bool &is_new);
 
-};  // namespace blender::bke::library
+};  // namespace bke::library
 
 /** #LibraryRuntime.tag */
 enum eLibrary_Tag {
@@ -143,3 +145,5 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath);
  * linked libraries lose their 'parent' pointer, making them wrongly directly used ones.
  */
 void BKE_library_main_rebuild_hierarchy(Main *bmain);
+
+}  // namespace blender

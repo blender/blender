@@ -58,11 +58,9 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG_BLEND_DOVERSION = {"blend.doversion"};
+namespace blender {
 
-using blender::Span;
-using blender::StringRef;
-using blender::Vector;
+static CLG_LogRef LOG_BLEND_DOVERSION = {"blend.doversion"};
 
 /* -------------------------------------------------------------------- */
 /** \name ID Type Implementation
@@ -70,7 +68,7 @@ using blender::Vector;
 
 static void screen_init_data(ID *id)
 {
-  bScreen *screen = blender::id_cast<bScreen *>(id);
+  bScreen *screen = id_cast<bScreen *>(id);
 
   screen->do_draw = true;
   screen->do_refresh = true;
@@ -79,7 +77,7 @@ static void screen_init_data(ID *id)
 
 static void screen_free_data(ID *id)
 {
-  bScreen *screen = blender::id_cast<bScreen *>(id);
+  bScreen *screen = id_cast<bScreen *>(id);
 
   /* No animation-data here. */
 
@@ -112,8 +110,8 @@ static void screen_copy_data(Main * /*bmain*/,
   BLI_assert(!owner_library || owner_library == nullptr);
   UNUSED_VARS_NDEBUG(owner_library);
 
-  bScreen *screen_dst = blender::id_cast<bScreen *>(id_dst);
-  const bScreen *screen_src = blender::id_cast<const bScreen *>(id_src);
+  bScreen *screen_dst = id_cast<bScreen *>(id_dst);
+  const bScreen *screen_src = id_cast<const bScreen *>(id_src);
 
   screen_dst->do_draw = true;
   screen_dst->do_refresh = true;
@@ -198,7 +196,7 @@ static void screen_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  bScreen *screen = blender::id_cast<bScreen *>(id);
+  bScreen *screen = id_cast<bScreen *>(id);
 
   /* write LibData */
   /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
@@ -442,7 +440,7 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
 {
   ARegion *dst = static_cast<ARegion *>(MEM_dupallocN(region));
 
-  dst->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
+  dst->runtime = MEM_new<bke::ARegionRuntime>(__func__);
   dst->runtime->type = region->runtime->type;
   dst->runtime->do_draw = region->runtime->do_draw;
 
@@ -478,7 +476,7 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
 ARegion *BKE_area_region_new()
 {
   ARegion *region = MEM_new_for_free<ARegion>(__func__);
-  region->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
+  region->runtime = MEM_new<bke::ARegionRuntime>(__func__);
   return region;
 }
 
@@ -1250,7 +1248,7 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
     }
 
     if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
-      blender::ed::asset::shelf::region_blend_write(writer, region);
+      ed::asset::shelf::region_blend_write(writer, region);
       return;
     }
 
@@ -1454,11 +1452,11 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
       }
     }
     if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
-      blender::ed::asset::shelf::region_blend_read_data(reader, region);
+      ed::asset::shelf::region_blend_read_data(reader, region);
     }
   }
 
-  region->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
+  region->runtime = MEM_new<bke::ARegionRuntime>(__func__);
   region->v2d.sms = nullptr;
   region->v2d.alpha_hor = region->v2d.alpha_vert = 255; /* visible by default */
 }
@@ -1630,3 +1628,5 @@ void BKE_screen_area_blend_read_after_liblink(BlendLibReader *reader, ID *parent
     regions_remove_invalid(space_type, regionbase);
   }
 }
+
+}  // namespace blender

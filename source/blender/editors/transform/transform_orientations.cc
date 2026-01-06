@@ -1221,7 +1221,7 @@ int getTransformOrientation_ex(const Scene *scene,
 
     } /* End edit-mesh. */
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-      Curve *cu = blender::id_cast<Curve *>(obedit->data);
+      Curve *cu = id_cast<Curve *>(obedit->data);
       Nurb *nu = nullptr;
       int a;
       ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
@@ -1341,7 +1341,7 @@ int getTransformOrientation_ex(const Scene *scene,
       }
     }
     else if (obedit->type == OB_MBALL) {
-      MetaBall *mb = blender::id_cast<MetaBall *>(obedit->data);
+      MetaBall *mb = id_cast<MetaBall *>(obedit->data);
       MetaElem *ml;
       bool ok = false;
       float tmat[3][3];
@@ -1370,7 +1370,7 @@ int getTransformOrientation_ex(const Scene *scene,
       }
     }
     else if (obedit->type == OB_ARMATURE) {
-      bArmature *arm = blender::id_cast<bArmature *>(obedit->data);
+      bArmature *arm = id_cast<bArmature *>(obedit->data);
       EditBone *ebone;
       bool ok = false;
       float tmat[3][3];
@@ -1391,7 +1391,7 @@ int getTransformOrientation_ex(const Scene *scene,
         zero_v3(fallback_plane);
 
         for (EditBone &ebone : *arm->edbo) {
-          if (blender::animrig::bone_is_visible(arm, &ebone)) {
+          if (animrig::bone_is_visible(arm, &ebone)) {
             if (ebone.flag & BONE_SELECTED) {
               ED_armature_ebone_to_mat3(&ebone, tmat);
               add_v3_v3(r_normal, tmat[2]);
@@ -1442,7 +1442,7 @@ int getTransformOrientation_ex(const Scene *scene,
     }
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
-    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
     bPoseChannel *pchan;
     float imat[3][3], mat[3][3];
     bool ok = false;

@@ -15,6 +15,8 @@
 
 #include "bl_math_py_api.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Python Functions
  * \{ */
@@ -150,3 +152,5 @@ PyMODINIT_FUNC BPyInit_bl_math()
 }
 
 /** \} */
+
+}  // namespace blender

@@ -29,6 +29,8 @@
 
 #include "info_intern.hh"
 
+namespace blender {
+
 static void reports_select_all(ReportList *reports, int report_mask, int action)
 {
   if (action == SEL_TOGGLE) {
@@ -104,7 +106,7 @@ static wmOperatorStatus report_replay_exec(bContext *C, wmOperator * /*op*/)
         (report->flag & SELECT))
     {
       console_history_add_str(sc, report->message, 0);
-      WM_operator_name_call(C, "CONSOLE_OT_execute", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
+      WM_operator_name_call(C, "CONSOLE_OT_execute", wm::OpCallContext::ExecDefault, nullptr, nullptr);
 
       ED_area_tag_redraw(CTX_wm_area(C));
     }
@@ -397,3 +399,5 @@ void INFO_OT_report_copy(wmOperatorType *ot)
 
   /* properties */
 }
+
+}  // namespace blender

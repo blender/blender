@@ -247,22 +247,22 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(
       &ntype, "GeometryNodeDistributePointsInVolume", GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME);
   ntype.ui_name = "Distribute Points in Volume";
   ntype.ui_description = "Generate points inside a volume";
   ntype.enum_name_legacy = "DISTRIBUTE_POINTS_IN_VOLUME";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryDistributePointsInVolume",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryDistributePointsInVolume",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
   ntype.initfunc = node_init;
-  blender::bke::node_type_size(ntype, 170, 100, 320);
+  bke::node_type_size(ntype, 170, 100, 320);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

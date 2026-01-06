@@ -26,8 +26,10 @@
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* see WM_types.hh */
-using wmOpCallContext = blender::wm::OpCallContext;
+using wmOpCallContext = wm::OpCallContext;
 
 /* clang-format off */
 const EnumPropertyItem rna_enum_operator_context_items[] = {
@@ -53,6 +55,8 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include "MEM_guardedalloc.h"
@@ -76,7 +80,9 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 
 #  include "WM_api.hh"
 
-using blender::ui::Layout;
+namespace blender {
+
+using ui::Layout;
 
 static ARegionType *region_type_find(ReportList *reports, int space_type, int region_type)
 {
@@ -232,7 +238,7 @@ static bool rna_Panel_unregister(Main *bmain, StructRNA *type)
           }
           /* The unregistered panel might have had a template that added instanced panels,
            * so remove them just in case. They can be re-added on redraw anyway. */
-          blender::ui::panels_free_instanced(nullptr, &region);
+          ui::panels_free_instanced(nullptr, &region);
         }
       }
     }
@@ -457,7 +463,7 @@ static StructRNA *rna_Panel_custom_data_typef(PointerRNA *ptr)
 {
   Panel *panel = static_cast<Panel *>(ptr->data);
 
-  return blender::ui::panel_custom_data_get(panel)->type;
+  return ui::panel_custom_data_get(panel)->type;
 }
 
 static PointerRNA rna_Panel_custom_data_get(PointerRNA *ptr)
@@ -465,7 +471,7 @@ static PointerRNA rna_Panel_custom_data_get(PointerRNA *ptr)
   Panel *panel = static_cast<Panel *>(ptr->data);
 
   /* Because the panel custom data is general we can't refine the pointer type here. */
-  return *blender::ui::panel_custom_data_get(panel);
+  return *ui::panel_custom_data_get(panel);
 }
 
 /* UIList */
@@ -637,7 +643,7 @@ static void uilist_filter_items(uiList *ui_list,
         int t_idx, t_ni, prev_ni;
         flt_data->items_shown = 0;
         for (i = 0, shown_idx = 0; i < len; i++) {
-          if (blender::ui::list_item_index_is_filtered_visible(ui_list, i)) {
+          if (ui::list_item_index_is_filtered_visible(ui_list, i)) {
             filter_neworder[shown_idx++] = filter_neworder[i];
           }
         }
@@ -664,7 +670,7 @@ static void uilist_filter_items(uiList *ui_list,
         /* we still have to set flt_data->items_shown... */
         flt_data->items_shown = 0;
         for (i = 0; i < len; i++) {
-          if (blender::ui::list_item_index_is_filtered_visible(ui_list, i)) {
+          if (ui::list_item_index_is_filtered_visible(ui_list, i)) {
             flt_data->items_shown++;
           }
         }
@@ -1112,7 +1118,7 @@ static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 /* Asset Shelf */
 
 static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type,
-                                   const blender::asset_system::AssetRepresentation *asset)
+                                   const asset_system::AssetRepresentation *asset)
 {
   extern FunctionRNA rna_AssetShelf_asset_poll_func;
 
@@ -1183,7 +1189,7 @@ static const AssetWeakReference *asset_shelf_get_active_asset(const AssetShelfTy
 
 static void asset_shelf_draw_context_menu(const bContext *C,
                                           const AssetShelfType *shelf_type,
-                                          const blender::asset_system::AssetRepresentation *asset,
+                                          const asset_system::AssetRepresentation *asset,
                                           Layout &layout)
 {
   extern FunctionRNA rna_AssetShelf_draw_context_menu_func;
@@ -1213,12 +1219,12 @@ static bool rna_AssetShelf_unregister(Main *bmain, StructRNA *type)
     return false;
   }
 
-  blender::ed::asset::shelf::type_unlink(*bmain, *shelf_type);
+  ed::asset::shelf::type_unlink(*bmain, *shelf_type);
 
   RNA_struct_free_extension(type, &shelf_type->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
-  blender::ed::asset::shelf::type_unregister(*shelf_type);
+  ed::asset::shelf::type_unregister(*shelf_type);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, nullptr);
@@ -1259,7 +1265,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
 
   /* Check if we have registered this asset shelf type before, and remove it. */
   {
-    AssetShelfType *existing_shelf_type = blender::ed::asset::shelf::type_find_from_idname(
+    AssetShelfType *existing_shelf_type = ed::asset::shelf::type_find_from_idname(
         shelf_type->idname);
     if (existing_shelf_type && existing_shelf_type->rna_ext.srna) {
       BKE_reportf(reports,
@@ -1294,7 +1300,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
 
   StructRNA *srna = shelf_type->rna_ext.srna;
 
-  blender::ed::asset::shelf::type_register(std::move(shelf_type));
+  ed::asset::shelf::type_register(std::move(shelf_type));
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, nullptr);
@@ -1347,15 +1353,13 @@ static StructRNA *rna_AssetShelf_refine(PointerRNA *shelf_ptr)
 static int rna_AssetShelf_asset_library_get(PointerRNA *ptr)
 {
   AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
-  return blender::ed::asset::library_reference_to_enum_value(
-      &shelf->settings.asset_library_reference);
+  return ed::asset::library_reference_to_enum_value(&shelf->settings.asset_library_reference);
 }
 
 static void rna_AssetShelf_asset_library_set(PointerRNA *ptr, int value)
 {
   AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
-  shelf->settings.asset_library_reference = blender::ed::asset::library_reference_from_enum_value(
-      value);
+  shelf->settings.asset_library_reference = ed::asset::library_reference_from_enum_value(value);
 }
 
 static int rna_AssetShelf_preview_size_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
@@ -1435,7 +1439,7 @@ static void rna_UILayout_alert_set(PointerRNA *ptr, bool value)
 
 static void rna_UILayout_op_context_set(PointerRNA *ptr, int value)
 {
-  ptr->data_as<Layout>()->operator_context_set(blender::wm::OpCallContext(value));
+  ptr->data_as<Layout>()->operator_context_set(wm::OpCallContext(value));
 }
 
 static int rna_UILayout_op_context_get(PointerRNA *ptr)
@@ -1472,7 +1476,7 @@ static int rna_UILayout_alignment_get(PointerRNA *ptr)
 
 static void rna_UILayout_alignment_set(PointerRNA *ptr, int value)
 {
-  ptr->data_as<Layout>()->alignment_set(blender::ui::LayoutAlign(value));
+  ptr->data_as<Layout>()->alignment_set(ui::LayoutAlign(value));
 }
 
 static int rna_UILayout_direction_get(PointerRNA *ptr)
@@ -1527,7 +1531,7 @@ static int rna_UILayout_emboss_get(PointerRNA *ptr)
 
 static void rna_UILayout_emboss_set(PointerRNA *ptr, int value)
 {
-  ptr->data_as<Layout>()->emboss_set(blender::ui::EmbossType(value));
+  ptr->data_as<Layout>()->emboss_set(ui::EmbossType(value));
 }
 
 static bool rna_UILayout_property_split_get(PointerRNA *ptr)
@@ -1552,8 +1556,7 @@ static void rna_UILayout_property_decorate_set(PointerRNA *ptr, bool value)
 
 /* File Handler */
 
-static bool file_handler_poll_drop(const bContext *C,
-                                   blender::bke::FileHandlerType *file_handler_type)
+static bool file_handler_poll_drop(const bContext *C, bke::FileHandlerType *file_handler_type)
 {
   extern FunctionRNA rna_FileHandler_poll_drop_func;
 
@@ -1578,7 +1581,6 @@ static bool file_handler_poll_drop(const bContext *C,
 
 static bool rna_FileHandler_unregister(Main * /*bmain*/, StructRNA *type)
 {
-  using namespace blender;
   bke::FileHandlerType *file_handler_type = static_cast<bke::FileHandlerType *>(
       RNA_struct_blender_type_get(type));
 
@@ -1602,7 +1604,6 @@ static StructRNA *rna_FileHandler_register(Main *bmain,
                                            StructCallbackFunc call,
                                            StructFreeFunc free)
 {
-  using namespace blender;
   bke::FileHandlerType dummy_file_handler_type{};
   FileHandler dummy_file_handler{};
 
@@ -1668,7 +1669,11 @@ static StructRNA *rna_FileHandler_refine(PointerRNA *file_handler_ptr)
              &RNA_FileHandler;
 }
 
+}  // namespace blender
+
 #else /* RNA_RUNTIME */
+
+namespace blender {
 
 static void rna_def_ui_layout(BlenderRNA *brna)
 {
@@ -1676,33 +1681,29 @@ static void rna_def_ui_layout(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem alignment_items[] = {
-      {int(blender::ui::LayoutAlign::Expand), "EXPAND", 0, "Expand", ""},
-      {int(blender::ui::LayoutAlign::Left), "LEFT", 0, "Left", ""},
-      {int(blender::ui::LayoutAlign::Center), "CENTER", 0, "Center", ""},
-      {int(blender::ui::LayoutAlign::Right), "RIGHT", 0, "Right", ""},
+      {int(ui::LayoutAlign::Expand), "EXPAND", 0, "Expand", ""},
+      {int(ui::LayoutAlign::Left), "LEFT", 0, "Left", ""},
+      {int(ui::LayoutAlign::Center), "CENTER", 0, "Center", ""},
+      {int(ui::LayoutAlign::Right), "RIGHT", 0, "Right", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem direction_items[] = {
-      {int(blender::ui::LayoutDirection::Horizontal), "HORIZONTAL", 0, "Horizontal", ""},
-      {int(blender::ui::LayoutDirection::Vertical), "VERTICAL", 0, "Vertical", ""},
+      {int(ui::LayoutDirection::Horizontal), "HORIZONTAL", 0, "Horizontal", ""},
+      {int(ui::LayoutDirection::Vertical), "VERTICAL", 0, "Vertical", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem emboss_items[] = {
-      {int(blender::ui::EmbossType::Emboss),
-       "NORMAL",
-       0,
-       "Regular",
-       "Draw standard button emboss style"},
-      {int(blender::ui::EmbossType::None), "NONE", 0, "None", "Draw only text and icons"},
-      {int(blender::ui::EmbossType::Pulldown),
+      {int(ui::EmbossType::Emboss), "NORMAL", 0, "Regular", "Draw standard button emboss style"},
+      {int(ui::EmbossType::None), "NONE", 0, "None", "Draw only text and icons"},
+      {int(ui::EmbossType::Pulldown),
        "PULLDOWN_MENU",
        0,
        "Pull-down Menu",
        "Draw pull-down menu style"},
-      {int(blender::ui::EmbossType::PieMenu), "PIE_MENU", 0, "Pie Menu", "Draw radial menu style"},
-      {int(blender::ui::EmbossType::NoneOrStatus),
+      {int(ui::EmbossType::PieMenu), "PIE_MENU", 0, "Pie Menu", "Draw radial menu style"},
+      {int(ui::EmbossType::NoneOrStatus),
        "NONE_OR_STATUS",
        0,
        "None or Status",
@@ -1713,7 +1714,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
   /* layout */
 
   srna = RNA_def_struct(brna, "UILayout", nullptr);
-  RNA_def_struct_sdna(srna, "blender::ui::Layout");
+  RNA_def_struct_sdna(srna, "ui::Layout");
   RNA_def_struct_ui_text(srna, "UI Layout", "User interface layout in a panel or header");
 
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
@@ -2595,5 +2596,7 @@ void RNA_def_ui(BlenderRNA *brna)
   rna_def_file_handler(brna);
   rna_def_layout_panel_state(brna);
 }
+
+}  // namespace blender
 
 #endif /* RNA_RUNTIME */

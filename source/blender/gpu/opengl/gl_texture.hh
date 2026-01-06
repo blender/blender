@@ -14,8 +14,7 @@
 
 #include "gpu_texture_private.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class GLTexture : public Texture {
   friend class GLStateManager;
@@ -379,5 +378,4 @@ inline GLenum channel_len_to_gl(int channel_len)
   }
 }
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

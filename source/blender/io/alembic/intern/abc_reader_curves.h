@@ -11,11 +11,13 @@
 
 #include <Alembic/AbcGeom/ICurves.h>
 
+namespace blender {
+
 struct Curves;
 
 #define ABC_CURVE_RESOLUTION_U_PROPNAME "blender:resolution"
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 class AbcCurveReader final : public AbcObjectReader {
   Alembic::AbcGeom::ICurvesSchema m_curves_schema;
@@ -43,4 +45,5 @@ class AbcCurveReader final : public AbcObjectReader {
                           const Alembic::Abc::ISampleSelector &sample_selector);
 };
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

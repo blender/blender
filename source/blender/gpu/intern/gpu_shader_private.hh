@@ -20,7 +20,9 @@
 #include <deque>
 #include <string>
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 class GPULogParser;
 class Context;
@@ -280,7 +282,9 @@ class GPULogParser {
 void printf_begin(Context *ctx);
 void printf_end(Context *ctx);
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /* XXX do not use it. Special hack to use OCIO with batch API. */
-blender::gpu::Shader *immGetShader();
+gpu::Shader *immGetShader();
+
+}  // namespace blender

@@ -10,6 +10,8 @@
 
 #pragma once
 
+namespace blender {
+
 /* Don't forget, new effects also in `writefile.cc` for DNA! */
 
 /** #PartEff::flag. */
@@ -135,3 +137,5 @@ struct WaveEff {
 
   float timeoffs = 0, lifetime = 0;
 };
+
+}  // namespace blender

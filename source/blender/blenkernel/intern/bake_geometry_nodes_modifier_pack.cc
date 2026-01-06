@@ -154,7 +154,7 @@ static bool directory_is_empty(const StringRefNull path)
   return true;
 }
 
-static bool disk_bake_exists(const blender::bke::bake::BakePath &path)
+static bool disk_bake_exists(const bke::bake::BakePath &path)
 {
   return !directory_is_empty(path.meta_dir);
 }
@@ -201,7 +201,7 @@ UnpackGeometryNodesBakeResult unpack_geometry_nodes_bake(Main &bmain,
     BLI_delete(bake_path.blobs_dir.c_str(), true, true);
   };
   auto free_packed_bake = [&]() {
-    blender::nodes_modifier_packed_bake_free(bake.packed);
+    nodes_modifier_packed_bake_free(bake.packed);
     bake.packed = nullptr;
     nmd.runtime->cache->reset_cache(bake.id);
   };

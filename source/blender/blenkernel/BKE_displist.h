@@ -11,6 +11,9 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
+struct Depsgraph;
 struct Nurb;
 
 /** #DispList.type */
@@ -40,7 +43,6 @@ enum {
 
 /* prototypes */
 
-struct Depsgraph;
 struct Object;
 struct Scene;
 
@@ -91,3 +93,5 @@ float BKE_displist_calc_taper(struct Depsgraph *depsgraph,
                               int tot);
 
 void BKE_displist_minmax(const ListBaseT<DispList> *dispbase, float min[3], float max[3]);
+
+}  // namespace blender

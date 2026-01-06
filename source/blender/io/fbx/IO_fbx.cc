@@ -16,6 +16,8 @@
 
 #include <fmt/core.h>
 
+namespace blender {
+
 using namespace blender::timeit;
 
 static void report_duration(const char *job, const TimePoint &start_time, const char *path)
@@ -32,6 +34,8 @@ void FBX_import(bContext *C, const FBXImportParams &params)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  blender::io::fbx::importer_main(bmain, scene, view_layer, params);
+  io::fbx::importer_main(bmain, scene, view_layer, params);
   report_duration("import", start_time, params.filepath);
 }
+
+}  // namespace blender

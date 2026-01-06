@@ -37,6 +37,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* TODO: Valgrind. */
 
 using data_t = uintptr_t;
@@ -329,3 +331,5 @@ void *BLI_memiter_iter_step(BLI_memiter_handle *iter)
 }
 
 /** \} */
+
+}  // namespace blender

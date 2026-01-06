@@ -10,6 +10,8 @@
 
 #include "ED_keyframes_edit.hh"
 
+namespace blender {
+
 struct ARegion;
 struct ARegionType;
 struct SpaceGraph;
@@ -249,3 +251,5 @@ bool graphop_selected_fcurve_poll(bContext *C);
 
 void graphedit_keymap(wmKeyConfig *keyconf);
 void graphedit_operatortypes();
+
+}  // namespace blender

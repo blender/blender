@@ -8,8 +8,10 @@
 
 #include "util/param.h"
 
+namespace blender {
 struct View3D;
 struct bScreen;
+}  // namespace blender
 
 CCL_NAMESPACE_BEGIN
 
@@ -28,7 +30,9 @@ class BlenderViewportParameters {
   bool show_active_pixels;
 
   BlenderViewportParameters();
-  BlenderViewportParameters(::bScreen *b_screen, ::View3D *b_v3d, bool use_developer_ui);
+  BlenderViewportParameters(blender::bScreen *b_screen,
+                            blender::View3D *b_v3d,
+                            bool use_developer_ui);
 
   /* Check whether any of shading related settings are different from the given parameters. */
   bool shader_modified(const BlenderViewportParameters &other) const;

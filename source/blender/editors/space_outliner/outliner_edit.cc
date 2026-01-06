@@ -79,9 +79,11 @@
 
 #include "wm_window.hh"
 
+namespace blender {
+
 using namespace blender::ed::outliner;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 static void outliner_show_active(SpaceOutliner *space_outliner,
                                  ARegion *region,
@@ -556,7 +558,7 @@ static bool id_delete_tag(bContext *C,
   if (te->idcode == ID_LI) {
     /* Get the scene currently expected to become the active scene. */
     scene_curr = scene_replace_data.active_scene_get(C);
-    Library *lib = blender::id_cast<Library *>(id);
+    Library *lib = id_cast<Library *>(id);
     if (lib->runtime->parent != nullptr) {
       BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
       return false;
@@ -939,7 +941,7 @@ void id_remap_fn(bContext *C,
 
 static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
                                 ListBaseT<TreeElement> *tree,
-                                blender::bke::blendfile::PartialWriteContext &copybuffer,
+                                bke::blendfile::PartialWriteContext &copybuffer,
                                 ReportList *reports)
 {
   using namespace blender::bke::blendfile;
@@ -1143,7 +1145,7 @@ static wmOperatorStatus lib_relocate(
   RNA_string_set(&op_props, "library", tselem->id->name + 2);
 
   if (reload) {
-    Library *lib = blender::id_cast<Library *>(tselem->id);
+    Library *lib = id_cast<Library *>(tselem->id);
     char dir[FILE_MAXDIR], filename[FILE_MAX];
 
     BLI_path_split_dir_file(
@@ -1176,11 +1178,11 @@ static wmOperatorStatus outliner_lib_relocate_invoke_do(
     TreeStoreElem *tselem = TREESTORE(te);
 
     if (te->idcode == ID_LI && tselem->id) {
-      if ((blender::id_cast<Library *>(tselem->id))->runtime->parent && !reload) {
+      if ((id_cast<Library *>(tselem->id))->runtime->parent && !reload) {
         BKE_reportf(reports,
                     RPT_ERROR_INVALID_INPUT,
                     "Cannot relocate indirectly linked library '%s'",
-                    (blender::id_cast<Library *>(tselem->id))->runtime->filepath_abs);
+                    (id_cast<Library *>(tselem->id))->runtime->filepath_abs);
         return OPERATOR_CANCELLED;
       }
 
@@ -2722,4 +2724,5 @@ void OUTLINER_OT_orphans_manage(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

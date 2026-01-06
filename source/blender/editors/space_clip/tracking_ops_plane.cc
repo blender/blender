@@ -29,6 +29,8 @@
 #include "clip_intern.hh"
 #include "tracking_ops_intern.hh"
 
+namespace blender {
+
 /********************** Create plane track operator *********************/
 
 static wmOperatorStatus create_plane_track_tracks_exec(bContext *C, wmOperator *op)
@@ -352,3 +354,5 @@ void CLIP_OT_slide_plane_marker(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR_XY | OPTYPE_BLOCKING;
 }
+
+}  // namespace blender

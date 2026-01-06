@@ -1461,7 +1461,7 @@ static void node_find_update_fn(const bContext *C,
   };
 
   ui::string_search::StringSearch<Item> search;
-  blender::ResourceScope scope;
+  ResourceScope scope;
 
   auto add_data_block_item = [&](bNode &node, const ID *id) {
     if (!id) {
@@ -1533,58 +1533,50 @@ static void node_find_update_fn(const bContext *C,
           break;
         }
         case SOCK_OBJECT: {
-          add_data_block_item(*node,
-                              blender::id_cast<ID *>(
-                                  socket->default_value_typed<bNodeSocketValueObject>()->value));
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueObject>()->value));
           break;
         }
         case SOCK_MATERIAL: {
-          add_data_block_item(*node,
-                              blender::id_cast<ID *>(
-                                  socket->default_value_typed<bNodeSocketValueMaterial>()->value));
+          add_data_block_item(
+              *node,
+              id_cast<ID *>(socket->default_value_typed<bNodeSocketValueMaterial>()->value));
           break;
         }
         case SOCK_COLLECTION: {
           add_data_block_item(
               *node,
-              blender::id_cast<ID *>(
-                  socket->default_value_typed<bNodeSocketValueCollection>()->value));
+              id_cast<ID *>(socket->default_value_typed<bNodeSocketValueCollection>()->value));
           break;
         }
         case SOCK_IMAGE: {
           add_data_block_item(
-              *node,
-              blender::id_cast<ID *>(socket->default_value_typed<bNodeSocketValueImage>()->value));
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueImage>()->value));
           break;
         }
         case SOCK_FONT: {
           add_data_block_item(
-              *node,
-              blender::id_cast<ID *>(socket->default_value_typed<bNodeSocketValueFont>()->value));
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueFont>()->value));
           break;
         }
         case SOCK_SCENE: {
           add_data_block_item(
-              *node,
-              blender::id_cast<ID *>(socket->default_value_typed<bNodeSocketValueScene>()->value));
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueScene>()->value));
           break;
         }
         case SOCK_TEXT_ID: {
           add_data_block_item(
-              *node,
-              blender::id_cast<ID *>(socket->default_value_typed<bNodeSocketValueText>()->value));
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueText>()->value));
           break;
         }
         case SOCK_MASK: {
           add_data_block_item(
-              *node,
-              blender::id_cast<ID *>(socket->default_value_typed<bNodeSocketValueMask>()->value));
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueMask>()->value));
           break;
         }
         case SOCK_SOUND: {
           add_data_block_item(
-              *node,
-              blender::id_cast<ID *>(socket->default_value_typed<bNodeSocketValueSound>()->value));
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueSound>()->value));
           break;
         }
       }

@@ -12,6 +12,8 @@
 #include "BLI_sys_types.h" /* bool */
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 struct rctf;
 struct rcti;
 
@@ -207,3 +209,5 @@ BLI_INLINE float BLI_rctf_size_y(const struct rctf *rct)
 {
   return (rct->ymax - rct->ymin);
 }
+
+}  // namespace blender

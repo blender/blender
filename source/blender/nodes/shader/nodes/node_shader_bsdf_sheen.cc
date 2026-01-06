@@ -7,7 +7,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_bsdf_sheen_cc {
+namespace blender {
+
+namespace nodes::node_shader_bsdf_sheen_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -77,14 +79,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_bsdf_sheen_cc
+}  // namespace nodes::node_shader_bsdf_sheen_cc
 
 /* node type definition */
 void register_node_type_sh_bsdf_sheen()
 {
-  namespace file_ns = blender::nodes::node_shader_bsdf_sheen_cc;
+  namespace file_ns = nodes::node_shader_bsdf_sheen_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeBsdfSheen", SH_NODE_BSDF_SHEEN);
   ntype.ui_name = "Sheen BSDF";
@@ -100,5 +102,7 @@ void register_node_type_sh_bsdf_sheen()
   ntype.draw_buttons = file_ns::node_shader_buts_sheen;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

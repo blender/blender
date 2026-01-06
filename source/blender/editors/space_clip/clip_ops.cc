@@ -65,6 +65,8 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Navigation Utilities
  * \{ */
@@ -169,7 +171,7 @@ static void open_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
 
   op->customdata = pprop = MEM_new<PropertyPointerRNA>("OpenPropertyPointerRNA");
-  blender::ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static void open_cancel(bContext * /*C*/, wmOperator *op)
@@ -1106,8 +1108,7 @@ static int frame_from_event(bContext *C, const wmEvent *event)
   else {
     float viewx, viewy;
 
-    blender::ui::view2d_region_to_view(
-        &region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
+    ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
     framenr = round_fl_to_int(viewx);
   }
@@ -1655,7 +1656,7 @@ static wmOperatorStatus clip_view_ndof_invoke(bContext *C,
   const wmNDOFMotionData &ndof = *static_cast<wmNDOFMotionData *>(event->customdata);
   const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
-  blender::float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get_for_navigation(ndof);
+  float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get_for_navigation(ndof);
   mul_v2_fl(pan_vec, pan_speed / sc->zoom);
 
   sclip_zoom_set_factor(C, max_ff(0.0f, 1.0f - pan_vec[2]), nullptr, false);
@@ -1909,3 +1910,5 @@ void ED_operatormacros_clip()
 }
 
 /** \} */
+
+}  // namespace blender

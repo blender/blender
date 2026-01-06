@@ -39,7 +39,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-using blender::bke::CurvesGeometry;
+using bke::CurvesGeometry;
 
 /**
  * Drags the tip point of each curve and resamples the rest of the curve.
@@ -103,7 +103,7 @@ struct SnakeHookOperatorExecutor {
 
     const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
-    curves_id_ = blender::id_cast<Curves *>(object_->data);
+    curves_id_ = id_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
     if (curves_->is_empty()) {
       return;

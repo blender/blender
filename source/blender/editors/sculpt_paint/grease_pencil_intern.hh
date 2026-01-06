@@ -15,15 +15,17 @@
 
 #include "paint_intern.hh"
 
-namespace blender::bke::greasepencil {
+namespace blender {
+
+namespace bke::greasepencil {
 class Drawing;
 class Layer;
-}  // namespace blender::bke::greasepencil
-namespace blender::bke::crazyspace {
+}  // namespace bke::greasepencil
+namespace bke::crazyspace {
 struct GeometryDeformation;
 }
 
-namespace blender::ed::sculpt_paint {
+namespace ed::sculpt_paint {
 
 /**
  * Projects a screen-space displacement vector into layer space.
@@ -169,7 +171,7 @@ bool do_vertex_color_fill(const Brush &brush);
 /* Stroke operation base class that performs various common initializations. */
 class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
  public:
-  using MutableDrawingInfo = blender::ed::greasepencil::MutableDrawingInfo;
+  using MutableDrawingInfo = ed::greasepencil::MutableDrawingInfo;
   using DrawingPlacement = ed::greasepencil::DrawingPlacement;
 
   BrushStrokeMode stroke_mode;
@@ -250,4 +252,6 @@ std::unique_ptr<GreasePencilStrokeOperation> new_vertex_smear_operation();
 
 }  // namespace greasepencil
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
+
+}  // namespace blender

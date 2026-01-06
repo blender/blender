@@ -32,14 +32,16 @@
 
 #include "draw_common.hh"
 
-template<> struct blender::gpu::AttrType<VertexClass> {
+namespace blender {
+
+template<> struct gpu::AttrType<VertexClass> {
   static constexpr VertAttrType type = VertAttrType::SINT_32;
 };
-template<> struct blender::gpu::AttrType<StickBoneFlag> {
+template<> struct gpu::AttrType<StickBoneFlag> {
   static constexpr VertAttrType type = VertAttrType::SINT_32;
 };
 
-namespace blender::draw::overlay {
+namespace draw::overlay {
 
 struct BoneInstanceData {
   /* Keep sync with bone instance vertex format (OVERLAY_InstanceFormats) */
@@ -75,7 +77,7 @@ struct BoneInstanceData {
     mat44[0] = ob_mat[0] * radius;
     mat44[1] = ob_mat[1] * radius;
     mat44[2] = ob_mat[2] * radius;
-    mat44[3] = float4(blender::math::transform_point(ob_mat, pos), 0.0f);
+    mat44[3] = float4(math::transform_point(ob_mat, pos), 0.0f);
     set_color(color);
   }
 
@@ -116,11 +118,11 @@ struct BoneInstanceData {
 
 using SelectionType = select::SelectionType;
 
-using blender::draw::Framebuffer;
-using blender::draw::StorageVectorBuffer;
-using blender::draw::Texture;
-using blender::draw::TextureFromPool;
-using blender::draw::TextureRef;
+using draw::Framebuffer;
+using draw::StorageVectorBuffer;
+using draw::Texture;
+using draw::TextureFromPool;
+using draw::TextureRef;
 
 struct State {
   Depsgraph *depsgraph = nullptr;
@@ -1202,4 +1204,5 @@ static inline bool is_from_dupli_or_set(const ObjectRef &ob_ref)
   return is_from_dupli_or_set(ob_ref.object);
 }
 
-}  // namespace blender::draw::overlay
+}  // namespace draw::overlay
+}  // namespace blender

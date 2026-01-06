@@ -11,6 +11,8 @@
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct AnimData;
 struct BoundBox;
 struct Material;
@@ -128,3 +130,5 @@ struct MetaBall {
   /** The active meta-element (used in edit-mode). */
   MetaElem *lastelem = nullptr;
 };
+
+}  // namespace blender

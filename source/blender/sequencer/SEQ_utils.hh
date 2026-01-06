@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 struct bSound;
 struct Mask;
 struct Scene;
@@ -18,7 +20,7 @@ struct SeqTimelineChannel;
 struct Strip;
 struct StripElem;
 
-namespace blender::seq {
+namespace seq {
 
 void strip_unique_name_set(Scene *scene, ListBaseT<Strip> *seqbasep, Strip *strip);
 const char *get_default_stripname_by_type(int type);
@@ -95,4 +97,5 @@ void media_presence_invalidate_sound(Scene *scene, const bSound *sound);
  */
 void media_presence_free(Scene *scene);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

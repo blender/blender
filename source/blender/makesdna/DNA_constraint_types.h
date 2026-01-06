@@ -13,6 +13,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Text;
 
 #define CON_SHRINKWRAP_PROJECT_CULL_MASK \
@@ -1174,3 +1176,5 @@ struct bGeometryAttributeConstraint {
 /* ------------------------------------------ */
 
 /* -------------------------------------- */
+
+}  // namespace blender

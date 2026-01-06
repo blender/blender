@@ -17,6 +17,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct BMEditMesh;
 struct BPoint;
 struct Depsgraph;
@@ -35,19 +37,18 @@ void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
 void outside_lattice(Lattice *lt);
 
-blender::Array<blender::float3> BKE_lattice_vert_coords_alloc(const Lattice *lt);
-void BKE_lattice_vert_coords_get(const Lattice *lt,
-                                 blender::MutableSpan<blender::float3> vert_coordss);
+Array<float3> BKE_lattice_vert_coords_alloc(const Lattice *lt);
+void BKE_lattice_vert_coords_get(const Lattice *lt, MutableSpan<float3> vert_coordss);
 void BKE_lattice_vert_coords_apply_with_mat4(Lattice *lt,
-                                             blender::Span<blender::float3> vert_coordss,
-                                             const blender::float4x4 &transform);
-void BKE_lattice_vert_coords_apply(Lattice *lt, blender::Span<blender::float3> vert_coordss);
+                                             Span<float3> vert_coordss,
+                                             const float4x4 &transform);
+void BKE_lattice_vert_coords_apply(Lattice *lt, Span<float3> vert_coordss);
 void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
 MDeformVert *BKE_lattice_deform_verts_get(const Object *oblatt);
 BPoint *BKE_lattice_active_point_get(Lattice *lt);
 
-std::optional<blender::Bounds<blender::float3>> BKE_lattice_minmax(const Lattice *lt);
+std::optional<Bounds<float3>> BKE_lattice_minmax(const Lattice *lt);
 void BKE_lattice_center_median(Lattice *lt, float cent[3]);
 void BKE_lattice_translate(Lattice *lt, const float offset[3], bool do_keys);
 void BKE_lattice_transform(Lattice *lt, const float mat[4][4], bool do_keys);
@@ -113,3 +114,5 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
                                              const BMEditMesh *em_target);
 
 /** \} */
+
+}  // namespace blender

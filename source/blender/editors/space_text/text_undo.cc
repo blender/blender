@@ -30,6 +30,8 @@
 
 #include "text_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
  * \{ */
@@ -260,3 +262,5 @@ UndoStep *ED_text_undo_push_init(bContext *C)
 }
 
 /** \} */
+
+}  // namespace blender

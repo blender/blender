@@ -23,6 +23,8 @@
 
 #include "rna_internal.hh"
 
+namespace blender {
+
 /* enum of ID-block types
  * NOTE: need to keep this in line with the other defines for these
  */
@@ -201,6 +203,8 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include "DNA_anim_types.h"
@@ -238,6 +242,8 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.hh"
 #  endif
+
+namespace blender {
 
 void rna_ID_override_library_property_operation_refname_get(PointerRNA *ptr, char *value)
 {
@@ -732,7 +738,7 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 
 static void rna_ID_asset_mark(ID *id)
 {
-  if (blender::ed::asset::mark_id(id)) {
+  if (ed::asset::mark_id(id)) {
     WM_main_add_notifier(NC_ID | NA_EDITED, nullptr);
     WM_main_add_notifier(NC_ASSET | NA_ADDED, nullptr);
   }
@@ -740,7 +746,7 @@ static void rna_ID_asset_mark(ID *id)
 
 static void rna_ID_asset_generate_preview(ID *id, bContext *C)
 {
-  blender::ed::asset::generate_preview(C, id);
+  ed::asset::generate_preview(C, id);
 
   WM_main_add_notifier(NC_ID | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_ASSET | NA_EDITED, nullptr);
@@ -748,7 +754,7 @@ static void rna_ID_asset_generate_preview(ID *id, bContext *C)
 
 static void rna_ID_asset_clear(ID *id)
 {
-  if (blender::ed::asset::clear_id(id)) {
+  if (ed::asset::clear_id(id)) {
     WM_main_add_notifier(NC_ID | NA_EDITED, nullptr);
     WM_main_add_notifier(NC_ASSET | NA_REMOVED, nullptr);
   }
@@ -775,7 +781,7 @@ static void rna_ID_asset_data_set(PointerRNA *ptr, PointerRNA value, ReportList 
     return;
   }
 
-  const bool assigned_ok = blender::ed::asset::copy_to_id(asset_data, destination);
+  const bool assigned_ok = ed::asset::copy_to_id(asset_data, destination);
   if (!assigned_ok) {
     BKE_reportf(
         reports, RPT_ERROR, "'%s' is of a type that cannot be an asset", destination->name + 2);
@@ -1172,7 +1178,7 @@ bool rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assi
 {
   ID *id = ptr->owner_id;
   short *totcol = BKE_id_material_len_p(id);
-  Material *mat_id = blender::id_cast<Material *>(assign_ptr->owner_id);
+  Material *mat_id = id_cast<Material *>(assign_ptr->owner_id);
   if (totcol && (key >= 0 && key < *totcol)) {
     BLI_assert(BKE_id_is_in_global_main(id));
     BLI_assert(BKE_id_is_in_global_main(&mat_id->id));
@@ -1612,7 +1618,11 @@ static void rna_Library_reload(Library *lib, bContext *C, ReportList *reports)
 #  endif
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_ID_properties(BlenderRNA *brna)
 {
@@ -2831,5 +2841,7 @@ void RNA_def_ID(BlenderRNA *brna)
   rna_def_library_weak_reference(brna);
   rna_def_idproperty_wrap_ptr(brna);
 }
+
+}  // namespace blender
 
 #endif

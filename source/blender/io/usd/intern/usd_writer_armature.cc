@@ -25,6 +25,9 @@
 #include <pxr/usd/usdSkel/utils.h>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 /**
@@ -53,7 +56,7 @@ static pxr::GfMatrix4d parent_relative_pose_mat(const bPoseChannel *pchan)
 static void initialize(const Object *obj,
                        pxr::UsdSkelSkeleton &skel,
                        pxr::UsdSkelAnimation &skel_anim,
-                       const blender::Map<blender::StringRef, const Bone *> *deform_bones,
+                       const Map<StringRef, const Bone *> *deform_bones,
                        bool allow_unicode)
 {
   using namespace blender::io::usd;
@@ -119,7 +122,7 @@ static void initialize(const Object *obj,
   }
 }
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /* Add skeleton transform samples from the armature pose channels. */
 static void add_anim_sample(pxr::UsdSkelAnimation &skel_anim,
@@ -229,4 +232,5 @@ bool USDArmatureWriter::check_is_animated(const HierarchyContext &context) const
   return obj->adt != nullptr;
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

@@ -51,7 +51,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const NodeDeclaration &declaration = *params.node_type().static_declaration;
   search_link_ops_for_declarations(params, declaration.inputs);
 
-  const blender::bke::bNodeType &node_type = params.node_type();
+  const bke::bNodeType &node_type = params.node_type();
   if (params.in_out() == SOCK_OUT) {
     const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
         eNodeSocketDatatype(params.other_socket().type));
@@ -122,7 +122,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeInputNamedAttribute", GEO_NODE_INPUT_NAMED_ATTRIBUTE);
   ntype.ui_name = "Named Attribute";
@@ -134,11 +134,11 @@ static void node_register()
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryInputNamedAttribute",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryInputNamedAttribute",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

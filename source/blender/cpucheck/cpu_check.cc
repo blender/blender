@@ -7,6 +7,8 @@
  */
 #include <string>
 
+namespace blender {
+
 #if defined(WIN32)
 #  include <Windows.h>
 #  include <intrin.h>
@@ -104,3 +106,5 @@ static __attribute__((constructor)) void cpu_check()
 #  endif
 }
 #endif
+
+}  // namespace blender

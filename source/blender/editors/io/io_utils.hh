@@ -8,12 +8,14 @@
 
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct wmOperator;
 
-namespace blender::bke {
-}  // namespace blender::bke
+namespace bke {
+}  // namespace bke
 
-namespace blender::ed::io {
+namespace ed::io {
 /**
  * Shows a import dialog if the operator was invoked with filepath properties set,
  * otherwise invokes the file-select window.
@@ -30,4 +32,5 @@ bool poll_file_object_drop(const bContext *C, bke::FileHandlerType *fh);
  */
 Vector<std::string> paths_from_operator_properties(PointerRNA *ptr);
 void paths_to_operator_properties(PointerRNA *ptr, const Span<std::string> paths);
-}  // namespace blender::ed::io
+}  // namespace ed::io
+}  // namespace blender

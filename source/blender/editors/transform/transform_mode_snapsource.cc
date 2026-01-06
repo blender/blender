@@ -220,7 +220,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
   }
 
   if (t->data_type == &TransConvertType_Mesh) {
-    blender::ed::transform::snap_object_context_set_editmesh_callbacks(
+    ed::transform::snap_object_context_set_editmesh_callbacks(
         t->tsnap.object_context, nullptr, nullptr, nullptr, nullptr);
   }
 

@@ -22,6 +22,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* Struct for storing a path of verts walked over */
 struct VertNetInfo {
   BMVert *prev; /* previous vertex */
@@ -123,7 +125,7 @@ static bool bm_edgenet_path_check_overlap(BMVert *v1, BMVert *v2, VertNetInfo *v
   }
 
   if (v_ls_tot) {
-    blender::Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> vert_arr(v_ls_tot);
+    Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> vert_arr(v_ls_tot);
     LinkNode *v_lnk;
     for (i = 0, v_lnk = v_ls; i < v_ls_tot; v_lnk = v_lnk->next, i++) {
       vert_arr[i] = static_cast<BMVert *>(v_lnk->link);
@@ -144,8 +146,8 @@ static BMFace *bm_edgenet_face_from_path(BMesh *bm, LinkNode *path, const uint p
   int i;
   bool ok;
 
-  blender::Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> vert_arr(path_len);
-  blender::Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> edge_arr(path_len);
+  Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> vert_arr(path_len);
+  Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> edge_arr(path_len);
 
   for (v_lnk = path, i = 0; v_lnk; v_lnk = v_lnk->next, i++) {
     vert_arr[i] = static_cast<BMVert *>(v_lnk->link);
@@ -376,7 +378,7 @@ static LinkNode *bm_edgenet_path_calc_best(BMEdge *e,
 
   const uint path_len = *r_path_len;
   uint i, i_prev;
-  blender::Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> vert_arr(path_len);
+  Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> vert_arr(path_len);
   LinkNode *v_lnk;
 
   for (v_lnk = path, i = 0; v_lnk; v_lnk = v_lnk->next, i++) {
@@ -476,3 +478,5 @@ void BM_mesh_edgenet(BMesh *bm, const bool use_edge_tag, const bool use_new_face
   BLI_mempool_destroy(path_pool);
   MEM_freeN(vnet_info);
 }
+
+}  // namespace blender

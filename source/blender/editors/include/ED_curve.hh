@@ -13,6 +13,8 @@
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_enums.h"
 
+namespace blender {
+
 struct BPoint;
 struct Base;
 struct BezTriple;
@@ -78,7 +80,7 @@ wmOperatorStatus ED_curve_join_objects_exec(bContext *C, wmOperator *op);
 
 bool ED_curve_select_check(const View3D *v3d, const EditNurb *editnurb);
 bool ED_curve_deselect_all(EditNurb *editnurb);
-bool ED_curve_deselect_all_multi_ex(blender::Span<Base *> bases);
+bool ED_curve_deselect_all_multi_ex(Span<Base *> bases);
 bool ED_curve_deselect_all_multi(bContext *C);
 bool ED_curve_select_all(EditNurb *editnurb);
 bool ED_curve_select_swap(EditNurb *editnurb, bool hide_handles);
@@ -125,3 +127,5 @@ void ED_font_undosys_type(UndoType *ut);
 /* debug only */
 void printknots(Object *obedit);
 #endif
+
+}  // namespace blender

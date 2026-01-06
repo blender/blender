@@ -175,7 +175,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
         if (v3d->camera && v3d->camera->data &&
             BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
         {
-          Camera *camera = blender::id_cast<Camera *>(v3d->camera->data);
+          Camera *camera = id_cast<Camera *>(v3d->camera->data);
           ddr->ptr = RNA_pointer_create_discrete(
               &camera->id, &RNA_CameraDOFSettings, &camera->dof);
           ddr->prop = RNA_struct_find_property(&ddr->ptr, "focus_distance");

@@ -9,6 +9,8 @@
 
 #pragma once
 
+namespace blender {
+
 /* Grease Pencil Modifiers */
 
 enum eArrayGpencil_Flag {
@@ -328,3 +330,5 @@ enum {
   CDT_MIX_MUL = 19,
   /* Etc. */
 };
+
+}  // namespace blender

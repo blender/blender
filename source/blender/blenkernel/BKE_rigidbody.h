@@ -11,10 +11,12 @@
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
 
-struct RigidBodyOb;
-struct RigidBodyWorld;
 struct rbDynamicsWorld;
 
+namespace blender {
+
+struct RigidBodyOb;
+struct RigidBodyWorld;
 struct Collection;
 struct Depsgraph;
 struct Main;
@@ -115,7 +117,7 @@ void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw);
  * Runtime data.
  */
 void BKE_rigidbody_world_init_runtime(struct RigidBodyWorld *rbw);
-struct rbDynamicsWorld *BKE_rigidbody_world_physics(struct RigidBodyWorld *rbw);
+rbDynamicsWorld *BKE_rigidbody_world_physics(struct RigidBodyWorld *rbw);
 
 /**
  * 'validate' (i.e. make new or replace old) Physics-Engine objects.
@@ -237,3 +239,5 @@ void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
                                           struct Object *ob);
 
 /** \} */
+
+}  // namespace blender

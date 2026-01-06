@@ -15,9 +15,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 void VKUniformBuffer::update(const void *data)
 {
@@ -106,4 +108,5 @@ void VKUniformBuffer::unbind()
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

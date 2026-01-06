@@ -49,7 +49,7 @@
 
 #include "bmesh_tools.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Path Select Struct & Properties
@@ -546,7 +546,7 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
     }
     else {
       Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
-      BKE_mesh_batch_cache_dirty_tag(blender::id_cast<Mesh *>(obedit_eval->data),
+      BKE_mesh_batch_cache_dirty_tag(id_cast<Mesh *>(obedit_eval->data),
                                      BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
     }
     /* Only for region redraw. */
@@ -584,7 +584,7 @@ static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
 
   const ARegion *region = CTX_wm_region(C);
 
-  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
   BMElem *ele_src = nullptr, *ele_dst = nullptr;
 
@@ -688,7 +688,7 @@ static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
         index = BM_elem_index_get(ele_dst);
       }
 
-      const int object_index = blender::ed::object::object_in_mode_to_index(
+      const int object_index = ed::object::object_in_mode_to_index(
           scene, view_layer, OB_MODE_EDIT, obedit);
       BLI_assert(object_index != -1);
       RNA_int_set(op->ptr, "object_index", object_index);
@@ -714,7 +714,7 @@ static wmOperatorStatus uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Object *obedit = blender::ed::object::object_in_mode_from_index(
+  Object *obedit = ed::object::object_in_mode_from_index(
       scene, view_layer, OB_MODE_EDIT, object_index);
   if (obedit == nullptr) {
     return OPERATOR_CANCELLED;
@@ -890,3 +890,5 @@ void UV_OT_shortest_path_select(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

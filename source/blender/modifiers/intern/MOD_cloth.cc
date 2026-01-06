@@ -43,6 +43,8 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
@@ -70,7 +72,7 @@ static void init_data(ModifierData *md)
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -250,7 +252,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -300,3 +302,5 @@ ModifierTypeInfo modifierType_Cloth = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

@@ -44,7 +44,7 @@ eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
     if (ob->type != OB_ARMATURE) {
       return TFM_RESIZE;
     }
-    bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
     if (arm->drawtype == ARM_DRAW_TYPE_ENVELOPE) {
       return TFM_BONE_ENVELOPE_DIST;
     }

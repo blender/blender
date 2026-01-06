@@ -24,9 +24,9 @@
 
 #  include "CLG_log.h"
 
-static CLG_LogRef LOG = {"color_management"};
-
 namespace blender::ocio {
+
+static CLG_LogRef LOG = {"color_management"};
 
 static TransferFunction system_extended_srgb_transfer_function(const LibOCIOView *view,
                                                                const bool use_hdr_buffer)

@@ -27,7 +27,7 @@ namespace blender::bke::id_hash {
 
 static std::optional<Vector<char>> read_file(const StringRefNull path)
 {
-  blender::fstream stream{path.c_str(), std::ios_base::in | std::ios_base::binary};
+  fstream stream{path.c_str(), std::ios_base::in | std::ios_base::binary};
   stream.seekg(0, std::ios_base::end);
   const int64_t size = stream.tellg();
   stream.seekg(0, std::ios_base::beg);

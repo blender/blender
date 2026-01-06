@@ -43,10 +43,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Shared Internal API
@@ -606,3 +603,5 @@ void ED_view3d_gizmo_mesh_preselect_clear(wmGizmo *gz)
 }
 
 /** \} */
+
+}  // namespace blender

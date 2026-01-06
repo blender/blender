@@ -17,6 +17,8 @@
 
 #include "BLI_hash_md5.hh" /* own include */
 
+namespace blender {
+
 #if defined HAVE_LIMITS_H || defined _LIBC
 #  include <limits.h>
 #endif
@@ -392,3 +394,5 @@ char *BLI_hash_md5_to_hexdigest(const void *resblock, char r_hex_digest[33])
 
   return r_hex_digest;
 }
+
+}  // namespace blender

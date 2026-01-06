@@ -32,6 +32,8 @@
 #include "bpy_rna.hh"
 #include "bpy_rna_callback.hh" /* Own include. */
 
+namespace blender {
+
 /* Use this to stop other capsules from being mis-used. */
 static const char *rna_capsule_id = "RNA_HANDLE";
 static const char *rna_capsule_id_invalid = "RNA_HANDLE_REMOVED";
@@ -80,8 +82,8 @@ static PyObject *PyC_Tuple_CopySized(PyObject *src, int len_dst)
 }
 
 static void cb_wm_cursor_draw(bContext *C,
-                              const blender::int2 &xy,
-                              const blender::float2 & /*tilt*/,
+                              const int2 &xy,
+                              const float2 & /*tilt*/,
                               void *customdata)
 {
   PyGILState_STATE gilstate;
@@ -492,3 +494,5 @@ void BPY_callback_wm_free(wmWindowManager *wm)
 }
 
 /** \} */
+
+}  // namespace blender

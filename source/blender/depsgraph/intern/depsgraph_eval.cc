@@ -25,7 +25,7 @@
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_tag.hh"
 
-namespace deg = blender::deg;
+namespace blender {
 
 static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph,
                                           const DepsgraphEvaluateSyncWriteback sync_writeback)
@@ -88,3 +88,5 @@ void DEG_evaluate_on_framechange(Depsgraph *graph,
   deg_graph->ctime = BKE_scene_frame_to_ctime(scene, frame);
   deg_flush_updates_and_refresh(deg_graph, sync_writeback);
 }
+
+}  // namespace blender

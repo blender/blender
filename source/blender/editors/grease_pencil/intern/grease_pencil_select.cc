@@ -34,7 +34,9 @@
 
 #include "WM_api.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 
 /* -------------------------------------------------------------------- */
 /** \name Selection Utility Functions
@@ -212,11 +214,9 @@ bool selection_update(const ViewContext *vc,
                       const eSelectOp sel_op,
                       SelectionUpdateFunc select_operation)
 {
-  using namespace blender;
-
   Object *object = (vc->obedit ? vc->obedit : vc->obact);
   const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, object);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   /* Get selection domain from tool settings. */
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
@@ -318,7 +318,7 @@ static wmOperatorStatus select_all_exec(bContext *C, wmOperator *op)
   int action = RNA_enum_get(op->ptr, "action");
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings,
                                                                            object);
 
@@ -331,12 +331,11 @@ static wmOperatorStatus select_all_exec(bContext *C, wmOperator *op)
       return;
     }
     if (action == SEL_TOGGLE) {
-      action = blender::ed::curves::has_anything_selected(info.drawing.strokes(),
-                                                          selection_domain) ?
+      action = ed::curves::has_anything_selected(info.drawing.strokes(), selection_domain) ?
                    SEL_DESELECT :
                    SEL_SELECT;
     }
-    blender::ed::curves::select_all(
+    ed::curves::select_all(
         info.drawing.strokes_for_write(), selectable_elements, selection_domain, action);
   });
 
@@ -365,7 +364,7 @@ static void GREASE_PENCIL_OT_select_all(wmOperatorType *ot)
 static wmOperatorStatus select_more_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const ViewContext vc = ED_view3d_viewcontext_init(C, CTX_data_depsgraph_pointer(C));
 
   ed::greasepencil::selection_update(&vc,
@@ -374,7 +373,7 @@ static wmOperatorStatus select_more_exec(bContext *C, wmOperator * /*op*/)
                                          const IndexMask & /*universe*/,
                                          StringRef attribute_name,
                                          IndexMaskMemory &memory) {
-                                       return blender::ed::curves::select_adjacent_mask(
+                                       return ed::curves::select_adjacent_mask(
                                            info.drawing.strokes(), attribute_name, false, memory);
                                      });
 
@@ -401,7 +400,7 @@ static void GREASE_PENCIL_OT_select_more(wmOperatorType *ot)
 static wmOperatorStatus select_less_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const ViewContext vc = ED_view3d_viewcontext_init(C, CTX_data_depsgraph_pointer(C));
 
   ed::greasepencil::selection_update(&vc,
@@ -410,7 +409,7 @@ static wmOperatorStatus select_less_exec(bContext *C, wmOperator * /*op*/)
                                          const IndexMask & /*universe*/,
                                          StringRef attribute_name,
                                          IndexMaskMemory &memory) {
-                                       return blender::ed::curves::select_adjacent_mask(
+                                       return ed::curves::select_adjacent_mask(
                                            info.drawing.strokes(), attribute_name, true, memory);
                                      });
 
@@ -438,7 +437,7 @@ static wmOperatorStatus select_linked_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -448,7 +447,7 @@ static wmOperatorStatus select_linked_exec(bContext *C, wmOperator * /*op*/)
     if (selectable_strokes.is_empty()) {
       return;
     }
-    blender::ed::curves::select_linked(info.drawing.strokes_for_write(), selectable_strokes);
+    ed::curves::select_linked(info.drawing.strokes_for_write(), selectable_strokes);
   });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -473,12 +472,11 @@ static void GREASE_PENCIL_OT_select_linked(wmOperatorType *ot)
 
 static wmOperatorStatus select_random_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   const float ratio = RNA_float_get(op->ptr, "ratio");
   const int seed = WM_operator_properties_select_random_seed_increment_get(op);
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings,
                                                                            object);
   const ViewContext vc = ED_view3d_viewcontext_init(C, CTX_data_depsgraph_pointer(C));
@@ -503,7 +501,7 @@ static wmOperatorStatus select_random_exec(bContext *C, wmOperator *op)
         }
         return random_mask(selectable_elements,
                            info.drawing.strokes().points_num(),
-                           blender::get_default_hash<int>(seed, info.layer_index),
+                           get_default_hash<int>(seed, info.layer_index),
                            ratio,
                            memory);
       });
@@ -535,11 +533,11 @@ static wmOperatorStatus select_alternate_exec(bContext *C, wmOperator *op)
   const bool deselect_ends = RNA_boolean_get(op->ptr, "deselect_ends");
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    blender::ed::curves::select_alternate(info.drawing.strokes_for_write(), deselect_ends);
+    ed::curves::select_alternate(info.drawing.strokes_for_write(), deselect_ends);
   });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -728,7 +726,7 @@ static wmOperatorStatus select_similar_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings,
                                                                            object);
   const int handle_display = v3d->overlay.handle_display;
@@ -814,7 +812,7 @@ static wmOperatorStatus select_ends_exec(bContext *C, wmOperator *op)
   const int amount_start = RNA_int_get(op->ptr, "amount_start");
   const int amount_end = RNA_int_get(op->ptr, "amount_end");
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const ViewContext vc = ED_view3d_viewcontext_init(C, CTX_data_depsgraph_pointer(C));
 
   ed::greasepencil::selection_update(
@@ -875,7 +873,7 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object)
 
   /* Convert all drawings of the active GP to the new selection domain. */
   const bke::AttrDomain domain = ED_grease_pencil_selection_domain_get(ts, object);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   Span<GreasePencilDrawingBase *> drawings = grease_pencil.drawings();
 
   for (const int index : drawings.index_range()) {
@@ -902,7 +900,7 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object)
     /* When the new selection domain is 'curve', ensure all curves with a point selection
      * are selected. */
     if (domain == bke::AttrDomain::Curve) {
-      blender::ed::curves::select_linked(curves);
+      ed::curves::select_linked(curves);
     }
 
     /* Convert selection domain. */
@@ -958,7 +956,7 @@ static wmOperatorStatus select_set_mode_exec(bContext *C, wmOperator *op)
   if (changed) {
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
-    GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob->data);
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob->data);
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
 
@@ -991,7 +989,7 @@ static wmOperatorStatus grease_pencil_material_select_exec(bContext *C, wmOperat
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const bool select = !RNA_boolean_get(op->ptr, "deselect");
   const int material_index = object->actcol - 1;
   const bke::AttrDomain domain = ED_grease_pencil_selection_domain_get(ts, object);
@@ -1062,50 +1060,47 @@ static void GREASE_PENCIL_OT_material_select(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
-blender::bke::AttrDomain ED_grease_pencil_edit_selection_domain_get(
-    const ToolSettings *tool_settings)
+bke::AttrDomain ED_grease_pencil_edit_selection_domain_get(const ToolSettings *tool_settings)
 {
   switch (tool_settings->gpencil_selectmode_edit) {
     case GP_SELECTMODE_POINT:
-      return blender::bke::AttrDomain::Point;
+      return bke::AttrDomain::Point;
     case GP_SELECTMODE_STROKE:
-      return blender::bke::AttrDomain::Curve;
+      return bke::AttrDomain::Curve;
     case GP_SELECTMODE_SEGMENT:
-      return blender::bke::AttrDomain::Point;
+      return bke::AttrDomain::Point;
   }
-  return blender::bke::AttrDomain::Point;
+  return bke::AttrDomain::Point;
 }
 
-blender::bke::AttrDomain ED_grease_pencil_sculpt_selection_domain_get(
-    const ToolSettings *tool_settings)
+bke::AttrDomain ED_grease_pencil_sculpt_selection_domain_get(const ToolSettings *tool_settings)
 {
   const int selectmode = tool_settings->gpencil_selectmode_sculpt;
   if (selectmode & (GP_SCULPT_MASK_SELECTMODE_POINT | GP_SCULPT_MASK_SELECTMODE_SEGMENT)) {
-    return blender::bke::AttrDomain::Point;
+    return bke::AttrDomain::Point;
   }
   if (selectmode & (GP_SCULPT_MASK_SELECTMODE_STROKE)) {
-    return blender::bke::AttrDomain::Curve;
+    return bke::AttrDomain::Curve;
   }
-  return blender::bke::AttrDomain::Point;
+  return bke::AttrDomain::Point;
 }
 
-blender::bke::AttrDomain ED_grease_pencil_vertex_selection_domain_get(
-    const ToolSettings *tool_settings)
+bke::AttrDomain ED_grease_pencil_vertex_selection_domain_get(const ToolSettings *tool_settings)
 {
   const int selectmode = tool_settings->gpencil_selectmode_vertex;
   if (selectmode & (GP_VERTEX_MASK_SELECTMODE_POINT | GP_VERTEX_MASK_SELECTMODE_SEGMENT)) {
-    return blender::bke::AttrDomain::Point;
+    return bke::AttrDomain::Point;
   }
   if (selectmode & (GP_VERTEX_MASK_SELECTMODE_STROKE)) {
-    return blender::bke::AttrDomain::Curve;
+    return bke::AttrDomain::Curve;
   }
-  return blender::bke::AttrDomain::Point;
+  return bke::AttrDomain::Point;
 }
 
-blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
-                                                               const Object *object)
+bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
+                                                      const Object *object)
 {
   if (object->mode & OB_MODE_EDIT) {
     return ED_grease_pencil_edit_selection_domain_get(tool_settings);
@@ -1116,7 +1111,7 @@ blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSetting
   if (object->mode & OB_MODE_VERTEX_GREASE_PENCIL) {
     return ED_grease_pencil_vertex_selection_domain_get(tool_settings);
   }
-  return blender::bke::AttrDomain::Point;
+  return bke::AttrDomain::Point;
 }
 
 bool ED_grease_pencil_any_vertex_mask_selection(const ToolSettings *tool_settings)
@@ -1174,3 +1169,5 @@ void ED_operatortypes_grease_pencil_select()
   WM_operatortype_append(GREASE_PENCIL_OT_set_selection_mode);
   WM_operatortype_append(GREASE_PENCIL_OT_material_select);
 }
+
+}  // namespace blender

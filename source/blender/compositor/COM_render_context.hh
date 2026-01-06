@@ -12,9 +12,11 @@
 
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 struct RenderResult;
 
-namespace blender::compositor {
+namespace compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * File Output
@@ -123,4 +125,5 @@ class RenderContext {
   void save_file_outputs(Scene *scene);
 };
 
-}  // namespace blender::compositor
+}  // namespace compositor
+}  // namespace blender

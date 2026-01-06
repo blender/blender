@@ -23,6 +23,8 @@
 #include "bpy_rna.hh"
 #include "bpy_rna_text.hh" /* Declare #BPY_rna_region_as_string_method_def. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Data structures.
  * \{ */
@@ -205,3 +207,5 @@ PyMethodDef BPY_rna_region_from_string_method_def = {
 #endif
 
 /** \} */
+
+}  // namespace blender

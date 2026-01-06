@@ -21,10 +21,7 @@
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
-using blender::float2;
-using blender::float3;
-using blender::float4;
-using blender::uchar4;
+namespace blender {
 
 static void alloc_scale_dst_buffers(
     const ImBuf *ibuf, uint newx, uint newy, uchar4 **r_dst_byte, float **r_dst_float)
@@ -71,7 +68,7 @@ static inline float4 load_pixel(const float4 *ptr)
 }
 static inline void store_pixel(float4 pix, uchar4 *ptr)
 {
-  *ptr = uchar4(blender::math::round(pix));
+  *ptr = uchar4(math::round(pix));
 }
 static inline void store_pixel(float4 pix, float *ptr)
 {
@@ -94,7 +91,6 @@ struct ScaleDownX {
   template<typename T>
   static void op(const T *src, T *dst, int ibufx, int ibufy, int newx, int /*newy*/, bool threaded)
   {
-    using namespace blender;
     const float add = (ibufx - 0.01f) / newx;
     const float inv_add = 1.0f / add;
 
@@ -133,7 +129,6 @@ struct ScaleDownY {
   template<typename T>
   static void op(const T *src, T *dst, int ibufx, int ibufy, int /*newx*/, int newy, bool threaded)
   {
-    using namespace blender;
     const float add = (ibufy - 0.01f) / newy;
     const float inv_add = 1.0f / add;
 
@@ -172,7 +167,6 @@ struct ScaleUpX {
   template<typename T>
   static void op(const T *src, T *dst, int ibufx, int ibufy, int newx, int /*newy*/, bool threaded)
   {
-    using namespace blender;
     const float add = (ibufx - 0.001f) / newx;
     /* Special case: source is 1px wide (see #70356). */
     if (UNLIKELY(ibufx == 1)) {
@@ -210,7 +204,7 @@ struct ScaleUpX {
                 counter++;
               }
             }
-            float4 pix = val + blender::math::max(sample, 0.0f) * diff;
+            float4 pix = val + math::max(sample, 0.0f) * diff;
             store_pixel(pix, dst_ptr);
             dst_ptr++;
             sample += add;
@@ -225,7 +219,6 @@ struct ScaleUpY {
   template<typename T>
   static void op(const T *src, T *dst, int ibufx, int ibufy, int /*newx*/, int newy, bool threaded)
   {
-    using namespace blender;
     const float add = (ibufy - 0.001f) / newy;
     /* Special case: source is 1px high (see #70356). */
     if (UNLIKELY(ibufy == 1)) {
@@ -262,7 +255,7 @@ struct ScaleUpY {
                 ++counter;
               }
             }
-            float4 pix = val + blender::math::max(sample, 0.0f) * diff;
+            float4 pix = val + math::max(sample, 0.0f) * diff;
             store_pixel(pix, dst_ptr);
             dst_ptr += ibufx;
             sample += add;
@@ -380,7 +373,7 @@ static void imb_scale_box(ImBuf *ibuf, uint newx, uint newy, bool threaded)
 
 template<typename T>
 static void scale_nearest(
-    const T *src, T *dst, int ibufx, int ibufy, int newx, int newy, blender::IndexRange y_range)
+    const T *src, T *dst, int ibufx, int ibufy, int newx, int newy, IndexRange y_range)
 {
   /* Nearest sample scaling. Step through pixels in fixed point coordinates. */
   constexpr int FRAC_BITS = 16;
@@ -403,8 +396,6 @@ static void scale_nearest(
 static void scale_nearest_func(
     const ImBuf *ibuf, int newx, int newy, uchar4 *dst_byte, float *dst_float, bool threaded)
 {
-  using namespace blender;
-
   const int grain_size = threaded ? 64 : newy;
   threading::parallel_for(IndexRange(newy), grain_size, [&](IndexRange y_range) {
     /* Byte pixels. */
@@ -439,7 +430,6 @@ static void scale_nearest_func(
 static void scale_bilinear_func(
     const ImBuf *ibuf, int newx, int newy, uchar4 *dst_byte, float *dst_float, bool threaded)
 {
-  using namespace blender;
   using namespace blender::imbuf;
 
   const int grain_size = threaded ? 32 : newy;
@@ -580,3 +570,5 @@ ImBuf *IMB_scale_into_new(
   }
   return dst;
 }
+
+}  // namespace blender

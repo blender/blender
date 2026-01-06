@@ -34,6 +34,8 @@
 #include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 
+namespace blender {
+
 using Alembic::Abc::FloatArraySamplePtr;
 using Alembic::Abc::Int32ArraySamplePtr;
 using Alembic::Abc::P3fArraySamplePtr;
@@ -58,7 +60,7 @@ using Alembic::AbcGeom::N3fArraySamplePtr;
 using Alembic::AbcGeom::UInt32ArraySamplePtr;
 using Alembic::AbcGeom::V2fArraySamplePtr;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 /* NOTE: Alembic's face winding order is clockwise, to match with Renderman. */
 
@@ -604,7 +606,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
   m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
-  m_object->data = blender::id_cast<ID *>(mesh);
+  m_object->data = id_cast<ID *>(mesh);
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
   if (read_mesh != mesh) {
@@ -1051,7 +1053,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
   m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
-  m_object->data = blender::id_cast<ID *>(mesh);
+  m_object->data = id_cast<ID *>(mesh);
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
   if (read_mesh != mesh) {
@@ -1159,4 +1161,5 @@ void AbcSubDReader::read_geometry(bke::GeometrySet &geometry_set,
   geometry_set.replace_mesh(new_mesh);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

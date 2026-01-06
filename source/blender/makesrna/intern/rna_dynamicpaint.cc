@@ -25,11 +25,15 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
     {MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},
     {MOD_DYNAMICPAINT_TYPE_BRUSH, "BRUSH", 0, "Brush", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+}
 
 #ifdef RNA_RUNTIME
 
@@ -44,6 +48,8 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
+
+namespace blender {
 
 static std::optional<std::string> rna_DynamicPaintCanvasSettings_path(const PointerRNA *ptr)
 {
@@ -279,7 +285,11 @@ static const EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext * /*
   return item;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 /* canvas.canvas_surfaces */
 static void rna_def_canvas_surfaces(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1004,5 +1014,7 @@ void RNA_def_dynamic_paint(BlenderRNA *brna)
   rna_def_dynamic_paint_brush_settings(brna);
   rna_def_canvas_surface(brna);
 }
+
+}  // namespace blender
 
 #endif

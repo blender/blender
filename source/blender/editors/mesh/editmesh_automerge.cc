@@ -20,6 +20,8 @@
 
 #include "tools/bmesh_intersect_edges.hh"
 
+namespace blender {
+
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
 #  include "BLI_time.h"
@@ -69,7 +71,7 @@ static bool edbm_automerge_impl(
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
   return changed;
 }
@@ -142,10 +144,12 @@ bool EDBM_automerge_and_split(Object *obedit,
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   return ok;
 }
 
 /** \} */
+
+}  // namespace blender

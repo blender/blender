@@ -24,6 +24,8 @@
 #include "RE_pipeline.h"
 #include "render_types.h"
 
+namespace blender {
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 Object *RE_GetCamera(Render *re)
@@ -109,3 +111,5 @@ void RE_GetViewPlane(Render *re, rctf *r_viewplane, rcti *r_disprect)
     BLI_rcti_init(r_disprect, 0, 0, 0, 0);
   }
 }
+
+}  // namespace blender

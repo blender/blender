@@ -13,6 +13,8 @@
 
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 /* ********* exports for space_view3d/ module for offscreen rendering ********** */
 struct ARegion;
 struct Depsgraph;
@@ -124,3 +126,5 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
  * (Python scripting for example).
  */
 bool ED_view3d_draw_offscreen_check_nested();
+
+}  // namespace blender

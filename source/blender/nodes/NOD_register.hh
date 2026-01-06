@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace blender {
+
 void register_nodes();
 
 void register_node_type_frame();
@@ -37,3 +39,5 @@ void register_texture_nodes();
   { \
     REGISTER_FUNC(); \
   }
+
+}  // namespace blender

@@ -9,6 +9,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct bAddon;
 
 #ifdef __RNA_TYPES_H__
@@ -36,3 +38,5 @@ struct bAddon *BKE_addon_find(const ListBaseT<bAddon> *addon_list, const char *m
 struct bAddon *BKE_addon_ensure(ListBaseT<bAddon> *addon_list, const char *module);
 bool BKE_addon_remove_safe(ListBaseT<bAddon> *addon_list, const char *module);
 void BKE_addon_free(struct bAddon *addon);
+
+}  // namespace blender

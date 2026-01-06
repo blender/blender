@@ -29,6 +29,8 @@
 
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *md)
 {
   ShadowShaderFxData *gpfx = reinterpret_cast<ShadowShaderFxData *>(md);
@@ -78,7 +80,7 @@ static void foreach_ID_link(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -87,7 +89,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "shadow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "offset");
   col.prop(ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Offset X"), ICON_NONE);
   col.prop(ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
@@ -95,7 +97,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  blender::ui::Layout &row = layout.row(true, IFACE_("Object Pivot"));
+  ui::Layout &row = layout.row(true, IFACE_("Object Pivot"));
   row.prop(ptr, "use_object", UI_ITEM_NONE, "", ICON_NONE);
   row.prop(ptr, "object", UI_ITEM_NONE, "", ICON_NONE);
 
@@ -104,14 +106,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void blur_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "blur");
   col.prop(ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Blur X"), ICON_NONE);
   col.prop(ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
@@ -121,7 +123,7 @@ static void blur_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void wave_header_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -130,7 +132,7 @@ static void wave_header_draw(const bContext * /*C*/, Panel *panel)
 
 static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -138,7 +140,7 @@ static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.active_set(RNA_boolean_get(ptr, "use_wave"));
 
-  layout.prop(ptr, "orientation", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "orientation", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.prop(ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "phase", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -177,3 +179,5 @@ ShaderFxTypeInfo shaderfx_Type_Shadow = {
     /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

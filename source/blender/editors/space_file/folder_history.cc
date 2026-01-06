@@ -22,6 +22,8 @@
 
 #include "file_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name FOLDERLIST (previous/next)
  * \{ */
@@ -197,3 +199,5 @@ ListBaseT<FileFolderHistory> folder_history_list_duplicate(ListBaseT<FileFolderH
 }
 
 /** \} */
+
+}  // namespace blender

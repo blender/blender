@@ -80,6 +80,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
@@ -278,19 +280,19 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
 
   /* Convert value from old storage to new sockets. */
   NodeHueSat *nhs = static_cast<NodeHueSat *>(node->storage);
-  bNodeSocket *hue = blender::bke::node_find_socket(*node, SOCK_IN, "Hue");
-  bNodeSocket *saturation = blender::bke::node_find_socket(*node, SOCK_IN, "Saturation");
-  bNodeSocket *value = blender::bke::node_find_socket(*node, SOCK_IN, "Value");
+  bNodeSocket *hue = bke::node_find_socket(*node, SOCK_IN, "Hue");
+  bNodeSocket *saturation = bke::node_find_socket(*node, SOCK_IN, "Saturation");
+  bNodeSocket *value = bke::node_find_socket(*node, SOCK_IN, "Value");
   if (hue == nullptr) {
-    hue = blender::bke::node_add_static_socket(
+    hue = bke::node_add_static_socket(
         *ntree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
   }
   if (saturation == nullptr) {
-    saturation = blender::bke::node_add_static_socket(
+    saturation = bke::node_add_static_socket(
         *ntree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Saturation", "Saturation");
   }
   if (value == nullptr) {
-    value = blender::bke::node_add_static_socket(
+    value = bke::node_add_static_socket(
         *ntree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
   }
 
@@ -317,7 +319,7 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
   node->storage = nullptr;
 }
 
-static blender::bke::bNodeSocketTemplate legacy_render_layers_outputs[] = {
+static bke::bNodeSocketTemplate legacy_render_layers_outputs[] = {
     {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, RE_PASSNAME_DEPTH, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -487,7 +489,7 @@ static bool strip_init_text_effect_data(Strip *strip, void * /*user_data*/)
     return true;
   }
 
-  blender::seq::effect_ensure_initialized(strip);
+  seq::effect_ensure_initialized(strip);
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   if (data->color[3] == 0.0f) {
     copy_v4_fl(data->color, 1.0f);
@@ -898,7 +900,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       STRNCPY_UTF8(srv->suffix, STEREO_RIGHT_SUFFIX);
 
       if (scene.ed) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_update_proxy_cb, nullptr);
+        seq::foreach_strip(&scene.ed->seqbase, strip_update_proxy_cb, nullptr);
       }
     }
 
@@ -1097,7 +1099,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
          * Original commit (3fcf535d2e) forgot to handle embedded IDs. Fortunately, back then, the
          * only embedded IDs that existed were the NodeTree ones, and the current API to access
          * them should still be valid on code from 9 years ago. */
-        bNodeTree *node_tree = blender::bke::node_tree_from_id(&id);
+        bNodeTree *node_tree = bke::node_tree_from_id(&id);
         if (node_tree) {
           node_tree->id.flag &= ID_FLAG_FAKEUSER;
         }
@@ -1168,7 +1170,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     for (Scene &scene : bmain->scenes) {
       if (scene.ed) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_init_text_effect_data, nullptr);
+        seq::foreach_strip(&scene.ed->seqbase, strip_init_text_effect_data, nullptr);
       }
     }
 
@@ -1491,7 +1493,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "NodeGlare", "char", "star_45")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_COMPOSIT) {
-          blender::bke::node_tree_set_type(*ntree);
+          bke::node_tree_set_type(*ntree);
           for (bNode &node : ntree->nodes) {
             if (node.type_legacy == CMP_NODE_GLARE) {
               NodeGlare *ndg = static_cast<NodeGlare *>(node.storage);
@@ -1644,7 +1646,7 @@ void do_versions_after_linking_270(Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 279, 0)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
-        blender::bke::node_tree_set_type(*ntree);
+        bke::node_tree_set_type(*ntree);
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == CMP_NODE_HUE_SAT) {
             do_version_hue_sat_node(ntree, &node);
@@ -1660,3 +1662,5 @@ void do_versions_after_linking_270(Main *bmain)
     BKE_fcurves_main_cb(bmain, do_version_bbone_easing_fcurve_fix);
   }
 }
+
+}  // namespace blender

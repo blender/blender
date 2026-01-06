@@ -16,6 +16,8 @@
 
 #include <string>
 
+namespace blender {
+
 struct bContext;
 struct BlendFileData;
 struct BlendFileReadParams;
@@ -157,7 +159,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
                                                              ReportList *reports);
 void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace_config);
 
-namespace blender::bke::blendfile {
+namespace bke::blendfile {
 
 /**
  * Partial blendfile writing.
@@ -431,4 +433,5 @@ class PartialWriteContext : NonCopyable, NonMovable {
 
 ENUM_OPERATORS(PartialWriteContext::IDAddOperations);
 
-}  // namespace blender::bke::blendfile
+}  // namespace bke::blendfile
+}  // namespace blender

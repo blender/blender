@@ -10,6 +10,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+namespace blender {
+
 struct BLI_mempool;
 struct MemArena;
 
@@ -88,3 +90,5 @@ LinkNode *BLI_linklist_sort_r(LinkNode *list,
   BLI_linklist_prepend_nlink(listp, ptr, (LinkNode *)alloca(sizeof(LinkNode)))
 #define BLI_linklist_append_alloca(list_pair, ptr) \
   BLI_linklist_append_nlink(list_pair, ptr, (LinkNode *)alloca(sizeof(LinkNode)))
+
+}  // namespace blender

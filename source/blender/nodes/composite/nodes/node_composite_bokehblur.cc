@@ -12,7 +12,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_bokehblur_cc {
+namespace blender {
+
+namespace nodes::node_composite_bokehblur_cc {
 
 static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
 {
@@ -369,13 +371,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new BokehBlurOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_bokehblur_cc
+}  // namespace nodes::node_composite_bokehblur_cc
 
 static void register_node_type_cmp_bokehblur()
 {
-  namespace file_ns = blender::nodes::node_composite_bokehblur_cc;
+  namespace file_ns = nodes::node_composite_bokehblur_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeBokehBlur", CMP_NODE_BOKEHBLUR);
   ntype.ui_name = "Bokeh Blur";
@@ -386,8 +388,10 @@ static void register_node_type_cmp_bokehblur()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  blender::bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_bokehblur)
+
+}  // namespace blender

@@ -32,11 +32,13 @@
 
 #include "GEO_merge_curves.hh"
 
+namespace blender {
+
 extern "C" {
 #include "curve_fit_nd.h"
 }
 
-namespace blender::ed::greasepencil {
+namespace ed::greasepencil {
 
 int64_t ramer_douglas_peucker_simplify(
     const IndexRange range,
@@ -207,12 +209,12 @@ int curve_merge_by_distance(const IndexRange points,
   return duplicate_count;
 }
 
-blender::bke::CurvesGeometry curves_merge_by_distance(const bke::CurvesGeometry &src_curves,
-                                                      const float merge_distance,
-                                                      const IndexMask &selection,
-                                                      const bke::AttributeFilter &attribute_filter)
+bke::CurvesGeometry curves_merge_by_distance(const bke::CurvesGeometry &src_curves,
+                                             const float merge_distance,
+                                             const IndexMask &selection,
+                                             const bke::AttributeFilter &attribute_filter)
 {
-  /* NOTE: The code here is an adapted version of #blender::geometry::point_merge_by_distance. */
+  /* NOTE: The code here is an adapted version of #geometry::point_merge_by_distance. */
 
   const int src_point_size = src_curves.points_num();
   if (src_point_size == 0) {
@@ -1194,4 +1196,5 @@ CurveSegmentsData find_curve_segments(const bke::CurvesGeometry &curves,
   return result;
 }
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
+}  // namespace blender

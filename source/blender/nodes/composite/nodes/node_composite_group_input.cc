@@ -20,7 +20,9 @@
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
-namespace blender::nodes::node_composite_group_input_cc {
+namespace blender {
+
+namespace nodes::node_composite_group_input_cc {
 
 using namespace blender::compositor;
 
@@ -146,9 +148,9 @@ class GroupInputOperation : public NodeOperation {
   }
 };
 
-}  // namespace blender::nodes::node_composite_group_input_cc
+}  // namespace nodes::node_composite_group_input_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 compositor::NodeOperation *get_group_input_compositor_operation(compositor::Context &context,
                                                                 DNode node)
@@ -156,7 +158,7 @@ compositor::NodeOperation *get_group_input_compositor_operation(compositor::Cont
   return new node_composite_group_input_cc::GroupInputOperation(context, node);
 }
 
-void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &parameters)
+void get_compositor_group_input_extra_info(nodes::NodeExtraInfoParams &parameters)
 {
   if (parameters.tree.type != NTREE_COMPOSIT) {
     return;
@@ -176,7 +178,7 @@ void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &
   for (const bNodeSocket *input : group_inputs) {
     if (StringRef(input->name) == "Image") {
       if (input->type != SOCK_RGBA) {
-        blender::nodes::NodeExtraInfoRow row;
+        nodes::NodeExtraInfoRow row;
         row.text = IFACE_("Wrong Image Input Type");
         row.icon = ICON_ERROR;
         row.tooltip = TIP_("Node group's main Image input should be of type Color");
@@ -185,7 +187,7 @@ void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &
     }
     else if (StringRef(input->name) == "Mask") {
       if (input->type != SOCK_RGBA) {
-        blender::nodes::NodeExtraInfoRow row;
+        nodes::NodeExtraInfoRow row;
         row.text = IFACE_("Wrong Mask Input Type");
         row.icon = ICON_ERROR;
         row.tooltip = TIP_("Node group's Mask input should be of type Color");
@@ -196,7 +198,7 @@ void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &
       if (added_warning_for_unsupported_inputs) {
         continue;
       }
-      blender::nodes::NodeExtraInfoRow row;
+      nodes::NodeExtraInfoRow row;
       row.text = IFACE_("Unsupported Inputs");
       row.icon = ICON_WARNING_LARGE;
       row.tooltip = TIP_(
@@ -208,4 +210,5 @@ void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

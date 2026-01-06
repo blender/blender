@@ -13,15 +13,17 @@
 #include <pxr/usd/usd/common.h>
 #include <pxr/usd/usd/timeCode.h>
 
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct Object;
 
-namespace blender::io::usd {
+namespace io::usd {
 
-using blender::io::AbstractHierarchyIterator;
-using blender::io::AbstractHierarchyWriter;
-using blender::io::HierarchyContext;
+using io::AbstractHierarchyIterator;
+using io::AbstractHierarchyWriter;
+using io::HierarchyContext;
 
 class USDHierarchyIterator : public AbstractHierarchyIterator {
  private:
@@ -90,4 +92,5 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   void add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &usd_path);
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

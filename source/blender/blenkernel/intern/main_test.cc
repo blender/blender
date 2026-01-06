@@ -294,11 +294,11 @@ TEST_F(BMainMergeTest, link_lib_packed)
 
   auto create_packed_object = [&is_archive_lib_new](Main &bmain,
                                                     Library &owner_lib,
-                                                    blender::StringRefNull ob_name,
+                                                    StringRefNull ob_name,
                                                     IDHash ob_deep_hash) -> Object * {
     Object *ob_packed = BKE_id_new_in_lib<Object>(&bmain, &owner_lib, ob_name.c_str());
     ob_packed->id.deep_hash = ob_deep_hash;
-    Library *archive_lib = blender::bke::library::ensure_archive_library(
+    Library *archive_lib = bke::library::ensure_archive_library(
         bmain, ob_packed->id, owner_lib, ob_packed->id.deep_hash, is_archive_lib_new);
     BKE_main_namemap_remove_id(bmain, ob_packed->id);
     ob_packed->id.lib = archive_lib;

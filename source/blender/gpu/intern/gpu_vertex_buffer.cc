@@ -19,11 +19,13 @@
 
 #include <cstring>
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name VertBuf
  * \{ */
 
-namespace blender::gpu {
+namespace gpu {
 
 size_t VertBuf::memory_usage = 0;
 
@@ -95,7 +97,7 @@ void VertBuf::upload()
   this->upload_data();
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /** \} */
 
@@ -103,7 +105,6 @@ void VertBuf::upload()
 /** \name C-API
  * \{ */
 
-using namespace blender;
 using namespace blender::gpu;
 
 /* -------- Creation & deletion -------- */
@@ -317,3 +318,5 @@ void GPU_vertbuf_update_sub(VertBuf *verts, uint start, uint len, const void *da
 }
 
 /** \} */
+
+}  // namespace blender

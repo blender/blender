@@ -10,7 +10,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_bsdf_hair_principled_cc {
+namespace blender {
+
+namespace nodes::node_shader_bsdf_hair_principled_cc {
 
 /* Color, melanin and absorption coefficient default to approximately same brownish hair. */
 static void node_declare(NodeDeclarationBuilder &b)
@@ -203,14 +205,14 @@ static int node_shader_gpu_hair_principled(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_bsdf_hair_principled", in, out);
 }
 
-}  // namespace blender::nodes::node_shader_bsdf_hair_principled_cc
+}  // namespace nodes::node_shader_bsdf_hair_principled_cc
 
 /* node type definition */
 void register_node_type_sh_bsdf_hair_principled()
 {
-  namespace file_ns = blender::nodes::node_shader_bsdf_hair_principled_cc;
+  namespace file_ns = nodes::node_shader_bsdf_hair_principled_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeBsdfHairPrincipled", SH_NODE_BSDF_HAIR_PRINCIPLED);
   ntype.ui_name = "Principled Hair BSDF";
@@ -220,12 +222,14 @@ void register_node_type_sh_bsdf_hair_principled()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_principled_hair;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
   ntype.initfunc = file_ns::node_shader_init_hair_principled;
   ntype.updatefunc = file_ns::node_shader_update_hair_principled;
   ntype.gpu_fn = file_ns::node_shader_gpu_hair_principled;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderHairPrincipled", node_free_standard_storage, node_copy_standard_storage);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

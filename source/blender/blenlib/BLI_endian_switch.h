@@ -15,6 +15,8 @@
 
 /* BLI_endian_switch_inline.h */
 
+namespace blender {
+
 BLI_INLINE void BLI_endian_switch_int16(short *val) ATTR_NONNULL(1);
 BLI_INLINE void BLI_endian_switch_uint16(unsigned short *val) ATTR_NONNULL(1);
 BLI_INLINE void BLI_endian_switch_int32(int *val) ATTR_NONNULL(1);
@@ -34,6 +36,8 @@ void BLI_endian_switch_float_array(float *val, int size) ATTR_NONNULL(1);
 void BLI_endian_switch_int64_array(int64_t *val, int size) ATTR_NONNULL(1);
 void BLI_endian_switch_uint64_array(uint64_t *val, int size) ATTR_NONNULL(1);
 void BLI_endian_switch_double_array(double *val, int size) ATTR_NONNULL(1);
+
+}  // namespace blender
 
 #include "BLI_endian_switch_inline.h"
 

@@ -125,7 +125,7 @@ static NodesModifierData *get_modifier_data(Main &bmain,
     return nullptr;
   }
 
-  const Object *object = blender::id_cast<Object *>(
+  const Object *object = id_cast<Object *>(
       BKE_libblock_find_session_uid(&bmain, ID_OB, data.object_session_uid));
   if (object == nullptr) {
     return nullptr;

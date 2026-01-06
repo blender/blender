@@ -8,13 +8,15 @@
 
 #include "BKE_curves.hh"
 
+namespace blender {
+
 struct Mesh;
 
 /** \file
  * \ingroup geo
  */
 
-namespace blender::geometry {
+namespace geometry {
 
 /**
  * Convert the mesh into one or many poly curves. Since curves cannot have branches,
@@ -36,4 +38,5 @@ bke::CurvesGeometry mesh_faces_to_curves_convert(const Mesh &mesh,
                                                  const IndexMask &selection,
                                                  const bke::AttributeFilter &attribute_filter);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

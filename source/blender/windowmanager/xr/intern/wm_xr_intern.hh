@@ -17,6 +17,8 @@
 
 #include "wm_xr.hh"
 
+namespace blender {
+
 struct bContext;
 struct ARegion;
 struct Object;
@@ -149,7 +151,7 @@ struct wmXrController {
   float aim_mat_base[4][4];
 
   /** Controller model. */
-  blender::gpu::Batch *model;
+  gpu::Batch *model;
 };
 
 struct wmXrAction {
@@ -285,3 +287,5 @@ bool wm_xr_passthrough_enabled(void *customdata);
  * It's assigned to Ghost-XR as a callback (see GHOST_XrDisablePassthroughFunc()).
  */
 void wm_xr_disable_passthrough(void *customdata);
+
+}  // namespace blender

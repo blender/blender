@@ -24,6 +24,8 @@
 #include "RNA_access.hh"
 #include "RNA_path.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -370,3 +372,5 @@ void WM_msg_publish_ID(wmMsgBus *mbus, ID *id)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -4,10 +4,12 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct bAnimContext;
 struct bAnimListElem;
 
-namespace blender::ed::graph {
+namespace ed::graph {
 
 /**
  * Return all bAnimListElem for which the keyframes are visible in the
@@ -18,4 +20,5 @@ namespace blender::ed::graph {
  */
 ListBaseT<bAnimListElem> get_editable_fcurves(bAnimContext &ac);
 
-}  // namespace blender::ed::graph
+}  // namespace ed::graph
+}  // namespace blender

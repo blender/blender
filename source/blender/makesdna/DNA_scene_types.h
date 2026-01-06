@@ -33,12 +33,15 @@
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
+namespace blender {
+
 struct AnimData;
 struct Brush;
 struct Collection;
 struct CurveMapping;
 struct CurveProfile;
 struct CustomData_MeshMasks;
+struct Depsgraph;
 struct Editing;
 struct Image;
 struct MovieClip;
@@ -47,11 +50,9 @@ struct Scene;
 struct World;
 struct bGPdata;
 struct bNodeTree;
-struct Depsgraph;
 struct KeyingSet;
 struct TransformOrientation;
 
-namespace blender {
 namespace bke {
 struct PaintRuntime;
 class SceneRuntime;
@@ -59,8 +60,7 @@ class SceneRuntime;
 namespace ocio {
 class ColorSpace;
 }
-}  // namespace blender
-using SceneDepsgraphsMap = blender::Map<struct DepsgraphKey, Depsgraph *, 4>;
+using SceneDepsgraphsMap = Map<struct DepsgraphKey, Depsgraph *, 4>;
 
 /* -------------------------------------------------------------------- */
 /** \name FFMPEG
@@ -1215,7 +1215,7 @@ struct Paint {
   float tile_offset[3] = {1.0f, 1.0f, 1.0f};
   struct UnifiedPaintSettings unified_paint_settings;
 
-  blender::bke::PaintRuntime *runtime = nullptr;
+  bke::PaintRuntime *runtime = nullptr;
 };
 
 /** \} */
@@ -2822,7 +2822,7 @@ struct Scene {
   struct SceneGpencil grease_pencil_settings;
   struct SceneHydra hydra;
 
-  blender::bke::SceneRuntime *runtime = nullptr;
+  bke::SceneRuntime *runtime = nullptr;
 #ifdef __cplusplus
   /* Return the frame rate of the scene. */
   double frames_per_second() const;
@@ -2896,3 +2896,5 @@ extern const char *RE_engine_id_BLENDER_EEVEE_NEXT;
 #define TIME2FRA(a) ((((double)scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
 
 /** \} */
+
+}  // namespace blender

@@ -24,11 +24,13 @@
 #include "DNA_ID_enums.h"
 #include "DNA_asset_types.h"
 
+namespace blender {
+
 struct AssetMetaData;
 struct ID;
 struct PreviewImage;
 
-namespace blender::asset_system {
+namespace asset_system {
 
 class AssetLibrary;
 
@@ -150,4 +152,6 @@ class AssetRepresentation : NonCopyable, NonMovable {
   AssetLibrary &owner_asset_library() const;
 };
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
+
+}  // namespace blender

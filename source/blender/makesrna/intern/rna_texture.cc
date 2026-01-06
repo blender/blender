@@ -23,6 +23,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_texture_type_items[] = {
     {0, "NONE", 0, "None", ""},
     {TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", "Procedural - create a ramp texture"},
@@ -103,6 +105,8 @@ static const EnumPropertyItem blend_type_items[] = {
 };
 #endif
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
@@ -131,6 +135,8 @@ static const EnumPropertyItem blend_type_items[] = {
 
 #  include "ED_node.hh"
 #  include "ED_render.hh"
+
+namespace blender {
 
 static StructRNA *rna_Texture_refine(PointerRNA *ptr)
 {
@@ -169,7 +175,7 @@ static void rna_Texture_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
   ID *id = ptr->owner_id;
 
   if (GS(id->name) == ID_TE) {
-    Tex *tex = blender::id_cast<Tex *>(ptr->owner_id);
+    Tex *tex = id_cast<Tex *>(ptr->owner_id);
 
     DEG_id_tag_update(&tex->id, 0);
     DEG_id_tag_update(&tex->id, ID_RECALC_EDITORS);
@@ -177,7 +183,7 @@ static void rna_Texture_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
     WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, nullptr);
   }
   else if (GS(id->name) == ID_NT) {
-    bNodeTree *ntree = blender::id_cast<bNodeTree *>(ptr->owner_id);
+    bNodeTree *ntree = id_cast<bNodeTree *>(ptr->owner_id);
     BKE_main_ensure_invariants(*bmain, ntree->id);
   }
 }
@@ -189,7 +195,7 @@ static void rna_Texture_mapping_update(Main *bmain, Scene *scene, PointerRNA *pt
   BKE_texture_mapping_init(texmap);
 
   if (GS(id->name) == ID_NT) {
-    bNodeTree *ntree = blender::id_cast<bNodeTree *>(ptr->owner_id);
+    bNodeTree *ntree = id_cast<bNodeTree *>(ptr->owner_id);
     /* Try to find and tag the node that this #TexMapping belongs to. */
     for (bNode *node : ntree->all_nodes()) {
       /* This assumes that the #TexMapping is stored at the beginning of the node storage. This is
@@ -212,7 +218,7 @@ static void rna_Color_mapping_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
 /* Used for Texture Properties, used (also) for/in Nodes */
 static void rna_Texture_nodes_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Tex *tex = blender::id_cast<Tex *>(ptr->owner_id);
+  Tex *tex = id_cast<Tex *>(ptr->owner_id);
 
   DEG_id_tag_update(&tex->id, 0);
   DEG_id_tag_update(&tex->id, ID_RECALC_EDITORS);
@@ -439,7 +445,11 @@ static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
   rna_Texture_nodes_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_texmapping(BlenderRNA *brna)
 {
@@ -1606,5 +1616,7 @@ void RNA_def_texture(BlenderRNA *brna)
   rna_def_texmapping(brna);
   rna_def_colormapping(brna);
 }
+
+}  // namespace blender
 
 #endif

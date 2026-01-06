@@ -28,7 +28,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_stabilize2d_cc {
+namespace blender {
+
+namespace nodes::node_composite_stabilize2d_cc {
 
 static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 {
@@ -72,7 +74,7 @@ static void init(const bContext *C, PointerRNA *ptr)
   bNode *node = static_cast<bNode *>(ptr->data);
   Scene *scene = CTX_data_scene(C);
 
-  node->id = blender::id_cast<ID *>(scene->clip);
+  node->id = id_cast<ID *>(scene->clip);
   id_us_plus(node->id);
 }
 
@@ -181,13 +183,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new Stabilize2DOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_stabilize2d_cc
+}  // namespace nodes::node_composite_stabilize2d_cc
 
 static void register_node_type_cmp_stabilize2d()
 {
-  namespace file_ns = blender::nodes::node_composite_stabilize2d_cc;
+  namespace file_ns = nodes::node_composite_stabilize2d_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeStabilize", CMP_NODE_STABILIZE2D);
   ntype.ui_name = "Stabilize 2D";
@@ -198,6 +200,8 @@ static void register_node_type_cmp_stabilize2d()
   ntype.initfunc_api = file_ns::init;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_stabilize2d)
+
+}  // namespace blender

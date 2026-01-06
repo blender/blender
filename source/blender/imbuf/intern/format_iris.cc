@@ -26,6 +26,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.jpeg"};
 
 /**
@@ -1003,3 +1005,5 @@ bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
 
   return ok;
 }
+
+}  // namespace blender

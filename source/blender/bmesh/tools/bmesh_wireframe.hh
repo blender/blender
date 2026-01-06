@@ -12,6 +12,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /**
  * \param defgrp_index: Vertex group index, -1 for no vertex groups.
  *
@@ -33,3 +35,5 @@ void BM_mesh_wireframe(BMesh *bm,
                        short mat_offset,
                        int mat_max,
                        bool use_tag);
+
+}  // namespace blender

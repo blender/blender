@@ -13,6 +13,8 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct ARegion;
 struct ImBuf;
 struct Image;
@@ -227,10 +229,12 @@ struct ImageFrame {
  * Note that `blendfile_path` may equal `root_path`, otherwise `root_path` may be set
  * to a libraries absolute file-path.
  */
-ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(blender::StringRefNull blendfile_path,
-                                                             blender::StringRefNull root_path,
+ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(StringRefNull blendfile_path,
+                                                             StringRefNull root_path,
                                                              wmOperator *op,
                                                              bool detect_udim);
 
 bool ED_image_tools_paint_poll(bContext *C);
 void ED_paint_cursor_start(Paint *paint, bool (*poll)(bContext *C));
+
+}  // namespace blender

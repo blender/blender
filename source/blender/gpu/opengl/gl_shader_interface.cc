@@ -17,8 +17,10 @@
 
 #include "GPU_capabilities.hh"
 
+namespace blender {
+
 using namespace blender::gpu::shader;
-namespace blender::gpu {
+namespace gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Binding assignment
@@ -589,4 +591,5 @@ void GLShaderInterface::ref_remove(GLVaoCache *ref)
 
 /** \} */
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

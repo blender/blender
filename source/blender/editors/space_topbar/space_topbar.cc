@@ -36,6 +36,8 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* ******************** default callbacks for topbar space ***************** */
 
 static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -88,8 +90,7 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
   if (ELEM(RGN_ALIGN_ENUM_FROM_MASK(region->alignment), RGN_ALIGN_RIGHT)) {
     region->flag |= RGN_FLAG_DYNAMIC_SIZE;
   }
-  blender::ui::view2d_region_reinit(
-      &region->v2d, blender::ui::V2D_COMMONVIEW_HEADER, region->winx, region->winy);
+  ui::view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_HEADER, region->winx, region->winy);
 
   keymap = WM_keymap_ensure(
       wm->runtime->defaultconf, "View2D Buttons List", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -189,8 +190,8 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
 
 static void recent_files_menu_draw(const bContext *C, Menu *menu)
 {
-  blender::ui::Layout &layout = *menu->layout;
-  layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
+  ui::Layout &layout = *menu->layout;
+  layout.operator_context_set(wm::OpCallContext::InvokeDefault);
   const bool is_menu_search = CTX_data_int_get(C, "is_menu_search").value_or(false);
   if (is_menu_search) {
     template_recent_files(&layout, U.recent_files);
@@ -239,8 +240,8 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
     undo_step_count += 1;
   }
 
-  blender::ui::Layout &split = menu->layout->split(0.0f, false);
-  blender::ui::Layout *column = nullptr;
+  ui::Layout &split = menu->layout->split(0.0f, false);
+  ui::Layout *column = nullptr;
 
   const int col_size = 20 + (undo_step_count / 12);
 
@@ -258,7 +259,7 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
       column = &split.column(false);
     }
     const bool is_active = (us == wm->runtime->undo_stack->step_active);
-    blender::ui::Layout &row = column->row(false);
+    ui::Layout &row = column->row(false);
     row.enabled_set(!is_active);
     PointerRNA op_ptr = row.op("ED_OT_undo_history",
                                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, us->name),
@@ -332,3 +333,5 @@ void ED_spacetype_topbar()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

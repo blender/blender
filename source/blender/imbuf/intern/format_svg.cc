@@ -16,6 +16,8 @@
 #include "IMB_imbuf_types.hh"
 #include "nanosvgrast.h"
 
+namespace blender {
+
 ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
                                        const int /*flags*/,
                                        const size_t max_thumb_size,
@@ -62,3 +64,5 @@ ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
 
   return ibuf;
 }
+
+}  // namespace blender

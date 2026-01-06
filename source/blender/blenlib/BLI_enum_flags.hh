@@ -25,7 +25,7 @@ template<typename T> struct BitwiseNotEnumValue {
   }
 };
 
-};  // namespace blender
+}  // namespace blender
 
 /* Use for enum classes that represent bit flags.
  * Defines logical operators to combine and mask the flag values.
@@ -43,14 +43,14 @@ template<typename T> struct BitwiseNotEnumValue {
       return (_enum_type)(uint64_t(a) & uint64_t(b)); \
     } \
     [[nodiscard]] inline constexpr _enum_type operator&( \
-        _enum_type a, blender::BitwiseNotEnumValue<_enum_type> b) \
+        _enum_type a, ::blender::BitwiseNotEnumValue<_enum_type> b) \
     { \
       return (_enum_type)(uint64_t(a) & uint64_t(b.value)); \
     } \
-    [[nodiscard]] inline constexpr blender::BitwiseNotEnumValue<_enum_type> operator~( \
+    [[nodiscard]] inline constexpr ::blender::BitwiseNotEnumValue<_enum_type> operator~( \
         _enum_type a) \
     { \
-      blender::BitwiseNotEnumValue<_enum_type> result = {~uint64_t(a)}; \
+      ::blender::BitwiseNotEnumValue<_enum_type> result = {~uint64_t(a)}; \
       return result; \
     } \
     inline _enum_type &operator|=(_enum_type &a, _enum_type b) \
@@ -61,7 +61,7 @@ template<typename T> struct BitwiseNotEnumValue {
     { \
       return a = (_enum_type)(uint64_t(a) & uint64_t(b)); \
     } \
-    inline _enum_type &operator&=(_enum_type &a, blender::BitwiseNotEnumValue<_enum_type> b) \
+    inline _enum_type &operator&=(_enum_type &a, ::blender::BitwiseNotEnumValue<_enum_type> b) \
     { \
       return a = (_enum_type)(uint64_t(a) & uint64_t(b.value)); \
     } \

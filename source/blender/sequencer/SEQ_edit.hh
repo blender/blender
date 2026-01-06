@@ -6,6 +6,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /** \file
  * \ingroup sequencer
  */
@@ -15,7 +17,7 @@ struct Main;
 struct Scene;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **r_error_str);
 /**
@@ -88,4 +90,5 @@ bool edit_remove_gaps(Scene *scene,
                       bool remove_all_gaps);
 void edit_strip_name_set(Scene *scene, Strip *strip, const char *new_name);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

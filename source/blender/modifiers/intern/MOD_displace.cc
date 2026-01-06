@@ -44,6 +44,8 @@
 
 #include "RE_texture.h"
 
+namespace blender {
+
 /* Displace */
 
 static void init_data(ModifierData *md)
@@ -139,9 +141,9 @@ struct DisplaceUserdata {
   bool use_global_direction;
   Tex *tex_target;
   float (*tex_co)[3];
-  blender::MutableSpan<blender::float3> positions;
+  MutableSpan<float3> positions;
   float local_mat[4][4];
-  blender::Span<blender::float3> vert_normals;
+  Span<float3> vert_normals;
 };
 
 static void displaceModifier_do_task(void *__restrict userdata,
@@ -157,7 +159,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
   int direction = data->direction;
   bool use_global_direction = data->use_global_direction;
   float (*tex_co)[3] = data->tex_co;
-  blender::MutableSpan<blender::float3> positions = data->positions;
+  MutableSpan<float3> positions = data->positions;
 
   /* When no texture is used, we fall back to white. */
   const float delta_fixed = 1.0f - dmd->midlevel;
@@ -241,7 +243,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
 static void displaceModifier_do(DisplaceModifierData *dmd,
                                 const ModifierEvalContext *ctx,
                                 Mesh *mesh,
-                                blender::MutableSpan<blender::float3> positions)
+                                MutableSpan<float3> positions)
 {
   Object *ob = ctx->object;
   const MDeformVert *dvert;
@@ -324,14 +326,14 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   displaceModifier_do(reinterpret_cast<DisplaceModifierData *>(md), ctx, mesh, positions);
 }
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -346,7 +348,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
-  blender::ui::Layout *col = &layout.column(false);
+  ui::Layout *col = &layout.column(false);
   col->active_set(has_texture);
   col->prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
@@ -432,3 +434,5 @@ ModifierTypeInfo modifierType_Displace = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

@@ -50,6 +50,8 @@
 using namespace std;
 using namespace Freestyle;
 
+namespace blender {
+
 FreestyleGlobals g_freestyle;
 
 // Freestyle configuration
@@ -138,7 +140,8 @@ static void init_view(Render *re)
       break;
   }
 
-  g_freestyle.viewport[0] = g_freestyle.viewport[1] = 0;
+  g_freestyle.viewport[0] = 0;
+  g_freestyle.viewport[1] = 0;
   g_freestyle.viewport[2] = width;
   g_freestyle.viewport[3] = height;
 
@@ -758,3 +761,5 @@ Material *FRS_create_stroke_material(Main *bmain, FreestyleLineStyle *linestyle)
   ma->id.us = 0;
   return ma;
 }
+
+}  // namespace blender

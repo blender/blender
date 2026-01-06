@@ -7,13 +7,13 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::Set<Key>` is an unordered container for unique elements of type `Key`. It is
+ * A `Set<Key>` is an unordered container for unique elements of type `Key`. It is
  * designed to be a more convenient and efficient replacement for `std::unordered_set`. All core
  * operations (add, remove and contains) can be done in O(1) amortized expected time.
  *
- * In most cases, your default choice for a hash set in Blender should be `blender::Set`.
+ * In most cases, your default choice for a hash set in Blender should be `Set`.
  *
- * blender::Set is implemented using open addressing in a slot array with a power-of-two size.
+ * Set is implemented using open addressing in a slot array with a power-of-two size.
  * Every slot is in one of three states: empty, occupied or removed. If a slot is occupied, it
  * contains an instance of the key type.
  *
@@ -24,7 +24,7 @@
  * points that allow it to be optimized for a specific use case.
  *
  * A rudimentary benchmark can be found in `BLI_set_test.cc`. The results of that benchmark are
- * there as well. The numbers show that in this specific case #blender::Set outperforms
+ * there as well. The numbers show that in this specific case #Set outperforms
  * #std::unordered_set consistently by a good amount.
  *
  * Some noteworthy information:

@@ -22,6 +22,8 @@
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct ID;
 struct Main;
 struct Scene;
@@ -29,7 +31,7 @@ struct Scene;
 struct AnimationEvalContext;
 struct NlaKeyframingContext;
 
-namespace blender::animrig {
+namespace animrig {
 
 /**
  * Represents a single success/failure in the keyframing process.
@@ -285,4 +287,5 @@ bool autokeyframe_property(bContext *C,
 
 /** \} */
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct AnimationEvalContext;
 struct ChannelDriver;
 struct DriverTarget;
@@ -186,3 +188,5 @@ float evaluate_driver(struct PathResolvedRNA *anim_rna,
                       struct ChannelDriver *driver,
                       struct ChannelDriver *driver_orig,
                       const struct AnimationEvalContext *anim_eval_context);
+
+}  // namespace blender

@@ -8,6 +8,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 #pragma once
 
 struct ARegion;
@@ -48,3 +50,5 @@ enum {
   /* reference the string by pointer */
   DRW_TEXT_CACHE_STRING_PTR = (1 << 3),
 };
+
+}  // namespace blender

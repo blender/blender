@@ -21,6 +21,8 @@
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
 
+namespace blender {
+
 struct Base;
 struct Depsgraph;
 struct EnumPropertyItem;
@@ -44,11 +46,11 @@ struct wmOperator;
 struct wmOperatorType;
 enum eReportType : uint16_t;
 
-namespace blender::ui {
+namespace ui {
 struct Layout;
-}  // namespace blender::ui
+}  // namespace ui
 
-namespace blender::ed::object {
+namespace ed::object {
 
 struct XFormObjectData;
 
@@ -622,4 +624,5 @@ void ui_template_modifier_asset_menu_items(ui::Layout &layout,
                                            StringRef catalog_path,
                                            bool skip_essentials);
 
-}  // namespace blender::ed::object
+}  // namespace ed::object
+}  // namespace blender

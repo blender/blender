@@ -42,6 +42,8 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
+namespace blender {
+
 /*
  * Ordering function for sorting lists of files/directories. Returns -1 if
  * entry1 belongs before entry2, 0 if they are equal, 1 if they should be swapped.
@@ -449,3 +451,5 @@ void BLI_filelist_free(direntry *filelist, const uint nrentries)
     MEM_freeN(filelist);
   }
 }
+
+}  // namespace blender

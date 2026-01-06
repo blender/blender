@@ -880,7 +880,7 @@ static bool outliner_element_visible_get(const Scene *scene,
       return false;
     }
 
-    Object *ob = blender::id_cast<Object *>(tselem->id);
+    Object *ob = id_cast<Object *>(tselem->id);
     Base *base = static_cast<Base *>(te->directdata);
     BLI_assert((base == nullptr) || (base->object == ob));
 

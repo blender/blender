@@ -183,7 +183,7 @@ using WeakImplicitSharingPtr = ImplicitSharingPtr<ImplicitSharingInfo, false>;
 
 /**
  * Utility struct to allow used #ImplicitSharingPtr when it's necessary to type-erase the backing
- * storage for user-exposed data. For example, #blender::Vector, or #std::vector might be used to
+ * storage for user-exposed data. For example, #Vector, or #std::vector might be used to
  * store an implicitly shared array that is only accessed with #Span or #MutableSpan.
  *
  * This class handles RAII for the sharing info and the exposed data pointer.

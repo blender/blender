@@ -46,6 +46,8 @@
 
 #include "paint_intern.hh"
 
+namespace blender {
+
 /* Brush Painting for 2D image editor */
 
 /* Defines and Structs */
@@ -84,7 +86,7 @@ struct BrushPainter {
 
   /* Store initial starting points for perlin noise on the beginning of each stroke when using
    * color jitter. */
-  std::optional<blender::float3> initial_hsv_jitter;
+  std::optional<float3> initial_hsv_jitter;
 
   bool firsttouch; /* first paint op */
 
@@ -679,8 +681,8 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s,
   if (mapmode == MTEX_MAP_MODE_STENCIL) {
     /* map from view coordinates of brush to region coordinates */
     float xmin, ymin, xmax, ymax;
-    blender::ui::view2d_view_to_region_fl(s->v2d, start[0] * invw, start[1] * invh, &xmin, &ymin);
-    blender::ui::view2d_view_to_region_fl(
+    ui::view2d_view_to_region_fl(s->v2d, start[0] * invw, start[1] * invh, &xmin, &ymin);
+    ui::view2d_view_to_region_fl(
         s->v2d, (start[0] + diameter) * invw, (start[1] + diameter) * invh, &xmax, &ymax);
 
     /* output r_mapping from brush ibuf x/y to region coordinates */
@@ -722,7 +724,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
                                            float distance,
                                            float size)
 {
-  const blender::bke::PaintRuntime *paint_runtime = painter->paint->runtime;
+  const bke::PaintRuntime *paint_runtime = painter->paint->runtime;
   Brush *brush = painter->brush;
   BrushPainterCache *cache = &tile->cache;
   /* Adding 4 pixels of padding for brush anti-aliasing. */
@@ -1487,7 +1489,7 @@ static void paint_2d_canvas_free(ImagePaintState *s)
 
 static void paint_2d_transform_mouse(View2D *v2d, const float in[2], float out[2])
 {
-  blender::ui::view2d_region_to_view(v2d, in[0], in[1], &out[0], &out[1]);
+  ui::view2d_region_to_view(v2d, in[0], in[1], &out[0], &out[1]);
 }
 
 static bool is_inside_tile(const int size[2], const float pos[2], const float brush[2])
@@ -1519,11 +1521,11 @@ void paint_2d_stroke(void *ps,
     s->blend = IMB_BLEND_ERASE_ALPHA;
   }
 
-  blender::ui::view2d_region_to_view(s->v2d, mval[0], mval[1], &new_uv[0], &new_uv[1]);
-  blender::ui::view2d_region_to_view(s->v2d, prev_mval[0], prev_mval[1], &old_uv[0], &old_uv[1]);
+  ui::view2d_region_to_view(s->v2d, mval[0], mval[1], &new_uv[0], &new_uv[1]);
+  ui::view2d_region_to_view(s->v2d, prev_mval[0], prev_mval[1], &old_uv[0], &old_uv[1]);
 
   float last_uv[2], start_uv[2];
-  blender::ui::view2d_region_to_view(s->v2d, 0.0f, 0.0f, &start_uv[0], &start_uv[1]);
+  ui::view2d_region_to_view(s->v2d, 0.0f, 0.0f, &start_uv[0], &start_uv[1]);
   if (painter->firsttouch) {
     /* paint exactly once on first touch */
     copy_v2_v2(last_uv, new_uv);
@@ -1885,7 +1887,7 @@ void paint_2d_bucket_fill(const bContext *C,
   /* First check if our image is float. If it is we should correct the color to be in linear space.
    */
   if (!do_float) {
-    blender::float3 ibuf_color = color;
+    float3 ibuf_color = color;
     IMB_colormanagement_scene_linear_to_colorspace_v3(ibuf_color, ibuf->byte_buffer.colorspace);
     rgb_float_to_uchar(reinterpret_cast<uchar *>(&color_b), ibuf_color);
     *((reinterpret_cast<char *>(&color_b)) + 3) = strength * 255;
@@ -2154,3 +2156,5 @@ void paint_2d_gradient_fill(
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 }
+
+}  // namespace blender

@@ -6,8 +6,7 @@
  * \ingroup intern_mantaflow
  */
 
-#ifndef MANTA_A_H
-#define MANTA_A_H
+#pragma once
 
 #include <atomic>
 #include <cassert>
@@ -19,6 +18,8 @@ using std::atomic;
 using std::string;
 using std::unordered_map;
 using std::vector;
+
+namespace blender {
 
 struct MANTA {
  public:
@@ -873,4 +874,4 @@ struct MANTA {
                  int framenr);
 };
 
-#endif
+}  // namespace blender

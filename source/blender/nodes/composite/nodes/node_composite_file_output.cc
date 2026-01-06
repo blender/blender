@@ -57,9 +57,11 @@
 
 #include "node_composite_util.hh"
 
-namespace path_templates = blender::bke::path_templates;
+namespace blender {
 
-namespace blender::nodes::node_composite_file_output_cc {
+namespace path_templates = bke::path_templates;
+
+namespace nodes::node_composite_file_output_cc {
 
 NODE_STORAGE_FUNCS(NodeCompositorFileOutput)
 
@@ -864,7 +866,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeOutputFile", CMP_NODE_OUTPUT_FILE);
   ntype.ui_name = "File Output";
@@ -877,21 +879,20 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.register_operators = node_operators;
   ntype.initfunc_api = node_init;
-  blender::bke::node_type_storage(
-      ntype, "NodeCompositorFileOutput", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeCompositorFileOutput", node_free_storage, node_copy_storage);
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.get_extra_info = node_extra_info;
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.get_compositor_operation = get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_composite_file_output_cc
+}  // namespace nodes::node_composite_file_output_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 StructRNA *FileOutputItemsAccessor::item_srna = &RNA_NodeCompositorFileOutputItem;
 
@@ -915,4 +916,5 @@ std::string FileOutputItemsAccessor::validate_name(const StringRef name)
   return file_name;
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

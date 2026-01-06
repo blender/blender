@@ -133,8 +133,6 @@ static ImBuf *do_gaussian_blur_effect(const RenderData *context,
                                       ImBuf *ibuf1,
                                       ImBuf * /*ibuf2*/)
 {
-  using namespace blender;
-
   /* Create blur kernel weights. */
   const GaussianBlurVars *data = static_cast<const GaussianBlurVars *>(strip->effectdata);
 

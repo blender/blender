@@ -209,7 +209,7 @@ static void id_search_cb_objects_from_scene(const bContext *C,
   ID *id_from = template_ui->ptr.owner_id;
 
   if (id_from && GS(id_from->name) == ID_SCE) {
-    scene = blender::id_cast<Scene *>(id_from);
+    scene = id_cast<Scene *>(id_from);
   }
   else {
     scene = CTX_data_scene(C);
@@ -338,14 +338,12 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
       continue;
     }
     if (GS(target_id->name) == ID_OB &&
-        !BKE_collection_has_object_recursive(iter->collection,
-                                             blender::id_cast<Object *>(target_id)))
+        !BKE_collection_has_object_recursive(iter->collection, id_cast<Object *>(target_id)))
     {
       continue;
     }
     if (GS(target_id->name) == ID_GR &&
-        !BKE_collection_has_collection(iter->collection,
-                                       blender::id_cast<Collection *>(target_id)))
+        !BKE_collection_has_collection(iter->collection, id_cast<Collection *>(target_id)))
     {
       continue;
     }
@@ -393,7 +391,7 @@ ID *template_id_liboverride_hierarchy_make(
 
   Object *object_active = CTX_data_active_object(C);
   if (object_active == nullptr && GS(owner_id->name) == ID_OB) {
-    object_active = blender::id_cast<Object *>(owner_id);
+    object_active = id_cast<Object *>(owner_id);
   }
   if (object_active != nullptr) {
     if (ID_IS_LINKED(object_active)) {
@@ -413,7 +411,7 @@ ID *template_id_liboverride_hierarchy_make(
   Collection *collection_active_context = CTX_data_collection(C);
   Collection *collection_active = collection_active_context;
   if (collection_active == nullptr && GS(owner_id->name) == ID_GR) {
-    collection_active = blender::id_cast<Collection *>(owner_id);
+    collection_active = id_cast<Collection *>(owner_id);
   }
   if (collection_active != nullptr) {
     if (ID_IS_LINKED(collection_active)) {
@@ -467,7 +465,7 @@ ID *template_id_liboverride_hierarchy_make(
   switch (GS(id->name)) {
     case ID_GR:
       if (collection_active != nullptr &&
-          BKE_collection_has_collection(collection_active, blender::id_cast<Collection *>(id)))
+          BKE_collection_has_collection(collection_active, id_cast<Collection *>(id)))
       {
         template_id_liboverride_hierarchy_collections_tag_recursive(collection_active, id, true);
         if (object_active != nullptr) {
@@ -500,7 +498,7 @@ ID *template_id_liboverride_hierarchy_make(
       break;
     case ID_OB:
       if (collection_active != nullptr &&
-          BKE_collection_has_object_recursive(collection_active, blender::id_cast<Object *>(id)))
+          BKE_collection_has_object_recursive(collection_active, id_cast<Object *>(id)))
       {
         template_id_liboverride_hierarchy_collections_tag_recursive(collection_active, id, true);
         if (object_active != nullptr) {
@@ -522,7 +520,7 @@ ID *template_id_liboverride_hierarchy_make(
         }
         BKE_lib_override_library_create(
             bmain, scene, view_layer, nullptr, id, nullptr, nullptr, &id_override, false);
-        BKE_scene_collections_object_remove(bmain, scene, blender::id_cast<Object *>(id), true);
+        BKE_scene_collections_object_remove(bmain, scene, id_cast<Object *>(id), true);
         WM_event_add_notifier(C, NC_ID | NA_REMOVED, nullptr);
       }
       break;
@@ -766,8 +764,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         if (do_scene_obj) {
           Main *bmain = CTX_data_main(C);
           Scene *scene = CTX_data_scene(C);
-          blender::ed::object::object_single_user_make(
-              bmain, scene, blender::id_cast<Object *>(id));
+          ed::object::object_single_user_make(bmain, scene, id_cast<Object *>(id));
           WM_event_add_notifier(C, NC_WINDOW, nullptr);
           DEG_relations_tag_update(bmain);
         }
@@ -1169,7 +1166,7 @@ static void template_ID(const bContext *C,
          * the object data instead of the object. In that case disable the button if the object
          * data is non-editable. Otherwise the button does nothing. */
         else if (Object *object;
-                 (GS(idfrom->name) == ID_OB) && (object = blender::id_cast<Object *>(idfrom)) &&
+                 (GS(idfrom->name) == ID_OB) && (object = id_cast<Object *>(idfrom)) &&
                  (template_ui.idcode == ID_MA) &&
                  /* Trying to assign to linked/packed object data. */
                  (object->data && ID_IS_LINKED(object->data)) &&
@@ -1242,7 +1239,7 @@ static void template_ID(const bContext *C,
       if (!BKE_id_copy_is_allowed(id) || (idfrom && !ID_IS_EDITABLE(idfrom)) || (!editable) ||
           /* object in editmode - don't change data */
           (idfrom && GS(idfrom->name) == ID_OB &&
-           ((blender::id_cast<Object *>(idfrom))->mode & OB_MODE_EDIT)))
+           ((id_cast<Object *>(idfrom))->mode & OB_MODE_EDIT)))
       {
         button_flag_enable(but, BUT_DISABLED);
       }

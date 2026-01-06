@@ -27,6 +27,8 @@
 
 #include "screen_intern.hh"
 
+namespace blender {
+
 int screen_geom_area_height(const ScrArea *area)
 {
   return area->v2->vec.y - area->v1->vec.y + 1;
@@ -405,3 +407,5 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
     }
   }
 }
+
+}  // namespace blender

@@ -125,7 +125,7 @@ static wmOperatorStatus vertex_parent_set_exec(bContext *C, wmOperator *op)
   /* we need 1 to 3 selected vertices */
 
   if (obedit->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(obedit->data);
+    Mesh *mesh = id_cast<Mesh *>(obedit->data);
 
     EDBM_mesh_load(bmain, obedit);
     EDBM_mesh_make(obedit, scene->toolsettings->selectmode, true);
@@ -218,7 +218,7 @@ static wmOperatorStatus vertex_parent_set_exec(bContext *C, wmOperator *op)
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
+    Lattice *lt = id_cast<Lattice *>(obedit->data);
 
     const int points_num = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv *
                            lt->editlatt->latt->pntsw;
@@ -534,8 +534,8 @@ static bool parent_set_with_depsgraph(ReportList *reports,
       if (par->type != OB_CURVES_LEGACY) {
         return false;
       }
-      Curve *cu = blender::id_cast<Curve *>(par->data);
-      Curve *cu_eval = blender::id_cast<Curve *>(parent_eval->data);
+      Curve *cu = id_cast<Curve *>(par->data);
+      Curve *cu_eval = id_cast<Curve *>(parent_eval->data);
       if ((cu->flag & CU_PATH) == 0) {
         cu->flag |= CU_PATH | CU_FOLLOW;
         cu_eval->flag |= CU_PATH | CU_FOLLOW;
@@ -1567,7 +1567,7 @@ static wmOperatorStatus make_links_data_exec(bContext *C, wmOperator *op)
             BKE_object_materials_sync_length(bmain, ob_dst, ob_dst->data);
 
             if (ob_dst->type == OB_ARMATURE) {
-              BKE_pose_rebuild(bmain, ob_dst, blender::id_cast<bArmature *>(ob_dst->data), true);
+              BKE_pose_rebuild(bmain, ob_dst, id_cast<bArmature *>(ob_dst->data), true);
             }
             DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
             break;
@@ -1581,8 +1581,7 @@ static wmOperatorStatus make_links_data_exec(bContext *C, wmOperator *op)
             DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
             break;
           case MAKE_LINKS_ANIMDATA:
-            BKE_animdata_copy_id(
-                bmain, blender::id_cast<ID *>(ob_dst), blender::id_cast<ID *>(ob_src), 0);
+            BKE_animdata_copy_id(bmain, id_cast<ID *>(ob_dst), id_cast<ID *>(ob_src), 0);
             if (ob_dst->data && ob_src->data) {
               if (BKE_id_is_editable(bmain, obdata_id)) {
                 BKE_animdata_copy_id(bmain, ob_dst->data, ob_src->data, 0);
@@ -1628,8 +1627,8 @@ static wmOperatorStatus make_links_data_exec(bContext *C, wmOperator *op)
                               ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
             break;
           case MAKE_LINKS_FONTS: {
-            Curve *cu_src = blender::id_cast<Curve *>(ob_src->data);
-            Curve *cu_dst = blender::id_cast<Curve *>(ob_dst->data);
+            Curve *cu_src = id_cast<Curve *>(ob_src->data);
+            Curve *cu_dst = id_cast<Curve *>(ob_dst->data);
 
             if (!BKE_id_is_editable(bmain, obdata_id)) {
               is_lib = true;
@@ -1801,10 +1800,10 @@ static Collection *single_object_users_collection(Main *bmain,
   /* Generate new copies for objects in given collection and all its children,    * and
    * optionally also copy collections themselves. */
   if (copy_collections && !is_master_collection) {
-    Collection *collection_new = blender::id_cast<Collection *>(BKE_id_copy_ex(
+    Collection *collection_new = id_cast<Collection *>(BKE_id_copy_ex(
         bmain, &collection->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
     id_us_min(&collection_new->id);
-    collection = blender::id_cast<Collection *>(ID_NEW_SET(collection, collection_new));
+    collection = id_cast<Collection *>(ID_NEW_SET(collection, collection_new));
   }
 
   /* We do not remap to new objects here, this is done in separate step. */
@@ -1918,7 +1917,7 @@ static void single_obdata_users(
                                                  static_cast<const ID *>(ob->data),
                                                  nullptr,
                                                  LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
-            Camera *cam = blender::id_cast<Camera *>(ob->data);
+            Camera *cam = id_cast<Camera *>(ob->data);
             ID_NEW_REMAP(cam->dof.focus_object);
             break;
           }
@@ -1945,7 +1944,7 @@ static void single_obdata_users(
                                                  static_cast<const ID *>(ob->data),
                                                  nullptr,
                                                  LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
-            Curve *cu = blender::id_cast<Curve *>(ob->data);
+            Curve *cu = id_cast<Curve *>(ob->data);
             ID_NEW_REMAP(cu->bevobj);
             ID_NEW_REMAP(cu->taperobj);
             break;
@@ -1964,7 +1963,7 @@ static void single_obdata_users(
                                                  static_cast<const ID *>(ob->data),
                                                  nullptr,
                                                  LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
-            BKE_pose_rebuild(bmain, ob, blender::id_cast<bArmature *>(ob->data), true);
+            BKE_pose_rebuild(bmain, ob, id_cast<bArmature *>(ob->data), true);
             break;
           case OB_SPEAKER:
             ob->data = ID_NEW_SET(ob->data,
@@ -2053,7 +2052,7 @@ static void single_object_action_users(
         continue;
       }
 
-      ID *id_act = blender::id_cast<ID *>(adt->action);
+      ID *id_act = id_cast<ID *>(adt->action);
       if (single_data_needs_duplication(id_act)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
         BKE_animdata_duplicate_id_action(bmain, &ob->id, USER_DUP_ACT | USER_DUP_LINKED_ID);
@@ -2074,7 +2073,7 @@ static void single_objectdata_action_users(
         continue;
       }
 
-      ID *id_act = blender::id_cast<ID *>(adt->action);
+      ID *id_act = id_cast<ID *>(adt->action);
       if (single_data_needs_duplication(id_act)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
         BKE_animdata_duplicate_id_action(bmain, id_obdata, USER_DUP_ACT | USER_DUP_LINKED_ID);
@@ -2095,7 +2094,7 @@ static void single_mat_users(
       for (a = 1; a <= ob->totcol; a++) {
         ma = BKE_object_material_get(ob, short(a));
         if (single_data_needs_duplication(&ma->id)) {
-          man = blender::id_cast<Material *>(
+          man = id_cast<Material *>(
               BKE_id_copy_ex(bmain, &ma->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
           man->id.us = 0;
           BKE_object_material_assign(bmain, ob, man, short(a), BKE_MAT_ASSIGN_USERPREF);
@@ -2540,7 +2539,7 @@ static wmOperatorStatus make_override_library_exec(bContext *C, wmOperator *op)
       /* Remove the found root ID from the view layer. */
       switch (GS(id_root->name)) {
         case ID_GR: {
-          Collection *collection_root = blender::id_cast<Collection *>(id_root);
+          Collection *collection_root = id_cast<Collection *>(id_root);
           for (CollectionParent &collection_parent :
                collection_root->runtime->parents.items_mutable())
           {
@@ -2812,7 +2811,7 @@ static wmOperatorStatus clear_override_library_exec(bContext *C, wmOperator * /*
                          ID_REMAP_SKIP_INDIRECT_USAGE);
       if (do_remap_active) {
         BKE_view_layer_synced_ensure(scene, view_layer);
-        Object *ref_object = blender::id_cast<Object *>(ob_iter->id.override_library->reference);
+        Object *ref_object = id_cast<Object *>(ob_iter->id.override_library->reference);
         Base *basact = BKE_view_layer_base_find(view_layer, ref_object);
         if (basact != nullptr) {
           view_layer->basact = basact;
@@ -3001,7 +3000,7 @@ static wmOperatorStatus drop_named_material_invoke(bContext *C,
   Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
   mat_slot = max_ii(mat_slot, 1);
 
-  Material *ma = blender::id_cast<Material *>(
+  Material *ma = id_cast<Material *>(
       WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_MA));
 
   if (ob == nullptr || ma == nullptr) {
@@ -3098,8 +3097,7 @@ static wmOperatorStatus drop_geometry_nodes_invoke(bContext *C,
   Scene *scene = CTX_data_scene(C);
 
   const uint32_t uid = RNA_int_get(op->ptr, "session_uid");
-  bNodeTree *node_tree = blender::id_cast<bNodeTree *>(
-      BKE_libblock_find_session_uid(bmain, ID_NT, uid));
+  bNodeTree *node_tree = id_cast<bNodeTree *>(BKE_libblock_find_session_uid(bmain, ID_NT, uid));
   if (!node_tree) {
     return OPERATOR_CANCELLED;
   }
@@ -3186,7 +3184,7 @@ static wmOperatorStatus object_unlink_data_exec(bContext *C, wmOperator *op)
   id = pprop.ptr.owner_id;
 
   if (GS(id->name) == ID_OB) {
-    Object *ob = blender::id_cast<Object *>(id);
+    Object *ob = id_cast<Object *>(id);
     if (ob->data) {
       ID *id_data = ob->data;
 

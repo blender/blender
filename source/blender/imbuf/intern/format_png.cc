@@ -12,6 +12,8 @@
 #include "IMB_filetype.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
@@ -65,3 +67,5 @@ bool imb_save_png(ImBuf *ibuf, const char *filepath, int flags)
 
   return imb_oiio_write(ctx, filepath, file_spec);
 }
+
+}  // namespace blender

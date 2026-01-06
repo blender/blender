@@ -19,11 +19,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Selected Object Array
  * \{ */
-
-using blender::Vector;
 
 Vector<Object *> BKE_view_layer_array_selected_objects_params(
     ViewLayer *view_layer, const View3D *v3d, const ObjectsInViewLayerParams *params)
@@ -221,7 +221,7 @@ LayerCollection *BKE_view_layer_active_collection_get(ViewLayer *view_layer)
 bool BKE_view_layer_filter_edit_mesh_has_uvs(const Object *ob, void * /*user_data*/)
 {
   if (ob->type == OB_MESH) {
-    const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
+    const Mesh *mesh = id_cast<const Mesh *>(ob->data);
     if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       if (CustomData_has_layer(&em->bm->ldata, CD_PROP_FLOAT2)) {
         return true;
@@ -234,7 +234,7 @@ bool BKE_view_layer_filter_edit_mesh_has_uvs(const Object *ob, void * /*user_dat
 bool BKE_view_layer_filter_edit_mesh_has_edges(const Object *ob, void * /*user_data*/)
 {
   if (ob->type == OB_MESH) {
-    const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
+    const Mesh *mesh = id_cast<const Mesh *>(ob->data);
     if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       if (em->bm->totedge != 0) {
         return true;
@@ -293,3 +293,5 @@ Object *BKE_view_layer_edit_object_get(const ViewLayer *view_layer)
 }
 
 /** \} */
+
+}  // namespace blender

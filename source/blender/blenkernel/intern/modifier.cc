@@ -80,6 +80,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"object.modifier"};
 static ModifierTypeInfo *modifier_types[NUM_MODIFIER_TYPES] = {nullptr};
 static VirtualModifierData virtualModifierCommonData;
@@ -616,8 +618,7 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
     if (ob->parent->type == OB_ARMATURE && ob->partype == PARSKEL) {
       virtual_modifier_data->amd.object = ob->parent;
       virtual_modifier_data->amd.modifier.next = md;
-      virtual_modifier_data->amd.deformflag =
-          (blender::id_cast<bArmature *>(ob->parent->data))->deformflag;
+      virtual_modifier_data->amd.deformflag = (id_cast<bArmature *>(ob->parent->data))->deformflag;
       md = &virtual_modifier_data->amd.modifier;
     }
     else if (ob->parent->type == OB_CURVES_LEGACY && ob->partype == PARSKEL) {
@@ -794,14 +795,14 @@ bool BKE_modifiers_uses_armature(Object *ob, bArmature *arm)
   for (; md; md = md->next) {
     if (md->type == eModifierType_Armature) {
       ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
-      if (amd->object && amd->object->data == blender::id_cast<ID *>(arm)) {
+      if (amd->object && amd->object->data == id_cast<ID *>(arm)) {
         return true;
       }
     }
     else if (md->type == eModifierType_GreasePencilArmature) {
       GreasePencilArmatureModifierData *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(
           md);
-      if (amd->object && amd->object->data == blender::id_cast<ID *>(arm)) {
+      if (amd->object && amd->object->data == id_cast<ID *>(arm)) {
         return true;
       }
     }
@@ -929,7 +930,7 @@ static void ensure_non_lazy_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
+      bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
       if (!edit_data.vert_positions.is_empty()) {
         /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
          * If that changes we'll need to recalculate. */
@@ -967,7 +968,7 @@ Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx,
 bool BKE_modifier_deform_verts(ModifierData *md,
                                const ModifierEvalContext *ctx,
                                Mesh *mesh,
-                               blender::MutableSpan<blender::float3> positions)
+                               MutableSpan<float3> positions)
 {
   using namespace blender::bke;
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
@@ -1017,7 +1018,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
                                  const BMEditMesh *em,
                                  Mesh *mesh,
-                                 blender::MutableSpan<blender::float3> positions)
+                                 MutableSpan<float3> positions)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
   if (mesh && mti->depends_on_normals && mti->depends_on_normals(md)) {
@@ -1071,18 +1072,16 @@ ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph, Object *object, M
 
 void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md)
 {
-  uint64_t hash = blender::get_default_hash(blender::StringRef(md.name));
+  uint64_t hash = get_default_hash(StringRef(md.name));
   if (ID_IS_LINKED(&object)) {
-    hash = blender::get_default_hash(hash,
-                                     blender::StringRef(object.id.lib->runtime->filepath_abs));
+    hash = get_default_hash(hash, StringRef(object.id.lib->runtime->filepath_abs));
   }
   if (ID_IS_OVERRIDE_LIBRARY_REAL(&object)) {
     BLI_assert(ID_IS_LINKED(object.id.override_library->reference));
-    hash = blender::get_default_hash(
-        hash,
-        blender::StringRef(object.id.override_library->reference->lib->runtime->filepath_abs));
+    hash = get_default_hash(
+        hash, StringRef(object.id.override_library->reference->lib->runtime->filepath_abs));
   }
-  blender::RandomNumberGenerator rng{uint32_t(hash)};
+  RandomNumberGenerator rng{uint32_t(hash)};
   while (true) {
     const int new_uid = rng.get_int32();
     if (new_uid <= 0) {
@@ -1098,7 +1097,7 @@ void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md)
 
 bool BKE_modifiers_persistent_uids_are_valid(const Object &object)
 {
-  blender::Set<int> uids;
+  Set<int> uids;
   int modifiers_num = 0;
   for (const ModifierData &md : object.modifiers) {
     if (md.persistent_uid <= 0) {
@@ -1539,7 +1538,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
   }
 }
 
-namespace blender::bke {
+namespace bke {
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -1562,4 +1561,5 @@ ScopedModifierTimer::~ScopedModifierTimer()
   md_.execution_time = duration;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

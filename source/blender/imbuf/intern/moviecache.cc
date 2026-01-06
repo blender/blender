@@ -24,6 +24,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 #ifdef DEBUG_MESSAGES
 #  if defined __GNUC__
 #    define PRINT(format, args...) printf(format, ##args)
@@ -611,3 +613,5 @@ void *IMB_moviecacheIter_getUserKey(MovieCacheIter *iter)
       BLI_ghashIterator_getKey(reinterpret_cast<GHashIterator *>(iter)));
   return key->userkey;
 }
+
+}  // namespace blender

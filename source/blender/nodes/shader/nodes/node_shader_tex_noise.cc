@@ -16,7 +16,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tex_noise_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_noise_cc {
 
 NODE_STORAGE_FUNCS(NodeTexNoise)
 
@@ -453,13 +455,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tex_noise_cc
+}  // namespace nodes::node_shader_tex_noise_cc
 
 void register_node_type_sh_tex_noise()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_noise_cc;
+  namespace file_ns = nodes::node_shader_tex_noise_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeTexNoise", SH_NODE_TEX_NOISE);
   ntype.ui_name = "Noise Texture";
@@ -469,13 +471,15 @@ void register_node_type_sh_tex_noise()
   ntype.declare = file_ns::sh_node_tex_noise_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_noise;
   ntype.initfunc = file_ns::node_shader_init_tex_noise;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexNoise", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_noise;
   ntype.updatefunc = file_ns::node_shader_update_tex_noise;
   ntype.build_multi_function = file_ns::sh_node_noise_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
-  blender::bke::node_type_size(ntype, 145, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 145, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

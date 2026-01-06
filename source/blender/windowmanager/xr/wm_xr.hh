@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct wmWindow;
 struct wmWindowManager;
 struct wmXrData;
@@ -26,3 +28,5 @@ bool wm_xr_events_handle(wmWindowManager *wm);
 /* `wm_xr_operators.cc` */
 
 void wm_xr_operatortypes_register();
+
+}  // namespace blender

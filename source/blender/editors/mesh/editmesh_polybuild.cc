@@ -43,7 +43,7 @@
 
 #include "DEG_depsgraph.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -168,11 +168,11 @@ static wmOperatorStatus edbm_polybuild_transform_at_cursor_invoke(bContext *C,
   params.calc_looptris = true;
   params.calc_normals = true;
   params.is_destructive = true;
-  EDBM_update(blender::id_cast<Mesh *>(vc.obedit->data), &params);
+  EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
   if (basact != nullptr) {
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      blender::ed::object::base_activate(C, basact);
+      ed::object::base_activate(C, basact);
     }
   }
   BM_select_history_store(bm, ele_act);
@@ -194,7 +194,7 @@ void MESH_OT_polybuild_transform_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 static wmOperatorStatus edbm_polybuild_delete_at_cursor_invoke(bContext *C,
@@ -254,11 +254,11 @@ static wmOperatorStatus edbm_polybuild_delete_at_cursor_invoke(bContext *C,
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
     if (basact != nullptr) {
       BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
       if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-        blender::ed::object::base_activate(C, basact);
+        ed::object::base_activate(C, basact);
       }
     }
     WM_event_add_mousemove(vc.win);
@@ -281,7 +281,7 @@ void MESH_OT_polybuild_delete_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -423,12 +423,12 @@ static wmOperatorStatus edbm_polybuild_face_at_cursor_invoke(bContext *C,
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
 
     if (basact != nullptr) {
       BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
       if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-        blender::ed::object::base_activate(C, basact);
+        ed::object::base_activate(C, basact);
       }
     }
 
@@ -458,7 +458,7 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
                   "Create Quads",
                   "Automatically split edges in triangles to maintain quad topology");
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -514,13 +514,13 @@ static wmOperatorStatus edbm_polybuild_split_at_cursor_invoke(bContext *C,
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
 
     WM_event_add_mousemove(vc.win);
 
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      blender::ed::object::base_activate(C, basact);
+      ed::object::base_activate(C, basact);
     }
 
     return OPERATOR_FINISHED;
@@ -542,7 +542,7 @@ void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -610,11 +610,11 @@ static wmOperatorStatus edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
     edbm_flag_disable_all_multi(vc.scene, vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 
     EDBMUpdate_Params params{};
-    EDBM_update(blender::id_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
 
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      blender::ed::object::base_activate(C, basact);
+      ed::object::base_activate(C, basact);
     }
 
     WM_event_add_mousemove(vc.win);
@@ -639,3 +639,5 @@ void MESH_OT_polybuild_dissolve_at_cursor(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

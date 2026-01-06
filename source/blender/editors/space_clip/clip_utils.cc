@@ -36,6 +36,8 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 bool clip_graph_value_visible(SpaceClip *sc, eClipCurveValueSource value_source)
 {
   if (ELEM(value_source, CLIP_VALUE_SOURCE_SPEED_X, CLIP_VALUE_SOURCE_SPEED_Y)) {
@@ -599,3 +601,5 @@ bool clip_view_has_locked_selection(const bContext *C)
 
   return mask_has_selection(C);
 }
+
+}  // namespace blender

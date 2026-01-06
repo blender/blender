@@ -11,8 +11,6 @@
 
 #include "intern/dna_utils.h"
 
-struct SDNA;
-
 /**
  * DNAstr contains the prebuilt SDNA structure defining the layouts of the types
  * used by this version of Blender. It is defined in a file dna.c, which is
@@ -21,6 +19,10 @@ struct SDNA;
 extern const unsigned char DNAstr[];
 /** Length of DNAstr. */
 extern const int DNAlen;
+
+namespace blender {
+
+struct SDNA;
 
 /**
  * Primitive (non-struct, non-pointer/function/array) types,
@@ -238,3 +240,5 @@ void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
 #  define DNA_struct_member_exists(sdna, stype, vartype, name) \
     DNA_struct_member_exists_with_alias(sdna, stype, vartype, name)
 #endif
+
+}  // namespace blender

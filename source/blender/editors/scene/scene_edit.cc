@@ -43,6 +43,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Scene Utilities
  * \{ */
@@ -215,7 +217,7 @@ static void view_layer_remove_unset_nodetrees(const Main *bmain, Scene *scene, V
        sce = static_cast<Scene *>(sce->id.next))
   {
     if (sce->compositing_node_group) {
-      blender::bke::node_tree_remove_layer_n(sce->compositing_node_group, scene, act_layer_index);
+      bke::node_tree_remove_layer_n(sce->compositing_node_group, scene, act_layer_index);
     }
   }
 }
@@ -325,7 +327,7 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   int type = RNA_enum_get(op->ptr, "type");
   Scene *sequencer_scene = CTX_data_sequencer_scene(C);
-  Strip *strip = blender::seq::select_active_get(sequencer_scene);
+  Strip *strip = seq::select_active_get(sequencer_scene);
   BLI_assert(strip != nullptr);
 
   if (!strip->scene) {
@@ -338,7 +340,7 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
   }
   strip->scene = scene_new;
   /* Do a refresh of the sequencer data. */
-  blender::seq::relations_invalidate_cache_raw(sequencer_scene, strip);
+  seq::relations_invalidate_cache_raw(sequencer_scene, strip);
   DEG_id_tag_update(&sequencer_scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);
   return OPERATOR_FINISHED;
@@ -347,7 +349,7 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
 static bool scene_new_sequencer_poll(bContext *C)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  const Strip *strip = blender::seq::select_active_get(scene);
+  const Strip *strip = seq::select_active_get(scene);
   return (strip && (strip->type == STRIP_TYPE_SCENE));
 }
 
@@ -370,7 +372,7 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
   }
   else {
     Scene *scene = CTX_data_sequencer_scene(C);
-    Strip *strip = blender::seq::select_active_get(scene);
+    Strip *strip = seq::select_active_get(scene);
     if (strip && (strip->type == STRIP_TYPE_SCENE) && (strip->scene != nullptr)) {
       has_scene_or_no_context = true;
     }
@@ -426,7 +428,7 @@ static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
   const int type = RNA_enum_get(op->ptr, "type");
 
   Scene *new_scene = scene_add(bmain, scene_old, eSceneCopyMethod(type));
-  blender::seq::editing_ensure(new_scene);
+  seq::editing_ensure(new_scene);
 
   workspace->sequencer_scene = new_scene;
 
@@ -577,3 +579,5 @@ void ED_operatortypes_scene()
 }
 
 /** \} */
+
+}  // namespace blender

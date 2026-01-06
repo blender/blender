@@ -40,7 +40,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Redo API
@@ -272,7 +272,7 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
  */
 static int object_shapenr_basis_index_ensured(const Object *ob)
 {
-  const Mesh *mesh = blender::id_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = id_cast<const Mesh *>(ob->data);
   if (UNLIKELY((ob->shapenr == 0) && (mesh->key && !BLI_listbase_is_empty(&mesh->key->block)))) {
     return 1;
   }
@@ -281,7 +281,7 @@ static int object_shapenr_basis_index_ensured(const Object *ob)
 
 void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   EDBM_mesh_make_from_mesh(ob, mesh, select_mode, add_key_index);
 }
 
@@ -290,7 +290,7 @@ void EDBM_mesh_make_from_mesh(Object *ob,
                               const int select_mode,
                               const bool add_key_index)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   BMeshCreateParams create_params{};
   create_params.use_toolflags = true;
   /* Clamp the index, so the behavior of enter & exit edit-mode matches, see #43998. */
@@ -318,7 +318,7 @@ void EDBM_mesh_make_from_mesh(Object *ob,
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   BMesh *bm = mesh->runtime->edit_mesh->bm;
 
   /* Workaround for #42360, 'ob->shapenr' should be 1 in this case.
@@ -914,7 +914,7 @@ static bool seam_connected_recursive(BMEdge *edge,
                                      const float luv_anchor[2],
                                      const float luv_fan[2],
                                      const BMLoop *needle,
-                                     blender::Set<const BMEdge *> &visited,
+                                     Set<const BMEdge *> &visited,
                                      const int cd_loop_uv_offset)
 {
   BMVert *anchor = needle->v;
@@ -977,7 +977,7 @@ static bool seam_connected_recursive(BMEdge *edge,
  */
 static bool seam_connected(BMLoop *loop_a,
                            BMLoop *loop_b,
-                           blender::Set<const BMEdge *> &visited,
+                           Set<const BMEdge *> &visited,
                            int cd_loop_uv_offset)
 {
   BLI_assert(loop_a && loop_b);
@@ -1092,7 +1092,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     }
   }
 
-  blender::Set<const BMEdge *> seam_visited_set;
+  Set<const BMEdge *> seam_visited_set;
 
   /* For each BMVert, sort associated linked list into unique uvs. */
   int ev_index;
@@ -1318,7 +1318,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
   const float maxdist_sq = square_f(maxdist);
 
   /* one or the other is used depending if topo is enabled */
-  blender::KDTree_3d *tree = nullptr;
+  KDTree_3d *tree = nullptr;
   MirrTopoStore_t mesh_topo_store = {nullptr, -1, -1, false};
 
   BM_mesh_elem_table_ensure(bm, BM_VERT);
@@ -1345,15 +1345,15 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
     ED_mesh_mirrtopo_init(em, nullptr, &mesh_topo_store, true);
   }
   else {
-    tree = blender::kdtree_3d_new(bm->totvert);
+    tree = kdtree_3d_new(bm->totvert);
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
       if (respecthide && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
         continue;
       }
 
-      blender::kdtree_3d_insert(tree, i, v->co);
+      kdtree_3d_insert(tree, i, v->co);
     }
-    blender::kdtree_3d_balance(tree);
+    kdtree_3d_balance(tree);
   }
 
 #define VERT_INTPTR(_v, _i) \
@@ -1387,7 +1387,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
       co[axis] *= -1.0f;
 
       v_mirr = nullptr;
-      i_mirr = blender::kdtree_3d_find_nearest(tree, co, nullptr);
+      i_mirr = kdtree_3d_find_nearest(tree, co, nullptr);
       if (i_mirr != -1) {
         BMVert *v_test = BM_vert_at_index(bm, i_mirr);
         if (len_squared_v3v3(co, v_test->co) < maxdist_sq) {
@@ -1413,7 +1413,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
     ED_mesh_mirrtopo_free(&mesh_topo_store);
   }
   else {
-    blender::kdtree_3d_free(tree);
+    kdtree_3d_free(tree);
   }
 }
 
@@ -1472,7 +1472,7 @@ BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
 
 BMFace *EDBM_verts_mirror_get_face(BMEditMesh *em, BMFace *f)
 {
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> v_mirr_arr(f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> v_mirr_arr(f->len);
 
   BMLoop *l_iter, *l_first;
   uint i = 0;
@@ -2095,3 +2095,5 @@ bool EDBM_smooth_vert(BMEditMesh *em, wmOperator *op)
                        true,
                        true);
 }
+
+}  // namespace blender

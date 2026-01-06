@@ -16,6 +16,8 @@
 
 #include "armature_intern.hh"
 
+namespace blender {
+
 /* ************************** registration **********************************/
 
 void ED_operatortypes_armature()
@@ -174,3 +176,5 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
   keymap = WM_keymap_ensure(keyconf, "Pose", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_posemode;
 }
+
+}  // namespace blender

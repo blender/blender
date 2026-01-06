@@ -22,7 +22,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_attribute_capture_cc {
+namespace blender {
+
+namespace nodes::node_geo_attribute_capture_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryAttributeCapture)
 
@@ -226,7 +228,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 {
   const NodeGeometryAttributeCapture &src_storage = node_storage(*src_node);
   NodeGeometryAttributeCapture *dst_storage = MEM_new_for_free<NodeGeometryAttributeCapture>(
-      __func__, blender::dna::shallow_copy(src_storage));
+      __func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<CaptureAttributeItemsAccessor>(*src_node, *dst_node);
@@ -272,7 +274,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeCaptureAttribute", GEO_NODE_CAPTURE_ATTRIBUTE);
   ntype.ui_name = "Capture Attribute";
   ntype.ui_description =
@@ -281,7 +283,7 @@ static void node_register()
       "deformation";
   ntype.enum_name_legacy = "CAPTURE_ATTRIBUTE";
   ntype.nclass = NODE_CLASS_ATTRIBUTE;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryAttributeCapture", node_free_storage, node_copy_storage);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
@@ -294,13 +296,13 @@ static void node_register()
   ntype.internally_linked_input = node_internally_linked_input;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_geo_attribute_capture_cc
+}  // namespace nodes::node_geo_attribute_capture_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 StructRNA *CaptureAttributeItemsAccessor::item_srna = &RNA_NodeGeometryCaptureAttributeItem;
 
@@ -314,4 +316,5 @@ void CaptureAttributeItemsAccessor::blend_read_data_item(BlendDataReader *reader
   BLO_read_string(reader, &item.name);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

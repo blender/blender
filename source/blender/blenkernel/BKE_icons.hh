@@ -18,6 +18,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 typedef void (*DrawInfoFreeFP)(void *drawinfo);
 
 enum {
@@ -145,3 +147,5 @@ void BKE_icon_geom_invert_lightness(Icon_Geom *geom);
 int BKE_icon_ensure_studio_light(StudioLight *sl, int id_type);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32
+
+}  // namespace blender

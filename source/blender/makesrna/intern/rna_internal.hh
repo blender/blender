@@ -18,6 +18,8 @@
 
 #include "UI_resources.hh" /* IWYU pragma: export */
 
+namespace blender {
+
 #define RNA_MAGIC ((int)~0)
 
 enum class AttributeOwnerType;
@@ -27,6 +29,7 @@ using eCustomDataMask = uint64_t;
 struct FreestyleSettings;
 struct ID;
 struct IDProperty;
+struct IDPropertyGroup;
 struct FreestyleLineSet;
 struct FreestyleModuleConfig;
 struct Main;
@@ -228,7 +231,6 @@ void RNA_def_xr(BlenderRNA *brna);
  *
  * See also #RNA_def_struct_system_idprops_func.
  */
-struct IDPropertyGroup;
 IDPropertyGroup *rna_struct_system_properties_get_func(PointerRNA ptr, bool do_create);
 
 void rna_def_attributes_common(StructRNA *srna, AttributeOwnerType type);
@@ -236,7 +238,7 @@ void rna_def_attributes_common(StructRNA *srna, AttributeOwnerType type);
 void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
 int rna_Attribute_data_length(PointerRNA *ptr);
 
-blender::StringRefNull rna_Attribute_name_get(const PointerRNA &ptr);
+StringRefNull rna_Attribute_name_get(const PointerRNA &ptr);
 void rna_Attribute_name_get(PointerRNA *ptr, char *value);
 int rna_Attribute_name_length(PointerRNA *ptr);
 void rna_Attribute_name_set(PointerRNA *ptr, const char *value);
@@ -250,7 +252,7 @@ void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter, Pointer
 PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter);
 int rna_AttributeGroup_length(PointerRNA *ptr);
 PointerRNA rna_AttributeGroup_lookup_string(const PointerRNA &ptr,
-                                            const blender::StringRef key,
+                                            const StringRef key,
                                             AttrDomainMask domain_mask,
                                             eCustomDataMask cd_type_mask);
 bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);
@@ -657,7 +659,7 @@ void rna_mtex_texture_slots_clear(ID *self, bContext *C, ReportList *reports, in
 
 bool rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr);
 
-std::optional<blender::StringRefNull> rna_translate_ui_text(
+std::optional<StringRefNull> rna_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, bool translate);
 
 /* Internal functions that cycles uses so we need to declare (not ideal!). */
@@ -698,3 +700,5 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
         float: -FLT_MAX, \
         double: -DBL_MAX)
 #endif
+
+}  // namespace blender

@@ -28,6 +28,8 @@
 #include "libmv-capi.h"
 #include "tracking_private.hh"
 
+namespace blender {
+
 struct AutoTrackClip {
   MovieClip *clip;
 
@@ -898,3 +900,5 @@ void BKE_autotrack_context_free(AutoTrackContext *context)
 }
 
 /** \} */
+
+}  // namespace blender

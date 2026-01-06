@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /* types */
 
 /** vector of two shorts. */
@@ -95,3 +97,5 @@ struct DualQuat {
   float scale[4][4] = {};
   float scale_weight = 0;
 };
+
+}  // namespace blender

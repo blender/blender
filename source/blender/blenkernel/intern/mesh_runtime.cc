@@ -20,15 +20,13 @@
 #include "BKE_shrinkwrap.hh"
 #include "BKE_subdiv_ccg.hh"
 
-using blender::float3;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Runtime Struct Utils
  * \{ */
 
-namespace blender::bke {
+namespace bke {
 
 static void free_mesh_eval(MeshRuntime &mesh_runtime)
 {
@@ -109,11 +107,10 @@ static void try_tag_verts_no_face_none(const Mesh &mesh)
   });
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
-blender::Span<int> Mesh::corner_to_face_map() const
+Span<int> Mesh::corner_to_face_map() const
 {
-  using namespace blender;
   this->runtime->corner_to_face_map_cache.ensure([&](Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
     r_data = bke::mesh::build_corner_to_face_map(faces);
@@ -121,9 +118,8 @@ blender::Span<int> Mesh::corner_to_face_map() const
   return this->runtime->corner_to_face_map_cache.data();
 }
 
-blender::OffsetIndices<int> Mesh::vert_to_face_map_offsets() const
+OffsetIndices<int> Mesh::vert_to_face_map_offsets() const
 {
-  using namespace blender;
   this->runtime->vert_to_face_offset_cache.ensure([&](Array<int> &r_data) {
     r_data = Array<int>(this->verts_num + 1, 0);
     offset_indices::build_reverse_offsets(this->corner_verts(), r_data);
@@ -131,9 +127,8 @@ blender::OffsetIndices<int> Mesh::vert_to_face_map_offsets() const
   return OffsetIndices<int>(this->runtime->vert_to_face_offset_cache.data());
 }
 
-blender::GroupedSpan<int> Mesh::vert_to_face_map() const
+GroupedSpan<int> Mesh::vert_to_face_map() const
 {
-  using namespace blender;
   const OffsetIndices offsets = this->vert_to_face_map_offsets();
   this->runtime->vert_to_face_map_cache.ensure([&](Array<int> &r_data) {
     r_data.reinitialize(this->corners_num);
@@ -153,9 +148,8 @@ blender::GroupedSpan<int> Mesh::vert_to_face_map() const
   return {offsets, this->runtime->vert_to_face_map_cache.data()};
 }
 
-blender::GroupedSpan<int> Mesh::vert_to_corner_map() const
+GroupedSpan<int> Mesh::vert_to_corner_map() const
 {
-  using namespace blender;
   const OffsetIndices offsets = this->vert_to_face_map_offsets();
   this->runtime->vert_to_corner_map_cache.ensure([&](Array<int> &r_data) {
     r_data = bke::mesh::build_vert_to_corner_indices(this->corner_verts(), offsets);
@@ -163,7 +157,7 @@ blender::GroupedSpan<int> Mesh::vert_to_corner_map() const
   return {offsets, this->runtime->vert_to_corner_map_cache.data()};
 }
 
-const blender::bke::LooseVertCache &Mesh::loose_verts() const
+const bke::LooseVertCache &Mesh::loose_verts() const
 {
   using namespace blender::bke;
   this->runtime->loose_verts_cache.ensure([&](LooseVertCache &r_data) {
@@ -174,7 +168,7 @@ const blender::bke::LooseVertCache &Mesh::loose_verts() const
   return this->runtime->loose_verts_cache.data();
 }
 
-const blender::bke::LooseVertCache &Mesh::verts_no_face() const
+const bke::LooseVertCache &Mesh::verts_no_face() const
 {
   using namespace blender::bke;
   this->runtime->verts_no_face_cache.ensure([&](LooseVertCache &r_data) {
@@ -190,7 +184,7 @@ bool Mesh::no_overlapping_topology() const
   return this->flag & ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
-const blender::bke::LooseEdgeCache &Mesh::loose_edges() const
+const bke::LooseEdgeCache &Mesh::loose_edges() const
 {
   using namespace blender::bke;
   this->runtime->loose_edges_cache.ensure([&](LooseEdgeCache &r_data) {
@@ -227,7 +221,7 @@ void Mesh::tag_overlapping_none()
   this->flag |= ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
-namespace blender::bke {
+namespace bke {
 
 void TrianglesCache::freeze()
 {
@@ -254,22 +248,22 @@ void TrianglesCache::tag_dirty()
   }
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
-blender::Span<blender::int3> Mesh::corner_tris() const
+Span<int3> Mesh::corner_tris() const
 {
-  this->runtime->corner_tris_cache.data.ensure([&](blender::Array<blender::int3> &r_data) {
+  this->runtime->corner_tris_cache.data.ensure([&](Array<int3> &r_data) {
     const Span<float3> positions = this->vert_positions();
-    const blender::OffsetIndices faces = this->faces();
+    const OffsetIndices faces = this->faces();
     const Span<int> corner_verts = this->corner_verts();
 
     r_data.reinitialize(poly_to_tri_count(faces.size(), corner_verts.size()));
 
     if (BKE_mesh_face_normals_are_dirty(this)) {
-      blender::bke::mesh::corner_tris_calc(positions, faces, corner_verts, r_data);
+      bke::mesh::corner_tris_calc(positions, faces, corner_verts, r_data);
     }
     else {
-      blender::bke::mesh::corner_tris_calc_with_normals(
+      bke::mesh::corner_tris_calc_with_normals(
           positions, faces, corner_verts, this->face_normals(), r_data);
     }
   });
@@ -277,10 +271,9 @@ blender::Span<blender::int3> Mesh::corner_tris() const
   return this->runtime->corner_tris_cache.data.data();
 }
 
-blender::Span<int> Mesh::corner_tri_faces() const
+Span<int> Mesh::corner_tri_faces() const
 {
-  using namespace blender;
-  this->runtime->corner_tri_faces_cache.ensure([&](blender::Array<int> &r_data) {
+  this->runtime->corner_tri_faces_cache.ensure([&](Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
     r_data.reinitialize(poly_to_tri_count(faces.size(), this->corners_num));
     bke::mesh::corner_tris_calc_face_indices(faces, r_data);
@@ -297,7 +290,7 @@ int BKE_mesh_runtime_corner_tris_len(const Mesh *mesh)
 void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
 {
   if (!mesh->runtime->edit_data) {
-    mesh->runtime->edit_data = std::make_unique<blender::bke::EditMeshData>();
+    mesh->runtime->edit_data = std::make_unique<bke::EditMeshData>();
   }
 }
 
@@ -466,3 +459,5 @@ void BKE_mesh_batch_cache_free(void *batch_cache)
 }
 
 /** \} */
+
+}  // namespace blender

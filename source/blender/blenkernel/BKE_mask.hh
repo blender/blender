@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_mask_types.h"
 
+namespace blender {
+
 #ifndef SELECT
 #  define SELECT 1
 #endif
@@ -392,3 +394,5 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
                               float *buffer);
 
 /** \} */
+
+}  // namespace blender

@@ -33,6 +33,9 @@
 #include "versioning_common.hh"
 
 // #include "CLG_log.h"
+
+namespace blender {
+
 // static CLG_LogRef LOG = {"blend.doversion"};
 
 void do_versions_after_linking_xxx(FileData * /*fd*/, Main * /*bmain*/)
@@ -54,3 +57,5 @@ void blo_do_versions_xxx(FileData * /*fd*/, Library * /*lib*/, Main * /*bmain*/)
    * \note Keep this message at the bottom of the function.
    */
 }
+
+}  // namespace blender

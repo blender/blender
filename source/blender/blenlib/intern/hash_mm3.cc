@@ -17,6 +17,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_hash_mm3.hh" /* own include */
 
+namespace blender {
+
 #if defined(_MSC_VER)
 #  include <stdlib.h>
 #  define ROTL32(x, y) _rotl(x, y)
@@ -125,3 +127,5 @@ uint32_t BLI_hash_mm3(const uchar *data, size_t len, uint32_t seed)
 
   return h1;
 }
+
+}  // namespace blender

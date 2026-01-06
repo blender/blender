@@ -25,6 +25,8 @@
 #include "FX_shader_types.hh"
 #include "FX_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *fx)
 {
   ColorizeShaderFxData *gpfx = reinterpret_cast<ColorizeShaderFxData *>(fx);
@@ -41,7 +43,7 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -96,3 +98,5 @@ ShaderFxTypeInfo shaderfx_Type_Colorize = {
     /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

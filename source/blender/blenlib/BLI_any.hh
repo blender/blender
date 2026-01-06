@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * A #blender::Any is a type-safe container for single values of any copy constructible type.
+ * A #Any is a type-safe container for single values of any copy constructible type.
  * It is similar to #std::any but provides the following two additional features:
  * - Adjustable inline buffer capacity and alignment. #std::any has a small inline buffer in most
  *   implementations as well, but its size is not guaranteed.
@@ -21,7 +21,7 @@
 
 namespace blender {
 
-namespace detail {
+namespace blenlib_detail {
 
 /**
  * Contains function pointers that manage the memory in an #Any.
@@ -78,7 +78,7 @@ struct NoExtraInfo {
   }
 };
 
-}  // namespace detail
+}  // namespace blenlib_detail
 
 template<
     /**
@@ -101,8 +101,8 @@ class Any {
  private:
   /* Makes it possible to use void in the template parameters. */
   using RealExtraInfo =
-      std::conditional_t<std::is_void_v<ExtraInfo>, detail::NoExtraInfo, ExtraInfo>;
-  using Info = detail::AnyTypeInfo<RealExtraInfo>;
+      std::conditional_t<std::is_void_v<ExtraInfo>, blenlib_detail::NoExtraInfo, ExtraInfo>;
+  using Info = blenlib_detail::AnyTypeInfo<RealExtraInfo>;
   static constexpr size_t RealInlineBufferCapacity = std::max(InlineBufferCapacity,
                                                               sizeof(std::unique_ptr<int>));
 
@@ -142,10 +142,10 @@ class Any {
     using DecayT = std::decay_t<T>;
     static_assert(is_allowed_v<DecayT>);
     if constexpr (is_inline_v<DecayT>) {
-      return detail::template info_for_inline<RealExtraInfo, DecayT>;
+      return blenlib_detail::template info_for_inline<RealExtraInfo, DecayT>;
     }
     else {
-      return detail::template info_for_unique_ptr<RealExtraInfo, DecayT>;
+      return blenlib_detail::template info_for_unique_ptr<RealExtraInfo, DecayT>;
     }
   }
 

@@ -16,6 +16,8 @@
 #include <algorithm> /* For `min/max`. */
 #include <cmath>
 
+namespace blender {
+
 #define LRT_OTHER_VERT(e, vt) ((vt) == (e)->v1 ? (e)->v2 : ((vt) == (e)->v2 ? (e)->v1 : nullptr))
 
 struct Object;
@@ -1409,3 +1411,5 @@ void MOD_lineart_chain_find_silhouette_backdrop_objects(LineartData *ld)
     }
   }
 }
+
+}  // namespace blender

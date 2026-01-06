@@ -30,6 +30,8 @@
 
 #include "physics_intern.hh"
 
+namespace blender {
+
 /************************ add/del boid rule operators *********************/
 static wmOperatorStatus rule_add_exec(bContext *C, wmOperator *op)
 {
@@ -353,3 +355,5 @@ void BOID_OT_state_move_down(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

@@ -10,6 +10,8 @@
 
 #include "DNA_defs.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name #ColorBand Types
  * \{ */
@@ -73,3 +75,5 @@ struct ColorBand {
 };
 
 /** \} */
+
+}  // namespace blender

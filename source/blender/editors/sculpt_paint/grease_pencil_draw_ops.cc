@@ -72,7 +72,9 @@
 #include <fmt/format.h>
 #include <optional>
 
-namespace blender::ed::sculpt_paint {
+namespace blender {
+
+namespace ed::sculpt_paint {
 
 /* -------------------------------------------------------------------- */
 /** \name Common Paint Operator Functions
@@ -368,7 +370,7 @@ static wmOperatorStatus grease_pencil_sculpt_paint_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   if (!ed::greasepencil::has_editable_layer(grease_pencil)) {
     BKE_report(op->reports, RPT_ERROR, "No editable Grease Pencil layer");
     return OPERATOR_CANCELLED;
@@ -477,7 +479,7 @@ static wmOperatorStatus grease_pencil_weight_brush_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const Paint *paint = BKE_paint_get_active_from_context(C);
   const Brush *brush = BKE_paint_brush_for_read(paint);
   if (brush == nullptr) {
@@ -575,7 +577,7 @@ static wmOperatorStatus grease_pencil_vertex_brush_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   if (!ed::greasepencil::has_editable_layer(grease_pencil)) {
     BKE_report(op->reports, RPT_ERROR, "No editable Grease Pencil layer");
     return OPERATOR_CANCELLED;
@@ -664,7 +666,7 @@ static void GREASE_PENCIL_OT_vertex_brush_stroke(wmOperatorType *ot)
  * \{ */
 
 struct GreasePencilFillOpData {
-  blender::bke::greasepencil::Layer &layer;
+  bke::greasepencil::Layer &layer;
 
   /* Material of the generated stroke. */
   int material_index;
@@ -696,12 +698,12 @@ struct GreasePencilFillOpData {
   void *overlay_cb_handle;
 
   static GreasePencilFillOpData from_context(bContext &C,
-                                             blender::bke::greasepencil::Layer &layer,
+                                             bke::greasepencil::Layer &layer,
                                              const int material_index,
                                              const bool invert,
                                              const bool precision)
   {
-    using blender::bke::greasepencil::Layer;
+    using bke::greasepencil::Layer;
 
     const ToolSettings &ts = *CTX_data_tool_settings(&C);
     const Brush &brush = *BKE_paint_brush(&ts.gp_paint->paint);
@@ -737,7 +739,7 @@ static void grease_pencil_fill_extension_cut(const bContext &C,
   const RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   const Scene &scene = *CTX_data_scene(&C);
   const Object &object = *CTX_data_active_object(&C);
-  const GreasePencil &grease_pencil = *blender::id_cast<const GreasePencil *>(object.data);
+  const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(object.data);
 
   const float4x4 view_matrix = float4x4(rv3d.viewmat);
 
@@ -899,7 +901,7 @@ static void grease_pencil_fill_extension_lines_from_circles(
   const RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   const Scene &scene = *CTX_data_scene(&C);
   const Object &object = *CTX_data_active_object(&C);
-  const GreasePencil &grease_pencil = *blender::id_cast<const GreasePencil *>(object.data);
+  const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(object.data);
 
   const float4x4 view_matrix = float4x4(rv3d.viewmat);
 
@@ -1006,7 +1008,7 @@ static ed::greasepencil::ExtensionData grease_pencil_fill_get_extension_data(
 {
   const Scene &scene = *CTX_data_scene(&C);
   const Object &object = *CTX_data_active_object(&C);
-  const GreasePencil &grease_pencil = *blender::id_cast<const GreasePencil *>(object.data);
+  const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(object.data);
 
   const Vector<ed::greasepencil::DrawingInfo> drawings =
       ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
@@ -1115,7 +1117,7 @@ static void grease_pencil_fill_overlay_cb(const bContext *C, ARegion * /*region*
   const RegionView3D &rv3d = *CTX_wm_region_view3d(C);
   const Scene &scene = *CTX_data_scene(C);
   const Object &object = *CTX_data_active_object(C);
-  const GreasePencil &grease_pencil = *blender::id_cast<const GreasePencil *>(object.data);
+  const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(object.data);
   auto &op_data = *static_cast<GreasePencilFillOpData *>(arg);
 
   const float4x4 world_to_view = float4x4(rv3d.viewmat);
@@ -1270,7 +1272,7 @@ static Vector<FillToolTargetInfo> ensure_editable_drawings(const Scene &scene,
   const ToolSettings *toolsettings = scene.toolsettings;
   const bool use_multi_frame_editing = (toolsettings->gpencil_flags &
                                         GP_USE_MULTI_FRAME_EDITING) != 0;
-  const bool use_autokey = blender::animrig::is_autokey_on(&scene);
+  const bool use_autokey = animrig::is_autokey_on(&scene);
   const bool use_duplicate_frame = (scene.toolsettings->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST);
   const int target_layer_index = *grease_pencil.get_layer_index(target_layer);
 
@@ -1398,7 +1400,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   const ViewContext view_context = ED_view3d_viewcontext_init(&C, CTX_data_depsgraph_pointer(&C));
   const Scene &scene = *CTX_data_scene(&C);
   Object &object = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
   auto &op_data = *static_cast<GreasePencilFillOpData *>(op.customdata);
   const ToolSettings &ts = *CTX_data_tool_settings(&C);
   Brush &brush = *BKE_paint_brush(&ts.gp_paint->paint);
@@ -1514,12 +1516,12 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
 
 static bool grease_pencil_fill_init(bContext &C, wmOperator &op)
 {
-  using blender::bke::greasepencil::Layer;
+  using bke::greasepencil::Layer;
 
   Main &bmain = *CTX_data_main(&C);
   Scene &scene = *CTX_data_scene(&C);
   Object &ob = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob.data);
   Paint &paint = scene.toolsettings->gp_paint->paint;
   Brush &brush = *BKE_paint_brush(&paint);
 
@@ -1561,7 +1563,7 @@ static void grease_pencil_fill_exit(bContext &C, wmOperator &op)
 {
   const ARegion &region = *CTX_wm_region(&C);
   Object &ob = *CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob.data);
 
   WM_cursor_modal_restore(CTX_wm_window(&C));
 
@@ -1594,7 +1596,7 @@ static wmOperatorStatus grease_pencil_fill_invoke(bContext *C,
   ToolSettings &ts = *CTX_data_tool_settings(C);
   Brush &brush = *BKE_paint_brush(&ts.gp_paint->paint);
   Object &ob = *CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob.data);
 
   /* Fill tool needs a material (cannot use default material). */
   if ((brush.gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) &&
@@ -1826,13 +1828,13 @@ static bke::greasepencil::Drawing *get_current_drawing_or_duplicate_for_autokey(
   using namespace bke::greasepencil;
   const int current_frame = scene.r.cfra;
   Layer &layer = grease_pencil.layer(layer_index);
-  if (!layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(&scene)) {
+  if (!layer.has_drawing_at(current_frame) && !animrig::is_autokey_on(&scene)) {
     return nullptr;
   }
 
   const std::optional<int> previous_key_frame_start = layer.start_frame_at(current_frame);
   const bool has_previous_key = previous_key_frame_start.has_value();
-  if (blender::animrig::is_autokey_on(&scene) && has_previous_key) {
+  if (animrig::is_autokey_on(&scene) && has_previous_key) {
     grease_pencil.insert_duplicate_frame(layer, *previous_key_frame_start, current_frame, false);
   }
   return grease_pencil.get_drawing_at(layer, current_frame);
@@ -1899,7 +1901,7 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
   const ARegion *region = CTX_wm_region(C);
   Object *object = CTX_data_active_object(C);
   const Object *ob_eval = DEG_get_evaluated(depsgraph, object);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   const Array<int2> lasso = WM_gesture_lasso_path_to_array(C, op);
   if (lasso.is_empty()) {
@@ -2010,7 +2012,7 @@ static wmOperatorStatus grease_pencil_erase_box_exec(bContext *C, wmOperator *op
   const ARegion *region = CTX_wm_region(C);
   Object *object = CTX_data_active_object(C);
   const Object *ob_eval = DEG_get_evaluated(depsgraph, object);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   const Bounds<int2> box_bounds = WM_operator_properties_border_to_bounds(op);
   if (box_bounds.is_empty()) {
@@ -2080,7 +2082,7 @@ static void GREASE_PENCIL_OT_erase_box(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
 
 /* -------------------------------------------------------------------- */
 /** \name Registration
@@ -2101,7 +2103,7 @@ void ED_operatortypes_grease_pencil_draw()
 void ED_filltool_modal_keymap(wmKeyConfig *keyconf)
 {
   using namespace blender::ed::greasepencil;
-  using blender::ed::sculpt_paint::FillToolModalKey;
+  using ed::sculpt_paint::FillToolModalKey;
 
   static const EnumPropertyItem modal_items[] = {
       {int(FillToolModalKey::Cancel), "CANCEL", 0, "Cancel", ""},
@@ -2137,3 +2139,5 @@ void ED_filltool_modal_keymap(wmKeyConfig *keyconf)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -61,8 +61,8 @@ namespace blender::ed::sculpt_paint {
 
 /*** Cursors ***/
 static void paint_draw_smooth_cursor(bContext *C,
-                                     const blender::int2 &xy,
-                                     const blender::float2 & /*tilt*/,
+                                     const int2 &xy,
+                                     const float2 & /*tilt*/,
                                      void *customdata)
 {
   PaintStroke *data = static_cast<PaintStroke *>(customdata);
@@ -81,13 +81,13 @@ static void paint_draw_smooth_cursor(bContext *C,
     GPU_blend(GPU_BLEND_ALPHA);
 
     const uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     const uchar4 color = uchar4(255, 100, 100, 128);
     immUniformColor4ubv(color);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2fv(pos, blender::float2(xy));
+    immVertex2fv(pos, float2(xy));
     immVertex2f(pos,
                 data->last_mouse_position[0] + region->winrct.xmin,
                 data->last_mouse_position[1] + region->winrct.ymin);
@@ -102,8 +102,8 @@ static void paint_draw_smooth_cursor(bContext *C,
 }
 
 static void paint_draw_line_cursor(bContext * /*C*/,
-                                   const blender::int2 &xy,
-                                   const blender::float2 & /*tilt*/,
+                                   const int2 &xy,
+                                   const float2 & /*tilt*/,
                                    void *customdata)
 {
   PaintStroke *stroke = static_cast<PaintStroke *>(customdata);
@@ -111,7 +111,7 @@ static void paint_draw_line_cursor(bContext * /*C*/,
   GPU_line_smooth(true);
 
   const uint shdr_pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 

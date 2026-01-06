@@ -763,7 +763,7 @@ static bool WIDGETGROUP_node_glare_poll(const bContext *C, wmGizmoGroupType * /*
     return false;
   }
 
-  bNodeSocket &type_socket = *blender::bke::node_find_socket(*node, SOCK_IN, "Type");
+  bNodeSocket &type_socket = *bke::node_find_socket(*node, SOCK_IN, "Type");
   snode->edittree->ensure_topology_cache();
   if (type_socket.is_directly_linked()) {
     return false;
@@ -954,7 +954,7 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
       wmGizmo *gz = cpin_group->gizmos[i++];
 
       PointerRNA sockptr = RNA_pointer_create_discrete(
-          blender::id_cast<ID *>(snode->edittree), &RNA_NodeSocket, sock);
+          id_cast<ID *>(snode->edittree), &RNA_NodeSocket, sock);
       WM_gizmo_target_property_def_rna(gz, "offset", &sockptr, "default_value", -1);
 
       WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);

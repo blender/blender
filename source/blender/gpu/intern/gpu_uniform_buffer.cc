@@ -26,11 +26,13 @@
 #include "gpu_context_private.hh"
 #include "gpu_uniform_buffer_private.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Creation & Deletion
  * \{ */
 
-namespace blender::gpu {
+namespace gpu {
 
 UniformBuf::UniformBuf(size_t size, const char *name)
 {
@@ -47,7 +49,7 @@ UniformBuf::~UniformBuf()
   MEM_SAFE_FREE(data_);
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /** \} */
 
@@ -193,7 +195,7 @@ static inline void buffer_fill_from_list(void *data, ListBaseT<LinkData> *inputs
 
 using namespace blender::gpu;
 
-blender::gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name)
+gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name)
 {
   UniformBuf *ubo = GPUBackend::get()->uniformbuf_alloc(size, name);
   /* Direct init. */
@@ -203,14 +205,13 @@ blender::gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data
   else if (G.debug & G_DEBUG_GPU) {
     /* Fill the buffer with poison values.
      * (NaN for floats, -1 for `int` and "max value" for `uint`). */
-    blender::Vector<uchar> uninitialized_data(size, 0xFF);
+    Vector<uchar> uninitialized_data(size, 0xFF);
     ubo->update(uninitialized_data.data());
   }
   return ubo;
 }
 
-blender::gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs,
-                                                          const char *name)
+gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs, const char *name)
 {
   /* There is no point on creating an UBO if there is no arguments. */
   if (BLI_listbase_is_empty(inputs)) {
@@ -231,27 +232,27 @@ blender::gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *i
   return ubo;
 }
 
-void GPU_uniformbuf_free(blender::gpu::UniformBuf *ubo)
+void GPU_uniformbuf_free(gpu::UniformBuf *ubo)
 {
   delete ubo;
 }
 
-void GPU_uniformbuf_update(blender::gpu::UniformBuf *ubo, const void *data)
+void GPU_uniformbuf_update(gpu::UniformBuf *ubo, const void *data)
 {
   ubo->update(data);
 }
 
-void GPU_uniformbuf_bind(blender::gpu::UniformBuf *ubo, int slot)
+void GPU_uniformbuf_bind(gpu::UniformBuf *ubo, int slot)
 {
   ubo->bind(slot);
 }
 
-void GPU_uniformbuf_bind_as_ssbo(blender::gpu::UniformBuf *ubo, int slot)
+void GPU_uniformbuf_bind_as_ssbo(gpu::UniformBuf *ubo, int slot)
 {
   ubo->bind_as_ssbo(slot);
 }
 
-void GPU_uniformbuf_unbind(blender::gpu::UniformBuf *ubo)
+void GPU_uniformbuf_unbind(gpu::UniformBuf *ubo)
 {
   ubo->unbind();
 }
@@ -261,9 +262,11 @@ void GPU_uniformbuf_debug_unbind_all()
   Context::get()->debug_unbind_all_ubo();
 }
 
-void GPU_uniformbuf_clear_to_zero(blender::gpu::UniformBuf *ubo)
+void GPU_uniformbuf_clear_to_zero(gpu::UniformBuf *ubo)
 {
   ubo->clear_to_zero();
 }
 
 /** \} */
+
+}  // namespace blender

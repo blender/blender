@@ -29,7 +29,9 @@
 
 #include "node_intern.hh"
 
-namespace blender::ed::space_node {
+namespace blender {
+
+namespace ed::space_node {
 
 struct NodeClipboardItemIDInfo {
   /** Name of the referenced ID. */
@@ -126,7 +128,7 @@ struct NodeClipboard {
       {
         libraries_path_to_id.add(
             id_info.library_path,
-            blender::bke::library::search_filepath_abs(&bmain.libraries, id_info.library_path));
+            bke::library::search_filepath_abs(&bmain.libraries, id_info.library_path));
       }
     }
 
@@ -581,7 +583,7 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
 
 void ED_node_clipboard_free()
 {
@@ -589,3 +591,5 @@ void ED_node_clipboard_free()
   NodeClipboard &clipboard = get_node_clipboard();
   clipboard.clear();
 }
+
+}  // namespace blender

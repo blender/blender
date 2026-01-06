@@ -14,6 +14,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /* match-moving data */
 
 struct Image;
@@ -595,3 +597,5 @@ struct MovieTracking {
   /** Dope-sheet data. */
   MovieTrackingDopesheet dopesheet;
 };
+
+}  // namespace blender

@@ -19,16 +19,18 @@
 #include <cstring>
 #include <type_traits>
 
-namespace blender::bke::id {
+namespace blender {
+
+namespace bke::id {
 struct ID_Runtime;
 }
-namespace blender::bke {
+namespace bke {
 struct PreviewImageRuntime;
 }
-namespace blender::bke::idprop {
+namespace bke::idprop {
 struct IDPropertyGroupChildrenSet;
 }
-namespace blender::bke::library {
+namespace bke::library {
 struct LibraryRuntime;
 }
 
@@ -133,7 +135,7 @@ struct IDPropertyData {
    * Allows constant time lookup by name of the children in this group. This may be null if the
    * group is empty. The order may not be exactly the same as in #group.
    */
-  blender::bke::idprop::IDPropertyGroupChildrenSet *children_map = nullptr;
+  bke::idprop::IDPropertyGroupChildrenSet *children_map = nullptr;
   /** NOTE: a `double` is written into two 32bit integers. */
   int val = 0, val2 = 0;
 };
@@ -522,7 +524,7 @@ struct ID {
    * readfile) may have to manage this pointer themselves (see also #BKE_libblock_runtime_ensure
    * and #BKE_libblock_free_runtime_data).
    */
-  blender::bke::id::ID_Runtime *runtime = nullptr;
+  bke::id::ID_Runtime *runtime = nullptr;
 };
 
 /**
@@ -565,7 +567,7 @@ struct Library {
    *
    * Typically allocated when creating a new Library or reading it from a blendfile.
    */
-  blender::bke::library::LibraryRuntime *runtime = nullptr;
+  bke::library::LibraryRuntime *runtime = nullptr;
 
   void *_pad2 = nullptr;
 };
@@ -634,21 +636,21 @@ struct PreviewImage {
   short changed_timestamp[2] = {};
   unsigned int *rect[2] = {};
 
-  blender::bke::PreviewImageRuntime *runtime = nullptr;
+  bke::PreviewImageRuntime *runtime = nullptr;
 };
 
 /**
  * Amount of 'fake user' usages of this ID.
  * Always 0 or 1.
  */
-#define ID_FAKE_USERS(id) ((blender::id_cast<const ID *>(id)->flag & ID_FLAG_FAKEUSER) ? 1 : 0)
+#define ID_FAKE_USERS(id) ((id_cast<const ID *>(id)->flag & ID_FLAG_FAKEUSER) ? 1 : 0)
 /**
  * Amount of defined 'extra' shallow, runtime-only usages of this ID (typically from UI).
  * Always 0 or 1.
  *
  * \warning May not actually be part of the total #ID.us count, see #ID_EXTRA_REAL_USERS.
  */
-#define ID_EXTRA_USERS(id) (blender::id_cast<const ID *>(id)->tag & ID_TAG_EXTRAUSER ? 1 : 0)
+#define ID_EXTRA_USERS(id) (id_cast<const ID *>(id)->tag & ID_TAG_EXTRAUSER ? 1 : 0)
 /**
  * Amount of real 'extra' shallow, runtime-only usages of this ID (typically from UI).
  * Always 0 or 1.
@@ -657,13 +659,12 @@ struct PreviewImage {
  * May be 0 even if there are some 'extra' usages of this ID,
  * when there are also other 'normal' reference-counting usages of it.
  */
-#define ID_EXTRA_REAL_USERS(id) \
-  (blender::id_cast<const ID *>(id)->tag & ID_TAG_EXTRAUSER_SET ? 1 : 0)
+#define ID_EXTRA_REAL_USERS(id) (id_cast<const ID *>(id)->tag & ID_TAG_EXTRAUSER_SET ? 1 : 0)
 /**
  * Amount of real usages of this ID (i.e. excluding the 'fake user' one, but including a potential
  * 'extra' shallow/runtime usage).
  */
-#define ID_REAL_USERS(id) (blender::id_cast<const ID *>(id)->us - ID_FAKE_USERS(id))
+#define ID_REAL_USERS(id) (id_cast<const ID *>(id)->us - ID_FAKE_USERS(id))
 /**
  * Amount of 'normal' reference-counting usages of this ID
  * (i.e. excluding the 'fake user' one, and a potential 'extra' shallow/runtime usage).
@@ -679,9 +680,9 @@ struct PreviewImage {
   ((_id)->lib ? BKE_main_blendfile_path_from_library(*(_id)->lib) : \
                 BKE_main_blendfile_path_from_global())
 
-#define ID_MISSING(_id) ((blender::id_cast<const ID *>(_id)->tag & ID_TAG_MISSING) != 0)
+#define ID_MISSING(_id) ((id_cast<const ID *>(_id)->tag & ID_TAG_MISSING) != 0)
 
-#define ID_IS_LINKED(_id) (blender::id_cast<const ID *>(_id)->lib != NULL)
+#define ID_IS_LINKED(_id) (id_cast<const ID *>(_id)->lib != NULL)
 /**
  * Indicates that this ID is linked but also packed into the current .blend file. Note that this
  * just means that this specific ID and its dependencies are packed, not the entire library. So
@@ -693,41 +694,40 @@ struct PreviewImage {
   ELEM(id_type, ID_BR, ID_TE, ID_NT, ID_IM, ID_PC, ID_MA)
 
 #define ID_IS_EDITABLE(_id) \
-  ((blender::id_cast<const ID *>(_id)->lib == NULL) || \
-   ((blender::id_cast<const ID *>(_id)->lib->runtime->tag & LIBRARY_ASSET_EDITABLE) && \
-    ID_TYPE_SUPPORTS_ASSET_EDITABLE(GS(blender::id_cast<const ID *>(_id)->name))))
+  ((id_cast<const ID *>(_id)->lib == NULL) || \
+   ((id_cast<const ID *>(_id)->lib->runtime->tag & LIBRARY_ASSET_EDITABLE) && \
+    ID_TYPE_SUPPORTS_ASSET_EDITABLE(GS(id_cast<const ID *>(_id)->name))))
 
 /* Note that these are fairly high-level checks, should be used at user interaction level, not in
  * BKE_library_override typically (especially due to the check on ID_TAG_EXTERN). */
 #define ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(_id) \
   (ID_IS_LINKED(_id) && !ID_MISSING(_id) && \
-   (BKE_idtype_get_info_from_id(blender::id_cast<const ID *>(_id))->flags & \
-    IDTYPE_FLAGS_NO_LIBLINKING) == 0 && \
-   !ELEM(GS((blender::id_cast<const ID *>(_id))->name), ID_SCE))
+   (BKE_idtype_get_info_from_id(id_cast<const ID *>(_id))->flags & IDTYPE_FLAGS_NO_LIBLINKING) == \
+       0 && \
+   !ELEM(GS((id_cast<const ID *>(_id))->name), ID_SCE))
 #define ID_IS_OVERRIDABLE_LIBRARY(_id) \
   (ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY((_id)) && \
-   (blender::id_cast<const ID *>(_id)->tag & ID_TAG_EXTERN) != 0)
+   (id_cast<const ID *>(_id)->tag & ID_TAG_EXTERN) != 0)
 
 /* NOTE: The three checks below do not take into account whether given ID is linked or not (when
  * chaining overrides over several libraries). User must ensure the ID is not linked itself
  * currently. */
 /* TODO: add `_EDITABLE` versions of those macros (that would check if ID is linked or not)? */
 #define ID_IS_OVERRIDE_LIBRARY_REAL(_id) \
-  (blender::id_cast<const ID *>(_id)->override_library != NULL && \
-   blender::id_cast<const ID *>(_id)->override_library->reference != NULL)
+  (id_cast<const ID *>(_id)->override_library != NULL && \
+   id_cast<const ID *>(_id)->override_library->reference != NULL)
 
 #define ID_IS_OVERRIDE_LIBRARY_VIRTUAL(_id) \
-  ((blender::id_cast<const ID *>(_id)->flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE) != 0)
+  ((id_cast<const ID *>(_id)->flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE) != 0)
 
 #define ID_IS_OVERRIDE_LIBRARY(_id) \
   (ID_IS_OVERRIDE_LIBRARY_REAL(_id) || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(_id))
 
 #define ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(_id) \
   (!ID_IS_OVERRIDE_LIBRARY_REAL(_id) || \
-   (blender::id_cast<ID *>(_id))->override_library->hierarchy_root == \
-       (blender::id_cast<ID *>(_id)))
+   (id_cast<ID *>(_id))->override_library->hierarchy_root == (id_cast<ID *>(_id)))
 
-#define ID_IS_ASSET(_id) (blender::id_cast<const ID *>(_id)->asset_data != NULL)
+#define ID_IS_ASSET(_id) (id_cast<const ID *>(_id)->asset_data != NULL)
 
 /* Check whether datablock type is covered by copy-on-evaluation. */
 #define ID_TYPE_USE_COPY_ON_EVAL(_id_type) \
@@ -747,9 +747,9 @@ struct PreviewImage {
 #define GS(a) (CHECK_TYPE_ANY(a, char *, const char *), (ID_Type)(*((const short *)(a))))
 
 #define ID_NEW_SET(_id, _idn) \
-  (((blender::id_cast<ID *>)(_id))->newid = (blender::id_cast<ID *>)(_idn), \
-   ((blender::id_cast<ID *>)(_id))->newid->tag |= ID_TAG_NEW, \
-   ((blender::id_cast<ID *>)(_id))->newid)
+  (((id_cast<ID *>)(_id))->newid = (id_cast<ID *>)(_idn), \
+   ((id_cast<ID *>)(_id))->newid->tag |= ID_TAG_NEW, \
+   ((id_cast<ID *>)(_id))->newid)
 #define ID_NEW_REMAP(a) \
   if ((a) && (a)->id.newid) { \
     *(void **)&(a) = (a)->id.newid; \
@@ -1359,7 +1359,7 @@ enum eID_Index {
 #define INDEX_ID_MAX (INDEX_ID_NULL + 1)
 
 #ifdef __cplusplus
-namespace blender::dna {
+namespace dna {
 namespace detail {
 template<typename, typename = void> struct has_ID_member : std::false_type {};
 template<typename T> struct has_ID_member<T, std::void_t<decltype(&T::id)>> : std::true_type {};
@@ -1381,16 +1381,14 @@ template<typename T> constexpr bool has_ID_as_first_member()
 template<typename T>
 constexpr bool is_ID_v = detail::has_ID_as_first_member<T>() || std::is_same_v<T, ID>;
 
-}  // namespace blender::dna
-
-namespace blender {
+}  // namespace dna
 
 namespace dna::detail {
 template<typename Dst, typename Src, typename SrcRuntime>
 constexpr void id_cast_assert([[maybe_unused]] SrcRuntime *src)
 {
-  static_assert(blender::dna::is_ID_v<Src>);
-  static_assert(blender::dna::is_ID_v<Dst>);
+  static_assert(dna::is_ID_v<Src>);
+  static_assert(dna::is_ID_v<Dst>);
   if constexpr (std::is_same_v<Src, ID> && !std::is_same_v<Dst, ID>) {
     /* Runtime check for when converting from #ID to subtype like #Object. */
     BLI_assert(src == nullptr || GS(src->name) == Dst::id_type);
@@ -1430,5 +1428,6 @@ template<typename Dst, typename Src> inline Dst id_cast(Src &&id)
   return reinterpret_cast<Dst>(id);
 }
 
-}  // namespace blender
 #endif
+
+}  // namespace blender

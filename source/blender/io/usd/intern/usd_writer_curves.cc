@@ -209,10 +209,10 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &curves,
       verts.push_back(
           pxr::GfVec3f(positions[i_point][0], positions[i_point][1], positions[i_point][2]));
 
-      const blender::float3 right_handle = handles_r[i_point];
+      const float3 right_handle = handles_r[i_point];
       verts.push_back(pxr::GfVec3f(right_handle[0], right_handle[1], right_handle[2]));
 
-      const blender::float3 left_handle = handles_l[i_point + 1];
+      const float3 left_handle = handles_l[i_point + 1];
       verts.push_back(pxr::GfVec3f(left_handle[0], left_handle[1], left_handle[2]));
     }
 
@@ -224,10 +224,10 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &curves,
      * the right handle of the last point and the left handle of the first point.
      */
     if (is_cyclic) {
-      const blender::float3 right_handle = handles_r[last_point_index];
+      const float3 right_handle = handles_r[last_point_index];
       verts.push_back(pxr::GfVec3f(right_handle[0], right_handle[1], right_handle[2]));
 
-      const blender::float3 left_handle = handles_l[start_point_index];
+      const float3 left_handle = handles_l[start_point_index];
       verts.push_back(pxr::GfVec3f(left_handle[0], left_handle[1], left_handle[2]));
     }
 
@@ -499,7 +499,7 @@ void USDCurvesWriter::write_velocities(const bke::CurvesGeometry &curves,
                                        const pxr::UsdGeomCurves &usd_curves)
 {
   const VArraySpan velocity = *curves.attributes().lookup<float3>("velocity",
-                                                                  blender::bke::AttrDomain::Point);
+                                                                  bke::AttrDomain::Point);
   if (velocity.is_empty()) {
     return;
   }
@@ -548,14 +548,14 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
 
   switch (context.object->type) {
     case OB_CURVES_LEGACY: {
-      const Curve *legacy_curve = blender::id_cast<Curve *>(context.object->data);
+      const Curve *legacy_curve = id_cast<Curve *>(context.object->data);
       converted_curves = std::unique_ptr<Curves, std::function<void(Curves *)>>(
           bke::curve_legacy_to_curves(*legacy_curve), [](Curves *c) { BKE_id_free(nullptr, c); });
       curves_id = converted_curves.get();
       break;
     }
     case OB_CURVES:
-      curves_id = blender::id_cast<Curves *>(context.object->data);
+      curves_id = id_cast<Curves *>(context.object->data);
       break;
     default:
       BLI_assert_unreachable();

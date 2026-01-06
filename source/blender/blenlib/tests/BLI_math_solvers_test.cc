@@ -6,6 +6,8 @@
 
 #include "BLI_math_solvers.h"
 
+namespace blender {
+
 TEST(math_solvers, Tridiagonal1)
 {
   const float a[1] = {1};  // ignored
@@ -70,3 +72,5 @@ TEST(math_solvers, CyclicTridiagonal3)
   EXPECT_FLOAT_EQ(x[1], 2);
   EXPECT_FLOAT_EQ(x[2], 3);
 }
+
+}  // namespace blender

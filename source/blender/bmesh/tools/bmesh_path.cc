@@ -20,6 +20,8 @@
 #include "bmesh.hh"
 #include "bmesh_path.hh" /* own include */
 
+namespace blender {
+
 #define COST_INIT_MAX FLT_MAX
 
 /* -------------------------------------------------------------------- */
@@ -588,3 +590,5 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
 }
 
 /** \} */
+
+}  // namespace blender

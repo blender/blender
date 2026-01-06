@@ -27,9 +27,11 @@
 @class MTLCommandQueue;
 @class MTLRenderPipelineState;
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class FrameBuffer;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /* Texture Update system structs. */
 struct TextureUpdateRoutineSpecialisation {
@@ -61,7 +63,7 @@ struct TextureUpdateRoutineSpecialisation {
 
   uint64_t hash() const
   {
-    blender::DefaultHash<std::string> string_hasher;
+    DefaultHash<std::string> string_hasher;
     return uint64_t(string_hasher(this->input_data_type + this->output_data_type +
                                   std::to_string((this->component_count_input << 9) |
                                                  (this->component_count_output << 5) |
@@ -119,7 +121,7 @@ struct TextureReadRoutineSpecialisation {
 
   uint64_t hash() const
   {
-    blender::DefaultHash<std::string> string_hasher;
+    DefaultHash<std::string> string_hasher;
     return uint64_t(string_hasher(this->input_data_type + this->output_data_type +
                                   std::to_string((this->component_count_input << 8) +
                                                  this->component_count_output +
@@ -127,7 +129,7 @@ struct TextureReadRoutineSpecialisation {
   }
 };
 
-namespace blender::gpu {
+namespace gpu {
 
 class MTLContext;
 class MTLVertBuf;
@@ -408,7 +410,7 @@ class MTLTexture : public Texture {
    *
    * MECHANISM:
    *
-   *  blender::map<INPUT DEFINES STRUCT, compute PSO> update_2d_array_kernel_psos;
+   *  map<INPUT DEFINES STRUCT, compute PSO> update_2d_array_kernel_psos;
    * - Generate compute shader with configured kernel below with variable parameters depending
    *   on input/output format configurations. Do not need to keep source or descriptors around,
    *   just PSO, as same input defines will always generate the same code.
@@ -692,4 +694,5 @@ inline eGPUTextureUsage gpu_usage_from_mtl(MTLTextureUsage mtl_usage)
   return usage;
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

@@ -29,8 +29,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::float2;
-using blender::Vector;
+namespace blender {
 
 /* uses total number of selected edges around a vertex to choose how to extend */
 #define USE_TRICKY_EXTEND
@@ -64,7 +63,7 @@ static wmOperatorStatus edbm_rip_edge_invoke(bContext *C,
       continue;
     }
 
-    const blender::float4x4 projectMat = ED_view3d_ob_project_mat_get(rv3d, obedit);
+    const float4x4 projectMat = ED_view3d_ob_project_mat_get(rv3d, obedit);
 
     zero_v2(cent_sco);
     cent_tot = 0;
@@ -242,7 +241,7 @@ static wmOperatorStatus edbm_rip_edge_invoke(bContext *C,
       params.calc_looptris = true;
       params.calc_normals = false;
       params.is_destructive = true;
-      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(id_cast<Mesh *>(obedit->data), &params);
     }
   }
 
@@ -264,5 +263,7 @@ void MESH_OT_rip_edge(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
+
+}  // namespace blender

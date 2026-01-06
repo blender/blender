@@ -36,6 +36,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 namespace {
 
 /* local types */
@@ -1139,3 +1141,5 @@ uint BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag)
 {
   return BLI_scanfill_calc_ex(sf_ctx, flag, nullptr);
 }
+
+}  // namespace blender

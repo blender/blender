@@ -101,7 +101,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
     /* Adapt width of the new node to its content. */
     const StringRef string = static_cast<NodeInputString *>(node.storage)->string;
-    const uiFontStyle &fstyle = blender::ui::style_get()->widget;
+    const uiFontStyle &fstyle = ui::style_get()->widget;
     BLF_size(fstyle.uifont_id, fstyle.points);
     const float width = BLF_width(fstyle.uifont_id, string.data(), string.size()) + 40.0f;
     node.width = std::clamp(width, 140.0f, 1000.0f);
@@ -110,7 +110,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeInputString", FN_NODE_INPUT_STRING);
   ntype.ui_name = "String";
@@ -119,12 +119,12 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype, "NodeInputString", node_storage_free, node_storage_copy);
+  bke::node_type_storage(ntype, "NodeInputString", node_storage_free, node_storage_copy);
   ntype.build_multi_function = node_build_multi_function;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

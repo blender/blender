@@ -306,7 +306,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
     sub->prop(ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
     sub->prop(ptr,
               "crease_threshold",
-              ui::ITEM_R_SLIDER | blender::ui::ITEM_R_FORCE_BLANK_DECORATE,
+              ui::ITEM_R_SLIDER | ui::ITEM_R_FORCE_BLANK_DECORATE,
               std::nullopt,
               ICON_NONE);
   }
@@ -833,8 +833,8 @@ static void modify_geometry_set(ModifierData *md,
   GreasePencil &grease_pencil = *geometry_set->get_grease_pencil_for_write();
   auto *mmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
 
-  GreasePencilLineartModifierData *first_lineart =
-      blender::ed::greasepencil::get_first_lineart_modifier(*ctx->object);
+  GreasePencilLineartModifierData *first_lineart = ed::greasepencil::get_first_lineart_modifier(
+      *ctx->object);
   BLI_assert(first_lineart);
 
   /* Since settings for line art cached data are always in the first line art modifier, we need to
@@ -872,8 +872,6 @@ static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
   lmd->runtime = MEM_new<LineartModifierRuntime>(__func__);
 }
 
-}  // namespace blender
-
 ModifierTypeInfo modifierType_GreasePencilLineart = {
     /*idname*/ "Lineart Modifier",
     /*name*/ N_("Lineart"),
@@ -884,26 +882,28 @@ ModifierTypeInfo modifierType_GreasePencilLineart = {
     /*flags*/ eModifierTypeFlag_AcceptsGreasePencil,
     /*icon*/ ICON_MOD_LINEART,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
-    /*update_depsgraph*/ blender::update_depsgraph,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

@@ -87,6 +87,9 @@
 #include "versioning_common.hh"
 
 // #include "CLG_log.h"
+
+namespace blender {
+
 // static CLG_LogRef LOG = {"blend.doversion"};
 
 static void idprops_process(IDProperty *idprops, IDProperty **system_idprops)
@@ -112,7 +115,7 @@ void version_system_idprops_generate(Main *bmain)
     }
 
     if (scene.ed != nullptr) {
-      blender::seq::foreach_strip(&scene.ed->seqbase, [](Strip *strip) -> bool {
+      seq::foreach_strip(&scene.ed->seqbase, [](Strip *strip) -> bool {
         idprops_process(strip->prop, &strip->system_properties);
         return true;
       });
@@ -183,9 +186,9 @@ void version_system_idprops_children_bones_generate(Main *bmain)
   }
 }
 
-static CustomDataLayer *find_old_seam_layer(CustomData &custom_data, const blender::StringRef name)
+static CustomDataLayer *find_old_seam_layer(CustomData &custom_data, const StringRef name)
 {
-  for (CustomDataLayer &layer : blender::MutableSpan(custom_data.layers, custom_data.totlayer)) {
+  for (CustomDataLayer &layer : MutableSpan(custom_data.layers, custom_data.totlayer)) {
     if (layer.name == name) {
       return &layer;
     }
@@ -195,7 +198,6 @@ static CustomDataLayer *find_old_seam_layer(CustomData &custom_data, const blend
 
 static void rename_mesh_uv_seam_attribute(Mesh &mesh)
 {
-  using namespace blender;
   CustomDataLayer *old_seam_layer = find_old_seam_layer(mesh.edge_data, ".uv_seam");
   if (!old_seam_layer) {
     return;
@@ -279,13 +281,13 @@ static void initialize_closure_input_structure_types(bNodeTree &ntree)
          * yet. */
         continue;
       }
-      for (const int i : blender::IndexRange(storage->input_items.items_num)) {
+      for (const int i : IndexRange(storage->input_items.items_num)) {
         NodeEvaluateClosureInputItem &item = storage->input_items.items[i];
         if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
           item.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
         }
       }
-      for (const int i : blender::IndexRange(storage->output_items.items_num)) {
+      for (const int i : IndexRange(storage->output_items.items_num)) {
         NodeEvaluateClosureOutputItem &item = storage->output_items.items[i];
         if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
           item.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
@@ -546,9 +548,9 @@ static void do_version_scene_remove_use_nodes(Scene *scene)
  * node vector with the input. */
 static void do_version_normal_node_dot_product(bNodeTree *node_tree, bNode *node)
 {
-  bNodeSocket *normal_input = blender::bke::node_find_socket(*node, SOCK_IN, "Normal");
-  bNodeSocket *normal_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Normal");
-  bNodeSocket *dot_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Dot");
+  bNodeSocket *normal_input = bke::node_find_socket(*node, SOCK_IN, "Normal");
+  bNodeSocket *normal_output = bke::node_find_socket(*node, SOCK_OUT, "Normal");
+  bNodeSocket *dot_output = bke::node_find_socket(*node, SOCK_OUT, "Dot");
 
   /* Find the links going into and out from the node. */
   bNodeLink *normal_input_link = nullptr;
@@ -574,20 +576,17 @@ static void do_version_normal_node_dot_product(bNodeTree *node_tree, bNode *node
   }
 
   /* Take the dot product with negative the node normal. */
-  bNode *dot_product_node = blender::bke::node_add_node(
-      nullptr, *node_tree, "ShaderNodeVectorMath");
+  bNode *dot_product_node = bke::node_add_node(nullptr, *node_tree, "ShaderNodeVectorMath");
   dot_product_node->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
   dot_product_node->flag |= NODE_COLLAPSED;
   dot_product_node->parent = node->parent;
   dot_product_node->location[0] = node->location[0];
   dot_product_node->location[1] = node->location[1];
 
-  bNodeSocket *dot_product_a_input = blender::bke::node_find_socket(
-      *dot_product_node, SOCK_IN, "Vector");
-  bNodeSocket *dot_product_b_input = blender::bke::node_find_socket(
+  bNodeSocket *dot_product_a_input = bke::node_find_socket(*dot_product_node, SOCK_IN, "Vector");
+  bNodeSocket *dot_product_b_input = bke::node_find_socket(
       *dot_product_node, SOCK_IN, "Vector_001");
-  bNodeSocket *dot_product_output = blender::bke::node_find_socket(
-      *dot_product_node, SOCK_OUT, "Value");
+  bNodeSocket *dot_product_output = bke::node_find_socket(*dot_product_node, SOCK_OUT, "Value");
 
   copy_v3_v3(static_cast<bNodeSocketValueVector *>(dot_product_a_input->default_value)->value,
              static_cast<bNodeSocketValueVector *>(normal_input->default_value)->value);
@@ -598,14 +597,13 @@ static void do_version_normal_node_dot_product(bNodeTree *node_tree, bNode *node
                           *normal_input_link->fromsock,
                           *dot_product_node,
                           *dot_product_a_input);
-    blender::bke::node_remove_link(node_tree, *normal_input_link);
+    bke::node_remove_link(node_tree, *normal_input_link);
   }
 
   /* Notice that we normalize and take the negative to reproduce the same behavior as the old
    * Normal node. */
-  const blender::float3 node_normal =
-      normal_output->default_value_typed<bNodeSocketValueVector>()->value;
-  const blender::float3 normalized_node_normal = -blender::math::normalize(node_normal);
+  const float3 node_normal = normal_output->default_value_typed<bNodeSocketValueVector>()->value;
+  const float3 normalized_node_normal = -math::normalize(node_normal);
   copy_v3_v3(static_cast<bNodeSocketValueVector *>(dot_product_b_input->default_value)->value,
              normalized_node_normal);
 
@@ -616,20 +614,20 @@ static void do_version_normal_node_dot_product(bNodeTree *node_tree, bNode *node
 
     version_node_add_link(
         *node_tree, *dot_product_node, *dot_product_output, *link.tonode, *link.tosock);
-    blender::bke::node_remove_link(node_tree, link);
+    bke::node_remove_link(node_tree, link);
   }
 
   /* If only the Dot output was used, remove the node, making sure to initialize the node types to
    * allow removal. */
   if (!is_normal_ontput_needed) {
-    blender::bke::node_tree_set_type(*node_tree);
+    bke::node_tree_set_type(*node_tree);
     version_node_remove(*node_tree, *node);
   }
 }
 
 static void do_version_transform_geometry_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Mode");
@@ -638,7 +636,7 @@ static void do_version_transform_geometry_options_to_inputs(bNodeTree &ntree, bN
 
 static void do_version_points_to_volume_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
     return;
   }
   const NodeGeometryPointsToVolume &storage = *static_cast<NodeGeometryPointsToVolume *>(
@@ -650,12 +648,12 @@ static void do_version_points_to_volume_options_to_inputs(bNodeTree &ntree, bNod
 
 static void do_version_triangulate_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (!blender::bke::node_find_socket(node, SOCK_IN, "Quad Method")) {
+  if (!bke::node_find_socket(node, SOCK_IN, "Quad Method")) {
     bNodeSocket &socket = version_node_add_socket(
         ntree, node, SOCK_IN, "NodeSocketMenu", "Quad Method");
     socket.default_value_typed<bNodeSocketValueMenu>()->value = node.custom1;
   }
-  if (!blender::bke::node_find_socket(node, SOCK_IN, "N-gon Method")) {
+  if (!bke::node_find_socket(node, SOCK_IN, "N-gon Method")) {
     bNodeSocket &socket = version_node_add_socket(
         ntree, node, SOCK_IN, "NodeSocketMenu", "N-gon Method");
     socket.default_value_typed<bNodeSocketValueMenu>()->value = node.custom2;
@@ -664,7 +662,7 @@ static void do_version_triangulate_options_to_inputs(bNodeTree &ntree, bNode &no
 
 static void do_version_volume_to_mesh_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
     return;
   }
   const NodeGeometryVolumeToMesh &storage = *static_cast<NodeGeometryVolumeToMesh *>(node.storage);
@@ -675,7 +673,7 @@ static void do_version_volume_to_mesh_options_to_inputs(bNodeTree &ntree, bNode 
 
 static void do_version_match_string_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Operation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Operation")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(
@@ -685,7 +683,7 @@ static void do_version_match_string_options_to_inputs(bNodeTree &ntree, bNode &n
 
 static void do_version_fill_curve_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryCurveFill *>(node.storage);
@@ -695,7 +693,7 @@ static void do_version_fill_curve_options_to_inputs(bNodeTree &ntree, bNode &nod
 
 static void do_version_fillet_curve_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryCurveFillet *>(node.storage);
@@ -705,7 +703,7 @@ static void do_version_fillet_curve_options_to_inputs(bNodeTree &ntree, bNode &n
 
 static void do_version_resample_curve_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryCurveResample *>(node.storage);
@@ -715,7 +713,7 @@ static void do_version_resample_curve_options_to_inputs(bNodeTree &ntree, bNode 
 
 static void do_version_distribute_points_in_volume_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryDistributePointsInVolume *>(node.storage);
@@ -725,7 +723,7 @@ static void do_version_distribute_points_in_volume_options_to_inputs(bNodeTree &
 
 static void do_version_merge_by_distance_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryMergeByDistance *>(node.storage);
@@ -735,7 +733,7 @@ static void do_version_merge_by_distance_options_to_inputs(bNodeTree &ntree, bNo
 
 static void do_version_mesh_to_volume_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryMeshToVolume *>(node.storage);
@@ -746,7 +744,7 @@ static void do_version_mesh_to_volume_options_to_inputs(bNodeTree &ntree, bNode 
 
 static void do_version_raycast_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryRaycast *>(node.storage);
@@ -757,7 +755,7 @@ static void do_version_raycast_options_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_remove_attribute_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Pattern Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Pattern Mode")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(
@@ -767,7 +765,7 @@ static void do_version_remove_attribute_options_to_inputs(bNodeTree &ntree, bNod
 
 static void do_version_sample_grid_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(
@@ -777,7 +775,7 @@ static void do_version_sample_grid_options_to_inputs(bNodeTree &ntree, bNode &no
 
 static void do_version_scale_elements_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Scale Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Scale Mode")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(
@@ -787,7 +785,7 @@ static void do_version_scale_elements_options_to_inputs(bNodeTree &ntree, bNode 
 
 static void do_version_set_curve_normal_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Mode");
@@ -797,12 +795,12 @@ static void do_version_set_curve_normal_options_to_inputs(bNodeTree &ntree, bNod
 static void do_version_subdivision_surface_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
   auto &storage = *static_cast<NodeGeometrySubdivisionSurface *>(node.storage);
-  if (!blender::bke::node_find_socket(node, SOCK_IN, "UV Smooth")) {
+  if (!bke::node_find_socket(node, SOCK_IN, "UV Smooth")) {
     bNodeSocket &socket = version_node_add_socket(
         ntree, node, SOCK_IN, "NodeSocketMenu", "UV Smooth");
     socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.uv_smooth;
   }
-  if (!blender::bke::node_find_socket(node, SOCK_IN, "Boundary Smooth")) {
+  if (!bke::node_find_socket(node, SOCK_IN, "Boundary Smooth")) {
     bNodeSocket &socket = version_node_add_socket(
         ntree, node, SOCK_IN, "NodeSocketMenu", "Boundary Smooth");
     socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.boundary_smooth;
@@ -811,7 +809,7 @@ static void do_version_subdivision_surface_options_to_inputs(bNodeTree &ntree, b
 
 static void do_version_uv_pack_islands_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Method")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Method")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Method");
@@ -820,7 +818,7 @@ static void do_version_uv_pack_islands_options_to_inputs(bNodeTree &ntree, bNode
 
 static void do_version_uv_unwrap_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Method")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Method")) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryUVUnwrap *>(node.storage);
@@ -832,7 +830,7 @@ static void version_seq_text_from_legacy(Main *bmain)
 {
   for (Scene &scene : bmain->scenes) {
     if (scene.ed != nullptr) {
-      blender::seq::foreach_strip(&scene.ed->seqbase, [&](Strip *strip) -> bool {
+      seq::foreach_strip(&scene.ed->seqbase, [&](Strip *strip) -> bool {
         if (strip->type == STRIP_TYPE_TEXT && strip->effectdata != nullptr) {
           TextVars *data = static_cast<TextVars *>(strip->effectdata);
           if (data->text_ptr == nullptr) {
@@ -846,8 +844,8 @@ static void version_seq_text_from_legacy(Main *bmain)
   }
 }
 
-static void for_each_mode_paint_settings(
-    Scene &scene, blender::FunctionRef<void(Scene &scene, Paint *paint)> func)
+static void for_each_mode_paint_settings(Scene &scene,
+                                         FunctionRef<void(Scene &scene, Paint *paint)> func)
 {
   func(scene, reinterpret_cast<Paint *>(scene.toolsettings->vpaint));
   func(scene, reinterpret_cast<Paint *>(scene.toolsettings->wpaint));
@@ -897,10 +895,10 @@ static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
     return;
   }
 
-  blender::bke::node_tree_set_type(*node_tree);
+  bke::node_tree_set_type(*node_tree);
 
-  bNodeSocket *factor_input = blender::bke::node_find_socket(*node, SOCK_IN, "Factor_Float");
-  bNodeSocket *b_input = blender::bke::node_find_socket(*node, SOCK_IN, "B_Color");
+  bNodeSocket *factor_input = bke::node_find_socket(*node, SOCK_IN, "Factor_Float");
+  bNodeSocket *b_input = bke::node_find_socket(*node, SOCK_IN, "B_Color");
 
   /* Find the links going into the factor and B input of the Mix node. */
   bNodeLink *factor_link = nullptr;
@@ -922,7 +920,7 @@ static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
   }
 
   /* Otherwise, add a multiply node to do the multiplication. */
-  bNode *multiply_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+  bNode *multiply_node = bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
   multiply_node->parent = node->parent;
   multiply_node->custom1 = NODE_MATH_MULTIPLY;
   multiply_node->location[0] = node->location[0] - node->width - 20.0f;
@@ -933,7 +931,7 @@ static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
       BLI_findlink(&multiply_node->inputs, 0));
   bNodeSocket *multiply_input_b = static_cast<bNodeSocket *>(
       BLI_findlink(&multiply_node->inputs, 1));
-  bNodeSocket *multiply_output = blender::bke::node_find_socket(*multiply_node, SOCK_OUT, "Value");
+  bNodeSocket *multiply_output = bke::node_find_socket(*multiply_node, SOCK_OUT, "Value");
 
   /* Connect the output of the multiply node to the math node. */
   version_node_add_link(*node_tree, *multiply_node, *multiply_output, *node, *factor_input);
@@ -946,7 +944,7 @@ static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
                           *factor_link->fromsock,
                           *multiply_node,
                           *multiply_input_a);
-    blender::bke::node_remove_link(node_tree, *factor_link);
+    bke::node_remove_link(node_tree, *factor_link);
   }
   else {
     /* Otherwise, the factor is unlinked and we just copy the factor value to the first input in
@@ -958,17 +956,15 @@ static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
   if (b_link) {
     /* The B input is linked, so extract the alpha of its origin and connect it to the second input
      * of the multiply and remove the original link. */
-    bNode *separate_color_node = blender::bke::node_add_static_node(
+    bNode *separate_color_node = bke::node_add_static_node(
         nullptr, *node_tree, CMP_NODE_SEPARATE_COLOR);
     separate_color_node->parent = node->parent;
     separate_color_node->location[0] = multiply_node->location[0] - multiply_node->width - 20.0f;
     separate_color_node->location[1] = multiply_node->location[1];
     separate_color_node->flag |= NODE_COLLAPSED;
 
-    bNodeSocket *image_input = blender::bke::node_find_socket(
-        *separate_color_node, SOCK_IN, "Image");
-    bNodeSocket *alpha_output = blender::bke::node_find_socket(
-        *separate_color_node, SOCK_OUT, "Alpha");
+    bNodeSocket *image_input = bke::node_find_socket(*separate_color_node, SOCK_IN, "Image");
+    bNodeSocket *alpha_output = bke::node_find_socket(*separate_color_node, SOCK_OUT, "Alpha");
 
     version_node_add_link(
         *node_tree, *b_link->fromnode, *b_link->fromsock, *separate_color_node, *image_input);
@@ -989,7 +985,7 @@ static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
  * just computes (value + offset) * size and clamps based on min and max. */
 static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
 {
-  blender::bke::node_tree_set_type(*node_tree);
+  bke::node_tree_set_type(*node_tree);
 
   const TexMapping &texture_mapping = *static_cast<TexMapping *>(node->storage);
   const bool use_min = texture_mapping.flag & TEXMAP_CLIP_MIN;
@@ -999,7 +995,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
   const float min = texture_mapping.min[0];
   const float max = texture_mapping.max[0];
 
-  bNodeSocket *value_input = blender::bke::node_find_socket(*node, SOCK_IN, "Value");
+  bNodeSocket *value_input = bke::node_find_socket(*node, SOCK_IN, "Value");
 
   /* Find the link going into the value input Map Value node. */
   bNodeLink *value_link = nullptr;
@@ -1009,7 +1005,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
     }
   }
 
-  bNode *frame = blender::bke::node_add_static_node(nullptr, *node_tree, NODE_FRAME);
+  bNode *frame = bke::node_add_static_node(nullptr, *node_tree, NODE_FRAME);
   frame->parent = node->parent;
   STRNCPY(frame->label, RPT_("Versioning: Map Value node was removed"));
   NodeFrame *frame_data = static_cast<NodeFrame *>(frame->storage);
@@ -1019,9 +1015,8 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
   if (!value_link) {
     const float value = static_cast<bNodeSocketValueFloat *>(value_input->default_value)->value;
     const float mapped_value = (value + offset) * size;
-    const float min_clamped_value = use_min ? blender::math::max(mapped_value, min) : mapped_value;
-    const float clamped_value = use_max ? blender::math::min(min_clamped_value, max) :
-                                          min_clamped_value;
+    const float min_clamped_value = use_min ? math::max(mapped_value, min) : mapped_value;
+    const float clamped_value = use_max ? math::min(min_clamped_value, max) : min_clamped_value;
 
     bNode &value_node = version_node_add_empty(*node_tree, "ShaderNodeValue");
     bNodeSocket &value_output = version_node_add_socket(
@@ -1040,7 +1035,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
       }
 
       version_node_add_link(*node_tree, value_node, value_output, *link.tonode, *link.tosock);
-      blender::bke::node_remove_link(node_tree, link);
+      bke::node_remove_link(node_tree, link);
     }
 
     MEM_freeN(&texture_mapping);
@@ -1073,7 +1068,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
    * link. */
   version_node_add_link(
       *node_tree, *value_link->fromnode, *value_link->fromsock, add_node, add_input_a);
-  blender::bke::node_remove_link(node_tree, *value_link);
+  bke::node_remove_link(node_tree, *value_link);
 
   /* Set the offset to the second input of the add node. */
   static_cast<bNodeSocketValueFloat *>(add_input_b.default_value)->value = offset;
@@ -1165,7 +1160,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
     }
 
     version_node_add_link(*node_tree, *final_node, *final_output, *link.tonode, *link.tosock);
-    blender::bke::node_remove_link(node_tree, link);
+    bke::node_remove_link(node_tree, link);
   }
 
   MEM_freeN(&texture_mapping);
@@ -1209,7 +1204,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
 
         /* Compositor node uses "Image" as the output name while the shader node uses "Color" as
          * the output name. */
-        bNodeSocket *image_output = blender::bke::node_find_socket(node, SOCK_OUT, "Image");
+        bNodeSocket *image_output = bke::node_find_socket(node, SOCK_OUT, "Image");
         STRNCPY_UTF8(image_output->identifier, "Color");
         STRNCPY_UTF8(image_output->name, "Color");
 
@@ -1228,7 +1223,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
 
         /* Compositor node uses "Value" as the output name while the shader node uses "Result" as
          * the output name. */
-        bNodeSocket *value_output = blender::bke::node_find_socket(node, SOCK_OUT, "Value");
+        bNodeSocket *value_output = bke::node_find_socket(node, SOCK_OUT, "Value");
         STRNCPY_UTF8(value_output->identifier, "Result");
         STRNCPY_UTF8(value_output->name, "Result");
 
@@ -1250,16 +1245,16 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
         /* Compositor node uses "Fac", "Image", and ("Image" "Image_001") as socket names and
          * identifiers while the shader node uses ("Factor", "Factor_Float"), ("A", "A_Color"),
          * ("B", "B_Color"), and ("Result", "Result_Color") as socket names and identifiers. */
-        bNodeSocket *factor_input = blender::bke::node_find_socket(node, SOCK_IN, "Fac");
+        bNodeSocket *factor_input = bke::node_find_socket(node, SOCK_IN, "Fac");
         STRNCPY_UTF8(factor_input->identifier, "Factor_Float");
         STRNCPY_UTF8(factor_input->name, "Factor");
-        bNodeSocket *first_input = blender::bke::node_find_socket(node, SOCK_IN, "Image");
+        bNodeSocket *first_input = bke::node_find_socket(node, SOCK_IN, "Image");
         STRNCPY_UTF8(first_input->identifier, "A_Color");
         STRNCPY_UTF8(first_input->name, "A");
-        bNodeSocket *second_input = blender::bke::node_find_socket(node, SOCK_IN, "Image_001");
+        bNodeSocket *second_input = bke::node_find_socket(node, SOCK_IN, "Image_001");
         STRNCPY_UTF8(second_input->identifier, "B_Color");
         STRNCPY_UTF8(second_input->name, "B");
-        bNodeSocket *image_output = blender::bke::node_find_socket(node, SOCK_OUT, "Image");
+        bNodeSocket *image_output = bke::node_find_socket(node, SOCK_OUT, "Image");
         STRNCPY_UTF8(image_output->identifier, "Result_Color");
         STRNCPY_UTF8(image_output->name, "Result");
 
@@ -1317,8 +1312,6 @@ static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
 
 static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
 {
-  using namespace blender;
-
   bNodeSocket *factor_input = bke::node_find_socket(*node, SOCK_IN, "Factor");
   float factor = factor_input->default_value_typed<bNodeSocketValueFloat>()->value;
 
@@ -1463,26 +1456,26 @@ static void do_version_convert_gp_jitter_values(Brush *brush)
  * make the replacement. */
 static void do_version_sun_beams(bNodeTree &node_tree, bNode &node)
 {
-  blender::bke::node_tree_set_type(node_tree);
+  bke::node_tree_set_type(node_tree);
 
-  bNodeSocket *old_image_input = blender::bke::node_find_socket(node, SOCK_IN, "Image");
-  bNodeSocket *old_source_input = blender::bke::node_find_socket(node, SOCK_IN, "Source");
-  bNodeSocket *old_length_input = blender::bke::node_find_socket(node, SOCK_IN, "Length");
-  bNodeSocket *old_image_output = blender::bke::node_find_socket(node, SOCK_OUT, "Image");
+  bNodeSocket *old_image_input = bke::node_find_socket(node, SOCK_IN, "Image");
+  bNodeSocket *old_source_input = bke::node_find_socket(node, SOCK_IN, "Source");
+  bNodeSocket *old_length_input = bke::node_find_socket(node, SOCK_IN, "Length");
+  bNodeSocket *old_image_output = bke::node_find_socket(node, SOCK_OUT, "Image");
 
-  bNode *glare_node = blender::bke::node_add_node(nullptr, node_tree, "CompositorNodeGlare");
+  bNode *glare_node = bke::node_add_node(nullptr, node_tree, "CompositorNodeGlare");
   glare_node->parent = node.parent;
   glare_node->location[0] = node.location[0];
   glare_node->location[1] = node.location[1];
 
-  bNodeSocket *image_input = blender::bke::node_find_socket(*glare_node, SOCK_IN, "Image");
-  bNodeSocket *type_input = blender::bke::node_find_socket(*glare_node, SOCK_IN, "Type");
-  bNodeSocket *quality_input = blender::bke::node_find_socket(*glare_node, SOCK_IN, "Quality");
-  bNodeSocket *threshold_input = blender::bke::node_find_socket(
+  bNodeSocket *image_input = bke::node_find_socket(*glare_node, SOCK_IN, "Image");
+  bNodeSocket *type_input = bke::node_find_socket(*glare_node, SOCK_IN, "Type");
+  bNodeSocket *quality_input = bke::node_find_socket(*glare_node, SOCK_IN, "Quality");
+  bNodeSocket *threshold_input = bke::node_find_socket(
       *glare_node, SOCK_IN, "Highlights Threshold");
-  bNodeSocket *size_input = blender::bke::node_find_socket(*glare_node, SOCK_IN, "Size");
-  bNodeSocket *source_input = blender::bke::node_find_socket(*glare_node, SOCK_IN, "Sun Position");
-  bNodeSocket *glare_output = blender::bke::node_find_socket(*glare_node, SOCK_OUT, "Glare");
+  bNodeSocket *size_input = bke::node_find_socket(*glare_node, SOCK_IN, "Size");
+  bNodeSocket *source_input = bke::node_find_socket(*glare_node, SOCK_IN, "Sun Position");
+  bNodeSocket *glare_output = bke::node_find_socket(*glare_node, SOCK_OUT, "Glare");
 
   type_input->default_value_typed<bNodeSocketValueMenu>()->value = CMP_NODE_GLARE_SUN_BEAMS;
   quality_input->default_value_typed<bNodeSocketValueMenu>()->value = CMP_NODE_GLARE_QUALITY_HIGH;
@@ -1497,25 +1490,25 @@ static void do_version_sun_beams(bNodeTree &node_tree, bNode &node)
   for (bNodeLink &link : node_tree.links.items_reversed_mutable()) {
     if (link.tosock == old_image_input) {
       version_node_add_link(node_tree, *link.fromnode, *link.fromsock, *glare_node, *image_input);
-      blender::bke::node_remove_link(&node_tree, link);
+      bke::node_remove_link(&node_tree, link);
       continue;
     }
 
     if (link.tosock == old_source_input) {
       version_node_add_link(node_tree, *link.fromnode, *link.fromsock, *glare_node, *source_input);
-      blender::bke::node_remove_link(&node_tree, link);
+      bke::node_remove_link(&node_tree, link);
       continue;
     }
 
     if (link.tosock == old_length_input) {
       version_node_add_link(node_tree, *link.fromnode, *link.fromsock, *glare_node, *size_input);
-      blender::bke::node_remove_link(&node_tree, link);
+      bke::node_remove_link(&node_tree, link);
       continue;
     }
 
     if (link.fromsock == old_image_output) {
       version_node_add_link(node_tree, *link.tonode, *link.tosock, *glare_node, *glare_output);
-      blender::bke::node_remove_link(&node_tree, link);
+      bke::node_remove_link(&node_tree, link);
     }
   }
 
@@ -1529,7 +1522,7 @@ static void do_version_sun_beams(bNodeTree &node_tree, bNode &node)
  * nodes since they are no longer supported inside groups. */
 static bNode *do_version_composite_node_in_scene_tree(bNodeTree &node_tree, bNode &node)
 {
-  blender::bke::node_tree_set_type(node_tree);
+  bke::node_tree_set_type(node_tree);
 
   /* Remove inactive nodes. */
   if (!(node.flag & NODE_DO_OUTPUT)) {
@@ -1537,7 +1530,7 @@ static bNode *do_version_composite_node_in_scene_tree(bNodeTree &node_tree, bNod
     return nullptr;
   }
 
-  bNodeSocket *old_image_input = blender::bke::node_find_socket(node, SOCK_IN, "Image");
+  bNodeSocket *old_image_input = bke::node_find_socket(node, SOCK_IN, "Image");
 
   /* Find the link going into the Image input of the Composite node. */
   bNodeLink *image_link = nullptr;
@@ -1547,20 +1540,20 @@ static bNode *do_version_composite_node_in_scene_tree(bNodeTree &node_tree, bNod
     }
   }
 
-  bNode *group_output_node = blender::bke::node_add_node(nullptr, node_tree, "NodeGroupOutput");
+  bNode *group_output_node = bke::node_add_node(nullptr, node_tree, "NodeGroupOutput");
   group_output_node->parent = node.parent;
   group_output_node->location[0] = node.location[0];
   group_output_node->location[1] = node.location[1];
 
   bNodeSocket *image_input = static_cast<bNodeSocket *>(group_output_node->inputs.first);
-  BLI_assert(blender::StringRef(image_input->name) == "Image");
+  BLI_assert(StringRef(image_input->name) == "Image");
   copy_v4_v4(image_input->default_value_typed<bNodeSocketValueRGBA>()->value,
              old_image_input->default_value_typed<bNodeSocketValueRGBA>()->value);
 
   if (image_link) {
     version_node_add_link(
         node_tree, *image_link->fromnode, *image_link->fromsock, *group_output_node, *image_input);
-    blender::bke::node_remove_link(&node_tree, *image_link);
+    bke::node_remove_link(&node_tree, *image_link);
   }
 
   version_node_remove(node_tree, node);
@@ -1649,7 +1642,7 @@ static void do_version_world_remove_use_nodes(Main *bmain, World *world)
   bNodeTree *ntree = world->nodetree;
   if (ntree == nullptr) {
     /* In case the world was defined through Python API it might have been missing a node tree. */
-    ntree = blender::bke::node_tree_add_tree_embedded(
+    ntree = bke::node_tree_add_tree_embedded(
         bmain, &world->id, "World Node Tree Versioning", "ShaderNodeTree");
   }
 
@@ -1698,7 +1691,7 @@ static void do_version_world_remove_use_nodes(Main *bmain, World *world)
   new_output.location[0] = background.location[0] + 2.0f * background.width;
   new_output.location[1] = background.location[1];
 
-  bNode *frame = blender::bke::node_add_static_node(nullptr, *ntree, NODE_FRAME);
+  bNode *frame = bke::node_add_static_node(nullptr, *ntree, NODE_FRAME);
   STRNCPY(frame->label, RPT_("Versioning: Use Nodes was removed"));
   background.parent = frame;
   new_output.parent = frame;
@@ -1706,7 +1699,7 @@ static void do_version_world_remove_use_nodes(Main *bmain, World *world)
 
 static void do_version_blur_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
   const auto &storage = *static_cast<NodeBlurData *>(node.storage);
@@ -1716,7 +1709,7 @@ static void do_version_blur_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_filter_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Type");
@@ -1725,7 +1718,7 @@ static void do_version_filter_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_levels_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Channel")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Channel")) {
     return;
   }
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Channel");
@@ -1734,7 +1727,7 @@ static void do_version_levels_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_dilate_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
   bNodeSocket &type_socket = version_node_add_socket(
@@ -1749,7 +1742,7 @@ static void do_version_dilate_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_tone_map_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
 
@@ -1760,7 +1753,7 @@ static void do_version_tone_map_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_lens_distortion_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
 
@@ -1771,7 +1764,7 @@ static void do_version_lens_distortion_menus_to_inputs(bNodeTree &ntree, bNode &
 
 static void do_version_kuwahara_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
 
@@ -1782,7 +1775,7 @@ static void do_version_kuwahara_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_denoise_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Prefilter")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Prefilter")) {
     return;
   }
 
@@ -1797,7 +1790,7 @@ static void do_version_denoise_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_translate_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
 
@@ -1815,7 +1808,7 @@ static void do_version_translate_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_transform_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
 
@@ -1833,7 +1826,7 @@ static void do_version_transform_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_corner_pin_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
 
@@ -1851,7 +1844,7 @@ static void do_version_corner_pin_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_map_uv_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
 
@@ -1869,7 +1862,7 @@ static void do_version_map_uv_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_scale_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
 
@@ -1894,7 +1887,7 @@ static void do_version_scale_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_rotate_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
 
@@ -1912,7 +1905,7 @@ static void do_version_rotate_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_displace_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
 
@@ -1930,7 +1923,7 @@ static void do_version_displace_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_stabilize_2d_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
 
@@ -1941,7 +1934,7 @@ static void do_version_stabilize_2d_menus_to_inputs(bNodeTree &ntree, bNode &nod
 
 static void do_version_box_mask_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Operation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Operation")) {
     return;
   }
 
@@ -1952,7 +1945,7 @@ static void do_version_box_mask_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_ellipse_mask_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Operation")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Operation")) {
     return;
   }
 
@@ -1963,7 +1956,7 @@ static void do_version_ellipse_mask_menus_to_inputs(bNodeTree &ntree, bNode &nod
 
 static void do_version_track_position_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
 
@@ -1977,7 +1970,7 @@ static void do_version_track_position_menus_to_inputs(bNodeTree &ntree, bNode &n
 
 static void do_version_keying_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Feather Falloff")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Feather Falloff")) {
     return;
   }
 
@@ -1990,7 +1983,7 @@ static void do_version_keying_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_mask_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Size Source")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Size Source")) {
     return;
   }
 
@@ -2001,7 +1994,7 @@ static void do_version_mask_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_movie_distortion_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
 
@@ -2012,7 +2005,7 @@ static void do_version_movie_distortion_menus_to_inputs(bNodeTree &ntree, bNode 
 
 static void do_version_glare_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
 
@@ -2071,7 +2064,7 @@ static void do_version_material_remove_use_nodes(Main *bmain, Material *material
   bNodeTree *ntree = material->nodetree;
   if (ntree == nullptr) {
     /* In case the material was created in Python API it might have been missing a node tree. */
-    ntree = blender::bke::node_tree_add_tree_embedded(
+    ntree = bke::node_tree_add_tree_embedded(
         bmain, &material->id, "Material Node Tree Versioning", "ShaderNodeTree");
   }
 
@@ -2083,7 +2076,7 @@ static void do_version_material_remove_use_nodes(Main *bmain, Material *material
     }
   }
 
-  bNode *frame = blender::bke::node_add_static_node(nullptr, *ntree, NODE_FRAME);
+  bNode *frame = bke::node_add_static_node(nullptr, *ntree, NODE_FRAME);
   STRNCPY(frame->label, RPT_("Versioning: Use Nodes was removed"));
 
   {
@@ -2100,18 +2093,13 @@ static void do_version_material_remove_use_nodes(Main *bmain, Material *material
     new_output_eevee.flag |= NODE_DO_OUTPUT;
     new_output_eevee.custom1 = SHD_OUTPUT_EEVEE;
 
-    bNode &shader_eevee = *blender::bke::node_add_static_node(
-        nullptr, *ntree, SH_NODE_BSDF_PRINCIPLED);
-    bNodeSocket &shader_bsdf_output = *blender::bke::node_find_socket(
-        shader_eevee, SOCK_OUT, "BSDF");
-    bNodeSocket &shader_color_input = *blender::bke::node_find_socket(
-        shader_eevee, SOCK_IN, "Base Color");
-    bNodeSocket &specular_input = *blender::bke::node_find_socket(
+    bNode &shader_eevee = *bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_PRINCIPLED);
+    bNodeSocket &shader_bsdf_output = *bke::node_find_socket(shader_eevee, SOCK_OUT, "BSDF");
+    bNodeSocket &shader_color_input = *bke::node_find_socket(shader_eevee, SOCK_IN, "Base Color");
+    bNodeSocket &specular_input = *bke::node_find_socket(
         shader_eevee, SOCK_IN, "Specular IOR Level");
-    bNodeSocket &metallic_input = *blender::bke::node_find_socket(
-        shader_eevee, SOCK_IN, "Metallic");
-    bNodeSocket &roughness_input = *blender::bke::node_find_socket(
-        shader_eevee, SOCK_IN, "Roughness");
+    bNodeSocket &metallic_input = *bke::node_find_socket(shader_eevee, SOCK_IN, "Metallic");
+    bNodeSocket &roughness_input = *bke::node_find_socket(shader_eevee, SOCK_IN, "Roughness");
 
     version_node_add_link(
         *ntree, shader_eevee, shader_bsdf_output, new_output_eevee, output_surface_input);
@@ -2152,12 +2140,9 @@ static void do_version_material_remove_use_nodes(Main *bmain, Material *material
      * `node_tree.get_output_node('Cycles')` will return this node. */
     new_output_cycles.custom1 = SHD_OUTPUT_CYCLES;
 
-    bNode &shader_cycles = *blender::bke::node_add_static_node(
-        nullptr, *ntree, SH_NODE_BSDF_DIFFUSE);
-    bNodeSocket &shader_bsdf_output = *blender::bke::node_find_socket(
-        shader_cycles, SOCK_OUT, "BSDF");
-    bNodeSocket &shader_color_input = *blender::bke::node_find_socket(
-        shader_cycles, SOCK_IN, "Color");
+    bNode &shader_cycles = *bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_DIFFUSE);
+    bNodeSocket &shader_bsdf_output = *bke::node_find_socket(shader_cycles, SOCK_OUT, "BSDF");
+    bNodeSocket &shader_color_input = *bke::node_find_socket(shader_cycles, SOCK_IN, "Color");
 
     version_node_add_link(
         *ntree, shader_cycles, shader_bsdf_output, new_output_cycles, output_surface_input);
@@ -2183,7 +2168,7 @@ static void do_version_material_remove_use_nodes(Main *bmain, Material *material
 
 static void do_version_set_alpha_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
 
@@ -2194,7 +2179,7 @@ static void do_version_set_alpha_menus_to_inputs(bNodeTree &ntree, bNode &node)
 
 static void do_version_channel_matte_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Color Space")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Color Space")) {
     return;
   }
 
@@ -2238,7 +2223,7 @@ static void do_version_channel_matte_menus_to_inputs(bNodeTree &ntree, bNode &no
 
 static void do_version_color_balance_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
 
@@ -2248,7 +2233,7 @@ static void do_version_color_balance_menus_to_inputs(bNodeTree &ntree, bNode &no
 
 static void do_version_convert_alpha_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Type")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
 
@@ -2258,7 +2243,7 @@ static void do_version_convert_alpha_menus_to_inputs(bNodeTree &ntree, bNode &no
 
 static void do_version_distance_matte_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Color Space")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Color Space")) {
     return;
   }
 
@@ -2270,7 +2255,7 @@ static void do_version_distance_matte_menus_to_inputs(bNodeTree &ntree, bNode &n
 
 static void do_version_color_spill_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Spill Channel")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Spill Channel")) {
     return;
   }
 
@@ -2289,7 +2274,7 @@ static void do_version_color_spill_menus_to_inputs(bNodeTree &ntree, bNode &node
 
 static void do_version_double_edge_mask_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
-  if (blender::bke::node_find_socket(node, SOCK_IN, "Image Edges")) {
+  if (bke::node_find_socket(node, SOCK_IN, "Image Edges")) {
     return;
   }
 
@@ -2322,7 +2307,7 @@ static void version_dynamic_viewer_node_items(bNodeTree &ntree)
     geometry_item.identifier = 0;
     NodeGeometryViewerItem &value_item = storage->items[1];
     value_item.name = BLI_strdup("Value");
-    value_item.socket_type = blender::bke::custom_data_type_to_socket_type(
+    value_item.socket_type = bke::custom_data_type_to_socket_type(
                                  eCustomDataType(storage->data_type_legacy))
                                  .value_or(SOCK_FLOAT);
     value_item.identifier = 1;
@@ -2332,11 +2317,11 @@ static void version_dynamic_viewer_node_items(bNodeTree &ntree)
 
 static void do_version_displace_node_remove_xy_scale(bNodeTree &node_tree, bNode &node)
 {
-  blender::bke::node_tree_set_type(node_tree);
+  bke::node_tree_set_type(node_tree);
 
-  bNodeSocket *displacement_input = blender::bke::node_find_socket(node, SOCK_IN, "Displacement");
-  bNodeSocket *x_scale_input = blender::bke::node_find_socket(node, SOCK_IN, "X Scale");
-  bNodeSocket *y_scale_input = blender::bke::node_find_socket(node, SOCK_IN, "Y Scale");
+  bNodeSocket *displacement_input = bke::node_find_socket(node, SOCK_IN, "Displacement");
+  bNodeSocket *x_scale_input = bke::node_find_socket(node, SOCK_IN, "X Scale");
+  bNodeSocket *y_scale_input = bke::node_find_socket(node, SOCK_IN, "Y Scale");
 
   /* Find the link going into the inputs of the node. */
   bNodeLink *displacement_link = nullptr;
@@ -2354,18 +2339,15 @@ static void do_version_displace_node_remove_xy_scale(bNodeTree &node_tree, bNode
     }
   }
 
-  bNode *multiply_node = blender::bke::node_add_node(nullptr, node_tree, "ShaderNodeVectorMath");
+  bNode *multiply_node = bke::node_add_node(nullptr, node_tree, "ShaderNodeVectorMath");
   multiply_node->parent = node.parent;
   multiply_node->location[0] = node.location[0] - node.width - 20.0f;
   multiply_node->location[1] = node.location[1];
   multiply_node->custom1 = NODE_VECTOR_MATH_MULTIPLY;
 
-  bNodeSocket *multiply_a_input = blender::bke::node_find_socket(
-      *multiply_node, SOCK_IN, "Vector");
-  bNodeSocket *multiply_b_input = blender::bke::node_find_socket(
-      *multiply_node, SOCK_IN, "Vector_001");
-  bNodeSocket *multiply_output = blender::bke::node_find_socket(
-      *multiply_node, SOCK_OUT, "Vector");
+  bNodeSocket *multiply_a_input = bke::node_find_socket(*multiply_node, SOCK_IN, "Vector");
+  bNodeSocket *multiply_b_input = bke::node_find_socket(*multiply_node, SOCK_IN, "Vector_001");
+  bNodeSocket *multiply_output = bke::node_find_socket(*multiply_node, SOCK_OUT, "Vector");
 
   copy_v2_v2(multiply_a_input->default_value_typed<bNodeSocketValueVector>()->value,
              displacement_input->default_value_typed<bNodeSocketValueVector>()->value);
@@ -2375,19 +2357,19 @@ static void do_version_displace_node_remove_xy_scale(bNodeTree &node_tree, bNode
                           *displacement_link->fromsock,
                           *multiply_node,
                           *multiply_a_input);
-    blender::bke::node_remove_link(&node_tree, *displacement_link);
+    bke::node_remove_link(&node_tree, *displacement_link);
   }
 
   version_node_add_link(node_tree, *multiply_node, *multiply_output, node, *displacement_input);
 
-  bNode *combine_node = blender::bke::node_add_node(nullptr, node_tree, "ShaderNodeCombineXYZ");
+  bNode *combine_node = bke::node_add_node(nullptr, node_tree, "ShaderNodeCombineXYZ");
   combine_node->parent = node.parent;
   combine_node->location[0] = multiply_node->location[0] - multiply_node->width - 20.0f;
   combine_node->location[1] = multiply_node->location[1];
 
-  bNodeSocket *combine_x_input = blender::bke::node_find_socket(*combine_node, SOCK_IN, "X");
-  bNodeSocket *combine_y_input = blender::bke::node_find_socket(*combine_node, SOCK_IN, "Y");
-  bNodeSocket *combine_output = blender::bke::node_find_socket(*combine_node, SOCK_OUT, "Vector");
+  bNodeSocket *combine_x_input = bke::node_find_socket(*combine_node, SOCK_IN, "X");
+  bNodeSocket *combine_y_input = bke::node_find_socket(*combine_node, SOCK_IN, "Y");
+  bNodeSocket *combine_output = bke::node_find_socket(*combine_node, SOCK_OUT, "Vector");
 
   version_node_add_link(
       node_tree, *combine_node, *combine_output, *multiply_node, *multiply_b_input);
@@ -2400,7 +2382,7 @@ static void do_version_displace_node_remove_xy_scale(bNodeTree &node_tree, bNode
                           *x_scale_link->fromsock,
                           *combine_node,
                           *combine_x_input);
-    blender::bke::node_remove_link(&node_tree, *x_scale_link);
+    bke::node_remove_link(&node_tree, *x_scale_link);
   }
 
   combine_y_input->default_value_typed<bNodeSocketValueFloat>()->value =
@@ -2411,7 +2393,7 @@ static void do_version_displace_node_remove_xy_scale(bNodeTree &node_tree, bNode
                           *y_scale_link->fromsock,
                           *combine_node,
                           *combine_y_input);
-    blender::bke::node_remove_link(&node_tree, *y_scale_link);
+    bke::node_remove_link(&node_tree, *y_scale_link);
   }
 }
 
@@ -2419,10 +2401,10 @@ static void do_version_displace_node_remove_xy_scale(bNodeTree &node_tree, bNode
  * dimension. */
 static void do_version_bokeh_blur_pixel_size(bNodeTree &node_tree, bNode &node)
 {
-  blender::bke::node_tree_set_type(node_tree);
+  bke::node_tree_set_type(node_tree);
 
-  bNodeSocket *image_input = blender::bke::node_find_socket(node, SOCK_IN, "Image");
-  bNodeSocket *size_input = blender::bke::node_find_socket(node, SOCK_IN, "Size");
+  bNodeSocket *image_input = bke::node_find_socket(node, SOCK_IN, "Image");
+  bNodeSocket *size_input = bke::node_find_socket(node, SOCK_IN, "Size");
 
   /* Find the link going into the inputs of the node. */
   bNodeLink *image_link = nullptr;
@@ -2454,12 +2436,12 @@ static void do_version_bokeh_blur_pixel_size(bNodeTree &node_tree, bNode &node)
   if (size_link) {
     version_node_add_link(
         node_tree, *size_link->fromnode, *size_link->fromsock, multiply_node, multiply_a_input);
-    blender::bke::node_remove_link(&node_tree, *size_link);
+    bke::node_remove_link(&node_tree, *size_link);
   }
 
   version_node_add_link(node_tree, multiply_node, multiply_output, node, *size_input);
 
-  bNode *relative_to_pixel_node = blender::bke::node_add_node(
+  bNode *relative_to_pixel_node = bke::node_add_node(
       nullptr, node_tree, "CompositorNodeRelativeToPixel");
   relative_to_pixel_node->parent = node.parent;
   relative_to_pixel_node->location[0] = multiply_node.location[0] - multiply_node.width - 20.0f;
@@ -2467,11 +2449,11 @@ static void do_version_bokeh_blur_pixel_size(bNodeTree &node_tree, bNode &node)
   relative_to_pixel_node->custom1 = CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT;
   relative_to_pixel_node->custom2 = CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_GREATER;
 
-  bNodeSocket *relative_to_pixel_image_input = blender::bke::node_find_socket(
+  bNodeSocket *relative_to_pixel_image_input = bke::node_find_socket(
       *relative_to_pixel_node, SOCK_IN, "Image");
-  bNodeSocket *relative_to_pixel_value_input = blender::bke::node_find_socket(
+  bNodeSocket *relative_to_pixel_value_input = bke::node_find_socket(
       *relative_to_pixel_node, SOCK_IN, "Float Value");
-  bNodeSocket *relative_to_pixel_value_output = blender::bke::node_find_socket(
+  bNodeSocket *relative_to_pixel_value_output = bke::node_find_socket(
       *relative_to_pixel_node, SOCK_OUT, "Float Value");
 
   version_node_add_link(node_tree,
@@ -2510,13 +2492,13 @@ static bool window_has_sequence_editor_open(const wmWindow *win)
  * change its type to gaussian blur with 0 radius. */
 static void sequencer_substitute_transform_effects(Scene *scene)
 {
-  blender::seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) -> bool {
+  seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) -> bool {
     if (strip->type == STRIP_TYPE_TRANSFORM_LEGACY && strip->effectdata != nullptr) {
       TransformVarsLegacy *tv = static_cast<TransformVarsLegacy *>(strip->effectdata);
       StripTransform *transform = strip->data->transform;
-      blender::float2 offset(tv->xIni, tv->yIni);
+      float2 offset(tv->xIni, tv->yIni);
       if (tv->percent == 1) {
-        blender::float2 scene_resolution(scene->r.xsch, scene->r.ysch);
+        float2 scene_resolution(scene->r.xsch, scene->r.ysch);
         offset *= scene_resolution;
       }
       transform->xofs += offset.x;
@@ -2524,13 +2506,13 @@ static void sequencer_substitute_transform_effects(Scene *scene)
       transform->scale_x *= tv->ScalexIni;
       transform->scale_y *= tv->ScaleyIni;
       transform->rotation += tv->rotIni;
-      blender::seq::effect_free(strip);
+      seq::effect_free(strip);
       strip->type = STRIP_TYPE_GAUSSIAN_BLUR;
-      blender::seq::effect_ensure_initialized(strip);
+      seq::effect_ensure_initialized(strip);
       GaussianBlurVars *gv = static_cast<GaussianBlurVars *>(strip->effectdata);
       gv->size_x = gv->size_y = 0.0f;
-      blender::seq::edit_strip_name_set(scene, strip, "Transform Placeholder (Migrated)");
-      blender::seq::ensure_unique_name(strip, scene);
+      seq::edit_strip_name_set(scene, strip, "Transform Placeholder (Migrated)");
+      seq::ensure_unique_name(strip, scene);
     }
     return true;
   });
@@ -2541,9 +2523,9 @@ static void sequencer_substitute_transform_effects(Scene *scene)
  * in sRGB space. */
 static void do_version_lift_gamma_gain_srgb_to_linear(bNodeTree &node_tree, bNode &node)
 {
-  bNodeSocket *image_input = blender::bke::node_find_socket(node, SOCK_IN, "Image");
-  bNodeSocket *type_input = blender::bke::node_find_socket(node, SOCK_IN, "Type");
-  bNodeSocket *image_output = blender::bke::node_find_socket(node, SOCK_OUT, "Image");
+  bNodeSocket *image_input = bke::node_find_socket(node, SOCK_IN, "Image");
+  bNodeSocket *type_input = bke::node_find_socket(node, SOCK_IN, "Type");
+  bNodeSocket *image_output = bke::node_find_socket(node, SOCK_OUT, "Image");
 
   /* Find the links going into and out of the node. */
   bNodeLink *image_input_link = nullptr;
@@ -2563,21 +2545,19 @@ static void do_version_lift_gamma_gain_srgb_to_linear(bNodeTree &node_tree, bNod
     return;
   }
 
-  bNode *inverse_gamma_node = blender::bke::node_add_static_node(
-      nullptr, node_tree, SH_NODE_GAMMA);
+  bNode *inverse_gamma_node = bke::node_add_static_node(nullptr, node_tree, SH_NODE_GAMMA);
   inverse_gamma_node->parent = node.parent;
   inverse_gamma_node->location[0] = node.location[0];
   inverse_gamma_node->location[1] = node.location[1];
 
-  bNodeSocket *inverse_gamma_color_input = blender::bke::node_find_socket(
+  bNodeSocket *inverse_gamma_color_input = bke::node_find_socket(
       *inverse_gamma_node, SOCK_IN, "Color");
   copy_v4_v4(inverse_gamma_color_input->default_value_typed<bNodeSocketValueRGBA>()->value,
              image_input->default_value_typed<bNodeSocketValueRGBA>()->value);
-  bNodeSocket *inverse_gamma_color_output = blender::bke::node_find_socket(
+  bNodeSocket *inverse_gamma_color_output = bke::node_find_socket(
       *inverse_gamma_node, SOCK_OUT, "Color");
 
-  bNodeSocket *inverse_gamma_input = blender::bke::node_find_socket(
-      *inverse_gamma_node, SOCK_IN, "Gamma");
+  bNodeSocket *inverse_gamma_input = bke::node_find_socket(*inverse_gamma_node, SOCK_IN, "Gamma");
   inverse_gamma_input->default_value_typed<bNodeSocketValueFloat>()->value = 1.0f / 2.2f;
 
   version_node_add_link(
@@ -2588,18 +2568,18 @@ static void do_version_lift_gamma_gain_srgb_to_linear(bNodeTree &node_tree, bNod
                           *image_input_link->fromsock,
                           *inverse_gamma_node,
                           *inverse_gamma_color_input);
-    blender::bke::node_remove_link(&node_tree, *image_input_link);
+    bke::node_remove_link(&node_tree, *image_input_link);
   }
 
-  bNode *gamma_node = blender::bke::node_add_static_node(nullptr, node_tree, SH_NODE_GAMMA);
+  bNode *gamma_node = bke::node_add_static_node(nullptr, node_tree, SH_NODE_GAMMA);
   gamma_node->parent = node.parent;
   gamma_node->location[0] = node.location[0];
   gamma_node->location[1] = node.location[1];
 
-  bNodeSocket *gamma_color_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Color");
-  bNodeSocket *gamma_color_output = blender::bke::node_find_socket(*gamma_node, SOCK_OUT, "Color");
+  bNodeSocket *gamma_color_input = bke::node_find_socket(*gamma_node, SOCK_IN, "Color");
+  bNodeSocket *gamma_color_output = bke::node_find_socket(*gamma_node, SOCK_OUT, "Color");
 
-  bNodeSocket *gamma_input = blender::bke::node_find_socket(*gamma_node, SOCK_IN, "Gamma");
+  bNodeSocket *gamma_input = bke::node_find_socket(*gamma_node, SOCK_IN, "Gamma");
   gamma_input->default_value_typed<bNodeSocketValueFloat>()->value = 2.2f;
 
   for (bNodeLink &link : node_tree.links.items_reversed_mutable()) {
@@ -2608,21 +2588,21 @@ static void do_version_lift_gamma_gain_srgb_to_linear(bNodeTree &node_tree, bNod
     }
 
     version_node_add_link(node_tree, *gamma_node, *gamma_color_output, *link.tonode, *link.tosock);
-    blender::bke::node_remove_link(&node_tree, link);
+    bke::node_remove_link(&node_tree, link);
   }
 
   version_node_add_link(node_tree, node, *image_output, *gamma_node, *gamma_color_input);
 }
 
-static void version_bone_hide_property_driver(AnimData *arm_adt, blender::Vector<Object *> &users)
+static void version_bone_hide_property_driver(AnimData *arm_adt, Vector<Object *> &users)
 {
   using namespace blender::animrig;
   constexpr char const *hide_prop_prefix = "bones[";
   constexpr char const *hide_prop_suffix = "\"].hide";
 
-  blender::Vector<FCurve *> drivers_to_fix;
+  Vector<FCurve *> drivers_to_fix;
   for (FCurve &fcurve : arm_adt->drivers) {
-    const blender::StringRef rna_path(fcurve.rna_path);
+    const StringRef rna_path(fcurve.rna_path);
     int quoted_bone_name_start = 0;
     int quoted_bone_name_end = 0;
     const bool is_prefix_found = BLI_str_quoted_substr_range(
@@ -2709,7 +2689,7 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
       }
     }
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
-      blender::bke::node_tree_set_type(*node_tree);
+      bke::node_tree_set_type(*node_tree);
       if (node_tree->type == NTREE_COMPOSIT) {
         for (bNode &node : node_tree->nodes.items_reversed_mutable()) {
           if (node.type_legacy == CMP_NODE_COMPOSITE_DEPRECATED) {
@@ -2727,7 +2707,7 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
       if (object.type != OB_ARMATURE || !object.data) {
         continue;
       }
-      BKE_pose_rebuild(nullptr, &object, blender::id_cast<bArmature *>(object.data), false);
+      BKE_pose_rebuild(nullptr, &object, id_cast<bArmature *>(object.data), false);
       for (bPoseChannel &pose_bone : object.pose->chanbase) {
         if (pose_bone.bone->flag & BONE_HIDDEN_P) {
           pose_bone.drawflag |= PCHAN_DRAW_HIDDEN;
@@ -2787,13 +2767,13 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 110)) {
     /* Build map of armature->object to quickly find out afterwards which armature is used by which
      * objects. */
-    blender::Map<bArmature *, blender::Vector<Object *>> armature_usage_map;
+    Map<bArmature *, Vector<Object *>> armature_usage_map;
     for (Object &ob : bmain->objects) {
       if (ob.type != OB_ARMATURE || !ob.data) {
         continue;
       }
       bArmature *arm = reinterpret_cast<bArmature *>(ob.data);
-      blender::Vector<Object *> &users = armature_usage_map.lookup_or_add_default(arm);
+      Vector<Object *> &users = armature_usage_map.lookup_or_add_default(arm);
       users.append(&ob);
     }
 
@@ -2804,7 +2784,7 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
         continue;
       }
 
-      blender::Vector<Object *> *users = armature_usage_map.lookup_ptr(&armature);
+      Vector<Object *> *users = armature_usage_map.lookup_ptr(&armature);
       if (!users) {
         /* If `users` is a nullptr that means there is no user of that armature. That means the
          * property won't be fixed for armatures that are not used by an object during versioning.
@@ -2827,7 +2807,6 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
 
 static void remove_in_and_out_node_panel_recursive(bNodeTreeInterfacePanel &panel)
 {
-  using namespace blender;
   const Span old_sockets(panel.items_array, panel.items_num);
 
   Vector<bNodeTreeInterfaceItem *> new_sockets;
@@ -2884,7 +2863,6 @@ static void remove_in_and_out_node_interface(bNodeTree &node_tree)
 
 static void repair_node_link_node_pointers(FileData &fd, bNodeTree &node_tree)
 {
-  using namespace blender;
   Map<bNodeSocket *, bNode *> socket_to_node;
   for (bNode &node : node_tree.nodes) {
     for (bNodeSocket &socket : node.inputs) {
@@ -2924,12 +2902,12 @@ static void sequencer_remove_listbase_pointers(Scene &scene)
   if (!ed) {
     return;
   }
-  const MetaStack *last_meta_stack = blender::seq::meta_stack_active_get(ed);
+  const MetaStack *last_meta_stack = seq::meta_stack_active_get(ed);
   if (!last_meta_stack) {
     return;
   }
   ed->current_meta_strip = last_meta_stack->parent_strip;
-  blender::seq::meta_stack_set(&scene, last_meta_stack->parent_strip);
+  seq::meta_stack_set(&scene, last_meta_stack->parent_strip);
 }
 
 static void do_version_adaptive_subdivision(Main *bmain)
@@ -3194,7 +3172,6 @@ static void do_version_texture_gradient_clamp(bNodeTree *node_tree)
 
 void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 {
-  using namespace blender;
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 1)) {
     for (Mesh &mesh : bmain->meshes) {
       bke::mesh_sculpt_mask_to_generic(mesh);
@@ -3207,7 +3184,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 2)) {
     for (PointCloud &pointcloud : bmain->pointclouds) {
-      blender::bke::pointcloud_convert_customdata_to_storage(pointcloud);
+      bke::pointcloud_convert_customdata_to_storage(pointcloud);
     }
   }
 
@@ -3424,15 +3401,15 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 33)) {
     for (Curves &curves : bmain->hair_curves) {
-      blender::bke::curves_convert_customdata_to_storage(curves.geometry.wrap());
+      bke::curves_convert_customdata_to_storage(curves.geometry.wrap());
     }
     for (GreasePencil &grease_pencil : bmain->grease_pencils) {
-      blender::bke::grease_pencil_convert_customdata_to_storage(grease_pencil);
+      bke::grease_pencil_convert_customdata_to_storage(grease_pencil);
       for (const int i : IndexRange(grease_pencil.drawing_array_num)) {
         GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];
         if (drawing_base->type == GP_DRAWING) {
           GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-          blender::bke::curves_convert_customdata_to_storage(drawing->geometry.wrap());
+          bke::curves_convert_customdata_to_storage(drawing->geometry.wrap());
         }
       }
     }
@@ -3952,7 +3929,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Scene &scene : bmain->scenes) {
       if (scene.ed != nullptr) {
         /* Set the first strip modifier as the active one and uncollapse the root panel. */
-        blender::seq::foreach_strip(&scene.ed->seqbase, [&](Strip *strip) -> bool {
+        seq::foreach_strip(&scene.ed->seqbase, [&](Strip *strip) -> bool {
           seq::modifier_set_active(strip,
                                    static_cast<StripModifierData *>(strip->modifiers.first));
           for (StripModifierData &smd : strip->modifiers) {
@@ -4352,7 +4329,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
       if (!scene.ed) {
         continue;
       }
-      blender::seq::foreach_strip(&scene.ed->seqbase, [&](Strip *strip) {
+      seq::foreach_strip(&scene.ed->seqbase, [&](Strip *strip) {
         for (StripModifierData &md : strip->modifiers) {
           md.ui_expand_flag = md.layout_panel_open_flag & UI_PANEL_DATA_EXPAND_ROOT;
         }
@@ -4400,3 +4377,5 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
   /* TODO: Can be moved to subversion bump. */
   AS_asset_library_import_method_ensure_valid(*bmain);
 }
+
+}  // namespace blender

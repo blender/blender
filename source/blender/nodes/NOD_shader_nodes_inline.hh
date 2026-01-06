@@ -8,10 +8,12 @@
 
 #include "DNA_node_types.h"
 
+namespace blender {
+
 struct bNodeTree;
 struct bNode;
 
-namespace blender::nodes {
+namespace nodes {
 
 struct InlineShaderNodeTreeParams {
   /**
@@ -39,4 +41,5 @@ bool inline_shader_node_tree(const bNodeTree &src_tree,
                              bNodeTree &dst_tree,
                              InlineShaderNodeTreeParams &params);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

@@ -28,11 +28,13 @@
 
 #include <fmt/format.h>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
 using namespace blender::gpu::shader;
 
-namespace blender::gpu {
+namespace gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Create Info
@@ -1458,4 +1460,5 @@ const VKShaderInterface &VKShader::interface_get() const
   return *static_cast<const VKShaderInterface *>(interface);
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

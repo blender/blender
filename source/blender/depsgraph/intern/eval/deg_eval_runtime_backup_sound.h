@@ -10,9 +10,11 @@
 
 #include "BKE_sound.hh"
 
+namespace blender {
+
 struct bSound;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -31,4 +33,5 @@ class SoundBackup {
   AUD_Sound *playback_handle;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

@@ -12,6 +12,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 void BLI_linklist_lockfree_init(LockfreeLinkList *list)
 {
   list->dummy_node.next = nullptr;
@@ -64,3 +66,5 @@ LockfreeLinkNode *BLI_linklist_lockfree_begin(LockfreeLinkList *list)
 {
   return list->head->next;
 }
+
+}  // namespace blender

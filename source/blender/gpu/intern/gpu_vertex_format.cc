@@ -24,13 +24,15 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define PACK_DEBUG 0
 
 #if PACK_DEBUG
 #  include <stdio.h>
 #endif
 
-namespace blender::gpu {
+namespace gpu {
 
 /* Used to combine legacy enums into new vertex attribute type. */
 static VertAttrType vertex_format_combine(GPUVertCompType component_type,
@@ -265,11 +267,10 @@ bool is_fetch_float(VertAttrType attr_type)
   }
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
-using blender::StringRef;
-using namespace blender::gpu;
-using namespace blender::gpu::shader;
+using namespace gpu;
+using namespace gpu::shader;
 
 GPUVertFetchMode GPUVertAttr::Type::fetch_mode() const
 {
@@ -387,19 +388,17 @@ uint GPU_vertformat_attr_add_legacy(GPUVertFormat *format,
 
 uint GPU_vertformat_attr_add(GPUVertFormat *format,
                              const StringRef name,
-                             const blender::gpu::VertAttrType type)
+                             const gpu::VertAttrType type)
 {
   return format->attribute_add(name, type);
 }
 
-uint GPUVertFormat::attribute_add(blender::StringRef name,
-                                  blender::gpu::VertAttrType type,
-                                  size_t offset)
+uint GPUVertFormat::attribute_add(StringRef name, gpu::VertAttrType type, size_t offset)
 {
   BLI_assert(this->name_len < GPU_VERT_FORMAT_MAX_NAMES); /* there's room for more */
   BLI_assert(this->attr_len < GPU_VERT_ATTR_MAX_LEN);     /* there's room for more */
   BLI_assert(!this->packed);                              /* packed means frozen/locked */
-  BLI_assert(type != blender::gpu::VertAttrType::Invalid);
+  BLI_assert(type != gpu::VertAttrType::Invalid);
 
   this->name_len++; /* Multi-name support. */
 
@@ -425,8 +424,7 @@ void GPU_vertformat_alias_add(GPUVertFormat *format, const StringRef alias)
   attr->names[attr->name_len++] = copy_attr_name(format, alias);
 }
 
-GPUVertFormat GPU_vertformat_from_attribute(const StringRef name,
-                                            const blender::gpu::VertAttrType type)
+GPUVertFormat GPU_vertformat_from_attribute(const StringRef name, const gpu::VertAttrType type)
 {
   GPUVertFormat format{};
   format.attribute_add(name, type);
@@ -632,7 +630,7 @@ static void recommended_fetch_mode_and_comp_type(Type gpu_type,
   }
 }
 
-void GPU_vertformat_from_shader(GPUVertFormat *format, const blender::gpu::Shader *shader)
+void GPU_vertformat_from_shader(GPUVertFormat *format, const gpu::Shader *shader)
 {
   GPU_vertformat_clear(format);
 
@@ -657,3 +655,5 @@ void GPU_vertformat_from_shader(GPUVertFormat *format, const blender::gpu::Shade
     attrs_added++;
   }
 }
+
+}  // namespace blender

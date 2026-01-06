@@ -31,6 +31,8 @@
 #endif
 #include "py_capi_rna.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name UI Data Update
  * \{ */
@@ -1079,3 +1081,5 @@ void IDPropertyUIData_Init_Types()
 }
 
 /** \} */
+
+}  // namespace blender

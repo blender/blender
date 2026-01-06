@@ -272,7 +272,7 @@ static bool eyedropper_cryptomatte_sample_render_fl(const bNode *node,
                                                     float r_col[3])
 {
   bool success = false;
-  Scene *scene = blender::id_cast<Scene *>(node->id);
+  Scene *scene = id_cast<Scene *>(node->id);
   BLI_assert(GS(scene->id.name) == ID_SCE);
   Render *re = RE_GetSceneRender(scene);
 
@@ -300,7 +300,7 @@ static bool eyedropper_cryptomatte_sample_image_fl(bContext *C,
                                                    float r_col[3])
 {
   bool success = false;
-  Image *image = blender::id_cast<Image *>(node->id);
+  Image *image = id_cast<Image *>(node->id);
   BLI_assert((image == nullptr) || (GS(image->id.name) == ID_IM));
 
   /* Compute the effective frame number of the image if it was animated. */

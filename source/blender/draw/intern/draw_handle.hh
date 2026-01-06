@@ -41,9 +41,11 @@
 /* ObjectKey */
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 struct DupliCacheManager;
 
-namespace blender::draw {
+namespace draw {
 
 /**
  * Index for getting a specific resource from the Draw Manager resource arrays.
@@ -287,7 +289,7 @@ class ObjectRef {
   int recalc_flags(uint64_t last_update) const
   {
     /* TODO: There should also be a way to get the min last_update for all objects in the range. */
-    auto get_flags = [&](const blender::bke::ObjectRuntime &runtime) {
+    auto get_flags = [&](const bke::ObjectRuntime &runtime) {
       int flags = 0;
       SET_FLAG_FROM_TEST(flags, runtime.last_update_transform > last_update, ID_RECALC_TRANSFORM);
       SET_FLAG_FROM_TEST(flags, runtime.last_update_geometry > last_update, ID_RECALC_GEOMETRY);
@@ -340,7 +342,7 @@ class ObjectRef {
     return -1;
   }
 
-  const blender::bke::GeometrySet *preview_base_geometry() const
+  const bke::GeometrySet *preview_base_geometry() const
   {
     if (dupli_object_) {
       return dupli_object_->preview_base_geometry;
@@ -493,4 +495,6 @@ class ObjectKey {
 
 /** \} */
 
-};  // namespace blender::draw
+};  // namespace draw
+
+}  // namespace blender

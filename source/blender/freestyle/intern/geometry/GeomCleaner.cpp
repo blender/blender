@@ -152,7 +152,7 @@ void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices,
   chrono.start();
   GeomCleaner::SortIndexedVertexArray(
       iVertices, iVSize, iIndices, iISize, &tmpVertices, &tmpIndices);
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("Sorting: %lf sec.\n", chrono.stop());
   }
 
@@ -161,7 +161,7 @@ void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices,
   GeomCleaner::CompressIndexedVertexArray(
       tmpVertices, iVSize, tmpIndices, iISize, oVertices, oVSize, oIndices);
   real duration = chrono.stop();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("Merging: %lf sec.\n", duration);
   }
 

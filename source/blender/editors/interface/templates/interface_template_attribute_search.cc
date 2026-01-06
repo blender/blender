@@ -26,9 +26,11 @@
 
 #include <fmt/format.h>
 
-using blender::nodes::geo_eval_log::GeometryAttributeInfo;
+namespace blender {
 
-namespace blender::ui {
+using nodes::geo_eval_log::GeometryAttributeInfo;
+
+namespace ui {
 
 static StringRef attribute_data_type_string(const eCustomDataType type)
 {
@@ -106,4 +108,5 @@ void attribute_search_add_items(StringRef str,
   }
 }
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

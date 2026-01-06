@@ -36,9 +36,12 @@
 #include "stl_export_writer.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.stl"};
 
-namespace blender::io::stl {
+namespace io::stl {
 
 void export_frame(Depsgraph *depsgraph,
                   float scene_unit_scale,
@@ -196,4 +199,5 @@ void exporter_main(const bContext *C, const STLExportParams &export_params)
   }
 }
 
-}  // namespace blender::io::stl
+}  // namespace io::stl
+}  // namespace blender

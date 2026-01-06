@@ -69,6 +69,8 @@
 
 #include "IMB_colormanagement.hh"
 
+namespace blender {
+
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.hh"
 #endif
@@ -132,7 +134,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
     }
 
     if (pc.poll == nullptr || pc.poll(C)) {
-      blender::ui::theme::theme_set(area->spacetype, region->regiontype);
+      ui::theme::theme_set(area->spacetype, region->regiontype);
 
       /* Prevent drawing outside region. */
       GPU_scissor_test(true);
@@ -253,14 +255,13 @@ static void wm_software_cursor_draw_bitmap(const float system_scale,
 
   float gl_matrix[4][4];
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
-  blender::gpu::Texture *texture = GPU_texture_create_2d(
-      "software_cursor",
-      bitmap->data_size[0],
-      bitmap->data_size[1],
-      1,
-      blender::gpu::TextureFormat::UNORM_8_8_8_8,
-      usage,
-      nullptr);
+  gpu::Texture *texture = GPU_texture_create_2d("software_cursor",
+                                                bitmap->data_size[0],
+                                                bitmap->data_size[1],
+                                                1,
+                                                gpu::TextureFormat::UNORM_8_8_8_8,
+                                                usage,
+                                                nullptr);
   GPU_texture_update(texture, GPU_DATA_UBYTE, bitmap->data);
   GPU_texture_filter_mode(texture, false);
 
@@ -286,10 +287,8 @@ static void wm_software_cursor_draw_bitmap(const float system_scale,
   GPU_matrix_mul(gl_matrix);
 
   GPUVertFormat *imm_format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(
-      imm_format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
-  uint texCoord = GPU_vertformat_attr_add(
-      imm_format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(imm_format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+  uint texCoord = GPU_vertformat_attr_add(imm_format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
 
   /* Use 3D image for correct display of planar tracked images. */
   immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
@@ -331,8 +330,7 @@ static void wm_software_cursor_draw_crosshair(const float system_scale, const in
   const float cursor_scale = float(WM_cursor_preferred_logical_size()) /
                              float(WM_CURSOR_DEFAULT_LOGICAL_SIZE);
   const float unit = max_ff(system_scale * cursor_scale, 1.0f);
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4f(1, 1, 1, 1);
@@ -412,7 +410,7 @@ static void wm_region_draw_overlay(bContext *C, const ScrArea *area, ARegion *re
   const wmWindow *win = CTX_wm_window(C);
 
   wmViewport(&region->winrct);
-  blender::ui::theme::theme_set(area->spacetype, region->regiontype);
+  ui::theme::theme_set(area->spacetype, region->regiontype);
   region->runtime->type->draw_overlay(C, region);
   wmWindowViewport(win);
 }
@@ -454,7 +452,7 @@ static bool wm_draw_region_stereo_set(Main *bmain,
             return false;
           }
 
-          Camera *cam = blender::id_cast<Camera *>(v3d->camera->data);
+          Camera *cam = id_cast<Camera *>(v3d->camera->data);
           CameraBGImage *bgpic = static_cast<CameraBGImage *>(cam->bg_images.first);
           v3d->multiview_eye = sview;
           if (bgpic) {
@@ -694,13 +692,13 @@ static void wm_draw_region_buffer_free(ARegion *region)
 static void wm_draw_offscreen_texture_parameters(GPUOffScreen *offscreen)
 {
   /* Setup offscreen color texture for drawing. */
-  blender::gpu::Texture *texture = GPU_offscreen_color_texture(offscreen);
+  gpu::Texture *texture = GPU_offscreen_color_texture(offscreen);
 
   /* No mipmaps or filtering. */
   GPU_texture_mipmap_mode(texture, false, false);
 }
 
-static blender::gpu::TextureFormat get_hdr_framebuffer_format(const Scene *scene)
+static gpu::TextureFormat get_hdr_framebuffer_format(const Scene *scene)
 {
   bool use_float = false;
 
@@ -711,9 +709,8 @@ static blender::gpu::TextureFormat get_hdr_framebuffer_format(const Scene *scene
   {
     use_float = GPU_hdr_support();
   }
-  blender::gpu::TextureFormat desired_format =
-      (use_float) ? blender::gpu::TextureFormat::SFLOAT_16_16_16_16 :
-                    blender::gpu::TextureFormat::UNORM_8_8_8_8;
+  gpu::TextureFormat desired_format = (use_float) ? gpu::TextureFormat::SFLOAT_16_16_16_16 :
+                                                    gpu::TextureFormat::UNORM_8_8_8_8;
   return desired_format;
 }
 
@@ -724,7 +721,7 @@ static void wm_draw_region_buffer_create(Scene *scene,
 {
 
   /* Determine desired offscreen format depending on HDR availability. */
-  blender::gpu::TextureFormat desired_format = get_hdr_framebuffer_format(scene);
+  gpu::TextureFormat desired_format = get_hdr_framebuffer_format(scene);
 
   if (region->runtime->draw_buffer) {
     if (region->runtime->draw_buffer->stereo != stereo) {
@@ -841,7 +838,7 @@ static void wm_draw_region_blit(ARegion *region, int view)
   }
 }
 
-blender::gpu::Texture *wm_draw_region_texture(ARegion *region, int view)
+gpu::Texture *wm_draw_region_texture(ARegion *region, int view)
 {
   if (!region->runtime->draw_buffer) {
     return nullptr;
@@ -911,9 +908,9 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   }
 
   /* Setup actual texture. */
-  blender::gpu::Texture *texture = wm_draw_region_texture(region, view);
+  gpu::Texture *texture = wm_draw_region_texture(region, view);
 
-  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
+  gpu::Shader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
   GPU_shader_bind(shader);
 
   int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
@@ -925,9 +922,9 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
 
   GPU_shader_uniform_float_ex(shader, rect_tex_loc, 4, 1, rectt);
   GPU_shader_uniform_float_ex(shader, rect_geo_loc, 4, 1, rectg);
-  GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, blender::float4{1, 1, 1, 1});
+  GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, float4{1, 1, 1, 1});
 
-  blender::gpu::Batch *quad = GPU_batch_preset_quad();
+  gpu::Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw(quad);
 
@@ -1170,7 +1167,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
 
   /* After area regions so we can do area 'overlay' drawing. */
-  blender::ui::theme::theme_set(0, 0);
+  ui::theme::theme_set(0, 0);
   ED_screen_draw_edges(win);
 
   /* Needs zero offset here or it looks blurry. #128112. */
@@ -1252,13 +1249,13 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   }
   else {
     /* Determine desired offscreen format depending on HDR availability. */
-    blender::gpu::TextureFormat desired_format = get_hdr_framebuffer_format(
+    gpu::TextureFormat desired_format = get_hdr_framebuffer_format(
         WM_window_get_active_scene(win));
 
     /* For side-by-side and top-bottom, we need to render each view to an
      * an off-screen texture and then draw it. This used to happen for all
      * stereo methods, but it's less efficient than drawing directly. */
-    const blender::int2 win_size = WM_window_native_pixel_size(win);
+    const int2 win_size = WM_window_native_pixel_size(win);
     GPUOffScreen *offscreen = GPU_offscreen_create(win_size[0],
                                                    win_size[1],
                                                    false,
@@ -1268,7 +1265,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
                                                    nullptr);
 
     if (offscreen) {
-      blender::gpu::Texture *texture = GPU_offscreen_color_texture(offscreen);
+      gpu::Texture *texture = GPU_offscreen_color_texture(offscreen);
       wm_draw_offscreen_texture_parameters(offscreen);
 
       for (int view = 0; view < 2; view++) {
@@ -1350,7 +1347,7 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
     GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
 
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
   const uint rect_len = win_size[0] * win_size[1];
   uint8_t *rect = MEM_malloc_arrayN<uint8_t>(4 * rect_len, __func__);
 
@@ -1395,7 +1392,7 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
    * requires testing so a quick fix has been added to the place where this was used. The solution
    * is to implement all the cases in 'VKFramebuffer::read'.
    */
-  blender::float4 color_with_alpha;
+  float4 color_with_alpha;
   GPU_frontbuffer_read_color(pos[0], pos[1], 1, 1, 4, GPU_DATA_FLOAT, color_with_alpha);
   copy_v3_v3(r_col, color_with_alpha.xyz());
 
@@ -1423,11 +1420,10 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
    * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
 
   /* Draw into an off-screen buffer and read its contents. */
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
 
   /* Determine desired offscreen format depending on HDR availability. */
-  blender::gpu::TextureFormat desired_format = get_hdr_framebuffer_format(
-      WM_window_get_active_scene(win));
+  gpu::TextureFormat desired_format = get_hdr_framebuffer_format(WM_window_get_active_scene(win));
 
   GPUOffScreen *offscreen = GPU_offscreen_create(win_size[0],
                                                  win_size[1],
@@ -1459,7 +1455,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
                                                  float r_col[3])
 {
   /* A version of #WM_window_pixels_read_from_offscreen that reads a single sample. */
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
   zero_v3(r_col);
 
   /* While this shouldn't happen, return in the case it does. */
@@ -1471,7 +1467,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
   GPUOffScreen *offscreen = GPU_offscreen_create(win_size[0],
                                                  win_size[1],
                                                  false,
-                                                 blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                                 gpu::TextureFormat::UNORM_8_8_8_8,
                                                  GPU_TEXTURE_USAGE_SHADER_READ,
                                                  false,
                                                  nullptr);
@@ -1747,3 +1743,5 @@ void WM_draw_region_viewport_unbind(ARegion *region)
 }
 
 /** \} */
+
+}  // namespace blender

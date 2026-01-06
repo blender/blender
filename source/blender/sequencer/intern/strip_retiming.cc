@@ -211,7 +211,7 @@ static void strip_retiming_line_segments_tangent_circle(const SeqRetimingKey *st
                                                         double r_center[2],
                                                         double *radius)
 {
-  blender::double2 s1_1, s1_2, s2_1, s2_2, p1_2;
+  double2 s1_1, s1_2, s2_1, s2_2, p1_2;
 
   /* Get 2 segments. */
   strip_retiming_segment_as_line_segment(start_key - 1, s1_1, s1_2);
@@ -219,7 +219,7 @@ static void strip_retiming_line_segments_tangent_circle(const SeqRetimingKey *st
   /* Backup first segment end point - needed to calculate arc radius. */
   copy_v2_v2_db(p1_2, s1_2);
   /* Convert segments to vectors. */
-  blender::double2 v1, v2;
+  double2 v1, v2;
   sub_v2_v2v2_db(v1, s1_1, s1_2);
   sub_v2_v2v2_db(v2, s2_1, s2_2);
   /* Rotate segments by 90 degrees around seg. 1 end and seg. 2 start point. */

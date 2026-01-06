@@ -23,6 +23,8 @@
 
 #include "DNA_mesh_types.h"
 
+namespace blender {
+
 struct Brush;
 struct BMVert;
 struct Depsgraph;
@@ -32,11 +34,11 @@ struct SculptBoundaryPreview;
 struct SculptSession;
 struct SubdivCCG;
 struct SubdivCCGCoord;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 class Node;
 }
 
-namespace blender::ed::sculpt_paint::boundary {
+namespace ed::sculpt_paint::boundary {
 
 struct SculptBoundary {
   /* Vertex indices of the active boundary. */
@@ -160,4 +162,6 @@ void do_boundary_brush(const Depsgraph &depsgraph,
                        Object &object,
                        const IndexMask &node_mask);
 
-}  // namespace blender::ed::sculpt_paint::boundary
+}  // namespace ed::sculpt_paint::boundary
+
+}  // namespace blender

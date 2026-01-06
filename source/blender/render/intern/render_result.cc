@@ -42,6 +42,8 @@
 #include "render_result.h"
 #include "render_types.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Free
  * \{ */
@@ -444,7 +446,7 @@ void RE_pass_set_buffer_data(RenderPass *pass, float *data)
   IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
 }
 
-blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
+gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
 {
   ImBuf *ibuf = rpass->ibuf;
 
@@ -463,11 +465,11 @@ blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *
     return nullptr;
   }
 
-  const blender::gpu::TextureFormat format = (rpass->channels == 1) ?
-                                                 blender::gpu::TextureFormat::SFLOAT_32 :
-                                             (rpass->channels == 3) ?
-                                                 blender::gpu::TextureFormat::SFLOAT_32_32_32 :
-                                                 blender::gpu::TextureFormat::SFLOAT_32_32_32_32;
+  const gpu::TextureFormat format = (rpass->channels == 1) ?
+                                        gpu::TextureFormat::SFLOAT_32 :
+                                    (rpass->channels == 3) ?
+                                        gpu::TextureFormat::SFLOAT_32_32_32 :
+                                        gpu::TextureFormat::SFLOAT_32_32_32_32;
 
   /* TODO(sergey): Use utility to assign the texture. */
   ibuf->gpu.texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
@@ -1378,3 +1380,5 @@ bool RE_RenderPassIsColor(const RenderPass *render_pass)
 }
 
 /** \} */
+
+}  // namespace blender

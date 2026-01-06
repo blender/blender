@@ -45,6 +45,8 @@
 
 #include "UI_view2d.hh"
 
+namespace blender {
+
 namespace {
 
 enum eBrushUVSculptTool {
@@ -492,7 +494,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
   float alpha = sculptdata->uvsculpt->strength;
 
   float co[2];
-  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
   SpaceImage *sima = CTX_wm_space_image(C);
 
@@ -705,7 +707,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   }
 
   /* Mouse coordinates, useful for some functions like grab and sculpt all islands */
-  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
   /* We need to find the active island here. */
   if (do_island_optimization) {
@@ -1042,3 +1044,5 @@ void SCULPT_OT_uv_sculpt_pinch(wmOperatorType *ot)
 
   register_common_props(ot);
 }
+
+}  // namespace blender

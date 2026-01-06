@@ -24,6 +24,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"anim"};
 
 /* ******************************************************************** */
@@ -238,7 +240,7 @@ bool BKE_where_on_path(const Object *ob,
   if (ob == nullptr || ob->type != OB_CURVES_LEGACY) {
     return false;
   }
-  Curve *cu = blender::id_cast<Curve *>(ob->data);
+  Curve *cu = id_cast<Curve *>(ob->data);
   if (ob->runtime->curve_cache == nullptr) {
     CLOG_WARN(&LOG, "No curve cache!");
     return false;
@@ -386,3 +388,5 @@ bool BKE_where_on_path(const Object *ob,
 
   return true;
 }
+
+}  // namespace blender

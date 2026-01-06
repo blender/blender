@@ -31,6 +31,8 @@
 
 #include "imbuf_py_api.hh"
 
+namespace blender {
+
 struct BPyBLFImBufContext {
   PyObject_HEAD /* Required Python macro. */
   PyObject *py_imbuf;
@@ -794,3 +796,5 @@ PyObject *BPyInit_blf()
 
   return submodule;
 }
+
+}  // namespace blender

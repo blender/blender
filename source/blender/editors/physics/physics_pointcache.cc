@@ -34,6 +34,8 @@
 
 #include "physics_intern.hh"
 
+namespace blender {
+
 static bool ptcache_bake_all_poll(bContext *C)
 {
   return CTX_data_scene(C) != nullptr;
@@ -190,7 +192,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
   if (!all) {
     PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
     ID *id = ptr.owner_id;
-    Object *ob = (GS(id->name) == ID_OB) ? blender::id_cast<Object *>(id) : nullptr;
+    Object *ob = (GS(id->name) == ID_OB) ? id_cast<Object *>(id) : nullptr;
     PointCache *cache = static_cast<PointCache *>(ptr.data);
     baker->pid = BKE_ptcache_id_find(ob, baker->scene, cache);
   }
@@ -324,7 +326,7 @@ static wmOperatorStatus ptcache_free_bake_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
-  Object *ob = blender::id_cast<Object *>(ptr.owner_id);
+  Object *ob = id_cast<Object *>(ptr.owner_id);
 
   ptcache_free_bake(cache);
 
@@ -336,7 +338,7 @@ static wmOperatorStatus ptcache_bake_from_cache_exec(bContext *C, wmOperator * /
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
-  Object *ob = blender::id_cast<Object *>(ptr.owner_id);
+  Object *ob = id_cast<Object *>(ptr.owner_id);
 
   cache->flag |= PTCACHE_BAKED;
 
@@ -396,7 +398,7 @@ static wmOperatorStatus ptcache_add_new_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
-  Object *ob = blender::id_cast<Object *>(ptr.owner_id);
+  Object *ob = id_cast<Object *>(ptr.owner_id);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
@@ -416,7 +418,7 @@ static wmOperatorStatus ptcache_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = blender::id_cast<Object *>(ptr.owner_id);
+  Object *ob = id_cast<Object *>(ptr.owner_id);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
@@ -460,3 +462,5 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

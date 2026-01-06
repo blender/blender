@@ -24,6 +24,8 @@
 
 #include "dna_utils.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Struct Member Evaluation
  * \{ */
@@ -348,3 +350,5 @@ void _DNA_internal_swap(void *a, void *b, const size_t size)
 }
 
 /** \} */
+
+}  // namespace blender

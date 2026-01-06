@@ -39,28 +39,32 @@
 
 CCL_NAMESPACE_BEGIN
 
-static inline ::ID *object_get_data(const ::Object &b_ob, const bool use_adaptive_subdivision)
+/* To make GS macro work. */
+using ID_Type = blender::ID_Type;
+
+static inline blender::ID *object_get_data(const blender::Object &b_ob,
+                                           const bool use_adaptive_subdivision)
 {
-  if (!use_adaptive_subdivision && b_ob.type == OB_MESH) {
-    return &BKE_mesh_wrapper_ensure_subdivision(blender::id_cast<::Mesh *>(b_ob.data))->id;
+  if (!use_adaptive_subdivision && b_ob.type == blender::OB_MESH) {
+    return &BKE_mesh_wrapper_ensure_subdivision(blender::id_cast<blender::Mesh *>(b_ob.data))->id;
   }
 
-  return reinterpret_cast<ID *>(b_ob.data);
+  return reinterpret_cast<blender::ID *>(b_ob.data);
 }
 
 struct BObjectInfo {
   /* Object directly provided by the depsgraph iterator. This object is only valid during one
    * iteration and must not be accessed afterwards. Transforms and visibility should be checked on
    * this object. */
-  ::Object *iter_object;
+  blender::Object *iter_object;
 
   /* This object remains alive even after the object iterator is done. It corresponds to one
    * original object. It is the object that owns the object data below. */
-  ::Object *real_object;
+  blender::Object *real_object;
 
   /* The object-data referenced by the iter object. This is still valid after the depsgraph
    * iterator is done. It might have a different type compared to object_get_data(real_object). */
-  ::ID *object_data;
+  blender::ID *object_data;
 
   /* Object will use adaptive subdivision. */
   bool use_adaptive_subdivision;
@@ -73,9 +77,9 @@ struct BObjectInfo {
   }
 };
 
-static inline ::Mesh *object_copy_mesh_data(const BObjectInfo &b_ob_info)
+static inline blender::Mesh *object_copy_mesh_data(const BObjectInfo &b_ob_info)
 {
-  ::Mesh *mesh = BKE_mesh_new_from_object(
+  blender::Mesh *mesh = BKE_mesh_new_from_object(
       nullptr, b_ob_info.real_object, false, false, !b_ob_info.use_adaptive_subdivision);
   return mesh;
 }
@@ -85,19 +89,19 @@ int blender_attribute_name_split_type(ustring name, string *r_real_name);
 void python_thread_state_save(void **python_thread_state);
 void python_thread_state_restore(void **python_thread_state);
 
-static bool mesh_use_corner_normals(const BObjectInfo &b_ob_info, ::Mesh *mesh)
+static bool mesh_use_corner_normals(const BObjectInfo &b_ob_info, blender::Mesh *mesh)
 {
   return mesh && !b_ob_info.use_adaptive_subdivision &&
          (mesh->normals_domain(true) == blender::bke::MeshNormalDomain::Corner);
 }
 
-void mesh_split_edges_for_corner_normals(::Mesh &mesh);
+void mesh_split_edges_for_corner_normals(blender::Mesh &mesh);
 
-static inline ::Mesh *object_to_mesh(BObjectInfo &b_ob_info)
+static inline blender::Mesh *object_to_mesh(BObjectInfo &b_ob_info)
 {
-  ::Mesh *mesh = (GS(b_ob_info.object_data->name) == ID_ME) ?
-                     blender::id_cast<::Mesh *>(b_ob_info.object_data) :
-                     nullptr;
+  blender::Mesh *mesh = (GS(b_ob_info.object_data->name) == blender::ID_ME) ?
+                            blender::id_cast<blender::Mesh *>(b_ob_info.object_data) :
+                            nullptr;
 
   bool use_corner_normals = false;
 
@@ -137,19 +141,19 @@ static inline ::Mesh *object_to_mesh(BObjectInfo &b_ob_info)
   return mesh;
 }
 
-static inline void free_object_to_mesh(BObjectInfo &b_ob_info, ::Mesh &mesh)
+static inline void free_object_to_mesh(BObjectInfo &b_ob_info, blender::Mesh &mesh)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;
   }
   /* Free mesh if we didn't just use the existing one. */
-  ::Object *object = b_ob_info.real_object;
+  blender::Object *object = b_ob_info.real_object;
   if (object_get_data(*object, b_ob_info.use_adaptive_subdivision) != &mesh.id) {
     BKE_id_free(nullptr, &mesh.id);
   }
 }
 
-static inline void colorramp_to_array(const ::ColorBand &ramp,
+static inline void colorramp_to_array(const blender::ColorBand &ramp,
                                       array<float3> &ramp_color,
                                       array<float> &ramp_alpha,
                                       const int size)
@@ -167,14 +171,16 @@ static inline void colorramp_to_array(const ::ColorBand &ramp,
   }
 }
 
-static inline void curvemap_minmax_curve(const ::CurveMap &curve, float *min_x, float *max_x)
+static inline void curvemap_minmax_curve(const blender::CurveMap &curve,
+                                         float *min_x,
+                                         float *max_x)
 {
-  const blender::Span<::CurveMapPoint> points(curve.curve, curve.totpoint);
+  const blender::Span<blender::CurveMapPoint> points(curve.curve, curve.totpoint);
   *min_x = min(*min_x, points.first().x);
   *max_x = max(*max_x, points.last().x);
 }
 
-static inline void curvemapping_minmax(const ::CurveMapping &cumap,
+static inline void curvemapping_minmax(const blender::CurveMapping &cumap,
                                        const int num_curves,
                                        float *min_x,
                                        float *max_x)
@@ -183,21 +189,21 @@ static inline void curvemapping_minmax(const ::CurveMapping &cumap,
   *min_x = FLT_MAX;
   *max_x = -FLT_MAX;
   for (int i = 0; i < num_curves; ++i) {
-    const ::CurveMap &map(cumap.cm[i]);
+    const blender::CurveMap &map(cumap.cm[i]);
     curvemap_minmax_curve(map, min_x, max_x);
   }
 }
 
-static inline void curvemapping_to_array(const ::CurveMapping &cumap,
+static inline void curvemapping_to_array(const blender::CurveMapping &cumap,
                                          array<float> &data,
                                          const int size)
 {
-  BKE_curvemapping_changed_all(&const_cast<::CurveMapping &>(cumap));
-  const ::CurveMap &curve = cumap.cm[0];
+  BKE_curvemapping_changed_all(&const_cast<blender::CurveMapping &>(cumap));
+  const blender::CurveMap &curve = cumap.cm[0];
   const int full_size = size + 1;
   data.resize(full_size);
   if (!curve.table) {
-    BKE_curvemapping_init(&const_cast<::CurveMapping &>(cumap));
+    BKE_curvemapping_init(&const_cast<blender::CurveMapping &>(cumap));
   }
   for (int i = 0; i < full_size; i++) {
     const float t = float(i) / float(size);
@@ -205,7 +211,7 @@ static inline void curvemapping_to_array(const ::CurveMapping &cumap,
   }
 }
 
-static inline void curvemapping_float_to_array(const ::CurveMapping &cumap,
+static inline void curvemapping_float_to_array(const blender::CurveMapping &cumap,
                                                array<float> &data,
                                                const int size)
 {
@@ -216,14 +222,14 @@ static inline void curvemapping_float_to_array(const ::CurveMapping &cumap,
 
   const float range = max - min;
 
-  BKE_curvemapping_changed_all(&const_cast<::CurveMapping &>(cumap));
+  BKE_curvemapping_changed_all(&const_cast<blender::CurveMapping &>(cumap));
 
-  const ::CurveMap &map = cumap.cm[0];
+  const blender::CurveMap &map = cumap.cm[0];
 
   const int full_size = size + 1;
   data.resize(full_size);
   if (!map.table) {
-    BKE_curvemapping_init(&const_cast<::CurveMapping &>(cumap));
+    BKE_curvemapping_init(&const_cast<blender::CurveMapping &>(cumap));
   }
   for (int i = 0; i < full_size; i++) {
     const float t = min + float(i) / float(size) * range;
@@ -231,7 +237,7 @@ static inline void curvemapping_float_to_array(const ::CurveMapping &cumap,
   }
 }
 
-static inline void curvemapping_color_to_array(const ::CurveMapping &cumap,
+static inline void curvemapping_color_to_array(const blender::CurveMapping &cumap,
                                                array<float3> &data,
                                                const int size,
                                                bool rgb_curve)
@@ -255,22 +261,22 @@ static inline void curvemapping_color_to_array(const ::CurveMapping &cumap,
 
   const float range_x = max_x - min_x;
 
-  BKE_curvemapping_changed_all(&const_cast<::CurveMapping &>(cumap));
+  BKE_curvemapping_changed_all(&const_cast<blender::CurveMapping &>(cumap));
 
-  const ::CurveMap &mapR = cumap.cm[0];
-  const ::CurveMap &mapG = cumap.cm[1];
-  const ::CurveMap &mapB = cumap.cm[2];
+  const blender::CurveMap &mapR = cumap.cm[0];
+  const blender::CurveMap &mapG = cumap.cm[1];
+  const blender::CurveMap &mapB = cumap.cm[2];
   if (!mapR.table || !mapG.table || !mapB.table) {
-    BKE_curvemapping_init(&const_cast<::CurveMapping &>(cumap));
+    BKE_curvemapping_init(&const_cast<blender::CurveMapping &>(cumap));
   }
 
   const int full_size = size + 1;
   data.resize(full_size);
 
   if (rgb_curve) {
-    const ::CurveMap &mapI = cumap.cm[3];
+    const blender::CurveMap &mapI = cumap.cm[3];
     if (!mapR.table || !mapG.table || !mapB.table || !mapI.table) {
-      BKE_curvemapping_init(&const_cast<::CurveMapping &>(cumap));
+      BKE_curvemapping_init(&const_cast<blender::CurveMapping &>(cumap));
     }
 
     for (int i = 0; i < full_size; i++) {
@@ -283,7 +289,7 @@ static inline void curvemapping_color_to_array(const ::CurveMapping &cumap,
   }
   else {
     if (!mapR.table || !mapG.table || !mapB.table) {
-      BKE_curvemapping_init(&const_cast<::CurveMapping &>(cumap));
+      BKE_curvemapping_init(&const_cast<blender::CurveMapping &>(cumap));
     }
 
     for (int i = 0; i < full_size; i++) {
@@ -295,7 +301,9 @@ static inline void curvemapping_color_to_array(const ::CurveMapping &cumap,
   }
 }
 
-static inline bool BKE_object_is_deform_modified(BObjectInfo &self, ::Scene &scene, bool preview)
+static inline bool BKE_object_is_deform_modified(BObjectInfo &self,
+                                                 blender::Scene &scene,
+                                                 bool preview)
 {
   if (!self.is_real_object_data()) {
     /* Comes from geometry nodes, can't use heuristic to guess if it's animated. */
@@ -303,23 +311,23 @@ static inline bool BKE_object_is_deform_modified(BObjectInfo &self, ::Scene &sce
   }
 
   /* Use heuristic to quickly check if object is potentially animated. */
-  const int settings = preview ? eModifierMode_Realtime : eModifierMode_Render;
-  return (::BKE_object_is_deform_modified(&scene, self.real_object) & settings) != 0;
+  const int settings = preview ? blender::eModifierMode_Realtime : blender::eModifierMode_Render;
+  return (blender::BKE_object_is_deform_modified(&scene, self.real_object) & settings) != 0;
 }
 
-static inline int render_resolution_x(const ::RenderData &b_render)
+static inline int render_resolution_x(const blender::RenderData &b_render)
 {
   return b_render.xsch * b_render.size / 100;
 }
 
-static inline int render_resolution_y(const ::RenderData &b_render)
+static inline int render_resolution_y(const blender::RenderData &b_render)
 {
   return b_render.ysch * b_render.size / 100;
 }
 
-static inline string image_user_file_path(::Main &data,
-                                          ::ImageUser &iuser,
-                                          ::Image &ima,
+static inline string image_user_file_path(blender::Main &data,
+                                          blender::ImageUser &iuser,
+                                          blender::Image &ima,
                                           const int cfra)
 {
   char filepath[1024];
@@ -329,30 +337,33 @@ static inline string image_user_file_path(::Main &data,
   return string(filepath);
 }
 
-static inline int image_user_frame_number(::ImageUser &iuser, ::Image &ima, const int cfra)
+static inline int image_user_frame_number(blender::ImageUser &iuser,
+                                          blender::Image &ima,
+                                          const int cfra)
 {
   BKE_image_user_frame_calc(&ima, &iuser, cfra);
   return iuser.framenr;
 }
 
-static inline bool image_is_builtin(::Image &ima, ::RenderEngine &engine)
+static inline bool image_is_builtin(blender::Image &ima, blender::RenderEngine &engine)
 {
-  const eImageSource image_source = eImageSource(ima.source);
-  if (image_source == IMA_SRC_TILED) {
+  const blender::eImageSource image_source = blender::eImageSource(ima.source);
+  if (image_source == blender::IMA_SRC_TILED) {
     /* If any tile is marked as generated, then treat the entire Image as built-in. */
-    for (::ImageTile &tile : ima.tiles) {
-      if (tile.gen_flag & IMA_GEN_TILE) {
+    for (blender::ImageTile &tile : ima.tiles) {
+      if (tile.gen_flag & blender::IMA_GEN_TILE) {
         return true;
       }
     }
   }
 
-  return BKE_image_has_packedfile(&ima) || image_source == IMA_SRC_GENERATED ||
-         image_source == IMA_SRC_MOVIE ||
-         ((engine.flag & RE_ENGINE_PREVIEW) != 0 && image_source != IMA_SRC_SEQUENCE);
+  return BKE_image_has_packedfile(&ima) || image_source == blender::IMA_SRC_GENERATED ||
+         image_source == blender::IMA_SRC_MOVIE ||
+         ((engine.flag & blender::RE_ENGINE_PREVIEW) != 0 &&
+          image_source != blender::IMA_SRC_SEQUENCE);
 }
 
-static inline void render_add_metadata(::RenderResult &b_rr, string name, string value)
+static inline void render_add_metadata(blender::RenderResult &b_rr, string name, string value)
 {
   BKE_render_result_stamp_data(&b_rr, name.c_str(), value.c_str());
 }
@@ -380,56 +391,56 @@ static inline Transform get_transform(const blender::float4x4 &matrix)
                         ptr[14]);
 }
 
-static inline float3 get_float3(PointerRNA &ptr, const char *name)
+static inline float3 get_float3(blender::PointerRNA &ptr, const char *name)
 {
   float3 f;
   RNA_float_get_array(&ptr, name, &f.x);
   return f;
 }
 
-static inline void set_float3(PointerRNA &ptr, const char *name, const float3 value)
+static inline void set_float3(blender::PointerRNA &ptr, const char *name, const float3 value)
 {
   RNA_float_set_array(&ptr, name, &value.x);
 }
 
-static inline float4 get_float4(PointerRNA &ptr, const char *name)
+static inline float4 get_float4(blender::PointerRNA &ptr, const char *name)
 {
   float4 f;
   RNA_float_get_array(&ptr, name, &f.x);
   return f;
 }
 
-static inline void set_float4(PointerRNA &ptr, const char *name, const float4 value)
+static inline void set_float4(blender::PointerRNA &ptr, const char *name, const float4 value)
 {
   RNA_float_set_array(&ptr, name, &value.x);
 }
 
-static inline bool get_boolean(PointerRNA &ptr, const char *name)
+static inline bool get_boolean(blender::PointerRNA &ptr, const char *name)
 {
   return RNA_boolean_get(&ptr, name) ? true : false;
 }
 
-static inline void set_boolean(PointerRNA &ptr, const char *name, bool value)
+static inline void set_boolean(blender::PointerRNA &ptr, const char *name, bool value)
 {
   RNA_boolean_set(&ptr, name, (int)value);
 }
 
-static inline float get_float(PointerRNA &ptr, const char *name)
+static inline float get_float(blender::PointerRNA &ptr, const char *name)
 {
   return RNA_float_get(&ptr, name);
 }
 
-static inline void set_float(PointerRNA &ptr, const char *name, const float value)
+static inline void set_float(blender::PointerRNA &ptr, const char *name, const float value)
 {
   RNA_float_set(&ptr, name, value);
 }
 
-static inline int get_int(PointerRNA &ptr, const char *name)
+static inline int get_int(blender::PointerRNA &ptr, const char *name)
 {
   return RNA_int_get(&ptr, name);
 }
 
-static inline void set_int(PointerRNA &ptr, const char *name, const int value)
+static inline void set_int(blender::PointerRNA &ptr, const char *name, const int value)
 {
   RNA_int_set(&ptr, name, value);
 }
@@ -441,7 +452,7 @@ static inline void set_int(PointerRNA &ptr, const char *name, const int value)
  * from 0 to num_values-1. Be careful to use it with enums where some values are
  * deprecated!
  */
-static inline int get_enum(PointerRNA &ptr,
+static inline int get_enum(blender::PointerRNA &ptr,
                            const char *name,
                            int num_values = -1,
                            int default_value = -1)
@@ -454,9 +465,9 @@ static inline int get_enum(PointerRNA &ptr,
   return value;
 }
 
-static inline string get_enum_identifier(PointerRNA &ptr, const char *name)
+static inline string get_enum_identifier(blender::PointerRNA &ptr, const char *name)
 {
-  PropertyRNA *prop = RNA_struct_find_property(&ptr, name);
+  blender::PropertyRNA *prop = RNA_struct_find_property(&ptr, name);
   const char *identifier = "";
   const int value = RNA_property_enum_get(&ptr, prop);
 
@@ -465,29 +476,31 @@ static inline string get_enum_identifier(PointerRNA &ptr, const char *name)
   return string(identifier);
 }
 
-static inline void set_enum(PointerRNA &ptr, const char *name, const int value)
+static inline void set_enum(blender::PointerRNA &ptr, const char *name, const int value)
 {
   RNA_enum_set(&ptr, name, value);
 }
 
-static inline void set_enum(PointerRNA &ptr, const char *name, const string &identifier)
+static inline void set_enum(blender::PointerRNA &ptr, const char *name, const string &identifier)
 {
   RNA_enum_set_identifier(nullptr, &ptr, name, identifier.c_str());
 }
 
-static inline string get_string(PointerRNA &ptr, const char *name)
+static inline string get_string(blender::PointerRNA &ptr, const char *name)
 {
   return RNA_string_get(&ptr, name);
 }
 
-static inline void set_string(PointerRNA &ptr, const char *name, const string &value)
+static inline void set_string(blender::PointerRNA &ptr, const char *name, const string &value)
 {
   RNA_string_set(&ptr, name, value.c_str());
 }
 
 /* Relative Paths */
 
-static inline string blender_absolute_path(::Main &b_data, ::ID &b_id, const string &path)
+static inline string blender_absolute_path(blender::Main &b_data,
+                                           blender::ID &b_id,
+                                           const string &path)
 {
   if (path.size() >= 2 && path[0] == '/' && path[1] == '/') {
     string dirname;
@@ -505,18 +518,18 @@ static inline string blender_absolute_path(::Main &b_data, ::ID &b_id, const str
   return path;
 }
 
-static inline string get_text_datablock_content(const ::ID *id)
+static inline string get_text_datablock_content(const blender::ID *id)
 {
   if (id == nullptr) {
     return "";
   }
-  if (GS(id->name) != ID_TXT) {
+  if (GS(id->name) != blender::ID_TXT) {
     return "";
   }
-  const auto &text = *blender::id_cast<const ::Text *>(id);
+  const auto &text = *blender::id_cast<const blender::Text *>(id);
 
   string content;
-  for (::TextLine &line : text.lines) {
+  for (blender::TextLine &line : text.lines) {
     content += line.line ? line.line : "";
     content += "\n";
   }
@@ -526,11 +539,11 @@ static inline string get_text_datablock_content(const ::ID *id)
 
 /* Texture Space */
 
-static inline void mesh_texture_space(const ::Mesh &b_mesh, float3 &loc, float3 &size)
+static inline void mesh_texture_space(const blender::Mesh &b_mesh, float3 &loc, float3 &size)
 {
   float texspace_location[3];
   float texspace_size[3];
-  BKE_mesh_texspace_get(const_cast<::Mesh *>(&b_mesh), texspace_location, texspace_size);
+  BKE_mesh_texspace_get(const_cast<blender::Mesh *>(&b_mesh), texspace_location, texspace_size);
 
   loc = make_float3(texspace_location[0], texspace_location[1], texspace_location[2]);
   size = make_float3(texspace_size[0], texspace_size[1], texspace_size[2]);
@@ -549,13 +562,13 @@ static inline void mesh_texture_space(const ::Mesh &b_mesh, float3 &loc, float3 
 }
 
 /* Object motion steps, returns 0 if no motion blur needed. */
-static inline uint object_motion_steps(::Object &b_parent,
-                                       ::Object &b_ob,
+static inline uint object_motion_steps(blender::Object &b_parent,
+                                       blender::Object &b_ob,
                                        const int max_steps = INT_MAX)
 {
   /* Get motion enabled and steps from object itself. */
-  PointerRNA object_rna_ptr = RNA_id_pointer_create(&b_ob.id);
-  PointerRNA cobject = RNA_pointer_get(&object_rna_ptr, "cycles");
+  blender::PointerRNA object_rna_ptr = RNA_id_pointer_create(&b_ob.id);
+  blender::PointerRNA cobject = RNA_pointer_get(&object_rna_ptr, "cycles");
   bool use_motion = get_boolean(cobject, "use_motion_blur");
   if (!use_motion) {
     return 0;
@@ -566,8 +579,8 @@ static inline uint object_motion_steps(::Object &b_parent,
   /* Also check parent object, so motion blur and steps can be
    * controlled by dupli-group duplicator for linked groups. */
   if (&b_parent != &b_ob) {
-    PointerRNA parent_rna_ptr = RNA_id_pointer_create(&b_parent.id);
-    PointerRNA parent_cobject = RNA_pointer_get(&parent_rna_ptr, "cycles");
+    blender::PointerRNA parent_rna_ptr = RNA_id_pointer_create(&b_parent.id);
+    blender::PointerRNA parent_cobject = RNA_pointer_get(&parent_rna_ptr, "cycles");
     use_motion &= get_boolean(parent_cobject, "use_motion_blur");
 
     if (!use_motion) {
@@ -584,10 +597,10 @@ static inline uint object_motion_steps(::Object &b_parent,
 }
 
 /* object uses deformation motion blur */
-static inline bool object_use_deform_motion(::Object &b_parent, ::Object &b_ob)
+static inline bool object_use_deform_motion(blender::Object &b_parent, blender::Object &b_ob)
 {
-  PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob.id);
-  PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
+  blender::PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob.id);
+  blender::PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
   bool use_deform_motion = get_boolean(cobject, "use_deform_motion");
   /* If motion blur is enabled for the object we also check
    * whether it's enabled for the parent object as well.
@@ -595,20 +608,22 @@ static inline bool object_use_deform_motion(::Object &b_parent, ::Object &b_ob)
    * This way we can control motion blur from the dupli-group
    * duplicator much easier. */
   if (use_deform_motion && &b_parent != &b_ob) {
-    PointerRNA b_parent_rna_ptr = RNA_id_pointer_create(&b_parent.id);
-    PointerRNA parent_cobject = RNA_pointer_get(&b_parent_rna_ptr, "cycles");
+    blender::PointerRNA b_parent_rna_ptr = RNA_id_pointer_create(&b_parent.id);
+    blender::PointerRNA parent_cobject = RNA_pointer_get(&b_parent_rna_ptr, "cycles");
     use_deform_motion &= get_boolean(parent_cobject, "use_deform_motion");
   }
   return use_deform_motion;
 }
 
-static inline ::FluidDomainSettings *object_fluid_gas_domain_find(::Object &b_ob)
+static inline blender::FluidDomainSettings *object_fluid_gas_domain_find(blender::Object &b_ob)
 {
-  for (::ModifierData &b_mod : b_ob.modifiers) {
-    if (b_mod.type == eModifierType_Fluid) {
-      auto *b_mmd = reinterpret_cast<::FluidModifierData *>(&b_mod);
+  for (blender::ModifierData &b_mod : b_ob.modifiers) {
+    if (b_mod.type == blender::eModifierType_Fluid) {
+      auto *b_mmd = reinterpret_cast<blender::FluidModifierData *>(&b_mod);
 
-      if (b_mmd->type == MOD_FLUID_TYPE_DOMAIN && b_mmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
+      if (b_mmd->type == blender::MOD_FLUID_TYPE_DOMAIN &&
+          b_mmd->domain->type == blender::FLUID_DOMAIN_TYPE_GAS)
+      {
         return b_mmd->domain;
       }
     }
@@ -617,27 +632,29 @@ static inline ::FluidDomainSettings *object_fluid_gas_domain_find(::Object &b_ob
   return nullptr;
 }
 
-static ::SubsurfModifierData *object_subdivision_modifier(::Object &b_ob, const bool preview)
+static blender::SubsurfModifierData *object_subdivision_modifier(blender::Object &b_ob,
+                                                                 const bool preview)
 {
-  ModifierData *md = static_cast<ModifierData *>(b_ob.modifiers.last);
+  blender::ModifierData *md = static_cast<blender::ModifierData *>(b_ob.modifiers.last);
   if (!md) {
     return nullptr;
   }
-  if (md->type != eModifierType_Subsurf) {
+  if (md->type != blender::eModifierType_Subsurf) {
     return nullptr;
   }
-  const ModifierMode enabled_mode = preview ? eModifierMode_Render : eModifierMode_Realtime;
+  const blender::ModifierMode enabled_mode = preview ? blender::eModifierMode_Render :
+                                                       blender::eModifierMode_Realtime;
   if ((md->mode & enabled_mode) == 0) {
     return nullptr;
   }
-  SubsurfModifierData *subsurf = reinterpret_cast<SubsurfModifierData *>(md);
-  if ((subsurf->flags & eSubsurfModifierFlag_UseAdaptiveSubdivision) == 0) {
+  blender::SubsurfModifierData *subsurf = reinterpret_cast<blender::SubsurfModifierData *>(md);
+  if ((subsurf->flags & blender::eSubsurfModifierFlag_UseAdaptiveSubdivision) == 0) {
     return nullptr;
   }
   return subsurf;
 }
 
-static inline Mesh::SubdivisionType object_subdivision_type(::Object &b_ob,
+static inline Mesh::SubdivisionType object_subdivision_type(blender::Object &b_ob,
                                                             const bool preview,
                                                             const bool use_adaptive_subdivision)
 {
@@ -645,10 +662,10 @@ static inline Mesh::SubdivisionType object_subdivision_type(::Object &b_ob,
     return Mesh::SUBDIVISION_NONE;
   }
 
-  ::SubsurfModifierData *subsurf = object_subdivision_modifier(b_ob, preview);
+  blender::SubsurfModifierData *subsurf = object_subdivision_modifier(b_ob, preview);
 
   if (subsurf) {
-    if (subsurf->subdivType == SUBSURF_TYPE_CATMULL_CLARK) {
+    if (subsurf->subdivType == blender::SUBSURF_TYPE_CATMULL_CLARK) {
       return Mesh::SUBDIVISION_CATMULL_CLARK;
     }
     return Mesh::SUBDIVISION_LINEAR;
@@ -657,7 +674,7 @@ static inline Mesh::SubdivisionType object_subdivision_type(::Object &b_ob,
   return Mesh::SUBDIVISION_NONE;
 }
 
-static inline void object_subdivision_to_mesh(::Object &b_ob,
+static inline void object_subdivision_to_mesh(blender::Object &b_ob,
                                               Mesh &mesh,
                                               const bool preview,
                                               const bool use_adaptive_subdivision)
@@ -667,14 +684,14 @@ static inline void object_subdivision_to_mesh(::Object &b_ob,
     return;
   }
 
-  ::SubsurfModifierData *subsurf = object_subdivision_modifier(b_ob, preview);
+  blender::SubsurfModifierData *subsurf = object_subdivision_modifier(b_ob, preview);
 
   if (!subsurf) {
     mesh.set_subdivision_type(Mesh::SUBDIVISION_NONE);
     return;
   }
 
-  if (subsurf->subdivType != SUBSURF_TYPE_CATMULL_CLARK) {
+  if (subsurf->subdivType != blender::SUBSURF_TYPE_CATMULL_CLARK) {
     mesh.set_subdivision_type(Mesh::SUBDIVISION_LINEAR);
     return;
   }
@@ -682,48 +699,53 @@ static inline void object_subdivision_to_mesh(::Object &b_ob,
   mesh.set_subdivision_type(Mesh::SUBDIVISION_CATMULL_CLARK);
 
   switch (subsurf->boundary_smooth) {
-    case SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS:
+    case blender::SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS:
       mesh.set_subdivision_boundary_interpolation(Mesh::SUBDIVISION_BOUNDARY_EDGE_AND_CORNER);
       break;
-    case SUBSURF_BOUNDARY_SMOOTH_ALL:
+    case blender::SUBSURF_BOUNDARY_SMOOTH_ALL:
       mesh.set_subdivision_boundary_interpolation(Mesh::SUBDIVISION_BOUNDARY_EDGE_ONLY);
       break;
   }
 
   switch (subsurf->uv_smooth) {
-    case SUBSURF_UV_SMOOTH_NONE:
+    case blender::SUBSURF_UV_SMOOTH_NONE:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_ALL);
       break;
-    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS:
+    case blender::SUBSURF_UV_SMOOTH_PRESERVE_CORNERS:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_ONLY);
       break;
-    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS:
+    case blender::SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS1);
       break;
-    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
+    case blender::SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS2);
       break;
-    case SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES:
+    case blender::SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_BOUNDARIES);
       break;
-    case SUBSURF_UV_SMOOTH_ALL:
+    case blender::SUBSURF_UV_SMOOTH_ALL:
       mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_NONE);
       break;
   }
 }
 
-static inline uint object_ray_visibility(::Object &b_ob)
+static inline uint object_ray_visibility(blender::Object &b_ob)
 {
   uint flag = 0;
 
-  flag |= ((b_ob.visibility_flag & OB_HIDE_CAMERA) == 0) ? PATH_RAY_CAMERA : PathRayFlag(0);
-  flag |= ((b_ob.visibility_flag & OB_HIDE_DIFFUSE) == 0) ? PATH_RAY_DIFFUSE : PathRayFlag(0);
-  flag |= ((b_ob.visibility_flag & OB_HIDE_GLOSSY) == 0) ? PATH_RAY_GLOSSY : PathRayFlag(0);
-  flag |= ((b_ob.visibility_flag & OB_HIDE_TRANSMISSION) == 0) ? PATH_RAY_TRANSMIT :
-                                                                 PathRayFlag(0);
-  flag |= ((b_ob.visibility_flag & OB_HIDE_SHADOW) == 0) ? PATH_RAY_SHADOW : PathRayFlag(0);
-  flag |= ((b_ob.visibility_flag & OB_HIDE_VOLUME_SCATTER) == 0) ? PATH_RAY_VOLUME_SCATTER :
-                                                                   PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_CAMERA) == 0) ? PATH_RAY_CAMERA :
+                                                                    PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_DIFFUSE) == 0) ? PATH_RAY_DIFFUSE :
+                                                                     PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_GLOSSY) == 0) ? PATH_RAY_GLOSSY :
+                                                                    PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_TRANSMISSION) == 0) ? PATH_RAY_TRANSMIT :
+                                                                          PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_SHADOW) == 0) ? PATH_RAY_SHADOW :
+                                                                    PathRayFlag(0);
+  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_VOLUME_SCATTER) == 0) ?
+              PATH_RAY_VOLUME_SCATTER :
+              PathRayFlag(0);
 
   return flag;
 }
@@ -750,8 +772,8 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
      * - Motion attribute expects non-zero time steps.
      *
      * Avoid adding motion attributes if the motion blur will enforce 0 motion steps. */
-    PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob_info.real_object->id);
-    PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
+    blender::PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob_info.real_object->id);
+    blender::PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
     const bool use_motion = get_boolean(cobject, "use_motion_blur");
     if (!use_motion) {
       return false;
@@ -763,10 +785,10 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
   return true;
 }
 
-static inline bool region_view3d_navigating_or_transforming(const ::RegionView3D *b_rv3d)
+static inline bool region_view3d_navigating_or_transforming(const blender::RegionView3D *b_rv3d)
 {
-  return b_rv3d && ((b_rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING)) ||
-                    (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)));
+  return b_rv3d && ((b_rv3d->rflag & (blender::RV3D_NAVIGATING | blender::RV3D_PAINTING)) ||
+                    (blender::G.moving & (blender::G_TRANSFORM_OBJ | blender::G_TRANSFORM_EDIT)));
 }
 
 class EdgeMap {

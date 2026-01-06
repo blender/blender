@@ -28,9 +28,11 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"geom.mesh"};
 
-namespace blender::bke {
+namespace bke {
 
 /* Helper class to collect error messages in parallel. */
 class ErrorMessages {
@@ -931,4 +933,5 @@ IndexMask mesh_find_faces_duplicate_verts(const Mesh &mesh, IndexMaskMemory &mem
   return find_faces_duplicate_verts(mesh, valid_faces, memory, false);
 }
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

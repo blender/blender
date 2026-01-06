@@ -33,15 +33,17 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
+namespace blender {
+
 /** \file
  * \ingroup bgrease_pencil
  */
 
-using blender::bke::greasepencil::Drawing;
-using blender::bke::greasepencil::Layer;
-using blender::bke::greasepencil::TreeNode;
+using bke::greasepencil::Drawing;
+using bke::greasepencil::Layer;
+using bke::greasepencil::TreeNode;
 
-namespace blender::io::grease_pencil {
+namespace io::grease_pencil {
 
 class SVGImporter : public GreasePencilImporter {
  public:
@@ -349,7 +351,7 @@ bool SVGImporter::read(StringRefNull filepath)
     nsvgDelete(svg_data);
     return false;
   }
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object_->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object_->data);
 
   const float scene_unit_scale = (context_.scene->unit.system != USER_UNIT_NONE &&
                                   params_.use_scene_unit) ?
@@ -439,4 +441,6 @@ bool import_svg(const IOContext &context, const ImportParams &params, StringRefN
   return importer.read(filepath);
 }
 
-}  // namespace blender::io::grease_pencil
+}  // namespace io::grease_pencil
+
+}  // namespace blender

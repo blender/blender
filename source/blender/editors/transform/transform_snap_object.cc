@@ -39,7 +39,7 @@
 #  endif
 
 static int64_t total_count_ = 0;
-static blender::timeit::Nanoseconds duration_;
+static timeit::Nanoseconds duration_;
 #endif
 
 namespace blender::ed::transform {
@@ -324,7 +324,7 @@ void SnapData::register_result(SnapObjectContext *sctx, const Object *ob_eval, c
 void SnapData::register_result_raycast(SnapObjectContext *sctx,
                                        const Object *ob_eval,
                                        const ID *id_eval,
-                                       const blender::float4x4 &obmat,
+                                       const float4x4 &obmat,
                                        const BVHTreeRayHit *hit,
                                        const bool is_in_front)
 {
@@ -413,7 +413,7 @@ static const ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bo
 static const ID *data_for_snap_dupli(ID *ob_data)
 {
   if (GS(ob_data->name) == ID_ME) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob_data);
+    Mesh *mesh = id_cast<Mesh *>(ob_data);
     return reinterpret_cast<const ID *>(BKE_mesh_wrapper_ensure_subdivision(mesh));
   }
   return ob_data;
@@ -508,9 +508,7 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
 
     const bool is_object_active = (&base == base_act);
     Object *obj_eval = DEG_get_evaluated(sctx->runtime.depsgraph, base.object);
-    if (obj_eval->transflag & OB_DUPLI ||
-        blender::bke::object_has_geometry_set_instances(*obj_eval))
-    {
+    if (obj_eval->transflag & OB_DUPLI || bke::object_has_geometry_set_instances(*obj_eval)) {
       object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval, nullptr, duplilist);
       for (DupliObject &dupli_ob : duplilist) {
         BLI_assert(DEG_is_evaluated(dupli_ob.ob));
@@ -701,7 +699,7 @@ static void nearest_world_tree_co(const BVHTree *tree,
 bool nearest_world_tree(SnapObjectContext *sctx,
                         const BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
-                        const blender::float4x4 &obmat,
+                        const float4x4 &obmat,
                         void *treedata,
                         BVHTreeNearest *r_nearest)
 {

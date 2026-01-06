@@ -140,7 +140,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   });
   geometry::uv_parametrizer_construct_end(handle, true, true, nullptr);
 
-  blender::geometry::UVPackIsland_Params params;
+  geometry::UVPackIsland_Params params;
   params.shape_method = shape_method;
   params.rotate_method = rotate ? ED_UVPACK_ROTATION_ANY : ED_UVPACK_ROTATION_NONE;
   params.margin = margin;
@@ -226,7 +226,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeUVPackIslands", GEO_NODE_UV_PACK_ISLANDS);
   ntype.ui_name = "Pack UV Islands";
@@ -236,7 +236,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

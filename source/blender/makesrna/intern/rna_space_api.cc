@@ -28,6 +28,8 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,
                                                const int *object_type_exclude_select)
 {
@@ -45,7 +47,7 @@ int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,
 
 static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
 {
-  bScreen *screen = blender::id_cast<bScreen *>(id);
+  bScreen *screen = id_cast<bScreen *>(id);
 
   ScrArea *area;
   ARegion *region;
@@ -73,7 +75,7 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
 static void rna_SpaceTextEditor_region_location_from_cursor(
     ID *id, SpaceText *st, int line, int column, int r_pixel_pos[2])
 {
-  bScreen *screen = blender::id_cast<bScreen *>(id);
+  bScreen *screen = id_cast<bScreen *>(id);
   ScrArea *area = BKE_screen_find_area_from_space(screen, reinterpret_cast<SpaceLink *>(st));
   if (area) {
     ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
@@ -95,7 +97,11 @@ static void rna_FileBrowser_deselect_all(SpaceFile *sfile, ReportList *reports)
   ED_fileselect_deselect_all(sfile);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_region_view3d(StructRNA *srna)
 {
@@ -268,5 +274,7 @@ void RNA_api_space_filebrowser(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Deselect all files");
 }
+
+}  // namespace blender
 
 #endif

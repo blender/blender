@@ -149,7 +149,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       ui::block_layout_set_current(block, &row);
 
       ui::Button *toggle_but = uiDefButC(block,
-                                         blender::ui::ButtonType::Checkbox,
+                                         ui::ButtonType::Checkbox,
                                          "",
                                          0,
                                          0,
@@ -164,9 +164,9 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
         send_redraw_notifier(C);
       });
       if (!is_catalog_path_enabled() && has_enabled_in_subtree()) {
-        button_drawflag_enable(toggle_but, blender::ui::BUT_INDETERMINATE);
+        button_drawflag_enable(toggle_but, ui::BUT_INDETERMINATE);
       }
-      button_flag_disable(toggle_but, blender::ui::BUT_UNDO);
+      button_flag_disable(toggle_but, ui::BUT_UNDO);
     }
   };
 };

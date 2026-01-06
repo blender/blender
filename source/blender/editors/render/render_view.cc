@@ -34,6 +34,8 @@
 
 #include "render_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities for Finding Areas
  * \{ */
@@ -405,3 +407,5 @@ void RENDER_OT_view_show(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

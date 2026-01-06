@@ -16,6 +16,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define EDGE_OUT (1 << 0)
 #define FACE_OUT (1 << 1)
 
@@ -47,7 +49,7 @@ static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const f
 static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r_angle_cos)
 {
   BMLoop *l_iter, *l_first;
-  blender::Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> l_arr(f->len);
+  Array<BMLoop *, BM_DEFAULT_NGON_STACK_SIZE> l_arr(f->len);
   const uint f_len = f->len;
   uint i_a, i_b;
   bool found = false;
@@ -168,3 +170,5 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
     BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
   }
 }
+
+}  // namespace blender

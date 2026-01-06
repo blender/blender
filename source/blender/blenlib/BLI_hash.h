@@ -10,6 +10,8 @@
 
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /**
  * Jenkins Lookup3 Hash Functions.
  * Source: http://burtleburtle.net/bob/c/lookup3.c
@@ -104,3 +106,5 @@ BLI_INLINE void BLI_hash_pointer_to_color(const void *ptr, int *r, int *g, int *
   *g = (hash & 0x00ff00) >> 8;
   *b = hash & 0x0000ff;
 }
+
+}  // namespace blender

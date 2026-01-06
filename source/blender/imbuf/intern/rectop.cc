@@ -25,6 +25,8 @@
 
 #include <cstring>
 
+namespace blender {
+
 void IMB_blend_color_byte(uchar dst[4],
                           const uchar src1[4],
                           const uchar src2[4],
@@ -959,7 +961,6 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
                             IMB_BlendMode mode,
                             bool accumulate)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(height), 16, [&](const IndexRange y_range) {
     IMB_rectblend(dbuf,
                   obuf,
@@ -1144,3 +1145,5 @@ void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
     }
   }
 }
+
+}  // namespace blender

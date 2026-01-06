@@ -16,10 +16,12 @@
 
 #include "DNA_anim_types.h"
 
+namespace blender {
+
 struct AnimData;
 struct FCurve;
 
-namespace blender::animrig {
+namespace animrig {
 
 /**
  * All the information needed to look up or create an FCurve.
@@ -158,7 +160,7 @@ enum class BakeCurveRemove {
  * \param range: start and end frame to bake. Is inclusive on both ends.
  * \param remove_existing: choice which keys to remove in relation to the given range.
  */
-void bake_fcurve(FCurve *fcu, blender::int2 range, float step, BakeCurveRemove remove_existing);
+void bake_fcurve(FCurve *fcu, int2 range, float step, BakeCurveRemove remove_existing);
 
 /**
  * Fill the space between selected keyframes with keyframes on full frames.
@@ -175,4 +177,5 @@ void bake_fcurve_segments(FCurve *fcu);
  */
 bool fcurve_frame_has_keyframe(const FCurve *fcu, float frame);
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

@@ -10,6 +10,8 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct GpencilModifierData;
 struct ModifierData;
 struct Object;
@@ -27,7 +29,7 @@ struct ModifierDataStoreElem {
   ModifierDataStoreElem(GpencilModifierData *md_) : gp_md(md_), type(GPENCIL_MODIFIER_TYPE) {}
 };
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementModifierBase final : public AbstractTreeElement {
   Object &object_;
@@ -47,4 +49,5 @@ class TreeElementModifier final : public AbstractTreeElement {
   void expand(SpaceOutliner & /*soops*/) const override;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

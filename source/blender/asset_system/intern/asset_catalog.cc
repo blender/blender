@@ -27,9 +27,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"asset.catalog"};
 
-namespace blender::asset_system {
+namespace asset_system {
 
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
 
@@ -743,4 +745,6 @@ bool AssetCatalogFilter::is_known(const CatalogID asset_catalog_id) const
   return known_catalog_ids_.contains(asset_catalog_id);
 }
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
+
+}  // namespace blender

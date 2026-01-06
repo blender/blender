@@ -12,6 +12,8 @@
 #include "DNA_defs.h"
 #include "DNA_key_types.h"
 
+namespace blender {
+
 struct AnimData;
 struct BPoint;
 struct Key;
@@ -79,3 +81,5 @@ struct Lattice {
   struct EditLatt *editlatt = nullptr;
   void *batch_cache = nullptr;
 };
+
+}  // namespace blender

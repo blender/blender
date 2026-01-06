@@ -35,6 +35,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"makesrna"};
 
 /**
@@ -1081,7 +1083,7 @@ static char *rna_def_property_search_func(
           "PointerRNA *ptr, "
           "PropertyRNA *prop, "
           "const char *edit_text, "
-          "blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)\n",
+          "FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)\n",
           func);
   fprintf(f, "{\n");
   fprintf(f, "\n    StringPropertySearchFunc fn = %s;\n", manualfunc);
@@ -2892,7 +2894,7 @@ static const char *rna_property_subtype_unit(PropertySubType type)
 static void rna_generate_struct_rna_prototypes(BlenderRNA *brna, FILE *f)
 {
   for (const StructRNA *srna : brna->structs) {
-    fprintf(f, "extern struct StructRNA RNA_%s;\n", srna->identifier);
+    fprintf(f, "extern StructRNA RNA_%s;\n", srna->identifier);
   }
   fprintf(f, "\n");
 }
@@ -2919,7 +2921,8 @@ static void rna_generate_blender(BlenderRNA *brna, FILE *f)
 
 static void rna_generate_external_property_prototypes(BlenderRNA *brna, FILE *f)
 {
-  fprintf(f, "struct PropertyRNA;\n\n");
+  fprintf(f, "struct PropertyRNA;\n");
+  fprintf(f, "struct StructRNA;\n\n");
 
   rna_generate_struct_rna_prototypes(brna, f);
 
@@ -4131,6 +4134,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 #endif
 
   fprintf(f, "/* Auto-generated Functions. */\n\n");
+  fprintf(f, "namespace blender {\n\n");
 
   for (ds = static_cast<StructDefRNA *>(DefRNA.structs.first); ds;
        ds = static_cast<StructDefRNA *>(ds->cont.next))
@@ -4181,6 +4185,8 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   if (filename && STREQ(filename, "rna_ID.cc")) {
     rna_generate_blender(brna, f);
   }
+
+  fprintf(f, "\n}  // namespace blender\n");
 }
 
 static void make_bad_file(const char *file, int line)
@@ -4264,7 +4270,9 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
             " */\n\n");
 
     fprintf(file, "#pragma once\n\n");
+    fprintf(file, "namespace blender {\n\n");
     rna_generate_external_property_prototypes(brna, file);
+    fprintf(file, "}  // namespace blender\n");
     fclose(file);
     if (DefRNA.error) {
       status = EXIT_FAILURE;
@@ -4286,7 +4294,9 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     fprintf(file,
             "/* Automatically generated function declarations for the Data API.\n"
             " * Do not edit manually, changes will be overwritten.              */\n\n");
+    fprintf(file, "namespace blender {\n\n");
     rna_generate_struct_rna_prototypes(brna, file);
+    fprintf(file, "\n}  // namespace blender\n");
     fclose(file);
     replace_if_different(deffile, nullptr);
     if (DefRNA.error) {
@@ -4345,8 +4355,11 @@ static void mem_error_cb(const char *errorStr)
   fflush(stderr);
 }
 
+}  // namespace blender
+
 int main(int argc, char **argv)
 {
+  using namespace blender;
   int return_status = EXIT_SUCCESS;
 
   MEM_init_memleak_detection();

@@ -29,7 +29,7 @@
 
 #include "depsgraph.hh"
 
-namespace deg = blender::deg;
+namespace blender {
 
 /*************************** Evaluation Query API *****************************/
 
@@ -62,8 +62,7 @@ ListBaseT<EffectorRelation> *DEG_get_effector_relations(const Depsgraph *graph,
                                                         Collection *collection)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
-  blender::Map<const ID *, ListBaseT<EffectorRelation> *> *hash =
-      deg_graph->physics_relations_effector;
+  Map<const ID *, ListBaseT<EffectorRelation> *> *hash = deg_graph->physics_relations_effector;
   if (hash == nullptr) {
     return nullptr;
   }
@@ -79,7 +78,7 @@ ListBaseT<CollisionRelation> *DEG_get_collision_relations(const Depsgraph *graph
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   const ePhysicsCollisionType type = modifier_to_collision_type(modifier_type);
-  blender::Map<const ID *, ListBaseT<CollisionRelation> *> *hash =
+  Map<const ID *, ListBaseT<CollisionRelation> *> *hash =
       deg_graph->physics_relations_collision[type];
   if (hash == nullptr) {
     return nullptr;
@@ -128,9 +127,9 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
    * leave out for the purpose of validating the fix for dynamic paint only. */
   const bool use_recursive_parents = (modifier_type == eModifierType_DynamicPaint);
 
-  blender::Map<Object *, CollisionComponentFlag> *object_component_map = nullptr;
+  Map<Object *, CollisionComponentFlag> *object_component_map = nullptr;
   if (use_recursive_parents) {
-    object_component_map = MEM_new<blender::Map<Object *, CollisionComponentFlag>>(__func__);
+    object_component_map = MEM_new<Map<Object *, CollisionComponentFlag>>(__func__);
   }
 
   for (CollisionRelation &relation : *relations) {
@@ -250,7 +249,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 
 /******************************** Internal API ********************************/
 
-namespace blender::deg {
+namespace deg {
 
 ListBaseT<EffectorRelation> *build_effector_relations(Depsgraph *graph, Collection *collection)
 {
@@ -265,7 +264,7 @@ ListBaseT<EffectorRelation> *build_effector_relations(Depsgraph *graph, Collecti
    */
   ID *collection_id = object_id_safe(collection);
   return hash->lookup_or_add_cb(collection_id, [&]() {
-    ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
+    ::blender::Depsgraph *depsgraph = reinterpret_cast<::blender::Depsgraph *>(graph);
     return BKE_effector_relations_create(depsgraph, graph->scene, graph->view_layer, collection);
   });
 }
@@ -287,7 +286,7 @@ ListBaseT<CollisionRelation> *build_collision_relations(Depsgraph *graph,
    */
   ID *collection_id = object_id_safe(collection);
   return hash->lookup_or_add_cb(collection_id, [&]() {
-    ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
+    ::blender::Depsgraph *depsgraph = reinterpret_cast<::blender::Depsgraph *>(graph);
     return BKE_collision_relations_create(depsgraph, collection, modifier_type);
   });
 }
@@ -314,4 +313,5 @@ void clear_physics_relations(Depsgraph *graph)
   }
 }
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

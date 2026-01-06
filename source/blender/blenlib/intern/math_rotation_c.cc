@@ -15,6 +15,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /******************************** Quaternions ********************************/
 
 /* used to test is a quat is not normalized (only used for debug prints) */
@@ -2468,3 +2470,5 @@ bool mat3_from_axis_conversion_single(int src_axis, int dst_axis, float r_mat[3]
 
   return mat3_from_axis_conversion(src_axis, src_axis_next, dst_axis, dst_axis_next, r_mat);
 }
+
+}  // namespace blender

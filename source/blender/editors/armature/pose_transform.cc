@@ -61,6 +61,8 @@
 
 #include "armature_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
  * \{ */
@@ -216,7 +218,7 @@ static void applyarmature_process_selected_recursive(bArmature *arm,
                                                      bPose *pose,
                                                      bPose *pose_eval,
                                                      Bone *bone,
-                                                     blender::Span<PointerRNA> selected,
+                                                     Span<PointerRNA> selected,
                                                      ApplyArmature_ParentState *pstate)
 {
   bPoseChannel *pchan = BKE_pose_channel_find_name(pose, bone->name);
@@ -398,7 +400,7 @@ static wmOperatorStatus apply_armature_pose2bones_exec(bContext *C, wmOperator *
   const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   bArmature *arm = BKE_armature_from_object(ob);
   bPose *pose;
-  blender::Vector<PointerRNA> selected_bones;
+  Vector<PointerRNA> selected_bones;
 
   const bool use_selected = RNA_boolean_get(op->ptr, "selected");
 
@@ -475,7 +477,7 @@ static wmOperatorStatus apply_armature_pose2bones_exec(bContext *C, wmOperator *
 
 static void apply_armature_pose2bones_ui(bContext *C, wmOperator *op)
 {
-  blender::ui::Layout &layout = *op->layout;
+  ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
@@ -523,7 +525,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
   CTX_data_ensure_evaluated_depsgraph(C);
 
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    const bArmature *arm = blender::id_cast<const bArmature *>(ob->data);
+    const bArmature *arm = id_cast<const bArmature *>(ob->data);
 
     int chanbase_len = BLI_listbase_count(&ob->pose->chanbase);
     /* Storage for the calculated matrices to prevent reading from modified values.
@@ -536,7 +538,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
     bool changed = false;
 
     for (const auto [i, pchan] : ob->pose->chanbase.enumerate()) {
-      if (!blender::animrig::bone_is_selected(arm, &pchan)) {
+      if (!animrig::bone_is_selected(arm, &pchan)) {
         pchan_xform_array[i].is_set = false;
         continue;
       }
@@ -782,13 +784,13 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bArmature *armature = blender::id_cast<bArmature *>(ob->data);
+  bArmature *armature = id_cast<bArmature *>(ob->data);
   BLI_assert_msg(armature, "If an armature object has a pose, it should have armature data");
   /* Taking off the selection flag in case bones are hidden so they are not
    * applied when pasting.  */
   for (bPoseChannel &pose_bone : ob->pose->chanbase) {
-    if (!blender::animrig::bone_is_visible(armature, &pose_bone)) {
-      blender::animrig::bone_deselect(&pose_bone);
+    if (!animrig::bone_is_visible(armature, &pose_bone)) {
+      animrig::bone_deselect(&pose_bone);
     }
   }
 
@@ -847,8 +849,7 @@ static wmOperatorStatus pose_paste_exec(bContext *C, wmOperator *op)
   bool selOnly = RNA_boolean_get(op->ptr, "selected_mask");
 
   /* Get KeyingSet to use. */
-  KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene,
-                                                                 ANIM_KS_WHOLE_CHARACTER_ID);
+  KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 
   /* Sanity checks. */
   if (ELEM(nullptr, ob, ob->pose)) {
@@ -900,7 +901,7 @@ static wmOperatorStatus pose_paste_exec(bContext *C, wmOperator *op)
       bPoseChannel *pchan = pose_bone_do_paste(ob, &chan, selOnly, flip);
       if (pchan != nullptr) {
         /* Keyframing tagging for successful paste, */
-        blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
+        animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
       }
     }
   }
@@ -1191,7 +1192,7 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
     /* XXX: UGLY HACK (for auto-key + clear transforms). */
     Object *ob_eval = DEG_get_evaluated(depsgraph, ob_iter);
-    blender::Vector<PointerRNA> sources;
+    Vector<PointerRNA> sources;
     bool changed = false;
 
     FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {
@@ -1200,10 +1201,9 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
       changed = true;
 
       /* do auto-keyframing as appropriate */
-      if (blender::animrig::autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
+      if (animrig::autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
         /* tag for autokeying later */
-        blender::animrig::relative_keyingset_add_source(
-            sources, &ob_iter->id, &RNA_PoseBone, pchan);
+        animrig::relative_keyingset_add_source(sources, &ob_iter->id, &RNA_PoseBone, pchan);
 
 #if 1 /* XXX: Ugly Hack - Run clearing function on evaluated copy of pchan */
         bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
@@ -1219,11 +1219,11 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
       /* perform autokeying on the bones if needed */
       if (!sources.is_empty()) {
         /* get KeyingSet to use */
-        KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, default_ksName);
+        KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, default_ksName);
 
         /* insert keyframes */
-        blender::animrig::apply_keyingset(
-            C, &sources, ks, blender::animrig::ModifyKeyMode::INSERT, float(scene->r.cfra));
+        animrig::apply_keyingset(
+            C, &sources, ks, animrig::ModifyKeyMode::INSERT, float(scene->r.cfra));
 
         /* now recalculate paths */
         if (ob_iter->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
@@ -1439,3 +1439,5 @@ void POSE_OT_user_transforms_clear(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

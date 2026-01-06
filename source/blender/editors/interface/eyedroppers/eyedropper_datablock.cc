@@ -167,7 +167,7 @@ static void datadropper_id_sample_pt(
           Object *ob = base->object;
           ID *id = nullptr;
           if (ddr->idcode == ID_OB) {
-            id = blender::id_cast<ID *>(ob);
+            id = id_cast<ID *>(ob);
           }
           else if (ob->data) {
             if (GS(((ID *)ob->data)->name) == ddr->idcode) {

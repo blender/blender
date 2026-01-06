@@ -38,6 +38,8 @@
 /* Header to pull symbols from the file which otherwise might get stripped away. */
 #include "BKE_blender_undo.hh"
 
+namespace blender {
+
 #define undo_stack _wm_undo_stack_disallow /* pass in as a variable always. */
 
 /** Odd requirement of Blender that we always keep a memfile undo in the stack. */
@@ -1009,3 +1011,5 @@ void BKE_undosys_print(UndoStack *ustack)
 }
 
 /** \} */
+
+}  // namespace blender

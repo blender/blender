@@ -25,6 +25,8 @@
 #  include "BLI_string_utf8.h"
 #endif
 
+namespace blender {
+
 enum eMatrixAccess_t {
   MAT_ACCESS_ROW,
   MAT_ACCESS_COL,
@@ -4165,3 +4167,5 @@ static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrix
 }
 
 /** \} */
+
+}  // namespace blender

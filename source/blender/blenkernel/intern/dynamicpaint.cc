@@ -75,7 +75,7 @@
 
 #include "CLG_log.h"
 
-using blender::int3;
+namespace blender {
 
 /* could enable at some point but for now there are far too many conversions */
 #ifdef __GNUC__
@@ -130,7 +130,7 @@ struct DynamicPaintRuntime {
    * Multiple threads may access `brush_mesh` so locking is needed
    * to ensure access is thread safe, see: #143958.
    */
-  blender::Mutex brush_mutex;
+  Mutex brush_mutex;
 };
 
 /* dissolve inline function */
@@ -336,7 +336,6 @@ DynamicPaintSurface *get_activeSurface(DynamicPaintCanvasSettings *canvas)
 
 bool dynamicPaint_outputLayerExists(DynamicPaintSurface *surface, Object *ob, int output)
 {
-  using namespace blender;
   using namespace blender::bke;
   const char *name;
 
@@ -352,7 +351,7 @@ bool dynamicPaint_outputLayerExists(DynamicPaintSurface *surface, Object *ob, in
 
   if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-      Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+      Mesh *mesh = id_cast<Mesh *>(ob->data);
       const AttributeAccessor attributes = mesh->attributes();
       const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
       return meta_data == AttributeMetaData{AttrDomain::Corner, AttrType::ColorByte};
@@ -365,8 +364,7 @@ bool dynamicPaint_outputLayerExists(DynamicPaintSurface *surface, Object *ob, in
   return false;
 }
 
-static bool surface_duplicateOutputExists(DynamicPaintSurface *t_surface,
-                                          const blender::StringRefNull name)
+static bool surface_duplicateOutputExists(DynamicPaintSurface *t_surface, const StringRefNull name)
 {
   DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
       t_surface->canvas->surfaces.first);
@@ -387,7 +385,7 @@ static bool surface_duplicateOutputExists(DynamicPaintSurface *t_surface,
 
 static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
 {
-  auto is_unique_fn = [&](const blender::StringRefNull check_name) {
+  auto is_unique_fn = [&](const StringRefNull check_name) {
     return surface_duplicateOutputExists(surface, check_name);
   };
 
@@ -402,8 +400,7 @@ static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *base
   }
 }
 
-static bool surface_duplicateNameExists(DynamicPaintSurface *t_surface,
-                                        const blender::StringRefNull name)
+static bool surface_duplicateNameExists(DynamicPaintSurface *t_surface, const StringRefNull name)
 {
   DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
       t_surface->canvas->surfaces.first);
@@ -421,7 +418,7 @@ void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, const char 
   char name[64];
   STRNCPY_UTF8(name, basename); /* in case basename is surface->name use a copy */
   BLI_uniquename_cb(
-      [&](const blender::StringRefNull check_name) {
+      [&](const StringRefNull check_name) {
         return surface_duplicateNameExists(surface, check_name);
       },
       name,
@@ -1438,9 +1435,9 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     /* For vertex format, count every vertex that is connected by an edge */
     int numOfEdges = mesh->edges_num;
     int numOfPolys = mesh->faces_num;
-    const blender::Span<blender::int2> edges = mesh->edges();
-    const blender::OffsetIndices faces = mesh->faces();
-    const blender::Span<int> corner_verts = mesh->corner_verts();
+    const Span<int2> edges = mesh->edges();
+    const OffsetIndices faces = mesh->faces();
+    const Span<int> corner_verts = mesh->corner_verts();
 
     /* count number of edges per vertex */
     for (int i = 0; i < numOfEdges; i++) {
@@ -1503,10 +1500,10 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
 struct DynamicPaintSetInitColorData {
   const DynamicPaintSurface *surface;
 
-  blender::Span<int> corner_verts;
-  blender::Span<blender::float2> uv_map;
-  blender::Span<int3> corner_tris;
-  blender::Span<blender::ColorGeometry4b> mloopcol;
+  Span<int> corner_verts;
+  Span<float2> uv_map;
+  Span<int3> corner_tris;
+  Span<ColorGeometry4b> mloopcol;
   ImagePool *pool;
 };
 
@@ -1519,9 +1516,9 @@ static void dynamic_paint_set_init_color_tex_to_vcol_cb(void *__restrict userdat
   const PaintSurfaceData *sData = data->surface->data;
   PaintPoint *pPoint = static_cast<PaintPoint *>(sData->type_data);
 
-  const blender::Span<int> corner_verts = data->corner_verts;
-  const blender::Span<int3> corner_tris = data->corner_tris;
-  const blender::Span<blender::float2> uv_map = data->uv_map;
+  const Span<int> corner_verts = data->corner_verts;
+  const Span<int3> corner_tris = data->corner_tris;
+  const Span<float2> uv_map = data->uv_map;
   ImagePool *pool = data->pool;
   Tex *tex = data->surface->init_texture;
 
@@ -1553,8 +1550,8 @@ static void dynamic_paint_set_init_color_tex_to_imseq_cb(void *__restrict userda
   const PaintSurfaceData *sData = data->surface->data;
   PaintPoint *pPoint = static_cast<PaintPoint *>(sData->type_data);
 
-  const blender::Span<int3> corner_tris = data->corner_tris;
-  const blender::Span<blender::float2> uv_map = data->uv_map;
+  const Span<int3> corner_tris = data->corner_tris;
+  const Span<float2> uv_map = data->uv_map;
   Tex *tex = data->surface->init_texture;
   ImgSeqFormatData *f_data = sData->format_data;
   const int samples = (data->surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
@@ -1590,8 +1587,8 @@ static void dynamic_paint_set_init_color_vcol_to_imseq_cb(
   const PaintSurfaceData *sData = data->surface->data;
   PaintPoint *pPoint = static_cast<PaintPoint *>(sData->type_data);
 
-  const blender::Span<int3> corner_tris = data->corner_tris;
-  const blender::Span<blender::ColorGeometry4b> mloopcol = data->mloopcol;
+  const Span<int3> corner_tris = data->corner_tris;
+  const Span<ColorGeometry4b> mloopcol = data->mloopcol;
   ImgSeqFormatData *f_data = sData->format_data;
   const int samples = (data->surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
 
@@ -1613,7 +1610,6 @@ static void dynamic_paint_set_init_color_vcol_to_imseq_cb(
 
 static void dynamicPaint_setInitialColor(const Scene * /*scene*/, DynamicPaintSurface *surface)
 {
-  using namespace blender;
   PaintSurfaceData *sData = surface->data;
   PaintPoint *pPoint = static_cast<PaintPoint *>(sData->type_data);
   Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
@@ -1805,14 +1801,14 @@ struct DynamicPaintModifierApplyData {
   const DynamicPaintSurface *surface;
   Object *ob;
 
-  blender::MutableSpan<blender::float3> vert_positions;
-  blender::Span<blender::float3> vert_normals;
-  blender::OffsetIndices<int> faces;
-  blender::Span<int> corner_verts;
+  MutableSpan<float3> vert_positions;
+  Span<float3> vert_normals;
+  OffsetIndices<int> faces;
+  Span<int> corner_verts;
 
   float (*fcolor)[4];
-  blender::MutableSpan<blender::ColorGeometry4b> mloopcol;
-  blender::MutableSpan<blender::ColorGeometry4b> mloopcol_wet;
+  MutableSpan<ColorGeometry4b> mloopcol;
+  MutableSpan<ColorGeometry4b> mloopcol_wet;
 };
 
 static void dynamic_paint_apply_surface_displace_cb(void *__restrict userdata,
@@ -1876,14 +1872,14 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
   const DynamicPaintModifierApplyData *data = static_cast<DynamicPaintModifierApplyData *>(
       userdata);
 
-  const blender::Span<int> corner_verts = data->corner_verts;
+  const Span<int> corner_verts = data->corner_verts;
 
   const DynamicPaintSurface *surface = data->surface;
   PaintPoint *pPoint = static_cast<PaintPoint *>(surface->data->type_data);
   float (*fcolor)[4] = data->fcolor;
 
-  blender::MutableSpan<blender::ColorGeometry4b> mloopcol = data->mloopcol;
-  blender::MutableSpan<blender::ColorGeometry4b> mloopcol_wet = data->mloopcol_wet;
+  MutableSpan<ColorGeometry4b> mloopcol = data->mloopcol;
+  MutableSpan<ColorGeometry4b> mloopcol_wet = data->mloopcol_wet;
 
   for (const int l_index : data->faces[p_index]) {
     const int v_index = corner_verts[l_index];
@@ -1921,7 +1917,6 @@ static void dynamic_paint_apply_surface_wave_cb(void *__restrict userdata,
  */
 static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *ob, Mesh *mesh)
 {
-  using namespace blender;
   using namespace blender::bke;
   Mesh *result = BKE_mesh_copy_for_eval(*mesh);
 
@@ -2222,9 +2217,9 @@ struct DynamicPaintCreateUVSurfaceData {
   PaintUVPoint *tempPoints;
   Vec3f *tempWeights;
 
-  blender::Span<int3> corner_tris;
-  blender::Span<blender::float2> uv_map;
-  blender::Span<int> corner_verts;
+  Span<int3> corner_tris;
+  Span<float2> uv_map;
+  Span<int> corner_verts;
 
   const Bounds2D *faceBB;
   uint32_t *active_points;
@@ -2241,9 +2236,9 @@ static void dynamic_paint_create_uv_surface_direct_cb(void *__restrict userdata,
   PaintUVPoint *tempPoints = data->tempPoints;
   Vec3f *tempWeights = data->tempWeights;
 
-  const blender::Span<int3> corner_tris = data->corner_tris;
-  const blender::Span<blender::float2> uv_map = data->uv_map;
-  const blender::Span<int> corner_verts = data->corner_verts;
+  const Span<int3> corner_tris = data->corner_tris;
+  const Span<float2> uv_map = data->uv_map;
+  const Span<int> corner_verts = data->corner_verts;
 
   const Bounds2D *faceBB = data->faceBB;
 
@@ -2338,9 +2333,9 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *__restrict userdat
   PaintUVPoint *tempPoints = data->tempPoints;
   Vec3f *tempWeights = data->tempWeights;
 
-  const blender::Span<int3> corner_tris = data->corner_tris;
-  const blender::Span<blender::float2> uv_map = data->uv_map;
-  const blender::Span<int> corner_verts = data->corner_verts;
+  const Span<int3> corner_tris = data->corner_tris;
+  const Span<float2> uv_map = data->uv_map;
+  const Span<int> corner_verts = data->corner_verts;
 
   uint32_t *active_points = data->active_points;
 
@@ -2425,8 +2420,8 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *__restrict userdat
 
 #undef JITTER_SAMPLES
 
-static float dist_squared_to_corner_tris_uv_edges(const blender::Span<int3> corner_tris,
-                                                  const blender::Span<blender::float2> uv_map,
+static float dist_squared_to_corner_tris_uv_edges(const Span<int3> corner_tris,
+                                                  const Span<float2> uv_map,
                                                   int tri_index,
                                                   const float point[2])
 {
@@ -2546,9 +2541,9 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
                                              int in_edge,
                                              int depth)
 {
-  const blender::Span<int> corner_verts = data->corner_verts;
-  const blender::Span<int3> corner_tris = data->corner_tris;
-  const blender::Span<blender::float2> uv_map = data->uv_map;
+  const Span<int> corner_verts = data->corner_verts;
+  const Span<int3> corner_tris = data->corner_tris;
+  const Span<float2> uv_map = data->uv_map;
 
   const int3 loop_idx = corner_tris[tri_index];
 
@@ -2831,7 +2826,6 @@ int dynamicPaint_createUVSurface(Scene *scene,
                                  float *progress,
                                  bool *do_update)
 {
-  using namespace blender;
   /* Anti-alias jitter point relative coords. */
   const int aa_samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
   uint32_t active_points = 0;
@@ -3463,9 +3457,8 @@ static void mesh_tris_spherecast_dp(void *userdata,
                                     const BVHTreeRay *ray,
                                     BVHTreeRayHit *hit)
 {
-  const blender::bke::BVHTreeFromMesh *data = static_cast<blender::bke::BVHTreeFromMesh *>(
-      userdata);
-  const blender::Span<blender::float3> positions = data->vert_positions;
+  const bke::BVHTreeFromMesh *data = static_cast<bke::BVHTreeFromMesh *>(userdata);
+  const Span<float3> positions = data->vert_positions;
   const int3 *corner_tris = data->corner_tris.data();
   const int *corner_verts = data->corner_verts.data();
 
@@ -3476,7 +3469,7 @@ static void mesh_tris_spherecast_dp(void *userdata,
   t1 = positions[corner_verts[corner_tris[index][1]]];
   t2 = positions[corner_verts[corner_tris[index][2]]];
 
-  dist = blender::bke::bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
+  dist = bke::bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 
   if (dist >= 0 && dist < hit->dist) {
     hit->index = index;
@@ -3496,9 +3489,8 @@ static void mesh_tris_nearest_point_dp(void *userdata,
                                        const float co[3],
                                        BVHTreeNearest *nearest)
 {
-  const blender::bke::BVHTreeFromMesh *data = static_cast<blender::bke::BVHTreeFromMesh *>(
-      userdata);
-  const blender::Span<blender::float3> positions = data->vert_positions;
+  const bke::BVHTreeFromMesh *data = static_cast<bke::BVHTreeFromMesh *>(userdata);
+  const Span<float3> positions = data->vert_positions;
   const int3 *corner_tris = data->corner_tris.data();
   const int *corner_verts = data->corner_verts.data();
   float nearest_tmp[3], dist_sq;
@@ -3957,9 +3949,9 @@ struct DynamicPaintPaintData {
   int c_index;
 
   Mesh *mesh;
-  blender::Span<blender::float3> positions;
-  blender::Span<int> corner_verts;
-  blender::Span<int3> corner_tris;
+  Span<float3> positions;
+  Span<int> corner_verts;
+  Span<int3> corner_tris;
   float brush_radius;
   const float *avg_brushNor;
   const Vec3f *brushVelocity;
@@ -3991,15 +3983,14 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
   const float timescale = data->timescale;
   const int c_index = data->c_index;
 
-  const blender::Span<blender::float3> positions = data->positions;
-  const blender::Span<int> corner_verts = data->corner_verts;
-  const blender::Span<int3> corner_tris = data->corner_tris;
+  const Span<float3> positions = data->positions;
+  const Span<int> corner_verts = data->corner_verts;
+  const Span<int3> corner_tris = data->corner_tris;
   const float brush_radius = data->brush_radius;
   const float *avg_brushNor = data->avg_brushNor;
   const Vec3f *brushVelocity = data->brushVelocity;
 
-  blender::bke::BVHTreeFromMesh *treeData = static_cast<blender::bke::BVHTreeFromMesh *>(
-      data->treeData);
+  bke::BVHTreeFromMesh *treeData = static_cast<bke::BVHTreeFromMesh *>(data->treeData);
 
   const int index = grid->t_index[grid->s_pos[c_index] + id];
   const int samples = bData->s_num[index];
@@ -4346,10 +4337,10 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     DynamicPaintVolumeGrid *grid = bData->grid;
 
     mesh = BKE_mesh_copy_for_eval(*brush_mesh);
-    blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
-    const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
-    const blender::Span<int> corner_verts = mesh->corner_verts();
-    const blender::Span<int3> corner_tris = mesh->corner_tris();
+    MutableSpan<float3> positions = mesh->vert_positions_for_write();
+    const Span<float3> vert_normals = mesh->vert_normals();
+    const Span<int> corner_verts = mesh->corner_verts();
+    const Span<int3> corner_tris = mesh->corner_tris();
     numOfVerts = mesh->verts_num;
 
     /* Transform collider vertices to global space
@@ -4383,7 +4374,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     /* check bounding box collision */
     if (grid && meshBrush_boundsIntersect(&grid->grid_bounds, &mesh_bb, brush, brush_radius)) {
       /* Build a bvh tree from transformed vertices */
-      blender::bke::BVHTreeFromMesh treeData = mesh->bvh_corner_tris();
+      bke::BVHTreeFromMesh treeData = mesh->bvh_corner_tris();
       if (treeData.tree != nullptr) {
         int c_index;
         int total_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];
@@ -4456,7 +4447,7 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
   const float timescale = data->timescale;
   const int c_index = data->c_index;
 
-  blender::KDTree_3d *tree = static_cast<blender::KDTree_3d *>(data->treeData);
+  KDTree_3d *tree = static_cast<KDTree_3d *>(data->treeData);
 
   const float solidradius = data->solidradius;
   const float smooth = brush->particle_smooth * surface->radius_scale;
@@ -4474,11 +4465,11 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
    * It's enough to just find the nearest one.
    */
   {
-    blender::KDTreeNearest_3d nearest;
+    KDTreeNearest_3d nearest;
     float smooth_range, part_solidradius;
 
     /* Find nearest particle and get distance to it */
-    blender::kdtree_3d_find_nearest(tree, bData->realCoord[bData->s_pos[index]].v, &nearest);
+    kdtree_3d_find_nearest(tree, bData->realCoord[bData->s_pos[index]].v, &nearest);
     /* if outside maximum range, no other particle can influence either */
     if (nearest.dist > range) {
       return;
@@ -4512,7 +4503,7 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
      * If we use per particle radius, we have to sample all particles
      * within max radius range
      */
-    blender::KDTreeNearest_3d *nearest;
+    KDTreeNearest_3d *nearest;
 
     float smooth_range = smooth * (1.0f - strength), dist;
     /* calculate max range that can have particles with higher influence than the nearest one */
@@ -4520,7 +4511,7 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
     /* Make gcc happy! */
     dist = max_range;
 
-    const int particles = blender::kdtree_3d_range_search(
+    const int particles = kdtree_3d_range_search(
         tree, bData->realCoord[bData->s_pos[index]].v, &nearest, max_range);
 
     /* Find particle that produces highest influence */
@@ -4624,7 +4615,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
   PaintBakeData *bData = sData->bData;
   DynamicPaintVolumeGrid *grid = bData->grid;
 
-  blender::KDTree_3d *tree;
+  KDTree_3d *tree;
   int particlesAdded = 0;
   int invalidParticles = 0;
   int p = 0;
@@ -4645,7 +4636,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
   /*
    * Build a KD-tree to optimize distance search
    */
-  tree = blender::kdtree_3d_new(psys->totpart);
+  tree = kdtree_3d_new(psys->totpart);
 
   /* loop through particles and insert valid ones to the tree */
   p = 0;
@@ -4669,7 +4660,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
       continue;
     }
 
-    blender::kdtree_3d_insert(tree, p, pa->state.co);
+    kdtree_3d_insert(tree, p, pa->state.co);
 
     /* calc particle system bounds */
     boundInsert(&part_bb, pa->state.co);
@@ -4682,7 +4673,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 
   /* If no suitable particles were found, exit */
   if (particlesAdded < 1) {
-    blender::kdtree_3d_free(tree);
+    kdtree_3d_free(tree);
     return true;
   }
 
@@ -4692,7 +4683,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
     int total_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];
 
     /* balance tree */
-    blender::kdtree_3d_balance(tree);
+    kdtree_3d_balance(tree);
 
     /* loop through space partitioning grid */
     for (c_index = 0; c_index < total_cells; c_index++) {
@@ -4721,7 +4712,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
                               &settings);
     }
   }
-  blender::kdtree_3d_free(tree);
+  kdtree_3d_free(tree);
 
   return true;
 }
@@ -5950,7 +5941,7 @@ static bool dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *o
   PaintSurfaceData *sData = surface->data;
   PaintBakeData *bData = sData->bData;
   Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const Span<float3> positions = mesh->vert_positions();
 
   int numOfVerts = mesh->verts_num;
 
@@ -5978,8 +5969,8 @@ struct DynamicPaintGenerateBakeData {
   const DynamicPaintSurface *surface;
   Object *ob;
 
-  blender::Span<blender::float3> positions;
-  blender::Span<blender::float3> vert_normals;
+  Span<float3> positions;
+  Span<float3> vert_normals;
   const Vec3f *canvas_verts;
 
   bool do_velocity_data;
@@ -6111,7 +6102,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   const bool do_accel_data = (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) != 0;
 
   int canvasNumOfVerts = mesh->verts_num;
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const Span<float3> positions = mesh->vert_positions();
   Vec3f *canvas_verts;
 
   if (bData) {
@@ -6451,3 +6442,5 @@ int dynamicPaint_calculateFrame(
 
   return dynamicPaint_doStep(depsgraph, scene, cObject, surface, timescale, 0.0f);
 }
+
+}  // namespace blender

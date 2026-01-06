@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /** Used in `readfile.cc` and `editfont.cc`. */
 #define MAXTEXTBOX 256
 
@@ -238,3 +240,5 @@ enum {
 
 /* indicates point has been seen during surface duplication */
 #define SURF_SEEN (1 << 2)
+
+}  // namespace blender

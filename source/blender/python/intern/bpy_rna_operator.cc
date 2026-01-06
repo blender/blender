@@ -19,6 +19,8 @@
 
 #include "bpy_rna_operator.hh" /* Own include, #BPY_rna_operator_poll_message_set_method_def. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Operator `poll_message_set` Method
  * \{ */
@@ -144,3 +146,5 @@ PyMethodDef BPY_rna_operator_poll_message_set_method_def = {
 };
 
 /** \} */
+
+}  // namespace blender

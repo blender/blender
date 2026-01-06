@@ -114,7 +114,7 @@ AttrType cpp_type_to_attribute_type(const CPPType &type)
   return AttrType::Bool;
 }
 
-const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
+const CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_FLOAT:
@@ -148,7 +148,7 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
   }
 }
 
-eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
+eCustomDataType cpp_type_to_custom_data_type(const CPPType &type)
 {
   if (type.is<float>()) {
     return CD_PROP_FLOAT;

@@ -24,6 +24,8 @@
 
 #include "RE_engine.h"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
     {SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
     {SCE_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
@@ -39,6 +41,8 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
     {SCE_PASS_TRANSM_COLOR, "TRANSMISSION", 0, "Transmission", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+}
 
 #ifdef RNA_RUNTIME
 
@@ -60,6 +64,8 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 #  include "DEG_depsgraph_query.hh"
 
 #  include "ED_render.hh"
+
+namespace blender {
 
 /* RenderEngine Callbacks */
 
@@ -85,7 +91,7 @@ static int engine_get_preview_pixel_size(RenderEngine * /*engine*/, Scene *scene
 
 static void engine_bind_display_space_shader(RenderEngine * /*engine*/, Scene * /*scene*/)
 {
-  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE);
+  gpu::Shader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE);
   GPU_shader_bind(shader);
   /** \note "image" binding slot is 0. */
 }
@@ -228,7 +234,7 @@ static void engine_update_script_node(RenderEngine *engine, bNodeTree *ntree, bN
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  PointerRNA nodeptr = RNA_pointer_create_discrete(blender::id_cast<ID *>(ntree), &RNA_Node, node);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_Node, node);
   func = &rna_RenderEngine_update_script_node_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -507,7 +513,11 @@ static RenderPass *rna_RenderPass_find_by_name(RenderLayer *rl, const char *name
   return RE_pass_find_by_name(rl, name, view);
 }
 
+}  // namespace blender
+
 #else /* RNA_RUNTIME */
+
+namespace blender {
 
 static void rna_def_render_engine(BlenderRNA *brna)
 {
@@ -1218,5 +1228,7 @@ void RNA_def_render(BlenderRNA *brna)
   rna_def_render_layer(brna);
   rna_def_render_pass(brna);
 }
+
+}  // namespace blender
 
 #endif /* RNA_RUNTIME */

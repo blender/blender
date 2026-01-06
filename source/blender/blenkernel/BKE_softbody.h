@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Depsgraph;
 struct Object;
 struct Scene;
@@ -77,3 +79,5 @@ extern void sbSetInterruptCallBack(int (*f)(void));
  * For velocity & 2nd order stuff see: #vcloud_estimate_transform_v3.
  */
 extern void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float lscale[3][3]);
+
+}  // namespace blender

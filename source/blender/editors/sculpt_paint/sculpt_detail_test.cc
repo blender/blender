@@ -22,7 +22,7 @@ constexpr float PIXEL_SIZE = 100;
 
 TEST(Conversion, ConstantToBrushDetail)
 {
-  blender::bke::ObjectRuntime runtime;
+  bke::ObjectRuntime runtime;
   runtime.object_to_world = MatBase<float, 4, 4>::identity();
 
   Object ob;
@@ -36,7 +36,7 @@ TEST(Conversion, ConstantToBrushDetail)
 }
 TEST(Conversion, ConstantToRelativeDetail)
 {
-  blender::bke::ObjectRuntime runtime;
+  bke::ObjectRuntime runtime;
   runtime.object_to_world = MatBase<float, 4, 4>::identity();
 
   Object ob;

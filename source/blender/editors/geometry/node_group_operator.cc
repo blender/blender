@@ -86,9 +86,11 @@
 
 #include <fmt/format.h>
 
-namespace geo_log = blender::nodes::geo_eval_log;
+namespace blender {
 
-namespace blender::ed::geometry {
+namespace geo_log = nodes::geo_eval_log;
+
+namespace ed::geometry {
 
 using asset_system::AssetRepresentation;
 
@@ -297,7 +299,7 @@ static const bNodeTree *get_asset_or_local_node_group(const bContext &C,
       [&](const auto &value) -> const bNodeTree * {
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, OperatorTypeData::LocalRef>) {
-          return blender::id_cast<const bNodeTree *>(
+          return id_cast<const bNodeTree *>(
               BKE_libblock_find_session_uid(&bmain, ID_NT, value.session_uid));
         }
         else if constexpr (std::is_same_v<T, AssetWeakReference>) {
@@ -306,8 +308,7 @@ static const bNodeTree *get_asset_or_local_node_group(const bContext &C,
           if (!asset) {
             return nullptr;
           }
-          return blender::id_cast<const bNodeTree *>(
-              asset::asset_local_id_ensure_imported(bmain, *asset));
+          return id_cast<const bNodeTree *>(asset::asset_local_id_ensure_imported(bmain, *asset));
         }
         return nullptr;
       },
@@ -492,16 +493,15 @@ static bke::GeometrySet get_original_geometry_eval_copy(Depsgraph &depsgraph,
 {
   switch (object.type) {
     case OB_CURVES: {
-      Curves *curves = BKE_curves_copy_for_eval(blender::id_cast<const Curves *>(object.data));
+      Curves *curves = BKE_curves_copy_for_eval(id_cast<const Curves *>(object.data));
       return bke::GeometrySet::from_curves(curves);
     }
     case OB_POINTCLOUD: {
-      PointCloud *points = BKE_pointcloud_copy_for_eval(
-          blender::id_cast<const PointCloud *>(object.data));
+      PointCloud *points = BKE_pointcloud_copy_for_eval(id_cast<const PointCloud *>(object.data));
       return bke::GeometrySet::from_pointcloud(points);
     }
     case OB_MESH: {
-      Mesh *mesh = blender::id_cast<Mesh *>(object.data);
+      Mesh *mesh = id_cast<Mesh *>(object.data);
 
       if (std::shared_ptr<BMEditMesh> &em = mesh->runtime->edit_mesh) {
         operator_data.active_point_index = BM_mesh_active_vert_index_get(em->bm);
@@ -531,7 +531,7 @@ static bke::GeometrySet get_original_geometry_eval_copy(Depsgraph &depsgraph,
       return bke::GeometrySet::from_mesh(mesh_copy);
     }
     case OB_GREASE_PENCIL: {
-      const GreasePencil *grease_pencil = blender::id_cast<const GreasePencil *>(object.data);
+      const GreasePencil *grease_pencil = id_cast<const GreasePencil *>(object.data);
       if (const bke::greasepencil::Layer *active_layer = grease_pencil->get_active_layer()) {
         operator_data.active_layer_index = *grease_pencil->get_layer_index(*active_layer);
       }
@@ -556,7 +556,7 @@ static void store_result_geometry(const bContext &C,
   geometry.ensure_owns_direct_data();
   switch (object.type) {
     case OB_CURVES: {
-      Curves &curves = *blender::id_cast<Curves *>(object.data);
+      Curves &curves = *id_cast<Curves *>(object.data);
       Curves *new_curves = geometry.get_curves_for_write();
       if (!new_curves) {
         curves.geometry.wrap() = {};
@@ -572,7 +572,7 @@ static void store_result_geometry(const bContext &C,
       break;
     }
     case OB_POINTCLOUD: {
-      PointCloud &points = *blender::id_cast<PointCloud *>(object.data);
+      PointCloud &points = *id_cast<PointCloud *>(object.data);
       PointCloud *new_points =
           geometry.get_component_for_write<bke::PointCloudComponent>().release();
       if (!new_points) {
@@ -590,7 +590,7 @@ static void store_result_geometry(const bContext &C,
       break;
     }
     case OB_MESH: {
-      Mesh &mesh = *blender::id_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
 
       Mesh *new_mesh = geometry.get_component_for_write<bke::MeshComponent>().release();
       if (new_mesh) {
@@ -639,7 +639,7 @@ static void store_result_geometry(const bContext &C,
     case OB_GREASE_PENCIL: {
       const int eval_frame = int(DEG_get_ctime(&depsgraph));
 
-      GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
+      GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
       Vector<int> editable_layer_indices;
       for (const int layer_i : grease_pencil.layers().index_range()) {
         const bke::greasepencil::Layer &layer = grease_pencil.layer(layer_i);
@@ -1915,4 +1915,5 @@ void ui_template_node_operator_asset_root_items(ui::Layout &layout, const bConte
 
 /** \} */
 
-}  // namespace blender::ed::geometry
+}  // namespace ed::geometry
+}  // namespace blender

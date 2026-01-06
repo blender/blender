@@ -6,8 +6,7 @@
  * \ingroup bli
  */
 
-#ifndef __MATH_BASE_INLINE_C__
-#define __MATH_BASE_INLINE_C__
+#pragma once
 
 #include <float.h>
 #include <limits.h>
@@ -18,6 +17,8 @@
 #include "BLI_assert.h"
 #include "BLI_math_inline.h"
 #include "BLI_sys_types.h"
+
+namespace blender {
 
 /* copied from BLI_utildefines.h */
 #ifdef __GNUC__
@@ -650,4 +651,4 @@ MINLINE unsigned char unit_ushort_to_uchar(unsigned short val)
   } \
   ((void)0)
 
-#endif /* __MATH_BASE_INLINE_C__ */
+}  // namespace blender

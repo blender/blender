@@ -71,7 +71,7 @@ static void test_shader_create_info_pipeline()
   const int2 size(4, 4);
   const int layers = 256;
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *texture = GPU_texture_create_2d_array(
+  gpu::Texture *texture = GPU_texture_create_2d_array(
       __func__, UNPACK2(size), layers, 1, TextureFormat::SINT_32_32, usage, nullptr);
 
   gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);

@@ -14,10 +14,10 @@
 #include "BLI_sys_types.h"
 
 #ifdef WITH_INTERNATIONAL
-
 #  include "BLI_string_ref.hh"
-
 #endif
+
+namespace blender {
 
 struct ARegionType;
 struct AnimationEvalContext;
@@ -151,6 +151,8 @@ void BPY_callback_wm_free(wmWindowManager *wm);
 
 /* I18n for addons */
 #ifdef WITH_INTERNATIONAL
-[[nodiscard]] std::optional<blender::StringRefNull> BPY_app_translations_py_pgettext(
-    blender::StringRef msgctxt, blender::StringRef msgid);
+[[nodiscard]] std::optional<StringRefNull> BPY_app_translations_py_pgettext(StringRef msgctxt,
+                                                                            StringRef msgid);
 #endif
+
+}  // namespace blender

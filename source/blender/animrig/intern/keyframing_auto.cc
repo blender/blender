@@ -205,7 +205,7 @@ void autokeyframe_pose_channel(bContext *C,
   Main *bmain = CTX_data_main(C);
   ID *id = &ob->id;
 
-  if (!blender::animrig::autokeyframe_cfra_can_key(scene, id)) {
+  if (!animrig::autokeyframe_cfra_can_key(scene, id)) {
     return;
   }
 

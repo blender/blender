@@ -22,6 +22,8 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* Distortion can't be exactly -1.0 as it will cause infinite pincushion distortion. */
 #define MINIMUM_DISTORTION -0.999f
 /* Arbitrary scaling factor for the dispersion input in horizontal distortion mode. */
@@ -31,7 +33,7 @@
 /* Arbitrary scaling factor for the distortion input. */
 #define DISTORTION_SCALE 4.0f
 
-namespace blender::nodes::node_composite_lensdist_cc {
+namespace nodes::node_composite_lensdist_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_LENS_DISTORTION_RADIAL,
@@ -380,7 +382,7 @@ class LensDistortionOperation : public NodeOperation {
       const float4 blue = float4(
           input.sample_bilinear_zero<Color>(normalized_texel - float2(dispersion, 0.0f)));
 
-      const float alpha = blender::math::dot(float3(red.w, green.w, blue.w), float3(1.0f)) / 3.0f;
+      const float alpha = math::dot(float3(red.w, green.w, blue.w), float3(1.0f)) / 3.0f;
 
       output.store_pixel(texel, Color(red.x, green.y, blue.z, alpha));
     });
@@ -536,13 +538,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new LensDistortionOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_lensdist_cc
+}  // namespace nodes::node_composite_lensdist_cc
 
 static void register_node_type_cmp_lensdist()
 {
-  namespace file_ns = blender::nodes::node_composite_lensdist_cc;
+  namespace file_ns = nodes::node_composite_lensdist_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeLensdist", CMP_NODE_LENSDIST);
   ntype.ui_name = "Lens Distortion";
@@ -551,10 +553,12 @@ static void register_node_type_cmp_lensdist()
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_lensdist_declare;
   ntype.initfunc = file_ns::node_composit_init_lensdist;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeLensDist", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_lensdist)
+
+}  // namespace blender

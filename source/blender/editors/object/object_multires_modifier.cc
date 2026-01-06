@@ -253,7 +253,7 @@ static wmOperatorStatus multires_external_save_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
-  Mesh *mesh = (ob) ? blender::id_cast<Mesh *>(ob->data) : static_cast<Mesh *>(op->customdata);
+  Mesh *mesh = (ob) ? id_cast<Mesh *>(ob->data) : static_cast<Mesh *>(op->customdata);
   char filepath[FILE_MAX];
   const bool relative = RNA_boolean_get(op->ptr, "relative_path");
 
@@ -283,7 +283,7 @@ static wmOperatorStatus multires_external_save_invoke(bContext *C,
                                                       const wmEvent * /*event*/)
 {
   Object *ob = context_active_object(C);
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   char filepath[FILE_MAX];
 
   if (!edit_modifier_invoke_properties(C, op)) {
@@ -349,7 +349,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 static wmOperatorStatus multires_external_pack_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = context_active_object(C);
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   if (!CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
     return OPERATOR_CANCELLED;

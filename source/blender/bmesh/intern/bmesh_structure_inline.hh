@@ -16,6 +16,8 @@
 #include "bmesh_class.hh"
 #include "intern/bmesh_query.hh"
 
+namespace blender {
+
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2)
     BLI_INLINE BMDiskLink *bmesh_disk_edge_link_from_vert(const BMEdge *e, const BMVert *v)
 {
@@ -65,3 +67,5 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2) BLI_INLINE BMEdge *bmesh_disk_edge_pr
 {
   return BM_DISK_EDGE_PREV(e, v);
 }
+
+}  // namespace blender

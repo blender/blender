@@ -28,13 +28,14 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static Mesh *triangulate_mesh(Mesh *mesh,
                               const int quad_method,
                               const int ngon_method,
                               const int min_vertices,
                               const int flag)
 {
-  using namespace blender;
   Mesh *result;
   BMesh *bm;
   CustomData_MeshMasks cd_mask_extra{};
@@ -96,7 +97,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -153,3 +154,5 @@ ModifierTypeInfo modifierType_Triangulate = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

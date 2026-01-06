@@ -12,6 +12,8 @@
 
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Base;
 struct Bone;
 struct EditBone;
@@ -279,19 +281,19 @@ void armature_tag_unselect(bArmature *arm);
 /** \name Selection Picking
  * \{ */
 
-EditBone *ED_armature_pick_ebone_from_selectbuffer(blender::Span<Base *> bases,
+EditBone *ED_armature_pick_ebone_from_selectbuffer(Span<Base *> bases,
                                                    const GPUSelectResult *hit_results,
                                                    int hits,
                                                    bool findunsel,
                                                    bool do_nearest,
                                                    Base **r_base);
-bPoseChannel *ED_armature_pick_pchan_from_selectbuffer(blender::Span<Base *> bases,
+bPoseChannel *ED_armature_pick_pchan_from_selectbuffer(Span<Base *> bases,
                                                        const GPUSelectResult *hit_results,
                                                        int hits,
                                                        bool findunsel,
                                                        bool do_nearest,
                                                        Base **r_base);
-Bone *ED_armature_pick_bone_from_selectbuffer(blender::Span<Base *> bases,
+Bone *ED_armature_pick_bone_from_selectbuffer(Span<Base *> bases,
                                               const GPUSelectResult *hit_results,
                                               int hits,
                                               bool findunsel,
@@ -311,3 +313,5 @@ Bone *ED_armature_pick_bone_from_selectbuffer(blender::Span<Base *> bases,
 int bone_looper(Object *ob, Bone *bone, void *data, int (*bone_func)(Object *, Bone *, void *));
 
 /** \} */
+
+}  // namespace blender

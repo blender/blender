@@ -60,19 +60,19 @@ void AverageAreaGridDensityProvider::initialize(const real proscenium[4], real s
     cellArea += (max[0] - min[0]) * (max[1] - min[1]);
     ++numFaces;
   }
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Total area: " << cellArea << ". Number of faces: " << numFaces << "." << endl;
   }
   cellArea /= numFaces;
   cellArea *= sizeFactor;
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Building grid with average area " << cellArea << endl;
   }
 
   _cellSize = sqrt(cellArea);
   uint maxCells = 931;  // * 1.1 = 1024
   if (std::max(prosceniumWidth, prosceniumHeight) / _cellSize > maxCells) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Scene-dependent cell size (" << _cellSize << " square) is too small." << endl;
     }
     _cellSize = std::max(prosceniumWidth, prosceniumHeight) / maxCells;
@@ -80,7 +80,7 @@ void AverageAreaGridDensityProvider::initialize(const real proscenium[4], real s
   // Now we know how many cells make each side of our grid
   _cellsX = ceil(prosceniumWidth / _cellSize);
   _cellsY = ceil(prosceniumHeight / _cellSize);
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;
   }
 
@@ -92,7 +92,7 @@ void AverageAreaGridDensityProvider::initialize(const real proscenium[4], real s
   if (_cellsY * _cellSize < prosceniumHeight * (1.0 + safetyZone)) {
     _cellsY = ceil(prosceniumHeight * (1.0 + safetyZone) / _cellSize);
   }
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;
   }
 

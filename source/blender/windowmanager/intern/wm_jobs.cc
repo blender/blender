@@ -35,6 +35,8 @@
 #include "wm.hh"
 #include "wm_event_types.hh"
 
+namespace blender {
+
 /*
  * Add new job
  * - register in WM
@@ -610,7 +612,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
   }
 
   /* This job will be automatically restarted. */
-  blender::seq::prefetch_stop_all();
+  seq::prefetch_stop_all();
 }
 
 void WM_jobs_kill_all_except(wmWindowManager *wm, const void *owner)
@@ -790,3 +792,5 @@ bool WM_jobs_has_running_type(const wmWindowManager *wm, int job_type)
   }
   return false;
 }
+
+}  // namespace blender

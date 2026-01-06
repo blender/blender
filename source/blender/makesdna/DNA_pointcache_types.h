@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /**
  * Point cache file data types:
  * - Used as `(1 << flag)` so poke jahka if you reach the limit of 15.
@@ -162,3 +164,5 @@ struct PointCache {
   /** Free callback. */
   void (*free_edit)(struct PTCacheEdit *edit) = nullptr;
 };
+
+}  // namespace blender

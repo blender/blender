@@ -113,7 +113,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
   Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
 
   const float density = params.get_input<float>("Density");
-  blender::geometry::fog_volume_grid_add_from_points(
+  geometry::fog_volume_grid_add_from_points(
       volume, "density", positions, radii, voxel_size, density);
 
   r_geometry_set.keep_only({GeometryComponent::Type::Volume, GeometryComponent::Type::Edit});
@@ -187,20 +187,20 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodePointsToVolume", GEO_NODE_POINTS_TO_VOLUME);
   ntype.ui_name = "Points to Volume";
   ntype.ui_description = "Generate a fog volume sphere around every point";
   ntype.enum_name_legacy = "POINTS_TO_VOLUME";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryPointsToVolume", node_free_standard_storage, node_copy_standard_storage);
   bke::node_type_size(ntype, 170, 120, 700);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

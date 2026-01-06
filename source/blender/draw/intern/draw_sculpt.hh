@@ -12,13 +12,15 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct GPUMaterial;
 struct Object;
-namespace blender::gpu {
+namespace gpu {
 class Batch;
 }
 
-namespace blender::draw {
+namespace draw {
 
 struct SculptBatch {
   gpu::Batch *batch;
@@ -44,4 +46,5 @@ Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature feat
 Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
                                                     Span<const GPUMaterial *> materials);
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

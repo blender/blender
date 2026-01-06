@@ -43,6 +43,8 @@
 
 #include "mask_intern.hh" /* own include */
 
+namespace blender {
+
 /******************** create new mask *********************/
 
 Mask *ED_mask_new(bContext *C, const char *name)
@@ -671,7 +673,7 @@ static wmOperatorStatus slide_point_modal(bContext *C, wmOperator *op, const wmE
     case MOUSEMOVE: {
       ScrArea *area = CTX_wm_area(C);
       ARegion *region = CTX_wm_region(C);
-      blender::float2 delta;
+      float2 delta;
 
       ED_mask_mouse_pos(area, region, event->mval, co);
       sub_v2_v2v2(delta, co, data->prev_mouse_coord);
@@ -870,7 +872,7 @@ static wmOperatorStatus slide_point_modal(bContext *C, wmOperator *op, const wmE
 
         /* Don't key sliding feather UW's. */
         if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == false) {
-          if (blender::animrig::is_autokey_on(scene)) {
+          if (animrig::is_autokey_on(scene)) {
             ED_mask_layer_shape_auto_key(data->mask_layer, scene->r.cfra);
           }
         }
@@ -1287,7 +1289,7 @@ static wmOperatorStatus slide_spline_curvature_modal(bContext *C,
     case RIGHTMOUSE:
       if (event->type == slide_data->event_invoke_type && event->val == KM_RELEASE) {
         /* Don't key sliding feather UW's. */
-        if (blender::animrig::is_autokey_on(scene)) {
+        if (animrig::is_autokey_on(scene)) {
           ED_mask_layer_shape_auto_key(slide_data->mask_layer, scene->r.cfra);
         }
 
@@ -1526,7 +1528,7 @@ static wmOperatorStatus delete_invoke(bContext *C, wmOperator *op, const wmEvent
                                   IFACE_("Delete selected control points and splines?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return delete_exec(C, op);
@@ -1574,7 +1576,7 @@ static wmOperatorStatus mask_switch_direction_exec(bContext *C, wmOperator * /*o
     }
 
     if (changed_layer) {
-      if (blender::animrig::is_autokey_on(scene)) {
+      if (animrig::is_autokey_on(scene)) {
         ED_mask_layer_shape_auto_key(&mask_layer, scene->r.cfra);
       }
     }
@@ -1636,7 +1638,7 @@ static wmOperatorStatus mask_normals_make_consistent_exec(bContext *C, wmOperato
     }
 
     if (changed_layer) {
-      if (blender::animrig::is_autokey_on(scene)) {
+      if (animrig::is_autokey_on(scene)) {
         ED_mask_layer_shape_auto_key(&mask_layer, scene->r.cfra);
       }
     }
@@ -2197,3 +2199,5 @@ void MASK_OT_paste_splines(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

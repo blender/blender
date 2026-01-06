@@ -15,6 +15,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 template<typename T>
 static void rotate_pixels(const int degrees,
                           const int size_x,
@@ -23,7 +25,6 @@ static void rotate_pixels(const int degrees,
                           T *dst_pixels,
                           const int channels)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(size_y), 256, [&](const IndexRange y_range) {
     const T *src_pixel = src_pixels + y_range.first() * size_x * channels;
     if (degrees == 90) {
@@ -183,3 +184,5 @@ void IMB_flipx(ImBuf *ibuf)
     }
   }
 }
+
+}  // namespace blender

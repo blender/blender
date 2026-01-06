@@ -74,9 +74,9 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"anim.action"};
+namespace blender {
 
-using namespace blender;
+static CLG_LogRef LOG = {"anim.action"};
 
 /* *********************** NOTE ON POSE AND ACTION **********************
  *
@@ -94,7 +94,7 @@ using namespace blender;
 /**************************** Action Datablock ******************************/
 
 /*********************** Armature Datablock ***********************/
-namespace blender::bke {
+namespace bke {
 
 static void action_init_data(ID *action_id)
 {
@@ -716,7 +716,6 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 
 static IDProperty *action_asset_type_property(const bAction *action)
 {
-  using namespace blender;
   const bool is_single_frame = action && action->wrap().has_single_frame();
   return bke::idprop::create("is_single_frame", int(is_single_frame)).release();
 }
@@ -736,7 +735,7 @@ static AssetTypeInfo AssetType_AC = {
     /*on_clear_asset_fn*/ nullptr,
 };
 
-}  // namespace blender::bke
+}  // namespace bke
 
 IDTypeInfo IDType_ID_AC = {
     /*id_code*/ bAction::id_type,
@@ -752,20 +751,20 @@ IDTypeInfo IDType_ID_AC = {
     /*name_plural*/ "actions",
     /*translation_context*/ BLT_I18NCONTEXT_ID_ACTION,
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
-    /*asset_type_info*/ &blender::bke::AssetType_AC,
+    /*asset_type_info*/ &bke::AssetType_AC,
 
-    /*init_data*/ blender::bke::action_init_data,
-    /*copy_data*/ blender::bke::action_copy_data,
-    /*free_data*/ blender::bke::action_free_data,
+    /*init_data*/ bke::action_init_data,
+    /*copy_data*/ bke::action_copy_data,
+    /*free_data*/ bke::action_free_data,
     /*make_local*/ nullptr,
-    /*foreach_id*/ blender::bke::action_foreach_id,
+    /*foreach_id*/ bke::action_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
-    /*blend_write*/ blender::bke::action_blend_write,
-    /*blend_read_data*/ blender::bke::action_blend_read_data,
+    /*blend_write*/ bke::action_blend_write,
+    /*blend_read_data*/ bke::action_blend_read_data,
     /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
@@ -852,13 +851,13 @@ void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel
     return;
   }
 
-  const BoneColor &color = blender::animrig::ANIM_bonecolor_posebone_get(pchan);
+  const BoneColor &color = animrig::ANIM_bonecolor_posebone_get(pchan);
   action_group_colors_set(grp, &color);
 }
 
 void action_group_colors_set(bActionGroup *grp, const BoneColor *color)
 {
-  const blender::animrig::BoneColor &bone_color = color->wrap();
+  const animrig::BoneColor &bone_color = color->wrap();
 
   grp->customCol = int(bone_color.palette_index);
 
@@ -1177,7 +1176,7 @@ bool BKE_pose_is_bonecoll_visible(const bArmature *arm, const bPoseChannel *pcha
 
 bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_bonecoll)
 {
-  bArmature *arm = blender::id_cast<bArmature *>((ob) ? ob->data : nullptr);
+  bArmature *arm = id_cast<bArmature *>((ob) ? ob->data : nullptr);
   if (ELEM(nullptr, ob, ob->pose, arm)) {
     return nullptr;
   }
@@ -1201,20 +1200,20 @@ bPoseChannel *BKE_pose_channel_active_if_bonecoll_visible(Object *ob)
 
 bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
 {
-  bArmature *arm = blender::id_cast<bArmature *>((ob) ? ob->data : nullptr);
+  bArmature *arm = id_cast<bArmature *>((ob) ? ob->data : nullptr);
 
   if (ELEM(nullptr, ob, ob->pose, arm)) {
     return nullptr;
   }
 
   bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
-  if (pchan && blender::animrig::bone_is_selected(arm, pchan)) {
+  if (pchan && animrig::bone_is_selected(arm, pchan)) {
     return pchan;
   }
 
   for (bPoseChannel &pchan : ob->pose->chanbase) {
     if (pchan.bone != nullptr) {
-      if (blender::animrig::bone_is_selected(arm, &pchan)) {
+      if (animrig::bone_is_selected(arm, &pchan)) {
         return &pchan;
       }
     }
@@ -1281,7 +1280,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
 
   for (bPoseChannel &pchan : outPose->chanbase) {
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-      id_us_plus(blender::id_cast<ID *>(pchan.custom));
+      id_us_plus(id_cast<ID *>(pchan.custom));
     }
 
     if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
@@ -1987,7 +1986,7 @@ void what_does_obaction(Object *ob,
   }
 
   /* clear workob */
-  blender::bke::ObjectRuntime workob_runtime;
+  bke::ObjectRuntime workob_runtime;
   BKE_object_workob_clear(workob);
   workob->runtime = &workob_runtime;
 
@@ -2186,7 +2185,7 @@ void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose
     return;
   }
 
-  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+  bArmature *arm = id_cast<bArmature *>(ob->data);
 
   /* Always rebuild to match library changes, except on Undo. */
   bool rebuild = false;
@@ -2236,3 +2235,5 @@ void BKE_action_fcurves_clear(bAction *act)
   }
   DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
 }
+
+}  // namespace blender

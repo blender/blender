@@ -95,6 +95,7 @@ static std::vector<metadata::Symbol> scan_external_symbols(
 
 int main(int argc, char **argv)
 {
+  using namespace blender;
   if (argc < 5) {
     std::cerr << "Usage: shader_tool <data_file_from> <data_file_to> <metadata_file_to> "
                  "<infos_file_to> <include_dir1> <include_dir2> ..."
@@ -179,7 +180,7 @@ int main(int argc, char **argv)
   const bool is_info = filename.find("infos.hh") != std::string::npos ||
                        buffer.str().find("#pragma create_info") != std::string::npos;
 
-  using namespace blender::gpu::shader;
+  using namespace gpu::shader;
 
   Language language = language_from_filename(filename);
 

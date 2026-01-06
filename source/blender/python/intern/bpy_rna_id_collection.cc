@@ -41,6 +41,8 @@
 
 #include "bpy_rna.hh"
 
+namespace blender {
+
 static Main *pyrna_bmain_FromPyObject(PyObject *obj)
 {
   if (!BPy_StructRNA_Check(obj)) {
@@ -850,7 +852,7 @@ static PyObject *bpy_batch_remove(PyObject *self, PyObject *args, PyObject *kwds
 
   PyObject **ids_array = PySequence_Fast_ITEMS(ids_fast);
   Py_ssize_t ids_len = PySequence_Fast_GET_SIZE(ids_fast);
-  blender::Set<ID *> ids_to_delete;
+  Set<ID *> ids_to_delete;
   for (; ids_len; ids_array++, ids_len--) {
     ID *id;
     if (!pyrna_id_FromPyObject(*ids_array, &id)) {
@@ -984,3 +986,5 @@ PyMethodDef BPY_rna_id_collection_orphans_purge_method_def = {
 #    pragma GCC diagnostic pop
 #  endif
 #endif
+
+}  // namespace blender

@@ -6,6 +6,8 @@
 
 #include <stdbool.h>
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  */
@@ -161,3 +163,5 @@ float BLI_ocean_spectrum_texelmarsenarsloe(const struct Ocean *oc, float kx, flo
  * called the fetch, or the distance over which the wind blows with constant velocity.
  */
 float BLI_ocean_spectrum_jonswap(const struct Ocean *oc, float kx, float kz);
+
+}  // namespace blender

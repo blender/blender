@@ -8,6 +8,8 @@
 
 #include "BLI_vector_list.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup bmesh
  *
@@ -248,9 +250,9 @@ void BM_face_uvselect_set_shared(BMesh *bm, BMFace *f, bool select, int cd_loop_
 void BM_mesh_uvselect_set_elem_shared(BMesh *bm,
                                       bool select,
                                       int cd_loop_uv_offset,
-                                      blender::Span<BMLoop *> loop_verts,
-                                      blender::Span<BMLoop *> loop_edges,
-                                      blender::Span<BMFace *> faces);
+                                      Span<BMLoop *> loop_verts,
+                                      Span<BMLoop *> loop_edges,
+                                      Span<BMFace *> faces);
 
 /** \} */
 
@@ -300,16 +302,16 @@ void BM_face_uvselect_set_pick(BMesh *bm,
 void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
                                          bool select,
                                          const BMUVSelectPickParams &params,
-                                         blender::Span<BMVert *> verts,
-                                         blender::Span<BMEdge *> edges,
-                                         blender::Span<BMFace *> faces);
+                                         Span<BMVert *> verts,
+                                         Span<BMEdge *> edges,
+                                         Span<BMFace *> faces);
 /** \copydoc #BM_mesh_uvselect_set_elem_from_mesh. */
 void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
                                          bool select,
                                          const BMUVSelectPickParams &params,
-                                         const blender::VectorList<BMVert *> &verts,
-                                         const blender::VectorList<BMEdge *> &edges,
-                                         const blender::VectorList<BMFace *> &faces);
+                                         const VectorList<BMVert *> &verts,
+                                         const VectorList<BMEdge *> &edges,
+                                         const VectorList<BMFace *> &faces);
 
 /** \} */
 
@@ -578,3 +580,5 @@ bool BM_mesh_uvselect_is_valid(BMesh *bm,
                                UVSelectValidateInfo *info);
 
 /** \} */
+
+}  // namespace blender

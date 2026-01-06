@@ -22,6 +22,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define HEAP_PARENT(i) (((i) - 1) >> 1)
 
 /* -------------------------------------------------------------------- */
@@ -216,3 +218,5 @@ void *BLI_heapsimple_pop_min(HeapSimple *heap)
 }
 
 /** \} */
+
+}  // namespace blender

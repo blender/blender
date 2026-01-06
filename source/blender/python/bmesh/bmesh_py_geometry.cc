@@ -17,6 +17,8 @@
 #include "bmesh_py_geometry.hh" /* own include */
 #include "bmesh_py_types.hh"
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_geometry_intersect_face_point_doc,
@@ -83,3 +85,5 @@ PyObject *BPyInit_bmesh_geometry()
 
   return submodule;
 }
+
+}  // namespace blender

@@ -36,7 +36,7 @@
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* own include */
 
-using blender::float3;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name View All Operator
@@ -191,11 +191,11 @@ static void view3d_from_minmax_multi(bContext *C,
  * Move & Zoom the view to fit all of its contents.
  * \{ */
 
-std::optional<blender::Bounds<float3>> view3d_calc_minmax_visible(Depsgraph *depsgraph,
-                                                                  ScrArea *area,
-                                                                  ARegion *region,
-                                                                  const bool use_all_regions,
-                                                                  const bool clip_bounds)
+std::optional<Bounds<float3>> view3d_calc_minmax_visible(Depsgraph *depsgraph,
+                                                         ScrArea *area,
+                                                         ARegion *region,
+                                                         const bool use_all_regions,
+                                                         const bool clip_bounds)
 {
   /* NOTE: we could support calculating this without requiring a #View3D or #RegionView3D
    * Currently this isn't needed. */
@@ -238,15 +238,15 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_visible(Depsgraph *dep
   if (!changed) {
     return std::nullopt;
   }
-  return blender::Bounds<float3>(min, max);
+  return Bounds<float3>(min, max);
 }
 
-std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *depsgraph,
-                                                                   ScrArea *area,
-                                                                   ARegion *region,
-                                                                   const bool use_all_regions,
-                                                                   const bool clip_bounds,
-                                                                   bool *r_do_zoom)
+std::optional<Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *depsgraph,
+                                                          ScrArea *area,
+                                                          ARegion *region,
+                                                          const bool use_all_regions,
+                                                          const bool clip_bounds,
+                                                          bool *r_do_zoom)
 {
   /* NOTE: we could support calculating this without requiring a #View3D or #RegionView3D
    * Currently this isn't needed. */
@@ -317,9 +317,9 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
     FOREACH_OBJECT_IN_MODE_BEGIN (
         scene_eval, view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter)
     {
-      const std::optional<blender::Bounds<float3>> bounds = BKE_pose_minmax(ob_eval_iter, true);
+      const std::optional<Bounds<float3>> bounds = BKE_pose_minmax(ob_eval_iter, true);
       if (bounds) {
-        const blender::Bounds<float3> world_bounds = blender::bounds::transform_bounds<float, 4>(
+        const Bounds<float3> world_bounds = bounds::transform_bounds<float, 4>(
             ob_eval->object_to_world(), *bounds);
         minmax_v3v3_v3(min, max, world_bounds.min);
         minmax_v3v3_v3(min, max, world_bounds.max);
@@ -388,13 +388,13 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
   if (!changed) {
     return std::nullopt;
   }
-  return blender::Bounds<float3>(min, max);
+  return Bounds<float3>(min, max);
 }
 
 bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
                                           ViewLayer *view_layer,
                                           const View3D *v3d,
-                                          const blender::float3 &point,
+                                          const float3 &point,
                                           const float scale_margin)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
@@ -409,12 +409,12 @@ bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
     float3 min, max;
     view3d_object_calc_minmax(depsgraph, scene, ob, false, min, max);
 
-    blender::Bounds<float3> bounds{min, max};
+    Bounds<float3> bounds{min, max};
 
     bounds.scale_from_center(float3(scale_margin));
 
-    float3 local_min = blender::math::transform_point(ob->object_to_world(), bounds.min);
-    float3 local_max = blender::math::transform_point(ob->object_to_world(), bounds.max);
+    float3 local_min = math::transform_point(ob->object_to_world(), bounds.min);
+    float3 local_max = math::transform_point(ob->object_to_world(), bounds.max);
 
     if (point[0] >= local_min[0] && point[1] >= local_min[1] && point[2] >= local_min[2] &&
         point[0] <= local_max[0] && point[1] <= local_max[1] && point[2] <= local_max[2])
@@ -445,13 +445,13 @@ static wmOperatorStatus view3d_all_exec(bContext *C, wmOperator *op)
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  std::optional<blender::Bounds<float3>> bounds = view3d_calc_minmax_visible(
+  std::optional<Bounds<float3>> bounds = view3d_calc_minmax_visible(
       depsgraph, area, region, use_all_regions, true);
   if (center) {
     /* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
     View3DCursor *cursor = &scene->cursor;
 
-    cursor->set_matrix(blender::float4x4::identity(), false);
+    cursor->set_matrix(float4x4::identity(), false);
 
     wmMsgBus *mbus = CTX_wm_message_bus(C);
     WM_msg_publish_rna_prop(mbus, &scene->id, &scene->cursor, View3DCursor, location);
@@ -528,7 +528,7 @@ static wmOperatorStatus viewselected_exec(bContext *C, wmOperator *op)
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  const std::optional<blender::Bounds<float3>> bounds = view3d_calc_minmax_selected(
+  const std::optional<Bounds<float3>> bounds = view3d_calc_minmax_selected(
       depsgraph, area, region, use_all_regions, true, &do_zoom);
 
   if (!bounds.has_value()) {
@@ -570,3 +570,5 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

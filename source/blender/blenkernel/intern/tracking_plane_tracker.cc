@@ -19,6 +19,8 @@
 
 #include "libmv-capi.h"
 
+namespace blender {
+
 typedef double Vec2[2];
 
 static int point_markers_correspondences_on_both_image(
@@ -223,3 +225,5 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
 
   copy_m3_m3d(H, H_double);
 }
+
+}  // namespace blender

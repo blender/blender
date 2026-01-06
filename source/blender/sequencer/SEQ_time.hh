@@ -10,11 +10,13 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Scene;
 struct Strip;
 struct rctf;
 
-namespace blender::seq {
+namespace seq {
 
 /**
  * Initialize given rectangle with the Scene's timeline boundaries.
@@ -67,4 +69,5 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta);
 void time_slip_strip(
     const Scene *scene, Strip *strip, int frame_delta, float subframe_delta, bool slip_keyframes);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

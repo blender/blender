@@ -121,7 +121,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSetGreasePencilColor");
   ntype.ui_name = "Set Grease Pencil Color";
@@ -132,7 +132,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
   bke::node_type_size(ntype, 170, 120, NODE_DEFAULT_MAX_WIDTH);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

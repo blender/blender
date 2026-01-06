@@ -24,6 +24,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* Bone Collection Color Sets */
 const EnumPropertyItem rna_enum_color_palettes_items[] = {
     {0, "DEFAULT", 0, "Default Colors", ""},
@@ -54,6 +56,8 @@ const EnumPropertyItem rna_enum_color_palettes_items[] = {
 constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 #endif
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
@@ -81,6 +85,8 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 #  ifndef NDEBUG
 #    include "ANIM_armature_iter.hh"
 #  endif
+
+namespace blender {
 
 static void rna_Armature_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -117,9 +123,9 @@ static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value, ReportL
   }
   else {
     if (value.owner_id != &arm->id) {
-      Object *ob = blender::id_cast<Object *>(value.owner_id);
+      Object *ob = id_cast<Object *>(value.owner_id);
 
-      if (GS(ob->id.name) != ID_OB || (ob->data != blender::id_cast<const ID *>(arm))) {
+      if (GS(ob->id.name) != ID_OB || (ob->data != id_cast<const ID *>(arm))) {
         printf("ERROR: armature set active bone - new active does not come from this armature\n");
         return;
       }
@@ -236,7 +242,7 @@ static void rna_BoneCollections_active_set(PointerRNA *ptr,
 static void rna_iterator_bone_collection_children_begin(CollectionPropertyIterator *iter,
                                                         PointerRNA *ptr)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   const BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
   rna_iterator_array_begin(iter,
                            ptr,
@@ -254,13 +260,13 @@ static int rna_iterator_bone_collection_children_length(PointerRNA *ptr)
 
 static PointerRNA rna_BoneCollection_parent_get(PointerRNA *ptr)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   const BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
 
   /* Note that this performs two scans of the array. This might look bad, but as
    * long as `Object.children` still loops in Python over all of
    * `bpy.data.objects`, this should also be acceptable. */
-  using namespace blender::animrig;
+  using namespace animrig;
   const int bcoll_index = armature_bonecoll_find_index(arm, bcoll);
   const int parent_index = armature_bonecoll_find_parent_index(arm, bcoll_index);
 
@@ -276,12 +282,12 @@ static void rna_BoneCollection_parent_set(PointerRNA *ptr,
                                           PointerRNA value,
                                           struct ReportList *reports)
 {
-  using namespace blender::animrig;
+  using namespace animrig;
 
   BoneCollection *self = static_cast<BoneCollection *>(ptr->data);
   BoneCollection *to_parent = static_cast<BoneCollection *>(value.data);
 
-  bArmature *armature = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *armature = id_cast<bArmature *>(ptr->owner_id);
 
   const int from_bcoll_index = armature_bonecoll_find_index(armature, self);
   const int from_parent_index = armature_bonecoll_find_parent_index(armature, from_bcoll_index);
@@ -339,7 +345,7 @@ static BoneCollection *rna_BoneCollections_new(bArmature *armature,
     return bcoll;
   }
 
-  const int32_t parent_index = blender::animrig::armature_bonecoll_find_index(armature, parent);
+  const int32_t parent_index = animrig::armature_bonecoll_find_index(armature, parent);
   if (parent_index < 0) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -374,7 +380,7 @@ static void rna_BoneCollections_move(bArmature *arm, ReportList *reports, int fr
 
 static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
 
   ANIM_armature_bonecoll_name_set(arm, bcoll, name);
@@ -382,7 +388,7 @@ static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
 
 static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_visible)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
 
   ANIM_armature_bonecoll_is_visible_set(arm, bcoll, is_visible);
@@ -390,14 +396,14 @@ static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_vis
 
 static bool rna_BoneCollection_is_visible_effectively_get(PointerRNA *ptr)
 {
-  const bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  const bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   const BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
   return ANIM_armature_bonecoll_is_visible_effectively(arm, bcoll);
 }
 
 static void rna_BoneCollection_is_solo_set(PointerRNA *ptr, const bool is_solo)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
 
   ANIM_armature_bonecoll_solo_set(arm, bcoll, is_solo);
@@ -446,20 +452,20 @@ static int rna_BoneCollection_index_get(PointerRNA *ptr)
 {
   bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
-  return blender::animrig::armature_bonecoll_find_index(arm, bcoll);
+  return animrig::armature_bonecoll_find_index(arm, bcoll);
 }
 
 static int rna_BoneCollection_child_number_get(PointerRNA *ptr)
 {
   bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
-  return blender::animrig::armature_bonecoll_child_number_find(arm, bcoll);
+  return animrig::armature_bonecoll_child_number_find(arm, bcoll);
 }
 static void rna_BoneCollection_child_number_set(PointerRNA *ptr, const int new_child_number)
 {
   bArmature *arm = reinterpret_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
-  blender::animrig::armature_bonecoll_child_number_set(arm, bcoll, new_child_number);
+  animrig::armature_bonecoll_child_number_set(arm, bcoll, new_child_number);
   WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, nullptr);
 }
 
@@ -467,7 +473,7 @@ static void rna_BoneCollection_child_number_set(PointerRNA *ptr, const int new_c
 
 static void rna_BoneCollection_bones_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   if (arm->edbo) {
     iter->valid = false;
     BKE_reportf(nullptr, RPT_WARNING, "`Collection.bones` is not available in armature edit mode");
@@ -539,8 +545,8 @@ static bool rna_Armature_collections_override_apply(Main *bmain,
       return false;
   }
 
-  const bArmature *arm_src = blender::id_cast<bArmature *>(ptr_src->owner_id);
-  bArmature *arm_dst = blender::id_cast<bArmature *>(ptr_dst->owner_id);
+  const bArmature *arm_src = id_cast<bArmature *>(ptr_src->owner_id);
+  bArmature *arm_dst = id_cast<bArmature *>(ptr_dst->owner_id);
   BoneCollection *bcoll_anchor = static_cast<BoneCollection *>(ptr_item_dst->data);
   BoneCollection *bcoll_src = static_cast<BoneCollection *>(ptr_item_src->data);
   BoneCollection *bcoll = ANIM_armature_bonecoll_insert_copy_after(
@@ -596,7 +602,7 @@ static std::optional<std::string> rna_BoneColor_path_bone(const PointerRNA *ptr)
   const bArmature *arm = reinterpret_cast<const bArmature *>(ptr->owner_id);
 
   bool found = false;
-  blender::animrig::ANIM_armature_foreach_bone(&arm->bonebase, [&](const Bone *checkBone) {
+  animrig::ANIM_armature_foreach_bone(&arm->bonebase, [&](const Bone *checkBone) {
     if (&checkBone->color == ptr->data) {
       BLI_assert_msg(checkBone == bone,
                      "pointer magic to find the pose bone failed (found the wrong bone)");
@@ -705,7 +711,7 @@ static void rna_Armature_redraw_data(Main * /*bmain*/, Scene * /*scene*/, Pointe
 /* Unselect bones when hidden or not selectable. */
 static void rna_EditBone_hide_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   EditBone *ebone = static_cast<EditBone *>(ptr->data);
 
   if (ebone->flag & (BONE_HIDDEN_A | BONE_UNSELECTABLE)) {
@@ -719,7 +725,7 @@ static void rna_EditBone_hide_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
 /* Unselect bones when hidden or not selectable. */
 static void rna_Bone_hide_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   Bone *bone = static_cast<Bone *>(ptr->data);
   if (bone->flag & (BONE_HIDDEN_A | BONE_UNSELECTABLE)) {
     bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
@@ -796,7 +802,7 @@ static IDProperty **rna_EditBone_system_idprops(PointerRNA *ptr)
 
 static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   EditBone *ebone = static_cast<EditBone *>(ptr->data);
   char oldname[sizeof(ebone->name)], newname[sizeof(ebone->name)];
 
@@ -810,7 +816,7 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 
 static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   Bone *bone = static_cast<Bone *>(ptr->data);
   char oldname[sizeof(bone->name)], newname[sizeof(bone->name)];
 
@@ -929,14 +935,14 @@ static void rna_EditBone_length_set(PointerRNA *ptr, float length)
 
 static void rna_Bone_bbone_handle_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   Bone *bone = static_cast<Bone *>(ptr->data);
 
   /* Update all users of this armature after changing B-Bone handles. */
   for (Object *obt = static_cast<Object *>(bmain->objects.first); obt;
        obt = static_cast<Object *>(obt->id.next))
   {
-    if (obt->data == blender::id_cast<ID *>(arm) && obt->pose) {
+    if (obt->data == id_cast<ID *>(arm) && obt->pose) {
       bPoseChannel *pchan = BKE_pose_channel_find_name(obt->pose, bone->name);
 
       if (pchan && pchan->bone == bone) {
@@ -1017,7 +1023,7 @@ static PointerRNA rna_EditBone_color_get(PointerRNA *ptr)
 
 static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   EditBone *ebone = static_cast<EditBone *>(ptr->data);
   EditBone *child;
 
@@ -1084,7 +1090,7 @@ static bool rna_Armature_bones_lookup_string(PointerRNA *ptr, const char *key, P
 
 static bool rna_Armature_is_editmode_get(PointerRNA *ptr)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ptr->owner_id);
+  bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   return (arm->edbo != nullptr);
 }
 
@@ -1117,7 +1123,11 @@ static void rna_Armature_relation_line_position_set(PointerRNA *ptr, const int v
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_bonecolor(BlenderRNA *brna)
 {
@@ -2476,5 +2486,7 @@ void RNA_def_armature(BlenderRNA *brna)
   rna_def_bone(brna);
   rna_def_edit_bone(brna);
 }
+
+}  // namespace blender
 
 #endif

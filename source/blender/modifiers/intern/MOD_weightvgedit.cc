@@ -50,6 +50,8 @@
 #include "MOD_util.hh"
 #include "MOD_weightvg_util.hh"
 
+namespace blender {
+
 /**************************************
  * Modifiers functions.               *
  **************************************/
@@ -282,8 +284,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout *sub, *col, *row;
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout *sub, *col, *row;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -293,7 +295,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   col = &layout.column(true);
   col->prop_search(ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
 
-  layout.prop(ptr, "default_weight", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "default_weight", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   col = &layout.column(false, IFACE_("Group Add"));
   row = &col->row(true);
@@ -303,7 +305,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_add"));
   sub->use_property_split_set(false);
-  sub->prop(ptr, "add_threshold", blender::ui::ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
+  sub->prop(ptr, "add_threshold", ui::ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   row->decorator(ptr, "add_threshold", 0);
 
   col = &layout.column(false, IFACE_("Group Remove"));
@@ -314,7 +316,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_remove"));
   sub->use_property_split_set(false);
-  sub->prop(ptr, "remove_threshold", blender::ui::ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
+  sub->prop(ptr, "remove_threshold", ui::ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   row->decorator(ptr, "remove_threshold", 0);
 
   layout.prop(ptr, "normalize", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -324,16 +326,16 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &row = layout.row(true);
+  ui::Layout &row = layout.row(true);
   row.prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
-  blender::ui::Layout &sub = row.row(true);
+  ui::Layout &sub = row.row(true);
   sub.use_property_split_set(false);
   row.prop(ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
@@ -343,7 +345,7 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void influence_panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -418,3 +420,5 @@ ModifierTypeInfo modifierType_WeightVGEdit = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

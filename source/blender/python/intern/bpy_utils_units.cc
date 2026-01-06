@@ -25,6 +25,8 @@
 
 #include "BKE_unit.hh"
 
+namespace blender {
+
 /***** C-defined systems and types *****/
 
 static PyTypeObject BPyUnitsSystemsType;
@@ -400,3 +402,5 @@ PyObject *BPY_utils_units()
 
   return submodule;
 }
+
+}  // namespace blender

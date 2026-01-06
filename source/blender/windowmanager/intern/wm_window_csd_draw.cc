@@ -28,6 +28,8 @@
 
 #include "BLF_api.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Window Title Bar Drawing
  *
@@ -83,7 +85,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
       wmWindowViewportTitle_ex(window_rect, 0);
 
       const uint shdr_pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+          immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
       immUniformColor4ubv(border_outline_color);
 
@@ -193,8 +195,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
   {
     constexpr int circle_segments = 16;
     GPUVertFormat *format = immVertexFormat();
-    const uint shdr_pos = GPU_vertformat_attr_add(
-        format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    const uint shdr_pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -276,7 +277,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
 void WM_window_csd_draw_titlebar(const wmWindow *win)
 {
   BLI_assert(WM_window_is_csd(win));
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
   const GHOST_CSD_Layout *csd_layout = WM_window_csd_layout_get();
   const uint16_t dpi = GHOST_GetDPIHint(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
   const char win_state = GHOST_TWindowState(win->windowstate);
@@ -284,12 +285,12 @@ void WM_window_csd_draw_titlebar(const wmWindow *win)
   const bool is_active = (win->active != 0);
 
   uchar border_color[3];
-  blender::ui::theme::get_color_3ubv(TH_HEADER, border_color);
+  ui::theme::get_color_3ubv(TH_HEADER, border_color);
 
   uchar text_color[3];
-  blender::ui::theme::get_color_3ubv(TH_TEXT_HI, text_color);
+  ui::theme::get_color_3ubv(TH_TEXT_HI, text_color);
 
-  const uiStyle *style = blender::ui::style_get_dpi();
+  const uiStyle *style = ui::style_get_dpi();
   const uiFontStyle &fstyle = style->paneltitle;
 
   const int font_id = fstyle.uifont_id;
@@ -313,3 +314,5 @@ void WM_window_csd_draw_titlebar(const wmWindow *win)
 }
 
 /** \} */
+
+}  // namespace blender

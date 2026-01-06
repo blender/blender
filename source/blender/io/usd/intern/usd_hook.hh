@@ -6,11 +6,13 @@
 #include <pxr/usd/usd/common.h>
 #include <pxr/usd/usdShade/material.h>
 
+namespace blender {
+
 struct Depsgraph;
 struct Material;
 struct ReportList;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 struct USDExportParams;
 class USDHierarchyIterator;
@@ -50,4 +52,5 @@ bool call_material_import_hooks(pxr::UsdStageRefPtr stage,
                                 const USDImportParams &import_params,
                                 ReportList *reports);
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

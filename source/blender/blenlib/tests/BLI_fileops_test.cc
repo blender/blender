@@ -176,7 +176,7 @@ TEST_F(FileOpsTest, dir_create_recursive)
 }
 
 /*
- * blender::fstream tests.
+ * fstream tests.
  */
 
 TEST(fileops, fstream_open_string_filename)

@@ -15,6 +15,7 @@
 
 #include <cstring>
 
+#include "DNA_ID_enums.h"
 #include "DNA_layer_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -60,13 +61,13 @@
 
 #include "BLO_read_write.hh"
 
-using blender::Set;
+namespace blender {
 
 /* ****************************************************** */
 
 static void window_manager_free_data(ID *id)
 {
-  wm_close_and_free(nullptr, blender::id_cast<wmWindowManager *>(id));
+  wm_close_and_free(nullptr, id_cast<wmWindowManager *>(id));
 }
 
 static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -79,10 +80,10 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
 
     /* This pointer can be nullptr during old files reading. */
     if (win.workspace_hook != nullptr) {
-      ID *workspace = blender::id_cast<ID *>(BKE_workspace_active_get(win.workspace_hook));
+      ID *workspace = id_cast<ID *>(BKE_workspace_active_get(win.workspace_hook));
       BKE_lib_query_foreachid_process(data, &workspace, IDWALK_CB_USER);
       /* Allow callback to set a different workspace. */
-      BKE_workspace_active_set(win.workspace_hook, blender::id_cast<WorkSpace *>(workspace));
+      BKE_workspace_active_set(win.workspace_hook, id_cast<WorkSpace *>(workspace));
       if (BKE_lib_query_foreachid_iter_stop(data)) {
         return;
       }
@@ -113,7 +114,7 @@ static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
 
 static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  wmWindowManager *wm = blender::id_cast<wmWindowManager *>(id);
+  wmWindowManager *wm = id_cast<wmWindowManager *>(id);
 
   wm->runtime = nullptr;
 
@@ -143,7 +144,7 @@ static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
 
 static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  wmWindowManager *wm = blender::id_cast<wmWindowManager *>(id);
+  wmWindowManager *wm = id_cast<wmWindowManager *>(id);
 
   id_us_ensure_real(&wm->id);
   BLO_read_struct_list(reader, wmWindow, &wm->windows);
@@ -187,7 +188,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     if (win.stereo3d_format) {
       win.stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
     }
-    win.runtime = MEM_new<blender::bke::WindowRuntime>(__func__);
+    win.runtime = MEM_new<bke::WindowRuntime>(__func__);
   }
 
   direct_link_wm_xr_data(reader, &wm->xr);
@@ -200,7 +201,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   wm->extensions_blocked = 0;
 
   BLI_assert(wm->runtime == nullptr);
-  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
+  wm->runtime = MEM_new<bke::WindowManagerRuntime>(__func__);
 }
 
 static void window_manager_blend_read_after_liblink(BlendLibReader *reader, ID *id)
@@ -542,7 +543,7 @@ void wm_add_default(Main *bmain, bContext *C)
   BKE_workspace_active_layout_set(win->workspace_hook, win->winid, workspace, layout);
   screen->winid = win->winid;
 
-  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
+  wm->runtime = MEM_new<bke::WindowManagerRuntime>(__func__);
   wm->runtime->winactive = win;
   wm->file_saved = 1;
   wm_window_make_drawable(wm, win);
@@ -613,3 +614,5 @@ void WM_main(bContext *C)
     wm_draw_update(C);
   }
 }
+
+}  // namespace blender

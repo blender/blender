@@ -28,6 +28,8 @@
 
 #include "view3d_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Force Field Gizmos
  * \{ */
@@ -70,8 +72,8 @@ static void WIDGETGROUP_forcefield_setup(const bContext * /*C*/, wmGizmoGroup *g
   ED_gizmo_arrow3d_set_ui_range(gz, -200.0f, 200.0f);
   ED_gizmo_arrow3d_set_range_fac(gz, 6.0f);
 
-  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
-  blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
+  ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
   /* All gizmos must perform undo. */
   for (wmGizmo &gz_iter : gzgroup->gizmos) {
@@ -120,3 +122,5 @@ void VIEW3D_GGT_force_field(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender

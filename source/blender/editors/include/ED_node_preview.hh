@@ -12,6 +12,8 @@
 
 #include "DNA_material_types.h"
 
+namespace blender {
+
 struct ImBuf;
 struct SpaceNode;
 struct bContext;
@@ -20,7 +22,7 @@ struct bNodeTree;
 struct wmWindowManager;
 struct Render;
 
-namespace blender::ed::space_node {
+namespace ed::space_node {
 
 struct NestedTreePreviews {
   Render *previews_render = nullptr;
@@ -59,4 +61,6 @@ void node_release_preview_ibuf(NestedTreePreviews &tree_previews);
  */
 NestedTreePreviews *get_nested_previews(const bContext &C, SpaceNode &snode);
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

@@ -41,9 +41,11 @@
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static void rna_cloth_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
@@ -57,7 +59,7 @@ static void rna_cloth_dependency_update(Main *bmain, Scene *scene, PointerRNA *p
 
 static void rna_cloth_pinning_changed(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   // ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
   ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(
       BKE_modifiers_findby_type(ob, eModifierType_Cloth));
@@ -382,7 +384,7 @@ static void rna_CollSettings_objcol_vgroup_set(PointerRNA *ptr, const char *valu
 
 static PointerRNA rna_ClothSettings_rest_shape_key_get(PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   ClothSimSettings *sim = static_cast<ClothSimSettings *>(ptr->data);
 
   return rna_object_shapekey_index_get(static_cast<ID *>(ob->data), sim->shapekey_rest);
@@ -392,7 +394,7 @@ static void rna_ClothSettings_rest_shape_key_set(PointerRNA *ptr,
                                                  PointerRNA value,
                                                  ReportList * /*reports*/)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   ClothSimSettings *sim = static_cast<ClothSimSettings *>(ptr->data);
 
   sim->shapekey_rest = rna_object_shapekey_index_set(
@@ -419,7 +421,7 @@ static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
 
 static std::optional<std::string> rna_ClothSettings_path(const PointerRNA *ptr)
 {
-  const Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  const Object *ob = id_cast<Object *>(ptr->owner_id);
   const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
   if (md) {
@@ -432,7 +434,7 @@ static std::optional<std::string> rna_ClothSettings_path(const PointerRNA *ptr)
 
 static std::optional<std::string> rna_ClothCollisionSettings_path(const PointerRNA *ptr)
 {
-  const Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  const Object *ob = id_cast<Object *>(ptr->owner_id);
   const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
   if (md) {
@@ -455,7 +457,11 @@ static int rna_ClothSettings_internal_editable(const PointerRNA *ptr, const char
   return sim ? PROP_EDITABLE : PropertyFlag(0);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_cloth_solver_result(BlenderRNA *brna)
 {
@@ -1194,5 +1200,7 @@ void RNA_def_cloth(BlenderRNA *brna)
   rna_def_cloth_sim_settings(brna);
   rna_def_cloth_collision_settings(brna);
 }
+
+}  // namespace blender
 
 #endif

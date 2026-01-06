@@ -15,6 +15,8 @@
 
 #include "DNA_windowmanager_types.h"
 
+namespace blender {
+
 /**
  * A callable operator.
  *
@@ -55,3 +57,5 @@ PyObject *pyop_create_function(PyObject *self, PyObject *args);
  * \return 0 on success, -1 on failure
  */
 int BPyOpFunction_InitTypes();
+
+}  // namespace blender

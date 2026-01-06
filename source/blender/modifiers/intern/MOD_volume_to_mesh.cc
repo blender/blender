@@ -38,9 +38,7 @@
 #  include <openvdb/tools/VolumeToMesh.h>
 #endif
 
-using blender::float3;
-using blender::float4x4;
-using blender::Span;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
@@ -75,7 +73,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   VolumeToMeshModifierData *vmmd = static_cast<VolumeToMeshModifierData *>(ptr->data);
@@ -83,13 +81,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.use_property_split_set(true);
 
   {
-    blender::ui::Layout &col = layout.column(false);
+    ui::Layout &col = layout.column(false);
     col.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "grid_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   {
-    blender::ui::Layout &col = layout.column(false);
+    ui::Layout &col = layout.column(false);
     col.prop(ptr, "resolution_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT) {
       col.prop(ptr, "voxel_amount", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -100,7 +98,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   {
-    blender::ui::Layout &col = layout.column(false);
+    ui::Layout &col = layout.column(false);
     col.prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "adaptivity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -123,7 +121,6 @@ static Mesh *create_empty_mesh(const Mesh *input_mesh)
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *input_mesh)
 {
-  using namespace blender;
 #ifdef WITH_OPENVDB
   VolumeToMeshModifierData *vmmd = reinterpret_cast<VolumeToMeshModifierData *>(md);
   if (vmmd->object == nullptr) {
@@ -143,16 +140,16 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     return create_empty_mesh(input_mesh);
   }
 
-  const Volume *volume = blender::id_cast<Volume *>(vmmd->object->data);
+  const Volume *volume = id_cast<Volume *>(vmmd->object->data);
 
   BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
-  const blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_find(volume, vmmd->grid_name);
+  const bke::VolumeGridData *volume_grid = BKE_volume_grid_find(volume, vmmd->grid_name);
   if (volume_grid == nullptr) {
     BKE_modifier_set_error(ctx->object, md, "Cannot find '%s' grid", vmmd->grid_name);
     return create_empty_mesh(input_mesh);
   }
 
-  blender::bke::VolumeTreeAccessToken tree_token;
+  bke::VolumeTreeAccessToken tree_token;
   const openvdb::GridBase &local_grid = volume_grid->grid(tree_token);
 
   openvdb::math::Transform::Ptr transform = local_grid.transform().copy();
@@ -226,3 +223,5 @@ ModifierTypeInfo modifierType_VolumeToMesh = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

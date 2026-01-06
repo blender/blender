@@ -28,10 +28,10 @@ World::~World()
   }
 }
 
-::World *World::default_world_get()
+blender::World *World::default_world_get()
 {
   if (default_world_ == nullptr) {
-    default_world_ = BKE_id_new_nomain<::World>("EEVEE default world");
+    default_world_ = BKE_id_new_nomain<blender::World>("EEVEE default world");
     default_world_->nodetree = bke::node_tree_add_tree_embedded(
         nullptr, &default_world_->id, "World Nodetree", ntreeType_Shader->idname);
 
@@ -40,7 +40,7 @@ World::~World()
   return default_world_;
 }
 
-::World *World::scene_world_get()
+blender::World *World::scene_world_get()
 {
   return (inst_.scene->world != nullptr) ? inst_.scene->world : default_world_get();
 }
@@ -76,7 +76,7 @@ void World::sync()
   /* Sync volume first since its result can override the surface world. */
   sync_volume(wo_handle, wait_ready);
 
-  ::World *bl_world;
+  blender::World *bl_world;
   if (inst_.use_studio_light()) {
     has_update |= lookdev_world_.sync(LookdevParameters(inst_.v3d));
     bl_world = lookdev_world_.world_get();
@@ -91,7 +91,8 @@ void World::sync()
     bl_world = scene_world_get();
   }
 
-  ::World *world_override = DEG_get_evaluated(inst_.depsgraph, inst_.view_layer->world_override);
+  blender::World *world_override = DEG_get_evaluated(inst_.depsgraph,
+                                                     inst_.view_layer->world_override);
   if (world_override) {
     bl_world = world_override;
   }
@@ -106,7 +107,7 @@ void World::sync()
   }
 
   /* We have to manually test here because we have overrides. */
-  ::World *orig_world = DEG_get_original(bl_world);
+  blender::World *orig_world = DEG_get_original(bl_world);
   if (assign_if_different(prev_original_world, orig_world)) {
     has_update = true;
   }
@@ -145,7 +146,7 @@ void World::sync()
 void World::sync_volume(const WorldHandle &world_handle, bool wait_ready)
 {
   /* Studio lights have no volume shader. */
-  ::World *world = inst_.use_studio_light() ? nullptr : inst_.scene->world;
+  blender::World *world = inst_.use_studio_light() ? nullptr : inst_.scene->world;
 
   GPUMaterial *gpumat = nullptr;
 

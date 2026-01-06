@@ -21,10 +21,12 @@
 
 #include "UI_resources.hh"
 
+namespace blender {
+
 static void deform_verts(ModifierData * /*md*/,
                          const ModifierEvalContext *ctx,
                          Mesh * /*mesh*/,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   Key *key = BKE_key_from_object(ctx->object);
 
@@ -33,7 +35,7 @@ static void deform_verts(ModifierData * /*md*/,
     BKE_key_evaluate_object_ex(ctx->object,
                                &deformedVerts_tot,
                                reinterpret_cast<float *>(positions.data()),
-                               sizeof(blender::float3) * positions.size(),
+                               sizeof(float3) * positions.size(),
                                nullptr);
   }
 }
@@ -41,8 +43,8 @@ static void deform_verts(ModifierData * /*md*/,
 static void deform_matrices(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
-                            blender::MutableSpan<blender::float3> positions,
-                            blender::MutableSpan<blender::float3x3> matrices)
+                            MutableSpan<float3> positions,
+                            MutableSpan<float3x3> matrices)
 {
   Key *key = BKE_key_from_object(ctx->object);
   KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
@@ -70,7 +72,7 @@ static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             const BMEditMesh * /*em*/,
                             Mesh *mesh,
-                            blender::MutableSpan<blender::float3> positions)
+                            MutableSpan<float3> positions)
 {
   Key *key = BKE_key_from_object(ctx->object);
 
@@ -83,8 +85,8 @@ static void deform_matrices_EM(ModifierData * /*md*/,
                                const ModifierEvalContext *ctx,
                                const BMEditMesh * /*em*/,
                                Mesh * /*mesh*/,
-                               blender::MutableSpan<blender::float3> /*positions*/,
-                               blender::MutableSpan<blender::float3x3> matrices)
+                               MutableSpan<float3> /*positions*/,
+                               MutableSpan<float3x3> matrices)
 {
   Key *key = BKE_key_from_object(ctx->object);
   KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
@@ -135,3 +137,5 @@ ModifierTypeInfo modifierType_ShapeKey = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

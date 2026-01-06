@@ -27,6 +27,8 @@
 #include "gpu_py.hh"
 #include "gpu_py_matrix.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Helper Functions
  * \{ */
@@ -717,3 +719,5 @@ PyObject *bpygpu_matrix_init()
 }
 
 /** \} */
+
+}  // namespace blender

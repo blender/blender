@@ -39,8 +39,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 #define B_UVEDIT_VERTEX 3
 
@@ -114,7 +113,7 @@ static void uvedit_translate(Scene *scene, const Span<Object *> objects, const f
 
 static float uvedit_old_center[2];
 
-static void uvedit_vertex_buttons(const bContext *C, blender::ui::Block *block)
+static void uvedit_vertex_buttons(const bContext *C, ui::Block *block)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
@@ -156,12 +155,12 @@ static void uvedit_vertex_buttons(const bContext *C, blender::ui::Block *block)
       digits = 2;
     }
 
-    blender::ui::Button *but;
+    ui::Button *but;
 
     int y = 0;
     block_align_begin(block);
     but = uiDefButF(block,
-                    blender::ui::ButtonType::Num,
+                    ui::ButtonType::Num,
                     IFACE_("X:"),
                     0,
                     y -= UI_UNIT_Y,
@@ -174,7 +173,7 @@ static void uvedit_vertex_buttons(const bContext *C, blender::ui::Block *block)
     button_number_step_size_set(but, step);
     button_number_precision_set(but, digits);
     but = uiDefButF(block,
-                    blender::ui::ButtonType::Num,
+                    ui::ButtonType::Num,
                     IFACE_("Y:"),
                     0,
                     y -= UI_UNIT_Y,
@@ -238,7 +237,7 @@ static bool image_panel_uv_poll(const bContext *C, PanelType * /*pt*/)
 
 static void image_panel_uv(const bContext *C, Panel *panel)
 {
-  blender::ui::Block *block = panel->layout->absolute().block();
+  ui::Block *block = panel->layout->absolute().block();
   block_func_handle_set(block, do_uvedit_vertex, nullptr);
 
   uvedit_vertex_buttons(C, block);
@@ -256,3 +255,5 @@ void ED_uvedit_buttons_register(ARegionType *art)
   pt->poll = image_panel_uv_poll;
   BLI_addtail(&art->paneltypes, pt);
 }
+
+}  // namespace blender

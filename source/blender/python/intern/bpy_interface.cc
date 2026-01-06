@@ -71,6 +71,8 @@
 #include "../gpu/gpu_py_api.hh"
 #include "../mathutils/mathutils.hh"
 
+namespace blender {
+
 /* Logging types to use anywhere in the Python modules. */
 
 CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_INTERFACE, "bpy.interface");
@@ -1170,3 +1172,5 @@ int text_check_identifier_nodigit_unicode(const uint ch)
 }
 
 /** \} */
+
+}  // namespace blender

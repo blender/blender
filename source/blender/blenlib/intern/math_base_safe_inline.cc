@@ -6,11 +6,12 @@
  * \ingroup bli
  */
 
-#ifndef __MATH_BASE_SAFE_INLINE_C__
-#define __MATH_BASE_SAFE_INLINE_C__
+#pragma once
 
 #include "BLI_math_base_safe.h"
 #include "BLI_utildefines.h"
+
+namespace blender {
 
 MINLINE float safe_divide(float a, float b)
 {
@@ -65,4 +66,4 @@ MINLINE float safe_powf(float base, float exponent)
   return powf(base, exponent);
 }
 
-#endif /* __MATH_BASE_SAFE_INLINE_C__ */
+}  // namespace blender

@@ -38,6 +38,8 @@
 
 #include "info_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Pack Blend File Libraries Operator
  * \{ */
@@ -93,7 +95,7 @@ static wmOperatorStatus unpack_libraries_invoke(bContext *C,
                                 IFACE_("Restore Packed Linked Data to Their Original Locations"),
                                 IFACE_("Will create directories so that all paths are valid."),
                                 IFACE_("Unpack"),
-                                blender::ui::AlertIcon::Info,
+                                ui::AlertIcon::Info,
                                 false);
 }
 
@@ -185,7 +187,7 @@ static wmOperatorStatus pack_all_invoke(bContext *C, wmOperator *op, const wmEve
         IFACE_("Pack all used external files into this .blend file"),
         IFACE_("Warning: Some images are modified and these changes will be lost."),
         IFACE_("Pack"),
-        blender::ui::AlertIcon::Warning,
+        ui::AlertIcon::Warning,
         false);
   }
 
@@ -267,10 +269,10 @@ static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmE
   const std::string title = fmt::format(
       fmt::runtime(IFACE_("Unpack - Files: {}, Bakes: {}")), count.individual_files, count.bakes);
 
-  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, title.c_str(), ICON_NONE);
-  blender::ui::Layout &layout = *popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, title.c_str(), ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
 
-  layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
+  layout.operator_context_set(wm::OpCallContext::ExecDefault);
   layout.op_enum("FILE_OT_unpack_all", "method");
 
   popup_menu_end(C, pup);
@@ -358,14 +360,14 @@ static wmOperatorStatus unpack_item_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
-  blender::ui::Layout &layout = *popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
 
-  layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
+  layout.operator_context_set(wm::OpCallContext::ExecDefault);
   layout.op_enum(op->type->idname,
                  "method",
                  static_cast<IDProperty *>(op->ptr->data),
-                 blender::wm::OpCallContext::ExecRegionWin,
+                 wm::OpCallContext::ExecRegionWin,
                  UI_ITEM_NONE);
 
   popup_menu_end(C, pup);
@@ -670,3 +672,5 @@ void INFO_OT_reports_display_update(wmOperatorType *ot)
 /* report operators */
 
 /** \} */
+
+}  // namespace blender

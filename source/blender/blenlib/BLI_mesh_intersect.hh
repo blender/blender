@@ -230,7 +230,7 @@ class IMeshArena : NonCopyable, NonMovable {
 };
 
 /**
- * A #blender::meshintersect::IMesh is a self-contained mesh structure
+ * A #meshintersect::IMesh is a self-contained mesh structure
  * that can be used in `blenlib` without depending on the rest of Blender.
  * The Vert and #Face resources used in the #IMesh should be owned by
  * some #IMeshArena.
@@ -406,6 +406,6 @@ IMesh triangulate_polymesh(IMesh &imesh, IMeshArena *arena);
  */
 void write_obj_mesh(IMesh &m, const std::string &objname);
 
-} /* namespace blender::meshintersect */
+}  // namespace blender::meshintersect
 
 #endif /* WITH_GMP */

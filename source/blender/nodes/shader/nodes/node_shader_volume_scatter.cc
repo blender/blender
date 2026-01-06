@@ -11,7 +11,9 @@
 
 #include "BKE_node_runtime.hh"
 
-namespace blender::nodes::node_shader_volume_scatter_cc {
+namespace blender {
+
+namespace nodes::node_shader_volume_scatter_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -97,14 +99,14 @@ static int node_shader_gpu_volume_scatter(GPUMaterial *mat,
 #undef SOCK_COLOR_ID
 #undef SOCK_DENSITY_ID
 
-}  // namespace blender::nodes::node_shader_volume_scatter_cc
+}  // namespace nodes::node_shader_volume_scatter_cc
 
 /* node type definition */
 void register_node_type_sh_volume_scatter()
 {
-  namespace file_ns = blender::nodes::node_shader_volume_scatter_cc;
+  namespace file_ns = nodes::node_shader_volume_scatter_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeVolumeScatter", SH_NODE_VOLUME_SCATTER);
   ntype.ui_name = "Volume Scatter";
@@ -115,10 +117,12 @@ void register_node_type_sh_volume_scatter()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_scatter;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_scatter;
   ntype.gpu_fn = file_ns::node_shader_gpu_volume_scatter;
   ntype.updatefunc = file_ns::node_shader_update_scatter;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

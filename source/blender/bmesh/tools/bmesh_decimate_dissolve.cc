@@ -20,6 +20,8 @@
 #include "bmesh.hh"
 #include "bmesh_decimate.hh" /* own include */
 
+namespace blender {
+
 /* check that collapsing a vertex between 2 edges doesn't cause a degenerate face. */
 #define USE_DEGENERATE_CHECK
 
@@ -570,3 +572,5 @@ void BM_mesh_decimate_dissolve(BMesh *bm,
   MEM_freeN(vinput_arr);
   MEM_freeN(einput_arr);
 }
+
+}  // namespace blender

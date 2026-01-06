@@ -33,7 +33,9 @@
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_id.hh"
 
-namespace blender::deg {
+namespace blender {
+
+namespace deg {
 
 static const ID *get_original_id(const ID *id)
 {
@@ -44,7 +46,7 @@ static const ID *get_original_id(const ID *id)
     return id;
   }
   BLI_assert((id->tag & ID_TAG_COPIED_ON_EVAL) != 0);
-  return blender::id_cast<ID *>(id->orig_id);
+  return id_cast<ID *>(id->orig_id);
 }
 
 static ID *get_original_id(ID *id)
@@ -74,9 +76,7 @@ static ID *get_evaluated_id(const Depsgraph *deg_graph, ID *id)
   return const_cast<ID *>(get_evaluated_id(deg_graph, const_id));
 }
 
-}  // namespace blender::deg
-
-namespace deg = blender::deg;
+}  // namespace deg
 
 Scene *DEG_get_input_scene(const Depsgraph *graph)
 {
@@ -237,7 +237,7 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
     /* HACK: Since bone keyframing is quite commonly used,
      * speed things up for this case by doing a special lookup
      * for bones */
-    const Object *ob_eval = blender::id_cast<Object *>(cow_id);
+    const Object *ob_eval = id_cast<Object *>(cow_id);
     bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
     bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
     r_ptr_eval->owner_id = cow_id;
@@ -409,3 +409,5 @@ std::optional<double> DEG_get_last_evaluation_time(const Depsgraph *depsgraph)
   const deg::Depsgraph &deg_graph = *reinterpret_cast<const deg::Depsgraph *>(depsgraph);
   return deg_graph.debug.total_evaluation_time();
 }
+
+}  // namespace blender

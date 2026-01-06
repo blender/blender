@@ -26,11 +26,12 @@
 #include <algorithm> /* For `min/max`. */
 #include <cstring>
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name IndexBufBuilder
  * \{ */
 
-using namespace blender;
 using namespace blender::gpu;
 
 void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
@@ -255,7 +256,7 @@ IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
   }
   bool tris = (prim_type == GPU_PRIM_TRIS);
   bool lines = (prim_type == GPU_PRIM_LINES);
-  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(
+  gpu::Shader *shader = GPU_shader_get_builtin_shader(
       tris ? GPU_SHADER_INDEXBUF_TRIS :
              (lines ? GPU_SHADER_INDEXBUF_LINES : GPU_SHADER_INDEXBUF_POINTS));
   GPU_shader_bind(shader);
@@ -286,7 +287,7 @@ IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
 /** \name Creation & Deletion
  * \{ */
 
-namespace blender::gpu {
+namespace gpu {
 
 IndexBuf::~IndexBuf()
 {
@@ -410,7 +411,7 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /** \} */
 
@@ -542,3 +543,5 @@ void GPU_indexbuf_update_sub(IndexBuf *elem, uint start, uint len, const void *d
 }
 
 /** \} */
+
+}  // namespace blender

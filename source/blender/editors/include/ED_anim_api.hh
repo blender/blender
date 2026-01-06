@@ -19,6 +19,8 @@
 
 #include <optional>
 
+namespace blender {
+
 struct AnimData;
 struct Depsgraph;
 struct ID;
@@ -48,7 +50,7 @@ struct FCurve;
 struct FModifier;
 struct bAction;
 
-namespace blender::ui {
+namespace ui {
 struct Block;
 }
 
@@ -57,10 +59,10 @@ struct PropertyRNA;
 
 struct MPathTarget;
 
-namespace blender::animrig {
+namespace animrig {
 class Action;
 class Slot;
-}  // namespace blender::animrig
+}  // namespace animrig
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -296,7 +298,7 @@ struct bAnimListElem {
   /**
    * For data that is owned by a specific slot, its handle.
    *
-   * This is not declared as #blender::animrig::slot_handle_t to avoid all the users of this
+   * This is not declared as #animrig::slot_handle_t to avoid all the users of this
    * header file to get the `animrig` module as extra dependency (which would spread to the undo
    * system, line-art, etc). It's probably best to split off this struct definition from the rest
    * of this header, as most code that uses this header doesn't need to know the definition of this
@@ -526,7 +528,7 @@ ENUM_OPERATORS(eAnimFilter_Flags);
 
 /** NLA track heights */
 #define NLATRACK_FIRST_TOP(ac) \
-  (blender::ui::view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLATRACK_SKIP)
+  (ui::view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLATRACK_SKIP)
 #define NLATRACK_HEIGHT(snla) \
   (((snla) && ((snla)->flag & SNLA_NOSTRIPCURVES)) ? (0.8f * U.widget_unit) : \
                                                      (1.2f * U.widget_unit))
@@ -567,8 +569,8 @@ ENUM_OPERATORS(eAnimFilter_Flags);
  */
 size_t ANIM_animfilter_action_slot(bAnimContext *ac,
                                    ListBaseT<bAnimListElem> *anim_data,
-                                   blender::animrig::Action &action,
-                                   blender::animrig::Slot &slot,
+                                   animrig::Action &action,
+                                   animrig::Slot &slot,
                                    eAnimFilter_Flags filter_mode,
                                    ID *animated_id);
 
@@ -778,7 +780,7 @@ void ANIM_channel_draw(
 void ANIM_channel_draw_widgets(const bContext *C,
                                bAnimContext *ac,
                                bAnimListElem *ale,
-                               blender::ui::Block *block,
+                               ui::Block *block,
                                const rctf *rect,
                                size_t channel_index);
 
@@ -1009,9 +1011,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu);
  *
  * This function iterates the Slot's users to find an ID that allows it to resolve its RNA path.
  */
-std::string getname_anim_fcurve_for_slot(Main &bmain,
-                                         const blender::animrig::Slot &slot,
-                                         FCurve &fcurve);
+std::string getname_anim_fcurve_for_slot(Main &bmain, const animrig::Slot &slot, FCurve &fcurve);
 
 /**
  * Automatically determine a color for the nth F-Curve.
@@ -1272,12 +1272,12 @@ enum eAnimvizCalcRange {
 Depsgraph *animviz_depsgraph_build(Main *bmain,
                                    Scene *scene,
                                    ViewLayer *view_layer,
-                                   blender::Span<MPathTarget *> targets);
+                                   Span<MPathTarget *> targets);
 
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
-                              blender::MutableSpan<MPathTarget *> targets,
+                              MutableSpan<MPathTarget *> targets,
                               eAnimvizCalcRange range,
                               bool restore);
 
@@ -1295,12 +1295,14 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene);
  * Will look for pose bones as well. `animviz_free_motionpath_targets` needs to be called
  * to free the memory allocated in this function.
  */
-void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *> &r_targets);
+void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget *> &r_targets);
 
 /**
  * Free the elements of the vector populated with `animviz_build_motionpath_targets`.
  * After this function the Vector will have a length of 0.
  */
-void animviz_free_motionpath_targets(blender::Vector<MPathTarget *> &targets);
+void animviz_free_motionpath_targets(Vector<MPathTarget *> &targets);
 
 /** \} */
+
+}  // namespace blender

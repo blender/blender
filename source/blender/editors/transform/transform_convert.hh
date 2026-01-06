@@ -16,26 +16,27 @@
 #include "ED_grease_pencil.hh"
 
 #include "transform.hh"
+struct TransData;
+struct TransDataCurveHandleFlags;
+struct TransInfo;
+namespace blender {
 
 struct BMEditMesh;
 struct BMesh;
 struct bConstraint;
 struct BezTriple;
 struct Object;
-struct TransData;
-struct TransDataCurveHandleFlags;
-struct TransInfo;
 struct bContext;
 struct Strip;
 
-namespace blender::bke::crazyspace {
+namespace bke::crazyspace {
 struct GeometryDeformation;
 }
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
 }
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 struct TransConvertTypeInfo {
   int flags; /* #eTFlag. */
@@ -432,4 +433,5 @@ extern TransConvertTypeInfo TransConvertType_Tracking;
 
 extern TransConvertTypeInfo TransConvertType_TrackingCurves;
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

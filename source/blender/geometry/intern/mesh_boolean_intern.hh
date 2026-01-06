@@ -11,9 +11,11 @@
 
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::geometry::boolean {
+namespace geometry::boolean {
 
 /**
  * Holds cumulative offsets for the given elements of a number
@@ -63,4 +65,5 @@ void set_material_from_map(Span<int> out_to_in_map,
 
 bke::GeometrySet join_meshes_with_transforms(Span<const Mesh *> meshes, Span<float4x4> transforms);
 
-}  // namespace blender::geometry::boolean
+}  // namespace geometry::boolean
+}  // namespace blender

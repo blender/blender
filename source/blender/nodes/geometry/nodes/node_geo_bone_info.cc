@@ -144,7 +144,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeBoneInfo");
   ntype.ui_name = "Bone Info";
   ntype.ui_description = "Retrieve information of armature bones";
@@ -153,7 +153,7 @@ static void node_register()
   ntype.initfunc = node_node_init;
   ntype.draw_buttons = node_layout;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

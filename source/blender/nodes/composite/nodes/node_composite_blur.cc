@@ -27,7 +27,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_blur_cc {
+namespace blender {
+
+namespace nodes::node_composite_blur_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_BLUR_TYPE_BOX, "FLAT", 0, N_("Flat"), ""},
@@ -451,13 +453,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new BlurOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_blur_cc
+}  // namespace nodes::node_composite_blur_cc
 
 static void register_node_type_cmp_blur()
 {
-  namespace file_ns = blender::nodes::node_composite_blur_cc;
+  namespace file_ns = nodes::node_composite_blur_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeBlur", CMP_NODE_BLUR);
   ntype.ui_name = "Blur";
@@ -467,10 +469,12 @@ static void register_node_type_cmp_blur()
   ntype.declare = file_ns::cmp_node_blur_declare;
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc = file_ns::node_composit_init_blur;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_blur)
+
+}  // namespace blender

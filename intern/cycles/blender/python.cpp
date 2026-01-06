@@ -58,11 +58,11 @@ PyObject *pyunicode_from_string(const char *str)
 /* Synchronize debug flags from a given Blender scene.
  * Return truth when device list needs invalidation.
  */
-void debug_flags_sync_from_scene(::Scene &b_scene)
+void debug_flags_sync_from_scene(blender::Scene &b_scene)
 {
   DebugFlagsRef flags = DebugFlags();
-  PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
-  PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   /* Synchronize CPU flags. */
   flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
   flags.cpu.sse42 = get_boolean(cscene, "debug_use_cpu_sse42");
@@ -183,19 +183,19 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
   }
 
   /* RNA */
-  ID *bScreen = (ID *)PyLong_AsVoidPtr(pyscreen);
+  blender::ID *bScreen = (blender::ID *)PyLong_AsVoidPtr(pyscreen);
 
-  ::RenderEngine *engine = static_cast<::RenderEngine *>(PyLong_AsVoidPtr(pyengine));
-  ::UserDef *preferences = static_cast<::UserDef *>(PyLong_AsVoidPtr(pypreferences));
-  ::Main *data = static_cast<::Main *>(PyLong_AsVoidPtr(pydata));
-  ::View3D *v3d = static_cast<::View3D *>(pylong_as_voidptr_typesafe(pyv3d));
-  ::ARegion *region = static_cast<::ARegion *>(pylong_as_voidptr_typesafe(pyregion));
+  blender::RenderEngine *engine = static_cast<blender::RenderEngine *>(PyLong_AsVoidPtr(pyengine));
+  blender::UserDef *preferences = static_cast<blender::UserDef *>(PyLong_AsVoidPtr(pypreferences));
+  blender::Main *data = static_cast<blender::Main *>(PyLong_AsVoidPtr(pydata));
+  blender::View3D *v3d = static_cast<blender::View3D *>(pylong_as_voidptr_typesafe(pyv3d));
+  blender::ARegion *region = static_cast<blender::ARegion *>(pylong_as_voidptr_typesafe(pyregion));
 
   /* create session */
   BlenderSession *session;
 
   if (region) {
-    ::RegionView3D *rv3d = static_cast<::RegionView3D *>(region->regiondata);
+    blender::RegionView3D *rv3d = static_cast<blender::RegionView3D *>(region->regiondata);
     /* interactive viewport session */
     const int width = region->winx;
     const int height = region->winy;
@@ -203,7 +203,7 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
     session = new BlenderSession(*engine,
                                  *preferences,
                                  *data,
-                                 blender::id_cast<::bScreen *>(bScreen),
+                                 blender::id_cast<blender::bScreen *>(bScreen),
                                  v3d,
                                  rv3d,
                                  width,
@@ -234,7 +234,8 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
   }
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
-  ::Depsgraph *b_depsgraph = static_cast<::Depsgraph *>(PyLong_AsVoidPtr(pydepsgraph));
+  blender::Depsgraph *b_depsgraph = static_cast<blender::Depsgraph *>(
+      PyLong_AsVoidPtr(pydepsgraph));
 
   /* Allow Blender to execute other Python scripts. */
   python_thread_state_save(&session->python_thread_state);
@@ -279,12 +280,12 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(py_session);
 
-  ID *b_screen = (ID *)PyLong_AsVoidPtr(py_screen);
+  blender::ID *b_screen = (blender::ID *)PyLong_AsVoidPtr(py_screen);
 
-  ::SpaceImage *b_space_image = static_cast<::SpaceImage *>(
+  blender::SpaceImage *b_space_image = static_cast<blender::SpaceImage *>(
       pylong_as_voidptr_typesafe(py_space_image));
 
-  session->draw(blender::id_cast<::bScreen &>(*b_screen), *b_space_image);
+  session->draw(blender::id_cast<blender::bScreen &>(*b_screen), *b_space_image);
 
   Py_RETURN_NONE;
 }
@@ -315,8 +316,9 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  ::Depsgraph *b_depsgraph = static_cast<::Depsgraph *>(PyLong_AsVoidPtr(pydepsgraph));
-  ::Object *b_object = static_cast<::Object *>(PyLong_AsVoidPtr(pyobject));
+  blender::Depsgraph *b_depsgraph = static_cast<blender::Depsgraph *>(
+      PyLong_AsVoidPtr(pydepsgraph));
+  blender::Object *b_object = static_cast<blender::Object *>(PyLong_AsVoidPtr(pyobject));
 
   python_thread_state_save(&session->python_thread_state);
 
@@ -343,7 +345,7 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
   if (PyLong_AsVoidPtr(pyrv3d)) {
     /* 3d view drawing */
     int viewport[4];
-    GPU_viewport_size_get_i(viewport);
+    blender::GPU_viewport_size_get_i(viewport);
 
     session->view_draw(viewport[2], viewport[3]);
   }
@@ -363,8 +365,9 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  ::Main *b_data = static_cast<::Main *>(PyLong_AsVoidPtr(pydata));
-  ::Depsgraph *b_depsgraph = static_cast<::Depsgraph *>(PyLong_AsVoidPtr(pydepsgraph));
+  blender::Main *b_data = static_cast<blender::Main *>(PyLong_AsVoidPtr(pydata));
+  blender::Depsgraph *b_depsgraph = static_cast<blender::Depsgraph *>(
+      PyLong_AsVoidPtr(pydepsgraph));
 
   python_thread_state_save(&session->python_thread_state);
 
@@ -386,7 +389,8 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  ::Depsgraph *b_depsgraph = static_cast<::Depsgraph *>(PyLong_AsVoidPtr(pydepsgraph));
+  blender::Depsgraph *b_depsgraph = static_cast<blender::Depsgraph *>(
+      PyLong_AsVoidPtr(pydepsgraph));
 
   python_thread_state_save(&session->python_thread_state);
 
@@ -515,15 +519,17 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   }
 
   /* Get device specification from preferences and scene. */
-  ::UserDef *b_preferences = static_cast<::UserDef *>(PyLong_AsVoidPtr(pypreferences));
-  ::Scene *b_scene = static_cast<::Scene *>(PyLong_AsVoidPtr(pyscene));
+  blender::UserDef *b_preferences = static_cast<blender::UserDef *>(
+      PyLong_AsVoidPtr(pypreferences));
+  blender::Scene *b_scene = static_cast<blender::Scene *>(PyLong_AsVoidPtr(pyscene));
 
   DeviceInfo preferences_device;
   const DeviceInfo pathtrace_device = blender_device_info(
       *b_preferences, *b_scene, true, true, preferences_device);
 
   /* Get denoising parameters from view layer. */
-  ::ViewLayer *b_view_layer = static_cast<::ViewLayer *>(PyLong_AsVoidPtr(pyviewlayer));
+  blender::ViewLayer *b_view_layer = static_cast<blender::ViewLayer *>(
+      PyLong_AsVoidPtr(pyviewlayer));
 
   DenoiseParams params = BlenderSync::get_denoise_params(
       *b_scene, b_view_layer, true, preferences_device);
@@ -617,7 +623,7 @@ static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  ::Scene *b_scene = static_cast<::Scene *>(PyLong_AsVoidPtr(pyscene));
+  blender::Scene *b_scene = static_cast<blender::Scene *>(PyLong_AsVoidPtr(pyscene));
 
   debug_flags_sync_from_scene(*b_scene);
 

@@ -40,6 +40,8 @@
 
 #include "console_intern.hh"
 
+namespace blender {
+
 #define TAB_LENGTH 4
 
 /* -------------------------------------------------------------------- */
@@ -150,7 +152,7 @@ void console_textview_update_rect(SpaceConsole *sc, ARegion *region)
 {
   View2D *v2d = &region->v2d;
 
-  blender::ui::view2d_totRect_set(v2d, region->winx - 1, console_textview_height(sc, region));
+  ui::view2d_totRect_set(v2d, region->winx - 1, console_textview_height(sc, region));
 }
 
 static void console_select_offset(SpaceConsole *sc, const int offset)
@@ -604,11 +606,11 @@ static wmOperatorStatus console_indent_or_autocomplete_exec(bContext *C, wmOpera
 
   if (text_before_cursor) {
     WM_operator_name_call(
-        C, "CONSOLE_OT_autocomplete", blender::wm::OpCallContext::InvokeDefault, nullptr, nullptr);
+        C, "CONSOLE_OT_autocomplete", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
   }
   else {
     WM_operator_name_call(
-        C, "CONSOLE_OT_indent", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
+        C, "CONSOLE_OT_indent", wm::OpCallContext::ExecDefault, nullptr, nullptr);
   }
   return OPERATOR_FINISHED;
 }
@@ -1213,7 +1215,7 @@ static wmOperatorStatus console_paste_exec(bContext *C, wmOperator *op)
     const int buf_len = buf_step - buf;
     if (buf != buf_str) {
       WM_operator_name_call(
-          C, "CONSOLE_OT_execute", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
+          C, "CONSOLE_OT_execute", wm::OpCallContext::ExecDefault, nullptr, nullptr);
       ci = console_history_verify(C);
     }
     console_delete_editable_selection(sc);
@@ -1505,3 +1507,5 @@ void CONSOLE_OT_select_word(wmOperatorType *ot)
   ot->invoke = console_selectword_invoke;
   ot->poll = ED_operator_console_active;
 }
+
+}  // namespace blender

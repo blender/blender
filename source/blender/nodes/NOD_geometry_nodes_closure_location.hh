@@ -10,10 +10,12 @@
 #include "BLI_mutex.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct bNodeTree;
 struct bNode;
 
-namespace blender::nodes {
+namespace nodes {
 
 struct ClosureEvalLocation {
   uint32_t orig_node_tree_session_uid;
@@ -38,4 +40,5 @@ struct ClosureEvalLog {
   Vector<ClosureEvalLocation> evaluations;
 };
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

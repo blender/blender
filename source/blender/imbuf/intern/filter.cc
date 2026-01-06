@@ -17,6 +17,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 static void filtcolum(uchar *point, int y, int skip)
 {
   uint c1, c2, c3, error;
@@ -453,3 +455,5 @@ void IMB_unpremultiply_alpha(ImBuf *ibuf)
     IMB_unpremultiply_rect_float(ibuf->float_buffer.data, ibuf->channels, ibuf->x, ibuf->y);
   }
 }
+
+}  // namespace blender

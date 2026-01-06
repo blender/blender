@@ -62,14 +62,17 @@
 #include <climits>
 
 using blender::float3;
+using blender::Material;
 
 namespace Freestyle {
 
 const char *BlenderStrokeRenderer::uvNames[] = {"along_stroke", "along_stroke_tips"};
 
-BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
+BlenderStrokeRenderer::BlenderStrokeRenderer(blender::Render *re, int render_count)
 {
-  freestyle_bmain = BKE_main_new();
+  using namespace blender;
+
+  freestyle_bmain = blender::BKE_main_new();
 
   /* NOTE(@sergey): We use the same window manager for freestyle `bmain` as real `bmain` uses.
    * This is needed because freestyle's `bmain` could be used to tag scenes for update,
@@ -106,7 +109,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   STRNCPY(freestyle_scene->r.pic, old_scene->r.pic);
   freestyle_scene->r.dither_intensity = old_scene->r.dither_intensity;
   STRNCPY(freestyle_scene->r.engine, old_scene->r.engine);
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Stroke rendering engine : " << freestyle_scene->r.engine << endl;
   }
   freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA;
@@ -126,7 +129,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   /* Render with transparent background. */
   freestyle_scene->r.alphamode = R_ALPHAPREMUL;
 
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("%s: %d thread(s)\n", __func__, BKE_render_num_threads(&freestyle_scene->r));
   }
 
@@ -199,10 +202,12 @@ uint BlenderStrokeRenderer::get_stroke_mesh_id() const
   return mesh_id;
 }
 
-Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
-                                                 bNodeTree *iNodeTree,
+Material *BlenderStrokeRenderer::GetStrokeShader(blender::Main *bmain,
+                                                 blender::bNodeTree *iNodeTree,
                                                  bool do_id_user)
 {
+  using namespace blender;
+
   Material *ma = BKE_material_add(bmain, "stroke_shader");
   bNodeTree *ntree;
   bNode *output_linestyle = nullptr;
@@ -433,6 +438,7 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 
 void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 {
+  using namespace blender;
   bNodeTree *nt = iStrokeRep->getNodeTree();
   Material *ma = _nodetree_hash.lookup_or_add_cb(
       nt, [&]() { return BlenderStrokeRenderer::GetStrokeShader(freestyle_bmain, nt, false); });
@@ -833,8 +839,9 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 }
 
 // A replacement of BKE_object_add() for better performance.
-Object *BlenderStrokeRenderer::NewMesh() const
+blender::Object *BlenderStrokeRenderer::NewMesh() const
 {
+  using namespace blender;
   Object *ob;
   char name[MAX_ID_NAME];
   uint mesh_id = get_stroke_mesh_id();
@@ -856,14 +863,15 @@ Object *BlenderStrokeRenderer::NewMesh() const
   return ob;
 }
 
-Render *BlenderStrokeRenderer::RenderScene(Render * /*re*/, bool render)
+blender::Render *BlenderStrokeRenderer::RenderScene(blender::Render * /*re*/, bool render)
 {
+  using namespace blender;
   Camera *camera = (Camera *)freestyle_scene->camera->data;
   if (camera->clip_end < _z) {
     camera->clip_end = _z + _z_delta * 100.0f;
   }
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "clip_start " << camera->clip_start << ", clip_end " << camera->clip_end << endl;
   }
 #endif

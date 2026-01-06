@@ -29,13 +29,15 @@
 
 #include "interface_intern.hh"
 
+namespace blender {
+
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
 static CLG_LogRef LOG = {"ui.font"};
 
-namespace blender::ui {
+namespace ui {
 
 static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac);
 
@@ -607,4 +609,5 @@ void fontstyle_set(const uiFontStyle *fs)
   fontstyle_set_ex(fs, UI_SCALE_FAC);
 }
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

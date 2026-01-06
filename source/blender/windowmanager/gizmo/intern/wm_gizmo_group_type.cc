@@ -22,13 +22,13 @@
 #include "wm_gizmo_intern.hh"
 #include "wm_gizmo_wmapi.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name GizmoGroup Type Append
  *
  * \note This follows conventions from #WM_operatortype_find #WM_operatortype_append & friends.
  * \{ */
-
-using blender::StringRef;
 
 static auto &get_gizmo_group_type_map()
 {
@@ -38,7 +38,7 @@ static auto &get_gizmo_group_type_map()
       return StringRef(value->idname);
     }
   };
-  static blender::CustomIDVectorSet<wmGizmoGroupType *, IDNameGetter> map;
+  static CustomIDVectorSet<wmGizmoGroupType *, IDNameGetter> map;
   return map;
 }
 
@@ -174,3 +174,5 @@ void wm_gizmogrouptype_init()
 }
 
 /** \} */
+
+}  // namespace blender

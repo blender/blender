@@ -20,6 +20,8 @@
 #include "DNA_listBase.h"
 #include "DNA_node_types.h"
 
+namespace blender {
+
 struct ARegion;
 struct bNode;
 struct bNodeSocket;
@@ -29,8 +31,6 @@ struct IDProperty;
 struct Main;
 struct ViewLayer;
 struct SceneRenderLayer;
-
-using blender::FunctionRef;
 
 /**
  * Mapping from new ID types to old converted ID types.
@@ -92,7 +92,7 @@ void version_node_output_socket_name(bNodeTree *ntree,
 /**
  * Find the base socket name for an idname that may include a subtype.
  */
-blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname);
+StringRef legacy_socket_idname_to_socket_type(StringRef idname);
 
 /**
  * Adds a new node for versioning purposes. This is intended to be used to create raw DNA that
@@ -126,7 +126,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname);
  * See also #bNodeType for more details.
  */
 bNode &version_node_add_unknown(bNodeTree &ntree,
-                                blender::bke::bNodeType &node_type,
+                                bke::bNodeType &node_type,
                                 const char *idname,
                                 const int16_t legacy_type,
                                 const std::string &ui_name,
@@ -228,7 +228,7 @@ void version_cycles_property_boolean_set(IDProperty *idprop, const char *name, b
 void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
                                          bNode &old_node,
                                          bNode &new_node,
-                                         const blender::Map<std::string, std::string> &map);
+                                         const Map<std::string, std::string> &map);
 void version_update_node_input(
     bNodeTree *ntree,
     FunctionRef<bool(bNode *)> check_node,
@@ -245,7 +245,7 @@ void version_system_idprops_generate(Main *bmain);
 void version_system_idprops_nodes_generate(Main *bmain);
 void version_system_idprops_children_bones_generate(Main *bmain);
 
-bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);
+bool all_scenes_use(Main *bmain, const Span<const char *> engines);
 
 /**
  * Adjust the values of the given FCurve key frames by applying the given function. The function is
@@ -294,3 +294,5 @@ static void adjust_fcurve_key_frame_values(FCurve *fcurve,
  * for older versions before reusable node trees were introduced in bd61e69be5, while the new
  * compositing_node_group is returned otherwise. */
 bNodeTree *version_get_scene_compositor_node_tree(Main *bmain, Scene *scene);
+
+}  // namespace blender

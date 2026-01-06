@@ -35,7 +35,9 @@
 
 #include "WM_api.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 
 void set_selected_frames_type(bke::greasepencil::Layer &layer,
                               const eBezTriple_KeyframeType key_type)
@@ -346,7 +348,7 @@ bool ensure_active_keyframe(const Scene &scene,
                             bool &r_inserted_keyframe)
 {
   const int current_frame = scene.r.cfra;
-  if (!layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(&scene)) {
+  if (!layer.has_drawing_at(current_frame) && !animrig::is_autokey_on(&scene)) {
     return false;
   }
 
@@ -357,7 +359,7 @@ bool ensure_active_keyframe(const Scene &scene,
   const bool has_previous_key = previous_key_frame_start.has_value();
   const bool needs_new_drawing = is_first || !has_previous_key ||
                                  (previous_key_frame_start < current_frame);
-  if (blender::animrig::is_autokey_on(&scene) && needs_new_drawing) {
+  if (animrig::is_autokey_on(&scene) && needs_new_drawing) {
     const bool use_additive_drawing = (scene.toolsettings->gpencil_flags &
                                        GP_TOOL_FLAG_RETAIN_LAST) != 0;
     if (has_previous_key && (use_additive_drawing || duplicate_previous_key)) {
@@ -380,7 +382,7 @@ static wmOperatorStatus insert_blank_frame_exec(bContext *C, wmOperator *op)
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const int current_frame = scene->r.cfra;
   const bool all_layers = RNA_boolean_get(op->ptr, "all_layers");
   const int duration = RNA_int_get(op->ptr, "duration");
@@ -509,7 +511,7 @@ static wmOperatorStatus frame_clean_duplicate_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const bool selected = RNA_boolean_get(op->ptr, "selected");
 
   bool changed = false;
@@ -801,7 +803,7 @@ static wmOperatorStatus grease_pencil_frame_duplicate_exec(bContext *C, wmOperat
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const bool only_active = !RNA_boolean_get(op->ptr, "all");
   const int current_frame = scene->r.cfra;
   bool changed = false;
@@ -862,7 +864,7 @@ static wmOperatorStatus grease_pencil_active_frame_delete_exec(bContext *C, wmOp
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const bool only_active = !RNA_boolean_get(op->ptr, "all");
   const int current_frame = scene->r.cfra;
   bool changed = false;
@@ -923,7 +925,7 @@ static bool grease_pencil_active_breakdown_frame_poll(bContext *C)
   const Scene &scene = *CTX_data_scene(C);
 
   /* Ensure that there is a breakdown keyframe visible at the current frame. */
-  const GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob.data);
+  const GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob.data);
   if (const bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer()) {
     const GreasePencilFrame *frame = active_layer->frame_at(scene.r.cfra);
     if (frame && frame->type == BEZT_KEYTYPE_BREAKDOWN) {
@@ -938,7 +940,7 @@ static wmOperatorStatus grease_pencil_delete_breakdown_frames_exec(bContext *C,
 {
   const Object &ob = *CTX_data_active_object(C);
   const Scene &scene = *CTX_data_scene(C);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob.data);
   bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer();
   const int current_frame = active_layer->start_frame_at(scene.r.cfra).value();
 
@@ -993,7 +995,7 @@ static void GREASE_PENCIL_OT_delete_breakdown(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 void ED_operatortypes_grease_pencil_frames()
 {
@@ -1004,3 +1006,5 @@ void ED_operatortypes_grease_pencil_frames()
   WM_operatortype_append(GREASE_PENCIL_OT_active_frame_delete);
   WM_operatortype_append(GREASE_PENCIL_OT_delete_breakdown);
 }
+
+}  // namespace blender

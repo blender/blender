@@ -13,6 +13,8 @@
 
 #include "rna_internal.hh"
 
+namespace blender {
+
 #ifdef RNA_RUNTIME
 
 #  ifdef ARRAY_SIZE
@@ -192,3 +194,5 @@ void RNA_def_test(BlenderRNA *brna)
 }
 
 #endif /* RNA_RUNTIME */
+
+}  // namespace blender

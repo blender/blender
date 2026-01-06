@@ -2528,11 +2528,11 @@ GHOST_TSuccess GHOST_SystemWin32::hasClipboardImage(void) const
             WCHAR lpszFile[MAX_PATH] = {0};
             DragQueryFileW(hDrop, 0, lpszFile, MAX_PATH);
             char *filepath = alloc_utf_8_from_16(lpszFile, 0);
-            ImBuf *ibuf = IMB_load_image_from_filepath(filepath,
-                                                       IB_byte_data | IB_multilayer | IB_test);
+            blender::ImBuf *ibuf = blender::IMB_load_image_from_filepath(
+                filepath, blender::IB_byte_data | blender::IB_multilayer | blender::IB_test);
             free(filepath);
             if (ibuf) {
-              IMB_freeImBuf(ibuf);
+              blender::IMB_freeImBuf(ibuf);
               result = GHOST_kSuccess;
             }
           }
@@ -2565,7 +2565,8 @@ static uint *getClipboardImageFilepath(int *r_width, int *r_height)
   }
 
   if (filepath) {
-    ImBuf *ibuf = IMB_load_image_from_filepath(filepath, IB_byte_data | IB_multilayer);
+    blender::ImBuf *ibuf = blender::IMB_load_image_from_filepath(
+        filepath, blender::IB_byte_data | blender::IB_multilayer);
     free(filepath);
     if (ibuf) {
       *r_width = ibuf->x;
@@ -2575,7 +2576,7 @@ static uint *getClipboardImageFilepath(int *r_width, int *r_height)
       if (rgba) {
         memcpy(rgba, ibuf->byte_buffer.data, byte_count);
       }
-      IMB_freeImBuf(ibuf);
+      blender::IMB_freeImBuf(ibuf);
       return rgba;
     }
   }
@@ -2683,8 +2684,8 @@ static uint *getClipboardImageImBuf(int *r_width, int *r_height, UINT format)
 
   uint *rgba = nullptr;
 
-  ImBuf *ibuf = IMB_load_image_from_memory(
-      (uchar *)pMem, GlobalSize(hGlobal), IB_byte_data, "<clipboard>");
+  blender::ImBuf *ibuf = blender::IMB_load_image_from_memory(
+      (uchar *)pMem, GlobalSize(hGlobal), blender::IB_byte_data, "<clipboard>");
 
   if (ibuf) {
     *r_width = ibuf->x;
@@ -2692,7 +2693,7 @@ static uint *getClipboardImageImBuf(int *r_width, int *r_height, UINT format)
     const uint64_t byte_count = uint64_t(ibuf->x) * ibuf->y * 4;
     rgba = (uint *)malloc(byte_count);
     memcpy(rgba, ibuf->byte_buffer.data, byte_count);
-    IMB_freeImBuf(ibuf);
+    blender::IMB_freeImBuf(ibuf);
   }
 
   GlobalUnlock(hGlobal);
@@ -2792,23 +2793,24 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
   UINT cf = RegisterClipboardFormat("PNG");
 
   /* Load buffer into ImBuf, convert to PNG. */
-  ImBuf *ibuf = IMB_allocFromBuffer(reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
-  ibuf->ftype = IMB_FTYPE_PNG;
+  blender::ImBuf *ibuf = blender::IMB_allocFromBuffer(
+      reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
+  ibuf->ftype = blender::IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  if (!IMB_save_image(ibuf, "<memory>", IB_byte_data | IB_mem)) {
-    IMB_freeImBuf(ibuf);
+  if (!blender::IMB_save_image(ibuf, "<memory>", blender::IB_byte_data | blender::IB_mem)) {
+    blender::IMB_freeImBuf(ibuf);
     return false;
   }
 
   HGLOBAL hMem = GlobalAlloc(GHND, ibuf->encoded_buffer_size);
   if (!hMem) {
-    IMB_freeImBuf(ibuf);
+    blender::IMB_freeImBuf(ibuf);
     return false;
   }
 
   LPVOID pMem = GlobalLock(hMem);
   if (!pMem) {
-    IMB_freeImBuf(ibuf);
+    blender::IMB_freeImBuf(ibuf);
     GlobalFree(hMem);
     return false;
   }
@@ -2816,7 +2818,7 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
   memcpy(pMem, ibuf->encoded_buffer.data, ibuf->encoded_buffer_size);
 
   GlobalUnlock(hMem);
-  IMB_freeImBuf(ibuf);
+  blender::IMB_freeImBuf(ibuf);
 
   if (!SetClipboardData(cf, hMem)) {
     GlobalFree(hMem);

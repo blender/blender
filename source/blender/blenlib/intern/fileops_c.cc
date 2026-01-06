@@ -49,6 +49,8 @@
 #include "BLI_sys_types.h" /* For `intptr_t` support. */
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /** Sizes above this must be allocated. */
 #define FILE_MAX_STATIC_BUF 256
 
@@ -1568,3 +1570,5 @@ int BLI_create_symlink(const char *path_src, const char *path_dst)
 #  endif
 
 #endif
+
+}  // namespace blender

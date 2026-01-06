@@ -12,17 +12,19 @@
 #include "BLI_math_vector_types.hh"
 #include "GPU_shader_shared.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Shader;
 class UniformBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct View2D;
 
-namespace blender::gpu {
+namespace gpu {
 class Batch;
 }
 
-namespace blender::ed::vse {
+namespace ed::vse {
 
 /* Utility to draw VSE timeline strip widgets in batches, with a dedicated
  * shader. Internally, strip data for drawing is encoded into a uniform
@@ -85,4 +87,5 @@ class StripsDrawBatch {
 uint color_pack(const uchar rgba[4]);
 float calc_strip_round_radius(float pixely);
 
-}  // namespace blender::ed::vse
+}  // namespace ed::vse
+}  // namespace blender

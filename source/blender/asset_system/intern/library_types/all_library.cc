@@ -16,9 +16,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"asset.library"};
 
-namespace blender::asset_system {
+namespace asset_system {
 
 AllAssetLibrary::AllAssetLibrary() : AssetLibrary(ASSET_LIBRARY_ALL) {}
 
@@ -82,4 +84,6 @@ void AllAssetLibrary::refresh_catalogs()
   this->rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/true);
 }
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
+
+}  // namespace blender

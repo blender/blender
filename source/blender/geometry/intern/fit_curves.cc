@@ -10,11 +10,13 @@
 
 #include "GEO_fit_curves.hh"
 
+namespace blender {
+
 extern "C" {
 #include "curve_fit_nd.h"
 }
 
-namespace blender::geometry {
+namespace geometry {
 
 bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_curves,
                                               const IndexMask &curve_selection,
@@ -274,4 +276,5 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
   return dst_curves;
 }
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

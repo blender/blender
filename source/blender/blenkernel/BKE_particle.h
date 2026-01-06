@@ -20,6 +20,8 @@
 
 #include "DNA_particle_types.h"
 
+namespace blender {
+
 struct ParticleKey;
 struct ParticleSettings;
 struct ParticleSystem;
@@ -85,7 +87,7 @@ struct SPHData {
   ParticleSystem *psys[10];
   ParticleData *pa;
   float mass;
-  const blender::Map<blender::OrderedEdge, int> *eh;
+  const Map<OrderedEdge, int> *eh;
 
   /** The gravity as a `float[3]`, may also be null when the simulation doesn't use gravity. */
   const float *gravity;
@@ -98,7 +100,7 @@ struct SPHData {
   float flow[3];
 
   /* Temporary thread-local buffer for springs created during this step. */
-  blender::Vector<ParticleSpring> new_springs;
+  Vector<ParticleSpring> new_springs;
 
   /* Integrator callbacks. This allows different SPH implementations. */
   void (*force_cb)(void *sphdata_v, ParticleKey *state, float *force, float *impulse);
@@ -478,10 +480,10 @@ void psys_get_dupli_path_transform(struct ParticleSimulationData *sim,
 void psys_thread_context_init(struct ParticleThreadContext *ctx,
                               struct ParticleSimulationData *sim);
 void psys_thread_context_free(struct ParticleThreadContext *ctx);
-blender::Vector<ParticleTask> psys_tasks_create(struct ParticleThreadContext *ctx,
-                                                int startpart,
-                                                int endpart);
-void psys_tasks_free(blender::Vector<ParticleTask> &tasks);
+Vector<ParticleTask> psys_tasks_create(struct ParticleThreadContext *ctx,
+                                       int startpart,
+                                       int endpart);
+void psys_tasks_free(Vector<ParticleTask> &tasks);
 
 void psys_apply_hair_lattice(struct Depsgraph *depsgraph,
                              struct Scene *scene,
@@ -700,8 +702,6 @@ void BKE_particle_mcol_on_emitter(ParticleSystem *particlesystem,
 
 /* **** Depsgraph evaluation **** */
 
-struct Depsgraph;
-
 void BKE_particle_settings_eval_reset(struct Depsgraph *depsgraph,
                                       struct ParticleSettings *particle_settings);
 
@@ -729,3 +729,5 @@ void BKE_particle_system_blend_read_after_liblink(struct BlendLibReader *reader,
                                                   struct Object *ob,
                                                   struct ID *id,
                                                   ListBaseT<ParticleSystem> *particles);
+
+}  // namespace blender

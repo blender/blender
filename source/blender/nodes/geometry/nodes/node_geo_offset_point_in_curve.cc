@@ -165,7 +165,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeOffsetPointInCurve", GEO_NODE_OFFSET_POINT_IN_CURVE);
   ntype.ui_name = "Offset Point in Curve";
   ntype.ui_description = "Offset a control point index within its curve";
@@ -173,7 +173,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -33,7 +33,7 @@ struct ShaderParameters {
 
   void update(AbstractSpaceAccessor *space,
               const Scene *scene,
-              ::Image *image,
+              blender::Image *image,
               ImBuf *image_buffer)
   {
     flags = ImageDrawFlags::DEFAULT;

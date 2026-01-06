@@ -22,6 +22,8 @@
 #include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.hh"
 
+namespace blender {
+
 using namespace blender::gpu;
 
 static thread_local Immediate *imm = nullptr;
@@ -42,7 +44,7 @@ GPUVertFormat *immVertexFormat()
   return &imm->vertex_format;
 }
 
-void immBindShader(blender::gpu::Shader *shader)
+void immBindShader(gpu::Shader *shader)
 {
   BLI_assert(imm->shader == nullptr);
 
@@ -60,7 +62,7 @@ void immBindShader(blender::gpu::Shader *shader)
 
 void immBindBuiltinProgram(GPUBuiltinShader shader_id)
 {
-  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(shader_id);
+  gpu::Shader *shader = GPU_shader_get_builtin_shader(shader_id);
   immBindShader(shader);
   imm->builtin_shader_bound = shader_id;
 }
@@ -78,7 +80,7 @@ bool immIsShaderBound()
   return imm->shader != nullptr;
 }
 
-blender::gpu::Shader *immGetShader()
+gpu::Shader *immGetShader()
 {
   return imm->shader;
 }
@@ -219,7 +221,7 @@ void immBeginAtMost(GPUPrimType prim_type, uint vertex_len)
   immBegin(prim_type, vertex_len);
 }
 
-blender::gpu::Batch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
+gpu::Batch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
 {
   BLI_assert(imm->prim_type == GPU_PRIM_NONE); /* Make sure we haven't already begun. */
   BLI_assert(vertex_count_makes_sense_for_primitive(vertex_len, prim_type));
@@ -240,7 +242,7 @@ blender::gpu::Batch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
   return imm->batch;
 }
 
-blender::gpu::Batch *immBeginBatchAtMost(GPUPrimType prim_type, uint vertex_len)
+gpu::Batch *immBeginBatchAtMost(GPUPrimType prim_type, uint vertex_len)
 {
   BLI_assert(vertex_len > 0);
   imm->strict_vertex_len = false;
@@ -312,7 +314,7 @@ void Immediate::polyline_draw_workaround(uint64_t offset)
     for (uint a_idx = 0; a_idx < format.attr_len; a_idx++) {
       const GPUVertAttr *a = &format.attrs[a_idx];
       const char *name = GPU_vertformat_attr_name_get(&format, a, 0);
-      if (pos_attr_id == -1 && blender::StringRefNull(name) == "pos") {
+      if (pos_attr_id == -1 && StringRefNull(name) == "pos") {
         int descriptor[2] = {int(format.stride) / 4, int(a->offset) / 4};
         const bool fetch_int = false;
         BLI_assert(is_fetch_float(a->type.format) || fetch_int);
@@ -322,7 +324,7 @@ void Immediate::polyline_draw_workaround(uint64_t offset)
         GPU_shader_uniform_1b(imm->shader, "gpu_attr_0_fetch_int", fetch_int);
         pos_attr_id = a_idx;
       }
-      else if (col_attr_id == -1 && blender::StringRefNull(name) == "color") {
+      else if (col_attr_id == -1 && StringRefNull(name) == "color") {
         int descriptor[2] = {int(format.stride) / 4, int(a->offset) / 4};
         /* Maybe we can relax this if needed. */
         BLI_assert_msg(ELEM(a->type.format,
@@ -350,7 +352,7 @@ void Immediate::polyline_draw_workaround(uint64_t offset)
     // BLI_assert(pos_attr_id != -1);
   }
 
-  blender::IndexRange range = GPU_batch_draw_expanded_parameter_get(
+  IndexRange range = GPU_batch_draw_expanded_parameter_get(
       imm->prim_type, GPU_PRIM_TRIS, imm->vertex_idx, 0, 2);
   GPU_batch_draw_advanced(tri_batch, range.start(), range.size(), 0, 0);
 }
@@ -629,19 +631,19 @@ void immUniform1i(const char *name, int x)
   GPU_shader_uniform_1i(imm->shader, name, x);
 }
 
-void immBindTexture(const char *name, blender::gpu::Texture *tex)
+void immBindTexture(const char *name, gpu::Texture *tex)
 {
   int binding = GPU_shader_get_sampler_binding(imm->shader, name);
   GPU_texture_bind(tex, binding);
 }
 
-void immBindTextureSampler(const char *name, blender::gpu::Texture *tex, GPUSamplerState state)
+void immBindTextureSampler(const char *name, gpu::Texture *tex, GPUSamplerState state)
 {
   int binding = GPU_shader_get_sampler_binding(imm->shader, name);
   GPU_texture_bind_ex(tex, state, binding);
 }
 
-void immBindUniformBuf(const char *name, blender::gpu::UniformBuf *ubo)
+void immBindUniformBuf(const char *name, gpu::UniformBuf *ubo)
 {
   int binding = GPU_shader_get_ubo_binding(imm->shader, name);
   GPU_uniformbuf_bind(ubo, binding);
@@ -711,14 +713,14 @@ void immUniformColor4ubv(const uchar rgba[4])
 void immUniformThemeColor(int color_id)
 {
   float color[4];
-  blender::ui::theme::get_color_4fv(color_id, color);
+  ui::theme::get_color_4fv(color_id, color);
   immUniformColor4fv(color);
 }
 
 void immUniformThemeColorAlpha(int color_id, float a)
 {
   float color[4];
-  blender::ui::theme::get_color_3fv(color_id, color);
+  ui::theme::get_color_3fv(color_id, color);
   color[3] = a;
   immUniformColor4fv(color);
 }
@@ -726,43 +728,45 @@ void immUniformThemeColorAlpha(int color_id, float a)
 void immUniformThemeColor3(int color_id)
 {
   float color[3];
-  blender::ui::theme::get_color_3fv(color_id, color);
+  ui::theme::get_color_3fv(color_id, color);
   immUniformColor3fv(color);
 }
 
 void immUniformThemeColorShade(int color_id, int offset)
 {
   float color[4];
-  blender::ui::theme::get_color_shade_4fv(color_id, offset, color);
+  ui::theme::get_color_shade_4fv(color_id, offset, color);
   immUniformColor4fv(color);
 }
 
 void immUniformThemeColorShadeAlpha(int color_id, int color_offset, int alpha_offset)
 {
   float color[4];
-  blender::ui::theme::get_color_shade_alpha_4fv(color_id, color_offset, alpha_offset, color);
+  ui::theme::get_color_shade_alpha_4fv(color_id, color_offset, alpha_offset, color);
   immUniformColor4fv(color);
 }
 
 void immUniformThemeColorBlendShade(int color_id1, int color_id2, float fac, int offset)
 {
   float color[4];
-  blender::ui::theme::get_color_blend_shade_4fv(color_id1, color_id2, fac, offset, color);
+  ui::theme::get_color_blend_shade_4fv(color_id1, color_id2, fac, offset, color);
   immUniformColor4fv(color);
 }
 
 void immUniformThemeColorBlend(int color_id1, int color_id2, float fac)
 {
   uint8_t color[3];
-  blender::ui::theme::get_color_blend_3ubv(color_id1, color_id2, fac, color);
+  ui::theme::get_color_blend_3ubv(color_id1, color_id2, fac, color);
   immUniformColor3ubv(color);
 }
 
 void immThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 {
   uchar col[4];
-  blender::ui::theme::get_color_shade_alpha_4ubv(colorid, coloffset, alphaoffset, col);
+  ui::theme::get_color_shade_alpha_4ubv(colorid, coloffset, alphaoffset, col);
   immUniformColor4ub(col[0], col[1], col[2], col[3]);
 }
 
 #endif /* !GPU_STANDALONE */
+
+}  // namespace blender

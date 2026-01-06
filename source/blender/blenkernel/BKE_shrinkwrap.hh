@@ -30,8 +30,10 @@
  * (So that you don't have to pass an enormous amount of arguments to functions)
  */
 
-struct Depsgraph;
+namespace blender {
+
 struct BVHTree;
+struct Depsgraph;
 struct MDeformVert;
 struct Mesh;
 struct ModifierEvalContext;
@@ -59,39 +61,39 @@ class ShrinkwrapBoundaryData {
   }
 
   /* True if the edge belongs to exactly one face. */
-  blender::BitVector<> edge_is_boundary;
+  BitVector<> edge_is_boundary;
   /* True if the triangle has any boundary edges. */
-  blender::BitVector<> tri_has_boundary;
+  BitVector<> tri_has_boundary;
 
   /* Mapping from vertex index to boundary vertex index, or -1.
    * Used for compact storage of data about boundary vertices. */
-  blender::Array<int> vert_boundary_id;
+  Array<int> vert_boundary_id;
 
   /* Direction data about boundary vertices. */
-  blender::Array<ShrinkwrapBoundaryVertData> boundary_verts;
+  Array<ShrinkwrapBoundaryVertData> boundary_verts;
 };
 
-namespace blender::bke::shrinkwrap {
+namespace bke::shrinkwrap {
 
 const ShrinkwrapBoundaryData &boundary_cache_ensure(const Mesh &mesh);
 
-}  // namespace blender::bke::shrinkwrap
+}  // namespace bke::shrinkwrap
 
 /* Information about a mesh and BVH tree. */
 struct ShrinkwrapTreeData {
   Mesh *mesh;
 
   const BVHTree *bvh;
-  blender::bke::BVHTreeFromMesh treeData;
+  bke::BVHTreeFromMesh treeData;
 
-  blender::OffsetIndices<int> faces;
-  blender::Span<blender::int2> edges;
-  blender::Span<int> corner_edges;
+  OffsetIndices<int> faces;
+  Span<int2> edges;
+  Span<int> corner_edges;
 
-  blender::Span<blender::float3> face_normals;
-  blender::Span<blender::float3> vert_normals;
-  blender::Span<blender::float3> corner_normals;
-  blender::VArraySpan<bool> sharp_faces;
+  Span<float3> face_normals;
+  Span<float3> vert_normals;
+  Span<float3> corner_normals;
+  VArraySpan<bool> sharp_faces;
   const ShrinkwrapBoundaryData *boundary;
 };
 
@@ -153,9 +155,9 @@ struct ShrinkwrapParams {
 void shrinkwrapParams_deform(const ShrinkwrapParams &params,
                              Object &object,
                              ShrinkwrapTreeData &tree,
-                             blender::Span<MDeformVert> dvert,
+                             Span<MDeformVert> dvert,
                              int defgrp_index,
-                             blender::MutableSpan<blender::float3> positions);
+                             MutableSpan<float3> positions);
 
 /**
  * Used in `sculpt_mask_extract.cc` to shrink-wrap the extracted mesh to the sculpt.
@@ -253,3 +255,5 @@ void BKE_shrinkwrap_snap_point_to_surface(const ShrinkwrapTreeData *tree,
   { \
       0, \
   }
+
+}  // namespace blender

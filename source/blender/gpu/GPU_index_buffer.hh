@@ -14,9 +14,11 @@
 
 #include "GPU_primitive.hh"
 
+namespace blender {
+
 #define GPU_TRACK_INDEX_RANGE 1
 
-namespace blender::gpu {
+namespace gpu {
 
 /** Value for invisible elements in a #GPU_PRIM_POINTS index buffer. */
 constexpr uint32_t RESTART_INDEX = 0xFFFFFFFF;
@@ -146,9 +148,9 @@ inline int indices_per_primitive(GPUPrimType prim_type)
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
-blender::gpu::IndexBuf *GPU_indexbuf_calloc();
+gpu::IndexBuf *GPU_indexbuf_calloc();
 
 struct GPUIndexBufBuilder {
   uint max_allowed_index;
@@ -168,11 +170,11 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *, GPUPrimType, uint index_len, uin
 
 /** Supports only #GPU_PRIM_POINTS, #GPU_PRIM_LINES and #GPU_PRIM_TRIS. */
 void GPU_indexbuf_init(GPUIndexBufBuilder *, GPUPrimType, uint prim_len, uint vertex_len);
-blender::gpu::IndexBuf *GPU_indexbuf_build_on_device(uint index_len);
+gpu::IndexBuf *GPU_indexbuf_build_on_device(uint index_len);
 
-void GPU_indexbuf_init_build_on_device(blender::gpu::IndexBuf *elem, uint index_len);
+void GPU_indexbuf_init_build_on_device(gpu::IndexBuf *elem, uint index_len);
 
-blender::MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *);
+MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *);
 
 /*
  * Thread safe.
@@ -198,17 +200,17 @@ void GPU_indexbuf_set_point_restart(GPUIndexBufBuilder *builder, uint elem);
 void GPU_indexbuf_set_line_restart(GPUIndexBufBuilder *builder, uint elem);
 void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem);
 
-blender::gpu::IndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *);
-blender::gpu::IndexBuf *GPU_indexbuf_build_ex(GPUIndexBufBuilder *builder,
-                                              uint index_min,
-                                              uint index_max,
-                                              bool uses_restart_indices);
-void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, blender::gpu::IndexBuf *);
+gpu::IndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *);
+gpu::IndexBuf *GPU_indexbuf_build_ex(GPUIndexBufBuilder *builder,
+                                     uint index_min,
+                                     uint index_max,
+                                     bool uses_restart_indices);
+void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, gpu::IndexBuf *);
 void GPU_indexbuf_build_in_place_ex(GPUIndexBufBuilder *builder,
                                     uint index_min,
                                     uint index_max,
                                     bool uses_restart_indices,
-                                    blender::gpu::IndexBuf *elem);
+                                    gpu::IndexBuf *elem);
 
 /**
  * Fill an IBO by uploading the referenced data directly to the GPU, bypassing the separate storage
@@ -217,38 +219,36 @@ void GPU_indexbuf_build_in_place_ex(GPUIndexBufBuilder *builder,
  *
  * \todo The optimization to avoid the local copy currently isn't implemented.
  */
-blender::gpu::IndexBuf *GPU_indexbuf_build_from_memory(GPUPrimType prim_type,
-                                                       const uint32_t *data,
-                                                       int32_t data_len,
-                                                       int32_t index_min,
-                                                       int32_t index_max,
-                                                       bool uses_restart_indices);
+gpu::IndexBuf *GPU_indexbuf_build_from_memory(GPUPrimType prim_type,
+                                              const uint32_t *data,
+                                              int32_t data_len,
+                                              int32_t index_min,
+                                              int32_t index_max,
+                                              bool uses_restart_indices);
 
 /**
  * \note Sub-ranges are not taken into account, the whole buffer will be bound without any offset.
  */
-void GPU_indexbuf_bind_as_ssbo(blender::gpu::IndexBuf *elem, int binding);
+void GPU_indexbuf_bind_as_ssbo(gpu::IndexBuf *elem, int binding);
 
-blender::gpu::IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
-                                                            uint curves_num,
-                                                            uint verts_per_curve);
+gpu::IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
+                                                   uint curves_num,
+                                                   uint verts_per_curve);
 
 /* Upload data to the GPU (if not built on the device) and bind the buffer to its default target.
  */
-void GPU_indexbuf_use(blender::gpu::IndexBuf *elem);
+void GPU_indexbuf_use(gpu::IndexBuf *elem);
 
-/* Partially update the blender::gpu::IndexBuf which was already sent to the device, or built
+/* Partially update the gpu::IndexBuf which was already sent to the device, or built
  * directly on the device. The data needs to be compatible with potential compression applied to
  * the original indices when the index buffer was built, i.e., if the data was compressed to use
  * shorts instead of ints, shorts should passed here. */
-void GPU_indexbuf_update_sub(blender::gpu::IndexBuf *elem, uint start, uint len, const void *data);
+void GPU_indexbuf_update_sub(gpu::IndexBuf *elem, uint start, uint len, const void *data);
 
 /* Create a sub-range of an existing index-buffer. */
-blender::gpu::IndexBuf *GPU_indexbuf_create_subrange(blender::gpu::IndexBuf *elem_src,
-                                                     uint start,
-                                                     uint length);
-void GPU_indexbuf_create_subrange_in_place(blender::gpu::IndexBuf *elem,
-                                           blender::gpu::IndexBuf *elem_src,
+gpu::IndexBuf *GPU_indexbuf_create_subrange(gpu::IndexBuf *elem_src, uint start, uint length);
+void GPU_indexbuf_create_subrange_in_place(gpu::IndexBuf *elem,
+                                           gpu::IndexBuf *elem_src,
                                            uint start,
                                            uint length);
 
@@ -257,11 +257,11 @@ void GPU_indexbuf_create_subrange_in_place(blender::gpu::IndexBuf *elem,
  *
  * NOTE: caller is responsible to reserve enough memory.
  */
-void GPU_indexbuf_read(blender::gpu::IndexBuf *elem, uint32_t *data);
+void GPU_indexbuf_read(gpu::IndexBuf *elem, uint32_t *data);
 
-void GPU_indexbuf_discard(blender::gpu::IndexBuf *elem);
+void GPU_indexbuf_discard(gpu::IndexBuf *elem);
 
-bool GPU_indexbuf_is_init(blender::gpu::IndexBuf *elem);
+bool GPU_indexbuf_is_init(gpu::IndexBuf *elem);
 
 int GPU_indexbuf_primitive_len(GPUPrimType prim_type);
 
@@ -275,7 +275,7 @@ int GPU_indexbuf_primitive_len(GPUPrimType prim_type);
     } \
   } while (0)
 
-namespace blender::gpu {
+namespace gpu {
 
 class IndexBufDeleter {
  public:
@@ -287,4 +287,5 @@ class IndexBufDeleter {
 
 using IndexBufPtr = std::unique_ptr<IndexBuf, IndexBufDeleter>;
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

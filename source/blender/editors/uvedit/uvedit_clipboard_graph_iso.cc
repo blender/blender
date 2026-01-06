@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <climits>
 
+namespace blender {
+
 #define L 0
 #define R 1
 #define LL 2
@@ -37,7 +39,7 @@ GraphISO::GraphISO(int n)
 
   for (int i = 0; i < n; i++) {
     /* Caution, are you trying to change the representation of adjmat?
-     * Consider `blender::Vector<std::pair<int, int>> adjmat;` instead.
+     * Consider `Vector<std::pair<int, int>> adjmat;` instead.
      * Better still is to use a different algorithm. See for example:
      * https://www.uni-ulm.de/fileadmin/website_uni_ulm/iui.inst.190/Mitarbeiter/toran/beatcs09.pdf
      */
@@ -438,3 +440,5 @@ bool ED_uvedit_clipboard_maximum_common_subgraph(GraphISO *g0_input,
 
   return result;
 }
+
+}  // namespace blender

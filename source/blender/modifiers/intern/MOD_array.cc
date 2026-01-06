@@ -49,7 +49,7 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-using namespace blender;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
@@ -280,7 +280,6 @@ static void mesh_merge_transform(Mesh *result,
                                  int remap_len,
                                  MutableSpan<float3> dst_vert_normals)
 {
-  using namespace blender;
   int *index_orig;
   int i;
   int2 *edge;
@@ -383,8 +382,6 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
    * merging start/end caps into the empty mesh. Avoid an early return here as it can cause
    * problems if the expected custom-data layers don't exist in the resulting mesh,
    * see: #107353, #132991. */
-
-  using namespace blender;
 
   int2 *edge;
   int i, j, c, count;
@@ -590,7 +587,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   first_chunk_nverts = chunk_nverts;
 
   unit_m4(current_offset);
-  Span<blender::float3> src_vert_normals;
+  Span<float3> src_vert_normals;
   Vector<float3> dst_vert_normals;
   if (!use_recalc_normals) {
     src_vert_normals = mesh->vert_normals();
@@ -823,7 +820,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* done capping */
 
   if (!dst_vert_normals.is_empty()) {
-    blender::bke::mesh_vert_normals_assign(*result, std::move(dst_vert_normals));
+    bke::mesh_vert_normals_assign(*result, std::move(dst_vert_normals));
   }
 
   /* Handle merging */
@@ -1102,3 +1099,5 @@ ModifierTypeInfo modifierType_Array = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

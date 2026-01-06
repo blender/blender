@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-using namespace blender;
+namespace blender {
 
 /* #AssetWeakReference -------------------------------------------- */
 
@@ -179,3 +179,5 @@ void BKE_asset_catalog_path_list_add_path(ListBaseT<AssetCatalogPathLink> &catal
   new_path->path = BLI_strdup(catalog_path);
   BLI_addtail(&catalog_path_list, new_path);
 }
+
+}  // namespace blender

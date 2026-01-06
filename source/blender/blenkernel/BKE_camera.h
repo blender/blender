@@ -6,6 +6,8 @@
 
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  * \brief Camera data-block and utility functions.
@@ -178,3 +180,5 @@ struct CameraBGImage *BKE_camera_background_image_copy(const struct CameraBGImag
                                                        int flag);
 void BKE_camera_background_image_remove(struct Camera *cam, struct CameraBGImage *bgpic);
 void BKE_camera_background_image_clear(struct Camera *cam);
+
+}  // namespace blender

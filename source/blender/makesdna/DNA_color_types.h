@@ -11,6 +11,8 @@
 #include "DNA_defs.h"
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 /* general defines for kernel functions */
 #define CM_RESOL 32
 #define CM_TABLE 256
@@ -238,3 +240,5 @@ struct ColorManagedDisplaySettings {
 struct ColorManagedColorspaceSettings {
   char name[/*MAX_COLORSPACE_NAME*/ 64] = "";
 };
+
+}  // namespace blender

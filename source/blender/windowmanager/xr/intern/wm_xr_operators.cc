@@ -55,6 +55,8 @@
 
 #include "wm_xr_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Operator Conditions
  * \{ */
@@ -1168,11 +1170,11 @@ enum XrTeleportRayResult : uint8_t {
 
 struct XrTeleportData {
   XrTeleportRayResult ray_result;
-  blender::Array<blender::float3> arc_points;
+  Array<float3> arc_points;
   int endpoint_idx;
 
-  blender::float3 init_location;
-  blender::float3 init_direction;
+  float3 init_location;
+  float3 init_direction;
   float teleportation_scale;
 
   float ray_color[4];
@@ -1192,7 +1194,7 @@ static void wm_xr_navigation_teleport_draw_destination(const XrTeleportData *dat
 
   if (data->ray_result == XR_TELEPORT_RAY_MISS) {
     /* Draw a simple sphere. */
-    blender::gpu::Batch *sphere_batch = GPU_batch_preset_sphere(2);
+    gpu::Batch *sphere_batch = GPU_batch_preset_sphere(2);
     GPU_batch_program_set_builtin(sphere_batch, GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_batch_uniform_4fv(sphere_batch, "color", data->ray_color);
 
@@ -1203,7 +1205,7 @@ static void wm_xr_navigation_teleport_draw_destination(const XrTeleportData *dat
   else {
     /* Draw a destination ring. */
     uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4fv(data->ray_color);
@@ -1233,8 +1235,6 @@ static void wm_xr_navigation_teleport_draw_destination(const XrTeleportData *dat
 
 static void wm_xr_navigation_teleport_draw_ray(const XrTeleportData *data)
 {
-  using namespace blender;
-
   /* Compute the Catmull-Rom spline, first get a span of the used arc control points. */
   const int num_control_points = data->endpoint_idx + 1;
   const Span<float3> arc_control_points = data->arc_points.as_span().take_front(
@@ -1333,9 +1333,7 @@ static void wm_xr_navigation_teleport_data_update(wmOperator *op,
                                                   XrTeleportData *data,
                                                   const wmXrActionData *actiondata)
 {
-  using namespace blender;
-
-  data->arc_points = blender::Array<blender::float3>(g_xr_teleportation_arc_num_control_points);
+  data->arc_points = Array<float3>(g_xr_teleportation_arc_num_control_points);
   data->endpoint_idx = g_xr_teleportation_arc_num_control_points - 1;
 
   const math::Quaternion controller_quat(actiondata->controller_rot);
@@ -1363,32 +1361,29 @@ static void wm_xr_navigation_teleport_raycast(Scene *scene,
                                               float r_obmat[4][4])
 {
   /* Uses same raycast method as Scene.ray_cast(). */
-  blender::ed::transform::SnapObjectContext *sctx =
-      blender::ed::transform::snap_object_context_create(scene, 0);
+  ed::transform::SnapObjectContext *sctx = ed::transform::snap_object_context_create(scene, 0);
 
-  blender::ed::transform::SnapObjectParams params{};
+  ed::transform::SnapObjectParams params{};
   params.snap_target_select = (selectable_only ? SCE_SNAP_TARGET_ONLY_SELECTABLE :
                                                  SCE_SNAP_TARGET_ALL);
-  blender::ed::transform::snap_object_project_ray_ex(sctx,
-                                                     depsgraph,
-                                                     nullptr,
-                                                     &params,
-                                                     origin,
-                                                     direction,
-                                                     ray_dist,
-                                                     r_location,
-                                                     r_normal,
-                                                     r_index,
-                                                     r_ob,
-                                                     r_obmat);
+  ed::transform::snap_object_project_ray_ex(sctx,
+                                            depsgraph,
+                                            nullptr,
+                                            &params,
+                                            origin,
+                                            direction,
+                                            ray_dist,
+                                            r_location,
+                                            r_normal,
+                                            r_index,
+                                            r_ob,
+                                            r_obmat);
 
-  blender::ed::transform::snap_object_context_destroy(sctx);
+  ed::transform::snap_object_context_destroy(sctx);
 }
 
 static void wm_xr_navigation_teleport_generate_arc(wmOperator *op, XrTeleportData *data)
 {
-  using namespace blender;
-
   const float gravity = 9.81f;
   const float time_step = RNA_float_get(op->ptr, "range");
   const float velocity = RNA_float_get(op->ptr, "force");
@@ -1408,11 +1403,9 @@ static void wm_xr_navigation_teleport_generate_arc(wmOperator *op, XrTeleportDat
   }
 }
 
-static bool wm_xr_navigation_teleport_is_wall_hit(blender::float3 &hit_normal)
+static bool wm_xr_navigation_teleport_is_wall_hit(float3 &hit_normal)
 {
   /* Check if the hit surface is a wall. */
-  using namespace blender;
-
   const float3 up_vector = {0.0f, 0.0f, 1.0f};
   const float min_ground_dot = M_SQRT3 / 2.0f; /* Cosine of 30 degrees. */
 
@@ -1423,12 +1416,9 @@ static bool wm_xr_navigation_teleport_is_wall_hit(blender::float3 &hit_normal)
   return false;
 }
 
-static bool wm_xr_navigation_teleport_arc_clip_to_ground(blender::Array<blender::float3> &points,
-                                                         int &end_point_idx)
+static bool wm_xr_navigation_teleport_arc_clip_to_ground(Array<float3> &points, int &end_point_idx)
 {
   /* Truncate the arc to the ground plane (Z=0). */
-  using namespace blender;
-
   for (int i = 1; i < g_xr_teleportation_arc_num_control_points; ++i) {
     const float3 &startpoint = points[i - 1];
     const float3 &endpoint = points[i];
@@ -1455,8 +1445,6 @@ static XrTeleportRayResult wm_xr_navigation_teleport_arc_scene_intersect(bContex
                                                                          wmOperator *op,
                                                                          XrTeleportData *data)
 {
-  using namespace blender;
-
   const bool selectable_only = RNA_boolean_get(op->ptr, "selectable_only");
 
   /* Ray-cast along the pre-computed arc to find the first collision point with a scene object. */
@@ -1521,11 +1509,9 @@ static XrTeleportRayResult wm_xr_navigation_teleport_arc_scene_intersect(bContex
   return XR_TELEPORT_RAY_MISS;
 }
 
-static blender::float3 wm_xr_navigation_teleport_get_nav_destination(const wmXrData *xr,
-                                                                     XrTeleportData *data)
+static float3 wm_xr_navigation_teleport_get_nav_destination(const wmXrData *xr,
+                                                            XrTeleportData *data)
 {
-  using namespace blender;
-
   float nav_scale;
   WM_xr_session_state_nav_scale_get(xr, &nav_scale);
 
@@ -1548,7 +1534,7 @@ static XrTeleportRayResult wm_xr_navigation_teleport_main(bContext *C,
                                                           wmOperator *op,
                                                           const wmXrData *xr,
                                                           XrTeleportData *data,
-                                                          blender::float3 &r_nav_destination)
+                                                          float3 &r_nav_destination)
 {
   /* Generate the initial parabolic arc. */
   wm_xr_navigation_teleport_generate_arc(op, data);
@@ -1608,7 +1594,7 @@ static wmOperatorStatus wm_xr_navigation_teleport_modal(bContext *C,
   wm_xr_navigation_teleport_data_update(op, xr, data, actiondata);
 
   /* Teleport using an arc, computing both the final destination and the visual curve. */
-  blender::float3 nav_destination = {};
+  float3 nav_destination = {};
   data->ray_result = wm_xr_navigation_teleport_main(C, op, xr, data, nav_destination);
 
   /* Update ray color. */
@@ -1918,3 +1904,5 @@ void wm_xr_operatortypes_register()
 }
 
 /** \} */
+
+}  // namespace blender

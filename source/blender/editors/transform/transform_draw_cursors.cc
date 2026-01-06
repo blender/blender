@@ -81,8 +81,8 @@ bool transform_draw_cursor_poll(bContext *C)
 }
 
 void transform_draw_cursor_draw(bContext *C,
-                                const blender::int2 &xy,
-                                const blender::float2 & /*tilt*/,
+                                const int2 &xy,
+                                const float2 & /*tilt*/,
                                 void *customdata)
 {
   TransInfo *t = static_cast<TransInfo *>(customdata);
@@ -128,7 +128,7 @@ void transform_draw_cursor_draw(bContext *C,
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
   const uint pos_id = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   /* Dashed lines first. */
   if (ELEM(t->helpline, HLP_SPRING, HLP_ANGLE, HLP_ERROR_DASH)) {

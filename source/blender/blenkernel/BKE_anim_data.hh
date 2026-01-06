@@ -13,6 +13,8 @@
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct AnimData;
 struct BlendDataReader;
 struct BlendWriter;
@@ -91,7 +93,7 @@ void BKE_animdata_free(ID *id, bool do_id_user);
 /**
  * Return true if the ID-block has non-empty AnimData.
  *
- * \see blender::bke::animdata::prop_is_animated().
+ * \see bke::animdata::prop_is_animated().
  */
 bool BKE_animdata_id_is_animated(const ID *id);
 
@@ -173,18 +175,18 @@ void BKE_animdata_liboverride_post_process(ID *id);
 /* ************************************* */
 /* Batch AnimData API */
 /* Loop over all datablocks applying callback */
-void BKE_animdata_main_cb(struct Main *bmain, blender::FunctionRef<void(ID *, AnimData *)> func);
+void BKE_animdata_main_cb(struct Main *bmain, FunctionRef<void(ID *, AnimData *)> func);
 
 /** Apply the given callback function on all F-Curves attached to data in `main` database. */
-void BKE_fcurves_main_cb(struct Main *bmain, blender::FunctionRef<void(ID *, FCurve *)> func);
+void BKE_fcurves_main_cb(struct Main *bmain, FunctionRef<void(ID *, FCurve *)> func);
 
 /* Look over all f-curves of a given ID. */
-void BKE_fcurves_id_cb(struct ID *id, blender::FunctionRef<void(ID *, FCurve *)> func);
+void BKE_fcurves_id_cb(struct ID *id, FunctionRef<void(ID *, FCurve *)> func);
 
 /* ************************************* */
 /* TODO: overrides, remapping, and path-finding API's. */
 
-namespace blender::bke::animdata {
+namespace bke::animdata {
 
 /**
  * Action Slots keep a runtime list of the IDs animated by them.
@@ -198,8 +200,8 @@ namespace blender::bke::animdata {
  * \note This function invalidates all user caches of all Action Slots of all
  * Actions in this `bmain`.
  *
- * \see #blender::animrig::Slot::users_invalidate()
- * \see #blender::animrig::internal::rebuild_slot_user_cache()
+ * \see #animrig::Slot::users_invalidate()
+ * \see #animrig::internal::rebuild_slot_user_cache()
  */
 void action_slots_user_cache_invalidate(Main &bmain);
 
@@ -215,4 +217,5 @@ void action_slots_user_cache_invalidate(Main &bmain);
  */
 bool prop_is_animated(const AnimData *adt, StringRefNull rna_path, int array_index);
 
-}  // namespace blender::bke::animdata
+}  // namespace bke::animdata
+}  // namespace blender

@@ -7,11 +7,13 @@
 #include "BLI_map.hh"
 #include "BLI_struct_equality_utils.hh"
 
+namespace blender {
+
 struct ID;
 struct Object;
 struct bNodeTree;
 
-namespace blender::nodes {
+namespace nodes {
 
 /**
  * Gathers dependencies that the node tree requires before it can be evaluated.
@@ -93,4 +95,5 @@ GeometryNodesEvalDependencies gather_geometry_nodes_eval_dependencies_recursive(
 GeometryNodesEvalDependencies gather_geometry_nodes_eval_dependencies_with_cache(
     const bNodeTree &ntree);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

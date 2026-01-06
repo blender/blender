@@ -12,6 +12,8 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 struct CacheArchiveHandle;
 struct CacheFileLayer;
 struct CacheObjectPath;
@@ -67,7 +69,7 @@ struct AlembicImportParams {
    * as what Blender expects (e.g. centimeters instead of meters). */
   float global_scale;
 
-  blender::Vector<std::string> paths;
+  Vector<std::string> paths;
 
   /* Last frame number of consecutive files to expect if the cached animation is split in a
    * sequence. */
@@ -127,14 +129,14 @@ struct ABCReadParams {
 };
 
 #ifdef __cplusplus
-namespace blender::bke {
+namespace bke {
 struct GeometrySet;
 }
 
 /* Either modifies the existing geometry component, or create a new one. */
 void ABC_read_geometry(CacheReader *reader,
                        Object *ob,
-                       blender::bke::GeometrySet &geometry_set,
+                       bke::GeometrySet &geometry_set,
                        const ABCReadParams *params,
                        const char **r_err_str);
 #endif
@@ -152,3 +154,5 @@ struct CacheReader *CacheReader_open_alembic_object(struct CacheArchiveHandle *h
                                                     struct Object *object,
                                                     const char *object_path,
                                                     bool is_sequence);
+
+}  // namespace blender

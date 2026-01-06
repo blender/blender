@@ -45,6 +45,8 @@
 #include "clip_intern.hh"
 #include "tracking_ops_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Add Marker Operator
  * \{ */
@@ -263,7 +265,7 @@ static wmOperatorStatus delete_track_invoke(bContext *C, wmOperator *op, const w
                                   IFACE_("Delete selected tracks?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return delete_track_exec(C, op);
@@ -344,7 +346,7 @@ static wmOperatorStatus delete_marker_invoke(bContext *C,
                                   IFACE_("Delete marker for current frame from selected tracks?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return delete_marker_exec(C, op);
@@ -1243,7 +1245,7 @@ static wmOperatorStatus join_tracks_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  blender::Set<MovieTrackingPlaneTrack *> point_tracks;
+  Set<MovieTrackingPlaneTrack *> point_tracks;
 
   for (MovieTrackingTrack &track : tracking_object->tracks.items_mutable()) {
     if (TRACK_VIEW_SELECTED(sc, &track) && &track != active_track) {
@@ -2232,3 +2234,5 @@ void CLIP_OT_update_image_from_plane_marker(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -34,6 +34,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 /**
  * Only allow non-managed icons to be removed (by Python for eg).
  * Previews & ID's have their own functions to remove icons.
@@ -47,7 +49,7 @@ enum {
 static CLG_LogRef LOG = {"lib.icons"};
 
 /* Protected by gIconMutex. */
-using GlobalIconsMap = blender::Map<int, Icon *>;
+using GlobalIconsMap = Map<int, Icon *>;
 static GlobalIconsMap &get_global_icons_map()
 {
   static GlobalIconsMap gIcons;
@@ -60,7 +62,7 @@ static int gNextIconId = 1;
 /* Protected by gIconMutex. */
 static int gFirstIconId = 1;
 
-static blender::Mutex gIconMutex;
+static Mutex gIconMutex;
 
 /* Queue of icons for deferred deletion. */
 struct DeferredIconDeleteNode {
@@ -588,3 +590,5 @@ int BKE_icon_ensure_studio_light(StudioLight *sl, int id_type)
 }
 
 /** \} */
+
+}  // namespace blender

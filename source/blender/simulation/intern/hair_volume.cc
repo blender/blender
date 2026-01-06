@@ -14,6 +14,8 @@
 #include "eigen_utils.h"
 #include "implicit.h"
 
+namespace blender {
+
 /* ================ Volumetric Hair Interaction ================
  * adapted from
  *
@@ -1256,3 +1258,5 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   return collgrid;
 }
 #endif
+
+}  // namespace blender

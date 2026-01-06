@@ -36,6 +36,8 @@
 
 #include "wm_xr_intern.hh"
 
+namespace blender {
+
 void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4])
 {
   quat_to_mat4(r_mat, pose->orientation_quat);
@@ -223,8 +225,8 @@ void wm_xr_disable_passthrough(void *customdata)
   WM_global_report(RPT_INFO, "Passthrough not available");
 }
 
-static blender::gpu::Batch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_context,
-                                                                const char *subaction_path)
+static gpu::Batch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_context,
+                                                       const char *subaction_path)
 {
   GHOST_XrControllerModelData model_data;
 
@@ -235,15 +237,15 @@ static blender::gpu::Batch *wm_xr_controller_model_batch_create(GHOST_XrContextH
   }
 
   GPUVertFormat format = {0};
-  GPU_vertformat_attr_add(&format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
-  GPU_vertformat_attr_add(&format, "nor", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+  GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SFLOAT_32_32_32);
 
-  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, model_data.count_vertices);
   vbo->data<GHOST_XrControllerModelVertex>().copy_from(
       {model_data.vertices, model_data.count_vertices});
 
-  blender::gpu::IndexBuf *ibo = nullptr;
+  gpu::IndexBuf *ibo = nullptr;
   if (model_data.count_indices > 0 && ((model_data.count_indices % 3) == 0)) {
     GPUIndexBufBuilder ibo_builder;
     const uint prim_len = model_data.count_indices / 3;
@@ -288,7 +290,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
       continue;
     }
 
-    blender::gpu::Batch *model = controller.model;
+    gpu::Batch *model = controller.model;
     if (!model) {
       model = controller.model = wm_xr_controller_model_batch_create(xr_context,
                                                                      controller.subaction_path);
@@ -317,7 +319,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
     else {
       /* Fallback. */
       const float scale = 0.05f;
-      blender::gpu::Batch *sphere = GPU_batch_preset_sphere(2);
+      gpu::Batch *sphere = GPU_batch_preset_sphere(2);
       GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
       GPU_batch_uniform_4fv(sphere, "color", color);
 
@@ -336,9 +338,8 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
       settings->controller_draw_style, XR_CONTROLLER_DRAW_DARK_RAY, XR_CONTROLLER_DRAW_LIGHT_RAY);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
-  uint col = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+  uint col = GPU_vertformat_attr_add(format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
 
   float viewport[4];
@@ -427,3 +428,5 @@ void wm_xr_draw_controllers(const bContext * /*C*/, ARegion * /*region*/, void *
   wm_xr_controller_model_draw(settings, xr_context, state);
   wm_xr_controller_aim_draw(settings, state);
 }
+
+}  // namespace blender

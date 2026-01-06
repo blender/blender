@@ -41,6 +41,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /** We only need this locally. */
 static CLG_LogRef LOG = {"undo.lattice"};
 
@@ -184,7 +186,7 @@ static Object *editlatt_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_LATTICE) {
-    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
+    Lattice *lt = id_cast<Lattice *>(obedit->data);
     if (lt->editlatt != nullptr) {
       return obedit;
     }
@@ -227,7 +229,7 @@ static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  blender::Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
+  Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
   us->elems = MEM_calloc_arrayN<LatticeUndoStep_Elem>(objects.size(), __func__);
@@ -238,7 +240,7 @@ static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p
     LatticeUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    Lattice *lt = blender::id_cast<Lattice *>(ob->data);
+    Lattice *lt = id_cast<Lattice *>(ob->data);
     undolatt_from_editlatt(
         &elem->data, lt->editlatt, &lt->vertex_group_names, lt->vertex_group_active_index);
     lt->editlatt->needs_flush_to_id = 1;
@@ -267,7 +269,7 @@ static void lattice_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     LatticeUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
+    Lattice *lt = id_cast<Lattice *>(obedit->data);
     if (lt->editlatt == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
@@ -355,3 +357,5 @@ void ED_lattice_undosys_type(UndoType *ut)
 }
 
 /** \} */
+
+}  // namespace blender

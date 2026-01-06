@@ -10,6 +10,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 struct CurveProfile;
 struct MDeformVert;
 
@@ -49,3 +51,5 @@ void BM_mesh_bevel(BMesh *bm,
                    int vmesh_method,
                    int bweight_offset_vert,
                    int bweight_offset_edge);
+
+}  // namespace blender

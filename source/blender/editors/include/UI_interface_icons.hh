@@ -13,6 +13,8 @@
 /* Required for #eIconSizes. */
 #include "DNA_ID_enums.h"
 
+namespace blender {
+
 struct Collection;
 struct ID;
 struct ImBuf;
@@ -22,7 +24,7 @@ struct PreviewImage;
 struct Scene;
 struct bContext;
 
-namespace blender::ui {
+namespace ui {
 
 struct IconTextOverlay {
   char text[5];
@@ -117,4 +119,5 @@ int icon_color_from_collection(const Collection *collection);
 
 void icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
                                        const int icon_indicator_number);
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

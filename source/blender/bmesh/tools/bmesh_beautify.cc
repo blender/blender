@@ -28,15 +28,14 @@
 #include "bmesh.hh"
 #include "bmesh_beautify.hh" /* own include */
 
-using blender::Set;
-using blender::Span;
-
 // #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
 #  include "BLI_time.h"
 #  include "BLI_time_utildefines.h"
 #endif
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /* Set for edge rotation */
@@ -45,20 +44,20 @@ struct EdRotState {
   /**
    * Edge vert indices (ordered small -> large).
    */
-  blender::int2 v_pair;
+  int2 v_pair;
   /**
    * Face vert indices (small -> large).
    *
    * Each face-vertex points to a connected triangles vertex
    * that's isn't part of the edge defined by `v_pair`.
    */
-  blender::int2 f_pair;
+  int2 f_pair;
 
   BLI_STRUCT_EQUALITY_OPERATORS_2(EdRotState, v_pair, f_pair)
 
   uint64_t hash() const
   {
-    return blender::get_default_hash(this->v_pair, this->f_pair);
+    return get_default_hash(this->v_pair, this->f_pair);
   }
 };
 
@@ -311,7 +310,7 @@ void BM_mesh_beautify_fill(BMesh *bm,
   Heap *eheap;            /* edge heap */
   HeapNode **eheap_table; /* edge index aligned table pointing to the eheap */
 
-  blender::Array<blender::Set<EdRotState>> edge_state_arr(edge_array_len);
+  Array<Set<EdRotState>> edge_state_arr(edge_array_len);
   BLI_mempool *edge_state_pool = BLI_mempool_create(sizeof(EdRotState), 0, 512, BLI_MEMPOOL_NOP);
   int i;
 
@@ -349,7 +348,7 @@ void BM_mesh_beautify_fill(BMesh *bm,
     BLI_assert(e == nullptr || BM_edge_face_count_is_equal(e, 2));
 
     if (LIKELY(e)) {
-      blender::Set<EdRotState> &e_state_set = edge_state_arr[i];
+      Set<EdRotState> &e_state_set = edge_state_arr[i];
 
       /* add the new state into the set so we don't move into this state again
        * NOTE: we could add the previous state too but this isn't essential)
@@ -396,3 +395,5 @@ void BM_mesh_beautify_fill(BMesh *bm,
   TIMEIT_END(beautify_fill);
 #endif
 }
+
+}  // namespace blender

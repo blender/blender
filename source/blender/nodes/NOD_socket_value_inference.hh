@@ -12,9 +12,11 @@
 #include "DNA_material_types.h"
 #include "NOD_node_in_compute_context.hh"
 
+namespace blender {
+
 struct bNodeTree;
 
-namespace blender::nodes {
+namespace nodes {
 
 /**
  * During socket usage inferencing, some socket values are computed. This class represents such a
@@ -105,4 +107,5 @@ bool is_socket_selected__shader_mix_node(const SocketInContext &socket,
 
 }  // namespace switch_node_inference_utils
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

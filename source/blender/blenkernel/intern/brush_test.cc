@@ -14,6 +14,8 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
+namespace blender {
+
 class BrushTest : public testing::Test {
  public:
   Main *bmain = nullptr;
@@ -120,3 +122,5 @@ TEST_F(BrushTest, deep_copy_grease_pencil_brush)
 
   EXPECT_TRUE(BLI_listbase_is_empty(&bmain->nodetrees));
 }
+
+}  // namespace blender

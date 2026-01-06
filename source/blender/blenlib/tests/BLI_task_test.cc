@@ -15,6 +15,8 @@
 #include "BLI_task.h"
 #include "BLI_task.hh"
 
+namespace blender {
+
 #define ITEMS_NUM 10000
 
 /* *** Parallel iterations over range of integer values. *** */
@@ -235,11 +237,13 @@ TEST(task, MempoolIterTLS)
 TEST(task, ParallelInvoke)
 {
   std::atomic<int> counter = 0;
-  blender::threading::parallel_invoke([&]() { counter++; },
-                                      [&]() { counter++; },
-                                      [&]() { counter++; },
-                                      [&]() { counter++; },
-                                      [&]() { counter++; },
-                                      [&]() { counter++; });
+  threading::parallel_invoke([&]() { counter++; },
+                             [&]() { counter++; },
+                             [&]() { counter++; },
+                             [&]() { counter++; },
+                             [&]() { counter++; },
+                             [&]() { counter++; });
   EXPECT_EQ(counter, 6);
 }
+
+}  // namespace blender

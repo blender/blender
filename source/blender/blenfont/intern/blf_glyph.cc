@@ -50,6 +50,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /**
  * Convert glyph coverage amounts to lightness values. Uses a LUT that perceptually improves
  * anti-aliasing and results in text that looks a bit fuller and slightly brighter. This should
@@ -353,11 +355,10 @@ static GlyphBLF *blf_glyph_cache_add_blank(GlyphCacheBLF *gc, const uint charcod
   return result;
 }
 
-static GlyphBLF *blf_glyph_cache_add_svg(
-    GlyphCacheBLF *gc,
-    const uint charcode,
-    const bool color,
-    blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr)
+static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc,
+                                         const uint charcode,
+                                         const bool color,
+                                         FunctionRef<void(std::string &)> edit_source_cb = nullptr)
 {
   std::string svg_source = blf_get_icon_svg(int(charcode) - BLF_ICON_OFFSET);
   if (edit_source_cb) {
@@ -386,7 +387,7 @@ static GlyphBLF *blf_glyph_cache_add_svg(
   const int dest_h = int(ceil(image->height * scale));
   scale = float(dest_w) / image->width;
 
-  blender::Array<uchar> render_bmp(dest_w * dest_h * 4);
+  Array<uchar> render_bmp(dest_w * dest_h * 4);
 
   nsvgRasterize(rast, image, 0.0f, 0.0f, scale, render_bmp.data(), dest_w, dest_h, dest_w * 4);
   nsvgDeleteRasterizer(rast);
@@ -1391,7 +1392,7 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
 GlyphBLF *blf_glyph_ensure_icon(GlyphCacheBLF *gc,
                                 const uint icon_id,
                                 bool color,
-                                blender::FunctionRef<void(std::string &)> edit_source_cb)
+                                FunctionRef<void(std::string &)> edit_source_cb)
 {
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, icon_id + BLF_ICON_OFFSET, 0);
   if (g) {
@@ -1476,7 +1477,6 @@ static void blf_texture_draw(const GlyphBLF *g,
                              const int x2,
                              const int y2)
 {
-  using namespace blender;
   BLI_assert(size_t(g_batch.glyph_len) < ARRAY_SIZE(g_batch.glyph_data));
   GlyphQuad &glyph_data = g_batch.glyph_data[g_batch.glyph_len++];
   /* One vertex per glyph, instancing expands it into a quad. */
@@ -1522,13 +1522,8 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
       if (gc->texture) {
         GPU_texture_free(gc->texture);
       }
-      gc->texture = GPU_texture_create_2d(__func__,
-                                          w,
-                                          h,
-                                          1,
-                                          blender::gpu::TextureFormat::UNORM_8,
-                                          GPU_TEXTURE_USAGE_SHADER_READ,
-                                          nullptr);
+      gc->texture = GPU_texture_create_2d(
+          __func__, w, h, 1, gpu::TextureFormat::UNORM_8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
       gc->bitmap_len_landed = 0;
     }
@@ -1907,3 +1902,5 @@ bool blf_character_to_curves(FontBLF *font,
 }
 
 /** \} */
+
+}  // namespace blender

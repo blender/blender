@@ -15,6 +15,8 @@
 
 #include <type_traits>
 
+namespace blender {
+
 /* ************************************************ */
 /* F-Curve DataTypes */
 
@@ -412,7 +414,7 @@ struct NlaStrip {
    * Action that is referenced by this strip (strip is 'user' of the action).
    *
    * \note Most code should not write to this field directly, but use functions from
-   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   * `animrig::nla` instead, see ANIM_nla.hh.
    */
   bAction *act = nullptr;
 
@@ -422,7 +424,7 @@ struct NlaStrip {
    * An NLA strip is limited to using a single slot in the Action.
    *
    * \note Most code should not write to this field directly, but use functions from
-   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   * `animrig::nla` instead, see ANIM_nla.hh.
    */
   int32_t action_slot_handle = 0;
   /**
@@ -432,7 +434,7 @@ struct NlaStrip {
    * \see #ActionSlot::name
    *
    * \note Most code should not write to this field directly, but use functions from
-   * `blender::animrig::nla` instead, see ANIM_nla.hh.
+   * `animrig::nla` instead, see ANIM_nla.hh.
    */
   char last_slot_identifier[/*MAX_ID_NAME*/ 258] = "";
   char _pad0[2] = {};
@@ -659,7 +661,7 @@ struct AnimData {
    *
    * Do not set this directly, use one of the assignment functions in ANIM_action.hh instead.
    *
-   * This can be set to `blender::animrig::Slot::unassigned` when no slot is assigned. Note that
+   * This can be set to `animrig::Slot::unassigned` when no slot is assigned. Note that
    * this field being set to any other value does NOT guarantee that there is a slot with that
    * handle, as it might have been deleted from the Action.
    */
@@ -740,3 +742,5 @@ struct IdAdtTemplate {
   ID id;
   AnimData *adt = nullptr;
 };
+
+}  // namespace blender

@@ -83,7 +83,9 @@
 
 #include "render_intern.hh"
 
-namespace path_templates = blender::bke::path_templates;
+namespace blender {
+
+namespace path_templates = bke::path_templates;
 
 static CLG_LogRef LOG = {"render"};
 
@@ -120,7 +122,7 @@ struct OGLRender : public RenderJobBase {
 
   GPUViewport *viewport = nullptr;
 
-  blender::Mutex reports_mutex;
+  Mutex reports_mutex;
   ReportList *reports = nullptr;
 
   int cfrao = 0;
@@ -138,7 +140,7 @@ struct OGLRender : public RenderJobBase {
   wmWindowManager *wm = nullptr;
   wmWindow *win = nullptr;
 
-  blender::Vector<MovieWriter *> movie_writers;
+  Vector<MovieWriter *> movie_writers;
 
   TaskPool *task_pool = nullptr;
   bool pool_ok = true;
@@ -419,7 +421,7 @@ static void screen_opengl_render_write(OGLRender *oglrender)
   BKE_add_template_variables_for_render_path(template_variables, *scene);
 
   const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
-  const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+  const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
       filepath,
       scene->r.pic,
       relbase,
@@ -475,24 +477,24 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
   if (oglrender->is_sequencer) {
     Scene *scene = oglrender->scene;
 
-    blender::seq::RenderData context;
+    seq::RenderData context;
     SpaceSeq *sseq = oglrender->sseq;
     int chanshown = sseq ? sseq->chanshown : 0;
 
-    blender::seq::render_new_render_data(oglrender->bmain,
-                                         oglrender->depsgraph,
-                                         scene,
-                                         oglrender->sizex,
-                                         oglrender->sizey,
-                                         SEQ_RENDER_SIZE_SCENE,
-                                         nullptr,
-                                         &context);
+    seq::render_new_render_data(oglrender->bmain,
+                                oglrender->depsgraph,
+                                scene,
+                                oglrender->sizex,
+                                oglrender->sizey,
+                                SEQ_RENDER_SIZE_SCENE,
+                                nullptr,
+                                &context);
 
     for (view_id = 0; view_id < oglrender->views_len; view_id++) {
       context.view_id = view_id;
       context.gpu_offscreen = oglrender->ofs;
       context.gpu_viewport = oglrender->viewport;
-      oglrender->seq_data.ibufs_arr[view_id] = blender::seq::render_give_ibuf(
+      oglrender->seq_data.ibufs_arr[view_id] = seq::render_give_ibuf(
           &context, scene->r.cfra, chanshown);
     }
   }
@@ -531,7 +533,7 @@ static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const An
   int frame_start = PSFRA;
   int frame_end = PEFRA;
 
-  for (const FCurve *fcu : blender::animrig::legacy::fcurves_for_assigned_action(adt)) {
+  for (const FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(adt)) {
     if (fcu->driver != nullptr || fcu->fpt != nullptr) {
       /* Drivers have values for any point in time, so to get "the keyed frames" they are
        * useless. Same for baked FCurves, they also have keys for every frame, which is not
@@ -651,7 +653,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_GD_LEGACY: /* bGPdata, (Grease Pencil) */
       /* In addition to regular ID's animdata, GreasePencil uses a specific frame-based animation
        * system that requires specific handling here. */
-      gather_frames_to_render_for_grease_pencil(oglrender, blender::id_cast<bGPdata *>(id));
+      gather_frames_to_render_for_grease_pencil(oglrender, id_cast<bGPdata *>(id));
       break;
     case ID_GP:
       /* TODO: gather frames. */
@@ -768,7 +770,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   ofs = GPU_offscreen_create(sizex,
                              sizey,
                              true,
-                             blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+                             gpu::TextureFormat::SFLOAT_16_16_16_16,
                              GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
                              false,
                              err_out);
@@ -1059,7 +1061,7 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
     BKE_add_template_variables_for_render_path(template_variables, *scene);
 
     const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
-    const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+    const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
         filepath,
         scene->r.pic,
         relbase,
@@ -1111,7 +1113,7 @@ static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
    * writing another frame. If that happens we may reach the MAX_SCHEDULED_FRAMES limit,
    * and cause the render thread and writing threads to deadlock waiting for each other. */
   WriteTaskData *task_data = static_cast<WriteTaskData *>(task_data_v);
-  blender::threading::isolate_task([&] { write_result(pool, task_data); });
+  threading::isolate_task([&] { write_result(pool, task_data); });
 }
 
 static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
@@ -1123,7 +1125,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
   Scene *scene = oglrender->scene;
   WriteTaskData *task_data = MEM_new_for_free<WriteTaskData>("write task data");
   task_data->rr = rr;
-  task_data->tmp_scene = blender::dna::shallow_copy(*scene);
+  task_data->tmp_scene = dna::shallow_copy(*scene);
   {
     std::unique_lock lock(oglrender->task_mutex);
     oglrender->num_scheduled_frames++;
@@ -1162,7 +1164,7 @@ static bool screen_opengl_render_anim_step(OGLRender *oglrender)
     BKE_add_template_variables_for_render_path(template_variables, *scene);
 
     const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
-    const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+    const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
         filepath,
         scene->r.pic,
         relbase,
@@ -1453,3 +1455,5 @@ void RENDER_OT_opengl(wmOperatorType *ot)
                          "Use the current 3D view for rendering, else use scene settings");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+
+}  // namespace blender

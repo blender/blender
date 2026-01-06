@@ -43,6 +43,8 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
@@ -117,7 +119,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 }
 
 struct HookData_cb {
-  blender::MutableSpan<blender::float3> positions;
+  MutableSpan<float3> positions;
 
   /**
    * When anything other than -1, use deform groups.
@@ -265,7 +267,7 @@ static void deformVerts_do(HookModifierData *hmd,
                            Object *ob,
                            Mesh *mesh,
                            const BMEditMesh *em,
-                           blender::MutableSpan<blender::float3> positions)
+                           MutableSpan<float3> positions)
 {
   Object *ob_target = hmd->object;
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_target->pose, hmd->subtarget);
@@ -359,7 +361,7 @@ static void deformVerts_do(HookModifierData *hmd,
     {
       int verts_orig_num = positions.size();
       if (ob->type == OB_MESH) {
-        const Mesh *me_orig = blender::id_cast<const Mesh *>(ob->data);
+        const Mesh *me_orig = id_cast<const Mesh *>(ob->data);
         verts_orig_num = me_orig->verts_num;
       }
       BLI_bitmap *indexar_used = hook_index_array_to_bitmap(hmd, verts_orig_num);
@@ -420,7 +422,7 @@ static void deformVerts_do(HookModifierData *hmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
   deformVerts_do(hmd, ctx, ctx->object, mesh, nullptr, positions);
@@ -430,7 +432,7 @@ static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             const BMEditMesh *em,
                             Mesh *mesh,
-                            blender::MutableSpan<blender::float3> positions)
+                            MutableSpan<float3> positions)
 {
   HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
@@ -444,7 +446,7 @@ static void deform_verts_EM(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -453,7 +455,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!RNA_pointer_is_null(&hook_object_ptr) &&
       RNA_enum_get(&hook_object_ptr, "type") == OB_ARMATURE)
@@ -463,10 +465,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  layout.prop(ptr, "strength", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "strength", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (RNA_enum_get(&ob_ptr, "mode") == OB_MODE_EDIT) {
-    blender::ui::Layout *row = &layout.row(true);
+    ui::Layout *row = &layout.row(true);
     row->op("OBJECT_OT_hook_reset", IFACE_("Reset"), ICON_NONE);
     row->op("OBJECT_OT_hook_recenter", IFACE_("Recenter"), ICON_NONE);
     row = &layout.row(true);
@@ -479,7 +481,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -489,7 +491,7 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
 
-  blender::ui::Layout &row = layout.row(false);
+  ui::Layout &row = layout.row(false);
   row.active_set(use_falloff);
   row.prop(ptr, "falloff_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -567,3 +569,5 @@ ModifierTypeInfo modifierType_Hook = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

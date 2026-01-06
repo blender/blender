@@ -15,6 +15,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 struct BLI_mempool;
 
 /* -------------------------------------------------------------------- */
@@ -360,5 +362,7 @@ void BLI_task_graph_edge_create(struct TaskNode *from_node, struct TaskNode *to_
 void BLI_task_isolate(void (*func)(void *userdata), void *userdata);
 
 /** \} */
+
+}  // namespace blender
 
 #endif

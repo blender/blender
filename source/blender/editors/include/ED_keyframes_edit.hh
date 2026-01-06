@@ -17,6 +17,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct BezTriple;
 struct ButterworthCoefficients;
 struct FCurve;
@@ -106,7 +108,7 @@ enum eEditKeyframes_Mirror {
 struct KeyframeEdit_LassoData {
   rctf *rectf_scaled;
   const rctf *rectf_view;
-  blender::Array<blender::int2> mcoords;
+  Array<int2> mcoords;
 };
 
 /* use with BEZT_OK_REGION_CIRCLE */
@@ -552,3 +554,5 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
 /* ************************************************ */
 
 /** \} */
+
+}  // namespace blender

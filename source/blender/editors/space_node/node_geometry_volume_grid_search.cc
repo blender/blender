@@ -31,10 +31,12 @@
 
 #include <fmt/format.h>
 
-using blender::nodes::geo_eval_log::GeometryInfoLog;
-using blender::nodes::geo_eval_log::VolumeGridInfo;
+namespace blender {
 
-namespace blender::ed::space_node {
+using nodes::geo_eval_log::GeometryInfoLog;
+using nodes::geo_eval_log::VolumeGridInfo;
+
+namespace ed::space_node {
 
 struct GridSearchData {
   int32_t node_id;
@@ -258,4 +260,6 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
                          nullptr);
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

@@ -569,9 +569,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     sub = &col->column(true);
     PointerRNA op_ptr = layout.op(
         "OBJECT_OT_grease_pencil_dash_modifier_segment_move", "", ICON_TRIA_UP);
-    RNA_enum_set(&op_ptr, "type", /* blender::ed::object::DashSegmentMoveDirection::Up */ -1);
+    RNA_enum_set(&op_ptr, "type", /* ed::object::DashSegmentMoveDirection::Up */ -1);
     op_ptr = layout.op("OBJECT_OT_grease_pencil_dash_modifier_segment_move", "", ICON_TRIA_DOWN);
-    RNA_enum_set(&op_ptr, "type", /* blender::ed::object::DashSegmentMoveDirection::Down */ 1);
+    RNA_enum_set(&op_ptr, "type", /* ed::object::DashSegmentMoveDirection::Down */ 1);
 
     if (tmd->segments().index_range().contains(tmd->segment_active_index)) {
       PointerRNA segment_ptr = RNA_pointer_create_discrete(
@@ -658,8 +658,6 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
       reader, GreasePencilTimeModifierSegment, tmd->segments_num, &tmd->segments_array);
 }
 
-}  // namespace blender
-
 ModifierTypeInfo modifierType_GreasePencilTime = {
     /*idname*/ "GreasePencilTime",
     /*name*/ N_("TimeOffset"),
@@ -671,36 +669,38 @@ ModifierTypeInfo modifierType_GreasePencilTime = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_TIME,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
+    /*free_data*/ free_data,
     /*is_disabled*/ nullptr,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
 
-blender::Span<GreasePencilTimeModifierSegment> GreasePencilTimeModifierData::segments() const
+Span<GreasePencilTimeModifierSegment> GreasePencilTimeModifierData::segments() const
 {
   return {this->segments_array, this->segments_num};
 }
 
-blender::MutableSpan<GreasePencilTimeModifierSegment> GreasePencilTimeModifierData::segments()
+MutableSpan<GreasePencilTimeModifierSegment> GreasePencilTimeModifierData::segments()
 {
   return {this->segments_array, this->segments_num};
 }
+
+}  // namespace blender

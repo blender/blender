@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+namespace blender {
+
 struct ID;
 struct bNodeTree;
 
@@ -90,3 +92,5 @@ struct EvaluateClosureNodeViewerPathElem {
 struct ViewerPath {
   ListBaseT<ViewerPathElem> path = {nullptr, nullptr};
 };
+
+}  // namespace blender

@@ -14,6 +14,8 @@
 #include "DNA_scene_enums.h"
 #include "DNA_sequence_types.h"
 
+namespace blender {
+
 struct Main;
 struct Mask;
 struct MovieClip;
@@ -21,7 +23,7 @@ struct Scene;
 struct Strip;
 struct Stereo3dFormat;
 
-namespace blender::seq {
+namespace seq {
 
 /** #SeqLoadData.flags */
 enum eLoadFlags {
@@ -188,4 +190,5 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, bool lock_rang
 void add_movie_reload_if_needed(
     Main *bmain, Scene *scene, Strip *strip, bool *r_was_reloaded, bool *r_can_produce_frames);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

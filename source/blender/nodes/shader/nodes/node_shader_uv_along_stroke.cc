@@ -7,7 +7,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_uv_along_stroke_cc {
+namespace blender {
+
+namespace nodes::node_shader_uv_along_stroke_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -19,14 +21,14 @@ static void node_shader_buts_uvalongstroke(ui::Layout &layout, bContext * /*C*/,
   layout.prop(ptr, "use_tips", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-}  // namespace blender::nodes::node_shader_uv_along_stroke_cc
+}  // namespace nodes::node_shader_uv_along_stroke_cc
 
 /* node type definition */
 void register_node_type_sh_uvalongstroke()
 {
-  namespace file_ns = blender::nodes::node_shader_uv_along_stroke_cc;
+  namespace file_ns = nodes::node_shader_uv_along_stroke_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeUVAlongStroke", SH_NODE_UVALONGSTROKE);
   ntype.ui_name = "UV Along Stroke";
@@ -37,5 +39,7 @@ void register_node_type_sh_uvalongstroke()
   ntype.add_ui_poll = line_style_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_uvalongstroke;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

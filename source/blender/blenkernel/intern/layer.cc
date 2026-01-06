@@ -58,6 +58,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"object.layer"};
 
 /* Set of flags which are dependent on a collection settings. */
@@ -341,7 +343,7 @@ ViewLayer *BKE_view_layer_find_from_collection(const Scene *scene, LayerCollecti
 
 static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_base_duplicates_fix)
 {
-  static blender::Mutex hash_lock;
+  static Mutex hash_lock;
 
   if (view_layer->object_bases_hash == nullptr) {
     std::scoped_lock lock(hash_lock);
@@ -542,7 +544,7 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
       view_layer_dst, view_layer_src, &view_layer_dst->lightgroups, &view_layer_src->lightgroups);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus(blender::id_cast<ID *>(view_layer_dst->mat_override));
+    id_us_plus(id_cast<ID *>(view_layer_dst->mat_override));
   }
 }
 
@@ -2577,7 +2579,7 @@ void BKE_view_layer_set_active_aov(ViewLayer *view_layer, ViewLayerAOV *aov)
   viewlayer_aov_active_set(view_layer, aov);
 }
 
-using ViewLayerAOVNameCountMap = blender::Map<std::string, int>;
+using ViewLayerAOVNameCountMap = Map<std::string, int>;
 
 static void bke_view_layer_verify_aov_cb(void *userdata,
                                          Scene * /*scene*/,
@@ -2773,3 +2775,5 @@ void BKE_lightgroup_membership_set(LightgroupMembership **lgm, const char *name)
 }
 
 /** \} */
+
+}  // namespace blender

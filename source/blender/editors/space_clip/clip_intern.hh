@@ -11,6 +11,8 @@
 #include "DNA_space_types.h"
 #include "DNA_tracking_types.h"
 
+namespace blender {
+
 struct ARegion;
 struct ARegionType;
 struct MovieClip;
@@ -282,3 +284,5 @@ BLI_INLINE bool ED_space_clip_marker_is_visible(const SpaceClip *space_clip,
 }
 
 /** \} */
+
+}  // namespace blender

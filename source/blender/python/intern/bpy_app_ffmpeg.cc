@@ -15,6 +15,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 #ifdef WITH_FFMPEG
 extern "C" {
 #  include <libavcodec/avcodec.h>
@@ -136,3 +138,5 @@ PyObject *BPY_app_ffmpeg_struct()
 
   return ret;
 }
+
+}  // namespace blender

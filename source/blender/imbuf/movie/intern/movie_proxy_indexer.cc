@@ -32,14 +32,18 @@
 #include "movie_read.hh"
 #include "movie_util.hh"
 
-static CLG_LogRef LOG = {"video.proxy"};
-
 #ifdef WITH_FFMPEG
 extern "C" {
 #  include "ffmpeg_compat.h"
 #  include <libavutil/imgutils.h>
 }
+#endif
 
+namespace blender {
+
+static CLG_LogRef LOG = {"video.proxy"};
+
+#ifdef WITH_FFMPEG
 static const char temp_ext[] = "_part";
 #endif
 
@@ -205,13 +209,13 @@ static MovieIndex *movie_index_open(const char *filepath)
 
 uint64_t MovieIndex::get_seek_pos_pts(int frame_index) const
 {
-  frame_index = blender::math::clamp<int>(frame_index, 0, this->entries.size() - 1);
+  frame_index = math::clamp<int>(frame_index, 0, this->entries.size() - 1);
   return this->entries[frame_index].seek_pos_pts;
 }
 
 uint64_t MovieIndex::get_seek_pos_dts(int frame_index) const
 {
-  frame_index = blender::math::clamp<int>(frame_index, 0, this->entries.size() - 1);
+  frame_index = math::clamp<int>(frame_index, 0, this->entries.size() - 1);
   return this->entries[frame_index].seek_pos_dts;
 }
 
@@ -244,7 +248,7 @@ int MovieIndex::get_frame_index(int frameno) const
 
 uint64_t MovieIndex::get_pts(int frame_index) const
 {
-  frame_index = blender::math::clamp<int>(frame_index, 0, this->entries.size() - 1);
+  frame_index = math::clamp<int>(frame_index, 0, this->entries.size() - 1);
   return this->entries[frame_index].pts;
 }
 
@@ -1123,7 +1127,7 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
                                            int proxy_sizes_in_use,
                                            int quality,
                                            const bool overwrite,
-                                           blender::Set<std::string> *processed_paths,
+                                           Set<std::string> *processed_paths,
                                            bool build_only_on_bad_performance)
 {
   int proxy_sizes_to_build = proxy_sizes_in_use;
@@ -1330,3 +1334,5 @@ int MOV_get_existing_proxies(const MovieReader *anim)
   }
   return existing;
 }
+
+}  // namespace blender

@@ -42,6 +42,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 using namespace blender::bke;
 
 static CLG_LogRef LOG = {"lib.main"};
@@ -295,10 +297,10 @@ static bool are_ids_from_different_mains_matching(Main *bmain_1, ID *id_1, Main 
 }
 
 static void main_merge_add_id_to_move(Main *bmain_dst,
-                                      blender::Map<std::string, blender::Vector<ID *>> &id_map_dst,
+                                      Map<std::string, Vector<ID *>> &id_map_dst,
                                       ID *id_src,
                                       id::IDRemapper &id_remapper,
-                                      blender::Vector<ID *> &ids_to_move,
+                                      Vector<ID *> &ids_to_move,
                                       const bool is_library,
                                       MainMergeReport &reports)
 {
@@ -309,8 +311,8 @@ static void main_merge_add_id_to_move(Main *bmain_dst,
     Library *ref_src_library = ID_IS_PACKED(id_src) ? id_src->lib->archive_parent_library :
                                                       id_src->lib;
     BLI_assert((ref_src_library->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0);
-    blender::Vector<ID *> id_src_lib_dst = id_map_dst.lookup_default(
-        ref_src_library->runtime->filepath_abs, {});
+    Vector<ID *> id_src_lib_dst = id_map_dst.lookup_default(ref_src_library->runtime->filepath_abs,
+                                                            {});
     /* The current library of the source ID would be remapped to null, which means that it comes
      * from the destination Main. */
     is_id_src_from_bmain_dst = !id_src_lib_dst.is_empty() && !id_src_lib_dst[0];
@@ -335,7 +337,7 @@ static void main_merge_add_id_to_move(Main *bmain_dst,
       /* Archive libraries are never moved.
        * When moved, regular libraries need to see their vector of owned archive libraries cleared,
        * since these will remain in the source Main. */
-      Library *lib_src = blender::id_cast<Library *>(id_src);
+      Library *lib_src = id_cast<Library *>(id_src);
       BLI_assert((lib_src->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0);
       lib_src->runtime->archived_libraries.clear();
       /* Libraries should be added to destination Main before any other ID, to ensure that
@@ -353,10 +355,10 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
 {
   Main *bmain_src = *r_bmain_src;
   /* NOTE: Dedicated mapping type is needed here, to handle properly the library cases. */
-  blender::Map<std::string, blender::Vector<ID *>> id_map_dst;
+  Map<std::string, Vector<ID *>> id_map_dst;
   /* Packed IDs are only matched by their deep hashes, and can only match with other packed IDS, so
    * they have their own dedicated mapping. */
-  blender::Map<IDHash, ID *> id_packed_map_dst;
+  Map<IDHash, ID *> id_packed_map_dst;
   ID *id_iter_dst, *id_iter_src;
   FOREACH_MAIN_ID_BEGIN (bmain_dst, id_iter_dst) {
     if (GS(id_iter_dst->name) == ID_LI) {
@@ -391,7 +393,7 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
    * afterwards (especially in case some source linked IDs become local in `bmain_dst`). */
   id::IDRemapper id_remapper;
   id::IDRemapper id_remapper_libraries;
-  blender::Vector<ID *> ids_to_move;
+  Vector<ID *> ids_to_move;
 
   FOREACH_MAIN_ID_BEGIN (bmain_src, id_iter_src) {
     const bool is_library = GS(id_iter_src->name) == ID_LI;
@@ -420,7 +422,7 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
       }
     }
     else {
-      blender::Vector<ID *> ids_dst = id_map_dst.lookup_default(
+      Vector<ID *> ids_dst = id_map_dst.lookup_default(
           is_library ? reinterpret_cast<Library *>(id_iter_src)->runtime->filepath_abs :
                        id_iter_src->name,
           {});
@@ -499,7 +501,7 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
     if (ID_IS_LINKED(id_iter_src)) {
       /* Note that no bmain is given here, so this is only a 'raw' remapping. */
       BKE_libblock_relink_multiple(nullptr,
-                                   blender::Span(&id_iter_src, 1),
+                                   Span(&id_iter_src, 1),
                                    ID_REMAP_TYPE_REMAP,
                                    id_remapper_libraries,
                                    ID_REMAP_DO_LIBRARY_POINTERS);
@@ -627,8 +629,8 @@ void BKE_main_relations_create(Main *bmain, const short flag)
   }
 
   bmain->relations = MEM_mallocN<MainIDRelations>(__func__);
-  bmain->relations->relations_from_pointers =
-      MEM_new<blender::Map<const ID *, MainIDRelationsEntry *>>(__func__);
+  bmain->relations->relations_from_pointers = MEM_new<Map<const ID *, MainIDRelationsEntry *>>(
+      __func__);
   bmain->relations->entry_items_pool = BLI_mempool_create(
       sizeof(MainIDRelationsEntryItem), 128, 128, BLI_MEMPOOL_NOP);
 
@@ -685,10 +687,10 @@ void BKE_main_relations_tag_set(Main *bmain, const eMainIDRelationsEntryTags tag
   }
 }
 
-blender::Set<const ID *> *BKE_main_set_create(Main *bmain, blender::Set<const ID *> *set)
+Set<const ID *> *BKE_main_set_create(Main *bmain, Set<const ID *> *set)
 {
   if (set == nullptr) {
-    set = MEM_new<blender::Set<const ID *>>(__func__);
+    set = MEM_new<Set<const ID *>>(__func__);
   }
 
   ID *id;
@@ -717,13 +719,12 @@ struct LibWeakRefKey {
 
   uint64_t hash() const
   {
-    return blender::get_default_hash(blender::StringRef(this->filepath),
-                                     blender::StringRef(this->id_name));
+    return get_default_hash(StringRef(this->filepath), StringRef(this->id_name));
   }
 };
 
 struct MainLibraryWeakReferenceMap {
-  blender::Map<LibWeakRefKey, ID *> map;
+  Map<LibWeakRefKey, ID *> map;
 };
 
 MainLibraryWeakReferenceMap *BKE_main_library_weak_reference_create(Main *bmain)
@@ -1117,3 +1118,5 @@ MainListsArray BKE_main_lists_get(Main &bmain)
 
   return lb;
 }
+
+}  // namespace blender

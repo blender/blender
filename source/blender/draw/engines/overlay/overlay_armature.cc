@@ -49,6 +49,8 @@
 
 #include "draw_cache_impl.hh"
 
+namespace blender {
+
 #define PT_DEFAULT_RAD 0.05f /* radius of the point batch. */
 
 using namespace blender::draw::overlay;
@@ -185,7 +187,7 @@ class UnifiedBonePtr {
     return is_editbone_ ? eBone_->rad_tail : pchan_->bone->rad_tail;
   }
 
-  const blender::animrig::BoneColor &effective_bonecolor() const
+  const animrig::BoneColor &effective_bonecolor() const
   {
     if (is_editbone_) {
       return eBone_->color.wrap();
@@ -371,9 +373,9 @@ static void drw_shgroup_bone_custom_solid_mesh(const Armatures::DrawContext *ctx
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(mesh);
 
-  blender::gpu::Batch *surf = DRW_mesh_batch_cache_get_surface(mesh);
-  blender::gpu::Batch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, nullptr);
-  blender::gpu::Batch *loose_edges = DRW_mesh_batch_cache_get_loose_edges(mesh);
+  gpu::Batch *surf = DRW_mesh_batch_cache_get_surface(mesh);
+  gpu::Batch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, nullptr);
+  gpu::Batch *loose_edges = DRW_mesh_batch_cache_get_loose_edges(mesh);
   draw::overlay::BoneInstanceData inst_data;
 
   if (surf || edges || loose_edges) {
@@ -416,7 +418,7 @@ static void drw_shgroup_bone_custom_mesh_wire(const Armatures::DrawContext *ctx,
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(mesh);
 
-  blender::gpu::Batch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
+  gpu::Batch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
   if (geom) {
     draw::overlay::BoneInstanceData inst_data;
     inst_data.mat44 = ctx->ob->object_to_world() * float4x4(bone_mat);
@@ -445,7 +447,7 @@ static void drw_shgroup_custom_bone_curve(const Armatures::DrawContext *ctx,
 
   /* This only handles curves without any surface. The other curve types should have been converted
    * to meshes and rendered in the mesh drawing function. */
-  blender::gpu::Batch *loose_edges = nullptr;
+  gpu::Batch *loose_edges = nullptr;
   if (custom->type == OB_FONT) {
     loose_edges = DRW_cache_text_edge_wire_get(custom);
   }
@@ -678,7 +680,7 @@ static void set_ctx_bcolor(Armatures::DrawContext *ctx, const UnifiedBonePtr bon
     return;
   }
 
-  const blender::animrig::BoneColor &bone_color = bone.effective_bonecolor();
+  const animrig::BoneColor &bone_color = bone.effective_bonecolor();
   ctx->bcolor = bone_color.effective_color();
 }
 
@@ -1918,7 +1920,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
-    if (!blender::animrig::bone_is_visible(&arm, eBone)) {
+    if (!animrig::bone_is_visible(&arm, eBone)) {
       continue;
     }
 
@@ -1926,7 +1928,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
 
     /* catch exception for bone with hidden parent */
     eBone_Flag boneflag = eBone_Flag(eBone->flag);
-    if ((eBone->parent) && !blender::animrig::bone_is_visible(&arm, eBone->parent)) {
+    if ((eBone->parent) && !animrig::bone_is_visible(&arm, eBone->parent)) {
       boneflag &= ~BONE_CONNECTED;
     }
 
@@ -2043,7 +2045,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
   for (bPoseChannel *pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
        pchan = pchan->next, index += 0x10000)
   {
-    if (!blender::animrig::bone_is_visible(&arm, pchan)) {
+    if (!animrig::bone_is_visible(&arm, pchan)) {
       continue;
     }
 
@@ -2063,7 +2065,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
 
     eBone_Flag boneflag = bone_ptr.flag();
-    if (pchan->parent && !blender::animrig::bone_is_visible(&arm, pchan->parent)) {
+    if (pchan->parent && !animrig::bone_is_visible(&arm, pchan->parent)) {
       /* Avoid drawing connection line to hidden parent. */
       boneflag &= ~BONE_CONNECTED;
     }
@@ -2104,3 +2106,5 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
 }
 
 /** \} */
+
+}  // namespace blender

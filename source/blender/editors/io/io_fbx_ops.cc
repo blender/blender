@@ -33,6 +33,8 @@
 #  include "io_fbx_ops.hh"
 #  include "io_utils.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_fbx_mtl_name_collision_mode_items[] = {
     {int(eFBXMtlNameCollisionMode::MakeUnique),
      "MAKE_UNIQUE",
@@ -79,7 +81,7 @@ static wmOperatorStatus wm_fbx_import_exec(bContext *C, wmOperator *op)
 
   params.reports = op->reports;
 
-  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
+  const auto paths = ed::io::paths_from_operator_properties(op->ptr);
 
   if (paths.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
@@ -104,53 +106,46 @@ static bool wm_fbx_import_check(bContext * /*C*/, wmOperator * /*op*/)
   return false;
 }
 
-static void ui_fbx_import_settings(const bContext *C, blender::ui::Layout &layout, PointerRNA *ptr)
+static void ui_fbx_import_settings(const bContext *C, ui::Layout &layout, PointerRNA *ptr)
 {
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  if (blender::ui::Layout *panel = layout.panel(C, "FBX_import_general", false, IFACE_("General")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "FBX_import_general", false, IFACE_("General"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "use_custom_props", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    blender::ui::Layout &subcol = col.column(false);
+    ui::Layout &subcol = col.column(false);
     subcol.active_set(RNA_boolean_get(ptr, "use_custom_props"));
     subcol.prop(ptr, "use_custom_props_enum_as_string", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (blender::ui::Layout *panel = layout.panel(
-          C, "FBX_import_geometry", false, IFACE_("Geometry")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "FBX_import_geometry", false, IFACE_("Geometry"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "import_subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "import_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col.prop(ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (blender::ui::Layout *panel = layout.panel(
-          C, "FBX_import_material", true, IFACE_("Materials")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "FBX_import_material", true, IFACE_("Materials"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "mtl_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   {
-    blender::ui::PanelLayout panel = layout.panel(C, "FBX_import_anim", true);
+    ui::PanelLayout panel = layout.panel(C, "FBX_import_anim", true);
     panel.header->use_property_split_set(false);
     panel.header->prop(ptr, "use_anim", UI_ITEM_NONE, "", ICON_NONE);
     panel.header->label(IFACE_("Animation"), ICON_NONE);
     if (panel.body) {
-      blender::ui::Layout &col = panel.body->column(false);
+      ui::Layout &col = panel.body->column(false);
       col.prop(ptr, "anim_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
-  if (blender::ui::Layout *panel = layout.panel(
-          C, "FBX_import_armature", false, IFACE_("Armature")))
-  {
-    blender::ui::Layout &col = panel->column(false);
+  if (ui::Layout *panel = layout.panel(C, "FBX_import_armature", false, IFACE_("Armature"))) {
+    ui::Layout &col = panel->column(false);
     col.prop(ptr, "ignore_leaf_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
@@ -168,7 +163,7 @@ void WM_OT_fbx_import(wmOperatorType *ot)
   ot->description = "Import FBX file into current scene";
   ot->idname = "WM_OT_fbx_import";
 
-  ot->invoke = blender::ed::io::filesel_drop_import_invoke;
+  ot->invoke = ed::io::filesel_drop_import_invoke;
   ot->exec = wm_fbx_import_exec;
   ot->poll = WM_operator_winactive;
   ot->check = wm_fbx_import_check;
@@ -251,7 +246,7 @@ void WM_OT_fbx_import(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-namespace blender::ed::io {
+namespace ed::io {
 void fbx_file_handler_add()
 {
   auto fh = std::make_unique<bke::FileHandlerType>();
@@ -264,6 +259,7 @@ void fbx_file_handler_add()
   bke::file_handler_add(std::move(fh));
 }
 
-}  // namespace blender::ed::io
+}  // namespace ed::io
+}  // namespace blender
 
 #endif /* WITH_IO_FBX */

@@ -14,7 +14,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tangent_cc {
+namespace blender {
+
+namespace nodes::node_shader_tangent_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -92,14 +94,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tangent_cc
+}  // namespace nodes::node_shader_tangent_cc
 
 /* node type definition */
 void register_node_type_sh_tangent()
 {
-  namespace file_ns = blender::nodes::node_shader_tangent_cc;
+  namespace file_ns = nodes::node_shader_tangent_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeTangent", SH_NODE_TANGENT);
   ntype.ui_name = "Tangent";
@@ -108,12 +110,14 @@ void register_node_type_sh_tangent()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tangent;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_tangent;
   ntype.gpu_fn = file_ns::node_shader_gpu_tangent;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

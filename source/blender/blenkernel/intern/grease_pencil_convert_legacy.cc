@@ -680,8 +680,6 @@ static float3x2 get_legacy_stroke_to_texture_matrix(const float2 uv_translation,
                                                     const float uv_rotation,
                                                     const float2 uv_scale)
 {
-  using namespace blender;
-
   /* Bounding box data. */
   const float2 minv = float2(-1.0f, -1.0f);
   const float2 maxv = float2(1.0f, 1.0f);
@@ -718,9 +716,8 @@ static float3x2 get_legacy_stroke_to_texture_matrix(const float2 uv_translation,
 /*
  * This gets the legacy layer-space to stroke-space matrix.
  */
-static blender::float4x2 get_legacy_layer_to_stroke_matrix(bGPDstroke *gps)
+static float4x2 get_legacy_layer_to_stroke_matrix(bGPDstroke *gps)
 {
-  using namespace blender;
   using namespace blender::math;
 
   const bGPDspoint *points = gps->points;
@@ -757,7 +754,7 @@ static blender::float4x2 get_legacy_layer_to_stroke_matrix(bGPDstroke *gps)
   return mat;
 }
 
-static blender::float4x2 get_legacy_texture_matrix(bGPDstroke *gps)
+static float4x2 get_legacy_texture_matrix(bGPDstroke *gps)
 {
   const float3x2 texture_matrix = get_legacy_stroke_to_texture_matrix(
       float2(gps->uv_translation), gps->uv_rotation, float2(gps->uv_scale));
@@ -1181,7 +1178,6 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
 constexpr const char *OFFSET_RADIUS_NODETREE_NAME = "Offset Radius GPv3 Conversion";
 static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, Library *library)
 {
-  using namespace blender;
   /* NOTE: DO NOT translate this ID name, it is used to find a potentially already existing
    * node-tree. */
   bNodeTree *group = bke::node_tree_add_in_lib(
@@ -2932,7 +2928,7 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
     if (object.type != OB_GPENCIL_LEGACY) {
       continue;
     }
-    bGPdata *legacy_gpd = blender::id_cast<bGPdata *>(object.data);
+    bGPdata *legacy_gpd = id_cast<bGPdata *>(object.data);
     if (!legacy_gpd) {
       continue;
     }
@@ -3061,7 +3057,7 @@ static void legacy_gpencil_object(ConversionData &conversion_data, Object &objec
 {
   BLI_assert((GS(object.data->name) == ID_GD_LEGACY));
 
-  bGPdata *gpd = blender::id_cast<bGPdata *>(object.data);
+  bGPdata *gpd = id_cast<bGPdata *>(object.data);
 
   GreasePencil *new_grease_pencil = conversion_data.legacy_to_greasepencil_data.lookup_default(
       gpd, nullptr);
@@ -3073,7 +3069,7 @@ static void legacy_gpencil_object(ConversionData &conversion_data, Object &objec
     id_us_min(&new_grease_pencil->id);
   }
 
-  object.data = blender::id_cast<ID *>(new_grease_pencil);
+  object.data = id_cast<ID *>(new_grease_pencil);
   object.type = OB_GREASE_PENCIL;
 
   /* NOTE: Could also use #BKE_id_free_us, to also free the legacy GP if not used anymore? */

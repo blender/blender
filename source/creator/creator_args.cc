@@ -75,6 +75,8 @@
 
 #  include "creator_intern.h" /* Own include. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Build Defines
  * \{ */
@@ -3182,5 +3184,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
 }
 
 /** \} */
+
+}  // namespace blender
 
 #endif /* !WITH_PYTHON_MODULE */

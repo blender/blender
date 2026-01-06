@@ -57,9 +57,11 @@
 
 #include <fmt/format.h>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"ui.icon"};
 
-namespace blender::ui {
+namespace ui {
 
 struct IconImage {
   int w;
@@ -403,13 +405,13 @@ static void icon_node_socket_draw(
   };
 
   float color_inner[4];
-  blender::ed::space_node::std_node_socket_colors_get(socket_type, color_inner);
+  ed::space_node::std_node_socket_colors_get(socket_type, color_inner);
 
   float color_outer[4] = {0};
   theme::get_color_type_4fv(TH_WIRE, SPACE_NODE, color_outer);
   color_outer[3] = 1.0f;
 
-  blender::ed::space_node::node_draw_nodesocket(
+  ed::space_node::node_draw_nodesocket(
       &rect, color_inner, color_outer, U.pixelsize, SOCK_DISPLAY_SHAPE_CIRCLE, 1.0f);
 }
 
@@ -1874,7 +1876,7 @@ void icon_render_id(
 
   /* For objects, first try if a preview can created via the object data. */
   if (GS(id->name) == ID_OB) {
-    Object *ob = blender::id_cast<Object *>(id);
+    Object *ob = id_cast<Object *>(id);
     if (ED_preview_id_is_supported(static_cast<const ID *>(ob->data))) {
       id_to_render = ob->data;
     }
@@ -1928,10 +1930,10 @@ int id_icon_get(const bContext *C, ID *id, const bool big)
       iconid = ui_id_screen_get_icon(C, id);
       break;
     case ID_OB:
-      iconid = icon_from_object_type(blender::id_cast<Object *>(id));
+      iconid = icon_from_object_type(id_cast<Object *>(id));
       break;
     case ID_GR:
-      iconid = icon_color_from_collection(blender::id_cast<Collection *>(id));
+      iconid = icon_color_from_collection(id_cast<Collection *>(id));
       break;
     default:
       break;
@@ -2333,4 +2335,5 @@ ImBuf *icon_alert_imbuf_get(AlertIcon icon, float size)
 #endif
 }
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

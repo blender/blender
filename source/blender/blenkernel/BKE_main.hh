@@ -33,6 +33,8 @@
 #include "BLI_vector_set.hh"
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag. */
+struct MainLock;
+namespace blender {
 
 struct BLI_mempool;
 struct BlendThumbnail;
@@ -41,7 +43,6 @@ struct ID;
 struct IDNameLib_Map;
 struct ImBuf;
 struct Library;
-struct MainLock;
 struct ReportList;
 struct UniqueName_Map;
 struct Scene;
@@ -205,7 +206,7 @@ struct MainIDRelations {
    * Mapping from an ID pointer to all of its parents (IDs using it) and children (IDs it uses).
    * Values are `MainIDRelationsEntry` pointers.
    */
-  blender::Map<const ID *, MainIDRelationsEntry *> *relations_from_pointers;
+  Map<const ID *, MainIDRelationsEntry *> *relations_from_pointers;
   /* NOTE: we could add more mappings when needed (e.g. from session uid?). */
 
   short flag;
@@ -226,7 +227,7 @@ struct MainColorspace {
    * the XYZ color-space is the source of truth.
    * */
   char scene_linear_name[64 /*MAX_COLORSPACE_NAME*/] = "";
-  blender::float3x3 scene_linear_to_xyz = blender::float3x3::zero();
+  float3x3 scene_linear_to_xyz = float3x3::zero();
 
   /**
    * A color-space, view or display was not found, which likely means the OpenColorIO config
@@ -235,7 +236,7 @@ struct MainColorspace {
   bool is_missing_opencolorio_config = false;
 };
 
-struct Main : blender::NonCopyable, blender::NonMovable {
+struct Main : NonCopyable, NonMovable {
   /**
    * Runtime vector storing all split Mains (one Main for each library data), during readfile or
    * linking process.
@@ -246,7 +247,7 @@ struct Main : blender::NonCopyable, blender::NonMovable {
    * item, even once library ones are moved between the old and new Mains (see also
    * #read_undo_move_libmain_data).
    */
-  std::shared_ptr<blender::VectorSet<Main *>> split_mains = {};
+  std::shared_ptr<VectorSet<Main *>> split_mains = {};
   /**
    * The file-path of this blend file, an empty string indicates an unsaved file.
    *
@@ -331,7 +332,7 @@ struct Main : blender::NonCopyable, blender::NonMovable {
    * \note This flag should not be set directly. Use #animrig::Slot::users_invalidate() instead.
    * That way the handling of this flag is limited to the code in #animrig::Slot.
    *
-   * \see `blender::animrig::Slot::users_invalidate(Main &bmain)`
+   * \see `animrig::Slot::users_invalidate(Main &bmain)`
    */
   bool is_action_slot_to_id_map_dirty = false;
 
@@ -527,7 +528,7 @@ void BKE_main_relations_tag_set(Main *bmain, eMainIDRelationsEntryTags tag, bool
  * \param set: If not NULL, given Set will be extended with IDs from given \a bmain,
  * instead of creating a new one.
  */
-blender::Set<const ID *> *BKE_main_set_create(Main *bmain, blender::Set<const ID *> *set);
+Set<const ID *> *BKE_main_set_create(Main *bmain, Set<const ID *> *set);
 
 /* Temporary runtime API to allow re-using local (already appended)
  * IDs instead of appending a new copy again. */
@@ -773,3 +774,5 @@ MainListsArray BKE_main_lists_get(Main &bmain);
 /** Protect against buffer overflow vulnerability & negative sizes. */
 #define BLEN_THUMB_MEMSIZE_IS_VALID(_x, _y) \
   (((_x) > 0 && (_y) > 0) && ((uint64_t)(_x) * (uint64_t)(_y) < (SIZE_MAX / (sizeof(int) * 4))))
+
+}  // namespace blender

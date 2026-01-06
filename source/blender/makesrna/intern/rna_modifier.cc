@@ -36,6 +36,8 @@
 
 #include "NOD_geometry_nodes_log.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
     RNA_ENUM_ITEM_HEADING(N_("Modify"), nullptr),
     {eModifierType_GreasePencilWeightProximity,
@@ -553,9 +555,9 @@ const EnumPropertyItem rna_enum_shrinkwrap_face_cull_items[] = {
 };
 
 const EnumPropertyItem rna_enum_node_warning_type_items[] = {
-    {int(blender::nodes::NodeWarningType::Error), "ERROR", ICON_CANCEL, "Error", ""},
-    {int(blender::nodes::NodeWarningType::Warning), "WARNING", ICON_ERROR, "Warning", ""},
-    {int(blender::nodes::NodeWarningType::Info), "INFO", ICON_INFO, "Info", ""},
+    {int(nodes::NodeWarningType::Error), "ERROR", ICON_CANCEL, "Error", ""},
+    {int(nodes::NodeWarningType::Warning), "WARNING", ICON_ERROR, "Warning", ""},
+    {int(nodes::NodeWarningType::Info), "INFO", ICON_INFO, "Info", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -830,6 +832,8 @@ static const EnumPropertyItem grease_pencil_build_time_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
@@ -876,6 +880,8 @@ static const EnumPropertyItem grease_pencil_build_time_mode_items[] = {
 #    include "ABC_alembic.h"
 #  endif
 
+namespace blender {
+
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   UVProjectModifierData *uvp = static_cast<UVProjectModifierData *>(ptr->data);
@@ -911,7 +917,7 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 
   /* make sure the name is truly unique */
   if (ptr->owner_id) {
-    Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+    Object *ob = id_cast<Object *>(ptr->owner_id);
     BKE_modifier_unique_name(&ob->modifiers, md);
   }
 
@@ -990,7 +996,7 @@ static void rna_Modifier_use_pin_to_last_set(PointerRNA *ptr, bool value)
       md_iter = md_iter->prev;
     }
   }
-  blender::ed::object::modifier_move_to_index(nullptr, RPT_ERROR, object, md, to_index, true);
+  ed::object::modifier_move_to_index(nullptr, RPT_ERROR, object, md, to_index, true);
 }
 
 /* Vertex Groups */
@@ -1089,7 +1095,7 @@ static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRN
 
   if (!self || ob != self) {
     if (!ob || type == OB_EMPTY || ob->type == type) {
-      id_lib_extern(blender::id_cast<ID *>(ob));
+      id_lib_extern(id_cast<ID *>(ob));
       *ob_p = ob;
     }
   }
@@ -1133,12 +1139,12 @@ static void rna_HookModifier_object_set(PointerRNA *ptr,
                                         PointerRNA value,
                                         ReportList * /*reports*/)
 {
-  Object *owner = blender::id_cast<Object *>(ptr->owner_id);
+  Object *owner = id_cast<Object *>(ptr->owner_id);
   HookModifierData *hmd = static_cast<HookModifierData *>(ptr->data);
   Object *ob = static_cast<Object *>(value.data);
 
   hmd->object = ob;
-  id_lib_extern(blender::id_cast<ID *>(ob));
+  id_lib_extern(id_cast<ID *>(ob));
   BKE_object_modifier_hook_reset(owner, hmd);
 }
 
@@ -1163,7 +1169,7 @@ static bool rna_HookModifier_object_override_apply(Main *bmain,
   /* We need a special handling here because setting hook target resets invert parent matrix,
    * which is evil in our case. */
   HookModifierData *hmd = static_cast<HookModifierData *>(ptr_dst->data);
-  Object *owner = blender::id_cast<Object *>(ptr_dst->owner_id);
+  Object *owner = id_cast<Object *>(ptr_dst->owner_id);
   Object *target_dst = static_cast<Object *>(RNA_property_pointer_get(ptr_dst, prop_dst).data);
   Object *target_src = static_cast<Object *>(RNA_property_pointer_get(ptr_src, prop_src).data);
 
@@ -1184,7 +1190,7 @@ static bool rna_HookModifier_object_override_apply(Main *bmain,
 
 static void rna_HookModifier_subtarget_set(PointerRNA *ptr, const char *value)
 {
-  Object *owner = blender::id_cast<Object *>(ptr->owner_id);
+  Object *owner = id_cast<Object *>(ptr->owner_id);
   HookModifierData *hmd = static_cast<HookModifierData *>(ptr->data);
 
   STRNCPY(hmd->subtarget, value);
@@ -1258,7 +1264,7 @@ static void rna_UVProjector_object_set(PointerRNA *ptr, PointerRNA value, Report
 {
   Object **ob_p = static_cast<Object **>(ptr->data);
   Object *ob = static_cast<Object *>(value.data);
-  id_lib_extern(blender::id_cast<ID *>(ob));
+  id_lib_extern(id_cast<ID *>(ob));
   *ob_p = ob;
 }
 
@@ -1269,7 +1275,7 @@ static void rna_UVProjector_object_set(PointerRNA *ptr, PointerRNA value, Report
 static void rna_fluid_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   FluidModifierData *fmd = static_cast<FluidModifierData *>(ptr->data);
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
 
   /* nothing changed */
   if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
@@ -1307,24 +1313,24 @@ static void rna_MultiresModifier_level_range(
 
 static bool rna_MultiresModifier_external_get(PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   return CustomData_external_test(&mesh->corner_data, CD_MDISPS);
 }
 
 static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
-  CustomDataExternal *external = (blender::id_cast<Mesh *>(ob->data))->corner_data.external;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
+  CustomDataExternal *external = (id_cast<Mesh *>(ob->data))->corner_data.external;
 
   strcpy(value, (external) ? external->filepath : "");
 }
 
 static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
-  CustomDataExternal *external = (blender::id_cast<Mesh *>(ob->data))->corner_data.external;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
+  CustomDataExternal *external = (id_cast<Mesh *>(ob->data))->corner_data.external;
 
   if (external && !STREQ(external->filepath, value)) {
     STRNCPY(external->filepath, value);
@@ -1334,8 +1340,8 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
 
 static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
-  CustomDataExternal *external = (blender::id_cast<Mesh *>(ob->data))->corner_data.external;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
+  CustomDataExternal *external = (id_cast<Mesh *>(ob->data))->corner_data.external;
 
   return strlen((external) ? external->filepath : "");
 }
@@ -1359,19 +1365,19 @@ static bool rna_MeshDeformModifier_is_bound_get(PointerRNA *ptr)
 
 static PointerRNA rna_SoftBodyModifier_settings_get(PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   return RNA_pointer_create_with_parent(*ptr, &RNA_SoftBodySettings, ob->soft);
 }
 
 static PointerRNA rna_SoftBodyModifier_point_cache_get(PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   return RNA_pointer_create_with_parent(*ptr, &RNA_PointCache, ob->soft->shared->pointcache);
 }
 
 static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   return RNA_pointer_create_with_parent(*ptr, &RNA_CollisionSettings, ob->pd);
 }
 
@@ -1392,9 +1398,9 @@ static void rna_BevelModifier_weight_attribute_visit_for_search(
     PointerRNA *ptr,
     PropertyRNA * /*prop*/,
     const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   if (ob->type != OB_MESH) {
     return;
   }
@@ -1402,7 +1408,7 @@ static void rna_BevelModifier_weight_attribute_visit_for_search(
   PropertyRNA *attributes_prop = RNA_struct_find_property(&mesh_ptr, "attributes");
   RNA_PROP_BEGIN (&mesh_ptr, itemptr, attributes_prop) {
     const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(itemptr.data);
-    if (blender::bke::allow_procedural_attribute_access(layer->name)) {
+    if (bke::allow_procedural_attribute_access(layer->name)) {
       StringPropertySearchVisitParams visit_params{};
       visit_params.text = layer->name;
       visit_fn(visit_params);
@@ -1462,7 +1468,7 @@ static void rna_CurveModifier_dependency_update(Main *bmain, Scene *scene, Point
   rna_Modifier_update(bmain, scene, ptr);
   DEG_relations_tag_update(bmain);
   if (cmd->object != nullptr) {
-    Curve *curve = blender::id_cast<Curve *>(cmd->object->data);
+    Curve *curve = id_cast<Curve *>(cmd->object->data);
     if ((curve->flag & CU_PATH) == 0) {
       DEG_id_tag_update(&curve->id, ID_RECALC_GEOMETRY);
     }
@@ -1475,7 +1481,7 @@ static void rna_ArrayModifier_dependency_update(Main *bmain, Scene *scene, Point
   rna_Modifier_update(bmain, scene, ptr);
   DEG_relations_tag_update(bmain);
   if (amd->curve_ob != nullptr) {
-    Curve *curve = blender::id_cast<Curve *>(amd->curve_ob->data);
+    Curve *curve = id_cast<Curve *>(amd->curve_ob->data);
     if ((curve->flag & CU_PATH) == 0) {
       DEG_id_tag_update(&curve->id, ID_RECALC_GEOMETRY);
     }
@@ -1528,7 +1534,6 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
                                                                                 PropertyRNA *prop,
                                                                                 bool *r_free)
 {
-  using namespace blender;
   DataTransferModifierData *dtmd = static_cast<DataTransferModifierData *>(ptr->data);
   EnumPropertyItem *item = nullptr, tmp_item = {0};
   int totitem = 0;
@@ -1661,7 +1666,6 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
                                                                                 PropertyRNA *prop,
                                                                                 bool *r_free)
 {
-  using namespace blender;
   DataTransferModifierData *dtmd = static_cast<DataTransferModifierData *>(ptr->data);
   EnumPropertyItem *item = nullptr, tmp_item = {0};
   int totitem = 0;
@@ -1706,7 +1710,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
       if (ob_dst && ob_dst->data) {
-        Mesh *me_dst = blender::id_cast<Mesh *>(ob_dst->data);
+        Mesh *me_dst = id_cast<Mesh *>(ob_dst->data);
         const VectorSet<StringRefNull> uv_map_names = me_dst->uv_map_names();
         const int num_data = uv_map_names.size();
 
@@ -1734,7 +1738,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
       if (ob_dst && ob_dst->data) {
         eCustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
 
-        Mesh *me_dst = blender::id_cast<Mesh *>(ob_dst->data);
+        Mesh *me_dst = id_cast<Mesh *>(ob_dst->data);
         CustomData *cdata = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?
                                 &me_dst->vert_data :
                                 &me_dst->corner_data;
@@ -1818,8 +1822,7 @@ static void rna_CorrectiveSmoothModifier_rest_source_update(Main *bmain,
   CorrectiveSmoothModifierData *csmd = static_cast<CorrectiveSmoothModifierData *>(ptr->data);
 
   if (csmd->rest_source != MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
-    blender::implicit_sharing::free_shared_data(&csmd->bind_coords,
-                                                &csmd->bind_coords_sharing_info);
+    implicit_sharing::free_shared_data(&csmd->bind_coords, &csmd->bind_coords_sharing_info);
     csmd->bind_coords_num = 0;
   }
 
@@ -1862,7 +1865,7 @@ static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *p
 
   psys = static_cast<ParticleSystem *>(BLI_findlink(&psmd->ob->particlesystem, psmd->psys - 1));
   PointerRNA rptr = RNA_pointer_create_discrete(
-      blender::id_cast<ID *>(psmd->ob), &RNA_ParticleSystem, psys);
+      id_cast<ID *>(psmd->ob), &RNA_ParticleSystem, psys);
   return rptr;
 }
 
@@ -1918,23 +1921,22 @@ static bool rna_NodesModifier_node_group_poll(PointerRNA * /*ptr*/, PointerRNA v
 
 static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *object = blender::id_cast<Object *>(ptr->owner_id);
+  Object *object = id_cast<Object *>(ptr->owner_id);
   NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
   rna_Modifier_dependency_update(bmain, scene, ptr);
   MOD_nodes_update_interface(object, nmd);
 }
 
-static blender::nodes::geo_eval_log::GeoTreeLog *get_nodes_modifier_log(NodesModifierData &nmd)
+static nodes::geo_eval_log::GeoTreeLog *get_nodes_modifier_log(NodesModifierData &nmd)
 {
   if (!nmd.runtime->eval_log) {
     return nullptr;
   }
-  blender::bke::ModifierComputeContext compute_context{nullptr, nmd};
+  bke::ModifierComputeContext compute_context{nullptr, nmd};
   return &nmd.runtime->eval_log->get_tree_log(compute_context.hash());
 }
 
-static blender::Span<blender::nodes::geo_eval_log::NodeWarning> get_node_modifier_warnings(
-    NodesModifierData &nmd)
+static Span<nodes::geo_eval_log::NodeWarning> get_node_modifier_warnings(NodesModifierData &nmd)
 {
   if (auto *log = get_nodes_modifier_log(nmd)) {
     log->ensure_node_warnings(nmd);
@@ -1961,7 +1963,7 @@ static void rna_NodesModifier_node_warnings_iterator_next(CollectionPropertyIter
 static PointerRNA rna_NodesModifier_node_warnings_iterator_get(CollectionPropertyIterator *iter)
 {
   NodesModifierData *nmd = static_cast<NodesModifierData *>(iter->parent.data);
-  blender::Span warnings = get_node_modifier_warnings(*nmd);
+  Span warnings = get_node_modifier_warnings(*nmd);
   return RNA_pointer_create_with_parent(
       iter->parent, &RNA_NodesModifierWarning, (void *)&warnings[iter->internal.count.item]);
 }
@@ -1974,19 +1976,19 @@ static int rna_NodesModifier_node_warnings_length(PointerRNA *ptr)
 
 static void rna_NodesModifierWarning_message_get(PointerRNA *ptr, char *r_value)
 {
-  const auto *warning = static_cast<const blender::nodes::geo_eval_log::NodeWarning *>(ptr->data);
+  const auto *warning = static_cast<const nodes::geo_eval_log::NodeWarning *>(ptr->data);
   strcpy(r_value, warning->message.c_str());
 }
 
 static int rna_NodesModifierWarning_message_length(PointerRNA *ptr)
 {
-  const auto *warning = static_cast<const blender::nodes::geo_eval_log::NodeWarning *>(ptr->data);
+  const auto *warning = static_cast<const nodes::geo_eval_log::NodeWarning *>(ptr->data);
   return warning->message.size();
 }
 
 static int rna_NodesModifierWarning_type_get(PointerRNA *ptr)
 {
-  const auto *warning = static_cast<const blender::nodes::geo_eval_log::NodeWarning *>(ptr->data);
+  const auto *warning = static_cast<const nodes::geo_eval_log::NodeWarning *>(ptr->data);
   return int(warning->type);
 }
 
@@ -2023,7 +2025,7 @@ static const NodesModifierData *find_nodes_modifier_by_bake(const Object &object
       continue;
     }
     const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
-    const blender::Span<NodesModifierBake> bakes{nmd->bakes, nmd->bakes_num};
+    const Span<NodesModifierBake> bakes{nmd->bakes, nmd->bakes_num};
     if (bakes.contains_ptr(&bake)) {
       return nmd;
     }
@@ -2221,7 +2223,7 @@ static void rna_GreasePencilDashModifierSegment_name_set(PointerRNA *ptr, const 
   const std::string oldname = dash_segment->name;
   STRNCPY_UTF8(dash_segment->name, value);
   BLI_uniquename_cb(
-      [dmd, dash_segment](const blender::StringRef name) {
+      [dmd, dash_segment](const StringRef name) {
         for (const GreasePencilDashModifierSegment &ds : dmd->segments()) {
           if (&ds != dash_segment && ds.name == name) {
             return true;
@@ -2325,7 +2327,7 @@ static void rna_GreasePencilTimeModifierSegment_name_set(PointerRNA *ptr, const 
   const std::string oldname = segment->name;
   STRNCPY_UTF8(segment->name, value);
   BLI_uniquename_cb(
-      [tmd, segment](const blender::StringRef name) {
+      [tmd, segment](const StringRef name) {
         for (const GreasePencilTimeModifierSegment &ds : tmd->segments()) {
           if (&ds != segment && ds.name == name) {
             return true;
@@ -2401,7 +2403,11 @@ static void rna_GreasePencilShrinkwrapModifier_face_cull_set(PointerRNA *ptr, in
   smd->shrink_opts = (smd->shrink_opts & ~MOD_SHRINKWRAP_CULL_TARGET_MASK) | value;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_modifier_panel_open_prop(StructRNA *srna, const char *identifier, const int id)
 {
@@ -11399,5 +11405,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_build(brna);
   rna_def_modifier_grease_pencil_texture(brna);
 }
+
+}  // namespace blender
 
 #endif

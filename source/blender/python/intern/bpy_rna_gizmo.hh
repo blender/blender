@@ -10,4 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 bool BPY_rna_gizmo_module(PyObject *);
+
+}  // namespace blender

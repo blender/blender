@@ -67,16 +67,16 @@ void template_preview(Layout *layout,
 
   if (id && (GS(id->name) == ID_TE)) {
     if (parent && (GS(parent->name) == ID_MA)) {
-      pr_texture = &(blender::id_cast<Material *>(parent))->pr_texture;
+      pr_texture = &(id_cast<Material *>(parent))->pr_texture;
     }
     else if (parent && (GS(parent->name) == ID_WO)) {
-      pr_texture = &(blender::id_cast<World *>(parent))->pr_texture;
+      pr_texture = &(id_cast<World *>(parent))->pr_texture;
     }
     else if (parent && (GS(parent->name) == ID_LA)) {
-      pr_texture = &(blender::id_cast<Light *>(parent))->pr_texture;
+      pr_texture = &(id_cast<Light *>(parent))->pr_texture;
     }
     else if (parent && (GS(parent->name) == ID_LS)) {
-      pr_texture = &(blender::id_cast<FreestyleLineStyle *>(parent))->pr_texture;
+      pr_texture = &(id_cast<FreestyleLineStyle *>(parent))->pr_texture;
     }
 
     if (pr_texture) {
@@ -150,10 +150,10 @@ void template_preview(Layout *layout,
   if (pid && show_buttons) {
     if (GS(pid->name) == ID_MA || (pparent && GS(pparent->name) == ID_MA)) {
       if (GS(pid->name) == ID_MA) {
-        ma = blender::id_cast<Material *>(pid);
+        ma = id_cast<Material *>(pid);
       }
       else {
-        ma = blender::id_cast<Material *>(pparent);
+        ma = id_cast<Material *>(pparent);
       }
 
       /* Create RNA Pointer */

@@ -229,7 +229,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeAlignRotationToVector", FN_NODE_ALIGN_ROTATION_TO_VECTOR);
   ntype.ui_name = "Align Rotation to Vector";
@@ -240,7 +240,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
   ntype.build_multi_function = node_build_multi_function;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

@@ -29,6 +29,8 @@
 #  include <tbb/parallel_reduce.h>
 #endif
 
+namespace blender {
+
 #ifdef WITH_TBB
 
 /* Functor for running TBB parallel_for and parallel_reduce. */
@@ -109,7 +111,7 @@ void BLI_task_parallel_range(const int start,
     const size_t grainsize = std::max(settings->min_iter_per_thread, 1);
     const tbb::blocked_range<int> range(start, stop, grainsize);
 
-    blender::lazy_threading::send_hint();
+    lazy_threading::send_hint();
 
     if (settings->func_reduce) {
       parallel_reduce(range, task);
@@ -159,7 +161,7 @@ int BLI_task_parallel_thread_id(const TaskParallelTLS * /*tls*/)
 #endif
 }
 
-namespace blender::threading::detail {
+namespace threading::detail {
 
 #ifdef WITH_TBB
 static void parallel_for_impl_static_size(const IndexRange range,
@@ -314,4 +316,5 @@ void memory_bandwidth_bound_task_impl(const FunctionRef<void()> function)
 #endif
 }
 
-}  // namespace blender::threading::detail
+}  // namespace threading::detail
+}  // namespace blender

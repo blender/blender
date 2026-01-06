@@ -17,6 +17,8 @@
 
 #include "openimageio_api.h"
 
+namespace blender {
+
 static PyTypeObject BlenderAppOIIOType;
 
 static PyStructSequence_Field app_oiio_info_fields[] = {
@@ -80,3 +82,5 @@ PyObject *BPY_app_oiio_struct()
 
   return ret;
 }
+
+}  // namespace blender

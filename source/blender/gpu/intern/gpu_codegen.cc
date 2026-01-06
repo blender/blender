@@ -32,7 +32,8 @@
 #include <cstdarg>
 #include <cstring>
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::gpu::shader;
 
 /* -------------------------------------------------------------------- */
@@ -100,11 +101,11 @@ static std::ostream &operator<<(std::ostream &stream, const GPUConstant *input)
   return stream;
 }
 
-namespace blender::gpu::shader {
+namespace gpu::shader {
 /* Needed to use the << operators from nested namespaces. :(
  * https://stackoverflow.com/questions/5195512/namespaces-and-operator-resolution */
-using ::operator<<;
-}  // namespace blender::gpu::shader
+using blender::operator<<;
+}  // namespace gpu::shader
 
 /** \} */
 
@@ -595,3 +596,5 @@ void GPUCodegen::generate_graphs()
 }
 
 /** \} */
+
+}  // namespace blender

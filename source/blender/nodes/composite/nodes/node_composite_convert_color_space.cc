@@ -21,7 +21,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_convert_color_space_cc {
+namespace blender {
+
+namespace nodes::node_composite_convert_color_space_cc {
 
 NODE_STORAGE_FUNCS(NodeConvertColorSpace)
 
@@ -181,12 +183,12 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new ConvertColorSpaceOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_convert_color_space_cc
+}  // namespace nodes::node_composite_convert_color_space_cc
 
 static void register_node_type_cmp_convert_color_space()
 {
-  namespace file_ns = blender::nodes::node_composite_convert_color_space_cc;
-  static blender::bke::bNodeType ntype;
+  namespace file_ns = nodes::node_composite_convert_color_space_cc;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeConvertColorSpace", CMP_NODE_CONVERT_COLOR_SPACE);
   ntype.ui_name = "Convert Colorspace";
@@ -195,13 +197,15 @@ static void register_node_type_cmp_convert_color_space()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::CMP_NODE_CONVERT_COLOR_SPACE_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_composit_init_convert_colorspace;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeConvertColorSpace", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  blender::bke::node_type_size(ntype, 160, 150, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 160, 150, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_convert_color_space)
+
+}  // namespace blender

@@ -42,9 +42,12 @@
 #include "DNA_object_types.h"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
-namespace blender::io::usd {
+namespace io::usd {
 
 USDGenericMeshWriter::USDGenericMeshWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
 {
@@ -732,7 +735,7 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh,
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
   const VArraySpan velocity = *mesh->attributes().lookup<float3>("velocity",
-                                                                 blender::bke::AttrDomain::Point);
+                                                                 bke::AttrDomain::Point);
   if (velocity.is_empty()) {
     return;
   }
@@ -947,4 +950,5 @@ void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
   temp_weights_attr.Set(weights, time);
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

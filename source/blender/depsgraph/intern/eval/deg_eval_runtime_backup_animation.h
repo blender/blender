@@ -12,9 +12,11 @@
 
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct ID;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -48,4 +50,5 @@ class AnimationBackup {
   Vector<AnimationValueBackup> values_backup;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

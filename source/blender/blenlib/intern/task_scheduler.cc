@@ -24,6 +24,8 @@
 #  endif
 #endif
 
+namespace blender {
+
 /* Task Scheduler */
 
 static int task_scheduler_num_threads = 1;
@@ -70,9 +72,11 @@ int BLI_task_scheduler_num_threads()
 void BLI_task_isolate(void (*func)(void *userdata), void *userdata)
 {
 #ifdef WITH_TBB
-  blender::lazy_threading::ReceiverIsolation isolation;
+  lazy_threading::ReceiverIsolation isolation;
   tbb::this_task_arena::isolate([&] { func(userdata); });
 #else
   func(userdata);
 #endif
 }
+
+}  // namespace blender

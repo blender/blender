@@ -22,6 +22,8 @@
 
 #include "ED_uvedit.hh" /* Own include. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name UDIM packing helper functions
  * \{ */
@@ -170,3 +172,5 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
 }
 
 /** \} */
+
+}  // namespace blender

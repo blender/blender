@@ -10,11 +10,13 @@
 
 #pragma once
 
+namespace blender {
+
 struct ScrArea;
 struct bContext;
 struct wmEvent;
 struct wmWindow;
-namespace blender::ui {
+namespace ui {
 struct Button;
 
 /* `interface_eyedropper.cc` */
@@ -69,4 +71,5 @@ enum {
   EYE_MODAL_POINT_REMOVE_LAST,
 };
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

@@ -15,6 +15,8 @@
 
 #include "DNA_brush_enums.h"
 
+namespace blender {
+
 struct BMVert;
 struct Brush;
 struct CurveMapping;
@@ -22,13 +24,13 @@ struct Depsgraph;
 struct Object;
 struct Sculpt;
 struct SculptSession;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 struct MeshNode;
 struct GridsNode;
 struct BMeshNode;
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
 
-namespace blender::ed::sculpt_paint::auto_mask {
+namespace ed::sculpt_paint::auto_mask {
 
 struct Settings {
   /* eAutomasking_flag. */
@@ -186,4 +188,6 @@ void calc_face_factors(const Depsgraph &depsgraph,
                        Span<int> face_indices,
                        MutableSpan<float> factors);
 
-}  // namespace blender::ed::sculpt_paint::auto_mask
+}  // namespace ed::sculpt_paint::auto_mask
+
+}  // namespace blender

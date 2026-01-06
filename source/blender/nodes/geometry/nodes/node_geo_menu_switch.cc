@@ -36,11 +36,13 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::nodes::node_geo_menu_switch_cc {
+namespace blender {
+
+namespace nodes::node_geo_menu_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeMenuSwitch)
 
-static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
+static void node_declare(nodes::NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -158,8 +160,8 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeMenuSwitch &src_storage = node_storage(*src_node);
-  NodeMenuSwitch *dst_storage = MEM_new_for_free<NodeMenuSwitch>(
-      __func__, blender::dna::shallow_copy(src_storage));
+  NodeMenuSwitch *dst_storage = MEM_new_for_free<NodeMenuSwitch>(__func__,
+                                                                 dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<MenuSwitchItemsAccessor>(*src_node, *dst_node);
@@ -545,7 +547,7 @@ static const EnumPropertyItem *data_type_items_callback(bContext * /*C*/,
 {
   *r_free = true;
   const bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  blender::bke::bNodeTreeType *ntree_type = ntree.typeinfo;
+  bke::bNodeTreeType *ntree_type = ntree.typeinfo;
   return enum_items_filter(
       rna_enum_node_socket_data_type_items, [&](const EnumPropertyItem &item) -> bool {
         bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(item.value);
@@ -567,7 +569,7 @@ static void node_rna(StructRNA *srna)
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "GeometryNodeMenuSwitch", GEO_NODE_MENU_SWITCH);
   ntype.ui_name = "Menu Switch";
@@ -576,7 +578,7 @@ static void register_node()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype, "NodeMenuSwitch", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeMenuSwitch", node_free_storage, node_copy_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
@@ -587,15 +589,15 @@ static void register_node()
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.internally_linked_input = node_internally_linked_input;
   ntype.get_compositor_operation = get_compositor_operation;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(register_node)
 
-}  // namespace blender::nodes::node_geo_menu_switch_cc
+}  // namespace nodes::node_geo_menu_switch_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 std::unique_ptr<LazyFunction> get_menu_switch_node_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
@@ -626,4 +628,5 @@ void MenuSwitchItemsAccessor::blend_read_data_item(BlendDataReader *reader, Item
   BLO_read_string(reader, &item.description);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

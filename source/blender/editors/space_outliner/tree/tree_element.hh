@@ -15,10 +15,12 @@
 #include "DNA_listBase.h"
 #include "UI_resources.hh"
 
+namespace blender {
+
 struct ID;
 struct SpaceOutliner;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class AbstractTreeDisplay;
 struct TreeElement;
@@ -119,4 +121,5 @@ class AbstractTreeElement {
 
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner);
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

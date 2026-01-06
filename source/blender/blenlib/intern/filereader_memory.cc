@@ -15,6 +15,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* This file implements both memory-backed and memory-mapped-file-backed reading. */
 struct MemoryReader {
   FileReader reader;
@@ -129,3 +131,5 @@ FileReader *BLI_filereader_new_mmap(int filedes)
 
   return reinterpret_cast<FileReader *>(mem);
 }
+
+}  // namespace blender

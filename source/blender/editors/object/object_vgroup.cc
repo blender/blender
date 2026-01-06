@@ -95,8 +95,8 @@ static bool vertex_group_use_vert_sel(Object *ob)
   if (ob->mode == OB_MODE_EDIT) {
     return true;
   }
-  if ((ob->type == OB_MESH) && (blender::id_cast<Mesh *>(ob->data))->editflag &
-                                   (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
+  if ((ob->type == OB_MESH) &&
+      (id_cast<Mesh *>(ob->data))->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
   {
     return true;
   }
@@ -105,7 +105,7 @@ static bool vertex_group_use_vert_sel(Object *ob)
 
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
-  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
+  Lattice *lt = id_cast<Lattice *>(ob->data);
   BLI_assert(ob->type == OB_LATTICE);
   return (lt->editlatt) ? lt->editlatt->latt : lt;
 }
@@ -120,7 +120,7 @@ bool vgroup_sync_from_pose(Object *ob)
 {
   Object *armobj = BKE_object_pose_armature_get(ob);
   if (armobj && (armobj->mode & OB_MODE_POSE)) {
-    bArmature *arm = blender::id_cast<bArmature *>(armobj->data);
+    bArmature *arm = id_cast<bArmature *>(armobj->data);
     if (arm->act_bone) {
       int def_num = BKE_object_defgroup_name_index(ob, arm->act_bone->name);
       if (def_num != -1) {
@@ -162,7 +162,7 @@ bool vgroup_parray_alloc(ID *id,
   if (id) {
     switch (GS(id->name)) {
       case ID_ME: {
-        Mesh *mesh = blender::id_cast<Mesh *>(id);
+        Mesh *mesh = id_cast<Mesh *>(id);
 
         if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
           BMesh *bm = em->bm;
@@ -226,7 +226,7 @@ bool vgroup_parray_alloc(ID *id,
         return false;
       }
       case ID_LT: {
-        Lattice *lt = blender::id_cast<Lattice *>(id);
+        Lattice *lt = id_cast<Lattice *>(id);
         lt = (lt->editlatt) ? lt->editlatt->latt : lt;
 
         if (lt->dvert) {
@@ -554,7 +554,7 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
 static void mesh_defvert_mirror_update_em(
     Object *ob, BMVert *eve, int def_nr, int vidx, const int cd_dvert_offset)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMVert *eve_mirr;
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
@@ -573,7 +573,7 @@ static void mesh_defvert_mirror_update_em(
 static void mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 {
   int vidx_mirr;
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   if (vidx == -1) {
@@ -592,7 +592,7 @@ static void mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 
 void vgroup_vert_active_mirror(Object *ob, int def_nr)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   MDeformVert *dvert_act;
 
@@ -628,7 +628,7 @@ static void vgroup_remove_weight(Object *ob, const int def_nr)
 
 static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMVert *eve_act;
   int v_act;
@@ -678,7 +678,7 @@ static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type
 
 static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   MDeformVert *dvert_act;
   int i, vgroup_tot, subset_count;
   const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
@@ -971,7 +971,7 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 
   /* get the deform vertices corresponding to the vertnum */
   if (ob->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
 
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -1053,7 +1053,7 @@ static void vgroup_grease_pencil_select_verts(const Scene &scene,
   using namespace ed::greasepencil;
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       &tool_settings);
-  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(object.data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(object.data);
 
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, *grease_pencil);
   for (MutableDrawingInfo &info : drawings) {
@@ -1127,7 +1127,7 @@ static void vgroup_select_verts(const ToolSettings &tool_settings,
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
 
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -1329,9 +1329,9 @@ static void vgroup_levels_subset(Object *ob,
   int dvert_tot = 0;
 
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
-  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
-                                                   ME_SYMMETRY_X) != 0 :
-                                                  false;
+  const bool use_mirror = (ob->type == OB_MESH) ?
+                              ((id_cast<Mesh *>(ob->data))->symmetry & ME_SYMMETRY_X) != 0 :
+                              false;
 
   vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -1630,9 +1630,9 @@ static void vgroup_invert_subset(Object *ob,
   MDeformVert *dv, **dvert_array = nullptr;
   int dvert_tot = 0;
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
-  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
-                                                   ME_SYMMETRY_X) != 0 :
-                                                  false;
+  const bool use_mirror = (ob->type == OB_MESH) ?
+                              ((id_cast<Mesh *>(ob->data))->symmetry & ME_SYMMETRY_X) != 0 :
+                              false;
 
   vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -1690,9 +1690,9 @@ static void vgroup_smooth_subset(Object *ob,
   int dvert_tot = 0;
   Array<int, 32> vgroup_subset_map(subset_count);
   Array<float, 32> vgroup_subset_weights(subset_count);
-  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
-                                                   ME_SYMMETRY_X) != 0 :
-                                                  false;
+  const bool use_mirror = (ob->type == OB_MESH) ?
+                              ((id_cast<Mesh *>(ob->data))->symmetry & ME_SYMMETRY_X) != 0 :
+                              false;
   const bool use_select = vertex_group_use_vert_sel(ob);
   const bool use_hide = use_select;
 
@@ -1702,7 +1702,7 @@ static void vgroup_smooth_subset(Object *ob,
 
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   BMesh *bm = em ? em->bm : nullptr;
-  Mesh *mesh = em ? nullptr : blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = em ? nullptr : id_cast<Mesh *>(ob->data);
 
   float *weight_accum_prev;
   float *weight_accum_curr;
@@ -2013,9 +2013,9 @@ static void vgroup_clean_subset(Object *ob,
   MDeformVert **dvert_array = nullptr;
   int dvert_tot = 0;
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
-  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
-                                                   ME_SYMMETRY_X) != 0 :
-                                                  false;
+  const bool use_mirror = (ob->type == OB_MESH) ?
+                              ((id_cast<Mesh *>(ob->data))->symmetry & ME_SYMMETRY_X) != 0 :
+                              false;
 
   vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -2043,9 +2043,9 @@ static void vgroup_quantize_subset(Object *ob,
   MDeformVert **dvert_array = nullptr;
   int dvert_tot = 0;
   const bool use_vert_sel = vertex_group_use_vert_sel(ob);
-  const bool use_mirror = (ob->type == OB_MESH) ? ((blender::id_cast<Mesh *>(ob->data))->symmetry &
-                                                   ME_SYMMETRY_X) != 0 :
-                                                  false;
+  const bool use_mirror = (ob->type == OB_MESH) ?
+                              ((id_cast<Mesh *>(ob->data))->symmetry & ME_SYMMETRY_X) != 0 :
+                              false;
   vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
   if (dvert_array) {
@@ -2186,7 +2186,7 @@ void vgroup_mirror(Object *ob,
 
   /* only the active group */
   if (ob->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
 
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -2377,7 +2377,7 @@ static void vgroup_assign_verts(Object *ob, Scene &scene, const float weight)
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
 
     if (mesh->runtime->edit_mesh) {
       BMEditMesh *em = mesh->runtime->edit_mesh.get();
@@ -2449,7 +2449,7 @@ static void vgroup_assign_verts(Object *ob, Scene &scene, const float weight)
     }
   }
   else if (ob->type == OB_GREASE_PENCIL) {
-    GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
+    GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
     const bDeformGroup *defgroup = static_cast<const bDeformGroup *>(
         BLI_findlink(BKE_object_defgroup_list(ob), def_nr));
 
@@ -2672,7 +2672,7 @@ static void grease_pencil_clear_from_vgroup(Scene &scene,
                                             const bool all_drawings = false)
 {
   using namespace ed::greasepencil;
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob.data);
 
   if (all_drawings) {
     /* When removing vgroup, iterate over all the drawing. */
@@ -3989,7 +3989,7 @@ static void vgroup_sort_bone_hierarchy(Object *ob, ListBaseT<Bone> *bonebase)
   if (bonebase == nullptr) {
     Object *armobj = BKE_modifiers_is_deformed_by_armature(ob);
     if (armobj != nullptr) {
-      bArmature *armature = blender::id_cast<bArmature *>(armobj->data);
+      bArmature *armature = id_cast<bArmature *>(armobj->data);
       bonebase = &armature->bonebase;
     }
   }
@@ -4150,7 +4150,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 {
   MDeformVert *dvert_act;
 
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   int i;
 
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {

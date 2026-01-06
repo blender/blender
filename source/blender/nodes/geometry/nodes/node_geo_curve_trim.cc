@@ -263,7 +263,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeTrimCurve", GEO_NODE_TRIM_CURVE);
   ntype.ui_name = "Trim Curve";
   ntype.ui_description = "Shorten curves by removing portions at the start or end";
@@ -272,11 +272,11 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveTrim", node_free_standard_storage, node_copy_standard_storage);
   ntype.initfunc = node_init;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

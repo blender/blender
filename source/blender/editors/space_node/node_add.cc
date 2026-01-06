@@ -944,7 +944,7 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
   const Vector<std::string> paths = ed::io::paths_from_operator_properties(op->ptr);
   for (const std::string &path : paths) {
     RNA_string_set(op->ptr, "filepath", path.c_str());
-    Image *image = blender::id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
+    Image *image = id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
     if (!image) {
       BKE_report(op->reports, RPT_WARNING, fmt::format("Could not load {}", path).c_str());
       continue;
@@ -958,7 +958,7 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
 
   /* If not path is provided, try to get a ID Image from operator. */
   if (paths.is_empty()) {
-    Image *image = blender::id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
+    Image *image = id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
     if (image) {
       images.append(image);
     }
@@ -982,8 +982,8 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
       BKE_ntree_update_tag_socket_property(&node_tree, image_socket);
     }
     else {
-      node->id = blender::id_cast<ID *>(image);
-      blender::bke::node_tag_update_id(*node);
+      node->id = id_cast<ID *>(image);
+      bke::node_tag_update_id(*node);
     }
     BKE_ntree_update_tag_node_property(&node_tree, node);
     nodes.append(node);
@@ -1729,7 +1729,7 @@ static wmOperatorStatus new_compositing_node_group_exec(bContext *C, wmOperator 
   RNA_string_get(op->ptr, "name", tree_name);
 
   bNodeTree *ntree = new_node_tree_impl(C, tree_name, "CompositorNodeTree");
-  blender::nodes::node_tree_composit_default_init(C, ntree);
+  nodes::node_tree_composit_default_init(C, ntree);
 
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
   BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
@@ -1862,40 +1862,40 @@ static void initialize_compositor_sequencer_node_group(const bContext *C, bNodeT
   ntree.tree_interface.add_socket(
       "Image", "", "NodeSocketColor", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
 
-  bNode *output_node = blender::bke::node_add_node(C, ntree, "NodeGroupOutput");
+  bNode *output_node = bke::node_add_node(C, ntree, "NodeGroupOutput");
   output_node->location[0] = 200.0f;
   output_node->location[1] = 0.0f;
 
-  bNode *input_node = blender::bke::node_add_node(C, ntree, "NodeGroupInput");
+  bNode *input_node = bke::node_add_node(C, ntree, "NodeGroupInput");
   input_node->location[0] = -150.0f - input_node->width;
   input_node->location[1] = 0.0f;
-  blender::bke::node_set_active(ntree, *input_node);
+  bke::node_set_active(ntree, *input_node);
 
-  bNode *reroute = blender::bke::node_add_static_node(C, ntree, NODE_REROUTE);
+  bNode *reroute = bke::node_add_static_node(C, ntree, NODE_REROUTE);
   reroute->location[0] = 100.0f;
   reroute->location[1] = -35.0f;
 
-  bNode *viewer = blender::bke::node_add_static_node(C, ntree, CMP_NODE_VIEWER);
+  bNode *viewer = bke::node_add_static_node(C, ntree, CMP_NODE_VIEWER);
   viewer->location[0] = 200.0f;
   viewer->location[1] = -80.0f;
 
-  blender::bke::node_add_link(ntree,
-                              *input_node,
-                              *static_cast<bNodeSocket *>(input_node->outputs.first),
-                              *reroute,
-                              *static_cast<bNodeSocket *>(reroute->inputs.first));
+  bke::node_add_link(ntree,
+                     *input_node,
+                     *static_cast<bNodeSocket *>(input_node->outputs.first),
+                     *reroute,
+                     *static_cast<bNodeSocket *>(reroute->inputs.first));
 
-  blender::bke::node_add_link(ntree,
-                              *reroute,
-                              *static_cast<bNodeSocket *>(reroute->outputs.first),
-                              *output_node,
-                              *static_cast<bNodeSocket *>(output_node->inputs.first));
+  bke::node_add_link(ntree,
+                     *reroute,
+                     *static_cast<bNodeSocket *>(reroute->outputs.first),
+                     *output_node,
+                     *static_cast<bNodeSocket *>(output_node->inputs.first));
 
-  blender::bke::node_add_link(ntree,
-                              *reroute,
-                              *static_cast<bNodeSocket *>(reroute->outputs.first),
-                              *viewer,
-                              *static_cast<bNodeSocket *>(viewer->inputs.first));
+  bke::node_add_link(ntree,
+                     *reroute,
+                     *static_cast<bNodeSocket *>(reroute->outputs.first),
+                     *viewer,
+                     *static_cast<bNodeSocket *>(viewer->inputs.first));
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), ntree);
 }

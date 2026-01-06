@@ -49,6 +49,8 @@
 #  include "bpy_rna.hh"
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -516,7 +518,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   {
     PyObject *version;
     PyObject *identifier = PyUnicode_FromString("version");
-    blender::int3 blendfile_version;
+    int3 blendfile_version;
 
     /* Source. */
     blendfile_version = BLO_blendhandle_get_version(self->blo_handle);
@@ -525,7 +527,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
     Py_DECREF(version);
 
     /* Destination. */
-    blendfile_version = blender::int3(
+    blendfile_version = int3(
         BLENDER_FILE_VERSION / 100, BLENDER_FILE_VERSION % 100, BLENDER_FILE_SUBVERSION);
     version = PyC_Tuple_PackArray_I32(&blendfile_version[0], 3);
     PyDict_SetItem(dict_dst, identifier, version);
@@ -820,3 +822,5 @@ int BPY_library_load_type_ready()
 
   return 0;
 }
+
+}  // namespace blender

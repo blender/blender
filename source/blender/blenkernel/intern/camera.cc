@@ -47,13 +47,15 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Camera Data-Block
  * \{ */
 
 static void camera_init_data(ID *id)
 {
-  Camera *cam = blender::id_cast<Camera *>(id);
+  Camera *cam = id_cast<Camera *>(id);
   INIT_DEFAULT_STRUCT_AFTER(cam, id);
 }
 
@@ -73,8 +75,8 @@ static void camera_copy_data(Main * /*bmain*/,
                              const ID *id_src,
                              const int flag)
 {
-  Camera *cam_dst = blender::id_cast<Camera *>(id_dst);
-  const Camera *cam_src = blender::id_cast<const Camera *>(id_src);
+  Camera *cam_dst = id_cast<Camera *>(id_dst);
+  const Camera *cam_src = id_cast<const Camera *>(id_src);
 
   /* We never handle user-count here for owned data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
@@ -93,7 +95,7 @@ static void camera_copy_data(Main * /*bmain*/,
 /** Free (or release) any data used by this camera (does not free the camera itself). */
 static void camera_free_data(ID *id)
 {
-  Camera *cam = blender::id_cast<Camera *>(id);
+  Camera *cam = id_cast<Camera *>(id);
   BLI_freelistN(&cam->bg_images);
   if (cam->custom_bytecode) {
     MEM_freeN(cam->custom_bytecode);
@@ -140,7 +142,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
     if (prop) {
       return prop;
     }
-    prop = blender::bke::idprop::create_group("cycles").release();
+    prop = bke::idprop::create_group("cycles").release();
     IDP_AddToGroup(group, prop);
     return prop;
   };
@@ -150,7 +152,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
       IDP_int_set(prop, value);
     }
     else {
-      IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
+      IDP_AddToGroup(idprop, bke::idprop::create(name, value).release());
     }
   };
 
@@ -159,7 +161,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
       IDP_float_set(prop, value);
     }
     else {
-      IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
+      IDP_AddToGroup(idprop, bke::idprop::create(name, value).release());
     }
   };
 
@@ -170,7 +172,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
   IDProperty *idprop_temp = idprop_prev ? IDP_CopyProperty(idprop_prev) :
                                           IDP_ID_system_properties_ensure(id);
 
-  Camera *cam = blender::id_cast<Camera *>(id);
+  Camera *cam = id_cast<Camera *>(id);
   IDProperty *cycles_cam = cycles_data_ensure(idprop_temp);
   cycles_property_int_set(cycles_cam, "panorama_type", cam->panorama_type);
   cycles_property_float_set(cycles_cam, "fisheye_fov", cam->fisheye_fov);
@@ -205,7 +207,7 @@ static void camera_write_cycles_compatibility_data_clear(ID *id,
 static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   const bool is_undo = BLO_write_is_undo(writer);
-  Camera *cam = blender::id_cast<Camera *>(id);
+  Camera *cam = id_cast<Camera *>(id);
 
   CameraCyclesCompatibilityData cycles_data;
   if (!is_undo) {
@@ -231,7 +233,7 @@ static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
 static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Camera *ca = blender::id_cast<Camera *>(id);
+  Camera *ca = id_cast<Camera *>(id);
 
   BLO_read_struct_list(reader, CameraBGImage, &ca->bg_images);
 
@@ -295,7 +297,7 @@ Camera *BKE_camera_add(Main *bmain, const char *name)
 
 float BKE_camera_object_dof_distance(const Object *ob)
 {
-  const Camera *cam = blender::id_cast<const Camera *>(ob->data);
+  const Camera *cam = id_cast<const Camera *>(ob->data);
   if (ob->type != OB_CAMERA) {
     return 0.0f;
   }
@@ -372,7 +374,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
 
   if (cam_ob->type == OB_CAMERA) {
     /* camera object */
-    const Camera *cam = blender::id_cast<const Camera *>(cam_ob->data);
+    const Camera *cam = id_cast<const Camera *>(cam_ob->data);
 
     if (cam->type == CAM_ORTHO) {
       params->is_ortho = true;
@@ -392,7 +394,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
   }
   else if (cam_ob->type == OB_LAMP) {
     /* light object */
-    Light *la = blender::id_cast<Light *>(cam_ob->data);
+    Light *la = id_cast<Light *>(cam_ob->data);
     params->lens = 16.0f / tanf(la->spotsize * 0.5f);
     if (params->lens == 0.0f) {
       params->lens = 35.0f;
@@ -928,7 +930,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
                                          const bool is_left,
                                          float r_modelmat[4][4])
 {
-  const Camera *data = blender::id_cast<const Camera *>(camera->data);
+  const Camera *data = id_cast<const Camera *>(camera->data);
   float interocular_distance, convergence_distance;
   short convergence_mode, pivot;
   float sizemat[4][4];
@@ -1099,7 +1101,7 @@ bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *c
     return false;
   }
 
-  const Camera *cam = blender::id_cast<const Camera *>(camera->data);
+  const Camera *cam = id_cast<const Camera *>(camera->data);
 
   if ((rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) &&
       ELEM(cam->type, CAM_PANO, CAM_PERSP, CAM_CUSTOM) &&
@@ -1161,7 +1163,7 @@ Object *BKE_camera_multiview_render(const Scene *scene, Object *camera, const ch
 
 static float camera_stereo3d_shift_x(const Object *camera, const char *viewname)
 {
-  const Camera *data = blender::id_cast<const Camera *>(camera->data);
+  const Camera *data = id_cast<const Camera *>(camera->data);
   float shift = data->shiftx;
   float interocular_distance, convergence_distance;
   short convergence_mode, pivot;
@@ -1203,7 +1205,7 @@ float BKE_camera_multiview_shift_x(const RenderData *rd,
                                    const char *viewname)
 {
   const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
-  const Camera *data = blender::id_cast<const Camera *>(camera->data);
+  const Camera *data = id_cast<const Camera *>(camera->data);
 
   BLI_assert(camera->type == OB_CAMERA);
 
@@ -1258,8 +1260,8 @@ CameraBGImage *BKE_camera_background_image_copy(const CameraBGImage *bgpic_src, 
   bgpic_dst->next = bgpic_dst->prev = nullptr;
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus(blender::id_cast<ID *>(bgpic_dst->ima));
-    id_us_plus(blender::id_cast<ID *>(bgpic_dst->clip));
+    id_us_plus(id_cast<ID *>(bgpic_dst->ima));
+    id_us_plus(id_cast<ID *>(bgpic_dst->clip));
   }
 
   if ((flag & LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG) == 0) {
@@ -1290,3 +1292,5 @@ void BKE_camera_background_image_clear(Camera *cam)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -12,13 +12,15 @@
 
 #include "IO_stl.hh"
 
+namespace blender {
+
 struct bContext;
 struct Main;
 struct Mesh;
 struct Scene;
 struct ViewLayer;
 
-namespace blender::io::stl {
+namespace io::stl {
 
 void stl_import_report_error(FILE *file);
 
@@ -33,4 +35,5 @@ void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
                    const STLImportParams &import_params);
-}  // namespace blender::io::stl
+}  // namespace io::stl
+}  // namespace blender

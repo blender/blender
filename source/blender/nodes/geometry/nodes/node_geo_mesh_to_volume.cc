@@ -146,7 +146,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeMeshToVolume", GEO_NODE_MESH_TO_VOLUME);
   ntype.ui_name = "Mesh to Volume";
@@ -157,9 +157,9 @@ static void node_register()
   bke::node_type_size(ntype, 200, 120, 700);
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryMeshToVolume", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

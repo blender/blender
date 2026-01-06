@@ -25,6 +25,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.read"};
 
 const char *imb_ext_image[] = {
@@ -184,3 +186,5 @@ bool IMB_test_image(const char *filepath)
 {
   return (IMB_test_image_type(filepath) != IMB_FTYPE_NONE);
 }
+
+}  // namespace blender

@@ -36,6 +36,8 @@
 
 #include "view3d_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Camera Gizmos
  * \{ */
@@ -65,7 +67,7 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType * /*gzgt
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->type == OB_CAMERA) {
-      const Camera *camera = blender::id_cast<Camera *>(ob->data);
+      const Camera *camera = id_cast<Camera *>(ob->data);
       /* TODO: support overrides. */
       if (BKE_id_is_editable(CTX_data_main(C), &camera->id)) {
         return true;
@@ -97,8 +99,8 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_CROSS);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER | WM_GIZMO_DRAW_NO_SCALE, true);
 
-    blender::ui::theme::get_color_3fv(TH_GIZMO_A, gz->color);
-    blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
+    ui::theme::get_color_3fv(TH_GIZMO_A, gz->color);
+    ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
   }
 
   /* focal length
@@ -110,16 +112,16 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_CONE);
     RNA_enum_set(gz->ptr, "transform", ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED);
 
-    blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
-    blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
+    ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+    ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
     gz = cagzgroup->ortho_scale = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
     gz->flag |= WM_GIZMO_DRAW_NO_SCALE;
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_CONE);
     RNA_enum_set(gz->ptr, "transform", ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED);
 
-    blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
-    blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
+    ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+    ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
   }
 
   /* All gizmos must perform undo. */
@@ -140,7 +142,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Camera *ca = blender::id_cast<Camera *>(ob->data);
+  Camera *ca = id_cast<Camera *>(ob->data);
   float dir[3];
 
   PointerRNA camera_ptr = RNA_pointer_create_discrete(&ca->id, &RNA_Camera, ca);
@@ -263,7 +265,7 @@ static void WIDGETGROUP_camera_message_subscribe(const bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Camera *ca = blender::id_cast<Camera *>(ob->data);
+  Camera *ca = id_cast<Camera *>(ob->data);
 
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh{};
   msg_sub_value_gz_tag_refresh.owner = region;
@@ -517,3 +519,5 @@ void VIEW3D_GGT_camera_view(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender

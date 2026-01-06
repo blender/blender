@@ -51,6 +51,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static void brush_init_data(ID *id)
 {
   Brush *brush = reinterpret_cast<Brush *>(id);
@@ -102,7 +104,7 @@ static void brush_copy_data(Main * /*bmain*/,
 
   if (brush_src->gpencil_settings != nullptr) {
     brush_dst->gpencil_settings = MEM_new_for_free<BrushGpencilSettings>(
-        __func__, blender::dna::shallow_copy(*(brush_src->gpencil_settings)));
+        __func__, dna::shallow_copy(*(brush_src->gpencil_settings)));
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
         brush_src->gpencil_settings->curve_sensitivity);
     brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
@@ -469,7 +471,6 @@ static void brush_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 
 static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_data)
 {
-  using namespace blender;
   using namespace blender::bke;
 
   Brush *brush = reinterpret_cast<Brush *>(asset_ptr);
@@ -777,7 +778,7 @@ Brush *BKE_brush_first_search(Main *bmain, const eObjectMode ob_mode)
 void BKE_brush_debug_print_state(Brush *br)
 {
   /* create a fake brush and set it to the defaults */
-  Brush def = blender::dna::shallow_zero_initialize();
+  Brush def = dna::shallow_zero_initialize();
   brush_defaults(&def);
 
 #define BR_TEST(field, t) \
@@ -921,7 +922,7 @@ float BKE_brush_sample_tex_3d(const Paint *paint,
                               const int thread,
                               ImagePool *pool)
 {
-  const blender::bke::PaintRuntime *paint_runtime = paint->runtime;
+  const bke::PaintRuntime *paint_runtime = paint->runtime;
   float intensity = 1.0;
   bool hasrgb = false;
 
@@ -1039,7 +1040,7 @@ float BKE_brush_sample_tex_3d(const Paint *paint,
 float BKE_brush_sample_masktex(
     const Paint *paint, Brush *br, const float point[2], const int thread, ImagePool *pool)
 {
-  const blender::bke::PaintRuntime *paint_runtime = paint->runtime;
+  const bke::PaintRuntime *paint_runtime = paint->runtime;
   MTex *mtex = &br->mask_mtex;
   float rgba[4], intensity;
 
@@ -1428,7 +1429,7 @@ void BKE_brush_jitter_pos(const Paint &paint,
 
 void BKE_brush_randomize_texture_coords(Paint *paint, bool mask)
 {
-  blender::bke::PaintRuntime &paint_runtime = *paint->runtime;
+  bke::PaintRuntime &paint_runtime = *paint->runtime;
   /* we multiply with brush radius as an optimization for the brush
    * texture sampling functions */
   if (mask) {
@@ -1443,13 +1444,13 @@ void BKE_brush_randomize_texture_coords(Paint *paint, bool mask)
 
 void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
                                   const CurveMapping *cumap,
-                                  const blender::Span<float> distances,
+                                  const Span<float> distances,
                                   const float brush_radius,
-                                  const blender::MutableSpan<float> factors)
+                                  const MutableSpan<float> factors)
 {
   BLI_assert(factors.size() == distances.size());
 
-  const float radius_rcp = blender::math::rcp(brush_radius);
+  const float radius_rcp = math::rcp(brush_radius);
   switch (preset) {
     case BRUSH_CURVE_CUSTOM: {
       for (const int i : distances.index_range()) {
@@ -1728,7 +1729,7 @@ bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode)
 /** \name Brush Capabilities
  * \{ */
 
-namespace blender::bke::brush {
+namespace bke::brush {
 bool supports_dyntopo(const Brush &brush)
 {
   return !ELEM(brush.sculpt_brush_type,
@@ -1968,6 +1969,8 @@ bool supports_tilt(const Brush &brush)
               SCULPT_BRUSH_TYPE_PLANE,
               SCULPT_BRUSH_TYPE_CLAY_STRIPS);
 }
-}  // namespace blender::bke::brush
+}  // namespace bke::brush
 
 /** \} */
+
+}  // namespace blender

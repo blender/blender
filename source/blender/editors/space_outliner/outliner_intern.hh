@@ -19,6 +19,8 @@
 /* Needed for `tree_element_cast()`. */
 #include "tree/tree_element.hh"
 
+namespace blender {
+
 /* internal exports only */
 
 struct ARegion;
@@ -39,16 +41,16 @@ struct wmKeyConfig;
 struct wmOperatorType;
 struct WorkSpace;
 
-namespace blender::bke::outliner::treehash {
+namespace bke::outliner::treehash {
 class TreeHash;
 }
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class AbstractTreeDisplay;
 class AbstractTreeElement;
 
-namespace treehash = blender::bke::outliner::treehash;
+namespace treehash = bke::outliner::treehash;
 
 struct TreeElement;
 
@@ -702,4 +704,5 @@ template<typename TreeElementT> TreeElementT *tree_element_cast(const TreeElemen
   return dynamic_cast<TreeElementT *>(te->abstract_element.get());
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

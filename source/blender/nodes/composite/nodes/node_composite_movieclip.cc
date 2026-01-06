@@ -28,7 +28,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_movieclip_cc {
+namespace blender {
+
+namespace nodes::node_composite_movieclip_cc {
 
 static void cmp_node_movieclip_declare(NodeDeclarationBuilder &b)
 {
@@ -46,7 +48,7 @@ static void init(const bContext *C, PointerRNA *ptr)
   Scene *scene = CTX_data_scene(C);
   MovieClipUser *user = MEM_new_for_free<MovieClipUser>(__func__);
 
-  node->id = blender::id_cast<ID *>(scene->clip);
+  node->id = id_cast<ID *>(scene->clip);
   id_us_plus(node->id);
   node->storage = user;
   user->framenr = 1;
@@ -248,13 +250,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new MovieClipOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_movieclip_cc
+}  // namespace nodes::node_composite_movieclip_cc
 
 static void register_node_type_cmp_movieclip()
 {
-  namespace file_ns = blender::nodes::node_composite_movieclip_cc;
+  namespace file_ns = nodes::node_composite_movieclip_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeMovieClip", CMP_NODE_MOVIECLIP);
   ntype.ui_name = "Movie Clip";
@@ -268,9 +270,11 @@ static void register_node_type_cmp_movieclip()
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.initfunc_api = file_ns::init;
   ntype.flag |= NODE_PREVIEW;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_movieclip)
+
+}  // namespace blender

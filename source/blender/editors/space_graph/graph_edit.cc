@@ -63,6 +63,8 @@
 
 #include "graph_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Insert Keyframes Operator
  * \{ */
@@ -147,7 +149,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
   }
 
   /* Init key-framing flag. */
-  eInsertKeyFlags flag = blender::animrig::get_keyframing_flags(scene);
+  eInsertKeyFlags flag = animrig::get_keyframing_flags(scene);
   KeyframeSettings settings = get_keyframe_settings(true);
   settings.keyframe_type = eBezTriple_KeyframeType(ts->keyframe_type);
 
@@ -203,9 +205,8 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
        *   If this is set, then it's a driver. If we don't check for this, we'd end
        *   up adding the keyframes on a new F-Curve in the action data instead.
        */
-      const std::optional<blender::StringRefNull> channel_group = fcu->grp ? std::optional(
-                                                                                 fcu->grp->name) :
-                                                                             std::nullopt;
+      const std::optional<StringRefNull> channel_group = fcu->grp ? std::optional(fcu->grp->name) :
+                                                                    std::nullopt;
       if (ale.id && !ale.owner && !fcu->driver) {
         PointerRNA id_rna_pointer = RNA_id_pointer_create(ale.id);
         CombinedKeyingResult result = insert_keyframes(ac->bmain,
@@ -406,7 +407,7 @@ static wmOperatorStatus graphkeys_click_insert_invoke(bContext *C,
   mval[0] = (event->xy[0] - region->winrct.xmin);
   mval[1] = (event->xy[1] - region->winrct.ymin);
 
-  blender::ui::view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+  ui::view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 
   RNA_float_set(op->ptr, "frame", x);
   RNA_float_set(op->ptr, "value", y);
@@ -739,7 +740,7 @@ void GRAPH_OT_duplicate(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "mode",
                rna_enum_transform_mode_type_items,
-               blender::ed::transform::TFM_TRANSLATION,
+               ed::transform::TFM_TRANSLATION,
                "Mode",
                "");
 }
@@ -778,7 +779,7 @@ static bool delete_graph_keys(bAnimContext *ac)
 
     /* Only delete curve too if it won't be doing anything anymore. */
     if (BKE_fcurve_is_empty(fcu)) {
-      blender::animrig::animdata_fcurve_delete(adt, fcu);
+      animrig::animdata_fcurve_delete(adt, fcu);
       ale.key_data = nullptr;
     }
   }
@@ -821,7 +822,7 @@ static wmOperatorStatus graphkeys_delete_invoke(bContext *C,
                                   IFACE_("Delete selected keyframes?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return graphkeys_delete_exec(C, op);
@@ -1349,7 +1350,7 @@ static void bake_graph_keys(bAnimContext *ac)
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
   for (bAnimListElem &ale : anim_data) {
-    blender::animrig::bake_fcurve_segments(static_cast<FCurve *>(ale.key_data));
+    animrig::bake_fcurve_segments(static_cast<FCurve *>(ale.key_data));
 
     ale.update |= ANIM_UPDATE_DEPS;
   }
@@ -2238,7 +2239,7 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
   BKE_report(op->reports, RPT_WARNING, "Deprecated operator, use screen.keyframe_jump instead");
   /* The op->ptr can be passed to the operator because it has an identically named property. */
   return WM_operator_name_call(
-      C, "SCREEN_OT_keyframe_jump", blender::wm::OpCallContext::InvokeDefault, op->ptr, nullptr);
+      C, "SCREEN_OT_keyframe_jump", wm::OpCallContext::InvokeDefault, op->ptr, nullptr);
 }
 
 void GRAPH_OT_keyframe_jump(wmOperatorType *ot)
@@ -3296,3 +3297,5 @@ void GRAPH_OT_driver_delete_invalid(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

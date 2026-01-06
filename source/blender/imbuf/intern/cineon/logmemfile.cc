@@ -15,6 +15,8 @@
 #include "logImageCore.h"
 #include "logmemfile.h"
 
+namespace blender {
+
 int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
 {
   if (logFile->file) {
@@ -113,3 +115,5 @@ int logimage_read_uint(uint *x, LogImageFile *logFile)
   logFile->memCursor += sizeof(uint);
   return 0;
 }
+
+}  // namespace blender

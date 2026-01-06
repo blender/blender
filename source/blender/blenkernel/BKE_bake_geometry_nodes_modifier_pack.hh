@@ -13,10 +13,12 @@
 #include "BKE_bake_items_paths.hh"
 #include "BKE_packedFile.hh"
 
+namespace blender {
+
 struct ReportList;
 struct Main;
 
-namespace blender::bke::bake {
+namespace bke::bake {
 
 NodesModifierPackedBake *pack_bake_from_disk(const BakePath &bake_path, ReportList *reports);
 
@@ -50,4 +52,5 @@ UnpackGeometryNodesBakeResult unpack_geometry_nodes_bake(Main &bmain,
                                                          NodesModifierBake &bake,
                                                          ePF_FileStatus how);
 
-}  // namespace blender::bke::bake
+}  // namespace bke::bake
+}  // namespace blender

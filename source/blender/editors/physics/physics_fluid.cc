@@ -45,6 +45,8 @@
 #include "DNA_fluid_types.h"
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 #define FLUID_JOB_BAKE_ALL "FLUID_OT_bake_all"
 #define FLUID_JOB_BAKE_DATA "FLUID_OT_bake_data"
 #define FLUID_JOB_BAKE_NOISE "FLUID_OT_bake_noise"
@@ -134,7 +136,7 @@ static bool fluid_initjob(
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
 
   fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   if (!fmd) {
@@ -613,7 +615,7 @@ static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   Scene *scene = CTX_data_scene(C);
 
   /*
@@ -678,7 +680,7 @@ static wmOperatorStatus fluid_pause_exec(bContext *C, wmOperator *op)
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
 
   /*
    * Get modifier data
@@ -866,3 +868,5 @@ void FLUID_OT_pause_bake(wmOperatorType *ot)
   ot->exec = fluid_pause_exec;
   ot->poll = ED_operator_object_active_editable;
 }
+
+}  // namespace blender

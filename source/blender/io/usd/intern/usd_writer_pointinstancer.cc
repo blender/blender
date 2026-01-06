@@ -90,7 +90,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
     const float3 &pos = transforms[i].location();
     positions[i] = pxr::GfVec3f(pos.x, pos.y, pos.z);
   }
-  blender::io::usd::set_attribute(position_attr, positions, time, usd_value_writer_);
+  io::usd::set_attribute(position_attr, positions, time, usd_value_writer_);
 
   /* orientations */
   pxr::UsdAttribute orientations_attr = usd_instancer.CreateOrientationsAttr();
@@ -100,28 +100,28 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
     const math::Quaternion quat = math::to_quaternion(math::EulerXYZ(euler));
     orientation[i] = pxr::GfQuath(quat.w, pxr::GfVec3h(quat.x, quat.y, quat.z));
   }
-  blender::io::usd::set_attribute(orientations_attr, orientation, time, usd_value_writer_);
+  io::usd::set_attribute(orientations_attr, orientation, time, usd_value_writer_);
 
   /* scales */
   pxr::UsdAttribute scales_attr = usd_instancer.CreateScalesAttr();
   pxr::VtArray<pxr::GfVec3f> scales(instance_num);
   for (int i = 0; i < instance_num; i++) {
     const MatBase<float, 4, 4> &mat = transforms[i];
-    blender::float3 scale_vec = math::to_scale<true>(mat);
+    float3 scale_vec = math::to_scale<true>(mat);
     scales[i] = pxr::GfVec3f(scale_vec.x, scale_vec.y, scale_vec.z);
   }
-  blender::io::usd::set_attribute(scales_attr, scales, time, usd_value_writer_);
+  io::usd::set_attribute(scales_attr, scales, time, usd_value_writer_);
 
   /* IDs */
   const Span<int> ids = instances->unique_ids();
   pxr::VtInt64Array usd_ids(ids.begin(), ids.end());
   pxr::UsdAttribute attr_ids = usd_instancer.CreateIdsAttr();
-  blender::io::usd::set_attribute(attr_ids, usd_ids, time, usd_value_writer_);
+  io::usd::set_attribute(attr_ids, usd_ids, time, usd_value_writer_);
 
   /* other attr */
   bke::AttributeAccessor attributes_eval = *component->attributes();
   attributes_eval.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.name[0] == '.' || blender::bke::attribute_name_is_anonymous(iter.name) ||
+    if (iter.name[0] == '.' || bke::attribute_name_is_anonymous(iter.name) ||
         ELEM(iter.name, "instance_transform", "scale", "orientation", "mask", "proto_index", "id"))
     {
       return;
@@ -192,7 +192,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
                                collection_instance_object_count_map);
   }
 
-  blender::io::usd::set_attribute(proto_indices_attr, proto_indices, time, usd_value_writer_);
+  io::usd::set_attribute(proto_indices_attr, proto_indices, time, usd_value_writer_);
 
   /* Handle Collection Prototypes */
   if (!collection_instance_object_count_map.is_empty()) {
@@ -589,8 +589,8 @@ void USDPointInstancerWriter::write_attribute_data(const bke::AttributeIter &att
       }
     }
 
-    blender::io::usd::set_attribute(idsAttr, ids, time, usd_value_writer_);
-    blender::io::usd::set_attribute(invisibleIdsAttr, invisibleIds, time, usd_value_writer_);
+    io::usd::set_attribute(idsAttr, ids, time, usd_value_writer_);
+    io::usd::set_attribute(invisibleIdsAttr, invisibleIds, time, usd_value_writer_);
   }
 
   const pxr::TfToken pv_name(

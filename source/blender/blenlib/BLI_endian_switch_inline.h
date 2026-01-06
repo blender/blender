@@ -16,6 +16,8 @@
  * \ingroup bli
  */
 
+namespace blender {
+
 /* NOTE: using a temp char to switch endian is a lot slower,
  * use bit shifting instead. */
 
@@ -77,3 +79,5 @@ BLI_INLINE void BLI_endian_switch_double(double *val)
 {
   BLI_endian_switch_uint64(reinterpret_cast<uint64_t *>(val));
 }
+
+}  // namespace blender

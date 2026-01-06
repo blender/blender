@@ -76,7 +76,7 @@ class DepsgraphFromIDsRelationBuilder : public DepsgraphRelationBuilder {
 
 }  // namespace
 
-FromIDsBuilderPipeline::FromIDsBuilderPipeline(::Depsgraph *graph, Span<ID *> ids)
+FromIDsBuilderPipeline::FromIDsBuilderPipeline(blender::Depsgraph *graph, Span<ID *> ids)
     : AbstractBuilderPipeline(graph), ids_(ids)
 {
 }

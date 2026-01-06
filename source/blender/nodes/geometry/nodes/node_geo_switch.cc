@@ -17,7 +17,9 @@
 
 #include "FN_multi_function_builder.hh"
 
-namespace blender::nodes::node_geo_switch_cc {
+namespace blender {
+
+namespace nodes::node_geo_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeSwitch)
 
@@ -257,7 +259,7 @@ static void node_rna(StructRNA *srna)
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSwitch", GEO_NODE_SWITCH);
   ntype.ui_name = "Switch";
@@ -266,21 +268,21 @@ static void register_node()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeSwitch", node_free_standard_storage, node_copy_standard_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.draw_buttons = node_layout;
   ntype.ignore_inferred_input_socket_visibility = true;
   ntype.internally_linked_input = node_internally_linked_input;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(register_node)
 
-}  // namespace blender::nodes::node_geo_switch_cc
+}  // namespace nodes::node_geo_switch_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node)
 {
@@ -289,4 +291,5 @@ std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node)
   return std::make_unique<LazyFunctionForSwitchNode>(node);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

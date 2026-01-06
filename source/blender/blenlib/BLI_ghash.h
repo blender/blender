@@ -16,6 +16,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h" /* for bool */
 
+namespace blender {
+
 #define _GHASH_INTERNAL_ATTR
 #ifndef GHASH_INTERNAL_API
 #  ifdef __GNUC__
@@ -638,3 +640,5 @@ GSet *BLI_gset_int_new_ex(const char *info,
 GSet *BLI_gset_int_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 
 /** \} */
+
+}  // namespace blender

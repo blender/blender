@@ -8,9 +8,11 @@
 #include "usd_hash_types.hh"
 #include "usd_reader_geom.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /*
  * Read USDGeom primitive shapes as Blender Meshes.  This class uses the same adapter functions
@@ -71,4 +73,5 @@ class USDShapeReader : public USDGeomReader {
   };
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

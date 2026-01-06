@@ -30,7 +30,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-using blender::StringRef;
+namespace blender {
 
 static auto &get_list_type_map()
 {
@@ -40,7 +40,7 @@ static auto &get_list_type_map()
       return StringRef(value->idname);
     }
   };
-  static blender::CustomIDVectorSet<uiListType *, IDNameGetter> map;
+  static CustomIDVectorSet<uiListType *, IDNameGetter> map;
   return map;
 }
 
@@ -166,3 +166,5 @@ const char *WM_uilisttype_list_id_get(const uiListType *ult, uiList *list)
   /* +1 to skip the '_'. */
   return list->list_id + strlen(ult->idname) + 1;
 }
+
+}  // namespace blender

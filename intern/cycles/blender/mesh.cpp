@@ -35,9 +35,11 @@
 
 #include "GEO_mesh_split_edges.hh"
 
+using blender::Attribute;
+
 CCL_NAMESPACE_BEGIN
 
-void mesh_split_edges_for_corner_normals(::Mesh &mesh)
+void mesh_split_edges_for_corner_normals(blender::Mesh &mesh)
 {
   using namespace blender;
   const OffsetIndices polys = mesh.faces();
@@ -51,7 +53,7 @@ void mesh_split_edges_for_corner_normals(::Mesh &mesh)
   Array<bool> sharp_edges(mesh.edges_num);
   mesh_sharp_edges.materialize(sharp_edges);
 
-  threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
+  threading::parallel_for(polys.index_range(), 1024, [&](const blender::IndexRange range) {
     for (const int face_i : range) {
       if (!sharp_faces.is_empty() && sharp_faces[face_i]) {
         for (const int edge : corner_edges.slice(polys[face_i])) {
@@ -105,7 +107,7 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
 
 static void attr_create_generic(Scene *scene,
                                 Mesh *mesh,
-                                const ::Mesh &b_mesh,
+                                const blender::Mesh &b_mesh,
                                 const bool subdivision,
                                 const bool need_motion,
                                 const float motion_scale)
@@ -259,7 +261,7 @@ static void attr_create_generic(Scene *scene,
   });
 }
 
-static set<ustring> get_blender_uv_names(const ::Mesh &b_mesh)
+static set<ustring> get_blender_uv_names(const blender::Mesh &b_mesh)
 {
   set<ustring> uv_names;
   b_mesh.attributes().foreach_attribute([&](const blender::bke::AttributeIter &iter) {
@@ -277,7 +279,7 @@ static set<ustring> get_blender_uv_names(const ::Mesh &b_mesh)
 /* Create uv map attributes. */
 static void attr_create_uv_map(Scene *scene,
                                Mesh *mesh,
-                               const ::Mesh &b_mesh,
+                               const blender::Mesh &b_mesh,
                                const set<ustring> &blender_uv_names)
 {
   const blender::Span<blender::int3> corner_tris = b_mesh.corner_tris();
@@ -320,7 +322,7 @@ static void attr_create_uv_map(Scene *scene,
 
 static void attr_create_subd_uv_map(Scene *scene,
                                     Mesh *mesh,
-                                    const ::Mesh &b_mesh,
+                                    const blender::Mesh &b_mesh,
                                     const set<ustring> &blender_uv_names)
 {
   const blender::OffsetIndices faces = b_mesh.faces();
@@ -550,7 +552,7 @@ static void attr_create_pointiness(Mesh *mesh,
  * making the output unsafe to hash. */
 static void attr_create_random_per_island(Scene *scene,
                                           Mesh *mesh,
-                                          const ::Mesh &b_mesh,
+                                          const blender::Mesh &b_mesh,
                                           bool subdivision)
 {
   if (!mesh->need_attribute(scene, ATTR_STD_RANDOM_PER_ISLAND)) {
@@ -598,7 +600,7 @@ static void attr_create_random_per_island(Scene *scene,
 
 static void create_mesh(Scene *scene,
                         Mesh *mesh,
-                        const ::Mesh &b_mesh,
+                        const blender::Mesh &b_mesh,
                         const array<Node *> &used_shaders,
                         const bool need_motion,
                         const float motion_scale,
@@ -662,7 +664,7 @@ static void create_mesh(Scene *scene,
                                     (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT));
   if (mesh->need_attribute(scene, ATTR_STD_GENERATED) || need_default_tangent) {
     const float (*orco)[3] = static_cast<const float (*)[3]>(
-        CustomData_get_layer(&b_mesh.vert_data, CD_ORCO));
+        CustomData_get_layer(&b_mesh.vert_data, blender::CD_ORCO));
     Attribute *attr = attributes.add(ATTR_STD_GENERATED);
 
     float3 loc;
@@ -671,9 +673,10 @@ static void create_mesh(Scene *scene,
 
     float texspace_location[3];
     float texspace_size[3];
-    BKE_mesh_texspace_get(const_cast<::Mesh *>(b_mesh.texcomesh ? b_mesh.texcomesh : &b_mesh),
-                          texspace_location,
-                          texspace_size);
+    BKE_mesh_texspace_get(
+        const_cast<blender::Mesh *>(b_mesh.texcomesh ? b_mesh.texcomesh : &b_mesh),
+        texspace_location,
+        texspace_size);
 
     float3 *generated = attr->data_float3();
 
@@ -830,18 +833,19 @@ static void create_mesh(Scene *scene,
 static void create_subd_mesh(Scene *scene,
                              Mesh *mesh,
                              BObjectInfo &b_ob_info,
-                             const ::Mesh &b_mesh,
+                             const blender::Mesh &b_mesh,
                              const array<Node *> &used_shaders,
                              const bool need_motion,
                              const float motion_scale,
                              const float dicing_rate,
                              const int max_subdivisions)
 {
-  const ::Object *b_ob = b_ob_info.real_object;
+  const blender::Object *b_ob = b_ob_info.real_object;
 
-  const auto &subsurf_mod = *reinterpret_cast<const ::SubsurfModifierData *>(b_ob->modifiers.last);
+  const auto &subsurf_mod = *reinterpret_cast<const blender::SubsurfModifierData *>(
+      b_ob->modifiers.last);
 
-  const bool use_creases = (subsurf_mod.flags & eSubsurfModifierFlag_UseCrease) != 0;
+  const bool use_creases = (subsurf_mod.flags & blender::eSubsurfModifierFlag_UseCrease) != 0;
 
   create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true);
 
@@ -882,10 +886,10 @@ static void create_subd_mesh(Scene *scene,
   /* Set subd parameters. */
   Mesh::SubdivisionAdaptiveSpace space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL;
   switch (subsurf_mod.adaptive_space) {
-    case SUBSURF_ADAPTIVE_SPACE_OBJECT:
+    case blender::SUBSURF_ADAPTIVE_SPACE_OBJECT:
       space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_OBJECT;
       break;
-    case SUBSURF_ADAPTIVE_SPACE_PIXEL:
+    case blender::SUBSURF_ADAPTIVE_SPACE_PIXEL:
       space = Mesh::SUBDIVISION_ADAPTIVE_SPACE_PIXEL;
       break;
   }
@@ -913,7 +917,7 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
   if (view_layer.use_surfaces) {
     object_subdivision_to_mesh(
         *b_ob_info.real_object, new_mesh, preview, use_adaptive_subdivision);
-    const ::Mesh *b_mesh = object_to_mesh(b_ob_info);
+    const blender::Mesh *b_mesh = object_to_mesh(b_ob_info);
 
     if (b_mesh) {
       /* Motion blur attribute is relative to seconds, we need it relative to frames. */
@@ -945,7 +949,7 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
                     false);
       }
 
-      free_object_to_mesh(b_ob_info, const_cast<::Mesh &>(*b_mesh));
+      free_object_to_mesh(b_ob_info, const_cast<blender::Mesh &>(*b_mesh));
     }
   }
 
@@ -986,7 +990,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
 
   /* Skip objects without deforming modifiers. this is not totally reliable,
    * would need a more extensive check to see which objects are animated. */
-  const ::Mesh *b_mesh = nullptr;
+  const blender::Mesh *b_mesh = nullptr;
   if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene, preview)) {
     /* get derived mesh */
     b_mesh = object_to_mesh(b_ob_info);
@@ -999,7 +1003,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
     const int b_verts_num = b_mesh->verts_num;
     const blender::Span<blender::float3> positions = b_mesh->vert_positions();
     if (positions.is_empty()) {
-      free_object_to_mesh(b_ob_info, *const_cast<::Mesh *>(b_mesh));
+      free_object_to_mesh(b_ob_info, *const_cast<blender::Mesh *>(b_mesh));
       return;
     }
 
@@ -1082,7 +1086,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
       }
     }
 
-    free_object_to_mesh(b_ob_info, *const_cast<::Mesh *>(b_mesh));
+    free_object_to_mesh(b_ob_info, *const_cast<blender::Mesh *>(b_mesh));
     return;
   }
 

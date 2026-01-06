@@ -208,14 +208,14 @@ StrokeAttribute &StrokeAttribute::operator=(const StrokeAttribute &iBrother)
 float StrokeAttribute::getAttributeReal(const char *iName) const
 {
   if (!_userAttributesReal) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "StrokeAttribute warning: no real attribute was defined" << endl;
     }
     return 0.0f;
   }
   realMap::iterator a = _userAttributesReal->find(iName);
   if (a == _userAttributesReal->end()) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "StrokeAttribute warning: no real attribute was added with the name " << iName
            << endl;
     }
@@ -227,14 +227,14 @@ float StrokeAttribute::getAttributeReal(const char *iName) const
 Vec2f StrokeAttribute::getAttributeVec2f(const char *iName) const
 {
   if (!_userAttributesVec2f) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "StrokeAttribute warning: no Vec2f attribute was defined" << endl;
     }
     return 0;
   }
   Vec2fMap::iterator a = _userAttributesVec2f->find(iName);
   if (a == _userAttributesVec2f->end()) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "StrokeAttribute warning: no Vec2f attribute was added with the name " << iName
            << endl;
     }
@@ -246,14 +246,14 @@ Vec2f StrokeAttribute::getAttributeVec2f(const char *iName) const
 Vec3f StrokeAttribute::getAttributeVec3f(const char *iName) const
 {
   if (!_userAttributesVec3f) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "StrokeAttribute warning: no Vec3f attribute was defined" << endl;
     }
     return 0;
   }
   Vec3fMap::iterator a = _userAttributesVec3f->find(iName);
   if (a == _userAttributesVec3f->end()) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "StrokeAttribute warning: no Vec3f attribute was added with the name " << iName
            << endl;
     }

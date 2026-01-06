@@ -17,6 +17,8 @@
 
 #include "intern/bmesh_operator_api.hh"
 
+namespace blender {
+
 struct BMAllocTemplate;
 
 void BM_mesh_elem_toolflags_ensure(BMesh *bm);
@@ -204,12 +206,14 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
 #define BMALLOC_TEMPLATE_FROM_ME(...) \
   VA_NARGS_CALL_OVERLOAD(_VA_BMALLOC_TEMPLATE_FROM_ME_, __VA_ARGS__)
 
-void BM_mesh_vert_normals_get(BMesh *bm, blender::MutableSpan<blender::float3> normals);
+void BM_mesh_vert_normals_get(BMesh *bm, MutableSpan<float3> normals);
 
 /* Vertex coords access. */
-void BM_mesh_vert_coords_get(BMesh *bm, blender::MutableSpan<blender::float3> positions);
-blender::Array<blender::float3> BM_mesh_vert_coords_alloc(BMesh *bm);
-void BM_mesh_vert_coords_apply(BMesh *bm, blender::Span<blender::float3> vert_coords);
+void BM_mesh_vert_coords_get(BMesh *bm, MutableSpan<float3> positions);
+Array<float3> BM_mesh_vert_coords_alloc(BMesh *bm);
+void BM_mesh_vert_coords_apply(BMesh *bm, Span<float3> vert_coords);
 void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
-                                         blender::Span<blender::float3> vert_coords,
-                                         const blender::float4x4 &transform);
+                                         Span<float3> vert_coords,
+                                         const float4x4 &transform);
+
+}  // namespace blender

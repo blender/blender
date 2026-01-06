@@ -23,6 +23,8 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem beztriple_handle_type_items[] = {
     {HD_FREE, "FREE", 0, "Free", ""},
@@ -145,6 +147,8 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 };
 #endif
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
@@ -169,6 +173,8 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 #  include "MEM_guardedalloc.h"
 
 #  include "ED_curve.hh" /* for BKE_curve_nurbs_get */
+
+namespace blender {
 
 /* highly irritating but from RNA we can't know this */
 static Nurb *curve_nurb_from_point(Curve *cu, const void *point, int *nu_index, int *pt_index)
@@ -447,7 +453,7 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value, ReportL
   if (ob) {
     /* If bevel object has got the save curve, as object, for which it's set as bevobj,
      * there could be an infinite loop in curve evaluation. */
-    if (ob->type == OB_CURVES_LEGACY && ob->data != blender::id_cast<ID *>(cu)) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != id_cast<ID *>(cu)) {
       cu->bevobj = ob;
       id_lib_extern(&ob->id);
     }
@@ -492,7 +498,7 @@ static bool rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = static_cast<Object *>(value.data);
 
   if (ob) {
-    if (ob->type == OB_CURVES_LEGACY && ob->data != blender::id_cast<ID *>(cu)) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != id_cast<ID *>(cu)) {
       return 1;
     }
   }
@@ -520,7 +526,7 @@ static void rna_Curve_taperObject_set(PointerRNA *ptr, PointerRNA value, ReportL
   if (ob) {
     /* If taper object has got the save curve, as object, for which it's set as bevobj,
      * there could be an infinite loop in curve evaluation. */
-    if (ob->type == OB_CURVES_LEGACY && ob->data != blender::id_cast<ID *>(cu)) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != id_cast<ID *>(cu)) {
       cu->taperobj = ob;
       id_lib_extern(&ob->id);
     }
@@ -880,7 +886,11 @@ static bool rna_TextCurve_has_selection_get(PointerRNA *ptr)
   return false;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static const float tilt_limit = DEG2RADF(21600.0f);
 
@@ -2134,5 +2144,7 @@ void RNA_def_curve(BlenderRNA *brna)
   rna_def_beztriple(brna);
   rna_def_curve_nurb(brna);
 }
+
+}  // namespace blender
 
 #endif

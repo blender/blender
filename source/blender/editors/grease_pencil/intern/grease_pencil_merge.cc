@@ -329,7 +329,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
   /* Gather all the layer attributes. */
   const bke::AttributeAccessor src_attributes = src_grease_pencil.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_grease_pencil.attributes_for_write();
-  src_attributes.foreach_attribute([&](const blender::bke::AttributeIter &iter) {
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.data_type == bke::AttrType::String) {
       return;
     }

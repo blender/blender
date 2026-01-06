@@ -13,6 +13,8 @@
 #include "BLI_listbase.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /** For tables, button in UI, etc. */
 #define BLENDER_MAX_THREADS 1024
 
@@ -253,3 +255,5 @@ void BLI_thread_queue_nowait(ThreadQueue *queue);
 #  define BLI_thread_local_get(name) name
 #  define BLI_thread_local_set(name, value) name = value
 #endif /* defined(__APPLE__) */
+
+}  // namespace blender

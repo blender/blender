@@ -11,6 +11,8 @@
  * https://smhasher.googlecode.com/svn-history/r130/trunk/MurmurHash2.cpp
  */
 
+namespace blender {
+
 TEST(hash_mm2a, MM2ABasic)
 {
   BLI_HashMurmur2A mm2;
@@ -67,3 +69,5 @@ TEST(hash_mm2a, MM2AIntegers)
   EXPECT_EQ(hash, 405493096);
   EXPECT_EQ(BLI_hash_mm2a_end(&mm2), hash);
 }
+
+}  // namespace blender

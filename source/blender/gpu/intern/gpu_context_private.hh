@@ -24,9 +24,11 @@
 
 #include <pthread.h>
 
+namespace blender {
+
 struct GPUMatrixState;
 
-namespace blender::gpu {
+namespace gpu {
 
 class Context {
  public:
@@ -173,4 +175,5 @@ static inline const Context *unwrap(const GPUContext *ctx)
   return reinterpret_cast<const Context *>(ctx);
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

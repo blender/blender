@@ -46,6 +46,8 @@
 
 #  include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* **************** Object Instance **************** */
 
 struct RNA_DepsgraphIterator {
@@ -239,7 +241,7 @@ static bool rna_DepsgraphUpdate_is_updated_geometry_get(PointerRNA *ptr)
   if (GS(id->name) != ID_OB) {
     return false;
   }
-  Object *object = blender::id_cast<Object *>(id);
+  Object *object = id_cast<Object *>(id);
   ID *data = static_cast<ID *>(object->data);
   if (data == nullptr) {
     return false;
@@ -549,7 +551,11 @@ static PointerRNA rna_Depsgraph_view_layer_eval_get(PointerRNA *ptr)
   return newptr;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_depsgraph_instance(BlenderRNA *brna)
 {
@@ -867,5 +873,7 @@ void RNA_def_depsgraph(BlenderRNA *brna)
   rna_def_depsgraph_update(brna);
   rna_def_depsgraph(brna);
 }
+
+}  // namespace blender
 
 #endif

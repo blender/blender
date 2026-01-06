@@ -12,6 +12,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_variadic.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Path Queries
  * \{ */
@@ -796,3 +798,5 @@ const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
   (((_n)[0] == '.') && (((_n)[1] == '\0') || (((_n)[1] == '.') && ((_n)[2] == '\0'))))
 
 /** \} */
+
+}  // namespace blender

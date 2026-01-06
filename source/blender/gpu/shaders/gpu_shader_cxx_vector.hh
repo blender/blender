@@ -12,6 +12,8 @@
 
 #include <type_traits>
 
+namespace blender {
+
 /* Some compilers complain about lack of return values. Keep it short. */
 #define RET \
   { \
@@ -405,3 +407,5 @@ using packed_uint4 = uint4;
 /** \} */
 
 #undef RET
+
+}  // namespace blender

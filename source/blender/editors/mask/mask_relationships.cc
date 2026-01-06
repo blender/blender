@@ -27,6 +27,8 @@
 
 #include "mask_intern.hh" /* own include */
 
+namespace blender {
+
 static wmOperatorStatus mask_parent_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
@@ -168,3 +170,5 @@ void MASK_OT_parent_set(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

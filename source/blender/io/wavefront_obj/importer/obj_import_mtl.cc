@@ -24,9 +24,12 @@
 #include "obj_import_mtl.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.obj"};
 
-namespace blender::io::obj {
+namespace io::obj {
 
 /**
  * Set the socket's (of given ID) value to the given number(s).
@@ -437,7 +440,7 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
                                 Material *mat,
                                 bool relative_paths)
 {
-  bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
+  bNodeTree *ntree = bke::node_tree_add_tree_embedded(
       nullptr, &mat->id, "Shader Nodetree", ntreeType_Shader->idname);
 
   bNode *bsdf = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, node_locx_bsdf, node_locy_top);
@@ -451,4 +454,5 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
   return ntree;
 }
 
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

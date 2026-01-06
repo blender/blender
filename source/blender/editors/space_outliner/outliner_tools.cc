@@ -281,43 +281,43 @@ static void unlink_material_fn(bContext * /*C*/,
 
   switch (GS(tsep->id->name)) {
     case ID_OB: {
-      Object *ob = blender::id_cast<Object *>(tsep->id);
+      Object *ob = id_cast<Object *>(tsep->id);
       totcol = ob->totcol;
       matar = ob->mat;
       break;
     }
     case ID_ME: {
-      Mesh *mesh = blender::id_cast<Mesh *>(tsep->id);
+      Mesh *mesh = id_cast<Mesh *>(tsep->id);
       totcol = mesh->totcol;
       matar = mesh->mat;
       break;
     }
     case ID_CU_LEGACY: {
-      Curve *cu = blender::id_cast<Curve *>(tsep->id);
+      Curve *cu = id_cast<Curve *>(tsep->id);
       totcol = cu->totcol;
       matar = cu->mat;
       break;
     }
     case ID_MB: {
-      MetaBall *mb = blender::id_cast<MetaBall *>(tsep->id);
+      MetaBall *mb = id_cast<MetaBall *>(tsep->id);
       totcol = mb->totcol;
       matar = mb->mat;
       break;
     }
     case ID_CV: {
-      Curves *curves = blender::id_cast<Curves *>(tsep->id);
+      Curves *curves = id_cast<Curves *>(tsep->id);
       totcol = curves->totcol;
       matar = curves->mat;
       break;
     }
     case ID_PT: {
-      PointCloud *pointcloud = blender::id_cast<PointCloud *>(tsep->id);
+      PointCloud *pointcloud = id_cast<PointCloud *>(tsep->id);
       totcol = pointcloud->totcol;
       matar = pointcloud->mat;
       break;
     }
     case ID_VO: {
-      Volume *volume = blender::id_cast<Volume *>(tsep->id);
+      Volume *volume = id_cast<Volume *>(tsep->id);
       totcol = volume->totcol;
       matar = volume->mat;
       break;
@@ -358,7 +358,7 @@ static void unlink_texture_fn(bContext * /*C*/,
   int a;
 
   if (GS(tsep->id->name) == ID_LS) {
-    FreestyleLineStyle *ls = blender::id_cast<FreestyleLineStyle *>(tsep->id);
+    FreestyleLineStyle *ls = id_cast<FreestyleLineStyle *>(tsep->id);
     mtex = ls->mtex;
   }
   else {
@@ -383,7 +383,7 @@ static void unlink_collection_fn(bContext *C,
                                  TreeStoreElem *tselem)
 {
   Main *bmain = CTX_data_main(C);
-  Collection *collection = blender::id_cast<Collection *>(tselem->id);
+  Collection *collection = id_cast<Collection *>(tselem->id);
 
   if (!tsep || !TSE_IS_REAL_ID(tsep)) {
     /* Valid case, no parent element of the collection or it is not an ID (could be a #TSE_ID_BASE
@@ -408,20 +408,20 @@ static void unlink_collection_fn(bContext *C,
 
   if (tsep) {
     if (GS(tsep->id->name) == ID_OB) {
-      Object *ob = blender::id_cast<Object *>(tsep->id);
+      Object *ob = id_cast<Object *>(tsep->id);
       ob->instance_collection = nullptr;
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_HIERARCHY);
       DEG_relations_tag_update(bmain);
     }
     else if (GS(tsep->id->name) == ID_GR) {
-      Collection *parent = blender::id_cast<Collection *>(tsep->id);
+      Collection *parent = id_cast<Collection *>(tsep->id);
       id_fake_user_set(&collection->id);
       BKE_collection_child_remove(bmain, parent, collection);
       DEG_id_tag_update(&parent->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_HIERARCHY);
       DEG_relations_tag_update(bmain);
     }
     else if (GS(tsep->id->name) == ID_SCE) {
-      Scene *scene = blender::id_cast<Scene *>(tsep->id);
+      Scene *scene = id_cast<Scene *>(tsep->id);
       Collection *parent = scene->master_collection;
       id_fake_user_set(&collection->id);
       BKE_collection_child_remove(bmain, parent, collection);
@@ -444,7 +444,7 @@ static void unlink_object_fn(bContext *C,
       return;
     }
     Main *bmain = CTX_data_main(C);
-    Object *ob = blender::id_cast<Object *>(tselem->id);
+    Object *ob = id_cast<Object *>(tselem->id);
     const eSpaceOutliner_Mode outliner_mode = eSpaceOutliner_Mode(
         CTX_wm_space_outliner(C)->outlinevis);
 
@@ -476,7 +476,7 @@ static void unlink_object_fn(bContext *C,
       }
       switch (GS(tsep->id->name)) {
         case ID_GR: {
-          Collection *parent = blender::id_cast<Collection *>(tsep->id);
+          Collection *parent = id_cast<Collection *>(tsep->id);
           BKE_collection_object_remove(bmain, parent, ob, true);
           DEG_id_tag_update(&parent->id, ID_RECALC_SYNC_TO_EVAL);
           break;
@@ -534,8 +534,8 @@ static void unlink_world_fn(bContext * /*C*/,
     return;
   }
 
-  Scene *parscene = blender::id_cast<Scene *>(tsep->id);
-  World *wo = blender::id_cast<World *>(tselem->id);
+  Scene *parscene = id_cast<Scene *>(tsep->id);
+  World *wo = id_cast<World *>(tselem->id);
 
   /* need to use parent scene not just scene, otherwise may end up getting wrong one */
   id_us_min(&wo->id);
@@ -720,7 +720,7 @@ static bool scene_fn(bContext *C,
                      TreeElement * /*te*/,
                      TreeStoreElem *tselem)
 {
-  Scene *scene = blender::id_cast<Scene *>(tselem->id);
+  Scene *scene = id_cast<Scene *>(tselem->id);
 
   if (event == OL_SCENE_OP_DELETE) {
     if (ED_scene_delete(C, CTX_data_main(C), scene)) {
@@ -917,7 +917,7 @@ static void object_select_fn(bContext *C,
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = blender::id_cast<Object *>(tselem->id);
+  Object *ob = id_cast<Object *>(tselem->id);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
@@ -955,7 +955,7 @@ static void object_deselect_fn(bContext *C,
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = blender::id_cast<Object *>(tselem->id);
+  Object *ob = id_cast<Object *>(tselem->id);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
@@ -1689,7 +1689,7 @@ static void singleuser_world_fn(bContext *C,
 
   /* need to use parent scene not just scene, otherwise may end up getting wrong one */
   if (id) {
-    Scene *parscene = blender::id_cast<Scene *>(tsep->id);
+    Scene *parscene = id_cast<Scene *>(tsep->id);
     PropertyRNA *prop;
 
     PointerRNA ptr = RNA_id_pointer_create(&parscene->id);
@@ -1713,7 +1713,7 @@ void outliner_do_object_operation_ex(bContext *C,
     if (tselem->flag & TSE_SELECTED) {
       if ((tselem->type == TSE_SOME_ID) && (te.idcode == ID_OB)) {
         /* When objects selected in other scenes, don't know if that should be allowed. */
-        Scene *scene_owner = blender::id_cast<Scene *>(outliner_search_back(&te, ID_SCE));
+        Scene *scene_owner = id_cast<Scene *>(outliner_search_back(&te, ID_SCE));
         if (scene_owner && scene_act != scene_owner) {
           WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), scene_owner);
         }
@@ -2120,14 +2120,14 @@ static void pchan_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, voi
   bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
 
   if (event == OL_DOP_SELECT) {
-    blender::animrig::bone_select(pchan);
+    animrig::bone_select(pchan);
   }
   else if (event == OL_DOP_DESELECT) {
-    blender::animrig::bone_deselect(pchan);
+    animrig::bone_deselect(pchan);
   }
   else if (event == OL_DOP_HIDE) {
     pchan->drawflag |= PCHAN_DRAW_HIDDEN;
-    blender::animrig::bone_deselect(pchan);
+    animrig::bone_deselect(pchan);
   }
   else if (event == OL_DOP_UNHIDE) {
     pchan->drawflag &= ~PCHAN_DRAW_HIDDEN;
@@ -2268,7 +2268,7 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/
   bContext *C = static_cast<bContext *>(C_v);
   Main *bmain = CTX_data_main(C);
   bConstraint *constraint = static_cast<bConstraint *>(te->directdata);
-  Object *ob = blender::id_cast<Object *>(outliner_search_back(te, ID_OB));
+  Object *ob = id_cast<Object *>(outliner_search_back(te, ID_OB));
 
   if (event == OL_CONSTRAINTOP_ENABLE) {
     constraint->flag &= ~CONSTRAINT_OFF;
@@ -2316,7 +2316,7 @@ static void modifier_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ModifierData *md = static_cast<ModifierData *>(te->directdata);
-  Object *ob = blender::id_cast<Object *>(outliner_search_back(te, ID_OB));
+  Object *ob = id_cast<Object *>(outliner_search_back(te, ID_OB));
 
   if (event == OL_MODIFIER_OP_TOGVIS) {
     md->mode ^= eModifierMode_Realtime;
@@ -3193,7 +3193,7 @@ static void actionset_id_fn(TreeElement * /*te*/,
                             TreeStoreElem *tsep,
                             ID *actId)
 {
-  bAction *act = blender::id_cast<bAction *>(actId);
+  bAction *act = id_cast<bAction *>(actId);
 
   if (tselem->type == TSE_ANIM_DATA) {
     /* "animation" entries - action is child of this */
@@ -3229,12 +3229,10 @@ static wmOperatorStatus outliner_action_set_exec(bContext *C, wmOperator *op)
 
   /* perform action if valid channel */
   if (datalevel == TSE_ANIM_DATA) {
-    outliner_do_id_set_operation(
-        space_outliner, datalevel, blender::id_cast<ID *>(act), actionset_id_fn);
+    outliner_do_id_set_operation(space_outliner, datalevel, id_cast<ID *>(act), actionset_id_fn);
   }
   else if (idlevel == ID_AC) {
-    outliner_do_id_set_operation(
-        space_outliner, idlevel, blender::id_cast<ID *>(act), actionset_id_fn);
+    outliner_do_id_set_operation(space_outliner, idlevel, id_cast<ID *>(act), actionset_id_fn);
   }
   else {
     return OPERATOR_CANCELLED;

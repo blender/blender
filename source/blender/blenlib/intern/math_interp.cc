@@ -18,7 +18,9 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-namespace blender::math {
+namespace blender {
+
+namespace math {
 
 enum class eCubicFilter {
   BSpline,
@@ -531,7 +533,7 @@ void interpolate_cubic_mitchell_fl(
                                                        InterpWrapMode::Extend);
 }
 
-}  // namespace blender::math
+}  // namespace math
 
 /**************************************************************************
  * Filtering method based on
@@ -742,3 +744,5 @@ void BLI_ewa_filter(const int width,
   /* Clipping can be ignored if alpha used, `texr->trgba[3]` already includes filtered edge. */
   result[3] = use_alpha ? result[3] * d : 1.0f;
 }
+
+}  // namespace blender

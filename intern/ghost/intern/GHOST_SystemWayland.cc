@@ -8620,7 +8620,7 @@ GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage() const
         if (!uris.empty()) {
           const std::string_view &uri = uris.front();
           char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
-          if (IMB_test_image(filepath)) {
+          if (blender::IMB_test_image(filepath)) {
             result = GHOST_kSuccess;
           }
           free(filepath);
@@ -8650,7 +8650,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
 
   GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
   if (data_offer) {
-    ImBuf *ibuf = nullptr;
+    blender::ImBuf *ibuf = nullptr;
 
     /* Check if the source offers a supported mime type.
      * This check could be skipped, because the paste option is not supposed to be enabled
@@ -8661,8 +8661,8 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
 
       if (data) {
         /* Generate the image buffer with the received data. */
-        ibuf = IMB_load_image_from_memory(
-            (const uint8_t *)data, data_len, IB_byte_data, "<clipboard>");
+        ibuf = blender::IMB_load_image_from_memory(
+            (const uint8_t *)data, data_len, blender::IB_byte_data, "<clipboard>");
         free(data);
       }
     }
@@ -8677,7 +8677,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
         if (!uris.empty()) {
           const std::string_view &uri = uris.front();
           char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
-          ibuf = IMB_load_image_from_filepath(filepath, IB_byte_data);
+          ibuf = blender::IMB_load_image_from_filepath(filepath, blender::IB_byte_data);
           free(filepath);
         }
         free(data);
@@ -8690,7 +8690,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
       const size_t byte_count = size_t(ibuf->x) * size_t(ibuf->y) * 4;
       rgba = (uint *)malloc(byte_count);
       std::memcpy(rgba, ibuf->byte_buffer.data, byte_count);
-      IMB_freeImBuf(ibuf);
+      blender::IMB_freeImBuf(ibuf);
     }
   }
 
@@ -8713,11 +8713,12 @@ GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int
   GWL_DataSource *data_source = seat->data_source;
 
   /* Load buffer into an #ImBuf and convert to PNG. */
-  ImBuf *ibuf = IMB_allocFromBuffer(reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
-  ibuf->ftype = IMB_FTYPE_PNG;
+  blender::ImBuf *ibuf = blender::IMB_allocFromBuffer(
+      reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
+  ibuf->ftype = blender::IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  if (!IMB_save_image(ibuf, "<memory>", IB_byte_data | IB_mem)) {
-    IMB_freeImBuf(ibuf);
+  if (!IMB_save_image(ibuf, "<memory>", blender::IB_byte_data | blender::IB_mem)) {
+    blender::IMB_freeImBuf(ibuf);
     return GHOST_kFailure;
   }
 
@@ -8741,7 +8742,7 @@ GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int
         seat->wl.data_device, data_source->wl.source, seat->data_source_serial);
   }
 
-  IMB_freeImBuf(ibuf);
+  blender::IMB_freeImBuf(ibuf);
   return GHOST_kSuccess;
 }
 

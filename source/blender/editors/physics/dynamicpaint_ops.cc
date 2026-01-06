@@ -51,10 +51,12 @@
 
 #include "physics_intern.hh" /* own include */
 
+namespace blender {
+
 static wmOperatorStatus surface_slot_add_exec(bContext *C, wmOperator * /*op*/)
 {
   DynamicPaintModifierData *pmd = nullptr;
-  Object *cObject = blender::ed::object::context_active_object(C);
+  Object *cObject = ed::object::context_active_object(C);
   DynamicPaintCanvasSettings *canvas;
   DynamicPaintSurface *surface;
 
@@ -98,7 +100,7 @@ void DPAINT_OT_surface_slot_add(wmOperatorType *ot)
 static wmOperatorStatus surface_slot_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   DynamicPaintModifierData *pmd = nullptr;
-  Object *obj_ctx = blender::ed::object::context_active_object(C);
+  Object *obj_ctx = ed::object::context_active_object(C);
   DynamicPaintCanvasSettings *canvas;
   DynamicPaintSurface *surface;
   int id = 0;
@@ -147,7 +149,7 @@ void DPAINT_OT_surface_slot_remove(wmOperatorType *ot)
 static wmOperatorStatus type_toggle_exec(bContext *C, wmOperator *op)
 {
 
-  Object *cObject = blender::ed::object::context_active_object(C);
+  Object *cObject = ed::object::context_active_object(C);
   Scene *scene = CTX_data_scene(C);
   DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(
       BKE_modifiers_findby_type(cObject, eModifierType_DynamicPaint));
@@ -208,7 +210,7 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 
 static wmOperatorStatus output_toggle_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   DynamicPaintSurface *surface;
   DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(
       BKE_modifiers_findby_type(ob, eModifierType_DynamicPaint));
@@ -234,7 +236,7 @@ static wmOperatorStatus output_toggle_exec(bContext *C, wmOperator *op)
     /* Vertex Color Layer */
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       if (!exists) {
-        ED_mesh_color_add(blender::id_cast<Mesh *>(ob->data), name, true, true, op->reports);
+        ED_mesh_color_add(id_cast<Mesh *>(ob->data), name, true, true, op->reports);
       }
       else {
         AttributeOwner owner = AttributeOwner::from_id(ob->data);
@@ -462,7 +464,7 @@ static void dpaint_bake_startjob(void *customdata, wmJobWorkerStatus *worker_sta
 static wmOperatorStatus dynamicpaint_bake_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *ob_ = blender::ed::object::context_active_object(C);
+  Object *ob_ = ed::object::context_active_object(C);
   Object *object_eval = DEG_get_evaluated(depsgraph, ob_);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
@@ -528,3 +530,5 @@ void DPAINT_OT_bake(wmOperatorType *ot)
   ot->exec = dynamicpaint_bake_exec;
   ot->poll = ED_operator_object_active_local_editable;
 }
+
+}  // namespace blender

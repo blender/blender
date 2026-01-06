@@ -16,6 +16,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_session_uid_types.h"
 
+namespace blender {
+
 struct BlendDataReader;
 struct BlendWriter;
 struct Depsgraph;
@@ -28,7 +30,7 @@ struct SeqTimelineChannel;
 struct Strip;
 struct SequencerToolSettings;
 
-namespace blender::seq {
+namespace seq {
 
 constexpr int MAX_CHANNELS = 128;
 
@@ -219,4 +221,5 @@ void strip_lookup_free(Editing *ed);
  */
 void strip_lookup_invalidate(const Editing *ed);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

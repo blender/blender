@@ -19,6 +19,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 size_t BLI_timecode_string_from_time(char *str,
                                      const size_t maxncpy,
                                      const int brevity_level,
@@ -206,3 +208,5 @@ size_t BLI_timecode_string_from_time_seconds(char *str,
 
   return rlen;
 }
+
+}  // namespace blender

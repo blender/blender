@@ -13,6 +13,8 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 struct PackedFile;
 struct VFontData;
 
@@ -35,3 +37,5 @@ struct VFont {
 };
 
 #define FO_BUILTIN_NAME "<builtin>"
+
+}  // namespace blender

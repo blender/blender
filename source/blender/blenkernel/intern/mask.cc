@@ -46,6 +46,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"mask"};
 
 /** Reset runtime mask fields when data-block is being initialized. */
@@ -60,8 +62,8 @@ static void mask_copy_data(Main * /*bmain*/,
                            const ID *id_src,
                            const int /*flag*/)
 {
-  Mask *mask_dst = blender::id_cast<Mask *>(id_dst);
-  const Mask *mask_src = blender::id_cast<const Mask *>(id_src);
+  Mask *mask_dst = id_cast<Mask *>(id_dst);
+  const Mask *mask_src = id_cast<const Mask *>(id_src);
 
   BLI_listbase_clear(&mask_dst->masklayers);
 
@@ -74,7 +76,7 @@ static void mask_copy_data(Main * /*bmain*/,
 
 static void mask_free_data(ID *id)
 {
-  Mask *mask = blender::id_cast<Mask *>(id);
+  Mask *mask = id_cast<Mask *>(id);
 
   /* free mask data */
   BKE_mask_layer_free_list(&mask->masklayers);
@@ -82,7 +84,7 @@ static void mask_free_data(ID *id)
 
 static void mask_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Mask *mask = blender::id_cast<Mask *>(id);
+  Mask *mask = id_cast<Mask *>(id);
 
   for (MaskLayer &mask_layer : mask->masklayers) {
     for (MaskSpline &mask_spline : mask_layer.splines) {
@@ -97,7 +99,7 @@ static void mask_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Mask *mask = blender::id_cast<Mask *>(id);
+  Mask *mask = id_cast<Mask *>(id);
 
   BLO_write_id_struct(writer, Mask, id_address, &mask->id);
   BKE_id_blend_write(writer, &mask->id);
@@ -136,7 +138,7 @@ static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
 static void mask_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Mask *mask = blender::id_cast<Mask *>(id);
+  Mask *mask = id_cast<Mask *>(id);
 
   BLO_read_struct_list(reader, MaskLayer, &mask->masklayers);
 
@@ -215,7 +217,7 @@ IDTypeInfo IDType_ID_MSK = {
 
 struct MaskClipboard {
   ListBaseT<MaskSpline> splines;
-  blender::Map<ID *, std::string> id_hash;
+  Map<ID *, std::string> id_hash;
 };
 
 static MaskClipboard &get_mask_clipboard()
@@ -1230,7 +1232,7 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
 
   if (parent->id_type == ID_MC) {
     if (parent->id) {
-      MovieClip *clip = blender::id_cast<MovieClip *>(parent->id);
+      MovieClip *clip = id_cast<MovieClip *>(parent->id);
       MovieTracking *tracking = static_cast<MovieTracking *>(&clip->tracking);
       MovieTrackingObject *ob = BKE_tracking_object_get_named(tracking, parent->parent);
 
@@ -1987,7 +1989,7 @@ void BKE_mask_clipboard_paste_to_layer(Main *bmain, MaskLayer *mask_layer)
     for (int i = 0; i < spline_new->tot_point; i++) {
       MaskSplinePoint *point = &spline_new->points[i];
       if (point->parent.id) {
-        const blender::StringRefNull id_name = mask_clipboard.id_hash.lookup(point->parent.id);
+        const StringRefNull id_name = mask_clipboard.id_hash.lookup(point->parent.id);
         ListBaseT<ID> *listbase = which_libbase(bmain, GS(id_name.c_str()));
         point->parent.id = static_cast<ID *>(
             BLI_findstring(listbase, id_name.c_str() + 2, offsetof(ID, name) + 2));
@@ -1997,3 +1999,5 @@ void BKE_mask_clipboard_paste_to_layer(Main *bmain, MaskLayer *mask_layer)
     BLI_addtail(&mask_layer->splines, spline_new);
   }
 }
+
+}  // namespace blender

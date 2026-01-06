@@ -21,12 +21,14 @@
 #include "vk_graphics_pipeline.hh"
 #include "vk_pipeline_pool.hh"
 
+namespace blender {
+
 #ifdef WITH_BUILDINFO
 extern "C" char build_hash[];
 #endif
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 void VKPipelinePool::init()
 {
@@ -754,4 +756,5 @@ void VKPipelinePool::write_to_disk()
 
 /** \} */
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

@@ -58,18 +58,18 @@ static void particle_batch_cache_clear(ParticleSystem *psys);
 
 struct ParticleHairFinalCache {
   /* Output of the subdivision stage: vertex buff sized to subdiv level. */
-  blender::gpu::VertBuf *proc_buf;
+  gpu::VertBuf *proc_buf;
 
   /* Just contains a huge index buffer used to draw the final hair. */
-  blender::gpu::Batch *proc_hairs[MAX_THICKRES];
+  gpu::Batch *proc_hairs[MAX_THICKRES];
 
   int strands_res; /* points per hair, at least 2 */
 };
 
 struct ParticleHairCache {
-  blender::gpu::VertBuf *pos;
-  blender::gpu::IndexBuf *indices;
-  blender::gpu::Batch *hairs;
+  gpu::VertBuf *pos;
+  gpu::IndexBuf *indices;
+  gpu::Batch *hairs;
   int strands_len;
   int elems_len;
   int point_len;
@@ -814,7 +814,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       SNPRINTF_UTF8(uuid, "a%s", attr_safe_name);
-      uv_id[i] = GPU_vertformat_attr_add(&format, uuid, blender::gpu::VertAttrType::SFLOAT_32_32);
+      uv_id[i] = GPU_vertformat_attr_add(&format, uuid, gpu::VertAttrType::SFLOAT_32_32);
 
       if (name == active_uv) {
         GPU_vertformat_alias_add(&format, "a");
@@ -827,8 +827,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       SNPRINTF_UTF8(uuid, "a%s", attr_safe_name);
-      col_id[i] = GPU_vertformat_attr_add(
-          &format, uuid, blender::gpu::VertAttrType::UNORM_16_16_16_16);
+      col_id[i] = GPU_vertformat_attr_add(&format, uuid, gpu::VertAttrType::UNORM_16_16_16_16);
 
       if (name == active_col) {
         GPU_vertformat_alias_add(&format, "c");

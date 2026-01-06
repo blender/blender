@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct CacheFile;
 struct CacheFileLayer;
 struct CacheReader;
@@ -46,3 +48,5 @@ CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepa
 CacheFileLayer *BKE_cachefile_get_active_layer(CacheFile *cache_file);
 
 void BKE_cachefile_remove_layer(CacheFile *cache_file, CacheFileLayer *layer);
+
+}  // namespace blender

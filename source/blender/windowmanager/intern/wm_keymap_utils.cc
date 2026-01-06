@@ -24,6 +24,8 @@
 #include "WM_keymap.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* Menu wrapper for #WM_keymap_add_item. */
 
 /* -------------------------------------------------------------------- */
@@ -583,3 +585,5 @@ bool WM_keymap_uses_event_modifier(const wmKeyMap *keymap, const int event_modif
 void WM_keymap_fix_linking() {}
 
 /** \} */
+
+}  // namespace blender

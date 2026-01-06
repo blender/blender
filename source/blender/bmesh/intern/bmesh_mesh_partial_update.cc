@@ -42,11 +42,7 @@
 
 #include "bmesh.hh"
 
-using blender::BitSpan;
-using blender::BitVector;
-using blender::MutableBitSpan;
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 BLI_INLINE bool partial_elem_vert_ensure(BMPartialUpdate *bmpinfo,
                                          MutableBitSpan verts_tag,
@@ -321,3 +317,5 @@ void BM_mesh_partial_destroy(BMPartialUpdate *bmpinfo)
 {
   MEM_delete(bmpinfo);
 }
+
+}  // namespace blender

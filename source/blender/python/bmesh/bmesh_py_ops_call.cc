@@ -24,6 +24,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 BLI_STATIC_ASSERT(sizeof(PyC_FlagSet) == sizeof(BMO_FlagSet), "size mismatch");
 
 static int bpy_bm_op_as_py_error(BMesh *bm)
@@ -864,3 +866,5 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
   BMO_op_finish(bm, &bmop);
   return ret;
 }
+
+}  // namespace blender

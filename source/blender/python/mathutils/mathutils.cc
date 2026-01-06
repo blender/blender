@@ -20,6 +20,8 @@
 #  include "BLI_dynstr.h"
 #endif
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     M_Mathutils_doc,
@@ -37,6 +39,7 @@ PyDoc_STRVAR(
     "- :class:`Matrix`,\n"
     "- :class:`Quaternion`,\n"
     "- :class:`Vector`,\n");
+
 static int mathutils_array_parse_fast(float *array,
                                       int size,
                                       PyObject *value_fast,
@@ -371,7 +374,7 @@ int mathutils_array_parse_alloc_vi(int **array,
 
 bool mathutils_array_parse_alloc_viseq(PyObject *value,
                                        const char *error_prefix,
-                                       blender::Array<blender::Vector<int>> &r_data)
+                                       Array<Vector<int>> &r_data)
 {
   PyObject *value_fast;
   if (!(value_fast = PySequence_Fast(value, error_prefix))) {
@@ -393,7 +396,7 @@ bool mathutils_array_parse_alloc_viseq(PyObject *value,
         return false;
       }
       r_data[i].resize(subseq_len);
-      blender::MutableSpan<int> group = r_data[i];
+      MutableSpan<int> group = r_data[i];
       if (mathutils_int_array_parse(group.data(), group.size(), subseq, error_prefix) == -1) {
         Py_DECREF(value_fast);
         return false;
@@ -808,6 +811,8 @@ static PyModuleDef M_Mathutils_module_def = {
     /*m_free*/ nullptr,
 };
 
+}  // namespace blender
+
 /* submodules only */
 #include "mathutils_geometry.hh"
 #include "mathutils_interpolate.hh"
@@ -816,6 +821,8 @@ static PyModuleDef M_Mathutils_module_def = {
 #  include "mathutils_kdtree.hh"
 #  include "mathutils_noise.hh"
 #endif
+
+namespace blender {
 
 PyMODINIT_FUNC PyInit_mathutils()
 {
@@ -885,3 +892,5 @@ PyMODINIT_FUNC PyInit_mathutils()
 
   return mod;
 }
+
+}  // namespace blender

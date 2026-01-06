@@ -12,6 +12,8 @@
 #include "BLI_ressource_strings.h"
 #include "BLI_string.h"
 
+namespace blender {
+
 /* local validation function */
 static bool listbase_is_valid(const ListBase *listbase)
 {
@@ -564,3 +566,5 @@ TEST(listbase, Sort)
   MEM_freeN(words_arr);
   MEM_freeN(words_linkdata_arr);
 }
+
+}  // namespace blender

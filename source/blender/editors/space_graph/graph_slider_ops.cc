@@ -50,6 +50,8 @@
 
 #include "graph_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Struct & Defines
  * \{ */
@@ -1836,7 +1838,7 @@ static void gaussian_smooth_allocate_operator_data(tGraphSliderOp *gso,
       const int sample_count = int(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
                                (filter_width * 2 + 1);
       float *samples = MEM_calloc_arrayN<float>(sample_count, "Smooth FCurve Op Samples");
-      blender::animrig::sample_fcurve_segment(
+      animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_width, 1, samples, sample_count);
       segment_link->samples = samples;
       segment_link->sample_count = sample_count;
@@ -1943,7 +1945,7 @@ static void gaussian_smooth_graph_keys(bAnimContext *ac,
                                (filter_width * 2 + 1);
       float *samples = MEM_calloc_arrayN<float>(sample_count, "Smooth FCurve Op Samples");
       float *original_y_values = back_up_key_y_values(&segment, fcu);
-      blender::animrig::sample_fcurve_segment(
+      animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_width, 1, samples, sample_count);
       smooth_fcurve_segment(
           fcu, &segment, original_y_values, samples, sample_count, factor, filter_width, kernel);
@@ -2081,7 +2083,7 @@ static void btw_smooth_allocate_operator_data(tGraphSliderOp *gso,
       const int sample_count = btw_calculate_sample_count(
           &right_bezt, &left_bezt, filter_order, samples_per_frame);
       float *samples = MEM_calloc_arrayN<float>(sample_count, "Btw Smooth FCurve Op Samples");
-      blender::animrig::sample_fcurve_segment(
+      animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_order, samples_per_frame, samples, sample_count);
       segment_link->samples = samples;
       segment_link->sample_count = sample_count;
@@ -2210,7 +2212,7 @@ static void btw_smooth_graph_keys(bAnimContext *ac,
       const int sample_count = btw_calculate_sample_count(
           &right_bezt, &left_bezt, filter_order, samples_per_frame);
       float *samples = MEM_calloc_arrayN<float>(sample_count, "Smooth FCurve Op Samples");
-      blender::animrig::sample_fcurve_segment(
+      animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_order, samples_per_frame, samples, sample_count);
       butterworth_smooth_fcurve_segment(
           fcu, &segment, samples, sample_count, factor, blend_in_out, samples_per_frame, bw_coeff);
@@ -2582,3 +2584,5 @@ void GRAPH_OT_scale_from_neighbor(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

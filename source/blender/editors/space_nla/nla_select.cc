@@ -32,6 +32,8 @@
 
 #include "nla_intern.hh" /* own include */
 
+namespace blender {
+
 /* ******************** Utilities ***************************************** */
 
 /* Convert SELECT_* flags to ACHANNEL_SETFLAG_* flags */
@@ -209,8 +211,8 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
   rctf rectf;
 
   /* convert border-region to view coordinates */
-  blender::ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
-  blender::ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
+  ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
+  ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -266,8 +268,8 @@ static void nlaedit_strip_at_region_position(
 
   float view_x, view_y;
   int track_index;
-  blender::ui::view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
-  blender::ui::view2d_listview_view_to_cell(
+  ui::view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
+  ui::view2d_listview_view_to_cell(
       0, NLATRACK_STEP(snla), 0, NLATRACK_FIRST_TOP(ac), view_x, view_y, nullptr, &track_index);
 
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -278,9 +280,9 @@ static void nlaedit_strip_at_region_position(
   /* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click
    * (that is the size of keyframe icons, so user should be expecting similar tolerances)
    */
-  const float mouse_x = blender::ui::view2d_region_to_view_x(v2d, region_x);
-  const float xmin = blender::ui::view2d_region_to_view_x(v2d, region_x - 7);
-  const float xmax = blender::ui::view2d_region_to_view_x(v2d, region_x + 7);
+  const float mouse_x = ui::view2d_region_to_view_x(v2d, region_x);
+  const float xmin = ui::view2d_region_to_view_x(v2d, region_x - 7);
+  const float xmax = ui::view2d_region_to_view_x(v2d, region_x + 7);
 
   bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, track_index));
   if (ale != nullptr) {
@@ -449,7 +451,7 @@ static void nlaedit_select_leftright(bContext *C,
   /* if currently in tweak-mode, exit tweak-mode first */
   if (scene->flag & SCE_NLA_EDIT_ON) {
     WM_operator_name_call(
-        C, "NLA_OT_tweakmode_exit", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
+        C, "NLA_OT_tweakmode_exit", wm::OpCallContext::ExecDefault, nullptr, nullptr);
   }
 
   /* if select mode is replace, deselect all keyframes (and tracks) first */
@@ -551,7 +553,7 @@ static wmOperatorStatus nlaedit_select_leftright_invoke(bContext *C,
     float x;
 
     /* determine which side of the current frame mouse is on */
-    x = blender::ui::view2d_region_to_view_x(v2d, event->mval[0]);
+    x = ui::view2d_region_to_view_x(v2d, event->mval[0]);
     if (x < scene->r.cfra) {
       RNA_enum_set(op->ptr, "mode", NLAEDIT_LRSEL_LEFT);
     }
@@ -613,7 +615,7 @@ static wmOperatorStatus mouse_nla_strips(bContext *C,
    */
   if (scene->flag & SCE_NLA_EDIT_ON) {
     WM_operator_name_call(
-        C, "NLA_OT_tweakmode_exit", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
+        C, "NLA_OT_tweakmode_exit", wm::OpCallContext::ExecDefault, nullptr, nullptr);
   }
 
   if (select_mode != SELECT_REPLACE) {
@@ -738,3 +740,5 @@ void NLA_OT_click_select(wmOperatorType *ot)
 }
 
 /* *********************************************** */
+
+}  // namespace blender

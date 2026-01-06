@@ -21,6 +21,8 @@
 
 #include "WM_api.hh"
 
+namespace blender {
+
 struct bContext;
 struct BrushColorJitterSettings;
 struct BrushGpencilSettings;
@@ -41,13 +43,11 @@ struct BVHTree;
 struct GreasePencilLineartModifierData;
 struct RV3DMatrixStore;
 
-namespace blender {
 class RandomNumberGenerator;
 namespace bke {
 enum class AttrDomain : int8_t;
 class CurvesGeometry;
 }  // namespace bke
-}  // namespace blender
 
 enum {
   LAYER_REORDER_ABOVE,
@@ -94,14 +94,11 @@ void ED_undosys_type_grease_pencil(UndoType *ut);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
-blender::bke::AttrDomain ED_grease_pencil_edit_selection_domain_get(
-    const ToolSettings *tool_settings);
-blender::bke::AttrDomain ED_grease_pencil_sculpt_selection_domain_get(
-    const ToolSettings *tool_settings);
-blender::bke::AttrDomain ED_grease_pencil_vertex_selection_domain_get(
-    const ToolSettings *tool_settings);
-blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
-                                                               const Object *object);
+bke::AttrDomain ED_grease_pencil_edit_selection_domain_get(const ToolSettings *tool_settings);
+bke::AttrDomain ED_grease_pencil_sculpt_selection_domain_get(const ToolSettings *tool_settings);
+bke::AttrDomain ED_grease_pencil_vertex_selection_domain_get(const ToolSettings *tool_settings);
+bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
+                                                      const Object *object);
 /**
  * True if any vertex mask selection is used.
  */
@@ -118,7 +115,7 @@ bool ED_grease_pencil_segment_selection_enabled(const ToolSettings *tool_setting
 
 /** \} */
 
-namespace blender::ed::greasepencil {
+namespace ed::greasepencil {
 
 enum class ReprojectMode : int8_t { Front, Side, Top, View, Cursor, Surface, Keep };
 
@@ -239,7 +236,7 @@ void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer 
 struct KeyframeClipboard {
   /* Datatype for use in copy/paste buffer. */
   struct DrawingBufferItem {
-    blender::bke::greasepencil::FramesMapKeyT frame_number;
+    bke::greasepencil::FramesMapKeyT frame_number;
     bke::greasepencil::Drawing drawing;
     int duration;
     eBezTriple_KeyframeType keytype;
@@ -247,8 +244,8 @@ struct KeyframeClipboard {
 
   struct LayerBufferItem {
     Vector<DrawingBufferItem> drawing_buffers;
-    blender::bke::greasepencil::FramesMapKeyT first_frame;
-    blender::bke::greasepencil::FramesMapKeyT last_frame;
+    bke::greasepencil::FramesMapKeyT first_frame;
+    bke::greasepencil::FramesMapKeyT last_frame;
   };
 
   Map<std::string, LayerBufferItem> copy_buffer{};
@@ -1032,7 +1029,7 @@ float randomize_rotation(const BrushGpencilSettings &settings,
  * \param pressure: Pressure factor.
  */
 float randomize_rotation(const BrushGpencilSettings &settings,
-                         blender::RandomNumberGenerator &rng,
+                         RandomNumberGenerator &rng,
                          float stroke_factor,
                          float pressure);
 /**
@@ -1072,4 +1069,5 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
  */
 bool remove_fill_guides(bke::CurvesGeometry &curves);
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
+}  // namespace blender

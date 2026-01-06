@@ -1051,7 +1051,7 @@ static void init_empty_dummy_batch(gpu::Batch &batch)
    * creating a vertex buffer shouldn't matter. */
   GPUVertFormat format{};
   GPU_vertformat_attr_add(&format, "dummy", gpu::VertAttrType::SFLOAT_32);
-  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 1);
   /* Avoid the batch being rendered at all. */
   GPU_vertbuf_data_len_set(*vbo, 0);

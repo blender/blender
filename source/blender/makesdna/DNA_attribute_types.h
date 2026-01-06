@@ -8,10 +8,12 @@
 
 #include "BLI_implicit_sharing.h"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 class AttributeStorage;
 class AttributeStorageRuntime;
-}  // namespace blender::bke
+}  // namespace bke
 
 /** DNA data for bke::Attribute::ArrayData. */
 struct AttributeArray {
@@ -53,10 +55,12 @@ struct AttributeStorage {
 
   char _pad[4] = {};
 
-  blender::bke::AttributeStorageRuntime *runtime = nullptr;
+  bke::AttributeStorageRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
-  blender::bke::AttributeStorage &wrap();
-  const blender::bke::AttributeStorage &wrap() const;
+  bke::AttributeStorage &wrap();
+  const bke::AttributeStorage &wrap() const;
 #endif
 };
+
+}  // namespace blender

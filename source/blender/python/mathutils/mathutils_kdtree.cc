@@ -24,9 +24,11 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 struct PyKDTree {
   PyObject_HEAD
-  blender::KDTree_3d *obj;
+  KDTree_3d *obj;
   uint maxsize;
   uint count;
   uint count_balance; /* size when we last balanced */
@@ -35,8 +37,7 @@ struct PyKDTree {
 /* -------------------------------------------------------------------- */
 /* Utility helper functions */
 
-static void kdtree_nearest_to_py_tuple(const blender::KDTreeNearest_3d *nearest,
-                                       PyObject *py_retval)
+static void kdtree_nearest_to_py_tuple(const KDTreeNearest_3d *nearest, PyObject *py_retval)
 {
   BLI_assert(nearest->index >= 0);
   BLI_assert(PyTuple_GET_SIZE(py_retval) == 3);
@@ -47,7 +48,7 @@ static void kdtree_nearest_to_py_tuple(const blender::KDTreeNearest_3d *nearest,
                     PyFloat_FromDouble(nearest->dist));
 }
 
-static PyObject *kdtree_nearest_to_py(const blender::KDTreeNearest_3d *nearest)
+static PyObject *kdtree_nearest_to_py(const KDTreeNearest_3d *nearest)
 {
   PyObject *py_retval;
 
@@ -58,7 +59,7 @@ static PyObject *kdtree_nearest_to_py(const blender::KDTreeNearest_3d *nearest)
   return py_retval;
 }
 
-static PyObject *kdtree_nearest_to_py_and_check(const blender::KDTreeNearest_3d *nearest)
+static PyObject *kdtree_nearest_to_py_and_check(const KDTreeNearest_3d *nearest)
 {
   PyObject *py_retval;
 
@@ -96,7 +97,7 @@ static int PyKDTree__tp_init(PyKDTree *self, PyObject *args, PyObject *kwargs)
     return -1;
   }
 
-  self->obj = blender::kdtree_3d_new(maxsize);
+  self->obj = kdtree_3d_new(maxsize);
   self->maxsize = maxsize;
   self->count = 0;
   self->count_balance = 0;
@@ -106,7 +107,7 @@ static int PyKDTree__tp_init(PyKDTree *self, PyObject *args, PyObject *kwargs)
 
 static void PyKDTree__tp_dealloc(PyKDTree *self)
 {
-  blender::kdtree_3d_free(self->obj);
+  kdtree_3d_free(self->obj);
   Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
 }
 
@@ -148,7 +149,7 @@ static PyObject *py_kdtree_insert(PyKDTree *self, PyObject *args, PyObject *kwar
     return nullptr;
   }
 
-  blender::kdtree_3d_insert(self->obj, index, co);
+  kdtree_3d_insert(self->obj, index, co);
   self->count++;
 
   Py_RETURN_NONE;
@@ -166,7 +167,7 @@ PyDoc_STRVAR(
     "   This builds the entire tree, avoid calling after each insertion.\n");
 static PyObject *py_kdtree_balance(PyKDTree *self)
 {
-  blender::kdtree_3d_balance(self->obj);
+  kdtree_3d_balance(self->obj);
   self->count_balance = self->count;
   Py_RETURN_NONE;
 }
@@ -176,7 +177,7 @@ struct PyKDTree_NearestData {
   bool is_error;
 };
 
-static int py_find_nearest_cb(void *user_data, int index, const blender::float3 &co, float dist_sq)
+static int py_find_nearest_cb(void *user_data, int index, const float3 &co, float dist_sq)
 {
   UNUSED_VARS(co, dist_sq);
 
@@ -218,7 +219,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
 {
   PyObject *py_co, *py_filter = nullptr;
   float co[3];
-  blender::KDTreeNearest_3d nearest;
+  KDTreeNearest_3d nearest;
   const char *keywords[] = {"co", "filter", nullptr};
 
   if (!PyArg_ParseTupleAndKeywords(
@@ -239,7 +240,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
   nearest.index = -1;
 
   if (py_filter == nullptr) {
-    blender::kdtree_3d_find_nearest(self->obj, co, &nearest);
+    kdtree_3d_find_nearest(self->obj, co, &nearest);
   }
   else {
     PyKDTree_NearestData data = {nullptr};
@@ -247,7 +248,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
     data.py_filter = py_filter;
     data.is_error = false;
 
-    blender::kdtree_3d_find_nearest_cb(self->obj, co, py_find_nearest_cb, &data, &nearest);
+    kdtree_3d_find_nearest_cb(self->obj, co, py_find_nearest_cb, &data, &nearest);
 
     if (data.is_error) {
       return nullptr;
@@ -275,7 +276,7 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
   PyObject *py_list;
   PyObject *py_co;
   float co[3];
-  blender::KDTreeNearest_3d *nearest;
+  KDTreeNearest_3d *nearest;
   uint n;
   int i, found;
   const char *keywords[] = {"co", "n", nullptr};
@@ -300,9 +301,9 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
     return nullptr;
   }
 
-  nearest = MEM_malloc_arrayN<blender::KDTreeNearest_3d>(n, __func__);
+  nearest = MEM_malloc_arrayN<KDTreeNearest_3d>(n, __func__);
 
-  found = blender::kdtree_3d_find_nearest_n(self->obj, co, nearest, n);
+  found = kdtree_3d_find_nearest_n(self->obj, co, nearest, n);
 
   py_list = PyList_New(found);
 
@@ -333,7 +334,7 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
   PyObject *py_list;
   PyObject *py_co;
   float co[3];
-  blender::KDTreeNearest_3d *nearest = nullptr;
+  KDTreeNearest_3d *nearest = nullptr;
   float radius;
   int i, found;
 
@@ -359,7 +360,7 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
     return nullptr;
   }
 
-  found = blender::kdtree_3d_range_search(self->obj, co, &nearest, radius);
+  found = kdtree_3d_range_search(self->obj, co, &nearest, radius);
 
   py_list = PyList_New(found);
 
@@ -512,3 +513,5 @@ PyMODINIT_FUNC PyInit_mathutils_kdtree()
 
   return m;
 }
+
+}  // namespace blender

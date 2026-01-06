@@ -18,6 +18,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 struct UserRasterInfo {
   int pt[3][2];
   const uint *color;
@@ -139,3 +141,5 @@ void BKE_icon_geom_invert_lightness(Icon_Geom *geom)
     rgb_float_to_uchar(geom->colors[i], rgb);
   }
 }
+
+}  // namespace blender

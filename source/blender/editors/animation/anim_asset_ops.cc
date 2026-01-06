@@ -57,8 +57,7 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
                                                                  PropertyRNA * /*prop*/,
                                                                  bool *r_free)
 {
-  const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(false,
-                                                                                          true);
+  const EnumPropertyItem *items = ed::asset::library_reference_to_rna_enum_itemf(false, true);
   *r_free = true;
   BLI_assert(items != nullptr);
   return items;
@@ -121,7 +120,7 @@ static blender::animrig::Action &extract_pose(Main &bmain, const Span<Object *> 
   for (Object *pose_object : pose_objects) {
     BLI_assert(pose_object->pose);
     Slot &slot = action.slot_add_for_id(pose_object->id);
-    const bArmature *armature = blender::id_cast<bArmature *>(pose_object->data);
+    const bArmature *armature = id_cast<bArmature *>(pose_object->data);
 
     Set<RNAPath> existing_paths;
     if (pose_object->adt && pose_object->adt->action &&
@@ -489,7 +488,7 @@ static const EnumPropertyItem prop_asset_overwrite_modes[] = {
  */
 static bAction *get_action_of_selected_asset(bContext *C)
 {
-  const blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
   if (!asset) {
     return nullptr;
   }
@@ -553,7 +552,7 @@ struct PathValue {
 static Vector<PathValue> generate_path_values(Object &pose_object)
 {
   Vector<PathValue> path_values;
-  const bArmature *armature = blender::id_cast<bArmature *>(pose_object.data);
+  const bArmature *armature = id_cast<bArmature *>(pose_object.data);
   for (bPoseChannel &pose_bone : pose_object.pose->chanbase) {
     if (!blender::animrig::bone_is_selected(armature, &pose_bone)) {
       continue;
@@ -774,7 +773,7 @@ static wmOperatorStatus pose_asset_delete_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
   if (ID_IS_LINKED(action) && !is_pose_asset_blend_editable(*action, op->reports)) {
     return OPERATOR_CANCELLED;
   }

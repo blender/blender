@@ -19,6 +19,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 /* local flag define */
 #define DUPE_INPUT 1 /* input from operator */
 #define DUPE_NEW 2
@@ -35,7 +37,7 @@ static BMVert *bmo_vert_copy(BMOperator *op,
                              BMesh *bm_dst,
                              const std::optional<BMCustomDataCopyMap> &cd_vert_map,
                              BMVert *v_src,
-                             blender::Map<BMVert *, BMVert *> &vhash)
+                             Map<BMVert *, BMVert *> &vhash)
 {
   BMVert *v_dst;
 
@@ -73,8 +75,8 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
                              BMesh *bm_src,
                              const std::optional<BMCustomDataCopyMap> &cd_edge_map,
                              BMEdge *e_src,
-                             blender::Map<BMVert *, BMVert *> &vhash,
-                             blender::Map<BMEdge *, BMEdge *> &ehash,
+                             Map<BMVert *, BMVert *> &vhash,
+                             Map<BMEdge *, BMEdge *> &ehash,
                              const bool use_edge_flip_from_face)
 {
   BMEdge *e_dst;
@@ -148,12 +150,12 @@ static BMFace *bmo_face_copy(BMOperator *op,
                              const std::optional<BMCustomDataCopyMap> &cd_face_map,
                              const std::optional<BMCustomDataCopyMap> &cd_loop_map,
                              BMFace *f_src,
-                             blender::Map<BMVert *, BMVert *> &vhash,
-                             blender::Map<BMEdge *, BMEdge *> &ehash)
+                             Map<BMVert *, BMVert *> &vhash,
+                             Map<BMEdge *, BMEdge *> &ehash)
 {
   BMFace *f_dst;
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vtar(f_src->len);
-  blender::Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edar(f_src->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vtar(f_src->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edar(f_src->len);
   BMLoop *l_iter_src, *l_iter_dst, *l_first_src;
   int i;
 
@@ -223,8 +225,8 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
   BMOpSlot *slot_face_map_out = BMO_slot_get(op->slots_out, "face_map.out");
 
   /* initialize pointer hashes */
-  blender::Map<BMVert *, BMVert *> vhash;
-  blender::Map<BMEdge *, BMEdge *> ehash;
+  Map<BMVert *, BMVert *> vhash;
+  Map<BMEdge *, BMEdge *> ehash;
 
   const std::optional<BMCustomDataCopyMap> cd_vert_map =
       (bm_src == bm_dst) ? std::nullopt :
@@ -707,3 +709,5 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
     MEM_freeN(vtable);
   }
 }
+
+}  // namespace blender

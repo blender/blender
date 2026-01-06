@@ -39,7 +39,9 @@
 
 #  include "grease_pencil_io.hh"
 
-namespace blender::ed::io {
+namespace blender {
+
+namespace ed::io {
 
 #  if defined(WITH_PUGIXML) || defined(WITH_HARU)
 
@@ -118,13 +120,13 @@ static bool get_invoke_region(bContext *C,
   return true;
 }
 
-}  // namespace blender::ed::io
+}  // namespace ed::io
 
 /* -------------------------------------------------------------------- */
 /** \name SVG single frame import
  * \{ */
 
-namespace blender::ed::io {
+namespace ed::io {
 
 static bool grease_pencil_import_svg_check(bContext * /*C*/, wmOperator *op)
 {
@@ -172,7 +174,7 @@ static wmOperatorStatus grease_pencil_import_svg_exec(bContext *C, wmOperator *o
 
   /* Loop all selected files to import them. All SVG imported shared the same import
    * parameters, but they are created in separated grease pencil objects. */
-  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
+  const auto paths = ed::io::paths_from_operator_properties(op->ptr);
   for (const auto &path : paths) {
     /* Do Import. */
     WM_cursor_wait(true);
@@ -206,7 +208,7 @@ static bool grease_pencil_import_svg_poll(bContext *C)
   return true;
 }
 
-}  // namespace blender::ed::io
+}  // namespace ed::io
 
 void WM_OT_grease_pencil_import_svg(wmOperatorType *ot)
 {
@@ -214,11 +216,11 @@ void WM_OT_grease_pencil_import_svg(wmOperatorType *ot)
   ot->description = "Import SVG into Grease Pencil";
   ot->idname = "WM_OT_grease_pencil_import_svg";
 
-  ot->invoke = blender::ed::io::filesel_drop_import_invoke;
-  ot->exec = blender::ed::io::grease_pencil_import_svg_exec;
-  ot->poll = blender::ed::io::grease_pencil_import_svg_poll;
-  ot->ui = blender::ed::io::grease_pencil_import_svg_draw;
-  ot->check = blender::ed::io::grease_pencil_import_svg_check;
+  ot->invoke = ed::io::filesel_drop_import_invoke;
+  ot->exec = ed::io::grease_pencil_import_svg_exec;
+  ot->poll = ed::io::grease_pencil_import_svg_poll;
+  ot->ui = ed::io::grease_pencil_import_svg_draw;
+  ot->check = ed::io::grease_pencil_import_svg_check;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
@@ -264,7 +266,7 @@ void WM_OT_grease_pencil_import_svg(wmOperatorType *ot)
 
 #  ifdef WITH_PUGIXML
 
-namespace blender::ed::io {
+namespace ed::io {
 
 static bool grease_pencil_export_svg_check(bContext * /*C*/, wmOperator *op)
 {
@@ -371,16 +373,16 @@ enum class GreasePencilExportFiletype {
  *
  * \param ptr: RNA pointer to access the export operator's properties.
  */
-static void ui_gpencil_export_settings(blender::ui::Layout &layout,
+static void ui_gpencil_export_settings(ui::Layout &layout,
                                        PointerRNA *ptr,
                                        GreasePencilExportFiletype file_type)
 {
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  blender::ui::Layout *box = &layout.box();
+  ui::Layout *box = &layout.box();
 
-  blender::ui::Layout *row = &box->row(false);
+  ui::Layout *row = &box->row(false);
   row->label(IFACE_("Scene Options"), ICON_NONE);
 
   row = &box->row(false);
@@ -390,8 +392,8 @@ static void ui_gpencil_export_settings(blender::ui::Layout &layout,
   row = &box->row(false);
   row->label(IFACE_("Export Options"), ICON_NONE);
 
-  blender::ui::Layout &col = box->column(false);
-  blender::ui::Layout *sub = &col.column(false);
+  ui::Layout &col = box->column(false);
+  ui::Layout *sub = &col.column(false);
   sub->prop(ptr, "frame_mode", UI_ITEM_NONE, IFACE_("Frame"), ICON_NONE);
 
   box->use_property_split_set(true);
@@ -420,7 +422,7 @@ static bool grease_pencil_export_svg_poll(bContext *C)
   return true;
 }
 
-}  // namespace blender::ed::io
+}  // namespace ed::io
 
 void WM_OT_grease_pencil_export_svg(wmOperatorType *ot)
 {
@@ -428,11 +430,11 @@ void WM_OT_grease_pencil_export_svg(wmOperatorType *ot)
   ot->description = "Export Grease Pencil to SVG";
   ot->idname = "WM_OT_grease_pencil_export_svg";
 
-  ot->invoke = blender::ed::io::grease_pencil_export_svg_invoke;
-  ot->exec = blender::ed::io::grease_pencil_export_svg_exec;
-  ot->poll = blender::ed::io::grease_pencil_export_svg_poll;
-  ot->ui = blender::ed::io::grease_pencil_export_svg_draw;
-  ot->check = blender::ed::io::grease_pencil_export_svg_check;
+  ot->invoke = ed::io::grease_pencil_export_svg_invoke;
+  ot->exec = ed::io::grease_pencil_export_svg_exec;
+  ot->poll = ed::io::grease_pencil_export_svg_poll;
+  ot->ui = ed::io::grease_pencil_export_svg_draw;
+  ot->check = ed::io::grease_pencil_export_svg_check;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
@@ -442,7 +444,7 @@ void WM_OT_grease_pencil_export_svg(wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
-  blender::ed::io::grease_pencil_export_common_props_definition(ot);
+  ed::io::grease_pencil_export_common_props_definition(ot);
 
   RNA_def_boolean(ot->srna,
                   "use_clip_camera",
@@ -461,7 +463,7 @@ void WM_OT_grease_pencil_export_svg(wmOperatorType *ot)
 
 #  ifdef WITH_HARU
 
-namespace blender::ed::io {
+namespace ed::io {
 
 static bool grease_pencil_export_pdf_check(bContext * /*C*/, wmOperator *op)
 {
@@ -558,7 +560,7 @@ static bool grease_pencil_export_pdf_poll(bContext *C)
   return true;
 }
 
-}  // namespace blender::ed::io
+}  // namespace ed::io
 
 void WM_OT_grease_pencil_export_pdf(wmOperatorType *ot)
 {
@@ -566,11 +568,11 @@ void WM_OT_grease_pencil_export_pdf(wmOperatorType *ot)
   ot->description = "Export Grease Pencil to PDF";
   ot->idname = "WM_OT_grease_pencil_export_pdf";
 
-  ot->invoke = blender::ed::io::grease_pencil_export_pdf_invoke;
-  ot->exec = blender::ed::io::grease_pencil_export_pdf_exec;
-  ot->poll = blender::ed::io::grease_pencil_export_pdf_poll;
-  ot->ui = blender::ed::io::grease_pencil_export_pdf_draw;
-  ot->check = blender::ed::io::grease_pencil_export_pdf_check;
+  ot->invoke = ed::io::grease_pencil_export_pdf_invoke;
+  ot->exec = ed::io::grease_pencil_export_pdf_exec;
+  ot->poll = ed::io::grease_pencil_export_pdf_poll;
+  ot->ui = ed::io::grease_pencil_export_pdf_draw;
+  ot->check = ed::io::grease_pencil_export_pdf_check;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
@@ -582,14 +584,14 @@ void WM_OT_grease_pencil_export_pdf(wmOperatorType *ot)
 
   using blender::io::grease_pencil::ExportParams;
 
-  blender::ed::io::grease_pencil_export_common_props_definition(ot);
+  ed::io::grease_pencil_export_common_props_definition(ot);
 }
 
 #  endif /* WITH_HARU */
 
 /** \} */
 
-namespace blender::ed::io {
+namespace ed::io {
 
 void grease_pencil_file_handler_add()
 {
@@ -602,6 +604,7 @@ void grease_pencil_file_handler_add()
   bke::file_handler_add(std::move(fh));
 }
 
-}  // namespace blender::ed::io
+}  // namespace ed::io
+}  // namespace blender
 
 #endif /* WITH_IO_GREASE_PENCIL */

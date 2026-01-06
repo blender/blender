@@ -40,6 +40,8 @@
 #include "wm.hh"
 #include "wm_event_system.hh"
 
+namespace blender {
+
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
 
 static void wm_operatortype_free_macro(wmOperatorType *ot);
@@ -47,8 +49,6 @@ static void wm_operatortype_free_macro(wmOperatorType *ot);
 /* -------------------------------------------------------------------- */
 /** \name Operator Type Registry
  * \{ */
-
-using blender::StringRef;
 
 static auto &get_operators_map()
 {
@@ -59,7 +59,7 @@ static auto &get_operators_map()
     }
   };
   static auto map = []() {
-    blender::CustomIDVectorSet<wmOperatorType *, OperatorNameGetter> map;
+    CustomIDVectorSet<wmOperatorType *, OperatorNameGetter> map;
     /* Reserve size is set based on blender default setup. */
     map.reserve(2048);
     return map;
@@ -67,7 +67,7 @@ static auto &get_operators_map()
   return map;
 }
 
-blender::Span<wmOperatorType *> WM_operatortypes_registered_get()
+Span<wmOperatorType *> WM_operatortypes_registered_get()
 {
   return get_operators_map();
 }
@@ -275,7 +275,7 @@ void WM_operatortype_idname_visit_for_search(
     PointerRNA * /*ptr*/,
     PropertyRNA * /*prop*/,
     const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   for (wmOperatorType *ot : get_operators_map()) {
     char idname_py[OP_MAX_TYPENAME];
@@ -641,3 +641,5 @@ bool WM_operator_depends_on_cursor(bContext &C, wmOperatorType &ot, PointerRNA *
 }
 
 /** \} */
+
+}  // namespace blender

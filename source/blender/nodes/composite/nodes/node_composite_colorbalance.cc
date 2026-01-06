@@ -31,7 +31,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_colorbalance_cc {
+namespace blender {
+
+namespace nodes::node_composite_colorbalance_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_COLOR_BALANCE_LGG, "LIFT_GAMMA_GAIN", 0, N_("Lift/Gamma/Gain"), ""},
@@ -184,9 +186,9 @@ static float3x3 get_white_point_matrix(const float input_temperature,
 {
   const float3x3 scene_to_xyz = IMB_colormanagement_get_scene_linear_to_xyz();
   const float3x3 xyz_to_scene = IMB_colormanagement_get_xyz_to_scene_linear();
-  const float3 input = blender::math::whitepoint_from_temp_tint(input_temperature, input_tint);
-  const float3 output = blender::math::whitepoint_from_temp_tint(output_temperature, output_tint);
-  const float3x3 adaption = blender::math::chromatic_adaption_matrix(input, output);
+  const float3 input = math::whitepoint_from_temp_tint(input_temperature, input_tint);
+  const float3 output = math::whitepoint_from_temp_tint(output_temperature, output_tint);
+  const float3x3 adaption = math::chromatic_adaption_matrix(input, output);
   return xyz_to_scene * adaption * scene_to_xyz;
 }
 
@@ -293,9 +295,9 @@ static float4 white_point_variable(const float4 color,
                                    const float3x3 &scene_to_xyz,
                                    const float3x3 &xyz_to_scene)
 {
-  const float3 input = blender::math::whitepoint_from_temp_tint(input_temperature, input_tint);
-  const float3 output = blender::math::whitepoint_from_temp_tint(output_temperature, output_tint);
-  const float3x3 adaption = blender::math::chromatic_adaption_matrix(input, output);
+  const float3 input = math::whitepoint_from_temp_tint(input_temperature, input_tint);
+  const float3 output = math::whitepoint_from_temp_tint(output_temperature, output_tint);
+  const float3x3 adaption = math::chromatic_adaption_matrix(input, output);
   const float3x3 white_point_matrix = xyz_to_scene * adaption * scene_to_xyz;
 
   const float3 balanced = white_point_matrix * color.xyz();
@@ -348,7 +350,7 @@ static float4 color_balance(const float4 color,
   return float4(math::interpolate(color.xyz(), result.xyz(), math::min(factor, 1.0f)), color.w);
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
 class ColorBalanceFunction : public mf::MultiFunction {
  public:
@@ -528,19 +530,19 @@ class ColorBalanceFunction : public mf::MultiFunction {
   }
 };
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   const static ColorBalanceFunction function;
   builder.set_matching_fn(function);
 }
 
-}  // namespace blender::nodes::node_composite_colorbalance_cc
+}  // namespace nodes::node_composite_colorbalance_cc
 
 static void register_node_type_cmp_colorbalance()
 {
-  namespace file_ns = blender::nodes::node_composite_colorbalance_cc;
+  namespace file_ns = nodes::node_composite_colorbalance_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeColorBalance", CMP_NODE_COLORBALANCE);
   ntype.ui_name = "Color Balance";
@@ -551,6 +553,8 @@ static void register_node_type_cmp_colorbalance()
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_colorbalance)
+
+}  // namespace blender

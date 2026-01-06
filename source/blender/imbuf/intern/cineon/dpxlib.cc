@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /*
  * For debug purpose
  */
@@ -544,3 +546,5 @@ LogImageFile *dpxCreate(const char *filepath,
 
   return dpx;
 }
+
+}  // namespace blender

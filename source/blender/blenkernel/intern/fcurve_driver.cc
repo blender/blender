@@ -52,8 +52,10 @@
 #include <algorithm>
 #include <cstring>
 
+namespace blender {
+
 #ifdef WITH_PYTHON
-static blender::Mutex python_driver_lock;
+static Mutex python_driver_lock;
 #endif
 
 static CLG_LogRef LOG = {"anim.fcurve"};
@@ -380,7 +382,7 @@ static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)
   short valid_targets = 0;
 
   DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-    Object *ob = blender::id_cast<Object *>(dtar->id);
+    Object *ob = id_cast<Object *>(dtar->id);
 
     /* Check if this target has valid data. */
     if ((ob == nullptr) || (GS(ob->id.name) != ID_OB)) {
@@ -439,7 +441,7 @@ static float dvar_eval_rotDiff(const AnimationEvalContext * /*anim_eval_context*
   for (int i = 0; i < 2; i++) {
     /* Get pointer to loc values to store in. */
     DriverTarget *dtar = &dvar->targets[i];
-    Object *ob = blender::id_cast<Object *>(dtar->id);
+    Object *ob = id_cast<Object *>(dtar->id);
     bPoseChannel *pchan;
 
     /* After the checks above, the targets should be valid here. */
@@ -502,7 +504,7 @@ static float dvar_eval_locDiff(const AnimationEvalContext * /*anim_eval_context*
   /* NOTE: for now, these are all just world-space */
   DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
     /* Get pointer to loc values to store in. */
-    Object *ob = blender::id_cast<Object *>(dtar->id);
+    Object *ob = id_cast<Object *>(dtar->id);
     bPoseChannel *pchan;
     float tmp_loc[3];
 
@@ -587,7 +589,7 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
                                  DriverVar *dvar)
 {
   DriverTarget *dtar = &dvar->targets[0];
-  Object *ob = blender::id_cast<Object *>(dtar->id);
+  Object *ob = id_cast<Object *>(dtar->id);
   bPoseChannel *pchan;
   float mat[4][4];
   float oldEul[3] = {0.0f, 0.0f, 0.0f};
@@ -1435,3 +1437,5 @@ float evaluate_driver(PathResolvedRNA *anim_rna,
 }
 
 /** \} */
+
+}  // namespace blender

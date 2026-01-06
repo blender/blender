@@ -83,6 +83,8 @@
 
 #include <fmt/format.h>
 
+namespace blender {
+
 /* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
@@ -181,9 +183,9 @@ static void strip_convert_transform_crop(const Scene *scene,
     image_size_x = s_elem->orig_width;
     image_size_y = s_elem->orig_height;
 
-    if (can_use_proxy(strip, blender::seq::rendersize_to_proxysize(render_size))) {
-      image_size_x /= blender::seq::rendersize_to_scale_factor(render_size);
-      image_size_y /= blender::seq::rendersize_to_scale_factor(render_size);
+    if (can_use_proxy(strip, seq::rendersize_to_proxysize(render_size))) {
+      image_size_x /= seq::rendersize_to_scale_factor(render_size);
+      image_size_y /= seq::rendersize_to_scale_factor(render_size);
     }
   }
 
@@ -311,9 +313,9 @@ static void strip_convert_transform_crop_2(const Scene *scene,
   int image_size_x = s_elem->orig_width;
   int image_size_y = s_elem->orig_height;
 
-  if (can_use_proxy(strip, blender::seq::rendersize_to_proxysize(render_size))) {
-    image_size_x /= blender::seq::rendersize_to_scale_factor(render_size);
-    image_size_y /= blender::seq::rendersize_to_scale_factor(render_size);
+  if (can_use_proxy(strip, seq::rendersize_to_proxysize(render_size))) {
+    image_size_x /= seq::rendersize_to_scale_factor(render_size);
+    image_size_y /= seq::rendersize_to_scale_factor(render_size);
   }
 
   /* Calculate scale factor, so image fits in preview area with original aspect ratio. */
@@ -365,7 +367,7 @@ static void strip_convert_transform_crop_lb_2(const Scene *scene,
 
 static void seq_update_meta_disp_range(Scene *scene)
 {
-  Editing *ed = blender::seq::editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
 
   if (ed == nullptr) {
     return;
@@ -391,7 +393,7 @@ static void seq_update_meta_disp_range(Scene *scene)
       }
     }
 
-    MetaStack *active_ms = blender::seq::meta_stack_active_get(ed);
+    MetaStack *active_ms = seq::meta_stack_active_get(ed);
     active_ms->old_strip = ms.parent_strip;
   }
 }
@@ -405,10 +407,10 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
   for (bNodeLink &link : ntree->links.items_mutable()) {
     if (link.tonode->type_legacy == node_type) {
       bNode *node = link.tonode;
-      bNodeSocket *dest_socket = blender::bke::node_find_socket(*node, SOCK_IN, new_name);
+      bNodeSocket *dest_socket = bke::node_find_socket(*node, SOCK_IN, new_name);
       BLI_assert(dest_socket);
       if (STREQ(link.tosock->name, old_name)) {
-        blender::bke::node_add_link(*ntree, *link.fromnode, *link.fromsock, *node, *dest_socket);
+        bke::node_add_link(*ntree, *link.fromnode, *link.fromsock, *node, *dest_socket);
       }
     }
   }
@@ -416,8 +418,8 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
   /* Duplicate the default value from the old socket and assign it to the new socket. */
   for (bNode &node : ntree->nodes) {
     if (node.type_legacy == node_type) {
-      bNodeSocket *source_socket = blender::bke::node_find_socket(node, SOCK_IN, old_name);
-      bNodeSocket *dest_socket = blender::bke::node_find_socket(node, SOCK_IN, new_name);
+      bNodeSocket *source_socket = bke::node_find_socket(node, SOCK_IN, old_name);
+      bNodeSocket *dest_socket = bke::node_find_socket(node, SOCK_IN, new_name);
       BLI_assert(source_socket && dest_socket);
       if (dest_socket->default_value) {
         MEM_freeN(dest_socket->default_value);
@@ -575,7 +577,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
         if (ob.type != OB_GPENCIL_LEGACY) {
           continue;
         }
-        bGPdata *gpd = blender::id_cast<bGPdata *>(ob.data);
+        bGPdata *gpd = id_cast<bGPdata *>(ob.data);
         for (bGPDlayer &gpl : gpd->layers) {
           bGPDframe *gpf = static_cast<bGPDframe *>(gpl.frames.first);
           if (gpf && gpf->framenum > scene->r.sfra) {
@@ -645,7 +647,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
      * Armature obdata. */
     for (Object &ob : bmain->objects) {
       if (ob.type == OB_ARMATURE) {
-        BKE_pose_rebuild(bmain, &ob, blender::id_cast<bArmature *>(ob.data), true);
+        BKE_pose_rebuild(bmain, &ob, id_cast<bArmature *>(ob.data), true);
       }
     }
 
@@ -807,7 +809,7 @@ static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
       bNodeSocket *socket = static_cast<bNodeSocket *>(node.inputs.first);
       socket->flag |= SOCK_MULTI_INPUT;
       socket->limit = 4095;
-      blender::bke::node_remove_socket(*ntree, node, *socket->next);
+      bke::node_remove_socket(*ntree, node, *socket->next);
     }
   }
 }
@@ -822,7 +824,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Mesh &me : bmain->meshes) {
       const MPoly *polys = static_cast<const MPoly *>(
           CustomData_get_layer(&me.face_data, CD_MPOLY));
-      for (const int i : blender::IndexRange(me.faces_num)) {
+      for (const int i : IndexRange(me.faces_num)) {
         if (polys[i].totloop == 2) {
           std::string message = fmt::format(
               fmt::runtime(RPT_("Mesh %s has invalid faces, likely caused by the manifold extrude "
@@ -1570,7 +1572,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
     for (Scene &scene : bmain->scenes) {
       if (scene.toolsettings->sequencer_tool_settings == nullptr) {
-        scene.toolsettings->sequencer_tool_settings = blender::seq::tool_settings_init();
+        scene.toolsettings->sequencer_tool_settings = seq::tool_settings_init();
       }
     }
   }
@@ -1622,7 +1624,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     for (Scene &scene : bmain->scenes) {
-      Editing *ed = blender::seq::editing_get(&scene);
+      Editing *ed = seq::editing_get(&scene);
       if (ed == nullptr) {
         continue;
       }
@@ -1954,3 +1956,5 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
    * \note Keep this message at the bottom of the function.
    */
 }
+
+}  // namespace blender

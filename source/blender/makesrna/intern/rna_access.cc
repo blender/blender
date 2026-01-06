@@ -71,6 +71,8 @@
 #include "rna_access_internal.hh"
 #include "rna_internal.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"rna.access"};
 
 /**
@@ -94,8 +96,7 @@ void RNA_init()
   for (StructRNA *srna : RNA_blender_rna_get().structs) {
     if (!srna->cont.prop_lookup_set) {
       srna->cont.prop_lookup_set =
-          MEM_new<blender::CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter>>(
-              __func__);
+          MEM_new<CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter>>(__func__);
 
       for (PropertyRNA &prop : srna->cont.properties) {
         if (!(prop.flag_internal & PROP_INTERN_BUILTIN)) {
@@ -295,8 +296,7 @@ IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create)
   }
 
   if (create && *property_ptr == nullptr) {
-    *property_ptr =
-        blender::bke::idprop::create_group("user_properties", IDP_FLAG_STATIC_TYPE).release();
+    *property_ptr = bke::idprop::create_group("user_properties", IDP_FLAG_STATIC_TYPE).release();
   }
 
   return *property_ptr;
@@ -348,8 +348,7 @@ IDProperty *RNA_struct_system_idprops(PointerRNA *ptr, bool create)
   }
 
   if (create && *property_ptr == nullptr) {
-    *property_ptr =
-        blender::bke::idprop::create_group("system_properties", IDP_FLAG_STATIC_TYPE).release();
+    *property_ptr = bke::idprop::create_group("system_properties", IDP_FLAG_STATIC_TYPE).release();
   }
 
   return *property_ptr;
@@ -1739,7 +1738,7 @@ void RNA_property_enum_items_ex(bContext *C,
       EnumPropertyItem *result = nullptr;
       if (ui_data) {
         for (const IDPropertyUIDataEnumItem &idprop_item :
-             blender::Span(ui_data->enum_items, ui_data->enum_items_num))
+             Span(ui_data->enum_items, ui_data->enum_items_num))
         {
           BLI_assert(idprop_item.identifier != nullptr);
           BLI_assert(idprop_item.name != nullptr);
@@ -2639,12 +2638,12 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
 #ifdef USE_INT_IDPROPS_FOR_BOOLEAN_RNA_PROP
       IDP_AddToGroup(
           group,
-          blender::bke::idprop::create(prop_rna_or_id.identifier, int(value), IDP_FLAG_STATIC_TYPE)
+          bke::idprop::create(prop_rna_or_id.identifier, int(value), IDP_FLAG_STATIC_TYPE)
               .release());
 #else
       IDP_AddToGroup(
           group,
-          blender::bke::idprop::create_bool(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE)
+          bke::idprop::create_bool(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE)
               .release());
 #endif
     }
@@ -2703,7 +2702,7 @@ static void rna_property_boolean_get_default_array_values(PointerRNA *ptr,
 
 static void property_boolean_get_array(PointerRNA *ptr,
                                        PropertyRNAOrID &prop_rna_or_id,
-                                       blender::MutableSpan<bool> r_values)
+                                       MutableSpan<bool> r_values)
 {
   PropertyRNA *rna_prop = prop_rna_or_id.rnaprop;
   BoolPropertyRNA *bprop = reinterpret_cast<BoolPropertyRNA *>(rna_prop);
@@ -2754,7 +2753,7 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *va
   prop = nullptr;
   BoolPropertyRNA *bprop = reinterpret_cast<BoolPropertyRNA *>(prop_rna_or_id.rnaprop);
 
-  blender::MutableSpan<bool> r_values(values, int64_t(prop_rna_or_id.array_len));
+  MutableSpan<bool> r_values(values, int64_t(prop_rna_or_id.array_len));
   values = nullptr; /* Do not access this 'raw' pointer anymore in code below. */
   property_boolean_get_array(ptr, prop_rna_or_id, r_values);
   if (bprop->getarray_transform) {
@@ -2762,7 +2761,7 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *va
      * input 'current values' and output 'final values', since python will make a copy of the input
      * anyways. Think it's better to keep it clean and make a copy here to avoid any potential
      * issues in the future though. */
-    blender::Array<bool, RNA_STACK_ARRAY> curr_values(r_values.as_span());
+    Array<bool, RNA_STACK_ARRAY> curr_values(r_values.as_span());
     bprop->getarray_transform(
         ptr, &bprop->property, curr_values.data(), prop_rna_or_id.is_set, r_values.data());
   }
@@ -2780,7 +2779,7 @@ void RNA_property_boolean_get_array_at_most(PointerRNA *ptr,
     return;
   }
 
-  blender::Array<bool, RNA_STACK_ARRAY> value_buf(array_num);
+  Array<bool, RNA_STACK_ARRAY> value_buf(array_num);
   RNA_property_boolean_get_array(ptr, prop, value_buf.data());
   memcpy(values, value_buf.data(), sizeof(*values) * values_num);
 }
@@ -2828,14 +2827,14 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
   BoolPropertyRNA *bprop = reinterpret_cast<BoolPropertyRNA *>(rna_prop);
 
   const int64_t values_num = int64_t(prop_rna_or_id.array_len);
-  blender::Span<bool> final_values(values, values_num);
+  Span<bool> final_values(values, values_num);
   values = nullptr; /* Do not access this 'raw' pointer anymore in code below. */
   /* Default init does not allocate anything, so it's cheap. This is only reinitialized with actual
    * `values_num` items if `setarray_transform` is called. */
-  blender::Array<bool, RNA_STACK_ARRAY> final_values_storage{};
+  Array<bool, RNA_STACK_ARRAY> final_values_storage{};
   if (bprop->setarray_transform) {
     /* Get raw, untransformed (aka 'storage') value. */
-    blender::Array<bool, RNA_STACK_ARRAY> curr_values(values_num);
+    Array<bool, RNA_STACK_ARRAY> curr_values(values_num);
     property_boolean_get_array(ptr, prop_rna_or_id, curr_values.as_mutable_span());
 
     final_values_storage.reinitialize(values_num);
@@ -2926,7 +2925,7 @@ void RNA_property_boolean_set_array_at_most(PointerRNA *ptr,
     return;
   }
 
-  blender::Array<bool, RNA_STACK_ARRAY> value_buf(array_num);
+  Array<bool, RNA_STACK_ARRAY> value_buf(array_num);
   RNA_property_boolean_get_array(ptr, prop, value_buf.data());
   memcpy(value_buf.data(), values, sizeof(*values) * values_num);
   RNA_property_boolean_set_array(ptr, prop, value_buf.data());
@@ -3146,8 +3145,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
       RNA_property_int_clamp(ptr, &iprop->property, &value);
       IDP_AddToGroup(
           group,
-          blender::bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE)
-              .release());
+          bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE).release());
     }
   }
 }
@@ -3186,7 +3184,7 @@ static void rna_property_int_get_default_array_values(PointerRNA *ptr,
 
 static void property_int_get_array(PointerRNA *ptr,
                                    PropertyRNAOrID &prop_rna_or_id,
-                                   blender::MutableSpan<int> r_values)
+                                   MutableSpan<int> r_values)
 {
   PropertyRNA *rna_prop = prop_rna_or_id.rnaprop;
   IntPropertyRNA *iprop = reinterpret_cast<IntPropertyRNA *>(rna_prop);
@@ -3228,7 +3226,7 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
   prop = nullptr;
   IntPropertyRNA *iprop = reinterpret_cast<IntPropertyRNA *>(prop_rna_or_id.rnaprop);
 
-  blender::MutableSpan<int> r_values(values, int64_t(prop_rna_or_id.array_len));
+  MutableSpan<int> r_values(values, int64_t(prop_rna_or_id.array_len));
   values = nullptr; /* Do not access this 'raw' pointer anymore in code below. */
   property_int_get_array(ptr, prop_rna_or_id, r_values);
   if (iprop->getarray_transform) {
@@ -3236,7 +3234,7 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
      * input 'current values' and output 'final values', since python will make a copy of the input
      * anyways. Think it's better to keep it clean and make a copy here to avoid any potential
      * issues in the future though. */
-    blender::Array<int, RNA_STACK_ARRAY> curr_values(r_values.as_span());
+    Array<int, RNA_STACK_ARRAY> curr_values(r_values.as_span());
     iprop->getarray_transform(
         ptr, &iprop->property, curr_values.data(), prop_rna_or_id.is_set, r_values.data());
   }
@@ -3254,7 +3252,7 @@ void RNA_property_int_get_array_at_most(PointerRNA *ptr,
     return;
   }
 
-  blender::Array<int, RNA_STACK_ARRAY> value_buf(array_num);
+  Array<int, RNA_STACK_ARRAY> value_buf(array_num);
   RNA_property_int_get_array(ptr, prop, value_buf.data());
   memcpy(values, value_buf.data(), sizeof(*values) * values_num);
 }
@@ -3334,14 +3332,14 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
   IntPropertyRNA *iprop = reinterpret_cast<IntPropertyRNA *>(rna_prop);
 
   const int64_t values_num = int64_t(prop_rna_or_id.array_len);
-  blender::Span<int> final_values(values, values_num);
+  Span<int> final_values(values, values_num);
   values = nullptr; /* Do not access this 'raw' pointer anymore in code below. */
   /* Default init does not allocate anything, so it's cheap. This is only reinitialized with actual
    * `values_num` items if `setarray_transform` is called. */
-  blender::Array<int, RNA_STACK_ARRAY> final_values_storage{};
+  Array<int, RNA_STACK_ARRAY> final_values_storage{};
   if (iprop->setarray_transform) {
     /* Get raw, untransformed (aka 'storage') value. */
-    blender::Array<int, RNA_STACK_ARRAY> curr_values(values_num);
+    Array<int, RNA_STACK_ARRAY> curr_values(values_num);
     property_int_get_array(ptr, prop_rna_or_id, curr_values.as_mutable_span());
 
     final_values_storage.reinitialize(values_num);
@@ -3379,10 +3377,10 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
   else if (rna_prop->flag & PROP_EDITABLE) {
     // RNA_property_int_clamp_array(ptr, prop, &value); /* TODO. */
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
-      IDP_AddToGroup(group,
-                     blender::bke::idprop::create(
-                         prop_rna_or_id.identifier, final_values, IDP_FLAG_STATIC_TYPE)
-                         .release());
+      IDP_AddToGroup(
+          group,
+          bke::idprop::create(prop_rna_or_id.identifier, final_values, IDP_FLAG_STATIC_TYPE)
+              .release());
     }
   }
 }
@@ -3399,7 +3397,7 @@ void RNA_property_int_set_array_at_most(PointerRNA *ptr,
     return;
   }
 
-  blender::Array<int, RNA_STACK_ARRAY> value_buf(array_num);
+  Array<int, RNA_STACK_ARRAY> value_buf(array_num);
   RNA_property_int_get_array(ptr, prop, value_buf.data());
   memcpy(value_buf.data(), values, sizeof(*values) * values_num);
   RNA_property_int_set_array(ptr, prop, value_buf.data());
@@ -3603,8 +3601,7 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_AddToGroup(
           group,
-          blender::bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE)
-              .release());
+          bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE).release());
     }
   }
 }
@@ -3663,7 +3660,7 @@ static void rna_property_float_get_default_array_values(PointerRNA *ptr,
 
 static void property_float_get_array(PointerRNA *ptr,
                                      PropertyRNAOrID &prop_rna_or_id,
-                                     blender::MutableSpan<float> r_values)
+                                     MutableSpan<float> r_values)
 {
   PropertyRNA *rna_prop = prop_rna_or_id.rnaprop;
   FloatPropertyRNA *fprop = reinterpret_cast<FloatPropertyRNA *>(rna_prop);
@@ -3712,7 +3709,7 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
   prop = nullptr;
   FloatPropertyRNA *fprop = reinterpret_cast<FloatPropertyRNA *>(prop_rna_or_id.rnaprop);
 
-  blender::MutableSpan<float> r_values(values, int64_t(prop_rna_or_id.array_len));
+  MutableSpan<float> r_values(values, int64_t(prop_rna_or_id.array_len));
   values = nullptr; /* Do not access this 'raw' pointer anymore in code below. */
   property_float_get_array(ptr, prop_rna_or_id, r_values);
   if (fprop->getarray_transform) {
@@ -3720,7 +3717,7 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
      * input 'current values' and output 'final values', since python will make a copy of the input
      * anyways. Think it's better to keep it clean and make a copy here to avoid any potential
      * issues in the future though. */
-    blender::Array<float, RNA_STACK_ARRAY> curr_values(r_values.as_span());
+    Array<float, RNA_STACK_ARRAY> curr_values(r_values.as_span());
     fprop->getarray_transform(
         ptr, &fprop->property, curr_values.data(), prop_rna_or_id.is_set, r_values.data());
   }
@@ -3738,7 +3735,7 @@ void RNA_property_float_get_array_at_most(PointerRNA *ptr,
     return;
   }
 
-  blender::Array<float, RNA_STACK_ARRAY> value_buf(array_num);
+  Array<float, RNA_STACK_ARRAY> value_buf(array_num);
   RNA_property_float_get_array(ptr, prop, value_buf.data());
   memcpy(values, value_buf.data(), sizeof(*values) * values_num);
 }
@@ -3818,14 +3815,14 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
   FloatPropertyRNA *fprop = reinterpret_cast<FloatPropertyRNA *>(rna_prop);
 
   const int64_t values_num = int64_t(prop_rna_or_id.array_len);
-  blender::Span<float> final_values(values, values_num);
+  Span<float> final_values(values, values_num);
   values = nullptr; /* Do not access this 'raw' pointer anymore in code below. */
   /* Default init does not allocate anything, so it's cheap. This is only reinitialized with actual
    * `values_num` items if `setarray_transform` is called. */
-  blender::Array<float, RNA_STACK_ARRAY> final_values_storage{};
+  Array<float, RNA_STACK_ARRAY> final_values_storage{};
   if (fprop->setarray_transform) {
     /* Get raw, untransformed (aka 'storage') value. */
-    blender::Array<float, RNA_STACK_ARRAY> curr_values(values_num);
+    Array<float, RNA_STACK_ARRAY> curr_values(values_num);
     property_float_get_array(ptr, prop_rna_or_id, curr_values.as_mutable_span());
 
     final_values_storage.reinitialize(values_num);
@@ -3874,10 +3871,10 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
   else if (rna_prop->flag & PROP_EDITABLE) {
     // RNA_property_float_clamp_array(ptr, prop, &value); /* TODO. */
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
-      IDP_AddToGroup(group,
-                     blender::bke::idprop::create(
-                         prop_rna_or_id.identifier, final_values, IDP_FLAG_STATIC_TYPE)
-                         .release());
+      IDP_AddToGroup(
+          group,
+          bke::idprop::create(prop_rna_or_id.identifier, final_values, IDP_FLAG_STATIC_TYPE)
+              .release());
     }
   }
 }
@@ -3894,7 +3891,7 @@ void RNA_property_float_set_array_at_most(PointerRNA *ptr,
     return;
   }
 
-  blender::Array<float, RNA_STACK_ARRAY> value_buf(array_num);
+  Array<float, RNA_STACK_ARRAY> value_buf(array_num);
   RNA_property_float_get_array(ptr, prop, value_buf.data());
   memcpy(value_buf.data(), values, sizeof(*values) * values_num);
   RNA_property_float_set_array(ptr, prop, value_buf.data());
@@ -4338,12 +4335,11 @@ eStringPropertySearchFlag RNA_property_string_search_flag(PropertyRNA *prop)
   return sprop->search_flag;
 }
 
-void RNA_property_string_search(
-    const bContext *C,
-    PointerRNA *ptr,
-    PropertyRNA *prop,
-    const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+void RNA_property_string_search(const bContext *C,
+                                PointerRNA *ptr,
+                                PropertyRNA *prop,
+                                const char *edit_text,
+                                FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   BLI_assert(RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED);
   StringPropertyRNA *sprop = reinterpret_cast<StringPropertyRNA *>(rna_ensure_property(prop));
@@ -4429,8 +4425,7 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_AddToGroup(
           group,
-          blender::bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE)
-              .release());
+          bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE).release());
     }
   }
 }
@@ -4494,7 +4489,7 @@ static PointerRNA property_pointer_get(PointerRNA *ptr, PropertyRNA *prop, const
   PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(prop);
   IDProperty *idprop;
 
-  static blender::Mutex mutex;
+  static Mutex mutex;
 
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
@@ -4683,7 +4678,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
 
       IDP_ReplaceInGroup_ex(
           group,
-          blender::bke::idprop::create(idprop->name, value, IDP_FLAG_STATIC_TYPE).release(),
+          bke::idprop::create(idprop->name, value, IDP_FLAG_STATIC_TYPE).release(),
           idprop,
           0);
     }
@@ -4692,8 +4687,7 @@ void RNA_property_pointer_set(PointerRNA *ptr,
   else if (prop->flag & PROP_EDITABLE) {
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_ReplaceInGroup(
-          group,
-          blender::bke::idprop::create(prop->identifier, value, IDP_FLAG_STATIC_TYPE).release());
+          group, bke::idprop::create(prop->identifier, value, IDP_FLAG_STATIC_TYPE).release());
     }
   }
 }
@@ -4721,9 +4715,8 @@ void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 
     group = RNA_struct_system_idprops(ptr, true);
     if (group) {
-      IDP_AddToGroup(
-          group,
-          blender::bke::idprop::create_group(prop->identifier, IDP_FLAG_STATIC_TYPE).release());
+      IDP_AddToGroup(group,
+                     bke::idprop::create_group(prop->identifier, IDP_FLAG_STATIC_TYPE).release());
     }
   }
   else {
@@ -4949,7 +4942,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
     IDProperty *item;
 
-    item = blender::bke::idprop::create_group("", IDP_FLAG_STATIC_TYPE).release();
+    item = bke::idprop::create_group("", IDP_FLAG_STATIC_TYPE).release();
     if (is_liboverride) {
       item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
     }
@@ -4967,7 +4960,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
       idprop = IDP_NewIDPArray(prop->identifier);
       IDP_AddToGroup(group, idprop);
 
-      item = blender::bke::idprop::create_group("", IDP_FLAG_STATIC_TYPE).release();
+      item = bke::idprop::create_group("", IDP_FLAG_STATIC_TYPE).release();
       if (is_liboverride) {
         item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
       }
@@ -7349,7 +7342,7 @@ int RNA_function_call(
   return -1;
 }
 
-std::optional<blender::StringRefNull> RNA_translate_ui_text(
+std::optional<StringRefNull> RNA_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, int translate)
 {
   return rna_translate_ui_text(text, text_ctxt, type, prop, translate);
@@ -7532,3 +7525,5 @@ const char *RNA_struct_state_owner_get()
   }
   return nullptr;
 }
+
+}  // namespace blender

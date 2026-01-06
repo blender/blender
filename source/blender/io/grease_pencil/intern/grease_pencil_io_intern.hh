@@ -14,6 +14,8 @@
 #include <cstdint>
 #include <optional>
 
+namespace blender {
+
 #pragma once
 
 /** \file
@@ -24,12 +26,12 @@ struct Scene;
 struct Object;
 struct Material;
 struct RegionView3D;
-namespace blender::bke::greasepencil {
+namespace bke::greasepencil {
 class Layer;
 class Drawing;
-}  // namespace blender::bke::greasepencil
+}  // namespace bke::greasepencil
 
-namespace blender::io::grease_pencil {
+namespace io::grease_pencil {
 
 class GreasePencilImporter {
  protected:
@@ -113,4 +115,6 @@ class GreasePencilExporter {
       int frame_number);
 };
 
-}  // namespace blender::io::grease_pencil
+}  // namespace io::grease_pencil
+
+}  // namespace blender

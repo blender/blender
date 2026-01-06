@@ -17,6 +17,8 @@
 
 #include "intern/bmesh_operator_api.hh"
 
+namespace blender {
+
 struct BMOperator;
 
 /* Tool Flag API: Tool code must never put junk in header flags (#BMHeader.hflag)
@@ -221,3 +223,5 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 
   return nullptr;
 }
+
+}  // namespace blender

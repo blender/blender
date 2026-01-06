@@ -16,6 +16,8 @@
 
 #include "IMB_imbuf_enums.h"
 
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct Scene;
@@ -24,7 +26,7 @@ struct bContext;
 struct wmJob;
 struct wmJobWorkerStatus;
 
-namespace blender::seq {
+namespace seq {
 
 struct IndexBuildContext;
 struct RenderData;
@@ -56,4 +58,5 @@ struct ProxyJob {
 wmJob *ED_seq_proxy_wm_job_get(const bContext *C);
 ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

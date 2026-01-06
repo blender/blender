@@ -18,13 +18,15 @@
 
 #include <string>
 
+namespace blender {
+
 struct CacheFile;
 struct Main;
 struct Material;
 struct Object;
 struct ReportList;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 struct ImportSettings {
   bool blender_stage_version_prior_44 = false;
@@ -176,4 +178,5 @@ class USDPrimReader {
                  pxr::UsdTimeCode time = pxr::UsdTimeCode::Default());
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

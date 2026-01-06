@@ -16,6 +16,8 @@
 #include "gpu_py.hh"
 #include "gpu_py_capabilities.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Functions
  * \{ */
@@ -512,3 +514,5 @@ PyObject *bpygpu_capabilities_init()
 }
 
 /** \} */
+
+}  // namespace blender

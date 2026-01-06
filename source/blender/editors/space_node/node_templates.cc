@@ -48,9 +48,11 @@
 
 #include "WM_api.hh"
 
-using blender::nodes::NodeDeclaration;
+namespace blender {
 
-namespace blender::ed::space_node {
+using nodes::NodeDeclaration;
+
+namespace ed::space_node {
 
 /************************* Node Socket Manipulation **************************/
 
@@ -89,7 +91,7 @@ static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
 static void node_link_item_apply(bNodeTree *ntree, bNode *node, NodeLinkItem *item)
 {
   if (node->is_group()) {
-    node->id = blender::id_cast<ID *>(item->ngroup);
+    node->id = id_cast<ID *>(item->ngroup);
     BKE_ntree_update_tag_node_property(ntree, node);
   }
   else {
@@ -367,11 +369,10 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
     }
   }
   else if (arg->node_type->declare != nullptr) {
-    using namespace blender;
     using namespace blender::nodes;
 
     r_node_decl.emplace(NodeDeclaration());
-    blender::nodes::build_node_declaration(*arg->node_type, *r_node_decl, nullptr, nullptr);
+    nodes::build_node_declaration(*arg->node_type, *r_node_decl, nullptr, nullptr);
     Span<SocketDeclaration *> socket_decls = (in_out == SOCK_IN) ? r_node_decl->inputs :
                                                                    r_node_decl->outputs;
     int index = 0;
@@ -495,7 +496,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
   /* generate array of node types sorted by UI name */
   Vector<bke::bNodeType *> sorted_ntypes;
 
-  for (blender::bke::bNodeType *ntype : blender::bke::node_types_get()) {
+  for (bke::bNodeType *ntype : bke::node_types_get()) {
     const char *disabled_hint;
     if (!(ntype->poll && ntype->poll(ntype, ntree, &disabled_hint))) {
       continue;
@@ -527,7 +528,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 
     arg->node_type = ntype;
 
-    std::optional<blender::nodes::NodeDeclaration> node_decl;
+    std::optional<nodes::NodeDeclaration> node_decl;
     Vector<NodeLinkItem> items = ui_node_link_items(arg, SOCK_OUT, node_decl);
 
     for (const NodeLinkItem &item : items) {
@@ -665,16 +666,16 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
   ui_node_menu_column(arg, NODE_CLASS_GROUP, N_("Group"));
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
 
 void uiTemplateNodeLink(
-    blender::ui::Layout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
+    ui::Layout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
 {
   using namespace blender::ed::space_node;
 
-  blender::ui::Block *block = layout->block();
+  ui::Block *block = layout->block();
   NodeLinkArg *arg;
-  blender::ui::Button *but;
+  ui::Button *but;
   float socket_col[4];
 
   arg = MEM_callocN<NodeLinkArg>("NodeLinkArg");
@@ -686,7 +687,7 @@ void uiTemplateNodeLink(
   PointerRNA node_ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, node);
   node_socket_color_get(*C, *ntree, node_ptr, *input, socket_col);
 
-  blender::ui::block_layout_set_current(block, layout);
+  ui::block_layout_set_current(block, layout);
 
   if (input->link || input->type == SOCK_SHADER || (input->flag & SOCK_HIDE_VALUE)) {
     char name[UI_MAX_NAME_STR];
@@ -701,7 +702,7 @@ void uiTemplateNodeLink(
 
   button_type_set_menu_from_pulldown(but);
   button_node_link_set(but, input, socket_col);
-  button_drawflag_enable(but, blender::ui::BUT_ICON_LEFT);
+  button_drawflag_enable(but, ui::BUT_ICON_LEFT);
 
   but->poin = reinterpret_cast<char *>(but);
   but->func_argN = arg;
@@ -710,7 +711,7 @@ void uiTemplateNodeLink(
 
   if (input->link && input->link->fromnode) {
     if (input->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {
-      but->flag |= blender::ui::BUT_NODE_ACTIVE;
+      but->flag |= ui::BUT_NODE_ACTIVE;
     }
   }
 
@@ -719,7 +720,7 @@ void uiTemplateNodeLink(
   }
 }
 
-namespace blender::ed::space_node {
+namespace ed::space_node {
 
 /**************************** Node Tree Layout *******************************/
 
@@ -974,7 +975,7 @@ static void ui_node_draw_input(ui::Layout &layout,
           }
           break;
         case SOCK_STRING: {
-          const bNodeTree *node_tree = blender::id_cast<const bNodeTree *>(nodeptr.owner_id);
+          const bNodeTree *node_tree = id_cast<const bNodeTree *>(nodeptr.owner_id);
           SpaceNode *snode = CTX_wm_space_node(&C);
           if (node_tree->type == NTREE_GEOMETRY && snode != nullptr) {
             /* Only add the attribute search in the node editor, in other places there is not
@@ -1008,10 +1009,10 @@ static void ui_node_draw_input(ui::Layout &layout,
   node.flag &= ~NODE_TEST;
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
 
 void uiTemplateNodeView(
-    blender::ui::Layout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
+    ui::Layout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
 {
   using namespace blender::ed::space_node;
 
@@ -1032,3 +1033,5 @@ void uiTemplateNodeView(
     ui_node_draw_node(*layout, *C, *ntree, *node, 0);
   }
 }
+
+}  // namespace blender

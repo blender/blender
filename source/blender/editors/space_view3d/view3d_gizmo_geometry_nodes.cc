@@ -47,7 +47,9 @@
 
 #include "view3d_intern.hh"
 
-namespace blender::ed::view3d::geometry_nodes_gizmos {
+namespace blender {
+
+namespace ed::view3d::geometry_nodes_gizmos {
 namespace geo_eval_log = nodes::geo_eval_log;
 using geo_eval_log::GeoTreeLog;
 
@@ -1106,7 +1108,7 @@ static void WIDGETGROUP_geometry_nodes_draw_prepare(const bContext * /*C*/,
 {
 }
 
-}  // namespace blender::ed::view3d::geometry_nodes_gizmos
+}  // namespace ed::view3d::geometry_nodes_gizmos
 
 void VIEW3D_GGT_geometry_nodes(wmGizmoGroupType *gzgt)
 {
@@ -1123,3 +1125,5 @@ void VIEW3D_GGT_geometry_nodes(wmGizmoGroupType *gzgt)
   gzgt->refresh = WIDGETGROUP_geometry_nodes_refresh;
   gzgt->draw_prepare = WIDGETGROUP_geometry_nodes_draw_prepare;
 }
+
+}  // namespace blender

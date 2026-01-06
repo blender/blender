@@ -21,7 +21,9 @@
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_span.hh"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
 class GreasePencilRuntime;
@@ -36,7 +38,7 @@ class LayerRuntime;
 class LayerGroup;
 class LayerGroupRuntime;
 }  // namespace greasepencil
-}  // namespace blender::bke
+}  // namespace bke
 
 struct Main;
 struct GreasePencil;
@@ -216,10 +218,10 @@ struct GreasePencilDrawing {
   /**
    * Runtime data on the drawing.
    */
-  blender::bke::greasepencil::DrawingRuntime *runtime = nullptr;
+  bke::greasepencil::DrawingRuntime *runtime = nullptr;
 #ifdef __cplusplus
-  blender::bke::greasepencil::Drawing &wrap();
-  const blender::bke::greasepencil::Drawing &wrap() const;
+  bke::greasepencil::Drawing &wrap();
+  const bke::greasepencil::Drawing &wrap() const;
 #endif
 };
 
@@ -232,8 +234,8 @@ struct GreasePencilDrawingReference {
    */
   struct GreasePencil *id_reference = nullptr;
 #ifdef __cplusplus
-  blender::bke::greasepencil::DrawingReference &wrap();
-  const blender::bke::greasepencil::DrawingReference &wrap() const;
+  bke::greasepencil::DrawingReference &wrap();
+  const bke::greasepencil::DrawingReference &wrap() const;
 #endif
 };
 
@@ -264,7 +266,7 @@ struct GreasePencilFrame {
 };
 
 /**
- * Storage for the Map in `blender::bke::greasepencil::Layer`.
+ * Storage for the Map in `bke::greasepencil::Layer`.
  * See the description there for more detail.
  */
 struct GreasePencilLayerFramesMapStorage {
@@ -320,8 +322,8 @@ struct GreasePencilLayerTreeNode {
    */
   uint32_t flag = 0;
 #ifdef __cplusplus
-  blender::bke::greasepencil::TreeNode &wrap();
-  const blender::bke::greasepencil::TreeNode &wrap() const;
+  bke::greasepencil::TreeNode &wrap();
+  const bke::greasepencil::TreeNode &wrap() const;
 #endif
 };
 
@@ -365,10 +367,10 @@ struct GreasePencilLayer {
   /**
    * Runtime struct pointer.
    */
-  blender::bke::greasepencil::LayerRuntime *runtime = nullptr;
+  bke::greasepencil::LayerRuntime *runtime = nullptr;
 #ifdef __cplusplus
-  blender::bke::greasepencil::Layer &wrap();
-  const blender::bke::greasepencil::Layer &wrap() const;
+  bke::greasepencil::Layer &wrap();
+  const bke::greasepencil::Layer &wrap() const;
 #endif
 };
 
@@ -383,10 +385,10 @@ struct GreasePencilLayerTreeGroup {
   /**
    * Runtime struct pointer.
    */
-  blender::bke::greasepencil::LayerGroupRuntime *runtime = nullptr;
+  bke::greasepencil::LayerGroupRuntime *runtime = nullptr;
 #ifdef __cplusplus
-  blender::bke::greasepencil::LayerGroup &wrap();
-  const blender::bke::greasepencil::LayerGroup &wrap() const;
+  bke::greasepencil::LayerGroup &wrap();
+  const bke::greasepencil::LayerGroup &wrap() const;
 #endif
 };
 
@@ -493,78 +495,72 @@ struct GreasePencil {
   /**
    * Runtime struct pointer.
    */
-  blender::bke::GreasePencilRuntime *runtime = nullptr;
+  bke::GreasePencilRuntime *runtime = nullptr;
 #ifdef __cplusplus
   /* Root group. */
-  const blender::bke::greasepencil::LayerGroup &root_group() const;
-  blender::bke::greasepencil::LayerGroup &root_group();
+  const bke::greasepencil::LayerGroup &root_group() const;
+  bke::greasepencil::LayerGroup &root_group();
 
   /* Drawings read/write access. */
-  blender::Span<const GreasePencilDrawingBase *> drawings() const;
-  blender::MutableSpan<GreasePencilDrawingBase *> drawings();
+  Span<const GreasePencilDrawingBase *> drawings() const;
+  MutableSpan<GreasePencilDrawingBase *> drawings();
   const GreasePencilDrawingBase *drawing(int64_t index) const;
   GreasePencilDrawingBase *drawing(int64_t index);
 
   /* Layers, layer groups and nodes read/write access. */
-  blender::Span<const blender::bke::greasepencil::Layer *> layers() const;
-  blender::Span<blender::bke::greasepencil::Layer *> layers_for_write();
-  const blender::bke::greasepencil::Layer &layer(int64_t index) const;
-  blender::bke::greasepencil::Layer &layer(int64_t index);
+  Span<const bke::greasepencil::Layer *> layers() const;
+  Span<bke::greasepencil::Layer *> layers_for_write();
+  const bke::greasepencil::Layer &layer(int64_t index) const;
+  bke::greasepencil::Layer &layer(int64_t index);
 
-  blender::Span<const blender::bke::greasepencil::LayerGroup *> layer_groups() const;
-  blender::Span<blender::bke::greasepencil::LayerGroup *> layer_groups_for_write();
+  Span<const bke::greasepencil::LayerGroup *> layer_groups() const;
+  Span<bke::greasepencil::LayerGroup *> layer_groups_for_write();
 
-  blender::Span<const blender::bke::greasepencil::TreeNode *> nodes() const;
-  blender::Span<blender::bke::greasepencil::TreeNode *> nodes_for_write();
+  Span<const bke::greasepencil::TreeNode *> nodes() const;
+  Span<bke::greasepencil::TreeNode *> nodes_for_write();
 
   /* Return the index of the layer if it's found, otherwise `std::nullopt`. */
-  std::optional<int> get_layer_index(const blender::bke::greasepencil::Layer &layer) const;
+  std::optional<int> get_layer_index(const bke::greasepencil::Layer &layer) const;
 
   /* Active layer functions. */
   bool has_active_layer() const;
-  const blender::bke::greasepencil::Layer *get_active_layer() const;
-  blender::bke::greasepencil::Layer *get_active_layer();
-  void set_active_layer(blender::bke::greasepencil::Layer *layer);
-  bool is_layer_active(const blender::bke::greasepencil::Layer *layer) const;
+  const bke::greasepencil::Layer *get_active_layer() const;
+  bke::greasepencil::Layer *get_active_layer();
+  void set_active_layer(bke::greasepencil::Layer *layer);
+  bool is_layer_active(const bke::greasepencil::Layer *layer) const;
   void autolock_inactive_layers();
 
   /* Active group functions. */
   bool has_active_group() const;
-  const blender::bke::greasepencil::LayerGroup *get_active_group() const;
-  blender::bke::greasepencil::LayerGroup *get_active_group();
+  const bke::greasepencil::LayerGroup *get_active_group() const;
+  bke::greasepencil::LayerGroup *get_active_group();
 
   /* Active node functions. */
-  const blender::bke::greasepencil::TreeNode *get_active_node() const;
-  blender::bke::greasepencil::TreeNode *get_active_node();
-  void set_active_node(blender::bke::greasepencil::TreeNode *node);
+  const bke::greasepencil::TreeNode *get_active_node() const;
+  bke::greasepencil::TreeNode *get_active_node();
+  void set_active_node(bke::greasepencil::TreeNode *node);
 
   /* Adding layers and layer groups. */
   /** Adds a new layer with the given name to the top of root group. */
-  blender::bke::greasepencil::Layer &add_layer(blender::StringRef name,
-                                               bool check_name_is_unique = true);
+  bke::greasepencil::Layer &add_layer(StringRef name, bool check_name_is_unique = true);
   /** Adds a new layer with the given name to the top of the given group. */
-  blender::bke::greasepencil::Layer &add_layer(
-      blender::bke::greasepencil::LayerGroup &parent_group,
-      blender::StringRef name,
-      bool check_name_is_unique = true);
+  bke::greasepencil::Layer &add_layer(bke::greasepencil::LayerGroup &parent_group,
+                                      StringRef name,
+                                      bool check_name_is_unique = true);
   /** Duplicates a layer from the same object to the top of the root group. */
-  blender::bke::greasepencil::Layer &duplicate_layer(
-      const blender::bke::greasepencil::Layer &duplicate_layer,
-      bool duplicate_frames = false,
-      bool duplicate_drawings = false);
+  bke::greasepencil::Layer &duplicate_layer(const bke::greasepencil::Layer &duplicate_layer,
+                                            bool duplicate_frames = false,
+                                            bool duplicate_drawings = false);
   /** Duplicates a layer from the same object to the top of the given group. */
-  blender::bke::greasepencil::Layer &duplicate_layer(
-      blender::bke::greasepencil::LayerGroup &parent_group,
-      const blender::bke::greasepencil::Layer &duplicate_layer,
-      bool duplicate_frames = false,
-      bool duplicate_drawings = false);
+  bke::greasepencil::Layer &duplicate_layer(bke::greasepencil::LayerGroup &parent_group,
+                                            const bke::greasepencil::Layer &duplicate_layer,
+                                            bool duplicate_frames = false,
+                                            bool duplicate_drawings = false);
   /** Add new layer group into the root group. */
-  blender::bke::greasepencil::LayerGroup &add_layer_group(blender::StringRef name,
-                                                          bool check_name_is_unique = true);
-  blender::bke::greasepencil::LayerGroup &add_layer_group(
-      blender::bke::greasepencil::LayerGroup &parent_group,
-      blender::StringRef name,
-      bool check_name_is_unique = true);
+  bke::greasepencil::LayerGroup &add_layer_group(StringRef name, bool check_name_is_unique = true);
+  bke::greasepencil::LayerGroup &add_layer_group(bke::greasepencil::LayerGroup &parent_group,
+                                                 StringRef name,
+                                                 bool check_name_is_unique = true);
 
   /**
    *  Adds multiple layers with an empty name.
@@ -573,32 +569,29 @@ struct GreasePencil {
   void add_layers_for_eval(int num_new_layers);
 
   /* Moving nodes. */
-  void move_node_up(blender::bke::greasepencil::TreeNode &node, int step = 1);
-  void move_node_down(blender::bke::greasepencil::TreeNode &node, int step = 1);
-  void move_node_top(blender::bke::greasepencil::TreeNode &node);
-  void move_node_bottom(blender::bke::greasepencil::TreeNode &node);
+  void move_node_up(bke::greasepencil::TreeNode &node, int step = 1);
+  void move_node_down(bke::greasepencil::TreeNode &node, int step = 1);
+  void move_node_top(bke::greasepencil::TreeNode &node);
+  void move_node_bottom(bke::greasepencil::TreeNode &node);
 
-  void move_node_after(blender::bke::greasepencil::TreeNode &node,
-                       blender::bke::greasepencil::TreeNode &target_node);
-  void move_node_before(blender::bke::greasepencil::TreeNode &node,
-                        blender::bke::greasepencil::TreeNode &target_node);
-  void move_node_into(blender::bke::greasepencil::TreeNode &node,
-                      blender::bke::greasepencil::LayerGroup &parent_group);
+  void move_node_after(bke::greasepencil::TreeNode &node,
+                       bke::greasepencil::TreeNode &target_node);
+  void move_node_before(bke::greasepencil::TreeNode &node,
+                        bke::greasepencil::TreeNode &target_node);
+  void move_node_into(bke::greasepencil::TreeNode &node,
+                      bke::greasepencil::LayerGroup &parent_group);
 
   /* Search functions. */
-  const blender::bke::greasepencil::TreeNode *find_node_by_name(blender::StringRef name) const;
-  blender::bke::greasepencil::TreeNode *find_node_by_name(blender::StringRef name);
-  blender::IndexMask layer_selection_by_name(blender::StringRef name,
-                                             blender::IndexMaskMemory &memory) const;
+  const bke::greasepencil::TreeNode *find_node_by_name(StringRef name) const;
+  bke::greasepencil::TreeNode *find_node_by_name(StringRef name);
+  IndexMask layer_selection_by_name(StringRef name, IndexMaskMemory &memory) const;
 
-  void rename_node(Main &bmain,
-                   blender::bke::greasepencil::TreeNode &node,
-                   blender::StringRef new_name);
+  void rename_node(Main &bmain, bke::greasepencil::TreeNode &node, StringRef new_name);
 
-  void remove_layer(blender::bke::greasepencil::Layer &layer);
-  void remove_group(blender::bke::greasepencil::LayerGroup &group, bool keep_children = false);
+  void remove_layer(bke::greasepencil::Layer &layer);
+  void remove_group(bke::greasepencil::LayerGroup &group, bool keep_children = false);
 
-  std::string unique_layer_name(blender::StringRef name);
+  std::string unique_layer_name(StringRef name);
 
   /* Frames API functions. */
 
@@ -612,8 +605,8 @@ struct GreasePencil {
    *
    * \returns A pointer to a drawing if the keyframe was inserted, otherwise nullptr.
    */
-  blender::bke::greasepencil::Drawing *insert_frame(
-      blender::bke::greasepencil::Layer &layer,
+  bke::greasepencil::Drawing *insert_frame(
+      bke::greasepencil::Layer &layer,
       int frame_number,
       int duration = 0,
       eBezTriple_KeyframeType keytype = BEZT_KEYTYPE_KEYFRAME);
@@ -622,7 +615,7 @@ struct GreasePencil {
    * Same as #insert_frame but insert a new keyframe in each layer in \a layers. This will also
    * create a new drawing for each of the created keyframes.
    */
-  void insert_frames(blender::Span<blender::bke::greasepencil::Layer *> layers,
+  void insert_frames(Span<bke::greasepencil::Layer *> layers,
                      int frame_number,
                      int duration = 0,
                      eBezTriple_KeyframeType keytype = BEZT_KEYTYPE_KEYFRAME);
@@ -630,11 +623,11 @@ struct GreasePencil {
    * Removes all the frames with \a frame_numbers in the \a layer.
    * \returns true if any frame was removed.
    */
-  bool remove_frames(blender::bke::greasepencil::Layer &layer, blender::Span<int> frame_numbers);
+  bool remove_frames(bke::greasepencil::Layer &layer, Span<int> frame_numbers);
 
-  void copy_frames_from_layer(blender::bke::greasepencil::Layer &dst_layer,
+  void copy_frames_from_layer(bke::greasepencil::Layer &dst_layer,
                               const GreasePencil &src_grease_pencil,
-                              const blender::bke::greasepencil::Layer &src_layer,
+                              const bke::greasepencil::Layer &src_layer,
                               const std::optional<int> frame_select = std::nullopt);
   /**
    * Adds multiple layers each with its own empty drawing. This can be more efficient than adding
@@ -649,9 +642,8 @@ struct GreasePencil {
   void resize_drawings(int new_num);
   /** Add `add_num` new empty geometry drawings. */
   void add_empty_drawings(int add_num);
-  void add_duplicate_drawings(int duplicate_num,
-                              const blender::bke::greasepencil::Drawing &drawing);
-  bool insert_duplicate_frame(blender::bke::greasepencil::Layer &layer,
+  void add_duplicate_drawings(int duplicate_num, const bke::greasepencil::Drawing &drawing);
+  bool insert_duplicate_frame(bke::greasepencil::Layer &layer,
                               int src_frame_number,
                               int dst_frame_number,
                               bool do_instance);
@@ -665,8 +657,8 @@ struct GreasePencil {
    * If a transformation overlaps another frames, the frame will be overwritten, and the
    * corresponding drawing may be removed, if it no longer has users.
    */
-  void move_frames(blender::bke::greasepencil::Layer &layer,
-                   const blender::Map<int, int> &frame_number_destinations);
+  void move_frames(bke::greasepencil::Layer &layer,
+                   const Map<int, int> &frame_number_destinations);
 
   /**
    * Moves and/or inserts duplicates of a set of frames in a \a layer.
@@ -680,9 +672,9 @@ struct GreasePencil {
    * If a transformation overlaps another frames, the frame will be overwritten, and the
    * corresponding drawing may be removed, if it no longer has users.
    */
-  void move_duplicate_frames(blender::bke::greasepencil::Layer &layer,
-                             const blender::Map<int, int> &frame_number_destinations,
-                             const blender::Map<int, GreasePencilFrame> &duplicate_frames);
+  void move_duplicate_frames(bke::greasepencil::Layer &layer,
+                             const Map<int, int> &frame_number_destinations,
+                             const Map<int, GreasePencilFrame> &duplicate_frames);
 
   /**
    * Removes all the drawings that have no users. Will free the drawing data and shrink the
@@ -692,55 +684,53 @@ struct GreasePencil {
   /**
    * Makes sure all the drawings that the layer points to have a user.
    */
-  void update_drawing_users_for_layer(const blender::bke::greasepencil::Layer &layer);
+  void update_drawing_users_for_layer(const bke::greasepencil::Layer &layer);
 
   /**
    * Returns a drawing on \a layer at frame \a frame_number or `nullptr` if no such
    * drawing exists.
    */
-  const blender::bke::greasepencil::Drawing *get_drawing_at(
-      const blender::bke::greasepencil::Layer &layer, int frame_number) const;
-  blender::bke::greasepencil::Drawing *get_drawing_at(
-      const blender::bke::greasepencil::Layer &layer, int frame_number);
+  const bke::greasepencil::Drawing *get_drawing_at(const bke::greasepencil::Layer &layer,
+                                                   int frame_number) const;
+  bke::greasepencil::Drawing *get_drawing_at(const bke::greasepencil::Layer &layer,
+                                             int frame_number);
   /**
    * Returns an editable drawing on \a layer at frame \a frame_number or `nullptr` if no such
    * drawing exists.
    */
-  blender::bke::greasepencil::Drawing *get_editable_drawing_at(
-      const blender::bke::greasepencil::Layer &layer, int frame_number);
+  bke::greasepencil::Drawing *get_editable_drawing_at(const bke::greasepencil::Layer &layer,
+                                                      int frame_number);
 
   /**
    * Returns a drawing on \a layer at the frame this grease pencil was evaluated at or `nullptr` if
    * no such drawing exists.
    */
-  const blender::bke::greasepencil::Drawing *get_eval_drawing(
-      const blender::bke::greasepencil::Layer &layer) const;
-  blender::bke::greasepencil::Drawing *get_eval_drawing(
-      const blender::bke::greasepencil::Layer &layer);
+  const bke::greasepencil::Drawing *get_eval_drawing(const bke::greasepencil::Layer &layer) const;
+  bke::greasepencil::Drawing *get_eval_drawing(const bke::greasepencil::Layer &layer);
 
-  std::optional<blender::Bounds<blender::float3>> bounds_min_max(int frame,
-                                                                 bool use_radius = true) const;
-  std::optional<blender::Bounds<blender::float3>> bounds_min_max_eval(
-      bool use_radius = true) const;
+  std::optional<Bounds<float3>> bounds_min_max(int frame, bool use_radius = true) const;
+  std::optional<Bounds<float3>> bounds_min_max_eval(bool use_radius = true) const;
 
-  blender::bke::AttributeAccessor attributes() const;
-  blender::bke::MutableAttributeAccessor attributes_for_write();
+  bke::AttributeAccessor attributes() const;
+  bke::MutableAttributeAccessor attributes_for_write();
 
   /**
    * Get the largest material index used by the evaluated layers or `nullopt` if they are empty.
    */
   std::optional<int> material_index_max_eval() const;
 
-  void count_memory(blender::MemoryCounter &memory) const;
+  void count_memory(MemoryCounter &memory) const;
 
   /**
    * Compute the user counts of the drawings by iterating through the keyframes of all the layers
    * and counting the number of references to each drawing.
    */
-  blender::Array<int> count_frame_users_for_drawings() const;
+  Array<int> count_frame_users_for_drawings() const;
 
   /* For debugging purposes. */
   void print_layer_tree();
   void validate_drawing_user_counts();
 #endif
 };
+
+}  // namespace blender

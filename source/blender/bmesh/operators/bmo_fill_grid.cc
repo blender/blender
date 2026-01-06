@@ -22,6 +22,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define EDGE_MARK 4
 #define FACE_OUT 16
 
@@ -598,7 +600,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   const short mat_nr = short(BMO_slot_int_get(op->slots_in, "mat_nr"));
   const bool use_smooth = BMO_slot_bool_get(op->slots_in, "use_smooth");
   const bool use_interp_simple = BMO_slot_bool_get(op->slots_in, "use_interp_simple");
-  std::unique_ptr<blender::Set<BMEdge *>> split_edges;
+  std::unique_ptr<Set<BMEdge *>> split_edges;
 
   int count;
   bool changed = false;
@@ -695,7 +697,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
       const int len_b = BM_edgeloop_length_get(estore_pairs[i][1]);
       if (len_a != len_b) {
         if (split_edges == nullptr) {
-          split_edges = std::make_unique<blender::Set<BMEdge *>>();
+          split_edges = std::make_unique<Set<BMEdge *>>();
         }
 
         if (len_a < len_b) {
@@ -728,3 +730,5 @@ cleanup:
     BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
   }
 }
+
+}  // namespace blender

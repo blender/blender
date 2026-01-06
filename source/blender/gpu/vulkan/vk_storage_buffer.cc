@@ -15,9 +15,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 VKStorageBuffer::VKStorageBuffer(size_t size, GPUUsageType usage, const char *name)
     : StorageBuf(size, name), usage_(usage)
@@ -157,4 +159,5 @@ void VKStorageBuffer::read(void *data)
   async_read_buffer_ = nullptr;
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

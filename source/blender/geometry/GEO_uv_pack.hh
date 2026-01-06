@@ -11,6 +11,8 @@
 
 #include "DNA_space_types.h"
 
+namespace blender {
+
 /** \file
  * \ingroup geo
  */
@@ -65,7 +67,7 @@ enum eUVPackIsland_PinMethod {
   ED_UVPACK_PIN_LOCK_ALL,
 };
 
-namespace blender::geometry {
+namespace geometry {
 
 /** See also #UnwrapOptions. */
 class UVPackIsland_Params {
@@ -173,4 +175,5 @@ float pack_islands(Span<PackIsland *> islands, const UVPackIsland_Params &params
 /** Compute `r = mat * (a + b)` with high precision. */
 void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], const float b[2]);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

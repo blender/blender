@@ -23,6 +23,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /*
  * For debug purpose
  */
@@ -423,3 +425,5 @@ LogImageFile *cineonCreate(
 
   return cineon;
 }
+
+}  // namespace blender

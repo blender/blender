@@ -32,6 +32,8 @@
 
 #include "clip_intern.hh"
 
+namespace blender {
+
 /********************** solve camera operator *********************/
 
 struct SolveCameraJob {
@@ -153,7 +155,7 @@ static void solve_camera_freejob(void *scv)
   if (scene->camera != nullptr && scene->camera->data &&
       GS(((ID *)scene->camera->data)->name) == ID_CA)
   {
-    Camera *camera = blender::id_cast<Camera *>(scene->camera->data);
+    Camera *camera = id_cast<Camera *>(scene->camera->data);
     int width, height;
     BKE_movieclip_get_size(clip, &scj->user, &width, &height);
     BKE_tracking_camera_to_blender(tracking, scene, camera, width, height);
@@ -323,3 +325,5 @@ void CLIP_OT_clear_solution(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

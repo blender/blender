@@ -17,6 +17,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_walkers_private.hh"
 
+namespace blender {
+
 /* Pop into stack memory (common operation). */
 #define BMW_state_remove_r(walker, owalk) \
   { \
@@ -1879,3 +1881,5 @@ BMWalker *bm_walker_types[] = {
 const int bm_totwalkers = ARRAY_SIZE(bm_walker_types);
 
 /** \} */
+
+}  // namespace blender

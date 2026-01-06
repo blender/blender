@@ -7,10 +7,10 @@
 /** \file
  * \ingroup bli
  *
- * This is a generic counterpart to #blender::Array, used when the type is not known at runtime.
+ * This is a generic counterpart to #Array, used when the type is not known at runtime.
  *
  * `GArray` should generally only be used for passing data around in dynamic contexts.
- * It does not support a few things that #blender::Array supports:
+ * It does not support a few things that #Array supports:
  *  - Small object optimization / inline buffer.
  *  - Exception safety and various more specific constructors.
  */

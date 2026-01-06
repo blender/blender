@@ -38,6 +38,8 @@
 
 #include "blendthumb.hh"
 
+using namespace blender;
+
 /**
  * This function opens .blend file from src_blend, extracts thumbnail from file if there is one,
  * and writes `.png` image into `dst_png`.
@@ -73,13 +75,12 @@ static eThumbStatus extract_png_from_blend_file(const char *src_blend, const cha
     return BT_FILE_ERR;
   }
 
-  std::optional<blender::Vector<uint8_t>> png_buf_opt = blendthumb_create_png_data_from_thumb(
-      &thumb);
+  std::optional<Vector<uint8_t>> png_buf_opt = blendthumb_create_png_data_from_thumb(&thumb);
   if (!png_buf_opt) {
     err = BT_ERROR;
   }
   else {
-    blender::Vector<uint8_t> png_buf = *png_buf_opt;
+    Vector<uint8_t> png_buf = *png_buf_opt;
     err = (write(dst_file, png_buf.data(), png_buf.size()) == png_buf.size()) ? BT_OK :
                                                                                 BT_FILE_ERR;
   }

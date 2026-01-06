@@ -8,6 +8,8 @@
 
 #include "BLI_span.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup sequencer
  */
@@ -15,7 +17,7 @@
 struct Scene;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 void strip_update_sound_bounds_recursive(const Scene *scene, Strip *strip_meta);
 
@@ -45,4 +47,5 @@ void strip_time_effect_range_set(const Scene *scene, Strip *strip);
 void strip_time_update_effects_strip_range(const Scene *scene, Span<Strip *> effects);
 float strip_retiming_evaluate(const Strip *strip, const float frame_index);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

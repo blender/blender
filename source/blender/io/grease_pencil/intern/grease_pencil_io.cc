@@ -93,7 +93,7 @@ Object *GreasePencilImporter::create_object(const StringRefNull name)
                                      context_.v3d->local_view_uid :
                                      ushort(0);
 
-  Object *ob_gpencil = blender::ed::object::add_type(
+  Object *ob_gpencil = ed::object::add_type(
       &context_.C, OB_GREASE_PENCIL, name.c_str(), cur_loc, rot, false, local_view_bits);
 
   return ob_gpencil;
@@ -147,7 +147,7 @@ std::optional<Bounds<float2>> GreasePencilExporter::compute_screen_space_drawing
   std::optional<Bounds<float2>> drawing_bounds = std::nullopt;
 
   BLI_assert(object.type == OB_GREASE_PENCIL);
-  GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   const Layer &layer = *grease_pencil.layers()[layer_index];
   const float4x4 layer_to_world = layer.to_world_space(object);
@@ -195,7 +195,7 @@ std::optional<Bounds<float2>> GreasePencilExporter::compute_objects_bounds(
 
   for (const ObjectInfo &info : objects) {
     Object *object_eval = DEG_get_evaluated(&depsgraph, info.object);
-    const GreasePencil &grease_pencil_eval = *blender::id_cast<GreasePencil *>(object_eval->data);
+    const GreasePencil &grease_pencil_eval = *id_cast<GreasePencil *>(object_eval->data);
 
     for (const int layer_index : grease_pencil_eval.layers().index_range()) {
       const Layer &layer = *grease_pencil_eval.layers()[layer_index];

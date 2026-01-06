@@ -29,6 +29,8 @@
 
 #include "script_intern.hh" /* own include */
 
+namespace blender {
+
 // static script_run_python(char *funcname, )
 
 /* ******************** default callbacks for script space ***************** */
@@ -90,8 +92,7 @@ static void script_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  view2d_region_reinit(
-      &region->v2d, blender::ui::V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Script", SPACE_SCRIPT, RGN_TYPE_WINDOW);
@@ -105,9 +106,9 @@ static void script_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  blender::ui::theme::frame_buffer_clear(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* data... */
   // BPY_script_exec(C, "/root/blender-svn/blender25/test.py", nullptr);
@@ -121,7 +122,7 @@ static void script_main_region_draw(const bContext *C, ARegion *region)
 #endif
 
   /* reset view matrix */
-  blender::ui::view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* scrollers? */
 }
@@ -212,3 +213,5 @@ void ED_spacetype_script()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

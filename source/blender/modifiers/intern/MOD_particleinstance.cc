@@ -41,6 +41,8 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
@@ -175,7 +177,7 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
   return true;
 }
 
-static void store_float_in_vcol(blender::ColorGeometry4b *vcol, float float_value)
+static void store_float_in_vcol(ColorGeometry4b *vcol, float float_value)
 {
   const uchar value = unit_float_to_uchar_clamp(float_value);
   vcol->r = vcol->g = vcol->b = value;
@@ -184,7 +186,6 @@ static void store_float_in_vcol(blender::ColorGeometry4b *vcol, float float_valu
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  using namespace blender;
   Mesh *result;
   ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -300,7 +301,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   psys_sim_data_init(&sim);
 
   if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
-    if (const std::optional<Bounds<blender::float3>> bounds = mesh->bounds_min_max()) {
+    if (const std::optional<Bounds<float3>> bounds = mesh->bounds_min_max()) {
       min_co = bounds->min[track];
       max_co = bounds->max[track];
     }
@@ -311,12 +312,12 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const OffsetIndices orig_faces = mesh->faces();
   const Span<int> orig_corner_verts = mesh->corner_verts();
   const Span<int> orig_corner_edges = mesh->corner_edges();
-  MutableSpan<blender::float3> positions = result->vert_positions_for_write();
-  MutableSpan<blender::int2> edges = result->edges_for_write();
+  MutableSpan<float3> positions = result->vert_positions_for_write();
+  MutableSpan<int2> edges = result->edges_for_write();
   MutableSpan<int> face_offsets = result->face_offsets_for_write();
   MutableSpan<int> corner_verts = result->corner_verts_for_write();
   MutableSpan<int> corner_edges = result->corner_edges_for_write();
-  blender::bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter mloopcols_index =
       attributes.lookup_or_add_for_write_span<ColorGeometry4b>(pimd->index_layer_name,
                                                                bke::AttrDomain::Corner);
@@ -473,7 +474,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     /* Create edges and adjust edge vertex indices. */
     edge_interp.copy(0, p_skip * totedge, totedge);
-    blender::int2 *edge = &edges[p_skip * totedge];
+    int2 *edge = &edges[p_skip * totedge];
     for (k = 0; k < totedge; k++, edge++) {
       (*edge)[0] += p_skip * totvert;
       (*edge)[1] += p_skip * totvert;
@@ -529,9 +530,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
-  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::ITEM_R_TOGGLE |
-                                                  blender::ui::ITEM_R_FORCE_BLANK_DECORATE;
+  ui::Layout &layout = *panel->layout;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -555,7 +555,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.separator();
 
-  blender::ui::Layout *row = &layout.row(true, IFACE_("Create Instances"));
+  ui::Layout *row = &layout.row(true, IFACE_("Create Instances"));
   row->prop(ptr, "use_normal", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_children", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_size", toggles_flag, std::nullopt, ICON_NONE);
@@ -576,14 +576,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
   row = &layout.row(true);
-  row->prop(ptr, "axis", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(ptr, "axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
 
 static void path_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -592,7 +592,7 @@ static void path_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
 static void path_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -601,19 +601,19 @@ static void path_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.active_set(RNA_boolean_get(ptr, "use_path"));
 
-  blender::ui::Layout *col = &layout.column(true);
-  col->prop(ptr, "position", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  col->prop(ptr, "random_position", blender::ui::ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
+  ui::Layout *col = &layout.column(true);
+  col->prop(ptr, "position", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col->prop(ptr, "random_position", ui::ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
   col = &layout.column(true);
-  col->prop(ptr, "rotation", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  col->prop(ptr, "random_rotation", blender::ui::ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
+  col->prop(ptr, "rotation", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col->prop(ptr, "random_rotation", ui::ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
 
   layout.prop(ptr, "use_preserve_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void layers_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -622,7 +622,7 @@ static void layers_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop_search(
       ptr, "index_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Index"), ICON_NONE);
   col.prop_search(
@@ -675,3 +675,5 @@ ModifierTypeInfo modifierType_ParticleInstance = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

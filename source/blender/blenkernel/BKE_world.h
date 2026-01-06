@@ -7,9 +7,13 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct World;
 
 struct World *BKE_world_add(struct Main *bmain, const char *name);
 void BKE_world_eval(struct Depsgraph *depsgraph, struct World *world);
+
+}  // namespace blender

@@ -12,6 +12,10 @@
 #include "util/map.h"
 #include "util/set.h"
 
+namespace blender {
+struct ID;
+}
+
 CCL_NAMESPACE_BEGIN
 
 /* ID Map
@@ -50,7 +54,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
     b_recalc.insert(id_ptr);
   }
 
-  bool check_recalc(const ::ID *id)
+  bool check_recalc(const blender::ID *id)
   {
     return id && b_recalc.find(id) != b_recalc.end();
   }
@@ -74,11 +78,11 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   }
 
   /* Update existing data. */
-  bool update(T *data, const ::ID *id)
+  bool update(T *data, const blender::ID *id)
   {
     return update(data, id, id);
   }
-  bool update(T *data, const ::ID *id, const ::ID *parent)
+  bool update(T *data, const blender::ID *id, const blender::ID *parent)
   {
     bool recalc = (b_recalc.find(id) != b_recalc.end());
     if (parent && parent != id) {
@@ -89,15 +93,15 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   }
 
   /* Combined add and update as needed. */
-  bool add_or_update(T **r_data, const ::ID *id)
+  bool add_or_update(T **r_data, const blender::ID *id)
   {
     return add_or_update(r_data, id, id, id);
   }
-  bool add_or_update(T **r_data, const ::ID *id, const K &key)
+  bool add_or_update(T **r_data, const blender::ID *id, const K &key)
   {
     return add_or_update(r_data, id, id, key);
   }
-  bool add_or_update(T **r_data, const ::ID *id, const ::ID *parent, const K &key)
+  bool add_or_update(T **r_data, const blender::ID *id, const blender::ID *parent, const K &key)
   {
     T *data = find(key);
     bool recalc;

@@ -12,6 +12,8 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 struct AnimData;
 struct bSound;
 
@@ -54,3 +56,5 @@ struct Speaker {
   short flag = 0;
   char _pad1[6] = {};
 };
+
+}  // namespace blender

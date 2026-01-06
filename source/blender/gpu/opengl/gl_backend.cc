@@ -33,9 +33,11 @@
 
 #include "gl_backend.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.opengl"};
 
-namespace blender::gpu {
+namespace gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Platform
@@ -765,4 +767,5 @@ void GLBackend::log_workarounds()
 
 /** \} */
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

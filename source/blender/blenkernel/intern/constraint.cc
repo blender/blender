@@ -95,6 +95,8 @@
 #  include "usd.hh"
 #endif
 
+namespace blender {
+
 /* ---------------------------------------------------------------------------- */
 /* Useful macros for testing various common flag combinations */
 
@@ -558,9 +560,9 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
     }
   }
   else if (mesh_eval) {
-    const blender::Span<blender::float3> positions = mesh_eval->vert_positions();
-    const blender::Span<blender::float3> vert_normals = mesh_eval->vert_normals();
-    const blender::Span<MDeformVert> dverts = mesh_eval->deform_verts();
+    const Span<float3> positions = mesh_eval->vert_positions();
+    const Span<float3> vert_normals = mesh_eval->vert_normals();
+    const Span<MDeformVert> dverts = mesh_eval->deform_verts();
     /* check that dvert is a valid pointers (just in case) */
     if (!dverts.is_empty()) {
       /* get the average of all verts with that are in the vertex-group */
@@ -619,7 +621,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 /* function that sets the given matrix based on given vertex group in lattice */
 static void contarget_get_lattice_mat(Object *ob, const char *substring, float mat[4][4])
 {
-  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
+  Lattice *lt = id_cast<Lattice *>(ob->data);
 
   DispList *dl = ob->runtime->curve_cache ?
                      BKE_displist_find(&ob->runtime->curve_cache->disp, DL_VERTS) :
@@ -1521,7 +1523,7 @@ static bool followpath_get_tarmat(Depsgraph * /*depsgraph*/,
     return false;
   }
 
-  Curve *cu = blender::id_cast<Curve *>(ct->tar->data);
+  Curve *cu = id_cast<Curve *>(ct->tar->data);
   float vec[4], radius;
   float curvetime;
 
@@ -3548,7 +3550,7 @@ static void stretchto_evaluate(bConstraint *con,
 
     /* Only Y constrained object axis scale should be used, to keep same length when scaling it.
      * Use safe divide to avoid creating a matrix with NAN values, see: #141612. */
-    dist = blender::math::safe_divide(dist, size[1]);
+    dist = math::safe_divide(dist, size[1]);
 
     /* data->orglength==0 occurs on first run, and after 'R' button is clicked */
     if (data->orglength == 0) {
@@ -3863,7 +3865,6 @@ static void clampto_evaluate(bConstraint *con,
                              bConstraintOb *cob,
                              ListBaseT<bConstraintTarget> *targets)
 {
-  using namespace blender;
   bClampToConstraint *data = static_cast<bClampToConstraint *>(con->data);
   bConstraintTarget *ct = static_cast<bConstraintTarget *>(targets->first);
 
@@ -4525,7 +4526,6 @@ static void damptrack_evaluate(bConstraint *con,
 
 static void damptrack_do_transform(float matrix[4][4], const float tarvec_in[3], int track_axis)
 {
-  using namespace blender;
   /* find the (unit) direction vector going from the owner to the target */
   float3 tarvec;
 
@@ -5135,7 +5135,7 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
   sub_v3_v3v3(ray_direction, ray_end, ray_start);
   normalize_v3(ray_direction);
 
-  blender::bke::BVHTreeFromMesh tree_data = depth_mesh->bvh_corner_tris();
+  bke::BVHTreeFromMesh tree_data = depth_mesh->bvh_corner_tris();
 
   BVHTreeRayHit hit;
   hit.dist = BVH_RAYCAST_DIST_MAX;
@@ -5453,7 +5453,7 @@ static void transformcache_evaluate(bConstraint *con,
       break;
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
-      blender::io::usd::USD_get_transform(
+      io::usd::USD_get_transform(
           data->reader, cob->matrix, time * scene->frames_per_second(), cache_file->scale);
 #  endif
       break;
@@ -5512,80 +5512,80 @@ static bConstraintTypeInfo CTI_TRANSFORM_CACHE = {
 
 /* ---------- Geometry Attribute Constraint ----------- */
 
-static blender::bke::AttrDomain domain_value_to_attribute(const Attribute_Domain domain)
+static bke::AttrDomain domain_value_to_attribute(const Attribute_Domain domain)
 {
   switch (domain) {
     case CON_ATTRIBUTE_DOMAIN_POINT:
-      return blender::bke::AttrDomain::Point;
+      return bke::AttrDomain::Point;
     case CON_ATTRIBUTE_DOMAIN_EDGE:
-      return blender::bke::AttrDomain::Edge;
+      return bke::AttrDomain::Edge;
     case CON_ATTRIBUTE_DOMAIN_FACE:
-      return blender::bke::AttrDomain::Face;
+      return bke::AttrDomain::Face;
     case CON_ATTRIBUTE_DOMAIN_FACE_CORNER:
-      return blender::bke::AttrDomain::Corner;
+      return bke::AttrDomain::Corner;
     case CON_ATTRIBUTE_DOMAIN_CURVE:
-      return blender::bke::AttrDomain::Curve;
+      return bke::AttrDomain::Curve;
     case CON_ATTRIBUTE_DOMAIN_INSTANCE:
-      return blender::bke::AttrDomain::Instance;
+      return bke::AttrDomain::Instance;
   }
   BLI_assert_unreachable();
-  return blender::bke::AttrDomain::Point;
+  return bke::AttrDomain::Point;
 }
 
-static blender::bke::AttrType type_value_to_attribute(const Attribute_Data_Type data_type)
+static bke::AttrType type_value_to_attribute(const Attribute_Data_Type data_type)
 {
   switch (data_type) {
     case CON_ATTRIBUTE_VECTOR:
-      return blender::bke::AttrType::Float3;
+      return bke::AttrType::Float3;
     case CON_ATTRIBUTE_QUATERNION:
-      return blender::bke::AttrType::Quaternion;
+      return bke::AttrType::Quaternion;
     case CON_ATTRIBUTE_4X4MATRIX:
-      return blender::bke::AttrType::Float4x4;
+      return bke::AttrType::Float4x4;
   }
   BLI_assert_unreachable();
-  return blender::bke::AttrType::Float3;
+  return bke::AttrType::Float3;
 }
 
 static void value_attribute_to_matrix(float r_matrix[4][4],
-                                      const blender::GPointer value,
+                                      const GPointer value,
                                       const Attribute_Data_Type data_type)
 {
   switch (data_type) {
     case CON_ATTRIBUTE_VECTOR:
-      copy_v3_v3(r_matrix[3], *value.get<blender::float3>());
+      copy_v3_v3(r_matrix[3], *value.get<float3>());
       return;
     case CON_ATTRIBUTE_QUATERNION:
-      quat_to_mat4(r_matrix, *value.get<blender::float4>());
+      quat_to_mat4(r_matrix, *value.get<float4>());
       return;
     case CON_ATTRIBUTE_4X4MATRIX:
-      copy_m4_m4(r_matrix, value.get<blender::float4x4>()->ptr());
+      copy_m4_m4(r_matrix, value.get<float4x4>()->ptr());
       return;
   }
   BLI_assert_unreachable();
 }
 
-static bool component_is_available(const blender::bke::GeometrySet &geometry,
-                                   const blender::bke::GeometryComponent::Type type,
-                                   const blender::bke::AttrDomain domain)
+static bool component_is_available(const bke::GeometrySet &geometry,
+                                   const bke::GeometryComponent::Type type,
+                                   const bke::AttrDomain domain)
 {
-  if (const blender::bke::GeometryComponent *component = geometry.get_component(type)) {
+  if (const bke::GeometryComponent *component = geometry.get_component(type)) {
     return component->attribute_domain_size(domain) != 0;
   }
   return false;
 }
 
-static const blender::bke::GeometryComponent *find_source_component(
-    const blender::bke::GeometrySet &geometry, const blender::bke::AttrDomain domain)
+static const bke::GeometryComponent *find_source_component(const bke::GeometrySet &geometry,
+                                                           const bke::AttrDomain domain)
 {
   /* Choose the other component based on a consistent order, rather than some more complicated
    * heuristic. This is the same order visible in the spreadsheet and used in the ray-cast node. */
-  static const blender::Array<blender::bke::GeometryComponent::Type> supported_types = {
-      blender::bke::GeometryComponent::Type::Mesh,
-      blender::bke::GeometryComponent::Type::PointCloud,
-      blender::bke::GeometryComponent::Type::Curve,
-      blender::bke::GeometryComponent::Type::Instance,
-      blender::bke::GeometryComponent::Type::GreasePencil};
-  for (const blender::bke::GeometryComponent::Type src_type : supported_types) {
+  static const Array<bke::GeometryComponent::Type> supported_types = {
+      bke::GeometryComponent::Type::Mesh,
+      bke::GeometryComponent::Type::PointCloud,
+      bke::GeometryComponent::Type::Curve,
+      bke::GeometryComponent::Type::Instance,
+      bke::GeometryComponent::Type::GreasePencil};
+  for (const bke::GeometryComponent::Type src_type : supported_types) {
     if (component_is_available(geometry, src_type, domain)) {
       return geometry.get_component(src_type);
     }
@@ -5652,7 +5652,6 @@ static bool geometry_attribute_get_tarmat(Depsgraph * /*depsgraph*/,
                                           bConstraintTarget *ct,
                                           float /*ctime*/)
 {
-  using namespace blender;
   const bGeometryAttributeConstraint *acon = static_cast<bGeometryAttributeConstraint *>(
       con->data);
 
@@ -6925,3 +6924,5 @@ static_assert(
     std::is_same_v<decltype(ActionSlot::handle), decltype(bActionConstraint::action_slot_handle)>);
 static_assert(std::is_same_v<decltype(ActionSlot::identifier),
                              decltype(bActionConstraint::last_slot_identifier)>);
+
+}  // namespace blender

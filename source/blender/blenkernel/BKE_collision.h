@@ -11,6 +11,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct BVHTree;
 struct Collection;
 struct CollisionModifierData;
@@ -85,13 +87,13 @@ struct FaceCollPair {
  *  Used in `modifier.cc` from `collision.cc`.
  * \{ */
 struct BVHTree *bvhtree_build_from_mvert(const float (*positions)[3],
-                                         const blender::int3 *vert_tris,
+                                         const int3 *vert_tris,
                                          int tri_num,
                                          float epsilon);
 void bvhtree_update_from_mvert(struct BVHTree *bvhtree,
                                const float (*positions)[3],
                                const float (*positions_moving)[3],
-                               const blender::int3 *vert_tris,
+                               const int3 *vert_tris,
                                int tri_num,
                                bool moving);
 /** \} */
@@ -173,3 +175,5 @@ ListBaseT<ColliderCache> *BKE_collider_cache_create(struct Depsgraph *depsgraph,
 void BKE_collider_cache_free(ListBaseT<ColliderCache> **colliders);
 
 /** \} */
+
+}  // namespace blender

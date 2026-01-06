@@ -41,7 +41,7 @@
 
 #include "ANIM_action.hh"
 
-using namespace blender;
+namespace blender {
 
 /* *************************** Keyframe Processing *************************** */
 
@@ -85,7 +85,7 @@ struct AnimKeylist {
   struct {
     /* When initializing the runtime the columns from the list base `AnimKeyList.key_columns` are
      * transferred to an array to support binary searching and index based access. */
-    blender::Array<ActKeyColumn> key_columns;
+    Array<ActKeyColumn> key_columns;
     /* Wrapper around runtime.key_columns so it can still be accessed as a ListBase.
      * Elements are owned by `runtime.key_columns`. */
     ListBaseT<ActKeyColumn> list_wrapper;
@@ -152,7 +152,7 @@ static void keylist_runtime_init(AnimKeylist *keylist)
 {
   BLI_assert(!keylist->is_runtime_initialized);
 
-  keylist->runtime.key_columns = blender::Array<ActKeyColumn>(keylist->column_len);
+  keylist->runtime.key_columns = Array<ActKeyColumn>(keylist->column_len);
 
   /* Convert linked list to array to support fast searching. */
   keylist_convert_key_columns_to_array(keylist);
@@ -1020,7 +1020,7 @@ int actkeyblock_get_valid_hold(const ActKeyColumn *ac)
 void summary_to_keylist(bAnimContext *ac,
                         AnimKeylist *keylist,
                         const int saction_flag,
-                        blender::float2 range)
+                        float2 range)
 {
   if (!ac) {
     return;
@@ -1072,7 +1072,7 @@ void action_slot_summary_to_keylist(bAnimContext *ac,
                                     const animrig::slot_handle_t slot_handle,
                                     AnimKeylist *keylist,
                                     const int /* eSAction_Flag */ saction_flag,
-                                    blender::float2 range)
+                                    float2 range)
 {
   /* TODO: downstream code depends on this being non-null (see e.g.
    * `ANIM_animfilter_action_slot()` and `animfilter_fcurves_span()`). Either
@@ -1118,11 +1118,8 @@ void action_slot_summary_to_keylist(bAnimContext *ac,
   ANIM_animdata_freelist(&anim_data);
 }
 
-void scene_to_keylist(bDopeSheet *ads,
-                      Scene *sce,
-                      AnimKeylist *keylist,
-                      const int saction_flag,
-                      blender::float2 range)
+void scene_to_keylist(
+    bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const int saction_flag, float2 range)
 {
   bAnimContext ac = {nullptr};
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -1163,11 +1160,8 @@ void scene_to_keylist(bDopeSheet *ads,
   ANIM_animdata_freelist(&anim_data);
 }
 
-void ob_to_keylist(bDopeSheet *ads,
-                   Object *ob,
-                   AnimKeylist *keylist,
-                   const int saction_flag,
-                   blender::float2 range)
+void ob_to_keylist(
+    bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int saction_flag, float2 range)
 {
   bAnimContext ac = {nullptr};
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -1274,7 +1268,7 @@ void fcurve_to_keylist(AnimData *adt,
                        FCurve *fcu,
                        AnimKeylist *keylist,
                        const int saction_flag,
-                       blender::float2 range,
+                       float2 range,
                        const bool use_nla_remapping)
 {
   /* This is not strictly necessary because `ANIM_nla_mapping_apply_fcurve()`
@@ -1323,7 +1317,7 @@ void fcurve_to_keylist(AnimData *adt,
     if (x < range[0] || x > range[1]) {
       continue;
     }
-    blender::math::min_max(v, index_bounds.min, index_bounds.max);
+    math::min_max(v, index_bounds.min, index_bounds.max);
     set_up_beztriple_chain(chain, fcu, v, do_extremes, is_cyclic);
 
     add_bezt_to_keycolumns_list(keylist, &chain);
@@ -1333,14 +1327,14 @@ void fcurve_to_keylist(AnimData *adt,
     set_up_beztriple_chain(chain, fcu, left_outside_key_index, do_extremes, is_cyclic);
     add_bezt_to_keycolumns_list(keylist, &chain);
     /* Checking min and max because the FCurve might not be sorted. */
-    index_bounds.min = blender::math::min(index_bounds.min, left_outside_key_index);
-    index_bounds.max = blender::math::max(index_bounds.max, left_outside_key_index);
+    index_bounds.min = math::min(index_bounds.min, left_outside_key_index);
+    index_bounds.max = math::max(index_bounds.max, left_outside_key_index);
   }
   if (right_outside_key_index >= 0) {
     set_up_beztriple_chain(chain, fcu, right_outside_key_index, do_extremes, is_cyclic);
     add_bezt_to_keycolumns_list(keylist, &chain);
-    index_bounds.min = blender::math::min(index_bounds.min, right_outside_key_index);
-    index_bounds.max = blender::math::max(index_bounds.max, right_outside_key_index);
+    index_bounds.min = math::min(index_bounds.min, right_outside_key_index);
+    index_bounds.max = math::max(index_bounds.max, right_outside_key_index);
   }
   /* Not using index_bounds.is_empty() because that returns true if min and max are the same. That
    * is a valid configuration in this case though. */
@@ -1354,11 +1348,8 @@ void fcurve_to_keylist(AnimData *adt,
   }
 }
 
-void action_group_to_keylist(AnimData *adt,
-                             bActionGroup *agrp,
-                             AnimKeylist *keylist,
-                             const int saction_flag,
-                             blender::float2 range)
+void action_group_to_keylist(
+    AnimData *adt, bActionGroup *agrp, AnimKeylist *keylist, const int saction_flag, float2 range)
 {
   if (!agrp) {
     return;
@@ -1384,17 +1375,14 @@ void action_group_to_keylist(AnimData *adt,
   }
 }
 
-void action_to_keylist(AnimData *adt,
-                       bAction *dna_action,
-                       AnimKeylist *keylist,
-                       const int saction_flag,
-                       blender::float2 range)
+void action_to_keylist(
+    AnimData *adt, bAction *dna_action, AnimKeylist *keylist, const int saction_flag, float2 range)
 {
   if (!dna_action) {
     return;
   }
 
-  blender::animrig::Action &action = dna_action->wrap();
+  animrig::Action &action = dna_action->wrap();
 
   /**
    * Assumption: the animation is bound to adt->slot_handle. This assumption will break when we
@@ -1438,7 +1426,7 @@ void grease_pencil_data_block_to_keylist(AnimData *adt,
     return;
   }
 
-  for (const blender::bke::greasepencil::Layer *layer : grease_pencil->layers()) {
+  for (const bke::greasepencil::Layer *layer : grease_pencil->layers()) {
     grease_pencil_cels_to_keylist(adt, layer, keylist, saction_flag);
   }
 }
@@ -1471,7 +1459,7 @@ void grease_pencil_layer_group_to_keylist(AnimData *adt,
   }
 
   for (const GreasePencilLayerTreeNode &node_ : layer_group->children.items_reversed()) {
-    const blender::bke::greasepencil::TreeNode &node = node_.wrap();
+    const bke::greasepencil::TreeNode &node = node_.wrap();
     if (node.is_group()) {
       grease_pencil_layer_group_to_keylist(adt, &node.as_group(), keylist, saction_flag);
     }
@@ -1512,15 +1500,17 @@ void mask_to_keylist(bDopeSheet * /*ads*/, MaskLayer *masklay, AnimKeylist *keyl
 
 void sequencer_strip_to_keylist(const Strip &strip, AnimKeylist &keylist, Scene &scene)
 {
-  if (!blender::seq::retiming_is_active(&strip)) {
+  if (!seq::retiming_is_active(&strip)) {
     return;
   }
   keylist_reset_last_accessed(&keylist);
-  for (const SeqRetimingKey &retime_key : blender::seq::retiming_keys_get(&strip)) {
-    const float cfra = blender::seq::retiming_key_timeline_frame_get(&scene, &strip, &retime_key);
+  for (const SeqRetimingKey &retime_key : seq::retiming_keys_get(&strip)) {
+    const float cfra = seq::retiming_key_timeline_frame_get(&scene, &strip, &retime_key);
     SeqAllocateData allocate_data = {&retime_key, cfra};
     keylist_add_or_update_column(
         &keylist, cfra, nalloc_ak_seqframe, nupdate_ak_seqframe, &allocate_data);
   }
   update_keyblocks(&keylist, nullptr, 0);
 }
+
+}  // namespace blender

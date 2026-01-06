@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /*
  * Declaration of static functions
  */
@@ -1802,3 +1804,5 @@ static int convertRGBAToLogElement(const float *src,
 
   return rvalue;
 }
+
+}  // namespace blender

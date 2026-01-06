@@ -30,7 +30,9 @@
 #undef GPU_SHADER_INTERFACE_END
 #undef GPU_SHADER_CREATE_END
 
-namespace blender::gpu::shader {
+namespace blender {
+
+namespace gpu::shader {
 
 using CreateInfoDictionary = Map<StringRef, ShaderCreateInfo *>;
 using InterfaceDictionary = Map<StringRef, StageInterfaceInfo *>;
@@ -552,7 +554,7 @@ void ShaderCreateInfo::validate_vertex_attributes(const ShaderCreateInfo *other_
   }
 }
 
-}  // namespace blender::gpu::shader
+}  // namespace gpu::shader
 
 using namespace blender::gpu::shader;
 
@@ -621,7 +623,7 @@ void gpu_shader_create_info_init()
     }
 
 #if GPU_SHADER_PRINTF_ENABLE
-    const bool is_material_shader = blender::StringRefNull(info->name_).startswith("eevee_surf_");
+    const bool is_material_shader = StringRefNull(info->name_).startswith("eevee_surf_");
     if (flag_is_set(info->builtins_, BuiltinBits::USE_PRINTF) ||
         (gpu_shader_dependency_force_gpu_print_injection() && is_material_shader))
     {
@@ -663,7 +665,6 @@ void gpu_shader_create_info_exit()
 
 bool gpu_shader_create_info_compile_all(const char *name_starts_with_filter)
 {
-  using namespace blender;
   using namespace blender::gpu;
   int success = 0;
   int skipped_filter = 0;
@@ -697,7 +698,7 @@ bool gpu_shader_create_info_compile_all(const char *name_starts_with_filter)
   GPU_shader_compiler_wait_for_all();
 
   for (AsyncCompilationHandle handle : handles) {
-    if (blender::gpu::Shader *result = GPU_shader_async_compilation_finalize(handle)) {
+    if (gpu::Shader *result = GPU_shader_async_compilation_finalize(handle)) {
       success++;
 #if 0 /* TODO(fclem): This is too verbose for now. Make it a cmake option. */
         /* Test if any resource is optimized out and print a warning if that's the case. */
@@ -763,3 +764,5 @@ const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
   ShaderCreateInfo *info = g_create_infos->lookup(info_name);
   return reinterpret_cast<const GPUShaderCreateInfo *>(info);
 }
+
+}  // namespace blender

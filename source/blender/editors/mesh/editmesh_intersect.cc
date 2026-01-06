@@ -39,10 +39,10 @@
 #include "tools/bmesh_intersect.hh"
 #include "tools/bmesh_separate.hh"
 
+namespace blender {
+
 /* detect isolated holes and fill them */
 #define USE_NET_ISLAND_CONNECT
-
-using blender::Vector;
 
 /**
  * Compare selected with itself.
@@ -228,7 +228,7 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
           em->bm, BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
     }
 
-    edbm_intersect_select(em, blender::id_cast<Mesh *>(obedit->data), has_isect);
+    edbm_intersect_select(em, id_cast<Mesh *>(obedit->data), has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -243,21 +243,21 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
 
 static void edbm_intersect_ui(bContext * /*C*/, wmOperator *op)
 {
-  blender::ui::Layout &layout = *op->layout;
+  ui::Layout &layout = *op->layout;
 
   bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
-  blender::ui::Layout *row = &layout.row(false);
-  row->prop(op->ptr, "mode", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  ui::Layout *row = &layout.row(false);
+  row->prop(op->ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
   row = &layout.row(false);
-  row->prop(op->ptr, "separate_mode", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "separate_mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
 
   row = &layout.row(false);
-  row->prop(op->ptr, "solver", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "solver", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
 
   if (!use_exact) {
@@ -387,7 +387,7 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
                                     eps);
     }
 
-    edbm_intersect_select(em, blender::id_cast<Mesh *>(obedit->data), has_isect);
+    edbm_intersect_select(em, id_cast<Mesh *>(obedit->data), has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -402,19 +402,19 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 
 static void edbm_intersect_boolean_ui(bContext * /*C*/, wmOperator *op)
 {
-  blender::ui::Layout &layout = *op->layout;
+  ui::Layout &layout = *op->layout;
 
   bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  blender::ui::Layout &operation_row = layout.row(false);
-  operation_row.prop(op->ptr, "operation", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  ui::Layout &operation_row = layout.row(false);
+  operation_row.prop(op->ptr, "operation", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
 
-  blender::ui::Layout &solver_row = layout.row(false);
-  solver_row.prop(op->ptr, "solver", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  ui::Layout &solver_row = layout.row(false);
+  solver_row.prop(op->ptr, "solver", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
 
   layout.prop(op->ptr, "use_swap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -576,7 +576,7 @@ struct LinkBase {
   uint list_len;
 };
 
-static void ghash_insert_face_edge_link(blender::Map<BMFace *, LinkBase *> &gh,
+static void ghash_insert_face_edge_link(Map<BMFace *, LinkBase *> &gh,
                                         BMFace *f_key,
                                         BMEdge *e_val,
                                         MemArena *mem_arena)
@@ -945,13 +945,13 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
 
 #ifdef USE_NET_ISLAND_CONNECT
     /* we may have remaining isolated regions remaining,
      * these will need to have connecting edges created */
     if (!BLI_stack_is_empty(edges_loose)) {
-      blender::Map<BMFace *, LinkBase *> face_edge_map;
+      Map<BMFace *, LinkBase *> face_edge_map;
 
       MemArena *mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
@@ -1047,7 +1047,7 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       params.calc_looptris = true;
       params.calc_normals = true;
       params.is_destructive = true;
-      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(id_cast<Mesh *>(obedit->data), &params);
     }
 
     BLI_stack_free(edges_loose);
@@ -1072,3 +1072,5 @@ void MESH_OT_face_split_by_edges(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -42,6 +42,8 @@
 #include "DNA_listBase.h"
 #include "DNA_userdef_enums.h"
 
+namespace blender {
+
 struct BlendWriter;
 struct Depsgraph;
 struct GHash;
@@ -53,7 +55,7 @@ struct PointerRNA;
 struct PropertyRNA;
 struct bContext;
 
-namespace blender::bke::id {
+namespace bke::id {
 
 /** Status used and counters created during id-remapping. */
 struct ID_Runtime_Remap {
@@ -91,7 +93,7 @@ struct ID_Runtime {
   ID_Readfile_Data *readfile_data = nullptr;
 };
 
-}  // namespace blender::bke::id
+}  // namespace bke::id
 
 /**
  * Get allocation size of a given data-block type and optionally allocation `r_name`.
@@ -420,7 +422,7 @@ struct IDNewNameResult {
  */
 IDNewNameResult BKE_libblock_rename(Main &bmain,
                                     ID &id,
-                                    blender::StringRefNull name,
+                                    StringRefNull name,
                                     const IDNewNameMode mode = IDNewNameMode::RenameExistingNever);
 
 /**
@@ -431,7 +433,7 @@ IDNewNameResult BKE_libblock_rename(Main &bmain,
  */
 IDNewNameResult BKE_id_rename(Main &bmain,
                               ID &id,
-                              blender::StringRefNull name,
+                              StringRefNull name,
                               const IDNewNameMode mode = IDNewNameMode::RenameExistingNever);
 
 /**
@@ -618,7 +620,7 @@ size_t BKE_id_multi_tagged_delete(Main *bmain) ATTR_NONNULL();
  *
  * \return Number of deleted data-blocks.
  */
-size_t BKE_id_multi_delete(Main *bmain, blender::Set<ID *> &ids_to_delete);
+size_t BKE_id_multi_delete(Main *bmain, Set<ID *> &ids_to_delete);
 
 /**
  * Add a 'NO_MAIN' data-block to given main (also sets user-counts of its IDs if needed).
@@ -1028,7 +1030,7 @@ bool BKE_id_can_use_id(const ID &id_from, const ID &id_to);
 /**
  * Returns ordered list of data-blocks for display in the UI.
  */
-blender::Vector<ID *> BKE_id_ordered_list(const ListBaseT<ID> *lb);
+Vector<ID *> BKE_id_ordered_list(const ListBaseT<ID> *lb);
 /**
  * Reorder ID in the list, before or after the "relative" ID.
  */
@@ -1046,3 +1048,5 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id);
  * \note Keep in sync with #ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW.
  */
 void BKE_id_eval_properties_copy(ID *id_cow, ID *id);
+
+}  // namespace blender

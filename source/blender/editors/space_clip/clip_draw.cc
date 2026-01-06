@@ -50,6 +50,8 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 /*********************** main area drawing *************************/
 
 static void draw_keyframe(int frame, int cfra, int sfra, float framelen, int width, uint pos)
@@ -145,8 +147,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
   BKE_movieclip_get_cache_segments(clip, &sc->user, &totseg, &points);
   ED_region_cache_draw_cached_segments(region, totseg, points, sfra, efra);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* track */
@@ -243,8 +244,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
   ED_region_cache_draw_curfra_label(
       sc->user.framenr, x + roundf(framelen / 2), 8.0f * UI_SCALE_FAC);
 
-  pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* solver keyframes */
@@ -289,12 +289,11 @@ static void draw_movieclip_muted(ARegion *region, int width, int height, float z
 {
   int x, y;
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* find window pixel coordinates of origin */
-  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+  ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   immUniformColor3f(0.0f, 0.0f, 0.0f);
   immRectf(pos, x, y, x + zoomx * width, y + zoomy * height);
@@ -316,7 +315,7 @@ static void draw_movieclip_buffer(const bContext *C,
   int x, y;
 
   /* find window pixel coordinates of origin */
-  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+  ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   /* checkerboard for case alpha */
   if (ibuf->planes == 32) {
@@ -353,12 +352,12 @@ static void draw_stabilization_border(
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
   /* find window pixel coordinates of origin */
-  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+  ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   /* draw boundary border for frame if stabilization is enabled */
   if (sc->flag & SC_SHOW_STABLE && clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
     const uint shdr_pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     /* Exclusive OR allows to get orig value when second operand is 0,
      * and negative of orig value when second operand is 1. */
@@ -528,7 +527,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip * /*clip*/, MovieTrackingTr
   const int path_center_index = count;
 
   const uint position_attribute = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   /* Draw path outline. */
   if (!tiny) {
@@ -682,7 +681,7 @@ static void track_colors(const MovieTrackingTrack *track, int act, float r_col[3
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     if (act) {
-      blender::ui::theme::get_color_3fv(TH_ACT_MARKER, r_scol);
+      ui::theme::get_color_3fv(TH_ACT_MARKER, r_scol);
     }
     else {
       copy_v3_v3(r_scol, track->color);
@@ -691,13 +690,13 @@ static void track_colors(const MovieTrackingTrack *track, int act, float r_col[3
     mul_v3_v3fl(r_col, track->color, 0.5f);
   }
   else {
-    blender::ui::theme::get_color_3fv(TH_MARKER, r_col);
+    ui::theme::get_color_3fv(TH_MARKER, r_col);
 
     if (act) {
-      blender::ui::theme::get_color_3fv(TH_ACT_MARKER, r_scol);
+      ui::theme::get_color_3fv(TH_ACT_MARKER, r_scol);
     }
     else {
-      blender::ui::theme::get_color_3fv(TH_SEL_MARKER, r_scol);
+      ui::theme::get_color_3fv(TH_SEL_MARKER, r_scol);
     }
   }
 }
@@ -749,7 +748,7 @@ static void draw_marker_areas(SpaceClip *sc,
   int tiny = sc->flag & SC_SHOW_TINY_MARKER;
   bool show_search = false;
   float col[3], scol[3];
-  blender::float4 color;
+  float4 color;
   float px[2];
 
   track_colors(track, act, col, scol);
@@ -766,21 +765,21 @@ static void draw_marker_areas(SpaceClip *sc,
 
     if (track->flag & TRACK_LOCKED) {
       if (act) {
-        blender::ui::theme::get_color_4fv(TH_ACT_MARKER, color);
+        ui::theme::get_color_4fv(TH_ACT_MARKER, color);
       }
       else if (track->flag & SELECT) {
-        blender::ui::theme::get_color_shade_4fv(TH_LOCK_MARKER, 64, color);
+        ui::theme::get_color_shade_4fv(TH_LOCK_MARKER, 64, color);
       }
       else {
-        blender::ui::theme::get_color_4fv(TH_LOCK_MARKER, color);
+        ui::theme::get_color_4fv(TH_LOCK_MARKER, color);
       }
     }
     else {
       if (bool(track->flag & SELECT)) {
-        color = blender::float4(blender::float3(scol), 1.0);
+        color = float4(float3(scol), 1.0);
       }
       else {
-        color = blender::float4(blender::float3(col), 1.0);
+        color = float4(float3(col), 1.0);
       }
     }
 
@@ -886,7 +885,7 @@ static void draw_marker_areas(SpaceClip *sc,
 
   immUnbindProgram();
   const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   BLI_assert(pos == shdr_pos);
   UNUSED_VARS_NDEBUG(pos);
 }
@@ -1065,16 +1064,16 @@ static void draw_marker_texts(SpaceClip *sc,
 
   if (marker->flag & MARKER_DISABLED) {
     if (act) {
-      blender::ui::theme::font_theme_color_set(fontid, TH_ACT_MARKER);
+      ui::theme::font_theme_color_set(fontid, TH_ACT_MARKER);
     }
     else {
       uchar color[4];
-      blender::ui::theme::get_color_shade_4ubv(TH_DIS_MARKER, 128, color);
+      ui::theme::get_color_shade_4ubv(TH_DIS_MARKER, 128, color);
       BLF_color4ubv(fontid, color);
     }
   }
   else {
-    blender::ui::theme::font_theme_color_set(fontid, act ? TH_ACT_MARKER : TH_SEL_MARKER);
+    ui::theme::font_theme_color_set(fontid, act ? TH_ACT_MARKER : TH_SEL_MARKER);
   }
 
   if ((sc->flag & SC_SHOW_MARKER_SEARCH) &&
@@ -1139,9 +1138,9 @@ static void draw_marker_texts(SpaceClip *sc,
 
 static void plane_track_colors(bool is_active, float r_color[3], float r_selected_color[3])
 {
-  blender::ui::theme::get_color_3fv(TH_MARKER, r_color);
+  ui::theme::get_color_3fv(TH_MARKER, r_color);
 
-  blender::ui::theme::get_color_3fv(is_active ? TH_ACT_MARKER : TH_SEL_MARKER, r_selected_color);
+  ui::theme::get_color_3fv(is_active ? TH_ACT_MARKER : TH_SEL_MARKER, r_selected_color);
 }
 
 static void getArrowEndPoint(const int width,
@@ -1223,14 +1222,13 @@ static void draw_plane_marker_image(Scene *scene,
         GPU_blend(GPU_BLEND_ALPHA);
       }
 
-      blender::gpu::Texture *texture = GPU_texture_create_2d(
-          "plane_marker_image",
-          ibuf->x,
-          ibuf->y,
-          1,
-          blender::gpu::TextureFormat::UNORM_8_8_8_8,
-          GPU_TEXTURE_USAGE_SHADER_READ,
-          nullptr);
+      gpu::Texture *texture = GPU_texture_create_2d("plane_marker_image",
+                                                    ibuf->x,
+                                                    ibuf->y,
+                                                    1,
+                                                    gpu::TextureFormat::UNORM_8_8_8_8,
+                                                    GPU_TEXTURE_USAGE_SHADER_READ,
+                                                    nullptr);
       GPU_texture_update(texture, GPU_DATA_UBYTE, display_buffer);
       GPU_texture_filter_mode(texture, false);
 
@@ -1238,10 +1236,9 @@ static void draw_plane_marker_image(Scene *scene,
       GPU_matrix_mul(gl_matrix);
 
       GPUVertFormat *imm_format = immVertexFormat();
-      uint pos = GPU_vertformat_attr_add(
-          imm_format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+      uint pos = GPU_vertformat_attr_add(imm_format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
       uint texCoord = GPU_vertformat_attr_add(
-          imm_format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
+          imm_format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
 
       /* Use 3D image for correct display of planar tracked images. */
       immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
@@ -1310,7 +1307,7 @@ static void draw_plane_marker_ex(SpaceClip *sc,
 
   if (draw_plane_quad || is_selected_track) {
     const uint shdr_pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -1475,12 +1472,12 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
   /* ** find window pixel coordinates of origin ** */
 
-  /* #blender::ui::view2d_view_to_region_no_clip return integer values, this could
+  /* #ui::view2d_view_to_region_no_clip return integer values, this could
    * lead to 1px flickering when view is locked to selection during playback.
    * to avoid this flickering, calculate base point in the same way as it happens
-   * in #blender::ui::view2d_view_to_region_no_clip, but do it in floats here. */
+   * in #ui::view2d_view_to_region_no_clip, but do it in floats here. */
 
-  blender::ui::view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
+  ui::view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(x, y);
@@ -1548,7 +1545,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
   }
 
   const uint position = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   /* markers outline and non-selected areas */
   fp = marker_pos;
@@ -1642,8 +1639,8 @@ static void draw_tracking_tracks(SpaceClip *sc,
           sub_v2_v2(vec, npos);
 
           immUniformColor4fv((len_squared_v2(vec) < (3.0f * 3.0f)) ?
-                                 blender::float4(0.0f, 1.0f, 0.0f, 1.0f) :
-                                 blender::float4(1.0f, 0.0f, 0.0f, 1.0f));
+                                 float4(0.0f, 1.0f, 0.0f, 1.0f) :
+                                 float4(1.0f, 0.0f, 0.0f, 1.0f));
 
           immBegin(GPU_PRIM_POINTS, 1);
 
@@ -1719,7 +1716,7 @@ static void draw_distortion(SpaceClip *sc,
     return;
   }
 
-  blender::ui::view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
+  ui::view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(x, y);
@@ -1728,7 +1725,7 @@ static void draw_distortion(SpaceClip *sc,
   GPU_matrix_scale_2f(width, height);
 
   uint position = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -2022,3 +2019,5 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
     ED_annotation_draw_view2d(C, false);
   }
 }
+
+}  // namespace blender

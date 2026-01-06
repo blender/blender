@@ -42,28 +42,30 @@
 
 #include "RNA_enum_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
-    {int(blender::bke::GeometryComponent::Type::Mesh),
+    {int(bke::GeometryComponent::Type::Mesh),
      "MESH",
      ICON_MESH_DATA,
      "Mesh",
      "Mesh component containing point, corner, edge and face data"},
-    {int(blender::bke::GeometryComponent::Type::PointCloud),
+    {int(bke::GeometryComponent::Type::PointCloud),
      "POINTCLOUD",
      ICON_POINTCLOUD_DATA,
      "Point Cloud",
      "Point cloud component containing only point data"},
-    {int(blender::bke::GeometryComponent::Type::Curve),
+    {int(bke::GeometryComponent::Type::Curve),
      "CURVE",
      ICON_CURVE_DATA,
      "Curve",
      "Curve component containing spline and control point data"},
-    {int(blender::bke::GeometryComponent::Type::Instance),
+    {int(bke::GeometryComponent::Type::Instance),
      "INSTANCES",
      ICON_EMPTY_AXIS,
      "Instances",
      "Instances of objects or collections"},
-    {int(blender::bke::GeometryComponent::Type::GreasePencil),
+    {int(bke::GeometryComponent::Type::GreasePencil),
      "GREASEPENCIL",
      ICON_GREASEPENCIL,
      "Grease Pencil",
@@ -624,6 +626,8 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
@@ -695,6 +699,8 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 #  include "SEQ_relations.hh"
 
 #  include "RE_engine.h"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Private Utilities
@@ -778,7 +784,7 @@ static void area_region_from_regiondata(bScreen *screen,
 
 static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **r_area, ARegion **r_region)
 {
-  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+  bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
   void *regiondata = (ptr->data);
 
   area_region_from_regiondata(screen, regiondata, r_area, r_region);
@@ -851,7 +857,7 @@ static void rna_Space_bool_from_region_flag_update_by_type(bContext *C,
         ED_region_toggle_hidden(C, region);
 
         if ((region->flag & RGN_FLAG_HIDDEN_BY_USER) == 0) {
-          blender::ui::ED_area_type_hud_ensure(C, area);
+          ui::ED_area_type_hud_ensure(C, area);
         }
       }
     }
@@ -1080,7 +1086,7 @@ static void rna_Space_view2d_sync_set(PointerRNA *ptr, bool value)
     return;
   }
 
-  if (!blender::ui::view2d_area_supports_sync(area)) {
+  if (!ui::view2d_area_supports_sync(area)) {
     BKE_reportf(nullptr,
                 RPT_ERROR,
                 "'show_locked_time' is not supported for the '%s' editor",
@@ -1123,10 +1129,10 @@ static void rna_Space_view2d_sync_update(Main * /*bmain*/, Scene * /*scene*/, Po
   }
 
   if (region) {
-    bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+    bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
     View2D *v2d = &region->v2d;
 
-    blender::ui::view2d_sync(screen, area, v2d, V2D_LOCK_SET);
+    ui::view2d_sync(screen, area, v2d, V2D_LOCK_SET);
   }
 }
 
@@ -1145,7 +1151,7 @@ static void rna_SpaceView3D_camera_update(Main *bmain, Scene *scene, PointerRNA 
 static void rna_SpaceView3D_use_local_camera_set(PointerRNA *ptr, bool value)
 {
   View3D *v3d = static_cast<View3D *>(ptr->data);
-  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+  bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
 
   v3d->scenelock = !value;
 
@@ -1163,7 +1169,7 @@ static void rna_SpaceView3D_use_local_camera_set(PointerRNA *ptr, bool value)
 static float rna_View3DOverlay_GridScaleUnit_get(PointerRNA *ptr)
 {
   View3D *v3d = static_cast<View3D *>(ptr->data);
-  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+  bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
   Scene *scene = ED_screen_scene_find(screen, static_cast<wmWindowManager *>(G_MAIN->wm.first));
   if (scene != nullptr) {
     return ED_view3d_grid_scale(scene, v3d, nullptr);
@@ -1388,7 +1394,7 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
     }
   }
 
-  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+  bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
   for (ScrArea &area : screen->areabase) {
     for (SpaceLink &sl : area.spacedata) {
       if (sl.spacetype == SPACE_VIEW3D) {
@@ -1407,14 +1413,14 @@ static Scene *rna_3DViewShading_scene(PointerRNA *ptr)
   /* Get scene, depends if using 3D view or OpenGL render settings. */
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_SCE) {
-    return blender::id_cast<Scene *>(id);
+    return id_cast<Scene *>(id);
   }
   else if (GS(id->name) == ID_WM) {
     /* For XR shading settings. */
     return nullptr;
   }
   else {
-    bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+    bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
     return WM_windows_scene_get_from_screen(static_cast<wmWindowManager *>(G_MAIN->wm.first),
                                             screen);
   }
@@ -1432,7 +1438,7 @@ static ViewLayer *rna_3DViewShading_view_layer(PointerRNA *ptr)
     return nullptr;
   }
   else {
-    bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+    bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
     return WM_windows_view_layer_get_from_screen(static_cast<wmWindowManager *>(G_MAIN->wm.first),
                                                  screen);
   }
@@ -1921,7 +1927,7 @@ static bool rna_SpaceImageEditor_show_paint_get(PointerRNA *ptr)
 static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
 {
   SpaceImage *sima = static_cast<SpaceImage *>(ptr->data);
-  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+  bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
   Object *obedit = nullptr;
   wmWindow *win = ED_screen_window_find(screen, static_cast<wmWindowManager *>(G_MAIN->wm.first));
   if (win != nullptr) {
@@ -1936,7 +1942,7 @@ static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
 static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
 {
   SpaceImage *sima = static_cast<SpaceImage *>(ptr->data);
-  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+  bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
   Object *obedit = nullptr;
   wmWindow *win = ED_screen_window_find(screen, static_cast<wmWindowManager *>(G_MAIN->wm.first));
   if (win != nullptr) {
@@ -2268,7 +2274,7 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext * /*C*
 
   /* Although it would never reach this amount, a theoretical maximum number of tabs
    * is BCONTEXT_TOT * 2, with every tab displayed and a spacer in every other item. */
-  const blender::Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
+  const Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
 
   int totitem_added = 0;
   bool add_separator = true;
@@ -2312,7 +2318,7 @@ static int rna_SpaceProperties_tab_search_results_getlength(const PointerRNA *pt
 {
   SpaceProperties *sbuts = static_cast<SpaceProperties *>(ptr->data);
 
-  const blender::Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
+  const Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
 
   length[0] = context_tabs_array.size();
 
@@ -2323,7 +2329,7 @@ static void rna_SpaceProperties_tab_search_results_get(PointerRNA *ptr, bool *va
 {
   SpaceProperties *sbuts = static_cast<SpaceProperties *>(ptr->data);
 
-  const blender::Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
+  const Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
 
   for (const int i : context_tabs_array.index_range()) {
     values[i] = ED_buttons_tab_has_search_result(sbuts, i);
@@ -2477,7 +2483,7 @@ static void rna_SpaceConsole_rect_update(Main * /*bmain*/, Scene * /*scene*/, Po
 
 static void rna_SequenceEditor_update_cache(Main * /*bmain*/, Scene *scene, PointerRNA * /*ptr*/)
 {
-  blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::FinalAndIntra);
+  seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
 }
 
 static void seq_build_proxy(bContext *C, PointerRNA *ptr)
@@ -2488,11 +2494,11 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 
   SpaceSeq *sseq = static_cast<SpaceSeq *>(ptr->data);
   Scene *scene = CTX_data_sequencer_scene(C);
-  ListBaseT<Strip> *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
 
-  blender::Set<std::string> processed_paths;
-  wmJob *wm_job = blender::seq::ED_seq_proxy_wm_job_get(C);
-  blender::seq::ProxyJob *pj = blender::seq::ED_seq_proxy_job_get(C, wm_job);
+  Set<std::string> processed_paths;
+  wmJob *wm_job = seq::ED_seq_proxy_wm_job_get(C);
+  seq::ProxyJob *pj = seq::ED_seq_proxy_job_get(C, wm_job);
 
   for (Strip &strip : *seqbase) {
     if (strip.type != STRIP_TYPE_MOVIE || strip.data == nullptr || strip.data->proxy == nullptr) {
@@ -2500,11 +2506,11 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
     }
 
     /* Add new proxy size. */
-    strip.data->proxy->build_size_flags |= blender::seq::rendersize_to_proxysize(
+    strip.data->proxy->build_size_flags |= seq::rendersize_to_proxysize(
         eSpaceSeq_Proxy_RenderSize(sseq->render_size));
 
     /* Build proxy. */
-    blender::seq::proxy_rebuild_context(
+    seq::proxy_rebuild_context(
         pj->main, pj->depsgraph, pj->scene, &strip, &processed_paths, &pj->queue, true);
   }
 
@@ -2733,7 +2739,7 @@ static bool rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, const PointerRNA
 
 static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA * /*ptr*/)
 {
-  blender::ed::space_node::tree_update(C);
+  ed::space_node::tree_update(C);
 }
 
 static const EnumPropertyItem *rna_SpaceNodeEditor_node_tree_sub_type_itemf(
@@ -2806,7 +2812,7 @@ static void rna_SpaceNodeEditor_tree_type_set(PointerRNA *ptr, int value)
   SpaceNode *snode = static_cast<SpaceNode *>(ptr->data);
   ED_node_set_tree_type(snode, rna_node_tree_type_from_enum(value));
 }
-static bool rna_SpaceNodeEditor_tree_type_poll(void *Cv, blender::bke::bNodeTreeType *type)
+static bool rna_SpaceNodeEditor_tree_type_poll(void *Cv, bke::bNodeTreeType *type)
 {
   bContext *C = static_cast<bContext *>(Cv);
   if (type->poll) {
@@ -2859,7 +2865,7 @@ static int rna_SpaceNodeEditor_path_length(PointerRNA *ptr)
 static void rna_SpaceNodeEditor_path_clear(SpaceNode *snode, bContext *C)
 {
   ED_node_tree_start(nullptr, snode, nullptr, nullptr, nullptr);
-  blender::ed::space_node::tree_update(C);
+  ed::space_node::tree_update(C);
 }
 
 static ARegion *find_snode_region(SpaceNode *snode, bContext *C)
@@ -2881,7 +2887,7 @@ static void rna_SpaceNodeEditor_path_start(SpaceNode *snode, bContext *C, Pointe
 {
   ARegion *region = find_snode_region(snode, C);
   ED_node_tree_start(region, snode, static_cast<bNodeTree *>(node_tree->data), nullptr, nullptr);
-  blender::ed::space_node::tree_update(C);
+  ed::space_node::tree_update(C);
 }
 
 static void rna_SpaceNodeEditor_path_append(SpaceNode *snode,
@@ -2892,14 +2898,14 @@ static void rna_SpaceNodeEditor_path_append(SpaceNode *snode,
   ARegion *region = find_snode_region(snode, C);
   ED_node_tree_push(
       region, snode, static_cast<bNodeTree *>(node_tree->data), static_cast<bNode *>(node->data));
-  blender::ed::space_node::tree_update(C);
+  ed::space_node::tree_update(C);
 }
 
 static void rna_SpaceNodeEditor_path_pop(SpaceNode *snode, bContext *C)
 {
   ARegion *region = find_snode_region(snode, C);
   ED_node_tree_pop(region, snode);
-  blender::ed::space_node::tree_update(C);
+  ed::space_node::tree_update(C);
 }
 
 static void rna_SpaceNodeEditor_show_backdrop_update(Main * /*bmain*/,
@@ -2919,7 +2925,7 @@ static void rna_SpaceNodeEditor_cursor_location_from_region(SpaceNode *snode,
 
   float cursor_location[2];
 
-  blender::ui::view2d_region_to_view(&region->v2d, x, y, &cursor_location[0], &cursor_location[1]);
+  ui::view2d_region_to_view(&region->v2d, x, y, &cursor_location[0], &cursor_location[1]);
   cursor_location[0] /= UI_SCALE_FAC;
   cursor_location[1] /= UI_SCALE_FAC;
 
@@ -2931,7 +2937,7 @@ static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr,
                                          ReportList * /*reports*/)
 {
   SpaceClip *sc = static_cast<SpaceClip *>(ptr->data);
-  bScreen *screen = blender::id_cast<bScreen *>(ptr->owner_id);
+  bScreen *screen = id_cast<bScreen *>(ptr->owner_id);
 
   ED_space_clip_set_clip(nullptr, screen, sc, static_cast<MovieClip *>(value.data));
 }
@@ -3147,13 +3153,13 @@ static int rna_FileAssetSelectParams_asset_library_get(PointerRNA *ptr)
   /* Just an extra sanity check to ensure this isn't somehow called for RNA_FileSelectParams. */
   BLI_assert(ptr->type == &RNA_FileAssetSelectParams);
 
-  return blender::ed::asset::library_reference_to_enum_value(&params->asset_library_ref);
+  return ed::asset::library_reference_to_enum_value(&params->asset_library_ref);
 }
 
 static void rna_FileAssetSelectParams_asset_library_set(PointerRNA *ptr, int value)
 {
   FileAssetSelectParams *params = static_cast<FileAssetSelectParams *>(ptr->data);
-  params->asset_library_ref = blender::ed::asset::library_reference_from_enum_value(value);
+  params->asset_library_ref = ed::asset::library_reference_from_enum_value(value);
 }
 
 static PointerRNA rna_FileAssetSelectParams_filter_id_get(PointerRNA *ptr)
@@ -3579,7 +3585,6 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main * /*bmain*/
                                                                 Scene * /*scene*/,
                                                                 PointerRNA *ptr)
 {
-  using namespace blender;
   SpaceSpreadsheet *sspreadsheet = static_cast<SpaceSpreadsheet *>(ptr->data);
   switch (sspreadsheet->geometry_id.geometry_component_type) {
     case int(bke::GeometryComponent::Type::Mesh): {
@@ -3621,7 +3626,6 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
                                                                     PropertyRNA * /*prop*/,
                                                                     bool *r_free)
 {
-  using namespace blender;
   SpaceSpreadsheet *sspreadsheet = static_cast<SpaceSpreadsheet *>(ptr->data);
   auto component_type = bke::GeometryComponent::Type(
       sspreadsheet->geometry_id.geometry_component_type);
@@ -3629,7 +3633,7 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
     ID *used_id = ed::spreadsheet::get_current_id(sspreadsheet);
     if (used_id != nullptr) {
       if (GS(used_id->name) == ID_OB) {
-        Object *used_object = blender::id_cast<Object *>(used_id);
+        Object *used_object = id_cast<Object *>(used_id);
         if (used_object->type == OB_POINTCLOUD) {
           component_type = bke::GeometryComponent::Type::PointCloud;
         }
@@ -3729,7 +3733,7 @@ static int rna_iterator_SpaceSpreadsheet_tables_length(PointerRNA *ptr)
 static PointerRNA rna_SpreadsheetTables_active_get(PointerRNA *ptr)
 {
   SpaceSpreadsheet *sspreadsheet = ptr->data_as<SpaceSpreadsheet>();
-  SpreadsheetTable *table = blender::ed::spreadsheet::get_active_table(*sspreadsheet);
+  SpreadsheetTable *table = ed::spreadsheet::get_active_table(*sspreadsheet);
   return RNA_pointer_create_discrete(ptr->owner_id, &RNA_SpreadsheetTable, table);
 }
 
@@ -3820,7 +3824,11 @@ static const EnumPropertyItem *rna_FileAssetSelectParams_import_method_itemf(
   return items;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static const EnumPropertyItem dt_uv_items[] = {
     {SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Display white edges with black outline"},
@@ -5921,7 +5929,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 static void rna_def_space_properties_filter(StructRNA *srna)
 {
   /* Order must follow `buttons_context_items`. */
-  constexpr std::array<blender::StringRefNull, BCONTEXT_TOT> filter_items = {
+  constexpr std::array<StringRefNull, BCONTEXT_TOT> filter_items = {
       "show_properties_tool",
       "show_properties_scene",
       "show_properties_render",
@@ -5944,10 +5952,10 @@ static void rna_def_space_properties_filter(StructRNA *srna)
       "show_properties_strip_modifier",
   };
 
-  for (const int i : blender::IndexRange(BCONTEXT_TOT)) {
+  for (const int i : IndexRange(BCONTEXT_TOT)) {
     EnumPropertyItem item = buttons_context_items[i];
     const int value = (1 << item.value);
-    blender::StringRefNull prop_name = filter_items[i];
+    StringRefNull prop_name = filter_items[i];
 
     PropertyRNA *prop = RNA_def_property(srna, prop_name.c_str(), PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, nullptr, "visible_tabs", value);
@@ -6573,7 +6581,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       "Display Channel",
       "Preview all channels less than or equal to this value. 0 shows every channel, and negative "
       "values climb that many meta-strip levels if applicable, showing every channel there.");
-  RNA_def_property_range(prop, -5, blender::seq::MAX_CHANNELS);
+  RNA_def_property_range(prop, -5, seq::MAX_CHANNELS);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "preview_channels", PROP_ENUM, PROP_NONE);
@@ -9203,5 +9211,7 @@ void RNA_def_space(BlenderRNA *brna)
   rna_def_space_clip(brna);
   rna_def_space_spreadsheet(brna);
 }
+
+}  // namespace blender
 
 #endif

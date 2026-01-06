@@ -18,6 +18,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 bool BLI_memory_is_zero(const void *arr, const size_t arr_size)
 {
   const char *arr_byte = static_cast<const char *>(arr);
@@ -29,3 +31,5 @@ bool BLI_memory_is_zero(const void *arr, const size_t arr_size)
 
   return (arr_byte == arr_end);
 }
+
+}  // namespace blender

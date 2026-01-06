@@ -48,10 +48,10 @@
 #include "intern/depsgraph_tag.hh"
 #include "intern/depsgraph_type.hh"
 
+namespace blender {
+
 /* ****************** */
 /* External Build API */
-
-namespace deg = blender::deg;
 
 static deg::NodeType deg_build_scene_component_type(eDepsSceneComponentType component)
 {
@@ -286,7 +286,7 @@ void DEG_graph_build_for_compositor_preview(Depsgraph *graph, bNodeTree *nodetre
   builder.build();
 }
 
-void DEG_graph_build_from_ids(Depsgraph *graph, blender::Span<ID *> ids)
+void DEG_graph_build_from_ids(Depsgraph *graph, Span<ID *> ids)
 {
   deg::FromIDsBuilderPipeline builder(graph, ids);
   builder.build();
@@ -336,3 +336,5 @@ void DEG_relations_tag_update(Main *bmain)
     DEG_graph_tag_relations_update(reinterpret_cast<Depsgraph *>(depsgraph));
   }
 }
+
+}  // namespace blender

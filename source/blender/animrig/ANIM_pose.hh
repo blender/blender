@@ -13,11 +13,13 @@
 #include "ANIM_action.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct AnimationEvalContext;
 struct Object;
 struct bAction;
 
-namespace blender::animrig {
+namespace animrig {
 
 /**
  * Evaluate the action and apply it to the pose. Ignore selection state of the bones.
@@ -67,4 +69,5 @@ bool any_bone_selected(Span<const Object *> objects);
  * Assumes that the Action has at least one Slot.
  */
 Slot &get_best_pose_slot_for_id(const ID &id, Action &pose_data);
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

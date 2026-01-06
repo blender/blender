@@ -24,6 +24,8 @@
 #include "BKE_displist.h"
 #include "BKE_object_types.hh"
 
+namespace blender {
+
 enum CurveBevelFillType {
   BACK = 0,
   FRONT,
@@ -233,7 +235,7 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBaseT<DispList> *d
     return;
   }
 
-  Curve *bevcu = blender::id_cast<Curve *>(cu->bevobj->data);
+  Curve *bevcu = id_cast<Curve *>(cu->bevobj->data);
   if (bevcu->extrude == 0.0f && bevcu->bevel_radius == 0.0f) {
     ListBaseT<DispList> bevdisp = {nullptr, nullptr};
     float facx = cu->bevobj->scale[0];
@@ -307,3 +309,5 @@ ListBaseT<DispList> BKE_curve_bevel_make(const Curve *curve)
 
   return bevel_shape;
 }
+
+}  // namespace blender

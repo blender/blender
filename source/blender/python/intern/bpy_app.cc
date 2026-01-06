@@ -62,6 +62,8 @@
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
+namespace blender {
+
 #ifdef BUILD_DATE
 extern "C" char build_date[];
 extern "C" char build_time[];
@@ -474,7 +476,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_app_preview_render_size_get(PyObject * /*self*/, void *closure)
 {
   return PyLong_FromLong(
-      long(blender::ui::icon_preview_to_render_size(eIconSizes(POINTER_AS_INT(closure)))));
+      long(ui::icon_preview_to_render_size(eIconSizes(POINTER_AS_INT(closure)))));
 }
 
 PyDoc_STRVAR(
@@ -853,3 +855,5 @@ PyObject *BPY_app_struct()
 
   return ret;
 }
+
+}  // namespace blender

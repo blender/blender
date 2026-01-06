@@ -440,7 +440,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeRLayers", CMP_NODE_R_LAYERS);
   ntype.ui_name = "Render Layers";
@@ -453,9 +453,9 @@ static void register_node()
   ntype.draw_buttons = node_draw;
   ntype.get_compositor_operation = get_compositor_operation;
   ntype.get_extra_info = node_extra_info;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node)
 

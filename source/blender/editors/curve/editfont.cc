@@ -66,6 +66,8 @@
 
 #include "curve_intern.hh"
 
+namespace blender {
+
 #define MAXTEXT 32766
 
 static int kill_selection(Object *obedit, int ins);
@@ -377,7 +379,7 @@ static char32_t findaccent(char32_t char1, const char code)
 
 static int insert_into_textbuf(Object *obedit, uintptr_t c)
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   if (ef->len < MAXTEXT - 1) {
@@ -405,7 +407,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 
 static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode mode)
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   BLI_assert(ef->len >= 0);
@@ -424,7 +426,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
 
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
-  blender::ed::object::material_active_index_set(obedit, cu->curinfo.mat_nr);
+  ed::object::material_active_index_set(obedit, cu->curinfo.mat_nr);
 
   DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -432,7 +434,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
 
 static int kill_selection(Object *obedit, int ins) /* ins == new character len */
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int selend, selstart, direction;
   int getfrom;
@@ -487,7 +489,7 @@ static bool font_paste_wchar(Object *obedit,
                              /* Optional. */
                              const CharInfo *str_info)
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int selend, selstart;
 
@@ -559,7 +561,7 @@ static bool font_paste_utf8(bContext *C, const char *str, const size_t str_len)
 
 static char *font_select_to_buffer(Object *obedit)
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   int selstart, selend;
   if (!BKE_vfont_select_get(cu, &selstart, &selend)) {
     return nullptr;
@@ -667,13 +669,13 @@ void FONT_OT_text_paste_from_file(wmOperatorType *ot)
 
 static void text_insert_unicode_cancel(bContext *C, void *arg_block, void * /*arg2*/)
 {
-  blender::ui::Block *block = static_cast<blender::ui::Block *>(arg_block);
+  ui::Block *block = static_cast<ui::Block *>(arg_block);
   popup_block_close(C, CTX_wm_window(C), block);
 }
 
 static void text_insert_unicode_confirm(bContext *C, void *arg_block, void *arg_string)
 {
-  blender::ui::Block *block = static_cast<blender::ui::Block *>(arg_block);
+  ui::Block *block = static_cast<ui::Block *>(arg_block);
   char *edit_string = static_cast<char *>(arg_string);
 
   if (edit_string[0] == 0) {
@@ -698,43 +700,39 @@ static void text_insert_unicode_confirm(bContext *C, void *arg_block, void *arg_
   }
 }
 
-static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
-                                                          ARegion *region,
-                                                          void *arg_string)
+static ui::Block *wm_block_insert_unicode_create(bContext *C, ARegion *region, void *arg_string)
 {
-  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   char *edit_string = static_cast<char *>(arg_string);
 
-  blender::ui::block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);
-  blender::ui::block_flag_enable(block,
-                                 blender::ui::BLOCK_KEEP_OPEN | blender::ui::BLOCK_NO_WIN_CLIP |
-                                     blender::ui::BLOCK_NUMSELECT);
-  const uiStyle *style = blender::ui::style_get_dpi();
-  blender::ui::Layout &layout = blender::ui::block_layout(block,
-                                                          blender::ui::LayoutDirection::Vertical,
-                                                          blender::ui::LayoutType::Panel,
-                                                          0,
-                                                          0,
-                                                          200 * UI_SCALE_FAC,
-                                                          UI_UNIT_Y,
-                                                          0,
-                                                          style);
+  ui::block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
+  ui::block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_NO_WIN_CLIP | ui::BLOCK_NUMSELECT);
+  const uiStyle *style = ui::style_get_dpi();
+  ui::Layout &layout = ui::block_layout(block,
+                                        ui::LayoutDirection::Vertical,
+                                        ui::LayoutType::Panel,
+                                        0,
+                                        0,
+                                        200 * UI_SCALE_FAC,
+                                        UI_UNIT_Y,
+                                        0,
+                                        style);
 
   uiItemL_ex(&layout, IFACE_("Insert Unicode Character"), ICON_NONE, true, false);
   layout.label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
 
-  blender::ui::Button *text_but = uiDefBut(block,
-                                           blender::ui::ButtonType::Text,
-                                           "",
-                                           0,
-                                           0,
-                                           100,
-                                           UI_UNIT_Y,
-                                           edit_string,
-                                           0,
-                                           7,
-                                           TIP_("Unicode codepoint hex value"));
-  button_flag_enable(text_but, blender::ui::BUT_ACTIVATE_ON_INIT);
+  ui::Button *text_but = uiDefBut(block,
+                                  ui::ButtonType::Text,
+                                  "",
+                                  0,
+                                  0,
+                                  100,
+                                  UI_UNIT_Y,
+                                  edit_string,
+                                  0,
+                                  7,
+                                  TIP_("Unicode codepoint hex value"));
+  button_flag_enable(text_but, ui::BUT_ACTIVATE_ON_INIT);
   /* Hitting Enter in the text input is treated the same as clicking the Confirm button. */
   button_func_set(text_but, text_insert_unicode_confirm, block, edit_string);
 
@@ -748,14 +746,14 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
   const bool windows_layout = false;
 #endif
 
-  blender::ui::Button *confirm = nullptr;
-  blender::ui::Button *cancel = nullptr;
-  blender::ui::Layout &split = layout.split(0.0f, true);
+  ui::Button *confirm = nullptr;
+  ui::Button *cancel = nullptr;
+  ui::Layout &split = layout.split(0.0f, true);
   split.column(false);
 
   if (windows_layout) {
     confirm = uiDefIconTextBut(block,
-                               blender::ui::ButtonType::But,
+                               ui::ButtonType::But,
                                0,
                                IFACE_("Insert"),
                                0,
@@ -767,21 +765,13 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
     split.column(false);
   }
 
-  cancel = uiDefIconTextBut(block,
-                            blender::ui::ButtonType::But,
-                            0,
-                            IFACE_("Cancel"),
-                            0,
-                            0,
-                            0,
-                            UI_UNIT_Y,
-                            nullptr,
-                            std::nullopt);
+  cancel = uiDefIconTextBut(
+      block, ui::ButtonType::But, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
 
   if (!windows_layout) {
     split.column(false);
     confirm = uiDefIconTextBut(block,
-                               blender::ui::ButtonType::But,
+                               ui::ButtonType::But,
                                0,
                                IFACE_("Insert"),
                                0,
@@ -795,9 +785,9 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
   block_func_set(block, nullptr, nullptr, nullptr);
   button_func_set(confirm, text_insert_unicode_confirm, block, edit_string);
   button_func_set(cancel, text_insert_unicode_cancel, block, nullptr);
-  button_drawflag_disable(confirm, blender::ui::BUT_TEXT_LEFT);
-  button_drawflag_disable(cancel, blender::ui::BUT_TEXT_LEFT);
-  button_flag_enable(confirm, blender::ui::BUT_ACTIVE_DEFAULT);
+  button_drawflag_disable(confirm, ui::BUT_TEXT_LEFT);
+  button_drawflag_disable(cancel, ui::BUT_TEXT_LEFT);
+  button_flag_enable(confirm, ui::BUT_ACTIVE_DEFAULT);
 
   int bounds_offset[2];
   bounds_offset[0] = layout.width() * -0.2f;
@@ -861,13 +851,13 @@ static void txt_add_object(bContext *C,
   object = BKE_view_layer_active_object_get(view_layer);
 
   /* seems to assume view align ? TODO: look into this, could be an operator option. */
-  blender::ed::object::init_transform_on_add(object, nullptr, rot);
+  ed::object::init_transform_on_add(object, nullptr, rot);
 
   BKE_object_where_is_calc(depsgraph, scene, obedit);
 
   add_v3_v3(obedit->loc, offset);
 
-  cu = blender::id_cast<Curve *>(obedit->data);
+  cu = id_cast<Curve *>(obedit->data);
   cu->vfont = BKE_vfont_builtin_ensure();
   id_us_plus(&cu->vfont->id);
 
@@ -981,7 +971,7 @@ static const EnumPropertyItem style_items[] = {
 static wmOperatorStatus set_style(bContext *C, const int style, const bool clear)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int i, selstart, selend;
 
@@ -1041,7 +1031,7 @@ void FONT_OT_style_set(wmOperatorType *ot)
 static wmOperatorStatus toggle_style_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   int style, clear, selstart, selend;
 
   style = RNA_enum_get(op->ptr, "style");
@@ -1081,7 +1071,7 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 static wmOperatorStatus font_select_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   if (ef->len) {
@@ -1120,7 +1110,7 @@ void FONT_OT_select_all(wmOperatorType *ot)
 
 static void copy_selection(Object *obedit)
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   int selstart, selend;
 
   if (BKE_vfont_select_get(cu, &selstart, &selend)) {
@@ -1174,7 +1164,7 @@ void FONT_OT_text_copy(wmOperatorType *ot)
 static wmOperatorStatus cut_text_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   int selstart, selend;
 
   if (!BKE_vfont_select_get(cu, &selstart, &selend)) {
@@ -1348,7 +1338,7 @@ static const EnumPropertyItem move_type_items[] = {
  */
 static bool move_cursor_drop_select(Object *obedit, int dir)
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   int selstart, selend;
   if (!BKE_vfont_select_get(cu, &selstart, &selend)) {
     return false;
@@ -1373,7 +1363,7 @@ static wmOperatorStatus move_cursor(bContext *C, int type, const bool select)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int cursmove = -1;
 
@@ -1572,7 +1562,7 @@ void FONT_OT_move_select(wmOperatorType *ot)
 static wmOperatorStatus change_spacing_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   float kern, delta = RNA_float_get(op->ptr, "delta");
   int selstart, selend;
@@ -1639,7 +1629,7 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
 static wmOperatorStatus change_character_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int character, delta = RNA_int_get(op->ptr, "delta");
 
@@ -1697,7 +1687,7 @@ void FONT_OT_change_character(wmOperatorType *ot)
 static wmOperatorStatus line_break_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   insert_into_textbuf(obedit, '\n');
@@ -1744,7 +1734,7 @@ static const EnumPropertyItem delete_type_items[] = {
 static wmOperatorStatus delete_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int selstart, selend, type = RNA_enum_get(op->ptr, "type");
   int range[2] = {0, 0};
@@ -1915,7 +1905,7 @@ static wmOperatorStatus insert_text_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   static bool accentcode = false;
   const bool alt = event->modifier & KM_ALT;
@@ -2041,7 +2031,7 @@ static int font_cursor_text_index_from_event(bContext *C, Object *obedit, const 
   /* Convert to object space and scale by font size. */
   mul_m4_v3(obedit->world_to_object().ptr(), mouse_loc);
 
-  const blender::float2 cursor_location = {mouse_loc[0], mouse_loc[1]};
+  const float2 cursor_location = {mouse_loc[0], mouse_loc[1]};
   return BKE_vfont_cursor_to_text_index(obedit, cursor_location);
 }
 
@@ -2049,7 +2039,7 @@ static void font_cursor_set_apply(bContext *C, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = DEG_get_evaluated(depsgraph, CTX_data_active_object(C));
-  Curve *cu = blender::id_cast<Curve *>(ob->data);
+  Curve *cu = id_cast<Curve *>(ob->data);
   EditFont *ef = cu->editfont;
   BLI_assert(ef->len >= 0);
 
@@ -2061,7 +2051,7 @@ static void font_cursor_set_apply(bContext *C, const wmEvent *event)
 
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
-  blender::ed::object::material_active_index_set(ob, cu->curinfo.mat_nr);
+  ed::object::material_active_index_set(ob, cu->curinfo.mat_nr);
 
   if (!ef->selboxes && (ef->selstart == 0)) {
     if (ef->pos == 0) {
@@ -2083,7 +2073,7 @@ static wmOperatorStatus font_selection_set_invoke(bContext *C,
                                                   const wmEvent *event)
 {
   Object *obedit = CTX_data_active_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   font_cursor_set_apply(C, event);
@@ -2140,7 +2130,7 @@ void FONT_OT_selection_set(wmOperatorType *ot)
 static wmOperatorStatus font_select_word_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   BLI_str_cursor_step_bounds_utf32(ef->textbuf, ef->len, ef->pos, &ef->selstart, &ef->selend);
@@ -2176,7 +2166,7 @@ void FONT_OT_select_word(wmOperatorType *ot)
 static wmOperatorStatus textbox_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_active_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   int i;
 
   if (cu->totbox < 256) {
@@ -2217,7 +2207,7 @@ void FONT_OT_textbox_add(wmOperatorType *ot)
 static wmOperatorStatus textbox_remove_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_active_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   int i;
   int index = RNA_int_get(op->ptr, "index");
 
@@ -2262,7 +2252,7 @@ void FONT_OT_textbox_remove(wmOperatorType *ot)
 
 void ED_curve_editfont_make(Object *obedit)
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   if (ef == nullptr) {
@@ -2300,7 +2290,7 @@ void ED_curve_editfont_make(Object *obedit)
 
 void ED_curve_editfont_load(Object *obedit)
 {
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
 
   /* Free the old curve string */
@@ -2332,7 +2322,7 @@ void ED_curve_editfont_load(Object *obedit)
 
 void ED_curve_editfont_free(Object *obedit)
 {
-  BKE_curve_editfont_free(blender::id_cast<Curve *>(obedit->data));
+  BKE_curve_editfont_free(id_cast<Curve *>(obedit->data));
 }
 
 /** \} */
@@ -2350,7 +2340,7 @@ static const EnumPropertyItem case_items[] = {
 static wmOperatorStatus set_case(bContext *C, int ccase)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   int selstart, selend;
 
   if (BKE_vfont_select_get(cu, &selstart, &selend)) {
@@ -2403,7 +2393,7 @@ void FONT_OT_case_set(wmOperatorType *ot)
 static wmOperatorStatus toggle_case_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
   int ccase = CASE_UPPER;
 
@@ -2442,7 +2432,7 @@ static void font_ui_template_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
 
   op->customdata = pprop = MEM_new<PropertyPointerRNA>("OpenPropertyPointerRNA");
-  blender::ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static void font_open_cancel(bContext * /*C*/, wmOperator *op)
@@ -2505,7 +2495,7 @@ static wmOperatorStatus open_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   if (pprop->prop) {
     idptr = RNA_property_pointer_get(reinterpret_cast<PointerRNA *>(pprop), pprop->prop);
-    vfont = blender::id_cast<VFont *>(idptr.owner_id);
+    vfont = id_cast<VFont *>(idptr.owner_id);
   }
 
   PropertyRNA *prop_filepath = RNA_struct_find_property(op->ptr, "filepath");
@@ -2566,7 +2556,7 @@ static wmOperatorStatus font_unlink_exec(bContext *C, wmOperator *op)
 
   PropertyPointerRNA pprop;
 
-  blender::ui::context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
   if (pprop.prop == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Incorrect context for running font unlink");
@@ -2601,7 +2591,7 @@ bool ED_curve_editfont_select_pick(
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = blender::id_cast<Curve *>(obedit->data);
+  Curve *cu = id_cast<Curve *>(obedit->data);
   /* bias against the active, in pixels, allows cycling */
   const float active_bias_px = 4.0f;
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
@@ -2675,3 +2665,5 @@ bool ED_curve_editfont_select_pick(
 }
 
 /** \} */
+
+}  // namespace blender

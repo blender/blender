@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Base;
 struct SpaceOutliner;
 struct bContext;
@@ -62,3 +64,5 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C);
 int ED_outliner_icon_from_id(const ID &id);
 
 bool ED_outliner_support_searching(const SpaceOutliner *space_outliner);
+
+}  // namespace blender

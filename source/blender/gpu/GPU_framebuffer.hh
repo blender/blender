@@ -29,10 +29,12 @@
 
 #include "BLI_enum_flags.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Texture;
 class FrameBuffer;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 enum GPUFrameBufferBits {
   GPU_COLOR_BIT = (1 << 0),
@@ -46,7 +48,7 @@ ENUM_OPERATORS(GPUFrameBufferBits)
 constexpr static int GPU_MAX_VIEWPORTS = 16;
 
 struct GPUAttachment {
-  blender::gpu::Texture *tex;
+  gpu::Texture *tex;
   int layer, mip;
 };
 
@@ -58,19 +60,19 @@ struct GPUAttachment {
  * Create a #FrameBuffer object. It is not configured and not bound to a specific context until
  * `GPU_framebuffer_bind()` is called.
  */
-blender::gpu::FrameBuffer *GPU_framebuffer_create(const char *name);
+gpu::FrameBuffer *GPU_framebuffer_create(const char *name);
 
 /**
  * Returns the current context active framebuffer.
  * Return nullptr if no context is active.
  */
-blender::gpu::FrameBuffer *GPU_framebuffer_active_get();
+gpu::FrameBuffer *GPU_framebuffer_active_get();
 
 /**
  * Returns the default (back-left) frame-buffer. It will always exists even if it's just a dummy.
  * Return nullptr if no context is active.
  */
-blender::gpu::FrameBuffer *GPU_framebuffer_back_get();
+gpu::FrameBuffer *GPU_framebuffer_back_get();
 
 /** \} */
 
@@ -82,7 +84,7 @@ blender::gpu::FrameBuffer *GPU_framebuffer_back_get();
  * Create a #FrameBuffer object. It is not configured and not bound to a specific context until
  * `GPU_framebuffer_bind()` is called.
  */
-void GPU_framebuffer_free(blender::gpu::FrameBuffer *fb);
+void GPU_framebuffer_free(gpu::FrameBuffer *fb);
 
 #define GPU_FRAMEBUFFER_FREE_SAFE(fb) \
   do { \
@@ -114,12 +116,12 @@ void GPU_backbuffer_bind(GPUBackBuffer back_buffer_type);
 /**
  * Binds a #FrameBuffer making it the active framebuffer for all geometry rendering.
  */
-void GPU_framebuffer_bind(blender::gpu::FrameBuffer *fb);
+void GPU_framebuffer_bind(gpu::FrameBuffer *fb);
 
 /**
  * Same as `GPU_framebuffer_bind` but do not enable the SRGB transform.
  */
-void GPU_framebuffer_bind_no_srgb(blender::gpu::FrameBuffer *fb);
+void GPU_framebuffer_bind_no_srgb(gpu::FrameBuffer *fb);
 
 /**
  * Binds back the active context's default frame-buffer.
@@ -171,7 +173,7 @@ struct GPULoadStore {
  * })
  * \endcode
  */
-void GPU_framebuffer_bind_loadstore(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_bind_loadstore(gpu::FrameBuffer *fb,
                                     const GPULoadStore *load_store_actions,
                                     uint load_store_actions_len);
 #define GPU_framebuffer_bind_ex(_fb, ...) \
@@ -201,7 +203,7 @@ void GPU_framebuffer_bind_loadstore(blender::gpu::FrameBuffer *fb,
  *
  * \note Excess attachments will have no effect as long as they are GPU_ATTACHMENT_IGNORE.
  */
-void GPU_framebuffer_subpass_transition_array(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_subpass_transition_array(gpu::FrameBuffer *fb,
                                               const GPUAttachmentState *attachment_states,
                                               uint attachment_len);
 
@@ -252,7 +254,7 @@ void GPU_framebuffer_subpass_transition_array(blender::gpu::FrameBuffer *fb,
  * Setting #GPUAttachment.mip to -1 will leave the texture in this slot.
  * Setting #GPUAttachment.tex to nullptr will detach the texture in this slot.
  */
-void GPU_framebuffer_config_array(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_config_array(gpu::FrameBuffer *fb,
                                   const GPUAttachment *config,
                                   int config_len);
 
@@ -324,8 +326,8 @@ void GPU_framebuffer_config_array(blender::gpu::FrameBuffer *fb,
  * DEPRECATED: Prefer using multiple #FrameBuffer with different configurations with
  * `GPU_framebuffer_config_array()`.
  */
-void GPU_framebuffer_texture_attach(blender::gpu::FrameBuffer *fb,
-                                    blender::gpu::Texture *texture,
+void GPU_framebuffer_texture_attach(gpu::FrameBuffer *fb,
+                                    gpu::Texture *texture,
                                     int slot,
                                     int mip);
 
@@ -339,7 +341,7 @@ void GPU_framebuffer_texture_attach(blender::gpu::FrameBuffer *fb,
  * `GPU_framebuffer_config_array()`.
  */
 void GPU_framebuffer_texture_layer_attach(
-    blender::gpu::FrameBuffer *fb, blender::gpu::Texture *texture, int slot, int layer, int mip);
+    gpu::FrameBuffer *fb, gpu::Texture *texture, int slot, int layer, int mip);
 
 /**
  * Attach a single cube-face of an cube-map texture mip level to a #FrameBuffer.
@@ -351,7 +353,7 @@ void GPU_framebuffer_texture_layer_attach(
  * `GPU_framebuffer_config_array()`.
  */
 void GPU_framebuffer_texture_cubeface_attach(
-    blender::gpu::FrameBuffer *fb, blender::gpu::Texture *texture, int slot, int face, int mip);
+    gpu::FrameBuffer *fb, gpu::Texture *texture, int slot, int face, int mip);
 
 /**
  * Detach a texture from a #FrameBuffer. The texture must be attached.
@@ -359,7 +361,7 @@ void GPU_framebuffer_texture_cubeface_attach(
  * DEPRECATED: Prefer using multiple #FrameBuffer with different configurations with
  * `GPU_framebuffer_config_array()`.
  */
-void GPU_framebuffer_texture_detach(blender::gpu::FrameBuffer *fb, blender::gpu::Texture *texture);
+void GPU_framebuffer_texture_detach(gpu::FrameBuffer *fb, gpu::Texture *texture);
 
 /**
  * Checks a framebuffer current configuration for errors.
@@ -368,7 +370,7 @@ void GPU_framebuffer_texture_detach(blender::gpu::FrameBuffer *fb, blender::gpu:
  * \a err_out is an error output buffer.
  * \return false if the framebuffer is invalid.
  */
-bool GPU_framebuffer_check_valid(blender::gpu::FrameBuffer *fb, char err_out[256]);
+bool GPU_framebuffer_check_valid(gpu::FrameBuffer *fb, char err_out[256]);
 
 /** \} */
 
@@ -384,7 +386,7 @@ bool GPU_framebuffer_check_valid(blender::gpu::FrameBuffer *fb, char err_out[256
  * Default size is used if the frame-buffer contains no attachments.
  * It needs to be re-specified each time an attachment is added.
  */
-void GPU_framebuffer_default_size(blender::gpu::FrameBuffer *fb, int width, int height);
+void GPU_framebuffer_default_size(gpu::FrameBuffer *fb, int width, int height);
 
 /** \} */
 
@@ -401,8 +403,7 @@ void GPU_framebuffer_default_size(blender::gpu::FrameBuffer *fb, int width, int 
  * \note Setting a singular viewport will only change the state of the first viewport.
  * \note Must be called after first bind.
  */
-void GPU_framebuffer_viewport_set(
-    blender::gpu::FrameBuffer *fb, int x, int y, int width, int height);
+void GPU_framebuffer_viewport_set(gpu::FrameBuffer *fb, int x, int y, int width, int height);
 
 /**
  * Similar to `GPU_framebuffer_viewport_set()` but specify the bounds of all 16 viewports.
@@ -412,20 +413,20 @@ void GPU_framebuffer_viewport_set(
  * \note Viewport and scissor size is stored per frame-buffer.
  * \note Must be called after first bind.
  */
-void GPU_framebuffer_multi_viewports_set(blender::gpu::FrameBuffer *gpu_fb,
+void GPU_framebuffer_multi_viewports_set(gpu::FrameBuffer *gpu_fb,
                                          const int viewport_rects[GPU_MAX_VIEWPORTS][4]);
 
 /**
  * Return the viewport offset and size in a int quadruple: (x, y, width, height).
  * \note Viewport and scissor size is stored per frame-buffer.
  */
-void GPU_framebuffer_viewport_get(blender::gpu::FrameBuffer *fb, int r_viewport[4]);
+void GPU_framebuffer_viewport_get(gpu::FrameBuffer *fb, int r_viewport[4]);
 
 /**
  * Reset a frame-buffer viewport bounds to its attachment(s) size.
  * \note Viewport and scissor size is stored per frame-buffer.
  */
-void GPU_framebuffer_viewport_reset(blender::gpu::FrameBuffer *fb);
+void GPU_framebuffer_viewport_reset(gpu::FrameBuffer *fb);
 
 /** \} */
 
@@ -445,7 +446,7 @@ void GPU_framebuffer_viewport_reset(blender::gpu::FrameBuffer *fb);
  * \note `GPU_write_mask`, and stencil test do not affect this command.
  * \note Viewport and scissor regions affect this command but are not efficient nor recommended.
  */
-void GPU_framebuffer_clear(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_clear(gpu::FrameBuffer *fb,
                            GPUFrameBufferBits buffers,
                            const float clear_col[4],
                            float clear_depth,
@@ -456,21 +457,21 @@ void GPU_framebuffer_clear(blender::gpu::FrameBuffer *fb,
  * \note `GPU_write_mask`, and stencil test do not affect this command.
  * \note Viewport and scissor regions affect this command but are not efficient nor recommended.
  */
-void GPU_framebuffer_clear_color(blender::gpu::FrameBuffer *fb, const float clear_col[4]);
+void GPU_framebuffer_clear_color(gpu::FrameBuffer *fb, const float clear_col[4]);
 
 /**
  * Clear the depth attachment texture with the value \a clear_depth .
  * \note `GPU_write_mask`, and stencil test do not affect this command.
  * \note Viewport and scissor regions affect this command but are not efficient nor recommended.
  */
-void GPU_framebuffer_clear_depth(blender::gpu::FrameBuffer *fb, float clear_depth);
+void GPU_framebuffer_clear_depth(gpu::FrameBuffer *fb, float clear_depth);
 
 /**
  * Clear the stencil attachment with the value \a clear_stencil .
  * \note `GPU_write_mask`, and stencil test do not affect this command.
  * \note Viewport and scissor regions affect this command but are not efficient nor recommended.
  */
-void GPU_framebuffer_clear_stencil(blender::gpu::FrameBuffer *fb, uint clear_stencil);
+void GPU_framebuffer_clear_stencil(gpu::FrameBuffer *fb, uint clear_stencil);
 
 /**
  * Clear all color attachment textures with the value \a clear_col and the depth attachment texture
@@ -478,7 +479,7 @@ void GPU_framebuffer_clear_stencil(blender::gpu::FrameBuffer *fb, uint clear_ste
  * \note `GPU_write_mask`, and stencil test do not affect this command.
  * \note Viewport and scissor regions affect this command but are not efficient nor recommended.
  */
-void GPU_framebuffer_clear_color_depth(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_clear_color_depth(gpu::FrameBuffer *fb,
                                        const float clear_col[4],
                                        float clear_depth);
 
@@ -488,7 +489,7 @@ void GPU_framebuffer_clear_color_depth(blender::gpu::FrameBuffer *fb,
  * \note `GPU_write_mask`, and stencil test do not affect this command.
  * \note Viewport and scissor regions affect this command but are not efficient nor recommended.
  */
-void GPU_framebuffer_clear_depth_stencil(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_clear_depth_stencil(gpu::FrameBuffer *fb,
                                          float clear_depth,
                                          uint clear_stencil);
 /**
@@ -497,7 +498,7 @@ void GPU_framebuffer_clear_depth_stencil(blender::gpu::FrameBuffer *fb,
  * \note `GPU_write_mask`, and stencil test do not affect this command.
  * \note Viewport and scissor regions affect this command but are not efficient nor recommended.
  */
-void GPU_framebuffer_clear_color_depth_stencil(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_clear_color_depth_stencil(gpu::FrameBuffer *fb,
                                                const float clear_col[4],
                                                float clear_depth,
                                                uint clear_stencil);
@@ -508,7 +509,7 @@ void GPU_framebuffer_clear_color_depth_stencil(blender::gpu::FrameBuffer *fb,
  * \note `GPU_write_mask`, and stencil test do not affect this command.
  * \note Viewport and scissor regions affect this command but are not efficient nor recommended.
  */
-void GPU_framebuffer_multi_clear(blender::gpu::FrameBuffer *fb, const float (*clear_colors)[4]);
+void GPU_framebuffer_multi_clear(gpu::FrameBuffer *fb, const float (*clear_colors)[4]);
 
 /**
  * Clear all color attachment textures of the active frame-buffer with the given red, green, blue,
@@ -533,7 +534,7 @@ void GPU_clear_depth(float depth);
 /** \name Debugging introspection API.
  * \{ */
 
-const char *GPU_framebuffer_get_name(blender::gpu::FrameBuffer *fb);
+const char *GPU_framebuffer_get_name(gpu::FrameBuffer *fb);
 
 /** \} */
 
@@ -549,8 +550,8 @@ const char *GPU_framebuffer_get_name(blender::gpu::FrameBuffer *fb);
  * Points to #BPyGPUFrameBuffer.fb
  */
 #ifndef GPU_NO_USE_PY_REFERENCES
-void **GPU_framebuffer_py_reference_get(blender::gpu::FrameBuffer *fb);
-void GPU_framebuffer_py_reference_set(blender::gpu::FrameBuffer *fb, void **py_ref);
+void **GPU_framebuffer_py_reference_get(gpu::FrameBuffer *fb);
+void GPU_framebuffer_py_reference_set(gpu::FrameBuffer *fb, void **py_ref);
 #endif
 
 /**
@@ -560,8 +561,8 @@ void GPU_framebuffer_py_reference_set(blender::gpu::FrameBuffer *fb, void **py_r
  */
 /* TODO(fclem): This has nothing to do with the GPU module and should be move to the pyGPU module.
  */
-void GPU_framebuffer_push(blender::gpu::FrameBuffer *fb);
-blender::gpu::FrameBuffer *GPU_framebuffer_pop();
+void GPU_framebuffer_push(gpu::FrameBuffer *fb);
+gpu::FrameBuffer *GPU_framebuffer_pop();
 uint GPU_framebuffer_stack_level_get();
 
 /** \} */
@@ -575,14 +576,14 @@ uint GPU_framebuffer_stack_level_get();
  * \note return false if no context is active.
  * \note this is undefined behavior if \a framebuffer is `nullptr`.
  * DEPRECATED: Kept only because of Python GPU API. */
-bool GPU_framebuffer_bound(blender::gpu::FrameBuffer *fb);
+bool GPU_framebuffer_bound(gpu::FrameBuffer *fb);
 
 /**
  * Read a region of the framebuffer depth attachment and copy it to \a r_data .
  * The pixel data will be converted to \a data_format but it needs to be compatible with the
  * attachment type. DEPRECATED: Prefer using `GPU_texture_read()`.
  */
-void GPU_framebuffer_read_depth(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_read_depth(gpu::FrameBuffer *fb,
                                 int x,
                                 int y,
                                 int width,
@@ -595,7 +596,7 @@ void GPU_framebuffer_read_depth(blender::gpu::FrameBuffer *fb,
  * The pixel data will be converted to \a data_format but it needs to be compatible with the
  * attachment type. DEPRECATED: Prefer using `GPU_texture_read()`.
  */
-void GPU_framebuffer_read_color(blender::gpu::FrameBuffer *fb,
+void GPU_framebuffer_read_color(gpu::FrameBuffer *fb,
                                 int x,
                                 int y,
                                 int width,
@@ -623,9 +624,9 @@ void GPU_frontbuffer_read_color(
  * The source and destination frame-buffers dimensions have to match.
  * DEPRECATED: Prefer using `GPU_texture_copy()`.
  */
-void GPU_framebuffer_blit(blender::gpu::FrameBuffer *fb_read,
+void GPU_framebuffer_blit(gpu::FrameBuffer *fb_read,
                           int read_slot,
-                          blender::gpu::FrameBuffer *fb_write,
+                          gpu::FrameBuffer *fb_write,
                           int write_slot,
                           GPUFrameBufferBits blit_buffers);
 
@@ -635,7 +636,7 @@ void GPU_framebuffer_blit(blender::gpu::FrameBuffer *fb_read,
 /** \name GPU OffScreen
  *
  * A `GPUOffScreen` is a convenience type that holds a `GPUFramebuffer` and its associated
- * `blender::gpu::Texture`s. It is useful for quick drawing surface configuration.
+ * `gpu::Texture`s. It is useful for quick drawing surface configuration.
  * NOTE: They are still limited by the same single context limitation as #FrameBuffer.
  * \{ */
 
@@ -653,7 +654,7 @@ struct GPUOffScreen;
 GPUOffScreen *GPU_offscreen_create(int width,
                                    int height,
                                    bool with_depth_buffer,
-                                   blender::gpu::TextureFormat format,
+                                   gpu::TextureFormat format,
                                    eGPUTextureUsage usage,
                                    bool clear,
                                    char err_out[256]);
@@ -710,20 +711,22 @@ int GPU_offscreen_height(const GPUOffScreen *offscreen);
  * Return the color texture of a #GPUOffScreen. Does not give ownership.
  * \note only to be used by viewport code!
  */
-blender::gpu::Texture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen);
+gpu::Texture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen);
 
 /**
  * Return the texture format of a #GPUOffScreen.
  */
-blender::gpu::TextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
+gpu::TextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
 
 /**
  * Return the internals of a #GPUOffScreen. Does not give ownership.
  * \note only to be used by viewport code!
  */
 void GPU_offscreen_viewport_data_get(GPUOffScreen *offscreen,
-                                     blender::gpu::FrameBuffer **r_fb,
-                                     blender::gpu::Texture **r_color,
-                                     blender::gpu::Texture **r_depth);
+                                     gpu::FrameBuffer **r_fb,
+                                     gpu::Texture **r_color,
+                                     gpu::Texture **r_depth);
 
 /** \} */
+
+}  // namespace blender

@@ -46,6 +46,8 @@
 #include "wm_gizmo_intern.hh"
 #include "wm_gizmo_wmapi.hh"
 
+namespace blender {
+
 /**
  * Store all gizmo-maps here. Anyone who wants to register a gizmo for a certain
  * area type can query the gizmo-map to do so.
@@ -275,13 +277,13 @@ bool WM_gizmomap_minmax(
  * TODO(@ideasman42): this uses unreliable order,
  * best we use an iterator function instead of a hash.
  */
-static blender::Set<wmGizmo *> WM_gizmomap_gizmo_hash_new(const bContext *C,
-                                                          wmGizmoMap *gzmap,
-                                                          bool (*poll)(const wmGizmo *, void *),
-                                                          void *data,
-                                                          const eWM_GizmoFlag flag_exclude)
+static Set<wmGizmo *> WM_gizmomap_gizmo_hash_new(const bContext *C,
+                                                 wmGizmoMap *gzmap,
+                                                 bool (*poll)(const wmGizmo *, void *),
+                                                 void *data,
+                                                 const eWM_GizmoFlag flag_exclude)
 {
-  blender::Set<wmGizmo *> hash;
+  Set<wmGizmo *> hash;
 
   /* Collect gizmos. */
   for (wmGizmoGroup &gzgroup : gzmap->groups) {
@@ -623,11 +625,11 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
   ED_view3d_draw_setup_view(
       wm, CTX_wm_window(C), depsgraph, CTX_data_scene(C), region, v3d, nullptr, nullptr, nullptr);
 
-  const blender::Span<GPUSelectResult> hit_results = buffer.storage.as_span().take_front(hits);
+  const Span<GPUSelectResult> hit_results = buffer.storage.as_span().take_front(hits);
   if (use_select_bias && (hits > 1)) {
     float co_direction[3];
     float co_screen[3] = {float(co[0]), float(co[1]), 0.0f};
-    ED_view3d_win_to_vector(region, blender::float2{float(co[0]), float(co[1])}, co_direction);
+    ED_view3d_win_to_vector(region, float2{float(co[0]), float(co[1])}, co_direction);
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
     const int viewport[4] = {0, 0, region->winx, region->winy};
@@ -717,8 +719,8 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
     if (viewport == nullptr) {
       return nullptr;
     }
-    blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
-    blender::gpu::FrameBuffer *depth_read_fb = nullptr;
+    gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
+    gpu::FrameBuffer *depth_read_fb = nullptr;
     GPU_framebuffer_ensure_config(&depth_read_fb,
                                   {
                                       GPU_ATTACHMENT_TEXTURE(depth_tx),
@@ -782,7 +784,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmGizmo *gz = nullptr;
-  blender::Vector<wmGizmo *, 128> visible_3d_gizmos;
+  Vector<wmGizmo *, 128> visible_3d_gizmos;
   bool do_step[WM_GIZMOMAP_DRAWSTEP_MAX];
 
   int mval[2];
@@ -943,7 +945,7 @@ static bool wm_gizmomap_select_all_intern(bContext *C, wmGizmoMap *gzmap)
    * get tot_sel for allocating, once for actually selecting). Instead we collect
    * selectable gizmos in hash table and use this to get tot_sel and do selection. */
 
-  blender::Set<wmGizmo *> hash = WM_gizmomap_gizmo_hash_new(
+  Set<wmGizmo *> hash = WM_gizmomap_gizmo_hash_new(
       C, gzmap, gizmo_selectable_poll, nullptr, WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT);
   bool changed = false;
 
@@ -1259,7 +1261,7 @@ ARegion *WM_gizmomap_tooltip_init(
         /* On screen area of 3D gizmos may be large, exit on cursor motion. */
         *r_exit_on_event = true;
       }
-      return blender::ui::tooltip_create_from_gizmo(C, gz);
+      return ui::tooltip_create_from_gizmo(C, gz);
     }
   }
   return nullptr;
@@ -1495,3 +1497,5 @@ void WM_reinit_gizmomap_all(Main *bmain)
 }
 
 /** \} */
+
+}  // namespace blender

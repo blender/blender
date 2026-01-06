@@ -13,6 +13,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /* Helper Functions */
 
@@ -134,3 +136,5 @@ TEST(kdopbvh, OptimalFindNearest_500)
 {
   find_nearest_points_test(500, 1.0, 1000, 12, true);
 }
+
+}  // namespace blender

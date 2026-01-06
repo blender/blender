@@ -19,6 +19,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Key Hash & Comparison Functions
  * \{ */
@@ -265,3 +267,5 @@ GSet *BLI_gset_int_new(const char *info)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -8,13 +8,15 @@
 
 #pragma once
 
+namespace blender {
+
 struct bContext;
 struct ImBuf;
 struct rctf;
 struct Strip;
 struct Scene;
 
-namespace blender::seq {
+namespace seq {
 
 static constexpr int THUMB_SIZE = 256;
 
@@ -53,4 +55,5 @@ void thumbnail_cache_destroy(Scene *scene);
 
 bool strip_can_have_thumbnail(const Scene *scene, const Strip *strip);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

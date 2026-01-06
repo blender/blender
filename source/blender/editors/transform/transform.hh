@@ -21,6 +21,10 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
+struct Depsgraph;
+
 /* -------------------------------------------------------------------- */
 /** \name Macros/
  * \{ */
@@ -60,7 +64,6 @@
 
 struct ARegion;
 struct bConstraint;
-struct Depsgraph;
 struct NumInput;
 struct Object;
 struct RNG;
@@ -83,7 +86,7 @@ struct wmTimer;
 /** \name Enums and Flags
  * \{ */
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 struct TransSnap;
 struct TransConvertTypeInfo;
@@ -1148,4 +1151,5 @@ std::optional<float3> mouse_delta_to_world_dir(const TransInfo *t, const float2 
 
 /** \} */
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

@@ -24,7 +24,7 @@ static void gf_camera_fill_dof_data(const Object *camera_obj, pxr::GfCamera *gf_
     return;
   }
 
-  const Camera *camera = blender::id_cast<Camera *>(camera_obj->data);
+  const Camera *camera = id_cast<Camera *>(camera_obj->data);
   if (!(camera->dof.flag & CAM_DOF_ENABLED)) {
     return;
   }

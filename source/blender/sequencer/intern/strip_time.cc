@@ -36,7 +36,8 @@
 #include "strip_time.hh"
 #include "utils.hh"
 
-namespace blender::seq {
+namespace blender {
+namespace seq {
 
 float give_frame_index(const Scene *scene, const Strip *strip, float timeline_frame)
 {
@@ -449,7 +450,7 @@ void time_slip_strip(
   strip_time_slip_strip_ex(scene, strip, frame_delta, subframe_delta, slip_keyframes, false);
 }
 
-}  // namespace blender::seq
+}  // namespace seq
 
 float Strip::media_playback_rate_factor(float scene_fps) const
 {
@@ -466,7 +467,7 @@ float Strip::media_fps(Scene *scene)
 {
   switch (this->type) {
     case STRIP_TYPE_MOVIE: {
-      blender::seq::strip_open_anim_file(scene, this, true);
+      seq::strip_open_anim_file(scene, this, true);
       const MovieReader *anim = this->runtime->movie_reader_get();
       if (anim == nullptr) {
         return 0.0f;
@@ -495,10 +496,9 @@ float Strip::content_start() const
 void Strip::content_start_set(const Scene *scene, int timeline_frame)
 {
   this->start = timeline_frame;
-  blender::Span<Strip *> effects = blender::seq::SEQ_lookup_effects_by_strip(scene->ed, this);
-  blender::seq::strip_time_update_effects_strip_range(scene, effects);
-  blender::seq::time_update_meta_strip_range(scene,
-                                             blender::seq::lookup_meta_by_strip(scene->ed, this));
+  Span<Strip *> effects = seq::SEQ_lookup_effects_by_strip(scene->ed, this);
+  seq::strip_time_update_effects_strip_range(scene, effects);
+  seq::time_update_meta_strip_range(scene, seq::lookup_meta_by_strip(scene->ed, this));
 }
 
 float Strip::content_end(const Scene *scene) const
@@ -509,9 +509,9 @@ float Strip::content_end(const Scene *scene) const
 int Strip::length(const Scene *scene) const
 {
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  if (blender::seq::retiming_is_active(this)) {
-    const int last_key_frame = blender::seq::retiming_key_timeline_frame_get(
-        scene, this, blender::seq::retiming_last_key_get(this));
+  if (seq::retiming_is_active(this)) {
+    const int last_key_frame = seq::retiming_key_timeline_frame_get(
+        scene, this, seq::retiming_last_key_get(this));
     /* Last key is mapped to last frame index. Numbering starts from 0. */
     const int sound_offset = this->rounded_sound_offset(scene_fps);
     return last_key_frame - this->content_start() - sound_offset;
@@ -556,7 +556,7 @@ void Strip::left_handle_set(const Scene *scene, int timeline_frame)
 
   float offset = timeline_frame - this->content_start();
 
-  if (blender::seq::transform_single_image_check(this)) {
+  if (seq::transform_single_image_check(this)) {
     /* This strip has only 1 frame of content that is always stretched to the whole strip length.
      * Move strip start left and adjust end offset to be negative (rightwards past the 1 frame). */
     this->content_start_set(scene, timeline_frame);
@@ -568,10 +568,9 @@ void Strip::left_handle_set(const Scene *scene, int timeline_frame)
 
   this->startdisp = timeline_frame; /* Only to make files usable in older versions. */
 
-  blender::Span<Strip *> effects = blender::seq::SEQ_lookup_effects_by_strip(scene->ed, this);
-  blender::seq::strip_time_update_effects_strip_range(scene, effects);
-  blender::seq::time_update_meta_strip_range(scene,
-                                             blender::seq::lookup_meta_by_strip(scene->ed, this));
+  Span<Strip *> effects = seq::SEQ_lookup_effects_by_strip(scene->ed, this);
+  seq::strip_time_update_effects_strip_range(scene, effects);
+  seq::time_update_meta_strip_range(scene, seq::lookup_meta_by_strip(scene->ed, this));
 }
 
 void Strip::right_handle_set(const Scene *scene, int timeline_frame)
@@ -585,10 +584,9 @@ void Strip::right_handle_set(const Scene *scene, int timeline_frame)
   this->endofs = this->content_end(scene) - timeline_frame;
   this->enddisp = timeline_frame; /* Only to make files usable in older versions. */
 
-  blender::Span<Strip *> effects = blender::seq::SEQ_lookup_effects_by_strip(scene->ed, this);
-  blender::seq::strip_time_update_effects_strip_range(scene, effects);
-  blender::seq::time_update_meta_strip_range(scene,
-                                             blender::seq::lookup_meta_by_strip(scene->ed, this));
+  Span<Strip *> effects = seq::SEQ_lookup_effects_by_strip(scene->ed, this);
+  seq::strip_time_update_effects_strip_range(scene, effects);
+  seq::time_update_meta_strip_range(scene, seq::lookup_meta_by_strip(scene->ed, this));
 }
 
 void Strip::handles_set(const Scene *scene, int left_frame, int right_frame)
@@ -610,3 +608,5 @@ bool Strip::intersects_frame(const Scene *scene, const int timeline_frame) const
 {
   return (this->left_handle() <= timeline_frame) && (this->right_handle(scene) > timeline_frame);
 }
+
+}  // namespace blender

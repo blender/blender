@@ -99,7 +99,7 @@ struct DensityAddOperationExecutor {
   {
     self_ = &self;
     curves_ob_orig_ = ctx_.object;
-    curves_id_orig_ = blender::id_cast<Curves *>(curves_ob_orig_->data);
+    curves_id_orig_ = id_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
 
     if (stroke_extension.is_first) {
@@ -112,7 +112,7 @@ struct DensityAddOperationExecutor {
     }
 
     surface_ob_orig_ = curves_id_orig_->surface;
-    surface_orig_ = blender::id_cast<const Mesh *>(surface_ob_orig_->data);
+    surface_orig_ = id_cast<const Mesh *>(surface_ob_orig_->data);
     if (surface_orig_->faces_num == 0) {
       report_empty_original_surface(stroke_extension.reports);
       return;
@@ -534,7 +534,7 @@ struct DensitySubtractOperationExecutor {
 
     object_ = ctx_.object;
 
-    curves_id_ = blender::id_cast<Curves *>(object_->data);
+    curves_id_ = id_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
     if (curves_->is_empty()) {
       return;
@@ -544,7 +544,7 @@ struct DensitySubtractOperationExecutor {
     if (surface_ob_orig_ == nullptr) {
       return;
     }
-    surface_orig_ = blender::id_cast<Mesh *>(surface_ob_orig_->data);
+    surface_orig_ = id_cast<Mesh *>(surface_ob_orig_->data);
 
     surface_ob_eval_ = DEG_get_evaluated(ctx_.depsgraph, surface_ob_orig_);
     if (surface_ob_eval_ == nullptr) {
@@ -815,7 +815,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
   }
 
   const Object &curves_ob_orig = object;
-  const Curves &curves_id_orig = *blender::id_cast<Curves *>(curves_ob_orig.data);
+  const Curves &curves_id_orig = *id_cast<Curves *>(curves_ob_orig.data);
   Object *surface_ob_orig = curves_id_orig.surface;
   if (surface_ob_orig == nullptr) {
     return true;

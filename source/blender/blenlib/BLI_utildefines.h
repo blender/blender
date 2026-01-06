@@ -25,7 +25,7 @@
 #  include <type_traits>
 #  include <utility>
 
-extern "C" {
+namespace blender {
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -590,15 +590,14 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 /** \} */
 
 #ifdef __cplusplus
-}
 
-namespace blender::blenlib_internal {
+namespace blenlib_internal {
 
 /* A replacement for std::is_bounded_array_v until we go C++20. */
 template<class T> struct IsBoundedArray : std::false_type {};
 template<class T, std::size_t N> struct IsBoundedArray<T[N]> : std::true_type {};
 
-}  // namespace blender::blenlib_internal
+}  // namespace blenlib_internal
 
 /**
  * Size of a bounded array provided as an arg.
@@ -623,12 +622,13 @@ template<class T, size_t N> constexpr size_t ARRAY_SIZE(const T (&arg)[N]) noexc
  *   `BOUNDED_ARRAY_TYPE_SIZE<decltype(MyType::array)>` returns 12.
  */
 template<class T>
-constexpr std::enable_if_t<blender::blenlib_internal::IsBoundedArray<T>::value, size_t>
+constexpr std::enable_if_t<blenlib_internal::IsBoundedArray<T>::value, size_t>
 BOUNDED_ARRAY_TYPE_SIZE() noexcept
 {
   return sizeof(std::declval<T>()) / sizeof(std::declval<T>()[0]);
 }
 
+}  // namespace blender
 #endif
 
 #endif /* __BLI_UTILDEFINES_H__ */

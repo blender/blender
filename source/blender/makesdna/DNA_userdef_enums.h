@@ -10,6 +10,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 /**
  * #UserDef.dupflag
  *
@@ -51,3 +53,5 @@ enum eDupli_ID_Flags {
   USER_DUP_LINKED_ID = (1 << 30),
 };
 ENUM_OPERATORS(eDupli_ID_Flags)
+
+}  // namespace blender

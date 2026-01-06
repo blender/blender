@@ -490,7 +490,7 @@ static bool bake_object_check(const Scene *scene,
     return false;
   }
 
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   if (mesh->faces_num == 0) {
     BKE_reportf(reports, RPT_ERROR, "No faces found in the object \"%s\"", ob->id.name + 2);
@@ -1016,7 +1016,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
     return false;
   }
 
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   if (!BKE_id_attributes_color_find(&mesh->id, mesh->active_color_attribute)) {
     BKE_report(reports, RPT_ERROR, "No active color attribute to bake to");
     return false;
@@ -1075,7 +1075,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
                                                           Mesh *mesh_eval,
                                                           BakePixel *pixel_array)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   const int pixels_num = targets->pixels_num;
 
   /* Initialize blank pixels. */
@@ -1197,7 +1197,7 @@ static void convert_float_color_to_byte_color(const ColorGeometry4f *float_color
 
 static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   const StringRef attr_name = mesh->active_color_attribute;
   const bke::AttrDomain domain = [&]() {
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
@@ -1457,7 +1457,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
   }
 
   if (!bkr->uv_layer.empty()) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob_low->data);
+    Mesh *mesh = id_cast<Mesh *>(ob_low->data);
     const bke::AttributeAccessor attributes = mesh->attributes();
     if (!bke::mesh::is_uv_map(attributes.lookup_meta_data(bkr->uv_layer))) {
       BKE_reportf(reports,

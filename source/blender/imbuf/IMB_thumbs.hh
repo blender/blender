@@ -10,6 +10,8 @@
 
 #include <cstdint>
 
+namespace blender {
+
 struct ImBuf;
 
 /**
@@ -104,3 +106,5 @@ void IMB_thumb_locks_acquire();
 void IMB_thumb_locks_release();
 void IMB_thumb_path_lock(const char *path);
 void IMB_thumb_path_unlock(const char *path);
+
+}  // namespace blender

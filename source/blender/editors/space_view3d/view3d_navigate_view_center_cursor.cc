@@ -16,6 +16,8 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Center Cursor Operator
  * \{ */
@@ -63,3 +65,5 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

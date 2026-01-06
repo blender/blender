@@ -1250,10 +1250,11 @@ static NSSize getNSImagePixelSize(NSImage *image)
  * \param image: NSImage to convert.
  * \return Pointer to the resulting allocated ImBuf. Caller must free.
  */
-static ImBuf *NSImageToImBuf(NSImage *image)
+static blender::ImBuf *NSImageToImBuf(NSImage *image)
 {
   const NSSize imageSize = getNSImagePixelSize(image);
-  ImBuf *ibuf = IMB_allocImBuf(imageSize.width, imageSize.height, 32, IB_byte_data);
+  blender::ImBuf *ibuf = blender::IMB_allocImBuf(
+      imageSize.width, imageSize.height, 32, blender::IB_byte_data);
 
   if (!ibuf) {
     return nullptr;
@@ -1375,7 +1376,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
           }
           case GHOST_kDragnDropTypeBitmap: {
             NSImage *droppedImg = static_cast<NSImage *>(data);
-            ImBuf *ibuf = NSImageToImBuf(droppedImg);
+            blender::ImBuf *ibuf = NSImageToImBuf(droppedImg);
 
             eventData = static_cast<GHOST_TDragnDropDataPtr>(ibuf);
 
@@ -2108,7 +2109,7 @@ uint *GHOST_SystemCocoa::getClipboardImage(int *r_width, int *r_height) const
       return nullptr;
     }
 
-    ImBuf *ibuf = NSImageToImBuf(clipboardImage);
+    blender::ImBuf *ibuf = NSImageToImBuf(clipboardImage);
     const NSSize clipboardImageSize = getNSImagePixelSize(clipboardImage);
 
     if (ibuf) {
@@ -2116,12 +2117,12 @@ uint *GHOST_SystemCocoa::getClipboardImage(int *r_width, int *r_height) const
       uint *rgba = (uint *)malloc(byteCount);
 
       if (!rgba) {
-        IMB_freeImBuf(ibuf);
+        blender::IMB_freeImBuf(ibuf);
         return nullptr;
       }
 
       memcpy(rgba, ibuf->byte_buffer.data, byteCount);
-      IMB_freeImBuf(ibuf);
+      blender::IMB_freeImBuf(ibuf);
 
       *r_width = clipboardImageSize.width;
       *r_height = clipboardImageSize.height;

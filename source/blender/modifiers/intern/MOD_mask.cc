@@ -42,14 +42,7 @@
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_vector.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::IndexRange;
-using blender::int2;
-using blender::ListBaseWrapper;
-using blender::MutableSpan;
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
@@ -72,7 +65,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 {
   MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
   if (mmd->ob_arm) {
-    bArmature *arm = blender::id_cast<bArmature *>(mmd->ob_arm->data);
+    bArmature *arm = id_cast<bArmature *>(mmd->ob_arm->data);
     /* Tag relationship in depsgraph, but also on the armature. */
     /* TODO(sergey): Is it a proper relation here? */
     DEG_add_object_relation(ctx->node, mmd->ob_arm, DEG_OB_COMP_TRANSFORM, "Mask Modifier");
@@ -217,7 +210,7 @@ static void computed_masked_faces(const Mesh *mesh,
                                   uint *r_loops_masked_num)
 {
   BLI_assert(mesh->verts_num == vertex_mask.size());
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   r_masked_face_indices.reserve(mesh->faces_num);
@@ -225,7 +218,7 @@ static void computed_masked_faces(const Mesh *mesh,
 
   uint loops_masked_num = 0;
   for (int i : IndexRange(mesh->faces_num)) {
-    const blender::IndexRange face = faces[i];
+    const IndexRange face = faces[i];
 
     bool all_verts_in_mask = true;
     for (const int vert_i : corner_verts.slice(face)) {
@@ -262,14 +255,14 @@ static void compute_interpolated_faces(const Mesh *mesh,
   /* NOTE: this reserve can only lift the capacity if there are ngons, which get split. */
   r_masked_face_indices.reserve(r_masked_face_indices.size() + verts_add_num);
   r_loop_starts.reserve(r_loop_starts.size() + verts_add_num);
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   uint edges_add_num = 0;
   uint faces_add_num = 0;
   uint loops_add_num = 0;
   for (int i : IndexRange(mesh->faces_num)) {
-    const blender::IndexRange face_src = faces[i];
+    const IndexRange face_src = faces[i];
 
     int in_count = 0;
     int start = -1;
@@ -354,7 +347,6 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
                                                     uint verts_add_num,
                                                     MutableSpan<int> r_edge_map)
 {
-  using namespace blender;
   BLI_assert(src_mesh.verts_num == vertex_mask.size());
   BLI_assert(src_mesh.edges_num == r_edge_map.size());
   const Span<int2> src_edges = src_mesh.edges();
@@ -410,7 +402,6 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> vertex_map,
                                           Span<int> edge_map)
 {
-  using namespace blender;
   const Span<int2> src_edges = src_mesh.edges();
   MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
   bke::LegacyMeshInterpolator edge_interp(src_mesh, dst_mesh, bke::AttrDomain::Edge);
@@ -437,7 +428,6 @@ static void copy_masked_faces_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> new_loop_starts,
                                           int faces_masked_num)
 {
-  using namespace blender;
   const OffsetIndices src_faces = src_mesh.faces();
   MutableSpan<int> dst_face_offsets = dst_mesh.face_offsets_for_write();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
@@ -477,7 +467,6 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
                                                int faces_masked_num,
                                                int edges_add_num)
 {
-  using namespace blender;
   const OffsetIndices src_faces = src_mesh.faces();
   MutableSpan<int> dst_face_offsets = dst_mesh.face_offsets_for_write();
   MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
@@ -646,7 +635,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
   }
 
   if (invert_mask) {
-    blender::array_utils::invert_booleans(vertex_mask);
+    array_utils::invert_booleans(vertex_mask);
   }
 
   Array<int> vertex_map(mesh->verts_num);
@@ -751,21 +740,21 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout.prop(ptr, "mode", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
   if (mode == MOD_MASK_MODE_ARM) {
-    blender::ui::Layout &row = layout.row(true);
+    ui::Layout &row = layout.row(true);
     row.prop(ptr, "armature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    blender::ui::Layout &sub = row.row(true);
+    ui::Layout &sub = row.row(true);
     sub.use_property_decorate_set(false);
     sub.prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
@@ -821,3 +810,5 @@ ModifierTypeInfo modifierType_Mask = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

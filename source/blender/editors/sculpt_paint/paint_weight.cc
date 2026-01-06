@@ -66,9 +66,10 @@
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::ed::sculpt_paint;
-using blender::ed::sculpt_paint::vwpaint::NormalAnglePrecalc;
+using ed::sculpt_paint::vwpaint::NormalAnglePrecalc;
 
 struct WPaintAverageAccum {
   uint len;
@@ -521,7 +522,7 @@ static void do_weight_paint_vertex_single(const VPaint &wp,
                                           float alpha,
                                           float paintweight)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
+  Mesh *mesh = id_cast<Mesh *>(ob.data);
   MDeformVert *dv = &wpi.dvert[index];
   bool topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
@@ -726,7 +727,7 @@ static void do_weight_paint_vertex_multi(const VPaint &wp,
                                          float alpha,
                                          float paintweight)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob.data);
+  Mesh *mesh = id_cast<Mesh *>(ob.data);
   MDeformVert *dv = &wpi.dvert[index];
   bool topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
@@ -1065,7 +1066,6 @@ static float wpaint_get_active_weight(const MDeformVert &dv, const WeightPaintIn
 static void precompute_weight_values(
     Object &ob, const Brush &brush, WPaintData &wpd, WeightPaintInfo &wpi, Mesh &mesh)
 {
-  using namespace blender;
   if (wpd.precomputed_weight_ready &&
       !vwpaint::brush_use_accumulate_ex(brush, eObjectMode(ob.mode)))
   {
@@ -1122,7 +1122,6 @@ static void do_wpaint_brush_blur(const Depsgraph &depsgraph,
                                  Mesh &mesh,
                                  const IndexMask &node_mask)
 {
-  using namespace blender;
   SculptSession &ss = *ob.sculpt;
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
   const StrokeCache &cache = *ss.cache;
@@ -1230,7 +1229,6 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
                                   Mesh &mesh,
                                   const IndexMask &node_mask)
 {
-  using namespace blender;
   SculptSession &ss = *ob.sculpt;
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
@@ -1357,7 +1355,6 @@ static void do_wpaint_brush_draw(const Depsgraph &depsgraph,
                                  const float strength,
                                  const IndexMask &node_mask)
 {
-  using namespace blender;
   SculptSession &ss = *ob.sculpt;
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
 
@@ -1447,7 +1444,6 @@ static float calculate_average_weight(const Depsgraph &depsgraph,
                                       WeightPaintInfo &wpi,
                                       const IndexMask &node_mask)
 {
-  using namespace blender;
   SculptSession &ss = *ob.sculpt;
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
   const StrokeCache &cache = *ss.cache;
@@ -1606,8 +1602,7 @@ bool weight_paint_mode_poll(bContext *C)
 {
   const Object *ob = CTX_data_active_object(C);
 
-  return ob && ob->mode == OB_MODE_WEIGHT_PAINT &&
-         (blender::id_cast<const Mesh *>(ob->data))->faces_num;
+  return ob && ob->mode == OB_MODE_WEIGHT_PAINT && (id_cast<const Mesh *>(ob->data))->faces_num;
 }
 
 bool weight_paint_mode_region_view3d_poll(bContext *C)
@@ -1658,7 +1653,7 @@ static wmOperatorStatus wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   ToolSettings &ts = *scene.toolsettings;
 
   if (!is_mode_set) {
-    if (!blender::ed::object::mode_compat_set(C, &ob, eObjectMode(mode_flag), op->reports)) {
+    if (!ed::object::mode_compat_set(C, &ob, eObjectMode(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -1677,7 +1672,7 @@ static wmOperatorStatus wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_brushes_validate(&bmain, &ts.wpaint->paint);
   }
 
-  blender::ed::object::posemode_set_for_weight_paint(C, &bmain, &ob, is_mode_set);
+  ed::object::posemode_set_for_weight_paint(C, &bmain, &ob, is_mode_set);
 
   /* Weight-paint works by overriding colors in mesh,
    * so need to make sure we recalculate on enter and
@@ -1757,7 +1752,7 @@ static void wpaint_do_symmetrical_brush_actions(
     bContext *C, Object &ob, VPaint &wp, WPaintData &wpd, WeightPaintInfo &wpi)
 {
   Brush &brush = *BKE_paint_brush(&wp.paint);
-  Mesh &mesh = *blender::id_cast<Mesh *>(ob.data);
+  Mesh &mesh = *id_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.sculpt;
   StrokeCache &cache = *ss.cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1838,7 +1833,7 @@ void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
 
   mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
 
-  Mesh &mesh = *blender::id_cast<Mesh *>(ob->data);
+  Mesh &mesh = *id_cast<Mesh *>(ob->data);
 
   /* *** setup WeightPaintInfo - pass onto do_weight_paint_vertex *** */
   wpi.dvert = mesh.deform_verts_for_write();
@@ -1988,3 +1983,5 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

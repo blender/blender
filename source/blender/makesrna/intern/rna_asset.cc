@@ -18,6 +18,8 @@
 
 #include "rna_internal.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_asset_library_type_items[] = {
     {ASSET_LIBRARY_ALL,
      "ALL",
@@ -42,6 +44,8 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}
+
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
@@ -63,7 +67,9 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 #  include "RNA_access.hh"
 
-using namespace blender::asset_system;
+namespace blender {
+
+using namespace asset_system;
 
 static std::optional<std::string> rna_AssetMetaData_path(const PointerRNA * /*ptr*/)
 {
@@ -361,8 +367,7 @@ void rna_AssetMetaData_catalog_id_update(bContext *C, PointerRNA *ptr)
     return;
   }
 
-  blender::asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(
-      sfile);
+  asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
   if (asset_library == nullptr) {
     /* The SpaceFile may not be an asset browser but a regular file browser. */
     return;
@@ -375,14 +380,14 @@ void rna_AssetMetaData_catalog_id_update(bContext *C, PointerRNA *ptr)
 static void rna_AssetRepresentation_name_get(PointerRNA *ptr, char *value)
 {
   const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
-  const blender::StringRefNull name = asset->get_name();
+  const StringRefNull name = asset->get_name();
   BLI_strncpy(value, name.c_str(), name.size() + 1);
 }
 
 static int rna_AssetRepresentation_name_length(PointerRNA *ptr)
 {
   const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
-  const blender::StringRefNull name = asset->get_name();
+  const StringRefNull name = asset->get_name();
   return name.size();
 }
 
@@ -449,7 +454,7 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(
+  const EnumPropertyItem *items = ed::asset::library_reference_to_rna_enum_itemf(
       /* Include all valid libraries for the user to choose from. */
       /*include_readonly=*/true,
       /*include_current_file=*/true);
@@ -461,7 +466,11 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
   return items;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_asset_tag(BlenderRNA *brna)
 {
@@ -726,5 +735,7 @@ void RNA_def_asset(BlenderRNA *brna)
 
   RNA_define_animate_sdna(true);
 }
+
+}  // namespace blender
 
 #endif

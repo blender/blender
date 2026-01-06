@@ -64,7 +64,9 @@ struct LoaderState {
 class BlenderFileLoader {
  public:
   /** Builds a MaxFileLoader */
-  BlenderFileLoader(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph);
+  BlenderFileLoader(blender::Render *re,
+                    blender::ViewLayer *view_layer,
+                    blender::Depsgraph *depsgraph);
   virtual ~BlenderFileLoader();
 
   /** Loads the 3D scene and returns a pointer to the scene root node */
@@ -91,7 +93,7 @@ class BlenderFileLoader {
   }
 
  protected:
-  void insertShapeNode(Object *ob, Mesh *mesh, int id);
+  void insertShapeNode(blender::Object *ob, blender::Mesh *mesh, int id);
   int testDegenerateTriangle(float v1[3], float v2[3], float v3[3]);
   int countClippedFaces(float v1[3], float v2[3], float v3[3], int clip[3]);
   void clipLine(float v1[3], float v2[3], float c[3], float z);
@@ -127,8 +129,8 @@ class BlenderFileLoader {
     Vec3r v;
     uint n;
   };
-  Render *_re;
-  Depsgraph *_depsgraph;
+  blender::Render *_re;
+  blender::Depsgraph *_depsgraph;
   NodeGroup *_Scene;
   uint _numFacesRead;
 #if 0

@@ -27,6 +27,8 @@
 #include "gpu_material_library.hh"
 #include "gpu_node_graph.hh"
 
+namespace blender {
+
 /* Node Link Functions */
 
 static GPUNodeLink *gpu_node_link_create()
@@ -494,8 +496,8 @@ static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, con
 static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
                                                       Image *ima,
                                                       ImageUser *iuser,
-                                                      blender::gpu::Texture **colorband,
-                                                      blender::gpu::Texture **sky,
+                                                      gpu::Texture **colorband,
+                                                      gpu::Texture **sky,
                                                       bool is_tiled,
                                                       GPUSamplerState sampler_state)
 {
@@ -695,8 +697,7 @@ GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
                            float *layer,
                            GPUSamplerState sampler_state)
 {
-  blender::gpu::Texture **sky = gpu_material_sky_texture_layer_set(
-      mat, width, height, pixels, layer);
+  gpu::Texture **sky = gpu_material_sky_texture_layer_set(mat, width, height, pixels, layer);
 
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNodeLink *link = gpu_node_link_create();
@@ -728,7 +729,7 @@ void GPU_image_tiled(GPUMaterial *mat,
 
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *r_row)
 {
-  blender::gpu::Texture **colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, r_row);
+  gpu::Texture **colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, r_row);
   MEM_freeN(pixels);
 
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
@@ -990,8 +991,8 @@ void gpu_nodes_tag(GPUNodeGraph *graph, GPUNodeLink *link_start, GPUNodeTag tag)
     return;
   }
 
-  blender::Stack<GPUNode *> stack;
-  blender::Stack<GPUNode *> zone_stack;
+  Stack<GPUNode *> stack;
+  Stack<GPUNode *> zone_stack;
   stack.push(link_start->output->node);
 
   while (!stack.is_empty() || !zone_stack.is_empty()) {
@@ -1113,3 +1114,5 @@ void gpu_node_graph_optimize(GPUNodeGraph *graph)
 
   /* TODO: Consider performing other node graph optimizations here. */
 }
+
+}  // namespace blender

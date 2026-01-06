@@ -33,7 +33,9 @@
 #include "tree/tree_display.hh"
 #include "tree/tree_element_rna.hh"
 
-namespace blender::ed::outliner {
+namespace blender {
+
+namespace ed::outliner {
 
 /* -------------------------------------------------------------------- */
 /** \name Tree View Context
@@ -474,7 +476,7 @@ void outliner_tag_redraw_avoid_rebuild_on_open_change(const SpaceOutliner *space
   }
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
 
 using namespace blender::ed::outliner;
 
@@ -488,13 +490,13 @@ Base *ED_outliner_give_base_under_cursor(bContext *C, const int mval[2])
   Base *base = nullptr;
   float view_mval[2];
 
-  blender::ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
   if (te) {
     TreeStoreElem *tselem = TREESTORE(te);
     if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-      Object *ob = blender::id_cast<Object *>(tselem->id);
+      Object *ob = id_cast<Object *>(tselem->id);
       BKE_view_layer_synced_ensure(scene, view_layer);
       base = (te->directdata) ? static_cast<Base *>(te->directdata) :
                                 BKE_view_layer_base_find(view_layer, ob);
@@ -510,7 +512,7 @@ bool ED_outliner_give_rna_under_cursor(bContext *C, const int mval[2], PointerRN
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   float view_mval[2];
-  blender::ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   TreeElement *te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
   if (!te) {
@@ -542,3 +544,5 @@ bool ED_outliner_give_rna_under_cursor(bContext *C, const int mval[2], PointerRN
   }
   return success;
 }
+
+}  // namespace blender

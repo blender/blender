@@ -1638,5 +1638,4 @@ inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
 /** \} */
 
 }  // namespace detail
-
 }  // namespace blender::draw

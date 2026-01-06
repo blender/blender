@@ -78,11 +78,13 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender::bke::path_templates {
+namespace bke::path_templates {
 
 /**
  * Variables (names and associated values) for use in template substitution.
@@ -256,7 +258,7 @@ struct Error {
 
 bool operator==(const Error &left, const Error &right);
 
-}  // namespace blender::bke::path_templates
+}  // namespace bke::path_templates
 
 /**
  * Build a template variable map for the passed RNA property.
@@ -270,7 +272,7 @@ bool operator==(const Error &left, const Error &right);
  * property is provided or if the property doesn't support path templates,
  * returns #std::nullopt.
  */
-std::optional<blender::bke::path_templates::VariableMap> BKE_build_template_variables_for_prop(
+std::optional<bke::path_templates::VariableMap> BKE_build_template_variables_for_prop(
     const bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 
 /**
@@ -287,7 +289,7 @@ std::optional<blender::bke::path_templates::VariableMap> BKE_build_template_vari
  *
  * \see #BKE_path_apply_template()
  */
-void BKE_add_template_variables_general(blender::bke::path_templates::VariableMap &variables,
+void BKE_add_template_variables_general(bke::path_templates::VariableMap &variables,
                                         const ID *path_owner_id);
 
 /**
@@ -306,8 +308,8 @@ void BKE_add_template_variables_general(blender::bke::path_templates::VariableMa
  *
  * \see #BKE_path_apply_template()
  */
-void BKE_add_template_variables_for_render_path(
-    blender::bke::path_templates::VariableMap &variables, const Scene &scene);
+void BKE_add_template_variables_for_render_path(bke::path_templates::VariableMap &variables,
+                                                const Scene &scene);
 
 /**
  * Add the variables that should be available for paths owned by a node.
@@ -320,7 +322,7 @@ void BKE_add_template_variables_for_render_path(
  *
  * \see BKE_path_apply_template()
  */
-void BKE_add_template_variables_for_node(blender::bke::path_templates::VariableMap &variables,
+void BKE_add_template_variables_for_node(bke::path_templates::VariableMap &variables,
                                          const bNode &owning_node);
 
 /**
@@ -333,7 +335,7 @@ void BKE_add_template_variables_for_node(blender::bke::path_templates::VariableM
  * processing is needed). True if the path does contain templating syntax
  * (template processing *is* needed).
  */
-bool BKE_path_contains_template_syntax(blender::StringRef path);
+bool BKE_path_contains_template_syntax(StringRef path);
 
 /**
  * Validate the templating in the given path.
@@ -346,8 +348,8 @@ bool BKE_path_contains_template_syntax(blender::StringRef path);
  *
  * \see BKE_path_apply_template()
  */
-blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
-    blender::StringRef path, const blender::bke::path_templates::VariableMap &template_variables);
+Vector<bke::path_templates::Error> BKE_path_validate_template(
+    StringRef path, const bke::path_templates::VariableMap &template_variables);
 
 /**
  * Perform variable substitution and escaping on the given path.
@@ -388,15 +390,13 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  * \return On success, an empty vector. If there are errors, a vector of all
  * errors encountered.
  */
-blender::Vector<blender::bke::path_templates::Error> BKE_path_apply_template(
-    char *path,
-    int path_maxncpy,
-    const blender::bke::path_templates::VariableMap &template_variables);
+Vector<bke::path_templates::Error> BKE_path_apply_template(
+    char *path, int path_maxncpy, const bke::path_templates::VariableMap &template_variables);
 /**
  * Produces a human-readable error message for the given template error.
  */
-std::string BKE_path_template_error_to_string(const blender::bke::path_templates::Error &error,
-                                              blender::StringRef path);
+std::string BKE_path_template_error_to_string(const bke::path_templates::Error &error,
+                                              StringRef path);
 
 /**
  * Logs a report for the given template errors, with human-readable error
@@ -404,8 +404,8 @@ std::string BKE_path_template_error_to_string(const blender::bke::path_templates
  */
 void BKE_report_path_template_errors(ReportList *reports,
                                      eReportType report_type,
-                                     blender::StringRef path,
-                                     blender::Span<blender::bke::path_templates::Error> errors);
+                                     StringRef path,
+                                     Span<bke::path_templates::Error> errors);
 
 /**
  * Format the given floating point value with the provided format specifier. The format specifier
@@ -413,9 +413,10 @@ void BKE_report_path_template_errors(ReportList *reports,
  *
  * \return #std::nullopt if the format specifier is invalid.
  */
-std::optional<std::string> BKE_path_template_format_float(blender::StringRef format_specifier,
+std::optional<std::string> BKE_path_template_format_float(StringRef format_specifier,
                                                           double value);
 
 /** Same as #BKE_path_template_format_float but for formatting an integer value. */
-std::optional<std::string> BKE_path_template_format_int(blender::StringRef format_specifier,
-                                                        int64_t value);
+std::optional<std::string> BKE_path_template_format_int(StringRef format_specifier, int64_t value);
+
+}  // namespace blender

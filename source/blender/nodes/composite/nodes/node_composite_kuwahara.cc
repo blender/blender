@@ -24,7 +24,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_kuwahara_cc {
+namespace blender {
+
+namespace nodes::node_composite_kuwahara_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_KUWAHARA_CLASSIC,
@@ -833,13 +835,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new ConvertKuwaharaOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_kuwahara_cc
+}  // namespace nodes::node_composite_kuwahara_cc
 
 static void register_node_type_cmp_kuwahara()
 {
-  namespace file_ns = blender::nodes::node_composite_kuwahara_cc;
+  namespace file_ns = nodes::node_composite_kuwahara_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeKuwahara", CMP_NODE_KUWAHARA);
   ntype.ui_name = "Kuwahara";
@@ -849,11 +851,13 @@ static void register_node_type_cmp_kuwahara()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_kuwahara_declare;
   ntype.initfunc = file_ns::node_composit_init_kuwahara;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeKuwaharaData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  blender::bke::node_type_size(ntype, 150, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 150, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_kuwahara)
+
+}  // namespace blender

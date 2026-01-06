@@ -26,6 +26,8 @@
 #  include "BLI_winstuff.h"
 #endif
 
+namespace blender {
+
 /* No BKE or DNA includes! */
 
 /* Keep alignment. */
@@ -2575,3 +2577,5 @@ bool BKE_unit_is_suppressed(const void *usys_pt, int index)
   BLI_assert(uint(index) < uint(usys->length));
   return (usys->units[index].flag & B_UNIT_DEF_SUPPRESS) != 0;
 }
+
+}  // namespace blender

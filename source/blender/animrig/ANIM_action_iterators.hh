@@ -13,17 +13,21 @@
 #include "BLI_function_ref.hh"
 #include "DNA_action_types.h"
 
+namespace blender {
+
 struct FCurve;
-namespace blender::animrig {
+struct PointerRNA;
+struct PropertyRNA;
+namespace animrig {
 class Action;
 class Layer;
 class Strip;
 class Channelbag;
-}  // namespace blender::animrig
+}  // namespace animrig
 
-namespace blender::animrig {
+namespace animrig {
 
-using slot_handle_t = decltype(::ActionSlot::handle);
+using slot_handle_t = decltype(blender::ActionSlot::handle);
 
 /**
  * Iterates over all FCurves of the Action and executes the callback on it.
@@ -71,9 +75,9 @@ bool foreach_action_slot_use(
  * necessarily the direct action & slot of that ID: they can also be the action
  * & slot of an Action Constraint or NLA Strip owned by the ID.
  *
- * \see blender::animrig::generic_assign_action
- * \see blender::animrig::generic_assign_action_slot
- * \see blender::animrig::generic_assign_action_slot_handle
+ * \see animrig::generic_assign_action
+ * \see animrig::generic_assign_action_slot
+ * \see animrig::generic_assign_action_slot_handle
  */
 bool foreach_action_slot_use_with_references(
     ID &animated_id,
@@ -104,4 +108,5 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
                                                        PropertyRNA &action_slot_prop,
                                                        char *last_slot_identifier)> callback);
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

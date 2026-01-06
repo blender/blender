@@ -12,11 +12,13 @@
 
 #include "BLI_assert.h"
 
+namespace blender {
+
 struct AnimData;
 struct Object;
-namespace blender::gpu {
+namespace gpu {
 class Texture;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /* Bump the version number for lightcache data structure changes. */
 #define LIGHTCACHE_STATIC_VERSION 2
@@ -212,8 +214,8 @@ BLI_STATIC_ASSERT_ALIGN(LightGridCache, 16)
 /* ------ Eevee Lightcache ------- */
 
 struct LightCacheTexture {
-  blender::gpu::Texture *tex = nullptr;
-  /** Copy of GPU data to create blender::gpu::Textures on file read. */
+  gpu::Texture *tex = nullptr;
+  /** Copy of GPU data to create gpu::Textures on file read. */
   char *data = nullptr;
   int tex_size[3] = {};
   char data_type = 0;
@@ -241,7 +243,7 @@ struct LightCache {
   LightCacheTexture grid_tx;
   /** Contains data for mipmap level 0. */
   LightCacheTexture cube_tx;
-  /** Does not contains valid blender::gpu::Texture, only data. */
+  /** Does not contains valid gpu::Texture, only data. */
   LightCacheTexture *cube_mips = nullptr;
   /* All light-probes data contained in the cache. */
   LightProbeCache *cube_data = nullptr;
@@ -365,3 +367,5 @@ struct LightProbeObjectCache {
 };
 
 /** \} */
+
+}  // namespace blender

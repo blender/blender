@@ -49,6 +49,8 @@
 #include "filelist.hh"
 #include "fsmenu.hh"
 
+namespace blender {
+
 /* ******************** default callbacks for file space ***************** */
 
 static SpaceLink *file_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -434,7 +436,7 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  view2d_region_reinit(&region->v2d, blender::ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
 
@@ -555,7 +557,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  blender::ui::theme::frame_buffer_clear(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   /* Allow dynamically sliders to be set, saves notifiers etc. */
 
@@ -582,13 +584,13 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
     }
   }
   /* v2d has initialized flag, so this call will only set the mask correct */
-  view2d_region_reinit(v2d, blender::ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  view2d_region_reinit(v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* sets tile/border settings in sfile */
   file_calc_previews(C, region);
 
   /* set view */
-  blender::ui::view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* on first read, find active file */
   if (params->highlight_file == -1) {
@@ -601,12 +603,12 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* reset view matrix */
-  blender::ui::view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* scrollers */
   rcti view_rect;
   ED_fileselect_layout_maskrect(sfile->layout, v2d, &view_rect);
-  blender::ui::view2d_scrollers_draw(v2d, &view_rect);
+  ui::view2d_scrollers_draw(v2d, &view_rect);
 
   ED_region_draw_overflow_indication(CTX_wm_area(C), region, &view_rect);
 }
@@ -846,7 +848,7 @@ static void file_space_subtype_item_extend(bContext * /*C*/, EnumPropertyItem **
   RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
 }
 
-static blender::StringRefNull file_space_name_get(const ScrArea *area)
+static StringRefNull file_space_name_get(const ScrArea *area)
 {
   SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
   const int index = RNA_enum_from_value(rna_enum_space_file_browse_mode_items, sfile->browse_mode);
@@ -862,9 +864,7 @@ static int file_space_icon_get(const ScrArea *area)
   return item.icon;
 }
 
-static void file_id_remap(ScrArea *area,
-                          SpaceLink *sl,
-                          const blender::bke::id::IDRemapper & /*mappings*/)
+static void file_id_remap(ScrArea *area, SpaceLink *sl, const bke::id::IDRemapper & /*mappings*/)
 {
   SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
 
@@ -1078,3 +1078,5 @@ void ED_file_read_bookmarks()
     fsmenu_read_bookmarks(ED_fsmenu_get(), filepath);
   }
 }
+
+}  // namespace blender

@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  */
@@ -66,3 +68,5 @@ void BKE_blender_version_blendfile_string_from_values(char *str_buff,
                                                       const size_t str_buff_maxncpy,
                                                       const short file_version,
                                                       const short file_subversion);
+
+}  // namespace blender

@@ -34,7 +34,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Extrude Internal Utilities
@@ -311,7 +311,7 @@ static wmOperatorStatus edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -448,7 +448,7 @@ static wmOperatorStatus edbm_extrude_region_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
   return OPERATOR_FINISHED;
 }
@@ -470,7 +470,7 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "use_normal_flip", false, "Flip Normals", "");
   RNA_def_boolean(ot->srna, "use_dissolve_ortho_edges", false, "Dissolve Orthogonal Edges", "");
-  blender::ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -503,7 +503,7 @@ static wmOperatorStatus edbm_extrude_context_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
   return OPERATOR_FINISHED;
 }
@@ -524,7 +524,7 @@ void MESH_OT_extrude_context(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "use_normal_flip", false, "Flip Normals", "");
   RNA_def_boolean(ot->srna, "use_dissolve_ortho_edges", false, "Dissolve Orthogonal Edges", "");
-  blender::ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -552,7 +552,7 @@ static wmOperatorStatus edbm_extrude_verts_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -573,7 +573,7 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -602,7 +602,7 @@ static wmOperatorStatus edbm_extrude_edges_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -624,7 +624,7 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 
   /* to give to transform */
   RNA_def_boolean(ot->srna, "use_normal_flip", false, "Flip Normals", "");
-  blender::ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -652,7 +652,7 @@ static wmOperatorStatus edbm_extrude_faces_exec(bContext *C, wmOperator *op)
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   return OPERATOR_FINISHED;
@@ -672,7 +672,7 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -889,7 +889,7 @@ static wmOperatorStatus edbm_dupli_extrude_cursor_invoke(bContext *C,
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(blender::id_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
 
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -923,3 +923,5 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

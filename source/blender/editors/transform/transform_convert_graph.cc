@@ -381,7 +381,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     float xscale, yscale;
 
     /* Apply scale factors to x and y axes of space-conversion matrices. */
-    blender::ui::view2d_scale_get(v2d, &xscale, &yscale);
+    ui::view2d_scale_get(v2d, &xscale, &yscale);
 
     /* `mtx` is data to global (i.e. view) conversion. */
     mul_v3_fl(mtx[0], xscale);

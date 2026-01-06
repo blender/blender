@@ -46,12 +46,13 @@
 #include <stdio.h>
 #include <string>
 
+namespace blender {
+
 #ifdef WIN32
 #  define popen _popen
 #  define pclose _pclose
 #endif
 
-using namespace blender;
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
@@ -1975,3 +1976,5 @@ void GLSubprocessShaderCompiler::specialize_shader(const ShaderSpecialization &s
 /** \} */
 
 #endif
+
+}  // namespace blender

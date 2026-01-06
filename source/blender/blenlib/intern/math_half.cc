@@ -25,7 +25,9 @@
 #  include <immintrin.h>
 #endif
 
-uint16_t blender::math::float_to_half(float v)
+namespace blender {
+
+uint16_t math::float_to_half(float v)
 {
 #if defined(USE_HARDWARE_FP16_NEON)
   float16x4_t h4 = vcvt_f16_f32(vdupq_n_f32(v));
@@ -89,7 +91,7 @@ uint16_t blender::math::float_to_half(float v)
 #endif
 }
 
-uint16_t blender::math::float_to_half_make_finite(float v)
+uint16_t math::float_to_half_make_finite(float v)
 {
   uint16_t h = float_to_half(v);
   /* Infinity or NaN? */
@@ -106,7 +108,7 @@ uint16_t blender::math::float_to_half_make_finite(float v)
   return h;
 }
 
-float blender::math::half_to_float(uint16_t v)
+float math::half_to_float(uint16_t v)
 {
 #if defined(USE_HARDWARE_FP16_NEON)
   uint16x4_t v4 = vdup_n_u16(v);
@@ -236,7 +238,7 @@ static inline __m128 F16_to_F32_4x(const __m128i &h)
 
 #endif  // USE_SSE2_FP16
 
-void blender::math::float_to_half_array(const float *src, uint16_t *dst, size_t length)
+void math::float_to_half_array(const float *src, uint16_t *dst, size_t length)
 {
   size_t i = 0;
 #if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using F16C and AVX */
@@ -272,7 +274,7 @@ void blender::math::float_to_half_array(const float *src, uint16_t *dst, size_t 
   }
 }
 
-void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *dst, size_t length)
+void math::float_to_half_make_finite_array(const float *src, uint16_t *dst, size_t length)
 {
   size_t i = 0;
 #if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using AVX2 F16C */
@@ -366,7 +368,7 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
   }
 }
 
-void blender::math::half_to_float_array(const uint16_t *src, float *dst, size_t length)
+void math::half_to_float_array(const uint16_t *src, float *dst, size_t length)
 {
   size_t i = 0;
 #if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using F16C and AVX */
@@ -411,3 +413,5 @@ void blender::math::half_to_float_array(const uint16_t *src, float *dst, size_t 
 #ifdef USE_SSE2_FP16
 #  undef USE_SSE2_FP16
 #endif
+
+}  // namespace blender

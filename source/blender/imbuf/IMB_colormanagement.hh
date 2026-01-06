@@ -15,6 +15,8 @@
 
 #define BCM_CONFIG_FILE "config.ocio"
 
+namespace blender {
+
 struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
@@ -26,12 +28,12 @@ struct ImageFormatData;
 struct Main;
 struct bContext;
 
-namespace blender::ocio {
+namespace ocio {
 class ColorSpace;
 class Display;
-}  // namespace blender::ocio
-using ColorSpace = blender::ocio::ColorSpace;
-using ColorManagedDisplay = blender::ocio::Display;
+}  // namespace ocio
+using ColorSpace = ocio::ColorSpace;
+using ColorManagedDisplay = ocio::Display;
 
 enum ColorManagedDisplaySpace {
   /**
@@ -83,7 +85,7 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name);
  * Get binary ICC profile contents for a color-space.
  * For describing the color-space for standard dynamic range image files.
  */
-blender::Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspace);
+Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspace);
 /**
  * Get CICP code for color-space.
  * For describing the color-space of videos and high dynamic range image files.
@@ -99,8 +101,8 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
  * Get identifier for color-spaces that works with multiple OpenColorIO configurations,
  * as defined by the ASWF Color Interop Forum.
  */
-blender::StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace);
-const ColorSpace *IMB_colormanagement_space_from_interop_id(blender::StringRefNull interop_id);
+StringRefNull IMB_colormanagement_space_get_interop_id(const ColorSpace *colorspace);
+const ColorSpace *IMB_colormanagement_space_from_interop_id(StringRefNull interop_id);
 
 BLI_INLINE void IMB_colormanagement_get_luminance_coefficients(float r_rgb[3]);
 
@@ -142,8 +144,8 @@ BLI_INLINE void IMB_colormanagement_rec2020_to_scene_linear(float scene_linear[3
                                                             const float rec2020[3]);
 BLI_INLINE void IMB_colormanagement_scene_linear_to_rec2020(float rec2020[3],
                                                             const float scene_linear[3]);
-blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear();
-blender::float3x3 IMB_colormanagement_get_scene_linear_to_xyz();
+float3x3 IMB_colormanagement_get_xyz_to_scene_linear();
+float3x3 IMB_colormanagement_get_scene_linear_to_xyz();
 
 /**
  * Functions for converting between color temperature/tint and RGB white points.
@@ -433,13 +435,12 @@ void IMB_colormanagement_working_space_check(Main *bmain,
 
 void IMB_colormanagement_working_space_init_default(Main *bmain);
 void IMB_colormanagement_working_space_init_startup(Main *bmain);
-void IMB_colormanagement_working_space_convert(
-    Main *bmain,
-    const blender::float3x3 &current_scene_linear_to_xyz,
-    const blender::float3x3 &new_xyz_to_scene_linear,
-    const bool depsgraph_tag = false,
-    const bool linked_only = false,
-    const bool editable_assets_only = false);
+void IMB_colormanagement_working_space_convert(Main *bmain,
+                                               const float3x3 &current_scene_linear_to_xyz,
+                                               const float3x3 &new_xyz_to_scene_linear,
+                                               const bool depsgraph_tag = false,
+                                               const bool linked_only = false,
+                                               const bool editable_assets_only = false);
 void IMB_colormanagement_working_space_convert(Main *bmain, const Main *reference_bmain);
 
 int IMB_colormanagement_working_space_get_named_index(const char *name);
@@ -642,5 +643,7 @@ void IMB_colormanagement_wavelength_to_rgb(float r_dest[4], float value);
 void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, int width);
 
 /** \} */
+
+}  // namespace blender
 
 #include "intern/colormanagement_inline.h"  // IWYU pragma: export

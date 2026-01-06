@@ -23,7 +23,7 @@
 #include "draw_manager.hh"
 #include "draw_view_data.hh"
 
-using namespace blender;
+namespace blender {
 
 DRWViewData::DRWViewData()
 {
@@ -100,7 +100,7 @@ void DRWViewData::clear(bool free_instance_data)
   }
 }
 
-void DRWViewData::texture_list_size_validate(const blender::int2 &size)
+void DRWViewData::texture_list_size_validate(const int2 &size)
 {
   if (this->texture_list_size != size) {
     this->clear(false);
@@ -134,3 +134,5 @@ draw::Manager *DRW_manager_get()
   BLI_assert(drw_get().view_data_active->manager);
   return drw_get().view_data_active->manager;
 }
+
+}  // namespace blender

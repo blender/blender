@@ -12,6 +12,8 @@
 
 #include "BLI_set.hh"
 
+namespace blender {
+
 /*
  * NOTE: do NOT modify topology while walking a mesh!
  */
@@ -53,8 +55,8 @@ struct BMWalker {
 
   BMWFlag flag;
 
-  blender::Set<const void *> *visit_set;
-  blender::Set<const void *> *visit_set_alt;
+  Set<const void *> *visit_set;
+  Set<const void *> *visit_set_alt;
   int depth;
 };
 
@@ -176,3 +178,5 @@ enum {
 
 /* use with BMW_init, so as not to confuse with restrict flags */
 #define BMW_NIL_LAY 0
+
+}  // namespace blender

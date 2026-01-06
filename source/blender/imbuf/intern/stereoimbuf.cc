@@ -17,6 +17,8 @@
 
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 /* prototypes */
 struct Stereo3DData;
 static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d);
@@ -1230,3 +1232,5 @@ static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, const Stereo3dFormat 
 }
 
 /** \} */
+
+}  // namespace blender

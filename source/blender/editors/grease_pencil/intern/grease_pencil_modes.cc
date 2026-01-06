@@ -28,7 +28,9 @@
 #include "WM_message.hh"
 #include "WM_toolsystem.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 
 /* -------------------------------------------------------------------- */
 /** \name Toggle Stroke Paint Mode Operator
@@ -100,7 +102,7 @@ static wmOperatorStatus paintmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_brushes_validate(bmain, &ts->gp_paint->paint);
   }
 
-  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, nullptr);
@@ -198,7 +200,7 @@ static wmOperatorStatus sculptmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_brushes_validate(bmain, &ts->gp_sculptpaint->paint);
   }
 
-  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, nullptr);
@@ -280,7 +282,7 @@ static wmOperatorStatus weightmode_toggle_exec(bContext *C, wmOperator *op)
   ob->mode = mode;
 
   /* Prepare armature posemode. */
-  blender::ed::object::posemode_set_for_weight_paint(C, bmain, ob, is_mode_set);
+  ed::object::posemode_set_for_weight_paint(C, bmain, ob, is_mode_set);
 
   if (mode == OB_MODE_WEIGHT_GREASE_PENCIL) {
     /* Be sure we have brushes. */
@@ -293,7 +295,7 @@ static wmOperatorStatus weightmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_brushes_validate(bmain, weight_paint);
   }
 
-  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, nullptr);
@@ -392,7 +394,7 @@ static wmOperatorStatus vertexmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_gpencil_palette_ensure(bmain, scene);
   }
 
-  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(ob->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, nullptr);
@@ -427,7 +429,7 @@ static void GREASE_PENCIL_OT_vertexmode_toggle(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 void ED_operatortypes_grease_pencil_modes()
 {
@@ -437,3 +439,5 @@ void ED_operatortypes_grease_pencil_modes()
   WM_operatortype_append(GREASE_PENCIL_OT_weightmode_toggle);
   WM_operatortype_append(GREASE_PENCIL_OT_vertexmode_toggle);
 }
+
+}  // namespace blender

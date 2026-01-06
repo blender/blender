@@ -83,12 +83,12 @@ VectorSet<PointCloud *> get_unique_editable_pointclouds(const bContext &C)
 
   Object *object = CTX_data_active_object(&C);
   if (object && object_has_editable_pointcloud(bmain, *object)) {
-    unique_points.add_new(blender::id_cast<PointCloud *>(object->data));
+    unique_points.add_new(id_cast<PointCloud *>(object->data));
   }
 
   CTX_DATA_BEGIN (&C, Object *, object, selected_objects) {
     if (object_has_editable_pointcloud(bmain, *object)) {
-      unique_points.add(blender::id_cast<PointCloud *>(object->data));
+      unique_points.add(id_cast<PointCloud *>(object->data));
     }
   }
   CTX_DATA_END;

@@ -30,6 +30,8 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 
 #  ifdef WITH_XR_OPENXR
@@ -1340,7 +1342,11 @@ static bool rna_XrEventData_bimanual_get(PointerRNA *ptr)
 
 /** \} */
 
+}  // namespace blender
+
 #else /* RNA_RUNTIME */
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 
@@ -2565,5 +2571,7 @@ void RNA_def_xr(BlenderRNA *brna)
 
   RNA_define_animate_sdna(true);
 }
+
+}  // namespace blender
 
 #endif /* RNA_RUNTIME */

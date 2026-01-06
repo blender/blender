@@ -542,7 +542,7 @@ void import_meshes(Main &bmain,
         name = get_fbx_name(node->name);
       }
       Object *obj = BKE_object_add_only_object(&bmain, OB_MESH, name.c_str());
-      obj->data = blender::id_cast<ID *>(mesh_main);
+      obj->data = id_cast<ID *>(mesh_main);
       if (!node->visible) {
         obj->visibility_flag |= OB_HIDE_VIEWPORT;
       }

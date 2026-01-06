@@ -23,6 +23,8 @@
 
 #include "ED_image.hh"
 
+namespace blender {
+
 /**
  * Get a list of frames from the list of image files matching the first file name sequence pattern.
  * The files and directory are read from standard file-select operator properties.
@@ -143,8 +145,8 @@ static void image_detect_frame_range(ImageFrameRange *range, const bool detect_u
   }
 }
 
-ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(blender::StringRefNull blendfile_path,
-                                                             blender::StringRefNull root_path,
+ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(StringRefNull blendfile_path,
+                                                             StringRefNull root_path,
                                                              wmOperator *op,
                                                              const bool detect_udim)
 {
@@ -183,3 +185,5 @@ ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(blender::StringRefN
 
   return ranges;
 }
+
+}  // namespace blender

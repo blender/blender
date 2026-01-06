@@ -68,7 +68,7 @@ ListBaseT<TreeElement> TreeDisplayLibraries::build_tree(const TreeSourceData &so
     }
 
     TreeStoreElem *tselem = TREESTORE(ten);
-    Library *lib = blender::id_cast<Library *>(tselem->id);
+    Library *lib = id_cast<Library *>(tselem->id);
     BLI_assert(!lib || (GS(lib->id.name) == ID_LI));
     if (!lib || !(lib->runtime->parent || lib->archive_parent_library)) {
       continue;
@@ -183,7 +183,7 @@ bool TreeDisplayLibraries::library_id_filter_poll(const Library *lib, ID *id) co
   if (id_filter_get() == ID_GR) {
     /* Don't show child collections of non-scene master collection,
      * they are already shown as children. */
-    Collection *collection = blender::id_cast<Collection *>(id);
+    Collection *collection = id_cast<Collection *>(id);
     bool has_non_scene_parent = false;
 
     for (CollectionParent *cparent : List<CollectionParent>(collection->runtime->parents)) {

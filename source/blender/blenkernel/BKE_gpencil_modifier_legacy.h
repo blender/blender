@@ -12,6 +12,8 @@
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
 
+namespace blender {
+
 struct BlendDataReader;
 struct GpencilModifierData;
 struct ID;
@@ -49,3 +51,5 @@ void BKE_gpencil_modifiers_foreach_ID_link(struct Object *ob,
 void BKE_gpencil_modifier_blend_read_data(struct BlendDataReader *reader,
                                           ListBaseT<GpencilModifierData> *lb,
                                           struct Object *ob);
+
+}  // namespace blender

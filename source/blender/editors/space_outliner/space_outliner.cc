@@ -42,6 +42,8 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 
+namespace blender {
+
 /**
  * Since 2.8x outliner drawing itself can change the scroll position of the outliner
  * after drawing has completed. Failing to draw a second time can cause nothing to display.
@@ -50,7 +52,7 @@
  */
 #define USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*other*/)
     : tree_display(nullptr), tree_hash(nullptr)
@@ -440,9 +442,7 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   return reinterpret_cast<SpaceLink *>(space_outliner_new);
 }
 
-static void outliner_id_remap(ScrArea *area,
-                              SpaceLink *slink,
-                              const blender::bke::id::IDRemapper &mappings)
+static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const bke::id::IDRemapper &mappings)
 {
   SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(slink);
 
@@ -643,7 +643,7 @@ static void outliner_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   write_space_outliner(writer, space_outliner);
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
 
 void ED_spacetype_outliner()
 {
@@ -696,3 +696,5 @@ void ED_spacetype_outliner()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

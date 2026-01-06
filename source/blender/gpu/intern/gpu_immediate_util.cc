@@ -21,6 +21,8 @@
 
 #include "UI_resources.hh"
 
+namespace blender {
+
 static const float cube_coords[8][3] = {
     {-1, -1, -1},
     {-1, -1, +1},
@@ -142,7 +144,7 @@ void immRectf_with_texco(const uint pos, const uint tex_coord, const rctf &p, co
 void immRecti_complete(int x1, int y1, int x2, int y2, const float color[4])
 {
   GPUVertFormat *format = immVertexFormat();
-  uint pos = add_attr(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = add_attr(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4fv(color);
   immRectf(pos, x1, y1, x2, y2);
@@ -471,8 +473,7 @@ void imm_draw_box_checker_2d_ex(float x1,
                                 const float color_secondary[4],
                                 int checker_size)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
 
@@ -488,11 +489,11 @@ void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2, bool clear_
 {
   float checker_primary[4];
   float checker_secondary[4];
-  blender::ui::theme::get_color_4fv(TH_TRANSPARENT_CHECKER_PRIMARY, checker_primary);
-  blender::ui::theme::get_color_4fv(TH_TRANSPARENT_CHECKER_SECONDARY, checker_secondary);
+  ui::theme::get_color_4fv(TH_TRANSPARENT_CHECKER_PRIMARY, checker_primary);
+  ui::theme::get_color_4fv(TH_TRANSPARENT_CHECKER_SECONDARY, checker_secondary);
   checker_primary[3] = clear_alpha ? 0.0 : checker_primary[3];
   checker_secondary[3] = clear_alpha ? 0.0 : checker_secondary[3];
-  int checker_size = blender::ui::theme::get_value(TH_TRANSPARENT_CHECKER_SIZE) * U.pixelsize;
+  int checker_size = ui::theme::get_value(TH_TRANSPARENT_CHECKER_SIZE) * U.pixelsize;
   imm_draw_box_checker_2d_ex(x1, y1, x2, y2, checker_primary, checker_secondary, checker_size);
 }
 
@@ -747,3 +748,5 @@ void imm_drawcircball(const float cent[3], float radius, const float tmat[4][4],
   }
   immEnd();
 }
+
+}  // namespace blender

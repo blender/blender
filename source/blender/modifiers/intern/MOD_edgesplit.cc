@@ -35,6 +35,8 @@
 
 #include "GEO_randomize.hh"
 
+namespace blender {
+
 /* For edge split modifier node. */
 Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd);
 
@@ -101,7 +103,7 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
   BM_mesh_free(bm);
 
-  blender::geometry::debug_randomize_mesh_order(result);
+  geometry::debug_randomize_mesh_order(result);
 
   return result;
 }
@@ -128,15 +130,15 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &row = layout.row(true, IFACE_("Edge Angle"));
+  ui::Layout &row = layout.row(true, IFACE_("Edge Angle"));
   row.prop(ptr, "use_edge_angle", UI_ITEM_NONE, "", ICON_NONE);
-  blender::ui::Layout &sub = row.row(true);
+  ui::Layout &sub = row.row(true);
   sub.active_set(RNA_boolean_get(ptr, "use_edge_angle"));
   sub.prop(ptr, "split_angle", UI_ITEM_NONE, "", ICON_NONE);
 
@@ -187,3 +189,5 @@ ModifierTypeInfo modifierType_EdgeSplit = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

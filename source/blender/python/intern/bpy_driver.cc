@@ -34,6 +34,8 @@
 
 #include "BPY_extern.hh"
 
+namespace blender {
+
 #define USE_RNA_AS_PYOBJECT
 
 #define USE_BYTECODE_WHITELIST
@@ -784,3 +786,5 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
 
   return float(result);
 }
+
+}  // namespace blender

@@ -203,7 +203,7 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
           *static_cast<BoneCollection *>(create_data));
     case TSE_ACTION_SLOT:
       return std::make_unique<TreeElementActionSlot>(
-          legacy_te, *reinterpret_cast<blender::animrig::Slot *>(create_data));
+          legacy_te, *reinterpret_cast<animrig::Slot *>(create_data));
 
     default:
       break;

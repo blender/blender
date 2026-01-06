@@ -15,49 +15,49 @@ CCL_NAMESPACE_BEGIN
 
 void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
 {
-  ::Light &b_light = *blender::id_cast<::Light *>(b_ob_info.object_data);
+  blender::Light &b_light = *blender::id_cast<blender::Light *>(b_ob_info.object_data);
 
   light->name = b_light.id.name + 2;
 
   /* type */
   switch (b_light.type) {
-    case LA_LOCAL: {
+    case blender::LA_LOCAL: {
       light->set_size(b_light.radius);
       light->set_light_type(LIGHT_POINT);
-      light->set_is_sphere(!(b_light.mode & LA_USE_SOFT_FALLOFF));
+      light->set_is_sphere(!(b_light.mode & blender::LA_USE_SOFT_FALLOFF));
       break;
     }
-    case LA_SPOT: {
+    case blender::LA_SPOT: {
       light->set_size(b_light.radius);
       light->set_light_type(LIGHT_SPOT);
       light->set_spot_angle(b_light.spotsize);
       light->set_spot_smooth(b_light.spotblend);
-      light->set_is_sphere(!(b_light.mode & LA_USE_SOFT_FALLOFF));
+      light->set_is_sphere(!(b_light.mode & blender::LA_USE_SOFT_FALLOFF));
       break;
     }
-    case LA_SUN: {
+    case blender::LA_SUN: {
       light->set_angle(b_light.sun_angle);
       light->set_light_type(LIGHT_DISTANT);
       break;
     }
-    case LA_AREA: {
+    case blender::LA_AREA: {
       light->set_size(1.0f);
       light->set_sizeu(b_light.area_size);
       light->set_spread(b_light.area_spread);
       switch (b_light.area_shape) {
-        case LA_AREA_SQUARE:
+        case blender::LA_AREA_SQUARE:
           light->set_sizev(light->get_sizeu());
           light->set_ellipse(false);
           break;
-        case LA_AREA_RECT:
+        case blender::LA_AREA_RECT:
           light->set_sizev(b_light.area_sizey);
           light->set_ellipse(false);
           break;
-        case LA_AREA_DISK:
+        case blender::LA_AREA_DISK:
           light->set_sizev(light->get_sizeu());
           light->set_ellipse(true);
           break;
-        case LA_AREA_ELLIPSE:
+        case blender::LA_AREA_ELLIPSE:
           light->set_sizev(b_light.area_sizey);
           light->set_ellipse(true);
           break;
@@ -67,11 +67,11 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
     }
   }
 
-  PointerRNA light_rna_ptr = RNA_id_pointer_create(&b_light.id);
+  blender::PointerRNA light_rna_ptr = RNA_id_pointer_create(&b_light.id);
 
   /* Color and strength. */
   float3 light_color = make_float3(b_light.r, b_light.g, b_light.b);
-  if (b_light.mode & LA_USE_TEMPERATURE) {
+  if (b_light.mode & blender::LA_USE_TEMPERATURE) {
     float color[3];
     RNA_float_get_array(&light_rna_ptr, "temperature_color", color);
     light_color *= make_float3(color[0], color[1], color[2]);
@@ -81,11 +81,11 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
   light->set_strength(strength);
 
   /* normalize */
-  light->set_normalize(!(b_light.mode & LA_UNNORMALIZED));
+  light->set_normalize(!(b_light.mode & blender::LA_UNNORMALIZED));
 
   /* shadow */
-  PointerRNA clight = RNA_pointer_get(&light_rna_ptr, "cycles");
-  light->set_cast_shadow(b_light.mode & LA_SHADOW);
+  blender::PointerRNA clight = RNA_pointer_get(&light_rna_ptr, "cycles");
+  light->set_cast_shadow(b_light.mode & blender::LA_SHADOW);
   light->set_use_mis(get_boolean(clight, "use_multiple_importance_sampling"));
 
   /* caustics light */
@@ -104,13 +104,13 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
   light->tag_update(scene);
 }
 
-void BlenderSync::sync_background_light(::bScreen *b_screen, ::View3D *b_v3d)
+void BlenderSync::sync_background_light(blender::bScreen *b_screen, blender::View3D *b_v3d)
 {
-  ::World *b_world = view_layer.world_override ? view_layer.world_override : b_scene->world;
+  blender::World *b_world = view_layer.world_override ? view_layer.world_override : b_scene->world;
 
   if (b_world) {
-    PointerRNA world_rna_ptr = RNA_id_pointer_create(&b_world->id);
-    PointerRNA cworld = RNA_pointer_get(&world_rna_ptr, "cycles");
+    blender::PointerRNA world_rna_ptr = RNA_id_pointer_create(&b_world->id);
+    blender::PointerRNA cworld = RNA_pointer_get(&world_rna_ptr, "cycles");
 
     enum SamplingMethod { SAMPLING_NONE = 0, SAMPLING_AUTOMATIC, SAMPLING_MANUAL, SAMPLING_NUM };
     const int sampling_method = get_enum(

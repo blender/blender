@@ -42,9 +42,7 @@
 
 #include "./intern/bmesh_private.hh"
 
-using blender::Map;
-using blender::Set;
-using blender::Vector;
+namespace blender {
 
 // #define BEVEL_DEBUG_TIME
 #ifdef BEVEL_DEBUG_TIME
@@ -340,11 +338,11 @@ using UVVertMap = Map<BMVert *, Vector<UVVertBucket>>;
 /** Bevel parameters and state. */
 struct BevelParams {
   /** Records BevVerts made. */
-  blender::Map<BMVert *, BevVert *> vert_hash;
+  Map<BMVert *, BevVert *> vert_hash;
   /** Records new faces. */
-  std::optional<blender::Map<BMFace *, FKind>> face_hash;
+  std::optional<Map<BMFace *, FKind>> face_hash;
   /** Records `UVFace` made. */
-  blender::Map<BMFace *, UVFace *> uv_face_hash;
+  Map<BMFace *, UVFace *> uv_face_hash;
   /** Container which keeps track of UV vert connectivity in different UV maps. */
   Vector<UVVertMap> uv_vert_maps;
   /**
@@ -8099,3 +8097,5 @@ void BM_mesh_bevel(BMesh *bm,
   printf("BMESH BEVEL TIME = %.3f\n", end_time - start_time);
 #endif
 }
+
+}  // namespace blender

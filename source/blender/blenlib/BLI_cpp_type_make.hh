@@ -14,7 +14,9 @@
 #include "BLI_index_mask.hh"
 #include "BLI_utildefines.h"
 
-namespace blender::cpp_type_util {
+namespace blender {
+
+namespace cpp_type_util {
 
 template<typename T> inline bool pointer_has_valid_alignment(const void *ptr)
 {
@@ -308,9 +310,7 @@ template<typename T> uint64_t hash_cb(const void *value)
   return get_default_hash(value_);
 }
 
-}  // namespace blender::cpp_type_util
-
-namespace blender {
+}  // namespace cpp_type_util
 
 template<typename T, CPPTypeFlags Flags>
 CPPType::CPPType(TypeTag<T> /*type*/,
@@ -450,17 +450,16 @@ CPPType::CPPType(TypeTag<T> /*type*/,
   this->is_move_assignable = move_assign_ != nullptr;
 }
 
-}  // namespace blender
-
 /** Create a new #CPPType that can be accessed through `CPPType::get<T>()`. */
 #define BLI_CPP_TYPE_MAKE(TYPE_NAME, FLAGS) \
-  template<> const blender::CPPType &blender::CPPType::get_impl<TYPE_NAME>() \
+  template<> const CPPType &CPPType::get_impl<TYPE_NAME>() \
   { \
-    static CPPType type{blender::TypeTag<TYPE_NAME>(), \
-                        TypeForValue<CPPTypeFlags, FLAGS>(), \
-                        STRINGIFY(TYPE_NAME)}; \
+    static CPPType type{ \
+        TypeTag<TYPE_NAME>(), TypeForValue<CPPTypeFlags, FLAGS>(), STRINGIFY(TYPE_NAME)}; \
     return type; \
   }
 
 /** Register a #CPPType created with #BLI_CPP_TYPE_MAKE. */
-#define BLI_CPP_TYPE_REGISTER(TYPE_NAME) blender::CPPType::get<TYPE_NAME>()
+#define BLI_CPP_TYPE_REGISTER(TYPE_NAME) CPPType::get<TYPE_NAME>()
+
+}  // namespace blender

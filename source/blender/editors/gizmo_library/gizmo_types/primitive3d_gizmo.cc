@@ -36,6 +36,8 @@
 /* own includes */
 #include "../gizmo_library_intern.hh"
 
+namespace blender {
+
 static float verts_plane[4][3] = {
     {-1, -1, 0},
     {1, -1, 0},
@@ -111,8 +113,7 @@ static void gizmo_primitive_draw_geom(PrimitiveGizmo3D *gz_prim,
                                       const bool draw_inner,
                                       const bool select)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   const bool use_polyline_shader = gz_prim->gizmo.line_width > 1.0f;
 
   if (draw_inner || !use_polyline_shader) {
@@ -307,3 +308,5 @@ void ED_gizmotypes_primitive_3d()
 }
 
 /** \} */
+
+}  // namespace blender

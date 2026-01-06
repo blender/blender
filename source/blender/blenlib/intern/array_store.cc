@@ -104,6 +104,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 struct BArrayState;
 struct BChunkList;
 struct BChunkRef;
@@ -1999,8 +2001,8 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
    * ---------------------------------- */
   {
     /* Count chunk_list's. */
-    blender::Map<BChunkList *, int> chunk_list_map;
-    blender::Map<BChunk *, int> chunk_map;
+    Map<BChunkList *, int> chunk_list_map;
+    Map<BChunk *, int> chunk_map;
 
     int totrefs = 0;
     for (BArrayState &state : bs->states) {
@@ -2051,3 +2053,5 @@ user_finally:
 }
 
 /** \} */
+
+}  // namespace blender

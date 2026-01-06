@@ -31,19 +31,21 @@
 
 #include "RE_engine.h"
 
+using blender::Object;
+
 CCL_NAMESPACE_BEGIN
 
 /* Utilities */
 
-bool BlenderSync::BKE_object_is_modified(::Object &b_ob)
+bool BlenderSync::BKE_object_is_modified(blender::Object &b_ob)
 {
   /* test if we can instance or if the object is modified */
-  if (b_ob.type == OB_MBALL) {
+  if (b_ob.type == blender::OB_MBALL) {
     /* Multi-user and dupli meta-balls are fused, can't instance. */
     return true;
   }
-  const int settings = preview ? eModifierMode_Realtime : eModifierMode_Render;
-  if ((::BKE_object_is_modified(b_scene, &b_ob) & settings) != 0) {
+  const int settings = preview ? blender::eModifierMode_Realtime : blender::eModifierMode_Render;
+  if ((blender::BKE_object_is_modified(b_scene, &b_ob) & settings) != 0) {
     /* modifiers */
     return true;
   }
@@ -60,55 +62,59 @@ bool BlenderSync::BKE_object_is_modified(::Object &b_ob)
 
 bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
 {
-  ::ID *b_ob_data = b_ob_info.object_data;
+  blender::ID *b_ob_data = b_ob_info.object_data;
 
   if (!b_ob_data) {
     return false;
   }
 
-  const ObjectType type = ObjectType(b_ob_info.iter_object->type);
+  const blender::ObjectType type = blender::ObjectType(b_ob_info.iter_object->type);
 
-  if (type == OB_VOLUME || type == OB_CURVES || type == OB_POINTCLOUD || type == OB_LAMP) {
+  if (type == blender::OB_VOLUME || type == blender::OB_CURVES || type == blender::OB_POINTCLOUD ||
+      type == blender::OB_LAMP)
+  {
     /* Will be exported as geometry. */
     return true;
   }
 
-  return GS(b_ob_data->name) == ID_ME;
+  return GS(b_ob_data->name) == blender::ID_ME;
 }
 
-bool BlenderSync::object_can_have_geometry(::Object &b_ob)
+bool BlenderSync::object_can_have_geometry(blender::Object &b_ob)
 {
-  const ObjectType type = ObjectType(b_ob.type);
+  const blender::ObjectType type = blender::ObjectType(b_ob.type);
   switch (type) {
-    case OB_MESH:
-    case OB_CURVES_LEGACY:
-    case OB_SURF:
-    case OB_MBALL:
-    case OB_FONT:
-    case OB_CURVES:
-    case OB_POINTCLOUD:
-    case OB_VOLUME:
+    case blender::OB_MESH:
+    case blender::OB_CURVES_LEGACY:
+    case blender::OB_SURF:
+    case blender::OB_MBALL:
+    case blender::OB_FONT:
+    case blender::OB_CURVES:
+    case blender::OB_POINTCLOUD:
+    case blender::OB_VOLUME:
       return true;
     default:
       return false;
   }
 }
 
-bool BlenderSync::object_is_light(::Object &b_ob)
+bool BlenderSync::object_is_light(blender::Object &b_ob)
 {
-  ::ID *b_ob_data = object_get_data(b_ob, true);
+  blender::ID *b_ob_data = object_get_data(b_ob, true);
 
-  return (b_ob_data && GS(b_ob_data->name) == ID_LA);
+  return (b_ob_data && GS(b_ob_data->name) == blender::ID_LA);
 }
 
-bool BlenderSync::object_is_camera(::Object &b_ob)
+bool BlenderSync::object_is_camera(blender::Object &b_ob)
 {
-  ::ID *b_ob_data = object_get_data(b_ob, true);
+  blender::ID *b_ob_data = object_get_data(b_ob, true);
 
-  return (b_ob_data && GS(b_ob_data->name) == ID_CA);
+  return (b_ob_data && GS(b_ob_data->name) == blender::ID_CA);
 }
 
-void BlenderSync::sync_object_motion_init(::Object &b_parent, ::Object &b_ob, Object *object)
+void BlenderSync::sync_object_motion_init(blender::Object &b_parent,
+                                          blender::Object &b_ob,
+                                          Object *object)
 {
   /* Initialize motion blur for object, detecting if it's enabled and creating motion
    * steps array if so. */
@@ -150,9 +156,9 @@ void BlenderSync::sync_object_motion_init(::Object &b_parent, ::Object &b_ob, Ob
   }
 }
 
-Object *BlenderSync::sync_object(::ViewLayer &b_view_layer,
-                                 ::Object &b_ob,
-                                 ::DEGObjectIterData &b_deg_iter_data,
+Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
+                                 blender::Object &b_ob,
+                                 blender::DEGObjectIterData &b_deg_iter_data,
                                  const float motion_time,
                                  bool use_particle_hair,
                                  bool show_lights,
@@ -160,8 +166,8 @@ Object *BlenderSync::sync_object(::ViewLayer &b_view_layer,
                                  TaskPool *geom_task_pool)
 {
   const bool is_instance = b_deg_iter_data.dupli_object_current;
-  ::Object *b_parent = is_instance ? b_deg_iter_data.dupli_parent : &b_ob;
-  ::Object *b_real_object = is_instance ? b_deg_iter_data.dupli_object_current->ob : &b_ob;
+  blender::Object *b_parent = is_instance ? b_deg_iter_data.dupli_parent : &b_ob;
+  blender::Object *b_real_object = is_instance ? b_deg_iter_data.dupli_object_current->ob : &b_ob;
   const bool use_adaptive_subdiv = object_subdivision_type(
                                        *b_real_object, preview, use_adaptive_subdivision) !=
                                    Mesh::SUBDIVISION_NONE;
@@ -195,11 +201,11 @@ Object *BlenderSync::sync_object(::ViewLayer &b_view_layer,
   }
 
   /* Visibility flags for both parent and child. */
-  PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob.id);
-  PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
-  const Base *base_parent = BKE_view_layer_base_find(&b_view_layer, b_parent);
-  const bool use_holdout = ((base_parent->flag & BASE_HOLDOUT) != 0) ||
-                           ((b_parent->visibility_flag & OB_HOLDOUT) != 0);
+  blender::PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob.id);
+  blender::PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
+  const blender::Base *base_parent = BKE_view_layer_base_find(&b_view_layer, b_parent);
+  const bool use_holdout = ((base_parent->flag & blender::BASE_HOLDOUT) != 0) ||
+                           ((b_parent->visibility_flag & blender::OB_HOLDOUT) != 0);
   uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 
   if (b_parent != &b_ob) {
@@ -214,7 +220,8 @@ Object *BlenderSync::sync_object(::ViewLayer &b_view_layer,
 #endif
 
   /* Clear camera visibility for indirect only objects. */
-  const bool use_indirect_only = !use_holdout && ((base_parent->flag & BASE_INDIRECT_ONLY) != 0);
+  const bool use_indirect_only = !use_holdout &&
+                                 ((base_parent->flag & blender::BASE_INDIRECT_ONLY) != 0);
   if (use_indirect_only) {
     visibility &= ~PATH_RAY_CAMERA;
   }
@@ -275,8 +282,8 @@ Object *BlenderSync::sync_object(::ViewLayer &b_view_layer,
 
   object->set_visibility(visibility);
 
-  object->set_is_shadow_catcher((b_ob.visibility_flag & OB_SHADOW_CATCHER) != 0 ||
-                                (b_parent->visibility_flag & OB_SHADOW_CATCHER) != 0);
+  object->set_is_shadow_catcher((b_ob.visibility_flag & blender::OB_SHADOW_CATCHER) != 0 ||
+                                (b_parent->visibility_flag & blender::OB_SHADOW_CATCHER) != 0);
 
   object->set_shadow_terminator_shading_offset(b_ob.shadow_terminator_shading_offset);
 
@@ -284,8 +291,8 @@ Object *BlenderSync::sync_object(::ViewLayer &b_view_layer,
 
   float ao_distance = get_float(cobject, "ao_distance");
   if (ao_distance == 0.0f && b_parent != &b_ob) {
-    PointerRNA b_parent_rna_ptr = RNA_id_pointer_create(&b_parent->id);
-    PointerRNA cparent = RNA_pointer_get(&b_parent_rna_ptr, "cycles");
+    blender::PointerRNA b_parent_rna_ptr = RNA_id_pointer_create(&b_parent->id);
+    blender::PointerRNA cparent = RNA_pointer_get(&b_parent_rna_ptr, "cycles");
     ao_distance = get_float(cparent, "ao_distance");
   }
   object->set_ao_distance(ao_distance);
@@ -299,7 +306,7 @@ Object *BlenderSync::sync_object(::ViewLayer &b_view_layer,
   object->set_is_bake_target(b_ob_info.real_object == b_bake_target);
 
   /* sync the asset name for Cryptomatte */
-  ::Object *parent = b_ob.parent;
+  blender::Object *parent = b_ob.parent;
   ustring parent_name;
   if (parent) {
     while (parent->parent) {
@@ -367,15 +374,16 @@ Object *BlenderSync::sync_object(::ViewLayer &b_view_layer,
   return object;
 }
 
-extern "C" DupliObject *rna_hack_DepsgraphObjectInstance_dupli_object_get(PointerRNA *ptr);
+extern "C" blender::DupliObject *rna_hack_DepsgraphObjectInstance_dupli_object_get(
+    blender::PointerRNA *ptr);
 
-static float4 lookup_instance_property(::Object &ob,
-                                       ::DEGObjectIterData &b_deg_iter_data,
+static float4 lookup_instance_property(blender::Object &ob,
+                                       blender::DEGObjectIterData &b_deg_iter_data,
                                        const string &name,
                                        bool use_instancer)
 {
-  ::DupliObject *dupli = nullptr;
-  ::Object *dupli_parent = nullptr;
+  blender::DupliObject *dupli = nullptr;
+  blender::Object *dupli_parent = nullptr;
 
   /* If requesting instance data, check the parent particle system and object. */
   if (use_instancer && b_deg_iter_data.dupli_object_current) {
@@ -389,8 +397,8 @@ static float4 lookup_instance_property(::Object &ob,
   return value;
 }
 
-bool BlenderSync::sync_object_attributes(::Object &b_ob,
-                                         ::DEGObjectIterData &b_deg_iter_data,
+bool BlenderSync::sync_object_attributes(blender::Object &b_ob,
+                                         blender::DEGObjectIterData &b_deg_iter_data,
                                          Object *object)
 {
   /* Find which attributes are needed. */
@@ -414,8 +422,8 @@ bool BlenderSync::sync_object_attributes(::Object &b_ob,
     std::string real_name;
     const int type = blender_attribute_name_split_type(name, &real_name);
 
-    if (type == SHD_ATTRIBUTE_OBJECT || type == SHD_ATTRIBUTE_INSTANCER) {
-      const bool use_instancer = (type == SHD_ATTRIBUTE_INSTANCER);
+    if (type == blender::SHD_ATTRIBUTE_OBJECT || type == blender::SHD_ATTRIBUTE_INSTANCER) {
+      const bool use_instancer = (type == blender::SHD_ATTRIBUTE_INSTANCER);
       float4 value = lookup_instance_property(b_ob, b_deg_iter_data, real_name, use_instancer);
 
       /* Try finding the existing attribute value. */
@@ -448,9 +456,9 @@ bool BlenderSync::sync_object_attributes(::Object &b_ob,
 
 /* Object Loop */
 
-void BlenderSync::sync_objects(::Depsgraph &b_depsgraph,
-                               ::bScreen *b_screen,
-                               ::View3D *b_v3d,
+void BlenderSync::sync_objects(blender::Depsgraph &b_depsgraph,
+                               blender::bScreen *b_screen,
+                               blender::View3D *b_v3d,
                                const float motion_time)
 {
   /* Task pool for multithreaded geometry sync. */
@@ -485,23 +493,23 @@ void BlenderSync::sync_objects(::Depsgraph &b_depsgraph,
   const bool show_lights =
       BlenderViewportParameters(b_screen, b_v3d, use_developer_ui).use_scene_lights;
 
-  ::ViewLayer &b_view_layer = *DEG_get_evaluated_view_layer(&b_depsgraph);
+  blender::ViewLayer &b_view_layer = *DEG_get_evaluated_view_layer(&b_depsgraph);
 
   BKE_view_layer_synced_ensure(b_scene, &b_view_layer);
 
-  ::DEGObjectIterSettings deg_iter_settings{};
+  blender::DEGObjectIterSettings deg_iter_settings{};
   deg_iter_settings.depsgraph = &b_depsgraph;
   deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
-  DEGObjectIterData deg_iter_data{};
+  blender::DEGObjectIterData deg_iter_data{};
   deg_iter_data.settings = &deg_iter_settings;
   deg_iter_data.graph = deg_iter_settings.depsgraph;
   deg_iter_data.flag = deg_iter_settings.flags;
 
-  ITER_BEGIN (DEG_iterator_objects_begin,
-              DEG_iterator_objects_next,
-              DEG_iterator_objects_end,
+  ITER_BEGIN (blender::DEG_iterator_objects_begin,
+              blender::DEG_iterator_objects_next,
+              blender::DEG_iterator_objects_end,
               &deg_iter_data,
-              ::Object *,
+              blender::Object *,
               b_ob)
   {
     /* Viewport visibility. */
@@ -518,11 +526,11 @@ void BlenderSync::sync_objects(::Depsgraph &b_depsgraph,
     /* Ensure the object geom supporting the hair is processed before adding
      * the hair processing task to the task pool, calling .to_mesh() on the
      * same object in parallel does not work. */
-    const bool sync_hair = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
+    const bool sync_hair = (ob_visibility & blender::OB_VISIBLE_PARTICLES) != 0 &&
                            object_has_particle_hair(b_ob);
 
     /* Object itself. */
-    if ((ob_visibility & OB_VISIBLE_SELF) != 0) {
+    if ((ob_visibility & blender::OB_VISIBLE_SELF) != 0) {
       sync_object(b_view_layer,
                   *b_ob,
                   deg_iter_data,
@@ -574,11 +582,11 @@ void BlenderSync::sync_objects(::Depsgraph &b_depsgraph,
   }
 }
 
-void BlenderSync::sync_motion(::RenderData &b_render,
-                              ::Depsgraph &b_depsgraph,
-                              ::bScreen *b_screen,
-                              ::View3D *b_v3d,
-                              ::RegionView3D *b_rv3d,
+void BlenderSync::sync_motion(blender::RenderData &b_render,
+                              blender::Depsgraph &b_depsgraph,
+                              blender::bScreen *b_screen,
+                              blender::View3D *b_v3d,
+                              blender::RegionView3D *b_rv3d,
                               const int width,
                               const int height,
                               void **python_thread_state)
@@ -588,7 +596,7 @@ void BlenderSync::sync_motion(::RenderData &b_render,
   }
 
   /* get camera object here to deal with camera switch */
-  ::Object *b_cam = get_camera_object(b_v3d, b_rv3d);
+  blender::Object *b_cam = get_camera_object(b_v3d, b_rv3d);
 
   const int frame_center = b_scene->r.cfra;
   const float subframe_center = b_scene->r.subframe;

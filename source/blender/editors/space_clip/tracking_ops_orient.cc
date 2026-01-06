@@ -35,6 +35,8 @@
 
 #include "clip_intern.hh"
 
+namespace blender {
+
 /********************** set origin operator *********************/
 
 static Object *get_camera_with_movieclip(Scene *scene, const MovieClip *clip)
@@ -851,3 +853,5 @@ void CLIP_OT_apply_solution_scale(wmOperatorType *ot)
                 -100.0f,
                 100.0f);
 }
+
+}  // namespace blender

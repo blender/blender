@@ -30,6 +30,8 @@
 
 #include <string>
 
+namespace blender {
+
 struct Depsgraph;
 struct DupliObject;
 struct ID;
@@ -37,7 +39,7 @@ struct Main;
 struct Object;
 struct ParticleSystem;
 
-namespace blender::io {
+namespace io {
 
 class AbstractHierarchyWriter;
 class DupliParentFinder;
@@ -394,4 +396,5 @@ class AbstractHierarchyIterator {
   ExportChildren *graph_children(const HierarchyContext *context);
 };
 
-}  // namespace blender::io
+}  // namespace io
+}  // namespace blender

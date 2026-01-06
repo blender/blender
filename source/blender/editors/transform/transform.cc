@@ -319,7 +319,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
       v[0] = vec[0] / t->aspect[0];
       v[1] = vec[1] / t->aspect[1];
 
-      blender::ui::view2d_view_to_region(
+      ui::view2d_view_to_region(
           static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
     }
   }
@@ -331,13 +331,12 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     if (sact->flag & SACTION_DRAWTIME) {
       // vec[0] = vec[0] / ((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
       /* Same as below. */
-      blender::ui::view2d_view_to_region((View2D *)t->view, vec[0], vec[1], &out[0], &out[1]);
+      ui::view2d_view_to_region((View2D *)t->view, vec[0], vec[1], &out[0], &out[1]);
     }
     else
 #endif
     {
-      blender::ui::view2d_view_to_region(
-          static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+      ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
     }
 
     adr[0] = out[0];
@@ -346,16 +345,14 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
   else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
     int out[2] = {0, 0};
 
-    blender::ui::view2d_view_to_region(
-        static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
     adr[0] = out[0];
     adr[1] = out[1];
   }
   else if (t->spacetype == SPACE_SEQ) { /* XXX not tested yet, but should work. */
     int out[2] = {0, 0};
 
-    blender::ui::view2d_view_to_region(
-        static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
     adr[0] = out[0];
     adr[1] = out[1];
   }
@@ -389,7 +386,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
       v[0] = vec[0] / t->aspect[0];
       v[1] = vec[1] / t->aspect[1];
 
-      blender::ui::view2d_view_to_region(
+      ui::view2d_view_to_region(
           static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
     }
     else {
@@ -397,8 +394,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     }
   }
   else if (t->spacetype == SPACE_NODE) {
-    blender::ui::view2d_view_to_region(
-        static_cast<View2D *>(t->view), vec[0], vec[1], &adr[0], &adr[1]);
+    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &adr[0], &adr[1]);
   }
 }
 void projectIntView(TransInfo *t, const float vec[3], int adr[2])
@@ -1687,7 +1683,7 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
   xco -= U.widget_unit;
   yco -= int(printable_size[1]) / 2;
 
-  blender::ui::icon_draw(xco, yco, ICON_REC);
+  ui::icon_draw(xco, yco, ICON_REC);
 
   GPU_blend(GPU_BLEND_NONE);
 }

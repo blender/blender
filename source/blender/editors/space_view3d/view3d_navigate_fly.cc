@@ -53,6 +53,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Modal Key-map
  * \{ */
@@ -250,7 +252,7 @@ static void drawFlyPixel(const bContext * /*C*/, ARegion * /*region*/, void *arg
   const float y2 = float(yoff) + 0.55f * fly->viewport_size[1];
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -1217,3 +1219,5 @@ void VIEW3D_OT_fly(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -45,11 +45,13 @@
 
 #include "BLO_read_write.hh"
 
-using blender::dna::sdna_struct_id_get;
+namespace blender {
+
+using dna::sdna_struct_id_get;
 
 static void linestyle_init_data(ID *id)
 {
-  FreestyleLineStyle *linestyle = blender::id_cast<FreestyleLineStyle *>(id);
+  FreestyleLineStyle *linestyle = id_cast<FreestyleLineStyle *>(id);
   INIT_DEFAULT_STRUCT_AFTER(linestyle, id);
 
   BKE_linestyle_geometry_modifier_add(linestyle, nullptr, LS_MODIFIER_SAMPLING);
@@ -61,8 +63,8 @@ static void linestyle_copy_data(Main *bmain,
                                 const ID *id_src,
                                 const int flag)
 {
-  FreestyleLineStyle *linestyle_dst = blender::id_cast<FreestyleLineStyle *>(id_dst);
-  const FreestyleLineStyle *linestyle_src = blender::id_cast<const FreestyleLineStyle *>(id_src);
+  FreestyleLineStyle *linestyle_dst = id_cast<FreestyleLineStyle *>(id_dst);
+  const FreestyleLineStyle *linestyle_src = id_cast<const FreestyleLineStyle *>(id_src);
 
   /* Never handle user-count here for own sub-data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
@@ -72,7 +74,7 @@ static void linestyle_copy_data(Main *bmain,
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_src->mtex[a]) {
       linestyle_dst->mtex[a] = MEM_new_for_free<MTex>(__func__);
-      *linestyle_dst->mtex[a] = blender::dna::shallow_copy(*linestyle_src->mtex[a]);
+      *linestyle_dst->mtex[a] = dna::shallow_copy(*linestyle_src->mtex[a]);
     }
   }
 
@@ -108,7 +110,7 @@ static void linestyle_copy_data(Main *bmain,
 
 static void linestyle_free_data(ID *id)
 {
-  FreestyleLineStyle *linestyle = blender::id_cast<FreestyleLineStyle *>(id);
+  FreestyleLineStyle *linestyle = id_cast<FreestyleLineStyle *>(id);
   LineStyleModifier *linestyle_modifier;
 
   for (int material_slot_index = 0; material_slot_index < MAX_MTEX; material_slot_index++) {
@@ -117,7 +119,7 @@ static void linestyle_free_data(ID *id)
 
   /* is no lib link block, but linestyle extension */
   if (linestyle->nodetree) {
-    blender::bke::node_tree_free_embedded_tree(linestyle->nodetree);
+    bke::node_tree_free_embedded_tree(linestyle->nodetree);
     MEM_freeN(linestyle->nodetree);
     linestyle->nodetree = nullptr;
   }
@@ -144,7 +146,7 @@ static void linestyle_free_data(ID *id)
 
 static void linestyle_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  FreestyleLineStyle *linestyle = blender::id_cast<FreestyleLineStyle *>(id);
+  FreestyleLineStyle *linestyle = id_cast<FreestyleLineStyle *>(id);
 
   for (int i = 0; i < MAX_MTEX; i++) {
     if (linestyle->mtex[i]) {
@@ -184,7 +186,7 @@ static void linestyle_foreach_id(ID *id, LibraryForeachIDData *data)
 static void linestyle_foreach_working_space_color(ID *id,
                                                   const IDTypeForeachColorFunctionCallback &fn)
 {
-  FreestyleLineStyle *linestyle = blender::id_cast<FreestyleLineStyle *>(id);
+  FreestyleLineStyle *linestyle = id_cast<FreestyleLineStyle *>(id);
 
   fn.single(&linestyle->r);
 }
@@ -464,7 +466,7 @@ static void write_linestyle_geometry_modifiers(BlendWriter *writer,
 
 static void linestyle_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  FreestyleLineStyle *linestyle = blender::id_cast<FreestyleLineStyle *>(id);
+  FreestyleLineStyle *linestyle = id_cast<FreestyleLineStyle *>(id);
 
   BLO_write_id_struct(writer, FreestyleLineStyle, id_address, &linestyle->id);
   BKE_id_blend_write(writer, &linestyle->id);
@@ -482,8 +484,8 @@ static void linestyle_blend_write(BlendWriter *writer, ID *id, const void *id_ad
     BLO_Write_IDBuffer temp_embedded_id_buffer{linestyle->nodetree->id, writer};
     BLO_write_struct_at_address(
         writer, bNodeTree, linestyle->nodetree, temp_embedded_id_buffer.get());
-    blender::bke::node_tree_blend_write(
-        writer, reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
+    bke::node_tree_blend_write(writer,
+                               reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
   }
 }
 
@@ -666,7 +668,7 @@ static void direct_link_linestyle_geometry_modifier(BlendDataReader * /*reader*/
 
 static void linestyle_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  FreestyleLineStyle *linestyle = blender::id_cast<FreestyleLineStyle *>(id);
+  FreestyleLineStyle *linestyle = id_cast<FreestyleLineStyle *>(id);
 
   BLO_read_struct_list(reader, LineStyleModifier, &linestyle->color_modifiers);
   for (LineStyleModifier &modifier : linestyle->color_modifiers) {
@@ -920,7 +922,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
           reinterpret_cast<LineStyleColorModifier_DistanceFromObject *>(new_m);
       q->target = p->target;
       if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-        id_us_plus(blender::id_cast<ID *>(q->target));
+        id_us_plus(id_cast<ID *>(q->target));
       }
       q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
       q->range_min = p->range_min;
@@ -1469,7 +1471,7 @@ LineStyleModifier *BKE_linestyle_thickness_modifier_copy(FreestyleLineStyle *lin
           reinterpret_cast<LineStyleThicknessModifier_DistanceFromObject *>(new_m);
       q->target = p->target;
       if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-        id_us_plus(blender::id_cast<ID *>(q->target));
+        id_us_plus(id_cast<ID *>(q->target));
       }
       q->curve = BKE_curvemapping_copy(p->curve);
       q->flags = p->flags;
@@ -2111,33 +2113,35 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
 
   BLI_assert(linestyle->nodetree == nullptr);
 
-  ntree = blender::bke::node_tree_add_tree_embedded(
+  ntree = bke::node_tree_add_tree_embedded(
       nullptr, &linestyle->id, "stroke_shader", "ShaderNodeTree");
 
-  uv_along_stroke = blender::bke::node_add_static_node(C, *ntree, SH_NODE_UVALONGSTROKE);
+  uv_along_stroke = bke::node_add_static_node(C, *ntree, SH_NODE_UVALONGSTROKE);
   uv_along_stroke->location[0] = -200.0f;
   uv_along_stroke->location[1] = 100.0f;
   uv_along_stroke->custom1 = 0; /* use_tips */
 
-  input_texture = blender::bke::node_add_static_node(C, *ntree, SH_NODE_TEX_IMAGE);
+  input_texture = bke::node_add_static_node(C, *ntree, SH_NODE_TEX_IMAGE);
   input_texture->location[0] = 0.0f;
   input_texture->location[1] = 100.0f;
 
-  output_linestyle = blender::bke::node_add_static_node(C, *ntree, SH_NODE_OUTPUT_LINESTYLE);
+  output_linestyle = bke::node_add_static_node(C, *ntree, SH_NODE_OUTPUT_LINESTYLE);
   output_linestyle->location[0] = 300.0f;
   output_linestyle->location[1] = 100.0f;
   output_linestyle->custom1 = MA_RAMP_BLEND;
   output_linestyle->custom2 = 0; /* use_clamp */
 
-  blender::bke::node_set_active(*ntree, *input_texture);
+  bke::node_set_active(*ntree, *input_texture);
 
   fromsock = static_cast<bNodeSocket *>(BLI_findlink(&uv_along_stroke->outputs, 0)); /* UV */
   tosock = static_cast<bNodeSocket *>(BLI_findlink(&input_texture->inputs, 0));      /* UV */
-  blender::bke::node_add_link(*ntree, *uv_along_stroke, *fromsock, *input_texture, *tosock);
+  bke::node_add_link(*ntree, *uv_along_stroke, *fromsock, *input_texture, *tosock);
 
   fromsock = static_cast<bNodeSocket *>(BLI_findlink(&input_texture->outputs, 0)); /* Color */
   tosock = static_cast<bNodeSocket *>(BLI_findlink(&output_linestyle->inputs, 0)); /* Color */
-  blender::bke::node_add_link(*ntree, *input_texture, *fromsock, *output_linestyle, *tosock);
+  bke::node_add_link(*ntree, *input_texture, *fromsock, *output_linestyle, *tosock);
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *ntree);
 }
+
+}  // namespace blender

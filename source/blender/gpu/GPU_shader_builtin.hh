@@ -20,9 +20,10 @@
 
 #pragma once
 
-namespace blender::gpu {
+namespace blender {
+namespace gpu {
 class Shader;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 enum GPUBuiltinShader {
   /** Glyph drawing shader used by the BLF module. */
@@ -183,10 +184,12 @@ enum GPUShaderConfig {
 };
 #define GPU_SHADER_CFG_LEN (GPU_SHADER_CFG_CLIPPED + 1)
 
-blender::gpu::Shader *GPU_shader_get_builtin_shader_with_config(GPUBuiltinShader shader,
-                                                                GPUShaderConfig sh_cfg);
-blender::gpu::Shader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
+gpu::Shader *GPU_shader_get_builtin_shader_with_config(GPUBuiltinShader shader,
+                                                       GPUShaderConfig sh_cfg);
+gpu::Shader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
 
 void GPU_shader_builtin_warm_up();
 
 void GPU_shader_free_builtin_shaders();
+
+}  // namespace blender

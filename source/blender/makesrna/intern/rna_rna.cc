@@ -17,6 +17,8 @@
 
 #include "rna_internal.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Enum's
  * \{ */
@@ -291,6 +293,8 @@ const EnumPropertyItem rna_enum_property_string_search_flag_items[] = {
 
 /** \} */
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_ghash.h"
@@ -308,6 +312,8 @@ const EnumPropertyItem rna_enum_property_string_search_flag_items[] = {
 #  include <string>
 
 #  include <fmt/format.h>
+
+namespace blender {
 
 static CLG_LogRef LOG_COMPARE_OVERRIDE = {"rna.rna_compare_override"};
 
@@ -3160,7 +3166,11 @@ static bool rna_PrimitiveBoolean_value_get(PointerRNA *ptr)
 
 /** \} */
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_struct(BlenderRNA *brna)
 {
@@ -3946,5 +3956,7 @@ void RNA_def_rna(BlenderRNA *brna)
 
   rna_def_rna_primitive(brna);
 }
+
+}  // namespace blender
 
 #endif

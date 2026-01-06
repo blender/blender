@@ -47,7 +47,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  Camera *camera = blender::id_cast<Camera *>(camera_obj->data);
+  Camera *camera = id_cast<Camera *>(camera_obj->data);
   if (!camera) {
     params.set_default_remaining_outputs();
     return;
@@ -76,7 +76,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeCameraInfo");
   ntype.ui_name = "Camera Info";
@@ -84,7 +84,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

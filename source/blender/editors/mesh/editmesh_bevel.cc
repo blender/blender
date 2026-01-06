@@ -47,7 +47,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 #define MVAL_PIXEL_MARGIN 5.0f
 
@@ -416,7 +416,7 @@ static bool edbm_bevel_calc(wmOperator *op)
       params.calc_looptris = true;
       params.calc_normals = true;
       params.is_destructive = true;
-      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(id_cast<Mesh *>(obedit->data), &params);
     }
 
     changed_multi |= changed;
@@ -467,7 +467,7 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
       params.calc_looptris = false;
       params.calc_normals = true;
       params.is_destructive = true;
-      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(id_cast<Mesh *>(obedit->data), &params);
     }
   }
 
@@ -532,7 +532,7 @@ static wmOperatorStatus edbm_bevel_invoke(bContext *C, wmOperator *op, const wmE
 
   /* initialize mouse values */
   float center_3d[3];
-  if (!blender::ed::transform::calculateTransformCenter(
+  if (!ed::transform::calculateTransformCenter(
           C, V3D_AROUND_CENTER_MEDIAN, center_3d, opdata->mcenter))
   {
     /* in this case the tool will likely do nothing,
@@ -969,7 +969,7 @@ static wmOperatorStatus edbm_bevel_modal(bContext *C, wmOperator *op, const wmEv
 
 static void edbm_bevel_ui(bContext *C, wmOperator *op)
 {
-  blender::ui::Layout &layout = *op->layout;
+  ui::Layout &layout = *op->layout;
 
   int profile_type = RNA_enum_get(op->ptr, "profile_type");
   int offset_type = RNA_enum_get(op->ptr, "offset_type");
@@ -978,8 +978,8 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  blender::ui::Layout *row = &layout.row(false);
-  row->prop(op->ptr, "affect", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  ui::Layout *row = &layout.row(false);
+  row->prop(op->ptr, "affect", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.separator();
 
@@ -996,14 +996,14 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   if (ELEM(profile_type, BEVEL_PROFILE_SUPERELLIPSE, BEVEL_PROFILE_CUSTOM)) {
     layout.prop(op->ptr,
                 "profile",
-                blender::ui::ITEM_R_SLIDER,
+                ui::ITEM_R_SLIDER,
                 (profile_type == BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Profile Shape") :
                                                                IFACE_("Miter Profile Shape"),
                 ICON_NONE);
   }
   layout.prop(op->ptr, "material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  blender::ui::Layout *col = &layout.column(true);
+  ui::Layout *col = &layout.column(true);
   col->prop(op->ptr, "harden_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(op->ptr, "clamp_overlap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(op->ptr, "loop_slide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1034,7 +1034,7 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   layout.separator();
 
   row = &layout.row(false);
-  row->prop(op->ptr, "profile_type", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "profile_type", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   if (profile_type == BEVEL_PROFILE_CUSTOM) {
     /* Get an RNA pointer to ToolSettings to give to the curve profile template code. */
     Scene *scene = CTX_data_scene(C);
@@ -1257,3 +1257,5 @@ void MESH_OT_bevel(wmOperatorType *ot)
   prop = RNA_def_boolean(ot->srna, "release_confirm", false, "Confirm on Release", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
+
+}  // namespace blender

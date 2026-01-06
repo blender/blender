@@ -16,6 +16,8 @@
 #include "file_intern.hh"
 #include "filelist.hh"
 
+namespace blender {
+
 const char *file_context_dir[] = {
     "active_file",
     "selected_files",
@@ -140,3 +142,5 @@ int /*eContextResult*/ file_context(const bContext *C,
 
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
+
+}  // namespace blender

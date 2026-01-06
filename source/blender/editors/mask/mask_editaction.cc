@@ -25,6 +25,8 @@
 #include "ED_markers.hh"
 #include "ED_mask.hh" /* own include */
 
+namespace blender {
+
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
  * This file contains code for editing Mask data in the Action Editor
@@ -314,3 +316,5 @@ void ED_masklayer_snap_frames(MaskLayer *mask_layer, Scene *scene, short mode)
       break;
   }
 }
+
+}  // namespace blender

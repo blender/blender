@@ -698,7 +698,7 @@ static void cursor_set_by_mouse_position(const bContext *C, const wmEvent *event
   const float view_aspect = scene->r.xasp / scene->r.yasp;
   float3x3 transform_mat = seq::image_transform_matrix_get(CTX_data_sequencer_scene(C), strip);
   // MSVC 2019 can't decide here for some reason, pick the template for it.
-  transform_mat = blender::math::invert<float, 3>(transform_mat);
+  transform_mat = math::invert<float, 3>(transform_mat);
 
   mouse_loc.x /= view_aspect;
   mouse_loc = math::transform_point(transform_mat, mouse_loc);

@@ -18,6 +18,8 @@
 #include "DNA_listBase.h"
 #include "DNA_userdef_enums.h"
 
+namespace blender {
+
 /* Structs */
 
 struct BLI_Iterator;
@@ -51,14 +53,14 @@ enum {
   COLLECTION_TAG_COLLECTION_OBJECT_DIRTY = (1 << 1),
 };
 
-using CollectionObjectMap = blender::Map<const Object *, CollectionObject *>;
+using CollectionObjectMap = Map<const Object *, CollectionObject *>;
 
 struct CollectionParent {
   struct CollectionParent *next, *prev;
   struct Collection *collection;
 };
 
-namespace blender::bke {
+namespace bke {
 
 struct CollectionRuntime {
   /**
@@ -80,7 +82,7 @@ struct CollectionRuntime {
   uint8_t tag = 0;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
 
 /* Collections */
 
@@ -484,8 +486,7 @@ void BKE_scene_objects_iterator_end_ex(BLI_Iterator *iter);
  * \note This will include objects without a base currently
  * (because they would belong to excluded collections only e.g.).
  */
-blender::Set<Object *> *BKE_scene_objects_as_set(Scene *scene,
-                                                 blender::Set<Object *> *objects_set);
+Set<Object *> *BKE_scene_objects_as_set(Scene *scene, Set<Object *> *objects_set);
 
 #define FOREACH_SCENE_COLLECTION_BEGIN(scene, _instance) \
   ITER_BEGIN (BKE_scene_collections_iterator_begin, \
@@ -533,3 +534,5 @@ blender::Set<Object *> *BKE_scene_objects_as_set(Scene *scene,
               _instance)
 
 #define FOREACH_SCENE_OBJECT_END ITER_END
+
+}  // namespace blender

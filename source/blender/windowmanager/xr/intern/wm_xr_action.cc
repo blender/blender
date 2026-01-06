@@ -28,6 +28,8 @@
 
 #include <cstring>
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name XR-Action API
  *
@@ -536,3 +538,5 @@ void WM_xr_haptic_action_stop(wmXrData *xr,
 }
 
 /** \} */ /* XR-Action API. */
+
+}  // namespace blender

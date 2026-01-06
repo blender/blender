@@ -12,8 +12,10 @@
 
 #include "DNA_ID.h"
 
-struct ID;
+namespace blender {
+
 struct Depsgraph;
+struct ID;
 
 /* Uncomment this to have verbose log about original and evaluated pointers
  * logged, with detailed information when they are allocated, expanded
@@ -27,7 +29,7 @@ struct Depsgraph;
 #  define DEG_COW_PRINT(format, ...)
 #endif
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 class DepsgraphNodeBuilder;
@@ -37,8 +39,8 @@ struct IDNode;
  * Makes sure given evaluated data-block is brought back to state of the original
  * data-block.
  */
-ID *deg_update_eval_copy_datablock(const struct Depsgraph *depsgraph, const IDNode *id_node);
-ID *deg_update_eval_copy_datablock(const struct Depsgraph *depsgraph, struct ID *id_orig);
+ID *deg_update_eval_copy_datablock(const Depsgraph *depsgraph, const IDNode *id_node);
+ID *deg_update_eval_copy_datablock(const Depsgraph *depsgraph, struct ID *id_orig);
 
 /** Helper function which frees memory used by copy-on-written data-block. */
 void deg_free_eval_copy_datablock(struct ID *id_cow);
@@ -47,7 +49,7 @@ void deg_free_eval_copy_datablock(struct ID *id_cow);
  * Callback function for depsgraph operation node which ensures evaluated
  * data-block is ready for use by further evaluation routines.
  */
-void deg_create_eval_copy(struct ::Depsgraph *depsgraph, const struct IDNode *id_node);
+void deg_create_eval_copy(blender::Depsgraph *depsgraph, const struct IDNode *id_node);
 
 /**
  * Check that given ID is properly expanded and does not have any shallow
@@ -76,4 +78,5 @@ bool deg_eval_copy_is_expanded(const struct ID *id_cow);
 bool deg_eval_copy_is_needed(const ID *id_orig);
 bool deg_eval_copy_is_needed(const ID_Type id_type);
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

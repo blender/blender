@@ -18,6 +18,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* target chunk size: 64kb */
 #define CHUNK_SIZE_DEFAULT (1 << 16)
 /* ensure we get at least this many elems per chunk */
@@ -166,3 +168,5 @@ bool BLI_gsqueue_is_empty(const GSQueue *queue)
 {
   return (queue->chunk_first == nullptr);
 }
+
+}  // namespace blender

@@ -73,7 +73,7 @@
 
 #include "mesh_intern.hh" /* Own include. */
 
-using namespace blender;
+namespace blender {
 
 /* Detect isolated holes and fill them. */
 #define USE_NET_ISLAND_CONNECT
@@ -390,8 +390,7 @@ static void knife_draw_line(const KnifeTool_OpData *kcd, const uchar color[3])
   const float3 v1 = kcd->prev.cage + dir;
   const float3 v2 = kcd->prev.cage - dir;
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3ubv(color);
   GPU_line_width(2.0);
@@ -440,8 +439,7 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
   GPU_matrix_identity_set();
   wmOrtho2_region_pixelspace(kcd->region);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   char numstr[256];
@@ -520,7 +518,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
   GPU_blend(GPU_BLEND_ALPHA);
 
   const uint pos_3d = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   {
@@ -576,8 +574,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
   GPU_matrix_identity_set();
   wmOrtho2_region_pixelspace(kcd->region);
 
-  uint pos_2d = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos_2d = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Angle as string. */
@@ -839,7 +836,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
   GPU_polygon_offset(1.0f, 1.0f);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   /* Draw points. */
   GPU_program_point_size(true);
@@ -989,7 +986,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
   if (total_hits > 0) {
     GPU_blend(GPU_BLEND_ALPHA);
 
-    blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
+    gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
     GPU_vertbuf_data_alloc(*vert, total_hits);
 
     int other_verts_count = 0;
@@ -3601,7 +3598,7 @@ static void knife_constrain_axis(const KnifeTool_OpData *kcd,
                                                        kcd->constrain_axis_mode - 1;
     const int pivot_point = scene->toolsettings->transform_pivot_point;
     float mat[3][3];
-    blender::ed::transform::calc_orientation_from_type_ex(
+    ed::transform::calc_orientation_from_type_ex(
         scene, view_layer, kcd->vc.v3d, rv3d, obedit, obedit, orientation_type, pivot_point, mat);
 
     constrain_dir = mat[kcd->constrain_axis - 1];
@@ -3851,8 +3848,8 @@ static void knifetool_init_obinfo(KnifeTool_OpData *kcd,
 {
   Scene *scene_eval = DEG_get_evaluated(kcd->vc.depsgraph, kcd->scene);
   Object *obedit_eval = DEG_get_evaluated(kcd->vc.depsgraph, ob);
-  const Mesh &mesh_orig = *blender::id_cast<const Mesh *>(ob->data);
-  const Mesh &mesh_eval = *blender::id_cast<const Mesh *>(obedit_eval->data);
+  const Mesh &mesh_orig = *id_cast<const Mesh *>(ob->data);
+  const Mesh &mesh_eval = *id_cast<const Mesh *>(obedit_eval->data);
 
   KnifeObjectInfo *obinfo = &kcd->objects_info[ob_index];
 
@@ -4106,7 +4103,7 @@ static void knifetool_finish_single_post(KnifeTool_OpData * /*kcd*/, Object *ob)
   params.calc_looptris = true;
   params.calc_normals = true;
   params.is_destructive = true;
-  EDBM_update(blender::id_cast<Mesh *>(ob->data), &params);
+  EDBM_update(id_cast<Mesh *>(ob->data), &params);
 }
 
 /* Called on tool confirmation. */
@@ -4913,3 +4910,5 @@ void EDBM_mesh_knife(
 }
 
 /** \} */
+
+}  // namespace blender

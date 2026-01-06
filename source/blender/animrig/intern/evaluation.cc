@@ -15,9 +15,11 @@
 
 #include "evaluation_internal.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"anim.evaluation"};
 
-namespace blender::animrig {
+namespace animrig {
 
 using namespace internal;
 
@@ -325,4 +327,5 @@ EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
 
 }  // namespace internal
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

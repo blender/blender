@@ -10,10 +10,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct ID;
 struct EditBone;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementEditBone final : public AbstractTreeElement {
   /* Not needed right now, avoid unused member variable warning. */
@@ -24,4 +26,5 @@ class TreeElementEditBone final : public AbstractTreeElement {
   TreeElementEditBone(TreeElement &legacy_te, ID &armature_id, EditBone &ebone);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

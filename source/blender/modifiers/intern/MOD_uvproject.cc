@@ -41,6 +41,8 @@
 
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
@@ -85,10 +87,8 @@ struct Projector {
   void *uci;           /* optional uv-project info (panorama projection) */
 };
 
-static blender::bke::SpanAttributeWriter<blender::float2> get_uv_attribute(
-    Mesh &mesh, const blender::StringRef md_name)
+static bke::SpanAttributeWriter<float2> get_uv_attribute(Mesh &mesh, const StringRef md_name)
 {
-  using namespace blender;
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (md_name.is_empty()) {
     const StringRef name = mesh.active_uv_map_name();
@@ -110,7 +110,6 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
                                   Object *ob,
                                   Mesh *mesh)
 {
-  using namespace blender;
   Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
   int projectors_num = 0;
   float aspx = umd->aspectx ? umd->aspectx : 1.0f;
@@ -144,7 +143,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     projectors[i].uci = nullptr;
 
     if (projectors[i].ob->type == OB_CAMERA) {
-      const Camera *cam = blender::id_cast<const Camera *>(projectors[i].ob->data);
+      const Camera *cam = id_cast<const Camera *>(projectors[i].ob->data);
       if (cam->type == CAM_PANO) {
         projectors[i].uci = BKE_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
         BKE_uvproject_camera_info_scale(
@@ -232,8 +231,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       float best_dot;
 
       /* get the untransformed face normal */
-      const float3 face_no = blender::bke::mesh::face_normal_calc(positions,
-                                                                  corner_verts.slice(face));
+      const float3 face_no = bke::mesh::face_normal_calc(positions, corner_verts.slice(face));
 
       /* find the projector which the face points at most directly
        * (projector normal with largest dot product is best)
@@ -293,7 +291,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -315,7 +313,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
   RNA_END;
 
-  blender::ui::Layout *sub = &layout.column(true);
+  ui::Layout *sub = &layout.column(true);
   sub->active_set(has_camera);
   sub->prop(ptr, "aspect_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   sub->prop(ptr, "aspect_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
@@ -375,3 +373,5 @@ ModifierTypeInfo modifierType_UVProject = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

@@ -16,6 +16,8 @@
 #include "DNA_image_types.h"
 #include "DNA_movieclip_types.h"
 
+namespace blender {
+
 struct AnimData;
 struct Object;
 
@@ -262,3 +264,5 @@ struct Camera {
 };
 
 /* **************** CAMERA ********************* */
+
+}  // namespace blender

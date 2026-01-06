@@ -22,10 +22,10 @@
 #include "BKE_attribute.hh"
 
 namespace blender {
-class GVArray;
-}
 
-namespace blender::bke::attribute_math {
+class GVArray;
+
+namespace bke::attribute_math {
 
 /**
  * Utility function that simplifies calling a templated function based on a run-time data type.
@@ -714,4 +714,6 @@ void gather_ranges_to_groups(Span<IndexRange> src_ranges,
 
 /** \} */
 
-}  // namespace blender::bke::attribute_math
+}  // namespace bke::attribute_math
+
+}  // namespace blender

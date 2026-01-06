@@ -25,8 +25,7 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 
-using blender::float3;
-using blender::Span;
+namespace blender {
 
 void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
                                 int totpoints,
@@ -504,3 +503,5 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
 
   return new_stroke;
 }
+
+}  // namespace blender

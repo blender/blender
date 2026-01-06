@@ -15,12 +15,14 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Scene;
 struct Strip;
 struct SeqTimelineChannel;
 struct TimeMarker;
 
-namespace blender::seq {
+namespace seq {
 
 bool transform_strip_can_be_translated(const Strip *strip);
 /**
@@ -164,4 +166,5 @@ Bounds<float2> image_transform_bounding_box_from_collection(Scene *scene,
  */
 float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

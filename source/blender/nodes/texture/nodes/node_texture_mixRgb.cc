@@ -13,14 +13,16 @@
 
 #include "BLI_math_vector.h"
 
+namespace blender {
+
 /* **************** MIX RGB ******************** */
-static blender::bke::bNodeSocketTemplate inputs[] = {
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_FLOAT, N_("Factor"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
     {SOCK_RGBA, N_("Color1"), 0.5f, 0.5f, 0.5f, 1.0f},
     {SOCK_RGBA, N_("Color2"), 0.5f, 0.5f, 0.5f, 1.0f},
     {-1, ""},
 };
-static blender::bke::bNodeSocketTemplate outputs[] = {
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
 };
@@ -56,15 +58,17 @@ static void exec(void *data,
 
 void register_node_type_tex_mix_rgb()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeMixRGB", TEX_NODE_MIX_RGB);
   ntype.ui_name = "Mix";
   ntype.enum_name_legacy = "MIX_RGB";
   ntype.nclass = NODE_CLASS_OP_COLOR;
-  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.labelfunc = node_blend_label;
   ntype.exec_fn = exec;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

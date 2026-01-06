@@ -79,6 +79,8 @@
 
 #include "particle_edit_utildefines.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Public Utilities
  * \{ */
@@ -162,7 +164,7 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
   }
 
   if (edit->emitter_field) {
-    blender::kdtree_3d_free(edit->emitter_field);
+    kdtree_3d_free(edit->emitter_field);
     edit->emitter_field = nullptr;
   }
 
@@ -171,11 +173,7 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
   MEM_freeN(edit);
 }
 
-int PE_minmax(Depsgraph *depsgraph,
-              Scene *scene,
-              ViewLayer *view_layer,
-              blender::float3 &min,
-              blender::float3 &max)
+int PE_minmax(Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float3 &min, float3 &max)
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
@@ -207,7 +205,7 @@ int PE_minmax(Depsgraph *depsgraph,
     LOOP_SELECTED_KEYS {
       copy_v3_v3(co, key->co);
       mul_m4_v3(mat, co);
-      blender::math::min_max(blender::float3(co), min, max);
+      math::min_max(float3(co), min, max);
       ok = 1;
     }
   }
@@ -447,7 +445,7 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
 static int pe_x_mirror(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    return ((blender::id_cast<Mesh *>(ob->data))->symmetry & ME_SYMMETRY_X);
+    return ((id_cast<Mesh *>(ob->data))->symmetry & ME_SYMMETRY_X);
   }
 
   return 0;
@@ -470,7 +468,7 @@ struct PEData {
   Object *ob;
   Mesh *mesh;
   PTCacheEdit *edit;
-  blender::bke::BVHTreeFromMesh *shape_bvh;
+  bke::BVHTreeFromMesh *shape_bvh;
   Depsgraph *depsgraph;
 
   RNG *rng;
@@ -541,7 +539,7 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
     return false;
   }
 
-  data->shape_bvh = MEM_new<blender::bke::BVHTreeFromMesh>(__func__, mesh->bvh_corner_tris());
+  data->shape_bvh = MEM_new<bke::BVHTreeFromMesh>(__func__, mesh->bvh_corner_tris());
   return data->shape_bvh->tree != nullptr;
 }
 
@@ -984,8 +982,8 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 {
   PTCacheEdit *edit;
   ParticleSystemModifierData *psmd_eval;
-  blender::KDTree_3d *tree;
-  blender::KDTreeNearest_3d nearest;
+  KDTree_3d *tree;
+  KDTreeNearest_3d nearest;
   HairKey *key;
   PARTICLE_P;
   float mat[4][4], co[3];
@@ -999,7 +997,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
     return;
   }
 
-  tree = blender::kdtree_3d_new(totpart);
+  tree = kdtree_3d_new(totpart);
 
   /* Insert particles into KD-tree. */
   LOOP_PARTICLES
@@ -1008,10 +1006,10 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
     psys_mat_hair_to_orco(ob, psmd_eval->mesh_final, psys->part->from, pa, mat);
     copy_v3_v3(co, key->co);
     mul_m4_v3(mat, co);
-    blender::kdtree_3d_insert(tree, p, co);
+    kdtree_3d_insert(tree, p, co);
   }
 
-  blender::kdtree_3d_balance(tree);
+  kdtree_3d_balance(tree);
 
   /* lookup particles and set in mirror cache */
   if (!edit->mirror_cache) {
@@ -1026,7 +1024,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
     mul_m4_v3(mat, co);
     co[0] = -co[0];
 
-    index = blender::kdtree_3d_find_nearest(tree, co, &nearest);
+    index = kdtree_3d_find_nearest(tree, co, &nearest);
 
     /* this needs a custom threshold still, duplicated for editmode mirror */
     if (index != -1 && index != p && (nearest.dist <= 0.0002f)) {
@@ -1048,7 +1046,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
     }
   }
 
-  blender::kdtree_3d_free(tree);
+  kdtree_3d_free(tree);
 }
 
 static void PE_mirror_particle(
@@ -1233,7 +1231,7 @@ static void deflect_emitter_iter(void *__restrict iter_data_v,
       dist_1st *= dist * emitterdist;
     }
     else {
-      index = blender::kdtree_3d_find_nearest(edit->emitter_field, key->co, nullptr);
+      index = kdtree_3d_find_nearest(edit->emitter_field, key->co, nullptr);
 
       vec = edit->emitter_cosnos + index * 6;
       nor = vec + 3;
@@ -1453,20 +1451,20 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
     MEM_freeN(edit->emitter_cosnos);
   }
 
-  blender::kdtree_3d_free(edit->emitter_field);
+  kdtree_3d_free(edit->emitter_field);
 
   totface = mesh->totface_legacy;
   // int totvert = dm->getNumVerts(dm); /* UNUSED */
 
   edit->emitter_cosnos = MEM_calloc_arrayN<float>(6 * totface, "emitter cosnos");
 
-  edit->emitter_field = blender::kdtree_3d_new(totface);
+  edit->emitter_field = kdtree_3d_new(totface);
 
   vec = edit->emitter_cosnos;
   nor = vec + 3;
 
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
-  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
+  const Span<float3> positions = mesh->vert_positions();
+  const Span<float3> vert_normals = mesh->vert_normals();
   const MFace *mfaces = static_cast<const MFace *>(
       CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
@@ -1493,10 +1491,10 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
 
     normalize_v3(nor);
 
-    blender::kdtree_3d_insert(edit->emitter_field, i, vec);
+    kdtree_3d_insert(edit->emitter_field, i, vec);
   }
 
-  blender::kdtree_3d_balance(edit->emitter_field);
+  kdtree_3d_balance(edit->emitter_field);
 }
 
 static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, int useflag)
@@ -2450,11 +2448,10 @@ int PE_lasso_select(bContext *C, const int mcoords[][2], const int mcoords_len, 
         const bool is_inside =
             ((ED_view3d_project_int_global(region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
               V3D_PROJ_RET_OK) &&
-             BLI_lasso_is_point_inside(
-                 {reinterpret_cast<const blender::int2 *>(mcoords), mcoords_len},
-                 screen_co[0],
-                 screen_co[1],
-                 IS_CLIPPED) &&
+             BLI_lasso_is_point_inside({reinterpret_cast<const int2 *>(mcoords), mcoords_len},
+                                       screen_co[0],
+                                       screen_co[1],
+                                       IS_CLIPPED) &&
              key_test_depth(&data, co, screen_co));
         const int sel_op_result = ED_select_op_action_deselected(
             eSelectOp(sel_op), is_select, is_inside);
@@ -2474,11 +2471,10 @@ int PE_lasso_select(bContext *C, const int mcoords[][2], const int mcoords_len, 
         const bool is_inside =
             ((ED_view3d_project_int_global(region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
               V3D_PROJ_RET_OK) &&
-             BLI_lasso_is_point_inside(
-                 {reinterpret_cast<const blender::int2 *>(mcoords), mcoords_len},
-                 screen_co[0],
-                 screen_co[1],
-                 IS_CLIPPED) &&
+             BLI_lasso_is_point_inside({reinterpret_cast<const int2 *>(mcoords), mcoords_len},
+                                       screen_co[0],
+                                       screen_co[1],
+                                       IS_CLIPPED) &&
              key_test_depth(&data, co, screen_co));
         const int sel_op_result = ED_select_op_action_deselected(
             eSelectOp(sel_op), is_select, is_inside);
@@ -3236,8 +3232,8 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit->psys;
   ParticleSystemModifierData *psmd_eval;
-  blender::KDTree_3d *tree;
-  blender::KDTreeNearest_3d nearest[10];
+  KDTree_3d *tree;
+  KDTreeNearest_3d nearest[10];
   POINT_P;
   float mat[4][4], co[3], threshold = RNA_float_get(op->ptr, "threshold");
   int n, totn, removed, totremoved;
@@ -3253,7 +3249,7 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
   do {
     removed = 0;
 
-    tree = blender::kdtree_3d_new(psys->totpart);
+    tree = kdtree_3d_new(psys->totpart);
 
     /* Insert particles into KD-tree. */
     LOOP_SELECTED_POINTS {
@@ -3261,10 +3257,10 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
       copy_v3_v3(co, point->keys->co);
       mul_m4_v3(mat, co);
-      blender::kdtree_3d_insert(tree, p, co);
+      kdtree_3d_insert(tree, p, co);
     }
 
-    blender::kdtree_3d_balance(tree);
+    kdtree_3d_balance(tree);
 
     /* tag particles to be removed */
     LOOP_SELECTED_POINTS {
@@ -3273,7 +3269,7 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
       copy_v3_v3(co, point->keys->co);
       mul_m4_v3(mat, co);
 
-      totn = blender::kdtree_3d_find_nearest_n(tree, co, nearest, 10);
+      totn = kdtree_3d_find_nearest_n(tree, co, nearest, 10);
 
       for (n = 0; n < totn; n++) {
         /* this needs a custom threshold still */
@@ -3286,7 +3282,7 @@ static wmOperatorStatus remove_doubles_exec(bContext *C, wmOperator *op)
       }
     }
 
-    blender::kdtree_3d_free(tree);
+    kdtree_3d_free(tree);
 
     /* remove tagged particles - don't do mirror here! */
     remove_tagged_particles(ob, psys, 0);
@@ -3396,8 +3392,8 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
  * \{ */
 
 static void brush_drawcursor(bContext *C,
-                             const blender::int2 &xy,
-                             const blender::float2 & /*tilt*/,
+                             const int2 &xy,
+                             const float2 & /*tilt*/,
                              void * /*customdata*/)
 {
   Scene *scene = CTX_data_scene(C);
@@ -3411,8 +3407,7 @@ static void brush_drawcursor(bContext *C,
   brush = &pset->brush[pset->brushtype];
 
   if (brush) {
-    uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor4ub(255, 255, 255, 128);
@@ -3528,7 +3523,7 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 
 static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagged)
 {
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   ParticleSystemModifierData *psmd_eval;
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys = edit->psys;
@@ -3948,7 +3943,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
        * `ob->world_to_object` is set before calling. */
       mul_v3_m4v3(kco, data->ob->world_to_object().ptr(), co);
 
-      point_index = blender::kdtree_3d_find_nearest(edit->emitter_field, kco, nullptr);
+      point_index = kdtree_3d_find_nearest(edit->emitter_field, kco, nullptr);
       if (point_index == -1) {
         return;
       }
@@ -4038,7 +4033,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
              * `ob->world_to_object` is set before calling. */
             mul_v3_m4v3(kco, data->ob->world_to_object().ptr(), oco);
 
-            point_index = blender::kdtree_3d_find_nearest(edit->emitter_field, kco, nullptr);
+            point_index = kdtree_3d_find_nearest(edit->emitter_field, kco, nullptr);
             if (point_index != -1) {
               copy_v3_v3(onor, &edit->emitter_cosnos[point_index * 6 + 3]);
               mul_mat3_m4_v3(data->ob->object_to_world().ptr(),
@@ -4170,8 +4165,8 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
   const MFace *mface = nullptr;
   int i, totface, intersect = 0;
   float cur_d;
-  blender::float2 cur_uv;
-  blender::float3 v1, v2, v3, v4, min, max, p_min, p_max;
+  float2 cur_uv;
+  float3 v1, v2, v3, v4, min, max, p_min, p_max;
   float cur_ipoint[3];
 
   if (mesh == nullptr) {
@@ -4205,7 +4200,7 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
 
   totface = mesh->totface_legacy;
   mface = static_cast<const MFace *>(CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
-  blender::Span<blender::float3> positions = mesh->vert_positions();
+  Span<float3> positions = mesh->vert_positions();
 
   /* lets intersect the faces */
   for (i = 0; i < totface; i++, mface++) {
@@ -4228,11 +4223,11 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
 
     if (face_minmax == nullptr) {
       INIT_MINMAX(min, max);
-      blender::math::min_max(blender::float3(v1), min, max);
-      blender::math::min_max(blender::float3(v2), min, max);
-      blender::math::min_max(blender::float3(v3), min, max);
+      math::min_max(float3(v1), min, max);
+      math::min_max(float3(v2), min, max);
+      math::min_max(float3(v3), min, max);
       if (mface->v4) {
-        blender::math::min_max(blender::float3(v4), min, max);
+        math::min_max(float3(v4), min, max);
       }
       if (isect_aabb_aabb_v3(min, max, p_min, p_max) == 0) {
         continue;
@@ -4510,7 +4505,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
   if (n) {
     int newtotpart = totpart + n;
     float hairmat[4][4], cur_co[3];
-    blender::KDTree_3d *tree = nullptr;
+    KDTree_3d *tree = nullptr;
     ParticleData *pa,
         *new_pars = MEM_new_array_for_free<ParticleData>(newtotpart, "ParticleData new");
     PTCacheEditPoint *point, *new_points = MEM_calloc_arrayN<PTCacheEditPoint>(
@@ -4537,7 +4532,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
     /* create tree for interpolation */
     if (pset->flag & PE_INTERPOLATE_ADDED && psys->totpart) {
-      tree = blender::kdtree_3d_new(psys->totpart);
+      tree = kdtree_3d_new(psys->totpart);
 
       for (i = 0, pa = psys->particles; i < totpart; i++, pa++) {
         psys_particle_on_dm(psmd_eval->mesh_final,
@@ -4551,10 +4546,10 @@ static int brush_add(const bContext *C, PEData *data, short number)
                             nullptr,
                             nullptr,
                             nullptr);
-        blender::kdtree_3d_insert(tree, i, cur_co);
+        kdtree_3d_insert(tree, i, cur_co);
       }
 
-      blender::kdtree_3d_balance(tree);
+      kdtree_3d_balance(tree);
     }
 
     edit->totpoint = psys->totpart = newtotpart;
@@ -4592,7 +4587,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         ParticleData *ppa;
         HairKey *thkey;
         ParticleKey key3[3];
-        blender::KDTreeNearest_3d ptn[3];
+        KDTreeNearest_3d ptn[3];
         int w, maxw;
         float maxd, totw = 0.0, weight[3];
 
@@ -4607,7 +4602,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
                             nullptr,
                             nullptr,
                             nullptr);
-        maxw = blender::kdtree_3d_find_nearest_n(tree, co1, ptn, 3);
+        maxw = kdtree_3d_find_nearest_n(tree, co1, ptn, 3);
 
         maxd = ptn[maxw - 1].dist;
 
@@ -4681,7 +4676,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
     }
 
     if (tree) {
-      blender::kdtree_3d_free(tree);
+      kdtree_3d_free(tree);
     }
   }
 
@@ -4721,7 +4716,7 @@ static int brush_edit_init(bContext *C, wmOperator *op)
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ARegion *region = CTX_wm_region(C);
   BrushEdit *bedit;
-  blender::float3 min, max;
+  float3 min, max;
 
   /* set the 'distance factor' for grabbing (used in comb etc) */
   INIT_MINMAX(min, max);
@@ -5116,7 +5111,7 @@ static bool shape_cut_poll(bContext *C)
 }
 
 struct PointInsideBVH {
-  blender::bke::BVHTreeFromMesh *bvhdata;
+  bke::BVHTreeFromMesh *bvhdata;
   int num_hits;
 };
 
@@ -5137,7 +5132,7 @@ static void point_inside_bvh_cb(void *userdata,
 /* true if the point is inside the shape mesh */
 static bool shape_cut_test_point(PEData *data, ParticleEditSettings *pset, ParticleCacheKey *key)
 {
-  blender::bke::BVHTreeFromMesh *shape_bvh = data->shape_bvh;
+  bke::BVHTreeFromMesh *shape_bvh = data->shape_bvh;
   const float dir[3] = {1.0f, 0.0f, 0.0f};
   PointInsideBVH userdata;
 
@@ -5536,7 +5531,7 @@ static wmOperatorStatus particle_edit_toggle_exec(bContext *C, wmOperator *op)
   const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
   if (!is_mode_set) {
-    if (!blender::ed::object::mode_compat_set(C, ob, eObjectMode(mode_flag), op->reports)) {
+    if (!ed::object::mode_compat_set(C, ob, eObjectMode(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -5743,3 +5738,5 @@ void PARTICLE_OT_unify_length(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

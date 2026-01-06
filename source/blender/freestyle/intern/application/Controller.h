@@ -20,9 +20,11 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
 struct Depsgraph;
 struct Render;
 struct ViewLayer;
+}  // namespace blender
 
 namespace Freestyle {
 
@@ -45,12 +47,12 @@ class Controller {
   void setRenderMonitor(RenderMonitor *iRenderMonitor);
   void setPassDiffuse(float *buf, int width, int height);
   void setPassZ(float *buf, int width, int height);
-  void setContext(bContext *C);
+  void setContext(blender::bContext *C);
 
   // soc
   void init_options();
 
-  int LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph);
+  int LoadMesh(blender::Render *re, blender::ViewLayer *view_layer, blender::Depsgraph *depsgraph);
   int Load3DSFile(const char *iFileName);
   void CloseFile();
   void ComputeViewMap();
@@ -59,11 +61,11 @@ class Controller {
   void toggleEdgeTesselationNature(Nature::EdgeNature iNature);
   int DrawStrokes();
   void ResetRenderCount();
-  Render *RenderStrokes(Render *re, bool render);
+  blender::Render *RenderStrokes(blender::Render *re, bool render);
   void SwapStyleModules(uint i1, uint i2);
   void InsertStyleModule(uint index, const char *iFileName);
   void InsertStyleModule(uint index, const char *iName, const char *iBuffer);
-  void InsertStyleModule(uint index, const char *iName, struct Text *iText);
+  void InsertStyleModule(uint index, const char *iName, struct blender::Text *iText);
   void AddStyleModule(const char *iFileName);
   void RemoveStyleModule(uint index);
   void ReloadStyleModule(uint index, const char *iFileName);

@@ -9,17 +9,17 @@
 #pragma once
 
 #include <Python.h>
+struct GPUShaderCreateInfo;
+struct GPUStageInterfaceInfo;
+namespace blender {
 
 #ifndef __cplusplus
 #  include "../generic/py_capi_utils.hh"
 #endif
 
-namespace blender::gpu {
+namespace gpu {
 class Shader;
-}  // namespace blender::gpu
-
-struct GPUShaderCreateInfo;
-struct GPUStageInterfaceInfo;
+}  // namespace gpu
 
 /* Make sure that there is always a reference count for PyObjects of type String as the strings are
  * passed by reference in the #GPUStageInterfaceInfo and #GPUShaderCreateInfo APIs. */
@@ -33,11 +33,11 @@ extern PyTypeObject BPyGPUShader_Type;
 
 struct BPyGPUShader {
   PyObject_VAR_HEAD
-  blender::gpu::Shader *shader;
+  gpu::Shader *shader;
   bool is_builtin;
 };
 
-[[nodiscard]] PyObject *BPyGPUShader_CreatePyObject(blender::gpu::Shader *shader, bool is_builtin);
+[[nodiscard]] PyObject *BPyGPUShader_CreatePyObject(gpu::Shader *shader, bool is_builtin);
 [[nodiscard]] PyObject *bpygpu_shader_init();
 
 /* gpu_py_shader_create_info.cc */
@@ -74,4 +74,6 @@ struct BPyGPUShaderCreateInfo {
 
 [[nodiscard]] PyObject *BPyGPUStageInterfaceInfo_CreatePyObject(GPUStageInterfaceInfo *interface);
 [[nodiscard]] PyObject *BPyGPUShaderCreateInfo_CreatePyObject(GPUShaderCreateInfo *info);
-[[nodiscard]] bool bpygpu_shader_is_polyline(blender::gpu::Shader *shader);
+[[nodiscard]] bool bpygpu_shader_is_polyline(gpu::Shader *shader);
+
+}  // namespace blender

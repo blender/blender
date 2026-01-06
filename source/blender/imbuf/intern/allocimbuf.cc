@@ -32,6 +32,8 @@
 
 #include "atomic_ops.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.buffer"};
 
 /* Free the specified buffer storage, freeing memory when needed and restoring the state of the
@@ -650,3 +652,5 @@ size_t IMB_get_size_in_memory(const ImBuf *ibuf)
 
   return size;
 }
+
+}  // namespace blender

@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_mask_types.h"
 
+namespace blender {
+
 struct ARegion;
 struct CfraElem;
 struct Depsgraph;
@@ -191,3 +193,5 @@ void paste_gpdata();
 
 void mirror_masklayer_frames(MaskLayer *mask_layer, short mode);
 #endif
+
+}  // namespace blender

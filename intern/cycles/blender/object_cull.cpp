@@ -13,7 +13,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-BlenderObjectCulling::BlenderObjectCulling(Scene *scene, ::Scene &b_scene)
+BlenderObjectCulling::BlenderObjectCulling(Scene *scene, blender::Scene &b_scene)
     : use_scene_camera_cull_(false),
       use_camera_cull_(false),
       camera_cull_margin_(0.0f),
@@ -21,16 +21,17 @@ BlenderObjectCulling::BlenderObjectCulling(Scene *scene, ::Scene &b_scene)
       use_distance_cull_(false),
       distance_cull_margin_(0.0f)
 {
-  if ((b_scene.r.mode & R_SIMPLIFY) != 0) {
-    PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
-    PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
+  if ((b_scene.r.mode & blender::R_SIMPLIFY) != 0) {
+    blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+    blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
 
     const bool cam_supported = (scene->camera->get_camera_type() == CAMERA_PERSPECTIVE) ||
                                (scene->camera->get_camera_type() == CAMERA_ORTHOGRAPHIC);
 
-    use_scene_camera_cull_ = cam_supported && ((b_scene.r.scemode & R_MULTIVIEW) == 0) &&
+    use_scene_camera_cull_ = cam_supported && ((b_scene.r.scemode & blender::R_MULTIVIEW) == 0) &&
                              get_boolean(cscene, "use_camera_cull");
-    use_scene_distance_cull_ = cam_supported && ((b_scene.r.scemode & R_MULTIVIEW) == 0) &&
+    use_scene_distance_cull_ = cam_supported &&
+                               ((b_scene.r.scemode & blender::R_MULTIVIEW) == 0) &&
                                get_boolean(cscene, "use_distance_cull");
 
     camera_cull_margin_ = get_float(cscene, "camera_cull_margin");
@@ -42,14 +43,14 @@ BlenderObjectCulling::BlenderObjectCulling(Scene *scene, ::Scene &b_scene)
   }
 }
 
-void BlenderObjectCulling::init_object(Scene *scene, ::Object &b_ob)
+void BlenderObjectCulling::init_object(Scene *scene, blender::Object &b_ob)
 {
   if (!use_scene_camera_cull_ && !use_scene_distance_cull_) {
     return;
   }
 
-  PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob.id);
-  PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
+  blender::PointerRNA b_ob_rna_ptr = RNA_id_pointer_create(&b_ob.id);
+  blender::PointerRNA cobject = RNA_pointer_get(&b_ob_rna_ptr, "cycles");
 
   use_camera_cull_ = use_scene_camera_cull_ && get_boolean(cobject, "use_camera_cull");
   use_distance_cull_ = use_scene_distance_cull_ && get_boolean(cobject, "use_distance_cull");
@@ -60,7 +61,7 @@ void BlenderObjectCulling::init_object(Scene *scene, ::Object &b_ob)
   }
 }
 
-bool BlenderObjectCulling::test(Scene *scene, ::Object &b_ob, Transform &tfm)
+bool BlenderObjectCulling::test(Scene *scene, blender::Object &b_ob, Transform &tfm)
 {
   if (!use_camera_cull_ && !use_distance_cull_) {
     return false;

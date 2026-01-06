@@ -427,7 +427,7 @@ static void color3ubv_from_seq(const Scene *curscene,
       break;
   }
 
-  blender::ui::theme::theme_restore(&theme_state);
+  ui::theme::theme_restore(&theme_state);
 }
 
 static void waveform_job_start_if_needed(const bContext *C, const Strip *strip)

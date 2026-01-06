@@ -10,6 +10,8 @@
 
 #include "BLO_readfile.hh"
 
+namespace blender {
+
 /**
  * File indexing for the file/asset browser.
  *
@@ -134,3 +136,5 @@ void ED_file_indexer_entries_extend_from_datablock_infos(
     FileIndexerEntries *indexer_entries,
     LinkNode * /*BLODataBlockInfo*/ datablock_infos,
     int idcode);
+
+}  // namespace blender

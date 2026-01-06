@@ -33,6 +33,10 @@
 #  include "gpu_shader_srd_info.hh"
 #endif
 
+#if !defined(GPU_SHADER)
+namespace blender {
+#endif
+
 /* Force enable `printf` support in release build. */
 #define GPU_FORCE_ENABLE_SHADER_PRINTF 0
 
@@ -173,14 +177,11 @@
     .sampler(slot, ImageType::type, #name, Frequency::freq)
 
 #  define IMAGE(slot, format, qualifiers, type, name) \
-    .image(slot, \
-           blender::gpu::TextureFormat::format, \
-           Qualifier::qualifiers, \
-           ImageReadWriteType::type, \
-           #name)
+    .image( \
+        slot, gpu::TextureFormat::format, Qualifier::qualifiers, ImageReadWriteType::type, #name)
 #  define IMAGE_FREQ(slot, format, qualifiers, type, name, freq) \
     .image(slot, \
-           blender::gpu::TextureFormat::format, \
+           gpu::TextureFormat::format, \
            Qualifier::qualifiers, \
            ImageReadWriteType::type, \
            #name, \
@@ -334,11 +335,11 @@
 
 #if !defined(GLSL_CPP_STUBS)
 
-namespace blender::gpu {
+namespace gpu {
 struct GPUSource;
 }
 
-namespace blender::gpu::shader {
+namespace gpu::shader {
 
 /* All of these functions is a bit out of place */
 static inline Type to_type(const GPUType type)
@@ -746,7 +747,7 @@ using GeneratedSourceList = Vector<shader::GeneratedSource, 0>;
 /**
  * \brief Describe inputs & outputs, stage interfaces, resources and sources of a shader.
  *        If all data is correctly provided, this is all that is needed to create and compile
- *        a #blender::gpu::Shader.
+ *        a #gpu::Shader.
  *
  * IMPORTANT: All strings are references only. Make sure all the strings used by a
  *            #ShaderCreateInfo are not freed until it is consumed or deleted.
@@ -1427,7 +1428,7 @@ struct ShaderCreateInfo {
   /* -------------------------------------------------------------------- */
   /** \name Push constants
    *
-   * Data managed by blender::gpu::Shader. Can be set through uniform functions. Must be less than
+   * Data managed by gpu::Shader. Can be set through uniform functions. Must be less than
    * 128bytes.
    * \{ */
 
@@ -1750,19 +1751,21 @@ struct ShaderCreateInfo {
 /* Storage for strings referenced but the patched create info. */
 using ShaderCreateInfoStringCache = Vector<std::unique_ptr<std::string>, 0>;
 
-}  // namespace blender::gpu::shader
+}  // namespace gpu::shader
 
-namespace blender {
-template<> struct DefaultHash<Vector<blender::gpu::shader::SpecializationConstant::Value>> {
-  uint64_t operator()(const Vector<blender::gpu::shader::SpecializationConstant::Value> &key) const
+template<> struct DefaultHash<Vector<gpu::shader::SpecializationConstant::Value>> {
+  uint64_t operator()(const Vector<gpu::shader::SpecializationConstant::Value> &key) const
   {
     uint64_t hash = 0;
-    for (const blender::gpu::shader::SpecializationConstant::Value &value : key) {
+    for (const gpu::shader::SpecializationConstant::Value &value : key) {
       hash = hash * 33 ^ uint64_t(value.u);
     }
     return hash;
   }
 };
-}  // namespace blender
 
+#endif
+
+#if !defined(GPU_SHADER)
+}  // namespace blender
 #endif

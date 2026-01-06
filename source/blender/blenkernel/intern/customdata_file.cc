@@ -19,6 +19,8 @@
 
 #include "BKE_customdata_file.h"
 
+namespace blender {
+
 /************************* File Format Definitions ***************************/
 
 #define CDF_ENDIAN_LITTLE 0
@@ -433,3 +435,5 @@ CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t
 
   return layer;
 }
+
+}  // namespace blender

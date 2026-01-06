@@ -18,6 +18,8 @@
 
 #include "BLI_function_ref.hh"
 
+namespace blender {
+
 struct AnimData;
 struct ID;
 struct LibraryForeachIDData;
@@ -205,7 +207,7 @@ NlaStrip *BKE_nlastrip_new(bAction *act, ID &animated_id);
  * does not match the given animated ID.
  */
 NlaStrip *BKE_nlastrip_new_for_slot(bAction *act,
-                                    blender::animrig::slot_handle_t slot_handle,
+                                    animrig::slot_handle_t slot_handle,
                                     ID &animated_id);
 
 /*
@@ -500,7 +502,7 @@ void BKE_nla_validate_state(AnimData *adt);
  */
 bool BKE_nla_action_slot_is_stashed(AnimData *adt,
                                     bAction *act,
-                                    blender::animrig::slot_handle_t slot_handle);
+                                    animrig::slot_handle_t slot_handle);
 /**
  * "Stash" an action (i.e. store it as a track/layer in the NLA, but non-contributing)
  * to retain it in the file for future uses.
@@ -600,7 +602,7 @@ void BKE_nla_liboverride_post_process(ID *id, AnimData *adt);
  */
 void BKE_nla_debug_print_flags(AnimData *adt, ID *owner_id);
 
-namespace blender::bke::nla {
+namespace bke::nla {
 
 /**
  * Call the callback for every strip of this ID's NLA.
@@ -632,4 +634,5 @@ bool foreach_strip(ID *id, FunctionRef<bool(NlaStrip *)> callback);
  */
 bool foreach_strip_adt(const AnimData &adt, FunctionRef<bool(NlaStrip *)> callback);
 
-}  // namespace blender::bke::nla
+}  // namespace bke::nla
+}  // namespace blender

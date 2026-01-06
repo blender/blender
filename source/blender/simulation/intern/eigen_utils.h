@@ -23,6 +23,8 @@
 
 #include "implicit.h"
 
+namespace blender {
+
 using Scalar = float;
 
 /* slightly extended Eigen vector class
@@ -207,3 +209,5 @@ BLI_INLINE void print_lmatrix(const lMatrix &m)
     printf("\n");
   }
 }
+
+}  // namespace blender

@@ -16,6 +16,8 @@
 
 struct BMLoopList;
 
+namespace blender {
+
 /**
  * When copying between different BMesh objects,
  * `copy_verts` & `copy_edges` should always be true.
@@ -454,3 +456,5 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
  * isolated by calling #bmesh_kernel_edge_separate to segregate it radially.
  */
 BMVert *bmesh_kernel_unglue_region_make_vert_multi_isolated(BMesh *bm, BMLoop *l_sep);
+
+}  // namespace blender

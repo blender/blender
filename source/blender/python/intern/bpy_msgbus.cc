@@ -27,6 +27,8 @@
 
 #include "bpy_msgbus.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utils
  * \{ */
@@ -435,3 +437,5 @@ PyObject *BPY_msgbus_module()
 }
 
 /** \} */
+
+}  // namespace blender

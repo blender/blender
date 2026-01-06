@@ -21,6 +21,9 @@
 #include "WM_types.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 /* TfToken objects are not cheap to construct, so we do it once. */
@@ -52,7 +55,7 @@ static std::optional<AccessibilityPropertyName> parse_accessibility_property_nam
       /* Sanitize the namespace since this is user-generated and might need to be conformed
        * to the `allow_unicode` export setting. */
       property_name.property_namespace = pxr::TfToken(
-          blender::io::usd::make_safe_name(property_tokens[1], allow_unicode));
+          io::usd::make_safe_name(property_tokens[1], allow_unicode));
       property_name.property_base_name = basename;
       return property_name;
     }
@@ -104,7 +107,7 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
     return "";
   }
 
-  const Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  const Mesh *mesh = id_cast<Mesh *>(ob->data);
   return mesh->active_uv_map_name();
 }
 
@@ -133,7 +136,7 @@ bool set_vec_attrib(const pxr::UsdPrim &prim,
   return vec_attr.Set(vec_value, time);
 }
 
-namespace blender::io::usd {
+namespace io::usd {
 
 static void create_vector_attrib(const pxr::UsdPrim &prim,
                                  const IDProperty *prop,
@@ -574,4 +577,5 @@ void USDAbstractWriter::add_to_prim_map(const pxr::SdfPath &usd_path, const ID *
   }
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

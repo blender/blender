@@ -78,6 +78,8 @@
 
 #include "brushes/brushes.hh"
 
+namespace blender {
+
 /* TODOs:
  *
  * Some of the cursor drawing code is doing non-draw stuff
@@ -88,7 +90,7 @@
  */
 
 struct TexSnapshot {
-  blender::gpu::Texture *overlay_texture;
+  gpu::Texture *overlay_texture;
   int winx;
   int winy;
   int old_size;
@@ -97,7 +99,7 @@ struct TexSnapshot {
 };
 
 struct CursorSnapshot {
-  blender::gpu::Texture *overlay_texture;
+  gpu::Texture *overlay_texture;
   int size;
   int zoom;
   int curve_preset;
@@ -126,7 +128,7 @@ void paint_cursor_delete_textures()
   BKE_paint_invalidate_overlay_all();
 }
 
-namespace blender::ed::sculpt_paint {
+namespace ed::sculpt_paint {
 
 static int same_tex_snap(TexSnapshot *snap, MTex *mtex, ViewContext *vc, bool col, float zoom)
 {
@@ -357,8 +359,8 @@ static int load_tex(Paint *paint, Brush *br, ViewContext *vc, float zoom, bool c
     }
 
     if (!target->overlay_texture) {
-      blender::gpu::TextureFormat format = col ? blender::gpu::TextureFormat::UNORM_8_8_8_8 :
-                                                 blender::gpu::TextureFormat::UNORM_8;
+      gpu::TextureFormat format = col ? gpu::TextureFormat::UNORM_8_8_8_8 :
+                                        gpu::TextureFormat::UNORM_8;
       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
       target->overlay_texture = GPU_texture_create_2d(
           "paint_cursor_overlay", size, size, 1, format, usage, nullptr);
@@ -474,13 +476,8 @@ static int load_tex_cursor(Paint *paint, Brush *br, float zoom)
 
     if (!cursor_snap.overlay_texture) {
       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-      cursor_snap.overlay_texture = GPU_texture_create_2d("cursor_snap_overaly",
-                                                          size,
-                                                          size,
-                                                          1,
-                                                          blender::gpu::TextureFormat::UNORM_8,
-                                                          usage,
-                                                          nullptr);
+      cursor_snap.overlay_texture = GPU_texture_create_2d(
+          "cursor_snap_overaly", size, size, 1, gpu::TextureFormat::UNORM_8, usage, nullptr);
       GPU_texture_update(cursor_snap.overlay_texture, GPU_DATA_UBYTE, buffer);
 
       GPU_texture_swizzle_set(cursor_snap.overlay_texture, "rrrr");
@@ -678,9 +675,8 @@ static bool paint_draw_tex_overlay(Paint *paint,
 
     /* Set quad color. Colored overlay does not get blending. */
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-    uint texCoord = GPU_vertformat_attr_add(
-        format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+    uint texCoord = GPU_vertformat_attr_add(format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
 
     /* Premultiplied alpha blending. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
@@ -694,8 +690,8 @@ static bool paint_draw_tex_overlay(Paint *paint,
     mul_v4_fl(final_color, overlay_alpha * 0.01f);
     immUniformColor4fv(final_color);
 
-    blender::gpu::Texture *texture = (primary) ? primary_snap.overlay_texture :
-                                                 secondary_snap.overlay_texture;
+    gpu::Texture *texture = (primary) ? primary_snap.overlay_texture :
+                                        secondary_snap.overlay_texture;
 
     GPUSamplerExtendMode extend_mode = (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) ?
                                            GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER :
@@ -773,9 +769,8 @@ static bool paint_draw_cursor_overlay(Paint *paint, Brush *brush, int x, int y, 
     }
 
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-    uint texCoord = GPU_vertformat_attr_add(
-        format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+    uint texCoord = GPU_vertformat_attr_add(format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
@@ -972,8 +967,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
     GPU_blend(GPU_BLEND_ALPHA);
 
     /* Draw the bezier handles and the curve segment between the current and next point. */
-    uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -1103,7 +1097,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
   BLI_assert(ob.type == OB_MESH);
   const Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(&ob);
   if (!mesh) {
-    mesh = blender::id_cast<const Mesh *>(ob.data);
+    mesh = id_cast<const Mesh *>(ob.data);
   }
   const Bounds<float3> bounds = *mesh->bounds_min_max();
   float orgLoc[3], location[3];
@@ -1149,7 +1143,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
                                             const Object &ob,
                                             const float radius)
 {
-  const Mesh *mesh = blender::id_cast<const Mesh *>(ob.data);
+  const Mesh *mesh = id_cast<const Mesh *>(ob.data);
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   float3 location;
   float symm_rot_mat[4][4];
@@ -1330,8 +1324,8 @@ struct PaintCursorContext {
 };
 
 static bool paint_cursor_context_init(bContext *C,
-                                      const blender::int2 &xy,
-                                      const blender::float2 &tilt,
+                                      const int2 &xy,
+                                      const float2 &tilt,
                                       PaintCursorContext &pcontext)
 {
   ARegion *region = CTX_wm_region(C);
@@ -1575,7 +1569,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext &pcontext)
     return;
   }
 
-  GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(object->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(object->data);
   Paint *paint = pcontext.paint;
   Brush *brush = pcontext.brush;
   if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
@@ -2178,7 +2172,7 @@ static void paint_cursor_setup_2D_drawing(PaintCursorContext &pcontext)
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
   pcontext.pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 }
 
@@ -2188,7 +2182,7 @@ static void paint_cursor_setup_3D_drawing(PaintCursorContext &pcontext)
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
   pcontext.pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 }
 
@@ -2199,10 +2193,7 @@ static void paint_cursor_restore_drawing_state()
   GPU_line_smooth(false);
 }
 
-static void paint_draw_cursor(bContext *C,
-                              const blender::int2 &xy,
-                              const blender::float2 &tilt,
-                              void * /*unused*/)
+static void paint_draw_cursor(bContext *C, const int2 &xy, const float2 &tilt, void * /*unused*/)
 {
   PaintCursorContext pcontext;
   if (!paint_cursor_context_init(C, xy, tilt, pcontext)) {
@@ -2256,7 +2247,7 @@ static void paint_draw_cursor(bContext *C,
   }
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
 
 /* Public API */
 
@@ -2264,9 +2255,11 @@ void ED_paint_cursor_start(Paint *paint, bool (*poll)(bContext *C))
 {
   if (paint && paint->runtime && !paint->runtime->paint_cursor) {
     paint->runtime->paint_cursor = WM_paint_cursor_activate(
-        SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, blender::ed::sculpt_paint::paint_draw_cursor, nullptr);
+        SPACE_TYPE_ANY, RGN_TYPE_ANY, poll, ed::sculpt_paint::paint_draw_cursor, nullptr);
   }
 
   /* Invalidate the paint cursors. */
   BKE_paint_invalidate_overlay_all();
 }
+
+}  // namespace blender

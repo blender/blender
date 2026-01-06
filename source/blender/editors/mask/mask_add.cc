@@ -34,6 +34,8 @@
 
 #include "mask_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Add Vertex
  * \{ */
@@ -921,3 +923,5 @@ void MASK_OT_primitive_square_add(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

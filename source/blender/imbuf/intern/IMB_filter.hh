@@ -11,6 +11,8 @@
 
 #include <cstdint>
 
+namespace blender {
+
 struct ImBuf;
 
 void IMB_premultiply_rect(uint8_t *rect, char planes, int w, int h);
@@ -18,3 +20,5 @@ void IMB_premultiply_rect_float(float *rect_float, int channels, int w, int h);
 
 void IMB_unpremultiply_rect(uint8_t *rect, char planes, int w, int h);
 void IMB_unpremultiply_rect_float(float *rect_float, int channels, int w, int h);
+
+}  // namespace blender

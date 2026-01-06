@@ -39,7 +39,9 @@
 
 #include "paint_intern.hh"
 
-namespace blender::ed::sculpt_paint::image::ops::paint {
+namespace blender {
+
+namespace ed::sculpt_paint::image::ops::paint {
 
 /**
  * Interface to use the same painting operator for 3D and 2D painting. Interface removes the
@@ -238,8 +240,8 @@ struct PaintOperation : public PaintModeData {
 };
 
 static void gradient_draw_line(bContext * /*C*/,
-                               const blender::int2 &xy,
-                               const blender::float2 & /*tilt*/,
+                               const int2 &xy,
+                               const float2 & /*tilt*/,
                                void *customdata)
 {
   PaintOperation *pop = static_cast<PaintOperation *>(customdata);
@@ -249,7 +251,7 @@ static void gradient_draw_line(bContext * /*C*/,
     GPU_blend(GPU_BLEND_ALPHA);
 
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     ARegion *region = pop->vc.region;
 
@@ -259,7 +261,7 @@ static void gradient_draw_line(bContext * /*C*/,
     immUniformColor4ub(0, 0, 0, 255);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2fv(pos, blender::float2(xy));
+    immVertex2fv(pos, float2(xy));
     immVertex2f(
         pos, pop->startmouse[0] + region->winrct.xmin, pop->startmouse[1] + region->winrct.ymin);
     immEnd();
@@ -268,7 +270,7 @@ static void gradient_draw_line(bContext * /*C*/,
     immUniformColor4ub(255, 255, 255, 255);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2fv(pos, blender::float2(xy));
+    immVertex2fv(pos, float2(xy));
     immVertex2f(
         pos, pop->startmouse[0] + region->winrct.xmin, pop->startmouse[1] + region->winrct.ymin);
     immEnd();
@@ -585,7 +587,7 @@ static void paint_cancel(bContext *C, wmOperator *op)
 
   stroke->cancel(C, op);
 }
-}  // namespace blender::ed::sculpt_paint::image::ops::paint
+}  // namespace ed::sculpt_paint::image::ops::paint
 
 void PAINT_OT_image_paint(wmOperatorType *ot)
 {
@@ -608,3 +610,5 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 
   paint_stroke_operator_properties(ot);
 }
+
+}  // namespace blender

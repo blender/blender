@@ -7,7 +7,9 @@
 #include "BLI_cpp_type.hh"
 #include "BLI_cpp_type_make.hh"
 
-namespace blender::tests {
+namespace blender {
+
+namespace tests {
 
 static const int default_constructed_value = 1;
 static const int copy_constructed_value = 2;
@@ -76,11 +78,11 @@ struct TestType {
   }
 };
 
-}  // namespace blender::tests
+}  // namespace tests
 
-BLI_CPP_TYPE_MAKE(blender::tests::TestType, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(tests::TestType, CPPTypeFlags::BasicType)
 
-namespace blender::tests {
+namespace tests {
 
 static const CPPType &CPPType_TestType = CPPType::get<TestType>();
 
@@ -422,4 +424,5 @@ TEST(cpp_type, CopyAssignCompressed)
   EXPECT_EQ(array_compressed[2], "d");
 }
 
-}  // namespace blender::tests
+}  // namespace tests
+}  // namespace blender

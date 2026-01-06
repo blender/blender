@@ -16,6 +16,8 @@
 #include "BLI_mempool.h"
 #include "BLI_task.h"
 
+namespace blender {
+
 struct BLI_mempool_threadsafe_iter {
   BLI_mempool_iter iter;
   struct BLI_mempool_chunk **curchunk_threaded_shared;
@@ -50,3 +52,5 @@ void mempool_iter_threadsafe_destroy(ParallelMempoolTaskData *iter_arr) ATTR_NON
  * (threaded section noted in comments).
  */
 void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter);
+
+}  // namespace blender

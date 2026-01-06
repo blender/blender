@@ -257,7 +257,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeAlignEulerToVector", FN_NODE_ALIGN_EULER_TO_VECTOR);
   ntype.ui_name = "Align Euler to Vector";
@@ -268,7 +268,7 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.build_multi_function = node_build_multi_function;
   ntype.deprecation_notice = N_("Use the \"Align Rotation to Vector\" node instead");
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

@@ -58,6 +58,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 using Alembic::Abc::IV3fArrayProperty;
 using Alembic::Abc::ObjectHeader;
 using Alembic::Abc::PropertyHeader;
@@ -448,10 +450,10 @@ struct ImportJobData {
 
   ImportSettings settings;
 
-  blender::Vector<ArchiveReader *> archives;
-  blender::Vector<AbcObjectReader *> readers;
+  Vector<ArchiveReader *> archives;
+  Vector<AbcObjectReader *> readers;
 
-  blender::Vector<std::string> paths;
+  Vector<std::string> paths;
 
   /** Min time read from file import. */
   chrono_t min_time = std::numeric_limits<chrono_t>::max();
@@ -466,20 +468,20 @@ struct ImportJobData {
   bool was_cancelled;
   bool import_ok;
   bool is_background_job;
-  blender::timeit::TimePoint start_time;
+  timeit::TimePoint start_time;
 };
 
 static void report_job_duration(const ImportJobData *data)
 {
-  blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - data->start_time;
+  timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
   std::cout << "Alembic import took ";
-  blender::timeit::print_duration(duration);
+  timeit::print_duration(duration);
   std::cout << '\n';
 }
 
-static void sort_readers(blender::MutableSpan<AbcObjectReader *> readers)
+static void sort_readers(MutableSpan<AbcObjectReader *> readers)
 {
-  blender::parallel_sort(
+  parallel_sort(
       readers.begin(), readers.end(), [](const AbcObjectReader *a, const AbcObjectReader *b) {
         const char *na = a->name().c_str();
         const char *nb = b->name().c_str();
@@ -489,7 +491,7 @@ static void sort_readers(blender::MutableSpan<AbcObjectReader *> readers)
 
 static void import_file(ImportJobData *data, const char *filepath, float progress_factor)
 {
-  blender::timeit::TimePoint start_time = blender::timeit::Clock::now();
+  timeit::TimePoint start_time = timeit::Clock::now();
 
   ArchiveReader *archive = ArchiveReader::get(data->bmain, {filepath});
 
@@ -597,9 +599,9 @@ static void import_file(ImportJobData *data, const char *filepath, float progres
       return;
     }
   }
-  blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - start_time;
+  timeit::Nanoseconds duration = timeit::Clock::now() - start_time;
   std::cout << "Alembic import " << filepath << " took ";
-  blender::timeit::print_duration(duration);
+  timeit::print_duration(duration);
   std::cout << '\n';
 }
 
@@ -627,7 +629,7 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
   data->stop = &worker_status->stop;
   data->do_update = &worker_status->do_update;
   data->progress = &worker_status->progress;
-  data->start_time = blender::timeit::Clock::now();
+  data->start_time = timeit::Clock::now();
 
   WM_locked_interface_set(data->wm, true);
   float file_progress_factor = 1.0f / float(data->paths.size());
@@ -850,7 +852,7 @@ static ISampleSelector sample_selector_for_time(chrono_t time)
 
 void ABC_read_geometry(CacheReader *reader,
                        Object *ob,
-                       blender::bke::GeometrySet &geometry_set,
+                       bke::GeometrySet &geometry_set,
                        const ABCReadParams *params,
                        const char **r_err_str)
 {
@@ -936,3 +938,5 @@ CacheReader *CacheReader_open_alembic_object(CacheArchiveHandle *handle,
 
   return reinterpret_cast<CacheReader *>(abc_reader);
 }
+
+}  // namespace blender

@@ -22,7 +22,7 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
  public:
   SpaceImageAccessor(SpaceImage *sima) : sima(sima) {}
 
-  ::Image *get_image(Main * /*bmain*/) override
+  blender::Image *get_image(Main * /*bmain*/) override
   {
     return ED_space_image(sima);
   }
@@ -32,12 +32,12 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     return &sima->iuser;
   }
 
-  ImBuf *acquire_image_buffer(::Image * /*image*/, void **lock) override
+  ImBuf *acquire_image_buffer(blender::Image * /*image*/, void **lock) override
   {
     return ED_space_image_acquire_buffer(sima, lock, 0);
   }
 
-  void release_buffer(::Image * /*image*/, ImBuf *image_buffer, void *lock) override
+  void release_buffer(blender::Image * /*image*/, ImBuf *image_buffer, void *lock) override
   {
     ED_space_image_release_buffer(sima, image_buffer, lock);
   }

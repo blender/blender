@@ -22,6 +22,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define USE_EDGE_REGION_FLAGS
 
 enum {
@@ -790,8 +792,8 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
   float *vert_accum = vert_angles + bm->totvert;
   int i, index;
 
-  blender::Vector<float, BM_DEFAULT_NGON_STACK_SIZE> face_angles;
-  blender::Vector<float *, BM_DEFAULT_NGON_STACK_SIZE> verts;
+  Vector<float, BM_DEFAULT_NGON_STACK_SIZE> face_angles;
+  Vector<float *, BM_DEFAULT_NGON_STACK_SIZE> verts;
 
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -859,3 +861,5 @@ void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 
   BMO_op_finish(bm, &extrudeop);
 }
+
+}  // namespace blender

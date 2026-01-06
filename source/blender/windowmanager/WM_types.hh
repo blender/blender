@@ -93,20 +93,6 @@
 
 #pragma once
 
-struct ID;
-struct ImBuf;
-struct bContext;
-struct bContextStore;
-struct GreasePencil;
-struct GreasePencilLayerTreeNode;
-struct ReportList;
-struct wmDrag;
-struct wmDropBox;
-struct wmEvent;
-struct wmOperator;
-struct wmOperatorTypeMacro;
-struct wmWindowManager;
-
 #include <memory>
 #include <string>
 
@@ -131,7 +117,25 @@ struct wmWindowManager;
 /* Include external gizmo API's. */
 #include "gizmo/WM_gizmo_api.hh"  // IWYU pragma: export
 
-namespace blender::asset_system {
+struct CLG_LogRef;
+
+namespace blender {
+
+struct ID;
+struct ImBuf;
+struct bContext;
+struct bContextStore;
+struct GreasePencil;
+struct GreasePencilLayerTreeNode;
+struct ReportList;
+struct wmDrag;
+struct wmDropBox;
+struct wmEvent;
+struct wmOperator;
+struct wmOperatorTypeMacro;
+struct wmWindowManager;
+
+namespace asset_system {
 class AssetRepresentation;
 }
 
@@ -236,7 +240,7 @@ enum eWM_CursorWrapAxis {
  * Context to call operator in for #WM_operator_name_call.
  * rna_ui.cc contains EnumPropertyItem's of these, keep in sync.
  */
-namespace blender::wm {
+namespace wm {
 enum class OpCallContext : int8_t {
   /* If there's invoke, call it, otherwise exec. */
   InvokeDefault,
@@ -256,11 +260,11 @@ enum class OpCallContext : int8_t {
 }
 
 #define WM_OP_CONTEXT_HAS_AREA(type) \
-  (CHECK_TYPE_INLINE(type, blender::wm::OpCallContext), \
-   !ELEM(type, blender::wm::OpCallContext::InvokeScreen, blender::wm::OpCallContext::ExecScreen))
+  (CHECK_TYPE_INLINE(type, wm::OpCallContext), \
+   !ELEM(type, wm::OpCallContext::InvokeScreen, wm::OpCallContext::ExecScreen))
 #define WM_OP_CONTEXT_HAS_REGION(type) \
   (WM_OP_CONTEXT_HAS_AREA(type) && \
-   !ELEM(type, blender::wm::OpCallContext::InvokeArea, blender::wm::OpCallContext::ExecArea))
+   !ELEM(type, wm::OpCallContext::InvokeArea, wm::OpCallContext::ExecArea))
 
 /** Property tags for #RNA_OperatorProperties. */
 enum eOperatorPropTags {
@@ -598,7 +602,7 @@ struct wmNotifier {
 
 /* ************** Gesture Manager data ************** */
 
-namespace blender::wm::gesture {
+namespace wm::gesture {
 constexpr float POLYLINE_CLICK_RADIUS = 15.0f;
 }
 
@@ -634,7 +638,7 @@ struct wmGesture {
   /** Optional, draw the active side of the straight-line gesture. */
   bool draw_active_side;
   /** Latest mouse position relative to area. Currently only used by lasso drawing code. */
-  blender::int2 mval;
+  int2 mval;
 
   /**
    * For modal operators which may be running idle, waiting for an event to activate the gesture.
@@ -712,7 +716,7 @@ struct wmTabletData {
    * X axis range: -1.0 (left) to +1.0 (right).
    * Y axis range: -1.0 (away from user) to +1.0 (toward user).
    */
-  blender::float2 tilt;
+  float2 tilt;
   /** Interpret mouse motion as absolute as typical for tablets. */
   char is_motion_absolute;
 };
@@ -1187,7 +1191,7 @@ struct wmOperatorType {
 struct wmOperatorCallParams {
   wmOperatorType *optype;
   PointerRNA *opptr;
-  blender::wm::OpCallContext opcontext;
+  wm::OpCallContext opcontext;
 };
 
 #ifdef WITH_INPUT_IME
@@ -1214,8 +1218,8 @@ struct wmIMEData {
 /* **************** Paint Cursor ******************* */
 
 using wmPaintCursorDraw = void (*)(bContext *C,
-                                   const blender::int2 &xy,
-                                   const blender::float2 &tilt,
+                                   const int2 &xy,
+                                   const float2 &tilt,
                                    void *customdata);
 
 /* *************** Drag and drop *************** */
@@ -1263,7 +1267,7 @@ struct wmDragID {
 };
 
 struct wmDragAsset {
-  const blender::asset_system::AssetRepresentation *asset;
+  const asset_system::AssetRepresentation *asset;
   AssetImportSettings import_settings;
 };
 
@@ -1291,9 +1295,9 @@ struct wmDragAssetListItem {
 };
 
 struct wmDragPath {
-  blender::Vector<std::string> paths;
+  Vector<std::string> paths;
   /** File type of each path in #paths. */
-  blender::Vector<int> file_types; /* #eFileSel_File_Types. */
+  Vector<int> file_types; /* #eFileSel_File_Types. */
   /** Bit flag of file types in #paths. */
   int file_types_bit_flag; /* #eFileSel_File_Types. */
   std::string tooltip;
@@ -1374,7 +1378,7 @@ struct wmDrag {
  * Allocation and free is on startup and exit.
  *
  * The operator is polled and invoked with the current context
- * (#blender::wm::OpCallContext::InvokeDefault), there is no way to override that (by design, since
+ * (#wm::OpCallContext::InvokeDefault), there is no way to override that (by design, since
  * drop-boxes should act on the exact mouse position). So the drop-boxes are supposed to check the
  * required area and region context in their poll.
  */
@@ -1474,7 +1478,6 @@ struct RecentFile {
 };
 
 /* Logging. */
-struct CLG_LogRef;
 /* `wm_init_exit.cc`. */
 
 extern CLG_LogRef *WM_LOG_OPERATORS;
@@ -1482,3 +1485,5 @@ extern CLG_LogRef *WM_LOG_EVENTS;
 extern CLG_LogRef *WM_LOG_TOOL_GIZMO;
 extern CLG_LogRef *WM_LOG_MSGBUS_PUB;
 extern CLG_LogRef *WM_LOG_MSGBUS_SUB;
+
+}  // namespace blender

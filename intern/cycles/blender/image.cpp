@@ -21,8 +21,8 @@ CCL_NAMESPACE_BEGIN
 
 /* Packed Images */
 
-BlenderImageLoader::BlenderImageLoader(Image *b_image,
-                                       ImageUser *b_iuser,
+BlenderImageLoader::BlenderImageLoader(blender::Image *b_image,
+                                       blender::ImageUser *b_iuser,
                                        const int frame,
                                        const int tile_number,
                                        const bool is_preview_render)
@@ -33,9 +33,9 @@ BlenderImageLoader::BlenderImageLoader(Image *b_image,
       free_cache(!is_preview_render && !BKE_image_has_loaded_ibuf(b_image))
 {
   this->b_iuser.framenr = frame;
-  if (b_image->source != IMA_SRC_TILED) {
+  if (b_image->source != blender::IMA_SRC_TILED) {
     /* Image sequences currently not supported by this image loader. */
-    assert(b_image->source != IMA_SRC_SEQUENCE);
+    assert(b_image->source != blender::IMA_SRC_SEQUENCE);
   }
   else {
     /* Set UDIM tile, each can have different resolution. */
@@ -50,7 +50,7 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
 
   {
     void *lock;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(b_image, &b_iuser, &lock);
+    blender::ImBuf *ibuf = BKE_image_acquire_ibuf(b_image, &b_iuser, &lock);
     if (ibuf) {
       is_float = ibuf->float_buffer.data != nullptr;
       metadata.width = ibuf->x;
@@ -88,7 +88,9 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
   return true;
 }
 
-static void load_float_pixels(const ImBuf *ibuf, const ImageMetaData &metadata, float *out_pixels)
+static void load_float_pixels(const blender::ImBuf *ibuf,
+                              const ImageMetaData &metadata,
+                              float *out_pixels)
 {
   const size_t num_pixels = ((size_t)metadata.width) * metadata.height;
   const int out_channels = metadata.channels;
@@ -125,7 +127,7 @@ static void load_float_pixels(const ImBuf *ibuf, const ImageMetaData &metadata, 
   }
 }
 
-static void load_half_pixels(const ImBuf *ibuf,
+static void load_half_pixels(const blender::ImBuf *ibuf,
                              const ImageMetaData &metadata,
                              half *out_pixels,
                              const bool associate_alpha)
@@ -172,7 +174,7 @@ static void load_half_pixels(const ImBuf *ibuf,
   }
 }
 
-static void load_byte_pixels(const ImBuf *ibuf,
+static void load_byte_pixels(const blender::ImBuf *ibuf,
                              const ImageMetaData &metadata,
                              uchar *out_pixels,
                              const bool associate_alpha)
@@ -214,7 +216,7 @@ bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
                                      const bool associate_alpha)
 {
   void *lock;
-  ImBuf *ibuf = BKE_image_acquire_ibuf(b_image, &b_iuser, &lock);
+  blender::ImBuf *ibuf = BKE_image_acquire_ibuf(b_image, &b_iuser, &lock);
 
   /* Image changed since we requested metadata, assume we'll get a signal to reload it later. */
   const bool mismatch = (ibuf == nullptr || ibuf->x != metadata.width ||

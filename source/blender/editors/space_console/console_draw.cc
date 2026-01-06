@@ -26,6 +26,8 @@
 
 #include "../space_info/textview.hh"
 
+namespace blender {
+
 static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
                                                         uchar fg[4],
                                                         uchar /*bg*/[4],
@@ -51,7 +53,7 @@ static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
       break;
   }
 
-  blender::ui::theme::get_color_4ubv(fg_id, fg);
+  ui::theme::get_color_4ubv(fg_id, fg);
   return TVC_LINE_FG;
 }
 
@@ -154,7 +156,7 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
 
   /* cursor */
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CONSOLE_CURSOR);
 
@@ -165,7 +167,7 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
 
 static void console_textview_const_colors(TextViewContext * /*tvc*/, uchar bg_sel[4])
 {
-  blender::ui::theme::get_color_4ubv(TH_CONSOLE_SELECT, bg_sel);
+  ui::theme::get_color_4ubv(TH_CONSOLE_SELECT, bg_sel);
 }
 
 static void console_textview_draw_rect_calc(const ARegion *region,
@@ -254,3 +256,5 @@ int console_char_pick(SpaceConsole *sc, const ARegion *region, const int mval[2]
   console_textview_main__internal(sc, region, false, mval, &mval_pick_item, &mval_pick_offset);
   return mval_pick_offset;
 }
+
+}  // namespace blender

@@ -34,7 +34,7 @@
 
 #include "ANIM_action.hh"
 
-using namespace blender;
+namespace blender {
 
 /* This file defines an API and set of callback-operators for
  * non-destructive editing of keyframe data.
@@ -1723,3 +1723,5 @@ short bezt_selmap_flush(KeyframeEditData *ked, BezTriple *bezt)
 
   return 0;
 }
+
+}  // namespace blender

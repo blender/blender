@@ -21,6 +21,8 @@
 
 #include "lineart_intern.hh"
 
+namespace blender {
+
 /* Line art memory and list helper */
 
 void *lineart_list_append_pointer_pool(ListBase *h, LineartStaticMemPool *smp, void *data)
@@ -240,3 +242,5 @@ void lineart_count_and_print_render_buffer_memory(LineartData *ld)
 
   (void)total; /* Ignored. */
 }
+
+}  // namespace blender

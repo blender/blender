@@ -10,6 +10,8 @@
 
 #include "ED_fileselect.hh"
 
+namespace blender {
+
 /* XXX could become UserPref */
 #define FSMENU_RECENT_MAX 10
 
@@ -57,3 +59,5 @@ int fsmenu_get_active_indices(FSMenu *fsmenu, FSMenuCategory category, const cha
 
 /** Add base file bookmark menu directories common to all platforms. */
 void fsmenu_add_common_platform_directories(FSMenu *fsmenu);
+
+}  // namespace blender

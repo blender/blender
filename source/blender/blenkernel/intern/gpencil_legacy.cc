@@ -59,6 +59,8 @@
 
 #include "IMB_colormanagement.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"geom.gpencil"};
 
 static void greasepencil_copy_data(Main * /*bmain*/,
@@ -67,8 +69,8 @@ static void greasepencil_copy_data(Main * /*bmain*/,
                                    const ID *id_src,
                                    const int /*flag*/)
 {
-  bGPdata *gpd_dst = blender::id_cast<bGPdata *>(id_dst);
-  const bGPdata *gpd_src = blender::id_cast<const bGPdata *>(id_src);
+  bGPdata *gpd_dst = id_cast<bGPdata *>(id_dst);
+  const bGPdata *gpd_src = id_cast<const bGPdata *>(id_src);
 
   /* duplicate material array */
   if (gpd_src->mat) {
@@ -120,12 +122,12 @@ static void greasepencil_free_data(ID *id)
 {
   /* Really not ideal, but for now will do... In theory custom behaviors like not freeing cache
    * should be handled through specific API, and not be part of the generic one. */
-  BKE_gpencil_free_data(blender::id_cast<bGPdata *>(id), true);
+  BKE_gpencil_free_data(id_cast<bGPdata *>(id), true);
 }
 
 static void greasepencil_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  bGPdata *gpencil = blender::id_cast<bGPdata *>(id);
+  bGPdata *gpencil = id_cast<bGPdata *>(id);
   /* materials */
   for (int i = 0; i < gpencil->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, gpencil->mat[i], IDWALK_CB_USER);
@@ -138,7 +140,7 @@ static void greasepencil_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  bGPdata *gpd = blender::id_cast<bGPdata *>(id);
+  bGPdata *gpd = id_cast<bGPdata *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
   /* XXX not sure why the whole run-time data is not cleared in reading code,
@@ -259,7 +261,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
 
 static void greasepencil_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  bGPdata *gpd = blender::id_cast<bGPdata *>(id);
+  bGPdata *gpd = id_cast<bGPdata *>(id);
   BKE_gpencil_blend_read_data(reader, gpd);
 }
 
@@ -821,7 +823,7 @@ bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool in
   }
   else {
     BLI_assert(bmain != nullptr);
-    gpd_dst = blender::id_cast<bGPdata *>(BKE_id_copy(bmain, &gpd_src->id));
+    gpd_dst = id_cast<bGPdata *>(BKE_id_copy(bmain, &gpd_src->id));
   }
 
   /* Copy internal data (layers, etc.) */
@@ -1211,3 +1213,5 @@ void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
 }
 
 /** \} */
+
+}  // namespace blender

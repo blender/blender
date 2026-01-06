@@ -41,9 +41,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::IndexRange;
+namespace blender {
 
 static void displist_elem_free(DispList *dl)
 {
@@ -556,7 +554,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
                                   ListBaseT<Nurb> *target_nurb,
                                   const bool for_render)
 {
-  const Curve *cu = blender::id_cast<const Curve *>(ob->data);
+  const Curve *cu = id_cast<const Curve *>(ob->data);
 
   BKE_modifiers_clear_errors(ob);
 
@@ -608,7 +606,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
         continue;
       }
 
-      blender::bke::ScopedModifierTimer modifier_timer{*md};
+      bke::ScopedModifierTimer modifier_timer{*md};
 
       if (deformedVerts.is_empty()) {
         deformedVerts = BKE_curve_nurbs_vert_coords_alloc(source_nurb);
@@ -679,13 +677,13 @@ static bool do_curve_implicit_mesh_conversion(const Curve *curve,
   return false;
 }
 
-static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
-                                                           const Scene *scene,
-                                                           Object *ob,
-                                                           const ListBaseT<DispList> *dispbase,
-                                                           const bool for_render)
+static bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
+                                                  const Scene *scene,
+                                                  Object *ob,
+                                                  const ListBaseT<DispList> *dispbase,
+                                                  const bool for_render)
 {
-  const Curve *cu = blender::id_cast<const Curve *>(ob->data);
+  const Curve *cu = id_cast<const Curve *>(ob->data);
   const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
   const bool use_cache = !for_render;
 
@@ -707,7 +705,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
                          BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data) :
                          pretessellatePoint->next;
 
-  blender::bke::GeometrySet geometry_set;
+  bke::GeometrySet geometry_set;
   if (ob->type == OB_SURF ||
       do_curve_implicit_mesh_conversion(cu, md, scene, required_mode, editmode))
   {
@@ -716,7 +714,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   }
   else {
     geometry_set.replace_curves(
-        blender::bke::curve_legacy_to_curves(*cu, ob->runtime->curve_cache->deformed_nurbs));
+        bke::curve_legacy_to_curves(*cu, ob->runtime->curve_cache->deformed_nurbs));
   }
 
   for (; md; md = md->next) {
@@ -725,7 +723,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
       continue;
     }
 
-    blender::bke::ScopedModifierTimer modifier_timer{*md};
+    bke::ScopedModifierTimer modifier_timer{*md};
 
     if (md->type == eModifierType_Nodes) {
       mti->modify_geometry_set(md, &mectx_apply, &geometry_set);
@@ -789,14 +787,14 @@ static void displist_surf_indices(DispList *dl)
   }
 }
 
-static blender::bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
-                                                         const Scene *scene,
-                                                         Object *ob,
-                                                         const bool for_render,
-                                                         ListBaseT<DispList> *r_dispbase)
+static bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
+                                                const Scene *scene,
+                                                Object *ob,
+                                                const bool for_render,
+                                                ListBaseT<DispList> *r_dispbase)
 {
   BLI_assert(ob->type == OB_SURF);
-  const Curve *cu = blender::id_cast<const Curve *>(ob->data);
+  const Curve *cu = id_cast<const Curve *>(ob->data);
 
   ListBaseT<Nurb> *deformed_nurbs = &ob->runtime->curve_cache->deformed_nurbs;
 
@@ -871,7 +869,7 @@ static blender::bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
   }
 
   curve_to_filledpoly(cu, r_dispbase);
-  blender::bke::GeometrySet geometry_set = curve_calc_modifiers_post(
+  bke::GeometrySet geometry_set = curve_calc_modifiers_post(
       depsgraph, scene, ob, r_dispbase, for_render);
   if (!geometry_set.has_mesh()) {
     geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));
@@ -1098,14 +1096,14 @@ static void calc_bevfac_mapping(const Curve *cu,
   }
 }
 
-static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
-                                                            const Scene *scene,
-                                                            Object *ob,
-                                                            const bool for_render,
-                                                            ListBaseT<DispList> *r_dispbase)
+static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
+                                                   const Scene *scene,
+                                                   Object *ob,
+                                                   const bool for_render,
+                                                   ListBaseT<DispList> *r_dispbase)
 {
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT));
-  const Curve *cu = blender::id_cast<const Curve *>(ob->data);
+  const Curve *cu = id_cast<const Curve *>(ob->data);
 
   ListBaseT<Nurb> *deformed_nurbs = &ob->runtime->curve_cache->deformed_nurbs;
 
@@ -1330,18 +1328,18 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
 
   /* It's important to retrieve this after calling #BKE_object_free_derived_caches,
    * which may reset the object data pointer in some cases. */
-  const Curve &original_curve = *blender::id_cast<const Curve *>(ob->data);
+  const Curve &original_curve = *id_cast<const Curve *>(ob->data);
 
   ob->runtime->curve_cache = MEM_callocN<CurveCache>(__func__);
   ListBaseT<DispList> *dispbase = &ob->runtime->curve_cache->disp;
 
   if (ob->type == OB_SURF) {
-    blender::bke::GeometrySet geometry = evaluate_surface_object(
+    bke::GeometrySet geometry = evaluate_surface_object(
         depsgraph, scene, ob, for_render, dispbase);
-    ob->runtime->geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry));
+    ob->runtime->geometry_set_eval = new bke::GeometrySet(std::move(geometry));
   }
   else {
-    blender::bke::GeometrySet geometry = evaluate_curve_type_object(
+    bke::GeometrySet geometry = evaluate_curve_type_object(
         depsgraph, scene, ob, for_render, dispbase);
 
     if (geometry.has_curves()) {
@@ -1368,7 +1366,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
       BKE_object_eval_assign_data(ob, &cow_curve.id, true);
     }
 
-    ob->runtime->geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry));
+    ob->runtime->geometry_set_eval = new bke::GeometrySet(std::move(geometry));
   }
 }
 
@@ -1391,3 +1389,5 @@ void BKE_displist_minmax(const ListBaseT<DispList> *dispbase, float min[3], floa
     zero_v3(max);
   }
 }
+
+}  // namespace blender

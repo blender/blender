@@ -40,20 +40,22 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 
 static void workspace_init_data(ID *id)
 {
-  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
+  WorkSpace *workspace = id_cast<WorkSpace *>(id);
 
-  workspace->runtime = MEM_new<blender::bke::WorkSpaceRuntime>(__func__);
+  workspace->runtime = MEM_new<bke::WorkSpaceRuntime>(__func__);
 
   BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
 }
 
 static void workspace_free_data(ID *id)
 {
-  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
+  WorkSpace *workspace = id_cast<WorkSpace *>(id);
 
   BKE_workspace_relations_free(&workspace->hook_layout_relations);
 
@@ -77,10 +79,10 @@ static void workspace_copy_data(
   BLI_assert(!owner_library || owner_library == nullptr);
   UNUSED_VARS_NDEBUG(owner_library);
 
-  WorkSpace *workspace_dst = blender::id_cast<WorkSpace *>(id_dst);
-  const WorkSpace *workspace_src = blender::id_cast<const WorkSpace *>(id_src);
+  WorkSpace *workspace_dst = id_cast<WorkSpace *>(id_dst);
+  const WorkSpace *workspace_src = id_cast<const WorkSpace *>(id_src);
 
-  workspace_dst->runtime = MEM_new<blender::bke::WorkSpaceRuntime>(__func__);
+  workspace_dst->runtime = MEM_new<bke::WorkSpaceRuntime>(__func__);
   BKE_asset_library_reference_init_default(&workspace_dst->asset_library_ref);
 
   workspace_dst->flags = workspace_src->flags;
@@ -115,7 +117,7 @@ static void workspace_copy_data(
 
 static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
+  WorkSpace *workspace = id_cast<WorkSpace *>(id);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->pin_scene, IDWALK_CB_DIRECT_WEAK_LINK);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->sequencer_scene, IDWALK_CB_DIRECT_WEAK_LINK);
@@ -129,7 +131,7 @@ static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void workspace_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
+  WorkSpace *workspace = id_cast<WorkSpace *>(id);
 
   BLO_write_id_struct(writer, WorkSpace, id_address, &workspace->id);
   BKE_id_blend_write(writer, &workspace->id);
@@ -148,7 +150,7 @@ static void workspace_blend_write(BlendWriter *writer, ID *id, const void *id_ad
 
 static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  WorkSpace *workspace = blender::id_cast<WorkSpace *>(id);
+  WorkSpace *workspace = id_cast<WorkSpace *>(id);
 
   BLO_read_struct_list(reader, WorkSpaceLayout, &workspace->layouts);
   BLO_read_struct_list(reader, WorkSpaceDataRelation, &workspace->hook_layout_relations);
@@ -171,7 +173,7 @@ static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
     IDP_BlendDataRead(reader, &tref.properties);
   }
 
-  workspace->runtime = MEM_new<blender::bke::WorkSpaceRuntime>(__func__);
+  workspace->runtime = MEM_new<bke::WorkSpaceRuntime>(__func__);
 
   /* Do not keep the scene reference when appending a workspace. Setting a scene for a workspace is
    * a convenience feature, but the workspace should never truly depend on scene data. */
@@ -465,7 +467,7 @@ WorkSpaceLayout *BKE_workspace_layout_add_from_layout(Main *bmain,
     }
   }
 
-  bScreen *screen_dst = blender::id_cast<bScreen *>(
+  bScreen *screen_dst = id_cast<bScreen *>(
       BKE_id_copy_ex(bmain, &screen_src->id, nullptr, id_copy_flags));
 
   return BKE_workspace_layout_add(bmain, workspace_dst, *screen_dst, name);
@@ -728,3 +730,5 @@ void BKE_workspace_status_clear(WorkSpace *workspace)
 }
 
 /** \} */
+
+}  // namespace blender

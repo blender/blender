@@ -10,6 +10,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 /** #ToolSettings.vgroupsubset */
 enum eVGroupSelect {
   WT_VGROUP_ALL = 0,
@@ -233,3 +235,5 @@ enum eStereoViews {
   STEREO_3D_ID = 2,
   STEREO_MONO_ID = 3,
 };
+
+}  // namespace blender

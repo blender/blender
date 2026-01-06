@@ -56,10 +56,7 @@
 
 #include "BLO_read_write.hh"
 
-using blender::float3;
-using blender::float4x4;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 static void shapekey_copy_data(Main * /*bmain*/,
                                std::optional<Library *> /*owner_library*/,
@@ -67,8 +64,8 @@ static void shapekey_copy_data(Main * /*bmain*/,
                                const ID *id_src,
                                const int /*flag*/)
 {
-  Key *key_dst = blender::id_cast<Key *>(id_dst);
-  const Key *key_src = blender::id_cast<const Key *>(id_src);
+  Key *key_dst = id_cast<Key *>(id_dst);
+  const Key *key_src = id_cast<const Key *>(id_src);
   BLI_duplicatelist(&key_dst->block, &key_src->block);
 
   KeyBlock *kb_dst, *kb_src;
@@ -88,7 +85,7 @@ static void shapekey_copy_data(Main * /*bmain*/,
 
 static void shapekey_free_data(ID *id)
 {
-  Key *key = blender::id_cast<Key *>(id);
+  Key *key = id_cast<Key *>(id);
   while (KeyBlock *kb = static_cast<KeyBlock *>(BLI_pophead(&key->block))) {
     if (kb->data) {
       MEM_freeN(kb->data);
@@ -105,7 +102,7 @@ static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static ID **shapekey_owner_pointer_get(ID *id, const bool debug_relationship_assert)
 {
-  Key *key = blender::id_cast<Key *>(id);
+  Key *key = id_cast<Key *>(id);
 
   if (debug_relationship_assert) {
     BLI_assert(key->from != nullptr);
@@ -117,7 +114,7 @@ static ID **shapekey_owner_pointer_get(ID *id, const bool debug_relationship_ass
 
 static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Key *key = blender::id_cast<Key *>(id);
+  Key *key = id_cast<Key *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   /* Write LibData. */
@@ -146,7 +143,7 @@ static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
 static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Key *key = blender::id_cast<Key *>(id);
+  Key *key = id_cast<Key *>(id);
   BLO_read_struct_list(reader, KeyBlock, &(key->block));
 
   BLO_read_struct(reader, KeyBlock, &key->refkey);
@@ -545,7 +542,7 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
      * edit mode with shape keys blending applied. */
     if (GS(key->from->name) == ID_ME) {
 
-      Mesh *mesh = blender::id_cast<Mesh *>(key->from);
+      Mesh *mesh = id_cast<Mesh *>(key->from);
 
       if (mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->bm->totvert == kb->totelem) {
         int a = 0;
@@ -1036,7 +1033,7 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
   /* Gather dvert and totvert. */
   BMEditMesh *em = nullptr;
   if (ob->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
     dvert = mesh->deform_verts().data();
     totvert = mesh->verts_num;
 
@@ -1045,7 +1042,7 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
     }
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = blender::id_cast<Lattice *>(ob->data);
+    Lattice *lt = id_cast<Lattice *>(ob->data);
     dvert = lt->dvert;
     totvert = lt->pntsu * lt->pntsv * lt->pntsw;
   }
@@ -1195,7 +1192,7 @@ static void do_cu_key(Curve *cu,
 
 static void do_curve_key(Object *ob, Key *key, char *out, const int tot)
 {
-  Curve *cu = blender::id_cast<Curve *>(ob->data);
+  Curve *cu = id_cast<Curve *>(ob->data);
   KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
   if (key->type == KEY_RELATIVE) {
@@ -1219,7 +1216,7 @@ static void do_curve_key(Object *ob, Key *key, char *out, const int tot)
 
 static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
 {
-  Lattice *lt = blender::id_cast<Lattice *>(ob->data);
+  Lattice *lt = id_cast<Lattice *>(ob->data);
   KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
   if (key->type == KEY_RELATIVE) {
@@ -1269,19 +1266,19 @@ float *BKE_key_evaluate_object_ex(
   /* Compute size of output array. */
   int tot = 0, size = 0;
   if (ob->type == OB_MESH) {
-    Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
 
     tot = mesh->verts_num;
     size = tot * sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = blender::id_cast<Lattice *>(ob->data);
+    Lattice *lt = id_cast<Lattice *>(ob->data);
 
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
     size = tot * sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = blender::id_cast<Curve *>(ob->data);
+    Curve *cu = id_cast<Curve *>(ob->data);
 
     tot = BKE_keyblock_curve_element_count(&cu->nurb);
     size = tot * sizeof(float[KEYELEM_ELEM_SIZE_CURVE]);
@@ -1348,22 +1345,22 @@ float *BKE_key_evaluate_object_ex(
   if (obdata != nullptr) {
     switch (GS(obdata->name)) {
       case ID_ME: {
-        Mesh *mesh = blender::id_cast<Mesh *>(obdata);
+        Mesh *mesh = id_cast<Mesh *>(obdata);
         const int totvert = min_ii(tot, mesh->verts_num);
         mesh->vert_positions_for_write().take_front(totvert).copy_from(
-            {reinterpret_cast<const blender::float3 *>(out), totvert});
+            {reinterpret_cast<const float3 *>(out), totvert});
         mesh->tag_positions_changed();
         break;
       }
       case ID_LT: {
-        Lattice *lattice = blender::id_cast<Lattice *>(obdata);
+        Lattice *lattice = id_cast<Lattice *>(obdata);
         const int totpoint = min_ii(tot, lattice->pntsu * lattice->pntsv * lattice->pntsw);
         keyblock_data_convert_to_lattice(
             reinterpret_cast<const float (*)[3]>(out), lattice->def, totpoint);
         break;
       }
       case ID_CU_LEGACY: {
-        Curve *curve = blender::id_cast<Curve *>(obdata);
+        Curve *curve = id_cast<Curve *>(obdata);
         const int totpoint = min_ii(tot, BKE_keyblock_curve_element_count(&curve->nurb));
         keyblock_data_convert_to_curve(
             reinterpret_cast<const float *>(out), &curve->nurb, totpoint);
@@ -1513,18 +1510,18 @@ Key **BKE_key_from_id_p(ID *id)
 {
   switch (GS(id->name)) {
     case ID_ME: {
-      Mesh *mesh = blender::id_cast<Mesh *>(id);
+      Mesh *mesh = id_cast<Mesh *>(id);
       return &mesh->key;
     }
     case ID_CU_LEGACY: {
-      Curve *cu = blender::id_cast<Curve *>(id);
+      Curve *cu = id_cast<Curve *>(id);
       if (cu->ob_type != OB_FONT) {
         return &cu->key;
       }
       break;
     }
     case ID_LT: {
-      Lattice *lt = blender::id_cast<Lattice *>(id);
+      Lattice *lt = id_cast<Lattice *>(id);
       return &lt->key;
     }
     default:
@@ -1920,7 +1917,7 @@ void BKE_keyblock_update_from_mesh(const Mesh *mesh, KeyBlock *kb)
     return;
   }
 
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const Span<float3> positions = mesh->vert_positions();
   memcpy(kb->data, positions.data(), sizeof(float[3]) * tot);
 }
 
@@ -1940,11 +1937,9 @@ void BKE_keyblock_convert_from_mesh(const Mesh *mesh, const Key *key, KeyBlock *
   BKE_keyblock_update_from_mesh(mesh, kb);
 }
 
-void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
-                                  blender::MutableSpan<blender::float3> vert_positions)
+void BKE_keyblock_convert_to_mesh(const KeyBlock *kb, MutableSpan<float3> vert_positions)
 {
-  vert_positions.take_front(kb->totelem)
-      .copy_from({static_cast<blender::float3 *>(kb->data), kb->totelem});
+  vert_positions.take_front(kb->totelem).copy_from({static_cast<float3 *>(kb->data), kb->totelem});
 }
 
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
@@ -1953,13 +1948,12 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                     float (*r_face_normals)[3],
                                     float (*r_loop_normals)[3])
 {
-  using namespace blender;
   using namespace blender::bke;
   if (r_vert_normals == nullptr && r_face_normals == nullptr && r_loop_normals == nullptr) {
     return;
   }
 
-  blender::Array<blender::float3> positions(mesh->vert_positions());
+  Array<float3> positions(mesh->vert_positions());
   BKE_keyblock_convert_to_mesh(kb, positions);
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
@@ -1984,19 +1978,16 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   }
 
   if (face_normals_needed) {
-    mesh::normals_calc_faces(positions,
-                             faces,
-                             corner_verts,
-                             {reinterpret_cast<blender::float3 *>(face_normals), faces.size()});
+    mesh::normals_calc_faces(
+        positions, faces, corner_verts, {reinterpret_cast<float3 *>(face_normals), faces.size()});
   }
   if (vert_normals_needed) {
-    mesh::normals_calc_verts(
-        positions,
-        faces,
-        corner_verts,
-        mesh->vert_to_face_map(),
-        {reinterpret_cast<const blender::float3 *>(face_normals), faces.size()},
-        {reinterpret_cast<blender::float3 *>(vert_normals), mesh->verts_num});
+    mesh::normals_calc_verts(positions,
+                             faces,
+                             corner_verts,
+                             mesh->vert_to_face_map(),
+                             {reinterpret_cast<const float3 *>(face_normals), faces.size()},
+                             {reinterpret_cast<float3 *>(vert_normals), mesh->verts_num});
   }
   if (loop_normals_needed) {
     const AttributeAccessor attributes = mesh->attributes();
@@ -2004,18 +1995,17 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
     const VArraySpan custom_normals = *attributes.lookup<short2>("custom_normal",
                                                                  AttrDomain::Corner);
-    mesh::normals_calc_corners(
-        positions,
-        faces,
-        corner_verts,
-        corner_edges,
-        mesh->vert_to_face_map(),
-        {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
-        sharp_edges,
-        sharp_faces,
-        custom_normals,
-        nullptr,
-        {reinterpret_cast<blender::float3 *>(r_loop_normals), corner_verts.size()});
+    mesh::normals_calc_corners(positions,
+                               faces,
+                               corner_verts,
+                               corner_edges,
+                               mesh->vert_to_face_map(),
+                               {reinterpret_cast<float3 *>(face_normals), faces.size()},
+                               sharp_edges,
+                               sharp_faces,
+                               custom_normals,
+                               nullptr,
+                               {reinterpret_cast<float3 *>(r_loop_normals), corner_verts.size()});
   }
 
   if (free_vert_normals) {
@@ -2125,8 +2115,7 @@ bool BKE_keyblock_is_basis(const Key *key, const int index)
   return false;
 }
 
-std::optional<blender::Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key,
-                                                                    const int index)
+std::optional<Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, const int index)
 {
   if (key->type != KEY_RELATIVE) {
     return std::nullopt;
@@ -2139,7 +2128,7 @@ std::optional<blender::Array<bool>> BKE_keyblock_get_dependent_keys(const Key *k
   }
 
   /* Seed the table with the specified key. */
-  blender::Array<bool> marked(count, false);
+  Array<bool> marked(count, false);
 
   marked[index] = true;
 
@@ -2166,3 +2155,5 @@ std::optional<blender::Array<bool>> BKE_keyblock_get_dependent_keys(const Key *k
   marked[index] = false;
   return marked;
 }
+
+}  // namespace blender

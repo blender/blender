@@ -5,6 +5,8 @@
 
 #include "BLI_path_utils.hh"
 
+namespace blender {
+
 class BlendfileLoadingTest : public BlendfileLoadingBaseTest {};
 
 TEST_F(BlendfileLoadingTest, CanaryTest)
@@ -16,3 +18,5 @@ TEST_F(BlendfileLoadingTest, CanaryTest)
   depsgraph_create(DAG_EVAL_RENDER);
   EXPECT_NE(nullptr, this->depsgraph);
 }
+
+}  // namespace blender

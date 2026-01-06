@@ -26,11 +26,13 @@
 
 #include "WM_api.hh"
 
+namespace blender {
+
 /* Keying Set Type Info declarations. */
 static ListBaseT<KeyingSetInfo> keyingset_type_infos = {nullptr, nullptr};
 ListBaseT<KeyingSet> builtin_keyingsets = {nullptr, nullptr};
 
-namespace blender::animrig {
+namespace animrig {
 
 void keyingset_info_register(KeyingSetInfo *keyingset_info)
 {
@@ -459,4 +461,5 @@ int apply_keyingset(bContext *C,
   return keyed_channels;
 }
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

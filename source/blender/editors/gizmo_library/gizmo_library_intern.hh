@@ -12,6 +12,8 @@
 
 #include "gizmo_geometry.h"
 
+namespace blender {
+
 struct IDProperty;
 struct bContext;
 struct wmGizmo;
@@ -105,3 +107,5 @@ wmGizmo *gizmo_find_from_properties(const IDProperty *properties,
 void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info, bool select, const float color[4]);
 void wm_gizmo_vec_draw(
     const float color[4], const float (*verts)[3], uint vert_count, uint pos, uint primitive_type);
+
+}  // namespace blender

@@ -33,6 +33,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *ctx)
 {
   Tex *tex = dmd->texture;
@@ -55,7 +57,6 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 {
   /* TODO: to be renamed to `get_texture_coords` once we are done with moving modifiers to Mesh. */
 
-  using namespace blender;
   const int verts_num = mesh->verts_num;
   int i;
   int texmapping = dmd->texmapping;
@@ -290,3 +291,5 @@ void modifier_type_init(ModifierTypeInfo *types[])
   INIT_TYPE(GreasePencilTexture);
 #undef INIT_TYPE
 }
+
+}  // namespace blender

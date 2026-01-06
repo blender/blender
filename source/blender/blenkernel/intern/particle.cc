@@ -84,13 +84,13 @@
 
 #include "particle_private.h"
 
-using blender::float3;
+namespace blender {
 
 static void fluid_free_settings(SPHFluidSettings *fluid);
 
 static void particle_settings_init(ID *id)
 {
-  ParticleSettings *particle_settings = blender::id_cast<ParticleSettings *>(id);
+  ParticleSettings *particle_settings = id_cast<ParticleSettings *>(id);
   INIT_DEFAULT_STRUCT_AFTER(particle_settings, id);
 
   particle_settings->effector_weights = BKE_effector_add_weights(nullptr);
@@ -104,9 +104,8 @@ static void particle_settings_copy_data(Main * /*bmain*/,
                                         const ID *id_src,
                                         const int /*flag*/)
 {
-  ParticleSettings *particle_settings_dst = blender::id_cast<ParticleSettings *>(id_dst);
-  const ParticleSettings *partticle_settings_src = blender::id_cast<const ParticleSettings *>(
-      id_src);
+  ParticleSettings *particle_settings_dst = id_cast<ParticleSettings *>(id_dst);
+  const ParticleSettings *partticle_settings_src = id_cast<const ParticleSettings *>(id_src);
 
   particle_settings_dst->pd = BKE_partdeflect_copy(partticle_settings_src->pd);
   particle_settings_dst->pd2 = BKE_partdeflect_copy(partticle_settings_src->pd2);
@@ -140,7 +139,7 @@ static void particle_settings_copy_data(Main * /*bmain*/,
 
 static void particle_settings_free_data(ID *id)
 {
-  ParticleSettings *particle_settings = blender::id_cast<ParticleSettings *>(id);
+  ParticleSettings *particle_settings = id_cast<ParticleSettings *>(id);
 
   for (int a = 0; a < MAX_MTEX; a++) {
     MEM_SAFE_FREE(particle_settings->mtex[a]);
@@ -258,7 +257,7 @@ static void write_boid_state(BlendWriter *writer, BoidState *state)
 
 static void particle_settings_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  ParticleSettings *part = blender::id_cast<ParticleSettings *>(id);
+  ParticleSettings *part = id_cast<ParticleSettings *>(id);
 
   /* write LibData */
   BLO_write_id_struct(writer, ParticleSettings, id_address, &part->id);
@@ -319,7 +318,7 @@ void BKE_particle_partdeflect_blend_read_data(BlendDataReader * /*reader*/, Part
 
 static void particle_settings_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  ParticleSettings *part = blender::id_cast<ParticleSettings *>(id);
+  ParticleSettings *part = id_cast<ParticleSettings *>(id);
 
   BLO_read_struct(reader, PartDeflect, &part->pd);
   BLO_read_struct(reader, PartDeflect, &part->pd2);
@@ -1034,7 +1033,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
     BLI_freelistN(&psys->targets);
 
     BLI_bvhtree_free(psys->bvhtree);
-    blender::kdtree_3d_free(psys->tree);
+    kdtree_3d_free(psys->tree);
 
     if (psys->fluid_springs) {
       MEM_freeN(psys->fluid_springs);
@@ -2058,10 +2057,10 @@ void psys_particle_on_dm(Mesh *mesh_final,
 
   orcodata = static_cast<const float (*)[3]>(
       CustomData_get_layer(&mesh_final->vert_data, CD_ORCO));
-  const blender::Span<blender::float3> vert_normals = mesh_final->vert_normals();
+  const Span<float3> vert_normals = mesh_final->vert_normals();
 
   if (from == PART_FROM_VERT) {
-    const blender::Span<blender::float3> vert_positions = mesh_final->vert_positions();
+    const Span<float3> vert_positions = mesh_final->vert_positions();
     copy_v3_v3(vec, vert_positions[mapindex]);
 
     if (nor) {
@@ -2090,7 +2089,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     MFace *mfaces = static_cast<MFace *>(CustomData_get_layer_for_write(
         &mesh_final->fdata_legacy, CD_MFACE, mesh_final->totface_legacy));
     mface = &mfaces[mapindex];
-    const blender::Span<blender::float3> vert_positions = mesh_final->vert_positions();
+    const Span<float3> vert_positions = mesh_final->vert_positions();
     mtface = static_cast<MTFace *>(CustomData_get_layer_for_write(
         &mesh_final->fdata_legacy, CD_MTFACE, mesh_final->totface_legacy));
 
@@ -2373,7 +2372,7 @@ bool do_guides(Depsgraph *depsgraph,
         continue;
       }
 
-      cu = blender::id_cast<Curve *>(eff.ob->data);
+      cu = id_cast<Curve *>(eff.ob->data);
 
       if (pd->flag & PFIELD_GUIDE_PATH_ADD) {
         if (BKE_where_on_path(eff.ob,
@@ -2606,7 +2605,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = sim->psys->part;
-  blender::KDTree_3d *tree;
+  KDTree_3d *tree;
   ChildParticle *cpa;
   ParticleTexture ptex;
   int p, totparent, totchild = sim->psys->totchild;
@@ -2621,7 +2620,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
   /* hard limit, workaround for it being ignored above */
   totparent = std::min(sim->psys->totpart, totparent);
 
-  tree = blender::kdtree_3d_new(totparent);
+  tree = kdtree_3d_new(totparent);
 
   for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2651,11 +2650,11 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                     psys->cfra);
 
     if (ptex.exist >= psys_frand(psys, p + 24)) {
-      blender::kdtree_3d_insert(tree, p, orco);
+      kdtree_3d_insert(tree, p, orco);
     }
   }
 
-  blender::kdtree_3d_balance(tree);
+  kdtree_3d_balance(tree);
 
   for (; p < totchild; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2669,10 +2668,10 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                              nullptr,
                              nullptr,
                              orco);
-    cpa->parent = blender::kdtree_3d_find_nearest(tree, orco, nullptr);
+    cpa->parent = kdtree_3d_find_nearest(tree, orco, nullptr);
   }
 
-  blender::kdtree_3d_free(tree);
+  kdtree_3d_free(tree);
 }
 
 static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
@@ -3180,7 +3179,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim,
 
   /* cache parent paths */
   ctx.parent_pass = 1;
-  blender::Vector<ParticleTask> tasks_parent = psys_tasks_create(&ctx, 0, totparent);
+  Vector<ParticleTask> tasks_parent = psys_tasks_create(&ctx, 0, totparent);
   for (ParticleTask &task : tasks_parent) {
     psys_task_init_path(&task, sim);
     BLI_task_pool_push(task_pool, exec_child_path_cache, &task, false, nullptr);
@@ -3189,7 +3188,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim,
 
   /* cache child paths */
   ctx.parent_pass = 0;
-  blender::Vector<ParticleTask> tasks_child = psys_tasks_create(&ctx, totparent, totchild);
+  Vector<ParticleTask> tasks_child = psys_tasks_create(&ctx, totparent, totchild);
   for (ParticleTask &task : tasks_child) {
     psys_task_init_path(&task, sim);
     BLI_task_pool_push(task_pool, exec_child_path_cache, &task, false, nullptr);
@@ -3828,11 +3827,11 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
     /* ugly hack to use non-transformed orcos, since only those
      * give symmetric results for mirroring in particle mode */
     if (CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX)) {
-      BKE_mesh_orco_verts_transform(blender::id_cast<Mesh *>(ob->data), v, 3, true);
+      BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), v, 3, true);
     }
   }
   else {
-    const blender::Span<blender::float3> vert_positions = mesh->vert_positions();
+    const Span<float3> vert_positions = mesh->vert_positions();
     copy_v3_v3(v[0], vert_positions[mface->v1]);
     copy_v3_v3(v[1], vert_positions[mface->v2]);
     copy_v3_v3(v[2], vert_positions[mface->v3]);
@@ -4333,7 +4332,7 @@ void psys_get_texture(
     ParticleSimulationData *sim, ParticleData *pa, ParticleTexture *ptex, int event, float cfra)
 {
   Object *ob = sim->ob;
-  Mesh *mesh = blender::id_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   ParticleSettings *part = sim->psys->part;
   MTex **mtexp = part->mtex;
   MTex *mtex;
@@ -5714,3 +5713,5 @@ void BKE_particle_system_blend_read_after_liblink(BlendLibReader * /*reader*/,
     }
   }
 }
+
+}  // namespace blender

@@ -24,6 +24,8 @@
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET 512
 
@@ -54,7 +56,6 @@ struct bNodeStack;
 struct bNodeTree;
 struct bNodeTreeExec;
 
-namespace blender {
 class CPPType;
 namespace nodes {
 class DNode;
@@ -81,9 +82,8 @@ class NodeOperation;
 namespace ui {
 struct Layout;
 }  // namespace ui
-}  // namespace blender
 
-namespace blender::bke {
+namespace bke {
 
 /* -------------------------------------------------------------------- */
 /** \name Node Type Definitions
@@ -120,31 +120,28 @@ struct bNodeSocketTemplate {
 /* Use `void *` for callbacks that require C++. This is rather ugly, but works well for now. This
  * would not be necessary if we would use bNodeSocketType and bNodeType only in C++ code.
  * However, achieving this requires quite a few changes currently. */
-using NodeMultiFunctionBuildFunction = void (*)(blender::nodes::NodeMultiFunctionBuilder &builder);
-using NodeGeometryExecFunction = void (*)(blender::nodes::GeoNodeExecParams params);
-using NodeDeclareFunction = void (*)(blender::nodes::NodeDeclarationBuilder &builder);
+using NodeMultiFunctionBuildFunction = void (*)(nodes::NodeMultiFunctionBuilder &builder);
+using NodeGeometryExecFunction = void (*)(nodes::GeoNodeExecParams params);
+using NodeDeclareFunction = void (*)(nodes::NodeDeclarationBuilder &builder);
 using NodeDeclareDynamicFunction = void (*)(const bNodeTree &tree,
                                             const bNode &node,
-                                            blender::nodes::NodeDeclarationBuilder &builder);
+                                            nodes::NodeDeclarationBuilder &builder);
 using SocketGetCPPValueFunction = void (*)(const void *socket_value, void *r_value);
 using SocketGetGeometryNodesCPPValueFunction = SocketValueVariant (*)(const void *socket_value);
 
 /* Adds socket link operations that are specific to this node type. */
-using NodeGatherSocketLinkOperationsFunction =
-    void (*)(blender::nodes::GatherLinkSearchOpParams &params);
+using NodeGatherSocketLinkOperationsFunction = void (*)(nodes::GatherLinkSearchOpParams &params);
 
 /* Adds node add menu operations that are specific to this node type. */
-using NodeGatherAddOperationsFunction =
-    void (*)(blender::nodes::GatherAddNodeSearchParams &params);
+using NodeGatherAddOperationsFunction = void (*)(nodes::GatherAddNodeSearchParams &params);
 
 using NodeGetCompositorOperationFunction =
     blender::compositor::NodeOperation *(*)(blender::compositor::Context & context,
-                                            blender::nodes::DNode node);
-using NodeExtraInfoFunction = void (*)(blender::nodes::NodeExtraInfoParams &params);
-using NodeInverseElemEvalFunction =
-    void (*)(blender::nodes::value_elem::InverseElemEvalParams &params);
-using NodeElemEvalFunction = void (*)(blender::nodes::value_elem::ElemEvalParams &params);
-using NodeInverseEvalFunction = void (*)(blender::nodes::inverse_eval::InverseEvalParams &params);
+                                            nodes::DNode node);
+using NodeExtraInfoFunction = void (*)(nodes::NodeExtraInfoParams &params);
+using NodeInverseElemEvalFunction = void (*)(nodes::value_elem::InverseElemEvalParams &params);
+using NodeElemEvalFunction = void (*)(nodes::value_elem::ElemEvalParams &params);
+using NodeInverseEvalFunction = void (*)(nodes::inverse_eval::InverseEvalParams &params);
 using NodeInternallyLinkedInputFunction = const bNodeSocket *(*)(const bNodeTree &tree,
                                                                  const bNode &node,
                                                                  const bNodeSocket &output_socket);
@@ -205,7 +202,7 @@ struct bNodeSocketType {
   void (*free_self)(bNodeSocketType *stype) = nullptr;
 
   /* Return the CPPType of this socket. */
-  const blender::CPPType *base_cpp_type = nullptr;
+  const CPPType *base_cpp_type = nullptr;
   /* Get the value of this socket in a generic way. */
   SocketGetCPPValueFunction get_base_cpp_value = nullptr;
   /* Get geometry nodes cpp value. */
@@ -371,7 +368,7 @@ struct bNodeType {
    * the node. In this case, the static declaration is mostly just a hint, and does not have to
    * match with the final node.
    */
-  blender::nodes::NodeDeclaration *static_declaration = nullptr;
+  nodes::NodeDeclaration *static_declaration = nullptr;
 
   /**
    * Add to the list of search names and operations gathered by node link drag searching.
@@ -878,12 +875,12 @@ bool node_tree_iterator_step(NodeTreeIterStore *ntreeiter, bNodeTree **r_nodetre
 
 #define FOREACH_NODETREE_BEGIN(bmain, _nodetree, _id) \
   { \
-    blender::bke::NodeTreeIterStore _nstore; \
+    bke::NodeTreeIterStore _nstore; \
     bNodeTree *_nodetree; \
     ID *_id; \
     /* avoid compiler warning about unused variables */ \
-    blender::bke::node_tree_iterator_init(&_nstore, bmain); \
-    while (blender::bke::node_tree_iterator_step(&_nstore, &_nodetree, &_id) == true) { \
+    bke::node_tree_iterator_init(&_nstore, bmain); \
+    while (bke::node_tree_iterator_step(&_nstore, &_nodetree, &_id) == true) { \
       if (_nodetree) {
 
 #define FOREACH_NODETREE_END \
@@ -1242,7 +1239,7 @@ inline bool bNodeType::is_type(const StringRef query_idname) const
   return this->idname == query_idname;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 #define NODE_STORAGE_FUNCS(StorageT) \
   [[maybe_unused]] static StorageT &node_storage(bNode &node) \
@@ -1258,3 +1255,5 @@ constexpr int NODE_DEFAULT_MAX_WIDTH = 700;
 constexpr int GROUP_NODE_DEFAULT_WIDTH = 140;
 constexpr int GROUP_NODE_MAX_WIDTH = NODE_DEFAULT_MAX_WIDTH;
 constexpr int GROUP_NODE_MIN_WIDTH = 60;
+
+}  // namespace blender

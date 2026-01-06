@@ -10,6 +10,8 @@
 
 #include "BKE_particle.h"
 
+namespace blender {
+
 struct CurveMapping;
 
 struct ParticleChildModifierContext {
@@ -52,3 +54,5 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
                         float mat[4][4],
                         ParticleKey *state,
                         float t);
+
+}  // namespace blender

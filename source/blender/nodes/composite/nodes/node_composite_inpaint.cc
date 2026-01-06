@@ -20,9 +20,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** Inpaint/ ******************** */
 
-namespace blender::nodes::node_composite_inpaint_cc {
+namespace nodes::node_composite_inpaint_cc {
 
 static void cmp_node_inpaint_declare(NodeDeclarationBuilder &b)
 {
@@ -354,13 +356,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new InpaintOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_inpaint_cc
+}  // namespace nodes::node_composite_inpaint_cc
 
 static void register_node_type_cmp_inpaint()
 {
-  namespace file_ns = blender::nodes::node_composite_inpaint_cc;
+  namespace file_ns = nodes::node_composite_inpaint_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeInpaint", CMP_NODE_INPAINT);
   ntype.ui_name = "Inpaint";
@@ -370,6 +372,8 @@ static void register_node_type_cmp_inpaint()
   ntype.declare = file_ns::cmp_node_inpaint_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_inpaint)
+
+}  // namespace blender

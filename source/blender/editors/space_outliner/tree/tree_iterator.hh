@@ -12,9 +12,11 @@
 
 #include "BLI_function_ref.hh"
 
+namespace blender {
+
 struct SpaceOutliner;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 struct TreeElement;
 
@@ -45,4 +47,5 @@ void all_open(SpaceOutliner &, VisitorFn visitor);
 void all_open(SpaceOutliner &, ListBaseT<TreeElement> &subtree, VisitorFn visitor);
 
 }  // namespace tree_iterator
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct Depsgraph;
 struct ID;
 struct Main;
@@ -135,3 +137,5 @@ void BKE_callback_global_init();
  * Call on application exit.
  */
 void BKE_callback_global_finalize();
+
+}  // namespace blender

@@ -25,6 +25,8 @@
 
 #include "wm_xr_intern.hh"
 
+namespace blender {
+
 #define WM_XR_ACTIONMAP_STR_DEFAULT "actionmap"
 #define WM_XR_ACTIONMAP_ITEM_STR_DEFAULT "action"
 #define WM_XR_ACTIONMAP_BINDING_STR_DEFAULT "binding"
@@ -538,3 +540,5 @@ void WM_xr_actionmap_selected_index_set(wmXrRuntimeData *runtime, short idx)
 }
 
 /** \} */
+
+}  // namespace blender

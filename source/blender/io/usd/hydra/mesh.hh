@@ -12,10 +12,12 @@
 #include "material.hh"
 #include "object.hh"
 
+namespace blender {
+
 struct Mesh;
 struct Object;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
 class HydraSceneDelegate;
 
@@ -65,4 +67,5 @@ class MeshData : public ObjectData {
   void update_prims();
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

@@ -27,6 +27,8 @@
 
 #  include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static IDProperty **rna_TimelineMarker_idprops(PointerRNA *ptr)
 {
   TimeMarker *marker = static_cast<TimeMarker *>(ptr->data);
@@ -42,7 +44,7 @@ static void rna_TimelineMarker_update(Main * /*bmain*/, Scene * /*scene*/, Point
 static void rna_TimelineMarker_camera_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  Scene *scene = blender::id_cast<Scene *>(ptr->owner_id);
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
 
   BKE_scene_camera_switch_update(scene);
   WM_windows_scene_data_sync(&wm->windows, scene);
@@ -53,7 +55,11 @@ static void rna_TimelineMarker_camera_update(Main *bmain, Scene * /*scene*/, Poi
   WM_main_add_notifier(NC_SCENE | NA_EDITED, scene); /* so we get view3d redraws */
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_timeline_marker(BlenderRNA *brna)
 {
@@ -92,5 +98,7 @@ void RNA_def_timeline_marker(BlenderRNA *brna)
 {
   rna_def_timeline_marker(brna);
 }
+
+}  // namespace blender
 
 #endif

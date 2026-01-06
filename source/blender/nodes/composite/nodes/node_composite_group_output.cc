@@ -16,7 +16,9 @@
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
-namespace blender::nodes::node_composite_group_output_cc {
+namespace blender {
+
+namespace nodes::node_composite_group_output_cc {
 
 using namespace blender::compositor;
 
@@ -58,9 +60,9 @@ class GroupOutputOperation : public NodeOperation {
   }
 };
 
-}  // namespace blender::nodes::node_composite_group_output_cc
+}  // namespace nodes::node_composite_group_output_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 compositor::NodeOperation *get_group_output_compositor_operation(compositor::Context &context,
                                                                  DNode node)
@@ -68,7 +70,7 @@ compositor::NodeOperation *get_group_output_compositor_operation(compositor::Con
   return new node_composite_group_output_cc::GroupOutputOperation(context, node);
 }
 
-void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfoParams &parameters)
+void get_compositor_group_output_extra_info(nodes::NodeExtraInfoParams &parameters)
 {
   if (parameters.tree.type != NTREE_COMPOSIT) {
     return;
@@ -81,7 +83,7 @@ void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfoParams 
 
   Span<const bNodeSocket *> group_outputs = parameters.node.input_sockets().drop_back(1);
   if (group_outputs.is_empty()) {
-    blender::nodes::NodeExtraInfoRow row;
+    nodes::NodeExtraInfoRow row;
     row.text = IFACE_("No Output");
     row.icon = ICON_ERROR;
     row.tooltip = TIP_("Node group must have a Color output socket");
@@ -90,7 +92,7 @@ void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfoParams 
   }
 
   if (group_outputs[0]->type != SOCK_RGBA) {
-    blender::nodes::NodeExtraInfoRow row;
+    nodes::NodeExtraInfoRow row;
     row.text = IFACE_("Wrong Output Type");
     row.icon = ICON_ERROR;
     row.tooltip = TIP_("Node group's first output must be a color output");
@@ -99,7 +101,7 @@ void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfoParams 
   }
 
   if (group_outputs.size() > 1) {
-    blender::nodes::NodeExtraInfoRow row;
+    nodes::NodeExtraInfoRow row;
     row.text = IFACE_("Ignored Outputs");
     row.icon = ICON_WARNING_LARGE;
     row.tooltip = TIP_("Only the first output is considered while the rest are ignored");
@@ -108,4 +110,5 @@ void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfoParams 
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

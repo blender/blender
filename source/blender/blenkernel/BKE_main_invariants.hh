@@ -11,6 +11,8 @@
 #include "BLI_span.hh"
 #include <optional>
 
+namespace blender {
+
 struct Main;
 struct ID;
 
@@ -39,10 +41,12 @@ struct ID;
  * - The geometry nodes modifier needs to have the correct inputs based on the referenced group.
  */
 void BKE_main_ensure_invariants(Main &bmain,
-                                std::optional<blender::Span<ID *>> modified_ids = std::nullopt);
+                                std::optional<Span<ID *>> modified_ids = std::nullopt);
 
 /**
  * Same as above but the calling code is less verbose in the common case when only a single
  * data-block has been modified.
  */
 void BKE_main_ensure_invariants(Main &bmain, ID &modified_id);
+
+}  // namespace blender

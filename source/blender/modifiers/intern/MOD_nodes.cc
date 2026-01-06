@@ -92,11 +92,11 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket_usage_inference.hh"
 
-namespace lf = blender::fn::lazy_function;
-namespace geo_log = blender::nodes::geo_eval_log;
-namespace bake = blender::bke::bake;
-
 namespace blender {
+
+namespace lf = fn::lazy_function;
+namespace geo_log = nodes::geo_eval_log;
+namespace bake = bke::bake;
 
 static void init_data(ModifierData *md)
 {
@@ -183,7 +183,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   find_dependencies_from_settings(nmd->settings, eval_deps);
 
   if (ctx->object->type == OB_CURVES) {
-    Curves *curves_id = blender::id_cast<Curves *>(ctx->object->data);
+    Curves *curves_id = id_cast<Curves *>(ctx->object->data);
     if (curves_id->surface != nullptr) {
       eval_deps.add_object(curves_id->surface);
     }
@@ -450,11 +450,8 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
   nmd.panels_num = interface_panels.size();
 }
 
-}  // namespace blender
-
 void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 {
-  using namespace blender;
   update_id_properties_from_node_group(nmd);
   update_bakes_from_node_group(*nmd);
   update_panels_from_node_group(*nmd);
@@ -470,15 +467,13 @@ NodesModifierBake *NodesModifierData::find_bake(const int id)
 
 const NodesModifierBake *NodesModifierData::find_bake(const int id) const
 {
-  for (const NodesModifierBake &bake : blender::Span{this->bakes, this->bakes_num}) {
+  for (const NodesModifierBake &bake : Span{this->bakes, this->bakes_num}) {
     if (bake.id == id) {
       return &bake;
     }
   }
   return nullptr;
 }
-
-namespace blender {
 
 /**
  * Setup side effects nodes so that the given node in the given compute context will be executed.
@@ -1669,7 +1664,7 @@ static void add_missing_data_block_mappings(
       MEM_recallocN(bake.data_blocks, sizeof(NodesModifierDataBlock) * new_num));
   for (const int i : missing.index_range()) {
     NodesModifierDataBlock &data_block = bake.data_blocks[old_num + i];
-    const blender::bke::bake::BakeDataBlockID &key = missing[i];
+    const bke::bake::BakeDataBlockID &key = missing[i];
 
     data_block.id_name = BLI_strdup(key.id_name.c_str());
     if (!key.lib_name.empty()) {
@@ -1824,7 +1819,6 @@ static void modifyGeometry(ModifierData *md,
                            const ModifierEvalContext *ctx,
                            bke::GeometrySet &geometry_set)
 {
-  using namespace blender;
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   if (nmd->node_group == nullptr) {
     return;
@@ -2030,7 +2024,6 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void panel_register(ARegionType *region_type)
 {
-  using namespace blender;
   modifier_panel_register(region_type, eModifierType_Nodes, panel_draw);
 }
 
@@ -2305,8 +2298,6 @@ static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cd
   r_cddata_masks->vmask |= CD_MASK_PROP_ALL;
 }
 
-}  // namespace blender
-
 ModifierTypeInfo modifierType_Nodes = {
     /*idname*/ "GeometryNodes",
     /*name*/ N_("GeometryNodes"),
@@ -2320,28 +2311,30 @@ ModifierTypeInfo modifierType_Nodes = {
      eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_AcceptsGreasePencil),
     /*icon*/ ICON_GEOMETRY_NODES,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
-    /*modify_mesh*/ blender::modify_mesh,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
-    /*required_data_mask*/ blender::required_data_mask,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
-    /*update_depsgraph*/ blender::update_depsgraph,
-    /*depends_on_time*/ blender::depends_on_time,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ depends_on_time,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
-    /*foreach_tex_link*/ blender::foreach_tex_link,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ foreach_tex_link,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

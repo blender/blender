@@ -12,6 +12,8 @@
 #include "DNA_listBase.h"
 #include "DNA_object_force_types.h"
 
+namespace blender {
+
 struct Collection;
 
 struct EffectorWeights;
@@ -355,3 +357,5 @@ struct RigidBodyCon {
 };
 
 /* ******************************** */
+
+}  // namespace blender

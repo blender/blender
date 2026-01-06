@@ -59,11 +59,10 @@
 
 #include "lineart_intern.hh"
 
-using blender::float3;
-using blender::int3;
-using blender::MutableSpan;
-using namespace blender::bke;
-using blender::bke::mesh::corner_tri_get_real_edges;
+namespace blender {
+
+using namespace bke;
+using bke::mesh::corner_tri_get_real_edges;
 
 struct LineartIsecSingle {
   double v1[3], v2[3];
@@ -1405,7 +1404,7 @@ void lineart_main_discard_out_of_frame_edges(LineartData *ld)
         e[i].flags = MOD_LINEART_EDGE_FLAG_CHAIN_PICKED;
         continue;
       }
-      const blender::float2 vec1(e[i].v1->fbcoord), vec2(e[i].v2->fbcoord);
+      const float2 vec1(e[i].v1->fbcoord), vec2(e[i].v2->fbcoord);
       if (LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2)) {
         /* A line could still cross the image border even when both of the vertices are out of
          * bound. */
@@ -1428,7 +1427,7 @@ struct LineartEdgeNeighbor {
 };
 
 struct VertData {
-  blender::Span<blender::float3> positions;
+  Span<float3> positions;
   LineartVert *v_arr;
   double (*model_view)[4];
   double (*model_view_proj)[4];
@@ -1486,23 +1485,23 @@ static LineartTriangle *lineart_triangle_from_index(LineartData *ld,
 struct EdgeFeatData {
   LineartData *ld;
   Mesh *mesh;
-  Object *ob_eval;                     /* For evaluated materials. */
-  blender::Span<int> material_indices; /* May be empty. */
-  blender::Span<blender::int2> edges;
-  blender::Span<int> corner_verts;
-  blender::Span<int> corner_edges;
-  blender::Span<int3> corner_tris;
-  blender::Span<int> tri_faces;
+  Object *ob_eval;            /* For evaluated materials. */
+  Span<int> material_indices; /* May be empty. */
+  Span<int2> edges;
+  Span<int> corner_verts;
+  Span<int> corner_edges;
+  Span<int3> corner_tris;
+  Span<int> tri_faces;
   LineartTriangle *tri_array;
-  blender::VArray<bool> sharp_edges;
-  blender::VArray<bool> sharp_faces;
+  VArray<bool> sharp_edges;
+  VArray<bool> sharp_faces;
   LineartVert *v_array;
   float crease_threshold;
   bool use_auto_smooth;
   bool use_freestyle_face;
-  blender::VArray<bool> freestyle_face;
+  VArray<bool> freestyle_face;
   bool use_freestyle_edge;
-  blender::VArray<bool> freestyle_edge;
+  VArray<bool> freestyle_edge;
   LineartEdgeNeighbor *edge_nabr;
 };
 
@@ -1527,9 +1526,9 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
   EdgeFeatReduceData *reduce_data = static_cast<EdgeFeatReduceData *>(tls->userdata_chunk);
   Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
-  const blender::Span<int3> corner_tris = e_feat_data->corner_tris;
-  const blender::Span<int> tri_faces = e_feat_data->tri_faces;
-  const blender::Span<int> material_indices = e_feat_data->material_indices;
+  const Span<int3> corner_tris = e_feat_data->corner_tris;
+  const Span<int> tri_faces = e_feat_data->tri_faces;
+  const Span<int> material_indices = e_feat_data->material_indices;
 
   uint16_t edge_flag_result = 0;
 
@@ -1546,7 +1545,7 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
   if (enable_face_mark) {
     bool ff1 = false;
     bool ff2 = false;
-    if (const blender::VArray<bool> &freestyle_face = e_feat_data->freestyle_face) {
+    if (const VArray<bool> &freestyle_face = e_feat_data->freestyle_face) {
       if (freestyle_face[tri_faces[i / 3]]) {
         ff1 = true;
       }
@@ -1806,11 +1805,11 @@ static void lineart_triangle_adjacent_assign(LineartTriangle *tri,
 
 struct TriData {
   LineartObjectInfo *ob_info;
-  blender::Span<blender::float3> positions;
-  blender::Span<int> corner_verts;
-  blender::Span<int3> corner_tris;
-  blender::Span<int> tri_faces;
-  blender::Span<int> material_indices;
+  Span<float3> positions;
+  Span<int> corner_verts;
+  Span<int3> corner_tris;
+  Span<int> tri_faces;
+  Span<int> material_indices;
   LineartVert *vert_arr;
   LineartTriangle *tri_arr;
   int lineart_triangle_size;
@@ -1823,11 +1822,11 @@ static void lineart_load_tri_task(void *__restrict userdata,
 {
   TriData *tri_task_data = static_cast<TriData *>(userdata);
   LineartObjectInfo *ob_info = tri_task_data->ob_info;
-  const blender::Span<blender::float3> positions = tri_task_data->positions;
-  const blender::Span<int> corner_verts = tri_task_data->corner_verts;
+  const Span<float3> positions = tri_task_data->positions;
+  const Span<int> corner_verts = tri_task_data->corner_verts;
   const int3 &corner_tri = tri_task_data->corner_tris[i];
   const int face_i = tri_task_data->tri_faces[i];
-  const blender::Span<int> material_indices = tri_task_data->material_indices;
+  const Span<int> material_indices = tri_task_data->material_indices;
 
   LineartVert *vert_arr = tri_task_data->vert_arr;
   LineartTriangle *tri = tri_task_data->tri_arr;
@@ -1886,9 +1885,9 @@ static void lineart_load_tri_task(void *__restrict userdata,
 struct EdgeNeighborData {
   LineartEdgeNeighbor *edge_nabr;
   LineartAdjacentEdge *adj_e;
-  blender::Span<int> corner_verts;
-  blender::Span<int3> corner_tris;
-  blender::Span<int> tri_faces;
+  Span<int> corner_verts;
+  Span<int3> corner_tris;
+  Span<int> tri_faces;
 };
 
 static void lineart_edge_neighbor_init_task(void *__restrict userdata,
@@ -1899,7 +1898,7 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
   LineartAdjacentEdge *adj_e = &en_data->adj_e[i];
   const int3 &tri = en_data->corner_tris[i / 3];
   LineartEdgeNeighbor *edge_nabr = &en_data->edge_nabr[i];
-  const blender::Span<int> corner_verts = en_data->corner_verts;
+  const Span<int> corner_verts = en_data->corner_verts;
 
   adj_e->e = i;
   adj_e->v1 = corner_verts[tri[i % 3]];
@@ -1916,21 +1915,20 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
 
 static void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length)
 {
-  blender::parallel_sort(
-      ai, ai + length, [](const LineartAdjacentEdge &p1, const LineartAdjacentEdge &p2) {
-        int a = p1.v1 - p2.v1;
-        int b = p1.v2 - p2.v2;
-        /* `parallel_sort()` requires `cmp()` to return true when the first element needs to appear
-         * before the second element in the sorted array, false otherwise (strict weak ordering),
-         * see https://en.cppreference.com/w/cpp/named_req/Compare. */
-        if (a < 0) {
-          return true;
-        }
-        if (a > 0) {
-          return false;
-        }
-        return b < 0;
-      });
+  parallel_sort(ai, ai + length, [](const LineartAdjacentEdge &p1, const LineartAdjacentEdge &p2) {
+    int a = p1.v1 - p2.v1;
+    int b = p1.v2 - p2.v2;
+    /* `parallel_sort()` requires `cmp()` to return true when the first element needs to appear
+     * before the second element in the sorted array, false otherwise (strict weak ordering),
+     * see https://en.cppreference.com/w/cpp/named_req/Compare. */
+    if (a < 0) {
+      return true;
+    }
+    if (a > 0) {
+      return false;
+    }
+    return b < 0;
+  });
 }
 
 static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *mesh, int total_edges)
@@ -1973,7 +1971,6 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
                                          LineartData *la_data,
                                          ListBaseT<LineartElementLinkNode> *shadow_elns)
 {
-  using namespace blender;
   Mesh *mesh = ob_info->original_me;
   if (!mesh->edges_num) {
     return;
@@ -2305,7 +2302,7 @@ static uchar lineart_intersection_mask_check(Collection *c, Object *ob)
     }
   }
 
-  if (BKE_collection_has_object(c, blender::id_cast<Object *>(ob->id.orig_id))) {
+  if (BKE_collection_has_object(c, id_cast<Object *>(ob->id.orig_id))) {
     if (c->lineart_flags & COLLECTION_LRT_USE_INTERSECTION_MASK) {
       return c->lineart_intersection_mask;
     }
@@ -2326,7 +2323,7 @@ static uchar lineart_intersection_priority_check(Collection *c, Object *ob)
       return result;
     }
   }
-  if (BKE_collection_has_object(c, blender::id_cast<Object *>(ob->id.orig_id))) {
+  if (BKE_collection_has_object(c, id_cast<Object *>(ob->id.orig_id))) {
     if (c->lineart_flags & COLLECTION_LRT_USE_INTERSECTION_PRIORITY) {
       return c->lineart_intersection_priority;
     }
@@ -2352,7 +2349,7 @@ static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
   }
 
   if (c->gobject.first) {
-    if (BKE_collection_has_object(c, blender::id_cast<Object *>(ob->id.orig_id))) {
+    if (BKE_collection_has_object(c, id_cast<Object *>(ob->id.orig_id))) {
       if ((is_render && (c->flag & COLLECTION_HIDE_RENDER)) ||
           ((!is_render) && (c->flag & COLLECTION_HIDE_VIEWPORT)))
       {
@@ -2411,7 +2408,6 @@ static bool lineart_geometry_check_visible(double model_view_proj[4][4],
                                            double shift_y,
                                            Mesh *use_mesh)
 {
-  using namespace blender;
   if (!use_mesh) {
     return false;
   }
@@ -2419,7 +2415,7 @@ static bool lineart_geometry_check_visible(double model_view_proj[4][4],
   if (!bounds.has_value()) {
     return false;
   }
-  const std::array<float3, 8> corners = blender::bounds::corners(*bounds);
+  const std::array<float3, 8> corners = bounds::corners(*bounds);
 
   double co[8][4];
   double tmp[3];
@@ -2517,8 +2513,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
   copy_m4d_m4(obi->normal, imat);
 
   obi->original_me = use_mesh;
-  obi->original_ob = (ref_ob->id.orig_id ? blender::id_cast<Object *>(ref_ob->id.orig_id) :
-                                           ref_ob);
+  obi->original_ob = (ref_ob->id.orig_id ? id_cast<Object *>(ref_ob->id.orig_id) : ref_ob);
   obi->original_ob_eval = DEG_get_evaluated(depsgraph, obi->original_ob);
   lineart_geometry_load_assign_thread(olti, obi, thread_count, use_mesh->faces_num);
 }
@@ -2530,13 +2525,13 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
                                   bool allow_duplicates,
                                   bool do_shadow_casting,
                                   ListBaseT<LineartElementLinkNode> *shadow_elns,
-                                  blender::Set<const Object *> *included_objects)
+                                  Set<const Object *> *included_objects)
 {
   double proj[4][4], view[4][4], result[4][4];
   float inv[4][4];
 
   if (!do_shadow_casting) {
-    Camera *cam = blender::id_cast<Camera *>(camera->data);
+    Camera *cam = id_cast<Camera *>(camera->data);
     float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
     int fit = BKE_camera_sensor_fit(cam->sensor_fit, ld->w, ld->h);
     double asp = (double(ld->w) / double(ld->h));
@@ -3592,7 +3587,7 @@ static LineartData *lineart_create_render_buffer_v3(Scene *scene,
   if (!scene || !camera || !lc) {
     return nullptr;
   }
-  const Camera *c = blender::id_cast<Camera *>(camera->data);
+  const Camera *c = id_cast<Camera *>(camera->data);
   double clipping_offset = 0;
 
   if (lmd->calculation_flags & MOD_LINEART_ALLOW_CLIPPING_BOUNDARIES) {
@@ -3645,8 +3640,7 @@ static LineartData *lineart_create_render_buffer_v3(Scene *scene,
     normalize_v3(ld->conf.cam_obmat_secondary[2]);
     ld->conf.light_reference_available = true;
     if (light_obj->type == OB_LAMP) {
-      ld->conf.cam_is_persp_secondary = (blender::id_cast<Light *>(light_obj->data))->type !=
-                                        LA_SUN;
+      ld->conf.cam_is_persp_secondary = (id_cast<Light *>(light_obj->data))->type != LA_SUN;
     }
   }
 
@@ -5078,8 +5072,7 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
   lineart_main_get_view_vector(ld);
 
   LineartModifierRuntime *runtime = reinterpret_cast<LineartModifierRuntime *>(lmd.runtime);
-  blender::Set<const Object *> *included_objects = runtime ? &runtime->object_dependencies :
-                                                             nullptr;
+  Set<const Object *> *included_objects = runtime ? &runtime->object_dependencies : nullptr;
 
   lineart_main_load_geometries(depsgraph,
                                scene,
@@ -5216,9 +5209,9 @@ struct LineartChainWriteInfo {
 };
 
 void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
-                                     const blender::float4x4 &inverse_mat,
+                                     const float4x4 &inverse_mat,
                                      Depsgraph *depsgraph,
-                                     blender::bke::greasepencil::Drawing &drawing,
+                                     bke::greasepencil::Drawing &drawing,
                                      const int8_t source_type,
                                      Object *source_object,
                                      Collection *source_collection,
@@ -5256,7 +5249,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     if (!source_object) {
       return;
     }
-    orig_ob = source_object->id.orig_id ? blender::id_cast<Object *>(source_object->id.orig_id) :
+    orig_ob = source_object->id.orig_id ? id_cast<Object *>(source_object->id.orig_id) :
                                           source_object;
     orig_col = nullptr;
   }
@@ -5265,7 +5258,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
       return;
     }
     orig_col = source_collection->id.orig_id ?
-                   blender::id_cast<Collection *>(source_collection->id.orig_id) :
+                   id_cast<Collection *>(source_collection->id.orig_id) :
                    source_collection;
     orig_ob = nullptr;
   }
@@ -5277,7 +5270,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
 
   bool inverse_silhouette = modifier_flags & MOD_LINEART_INVERT_SILHOUETTE_FILTER;
 
-  blender::Vector<LineartChainWriteInfo> writer;
+  Vector<LineartChainWriteInfo> writer;
   writer.reserve(128);
   int total_point_count = 0;
   int stroke_count = 0;
@@ -5403,7 +5396,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     return;
   }
 
-  blender::bke::CurvesGeometry new_curves(total_point_count, stroke_count);
+  bke::CurvesGeometry new_curves(total_point_count, stroke_count);
   new_curves.fill_curve_types(CURVE_TYPE_POLY);
 
   MutableAttributeAccessor attributes = new_curves.attributes_for_write();
@@ -5422,9 +5415,6 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
 
   const bool weight_transfer_match_output = modifier_calculation_flags &
                                             MOD_LINEART_MATCH_OUTPUT_VGROUP;
-
-  using blender::StringRef;
-  using blender::Vector;
 
   auto ensure_target_defgroup = [&](StringRef group_name) {
     if (group_name.is_empty()) {
@@ -5450,7 +5440,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
 
     Vector<int> src_to_dst_defgroup;
 
-    blender::Span<MDeformVert> src_dvert;
+    Span<MDeformVert> src_dvert;
     Mesh *src_mesh = nullptr;
     MutableSpan<MDeformVert> dv = new_curves.deform_verts_for_write();
     int target_defgroup = ensure_target_defgroup(vgname);
@@ -5514,7 +5504,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
 
     for (const auto [i, eci] : cwi.chain->chain.enumerate()) {
       int point_i = i + up_to_point;
-      point_positions[point_i] = blender::math::transform_point(inverse_mat, float3(eci.gpos));
+      point_positions[point_i] = math::transform_point(inverse_mat, float3(eci.gpos));
       point_radii.span[point_i] = thickness / 2.0f;
       if (point_opacities) {
         point_opacities.span[point_i] = opacity;
@@ -5548,12 +5538,11 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   point_opacities.finish();
   stroke_materials.finish();
 
-  Curves *original_curves = blender::bke::curves_new_nomain(drawing.strokes());
-  Curves *created_curves = blender::bke::curves_new_nomain(std::move(new_curves));
-  std::array<blender::bke::GeometrySet, 2> geometry_sets{
-      blender::bke::GeometrySet::from_curves(original_curves),
-      blender::bke::GeometrySet::from_curves(created_curves)};
-  blender::bke::GeometrySet joined = blender::geometry::join_geometries(geometry_sets, {});
+  Curves *original_curves = bke::curves_new_nomain(drawing.strokes());
+  Curves *created_curves = bke::curves_new_nomain(std::move(new_curves));
+  std::array<bke::GeometrySet, 2> geometry_sets{bke::GeometrySet::from_curves(original_curves),
+                                                bke::GeometrySet::from_curves(created_curves)};
+  bke::GeometrySet joined = geometry::join_geometries(geometry_sets, {});
 
   drawing.strokes_for_write() = std::move(joined.get_curves_for_write()->geometry.wrap());
   drawing.tag_topology_changed();
@@ -5562,3 +5551,5 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     printf("LRT: Generated %d strokes.\n", stroke_count);
   }
 }
+
+}  // namespace blender

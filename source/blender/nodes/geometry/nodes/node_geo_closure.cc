@@ -18,7 +18,9 @@
 #include "BLO_read_write.hh"
 #include "shader/node_shader_util.hh"
 
-namespace blender::nodes::node_geo_closure_cc {
+namespace blender {
+
+namespace nodes::node_geo_closure_cc {
 
 /** Shared between closure input and output node. */
 static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *current_node_ptr)
@@ -136,7 +138,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   sh_geo_node_type_base(&ntype, "NodeClosureInput", NODE_CLOSURE_INPUT);
   ntype.ui_name = "Closure Input";
   ntype.nclass = NODE_CLASS_INTERFACE;
@@ -147,9 +149,9 @@ static void node_register()
   ntype.no_muting = true;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeClosureInput", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
@@ -192,7 +194,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 {
   const NodeClosureOutput &src_storage = node_storage(*src_node);
   auto *dst_storage = MEM_new_for_free<NodeClosureOutput>(__func__,
-                                                          blender::dna::shallow_copy(src_storage));
+                                                          dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ClosureInputItemsAccessor>(*src_node, *dst_node);
@@ -271,7 +273,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   sh_geo_node_type_base(&ntype, "NodeClosureOutput", NODE_CLOSURE_OUTPUT);
   ntype.ui_name = "Closure Output";
   ntype.nclass = NODE_CLASS_INTERFACE;
@@ -286,15 +288,15 @@ static void node_register()
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   bke::node_type_storage(ntype, "NodeClosureOutput", node_free_storage, node_copy_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
 }  // namespace output_node
 
-}  // namespace blender::nodes::node_geo_closure_cc
+}  // namespace nodes::node_geo_closure_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 StructRNA *ClosureInputItemsAccessor::item_srna = &RNA_NodeClosureInputItem;
 
@@ -320,4 +322,5 @@ void ClosureOutputItemsAccessor::blend_read_data_item(BlendDataReader *reader, I
   BLO_read_string(reader, &item.name);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

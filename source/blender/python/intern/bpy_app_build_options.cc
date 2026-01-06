@@ -14,6 +14,8 @@
 
 #include "bpy_app_build_options.hh"
 
+namespace blender {
+
 static PyTypeObject BlenderAppBuildOptionsType;
 
 static PyStructSequence_Field app_builtopts_info_fields[] = {
@@ -356,3 +358,5 @@ PyObject *BPY_app_build_options_struct()
 
   return ret;
 }
+
+}  // namespace blender

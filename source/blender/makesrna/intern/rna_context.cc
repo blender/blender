@@ -15,6 +15,8 @@
 
 #include "rna_internal.hh" /* own include */
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_context_mode_items[] = {
     {CTX_MODE_EDIT_MESH, "EDIT_MESH", 0, "Mesh Edit", ""},
     {CTX_MODE_EDIT_CURVE, "EDIT_CURVE", 0, "Curve Edit", ""},
@@ -47,6 +49,8 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}
+
 #ifdef RNA_RUNTIME
 
 #  include "DNA_asset_types.h"
@@ -57,6 +61,8 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
 #  endif
 
 #  include "RE_engine.h"
+
+namespace blender {
 
 static PointerRNA rna_Context_manager_get(PointerRNA *ptr)
 {
@@ -235,7 +241,11 @@ static Depsgraph *rna_Context_evaluated_depsgraph_get(bContext *C)
   return depsgraph;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_def_context(BlenderRNA *brna)
 {
@@ -369,5 +379,7 @@ void RNA_def_context(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
   RNA_def_function_return(func, parm);
 }
+
+}  // namespace blender
 
 #endif

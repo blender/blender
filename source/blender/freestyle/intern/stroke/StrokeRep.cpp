@@ -106,7 +106,7 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
 {
   // computeParameterization();
   if (iStrokeVertices.size() < 2) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Warning: strip has less than 2 vertices" << endl;
     }
     return;
@@ -359,14 +359,14 @@ void Strip::createStrip(const vector<StrokeVertex *> &iStrokeVertices)
   }
 
   if (orientationErrors > 0) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Warning: " << orientationErrors
            << " invalid zero-length orientation vector(s) found.\n";
     }
   }
 
   if (i != 2 * int(iStrokeVertices.size())) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Warning: problem with stripe size\n";
     }
   }
@@ -384,7 +384,7 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
 
   for (k = 0; k < sizeStrip; k++) {
     if (notValid(_vertices[k]->point2d())) {
-      if (G.debug & G_DEBUG_FREESTYLE) {
+      if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Warning: strip vertex " << k << " non valid" << endl;
       }
       return;
@@ -498,7 +498,7 @@ void Strip::cleanUpSingularities(const vector<StrokeVertex *> &iStrokeVertices)
 
   for (k = 0; k < sizeStrip; k++) {
     if (notValid(_vertices[k]->point2d())) {
-      if (G.debug & G_DEBUG_FREESTYLE) {
+      if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Warning: strip vertex " << k << " non valid after cleanup" << endl;
       }
       return;

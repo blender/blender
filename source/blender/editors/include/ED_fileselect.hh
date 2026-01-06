@@ -14,6 +14,8 @@
 
 #include "DNA_uuid_types.h"
 
+namespace blender {
+
 struct ARegion;
 struct FileAssetSelectParams;
 struct FileDirEntry;
@@ -25,7 +27,7 @@ struct ScrArea;
 struct SpaceFile;
 struct bContext;
 struct bScreen;
-namespace blender::ui {
+namespace ui {
 struct Block;
 }
 struct wmOperator;
@@ -33,7 +35,7 @@ struct wmWindow;
 struct wmWindowManager;
 struct View2D;
 struct rcti;
-namespace blender::asset_system {
+namespace asset_system {
 class AssetLibrary;
 }
 
@@ -158,8 +160,7 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile);
 
 bool ED_fileselect_is_file_browser(const SpaceFile *sfile);
 bool ED_fileselect_is_asset_browser(const SpaceFile *sfile);
-blender::asset_system::AssetLibrary *ED_fileselect_active_asset_library_get(
-    const SpaceFile *sfile);
+asset_system::AssetLibrary *ED_fileselect_active_asset_library_get(const SpaceFile *sfile);
 ID *ED_fileselect_active_asset_get(const SpaceFile *sfile);
 
 void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, bUUID catalog_id);
@@ -207,7 +208,7 @@ ScrArea *ED_fileselect_handler_area_find_any_with_op(const wmWindow *win);
  */
 void ED_fileselect_ensure_default_filepath(bContext *C, wmOperator *op, const char *extension);
 
-blender::Vector<std::string> ED_fileselect_selected_files_full_paths(const SpaceFile *sfile);
+Vector<std::string> ED_fileselect_selected_files_full_paths(const SpaceFile *sfile);
 
 /* TODO: Maybe we should move this to BLI?
  * On the other hand, it's using defines from space-file area, so not sure... */
@@ -227,7 +228,7 @@ void ED_file_change_dir(bContext *C);
 void ED_file_path_button(bScreen *screen,
                          const SpaceFile *sfile,
                          FileSelectParams *params,
-                         blender::ui::Block *block);
+                         ui::Block *block);
 
 /* File menu stuff */
 
@@ -275,3 +276,5 @@ void ED_fsmenu_entry_set_name(FSMenuEntry *fsentry, const char *name);
 
 int ED_fsmenu_entry_get_icon(FSMenuEntry *fsentry);
 void ED_fsmenu_entry_set_icon(FSMenuEntry *fsentry, int icon);
+
+}  // namespace blender

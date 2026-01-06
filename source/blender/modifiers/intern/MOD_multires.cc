@@ -42,9 +42,11 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 struct MultiresRuntimeData {
   /* Cached subdivision surface descriptor, with topology and settings. */
-  blender::bke::subdiv::Subdiv *subdiv;
+  bke::subdiv::Subdiv *subdiv;
 };
 
 static void init_data(ModifierData *md)
@@ -68,7 +70,7 @@ static void free_runtime_data(void *runtime_data_v)
   }
   MultiresRuntimeData *runtime_data = static_cast<MultiresRuntimeData *>(runtime_data_v);
   if (runtime_data->subdiv != nullptr) {
-    blender::bke::subdiv::free(runtime_data->subdiv);
+    bke::subdiv::free(runtime_data->subdiv);
   }
   MEM_freeN(runtime_data);
 }
@@ -91,13 +93,12 @@ static MultiresRuntimeData *multires_ensure_runtime(MultiresModifierData *mmd)
 
 /* Main goal of this function is to give usable subdivision surface descriptor
  * which matches settings and topology. */
-static blender::bke::subdiv::Subdiv *subdiv_descriptor_ensure(
-    MultiresModifierData *mmd,
-    const blender::bke::subdiv::Settings *subdiv_settings,
-    const Mesh *mesh)
+static bke::subdiv::Subdiv *subdiv_descriptor_ensure(MultiresModifierData *mmd,
+                                                     const bke::subdiv::Settings *subdiv_settings,
+                                                     const Mesh *mesh)
 {
   MultiresRuntimeData *runtime_data = static_cast<MultiresRuntimeData *>(mmd->modifier.runtime);
-  blender::bke::subdiv::Subdiv *subdiv = blender::bke::subdiv::update_from_mesh(
+  bke::subdiv::Subdiv *subdiv = bke::subdiv::update_from_mesh(
       runtime_data->subdiv, subdiv_settings, mesh);
   runtime_data->subdiv = subdiv;
   return subdiv;
@@ -108,7 +109,7 @@ static blender::bke::subdiv::Subdiv *subdiv_descriptor_ensure(
 static Mesh *multires_as_mesh(const MultiresModifierData *mmd,
                               const ModifierEvalContext *ctx,
                               Mesh *mesh,
-                              blender::bke::subdiv::Subdiv *subdiv)
+                              bke::subdiv::Subdiv *subdiv)
 {
   Mesh *result = mesh;
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
@@ -116,7 +117,7 @@ static Mesh *multires_as_mesh(const MultiresModifierData *mmd,
   const bool ignore_control_edges = (ctx->flag & MOD_APPLY_TO_ORIGINAL);
   const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Object *object = ctx->object;
-  blender::bke::subdiv::ToMeshSettings mesh_settings;
+  bke::subdiv::ToMeshSettings mesh_settings;
   BKE_multires_subdiv_mesh_settings_init(&mesh_settings,
                                          scene,
                                          object,
@@ -127,8 +128,8 @@ static Mesh *multires_as_mesh(const MultiresModifierData *mmd,
   if (mesh_settings.resolution < 3) {
     return result;
   }
-  blender::bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
-  result = blender::bke::subdiv::subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+  bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
+  result = bke::subdiv::subdiv_to_mesh(subdiv, &mesh_settings, mesh);
   return result;
 }
 
@@ -153,7 +154,7 @@ static void multires_ccg_settings_init(SubdivToCCGSettings *settings,
 static Mesh *multires_as_ccg(MultiresModifierData *mmd,
                              const ModifierEvalContext *ctx,
                              Mesh *mesh,
-                             blender::bke::subdiv::Subdiv *subdiv)
+                             bke::subdiv::Subdiv *subdiv)
 {
   Mesh *result = mesh;
   SubdivToCCGSettings ccg_settings;
@@ -161,7 +162,7 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
   if (ccg_settings.resolution < 3) {
     return result;
   }
-  blender::bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
+  bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
   result = BKE_subdiv_to_ccg_mesh(*subdiv, ccg_settings, *mesh);
 
   /* NOTE: CCG becomes an owner of Subdiv descriptor, so can not share
@@ -175,26 +176,25 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  using namespace blender;
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
   return result;
 #endif
   MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(md);
-  blender::bke::subdiv::Settings subdiv_settings;
+  bke::subdiv::Settings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
   if (subdiv_settings.level == 0) {
     return result;
   }
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
-  blender::bke::subdiv::Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
+  bke::subdiv::Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
   if (subdiv == nullptr) {
     /* Happens on bad topology, also on empty input mesh. */
     return result;
   }
   const bool use_clnors = mmd->flags & eMultiresModifierFlag_UseCustomNormals &&
-                          mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner;
+                          mesh->normals_domain() == bke::MeshNormalDomain::Corner;
   /* NOTE: Orco needs final coordinates on CPU side, which are expected to be
    * accessible via mesh vertices. For this reason we do not evaluate multires to
    * grids when orco is requested. */
@@ -220,7 +220,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       sculpt_session->multires.modifier = mmd;
       sculpt_session->multires.level = mmd->sculptlvl;
     }
-    // blender::bke::subdiv::stats_print(&subdiv->stats);
+    // bke::subdiv::stats_print(&subdiv->stats);
   }
   else {
     if (use_clnors) {
@@ -239,9 +239,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
            result->corners_num});
       CustomData_free_layers(&result->corner_data, CD_NORMAL);
     }
-    // blender::bke::subdiv::stats_print(&subdiv->stats);
+    // bke::subdiv::stats_print(&subdiv->stats);
     if (subdiv != runtime_data->subdiv) {
-      blender::bke::subdiv::free(subdiv);
+      bke::subdiv::free(subdiv);
     }
   }
   return result;
@@ -250,8 +250,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 static void deform_matrices(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
-                            blender::MutableSpan<blender::float3> positions,
-                            blender::MutableSpan<blender::float3x3> /*matrices*/)
+                            MutableSpan<float3> positions,
+                            MutableSpan<float3x3> /*matrices*/)
 
 {
 #if !defined(WITH_OPENSUBDIV)
@@ -261,7 +261,7 @@ static void deform_matrices(ModifierData *md,
 
   MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(md);
 
-  blender::bke::subdiv::Settings subdiv_settings;
+  bke::subdiv::Settings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
   if (subdiv_settings.level == 0) {
     return;
@@ -274,33 +274,33 @@ static void deform_matrices(ModifierData *md,
   }
 
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
-  blender::bke::subdiv::Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
+  bke::subdiv::Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
   if (subdiv == nullptr) {
     /* Happens on bad topology, also on empty input mesh. */
     return;
   }
-  blender::bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
-  blender::bke::subdiv::deform_coarse_vertices(subdiv, mesh, positions);
+  bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
+  bke::subdiv::deform_coarse_vertices(subdiv, mesh, positions);
   if (subdiv != runtime_data->subdiv) {
-    blender::bke::subdiv::free(subdiv);
+    bke::subdiv::free(subdiv);
   }
 }
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.prop(ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
   col.prop(ptr, "sculpt_levels", UI_ITEM_NONE, IFACE_("Sculpt"), ICON_NONE);
   col.prop(ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
   const bool is_sculpt_mode = CTX_data_active_object(C)->mode & OB_MODE_SCULPT;
-  blender::ui::Block *block = layout.block();
+  ui::Block *block = layout.block();
   block_lock_set(block, !is_sculpt_mode, N_("Sculpt Base Mesh"));
   col.prop(ptr, "use_sculpt_base_mesh", UI_ITEM_NONE, IFACE_("Sculpt Base Mesh"), ICON_NONE);
   block_lock_clear(block);
@@ -312,7 +312,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -336,23 +336,23 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
   op_ptr = layout.op("OBJECT_OT_multires_subdivide",
                      IFACE_("Subdivide"),
                      ICON_NONE,
-                     blender::wm::OpCallContext::ExecDefault,
+                     wm::OpCallContext::ExecDefault,
                      UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::CatmullClark));
   RNA_string_set(&op_ptr, "modifier", reinterpret_cast<ModifierData *>(mmd)->name);
 
-  blender::ui::Layout &row = layout.row(false);
+  ui::Layout &row = layout.row(false);
   op_ptr = row.op("OBJECT_OT_multires_subdivide",
                   IFACE_("Simple"),
                   ICON_NONE,
-                  blender::wm::OpCallContext::ExecDefault,
+                  wm::OpCallContext::ExecDefault,
                   UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Simple));
   RNA_string_set(&op_ptr, "modifier", reinterpret_cast<ModifierData *>(mmd)->name);
   op_ptr = row.op("OBJECT_OT_multires_subdivide",
                   IFACE_("Linear"),
                   ICON_NONE,
-                  blender::wm::OpCallContext::ExecDefault,
+                  wm::OpCallContext::ExecDefault,
                   UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Linear));
   RNA_string_set(&op_ptr, "modifier", reinterpret_cast<ModifierData *>(mmd)->name);
@@ -365,7 +365,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -373,7 +373,7 @@ static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.enabled_set(RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
 
   PointerRNA op_ptr;
-  blender::ui::Layout *row = &layout.row(false);
+  ui::Layout *row = &layout.row(false);
   row->op("OBJECT_OT_multires_reshape", IFACE_("Reshape"), ICON_NONE);
 
   row = &layout.row(false);
@@ -385,7 +385,7 @@ static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   MultiresModifierData *mmd = static_cast<MultiresModifierData *>(ptr->data);
@@ -396,8 +396,8 @@ static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
     layout.op("OBJECT_OT_multires_rebuild_subdiv", IFACE_("Rebuild Subdivisions"), ICON_NONE);
   }
 
-  blender::ui::Layout &col = layout.column(false);
-  blender::ui::Layout *row = &col.row(false);
+  ui::Layout &col = layout.column(false);
+  ui::Layout *row = &col.row(false);
   if (is_external) {
     row->op("OBJECT_OT_multires_external_pack", IFACE_("Pack External"), ICON_NONE);
     col.use_property_split_set(true);
@@ -411,7 +411,7 @@ static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -423,7 +423,7 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.active_set(true);
   col.prop(ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -480,3 +480,5 @@ ModifierTypeInfo modifierType_Multires = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

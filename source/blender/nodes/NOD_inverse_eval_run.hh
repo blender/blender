@@ -10,9 +10,11 @@
 
 #include "NOD_geometry_nodes_log.hh"
 
+namespace blender {
+
 struct NodesModifierData;
 
-namespace blender::nodes::inverse_eval {
+namespace nodes::inverse_eval {
 
 using bke::SocketValueVariant;
 
@@ -52,4 +54,6 @@ std::optional<bke::SocketValueVariant> convert_single_socket_value(
     const bNodeSocket &new_socket,
     const bke::SocketValueVariant &old_value);
 
-}  // namespace blender::nodes::inverse_eval
+}  // namespace nodes::inverse_eval
+
+}  // namespace blender

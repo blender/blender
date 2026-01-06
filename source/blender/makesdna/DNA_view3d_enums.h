@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /** Settings for off-screen rendering. */
 enum eV3DOffscreenDrawFlag {
   V3D_OFSDRAW_NONE = (0),
@@ -44,3 +46,5 @@ enum eV3DShadingBackgroundType {
   V3D_SHADING_BACKGROUND_WORLD = 1,
   V3D_SHADING_BACKGROUND_VIEWPORT = 2,
 };
+
+}  // namespace blender

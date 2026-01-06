@@ -252,7 +252,7 @@ void Instance::begin_sync()
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
-  Camera *cam = blender::id_cast<Camera *>(
+  Camera *cam = id_cast<Camera *>(
       (this->camera != nullptr && this->camera->type == OB_CAMERA) ? this->camera->data : nullptr);
 
   /* Pseudo DOF setup. */

@@ -9,11 +9,13 @@
 #pragma once
 
 #include "BLI_string_ref.hh"
+struct DRWInstanceDataList;
+
+namespace blender {
 
 struct ARegion;
-struct DRWData;
-struct DRWInstanceDataList;
 struct Depsgraph;
+struct DRWData;
 struct GPUMaterial;
 struct GPUOffScreen;
 struct GPUVertFormat;
@@ -31,7 +33,7 @@ struct ViewLayer;
 struct bContext;
 struct rcti;
 
-namespace blender::bke {
+namespace bke {
 enum class AttrType : int16_t;
 }
 
@@ -169,12 +171,12 @@ void DRW_xr_drawing_end();
 /** For garbage collection. */
 void DRW_cache_free_old_batches(Main *bmain);
 
-namespace blender::draw {
+namespace draw {
 
 /** Free garbage collected subdivision data. */
 void DRW_cache_free_old_subdiv();
 
-}  // namespace blender::draw
+}  // namespace draw
 
 /** Never use this. Only for closing blender. */
 void DRW_gpu_context_enable_ex(bool restore);
@@ -195,7 +197,7 @@ void DRW_viewport_data_free(DRWData *drw_data);
 bool DRW_gpu_context_release();
 void DRW_gpu_context_activate(bool drw_state);
 
-namespace blender::draw {
+namespace draw {
 
 void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
                                   const char *base_name,
@@ -205,3 +207,5 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
                                   bool is_active_layer);
 
 }
+
+}  // namespace blender

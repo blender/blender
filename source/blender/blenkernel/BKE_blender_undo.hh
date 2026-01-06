@@ -9,6 +9,8 @@
 
 #include "BKE_undo_system.hh"
 
+namespace blender {
+
 struct Main;
 struct MemFileUndoData;
 struct bContext;
@@ -21,3 +23,5 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
                              bool use_old_bmain_data,
                              bContext *C);
 void BKE_memfile_undo_free(MemFileUndoData *mfu);
+
+}  // namespace blender

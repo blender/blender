@@ -54,7 +54,7 @@ TEST_F(MeshTests, calc_vert_neighbors_interior__cube)
   const Vector<bool> hide_poly(mesh->faces_num, false);
 
   Array<int> verts(8);
-  blender::array_utils::fill_index_range(verts.as_mutable_span(), 0);
+  array_utils::fill_index_range(verts.as_mutable_span(), 0);
 
   SculptBoundaryInfoCache boundary_info_cache = boundary::create_boundary_info(*mesh);
 
@@ -94,7 +94,7 @@ TEST_F(MeshTests, calc_vert_neighbors_interior__1D_strip)
   const Vector<bool> hide_poly(mesh->faces_num, false);
 
   Array<int> verts(6);
-  blender::array_utils::fill_index_range(verts.as_mutable_span(), 0);
+  array_utils::fill_index_range(verts.as_mutable_span(), 0);
 
   SculptBoundaryInfoCache boundary_info_cache = boundary::create_boundary_info(*mesh);
 

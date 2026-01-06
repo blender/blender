@@ -9,15 +9,17 @@
 #include "BLI_string_ref.hh"
 #include "IMB_openexr.hh"
 
+namespace blender {
+
 ExrHandle *IMB_exr_get_handle(bool /*write_multipart*/)
 {
   return nullptr;
 }
 void IMB_exr_add_channels(ExrHandle * /*handle*/,
-                          blender::StringRefNull /*layerpassname*/,
-                          blender::StringRefNull /*channelnames*/,
-                          blender::StringRefNull /*viewname*/,
-                          blender::StringRefNull /*colorspace*/,
+                          StringRefNull /*layerpassname*/,
+                          StringRefNull /*channelnames*/,
+                          StringRefNull /*viewname*/,
+                          StringRefNull /*colorspace*/,
                           size_t /*xstride*/,
                           size_t /*ystride*/,
                           float * /*rect*/,
@@ -46,7 +48,7 @@ bool IMB_exr_begin_write(ExrHandle * /*handle*/,
 }
 
 bool IMB_exr_set_channel(ExrHandle * /*handle*/,
-                         blender::StringRefNull /*full_name*/,
+                         StringRefNull /*full_name*/,
                          int /*xstride*/,
                          int /*ystride*/,
                          float * /*rect*/)
@@ -90,3 +92,5 @@ void IMB_exr_get_display_window(ExrHandle * /*handle*/,
                                 int /*data_offset*/[2])
 {
 }
+
+}  // namespace blender

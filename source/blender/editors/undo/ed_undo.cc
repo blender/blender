@@ -48,8 +48,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-using blender::Set;
-using blender::Vector;
+namespace blender {
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"undo"};
@@ -642,8 +641,7 @@ bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
     /* If the redo is called from a HUD, this knows about the region type the operator was
      * initially called in, so attempt to restore that. */
     ARegion *redo_region_from_hud = (region_orig->regiontype == RGN_TYPE_HUD) ?
-                                        blender::ui::ED_area_type_hud_redo_region_find(
-                                            area, region_orig) :
+                                        ui::ED_area_type_hud_redo_region_find(area, region_orig) :
                                         nullptr;
     ARegion *region_repeat = redo_region_from_hud ? redo_region_from_hud :
                                                     BKE_area_find_region_active_win(area);
@@ -747,7 +745,7 @@ static wmOperatorStatus undo_history_invoke(bContext *C, wmOperator *op, const w
     return undo_history_exec(C, op);
   }
 
-  WM_menu_name_call(C, "TOPBAR_MT_undo_history", blender::wm::OpCallContext::InvokeDefault);
+  WM_menu_name_call(C, "TOPBAR_MT_undo_history", wm::OpCallContext::InvokeDefault);
   return OPERATOR_FINISHED;
 }
 
@@ -919,7 +917,7 @@ size_t ED_undosys_total_memory_calc(UndoStack *ustack)
 
   for (UndoStep *us = static_cast<UndoStep *>(ustack->steps.first); us != nullptr; us = us->next) {
     if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
-      total_memory += blender::ed::sculpt_paint::undo::step_memory_size_get(us);
+      total_memory += ed::sculpt_paint::undo::step_memory_size_get(us);
     }
     else if (us->data_size > 0) {
       total_memory += us->data_size;
@@ -930,3 +928,5 @@ size_t ED_undosys_total_memory_calc(UndoStack *ustack)
 }
 
 /** \} */
+
+}  // namespace blender

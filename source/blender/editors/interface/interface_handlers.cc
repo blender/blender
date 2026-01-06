@@ -6599,7 +6599,7 @@ static bool ui_numedit_but_UNITVEC(
 static void ui_palette_set_active(ButtonColor *color_but)
 {
   if (color_but->is_pallete_color) {
-    Palette *palette = blender::id_cast<Palette *>(color_but->rnapoin.owner_id);
+    Palette *palette = id_cast<Palette *>(color_but->rnapoin.owner_id);
     const PaletteColor *color = static_cast<const PaletteColor *>(color_but->rnapoin.data);
     palette->active_color = BLI_findindex(&palette->colors, color);
   }
@@ -6664,7 +6664,7 @@ static int ui_do_but_COLOR(bContext *C, Button *but, HandleButtonData *data, con
       return WM_UI_HANDLER_BREAK;
     }
     if (color_but->is_pallete_color && (event->type == EVT_DELKEY) && (event->val == KM_PRESS)) {
-      Palette *palette = blender::id_cast<Palette *>(but->rnapoin.owner_id);
+      Palette *palette = id_cast<Palette *>(but->rnapoin.owner_id);
       PaletteColor *color = static_cast<PaletteColor *>(but->rnapoin.data);
 
       BKE_palette_color_remove(palette, color);

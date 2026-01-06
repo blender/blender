@@ -688,7 +688,7 @@ class Cameras : Overlay {
                                                     bool &r_use_alpha_premult,
                                                     bool &r_use_view_transform)
   {
-    ::Image *image = bgpic->ima;
+    blender::Image *image = bgpic->ima;
     ImageUser *iuser = const_cast<ImageUser *>(&bgpic->iuser);
     MovieClip *clip = nullptr;
     gpu::Texture *tex = nullptr;

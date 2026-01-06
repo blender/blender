@@ -21,6 +21,8 @@
 
 #include "RNA_access.hh"
 
+namespace blender {
+
 static void copy_stack(bNodeStack *to, bNodeStack *from)
 {
   if (to != from) {
@@ -37,7 +39,7 @@ static void copy_stack(bNodeStack *to, bNodeStack *from)
 
 static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanceKey key)
 {
-  bNodeTree *ngroup = blender::id_cast<bNodeTree *>(node->id);
+  bNodeTree *ngroup = id_cast<bNodeTree *>(node->id);
   void *exec;
 
   if (!ngroup) {
@@ -62,7 +64,7 @@ static void group_freeexec(void *nodedata)
  */
 static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
 {
-  bNodeTree *ngroup = blender::id_cast<bNodeTree *>(gnode->id);
+  bNodeTree *ngroup = id_cast<bNodeTree *>(gnode->id);
   bNodeSocket *sock;
   bNodeStack *ns;
   int a;
@@ -140,13 +142,12 @@ static void group_execute(void *data,
 
 void register_node_type_tex_group()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   /* NOTE: Cannot use #sh_node_type_base for node group, because it would map the node type
    * to the shared #NODE_GROUP integer type id. */
 
-  blender::bke::node_type_base_custom(
-      ntype, "TextureNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
+  bke::node_type_base_custom(ntype, "TextureNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.enum_name_legacy = "GROUP";
   ntype.type_legacy = NODE_GROUP;
   ntype.poll = tex_node_poll_default;
@@ -156,13 +157,14 @@ void register_node_type_tex_group()
   BLI_assert(ntype.rna_ext.srna != nullptr);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
 
-  blender::bke::node_type_size(
-      ntype, GROUP_NODE_DEFAULT_WIDTH, GROUP_NODE_MIN_WIDTH, GROUP_NODE_MAX_WIDTH);
+  bke::node_type_size(ntype, GROUP_NODE_DEFAULT_WIDTH, GROUP_NODE_MIN_WIDTH, GROUP_NODE_MAX_WIDTH);
   ntype.labelfunc = node_group_label;
-  ntype.declare = blender::nodes::node_group_declare;
+  ntype.declare = nodes::node_group_declare;
   ntype.init_exec_fn = group_initexec;
   ntype.free_exec_fn = group_freeexec;
   ntype.exec_fn = group_execute;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

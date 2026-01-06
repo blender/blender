@@ -37,6 +37,8 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 static bGPdata *rna_annotations(const PointerRNA *ptr)
 {
   return reinterpret_cast<bGPdata *>(ptr->owner_id);
@@ -244,7 +246,11 @@ static const EnumPropertyItem *rna_annotation_active_layer_itemf(bContext *C,
   return item;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_annotation_stroke_point(BlenderRNA *brna)
 {
@@ -572,5 +578,7 @@ void RNA_def_annotations(BlenderRNA *brna)
   rna_def_annotation_stroke(brna);
   rna_def_annotation_stroke_point(brna);
 }
+
+}  // namespace blender
 
 #endif

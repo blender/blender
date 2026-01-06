@@ -18,6 +18,8 @@
 
 #include "view3d_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View3D Context Callback
  * \{ */
@@ -68,7 +70,7 @@ int view3d_context(const bContext *C, const char *member, bContextDataResult *re
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "selected_ids")) {
-    blender::Vector<PointerRNA> selected_objects;
+    Vector<PointerRNA> selected_objects;
     CTX_data_selected_objects(C, &selected_objects);
     for (const PointerRNA &ptr : selected_objects) {
       ID *selected_id = ptr.owner_id;
@@ -136,3 +138,5 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_regi
 }
 
 /** \} */
+
+}  // namespace blender

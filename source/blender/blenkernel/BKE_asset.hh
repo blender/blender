@@ -12,6 +12,8 @@
 
 #include "DNA_asset_types.h"
 
+namespace blender {
+
 struct AssetLibraryReference;
 struct AssetMetaData;
 struct AssetTag;
@@ -95,3 +97,5 @@ bool BKE_asset_catalog_path_list_has_path(const ListBaseT<AssetCatalogPathLink> 
                                           const char *catalog_path);
 void BKE_asset_catalog_path_list_add_path(ListBaseT<AssetCatalogPathLink> &catalog_path_list,
                                           const char *catalog_path);
+
+}  // namespace blender

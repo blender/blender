@@ -7,12 +7,14 @@
 
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct Depsgraph;
 struct ModifierData;
 struct Object;
 struct Scene;
 
-namespace blender::io {
+namespace io {
 
 /**
  * This code is shared between the Alembic and USD exporters.
@@ -61,4 +63,5 @@ class SubdivModifierDisabler final {
   void disable_modifier(ModifierData *mod);
 };
 
-}  // namespace blender::io
+}  // namespace io
+}  // namespace blender

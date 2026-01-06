@@ -41,7 +41,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_bake_cc {
+namespace blender {
+
+namespace nodes::node_geo_bake_cc {
 
 namespace bake = bke::bake;
 
@@ -107,8 +109,7 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryBake &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_new_for_free<NodeGeometryBake>(__func__,
-                                                         blender::dna::shallow_copy(src_storage));
+  auto *dst_storage = MEM_new_for_free<NodeGeometryBake>(__func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<BakeItemsAccessor>(*src_node, *dst_node);
@@ -547,7 +548,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeBake", GEO_NODE_BAKE);
   ntype.ui_name = "Bake";
   ntype.ui_description = "Cache the incoming data so that it can be used without recomputation";
@@ -564,14 +565,14 @@ static void node_register()
   ntype.internally_linked_input = node_internally_linked_input;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  blender::bke::node_type_storage(ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_type_storage(ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_geo_bake_cc
+}  // namespace nodes::node_geo_bake_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext &r_ctx)
 {
@@ -860,7 +861,7 @@ void draw_data_blocks(const bContext *C, ui::Layout &layout, PointerRNA &bake_rn
 std::unique_ptr<LazyFunction> get_bake_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
 {
-  namespace file_ns = blender::nodes::node_geo_bake_cc;
+  namespace file_ns = nodes::node_geo_bake_cc;
   BLI_assert(node.type_legacy == GEO_NODE_BAKE);
   return std::make_unique<file_ns::LazyFunctionForBakeNode>(node, lf_graph_info);
 }
@@ -877,4 +878,6 @@ void BakeItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &ite
   BLO_read_string(reader, &item.name);
 }
 
-};  // namespace blender::nodes
+};  // namespace nodes
+
+}  // namespace blender

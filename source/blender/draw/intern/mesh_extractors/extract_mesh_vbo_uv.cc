@@ -54,7 +54,7 @@ static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
     char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
     SNPRINTF_UTF8(attr_name, "a%s", attr_safe_name);
-    GPU_vertformat_attr_add(format, attr_name, blender::gpu::VertAttrType::SFLOAT_32_32);
+    GPU_vertformat_attr_add(format, attr_name, gpu::VertAttrType::SFLOAT_32_32);
     if (name == default_name) {
       GPU_vertformat_alias_add(format, "a");
     }
@@ -69,7 +69,7 @@ static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
   }
 
   if (format->attr_len == 0) {
-    GPU_vertformat_attr_add(format, "dummy", blender::gpu::VertAttrType::SFLOAT_32_32);
+    GPU_vertformat_attr_add(format, "dummy", gpu::VertAttrType::SFLOAT_32_32);
   }
 
   return uv_layers;

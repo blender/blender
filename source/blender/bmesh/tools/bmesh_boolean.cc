@@ -20,14 +20,16 @@
 #include "bmesh_boolean.hh"
 #include "bmesh_edgesplit.hh"
 
+namespace blender {
+
 // #define PERF_DEBUG
 
-namespace blender::meshintersect {
+namespace meshintersect {
 
 #ifdef WITH_GMP
 
 /**
- * Make a #blender::meshintersect::Mesh from #BMesh bm.
+ * Make a #meshintersect::Mesh from #BMesh bm.
  * We are given a triangulation of it from the caller via #looptris,
  * which are looptris_tot triples of loops that together tessellate
  * the faces of bm.
@@ -399,7 +401,7 @@ static bool bmesh_boolean(BMesh *bm,
 
 #endif  // WITH_GMP
 
-}  // namespace blender::meshintersect
+}  // namespace meshintersect
 
 /**
  * Perform the boolean operation specified by boolean_mode on the mesh bm.
@@ -419,7 +421,7 @@ static bool bmesh_boolean(BMesh *bm,
  */
 #ifdef WITH_GMP
 bool BM_mesh_boolean(BMesh *bm,
-                     const blender::Span<std::array<BMLoop *, 3>> looptris,
+                     const Span<std::array<BMLoop *, 3>> looptris,
                      int (*test_fn)(BMFace *f, void *user_data),
                      void *user_data,
                      const int nshapes,
@@ -428,21 +430,20 @@ bool BM_mesh_boolean(BMesh *bm,
                      const bool hole_tolerant,
                      const int boolean_mode)
 {
-  return blender::meshintersect::bmesh_boolean(
-      bm,
-      looptris,
-      test_fn,
-      user_data,
-      nshapes,
-      use_self,
-      false,
-      keep_hidden,
-      hole_tolerant,
-      static_cast<blender::meshintersect::BoolOpType>(boolean_mode));
+  return meshintersect::bmesh_boolean(bm,
+                                      looptris,
+                                      test_fn,
+                                      user_data,
+                                      nshapes,
+                                      use_self,
+                                      false,
+                                      keep_hidden,
+                                      hole_tolerant,
+                                      static_cast<meshintersect::BoolOpType>(boolean_mode));
 }
 
 bool BM_mesh_boolean_knife(BMesh *bm,
-                           const blender::Span<std::array<BMLoop *, 3>> looptris,
+                           const Span<std::array<BMLoop *, 3>> looptris,
                            int (*test_fn)(BMFace *f, void *user_data),
                            void *user_data,
                            const int nshapes,
@@ -451,20 +452,20 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                            const bool hole_tolerant,
                            const bool keep_hidden)
 {
-  return blender::meshintersect::bmesh_boolean(bm,
-                                               looptris,
-                                               test_fn,
-                                               user_data,
-                                               nshapes,
-                                               use_self,
-                                               use_separate_all,
-                                               keep_hidden,
-                                               hole_tolerant,
-                                               blender::meshintersect::BoolOpType::None);
+  return meshintersect::bmesh_boolean(bm,
+                                      looptris,
+                                      test_fn,
+                                      user_data,
+                                      nshapes,
+                                      use_self,
+                                      use_separate_all,
+                                      keep_hidden,
+                                      hole_tolerant,
+                                      meshintersect::BoolOpType::None);
 }
 #else
 bool BM_mesh_boolean(BMesh * /*bm*/,
-                     blender::Span<std::array<BMLoop *, 3>> looptris,
+                     Span<std::array<BMLoop *, 3>> looptris,
                      int (*test_fn)(BMFace *, void *),
                      void * /*user_data*/,
                      const int /*nshapes*/,
@@ -478,7 +479,7 @@ bool BM_mesh_boolean(BMesh * /*bm*/,
 }
 
 bool BM_mesh_boolean_knife(BMesh * /*bm*/,
-                           blender::Span<std::array<BMLoop *, 3>> looptris,
+                           Span<std::array<BMLoop *, 3>> looptris,
                            int (*test_fn)(BMFace *, void *),
                            void * /*user_data*/,
                            const int /*nshapes*/,
@@ -491,3 +492,5 @@ bool BM_mesh_boolean_knife(BMesh * /*bm*/,
   return false;
 }
 #endif
+
+}  // namespace blender

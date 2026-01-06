@@ -25,6 +25,8 @@
 
 #include "ED_object.hh"
 
+namespace blender {
+
 /* Please keep the names in sync with `constraint.cc`. */
 const EnumPropertyItem rna_enum_constraint_type_items[] = {
     RNA_ENUM_ITEM_HEADING(N_("Motion Tracking"), nullptr),
@@ -268,7 +270,33 @@ static const EnumPropertyItem euler_order_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
+
+#  include <fmt/format.h>
+
+#  include "DNA_cachefile_types.h"
+
+#  include "BLI_listbase.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
+#  include "BKE_action.hh"
+#  include "BKE_animsys.h"
+#  include "BKE_constraint.h"
+#  include "BKE_context.hh"
+#  include "BKE_lib_id.hh"
+
+#  ifdef WITH_ALEMBIC
+#    include "ABC_alembic.h"
+#  endif
+
+#  include "ANIM_action.hh"
+
+#  include "rna_action_tools.hh"
+
+namespace blender {
 
 static const EnumPropertyItem owner_space_object_items[] = {
     {CONSTRAINT_SPACE_WORLD,
@@ -308,28 +336,6 @@ static const EnumPropertyItem target_space_object_items[] = {
      "The transformation of the target is evaluated relative to its local coordinate system"},
     {0, nullptr, 0, nullptr, nullptr},
 };
-
-#  include <fmt/format.h>
-
-#  include "DNA_cachefile_types.h"
-
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
-
-#  include "BKE_action.hh"
-#  include "BKE_animsys.h"
-#  include "BKE_constraint.h"
-#  include "BKE_context.hh"
-#  include "BKE_lib_id.hh"
-
-#  ifdef WITH_ALEMBIC
-#    include "ABC_alembic.h"
-#  endif
-
-#  include "ANIM_action.hh"
-
-#  include "rna_action_tools.hh"
 
 static StructRNA *rna_ConstraintType_refine(PointerRNA *ptr)
 {
@@ -407,7 +413,7 @@ static void rna_ConstraintTargetBone_target_set(PointerRNA *ptr,
   Object *ob = static_cast<Object *>(value.data);
 
   if (!ob || ob->type == OB_ARMATURE) {
-    id_lib_extern(blender::id_cast<ID *>(ob));
+    id_lib_extern(id_cast<ID *>(ob));
     tgt->tar = ob;
   }
 }
@@ -425,9 +431,8 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 
   /* make sure name is unique */
   if (ptr->owner_id) {
-    Object *ob = blender::id_cast<Object *>(ptr->owner_id);
-    ListBaseT<bConstraint> *list = blender::ed::object::constraint_list_from_constraint(
-        ob, con, nullptr);
+    Object *ob = id_cast<Object *>(ptr->owner_id);
+    ListBaseT<bConstraint> *list = ed::object::constraint_list_from_constraint(ob, con, nullptr);
 
     /* if we have the list, check for unique name, otherwise give up */
     if (list) {
@@ -442,8 +447,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 static std::optional<std::string> rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
 {
   bPoseChannel *pchan;
-  ListBaseT<bConstraint> *lb = blender::ed::object::constraint_list_from_constraint(
-      ob, con, &pchan);
+  ListBaseT<bConstraint> *lb = ed::object::constraint_list_from_constraint(ob, con, &pchan);
 
   if (lb == nullptr) {
     printf("%s: internal error, constraint '%s' not found in object '%s'\n",
@@ -466,7 +470,7 @@ static std::optional<std::string> rna_Constraint_do_compute_path(Object *ob, bCo
 
 static std::optional<std::string> rna_Constraint_path(const PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   bConstraint *con = static_cast<bConstraint *>(ptr->data);
 
   return rna_Constraint_do_compute_path(ob, con);
@@ -474,7 +478,7 @@ static std::optional<std::string> rna_Constraint_path(const PointerRNA *ptr)
 
 static bConstraint *rna_constraint_from_target(const PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   bConstraintTarget *tgt = static_cast<bConstraintTarget *>(ptr->data);
 
   return BKE_constraint_find_from_target(ob, tgt, nullptr);
@@ -482,7 +486,7 @@ static bConstraint *rna_constraint_from_target(const PointerRNA *ptr)
 
 static std::optional<std::string> rna_ConstraintTarget_path(const PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   bConstraintTarget *tgt = static_cast<bConstraintTarget *>(ptr->data);
   bConstraint *con = rna_constraint_from_target(ptr);
   int index = -1;
@@ -508,31 +512,31 @@ static std::optional<std::string> rna_ConstraintTarget_path(const PointerRNA *pt
 
 static void rna_Constraint_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  blender::ed::object::constraint_tag_update(
-      bmain, blender::id_cast<Object *>(ptr->owner_id), static_cast<bConstraint *>(ptr->data));
+  ed::object::constraint_tag_update(
+      bmain, id_cast<Object *>(ptr->owner_id), static_cast<bConstraint *>(ptr->data));
 }
 
 static void rna_Constraint_dependency_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  blender::ed::object::constraint_dependency_tag_update(
-      bmain, blender::id_cast<Object *>(ptr->owner_id), static_cast<bConstraint *>(ptr->data));
+  ed::object::constraint_dependency_tag_update(
+      bmain, id_cast<Object *>(ptr->owner_id), static_cast<bConstraint *>(ptr->data));
 }
 
 static void rna_ConstraintTarget_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  blender::ed::object::constraint_tag_update(
-      bmain, blender::id_cast<Object *>(ptr->owner_id), rna_constraint_from_target(ptr));
+  ed::object::constraint_tag_update(
+      bmain, id_cast<Object *>(ptr->owner_id), rna_constraint_from_target(ptr));
 }
 
 static void rna_ConstraintTarget_dependency_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  blender::ed::object::constraint_dependency_tag_update(
-      bmain, blender::id_cast<Object *>(ptr->owner_id), rna_constraint_from_target(ptr));
+  ed::object::constraint_dependency_tag_update(
+      bmain, id_cast<Object *>(ptr->owner_id), rna_constraint_from_target(ptr));
 }
 
 static void rna_Constraint_influence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
 
   if (ob->pose) {
     ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
@@ -593,7 +597,7 @@ static const EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext * /*C*/
                                                                 PropertyRNA * /*prop*/,
                                                                 bool * /*r_free*/)
 {
-  Object *ob = blender::id_cast<Object *>(ptr->owner_id);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   bConstraint *con = static_cast<bConstraint *>(ptr->data);
 
   if (BLI_findindex(&ob->constraints, con) == -1) {
@@ -639,8 +643,7 @@ static bConstraintTarget *rna_ArmatureConstraint_target_new(ID *id, bConstraint 
   tgt->weight = 1.0f;
   BLI_addtail(&acon->targets, tgt);
 
-  blender::ed::object::constraint_dependency_tag_update(
-      bmain, blender::id_cast<Object *>(id), con);
+  ed::object::constraint_dependency_tag_update(bmain, id_cast<Object *>(id), con);
   return tgt;
 }
 
@@ -657,8 +660,7 @@ static void rna_ArmatureConstraint_target_remove(
 
   BLI_freelinkN(&acon->targets, tgt);
 
-  blender::ed::object::constraint_dependency_tag_update(
-      bmain, blender::id_cast<Object *>(id), con);
+  ed::object::constraint_dependency_tag_update(bmain, id_cast<Object *>(id), con);
 }
 
 static void rna_ArmatureConstraint_target_clear(ID *id, bConstraint *con, Main *bmain)
@@ -667,8 +669,7 @@ static void rna_ArmatureConstraint_target_clear(ID *id, bConstraint *con, Main *
 
   BLI_freelistN(&acon->targets);
 
-  blender::ed::object::constraint_dependency_tag_update(
-      bmain, blender::id_cast<Object *>(id), con);
+  ed::object::constraint_dependency_tag_update(bmain, id_cast<Object *>(id), con);
 }
 
 static void rna_ActionConstraint_mix_mode_set(PointerRNA *ptr, int value)
@@ -707,7 +708,7 @@ static void rna_ActionConstraint_minmax_range(
 
 static void rna_ActionConstraint_action_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
 {
-  using namespace blender::animrig;
+  using namespace animrig;
   BLI_assert(ptr->owner_id);
   BLI_assert(ptr->data);
 
@@ -771,7 +772,7 @@ static void rna_ActionConstraint_action_set(PointerRNA *ptr, PointerRNA value, R
 }
 
 static void rna_ActionConstraint_action_slot_handle_set(
-    PointerRNA *ptr, const blender::animrig::slot_handle_t new_slot_handle)
+    PointerRNA *ptr, const animrig::slot_handle_t new_slot_handle)
 {
   bConstraint *con = static_cast<bConstraint *>(ptr->data);
   bActionConstraint *acon = static_cast<bActionConstraint *>(con->data);
@@ -883,7 +884,7 @@ static bool rna_Constraint_cameraObject_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = static_cast<Object *>(value.data);
 
   if (ob) {
-    if (ob->type == OB_CAMERA && ob != blender::id_cast<Object *>(ptr->owner_id)) {
+    if (ob->type == OB_CAMERA && ob != id_cast<Object *>(ptr->owner_id)) {
       return 1;
     }
   }
@@ -900,9 +901,9 @@ static void rna_Constraint_followTrack_camera_set(PointerRNA *ptr,
   Object *ob = static_cast<Object *>(value.data);
 
   if (ob) {
-    if (ob->type == OB_CAMERA && ob != blender::id_cast<Object *>(ptr->owner_id)) {
+    if (ob->type == OB_CAMERA && ob != id_cast<Object *>(ptr->owner_id)) {
       data->camera = ob;
-      id_lib_extern(blender::id_cast<ID *>(ob));
+      id_lib_extern(id_cast<ID *>(ob));
     }
   }
   else {
@@ -919,9 +920,9 @@ static void rna_Constraint_followTrack_depthObject_set(PointerRNA *ptr,
   Object *ob = static_cast<Object *>(value.data);
 
   if (ob) {
-    if (ob->type == OB_MESH && ob != blender::id_cast<Object *>(ptr->owner_id)) {
+    if (ob->type == OB_MESH && ob != id_cast<Object *>(ptr->owner_id)) {
       data->depth_ob = ob;
-      id_lib_extern(blender::id_cast<ID *>(ob));
+      id_lib_extern(id_cast<ID *>(ob));
     }
   }
   else {
@@ -934,7 +935,7 @@ static bool rna_Constraint_followTrack_depthObject_poll(PointerRNA *ptr, Pointer
   Object *ob = static_cast<Object *>(value.data);
 
   if (ob) {
-    if (ob->type == OB_MESH && ob != blender::id_cast<Object *>(ptr->owner_id)) {
+    if (ob->type == OB_MESH && ob != id_cast<Object *>(ptr->owner_id)) {
       return 1;
     }
   }
@@ -951,9 +952,9 @@ static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr,
   Object *ob = static_cast<Object *>(value.data);
 
   if (ob) {
-    if (ob->type == OB_CAMERA && ob != blender::id_cast<Object *>(ptr->owner_id)) {
+    if (ob->type == OB_CAMERA && ob != id_cast<Object *>(ptr->owner_id)) {
       data->camera = ob;
-      id_lib_extern(blender::id_cast<ID *>(ob));
+      id_lib_extern(id_cast<ID *>(ob));
     }
   }
   else {
@@ -961,7 +962,11 @@ static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr,
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static const EnumPropertyItem constraint_distance_items[] = {
     {LIMITDIST_INSIDE,
@@ -3929,5 +3934,7 @@ void RNA_def_constraint(BlenderRNA *brna)
   rna_def_constraint_transform_cache(brna);
   rna_def_constraint_geometry_attribute(brna);
 }
+
+}  // namespace blender
 
 #endif

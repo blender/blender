@@ -39,6 +39,8 @@
 #include "ED_armature.hh"
 #include "ED_view3d.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Clipping Utilities
  * \{ */
@@ -86,7 +88,7 @@ static int content_planes_from_clip_flag(const ARegion *region,
   BLI_assert(planes_len <= 6);
   if (planes_len != 0) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-    const blender::float4x4 projection = ED_view3d_ob_project_mat_get(rv3d, ob);
+    const float4x4 projection = ED_view3d_ob_project_mat_get(rv3d, ob);
     planes_from_projmat(
         projection.ptr(), clip_xmin, clip_xmax, clip_ymin, clip_ymax, clip_zmin, clip_zmax);
   }
@@ -208,7 +210,7 @@ struct foreachScreenObjectVert_userData {
   void (*func)(void *user_data, const float screen_co[2], int index);
   void *user_data;
   ViewContext vc;
-  blender::VArraySpan<bool> hide_vert;
+  VArraySpan<bool> hide_vert;
   eV3DProjTest clip_flag;
 };
 
@@ -289,7 +291,6 @@ void meshobject_foreachScreenVert(const ViewContext *vc,
                                   void *user_data,
                                   eV3DProjTest clip_flag)
 {
-  using namespace blender;
   BLI_assert((clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) == 0);
   foreachScreenObjectVert_userData data;
 
@@ -342,7 +343,7 @@ void mesh_foreachScreenVert(
 {
   foreachScreenVert_userData data;
 
-  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
+  Mesh *mesh = bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
   mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
 
@@ -407,7 +408,7 @@ void mesh_foreachScreenEdge(const ViewContext *vc,
 {
   foreachScreenEdge_userData data;
 
-  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
+  Mesh *mesh = bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
   mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
 
@@ -497,7 +498,7 @@ void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
 {
   foreachScreenEdge_userData data;
 
-  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
+  Mesh *mesh = bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
   mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
 
@@ -572,7 +573,7 @@ void mesh_foreachScreenFace(
   BLI_assert((clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) == 0);
   foreachScreenFace_userData data;
 
-  Mesh *mesh = blender::bke::editbmesh_get_eval_cage_from_orig(
+  Mesh *mesh = bke::editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
   mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
   ED_view3d_check_mats_rv3d(vc->rv3d);
@@ -612,7 +613,7 @@ void nurbs_foreachScreenVert(const ViewContext *vc,
                              void *user_data,
                              const eV3DProjTest clip_flag)
 {
-  Curve *cu = blender::id_cast<Curve *>(vc->obedit->data);
+  Curve *cu = id_cast<Curve *>(vc->obedit->data);
   int i;
   ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
   /* If no point in the triple is selected, the handles are invisible. */
@@ -707,7 +708,7 @@ void mball_foreachScreenElem(const ViewContext *vc,
                              void *user_data,
                              const eV3DProjTest clip_flag)
 {
-  MetaBall *mb = blender::id_cast<MetaBall *>(vc->obedit->data);
+  MetaBall *mb = id_cast<MetaBall *>(vc->obedit->data);
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -732,7 +733,7 @@ void lattice_foreachScreenVert(const ViewContext *vc,
                                const eV3DProjTest clip_flag)
 {
   Object *obedit = vc->obedit;
-  Lattice *lt = blender::id_cast<Lattice *>(obedit->data);
+  Lattice *lt = id_cast<Lattice *>(obedit->data);
   BPoint *bp = lt->editlatt->latt->def;
   DispList *dl = obedit->runtime->curve_cache ?
                      BKE_displist_find(&obedit->runtime->curve_cache->disp, DL_VERTS) :
@@ -773,7 +774,7 @@ void armature_foreachScreenBone(const ViewContext *vc,
                                 void *user_data,
                                 const eV3DProjTest clip_flag)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(vc->obedit->data);
+  bArmature *arm = id_cast<bArmature *>(vc->obedit->data);
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -794,7 +795,7 @@ void armature_foreachScreenBone(const ViewContext *vc,
   }
 
   for (EditBone &ebone : *arm->edbo) {
-    if (!blender::animrig::bone_is_visible(arm, &ebone)) {
+    if (!animrig::bone_is_visible(arm, &ebone)) {
       continue;
     }
 
@@ -844,7 +845,7 @@ void pose_foreachScreenBone(const ViewContext *vc,
   /* Almost _exact_ copy of #armature_foreachScreenBone */
 
   const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, vc->obact);
-  const bArmature *arm_eval = blender::id_cast<const bArmature *>(ob_eval->data);
+  const bArmature *arm_eval = id_cast<const bArmature *>(ob_eval->data);
   bPose *pose = vc->obact->pose;
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
@@ -866,7 +867,7 @@ void pose_foreachScreenBone(const ViewContext *vc,
   }
 
   for (bPoseChannel &pchan : pose->chanbase) {
-    if (!blender::animrig::bone_is_visible(arm_eval, &pchan)) {
+    if (!animrig::bone_is_visible(arm_eval, &pchan)) {
       continue;
     }
 
@@ -901,3 +902,5 @@ void pose_foreachScreenBone(const ViewContext *vc,
 }
 
 /** \} */
+
+}  // namespace blender

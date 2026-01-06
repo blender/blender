@@ -42,7 +42,7 @@ void TreeElementGreasePencilNode::expand(SpaceOutliner & /*space_outliner*/) con
   }
 }
 
-blender::bke::greasepencil::TreeNode &TreeElementGreasePencilNode::node() const
+bke::greasepencil::TreeNode &TreeElementGreasePencilNode::node() const
 {
   return node_;
 }

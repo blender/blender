@@ -30,11 +30,11 @@
 
 #include <fmt/format.h>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"lib.main_namemap"};
 
 // #define DEBUG_PRINT_MEMORY_USAGE
-
-using namespace blender;
 
 /* Assumes and ensure that the suffix number can never go beyond 1 billion. */
 constexpr int MAX_NUMBER = 999999999;
@@ -623,7 +623,7 @@ struct Uniqueness_Key {
   Library *lib;
   uint64_t hash() const
   {
-    return blender::get_default_hash(name, lib);
+    return get_default_hash(name, lib);
   }
   friend bool operator==(const Uniqueness_Key &a, const Uniqueness_Key &b)
   {
@@ -772,3 +772,5 @@ bool BKE_main_namemap_validate(Main &bmain)
 {
   return main_namemap_validate_and_fix(bmain, false);
 }
+
+}  // namespace blender

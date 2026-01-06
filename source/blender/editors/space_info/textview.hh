@@ -12,6 +12,8 @@
 
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 #define TVC_TAB_COLUMNS 4
 
 enum eTextViewContext_LineFlag {
@@ -79,3 +81,5 @@ int textview_draw(TextViewContext *tvc,
                   const int mval_init[2],
                   void **r_mval_pick_item,
                   int *r_mval_pick_offset);
+
+}  // namespace blender

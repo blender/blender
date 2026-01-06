@@ -12,10 +12,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct AnimData;
 struct ID;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementID : public AbstractTreeElement {
  protected:
@@ -40,4 +42,5 @@ class TreeElementID : public AbstractTreeElement {
   void expand_animation_data(AnimData *) const;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

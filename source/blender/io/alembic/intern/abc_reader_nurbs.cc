@@ -22,6 +22,8 @@
 #include "BKE_curve.hh"
 #include "BKE_object.hh"
 
+namespace blender {
+
 using Alembic::AbcGeom::FloatArraySamplePtr;
 using Alembic::AbcGeom::kWrapExisting;
 using Alembic::AbcGeom::MetaData;
@@ -32,7 +34,7 @@ using Alembic::AbcGeom::INuPatch;
 using Alembic::AbcGeom::INuPatchSchema;
 using Alembic::AbcGeom::IObject;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 AbcNurbsReader::AbcNurbsReader(const IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
@@ -189,7 +191,7 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
   }
 
   m_object = BKE_object_add_only_object(bmain, OB_SURF, m_object_name.c_str());
-  m_object->data = blender::id_cast<ID *>(cu);
+  m_object->data = id_cast<ID *>(cu);
 }
 
 void AbcNurbsReader::getNurbsPatches(const IObject &obj)
@@ -231,4 +233,5 @@ void AbcNurbsReader::getNurbsPatches(const IObject &obj)
   }
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

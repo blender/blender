@@ -123,7 +123,7 @@ struct SlideOperationExecutor {
     self_ = &self;
 
     curves_ob_orig_ = ctx_.object;
-    curves_id_orig_ = blender::id_cast<Curves *>(curves_ob_orig_->data);
+    curves_id_orig_ = id_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
     if (curves_id_orig_->surface == nullptr || curves_id_orig_->surface->type != OB_MESH) {
       report_missing_surface(stroke_extension.reports);
@@ -159,7 +159,7 @@ struct SlideOperationExecutor {
     transforms_ = CurvesSurfaceTransforms(*curves_ob_orig_, curves_id_orig_->surface);
 
     surface_ob_orig_ = curves_id_orig_->surface;
-    surface_orig_ = blender::id_cast<const Mesh *>(surface_ob_orig_->data);
+    surface_orig_ = id_cast<const Mesh *>(surface_ob_orig_->data);
     if (surface_orig_->faces_num == 0) {
       report_empty_original_surface(stroke_extension.reports);
       return;

@@ -309,9 +309,9 @@ class GreasePencil : Overlay {
                                  ResourceHandleRange res_handle,
                                  select::ID select_id = select::SelectMap::select_invalid_id())
   {
-    using namespace blender;
     using namespace blender::ed::greasepencil;
-    ::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<::GreasePencil>(*ob);
+    blender::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<blender::GreasePencil>(
+        *ob);
 
     const bool is_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
 
@@ -370,7 +370,7 @@ class GreasePencil : Overlay {
           return;
         }
 
-        blender::gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(scene, ob);
+        gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(scene, ob);
 
         const bool show_stroke = (gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0;
         const bool show_fill = (points.size() >= 3) &&
@@ -435,8 +435,9 @@ class GreasePencil : Overlay {
   {
     const ToolSettings *ts = scene->toolsettings;
 
-    const ::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<::GreasePencil>(object);
-    const blender::bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer();
+    const blender::GreasePencil &grease_pencil =
+        DRW_object_get_data_for_drawing<blender::GreasePencil>(object);
+    const bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer();
 
     float4x4 mat = object.object_to_world();
     if (active_layer && ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
@@ -462,7 +463,7 @@ class GreasePencil : Overlay {
       case GP_LOCKAXIS_VIEW:
         /* view aligned */
         /* TODO(fclem): Global access. */
-        mat = blender::draw::View::default_get().viewinv();
+        mat = draw::View::default_get().viewinv();
         break;
     }
 
@@ -487,7 +488,8 @@ class GreasePencil : Overlay {
     uchar4 color;
     ui::theme::get_color_4ubv(res.object_wire_theme_id(ob_ref, state), color);
 
-    ::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<::GreasePencil>(object);
+    blender::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<blender::GreasePencil>(
+        object);
 
     Vector<ed::greasepencil::DrawingInfo> drawings = ed::greasepencil::retrieve_visible_drawings(
         *state.scene, grease_pencil, false);

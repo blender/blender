@@ -47,11 +47,13 @@
 #include "prefetch.hh"
 #include "render.hh"
 
+namespace blender {
+
 struct RenderResult;
 struct Scene;
 struct ThreadSlot;
 
-namespace blender::seq {
+namespace seq {
 
 struct PrefetchJob {
   PrefetchJob *next = nullptr;
@@ -675,4 +677,5 @@ bool prefetch_need_redraw(const bContext *C, Scene *scene)
   return false;
 }
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

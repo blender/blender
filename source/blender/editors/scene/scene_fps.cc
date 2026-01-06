@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 using FrameSampleT = uint32_t;
 using FrameSumT = uint64_t;
 
@@ -200,3 +202,5 @@ bool ED_scene_fps_average_calc(const Scene *scene, SceneFPS_State *r_state)
   r_state->fps_target_is_fractional = fpsi->fps_target_is_fractional;
   return true;
 }
+
+}  // namespace blender

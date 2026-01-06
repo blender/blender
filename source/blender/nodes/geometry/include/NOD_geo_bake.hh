@@ -16,12 +16,14 @@
 
 #include "BLI_index_range.hh"
 
+namespace blender {
+
 struct NodesModifierData;
 struct NodesModifierBake;
 struct SpaceNode;
 struct Object;
 
-namespace blender::nodes {
+namespace nodes {
 
 /**
  * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for index
@@ -126,4 +128,5 @@ void draw_bake_button_row(const BakeDrawContext &ctx,
                           ui::Layout &layout,
                           bool is_in_sidebar = false);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

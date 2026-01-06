@@ -50,6 +50,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #ifdef WIN32
 #  define FT_New_Face FT_New_Face__win32_compat
 #endif
@@ -64,13 +66,13 @@ static FTC_Manager ftc_manager = nullptr;
 static FTC_CMapCache ftc_charmap_cache = nullptr;
 
 /* Mutex around face creation and deletion. */
-static blender::Mutex ft_face_load_mutex;
+static Mutex ft_face_load_mutex;
 
 /* Lock around places that query free type caching system, and use the
  * calculated ft_size result. `FTC_Manager_LookupSize` can remove
  * ft_size of a completely different font instance, when the cache
  * is full! */
-static blender::Mutex ft_cache_size_mutex;
+static Mutex ft_cache_size_mutex;
 
 /* May be set to #widgetbase_draw_cache_flush. */
 static void (*blf_draw_cache_flush)() = nullptr;
@@ -263,7 +265,7 @@ void blf_batch_draw_begin(FontBLF *font)
   }
 }
 
-static blender::gpu::Texture *blf_batch_cache_texture_load()
+static gpu::Texture *blf_batch_cache_texture_load()
 {
   GlyphCacheBLF *gc = g_batch.glyph_cache;
   BLI_assert(gc);
@@ -316,7 +318,7 @@ void blf_batch_draw()
     blf_draw_cache_flush();
   }
 
-  blender::gpu::Texture *texture = blf_batch_cache_texture_load();
+  gpu::Texture *texture = blf_batch_cache_texture_load();
   GPU_storagebuf_usage_size_set(g_batch.glyph_buf, size_t(g_batch.glyph_len) * sizeof(GlyphQuad));
   GPU_storagebuf_update(g_batch.glyph_buf, g_batch.glyph_data);
   GPU_storagebuf_bind(g_batch.glyph_buf, 0);
@@ -536,7 +538,7 @@ void blf_draw_svg_icon(FontBLF *font,
                        const float color[4],
                        const float outline_alpha,
                        const bool multicolor,
-                       blender::FunctionRef<void(std::string &)> edit_source_cb)
+                       FunctionRef<void(std::string &)> edit_source_cb)
 {
   BLI_assert(outline_alpha <= 1.0f); /* Higher values overflow, caller must ensure. */
   blf_font_size(font, size);
@@ -575,13 +577,13 @@ void blf_draw_svg_icon(FontBLF *font,
   blf_glyph_cache_release(font);
 }
 
-blender::Array<uchar> blf_svg_icon_bitmap(FontBLF *font,
-                                          const uint icon_id,
-                                          const float size,
-                                          int *r_width,
-                                          int *r_height,
-                                          const bool multicolor,
-                                          blender::FunctionRef<void(std::string &)> edit_source_cb)
+Array<uchar> blf_svg_icon_bitmap(FontBLF *font,
+                                 const uint icon_id,
+                                 const float size,
+                                 int *r_width,
+                                 int *r_height,
+                                 const bool multicolor,
+                                 FunctionRef<void(std::string &)> edit_source_cb)
 {
   blf_font_size(font, size);
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
@@ -596,7 +598,7 @@ blender::Array<uchar> blf_svg_icon_bitmap(FontBLF *font,
 
   *r_width = g->dims[0];
   *r_height = g->dims[1];
-  blender::Array<uchar> bitmap(g->dims[0] * g->dims[1] * 4);
+  Array<uchar> bitmap(g->dims[0] * g->dims[1] * 4);
 
   if (g->num_channels == 4) {
     memcpy(bitmap.data(), g->bitmap, size_t(bitmap.size()));
@@ -1232,13 +1234,13 @@ int blf_str_offset_to_cursor(FontBLF *font,
   return int(blf_font_width(font, str, str_len, nullptr));
 }
 
-blender::Vector<blender::Bounds<int>> blf_str_selection_boxes(
+Vector<Bounds<int>> blf_str_selection_boxes(
     FontBLF *font, const char *str, size_t str_len, size_t sel_start, size_t sel_length)
 {
-  blender::Vector<blender::Bounds<int>> boxes;
+  Vector<Bounds<int>> boxes;
   const int start = blf_str_offset_to_cursor(font, str, str_len, sel_start, 0);
   const int end = blf_str_offset_to_cursor(font, str, str_len, sel_start + sel_length, 0);
-  boxes.append(blender::Bounds(start, end));
+  boxes.append(Bounds(start, end));
   return boxes;
 }
 
@@ -1504,7 +1506,7 @@ void blf_font_draw_buffer__wrap(FontBLF *font,
                       nullptr);
 }
 
-/** Wrap a blender::StringRef. */
+/** Wrap a StringRef. */
 static void blf_font_string_wrap_cb(FontBLF * /*font*/,
                                     GlyphCacheBLF * /*gc*/,
                                     const char *str,
@@ -1512,18 +1514,17 @@ static void blf_font_string_wrap_cb(FontBLF * /*font*/,
                                     const ft_pix /*pen_y*/,
                                     void *str_list_ptr)
 {
-  blender::Vector<blender::StringRef> *list = static_cast<blender::Vector<blender::StringRef> *>(
-      str_list_ptr);
-  blender::StringRef line(str, str + str_len);
+  Vector<StringRef> *list = static_cast<Vector<StringRef> *>(str_list_ptr);
+  StringRef line(str, str + str_len);
   list->append(line);
 }
 
-blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
-                                                         blender::StringRef str,
-                                                         int max_pixel_width,
-                                                         BLFWrapMode mode)
+Vector<StringRef> blf_font_string_wrap(FontBLF *font,
+                                       StringRef str,
+                                       int max_pixel_width,
+                                       BLFWrapMode mode)
 {
-  blender::Vector<blender::StringRef> list;
+  Vector<StringRef> list;
   blf_font_wrap_apply(font,
                       str.data(),
                       size_t(str.size()),
@@ -2174,3 +2175,5 @@ bool blf_font_size(FontBLF *font, float size)
 }
 
 /** \} */
+
+}  // namespace blender

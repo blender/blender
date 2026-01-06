@@ -20,6 +20,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
     {0,
      "NONE",
@@ -29,6 +31,8 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
      "already"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+}
 
 #ifdef RNA_RUNTIME
 
@@ -69,6 +73,8 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "SEQ_iterator.hh"
 #  include "SEQ_relations.hh"
 
+namespace blender {
+
 struct SeqCurveMappingUpdateData {
   Scene *scene;
   CurveMapping *curve;
@@ -83,7 +89,7 @@ static bool seq_update_modifier_curve(Strip *strip, void *user_data)
     if (smd.type == eSeqModifierType_Curves) {
       CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(&smd);
       if (&cmd->curve_mapping == data->curve) {
-        blender::seq::relations_invalidate_cache(data->scene, strip);
+        seq::relations_invalidate_cache(data->scene, strip);
       }
     }
   }
@@ -93,10 +99,10 @@ static bool seq_update_modifier_curve(Strip *strip, void *user_data)
 static void seq_notify_curve_update(CurveMapping *curve, ID *id)
 {
   if (id && GS(id->name) == ID_SCE) {
-    Scene *scene = blender::id_cast<Scene *>(id);
+    Scene *scene = id_cast<Scene *>(id);
     if (scene->ed) {
       SeqCurveMappingUpdateData data{scene, curve};
-      blender::seq::foreach_strip(&scene->ed->seqbase, seq_update_modifier_curve, &data);
+      seq::foreach_strip(&scene->ed->seqbase, seq_update_modifier_curve, &data);
     }
   }
 }
@@ -227,7 +233,7 @@ static std::optional<std::string> rna_ColorRamp_path(const PointerRNA *ptr)
 
     switch (GS(id->name)) {
       case ID_NT: {
-        bNodeTree *ntree = blender::id_cast<bNodeTree *>(id);
+        bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
@@ -247,7 +253,7 @@ static std::optional<std::string> rna_ColorRamp_path(const PointerRNA *ptr)
 
       case ID_LS: {
         /* may be nullptr */
-        return BKE_linestyle_path_to_color_ramp(blender::id_cast<FreestyleLineStyle *>(id),
+        return BKE_linestyle_path_to_color_ramp(id_cast<FreestyleLineStyle *>(id),
                                                 static_cast<ColorBand *>(ptr->data));
       }
 
@@ -295,7 +301,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
 
     switch (GS(id->name)) {
       case ID_NT: {
-        bNodeTree *ntree = blender::id_cast<bNodeTree *>(id);
+        bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
@@ -310,8 +316,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
         ListBaseT<LinkData> listbase;
         LinkData *link;
 
-        BKE_linestyle_modifier_list_color_ramps(blender::id_cast<FreestyleLineStyle *>(id),
-                                                &listbase);
+        BKE_linestyle_modifier_list_color_ramps(id_cast<FreestyleLineStyle *>(id), &listbase);
         for (link = static_cast<LinkData *>(listbase.first); link; link = link->next) {
           ramp_ptr = RNA_pointer_create_discrete(id, &RNA_ColorRamp, link->data);
           COLRAMP_GETPATH;
@@ -345,14 +350,14 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
 
     switch (GS(id->name)) {
       case ID_MA: {
-        Material *ma = blender::id_cast<Material *>(ptr->owner_id);
+        Material *ma = id_cast<Material *>(ptr->owner_id);
 
         DEG_id_tag_update(&ma->id, 0);
         WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
         break;
       }
       case ID_NT: {
-        bNodeTree *ntree = blender::id_cast<bNodeTree *>(id);
+        bNodeTree *ntree = id_cast<bNodeTree *>(id);
         bNode *node;
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
@@ -364,14 +369,14 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
         break;
       }
       case ID_TE: {
-        Tex *tex = blender::id_cast<Tex *>(ptr->owner_id);
+        Tex *tex = id_cast<Tex *>(ptr->owner_id);
 
         DEG_id_tag_update(&tex->id, 0);
         WM_main_add_notifier(NC_TEXTURE, tex);
         break;
       }
       case ID_LS: {
-        FreestyleLineStyle *linestyle = blender::id_cast<FreestyleLineStyle *>(ptr->owner_id);
+        FreestyleLineStyle *linestyle = id_cast<FreestyleLineStyle *>(ptr->owner_id);
 
         WM_main_add_notifier(NC_LINESTYLE, linestyle);
         break;
@@ -379,7 +384,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
       /* Color Ramp for particle display is owned by the object (see #54422) */
       case ID_OB:
       case ID_PA: {
-        ParticleSettings *part = blender::id_cast<ParticleSettings *>(ptr->owner_id);
+        ParticleSettings *part = id_cast<ParticleSettings *>(ptr->owner_id);
 
         WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, part);
       }
@@ -532,7 +537,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
   ID *id = ptr->owner_id;
 
   if (id && GS(id->name) == ID_SCE) {
-    Scene *scene = blender::id_cast<Scene *>(id);
+    Scene *scene = id_cast<Scene *>(id);
 
     IMB_colormanagement_validate_settings(&scene->display_settings, &scene->view_settings);
 
@@ -787,7 +792,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
   }
 
   if (GS(id->name) == ID_IM) {
-    Image *ima = blender::id_cast<Image *>(id);
+    Image *ima = id_cast<Image *>(id);
 
     DEG_id_tag_update(&ima->id, 0);
     DEG_id_tag_update(&ima->id, ID_RECALC_SOURCE);
@@ -798,17 +803,17 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
     WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
   }
   else if (GS(id->name) == ID_MC) {
-    MovieClip *clip = blender::id_cast<MovieClip *>(id);
+    MovieClip *clip = id_cast<MovieClip *>(id);
 
     DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
-    blender::seq::relations_invalidate_movieclip_strips(bmain, clip);
+    seq::relations_invalidate_movieclip_strips(bmain, clip);
 
     WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
     WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, &clip->id);
   }
   else if (GS(id->name) == ID_SCE) {
-    Scene *scene = blender::id_cast<Scene *>(id);
-    blender::seq::relations_invalidate_scene_strips(bmain, scene);
+    Scene *scene = id_cast<Scene *>(id);
+    seq::relations_invalidate_scene_strips(bmain, scene);
 
     if (scene->ed) {
       ColorManagedColorspaceSettings *colorspace_settings =
@@ -817,23 +822,22 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
 
       if (&scene->sequencer_colorspace_settings == colorspace_settings) {
         /* Scene colorspace was changed. */
-        blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::All);
+        seq::cache_cleanup(scene, seq::CacheCleanup::All);
       }
       else {
         /* Strip colorspace was likely changed. */
-        blender::seq::foreach_strip(
-            &scene->ed->seqbase, strip_find_colorspace_settings_cb, &cb_data);
+        seq::foreach_strip(&scene->ed->seqbase, strip_find_colorspace_settings_cb, &cb_data);
         Strip *strip = cb_data.r_seq;
 
         if (strip) {
-          blender::seq::strip_free_movie_readers(strip);
+          seq::strip_free_movie_readers(strip);
 
           if (strip->data->proxy && strip->data->proxy->anim) {
             MOV_close(strip->data->proxy->anim);
             strip->data->proxy->anim = nullptr;
           }
 
-          blender::seq::relations_invalidate_cache_raw(scene, strip);
+          seq::relations_invalidate_cache_raw(scene, strip);
         }
       }
 
@@ -887,7 +891,12 @@ static void rna_CurveMap_initialize(CurveMapping *cumap)
 {
   BKE_curvemapping_init(cumap);
 }
+
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_curvemappoint(BlenderRNA *brna)
 {
@@ -1611,5 +1620,7 @@ void RNA_def_color(BlenderRNA *brna)
   rna_def_scopes(brna);
   rna_def_colormanage(brna);
 }
+
+}  // namespace blender
 
 #endif

@@ -10,6 +10,8 @@
 
 #include "DNA_defs.h"
 
+namespace blender {
+
 /** #Object::fluidsimSettings */
 enum {
   OB_FLUIDSIM_ENABLE = 1,
@@ -133,3 +135,5 @@ struct FluidsimSettings {
   /** Simulation/flow rate control. */
   float animRate = 0;
 };
+
+}  // namespace blender

@@ -6,10 +6,12 @@
 
 #include "volume.hh"
 
+namespace blender {
+
 struct FluidModifierData;
 struct Object;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 class HydraSceneDelegate;
 
 class VolumeModifierData : public VolumeData {
@@ -32,4 +34,5 @@ class VolumeModifierData : public VolumeData {
   const FluidModifierData *modifier_;
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

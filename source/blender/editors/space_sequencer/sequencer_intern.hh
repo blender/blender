@@ -24,6 +24,8 @@
 
 #include "sequencer_scopes.hh"
 
+namespace blender {
+
 /* Internal exports only. */
 
 struct ARegion;
@@ -45,11 +47,11 @@ struct wmOperatorType;
 struct ScrArea;
 struct Editing;
 
-namespace blender::ed::asset {
+namespace ed::asset {
 struct AssetItemTree;
 }
 
-namespace blender::ed::vse {
+namespace ed::vse {
 
 class SeqQuadsBatch;
 class StripsDrawBatch;
@@ -424,4 +426,5 @@ MenuType add_catalog_assets_menu_type();
 MenuType add_unassigned_assets_menu_type();
 MenuType add_scene_menu_type();
 
-}  // namespace blender::ed::vse
+}  // namespace ed::vse
+}  // namespace blender

@@ -48,7 +48,7 @@
 
 #include "action_intern.hh"
 
-using namespace blender;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Keyframes Stuff
@@ -63,15 +63,15 @@ static bAnimListElem *actkeys_find_list_element_at_position(bAnimContext *ac,
 
   float view_x, view_y;
   int channel_index;
-  blender::ui::view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
-  blender::ui::view2d_listview_view_to_cell(0,
-                                            ANIM_UI_get_channel_step(),
-                                            0,
-                                            ANIM_UI_get_first_channel_top(v2d),
-                                            view_x,
-                                            view_y,
-                                            nullptr,
-                                            &channel_index);
+  ui::view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
+  ui::view2d_listview_view_to_cell(0,
+                                   ANIM_UI_get_channel_step(),
+                                   0,
+                                   ANIM_UI_get_first_channel_top(v2d),
+                                   view_x,
+                                   view_y,
+                                   nullptr,
+                                   &channel_index);
 
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
@@ -95,7 +95,7 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
     ads = static_cast<bDopeSheet *>(ac->data);
   }
 
-  blender::float2 range = {ac->region->v2d.cur.xmin, ac->region->v2d.cur.xmax};
+  float2 range = {ac->region->v2d.cur.xmin, ac->region->v2d.cur.xmax};
 
   if (ale->key_data) {
     switch (ale->datatype) {
@@ -214,8 +214,8 @@ static void actkeys_find_key_in_list_element(bAnimContext *ac,
   key_hsize = roundf(key_hsize / 2.0f);
 
   const Bounds<float> range = {
-      blender::ui::view2d_region_to_view_x(v2d, region_x - int(key_hsize)),
-      blender::ui::view2d_region_to_view_x(v2d, region_x + int(key_hsize)),
+      ui::view2d_region_to_view_x(v2d, region_x - int(key_hsize)),
+      ui::view2d_region_to_view_x(v2d, region_x + int(key_hsize)),
   };
   const ActKeyColumn *ak = ED_keylist_find_any_between(keylist, range);
   if (ak) {
@@ -322,7 +322,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Se
         }
       }
       else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-        if (blender::ed::greasepencil::has_any_frame_selected(
+        if (ed::greasepencil::has_any_frame_selected(
                 static_cast<GreasePencilLayer *>(ale.data)->wrap()))
         {
           sel = SELECT_SUBTRACT;
@@ -353,8 +353,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Se
       ED_masklayer_frame_select_set(static_cast<MaskLayer *>(ale.data), sel);
     }
     else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      blender::ed::greasepencil::select_all_frames(
-          static_cast<GreasePencilLayer *>(ale.data)->wrap(), sel);
+      ed::greasepencil::select_all_frames(static_cast<GreasePencilLayer *>(ale.data)->wrap(), sel);
       ale.update |= ANIM_UPDATE_DEPS;
     }
     else {
@@ -461,8 +460,8 @@ static void box_select_elem(
   switch (ale->type) {
     case ANIMTYPE_GREASE_PENCIL_DATABLOCK: {
       GreasePencil *grease_pencil = static_cast<GreasePencil *>(ale->data);
-      for (blender::bke::greasepencil::Layer *layer : grease_pencil->layers_for_write()) {
-        blender::ed::greasepencil::select_frames_range(
+      for (bke::greasepencil::Layer *layer : grease_pencil->layers_for_write()) {
+        ed::greasepencil::select_frames_range(
             layer->wrap().as_node(), xmin, xmax, sel_data->selectmode);
       }
       ale->update |= ANIM_UPDATE_DEPS;
@@ -470,7 +469,7 @@ static void box_select_elem(
     }
     case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
     case ANIMTYPE_GREASE_PENCIL_LAYER:
-      blender::ed::greasepencil::select_frames_range(
+      ed::greasepencil::select_frames_range(
           static_cast<GreasePencilLayerTreeNode *>(ale->data)->wrap(),
           xmin,
           xmax,
@@ -542,8 +541,8 @@ static void box_select_action(bAnimContext *ac,
 
   /* Convert mouse coordinates to frame ranges and channel
    * coordinates corrected for view pan/zoom. */
-  blender::ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
-  blender::ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
+  ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
+  ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -736,7 +735,7 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
     }
     case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
     case ANIMTYPE_GREASE_PENCIL_LAYER: {
-      blender::ed::greasepencil::select_frames_region(
+      ed::greasepencil::select_frames_region(
           &sel_data->ked,
           static_cast<GreasePencilLayerTreeNode *>(ale->data)->wrap(),
           sel_data->mode,
@@ -822,7 +821,7 @@ static void region_select_action_keys(bAnimContext *ac,
 
   /* Convert mouse coordinates to frame ranges and channel
    * coordinates corrected for view pan/zoom. */
-  blender::ui::view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
+  ui::view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -1089,7 +1088,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
   for (bAnimListElem &ale : anim_data) {
     switch (ale.type) {
       case ANIMTYPE_GREASE_PENCIL_LAYER:
-        blender::ed::greasepencil::select_frames_range(
+        ed::greasepencil::select_frames_range(
             static_cast<GreasePencilLayerTreeNode *>(ale.data)->wrap(), min, max, SELECT_ADD);
         ale.update |= ANIM_UPDATE_DEPS;
         break;
@@ -1146,7 +1145,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
                   static_cast<bGPDlayer *>(ale.data), &ked.cfra_elem_list, true);
               break;
             case ANIMTYPE_GREASE_PENCIL_LAYER:
-              blender::ed::greasepencil ::create_keyframe_edit_data_selected_frames_list(
+              ed::greasepencil ::create_keyframe_edit_data_selected_frames_list(
                   &ked, static_cast<GreasePencilLayer *>(ale.data)->wrap());
               break;
             default:
@@ -1214,7 +1213,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         ale.update |= ANIM_UPDATE_DEPS;
       }
       else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-        blender::ed::greasepencil::select_frame_at(
+        ed::greasepencil::select_frame_at(
             static_cast<GreasePencilLayer *>(ale.data)->wrap(), ce.cfra, SELECT_ADD);
         ale.update |= ANIM_UPDATE_DEPS;
       }
@@ -1533,7 +1532,7 @@ static void actkeys_select_leftright(bAnimContext *ac,
   for (bAnimListElem &ale : anim_data) {
     switch (ale.type) {
       case ANIMTYPE_GREASE_PENCIL_LAYER:
-        blender::ed::greasepencil::select_frames_range(
+        ed::greasepencil::select_frames_range(
             static_cast<GreasePencilLayerTreeNode *>(ale.data)->wrap(),
             ked.f1,
             ked.f2,
@@ -1643,7 +1642,7 @@ static wmOperatorStatus actkeys_select_leftright_invoke(bContext *C,
     float x;
 
     /* determine which side of the current frame mouse is on */
-    x = blender::ui::view2d_region_to_view_x(v2d, event->mval[0]);
+    x = ui::view2d_region_to_view_x(v2d, event->mval[0]);
     if (x < scene->r.cfra) {
       RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
     }
@@ -1718,12 +1717,12 @@ static void actkeys_mselect_single(bAnimContext *ac,
     ale->update |= ANIM_UPDATE_DEPS;
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-    blender::ed::greasepencil::select_frame_at(
+    ed::greasepencil::select_frame_at(
         static_cast<GreasePencilLayer *>(ale->data)->wrap(), selx, select_mode);
     ale->update |= ANIM_UPDATE_DEPS;
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER_GROUP) {
-    blender::ed::greasepencil::select_frames_at(
+    ed::greasepencil::select_frames_at(
         static_cast<GreasePencilLayerTreeGroup *>(ale->data)->wrap(), selx, select_mode);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_DATABLOCK) {
@@ -1738,7 +1737,7 @@ static void actkeys_mselect_single(bAnimContext *ac,
       if ((ale2.type != ANIMTYPE_GREASE_PENCIL_LAYER) || (ale2.id != ale->data)) {
         continue;
       }
-      blender::ed::greasepencil::select_frame_at(
+      ed::greasepencil::select_frame_at(
           static_cast<GreasePencilLayer *>(ale2.data)->wrap(), selx, select_mode);
       ale2.update |= ANIM_UPDATE_DEPS;
     }
@@ -1767,7 +1766,7 @@ static void actkeys_mselect_single(bAnimContext *ac,
             break;
 
           case ANIMTYPE_GREASE_PENCIL_LAYER:
-            blender::ed::greasepencil::select_frame_at(
+            ed::greasepencil::select_frame_at(
                 static_cast<GreasePencilLayer *>(ale2.data)->wrap(), selx, select_mode);
             ale2.update |= ANIM_UPDATE_DEPS;
             break;
@@ -1820,7 +1819,7 @@ static void actkeys_mselect_column(bAnimContext *ac, eEditKeyframes_Select selec
       ED_mask_select_frame(static_cast<MaskLayer *>(ale.data), selx, select_mode);
     }
     else if (ale.type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      blender::ed::greasepencil::select_frame_at(
+      ed::greasepencil::select_frame_at(
           static_cast<GreasePencilLayer *>(ale.data)->wrap(), selx, select_mode);
       ale.update |= ANIM_UPDATE_DEPS;
     }
@@ -1860,8 +1859,8 @@ static void actkeys_mselect_channel_only(bAnimContext *ac,
     ED_mask_select_frames(static_cast<MaskLayer *>(ale->data), select_mode);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-    blender::ed::greasepencil::select_all_frames(
-        static_cast<GreasePencilLayer *>(ale->data)->wrap(), select_mode);
+    ed::greasepencil::select_all_frames(static_cast<GreasePencilLayer *>(ale->data)->wrap(),
+                                        select_mode);
     ale->update |= ANIM_UPDATE_DEPS;
   }
   else {
@@ -1965,7 +1964,7 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
                                     eAnim_ChannelType(ale->type));
           }
           else if (ale->type == ANIMTYPE_GPLAYER) {
-            bGPdata *gpd = blender::id_cast<bGPdata *>(ale->id);
+            bGPdata *gpd = id_cast<bGPdata *>(ale->id);
             bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 
             ED_gpencil_set_active_channel(gpd, gpl);
@@ -1986,14 +1985,14 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
 
         /* Highlight the grease pencil channel, and set the corresponding layer as active. */
         if (ale != nullptr && ale->data != nullptr && ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-          blender::ed::greasepencil::select_layer_channel(
+          ed::greasepencil::select_layer_channel(
               *reinterpret_cast<GreasePencil *>(ale->id),
-              static_cast<blender::bke::greasepencil::Layer *>(ale->data));
+              static_cast<bke::greasepencil::Layer *>(ale->data));
         }
 
         /* Highlight GPencil Layer (Legacy). */
         if (ale != nullptr && ale->data != nullptr && ale->type == ANIMTYPE_GPLAYER) {
-          bGPdata *gpd = blender::id_cast<bGPdata *>(ale->id);
+          bGPdata *gpd = id_cast<bGPdata *>(ale->id);
           bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 
           ED_gpencil_set_active_channel(gpd, gpl);
@@ -2141,3 +2140,5 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

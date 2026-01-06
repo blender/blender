@@ -16,6 +16,8 @@
 
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
+namespace blender {
+
 static double handle_returned_value(PyObject *function, PyObject *ret)
 {
   if (ret == nullptr) {
@@ -204,3 +206,5 @@ PyObject *BPY_app_timers_module()
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(mod), mod);
   return mod;
 }
+
+}  // namespace blender

@@ -33,6 +33,8 @@
 
 #include "physics_intern.hh"
 
+namespace blender {
+
 /* ********************************************** */
 /* API */
 
@@ -199,3 +201,5 @@ void RIGIDBODY_OT_world_export(wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 }
+
+}  // namespace blender

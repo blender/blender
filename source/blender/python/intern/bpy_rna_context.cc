@@ -31,6 +31,8 @@
 
 #include "bpy_rna.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Private Utility Functions
  * \{ */
@@ -858,3 +860,5 @@ void bpy_rna_context_types_init()
 }
 
 /** \} */
+
+}  // namespace blender

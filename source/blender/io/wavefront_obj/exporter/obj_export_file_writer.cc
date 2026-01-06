@@ -33,9 +33,12 @@
 #include "obj_export_file_writer.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.obj"};
 
-namespace blender::io::obj {
+namespace io::obj {
 /**
  * Per reference http://www.martinreddy.net/gfx/3d/OBJ.spec:
  * To turn off smoothing groups, use a value of 0 or off.
@@ -468,7 +471,7 @@ void OBJWriter::write_edges_indices(FormatHandler &fh,
 }
 
 static float4x4 compute_world_axes_transform(const OBJExportParams &export_params,
-                                             const blender::float4x4 &object_to_world)
+                                             const float4x4 &object_to_world)
 {
   float4x4 world_axes_transform;
   float axes_transform[3][3];
@@ -803,4 +806,5 @@ const char *MTLWriter::mtlmaterial_name(int index)
 }
 /** \} */
 
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

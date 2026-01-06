@@ -29,6 +29,8 @@
 
 #include "MOD_solidify_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   SolidifyModifierData *smd = reinterpret_cast<SolidifyModifierData *>(md);
@@ -67,7 +69,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -95,16 +97,16 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     layout.prop(ptr, "use_even_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  blender::ui::Layout &col = layout.column(false, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"));
+  ui::Layout &col = layout.column(false, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"));
   col.prop(ptr, "use_rim", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Fill"), ICON_NONE);
-  blender::ui::Layout &sub = col.column(false);
+  ui::Layout &sub = col.column(false);
   sub.active_set(RNA_boolean_get(ptr, "use_rim"));
   sub.prop(ptr, "use_rim_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   layout.separator();
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
-  blender::ui::Layout *row = &layout.row(false);
+  ui::Layout *row = &layout.row(false);
   row->active_set(has_vertex_group);
   row->prop(ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 
@@ -119,7 +121,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -128,7 +130,7 @@ static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "use_flip_normals", UI_ITEM_NONE, IFACE_("Flip"), ICON_NONE);
   if (solidify_mode == MOD_SOLIDIFY_MODE_EXTRUDE) {
     col.prop(ptr, "use_quality_normals", UI_ITEM_NONE, IFACE_("High Quality"), ICON_NONE);
@@ -137,7 +139,7 @@ static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void materials_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -145,7 +147,7 @@ static void materials_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.use_property_split_set(true);
 
   layout.prop(ptr, "material_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.active_set(RNA_boolean_get(ptr, "use_rim"));
   col.prop(ptr,
            "material_offset_rim",
@@ -156,7 +158,7 @@ static void materials_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void edge_data_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -166,7 +168,7 @@ static void edge_data_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.use_property_split_set(true);
 
   if (solidify_mode == MOD_SOLIDIFY_MODE_EXTRUDE) {
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
     col.prop(ptr, "edge_crease_inner", UI_ITEM_NONE, IFACE_("Crease Inner"), ICON_NONE);
     col.prop(ptr, "edge_crease_outer", UI_ITEM_NONE, IFACE_("Outer"), ICON_NONE);
     col.prop(ptr,
@@ -175,35 +177,35 @@ static void edge_data_panel_draw(const bContext * /*C*/, Panel *panel)
              CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"),
              ICON_NONE);
   }
-  layout.prop(ptr, "bevel_convex", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "bevel_convex", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void clamp_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "thickness_clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  blender::ui::Layout &row = col.row(false);
+  ui::Layout &row = col.row(false);
   row.active_set(RNA_float_get(ptr, "thickness_clamp") > 0.0f);
   row.prop(ptr, "use_thickness_angle_clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop_search(ptr, "shell_vertex_group", &ob_ptr, "vertex_groups", IFACE_("Shell"), ICON_NONE);
   col.prop_search(ptr,
                   "rim_vertex_group",
@@ -270,3 +272,5 @@ ModifierTypeInfo modifierType_Solidify = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

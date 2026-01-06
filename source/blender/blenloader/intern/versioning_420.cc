@@ -52,13 +52,15 @@
 
 #include "versioning_common.hh"
 
+namespace blender {
+
 /**
  * Change animation/drivers from "collections[..." to "collections_all[..." so
  * they remain stable when the bone collection hierarchy structure changes.
  */
 static void version_bonecollection_anim(FCurve *fcurve)
 {
-  const blender::StringRef rna_path(fcurve->rna_path);
+  const StringRef rna_path(fcurve->rna_path);
   constexpr char const *rna_path_prefix = "collections[";
   if (!rna_path.startswith(rna_path_prefix)) {
     return;
@@ -80,7 +82,6 @@ static void versioning_eevee_shadow_settings(Object *object)
     return;
   }
 
-  using namespace blender;
   bool hide_shadows = *material_len > 0;
   for (int i : IndexRange(*material_len)) {
     Material *material = BKE_object_material_get(object, i + 1);
@@ -221,7 +222,7 @@ static AlphaSource versioning_eevee_alpha_source_get(bNodeSocket *socket, int de
     }
 
     case SH_NODE_BSDF_TRANSPARENT: {
-      bNodeSocket *socket = blender::bke::node_find_socket(*node, SOCK_IN, "Color");
+      bNodeSocket *socket = bke::node_find_socket(*node, SOCK_IN, "Color");
       if (socket->link == nullptr) {
         float *socket_color_value = version_cycles_node_socket_rgba_value(socket);
         if ((socket_color_value[0] == 0.0f) && (socket_color_value[1] == 0.0f) &&
@@ -239,7 +240,7 @@ static AlphaSource versioning_eevee_alpha_source_get(bNodeSocket *socket, int de
     }
 
     case SH_NODE_MIX_SHADER: {
-      bNodeSocket *socket = blender::bke::node_find_socket(*node, SOCK_IN, "Fac");
+      bNodeSocket *socket = bke::node_find_socket(*node, SOCK_IN, "Fac");
       AlphaSource src0 = versioning_eevee_alpha_source_get(
           static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1)), depth + 1);
       AlphaSource src1 = versioning_eevee_alpha_source_get(
@@ -266,7 +267,7 @@ static AlphaSource versioning_eevee_alpha_source_get(bNodeSocket *socket, int de
     }
 
     case SH_NODE_BSDF_PRINCIPLED: {
-      bNodeSocket *socket = blender::bke::node_find_socket(*node, SOCK_IN, "Alpha");
+      bNodeSocket *socket = bke::node_find_socket(*node, SOCK_IN, "Alpha");
       if (socket->link == nullptr) {
         float socket_value = *version_cycles_node_socket_float_value(socket);
         if (socket_value == 0.0f) {
@@ -280,7 +281,7 @@ static AlphaSource versioning_eevee_alpha_source_get(bNodeSocket *socket, int de
     }
 
     case SH_NODE_EEVEE_SPECULAR: {
-      bNodeSocket *socket = blender::bke::node_find_socket(*node, SOCK_IN, "Transparency");
+      bNodeSocket *socket = bke::node_find_socket(*node, SOCK_IN, "Transparency");
       if (socket->link == nullptr) {
         float socket_value = *version_cycles_node_socket_float_value(socket);
         if (socket_value == 0.0f) {
@@ -312,7 +313,7 @@ static bool versioning_eevee_material_blend_mode_settings(bNodeTree *ntree, floa
   if (output_node == nullptr) {
     return true;
   }
-  bNodeSocket *surface_socket = blender::bke::node_find_socket(*output_node, SOCK_IN, "Surface");
+  bNodeSocket *surface_socket = bke::node_find_socket(*output_node, SOCK_IN, "Surface");
 
   AlphaSource alpha = versioning_eevee_alpha_source_get(surface_socket);
 
@@ -326,7 +327,7 @@ static bool versioning_eevee_material_blend_mode_settings(bNodeTree *ntree, floa
   bool is_opaque = (threshold == 2.0f);
   if (is_opaque) {
     if (alpha.socket->link != nullptr) {
-      blender::bke::node_remove_link(ntree, *alpha.socket->link);
+      bke::node_remove_link(ntree, *alpha.socket->link);
     }
 
     float value = (alpha.is_transparency) ? 0.0f : 1.0f;
@@ -347,9 +348,9 @@ static bool versioning_eevee_material_blend_mode_settings(bNodeTree *ntree, floa
       bNode *from_node = alpha.socket->link->fromnode;
       bNodeSocket *to_socket = alpha.socket->link->tosock;
       bNodeSocket *from_socket = alpha.socket->link->fromsock;
-      blender::bke::node_remove_link(ntree, *alpha.socket->link);
+      bke::node_remove_link(ntree, *alpha.socket->link);
 
-      bNode *math_node = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeMath");
+      bNode *math_node = bke::node_add_node(nullptr, *ntree, "ShaderNodeMath");
       math_node->custom1 = NODE_MATH_GREATER_THAN;
       math_node->flag |= NODE_COLLAPSED;
       math_node->parent = to_node->parent;
@@ -362,8 +363,8 @@ static bool versioning_eevee_material_blend_mode_settings(bNodeTree *ntree, floa
       bNodeSocket *alpha_sock = input_1;
       bNodeSocket *threshold_sock = input_2;
 
-      blender::bke::node_add_link(*ntree, *from_node, *from_socket, *math_node, *alpha_sock);
-      blender::bke::node_add_link(*ntree, *math_node, *output, *to_node, *to_socket);
+      bke::node_add_link(*ntree, *from_node, *from_socket, *math_node, *alpha_sock);
+      bke::node_add_link(*ntree, *math_node, *output, *to_node, *to_socket);
 
       *version_cycles_node_socket_float_value(threshold_sock) = alpha.is_transparency ?
                                                                     1.0f - threshold :
@@ -404,9 +405,8 @@ static void versioning_eevee_material_shadow_none(Material *material)
     return;
   }
 
-  bNodeSocket *existing_out_sock = blender::bke::node_find_socket(
-      *output_node, SOCK_IN, "Surface");
-  bNodeSocket *volume_sock = blender::bke::node_find_socket(*output_node, SOCK_IN, "Volume");
+  bNodeSocket *existing_out_sock = bke::node_find_socket(*output_node, SOCK_IN, "Surface");
+  bNodeSocket *volume_sock = bke::node_find_socket(*output_node, SOCK_IN, "Volume");
   if (existing_out_sock->link == nullptr && volume_sock->link) {
     /* Don't apply versioning to a material that only has a volumetric input as this makes the
      * object surface opaque to the camera, hiding the volume inside. */
@@ -417,19 +417,18 @@ static void versioning_eevee_material_shadow_none(Material *material)
     /* We do not want to affect Cycles. So we split the output into two specific outputs. */
     output_node->custom1 = SHD_OUTPUT_CYCLES;
 
-    bNode *new_output = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeOutputMaterial");
+    bNode *new_output = bke::node_add_node(nullptr, *ntree, "ShaderNodeOutputMaterial");
     new_output->custom1 = SHD_OUTPUT_EEVEE;
     new_output->parent = output_node->parent;
     new_output->locx_legacy = output_node->locx_legacy;
     new_output->locy_legacy = output_node->locy_legacy - output_node->height - 120;
 
     auto copy_link = [&](const char *socket_name) {
-      bNodeSocket *sock = blender::bke::node_find_socket(*output_node, SOCK_IN, socket_name);
+      bNodeSocket *sock = bke::node_find_socket(*output_node, SOCK_IN, socket_name);
       if (sock && sock->link) {
         bNodeLink *link = sock->link;
-        bNodeSocket *to_sock = blender::bke::node_find_socket(*new_output, SOCK_IN, socket_name);
-        blender::bke::node_add_link(
-            *ntree, *link->fromnode, *link->fromsock, *new_output, *to_sock);
+        bNodeSocket *to_sock = bke::node_find_socket(*new_output, SOCK_IN, socket_name);
+        bke::node_add_link(*ntree, *link->fromnode, *link->fromsock, *new_output, *to_sock);
       }
     };
 
@@ -441,11 +440,11 @@ static void versioning_eevee_material_shadow_none(Material *material)
     output_node = new_output;
   }
 
-  bNodeSocket *out_sock = blender::bke::node_find_socket(*output_node, SOCK_IN, "Surface");
-  bNodeSocket *old_out_sock = blender::bke::node_find_socket(*old_output_node, SOCK_IN, "Surface");
+  bNodeSocket *out_sock = bke::node_find_socket(*output_node, SOCK_IN, "Surface");
+  bNodeSocket *old_out_sock = bke::node_find_socket(*old_output_node, SOCK_IN, "Surface");
 
   /* Add mix node for mixing between original material, and transparent BSDF for shadows */
-  bNode *mix_node = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeMixShader");
+  bNode *mix_node = bke::node_add_node(nullptr, *ntree, "ShaderNodeMixShader");
   STRNCPY(mix_node->label, "Disable Shadow");
   mix_node->flag |= NODE_COLLAPSED;
   mix_node->parent = output_node->parent;
@@ -456,25 +455,25 @@ static void versioning_eevee_material_shadow_none(Material *material)
   bNodeSocket *mix_in_2 = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 2));
   bNodeSocket *mix_out = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->outputs, 0));
   if (old_out_sock->link != nullptr) {
-    blender::bke::node_add_link(*ntree,
-                                *old_out_sock->link->fromnode,
-                                *old_out_sock->link->fromsock,
-                                *mix_node,
-                                *mix_in_1);
+    bke::node_add_link(*ntree,
+                       *old_out_sock->link->fromnode,
+                       *old_out_sock->link->fromsock,
+                       *mix_node,
+                       *mix_in_1);
     if (out_sock->link != nullptr) {
-      blender::bke::node_remove_link(ntree, *out_sock->link);
+      bke::node_remove_link(ntree, *out_sock->link);
     }
   }
-  blender::bke::node_add_link(*ntree, *mix_node, *mix_out, *output_node, *out_sock);
+  bke::node_add_link(*ntree, *mix_node, *mix_out, *output_node, *out_sock);
 
   /* Add light path node to control shadow visibility */
-  bNode *lp_node = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeLightPath");
+  bNode *lp_node = bke::node_add_node(nullptr, *ntree, "ShaderNodeLightPath");
   lp_node->flag |= NODE_COLLAPSED;
   lp_node->parent = output_node->parent;
   lp_node->locx_legacy = output_node->locx_legacy;
   lp_node->locy_legacy = mix_node->locy_legacy + 35;
-  bNodeSocket *is_shadow = blender::bke::node_find_socket(*lp_node, SOCK_OUT, "Is Shadow Ray");
-  blender::bke::node_add_link(*ntree, *lp_node, *is_shadow, *mix_node, *mix_fac);
+  bNodeSocket *is_shadow = bke::node_find_socket(*lp_node, SOCK_OUT, "Is Shadow Ray");
+  bke::node_add_link(*ntree, *lp_node, *is_shadow, *mix_node, *mix_fac);
   /* Hide unconnected sockets for cleaner look. */
   for (bNodeSocket &sock : lp_node->outputs) {
     if (&sock != is_shadow) {
@@ -483,13 +482,13 @@ static void versioning_eevee_material_shadow_none(Material *material)
   }
 
   /* Add transparent BSDF to make shadows transparent. */
-  bNode *bsdf_node = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeBsdfTransparent");
+  bNode *bsdf_node = bke::node_add_node(nullptr, *ntree, "ShaderNodeBsdfTransparent");
   bsdf_node->flag |= NODE_COLLAPSED;
   bsdf_node->parent = output_node->parent;
   bsdf_node->locx_legacy = output_node->locx_legacy;
   bsdf_node->locy_legacy = mix_node->locy_legacy - 35;
-  bNodeSocket *bsdf_out = blender::bke::node_find_socket(*bsdf_node, SOCK_OUT, "BSDF");
-  blender::bke::node_add_link(*ntree, *bsdf_node, *bsdf_out, *mix_node, *mix_in_2);
+  bNodeSocket *bsdf_out = bke::node_find_socket(*bsdf_node, SOCK_OUT, "BSDF");
+  bke::node_add_link(*ntree, *bsdf_node, *bsdf_out, *mix_node, *mix_in_2);
 }
 
 void do_versions_after_linking_420(FileData *fd, Main *bmain)
@@ -674,7 +673,7 @@ static void version_refraction_depth_to_thickness_value(bNodeTree *ntree, float 
       continue;
     }
 
-    bNodeSocket *thickness_socket = blender::bke::node_find_socket(node, SOCK_IN, "Thickness");
+    bNodeSocket *thickness_socket = bke::node_find_socket(node, SOCK_IN, "Thickness");
     if (thickness_socket == nullptr) {
       continue;
     }
@@ -690,15 +689,15 @@ static void version_refraction_depth_to_thickness_value(bNodeTree *ntree, float 
     if (has_link) {
       continue;
     }
-    bNode *value_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_VALUE);
+    bNode *value_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_VALUE);
     value_node->parent = node.parent;
     value_node->locx_legacy = node.locx_legacy;
     value_node->locy_legacy = node.locy_legacy - 160.0f;
-    bNodeSocket *socket_value = blender::bke::node_find_socket(*value_node, SOCK_OUT, "Value");
+    bNodeSocket *socket_value = bke::node_find_socket(*value_node, SOCK_OUT, "Value");
 
     *version_cycles_node_socket_float_value(socket_value) = thickness;
 
-    blender::bke::node_add_link(*ntree, *value_node, *socket_value, node, *thickness_socket);
+    bke::node_add_link(*ntree, *value_node, *socket_value, node, *thickness_socket);
   }
 
   version_socket_update_is_used(ntree);
@@ -743,7 +742,6 @@ static bool strip_text_data_update(Strip *strip, void * /*user_data*/)
 
 static void convert_grease_pencil_stroke_hardness_to_softness(GreasePencil *grease_pencil)
 {
-  using namespace blender;
   for (GreasePencilDrawingBase *base : grease_pencil->drawings()) {
     if (base->type != GP_DRAWING) {
       continue;
@@ -894,7 +892,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
 
     for (Scene &scene : bmain->scenes) {
       if (scene.ed != nullptr) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
+        seq::foreach_strip(&scene.ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
       }
     }
   }
@@ -945,7 +943,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 20)) {
     for (Scene &scene : bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(&scene);
+      SequencerToolSettings *sequencer_tool_settings = seq::tool_settings_ensure(&scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_MARKERS;
     }
   }
@@ -1040,7 +1038,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 28)) {
     for (Scene &scene : bmain->scenes) {
       if (scene.ed != nullptr) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_proxies_timecode_update, nullptr);
+        seq::foreach_strip(&scene.ed->seqbase, strip_proxies_timecode_update, nullptr);
       }
     }
 
@@ -1053,7 +1051,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 29)) {
     for (Scene &scene : bmain->scenes) {
       if (scene.ed) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_text_data_update, nullptr);
+        seq::foreach_strip(&scene.ed->seqbase, strip_text_data_update, nullptr);
       }
     }
   }
@@ -1157,8 +1155,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
         /* Use the `Scene` radius unit by default (confusingly named `BRUSH_LOCK_SIZE`).
          * Convert the radius to be the same visual size as in GPv2. */
         brush.flag |= BRUSH_LOCK_SIZE;
-        brush.unprojected_size = brush.size *
-                                 blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+        brush.unprojected_size = brush.size * bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       }
     }
   }
@@ -1407,3 +1404,5 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 }
+
+}  // namespace blender

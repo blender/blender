@@ -11,6 +11,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 
+namespace blender {
+
 struct BMLoop;
 struct MemArena;
 
@@ -99,11 +101,11 @@ struct MeshElemMap {
 
 /* mapping */
 
-UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
-                                       blender::Span<int> corner_verts,
-                                       blender::Span<blender::float2> uv_map,
+UvVertMap *BKE_mesh_uv_vert_map_create(OffsetIndices<int> faces,
+                                       Span<int> corner_verts,
+                                       Span<float2> uv_map,
                                        int verts_num,
-                                       const blender::float2 &limit,
+                                       const float2 &limit,
                                        bool use_winding);
 
 UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);
@@ -117,7 +119,7 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 void BKE_mesh_vert_corner_tri_map_create(MeshElemMap **r_map,
                                          int **r_mem,
                                          int totvert,
-                                         const blender::int3 *corner_tris,
+                                         const int3 *corner_tris,
                                          int tris_num,
                                          const int *corner_verts,
                                          int corners_num);
@@ -143,7 +145,7 @@ void BKE_mesh_origindex_map_create(
  */
 void BKE_mesh_origindex_map_create_corner_tri(MeshElemMap **r_map,
                                               int **r_mem,
-                                              blender::OffsetIndices<int> faces,
+                                              OffsetIndices<int> faces,
                                               const int *corner_tri_faces,
                                               int corner_tris_num);
 
@@ -189,12 +191,12 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
                                int num_innercut_items,
                                int *innercut_item_indices);
 
-using MeshRemapIslandsCalc = bool (*)(blender::Span<blender::float3> vert_positions,
-                                      blender::Span<blender::int2> edges,
-                                      blender::Span<bool> uv_seams,
-                                      blender::OffsetIndices<int> faces,
-                                      blender::Span<int> corner_verts,
-                                      blender::Span<int> corner_edges,
+using MeshRemapIslandsCalc = bool (*)(Span<float3> vert_positions,
+                                      Span<int2> edges,
+                                      Span<bool> uv_seams,
+                                      OffsetIndices<int> faces,
+                                      Span<int> corner_verts,
+                                      Span<int> corner_edges,
                                       MeshIslandStore *r_island_store);
 
 /* Above vert/UV mapping stuff does not do what we need here, but does things we do not need here.
@@ -206,12 +208,12 @@ using MeshRemapIslandsCalc = bool (*)(blender::Span<blender::float3> vert_positi
  *
  * \param uv_seams: Optional (possibly empty) span.
  */
-bool BKE_mesh_calc_islands_loop_face_edgeseam(blender::Span<blender::float3> vert_positions,
-                                              blender::Span<blender::int2> edges,
-                                              blender::Span<bool> uv_seams,
-                                              blender::OffsetIndices<int> faces,
-                                              blender::Span<int> corner_verts,
-                                              blender::Span<int> corner_edges,
+bool BKE_mesh_calc_islands_loop_face_edgeseam(Span<float3> vert_positions,
+                                              Span<int2> edges,
+                                              Span<bool> uv_seams,
+                                              OffsetIndices<int> faces,
+                                              Span<int> corner_verts,
+                                              Span<int> corner_edges,
                                               MeshIslandStore *r_island_store);
 
 /**
@@ -224,10 +226,10 @@ bool BKE_mesh_calc_islands_loop_face_edgeseam(blender::Span<blender::float3> ver
  * flag). Note that it's the callers responsibility to MEM_freeN the returned array.
  */
 int *BKE_mesh_calc_smoothgroups(int edges_num,
-                                blender::OffsetIndices<int> faces,
-                                blender::Span<int> corner_edges,
-                                blender::Span<bool> sharp_edges,
-                                blender::Span<bool> sharp_faces,
+                                OffsetIndices<int> faces,
+                                Span<int> corner_edges,
+                                Span<bool> sharp_edges,
+                                Span<bool> sharp_faces,
                                 int *r_totgroup);
 /**
  * Same as #BKE_mesh_calc_smoothgroups, but use bit-flags instead of increasing numbers for each
@@ -254,11 +256,11 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
  */
 int *BKE_mesh_calc_smoothgroups_bitflags(int edges_num,
                                          int verts_num,
-                                         blender::OffsetIndices<int> faces,
-                                         blender::Span<int> corner_edges,
-                                         blender::Span<int> corner_verts,
-                                         blender::Span<bool> sharp_edges,
-                                         blender::Span<bool> sharp_faces,
+                                         OffsetIndices<int> faces,
+                                         Span<int> corner_edges,
+                                         Span<int> corner_verts,
+                                         Span<bool> sharp_edges,
+                                         Span<bool> sharp_faces,
                                          bool use_boundary_vertices_for_bitflags,
                                          int *r_totgroup);
 
@@ -272,7 +274,7 @@ int *BKE_mesh_calc_smoothgroups_bitflags(int edges_num,
     ((_tri)[2] == _v) ? 2 : \
                         -1))
 
-namespace blender::bke::mesh {
+namespace bke::mesh {
 
 Array<int> build_corner_to_face_map(OffsetIndices<int> faces);
 
@@ -308,4 +310,5 @@ GroupedSpan<int> build_edge_to_face_map(OffsetIndices<int> faces,
                                         Array<int> &r_offsets,
                                         Array<int> &r_indices);
 
-}  // namespace blender::bke::mesh
+}  // namespace bke::mesh
+}  // namespace blender

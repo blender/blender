@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 enum eBoidRuleType {
   eBoidRuleType_None = 0,
   /** go to goal assigned object or loudest assigned signal source */
@@ -158,3 +160,5 @@ struct BoidSettings {
 
   ListBaseT<BoidState> states = {nullptr, nullptr};
 };
+
+}  // namespace blender

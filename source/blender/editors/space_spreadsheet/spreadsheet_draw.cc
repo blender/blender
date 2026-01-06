@@ -358,7 +358,7 @@ void draw_spreadsheet_in_region(const bContext *C,
   bool is_reordering_columns = sspreadsheet.runtime->reorder_column_visualization_data.has_value();
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   draw_index_column_background(pos, region, drawer);

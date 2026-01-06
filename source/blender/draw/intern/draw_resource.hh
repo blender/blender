@@ -30,6 +30,8 @@
 #include "draw_handle.hh"
 #include "draw_shader_shared.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name ObjectMatrices
  * \{ */
@@ -43,7 +45,7 @@ inline void ObjectMatrices::sync(const Object &object)
 inline void ObjectMatrices::sync(const float4x4 &model_matrix)
 {
   model = model_matrix;
-  model_inverse = blender::math::invert(model_matrix);
+  model_inverse = math::invert(model_matrix);
 }
 
 inline std::ostream &operator<<(std::ostream &stream, const ObjectMatrices &matrices)
@@ -68,7 +70,7 @@ inline void ObjectInfos::sync()
   flag = eObjectInfoFlag::OBJECT_NO_INFO;
 }
 
-inline void ObjectInfos::sync(const blender::draw::ObjectRef ref,
+inline void ObjectInfos::sync(const draw::ObjectRef ref,
                               bool is_active_object,
                               bool is_active_edit_mode)
 {
@@ -120,10 +122,10 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref,
 
   switch (GS(reinterpret_cast<ID *>(ref.object->data)->name)) {
     case ID_VO: {
-      std::optional<const blender::Bounds<float3>> bounds = BKE_volume_min_max(
+      std::optional<const Bounds<float3>> bounds = BKE_volume_min_max(
           &DRW_object_get_data_for_drawing<const Volume>(*ref.object));
       if (bounds) {
-        orco_add = blender::math::midpoint(bounds->min, bounds->max);
+        orco_add = math::midpoint(bounds->min, bounds->max);
         orco_mul = (bounds->max - bounds->min) * 0.5f;
       }
       else {
@@ -194,7 +196,7 @@ inline void ObjectBounds::sync()
 
 inline void ObjectBounds::sync(const Object &ob, float inflate_bounds)
 {
-  const std::optional<blender::Bounds<float3>> bounds = BKE_object_boundbox_get(&ob);
+  const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(&ob);
   if (!bounds) {
 #ifndef NDEBUG
     /* Initialize to NaN for easier debugging of uninitialized data usage. */
@@ -207,7 +209,7 @@ inline void ObjectBounds::sync(const Object &ob, float inflate_bounds)
     bounding_sphere.w = -1.0f; /* Disable test. */
     return;
   }
-  const std::array<float3, 8> corners = blender::bounds::corners(*bounds);
+  const std::array<float3, 8> corners = bounds::corners(*bounds);
   *reinterpret_cast<float3 *>(&bounding_corners[0]) = corners[0];
   *reinterpret_cast<float3 *>(&bounding_corners[1]) = corners[4];
   *reinterpret_cast<float3 *>(&bounding_corners[2]) = corners[3];
@@ -257,3 +259,5 @@ inline std::ostream &operator<<(std::ostream &stream, const ObjectBounds &bounds
 }
 
 /** \} */
+
+}  // namespace blender

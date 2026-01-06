@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct BlendDataReader;
 struct BlendWriter;
 struct Depsgraph;
@@ -382,3 +384,5 @@ void BKE_constraint_blend_write(struct BlendWriter *writer, ListBaseT<bConstrain
 void BKE_constraint_blend_read_data(struct BlendDataReader *reader,
                                     struct ID *id_owner,
                                     ListBaseT<bConstraint> *lb);
+
+}  // namespace blender

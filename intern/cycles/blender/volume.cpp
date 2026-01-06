@@ -26,13 +26,15 @@ CCL_NAMESPACE_BEGIN
 /* TODO: verify this is not loading unnecessary attributes. */
 class BlenderSmokeLoader : public VDBImageLoader {
  public:
-  BlenderSmokeLoader(::Object &b_ob, AttributeStandard attribute, const float clipping)
+  BlenderSmokeLoader(blender::Object &b_ob, AttributeStandard attribute, const float clipping)
       : VDBImageLoader(Attribute::standard_name(attribute), clipping),
         b_domain(object_fluid_gas_domain_find(b_ob)),
         attribute(attribute)
   {
-    domain_rna_ptr = RNA_pointer_create_discrete(&b_ob.id, &RNA_FluidDomainSettings, b_domain);
-    mesh_texture_space(*blender::id_cast<const ::Mesh *>(b_ob.data), texspace_loc, texspace_size);
+    domain_rna_ptr = RNA_pointer_create_discrete(
+        &b_ob.id, &blender::RNA_FluidDomainSettings, b_domain);
+    mesh_texture_space(
+        *blender::id_cast<const blender::Mesh *>(b_ob.data), texspace_loc, texspace_size);
   }
 
   void load_grid() override
@@ -58,7 +60,9 @@ class BlenderSmokeLoader : public VDBImageLoader {
     }
 
     const int3 resolution = make_int3(b_domain->res[0], b_domain->res[1], b_domain->res[2]);
-    int amplify = (b_domain->flags & FLUID_DOMAIN_USE_NOISE) != 0 ? b_domain->noise_scale : 1;
+    int amplify = (b_domain->flags & blender::FLUID_DOMAIN_USE_NOISE) != 0 ?
+                      b_domain->noise_scale :
+                      1;
 
     /* Velocity and heat data is always low-resolution. */
     if (attribute == ATTR_STD_VOLUME_VELOCITY || attribute == ATTR_STD_VOLUME_HEAT) {
@@ -96,14 +100,14 @@ class BlenderSmokeLoader : public VDBImageLoader {
     voxels.resize(width * height * depth * channels);
 
     if (attribute == ATTR_STD_VOLUME_DENSITY) {
-      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "density_grid");
+      blender::PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "density_grid");
       if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
         RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_FLAME) {
-      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "flame_grid");
+      blender::PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "flame_grid");
       /* this is in range 0..1, and interpreted by the OpenGL smoke viewer
        * as 1500..3000 K with the first part faded to zero density */
       if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
@@ -112,7 +116,7 @@ class BlenderSmokeLoader : public VDBImageLoader {
       }
     }
     else if (attribute == ATTR_STD_VOLUME_COLOR) {
-      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "color_grid");
+      blender::PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "color_grid");
       /* the RGB is "premultiplied" by density for better interpolation results */
       if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
         RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
@@ -120,21 +124,21 @@ class BlenderSmokeLoader : public VDBImageLoader {
       }
     }
     else if (attribute == ATTR_STD_VOLUME_VELOCITY) {
-      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "velocity_grid");
+      blender::PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "velocity_grid");
       if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
         RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_HEAT) {
-      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "heat_grid");
+      blender::PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "heat_grid");
       if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
         RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_TEMPERATURE) {
-      PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "temperature_grid");
+      blender::PropertyRNA *prop = RNA_struct_find_property(&domain_rna_ptr, "temperature_grid");
       if (RNA_property_array_length(&domain_rna_ptr, prop) == voxels.size()) {
         RNA_property_float_get_array(&domain_rna_ptr, prop, voxels.data());
         return true;
@@ -168,19 +172,22 @@ class BlenderSmokeLoader : public VDBImageLoader {
     return b_domain == other_loader.b_domain && attribute == other_loader.attribute;
   }
 
-  ::FluidDomainSettings *b_domain;
-  PointerRNA domain_rna_ptr;
+  blender::FluidDomainSettings *b_domain;
+  blender::PointerRNA domain_rna_ptr;
   float3 texspace_loc, texspace_size;
   AttributeStandard attribute;
 };
 
-static void sync_smoke_volume(
-    ::Scene &b_scene, Scene *scene, BObjectInfo &b_ob_info, Volume *volume, const float frame)
+static void sync_smoke_volume(blender::Scene &b_scene,
+                              Scene *scene,
+                              BObjectInfo &b_ob_info,
+                              Volume *volume,
+                              const float frame)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;
   }
-  ::FluidDomainSettings *b_domain = object_fluid_gas_domain_find(*b_ob_info.real_object);
+  blender::FluidDomainSettings *b_domain = object_fluid_gas_domain_find(*b_ob_info.real_object);
   if (!b_domain) {
     return;
   }
@@ -232,10 +239,10 @@ static void sync_smoke_volume(
 
 class BlenderVolumeLoader : public VDBImageLoader {
  public:
-  BlenderVolumeLoader(::Main &b_data,
-                      ::Volume &b_volume,
+  BlenderVolumeLoader(blender::Main &b_data,
+                      blender::Volume &b_volume,
                       const string &grid_name,
-                      ::VolumeRenderPrecision precision_,
+                      blender::VolumeRenderPrecision precision_,
                       const float clipping)
       : VDBImageLoader(grid_name, clipping), b_volume(b_volume)
   {
@@ -256,14 +263,14 @@ class BlenderVolumeLoader : public VDBImageLoader {
 #endif
 #ifdef WITH_NANOVDB
     switch (precision_) {
-      case VOLUME_PRECISION_FULL:
+      case blender::VOLUME_PRECISION_FULL:
         precision = 32;
         break;
-      case VOLUME_PRECISION_HALF:
+      case blender::VOLUME_PRECISION_HALF:
         precision = 16;
         break;
       default:
-      case VOLUME_PRECISION_VARIABLE:
+      case blender::VOLUME_PRECISION_VARIABLE:
         precision = 0;
         break;
     }
@@ -272,7 +279,7 @@ class BlenderVolumeLoader : public VDBImageLoader {
 #endif
   }
 
-  ::Volume &b_volume;
+  blender::Volume &b_volume;
 #ifdef WITH_OPENVDB
   /* Store tree user so that the OPENVDB grid that is shared with Blender is not unloaded. */
   blender::bke::GVolumeGrid volume_grid;
@@ -280,19 +287,22 @@ class BlenderVolumeLoader : public VDBImageLoader {
 #endif
 };
 
-static void sync_volume_object(
-    ::Main &b_data, ::Scene &b_scene, BObjectInfo &b_ob_info, Scene *scene, Volume *volume)
+static void sync_volume_object(blender::Main &b_data,
+                               blender::Scene &b_scene,
+                               BObjectInfo &b_ob_info,
+                               Scene *scene,
+                               Volume *volume)
 {
-  ::Volume &b_volume = *blender::id_cast<::Volume *>(b_ob_info.object_data);
+  blender::Volume &b_volume = *blender::id_cast<blender::Volume *>(b_ob_info.object_data);
   BKE_volume_load(&b_volume, &b_data);
 
-  ::VolumeRender &b_render = b_volume.render;
+  blender::VolumeRender &b_render = b_volume.render;
 
   volume->set_step_size(b_render.step_size);
-  volume->set_object_space((b_render.space == VOLUME_SPACE_OBJECT));
+  volume->set_object_space((b_render.space == blender::VOLUME_SPACE_OBJECT));
 
   float velocity_scale = b_volume.velocity_scale;
-  if (b_volume.velocity_unit == CACHEFILE_VELOCITY_UNIT_SECOND) {
+  if (b_volume.velocity_unit == blender::CACHEFILE_VELOCITY_UNIT_SECOND) {
     /* Motion blur attribute is relative to seconds, we need it relative to frames. */
     const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
     const float motion_scale = (need_motion) ? scene->motion_shutter_time() /
@@ -358,7 +368,7 @@ static void sync_volume_object(
           b_data,
           b_volume,
           name.string(),
-          VolumeRenderPrecision(b_render.precision),
+          blender::VolumeRenderPrecision(b_render.precision),
           b_render.clipping);
       ImageParams params;
       params.frame = b_volume.runtime->frame;
@@ -374,7 +384,7 @@ void BlenderSync::sync_volume(BObjectInfo &b_ob_info, Volume *volume)
   volume->clear(true);
 
   if (view_layer.use_volumes) {
-    if (GS(b_ob_info.object_data->name) == ID_VO) {
+    if (GS(b_ob_info.object_data->name) == blender::ID_VO) {
       /* Volume object. Create only attributes, bounding mesh will then
        * be automatically generated later. */
       sync_volume_object(*b_data, *b_scene, b_ob_info, scene, volume);

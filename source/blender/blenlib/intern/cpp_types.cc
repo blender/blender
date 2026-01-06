@@ -47,22 +47,20 @@ const VectorCPPType *VectorCPPType::get_from_value(const CPPType &value)
   return type;
 }
 
-}  // namespace blender
-
 BLI_CPP_TYPE_MAKE(bool, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(float, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(blender::float2, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(blender::float3, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(blender::float4, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(blender::float4x4, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(float2, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(float3, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(float4, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(float4x4, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(int8_t, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(int16_t, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(int32_t, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(blender::short2, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(blender::int2, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(blender::int3, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(short2, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(int2, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(int3, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(int64_t, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(uint8_t, CPPTypeFlags::BasicType)
@@ -70,17 +68,14 @@ BLI_CPP_TYPE_MAKE(uint16_t, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(uint32_t, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(uint64_t, CPPTypeFlags::BasicType)
 
-BLI_CPP_TYPE_MAKE(blender::ColorGeometry4f, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(blender::ColorGeometry4b, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(ColorGeometry4f, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(ColorGeometry4b, CPPTypeFlags::BasicType)
 
-BLI_CPP_TYPE_MAKE(blender::math::Quaternion,
-                  CPPTypeFlags::BasicType | CPPTypeFlags::IdentityDefaultValue)
+BLI_CPP_TYPE_MAKE(math::Quaternion, CPPTypeFlags::BasicType | CPPTypeFlags::IdentityDefaultValue)
 
 BLI_CPP_TYPE_MAKE(std::string, CPPTypeFlags::BasicType)
 
 BLI_VECTOR_CPP_TYPE_MAKE(std::string)
-
-namespace blender {
 
 void register_cpp_types()
 {

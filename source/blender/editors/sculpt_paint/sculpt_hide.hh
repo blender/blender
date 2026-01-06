@@ -12,15 +12,17 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct BMVert;
 struct Object;
 struct SubdivCCG;
 struct SubdivCCGCoord;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 struct MeshNode;
 }
 
-namespace blender::ed::sculpt_paint::hide {
+namespace ed::sculpt_paint::hide {
 
 Span<int> node_visible_verts(const bke::pbvh::MeshNode &node,
                              Span<bool> hide_vert,
@@ -33,4 +35,6 @@ bool vert_all_faces_visible_get(Span<bool> hide_poly,
                                 SubdivCCGCoord vert);
 bool vert_all_faces_visible_get(BMVert *vert);
 
-}  // namespace blender::ed::sculpt_paint::hide
+}  // namespace ed::sculpt_paint::hide
+
+}  // namespace blender

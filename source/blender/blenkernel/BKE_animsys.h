@@ -16,6 +16,8 @@
 
 #include <string>
 
+namespace blender {
+
 struct AnimData;
 struct BlendDataReader;
 struct BlendWriter;
@@ -231,7 +233,7 @@ struct AnimationBasePathChange {
 void BKE_animdata_copy_by_basepath(Main &bmain,
                                    const ID &src_id,
                                    ID &dst_id,
-                                   blender::Span<AnimationBasePathChange> basepaths);
+                                   Span<AnimationBasePathChange> basepaths);
 
 /**
  * Move any animation data under the base paths from the #src_id animation data to the #dst_id
@@ -245,7 +247,7 @@ void BKE_animdata_copy_by_basepath(Main &bmain,
 void BKE_animdata_move_by_basepath(Main &bmain,
                                    ID &src_id,
                                    ID &dst_id,
-                                   blender::Span<AnimationBasePathChange> basepaths);
+                                   Span<AnimationBasePathChange> basepaths);
 
 /* ------------ NLA Keyframing --------------- */
 
@@ -283,11 +285,11 @@ struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
 void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            struct PointerRNA *prop_ptr,
                                            struct PropertyRNA *prop,
-                                           const blender::MutableSpan<float> values,
+                                           const MutableSpan<float> values,
                                            int index,
                                            const struct AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
-                                           blender::BitVector<> &r_values_mask);
+                                           BitVector<> &r_values_mask);
 
 /**
  * Free all cached contexts from the list.
@@ -384,8 +386,6 @@ void animsys_evaluate_action_group(struct PointerRNA *ptr,
 
 /* ------------ Evaluation API --------------- */
 
-struct Depsgraph;
-
 void BKE_animsys_eval_animdata(struct Depsgraph *depsgraph, struct ID *id);
 void BKE_animsys_eval_driver_unshare(Depsgraph *depsgraph, ID *id);
 void BKE_animsys_eval_driver(struct Depsgraph *depsgraph,
@@ -410,3 +410,5 @@ void BKE_time_markers_blend_read(BlendDataReader *reader, ListBaseT<TimeMarker> 
 void BKE_copy_time_markers(ListBaseT<TimeMarker> &markers_dst,
                            const ListBaseT<TimeMarker> &markers_src,
                            int flag);
+
+}  // namespace blender

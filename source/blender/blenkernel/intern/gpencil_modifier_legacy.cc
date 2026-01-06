@@ -29,6 +29,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /* Check if the type value is valid. */
 static bool gpencil_modifier_type_valid(const int type)
 {
@@ -496,3 +498,5 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
     }
   }
 }
+
+}  // namespace blender

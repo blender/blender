@@ -26,6 +26,8 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"lib.query"};
 
 /* status */
@@ -57,7 +59,7 @@ struct LibraryForeachIDData {
    * Function to call for every ID pointers of current processed data, and its opaque user data
    * pointer.
    */
-  blender::FunctionRef<LibraryIDLinkCallback> callback;
+  FunctionRef<LibraryIDLinkCallback> callback;
   void *user_data;
   /**
    * Store the returned value from the callback, to decide how to continue the processing of ID
@@ -67,7 +69,7 @@ struct LibraryForeachIDData {
 
   /* To handle recursion. */
   /* All IDs that are either already done, or still in ids_todo stack. */
-  blender::Set<ID *> *ids_handled;
+  Set<ID *> *ids_handled;
   BLI_LINKSTACK_DECLARE(ids_todo, ID *);
 };
 
@@ -153,7 +155,7 @@ int BKE_lib_query_foreachid_process_callback_flag_override(
 static bool library_foreach_ID_link(Main *bmain,
                                     ID *owner_id,
                                     ID *id,
-                                    blender::FunctionRef<LibraryIDLinkCallback> callback,
+                                    FunctionRef<LibraryIDLinkCallback> callback,
                                     void *user_data,
                                     LibraryForeachIDFlag flag,
                                     LibraryForeachIDData *inherit_data);
@@ -218,7 +220,7 @@ static void library_foreach_ID_data_cleanup(LibraryForeachIDData *data)
 static bool library_foreach_ID_link(Main *bmain,
                                     ID *owner_id,
                                     ID *id,
-                                    blender::FunctionRef<LibraryIDLinkCallback> callback,
+                                    FunctionRef<LibraryIDLinkCallback> callback,
                                     void *user_data,
                                     LibraryForeachIDFlag flag,
                                     LibraryForeachIDData *inherit_data)
@@ -244,7 +246,7 @@ static bool library_foreach_ID_link(Main *bmain,
      * see also comments in #BKE_library_foreach_ID_embedded.
      * This is why we can always create this data here, and do not need to try and re-use it from
      * `inherit_data`. */
-    data.ids_handled = MEM_new<blender::Set<ID *>>(__func__);
+    data.ids_handled = MEM_new<Set<ID *>>(__func__);
     BLI_LINKSTACK_INIT(data.ids_todo);
 
     data.ids_handled->add(id);
@@ -430,7 +432,7 @@ static bool library_foreach_ID_link(Main *bmain,
 
 void BKE_library_foreach_ID_link(Main *bmain,
                                  ID *id,
-                                 blender::FunctionRef<LibraryIDLinkCallback> callback,
+                                 FunctionRef<LibraryIDLinkCallback> callback,
                                  void *user_data,
                                  const LibraryForeachIDFlag flag)
 {
@@ -452,8 +454,8 @@ void BKE_library_foreach_subdata_id(
     Main *bmain,
     ID *owner_id,
     ID *self_id,
-    blender::FunctionRef<void(LibraryForeachIDData *data)> subdata_foreach_id,
-    blender::FunctionRef<LibraryIDLinkCallback> callback,
+    FunctionRef<void(LibraryForeachIDData *data)> subdata_foreach_id,
+    FunctionRef<LibraryIDLinkCallback> callback,
     void *user_data,
     const LibraryForeachIDFlag flag)
 {
@@ -490,7 +492,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id,
   /* Casting to non const.
    * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
    * interested in the result. */
-  if (blender::bke::node_tree_from_id(const_cast<ID *>(owner_id))) {
+  if (bke::node_tree_from_id(const_cast<ID *>(owner_id))) {
     return FILTER_ID_ALL;
   }
 
@@ -690,13 +692,13 @@ struct UnusedIDsData {
   bool do_linked_ids;
   bool do_recursive;
 
-  blender::FunctionRef<bool(ID *id)> filter_fn;
+  FunctionRef<bool(ID *id)> filter_fn;
 
   std::array<int, INDEX_ID_MAX> *num_total;
   std::array<int, INDEX_ID_MAX> *num_local;
   std::array<int, INDEX_ID_MAX> *num_linked;
 
-  blender::Set<ID *> unused_ids;
+  Set<ID *> unused_ids;
 
   UnusedIDsData(Main *bmain, const int id_tag, LibQueryUnusedIDsData &parameters)
       : bmain(bmain),
@@ -1161,3 +1163,5 @@ void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
     }
   }
 }
+
+}  // namespace blender

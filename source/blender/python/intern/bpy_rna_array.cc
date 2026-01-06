@@ -34,6 +34,8 @@
 
 #define MAX_ARRAY_DIMENSION 10
 
+namespace blender {
+
 struct ItemConvertArgData;
 
 using ItemConvertFunc = void (*)(const ItemConvertArgData *arg, PyObject *py_data, char *data);
@@ -1109,3 +1111,5 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
   PyErr_SetString(PyExc_TypeError, "PropertyRNA - type not in float/bool/int");
   return -1;
 }
+
+}  // namespace blender

@@ -27,13 +27,15 @@
 
 #include "DNA_userdef_types.h"
 
+namespace blender {
+
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
 
 /* -------------------------------------------------------------------- */
 /** \name Preferences File
  * \{ */
 
-namespace blender::bke::preferences {
+namespace bke::preferences {
 
 bool exists()
 {
@@ -47,7 +49,7 @@ bool exists()
   return BLI_exists(userpref);
 }
 
-}  // namespace blender::bke::preferences
+}  // namespace bke::preferences
 
 /** \} */
 
@@ -611,3 +613,5 @@ bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *u
 }
 
 /** \} */
+
+}  // namespace blender

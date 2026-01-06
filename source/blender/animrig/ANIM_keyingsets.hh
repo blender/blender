@@ -12,6 +12,8 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct KeyingSet;
 struct ExtensionRNA;
 /* Forward declaration for this struct which is declared a bit later. */
@@ -75,7 +77,7 @@ struct KeyingSetInfo {
   ExtensionRNA rna_ext;
 };
 
-namespace blender::animrig {
+namespace animrig {
 
 /** Mode for modify_keyframes. */
 enum class ModifyKeyMode {
@@ -186,4 +188,5 @@ void relative_keyingset_add_source(Vector<PointerRNA> &sources, ID *id);
 
 /** \} */
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

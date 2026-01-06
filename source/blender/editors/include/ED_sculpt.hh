@@ -10,6 +10,8 @@
 
 #include <cstddef>
 
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct Mesh;
@@ -23,7 +25,7 @@ struct bContext;
 struct wmKeyConfig;
 struct wmOperator;
 
-namespace blender::ed::sculpt_paint {
+namespace ed::sculpt_paint {
 
 void object_sculpt_mode_enter(Main &bmain,
                               Depsgraph &depsgraph,
@@ -113,4 +115,6 @@ void store_mesh_from_eval(const wmOperator &op,
                           Object &object,
                           Mesh *new_mesh);
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
+
+}  // namespace blender

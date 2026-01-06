@@ -357,7 +357,7 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
       continue;
     }
 
-    mesh = blender::id_cast<Mesh *>(ob->data);
+    mesh = id_cast<Mesh *>(ob->data);
     if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
       /* Do not transfer to linked/override data, not supported. */
       BKE_reportf(op->reports,
@@ -388,7 +388,7 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
     return true;
   }
 
-  mesh = blender::id_cast<Mesh *>(ob_dst->data);
+  mesh = id_cast<Mesh *>(ob_dst->data);
   if (mesh->id.tag & ID_TAG_DOIT) {
     mesh->id.tag &= ~ID_TAG_DOIT;
     return true;

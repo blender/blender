@@ -9,6 +9,8 @@
 
 #pragma once
 
+namespace blender {
+
 // #define RIGID_DEFORM
 
 struct Mesh;
@@ -56,3 +58,5 @@ void rigid_deform_end(int cancel);
 /* Harmonic Coordinates */
 
 /* ED_mesh_deform_bind_callback(...) defined in ED_armature.hh */
+
+}  // namespace blender

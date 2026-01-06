@@ -16,11 +16,13 @@
 
 #include "gpu_shader_create_info.hh"
 
+namespace blender {
+
 void gpu_shader_dependency_init();
 
 void gpu_shader_dependency_exit();
 
-namespace blender::gpu::shader {
+namespace gpu::shader {
 
 BuiltinBits gpu_shader_dependency_get_builtins(const StringRefNull source_name);
 Span<ShaderCreateInfo::SharedVariable> gpu_shader_dependency_get_shared_variables(
@@ -62,4 +64,5 @@ StringRefNull gpu_shader_dependency_get_source(StringRefNull source_name);
  */
 StringRefNull gpu_shader_dependency_get_filename_from_source_string(StringRef source_string);
 
-}  // namespace blender::gpu::shader
+}  // namespace gpu::shader
+}  // namespace blender

@@ -111,16 +111,18 @@
 
 #include "BLO_read_write.hh"
 
-using blender::nodes::FieldInferencingInterface;
-using blender::nodes::InputSocketFieldType;
-using blender::nodes::NodeDeclaration;
-using blender::nodes::OutputFieldDependency;
-using blender::nodes::OutputSocketFieldType;
-using blender::nodes::SocketDeclaration;
+namespace blender {
+
+using nodes::FieldInferencingInterface;
+using nodes::InputSocketFieldType;
+using nodes::NodeDeclaration;
+using nodes::OutputFieldDependency;
+using nodes::OutputSocketFieldType;
+using nodes::SocketDeclaration;
 
 static CLG_LogRef LOG = {"node"};
 
-namespace blender::bke {
+namespace bke {
 
 /* Forward declaration. */
 static void write_node_socket_default_value(BlendWriter *writer, const bNodeSocket *sock);
@@ -537,8 +539,7 @@ static void node_foreach_working_space_color(ID *id, const IDTypeForeachColorFun
       {
         bNodeSocketValueVector *vec = static_cast<bNodeSocketValueVector *>(socket->default_value);
         float length;
-        blender::float3 radius = blender::math::normalize_and_get_length(
-            blender::float3(vec->value), length);
+        float3 radius = math::normalize_and_get_length(float3(vec->value), length);
         fn.single(radius);
         copy_v3_v3(vec->value, radius * length);
       }
@@ -563,14 +564,14 @@ static void node_foreach_working_space_color(ID *id, const IDTypeForeachColorFun
   }
 
   for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
-    const blender::bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
+    const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
     if (typeinfo && typeinfo->type == SOCK_RGBA && socket->socket_data) {
       bNodeSocketValueRGBA *rgba = static_cast<bNodeSocketValueRGBA *>(socket->socket_data);
       fn.single(rgba->value);
     }
   }
   for (bNodeTreeInterfaceSocket *socket : ntree->interface_outputs()) {
-    const blender::bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
+    const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
     if (typeinfo && typeinfo->type == SOCK_RGBA && socket->socket_data) {
       bNodeSocketValueRGBA *rgba = static_cast<bNodeSocketValueRGBA *>(socket->socket_data);
       fn.single(rgba->value);
@@ -1455,7 +1456,7 @@ struct bNodeSocketValueMenu_404 {
   /* #NodeSocketValueMenuRuntimeFlag */
   int runtime_flag;
   /* Immutable runtime enum definition. */
-  const blender::bke::RuntimeNodeEnumItems *enum_items;
+  const bke::RuntimeNodeEnumItems *enum_items;
 };
 
 /* Generic code handling the conversion between a legacy (pre-2.83) socket data, and its current
@@ -2154,12 +2155,12 @@ static void node_tree_asset_on_clear_asset(void *asset_ptr, AssetMetaData *asset
   }
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 static AssetTypeInfo AssetType_NT = {
-    /*pre_save_fn*/ blender::bke::node_tree_asset_pre_save,
-    /*on_mark_asset_fn*/ blender::bke::node_tree_asset_on_mark_asset,
-    /*on_clear_asset_fn*/ blender::bke::node_tree_asset_on_clear_asset,
+    /*pre_save_fn*/ bke::node_tree_asset_pre_save,
+    /*on_mark_asset_fn*/ bke::node_tree_asset_on_mark_asset,
+    /*on_clear_asset_fn*/ bke::node_tree_asset_on_clear_asset,
 };
 
 IDTypeInfo IDType_ID_NT = {
@@ -2175,26 +2176,26 @@ IDTypeInfo IDType_ID_NT = {
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ &AssetType_NT,
 
-    /*init_data*/ blender::bke::ntree_init_data,
-    /*copy_data*/ blender::bke::ntree_copy_data,
-    /*free_data*/ blender::bke::ntree_free_data,
+    /*init_data*/ bke::ntree_init_data,
+    /*copy_data*/ bke::ntree_copy_data,
+    /*free_data*/ bke::ntree_free_data,
     /*make_local*/ nullptr,
-    /*foreach_id*/ blender::bke::node_foreach_id,
-    /*foreach_cache*/ blender::bke::node_foreach_cache,
-    /*foreach_path*/ blender::bke::node_foreach_path,
-    /*foreach_working_space_color*/ blender::bke::node_foreach_working_space_color,
-    /*owner_pointer_get*/ blender::bke::node_owner_pointer_get,
+    /*foreach_id*/ bke::node_foreach_id,
+    /*foreach_cache*/ bke::node_foreach_cache,
+    /*foreach_path*/ bke::node_foreach_path,
+    /*foreach_working_space_color*/ bke::node_foreach_working_space_color,
+    /*owner_pointer_get*/ bke::node_owner_pointer_get,
 
-    /*blend_write*/ blender::bke::ntree_blend_write,
-    /*blend_read_data*/ blender::bke::ntree_blend_read_data,
-    /*blend_read_after_liblink*/ blender::bke::ntree_blend_read_after_liblink,
+    /*blend_write*/ bke::ntree_blend_write,
+    /*blend_read_data*/ bke::ntree_blend_read_data,
+    /*blend_read_after_liblink*/ bke::ntree_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ nullptr,
 
     /*lib_override_apply_post*/ nullptr,
 };
 
-namespace blender::bke {
+namespace bke {
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
@@ -2806,27 +2807,27 @@ static void socket_id_user_increment(bNodeSocket *sock)
     }
     case SOCK_FONT: {
       bNodeSocketValueFont &default_value = *sock->default_value_typed<bNodeSocketValueFont>();
-      id_us_plus(blender::id_cast<ID *>(default_value.value));
+      id_us_plus(id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_SCENE: {
       bNodeSocketValueScene &default_value = *sock->default_value_typed<bNodeSocketValueScene>();
-      id_us_plus(blender::id_cast<ID *>(default_value.value));
+      id_us_plus(id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_TEXT_ID: {
       bNodeSocketValueText &default_value = *sock->default_value_typed<bNodeSocketValueText>();
-      id_us_plus(blender::id_cast<ID *>(default_value.value));
+      id_us_plus(id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_MASK: {
       bNodeSocketValueMask &default_value = *sock->default_value_typed<bNodeSocketValueMask>();
-      id_us_plus(blender::id_cast<ID *>(default_value.value));
+      id_us_plus(id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_SOUND: {
       bNodeSocketValueSound &default_value = *sock->default_value_typed<bNodeSocketValueSound>();
-      id_us_plus(blender::id_cast<ID *>(default_value.value));
+      id_us_plus(id_cast<ID *>(default_value.value));
       break;
     }
     case SOCK_FLOAT:
@@ -2881,27 +2882,27 @@ static bool socket_id_user_decrement(bNodeSocket *sock)
     }
     case SOCK_FONT: {
       bNodeSocketValueFont &default_value = *sock->default_value_typed<bNodeSocketValueFont>();
-      id_us_min(blender::id_cast<ID *>(default_value.value));
+      id_us_min(id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_SCENE: {
       bNodeSocketValueScene &default_value = *sock->default_value_typed<bNodeSocketValueScene>();
-      id_us_min(blender::id_cast<ID *>(default_value.value));
+      id_us_min(id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_TEXT_ID: {
       bNodeSocketValueText &default_value = *sock->default_value_typed<bNodeSocketValueText>();
-      id_us_min(blender::id_cast<ID *>(default_value.value));
+      id_us_min(id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_MASK: {
       bNodeSocketValueMask &default_value = *sock->default_value_typed<bNodeSocketValueMask>();
-      id_us_min(blender::id_cast<ID *>(default_value.value));
+      id_us_min(id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_SOUND: {
       bNodeSocketValueSound &default_value = *sock->default_value_typed<bNodeSocketValueSound>();
-      id_us_min(blender::id_cast<ID *>(default_value.value));
+      id_us_min(id_cast<ID *>(default_value.value));
       return default_value.value != nullptr;
     }
     case SOCK_FLOAT:
@@ -3610,8 +3611,8 @@ static void iter_backwards_ex(const bNodeTree *ntree,
                               void *userdata,
                               const char recursion_mask)
 {
-  blender::Stack<bNode *> stack;
-  blender::Stack<bNode *> zone_stack;
+  Stack<bNode *> stack;
+  Stack<bNode *> zone_stack;
   stack.push(node_start);
 
   while (!stack.is_empty() || !zone_stack.is_empty()) {
@@ -4794,7 +4795,7 @@ void node_tree_set_output(bNodeTree &ntree)
 bNodeTree **node_tree_ptr_from_id(ID *id)
 {
   /* If this is ever extended such that a non-animatable ID type can embed a node
-   * tree, update blender::animrig::internal::rebuild_slot_user_cache(). That
+   * tree, update animrig::internal::rebuild_slot_user_cache(). That
    * function assumes that node trees can only be embedded by animatable IDs. */
 
   switch (GS(id->name)) {
@@ -5825,4 +5826,5 @@ bool node_tree_type_supports_socket_type_static(const int ntree_type,
   return false;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

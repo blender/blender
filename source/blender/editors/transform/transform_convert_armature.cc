@@ -260,7 +260,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
     return 0;
   }
 
-  arm = blender::id_cast<bArmature *>(ob->data);
+  arm = id_cast<bArmature *>(ob->data);
 
   /* Rule: allow multiple Bones
    * (but they must be selected, and only one ik-solver per chain should get added). */
@@ -396,7 +396,7 @@ static void add_pose_transdata(
   float pmat[3][3], omat[3][3];
   float cmat[3][3], tmat[3][3];
 
-  const bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+  const bArmature *arm = id_cast<bArmature *>(ob->data);
   BKE_pose_channel_transform_location(arm, pchan, td->center);
   if (pchan->flag & POSE_TRANSFORM_AROUND_CUSTOM_TX) {
     copy_v3_v3(td_ext->center_no_override, pchan->pose_mat[3]);
@@ -745,7 +745,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
   t->data_len_all = 0;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    bArmature *arm = blender::id_cast<bArmature *>(tc->obedit->data);
+    bArmature *arm = id_cast<bArmature *>(tc->obedit->data);
     ListBaseT<EditBone> *edbo = arm->edbo;
     bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
     int total_mirrored = 0;
@@ -754,7 +754,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     for (EditBone &ebo : *edbo) {
       const int data_len_prev = tc->data_len;
 
-      if (blender::animrig::bone_is_visible(arm, &ebo) && !(ebo.flag & BONE_EDITMODE_LOCKED)) {
+      if (animrig::bone_is_visible(arm, &ebo) && !(ebo.flag & BONE_EDITMODE_LOCKED)) {
         if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
           if (ebo.flag & BONE_SELECTED) {
             tc->data_len++;
@@ -806,7 +806,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
       continue;
     }
 
-    bArmature *arm = blender::id_cast<bArmature *>(tc->obedit->data);
+    bArmature *arm = id_cast<bArmature *>(tc->obedit->data);
     ListBaseT<EditBone> *edbo = arm->edbo;
     TransData *td, *td_old;
     float mtx[3][3], smtx[3][3], bonemat[3][3];
@@ -825,7 +825,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
       /* (length == 0.0) on extrude, used for scaling radius of bone points. */
       ebo.oldlength = ebo.length;
 
-      if (blender::animrig::bone_is_visible(arm, &ebo) && !(ebo.flag & BONE_EDITMODE_LOCKED)) {
+      if (animrig::bone_is_visible(arm, &ebo) && !(ebo.flag & BONE_EDITMODE_LOCKED)) {
         if (t->mode == TFM_BONE_ENVELOPE) {
           if (ebo.flag & BONE_ROOTSEL) {
             td->val = &ebo.rad_head;
@@ -993,11 +993,11 @@ static void restoreBones(TransDataContainer *tc)
   EditBone *ebo;
 
   if (tc->obedit) {
-    arm = blender::id_cast<bArmature *>(tc->obedit->data);
+    arm = id_cast<bArmature *>(tc->obedit->data);
   }
   else {
     BLI_assert(tc->poseobj != nullptr);
-    arm = blender::id_cast<bArmature *>(tc->poseobj->data);
+    arm = id_cast<bArmature *>(tc->poseobj->data);
   }
 
   while (bid->bone) {
@@ -1040,7 +1040,7 @@ static void recalcData_edit_armature(TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    bArmature *arm = blender::id_cast<bArmature *>(tc->obedit->data);
+    bArmature *arm = id_cast<bArmature *>(tc->obedit->data);
     ListBaseT<EditBone> *edbo = arm->edbo;
     EditBone *ebo, *ebo_parent;
     TransData *td = tc->data;
@@ -1052,8 +1052,7 @@ static void recalcData_edit_armature(TransInfo *t)
 
       if (ebo_parent) {
         /* If this bone has a parent tip that has been moved. */
-        if (blender::animrig::bone_is_visible(arm, ebo_parent) && (ebo_parent->flag & BONE_TIPSEL))
-        {
+        if (animrig::bone_is_visible(arm, ebo_parent) && (ebo_parent->flag & BONE_TIPSEL)) {
           copy_v3_v3(ebo.head, ebo_parent->tail);
           if (t->mode == TFM_BONE_ENVELOPE) {
             ebo.rad_head = ebo_parent->rad_tail;
@@ -1378,7 +1377,7 @@ static void recalcData_pose(TransInfo *t)
      * in that case we have to do mirroring as well. */
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
-      bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+      bArmature *arm = id_cast<bArmature *>(ob->data);
       if (ob->mode == OB_MODE_EDIT) {
         if (arm->flag & ARM_MIRROR_EDIT) {
           if (t->state != TRANS_CANCEL) {
@@ -1458,7 +1457,7 @@ static void pose_channel_children_clear_transflag(bPose &pose,
                                                   const int mode,
                                                   const short around)
 {
-  blender::animrig::pose_bone_descendent_iterator(pose, pose_bone, [&](bPoseChannel &child) {
+  animrig::pose_bone_descendent_iterator(pose, pose_bone, [&](bPoseChannel &child) {
     if (&pose_bone == &child) {
       return;
     }
@@ -1479,10 +1478,10 @@ static void pose_channel_children_clear_transflag(bPose &pose,
 
 void transform_convert_pose_transflags_update(Object *ob, const int mode, const short around)
 {
-  bArmature *arm = blender::id_cast<bArmature *>(ob->data);
+  bArmature *arm = id_cast<bArmature *>(ob->data);
 
   for (bPoseChannel &pchan : ob->pose->chanbase) {
-    if (blender::animrig::bone_is_visible(arm, &pchan)) {
+    if (animrig::bone_is_visible(arm, &pchan)) {
       if (pchan.flag & POSE_SELECTED) {
         pchan.runtime.flag |= POSE_RUNTIME_TRANSFORM;
       }

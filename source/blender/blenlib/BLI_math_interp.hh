@@ -27,7 +27,9 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_simd.hh"
 
-namespace blender::math {
+namespace blender {
+
+namespace math {
 
 /**
  * Texture coordinate wrapping mode.
@@ -480,7 +482,7 @@ void interpolate_cubic_bspline_wrapmode_fl(const float *buffer,
 void interpolate_cubic_mitchell_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v);
 
-}  // namespace blender::math
+}  // namespace math
 
 /* -------------------------------------------------------------------- */
 /* EWA sampling. */
@@ -507,3 +509,5 @@ void BLI_ewa_filter(int width,
                     ewa_filter_read_pixel_cb read_pixel_cb,
                     void *userdata,
                     float result[4]);
+
+}  // namespace blender

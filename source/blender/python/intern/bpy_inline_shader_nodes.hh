@@ -10,4 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 [[nodiscard]] PyObject *BPyInit_inline_shader_nodes_type();
+
+}  // namespace blender

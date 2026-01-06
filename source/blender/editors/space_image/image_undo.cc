@@ -55,6 +55,8 @@
 
 #include "WM_api.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"undo.image"};
 
 /* -------------------------------------------------------------------- */
@@ -103,7 +105,7 @@ struct PaintTileKey {
 
   uint64_t hash() const
   {
-    return blender::get_default_hash(x_tile, y_tile, image, ibuf);
+    return get_default_hash(x_tile, y_tile, image, ibuf);
   }
   bool operator==(const PaintTileKey &other) const
   {
@@ -143,7 +145,7 @@ static void ptile_free(PaintTile *ptile)
 }
 
 struct PaintTileMap {
-  blender::Map<PaintTileKey, PaintTile *> map;
+  Map<PaintTileKey, PaintTile *> map;
 
   ~PaintTileMap()
   {
@@ -1010,7 +1012,7 @@ static void image_undosys_step_decode(
   }
 
   if (us->paint_mode == PaintMode::Texture3D) {
-    blender::ed::object::mode_set_ex(C, OB_MODE_TEXTURE_PAINT, false, nullptr);
+    ed::object::mode_set_ex(C, OB_MODE_TEXTURE_PAINT, false, nullptr);
   }
 
   /* Ideally, we shouldn't have to tag the object as needing to be recalculated if using this paint
@@ -1186,3 +1188,5 @@ void ED_image_undo_push_end()
 }
 
 /** \} */
+
+}  // namespace blender

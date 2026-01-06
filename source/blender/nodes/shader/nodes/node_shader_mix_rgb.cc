@@ -17,7 +17,9 @@
 
 #include "NOD_multi_function.hh"
 
-namespace blender::nodes::node_shader_mix_rgb_cc {
+namespace blender {
+
+namespace nodes::node_shader_mix_rgb_cc {
 
 static void sh_node_mix_rgb_declare(NodeDeclarationBuilder &b)
 {
@@ -155,13 +157,13 @@ static void sh_node_mix_rgb_build_multi_function(NodeMultiFunctionBuilder &build
   builder.construct_and_set_matching_fn<MixRGBFunction>(clamp, mix_type);
 }
 
-}  // namespace blender::nodes::node_shader_mix_rgb_cc
+}  // namespace nodes::node_shader_mix_rgb_cc
 
 void register_node_type_sh_mix_rgb()
 {
-  namespace file_ns = blender::nodes::node_shader_mix_rgb_cc;
+  namespace file_ns = nodes::node_shader_mix_rgb_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeMixRGB", SH_NODE_MIX_RGB_LEGACY);
   ntype.ui_name = "Mix (Legacy)";
@@ -173,5 +175,7 @@ void register_node_type_sh_mix_rgb()
   ntype.gpu_fn = file_ns::gpu_shader_mix_rgb;
   ntype.build_multi_function = file_ns::sh_node_mix_rgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

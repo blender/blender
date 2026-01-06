@@ -597,7 +597,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     } /* End editmesh. */
     else if (obedit->type == OB_ARMATURE) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        bArmature *arm = blender::id_cast<bArmature *>(ob_iter->data);
+        bArmature *arm = id_cast<bArmature *>(ob_iter->data);
 
         float mat_local[4][4];
         if (use_mat_local) {
@@ -605,7 +605,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
               mat_local, obedit->world_to_object().ptr(), ob_iter->object_to_world().ptr());
         }
         for (EditBone &ebo : *arm->edbo) {
-          if (blender::animrig::bone_is_visible(arm, &ebo)) {
+          if (animrig::bone_is_visible(arm, &ebo)) {
             if (ebo.flag & BONE_TIPSEL) {
               run_coord_with_matrix(ebo.tail, use_mat_local, mat_local);
               totsel++;
@@ -613,8 +613,8 @@ static int gizmo_3d_foreach_selected(const bContext *C,
             if ((ebo.flag & BONE_ROOTSEL) &&
                 /* Don't include same point multiple times. */
                 ((ebo.flag & BONE_CONNECTED) && (ebo.parent != nullptr) &&
-                 (ebo.parent->flag & BONE_TIPSEL) &&
-                 blender::animrig::bone_is_visible(arm, ebo.parent)) == 0)
+                 (ebo.parent->flag & BONE_TIPSEL) && animrig::bone_is_visible(arm, ebo.parent)) ==
+                    0)
             {
               run_coord_with_matrix(ebo.head, use_mat_local, mat_local);
               totsel++;
@@ -635,7 +635,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        Curve *cu = blender::id_cast<Curve *>(ob_iter->data);
+        Curve *cu = id_cast<Curve *>(ob_iter->data);
         BezTriple *bezt;
         BPoint *bp;
         ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
@@ -699,7 +699,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_MBALL) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        MetaBall *mb = blender::id_cast<MetaBall *>(ob_iter->data);
+        MetaBall *mb = id_cast<MetaBall *>(ob_iter->data);
 
         float mat_local[4][4];
         if (use_mat_local) {
@@ -718,7 +718,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_LATTICE) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        Lattice *lt = (blender::id_cast<Lattice *>(ob_iter->data))->editlatt->latt;
+        Lattice *lt = (id_cast<Lattice *>(ob_iter->data))->editlatt->latt;
         BPoint *bp = lt->def;
         a = lt->pntsu * lt->pntsv * lt->pntsw;
 
@@ -740,7 +740,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_CURVES) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        const Curves &curves_id = *blender::id_cast<Curves *>(ob_iter->data);
+        const Curves &curves_id = *id_cast<Curves *>(ob_iter->data);
         const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
         const bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_curves_deformation(*depsgraph, *ob);
@@ -775,7 +775,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_POINTCLOUD) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        const PointCloud &pointcloud = *blender::id_cast<const PointCloud *>(ob_iter->data);
+        const PointCloud &pointcloud = *id_cast<const PointCloud *>(ob_iter->data);
 
         float4x4 mat_local;
         if (use_mat_local) {
@@ -798,7 +798,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
     else if (obedit->type == OB_GREASE_PENCIL) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
-        GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(ob_iter->data);
+        GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob_iter->data);
 
         float4x4 mat_local = float4x4::identity();
         if (use_mat_local) {
@@ -867,7 +867,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         mul_m4_m4m4(mat_local, ob->world_to_object().ptr(), ob_iter->object_to_world().ptr());
       }
 
-      bArmature *arm = blender::id_cast<bArmature *>(ob_iter->data);
+      bArmature *arm = id_cast<bArmature *>(ob_iter->data);
       /* Use channels to get stats. */
       for (bPoseChannel &pchan : ob_iter->pose->chanbase) {
         if (!(pchan.runtime.flag & POSE_RUNTIME_TRANSFORM)) {

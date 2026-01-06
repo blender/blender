@@ -49,6 +49,8 @@
 
 #include "versioning_common.hh"
 
+namespace blender {
+
 /**
  * Exit NLA tweakmode when the AnimData struct has insufficient information.
  *
@@ -103,7 +105,6 @@ void do_versions_after_linking_410(FileData * /*fd*/, Main *bmain)
 
 static void versioning_grease_pencil_stroke_radii_scaling(GreasePencil *grease_pencil)
 {
-  using namespace blender;
   for (GreasePencilDrawingBase *base : grease_pencil->drawings()) {
     if (base->type != GP_DRAWING) {
       continue;
@@ -127,7 +128,7 @@ static void versioning_update_noise_texture_node(bNodeTree *ntree)
 
     (static_cast<NodeTexNoise *>(node.storage))->type = SHD_NOISE_FBM;
 
-    bNodeSocket *roughness_socket = blender::bke::node_find_socket(node, SOCK_IN, "Roughness");
+    bNodeSocket *roughness_socket = bke::node_find_socket(node, SOCK_IN, "Roughness");
     if (roughness_socket == nullptr) {
       /* Noise Texture node was created before the Roughness input was added. */
       continue;
@@ -151,26 +152,24 @@ static void versioning_update_noise_texture_node(bNodeTree *ntree)
     if (roughness_link != nullptr) {
       /* Add Clamp node before Roughness input. */
 
-      bNode *clamp_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_CLAMP);
+      bNode *clamp_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_CLAMP);
       clamp_node->parent = node.parent;
       clamp_node->custom1 = NODE_CLAMP_MINMAX;
       clamp_node->locx_legacy = node.locx_legacy;
       clamp_node->locy_legacy = node.locy_legacy - 300.0f;
       clamp_node->flag |= NODE_COLLAPSED;
-      bNodeSocket *clamp_socket_value = blender::bke::node_find_socket(
-          *clamp_node, SOCK_IN, "Value");
-      bNodeSocket *clamp_socket_min = blender::bke::node_find_socket(*clamp_node, SOCK_IN, "Min");
-      bNodeSocket *clamp_socket_max = blender::bke::node_find_socket(*clamp_node, SOCK_IN, "Max");
-      bNodeSocket *clamp_socket_out = blender::bke::node_find_socket(
-          *clamp_node, SOCK_OUT, "Result");
+      bNodeSocket *clamp_socket_value = bke::node_find_socket(*clamp_node, SOCK_IN, "Value");
+      bNodeSocket *clamp_socket_min = bke::node_find_socket(*clamp_node, SOCK_IN, "Min");
+      bNodeSocket *clamp_socket_max = bke::node_find_socket(*clamp_node, SOCK_IN, "Max");
+      bNodeSocket *clamp_socket_out = bke::node_find_socket(*clamp_node, SOCK_OUT, "Result");
 
       *version_cycles_node_socket_float_value(clamp_socket_min) = 0.0f;
       *version_cycles_node_socket_float_value(clamp_socket_max) = 1.0f;
 
-      blender::bke::node_remove_link(ntree, *roughness_link);
-      blender::bke::node_add_link(
+      bke::node_remove_link(ntree, *roughness_link);
+      bke::node_add_link(
           *ntree, *roughness_from_node, *roughness_from_socket, *clamp_node, *clamp_socket_value);
-      blender::bke::node_add_link(*ntree, *clamp_node, *clamp_socket_out, node, *roughness_socket);
+      bke::node_add_link(*ntree, *clamp_node, *clamp_socket_out, node, *roughness_socket);
     }
     else {
       *roughness = std::clamp(*roughness, 0.0f, 1.0f);
@@ -234,11 +233,11 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
     uint8_t noise_type = (static_cast<NodeTexNoise *>(node.storage))->type;
     float locy_offset = 0.0f;
 
-    bNodeSocket *fac_socket = blender::bke::node_find_socket(node, SOCK_OUT, "Fac");
+    bNodeSocket *fac_socket = bke::node_find_socket(node, SOCK_OUT, "Fac");
     /* Clear label because Musgrave output socket label is set to "Height" instead of "Fac". */
     fac_socket->label[0] = '\0';
 
-    bNodeSocket *detail_socket = blender::bke::node_find_socket(node, SOCK_IN, "Detail");
+    bNodeSocket *detail_socket = bke::node_find_socket(node, SOCK_IN, "Detail");
     float *detail = version_cycles_node_socket_float_value(detail_socket);
 
     if (detail_link != nullptr) {
@@ -246,7 +245,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
 
       /* Add Minimum Math node and Subtract Math node before Detail input. */
 
-      bNode *min_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+      bNode *min_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       min_node->parent = node.parent;
       min_node->custom1 = NODE_MATH_MINIMUM;
       min_node->locx_legacy = node.locx_legacy;
@@ -254,9 +253,9 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       min_node->flag |= NODE_COLLAPSED;
       bNodeSocket *min_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 0));
       bNodeSocket *min_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 1));
-      bNodeSocket *min_socket_out = blender::bke::node_find_socket(*min_node, SOCK_OUT, "Value");
+      bNodeSocket *min_socket_out = bke::node_find_socket(*min_node, SOCK_OUT, "Value");
 
-      bNode *sub1_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+      bNode *sub1_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       sub1_node->parent = node.parent;
       sub1_node->custom1 = NODE_MATH_SUBTRACT;
       sub1_node->locx_legacy = node.locx_legacy;
@@ -264,23 +263,23 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       sub1_node->flag |= NODE_COLLAPSED;
       bNodeSocket *sub1_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&sub1_node->inputs, 0));
       bNodeSocket *sub1_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&sub1_node->inputs, 1));
-      bNodeSocket *sub1_socket_out = blender::bke::node_find_socket(*sub1_node, SOCK_OUT, "Value");
+      bNodeSocket *sub1_socket_out = bke::node_find_socket(*sub1_node, SOCK_OUT, "Value");
 
       *version_cycles_node_socket_float_value(min_socket_B) = 14.0f;
       *version_cycles_node_socket_float_value(sub1_socket_B) = 1.0f;
 
-      blender::bke::node_remove_link(ntree, *detail_link);
-      blender::bke::node_add_link(
+      bke::node_remove_link(ntree, *detail_link);
+      bke::node_add_link(
           *ntree, *detail_from_node, *detail_from_socket, *sub1_node, *sub1_socket_A);
-      blender::bke::node_add_link(*ntree, *sub1_node, *sub1_socket_out, *min_node, *min_socket_A);
-      blender::bke::node_add_link(*ntree, *min_node, *min_socket_out, node, *detail_socket);
+      bke::node_add_link(*ntree, *sub1_node, *sub1_socket_out, *min_node, *min_socket_A);
+      bke::node_add_link(*ntree, *min_node, *min_socket_out, node, *detail_socket);
 
       if (ELEM(noise_type, SHD_NOISE_RIDGED_MULTIFRACTAL, SHD_NOISE_HETERO_TERRAIN)) {
         locy_offset -= 40.0f;
 
         /* Add Greater Than Math node before Subtract Math node. */
 
-        bNode *greater_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+        bNode *greater_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
         greater_node->parent = node.parent;
         greater_node->custom1 = NODE_MATH_GREATER_THAN;
         greater_node->locx_legacy = node.locx_legacy;
@@ -290,35 +289,29 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
             BLI_findlink(&greater_node->inputs, 0));
         bNodeSocket *greater_socket_B = static_cast<bNodeSocket *>(
             BLI_findlink(&greater_node->inputs, 1));
-        bNodeSocket *greater_socket_out = blender::bke::node_find_socket(
-            *greater_node, SOCK_OUT, "Value");
+        bNodeSocket *greater_socket_out = bke::node_find_socket(*greater_node, SOCK_OUT, "Value");
 
         *version_cycles_node_socket_float_value(greater_socket_B) = 1.0f;
 
-        blender::bke::node_add_link(
+        bke::node_add_link(
             *ntree, *detail_from_node, *detail_from_socket, *greater_node, *greater_socket_A);
-        blender::bke::node_add_link(
-            *ntree, *greater_node, *greater_socket_out, *sub1_node, *sub1_socket_B);
+        bke::node_add_link(*ntree, *greater_node, *greater_socket_out, *sub1_node, *sub1_socket_B);
       }
       else {
         /* Add Clamp node and Multiply Math node behind Fac output. */
 
-        bNode *clamp_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_CLAMP);
+        bNode *clamp_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_CLAMP);
         clamp_node->parent = node.parent;
         clamp_node->custom1 = NODE_CLAMP_MINMAX;
         clamp_node->locx_legacy = node.locx_legacy;
         clamp_node->locy_legacy = node.locy_legacy + 40.0f;
         clamp_node->flag |= NODE_COLLAPSED;
-        bNodeSocket *clamp_socket_value = blender::bke::node_find_socket(
-            *clamp_node, SOCK_IN, "Value");
-        bNodeSocket *clamp_socket_min = blender::bke::node_find_socket(
-            *clamp_node, SOCK_IN, "Min");
-        bNodeSocket *clamp_socket_max = blender::bke::node_find_socket(
-            *clamp_node, SOCK_IN, "Max");
-        bNodeSocket *clamp_socket_out = blender::bke::node_find_socket(
-            *clamp_node, SOCK_OUT, "Result");
+        bNodeSocket *clamp_socket_value = bke::node_find_socket(*clamp_node, SOCK_IN, "Value");
+        bNodeSocket *clamp_socket_min = bke::node_find_socket(*clamp_node, SOCK_IN, "Min");
+        bNodeSocket *clamp_socket_max = bke::node_find_socket(*clamp_node, SOCK_IN, "Max");
+        bNodeSocket *clamp_socket_out = bke::node_find_socket(*clamp_node, SOCK_OUT, "Result");
 
-        bNode *mul_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+        bNode *mul_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
         mul_node->parent = node.parent;
         mul_node->custom1 = NODE_MATH_MULTIPLY;
         mul_node->locx_legacy = node.locx_legacy;
@@ -326,7 +319,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         mul_node->flag |= NODE_COLLAPSED;
         bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
         bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
-        bNodeSocket *mul_socket_out = blender::bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
+        bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
 
         *version_cycles_node_socket_float_value(clamp_socket_min) = 0.0f;
         *version_cycles_node_socket_float_value(clamp_socket_max) = 1.0f;
@@ -334,7 +327,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         if (noise_type == SHD_NOISE_MULTIFRACTAL) {
           /* Add Subtract Math node and Add Math node after Multiply Math node. */
 
-          bNode *sub2_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+          bNode *sub2_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
           sub2_node->parent = node.parent;
           sub2_node->custom1 = NODE_MATH_SUBTRACT;
           sub2_node->custom2 = SHD_MATH_CLAMP;
@@ -345,10 +338,9 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
               BLI_findlink(&sub2_node->inputs, 0));
           bNodeSocket *sub2_socket_B = static_cast<bNodeSocket *>(
               BLI_findlink(&sub2_node->inputs, 1));
-          bNodeSocket *sub2_socket_out = blender::bke::node_find_socket(
-              *sub2_node, SOCK_OUT, "Value");
+          bNodeSocket *sub2_socket_out = bke::node_find_socket(*sub2_node, SOCK_OUT, "Value");
 
-          bNode *add_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+          bNode *add_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
           add_node->parent = node.parent;
           add_node->custom1 = NODE_MATH_ADD;
           add_node->locx_legacy = node.locx_legacy;
@@ -358,41 +350,35 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
               BLI_findlink(&add_node->inputs, 0));
           bNodeSocket *add_socket_B = static_cast<bNodeSocket *>(
               BLI_findlink(&add_node->inputs, 1));
-          bNodeSocket *add_socket_out = blender::bke::node_find_socket(
-              *add_node, SOCK_OUT, "Value");
+          bNodeSocket *add_socket_out = bke::node_find_socket(*add_node, SOCK_OUT, "Value");
 
           *version_cycles_node_socket_float_value(sub2_socket_A) = 1.0f;
 
           for (bNodeLink &link : ntree->links.items_reversed_mutable()) {
             if (link.fromsock == fac_socket) {
-              blender::bke::node_add_link(
-                  *ntree, *add_node, *add_socket_out, *link.tonode, *link.tosock);
-              blender::bke::node_remove_link(ntree, link);
+              bke::node_add_link(*ntree, *add_node, *add_socket_out, *link.tonode, *link.tosock);
+              bke::node_remove_link(ntree, link);
             }
           }
 
-          blender::bke::node_add_link(
-              *ntree, *mul_node, *mul_socket_out, *add_node, *add_socket_A);
-          blender::bke::node_add_link(
+          bke::node_add_link(*ntree, *mul_node, *mul_socket_out, *add_node, *add_socket_A);
+          bke::node_add_link(
               *ntree, *detail_from_node, *detail_from_socket, *sub2_node, *sub2_socket_B);
-          blender::bke::node_add_link(
-              *ntree, *sub2_node, *sub2_socket_out, *add_node, *add_socket_B);
+          bke::node_add_link(*ntree, *sub2_node, *sub2_socket_out, *add_node, *add_socket_B);
         }
         else {
           for (bNodeLink &link : ntree->links.items_reversed_mutable()) {
             if (link.fromsock == fac_socket) {
-              blender::bke::node_add_link(
-                  *ntree, *mul_node, *mul_socket_out, *link.tonode, *link.tosock);
-              blender::bke::node_remove_link(ntree, link);
+              bke::node_add_link(*ntree, *mul_node, *mul_socket_out, *link.tonode, *link.tosock);
+              bke::node_remove_link(ntree, link);
             }
           }
         }
 
-        blender::bke::node_add_link(*ntree, node, *fac_socket, *mul_node, *mul_socket_A);
-        blender::bke::node_add_link(
+        bke::node_add_link(*ntree, node, *fac_socket, *mul_node, *mul_socket_A);
+        bke::node_add_link(
             *ntree, *detail_from_node, *detail_from_socket, *clamp_node, *clamp_socket_value);
-        blender::bke::node_add_link(
-            *ntree, *clamp_node, *clamp_socket_out, *mul_node, *mul_socket_B);
+        bke::node_add_link(*ntree, *clamp_node, *clamp_socket_out, *mul_node, *mul_socket_B);
       }
     }
     else {
@@ -400,7 +386,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         if (!ELEM(noise_type, SHD_NOISE_RIDGED_MULTIFRACTAL, SHD_NOISE_HETERO_TERRAIN)) {
           /* Add Multiply Math node behind Fac output. */
 
-          bNode *mul_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+          bNode *mul_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
           mul_node->parent = node.parent;
           mul_node->custom1 = NODE_MATH_MULTIPLY;
           mul_node->locx_legacy = node.locx_legacy;
@@ -410,15 +396,14 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
               BLI_findlink(&mul_node->inputs, 0));
           bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(
               BLI_findlink(&mul_node->inputs, 1));
-          bNodeSocket *mul_socket_out = blender::bke::node_find_socket(
-              *mul_node, SOCK_OUT, "Value");
+          bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
 
           *version_cycles_node_socket_float_value(mul_socket_B) = *detail;
 
           if (noise_type == SHD_NOISE_MULTIFRACTAL) {
             /* Add an Add Math node after Multiply Math node. */
 
-            bNode *add_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+            bNode *add_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
             add_node->parent = node.parent;
             add_node->custom1 = NODE_MATH_ADD;
             add_node->locx_legacy = node.locx_legacy;
@@ -428,33 +413,29 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
                 BLI_findlink(&add_node->inputs, 0));
             bNodeSocket *add_socket_B = static_cast<bNodeSocket *>(
                 BLI_findlink(&add_node->inputs, 1));
-            bNodeSocket *add_socket_out = blender::bke::node_find_socket(
-                *add_node, SOCK_OUT, "Value");
+            bNodeSocket *add_socket_out = bke::node_find_socket(*add_node, SOCK_OUT, "Value");
 
             *version_cycles_node_socket_float_value(add_socket_B) = 1.0f - *detail;
 
             for (bNodeLink &link : ntree->links.items_reversed_mutable()) {
               if (link.fromsock == fac_socket) {
-                blender::bke::node_add_link(
-                    *ntree, *add_node, *add_socket_out, *link.tonode, *link.tosock);
-                blender::bke::node_remove_link(ntree, link);
+                bke::node_add_link(*ntree, *add_node, *add_socket_out, *link.tonode, *link.tosock);
+                bke::node_remove_link(ntree, link);
               }
             }
 
-            blender::bke::node_add_link(
-                *ntree, *mul_node, *mul_socket_out, *add_node, *add_socket_A);
+            bke::node_add_link(*ntree, *mul_node, *mul_socket_out, *add_node, *add_socket_A);
           }
           else {
             for (bNodeLink &link : ntree->links.items_reversed_mutable()) {
               if (link.fromsock == fac_socket) {
-                blender::bke::node_add_link(
-                    *ntree, *mul_node, *mul_socket_out, *link.tonode, *link.tosock);
-                blender::bke::node_remove_link(ntree, link);
+                bke::node_add_link(*ntree, *mul_node, *mul_socket_out, *link.tonode, *link.tosock);
+                bke::node_remove_link(ntree, link);
               }
             }
           }
 
-          blender::bke::node_add_link(*ntree, node, *fac_socket, *mul_node, *mul_socket_A);
+          bke::node_add_link(*ntree, node, *fac_socket, *mul_node, *mul_socket_A);
 
           *detail = 0.0f;
         }
@@ -464,9 +445,9 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       }
     }
 
-    bNodeSocket *roughness_socket = blender::bke::node_find_socket(node, SOCK_IN, "Roughness");
+    bNodeSocket *roughness_socket = bke::node_find_socket(node, SOCK_IN, "Roughness");
     float *roughness = version_cycles_node_socket_float_value(roughness_socket);
-    bNodeSocket *lacunarity_socket = blender::bke::node_find_socket(node, SOCK_IN, "Lacunarity");
+    bNodeSocket *lacunarity_socket = bke::node_find_socket(node, SOCK_IN, "Lacunarity");
     float *lacunarity = version_cycles_node_socket_float_value(lacunarity_socket);
 
     *roughness = std::fmaxf(*roughness, 1e-5f);
@@ -476,7 +457,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       /* Add Maximum Math node after output of roughness_from_node. Add Multiply Math node and
        * Power Math node before Roughness input. */
 
-      bNode *max1_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+      bNode *max1_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       max1_node->parent = node.parent;
       max1_node->custom1 = NODE_MATH_MAXIMUM;
       max1_node->locx_legacy = node.locx_legacy;
@@ -484,9 +465,9 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       max1_node->flag |= NODE_COLLAPSED;
       bNodeSocket *max1_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&max1_node->inputs, 0));
       bNodeSocket *max1_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&max1_node->inputs, 1));
-      bNodeSocket *max1_socket_out = blender::bke::node_find_socket(*max1_node, SOCK_OUT, "Value");
+      bNodeSocket *max1_socket_out = bke::node_find_socket(*max1_node, SOCK_OUT, "Value");
 
-      bNode *mul_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+      bNode *mul_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       mul_node->parent = node.parent;
       mul_node->custom1 = NODE_MATH_MULTIPLY;
       mul_node->locx_legacy = node.locx_legacy;
@@ -494,9 +475,9 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       mul_node->flag |= NODE_COLLAPSED;
       bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
       bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
-      bNodeSocket *mul_socket_out = blender::bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
+      bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
 
-      bNode *pow_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+      bNode *pow_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       pow_node->parent = node.parent;
       pow_node->custom1 = NODE_MATH_POWER;
       pow_node->locx_legacy = node.locx_legacy;
@@ -504,23 +485,23 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       pow_node->flag |= NODE_COLLAPSED;
       bNodeSocket *pow_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 0));
       bNodeSocket *pow_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 1));
-      bNodeSocket *pow_socket_out = blender::bke::node_find_socket(*pow_node, SOCK_OUT, "Value");
+      bNodeSocket *pow_socket_out = bke::node_find_socket(*pow_node, SOCK_OUT, "Value");
 
       *version_cycles_node_socket_float_value(max1_socket_B) = -1e-5f;
       *version_cycles_node_socket_float_value(mul_socket_B) = -1.0f;
       *version_cycles_node_socket_float_value(pow_socket_A) = *lacunarity;
 
-      blender::bke::node_remove_link(ntree, *roughness_link);
-      blender::bke::node_add_link(
+      bke::node_remove_link(ntree, *roughness_link);
+      bke::node_add_link(
           *ntree, *roughness_from_node, *roughness_from_socket, *max1_node, *max1_socket_A);
-      blender::bke::node_add_link(*ntree, *max1_node, *max1_socket_out, *mul_node, *mul_socket_A);
-      blender::bke::node_add_link(*ntree, *mul_node, *mul_socket_out, *pow_node, *pow_socket_B);
-      blender::bke::node_add_link(*ntree, *pow_node, *pow_socket_out, node, *roughness_socket);
+      bke::node_add_link(*ntree, *max1_node, *max1_socket_out, *mul_node, *mul_socket_A);
+      bke::node_add_link(*ntree, *mul_node, *mul_socket_out, *pow_node, *pow_socket_B);
+      bke::node_add_link(*ntree, *pow_node, *pow_socket_out, node, *roughness_socket);
 
       if (lacunarity_link != nullptr) {
         /* Add Maximum Math node after output of lacunarity_from_node. */
 
-        bNode *max2_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+        bNode *max2_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
         max2_node->parent = node.parent;
         max2_node->custom1 = NODE_MATH_MAXIMUM;
         max2_node->locx_legacy = node.locx_legacy;
@@ -530,25 +511,22 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
             BLI_findlink(&max2_node->inputs, 0));
         bNodeSocket *max2_socket_B = static_cast<bNodeSocket *>(
             BLI_findlink(&max2_node->inputs, 1));
-        bNodeSocket *max2_socket_out = blender::bke::node_find_socket(
-            *max2_node, SOCK_OUT, "Value");
+        bNodeSocket *max2_socket_out = bke::node_find_socket(*max2_node, SOCK_OUT, "Value");
 
         *version_cycles_node_socket_float_value(max2_socket_B) = -1e-5f;
 
-        blender::bke::node_remove_link(ntree, *lacunarity_link);
-        blender::bke::node_add_link(
+        bke::node_remove_link(ntree, *lacunarity_link);
+        bke::node_add_link(
             *ntree, *lacunarity_from_node, *lacunarity_from_socket, *max2_node, *max2_socket_A);
-        blender::bke::node_add_link(
-            *ntree, *max2_node, *max2_socket_out, *pow_node, *pow_socket_A);
-        blender::bke::node_add_link(
-            *ntree, *max2_node, *max2_socket_out, node, *lacunarity_socket);
+        bke::node_add_link(*ntree, *max2_node, *max2_socket_out, *pow_node, *pow_socket_A);
+        bke::node_add_link(*ntree, *max2_node, *max2_socket_out, node, *lacunarity_socket);
       }
     }
     else if ((lacunarity_link != nullptr) && (roughness_link == nullptr)) {
       /* Add Maximum Math node after output of lacunarity_from_node. Add Power Math node before
        * Roughness input. */
 
-      bNode *max2_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+      bNode *max2_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       max2_node->parent = node.parent;
       max2_node->custom1 = NODE_MATH_MAXIMUM;
       max2_node->locx_legacy = node.locx_legacy;
@@ -556,9 +534,9 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       max2_node->flag |= NODE_COLLAPSED;
       bNodeSocket *max2_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&max2_node->inputs, 0));
       bNodeSocket *max2_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&max2_node->inputs, 1));
-      bNodeSocket *max2_socket_out = blender::bke::node_find_socket(*max2_node, SOCK_OUT, "Value");
+      bNodeSocket *max2_socket_out = bke::node_find_socket(*max2_node, SOCK_OUT, "Value");
 
-      bNode *pow_node = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
+      bNode *pow_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       pow_node->parent = node.parent;
       pow_node->custom1 = NODE_MATH_POWER;
       pow_node->locx_legacy = node.locx_legacy;
@@ -566,18 +544,18 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       pow_node->flag |= NODE_COLLAPSED;
       bNodeSocket *pow_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 0));
       bNodeSocket *pow_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 1));
-      bNodeSocket *pow_socket_out = blender::bke::node_find_socket(*pow_node, SOCK_OUT, "Value");
+      bNodeSocket *pow_socket_out = bke::node_find_socket(*pow_node, SOCK_OUT, "Value");
 
       *version_cycles_node_socket_float_value(max2_socket_B) = -1e-5f;
       *version_cycles_node_socket_float_value(pow_socket_A) = *lacunarity;
       *version_cycles_node_socket_float_value(pow_socket_B) = -(*roughness);
 
-      blender::bke::node_remove_link(ntree, *lacunarity_link);
-      blender::bke::node_add_link(
+      bke::node_remove_link(ntree, *lacunarity_link);
+      bke::node_add_link(
           *ntree, *lacunarity_from_node, *lacunarity_from_socket, *max2_node, *max2_socket_A);
-      blender::bke::node_add_link(*ntree, *max2_node, *max2_socket_out, *pow_node, *pow_socket_A);
-      blender::bke::node_add_link(*ntree, *max2_node, *max2_socket_out, node, *lacunarity_socket);
-      blender::bke::node_add_link(*ntree, *pow_node, *pow_socket_out, node, *roughness_socket);
+      bke::node_add_link(*ntree, *max2_node, *max2_socket_out, *pow_node, *pow_socket_A);
+      bke::node_add_link(*ntree, *max2_node, *max2_socket_out, node, *lacunarity_socket);
+      bke::node_add_link(*ntree, *pow_node, *pow_socket_out, node, *roughness_socket);
     }
     else {
       *roughness = std::pow(*lacunarity, -(*roughness));
@@ -602,17 +580,17 @@ static void versioning_replace_splitviewer(bNodeTree *ntree)
     MEM_freeN(node.storage);
     node.storage = nullptr;
 
-    bNode *viewer_node = blender::bke::node_add_static_node(nullptr, *ntree, CMP_NODE_VIEWER);
+    bNode *viewer_node = bke::node_add_static_node(nullptr, *ntree, CMP_NODE_VIEWER);
     /* Nodes are created stacked on top of each other, so separate them a bit. */
     viewer_node->locx_legacy = node.locx_legacy + node.width + viewer_node->width / 4.0f;
     viewer_node->locy_legacy = node.locy_legacy;
     viewer_node->flag &= ~NODE_PREVIEW;
 
-    bNodeSocket *split_out_socket = blender::bke::node_add_static_socket(
+    bNodeSocket *split_out_socket = bke::node_add_static_socket(
         *ntree, node, SOCK_OUT, SOCK_IMAGE, PROP_NONE, "Image", "Image");
-    bNodeSocket *viewer_in_socket = blender::bke::node_find_socket(*viewer_node, SOCK_IN, "Image");
+    bNodeSocket *viewer_in_socket = bke::node_find_socket(*viewer_node, SOCK_IN, "Image");
 
-    blender::bke::node_add_link(*ntree, node, *split_out_socket, *viewer_node, *viewer_in_socket);
+    bke::node_add_link(*ntree, node, *split_out_socket, *viewer_node, *viewer_in_socket);
   }
 }
 
@@ -712,18 +690,15 @@ static void change_input_socket_to_rotation_type(bNodeTree &ntree,
       /* Make versioning idempotent. */
       continue;
     }
-    bNode *convert = blender::bke::node_add_node(nullptr, ntree, "FunctionNodeEulerToRotation");
+    bNode *convert = bke::node_add_node(nullptr, ntree, "FunctionNodeEulerToRotation");
     convert->parent = node.parent;
     convert->locx_legacy = node.locx_legacy - 40;
     convert->locy_legacy = node.locy_legacy;
     link.tonode = convert;
-    link.tosock = blender::bke::node_find_socket(*convert, SOCK_IN, "Euler");
+    link.tosock = bke::node_find_socket(*convert, SOCK_IN, "Euler");
 
-    blender::bke::node_add_link(ntree,
-                                *convert,
-                                *blender::bke::node_find_socket(*convert, SOCK_OUT, "Rotation"),
-                                node,
-                                socket);
+    bke::node_add_link(
+        ntree, *convert, *bke::node_find_socket(*convert, SOCK_OUT, "Rotation"), node, socket);
   }
 }
 
@@ -744,18 +719,15 @@ static void change_output_socket_to_rotation_type(bNodeTree &ntree,
     { /* Make versioning idempotent. */
       continue;
     }
-    bNode *convert = blender::bke::node_add_node(nullptr, ntree, "FunctionNodeRotationToEuler");
+    bNode *convert = bke::node_add_node(nullptr, ntree, "FunctionNodeRotationToEuler");
     convert->parent = node.parent;
     convert->locx_legacy = node.locx_legacy + 40;
     convert->locy_legacy = node.locy_legacy;
     link.fromnode = convert;
-    link.fromsock = blender::bke::node_find_socket(*convert, SOCK_OUT, "Euler");
+    link.fromsock = bke::node_find_socket(*convert, SOCK_OUT, "Euler");
 
-    blender::bke::node_add_link(ntree,
-                                node,
-                                socket,
-                                *convert,
-                                *blender::bke::node_find_socket(*convert, SOCK_IN, "Rotation"));
+    bke::node_add_link(
+        ntree, node, socket, *convert, *bke::node_find_socket(*convert, SOCK_IN, "Rotation"));
   }
 }
 
@@ -767,7 +739,7 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
                  "GeometryNodeRotateInstances",
                  "GeometryNodeTransform"))
     {
-      bNodeSocket *socket = blender::bke::node_find_socket(node, SOCK_IN, "Rotation");
+      bNodeSocket *socket = bke::node_find_socket(node, SOCK_IN, "Rotation");
       change_input_socket_to_rotation_type(ntree, node, *socket);
     }
     if (STR_ELEM(node.idname,
@@ -775,7 +747,7 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
                  "GeometryNodeObjectInfo",
                  "GeometryNodeInputInstanceRotation"))
     {
-      bNodeSocket *socket = blender::bke::node_find_socket(node, SOCK_OUT, "Rotation");
+      bNodeSocket *socket = bke::node_find_socket(node, SOCK_OUT, "Rotation");
       change_output_socket_to_rotation_type(ntree, node, *socket);
     }
   }
@@ -783,7 +755,6 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
 
 static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
 {
-  using namespace blender;
   MultiValueMap<bNodeSocket *, bNodeLink *> out_links_per_socket;
   for (bNodeLink &link : ntree.links) {
     if (link.fromnode->type_legacy == GEO_NODE_OBJECT_INFO) {
@@ -795,21 +766,21 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
     if (node.type_legacy != GEO_NODE_OBJECT_INFO) {
       continue;
     }
-    bNodeSocket *scale = blender::bke::node_find_socket(node, SOCK_OUT, "Scale");
+    bNodeSocket *scale = bke::node_find_socket(node, SOCK_OUT, "Scale");
     const Span<bNodeLink *> links = out_links_per_socket.lookup(scale);
     if (links.is_empty()) {
       continue;
     }
-    bNode *absolute_value = blender::bke::node_add_node(nullptr, ntree, "ShaderNodeVectorMath");
+    bNode *absolute_value = bke::node_add_node(nullptr, ntree, "ShaderNodeVectorMath");
     absolute_value->custom1 = NODE_VECTOR_MATH_ABSOLUTE;
     absolute_value->parent = node.parent;
     absolute_value->locx_legacy = node.locx_legacy + 100;
     absolute_value->locy_legacy = node.locy_legacy - 50;
-    blender::bke::node_add_link(*&ntree,
-                                node,
-                                *scale,
-                                *absolute_value,
-                                *static_cast<bNodeSocket *>(absolute_value->inputs.first));
+    bke::node_add_link(*&ntree,
+                       node,
+                       *scale,
+                       *absolute_value,
+                       *static_cast<bNodeSocket *>(absolute_value->inputs.first));
     for (bNodeLink *link : links) {
       link->fromnode = absolute_value;
       link->fromsock = static_cast<bNodeSocket *>(absolute_value->outputs.first);
@@ -828,8 +799,7 @@ static void versioning_fix_socket_subtype_idnames(bNodeTree *ntree)
   tree_interface.foreach_item([](bNodeTreeInterfaceItem &item) -> bool {
     if (item.item_type == NODE_INTERFACE_SOCKET) {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
-      blender::StringRef corrected_socket_type = legacy_socket_idname_to_socket_type(
-          socket.socket_type);
+      StringRef corrected_socket_type = legacy_socket_idname_to_socket_type(socket.socket_type);
       if (socket.socket_type != corrected_socket_type) {
         MEM_freeN(socket.socket_type);
         socket.socket_type = BLI_strdup(corrected_socket_type.data());
@@ -976,7 +946,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Prevent custom bone colors from having alpha zero.
      * Part of the fix for issue #115434. */
     for (bArmature &arm : bmain->armatures) {
-      blender::animrig::ANIM_armature_foreach_bone(&arm.bonebase, [](Bone *bone) {
+      animrig::ANIM_armature_foreach_bone(&arm.bonebase, [](Bone *bone) {
         bone->color.custom.solid[3] = 255;
         bone->color.custom.select[3] = 255;
         bone->color.custom.active[3] = 255;
@@ -1155,7 +1125,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 18)) {
     for (Scene &scene : bmain->scenes) {
       if (scene.ed != nullptr) {
-        blender::seq::foreach_strip(&scene.ed->seqbase, strip_filter_bilinear_to_auto, nullptr);
+        seq::foreach_strip(&scene.ed->seqbase, strip_filter_bilinear_to_auto, nullptr);
       }
     }
   }
@@ -1190,3 +1160,5 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 }
+
+}  // namespace blender

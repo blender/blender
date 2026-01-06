@@ -41,6 +41,8 @@
 #include "MOD_weightvg_util.hh"
 #include "RE_texture.h" /* Texture masking. */
 
+namespace blender {
+
 void weightvg_do_map(
     int num, float *new_w, short falloff_type, const bool do_invert, CurveMapping *cmap, RNG *rng)
 {
@@ -306,10 +308,7 @@ void weightvg_update_vg(MDeformVert *dvert,
   }
 }
 
-void weightvg_ui_common(const bContext *C,
-                        PointerRNA *ob_ptr,
-                        PointerRNA *ptr,
-                        blender::ui::Layout &layout)
+void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, ui::Layout &layout)
 {
   PointerRNA mask_texture_ptr = RNA_pointer_get(ptr, "mask_texture");
   bool has_mask_texture = !RNA_pointer_is_null(&mask_texture_ptr);
@@ -318,8 +317,7 @@ void weightvg_ui_common(const bContext *C,
 
   layout.use_property_split_set(true);
 
-  layout.prop(
-      ptr, "mask_constant", blender::ui::ITEM_R_SLIDER, IFACE_("Global Influence:"), ICON_NONE);
+  layout.prop(ptr, "mask_constant", ui::ITEM_R_SLIDER, IFACE_("Global Influence:"), ICON_NONE);
 
   if (!has_mask_texture) {
     modifier_vgroup_ui(
@@ -334,7 +332,7 @@ void weightvg_ui_common(const bContext *C,
                 "texture.new",
                 nullptr,
                 nullptr,
-                blender::ui::TEMPLATE_ID_FILTER_ALL,
+                ui::TEMPLATE_ID_FILTER_ALL,
                 false,
                 IFACE_("Mask Texture"));
 
@@ -353,3 +351,5 @@ void weightvg_ui_common(const bContext *C,
     }
   }
 }
+
+}  // namespace blender

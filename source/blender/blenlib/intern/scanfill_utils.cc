@@ -22,6 +22,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 struct PolyInfo {
   ScanFillEdge *edge_first, *edge_last;
   ScanFillVert *vert_outer;
@@ -89,7 +91,7 @@ void BLI_scanfill_obj_dump(ScanFillContext *sf_ctx)
 }
 #endif
 
-using IsectMap = blender::Map<ScanFillEdge *, ListBaseT<LinkData> *>;
+using IsectMap = Map<ScanFillEdge *, ListBaseT<LinkData> *>;
 
 static ListBaseT<LinkData> *edge_isect_ls_ensure(IsectMap *isect_hash, ScanFillEdge *eed)
 {
@@ -457,3 +459,5 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
 
   return changed;
 }
+
+}  // namespace blender

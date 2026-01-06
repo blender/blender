@@ -11,6 +11,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Collection;
 struct FreestyleLineStyle;
 struct Text;
@@ -130,3 +132,5 @@ struct FreestyleConfig {
 
   ListBaseT<FreestyleLineSet> linesets = {nullptr, nullptr};
 };
+
+}  // namespace blender

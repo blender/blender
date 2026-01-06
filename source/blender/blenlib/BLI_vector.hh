@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::Vector<T>` is a dynamically growing contiguous array for values of type T. It is
+ * A `Vector<T>` is a dynamically growing contiguous array for values of type T. It is
  * designed to be a more convenient and efficient replacement for `std::vector`. Note that the term
  * "vector" has nothing to do with a vector from computer graphics here.
  *
@@ -18,10 +18,10 @@
  *
  * The improved efficiency is mainly achieved by supporting small buffer optimization. As long as
  * the number of elements in the vector does not become larger than InlineBufferCapacity, no memory
- * allocation is done. As a consequence, iterators are invalidated when a blender::Vector is moved
+ * allocation is done. As a consequence, iterators are invalidated when a Vector is moved
  * (iterators of std::vector remain valid when the vector is moved).
  *
- * `blender::Vector` should be your default choice for a vector data structure in Blender.
+ * `Vector` should be your default choice for a vector data structure in Blender.
  */
 
 #include <algorithm>
@@ -1155,4 +1155,4 @@ template<typename T> static constexpr bool is_Vector_v = false;
 template<typename T, int64_t InlineBufferCapacity, typename Allocator>
 static constexpr bool is_Vector_v<Vector<T, InlineBufferCapacity, Allocator>> = true;
 
-} /* namespace blender */
+}  // namespace blender

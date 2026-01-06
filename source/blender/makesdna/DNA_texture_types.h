@@ -16,6 +16,8 @@
 #include "DNA_image_types.h" /* ImageUser */
 #include "DNA_material_types.h"
 
+namespace blender {
+
 struct AnimData;
 struct ColorBand;
 struct CurveMapping;
@@ -436,3 +438,5 @@ struct ColorMapping {
 };
 
 /** \} */
+
+}  // namespace blender

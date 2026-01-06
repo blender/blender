@@ -15,6 +15,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_structure.hh"
 
+namespace blender {
+
 const char bm_iter_itype_htype_map[BM_ITYPE_MAX] = {
     '\0',
     BM_VERT, /* BM_VERTS_OF_MESH */
@@ -212,7 +214,7 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
 
 int BM_iter_mesh_bitmap_from_filter(const char itype,
                                     BMesh *bm,
-                                    blender::MutableBitSpan bitmap,
+                                    MutableBitSpan bitmap,
                                     bool (*test_fn)(BMElem *, void *user_data),
                                     void *user_data)
 {
@@ -235,7 +237,7 @@ int BM_iter_mesh_bitmap_from_filter(const char itype,
 }
 
 int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
-                                             blender::MutableBitSpan bitmap,
+                                             MutableBitSpan bitmap,
                                              bool (*test_fn)(BMFace *, void *user_data),
                                              void *user_data)
 {
@@ -655,3 +657,5 @@ void *bmiter__loop_of_face_step(BMIter__loop_of_face *iter)
 
   return l_curr;
 }
+
+}  // namespace blender

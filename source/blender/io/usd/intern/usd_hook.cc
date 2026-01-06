@@ -41,9 +41,11 @@
 #include <pxr/external/boost/python/to_python_converter.hpp>
 #include <pxr/external/boost/python/tuple.hpp>
 
+namespace blender {
+
 using namespace pxr::pxr_boost;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 using USDHookList = std::list<std::unique_ptr<USDHook>>;
 using ImportedPrimMap = Map<pxr::SdfPath, Vector<PointerRNA>>;
@@ -230,7 +232,7 @@ class USDMaterialExportContext {
     std::string asset_path = get_tex_image_asset_filepath(ima, stage_, params_);
 
     if (params_.export_textures) {
-      blender::io::usd::export_texture(ima, stage_, params_.overwrite_textures, reports_);
+      io::usd::export_texture(ima, stage_, params_.overwrite_textures, reports_);
     }
 
     return asset_path;
@@ -677,4 +679,5 @@ bool call_material_import_hooks(pxr::UsdStageRefPtr stage,
   return on_material_import.result();
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

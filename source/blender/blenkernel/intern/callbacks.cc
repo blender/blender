@@ -15,6 +15,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+namespace blender {
+
 static ListBaseT<bCallbackFuncStore> callback_slots[BKE_CB_EVT_TOT] = {{nullptr}};
 
 static bool callbacks_initialized = false;
@@ -121,3 +123,5 @@ void BKE_callback_global_finalize()
 
   callbacks_initialized = false;
 }
+
+}  // namespace blender

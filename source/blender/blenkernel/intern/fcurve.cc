@@ -52,6 +52,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 #define SMALL -1.0e-10
 #define SELECT 1
 
@@ -166,7 +168,7 @@ void BKE_fcurves_copy(ListBaseT<FCurve> *dst, ListBaseT<FCurve> *src)
   }
 }
 
-void BKE_fcurve_rnapath_set(FCurve &fcu, blender::StringRef rna_path)
+void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path)
 {
   MEM_SAFE_FREE(fcu.rna_path);
   fcu.rna_path = BLI_strdupn(rna_path.data(), rna_path.size());
@@ -305,7 +307,7 @@ FCurve *BKE_animadata_fcurve_find_by_rna_path(
     *r_action = nullptr;
   }
 
-  FCurve *fcurve = blender::animrig::fcurve_find_in_action_slot(
+  FCurve *fcurve = animrig::fcurve_find_in_action_slot(
       animdata->action, animdata->slot_handle, {rna_path, rna_index});
   if (fcurve) {
     /* Action takes priority over drivers. */
@@ -752,7 +754,7 @@ float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
   /* Use `1e-3f` as the smallest possible value since these are converted to integers
    * and we can be sure `MAXFRAME / 1e-3f < INT_MAX` as it's around half the size. */
   const double interval_db = max_ff(interval, 1e-3f);
-  blender::VectorSet<int> frames_unique;
+  VectorSet<int> frames_unique;
   for (int fcurve_index = 0; fcurve_index < fcurve_array_len; fcurve_index++) {
     const FCurve *fcu = fcurve_array[fcurve_index];
     for (int i = 0; i < fcu->totvert; i++) {
@@ -1151,7 +1153,6 @@ static BezTriple *cycle_offset_triple(
 
 void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
 {
-  using namespace blender;
   /* Error checking:
    * - Need at least two points.
    * - Need bezier keys.
@@ -1684,7 +1685,7 @@ void BKE_fcurve_delete_key(FCurve *fcu, int index)
   }
 }
 
-void BKE_fcurve_delete_keys(FCurve *fcu, blender::uint2 index_range)
+void BKE_fcurve_delete_keys(FCurve *fcu, uint2 index_range)
 {
   BLI_assert(fcu != nullptr);
   BLI_assert(fcu->bezt != nullptr);
@@ -2671,3 +2672,5 @@ void BKE_fcurve_blend_read_data_listbase(BlendDataReader *reader, ListBaseT<FCur
 }
 
 /** \} */
+
+}  // namespace blender

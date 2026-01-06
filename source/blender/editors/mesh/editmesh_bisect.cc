@@ -47,7 +47,7 @@
 #  include "ED_undo.hh"
 #endif
 
-using blender::Vector;
+namespace blender {
 
 static wmOperatorStatus mesh_bisect_exec(bContext *C, wmOperator *op);
 
@@ -386,7 +386,7 @@ static wmOperatorStatus mesh_bisect_exec(bContext *C, wmOperator *op)
       params.calc_looptris = true;
       params.calc_normals = false;
       params.is_destructive = true;
-      EDBM_update(blender::id_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(id_cast<Mesh *>(obedit->data), &params);
 
       EDBM_selectmode_flush(em);
       EDBM_uvselect_clear(em);
@@ -700,9 +700,9 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
   ggd->translate_c = WM_gizmo_new_ptr(gzt_move, gzgroup, nullptr);
   ggd->rotate_c = WM_gizmo_new_ptr(gzt_dial, gzgroup, nullptr);
 
-  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->translate_z->color);
-  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->translate_c->color);
-  blender::ui::theme::get_color_3fv(TH_GIZMO_SECONDARY, ggd->rotate_c->color);
+  ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->translate_z->color);
+  ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->translate_c->color);
+  ui::theme::get_color_3fv(TH_GIZMO_SECONDARY, ggd->rotate_c->color);
 
   RNA_enum_set(ggd->translate_z->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
   RNA_enum_set(ggd->translate_c->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
@@ -777,3 +777,5 @@ static void MESH_GGT_bisect(wmGizmoGroupType *gzgt)
 /** \} */
 
 #endif /* USE_GIZMO */
+
+}  // namespace blender

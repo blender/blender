@@ -10,17 +10,20 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct bAction;
-namespace blender::animrig {
+namespace animrig {
 class Slot;
 }
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementActionSlot final : public AbstractTreeElement {
 
  public:
-  TreeElementActionSlot(TreeElement &legacy_te, blender::animrig::Slot &slot);
+  TreeElementActionSlot(TreeElement &legacy_te, animrig::Slot &slot);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

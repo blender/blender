@@ -55,6 +55,8 @@
 
 #include "screen_intern.hh" /* own module include */
 
+namespace blender {
+
 /* adds no space data */
 static ScrArea *screen_addarea_ex(ScrAreaMap *area_map,
                                   ScrVert *bottom_left,
@@ -879,7 +881,7 @@ void ED_region_exit(bContext *C, ARegion *region)
 
   /* Stop panel animation in this region if there are any. */
   for (Panel &panel : region->panels) {
-    blender::ui::panel_stop_animation(C, &panel);
+    ui::panel_stop_animation(C, &panel);
   }
 
   if (region->regiontype == RGN_TYPE_TEMPORARY) {
@@ -975,7 +977,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
   }
 }
 
-blender::StringRefNull ED_area_name(const ScrArea *area)
+StringRefNull ED_area_name(const ScrArea *area)
 {
   if (area->type && area->type->space_name_get) {
     return area->type->space_name_get(area);
@@ -1148,7 +1150,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
        * because it can undo setting the right button as active due
        * to delayed notifier handling. */
       if (C) {
-        blender::ui::UI_screen_free_active_but_highlight(C, screen);
+        ui::UI_screen_free_active_but_highlight(C, screen);
       }
     }
   }
@@ -1259,7 +1261,7 @@ static int screen_global_header_size()
 
 static void screen_global_topbar_area_refresh(wmWindow *win, bScreen *screen)
 {
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
   const short size = screen_global_header_size();
   rcti rect;
 
@@ -1272,7 +1274,7 @@ static void screen_global_topbar_area_refresh(wmWindow *win, bScreen *screen)
 
 static void screen_global_statusbar_area_refresh(wmWindow *win, bScreen *screen)
 {
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
   const short size_min = 1;
   const short size_max = 0.85f * screen_global_header_size();
   const short size = (screen->flag & SCREEN_COLLAPSE_STATUSBAR) ? size_min : size_max;
@@ -1336,7 +1338,7 @@ void screen_change_prepare(
      * On the other hand this is a rare occurrence, script developers will often show errors
      * in a console too, so it's not such a priority to relocate these to the new screen.
      * See: #144958. */
-    blender::ui::popup_handlers_remove_all(C, &win->runtime->modalhandlers);
+    ui::popup_handlers_remove_all(C, &win->runtime->modalhandlers);
 
     /* remove handlers referencing areas in old screen */
     for (ScrArea &area : screen_old->areabase) {
@@ -1718,7 +1720,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
      * switching screens with tooltip open because region and tooltip
      * are no longer in the same screen */
     for (ARegion &region : area->regionbase) {
-      blender::ui::blocklist_free(C, &region);
+      ui::blocklist_free(C, &region);
       if (region.runtime->regiontimer) {
         WM_event_timer_remove(wm, nullptr, region.runtime->regiontimer);
         region.runtime->regiontimer = nullptr;
@@ -1923,7 +1925,7 @@ void ED_screen_animation_timer(
     sad->scene = scene;
     sad->view_layer = view_layer;
 
-    sad->do_scene_syncing = blender::ed::vse::is_scene_time_sync_needed(*C);
+    sad->do_scene_syncing = ed::vse::is_scene_time_sync_needed(*C);
 
     sad->sfra = scene->r.cfra;
     /* Make sure that were are inside the scene or preview frame range. */
@@ -2139,3 +2141,5 @@ wmWindow *ED_screen_window_find(const bScreen *screen, const wmWindowManager *wm
   }
   return nullptr;
 }
+
+}  // namespace blender

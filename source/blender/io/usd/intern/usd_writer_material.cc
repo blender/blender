@@ -47,6 +47,9 @@
 #endif
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 /* `TfToken` objects are not cheap to construct, so we do it once. */
@@ -99,7 +102,7 @@ static const pxr::TfToken translation("translation", pxr::TfToken::Immortal);
 static const pxr::TfToken rotation("rotation", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /* Preview surface input specification. */
 struct InputSpec {
@@ -334,16 +337,16 @@ static void process_inputs(const USDExporterContext &usd_export_context,
           }
           else if (math_node->custom1 == NODE_MATH_SUBTRACT) {
             /* If this is the 1-minus node, we need to search upstream to find the less-than. */
-            bNodeSocket *math_sock = blender::bke::node_find_socket(*math_node, SOCK_IN, "Value");
+            bNodeSocket *math_sock = bke::node_find_socket(*math_node, SOCK_IN, "Value");
             if (math_sock->default_value_typed<bNodeSocketValueFloat>()->value == 1.0f) {
-              math_sock = blender::bke::node_find_socket(*math_node, SOCK_IN, "Value_001");
+              math_sock = bke::node_find_socket(*math_node, SOCK_IN, "Value_001");
               math_link = traverse_channel(math_sock, SH_NODE_MATH);
               if (math_link && math_link->fromnode) {
                 math_node = math_link->fromnode;
 
                 if (math_node->custom1 == NODE_MATH_LESS_THAN) {
                   /* We found the upstream less-than with the threshold value. */
-                  bNodeSocket *threshold_sock = blender::bke::node_find_socket(
+                  bNodeSocket *threshold_sock = bke::node_find_socket(
                       *math_node, SOCK_IN, "Value_001");
                   threshold = threshold_sock->default_value_typed<bNodeSocketValueFloat>()->value;
                 }
@@ -1498,7 +1501,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
                                           const std::string &active_uvmap_name,
                                           const pxr::UsdShadeMaterial &usd_material)
 {
-  blender::nodes::materialx::ExportParams export_params = {
+  nodes::materialx::ExportParams export_params = {
       /* Output surface material node will have this name. */
       usd_path.GetElementString(),
       /* We want to re-use the same MaterialX document generation code as used by the renderer.
@@ -1513,7 +1516,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
       active_uvmap_name,
   };
 
-  MaterialX::DocumentPtr doc = blender::nodes::materialx::export_to_materialx(
+  MaterialX::DocumentPtr doc = nodes::materialx::export_to_materialx(
       usd_export_context.depsgraph, material, export_params);
 
   /* We want to merge the MaterialX graph under the same Material as the USDPreviewSurface
@@ -1723,4 +1726,5 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   return usd_material;
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

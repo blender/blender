@@ -17,6 +17,8 @@
 
 #include "GPU_platform_backend_enum.h"  // IWYU pragma: export
 
+namespace blender {
+
 /* GPU platform support */
 
 /* GPU Types */
@@ -91,12 +93,14 @@ const char *GPU_platform_version();
 const char *GPU_platform_support_level_key();
 const char *GPU_platform_gpu_name();
 GPUArchitectureType GPU_platform_architecture();
-blender::Span<GPUDevice> GPU_platform_devices_list();
+Span<GPUDevice> GPU_platform_devices_list();
 
 /* The UUID of the device. Can be an empty array, since it is not supported on all platforms. */
-blender::Span<uint8_t> GPU_platform_uuid();
+Span<uint8_t> GPU_platform_uuid();
 /* The LUID of the device. Can be an empty array, since it is not supported on all platforms. */
-blender::Span<uint8_t> GPU_platform_luid();
+Span<uint8_t> GPU_platform_luid();
 /* A bit field with the nth bit active identifying the nth device with the same LUID. Only matters
  * if LUID is defined. */
 uint32_t GPU_platform_luid_node_mask();
+
+}  // namespace blender

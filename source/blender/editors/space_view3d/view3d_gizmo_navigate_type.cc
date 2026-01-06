@@ -37,6 +37,8 @@
 
 #include "view3d_intern.hh"
 
+namespace blender {
+
 /* Radius of the entire background. */
 #define WIDGET_RADIUS ((U.gizmo_size_navigate_v3d / 2.0f) * UI_SCALE_FAC)
 
@@ -96,10 +98,9 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
   GPU_matrix_mul(matrix_screen);
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos_id = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  const uint pos_id = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   const uint color_id = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
+      format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
 
@@ -137,7 +138,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
     GPU_matrix_ortho_set_z(-gz->scale_final, gz->scale_final);
   }
 
-  draw_roundbox_corner_set(blender::ui::CNR_ALL);
+  draw_roundbox_corner_set(ui::CNR_ALL);
   GPU_polygon_smooth(false);
 
   /* Circle defining active area. */
@@ -151,7 +152,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
     rect.xmax = rad;
     rect.ymin = -rad;
     rect.ymax = rad;
-    blender::ui::draw_roundbox_4fv(&rect, true, rad, gz->color_hi);
+    ui::draw_roundbox_4fv(&rect, true, rad, gz->color_hi);
     GPU_matrix_pop();
   }
 
@@ -175,7 +176,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       is_highlight = true;
     }
 
-    blender::ui::theme::get_color_3fv(TH_AXIS_X + axis, axis_color[axis]);
+    ui::theme::get_color_3fv(TH_AXIS_X + axis, axis_color[axis]);
     axis_color[axis][3] = 1.0f;
 
     /* Color that is full at front, but 50% view background when in back. */
@@ -218,8 +219,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       float negative_color[4];
       if (!is_pos) {
         if (is_aligned_front) {
-          interp_v4_v4v4(
-              negative_color, blender::float4{1.0f, 1.0f, 1.0f, 1.0f}, axis_color[axis], 0.5f);
+          interp_v4_v4v4(negative_color, float4{1.0f, 1.0f, 1.0f, 1.0f}, axis_color[axis], 0.5f);
           negative_color[3] = std::min(depth + 1, 1.0f);
           outline_color = negative_color;
         }
@@ -241,7 +241,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       rect.xmax = rad;
       rect.ymin = -rad;
       rect.ymax = rad;
-      blender::ui::draw_roundbox_4fv_ex(
+      ui::draw_roundbox_4fv_ex(
           &rect, inner_color, nullptr, 0.0f, outline_color, AXIS_RING_WIDTH, rad);
       GPU_matrix_pop();
     }
@@ -370,3 +370,5 @@ void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt)
 
   gzt->struct_size = sizeof(wmGizmo);
 }
+
+}  // namespace blender

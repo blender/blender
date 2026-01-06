@@ -24,22 +24,24 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static void lightprobe_init_data(ID *id)
 {
-  LightProbe *probe = blender::id_cast<LightProbe *>(id);
+  LightProbe *probe = id_cast<LightProbe *>(id);
   INIT_DEFAULT_STRUCT_AFTER(probe, id);
 }
 
 static void lightprobe_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  LightProbe *probe = blender::id_cast<LightProbe *>(id);
+  LightProbe *probe = id_cast<LightProbe *>(id);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, probe->visibility_grp, IDWALK_CB_NOP);
 }
 
 static void lightprobe_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  LightProbe *prb = blender::id_cast<LightProbe *>(id);
+  LightProbe *prb = id_cast<LightProbe *>(id);
 
   /* write LibData */
   BLO_write_id_struct(writer, LightProbe, id_address, &prb->id);
@@ -287,3 +289,5 @@ int64_t BKE_lightprobe_grid_cache_frame_sample_count(const LightProbeGridCacheFr
   /* LIGHTPROBE_CACHE_UNIFORM_GRID */
   return int64_t(cache->size[0]) * cache->size[1] * cache->size[2];
 }
+
+}  // namespace blender

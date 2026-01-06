@@ -15,6 +15,8 @@
 
 #include "../BPY_extern.hh"
 
+namespace blender {
+
 BPy_ThreadStatePtr BPY_thread_save()
 {
   /* Use `_PyThreadState_UncheckedGet()` instead of `PyThreadState_Get()`, to avoid a fatal error
@@ -61,3 +63,5 @@ void BPY_thread_backtrace_print()
     printf("No Python thread state available.\n");
   }
 }
+
+}  // namespace blender

@@ -24,6 +24,8 @@
 
 #include "gl_batch.hh"
 
+namespace blender {
+
 using namespace blender::gpu;
 
 /* -------------------------------------------------------------------- */
@@ -270,7 +272,7 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
   }
 }
 
-void GLBatch::draw_indirect(blender::gpu::StorageBuf *indirect_buf, intptr_t offset)
+void GLBatch::draw_indirect(gpu::StorageBuf *indirect_buf, intptr_t offset)
 {
   GL_CHECK_RESOURCES("Batch");
 
@@ -290,7 +292,7 @@ void GLBatch::draw_indirect(blender::gpu::StorageBuf *indirect_buf, intptr_t off
   glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 }
 
-void GLBatch::multi_draw_indirect(blender::gpu::StorageBuf *indirect_buf,
+void GLBatch::multi_draw_indirect(gpu::StorageBuf *indirect_buf,
                                   int count,
                                   intptr_t offset,
                                   intptr_t stride)
@@ -315,3 +317,5 @@ void GLBatch::multi_draw_indirect(blender::gpu::StorageBuf *indirect_buf,
 }
 
 /** \} */
+
+}  // namespace blender

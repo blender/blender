@@ -64,13 +64,13 @@ bool operator!=(const Domain &a, const Domain &b)
 GPUSamplerExtendMode map_extension_mode_to_extend_mode(const Extension &mode)
 {
   switch (mode) {
-    case blender::compositor::Extension::Clip:
+    case compositor::Extension::Clip:
       return GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
 
-    case blender::compositor::Extension::Extend:
+    case compositor::Extension::Extend:
       return GPU_SAMPLER_EXTEND_MODE_EXTEND;
 
-    case blender::compositor::Extension::Repeat:
+    case compositor::Extension::Repeat:
       return GPU_SAMPLER_EXTEND_MODE_REPEAT;
   }
 

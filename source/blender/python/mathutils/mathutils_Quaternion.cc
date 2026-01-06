@@ -25,6 +25,8 @@
 #  include "BLI_dynstr.h"
 #endif
 
+namespace blender {
+
 #define QUAT_SIZE 4
 
 static PyObject *quat__apply_to_copy(PyObject *(*quat_func)(QuaternionObject *),
@@ -2035,3 +2037,5 @@ PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar c
 }
 
 /** \} */
+
+}  // namespace blender

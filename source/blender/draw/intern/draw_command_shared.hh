@@ -11,10 +11,10 @@
 #include "GPU_shader_shared_utils.hh"
 
 #ifndef GPU_SHADER
-#  include "BLI_span.hh"
-
+namespace blender::gpu {
+class Batch;
+}
 namespace blender::draw::command {
-
 #endif
 
 /* -------------------------------------------------------------------- */

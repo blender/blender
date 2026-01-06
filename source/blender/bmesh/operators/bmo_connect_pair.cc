@@ -21,6 +21,8 @@
 
 #include "BLI_mempool.h"
 
+namespace blender {
+
 /**
  * Method for connecting across many faces.
  *
@@ -730,3 +732,5 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
   }
 #endif
 }
+
+}  // namespace blender

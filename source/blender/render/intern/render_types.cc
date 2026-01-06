@@ -23,6 +23,8 @@
 #include "WM_api.hh"
 #include "wm_window.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Render
  * \{ */
@@ -174,3 +176,5 @@ bool RenderDisplay::test_break()
 }
 
 /** \} */
+
+}  // namespace blender

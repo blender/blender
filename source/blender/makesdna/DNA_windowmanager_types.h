@@ -16,15 +16,17 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 /** Workaround to forward-declare C++ type in C header. */
-namespace blender::bke {
+namespace bke {
 struct WindowManagerRuntime;
 struct WindowRuntime;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::ui {
+namespace ui {
 struct Layout;
-}  // namespace blender::ui
+}  // namespace ui
 
 #ifdef hyper /* MSVC defines. */
 #  undef hyper
@@ -139,7 +141,7 @@ struct wmWindowManager {
   wmXrData xr;
   // #endif
 
-  blender::bke::WindowManagerRuntime *runtime = nullptr;
+  bke::WindowManagerRuntime *runtime = nullptr;
 };
 
 #define WM_KEYCONFIG_ARRAY_P(wm) \
@@ -258,7 +260,7 @@ struct wmWindow {
   /** Properties for stereoscopic displays. */
   struct Stereo3dFormat *stereo3d_format = nullptr;
 
-  blender::bke::WindowRuntime *runtime = nullptr;
+  bke::WindowRuntime *runtime = nullptr;
 };
 
 #ifdef ime_data
@@ -501,7 +503,9 @@ struct wmOperator {
   /** Current running macro, not saved. */
   struct wmOperator *opm = nullptr;
   /** Runtime for drawing. */
-  blender::ui::Layout *layout = nullptr;
+  ui::Layout *layout = nullptr;
   short flag = 0;
   char _pad[6] = {};
 };
+
+}  // namespace blender

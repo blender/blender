@@ -23,6 +23,8 @@
 
 #include "text_format.hh"
 
+namespace blender {
+
 /****************** flatten string **********************/
 
 static void flatten_string_append(FlattenString *fs, const char *c, int accum, int len)
@@ -267,3 +269,5 @@ bool text_format_string_literals_check_sorted_array(const Span<const char *> str
                         [](const char *a, const char *b) { return strcmp(a, b) < 0; });
 }
 #endif
+
+}  // namespace blender

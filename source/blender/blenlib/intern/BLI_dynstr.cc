@@ -18,6 +18,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /***/
 
 struct DynStrElem {
@@ -176,3 +178,5 @@ void BLI_dynstr_free(DynStr *ds)
 
   MEM_freeN(ds);
 }
+
+}  // namespace blender

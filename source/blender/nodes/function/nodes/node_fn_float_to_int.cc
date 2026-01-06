@@ -75,7 +75,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeFloatToInt", FN_NODE_FLOAT_TO_INT);
   ntype.ui_name = "Float to Integer";
@@ -87,7 +87,7 @@ static void node_register()
   ntype.labelfunc = node_label;
   ntype.build_multi_function = node_build_multi_function;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

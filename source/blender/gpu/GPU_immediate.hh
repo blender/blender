@@ -17,15 +17,17 @@
 #include "GPU_texture.hh"
 #include "GPU_vertex_format.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class UniformBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /** Returns a cleared vertex format, ready for #add_attr. */
 GPUVertFormat *immVertexFormat();
 
 /** Every #immBegin must have a program bound first. */
-void immBindShader(blender::gpu::Shader *shader);
+void immBindShader(gpu::Shader *shader);
 /** Call after your last immEnd, or before binding another program. */
 void immUnbindProgram();
 /**
@@ -51,8 +53,8 @@ void immEnd(); /* finishes and draws. */
  * Then you can draw it as many times as you like!
  * Partially replaces the need for display lists. */
 
-blender::gpu::Batch *immBeginBatch(GPUPrimType, uint vertex_len);
-blender::gpu::Batch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
+gpu::Batch *immBeginBatch(GPUPrimType, uint vertex_len);
+gpu::Batch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
 
 /* Provide attribute values that can change per vertex. */
 /* First vertex after immBegin must have all its attributes specified. */
@@ -109,9 +111,9 @@ void immUniform4fv(const char *name, const float data[4]);
 void immUniformArray4fv(const char *bare_name, const float *data, int count);
 void immUniformMatrix4fv(const char *name, const float data[4][4]);
 
-void immBindTexture(const char *name, blender::gpu::Texture *tex);
-void immBindTextureSampler(const char *name, blender::gpu::Texture *tex, GPUSamplerState state);
-void immBindUniformBuf(const char *name, blender::gpu::UniformBuf *ubo);
+void immBindTexture(const char *name, gpu::Texture *tex);
+void immBindTextureSampler(const char *name, gpu::Texture *tex, GPUSamplerState state);
+void immBindUniformBuf(const char *name, gpu::UniformBuf *ubo);
 
 /* Convenience functions for setting "uniform vec4 color". */
 /* The RGB functions have implicit alpha = 1.0. */
@@ -143,3 +145,5 @@ void immUniformThemeColorShadeAlpha(int color_id, int color_offset, int alpha_of
 void immUniformThemeColorBlendShade(int color_id1, int color_id2, float fac, int offset);
 void immUniformThemeColorBlend(int color_id1, int color_id2, float fac);
 void immThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
+
+}  // namespace blender

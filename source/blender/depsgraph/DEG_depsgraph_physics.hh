@@ -14,6 +14,8 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 struct Collection;
 struct CollisionRelation;
 struct DepsNodeHandle;
@@ -54,3 +56,5 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   bool add_absorption,
                                   int skip_forcefield,
                                   const char *name);
+
+}  // namespace blender

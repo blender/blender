@@ -18,9 +18,11 @@
 
 #include "spreadsheet_data_source.hh"
 
+namespace blender {
+
 struct bContext;
 
-namespace blender::ed::spreadsheet {
+namespace ed::spreadsheet {
 
 class GeometryDataSource : public DataSource {
  private:
@@ -187,4 +189,5 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
 bke::GeometrySet get_geometry_set_for_instance_ids(const bke::GeometrySet &root_geometry,
                                                    const Span<SpreadsheetInstanceID> instance_ids);
 
-}  // namespace blender::ed::spreadsheet
+}  // namespace ed::spreadsheet
+}  // namespace blender

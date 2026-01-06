@@ -18,11 +18,15 @@
 
 #include "rna_internal.hh" /* own include */
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_tree_node_move_type_items[] = {
     {-1, "DOWN", 0, "Down", ""},
     {1, "UP", 0, "Up", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+}
 
 #ifdef RNA_RUNTIME
 
@@ -41,13 +45,14 @@ const EnumPropertyItem rna_enum_tree_node_move_type_items[] = {
 
 #  include "rna_curves_utils.hh"
 
+namespace blender {
+
 static void rna_GreasePencilDrawing_add_curves(ID *grease_pencil_id,
                                                GreasePencilDrawing *drawing_ptr,
                                                ReportList *reports,
                                                const int *sizes,
                                                const int sizes_num)
 {
-  using namespace blender;
   bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   if (!rna_CurvesGeometry_add_curves(curves, reports, sizes, sizes_num)) {
@@ -73,7 +78,6 @@ static void rna_GreasePencilDrawing_remove_curves(ID *grease_pencil_id,
                                                   const int *indices_ptr,
                                                   const int indices_num)
 {
-  using namespace blender;
   bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   if (!rna_CurvesGeometry_remove_curves(curves, reports, indices_ptr, indices_num)) {
@@ -97,7 +101,6 @@ static void rna_GreasePencilDrawing_resize_curves(ID *grease_pencil_id,
                                                   const int *indices_ptr,
                                                   const int indices_num)
 {
-  using namespace blender;
   bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   if (!rna_CurvesGeometry_resize_curves(
@@ -121,7 +124,6 @@ static void rna_GreasePencilDrawing_reorder_curves(ID *grease_pencil_id,
                                                    const int *reorder_indices_ptr,
                                                    const int reorder_indices_num)
 {
-  using namespace blender;
   bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   if (!rna_CurvesGeometry_reorder_curves(
@@ -146,7 +148,6 @@ static void rna_GreasePencilDrawing_set_types(ID *grease_pencil_id,
                                               const int *indices_ptr,
                                               const int indices_num)
 {
-  using namespace blender;
   bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   if (!rna_CurvesGeometry_set_types(curves, reports, type, indices_ptr, indices_num)) {
@@ -172,7 +173,6 @@ static void rna_GreasePencilDrawing_vertex_group_assign(ID *id,
                                                         int indices_num,
                                                         float weight)
 {
-  using namespace blender;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
   const int vgroup_index = BKE_defgroup_name_index(&grease_pencil.vertex_group_names, vgroup_name);
   if (vgroup_index == -1) {
@@ -211,7 +211,6 @@ static void rna_GreasePencilDrawing_vertex_group_remove(ID *id,
                                                         const int *indices_ptr,
                                                         int indices_num)
 {
-  using namespace blender;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
   const int vgroup_index = BKE_defgroup_name_index(&grease_pencil.vertex_group_names, vgroup_name);
   if (vgroup_index == -1) {
@@ -257,7 +256,6 @@ static void rna_GreasePencilDrawing_set_vertex_weights(ID *grease_pencil_id,
                                                        const int weights_num,
                                                        const int assignmode)
 {
-  using namespace blender;
   const Span<int> indices(indices_ptr, indices_num);
   const Span<float> weights(weights_ptr, weights_num);
   if (indices.size() != weights.size()) {
@@ -348,7 +346,7 @@ static GreasePencilFrame *rna_Frames_frame_new(ID *id,
                                                ReportList *reports,
                                                int frame_number)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
   Layer &layer = layer_in->wrap();
 
@@ -369,7 +367,7 @@ static void rna_Frames_frame_remove(ID *id,
                                     ReportList *reports,
                                     int frame_number)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
   Layer &layer = layer_in->wrap();
 
@@ -394,7 +392,7 @@ static GreasePencilFrame *rna_Frames_frame_copy(ID *id,
                                                 int to_frame_number,
                                                 bool instance_drawing)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
   Layer &layer = layer_in->wrap();
 
@@ -420,7 +418,7 @@ static GreasePencilFrame *rna_Frames_frame_move(ID *id,
                                                 int from_frame_number,
                                                 int to_frame_number)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
   Layer &layer = layer_in->wrap();
 
@@ -446,14 +444,14 @@ static GreasePencilFrame *rna_Frames_frame_move(ID *id,
 static GreasePencilFrame *rna_GreasePencilLayer_get_frame_at(GreasePencilLayer *layer,
                                                              int frame_number)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   return static_cast<Layer *>(layer)->frame_at(frame_number);
 }
 
 static GreasePencilFrame *rna_GreasePencilLayer_current_frame(GreasePencilLayer *layer,
                                                               bContext *C)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
   return static_cast<Layer *>(layer)->frame_at(scene->r.cfra);
 }
@@ -463,7 +461,7 @@ static GreasePencilLayer *rna_GreasePencil_layer_new(GreasePencil *grease_pencil
                                                      const bool set_active,
                                                      PointerRNA *layer_group_ptr)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   LayerGroup *layer_group = nullptr;
   if (layer_group_ptr && layer_group_ptr->data) {
     layer_group = static_cast<LayerGroup *>(layer_group_ptr->data);
@@ -486,8 +484,7 @@ static GreasePencilLayer *rna_GreasePencil_layer_new(GreasePencil *grease_pencil
 
 static void rna_GreasePencil_layer_remove(GreasePencil *grease_pencil, PointerRNA *layer_ptr)
 {
-  blender::bke::greasepencil::Layer &layer = *static_cast<blender::bke::greasepencil::Layer *>(
-      layer_ptr->data);
+  bke::greasepencil::Layer &layer = *static_cast<bke::greasepencil::Layer *>(layer_ptr->data);
   grease_pencil->remove_layer(layer);
 
   layer_ptr->invalidate();
@@ -503,8 +500,8 @@ static void rna_GreasePencil_layer_move(GreasePencil *grease_pencil,
     return;
   }
 
-  blender::bke::greasepencil::TreeNode &layer_node =
-      static_cast<blender::bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
+  bke::greasepencil::TreeNode &layer_node =
+      static_cast<bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
   switch (direction) {
     case -1:
       grease_pencil->move_node_down(layer_node, 1);
@@ -520,8 +517,8 @@ static void rna_GreasePencil_layer_move(GreasePencil *grease_pencil,
 
 static void rna_GreasePencil_layer_move_top(GreasePencil *grease_pencil, PointerRNA *layer_ptr)
 {
-  blender::bke::greasepencil::TreeNode &layer_node =
-      static_cast<blender::bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
+  bke::greasepencil::TreeNode &layer_node =
+      static_cast<bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
   grease_pencil->move_node_top(layer_node);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
@@ -530,8 +527,8 @@ static void rna_GreasePencil_layer_move_top(GreasePencil *grease_pencil, Pointer
 
 static void rna_GreasePencil_layer_move_bottom(GreasePencil *grease_pencil, PointerRNA *layer_ptr)
 {
-  blender::bke::greasepencil::TreeNode &layer_node =
-      static_cast<blender::bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
+  bke::greasepencil::TreeNode &layer_node =
+      static_cast<bke::greasepencil::Layer *>(layer_ptr->data)->as_node();
   grease_pencil->move_node_bottom(layer_node);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
@@ -542,7 +539,7 @@ static void rna_GreasePencil_layer_move_to_layer_group(GreasePencil *grease_penc
                                                        PointerRNA *layer_ptr,
                                                        PointerRNA *layer_group_ptr)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   TreeNode &layer_node = static_cast<Layer *>(layer_ptr->data)->as_node();
   LayerGroup *layer_group;
   if (layer_group_ptr && layer_group_ptr->data) {
@@ -564,7 +561,7 @@ static PointerRNA rna_GreasePencil_layer_group_new(GreasePencil *grease_pencil,
                                                    const char *name,
                                                    PointerRNA *parent_group_ptr)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   LayerGroup *parent_group;
   if (parent_group_ptr && parent_group_ptr->data) {
     parent_group = static_cast<LayerGroup *>(parent_group_ptr->data);
@@ -585,7 +582,7 @@ static void rna_GreasePencil_layer_group_remove(GreasePencil *grease_pencil,
                                                 PointerRNA *layer_group_ptr,
                                                 bool keep_children)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   LayerGroup &layer_group = *static_cast<LayerGroup *>(layer_group_ptr->data);
   grease_pencil->remove_group(layer_group, keep_children);
 
@@ -602,8 +599,8 @@ static void rna_GreasePencil_layer_group_move(GreasePencil *grease_pencil,
     return;
   }
 
-  blender::bke::greasepencil::TreeNode &layer_group_node =
-      static_cast<blender::bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
+  bke::greasepencil::TreeNode &layer_group_node =
+      static_cast<bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
   switch (direction) {
     case -1:
       grease_pencil->move_node_down(layer_group_node, 1);
@@ -620,8 +617,8 @@ static void rna_GreasePencil_layer_group_move(GreasePencil *grease_pencil,
 static void rna_GreasePencil_layer_group_move_top(GreasePencil *grease_pencil,
                                                   PointerRNA *layer_group_ptr)
 {
-  blender::bke::greasepencil::TreeNode &layer_group_node =
-      static_cast<blender::bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
+  bke::greasepencil::TreeNode &layer_group_node =
+      static_cast<bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
   grease_pencil->move_node_top(layer_group_node);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
@@ -631,8 +628,8 @@ static void rna_GreasePencil_layer_group_move_top(GreasePencil *grease_pencil,
 static void rna_GreasePencil_layer_group_move_bottom(GreasePencil *grease_pencil,
                                                      PointerRNA *layer_group_ptr)
 {
-  blender::bke::greasepencil::TreeNode &layer_group_node =
-      static_cast<blender::bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
+  bke::greasepencil::TreeNode &layer_group_node =
+      static_cast<bke::greasepencil::LayerGroup *>(layer_group_ptr->data)->as_node();
   grease_pencil->move_node_bottom(layer_group_node);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
@@ -643,7 +640,7 @@ static void rna_GreasePencil_layer_group_move_to_layer_group(GreasePencil *greas
                                                              PointerRNA *layer_group_ptr,
                                                              PointerRNA *parent_group_ptr)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   TreeNode &layer_group_node = static_cast<LayerGroup *>(layer_group_ptr->data)->as_node();
   LayerGroup *parent_group;
   if (parent_group_ptr && parent_group_ptr->data) {
@@ -658,7 +655,11 @@ static void rna_GreasePencil_layer_group_move_to_layer_group(GreasePencil *greas
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_grease_pencil_drawing(StructRNA *srna)
 {
@@ -1105,5 +1106,7 @@ void RNA_api_grease_pencil_layer_groups(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 }
+
+}  // namespace blender
 
 #endif

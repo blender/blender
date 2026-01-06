@@ -21,6 +21,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 int BLI_linklist_count(const LinkNode *list)
 {
   int len;
@@ -336,3 +338,5 @@ LinkNode *BLI_linklist_sort_r(LinkNode *list,
   }
   return list;
 }
+
+}  // namespace blender

@@ -22,6 +22,8 @@
 
 #include "ED_gizmo_utils.hh"
 
+namespace blender {
+
 bool ED_gizmo_poll_or_unlink_delayed_from_operator(const bContext *C,
                                                    wmGizmoGroupType *gzgt,
                                                    const char *idname)
@@ -62,3 +64,5 @@ bool ED_gizmo_poll_or_unlink_delayed_from_tool(const bContext *C, wmGizmoGroupTy
 {
   return ED_gizmo_poll_or_unlink_delayed_from_tool_ex(C, gzgt, gzgt->idname);
 }
+
+}  // namespace blender

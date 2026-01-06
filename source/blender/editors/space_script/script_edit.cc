@@ -30,6 +30,8 @@
 #  include "BPY_extern_run.hh"
 #endif
 
+namespace blender {
+
 static wmOperatorStatus run_pyfile_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -144,3 +146,5 @@ void SCRIPT_OT_reload(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = script_reload_exec;
 }
+
+}  // namespace blender
