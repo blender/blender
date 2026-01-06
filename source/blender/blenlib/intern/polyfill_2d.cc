@@ -39,6 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
@@ -59,6 +60,11 @@
 #endif
 
 #ifdef USE_KDTREE
+/** Cache the last hit vertex index to avoid repeated KDTree lookups. */
+#  define USE_KDTREE_INDEX_CACHE
+#  ifdef USE_KDTREE_INDEX_CACHE
+#    define KDTREE_INDEX_CACHE_UNSET uint32_t(-1)
+#  endif
 /** Precompute edge vectors for point-in-triangle test. */
 #  define USE_PRECOMPUTED_ISECT
 #endif
@@ -130,11 +136,27 @@ enum {
   CONVEX = 1,
 };
 
+#ifdef USE_KDTREE_INDEX_CACHE
+enum class PolyIndexFlag : uint8_t {
+  /**
+   * When set, the triangle has changed since caching. A dirty index cache can still be re-used,
+   * however upon failure a full lookup is necessary.
+   */
+  IndexCacheDirty = 1 << 0,
+};
+ENUM_OPERATORS(PolyIndexFlag);
+#endif
+
 /** Circular double linked-list. */
 struct PolyIndex {
   PolyIndex *next, *prev;
   uint32_t index;
   eSign sign;
+#ifdef USE_KDTREE_INDEX_CACHE
+  PolyIndexFlag flag;
+  /** Cached index of vertex that blocked this ear. Stored inline for cache locality. */
+  uint32_t index_last_hit;
+#endif
 };
 
 struct PolyFill {
@@ -430,16 +452,19 @@ static void kdtree2d_node_remove(KDTree2D *tree, uint32_t index)
   }
 }
 
-static bool kdtree2d_isect_tri_recursive(const KDTree2D *tree,
-                                         const uint32_t tri_index[3],
+/**
+ * \return The index of the vertex that intersects the triangle, or KDNODE_UNSET if none.
+ */
+static uint32_t kdtree2d_isect_tri_recursive(const KDTree2D *tree,
+                                             const uint32_t tri_index[3],
 #  ifdef USE_PRECOMPUTED_ISECT
-                                         const TriIsectPrecomputed *tri_isect,
+                                             const TriIsectPrecomputed *tri_isect,
 #  else
-                                         const float *tri_coords[3],
+                                             const float *tri_coords[3],
 #  endif
-                                         const float tri_center[2],
-                                         const KDRange2D bounds[2],
-                                         const KDTreeNode2D *node)
+                                             const float tri_center[2],
+                                             const KDRange2D bounds[2],
+                                             const KDTreeNode2D *node)
 {
   const float *co = tree->coords[node->index];
 
@@ -447,15 +472,15 @@ static bool kdtree2d_isect_tri_recursive(const KDTree2D *tree,
 #  ifdef USE_PRECOMPUTED_ISECT
     if (tri_isect_precomputed_test(tri_isect, co))
 #  else
-    /* Check (tri_coords[1], tri_coords[2]) first as it's the "opposite edge"
-     * (next->prev in triangle terms) which fails most often for random points. */
+    /* Check `tri_coords[1], tri_coords[2]` first as it's the "opposite edge"
+     * (`next` and `prev` in triangle terms) which fails most often for random points. */
     if ((span_tri_v2_sign(tri_coords[1], tri_coords[2], co) != CONCAVE) &&
         (span_tri_v2_sign(tri_coords[2], tri_coords[0], co) != CONCAVE) &&
         (span_tri_v2_sign(tri_coords[0], tri_coords[1], co) != CONCAVE))
 #  endif
     {
       if (!ELEM(node->index, tri_index[0], tri_index[1], tri_index[2])) {
-        return true;
+        return node->index;
       }
     }
   }
@@ -467,26 +492,25 @@ static bool kdtree2d_isect_tri_recursive(const KDTree2D *tree,
 #  endif
 
 #  define KDTREE2D_ISECT_TRI_RECURSE_NEG \
-    (((node->neg != KDNODE_UNSET) && (co[node->axis] >= bounds[node->axis].min)) && \
-     kdtree2d_isect_tri_recursive(KDTREE2D_ISECT_ARGS, &tree->nodes[node->neg]))
+    (((node->neg != KDNODE_UNSET) && (co[node->axis] >= bounds[node->axis].min)) ? \
+         kdtree2d_isect_tri_recursive(KDTREE2D_ISECT_ARGS, &tree->nodes[node->neg]) : \
+         KDNODE_UNSET)
 #  define KDTREE2D_ISECT_TRI_RECURSE_POS \
-    (((node->pos != KDNODE_UNSET) && (co[node->axis] <= bounds[node->axis].max)) && \
-     kdtree2d_isect_tri_recursive(KDTREE2D_ISECT_ARGS, &tree->nodes[node->pos]))
+    (((node->pos != KDNODE_UNSET) && (co[node->axis] <= bounds[node->axis].max)) ? \
+         kdtree2d_isect_tri_recursive(KDTREE2D_ISECT_ARGS, &tree->nodes[node->pos]) : \
+         KDNODE_UNSET)
 
+  uint32_t result;
   if (tri_center[node->axis] > co[node->axis]) {
-    if (KDTREE2D_ISECT_TRI_RECURSE_POS) {
-      return true;
-    }
-    if (KDTREE2D_ISECT_TRI_RECURSE_NEG) {
-      return true;
+    result = KDTREE2D_ISECT_TRI_RECURSE_POS;
+    if (result == KDNODE_UNSET) {
+      result = KDTREE2D_ISECT_TRI_RECURSE_NEG;
     }
   }
   else {
-    if (KDTREE2D_ISECT_TRI_RECURSE_NEG) {
-      return true;
-    }
-    if (KDTREE2D_ISECT_TRI_RECURSE_POS) {
-      return true;
+    result = KDTREE2D_ISECT_TRI_RECURSE_NEG;
+    if (result == KDNODE_UNSET) {
+      result = KDTREE2D_ISECT_TRI_RECURSE_POS;
     }
   }
 
@@ -496,10 +520,50 @@ static bool kdtree2d_isect_tri_recursive(const KDTree2D *tree,
 
   BLI_assert(node->index != KDNODE_UNSET);
 
-  return false;
+  return result;
 }
 
-static bool kdtree2d_isect_tri(KDTree2D *tree, const uint32_t ind[3])
+#  ifdef USE_KDTREE_INDEX_CACHE
+/**
+ * Check if a specific vertex index is still in the KDTree and intersects the triangle.
+ * Used as a fast-path to avoid full tree traversal when the last hit is cached.
+ */
+static bool kdtree2d_isect_tri_single(const KDTree2D *tree,
+                                      const uint32_t tri_index[3],
+                                      const uint32_t test_index)
+{
+  /* Check if the vertex is still in the tree and not one of the triangle vertices. */
+  if ((tree->nodes_map[test_index] != KDNODE_UNSET) &&
+      !ELEM(test_index, tri_index[0], tri_index[1], tri_index[2]))
+  {
+    const float *v1 = tree->coords[tri_index[0]];
+    const float *v2 = tree->coords[tri_index[1]];
+    const float *v3 = tree->coords[tri_index[2]];
+    const float *co = tree->coords[test_index];
+
+#    ifdef USE_PRECOMPUTED_ISECT
+    const float *vs[3] = {v1, v2, v3};
+    TriIsectPrecomputed tri_isect;
+    tri_isect_precomputed_init(&tri_isect, vs);
+    if (tri_isect_precomputed_test(&tri_isect, co))
+#    else
+    /* Check (v2, v3) first - the "opposite edge" (`next` and `prev`) fails most often. */
+    if ((span_tri_v2_sign(v2, v3, co) != CONCAVE) && (span_tri_v2_sign(v3, v1, co) != CONCAVE) &&
+        (span_tri_v2_sign(v1, v2, co) != CONCAVE))
+#    endif
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+#  endif /* USE_KDTREE_INDEX_CACHE */
+
+/**
+ * \return The index of the vertex that intersects the triangle, or KDNODE_UNSET if none.
+ */
+static uint32_t kdtree2d_isect_tri(KDTree2D *tree, const uint32_t ind[3])
 {
   const float *vs[3] = {
       tree->coords[ind[0]],
@@ -601,6 +665,12 @@ static void pf_triangulate(PolyFill *pf)
     pi_next = pi_ear->next;
 
     pf_ear_tip_cut(pf, pi_ear);
+
+#ifdef USE_KDTREE_INDEX_CACHE
+    /* Tag neighbors to indicate their triangles changed, cached index needs verification. */
+    pi_prev->flag |= PolyIndexFlag::IndexCacheDirty;
+    pi_next->flag |= PolyIndexFlag::IndexCacheDirty;
+#endif
 
     /* The type of the two vertices adjacent to the clipped vertex may have changed. */
     sign_orig_prev = pi_prev->sign;
@@ -809,7 +879,38 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip, const eSign si
   {
     const uint32_t ind[3] = {pi_ear_tip->index, pi_ear_tip->next->index, pi_ear_tip->prev->index};
 
-    if (kdtree2d_isect_tri(&pf->kdtree, ind)) {
+#  ifdef USE_KDTREE_INDEX_CACHE
+    const uint32_t cached_hit = pi_ear_tip->index_last_hit;
+    if (cached_hit != KDTREE_INDEX_CACHE_UNSET) {
+      if ((pi_ear_tip->flag & PolyIndexFlag::IndexCacheDirty) == PolyIndexFlag(0)) {
+        /* Triangle unchanged since caching - the last hit is guaranteed to remain intersecting,
+         * provided it's still in the tree and therefor concave.
+         * Note that technically the removed point still intersects,
+         * it's just that in the case it's removed this code should match the behavior
+         * of the un-cached #KDTree lookup.
+         * In practice this should only occur with polygons that overlap themselves. */
+        if (pf->kdtree.nodes_map[cached_hit] != KDNODE_UNSET) {
+          return false;
+        }
+      }
+      else {
+        /* Triangle changed (flagged dirty). Verify cached vertex still blocks. */
+        if (kdtree2d_isect_tri_single(&pf->kdtree, ind, cached_hit)) {
+          /* Still blocks, clear dirty flag. */
+          pi_ear_tip->flag &= ~PolyIndexFlag::IndexCacheDirty;
+          return false;
+        }
+        /* Cache miss: fall through to full search. */
+      }
+    }
+#  endif /* USE_KDTREE_INDEX_CACHE */
+
+    const uint32_t hit = kdtree2d_isect_tri(&pf->kdtree, ind);
+    if (hit != KDNODE_UNSET) {
+#  ifdef USE_KDTREE_INDEX_CACHE
+      pi_ear_tip->index_last_hit = hit;
+      pi_ear_tip->flag &= ~PolyIndexFlag::IndexCacheDirty;
+#  endif
       return false;
     }
   }
@@ -934,6 +1035,10 @@ static void polyfill_prepare(PolyFill *pf,
     if (pi->sign != CONVEX) {
       pf->coords_num_concave += 1;
     }
+#endif
+#ifdef USE_KDTREE_INDEX_CACHE
+    pi->flag = PolyIndexFlag(0);
+    pi->index_last_hit = KDTREE_INDEX_CACHE_UNSET;
 #endif
   }
 }
