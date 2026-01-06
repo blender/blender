@@ -84,7 +84,7 @@ class BoneCollectionDragController : public AbstractViewItemDragController {
 
   std::optional<eWM_DragDataType> get_drag_type() const override;
   void *create_drag_data() const override;
-  void on_drag_start(bContext &C) override;
+  void on_drag_start(bContext &C, AbstractViewItem &item) override;
 };
 
 class BoneCollectionDropTarget : public TreeViewItemDropTarget {
@@ -456,7 +456,7 @@ void *BoneCollectionDragController::create_drag_data() const
   return drag_data;
 }
 
-void BoneCollectionDragController::on_drag_start(bContext & /*C*/)
+void BoneCollectionDragController::on_drag_start(bContext & /*C*/, AbstractViewItem & /*item*/)
 {
   ANIM_armature_bonecoll_active_index_set(drag_arm_bcoll_.armature, drag_arm_bcoll_.bcoll_index);
 }

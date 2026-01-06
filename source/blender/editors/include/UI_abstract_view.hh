@@ -429,8 +429,10 @@ class AbstractViewItemDragController {
   /**
    * Called when beginning to drag. Also called when #get_drag_type() doesn't return a value, so an
    * arbitrary action can be executed.
+   * \param item: The item this drag controller was created from. It's passed so it doesn't have to
+   *        be stored (especially as non-const).
    */
-  virtual void on_drag_start(bContext &C);
+  virtual void on_drag_start(bContext &C, ui::AbstractViewItem &item);
 
   /** Request the view the item is registered for as type #ViewType. Throws a `std::bad_cast`
    * exception if the view is not of the requested type. */
