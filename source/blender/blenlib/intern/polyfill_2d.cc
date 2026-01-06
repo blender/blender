@@ -33,6 +33,7 @@
 
 #include "BLI_utildefines.h"
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
@@ -423,26 +424,21 @@ static bool kdtree2d_isect_tri_recursive(const KDTree2D *tree,
 
 static bool kdtree2d_isect_tri(KDTree2D *tree, const uint32_t ind[3])
 {
-  const float *vs[3];
-  uint32_t i;
-  KDRange2D bounds[2] = {
-      {FLT_MAX, -FLT_MAX},
-      {FLT_MAX, -FLT_MAX},
+  const float *vs[3] = {
+      tree->coords[ind[0]],
+      tree->coords[ind[1]],
+      tree->coords[ind[2]],
   };
-  float tri_center[2] = {0.0f, 0.0f};
 
-  for (i = 0; i < 3; i++) {
-    vs[i] = tree->coords[ind[i]];
+  const KDRange2D bounds[2] = {
+      {std::min({vs[0][0], vs[1][0], vs[2][0]}), std::max({vs[0][0], vs[1][0], vs[2][0]})},
+      {std::min({vs[0][1], vs[1][1], vs[2][1]}), std::max({vs[0][1], vs[1][1], vs[2][1]})},
+  };
 
-    add_v2_v2(tri_center, vs[i]);
-
-    CLAMP_MAX(bounds[0].min, vs[i][0]);
-    CLAMP_MIN(bounds[0].max, vs[i][0]);
-    CLAMP_MAX(bounds[1].min, vs[i][1]);
-    CLAMP_MIN(bounds[1].max, vs[i][1]);
-  }
-
-  mul_v2_fl(tri_center, 1.0f / 3.0f);
+  const float tri_center[2] = {
+      (vs[0][0] + vs[1][0] + vs[2][0]) * (1.0f / 3.0f),
+      (vs[0][1] + vs[1][1] + vs[2][1]) * (1.0f / 3.0f),
+  };
 
   return kdtree2d_isect_tri_recursive(tree, ind, vs, tri_center, bounds, &tree->nodes[tree->root]);
 }
