@@ -43,13 +43,13 @@
 
 #include "../curve_fit_nd.h"
 
-/** Take curvature into account when calculating the least square solution isn't usable. */
+/** Take curvature into account when calculating the least-squares solution isn't usable. */
 #define USE_CIRCULAR_FALLBACK
 
 /**
  * Use the maximum distance of any points from the direct line between 2 points
  * to calculate how long the handles need to be.
- * Can do a 'perfect' reversal of subdivision when for curve has symmetrical handles and doesn't change direction
+ * Can do a 'perfect' reversal of subdivision when the curve has symmetrical handles and doesn't change direction
  * (as with an 'S' shape).
  */
 #define USE_OFFSET_FALLBACK
@@ -62,6 +62,15 @@
  * useful when the caller has data associated with the curve.
  */
 #define USE_ORIG_INDEX_DATA
+
+/**
+ * Enable optimized code paths that sacrifice readability for speed.
+ * When defined, certain hot loops use combined calculations to reduce
+ * redundant operations (e.g., computing shared intermediate values once
+ * instead of multiple times). The optimized code produces identical results
+ * but is harder to follow. Disable this for debugging or code review.
+ */
+#define USE_FAST_PATH
 
 typedef unsigned int uint;
 
@@ -290,6 +299,7 @@ static void cubic_calc_point(
 	}
 }
 
+#ifndef USE_FAST_PATH
 static void cubic_calc_speed(
         const Cubic *cubic, const double t, const uint dims,
         double r_v[])
@@ -298,7 +308,7 @@ static void cubic_calc_speed(
 	const double s = 1.0 - t;
 	for (uint j = 0; j < dims; j++) {
 		r_v[j] =  3.0 * ((p1[j] - p0[j]) * s * s + 2.0 *
-		                 (p2[j] - p0[j]) * s * t +
+		                 (p2[j] - p1[j]) * s * t +
 		                 (p3[j] - p2[j]) * t * t);
 	}
 }
@@ -314,6 +324,46 @@ static void cubic_calc_acceleration(
 		                (p3[j] - 2.0 * p2[j] + p1[j]) * t);
 	}
 }
+#endif /* !USE_FAST_PATH */
+
+#ifdef USE_FAST_PATH
+/**
+ * Compute point, first derivative (speed), and second derivative (acceleration) in one pass.
+ * Combines cubic_calc_point, cubic_calc_speed, and cubic_calc_acceleration to share
+ * intermediate values and reduce redundant control point access.
+ */
+static void cubic_calc_point_speed_accel(
+        const Cubic *cubic, const double t, const uint dims,
+        double r_point[], double r_speed[], double r_accel[])
+{
+	CUBIC_VARS_CONST(cubic, dims, p0, p1, p2, p3);
+	const double s = 1.0 - t;
+	const double ss = s * s;
+	const double tt = t * t;
+	const double st2 = 2.0 * s * t;
+
+	for (uint j = 0; j < dims; j++) {
+		/* Control point differences, computed once. */
+		const double d01 = p1[j] - p0[j];
+		const double d12 = p2[j] - p1[j];
+		const double d23 = p3[j] - p2[j];
+
+		/* Point via de Casteljau's algorithm. */
+		const double p01 = p0[j] + d01 * t;
+		const double p12 = p1[j] + d12 * t;
+		const double p23 = p2[j] + d23 * t;
+		const double p012 = p01 * s + p12 * t;
+		const double p123 = p12 * s + p23 * t;
+		r_point[j] = p012 * s + p123 * t;
+
+		/* First derivative: 3 * ((d01)*s^2 + 2*(d12)*s*t + (d23)*t^2). */
+		r_speed[j] = 3.0 * (d01 * ss + d12 * st2 + d23 * tt);
+
+		/* Second derivative: 6 * ((d12 - d01)*s + (d23 - d12)*t). */
+		r_accel[j] = 6.0 * ((d12 - d01) * s + (d23 - d12) * t);
+	}
+}
+#endif /* USE_FAST_PATH */
 
 /**
  * Returns a 'measure' of the maximum distance (squared) of the points specified
@@ -354,7 +404,7 @@ static double cubic_calc_error(
 
 #ifdef USE_OFFSET_FALLBACK
 /**
- * A version #cubic_calc_error where we don't need the split-index and can exit early when over the limit.
+ * A version of 'cubic_calc_error' where we don't need the split-index and can exit early when over the limit.
  */
 static double cubic_calc_error_simple(
         const Cubic *cubic,
@@ -390,8 +440,9 @@ static double cubic_calc_error_simple(
 }
 #endif
 
+#ifndef USE_FAST_PATH
 /**
- * Bezier multipliers
+ * Bezier multipliers.
  */
 
 static double B1(double u)
@@ -415,6 +466,30 @@ static double B2plusB3(double u)
 {
     return u * u * (3.0 - 2.0 * u);
 }
+#endif /* !USE_FAST_PATH */
+
+
+#ifdef USE_FAST_PATH
+/**
+ * Compute all four Bernstein polynomial values with shared intermediate calculations.
+ * This avoids redundant computation of (1-u), u^2, etc. when all four values are needed.
+ */
+static void bernstein_all(
+        const double u,
+        double *r_b1, double *r_b2,
+        double *r_b0_plus_b1, double *r_b2_plus_b3)
+{
+	const double s = 1.0 - u;
+	const double ss = s * s;
+	const double uu = u * u;
+	const double us3 = 3.0 * u * s;
+
+	*r_b1 = us3 * s;                    /* 3 * u * (1-u)^2 */
+	*r_b2 = us3 * u;                    /* 3 * u^2 * (1-u) */
+	*r_b0_plus_b1 = ss * (1.0 + 2.0 * u);
+	*r_b2_plus_b3 = uu * (3.0 - 2.0 * u);
+}
+#endif  /* USE_FAST_PATH */
 
 static void points_calc_center_weighted(
         const double *points_offset,
@@ -494,7 +569,7 @@ static double points_calc_circumference_factor(
  * Return the value which the distance between points will need to be scaled by,
  * to define a handle, given both points are on a perfect circle.
  *
- * \note the return value will need to be multiplied by 1.3... for correct results.
+ * \note The return value will need to be multiplied by ~1.33 for correct results.
  */
 static double points_calc_circle_tangent_factor(
         const double  tan_l[],
@@ -523,8 +598,8 @@ static double points_calc_circle_tangent_factor(
 }
 
 /**
- * Calculate the scale the handles, which serves as a best-guess
- * used as a fallback when the least-square solution fails.
+ * Calculate the scale of the handles, which serves as a best-guess
+ * used as a fallback when the least-squares solution fails.
  */
 static double points_calc_cubic_scale(
         const double v_l[], const double v_r[],
@@ -633,7 +708,7 @@ static void cubic_from_points_offset_fallback(
 	 * are perpendicular to the direction defined by the two points.
 	 *
 	 * Project tangents onto these perpendicular lengths.
-	 * Note that this can cause divide by zero in the case of co-linear tangents.
+	 * Note that this can cause divide by zero in the case of collinear tangents.
 	 * The limits check afterwards accounts for this.
 	 *
 	 * The 'dists[..] + dir_dirs' limit is just a rough approximation.
@@ -714,11 +789,18 @@ static void cubic_from_points(
 		const double *pt = points_offset;
 
 		for (uint i = 0; i < points_offset_len; i++, pt += dims) {
+#ifdef USE_FAST_PATH
+			double b1, b2, b0_plus_b1, b2_plus_b3;
+			bernstein_all(u_prime[i], &b1, &b2, &b0_plus_b1, &b2_plus_b3);
+			mul_vnvn_fl(a[0], tan_l, b1, dims);
+			mul_vnvn_fl(a[1], tan_r, b2, dims);
+#else
 			mul_vnvn_fl(a[0], tan_l, B1(u_prime[i]), dims);
 			mul_vnvn_fl(a[1], tan_r, B2(u_prime[i]), dims);
 
 			const double b0_plus_b1 = B0plusB1(u_prime[i]);
 			const double b2_plus_b3 = B2plusB3(u_prime[i]);
+#endif
 
 			/* Inline dot product. */
 			for (uint j = 0; j < dims; j++) {
@@ -749,13 +831,9 @@ static void cubic_from_points(
 	}
 
 	/*
-	 * The problem that the stupid values for alpha dare not put
-	 * only when we realize that the sign and wrong,
-	 * but even if the values are too high.
-	 * But how do you evaluate it?
-	 *
-	 * Meanwhile, we should ensure that these values are sometimes
-	 * so only problems absurd of approximation and not for bugs in the code.
+	 * When the least-squares solution produces invalid alpha values,
+	 * we need to fall back to a simpler approximation. Invalid values
+	 * can occur due to numerical instability or degenerate point configurations.
 	 */
 
 	bool use_clamp = true;
@@ -885,7 +963,7 @@ static void points_calc_coord_length_cache(
 #endif  /* USE_LENGTH_CACHE */
 
 /**
- * \return the accumulated length of \a points_offset.
+ * \return The accumulated length of \a points_offset.
  */
 static double points_calc_coord_length(
         const double *points_offset,
@@ -916,8 +994,9 @@ static double points_calc_coord_length(
 	}
 	assert(!is_almost_zero(r_u[points_offset_len - 1]));
 	const double w = r_u[points_offset_len - 1];
+	const double w_inv = 1.0 / w;
 	for (uint i = 1; i < points_offset_len; i++) {
-		r_u[i] /= w;
+		r_u[i] *= w_inv;
 	}
 	return w;
 }
@@ -929,7 +1008,7 @@ static double points_calc_coord_length(
  * \param p: Point to test against.
  * \param u: Parameter value for \a p.
  *
- * \note Return value may be `nan` caller must check for this.
+ * \note Return value may be `nan`; caller must check for this.
  */
 static double cubic_find_root(
         const Cubic *cubic,
@@ -949,9 +1028,13 @@ static double cubic_find_root(
 	double *q2_u = alloca(sizeof(double) * dims);
 #endif
 
+#ifdef USE_FAST_PATH
+	cubic_calc_point_speed_accel(cubic, u, dims, q0_u, q1_u, q2_u);
+#else
 	cubic_calc_point(cubic, u, dims, q0_u);
 	cubic_calc_speed(cubic, u, dims, q1_u);
 	cubic_calc_acceleration(cubic, u, dims, q2_u);
+#endif
 
 	/* May divide-by-zero, caller must check for that case. */
 	/* `u - ((q0_u - p) * q1_u) / (q1_u.length_squared() + (q0_u - p) * q2_u)` */
@@ -982,7 +1065,7 @@ static bool cubic_reparameterize(
         double       *r_u_prime)
 {
 	/*
-	 * Recalculate the values of u[] based on the Newton Raphson method
+	 * Recalculate the values of u[] based on the Newton-Raphson method.
 	 */
 
 	const double *pt = points_offset;
@@ -1074,7 +1157,7 @@ static bool fit_cubic_to_points(
 	if (!(error_max_sq < error_threshold_sq)) {
 		/* Don't use the cubic calculated above, instead calculate a new fallback cubic,
 		 * since this tends to give more balanced split_index along the curve.
-		 * This is because the attempt to calcualte the cubic may contain spikes
+		 * This is because the attempt to calculate the cubic may contain spikes
 		 * along the curve which may give a lop-sided maximum distance. */
 		cubic_from_points_fallback(
 		        points_offset, points_offset_len,
@@ -1190,7 +1273,7 @@ static void fit_cubic_to_points_recursive(
 	        points_length_cache,
 #endif
 	        tan_l, tan_r,
-	        (calc_flag & CURVE_FIT_CALC_HIGH_QUALIY) ? DBL_EPSILON : error_threshold_sq,
+	        (calc_flag & CURVE_FIT_CALC_HIGH_QUALITY) ? DBL_EPSILON : error_threshold_sq,
 	        dims,
 	        cubic, &error_max_sq, &split_index) ||
 	    (error_max_sq < error_threshold_sq))
@@ -1203,10 +1286,10 @@ static void fit_cubic_to_points_recursive(
 
 	/* Fitting failed -- split at max error point and fit recursively. */
 
-	/* Check splinePoint is not an endpoint?
+	/* Check split_index is not an endpoint?
 	 *
-	 * This assert happens sometimes...
-	 * Look into it but disable for now. Campbell! */
+	 * This assert triggers in some edge cases.
+	 * TODO: investigate further, disabled for now. */
 
 	// assert(split_index > 1)
 #ifdef USE_VLA
@@ -1266,8 +1349,8 @@ static void fit_cubic_to_points_recursive(
 /**
  * Main function:
  *
- * Take an array of 3d points.
- * return the cubic splines
+ * Takes an array of n-dimensional points.
+ * Returns the cubic splines.
  */
 int curve_fit_cubic_to_points_db(
         const double *points,
@@ -1338,6 +1421,7 @@ int curve_fit_cubic_to_points_db(
 					free(points_length_cache);
 				}
 				points_length_cache = malloc(sizeof(double) * points_offset_len);
+				points_length_cache_len_alloc = points_offset_len;
 			}
 			points_calc_coord_length_cache(
 			        &points[first_point * dims], points_offset_len, dims,
@@ -1409,7 +1493,7 @@ int curve_fit_cubic_to_points_db(
 }
 
 /**
- * A version of #curve_fit_cubic_to_points_db to handle floats
+ * A version of #curve_fit_cubic_to_points_db to handle floats.
  */
 int curve_fit_cubic_to_points_fl(
         const float  *points,
@@ -1474,7 +1558,7 @@ int curve_fit_cubic_to_points_single_db(
 {
 	Cubic *cubic = alloca(cubic_alloc_size(dims));
 
-	/* In this instance there are no advantage in using length cache,
+	/* In this instance there is no advantage in using length cache,
 	 * since we're not recursively calculating values. */
 #ifdef USE_LENGTH_CACHE
 	double *points_length_cache_alloc = NULL;

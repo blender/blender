@@ -80,7 +80,7 @@ static double cos_vnvnvn(
 	normalize_vn_vnvn(dvec0, v0, v1, dims);
 	normalize_vn_vnvn(dvec1, v1, v2, dims);
 	double d = dot_vnvn(dvec0, dvec1, dims);
-	/* sanity check */
+	/* Sanity check. */
 	d = max(-1.0, min(1.0, d));
 	return d;
 }
@@ -127,26 +127,26 @@ static bool isect_line_sphere_vn(
 		return false;
 	}
 	else if (i == 0.0) {
-		/* one intersection */
+		/* One intersection. */
 		const double mu = -b / (2.0 * a);
 		mul_vnvn_fl(r_p1, ldir, mu, dims);
 		iadd_vnvn(r_p1, l1, dims);
 		return true;
 	}
 	else if (i > 0.0) {
-		/* # avoid calc twice */
+		/* Avoid calculating twice. */
 		const double i_sqrt = sqrt(i);
 		double mu;
 
-		/* Note: when l1 is inside the sphere and l2 is outside.
+		/* Note: when l1 is inside the sphere and l2 is outside,
 		 * the first intersection point will always be between the pair. */
 
-		/* first intersection */
+		/* First intersection. */
 		mu = (-b + i_sqrt) / (2.0 * a);
 		mul_vnvn_fl(r_p1, ldir, mu, dims);
 		iadd_vnvn(r_p1, l1, dims);
 #if 0
-		/* second intersection */
+		/* Second intersection. */
 		mu = (-b - i_sqrt) / (2.0 * a);
 		mul_vnvn_fl(r_p2, ldir, mu, dims);
 		iadd_vnvn(r_p2, l1, dims);
@@ -178,6 +178,7 @@ static bool point_corner_measure(
         double r_p_next[], uint *r_i_next_prev)
 {
 	const double *p = &points[i * dims];
+	const double radius_sq = sq(radius);
 	uint sample;
 
 
@@ -188,7 +189,7 @@ static bool point_corner_measure(
 		if ((i_prev == -1) || (sample++ > samples_max)) {
 			return false;
 		}
-		else if (len_squared_vnvn(p, &points[i_prev * dims], dims) < radius) {
+		else if (len_squared_vnvn(p, &points[i_prev * dims], dims) < radius_sq) {
 			i_prev -= 1;
 		}
 		else {
@@ -203,7 +204,7 @@ static bool point_corner_measure(
 		if ((i_next == points_len) || (sample++ > samples_max)) {
 			return false;
 		}
-		else if (len_squared_vnvn(p, &points[i_next * dims], dims) < radius) {
+		else if (len_squared_vnvn(p, &points[i_next * dims], dims) < radius_sq) {
 			i_next += 1;
 		}
 		else {
@@ -211,7 +212,7 @@ static bool point_corner_measure(
 		}
 	}
 
-	/* find points on the sphere */
+	/* Find points on the sphere. */
 	if (!isect_line_sphere_vn(
 	        &points[i_prev * dims], &points[i_prev_next * dims], p, radius, dims,
 	        r_p_prev))
@@ -241,12 +242,10 @@ static double point_corner_angle(
         const double radius_max,
         const double angle_threshold,
         const double angle_threshold_cos,
-        /* prevent locking up when for example `radius_min` is very large
-         * (possibly larger then the curve).
+        /* Prevent locking up when for example `radius_min` is very large
+         * (possibly larger than the curve).
          * In this case we would end up checking every point from every other point,
          * never reaching one that was outside the `radius_min`. */
-
-        /* prevent locking up when for e */
         const uint samples_max,
 
         const uint dims)
@@ -259,7 +258,7 @@ static double point_corner_angle(
 
 	const double *p = &points[i * dims];
 
-	/* initial test */
+	/* Initial test. */
 	if (cos_vnvnvn(&points[(i - 1) * dims], p, &points[(i + 1) * dims], dims) > angle_threshold_cos) {
 		return 0.0;
 	}
@@ -285,7 +284,7 @@ static double point_corner_angle(
 	{
 		const double angle_mid_cos = cos_vnvnvn(p_mid_prev, p, p_mid_next, dims);
 
-		/* compare as cos and flip direction */
+		/* Compare as cos and flip direction. */
 
 		/* if (angle_mid > angle_threshold) { */
 		if (angle_mid_cos < angle_threshold_cos) {
@@ -341,7 +340,7 @@ int curve_fit_corners_detect_db(
 	 * to detect the difference between a corner and a sharp turn. */
 	const double radius_mid = (radius_min + radius_max) / 2.0;
 
-	/* we could ignore first/last- but simple to keep aligned with the point array */
+	/* We could ignore first/last, but simple to keep aligned with the point array. */
 	double *points_angle = malloc(sizeof(double) * points_len);
 	points_angle[0] = 0.0;
 
@@ -401,7 +400,7 @@ int curve_fit_corners_detect_db(
 					uint i = i_span_start;
 					while (i <= i_span_end) {
 						if (i != i_best) {
-							/* we could use some other error code */
+							/* We could use some other error code. */
 							assert(points_angle[i] != 0.0);
 							points_angle[i] = 0.0;
 							corners_len--;
