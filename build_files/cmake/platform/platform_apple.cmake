@@ -159,10 +159,10 @@ add_bundled_libraries(openexr/lib)
 add_bundled_libraries(imath/lib)
 
 string(APPEND PLATFORM_CFLAGS " -pipe -funsigned-char -fno-strict-aliasing -ffp-contract=off")
-set(PLATFORM_LINKFLAGS
-  "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa \
-   -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework Metal \
-   -framework QuartzCore"
+set(PLATFORM_LINKFLAGS "\
+-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa \
+-framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework Metal \
+-framework QuartzCore"
 )
 
 if(WITH_CODEC_FFMPEG)
