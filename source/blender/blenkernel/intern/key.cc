@@ -625,11 +625,27 @@ static void add_weighted_vector(
 static void copy_key_float3(
     const int vertex_count, Key *key, KeyBlock *active_keyblock, KeyBlock *source, float *r_target)
 {
+  if (vertex_count == 0 || source->totelem == 0) {
+    return;
+  }
   char *free_keyblock_data;
   float *keyblock_data = reinterpret_cast<float *>(
       key_block_get_data(key, active_keyblock, source, &free_keyblock_data));
 
-  memcpy(r_target, keyblock_data, vertex_count * 3 * sizeof(float));
+  if (vertex_count == source->totelem) {
+    memcpy(r_target, keyblock_data, vertex_count * 3 * sizeof(float));
+  }
+  else {
+    /* In case of KeyBlocks that have a different number of elements than the original data.
+     * Maintained for backwards compatibility even though this state should not be reachable
+     * through normal interactions with Blender. */
+    const float step_rate = source->totelem / float(vertex_count);
+    for (int i = 0; i < vertex_count; i++) {
+      /* Rounding down to avoid exceeding the bounds. */
+      const int source_index = int(step_rate * i);
+      memcpy(&r_target[i * 3], &keyblock_data[source_index * 3], 3 * sizeof(float));
+    }
+  }
 
   if (free_keyblock_data) {
     MEM_freeN(free_keyblock_data);
