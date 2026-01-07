@@ -242,7 +242,7 @@ static void phash_insert(PHash *ph, PHashLink *link)
 
     ph->cursize = PHashSizes[++ph->cursize_id];
     MEM_freeN(ph->buckets);
-    ph->buckets = (PHashLink **)MEM_callocN(ph->cursize * sizeof(*ph->buckets), "PHashBuckets");
+    ph->buckets = MEM_calloc_arrayN<PHashLink *>(ph->cursize, "PHashBuckets");
     ph->size = 0;
     *(ph->list) = nullptr;
 
@@ -713,7 +713,7 @@ static void p_face_restore_uvs(PFace *f)
 static PVert *p_vert_add(
     ParamHandle *handle, PHashKey key, const float co[3], const float weight, PEdge *e)
 {
-  PVert *v = (PVert *)BLI_memarena_alloc(handle->arena, sizeof(*v));
+  PVert *v = static_cast<PVert *>(BLI_memarena_alloc(handle->arena, sizeof(*v)));
   copy_v3_v3(v->co, co);
   v->weight = weight;
 
@@ -734,7 +734,7 @@ static PVert *p_vert_add(
   v->on_boundary_flag = false;
   v->slim_id = 0;
 
-  phash_insert(handle->hash_verts, (PHashLink *)v);
+  phash_insert(handle->hash_verts, reinterpret_cast<PHashLink *>(v));
 
   return v;
 }
@@ -742,7 +742,7 @@ static PVert *p_vert_add(
 static PVert *p_vert_lookup(
     ParamHandle *handle, PHashKey key, const float co[3], const float weight, PEdge *e)
 {
-  PVert *v = (PVert *)phash_lookup(handle->hash_verts, key);
+  PVert *v = reinterpret_cast<PVert *>(phash_lookup(handle->hash_verts, key));
 
   if (v) {
     return v;
@@ -752,7 +752,7 @@ static PVert *p_vert_lookup(
 
 static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
 {
-  PVert *nv = (PVert *)BLI_memarena_alloc(handle->arena, sizeof(*nv));
+  PVert *nv = static_cast<PVert *>(BLI_memarena_alloc(handle->arena, sizeof(*nv)));
 
   copy_v3_v3(nv->co, v->co);
   nv->uv[0] = v->uv[0];
@@ -771,7 +771,7 @@ static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
 static PEdge *p_edge_lookup(ParamHandle *handle, const PHashKey *vkeys)
 {
   PHashKey key = PHASH_edge(vkeys[0], vkeys[1]);
-  PEdge *e = (PEdge *)phash_lookup(handle->hash_edges, key);
+  PEdge *e = reinterpret_cast<PEdge *>(phash_lookup(handle->hash_edges, key));
 
   while (e) {
     if ((e->vert->u.key == vkeys[0]) && (e->next->vert->u.key == vkeys[1])) {
@@ -781,7 +781,8 @@ static PEdge *p_edge_lookup(ParamHandle *handle, const PHashKey *vkeys)
       return e;
     }
 
-    e = (PEdge *)phash_next(handle->hash_edges, key, (PHashLink *)e);
+    e = reinterpret_cast<PEdge *>(
+        phash_next(handle->hash_edges, key, reinterpret_cast<PHashLink *>(e)));
   }
 
   return nullptr;
@@ -789,9 +790,9 @@ static PEdge *p_edge_lookup(ParamHandle *handle, const PHashKey *vkeys)
 
 static int p_face_exists(ParamHandle *handle, const ParamKey *pvkeys, int i1, int i2, int i3)
 {
-  PHashKey *vkeys = (PHashKey *)pvkeys;
+  PHashKey *vkeys = const_cast<PHashKey *>(pvkeys);
   PHashKey key = PHASH_edge(vkeys[i1], vkeys[i2]);
-  PEdge *e = (PEdge *)phash_lookup(handle->hash_edges, key);
+  PEdge *e = reinterpret_cast<PEdge *>(phash_lookup(handle->hash_edges, key));
 
   while (e) {
     if ((e->vert->u.key == vkeys[i1]) && (e->next->vert->u.key == vkeys[i2])) {
@@ -805,7 +806,8 @@ static int p_face_exists(ParamHandle *handle, const ParamKey *pvkeys, int i1, in
       }
     }
 
-    e = (PEdge *)phash_next(handle->hash_edges, key, (PHashLink *)e);
+    e = reinterpret_cast<PEdge *>(
+        phash_next(handle->hash_edges, key, reinterpret_cast<PHashLink *>(e)));
   }
 
   return false;
@@ -858,7 +860,7 @@ static bool p_edge_has_pair(ParamHandle *handle, PEdge *e, bool topology_from_uv
   }
 
   key = PHASH_edge(key1, key2);
-  pe = (PEdge *)phash_lookup(handle->hash_edges, key);
+  pe = reinterpret_cast<PEdge *>(phash_lookup(handle->hash_edges, key));
   *r_pair = nullptr;
 
   while (pe) {
@@ -882,7 +884,8 @@ static bool p_edge_has_pair(ParamHandle *handle, PEdge *e, bool topology_from_uv
       }
     }
 
-    pe = (PEdge *)phash_next(handle->hash_edges, key, (PHashLink *)pe);
+    pe = reinterpret_cast<PEdge *>(
+        phash_next(handle->hash_edges, key, reinterpret_cast<PHashLink *>(pe)));
   }
 
   if (*r_pair && (e->vert == (*r_pair)->vert)) {
@@ -1069,12 +1072,12 @@ static PFace *p_face_add(ParamHandle *handle)
   PFace *f;
 
   /* allocate */
-  f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof(*f));
+  f = static_cast<PFace *>(BLI_memarena_alloc(handle->arena, sizeof(*f)));
   f->flag = 0;
 
-  PEdge *e1 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e1));
-  PEdge *e2 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e2));
-  PEdge *e3 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e3));
+  PEdge *e1 = static_cast<PEdge *>(BLI_memarena_calloc(handle->arena, sizeof(*e1)));
+  PEdge *e2 = static_cast<PEdge *>(BLI_memarena_calloc(handle->arena, sizeof(*e2)));
+  PEdge *e3 = static_cast<PEdge *>(BLI_memarena_calloc(handle->arena, sizeof(*e3)));
 
   /* set up edges */
   f->edge = e1;
@@ -1147,15 +1150,15 @@ static PFace *p_face_add_construct(ParamHandle *handle,
   }
 
   f->u.key = key;
-  phash_insert(handle->hash_faces, (PHashLink *)f);
+  phash_insert(handle->hash_faces, reinterpret_cast<PHashLink *>(f));
 
   e1->u.key = PHASH_edge(vkeys[i1], vkeys[i2]);
   e2->u.key = PHASH_edge(vkeys[i2], vkeys[i3]);
   e3->u.key = PHASH_edge(vkeys[i3], vkeys[i1]);
 
-  phash_insert(handle->hash_edges, (PHashLink *)e1);
-  phash_insert(handle->hash_edges, (PHashLink *)e2);
-  phash_insert(handle->hash_edges, (PHashLink *)e3);
+  phash_insert(handle->hash_edges, reinterpret_cast<PHashLink *>(e1));
+  phash_insert(handle->hash_edges, reinterpret_cast<PHashLink *>(e2));
+  phash_insert(handle->hash_edges, reinterpret_cast<PHashLink *>(e3));
 
   return f;
 }
@@ -1277,7 +1280,7 @@ static void p_chart_fill_boundary(ParamHandle *handle, PChart *chart, PEdge *be,
     while (nedges > 2) {
       PEdge *ne, *ne1, *ne2;
 
-      e = (PEdge *)BLI_heap_pop_min(heap);
+      e = static_cast<PEdge *>(BLI_heap_pop_min(heap));
 
       e1 = p_boundary_edge_prev(e);
       e2 = p_boundary_edge_next(e);
@@ -1450,10 +1453,10 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
     if (nnewpoints * 2 > size) {
       size *= 2;
       MEM_freeN(oldpoints);
-      oldpoints = MEM_mallocN(sizeof(float[2]) * size, "oldpoints");
+      oldpoints = MEM_malloc_arrayN<float[2]>(size, "oldpoints");
       memcpy(oldpoints, newpoints, sizeof(float[2]) * nnewpoints);
       MEM_freeN(newpoints);
-      newpoints = MEM_mallocN(sizeof(float[2]) * size, "newpoints");
+      newpoints = MEM_malloc_arrayN<float[2]>(size, "newpoints");
     }
     else {
       float(*sw_points)[2] = oldpoints;
@@ -2199,7 +2202,7 @@ static void p_chart_simplify_compute(PChart *chart,
     }
 
     HeapNode *link = BLI_heap_top(heap);
-    PEdge *edge = (PEdge *)BLI_heap_pop_min(heap), *pair = edge->pair;
+    PEdge *edge = static_cast<PEdge *>(BLI_heap_pop_min(heap)), *pair = edge->pair;
     PVert *oldv, *keepv;
     PEdge *wheele, *nexte;
 
@@ -2843,7 +2846,7 @@ static bool p_chart_abf_solve(PChart *chart)
     }
   }
 
-  chart->abf_alpha = (float *)MEM_dupallocN(sys.alpha);
+  chart->abf_alpha = static_cast<float *>(MEM_dupallocN(sys.alpha));
   p_abf_free_system(&sys);
 
   return true;
@@ -3456,8 +3459,8 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 
 static int p_compare_geometric_uv(const void *a, const void *b)
 {
-  const PVert *v1 = *(const PVert *const *)a;
-  const PVert *v2 = *(const PVert *const *)b;
+  const PVert *v1 = *static_cast<const PVert *const *>(a);
+  const PVert *v2 = *static_cast<const PVert *const *>(b);
 
   if (v1->uv[0] < v2->uv[0]) {
     return -1;
@@ -3729,9 +3732,9 @@ ParamHandle::ParamHandle()
 
   construction_chart = MEM_callocN<PChart>("PChart");
 
-  hash_verts = phash_new((PHashLink **)&construction_chart->verts, 1);
-  hash_edges = phash_new((PHashLink **)&construction_chart->edges, 1);
-  hash_faces = phash_new((PHashLink **)&construction_chart->faces, 1);
+  hash_verts = phash_new(reinterpret_cast<PHashLink **>(&construction_chart->verts), 1);
+  hash_edges = phash_new(reinterpret_cast<PHashLink **>(&construction_chart->edges), 1);
+  hash_faces = phash_new(reinterpret_cast<PHashLink **>(&construction_chart->faces), 1);
 }
 
 ParamHandle::~ParamHandle()
@@ -3783,8 +3786,8 @@ ParamKey uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const flo
     return bmvertindex; /* No verts pinned. */
   }
 
-  const GeoUVPinIndex *pinuvlist = (const GeoUVPinIndex *)BLI_ghash_lookup(
-      handle->pin_hash, POINTER_FROM_INT(bmvertindex));
+  const GeoUVPinIndex *pinuvlist = static_cast<const GeoUVPinIndex *>(
+      BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex)));
   if (!pinuvlist) {
     return bmvertindex; /* Vert not pinned. */
   }
@@ -3806,7 +3809,8 @@ ParamKey uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const flo
 
 static GeoUVPinIndex *new_geo_uv_pinindex(ParamHandle *handle, const float uv[2])
 {
-  GeoUVPinIndex *pinuv = (GeoUVPinIndex *)BLI_memarena_alloc(handle->arena, sizeof(*pinuv));
+  GeoUVPinIndex *pinuv = static_cast<GeoUVPinIndex *>(
+      BLI_memarena_alloc(handle->arena, sizeof(*pinuv)));
   pinuv->next = nullptr;
   copy_v2_v2(pinuv->uv, uv);
   pinuv->reindex = PARAM_KEY_MAX - (handle->unique_pin_count++);
@@ -3819,8 +3823,8 @@ void uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const floa
     handle->pin_hash = BLI_ghash_int_new("uv pin reindex");
   }
 
-  GeoUVPinIndex *pinuvlist = (GeoUVPinIndex *)BLI_ghash_lookup(handle->pin_hash,
-                                                               POINTER_FROM_INT(bmvertindex));
+  GeoUVPinIndex *pinuvlist = static_cast<GeoUVPinIndex *>(
+      BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex)));
   if (!pinuvlist) {
     BLI_ghash_insert(
         handle->pin_hash, POINTER_FROM_INT(bmvertindex), new_geo_uv_pinindex(handle, uv));

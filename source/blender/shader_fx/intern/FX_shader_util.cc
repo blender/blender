@@ -10,6 +10,8 @@
 
 #include "FX_shader_types.hh"
 
+namespace blender {
+
 void shaderfx_type_init(ShaderFxTypeInfo *types[])
 {
 #define INIT_FX_TYPE(typeName) (types[eShaderFxType_##typeName] = &shaderfx_Type_##typeName)
@@ -24,3 +26,5 @@ void shaderfx_type_init(ShaderFxTypeInfo *types[])
   INIT_FX_TYPE(Wave);
 #undef INIT_FX_TYPE
 }
+
+}  // namespace blender

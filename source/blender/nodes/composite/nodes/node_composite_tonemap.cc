@@ -22,7 +22,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_tonemap_cc {
+namespace blender {
+
+namespace nodes::node_composite_tonemap_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_TONE_MAP_PHOTORECEPTOR,
@@ -112,7 +114,7 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_tonemap(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but still allocated for forward compatibility. */
-  NodeTonemap *ntm = MEM_callocN<NodeTonemap>(__func__);
+  NodeTonemap *ntm = MEM_new_for_free<NodeTonemap>(__func__);
   node->storage = ntm;
 }
 
@@ -236,7 +238,7 @@ class ToneMapOperation : public NodeOperation {
 
   float get_key()
   {
-    return math::max(0.0f, this->get_input("Key").get_single_value_default(0.18f));
+    return math::max(0.0f, this->get_input("Key").get_single_value_default<float>());
   }
 
   /* Equation (3) from Reinhard's 2002 paper blends between high luminance scaling for high
@@ -247,12 +249,12 @@ class ToneMapOperation : public NodeOperation {
    * a parameter to the user for more flexibility. */
   float compute_luminance_scale_blend_factor()
   {
-    return math::max(0.0f, this->get_input("Balance").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Balance").get_single_value_default<float>());
   }
 
   float get_gamma()
   {
-    return math::max(0.0f, this->get_input("Gamma").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Gamma").get_single_value_default<float>());
   }
 
   /* Tone mapping based on equation (1) and the trilinear interpolation between equations (6) and
@@ -438,32 +440,29 @@ class ToneMapOperation : public NodeOperation {
 
   float get_intensity()
   {
-    return this->get_input("Intensity").get_single_value_default(0.0f);
+    return this->get_input("Intensity").get_single_value_default<float>();
   }
 
   float get_contrast()
   {
-    return math::max(0.0f, this->get_input("Contrast").get_single_value_default(0.0f));
+    return math::max(0.0f, this->get_input("Contrast").get_single_value_default<float>());
   }
 
   float get_chromatic_adaptation()
   {
     return math::clamp(
-        this->get_input("Chromatic Adaptation").get_single_value_default(0.0f), 0.0f, 1.0f);
+        this->get_input("Chromatic Adaptation").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_light_adaptation()
   {
     return math::clamp(
-        this->get_input("Light Adaptation").get_single_value_default(0.0f), 0.0f, 1.0f);
+        this->get_input("Light Adaptation").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   CMPNodeToneMapType get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_TONE_MAP_PHOTORECEPTOR);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeToneMapType>(menu_value.value);
+    return CMPNodeToneMapType(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 };
 
@@ -472,13 +471,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new ToneMapOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_tonemap_cc
+}  // namespace nodes::node_composite_tonemap_cc
 
 static void register_node_type_cmp_tonemap()
 {
-  namespace file_ns = blender::nodes::node_composite_tonemap_cc;
+  namespace file_ns = nodes::node_composite_tonemap_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeTonemap", CMP_NODE_TONEMAP);
   ntype.ui_name = "Tonemap";
@@ -489,10 +488,12 @@ static void register_node_type_cmp_tonemap()
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_tonemap_declare;
   ntype.initfunc = file_ns::node_composit_init_tonemap;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTonemap", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_tonemap)
+
+}  // namespace blender

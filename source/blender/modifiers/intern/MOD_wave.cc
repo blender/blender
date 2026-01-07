@@ -11,7 +11,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -41,13 +40,12 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WaveModifierData), modifier);
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
@@ -57,11 +55,11 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&wmd->objectcenter, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&wmd->map_object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->objectcenter), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->map_object), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -73,7 +71,7 @@ static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, voi
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
   bool need_transform_relation = false;
 
   if (wmd->objectcenter != nullptr) {
@@ -101,7 +99,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
 
   /* ask for UV coordinates if we need them */
   if (wmd->texture && wmd->texmapping == MOD_DISP_MAP_UV) {
@@ -132,7 +130,7 @@ static void waveModifier_do(WaveModifierData *wmd,
   float falloff_fac = 1.0f; /* when falloff == 0.0f this stays at 1.0f */
   const bool invert_group = (wmd->flag & MOD_WAVE_INVERT_VGROUP) != 0;
 
-  blender::Span<blender::float3> vert_normals;
+  Span<float3> vert_normals;
   if ((wmd->flag & MOD_WAVE_NORM) && (mesh != nullptr)) {
     vert_normals = mesh->vert_normals();
   }
@@ -172,9 +170,10 @@ static void waveModifier_do(WaveModifierData *wmd,
   Tex *tex_target = wmd->texture;
   if (mesh != nullptr && tex_target != nullptr) {
     tex_co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
-    MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
+    MOD_get_texture_coords(
+        reinterpret_cast<MappingInfoModifierData *>(wmd), ctx, ob, mesh, vertexCos, tex_co);
 
-    MOD_init_texture((MappingInfoModifierData *)wmd, ctx);
+    MOD_init_texture(reinterpret_cast<MappingInfoModifierData *>(wmd), ctx);
   }
 
   if (lifefac != 0.0f) {
@@ -279,9 +278,9 @@ static void waveModifier_do(WaveModifierData *wmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;
+  WaveModifierData *wmd = reinterpret_cast<WaveModifierData *>(md);
   waveModifier_do(wmd,
                   ctx,
                   ctx->object,
@@ -292,34 +291,34 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout *row = &layout.row(true, IFACE_("Motion"));
+  ui::Layout *row = &layout.row(true, IFACE_("Motion"));
   row->prop(
-      ptr, "use_x", UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE, std::nullopt, ICON_NONE);
+      ptr, "use_x", ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE, std::nullopt, ICON_NONE);
   row->prop(
-      ptr, "use_y", UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE, std::nullopt, ICON_NONE);
+      ptr, "use_y", ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE, std::nullopt, ICON_NONE);
 
   layout.prop(ptr, "use_cyclic", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = &layout.row(true, IFACE_("Along Normals"));
   row->prop(ptr, "use_normal", UI_ITEM_NONE, "", ICON_NONE);
-  blender::ui::Layout &sub = row->row(true);
+  ui::Layout &sub = row->row(true);
   sub.active_set(RNA_boolean_get(ptr, "use_normal"));
-  sub.prop(ptr, "use_normal_x", UI_ITEM_R_TOGGLE, IFACE_("X"), ICON_NONE);
-  sub.prop(ptr, "use_normal_y", UI_ITEM_R_TOGGLE, IFACE_("Y"), ICON_NONE);
-  sub.prop(ptr, "use_normal_z", UI_ITEM_R_TOGGLE, IFACE_("Z"), ICON_NONE);
+  sub.prop(ptr, "use_normal_x", ui::ITEM_R_TOGGLE, IFACE_("X"), ICON_NONE);
+  sub.prop(ptr, "use_normal_y", ui::ITEM_R_TOGGLE, IFACE_("Y"), ICON_NONE);
+  sub.prop(ptr, "use_normal_z", ui::ITEM_R_TOGGLE, IFACE_("Z"), ICON_NONE);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "falloff_radius", UI_ITEM_NONE, IFACE_("Falloff"), ICON_NONE);
-  col.prop(ptr, "height", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  col.prop(ptr, "width", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  col.prop(ptr, "narrowness", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "height", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "width", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "narrowness", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
@@ -328,7 +327,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void position_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -336,40 +335,40 @@ static void position_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "start_position_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.prop(ptr, "start_position_x", UI_ITEM_NONE, IFACE_("Start Position X"), ICON_NONE);
   col.prop(ptr, "start_position_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 }
 
 static void time_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "time_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
   col.prop(ptr, "lifetime", UI_ITEM_NONE, IFACE_("Life"), ICON_NONE);
   col.prop(ptr, "damping_time", UI_ITEM_NONE, IFACE_("Damping"), ICON_NONE);
-  col.prop(ptr, "speed", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "speed", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void texture_panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int texture_coords = RNA_enum_get(ptr, "texture_coords");
 
-  uiTemplateID(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
     col.prop(ptr, "texture_coords_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
@@ -438,3 +437,5 @@ ModifierTypeInfo modifierType_Wave = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

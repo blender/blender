@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Object;
 struct ProjCameraInfo;
 
@@ -50,3 +52,5 @@ void BKE_uvproject_camera_info_scale(ProjCameraInfo *uci, float scale_x, float s
 /*
  * Free info. */
 void BKE_uvproject_camera_info_free(ProjCameraInfo *uci);
+
+}  // namespace blender

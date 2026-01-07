@@ -53,10 +53,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#ifdef WITH_BULLET
-static CLG_LogRef LOG = {"physics.rigidbody"};
-#endif
-
 #ifndef WITH_BULLET
 /* #RBI_api.h is not included, some types still need to be declared. */
 struct rbCollisionShape;
@@ -64,6 +60,12 @@ struct rbConstraint;
 struct rbDynamicsWorld;
 struct rbRigidBody;
 #endif /* !WITH_BULLET */
+
+namespace blender {
+
+#ifdef WITH_BULLET
+static CLG_LogRef LOG = {"physics.rigidbody"};
+#endif
 
 /* ************************************** */
 /* Memory Management */
@@ -83,7 +85,7 @@ static void RB_constraint_delete(void * /*con*/) {}
 
 struct RigidBodyWorld_Runtime {
   rbDynamicsWorld *physics_world = nullptr;
-  blender::Mutex mutex;
+  Mutex mutex;
 
   ~RigidBodyWorld_Runtime()
   {
@@ -322,11 +324,11 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       return nullptr;
     }
 
-    const blender::Span<blender::float3> positions = mesh->vert_positions();
+    const Span<float3> positions = mesh->vert_positions();
     const int totvert = mesh->verts_num;
-    const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+    const Span<int3> corner_tris = mesh->corner_tris();
     const int tottri = corner_tris.size();
-    const blender::Span<int> corner_verts = mesh->corner_verts();
+    const Span<int> corner_verts = mesh->corner_verts();
 
     /* sanity checking - potential case when no data will be present */
     if ((totvert == 0) || (tottri == 0)) {
@@ -348,7 +350,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       if (positions.data()) {
         for (i = 0; i < tottri; i++) {
           /* add first triangle - verts 1,2,3 */
-          const blender::int3 &tri = corner_tris[i];
+          const int3 &tri = corner_tris[i];
           int vtri[3];
 
           vtri[0] = corner_verts[tri[0]];
@@ -412,7 +414,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
    */
   /* XXX: all dimensions are auto-determined now... later can add stored settings for this */
   /* get object dimensions without scaling */
-  if (const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob)) {
+  if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob)) {
     copy_v3_v3(size, bounds->max - bounds->min);
   }
   mul_v3_fl(size, 0.5f);
@@ -595,9 +597,9 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
           return;
         }
 
-        const blender::Span<blender::float3> positions = mesh->vert_positions();
-        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
-        const blender::Span<int> corner_verts = mesh->corner_verts();
+        const Span<float3> positions = mesh->vert_positions();
+        const Span<int3> corner_tris = mesh->corner_tris();
+        const Span<int> corner_verts = mesh->corner_verts();
 
         if (!positions.is_empty() && !corner_tris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float (*)[3]>(positions.data()),
@@ -669,8 +671,8 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
           return;
         }
 
-        const blender::Span<blender::float3> positions = mesh->vert_positions();
-        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+        const Span<float3> positions = mesh->vert_positions();
+        const Span<int3> corner_tris = mesh->corner_tris();
 
         if (!positions.is_empty() && !corner_tris.is_empty()) {
           BKE_mesh_calc_volume(reinterpret_cast<const float (*)[3]>(positions.data()),
@@ -1138,8 +1140,8 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
   }
 
   /* create a new sim world */
-  rbw = MEM_callocN<RigidBodyWorld>("RigidBodyWorld");
-  rbw->shared = MEM_callocN<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
+  rbw = MEM_new_for_free<RigidBodyWorld>("RigidBodyWorld");
+  rbw->shared = MEM_new_for_free<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
 
   /* set default settings */
   rbw->effector_weights = BKE_effector_add_weights(nullptr);
@@ -1180,7 +1182,7 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0) {
     /* This is a regular copy, and not an evaluated copy for depsgraph evaluation. */
-    rbw_copy->shared = MEM_callocN<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
+    rbw_copy->shared = MEM_new_for_free<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
     BKE_ptcache_copy_list(&rbw_copy->shared->ptcaches, &rbw->shared->ptcaches, LIB_ID_COPY_CACHES);
     rbw_copy->shared->pointcache = static_cast<PointCache *>(rbw_copy->shared->ptcaches.first);
     BKE_rigidbody_world_init_runtime(rbw_copy);
@@ -1218,8 +1220,8 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
   }
 
   /* create new settings data, and link it up */
-  rbo = MEM_callocN<RigidBodyOb>("RigidBodyOb");
-  rbo->shared = MEM_callocN<RigidBodyOb_Shared>("RigidBodyOb_Shared");
+  rbo = MEM_new_for_free<RigidBodyOb>("RigidBodyOb");
+  rbo->shared = MEM_new_for_free<RigidBodyOb_Shared>("RigidBodyOb_Shared");
 
   /* set default settings */
   rbo->type = type;
@@ -1277,7 +1279,7 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
   }
 
   /* create new settings data, and link it up */
-  rbc = MEM_callocN<RigidBodyCon>("RigidBodyCon");
+  rbc = MEM_new_for_free<RigidBodyCon>("RigidBodyCon");
 
   /* set default settings */
   rbc->type = type;
@@ -1680,7 +1682,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
       const float (*positions)[3] = reinterpret_cast<const float (*)[3]>(
           mesh->vert_positions().data());
       int totvert = mesh->verts_num;
-      const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob);
+      const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob);
 
       RB_shape_trimesh_update(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
                               (float *)positions,
@@ -1868,10 +1870,10 @@ struct KinematicSubstepData {
   float new_scale[3];
 };
 
-static ListBase rigidbody_create_substep_data(RigidBodyWorld *rbw)
+static ListBaseT<LinkData> rigidbody_create_substep_data(RigidBodyWorld *rbw)
 {
   /* Objects that we want to update substep location/rotation for. */
-  ListBase substep_targets = {nullptr, nullptr};
+  ListBaseT<LinkData> substep_targets = {nullptr, nullptr};
 
   FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, ob) {
     RigidBodyOb *rbo = ob->rigidbody_object;
@@ -1912,10 +1914,11 @@ static ListBase rigidbody_create_substep_data(RigidBodyWorld *rbw)
   return substep_targets;
 }
 
-static void rigidbody_update_kinematic_obj_substep(ListBase *substep_targets, float interp_fac)
+static void rigidbody_update_kinematic_obj_substep(ListBaseT<LinkData> *substep_targets,
+                                                   float interp_fac)
 {
-  LISTBASE_FOREACH (LinkData *, link, substep_targets) {
-    KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link->data);
+  for (LinkData &link : *substep_targets) {
+    KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link.data);
     RigidBodyOb *rbo = data->rbo;
 
     float loc[3], rot[4];
@@ -1963,7 +1966,7 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
     {
       EffectorWeights *effector_weights = rbw->effector_weights;
       EffectedPoint epoint;
-      ListBase *effectors;
+      ListBaseT<EffectorCache> *effectors;
 
       /* get effectors present in the group specified by effector_weights */
       effectors = BKE_effectors_create(depsgraph, ob, nullptr, effector_weights, false);
@@ -2014,10 +2017,10 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
   FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
-static void rigidbody_free_substep_data(ListBase *substep_targets)
+static void rigidbody_free_substep_data(ListBaseT<LinkData> *substep_targets)
 {
-  LISTBASE_FOREACH (LinkData *, link, substep_targets) {
-    KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link->data);
+  for (LinkData &link : *substep_targets) {
+    KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link.data);
     MEM_freeN(data);
   }
 
@@ -2261,7 +2264,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 
     const float substep = timestep / rbw->substeps_per_frame;
 
-    ListBase kinematic_substep_targets = rigidbody_create_substep_data(rbw);
+    ListBaseT<LinkData> kinematic_substep_targets = rigidbody_create_substep_data(rbw);
 
     const float interp_step = 1.0f / rbw->substeps_per_frame;
     float cur_interp_val = interp_step;
@@ -2403,14 +2406,14 @@ void BKE_rigidbody_object_sync_transforms(Depsgraph *depsgraph, Scene *scene, Ob
 
 void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)
 {
-  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_USER);
-  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_USER);
-  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_USER);
+  func(rbw, reinterpret_cast<ID **>(&rbw->group), userdata, IDWALK_CB_USER);
+  func(rbw, reinterpret_cast<ID **>(&rbw->constraints), userdata, IDWALK_CB_USER);
+  func(rbw, reinterpret_cast<ID **>(&rbw->effector_weights->group), userdata, IDWALK_CB_USER);
 
   if (rbw->objects) {
     int i;
     for (i = 0; i < rbw->numbodies; i++) {
-      func(rbw, (ID **)&rbw->objects[i], userdata, IDWALK_CB_NOP);
+      func(rbw, reinterpret_cast<ID **>(&rbw->objects[i]), userdata, IDWALK_CB_NOP);
     }
   }
 }
@@ -2434,7 +2437,7 @@ static RigidBodyOb *rigidbody_copy_object(const Object *ob, const int flag)
 
     if (is_orig) {
       /* This is a regular copy, and not an evaluated copy for depsgraph evaluation */
-      rboN->shared = MEM_callocN<RigidBodyOb_Shared>("RigidBodyOb_Shared");
+      rboN->shared = MEM_new_for_free<RigidBodyOb_Shared>("RigidBodyOb_Shared");
     }
 
     /* tag object as needing to be verified */
@@ -2475,8 +2478,8 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
 
   /* We have to ensure that duplicated object ends up in relevant rigidbody collections...
    * Otherwise duplicating the RB data itself is meaningless. */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    RigidBodyWorld *rigidbody_world = scene->rigidbody_world;
+  for (Scene &scene : bmain->scenes) {
+    RigidBodyWorld *rigidbody_world = scene.rigidbody_world;
 
     if (rigidbody_world != nullptr) {
       bool need_objects_update = false;
@@ -2512,3 +2515,5 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
     }
   }
 }
+
+}  // namespace blender

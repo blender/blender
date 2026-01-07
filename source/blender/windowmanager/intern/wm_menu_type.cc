@@ -24,7 +24,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-using blender::StringRef;
+namespace blender {
 
 static auto &get_menu_type_map()
 {
@@ -34,7 +34,7 @@ static auto &get_menu_type_map()
       return StringRef(value->idname);
     }
   };
-  static blender::CustomIDVectorSet<MenuType *, IDNameGetter> map;
+  static CustomIDVectorSet<MenuType *, IDNameGetter> map;
   return map;
 }
 
@@ -53,7 +53,7 @@ MenuType *WM_menutype_find(const StringRef idname, bool quiet)
   return nullptr;
 }
 
-blender::Span<MenuType *> WM_menutypes_registered_get()
+Span<MenuType *> WM_menutypes_registered_get()
 {
   return get_menu_type_map();
 }
@@ -112,7 +112,7 @@ void WM_menutype_idname_visit_for_search(
     PointerRNA * /*ptr*/,
     PropertyRNA * /*prop*/,
     const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   for (MenuType *mt : get_menu_type_map()) {
     StringPropertySearchVisitParams visit_params{};
@@ -121,3 +121,5 @@ void WM_menutype_idname_visit_for_search(
     visit_fn(visit_params);
   }
 }
+
+}  // namespace blender

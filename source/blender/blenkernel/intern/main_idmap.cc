@@ -19,6 +19,8 @@
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh" /* own include */
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  *
@@ -54,9 +56,9 @@ struct IDNameLib_TypeMap {
  */
 struct IDNameLib_Map {
   IDNameLib_TypeMap type_maps[INDEX_ID_MAX];
-  blender::Map<uint32_t, ID *> *uid_map;
+  Map<uint32_t, ID *> *uid_map;
   Main *bmain;
-  blender::Set<const ID *> *valid_id_pointers;
+  Set<const ID *> *valid_id_pointers;
   int idmap_types;
 
   /* For storage of keys for the #TypeMap #GHash, avoids many single allocations. */
@@ -96,7 +98,7 @@ IDNameLib_Map *BKE_main_idmap_create(Main *bmain,
 
   if (idmap_types & MAIN_IDMAP_TYPE_UID) {
     ID *id;
-    id_map->uid_map = MEM_new<blender::Map<uint32_t, ID *>>(__func__);
+    id_map->uid_map = MEM_new<Map<uint32_t, ID *>>(__func__);
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       BLI_assert(id->session_uid != MAIN_ID_SESSION_UID_UNSET);
       id_map->uid_map->add_new(id->session_uid, id);
@@ -210,7 +212,7 @@ ID *BKE_main_idmap_lookup_name(IDNameLib_Map *id_map,
     }
 
     GHash *map = type_map->map = BLI_ghash_new(idkey_hash, idkey_cmp, __func__);
-    ListBase *lb = which_libbase(id_map->bmain, id_type);
+    ListBaseT<ID> *lb = which_libbase(id_map->bmain, id_type);
     for (ID *id = static_cast<ID *>(lb->first); id; id = static_cast<ID *>(id->next)) {
       IDNameLib_Key *key = static_cast<IDNameLib_Key *>(
           BLI_mempool_alloc(id_map->type_maps_keys_pool));
@@ -289,3 +291,5 @@ void BKE_main_idmap_destroy(IDNameLib_Map *id_map)
 }
 
 /** \} */
+
+}  // namespace blender

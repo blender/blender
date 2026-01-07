@@ -12,7 +12,7 @@
 /* This file must replaced at runtime. The following content is only a possible implementation. */
 #pragma runtime_generated
 
-struct NodeTree {
+struct [[host_shared]] NodeTree {
   float crypto_hash;
   float _pad0;
   float _pad1;

@@ -14,6 +14,8 @@
 
 #include "BKE_curve.hh"
 
+namespace blender {
+
 extern "C" {
 #include "curve_fit_nd.h"
 }
@@ -341,3 +343,5 @@ void BKE_curve_decimate_nurb(Nurb *nu,
   nu->bezt = bezt_dst;
   nu->pntsu = i_dst;
 }
+
+}  // namespace blender

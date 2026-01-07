@@ -15,20 +15,22 @@
 
 #include "NOD_socket_value_inference.hh"
 
+namespace blender {
+
 struct bNodeTree;
 struct bNodeTreeInterfaceSocket;
-namespace blender::bke {
+namespace bke {
 struct GeometrySet;
 }
 struct IDProperty;
-namespace blender::nodes {
+namespace nodes {
 struct GeoNodesCallData;
 namespace geo_eval_log {
 class GeoNodesLog;
 }  // namespace geo_eval_log
-}  // namespace blender::nodes
+}  // namespace nodes
 
-namespace blender::nodes {
+namespace nodes {
 
 constexpr StringRef input_use_attribute_suffix = "_use_attribute";
 constexpr StringRef input_attribute_name_suffix = "_attribute_name";
@@ -87,4 +89,5 @@ Vector<InferenceValue> get_geometry_nodes_input_inference_values(const bNodeTree
                                                                  const IDProperty *properties,
                                                                  ResourceScope &scope);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

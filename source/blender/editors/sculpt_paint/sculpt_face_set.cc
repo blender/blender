@@ -79,7 +79,7 @@ int find_next_available_id(Object &object)
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
     case bke::pbvh::Type::Grids: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
                                                                 bke::AttrDomain::Face);
@@ -152,7 +152,7 @@ int active_update_and_get(bContext *C, Object &ob, const float mval[2])
 
 bool create_face_sets_mesh(Object &object)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (attributes.contains(".sculpt_face_set")) {
     return false;
@@ -178,7 +178,7 @@ bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Mesh &mesh)
 
 int ensure_face_sets_bmesh(Object &object)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   SculptSession &ss = *object.sculpt;
   BMesh &bm = *ss.bm;
   if (!CustomData_has_layer_named(&bm.pdata, CD_PROP_INT32, ".sculpt_face_set")) {
@@ -290,8 +290,7 @@ static void face_sets_update(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
-  bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(
-      *static_cast<Mesh *>(object.data));
+  bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(*id_cast<Mesh *>(object.data));
 
   struct TLS {
     Vector<int> face_indices;
@@ -355,7 +354,7 @@ enum class CreateMode {
 
 static void clear_face_sets(const Depsgraph &depsgraph, Object &object, const IndexMask &node_mask)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (!attributes.contains(".sculpt_face_set")) {
     return;
@@ -421,7 +420,7 @@ static wmOperatorStatus create_op_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
 
   BKE_sculpt_update_object_for_edit(&depsgraph, &object, false);
@@ -613,7 +612,7 @@ using FaceSetsFloodFillFn = FunctionRef<bool(int from_face, int edge, int to_fac
 static void init_flood_fill(Object &ob, const FaceSetsFloodFillFn &test_fn)
 {
   SculptSession &ss = *ob.sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = id_cast<Mesh *>(ob.data);
 
   BitVector<> visited_faces(mesh->faces_num, false);
 
@@ -731,7 +730,7 @@ static wmOperatorStatus init_op_exec(bContext *C, wmOperator *op)
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
 
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = id_cast<Mesh *>(ob.data);
   const bke::AttributeAccessor attributes = mesh->attributes();
 
   switch (mode) {
@@ -903,7 +902,7 @@ static void face_hide_update(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".hide_poly", bke::AttrDomain::Face);
@@ -1160,7 +1159,7 @@ static wmOperatorStatus randomize_colors_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = id_cast<Mesh *>(ob.data);
   const bke::AttributeAccessor attributes = mesh->attributes();
 
   if (!attributes.contains(".sculpt_face_set")) {
@@ -1213,7 +1212,7 @@ static void edit_grow_shrink(const Depsgraph &depsgraph,
                              wmOperator *op)
 {
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1269,7 +1268,7 @@ static void edit_grow_shrink(const Depsgraph &depsgraph,
 
 static bool check_single_face_set(const Object &object, const bool check_visible_only)
 {
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   const VArraySpan<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
@@ -1309,7 +1308,7 @@ static bool check_single_face_set(const Object &object, const bool check_visible
 
 static void delete_geometry(Object &ob, const int active_face_set_id, const bool modify_hidden)
 {
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *id_cast<Mesh *>(ob.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   const VArraySpan<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
@@ -1355,7 +1354,7 @@ static void edit_fairing(const Depsgraph &depsgraph,
                          const float strength)
 {
   SculptSession &ss = *ob.sculpt;
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *id_cast<Mesh *>(ob.data);
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   boundary::ensure_boundary_info(ob);
 
@@ -1443,7 +1442,7 @@ static bool edit_is_operation_valid(const Object &object,
 
   if (ELEM(mode, EditMode::Grow, EditMode::Shrink)) {
     if (pbvh.type() == bke::pbvh::Type::Mesh) {
-      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       if (!attributes.contains(".sculpt_face_set")) {
         /* If a mesh does not have the face set attribute, growing or shrinking the face set will
@@ -1460,7 +1459,7 @@ static void edit_modify_geometry(
     bContext *C, Object &ob, const int active_face_set, const bool modify_hidden, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  Mesh *mesh = id_cast<Mesh *>(ob.data);
   undo::geometry_begin(scene, ob, op);
   delete_geometry(ob, active_face_set, modify_hidden);
   undo::geometry_end(ob);
@@ -1658,11 +1657,12 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
 
 static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMask &node_mask)
 {
-  FaceSetOperation *face_set_operation = (FaceSetOperation *)gesture_data.operation;
+  FaceSetOperation *face_set_operation = reinterpret_cast<FaceSetOperation *>(
+      gesture_data.operation);
   const int new_face_set = face_set_operation->new_face_set_id;
   const Depsgraph &depsgraph = *gesture_data.vc.depsgraph;
   Object &object = *gesture_data.vc.obact;
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   bke::AttributeAccessor attributes = mesh.attributes();
   SculptSession &ss = *gesture_data.ss;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
@@ -1738,7 +1738,8 @@ static void gesture_apply_mesh(gesture::GestureData &gesture_data, const IndexMa
 
 static void gesture_apply_bmesh(gesture::GestureData &gesture_data, const IndexMask &node_mask)
 {
-  FaceSetOperation *face_set_operation = (FaceSetOperation *)gesture_data.operation;
+  FaceSetOperation *face_set_operation = reinterpret_cast<FaceSetOperation *>(
+      gesture_data.operation);
   const Depsgraph &depsgraph = *gesture_data.vc.depsgraph;
   const int new_face_set = face_set_operation->new_face_set_id;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*gesture_data.vc.obact);
@@ -1801,7 +1802,8 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
       MEM_callocN<FaceSetOperation>(__func__));
 
-  FaceSetOperation *face_set_operation = (FaceSetOperation *)gesture_data.operation;
+  FaceSetOperation *face_set_operation = reinterpret_cast<FaceSetOperation *>(
+      gesture_data.operation);
 
   face_set_operation->op.begin = gesture_begin;
   face_set_operation->op.apply_for_symmetry_pass = gesture_apply_for_symmetry_pass;

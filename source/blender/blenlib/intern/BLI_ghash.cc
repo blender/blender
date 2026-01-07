@@ -26,6 +26,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Structs & Constants
  * \{ */
@@ -112,11 +114,13 @@ BLI_INLINE void ghash_entry_copy(GHash *gh_dst,
 
   if ((gh_dst->flag & GHASH_FLAG_IS_GSET) == 0) {
     if ((gh_src->flag & GHASH_FLAG_IS_GSET) == 0) {
-      ((GHashEntry *)dst)->val = (valcopyfp) ? valcopyfp(((GHashEntry *)src)->val) :
-                                               ((GHashEntry *)src)->val;
+      (reinterpret_cast<GHashEntry *>(dst))->val =
+          (valcopyfp) ?
+              valcopyfp((reinterpret_cast<GHashEntry *>(const_cast<Entry *>(src)))->val) :
+              (reinterpret_cast<GHashEntry *>(const_cast<Entry *>(src)))->val;
     }
     else {
-      ((GHashEntry *)dst)->val = nullptr;
+      (reinterpret_cast<GHashEntry *>(dst))->val = nullptr;
     }
   }
 }
@@ -446,7 +450,7 @@ BLI_INLINE void ghash_insert_ex(GHash *gh, void *key, void *val, const uint buck
   e->e.next = gh->buckets[bucket_index];
   e->e.key = key;
   e->val = val;
-  gh->buckets[bucket_index] = (Entry *)e;
+  gh->buckets[bucket_index] = reinterpret_cast<Entry *>(e);
 
   ghash_buckets_expand(gh, ++gh->nentries, false);
 }
@@ -502,7 +506,7 @@ BLI_INLINE bool ghash_insert_safe(GHash *gh,
 {
   const uint hash = ghash_keyhash(gh, key);
   const uint bucket_index = ghash_bucket_index(gh, hash);
-  GHashEntry *e = (GHashEntry *)ghash_lookup_entry_ex(gh, key, bucket_index);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(ghash_lookup_entry_ex(gh, key, bucket_index));
 
   BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
 
@@ -566,7 +570,7 @@ static Entry *ghash_remove_ex(GHash *gh,
       keyfreefp(e->key);
     }
     if (valfreefp) {
-      valfreefp(((GHashEntry *)e)->val);
+      valfreefp((reinterpret_cast<GHashEntry *>(e))->val);
     }
 
     if (e_prev) {
@@ -624,7 +628,7 @@ static void ghash_free_cb(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP va
         keyfreefp(e->key);
       }
       if (valfreefp) {
-        valfreefp(((GHashEntry *)e)->val);
+        valfreefp((reinterpret_cast<GHashEntry *>(e))->val);
       }
     }
   }
@@ -719,7 +723,7 @@ void *BLI_ghash_replace_key(GHash *gh, void *key)
 {
   const uint hash = ghash_keyhash(gh, key);
   const uint bucket_index = ghash_bucket_index(gh, hash);
-  GHashEntry *e = (GHashEntry *)ghash_lookup_entry_ex(gh, key, bucket_index);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(ghash_lookup_entry_ex(gh, key, bucket_index));
   if (e != nullptr) {
     void *key_prev = e->e.key;
     e->e.key = key;
@@ -730,21 +734,21 @@ void *BLI_ghash_replace_key(GHash *gh, void *key)
 
 void *BLI_ghash_lookup(const GHash *gh, const void *key)
 {
-  GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(ghash_lookup_entry(gh, key));
   BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
   return e ? e->val : nullptr;
 }
 
 void *BLI_ghash_lookup_default(const GHash *gh, const void *key, void *val_default)
 {
-  GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(ghash_lookup_entry(gh, key));
   BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
   return e ? e->val : val_default;
 }
 
 void **BLI_ghash_lookup_p(GHash *gh, const void *key)
 {
-  GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(ghash_lookup_entry(gh, key));
   BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
   return e ? &e->val : nullptr;
 }
@@ -753,12 +757,12 @@ bool BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val)
 {
   const uint hash = ghash_keyhash(gh, key);
   const uint bucket_index = ghash_bucket_index(gh, hash);
-  GHashEntry *e = (GHashEntry *)ghash_lookup_entry_ex(gh, key, bucket_index);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(ghash_lookup_entry_ex(gh, key, bucket_index));
   const bool haskey = (e != nullptr);
 
   if (!haskey) {
     e = BLI_mempool_alloc<GHashEntry>(gh->entrypool);
-    ghash_insert_ex_keyonly_entry(gh, key, bucket_index, (Entry *)e);
+    ghash_insert_ex_keyonly_entry(gh, key, bucket_index, reinterpret_cast<Entry *>(e));
   }
 
   *r_val = &e->val;
@@ -769,13 +773,14 @@ bool BLI_ghash_ensure_p_ex(GHash *gh, const void *key, void ***r_key, void ***r_
 {
   const uint hash = ghash_keyhash(gh, key);
   const uint bucket_index = ghash_bucket_index(gh, hash);
-  GHashEntry *e = (GHashEntry *)ghash_lookup_entry_ex(gh, key, bucket_index);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(ghash_lookup_entry_ex(gh, key, bucket_index));
   const bool haskey = (e != nullptr);
 
   if (!haskey) {
     /* Pass 'key' in case we resize. */
     e = BLI_mempool_alloc<GHashEntry>(gh->entrypool);
-    ghash_insert_ex_keyonly_entry(gh, (void *)key, bucket_index, (Entry *)e);
+    ghash_insert_ex_keyonly_entry(
+        gh, const_cast<void *>(key), bucket_index, reinterpret_cast<Entry *>(e));
     e->e.key = nullptr; /* caller must re-assign */
   }
 
@@ -806,7 +811,8 @@ void *BLI_ghash_popkey(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp)
 
   const uint hash = ghash_keyhash(gh, key);
   const uint bucket_index = ghash_bucket_index(gh, hash);
-  GHashEntry *e = (GHashEntry *)ghash_remove_ex(gh, key, keyfreefp, nullptr, bucket_index);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(
+      ghash_remove_ex(gh, key, keyfreefp, nullptr, bucket_index));
   BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
   if (e) {
     void *val = e->val;
@@ -823,7 +829,7 @@ bool BLI_ghash_haskey(const GHash *gh, const void *key)
 
 bool BLI_ghash_pop(GHash *gh, GHashIterState *state, void **r_key, void **r_val)
 {
-  GHashEntry *e = (GHashEntry *)ghash_pop(gh, state);
+  GHashEntry *e = reinterpret_cast<GHashEntry *>(ghash_pop(gh, state));
 
   BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
 
@@ -938,7 +944,8 @@ GSet *BLI_gset_new_ex(GSetHashFP hashfp,
                       const char *info,
                       const uint nentries_reserve)
 {
-  return (GSet *)ghash_new(hashfp, cmpfp, info, nentries_reserve, GHASH_FLAG_IS_GSET);
+  return reinterpret_cast<GSet *>(
+      ghash_new(hashfp, cmpfp, info, nentries_reserve, GHASH_FLAG_IS_GSET));
 }
 
 GSet *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info)
@@ -948,37 +955,42 @@ GSet *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info)
 
 GSet *BLI_gset_copy(const GSet *gs, GHashKeyCopyFP keycopyfp)
 {
-  return (GSet *)ghash_copy((const GHash *)gs, keycopyfp, nullptr);
+  return reinterpret_cast<GSet *>(
+      ghash_copy(reinterpret_cast<const GHash *>(gs), keycopyfp, nullptr));
 }
 
 uint BLI_gset_len(const GSet *gs)
 {
-  return ((GHash *)gs)->nentries;
+  return (reinterpret_cast<GHash *>(const_cast<GSet *>(gs)))->nentries;
 }
 
 void BLI_gset_insert(GSet *gs, void *key)
 {
-  const uint hash = ghash_keyhash((GHash *)gs, key);
-  const uint bucket_index = ghash_bucket_index((GHash *)gs, hash);
-  ghash_insert_ex_keyonly((GHash *)gs, key, bucket_index);
+  const uint hash = ghash_keyhash(reinterpret_cast<GHash *>(gs), key);
+  const uint bucket_index = ghash_bucket_index(reinterpret_cast<GHash *>(gs), hash);
+  ghash_insert_ex_keyonly(reinterpret_cast<GHash *>(gs), key, bucket_index);
 }
 
 bool BLI_gset_add(GSet *gs, void *key)
 {
-  return ghash_insert_safe_keyonly((GHash *)gs, key, false, nullptr);
+  return ghash_insert_safe_keyonly(reinterpret_cast<GHash *>(gs), key, false, nullptr);
 }
 
 bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key)
 {
-  const uint hash = ghash_keyhash((GHash *)gs, key);
-  const uint bucket_index = ghash_bucket_index((GHash *)gs, hash);
-  GSetEntry *e = (GSetEntry *)ghash_lookup_entry_ex((const GHash *)gs, key, bucket_index);
+  const uint hash = ghash_keyhash(reinterpret_cast<GHash *>(gs), key);
+  const uint bucket_index = ghash_bucket_index(reinterpret_cast<GHash *>(gs), hash);
+  GSetEntry *e = static_cast<GSetEntry *>(
+      ghash_lookup_entry_ex(reinterpret_cast<const GHash *>(gs), key, bucket_index));
   const bool haskey = (e != nullptr);
 
   if (!haskey) {
     /* Pass 'key' in case we resize */
-    e = BLI_mempool_alloc<GSetEntry>(((GHash *)gs)->entrypool);
-    ghash_insert_ex_keyonly_entry((GHash *)gs, (void *)key, bucket_index, (Entry *)e);
+    e = BLI_mempool_alloc<GSetEntry>((reinterpret_cast<GHash *>(gs))->entrypool);
+    ghash_insert_ex_keyonly_entry(reinterpret_cast<GHash *>(gs),
+                                  const_cast<void *>(key),
+                                  bucket_index,
+                                  static_cast<Entry *>(e));
     e->key = nullptr; /* caller must re-assign */
   }
 
@@ -988,32 +1000,33 @@ bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key)
 
 bool BLI_gset_reinsert(GSet *gs, void *key, GSetKeyFreeFP keyfreefp)
 {
-  return ghash_insert_safe_keyonly((GHash *)gs, key, true, keyfreefp);
+  return ghash_insert_safe_keyonly(reinterpret_cast<GHash *>(gs), key, true, keyfreefp);
 }
 
 void *BLI_gset_replace_key(GSet *gs, void *key)
 {
-  return BLI_ghash_replace_key((GHash *)gs, key);
+  return BLI_ghash_replace_key(reinterpret_cast<GHash *>(gs), key);
 }
 
 bool BLI_gset_remove(GSet *gs, const void *key, GSetKeyFreeFP keyfreefp)
 {
-  return BLI_ghash_remove((GHash *)gs, key, keyfreefp, nullptr);
+  return BLI_ghash_remove(reinterpret_cast<GHash *>(gs), key, keyfreefp, nullptr);
 }
 
 bool BLI_gset_haskey(const GSet *gs, const void *key)
 {
-  return (ghash_lookup_entry((const GHash *)gs, key) != nullptr);
+  return (ghash_lookup_entry(reinterpret_cast<const GHash *>(gs), key) != nullptr);
 }
 
 bool BLI_gset_pop(GSet *gs, GSetIterState *state, void **r_key)
 {
-  GSetEntry *e = (GSetEntry *)ghash_pop((GHash *)gs, (GHashIterState *)state);
+  GSetEntry *e = static_cast<GSetEntry *>(
+      ghash_pop(reinterpret_cast<GHash *>(gs), static_cast<GHashIterState *>(state)));
 
   if (e) {
     *r_key = e->key;
 
-    BLI_mempool_free(((GHash *)gs)->entrypool, e);
+    BLI_mempool_free((reinterpret_cast<GHash *>(gs))->entrypool, e);
     return true;
   }
 
@@ -1023,27 +1036,27 @@ bool BLI_gset_pop(GSet *gs, GSetIterState *state, void **r_key)
 
 void BLI_gset_clear_ex(GSet *gs, GSetKeyFreeFP keyfreefp, const uint nentries_reserve)
 {
-  BLI_ghash_clear_ex((GHash *)gs, keyfreefp, nullptr, nentries_reserve);
+  BLI_ghash_clear_ex(reinterpret_cast<GHash *>(gs), keyfreefp, nullptr, nentries_reserve);
 }
 
 void BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp)
 {
-  BLI_ghash_clear((GHash *)gs, keyfreefp, nullptr);
+  BLI_ghash_clear(reinterpret_cast<GHash *>(gs), keyfreefp, nullptr);
 }
 
 void BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp)
 {
-  BLI_ghash_free((GHash *)gs, keyfreefp, nullptr);
+  BLI_ghash_free(reinterpret_cast<GHash *>(gs), keyfreefp, nullptr);
 }
 
 void BLI_gset_flag_set(GSet *gs, uint flag)
 {
-  ((GHash *)gs)->flag |= flag;
+  (reinterpret_cast<GHash *>(gs))->flag |= flag;
 }
 
 void BLI_gset_flag_clear(GSet *gs, uint flag)
 {
-  ((GHash *)gs)->flag &= ~flag;
+  (reinterpret_cast<GHash *>(gs))->flag &= ~flag;
 }
 
 /** \} */
@@ -1057,18 +1070,18 @@ void BLI_gset_flag_clear(GSet *gs, uint flag)
 
 void *BLI_gset_lookup(const GSet *gs, const void *key)
 {
-  Entry *e = ghash_lookup_entry((const GHash *)gs, key);
+  Entry *e = ghash_lookup_entry(reinterpret_cast<const GHash *>(gs), key);
   return e ? e->key : nullptr;
 }
 
 void *BLI_gset_pop_key(GSet *gs, const void *key)
 {
-  const uint hash = ghash_keyhash((GHash *)gs, key);
-  const uint bucket_index = ghash_bucket_index((GHash *)gs, hash);
-  Entry *e = ghash_remove_ex((GHash *)gs, key, nullptr, nullptr, bucket_index);
+  const uint hash = ghash_keyhash(reinterpret_cast<GHash *>(gs), key);
+  const uint bucket_index = ghash_bucket_index(reinterpret_cast<GHash *>(gs), hash);
+  Entry *e = ghash_remove_ex(reinterpret_cast<GHash *>(gs), key, nullptr, nullptr, bucket_index);
   if (e) {
     void *key_ret = e->key;
-    BLI_mempool_free(((GHash *)gs)->entrypool, e);
+    BLI_mempool_free((reinterpret_cast<GHash *>(gs))->entrypool, e);
     return key_ret;
   }
   return nullptr;
@@ -1086,7 +1099,7 @@ int BLI_ghash_buckets_len(const GHash *gh)
 }
 int BLI_gset_buckets_len(const GSet *gs)
 {
-  return BLI_ghash_buckets_len((const GHash *)gs);
+  return BLI_ghash_buckets_len(reinterpret_cast<const GHash *>(gs));
 }
 
 double BLI_ghash_calc_quality_ex(const GHash *gh,
@@ -1183,7 +1196,7 @@ double BLI_gset_calc_quality_ex(const GSet *gs,
                                 double *r_prop_overloaded_buckets,
                                 int *r_biggest_bucket)
 {
-  return BLI_ghash_calc_quality_ex((const GHash *)gs,
+  return BLI_ghash_calc_quality_ex(reinterpret_cast<const GHash *>(gs),
                                    r_load,
                                    r_variance,
                                    r_prop_empty_buckets,
@@ -1197,7 +1210,14 @@ double BLI_ghash_calc_quality(const GHash *gh)
 }
 double BLI_gset_calc_quality(const GSet *gs)
 {
-  return BLI_ghash_calc_quality_ex((GHash *)gs, nullptr, nullptr, nullptr, nullptr, nullptr);
+  return BLI_ghash_calc_quality_ex(reinterpret_cast<GHash *>(const_cast<GSet *>(gs)),
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr,
+                                   nullptr);
 }
 
 /** \} */
+
+}  // namespace blender

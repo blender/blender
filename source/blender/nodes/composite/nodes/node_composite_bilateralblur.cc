@@ -18,9 +18,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** BILATERALBLUR ******************** */
 
-namespace blender::nodes::node_composite_bilateralblur_cc {
+namespace nodes::node_composite_bilateralblur_cc {
 
 static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
 {
@@ -69,7 +71,7 @@ class BilateralBlurOperation : public NodeOperation {
                                input_image,
                                output_image,
                                float2(this->get_blur_radius()),
-                               R_FILTER_BOX);
+                               math::FilterKernel::Box);
       return;
     }
 
@@ -154,12 +156,12 @@ class BilateralBlurOperation : public NodeOperation {
 
   int get_blur_radius()
   {
-    return math::max(0, this->get_input("Size").get_single_value_default(0));
+    return math::max(0, this->get_input("Size").get_single_value_default<int>());
   }
 
   float get_threshold()
   {
-    return math::max(0.0f, this->get_input("Threshold").get_single_value_default(0.1f));
+    return math::max(0.0f, this->get_input("Threshold").get_single_value_default<float>());
   }
 };
 
@@ -168,13 +170,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new BilateralBlurOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_bilateralblur_cc
+}  // namespace nodes::node_composite_bilateralblur_cc
 
 static void register_node_type_cmp_bilateralblur()
 {
-  namespace file_ns = blender::nodes::node_composite_bilateralblur_cc;
+  namespace file_ns = nodes::node_composite_bilateralblur_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeBilateralblur", CMP_NODE_BILATERALBLUR);
   ntype.ui_name = "Bilateral Blur";
@@ -184,6 +186,8 @@ static void register_node_type_cmp_bilateralblur()
   ntype.declare = file_ns::cmp_node_bilateralblur_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_bilateralblur)
+
+}  // namespace blender

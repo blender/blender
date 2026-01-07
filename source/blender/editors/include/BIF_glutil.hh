@@ -10,18 +10,20 @@
 
 #include "GPU_texture.hh"
 
+namespace blender {
+
 struct rcti;
 
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct ImBuf;
 struct bContext;
-namespace blender::gpu {
+namespace gpu {
 class Shader;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 struct IMMDrawPixelsTexState {
-  blender::gpu::Shader *shader;
+  gpu::Shader *shader;
   unsigned int pos;
   unsigned int texco;
   bool do_shader_unbind;
@@ -59,7 +61,7 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
                                     float y,
                                     int img_w,
                                     int img_h,
-                                    blender::gpu::TextureFormat gpu_format,
+                                    gpu::TextureFormat gpu_format,
                                     bool use_filter,
                                     const void *rect,
                                     float scaleX,
@@ -87,7 +89,7 @@ void immDrawPixelsTexTiled(IMMDrawPixelsTexState *state,
                            float y,
                            int img_w,
                            int img_h,
-                           blender::gpu::TextureFormat gpu_format,
+                           gpu::TextureFormat gpu_format,
                            bool use_filter,
                            const void *rect,
                            float xzoom,
@@ -98,7 +100,7 @@ void immDrawPixelsTexTiled_clipping(IMMDrawPixelsTexState *state,
                                     float y,
                                     int img_w,
                                     int img_h,
-                                    blender::gpu::TextureFormat gpu_format,
+                                    gpu::TextureFormat gpu_format,
                                     bool use_filter,
                                     const void *rect,
                                     float clip_min_x,
@@ -113,7 +115,7 @@ void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
                                    float y,
                                    int img_w,
                                    int img_h,
-                                   blender::gpu::TextureFormat gpu_format,
+                                   gpu::TextureFormat gpu_format,
                                    bool use_filter,
                                    const void *rect,
                                    float scaleX,
@@ -140,7 +142,7 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
                                             float y,
                                             int img_w,
                                             int img_h,
-                                            blender::gpu::TextureFormat gpu_format,
+                                            gpu::TextureFormat gpu_format,
                                             bool use_filter,
                                             const void *rect,
                                             float scaleX,
@@ -206,3 +208,5 @@ int ED_draw_imbuf_method(const ImBuf *ibuf);
  * because this uses user-preferences and isn't very low level.
  */
 void immDrawBorderCorners(unsigned int pos, const rcti *border, float zoomx, float zoomy);
+
+}  // namespace blender

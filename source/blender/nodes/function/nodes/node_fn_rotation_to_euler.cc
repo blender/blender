@@ -53,7 +53,7 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeRotationToEuler", FN_NODE_ROTATION_TO_EULER);
   ntype.ui_name = "Rotation to Euler";
   ntype.ui_description = "Convert a standard rotation value to an Euler rotation";
@@ -64,7 +64,7 @@ static void node_register()
   ntype.eval_elem = node_eval_elem;
   ntype.eval_inverse_elem = node_eval_inverse_elem;
   ntype.eval_inverse = node_eval_inverse;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

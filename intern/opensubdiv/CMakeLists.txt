@@ -90,9 +90,16 @@ if(WITH_OPENSUBDIV)
     internal/evaluator/shaders/osd_eval_patches_comp.glsl
   )
 
+  set(GLSL_INC
+    # For osd_patch_basis.glsl
+    ../../source/blender/draw/intern/shaders
+
+    internal/evaluator/shaders
+  )
+
   set(GLSL_C)
   foreach(GLSL_FILE ${GLSL_SRC})
-    glsl_to_c(${GLSL_FILE} GLSL_C)
+    glsl_to_c(${GLSL_FILE} GLSL_C GLSL_INC)
   endforeach()
 
   blender_add_lib(bf_osd_shaders "${GLSL_C}" "" "" "")

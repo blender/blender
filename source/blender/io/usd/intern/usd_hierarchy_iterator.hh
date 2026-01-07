@@ -13,15 +13,17 @@
 #include <pxr/usd/usd/common.h>
 #include <pxr/usd/usd/timeCode.h>
 
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct Object;
 
-namespace blender::io::usd {
+namespace io::usd {
 
-using blender::io::AbstractHierarchyIterator;
-using blender::io::AbstractHierarchyWriter;
-using blender::io::HierarchyContext;
+using io::AbstractHierarchyIterator;
+using io::AbstractHierarchyWriter;
+using io::HierarchyContext;
 
 class USDHierarchyIterator : public AbstractHierarchyIterator {
  private:
@@ -41,7 +43,7 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
   /* Map a USD prim path to a list of Blender IDs associated with that prim.
    * This map is updated by writers during stage export. */
-  mutable blender::Map<pxr::SdfPath, blender::Vector<ID *>> exported_prim_map_;
+  mutable Map<pxr::SdfPath, Vector<ID *>> exported_prim_map_;
 
   /* Map prototype_paths[instancer path] = [
    *   (proto_path_1, proto_object_1), (proto_path_2, proto_object_2), ... ] */
@@ -63,7 +65,7 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   pxr::UsdStageRefPtr get_stage() const;
 
   /* Get the mapping of exported objects to their USD prim paths. */
-  const blender::Map<pxr::SdfPath, blender::Vector<ID *>> &get_exported_prim_map() const;
+  const Map<pxr::SdfPath, Vector<ID *>> &get_exported_prim_map() const;
 
   /* Add an ID to the prim map for a given USD path. */
   void add_to_prim_map(const pxr::SdfPath &usd_path, const ID *id) const;
@@ -90,4 +92,5 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   void add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &usd_path);
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

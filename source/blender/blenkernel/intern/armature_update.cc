@@ -32,6 +32,8 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 /* ********************** SPLINE IK SOLVER ******************* */
 
 /* Temporary evaluation tree data used for Spline IK */
@@ -184,9 +186,9 @@ static void splineik_init_tree(Scene *scene, Object *ob, float /*ctime*/)
 {
   /* Find the tips of Spline IK chains,
    * which are simply the bones which have been tagged as such. */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    if (pchan->constflag & PCHAN_HAS_SPLINEIK) {
-      splineik_init_tree_from_pchan(scene, ob, pchan);
+  for (bPoseChannel &pchan : ob->pose->chanbase) {
+    if (pchan.constflag & PCHAN_HAS_SPLINEIK) {
+      splineik_init_tree_from_pchan(scene, ob, &pchan);
     }
   }
 }
@@ -847,7 +849,7 @@ void BKE_pose_eval_init_ik(Depsgraph *depsgraph, Scene *scene, Object *object)
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   BLI_assert(object->type == OB_ARMATURE);
   const float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
-  bArmature *armature = (bArmature *)object->data;
+  bArmature *armature = id_cast<bArmature *>(object->data);
   if (armature->flag & ARM_RESTPOS) {
     return;
   }
@@ -861,7 +863,7 @@ void BKE_pose_eval_init_ik(Depsgraph *depsgraph, Scene *scene, Object *object)
 
 void BKE_pose_eval_bone(Depsgraph *depsgraph, Scene *scene, Object *object, int pchan_index)
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -900,7 +902,7 @@ void BKE_pose_constraints_evaluate(Depsgraph *depsgraph,
                                    Object *object,
                                    int pchan_index)
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -928,7 +930,7 @@ static void pose_channel_flush_to_orig_if_needed(Depsgraph *depsgraph,
   if (!DEG_is_active(depsgraph)) {
     return;
   }
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -947,7 +949,7 @@ void BKE_pose_bone_done(Depsgraph *depsgraph, Object *object, int pchan_index)
   /* Note: tests in `armature_deform_test.cc` update pose matrices locally to avoid creating a full
    * depsgraph. Keep these in sync if this function is changed! */
 
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -973,7 +975,7 @@ void BKE_pose_bone_done(Depsgraph *depsgraph, Object *object, int pchan_index)
 
 void BKE_pose_eval_bbone_segments(Depsgraph *depsgraph, Object *object, int pchan_index)
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -993,7 +995,7 @@ void BKE_pose_iktree_evaluate(Depsgraph *depsgraph,
                               Object *object,
                               int rootchan_index)
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -1014,7 +1016,7 @@ void BKE_pose_splineik_evaluate(Depsgraph *depsgraph,
                                 int rootchan_index)
 
 {
-  const bArmature *armature = (bArmature *)object->data;
+  const bArmature *armature = id_cast<bArmature *>(object->data);
   if (armature->edbo != nullptr) {
     return;
   }
@@ -1058,3 +1060,5 @@ void BKE_pose_eval_cleanup(Depsgraph *depsgraph, Scene *scene, Object *object)
   BIK_release_tree(scene, object, ctime);
   pose_eval_cleanup_common(object);
 }
+
+}  // namespace blender

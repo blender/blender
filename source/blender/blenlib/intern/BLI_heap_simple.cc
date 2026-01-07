@@ -22,6 +22,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define HEAP_PARENT(i) (((i) - 1) >> 1)
 
 /* -------------------------------------------------------------------- */
@@ -50,7 +52,7 @@ static void heapsimple_down(HeapSimple *heap, uint start_i, const HeapSimpleNode
 #if 1
   /* The compiler isn't smart enough to realize that all computations
    * using index here can be modified to work with byte offset. */
-  uint8_t *const tree_buf = (uint8_t *)heap->tree;
+  uint8_t *const tree_buf = reinterpret_cast<uint8_t *>(heap->tree);
 
 #  define OFFSET(i) (i * uint(sizeof(HeapSimpleNode)))
 #  define NODE(offset) (*(HeapSimpleNode *)(tree_buf + (offset)))
@@ -216,3 +218,5 @@ void *BLI_heapsimple_pop_min(HeapSimple *heap)
 }
 
 /** \} */
+
+}  // namespace blender

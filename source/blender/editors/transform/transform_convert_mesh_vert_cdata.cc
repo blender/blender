@@ -163,7 +163,8 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
 
       float *weight = static_cast<float *>(BM_ELEM_CD_GET_VOID_P(eve, cd_offset));
       if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-        mesh_cdata_transdata_create((TransDataBasic *)td, eve, weight, &island_data, island_index);
+        mesh_cdata_transdata_create(
+            static_cast<TransDataBasic *>(td), eve, weight, &island_data, island_index);
 
         if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
           createSpaceNormal(td->axismtx, eve->no);

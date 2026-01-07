@@ -543,7 +543,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
     else {
       VArraySpan<bool> cyclic{src_cyclic};
       MutableSpan<int8_t> knots_modes = dst_curves.nurbs_knots_modes_for_write();
-      selection.foreach_index(GrainSize(1024), [&](const int i) {
+      selection.foreach_index_optimized<int>(GrainSize(1024), [&](const int i) {
         knots_modes[i] = cyclic[i] ? NURBS_KNOT_MODE_NORMAL : NURBS_KNOT_MODE_ENDPOINT;
       });
     }

@@ -47,6 +47,9 @@
 #endif
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 /* `TfToken` objects are not cheap to construct, so we do it once. */
@@ -99,7 +102,7 @@ static const pxr::TfToken translation("translation", pxr::TfToken::Immortal);
 static const pxr::TfToken rotation("rotation", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /* Preview surface input specification. */
 struct InputSpec {
@@ -112,7 +115,7 @@ struct InputSpec {
 };
 
 /* Map Blender socket names to USD Preview Surface InputSpec structs. */
-using InputSpecMap = blender::Map<StringRef, InputSpec>;
+using InputSpecMap = Map<StringRef, InputSpec>;
 
 /* Static function forward declarations. */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
@@ -184,9 +187,9 @@ static void process_inputs(const USDExporterContext &usd_export_context,
 {
   const InputSpecMap &input_map = preview_surface_input_map();
 
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+  for (bNodeSocket &sock : node->inputs) {
     /* Check if this socket is mapped to a USD preview shader input. */
-    const InputSpec *spec = input_map.lookup_ptr(sock->name);
+    const InputSpec *spec = input_map.lookup_ptr(sock.name);
     if (spec == nullptr) {
       continue;
     }
@@ -204,7 +207,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
         continue;
       }
 
-      input_scale = ((bNodeSocketValueFloat *)emission_strength_sock->default_value)->value;
+      input_scale = emission_strength_sock->default_value_typed<bNodeSocketValueFloat>()->value;
       if (input_scale == 0.0f) {
         continue;
       }
@@ -213,7 +216,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
     bool processed = false;
 
     /* Check for an upstream Image node. */
-    const bNodeLink *input_link = traverse_channel(sock, SH_NODE_TEX_IMAGE);
+    const bNodeLink *input_link = traverse_channel(&sock, SH_NODE_TEX_IMAGE);
     if (input_link) {
       /* Convert the texture image node connected to this input. */
       bNode *input_node = input_link->fromnode;
@@ -226,7 +229,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
         /* If the input is a float, we check if there is also a Separate Color node in between, if
          * there is use the output channel from that, otherwise connect either the texture alpha or
          * red channels. */
-        const bNodeLink *input_link_sep_color = traverse_channel(sock, SH_NODE_SEPARATE_COLOR);
+        const bNodeLink *input_link_sep_color = traverse_channel(&sock, SH_NODE_SEPARATE_COLOR);
         if (input_link_sep_color) {
           if (STREQ(input_link_sep_color->fromsock->identifier, "Red")) {
             source_name = usdtokens::r;
@@ -269,7 +272,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
        * Displacement: The scale-bias values come from the Midlevel and Scale sockets.
        */
       if (input_spec.input_name != usdtokens::displacement) {
-        bNodeLink *scale_link = traverse_channel(sock, SH_NODE_VECTOR_MATH);
+        bNodeLink *scale_link = traverse_channel(&sock, SH_NODE_VECTOR_MATH);
         if (scale_link) {
           bNode *vector_math_node = scale_link->fromnode;
           if (vector_math_node->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
@@ -282,14 +285,14 @@ static void process_inputs(const USDExporterContext &usd_export_context,
               vector_math_node = temp_link->fromnode;
             }
 
-            bNodeSocket *sock_scale = bke::node_find_socket(
+            const bNodeSocket *sock_scale = bke::node_find_socket(
                 *vector_math_node, SOCK_IN, "Vector_001");
-            bNodeSocket *sock_bias = bke::node_find_socket(
+            const bNodeSocket *sock_bias = bke::node_find_socket(
                 *vector_math_node, SOCK_IN, "Vector_002");
             const float *scale_value =
-                static_cast<bNodeSocketValueVector *>(sock_scale->default_value)->value;
+                sock_scale->default_value_typed<bNodeSocketValueVector>()->value;
             const float *bias_value =
-                static_cast<bNodeSocketValueVector *>(sock_bias->default_value)->value;
+                sock_bias->default_value_typed<bNodeSocketValueVector>()->value;
 
             const pxr::GfVec4f scale(scale_value[0], scale_value[1], scale_value[2], 1.0f);
             const pxr::GfVec4f bias(bias_value[0], bias_value[1], bias_value[2], 0.0f);
@@ -325,7 +328,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
         float threshold = 0.0f;
 
         /* The immediate upstream node should either be a Math Round or a Math 1-minus. */
-        bNodeLink *math_link = traverse_channel(sock, SH_NODE_MATH);
+        bNodeLink *math_link = traverse_channel(&sock, SH_NODE_MATH);
         if (math_link && math_link->fromnode) {
           bNode *math_node = math_link->fromnode;
 
@@ -334,18 +337,18 @@ static void process_inputs(const USDExporterContext &usd_export_context,
           }
           else if (math_node->custom1 == NODE_MATH_SUBTRACT) {
             /* If this is the 1-minus node, we need to search upstream to find the less-than. */
-            bNodeSocket *math_sock = blender::bke::node_find_socket(*math_node, SOCK_IN, "Value");
-            if (((bNodeSocketValueFloat *)math_sock->default_value)->value == 1.0f) {
-              math_sock = blender::bke::node_find_socket(*math_node, SOCK_IN, "Value_001");
+            bNodeSocket *math_sock = bke::node_find_socket(*math_node, SOCK_IN, "Value");
+            if (math_sock->default_value_typed<bNodeSocketValueFloat>()->value == 1.0f) {
+              math_sock = bke::node_find_socket(*math_node, SOCK_IN, "Value_001");
               math_link = traverse_channel(math_sock, SH_NODE_MATH);
               if (math_link && math_link->fromnode) {
                 math_node = math_link->fromnode;
 
                 if (math_node->custom1 == NODE_MATH_LESS_THAN) {
                   /* We found the upstream less-than with the threshold value. */
-                  bNodeSocket *threshold_sock = blender::bke::node_find_socket(
+                  bNodeSocket *threshold_sock = bke::node_find_socket(
                       *math_node, SOCK_IN, "Value_001");
-                  threshold = ((bNodeSocketValueFloat *)threshold_sock->default_value)->value;
+                  threshold = threshold_sock->default_value_typed<bNodeSocketValueFloat>()->value;
                 }
               }
             }
@@ -367,7 +370,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
     }
 
     /* No upstream Image was found. Check for an Attribute node instead */
-    input_link = traverse_channel(sock, SH_NODE_ATTRIBUTE);
+    input_link = traverse_channel(&sock, SH_NODE_ATTRIBUTE);
     if (input_link) {
       const bNode *attr_node = input_link->fromnode;
       const NodeShaderAttribute *storage = (NodeShaderAttribute *)attr_node->storage;
@@ -412,18 +415,18 @@ static void process_inputs(const USDExporterContext &usd_export_context,
 
     /* No upstream nodes, just set a default constant. */
     if (input_spec.set_default_value) {
-      switch (sock->type) {
+      switch (sock.type) {
         case SOCK_FLOAT: {
           create_input<bNodeSocketValueFloat, float>(
-              shader, input_spec, sock->default_value, input_scale);
+              shader, input_spec, sock.default_value, input_scale);
         } break;
         case SOCK_VECTOR: {
           create_input<bNodeSocketValueVector, pxr::GfVec3f>(
-              shader, input_spec, sock->default_value, input_scale);
+              shader, input_spec, sock.default_value, input_scale);
         } break;
         case SOCK_RGBA: {
           create_input<bNodeSocketValueRGBA, pxr::GfVec3f>(
-              shader, input_spec, sock->default_value, input_scale);
+              shader, input_spec, sock.default_value, input_scale);
         } break;
         default:
           break;
@@ -663,19 +666,19 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
   float rot[3] = {0.0f, 0.0f, 0.0f};
 
   if (bNodeSocket *scale_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Scale")) {
-    copy_v3_v3(scale, ((bNodeSocketValueVector *)scale_socket->default_value)->value);
+    copy_v3_v3(scale, scale_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the Z scale. */
     scale[2] = 1.0f;
   }
 
   if (bNodeSocket *loc_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Location")) {
-    copy_v3_v3(loc, ((bNodeSocketValueVector *)loc_socket->default_value)->value);
+    copy_v3_v3(loc, loc_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the Z translation. */
     loc[2] = 0.0f;
   }
 
   if (bNodeSocket *rot_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Rotation")) {
-    copy_v3_v3(rot, ((bNodeSocketValueVector *)rot_socket->default_value)->value);
+    copy_v3_v3(rot, rot_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the X and Y rotations. */
     rot[0] = 0.0f;
     rot[1] = 0.0f;
@@ -742,8 +745,8 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
 static bool has_generated_tiles(const Image *ima)
 {
   bool any_generated = false;
-  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-    if ((tile->gen_flag & IMA_GEN_TILE) != 0) {
+  for (ImageTile &tile : ima->tiles) {
+    if ((tile.gen_flag & IMA_GEN_TILE) != 0) {
       any_generated = true;
       break;
     }
@@ -878,11 +881,11 @@ static void export_in_memory_texture(Image *ima,
 
     /* Save all the tiles. */
     ImageUser iuser{};
-    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+    for (ImageTile &tile : ima->tiles) {
       char tile_filepath[FILE_MAX];
       BKE_image_set_filepath_from_tile_number(
-          tile_filepath, udim_pattern, tile_format, tile->tile_number);
-      iuser.tile = tile->tile_number;
+          tile_filepath, udim_pattern, tile_format, tile.tile_number);
+      iuser.tile = tile.tile_number;
 
       ImBuf *imbuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
       if (!imbuf) {
@@ -902,20 +905,20 @@ static void export_packed_texture(Image *ima,
                                   const bool allow_overwrite,
                                   ReportList *reports)
 {
-  LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
-    if (!imapf || !imapf->packedfile || !imapf->packedfile->data || !imapf->packedfile->size) {
+  for (ImagePackedFile &imapf : ima->packedfiles) {
+    if (!imapf.packedfile || !imapf.packedfile->data || !imapf.packedfile->size) {
       continue;
     }
 
-    const PackedFile *pf = imapf->packedfile;
+    const PackedFile *pf = imapf.packedfile;
 
     char image_abs_path[FILE_MAX] = {};
     char file_name[FILE_MAX];
 
-    if (imapf->filepath[0] != '\0') {
+    if (imapf.filepath[0] != '\0') {
       /* Get the file name from the original path. */
       /* Make absolute source path. */
-      STRNCPY(image_abs_path, imapf->filepath);
+      STRNCPY(image_abs_path, imapf.filepath);
       USD_path_abs(
           image_abs_path, ID_BLEND_PATH_FROM_GLOBAL(&ima->id), false /* Not for import */);
       BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
@@ -933,7 +936,7 @@ static void export_packed_texture(Image *ima,
           IMB_test_image_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
       if (ima->source == IMA_SRC_TILED) {
         char tile_number[6];
-        SNPRINTF(tile_number, ".%d", imapf->tile_number);
+        SNPRINTF(tile_number, ".%d", imapf.tile_number);
         BLI_strncpy(file_name + len, tile_number, sizeof(file_name) - len);
       }
       if (ftype != IMB_FTYPE_NONE) {
@@ -1039,8 +1042,8 @@ static bNodeLink *traverse_channel(bNodeSocket *input, const short target_type)
   }
 
   /* Recursively traverse the linked node's sockets. */
-  LISTBASE_FOREACH (bNodeSocket *, sock, &linked_node->inputs) {
-    if (bNodeLink *found_link = traverse_channel(sock, target_type)) {
+  for (bNodeSocket &sock : linked_node->inputs) {
+    if (bNodeLink *found_link = traverse_channel(&sock, target_type)) {
       return found_link;
     }
   }
@@ -1300,10 +1303,10 @@ static void copy_tiled_textures(Image *ima,
   }
 
   /* Copy all tiles. */
-  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+  for (ImageTile &tile : ima->tiles) {
     char src_tile_path[FILE_MAX];
     BKE_image_set_filepath_from_tile_number(
-        src_tile_path, udim_pattern, tile_format, tile->tile_number);
+        src_tile_path, udim_pattern, tile_format, tile.tile_number);
 
     char dest_filename[FILE_MAXFILE];
     BLI_path_split_file_part(src_tile_path, dest_filename, sizeof(dest_filename));
@@ -1498,7 +1501,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
                                           const std::string &active_uvmap_name,
                                           const pxr::UsdShadeMaterial &usd_material)
 {
-  blender::nodes::materialx::ExportParams export_params = {
+  nodes::materialx::ExportParams export_params = {
       /* Output surface material node will have this name. */
       usd_path.GetElementString(),
       /* We want to re-use the same MaterialX document generation code as used by the renderer.
@@ -1513,7 +1516,7 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
       active_uvmap_name,
   };
 
-  MaterialX::DocumentPtr doc = blender::nodes::materialx::export_to_materialx(
+  MaterialX::DocumentPtr doc = nodes::materialx::export_to_materialx(
       usd_export_context.depsgraph, material, export_params);
 
   /* We want to merge the MaterialX graph under the same Material as the USDPreviewSurface
@@ -1723,4 +1726,5 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   return usd_material;
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

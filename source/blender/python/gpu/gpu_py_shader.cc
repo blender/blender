@@ -31,6 +31,8 @@
 
 #include "gpu_py_shader.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Enum Conversion.
  * \{ */
@@ -98,7 +100,7 @@ static const PyC_StringEnumItems pygpu_shader_config_items[] = {
     {0, nullptr},
 };
 
-static int pygpu_shader_uniform_location_get(blender::gpu::Shader *shader,
+static int pygpu_shader_uniform_location_get(gpu::Shader *shader,
                                              const char *name,
                                              const char *error_prefix)
 {
@@ -264,7 +266,16 @@ PyDoc_STRVAR(
     pygpu_shader_uniform_vector_int_doc,
     ".. method:: uniform_vector_int(location, buffer, length, count)\n"
     "\n"
-    "   See GPUShader.uniform_vector_float(...) description.\n");
+    "   Set the buffer to fill the uniform.\n"
+    "\n"
+    "   :arg location: Location of the uniform variable to be modified.\n"
+    "   :type location: int\n"
+    "   :arg buffer: Buffer object with format matching the uniform.\n"
+    "   :type buffer: object exposing buffer interface\n"
+    "   :arg length: Size of the uniform data type.\n"
+    "   :type length: int\n"
+    "   :arg count: Specifies the number of elements that are to be modified.\n"
+    "   :type count: int\n");
 static PyObject *pygpu_shader_uniform_vector_int(BPyGPUShader *self, PyObject *args)
 {
   int location, length, count;
@@ -396,7 +407,7 @@ static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
     length = 1;
   }
   else if (MatrixObject_Check(params.seq)) {
-    MatrixObject *mat = (MatrixObject *)params.seq;
+    MatrixObject *mat = reinterpret_cast<MatrixObject *>(params.seq);
     if (BaseMath_ReadCallback(mat) == -1) {
       return nullptr;
     }
@@ -439,10 +450,10 @@ PyDoc_STRVAR(
     "\n"
     "   Specify the value of a uniform variable for the current program object.\n"
     "\n"
-    "   :arg name: name of the uniform variable whose value is to be changed.\n"
+    "   :arg name: Name of the uniform variable whose value is to be changed.\n"
     "   :type name: str\n"
     "   :arg seq: Value that will be used to update the specified uniform variable.\n"
-    "   :type seq: Sequence[int]\n");
+    "   :type seq: int | Sequence[int]\n");
 static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
 {
   const char *error_prefix = "GPUShader.uniform_int";
@@ -513,7 +524,7 @@ PyDoc_STRVAR(
     "\n"
     "   Specify the value of a texture uniform variable for the current GPUShader.\n"
     "\n"
-    "   :arg name: name of the uniform variable whose texture is to be specified.\n"
+    "   :arg name: Name of the uniform variable whose texture is to be specified.\n"
     "   :type name: str\n"
     "   :arg texture: Texture to attach.\n"
     "   :type texture: :class:`gpu.types.GPUTexture`\n");
@@ -571,12 +582,12 @@ PyDoc_STRVAR(
     pygpu_shader_uniform_block_doc,
     ".. method:: uniform_block(name, ubo)\n"
     "\n"
-    "   Specify the value of an uniform buffer object variable for the current GPUShader.\n"
+    "   Specify the value of a uniform buffer object variable for the current GPUShader.\n"
     "\n"
-    "   :arg name: name of the uniform variable whose UBO is to be specified.\n"
+    "   :arg name: Name of the uniform variable whose UBO is to be specified.\n"
     "   :type name: str\n"
     "   :arg ubo: Uniform Buffer to attach.\n"
-    "   :type texture: :class:`gpu.types.GPUUniformBuf`\n");
+    "   :type ubo: :class:`gpu.types.GPUUniformBuf`\n");
 static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
 {
   const char *name;
@@ -640,22 +651,23 @@ PyDoc_STRVAR(
     "   :rtype: :class:`gpu.types.GPUVertFormat`\n");
 static PyObject *pygpu_shader_format_calc(BPyGPUShader *self, PyObject * /*arg*/)
 {
-  BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(nullptr);
+  BPyGPUVertFormat *ret = reinterpret_cast<BPyGPUVertFormat *>(
+      BPyGPUVertFormat_CreatePyObject(nullptr));
   if (bpygpu_shader_is_polyline(self->shader)) {
     GPU_vertformat_clear(&ret->fmt);
 
     /* WORKAROUND: Special case for POLYLINE shader. */
     if (GPU_shader_get_ssbo_binding(self->shader, "pos") >= 0) {
-      GPU_vertformat_attr_add(&ret->fmt, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+      GPU_vertformat_attr_add(&ret->fmt, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     }
     if (GPU_shader_get_ssbo_binding(self->shader, "color") >= 0) {
-      GPU_vertformat_attr_add(&ret->fmt, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
+      GPU_vertformat_attr_add(&ret->fmt, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
     }
   }
   else {
     GPU_vertformat_from_shader(&ret->fmt, self->shader);
   }
-  return (PyObject *)ret;
+  return reinterpret_cast<PyObject *>(ret);
 }
 
 PyDoc_STRVAR(
@@ -747,54 +759,57 @@ static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject * /*ar
 #endif
 
 static PyMethodDef pygpu_shader__tp_methods[] = {
-    {"bind", (PyCFunction)pygpu_shader_bind, METH_NOARGS, pygpu_shader_bind_doc},
+    {"bind", reinterpret_cast<PyCFunction>(pygpu_shader_bind), METH_NOARGS, pygpu_shader_bind_doc},
     {"uniform_from_name",
-     (PyCFunction)pygpu_shader_uniform_from_name,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_from_name),
      METH_O,
      pygpu_shader_uniform_from_name_doc},
     {"uniform_block_from_name",
-     (PyCFunction)pygpu_shader_uniform_block_from_name,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_block_from_name),
      METH_O,
      pygpu_shader_uniform_block_from_name_doc},
     {"uniform_vector_float",
-     (PyCFunction)pygpu_shader_uniform_vector_float,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_vector_float),
      METH_VARARGS,
      pygpu_shader_uniform_vector_float_doc},
     {"uniform_vector_int",
-     (PyCFunction)pygpu_shader_uniform_vector_int,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_vector_int),
      METH_VARARGS,
      pygpu_shader_uniform_vector_int_doc},
     {"uniform_bool",
-     (PyCFunction)pygpu_shader_uniform_bool,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_bool),
      METH_VARARGS,
      pygpu_shader_uniform_bool_doc},
     {"uniform_float",
-     (PyCFunction)pygpu_shader_uniform_float,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_float),
      METH_VARARGS,
      pygpu_shader_uniform_float_doc},
     {"uniform_int",
-     (PyCFunction)pygpu_shader_uniform_int,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_int),
      METH_VARARGS,
      pygpu_shader_uniform_int_doc},
     {"uniform_sampler",
-     (PyCFunction)pygpu_shader_uniform_sampler,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_sampler),
      METH_VARARGS,
      pygpu_shader_uniform_sampler_doc},
-    {"image", (PyCFunction)pygpu_shader_image, METH_VARARGS, pygpu_shader_image_doc},
+    {"image",
+     reinterpret_cast<PyCFunction>(pygpu_shader_image),
+     METH_VARARGS,
+     pygpu_shader_image_doc},
     {"uniform_block",
-     (PyCFunction)pygpu_shader_uniform_block,
+     reinterpret_cast<PyCFunction>(pygpu_shader_uniform_block),
      METH_VARARGS,
      pygpu_shader_uniform_block_doc},
     {"attr_from_name",
-     (PyCFunction)pygpu_shader_attr_from_name,
+     reinterpret_cast<PyCFunction>(pygpu_shader_attr_from_name),
      METH_O,
      pygpu_shader_attr_from_name_doc},
     {"format_calc",
-     (PyCFunction)pygpu_shader_format_calc,
+     reinterpret_cast<PyCFunction>(pygpu_shader_format_calc),
      METH_NOARGS,
      pygpu_shader_format_calc_doc},
     {"attrs_info_get",
-     (PyCFunction)pygpu_shader_attrs_info_get,
+     reinterpret_cast<PyCFunction>(pygpu_shader_attrs_info_get),
      METH_NOARGS,
      pygpu_shader_attrs_info_get_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -835,11 +850,15 @@ static PyObject *pygpu_shader_program_get(BPyGPUShader * /*self*/, void * /*clos
 
 static PyGetSetDef pygpu_shader__tp_getseters[] = {
     {"program",
-     (getter)pygpu_shader_program_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(pygpu_shader_program_get),
+     static_cast<setter>(nullptr),
      pygpu_shader_program_doc,
      nullptr},
-    {"name", (getter)pygpu_shader_name, (setter) nullptr, pygpu_shader_name_doc, nullptr},
+    {"name",
+     reinterpret_cast<getter>(pygpu_shader_name),
+     static_cast<setter>(nullptr),
+     pygpu_shader_name_doc,
+     nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
@@ -848,7 +867,7 @@ static void pygpu_shader__tp_dealloc(BPyGPUShader *self)
   if (self->is_builtin == false) {
     GPU_shader_free(self->shader);
   }
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
 }
 
 PyTypeObject BPyGPUShader_Type = {
@@ -856,7 +875,7 @@ PyTypeObject BPyGPUShader_Type = {
     /*tp_name*/ "GPUShader",
     /*tp_basicsize*/ sizeof(BPyGPUShader),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)pygpu_shader__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(pygpu_shader__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -971,7 +990,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, 
     return nullptr;
   }
 
-  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader_with_config(
+  gpu::Shader *shader = GPU_shader_get_builtin_shader_with_config(
       GPUBuiltinShader(pygpu_bultinshader.value_found), GPUShaderConfig(pygpu_config.value_found));
 
   if (shader == nullptr) {
@@ -991,7 +1010,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg shader_info: GPUShaderCreateInfo\n"
     "   :type shader_info: :class:`gpu.types.GPUShaderCreateInfo`\n"
-    "   :return: Shader object corresponding to the given name.\n"
+    "   :return: Shader object corresponding to the given shader info.\n"
     "   :rtype: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUShaderCreateInfo *o)
 {
@@ -1008,7 +1027,7 @@ static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUSh
     return nullptr;
   }
 
-  blender::gpu::Shader *shader = GPU_shader_create_from_info_python(o->info);
+  gpu::Shader *shader = GPU_shader_create_from_info_python(o->info);
   if (!shader) {
     PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
     return nullptr;
@@ -1028,13 +1047,16 @@ static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUSh
 #endif
 
 static PyMethodDef pygpu_shader_module__tp_methods[] = {
-    {"unbind", (PyCFunction)pygpu_shader_unbind, METH_NOARGS, pygpu_shader_unbind_doc},
+    {"unbind",
+     reinterpret_cast<PyCFunction>(pygpu_shader_unbind),
+     METH_NOARGS,
+     pygpu_shader_unbind_doc},
     {"from_builtin",
-     (PyCFunction)pygpu_shader_from_builtin,
+     reinterpret_cast<PyCFunction>(pygpu_shader_from_builtin),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_shader_from_builtin_doc},
     {"create_from_info",
-     (PyCFunction)pygpu_shader_create_from_info,
+     reinterpret_cast<PyCFunction>(pygpu_shader_create_from_info),
      METH_O,
      pygpu_shader_create_from_info_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -1059,7 +1081,7 @@ PyDoc_STRVAR(
     "\n"
     "All built-in shaders have the ``mat4 ModelViewProjectionMatrix`` uniform.\n"
     "\n"
-    "Its value must be modified using the :class:`gpu.matrix` module.\n"
+    "Its value must be modified using the :mod:`gpu.matrix` module.\n"
     "\n"
     ".. important::\n"
     "\n"
@@ -1084,7 +1106,7 @@ static PyModuleDef pygpu_shader_module_def = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUShader_CreatePyObject(blender::gpu::Shader *shader, bool is_builtin)
+PyObject *BPyGPUShader_CreatePyObject(gpu::Shader *shader, bool is_builtin)
 {
   BPyGPUShader *self;
 
@@ -1092,7 +1114,7 @@ PyObject *BPyGPUShader_CreatePyObject(blender::gpu::Shader *shader, bool is_buil
   self->shader = shader;
   self->is_builtin = is_builtin;
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *bpygpu_shader_init()
@@ -1104,7 +1126,7 @@ PyObject *bpygpu_shader_init()
   return submodule;
 }
 
-bool bpygpu_shader_is_polyline(blender::gpu::Shader *shader)
+bool bpygpu_shader_is_polyline(gpu::Shader *shader)
 {
   return ELEM(shader,
               GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_FLAT_COLOR),
@@ -1113,3 +1135,5 @@ bool bpygpu_shader_is_polyline(blender::gpu::Shader *shader)
 }
 
 /** \} */
+
+}  // namespace blender

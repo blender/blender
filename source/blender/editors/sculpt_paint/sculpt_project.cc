@@ -149,7 +149,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
     case gesture::ShapeType::Line:
       switch (pbvh.type()) {
         case bke::pbvh::Type::Mesh: {
-          Mesh &mesh = *static_cast<Mesh *>(object.data);
+          Mesh &mesh = *id_cast<Mesh *>(object.data);
           MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
           const PositionDeformData position_data(depsgraph, object);
           const MeshAttributeData attribute_data(mesh);
@@ -215,7 +215,8 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
       MEM_callocN<ProjectOperation>(__func__));
 
-  ProjectOperation *project_operation = (ProjectOperation *)gesture_data.operation;
+  ProjectOperation *project_operation = reinterpret_cast<ProjectOperation *>(
+      gesture_data.operation);
 
   project_operation->operation.begin = gesture_begin;
   project_operation->operation.apply_for_symmetry_pass = gesture_apply_for_symmetry_pass;

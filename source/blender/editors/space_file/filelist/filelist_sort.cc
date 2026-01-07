@@ -17,6 +17,8 @@
 #include "../filelist.hh"
 #include "filelist_intern.hh"
 
+namespace blender {
+
 struct FileSortData {
   bool inverted;
 };
@@ -247,8 +249,6 @@ static int compare_extension(void *user_data, const void *a1, const void *a2)
 
 static int compare_asset_catalog(void *user_data, const void *a1, const void *a2)
 {
-  using namespace blender;
-
   const FileListInternEntry *entry1 = static_cast<const FileListInternEntry *>(a1);
   const FileListInternEntry *entry2 = static_cast<const FileListInternEntry *>(a2);
   const FileSortData *sort_data = static_cast<const FileSortData *>(user_data);
@@ -350,3 +350,5 @@ void filelist_setsorting(FileList *filelist, const short sort, bool invert_sort)
                                     (filelist->flags & ~FL_SORT_INVERT);
   }
 }
+
+}  // namespace blender

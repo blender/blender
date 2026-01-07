@@ -36,6 +36,8 @@
 
 #include "graph_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Calculate Range
  * \{ */
@@ -50,7 +52,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
 {
   Scene *scene = ac->scene;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Get data to filter, from Dope-sheet. */
@@ -82,8 +84,8 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     bool foundBounds = false;
 
     /* Go through channels, finding max extents. */
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      FCurve *fcu = (FCurve *)ale->key_data;
+    for (bAnimListElem &ale : anim_data) {
+      FCurve *fcu = static_cast<FCurve *>(ale.key_data);
       rctf bounds;
       float unitFac, offset;
 
@@ -92,11 +94,11 @@ void get_graph_keyframe_extents(bAnimContext *ac,
         short mapping_flag = ANIM_get_normalization_flags(ac->sl);
 
         /* Apply NLA scaling. */
-        bounds.xmin = ANIM_nla_tweakedit_remap(ale, bounds.xmin, NLATIME_CONVERT_MAP);
-        bounds.xmax = ANIM_nla_tweakedit_remap(ale, bounds.xmax, NLATIME_CONVERT_MAP);
+        bounds.xmin = ANIM_nla_tweakedit_remap(&ale, bounds.xmin, NLATIME_CONVERT_MAP);
+        bounds.xmax = ANIM_nla_tweakedit_remap(&ale, bounds.xmax, NLATIME_CONVERT_MAP);
 
         /* Apply unit corrections. */
-        unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag, &offset);
+        unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale.id, fcu, mapping_flag, &offset);
         bounds.ymin += offset;
         bounds.ymax += offset;
         bounds.ymin *= unitFac;
@@ -268,7 +270,7 @@ static wmOperatorStatus graphkeys_viewall(bContext *C,
                                                                         UI_MARKER_MARGIN_Y;
   BLI_rctf_pad_y(&cur_new, ac.region->winy, pad_bottom, pad_top);
 
-  UI_view2d_smooth_view(C, ac.region, &cur_new, smooth_viewtx);
+  ui::view2d_smooth_view(C, ac.region, &cur_new, smooth_viewtx);
   return OPERATOR_FINISHED;
 }
 
@@ -380,8 +382,8 @@ void GRAPH_OT_view_frame(wmOperatorType *ot)
 /* Bake each F-Curve into a set of samples, and store as a ghost curve. */
 static void create_ghost_curves(bAnimContext *ac, int start, int end)
 {
-  SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-  ListBase anim_data = {nullptr, nullptr};
+  SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(ac->sl);
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* Free existing ghost curves. */
@@ -400,8 +402,8 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     FCurve *gcu = BKE_fcurve_create();
     ChannelDriver *driver = fcu->driver;
     FPoint *fpt;
@@ -413,7 +415,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
     fcu->driver = nullptr;
 
     /* Calculate unit-mapping factor. */
-    unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag, &offset);
+    unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale.id, fcu, mapping_flag, &offset);
 
     /* Create samples, but store them in a new curve
      * - we cannot use fcurve_store_samples() as that will only overwrite the original curve.
@@ -423,7 +425,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 
     /* Use the sampling callback at 1-frame intervals from start to end frames. */
     for (cfra = start; cfra <= end; cfra++, fpt++) {
-      const float cfrae = ANIM_nla_tweakedit_remap(ale, cfra, NLATIME_CONVERT_UNMAP);
+      const float cfrae = ANIM_nla_tweakedit_remap(&ale, cfra, NLATIME_CONVERT_UNMAP);
 
       fpt->vec[0] = cfrae;
       fpt->vec[1] = (fcurve_samplingcb_evalcurve(fcu, nullptr, cfrae) + offset) * unitFac;
@@ -510,7 +512,7 @@ static wmOperatorStatus graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
-  sipo = (SpaceGraph *)ac.sl;
+  sipo = reinterpret_cast<SpaceGraph *>(ac.sl);
 
   /* If no ghost curves, don't do anything. */
   if (BLI_listbase_is_empty(&sipo->runtime.ghost_curves)) {
@@ -541,3 +543,5 @@ void GRAPH_OT_ghost_curves_clear(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -71,7 +71,7 @@ class GridDensityProvider {
         source.next();
       }
     }
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2]
            << ", " << proscenium[3] << ")" << endl;
     }
@@ -103,7 +103,7 @@ class GridDensityProvider {
                              std::min(std::min(p5.y(), p6.y()), std::min(p7.y(), p8.y())));
     proscenium[3] = std::max(std::max(std::max(p1.y(), p2.y()), std::max(p3.y(), p4.y())),
                              std::max(std::max(p5.y(), p6.y()), std::max(p7.y(), p8.y())));
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Proscenium: " << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2]
            << ", " << proscenium[3] << endl;
     }

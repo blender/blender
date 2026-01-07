@@ -11,20 +11,22 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
-void BKE_multires_subdiv_settings_init(blender::bke::subdiv::Settings *settings,
+namespace blender {
+
+void BKE_multires_subdiv_settings_init(bke::subdiv::Settings *settings,
                                        const MultiresModifierData *mmd)
 {
   settings->is_simple = false;
   settings->is_adaptive = true;
   settings->level = settings->is_simple ? 1 : mmd->quality;
   settings->use_creases = (mmd->flags & eMultiresModifierFlag_UseCrease);
-  settings->vtx_boundary_interpolation =
-      blender::bke::subdiv::vtx_boundary_interpolation_from_subsurf(mmd->boundary_smooth);
-  settings->fvar_linear_interpolation = blender::bke::subdiv::fvar_interpolation_from_uv_smooth(
+  settings->vtx_boundary_interpolation = bke::subdiv::vtx_boundary_interpolation_from_subsurf(
+      mmd->boundary_smooth);
+  settings->fvar_linear_interpolation = bke::subdiv::fvar_interpolation_from_uv_smooth(
       mmd->uv_smooth);
 }
 
-void BKE_multires_subdiv_mesh_settings_init(blender::bke::subdiv::ToMeshSettings *mesh_settings,
+void BKE_multires_subdiv_mesh_settings_init(bke::subdiv::ToMeshSettings *mesh_settings,
                                             const Scene *scene,
                                             const Object *object,
                                             const MultiresModifierData *mmd,
@@ -37,3 +39,5 @@ void BKE_multires_subdiv_mesh_settings_init(blender::bke::subdiv::ToMeshSettings
   mesh_settings->use_optimal_display = (mmd->flags & eMultiresModifierFlag_ControlEdges) &&
                                        !ignore_control_edges;
 }
+
+}  // namespace blender

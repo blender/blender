@@ -32,14 +32,18 @@
 #include "movie_read.hh"
 #include "movie_util.hh"
 
-static CLG_LogRef LOG = {"video.proxy"};
-
 #ifdef WITH_FFMPEG
 extern "C" {
 #  include "ffmpeg_compat.h"
 #  include <libavutil/imgutils.h>
 }
+#endif
 
+namespace blender {
+
+static CLG_LogRef LOG = {"video.proxy"};
+
+#ifdef WITH_FFMPEG
 static const char temp_ext[] = "_part";
 #endif
 
@@ -205,13 +209,13 @@ static MovieIndex *movie_index_open(const char *filepath)
 
 uint64_t MovieIndex::get_seek_pos_pts(int frame_index) const
 {
-  frame_index = blender::math::clamp<int>(frame_index, 0, this->entries.size() - 1);
+  frame_index = math::clamp<int>(frame_index, 0, this->entries.size() - 1);
   return this->entries[frame_index].seek_pos_pts;
 }
 
 uint64_t MovieIndex::get_seek_pos_dts(int frame_index) const
 {
-  frame_index = blender::math::clamp<int>(frame_index, 0, this->entries.size() - 1);
+  frame_index = math::clamp<int>(frame_index, 0, this->entries.size() - 1);
   return this->entries[frame_index].seek_pos_dts;
 }
 
@@ -244,7 +248,7 @@ int MovieIndex::get_frame_index(int frameno) const
 
 uint64_t MovieIndex::get_pts(int frame_index) const
 {
-  frame_index = blender::math::clamp<int>(frame_index, 0, this->entries.size() - 1);
+  frame_index = math::clamp<int>(frame_index, 0, this->entries.size() - 1);
   return this->entries[frame_index].pts;
 }
 
@@ -905,7 +909,7 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(MovieProxyBuilder *context, 
 static int index_rebuild_ffmpeg(MovieProxyBuilder *context,
                                 const bool *stop,
                                 bool *do_update,
-                                float *progress)
+                                const blender::FunctionRef<void(float progress)> set_progress_fn)
 {
   AVFrame *in_frame = av_frame_alloc();
   AVPacket *next_packet = av_packet_alloc();
@@ -917,13 +921,17 @@ static int index_rebuild_ffmpeg(MovieProxyBuilder *context,
       av_guess_frame_rate(context->iFormatCtx, context->iStream, nullptr));
   context->pts_time_base = av_q2d(context->iStream->time_base);
 
+  float progress = 0.0f;
   while (av_read_frame(context->iFormatCtx, next_packet) >= 0) {
     float next_progress =
         float(int(floor(double(next_packet->pos) * 100 / double(stream_size) + 0.5))) / 100;
 
-    if (*progress != next_progress) {
-      *progress = next_progress;
+    if (progress != next_progress) {
+      progress = next_progress;
       *do_update = true;
+      if (set_progress_fn) {
+        set_progress_fn(progress);
+      }
     }
 
     if (*stop) {
@@ -1119,7 +1127,7 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
                                            int proxy_sizes_in_use,
                                            int quality,
                                            const bool overwrite,
-                                           blender::Set<std::string> *processed_paths,
+                                           Set<std::string> *processed_paths,
                                            bool build_only_on_bad_performance)
 {
   int proxy_sizes_to_build = proxy_sizes_in_use;
@@ -1183,17 +1191,16 @@ void MOV_proxy_builder_process(MovieProxyBuilder *context,
                                bool *stop,
                                /* NOLINTNEXTLINE: readability-non-const-parameter. */
                                bool *do_update,
-                               /* NOLINTNEXTLINE: readability-non-const-parameter. */
-                               float *progress)
+                               const blender::FunctionRef<void(float progress)> set_progress_fn)
 {
 #ifdef WITH_FFMPEG
   if (context != nullptr) {
     if (indexer_need_to_build_proxy(context)) {
-      index_rebuild_ffmpeg(context, stop, do_update, progress);
+      index_rebuild_ffmpeg(context, stop, do_update, set_progress_fn);
     }
   }
 #endif
-  UNUSED_VARS(context, stop, do_update, progress);
+  UNUSED_VARS(context, stop, do_update, set_progress_fn);
 }
 
 void MOV_proxy_builder_finish(MovieProxyBuilder *context, const bool stop)
@@ -1327,3 +1334,5 @@ int MOV_get_existing_proxies(const MovieReader *anim)
   }
   return existing;
 }
+
+}  // namespace blender

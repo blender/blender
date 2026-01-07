@@ -344,7 +344,7 @@ inline void foreach_attribute(const void *owner,
 }
 
 template<const GeometryAttributeProviders &providers>
-inline AttributeValidator lookup_validator(const void * /*owner*/, const blender::StringRef name)
+inline AttributeValidator lookup_validator(const void * /*owner*/, const StringRef name)
 {
   const BuiltinAttributeProvider *provider =
       providers.builtin_attribute_providers().lookup_default_as(name, nullptr);

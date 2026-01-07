@@ -99,6 +99,19 @@ void VKResourceStateTracker::add_buffer(VkBuffer vk_buffer, const char *name)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Image layout
+ * \{ */
+
+void VKResourceStateTracker::update_image_layout(VkImage vk_image, VkImageLayout vk_image_layout)
+{
+  ResourceHandle handle = image_resources_.lookup(vk_image);
+  Resource &resource = resources_.lookup(handle);
+  resource.barrier_state.image_layout = vk_image_layout;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Remove resources
  * \{ */
 

@@ -17,11 +17,13 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
 
+namespace blender {
+
 struct BMVert;
 struct Depsgraph;
 struct Object;
 
-namespace blender::ed::sculpt_paint::flood_fill {
+namespace ed::sculpt_paint::flood_fill {
 
 struct FillDataMesh {
   std::queue<int> queue;
@@ -82,4 +84,6 @@ struct FillDataBMesh {
   void execute(Object &object, FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func);
 };
 
-}  // namespace blender::ed::sculpt_paint::flood_fill
+}  // namespace ed::sculpt_paint::flood_fill
+
+}  // namespace blender

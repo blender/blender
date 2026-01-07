@@ -13,6 +13,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
+namespace blender {
+
 /**
  * MISC utility functions.
  */
@@ -291,7 +293,7 @@ BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v)
   const BMEdge *e_iter = e;
   do {
     if (e_iter->l != nullptr) {
-      return (BMEdge *)((e_iter->l->v == v) ? e_iter : e_iter->l->next->e);
+      return const_cast<BMEdge *>((e_iter->l->v == v) ? e_iter : e_iter->l->next->e);
     }
   } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
   return nullptr;
@@ -336,7 +338,7 @@ BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v)
       return e_find;
     }
   } while ((e_find = bmesh_disk_edge_next(e_find, v)) != e);
-  return (BMEdge *)e;
+  return const_cast<BMEdge *>(e);
 }
 
 bool bmesh_radial_validate(int radlen, BMLoop *l)
@@ -445,7 +447,7 @@ BMLoop *bmesh_radial_faceloop_find_first(const BMLoop *l, const BMVert *v)
   l_iter = l;
   do {
     if (l_iter->v == v) {
-      return (BMLoop *)l_iter;
+      return const_cast<BMLoop *>(l_iter);
     }
   } while ((l_iter = l_iter->radial_next) != l);
   return nullptr;
@@ -460,7 +462,7 @@ BMLoop *bmesh_radial_faceloop_find_next(const BMLoop *l, const BMVert *v)
       return l_iter;
     }
   } while ((l_iter = l_iter->radial_next) != l);
-  return (BMLoop *)l;
+  return const_cast<BMLoop *>(l);
 }
 
 int bmesh_radial_length(const BMLoop *l)
@@ -567,3 +569,5 @@ bool bmesh_loop_validate(BMFace *f)
 
   return true;
 }
+
+}  // namespace blender

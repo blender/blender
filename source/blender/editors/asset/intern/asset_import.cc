@@ -23,7 +23,8 @@ ID *asset_local_id_ensure_imported(
     const asset_system::AssetRepresentation &asset,
     const int flags, /* #eFileSel_Params_Flag + #eBLOLibLinkFlags */
     const std::optional<eAssetImportMethod> import_method,
-    const std::optional<ImportInstantiateContext> instantiate_context)
+    const std::optional<ImportInstantiateContext> instantiate_context,
+    ReportList *reports)
 {
   if (ID *local_id = asset.local_id()) {
     return local_id;
@@ -60,7 +61,8 @@ ID *asset_local_id_ensure_imported(
                                     blend_path.c_str(),
                                     asset.get_id_type(),
                                     asset.get_name().c_str(),
-                                    flags | (asset.get_use_relative_path() ? FILE_RELPATH : 0));
+                                    flags | (asset.get_use_relative_path() ? FILE_RELPATH : 0),
+                                    reports);
     case ASSET_IMPORT_PACK:
       return WM_file_link_datablock(&bmain,
                                     scene,
@@ -70,7 +72,8 @@ ID *asset_local_id_ensure_imported(
                                     asset.get_id_type(),
                                     asset.get_name().c_str(),
                                     flags | BLO_LIBLINK_PACK |
-                                        (asset.get_use_relative_path() ? FILE_RELPATH : 0));
+                                        (asset.get_use_relative_path() ? FILE_RELPATH : 0),
+                                    reports);
     case ASSET_IMPORT_APPEND:
       return WM_file_append_datablock(&bmain,
                                       scene,
@@ -81,7 +84,8 @@ ID *asset_local_id_ensure_imported(
                                       asset.get_name().c_str(),
                                       flags | BLO_LIBLINK_APPEND_RECURSIVE |
                                           BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
-                                          (asset.get_use_relative_path() ? FILE_RELPATH : 0));
+                                          (asset.get_use_relative_path() ? FILE_RELPATH : 0),
+                                      reports);
     case ASSET_IMPORT_APPEND_REUSE:
       return WM_file_append_datablock(&bmain,
                                       scene,
@@ -93,7 +97,8 @@ ID *asset_local_id_ensure_imported(
                                       flags | BLO_LIBLINK_APPEND_RECURSIVE |
                                           BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
                                           BLO_LIBLINK_APPEND_LOCAL_ID_REUSE |
-                                          (asset.get_use_relative_path() ? FILE_RELPATH : 0));
+                                          (asset.get_use_relative_path() ? FILE_RELPATH : 0),
+                                      reports);
   }
   BLI_assert_unreachable();
   return nullptr;

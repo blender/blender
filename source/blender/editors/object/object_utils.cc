@@ -11,6 +11,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 
@@ -74,7 +75,7 @@ bool calc_active_center_for_editmode(Object *obedit, const bool select_only, flo
       break;
     }
     case OB_ARMATURE: {
-      bArmature *arm = static_cast<bArmature *>(obedit->data);
+      bArmature *arm = id_cast<bArmature *>(obedit->data);
       EditBone *ebo = arm->act_edbone;
 
       if (ebo && (!select_only || (ebo->flag & (BONE_SELECTED | BONE_ROOTSEL)))) {
@@ -86,7 +87,7 @@ bool calc_active_center_for_editmode(Object *obedit, const bool select_only, flo
     }
     case OB_CURVES_LEGACY:
     case OB_SURF: {
-      Curve *cu = static_cast<Curve *>(obedit->data);
+      Curve *cu = id_cast<Curve *>(obedit->data);
 
       if (ED_curve_active_center(cu, r_center)) {
         return true;
@@ -94,7 +95,7 @@ bool calc_active_center_for_editmode(Object *obedit, const bool select_only, flo
       break;
     }
     case OB_MBALL: {
-      MetaBall *mb = static_cast<MetaBall *>(obedit->data);
+      MetaBall *mb = id_cast<MetaBall *>(obedit->data);
       MetaElem *ml_act = mb->lastelem;
 
       if (ml_act && (!select_only || (ml_act->flag & SELECT))) {
@@ -104,7 +105,7 @@ bool calc_active_center_for_editmode(Object *obedit, const bool select_only, flo
       break;
     }
     case OB_LATTICE: {
-      BPoint *actbp = BKE_lattice_active_point_get(static_cast<Lattice *>(obedit->data));
+      BPoint *actbp = BKE_lattice_active_point_get(id_cast<Lattice *>(obedit->data));
 
       if (actbp) {
         copy_v3_v3(r_center, actbp->vec);
@@ -126,7 +127,7 @@ bool calc_active_center_for_posemode(Object *ob, const bool select_only, float r
 {
   bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
   if (pchan && (!select_only || (pchan->flag & POSE_SELECTED))) {
-    const bArmature *arm = static_cast<bArmature *>(ob->data);
+    const bArmature *arm = id_cast<bArmature *>(ob->data);
     BKE_pose_channel_transform_location(arm, pchan, r_center);
     return true;
   }
@@ -196,9 +197,9 @@ void xform_skip_child_container_item_ensure_from_array(XFormObjectSkipChild_Cont
 {
   Set<Object *> objects_in_transdata(Span(objects, objects_len));
   BKE_view_layer_synced_ensure(scene, view_layer);
-  ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
-  LISTBASE_FOREACH (Base *, base, object_bases) {
-    Object *ob = base->object;
+  ListBaseT<Base> *object_bases = BKE_view_layer_object_bases_get(view_layer);
+  for (Base &base : *object_bases) {
+    Object *ob = base.object;
     if (ob->parent != nullptr) {
       if (!objects_in_transdata.contains(ob)) {
         if (objects_in_transdata.contains(ob->parent)) {
@@ -227,8 +228,8 @@ void xform_skip_child_container_item_ensure_from_array(XFormObjectSkipChild_Cont
     }
   }
 
-  LISTBASE_FOREACH (Base *, base, object_bases) {
-    Object *ob = base->object;
+  for (Base &base : *object_bases) {
+    Object *ob = base.object;
 
     if (objects_in_transdata.contains(ob)) {
       /* pass. */

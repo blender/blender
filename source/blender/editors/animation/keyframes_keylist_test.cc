@@ -191,14 +191,14 @@ TEST(keylist, find_closest)
 class KeylistSummaryTest : public testing::Test {
  public:
   Main *bmain;
-  blender::animrig::Action *action;
+  animrig::Action *action;
   Object *cube;
   Object *armature;
   bArmature *armature_data;
   Bone *bone1;
   Bone *bone2;
 
-  SpaceAction saction = {nullptr};
+  SpaceAction saction = {};
   bAnimContext ac = {nullptr};
 
   static void SetUpTestSuite()
@@ -224,8 +224,8 @@ class KeylistSummaryTest : public testing::Test {
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
 
     armature_data = BKE_armature_add(bmain, "ARArmature");
-    bone1 = reinterpret_cast<Bone *>(MEM_callocN(sizeof(Bone), "KeylistSummaryTest"));
-    bone2 = reinterpret_cast<Bone *>(MEM_callocN(sizeof(Bone), "KeylistSummaryTest"));
+    bone1 = MEM_new_for_free<Bone>("KeylistSummaryTest");
+    bone2 = MEM_new_for_free<Bone>("KeylistSummaryTest");
     STRNCPY_UTF8(bone1->name, "Bone.001");
     STRNCPY_UTF8(bone2->name, "Bone.002");
     BLI_addtail(&armature_data->bonebase, bone1);
@@ -233,7 +233,7 @@ class KeylistSummaryTest : public testing::Test {
     BKE_armature_bone_hash_make(armature_data);
 
     armature = BKE_object_add_only_object(bmain, OB_ARMATURE, "OBArmature");
-    armature->data = armature_data;
+    armature->data = id_cast<ID *>(armature_data);
     BKE_pose_ensure(bmain, armature, armature_data, false);
 
     /*

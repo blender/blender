@@ -37,6 +37,8 @@ extern "C" {
 #    include <AUD_Types.h>
 #  endif
 
+namespace blender {
+
 struct Scene;
 struct ReportList;
 struct StampData;
@@ -54,6 +56,7 @@ struct MovieWriter {
   bool ffmpeg_preview = false;
 
   int ffmpeg_crf = 0; /* set to 0 to not use CRF mode; we have another flag for lossless anyway. */
+  bool custom_crf = false;
   int ffmpeg_preset = 0; /* see eFFMpegPreset */
   int ffmpeg_profile = 0;
 
@@ -98,7 +101,10 @@ AVStream *alloc_audio_stream(MovieWriter *context,
                              AVCodecID codec_id,
                              AVFormatContext *of,
                              char *error,
-                             int error_size);
+                             int error_size,
+                             ReportList *reports);
 void write_audio_frames(MovieWriter *context, double to_pts);
+
+}  // namespace blender
 
 #endif /* WITH_FFMPEG */

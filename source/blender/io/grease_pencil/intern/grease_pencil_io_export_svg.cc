@@ -177,7 +177,7 @@ ExportStatus SVGExporter::export_scene(Scene &scene, StringRefNull filepath)
         if (ob_eval.type != OB_GREASE_PENCIL) {
           return ExportStatus::InvalidActiveObjectType;
         }
-        const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_eval.data);
+        const GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob_eval.data);
         frames = IndexMask::from_predicate(
             frames, GrainSize(1024), memory, [&](const int frame_number) {
               return this->is_selected_frame(grease_pencil, frame_number);
@@ -272,7 +272,7 @@ void SVGExporter::export_grease_pencil_objects(pugi::xml_node node, const int fr
     /* Use evaluated version to get strokes with modifiers. */
     const Object *ob_eval = DEG_get_evaluated(context_.depsgraph, ob);
     BLI_assert(ob_eval->type == OB_GREASE_PENCIL);
-    const GreasePencil *grease_pencil_eval = static_cast<const GreasePencil *>(ob_eval->data);
+    const GreasePencil *grease_pencil_eval = id_cast<const GreasePencil *>(ob_eval->data);
 
     for (const bke::greasepencil::Layer *layer : grease_pencil_eval->layers()) {
       if (!layer->is_visible()) {

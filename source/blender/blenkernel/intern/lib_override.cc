@@ -71,6 +71,8 @@
 
 #include "lib_intern.hh"
 
+namespace blender {
+
 // #define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
@@ -82,7 +84,7 @@ using namespace blender::bke;
 static CLG_LogRef LOG = {"lib.override"};
 static CLG_LogRef LOG_RESYNC = {"lib.override.resync"};
 
-namespace blender::bke::liboverride {
+namespace bke::liboverride {
 
 bool is_auto_resync_enabled()
 {
@@ -90,7 +92,7 @@ bool is_auto_resync_enabled()
          (G.fileflags & G_LIBOVERRIDE_NO_AUTO_RESYNC) == 0;
 }
 
-}  // namespace blender::bke::liboverride
+}  // namespace bke::liboverride
 
 static void lib_override_library_property_copy(IDOverrideLibraryProperty *op_dst,
                                                IDOverrideLibraryProperty *op_src);
@@ -105,7 +107,7 @@ BLI_INLINE IDOverrideLibraryRuntime *override_library_runtime_ensure(
     IDOverrideLibrary *liboverride)
 {
   if (liboverride->runtime == nullptr) {
-    liboverride->runtime = MEM_callocN<IDOverrideLibraryRuntime>(__func__);
+    liboverride->runtime = MEM_new_for_free<IDOverrideLibraryRuntime>(__func__);
   }
   return liboverride->runtime;
 }
@@ -169,7 +171,7 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   BLI_assert(local_id->override_library == nullptr);
 
   /* Else, generate new empty override. */
-  local_id->override_library = MEM_callocN<IDOverrideLibrary>(__func__);
+  local_id->override_library = MEM_new_for_free<IDOverrideLibrary>(__func__);
   local_id->override_library->reference = reference_id;
   if (reference_id) {
     id_us_plus(local_id->override_library->reference);
@@ -235,8 +237,8 @@ void BKE_lib_override_library_clear(IDOverrideLibrary *liboverride, const bool d
     BLI_ghash_clear(liboverride->runtime->rna_path_to_override_properties, nullptr, nullptr);
   }
 
-  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &liboverride->properties) {
-    lib_override_library_property_clear(op);
+  for (IDOverrideLibraryProperty &op : liboverride->properties) {
+    lib_override_library_property_clear(&op);
   }
   BLI_freelistN(&liboverride->properties);
 
@@ -337,12 +339,12 @@ bool BKE_lib_override_library_is_user_edited(const ID *id)
     return false;
   }
 
-  LISTBASE_FOREACH (const IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-    LISTBASE_FOREACH (const IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-      if ((opop->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) != 0) {
+  for (const IDOverrideLibraryProperty &op : id->override_library->properties) {
+    for (const IDOverrideLibraryPropertyOperation &opop : op.operations) {
+      if ((opop.flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) != 0) {
         continue;
       }
-      if (opop->operation == LIBOVERRIDE_OP_NOOP) {
+      if (opop.operation == LIBOVERRIDE_OP_NOOP) {
         continue;
       }
       /* If an operation does not match the filters above, it is considered as a user-editing one,
@@ -575,7 +577,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   ID *reference_id;
   bool success = true;
 
-  ListBase todo_ids = {nullptr};
+  ListBaseT<ID> todo_ids = {nullptr};
   LinkData *todo_id_iter;
 
   /* Get all IDs we want to override. */
@@ -646,7 +648,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     }
     BLI_assert(id_hierarchy_root != nullptr);
 
-    blender::Vector<ID *> relinked_ids;
+    Vector<ID *> relinked_ids;
     id::IDRemapper id_remapper;
     /* Still checking the whole Main, that way we can tag other local IDs as needing to be
      * remapped to use newly created overriding IDs, if needed. */
@@ -797,7 +799,7 @@ struct LibOverrideGroupTagData {
    * NOTE: This is needed only for partial resync, when only part of the liboverridden hierarchy is
    * re-generated, since some IDs in that sub-hierarchy may not be detected as needing to be
    * overridden, while they would when considering the whole hierarchy. */
-  blender::Set<ID *> linked_ids_hierarchy_default_override;
+  Set<ID *> linked_ids_hierarchy_default_override;
   bool do_create_linked_overrides_set;
 
   /**
@@ -860,8 +862,8 @@ struct LibOverrideGroupTagData {
 static void lib_override_group_tag_data_object_to_collection_init_collection_process(
     LibOverrideGroupTagData *data, Collection *collection)
 {
-  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
-    Object *ob = collection_object->ob;
+  for (CollectionObject &collection_object : collection->gobject) {
+    Object *ob = collection_object.ob;
     if (!ID_IS_LINKED(ob)) {
       continue;
     }
@@ -893,8 +895,8 @@ static void lib_override_group_tag_data_object_to_collection_init(LibOverrideGro
     lib_override_group_tag_data_object_to_collection_init_collection_process(
         data, data->scene->master_collection);
   }
-  LISTBASE_FOREACH (Collection *, collection, &data->bmain->collections) {
-    lib_override_group_tag_data_object_to_collection_init_collection_process(data, collection);
+  for (Collection &collection : data->bmain->collections) {
+    lib_override_group_tag_data_object_to_collection_init_collection_process(data, &collection);
   }
 }
 
@@ -1145,15 +1147,14 @@ static void lib_override_linked_group_tag_clear_boneshapes_objects(LibOverrideGr
 
   /* Remove (untag) bone shape objects, they shall never need to be to directly/explicitly
    * overridden. */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ob->id.lib != id_root->lib) {
+  for (Object &ob : bmain->objects) {
+    if (ob.id.lib != id_root->lib) {
       continue;
     }
-    if (ob->type == OB_ARMATURE && ob->pose != nullptr &&
-        ((ob->id.tag & data->tag) ||
-         data->linked_ids_hierarchy_default_override.contains(&ob->id)))
+    if (ob.type == OB_ARMATURE && ob.pose != nullptr &&
+        ((ob.id.tag & data->tag) || data->linked_ids_hierarchy_default_override.contains(&ob.id)))
     {
-      for (bPoseChannel *pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first);
+      for (bPoseChannel *pchan = static_cast<bPoseChannel *>(ob.pose->chanbase.first);
            pchan != nullptr;
            pchan = pchan->next)
       {
@@ -1166,16 +1167,17 @@ static void lib_override_linked_group_tag_clear_boneshapes_objects(LibOverrideGr
 
   /* Remove (untag) collections if they do not own any tagged object (either themselves, or in
    * their children collections). */
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    if (!((collection->id.tag & data->tag) != 0 ||
-          data->linked_ids_hierarchy_default_override.contains(&collection->id)) ||
-        &collection->id == id_root || collection->id.lib != id_root->lib)
+  for (Collection &collection : bmain->collections) {
+    if (!((collection.id.tag & data->tag) != 0 ||
+          data->linked_ids_hierarchy_default_override.contains(&collection.id)) ||
+        &collection.id == id_root || collection.id.lib != id_root->lib)
     {
       continue;
     }
 
-    if (!lib_override_linked_group_tag_collections_keep_tagged_check_recursive(data, collection)) {
-      data->id_tag_clear(&collection->id, bool(collection->id.tag & ID_TAG_MISSING));
+    if (!lib_override_linked_group_tag_collections_keep_tagged_check_recursive(data, &collection))
+    {
+      data->id_tag_clear(&collection.id, bool(collection.id.tag & ID_TAG_MISSING));
     }
   }
 }
@@ -1267,14 +1269,14 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
   if (is_resync) {
     return;
   }
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ID_IS_LINKED(ob) && (ob->id.tag & data->tag) != 0) {
+  for (Object &ob : bmain->objects) {
+    if (ID_IS_LINKED(&ob) && (ob.id.tag & data->tag) != 0) {
       Collection *instantiating_collection = nullptr;
       Collection *instantiating_collection_override_candidate = nullptr;
       /* Loop over all collections instantiating the object, if we already have a 'locale' one we
        * have nothing to do, otherwise try to find a 'linked' one that we can override too. */
       LinkNodePair *instantiating_collection_linklist = static_cast<LinkNodePair *>(
-          BLI_ghash_lookup(data->linked_object_to_instantiating_collections, ob));
+          BLI_ghash_lookup(data->linked_object_to_instantiating_collections, &ob));
       if (instantiating_collection_linklist != nullptr) {
         for (LinkNode *instantiating_collection_linknode = instantiating_collection_linklist->list;
              instantiating_collection_linknode != nullptr;
@@ -1487,7 +1489,7 @@ static void lib_override_library_create_post_process(Main *bmain,
   /* We create a set of all objects referenced into the scene by its hierarchy of collections.
    * NOTE: This is different that the list of bases, since objects in excluded collections etc.
    * won't have a base, but are still considered as instanced from our point of view. */
-  blender::Set<Object *> *all_objects_in_scene = BKE_scene_objects_as_set(scene, nullptr);
+  Set<Object *> *all_objects_in_scene = BKE_scene_objects_as_set(scene, nullptr);
 
   if (is_resync || id_root == nullptr || id_root->newid == nullptr) {
     /* Instantiating the root collection or object should never be needed in resync case, since the
@@ -1558,16 +1560,16 @@ static void lib_override_library_create_post_process(Main *bmain,
 
   /* We need to ensure all new overrides of objects are properly instantiated. */
   Collection *default_instantiating_collection = residual_storage;
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    Object *ob_new = reinterpret_cast<Object *>(ob->id.newid);
+  for (Object &ob : bmain->objects) {
+    Object *ob_new = reinterpret_cast<Object *>(ob.id.newid);
     if (ob_new == nullptr || (ID_IS_LINKED(ob_new) && ob_new->id.lib != owner_library)) {
       continue;
     }
 
     BLI_assert(ob_new->id.override_library != nullptr &&
-               ob_new->id.override_library->reference == &ob->id);
+               ob_new->id.override_library->reference == &ob.id);
 
-    if (old_active_object == ob) {
+    if (old_active_object == &ob) {
       BLI_assert(view_layer);
       /* May have been tagged as dirty again in a previous iteration of this loop, e.g. if adding a
        * liboverride object to a collection. */
@@ -1605,14 +1607,14 @@ static void lib_override_library_create_post_process(Main *bmain,
             /* Add the other objects to one of the collections instantiating the
              * root object, or scene's master collection if none found. */
             Object *ob_ref = reinterpret_cast<Object *>(id_ref);
-            LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-              if (BKE_collection_has_object(collection, ob_ref) &&
+            for (Collection &collection : bmain->collections) {
+              if (BKE_collection_has_object(&collection, ob_ref) &&
                   (view_layer != nullptr ?
-                       BKE_view_layer_has_collection(view_layer, collection) :
-                       BKE_collection_has_collection(scene->master_collection, collection)) &&
-                  !ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection))
+                       BKE_view_layer_has_collection(view_layer, &collection) :
+                       BKE_collection_has_collection(scene->master_collection, &collection)) &&
+                  !ID_IS_LINKED(&collection) && !ID_IS_OVERRIDE_LIBRARY(&collection))
               {
-                default_instantiating_collection = collection;
+                default_instantiating_collection = &collection;
               }
             }
             break;
@@ -1819,7 +1821,7 @@ static bool lib_override_root_is_valid(Main *bmain, ID *id)
     return true;
   }
 
-  blender::VectorSet<ID *> ancestors = {id};
+  VectorSet<ID *> ancestors = {id};
   for (int64_t i = 0; i < ancestors.size(); i++) {
     ID *id_iter = ancestors[i];
 
@@ -1848,7 +1850,7 @@ static bool lib_override_root_is_valid(Main *bmain, ID *id)
 }
 
 static void lib_override_root_hierarchy_set(
-    Main *bmain, ID *id_root, ID *id, ID *id_from, blender::Set<ID *> &processed_ids)
+    Main *bmain, ID *id_root, ID *id, ID *id_from, Set<ID *> &processed_ids)
 {
   if (processed_ids.contains(id)) {
     /* This ID has already been checked as having a valid hierarchy root, do not attempt to replace
@@ -1959,7 +1961,7 @@ static void lib_override_root_hierarchy_set(
 
 static void lib_override_library_main_hierarchy_id_root_ensure(Main *bmain,
                                                                ID *id,
-                                                               blender::Set<ID *> &processed_ids)
+                                                               Set<ID *> &processed_ids)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
 
@@ -2033,7 +2035,7 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
   ID *id;
 
   BKE_main_relations_create(bmain, 0);
-  blender::Set<ID *> processed_ids;
+  Set<ID *> processed_ids;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
@@ -2048,15 +2050,14 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
   BKE_main_relations_free(bmain);
 }
 
-static void lib_override_library_remap(
-    Main *bmain,
-    const ID *id_root_reference,
-    blender::Vector<std::pair<ID *, ID *>> &references_and_new_overrides,
-    GHash *linkedref_to_old_override)
+static void lib_override_library_remap(Main *bmain,
+                                       const ID *id_root_reference,
+                                       Vector<std::pair<ID *, ID *>> &references_and_new_overrides,
+                                       GHash *linkedref_to_old_override)
 {
   id::IDRemapper remapper_overrides_old_to_new;
-  blender::Vector<ID *> nomain_ids;
-  blender::Vector<ID *> new_overrides;
+  Vector<ID *> nomain_ids;
+  Vector<ID *> new_overrides;
 
   /* Used to ensure that newly created overrides have all of their 'linked id' pointers remapped to
    * the matching override if it exists. Necessary because in partial resync case, some existing
@@ -2215,18 +2216,17 @@ static ID *lib_override_library_resync_search_missing_ids_data(
   return match_id;
 }
 
-static bool lib_override_library_resync(
-    Main *bmain,
-    const blender::Map<Library *, Library *> *new_to_old_libraries_map,
-    Scene *scene,
-    ViewLayer *view_layer,
-    ID *id_root,
-    LinkNode *id_resync_roots,
-    ListBase *no_main_ids_list,
-    Collection *override_resync_residual_storage,
-    const bool do_hierarchy_enforce,
-    const bool do_post_process,
-    BlendFileReadReport *reports)
+static bool lib_override_library_resync(Main *bmain,
+                                        const Map<Library *, Library *> *new_to_old_libraries_map,
+                                        Scene *scene,
+                                        ViewLayer *view_layer,
+                                        ID *id_root,
+                                        LinkNode *id_resync_roots,
+                                        ListBaseT<ID> *no_main_ids_list,
+                                        Collection *override_resync_residual_storage,
+                                        const bool do_hierarchy_enforce,
+                                        const bool do_post_process,
+                                        BlendFileReadReport *reports)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
 
@@ -2366,7 +2366,7 @@ static bool lib_override_library_resync(
                 reinterpret_cast<Scene *>(reference_id)->master_collection);
             break;
           case ID_NT:
-            reference_id = reinterpret_cast<ID *>(blender::bke::node_tree_from_id(id));
+            reference_id = reinterpret_cast<ID *>(bke::node_tree_from_id(id));
             break;
           default:
             break;
@@ -2443,9 +2443,9 @@ static bool lib_override_library_resync(
   LibOverrideMissingIDsData missing_ids_data = lib_override_library_resync_build_missing_ids_data(
       bmain, is_relocate);
   /* Vector of pairs of reference IDs, and their new override IDs. */
-  blender::Vector<std::pair<ID *, ID *>> references_and_new_overrides;
+  Vector<std::pair<ID *, ID *>> references_and_new_overrides;
 
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     ID *id_reference_iter;
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_reference_iter) {
@@ -2566,7 +2566,7 @@ static bool lib_override_library_resync(
 
   BKE_main_collection_sync(bmain);
 
-  blender::Vector<ID *> id_override_old_vector;
+  Vector<ID *> id_override_old_vector;
 
   /* We need to apply override rules in a separate loop, after all ID pointers have been properly
    * remapped, and all new local override IDs have gotten their proper original names, otherwise
@@ -2640,29 +2640,28 @@ static bool lib_override_library_resync(
        * that way the potentially new pointer will be properly kept, when old one is still valid
        * too (typical case: assigning new ID to some usage, while old one remains used elsewhere
        * in the override hierarchy). */
-      LISTBASE_FOREACH_MUTABLE (
-          IDOverrideLibraryProperty *, op, &id_override_new->override_library->properties)
+      for (IDOverrideLibraryProperty &op :
+           id_override_new->override_library->properties.items_mutable())
       {
-        LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-          if (opop->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) {
-            lib_override_library_property_operation_clear(opop);
-            BLI_freelinkN(&op->operations, opop);
+        for (IDOverrideLibraryPropertyOperation &opop : op.operations.items_mutable()) {
+          if (opop.flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) {
+            lib_override_library_property_operation_clear(&opop);
+            BLI_freelinkN(&op.operations, &opop);
           }
         }
-        if (BLI_listbase_is_empty(&op->operations)) {
-          BKE_lib_override_library_property_delete(id_override_new->override_library, op);
+        if (BLI_listbase_is_empty(&op.operations)) {
+          BKE_lib_override_library_property_delete(id_override_new->override_library, &op);
         }
         else if (do_clear_parenting_override) {
-          if (strstr(op->rna_path, "matrix_parent_inverse") ||
-              strstr(op->rna_path, "parent_type") || strstr(op->rna_path, "parent_bone") ||
-              strstr(op->rna_path, "parent_vertices"))
+          if (strstr(op.rna_path, "matrix_parent_inverse") || strstr(op.rna_path, "parent_type") ||
+              strstr(op.rna_path, "parent_bone") || strstr(op.rna_path, "parent_vertices"))
           {
             CLOG_DEBUG(&LOG_RESYNC,
                        "Deleting liboverride property '%s' from object %s, as its parent pointer "
                        "matches the reference data hierarchy wise",
                        id_override_new->name + 2,
-                       op->rna_path);
-            BKE_lib_override_library_property_delete(id_override_new->override_library, op);
+                       op.rna_path);
+            BKE_lib_override_library_property_delete(id_override_new->override_library, &op);
           }
         }
       }
@@ -2909,7 +2908,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
                                      const bool do_hierarchy_enforce,
                                      BlendFileReadReport *reports)
 {
-  ListBase no_main_ids_list = {nullptr};
+  ListBaseT<ID> no_main_ids_list = {nullptr};
   LinkNode id_resync_roots{};
   id_resync_roots.link = id_root;
   id_resync_roots.next = nullptr;
@@ -2926,8 +2925,8 @@ bool BKE_lib_override_library_resync(Main *bmain,
                                                    true,
                                                    reports);
 
-  LISTBASE_FOREACH_MUTABLE (ID *, id_iter, &no_main_ids_list) {
-    BKE_id_free(bmain, id_iter);
+  for (ID &id_iter : no_main_ids_list.items_mutable()) {
+    BKE_id_free(bmain, &id_iter);
   }
 
   /* Cleanup global namemap, to avoid extra processing with regular ID name management. Better to
@@ -3230,7 +3229,7 @@ static bool lib_override_resync_tagging_finalize_recursive_check_from(
 /* Once all IDs needing resync have been tagged, partial ID roots can be found by processing each
  * tagged-for-resync IDs' ancestors within their liboverride hierarchy. */
 static void lib_override_resync_tagging_finalize(Main *bmain,
-                                                 blender::Map<ID *, LinkNodePair *> &id_roots,
+                                                 Map<ID *, LinkNodePair *> &id_roots,
                                                  const int library_indirect_level)
 {
   ID *id_iter;
@@ -3393,7 +3392,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
  */
 static bool lib_override_library_main_resync_on_library_indirect_level(
     Main *bmain,
-    const blender::Map<Library *, Library *> *new_to_old_libraries_map,
+    const Map<Library *, Library *> *new_to_old_libraries_map,
     Scene *scene,
     ViewLayer *view_layer,
     Collection *override_resync_residual_storage,
@@ -3440,7 +3439,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
   FOREACH_MAIN_ID_END;
   data.clear();
 
-  blender::Map<ID *, LinkNodePair *> id_roots;
+  Map<ID *, LinkNodePair *> id_roots;
 
   /* Now check existing overrides, those needing resync will be the one either already tagged as
    * such, or the one using linked data that is now tagged as needing override. */
@@ -3547,7 +3546,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
   BKE_main_relations_free(bmain);
   BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
-  ListBase no_main_ids_list = {nullptr};
+  ListBaseT<ID> no_main_ids_list = {nullptr};
 
   for (const auto &item : id_roots.items()) {
     ID *id_root = item.key;
@@ -3588,8 +3587,8 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     BLI_linklist_free(id_resync_roots->list, nullptr);
   }
 
-  LISTBASE_FOREACH_MUTABLE (ID *, id_iter, &no_main_ids_list) {
-    BKE_id_free(bmain, id_iter);
+  for (ID &id_iter : no_main_ids_list.items_mutable()) {
+    BKE_id_free(bmain, &id_iter);
   }
   BLI_listbase_clear(&no_main_ids_list);
 
@@ -3698,7 +3697,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
    * checked here. */
   {
     BKE_main_relations_create(bmain, 0);
-    blender::Set<ID *> processed_ids;
+    Set<ID *> processed_ids;
 
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       if (lib_override_library_main_resync_id_skip_check(id, library_indirect_level)) {
@@ -3769,9 +3768,9 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
  */
 static int lib_override_libraries_index_define(Main *bmain)
 {
-  LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
+  for (Library &library : bmain->libraries) {
     /* index 0 is reserved for local data. */
-    library->runtime->temp_index = 1;
+    library.runtime->temp_index = 1;
   }
   bool do_continue = true;
   while (do_continue) {
@@ -3788,16 +3787,15 @@ static int lib_override_libraries_index_define(Main *bmain)
   }
 
   int library_indirect_level_max = 0;
-  LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    library_indirect_level_max = std::max(library->runtime->temp_index,
-                                          library_indirect_level_max);
+  for (Library &library : bmain->libraries) {
+    library_indirect_level_max = std::max(library.runtime->temp_index, library_indirect_level_max);
   }
   return library_indirect_level_max;
 }
 
 void BKE_lib_override_library_main_resync(
     Main *bmain,
-    const blender::Map<Library *, Library *> *new_to_old_libraries_map,
+    const Map<Library *, Library *> *new_to_old_libraries_map,
     Scene *scene,
     ViewLayer *view_layer,
     BlendFileReadReport *reports)
@@ -3885,12 +3883,12 @@ void BKE_lib_override_library_main_resync(
     BKE_collection_delete(bmain, override_resync_residual_storage, true);
   }
 
-  LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    if (library->runtime->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
+  for (Library &library : bmain->libraries) {
+    if (library.runtime->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
       CLOG_DEBUG(&LOG_RESYNC,
                  "library '%s' contains some linked overrides that required recursive resync, "
                  "consider updating it",
-                 library->filepath);
+                 library.filepath);
     }
   }
 
@@ -3975,7 +3973,7 @@ void BKE_lib_override_library_make_local(Main *bmain, ID *id)
     }
   }
 
-  bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
+  bNodeTree *node_tree = bke::node_tree_from_id(id);
   if (node_tree != nullptr) {
     node_tree->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
   }
@@ -4021,7 +4019,7 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibra
   IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride, rna_path);
 
   if (op == nullptr) {
-    op = MEM_callocN<IDOverrideLibraryProperty>(__func__);
+    op = MEM_new_for_free<IDOverrideLibraryProperty>(__func__);
     op->rna_path = BLI_strdup(rna_path);
     BLI_addtail(&liboverride->properties, op);
 
@@ -4045,7 +4043,8 @@ bool BKE_lib_override_rna_property_find(PointerRNA *idpoin,
                                         PropertyRNA **r_override_prop,
                                         int *r_index)
 {
-  BLI_assert(RNA_struct_is_ID(idpoin->type) && ID_IS_OVERRIDE_LIBRARY(idpoin->data));
+  BLI_assert(RNA_struct_is_ID(idpoin->type) &&
+             ID_IS_OVERRIDE_LIBRARY(static_cast<ID *>(idpoin->data)));
   return RNA_path_resolve_property_full(
       idpoin, library_prop->rna_path, r_override_poin, r_override_prop, r_index);
 }
@@ -4072,8 +4071,8 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
 
   MEM_freeN(op->rna_path);
 
-  LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-    lib_override_library_property_operation_clear(opop);
+  for (IDOverrideLibraryPropertyOperation &opop : op->operations) {
+    lib_override_library_property_operation_clear(&opop);
   }
   BLI_freelistN(&op->operations);
 }
@@ -4141,7 +4140,7 @@ void BKE_lib_override_library_property_delete(IDOverrideLibrary *liboverride,
 }
 
 static IDOverrideLibraryPropertyOperation *liboverride_opop_find_name_lib_iterative(
-    ListBase *liboverride_operations,
+    ListBaseT<IDOverrideLibraryPropertyOperation> *liboverride_operations,
     const char *subitem_main_name,
     const char *subitem_other_name,
     const std::optional<const ID *> &subitem_main_id,
@@ -4312,7 +4311,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
       r_strict);
 
   if (opop == nullptr) {
-    opop = MEM_callocN<IDOverrideLibraryPropertyOperation>(__func__);
+    opop = MEM_new_for_free<IDOverrideLibraryPropertyOperation>(__func__);
     opop->operation = operation;
     if (subitem_locname) {
       opop->subitem_local_name = BLI_strdup(subitem_locname);
@@ -4451,8 +4450,8 @@ static void override_library_properties_validate(const ID &id,
                                                  IDOverrideLibrary &liboverride,
                                                  ReportList *reports)
 {
-  LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryProperty *, op, &liboverride.properties) {
-    if (!op->rna_path) {
+  for (IDOverrideLibraryProperty &op : liboverride.properties.items_mutable()) {
+    if (!op.rna_path) {
       BKE_reportf(
           reports,
           RPT_ERROR,
@@ -4460,8 +4459,8 @@ static void override_library_properties_validate(const ID &id,
           id.name);
       /* Simpler to allocate a dummy string here, than fix all 'normal' clearing/deletion code that
        * does expect a non-null RNA path. */
-      op->rna_path = BLI_strdup("");
-      lib_override_library_property_delete(&liboverride, op, true);
+      op.rna_path = BLI_strdup("");
+      lib_override_library_property_delete(&liboverride, &op, true);
     }
   }
 }
@@ -4528,8 +4527,8 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
       Object *ob_reference = reinterpret_cast<Object *>(local->override_library->reference);
       BLI_assert(ob_local->data != nullptr);
       BLI_assert(ob_reference->data != nullptr);
-      BKE_pose_ensure(bmain, ob_local, static_cast<bArmature *>(ob_local->data), true);
-      BKE_pose_ensure(bmain, ob_reference, static_cast<bArmature *>(ob_reference->data), true);
+      BKE_pose_ensure(bmain, ob_local, id_cast<bArmature *>(ob_local->data), true);
+      BKE_pose_ensure(bmain, ob_reference, id_cast<bArmature *>(ob_reference->data), true);
     }
   }
 
@@ -4583,8 +4582,8 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
       Object *ob_reference = reinterpret_cast<Object *>(local->override_library->reference);
       BLI_assert(ob_local->data != nullptr);
       BLI_assert(ob_reference->data != nullptr);
-      BKE_pose_ensure(bmain, ob_local, static_cast<bArmature *>(ob_local->data), true);
-      BKE_pose_ensure(bmain, ob_reference, static_cast<bArmature *>(ob_reference->data), true);
+      BKE_pose_ensure(bmain, ob_local, id_cast<bArmature *>(ob_local->data), true);
+      BKE_pose_ensure(bmain, ob_reference, id_cast<bArmature *>(ob_reference->data), true);
     }
   }
 
@@ -4631,8 +4630,8 @@ static void lib_override_library_operations_create(Main *bmain,
       Object *ob_reference = reinterpret_cast<Object *>(local->override_library->reference);
       BLI_assert(ob_local->data != nullptr);
       BLI_assert(ob_reference->data != nullptr);
-      BKE_pose_ensure(bmain, ob_local, static_cast<bArmature *>(ob_local->data), true);
-      BKE_pose_ensure(bmain, ob_reference, static_cast<bArmature *>(ob_reference->data), true);
+      BKE_pose_ensure(bmain, ob_local, id_cast<bArmature *>(ob_local->data), true);
+      BKE_pose_ensure(bmain, ob_reference, id_cast<bArmature *>(ob_reference->data), true);
     }
   }
 
@@ -4695,19 +4694,18 @@ void BKE_lib_override_library_operations_restore(Main *bmain, ID *local, int *r_
       static_cast<eRNAOverrideApplyFlag>(RNA_OVERRIDE_APPLY_FLAG_SKIP_RESYNC_CHECK |
                                          RNA_OVERRIDE_APPLY_FLAG_RESTORE_ONLY));
 
-  LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryProperty *, op, &local->override_library->properties)
-  {
-    if (op->tag & LIBOVERRIDE_PROP_TAG_NEEDS_RETORE) {
-      LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-        if (opop->tag & LIBOVERRIDE_PROP_TAG_NEEDS_RETORE) {
-          BKE_lib_override_library_property_operation_delete(op, opop);
+  for (IDOverrideLibraryProperty &op : local->override_library->properties.items_mutable()) {
+    if (op.tag & LIBOVERRIDE_PROP_TAG_NEEDS_RETORE) {
+      for (IDOverrideLibraryPropertyOperation &opop : op.operations.items_mutable()) {
+        if (opop.tag & LIBOVERRIDE_PROP_TAG_NEEDS_RETORE) {
+          BKE_lib_override_library_property_operation_delete(&op, &opop);
         }
       }
       if (BLI_listbase_is_empty(&local->override_library->properties)) {
-        BKE_lib_override_library_property_delete(local->override_library, op);
+        BKE_lib_override_library_property_delete(local->override_library, &op);
       }
       else {
-        BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_TAG_NEEDS_RETORE, false);
+        BKE_lib_override_library_operations_tag(&op, LIBOVERRIDE_PROP_TAG_NEEDS_RETORE, false);
       }
     }
   }
@@ -4759,10 +4757,10 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
    * concurrency issues here.
    * Note that calling #BKE_pose_ensure again in thread in
    * #BKE_lib_override_library_operations_create is not a problem then. */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ob->type == OB_ARMATURE) {
-      BLI_assert(ob->data != nullptr);
-      BKE_pose_ensure(bmain, ob, static_cast<bArmature *>(ob->data), true);
+  for (Object &ob : bmain->objects) {
+    if (ob.type == OB_ARMATURE) {
+      BLI_assert(ob.data != nullptr);
+      BKE_pose_ensure(bmain, &ob, id_cast<bArmature *>(ob.data), true);
     }
   }
   /* Similar issue with view layers, some may not be up-to-date, and re-syncing them from a
@@ -4799,7 +4797,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
         id->tag |= ID_TAG_LIBOVERRIDE_AUTOREFRESH;
       }
     }
-    if (bNodeTree *ntree = blender::bke::node_tree_from_id(id)) {
+    if (bNodeTree *ntree = bke::node_tree_from_id(id)) {
       if (ntree->id.tag & ID_TAG_LIBOVERRIDE_AUTOREFRESH) {
         ntree->id.tag &= ~ID_TAG_LIBOVERRIDE_AUTOREFRESH;
         id->tag |= ID_TAG_LIBOVERRIDE_AUTOREFRESH;
@@ -4821,7 +4819,7 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
         Object *ob = reinterpret_cast<Object *>(id);
         if (ob->type == OB_ARMATURE) {
           BLI_assert(ob->data != nullptr);
-          BKE_pose_ensure(bmain, ob, static_cast<bArmature *>(ob->data), true);
+          BKE_pose_ensure(bmain, ob, id_cast<bArmature *>(ob->data), true);
         }
       }
       /* Only check overrides if we do have the real reference data available, and not some empty
@@ -4903,12 +4901,10 @@ static bool lib_override_library_id_reset_do(Main *bmain,
     id_root->override_library->flag |= LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
   }
 
-  LISTBASE_FOREACH_MUTABLE (
-      IDOverrideLibraryProperty *, op, &id_root->override_library->properties)
-  {
+  for (IDOverrideLibraryProperty &op : id_root->override_library->properties.items_mutable()) {
     bool do_op_delete = true;
-    const bool is_collection = op->rna_prop_type == PROP_COLLECTION;
-    if (is_collection || op->rna_prop_type == PROP_POINTER) {
+    const bool is_collection = op.rna_prop_type == PROP_COLLECTION;
+    if (is_collection || op.rna_prop_type == PROP_POINTER) {
       PointerRNA ptr, ptr_lib;
       PropertyRNA *prop, *prop_lib;
 
@@ -4916,9 +4912,9 @@ static bool lib_override_library_id_reset_do(Main *bmain,
       PointerRNA ptr_root_lib = RNA_pointer_create_discrete(
           id_root->override_library->reference, &RNA_ID, id_root->override_library->reference);
 
-      bool prop_exists = RNA_path_resolve_property(&ptr_root, op->rna_path, &ptr, &prop);
+      bool prop_exists = RNA_path_resolve_property(&ptr_root, op.rna_path, &ptr, &prop);
       if (prop_exists) {
-        prop_exists = RNA_path_resolve_property(&ptr_root_lib, op->rna_path, &ptr_lib, &prop_lib);
+        prop_exists = RNA_path_resolve_property(&ptr_root_lib, op.rna_path, &ptr_lib, &prop_lib);
 
         if (prop_exists) {
           BLI_assert(ELEM(RNA_property_type(prop), PROP_POINTER, PROP_COLLECTION));
@@ -4942,7 +4938,7 @@ static bool lib_override_library_id_reset_do(Main *bmain,
     }
 
     if (do_op_delete) {
-      BKE_lib_override_library_property_delete(id_root->override_library, op);
+      BKE_lib_override_library_property_delete(id_root->override_library, &op);
       was_op_deleted = true;
     }
   }
@@ -5053,14 +5049,12 @@ void BKE_lib_override_library_operations_tag(IDOverrideLibraryProperty *liboverr
       liboverride_property->tag &= ~tag;
     }
 
-    LISTBASE_FOREACH (
-        IDOverrideLibraryPropertyOperation *, opop, &liboverride_property->operations)
-    {
+    for (IDOverrideLibraryPropertyOperation &opop : liboverride_property->operations) {
       if (do_set) {
-        opop->tag |= tag;
+        opop.tag |= tag;
       }
       else {
-        opop->tag &= ~tag;
+        opop.tag &= ~tag;
       }
     }
   }
@@ -5071,8 +5065,8 @@ void BKE_lib_override_library_properties_tag(IDOverrideLibrary *liboverride,
                                              const bool do_set)
 {
   if (liboverride != nullptr) {
-    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &liboverride->properties) {
-      BKE_lib_override_library_operations_tag(op, tag, do_set);
+    for (IDOverrideLibraryProperty &op : liboverride->properties) {
+      BKE_lib_override_library_operations_tag(&op, tag, do_set);
     }
   }
 }
@@ -5092,20 +5086,18 @@ void BKE_lib_override_library_main_tag(Main *bmain, const short tag, const bool 
 void BKE_lib_override_library_id_unused_cleanup(ID *local)
 {
   if (ID_IS_OVERRIDE_LIBRARY_REAL(local)) {
-    LISTBASE_FOREACH_MUTABLE (
-        IDOverrideLibraryProperty *, op, &local->override_library->properties)
-    {
-      if (op->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
-        BKE_lib_override_library_property_delete(local->override_library, op);
+    for (IDOverrideLibraryProperty &op : local->override_library->properties.items_mutable()) {
+      if (op.tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
+        BKE_lib_override_library_property_delete(local->override_library, &op);
       }
       else {
-        LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-          if (opop->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
-            BKE_lib_override_library_property_operation_delete(op, opop);
+        for (IDOverrideLibraryPropertyOperation &opop : op.operations.items_mutable()) {
+          if (opop.tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
+            BKE_lib_override_library_property_operation_delete(&op, &opop);
           }
         }
-        if (BLI_listbase_is_empty(&op->operations)) {
-          BKE_lib_override_library_property_delete(local->override_library, op);
+        if (BLI_listbase_is_empty(&op.operations)) {
+          BKE_lib_override_library_property_delete(local->override_library, &op);
         }
       }
     }
@@ -5245,13 +5237,13 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   if (GS(local->name) == ID_AR) {
     /* Fun times again, thanks to bone pointers in pose data of objects. We keep same ID addresses,
      * but internal data has changed for sure, so we need to invalidate pose-bones caches. */
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      if (ob->pose != nullptr && ob->data == local) {
-        BLI_assert(ob->type == OB_ARMATURE);
-        ob->pose->flag |= POSE_RECALC;
+    for (Object &ob : bmain->objects) {
+      if (ob.pose != nullptr && ob.data == local) {
+        BLI_assert(ob.type == OB_ARMATURE);
+        ob.pose->flag |= POSE_RECALC;
         /* We need to clear pose bone pointers immediately, some code may access those before pose
          * is actually recomputed, which can lead to segfault. */
-        BKE_pose_clear_pointers(ob->pose);
+        BKE_pose_clear_pointers(ob.pose);
       }
     }
   }
@@ -5308,11 +5300,11 @@ bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id)
     return true;
   }
   Object *ob = reinterpret_cast<Object *>(id);
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    if (!ID_IS_OVERRIDE_LIBRARY(collection)) {
+  for (Collection &collection : bmain->collections) {
+    if (!ID_IS_OVERRIDE_LIBRARY(&collection)) {
       continue;
     }
-    if (BKE_collection_has_object(collection, ob)) {
+    if (BKE_collection_has_object(&collection, ob)) {
       return false;
     }
   }
@@ -5327,31 +5319,33 @@ void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *in
     line_prefix = "\t";
   }
 
-  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &liboverride->properties) {
-    std::cout << line_prefix << op->rna_path << " [";
-    if (op->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
+  for (IDOverrideLibraryProperty &op : liboverride->properties) {
+    std::cout << line_prefix << op.rna_path << " [";
+    if (op.tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
       std::cout << " UNUSED ";
     }
     std::cout << "]\n";
 
-    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-      std::cout << line_prefix << line_prefix << opop->operation << " [";
-      if (opop->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
+    for (IDOverrideLibraryPropertyOperation &opop : op.operations) {
+      std::cout << line_prefix << line_prefix << opop.operation << " [";
+      if (opop.tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
         std::cout << " UNUSED ";
       }
-      if (opop->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) {
+      if (opop.flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) {
         std::cout << " MATCH_REF ";
       }
       std::cout << "] ";
-      if (opop->subitem_reference_name || opop->subitem_local_name) {
-        std::cout << "(" << opop->subitem_reference_name << " <" << opop->subitem_reference_id
-                  << "> -> " << opop->subitem_local_name << " <" << opop->subitem_local_id << ">)";
+      if (opop.subitem_reference_name || opop.subitem_local_name) {
+        std::cout << "(" << opop.subitem_reference_name << " <" << opop.subitem_reference_id
+                  << "> -> " << opop.subitem_local_name << " <" << opop.subitem_local_id << ">)";
       }
-      else if (opop->subitem_reference_index >= 0 || opop->subitem_local_index >= 0) {
-        std::cout << "(" << opop->subitem_reference_index << " -> " << opop->subitem_local_index
+      else if (opop.subitem_reference_index >= 0 || opop.subitem_local_index >= 0) {
+        std::cout << "(" << opop.subitem_reference_index << " -> " << opop.subitem_local_index
                   << ")";
       }
       std::cout << "\n";
     }
   }
 }
+
+}  // namespace blender

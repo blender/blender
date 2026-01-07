@@ -322,7 +322,7 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, object);
       const MeshAttributeData attribute_data(mesh);

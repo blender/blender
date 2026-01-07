@@ -36,9 +36,11 @@
 
 #include "vk_backend.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 static const char *vk_extension_get(int index)
 {
@@ -151,6 +153,10 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features.features.geometryShader == VK_FALSE) {
     missing_capabilities.append("geometry shaders");
   }
+  if (features.features.vertexPipelineStoresAndAtomics == VK_FALSE) {
+    missing_capabilities.append("vertex pipeline stores and atomics");
+  }
+#endif
   if (features.features.multiViewport == VK_FALSE) {
     missing_capabilities.append("multi viewport");
   }
@@ -160,10 +166,6 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
   }
-  if (features.features.vertexPipelineStoresAndAtomics == VK_FALSE) {
-    missing_capabilities.append("vertex pipeline stores and atomics");
-  }
-#endif
   if (features.features.logicOp == VK_FALSE) {
     missing_capabilities.append("logical operations");
   }
@@ -424,14 +426,10 @@ void VKBackend::detect_workarounds(VKDevice &device)
   VKExtensions extensions;
 
   if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
-    printf("\n");
-    printf("VK: Forcing workaround usage and disabling features and extensions.\n");
-    printf("    Vendor: %s\n", device.vendor_name().c_str());
-    printf("    Device: %s\n", device.physical_device_properties_get().deviceName);
-    printf("    Driver: %s\n", device.driver_version().c_str());
+    CLOG_WARN(&LOG, "Forcing workarounds and disabling features and extensions");
+
     /* Force workarounds and disable extensions. */
     workarounds.not_aligned_pixel_formats = true;
-    workarounds.vertex_formats.r8g8b8 = true;
     extensions.shader_output_layer = false;
     extensions.shader_output_viewport_index = false;
     extensions.fragment_shader_barycentric = false;
@@ -470,6 +468,11 @@ void VKBackend::detect_workarounds(VKDevice &device)
       VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME);
   extensions.extended_dynamic_state = device.supports_extension(
       VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+  extensions.vertex_input_dynamic_state = device.supports_extension(
+      VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+#if 0
+  extensions.host_image_copy = device.supports_extension(VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME);
+#endif
 #ifdef _WIN32
   extensions.external_memory = device.supports_extension(
       VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -489,8 +492,11 @@ void VKBackend::detect_workarounds(VKDevice &device)
   /* During testing graphics pipeline library feature it was detected that it would crash on
    * official AMD drivers.
    */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+      bool(G.debug & G_DEBUG_GPU))
+  {
     extensions.graphics_pipeline_library = false;
+    extensions.vertex_input_dynamic_state = false;
   }
 
   /* Only enable by default dynamic rendering local read on Qualcomm devices. NVIDIA, AMD and Intel
@@ -509,11 +515,16 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering_local_read = false;
   }
 
-  VkFormatProperties format_properties = {};
-  vkGetPhysicalDeviceFormatProperties(
-      device.physical_device_get(), VK_FORMAT_R8G8B8_UNORM, &format_properties);
-  workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
-                                       VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
+  /* When using host image copy on certain NVIDIA platforms the allocation of textures that only
+   * use GPU_TEXTURE_USAGE_SHADER_READ/WRITE will fail to allocate the memory. This needs some more
+   * research as this might just be a missing flag when allocating. Another solution is to not
+   * allow host_imag_copy when only these two flags are set as the rest seems to work as expected.
+   *
+   * See #151826
+   */
+  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    extensions.host_image_copy = false;
+  }
 
 #ifdef __APPLE__
   extensions.extended_dynamic_state = false;
@@ -580,7 +591,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 {
   if (ghost_window) {
     BLI_assert(ghost_context == nullptr);
-    ghost_context = GHOST_GetDrawingContext((GHOST_WindowHandle)ghost_window);
+    ghost_context = GHOST_GetDrawingContext(static_cast<GHOST_WindowHandle>(ghost_window));
   }
 
   BLI_assert(ghost_context != nullptr);
@@ -588,12 +599,12 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
     device.extensions_get().log();
     device.workarounds_get().log();
-    init_device_list((GHOST_ContextHandle)ghost_context);
+    init_device_list(static_cast<GHOST_ContextHandle>(ghost_context));
   }
 
   VKContext *context = new VKContext(ghost_window, ghost_context);
   device.context_register(*context);
-  GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
+  GHOST_SetVulkanSwapBuffersCallbacks(static_cast<GHOST_ContextHandle>(ghost_context),
                                       VKContext::swap_buffer_draw_callback,
                                       VKContext::swap_buffer_acquired_callback,
                                       VKContext::openxr_acquire_framebuffer_image_callback,
@@ -748,4 +759,5 @@ void VKBackend::capabilities_init(VKDevice &device)
   detect_workarounds(device);
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

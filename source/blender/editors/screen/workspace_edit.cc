@@ -15,6 +15,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
@@ -50,7 +51,7 @@
 
 #include "screen_intern.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Workspace API
@@ -150,7 +151,7 @@ static void workspace_change_update(WorkSpace *workspace_new,
   eObjectMode mode_new = workspace_new->object_mode;
 
   if (mode_old != mode_new) {
-    blender::ed::object::mode_set(C, mode_new);
+    ed::object::mode_set(C, mode_new);
   }
 #endif
 }
@@ -230,7 +231,7 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
     }
 
     if (object) {
-      blender::ed::object::mode_set(C, eObjectMode(workspace_new->object_mode));
+      ed::object::mode_set(C, eObjectMode(workspace_new->object_mode));
     }
   }
 
@@ -240,22 +241,14 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
 WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindow *win)
 {
   WorkSpaceLayout *layout_active_old = BKE_workspace_active_layout_get(win->workspace_hook);
-  WorkSpace *workspace_new = ED_workspace_add(bmain, workspace_old->id.name + 2);
+  WorkSpace *workspace_new = id_cast<WorkSpace *>(BKE_id_copy(bmain, &workspace_old->id));
 
-  workspace_new->flags = workspace_old->flags;
-  workspace_new->pin_scene = workspace_old->pin_scene;
-  workspace_new->sequencer_scene = workspace_old->sequencer_scene;
-  workspace_new->object_mode = workspace_old->object_mode;
-  workspace_new->order = workspace_old->order;
-  BLI_duplicatelist(&workspace_new->owner_ids, &workspace_old->owner_ids);
-
-  /* TODO(@ideasman42): tools */
-
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout_old, &workspace_old->layouts) {
-    WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
-        bmain, workspace_new, layout_old, win);
-
-    if (layout_active_old == layout_old) {
+  /* Try to keep active the layout from the new workspace matching the current active one from
+   * the old worksapce. */
+  WorkSpaceLayout *layout_old = static_cast<WorkSpaceLayout *>(workspace_old->layouts.first);
+  WorkSpaceLayout *layout_new = static_cast<WorkSpaceLayout *>(workspace_new->layouts.first);
+  for (; layout_old && layout_new; layout_old = layout_old->next, layout_new = layout_new->next) {
+    if (layout_old == layout_active_old) {
       win->workspace_hook->temp_layout_store = layout_new;
     }
   }
@@ -268,23 +261,24 @@ bool ED_workspace_delete(WorkSpace *workspace, Main *bmain, bContext *C, wmWindo
     return false;
   }
 
-  Vector<ID *> ordered = BKE_id_ordered_list(&bmain->workspaces);
+  Vector<ID *> ordered = BKE_id_ordered_list(
+      reinterpret_cast<const ListBaseT<ID> *>(&bmain->workspaces));
   const int index = ordered.first_index_of(&workspace->id);
 
   WorkSpace *new_active = reinterpret_cast<WorkSpace *>(index == 0 ? ordered[1] :
                                                                      ordered[index - 1]);
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    WorkSpace *workspace_active = WM_window_get_active_workspace(win);
+  for (wmWindow &win : wm->windows) {
+    WorkSpace *workspace_active = WM_window_get_active_workspace(&win);
     if (workspace_active == workspace) {
-      ED_workspace_change(new_active, C, wm, win);
+      ED_workspace_change(new_active, C, wm, &win);
     }
   }
 
   /* Also delete managed screens if they have no other users. */
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BKE_id_free_us(bmain, layout->screen);
-    layout->screen = nullptr;
+  for (WorkSpaceLayout &layout : workspace->layouts) {
+    BKE_id_free_us(bmain, layout.screen);
+    layout.screen = nullptr;
   }
 
   BKE_id_free(bmain, &workspace->id);
@@ -305,9 +299,9 @@ void ED_workspace_scene_data_sync(WorkSpaceInstanceHook *hook, Scene *scene)
 
 static WorkSpace *workspace_context_get(bContext *C)
 {
-  ID *id = UI_context_active_but_get_tab_ID(C);
+  ID *id = ui::context_active_but_get_tab_ID(C);
   if (id && GS(id->name) == ID_WS) {
-    return (WorkSpace *)id;
+    return id_cast<WorkSpace *>(id);
   }
 
   return CTX_wm_workspace(C);
@@ -369,9 +363,9 @@ static wmOperatorStatus workspace_delete_all_others_exec(bContext *C, wmOperator
   Main *bmain = CTX_data_main(C);
   WorkSpace *workspace = workspace_context_get(C);
 
-  LISTBASE_FOREACH (WorkSpace *, ws, &bmain->workspaces) {
-    if (ws != workspace) {
-      WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_DELETE, ws);
+  for (WorkSpace &ws : bmain->workspaces) {
+    if (&ws != workspace) {
+      WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_DELETE, &ws);
       WM_event_add_notifier(C, NC_WINDOW, nullptr);
     }
   }
@@ -440,7 +434,10 @@ static wmOperatorStatus workspace_append_activate_exec(bContext *C, wmOperator *
     BLO_update_defaults_workspace(appended_workspace, nullptr);
 
     /* Reorder to last position. */
-    BKE_id_reorder(&bmain->workspaces, &appended_workspace->id, nullptr, true);
+    BKE_id_reorder(reinterpret_cast<const ListBaseT<ID> *>(&bmain->workspaces),
+                   &appended_workspace->id,
+                   nullptr,
+                   true);
 
     /* Changing workspace changes context. Do delayed! */
     WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, appended_workspace);
@@ -510,12 +507,12 @@ static WorkspaceConfigFileData *workspace_system_file_read(const char *app_templ
                       nullptr;
 }
 
-static void workspace_append_button(blender::ui::Layout &layout,
+static void workspace_append_button(ui::Layout &layout,
                                     wmOperatorType *ot_append,
                                     const WorkSpace *workspace,
                                     const Main *from_main)
 {
-  const ID *id = (ID *)workspace;
+  const ID *id = id_cast<ID *>(const_cast<WorkSpace *>(workspace));
   const char *filepath = from_main->filepath;
 
   if (filepath[0] == '\0') {
@@ -528,13 +525,13 @@ static void workspace_append_button(blender::ui::Layout &layout,
   opptr = layout.op(ot_append,
                     CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2),
                     ICON_NONE,
-                    blender::wm::OpCallContext::ExecDefault,
+                    wm::OpCallContext::ExecDefault,
                     UI_ITEM_NONE);
   RNA_string_set(&opptr, "idname", id->name + 2);
   RNA_string_set(&opptr, "filepath", filepath);
 }
 
-static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, void *template_v)
+static void workspace_add_menu(bContext * /*C*/, ui::Layout *layout, void *template_v)
 {
   const char *app_template = static_cast<const char *>(template_v);
   bool has_startup_items = false;
@@ -544,9 +541,9 @@ static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, vo
   WorkspaceConfigFileData *builtin_config = workspace_system_file_read(app_template);
 
   if (startup_config) {
-    LISTBASE_FOREACH (WorkSpace *, workspace, &startup_config->workspaces) {
-      blender::ui::Layout &row = layout->row(false);
-      workspace_append_button(row, ot_append, workspace, startup_config->main);
+    for (WorkSpace &workspace : startup_config->workspaces) {
+      ui::Layout &row = layout->row(false);
+      workspace_append_button(row, ot_append, &workspace, startup_config->main);
       has_startup_items = true;
     }
   }
@@ -554,9 +551,9 @@ static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, vo
   if (builtin_config) {
     bool has_title = false;
 
-    LISTBASE_FOREACH (WorkSpace *, workspace, &builtin_config->workspaces) {
+    for (WorkSpace &workspace : builtin_config->workspaces) {
       if (startup_config &&
-          BLI_findstring(&startup_config->workspaces, workspace->id.name, offsetof(ID, name)))
+          BLI_findstring(&startup_config->workspaces, workspace.id.name, offsetof(ID, name)))
       {
         continue;
       }
@@ -568,8 +565,8 @@ static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, vo
         has_title = true;
       }
 
-      blender::ui::Layout &row = layout->row(false);
-      workspace_append_button(row, ot_append, workspace, builtin_config->main);
+      ui::Layout &row = layout->row(false);
+      workspace_append_button(row, ot_append, &workspace, builtin_config->main);
     }
   }
 
@@ -581,21 +578,25 @@ static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, vo
   }
 }
 
-static wmOperatorStatus workspace_add_invoke(bContext *C,
-                                             wmOperator *op,
-                                             const wmEvent * /*event*/)
+static void workspace_add_menu_draw(ui::Layout &layout)
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(
-      C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, op->type->name), ICON_ADD);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  {
+    PointerRNA props = layout.op("WM_OT_search_single_menu",
+                                 "Search...",
+                                 ICON_VIEWZOOM,
+                                 wm::OpCallContext::InvokeDefault,
+                                 UI_ITEM_NONE);
+    RNA_string_set(&props, "menu_idname", "WORKSPACE_MT_add");
+  }
+  layout.separator();
 
   layout.menu_fn(IFACE_("General"), ICON_NONE, workspace_add_menu, nullptr);
 
-  ListBase templates;
+  ListBaseT<LinkData> templates;
   BKE_appdir_app_templates(&templates);
 
-  LISTBASE_FOREACH (LinkData *, link, &templates) {
-    char *app_template = static_cast<char *>(link->data);
+  for (LinkData &link : templates) {
+    char *app_template = static_cast<char *>(link.data);
     char display_name[FILE_MAX];
 
     BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(app_template));
@@ -610,9 +611,27 @@ static wmOperatorStatus workspace_add_invoke(bContext *C,
   layout.op("WORKSPACE_OT_duplicate",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate Current"),
             ICON_DUPLICATE);
+}
 
-  UI_popup_menu_end(C, pup);
+static void workspace_add_menu_register()
+{
+  MenuType *mt = MEM_callocN<MenuType>("workspace_add_invoke");
+  STRNCPY_UTF8(mt->idname, "WORKSPACE_MT_add");
+  STRNCPY_UTF8(mt->label, N_("Add Workspace"));
+  mt->flag = MenuTypeFlag::SearchOnKeyPress;
+  mt->draw = [](const bContext * /*C*/, Menu *menu) {
+    ui::Layout &layout = *menu->layout;
+    workspace_add_menu_draw(layout);
+  };
 
+  WM_menutype_add(mt);
+}
+
+static wmOperatorStatus workspace_add_invoke(bContext *C,
+                                             wmOperator * /*op*/,
+                                             const wmEvent * /*event*/)
+{
+  WM_menu_name_call(C, "WORKSPACE_MT_add", wm::OpCallContext::InvokeDefault);
   return OPERATOR_INTERFACE;
 }
 
@@ -634,7 +653,8 @@ static wmOperatorStatus workspace_reorder_to_back_exec(bContext *C, wmOperator *
   Main *bmain = CTX_data_main(C);
   WorkSpace *workspace = workspace_context_get(C);
 
-  BKE_id_reorder(&bmain->workspaces, &workspace->id, nullptr, true);
+  BKE_id_reorder(
+      reinterpret_cast<const ListBaseT<ID> *>(&bmain->workspaces), &workspace->id, nullptr, true);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_INTERFACE;
@@ -657,7 +677,8 @@ static wmOperatorStatus workspace_reorder_to_front_exec(bContext *C, wmOperator 
   Main *bmain = CTX_data_main(C);
   WorkSpace *workspace = workspace_context_get(C);
 
-  BKE_id_reorder(&bmain->workspaces, &workspace->id, nullptr, false);
+  BKE_id_reorder(
+      reinterpret_cast<const ListBaseT<ID> *>(&bmain->workspaces), &workspace->id, nullptr, false);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_INTERFACE;
@@ -706,6 +727,8 @@ static void WORKSPACE_OT_scene_pin_toggle(wmOperatorType *ot)
 
 void ED_operatortypes_workspace()
 {
+  workspace_add_menu_register();
+
   WM_operatortype_append(WORKSPACE_OT_duplicate);
   WM_operatortype_append(WORKSPACE_OT_delete);
   WM_operatortype_append(WORKSPACE_OT_delete_all_others);
@@ -717,3 +740,5 @@ void ED_operatortypes_workspace()
 }
 
 /** \} Workspace Operators */
+
+}  // namespace blender

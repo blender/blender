@@ -67,7 +67,7 @@ TEST(generic_array, CopyConstructor)
 TEST(generic_array, BufferAndSizeConstructor)
 {
   int32_t *values = MEM_malloc_arrayN<int32_t>(12, __func__);
-  void *buffer = (void *)values;
+  void *buffer = static_cast<void *>(values);
   GArray array(CPPType::get<int32_t>(), buffer, 4);
   EXPECT_FALSE(array.data() == nullptr);
   EXPECT_EQ(array.size(), 4);
@@ -106,7 +106,7 @@ TEST(generic_array, Reinitialize)
 
 TEST(generic_array, InContainer)
 {
-  blender::Array<GArray<>> arrays;
+  Array<GArray<>> arrays;
   for (GArray<> &array : arrays) {
     array = GArray(CPPType::get<int32_t>(), int64_t(5));
     array.as_mutable_span().typed<int32_t>().fill(55);

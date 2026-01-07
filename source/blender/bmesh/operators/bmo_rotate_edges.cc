@@ -18,6 +18,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define EDGE_OUT 1
 #define FACE_MARK 1
 
@@ -88,8 +90,7 @@ static void bm_rotate_edges_shared(
     BMesh *bm, BMOperator *op, short check_flag, const bool use_ccw, const int edges_len)
 {
   Heap *heap = BLI_heap_new_ex(edges_len);
-  HeapNode **eheap_table = static_cast<HeapNode **>(
-      MEM_mallocN(sizeof(*eheap_table) * edges_len, __func__));
+  HeapNode **eheap_table = MEM_malloc_arrayN<HeapNode *>(edges_len, __func__);
 
   BMEdge **edges = reinterpret_cast<BMEdge **>(
       BMO_SLOT_AS_BUFFER(BMO_slot_get(op->slots_in, "edges")));
@@ -266,3 +267,5 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
 }
+
+}  // namespace blender

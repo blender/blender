@@ -11,6 +11,8 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
+namespace blender {
+
 #define DO_PERF_TESTS 0
 
 /* -------------------------------------------------------------------- */
@@ -1803,3 +1805,5 @@ TEST(path_utils, HasHiddenComponents_Performance)
 #endif
 
 /** \} */
+
+}  // namespace blender

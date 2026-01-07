@@ -36,6 +36,8 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* Prototypes. */
 static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname);
 
@@ -231,7 +233,6 @@ void ViewOpsData::init_navigation(bContext *C,
                                   const float dyn_ofs_override[3],
                                   const bool use_cursor_init)
 {
-  using namespace blender;
   this->nav_type = nav_type;
   eViewOpsFlag viewops_flag = nav_type->flag & viewops_flag_from_prefs();
   constexpr eViewOpsFlag viewops_flag_dynamic_ofs = VIEWOPS_FLAG_DEPTH_NAVIGATE |
@@ -416,7 +417,7 @@ void ViewOpsData::end_navigation(bContext *C)
 struct ViewOpsData_Utility : ViewOpsData {
   /* To track only the navigation #wmKeyMapItem items and allow changes to them, an internal
    * #wmKeyMap is created with their copy. */
-  ListBase keymap_items;
+  ListBaseT<wmKeyMapItem> keymap_items;
 
   /* Used by #ED_view3d_navigation_do. */
   bool is_modal_event = false;
@@ -433,18 +434,18 @@ struct ViewOpsData_Utility : ViewOpsData {
 
     wmKeyMap keymap_tmp = {};
 
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-      if (!STRPREFIX(kmi->idname, "VIEW3D")) {
+    for (wmKeyMapItem &kmi : keymap->items) {
+      if (!STRPREFIX(kmi.idname, "VIEW3D")) {
         continue;
       }
-      if (kmi->flag & KMI_INACTIVE) {
+      if (kmi.flag & KMI_INACTIVE) {
         continue;
       }
-      if (view3d_navigation_type_from_idname(kmi->idname) == nullptr) {
+      if (view3d_navigation_type_from_idname(kmi.idname) == nullptr) {
         continue;
       }
 
-      wmKeyMapItem *kmi_cpy = WM_keymap_add_item_copy(&keymap_tmp, kmi);
+      wmKeyMapItem *kmi_cpy = WM_keymap_add_item_copy(&keymap_tmp, &kmi);
       if (kmi_merge) {
         if (kmi_merge->shift == KM_MOD_HELD ||
             ELEM(kmi_merge->type, EVT_RIGHTSHIFTKEY, EVT_LEFTSHIFTKEY))
@@ -585,7 +586,7 @@ wmOperatorStatus view3d_navigate_invoke_impl(bContext *C,
   vod->init_context(C);
   wmOperatorStatus ret = view3d_navigation_invoke_generic(
       C, vod, event, op->ptr, nav_type, nullptr);
-  op->customdata = (void *)vod;
+  op->customdata = static_cast<void *>(vod);
 
   if (ret == OPERATOR_RUNNING_MODAL) {
     WM_event_add_modal_handler(C, op);
@@ -812,7 +813,6 @@ void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat_new[4])
 
 bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 {
-  using namespace blender;
   float3 ofs = float3(0);
   bool is_set = false;
 
@@ -847,7 +847,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     is_set = true;
   }
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
-    Curve *cu = static_cast<Curve *>(ob_act_eval->data);
+    Curve *cu = id_cast<Curve *>(ob_act_eval->data);
     EditFont *ef = cu->editfont;
 
     ofs = float3(0);
@@ -866,10 +866,10 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     float3 select_center(0);
 
     zero_v3(select_center);
-    LISTBASE_FOREACH (const Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
-      if (BASE_SELECTED(v3d, base_eval)) {
+    for (const Base &base_eval : *BKE_view_layer_object_bases_get(view_layer_eval)) {
+      if (BASE_SELECTED(v3d, &base_eval)) {
         /* Use the bounding-box if we can. */
-        const Object *ob_eval = base_eval->object;
+        const Object *ob_eval = base_eval.object;
 
         if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob_eval)) {
           const float3 center = math::midpoint(bounds->min, bounds->max);
@@ -890,7 +890,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   else {
     /* If there's no selection, `ofs` is unmodified, the last offset will be used if set.
      * Otherwise the value of `ofs` is zero and should not be used. */
-    is_set = blender::ed::transform::calc_pivot_pos(C, V3D_AROUND_CENTER_MEDIAN, ofs);
+    is_set = ed::transform::calc_pivot_pos(C, V3D_AROUND_CENTER_MEDIAN, ofs);
   }
 
   if (is_set) {
@@ -1081,7 +1081,7 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
  * `wmKeyMapItem::idname`) */
 static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
 {
-  const blender::Array<const ViewOpsType *> nav_types = {
+  const Array<const ViewOpsType *> nav_types = {
       &ViewOpsType_zoom,
       &ViewOpsType_rotate,
       &ViewOpsType_move,
@@ -1147,18 +1147,18 @@ bool ED_view3d_navigation_do(bContext *C,
     }
   }
   else {
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &vod_intern->keymap_items) {
-      if (!WM_event_match(event, kmi)) {
+    for (wmKeyMapItem &kmi : vod_intern->keymap_items) {
+      if (!WM_event_match(event, &kmi)) {
         continue;
       }
 
-      const ViewOpsType *nav_type = view3d_navigation_type_from_idname(kmi->idname);
+      const ViewOpsType *nav_type = view3d_navigation_type_from_idname(kmi.idname);
       if (nav_type->poll_fn && !nav_type->poll_fn(C)) {
         break;
       }
 
       op_return = view3d_navigation_invoke_generic(
-          C, vod, event, kmi->ptr, nav_type, depth_loc_override);
+          C, vod, event, kmi.ptr, nav_type, depth_loc_override);
 
       if (op_return == OPERATOR_RUNNING_MODAL) {
         vod_intern->is_modal_event = true;
@@ -1198,3 +1198,5 @@ void ED_view3d_navigation_free(bContext *C, ViewOpsData *vod)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -61,12 +61,13 @@ PyDoc_STRVAR(
     "   :rtype: :class:`bpy.types.Scene`\n");
 static PyObject *Freestyle_getCurrentScene(PyObject * /*self*/)
 {
-  Scene *scene = g_freestyle.scene;
+  blender::Scene *scene = blender::g_freestyle.scene;
   if (!scene) {
     PyErr_SetString(PyExc_TypeError, "current scene not available");
     return nullptr;
   }
-  PointerRNA ptr_scene = RNA_pointer_create_discrete(&scene->id, &RNA_Scene, scene);
+  blender::PointerRNA ptr_scene = RNA_pointer_create_discrete(
+      &scene->id, &blender::RNA_Scene, scene);
   return pyrna_struct_CreatePyObject(&ptr_scene);
 }
 
@@ -75,61 +76,61 @@ static PyObject *Freestyle_getCurrentScene(PyObject * /*self*/)
 static int ramp_blend_type(const char *type)
 {
   if (STREQ(type, "MIX")) {
-    return MA_RAMP_BLEND;
+    return blender::MA_RAMP_BLEND;
   }
   if (STREQ(type, "ADD")) {
-    return MA_RAMP_ADD;
+    return blender::MA_RAMP_ADD;
   }
   if (STREQ(type, "MULTIPLY")) {
-    return MA_RAMP_MULT;
+    return blender::MA_RAMP_MULT;
   }
   if (STREQ(type, "SUBTRACT")) {
-    return MA_RAMP_SUB;
+    return blender::MA_RAMP_SUB;
   }
   if (STREQ(type, "SCREEN")) {
-    return MA_RAMP_SCREEN;
+    return blender::MA_RAMP_SCREEN;
   }
   if (STREQ(type, "DIVIDE")) {
-    return MA_RAMP_DIV;
+    return blender::MA_RAMP_DIV;
   }
   if (STREQ(type, "DIFFERENCE")) {
-    return MA_RAMP_DIFF;
+    return blender::MA_RAMP_DIFF;
   }
   if (STREQ(type, "EXCLUSION")) {
-    return MA_RAMP_EXCLUSION;
+    return blender::MA_RAMP_EXCLUSION;
   }
   if (STREQ(type, "DARKEN")) {
-    return MA_RAMP_DARK;
+    return blender::MA_RAMP_DARK;
   }
   if (STREQ(type, "LIGHTEN")) {
-    return MA_RAMP_LIGHT;
+    return blender::MA_RAMP_LIGHT;
   }
   if (STREQ(type, "OVERLAY")) {
-    return MA_RAMP_OVERLAY;
+    return blender::MA_RAMP_OVERLAY;
   }
   if (STREQ(type, "DODGE")) {
-    return MA_RAMP_DODGE;
+    return blender::MA_RAMP_DODGE;
   }
   if (STREQ(type, "BURN")) {
-    return MA_RAMP_BURN;
+    return blender::MA_RAMP_BURN;
   }
   if (STREQ(type, "HUE")) {
-    return MA_RAMP_HUE;
+    return blender::MA_RAMP_HUE;
   }
   if (STREQ(type, "SATURATION")) {
-    return MA_RAMP_SAT;
+    return blender::MA_RAMP_SAT;
   }
   if (STREQ(type, "VALUE")) {
-    return MA_RAMP_VAL;
+    return blender::MA_RAMP_VAL;
   }
   if (STREQ(type, "COLOR")) {
-    return MA_RAMP_COLOR;
+    return blender::MA_RAMP_COLOR;
   }
   if (STREQ(type, "SOFT_LIGHT")) {
-    return MA_RAMP_SOFT;
+    return blender::MA_RAMP_SOFT;
   }
   if (STREQ(type, "LINEAR_LIGHT")) {
-    return MA_RAMP_LINEAR;
+    return blender::MA_RAMP_LINEAR;
   }
   return -1;
 }
@@ -166,26 +167,26 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
     PyErr_SetString(PyExc_TypeError, "argument 1 is an unknown ramp blend type");
     return nullptr;
   }
-  if (mathutils_array_parse(a,
-                            3,
-                            3,
-                            obj1,
-                            "argument 2 must be a 3D vector "
-                            "(either a tuple/list of 3 elements or Vector)") == -1)
+  if (blender::mathutils_array_parse(a,
+                                     3,
+                                     3,
+                                     obj1,
+                                     "argument 2 must be a 3D vector "
+                                     "(either a tuple/list of 3 elements or Vector)") == -1)
   {
     return nullptr;
   }
-  if (mathutils_array_parse(b,
-                            3,
-                            3,
-                            obj2,
-                            "argument 4 must be a 3D vector "
-                            "(either a tuple/list of 3 elements or Vector)") == -1)
+  if (blender::mathutils_array_parse(b,
+                                     3,
+                                     3,
+                                     obj2,
+                                     "argument 4 must be a 3D vector "
+                                     "(either a tuple/list of 3 elements or Vector)") == -1)
   {
     return nullptr;
   }
-  ramp_blend(type, a, fac, b);
-  return Vector_CreatePyObject(a, 3, nullptr);
+  blender::ramp_blend(type, a, fac, b);
+  return blender::Vector_CreatePyObject(a, 3, nullptr);
 }
 
 PyDoc_STRVAR(
@@ -203,23 +204,23 @@ PyDoc_STRVAR(
     "   :rtype: :class:`mathutils.Vector`\n");
 static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args)
 {
-  BPy_StructRNA *py_srna;
-  ColorBand *coba;
+  blender::BPy_StructRNA *py_srna;
+  blender::ColorBand *coba;
   float in, out[4];
 
-  if (!PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in)) {
+  if (!PyArg_ParseTuple(args, "O!f", &blender::pyrna_struct_Type, &py_srna, &in)) {
     return nullptr;
   }
-  if (!RNA_struct_is_a(py_srna->ptr->type, &RNA_ColorRamp)) {
+  if (!RNA_struct_is_a(py_srna->ptr->type, &blender::RNA_ColorRamp)) {
     PyErr_SetString(PyExc_TypeError, "1st argument is not a ColorRamp object");
     return nullptr;
   }
-  coba = (ColorBand *)py_srna->ptr->data;
+  coba = (blender::ColorBand *)py_srna->ptr->data;
   if (!BKE_colorband_evaluate(coba, in, out)) {
     PyErr_SetString(PyExc_ValueError, "failed to evaluate the color ramp");
     return nullptr;
   }
-  return Vector_CreatePyObject(out, 4, nullptr);
+  return blender::Vector_CreatePyObject(out, 4, nullptr);
 }
 
 #include "DNA_color_types.h"
@@ -241,15 +242,15 @@ PyDoc_STRVAR(
     "   :rtype: float\n");
 static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *args)
 {
-  BPy_StructRNA *py_srna;
-  CurveMapping *cumap;
+  blender::BPy_StructRNA *py_srna;
+  blender::CurveMapping *cumap;
   int cur;
   float value;
 
-  if (!PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value)) {
+  if (!PyArg_ParseTuple(args, "O!if", &blender::pyrna_struct_Type, &py_srna, &cur, &value)) {
     return nullptr;
   }
-  if (!RNA_struct_is_a(py_srna->ptr->type, &RNA_CurveMapping)) {
+  if (!RNA_struct_is_a(py_srna->ptr->type, &blender::RNA_CurveMapping)) {
     PyErr_SetString(PyExc_TypeError, "1st argument is not a CurveMapping object");
     return nullptr;
   }
@@ -257,11 +258,11 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
     PyErr_SetString(PyExc_ValueError, "2nd argument is out of range");
     return nullptr;
   }
-  cumap = (CurveMapping *)py_srna->ptr->data;
+  cumap = (blender::CurveMapping *)py_srna->ptr->data;
   BKE_curvemapping_init(cumap);
   /* disable extrapolation if enabled */
-  if (cumap->flag & CUMA_EXTEND_EXTRAPOLATE) {
-    cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+  if (cumap->flag & blender::CUMA_EXTEND_EXTRAPOLATE) {
+    cumap->flag &= ~blender::CUMA_EXTEND_EXTRAPOLATE;
     BKE_curvemapping_changed(cumap, false);
   }
   return PyFloat_FromDouble(BKE_curvemapping_evaluateF(cumap, cur, value));
@@ -559,13 +560,13 @@ PyObject *Freestyle_Init()
   PyDict_SetItemString(PySys_GetObject("modules"), module_definition.m_name, module);
 
   // update 'sys.path' for Freestyle Python API modules
-  const std::optional<std::string> path = BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS,
+  const std::optional<std::string> path = BKE_appdir_folder_id(blender::BLENDER_SYSTEM_SCRIPTS,
                                                                "freestyle");
   if (path.has_value()) {
     char modpath[FILE_MAX];
-    BLI_path_join(modpath, sizeof(modpath), path->c_str(), "modules");
+    blender::BLI_path_join(modpath, sizeof(modpath), path->c_str(), "modules");
     PyObject *sys_path = PySys_GetObject("path"); /* borrow */
-    PyObject *py_modpath = PyC_UnicodeFromBytes(modpath);
+    PyObject *py_modpath = blender::PyC_UnicodeFromBytes(modpath);
     PyList_Append(sys_path, py_modpath);
     Py_DECREF(py_modpath);
 #if 0

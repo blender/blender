@@ -42,9 +42,7 @@
 
 #include "./intern/bmesh_private.hh"
 
-using blender::Map;
-using blender::Set;
-using blender::Vector;
+namespace blender {
 
 // #define BEVEL_DEBUG_TIME
 #ifdef BEVEL_DEBUG_TIME
@@ -340,11 +338,11 @@ using UVVertMap = Map<BMVert *, Vector<UVVertBucket>>;
 /** Bevel parameters and state. */
 struct BevelParams {
   /** Records BevVerts made. */
-  blender::Map<BMVert *, BevVert *> vert_hash;
+  Map<BMVert *, BevVert *> vert_hash;
   /** Records new faces. */
-  std::optional<blender::Map<BMFace *, FKind>> face_hash;
+  std::optional<Map<BMFace *, FKind>> face_hash;
   /** Records `UVFace` made. */
-  blender::Map<BMFace *, UVFace *> uv_face_hash;
+  Map<BMFace *, UVFace *> uv_face_hash;
   /** Container which keeps track of UV vert connectivity in different UV maps. */
   Vector<UVVertMap> uv_vert_maps;
   /**
@@ -483,7 +481,7 @@ static bool nearly_parallel_normalized(const float d1[3], const float d2[3])
  * list with entry point bv->boundstart, and return it. */
 static BoundVert *add_new_bound_vert(MemArena *mem_arena, VMesh *vm, const float co[3])
 {
-  BoundVert *ans = (BoundVert *)BLI_memarena_alloc(mem_arena, sizeof(BoundVert));
+  BoundVert *ans = static_cast<BoundVert *>(BLI_memarena_alloc(mem_arena, sizeof(BoundVert)));
 
   copy_v3_v3(ans->nv.co, co);
   if (!vm->boundstart) {
@@ -647,7 +645,7 @@ static UVFace *register_uv_face(BevelParams *bp, BMFace *fnew, BMFace *frep, BMF
     return nullptr;
   }
 
-  UVFace *uv_face = (UVFace *)BLI_memarena_alloc(bp->mem_arena, sizeof(UVFace));
+  UVFace *uv_face = static_cast<UVFace *>(BLI_memarena_alloc(bp->mem_arena, sizeof(UVFace)));
   uv_face->f = fnew;
   uv_face->attached_frep = nullptr;
   if (frep_arr && frep_arr[0]) {
@@ -981,8 +979,9 @@ static bool contig_ldata_across_loops(BMesh *bm, BMLoop *l1, BMLoop *l2, int lay
   const int offset = bm->ldata.layers[layer_index].offset;
   const int type = bm->ldata.layers[layer_index].type;
 
-  return CustomData_data_equals(
-      eCustomDataType(type), (char *)l1->head.data + offset, (char *)l2->head.data + offset);
+  return CustomData_data_equals(eCustomDataType(type),
+                                static_cast<char *>(l1->head.data) + offset,
+                                static_cast<char *>(l2->head.data) + offset);
 }
 
 /* Are all loop layers with have math (e.g., UVs)
@@ -2344,10 +2343,11 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
 
   bool need_2 = bp->seg != bp->pro_spacing.seg_2;
   if (pro->prof_co == nullptr) {
-    pro->prof_co = (float *)BLI_memarena_alloc(bp->mem_arena, sizeof(float[3]) * (bp->seg + 1));
+    pro->prof_co = static_cast<float *>(
+        BLI_memarena_alloc(bp->mem_arena, sizeof(float[3]) * (bp->seg + 1)));
     if (need_2) {
-      pro->prof_co_2 = (float *)BLI_memarena_alloc(bp->mem_arena,
-                                                   sizeof(float[3]) * (bp->pro_spacing.seg_2 + 1));
+      pro->prof_co_2 = static_cast<float *>(
+          BLI_memarena_alloc(bp->mem_arena, sizeof(float[3]) * (bp->pro_spacing.seg_2 + 1)));
     }
     else {
       pro->prof_co_2 = pro->prof_co;
@@ -3489,8 +3489,8 @@ static void print_adjust_stats(BoundVert *vstart)
  * But keep it here for a while in case performance issues demand that it be used sometimes. */
 static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscycle)
 {
-  float *g = MEM_mallocN(np * sizeof(float), "beveladjust");
-  float *g_prod = MEM_mallocN(np * sizeof(float), "beveladjust");
+  float *g = MEM_malloc_arrayN<float>(np, "beveladjust");
+  float *g_prod = MEM_malloc_arrayN<float>(np, "beveladjust");
 
   BoundVert *v = vstart;
   float spec_sum = 0.0f;
@@ -4018,12 +4018,12 @@ static BoundVert *pipe_test(BevVert *bv)
 
 static VMesh *new_adj_vmesh(MemArena *mem_arena, int count, int seg, BoundVert *bounds)
 {
-  VMesh *vm = (VMesh *)BLI_memarena_alloc(mem_arena, sizeof(VMesh));
+  VMesh *vm = static_cast<VMesh *>(BLI_memarena_alloc(mem_arena, sizeof(VMesh)));
   vm->count = count;
   vm->seg = seg;
   vm->boundstart = bounds;
-  vm->mesh = (NewVert *)BLI_memarena_alloc(mem_arena,
-                                           sizeof(NewVert) * count * (1 + seg / 2) * (1 + seg));
+  vm->mesh = static_cast<NewVert *>(
+      BLI_memarena_alloc(mem_arena, sizeof(NewVert) * count * (1 + seg / 2) * (1 + seg)));
   vm->mesh_kind = M_ADJ;
   return vm;
 }
@@ -6086,8 +6086,8 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
   int ns = vm->seg;
   int ns2 = ns / 2;
 
-  vm->mesh = (NewVert *)BLI_memarena_alloc(bp->mem_arena,
-                                           sizeof(NewVert) * n * (ns2 + 1) * (ns + 1));
+  vm->mesh = static_cast<NewVert *>(
+      BLI_memarena_alloc(bp->mem_arena, sizeof(NewVert) * n * (ns2 + 1) * (ns + 1)));
 
   /* Special case: just two beveled edges welded together. */
   const bool weld = (bv->selcount == 2) && (vm->count == 2);
@@ -6507,20 +6507,22 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
     return nullptr;
   }
 
-  BevVert *bv = (BevVert *)BLI_memarena_alloc(bp->mem_arena, sizeof(BevVert));
+  BevVert *bv = static_cast<BevVert *>(BLI_memarena_alloc(bp->mem_arena, sizeof(BevVert)));
   bv->v = v;
   bv->edgecount = tot_edges;
   bv->selcount = nsel;
   bv->wirecount = tot_wire;
   bv->offset = bp->offset;
-  bv->edges = (EdgeHalf *)BLI_memarena_alloc(bp->mem_arena, sizeof(EdgeHalf) * tot_edges);
+  bv->edges = static_cast<EdgeHalf *>(
+      BLI_memarena_alloc(bp->mem_arena, sizeof(EdgeHalf) * tot_edges));
   if (tot_wire) {
-    bv->wire_edges = (BMEdge **)BLI_memarena_alloc(bp->mem_arena, sizeof(BMEdge *) * tot_wire);
+    bv->wire_edges = static_cast<BMEdge **>(
+        BLI_memarena_alloc(bp->mem_arena, sizeof(BMEdge *) * tot_wire));
   }
   else {
     bv->wire_edges = nullptr;
   }
-  bv->vmesh = (VMesh *)BLI_memarena_alloc(bp->mem_arena, sizeof(VMesh));
+  bv->vmesh = static_cast<VMesh *>(BLI_memarena_alloc(bp->mem_arena, sizeof(VMesh)));
   bv->vmesh->seg = bp->seg;
 
   bp->vert_hash.add(v, bv);
@@ -7559,13 +7561,13 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
     pro_spacing->yvals_2 = pro_spacing->yvals;
   }
   else {
-    pro_spacing->xvals_2 = (double *)BLI_memarena_alloc(bp->mem_arena,
-                                                        sizeof(double) * (seg_2 + 1));
-    pro_spacing->yvals_2 = (double *)BLI_memarena_alloc(bp->mem_arena,
-                                                        sizeof(double) * (seg_2 + 1));
+    pro_spacing->xvals_2 = static_cast<double *>(
+        BLI_memarena_alloc(bp->mem_arena, sizeof(double) * (seg_2 + 1)));
+    pro_spacing->yvals_2 = static_cast<double *>(
+        BLI_memarena_alloc(bp->mem_arena, sizeof(double) * (seg_2 + 1)));
     if (custom) {
       /* Make sure the curve profile widget's sample table is full of the seg_2 samples. */
-      BKE_curveprofile_init((CurveProfile *)bp->custom_profile, short(seg_2));
+      BKE_curveprofile_init(const_cast<CurveProfile *>(bp->custom_profile), short(seg_2));
 
       /* Copy segment locations into the profile spacing struct. */
       for (int i = 0; i < seg_2 + 1; i++) {
@@ -7580,12 +7582,14 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
   }
 
   /* Sample the input number of segments. */
-  pro_spacing->xvals = (double *)BLI_memarena_alloc(bp->mem_arena, sizeof(double) * (seg + 1));
-  pro_spacing->yvals = (double *)BLI_memarena_alloc(bp->mem_arena, sizeof(double) * (seg + 1));
+  pro_spacing->xvals = static_cast<double *>(
+      BLI_memarena_alloc(bp->mem_arena, sizeof(double) * (seg + 1)));
+  pro_spacing->yvals = static_cast<double *>(
+      BLI_memarena_alloc(bp->mem_arena, sizeof(double) * (seg + 1)));
   if (custom) {
     /* Make sure the curve profile's sample table is full. */
     if (bp->custom_profile->segments_len != seg || !bp->custom_profile->segments) {
-      BKE_curveprofile_init((CurveProfile *)bp->custom_profile, short(seg));
+      BKE_curveprofile_init(const_cast<CurveProfile *>(bp->custom_profile), short(seg));
     }
 
     /* Copy segment locations into the profile spacing struct. */
@@ -8093,3 +8097,5 @@ void BM_mesh_bevel(BMesh *bm,
   printf("BMESH BEVEL TIME = %.3f\n", end_time - start_time);
 #endif
 }
+
+}  // namespace blender

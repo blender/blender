@@ -12,6 +12,8 @@
 
 #include <type_traits>
 
+namespace blender {
+
 /* Some compilers complain about lack of return values. Keep it short. */
 #define RET \
   { \
@@ -133,6 +135,7 @@ template<typename T, int Sz> struct SwizzleBase : VecOp<T, Sz> {
 
   constexpr VecT operator=(const VecT &) RET;
   operator VecT() const RET;
+  VecT operator()() const RET;
 };
 
 #define SWIZZLE_XY(T) \
@@ -404,3 +407,5 @@ using packed_uint4 = uint4;
 /** \} */
 
 #undef RET
+
+}  // namespace blender

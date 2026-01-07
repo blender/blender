@@ -20,11 +20,12 @@
 #include "UI_abstract_view.hh"
 #include "UI_resources.hh"
 
+namespace blender {
+
 struct bContext;
-struct uiBlock;
 struct View2D;
 
-namespace blender::ui {
+namespace ui {
 
 class AbstractGridView;
 class GridViewItemDropTarget;
@@ -66,7 +67,7 @@ class AbstractGridViewItem : public AbstractViewItem {
   virtual std::unique_ptr<GridViewItemDropTarget> create_drop_target();
 
  private:
-  void add_grid_tile_button(uiBlock &block);
+  void add_grid_tile_button(Block &block);
 };
 
 /** \} */
@@ -172,7 +173,7 @@ class GridViewItemDropTarget : public DropTargetInterface {
 
 class GridViewBuilder {
  public:
-  GridViewBuilder(uiBlock &block);
+  GridViewBuilder(Block &block);
 
   void build_grid_view(const bContext &C,
                        AbstractGridView &grid_view,
@@ -252,4 +253,5 @@ template<class ViewType> ViewType &GridViewItemDropTarget::get_view() const
   return dynamic_cast<ViewType &>(view_);
 }
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

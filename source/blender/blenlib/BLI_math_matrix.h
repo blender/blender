@@ -10,6 +10,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Init
  * \{ */
@@ -526,11 +528,10 @@ bool equals_m4m4(const float mat1[4][4], const float mat2[4][4]);
  * - #BLI_space_transform_apply_normal(&data, no);
  * - #BLI_space_transform_invert_normal(&data, no);
  */
-typedef struct SpaceTransform {
+struct SpaceTransform {
   float local2target[4][4];
   float target2local[4][4];
-
-} SpaceTransform;
+};
 
 /**
  * Global-invariant transform.
@@ -584,3 +585,5 @@ void print_m4(const char *str, const float m[4][4]);
 #define print_m4_id(M) print_m4(STRINGIFY(M), M)
 
 /** \} */
+
+}  // namespace blender

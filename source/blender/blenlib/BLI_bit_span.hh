@@ -15,7 +15,9 @@
 #include "BLI_math_bits.h"
 #include "BLI_memory_utils.hh"
 
-namespace blender::bits {
+namespace blender {
+
+namespace bits {
 
 /** Base class for a const and non-const bit-iterator. */
 class BitIteratorBase {
@@ -474,11 +476,11 @@ constexpr bool all_bounded_spans =
 std::ostream &operator<<(std::ostream &stream, const BitSpan &span);
 std::ostream &operator<<(std::ostream &stream, const MutableBitSpan &span);
 
-}  // namespace blender::bits
+}  // namespace bits
 
-namespace blender {
 using bits::BitSpan;
 using bits::BoundedBitSpan;
 using bits::MutableBitSpan;
 using bits::MutableBoundedBitSpan;
+
 }  // namespace blender

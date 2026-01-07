@@ -14,9 +14,12 @@
 
 #include "MOV_enums.hh"
 
+#include "BLI_function_ref.hh"
 #include "BLI_set.hh"
 
 #include <string>
+
+namespace blender {
 
 struct IDProperty;
 struct ImBuf;
@@ -181,7 +184,7 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
                                            int proxy_sizes_in_use,
                                            int quality,
                                            const bool overwrite,
-                                           blender::Set<std::string> *processed_paths,
+                                           Set<std::string> *processed_paths,
                                            bool build_only_on_bad_performance);
 
 /**
@@ -190,9 +193,11 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
 void MOV_proxy_builder_process(MovieProxyBuilder *context,
                                bool *stop,
                                bool *do_update,
-                               float *progress);
+                               blender::FunctionRef<void(float progress)> set_progress_fn);
 
 /**
  * Finish building proxies / time-codes indices, and delete the builder.
  */
 void MOV_proxy_builder_finish(MovieProxyBuilder *context, bool stop);
+
+}  // namespace blender

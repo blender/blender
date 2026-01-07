@@ -14,7 +14,9 @@
 
 #include "BLI_linklist.h"
 
-namespace blender::ed::file::indexer {
+namespace blender {
+
+namespace ed::file::indexer {
 
 static eFileIndexerResult read_index(const char * /*file_name*/,
                                      FileIndexerEntries * /*entries*/,
@@ -49,15 +51,15 @@ static FileIndexerEntry *file_indexer_entry_create_from_datablock_info(
   return entry;
 }
 
-}  // namespace blender::ed::file::indexer
+}  // namespace ed::file::indexer
 
 void ED_file_indexer_entries_extend_from_datablock_info(FileIndexerEntries *indexer_entries,
                                                         BLODataBlockInfo *datablock_info,
                                                         const int idcode)
 {
   FileIndexerEntry *file_indexer_entry =
-      blender::ed::file::indexer::file_indexer_entry_create_from_datablock_info(datablock_info,
-                                                                                idcode);
+      ed::file::indexer::file_indexer_entry_create_from_datablock_info(datablock_info,
+                                                                       idcode);
   BLI_linklist_prepend(&indexer_entries->entries, file_indexer_entry);
 }
 
@@ -83,4 +85,6 @@ void ED_file_indexer_entries_clear(FileIndexerEntries *indexer_entries)
   indexer_entries->entries = nullptr;
 }
 
-const FileIndexerType file_indexer_noop = blender::ed::file::indexer::default_indexer();
+const FileIndexerType file_indexer_noop = ed::file::indexer::default_indexer();
+
+}  // namespace blender

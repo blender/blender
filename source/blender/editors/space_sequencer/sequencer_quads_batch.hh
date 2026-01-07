@@ -10,13 +10,15 @@
 
 #include "BLI_sys_types.h"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Batch;
 class IndexBuf;
 class VertBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 
-namespace blender::ed::vse {
+namespace ed::vse {
 
 struct ColorVertex;
 
@@ -93,4 +95,5 @@ class SeqQuadsBatch {
   int lines_num = 0;
 };
 
-}  // namespace blender::ed::vse
+}  // namespace ed::vse
+}  // namespace blender

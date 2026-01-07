@@ -17,7 +17,9 @@
 
 #include "FN_multi_function_builder.hh"
 
-namespace blender::nodes::node_geo_switch_cc {
+namespace blender {
+
+namespace nodes::node_geo_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeSwitch)
 
@@ -65,7 +67,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeSwitch *data = MEM_callocN<NodeSwitch>(__func__);
+  NodeSwitch *data = MEM_new_for_free<NodeSwitch>(__func__);
   data->input_type = SOCK_FLOAT;
   node->storage = data;
 }
@@ -236,42 +238,28 @@ static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*
 
 static void node_rna(StructRNA *srna)
 {
-  RNA_def_node_enum(
-      srna,
-      "input_type",
-      "Input Type",
-      "",
-      rna_enum_node_socket_data_type_items,
-      NOD_storage_enum_accessors(input_type),
-      SOCK_GEOMETRY,
-      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
-        *r_free = true;
-        return enum_items_filter(rna_enum_node_socket_data_type_items,
-                                 [](const EnumPropertyItem &item) -> bool {
-                                   return ELEM(item.value,
-                                               SOCK_FLOAT,
-                                               SOCK_INT,
-                                               SOCK_BOOLEAN,
-                                               SOCK_ROTATION,
-                                               SOCK_MATRIX,
-                                               SOCK_VECTOR,
-                                               SOCK_STRING,
-                                               SOCK_RGBA,
-                                               SOCK_GEOMETRY,
-                                               SOCK_OBJECT,
-                                               SOCK_COLLECTION,
-                                               SOCK_MATERIAL,
-                                               SOCK_IMAGE,
-                                               SOCK_MENU,
-                                               SOCK_BUNDLE,
-                                               SOCK_CLOSURE);
-                                 });
-      });
+  RNA_def_node_enum(srna,
+                    "input_type",
+                    "Input Type",
+                    "",
+                    rna_enum_node_socket_data_type_items,
+                    NOD_storage_enum_accessors(input_type),
+                    SOCK_GEOMETRY,
+                    [](bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free) {
+                      *r_free = true;
+                      const bNodeTree &ntree = *id_cast<const bNodeTree *>(ptr->owner_id);
+                      return enum_items_filter(
+                          rna_enum_node_socket_data_type_items,
+                          [&](const EnumPropertyItem &item) -> bool {
+                            return bke::node_tree_type_supports_socket_type_static(
+                                ntree.type, eNodeSocketDatatype(item.value));
+                          });
+                    });
 }
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSwitch", GEO_NODE_SWITCH);
   ntype.ui_name = "Switch";
@@ -280,21 +268,21 @@ static void register_node()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeSwitch", node_free_standard_storage, node_copy_standard_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.draw_buttons = node_layout;
   ntype.ignore_inferred_input_socket_visibility = true;
   ntype.internally_linked_input = node_internally_linked_input;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(register_node)
 
-}  // namespace blender::nodes::node_geo_switch_cc
+}  // namespace nodes::node_geo_switch_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node)
 {
@@ -303,4 +291,5 @@ std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node)
   return std::make_unique<LazyFunctionForSwitchNode>(node);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

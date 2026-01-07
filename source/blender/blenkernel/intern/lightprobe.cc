@@ -9,7 +9,6 @@
 #include <cstring>
 
 #include "DNA_collection_types.h"
-#include "DNA_defaults.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_object_types.h"
 
@@ -25,24 +24,24 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static void lightprobe_init_data(ID *id)
 {
-  LightProbe *probe = (LightProbe *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(probe, id));
-
-  MEMCPY_STRUCT_AFTER(probe, DNA_struct_default_get(LightProbe), id);
+  LightProbe *probe = id_cast<LightProbe *>(id);
+  INIT_DEFAULT_STRUCT_AFTER(probe, id);
 }
 
 static void lightprobe_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  LightProbe *probe = (LightProbe *)id;
+  LightProbe *probe = id_cast<LightProbe *>(id);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, probe->visibility_grp, IDWALK_CB_NOP);
 }
 
 static void lightprobe_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  LightProbe *prb = (LightProbe *)id;
+  LightProbe *prb = id_cast<LightProbe *>(id);
 
   /* write LibData */
   BLO_write_id_struct(writer, LightProbe, id_address, &prb->id);
@@ -120,17 +119,18 @@ static void lightprobe_grid_cache_frame_blend_write(BlendWriter *writer,
 
   int64_t sample_count = BKE_lightprobe_grid_cache_frame_sample_count(cache);
 
-  BLO_write_float3_array(writer, sample_count, (float *)cache->irradiance.L0);
-  BLO_write_float3_array(writer, sample_count, (float *)cache->irradiance.L1_a);
-  BLO_write_float3_array(writer, sample_count, (float *)cache->irradiance.L1_b);
-  BLO_write_float3_array(writer, sample_count, (float *)cache->irradiance.L1_c);
+  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L0));
+  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_a));
+  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_b));
+  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_c));
 
   BLO_write_float_array(writer, sample_count, cache->visibility.L0);
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_a);
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_b);
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_c);
 
-  BLO_write_int8_array(writer, sample_count, (int8_t *)cache->connectivity.validity);
+  BLO_write_int8_array(
+      writer, sample_count, reinterpret_cast<int8_t *>(cache->connectivity.validity));
 }
 
 static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
@@ -158,23 +158,24 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
   cache->surfels = nullptr;
   cache->surfels_len = 0;
 
-  BLO_read_float3_array(reader, sample_count, (float **)&cache->irradiance.L0);
-  BLO_read_float3_array(reader, sample_count, (float **)&cache->irradiance.L1_a);
-  BLO_read_float3_array(reader, sample_count, (float **)&cache->irradiance.L1_b);
-  BLO_read_float3_array(reader, sample_count, (float **)&cache->irradiance.L1_c);
+  BLO_read_float3_array(reader, sample_count, reinterpret_cast<float **>(&cache->irradiance.L0));
+  BLO_read_float3_array(reader, sample_count, reinterpret_cast<float **>(&cache->irradiance.L1_a));
+  BLO_read_float3_array(reader, sample_count, reinterpret_cast<float **>(&cache->irradiance.L1_b));
+  BLO_read_float3_array(reader, sample_count, reinterpret_cast<float **>(&cache->irradiance.L1_c));
 
   BLO_read_float_array(reader, sample_count, &cache->visibility.L0);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_a);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_b);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_c);
 
-  BLO_read_int8_array(reader, sample_count, (int8_t **)&cache->connectivity.validity);
+  BLO_read_int8_array(
+      reader, sample_count, reinterpret_cast<int8_t **>(&cache->connectivity.validity));
 }
 
 void BKE_lightprobe_cache_blend_write(BlendWriter *writer, LightProbeObjectCache *cache)
 {
   if (cache->grid_static_cache != nullptr) {
-    BLO_write_struct(writer, LightProbeGridCacheFrame, cache->grid_static_cache);
+    writer->write_struct(cache->grid_static_cache);
     lightprobe_grid_cache_frame_blend_write(writer, cache->grid_static_cache);
   }
 }
@@ -197,15 +198,15 @@ template<typename T> static void spherical_harmonic_free(T &data)
 
 template<typename DataT, typename T> static void spherical_harmonic_copy(T &dst, T &src)
 {
-  dst.L0 = (DataT *)MEM_dupallocN(src.L0);
-  dst.L1_a = (DataT *)MEM_dupallocN(src.L1_a);
-  dst.L1_b = (DataT *)MEM_dupallocN(src.L1_b);
-  dst.L1_c = (DataT *)MEM_dupallocN(src.L1_c);
+  dst.L0 = static_cast<DataT *>(MEM_dupallocN(src.L0));
+  dst.L1_a = static_cast<DataT *>(MEM_dupallocN(src.L1_a));
+  dst.L1_b = static_cast<DataT *>(MEM_dupallocN(src.L1_b));
+  dst.L1_c = static_cast<DataT *>(MEM_dupallocN(src.L1_c));
 }
 
 LightProbeGridCacheFrame *BKE_lightprobe_grid_cache_frame_create()
 {
-  LightProbeGridCacheFrame *cache = MEM_callocN<LightProbeGridCacheFrame>(
+  LightProbeGridCacheFrame *cache = MEM_new_for_free<LightProbeGridCacheFrame>(
       "LightProbeGridCacheFrame");
   return cache;
 }
@@ -246,7 +247,7 @@ void BKE_lightprobe_cache_create(Object *object)
 {
   BLI_assert(object->lightprobe_cache == nullptr);
 
-  object->lightprobe_cache = MEM_callocN<LightProbeObjectCache>("LightProbeObjectCache");
+  object->lightprobe_cache = MEM_new_for_free<LightProbeObjectCache>("LightProbeObjectCache");
 }
 
 LightProbeObjectCache *BKE_lightprobe_cache_copy(LightProbeObjectCache *src_cache)
@@ -288,3 +289,5 @@ int64_t BKE_lightprobe_grid_cache_frame_sample_count(const LightProbeGridCacheFr
   /* LIGHTPROBE_CACHE_UNIFORM_GRID */
   return int64_t(cache->size[0]) * cache->size[1] * cache->size[2];
 }
+
+}  // namespace blender

@@ -137,7 +137,7 @@ void activate_geometry_node(Main &bmain,
                             bNode &node,
                             std::optional<int> item_identifier)
 {
-  wmWindowManager *wm = (wmWindowManager *)bmain.wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
   if (wm == nullptr) {
     return;
   }
@@ -154,11 +154,11 @@ void activate_geometry_node(Main &bmain,
 
   bool found_view3d_with_enabled_viewer = false;
   View3D *any_view3d_without_viewer = nullptr;
-  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
-    WorkSpace *workspace = BKE_workspace_active_get(window->workspace_hook);
-    bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+  for (wmWindow &window : wm->windows) {
+    WorkSpace *workspace = BKE_workspace_active_get(window.workspace_hook);
+    bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
+    for (ScrArea &area : screen->areabase) {
+      SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
       if (sl->spacetype == SPACE_SPREADSHEET) {
         SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<SpaceSpreadsheet *>(sl);
         if (!(sspreadsheet.flag & SPREADSHEET_FLAG_PINNED)) {
@@ -220,8 +220,8 @@ std::optional<ViewerPathForGeometryNodesViewer> parse_geometry_nodes_viewer(
     const ViewerPath &viewer_path)
 {
   Vector<const ViewerPathElem *, 16> elems_vec;
-  LISTBASE_FOREACH (const ViewerPathElem *, item, &viewer_path.path) {
-    elems_vec.append(item);
+  for (const ViewerPathElem &item : viewer_path.path) {
+    elems_vec.append(&item);
   }
 
   if (elems_vec.size() < 3) {
@@ -275,14 +275,14 @@ std::optional<ViewerPathForGeometryNodesViewer> parse_geometry_nodes_viewer(
 bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed_viewer_path)
 {
   const NodesModifierData *modifier = nullptr;
-  LISTBASE_FOREACH (const ModifierData *, md, &parsed_viewer_path.object->modifiers) {
-    if (md->type != eModifierType_Nodes) {
+  for (const ModifierData &md : parsed_viewer_path.object->modifiers) {
+    if (md.type != eModifierType_Nodes) {
       continue;
     }
-    if (md->persistent_uid != parsed_viewer_path.modifier_uid) {
+    if (md.persistent_uid != parsed_viewer_path.modifier_uid) {
       continue;
     }
-    modifier = reinterpret_cast<const NodesModifierData *>(md);
+    modifier = reinterpret_cast<const NodesModifierData *>(&md);
     break;
   }
   if (modifier == nullptr) {
@@ -421,16 +421,16 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
   if (wm == nullptr) {
     return UpdateActiveGeometryNodesViewerResult::NotActive;
   }
-  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
-    const bScreen *active_screen = BKE_workspace_active_screen_get(window->workspace_hook);
+  for (const wmWindow &window : wm->windows) {
+    const bScreen *active_screen = BKE_workspace_active_screen_get(window.workspace_hook);
     Vector<const bScreen *> screens = {active_screen};
     if (ELEM(active_screen->state, SCREENMAXIMIZED, SCREENFULL)) {
       const ScrArea *area = static_cast<ScrArea *>(active_screen->areabase.first);
       screens.append(area->full);
     }
     for (const bScreen *screen : screens) {
-      LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-        const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+      for (const ScrArea &area : screen->areabase) {
+        const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
         if (sl == nullptr) {
           continue;
         }

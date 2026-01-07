@@ -46,6 +46,7 @@ float2 calc_brick_texture(float3 p,
   }
 }
 
+[[node]]
 void node_tex_brick(float3 co,
                     float4 color1,
                     float4 color2,
@@ -60,8 +61,8 @@ void node_tex_brick(float3 co,
                     float offset_frequency,
                     float squash_amount,
                     float squash_frequency,
-                    out float4 color,
-                    out float fac)
+                    float4 &color,
+                    float &fac)
 {
   float2 f2 = calc_brick_texture(co * scale,
                                  mortar_size,

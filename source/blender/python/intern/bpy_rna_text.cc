@@ -23,6 +23,8 @@
 #include "bpy_rna.hh"
 #include "bpy_rna_text.hh" /* Declare #BPY_rna_region_as_string_method_def. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Data structures.
  * \{ */
@@ -60,7 +62,7 @@ PyDoc_STRVAR(
 /* Receive a Python Tuple as parameter to represent the region range. */
 static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
+  BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(self);
   Text *text = static_cast<Text *>(pyrna->ptr->data);
   /* Parse the region range. */
   TextRegion region;
@@ -107,7 +109,7 @@ static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObje
 
 PyMethodDef BPY_rna_region_as_string_method_def = {
     "region_as_string",
-    (PyCFunction)bpy_rna_region_as_string,
+    reinterpret_cast<PyCFunction>(bpy_rna_region_as_string),
     METH_VARARGS | METH_KEYWORDS,
     bpy_rna_region_as_string_doc,
 };
@@ -136,7 +138,7 @@ PyDoc_STRVAR(
     "   :type range: tuple[tuple[int, int], tuple[int, int]]\n");
 static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
+  BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(self);
   Text *text = static_cast<Text *>(pyrna->ptr->data);
 
   /* Parse the region range. */
@@ -191,7 +193,7 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyOb
 
 PyMethodDef BPY_rna_region_from_string_method_def = {
     "region_from_string",
-    (PyCFunction)bpy_rna_region_from_string,
+    reinterpret_cast<PyCFunction>(bpy_rna_region_from_string),
     METH_VARARGS | METH_KEYWORDS,
     bpy_rna_region_from_string_doc,
 };
@@ -205,3 +207,5 @@ PyMethodDef BPY_rna_region_from_string_method_def = {
 #endif
 
 /** \} */
+
+}  // namespace blender

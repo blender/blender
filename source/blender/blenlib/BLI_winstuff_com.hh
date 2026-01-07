@@ -26,6 +26,7 @@
 #endif
 
 namespace blender {
+
 class CoInitializeWrapper {
   HRESULT _hr;
 
@@ -45,4 +46,5 @@ class CoInitializeWrapper {
     return _hr;
   }
 };
+
 }  // namespace blender

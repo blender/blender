@@ -23,6 +23,8 @@
 
 #include "BKE_idtype.hh"
 
+namespace blender {
+
 // static CLG_LogRef LOG = {"lib.idtype"};
 
 uint BKE_idtype_cache_key_hash(const void *key_v)
@@ -251,7 +253,7 @@ int BKE_idtype_idcode_to_index(const short idcode)
   case ID_##_id: \
     return INDEX_ID_##_id
 
-  switch ((ID_Type)idcode) {
+  switch (ID_Type(idcode)) {
     CASE_IDINDEX(AC);
     CASE_IDINDEX(AR);
     CASE_IDINDEX(BR);
@@ -406,7 +408,7 @@ void BKE_idtype_id_foreach_cache(ID *id,
   }
 
   /* Handle 'private IDs'. */
-  bNodeTree *nodetree = blender::bke::node_tree_from_id(id);
+  bNodeTree *nodetree = bke::node_tree_from_id(id);
   if (nodetree != nullptr) {
     type_info = BKE_idtype_get_info_from_id(&nodetree->id);
     if (type_info == nullptr) {
@@ -420,7 +422,7 @@ void BKE_idtype_id_foreach_cache(ID *id,
   }
 
   if (GS(id->name) == ID_SCE) {
-    Scene *scene = (Scene *)id;
+    Scene *scene = id_cast<Scene *>(id);
     if (scene->master_collection != nullptr) {
       type_info = BKE_idtype_get_info_from_id(&scene->master_collection->id);
       if (type_info->foreach_cache != nullptr) {
@@ -429,3 +431,5 @@ void BKE_idtype_id_foreach_cache(ID *id,
     }
   }
 }
+
+}  // namespace blender

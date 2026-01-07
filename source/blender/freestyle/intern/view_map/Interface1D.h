@@ -31,7 +31,7 @@ namespace Freestyle {
  * The different integration methods that can be invoked to integrate into a single value the set
  * of values obtained from each 0D element of a 1D element.
  */
-typedef enum {
+enum IntegrationType {
   /**
    * The value computed for the 1D element is the mean of the values obtained for the 0D elements.
    */
@@ -56,7 +56,7 @@ typedef enum {
    * elements.
    */
   LAST,
-} IntegrationType;
+};
 
 /**
  * Returns a single value from a set of values evaluated at each 0D element of this 1D element.

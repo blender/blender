@@ -18,6 +18,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 using namespace blender::bke::subdiv;
 
 struct PolyCornerIndex {
@@ -27,7 +29,7 @@ struct PolyCornerIndex {
 
 struct GridPaintMaskData {
   // int grid_size;
-  blender::OffsetIndices<int> faces;
+  OffsetIndices<int> faces;
   const GridPaintMask *grid_paint_mask;
   /* Indexed by ptex face index, contains face/corner which corresponds
    * to it.
@@ -48,7 +50,7 @@ static int mask_get_grid_and_coord(SubdivCCGMaskEvaluator *mask_evaluator,
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   const PolyCornerIndex *poly_corner = &data->ptex_face_corner[ptex_face_index];
-  const blender::IndexRange face = data->faces[poly_corner->face_index];
+  const IndexRange face = data->faces[poly_corner->face_index];
   const int start_grid_index = face.start() + poly_corner->corner;
   int corner = 0;
   if (face.size() == 4) {
@@ -101,7 +103,7 @@ static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 static int count_num_ptex_faces(const Mesh *mesh)
 {
   int num_ptex_faces = 0;
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   for (const int face_index : faces.index_range()) {
     num_ptex_faces += (faces[face_index].size() == 4) ? 1 : faces[face_index].size();
   }
@@ -111,7 +113,7 @@ static int count_num_ptex_faces(const Mesh *mesh)
 static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
   data->ptex_face_corner = MEM_malloc_arrayN<PolyCornerIndex>(size_t(num_ptex_faces), __func__);
@@ -119,7 +121,7 @@ static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_face_corner = data->ptex_face_corner;
   for (const int face_index : faces.index_range()) {
-    const blender::IndexRange face = faces[face_index];
+    const IndexRange face = faces[face_index];
     if (face.size() == 4) {
       ptex_face_corner[ptex_face_index].face_index = face_index;
       ptex_face_corner[ptex_face_index].corner = 0;
@@ -161,3 +163,5 @@ bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator,
   mask_init_functions(mask_evaluator);
   return true;
 }
+
+}  // namespace blender

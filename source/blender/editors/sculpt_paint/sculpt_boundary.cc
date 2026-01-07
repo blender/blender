@@ -2760,7 +2760,7 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices<int> faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
@@ -3044,7 +3044,7 @@ static void init_boundary_mesh(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
   VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
   VArraySpan<float> mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
@@ -3383,7 +3383,7 @@ std::unique_ptr<SculptBoundary> data_init_mesh(const Depsgraph &depsgraph,
 
   boundary::ensure_boundary_info(object);
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -3464,7 +3464,7 @@ std::unique_ptr<SculptBoundary> data_init_grids(Object &object,
 
   boundary::ensure_boundary_info(object);
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;

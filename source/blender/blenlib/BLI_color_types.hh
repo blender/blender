@@ -64,7 +64,7 @@ namespace blender {
  * Extending this file:
  * - This file can be extended with `ColorHex/Hsl/Hsv` for different representations
  *   of rgb based colors. `ColorHsl4f<eSpace::SceneLinear, eAlpha::Premultiplied>`
- * - Add non RGB spaces/storages ColorXyz.
+ * - Add non RGB spaces/storage for ColorXyz.
  */
 
 /** Enumeration containing the different alpha modes. */

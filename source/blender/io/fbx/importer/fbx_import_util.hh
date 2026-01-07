@@ -13,13 +13,15 @@
 
 #include "ufbx.h"
 
+namespace blender {
+
 struct ID;
 struct Object;
 struct Key;
 struct Material;
 struct bPoseChannel;
 
-namespace blender::io::fbx {
+namespace io::fbx {
 
 const char *get_fbx_name(const ufbx_string &name, const char *def = "Untitled");
 
@@ -100,4 +102,5 @@ inline double adjf(double f)
 void print_matrix(const ufbx_matrix &m);
 #endif
 
-}  // namespace blender::io::fbx
+}  // namespace io::fbx
+}  // namespace blender

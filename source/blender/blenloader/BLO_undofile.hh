@@ -11,8 +11,11 @@
 
 #include "BLI_filereader.h"
 #include "BLI_implicit_sharing.hh"
-#include "BLI_listbase.h"
 #include "BLI_map.hh"
+
+#include "DNA_listBase.h"
+
+namespace blender {
 
 struct Main;
 struct Scene;
@@ -23,7 +26,7 @@ struct MemFileSharedStorage {
   /**
    * Maps the address id to the shared data and corresponding sharing info..
    */
-  blender::Map<uint64_t, blender::ImplicitSharingInfoAndData> sharing_info_by_address_id;
+  Map<uint64_t, ImplicitSharingInfoAndData> sharing_info_by_address_id;
 
   ~MemFileSharedStorage();
 };
@@ -45,7 +48,7 @@ struct MemFileChunk {
 };
 
 struct MemFile {
-  ListBase chunks;
+  ListBaseT<MemFileChunk> chunks;
   size_t size;
   /**
    * Some data is not serialized into a new buffer because the undo-step can take ownership of it
@@ -68,7 +71,7 @@ struct MemFileWriteData {
   MemFileChunk *reference_current_chunk;
 
   /** Maps an ID session uid to its first reference MemFileChunk, if existing. */
-  blender::Map<uint, MemFileChunk *> id_session_uid_mapping;
+  Map<uint, MemFileChunk *> id_session_uid_mapping;
 };
 
 struct MemFileUndoData {
@@ -120,3 +123,5 @@ void BLO_memfile_clear_future(MemFile *memfile);
 Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene);
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction);
+
+}  // namespace blender

@@ -9,6 +9,8 @@
 #include "BKE_node_socket_value.hh"
 #include "DNA_space_types.h"
 
+namespace blender {
+
 struct ARegionType;
 struct Depsgraph;
 struct Object;
@@ -16,16 +18,16 @@ struct SpaceSpreadsheet;
 struct ARegion;
 struct SpreadsheetColumn;
 struct bContext;
-namespace blender::nodes {
+namespace nodes {
 class Bundle;
 }
-namespace blender::nodes::geo_eval_log {
+namespace nodes::geo_eval_log {
 class ViewerNodeLog;
 }
 
 #define SPREADSHEET_EDGE_ACTION_ZONE (UI_UNIT_X * 0.3f)
 
-namespace blender::ed::spreadsheet {
+namespace ed::spreadsheet {
 
 class DataSource;
 
@@ -98,4 +100,5 @@ std::unique_ptr<DataSource> get_data_source(const bContext &C);
  */
 const SpreadsheetTableID *get_active_table_id(const SpaceSpreadsheet &sspreadsheet);
 
-}  // namespace blender::ed::spreadsheet
+}  // namespace ed::spreadsheet
+}  // namespace blender

@@ -14,10 +14,14 @@
 
 #else
 
+namespace blender {
+
 void RNA_api_material(StructRNA * /*srna*/)
 {
   // FunctionRNA *func;
   // PropertyRNA *parm;
 }
+
+}  // namespace blender
 
 #endif

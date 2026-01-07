@@ -6,16 +6,13 @@
 #include "usd_hierarchy_iterator.hh"
 #include "usd_utils.hh"
 
-#include <pxr/base/gf/vec3f.h>
 #include <pxr/base/tf/pathUtils.h>
-#include <pxr/base/vt/array.h>
 #include <pxr/base/vt/value.h>
 #include <pxr/usd/usdVol/openVDBAsset.h>
 #include <pxr/usd/usdVol/volume.h>
 
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_report.hh"
 #include "BKE_volume.hh"
@@ -52,13 +49,13 @@ USDVolumeWriter::USDVolumeWriter(const USDExporterContext &ctx) : USDAbstractWri
 
 bool USDVolumeWriter::check_is_animated(const HierarchyContext &context) const
 {
-  const Volume *volume = static_cast<Volume *>(context.object->data);
+  const Volume *volume = id_cast<Volume *>(context.object->data);
   return volume->is_sequence || has_varying_modifiers(context.object);
 }
 
 void USDVolumeWriter::do_write(HierarchyContext &context)
 {
-  Volume *volume = static_cast<Volume *>(context.object->data);
+  Volume *volume = id_cast<Volume *>(context.object->data);
   if (!BKE_volume_load(volume, usd_export_context_.bmain)) {
     return;
   }

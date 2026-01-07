@@ -10,8 +10,11 @@
 #include <memory>
 #include <system_error>
 
+#include "DNA_collection_types.h"
 #include "DNA_curve_enums.h"
 #include "DNA_curve_types.h"
+#include "DNA_layer_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -25,9 +28,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "DNA_collection_types.h"
-#include "DNA_scene_types.h"
-
 #include "ED_object.hh"
 
 #include "obj_export_mesh.hh"
@@ -37,9 +37,12 @@
 #include "obj_export_file_writer.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.obj"};
 
-namespace blender::io::obj {
+namespace io::obj {
 
 OBJDepsgraph::OBJDepsgraph(const bContext *C,
                            const eEvaluationMode eval_mode,
@@ -128,7 +131,7 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
         r_exportable_meshes.append(std::make_unique<OBJMesh>(depsgraph, export_params, object));
         break;
       case OB_CURVES_LEGACY: {
-        Curve *curve = static_cast<Curve *>(object->data);
+        Curve *curve = id_cast<Curve *>(object->data);
         Nurb *nurb{static_cast<Nurb *>(curve->nurb.first)};
         if (!nurb) {
           /* An empty curve. Not yet supported to export these as meshes. */
@@ -266,7 +269,7 @@ static void write_nurbs_curve_objects(const Span<std::unique_ptr<IOBJCurve>> exp
 {
   FormatHandler fh;
   /* #OBJCurve doesn't have any dynamically allocated memory, so it's fine
-   * to wait for #blender::Vector to clean the objects up. */
+   * to wait for #Vector to clean the objects up. */
   for (const std::unique_ptr<IOBJCurve> &obj_curve : exportable_as_nurbs) {
     obj_writer.write_nurbs_curve(fh, *obj_curve);
   }
@@ -415,4 +418,5 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
   }
   scene->r.cfra = original_frame;
 }
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

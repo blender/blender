@@ -80,7 +80,7 @@ class GHOST_EventDragnDrop : public GHOST_Event {
 
     switch (dragn_drop_event_data_.dataType) {
       case GHOST_kDragnDropTypeBitmap:
-        IMB_freeImBuf((ImBuf *)dragn_drop_event_data_.data);
+        blender::IMB_freeImBuf((blender::ImBuf *)dragn_drop_event_data_.data);
         break;
       case GHOST_kDragnDropTypeFilenames: {
         GHOST_TStringArray *strArray = (GHOST_TStringArray *)dragn_drop_event_data_.data;

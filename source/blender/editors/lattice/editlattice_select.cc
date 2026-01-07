@@ -44,8 +44,7 @@
 
 #include "lattice_intern.hh"
 
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
@@ -101,7 +100,7 @@ static wmOperatorStatus lattice_select_random_exec(bContext *C, wmOperator *op)
       scene, view_layer, CTX_wm_view3d(C));
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
-    Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+    Lattice *lt = (id_cast<Lattice *>(obedit->data))->editlatt->latt;
     int seed_iter = seed;
 
     /* This gives a consistent result regardless of object order. */
@@ -209,7 +208,7 @@ static wmOperatorStatus lattice_select_mirror_exec(bContext *C, wmOperator *op)
       scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+    Lattice *lt = (id_cast<Lattice *>(obedit->data))->editlatt->latt;
 
     for (int axis = 0; axis < 3; axis++) {
       if ((1 << axis) & axis_flag) {
@@ -274,7 +273,7 @@ static wmOperatorStatus lattice_select_more_less(bContext *C, const bool select)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+    Lattice *lt = (id_cast<Lattice *>(obedit->data))->editlatt->latt;
     BPoint *bp;
     const int tot = lt->pntsu * lt->pntsv * lt->pntsw;
     int u, v, w;
@@ -363,7 +362,7 @@ void LATTICE_OT_select_less(wmOperatorType *ot)
 
 bool ED_lattice_flags_set(Object *obedit, int flag)
 {
-  Lattice *lt = static_cast<Lattice *>(obedit->data);
+  Lattice *lt = id_cast<Lattice *>(obedit->data);
   BPoint *bp;
   int a;
   bool changed = false;
@@ -401,7 +400,7 @@ static wmOperatorStatus lattice_select_all_exec(bContext *C, wmOperator *op)
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
     for (Object *obedit : objects) {
-      Lattice *lt = static_cast<Lattice *>(obedit->data);
+      Lattice *lt = id_cast<Lattice *>(obedit->data);
       if (BKE_lattice_is_any_selected(lt->editlatt->latt)) {
         action = SEL_DESELECT;
         break;
@@ -424,7 +423,7 @@ static wmOperatorStatus lattice_select_all_exec(bContext *C, wmOperator *op)
         changed = ED_lattice_flags_set(obedit, 0);
         break;
       case SEL_INVERT:
-        lt = static_cast<Lattice *>(obedit->data);
+        lt = id_cast<Lattice *>(obedit->data);
         bp = lt->editlatt->latt->def;
         a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
         lt->editlatt->latt->actbp = LT_ACTBP_NONE;
@@ -484,7 +483,7 @@ static wmOperatorStatus lattice_select_ungrouped_exec(bContext *C, wmOperator *o
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+    Lattice *lt = (id_cast<Lattice *>(obedit->data))->editlatt->latt;
     MDeformVert *dv;
     BPoint *bp;
     int a, tot;
@@ -631,7 +630,7 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Par
 
   if (found) {
     ED_view3d_viewcontext_init_object(&vc, basact->object);
-    Lattice *lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
+    Lattice *lt = (id_cast<Lattice *>(vc.obedit->data))->editlatt->latt;
 
     switch (params.sel_op) {
       case SEL_OP_ADD: {
@@ -665,7 +664,7 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Par
 
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      blender::ed::object::base_activate(C, basact);
+      ed::object::base_activate(C, basact);
     }
 
     DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);
@@ -678,3 +677,5 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Par
 }
 
 /** \} */
+
+}  // namespace blender

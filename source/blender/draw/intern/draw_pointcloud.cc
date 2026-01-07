@@ -91,14 +91,14 @@ gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
   sub_ps.bind_texture("ptcloud_pos_rad_tx", is_empty ? module.dummy_vbo : pos_rad_buf);
 
   if (gpu_material != nullptr) {
-    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
-    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
+    ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpu_material);
+    for (GPUMaterialAttribute &gpu_attr : gpu_attrs) {
       char sampler_name[32];
       /** NOTE: Reusing curve attribute function. */
-      drw_curves_get_attribute_sampler_name(gpu_attr->name, sampler_name);
+      drw_curves_get_attribute_sampler_name(gpu_attr.name, sampler_name);
 
       gpu::VertBuf **attribute_buf = DRW_pointcloud_evaluated_attribute(&pointcloud,
-                                                                        gpu_attr->name);
+                                                                        gpu_attr.name);
       sub_ps.bind_texture(sampler_name,
                           (attribute_buf && !is_empty) ? attribute_buf : &module.dummy_vbo);
     }

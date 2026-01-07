@@ -13,9 +13,11 @@
 /* For #UsdGeomXformable. */
 #include <pxr/usd/usdGeom/xformable.h>
 
+namespace blender {
+
 struct Main;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /**
  * A transformation matrix and a boolean indicating
@@ -81,4 +83,5 @@ class USDXformReader : public USDPrimReader {
   pxr::UsdGeomXformable get_xformable() const;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

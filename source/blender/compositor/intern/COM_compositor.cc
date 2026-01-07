@@ -13,9 +13,11 @@
 
 #include "RE_compositor.hh"
 
+namespace blender {
+
 static constexpr float COM_PREVIEW_SIZE = 140.0f;
 
-static blender::Mutex g_compositor_mutex;
+static Mutex g_compositor_mutex;
 
 /* Make sure node tree has previews.
  * Don't create previews in advance, this is done when adding preview operations.
@@ -36,7 +38,7 @@ static void compositor_init_node_previews(const RenderData *render_data, bNodeTr
     preview_width = int(COM_PREVIEW_SIZE / aspect);
     preview_height = COM_PREVIEW_SIZE;
   }
-  blender::bke::node_preview_init_tree(node_tree, preview_width, preview_height);
+  bke::node_preview_init_tree(node_tree, preview_width, preview_height);
 }
 
 static void compositor_reset_node_tree_status(bNodeTree *node_tree)
@@ -50,9 +52,9 @@ void COM_execute(Render *render,
                  Scene *scene,
                  bNodeTree *node_tree,
                  const char *view_name,
-                 blender::compositor::RenderContext *render_context,
-                 blender::compositor::Profiler *profiler,
-                 blender::compositor::OutputTypes needed_outputs)
+                 compositor::RenderContext *render_context,
+                 compositor::Profiler *profiler,
+                 compositor::OutputTypes needed_outputs)
 {
   std::scoped_lock lock(g_compositor_mutex);
 
@@ -76,3 +78,5 @@ void COM_execute(Render *render,
 }
 
 void COM_deinitialize() {}
+
+}  // namespace blender

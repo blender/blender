@@ -11,7 +11,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_double_edge_mask_cc {
+namespace blender {
+
+namespace nodes::node_composite_double_edge_mask_cc {
 
 static void cmp_node_double_edge_mask_declare(NodeDeclarationBuilder &b)
 {
@@ -285,12 +287,12 @@ class DoubleEdgeMaskOperation : public NodeOperation {
 
   bool include_all_inner_edges()
   {
-    return !this->get_input("Only Inside Outer").get_single_value_default(false);
+    return !this->get_input("Only Inside Outer").get_single_value_default<bool>();
   }
 
   bool include_edges_of_image()
   {
-    return this->get_input("Image Edges").get_single_value_default(false);
+    return this->get_input("Image Edges").get_single_value_default<bool>();
   }
 };
 
@@ -299,13 +301,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new DoubleEdgeMaskOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_double_edge_mask_cc
+}  // namespace nodes::node_composite_double_edge_mask_cc
 
 static void register_node_type_cmp_doubleedgemask()
 {
-  namespace file_ns = blender::nodes::node_composite_double_edge_mask_cc;
+  namespace file_ns = nodes::node_composite_double_edge_mask_cc;
 
-  static blender::bke::bNodeType ntype; /* Allocate a node type data structure. */
+  static bke::bNodeType ntype; /* Allocate a node type data structure. */
 
   cmp_node_type_base(&ntype, "CompositorNodeDoubleEdgeMask", CMP_NODE_DOUBLEEDGEMASK);
   ntype.ui_name = "Double Edge Mask";
@@ -314,8 +316,10 @@ static void register_node_type_cmp_doubleedgemask()
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_double_edge_mask_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  blender::bke::node_type_size(ntype, 145, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 145, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_doubleedgemask)
+
+}  // namespace blender

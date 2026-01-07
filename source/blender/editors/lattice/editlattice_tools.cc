@@ -30,7 +30,7 @@
 
 #include "lattice_intern.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Make Regular Operator
@@ -59,13 +59,13 @@ static wmOperatorStatus make_regular_exec(bContext *C, wmOperator *op)
     Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, CTX_wm_view3d(C));
     for (Object *ob : objects) {
-      Lattice *lt = static_cast<Lattice *>(ob->data);
+      Lattice *lt = id_cast<Lattice *>(ob->data);
 
       if (lt->editlatt->latt == nullptr) {
         continue;
       }
 
-      if (blender::ed::object::shape_key_report_if_locked(ob, op->reports)) {
+      if (ed::object::shape_key_report_if_locked(ob, op->reports)) {
         continue;
       }
 
@@ -81,7 +81,7 @@ static wmOperatorStatus make_regular_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      Lattice *lt = static_cast<Lattice *>(ob->data);
+      Lattice *lt = id_cast<Lattice *>(ob->data);
       BKE_lattice_resize(lt, lt->pntsu, lt->pntsv, lt->pntsw, nullptr);
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -215,10 +215,10 @@ static wmOperatorStatus lattice_flip_exec(bContext *C, wmOperator *op)
     short isOdd = 0;
 
     /* get lattice - we need the "edit lattice" from the lattice... confusing... */
-    lt = (Lattice *)obedit->data;
+    lt = id_cast<Lattice *>(obedit->data);
     lt = lt->editlatt->latt;
 
-    if (blender::ed::object::shape_key_report_if_locked(obedit, op->reports)) {
+    if (ed::object::shape_key_report_if_locked(obedit, op->reports)) {
       continue;
     }
 
@@ -362,3 +362,5 @@ void LATTICE_OT_flip(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

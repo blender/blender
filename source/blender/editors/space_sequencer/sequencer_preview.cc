@@ -28,8 +28,10 @@
 
 namespace blender::ed::vse {
 
+struct PreviewJobAudio;
+
 struct PreviewJob {
-  ListBase previews;
+  ListBaseT<PreviewJobAudio> previews;
   ThreadMutex *mutex;
   Scene *scene;
   int total;
@@ -125,8 +127,8 @@ static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
     if (worker_status->stop || G.is_break) {
       BLI_task_pool_cancel(task_pool);
 
-      LISTBASE_FOREACH (PreviewJobAudio *, previewjb, &pj->previews) {
-        BKE_sound_runtime_clear_waveform_loading_tag(previewjb->sound);
+      for (PreviewJobAudio &previewjb : pj->previews) {
+        BKE_sound_runtime_clear_waveform_loading_tag(previewjb.sound);
       }
 
       BLI_freelistN(&pj->previews);
@@ -139,14 +141,14 @@ static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
     }
 
     Vector<ReadSoundWaveformTask *> new_tasks;
-    LISTBASE_FOREACH_MUTABLE (PreviewJobAudio *, previewjb, &pj->previews) {
+    for (PreviewJobAudio &previewjb : pj->previews.items_mutable()) {
       ReadSoundWaveformTask *task = MEM_callocN<ReadSoundWaveformTask>("read sound waveform task");
       task->wm_job = pj;
-      task->preview_job_audio = previewjb;
+      task->preview_job_audio = &previewjb;
       task->stop = &worker_status->stop;
       new_tasks.append(task);
 
-      BLI_remlink(&pj->previews, previewjb);
+      BLI_remlink(&pj->previews, &previewjb);
     }
 
     BLI_mutex_unlock(pj->mutex);

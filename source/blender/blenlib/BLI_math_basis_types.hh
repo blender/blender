@@ -343,7 +343,7 @@ template<typename T> T to_vector(const AxisSigned axis)
  * \{ */
 
 /**
- * An `blender::math::CartesianBasis` represents an orientation that is aligned with the basis
+ * An `math::CartesianBasis` represents an orientation that is aligned with the basis
  * axes. This type of rotation is fast, precise and adds more meaning to the code that uses it.
  */
 struct CartesianBasis {

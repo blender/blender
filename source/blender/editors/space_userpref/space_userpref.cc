@@ -29,6 +29,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /* ******************** default callbacks for userpref space ***************** */
 
 static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
@@ -36,7 +38,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
   ARegion *region;
   SpaceUserPref *spref;
 
-  spref = MEM_callocN<SpaceUserPref>("inituserpref");
+  spref = MEM_new_for_free<SpaceUserPref>("inituserpref");
   spref->spacetype = SPACE_USERPREF;
 
   /* header */
@@ -74,7 +76,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
   BLI_addtail(&spref->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)spref;
+  return reinterpret_cast<SpaceLink *>(spref);
 }
 
 /* Doesn't free the space-link itself. */
@@ -92,7 +94,7 @@ static SpaceLink *userpref_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sprefn;
+  return reinterpret_cast<SpaceLink *>(sprefn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -131,7 +133,7 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout_ex(C,
                              region,
                              &region->runtime->type->paneltypes,
-                             blender::wm::OpCallContext::InvokeRegionWin,
+                             wm::OpCallContext::InvokeRegionWin,
                              contexts,
                              nullptr);
 }
@@ -188,7 +190,7 @@ static void userpref_execute_region_listener(const wmRegionListenerParams * /*pa
 
 static void userpref_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceUserPref, sl);
+  writer->write_struct_cast<SpaceUserPref>(sl);
 }
 
 void ED_spacetype_userpref()
@@ -255,3 +257,5 @@ void ED_spacetype_userpref()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

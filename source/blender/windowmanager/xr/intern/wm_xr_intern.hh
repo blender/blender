@@ -17,12 +17,15 @@
 
 #include "wm_xr.hh"
 
+namespace blender {
+
 struct bContext;
 struct ARegion;
 struct Object;
 struct wmWindow;
 struct wmWindowManager;
 struct wmXrActionSet;
+struct wmXrController;
 struct wmXrData;
 
 struct wmXrSessionState {
@@ -54,7 +57,6 @@ struct wmXrSessionState {
   bool force_reset_to_base_pose;
   bool is_view_data_set;
   bool swap_hands;
-  bool is_raycast_shown;
 
   /** Current navigation transforms. */
   GHOST_XrPose nav_pose;
@@ -66,7 +68,7 @@ struct wmXrSessionState {
   bool is_navigation_dirty;
 
   /** Last known controller data. */
-  ListBase controllers; /* #wmXrController. */
+  ListBaseT<wmXrController> controllers;
 
   /** The currently active action set that will be updated on calls to
    * #wm_xr_session_actions_update(). If NULL, all action sets will be treated as active and
@@ -77,9 +79,6 @@ struct wmXrSessionState {
 
   /** The current state and parameters of the vignette that appears while moving. */
   struct wmXrVignetteData *vignette_data;
-
-  /** Model used to draw teleportation raycast. */
-  blender::gpu::Batch *raycast_model;
 };
 
 struct wmXrRuntimeData {
@@ -96,7 +95,7 @@ struct wmXrRuntimeData {
   wmXrSessionState session_state;
   wmXrSessionExitFn exit_fn;
 
-  ListBase actionmaps; /* #XrActionMap. */
+  ListBaseT<XrActionMap> actionmaps;
   short actactionmap;
   short selactionmap;
 };
@@ -109,7 +108,7 @@ struct wmXrViewportPair {
 
 struct wmXrSurfaceData {
   /** Off-screen buffers/viewports for each view. */
-  ListBase viewports; /* #wmXrViewportPair. */
+  ListBaseT<wmXrViewportPair> viewports;
 
   /** Dummy region type for controller draw callback. */
   struct ARegionType *controller_art;
@@ -152,7 +151,7 @@ struct wmXrController {
   float aim_mat_base[4][4];
 
   /** Controller model. */
-  blender::gpu::Batch *model;
+  gpu::Batch *model;
 };
 
 struct wmXrAction {
@@ -203,9 +202,9 @@ struct wmXrActionSet {
   wmXrAction *controller_aim_action;
 
   /** Currently active modal actions. */
-  ListBase active_modal_actions;
+  ListBaseT<LinkData> active_modal_actions;
   /** Currently active haptic actions. */
-  ListBase active_haptic_actions;
+  ListBaseT<wmXrHapticAction> active_haptic_actions;
 };
 
 struct wmXrVignetteData {
@@ -288,3 +287,5 @@ bool wm_xr_passthrough_enabled(void *customdata);
  * It's assigned to Ghost-XR as a callback (see GHOST_XrDisablePassthroughFunc()).
  */
 void wm_xr_disable_passthrough(void *customdata);
+
+}  // namespace blender

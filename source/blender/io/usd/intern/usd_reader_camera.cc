@@ -191,7 +191,7 @@ void USDCameraReader::create_object(Main *bmain)
   Camera *camera = BKE_camera_add(bmain, name_.c_str());
 
   object_ = BKE_object_add_only_object(bmain, OB_CAMERA, name_.c_str());
-  object_->data = camera;
+  object_->data = id_cast<ID *>(camera);
 }
 
 void USDCameraReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
@@ -215,11 +215,11 @@ void USDCameraReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
                                usd_horiz_offset.ValueMightBeTimeVarying() ||
                                usd_vert_offset.ValueMightBeTimeVarying();
 
-  Camera *camera = (Camera *)object_->data;
+  Camera *camera = id_cast<Camera *>(object_->data);
 
   bAction *action = nullptr;
   if (is_time_varying) {
-    action = blender::animrig::id_action_ensure(bmain, &camera->id);
+    action = animrig::id_action_ensure(bmain, &camera->id);
   }
 
   animrig::Channelbag empty{};

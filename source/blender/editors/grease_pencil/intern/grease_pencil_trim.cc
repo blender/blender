@@ -28,7 +28,9 @@
 
 #include "WM_api.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 
 /**
  * Apply the stroke trim to a drawing.
@@ -58,9 +60,9 @@ static bool execute_trim_on_drawing(const int layer_index,
   });
 
   IndexMaskMemory memory;
-  const IndexMask editable_strokes = blender::ed::greasepencil::retrieve_editable_strokes(
+  const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
       obact, drawing, layer_index, memory);
-  const IndexMask visible_strokes = blender::ed::greasepencil::retrieve_visible_strokes(
+  const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
       obact, drawing, memory);
 
   /* Apply trim. */
@@ -86,7 +88,7 @@ static wmOperatorStatus stroke_trim_execute(const bContext *C, const Span<int2> 
   Object *obact = CTX_data_active_object(C);
   Object *ob_eval = DEG_get_evaluated(depsgraph, obact);
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(obact->data);
 
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
@@ -179,7 +181,7 @@ static wmOperatorStatus grease_pencil_stroke_trim_exec(bContext *C, wmOperator *
   return stroke_trim_execute(C, mcoords);
 }
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot)
 {
@@ -199,3 +201,5 @@ void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot)
 
   WM_operator_properties_gesture_lasso(ot);
 }
+
+}  // namespace blender

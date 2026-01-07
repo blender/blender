@@ -35,8 +35,7 @@
 #include "gl_uniform_buffer.hh"
 #include "gl_vertex_buffer.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class GLBackend : public GPUBackend {
  private:
@@ -167,7 +166,7 @@ class GLBackend : public GPUBackend {
     /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
     glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
-    glDispatchComputeIndirect((GLintptr)0);
+    glDispatchComputeIndirect(GLintptr(0));
     /* Unbind. */
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
   }
@@ -197,5 +196,4 @@ class GLBackend : public GPUBackend {
   static void log_workarounds();
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

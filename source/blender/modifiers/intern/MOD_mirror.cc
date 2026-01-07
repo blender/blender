@@ -10,7 +10,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
@@ -33,27 +32,24 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-using namespace blender;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
-  MirrorModifierData *mmd = (MirrorModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MirrorModifierData), modifier);
+  MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(mmd, modifier);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  MirrorModifierData *mmd = (MirrorModifierData *)md;
+  MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&mmd->mirror_ob, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&mmd->mirror_ob), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  MirrorModifierData *mmd = (MirrorModifierData *)md;
+  MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(md);
   if (mmd->mirror_ob != nullptr) {
     DEG_add_object_relation(ctx->node, mmd->mirror_ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "Mirror Modifier");
@@ -122,7 +118,7 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
-  MirrorModifierData *mmd = (MirrorModifierData *)md;
+  MirrorModifierData *mmd = reinterpret_cast<MirrorModifierData *>(md);
 
   result = mirrorModifier__doMirror(mmd, ctx->object, mesh);
 
@@ -133,12 +129,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   ui::Layout *row, *sub;
   ui::Layout &layout = *panel->layout;
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PropertyRNA *prop;
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
-  MirrorModifierData *mmd = (MirrorModifierData *)ptr->data;
+  MirrorModifierData *mmd = static_cast<MirrorModifierData *>(ptr->data);
   bool has_bisect = (mmd->flag &
                      (MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_Y | MOD_MIR_BISECT_AXIS_Z));
 
@@ -200,7 +196,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub->prop(ptr, "use_mirror_u", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_mirror_u"));
-  sub->prop(ptr, "mirror_offset_u", UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub->prop(ptr, "mirror_offset_u", ui::ITEM_R_SLIDER, "", ICON_NONE);
   row->decorator(ptr, "mirror_offset_u", 0);
 
   row = &col->row(true, IFACE_("V"));
@@ -209,12 +205,12 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub->prop(ptr, "use_mirror_v", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_mirror_v"));
-  sub->prop(ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub->prop(ptr, "mirror_offset_v", ui::ITEM_R_SLIDER, "", ICON_NONE);
   row->decorator(ptr, "mirror_offset_v", 0);
 
   col = &layout.column(true);
-  col->prop(ptr, "offset_u", UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
-  col->prop(ptr, "offset_v", UI_ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
+  col->prop(ptr, "offset_u", ui::ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
+  col->prop(ptr, "offset_v", ui::ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
 
   layout.prop(ptr, "use_mirror_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
   layout.prop(ptr, "use_mirror_udim", UI_ITEM_NONE, IFACE_("Flip UDIM"), ICON_NONE);
@@ -263,3 +259,5 @@ ModifierTypeInfo modifierType_Mirror = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

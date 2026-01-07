@@ -18,6 +18,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_structure.hh"
 
+namespace blender {
+
 void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_data)
 {
   BMFace **faces_array_all = MEM_malloc_arrayN<BMFace *>(bm->totface, __func__);
@@ -61,7 +63,7 @@ void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_da
     } while ((l_iter = l_iter->next) != l_first);
   }
 
-  blender::Vector<BMLoop *, 128> loop_split;
+  Vector<BMLoop *, 128> loop_split;
 
   /* Check shared verts ('faces_a' tag and disable) */
   for (uint i = 0; i < faces_a_len; i++) {
@@ -104,3 +106,5 @@ void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_da
 
   MEM_freeN(faces_array_all);
 }
+
+}  // namespace blender

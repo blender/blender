@@ -21,10 +21,10 @@ extern PyTypeObject Iterator_Type;
 #define BPy_Iterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Iterator_Type))
 
 /*---------------------------Python BPy_Iterator structure definition----------*/
-typedef struct {
+struct BPy_Iterator {
   PyObject_HEAD
   Freestyle::Iterator *it;
-} BPy_Iterator;
+};
 
 /*---------------------------Python BPy_Iterator visible prototypes-----------*/
 

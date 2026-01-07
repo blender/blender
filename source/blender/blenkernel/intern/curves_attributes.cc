@@ -160,12 +160,12 @@ static bool foreach_vertex_group(const void *owner, FunctionRef<void(const Attri
   }
   const AttributeAccessor accessor = curves->attributes();
   const Span<MDeformVert> dverts = curves->deform_verts();
-  int group_index = 0;
-  LISTBASE_FOREACH_INDEX (const bDeformGroup *, group, &curves->vertex_group_names, group_index) {
-    const auto get_fn = [&]() {
+
+  for (const auto [group_index, group] : curves->vertex_group_names.enumerate()) {
+    const auto get_fn = [&, group_index = group_index]() {
       return reader_for_vertex_group_index(*curves, dverts, group_index);
     };
-    AttributeIter iter{group->name, AttrDomain::Point, bke::AttrType::Float, get_fn};
+    AttributeIter iter{group.name, AttrDomain::Point, bke::AttrType::Float, get_fn};
     iter.is_builtin = false;
     iter.accessor = &accessor;
     fn(iter);

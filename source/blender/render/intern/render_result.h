@@ -10,6 +10,8 @@
 
 #include "BKE_global.hh" /* IWYU pragma: keep. Used in macro. */
 
+namespace blender {
+
 #define PASS_VECTOR_MAX 10000.0f
 
 #define RR_ALL_LAYERS NULL
@@ -19,7 +21,6 @@ struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct ExrHandle;
 struct ImBuf;
-struct ListBase;
 struct Render;
 struct RenderData;
 struct RenderLayer;
@@ -71,7 +72,7 @@ void render_result_free(struct RenderResult *rr);
 /**
  * Version that's compatible with full-sample buffers.
  */
-void render_result_free_list(struct ListBase *lb, struct RenderResult *rr);
+void render_result_free_list(ListBaseT<RenderResult> *lb, struct RenderResult *rr);
 
 /* Single Layer Render */
 
@@ -124,7 +125,7 @@ void render_result_rect_get_pixels(struct RenderResult *rr,
                                    int view_id);
 
 /**
- * Create a new views #ListBase in rr without duplicating the memory pointers.
+ * Create a new views #ListBaseT in rr without duplicating the memory pointers.
  */
 void render_result_views_shallowcopy(struct RenderResult *dst, struct RenderResult *src);
 /**
@@ -160,3 +161,5 @@ void render_result_free_gpu_texture_caches(struct RenderResult *rr);
   } \
   } \
   ((void)0)
+
+}  // namespace blender

@@ -82,7 +82,7 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
 
 SpreadsheetColumnID *spreadsheet_column_id_new()
 {
-  SpreadsheetColumnID *column_id = MEM_callocN<SpreadsheetColumnID>(__func__);
+  SpreadsheetColumnID *column_id = MEM_new_for_free<SpreadsheetColumnID>(__func__);
   return column_id;
 }
 
@@ -103,7 +103,7 @@ void spreadsheet_column_id_free(SpreadsheetColumnID *column_id)
 
 void spreadsheet_column_id_blend_write(BlendWriter *writer, const SpreadsheetColumnID *column_id)
 {
-  BLO_write_struct(writer, SpreadsheetColumnID, column_id);
+  writer->write_struct(column_id);
   BLO_write_string(writer, column_id->name);
 }
 
@@ -114,7 +114,7 @@ void spreadsheet_column_id_blend_read(BlendDataReader *reader, SpreadsheetColumn
 
 SpreadsheetColumn *spreadsheet_column_new(SpreadsheetColumnID *column_id)
 {
-  SpreadsheetColumn *column = MEM_callocN<SpreadsheetColumn>(__func__);
+  SpreadsheetColumn *column = MEM_new_for_free<SpreadsheetColumn>(__func__);
   column->id = column_id;
   column->runtime = MEM_new<SpreadsheetColumnRuntime>(__func__);
   return column;
@@ -150,7 +150,7 @@ void spreadsheet_column_free(SpreadsheetColumn *column)
 
 void spreadsheet_column_blend_write(BlendWriter *writer, const SpreadsheetColumn *column)
 {
-  BLO_write_struct(writer, SpreadsheetColumn, column);
+  writer->write_struct(column);
   spreadsheet_column_id_blend_write(writer, column->id);
   BLO_write_string(writer, column->display_name);
 }

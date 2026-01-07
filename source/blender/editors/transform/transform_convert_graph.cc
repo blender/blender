@@ -185,7 +185,7 @@ static void graph_bezt_get_transform_selection(const TransInfo *t,
                                                bool *r_key,
                                                bool *r_right_handle)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   bool key = (bezt->f2 & SELECT) != 0;
   bool left = use_handle ? ((bezt->f1 & SELECT) != 0) : key;
   bool right = use_handle ? ((bezt->f3 & SELECT) != 0) : key;
@@ -244,7 +244,7 @@ static float graph_key_shortest_dist(
  */
 static void createTransGraphEditData(bContext *C, TransInfo *t)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   Scene *scene = t->scene;
   ARegion *region = t->region;
   View2D *v2d = &region->v2d;
@@ -254,7 +254,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   TransDataGraph *tdg = nullptr;
 
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   BezTriple *bezt;
@@ -293,14 +293,14 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
    * are selected (or should be edited). */
   Set<FCurve *> visited_fcurves;
   Vector<bAnimListElem *> unique_fcu_anim_list_elements;
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     /* If 2 or more objects share the same action, multiple bAnimListElem might reference the same
      * FCurve. */
     if (!visited_fcurves.add(fcu)) {
       continue;
     }
-    unique_fcu_anim_list_elements.append(ale);
+    unique_fcu_anim_list_elements.append(&ale);
     int curvecount = 0;
     bool selected = false;
 
@@ -311,7 +311,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
     /* Convert current-frame to action-time (slightly less accurate, especially under
      * higher scaling ratios, but is faster than converting all points). */
-    const float cfra = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
+    const float cfra = ANIM_nla_tweakedit_remap(&ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
       /* Only include BezTriples whose 'keyframe'
@@ -345,7 +345,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     if (is_prop_edit) {
       if (selected) {
         count += curvecount;
-        ale->tag = true;
+        ale.tag = true;
       }
     }
   }
@@ -366,7 +366,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   /* For each 2d vert a 3d vector is allocated,
    * so that they can be treated just as if they were 3d verts. */
   tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransData2D (Graph Editor)");
-  tc->custom.type.data = MEM_callocN(tc->data_len * sizeof(TransDataGraph), "TransDataGraph");
+  tc->custom.type.data = MEM_calloc_arrayN<TransDataGraph>(tc->data_len, "TransDataGraph");
   tc->custom.type.use_free = true;
 
   td = tc->data;
@@ -381,7 +381,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     float xscale, yscale;
 
     /* Apply scale factors to x and y axes of space-conversion matrices. */
-    UI_view2d_scale_get(v2d, &xscale, &yscale);
+    ui::view2d_scale_get(v2d, &xscale, &yscale);
 
     /* `mtx` is data to global (i.e. view) conversion. */
     mul_v3_fl(mtx[0], xscale);
@@ -400,7 +400,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
   /* Loop 2: build transdata arrays. */
   for (bAnimListElem *ale : unique_fcu_anim_list_elements) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+    FCurve *fcu = static_cast<FCurve *>(ale->key_data);
     bool intvals = (fcu->flag & FCURVE_INT_VALUES) != 0;
     float unit_scale, offset;
 
@@ -585,7 +585,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     td = tc->data;
 
     for (bAnimListElem *ale : unique_fcu_anim_list_elements) {
-      FCurve *fcu = (FCurve *)ale->key_data;
+      FCurve *fcu = static_cast<FCurve *>(ale->key_data);
       TransData *td_start = td;
 
       /* F-Curve may not have any keyframes. */
@@ -686,7 +686,7 @@ static void flushTransGraphData(TransInfo *t)
        a++, td++, td2d++, tdg++)
   {
     /* Pointers to relevant AnimData blocks are stored in the `td->extra` pointers. */
-    AnimData *adt = (AnimData *)td->extra;
+    AnimData *adt = static_cast<AnimData *>(td->extra);
 
     float inv_unit_scale = 1.0f / tdg->unit_scale;
 
@@ -864,7 +864,7 @@ static void update_transdata_bezt_pointers(TransDataContainer *tc,
  */
 static void remake_graph_transdata(TransInfo *t, const Span<FCurve *> fcurves)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -904,10 +904,10 @@ static void remake_graph_transdata(TransInfo *t, const Span<FCurve *> fcurves)
 
 static void recalcData_graphedit(TransInfo *t)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   ViewLayer *view_layer = t->view_layer;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimContext ac = {nullptr};
   int filter;
 
@@ -938,8 +938,8 @@ static void recalcData_graphedit(TransInfo *t)
 
   Vector<FCurve *> unsorted_fcurves;
   /* Now test if there is a need to re-sort. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
     /* Ignore FC-Curves without any selected verts. */
     if (!fcu_test_selected(fcu)) {
@@ -957,7 +957,7 @@ static void recalcData_graphedit(TransInfo *t)
     /* Set refresh tags for objects using this animation,
      * BUT only if realtime updates are enabled. */
     if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0) {
-      ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
+      ANIM_list_elem_update(CTX_data_main(t->context), t->scene, &ale);
     }
   }
 
@@ -978,7 +978,7 @@ static void recalcData_graphedit(TransInfo *t)
 
 static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   bAnimContext ac;
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
@@ -991,7 +991,7 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
   }
 
   if (ac.datatype) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
                     ANIMFILTER_FCURVESONLY);
 
@@ -999,8 +999,8 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      FCurve *fcu = (FCurve *)ale->key_data;
+    for (bAnimListElem &ale : anim_data) {
+      FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
       /* 3 cases here for curve cleanups:
        * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done.
@@ -1010,9 +1010,9 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
        *                            but we made duplicates, so get rid of these.
        */
       if ((sipo->flag & SIPO_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, false, false);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcu, false, false);
         BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
-        ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, false);
+        ANIM_nla_mapping_apply_if_needed_fcurve(&ale, fcu, true, false);
       }
     }
 

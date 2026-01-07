@@ -31,19 +31,15 @@
 
 #  include "rna_curves_utils.hh"
 
+namespace blender {
+
 /* Common `CurvesGeometry` API functions. */
 
-using blender::IndexMask;
-using blender::IndexMaskMemory;
-using blender::IndexRange;
-using blender::Span;
-
-bool rna_CurvesGeometry_add_curves(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_add_curves(bke::CurvesGeometry &curves,
                                    ReportList *reports,
                                    const int *sizes_ptr,
                                    const int sizes_num)
 {
-  using namespace blender;
   if (std::any_of(sizes_ptr, sizes_ptr + sizes_num, [](const int size) { return size < 1; })) {
     BKE_report(reports, RPT_ERROR, "Curve sizes must be greater than zero");
     return false;
@@ -83,12 +79,11 @@ static std::optional<IndexMask> rna_indices_to_mask(const IndexRange universe,
   return IndexMask::from_indices(indices, memory);
 }
 
-bool rna_CurvesGeometry_remove_curves(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_remove_curves(bke::CurvesGeometry &curves,
                                       ReportList *reports,
                                       const int *indices_ptr,
                                       const int indices_num)
 {
-  using namespace blender;
   IndexMaskMemory memory;
   const std::optional<IndexMask> curves_to_delete = rna_indices_to_mask(
       curves.curves_range(), indices_ptr, indices_num, *reports, memory);
@@ -99,14 +94,13 @@ bool rna_CurvesGeometry_remove_curves(blender::bke::CurvesGeometry &curves,
   return true;
 }
 
-bool rna_CurvesGeometry_resize_curves(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_resize_curves(bke::CurvesGeometry &curves,
                                       ReportList *reports,
                                       const int *sizes_ptr,
                                       const int sizes_num,
                                       const int *indices_ptr,
                                       const int indices_num)
 {
-  using namespace blender;
   const Span<int> new_sizes(sizes_ptr, sizes_num);
   if (std::any_of(new_sizes.begin(), new_sizes.end(), [](const int size) { return size < 1; })) {
     BKE_report(reports, RPT_ERROR, "Sizes must be greater than zero");
@@ -126,12 +120,11 @@ bool rna_CurvesGeometry_resize_curves(blender::bke::CurvesGeometry &curves,
   return true;
 }
 
-bool rna_CurvesGeometry_reorder_curves(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_reorder_curves(bke::CurvesGeometry &curves,
                                        ReportList *reports,
                                        const int *reorder_indices_ptr,
                                        const int reorder_indices_num)
 {
-  using namespace blender;
   const Span<int> new_to_old_indices_map(reorder_indices_ptr, reorder_indices_num);
   if (curves.curves_num() != reorder_indices_num) {
     BKE_report(
@@ -153,7 +146,7 @@ bool rna_CurvesGeometry_reorder_curves(blender::bke::CurvesGeometry &curves,
   return true;
 }
 
-bool rna_CurvesGeometry_set_types(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_set_types(bke::CurvesGeometry &curves,
                                   ReportList *reports,
                                   const int type,
                                   const int *indices_ptr,
@@ -176,7 +169,6 @@ static void rna_Curves_add_curves(Curves *curves_id,
                                   const int *sizes,
                                   const int sizes_num)
 {
-  using namespace blender;
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   if (!rna_CurvesGeometry_add_curves(curves, reports, sizes, sizes_num)) {
     return;
@@ -194,7 +186,6 @@ static void rna_Curves_remove_curves(Curves *curves_id,
                                      const int *indices_ptr,
                                      const int indices_num)
 {
-  using namespace blender;
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   if (!rna_CurvesGeometry_remove_curves(curves, reports, indices_ptr, indices_num)) {
     return;
@@ -214,7 +205,6 @@ static void rna_Curves_resize_curves(Curves *curves_id,
                                      const int *indices_ptr,
                                      const int indices_num)
 {
-  using namespace blender;
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   if (!rna_CurvesGeometry_resize_curves(
           curves, reports, sizes_ptr, sizes_num, indices_ptr, indices_num))
@@ -234,7 +224,6 @@ static void rna_Curves_reorder_curves(Curves *curves_id,
                                       const int *reorder_indices_ptr,
                                       const int reorder_indices_num)
 {
-  using namespace blender;
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   if (!rna_CurvesGeometry_reorder_curves(
           curves, reports, reorder_indices_ptr, reorder_indices_num))
@@ -255,7 +244,6 @@ static void rna_Curves_set_types(Curves *curves_id,
                                  const int *indices_ptr,
                                  const int indices_num)
 {
-  using namespace blender;
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   if (!rna_CurvesGeometry_set_types(curves, reports, type, indices_ptr, indices_num)) {
     return;
@@ -269,7 +257,7 @@ static void rna_Curves_set_types(Curves *curves_id,
 
 static const char *rna_Curves_unit_test_compare(Curves *curves1, Curves *curves2, float threshold)
 {
-  using namespace blender::bke::compare_geometry;
+  using namespace bke::compare_geometry;
 
   const std::optional<GeoMismatch> mismatch = compare_curves(
       curves1->geometry.wrap(), curves2->geometry.wrap(), threshold);
@@ -281,7 +269,11 @@ static const char *rna_Curves_unit_test_compare(Curves *curves1, Curves *curves2
   return mismatch_to_string(mismatch.value());
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_curves(StructRNA *srna)
 {
@@ -398,5 +390,7 @@ void RNA_api_curves(StructRNA *srna)
       func, "result", "nothing", 64, "Return value", "String description of result of comparison");
   RNA_def_function_return(func, parm);
 }
+
+}  // namespace blender
 
 #endif

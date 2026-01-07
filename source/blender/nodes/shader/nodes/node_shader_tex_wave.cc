@@ -17,7 +17,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tex_wave_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_wave_cc {
 
 static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 {
@@ -56,21 +58,21 @@ static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tex_wave(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "wave_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "wave_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   int type = RNA_enum_get(ptr, "wave_type");
   if (type == SHD_WAVE_BANDS) {
-    layout.prop(ptr, "bands_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "bands_direction", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
   else { /* SHD_WAVE_RINGS */
-    layout.prop(ptr, "rings_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "rings_direction", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
 
-  layout.prop(ptr, "wave_profile", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "wave_profile", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_tex_wave(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexWave *tex = MEM_callocN<NodeTexWave>(__func__);
+  NodeTexWave *tex = MEM_new_for_free<NodeTexWave>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->wave_type = SHD_WAVE_BANDS;
@@ -89,7 +91,7 @@ static int node_shader_gpu_tex_wave(GPUMaterial *mat,
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  NodeTexWave *tex = (NodeTexWave *)node->storage;
+  NodeTexWave *tex = static_cast<NodeTexWave *>(node->storage);
   float wave_type = tex->wave_type;
   float bands_direction = tex->bands_direction;
   float rings_direction = tex->rings_direction;
@@ -222,7 +224,7 @@ class WaveFunction : public mf::MultiFunction {
       r_fac[i] = val;
     });
     if (!r_color.is_empty()) {
-      mask.foreach_index([&](const int64_t i) {
+      mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
         r_color[i] = ColorGeometry4f(r_fac[i], r_fac[i], r_fac[i], 1.0f);
       });
     }
@@ -232,7 +234,7 @@ class WaveFunction : public mf::MultiFunction {
 static void sh_node_wave_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
-  NodeTexWave *tex = (NodeTexWave *)node.storage;
+  NodeTexWave *tex = static_cast<NodeTexWave *>(node.storage);
   builder.construct_and_set_matching_fn<WaveFunction>(
       tex->wave_type, tex->bands_direction, tex->rings_direction, tex->wave_profile);
 }
@@ -327,13 +329,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tex_wave_cc
+}  // namespace nodes::node_shader_tex_wave_cc
 
 void register_node_type_sh_tex_wave()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_wave_cc;
+  namespace file_ns = nodes::node_shader_tex_wave_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeTexWave", SH_NODE_TEX_WAVE);
   ntype.ui_name = "Wave Texture";
@@ -342,14 +344,16 @@ void register_node_type_sh_tex_wave()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_wave_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_wave;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_tex_wave;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_wave;
   ntype.build_multi_function = file_ns::sh_node_wave_tex_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
-  blender::bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

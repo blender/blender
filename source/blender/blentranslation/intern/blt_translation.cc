@@ -26,8 +26,7 @@
 #  include "messages.hh"
 #endif /* WITH_INTERNATIONAL */
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender {
 
 bool BLT_is_default_context(const StringRef msgctxt)
 {
@@ -47,13 +46,13 @@ static std::optional<StringRefNull> pgettext(StringRef msgctxt, const StringRef 
   if (BLT_is_default_context(msgctxt)) {
     msgctxt = BLT_I18NCONTEXT_DEFAULT;
   }
-  if (const std::optional<StringRefNull> translation = blender::locale::translate(
-          0, msgctxt, msgid))
-  {
+  if (const std::optional<StringRefNull> translation = locale::translate(0, msgctxt, msgid)) {
     return translation;
   }
 #  ifdef WITH_PYTHON
   return BPY_app_translations_py_pgettext(msgctxt, msgid);
+#  else
+  return std::nullopt;
 #  endif
 #else
   UNUSED_VARS(msgctxt, msgid);
@@ -70,7 +69,7 @@ const char *BLT_pgettext(const char *msgctxt, const char *msgid)
   return translation->c_str();
 }
 
-blender::StringRef BLT_pgettext(blender::StringRef msgctxt, blender::StringRef msgid)
+StringRef BLT_pgettext(StringRef msgctxt, StringRef msgid)
 {
   const std::optional<StringRefNull> translation = pgettext(msgctxt, msgid);
   if (!translation) {
@@ -248,3 +247,5 @@ StringRef BLT_translate_do_new_dataname(StringRef msgctxt, StringRef msgid)
 {
   return translate_do_new_dataname(msgctxt, msgid);
 }
+
+}  // namespace blender

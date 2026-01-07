@@ -27,6 +27,8 @@
 #include "gpencil_shader.hh"
 #include "gpencil_shader_shared.hh"
 
+namespace blender {
+
 struct GpencilBatchCache;
 struct Object;
 struct RenderEngine;
@@ -41,7 +43,7 @@ struct View3D;
 
 #define GP_MAX_MASKBITS 256
 
-namespace blender::draw::gpencil {
+namespace draw::gpencil {
 
 struct MaterialPool {
   /* Single linked-list. */
@@ -70,7 +72,7 @@ struct LightPool {
 struct tVfx {
   /** Single linked-list. */
   struct tVfx *next = nullptr;
-  std::unique_ptr<PassSimple> vfx_ps = std::make_unique<PassSimple>("vfx");
+  ::std::unique_ptr<PassSimple> vfx_ps = ::std::make_unique<PassSimple>("vfx");
   /* Frame-buffer reference since it may not be allocated yet. */
   gpu::FrameBuffer **target_fb = nullptr;
 };
@@ -80,9 +82,9 @@ struct tLayer {
   /** Single linked-list. */
   struct tLayer *next;
   /** Geometry pass (draw all strokes). */
-  std::unique_ptr<PassSimple> geom_ps;
+  ::std::unique_ptr<PassSimple> geom_ps;
   /** Blend pass to composite onto the target buffer (blends modes). NULL if not needed. */
-  std::unique_ptr<PassSimple> blend_ps;
+  ::std::unique_ptr<PassSimple> blend_ps;
   /** Layer id of the mask. */
   BLI_bitmap *mask_bits;
   BLI_bitmap *mask_invert_bits;
@@ -379,13 +381,13 @@ struct Instance final : public DrawEngine {
 
   static void material_pool_free(void *storage)
   {
-    MaterialPool *matpool = (MaterialPool *)storage;
+    MaterialPool *matpool = static_cast<MaterialPool *>(storage);
     GPU_UBO_FREE_SAFE(matpool->ubo);
   }
 
   static void light_pool_free(void *storage)
   {
-    LightPool *lightpool = (LightPool *)storage;
+    LightPool *lightpool = static_cast<LightPool *>(storage);
     GPU_UBO_FREE_SAFE(lightpool->ubo);
   }
 };
@@ -437,4 +439,5 @@ LightPool *gpencil_light_pool_add(Instance *inst);
  */
 LightPool *gpencil_light_pool_create(Instance *inst, Object *ob);
 
-}  // namespace blender::draw::gpencil
+}  // namespace draw::gpencil
+}  // namespace blender

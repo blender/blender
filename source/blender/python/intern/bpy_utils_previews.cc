@@ -26,7 +26,9 @@
 
 #include "BKE_preview_image.hh"
 
-#define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT'"
+namespace blender {
+
+#define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT', 'OBJECT_IO'"
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -83,6 +85,7 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 {
   char *name;
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
+  /* Be sure to keep these in sync with #STR_SOURCE_TYPES. */
   const PyC_StringEnumItems path_type_items[] = {
       {THB_SOURCE_IMAGE, "IMAGE"},
       {THB_SOURCE_MOVIE, "MOVIE"},
@@ -159,10 +162,16 @@ static PyObject *bpy_utils_previews_release(PyObject * /*self*/, PyObject *args)
 
 static PyMethodDef bpy_utils_previews_methods[] = {
     /* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
-    {"new", (PyCFunction)bpy_utils_previews_new, METH_VARARGS, bpy_utils_previews_new_doc},
-    {"load", (PyCFunction)bpy_utils_previews_load, METH_VARARGS, bpy_utils_previews_load_doc},
+    {"new",
+     static_cast<PyCFunction>(bpy_utils_previews_new),
+     METH_VARARGS,
+     bpy_utils_previews_new_doc},
+    {"load",
+     static_cast<PyCFunction>(bpy_utils_previews_load),
+     METH_VARARGS,
+     bpy_utils_previews_load_doc},
     {"release",
-     (PyCFunction)bpy_utils_previews_release,
+     static_cast<PyCFunction>(bpy_utils_previews_release),
      METH_VARARGS,
      bpy_utils_previews_release_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -201,3 +210,5 @@ PyObject *BPY_utils_previews_module()
 
   return submodule;
 }
+
+}  // namespace blender

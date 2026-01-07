@@ -10,22 +10,24 @@
 
 #include "FX_shader_types.hh"  // IWYU pragma: export
 
+namespace blender {
+
 struct PointerRNA;
 struct Panel;
 struct ARegionType;
 struct PanelType;
 struct bContext;
 
-namespace blender::ui {
+namespace ui {
 struct Layout;
-}  // namespace blender::ui
+}  // namespace ui
 
 using PanelDrawFn = void (*)(const bContext *, Panel *);
 
 /**
  * Draw shaderfx error message.
  */
-void shaderfx_panel_end(blender::ui::Layout &layout, PointerRNA *ptr);
+void shaderfx_panel_end(ui::Layout &layout, PointerRNA *ptr);
 
 /**
  * Gets RNA pointers for the active object and the panel's shaderfx data.
@@ -49,3 +51,5 @@ PanelType *shaderfx_subpanel_register(ARegionType *region_type,
                                       PanelDrawFn draw_header,
                                       PanelDrawFn draw,
                                       PanelType *parent);
+
+}  // namespace blender

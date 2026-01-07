@@ -19,6 +19,8 @@
 #include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 
+namespace blender {
+
 using namespace blender::bke;
 
 subdiv::Settings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
@@ -43,7 +45,7 @@ bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, const bool use_
 {
   subdiv::Settings settings = BKE_subsurf_modifier_settings_init(smd, use_render_params);
 
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(smd->modifier.runtime);
   if (settings.level == 0) {
     /* Modifier is effectively disabled, but still update settings if runtime data
      * was already allocated. */
@@ -145,3 +147,5 @@ int BKE_subsurf_modifier_eval_required_mode(bool is_final_render, bool is_edit_m
 
   return eModifierMode_Realtime | (is_edit_mode ? int(eModifierMode_Editmode) : 0);
 }
+
+}  // namespace blender

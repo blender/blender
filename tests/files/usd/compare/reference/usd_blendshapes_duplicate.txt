@@ -102,15 +102,15 @@
   - shape key 'Key_1' w:0.000 vgrp:'' 0:(0.950, -0.400, 0.000) 1:(1.050, -0.400, 0.000) 2:(0.950, 0.400, 0.000)
 
 ==== Objects: 5
-- Obj 'Armature' ARMATURE data:'Armature' par:'Armature.001'
+- Obj 'Armature' EMPTY
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
-- Obj 'Armature.001' EMPTY
+- Obj 'Armature.001' ARMATURE data:'Armature' par:'Armature'
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
-- Obj 'o1' MESH data:'o1' par:'Armature.001'
+- Obj 'o1' MESH data:'o1' par:'Armature'
   - pos 0.000, 1.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
@@ -118,7 +118,7 @@
     - 'Bone' 
   - 1 modifiers
     - ARMATURE 'Armature'
-- Obj 'o2' MESH data:'o2' par:'Armature.001'
+- Obj 'o2' MESH data:'o2' par:'Armature'
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
@@ -126,7 +126,7 @@
     - 'Bone' 
   - 1 modifiers
     - ARMATURE 'Armature'
-- Obj 'o3' MESH data:'o3' par:'Armature.001'
+- Obj 'o3' MESH data:'o3' par:'Armature'
   - pos 0.000, -1.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000

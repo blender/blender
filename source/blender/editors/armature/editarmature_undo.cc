@@ -39,6 +39,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 using namespace blender::animrig;
 
 /** We only need this locally. */
@@ -54,12 +56,11 @@ static CLG_LogRef LOG = {"undo.armature"};
  * bones and collections together.
  */
 static void remap_ebone_bone_collection_references(
-    ListBase /*EditBone*/ *edit_bones,
-    const blender::Map<BoneCollection *, BoneCollection *> &bcoll_map)
+    ListBaseT<EditBone> *edit_bones, const Map<BoneCollection *, BoneCollection *> &bcoll_map)
 {
-  LISTBASE_FOREACH (EditBone *, ebone, edit_bones) {
-    LISTBASE_FOREACH (BoneCollectionReference *, bcoll_ref, &ebone->bone_collections) {
-      bcoll_ref->bcoll = bcoll_map.lookup(bcoll_ref->bcoll);
+  for (EditBone &ebone : *edit_bones) {
+    for (BoneCollectionReference &bcoll_ref : ebone.bone_collections) {
+      bcoll_ref.bcoll = bcoll_map.lookup(bcoll_ref.bcoll);
     }
   }
 }
@@ -71,7 +72,7 @@ static void remap_ebone_bone_collection_references(
 struct UndoArmature {
   EditBone *act_edbone;
   char active_collection_name[MAX_NAME];
-  ListBase /*EditBone*/ ebones;
+  ListBaseT<EditBone> ebones;
   BoneCollection **collection_array;
   int collection_array_num;
   int collection_root_count;
@@ -98,7 +99,7 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
 
   /* Before freeing the old bone collections, copy their 'expanded' flag. This
    * flag is not supposed to be restored with any undo steps. */
-  bonecolls_copy_expanded_flag(blender::Span(uarm->collection_array, uarm->collection_array_num),
+  bonecolls_copy_expanded_flag(Span(uarm->collection_array, uarm->collection_array_num),
                                arm->collections_span());
 
   /* Copy bone collections. */
@@ -151,10 +152,10 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
   /* Undo size.
    * TODO: include size of ID-properties. */
   uarm->undo_size = 0;
-  LISTBASE_FOREACH (EditBone *, ebone, &uarm->ebones) {
+  for (EditBone &ebone : uarm->ebones) {
     uarm->undo_size += sizeof(EditBone);
     uarm->undo_size += sizeof(BoneCollectionReference) *
-                       BLI_listbase_count(&ebone->bone_collections);
+                       BLI_listbase_count(&ebone.bone_collections);
   }
   /* Size of the bone collections + the size of the pointers to those
    * bone collections in the bone collection array. */
@@ -177,7 +178,7 @@ static Object *editarm_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_ARMATURE) {
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = id_cast<bArmature *>(obedit->data);
     if (arm->edbo != nullptr) {
       return obedit;
     }
@@ -220,7 +221,7 @@ static bool armature_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  blender::Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
+  Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
   us->elems = MEM_calloc_arrayN<ArmatureUndoStep_Elem>(objects.size(), __func__);
@@ -231,7 +232,7 @@ static bool armature_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_
     ArmatureUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    bArmature *arm = static_cast<bArmature *>(elem->obedit_ref.ptr->data);
+    bArmature *arm = id_cast<bArmature *>(elem->obedit_ref.ptr->data);
     undoarm_from_editarm(&elem->data, arm);
     arm->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
@@ -259,7 +260,7 @@ static void armature_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     ArmatureUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    bArmature *arm = id_cast<bArmature *>(obedit->data);
     if (arm->edbo == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
@@ -325,3 +326,5 @@ void ED_armature_undosys_type(UndoType *ut)
 }
 
 /** \} */
+
+}  // namespace blender

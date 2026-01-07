@@ -19,7 +19,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_ellipsemask_cc {
+namespace blender {
+
+namespace nodes::node_composite_ellipsemask_cc {
 
 static const EnumPropertyItem operation_items[] = {
     {CMP_NODE_MASKTYPE_ADD, "ADD", 0, N_("Add"), ""},
@@ -223,26 +225,23 @@ class EllipseMaskOperation : public NodeOperation {
 
   float2 get_location()
   {
-    return this->get_input("Position").get_single_value_default(float2(0.5f));
+    return this->get_input("Position").get_single_value_default<float2>();
   }
 
   float2 get_size()
   {
-    return math::max(float2(0.0f),
-                     this->get_input("Size").get_single_value_default(float2(0.2f, 0.1f)));
+    return math::max(float2(0.0f), this->get_input("Size").get_single_value_default<float2>());
   }
 
   float get_angle()
   {
-    return this->get_input("Rotation").get_single_value_default(0.0f);
+    return this->get_input("Rotation").get_single_value_default<float>();
   }
 
   CMPNodeMaskType get_operation()
   {
-    const Result &input = this->get_input("Operation");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_MASKTYPE_ADD);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeMaskType>(menu_value.value);
+    return CMPNodeMaskType(
+        this->get_input("Operation").get_single_value_default<MenuValue>().value);
   }
 };
 
@@ -251,13 +250,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new EllipseMaskOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_ellipsemask_cc
+}  // namespace nodes::node_composite_ellipsemask_cc
 
 static void register_node_type_cmp_ellipsemask()
 {
-  namespace file_ns = blender::nodes::node_composite_ellipsemask_cc;
+  namespace file_ns = nodes::node_composite_ellipsemask_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeEllipseMask", CMP_NODE_MASK_ELLIPSE);
   ntype.ui_name = "Ellipse Mask";
@@ -268,6 +267,8 @@ static void register_node_type_cmp_ellipsemask()
   ntype.declare = file_ns::cmp_node_ellipsemask_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_ellipsemask)
+
+}  // namespace blender

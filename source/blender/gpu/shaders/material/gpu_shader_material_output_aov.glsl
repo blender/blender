@@ -2,7 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_output_aov(float4 color, float value, float hash, out Closure dummy)
+[[node]]
+void node_output_aov(float4 color, float value, float hash, Closure &dummy)
 {
   output_aov(color, value, floatBitsToUint(hash));
 }

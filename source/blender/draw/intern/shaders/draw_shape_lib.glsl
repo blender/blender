@@ -206,13 +206,11 @@ Frustum shape_frustum(float3 corners[8])
 struct Cone {
   float3 direction;
   float angle_cos;
-
-  METAL_CONSTRUCTOR_2(Cone, float3, direction, float, angle_cos)
 };
 
 Cone shape_cone(float3 direction, float angle_cosine)
 {
-  return Cone(direction, angle_cosine);
+  return {direction, angle_cosine};
 }
 
 /** \} */

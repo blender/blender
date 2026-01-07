@@ -12,17 +12,13 @@
 #  define static
 #endif
 
-class IndexRange {
- private:
+struct IndexRange {
   int start_;
   int size_;
 
- public:
-  METAL_CONSTRUCTOR_2(IndexRange, int, start_, int, size_)
-
   static IndexRange from_begin_end(int begin, int end)
   {
-    return IndexRange(begin, end - begin);
+    return {begin, end - begin};
   }
 
   /**
@@ -63,7 +59,7 @@ class IndexRange {
   IndexRange slice(int start, int size) const
   {
     int new_start = this->start_ + start;
-    return IndexRange(new_start, size);
+    return {new_start, size};
   }
   IndexRange slice(IndexRange range) const
   {
@@ -76,6 +72,6 @@ class IndexRange {
    */
   IndexRange shift(int n) const
   {
-    return IndexRange(this->start_ + n, this->size_);
+    return {this->start_ + n, this->size_};
   }
 };

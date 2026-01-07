@@ -247,6 +247,9 @@ extern GHOST_WindowHandle GHOST_GetWindowUnderCursor(GHOST_SystemHandle systemha
                                                      int32_t x,
                                                      int32_t y);
 
+extern void GHOST_SetWindowCSD(GHOST_SystemHandle systemhandle, GHOST_CSD_Params *params);
+extern const GHOST_CSD_Layout *GHOST_GetWindowCSD_Layout(GHOST_SystemHandle systemhandle);
+
 /***************************************************************************************
  * Event management functionality
  ***************************************************************************************/

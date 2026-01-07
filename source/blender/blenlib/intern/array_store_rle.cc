@@ -49,6 +49,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -61,6 +63,11 @@
  */
 #define USE_FIND_FASTPATH
 
+/**
+ * Scan forward to find the first byte not equal to `value`.
+ *
+ * Used to find the end of a run of identical bytes (the extent of an RLE span).
+ */
 static size_t find_byte_not_equal_to(const uint8_t *data,
                                      size_t offset,
                                      const size_t size,
@@ -137,6 +144,118 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
     offset += 1;
   }
   return offset;
+}
+
+#ifdef USE_FIND_FASTPATH
+/**
+ * Check if all bytes in `x` are identical.
+ * E.g., 0x42424242 returns true, 0x42434242 returns false.
+ */
+static inline bool all_bytes_homogeneous(const uintptr_t x)
+{
+  /* Pattern of 0x01 in each byte position (0x01010101... for any word size).
+   * Multiplying a byte value by this spreads it to all byte positions. */
+  constexpr uintptr_t byte_spread = ~(uintptr_t)0 / 255;
+
+  const uintptr_t first_byte = x & 0xFF;
+  return x == first_byte * byte_spread;
+}
+#endif /* USE_FIND_FASTPATH */
+
+/**
+ * Scan forward from a position where a span was too short to RLE encode,
+ * searching for the start of the next RLE-encodable span.
+ *
+ * \return The end position of the literal section (start of next RLE span, or `size` if none).
+ *
+ * \note The template is only to allow this to be forwarded as a `constexpr`.
+ */
+template<size_t RLE_SKIP_THRESHOLD>
+static size_t find_next_rle_span_start(const uint8_t *data,
+                                       const size_t offset,
+                                       const size_t size,
+                                       size_t *span_skip_next_p)
+{
+  /* The default expected value, no need to assign here. */
+  BLI_assert(*span_skip_next_p == 1);
+
+  constexpr size_t rle_skip_threshold = RLE_SKIP_THRESHOLD;
+  size_t ofs_test_start = offset;
+
+#ifdef USE_FIND_FASTPATH
+  using fast_int = uintptr_t;
+
+  /* Calculate the minimum size which may use an optimized search. */
+  constexpr size_t min_size_for_fast_path = (
+      /* Worst case advances one full `fast_int` to reach aligned boundary. */
+      sizeof(fast_int) +
+      /* Reads one `fast_int` to detect dense runs early. */
+      sizeof(fast_int) +
+      /* At least one `fast_int` read in the skip loop. */
+      sizeof(fast_int) +
+      /* `p_end` reserves `sizeof(fast_int)` for safe reads. */
+      sizeof(fast_int) +
+      /* Backtrack margin: `rle_skip_threshold - 1` bytes, rounded up to `fast_int`. */
+      (((rle_skip_threshold - 1) + (sizeof(fast_int) - 1)) & ~(sizeof(fast_int) - 1)));
+
+  /* Fast path: skip regions that cannot contain an RLE span. */
+  if (size - offset > min_size_for_fast_path) {
+    constexpr size_t ALIGN_BITS = sizeof(fast_int) - 1;
+
+    /* Align to next fast_int boundary. */
+    const fast_int *p = reinterpret_cast<const fast_int *>(
+        ((uintptr_t(data + offset) + sizeof(fast_int)) & ~ALIGN_BITS));
+    const fast_int *p_end = reinterpret_cast<const fast_int *>(
+        ((uintptr_t(data + size) - sizeof(fast_int)) & ~ALIGN_BITS));
+
+    /* Early check: if the first chunk is homogeneous, this region likely has
+     * dense runs. Skip the fast path to avoid overhead. */
+    if (p < p_end && !all_bytes_homogeneous(*p)) {
+      p++;
+
+      /* Skip non-homogeneous chunks. */
+      while (p < p_end && !all_bytes_homogeneous(*p)) {
+        p++;
+      }
+
+      /* Move back `rle_skip_threshold - 1` bytes from where we stopped to catch spans
+       * that may have started just before the homogeneous region. */
+      const size_t stop_pos = size_t(reinterpret_cast<const uint8_t *>(p) - data);
+      const size_t backtrack = rle_skip_threshold - 1;
+      if (stop_pos > offset + backtrack) {
+        ofs_test_start = stop_pos - backtrack;
+      }
+    }
+  }
+#endif /* USE_FIND_FASTPATH */
+
+  /* Byte-level scan. */
+  size_t ofs_test = ofs_test_start + 1;
+  /* Check the offset isn't at the very end of the array. */
+  if (LIKELY(ofs_test < size)) {
+    /* The first value that changed, start searching here. */
+    uint8_t value = data[ofs_test_start];
+    do {
+      if (value == data[ofs_test]) {
+        ofs_test += 1;
+        const size_t span_test = ofs_test - ofs_test_start;
+        BLI_assert(span_test <= rle_skip_threshold);
+        if (span_test == rle_skip_threshold) {
+          /* Write the span of non-RLE data,
+           * then start scanning the magnitude of the RLE span at the start of the loop. */
+          *span_skip_next_p = span_test;
+          return ofs_test_start;
+        }
+      }
+      else {
+        BLI_assert(ofs_test - ofs_test_start < rle_skip_threshold);
+        value = data[ofs_test];
+        ofs_test_start = ofs_test;
+        ofs_test += 1;
+      }
+    } while (LIKELY(ofs_test < size));
+  }
+  return size;
 }
 
 /** \} */
@@ -290,42 +409,8 @@ uint8_t *BLI_array_store_rle_encode(const uint8_t *data_dec,
     else {
       /* A large enough span was not found,
        * scan ahead to detect the size of the non-RLE span. */
-
-      /* Check the offset isn't at the very end of the array. */
-      size_t ofs_dec_test = ofs_dec_next + 1;
-      if (LIKELY(ofs_dec_test < data_dec_len)) {
-        /* The first value that changed, start searching here. */
-        size_t ofs_dec_test_start = ofs_dec_next;
-        value_start = data_dec[ofs_dec_test_start];
-        while (true) {
-          if (value_start == data_dec[ofs_dec_test]) {
-            ofs_dec_test += 1;
-            const size_t span_test = ofs_dec_test - ofs_dec_test_start;
-            BLI_assert(span_test <= rle_skip_threshold);
-            if (span_test == rle_skip_threshold) {
-              /* Write the span of non-RLE data,
-               * then start scanning the magnitude of the RLE span at the start of the loop. */
-              span_skip_next = span_test;
-              ofs_dec_next = ofs_dec_test_start;
-              break;
-            }
-          }
-          else {
-            BLI_assert(ofs_dec_test - ofs_dec_test_start < rle_skip_threshold);
-            value_start = data_dec[ofs_dec_test];
-            ofs_dec_test_start = ofs_dec_test;
-            ofs_dec_test += 1;
-          }
-
-          if (UNLIKELY(ofs_dec_test == data_dec_len)) {
-            ofs_dec_next = data_dec_len;
-            break;
-          }
-        }
-      }
-      else {
-        ofs_dec_next = data_dec_len;
-      }
+      ofs_dec_next = find_next_rle_span_start<rle_skip_threshold>(
+          data_dec, ofs_dec_next, data_dec_len, &span_skip_next);
 
       /* Interleave the #RLE_Literal. */
       const size_t non_rle_span = ofs_dec_next - ofs_dec;
@@ -422,3 +507,5 @@ void BLI_array_store_rle_decode(const uint8_t *data_enc,
 }
 
 /** \} */
+
+}  // namespace blender

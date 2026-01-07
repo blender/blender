@@ -12,8 +12,13 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_listbase_iterator.hh"
 
 #include "DNA_listBase.h"
+
+#include <type_traits>
+
+namespace blender {
 
 /**
  * Returns the position of \a vlink within \a listbase, numbering from 0, or -1 if not found.
@@ -75,9 +80,8 @@ void *BLI_listbase_findafter_string_ptr(Link *link, const char *id, int offset);
  * Finds the first element of listbase which contains the specified pointer value
  * at the specified offset, returning NULL if not found.
  */
-void *BLI_findptr(const struct ListBase *listbase,
-                  const void *ptr,
-                  int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_findptr(const ListBase *listbase, const void *ptr, int offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
 /**
  * Finds the first element of listbase which contains the specified bytes
  * at the specified offset, returning NULL if not found.
@@ -288,11 +292,11 @@ BLI_INLINE bool BLI_listbase_is_single(const ListBase *lb)
 }
 BLI_INLINE bool BLI_listbase_is_empty(const ListBase *lb)
 {
-  return (lb->first == (void *)nullptr);
+  return (lb->first == static_cast<void *>(nullptr));
 }
 BLI_INLINE void BLI_listbase_clear(ListBase *lb)
 {
-  lb->first = lb->last = (void *)nullptr;
+  lb->first = lb->last = static_cast<void *>(nullptr);
 }
 
 /**
@@ -360,37 +364,6 @@ LinkData *BLI_genericNodeN(void *data);
   } \
   ((void)0)
 
-#define LISTBASE_FOREACH(type, var, list) \
-  for (type var = (type)((list)->first); var != nullptr; var = (type)(((Link *)(var))->next))
-
-/**
- * A version of #LISTBASE_FOREACH that supports incrementing an index variable at every step.
- * Including this in the macro helps prevent mistakes where "continue" mistakenly skips the
- * incrementation.
- */
-#define LISTBASE_FOREACH_INDEX(type, var, list, index_var) \
-  for (type var = (((void)(index_var = 0)), (type)((list)->first)); var != nullptr; \
-       var = (type)(((Link *)(var))->next), index_var++)
-
-#define LISTBASE_FOREACH_BACKWARD(type, var, list) \
-  for (type var = (type)((list)->last); var != nullptr; var = (type)(((Link *)(var))->prev))
-
-/**
- * A version of #LISTBASE_FOREACH that supports removing the item we're looping over.
- */
-#define LISTBASE_FOREACH_MUTABLE(type, var, list) \
-  for (type var = (type)((list)->first), *var##_iter_next; \
-       ((var != nullptr) ? ((void)(var##_iter_next = (type)(((Link *)(var))->next)), 1) : 0); \
-       var = var##_iter_next)
-
-/**
- * A version of #LISTBASE_FOREACH_BACKWARD that supports removing the item we're looping over.
- */
-#define LISTBASE_FOREACH_BACKWARD_MUTABLE(type, var, list) \
-  for (type var = (type)((list)->last), *var##_iter_prev; \
-       ((var != nullptr) ? ((void)(var##_iter_prev = (type)(((Link *)(var))->prev)), 1) : 0); \
-       var = var##_iter_prev)
-
 BLI_INLINE bool operator==(const ListBase &a, const ListBase &b)
 {
   return BLI_listbase_equal(&a, &b);
@@ -400,13 +373,15 @@ BLI_INLINE bool operator!=(const ListBase &a, const ListBase &b)
   return !(a == b);
 }
 
-template<typename T, typename Fn> T *BLI_listbase_find(const ListBase &listbase, Fn &&predicate)
+template<typename T, typename Fn>
+T *BLI_listbase_find(const ListBaseT<T> &listbase, Fn &&predicate)
 {
-  LISTBASE_FOREACH (T *, link, &listbase) {
-    const T &value = *static_cast<const T *>(link);
+  for (const T &value : listbase) {
     if (predicate(value)) {
-      return link;
+      return &value;
     }
   }
   return nullptr;
 }
+
+}  // namespace blender

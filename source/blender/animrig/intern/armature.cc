@@ -28,8 +28,8 @@ void pose_bone_descendent_iterator(bPose &pose,
     bPoseChannel *descendant = descendants[i];
     i++;
     callback(*descendant);
-    LISTBASE_FOREACH (Bone *, child_bone, &descendant->bone->childbase) {
-      bPoseChannel *child_pose_bone = BKE_pose_channel_find_name(&pose, child_bone->name);
+    for (Bone &child_bone : descendant->bone->childbase) {
+      bPoseChannel *child_pose_bone = BKE_pose_channel_find_name(&pose, child_bone.name);
       if (!child_pose_bone) {
         /* Can happen if the pose is not rebuilt. */
         BLI_assert_unreachable();
@@ -52,8 +52,8 @@ static bool pose_depth_iterator_recursive(bPose &pose,
     return false;
   }
   bool success = true;
-  LISTBASE_FOREACH (Bone *, child_bone, &pose_bone.bone->childbase) {
-    bPoseChannel *child_pose_bone = BKE_pose_channel_find_name(&pose, child_bone->name);
+  for (Bone &child_bone : pose_bone.bone->childbase) {
+    bPoseChannel *child_pose_bone = BKE_pose_channel_find_name(&pose, child_bone.name);
     if (!child_pose_bone) {
       BLI_assert_unreachable();
       success = false;

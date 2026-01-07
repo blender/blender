@@ -16,7 +16,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tex_voronoi_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_voronoi_cc {
 
 NODE_STORAGE_FUNCS(NodeTexVoronoi)
 
@@ -78,22 +80,22 @@ static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tex_voronoi(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "voronoi_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout.prop(ptr, "feature", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "voronoi_dimensions", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "feature", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   int feature = RNA_enum_get(ptr, "feature");
   if (!ELEM(feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS) &&
       RNA_enum_get(ptr, "voronoi_dimensions") != 1)
   {
-    layout.prop(ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "distance", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
   if (!ELEM(feature, SHD_VORONOI_N_SPHERE_RADIUS)) {
-    layout.prop(ptr, "normalize", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "normalize", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 
 static void node_shader_init_tex_voronoi(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexVoronoi *tex = MEM_callocN<NodeTexVoronoi>(__func__);
+  NodeTexVoronoi *tex = MEM_new_for_free<NodeTexVoronoi>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->dimensions = 3;
@@ -158,7 +160,7 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
+  NodeTexVoronoi *tex = static_cast<NodeTexVoronoi *>(node->storage);
   float metric = tex->distance;
   float normalize = tex->normalize;
 
@@ -811,13 +813,13 @@ static void sh_node_voronoi_build_multi_function(NodeMultiFunctionBuilder &build
   }
 }
 
-}  // namespace blender::nodes::node_shader_tex_voronoi_cc
+}  // namespace nodes::node_shader_tex_voronoi_cc
 
 void register_node_type_sh_tex_voronoi()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_voronoi_cc;
+  namespace file_ns = nodes::node_shader_tex_voronoi_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeTexVoronoi", SH_NODE_TEX_VORONOI);
   ntype.ui_name = "Voronoi Texture";
@@ -829,12 +831,14 @@ void register_node_type_sh_tex_voronoi()
   ntype.declare = file_ns::sh_node_tex_voronoi_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_voronoi;
   ntype.initfunc = file_ns::node_shader_init_tex_voronoi;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_voronoi;
   ntype.updatefunc = file_ns::node_shader_update_tex_voronoi;
   ntype.build_multi_function = file_ns::sh_node_voronoi_build_multi_function;
-  blender::bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

@@ -86,9 +86,9 @@ AssetLibraryReference library_reference_from_enum_value(int value)
 
 static void rna_enum_add_custom_libraries(EnumPropertyItem **item, int *totitem)
 {
-  int i;
-  LISTBASE_FOREACH_INDEX (bUserAssetLibrary *, user_library, &U.asset_libraries, i) {
-    if (!custom_library_is_valid(user_library)) {
+
+  for (const auto [i, user_library] : U.asset_libraries.enumerate()) {
+    if (!custom_library_is_valid(&user_library)) {
       continue;
     }
 
@@ -99,7 +99,7 @@ static void rna_enum_add_custom_libraries(EnumPropertyItem **item, int *totitem)
     const int enum_value = library_reference_to_enum_value(&library_reference);
     /* Use library path as description, it's a nice hint for users. */
     EnumPropertyItem tmp = {
-        enum_value, user_library->name, ICON_NONE, user_library->name, user_library->dirpath};
+        enum_value, user_library.name, ICON_NONE, user_library.name, user_library.dirpath};
     RNA_enum_item_add(item, totitem, &tmp);
   }
 }

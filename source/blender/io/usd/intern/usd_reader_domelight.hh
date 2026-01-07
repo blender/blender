@@ -9,10 +9,12 @@
 #include <pxr/usd/usdLux/domeLight.h>
 #include <pxr/usd/usdLux/domeLight_1.h>
 
+namespace blender {
+
 struct Main;
 struct Scene;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDDomeLightReader : public USDPrimReader {
 
@@ -36,4 +38,5 @@ class USDDomeLightReader : public USDPrimReader {
   void create_object(Scene *scene, Main *bmain);
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

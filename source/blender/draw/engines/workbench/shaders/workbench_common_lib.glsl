@@ -51,7 +51,7 @@ float workbench_float_pair_encode(float v1, float v2)
   return float(iv1 | iv2);
 }
 
-void workbench_float_pair_decode(float data, out float v1, out float v2)
+void workbench_float_pair_decode(float data, float &v1, float &v2)
 {
   // constexpr uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
   // constexpr uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);

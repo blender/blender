@@ -10,16 +10,16 @@
 
 #include "BLT_translation.hh"
 
+#include "DNA_color_types.h"
+
 #include "RNA_access.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
-void uiTemplateColorspaceSettings(blender::ui::Layout *layout,
-                                  PointerRNA *ptr,
-                                  const StringRefNull propname)
+void template_colorspace_settings(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -36,10 +36,10 @@ void uiTemplateColorspaceSettings(blender::ui::Layout *layout,
   layout->prop(&colorspace_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
 }
 
-void uiTemplateColormanagedViewSettings(blender::ui::Layout *layout,
-                                        bContext * /*C*/,
-                                        PointerRNA *ptr,
-                                        const StringRefNull propname)
+void template_colormanaged_view_settings(Layout *layout,
+                                         bContext * /*C*/,
+                                         PointerRNA *ptr,
+                                         const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -55,7 +55,7 @@ void uiTemplateColormanagedViewSettings(blender::ui::Layout *layout,
   ColorManagedViewSettings *view_settings = static_cast<ColorManagedViewSettings *>(
       view_transform_ptr.data);
 
-  blender::ui::Layout *col = &layout->column(false);
+  Layout *col = &layout->column(false);
   col->prop(&view_transform_ptr, "view_transform", UI_ITEM_NONE, IFACE_("View"), ICON_NONE);
   col->prop(&view_transform_ptr, "look", UI_ITEM_NONE, IFACE_("Look"), ICON_NONE);
 
@@ -66,7 +66,7 @@ void uiTemplateColormanagedViewSettings(blender::ui::Layout *layout,
   col = &layout->column(false);
   col->prop(&view_transform_ptr, "use_curve_mapping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
-    uiTemplateCurveMapping(
+    template_curve_mapping(
         col, &view_transform_ptr, "curve_mapping", 'c', true, false, false, false, false);
   }
 
@@ -78,3 +78,5 @@ void uiTemplateColormanagedViewSettings(blender::ui::Layout *layout,
     col->prop(&view_transform_ptr, "white_balance_tint", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
+
+}  // namespace blender::ui

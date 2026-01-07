@@ -57,7 +57,7 @@
 
 #include "screen_intern.hh"
 
-using blender::Vector;
+namespace blender {
 
 const char *screen_context_dir[] = {
     "scene",
@@ -137,9 +137,9 @@ static eContextResult screen_ctx_visible_objects(const bContext *C, bContextData
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   BKE_view_layer_synced_ensure(scene, view_layer);
 
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (BASE_VISIBLE(v3d, base)) {
-      CTX_data_id_list_add(result, &base->object->id);
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (BASE_VISIBLE(v3d, &base)) {
+      CTX_data_id_list_add(result, &base.object->id);
     }
   }
   CTX_data_type_set(result, ContextDataType::Collection);
@@ -153,9 +153,9 @@ static eContextResult screen_ctx_selectable_objects(const bContext *C, bContextD
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   BKE_view_layer_synced_ensure(scene, view_layer);
 
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (BASE_SELECTABLE(v3d, base)) {
-      CTX_data_id_list_add(result, &base->object->id);
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (BASE_SELECTABLE(v3d, &base)) {
+      CTX_data_id_list_add(result, &base.object->id);
     }
   }
   CTX_data_type_set(result, ContextDataType::Collection);
@@ -169,9 +169,9 @@ static eContextResult screen_ctx_selected_objects(const bContext *C, bContextDat
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   BKE_view_layer_synced_ensure(scene, view_layer);
 
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (BASE_SELECTED(v3d, base)) {
-      CTX_data_id_list_add(result, &base->object->id);
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (BASE_SELECTED(v3d, &base)) {
+      CTX_data_id_list_add(result, &base.object->id);
     }
   }
   CTX_data_type_set(result, ContextDataType::Collection);
@@ -186,9 +186,9 @@ static eContextResult screen_ctx_selected_editable_objects(const bContext *C,
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   BKE_view_layer_synced_ensure(scene, view_layer);
 
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (BASE_SELECTED_EDITABLE(v3d, base)) {
-      CTX_data_id_list_add(result, &base->object->id);
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (BASE_SELECTED_EDITABLE(v3d, &base)) {
+      CTX_data_id_list_add(result, &base.object->id);
     }
   }
   CTX_data_type_set(result, ContextDataType::Collection);
@@ -203,9 +203,9 @@ static eContextResult screen_ctx_editable_objects(const bContext *C, bContextDat
   BKE_view_layer_synced_ensure(scene, view_layer);
 
   /* Visible + Editable, but not necessarily selected */
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (BASE_EDITABLE(v3d, base)) {
-      CTX_data_id_list_add(result, &base->object->id);
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (BASE_EDITABLE(v3d, &base)) {
+      CTX_data_id_list_add(result, &base.object->id);
     }
   }
   CTX_data_type_set(result, ContextDataType::Collection);
@@ -265,20 +265,20 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
-  bArmature *arm = static_cast<bArmature *>(
-      (obedit && obedit->type == OB_ARMATURE) ? obedit->data : nullptr);
+  bArmature *arm = id_cast<bArmature *>((obedit && obedit->type == OB_ARMATURE) ? obedit->data :
+                                                                                  nullptr);
   EditBone *flipbone = nullptr;
 
   if (arm && arm->edbo) {
     Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, CTX_wm_view3d(C));
     for (Object *ob : objects) {
-      arm = static_cast<bArmature *>(ob->data);
+      arm = id_cast<bArmature *>(ob->data);
 
       /* Attention: X-Axis Mirroring is also handled here... */
-      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
+      for (EditBone &ebone : *arm->edbo) {
         /* first and foremost, bone must be visible and selected */
-        if (blender::animrig::bone_is_visible(arm, ebone)) {
+        if (animrig::bone_is_visible(arm, &ebone)) {
           /* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
            * so that most users of this data don't need to explicitly check for it themselves.
            *
@@ -286,15 +286,15 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
            * bones will be operated on twice.
            */
           if (arm->flag & ARM_MIRROR_EDIT) {
-            flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+            flipbone = ED_armature_ebone_get_mirrored(arm->edbo, &ebone);
           }
 
           /* if we're filtering for editable too, use the check for that instead,
            * as it has selection check too */
           if (editable_bones) {
             /* only selected + editable */
-            if (EBONE_EDITABLE(ebone)) {
-              CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
+            if (EBONE_EDITABLE(&ebone)) {
+              CTX_data_list_add(result, &arm->id, &RNA_EditBone, &ebone);
 
               if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
                 CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
@@ -303,9 +303,9 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
           }
           else {
             /* only include bones if visible */
-            CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
+            CTX_data_list_add(result, &arm->id, &RNA_EditBone, &ebone);
 
-            if ((flipbone) && blender::animrig::bone_is_visible(arm, flipbone) == 0) {
+            if ((flipbone) && animrig::bone_is_visible(arm, flipbone) == 0) {
               CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
             }
           }
@@ -335,20 +335,20 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
-  bArmature *arm = static_cast<bArmature *>(
-      (obedit && obedit->type == OB_ARMATURE) ? obedit->data : nullptr);
+  bArmature *arm = id_cast<bArmature *>((obedit && obedit->type == OB_ARMATURE) ? obedit->data :
+                                                                                  nullptr);
   EditBone *flipbone = nullptr;
 
   if (arm && arm->edbo) {
     Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, CTX_wm_view3d(C));
     for (Object *ob : objects) {
-      arm = static_cast<bArmature *>(ob->data);
+      arm = id_cast<bArmature *>(ob->data);
 
       /* Attention: X-Axis Mirroring is also handled here... */
-      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
+      for (EditBone &ebone : *arm->edbo) {
         /* first and foremost, bone must be visible and selected */
-        if (blender::animrig::bone_is_visible(arm, ebone) && (ebone->flag & BONE_SELECTED)) {
+        if (animrig::bone_is_visible(arm, &ebone) && (ebone.flag & BONE_SELECTED)) {
           /* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
            * so that most users of this data don't need to explicitly check for it themselves.
            *
@@ -356,15 +356,15 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
            * bones will be operated on twice.
            */
           if (arm->flag & ARM_MIRROR_EDIT) {
-            flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+            flipbone = ED_armature_ebone_get_mirrored(arm->edbo, &ebone);
           }
 
           /* if we're filtering for editable too, use the check for that instead,
            * as it has selection check too */
           if (selected_editable_bones) {
             /* only selected + editable */
-            if (EBONE_EDITABLE(ebone)) {
-              CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
+            if (EBONE_EDITABLE(&ebone)) {
+              CTX_data_list_add(result, &arm->id, &RNA_EditBone, &ebone);
 
               if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
                 CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
@@ -373,7 +373,7 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
           }
           else {
             /* only include bones if selected */
-            CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
+            CTX_data_list_add(result, &arm->id, &RNA_EditBone, &ebone);
 
             if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
               CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
@@ -438,7 +438,7 @@ static eContextResult screen_ctx_selected_pose_bones(const bContext *C, bContext
   if (obpose && obpose->pose && obpose->data) {
     if (obpose->pose->flag & POSE_RECALC) {
       /* Can happen with undo-redo, see #150451. */
-      BKE_pose_rebuild(CTX_data_main(C), obpose, (bArmature *)obpose->data, false);
+      BKE_pose_rebuild(CTX_data_main(C), obpose, id_cast<bArmature *>(obpose->data), false);
     }
     if (obpose != obact) {
       FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (obpose, pchan) {
@@ -495,7 +495,7 @@ static eContextResult screen_ctx_active_bone(const bContext *C, bContextDataResu
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact && obact->type == OB_ARMATURE) {
-    bArmature *arm = static_cast<bArmature *>(obact->data);
+    bArmature *arm = id_cast<bArmature *>(obact->data);
     if (arm->edbo) {
       if (arm->act_edbone) {
         CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, arm->act_edbone);
@@ -548,9 +548,9 @@ static eContextResult screen_ctx_property(const bContext *C, bContextDataResult 
   PropertyRNA *prop;
   int index;
 
-  UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+  ui::context_active_but_prop_get(C, &ptr, &prop, &index);
   if (ptr.data && prop) {
-    /* UI_context_active_but_prop_get returns an index of 0 if the property is not
+    /* context_active_but_prop_get returns an index of 0 if the property is not
      * an array, but other functions expect -1 for non-arrays. */
     if (!RNA_property_array_check(prop)) {
       index = -1;
@@ -695,18 +695,18 @@ static eContextResult screen_ctx_selected_nla_strips(const bContext *C, bContext
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) != 0) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     ANIM_animdata_filter(
         &ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac.data, eAnimCont_Types(ac.datatype));
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      if (ale->datatype != ALE_NLASTRIP) {
+    for (bAnimListElem &ale : anim_data) {
+      if (ale.datatype != ALE_NLASTRIP) {
         continue;
       }
-      NlaTrack *nlt = (NlaTrack *)ale->data;
-      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
-        if (strip->flag & NLASTRIP_FLAG_SELECT) {
-          CTX_data_list_add(result, ale->id, &RNA_NlaStrip, strip);
+      NlaTrack *nlt = static_cast<NlaTrack *>(ale.data);
+      for (NlaStrip &strip : nlt->strips) {
+        if (strip.flag & NLASTRIP_FLAG_SELECT) {
+          CTX_data_list_add(result, ale.id, &RNA_NlaStrip, &strip);
         }
       }
     }
@@ -730,11 +730,11 @@ static eContextResult screen_ctx_selected_movieclip_tracks(const bContext *C,
   }
 
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (!TRACK_SELECTED(track)) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (!TRACK_SELECTED(&track)) {
       continue;
     }
-    CTX_data_list_add(result, &clip->id, &RNA_MovieTrackingTrack, track);
+    CTX_data_list_add(result, &clip->id, &RNA_MovieTrackingTrack, &track);
   }
 
   CTX_data_type_set(result, ContextDataType::Collection);
@@ -747,7 +747,7 @@ static eContextResult screen_ctx_annotation_data(const bContext *C, bContextData
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = WM_window_get_active_scene(win);
-  bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)screen, area, scene);
+  bGPdata *gpd = ED_annotation_data_get_active_direct(id_cast<ID *>(screen), area, scene);
 
   if (gpd) {
     CTX_data_id_pointer_set(result, &gpd->id);
@@ -765,7 +765,8 @@ static eContextResult screen_ctx_annotation_data_owner(const bContext *C,
 
   /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used. */
   PointerRNA ptr;
-  bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)screen, area, scene, &ptr);
+  bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct(
+      id_cast<ID *>(screen), area, scene, &ptr);
 
   if (gpd_ptr) {
     CTX_data_pointer_set_ptr(result, &ptr);
@@ -780,7 +781,7 @@ static eContextResult screen_ctx_active_annotation_layer(const bContext *C,
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = WM_window_get_active_scene(win);
-  bGPdata *gpd = ED_annotation_data_get_active_direct((ID *)screen, area, scene);
+  bGPdata *gpd = ED_annotation_data_get_active_direct(id_cast<ID *>(screen), area, scene);
 
   if (gpd) {
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -800,7 +801,7 @@ static eContextResult screen_ctx_grease_pencil_data(const bContext *C, bContextD
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact && obact->type == OB_GREASE_PENCIL) {
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(obact->data);
+    GreasePencil *grease_pencil = id_cast<GreasePencil *>(obact->data);
     CTX_data_id_pointer_set(result, &grease_pencil->id);
     return CTX_RESULT_OK;
   }
@@ -814,7 +815,7 @@ static eContextResult screen_ctx_active_operator(const bContext *C, bContextData
   if (sfile) {
     op = sfile->op;
   }
-  else if ((op = UI_context_active_operator_get(C))) {
+  else if ((op = ui::context_active_operator_get(C))) {
     /* do nothing */
   }
   else {
@@ -842,7 +843,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
 
   /* In the Action and Shape Key editor always use the action field at the top. */
   if (ac.spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)ac.sl;
+    SpaceAction *saction = reinterpret_cast<SpaceAction *>(ac.sl);
 
     if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY)) {
       ID *active_action_id = ac.active_action ? &ac.active_action->id : nullptr;
@@ -863,7 +864,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
   }
 
   /* Search for selected animation data items. */
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   int filter = ANIMFILTER_DATA_VISIBLE;
   bool check_selected = false;
@@ -885,23 +886,23 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-  blender::Set<bAction *> seen_set;
+  Set<bAction *> seen_set;
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* In dope-sheet check selection status of individual items, skipping
      * if not selected or has no selection flag. This is needed so that
      * selecting action or group rows without any channels works. */
-    if (check_selected && ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_SELECT) <= 0) {
+    if (check_selected && ANIM_channel_setting_get(&ac, &ale, ACHANNEL_SETTING_SELECT) <= 0) {
       continue;
     }
 
-    bAction *action = ANIM_channel_action_get(ale);
+    bAction *action = ANIM_channel_action_get(&ale);
     if (!action) {
       continue;
     }
 
     if (active_only) {
-      CTX_data_id_pointer_set(result, (ID *)action);
+      CTX_data_id_pointer_set(result, id_cast<ID *>(action));
       break;
     }
     if (editable && !ID_IS_EDITABLE(action)) {
@@ -942,7 +943,7 @@ static eContextResult screen_ctx_sel_edit_fcurves_(const bContext *C,
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS) |
                  (ac.spacetype == SPACE_GRAPH ?
@@ -953,9 +954,9 @@ static eContextResult screen_ctx_sel_edit_fcurves_(const bContext *C,
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
-        CTX_data_list_add(result, ale->fcurve_owner_id, &RNA_FCurve, ale->data);
+    for (bAnimListElem &ale : anim_data) {
+      if (ELEM(ale.type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+        CTX_data_list_add(result, ale.fcurve_owner_id, &RNA_FCurve, ale.data);
       }
     }
 
@@ -989,7 +990,7 @@ static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_GRAPH)) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
                   ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE);
@@ -997,9 +998,9 @@ static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
-        CTX_data_pointer_set(result, ale->fcurve_owner_id, &RNA_FCurve, ale->data);
+    for (bAnimListElem &ale : anim_data) {
+      if (ELEM(ale.type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+        CTX_data_pointer_set(result, ale.fcurve_owner_id, &RNA_FCurve, ale.data);
         break;
       }
     }
@@ -1014,7 +1015,7 @@ static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
-    ListBase anim_data = {nullptr, nullptr};
+    ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
     /* Use keyframes from editable selected FCurves. */
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS | ANIMFILTER_FOREDIT |
@@ -1029,12 +1030,12 @@ static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
     int i;
     FCurve *fcurve;
     BezTriple *bezt;
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      if (!ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+    for (bAnimListElem &ale : anim_data) {
+      if (!ELEM(ale.type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
         continue;
       }
 
-      fcurve = (FCurve *)ale->data;
+      fcurve = static_cast<FCurve *>(ale.data);
       if (fcurve->bezt == nullptr) {
         /* Skip baked FCurves. */
         continue;
@@ -1045,7 +1046,7 @@ static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
           continue;
         }
 
-        CTX_data_list_add(result, ale->fcurve_owner_id, &RNA_Keyframe, bezt);
+        CTX_data_list_add(result, ale.fcurve_owner_id, &RNA_Keyframe, bezt);
       }
     }
 
@@ -1070,7 +1071,7 @@ static eContextResult screen_ctx_ui_list(const bContext *C, bContextDataResult *
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
   if (region) {
-    uiList *list = UI_list_find_mouse_over(region, win->eventstate);
+    uiList *list = ui::list_find_mouse_over(region, win->runtime->eventstate);
     if (list) {
       CTX_data_pointer_set(result, nullptr, &RNA_UIList, list);
       return CTX_RESULT_OK;
@@ -1085,7 +1086,7 @@ static eContextResult screen_ctx_active_strip(const bContext *C, bContextDataRes
   if (!scene) {
     return CTX_RESULT_NO_DATA;
   }
-  Strip *strip = blender::seq::select_active_get(scene);
+  Strip *strip = seq::select_active_get(scene);
   if (strip) {
     CTX_data_pointer_set(result, &scene->id, &RNA_Strip, strip);
     return CTX_RESULT_OK;
@@ -1098,10 +1099,10 @@ static eContextResult screen_ctx_strips(const bContext *C, bContextDataResult *r
   if (!scene) {
     return CTX_RESULT_NO_DATA;
   }
-  Editing *ed = blender::seq::editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
   if (ed) {
-    LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-      CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
+    for (Strip &strip : *ed->current_strips()) {
+      CTX_data_list_add(result, &scene->id, &RNA_Strip, &strip);
     }
     CTX_data_type_set(result, ContextDataType::Collection);
     return CTX_RESULT_OK;
@@ -1114,11 +1115,11 @@ static eContextResult screen_ctx_selected_strips(const bContext *C, bContextData
   if (!scene) {
     return CTX_RESULT_NO_DATA;
   }
-  Editing *ed = blender::seq::editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
   if (ed) {
-    LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-      if (strip->flag & SEQ_SELECT) {
-        CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
+    for (Strip &strip : *ed->current_strips()) {
+      if (strip.flag & SEQ_SELECT) {
+        CTX_data_list_add(result, &scene->id, &RNA_Strip, &strip);
       }
     }
     CTX_data_type_set(result, ContextDataType::Collection);
@@ -1133,15 +1134,15 @@ static eContextResult screen_ctx_selected_editable_strips(const bContext *C,
   if (!scene) {
     return CTX_RESULT_NO_DATA;
   }
-  Editing *ed = blender::seq::editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
   if (ed == nullptr) {
     return CTX_RESULT_NO_DATA;
   }
 
-  const ListBase *channels = blender::seq::channels_displayed_get(ed);
-  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    if (strip->flag & SEQ_SELECT && !blender::seq::transform_is_locked(channels, strip)) {
-      CTX_data_list_add(result, &scene->id, &RNA_Strip, strip);
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
+  for (Strip &strip : *ed->current_strips()) {
+    if (strip.flag & SEQ_SELECT && !seq::transform_is_locked(channels, &strip)) {
+      CTX_data_list_add(result, &scene->id, &RNA_Strip, &strip);
     }
   }
   CTX_data_type_set(result, ContextDataType::Collection);
@@ -1161,11 +1162,10 @@ static eContextResult screen_ctx_sequencer_scene(const bContext *C, bContextData
 
 using context_callback = eContextResult (*)(const bContext *C, bContextDataResult *result);
 
-static const blender::Map<blender::StringRef, context_callback> &
-ensure_ed_screen_context_functions()
+static const Map<StringRef, context_callback> &ensure_ed_screen_context_functions()
 {
-  static blender::Map<blender::StringRef, context_callback> screen_context_functions = []() {
-    blender::Map<blender::StringRef, context_callback> map;
+  static Map<StringRef, context_callback> screen_context_functions = []() {
+    Map<StringRef, context_callback> map;
     map.add("scene", screen_ctx_scene);
     map.add("visible_objects", screen_ctx_visible_objects);
     map.add("selectable_objects", screen_ctx_selectable_objects);
@@ -1231,8 +1231,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     return CTX_RESULT_OK;
   }
 
-  const blender::Map<blender::StringRef, context_callback> &functions =
-      ensure_ed_screen_context_functions();
+  const Map<StringRef, context_callback> &functions = ensure_ed_screen_context_functions();
   context_callback callback = functions.lookup_default(member, nullptr);
   if (callback == nullptr) {
     return CTX_RESULT_MEMBER_NOT_FOUND;
@@ -1240,3 +1239,5 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
   return callback(C, result);
 }
+
+}  // namespace blender

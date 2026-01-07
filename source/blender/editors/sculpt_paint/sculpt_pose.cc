@@ -521,7 +521,7 @@ static void grow_pose_factor(const Depsgraph &depsgraph,
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-        const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
+        const Mesh &mesh = *id_cast<const Mesh *>(ob.data);
         const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
         const OffsetIndices faces = mesh.faces();
         const Span<int> corner_verts = mesh.corner_verts();
@@ -671,7 +671,7 @@ static void calc_pose_origin_and_factor_mesh(const Depsgraph &depsgraph,
 {
   BLI_assert(!r_pose_factor.is_empty());
 
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
 
@@ -926,7 +926,7 @@ static std::unique_ptr<IKChain> ik_chain_init_topology(const Depsgraph &depsgrap
   /* TODO: How should this function handle not being able to find the nearest vert? */
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<const Mesh *>(object.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
       VArraySpan<bool> hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
@@ -1027,7 +1027,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
     int face_set;
   };
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1050,7 +1050,9 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   Vector<int> neighbors;
+  int num_valid_segments = 0;
   for (const int i : ik_chain->segments.index_range()) {
+    num_valid_segments++;
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataMesh flood_fill(vert_positions.size(),
@@ -1170,9 +1172,17 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
       ik_chain->segments[i].orig = float3(0);
     }
 
+    if (!next_segment_data) {
+      /* It is possible that when traversing neighbors that we no longer have any vertices that
+       * have not been assigned to a face set when trying to find the next segement's starting
+       * point. All further segments are invalid in this case. */
+      break;
+    }
+
     current_data = *next_segment_data;
   }
 
+  ik_chain->segments.resize(num_valid_segments);
   ik_chain_origin_heads_init(*ik_chain, vert_positions[std::get<int>(ss.active_vert())]);
 
   return ik_chain;
@@ -1188,7 +1198,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
     int face_set;
   };
 
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -1211,7 +1221,9 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   SubdivCCGNeighbors neighbors;
+  int num_valid_segments = 0;
   for (const int i : ik_chain->segments.index_range()) {
+    num_valid_segments++;
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataGrids flood_fill(grids_num, ss.fake_neighbors.fake_neighbor_index);
@@ -1339,9 +1351,17 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
       ik_chain->segments[i].orig = float3(0);
     }
 
+    if (!next_segment_data) {
+      /* It is possible that when traversing neighbors that we no longer have any vertices that
+       * have not been assigned to a face set when trying to find the next segement's starting
+       * point. All further segments are invalid in this case. */
+      break;
+    }
+
     current_data = *next_segment_data;
   }
 
+  ik_chain->segments.resize(num_valid_segments);
   ik_chain_origin_heads_init(*ik_chain, positions[ss.active_vert_index()]);
 
   return ik_chain;
@@ -1370,7 +1390,9 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   BMeshNeighborVerts neighbors;
+  int num_valid_segments = 0;
   for (const int i : ik_chain->segments.index_range()) {
+    num_valid_segments++;
     const bool is_first_iteration = i == 0;
 
     flood_fill::FillDataBMesh flood_fill(verts_num, ss.fake_neighbors.fake_neighbor_index);
@@ -1487,9 +1509,17 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
       ik_chain->segments[i].orig = float3(0);
     }
 
+    if (!next_segment_data) {
+      /* It is possible that when traversing neighbors that we no longer have any vertices that
+       * have not been assigned to a face set when trying to find the next segement's starting
+       * point. All further segments are invalid in this case. */
+      break;
+    }
+
     current_data = *next_segment_data;
   }
 
+  ik_chain->segments.resize(num_valid_segments);
   ik_chain_origin_heads_init(*ik_chain, std::get<BMVert *>(ss.active_vert())->co);
 
   return ik_chain;
@@ -1525,7 +1555,7 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
 
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<Mesh *>(object.data);
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
@@ -1547,7 +1577,7 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
       const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
       const Span<float3> positions = subdiv_ccg.positions;
 
-      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan face_sets = *attributes.lookup_or_default<int>(
           ".sculpt_face_set", bke::AttrDomain::Face, 0);
@@ -1599,7 +1629,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
                                                                 const float radius,
                                                                 const float3 &initial_location)
 {
-  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<Mesh *>(object.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan face_sets = *attributes.lookup_or_default<int>(
@@ -1677,7 +1707,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
                                                                  const float radius,
                                                                  const float3 &initial_location)
 {
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -2156,7 +2186,7 @@ void do_pose_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<BrushLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      Mesh &mesh = *id_cast<Mesh *>(ob.data);
       const MeshAttributeData attribute_data(mesh);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, ob);

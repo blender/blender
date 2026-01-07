@@ -103,7 +103,7 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
                                       const int /*num_edges*/,
                                       const int /*num_loops*/,
                                       const int /*num_faces*/,
-                                      const int * /*subdiv_face_offset*/)
+                                      const Span<int> /*subdiv_face_offset*/)
 {
   SubdivDeformContext *subdiv_context = static_cast<SubdivDeformContext *>(
       foreach_context->user_data);

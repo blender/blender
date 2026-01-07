@@ -7,13 +7,15 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Text;
 
-typedef struct SuggItem {
+struct SuggItem {
   struct SuggItem *prev, *next;
   char type;
   char name[0];
-} SuggItem;
+};
 
 /**
  * Suggestions should be added in sorted order although a linear sorting method is implemented.
@@ -28,12 +30,12 @@ typedef struct SuggItem {
  *   `baa`
  *   `bab` <- #SuggList::last
  */
-typedef struct SuggList {
+struct SuggList {
   SuggItem *first, *last;
   SuggItem *firstmatch, *lastmatch;
   SuggItem *selected;
   int top;
-} SuggList;
+};
 
 /* Free all text tool memory */
 void free_texttools(void);
@@ -52,3 +54,5 @@ SuggItem *texttool_suggest_last(void);
 void texttool_suggest_select(SuggItem *sel);
 SuggItem *texttool_suggest_selected(void);
 int *texttool_suggest_top(void);
+
+}  // namespace blender

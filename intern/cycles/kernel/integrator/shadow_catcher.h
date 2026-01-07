@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 /* Check whether current surface bounce is where path is to be split for the shadow catcher. */
 ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(KernelGlobals kg,
                                                                   IntegratorState state,
-                                                                  const int object_flag)
+                                                                  const uint object_flag)
 {
 #ifdef __SHADOW_CATCHER__
   if (!kernel_data.integrator.has_shadow_catcher) {

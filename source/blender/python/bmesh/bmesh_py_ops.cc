@@ -20,6 +20,8 @@
 #include "bmesh_py_ops.hh" /* own include */
 #include "bmesh_py_ops_call.hh"
 
+namespace blender {
+
 /* bmesh operator 'bmesh.ops.*' callable types
  * ******************************************* */
 
@@ -128,7 +130,11 @@ static PyObject *bpy_bmesh_op_doc_get(BPy_BMeshOpFunc *self, void * /*closure*/)
 }
 
 static PyGetSetDef bpy_bmesh_op_getseters[] = {
-    {"__doc__", (getter)bpy_bmesh_op_doc_get, (setter) nullptr, nullptr, nullptr},
+    {"__doc__",
+     reinterpret_cast<getter>(bpy_bmesh_op_doc_get),
+     static_cast<setter>(nullptr),
+     nullptr,
+     nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
@@ -145,12 +151,12 @@ static PyTypeObject bmesh_op_Type = {
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_as_async*/ nullptr,
-    /*tp_repr*/ (reprfunc)bpy_bmesh_op_repr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(bpy_bmesh_op_repr),
     /*tp_as_number*/ nullptr,
     /*tp_as_sequence*/ nullptr,
     /*tp_as_mapping*/ nullptr,
     /*tp_hash*/ nullptr,
-    /*tp_call*/ (ternaryfunc)BPy_BMO_call,
+    /*tp_call*/ reinterpret_cast<ternaryfunc>(BPy_BMO_call),
     /*tp_str*/ nullptr,
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
@@ -196,7 +202,7 @@ static PyObject *bpy_bmesh_op_CreatePyObject(const char *opname)
 
   self->opname = opname;
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 static PyObject *bpy_bmesh_ops_module_getattro(PyObject * /*self*/, PyObject *pyname)
@@ -237,8 +243,8 @@ static PyObject *bpy_bmesh_ops_module_dir(PyObject * /*self*/)
 #endif
 
 static PyMethodDef BPy_BM_ops_methods[] = {
-    {"__getattr__", (PyCFunction)bpy_bmesh_ops_module_getattro, METH_O, nullptr},
-    {"__dir__", (PyCFunction)bpy_bmesh_ops_module_dir, METH_NOARGS, nullptr},
+    {"__getattr__", static_cast<PyCFunction>(bpy_bmesh_ops_module_getattro), METH_O, nullptr},
+    {"__dir__", reinterpret_cast<PyCFunction>(bpy_bmesh_ops_module_dir), METH_NOARGS, nullptr},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -276,3 +282,5 @@ PyObject *BPyInit_bmesh_ops()
 
   return submodule;
 }
+
+}  // namespace blender

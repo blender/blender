@@ -24,6 +24,8 @@
 #  endif
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Register File Association
  * \{ */
@@ -90,3 +92,5 @@ bool WM_platform_associate_set(bool do_register, bool all_users, char **r_error_
 }
 
 /** \} */
+
+}  // namespace blender

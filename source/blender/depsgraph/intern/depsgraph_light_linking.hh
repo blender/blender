@@ -17,12 +17,14 @@
 #include "DNA_collection_types.h" /* eCollectionLightLinkingState */
 #include "DNA_object_types.h"
 
+namespace blender {
+
 struct Collection;
 struct CollectionLightLinking;
 struct Object;
 struct Scene;
 
-namespace blender::deg::light_linking {
+namespace deg::light_linking {
 
 namespace internal {
 
@@ -277,4 +279,6 @@ class Cache {
   LinkingData shadow_linking_{LIGHT_LINKING_BLOCKER};
 };
 
-}  // namespace blender::deg::light_linking
+}  // namespace deg::light_linking
+
+}  // namespace blender

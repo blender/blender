@@ -27,7 +27,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_outline_detect)
 #define APEX_YPOS (ALL & (~YPOS))
 #define APEX_YNEG (ALL & (~YNEG))
 
-bool has_edge(uint id, float2 uv, uint ref, inout uint ref_col, inout float2 depth_uv)
+bool has_edge(uint id, float2 uv, uint ref, uint &ref_col, float2 &depth_uv)
 {
   if (ref_col == 0u) {
     /* Make outline bleed on the background. */
@@ -83,7 +83,7 @@ bool4 rotate_270(bool4 v)
 }
 
 /* Apply offset to line endpoint based on surrounding edges infos. */
-bool line_offset(bool2 edges, float2 ofs, inout float2 line_point)
+bool line_offset(bool2 edges, float2 ofs, float2 &line_point)
 {
   if (all(edges.xy)) {
     line_point.y -= ofs.y;
@@ -102,7 +102,7 @@ bool line_offset(bool2 edges, float2 ofs, inout float2 line_point)
 #define PROXIMITY_OFS -0.35f
 
 /* Use surrounding edges to approximate the outline direction to create smooth lines. */
-void straight_line_dir(bool4 edges1, bool4 edges2, out float2 line_start, out float2 line_end)
+void straight_line_dir(bool4 edges1, bool4 edges2, float2 &line_start, float2 &line_end)
 {
   /* Y_POS as reference. Other cases are rotated to match reference. */
   line_end = float2(1.5f, 0.5f + PROXIMITY_OFS);
@@ -141,7 +141,7 @@ float2 diag_offset(bool4 edges)
 }
 
 /* Compute line direction vector from the bottom left corner. */
-void diag_dir(bool4 edges1, bool4 edges2, out float2 line_start, out float2 line_end)
+void diag_dir(bool4 edges1, bool4 edges2, float2 &line_start, float2 &line_end)
 {
   /* Negate instead of rotating back the result of diag_offset. */
   edges2 = not(edges2);

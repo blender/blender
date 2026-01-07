@@ -15,26 +15,29 @@
 
 #include "util/task.h"
 
+#include "BKE_material.hh"
+#include "DNA_material_types.h"
+
 CCL_NAMESPACE_BEGIN
 
 static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_particle_hair)
 {
-  if (b_ob_info.object_data.is_a(&RNA_Light)) {
+  if (GS(b_ob_info.object_data->name) == blender::ID_LA) {
     return Geometry::LIGHT;
   }
 
-  if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
+  if (GS(b_ob_info.object_data->name) == blender::ID_CV || use_particle_hair) {
     return Geometry::HAIR;
   }
 
-  if (b_ob_info.object_data.is_a(&RNA_PointCloud)) {
+  if (GS(b_ob_info.object_data->name) == blender::ID_PT) {
     return Geometry::POINTCLOUD;
   }
 
-  if (b_ob_info.object_data.is_a(&RNA_Volume) ||
+  if (GS(b_ob_info.object_data->name) == blender::ID_VO ||
       (b_ob_info.object_data ==
-           object_get_data(b_ob_info.real_object, b_ob_info.use_adaptive_subdivision) &&
-       object_fluid_gas_domain_find(b_ob_info.real_object)))
+           object_get_data(*b_ob_info.real_object, b_ob_info.use_adaptive_subdivision) &&
+       object_fluid_gas_domain_find(*b_ob_info.real_object)))
   {
     return Geometry::VOLUME;
   }
@@ -42,32 +45,32 @@ static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_parti
   return Geometry::MESH;
 }
 
-array<Node *> BlenderSync::find_used_shaders(BL::Object &b_ob)
+array<Node *> BlenderSync::find_used_shaders(blender::Object &b_ob)
 {
   array<Node *> used_shaders;
 
-  if (b_ob.type() == BL::Object::type_LIGHT) {
-    find_shader(b_ob.data(), used_shaders, scene->default_light);
+  if (b_ob.type == blender::OB_LAMP) {
+    find_shader(static_cast<blender::ID *>(b_ob.data), used_shaders, scene->default_light);
     return used_shaders;
   }
 
-  BL::Material material_override = view_layer.material_override;
-  Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
-                                                                      scene->default_surface;
+  blender::Material *material_override = view_layer.material_override;
+  Shader *default_shader = (b_ob.type == blender::OB_VOLUME) ? scene->default_volume :
+                                                               scene->default_surface;
 
-  for (BL::MaterialSlot &b_slot : b_ob.material_slots) {
+  for (const int i : blender::IndexRange(BKE_object_material_count_eval(&b_ob))) {
     if (material_override) {
-      find_shader(material_override, used_shaders, default_shader);
+      find_shader(&material_override->id, used_shaders, default_shader);
     }
     else {
-      BL::ID b_material(b_slot.material());
-      find_shader(b_material, used_shaders, default_shader);
+      blender::Material *b_material = BKE_object_material_get(&b_ob, i + 1);
+      find_shader(reinterpret_cast<blender::ID *>(b_material), used_shaders, default_shader);
     }
   }
 
   if (used_shaders.size() == 0) {
     if (material_override) {
-      find_shader(material_override, used_shaders, default_shader);
+      find_shader(&material_override->id, used_shaders, default_shader);
     }
     else {
       used_shaders.push_back_slow(default_shader);
@@ -84,14 +87,14 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
 {
   /* Test if we can instance or if the object is modified. */
   const Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
-  BL::ID const b_key_id = (b_ob_info.is_real_object_data() &&
-                           BKE_object_is_modified(b_ob_info.real_object)) ?
-                              b_ob_info.real_object :
-                              b_ob_info.object_data;
-  const GeometryKey key(b_key_id.ptr.data, geom_type);
+  blender::ID *const b_key_id = (b_ob_info.is_real_object_data() &&
+                                 BKE_object_is_modified(*b_ob_info.real_object)) ?
+                                    &b_ob_info.real_object->id :
+                                    b_ob_info.object_data;
+  const GeometryKey key(b_key_id, geom_type);
 
   /* Find shader indices. */
-  array<Node *> used_shaders = find_used_shaders(b_ob_info.iter_object);
+  array<Node *> used_shaders = find_used_shaders(*b_ob_info.iter_object);
 
   /* Ensure we only sync instanced geometry once. */
   Geometry *geom = geometry_map.find(key);
@@ -157,7 +160,7 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
 
   geometry_synced.insert(geom);
 
-  geom->name = ustring(b_ob_info.object_data.name().c_str());
+  geom->name = ustring(BKE_id_name(*b_ob_info.object_data));
 
   /* Store the shaders immediately for the object attribute code. */
   geom->set_used_shaders(used_shaders);
@@ -167,7 +170,7 @@ Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
       return;
     }
 
-    progress.set_sync_status("Synchronizing object", b_ob_info.real_object.name());
+    progress.set_sync_status("Synchronizing object", BKE_id_name(b_ob_info.real_object->id));
 
     if (geom_type == Geometry::LIGHT) {
       Light *light = static_cast<Light *>(geom);
@@ -255,16 +258,16 @@ void BlenderSync::sync_geometry_motion(BObjectInfo &b_ob_info,
       return;
     }
 
-    if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
+    if (GS(b_ob_info.object_data->name) == blender::ID_CV || use_particle_hair) {
       Hair *hair = static_cast<Hair *>(geom);
       sync_hair_motion(b_ob_info, hair, motion_step);
     }
-    else if (b_ob_info.object_data.is_a(&RNA_Volume) ||
-             object_fluid_gas_domain_find(b_ob_info.real_object))
+    else if (GS(b_ob_info.object_data->name) == blender::ID_VO ||
+             object_fluid_gas_domain_find(*b_ob_info.real_object))
     {
       /* No volume motion blur support yet. */
     }
-    else if (b_ob_info.object_data.is_a(&RNA_PointCloud)) {
+    else if (GS(b_ob_info.object_data->name) == blender::ID_PT) {
       PointCloud *pointcloud = static_cast<PointCloud *>(geom);
       sync_pointcloud_motion(pointcloud, b_ob_info, motion_step);
     }

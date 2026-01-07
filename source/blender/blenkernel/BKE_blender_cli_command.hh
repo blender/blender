@@ -17,11 +17,13 @@
 #include <memory>
 #include <string>
 
+namespace blender {
+
 /**
  * Each instance of this class can run the command with an argument list.
  * The arguments begin at the first argument after the command identifier.
  */
-class CommandHandler : blender::NonCopyable, blender::NonMovable {
+class CommandHandler : NonCopyable, NonMovable {
  public:
   CommandHandler(const std::string &id) : id(id) {}
   virtual ~CommandHandler() = default;
@@ -65,3 +67,5 @@ void BKE_blender_cli_command_print_help();
  * Frees all commands (using their #CommandFreeFn call-backs).
  */
 void BKE_blender_cli_command_free_all();
+
+}  // namespace blender

@@ -8,7 +8,11 @@
 
 #include "view3d_intern.hh" /* bad level include */
 
+namespace blender {
+
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 uchar view3d_camera_border_hack_col[3];
 bool view3d_camera_border_hack_test = false;
 #endif
+
+}  // namespace blender

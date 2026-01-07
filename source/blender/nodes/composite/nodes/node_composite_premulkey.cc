@@ -18,7 +18,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_premulkey_cc {
+namespace blender {
+
+namespace nodes::node_composite_premulkey_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_ALPHA_CONVERT_PREMULTIPLY,
@@ -70,9 +72,9 @@ static float4 convert_alpha(const float4 &color, const MenuValue &type)
   return color;
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto function = mf::build::SI2_SO<Color, MenuValue, Color>(
       "Alpha Convert",
@@ -83,13 +85,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   builder.set_matching_fn(function);
 }
 
-}  // namespace blender::nodes::node_composite_premulkey_cc
+}  // namespace nodes::node_composite_premulkey_cc
 
 static void register_node_type_cmp_premulkey()
 {
-  namespace file_ns = blender::nodes::node_composite_premulkey_cc;
+  namespace file_ns = nodes::node_composite_premulkey_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodePremulKey", CMP_NODE_PREMULKEY);
   ntype.ui_name = "Alpha Convert";
@@ -100,6 +102,8 @@ static void register_node_type_cmp_premulkey()
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_premulkey)
+
+}  // namespace blender

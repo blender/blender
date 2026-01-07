@@ -110,7 +110,7 @@ Quaternion normalized_to_quat_with_checks(float3x3 mat)
   return normalized_to_quat_fast(mat);
 }
 
-void normalized_to_eul2(float3x3 mat, out EulerXYZ eul1, out EulerXYZ eul2)
+void normalized_to_eul2(float3x3 mat, EulerXYZ &eul1, EulerXYZ &eul2)
 {
   float cy = hypot(mat[0][0], mat[0][1]);
   if (cy > 16.0f * FLT_EPSILON) {
@@ -286,7 +286,7 @@ AxisAngle to_axis_angle(Quaternion quat)
   if (is_zero(axis)) {
     axis[1] = 1.0f;
   }
-  return AxisAngle(axis, angle);
+  return {axis, angle};
 }
 
 AxisAngle to_axis_angle(EulerXYZ eul)
@@ -307,7 +307,7 @@ AxisAngle to_axis_angle(EulerXYZ eul)
  * Rotation and scale values will be flipped if it is negative.
  * This is a costly operation so it is disabled by default.
  */
-void to_rot_scale(float3x3 mat, out EulerXYZ r_rotation, out float3 r_scale)
+void to_rot_scale(float3x3 mat, EulerXYZ &r_rotation, float3 &r_scale)
 {
   r_scale = to_scale(mat);
   r_rotation = to_euler(mat, true);
@@ -320,8 +320,8 @@ void to_rot_scale(float3x3 mat, out EulerXYZ r_rotation, out float3 r_scale)
  * This is a costly operation so it is disabled by default.
  */
 void to_rot_scale(float3x3 mat,
-                  out EulerXYZ r_rotation,
-                  out float3 r_scale,
+                  EulerXYZ &r_rotation,
+                  float3 &r_scale,
                   const bool allow_negative_scale)
 {
   float3x3 normalized_mat = normalize_and_get_size(mat, r_scale);
@@ -333,14 +333,14 @@ void to_rot_scale(float3x3 mat,
   }
   r_rotation = to_euler(normalized_mat, true);
 }
-void to_rot_scale(float3x3 mat, out Quaternion r_rotation, out float3 r_scale)
+void to_rot_scale(float3x3 mat, Quaternion &r_rotation, float3 &r_scale)
 {
   r_scale = to_scale(mat);
   r_rotation = to_quaternion(mat, true);
 }
 void to_rot_scale(float3x3 mat,
-                  out Quaternion r_rotation,
-                  out float3 r_scale,
+                  Quaternion &r_rotation,
+                  float3 &r_scale,
                   const bool allow_negative_scale)
 {
   float3x3 normalized_mat = normalize_and_get_size(mat, r_scale);
@@ -353,35 +353,29 @@ void to_rot_scale(float3x3 mat,
   r_rotation = to_quaternion(normalized_mat, true);
 }
 
-void to_loc_rot_scale(float4x4 mat,
-                      out float3 r_location,
-                      out EulerXYZ r_rotation,
-                      out float3 r_scale)
+void to_loc_rot_scale(float4x4 mat, float3 &r_location, EulerXYZ &r_rotation, float3 &r_scale)
 {
   r_location = mat[3].xyz;
   to_rot_scale(to_float3x3(mat), r_rotation, r_scale);
 }
 void to_loc_rot_scale(float4x4 mat,
-                      out float3 r_location,
-                      out EulerXYZ r_rotation,
-                      out float3 r_scale,
+                      float3 &r_location,
+                      EulerXYZ &r_rotation,
+                      float3 &r_scale,
                       const bool allow_negative_scale)
 {
   r_location = mat[3].xyz;
   to_rot_scale(to_float3x3(mat), r_rotation, r_scale, allow_negative_scale);
 }
-void to_loc_rot_scale(float4x4 mat,
-                      out float3 r_location,
-                      out Quaternion r_rotation,
-                      out float3 r_scale)
+void to_loc_rot_scale(float4x4 mat, float3 &r_location, Quaternion &r_rotation, float3 &r_scale)
 {
   r_location = mat[3].xyz;
   to_rot_scale(to_float3x3(mat), r_rotation, r_scale);
 }
 void to_loc_rot_scale(float4x4 mat,
-                      out float3 r_location,
-                      out Quaternion r_rotation,
-                      out float3 r_scale,
+                      float3 &r_location,
+                      Quaternion &r_rotation,
+                      float3 &r_scale,
                       const bool allow_negative_scale)
 {
   r_location = mat[3].xyz;

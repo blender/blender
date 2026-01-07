@@ -14,6 +14,8 @@
 
 #include "BLI_math_base.h"
 
+namespace blender {
+
 BArrayStore *BLI_array_store_at_size_ensure(BArrayStore_AtSize *bs_stride,
                                             const int stride,
                                             const int chunk_size)
@@ -76,3 +78,5 @@ void BLI_array_store_at_size_calc_memory_usage(const BArrayStore_AtSize *bs_stri
   *r_size_expanded = size_expanded;
   *r_size_compacted = size_compacted;
 }
+
+}  // namespace blender

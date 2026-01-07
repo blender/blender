@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_heap.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
@@ -24,6 +24,8 @@
 #include "bmesh.hh"
 
 #include "bmesh_triangulate.hh" /* own include */
+
+namespace blender {
 
 /**
  * a version of #BM_face_triangulate that maps to #BMOpSlot
@@ -42,13 +44,13 @@ static void bm_face_triangulate_mapping(BMesh *bm,
                                         Heap *pf_heap)
 {
   int faces_array_tot = face->len - 3;
-  BMFace **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
+  Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> faces_array(faces_array_tot);
   LinkNode *faces_double = nullptr;
   BLI_assert(face->len > 3);
 
   BM_face_triangulate(bm,
                       face,
-                      faces_array,
+                      faces_array.data(),
                       &faces_array_tot,
                       nullptr,
                       nullptr,
@@ -153,3 +155,5 @@ void BM_mesh_triangulate(BMesh *bm,
     BLI_heap_free(pf_heap, nullptr);
   }
 }
+
+}  // namespace blender

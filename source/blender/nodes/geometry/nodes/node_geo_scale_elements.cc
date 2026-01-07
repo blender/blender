@@ -560,7 +560,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeScaleElements", GEO_NODE_SCALE_ELEMENTS);
   ntype.ui_name = "Scale Elements";
@@ -571,7 +571,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

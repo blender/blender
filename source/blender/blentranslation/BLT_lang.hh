@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct EnumPropertyItem;
 
 /* Search the path directory to the locale files, this try all
@@ -47,3 +49,5 @@ void BLT_lang_locale_explode(const char *locale,
 
 /* Get EnumPropertyItem's for translations menu. */
 const EnumPropertyItem *BLT_lang_RNA_enum_properties();
+
+}  // namespace blender

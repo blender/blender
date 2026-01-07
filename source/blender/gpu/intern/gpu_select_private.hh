@@ -12,6 +12,8 @@
 
 #include "GPU_select.hh"
 
+namespace blender {
+
 /* gpu_select_pick */
 
 void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode);
@@ -46,3 +48,5 @@ GPUSelectMode gpu_select_next_get_mode();
 void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len);
 
 #define SELECT_ID_NONE ((uint)0xffffffff)
+
+}  // namespace blender

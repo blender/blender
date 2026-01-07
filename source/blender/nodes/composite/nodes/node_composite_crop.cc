@@ -21,9 +21,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** Crop  ******************** */
 
-namespace blender::nodes::node_composite_crop_cc {
+namespace nodes::node_composite_crop_cc {
 
 static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
 {
@@ -218,11 +220,11 @@ class CropOperation : public NodeOperation {
     const int2 input_size = this->get_input("Image").domain().data_size;
 
     const int x = math::clamp(
-        this->get_input("X").get_single_value_default(0), 0, input_size.x - 1);
+        this->get_input("X").get_single_value_default<int>(), 0, input_size.x - 1);
     const int y = math::clamp(
-        this->get_input("Y").get_single_value_default(0), 0, input_size.y - 1);
-    const int width = math::max(1, this->get_input("Width").get_single_value_default(100));
-    const int height = math::max(1, this->get_input("Height").get_single_value_default(100));
+        this->get_input("Y").get_single_value_default<int>(), 0, input_size.y - 1);
+    const int width = math::max(1, this->get_input("Width").get_single_value_default<int>());
+    const int height = math::max(1, this->get_input("Height").get_single_value_default<int>());
 
     const Bounds<int2> input_bounds = Bounds<int2>(int2(0), input_size);
 
@@ -234,7 +236,7 @@ class CropOperation : public NodeOperation {
    * of actually cropping the size of the image. */
   bool is_alpha_crop()
   {
-    return this->get_input("Alpha Crop").get_single_value_default(false);
+    return this->get_input("Alpha Crop").get_single_value_default<bool>();
   }
 };
 
@@ -243,13 +245,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new CropOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_crop_cc
+}  // namespace nodes::node_composite_crop_cc
 
 static void register_node_type_cmp_crop()
 {
-  namespace file_ns = blender::nodes::node_composite_crop_cc;
+  namespace file_ns = nodes::node_composite_crop_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeCrop", CMP_NODE_CROP);
   ntype.ui_name = "Crop";
@@ -261,6 +263,8 @@ static void register_node_type_cmp_crop()
   ntype.declare = file_ns::cmp_node_crop_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_crop)
+
+}  // namespace blender

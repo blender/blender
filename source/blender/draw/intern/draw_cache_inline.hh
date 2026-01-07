@@ -10,6 +10,8 @@
 
 #include "GPU_batch.hh"
 
+namespace blender {
+
 /* Common */
 // #define DRW_DEBUG_MESH_CACHE_REQUEST
 
@@ -25,7 +27,7 @@
     (flag |= DRW_ibo_requested(ibo) ? (value) : 0)
 #endif
 
-inline blender::gpu::Batch *DRW_batch_request(blender::gpu::Batch **batch)
+inline gpu::Batch *DRW_batch_request(gpu::Batch **batch)
 {
   /* XXX TODO(fclem): We are writing to batch cache here. Need to make this thread safe. */
   if (*batch == nullptr) {
@@ -34,20 +36,21 @@ inline blender::gpu::Batch *DRW_batch_request(blender::gpu::Batch **batch)
   return *batch;
 }
 
-inline bool DRW_batch_requested(blender::gpu::Batch *batch, GPUPrimType prim_type)
+inline bool DRW_batch_requested(gpu::Batch *batch, GPUPrimType prim_type)
 {
   /* Batch has been requested if it has been created but not initialized. */
   if (batch != nullptr && batch->verts[0] == nullptr) {
     /* HACK. We init without a valid VBO and let the first vbo binding
      * fill verts[0]. */
-    GPU_batch_init_ex(batch, prim_type, (blender::gpu::VertBuf *)1, nullptr, (GPUBatchFlag)0);
+    GPU_batch_init_ex(
+        batch, prim_type, reinterpret_cast<gpu::VertBuf *>(1), nullptr, GPUBatchFlag(0));
     batch->verts[0] = nullptr;
     return true;
   }
   return false;
 }
 
-inline void DRW_ibo_request(blender::gpu::Batch *batch, blender::gpu::IndexBuf **ibo)
+inline void DRW_ibo_request(gpu::Batch *batch, gpu::IndexBuf **ibo)
 {
   if (*ibo == nullptr) {
     *ibo = GPU_indexbuf_calloc();
@@ -57,14 +60,14 @@ inline void DRW_ibo_request(blender::gpu::Batch *batch, blender::gpu::IndexBuf *
   }
 }
 
-inline bool DRW_ibo_requested(blender::gpu::IndexBuf *ibo)
+inline bool DRW_ibo_requested(gpu::IndexBuf *ibo)
 {
   /* TODO: do not rely on data uploaded. This prevents multi-threading.
    * (need access to a GPU context). */
   return (ibo != nullptr && !GPU_indexbuf_is_init(ibo));
 }
 
-inline void DRW_vbo_request(blender::gpu::Batch *batch, blender::gpu::VertBuf **vbo)
+inline void DRW_vbo_request(gpu::Batch *batch, gpu::VertBuf **vbo)
 {
   if (*vbo == nullptr) {
     *vbo = GPU_vertbuf_calloc();
@@ -75,7 +78,9 @@ inline void DRW_vbo_request(blender::gpu::Batch *batch, blender::gpu::VertBuf **
   }
 }
 
-inline bool DRW_vbo_requested(blender::gpu::VertBuf *vbo)
+inline bool DRW_vbo_requested(gpu::VertBuf *vbo)
 {
   return (vbo != nullptr && (GPU_vertbuf_get_status(vbo) & GPU_VERTBUF_INIT) == 0);
 }
+
+}  // namespace blender

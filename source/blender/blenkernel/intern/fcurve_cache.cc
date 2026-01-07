@@ -19,6 +19,8 @@
 
 #include "BKE_fcurve.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name F-Curve Path Cache
  *
@@ -47,8 +49,8 @@ struct FCurvePathCache {
  */
 static int fcurve_cmp_for_cache(const void *fcu_a_p, const void *fcu_b_p)
 {
-  const FCurve *fcu_a = *((const FCurve **)fcu_a_p);
-  const FCurve *fcu_b = *((const FCurve **)fcu_b_p);
+  const FCurve *fcu_a = *(static_cast<const FCurve **>(const_cast<void *>(fcu_a_p)));
+  const FCurve *fcu_b = *(static_cast<const FCurve **>(const_cast<void *>(fcu_b_p)));
   const int cmp = strcmp(fcu_a->rna_path, fcu_b->rna_path);
   if (cmp != 0) {
     return cmp;
@@ -62,7 +64,7 @@ static int fcurve_cmp_for_cache(const void *fcu_a_p, const void *fcu_b_p)
   return 0;
 }
 
-FCurvePathCache *BKE_fcurve_pathcache_create(blender::Span<FCurve *> fcurves)
+FCurvePathCache *BKE_fcurve_pathcache_create(Span<FCurve *> fcurves)
 {
   const uint fcurve_array_len = fcurves.size();
   FCurve **fcurve_array = MEM_malloc_arrayN<FCurve *>(fcurve_array_len, __func__);
@@ -170,3 +172,5 @@ int BKE_fcurve_pathcache_find_array(const FCurvePathCache *fcache,
 }
 
 /** \} */
+
+}  // namespace blender

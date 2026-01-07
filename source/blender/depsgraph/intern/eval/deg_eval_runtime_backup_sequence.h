@@ -13,11 +13,13 @@
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct MovieReader;
 struct Strip;
 struct StripModifierData;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -54,4 +56,5 @@ class StripBackup {
   Map<int, StripModifierDataBackup> modifiers;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

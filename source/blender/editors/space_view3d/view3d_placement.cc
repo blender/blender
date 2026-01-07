@@ -41,6 +41,8 @@
 
 #include "view3d_intern.hh"
 
+namespace blender {
+
 static const char *view3d_gzgt_placement_id = "VIEW3D_GGT_placement";
 
 /**
@@ -261,9 +263,9 @@ static bool idp_snap_calc_incremental(
 static void draw_line_loop(const float coords[][3], int coords_len, const float color[4])
 {
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
-  blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
+  gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
   GPU_vertbuf_data_alloc(*vert, coords_len);
 
   for (int i = 0; i < coords_len; i++) {
@@ -271,8 +273,7 @@ static void draw_line_loop(const float coords[][3], int coords_len, const float 
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
-  blender::gpu::Batch *batch = GPU_batch_create_ex(
-      GPU_PRIM_LINE_LOOP, vert, nullptr, GPU_BATCH_OWNS_VBO);
+  gpu::Batch *batch = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP, vert, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   GPU_batch_uniform_4fv(batch, "color", color);
@@ -294,9 +295,9 @@ static void draw_line_pairs(const float coords_a[][3],
                             const float color[4])
 {
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
-  blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
+  gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
   GPU_vertbuf_data_alloc(*vert, coords_len * 2);
 
   for (int i = 0; i < coords_len; i++) {
@@ -305,8 +306,7 @@ static void draw_line_pairs(const float coords_a[][3],
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
-  blender::gpu::Batch *batch = GPU_batch_create_ex(
-      GPU_PRIM_LINES, vert, nullptr, GPU_BATCH_OWNS_VBO);
+  gpu::Batch *batch = GPU_batch_create_ex(GPU_PRIM_LINES, vert, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   GPU_batch_uniform_4fv(batch, "color", color);
@@ -325,7 +325,7 @@ static void draw_line_pairs(const float coords_a[][3],
 static void draw_line_bounds(const BoundBox *bounds, const float color[4])
 {
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   const int edges[12][2] = {
       /* First side. */
@@ -343,7 +343,7 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
       {3, 7},
   };
 
-  blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
+  gpu::VertBuf *vert = GPU_vertbuf_create_with_format(*format);
   GPU_vertbuf_data_alloc(*vert, ARRAY_SIZE(edges) * 2);
 
   for (int i = 0, j = 0; i < ARRAY_SIZE(edges); i++) {
@@ -352,8 +352,7 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
-  blender::gpu::Batch *batch = GPU_batch_create_ex(
-      GPU_PRIM_LINES, vert, nullptr, GPU_BATCH_OWNS_VBO);
+  gpu::Batch *batch = GPU_batch_create_ex(GPU_PRIM_LINES, vert, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   GPU_batch_uniform_4fv(batch, "color", color);
@@ -513,8 +512,7 @@ static void draw_circle_in_quad(const float v1[3],
       {-1, +1},
   };
 
-  float (*coords)[3] = static_cast<float (*)[3]>(
-      MEM_mallocN(sizeof(float[3]) * (resolution + 1), __func__));
+  float (*coords)[3] = MEM_malloc_arrayN<float[3]>(resolution + 1, __func__);
   for (int i = 0; i <= resolution; i++) {
     float theta = ((2.0f * M_PI) * (float(i) / float(resolution))) + 0.01f;
     float x = cosf(theta);
@@ -646,7 +644,7 @@ static void draw_primitive_view(const bContext *C, ARegion * /*region*/, void *a
 {
   InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(arg);
   float color[4];
-  UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, color);
+  ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, color);
 
   const bool use_depth = !XRAY_ENABLED(ipd->v3d);
   const GPUDepthTest depth_test_enabled = GPU_depth_test_get();
@@ -919,8 +917,7 @@ static wmOperatorStatus view3d_interactive_add_invoke(bContext *C,
 {
   const bool wait_for_input = RNA_boolean_get(op->ptr, "wait_for_input");
 
-  InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(
-      MEM_callocN(sizeof(*ipd), __func__));
+  InteractivePlaceData *ipd = MEM_callocN<InteractivePlaceData>(__func__);
   op->customdata = ipd;
 
   ipd->scene = CTX_data_scene(C);
@@ -1159,7 +1156,6 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
         }
 
         wmOperatorType *ot = nullptr;
-        PointerRNA op_props;
         if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CUBE) {
           ot = WM_operatortype_find("MESH_OT_primitive_cube_add", false);
         }
@@ -1177,7 +1173,7 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
         }
 
         if (ot != nullptr) {
-          WM_operator_properties_create_ptr(&op_props, ot);
+          PointerRNA op_props = WM_operator_properties_create_ptr(ot);
 
           if (ipd->use_tool) {
             bToolRef *tref = ipd->area->runtime.tool;
@@ -1212,8 +1208,7 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
             RNA_float_set(&op_props, "radius2", 0.0f);
           }
 
-          WM_operator_name_call_ptr(
-              C, ot, blender::wm::OpCallContext::ExecDefault, &op_props, nullptr);
+          WM_operator_name_call_ptr(C, ot, wm::OpCallContext::ExecDefault, &op_props, nullptr);
           WM_operator_properties_free(&op_props);
         }
         else {
@@ -1401,7 +1396,8 @@ static void preview_plane_free_fn(void *customdata)
 
 static bool snap_cursor_poll(ARegion *region, void *data)
 {
-  if (WM_gizmomap_group_find_ptr(region->runtime->gizmo_map, (wmGizmoGroupType *)data) == nullptr)
+  if (WM_gizmomap_group_find_ptr(region->runtime->gizmo_map,
+                                 static_cast<wmGizmoGroupType *>(data)) == nullptr)
   {
     /* Wrong viewport. */
     return false;
@@ -1448,3 +1444,5 @@ void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender

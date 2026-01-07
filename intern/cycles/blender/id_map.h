@@ -12,7 +12,9 @@
 #include "util/map.h"
 #include "util/set.h"
 
-#include "RNA_blender_cpp.hh"
+namespace blender {
+struct ID;
+}
 
 CCL_NAMESPACE_BEGIN
 
@@ -37,11 +39,6 @@ template<typename K, typename T, typename Flags = uint> class id_map {
     scene->delete_nodes(nodes);
   }
 
-  T *find(const BL::ID &id)
-  {
-    return find(id.ptr.owner_id);
-  }
-
   T *find(const K &key)
   {
     if (b_map.find(key) != b_map.end()) {
@@ -52,19 +49,14 @@ template<typename K, typename T, typename Flags = uint> class id_map {
     return nullptr;
   }
 
-  void set_recalc(const BL::ID &id)
-  {
-    b_recalc.insert(id.ptr.data);
-  }
-
   void set_recalc(void *id_ptr)
   {
     b_recalc.insert(id_ptr);
   }
 
-  bool check_recalc(const BL::ID &id)
+  bool check_recalc(const blender::ID *id)
   {
-    return id.ptr.data && b_recalc.find(id.ptr.data) != b_recalc.end();
+    return id && b_recalc.find(id) != b_recalc.end();
   }
 
   bool has_recalc()
@@ -86,30 +78,30 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   }
 
   /* Update existing data. */
-  bool update(T *data, const BL::ID &id)
+  bool update(T *data, const blender::ID *id)
   {
     return update(data, id, id);
   }
-  bool update(T *data, const BL::ID &id, const BL::ID &parent)
+  bool update(T *data, const blender::ID *id, const blender::ID *parent)
   {
-    bool recalc = (b_recalc.find(id.ptr.data) != b_recalc.end());
-    if (parent.ptr.data && parent.ptr.data != id.ptr.data) {
-      recalc = recalc || (b_recalc.find(parent.ptr.data) != b_recalc.end());
+    bool recalc = (b_recalc.find(id) != b_recalc.end());
+    if (parent && parent != id) {
+      recalc = recalc || (b_recalc.find(parent) != b_recalc.end());
     }
     used(data);
     return recalc;
   }
 
   /* Combined add and update as needed. */
-  bool add_or_update(T **r_data, const BL::ID &id)
+  bool add_or_update(T **r_data, const blender::ID *id)
   {
-    return add_or_update(r_data, id, id, id.ptr.owner_id);
+    return add_or_update(r_data, id, id, id);
   }
-  bool add_or_update(T **r_data, const BL::ID &id, const K &key)
+  bool add_or_update(T **r_data, const blender::ID *id, const K &key)
   {
     return add_or_update(r_data, id, id, key);
   }
-  bool add_or_update(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
+  bool add_or_update(T **r_data, const blender::ID *id, const blender::ID *parent, const K &key)
   {
     T *data = find(key);
     bool recalc;
@@ -203,7 +195,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   map<K, T *> b_map;
   set<T *> used_set;
   map<T *, uint> flags;
-  set<void *> b_recalc;
+  set<const void *> b_recalc;
   Scene *scene;
 };
 
@@ -220,7 +212,10 @@ struct ObjectKey {
   void *ob;
   bool use_particle_hair;
 
-  ObjectKey(void *parent_, int id_[OBJECT_PERSISTENT_ID_SIZE], void *ob_, bool use_particle_hair_)
+  ObjectKey(void *parent_,
+            const int id_[OBJECT_PERSISTENT_ID_SIZE],
+            void *ob_,
+            bool use_particle_hair_)
       : parent(parent_), ob(ob_), use_particle_hair(use_particle_hair_)
   {
     if (id_) {
@@ -286,7 +281,7 @@ struct ParticleSystemKey {
   void *ob;
   int id[OBJECT_PERSISTENT_ID_SIZE];
 
-  ParticleSystemKey(void *ob_, int id_[OBJECT_PERSISTENT_ID_SIZE]) : ob(ob_)
+  ParticleSystemKey(void *ob_, const int id_[OBJECT_PERSISTENT_ID_SIZE]) : ob(ob_)
   {
     if (id_) {
       memcpy(id, id_, sizeof(id));

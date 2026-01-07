@@ -8,8 +8,12 @@
 
 #pragma once
 
+#include "BLI_math_constants.h"
+
 #include "DNA_ID.h"
 #include "DNA_defs.h"
+
+namespace blender {
 
 struct AnimData;
 struct LightgroupMembership;
@@ -18,82 +22,6 @@ struct bNodeTree;
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18
 #endif
-
-/**
- * World defines general modeling data such as a background fill,
- * gravity, color model etc. It mixes rendering data and modeling data. */
-typedef struct World {
-#ifdef __cplusplus
-  DNA_DEFINE_CXX_METHODS(World)
-  /** See #ID_Type comment for why this is here. */
-  static constexpr ID_Type id_type = ID_WO;
-#endif
-
-  ID id;
-  /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
-
-  char _pad0[4];
-  short texact, mistype;
-
-  float horr, horg, horb;
-
-  /**
-   * Exposure is a multiplication factor. Unused now, but maybe back later.
-   * Kept in to be upward compatible.
-   */
-  float exposure, exp, range;
-
-  /**
-   * Some world modes
-   * bit 0: Do mist
-   */
-  short mode;
-
-  /** Assorted settings. */
-  short flag;
-
-  float misi, miststa, mistdist, misthi;
-
-  /** Ambient occlusion. */
-  float aodist, aoenergy;
-
-  /** Eevee settings. */
-  /**
-   * Resolution of the world probe when baked to a texture. Contains `eLightProbeResolution`.
-   */
-  int probe_resolution;
-  /** Threshold for sun extraction. */
-  float sun_threshold;
-  /** Angle for sun extraction. */
-  float sun_angle;
-  /** Shadow properties for sun extraction. */
-  float sun_shadow_maximum_resolution;
-  float sun_shadow_jitter_overblur;
-  float sun_shadow_filter_radius;
-
-  short pr_texture;
-  short use_nodes DNA_DEPRECATED;
-
-  /* previews */
-  struct PreviewImage *preview;
-
-  /* nodes */
-  struct bNodeTree *nodetree;
-
-  /** Light-group membership information. */
-  struct LightgroupMembership *lightgroup;
-
-  void *_pad1;
-
-  /** Runtime. */
-  ListBase gpumaterial;
-  /* The Depsgraph::update_count when this World was last updated. */
-  uint64_t last_update;
-
-} World;
-
-/* **************** WORLD ********************* */
 
 /** #World::mode */
 enum {
@@ -135,11 +63,86 @@ enum {
 };
 
 /** #World::probe_resolution. */
-typedef enum eLightProbeResolution {
+enum eLightProbeResolution {
   LIGHT_PROBE_RESOLUTION_128 = 7,
   LIGHT_PROBE_RESOLUTION_256 = 8,
   LIGHT_PROBE_RESOLUTION_512 = 9,
   LIGHT_PROBE_RESOLUTION_1024 = 10,
   LIGHT_PROBE_RESOLUTION_2048 = 11,
   LIGHT_PROBE_RESOLUTION_4096 = 12,
-} eLightProbeResolution;
+};
+
+/**
+ * World defines general modeling data such as a background fill,
+ * gravity, color model etc. It mixes rendering data and modeling data. */
+struct World {
+#ifdef __cplusplus
+  DNA_DEFINE_CXX_METHODS(World)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_WO;
+#endif
+
+  ID id;
+  /** Animation data (must be immediately after id for utilities to use it). */
+  struct AnimData *adt = nullptr;
+
+  char _pad0[4] = {};
+  short texact = 0, mistype = 0;
+
+  float horr = 0.05f, horg = 0.05f, horb = 0.05f;
+
+  /**
+   * Exposure is a multiplication factor. Unused now, but maybe back later.
+   * Kept in to be upward compatible.
+   */
+  float exposure = 0, exp = 0, range = 0;
+
+  /**
+   * Some world modes
+   * bit 0: Do mist
+   */
+  short mode = 0;
+
+  /** Assorted settings. */
+  short flag = WO_USE_SUN_SHADOW;
+
+  float misi = 0, miststa = 5.0f, mistdist = 25.0f, misthi = 0;
+
+  /** Ambient occlusion. */
+  float aodist = 10.0f, aoenergy = 1.0f;
+
+  /** Eevee settings. */
+  /**
+   * Resolution of the world probe when baked to a texture. Contains `eLightProbeResolution`.
+   */
+  int probe_resolution = LIGHT_PROBE_RESOLUTION_1024;
+  /** Threshold for sun extraction. */
+  float sun_threshold = 10.0f;
+  /** Angle for sun extraction. */
+  float sun_angle = DEG2RADF(0.526f);
+  /** Shadow properties for sun extraction. */
+  float sun_shadow_maximum_resolution = 0.001f;
+  float sun_shadow_jitter_overblur = 10.0f;
+  float sun_shadow_filter_radius = 1.0f;
+
+  short pr_texture = 0;
+  DNA_DEPRECATED short use_nodes = 0;
+
+  /* previews */
+  struct PreviewImage *preview = nullptr;
+
+  /* nodes */
+  struct bNodeTree *nodetree = nullptr;
+
+  /** Light-group membership information. */
+  struct LightgroupMembership *lightgroup = nullptr;
+
+  void *_pad1 = nullptr;
+
+  /** Runtime. */
+  ListBaseT<LinkData> gpumaterial = {nullptr, nullptr};
+  /* The Depsgraph::update_count when this World was last updated. */
+  uint64_t last_update = 0;
+};
+
+}  // namespace blender

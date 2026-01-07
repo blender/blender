@@ -8,9 +8,13 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
 #include "DNA_mask_types.h"
 
+namespace blender {
+
 struct ARegion;
+struct CfraElem;
 struct Depsgraph;
 struct KeyframeEditData;
 struct MaskLayer;
@@ -135,7 +139,7 @@ bool ED_masklayer_frames_looper(MaskLayer *mask_layer,
 /**
  * Make a listing all the mask-frames in a layer as cfraelems.
  */
-void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool onlysel);
+void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBaseT<CfraElem> *elems, bool onlysel);
 
 /**
  * Check if one of the frames in this layer is selected.
@@ -189,3 +193,5 @@ void paste_gpdata();
 
 void mirror_masklayer_frames(MaskLayer *mask_layer, short mode);
 #endif
+
+}  // namespace blender

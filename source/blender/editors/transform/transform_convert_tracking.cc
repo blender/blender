@@ -341,12 +341,12 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   tc->data_len = 0;
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    trackToTransDataIfNeeded(&init_context, framenr, track, t->aspect);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    trackToTransDataIfNeeded(&init_context, framenr, &track, t->aspect);
   }
 
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    planeTrackToTransDataIfNeeded(&init_context, framenr, plane_track, t->aspect);
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
+    planeTrackToTransDataIfNeeded(&init_context, framenr, &plane_track, t->aspect);
   }
 
   if (tc->data_len == 0) {
@@ -355,8 +355,8 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransTracking TransData");
   tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransTracking TransData2D");
-  tc->custom.type.data = MEM_callocN(tc->data_len * sizeof(TransDataTracking),
-                                     "TransTracking TransDataTracking");
+  tc->custom.type.data = MEM_calloc_arrayN<TransDataTracking>(tc->data_len,
+                                                              "TransTracking TransDataTracking");
   tc->custom.type.free_cb = transDataTrackingFree;
 
   init_context.current.td = tc->data;
@@ -365,12 +365,12 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   /* Create actual transformation data. */
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    trackToTransDataIfNeeded(&init_context, framenr, track, t->aspect);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    trackToTransDataIfNeeded(&init_context, framenr, &track, t->aspect);
   }
 
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    planeTrackToTransDataIfNeeded(&init_context, framenr, plane_track, t->aspect);
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
+    planeTrackToTransDataIfNeeded(&init_context, framenr, &plane_track, t->aspect);
   }
 }
 
@@ -489,8 +489,8 @@ static void flushTransTracking(TransInfo *t)
             float d[2], d2[2];
 
             if (!tdt->smarkers) {
-              tdt->smarkers = static_cast<float (*)[2]>(MEM_callocN(
-                  sizeof(*tdt->smarkers) * tdt->markersnr, "flushTransTracking markers"));
+              tdt->smarkers = MEM_calloc_arrayN<float[2]>(tdt->markersnr,
+                                                          "flushTransTracking markers");
               for (int a = 0; a < tdt->markersnr; a++) {
                 copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
               }
@@ -537,28 +537,28 @@ static void recalcData_tracking(TransInfo *t)
 
     flushTransTracking(t);
 
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-        MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    for (MovieTrackingTrack &track : tracking_object->tracks) {
+      if (TRACK_VIEW_SELECTED(sc, &track) && (track.flag & TRACK_LOCKED) == 0) {
+        MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
 
         if (t->mode == TFM_TRANSLATION) {
-          if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) {
+          if (TRACK_AREA_SELECTED(&track, TRACK_AREA_PAT)) {
             BKE_tracking_marker_clamp_pattern_position(marker);
           }
-          if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH)) {
+          if (TRACK_AREA_SELECTED(&track, TRACK_AREA_SEARCH)) {
             BKE_tracking_marker_clamp_search_position(marker);
           }
         }
         else if (t->mode == TFM_RESIZE) {
-          if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) {
+          if (TRACK_AREA_SELECTED(&track, TRACK_AREA_PAT)) {
             BKE_tracking_marker_clamp_search_size(marker);
           }
-          if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH)) {
+          if (TRACK_AREA_SELECTED(&track, TRACK_AREA_SEARCH)) {
             BKE_tracking_marker_clamp_search_size(marker);
           }
         }
         else if (t->mode == TFM_ROTATION) {
-          if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) {
+          if (TRACK_AREA_SELECTED(&track, TRACK_AREA_PAT)) {
             BKE_tracking_marker_clamp_pattern_position(marker);
           }
         }
@@ -582,17 +582,17 @@ static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
   /* Update coordinates of modified plane tracks. */
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
     bool do_update = false;
-    if (plane_track->flag & PLANE_TRACK_HIDDEN) {
+    if (plane_track.flag & PLANE_TRACK_HIDDEN) {
       continue;
     }
-    do_update |= PLANE_TRACK_VIEW_SELECTED(plane_track) != 0;
+    do_update |= PLANE_TRACK_VIEW_SELECTED(&plane_track) != 0;
     if (do_update == false) {
-      if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
+      if ((plane_track.flag & PLANE_TRACK_AUTOKEY) == 0) {
         int i;
-        for (i = 0; i < plane_track->point_tracksnr; i++) {
-          MovieTrackingTrack *track = plane_track->point_tracks[i];
+        for (i = 0; i < plane_track.point_tracksnr; i++) {
+          MovieTrackingTrack *track = plane_track.point_tracks[i];
           if (TRACK_VIEW_SELECTED(sc, track)) {
             do_update = true;
             break;
@@ -601,7 +601,7 @@ static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
       }
     }
     if (do_update) {
-      BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
+      BKE_tracking_track_plane_from_existing_motion(&plane_track, framenr);
     }
   }
   if (t->scene->compositing_node_group != nullptr) {

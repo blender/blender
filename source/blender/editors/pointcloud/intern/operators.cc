@@ -83,12 +83,12 @@ VectorSet<PointCloud *> get_unique_editable_pointclouds(const bContext &C)
 
   Object *object = CTX_data_active_object(&C);
   if (object && object_has_editable_pointcloud(bmain, *object)) {
-    unique_points.add_new(static_cast<PointCloud *>(object->data));
+    unique_points.add_new(id_cast<PointCloud *>(object->data));
   }
 
   CTX_DATA_BEGIN (&C, Object *, object, selected_objects) {
     if (object_has_editable_pointcloud(bmain, *object)) {
-      unique_points.add(static_cast<PointCloud *>(object->data));
+      unique_points.add(id_cast<PointCloud *>(object->data));
     }
   }
   CTX_DATA_END;
@@ -174,7 +174,7 @@ static void select_random_ui(bContext * /*C*/, wmOperator *op)
   ui::Layout &layout = *op->layout;
 
   layout.prop(op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout.prop(op->ptr, "probability", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "probability", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void POINTCLOUD_OT_select_random(wmOperatorType *ot)

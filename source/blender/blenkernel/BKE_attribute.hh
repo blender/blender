@@ -22,17 +22,19 @@
 
 #include "BKE_attribute_filters.hh"
 
+namespace blender {
+
 struct ID;
 struct Mesh;
 struct PointCloud;
-namespace blender::fn {
+namespace fn {
 namespace multi_function {
 class MultiFunction;
 }
 class GField;
-}  // namespace blender::fn
+}  // namespace fn
 
-namespace blender::bke {
+namespace bke {
 
 class AttributeAccessor;
 class MutableAttributeAccessor;
@@ -995,4 +997,5 @@ void fill_attribute_range_default(MutableAttributeAccessor dst_attributes,
 void transform_custom_normal_attribute(const float4x4 &transform,
                                        MutableAttributeAccessor &attributes);
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

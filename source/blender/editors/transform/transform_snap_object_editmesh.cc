@@ -34,7 +34,7 @@ static const Mesh *get_mesh_ref(const Object *ob_eval)
     return me;
   }
 
-  return static_cast<const Mesh *>(ob_eval->data);
+  return id_cast<const Mesh *>(ob_eval->data);
 }
 
 /**
@@ -216,8 +216,8 @@ static eSnapMode editmesh_snap_mode_supported(BMesh *bm)
 {
   eSnapMode snap_mode_supported = SCE_SNAP_TO_NONE;
   if (bm->totface) {
-    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST | SNAP_TO_EDGE_ELEMENTS |
-                           SCE_SNAP_TO_POINT;
+    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_TO_FACE_MIDPOINT |
+                           SCE_SNAP_INDIVIDUAL_NEAREST | SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT;
   }
   else if (bm->totedge) {
     snap_mode_supported |= SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT;

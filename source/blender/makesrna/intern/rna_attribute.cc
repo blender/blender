@@ -25,7 +25,9 @@
 
 #include "UI_resources.hh"
 
-using blender::bke::AttrDomain;
+namespace blender {
+
+using bke::AttrDomain;
 
 const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating-point value"},
@@ -80,12 +82,8 @@ const EnumPropertyItem rna_enum_attribute_type_with_auto_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_attr_storage_type[] = {
-    {int(blender::bke::AttrStorageType::Array),
-     "ARRAY",
-     0,
-     "Array",
-     "Store a value for every element"},
-    {int(blender::bke::AttrStorageType::Single),
+    {int(bke::AttrStorageType::Array), "ARRAY", 0, "Array", "Store a value for every element"},
+    {int(bke::AttrStorageType::Single),
      "SINGLE",
      0,
      "Single",
@@ -96,92 +94,122 @@ static const EnumPropertyItem rna_enum_attr_storage_type[] = {
 const EnumPropertyItem rna_enum_attribute_domain_items[] = {
     /* Not implement yet */
     // {ATTR_DOMAIN_GEOMETRY, "GEOMETRY", 0, "Geometry", "Attribute on (whole) geometry"},
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Corner),
+     "CORNER",
+     ICON_FACE_CORNER,
+     "Face Corner",
+     "Attribute on mesh face corner"},
     /* Not implement yet */
     // {ATTR_DOMAIN_GRIDS, "GRIDS", 0, "Grids", "Attribute on mesh multires grids"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
-    {int(AttrDomain::Instance), "INSTANCE", 0, "Instance", "Attribute on instance"},
-    {int(AttrDomain::Layer), "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Instance), "INSTANCE", ICON_EMPTY_AXIS, "Instance", "Attribute on instance"},
+    {int(AttrDomain::Layer),
+     "LAYER",
+     ICON_OUTLINER_DATA_GP_LAYER,
+     "Layer",
+     "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_only_mesh_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Corner),
+     "CORNER",
+     ICON_FACE_CORNER,
+     "Face Corner",
+     "Attribute on mesh face corner"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_only_mesh_no_edge_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Corner),
+     "CORNER",
+     ICON_FACE_CORNER,
+     "Face Corner",
+     "Attribute on mesh face corner"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_only_mesh_no_corner_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_point_face_curve_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_point_edge_face_curve_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_edge_face_items[] = {
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_without_corner_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
-    {int(AttrDomain::Instance), "INSTANCE", 0, "Instance", "Attribute on instance"},
-    {int(AttrDomain::Layer), "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Instance), "INSTANCE", ICON_EMPTY_AXIS, "Instance", "Attribute on instance"},
+    {int(AttrDomain::Layer),
+     "LAYER",
+     ICON_OUTLINER_DATA_GP_LAYER,
+     "Layer",
+     "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_with_auto_items[] = {
     {int(AttrDomain::Auto), "AUTO", 0, "Auto", ""},
-    {int(AttrDomain::Point), "POINT", 0, "Point", "Attribute on point"},
-    {int(AttrDomain::Edge), "EDGE", 0, "Edge", "Attribute on mesh edge"},
-    {int(AttrDomain::Face), "FACE", 0, "Face", "Attribute on mesh faces"},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
-    {int(AttrDomain::Curve), "CURVE", 0, "Spline", "Attribute on spline"},
-    {int(AttrDomain::Instance), "INSTANCE", 0, "Instance", "Attribute on instance"},
-    {int(AttrDomain::Layer), "LAYER", 0, "Layer", "Attribute on Grease Pencil layer"},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Point", "Attribute on point"},
+    {int(AttrDomain::Edge), "EDGE", ICON_EDGESEL, "Edge", "Attribute on mesh edge"},
+    {int(AttrDomain::Face), "FACE", ICON_FACESEL, "Face", "Attribute on mesh faces"},
+    {int(AttrDomain::Corner),
+     "CORNER",
+     ICON_FACE_CORNER,
+     "Face Corner",
+     "Attribute on mesh face corner"},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Spline", "Attribute on spline"},
+    {int(AttrDomain::Instance), "INSTANCE", ICON_EMPTY_AXIS, "Instance", "Attribute on instance"},
+    {int(AttrDomain::Layer),
+     "LAYER",
+     ICON_OUTLINER_DATA_GP_LAYER,
+     "Layer",
+     "Attribute on Grease Pencil layer"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_color_attribute_domain_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Vertex", ""},
-    {int(AttrDomain::Corner), "CORNER", 0, "Face Corner", ""},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Vertex", ""},
+    {int(AttrDomain::Corner), "CORNER", ICON_FACE_CORNER, "Face Corner", ""},
     {0, nullptr, 0, nullptr, nullptr}};
 
 const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
-    {int(AttrDomain::Point), "POINT", 0, "Control Point", ""},
-    {int(AttrDomain::Curve), "CURVE", 0, "Curve", ""},
+    {int(AttrDomain::Point), "POINT", ICON_VERTEXSEL, "Control Point", ""},
+    {int(AttrDomain::Curve), "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {0, nullptr, 0, nullptr, nullptr}};
+
+}  // namespace blender
 
 #ifdef RNA_RUNTIME
 
@@ -204,8 +232,6 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 #  include "BKE_mesh_types.hh"
 #  include "BKE_report.hh"
 
-#  include "RNA_prototypes.hh"
-
 #  include "DEG_depsgraph.hh"
 
 #  include "BLT_translation.hh"
@@ -214,15 +240,15 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 
 #  include "WM_api.hh"
 
-using blender::StringRef;
+namespace blender {
 
 /* Attribute */
 
-static bool find_attr_with_pointer(const blender::bke::AttributeStorage &storage,
-                                   const blender::bke::Attribute &attr)
+static bool find_attr_with_pointer(const bke::AttributeStorage &storage,
+                                   const bke::Attribute &attr)
 {
   bool found_attr = false;
-  storage.foreach_with_stop([&](const blender::bke::Attribute &attr_iter) {
+  storage.foreach_with_stop([&](const bke::Attribute &attr_iter) {
     if (&attr_iter == &attr) {
       found_attr = true;
       return false;
@@ -234,7 +260,6 @@ static bool find_attr_with_pointer(const blender::bke::AttributeStorage &storage
 
 static AttributeOwner owner_from_attribute_pointer_rna(PointerRNA *ptr)
 {
-  using namespace blender;
   ID *owner_id = ptr->owner_id;
   /* TODO: Because we don't know the path to the `ptr`, we need to look though all possible
    * candidates and search for the `layer` currently. This should be just a simple lookup. */
@@ -273,7 +298,6 @@ static AttributeOwner owner_from_pointer_rna(const PointerRNA *ptr)
 
 static std::optional<std::string> rna_Attribute_path(const PointerRNA *ptr)
 {
-  using namespace blender;
   return fmt::format("attributes[\"{}\"]", BLI_str_escape(rna_Attribute_name_get(*ptr).c_str()));
 }
 
@@ -313,7 +337,6 @@ static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
 
 static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
 {
-  using namespace blender;
   if (GS(ptr->owner_id->name) == ID_ME) {
     CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
     return srna_by_custom_data_layer_type(eCustomDataType(layer->type));
@@ -323,9 +346,8 @@ static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
   return srna_by_custom_data_layer_type(data_type);
 }
 
-blender::StringRefNull rna_Attribute_name_get(const PointerRNA &ptr)
+StringRefNull rna_Attribute_name_get(const PointerRNA &ptr)
 {
-  using namespace blender;
   if (RNA_pointer_is_null(&ptr)) {
     return "";
   }
@@ -351,10 +373,9 @@ int rna_Attribute_name_length(PointerRNA *ptr)
 
 void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
     BKE_attribute_rename(owner, layer->name, value, nullptr);
     return;
   }
@@ -365,7 +386,6 @@ void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 
 static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_info)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(const_cast<PointerRNA *>(ptr));
   if (owner.type() == AttributeOwnerType::Mesh) {
     CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
@@ -386,7 +406,6 @@ static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_inf
 
 static int rna_Attribute_type_get(PointerRNA *ptr)
 {
-  using namespace blender;
   if (GS(ptr->owner_id->name) == ID_ME) {
     CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
     return layer->type;
@@ -397,7 +416,6 @@ static int rna_Attribute_type_get(PointerRNA *ptr)
 
 static int rna_Attribute_storage_type_get(PointerRNA *ptr)
 {
-  using namespace blender;
   if (GS(ptr->owner_id->name) == ID_ME) {
     return int(bke::AttrStorageType::Array);
   }
@@ -470,7 +488,6 @@ static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext * /*C*/,
 
 static int rna_Attribute_domain_get(PointerRNA *ptr)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
     return int(BKE_attribute_domain(owner, static_cast<const CustomDataLayer *>(ptr->data)));
@@ -481,7 +498,6 @@ static int rna_Attribute_domain_get(PointerRNA *ptr)
 
 static bool rna_Attribute_is_internal_get(PointerRNA *ptr)
 {
-  using namespace blender;
   return !bke::allow_procedural_attribute_access(rna_Attribute_name_get(*ptr));
 }
 
@@ -493,10 +509,9 @@ static bool rna_Attribute_is_required_get(PointerRNA *ptr)
 
 void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
     if (!(CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL)) {
       iter->valid = false;
     }
@@ -530,10 +545,12 @@ void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 
 int rna_Attribute_data_length(PointerRNA *ptr)
 {
-  using namespace blender;
+  if (RNA_pointer_is_null(ptr)) {
+    return 0;
+  }
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
     return BKE_attribute_data_length(owner, layer);
   }
 
@@ -550,26 +567,26 @@ static void tag_any_attribute_changed(ID *id)
 {
   switch (GS(id->name)) {
     case ID_CV: {
-      Curves *curves = blender::id_cast<Curves *>(id);
+      Curves *curves = id_cast<Curves *>(id);
       curves->geometry.wrap().tag_topology_changed();
       break;
     }
     case ID_ME: {
-      Mesh *mesh = blender::id_cast<Mesh *>(id);
+      Mesh *mesh = id_cast<Mesh *>(id);
       mesh->tag_topology_changed();
       break;
     }
     case ID_PT: {
-      PointCloud *pointcloud = blender::id_cast<PointCloud *>(id);
+      PointCloud *pointcloud = id_cast<PointCloud *>(id);
       pointcloud->tag_positions_changed();
       pointcloud->tag_radii_changed();
       break;
     }
     case ID_GP: {
-      GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(id);
+      GreasePencil *grease_pencil = id_cast<GreasePencil *>(id);
       for (GreasePencilDrawingBase *drawing_base : grease_pencil->drawings()) {
         if (drawing_base->type == GP_DRAWING) {
-          blender::bke::greasepencil::Drawing &drawing =
+          bke::greasepencil::Drawing &drawing =
               reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap();
           drawing.tag_topology_changed();
         }
@@ -598,14 +615,14 @@ static void rna_Attribute_update_data(Main * /*bmain*/, Scene * /*scene*/, Point
 
 static void rna_ByteColorAttributeValue_color_get(PointerRNA *ptr, float *values)
 {
-  MLoopCol *mlcol = (MLoopCol *)ptr->data;
+  MLoopCol *mlcol = static_cast<MLoopCol *>(ptr->data);
   srgb_to_linearrgb_uchar4(values, &mlcol->r);
   IMB_colormanagement_rec709_to_scene_linear(values, values);
 }
 
 static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *values)
 {
-  MLoopCol *mlcol = (MLoopCol *)ptr->data;
+  MLoopCol *mlcol = static_cast<MLoopCol *>(ptr->data);
   float rec709[4];
   IMB_colormanagement_scene_linear_to_rec709(rec709, values);
   rec709[3] = values[3];
@@ -614,7 +631,7 @@ static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *
 
 static void rna_ByteColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *values)
 {
-  MLoopCol *col = (MLoopCol *)ptr->data;
+  MLoopCol *col = static_cast<MLoopCol *>(ptr->data);
   values[0] = col->r / 255.0f;
   values[1] = col->g / 255.0f;
   values[2] = col->b / 255.0f;
@@ -623,7 +640,7 @@ static void rna_ByteColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *v
 
 static void rna_ByteColorAttributeValue_color_srgb_set(PointerRNA *ptr, const float *values)
 {
-  MLoopCol *col = (MLoopCol *)ptr->data;
+  MLoopCol *col = static_cast<MLoopCol *>(ptr->data);
   col->r = round_fl_to_uchar_clamp(values[0] * 255.0f);
   col->g = round_fl_to_uchar_clamp(values[1] * 255.0f);
   col->b = round_fl_to_uchar_clamp(values[2] * 255.0f);
@@ -632,14 +649,14 @@ static void rna_ByteColorAttributeValue_color_srgb_set(PointerRNA *ptr, const fl
 
 static void rna_FloatColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *values)
 {
-  MPropCol *col = (MPropCol *)ptr->data;
+  MPropCol *col = static_cast<MPropCol *>(ptr->data);
   IMB_colormanagement_scene_linear_to_srgb_v3(values, col->color);
   values[3] = col->color[3];
 }
 
 static void rna_FloatColorAttributeValue_color_srgb_set(PointerRNA *ptr, const float *values)
 {
-  MPropCol *col = (MPropCol *)ptr->data;
+  MPropCol *col = static_cast<MPropCol *>(ptr->data);
   IMB_colormanagement_srgb_to_scene_linear_v3(col->color, values);
   col->color[3] = values[3];
 }
@@ -677,7 +694,6 @@ static void rna_StringAttributeValue_s_set(PointerRNA *ptr, const char *value)
 static PointerRNA rna_AttributeGroupID_new(
     ID *id, ReportList *reports, const char *name, const int type, const int domain)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
     CustomDataLayer *layer = BKE_attribute_new(
@@ -687,7 +703,7 @@ static PointerRNA rna_AttributeGroupID_new(
     }
 
     if ((GS(id->name) == ID_ME)) {
-      Mesh *mesh = (Mesh *)id;
+      Mesh *mesh = id_cast<Mesh *>(id);
       if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
         if (!mesh->active_color_attribute) {
           mesh->active_color_attribute = BLI_strdup(layer->name);
@@ -736,10 +752,9 @@ static PointerRNA rna_AttributeGroupID_new(
 
 static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA *attribute_ptr)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const CustomDataLayer *layer = (const CustomDataLayer *)attribute_ptr->data;
+    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(attribute_ptr->data);
     BKE_attribute_remove(owner, layer->name, reports);
     attribute_ptr->invalidate();
 
@@ -768,7 +783,6 @@ void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter,
                                        const eCustomDataMask cd_type_mask,
                                        const bool include_anonymous)
 {
-  using namespace blender;
   memset(&iter->internal.array, 0, sizeof(iter->internal.array));
   AttributeOwner owner = owner_from_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
@@ -845,7 +859,6 @@ void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter, Pointer
 
 PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_pointer_rna(&iter->parent);
   if (owner.type() == AttributeOwnerType::Mesh) {
     CustomDataLayer *layer = *static_cast<CustomDataLayer **>(rna_iterator_array_get(iter));
@@ -869,24 +882,21 @@ void rna_AttributeGroup_color_iterator_begin(CollectionPropertyIterator *iter, P
 
 int rna_AttributeGroup_color_length(PointerRNA *ptr)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_pointer_rna(ptr);
   return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 }
 
 int rna_AttributeGroup_length(PointerRNA *ptr)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_pointer_rna(ptr);
   return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 }
 
 PointerRNA rna_AttributeGroup_lookup_string(const PointerRNA &ptr,
-                                            const blender::StringRef key,
+                                            const StringRef key,
                                             AttrDomainMask domain_mask,
                                             eCustomDataMask cd_type_mask)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_pointer_rna(&ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
@@ -946,9 +956,8 @@ static int rna_AttributeGroupID_active_index_get(PointerRNA *ptr)
 
 static PointerRNA rna_AttributeGroupID_active_get(PointerRNA *ptr)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-  const std::optional<blender::StringRef> name = BKE_attributes_active_name_get(owner);
+  const std::optional<StringRef> name = BKE_attributes_active_name_get(owner);
   if (!name) {
     return PointerRNA_NULL;
   }
@@ -959,7 +968,6 @@ static void rna_AttributeGroupID_active_set(PointerRNA *ptr,
                                             PointerRNA attribute_ptr,
                                             ReportList * /*reports*/)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   if (owner.type() == AttributeOwnerType::Mesh) {
     CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
@@ -1012,7 +1020,6 @@ static void rna_AttributeGroup_update_active_color(Main * /*bmain*/,
 
 static int rna_AttributeGroupID_domain_size(ID *id, const int domain)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
     return BKE_attribute_domain_size(owner, domain);
@@ -1053,7 +1060,6 @@ static int rna_AttributeGroupMesh_active_color_index_get(PointerRNA *ptr)
 
 static void rna_AttributeGroupMesh_active_color_index_set(PointerRNA *ptr, int value)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   const std::optional<StringRef> name = BKE_attribute_from_index(
       owner, value, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
@@ -1086,7 +1092,6 @@ static int rna_AttributeGroupMesh_render_color_index_get(PointerRNA *ptr)
 
 static void rna_AttributeGroupMesh_render_color_index_set(PointerRNA *ptr, int value)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   const std::optional<StringRef> name = BKE_attribute_from_index(
       owner, value, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
@@ -1126,7 +1131,7 @@ static void rna_AttributeGroupMesh_default_color_name_set(PointerRNA *ptr, const
 {
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_ME) {
-    Mesh *mesh = (Mesh *)id;
+    Mesh *mesh = id_cast<Mesh *>(id);
     MEM_SAFE_FREE(mesh->default_color_attribute);
     if (value[0]) {
       mesh->default_color_attribute = BLI_strdup(value);
@@ -1152,7 +1157,7 @@ static void rna_AttributeGroupMesh_active_color_name_set(PointerRNA *ptr, const 
 {
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_ME) {
-    Mesh *mesh = (Mesh *)id;
+    Mesh *mesh = id_cast<Mesh *>(id);
     MEM_SAFE_FREE(mesh->active_color_attribute);
     if (value[0]) {
       mesh->active_color_attribute = BLI_strdup(value);
@@ -1167,7 +1172,6 @@ static PointerRNA rna_AttributeGroupGreasePencilDrawing_new(ID *grease_pencil_id
                                                             const int type,
                                                             const int domain)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
   const bke::AttributeAccessor accessor = *owner.get_accessor();
   if (!accessor.domain_supported(AttrDomain(domain))) {
@@ -1195,7 +1199,6 @@ static void rna_AttributeGroupGreasePencilDrawing_remove(ID *grease_pencil_id,
                                                          ReportList *reports,
                                                          PointerRNA *attribute_ptr)
 {
-  using namespace blender;
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
   const bke::Attribute *attr = static_cast<const bke::Attribute *>(attribute_ptr->data);
   if (BKE_attribute_required(owner, attr->name())) {
@@ -1213,10 +1216,9 @@ static void rna_AttributeGroupGreasePencilDrawing_remove(ID *grease_pencil_id,
 
 static PointerRNA rna_AttributeGroupGreasePencilDrawing_active_get(PointerRNA *ptr)
 {
-  using namespace blender;
   GreasePencilDrawing *drawing = static_cast<GreasePencilDrawing *>(ptr->data);
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
-  const std::optional<blender::StringRef> name = BKE_attributes_active_name_get(owner);
+  const std::optional<StringRef> name = BKE_attributes_active_name_get(owner);
   if (!name) {
     return PointerRNA_NULL;
   }
@@ -1276,10 +1278,14 @@ static int rna_AttributeGroupGreasePencilDrawing_domain_size(GreasePencilDrawing
                                                              const int domain)
 {
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
-  return owner.get_accessor()->domain_size(blender::bke::AttrDomain(domain));
+  return owner.get_accessor()->domain_size(bke::AttrDomain(domain));
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_attribute_float(BlenderRNA *brna)
 {
@@ -2142,4 +2148,6 @@ void RNA_def_attribute(BlenderRNA *brna)
   rna_def_attribute_group_grease_pencil(brna);
   rna_def_attribute_group_grease_pencil_drawing(brna);
 }
+}  // namespace blender
+
 #endif

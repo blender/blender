@@ -212,14 +212,14 @@ SphericalHarmonicL2 spherical_harmonics_swizzle_wwww(SphericalHarmonicL2 sh)
 
 void spherical_harmonics_L0_encode_signal_sample(float3 direction,
                                                  float4 amplitude,
-                                                 inout SphericalHarmonicBandL0 r_L0)
+                                                 SphericalHarmonicBandL0 &r_L0)
 {
   r_L0.M0 += spherical_harmonics_L0_M0(direction) * amplitude;
 }
 
 void spherical_harmonics_L1_encode_signal_sample(float3 direction,
                                                  float4 amplitude,
-                                                 inout SphericalHarmonicBandL1 r_L1)
+                                                 SphericalHarmonicBandL1 &r_L1)
 {
   r_L1.Mn1 += spherical_harmonics_L1_Mn1(direction) * amplitude;
   r_L1.M0 += spherical_harmonics_L1_M0(direction) * amplitude;
@@ -228,7 +228,7 @@ void spherical_harmonics_L1_encode_signal_sample(float3 direction,
 
 void spherical_harmonics_L2_encode_signal_sample(float3 direction,
                                                  float4 amplitude,
-                                                 inout SphericalHarmonicBandL2 r_L2)
+                                                 SphericalHarmonicBandL2 &r_L2)
 {
   r_L2.Mn2 += spherical_harmonics_L2_Mn2(direction) * amplitude;
   r_L2.Mn1 += spherical_harmonics_L2_Mn1(direction) * amplitude;
@@ -239,14 +239,14 @@ void spherical_harmonics_L2_encode_signal_sample(float3 direction,
 
 void spherical_harmonics_encode_signal_sample(float3 direction,
                                               float4 amplitude,
-                                              inout SphericalHarmonicL0 sh)
+                                              SphericalHarmonicL0 &sh)
 {
   spherical_harmonics_L0_encode_signal_sample(direction, amplitude, sh.L0);
 }
 
 void spherical_harmonics_encode_signal_sample(float3 direction,
                                               float4 amplitude,
-                                              inout SphericalHarmonicL1 sh)
+                                              SphericalHarmonicL1 &sh)
 {
   spherical_harmonics_L0_encode_signal_sample(direction, amplitude, sh.L0);
   spherical_harmonics_L1_encode_signal_sample(direction, amplitude, sh.L1);
@@ -254,7 +254,7 @@ void spherical_harmonics_encode_signal_sample(float3 direction,
 
 void spherical_harmonics_encode_signal_sample(float3 direction,
                                               float4 amplitude,
-                                              inout SphericalHarmonicL2 sh)
+                                              SphericalHarmonicL2 &sh)
 {
   spherical_harmonics_L0_encode_signal_sample(direction, amplitude, sh.L0);
   spherical_harmonics_L1_encode_signal_sample(direction, amplitude, sh.L1);
@@ -442,11 +442,8 @@ SphericalHarmonicL1 spherical_harmonics_unpack(float4 L0_L1_a,
   return sh;
 }
 
-void spherical_harmonics_pack(SphericalHarmonicL1 sh,
-                              out float4 L0_L1_a,
-                              out float4 L0_L1_b,
-                              out float4 L0_L1_c,
-                              out float4 L0_L1_vis)
+void spherical_harmonics_pack(
+    SphericalHarmonicL1 sh, float4 &L0_L1_a, float4 &L0_L1_b, float4 &L0_L1_c, float4 &L0_L1_vis)
 {
   L0_L1_a.xyz = sh.L0.M0.xyz;
   L0_L1_b.xyz = sh.L1.Mn1.xyz;

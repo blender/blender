@@ -8,6 +8,7 @@
 #include <pxr/imaging/hd/light.h>
 #include <pxr/imaging/hd/renderBuffer.h>
 
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
@@ -52,11 +53,11 @@ void FinalEngine::render()
   }
 
   RenderResult *rr = RE_engine_get_result(bl_engine_);
-  RenderLayer *rlayer = (RenderLayer *)rr->layers.first;
-  LISTBASE_FOREACH (RenderPass *, rpass, &rlayer->passes) {
-    pxr::TfToken *aov_token = aov_tokens_.lookup_ptr(rpass->name);
+  RenderLayer *rlayer = static_cast<RenderLayer *>(rr->layers.first);
+  for (RenderPass &rpass : rlayer->passes) {
+    pxr::TfToken *aov_token = aov_tokens_.lookup_ptr(rpass.name);
     if (!aov_token) {
-      CLOG_WARN(LOG_HYDRA_RENDER, "Couldn't find AOV token for render pass: %s", rpass->name);
+      CLOG_WARN(LOG_HYDRA_RENDER, "Couldn't find AOV token for render pass: %s", rpass.name);
       continue;
     }
     render_task_delegate_->add_aov(*aov_token);
@@ -125,10 +126,10 @@ void FinalEngine::update_render_result(int width, int height, const char *layer_
       BLI_findstring(&rr->layers, layer_name, offsetof(RenderLayer, name)));
 
   if (rlayer) {
-    LISTBASE_FOREACH (RenderPass *, rpass, &rlayer->passes) {
-      pxr::TfToken *aov_token = aov_tokens_.lookup_ptr(rpass->name);
+    for (RenderPass &rpass : rlayer->passes) {
+      pxr::TfToken *aov_token = aov_tokens_.lookup_ptr(rpass.name);
       if (aov_token) {
-        render_task_delegate_->read_aov(*aov_token, rpass->ibuf->float_buffer.data);
+        render_task_delegate_->read_aov(*aov_token, rpass.ibuf->float_buffer.data);
       }
     }
   }

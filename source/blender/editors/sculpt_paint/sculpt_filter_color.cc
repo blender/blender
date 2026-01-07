@@ -381,7 +381,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
 
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
 
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *id_cast<Mesh *>(ob.data);
   if (filter_strength < 0.0 && ss.filter_cache->pre_smoothed_color.is_empty()) {
     sculpt_color_presmooth_init(mesh, ob);
   }
@@ -544,7 +544,7 @@ static wmOperatorStatus sculpt_color_filter_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  ED_image_paint_brush_type_update_sticky_shading_color(C, &ob);
+  ED_paint_brush_type_update_sticky_shading_color(C, &ob);
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;

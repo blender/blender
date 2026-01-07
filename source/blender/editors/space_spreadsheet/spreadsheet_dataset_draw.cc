@@ -57,7 +57,8 @@ static void draw_row_suffix(ui::AbstractTreeViewItem &view_item, const StringRef
 {
   /* Using the tree row button instead of a separate right aligned button gives padding
    * to the right side of the number, which it didn't have with the button. */
-  UI_but_hint_drawstr_set(reinterpret_cast<uiBut *>(view_item.view_item_button()), str.c_str());
+  button_hint_drawstr_set(reinterpret_cast<ui::Button *>(view_item.view_item_button()),
+                          str.c_str());
 }
 
 static void draw_count(ui::AbstractTreeViewItem &view_item, const int count)
@@ -690,7 +691,7 @@ void InstancesTreeViewItem::on_activate(bContext &C)
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(&C);
 
   MEM_SAFE_FREE(sspreadsheet.geometry_id.instance_ids);
-  sspreadsheet.geometry_id.instance_ids = MEM_calloc_arrayN<SpreadsheetInstanceID>(
+  sspreadsheet.geometry_id.instance_ids = MEM_new_array_for_free<SpreadsheetInstanceID>(
       instance_ids.size(), __func__);
   sspreadsheet.geometry_id.instance_ids_num = instance_ids.size();
   initialized_copy_n(
@@ -931,13 +932,12 @@ class ViewerPathTreeView : public ui::AbstractTreeView {
   {
     const ViewerPath &viewer_path = sspreadsheet_.geometry_id.viewer_path;
 
-    int index;
-    LISTBASE_FOREACH_INDEX (const ViewerPathElem *, elem, &viewer_path.path, index) {
-      if (elem == viewer_path.path.first) {
+    for (const auto [index, elem] : viewer_path.path.enumerate()) {
+      if (&elem == viewer_path.path.first) {
         /* The root item is drawn above the tree view already. */
         continue;
       }
-      this->add_viewer_path_elem(index, *elem);
+      this->add_viewer_path_elem(index, elem);
     }
   }
 
@@ -1045,8 +1045,8 @@ struct ViewerDataPath {
       }
       MEM_freeN(table_id.bundle_path);
     }
-    table_id.bundle_path = MEM_calloc_arrayN<SpreadsheetBundlePathElem>(this->bundles.size(),
-                                                                        __func__);
+    table_id.bundle_path = MEM_new_array_for_free<SpreadsheetBundlePathElem>(this->bundles.size(),
+                                                                             __func__);
     table_id.bundle_path_num = this->bundles.size();
     for (const int i : this->bundles.index_range()) {
       table_id.bundle_path[i].identifier = BLI_strdupn(this->bundles[i].data(),
@@ -1221,8 +1221,8 @@ static bool viewer_path_ends_with_viewer_node(const ViewerPath &viewer_path)
 
 static void draw_viewer_path_panel(const bContext &C, ui::Layout &layout)
 {
-  uiBlock *block = layout.block();
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  ui::Block *block = layout.block();
+  ui::AbstractTreeView *tree_view = block_add_view(
       *block, "Viewer Path", std::make_unique<ViewerPathTreeView>(C));
   tree_view->set_context_menu_title("Viewer Path");
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, true);
@@ -1230,8 +1230,8 @@ static void draw_viewer_path_panel(const bContext &C, ui::Layout &layout)
 
 static void draw_viewer_data_panel(const bContext &C, ui::Layout &layout)
 {
-  uiBlock *block = layout.block();
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  ui::Block *block = layout.block();
+  ui::AbstractTreeView *tree_view = block_add_view(
       *block, "Viewer Data", std::make_unique<ViewerDataTreeView>(C));
   tree_view->set_context_menu_title("Viewer Data");
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, false);
@@ -1274,7 +1274,7 @@ static void draw_context_panel(const bContext &C, ui::Layout &layout)
 {
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(&C);
 
-  PanelLayout context_panel = layout.panel(&C, "context", false);
+  ui::PanelLayout context_panel = layout.panel(&C, "context", false);
   context_panel.header->emboss_set(ui::EmbossType::None);
   if (ID *root_id = get_current_id(&sspreadsheet)) {
     std::string label = BKE_id_name(*root_id);
@@ -1310,7 +1310,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
 
   ui::Layout &layout = *panel->layout;
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   ui::block_layout_set_current(block, &layout);
 
   draw_context_panel(*C, layout);
@@ -1324,7 +1324,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
                                                                                   object))
   {
     if (ui::Layout *panel = layout.panel(C, "instance tree", false, IFACE_("Geometry"))) {
-      ui::AbstractTreeView *tree_view = UI_block_add_view(
+      ui::AbstractTreeView *tree_view = block_add_view(
           *block,
           "Instances Tree View",
           std::make_unique<GeometryInstancesTreeView>(*root_geometry, *C));
@@ -1336,7 +1336,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
       bke::GeometrySet instance_geometry = get_geometry_set_for_instance_ids(
           *root_geometry,
           {sspreadsheet->geometry_id.instance_ids, sspreadsheet->geometry_id.instance_ids_num});
-      ui::AbstractTreeView *tree_view = UI_block_add_view(
+      ui::AbstractTreeView *tree_view = block_add_view(
           *block,
           "Data Set Tree View",
           std::make_unique<GeometryDataSetTreeView>(std::move(instance_geometry), *C));

@@ -19,6 +19,8 @@
 #include "BKE_idprop.hh"
 #include "DNA_ID.h"
 
+namespace blender {
+
 using Alembic::Abc::ArraySample;
 using Alembic::Abc::OArrayProperty;
 using Alembic::Abc::OBoolArrayProperty;
@@ -28,7 +30,7 @@ using Alembic::Abc::OFloatArrayProperty;
 using Alembic::Abc::OInt32ArrayProperty;
 using Alembic::Abc::OStringArrayProperty;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 CustomPropertiesExporter::CustomPropertiesExporter(ABCAbstractWriter *owner) : owner_(owner) {}
 
@@ -40,8 +42,8 @@ void CustomPropertiesExporter::write_all(const IDProperty *group)
   BLI_assert(group->type == IDP_GROUP);
 
   /* Loop over the properties, just like IDP_foreach_property() does, but without the recursion. */
-  LISTBASE_FOREACH (IDProperty *, id_property, &group->data.group) {
-    write(id_property);
+  for (IDProperty &id_property : group->data.group) {
+    write(&id_property);
   }
 }
 
@@ -207,7 +209,8 @@ void CustomPropertiesExporter::write_idparray_flattened_typed(const IDProperty *
   const uint64_t num_rows = idp_array->len;
   std::vector<BlenderValueType> matrix_values;
   for (size_t row_idx = 0; row_idx < num_rows; ++row_idx) {
-    const BlenderValueType *row = (BlenderValueType *)IDP_array_voidp_get(&idp_rows[row_idx]);
+    const BlenderValueType *row = static_cast<BlenderValueType *> IDP_array_voidp_get(
+        &idp_rows[row_idx]);
     for (size_t col_idx = 0; col_idx < idp_rows[row_idx].len; col_idx++) {
       matrix_values.push_back(row[col_idx]);
     }
@@ -252,4 +255,5 @@ OArrayProperty CustomPropertiesExporter::create_abc_property(const StringRef pro
   return abc_property;
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

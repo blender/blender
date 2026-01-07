@@ -30,6 +30,8 @@
 
 #include "node_util.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Storage Data
  * \{ */
@@ -86,39 +88,39 @@ void node_math_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock2 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
   bNodeSocket *sock3 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
-  blender::bke::node_set_socket_availability(*ntree,
-                                             *sock2,
-                                             !ELEM(node->custom1,
-                                                   NODE_MATH_SQRT,
-                                                   NODE_MATH_SIGN,
-                                                   NODE_MATH_CEIL,
-                                                   NODE_MATH_SINE,
-                                                   NODE_MATH_ROUND,
-                                                   NODE_MATH_FLOOR,
-                                                   NODE_MATH_COSINE,
-                                                   NODE_MATH_ARCSINE,
-                                                   NODE_MATH_TANGENT,
-                                                   NODE_MATH_ABSOLUTE,
-                                                   NODE_MATH_RADIANS,
-                                                   NODE_MATH_DEGREES,
-                                                   NODE_MATH_FRACTION,
-                                                   NODE_MATH_ARCCOSINE,
-                                                   NODE_MATH_ARCTANGENT) &&
-                                                 !ELEM(node->custom1,
-                                                       NODE_MATH_INV_SQRT,
-                                                       NODE_MATH_TRUNC,
-                                                       NODE_MATH_EXPONENT,
-                                                       NODE_MATH_COSH,
-                                                       NODE_MATH_SINH,
-                                                       NODE_MATH_TANH));
-  blender::bke::node_set_socket_availability(*ntree,
-                                             *sock3,
-                                             ELEM(node->custom1,
-                                                  NODE_MATH_COMPARE,
-                                                  NODE_MATH_MULTIPLY_ADD,
-                                                  NODE_MATH_WRAP,
-                                                  NODE_MATH_SMOOTH_MIN,
-                                                  NODE_MATH_SMOOTH_MAX));
+  bke::node_set_socket_availability(*ntree,
+                                    *sock2,
+                                    !ELEM(node->custom1,
+                                          NODE_MATH_SQRT,
+                                          NODE_MATH_SIGN,
+                                          NODE_MATH_CEIL,
+                                          NODE_MATH_SINE,
+                                          NODE_MATH_ROUND,
+                                          NODE_MATH_FLOOR,
+                                          NODE_MATH_COSINE,
+                                          NODE_MATH_ARCSINE,
+                                          NODE_MATH_TANGENT,
+                                          NODE_MATH_ABSOLUTE,
+                                          NODE_MATH_RADIANS,
+                                          NODE_MATH_DEGREES,
+                                          NODE_MATH_FRACTION,
+                                          NODE_MATH_ARCCOSINE,
+                                          NODE_MATH_ARCTANGENT) &&
+                                        !ELEM(node->custom1,
+                                              NODE_MATH_INV_SQRT,
+                                              NODE_MATH_TRUNC,
+                                              NODE_MATH_EXPONENT,
+                                              NODE_MATH_COSH,
+                                              NODE_MATH_SINH,
+                                              NODE_MATH_TANH));
+  bke::node_set_socket_availability(*ntree,
+                                    *sock3,
+                                    ELEM(node->custom1,
+                                         NODE_MATH_COMPARE,
+                                         NODE_MATH_MULTIPLY_ADD,
+                                         NODE_MATH_WRAP,
+                                         NODE_MATH_SMOOTH_MIN,
+                                         NODE_MATH_SMOOTH_MAX));
 }
 
 /** \} */
@@ -178,9 +180,9 @@ void node_vector_math_label(const bNodeTree * /*ntree*/,
   BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
 }
 
-void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode)
+void node_combsep_color_label(const ListBaseT<bNodeSocket> *sockets, NodeCombSepColorMode mode)
 {
-  bNodeSocket *sock1 = (bNodeSocket *)sockets->first;
+  bNodeSocket *sock1 = static_cast<bNodeSocket *>(sockets->first);
   bNodeSocket *sock2 = sock1->next;
   bNodeSocket *sock3 = sock2->next;
 
@@ -217,7 +219,7 @@ void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode
 /** \name Link Insertion
  * \{ */
 
-bool node_insert_link_default(blender::bke::NodeInsertLinkParams & /*params*/)
+bool node_insert_link_default(bke::NodeInsertLinkParams & /*params*/)
 {
   return true;
 }
@@ -230,43 +232,43 @@ bool node_insert_link_default(blender::bke::NodeInsertLinkParams & /*params*/)
 
 int node_socket_get_int(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   return RNA_int_get(&ptr, "default_value");
 }
 
 void node_socket_set_int(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, int value)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   RNA_int_set(&ptr, "default_value", value);
 }
 
 bool node_socket_get_bool(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   return RNA_boolean_get(&ptr, "default_value");
 }
 
 void node_socket_set_bool(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, bool value)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   RNA_boolean_set(&ptr, "default_value", value);
 }
 
 float node_socket_get_float(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   return RNA_float_get(&ptr, "default_value");
 }
 
 void node_socket_set_float(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float value)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   RNA_float_set(&ptr, "default_value", value);
 }
 
 void node_socket_get_color(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float *value)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   RNA_float_get_array(&ptr, "default_value", value);
 }
 
@@ -275,13 +277,13 @@ void node_socket_set_color(bNodeTree *ntree,
                            bNodeSocket *sock,
                            const float *value)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   RNA_float_set_array(&ptr, "default_value", value);
 }
 
 void node_socket_get_vector(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float *value)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   RNA_float_get_array(&ptr, "default_value", value);
 }
 
@@ -290,8 +292,10 @@ void node_socket_set_vector(bNodeTree *ntree,
                             bNodeSocket *sock,
                             const float *value)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)ntree, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_NodeSocket, sock);
   RNA_float_set_array(&ptr, "default_value", value);
 }
 
 /** \} */
+
+}  // namespace blender

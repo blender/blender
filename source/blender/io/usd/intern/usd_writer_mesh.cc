@@ -22,7 +22,6 @@
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
@@ -40,11 +39,15 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
-namespace blender::io::usd {
+namespace io::usd {
 
 USDGenericMeshWriter::USDGenericMeshWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
 {
@@ -63,7 +66,7 @@ static const SubsurfModifierData *get_last_subdiv_modifier(eEvaluationMode eval_
   /* Return the subdiv modifier if it is the last modifier and has
    * the required mode enabled. */
 
-  ModifierData *md = (ModifierData *)(obj->modifiers.last);
+  ModifierData *md = static_cast<ModifierData *>(obj->modifiers.last);
 
   if (!md) {
     return nullptr;
@@ -732,7 +735,7 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh,
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
   const VArraySpan velocity = *mesh->attributes().lookup<float3>("velocity",
-                                                                 blender::bke::AttrDomain::Point);
+                                                                 bke::AttrDomain::Point);
   if (velocity.is_empty()) {
     return;
   }
@@ -947,4 +950,5 @@ void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
   temp_weights_attr.Set(weights, time);
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

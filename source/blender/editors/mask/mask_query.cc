@@ -28,6 +28,8 @@
 
 #include "mask_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Spatial Queries
  * \{ */
@@ -494,7 +496,7 @@ void ED_mask_mouse_pos(ScrArea *area, ARegion *region, const int mval[2], float 
         break;
       }
       case SPACE_SEQ: {
-        UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &r_co[0], &r_co[1]);
+        ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &r_co[0], &r_co[1]);
         break;
       }
       case SPACE_IMAGE: {
@@ -627,14 +629,14 @@ bool ED_mask_selected_minmax(const bContext *C,
   Mask *mask_eval = DEG_get_evaluated(depsgraph, mask);
 
   INIT_MINMAX2(min, max);
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask_eval->masklayers) {
-    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
+  for (MaskLayer &mask_layer : mask_eval->masklayers) {
+    if (mask_layer.visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-      MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
-      for (int i = 0; i < spline->tot_point; i++) {
-        const MaskSplinePoint *point = &spline->points[i];
+    for (MaskSpline &spline : mask_layer.splines) {
+      MaskSplinePoint *points_array = BKE_mask_spline_point_array(&spline);
+      for (int i = 0; i < spline.tot_point; i++) {
+        const MaskSplinePoint *point = &spline.points[i];
         const MaskSplinePoint *deform_point = &points_array[i];
         const BezTriple *bezt = &point->bezt;
         float handle[2];
@@ -801,7 +803,7 @@ void ED_mask_pixelspace_factor(ScrArea *area, ARegion *region, float *r_scalex, 
         SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         float aspx, aspy;
 
-        UI_view2d_scale_get(&region->v2d, r_scalex, r_scaley);
+        ui::view2d_scale_get(&region->v2d, r_scalex, r_scaley);
         ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
         *r_scalex *= aspx;
@@ -816,7 +818,7 @@ void ED_mask_pixelspace_factor(ScrArea *area, ARegion *region, float *r_scalex, 
         SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         float aspx, aspy;
 
-        UI_view2d_scale_get(&region->v2d, r_scalex, r_scaley);
+        ui::view2d_scale_get(&region->v2d, r_scalex, r_scaley);
         ED_space_image_get_aspect(sima, &aspx, &aspy);
 
         *r_scalex *= aspx;
@@ -868,3 +870,5 @@ void ED_mask_cursor_location_get(ScrArea *area, float cursor[2])
 }
 
 /** \} */
+
+}  // namespace blender

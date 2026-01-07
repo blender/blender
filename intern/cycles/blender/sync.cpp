@@ -2,7 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "BKE_appdir.hh"
+#include "BKE_scene.hh"
+#include "DEG_depsgraph_query.hh"
+#include "DNA_world_types.h"
+#include "RNA_prototypes.hh"
 #include "RNA_types.hh"
+
 #include "scene/background.h"
 #include "scene/bake.h"
 #include "scene/camera.h"
@@ -38,17 +44,17 @@ static const char *cryptomatte_prefix = "Crypto";
 
 /* Constructor */
 
-BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
-                         BL::BlendData &b_data,
-                         BL::Scene &b_scene,
+BlenderSync::BlenderSync(blender::RenderEngine &b_engine,
+                         blender::Main &b_data,
+                         blender::Scene &b_scene,
                          Scene *scene,
                          bool preview,
                          bool use_developer_ui,
                          Progress &progress)
-    : b_engine(b_engine),
-      b_data(b_data),
-      b_scene(b_scene),
-      b_bake_target(PointerRNA_NULL),
+    : b_engine(&b_engine),
+      b_data(&b_data),
+      b_scene(&b_scene),
+      b_bake_target(nullptr),
       shader_map(scene),
       object_map(scene),
       procedural_map(scene),
@@ -64,7 +70,8 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
       progress(progress)
 
 {
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") :
                           RNA_float_get(&cscene, "dicing_rate");
   max_subdivisions = RNA_int_get(&cscene, "max_subdivisions");
@@ -72,14 +79,14 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
 
 BlenderSync::~BlenderSync() = default;
 
-void BlenderSync::reset(BL::BlendData &b_data, BL::Scene &b_scene)
+void BlenderSync::reset(blender::Main &b_data, blender::Scene &b_scene)
 {
   /* Update data and scene pointers in case they change in session reset,
    * for example after undo.
    * Note that we do not modify the `has_updates_` flag here because the sync
    * reset is also used during viewport navigation. */
-  this->b_data = b_data;
-  this->b_scene = b_scene;
+  this->b_data = &b_data;
+  this->b_scene = &b_scene;
 }
 
 void BlenderSync::tag_update()
@@ -87,98 +94,105 @@ void BlenderSync::tag_update()
   has_updates_ = true;
 }
 
-void BlenderSync::set_bake_target(BL::Object &b_object)
+void BlenderSync::set_bake_target(blender::Object &b_object)
 {
-  b_bake_target = b_object;
+  b_bake_target = &b_object;
 }
 
 /* Sync */
 
-void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
-                              BL::SpaceView3D &b_v3d,
-                              BL::RegionView3D &b_rv3d)
+void BlenderSync::sync_recalc(blender::Depsgraph &b_depsgraph,
+                              blender::bScreen *b_screen,
+                              blender::View3D *b_v3d,
+                              blender::RegionView3D *b_rv3d)
 {
   /* Sync recalc flags from blender to cycles. Actual update is done separate,
    * so we can do it later on if doing it immediate is not suitable. */
-  BL::Object b_dicing_camera_object = get_dicing_camera_object(b_v3d, b_rv3d);
+  blender::Object *b_dicing_camera_object = get_dicing_camera_object(b_v3d, b_rv3d);
   bool dicing_camera_updated = false;
 
-  /* Iterate over all IDs in this depsgraph. */
-  for (BL::DepsgraphUpdate &b_update : b_depsgraph.updates) {
+  /* Iterate over all blender::IDs in this depsgraph. */
+  blender::DEGIDIterData deg_iter_data{};
+  deg_iter_data.graph = &b_depsgraph;
+  deg_iter_data.only_updated = true;
+  ITER_BEGIN (blender::DEG_iterator_ids_begin,
+              blender::DEG_iterator_ids_next,
+              blender::DEG_iterator_ids_end,
+              &deg_iter_data,
+              blender::ID *,
+              b_id)
+  {
     /* TODO(sergey): Can do more selective filter here. For example, ignore changes made to
      * screen data-block. Note that sync_data() needs to be called after object deletion, and
-     * currently this is ensured by the scene ID tagged for update, which sets the `has_updates_`
-     * flag. */
+     * currently this is ensured by the scene blender::ID tagged for update, which sets the
+     * `has_updates_` flag. */
     has_updates_ = true;
 
-    BL::ID b_id(b_update.id());
+    const bool updated_shading = ((b_id->recalc & (blender::ID_RECALC_SHADING |
+                                                   blender::ID_RECALC_ANIMATION)) != 0);
 
     /* Material */
-    if (b_id.is_a(&RNA_Material)) {
-      const BL::Material b_mat(b_id);
-      shader_map.set_recalc(b_mat);
+    if (GS(b_id->name) == blender::ID_MA) {
+      shader_map.set_recalc(b_id);
     }
     /* Light */
-    else if (b_id.is_a(&RNA_Light)) {
-      const BL::Light b_light(b_id);
-      shader_map.set_recalc(b_light);
-      geometry_map.set_recalc(b_light);
+    else if (GS(b_id->name) == blender::ID_LA) {
+      shader_map.set_recalc(b_id);
+      geometry_map.set_recalc(b_id);
     }
     /* Object */
-    else if (b_id.is_a(&RNA_Object)) {
-      BL::Object b_ob(b_id);
-      const bool can_have_geometry = object_can_have_geometry(b_ob);
-      const bool is_light = !can_have_geometry && object_is_light(b_ob);
+    else if (GS(b_id->name) == blender::ID_OB) {
+      blender::Object *b_ob = blender::id_cast<blender::Object *>(b_id);
+      const bool can_have_geometry = object_can_have_geometry(*b_ob);
+      const bool is_light = !can_have_geometry && object_is_light(*b_ob);
 
-      if (b_ob.is_instancer() && b_update.is_updated_shading()) {
+      if (((b_ob->transflag & blender::OB_DUPLI) != 0) && updated_shading) {
         /* Needed for object color updates on instancer, among other things. */
         object_map.set_recalc(b_ob);
       }
 
       if (can_have_geometry || is_light) {
-        const bool updated_geometry = b_update.is_updated_geometry();
-        const bool updated_transform = b_update.is_updated_transform();
+        const bool updated_geometry = (b_id->recalc & (blender::ID_RECALC_GEOMETRY |
+                                                       blender::ID_RECALC_ALL)) != 0;
+        const bool updated_transform = (b_id->recalc & blender::ID_RECALC_TRANSFORM) != 0;
 
         /* Geometry (mesh, hair, volume). */
         if (can_have_geometry) {
-          if (updated_transform || b_update.is_updated_shading()) {
+          if (updated_transform || updated_shading) {
             object_map.set_recalc(b_ob);
           }
 
           const bool use_adaptive_subdiv = object_subdivision_type(
-                                               b_ob, preview, use_adaptive_subdivision) !=
+                                               *b_ob, preview, use_adaptive_subdivision) !=
                                            Mesh::SUBDIVISION_NONE;
 
           /* Need to recompute geometry if the geometry changed, or the transform changed
            * and using adaptive subdivision. */
           if (updated_geometry || (updated_transform && use_adaptive_subdiv)) {
-            BL::ID const key = BKE_object_is_modified(b_ob) ?
-                                   b_ob :
-                                   object_get_data(b_ob, use_adaptive_subdiv);
+            blender::ID *key = BKE_object_is_modified(*b_ob) ?
+                                   &b_ob->id :
+                                   object_get_data(*b_ob, use_adaptive_subdiv);
             geometry_map.set_recalc(key);
 
             /* Sync all contained geometry instances as well when the object changed.. */
-            const map<void *, set<BL::ID>>::const_iterator instance_geometries =
-                instance_geometries_by_object.find(b_ob.ptr.data);
+            const map<void *, set<blender::ID *>>::const_iterator instance_geometries =
+                instance_geometries_by_object.find(b_ob);
             if (instance_geometries != instance_geometries_by_object.end()) {
-              for (BL::ID const &geometry : instance_geometries->second) {
+              for (blender::ID *geometry : instance_geometries->second) {
                 geometry_map.set_recalc(geometry);
               }
             }
           }
 
           if (updated_geometry) {
-            BL::Object::particle_systems_iterator b_psys;
-            for (b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end();
-                 ++b_psys)
-            {
+            if (!BLI_listbase_is_empty(&b_ob->particlesystem)) {
               particle_system_map.set_recalc(b_ob);
             }
           }
         }
         /* Light */
         else if (is_light) {
-          if (b_update.is_updated_transform() || b_update.is_updated_shading()) {
+          if (updated_transform || updated_shading) {
             object_map.set_recalc(b_ob);
             geometry_map.set_recalc(b_ob);
           }
@@ -188,7 +202,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
           }
         }
       }
-      else if (object_is_camera(b_ob)) {
+      else if (object_is_camera(*b_ob)) {
         shader_map.set_recalc(b_ob);
       }
 
@@ -197,30 +211,28 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
       }
     }
     /* Mesh */
-    else if (b_id.is_a(&RNA_Mesh)) {
-      const BL::Mesh b_mesh(b_id);
-      geometry_map.set_recalc(b_mesh);
+    else if (GS(b_id->name) == blender::ID_ME) {
+      geometry_map.set_recalc(b_id);
     }
     /* World */
-    else if (b_id.is_a(&RNA_World)) {
-      const BL::World b_world(b_id);
-      if (world_map == b_world.ptr.data) {
+    else if (GS(b_id->name) == blender::ID_WO) {
+      const blender::World *b_world = blender::id_cast<blender::World *>(b_id);
+      if (world_map == b_world) {
         world_recalc = true;
       }
-      shader_map.set_recalc(b_world);
+      shader_map.set_recalc(b_id);
     }
     /* World */
-    else if (b_id.is_a(&RNA_Scene)) {
+    else if (GS(b_id->name) == blender::ID_SCE) {
       shader_map.set_recalc(b_id);
     }
     /* Volume */
-    else if (b_id.is_a(&RNA_Volume)) {
-      const BL::Volume b_volume(b_id);
-      geometry_map.set_recalc(b_volume);
+    else if (GS(b_id->name) == blender::ID_VO) {
+      geometry_map.set_recalc(b_id);
     }
     /* Camera */
-    else if (b_id.is_a(&RNA_Camera)) {
-      if (b_dicing_camera_object && b_dicing_camera_object.data() == b_id) {
+    else if (GS(b_id->name) == blender::ID_CA) {
+      if (b_dicing_camera_object && b_dicing_camera_object->data == b_id) {
         dicing_camera_updated = true;
       }
     }
@@ -228,7 +240,8 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
 
   if (use_adaptive_subdivision) {
     /* Mark all meshes as needing to be exported again if dicing changed. */
-    PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+    blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
+    blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
     bool dicing_prop_changed = false;
 
     const float updated_dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") :
@@ -256,16 +269,16 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
           if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
-            const PointerRNA id_ptr = RNA_id_pointer_create((::ID *)iter.first.id);
-            geometry_map.set_recalc(BL::ID(id_ptr));
+            geometry_map.set_recalc(iter.first.id);
           }
         }
       }
     }
   }
+  ITER_END;
 
   if (b_v3d) {
-    const BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
+    const BlenderViewportParameters new_viewport_parameters(b_screen, b_v3d, use_developer_ui);
 
     if (viewport_parameters.shader_modified(new_viewport_parameters)) {
       world_recalc = true;
@@ -276,10 +289,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
   }
 }
 
-void BlenderSync::sync_data(BL::RenderSettings &b_render,
-                            BL::Depsgraph &b_depsgraph,
-                            BL::SpaceView3D &b_v3d,
-                            BL::RegionView3D &b_rv3d,
+void BlenderSync::sync_data(blender::RenderData &b_render,
+                            blender::Depsgraph &b_depsgraph,
+                            blender::bScreen *b_screen,
+                            blender::View3D *b_v3d,
+                            blender::RegionView3D *b_rv3d,
                             const int width,
                             const int height,
                             void **python_thread_state,
@@ -287,7 +301,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 {
   /* For auto refresh images. */
   ImageManager *image_manager = scene->image_manager.get();
-  const int frame = b_scene.frame_current();
+  const int frame = b_scene->r.cfra;
   const bool auto_refresh_update = image_manager->set_animation_frame_update(frame);
 
   if (!has_updates_ && !auto_refresh_update) {
@@ -296,7 +310,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   const scoped_timer timer;
 
-  BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
+  blender::ViewLayer &b_view_layer = *DEG_get_evaluated_view_layer(&b_depsgraph);
 
   /* TODO(sergey): This feels weak to pass view layer to the integrator, and even weaker to have an
    * implicit check on whether it is a background render or not. What is the nicer thing here? */
@@ -304,18 +318,18 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   sync_view_layer(b_view_layer);
   sync_integrator(b_view_layer, background, denoise_device_info);
-  sync_film(b_view_layer, b_v3d);
-  sync_shaders(b_depsgraph, b_v3d, auto_refresh_update);
+  sync_film(b_view_layer, b_screen, b_v3d);
+  sync_shaders(b_depsgraph, b_screen, b_v3d, auto_refresh_update);
   sync_images();
 
   geometry_synced.clear(); /* use for objects and motion sync */
 
-  if (scene->need_motion() == Scene::MOTION_PASS || scene->need_motion() == Scene::MOTION_NONE ||
+  if (scene->need_motion() == Scene::MOTION_NONE || scene->need_motion() == Scene::MOTION_PASS ||
       scene->camera->get_motion_position() == MOTION_POSITION_CENTER)
   {
-    sync_objects(b_depsgraph, b_v3d);
+    sync_objects(b_depsgraph, b_screen, b_v3d);
   }
-  sync_motion(b_render, b_depsgraph, b_v3d, b_rv3d, width, height, python_thread_state);
+  sync_motion(b_render, b_depsgraph, b_screen, b_v3d, b_rv3d, width, height, python_thread_state);
 
   geometry_synced.clear();
 
@@ -330,11 +344,12 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
 /* Integrator */
 
-void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
+void BlenderSync::sync_integrator(blender::ViewLayer &b_view_layer,
                                   bool background,
                                   const DeviceInfo &denoise_device_info)
 {
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
 
   /* No adaptive subdivision for baking, mesh needs to match Blender exactly. */
   use_adaptive_subdivision = !b_bake_target;
@@ -363,13 +378,12 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
 
   int seed = get_int(cscene, "seed");
   if (get_boolean(cscene, "use_animated_seed")) {
-    seed = hash_uint2(b_scene.frame_current(), get_int(cscene, "seed"));
-    if (b_scene.frame_subframe() != 0.0f) {
+    seed = hash_uint2(b_scene->r.cfra, get_int(cscene, "seed"));
+    if (b_scene->r.subframe != 0.0f) {
       /* TODO(sergey): Ideally should be some sort of hash_merge,
        * but this is good enough for now.
        */
-      seed += hash_uint2((int)(b_scene.frame_subframe() * (float)INT_MAX),
-                         get_int(cscene, "seed"));
+      seed += hash_uint2((int)(b_scene->r.subframe * (float)INT_MAX), get_int(cscene, "seed"));
     }
   }
 
@@ -416,8 +430,8 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
       break;
   }
 
-  const bool is_vertex_baking = b_bake_target && b_scene.render().bake().target() !=
-                                                     BL::BakeSettings::target_IMAGE_TEXTURES;
+  const bool is_vertex_baking = b_bake_target &&
+                                b_scene->r.bake.target != blender::R_BAKE_TARGET_IMAGE_TEXTURES;
   scene->bake_manager->set_use_seed(is_vertex_baking);
   if (is_vertex_baking) {
     /* When baking vertex colors, the "pixels" in the output are unrelated to their neighbors,
@@ -519,7 +533,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   }
 
   DenoiseParams denoise_params = get_denoise_params(
-      b_scene, b_view_layer, background, denoise_device_info);
+      *b_scene, &b_view_layer, background, denoise_device_info);
 
   /* No denoising support for vertex color baking, vertices packed into image
    * buffer have no relation to neighbors. */
@@ -549,15 +563,20 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
 
 /* Film */
 
-void BlenderSync::sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d)
+void BlenderSync::sync_film(blender::ViewLayer &b_view_layer,
+                            blender::bScreen *b_screen,
+                            blender::View3D *b_v3d)
 {
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-  PointerRNA crl = RNA_pointer_get(&b_view_layer.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
+  blender::PointerRNA view_layer_rna_ptr = RNA_pointer_create_id_subdata(
+      b_scene->id, &blender::RNA_ViewLayer, &b_view_layer);
+  blender::PointerRNA crl = RNA_pointer_get(&view_layer_rna_ptr, "cycles");
 
   Film *film = scene->film;
 
   if (b_v3d) {
-    const BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
+    const BlenderViewportParameters new_viewport_parameters(b_screen, b_v3d, use_developer_ui);
     film->set_display_pass(new_viewport_parameters.display_pass);
     film->set_show_active_pixels(new_viewport_parameters.show_active_pixels);
   }
@@ -570,20 +589,18 @@ void BlenderSync::sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d)
                                  get_float(cscene, "filter_width");
   film->set_filter_width(filter_width);
 
-  if (b_scene.world()) {
-    BL::WorldMistSettings b_mist = b_scene.world().mist_settings();
+  if (b_scene->world) {
+    film->set_mist_start(b_scene->world->miststa);
+    film->set_mist_depth(b_scene->world->mistdist);
 
-    film->set_mist_start(b_mist.start());
-    film->set_mist_depth(b_mist.depth());
-
-    switch (b_mist.falloff()) {
-      case BL::WorldMistSettings::falloff_QUADRATIC:
+    switch (b_scene->world->mistype) {
+      case blender::WO_MIST_QUADRATIC:
         film->set_mist_falloff(2.0f);
         break;
-      case BL::WorldMistSettings::falloff_LINEAR:
+      case blender::WO_MIST_LINEAR:
         film->set_mist_falloff(1.0f);
         break;
-      case BL::WorldMistSettings::falloff_INVERSE_QUADRATIC:
+      case blender::WO_MIST_INVERSE_QUADRATIC:
         film->set_mist_falloff(0.5f);
         break;
     }
@@ -601,35 +618,44 @@ void BlenderSync::sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d)
 
 /* Render Layer */
 
-void BlenderSync::sync_view_layer(BL::ViewLayer &b_view_layer)
+void BlenderSync::sync_view_layer(blender::ViewLayer &b_view_layer)
 {
-  view_layer.name = b_view_layer.name();
+  view_layer.name = b_view_layer.name;
 
   /* Filter. */
-  view_layer.use_background_shader = b_view_layer.use_sky();
+  view_layer.use_background_shader = (b_view_layer.layflag & blender::SCE_LAY_SKY) != 0;
   /* Always enable surfaces for baking, otherwise there is nothing to bake to. */
-  view_layer.use_surfaces = b_view_layer.use_solid() || b_bake_target;
-  view_layer.use_hair = b_view_layer.use_strand();
-  view_layer.use_volumes = b_view_layer.use_volumes();
-  view_layer.use_motion_blur = b_view_layer.use_motion_blur() &&
-                               b_scene.render().use_motion_blur();
+  view_layer.use_surfaces = (b_view_layer.layflag & blender::SCE_LAY_SOLID) != 0 || b_bake_target;
+  view_layer.use_hair = (b_view_layer.layflag & blender::SCE_LAY_STRAND) != 0;
+  view_layer.use_volumes = (b_view_layer.layflag & blender::SCE_LAY_VOLUMES) != 0;
+  view_layer.use_motion_blur = (b_view_layer.layflag & blender::SCE_LAY_MOTION_BLUR) != 0 &&
+                               (b_scene->r.mode & blender::R_MBLUR) != 0;
 
   /* Material override. */
-  view_layer.material_override = b_view_layer.material_override();
+  view_layer.material_override = b_view_layer.mat_override;
   /* World override. */
-  view_layer.world_override = b_view_layer.world_override();
+  view_layer.world_override = b_view_layer.world_override;
 
   /* Sample override. */
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   const int use_layer_samples = get_enum(cscene, "use_layer_samples");
 
   view_layer.bound_samples = (use_layer_samples == 1);
   view_layer.samples = 0;
 
   if (use_layer_samples != 2) {
-    const int samples = b_view_layer.samples();
+    const int samples = b_view_layer.samples;
     view_layer.samples = samples;
   }
+}
+
+static blender::RenderData *engine_render_get(blender::RenderEngine *engine)
+{
+  if (engine->re) {
+    return RE_engine_get_render_data(engine->re);
+  }
+  return nullptr;
 }
 
 /* Images */
@@ -637,7 +663,8 @@ void BlenderSync::sync_images()
 {
   /* Sync is a convention for this API, but currently it frees unused buffers. */
 
-  const bool is_interface_locked = b_engine.render() && b_engine.render().use_lock_interface();
+  const bool is_interface_locked = engine_render_get(b_engine) &&
+                                   engine_render_get(b_engine)->use_lock_interface;
   if (is_interface_locked == false && BlenderSession::headless == false) {
     /* If interface is not locked, it's possible image is needed for
      * the display.
@@ -645,10 +672,10 @@ void BlenderSync::sync_images()
     return;
   }
   /* Free buffers used by images which are not needed for render. */
-  for (BL::Image &b_image : b_data.images) {
-    const bool is_builtin = image_is_builtin(b_image, b_engine);
+  for (blender::Image &b_image : b_data->images) {
+    const bool is_builtin = image_is_builtin(b_image, *b_engine);
     if (is_builtin == false) {
-      b_image.buffers_free();
+      BKE_image_free_buffers_ex(&b_image, true);
     }
     /* TODO(sergey): Free builtin images not used by any shader. */
   }
@@ -656,9 +683,9 @@ void BlenderSync::sync_images()
 
 /* Passes */
 
-static bool get_known_pass_type(BL::RenderPass &b_pass, PassType &type, PassMode &mode)
+static bool get_known_pass_type(blender::RenderPass &b_pass, PassType &type, PassMode &mode)
 {
-  const string name = b_pass.name();
+  const string name = b_pass.name;
 #define MAP_PASS(passname, passtype, noisy) \
   if (name == passname) { \
     type = passtype; \
@@ -746,7 +773,8 @@ static Pass *pass_add(Scene *scene,
   return pass;
 }
 
-void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_view_layer)
+void BlenderSync::sync_render_passes(blender::RenderLayer &b_rlay,
+                                     blender::ViewLayer &b_view_layer)
 {
   /* Delete all existing passes. */
   const vector<Pass *> &scene_passes = scene->passes;
@@ -755,18 +783,18 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   /* Always add combined pass. */
   pass_add(scene, PASS_COMBINED, "Combined");
 
-  /* Cryptomatte stores two ID/weight pairs per RGBA layer.
+  /* Cryptomatte stores two blender::ID/weight pairs per RGBA layer.
    * User facing parameter is the number of pairs. */
-  const int crypto_depth = divide_up(min(16, b_view_layer.pass_cryptomatte_depth()), 2);
+  const int crypto_depth = divide_up(min(16, b_view_layer.cryptomatte_levels), 2);
   scene->film->set_cryptomatte_depth(crypto_depth);
   CryptomatteType cryptomatte_passes = CRYPT_NONE;
-  if (b_view_layer.use_pass_cryptomatte_object()) {
+  if ((b_view_layer.cryptomatte_flag & blender::VIEW_LAYER_CRYPTOMATTE_OBJECT) != 0) {
     cryptomatte_passes = (CryptomatteType)(cryptomatte_passes | CRYPT_OBJECT);
   }
-  if (b_view_layer.use_pass_cryptomatte_material()) {
+  if ((b_view_layer.cryptomatte_flag & blender::VIEW_LAYER_CRYPTOMATTE_MATERIAL) != 0) {
     cryptomatte_passes = (CryptomatteType)(cryptomatte_passes | CRYPT_MATERIAL);
   }
-  if (b_view_layer.use_pass_cryptomatte_asset()) {
+  if ((b_view_layer.cryptomatte_flag & blender::VIEW_LAYER_CRYPTOMATTE_ASSET) != 0) {
     cryptomatte_passes = (CryptomatteType)(cryptomatte_passes | CRYPT_ASSET);
   }
   scene->film->set_cryptomatte_passes(cryptomatte_passes);
@@ -774,68 +802,63 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   unordered_set<string> expected_passes;
 
   /* Custom AOV passes. */
-  BL::ViewLayer::aovs_iterator b_aov_iter;
-  for (b_view_layer.aovs.begin(b_aov_iter); b_aov_iter != b_view_layer.aovs.end(); ++b_aov_iter) {
-    BL::AOV b_aov(*b_aov_iter);
-    if (!b_aov.is_valid()) {
+  for (blender::ViewLayerAOV &b_aov : b_view_layer.aovs) {
+    if ((b_aov.flag & blender::AOV_CONFLICT) != 0) {
       continue;
     }
 
-    const string name = b_aov.name();
-    const PassType type = (b_aov.type() == BL::AOV::type_COLOR) ? PASS_AOV_COLOR : PASS_AOV_VALUE;
+    const string name = b_aov.name;
+    const PassType type = (b_aov.type == blender::AOV_TYPE_COLOR) ? PASS_AOV_COLOR :
+                                                                    PASS_AOV_VALUE;
 
     pass_add(scene, type, name.c_str());
     expected_passes.insert(name);
   }
 
   /* Light Group passes. */
-  BL::ViewLayer::lightgroups_iterator b_lightgroup_iter;
-  for (b_view_layer.lightgroups.begin(b_lightgroup_iter);
-       b_lightgroup_iter != b_view_layer.lightgroups.end();
-       ++b_lightgroup_iter)
-  {
-    BL::Lightgroup b_lightgroup(*b_lightgroup_iter);
-
-    const string name = string_printf("Combined_%s", b_lightgroup.name().c_str());
+  for (blender::ViewLayerLightgroup &b_lightgroup : b_view_layer.lightgroups) {
+    const string name = string_printf("Combined_%s", b_lightgroup.name);
 
     Pass *pass = pass_add(scene, PASS_COMBINED, name.c_str(), PassMode::NOISY);
-    pass->set_lightgroup(ustring(b_lightgroup.name()));
+    pass->set_lightgroup(ustring(b_lightgroup.name));
     expected_passes.insert(name);
   }
 
   /* Sync the passes that were defined in engine.py. */
-  for (BL::RenderPass &b_pass : b_rlay.passes) {
+  for (blender::RenderPass &b_pass : b_rlay.passes) {
     PassType pass_type = PASS_NONE;
     PassMode pass_mode = PassMode::DENOISED;
 
     if (!get_known_pass_type(b_pass, pass_type, pass_mode)) {
-      if (!expected_passes.count(b_pass.name())) {
-        LOG_ERROR << "Unknown pass " << b_pass.name();
+      if (!expected_passes.count(b_pass.name)) {
+        LOG_ERROR << "Unknown pass " << b_pass.name;
       }
       continue;
     }
 
-    if (pass_type == PASS_MOTION &&
-        (b_view_layer.use_motion_blur() && b_scene.render().use_motion_blur()))
+    if (pass_type == PASS_MOTION && ((b_view_layer.layflag & blender::SCE_LAY_MOTION_BLUR) != 0 &&
+                                     (b_scene->r.mode & blender::R_MBLUR) != 0))
     {
       continue;
     }
 
-    pass_add(scene, pass_type, b_pass.name().c_str(), pass_mode);
+    pass_add(scene, pass_type, b_pass.name, pass_mode);
   }
 
-  scene->film->set_pass_alpha_threshold(b_view_layer.pass_alpha_threshold());
+  scene->film->set_pass_alpha_threshold(b_view_layer.pass_alpha_threshold);
 }
 
-void BlenderSync::free_data_after_sync(BL::Depsgraph &b_depsgraph)
+void BlenderSync::free_data_after_sync(blender::Depsgraph &b_depsgraph)
 {
   /* When viewport display is not needed during render we can force some
    * caches to be releases from blender side in order to reduce peak memory
    * footprint during synchronization process.
    */
 
-  const bool is_interface_locked = b_engine.render() && b_engine.render().use_lock_interface();
-  const bool is_persistent_data = b_engine.render() && b_engine.render().use_persistent_data();
+  const bool is_interface_locked = engine_render_get(b_engine) &&
+                                   engine_render_get(b_engine)->use_lock_interface;
+  const bool is_persistent_data = engine_render_get(b_engine) &&
+                                  engine_render_get(b_engine)->mode & blender::R_PERSISTENT_DATA;
   const bool can_free_caches =
       (BlenderSession::headless || is_interface_locked) &&
       /* Baking re-uses the depsgraph multiple times, clearing crashes
@@ -848,27 +871,47 @@ void BlenderSync::free_data_after_sync(BL::Depsgraph &b_depsgraph)
   if (!can_free_caches) {
     return;
   }
+
   /* TODO(sergey): We can actually remove the whole dependency graph,
    * but that will need some API support first.
    */
-  for (BL::Object &b_ob : b_depsgraph.objects) {
+
+  blender::DEGObjectIterSettings deg_iter_settings{};
+  deg_iter_settings.depsgraph = &b_depsgraph;
+  deg_iter_settings.flags = blender::DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            blender::DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            blender::DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+  blender::DEGObjectIterData deg_iter_data{};
+  deg_iter_data.settings = &deg_iter_settings;
+  deg_iter_data.graph = deg_iter_settings.depsgraph;
+  deg_iter_data.flag = deg_iter_settings.flags;
+
+  ITER_BEGIN (blender::DEG_iterator_objects_begin,
+              blender::DEG_iterator_objects_next,
+              blender::DEG_iterator_objects_end,
+              &deg_iter_data,
+              blender::Object *,
+              b_ob)
+  {
     /* Grease pencil render requires all evaluated objects available as-is after Cycles is done
      * with its part. */
-    if (b_ob.type() == BL::Object::type_GREASEPENCIL) {
+    if (b_ob->type == blender::OB_GREASE_PENCIL) {
       continue;
     }
-    b_ob.cache_release();
+    BKE_object_free_caches(b_ob);
   }
+  ITER_END;
 }
 
 /* Scene Parameters */
 
-SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene,
+SceneParams BlenderSync::get_scene_params(blender::Scene &b_scene,
                                           const bool background,
                                           const bool use_developer_ui)
 {
   SceneParams params;
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   const bool shadingsystem = RNA_boolean_get(&cscene, "shading_system");
 
   if (shadingsystem == 0) {
@@ -890,7 +933,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene,
   params.use_bvh_unaligned_nodes = RNA_boolean_get(&cscene, "debug_use_hair_bvh");
   params.num_bvh_time_steps = RNA_int_get(&cscene, "debug_bvh_time_steps");
 
-  PointerRNA csscene = RNA_pointer_get(&b_scene.ptr, "cycles_curves");
+  blender::PointerRNA csscene = RNA_pointer_get(&scene_rna_ptr, "cycles_curves");
   params.hair_subdivisions = get_int(csscene, "subdivisions");
   params.hair_shape = (CurveShapeType)get_enum(
       csscene, "shape", CURVE_NUM_SHAPE_TYPES, CURVE_THICK);
@@ -902,7 +945,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene,
   else {
     texture_limit = RNA_enum_get(&cscene, "texture_limit");
   }
-  if (texture_limit > 0 && b_scene.render().use_simplify()) {
+  if (texture_limit > 0 && (b_scene.r.mode & blender::R_SIMPLIFY) != 0) {
     params.texture_limit = 1 << (texture_limit + 6);
   }
   else {
@@ -918,26 +961,28 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene,
 
 /* Session Parameters */
 
-bool BlenderSync::get_session_pause(BL::Scene &b_scene, bool background)
+bool BlenderSync::get_session_pause(blender::Scene &b_scene, bool background)
 {
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   return (background) ? false : get_boolean(cscene, "preview_pause");
 }
 
-SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
-                                              BL::Preferences &b_preferences,
-                                              BL::Scene &b_scene,
+SessionParams BlenderSync::get_session_params(blender::RenderEngine &b_engine,
+                                              blender::UserDef &b_preferences,
+                                              blender::Scene &b_scene,
                                               bool background)
 {
   SessionParams params;
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
 
-  if (background && !b_engine.is_preview()) {
+  if (background && (b_engine.flag & blender::RE_ENGINE_PREVIEW) == 0) {
     /* Viewport and preview renders do not require temp directory and do request session
      * parameters more often than the background render.
-     * Optimize RNA-C++ usage and memory allocation a bit by saving string access which we know is
-     * not needed for viewport render. */
-    params.temp_dir = b_engine.temporary_directory();
+     * Optimize RNA-C++ usage and memory allocation a bit by saving string access which we know
+     * is not needed for viewport render. */
+    params.temp_dir = blender::BKE_tempdir_session();
   }
 
   /* Headless and background rendering. */
@@ -946,8 +991,11 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
 
   /* Device */
   params.threads = blender_device_threads(b_scene);
-  params.device = blender_device_info(
-      b_preferences, b_scene, params.background, b_engine.is_preview(), params.denoise_device);
+  params.device = blender_device_info(b_preferences,
+                                      b_scene,
+                                      params.background,
+                                      (b_engine.flag & blender::RE_ENGINE_PREVIEW) != 0,
+                                      params.denoise_device);
 
   /* samples */
   const int samples = get_int(cscene, "samples");
@@ -974,7 +1022,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   }
 
   /* Viewport Performance */
-  params.pixel_size = b_engine.get_preview_pixel_size(b_scene);
+  params.pixel_size = BKE_render_preview_pixel_size(&b_scene.r);
 
   if (background) {
     params.pixel_size = 1;
@@ -995,15 +1043,16 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
     params.time_limit = (double)get_float(cscene, "time_limit");
   }
   else {
-    /* For the viewport it kind of makes more sense to think in terms of the noise floor, which is
-     * usually higher than acceptable level for the final frame. */
+    /* For the viewport it kind of makes more sense to think in terms of the noise floor, which
+     * is usually higher than acceptable level for the final frame. */
     /* TODO: It might be useful to support time limit in the viewport as well, but needs some
      * extra thoughts and input. */
     params.time_limit = 0.0;
   }
 
   /* Profiling. */
-  params.use_profiling = params.device.has_profiling && !b_engine.is_preview() && background &&
+  params.use_profiling = params.device.has_profiling &&
+                         (b_engine.flag & blender::RE_ENGINE_PREVIEW) == 0 && background &&
                          BlenderSession::print_render_stats;
 
   if (background) {
@@ -1017,8 +1066,8 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   return params;
 }
 
-DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
-                                              BL::ViewLayer &b_view_layer,
+DenoiseParams BlenderSync::get_denoise_params(blender::Scene &b_scene,
+                                              blender::ViewLayer *b_view_layer,
                                               bool background,
                                               const DeviceInfo &denoise_device_info)
 {
@@ -1031,7 +1080,8 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
   };
 
   DenoiseParams denoising;
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
 
   int input_passes = -1;
 
@@ -1049,7 +1099,9 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
         cscene, "denoising_input_passes", DENOISER_INPUT_NUM, DENOISER_INPUT_RGB_ALBEDO_NORMAL);
 
     if (b_view_layer) {
-      PointerRNA clayer = RNA_pointer_get(&b_view_layer.ptr, "cycles");
+      blender::PointerRNA view_layer_rna_ptr = RNA_pointer_create_id_subdata(
+          b_scene.id, &blender::RNA_ViewLayer, b_view_layer);
+      blender::PointerRNA clayer = RNA_pointer_get(&view_layer_rna_ptr, "cycles");
       if (!get_boolean(clayer, "use_denoising")) {
         denoising.use = false;
       }

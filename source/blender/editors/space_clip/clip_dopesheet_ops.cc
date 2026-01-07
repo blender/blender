@@ -26,6 +26,8 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 static bool space_clip_dopesheet_poll(bContext *C)
 {
   if (ED_space_clip_tracking_poll(C)) {
@@ -69,8 +71,8 @@ static wmOperatorStatus dopesheet_select_channel_exec(bContext *C, wmOperator *o
   RNA_float_get_array(op->ptr, "location", location);
   channel_index = -(location[1] - (CHANNEL_FIRST + CHANNEL_HEIGHT_HALF)) / CHANNEL_STEP;
 
-  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
-    MovieTrackingTrack *track = channel->track;
+  for (MovieTrackingDopesheetChannel &channel : dopesheet->channels) {
+    MovieTrackingTrack *track = channel.track;
 
     if (current_channel_index == channel_index) {
       if (extend) {
@@ -107,7 +109,7 @@ static wmOperatorStatus dopesheet_select_channel_invoke(bContext *C,
   ARegion *region = CTX_wm_region(C);
   float location[2];
 
-  UI_view2d_region_to_view(
+  ui::view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
   RNA_float_set_array(op->ptr, "location", location);
 
@@ -159,10 +161,10 @@ static wmOperatorStatus dopesheet_view_all_exec(bContext *C, wmOperator * /*op*/
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
   int frame_min = INT_MAX, frame_max = INT_MIN;
 
-  LISTBASE_FOREACH (MovieTrackingDopesheetChannel *, channel, &dopesheet->channels) {
-    if (channel->segments) {
-      frame_min = min_ii(frame_min, channel->segments[0]);
-      frame_max = max_ii(frame_max, channel->segments[channel->tot_segment]);
+  for (MovieTrackingDopesheetChannel &channel : dopesheet->channels) {
+    if (channel.segments) {
+      frame_min = min_ii(frame_min, channel.segments[0]);
+      frame_max = max_ii(frame_max, channel.segments[channel.tot_segment]);
     }
   }
 
@@ -197,3 +199,5 @@ void CLIP_OT_dopesheet_view_all(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

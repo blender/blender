@@ -13,11 +13,13 @@
 
 #include "DNA_node_types.h"
 
-namespace blender::dot_export {
+namespace blender {
+
+namespace dot_export {
 class DirectedEdge;
 }
 
-namespace blender::bke {
+namespace bke {
 
 /**
  * Allows customizing how the generated dot graph looks like.
@@ -37,4 +39,5 @@ class bNodeTreeToDotOptions {
 std::string node_tree_to_dot(const bNodeTree &tree,
                              const bNodeTreeToDotOptions &options = bNodeTreeToDotOptions());
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

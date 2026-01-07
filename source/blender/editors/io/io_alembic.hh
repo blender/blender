@@ -8,11 +8,15 @@
  * \ingroup editor/io
  */
 
+namespace blender {
+
 struct wmOperatorType;
 
 void WM_OT_alembic_export(wmOperatorType *ot);
 void WM_OT_alembic_import(wmOperatorType *ot);
 
-namespace blender::ed::io {
+namespace ed::io {
 void alembic_file_handler_add();
 }
+
+}  // namespace blender

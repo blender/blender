@@ -91,7 +91,7 @@ void deg_graph_remove_unused_noops(Depsgraph *graph)
     relation->unlink();
   }
 
-  DEG_DEBUG_PRINTF((::Depsgraph *)graph,
+  DEG_DEBUG_PRINTF((blender::Depsgraph *)graph,
                    BUILD,
                    "Removed %d relations to no-op nodes\n",
                    int(relations_to_remove.size()));

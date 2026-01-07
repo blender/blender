@@ -15,6 +15,9 @@
 #include "../generic/py_capi_utils.hh"
 
 /* #include "IMB_imbuf_types.hh" */
+
+namespace blender {
+
 extern const char *imb_ext_image[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
@@ -44,3 +47,5 @@ PyObject *BPyInit__bpy_path()
 
   return submodule;
 }
+
+}  // namespace blender

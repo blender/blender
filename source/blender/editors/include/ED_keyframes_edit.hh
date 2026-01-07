@@ -15,6 +15,9 @@
 #include "ED_anim_api.hh" /* for enum eAnimFilter_Flags */
 
 #include "DNA_curve_types.h"
+#include "DNA_listBase.h"
+
+namespace blender {
 
 struct BezTriple;
 struct ButterworthCoefficients;
@@ -105,7 +108,7 @@ enum eEditKeyframes_Mirror {
 struct KeyframeEdit_LassoData {
   rctf *rectf_scaled;
   const rctf *rectf_view;
-  blender::Array<blender::int2> mcoords;
+  Array<int2> mcoords;
 };
 
 /* use with BEZT_OK_REGION_CIRCLE */
@@ -185,7 +188,8 @@ struct CfraElem {
 struct KeyframeEditData {
   /* generic properties/data access */
   /** temp list for storing custom list of data to check */
-  ListBase list;
+  ListBaseT<CfraElem> cfra_elem_list;
+  ListBaseT<TimeMarker> time_marker_list;
   /** pointer to current scene - many tools need access to cfra/etc. */
   Scene *scene;
   /** pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
@@ -431,7 +435,7 @@ struct FCurveSegment {
  * Keys that have BEZT_FLAG_IGNORE_TAG set are treated as unselected.
  * The caller is responsible for freeing the memory.
  */
-ListBase find_fcurve_segments(FCurve *fcu);
+ListBaseT<FCurveSegment> find_fcurve_segments(FCurve *fcu);
 void clean_fcurve(bAnimListElem *ale, float thresh, bool cleardefault, bool only_selected_keys);
 void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
@@ -531,7 +535,7 @@ void ANIM_fcurves_copybuf_free();
  *
  * \returns Whether anything was copied into the buffer.
  */
-bool copy_animedit_keys(bAnimContext *ac, ListBase *anim_data);
+bool copy_animedit_keys(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data);
 
 struct KeyframePasteContext {
   eKeyPasteOffset offset_mode;
@@ -544,9 +548,11 @@ struct KeyframePasteContext {
 };
 
 eKeyPasteError paste_animedit_keys(bAnimContext *ac,
-                                   ListBase *anim_data,
+                                   ListBaseT<bAnimListElem> *anim_data,
                                    const KeyframePasteContext &paste_context);
 
 /* ************************************************ */
 
 /** \} */
+
+}  // namespace blender

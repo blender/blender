@@ -18,8 +18,6 @@
 #include "overlay_shader_shared.hh"
 
 namespace blender::draw::overlay {
-using namespace blender;
-
 enum eArmatureDrawMode {
   ARM_DRAW_MODE_OBJECT,
   ARM_DRAW_MODE_POSE,

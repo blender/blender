@@ -313,7 +313,7 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
 {
   PointerRNA idpoin = RNA_id_pointer_create(&override_data.id);
 
-  ListBase path_elems = {nullptr};
+  ListBaseT<PropertyElemRNA> path_elems = {nullptr};
   if (!RNA_path_resolve_elements(&idpoin, override_data.override_property.rna_path, &path_elems)) {
     return;
   }
@@ -322,32 +322,32 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
   TreeElement *te_to_expand = &parent;
   char name_buf[128], *name;
 
-  LISTBASE_FOREACH (PropertyElemRNA *, elem, &path_elems) {
-    if (!elem->next) {
+  for (PropertyElemRNA &elem : path_elems) {
+    if (!elem.next) {
       /* The last element is added as #TSE_LIBRARY_OVERRIDE below. */
       break;
     }
     const char *previous_path = elem_path;
-    const char *new_path = RNA_path_append(previous_path, &elem->ptr, elem->prop, -1, nullptr);
+    const char *new_path = RNA_path_append(previous_path, &elem.ptr, elem.prop, -1, nullptr);
 
     te_to_expand = &ensure_label_element_for_prop(
-        *te_to_expand, new_path, elem->ptr, *elem->prop, index);
+        *te_to_expand, new_path, elem.ptr, *elem.prop, index);
 
     /* Above the collection property was added (e.g. "Modifiers"), to get the actual collection
      * item the path refers to, we have to peek at the following path element and add a tree
      * element for its pointer (e.g. "My Subdiv Modifier"). */
-    if (RNA_property_type(elem->prop) == PROP_COLLECTION) {
+    if (RNA_property_type(elem.prop) == PROP_COLLECTION) {
       const int coll_item_idx = RNA_property_collection_lookup_index(
-          &elem->ptr, elem->prop, &elem->next->ptr);
-      name = RNA_struct_name_get_alloc(&elem->next->ptr, name_buf, sizeof(name_buf), nullptr);
+          &elem.ptr, elem.prop, &elem.next->ptr);
+      name = RNA_struct_name_get_alloc(&elem.next->ptr, name_buf, sizeof(name_buf), nullptr);
       const char *coll_item_path = RNA_path_append(
-          previous_path, &elem->ptr, elem->prop, coll_item_idx, name);
+          previous_path, &elem.ptr, elem.prop, coll_item_idx, name);
       if (name && (name != name_buf)) {
         MEM_freeN(name);
       }
 
       te_to_expand = &ensure_label_element_for_ptr(
-          *te_to_expand, coll_item_path, elem->next->ptr, index);
+          *te_to_expand, coll_item_path, elem.next->ptr, index);
 
       MEM_delete(new_path);
       new_path = coll_item_path;
@@ -358,8 +358,8 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
       elem_path = new_path;
     }
   }
-  LISTBASE_FOREACH_MUTABLE (PropertyElemRNA *, elem, &path_elems) {
-    MEM_delete(elem);
+  for (PropertyElemRNA &elem : path_elems.items_mutable()) {
+    MEM_delete(&elem);
   }
   BLI_listbase_clear(&path_elems);
 

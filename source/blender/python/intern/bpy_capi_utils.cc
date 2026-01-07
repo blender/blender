@@ -19,6 +19,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool clear)
 {
   char *report_str;
@@ -135,3 +137,5 @@ bool BPy_errors_to_report(ReportList *reports)
 {
   return BPy_errors_to_report_ex(reports, nullptr, true, true);
 }
+
+}  // namespace blender

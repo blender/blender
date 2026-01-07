@@ -22,10 +22,10 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
+namespace blender {
 struct MTex;
 struct bNodeTree;
-}
+}  // namespace blender
 
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18
@@ -497,11 +497,11 @@ class Stroke : public Interface1D {
   }
 
   /** The different blending modes available to simulate the interaction media-medium. */
-  typedef enum {
+  enum MediumType {
     DRY_MEDIUM,    /**< To simulate a dry medium such as Pencil or Charcoal. */
     HUMID_MEDIUM,  /**< To simulate ink painting (color subtraction blending). */
     OPAQUE_MEDIUM, /**< To simulate an opaque medium (oil, spray...). */
-  } MediumType;
+  };
 
  public:
   typedef std::deque<StrokeVertex *> vertex_container;  // the vertices container
@@ -524,8 +524,8 @@ class Stroke : public Interface1D {
   // StrokeRenderer *_renderer; // mark implementation OpenGL renderer
   MediumType _mediumType;
   uint _textureId;
-  MTex *_mtex[MAX_MTEX];
-  bNodeTree *_nodeTree;
+  blender::MTex *_mtex[MAX_MTEX];
+  blender::bNodeTree *_nodeTree;
   bool _tips;
   StrokeRep *_rep;
   Vec2r _extremityOrientations[2];  // the orientations of the first and last extremity
@@ -639,13 +639,13 @@ class Stroke : public Interface1D {
   }
 
   /** Returns the texture used at given index to simulate the marks system for this Stroke */
-  inline MTex *getMTex(int idx)
+  inline blender::MTex *getMTex(int idx)
   {
     return _mtex[idx];
   }
 
   /** Return the shader node tree to define textures. */
-  inline bNodeTree *getNodeTree()
+  inline blender::bNodeTree *getNodeTree()
   {
     return _nodeTree;
   }
@@ -752,7 +752,7 @@ class Stroke : public Interface1D {
   }
 
   /** assigns a blender texture to the first available slot. */
-  inline int setMTex(MTex *mtex)
+  inline int setMTex(blender::MTex *mtex)
   {
     for (int a = 0; a < MAX_MTEX; a++) {
       if (!_mtex[a]) {
@@ -764,7 +764,7 @@ class Stroke : public Interface1D {
   }
 
   /** assigns a node tree (of new shading nodes) to define textures. */
-  inline void setNodeTree(bNodeTree *iNodeTree)
+  inline void setNodeTree(blender::bNodeTree *iNodeTree)
   {
     _nodeTree = iNodeTree;
   }

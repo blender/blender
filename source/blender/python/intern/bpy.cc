@@ -61,6 +61,8 @@
 #  include "BPy_Freestyle.h"
 #endif
 
+namespace blender {
+
 PyObject *bpy_package_py = nullptr;
 
 PyDoc_STRVAR(
@@ -108,7 +110,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg absolute: When true the paths returned are made absolute.\n"
     "   :type absolute: bool\n"
-    "   :arg packed: When true skip file paths for packed data.\n"
+    "   :arg packed: When true include file paths for packed data.\n"
     "   :type packed: bool\n"
     "   :arg local: When true skip linked library paths.\n"
     "   :type local: bool\n"
@@ -324,7 +326,7 @@ PyDoc_STRVAR(
     "   :arg major: major version, defaults to current.\n"
     "   :type major: int\n"
     "   :arg minor: minor version, defaults to current.\n"
-    "   :type minor: str\n"
+    "   :type minor: int\n"
     "   :return: the resource path (not necessarily existing).\n"
     "   :rtype: str\n");
 static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -657,39 +659,60 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
 #endif
 
 static PyMethodDef bpy_methods[] = {
-    {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc},
+    {"script_paths",
+     reinterpret_cast<PyCFunction>(bpy_script_paths),
+     METH_NOARGS,
+     bpy_script_paths_doc},
     {"blend_paths",
-     (PyCFunction)bpy_blend_paths,
+     reinterpret_cast<PyCFunction>(bpy_blend_paths),
      METH_VARARGS | METH_KEYWORDS,
      bpy_blend_paths_doc},
-    {"flip_name", (PyCFunction)bpy_flip_name, METH_VARARGS | METH_KEYWORDS, bpy_flip_name_doc},
-    {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"flip_name",
+     reinterpret_cast<PyCFunction>(bpy_flip_name),
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_flip_name_doc},
+    {"user_resource",
+     reinterpret_cast<PyCFunction>(bpy_user_resource),
+     METH_VARARGS | METH_KEYWORDS,
+     nullptr},
     {"system_resource",
-     (PyCFunction)bpy_system_resource,
+     reinterpret_cast<PyCFunction>(bpy_system_resource),
      METH_VARARGS | METH_KEYWORDS,
      bpy_system_resource_doc},
     {"resource_path",
-     (PyCFunction)bpy_resource_path,
+     reinterpret_cast<PyCFunction>(bpy_resource_path),
      METH_VARARGS | METH_KEYWORDS,
      bpy_resource_path_doc},
-    {"escape_identifier", (PyCFunction)bpy_escape_identifier, METH_O, bpy_escape_identifier_doc},
+    {"escape_identifier",
+     static_cast<PyCFunction>(bpy_escape_identifier),
+     METH_O,
+     bpy_escape_identifier_doc},
     {"unescape_identifier",
-     (PyCFunction)bpy_unescape_identifier,
+     static_cast<PyCFunction>(bpy_unescape_identifier),
      METH_O,
      bpy_unescape_identifier_doc},
-    {"context_members", (PyCFunction)bpy_context_members, METH_NOARGS, bpy_context_members_doc},
+    {"context_members",
+     reinterpret_cast<PyCFunction>(bpy_context_members),
+     METH_NOARGS,
+     bpy_context_members_doc},
     {"rna_enum_items_static",
-     (PyCFunction)bpy_rna_enum_items_static,
+     reinterpret_cast<PyCFunction>(bpy_rna_enum_items_static),
      METH_NOARGS,
      bpy_rna_enum_items_static_doc},
 
     /* Private functions (not part of the public API and may be removed at any time). */
     {"_driver_secure_code_test",
-     (PyCFunction)bpy_driver_secure_code_test,
+     reinterpret_cast<PyCFunction>(bpy_driver_secure_code_test),
      METH_VARARGS | METH_KEYWORDS,
      bpy_driver_secure_code_test_doc},
-    {"_ghost_backend", (PyCFunction)bpy_ghost_backend, METH_NOARGS, bpy_ghost_backend_doc},
-    {"_wm_capabilities", (PyCFunction)bpy_wm_capabilities, METH_NOARGS, bpy_wm_capabilities_doc},
+    {"_ghost_backend",
+     reinterpret_cast<PyCFunction>(bpy_ghost_backend),
+     METH_NOARGS,
+     bpy_ghost_backend_doc},
+    {"_wm_capabilities",
+     reinterpret_cast<PyCFunction>(bpy_wm_capabilities),
+     METH_NOARGS,
+     bpy_wm_capabilities_doc},
 
     {nullptr, nullptr, 0, nullptr},
 };
@@ -784,8 +807,8 @@ void BPy_init_modules(bContext *C)
   PyModule_AddObject(mod, "msgbus", BPY_msgbus_module());
 
   PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
-  bpy_context_module = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
-  PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
+  bpy_context_module = reinterpret_cast<BPy_StructRNA *>(pyrna_struct_CreatePyObject(&ctx_ptr));
+  PyModule_AddObject(mod, "context", reinterpret_cast<PyObject *>(bpy_context_module));
 
   /* Register methods and property get/set for RNA types. */
   BPY_rna_types_extend_capi();
@@ -816,3 +839,5 @@ void BPy_init_modules(bContext *C)
   /* add our own modules dir, this is a python package */
   bpy_package_py = bpy_import_test("bpy");
 }
+
+}  // namespace blender

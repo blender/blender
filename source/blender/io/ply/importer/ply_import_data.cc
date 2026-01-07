@@ -18,6 +18,9 @@
 #include <charconv>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.ply"};
 
 static bool is_whitespace(char c)
@@ -74,30 +77,30 @@ static const char *parse_int(const char *p, const char *end, int fallback, int &
 static void endian_switch(uint8_t *ptr, int type_size)
 {
   if (type_size == 2) {
-    BLI_endian_switch_uint16((uint16_t *)ptr);
+    BLI_endian_switch_uint16(reinterpret_cast<uint16_t *>(ptr));
   }
   else if (type_size == 4) {
-    BLI_endian_switch_uint32((uint32_t *)ptr);
+    BLI_endian_switch_uint32(reinterpret_cast<uint32_t *>(ptr));
   }
   else if (type_size == 8) {
-    BLI_endian_switch_uint64((uint64_t *)ptr);
+    BLI_endian_switch_uint64(reinterpret_cast<uint64_t *>(ptr));
   }
 }
 
 static void endian_switch_array(uint8_t *ptr, int type_size, int size)
 {
   if (type_size == 2) {
-    BLI_endian_switch_uint16_array((uint16_t *)ptr, size);
+    BLI_endian_switch_uint16_array(reinterpret_cast<uint16_t *>(ptr), size);
   }
   else if (type_size == 4) {
-    BLI_endian_switch_uint32_array((uint32_t *)ptr, size);
+    BLI_endian_switch_uint32_array(reinterpret_cast<uint32_t *>(ptr), size);
   }
   else if (type_size == 8) {
-    BLI_endian_switch_uint64_array((uint64_t *)ptr, size);
+    BLI_endian_switch_uint64_array(reinterpret_cast<uint64_t *>(ptr), size);
   }
 }
 
-namespace blender::io::ply {
+namespace io::ply {
 
 static const int data_type_size[] = {0, 1, 1, 2, 2, 4, 4, 4, 8};
 static_assert(std::size(data_type_size) == PLY_TYPE_COUNT, "PLY data type size table mismatch");
@@ -156,35 +159,35 @@ template<typename T> static T get_binary_value(PlyDataTypes type, const uint8_t 
     case NONE:
       break;
     case CHAR:
-      val = *(int8_t *)r_ptr;
+      val = *reinterpret_cast<int8_t *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 1;
       break;
     case UCHAR:
-      val = *(uint8_t *)r_ptr;
+      val = *const_cast<uint8_t *>(r_ptr);
       r_ptr += 1;
       break;
     case SHORT:
-      val = *(int16_t *)r_ptr;
+      val = *reinterpret_cast<int16_t *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 2;
       break;
     case USHORT:
-      val = *(uint16_t *)r_ptr;
+      val = *reinterpret_cast<uint16_t *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 2;
       break;
     case INT:
-      val = *(int32_t *)r_ptr;
+      val = *reinterpret_cast<int32_t *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 4;
       break;
     case UINT:
-      val = *(int32_t *)r_ptr;
+      val = *reinterpret_cast<int32_t *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 4;
       break;
     case FLOAT:
-      val = *(float *)r_ptr;
+      val = *reinterpret_cast<float *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 4;
       break;
     case DOUBLE:
-      val = *(double *)r_ptr;
+      val = *reinterpret_cast<double *>(const_cast<uint8_t *>(r_ptr));
       r_ptr += 8;
       break;
     default:
@@ -221,7 +224,7 @@ static const char *parse_row_binary(PlyReadBuffer &file,
     /* Big endian: read, switch endian, convert the values. */
     for (int i = 0, n = int(element.properties.size()); i != n; i++) {
       const PlyProperty &prop = element.properties[i];
-      endian_switch((uint8_t *)ptr, data_type_size[prop.type]);
+      endian_switch(const_cast<uint8_t *>(ptr), data_type_size[prop.type]);
       float val = get_binary_value<float>(prop.type, ptr);
       r_values[i] = val;
     }
@@ -367,7 +370,7 @@ static uint32_t read_list_count(PlyReadBuffer &file,
   file.read_bytes(scratch.data(), data_type_size[prop.count_type]);
   const uint8_t *ptr = scratch.data();
   if (big_endian) {
-    endian_switch((uint8_t *)ptr, data_type_size[prop.count_type]);
+    endian_switch(const_cast<uint8_t *>(ptr), data_type_size[prop.count_type]);
   }
   uint32_t count = get_binary_value<uint32_t>(prop.count_type, ptr);
   return count;
@@ -485,7 +488,7 @@ static const char *load_face_element(PlyReadBuffer &file,
       else {
         ptr = scratch.data();
         if (header.type == PlyFormatType::BINARY_BE) {
-          endian_switch_array((uint8_t *)ptr, data_type_size[prop.type], count);
+          endian_switch_array(const_cast<uint8_t *>(ptr), data_type_size[prop.type], count);
         }
         for (int j = 0; j < count; ++j) {
           uint32_t index = get_binary_value<uint32_t>(prop.type, ptr);
@@ -549,7 +552,7 @@ static const char *load_tristrips_element(PlyReadBuffer &file,
     file.read_bytes(scratch.data(), scratch.size());
     ptr = scratch.data();
     if (header.type == PlyFormatType::BINARY_BE) {
-      endian_switch_array((uint8_t *)ptr, data_type_size[prop.type], count);
+      endian_switch_array(const_cast<uint8_t *>(ptr), data_type_size[prop.type], count);
     }
     for (int j = 0; j < count; ++j) {
       int index = get_binary_value<int>(prop.type, ptr);
@@ -680,4 +683,5 @@ std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
   return data;
 }
 
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

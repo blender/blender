@@ -12,6 +12,8 @@
 
 #include "gpu_shader_cxx_vector.hh"
 
+namespace blender {
+
 /* Some compilers complain about lack of return values. Keep it short. */
 #define RET \
   { \
@@ -233,3 +235,5 @@ void groupMemoryBarrier() {}
 /** \} */
 
 #undef RET
+
+}  // namespace blender

@@ -153,7 +153,7 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -283,7 +283,7 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
   MutableSpan<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -493,7 +493,7 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -605,7 +605,7 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
   MutableSpan<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();

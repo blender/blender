@@ -9,7 +9,7 @@
  *
  * Template for matrix types.
  *
- * The `blender::MatBase<T, NumCol, NumRow>` is a Row x Col matrix (in mathematical notation) laid
+ * The `MatBase<T, NumCol, NumRow>` is a Row x Col matrix (in mathematical notation) laid
  * out as column major in memory.
  *
  * This class overloads `+, -, *` and `+=, -=, *=` mathematical operators.
@@ -18,17 +18,17 @@
  * `Vector<R> * MatBase<C,R>` the vector product with the **transposed** matrix.
  * `MatBase<C,R> * MatBase<R,C>` and `MatBase<C,R> *= MatBase<R,C>` the matrix multiplication.
  *
- * The `blender::MatView` allows working on a subset of a matrix without having to move the data
+ * The `MatView` allows working on a subset of a matrix without having to move the data
  * around. It can be obtained using the `MatBase.view<NumCol, NumRow>()`. It is const by default if
- * the matrix type is. Otherwise, a `blender::MutableMatView` is returned.
+ * the matrix type is. Otherwise, a `MutableMatView` is returned.
  *
- * A `blender::MutableMatView`. It is mostly the same as `blender::MatView`, but can to be
+ * A `MutableMatView`. It is mostly the same as `MatView`, but can to be
  * modified.
  *
  * This allow working with any number type `T` (`float, double, mpq, ...`)
  * and to use these types in shared shader files (code compiled in both C++ and Shader language).
  * To this end, only low level constructors are defined inside the class itself and every
- * function working on matrices are defined outside of the class in the `blender::math` namespace.
+ * function working on matrices are defined outside of the class in the `math` namespace.
  */
 
 #include <ostream>

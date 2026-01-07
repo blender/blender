@@ -21,8 +21,8 @@ namespace blender::animrig {
 
 namespace {
 
-using ActionApplier = blender::FunctionRef<void(
-    PointerRNA *, bAction *, slot_handle_t, const AnimationEvalContext *)>;
+using ActionApplier =
+    FunctionRef<void(PointerRNA *, bAction *, slot_handle_t, const AnimationEvalContext *)>;
 
 void pose_apply_restore_fcurves(const Span<FCurve *> fcurves)
 {
@@ -33,9 +33,7 @@ void pose_apply_restore_fcurves(const Span<FCurve *> fcurves)
 
 /* Returns a vector of all FCurves on which the fcurve flag was modified. */
 Vector<FCurve *> pose_apply_disable_fcurves_for_unselected_bones(
-    bAction *action,
-    const slot_handle_t slot_handle,
-    const blender::bke::BoneNameSet &selected_bone_names)
+    bAction *action, const slot_handle_t slot_handle, const bke::BoneNameSet &selected_bone_names)
 {
   Vector<FCurve *> modified_fcurves;
   auto disable_unselected_fcurve = [&](FCurve *fcu, const char *bone_name) {
@@ -48,7 +46,7 @@ Vector<FCurve *> pose_apply_disable_fcurves_for_unselected_bones(
       fcu->flag |= FCURVE_DISABLED;
     }
   };
-  blender::bke::BKE_action_find_fcurves_with_bones(action, slot_handle, disable_unselected_fcurve);
+  bke::BKE_action_find_fcurves_with_bones(action, slot_handle, disable_unselected_fcurve);
   return modified_fcurves;
 }
 
@@ -67,8 +65,7 @@ void pose_apply(Object *ob,
     return;
   }
 
-  const blender::bke::BoneNameSet selected_bone_names =
-      blender::bke::BKE_pose_channel_find_selected_names(ob);
+  const bke::BoneNameSet selected_bone_names = bke::BKE_pose_channel_find_selected_names(ob);
 
   /* Mute all FCurves that are not associated with selected bones. This separates the concept of
    * bone selection from the FCurve evaluation code. */
@@ -120,14 +117,14 @@ void pose_apply_action_blend_all_bones(Object *ob,
   animsys_blend_in_action(&pose_owner_ptr, action, slot_handle, anim_eval_context, blend_factor);
 }
 
-bool any_bone_selected(const blender::Span<const Object *> objects)
+bool any_bone_selected(const Span<const Object *> objects)
 {
   for (const Object *obj : objects) {
     if (!obj->pose) {
       continue;
     }
-    LISTBASE_FOREACH (bPoseChannel *, pose_bone, &obj->pose->chanbase) {
-      if (pose_bone->flag & POSE_SELECTED) {
+    for (bPoseChannel &pose_bone : obj->pose->chanbase) {
+      if (pose_bone.flag & POSE_SELECTED) {
         return true;
       }
     }
@@ -135,7 +132,7 @@ bool any_bone_selected(const blender::Span<const Object *> objects)
   return false;
 }
 
-void pose_apply_action(const blender::Span<Object *> objects,
+void pose_apply_action(const Span<Object *> objects,
                        Action &pose_action,
                        const AnimationEvalContext *anim_eval_context,
                        const float blend_factor)

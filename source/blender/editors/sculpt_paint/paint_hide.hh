@@ -10,15 +10,17 @@
 
 #include "BLI_index_mask_fwd.hh"
 
+namespace blender {
+
 struct bContext;
 struct Depsgraph;
 struct Object;
 struct wmOperatorType;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 class Node;
 }
 
-namespace blender::ed::sculpt_paint::hide {
+namespace ed::sculpt_paint::hide {
 void sync_all_from_faces(Object &object);
 void mesh_show_all(const Depsgraph &depsgraph, Object &object, const IndexMask &node_mask);
 void grids_show_all(Depsgraph &depsgraph, Object &object, const IndexMask &node_mask);
@@ -33,4 +35,6 @@ void PAINT_OT_hide_show_polyline_gesture(wmOperatorType *ot);
 
 void PAINT_OT_visibility_invert(wmOperatorType *ot);
 void PAINT_OT_visibility_filter(wmOperatorType *ot);
-}  // namespace blender::ed::sculpt_paint::hide
+}  // namespace ed::sculpt_paint::hide
+
+}  // namespace blender

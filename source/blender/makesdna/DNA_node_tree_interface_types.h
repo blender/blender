@@ -8,28 +8,19 @@
 
 #pragma once
 
+#include "BLI_color_types.hh"
 #include "BLI_enum_flags.hh"
+#include "BLI_function_ref.hh"
+#include "BLI_span.hh"
+#include "BLI_string_ref.hh"
+#include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-#  include "BLI_color_types.hh"
-#  include "BLI_function_ref.hh"
-#  include "BLI_span.hh"
-#  include "BLI_string_ref.hh"
+namespace blender {
 
-#  include <memory>
-#endif
-
-#ifdef __cplusplus
-namespace blender::bke {
+namespace bke {
 class bNodeTreeInterfaceRuntime;
 struct bNodeSocketType;
-}  // namespace blender::bke
-using bNodeTreeInterfaceRuntimeHandle = blender::bke::bNodeTreeInterfaceRuntime;
-using bNodeSocketTypeHandle = blender::bke::bNodeSocketType;
-#else
-typedef struct bNodeTreeInterfaceRuntimeHandle bNodeTreeInterfaceRuntimeHandle;
-typedef struct bNodeSocketTypeHandle bNodeSocketTypeHandle;
-#endif
+}  // namespace bke
 
 struct bNodeSocket;
 struct bNodeTreeInterfaceItem;
@@ -42,20 +33,20 @@ struct BlendWriter;
 struct BlendDataReader;
 
 /** Type of interface item. */
-typedef enum NodeTreeInterfaceItemType {
+enum eNodeTreeInterfaceItemType {
   NODE_INTERFACE_PANEL = 0,
   NODE_INTERFACE_SOCKET = 1,
-} eNodeTreeInterfaceItemType;
+};
 
 /** Describes a socket and all necessary details for a node declaration. */
-typedef struct bNodeTreeInterfaceItem {
+struct bNodeTreeInterfaceItem {
   /* eNodeTreeInterfaceItemType */
-  char item_type;
-  char _pad[7];
-} bNodeTreeInterfaceItem;
+  char item_type = 0;
+  char _pad[7] = {};
+};
 
 /* Socket interface flags */
-typedef enum NodeTreeInterfaceSocketFlag {
+enum NodeTreeInterfaceSocketFlag {
   NODE_INTERFACE_SOCKET_INPUT = 1 << 0,
   NODE_INTERFACE_SOCKET_OUTPUT = 1 << 1,
   NODE_INTERFACE_SOCKET_HIDE_VALUE = 1 << 2,
@@ -75,21 +66,21 @@ typedef enum NodeTreeInterfaceSocketFlag {
    * cleaner UI.
    */
   NODE_INTERFACE_SOCKET_OPTIONAL_LABEL = 1 << 10,
-} NodeTreeInterfaceSocketFlag;
+};
 ENUM_OPERATORS(NodeTreeInterfaceSocketFlag);
 
-typedef enum NodeSocketInterfaceStructureType {
+enum NodeSocketInterfaceStructureType {
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO = 0,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE = 1,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC = 2,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD = 3,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID = 4,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_LIST = 5,
-} NodeSocketInterfaceStructureType;
+};
 
 // TODO: Move out of DNA.
 #ifdef __cplusplus
-namespace blender::nodes {
+namespace nodes {
 enum class StructureType : int8_t {
   Single = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE,
   Dynamic = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC,
@@ -100,54 +91,8 @@ enum class StructureType : int8_t {
 }
 #endif
 
-typedef struct bNodeTreeInterfaceSocket {
-  bNodeTreeInterfaceItem item;
-
-  /* UI name of the socket. */
-  char *name;
-  char *description;
-  /* Type idname of the socket to generate, e.g. "NodeSocketFloat". */
-  char *socket_type;
-  /* NodeTreeInterfaceSocketFlag */
-  int flag;
-
-  /* AttrDomain */
-  int16_t attribute_domain;
-  /** NodeDefaultInputType. */
-  int16_t default_input;
-  char *default_attribute_name;
-
-  /* Unique identifier for generated sockets. */
-  char *identifier;
-  /* Socket default value and associated data, e.g. bNodeSocketValueFloat. */
-  void *socket_data;
-
-  struct IDProperty *properties;
-
-  /** #NodeSocketInterfaceStructureType. */
-  int8_t structure_type;
-  char _pad[7];
-
-#ifdef __cplusplus
-  bNodeSocketTypeHandle *socket_typeinfo() const;
-  blender::ColorGeometry4f socket_color() const;
-
-  /**
-   * Set the \a socket_type and replace the \a socket_data.
-   * \param new_socket_type: Socket type idname, e.g. "NodeSocketFloat"
-   */
-  bool set_socket_type(blender::StringRef new_socket_type);
-
-  /**
-   * Use an existing socket to define an interface socket.
-   * Replaces the current \a socket_type and any existing \a socket data if called again.
-   */
-  void init_from_socket_instance(const bNodeSocket *socket);
-#endif
-} bNodeTreeInterfaceSocket;
-
 /* Panel interface flags */
-typedef enum NodeTreeInterfacePanelFlag {
+enum NodeTreeInterfacePanelFlag {
   /* Panel starts closed on new node instances. */
   NODE_INTERFACE_PANEL_DEFAULT_CLOSED = 1 << 0,
   /* In the past, not all panels allowed child panels. Now all allow them. */
@@ -156,10 +101,10 @@ typedef enum NodeTreeInterfacePanelFlag {
   NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS = 1 << 2,
   /* Whether the panel is collapsed in the node group interface tree view. */
   NODE_INTERFACE_PANEL_IS_COLLAPSED = 1 << 3,
-} NodeTreeInterfacePanelFlag;
+};
 ENUM_OPERATORS(NodeTreeInterfacePanelFlag);
 
-typedef enum NodeDefaultInputType {
+enum NodeDefaultInputType {
   NODE_DEFAULT_INPUT_VALUE = 0,
   NODE_DEFAULT_INPUT_INDEX_FIELD = 1,
   NODE_DEFAULT_INPUT_ID_INDEX_FIELD = 2,
@@ -168,28 +113,83 @@ typedef enum NodeDefaultInputType {
   NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD = 5,
   NODE_DEFAULT_INPUT_HANDLE_LEFT_FIELD = 6,
   NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD = 7,
-} NodeDefaultInputType;
+};
 
-typedef struct bNodeTreeInterfacePanel {
+struct bNodeTreeInterfaceSocket {
+  bNodeTreeInterfaceItem item;
+
+  /* UI name of the socket. */
+  char *name = nullptr;
+  char *description = nullptr;
+  /* Type idname of the socket to generate, e.g. "NodeSocketFloat". */
+  char *socket_type = nullptr;
+  /* NodeTreeInterfaceSocketFlag */
+  int flag = 0;
+
+  /* AttrDomain */
+  int16_t attribute_domain = 0;
+  /** NodeDefaultInputType. */
+  int16_t default_input = 0;
+  char *default_attribute_name = nullptr;
+
+  /* Unique identifier for generated sockets. */
+  char *identifier = nullptr;
+  /* Socket default value and associated data, e.g. bNodeSocketValueFloat. */
+  void *socket_data = nullptr;
+
+  struct IDProperty *properties = nullptr;
+
+  /** #NodeSocketInterfaceStructureType. */
+  int8_t structure_type = 0;
+  char _pad[7] = {};
+
+#ifdef __cplusplus
+  bke::bNodeSocketType *socket_typeinfo() const;
+  ColorGeometry4f socket_color() const;
+
+  /**
+   * Set the \a socket_type and replace the \a socket_data.
+   * \param new_socket_type: Socket type idname, e.g. "NodeSocketFloat"
+   */
+  bool set_socket_type(StringRef new_socket_type);
+  /**
+   * Update the \a socket_type based on changes to \a socket_data.
+   * This allows changing details like the subtype without replacing \a socket_data.
+   *
+   * For example, in a vector socket the dimensions are stored in the \a socket_data and after
+   * changes might require switching \a socket_type between "NodeSocketVector",
+   * "NodeSocketVector2D", and "NodeSocketVector4D".
+   */
+  void update_socket_type();
+
+  /**
+   * Use an existing socket to define an interface socket.
+   * Replaces the current \a socket_type and any existing \a socket data if called again.
+   */
+  void init_from_socket_instance(const bNodeSocket *socket);
+#endif
+};
+
+struct bNodeTreeInterfacePanel {
   bNodeTreeInterfaceItem item;
 
   /* UI name of the panel. */
-  char *name;
-  char *description;
+  char *name = nullptr;
+  char *description = nullptr;
   /* NodeTreeInterfacePanelFlag */
-  int flag;
-  char _pad[4];
+  int flag = 0;
+  char _pad[4] = {};
 
-  bNodeTreeInterfaceItem **items_array;
-  int items_num;
+  bNodeTreeInterfaceItem **items_array = nullptr;
+  int items_num = 0;
 
   /* Internal unique identifier for validating panel states. */
-  int identifier;
+  int identifier = 0;
 
 #ifdef __cplusplus
-  blender::IndexRange items_range() const;
-  blender::Span<const bNodeTreeInterfaceItem *> items() const;
-  blender::MutableSpan<bNodeTreeInterfaceItem *> items();
+  IndexRange items_range() const;
+  Span<const bNodeTreeInterfaceItem *> items() const;
+  MutableSpan<bNodeTreeInterfaceItem *> items();
 
   /**
    * Check if the item is a direct child of the panel.
@@ -253,10 +253,9 @@ typedef struct bNodeTreeInterfacePanel {
    * \param fn: Function to execute for each item, iterations stops if false is returned.
    * \param include_self: Include the panel itself in the iteration.
    */
-  void foreach_item(blender::FunctionRef<bool(bNodeTreeInterfaceItem &item)> fn,
-                    bool include_self = false);
+  void foreach_item(FunctionRef<bool(bNodeTreeInterfaceItem &item)> fn, bool include_self = false);
   /** Same as above but for a const interface. */
-  void foreach_item(blender::FunctionRef<bool(const bNodeTreeInterfaceItem &item)> fn,
+  void foreach_item(FunctionRef<bool(const bNodeTreeInterfaceItem &item)> fn,
                     bool include_self = false) const;
 
   /** Get the socket that is part of the panel header if available. */
@@ -268,16 +267,16 @@ typedef struct bNodeTreeInterfacePanel {
   int find_valid_insert_position_for_item(const bNodeTreeInterfaceItem &item,
                                           int initial_position) const;
 #endif
-} bNodeTreeInterfacePanel;
+};
 
-typedef struct bNodeTreeInterface {
+struct bNodeTreeInterface {
   bNodeTreeInterfacePanel root_panel;
 
   /* Global index of the active item. */
-  int active_index;
-  int next_uid;
+  int active_index = 0;
+  int next_uid = 0;
 
-  bNodeTreeInterfaceRuntimeHandle *runtime;
+  bke::bNodeTreeInterfaceRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
 
@@ -360,9 +359,9 @@ typedef struct bNodeTreeInterface {
    * \param parent: Panel in which to add the socket. If parent is null the socket is added in the
    * root panel.
    */
-  bNodeTreeInterfaceSocket *add_socket(blender::StringRef name,
-                                       blender::StringRef description,
-                                       blender::StringRef socket_type,
+  bNodeTreeInterfaceSocket *add_socket(StringRef name,
+                                       StringRef description,
+                                       StringRef socket_type,
                                        NodeTreeInterfaceSocketFlag flag,
                                        bNodeTreeInterfacePanel *parent);
   /**
@@ -371,9 +370,9 @@ typedef struct bNodeTreeInterface {
    * root panel.
    * \param position: Position of the socket within the parent panel.
    */
-  bNodeTreeInterfaceSocket *insert_socket(blender::StringRef name,
-                                          blender::StringRef description,
-                                          blender::StringRef socket_type,
+  bNodeTreeInterfaceSocket *insert_socket(StringRef name,
+                                          StringRef description,
+                                          StringRef socket_type,
                                           NodeTreeInterfaceSocketFlag flag,
                                           bNodeTreeInterfacePanel *parent,
                                           int position);
@@ -383,8 +382,8 @@ typedef struct bNodeTreeInterface {
    * \param parent: Panel in which the new panel is added as a child. If parent is null the new
    * panel is made a child of the root panel.
    */
-  bNodeTreeInterfacePanel *add_panel(blender::StringRef name,
-                                     blender::StringRef description,
+  bNodeTreeInterfacePanel *add_panel(StringRef name,
+                                     StringRef description,
                                      NodeTreeInterfacePanelFlag flag,
                                      bNodeTreeInterfacePanel *parent);
   /**
@@ -393,8 +392,8 @@ typedef struct bNodeTreeInterface {
    * panel is made a child of the root panel.
    * \param position: Position of the child panel within the parent panel.
    */
-  bNodeTreeInterfacePanel *insert_panel(blender::StringRef name,
-                                        blender::StringRef description,
+  bNodeTreeInterfacePanel *insert_panel(StringRef name,
+                                        StringRef description,
                                         NodeTreeInterfacePanelFlag flag,
                                         bNodeTreeInterfacePanel *parent,
                                         int position);
@@ -447,8 +446,7 @@ typedef struct bNodeTreeInterface {
    * \param fn: Function to execute for each item, iterations stops if false is returned.
    * \param include_root: Include the root panel in the iteration.
    */
-  void foreach_item(blender::FunctionRef<bool(bNodeTreeInterfaceItem &item)> fn,
-                    bool include_root = false)
+  void foreach_item(FunctionRef<bool(bNodeTreeInterfaceItem &item)> fn, bool include_root = false)
   {
     root_panel.foreach_item(fn, /*include_self=*/include_root);
   }
@@ -459,7 +457,7 @@ typedef struct bNodeTreeInterface {
    * \param fn: Function to execute for each item, iterations stops if false is returned.
    * \param include_root: Include the root panel in the iteration.
    */
-  void foreach_item(blender::FunctionRef<bool(const bNodeTreeInterfaceItem &item)> fn,
+  void foreach_item(FunctionRef<bool(const bNodeTreeInterfaceItem &item)> fn,
                     bool include_root = false) const
   {
     root_panel.foreach_item(fn, /*include_self=*/include_root);
@@ -497,4 +495,6 @@ typedef struct bNodeTreeInterface {
   void tag_missing_runtime_data();
 
 #endif
-} bNodeTreeInterface;
+};
+
+}  // namespace blender

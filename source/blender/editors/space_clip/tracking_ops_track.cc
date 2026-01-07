@@ -33,6 +33,8 @@
 #include "clip_intern.hh" /* own include */
 #include "tracking_ops_intern.hh"
 
+namespace blender {
+
 /********************** Track operator *********************/
 
 struct TrackMarkersJob {
@@ -58,10 +60,10 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip, const int framenr
 {
   int tot = 0;
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
-    if (selected && (track->flag & TRACK_LOCKED) == 0) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, &track) : TRACK_SELECTED(&track);
+    if (selected && (track.flag & TRACK_LOCKED) == 0) {
+      MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
       if (!marker || (marker->flag & MARKER_DISABLED) == 0) {
         tot++;
       }
@@ -80,17 +82,17 @@ static void track_init_markers(SpaceClip *sc,
   if (sc != nullptr) {
     clip_tracking_clear_invisible_track_selection(sc, clip);
   }
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, track) : TRACK_SELECTED(track);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    bool selected = (sc != nullptr) ? TRACK_VIEW_SELECTED(sc, &track) : TRACK_SELECTED(&track);
     if (selected) {
-      if ((track->flag & TRACK_HIDDEN) == 0 && (track->flag & TRACK_LOCKED) == 0) {
-        BKE_tracking_marker_ensure(track, framenr);
-        if (track->frames_limit) {
+      if ((track.flag & TRACK_HIDDEN) == 0 && (track.flag & TRACK_LOCKED) == 0) {
+        BKE_tracking_marker_ensure(&track, framenr);
+        if (track.frames_limit) {
           if (frames_limit == 0) {
-            frames_limit = track->frames_limit;
+            frames_limit = track.frames_limit;
           }
           else {
-            frames_limit = min_ii(frames_limit, int(track->frames_limit));
+            frames_limit = min_ii(frames_limit, int(track.frames_limit));
           }
         }
       }
@@ -203,7 +205,7 @@ static bool track_markers_initjob(bContext *C, TrackMarkersJob *tmj, bool backwa
 
 static void track_markers_startjob(void *tmv, wmJobWorkerStatus *worker_status)
 {
-  TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
+  TrackMarkersJob *tmj = static_cast<TrackMarkersJob *>(tmv);
   int framenr = tmj->sfra;
 
   BKE_autotrack_context_start(tmj->context);
@@ -252,13 +254,13 @@ static void track_markers_startjob(void *tmv, wmJobWorkerStatus *worker_status)
 
 static void track_markers_updatejob(void *tmv)
 {
-  TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
+  TrackMarkersJob *tmj = static_cast<TrackMarkersJob *>(tmv);
   BKE_autotrack_context_sync(tmj->context);
 }
 
 static void track_markers_endjob(void *tmv)
 {
-  TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
+  TrackMarkersJob *tmj = static_cast<TrackMarkersJob *>(tmv);
   wmWindowManager *wm = static_cast<wmWindowManager *>(tmj->main->wm.first);
 
   tmj->clip->tracking_context = nullptr;
@@ -277,7 +279,7 @@ static void track_markers_endjob(void *tmv)
 
 static void track_markers_freejob(void *tmv)
 {
-  TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
+  TrackMarkersJob *tmj = static_cast<TrackMarkersJob *>(tmv);
   tmj->clip->tracking_context = nullptr;
   WM_locked_interface_set(tmj->wm, false);
   BKE_autotrack_context_free(tmj->context);
@@ -447,10 +449,10 @@ static wmOperatorStatus refine_marker_exec(bContext *C, wmOperator *op)
   const bool backwards = RNA_boolean_get(op->ptr, "backwards");
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track)) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-      BKE_tracking_refine_marker(clip, track, marker, backwards);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track)) {
+      MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
+      BKE_tracking_refine_marker(clip, &track, marker, backwards);
     }
   }
 
@@ -480,3 +482,5 @@ void CLIP_OT_refine_markers(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna, "backwards", false, "Backwards", "Do backwards tracking");
 }
+
+}  // namespace blender

@@ -45,7 +45,7 @@ const StringRefNull materials_filename = "usd/usd_materials_export.blend";
 const StringRefNull output_filename = "output.usd";
 
 static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
-                                                const blender::StringRefNull type_idname);
+                                                const StringRefNull type_idname);
 
 class UsdExportTest : public BlendfileLoadingBaseTest {
  protected:
@@ -103,7 +103,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     ASSERT_TRUE(bool(bsdf_prim));
 
     for (const auto *socket : bsdf_node->input_sockets()) {
-      const pxr::TfToken attribute_token = blender::io::usd::token_for_input(socket->name);
+      const pxr::TfToken attribute_token = io::usd::token_for_input(socket->name);
       if (attribute_token.IsEmpty()) {
         /* This socket is not translated between Blender and USD. */
         continue;
@@ -220,9 +220,9 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   /*
    * Run the mesh comparison for all Meshes in the original scene.
    */
-  LISTBASE_FOREACH (Object *, object, &bfile->main->objects) {
-    const Mesh *mesh = static_cast<Mesh *>(object->data);
-    const StringRefNull object_name(object->id.name + 2);
+  for (Object &object : bfile->main->objects) {
+    const Mesh *mesh = id_cast<Mesh *>(object.data);
+    const StringRefNull object_name(object.id.name + 2);
 
     const pxr::SdfPath sdf_path("/" + pxr::TfMakeValidIdentifier(object_name.c_str()));
     pxr::UsdPrim prim = stage->GetPrimAtPath(sdf_path);
@@ -236,7 +236,7 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
 }
 
 static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
-                                                const blender::StringRefNull type_idname)
+                                                const StringRefNull type_idname)
 {
   auto found_nodes = nodetree->nodes_by_type(type_idname);
   if (found_nodes.size() == 1) {

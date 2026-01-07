@@ -767,7 +767,7 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      Mesh &mesh = *id_cast<Mesh *>(ob.data);
       const OffsetIndices<int> faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();

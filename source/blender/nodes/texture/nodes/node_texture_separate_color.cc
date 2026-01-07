@@ -10,11 +10,13 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
-static blender::bke::bNodeSocketTemplate inputs[] = {
+namespace blender {
+
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
-static blender::bke::bNodeSocketTemplate outputs[] = {
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_FLOAT, N_("Red")},
     {SOCK_FLOAT, N_("Green")},
     {SOCK_FLOAT, N_("Blue")},
@@ -47,21 +49,21 @@ static void apply_color_space(float *out, NodeCombSepColorMode type)
 static void valuefn_r(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
   tex_input_rgba(out, in[0], p, thread);
-  apply_color_space(out, (NodeCombSepColorMode)node->custom1);
+  apply_color_space(out, NodeCombSepColorMode(node->custom1));
   *out = out[0];
 }
 
 static void valuefn_g(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
   tex_input_rgba(out, in[0], p, thread);
-  apply_color_space(out, (NodeCombSepColorMode)node->custom1);
+  apply_color_space(out, NodeCombSepColorMode(node->custom1));
   *out = out[1];
 }
 
 static void valuefn_b(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
   tex_input_rgba(out, in[0], p, thread);
-  apply_color_space(out, (NodeCombSepColorMode)node->custom1);
+  apply_color_space(out, NodeCombSepColorMode(node->custom1));
   *out = out[2];
 }
 
@@ -73,7 +75,7 @@ static void valuefn_a(float *out, TexParams *p, bNode * /*node*/, bNodeStack **i
 
 static void update(bNodeTree * /*ntree*/, bNode *node)
 {
-  node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)node->custom1);
+  node_combsep_color_label(&node->outputs, NodeCombSepColorMode(node->custom1));
 }
 
 static void exec(void *data,
@@ -92,15 +94,17 @@ static void exec(void *data,
 
 void register_node_type_tex_separate_color()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeSeparateColor", TEX_NODE_SEPARATE_COLOR);
   ntype.ui_name = "Separate Color";
   ntype.enum_name_legacy = "SEPARATE_COLOR";
   ntype.nclass = NODE_CLASS_OP_COLOR;
-  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
   ntype.updatefunc = update;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

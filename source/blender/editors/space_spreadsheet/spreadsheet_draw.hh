@@ -4,14 +4,18 @@
 
 #pragma once
 
+namespace blender {
+
 struct ARegion;
 struct bContext;
-struct uiBlock;
+namespace ui {
+struct Block;
+}
 
-namespace blender::ed::spreadsheet {
+namespace ed::spreadsheet {
 
 struct CellDrawParams {
-  uiBlock *block;
+  ui::Block *block;
   int xmin, ymin;
   int width, height;
 };
@@ -42,4 +46,5 @@ void draw_spreadsheet_in_region(const bContext *C,
                                 ARegion *region,
                                 const SpreadsheetDrawer &drawer);
 
-}  // namespace blender::ed::spreadsheet
+}  // namespace ed::spreadsheet
+}  // namespace blender

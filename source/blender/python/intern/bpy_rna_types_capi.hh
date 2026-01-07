@@ -8,4 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 void BPY_rna_types_extend_capi();
+
+}  // namespace blender

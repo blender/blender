@@ -112,7 +112,7 @@ static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
 {
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();

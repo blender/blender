@@ -20,6 +20,8 @@
 #include "intern/bmesh_query.hh"
 #include "intern/bmesh_query_uv.hh"
 
+namespace blender {
+
 #define COST_INIT_MAX FLT_MAX
 
 /* -------------------------------------------------------------------- */
@@ -611,3 +613,5 @@ LinkNode *BM_mesh_calc_path_uv_face(BMesh *bm,
 }
 
 /** \} */
+
+}  // namespace blender

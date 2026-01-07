@@ -7,8 +7,12 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 /**
  * \param path: The path to check against.
  * \return Success
  */
 bool BKE_autoexec_match(const char *path);
+
+}  // namespace blender

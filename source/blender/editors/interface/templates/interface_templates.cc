@@ -21,7 +21,7 @@
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name Search Menu Helpers
@@ -38,7 +38,7 @@ int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop)
 
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const int margin = UI_UNIT_X * 0.75f;
-  const int estimated_width = UI_fontstyle_string_width(fstyle, name) + margin;
+  const int estimated_width = fontstyle_string_width(fstyle, name) + margin;
 
   if (name != str) {
     MEM_freeN(name);
@@ -55,18 +55,18 @@ int template_search_textbut_height()
 }
 
 void template_add_button_search_menu(const bContext *C,
-                                     blender::ui::Layout &layout,
-                                     uiBlock *block,
+                                     Layout &layout,
+                                     Block *block,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,
-                                     uiBlockCreateFunc block_func,
+                                     BlockCreateFunc block_func,
                                      void *block_argN,
-                                     const std::optional<blender::StringRef> tip,
+                                     const std::optional<StringRef> tip,
                                      const bool use_previews,
                                      const bool editable,
                                      const bool live_icon,
-                                     uiButArgNFree func_argN_free_fn,
-                                     uiButArgNCopy func_argN_copy_fn)
+                                     ButtonArgNFree func_argN_free_fn,
+                                     ButtonArgNCopy func_argN_copy_fn)
 {
   const PointerRNA active_ptr = RNA_property_pointer_get(ptr, prop);
   ID *id = (active_ptr.data && RNA_struct_is_ID(active_ptr.type)) ?
@@ -74,7 +74,7 @@ void template_add_button_search_menu(const bContext *C,
                nullptr;
   const ID *idfrom = ptr->owner_id;
   const StructRNA *type = active_ptr.type ? active_ptr.type : RNA_property_pointer_type(ptr, prop);
-  uiBut *but;
+  Button *but;
 
   if (use_previews) {
     ARegion *region = CTX_wm_region(C);
@@ -85,7 +85,7 @@ void template_add_button_search_menu(const bContext *C,
     const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
     const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
     const short height = UI_UNIT_Y * (use_big_size ? 6 : 1);
-    blender::ui::Layout *col = nullptr;
+    Layout *col = nullptr;
 
     if (use_big_size) {
       /* Assume column layout here. To be more correct, we should check if the layout passed to
@@ -105,16 +105,16 @@ void template_add_button_search_menu(const bContext *C,
                          func_argN_free_fn,
                          func_argN_copy_fn);
     if (use_preview_icon) {
-      const int icon = id ? ui_id_icon_get(C, id, use_big_size) : RNA_struct_ui_icon(type);
-      ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+      const int icon = id ? id_icon_get(C, id, use_big_size) : RNA_struct_ui_icon(type);
+      def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
     }
     else {
-      ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
-      UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+      def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
+      button_drawflag_enable(but, BUT_ICON_LEFT);
     }
 
     if ((idfrom && !ID_IS_EDITABLE(idfrom)) || !editable) {
-      UI_but_flag_enable(but, UI_BUT_DISABLED);
+      button_flag_enable(but, BUT_DISABLED);
     }
     if (use_big_size) {
       (col ? col : &layout)->row(true);
@@ -134,45 +134,45 @@ void template_add_button_search_menu(const bContext *C,
                          func_argN_copy_fn);
 
     if (live_icon) {
-      const int icon = id ? ui_id_icon_get(C, id, false) : RNA_struct_ui_icon(type);
-      ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+      const int icon = id ? id_icon_get(C, id, false) : RNA_struct_ui_icon(type);
+      def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
     }
     else {
-      ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
+      def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
     }
     if (id) {
       /* default dragging of icon for id browse buttons */
-      UI_but_drag_set_id(but, id);
+      button_drag_set_id(but, id);
     }
-    UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+    button_drawflag_enable(but, BUT_ICON_LEFT);
 
     if ((idfrom && !ID_IS_EDITABLE(idfrom)) || !editable) {
-      UI_but_flag_enable(but, UI_BUT_DISABLED);
+      button_flag_enable(but, BUT_DISABLED);
     }
   }
 }
 
-uiBlock *template_common_search_menu(const bContext *C,
-                                     ARegion *region,
-                                     uiButSearchUpdateFn search_update_fn,
-                                     void *search_arg,
-                                     uiButHandleFunc search_exec_fn,
-                                     void *active_item,
-                                     uiButSearchTooltipFn item_tooltip_fn,
-                                     const int preview_rows,
-                                     const int preview_cols,
-                                     float scale)
+Block *template_common_search_menu(const bContext *C,
+                                   ARegion *region,
+                                   ButtonSearchUpdateFn search_update_fn,
+                                   void *search_arg,
+                                   ButtonHandleFunc search_exec_fn,
+                                   void *active_item,
+                                   ButtonSearchTooltipFn item_tooltip_fn,
+                                   const int preview_rows,
+                                   const int preview_cols,
+                                   float scale)
 {
   static char search[256];
   wmWindow *win = CTX_wm_window(C);
-  uiBut *but;
+  Button *but;
 
   /* clear initial search string, then all items show */
   search[0] = 0;
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
-  UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  Block *block = block_begin(C, region, "_popup", EmbossType::Emboss);
+  block_flag_enable(block, BLOCK_LOOP | BLOCK_SEARCH_MENU);
+  block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
 
   /* preview thumbnails */
   if (preview_rows > 0 && preview_cols > 0) {
@@ -181,19 +181,19 @@ uiBlock *template_common_search_menu(const bContext *C,
                   UI_SEARCHBOX_BOUNDS;
 
     /* fake button, it holds space for search items */
-    uiDefBut(block, ButType::Label, "", 0, UI_UNIT_Y, w, h, nullptr, 0, 0, std::nullopt);
+    uiDefBut(block, ButtonType::Label, "", 0, UI_UNIT_Y, w, h, nullptr, 0, 0, std::nullopt);
     but = uiDefSearchBut(block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, w, UI_UNIT_Y, "");
-    UI_but_search_preview_grid_size_set(but, preview_rows, preview_cols);
+    button_search_preview_grid_size_set(but, preview_rows, preview_cols);
   }
   /* list view */
   else {
-    const int searchbox_width = UI_searchbox_size_x_guess(C, search_update_fn, search_arg);
-    const int searchbox_height = UI_searchbox_size_y();
+    const int searchbox_width = searchbox_size_x_guess(C, search_update_fn, search_arg);
+    const int searchbox_height = searchbox_size_y();
     const int search_but_height = UI_UNIT_Y - 1.0f * UI_SCALE_FAC;
 
     /* fake button, it holds space for search items */
     uiDefBut(block,
-             ButType::Label,
+             ButtonType::Label,
              "",
              0,
              search_but_height,
@@ -214,23 +214,23 @@ uiBlock *template_common_search_menu(const bContext *C,
                          search_but_height,
                          "");
   }
-  UI_but_func_search_set(but,
-                         ui_searchbox_create_generic,
+  button_func_search_set(but,
+                         searchbox_create_generic,
                          search_update_fn,
                          search_arg,
                          false,
                          nullptr,
                          search_exec_fn,
                          active_item);
-  UI_but_func_search_set_tooltip(but, item_tooltip_fn);
+  button_func_search_set_tooltip(but, item_tooltip_fn);
 
-  UI_block_bounds_set_normal(block, UI_SEARCHBOX_BOUNDS);
-  UI_block_direction_set(block, UI_DIR_DOWN);
+  block_bounds_set_normal(block, UI_SEARCHBOX_BOUNDS);
+  block_direction_set(block, UI_DIR_DOWN);
 
   /* give search-field focus */
-  UI_but_focus_on_enter_event(win, but);
+  button_focus_on_enter_event(win, but);
   /* this type of search menu requires undo */
-  but->flag |= UI_BUT_UNDO;
+  but->flag |= BUT_UNDO;
 
   return block;
 }
@@ -241,9 +241,9 @@ uiBlock *template_common_search_menu(const bContext *C,
 /** \name Header Template
  * \{ */
 
-void uiTemplateHeader(blender::ui::Layout *layout, bContext *C)
+void template_header(Layout *layout, bContext *C)
 {
-  uiBlock *block = layout->absolute().block();
+  Block *block = layout->absolute().block();
   ED_area_header_switchbutton(C, block, 0);
 }
 
@@ -253,7 +253,7 @@ void uiTemplateHeader(blender::ui::Layout *layout, bContext *C)
 /** \name RNA Path Builder Template
  * \{ */
 
-void uiTemplatePathBuilder(blender::ui::Layout *layout,
+void template_path_builder(Layout *layout,
                            PointerRNA *ptr,
                            const StringRefNull propname,
                            PointerRNA * /*root_ptr*/,
@@ -268,7 +268,7 @@ void uiTemplatePathBuilder(blender::ui::Layout *layout,
   }
 
   /* Start drawing UI Elements using standard defines */
-  blender::ui::Layout &row = layout->row(true);
+  Layout &row = layout->row(true);
 
   /* Path (existing string) Widget */
   row.prop(ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
@@ -283,26 +283,26 @@ void uiTemplatePathBuilder(blender::ui::Layout *layout,
 /** \name Node Socket Icon Template
  * \{ */
 
-void uiTemplateNodeSocket(blender::ui::Layout *layout, bContext * /*C*/, const float color[4])
+void template_node_socket(Layout *layout, bContext * /*C*/, const float color[4])
 {
-  uiBlock *block = layout->block();
-  UI_block_align_begin(block);
+  Block *block = layout->block();
+  block_align_begin(block);
 
   /* XXX using explicit socket colors is not quite ideal.
    * Eventually it should be possible to use theme colors for this purpose,
    * but this requires a better design for extendable color palettes in user preferences. */
-  uiBut *but = uiDefBut(
-      block, ButType::NodeSocket, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, "");
+  Button *but = uiDefBut(
+      block, ButtonType::NodeSocket, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, "");
   rgba_float_to_uchar(but->col, color);
 
-  UI_block_align_end(block);
+  block_align_end(block);
 }
 
 /* -------------------------------------------------------------------- */
 /** \name FileSelectParams Path Button Template
  * \{ */
 
-void uiTemplateFileSelectPath(blender::ui::Layout *layout, bContext *C, FileSelectParams *params)
+void template_file_select_path(Layout *layout, bContext *C, FileSelectParams *params)
 {
   bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -311,3 +311,5 @@ void uiTemplateFileSelectPath(blender::ui::Layout *layout, bContext *C, FileSele
 }
 
 /** \} */
+
+}  // namespace blender::ui

@@ -5,32 +5,35 @@
 /** \file
  * \ingroup gpu
  *
- * A #blender::gpu::Shader is a container for backend specific shader program.
+ * A #gpu::Shader is a container for backend specific shader program.
  */
 
 #pragma once
 
+#include <atomic>
 #include <mutex>
 #include <optional>
 
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_common_types.hh"
 #include "GPU_shader_builtin.hh"
 
-namespace blender::gpu {
+struct GPUShaderCreateInfo;
+namespace blender {
+
+namespace gpu {
 class VertBuf;
 class Shader;
 namespace shader {
 struct ShaderCreateInfo;
 }  // namespace shader
-}  // namespace blender::gpu
+}  // namespace gpu
 
-/** Opaque type hiding #blender::gpu::shader::ShaderCreateInfo */
-struct GPUShaderCreateInfo;
-
+/** Opaque type hiding #gpu::shader::ShaderCreateInfo */
 /* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
  * This makes sure the GPUVertexFormat name buffer does not overflow. */
 constexpr static int GPU_MAX_ATTR = 15;
@@ -47,19 +50,19 @@ constexpr static int GPU_MAX_UNIFORM_ATTR = 8;
  * Needed if the string was not part of our build system and is used in a #GPUShaderCreateInfo.
  * `info` is the create info to add builtin flags parsed from the original string.
  */
-std::string GPU_shader_preprocess_source(blender::StringRefNull original,
-                                         blender::gpu::shader::ShaderCreateInfo &info);
+std::string GPU_shader_preprocess_source(StringRefNull original,
+                                         gpu::shader::ShaderCreateInfo &info);
 
 /**
  * Create a shader using the given #GPUShaderCreateInfo.
  * Can return a null pointer if compilation fails.
  */
-blender::gpu::Shader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
+gpu::Shader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
 
 /**
  * Same as GPU_shader_create_from_info but will run preprocessor on source strings.
  */
-blender::gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info);
+gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info);
 
 /**
  * Create a shader using a named #GPUShaderCreateInfo registered at startup.
@@ -67,7 +70,7 @@ blender::gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateIn
  * They are also expected to have been flagged using `do_static_compilation`.
  * Can return a null pointer if compilation fails.
  */
-blender::gpu::Shader *GPU_shader_create_from_info_name(const char *info_name);
+gpu::Shader *GPU_shader_create_from_info_name(const char *info_name);
 
 /**
  * Fetch a named #GPUShaderCreateInfo registered at startup.
@@ -104,7 +107,7 @@ bool GPU_shader_async_compilation_is_ready(AsyncCompilationHandle handle);
  * ready. Shaders with compilation errors are returned as null pointers.
  * WARNING: The handle will be invalidated by this call, you can't request the same shader twice.
  */
-blender::gpu::Shader *GPU_shader_async_compilation_finalize(AsyncCompilationHandle &handle);
+gpu::Shader *GPU_shader_async_compilation_finalize(AsyncCompilationHandle &handle);
 /**
  * Cancel the compilation of the shader.
  * WARNING: The handle will be invalidated by this call.
@@ -136,7 +139,7 @@ void GPU_shader_compiler_resume();
 /** \name Free
  * \{ */
 
-void GPU_shader_free(blender::gpu::Shader *shader);
+void GPU_shader_free(gpu::Shader *shader);
 
 /** \} */
 
@@ -151,9 +154,8 @@ void GPU_shader_free(blender::gpu::Shader *shader);
  * Uniform functions need to have the shader bound in order to work. (TODO: until we use
  * glProgramUniform)
  */
-void GPU_shader_bind(
-    blender::gpu::Shader *shader,
-    const blender::gpu::shader::SpecializationConstants *constants_state = nullptr);
+void GPU_shader_bind(gpu::Shader *shader,
+                     const gpu::shader::SpecializationConstants *constants_state = nullptr);
 
 /**
  * Unbind the active shader.
@@ -166,7 +168,7 @@ void GPU_shader_unbind();
  * Return the currently bound shader to the active GPU context.
  * \return null pointer if no shader is bound of if no context is active.
  */
-blender::gpu::Shader *GPU_shader_get_bound();
+gpu::Shader *GPU_shader_get_bound();
 
 /** \} */
 
@@ -174,7 +176,7 @@ blender::gpu::Shader *GPU_shader_get_bound();
 /** \name Debugging introspection API.
  * \{ */
 
-const char *GPU_shader_get_name(blender::gpu::Shader *shader);
+const char *GPU_shader_get_name(gpu::Shader *shader);
 
 /** \} */
 
@@ -186,29 +188,29 @@ const char *GPU_shader_get_name(blender::gpu::Shader *shader);
  * Returns binding point location.
  * Binding location are given to be set at shader compile time and immutable.
  */
-int GPU_shader_get_ubo_binding(blender::gpu::Shader *shader, const char *name);
-int GPU_shader_get_ssbo_binding(blender::gpu::Shader *shader, const char *name);
-int GPU_shader_get_sampler_binding(blender::gpu::Shader *shader, const char *name);
+int GPU_shader_get_ubo_binding(gpu::Shader *shader, const char *name);
+int GPU_shader_get_ssbo_binding(gpu::Shader *shader, const char *name);
+int GPU_shader_get_sampler_binding(gpu::Shader *shader, const char *name);
 
 /**
  * Returns uniform location.
  * If cached, it is faster than querying the interface for each uniform assignment.
  */
-int GPU_shader_get_uniform(blender::gpu::Shader *shader, const char *name);
+int GPU_shader_get_uniform(gpu::Shader *shader, const char *name);
 
 /**
  * Returns specialization constant location.
  */
-int GPU_shader_get_constant(blender::gpu::Shader *shader, const char *name);
+int GPU_shader_get_constant(gpu::Shader *shader, const char *name);
 
 /**
  * Sets a generic push constant (a.k.a. uniform).
  * \a length and \a array_size should match the create info push_constant declaration.
  */
 void GPU_shader_uniform_float_ex(
-    blender::gpu::Shader *shader, int location, int length, int array_size, const float *value);
+    gpu::Shader *shader, int location, int length, int array_size, const float *value);
 void GPU_shader_uniform_int_ex(
-    blender::gpu::Shader *shader, int location, int length, int array_size, const int *value);
+    gpu::Shader *shader, int location, int length, int array_size, const int *value);
 
 /**
  * Sets a generic push constant (a.k.a. uniform).
@@ -216,31 +218,25 @@ void GPU_shader_uniform_int_ex(
  * These functions need to have the shader bound in order to work. (TODO: until we use
  * glProgramUniform)
  */
-void GPU_shader_uniform_1i(blender::gpu::Shader *sh, const char *name, int value);
-void GPU_shader_uniform_1b(blender::gpu::Shader *sh, const char *name, bool value);
-void GPU_shader_uniform_1f(blender::gpu::Shader *sh, const char *name, float value);
-void GPU_shader_uniform_2f(blender::gpu::Shader *sh, const char *name, float x, float y);
-void GPU_shader_uniform_3f(blender::gpu::Shader *sh, const char *name, float x, float y, float z);
-void GPU_shader_uniform_4f(
-    blender::gpu::Shader *sh, const char *name, float x, float y, float z, float w);
-void GPU_shader_uniform_2fv(blender::gpu::Shader *sh, const char *name, const float data[2]);
-void GPU_shader_uniform_3fv(blender::gpu::Shader *sh, const char *name, const float data[3]);
-void GPU_shader_uniform_4fv(blender::gpu::Shader *sh, const char *name, const float data[4]);
-void GPU_shader_uniform_2iv(blender::gpu::Shader *sh, const char *name, const int data[2]);
-void GPU_shader_uniform_3iv(blender::gpu::Shader *sh, const char *name, const int data[3]);
-void GPU_shader_uniform_mat4(blender::gpu::Shader *sh, const char *name, const float data[4][4]);
-void GPU_shader_uniform_mat3_as_mat4(blender::gpu::Shader *sh,
-                                     const char *name,
-                                     const float data[3][3]);
-void GPU_shader_uniform_1f_array(blender::gpu::Shader *sh,
-                                 const char *name,
-                                 int len,
-                                 const float *val);
-void GPU_shader_uniform_2fv_array(blender::gpu::Shader *sh,
+void GPU_shader_uniform_1i(gpu::Shader *sh, const char *name, int value);
+void GPU_shader_uniform_1b(gpu::Shader *sh, const char *name, bool value);
+void GPU_shader_uniform_1f(gpu::Shader *sh, const char *name, float value);
+void GPU_shader_uniform_2f(gpu::Shader *sh, const char *name, float x, float y);
+void GPU_shader_uniform_3f(gpu::Shader *sh, const char *name, float x, float y, float z);
+void GPU_shader_uniform_4f(gpu::Shader *sh, const char *name, float x, float y, float z, float w);
+void GPU_shader_uniform_2fv(gpu::Shader *sh, const char *name, const float data[2]);
+void GPU_shader_uniform_3fv(gpu::Shader *sh, const char *name, const float data[3]);
+void GPU_shader_uniform_4fv(gpu::Shader *sh, const char *name, const float data[4]);
+void GPU_shader_uniform_2iv(gpu::Shader *sh, const char *name, const int data[2]);
+void GPU_shader_uniform_3iv(gpu::Shader *sh, const char *name, const int data[3]);
+void GPU_shader_uniform_mat4(gpu::Shader *sh, const char *name, const float data[4][4]);
+void GPU_shader_uniform_mat3_as_mat4(gpu::Shader *sh, const char *name, const float data[3][3]);
+void GPU_shader_uniform_1f_array(gpu::Shader *sh, const char *name, int len, const float *val);
+void GPU_shader_uniform_2fv_array(gpu::Shader *sh,
                                   const char *name,
                                   int len,
                                   const float (*val)[2]);
-void GPU_shader_uniform_4fv_array(blender::gpu::Shader *sh,
+void GPU_shader_uniform_4fv_array(gpu::Shader *sh,
                                   const char *name,
                                   int len,
                                   const float (*val)[4]);
@@ -253,14 +249,14 @@ void GPU_shader_uniform_4fv_array(blender::gpu::Shader *sh,
  * Used to create #GPUVertexFormat from the shader's vertex input layout.
  * \{ */
 
-uint GPU_shader_get_attribute_len(const blender::gpu::Shader *shader);
-uint GPU_shader_get_ssbo_input_len(const blender::gpu::Shader *shader);
-int GPU_shader_get_attribute(const blender::gpu::Shader *shader, const char *name);
-bool GPU_shader_get_attribute_info(const blender::gpu::Shader *shader,
+uint GPU_shader_get_attribute_len(const gpu::Shader *shader);
+uint GPU_shader_get_ssbo_input_len(const gpu::Shader *shader);
+int GPU_shader_get_attribute(const gpu::Shader *shader, const char *name);
+bool GPU_shader_get_attribute_info(const gpu::Shader *shader,
                                    int attr_location,
                                    char r_name[256],
                                    int *r_type);
-bool GPU_shader_get_ssbo_input_info(const blender::gpu::Shader *shader,
+bool GPU_shader_get_ssbo_input_info(const gpu::Shader *shader,
                                     int ssbo_location,
                                     char r_name[256]);
 
@@ -276,14 +272,13 @@ bool GPU_shader_get_ssbo_input_info(const blender::gpu::Shader *shader,
 
 /* Return the default constants.
  * All constants available for this shader should fit the returned structure. */
-const blender::gpu::shader::SpecializationConstants &GPU_shader_get_default_constant_state(
-    blender::gpu::Shader *sh);
+const gpu::shader::SpecializationConstants &GPU_shader_get_default_constant_state(gpu::Shader *sh);
 
 using AsyncSpecializationHandle = int64_t;
 
 struct ShaderSpecialization {
-  blender::gpu::Shader *shader;
-  blender::gpu::shader::SpecializationConstants constants;
+  gpu::Shader *shader;
+  gpu::shader::SpecializationConstants constants;
 };
 
 /**
@@ -356,12 +351,12 @@ void GPU_shader_async_specialization_cancel(AsyncSpecializationHandle &handle);
  * \param: shader: The shader whose cache to warm.
  * \param limit: The maximum number of PSOs to compile within a call. Specifying
  * a limit <= 0 will compile a PSO for all cached PSOs in the parent shader. */
-void GPU_shader_warm_cache(blender::gpu::Shader *shader, int limit);
+void GPU_shader_warm_cache(gpu::Shader *shader, int limit);
 
 /* We expect the parent shader to be compiled and already have some cached PSOs when being assigned
  * as a reference. Ensure the parent shader still exists when `GPU_shader_cache_warm(..)` is
  * called. */
-void GPU_shader_set_parent(blender::gpu::Shader *shader, blender::gpu::Shader *parent);
+void GPU_shader_set_parent(gpu::Shader *shader, gpu::Shader *parent);
 
 /**
  * Indexed commonly used uniform name for faster lookup into the uniform cache.
@@ -396,7 +391,7 @@ enum GPUUniformBuiltin {
  * TODO: To be moved as private API. Not really used outside of gpu_matrix.cc and doesn't really
  * offer a noticeable performance boost.
  */
-int GPU_shader_get_builtin_uniform(blender::gpu::Shader *shader, int builtin);
+int GPU_shader_get_builtin_uniform(gpu::Shader *shader, int builtin);
 
 /**
  * Compile all statically defined shaders and print a report to the console.
@@ -422,7 +417,7 @@ enum GPUUniformBlockBuiltin {
 };
 
 /** DEPRECATED: Kept only because of Python GPU API. */
-int GPU_shader_get_uniform_block(blender::gpu::Shader *shader, const char *name);
+int GPU_shader_get_uniform_block(gpu::Shader *shader, const char *name);
 
 /** \} */
 
@@ -434,20 +429,16 @@ int GPU_shader_get_uniform_block(blender::gpu::Shader *shader, const char *name)
     } \
   } while (0)
 
-#include "BLI_utility_mixins.hh"
-#include <atomic>
-#include <mutex>
+namespace gpu {
 
-namespace blender::gpu {
-
-/* blender::gpu::Shader wrapper that makes compilation threadsafe.
+/* gpu::Shader wrapper that makes compilation threadsafe.
  * The compilation is deferred until the first get() call.
  * Concurrently using the shader from multiple threads is still unsafe. */
 class StaticShader : NonCopyable {
  private:
   std::string info_name_;
-  std::atomic<blender::gpu::Shader *> shader_ = nullptr;
-  /* TODO: Failed compilation detection should be supported by the blender::gpu::Shader API. */
+  std::atomic<gpu::Shader *> shader_ = nullptr;
+  /* TODO: Failed compilation detection should be supported by the gpu::Shader API. */
   std::atomic<bool> failed_ = false;
   std::mutex mutex_;
   /* Handle for async compilation. */
@@ -516,7 +507,7 @@ class StaticShader : NonCopyable {
     return shader_ || failed_;
   }
 
-  blender::gpu::Shader *get()
+  gpu::Shader *get()
   {
     if (is_ready()) {
       return shader_;
@@ -540,7 +531,7 @@ class StaticShader : NonCopyable {
 
   /* For batch compiled shaders. */
   /* TODO: Find a better way to handle this. */
-  void set(blender::gpu::Shader *shader)
+  void set(gpu::Shader *shader)
   {
     std::scoped_lock lock(mutex_);
     BLI_assert(shader_ == nullptr);
@@ -594,4 +585,5 @@ template<typename T> class StaticShaderCache {
   }
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

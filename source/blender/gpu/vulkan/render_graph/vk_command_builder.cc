@@ -637,14 +637,16 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
       continue;
     }
 
-    if (resource_state.image_layout != link.vk_image_layout &&
-        image_tracker.contains(resource.image.vk_image))
-    {
-      image_tracker.update(resource.image.vk_image,
-                           link.subimage,
-                           resource_state.image_layout,
-                           link.vk_image_layout,
-                           r_barrier);
+    /* Check if this image is being tracked as layered color attachment. In that case we are not
+     * allowed to update the resource state as it will be reverted by the image tracker. */
+    if (image_tracker.contains(resource.image.vk_image)) {
+      if (resource_state.image_layout != link.vk_image_layout) {
+        image_tracker.update(resource.image.vk_image,
+                             link.subimage,
+                             resource_state.image_layout,
+                             link.vk_image_layout,
+                             r_barrier);
+      }
       continue;
     }
 
@@ -694,15 +696,17 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
       /* Allow only local read barriers inside rendering scope */
       continue;
     }
-    if (image_tracker.contains(resource.image.vk_image) &&
-        resource_state.image_layout != link.vk_image_layout)
-    {
-      image_tracker.update(resource.image.vk_image,
-                           link.subimage,
-                           resource_state.image_layout,
-                           link.vk_image_layout,
-                           r_barrier);
 
+    /* Check if this image is being tracked as layered color attachment. In that case we are not
+     * allowed to update the resource state as it will be reverted by the image tracker. */
+    if (image_tracker.contains(resource.image.vk_image)) {
+      if (resource_state.image_layout != link.vk_image_layout) {
+        image_tracker.update(resource.image.vk_image,
+                             link.subimage,
+                             resource_state.image_layout,
+                             link.vk_image_layout,
+                             r_barrier);
+      }
       continue;
     }
 
@@ -877,9 +881,10 @@ void VKCommandBuilder::ImageTracker::suspend(Barrier &r_barrier, bool use_local_
         command_builder.vk_image_memory_barriers_.size());
 
 #if 0
-    std::cout << __func__ << ": transition layout image=" << binding.vk_image
-              << ", layer=" << binding.layer << ", count=" << binding.layer_count
-              << ", from_layout=" << to_string(binding.vk_image_layout)
+    std::cout << __func__ << ": transition layout image=" << change.vk_image
+              << ", layer=" << change.subimage.layer_base
+              << ", count=" << change.subimage.layer_count
+              << ", from_layout=" << to_string(change.vk_image_layout)
               << ", to_layout=" << to_string(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) << "\n";
 #endif
   }
@@ -914,10 +919,11 @@ void VKCommandBuilder::ImageTracker::resume(Barrier &r_barrier, bool use_local_r
         VK_IMAGE_ASPECT_COLOR_BIT,
         change.subimage);
 #if 0
-    std::cout << __func__ << ": transition layout image=" << binding.vk_image
-              << ", layer=" << binding.layer << ", count=" << binding.layer_count
+    std::cout << __func__ << ": transition layout image=" << change.vk_image
+              << ", layer=" << change.subimage.layer_base
+              << ", count=" << change.subimage.layer_count
               << ", from_layout=" << to_string(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-              << ", to_layout=" << to_string(binding.vk_image_layout) << "\n";
+              << ", to_layout=" << to_string(change.vk_image_layout) << "\n";
 #endif
   }
 }

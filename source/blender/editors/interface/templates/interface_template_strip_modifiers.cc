@@ -25,15 +25,16 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
+namespace blender::ui {
+
 static void strip_modifier_panel_id(void *smd_link, char *r_name)
 {
   StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_link);
-  blender::seq::modifier_type_panel_id(eStripModifierType(smd->type), r_name);
+  seq::modifier_type_panel_id(eStripModifierType(smd->type), r_name);
 }
 
-void uiTemplateStripModifiers(blender::ui::Layout * /*layout*/, bContext *C)
+void template_strip_modifiers(Layout * /*layout*/, bContext *C)
 {
-  using namespace blender;
   ARegion *region = CTX_wm_region(C);
 
   Scene *sequencer_scene = CTX_data_sequencer_scene(C);
@@ -42,33 +43,33 @@ void uiTemplateStripModifiers(blender::ui::Layout * /*layout*/, bContext *C)
   }
   Strip *active_strip = seq::select_active_get(sequencer_scene);
   BLI_assert(active_strip != nullptr);
-  ListBase *modifiers = &active_strip->modifiers;
+  ListBaseT<StripModifierData> *modifiers = &active_strip->modifiers;
 
-  const bool panels_match = UI_panel_list_matches_data(region, modifiers, strip_modifier_panel_id);
+  const bool panels_match = panel_list_matches_data(region, modifiers, strip_modifier_panel_id);
 
   if (!panels_match) {
-    UI_panels_free_instanced(C, region);
-    LISTBASE_FOREACH (StripModifierData *, smd, modifiers) {
-      const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(smd->type);
+    panels_free_instanced(C, region);
+    for (StripModifierData &smd : *modifiers) {
+      const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(smd.type);
       if (mti->panel_register == nullptr) {
         continue;
       }
 
       char panel_idname[MAX_NAME];
-      strip_modifier_panel_id(smd, panel_idname);
+      strip_modifier_panel_id(&smd, panel_idname);
 
       /* Create custom data RNA pointer. */
       PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
-      *md_ptr = RNA_pointer_create_discrete(&sequencer_scene->id, &RNA_StripModifier, smd);
+      *md_ptr = RNA_pointer_create_discrete(&sequencer_scene->id, &RNA_StripModifier, &smd);
 
-      UI_panel_add_instanced(C, region, &region->panels, panel_idname, md_ptr);
+      panel_add_instanced(C, region, &region->panels, panel_idname, md_ptr);
     }
   }
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = static_cast<Panel *>(region->panels.first);
-    LISTBASE_FOREACH (StripModifierData *, smd, modifiers) {
-      const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(smd->type);
+    for (StripModifierData &smd : *modifiers) {
+      const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(smd.type);
       if (mti->panel_register == nullptr) {
         continue;
       }
@@ -81,10 +82,12 @@ void uiTemplateStripModifiers(blender::ui::Layout * /*layout*/, bContext *C)
       }
 
       PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
-      *md_ptr = RNA_pointer_create_discrete(&sequencer_scene->id, &RNA_StripModifier, smd);
-      UI_panel_custom_data_set(panel, md_ptr);
+      *md_ptr = RNA_pointer_create_discrete(&sequencer_scene->id, &RNA_StripModifier, &smd);
+      panel_custom_data_set(panel, md_ptr);
 
       panel = panel->next;
     }
   }
 }
+
+}  // namespace blender::ui

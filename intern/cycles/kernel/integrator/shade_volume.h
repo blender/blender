@@ -25,8 +25,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef __VOLUME__
-
 /* Events for probabilistic scattering. */
 
 enum VolumeIntegrateEvent {
@@ -34,6 +32,8 @@ enum VolumeIntegrateEvent {
   VOLUME_PATH_ATTENUATED = 1,
   VOLUME_PATH_MISSED = 2
 };
+
+#ifdef __VOLUME__
 
 struct VolumeIntegrateResult {
   /* Throughput and offset for direct light scattering. */
@@ -913,7 +913,7 @@ ccl_device_inline bool volume_indirect_scatter_advance(const ccl_private OctreeT
   return vstate.t > octree.t.max;
 }
 
-/* Adavance to the next candidate indirect scatter position, and compute the direct throughput. */
+/** Advance to the next candidate indirect scatter position, and compute the direct throughput. */
 ccl_device_inline bool volume_integrate_advance(KernelGlobals kg,
                                                 const ccl_private Ray *ccl_restrict ray,
                                                 ccl_private ShaderData *ccl_restrict sd,

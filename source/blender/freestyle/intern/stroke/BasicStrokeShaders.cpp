@@ -422,7 +422,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
   else {
     nExtraVertex = newsize - originalSize;
     if (nExtraVertex != 0) {
-      if (G.debug & G_DEBUG_FREESTYLE) {
+      if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Bezier Shader : Stroke " << stroke.getId() << " have not been resampled" << endl;
       }
     }
@@ -458,7 +458,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
     verticesToRemove.push_back(&(*it));
     if (it.isEnd()) {
       // XXX Shocking! :P Shouldn't we break in this case???
-      if (G.debug & G_DEBUG_FREESTYLE) {
+      if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "messed up!" << endl;
       }
     }

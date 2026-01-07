@@ -87,7 +87,7 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -247,7 +247,7 @@ void do_smooth_brush(const Depsgraph &depsgraph,
       do_smooth_brush_mesh(depsgraph, sd, brush, object, node_mask, brush_strength);
       break;
     case bke::pbvh::Type::Grids: {
-      const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &base_mesh = *id_cast<const Mesh *>(object.data);
       const OffsetIndices faces = base_mesh.faces();
       const Span<int> corner_verts = base_mesh.corner_verts();
 

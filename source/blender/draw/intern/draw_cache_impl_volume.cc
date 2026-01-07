@@ -44,7 +44,7 @@ static void volume_batch_cache_clear(Volume *volume);
 
 struct VolumeBatchCache {
   /* 3D textures */
-  ListBase grids;
+  ListBaseT<DRWVolumeGrid> grids;
 
   /* Wireframe */
   struct {
@@ -117,9 +117,9 @@ static void volume_batch_cache_clear(Volume *volume)
     return;
   }
 
-  LISTBASE_FOREACH (DRWVolumeGrid *, grid, &cache->grids) {
-    MEM_SAFE_FREE(grid->name);
-    GPU_TEXTURE_FREE_SAFE(grid->texture);
+  for (DRWVolumeGrid &grid : cache->grids) {
+    MEM_SAFE_FREE(grid.name);
+    GPU_TEXTURE_FREE_SAFE(grid.texture);
   }
   BLI_freelistN(&cache->grids);
 
@@ -157,8 +157,7 @@ static void drw_volume_wireframe_cb(
   static const GPUVertFormat format = [&]() {
     GPUVertFormat format{};
     attr_id.pos_id = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
-    attr_id.nor_id = GPU_vertformat_attr_add(
-        &format, "nor", blender::gpu::VertAttrType::SNORM_10_10_10_2);
+    attr_id.nor_id = GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SNORM_10_10_10_2);
     return format;
   }();
 
@@ -167,7 +166,7 @@ static void drw_volume_wireframe_cb(
     attr_id.pos_hq_id = GPU_vertformat_attr_add(
         &format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     attr_id.nor_hq_id = GPU_vertformat_attr_add(
-        &format, "nor", blender::gpu::VertAttrType::SNORM_16_16_16_16);
+        &format, "nor", gpu::VertAttrType::SNORM_16_16_16_16);
     return format;
   }();
 
@@ -290,9 +289,9 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
   const std::string name = bke::volume_grid::get_name(*grid);
 
   /* Return cached grid. */
-  LISTBASE_FOREACH (DRWVolumeGrid *, cache_grid, &cache->grids) {
-    if (cache_grid->name == name) {
-      return cache_grid;
+  for (DRWVolumeGrid &cache_grid : cache->grids) {
+    if (cache_grid.name == name) {
+      return &cache_grid;
     }
   }
 
@@ -317,9 +316,8 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
     cache_grid->object_to_texture = math::invert(cache_grid->texture_to_object);
 
     /* Create GPU texture. */
-    blender::gpu::TextureFormat format = (channels == 3) ?
-                                             blender::gpu::TextureFormat::SFLOAT_16_16_16 :
-                                             blender::gpu::TextureFormat::SFLOAT_16;
+    gpu::TextureFormat format = (channels == 3) ? gpu::TextureFormat::SFLOAT_16_16_16 :
+                                                  gpu::TextureFormat::SFLOAT_16;
     cache_grid->texture = GPU_texture_create_3d("volume_grid",
                                                 UNPACK3(dense_grid.resolution),
                                                 1,

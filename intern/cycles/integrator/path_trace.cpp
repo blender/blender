@@ -1307,6 +1307,9 @@ static string device_info_list_report(const string &message, const DeviceInfo &d
 
   if (device_info.multi_devices.empty()) {
     result += full_device_info_description(device_info) + "\n";
+    result += pad +
+              "    Hardware Ray-Tracing: " + (device_info.use_hardware_raytracing ? "On" : "Off") +
+              "\n";
     return result;
   }
 
@@ -1317,6 +1320,8 @@ static string device_info_list_report(const string &message, const DeviceInfo &d
     }
 
     result += full_device_info_description(sub_device_info) + "\n";
+    result += pad + "    Hardware Ray-Tracing: " +
+              (sub_device_info.use_hardware_raytracing ? "On" : "Off") + "\n";
 
     is_first = false;
   }

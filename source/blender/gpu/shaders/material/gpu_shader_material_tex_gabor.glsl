@@ -284,6 +284,7 @@ float2 compute_3d_gabor_noise(float3 coordinates,
   return sum;
 }
 
+[[node]]
 void node_tex_gabor(float3 coordinates,
                     float scale,
                     float frequency,
@@ -291,9 +292,9 @@ void node_tex_gabor(float3 coordinates,
                     float orientation_2d,
                     float3 orientation_3d,
                     float type,
-                    out float output_value,
-                    out float output_phase,
-                    out float output_intensity)
+                    float &output_value,
+                    float &output_phase,
+                    float &output_intensity)
 {
   float3 scaled_coordinates = coordinates * scale;
   float isotropy = 1.0f - clamp(anisotropy, 0.0f, 1.0f);

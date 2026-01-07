@@ -47,7 +47,7 @@
 
 #include "action_intern.hh"
 
-using namespace blender;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Channel List
@@ -56,12 +56,12 @@ using namespace blender;
 void draw_channel_names(bContext *C,
                         bAnimContext *ac,
                         ARegion *region,
-                        const ListBase /*bAnimListElem*/ &anim_data)
+                        const ListBaseT<bAnimListElem> &anim_data)
 {
   bAnimListElem *ale;
   View2D *v2d = &region->v2d;
   /* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
-  UI_view2d_sync(nullptr, ac->area, v2d, V2D_LOCK_COPY);
+  ui::view2d_sync(nullptr, ac->area, v2d, V2D_LOCK_COPY);
 
   const float channel_step = ANIM_UI_get_channel_step();
   /* Loop through channels, and set up drawing depending on their type. */
@@ -84,7 +84,7 @@ void draw_channel_names(bContext *C,
     }
   }
   { /* second pass: widgets */
-    uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+    ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
     size_t channel_index = 0;
     float ymax = ANIM_UI_get_first_channel_top(v2d);
 
@@ -104,8 +104,8 @@ void draw_channel_names(bContext *C,
       }
     }
 
-    UI_block_end(C, block);
-    UI_block_draw(C, block);
+    block_end(C, block);
+    block_draw(C, block);
   }
 }
 
@@ -119,7 +119,7 @@ void draw_channel_names(bContext *C,
 #define EXTRA_SCROLL_PAD 100.0f
 
 /* Draw manually set intended playback frame ranges for actions. */
-static void draw_channel_action_ranges(ListBase *anim_data, View2D *v2d)
+static void draw_channel_action_ranges(ListBaseT<bAnimListElem> *anim_data, View2D *v2d)
 {
   /* Variables for coalescing the Y region of one action. */
   bAction *cur_action = nullptr;
@@ -169,7 +169,10 @@ static void draw_channel_action_ranges(ListBase *anim_data, View2D *v2d)
   }
 }
 
-static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, uint pos)
+static void draw_backdrops(bAnimContext *ac,
+                           ListBaseT<bAnimListElem> &anim_data,
+                           View2D *v2d,
+                           uint pos)
 {
   uchar col1[4], col2[4];
   uchar col1a[4], col2a[4];
@@ -177,15 +180,15 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
   uchar col_summary[4];
 
   /* get theme colors */
-  UI_GetThemeColor4ubv(TH_CHANNEL, col2);
-  UI_GetThemeColor4ubv(TH_CHANNEL_SELECT, col1);
-  UI_GetThemeColor4ubv(TH_ANIM_ACTIVE, col_summary);
+  ui::theme::get_color_4ubv(TH_CHANNEL, col2);
+  ui::theme::get_color_4ubv(TH_CHANNEL_SELECT, col1);
+  ui::theme::get_color_4ubv(TH_ANIM_ACTIVE, col_summary);
 
-  UI_GetThemeColor4ubv(TH_GROUP, col2a);
-  UI_GetThemeColor4ubv(TH_GROUP_ACTIVE, col1a);
+  ui::theme::get_color_4ubv(TH_GROUP, col2a);
+  ui::theme::get_color_4ubv(TH_GROUP_ACTIVE, col1a);
 
-  UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELOB, col1b);
-  UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
+  ui::theme::get_color_4ubv(TH_DOPESHEET_CHANNELOB, col1b);
+  ui::theme::get_color_4ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
 
   float ymax = ANIM_UI_get_first_channel_top(v2d);
   const float channel_step = ANIM_UI_get_channel_step();
@@ -314,7 +317,7 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
 static void draw_keyframes(bAnimContext *ac,
                            View2D *v2d,
                            SpaceAction *saction,
-                           ListBase &anim_data)
+                           const ListBaseT<bAnimListElem> &anim_data)
 {
   /* Draw keyframes
    * 1) Only channels that are visible in the Action Editor get drawn/evaluated.
@@ -396,12 +399,7 @@ static void draw_keyframes(bAnimContext *ac,
                                    action_flag);
         break;
       case ALE_ACT:
-        ED_add_action_channel(draw_list,
-                              ale,
-                              static_cast<bAction *>(ale->key_data),
-                              ycenter,
-                              scale_factor,
-                              action_flag);
+        BLI_assert_unreachable();
         break;
       case ALE_GROUP:
         ED_add_action_group_channel(draw_list,
@@ -476,7 +474,7 @@ static void draw_keyframes(bAnimContext *ac,
 void draw_channel_strips(bAnimContext *ac,
                          SpaceAction *saction,
                          ARegion *region,
-                         ListBase *anim_data)
+                         ListBaseT<bAnimListElem> *anim_data)
 {
   View2D *v2d = &region->v2d;
 
@@ -488,7 +486,7 @@ void draw_channel_strips(bAnimContext *ac,
 
   /* Draw the background strips. */
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -701,12 +699,12 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + y_offset);
   GPU_matrix_scale_2f(1.0, height);
 
-  blender::ColorTheme4f color;
+  ColorTheme4f color;
   timeline_cache_color_get(pid, color);
 
   /* Mix in the background color to tone it down a bit. */
-  blender::ColorTheme4f background;
-  UI_GetThemeColor4fv(TH_BACK, background);
+  ColorTheme4f background;
+  ui::theme::get_color_4fv(TH_BACK, background);
 
   interp_v3_v3v3(color, color, background, 0.6f);
 
@@ -716,7 +714,7 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   immRectf(pos_id, float(pid->cache->startframe), 0.0, float(pid->cache->endframe), 1.0);
 
   /* Now show the cached frames on top. */
-  blender::ColorTheme4f color_state;
+  ColorTheme4f color_state;
   copy_v4_v4(color_state, color);
 
   timeline_cache_modify_color_based_on_state(pid->cache, color, color_state);
@@ -730,11 +728,11 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
 }
 
 struct CacheRange {
-  blender::IndexRange frames;
-  blender::bke::bake::CacheStatus status;
+  IndexRange frames;
+  bke::bake::CacheStatus status;
 };
 
-static void timeline_cache_draw_geometry_nodes(const blender::Span<CacheRange> cache_ranges,
+static void timeline_cache_draw_geometry_nodes(const Span<CacheRange> cache_ranges,
                                                const bool all_simulations_baked,
                                                float *y_offset,
                                                const float line_height,
@@ -748,41 +746,41 @@ static void timeline_cache_draw_geometry_nodes(const blender::Span<CacheRange> c
 
   for (const CacheRange &sim_range : cache_ranges) {
     switch (sim_range.status) {
-      case blender::bke::bake::CacheStatus::Invalid:
-      case blender::bke::bake::CacheStatus::Valid:
+      case bke::bake::CacheStatus::Invalid:
+      case bke::bake::CacheStatus::Valid:
         break;
-      case blender::bke::bake::CacheStatus::Baked:
+      case bke::bake::CacheStatus::Baked:
         has_bake = true;
         break;
     }
   }
 
-  blender::Set<int> status_change_frames_set;
+  Set<int> status_change_frames_set;
   for (const CacheRange &sim_range : cache_ranges) {
     status_change_frames_set.add(sim_range.frames.first());
     status_change_frames_set.add(sim_range.frames.one_after_last());
   }
-  blender::Vector<int> status_change_frames;
+  Vector<int> status_change_frames;
   status_change_frames.extend(status_change_frames_set.begin(), status_change_frames_set.end());
   std::sort(status_change_frames.begin(), status_change_frames.end());
-  const blender::OffsetIndices<int> frame_ranges = status_change_frames.as_span();
+  const OffsetIndices<int> frame_ranges = status_change_frames.as_span();
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + *y_offset);
   GPU_matrix_scale_2f(1.0, line_height);
 
-  blender::ColorTheme4f base_color;
-  UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, base_color);
-  blender::ColorTheme4f invalid_color = base_color;
+  ColorTheme4f base_color;
+  ui::theme::get_color_4fv(TH_SIMULATED_FRAMES, base_color);
+  ColorTheme4f invalid_color = base_color;
   mul_v3_fl(invalid_color, 0.5f);
   invalid_color.a *= 0.7f;
-  blender::ColorTheme4f valid_color = base_color;
+  ColorTheme4f valid_color = base_color;
   valid_color.a *= 0.7f;
-  blender::ColorTheme4f baked_color = base_color;
+  ColorTheme4f baked_color = base_color;
 
   float max_used_height = 1.0f;
   for (const int range_i : frame_ranges.index_range()) {
-    const blender::IndexRange frame_range = frame_ranges[range_i];
+    const IndexRange frame_range = frame_ranges[range_i];
     const int start_frame = frame_range.first();
     const int end_frame = frame_range.last();
 
@@ -792,13 +790,13 @@ static void timeline_cache_draw_geometry_nodes(const blender::Span<CacheRange> c
     for (const CacheRange &sim_range : cache_ranges) {
       if (sim_range.frames.contains(start_frame)) {
         switch (sim_range.status) {
-          case blender::bke::bake::CacheStatus::Invalid:
+          case bke::bake::CacheStatus::Invalid:
             has_invalid_at_frame = true;
             break;
-          case blender::bke::bake::CacheStatus::Valid:
+          case bke::bake::CacheStatus::Valid:
             has_valid_at_frame = true;
             break;
-          case blender::bke::bake::CacheStatus::Baked:
+          case bke::bake::CacheStatus::Baked:
             has_bake_at_frame = true;
             break;
         }
@@ -845,11 +843,10 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
     return;
   }
 
-  ListBase pidlist;
+  ListBaseT<PTCacheID> pidlist;
   BKE_ptcache_ids_from_object(&pidlist, const_cast<Object *>(ob), const_cast<Scene *>(scene), 0);
 
-  uint pos_id = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos_id = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -861,27 +858,27 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
   immUniform1i("size1", cache_draw_height * 2.0f);
   immUniform1i("size2", cache_draw_height);
 
-  LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
-    if (timeline_cache_is_hidden_by_setting(saction, pid)) {
+  for (PTCacheID &pid : pidlist) {
+    if (timeline_cache_is_hidden_by_setting(saction, &pid)) {
       continue;
     }
 
-    if (pid->cache->cached_frames == nullptr) {
+    if (pid.cache->cached_frames == nullptr) {
       continue;
     }
 
-    timeline_cache_draw_single(pid, y_offset, cache_draw_height, pos_id);
+    timeline_cache_draw_single(&pid, y_offset, cache_draw_height, pos_id);
 
     y_offset += cache_draw_height;
   }
   if (saction->cache_display & TIME_CACHE_SIMULATION_NODES) {
-    blender::Vector<CacheRange> cache_ranges;
+    Vector<CacheRange> cache_ranges;
     bool all_simulations_baked = true;
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type != eModifierType_Nodes) {
+    for (ModifierData &md : ob->modifiers) {
+      if (md.type != eModifierType_Nodes) {
         continue;
       }
-      const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
       if (nmd->node_group == nullptr) {
         continue;
       }
@@ -892,16 +889,16 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
         /* Skip when there are no bake nodes or simulations. */
         continue;
       }
-      const blender::bke::bake::ModifierCache &modifier_cache = *nmd->runtime->cache;
+      const bke::bake::ModifierCache &modifier_cache = *nmd->runtime->cache;
       {
         std::lock_guard lock{modifier_cache.mutex};
         for (const auto item : modifier_cache.simulation_cache_by_id.items()) {
-          const blender::bke::bake::SimulationNodeCache &node_cache = *item.value;
+          const bke::bake::SimulationNodeCache &node_cache = *item.value;
           if (node_cache.bake.frames.is_empty()) {
             all_simulations_baked = false;
             continue;
           }
-          if (node_cache.cache_status != blender::bke::bake::CacheStatus::Baked) {
+          if (node_cache.cache_status != bke::bake::CacheStatus::Baked) {
             all_simulations_baked = false;
           }
           cache_ranges.append({node_cache.bake.frame_range(), node_cache.cache_status});
@@ -914,12 +911,11 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
           if (bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
             continue;
           }
-          const blender::bke::bake::BakeNodeCache &node_cache = *item.value;
+          const bke::bake::BakeNodeCache &node_cache = *item.value;
           if (node_cache.bake.frames.is_empty()) {
             continue;
           }
-          cache_ranges.append(
-              {node_cache.bake.frame_range(), blender::bke::bake::CacheStatus::Baked});
+          cache_ranges.append({node_cache.bake.frame_range(), bke::bake::CacheStatus::Baked});
         }
       }
     }
@@ -934,3 +930,5 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
 }
 
 /** \} */
+
+}  // namespace blender

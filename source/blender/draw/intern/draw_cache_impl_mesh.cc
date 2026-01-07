@@ -93,7 +93,7 @@ static void discard_buffers(MeshBatchCache &cache,
   };
 
   for (const int i : IndexRange(MBC_BATCH_LEN)) {
-    gpu::Batch *batch = ((gpu::Batch **)&cache.batch)[i];
+    gpu::Batch *batch = (reinterpret_cast<gpu::Batch **>(&cache.batch))[i];
     if (batch && batch_contains_data(*batch)) {
       GPU_BATCH_DISCARD_SAFE(((gpu::Batch **)&cache.batch)[i]);
       cache.batch_ready &= ~DRWBatchFlag(uint64_t(1u) << i);
@@ -153,10 +153,12 @@ static void mesh_cd_calc_active_mask_uv_layer(const Object &object,
                                               DRW_MeshCDMask &cd_used)
 {
   const Mesh &me_final = editmesh_final_or_this(object, mesh);
-  const CustomData &cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
-  int layer = CustomData_get_stencil_layer_index(&cd_ldata, CD_PROP_FLOAT2);
-  if (layer != -1) {
-    cd_used.uv.add_as(cd_ldata.layers[layer].name);
+  StringRef name = me_final.stencil_uv_map_attribute;
+  if (name.is_empty()) {
+    name = mesh.active_uv_map_name();
+  }
+  if (!name.is_empty()) {
+    cd_used.uv.add_as(name);
   }
 }
 
@@ -193,10 +195,10 @@ static void mesh_cd_calc_used_gpu_layers(const Object &object,
     if (gpumat == nullptr) {
       continue;
     }
-    ListBase gpu_attrs = GPU_material_attributes(gpumat);
-    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
+    ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpumat);
+    for (GPUMaterialAttribute &gpu_attr : gpu_attrs) {
 
-      if (gpu_attr->is_default_color) {
+      if (gpu_attr.is_default_color) {
         const StringRef default_color_name = me_final.default_color_attribute;
         if (attribute_exists(me_final, default_color_name)) {
           drw_attributes_add_request(r_attributes, default_color_name);
@@ -204,14 +206,14 @@ static void mesh_cd_calc_used_gpu_layers(const Object &object,
         continue;
       }
 
-      if (gpu_attr->type == CD_ORCO) {
+      if (gpu_attr.type == CD_ORCO) {
         r_cd_used->orco = true;
         continue;
       }
 
-      StringRef name = gpu_attr->name;
+      StringRef name = gpu_attr.name;
 
-      if (gpu_attr->type == CD_TANGENT) {
+      if (gpu_attr.type == CD_TANGENT) {
         if (name.is_empty()) {
           const StringRef default_name = me_final.default_uv_map_name();
           if (!default_name.is_empty()) {
@@ -432,8 +434,8 @@ static void mesh_batch_cache_init(Mesh &mesh)
   cache->tris_per_mat.reinitialize(cache->mat_len);
 
   cache->is_dirty = false;
-  cache->batch_ready = (DRWBatchFlag)0;
-  cache->batch_requested = (DRWBatchFlag)0;
+  cache->batch_ready = DRWBatchFlag(0);
+  cache->batch_requested = DRWBatchFlag(0);
 
   drw_mesh_weight_state_clear(&cache->weight_state);
 }
@@ -591,7 +593,7 @@ static void mesh_batch_cache_clear(MeshBatchCache &cache)
   cache.tris_per_mat = {};
 
   for (int i = 0; i < sizeof(cache.batch) / sizeof(void *); i++) {
-    gpu::Batch **batch = (gpu::Batch **)&cache.batch;
+    gpu::Batch **batch = reinterpret_cast<gpu::Batch **>(&cache.batch);
     GPU_BATCH_DISCARD_SAFE(batch[i]);
   }
   for (const int i : cache.surface_per_mat.index_range()) {
@@ -603,7 +605,7 @@ static void mesh_batch_cache_clear(MeshBatchCache &cache)
   cache.surface_per_mat = {};
   cache.mat_len = 0;
 
-  cache.batch_ready = (DRWBatchFlag)0;
+  cache.batch_ready = DRWBatchFlag(0);
   drw_mesh_weight_state_clear(&cache.weight_state);
 
   mesh_batch_cache_free_subdiv_cache(cache);
@@ -1049,7 +1051,7 @@ static void init_empty_dummy_batch(gpu::Batch &batch)
    * creating a vertex buffer shouldn't matter. */
   GPUVertFormat format{};
   GPU_vertformat_attr_add(&format, "dummy", gpu::VertAttrType::SFLOAT_32);
-  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 1);
   /* Avoid the batch being rendered at all. */
   GPU_vertbuf_data_len_set(*vbo, 0);
@@ -1082,7 +1084,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
   const bool is_editmode = ob.mode == OB_MODE_EDIT;
 
   DRWBatchFlag batch_requested = cache.batch_requested;
-  cache.batch_requested = (DRWBatchFlag)0;
+  cache.batch_requested = DRWBatchFlag(0);
 
   if (batch_requested & MBC_SURFACE_WEIGHTS) {
     /* Check vertex weights. */

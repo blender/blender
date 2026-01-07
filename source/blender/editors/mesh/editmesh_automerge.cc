@@ -13,11 +13,14 @@
 
 #include "BKE_editmesh.hh"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "ED_mesh.hh"
 
 #include "tools/bmesh_intersect_edges.hh"
+
+namespace blender {
 
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
@@ -68,7 +71,7 @@ static bool edbm_automerge_impl(
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
   return changed;
 }
@@ -141,10 +144,12 @@ bool EDBM_automerge_and_split(Object *obedit,
     params.calc_looptris = true;
     params.calc_normals = false;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   return ok;
 }
 
 /** \} */
+
+}  // namespace blender

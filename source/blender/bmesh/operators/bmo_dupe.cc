@@ -10,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -18,6 +18,8 @@
 #include "bmesh.hh"
 
 #include "intern/bmesh_operators_private.hh" /* own include */
+
+namespace blender {
 
 /* local flag define */
 #define DUPE_INPUT 1 /* input from operator */
@@ -35,7 +37,7 @@ static BMVert *bmo_vert_copy(BMOperator *op,
                              BMesh *bm_dst,
                              const std::optional<BMCustomDataCopyMap> &cd_vert_map,
                              BMVert *v_src,
-                             blender::Map<BMVert *, BMVert *> &vhash)
+                             Map<BMVert *, BMVert *> &vhash)
 {
   BMVert *v_dst;
 
@@ -73,8 +75,8 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
                              BMesh *bm_src,
                              const std::optional<BMCustomDataCopyMap> &cd_edge_map,
                              BMEdge *e_src,
-                             blender::Map<BMVert *, BMVert *> &vhash,
-                             blender::Map<BMEdge *, BMEdge *> &ehash,
+                             Map<BMVert *, BMVert *> &vhash,
+                             Map<BMEdge *, BMEdge *> &ehash,
                              const bool use_edge_flip_from_face)
 {
   BMEdge *e_dst;
@@ -148,12 +150,12 @@ static BMFace *bmo_face_copy(BMOperator *op,
                              const std::optional<BMCustomDataCopyMap> &cd_face_map,
                              const std::optional<BMCustomDataCopyMap> &cd_loop_map,
                              BMFace *f_src,
-                             blender::Map<BMVert *, BMVert *> &vhash,
-                             blender::Map<BMEdge *, BMEdge *> &ehash)
+                             Map<BMVert *, BMVert *> &vhash,
+                             Map<BMEdge *, BMEdge *> &ehash)
 {
   BMFace *f_dst;
-  BMVert **vtar = BLI_array_alloca(vtar, f_src->len);
-  BMEdge **edar = BLI_array_alloca(edar, f_src->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vtar(f_src->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edar(f_src->len);
   BMLoop *l_iter_src, *l_iter_dst, *l_first_src;
   int i;
 
@@ -169,7 +171,7 @@ static BMFace *bmo_face_copy(BMOperator *op,
   } while ((l_iter_src = l_iter_src->next) != l_first_src);
 
   /* create new face */
-  f_dst = BM_face_create(bm_dst, vtar, edar, f_src->len, nullptr, BM_CREATE_SKIP_CD);
+  f_dst = BM_face_create(bm_dst, vtar.data(), edar.data(), f_src->len, nullptr, BM_CREATE_SKIP_CD);
   BMO_slot_map_elem_insert(op, slot_facemap_out, f_src, f_dst);
   BMO_slot_map_elem_insert(op, slot_facemap_out, f_dst, f_src);
 
@@ -223,8 +225,8 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
   BMOpSlot *slot_face_map_out = BMO_slot_get(op->slots_out, "face_map.out");
 
   /* initialize pointer hashes */
-  blender::Map<BMVert *, BMVert *> vhash;
-  blender::Map<BMEdge *, BMEdge *> ehash;
+  Map<BMVert *, BMVert *> vhash;
+  Map<BMEdge *, BMEdge *> ehash;
 
   const std::optional<BMCustomDataCopyMap> cd_vert_map =
       (bm_src == bm_dst) ? std::nullopt :
@@ -573,7 +575,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
        * So we can read the original from the final.
        *
        * The normals must be recalculated anyway. */
-      *((int *)&v->no[0]) = i;
+      *(reinterpret_cast<int *>(&v->no[0])) = i;
     }
   }
 
@@ -644,12 +646,12 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
       else {
         /* Merge first/last vertices and edges (maintaining 'geom.out' state). */
         BMOpSlot *slot_geom_out = BMO_slot_get(extop.slots_out, "geom.out");
-        BMElem **elem_array = (BMElem **)slot_geom_out->data.buf;
+        BMElem **elem_array = reinterpret_cast<BMElem **>(slot_geom_out->data.buf);
         int elem_array_len = slot_geom_out->len;
         for (int i = 0; i < elem_array_len;) {
           if (elem_array[i]->head.htype == BM_VERT) {
-            BMVert *v_src = (BMVert *)elem_array[i];
-            BMVert *v_dst = vtable[*((const int *)&v_src->no[0])];
+            BMVert *v_src = reinterpret_cast<BMVert *>(elem_array[i]);
+            BMVert *v_dst = vtable[*(reinterpret_cast<const int *>(&v_src->no[0]))];
             BM_vert_splice(bm, v_dst, v_src);
             elem_array_len--;
             elem_array[i] = elem_array[elem_array_len];
@@ -660,7 +662,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
         }
         for (int i = 0; i < elem_array_len;) {
           if (elem_array[i]->head.htype == BM_EDGE) {
-            BMEdge *e_src = (BMEdge *)elem_array[i];
+            BMEdge *e_src = reinterpret_cast<BMEdge *>(elem_array[i]);
             BMEdge *e_dst = BM_edge_find_double(e_src);
             if (e_dst != nullptr) {
               BM_edge_splice(bm, e_dst, e_src);
@@ -674,7 +676,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
         /* Full copies of faces may cause overlap. */
         for (int i = 0; i < elem_array_len;) {
           if (elem_array[i]->head.htype == BM_FACE) {
-            BMFace *f_src = (BMFace *)elem_array[i];
+            BMFace *f_src = reinterpret_cast<BMFace *>(elem_array[i]);
             BMFace *f_dst = BM_face_find_double(f_src);
             if (f_dst != nullptr) {
               BM_face_kill(bm, f_src);
@@ -707,3 +709,5 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
     MEM_freeN(vtable);
   }
 }
+
+}  // namespace blender

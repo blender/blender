@@ -13,11 +13,13 @@
 #include "ANIM_action.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct AnimationEvalContext;
 struct Object;
 struct bAction;
 
-namespace blender::animrig {
+namespace animrig {
 
 /**
  * Evaluate the action and apply it to the pose. Ignore selection state of the bones.
@@ -50,7 +52,7 @@ void pose_apply_action_blend_all_bones(Object *ob,
  * Apply the given Action to all objects of the Span.
  * The slot is chosen automatically, see `get_best_pose_slot_for_id`.
  */
-void pose_apply_action(blender::Span<Object *> objects,
+void pose_apply_action(Span<Object *> objects,
                        Action &pose_action,
                        const AnimationEvalContext *anim_eval_context,
                        float blend_factor);
@@ -58,7 +60,7 @@ void pose_apply_action(blender::Span<Object *> objects,
  * Return true if any bone is selected. This is useful to decide if all bones should be affected
  * or not.
  */
-bool any_bone_selected(blender::Span<const Object *> objects);
+bool any_bone_selected(Span<const Object *> objects);
 
 /**
  * Get the best slot to read pose data from for the given ID.
@@ -67,4 +69,5 @@ bool any_bone_selected(blender::Span<const Object *> objects);
  * Assumes that the Action has at least one Slot.
  */
 Slot &get_best_pose_slot_for_id(const ID &id, Action &pose_data);
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

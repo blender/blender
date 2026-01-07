@@ -22,10 +22,10 @@ extern PyTypeObject UnaryFunction0DVectorViewShape_Type;
 
 /*---------------------------Python BPy_UnaryFunction0DVectorViewShape structure
  * definition----------*/
-typedef struct {
+struct BPy_UnaryFunction0DVectorViewShape {
   BPy_UnaryFunction0D py_uf0D;
   Freestyle::UnaryFunction0D<std::vector<Freestyle::ViewShape *>> *uf0D_vectorviewshape;
-} BPy_UnaryFunction0DVectorViewShape;
+};
 
 /*---------------------------Python BPy_UnaryFunction0DVectorViewShape visible
  * prototypes-----------*/

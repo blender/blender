@@ -22,11 +22,11 @@ extern PyTypeObject FrsNoise_Type;
 #define BPy_FrsNoise_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FrsNoise_Type))
 
 /*---------------------------Python BPy_FrsNoise structure definition----------*/
-typedef struct {
+struct BPy_FrsNoise {
   PyObject_HEAD
   Freestyle::Noise *n;
   Freestyle::PseudoNoise *pn;
-} BPy_FrsNoise;
+};
 
 /*---------------------------Python BPy_FrsNoise visible prototypes-----------*/
 

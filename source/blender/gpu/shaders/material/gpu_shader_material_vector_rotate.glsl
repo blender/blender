@@ -26,59 +26,64 @@ float3 rotate_around_axis(float3 p, float3 axis, float angle)
   return r;
 }
 
+[[node]]
 void node_vector_rotate_axis_angle(float3 vector_in,
                                    float3 center,
                                    float3 axis,
                                    float angle,
                                    float3 rotation,
                                    float invert,
-                                   out float3 vec)
+                                   float3 &vec)
 {
   vec = (length(axis) != 0.0f) ?
             rotate_around_axis(vector_in - center, normalize(axis), angle * invert) + center :
             vector_in;
 }
 
+[[node]]
 void node_vector_rotate_axis_x(float3 vector_in,
                                float3 center,
                                float3 axis,
                                float angle,
                                float3 rotation,
                                float invert,
-                               out float3 vec)
+                               float3 &vec)
 {
   vec = rotate_around_axis(vector_in - center, float3(1.0f, 0.0f, 0.0f), angle * invert) + center;
 }
 
+[[node]]
 void node_vector_rotate_axis_y(float3 vector_in,
                                float3 center,
                                float3 axis,
                                float angle,
                                float3 rotation,
                                float invert,
-                               out float3 vec)
+                               float3 &vec)
 {
   vec = rotate_around_axis(vector_in - center, float3(0.0f, 1.0f, 0.0f), angle * invert) + center;
 }
 
+[[node]]
 void node_vector_rotate_axis_z(float3 vector_in,
                                float3 center,
                                float3 axis,
                                float angle,
                                float3 rotation,
                                float invert,
-                               out float3 vec)
+                               float3 &vec)
 {
   vec = rotate_around_axis(vector_in - center, float3(0.0f, 0.0f, 1.0f), angle * invert) + center;
 }
 
+[[node]]
 void node_vector_rotate_euler_xyz(float3 vector_in,
                                   float3 center,
                                   float3 axis,
                                   float angle,
                                   float3 rotation,
                                   float invert,
-                                  out float3 vec)
+                                  float3 &vec)
 {
   float3x3 rmat = (invert < 0.0f) ? transpose(from_rotation(EulerXYZ::from_float3(rotation))) :
                                     from_rotation(EulerXYZ::from_float3(rotation));

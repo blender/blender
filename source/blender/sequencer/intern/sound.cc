@@ -25,17 +25,13 @@
 #include "BKE_colortools.hh"
 #include "BKE_sound.hh"
 
-#ifdef WITH_CONVOLUTION
-#  include "AUD_Sound.h"
-#endif
-
 #include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
-#include "SEQ_time.hh"
 
 #include "strip_time.hh"
 
 #ifdef WITH_AUDASPACE
+#  include "AUD_Sound.h"
 #  include "AUD_Types.h"
 #endif
 
@@ -50,33 +46,35 @@ const SoundModifierWorkerInfo workersSoundModifiers[] = {
     {0, nullptr}};
 
 #ifdef WITH_CONVOLUTION
-static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, ListBase *seqbase)
+static bool sequencer_refresh_sound_length_recursive(Main *bmain,
+                                                     Scene *scene,
+                                                     ListBaseT<Strip> *seqbase)
 {
   bool changed = false;
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type == STRIP_TYPE_META) {
-      if (sequencer_refresh_sound_length_recursive(bmain, scene, &strip->seqbase)) {
+  for (Strip &strip : *seqbase) {
+    if (strip.type == STRIP_TYPE_META) {
+      if (sequencer_refresh_sound_length_recursive(bmain, scene, &strip.seqbase)) {
         changed = true;
       }
     }
-    else if (strip->type == STRIP_TYPE_SOUND && strip->sound) {
+    else if (strip.type == STRIP_TYPE_SOUND && strip.sound) {
       SoundInfo info;
-      if (!BKE_sound_info_get(bmain, strip->sound, &info)) {
+      if (!BKE_sound_info_get(bmain, strip.sound, &info)) {
         continue;
       }
 
-      int old = strip->len;
+      int old = strip.len;
       float fac;
 
-      strip->len = std::max(
-          1, int(round((info.length - strip->sound->offset_time) * scene->frames_per_second())));
-      fac = float(strip->len) / float(old);
-      old = strip->startofs;
-      strip->startofs *= fac;
-      strip->endofs *= fac;
-      strip->start += (old -
-                       strip->startofs); /* So that visual/"real" start frame does not change! */
+      strip.len = std::max(
+          1, int(round((info.length - strip.sound->offset_time) * scene->frames_per_second())));
+      fac = float(strip.len) / float(old);
+      old = strip.startofs;
+      strip.startofs *= fac;
+      strip.endofs *= fac;
+      strip.start += (old -
+                      strip.startofs); /* So that visual/"real" start frame does not change! */
 
       changed = true;
     }
@@ -101,12 +99,12 @@ void sound_update_bounds_all(Scene *scene)
   Editing *ed = scene->ed;
 
   if (ed) {
-    LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
-      if (strip->type == STRIP_TYPE_META) {
-        strip_update_sound_bounds_recursive(scene, strip);
+    for (Strip &strip : ed->seqbase) {
+      if (strip.type == STRIP_TYPE_META) {
+        strip_update_sound_bounds_recursive(scene, &strip);
       }
-      else if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
-        sound_update_bounds(scene, strip);
+      else if (ELEM(strip.type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
+        sound_update_bounds(scene, &strip);
       }
     }
   }
@@ -121,8 +119,8 @@ void sound_update_bounds(Scene *scene, Strip *strip)
 
       BKE_sound_move_scene_sound(scene,
                                  strip->runtime->scene_sound,
-                                 time_left_handle_frame_get(scene, strip),
-                                 time_right_handle_frame_get(scene, strip),
+                                 strip->left_handle(),
+                                 strip->right_handle(scene),
                                  startofs,
                                  0.0);
     }
@@ -133,15 +131,15 @@ void sound_update_bounds(Scene *scene, Strip *strip)
   /* mute is set in strip_update_muting_recursive */
 }
 
-static void strip_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
+static void strip_update_sound_recursive(Scene *scene, ListBaseT<Strip> *seqbasep, bSound *sound)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    if (strip->type == STRIP_TYPE_META) {
-      strip_update_sound_recursive(scene, &strip->seqbase, sound);
+  for (Strip &strip : *seqbasep) {
+    if (strip.type == STRIP_TYPE_META) {
+      strip_update_sound_recursive(scene, &strip.seqbase, sound);
     }
-    else if (strip->type == STRIP_TYPE_SOUND) {
-      if (strip->runtime->scene_sound && sound == strip->sound) {
-        BKE_sound_update_scene_sound(strip->runtime->scene_sound, sound);
+    else if (strip.type == STRIP_TYPE_SOUND) {
+      if (strip.runtime->scene_sound && sound == strip.sound) {
+        BKE_sound_update_scene_sound(strip.runtime->scene_sound, sound);
       }
     }
   }
@@ -174,7 +172,7 @@ EQCurveMappingData *sound_equalizer_add(SoundEqualizerModifierData *semd, float 
     minX = 0.0;
   }
   /* It's the same as #BKE_curvemapping_add, but changing the name. */
-  eqcmd = MEM_callocN<EQCurveMappingData>("Equalizer");
+  eqcmd = MEM_new_for_free<EQCurveMappingData>("Equalizer");
   BKE_curvemapping_set_defaults(&eqcmd->curve_mapping,
                                 1, /* Total. */
                                 minX,
@@ -203,7 +201,7 @@ EQCurveMappingData *sound_equalizer_add(SoundEqualizerModifierData *semd, float 
 
 void sound_equalizermodifier_set_graphs(SoundEqualizerModifierData *semd, int number)
 {
-  sound_equalizermodifier_free((StripModifierData *)semd);
+  sound_equalizermodifier_free(reinterpret_cast<StripModifierData *>(semd));
   if (number == 1) {
     sound_equalizer_add(semd, SOUND_EQUALIZER_DEFAULT_MIN_FREQ, SOUND_EQUALIZER_DEFAULT_MAX_FREQ);
   }
@@ -243,17 +241,17 @@ void sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
 
 void sound_equalizermodifier_init_data(StripModifierData *smd)
 {
-  SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
+  SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
 
   sound_equalizer_add(semd, SOUND_EQUALIZER_DEFAULT_MIN_FREQ, SOUND_EQUALIZER_DEFAULT_MAX_FREQ);
 }
 
 void sound_equalizermodifier_free(StripModifierData *smd)
 {
-  SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
-  LISTBASE_FOREACH_MUTABLE (EQCurveMappingData *, eqcmd, &semd->graphics) {
-    BKE_curvemapping_free_data(&eqcmd->curve_mapping);
-    MEM_freeN(eqcmd);
+  SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
+  for (EQCurveMappingData &eqcmd : semd->graphics.items_mutable()) {
+    BKE_curvemapping_free_data(&eqcmd.curve_mapping);
+    MEM_freeN(&eqcmd);
   }
   BLI_listbase_clear(&semd->graphics);
   if (smd->runtime.last_buf) {
@@ -263,15 +261,15 @@ void sound_equalizermodifier_free(StripModifierData *smd)
 
 void sound_equalizermodifier_copy_data(StripModifierData *target, StripModifierData *smd)
 {
-  SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
-  SoundEqualizerModifierData *semd_target = (SoundEqualizerModifierData *)target;
+  SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
+  SoundEqualizerModifierData *semd_target = reinterpret_cast<SoundEqualizerModifierData *>(target);
   EQCurveMappingData *eqcmd_n;
 
   BLI_listbase_clear(&semd_target->graphics);
 
-  LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
-    eqcmd_n = static_cast<EQCurveMappingData *>(MEM_dupallocN(eqcmd));
-    BKE_curvemapping_copy_data(&eqcmd_n->curve_mapping, &eqcmd->curve_mapping);
+  for (EQCurveMappingData &eqcmd : semd->graphics) {
+    eqcmd_n = static_cast<EQCurveMappingData *>(MEM_dupallocN(&eqcmd));
+    BKE_curvemapping_copy_data(&eqcmd_n->curve_mapping, &eqcmd.curve_mapping);
 
     eqcmd_n->next = eqcmd_n->prev = nullptr;
     BLI_addtail(&semd_target->graphics, eqcmd_n);
@@ -302,8 +300,8 @@ void *sound_equalizermodifier_recreator(Strip *strip,
   float interval = SOUND_EQUALIZER_DEFAULT_MAX_FREQ / float(SOUND_EQUALIZER_SIZE_DEFINITION);
 
   /* Visit all equalizer definitions. */
-  LISTBASE_FOREACH (EQCurveMappingData *, mapping, &semd->graphics) {
-    eq_mapping = &mapping->curve_mapping;
+  for (EQCurveMappingData &mapping : semd->graphics) {
+    eq_mapping = &mapping.curve_mapping;
     BKE_curvemapping_init(eq_mapping);
     cm = eq_mapping->cm;
     minX = eq_mapping->curr.xmin;

@@ -11,9 +11,12 @@
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_node_types.h"
+
+namespace blender {
+
 struct Material;
 
-namespace blender::io::obj {
+namespace io::obj {
 
 enum class MTLTexMapType {
   Color = 0,
@@ -84,4 +87,5 @@ struct MTLMaterial {
 };
 
 MTLMaterial mtlmaterial_for_material(const Material *material);
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

@@ -174,6 +174,9 @@ struct VKGraphicsInfo {
   {
     return shaders.vk_pipeline_layout;
   }
+
+  /** Generate a code snippet for configuring ShaderCreateInfo pipeline. */
+  std::string pipeline_info_source() const;
 };
 
 /**

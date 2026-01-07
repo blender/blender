@@ -648,10 +648,10 @@ class IDPGroupSerializer : public IDPropertySerializer {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
 
     std::shared_ptr<ArrayValue> array = std::make_shared<ArrayValue>();
-    LISTBASE_FOREACH (IDProperty *, sub_property, &id_property->data.group) {
+    for (IDProperty &sub_property : id_property->data.group) {
       const IDPropertySerializer &sub_property_serializer = serializer_for(
-          static_cast<eIDPropertyType>(sub_property->type));
-      array->append(sub_property_serializer.idprop_to_dictionary(sub_property));
+          static_cast<eIDPropertyType>(sub_property.type));
+      array->append(sub_property_serializer.idprop_to_dictionary(&sub_property));
     }
 
     result->append(IDP_KEY_VALUE, std::move(array));

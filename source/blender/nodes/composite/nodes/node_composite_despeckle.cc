@@ -20,9 +20,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** FILTER  ******************** */
 
-namespace blender::nodes::node_composite_despeckle_cc {
+namespace nodes::node_composite_despeckle_cc {
 
 static void cmp_node_despeckle_declare(NodeDeclarationBuilder &b)
 {
@@ -185,13 +187,13 @@ class DespeckleOperation : public NodeOperation {
 
   float get_color_threshold()
   {
-    return math::max(0.0f, this->get_input("Color Threshold").get_single_value_default(0.5f));
+    return math::max(0.0f, this->get_input("Color Threshold").get_single_value_default<float>());
   }
 
   float get_neighbor_threshold()
   {
     return math::clamp(
-        this->get_input("Neighbor Threshold").get_single_value_default(0.5f), 0.0f, 1.0f);
+        this->get_input("Neighbor Threshold").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 };
 
@@ -200,13 +202,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new DespeckleOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_despeckle_cc
+}  // namespace nodes::node_composite_despeckle_cc
 
 static void register_node_type_cmp_despeckle()
 {
-  namespace file_ns = blender::nodes::node_composite_despeckle_cc;
+  namespace file_ns = nodes::node_composite_despeckle_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDespeckle", CMP_NODE_DESPECKLE);
   ntype.ui_name = "Despeckle";
@@ -219,6 +221,8 @@ static void register_node_type_cmp_despeckle()
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_despeckle)
+
+}  // namespace blender

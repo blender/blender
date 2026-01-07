@@ -114,8 +114,7 @@ enum {
 
 static LatticeRenderData *lattice_render_data_create(Lattice *lt, const int types)
 {
-  LatticeRenderData *rdata = static_cast<LatticeRenderData *>(
-      MEM_callocN(sizeof(*rdata), __func__));
+  LatticeRenderData *rdata = MEM_callocN<LatticeRenderData>(__func__);
   rdata->types = types;
 
   if (lt->editlatt) {
@@ -245,8 +244,7 @@ static void lattice_batch_cache_init(Lattice *lt)
   LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
 
   if (!cache) {
-    cache = static_cast<LatticeBatchCache *>(
-        lt->batch_cache = MEM_callocN(sizeof(*cache), __func__));
+    lt->batch_cache = cache = MEM_callocN<LatticeBatchCache>(__func__);
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -366,6 +364,10 @@ static gpu::IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
     GPUIndexBufBuilder builder;
     GPU_indexbuf_init(&builder, GPU_PRIM_LINES, edge_len, vert_len);
     MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+    /* The buffer is allocated with **all** edges (see #lattice_render_edges_len_get()), but with
+     * the LT_OUTSIDE flag not all are drawn. So fill those gaps with zeros to hide redundant
+     * edges. */
+    data.fill(uint2(0));
     int line_index = 0;
 
 #define LATT_INDEX(u, v, w) ((((w) * rdata->dims.v_len + (v)) * rdata->dims.u_len) + (u))

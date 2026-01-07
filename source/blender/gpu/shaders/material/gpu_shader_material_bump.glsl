@@ -2,19 +2,22 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void differentiate_texco(float3 v, out float3 df)
+[[node]]
+void differentiate_texco(float3 v, float3 &df)
 {
   /* Implementation defined. */
   df = v + dF_impl(v);
 }
 
 /* Overload for UVs which are loaded as generic attributes. */
-void differentiate_texco(float4 v, out float3 df)
+[[node]]
+void differentiate_texco(float4 v, float3 &df)
 {
   /* Implementation defined. */
   df = v.xyz + dF_impl(v.xyz);
 }
 
+[[node]]
 void node_bump(float strength,
                float dist,
                float filter_width,
@@ -22,7 +25,7 @@ void node_bump(float strength,
                float3 N,
                float2 height_xy,
                float invert,
-               out float3 result)
+               float3 &result)
 {
   N = normalize(N);
   dist *= FrontFacing ? invert : -invert;

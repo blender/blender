@@ -22,7 +22,7 @@ namespace blender::eevee {
 #define DOF_GATHER_RING_COUNT 5
 #define DOF_DILATE_RING_COUNT 3
 
-struct DepthOfFieldData {
+struct [[host_shared]] DepthOfFieldData {
   /** Size of the render targets for gather & scatter passes. */
   int2 extent;
   /** Size of a pixel in uv space (1.0 / extent). */
@@ -42,22 +42,23 @@ struct DepthOfFieldData {
   /** Rotation of the bokeh shape. */
   float bokeh_rotation;
   /** Multiplier and bias to apply to linear depth to Circle of confusion (CoC). */
-  float coc_mul, coc_bias;
+  float coc_mul;
+  float coc_bias;
   /** Maximum absolute allowed Circle of confusion (CoC). Min of computed max and user max. */
   float coc_abs_max;
   /** Copy of camera type. */
-  eCameraType camera_type;
+  enum eCameraType camera_type;
   /** Weights of spatial filtering in stabilize pass. Not array to avoid alignment restriction. */
   float4 filter_samples_weight;
   float filter_center_weight;
   /** Max number of sprite in the scatter pass for each ground. */
   uint scatter_max_rect;
 
-  int _pad0, _pad1;
+  int _pad0;
+  int _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(DepthOfFieldData, 16)
 
-struct ScatterRect {
+struct [[host_shared]] ScatterRect {
   /** Color and CoC of the 4 pixels the scatter sprite represents. */
   float4 color_and_coc[4];
   /** Rect center position in half pixel space. */
@@ -65,7 +66,6 @@ struct ScatterRect {
   /** Rect half extent in half pixel space. */
   float2 half_extent;
 };
-BLI_STATIC_ASSERT_ALIGN(ScatterRect, 16)
 
 static inline float coc_radius_from_camera_depth(DepthOfFieldData dof, float depth)
 {

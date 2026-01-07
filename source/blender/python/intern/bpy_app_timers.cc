@@ -16,6 +16,8 @@
 
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
+namespace blender {
+
 static double handle_returned_value(PyObject *function, PyObject *ret)
 {
   if (ret == nullptr) {
@@ -163,12 +165,15 @@ static PyObject *bpy_app_timers_is_registered(PyObject * /*self*/, PyObject *fun
 
 static PyMethodDef M_AppTimers_methods[] = {
     {"register",
-     (PyCFunction)bpy_app_timers_register,
+     reinterpret_cast<PyCFunction>(bpy_app_timers_register),
      METH_VARARGS | METH_KEYWORDS,
      bpy_app_timers_register_doc},
-    {"unregister", (PyCFunction)bpy_app_timers_unregister, METH_O, bpy_app_timers_unregister_doc},
+    {"unregister",
+     static_cast<PyCFunction>(bpy_app_timers_unregister),
+     METH_O,
+     bpy_app_timers_unregister_doc},
     {"is_registered",
-     (PyCFunction)bpy_app_timers_is_registered,
+     static_cast<PyCFunction>(bpy_app_timers_is_registered),
      METH_O,
      bpy_app_timers_is_registered_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -201,3 +206,5 @@ PyObject *BPY_app_timers_module()
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(mod), mod);
   return mod;
 }
+
+}  // namespace blender

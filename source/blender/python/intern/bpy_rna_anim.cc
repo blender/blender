@@ -52,6 +52,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 /* for keyframes and drivers */
 static int pyrna_struct_anim_args_parse_ex(PointerRNA *ptr,
                                            const char *error_prefix,
@@ -242,7 +244,7 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    parse_str,
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &path,
                                    r_index,
                                    r_cfra,
@@ -403,8 +405,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
   else {
     BLI_assert(BKE_id_is_in_global_main(self->ptr->owner_id));
 
-    const std::optional<blender::StringRefNull> channel_group = group_name ?
-                                                                    std::optional(group_name) :
+    const std::optional<StringRefNull> channel_group = group_name ? std::optional(group_name) :
                                                                     std::nullopt;
     PointerRNA id_pointer = RNA_id_pointer_create(self->ptr->owner_id);
     CombinedKeyingResult combined_result = insert_keyframes(G_MAIN,
@@ -480,7 +481,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
                                   args,
                                   kw,
                                   "s|$ifsOs!:bpy_struct.keyframe_delete()",
-                                  "bpy_struct.keyframe_insert()",
+                                  "bpy_struct.keyframe_delete()",
                                   &path_full,
                                   &index,
                                   &cfra,
@@ -556,8 +557,8 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
     if (index < 0) {
       rna_path.index = std::nullopt;
     }
-    result = (blender::animrig::delete_keyframe(
-                  G.main, &reports, self->ptr->owner_id, rna_path, cfra) != 0);
+    result = (animrig::delete_keyframe(G.main, &reports, self->ptr->owner_id, rna_path, cfra) !=
+              0);
   }
 
   MEM_freeN(path_full);
@@ -697,3 +698,5 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
   return PyBool_FromLong(result);
 }
+
+}  // namespace blender

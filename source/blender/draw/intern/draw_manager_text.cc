@@ -48,8 +48,7 @@
 #include "draw_manager_text.hh"
 #include "intern/bmesh_polygon.hh"
 
-using blender::float3;
-using blender::Span;
+namespace blender {
 
 struct ViewCachedString {
   float vec[3];
@@ -144,7 +143,7 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
   GPU_matrix_push();
   GPU_matrix_identity_set();
 
-  BLF_default_size(UI_style_get()->widget.points);
+  BLF_default_size(ui::style_get()->widget.points);
   const int font_id = BLF_set_default();
 
   float outline_dark_color[4] = {0, 0, 0, 0.8f};
@@ -165,8 +164,9 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
         /* Measure the size of the string, then offset to align to the vertex. */
         float width, height;
         BLF_width_and_height(font_id,
-                             (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) :
-                                                                       vos->str,
+                             (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ?
+                                 *(reinterpret_cast<const char **>(vos->str)) :
+                                 vos->str,
                              vos->str_len,
                              &width,
                              &height);
@@ -188,8 +188,9 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
       BLF_draw_default(float(vos->sco[0] + vos->xoffs),
                        float(vos->sco[1] + vos->yoffs),
                        2.0f,
-                       (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) :
-                                                                 vos->str,
+                       (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ?
+                           *(reinterpret_cast<const char **>(vos->str)) :
+                           vos->str,
                        vos->str_len);
     }
   }
@@ -277,13 +278,13 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (!BKE_editmesh_eval_orig_map_available(*mesh, BKE_object_get_pre_modified_mesh(ob))) {
     return;
   }
-  char numstr[32];                      /* Stores the measurement display text here */
-  const char *conv_float;               /* Use a float conversion matching the grid size */
-  blender::uchar4 col = {0, 0, 0, 255}; /* color of the text to draw */
+  char numstr[32];             /* Stores the measurement display text here */
+  const char *conv_float;      /* Use a float conversion matching the grid size */
+  uchar4 col = {0, 0, 0, 255}; /* color of the text to draw */
   const float grid = unit.system ? unit.scale_length : v3d->grid;
   const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
   const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
-  blender::float4x4 clip_planes;
+  float4x4 clip_planes;
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
   const Span<float3> vert_positions = BKE_mesh_wrapper_vert_coords(mesh);
@@ -332,7 +333,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
     BMEdge *eed;
 
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+    ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGELEN, col);
 
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -357,8 +358,8 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
         }
 
         if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
-          const float3 co = blender::math::transform_point(ob->object_to_world(),
-                                                           0.5 * (v1_clip + v2_clip));
+          const float3 co = math::transform_point(ob->object_to_world(),
+                                                  0.5 * (v1_clip + v2_clip));
 
           if (do_global) {
             v1 = ob->object_to_world().view<3, 3>() * v1;
@@ -381,7 +382,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
     BMEdge *eed;
 
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
+    ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGEANG, col);
 
     Span<float3> face_normals;
     if (use_coords) {
@@ -420,8 +421,8 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
           if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
             float3 no_a, no_b;
 
-            const float3 co = blender::math::transform_point(ob->object_to_world(),
-                                                             0.5 * (v1_clip + v2_clip));
+            const float3 co = math::transform_point(ob->object_to_world(),
+                                                    0.5 * (v1_clip + v2_clip));
 
             if (use_coords) {
               no_a = face_normals[BM_elem_index_get(l_a->f)];
@@ -433,8 +434,8 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
             }
 
             if (do_global) {
-              no_a = blender::math::normalize(ob->world_to_object().view<3, 3>() * no_a);
-              no_b = blender::math::normalize(ob->world_to_object().view<3, 3>() * no_b);
+              no_a = math::normalize(ob->world_to_object().view<3, 3>() * no_a);
+              no_b = math::normalize(ob->world_to_object().view<3, 3>() * no_b);
             }
 
             const float angle = angle_normalized_v3v3(no_a, no_b);
@@ -455,7 +456,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     /* would be nice to use BM_face_calc_area, but that is for 2d faces
      * so instead add up tessellation triangle areas */
 
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+    ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEAREA, col);
 
     int i;
     BMFace *f = nullptr;
@@ -498,7 +499,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
         }
 
         vmid *= 1.0f / float(n);
-        vmid = blender::math::transform_point(ob->object_to_world(), vmid);
+        vmid = math::transform_point(ob->object_to_world(), vmid);
 
         const size_t numstr_len =
             unit.system ? BKE_unit_value_as_string_scaled(
@@ -515,7 +516,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     BMFace *efa;
     const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
 
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+    ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEANG, col);
 
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -572,8 +573,8 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
                                                     "%.3f%s",
                                                     (is_rad) ? angle : RAD2DEGF(angle),
                                                     (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
-            const float3 co = blender::math::transform_point(
-                ob->object_to_world(), blender::math::interpolate(vmid, v2_local, 0.8f));
+            const float3 co = math::transform_point(ob->object_to_world(),
+                                                    math::interpolate(vmid, v2_local, 0.8f));
             DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col);
           }
         }
@@ -587,7 +588,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) {
     int i;
 
-    UI_GetThemeColor4ubv(TH_TEXT_HI, col);
+    ui::theme::get_color_4ubv(TH_TEXT_HI, col);
 
     if (em->selectmode & SCE_SELECT_VERTEX) {
       BMVert *v;
@@ -597,7 +598,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
       }
       BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-          const float3 co = blender::math::transform_point(
+          const float3 co = math::transform_point(
               ob->object_to_world(), use_coords ? vert_positions[BM_elem_index_get(v)] : v->co);
 
           const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
@@ -627,8 +628,8 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
           }
 
           if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
-            const float3 co = blender::math::transform_point(ob->object_to_world(),
-                                                             0.5 * (v1_clip + v2_clip));
+            const float3 co = math::transform_point(ob->object_to_world(),
+                                                    0.5 * (v1_clip + v2_clip));
 
             const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
             DRW_text_cache_add(
@@ -665,7 +666,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
             BM_face_calc_center_median(f, co);
           }
 
-          co = blender::math::transform_point(ob->object_to_world(), co);
+          co = math::transform_point(ob->object_to_world(), co);
 
           const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
           DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col, true, false);
@@ -674,3 +675,5 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     }
   }
 }
+
+}  // namespace blender

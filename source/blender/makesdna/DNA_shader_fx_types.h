@@ -1,3 +1,6 @@
+struct DRWShadingGroup;
+namespace blender {
+
 /* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -8,16 +11,73 @@
 
 #pragma once
 
-#include "DNA_defs.h"
-#include "DNA_listBase.h"
+enum ShaderFxMode {
+  eShaderFxMode_Realtime = (1 << 0),
+  eShaderFxMode_Render = (1 << 1),
+  eShaderFxMode_Editmode = (1 << 2),
+#ifdef DNA_DEPRECATED_ALLOW
+  eShaderFxMode_Expanded_DEPRECATED = (1 << 3),
+#endif
+};
 
-struct DRWShadingGroup;
+enum ShaderFxFlag {
+  /* This fx has been inserted in local override, and hence can be fully edited. */
+  eShaderFxFlag_OverrideLibrary_Local = (1 << 0),
+};
+
+enum eBlurShaderFx_Flag {
+  FX_BLUR_DOF_MODE = (1 << 0),
+};
+
+enum ColorizeShaderFxModes {
+  eShaderFxColorizeMode_GrayScale = 0,
+  eShaderFxColorizeMode_Sepia = 1,
+  eShaderFxColorizeMode_Duotone = 2,
+  eShaderFxColorizeMode_Custom = 3,
+  eShaderFxColorizeMode_Transparent = 4,
+};
+
+enum eFlipShaderFx_Flag {
+  FX_FLIP_HORIZONTAL = (1 << 0),
+  FX_FLIP_VERTICAL = (1 << 1),
+};
+
+enum GlowShaderFxModes {
+  eShaderFxGlowMode_Luminance = 0,
+  eShaderFxGlowMode_Color = 1,
+};
+
+enum eGlowShaderFx_Flag {
+  FX_GLOW_USE_ALPHA = (1 << 0),
+};
+
+enum ePixelShaderFx_Flag {
+  FX_PIXEL_FILTER_NEAREST = (1 << 0),
+};
+
+enum RimShaderFxModes {
+  eShaderFxRimMode_Normal = 0,
+  eShaderFxRimMode_Overlay = 1,
+  eShaderFxRimMode_Add = 2,
+  eShaderFxRimMode_Subtract = 3,
+  eShaderFxRimMode_Multiply = 4,
+  eShaderFxRimMode_Divide = 5,
+};
+
+enum eShadowShaderFx_Flag {
+  FX_SHADOW_USE_OBJECT = (1 << 0),
+  FX_SHADOW_USE_WAVE = (1 << 1),
+};
+
+enum eSwirlShaderFx_Flag {
+  FX_SWIRL_MAKE_TRANSPARENT = (1 << 0),
+};
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
  */
 
-typedef enum ShaderFxType {
+enum ShaderFxType {
   eShaderFxType_None = 0,
   eShaderFxType_Blur = 1,
   eShaderFxType_Flip = 2,
@@ -31,210 +91,150 @@ typedef enum ShaderFxType {
   eShaderFxType_Glow = 10,
   /* Keep last. */
   NUM_SHADER_FX_TYPES,
-} ShaderFxType;
+};
 
-typedef enum ShaderFxMode {
-  eShaderFxMode_Realtime = (1 << 0),
-  eShaderFxMode_Render = (1 << 1),
-  eShaderFxMode_Editmode = (1 << 2),
-#ifdef DNA_DEPRECATED_ALLOW
-  eShaderFxMode_Expanded_DEPRECATED = (1 << 3),
-#endif
-} ShaderFxMode;
+struct ShaderFxData {
+  struct ShaderFxData *next = nullptr, *prev = nullptr;
 
-typedef enum {
-  /* This fx has been inserted in local override, and hence can be fully edited. */
-  eShaderFxFlag_OverrideLibrary_Local = (1 << 0),
-} ShaderFxFlag;
-
-typedef struct ShaderFxData {
-  struct ShaderFxData *next, *prev;
-
-  int type, mode;
-  char _pad0[4];
-  short flag;
+  int type = 0, mode = 0;
+  char _pad0[4] = {};
+  short flag = 0;
   /* An "expand" bit for each of the constraint's (sub)panels (uiPanelDataExpansion). */
-  short ui_expand_flag;
-  char name[/*MAX_NAME*/ 64];
+  short ui_expand_flag = 0;
+  char name[/*MAX_NAME*/ 64] = "";
 
-  char *error;
-} ShaderFxData;
+  char *error = nullptr;
+};
 
 /** Runtime temp data. */
-typedef struct ShaderFxData_Runtime {
-  float loc[3];
-  char _pad[4];
-  struct DRWShadingGroup *fx_sh;
-  struct DRWShadingGroup *fx_sh_b;
-  struct DRWShadingGroup *fx_sh_c;
-} ShaderFxData_Runtime;
+struct ShaderFxData_Runtime {
+  float loc[3] = {};
+  char _pad[4] = {};
+  struct DRWShadingGroup *fx_sh = nullptr;
+  struct DRWShadingGroup *fx_sh_b = nullptr;
+  struct DRWShadingGroup *fx_sh_c = nullptr;
+};
 
-typedef struct BlurShaderFxData {
+struct BlurShaderFxData {
   ShaderFxData shaderfx;
-  float radius[2];
+  float radius[2] = {};
   /** Flags. */
-  int flag;
+  int flag = 0;
   /** Number of samples. */
-  int samples;
+  int samples = 0;
   /** Rotation of blur effect. */
-  float rotation;
-  char _pad[4];
+  float rotation = 0;
+  char _pad[4] = {};
 
   ShaderFxData_Runtime runtime;
-} BlurShaderFxData;
+};
 
-typedef enum eBlurShaderFx_Flag {
-  FX_BLUR_DOF_MODE = (1 << 0),
-} eBlurShaderFx_Flag;
-
-typedef struct ColorizeShaderFxData {
+struct ColorizeShaderFxData {
   ShaderFxData shaderfx;
-  int mode;
-  float low_color[4];
-  float high_color[4];
-  float factor;
+  int mode = 0;
+  float low_color[4] = {};
+  float high_color[4] = {};
+  float factor = 0;
   /** Flags. */
-  int flag;
-  char _pad[4];
+  int flag = 0;
+  char _pad[4] = {};
 
   ShaderFxData_Runtime runtime;
-} ColorizeShaderFxData;
+};
 
-typedef enum ColorizeShaderFxModes {
-  eShaderFxColorizeMode_GrayScale = 0,
-  eShaderFxColorizeMode_Sepia = 1,
-  eShaderFxColorizeMode_Duotone = 2,
-  eShaderFxColorizeMode_Custom = 3,
-  eShaderFxColorizeMode_Transparent = 4,
-} ColorizeShaderFxModes;
-
-typedef struct FlipShaderFxData {
+struct FlipShaderFxData {
   ShaderFxData shaderfx;
   /** Flags. */
-  int flag;
+  int flag = 0;
   /** Internal, not visible in rna. */
-  int flipmode;
+  int flipmode = 0;
   ShaderFxData_Runtime runtime;
-} FlipShaderFxData;
+};
 
-typedef enum eFlipShaderFx_Flag {
-  FX_FLIP_HORIZONTAL = (1 << 0),
-  FX_FLIP_VERTICAL = (1 << 1),
-} eFlipShaderFx_Flag;
-
-typedef struct GlowShaderFxData {
+struct GlowShaderFxData {
   ShaderFxData shaderfx;
-  float glow_color[4];
-  float select_color[3];
-  float threshold;
+  float glow_color[4] = {};
+  float select_color[3] = {};
+  float threshold = 0;
   /** Flags. */
-  int flag;
-  int mode;
-  float blur[2];
-  int samples;
+  int flag = 0;
+  int mode = 0;
+  float blur[2] = {};
+  int samples = 0;
   /** Rotation of effect. */
-  float rotation;
+  float rotation = 0;
   /** Blend modes. */
-  int blend_mode;
-  char _pad[4];
+  int blend_mode = 0;
+  char _pad[4] = {};
 
   ShaderFxData_Runtime runtime;
-} GlowShaderFxData;
+};
 
-typedef enum GlowShaderFxModes {
-  eShaderFxGlowMode_Luminance = 0,
-  eShaderFxGlowMode_Color = 1,
-} GlowShaderFxModes;
-
-typedef enum eGlowShaderFx_Flag {
-  FX_GLOW_USE_ALPHA = (1 << 0),
-} eGlowShaderFx_Flag;
-
-typedef struct PixelShaderFxData {
+struct PixelShaderFxData {
   ShaderFxData shaderfx;
   /** Last element used for shader only. */
-  int size[3];
+  int size[3] = {};
   /** Flags. */
-  int flag;
-  float rgba[4];
+  int flag = 0;
+  float rgba[4] = {};
   ShaderFxData_Runtime runtime;
-} PixelShaderFxData;
+};
 
-typedef enum ePixelShaderFx_Flag {
-  FX_PIXEL_FILTER_NEAREST = (1 << 0),
-} ePixelShaderFx_Flag;
-
-typedef struct RimShaderFxData {
+struct RimShaderFxData {
   ShaderFxData shaderfx;
-  int offset[2];
+  int offset[2] = {};
   /** Flags. */
-  int flag;
-  float rim_rgb[3];
-  float mask_rgb[3];
-  int mode;
-  int blur[2];
-  int samples;
-  char _pad[4];
+  int flag = 0;
+  float rim_rgb[3] = {};
+  float mask_rgb[3] = {};
+  int mode = 0;
+  int blur[2] = {};
+  int samples = 0;
+  char _pad[4] = {};
   ShaderFxData_Runtime runtime;
-} RimShaderFxData;
+};
 
-typedef enum RimShaderFxModes {
-  eShaderFxRimMode_Normal = 0,
-  eShaderFxRimMode_Overlay = 1,
-  eShaderFxRimMode_Add = 2,
-  eShaderFxRimMode_Subtract = 3,
-  eShaderFxRimMode_Multiply = 4,
-  eShaderFxRimMode_Divide = 5,
-} RimShaderFxModes;
-
-typedef struct ShadowShaderFxData {
+struct ShadowShaderFxData {
   ShaderFxData shaderfx;
-  struct Object *object;
-  int offset[2];
+  struct Object *object = nullptr;
+  int offset[2] = {};
   /** Flags. */
-  int flag;
-  float shadow_rgba[4];
-  float amplitude;
-  float period;
-  float phase;
-  int orientation;
-  float scale[2];
-  float rotation;
-  int blur[2];
-  int samples;
-  char _pad[4];
+  int flag = 0;
+  float shadow_rgba[4] = {};
+  float amplitude = 0;
+  float period = 0;
+  float phase = 0;
+  int orientation = 0;
+  float scale[2] = {};
+  float rotation = 0;
+  int blur[2] = {};
+  int samples = 0;
+  char _pad[4] = {};
   ShaderFxData_Runtime runtime;
-} ShadowShaderFxData;
+};
 
-typedef enum eShadowShaderFx_Flag {
-  FX_SHADOW_USE_OBJECT = (1 << 0),
-  FX_SHADOW_USE_WAVE = (1 << 1),
-} eShadowShaderFx_Flag;
-
-typedef struct SwirlShaderFxData {
+struct SwirlShaderFxData {
   ShaderFxData shaderfx;
-  struct Object *object;
+  struct Object *object = nullptr;
   /** Flags. */
-  int flag;
-  int radius;
-  float angle;
+  int flag = 0;
+  int radius = 0;
+  float angle = 0;
   /** Not visible in rna. */
-  int transparent;
+  int transparent = 0;
   ShaderFxData_Runtime runtime;
-} SwirlShaderFxData;
+};
 
-typedef enum eSwirlShaderFx_Flag {
-  FX_SWIRL_MAKE_TRANSPARENT = (1 << 0),
-} eSwirlShaderFx_Flag;
-
-typedef struct WaveShaderFxData {
+struct WaveShaderFxData {
   ShaderFxData shaderfx;
-  float amplitude;
-  float period;
-  float phase;
-  int orientation;
+  float amplitude = 0;
+  float period = 0;
+  float phase = 0;
+  int orientation = 0;
   /** Flags. */
-  int flag;
-  char _pad[4];
+  int flag = 0;
+  char _pad[4] = {};
   ShaderFxData_Runtime runtime;
-} WaveShaderFxData;
+};
+
+}  // namespace blender

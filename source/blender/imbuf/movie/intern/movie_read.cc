@@ -53,6 +53,8 @@ extern "C" {
 
 #endif /* WITH_FFMPEG */
 
+namespace blender {
+
 #ifdef WITH_FFMPEG
 static CLG_LogRef LOG = {"video.read"};
 #endif
@@ -601,7 +603,6 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(MovieReader *anim)
  * video rotation in the same go if needed. */
 static void float_planar_to_interleaved(const AVFrame *frame, const int rotation, ImBuf *ibuf)
 {
-  using namespace blender;
   const size_t src_linesize = frame->linesize[0];
   BLI_assert_msg(frame->linesize[1] == src_linesize && frame->linesize[2] == src_linesize &&
                      frame->linesize[3] == src_linesize,
@@ -1533,3 +1534,5 @@ int MOV_get_image_height(const MovieReader *anim)
 {
   return ELEM(anim->video_rotation, 90, 270) ? anim->x : anim->y;
 }
+
+}  // namespace blender

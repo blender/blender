@@ -17,7 +17,13 @@
 #include "id.hh"
 #include "material.hh"
 
-namespace blender::io::hydra {
+namespace blender {
+
+struct Material;
+
+namespace io::hydra {
+
+class HydraSceneDelegate;
 
 class ObjectData : public IdData {
  public:
@@ -53,4 +59,5 @@ using ObjectDataMap = Map<pxr::SdfPath, std::unique_ptr<ObjectData>>;
 
 pxr::GfMatrix4d gf_matrix_from_transform(const float m[4][4]);
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

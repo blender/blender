@@ -86,7 +86,7 @@ struct TestListValue {
 //   TestListValue *value2 = new TestListValue{nullptr, nullptr, 5};
 //   TestListValue *value3 = new TestListValue{nullptr, nullptr, 6};
 
-//   ListBase list = {nullptr, nullptr};
+//   ListBaseT<TestListValue> list = {nullptr, nullptr};
 //   BLI_addtail(&list, value1);
 //   BLI_addtail(&list, value2);
 //   BLI_addtail(&list, value3);

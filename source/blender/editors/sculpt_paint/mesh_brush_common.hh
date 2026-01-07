@@ -20,6 +20,8 @@
 
 #include "sculpt_intern.hh"
 
+namespace blender {
+
 /**
  * This file contains common operations useful for the implementation of various different brush
  * tools. The design goals of the API are to always operate on more than one data element at a
@@ -45,7 +47,6 @@ struct Sculpt;
 struct SculptSession;
 struct SubdivCCG;
 struct SubdivCCGCoord;
-namespace blender {
 namespace bke {
 class AttributeAccessor;
 }
@@ -53,9 +54,8 @@ namespace bke::pbvh {
 class Node;
 class Tree;
 }  // namespace bke::pbvh
-}  // namespace blender
 
-namespace blender::ed::sculpt_paint {
+namespace ed::sculpt_paint {
 struct StrokeCache;
 
 namespace auto_mask {
@@ -515,4 +515,6 @@ void filter_above_plane_factors(Span<float3> positions,
                                 const float4 &plane,
                                 MutableSpan<float> factors);
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
+
+}  // namespace blender

@@ -18,6 +18,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /***/
 
 struct HeapNode {
@@ -381,3 +383,5 @@ bool BLI_heap_is_valid(const Heap *heap)
 }
 
 /** \} */
+
+}  // namespace blender

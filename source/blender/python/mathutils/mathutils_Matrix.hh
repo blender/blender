@@ -12,6 +12,8 @@
 
 #include "mathutils.hh"
 
+namespace blender {
+
 extern PyTypeObject matrix_Type;
 extern PyTypeObject matrix_access_Type;
 
@@ -91,3 +93,5 @@ extern struct Mathutils_Callback mathutils_matrix_col_cb;
 extern struct Mathutils_Callback mathutils_matrix_translation_cb;
 
 void matrix_as_3x3(float mat[3][3], MatrixObject *self);
+
+}  // namespace blender

@@ -141,7 +141,7 @@ static void offset_positions(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();

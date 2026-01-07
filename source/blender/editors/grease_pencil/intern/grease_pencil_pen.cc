@@ -38,7 +38,9 @@
 
 #include "UI_resources.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 
 class GreasePencilPenToolOperation : public curves::pen_tool::PenToolOperation {
  public:
@@ -184,7 +186,7 @@ class GreasePencilPenToolOperation : public curves::pen_tool::PenToolOperation {
       return OPERATOR_CANCELLED;
     }
 
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(this->vc.obact->data);
+    GreasePencil *grease_pencil = id_cast<GreasePencil *>(this->vc.obact->data);
     this->grease_pencil = grease_pencil;
     View3D *view3d = CTX_wm_view3d(C);
 
@@ -314,15 +316,17 @@ static void GREASE_PENCIL_OT_pen(wmOperatorType *ot)
   curves::pen_tool::pen_tool_common_props(ot);
 }
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 void ED_operatortypes_grease_pencil_pen()
 {
-  WM_operatortype_append(blender::ed::greasepencil::GREASE_PENCIL_OT_pen);
+  WM_operatortype_append(ed::greasepencil::GREASE_PENCIL_OT_pen);
 }
 
 void ED_grease_pencil_pentool_modal_keymap(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = blender::ed::curves::pen_tool::ensure_keymap(keyconf);
+  wmKeyMap *keymap = ed::curves::pen_tool::ensure_keymap(keyconf);
   WM_modalkeymap_assign(keymap, "GREASE_PENCIL_OT_pen");
 }
+
+}  // namespace blender

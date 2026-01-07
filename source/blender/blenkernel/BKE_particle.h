@@ -20,10 +20,14 @@
 
 #include "DNA_particle_types.h"
 
+namespace blender {
+
 struct ParticleKey;
 struct ParticleSettings;
 struct ParticleSystem;
 struct ParticleSystemModifierData;
+struct ColliderCache;
+struct EffectorCache;
 
 struct BVHTreeRay;
 struct BVHTreeRayHit;
@@ -39,6 +43,7 @@ struct MTFace;
 struct Main;
 struct ModifierData;
 struct Object;
+struct ReportList;
 struct RNG;
 struct Scene;
 
@@ -63,26 +68,26 @@ struct Scene;
   ParticleSystemModifierData *psmd = sim->psmd ? sim->psmd : psys_get_modifier(sim->ob, sim->psys)
 
 /* common stuff that many particle functions need */
-typedef struct ParticleSimulationData {
+struct ParticleSimulationData {
   struct Depsgraph *depsgraph;
   struct Scene *scene;
   struct Object *ob;
   struct ParticleSystem *psys;
   struct ParticleSystemModifierData *psmd;
-  struct ListBase *colliders;
+  ListBaseT<ColliderCache> *colliders;
   /* Courant number. This is used to implement an adaptive time step. Only the
    * maximum value per time step is important. Only sph_integrate makes use of
    * this at the moment. Other solvers could, too. */
   float courant_num;
   /* Only valid during dynamics_step(). */
   struct RNG *rng;
-} ParticleSimulationData;
+};
 
-typedef struct SPHData {
+struct SPHData {
   ParticleSystem *psys[10];
   ParticleData *pa;
   float mass;
-  const blender::Map<blender::OrderedEdge, int> *eh;
+  const Map<OrderedEdge, int> *eh;
 
   /** The gravity as a `float[3]`, may also be null when the simulation doesn't use gravity. */
   const float *gravity;
@@ -95,38 +100,38 @@ typedef struct SPHData {
   float flow[3];
 
   /* Temporary thread-local buffer for springs created during this step. */
-  blender::Vector<ParticleSpring> new_springs;
+  Vector<ParticleSpring> new_springs;
 
   /* Integrator callbacks. This allows different SPH implementations. */
   void (*force_cb)(void *sphdata_v, ParticleKey *state, float *force, float *impulse);
   void (*density_cb)(void *rangedata_v, int index, const float co[3], float squared_dist);
-} SPHData;
+};
 
-typedef struct ParticleTexture {
+struct ParticleTexture {
   float ivel;                                         /* used in reset */
   float time, life, exist, size;                      /* used in init */
   float damp, gravity, field;                         /* used in physics */
   float length, clump, kink_freq, kink_amp, effector; /* used in path caching */
   float rough1, rough2, roughe;                       /* used in path caching */
   float twist;                                        /* used in path caching */
-} ParticleTexture;
+};
 
-typedef struct ParticleSeam {
+struct ParticleSeam {
   float v0[3], v1[3];
   float nor[3], dir[3], tan[3];
   float length2;
-} ParticleSeam;
+};
 
-typedef struct ParticleCacheKey {
+struct ParticleCacheKey {
   float co[3];
   float vel[3];
   float rot[4];
   float col[3];
   float time;
   int segments;
-} ParticleCacheKey;
+};
 
-typedef struct ParticleThreadContext {
+struct ParticleThreadContext {
   /* shared */
   struct ParticleSimulationData sim;
   struct Mesh *mesh;
@@ -161,15 +166,15 @@ typedef struct ParticleThreadContext {
   struct CurveMapping *clumpcurve;
   struct CurveMapping *roughcurve;
   struct CurveMapping *twistcurve;
-} ParticleThreadContext;
+};
 
-typedef struct ParticleTask {
+struct ParticleTask {
   ParticleThreadContext *ctx = nullptr;
   struct RNG *rng = nullptr, *rng_path = nullptr;
   int begin = 0, end = 0;
-} ParticleTask;
+};
 
-typedef struct ParticleCollisionElement {
+struct ParticleCollisionElement {
   /* pointers to original data */
   float *x[3], *v[3];
 
@@ -187,10 +192,10 @@ typedef struct ParticleCollisionElement {
 
   /* flags for inversed normal / particle already inside element at start */
   short inv_nor, inside;
-} ParticleCollisionElement;
+};
 
 /** Container for moving data between deflet_particle and particle_intersect_face. */
-typedef struct ParticleCollision {
+struct ParticleCollision {
   struct Object *current;
   struct Object *hit;
   struct Object *skip[PARTICLE_COLLISION_MAX_COLLISIONS + 1];
@@ -226,9 +231,9 @@ typedef struct ParticleCollision {
   float acc[3], boid_z;
 
   int boid;
-} ParticleCollision;
+};
 
-typedef struct ParticleDrawData {
+struct ParticleDrawData {
   float *vdata, *vd;   /* vertex data */
   float *ndata, *nd;   /* normal data */
   float *cdata, *cd;   /* color data */
@@ -237,7 +242,7 @@ typedef struct ParticleDrawData {
   int totpart, partsize;
   int flag;
   int totpoint, totve;
-} ParticleDrawData;
+};
 
 #define PARTICLE_DRAW_DATA_UPDATED 1
 
@@ -401,11 +406,11 @@ void psys_cache_child_paths(struct ParticleSimulationData *sim,
                             bool use_render_params);
 bool do_guides(struct Depsgraph *depsgraph,
                struct ParticleSettings *part,
-               struct ListBase *effectors,
+               ListBaseT<EffectorCache> *effectors,
                ParticleKey *state,
                int index,
                float time);
-void precalc_guides(struct ParticleSimulationData *sim, struct ListBase *effectors);
+void precalc_guides(struct ParticleSimulationData *sim, ListBaseT<EffectorCache> *effectors);
 float psys_get_timestep(struct ParticleSimulationData *sim);
 float psys_get_child_time(struct ParticleSystem *psys,
                           struct ChildParticle *cpa,
@@ -438,7 +443,7 @@ void BKE_particlesettings_clump_curve_init(struct ParticleSettings *part);
 void BKE_particlesettings_rough_curve_init(struct ParticleSettings *part);
 void BKE_particlesettings_twist_curve_init(struct ParticleSettings *part);
 void psys_apply_child_modifiers(struct ParticleThreadContext *ctx,
-                                struct ListBase *modifiers,
+                                ListBaseT<ModifierData> *modifiers,
                                 struct ChildParticle *cpa,
                                 struct ParticleTexture *ptex,
                                 const float orco[3],
@@ -475,10 +480,10 @@ void psys_get_dupli_path_transform(struct ParticleSimulationData *sim,
 void psys_thread_context_init(struct ParticleThreadContext *ctx,
                               struct ParticleSimulationData *sim);
 void psys_thread_context_free(struct ParticleThreadContext *ctx);
-blender::Vector<ParticleTask> psys_tasks_create(struct ParticleThreadContext *ctx,
-                                                int startpart,
-                                                int endpart);
-void psys_tasks_free(blender::Vector<ParticleTask> &tasks);
+Vector<ParticleTask> psys_tasks_create(struct ParticleThreadContext *ctx,
+                                       int startpart,
+                                       int endpart);
+void psys_tasks_free(Vector<ParticleTask> &tasks);
 
 void psys_apply_hair_lattice(struct Depsgraph *depsgraph,
                              struct Scene *scene,
@@ -663,6 +668,28 @@ void reset_particle(struct ParticleSimulationData *sim,
 
 float psys_get_current_display_percentage(struct ParticleSystem *psys, bool use_render_params);
 
+void BKE_particle_co_hair(const ParticleSystem *particlesystem,
+                          const Object *object,
+                          int particle_no,
+                          int step,
+                          float n_co[3]);
+
+void BKE_particle_uv_on_emitter(ParticleSystem *particlesystem,
+                                ReportList *reports,
+                                ParticleSystemModifierData *modifier,
+                                ParticleData *particle,
+                                int particle_no,
+                                int uv_no,
+                                float r_uv[2]);
+
+void BKE_particle_mcol_on_emitter(ParticleSystem *particlesystem,
+                                  ReportList *reports,
+                                  ParticleSystemModifierData *modifier,
+                                  ParticleData *particle,
+                                  int particle_no,
+                                  int vcol_no,
+                                  float r_mcol[3]);
+
 /* psys_reset */
 #define PSYS_RESET_ALL 1
 #define PSYS_RESET_DEPSGRAPH 2
@@ -674,8 +701,6 @@ float psys_get_current_display_percentage(struct ParticleSystem *psys, bool use_
 #define DMCACHE_ISCHILD -2
 
 /* **** Depsgraph evaluation **** */
-
-struct Depsgraph;
 
 void BKE_particle_settings_eval_reset(struct Depsgraph *depsgraph,
                                       struct ParticleSettings *particle_settings);
@@ -696,10 +721,13 @@ extern void (*BKE_particle_batch_cache_free_cb)(struct ParticleSystem *psys);
 
 void BKE_particle_partdeflect_blend_read_data(struct BlendDataReader *reader,
                                               struct PartDeflect *pd);
-void BKE_particle_system_blend_write(struct BlendWriter *writer, struct ListBase *particles);
+void BKE_particle_system_blend_write(struct BlendWriter *writer,
+                                     ListBaseT<ParticleSystem> *particles);
 void BKE_particle_system_blend_read_data(struct BlendDataReader *reader,
-                                         struct ListBase *particles);
+                                         ListBaseT<ParticleSystem> *particles);
 void BKE_particle_system_blend_read_after_liblink(struct BlendLibReader *reader,
                                                   struct Object *ob,
                                                   struct ID *id,
-                                                  struct ListBase *particles);
+                                                  ListBaseT<ParticleSystem> *particles);
+
+}  // namespace blender

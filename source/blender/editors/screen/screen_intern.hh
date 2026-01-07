@@ -10,6 +10,8 @@
 
 #include "DNA_space_types.h"
 
+namespace blender {
+
 struct ARegion;
 struct AZone;
 struct ReportList;
@@ -138,7 +140,6 @@ void screen_animate_area_highlight(wmWindow *win,
  * Empty screen, with 1 dummy area without space-data. Uses window size.
  */
 bScreen *screen_add(Main *bmain, const char *name, const rcti *rect);
-void screen_data_copy(bScreen *to, bScreen *from);
 /**
  * Prepare a newly created screen for initializing it as active screen.
  */
@@ -245,3 +246,5 @@ void SCREEN_OT_screenshot_area(wmOperatorType *ot);
 /* `workspace_layout_edit.cc` */
 
 bool workspace_layout_set_poll(const WorkSpaceLayout *layout);
+
+}  // namespace blender

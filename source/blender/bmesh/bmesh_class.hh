@@ -17,13 +17,17 @@
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /* disable holes for now,
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES
 
+struct BMEditSelection;
 struct BMEdge;
 struct BMFace;
 struct BMLoop;
+struct BMOpError;
 struct BMVert;
 struct BMesh;
 
@@ -276,7 +280,7 @@ struct BMFace {
 #ifdef USE_BMESH_HOLES
   /** Total boundaries, is one plus the number of holes in the face. */
   int totbounds;
-  ListBase loops;
+  ListBaseT<BMLoop> loops;
 #else
   BMLoop *l_first;
 #endif
@@ -314,24 +318,32 @@ struct BMFlagLayer {
 // #pragma GCC diagnostic pop
 
 struct BMesh {
-  int totvert, totedge, totloop, totface;
-  int totvertsel, totedgesel, totfacesel;
+  int totvert = 0;
+  int totedge = 0;
+  int totloop = 0;
+  int totface = 0;
+  int totvertsel = 0;
+  int totedgesel = 0;
+  int totfacesel = 0;
 
   /**
    * Flag index arrays as being dirty so we can check if they are clean and
    * avoid looping over the entire vert/edge/face/loop array in those cases.
    * valid flags are: `(BM_VERT | BM_EDGE | BM_FACE | BM_LOOP)`
    */
-  char elem_index_dirty;
+  char elem_index_dirty = 0;
 
   /**
    * Flag array table as being dirty so we know when its safe to use it,
    * or when it needs to be re-created.
    */
-  char elem_table_dirty;
+  char elem_table_dirty = 0;
 
   /** Element pools. */
-  struct BLI_mempool *vpool, *epool, *lpool, *fpool;
+  BLI_mempool *vpool = nullptr;
+  BLI_mempool *epool = nullptr;
+  BLI_mempool *lpool = nullptr;
+  BLI_mempool *fpool = nullptr;
 
   /* #BLI_mempool lookup tables (optional).
    * Map indices to elements via #BM_mesh_elem_table_ensure and associated functions.
@@ -339,22 +351,24 @@ struct BMesh {
    * Use #BM_mesh_elem_table_ensure(), `BM_vert/edge/face_at_index()`. */
 
   /** Vertex table. */
-  BMVert **vtable;
+  BMVert **vtable = nullptr;
   /** Edge table. */
-  BMEdge **etable;
+  BMEdge **etable = nullptr;
   /** Face table. */
-  BMFace **ftable;
+  BMFace **ftable = nullptr;
 
   /* Size of allocated tables. */
 
-  int vtable_tot;
-  int etable_tot;
-  int ftable_tot;
+  int vtable_tot = 0;
+  int etable_tot = 0;
+  int ftable_tot = 0;
 
   /** Operator API stuff (must be all null or all allocated). */
-  struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
+  BLI_mempool *vtoolflagpool = nullptr;
+  BLI_mempool *etoolflagpool = nullptr;
+  BLI_mempool *ftoolflagpool = nullptr;
 
-  bool use_toolflags;
+  bool use_toolflags = false;
 
   /**
    * Used when the UV select sync tool-setting is enabled (see: #UV_FLAG_SELECT_SYNC).
@@ -369,18 +383,21 @@ struct BMesh {
    *
    * - See `bmesh_uvselect.hh` for a more comprehensive explanation.
    */
-  bool uv_select_sync_valid;
+  bool uv_select_sync_valid = false;
 
-  int toolflag_index;
+  int toolflag_index = 0;
 
-  CustomData vdata, edata, ldata, pdata;
+  CustomData vdata;
+  CustomData edata;
+  CustomData ldata;
+  CustomData pdata;
 
 #ifdef USE_BMESH_HOLES
-  struct BLI_mempool *looplistpool;
+  BLI_mempool *looplistpool = nullptr;
 #endif
 
-  struct MLoopNorSpaceArray *lnor_spacearr;
-  char spacearr_dirty;
+  struct MLoopNorSpaceArray *lnor_spacearr = nullptr;
+  char spacearr_dirty = 0;
 
   /**
    * Should be copy of scene select mode.
@@ -388,13 +405,13 @@ struct BMesh {
    * NOTE(@ideasman42): Stored in #BMEditMesh too, a bit confusing, make sure they're in sync!
    * Only use when the edit mesh can't be accessed.
    */
-  short selectmode;
+  short selectmode = 0;
 
   /** 1-based index of the shape key's #Key::block this #BMesh came from. */
-  int shapenr;
+  int shapenr = 0;
 
-  int totflags;
-  ListBase selected;
+  int totflags = 0;
+  ListBaseT<BMEditSelection> selected = {};
 
   /**
    * The active face.
@@ -404,10 +421,10 @@ struct BMesh {
    * Without this the active image in the UV editor would flicker in a distracting way
    * while changing selection in the 3D viewport.
    */
-  BMFace *act_face;
+  BMFace *act_face = nullptr;
 
   /** List of #BMOpError, used for operator error handling. */
-  ListBase errorstack;
+  ListBaseT<BMOpError> errorstack = {};
 
   /**
    * Keep a single reference to the Python instance of this #BMesh (if any exists).
@@ -418,7 +435,7 @@ struct BMesh {
    *
    * Doesn't hold a #PyObject reference, cleared when the last object is de-referenced.
    */
-  void *py_handle;
+  void *py_handle = nullptr;
 };
 
 /** #BMHeader.htype (char) */
@@ -701,6 +718,12 @@ using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user
  * often used with #BM_iter_as_arrayN().
  */
 #define BM_DEFAULT_ITER_STACK_SIZE 16
+/**
+ * Size to use for stack arrays when gathering topology-related data
+ * (e.g. collecting edges, faces, or vertices during mesh operations).
+ * Prefer more specific defines (such as #BM_DEFAULT_NGON_STACK_SIZE) when applicable.
+ */
+#define BM_DEFAULT_TOPOLOGY_STACK_SIZE 64
 
 /** Avoid an eternal loop, this value is arbitrary but should not error on valid cases. */
 #define BM_LOOP_RADIAL_MAX 10000
@@ -708,3 +731,5 @@ using BMLoopPairFilterFunc = bool (*)(const BMLoop *, const BMLoop *, void *user
 
 /** Minimum number of elements before using threading. */
 #define BM_THREAD_LIMIT 10000
+
+}  // namespace blender

@@ -18,6 +18,8 @@
 #include "DNA_listBase.h"
 #include "DNA_userdef_enums.h"
 
+namespace blender {
+
 /* Structs */
 
 struct BLI_Iterator;
@@ -51,9 +53,14 @@ enum {
   COLLECTION_TAG_COLLECTION_OBJECT_DIRTY = (1 << 1),
 };
 
-using CollectionObjectMap = blender::Map<const Object *, CollectionObject *>;
+using CollectionObjectMap = Map<const Object *, CollectionObject *>;
 
-namespace blender::bke {
+struct CollectionParent {
+  struct CollectionParent *next, *prev;
+  struct Collection *collection;
+};
+
+namespace bke {
 
 struct CollectionRuntime {
   /**
@@ -61,13 +68,13 @@ struct CollectionRuntime {
    * This is created on demand when e.g. some physics simulation needs it,
    * we don't want to have it for every collections due to memory usage reasons.
    */
-  ListBase object_cache = {};
+  ListBaseT<Base> object_cache = {};
 
   /** Need this for line art sub-collection selections. */
-  ListBase object_cache_instanced = {};
+  ListBaseT<Base> object_cache_instanced = {};
 
   /** List of collections that are a parent of this data-block. */
-  ListBase parents = {};
+  ListBaseT<CollectionParent> parents = {};
 
   /** An optional map for faster lookups on #Collection.gobject */
   CollectionObjectMap *gobject_hash = nullptr;
@@ -75,18 +82,13 @@ struct CollectionRuntime {
   uint8_t tag = 0;
 };
 
-}  // namespace blender::bke
-
-struct CollectionParent {
-  struct CollectionParent *next, *prev;
-  struct Collection *collection;
-};
+}  // namespace bke
 
 /* Collections */
 
 /**
- * Add a collection to a collection ListBase and synchronize all render layers
- * The ListBase is NULL when the collection is to be added to the master collection
+ * Add a collection to a collection ListBaseT and synchronize all render layers
+ * The ListBaseT is NULL when the collection is to be added to the master collection
  */
 Collection *BKE_collection_add(Main *bmain,
                                Collection *collection_parent,
@@ -134,7 +136,7 @@ bool BKE_collection_exporter_move(Collection *collection, const int from, const 
 /**
  * Assigns a unique name to the collection exporter.
  */
-void BKE_collection_exporter_name_set(const ListBase *exporters,
+void BKE_collection_exporter_name_set(const ListBaseT<CollectionExport> *exporters,
                                       CollectionExport *data,
                                       const char *newname);
 
@@ -295,8 +297,8 @@ bool BKE_collection_object_cyclic_check(Main *bmain, Object *object, Collection 
 
 /* Object list cache. */
 
-ListBase BKE_collection_object_cache_get(Collection *collection);
-ListBase BKE_collection_object_cache_instanced_get(Collection *collection);
+ListBaseT<Base> BKE_collection_object_cache_get(Collection *collection);
+ListBaseT<Base> BKE_collection_object_cache_instanced_get(Collection *collection);
 /**
  * Free the object cache of given `collection` and all of its ancestors (recursively).
  *
@@ -341,14 +343,6 @@ void BKE_collection_new_name_get(Collection *collection_parent,
  * The name to show in the interface.
  */
 const char *BKE_collection_ui_name_get(Collection *collection);
-/**
- * Select all the objects in this Collection (and its nested collections) for this ViewLayer.
- * Return true if any object was selected.
- */
-bool BKE_collection_objects_select(const Scene *scene,
-                                   ViewLayer *view_layer,
-                                   Collection *collection,
-                                   bool deselect);
 
 /* Collection children */
 
@@ -492,8 +486,7 @@ void BKE_scene_objects_iterator_end_ex(BLI_Iterator *iter);
  * \note This will include objects without a base currently
  * (because they would belong to excluded collections only e.g.).
  */
-blender::Set<Object *> *BKE_scene_objects_as_set(Scene *scene,
-                                                 blender::Set<Object *> *objects_set);
+Set<Object *> *BKE_scene_objects_as_set(Scene *scene, Set<Object *> *objects_set);
 
 #define FOREACH_SCENE_COLLECTION_BEGIN(scene, _instance) \
   ITER_BEGIN (BKE_scene_collections_iterator_begin, \
@@ -541,3 +534,5 @@ blender::Set<Object *> *BKE_scene_objects_as_set(Scene *scene,
               _instance)
 
 #define FOREACH_SCENE_OBJECT_END ITER_END
+
+}  // namespace blender

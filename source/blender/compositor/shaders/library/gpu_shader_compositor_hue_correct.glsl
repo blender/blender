@@ -15,13 +15,14 @@ float3 compute_hue_curve_map_coordinates(float3 parameters)
   return parameters * sampler_scale + sampler_offset;
 }
 
+[[node]]
 void node_composite_hue_correct(float4 color,
                                 float factor,
                                 sampler1DArray curve_map,
                                 const float layer,
                                 float3 minimums,
                                 float3 range_dividers,
-                                out float4 result)
+                                float4 &result)
 {
   float4 hsv;
   rgb_to_hsv(color, hsv);

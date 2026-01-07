@@ -64,14 +64,14 @@ NodesModifierPackedBake *pack_bake_from_disk(const BakePath &bake_path, ReportLi
   const Vector<NodesModifierBakeFile> blob_bake_files = pack_files_from_directory(
       bake_path.blobs_dir, reports);
 
-  NodesModifierPackedBake *packed_bake = MEM_callocN<NodesModifierPackedBake>(__func__);
+  NodesModifierPackedBake *packed_bake = MEM_new_for_free<NodesModifierPackedBake>(__func__);
   packed_bake->meta_files_num = meta_bake_files.size();
   packed_bake->blob_files_num = blob_bake_files.size();
 
-  packed_bake->meta_files = MEM_calloc_arrayN<NodesModifierBakeFile>(packed_bake->meta_files_num,
-                                                                     __func__);
-  packed_bake->blob_files = MEM_calloc_arrayN<NodesModifierBakeFile>(packed_bake->blob_files_num,
-                                                                     __func__);
+  packed_bake->meta_files = MEM_new_array_for_free<NodesModifierBakeFile>(
+      packed_bake->meta_files_num, __func__);
+  packed_bake->blob_files = MEM_new_array_for_free<NodesModifierBakeFile>(
+      packed_bake->blob_files_num, __func__);
 
   uninitialized_copy_n(meta_bake_files.data(), meta_bake_files.size(), packed_bake->meta_files);
   uninitialized_copy_n(blob_bake_files.data(), blob_bake_files.size(), packed_bake->blob_files);
@@ -139,7 +139,7 @@ PackGeometryNodesBakeResult pack_geometry_nodes_bake(Main &bmain,
   return PackGeometryNodesBakeResult::Success;
 }
 
-static bool directory_is_empty(const blender::StringRefNull path)
+static bool directory_is_empty(const StringRefNull path)
 {
   direntry *entries = nullptr;
   const int entries_num = BLI_filelist_dir_contents(path.c_str(), &entries);
@@ -154,7 +154,7 @@ static bool directory_is_empty(const blender::StringRefNull path)
   return true;
 }
 
-static bool disk_bake_exists(const blender::bke::bake::BakePath &path)
+static bool disk_bake_exists(const bke::bake::BakePath &path)
 {
   return !directory_is_empty(path.meta_dir);
 }
@@ -201,7 +201,7 @@ UnpackGeometryNodesBakeResult unpack_geometry_nodes_bake(Main &bmain,
     BLI_delete(bake_path.blobs_dir.c_str(), true, true);
   };
   auto free_packed_bake = [&]() {
-    blender::nodes_modifier_packed_bake_free(bake.packed);
+    nodes_modifier_packed_bake_free(bake.packed);
     bake.packed = nullptr;
     nmd.runtime->cache->reset_cache(bake.id);
   };

@@ -10,9 +10,11 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 struct ID;
 
-namespace blender::ed::asset {
+namespace ed::asset {
 
 bool id_type_is_non_experimental(const ID *id);
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS \
@@ -42,4 +44,5 @@ int64_t types_supported_as_filter_flags();
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING \
   "Material, Collection, Object, Brush, Pose Action, Node Group, World or Scene"
 
-}  // namespace blender::ed::asset
+}  // namespace ed::asset
+}  // namespace blender

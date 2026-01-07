@@ -23,6 +23,8 @@
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
 
+namespace blender {
+
 /**
  * Pinning: Windows allows people to pin an application to their taskbar, when a user pins
  * blender, the data we set in `GHOST_WindowWin32::registerWindowAppUserModelProperties` is used
@@ -48,7 +50,7 @@ bool BLI_windows_update_pinned_launcher(const char *launcher_path)
     return false;
   }
 
-  blender::CoInitializeWrapper initialize(COINIT_APARTMENTTHREADED);
+  CoInitializeWrapper initialize(COINIT_APARTMENTTHREADED);
   if (FAILED(initialize)) {
     return false;
   }
@@ -101,4 +103,7 @@ bool BLI_windows_update_pinned_launcher(const char *launcher_path)
   }
   return true;
 }
+
+}  // namespace blender
+
 #endif

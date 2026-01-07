@@ -34,6 +34,8 @@
 #include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 
+namespace blender {
+
 using Alembic::Abc::FloatArraySamplePtr;
 using Alembic::Abc::Int32ArraySamplePtr;
 using Alembic::Abc::P3fArraySamplePtr;
@@ -58,7 +60,7 @@ using Alembic::AbcGeom::N3fArraySamplePtr;
 using Alembic::AbcGeom::UInt32ArraySamplePtr;
 using Alembic::AbcGeom::V2fArraySamplePtr;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 /* NOTE: Alembic's face winding order is clockwise, to match with Renderman. */
 
@@ -68,8 +70,8 @@ namespace utils {
 static std::map<std::string, Material *> build_material_map(const Main *bmain)
 {
   std::map<std::string, Material *> mat_map;
-  LISTBASE_FOREACH (Material *, material, &bmain->materials) {
-    mat_map[material->id.name + 2] = material;
+  for (Material &material : bmain->materials) {
+    mat_map[material.id.name + 2] = &material;
   }
   return mat_map;
 }
@@ -262,7 +264,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
    * data has been loaded, unfortunately means any remaining data will be lost. */
   if (!all_faces_ok) {
     if (config.modifier_error_message) {
-      *config.modifier_error_message = "Mesh hash invalid geometry";
+      *config.modifier_error_message = "Mesh has invalid geometry";
     }
     bke::mesh_validate(*config.mesh, false);
 
@@ -604,7 +606,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
   m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
-  m_object->data = mesh;
+  m_object->data = id_cast<ID *>(mesh);
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
   if (read_mesh != mesh) {
@@ -1051,7 +1053,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
   m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
-  m_object->data = mesh;
+  m_object->data = id_cast<ID *>(mesh);
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
   if (read_mesh != mesh) {
@@ -1159,4 +1161,5 @@ void AbcSubDReader::read_geometry(bke::GeometrySet &geometry_set,
   geometry_set.replace_mesh(new_mesh);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

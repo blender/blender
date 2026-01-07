@@ -31,9 +31,7 @@ namespace blender::ui {
 
 /* ---------------------------------------------------------------------- */
 
-AbstractGridView::AbstractGridView() : style_(UI_preview_tile_size_x(), UI_preview_tile_size_y())
-{
-}
+AbstractGridView::AbstractGridView() : style_(preview_tile_size_x(), preview_tile_size_y()) {}
 
 AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridViewItem> item)
 {
@@ -137,11 +135,20 @@ bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
   return identifier_ == other_grid_item.identifier_;
 }
 
-void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
+void AbstractGridViewItem::add_grid_tile_button(Block &block)
 {
   const GridViewStyle &style = this->get_view().get_style();
-  view_item_but_ = (uiButViewItem *)uiDefBut(
-      &block, ButType::ViewItem, "", 0, 0, style.tile_width, style.tile_height, nullptr, 0, 0, "");
+  view_item_but_ = static_cast<ButtonViewItem *>(uiDefBut(&block,
+                                                          ButtonType::ViewItem,
+                                                          "",
+                                                          0,
+                                                          0,
+                                                          style.tile_width,
+                                                          style.tile_height,
+                                                          nullptr,
+                                                          0,
+                                                          0,
+                                                          ""));
 
   view_item_but_->view_item = this;
 }
@@ -207,13 +214,13 @@ class BuildOnlyVisibleButtonsHelper {
                                 const AbstractGridViewItem *force_visible_item);
 
   bool is_item_visible(int item_idx) const;
-  void fill_layout_before_visible(uiBlock &block) const;
-  void fill_layout_after_visible(uiBlock &block) const;
+  void fill_layout_before_visible(Block &block) const;
+  void fill_layout_after_visible(Block &block) const;
 
  private:
   IndexRange get_visible_range(const View2D &v2d,
                                const AbstractGridViewItem *force_visible_item) const;
-  void add_spacer_button(uiBlock &block, int row_count) const;
+  void add_spacer_button(Block &block, int row_count) const;
 };
 
 BuildOnlyVisibleButtonsHelper::BuildOnlyVisibleButtonsHelper(
@@ -285,7 +292,7 @@ bool BuildOnlyVisibleButtonsHelper::is_item_visible(const int item_idx) const
   return !visible_items_range_ || visible_items_range_->contains(item_idx);
 }
 
-void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) const
+void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(Block &block) const
 {
   if (!visible_items_range_ || visible_items_range_->is_empty()) {
     return;
@@ -299,7 +306,7 @@ void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) c
   this->add_spacer_button(block, scrolled_away_rows);
 }
 
-void BuildOnlyVisibleButtonsHelper::fill_layout_after_visible(uiBlock &block) const
+void BuildOnlyVisibleButtonsHelper::fill_layout_after_visible(Block &block) const
 {
   if (!visible_items_range_ || visible_items_range_->is_empty()) {
     return;
@@ -315,7 +322,7 @@ void BuildOnlyVisibleButtonsHelper::fill_layout_after_visible(uiBlock &block) co
   }
 }
 
-void BuildOnlyVisibleButtonsHelper::add_spacer_button(uiBlock &block, const int row_count) const
+void BuildOnlyVisibleButtonsHelper::add_spacer_button(Block &block, const int row_count) const
 {
   /* UI code only supports button dimensions of `signed short` size, the layout height we want to
    * fill may be bigger than that. So add multiple labels of the maximum size if necessary. */
@@ -324,7 +331,7 @@ void BuildOnlyVisibleButtonsHelper::add_spacer_button(uiBlock &block, const int 
         std::numeric_limits<short>::max() / style_.tile_height, remaining_rows);
 
     uiDefBut(&block,
-             ButType::Label,
+             ButtonType::Label,
              "",
              0,
              0,
@@ -341,7 +348,7 @@ void BuildOnlyVisibleButtonsHelper::add_spacer_button(uiBlock &block, const int 
 /* ---------------------------------------------------------------------- */
 
 class GridViewLayoutBuilder {
-  uiBlock &block_;
+  Block &block_;
 
   friend class GridViewBuilder;
 
@@ -426,17 +433,17 @@ Layout &GridViewLayoutBuilder::current_layout() const
 
 /* ---------------------------------------------------------------------- */
 
-GridViewBuilder::GridViewBuilder(uiBlock & /*block*/) {}
+GridViewBuilder::GridViewBuilder(Block & /*block*/) {}
 
 void GridViewBuilder::build_grid_view(const bContext &C,
                                       AbstractGridView &grid_view,
                                       Layout &layout,
                                       std::optional<StringRef> search_string)
 {
-  uiBlock &block = *layout.block();
+  Block &block = *layout.block();
 
   const ARegion *region = CTX_wm_region_popup(&C) ? CTX_wm_region_popup(&C) : CTX_wm_region(&C);
-  ui_block_view_persistent_state_restore(*region, block, grid_view);
+  block_view_persistent_state_restore(*region, block, grid_view);
 
   grid_view.build_items();
   grid_view.update_from_old(block);
@@ -461,29 +468,29 @@ void PreviewGridItem::build_grid_tile_button(Layout &layout,
                                              BIFIconID override_preview_icon_id) const
 {
   const GridViewStyle &style = this->get_view().get_style();
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
 
-  UI_but_func_quick_tooltip_set(this->view_item_button(),
-                                [this](const uiBut * /*but*/) { return label; });
+  button_func_quick_tooltip_set(this->view_item_button(),
+                                [this](const Button * /*but*/) { return label; });
 
-  uiBut *but = uiDefBut(block,
-                        ButType::PreviewTile,
-                        hide_label_ ? "" : label,
-                        0,
-                        0,
-                        style.tile_width,
-                        style.tile_height,
-                        nullptr,
-                        0,
-                        0,
-                        "");
+  Button *but = uiDefBut(block,
+                         ButtonType::PreviewTile,
+                         hide_label_ ? "" : label,
+                         0,
+                         0,
+                         style.tile_width,
+                         style.tile_height,
+                         nullptr,
+                         0,
+                         0,
+                         "");
 
   const BIFIconID icon_id = override_preview_icon_id ? override_preview_icon_id : preview_icon_id;
 
-  ui_def_but_icon(but,
-                  icon_id,
-                  /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
-                  UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  def_but_icon(but,
+               icon_id,
+               /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
+               UI_HAS_ICON | BUT_ICON_PREVIEW);
   but->emboss = EmbossType::None;
 }
 

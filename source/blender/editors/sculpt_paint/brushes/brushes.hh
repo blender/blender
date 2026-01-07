@@ -10,20 +10,22 @@
 
 #include <optional>
 
+namespace blender {
+
 struct Brush;
 struct Depsgraph;
 struct Scene;
 struct Sculpt;
-namespace blender::ed::sculpt_paint {
+namespace ed::sculpt_paint {
 struct StrokeCache;
 };
 struct SculptSession;
 struct Object;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 class Node;
 }
 
-namespace blender::ed::sculpt_paint::brushes {
+namespace ed::sculpt_paint::brushes {
 
 /** Represents the result of one or more BVH queries to find a brush's affected nodes. */
 struct CursorSampleResult {
@@ -211,4 +213,6 @@ void do_topology_relax_brush(const Depsgraph &depsgraph,
                              Object &object,
                              const IndexMask &node_mask);
 
-}  // namespace blender::ed::sculpt_paint::brushes
+}  // namespace ed::sculpt_paint::brushes
+
+}  // namespace blender

@@ -17,10 +17,12 @@
 #include "BLI_array.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct FileReader;
 
 struct Thumbnail {
-  blender::Array<uint8_t> data;
+  Array<uint8_t> data;
   int width;
   int height;
 };
@@ -36,8 +38,7 @@ enum eThumbStatus {
   BT_ERROR = 9
 };
 
-std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
-    const Thumbnail *thumb);
+std::optional<Vector<uint8_t>> blendthumb_create_png_data_from_thumb(const Thumbnail *thumb);
 /**
  * This function extracts the thumbnail from the .blend file into thumb.
  * Returns #BT_OK for success and the relevant error code otherwise.
@@ -47,3 +48,5 @@ eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *t
 /* INTEGER CODES */
 /* NOTE: this is endianness-sensitive. */
 #define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+
+}  // namespace blender

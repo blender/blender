@@ -83,11 +83,11 @@ KnotsMode knots_mode_from_legacy(const short flag)
   return NURBS_KNOT_MODE_NORMAL;
 }
 
-Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_list)
+Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBaseT<Nurb> &nurbs_list)
 {
   Vector<const Nurb *> src_curves;
-  LISTBASE_FOREACH (const Nurb *, item, &nurbs_list) {
-    src_curves.append(item);
+  for (const Nurb &item : nurbs_list) {
+    src_curves.append(&item);
   }
   if (src_curves.is_empty()) {
     return nullptr;

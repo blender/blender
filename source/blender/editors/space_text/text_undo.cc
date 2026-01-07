@@ -30,6 +30,8 @@
 
 #include "text_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
  * \{ */
@@ -49,7 +51,7 @@ struct TextState {
 static void text_state_encode(TextState *state, Text *text, BArrayStore *buffer_store)
 {
   size_t buf_len = 0;
-  uchar *buf = (uchar *)txt_to_buf_for_undo(text, &buf_len);
+  uchar *buf = reinterpret_cast<uchar *>(txt_to_buf_for_undo(text, &buf_len));
   state->buf_array_state = BLI_array_store_state_add(buffer_store, buf, buf_len, nullptr);
   MEM_freeN(buf);
 
@@ -75,7 +77,7 @@ static void text_state_decode(TextState *state, Text *text)
   {
     const uchar *buf = static_cast<const uchar *>(
         BLI_array_store_state_data_get_alloc(state->buf_array_state, &buf_len));
-    txt_from_buf_for_undo(text, (const char *)buf, buf_len);
+    txt_from_buf_for_undo(text, reinterpret_cast<const char *>(buf), buf_len);
     MEM_freeN(buf);
   }
 
@@ -132,7 +134,7 @@ static bool text_undosys_poll(bContext * /*C*/)
 
 static void text_undosys_step_encode_init(bContext *C, UndoStep *us_p)
 {
-  TextUndoStep *us = (TextUndoStep *)us_p;
+  TextUndoStep *us = reinterpret_cast<TextUndoStep *>(us_p);
   BLI_assert(BLI_array_is_zeroed(us->states, ARRAY_SIZE(us->states)));
 
   Text *text = CTX_data_edit_text(C);
@@ -143,7 +145,7 @@ static void text_undosys_step_encode_init(bContext *C, UndoStep *us_p)
   UndoStack *ustack = ED_undo_stack_get();
   if (ustack->step_active) {
     if (ustack->step_active->type == BKE_UNDOSYS_TYPE_TEXT) {
-      TextUndoStep *us_active = (TextUndoStep *)ustack->step_active;
+      TextUndoStep *us_active = reinterpret_cast<TextUndoStep *>(ustack->step_active);
       if (STREQ(text->id.name, us_active->text_ref.name)) {
         write_init = false;
       }
@@ -158,7 +160,7 @@ static void text_undosys_step_encode_init(bContext *C, UndoStep *us_p)
 
 static bool text_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *us_p)
 {
-  TextUndoStep *us = (TextUndoStep *)us_p;
+  TextUndoStep *us = reinterpret_cast<TextUndoStep *>(us_p);
 
   Text *text = us->text_ref.ptr;
   BLI_assert(text == CTX_data_edit_text(C));
@@ -176,7 +178,7 @@ static void text_undosys_step_decode(
 {
   BLI_assert(dir != STEP_INVALID);
 
-  TextUndoStep *us = (TextUndoStep *)us_p;
+  TextUndoStep *us = reinterpret_cast<TextUndoStep *>(us_p);
   Text *text = us->text_ref.ptr;
 
   TextState *state;
@@ -201,7 +203,7 @@ static void text_undosys_step_decode(
 
 static void text_undosys_step_free(UndoStep *us_p)
 {
-  TextUndoStep *us = (TextUndoStep *)us_p;
+  TextUndoStep *us = reinterpret_cast<TextUndoStep *>(us_p);
 
   for (int i = 0; i < ARRAY_SIZE(us->states); i++) {
     TextState *state = &us->states[i];
@@ -220,8 +222,8 @@ static void text_undosys_foreach_ID_ref(UndoStep *us_p,
                                         UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                         void *user_data)
 {
-  TextUndoStep *us = (TextUndoStep *)us_p;
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->text_ref));
+  TextUndoStep *us = reinterpret_cast<TextUndoStep *>(us_p);
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->text_ref)));
 }
 
 void ED_text_undosys_type(UndoType *ut)
@@ -260,3 +262,5 @@ UndoStep *ED_text_undo_push_init(bContext *C)
 }
 
 /** \} */
+
+}  // namespace blender

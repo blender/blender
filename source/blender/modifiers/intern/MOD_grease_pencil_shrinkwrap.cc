@@ -9,7 +9,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_material.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
@@ -49,10 +48,7 @@ namespace blender {
 static void init_data(ModifierData *md)
 {
   auto *smd = reinterpret_cast<GreasePencilShrinkwrapModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
-
-  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(GreasePencilShrinkwrapModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
   modifier::greasepencil::init_influence_data(&smd->influence, false);
 }
 
@@ -82,8 +78,8 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 {
   auto *smd = reinterpret_cast<GreasePencilShrinkwrapModifierData *>(md);
   modifier::greasepencil::foreach_influence_ID_link(&smd->influence, ob, walk, user_data);
-  walk(user_data, ob, (ID **)&smd->target, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&smd->aux_target, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&smd->target), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&smd->aux_target), IDWALK_CB_NOP);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
@@ -241,7 +237,8 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  static const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  static const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE |
+                                                ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   ui::Layout &layout = *panel->layout;
 
@@ -274,7 +271,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     col->prop(ptr, "use_negative_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "use_positive_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    layout.prop(ptr, "cull_face", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "cull_face", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     col = &layout.column(false);
     col->active_set(RNA_boolean_get(ptr, "use_negative_direction") &&
                     RNA_enum_get(ptr, "cull_face") != 0);
@@ -312,7 +309,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *smd = reinterpret_cast<const GreasePencilShrinkwrapModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilShrinkwrapModifierData, smd);
+  writer->write_struct(smd);
   modifier::greasepencil::write_influence_data(writer, &smd->influence);
 }
 
@@ -322,8 +319,6 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   modifier::greasepencil::read_influence_data(reader, &smd->influence);
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilShrinkwrap = {
     /*idname*/ "GreasePencilShrinkwrap",
@@ -336,26 +331,28 @@ ModifierTypeInfo modifierType_GreasePencilShrinkwrap = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_SHRINKWRAP,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
-    /*update_depsgraph*/ blender::update_depsgraph,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

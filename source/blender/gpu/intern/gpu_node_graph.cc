@@ -27,6 +27,8 @@
 #include "gpu_material_library.hh"
 #include "gpu_node_graph.hh"
 
+namespace blender {
+
 /* Node Link Functions */
 
 static GPUNodeLink *gpu_node_link_create()
@@ -342,9 +344,9 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
   int next_id = 0;
   attrs->hash_code = 0;
 
-  LISTBASE_FOREACH (GPUUniformAttr *, attr, &attrs->list) {
-    attr->id = next_id++;
-    attrs->hash_code ^= BLI_ghashutil_uinthash(attr->hash_code + (1 << (attr->id + 1)));
+  for (GPUUniformAttr &attr : attrs->list) {
+    attr.id = next_id++;
+    attrs->hash_code ^= BLI_ghashutil_uinthash(attr.hash_code + (1 << (attr.id + 1)));
   }
 }
 
@@ -467,7 +469,7 @@ static GPUUniformAttr *gpu_node_graph_add_uniform_attribute(GPUNodeGraph *graph,
 static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, const char *name)
 {
   /* Find existing attribute. */
-  ListBase *attrs = &graph->layer_attrs;
+  ListBaseT<GPULayerAttr> *attrs = &graph->layer_attrs;
   GPULayerAttr *attr = static_cast<GPULayerAttr *>(attrs->first);
 
   for (; attr; attr = attr->next) {
@@ -494,8 +496,8 @@ static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, con
 static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
                                                       Image *ima,
                                                       ImageUser *iuser,
-                                                      blender::gpu::Texture **colorband,
-                                                      blender::gpu::Texture **sky,
+                                                      gpu::Texture **colorband,
+                                                      gpu::Texture **sky,
                                                       bool is_tiled,
                                                       GPUSamplerState sampler_state)
 {
@@ -513,7 +515,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
 
   /* Add new requested texture. */
   if (tex == nullptr) {
-    tex = MEM_callocN<GPUMaterialTexture>(__func__);
+    tex = MEM_new_for_free<GPUMaterialTexture>(__func__);
     tex->ima = ima;
     if (iuser != nullptr) {
       tex->iuser = *iuser;
@@ -695,8 +697,7 @@ GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
                            float *layer,
                            GPUSamplerState sampler_state)
 {
-  blender::gpu::Texture **sky = gpu_material_sky_texture_layer_set(
-      mat, width, height, pixels, layer);
+  gpu::Texture **sky = gpu_material_sky_texture_layer_set(mat, width, height, pixels, layer);
 
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNodeLink *link = gpu_node_link_create();
@@ -728,7 +729,7 @@ void GPU_image_tiled(GPUMaterial *mat,
 
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *r_row)
 {
-  blender::gpu::Texture **colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, r_row);
+  gpu::Texture **colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, r_row);
   MEM_freeN(pixels);
 
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
@@ -875,14 +876,13 @@ bool GPU_stack_link_zone(GPUMaterial *material,
 {
   GPUNodeGraph *graph = gpu_material_node_graph(material);
   GPUNode *node;
-  int i;
 
   node = gpu_node_create(name);
   node->zone_index = zone_index;
   node->is_zone_end = is_zone_end;
 
   if (in) {
-    for (i = 0; !in[i].end; i++) {
+    for (int i = 0; !in[i].end; i++) {
       if (in[i].type != GPU_NONE) {
         gpu_node_input_socket(material, bnode, node, &in[i], i);
       }
@@ -890,20 +890,20 @@ bool GPU_stack_link_zone(GPUMaterial *material,
   }
 
   if (out) {
-    for (i = 0; !out[i].end; i++) {
+    for (int i = 0; !out[i].end; i++) {
       if (out[i].type != GPU_NONE) {
         gpu_node_output(node, out[i].type, &out[i].link);
       }
     }
   }
 
-  LISTBASE_FOREACH_INDEX (GPUInput *, input, &node->inputs, i) {
-    input->is_zone_io = i >= in_argument_count;
-    input->is_duplicate = input->is_zone_io && is_zone_end;
+  for (const auto [i, input] : node->inputs.enumerate()) {
+    input.is_zone_io = i >= in_argument_count;
+    input.is_duplicate = input.is_zone_io && is_zone_end;
   }
-  LISTBASE_FOREACH_INDEX (GPUOutput *, output, &node->outputs, i) {
-    output->is_zone_io = i >= out_argument_count;
-    output->is_duplicate = output->is_zone_io;
+  for (const auto [i, output] : node->outputs.enumerate()) {
+    output.is_zone_io = i >= out_argument_count;
+    output.is_duplicate = output.is_zone_io;
   }
 
   BLI_addtail(&graph->nodes, node);
@@ -913,21 +913,21 @@ bool GPU_stack_link_zone(GPUMaterial *material,
 
 /* Node Graph */
 
-static void gpu_inputs_free(ListBase *inputs)
+static void gpu_inputs_free(ListBaseT<GPUInput> *inputs)
 {
-  LISTBASE_FOREACH (GPUInput *, input, inputs) {
-    switch (input->source) {
+  for (GPUInput &input : *inputs) {
+    switch (input.source) {
       case GPU_SOURCE_ATTR:
-        input->attr->users--;
+        input.attr->users--;
         break;
       case GPU_SOURCE_UNIFORM_ATTR:
-        input->uniform_attr->users--;
+        input.uniform_attr->users--;
         break;
       case GPU_SOURCE_LAYER_ATTR:
-        input->layer_attr->users--;
+        input.layer_attr->users--;
         break;
       case GPU_SOURCE_TEX:
-        input->texture->users--;
+        input.texture->users--;
         break;
       case GPU_SOURCE_TEX_TILED_MAPPING:
         /* Already handled by GPU_SOURCE_TEX. */
@@ -935,8 +935,8 @@ static void gpu_inputs_free(ListBase *inputs)
         break;
     }
 
-    if (input->link) {
-      gpu_node_link_free(input->link);
+    if (input.link) {
+      gpu_node_link_free(input.link);
     }
   }
 
@@ -947,10 +947,10 @@ static void gpu_node_free(GPUNode *node)
 {
   gpu_inputs_free(&node->inputs);
 
-  LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
-    if (output->link) {
-      output->link->output = nullptr;
-      gpu_node_link_free(output->link);
+  for (GPUOutput &output : node->outputs) {
+    if (output.link) {
+      output.link->output = nullptr;
+      gpu_node_link_free(output.link);
     }
   }
 
@@ -991,8 +991,8 @@ void gpu_nodes_tag(GPUNodeGraph *graph, GPUNodeLink *link_start, GPUNodeTag tag)
     return;
   }
 
-  blender::Stack<GPUNode *> stack;
-  blender::Stack<GPUNode *> zone_stack;
+  Stack<GPUNode *> stack;
+  Stack<GPUNode *> zone_stack;
   stack.push(link_start->output->node);
 
   while (!stack.is_empty() || !zone_stack.is_empty()) {
@@ -1003,21 +1003,21 @@ void gpu_nodes_tag(GPUNodeGraph *graph, GPUNodeLink *link_start, GPUNodeTag tag)
     }
 
     node->tag |= tag;
-    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
-      if (input->link && input->link->output) {
-        stack.push(input->link->output->node);
+    for (GPUInput &input : node->inputs) {
+      if (input.link && input.link->output) {
+        stack.push(input.link->output->node);
       }
     }
 
     /* Zone input nodes are implicitly linked to their corresponding zone output nodes,
      * even if there is no GPUNodeLink between them. */
     if (node->is_zone_end) {
-      LISTBASE_FOREACH (GPUNode *, node2, &graph->nodes) {
-        if (node2->zone_index == node->zone_index && !node2->is_zone_end && !(node2->tag & tag)) {
-          node2->tag |= tag;
-          LISTBASE_FOREACH (GPUInput *, input, &node2->inputs) {
-            if (input->link && input->link->output) {
-              zone_stack.push(input->link->output->node);
+      for (GPUNode &node2 : graph->nodes) {
+        if (node2.zone_index == node->zone_index && !node2.is_zone_end && !(node2.tag & tag)) {
+          node2.tag |= tag;
+          for (GPUInput &input : node2.inputs) {
+            if (input.link && input.link->output) {
+              zone_stack.push(input.link->output->node);
             }
           }
         }
@@ -1028,8 +1028,8 @@ void gpu_nodes_tag(GPUNodeGraph *graph, GPUNodeLink *link_start, GPUNodeTag tag)
 
 void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
 {
-  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
-    node->tag = GPU_NODE_TAG_NONE;
+  for (GPUNode &node : graph->nodes) {
+    node.tag = GPU_NODE_TAG_NONE;
   }
 
   gpu_nodes_tag(graph, graph->outlink_surface, GPU_NODE_TAG_SURFACE);
@@ -1037,14 +1037,14 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
   gpu_nodes_tag(graph, graph->outlink_displacement, GPU_NODE_TAG_DISPLACEMENT);
   gpu_nodes_tag(graph, graph->outlink_thickness, GPU_NODE_TAG_THICKNESS);
 
-  LISTBASE_FOREACH (GPUNodeGraphOutputLink *, aovlink, &graph->outlink_aovs) {
-    gpu_nodes_tag(graph, aovlink->outlink, GPU_NODE_TAG_AOV);
+  for (GPUNodeGraphOutputLink &aovlink : graph->outlink_aovs) {
+    gpu_nodes_tag(graph, aovlink.outlink, GPU_NODE_TAG_AOV);
   }
-  LISTBASE_FOREACH (GPUNodeGraphFunctionLink *, funclink, &graph->material_functions) {
-    gpu_nodes_tag(graph, funclink->outlink, GPU_NODE_TAG_FUNCTION);
+  for (GPUNodeGraphFunctionLink &funclink : graph->material_functions) {
+    gpu_nodes_tag(graph, funclink.outlink, GPU_NODE_TAG_FUNCTION);
   }
-  LISTBASE_FOREACH (GPUNodeGraphOutputLink *, compositor_link, &graph->outlink_compositor) {
-    gpu_nodes_tag(graph, compositor_link->outlink, GPU_NODE_TAG_COMPOSITOR);
+  for (GPUNodeGraphOutputLink &compositor_link : graph->outlink_compositor) {
+    gpu_nodes_tag(graph, compositor_link.outlink, GPU_NODE_TAG_COMPOSITOR);
   }
 
   for (GPUNode *node = static_cast<GPUNode *>(graph->nodes.first), *next = nullptr; node;
@@ -1082,16 +1082,16 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
 
   GPUUniformAttrList *uattrs = &graph->uniform_attrs;
 
-  LISTBASE_FOREACH_MUTABLE (GPUUniformAttr *, attr, &uattrs->list) {
-    if (attr->users == 0) {
-      BLI_freelinkN(&uattrs->list, attr);
+  for (GPUUniformAttr &attr : uattrs->list.items_mutable()) {
+    if (attr.users == 0) {
+      BLI_freelinkN(&uattrs->list, &attr);
       uattrs->count--;
     }
   }
 
-  LISTBASE_FOREACH_MUTABLE (GPULayerAttr *, attr, &graph->layer_attrs) {
-    if (attr->users == 0) {
-      BLI_freelinkN(&graph->layer_attrs, attr);
+  for (GPULayerAttr &attr : graph->layer_attrs.items_mutable()) {
+    if (attr.users == 0) {
+      BLI_freelinkN(&graph->layer_attrs, &attr);
     }
   }
 }
@@ -1099,18 +1099,20 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
 void gpu_node_graph_optimize(GPUNodeGraph *graph)
 {
   /* Replace all uniform node links with constant. */
-  LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
-    LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
-      if (input->link) {
-        if (input->link->link_type == GPU_NODE_LINK_UNIFORM) {
-          input->link->link_type = GPU_NODE_LINK_CONSTANT;
+  for (GPUNode &node : graph->nodes) {
+    for (GPUInput &input : node.inputs) {
+      if (input.link) {
+        if (input.link->link_type == GPU_NODE_LINK_UNIFORM) {
+          input.link->link_type = GPU_NODE_LINK_CONSTANT;
         }
       }
-      if (input->source == GPU_SOURCE_UNIFORM) {
-        input->source = (input->type == GPU_CLOSURE) ? GPU_SOURCE_STRUCT : GPU_SOURCE_CONSTANT;
+      if (input.source == GPU_SOURCE_UNIFORM) {
+        input.source = (input.type == GPU_CLOSURE) ? GPU_SOURCE_STRUCT : GPU_SOURCE_CONSTANT;
       }
     }
   }
 
   /* TODO: Consider performing other node graph optimizations here. */
 }
+
+}  // namespace blender

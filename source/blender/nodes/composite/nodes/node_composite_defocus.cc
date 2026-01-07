@@ -28,9 +28,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* ************ Defocus Node ****************** */
 
-namespace blender::nodes::node_composite_defocus_cc {
+namespace nodes::node_composite_defocus_cc {
 
 NODE_STORAGE_FUNCS(NodeDefocus)
 
@@ -47,7 +49,7 @@ static void cmp_node_defocus_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_defocus(bNodeTree * /*ntree*/, bNode *node)
 {
   /* defocus node */
-  NodeDefocus *nbd = MEM_callocN<NodeDefocus>(__func__);
+  NodeDefocus *nbd = MEM_new_for_free<NodeDefocus>(__func__);
   nbd->bktype = 0;
   nbd->rotation = 0.0f;
   nbd->fstop = 128.0f;
@@ -63,26 +65,26 @@ static void node_composit_buts_defocus(ui::Layout &layout, bContext *C, PointerR
   {
     ui::Layout &col = layout.column(false);
     col.label(IFACE_("Bokeh Type:"), ICON_NONE);
-    col.prop(ptr, "bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    col.prop(ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col.prop(ptr, "bokeh", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    col.prop(ptr, "angle", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
   {
     ui::Layout &col = layout.column(false);
     col.active_set(RNA_boolean_get(ptr, "use_zbuffer") == true);
-    col.prop(ptr, "f_stop", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col.prop(ptr, "f_stop", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
-  layout.prop(ptr, "blur_max", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "blur_max", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-  uiTemplateID(&layout, C, ptr, "scene", nullptr, nullptr, nullptr);
+  template_id(&layout, C, ptr, "scene", nullptr, nullptr, nullptr);
 
   {
     ui::Layout &col = layout.column(false);
-    col.prop(ptr, "use_zbuffer", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_zbuffer", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     ui::Layout &sub = col.column(false);
     sub.active_set(RNA_boolean_get(ptr, "use_zbuffer") == false);
-    sub.prop(ptr, "z_scale", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "z_scale", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 
@@ -96,7 +98,7 @@ class DefocusOperation : public NodeOperation {
   {
     const Result &input = this->get_input("Image");
     Result &output = this->get_result("Image");
-    if (input.is_single_value() || node_storage(bnode()).maxblur < 1.0f) {
+    if (input.is_single_value() || node_storage(node()).maxblur < 1.0f) {
       output.share_data(input);
       return;
     }
@@ -107,10 +109,10 @@ class DefocusOperation : public NodeOperation {
 
     /* The special zero value indicate a circle, in which case, the roundness should be set to
      * 1, and the number of sides can be anything and is arbitrarily set to 3. */
-    const bool is_circle = node_storage(bnode()).bktype == 0;
+    const bool is_circle = node_storage(node()).bktype == 0;
     const int2 kernel_size = int2(maximum_defocus_radius * 2 + 1);
-    const int sides = is_circle ? 3 : node_storage(bnode()).bktype;
-    const float rotation = node_storage(bnode()).rotation;
+    const int sides = is_circle ? 3 : node_storage(node()).bktype;
+    const float rotation = node_storage(node()).rotation;
     const float roundness = is_circle ? 1.0f : 0.0f;
     const Result &bokeh_kernel = context().cache_manager().bokeh_kernels.get(
         context(), kernel_size, sides, rotation, roundness, 0.0f, 0.0f);
@@ -183,8 +185,8 @@ class DefocusOperation : public NodeOperation {
        * transform the texel into the normalized range [0, 1] needed to sample the weights sampler.
        * Finally, invert the textures coordinates by subtracting from 1 to maintain the shape of
        * the weights as mentioned in the function description. */
-      return bokeh_kernel.sample_bilinear_extended(
-          1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f)));
+      return float4(bokeh_kernel.sample_bilinear_extended<Color>(
+          1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f))));
     };
 
     parallel_for(domain.data_size, [&](const int2 texel) {
@@ -225,7 +227,7 @@ class DefocusOperation : public NodeOperation {
 
   Result compute_defocus_radius()
   {
-    if (node_storage(bnode()).no_zbuf) {
+    if (node_storage(node()).no_zbuf) {
       return compute_defocus_radius_from_scale();
     }
     return compute_defocus_radius_from_depth();
@@ -245,8 +247,8 @@ class DefocusOperation : public NodeOperation {
     gpu::Shader *shader = context().get_shader("compositor_defocus_radius_from_scale");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "scale", node_storage(bnode()).scale);
-    GPU_shader_uniform_1f(shader, "max_radius", node_storage(bnode()).maxblur);
+    GPU_shader_uniform_1f(shader, "scale", node_storage(node()).scale);
+    GPU_shader_uniform_1f(shader, "max_radius", node_storage(node()).maxblur);
 
     Result &input_depth = get_input("Z");
     input_depth.bind_as_texture(shader, "radius_tx");
@@ -267,8 +269,8 @@ class DefocusOperation : public NodeOperation {
 
   Result compute_defocus_radius_from_scale_cpu()
   {
-    const float scale = node_storage(bnode()).scale;
-    const float max_radius = node_storage(bnode()).maxblur;
+    const float scale = node_storage(node()).scale;
+    const float max_radius = node_storage(node()).maxblur;
 
     Result &input_depth = get_input("Z");
 
@@ -330,7 +332,7 @@ class DefocusOperation : public NodeOperation {
     const float distance_to_image_of_focus = compute_distance_to_image_of_focus();
     GPU_shader_uniform_1f(shader, "f_stop", get_f_stop());
     GPU_shader_uniform_1f(shader, "focal_length", get_focal_length());
-    GPU_shader_uniform_1f(shader, "max_radius", node_storage(bnode()).maxblur);
+    GPU_shader_uniform_1f(shader, "max_radius", node_storage(node()).maxblur);
     GPU_shader_uniform_1f(shader, "pixels_per_meter", compute_pixels_per_meter());
     GPU_shader_uniform_1f(shader, "distance_to_image_of_focus", distance_to_image_of_focus);
 
@@ -352,7 +354,7 @@ class DefocusOperation : public NodeOperation {
   {
     const float f_stop = this->get_f_stop();
     const float focal_length = this->get_focal_length();
-    const float max_radius = node_storage(this->bnode()).maxblur;
+    const float max_radius = node_storage(this->node()).maxblur;
     const float pixels_per_meter = this->compute_pixels_per_meter();
     const float distance_to_image_of_focus = this->compute_distance_to_image_of_focus();
 
@@ -397,14 +399,14 @@ class DefocusOperation : public NodeOperation {
   /* Computes the maximum possible defocus radius in pixels. */
   float compute_maximum_defocus_radius()
   {
-    if (node_storage(bnode()).no_zbuf) {
-      return node_storage(bnode()).maxblur;
+    if (node_storage(node()).no_zbuf) {
+      return node_storage(node()).maxblur;
     }
 
     const float maximum_diameter = compute_maximum_diameter_of_circle_of_confusion();
     const float pixels_per_meter = compute_pixels_per_meter();
     const float radius = (maximum_diameter / 2.0f) * pixels_per_meter;
-    return math::min(radius, node_storage(bnode()).maxblur);
+    return math::min(radius, node_storage(node()).maxblur);
   }
 
   /* Computes the diameter of the circle of confusion at infinity. This computes the limit in
@@ -487,7 +489,7 @@ class DefocusOperation : public NodeOperation {
   /* Returns the f-stop number. Fall back to 1e-3 for zero f-stop. */
   float get_f_stop()
   {
-    return math::max(1e-3f, node_storage(bnode()).fstop);
+    return math::max(1e-3f, node_storage(node()).fstop);
   }
 
   const Camera *get_camera()
@@ -507,7 +509,7 @@ class DefocusOperation : public NodeOperation {
 
   const Scene *get_scene()
   {
-    return bnode().id ? reinterpret_cast<Scene *>(bnode().id) : &context().get_scene();
+    return node().id ? reinterpret_cast<Scene *>(node().id) : &context().get_scene();
   }
 };
 
@@ -516,13 +518,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new DefocusOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_defocus_cc
+}  // namespace nodes::node_composite_defocus_cc
 
 static void register_node_type_cmp_defocus()
 {
-  namespace file_ns = blender::nodes::node_composite_defocus_cc;
+  namespace file_ns = nodes::node_composite_defocus_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDefocus", CMP_NODE_DEFOCUS);
   ntype.ui_name = "Defocus";
@@ -532,10 +534,12 @@ static void register_node_type_cmp_defocus()
   ntype.declare = file_ns::cmp_node_defocus_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_defocus;
   ntype.initfunc = file_ns::node_composit_init_defocus;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeDefocus", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_defocus)
+
+}  // namespace blender

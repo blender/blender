@@ -383,8 +383,7 @@ static bool set_rna_property(bContext &C,
   const int array_len = RNA_property_array_length(&value_ptr, prop);
 
   Scene *scene = CTX_data_scene(&C);
-  const bool only_when_keyed = blender::animrig::is_keying_flag(scene,
-                                                                AUTOKEY_FLAG_INSERTAVAILABLE);
+  const bool only_when_keyed = animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE);
 
   switch (dst_type) {
     case PROP_FLOAT: {

@@ -16,6 +16,11 @@ uint print_data(uint offset, uint data)
   return offset + 1u;
 }
 
+uint print_data(uint offset, string_t data)
+{
+  return print_data(offset, as_uint(data));
+}
+
 uint print_data(uint offset, int data)
 {
   return print_data(offset, uint(data));
@@ -26,8 +31,8 @@ uint print_data(uint offset, float data)
   return print_data(offset, floatBitsToUint(data));
 }
 
-uint print_header(const uint data_len, uint format_hash)
+uint print_start(const uint data_len)
 {
-  uint offset = atomicAdd(gpu_print_buf[0], 1u + data_len) + 1u;
-  return print_data(offset, format_hash);
+  /* Add one to skip the length stored in the first element of the buffer. */
+  return atomicAdd(gpu_print_buf[0], data_len) + 1u;
 }

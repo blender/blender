@@ -24,6 +24,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 BLI_STATIC_ASSERT(sizeof(PyC_FlagSet) == sizeof(BMO_FlagSet), "size mismatch");
 
 static int bpy_bm_op_as_py_error(BMesh *bm)
@@ -167,7 +169,7 @@ static int bpy_slot_from_py(BMesh *bm,
     case BMO_OP_SLOT_INT: {
       if (slot->slot_subtype.intg == BMO_OP_SLOT_SUBTYPE_INT_ENUM) {
         int enum_val = -1;
-        PyC_FlagSet *items = (PyC_FlagSet *)slot->data.enum_data.flags;
+        PyC_FlagSet *items = reinterpret_cast<PyC_FlagSet *>(slot->data.enum_data.flags);
         const char *enum_str = PyUnicode_AsUTF8(value);
 
         if (enum_str == nullptr) {
@@ -187,7 +189,7 @@ static int bpy_slot_from_py(BMesh *bm,
       }
       else if (slot->slot_subtype.intg == BMO_OP_SLOT_SUBTYPE_INT_FLAG) {
         int flag = 0;
-        PyC_FlagSet *items = (PyC_FlagSet *)slot->data.enum_data.flags;
+        PyC_FlagSet *items = reinterpret_cast<PyC_FlagSet *>(slot->data.enum_data.flags);
 
         if (PyC_FlagSet_ToBitfield(items, value, &flag, slot_name) == -1) {
           return -1;
@@ -254,7 +256,7 @@ static int bpy_slot_from_py(BMesh *bm,
     }
     case BMO_OP_SLOT_ELEMENT_BUF: {
       if (slot->slot_subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE) {
-        if (bpy_slot_from_py_elem_check((BPy_BMElem *)value,
+        if (bpy_slot_from_py_elem_check(reinterpret_cast<BPy_BMElem *>(value),
                                         bm,
                                         (slot->slot_subtype.elem & BM_ALL_NOLOOP),
                                         opname,
@@ -264,7 +266,8 @@ static int bpy_slot_from_py(BMesh *bm,
           return -1; /* error is set in bpy_slot_from_py_elem_check() */
         }
 
-        BMO_slot_buffer_from_single(bmop, slot, &((BPy_BMElem *)value)->ele->head);
+        BMO_slot_buffer_from_single(
+            bmop, slot, &(reinterpret_cast<BPy_BMElem *>(value))->ele->head);
       }
       else {
         /* there are many ways we could interpret arguments, for now...
@@ -278,7 +281,7 @@ static int bpy_slot_from_py(BMesh *bm,
          */
 
         if (BPy_BMVertSeq_Check(value)) {
-          if (bpy_slot_from_py_elemseq_check((BPy_BMGeneric *)value,
+          if (bpy_slot_from_py_elemseq_check(reinterpret_cast<BPy_BMGeneric *>(value),
                                              bm,
                                              BM_VERT,
                                              (slot->slot_subtype.elem & BM_ALL_NOLOOP),
@@ -292,7 +295,7 @@ static int bpy_slot_from_py(BMesh *bm,
           BMO_slot_buffer_from_all(bm, bmop, bmop->slots_in, slot_name, BM_VERT);
         }
         else if (BPy_BMEdgeSeq_Check(value)) {
-          if (bpy_slot_from_py_elemseq_check((BPy_BMGeneric *)value,
+          if (bpy_slot_from_py_elemseq_check(reinterpret_cast<BPy_BMGeneric *>(value),
                                              bm,
                                              BM_EDGE,
                                              (slot->slot_subtype.elem & BM_ALL_NOLOOP),
@@ -306,7 +309,7 @@ static int bpy_slot_from_py(BMesh *bm,
           BMO_slot_buffer_from_all(bm, bmop, bmop->slots_in, slot_name, BM_EDGE);
         }
         else if (BPy_BMFaceSeq_Check(value)) {
-          if (bpy_slot_from_py_elemseq_check((BPy_BMGeneric *)value,
+          if (bpy_slot_from_py_elemseq_check(reinterpret_cast<BPy_BMGeneric *>(value),
                                              bm,
                                              BM_FACE,
                                              (slot->slot_subtype.elem & BM_ALL_NOLOOP),
@@ -326,9 +329,9 @@ static int bpy_slot_from_py(BMesh *bm,
           uint i;
 
           if (bpy_slot_from_py_elemseq_check(
-                  (BPy_BMGeneric *)value,
+                  reinterpret_cast<BPy_BMGeneric *>(value),
                   bm,
-                  bm_iter_itype_htype_map[((BPy_BMElemSeq *)value)->itype],
+                  bm_iter_itype_htype_map[(reinterpret_cast<BPy_BMElemSeq *>(value))->itype],
                   (slot->slot_subtype.elem & BM_ALL_NOLOOP),
                   opname,
                   slot_name,
@@ -418,7 +421,7 @@ static int bpy_slot_from_py(BMesh *bm,
             PyObject *arg_key, *arg_value;
             Py_ssize_t arg_pos = 0;
             while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
-              if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key,
+              if (bpy_slot_from_py_elem_check(reinterpret_cast<BPy_BMElem *>(arg_key),
                                               bm,
                                               BM_ALL_NOLOOP,
                                               opname,
@@ -428,7 +431,7 @@ static int bpy_slot_from_py(BMesh *bm,
                 return -1; /* error is set in bpy_slot_from_py_elem_check() */
               }
 
-              if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_value,
+              if (bpy_slot_from_py_elem_check(reinterpret_cast<BPy_BMElem *>(arg_value),
                                               bm,
                                               BM_ALL_NOLOOP,
                                               opname,
@@ -438,8 +441,10 @@ static int bpy_slot_from_py(BMesh *bm,
                 return -1; /* error is set in bpy_slot_from_py_elem_check() */
               }
 
-              BMO_slot_map_elem_insert(
-                  bmop, slot, ((BPy_BMElem *)arg_key)->ele, ((BPy_BMElem *)arg_value)->ele);
+              BMO_slot_map_elem_insert(bmop,
+                                       slot,
+                                       (reinterpret_cast<BPy_BMElem *>(arg_key))->ele,
+                                       (reinterpret_cast<BPy_BMElem *>(arg_value))->ele);
             }
           }
           break;
@@ -451,7 +456,7 @@ static int bpy_slot_from_py(BMesh *bm,
             while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
               float value_f;
 
-              if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key,
+              if (bpy_slot_from_py_elem_check(reinterpret_cast<BPy_BMElem *>(arg_key),
                                               bm,
                                               BM_ALL_NOLOOP,
                                               opname,
@@ -473,7 +478,8 @@ static int bpy_slot_from_py(BMesh *bm,
                 return -1;
               }
 
-              BMO_slot_map_float_insert(bmop, slot, ((BPy_BMElem *)arg_key)->ele, value_f);
+              BMO_slot_map_float_insert(
+                  bmop, slot, (reinterpret_cast<BPy_BMElem *>(arg_key))->ele, value_f);
             }
           }
           break;
@@ -485,7 +491,7 @@ static int bpy_slot_from_py(BMesh *bm,
             while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
               int value_i;
 
-              if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key,
+              if (bpy_slot_from_py_elem_check(reinterpret_cast<BPy_BMElem *>(arg_key),
                                               bm,
                                               BM_ALL_NOLOOP,
                                               opname,
@@ -507,7 +513,8 @@ static int bpy_slot_from_py(BMesh *bm,
                 return -1;
               }
 
-              BMO_slot_map_int_insert(bmop, slot, ((BPy_BMElem *)arg_key)->ele, value_i);
+              BMO_slot_map_int_insert(
+                  bmop, slot, (reinterpret_cast<BPy_BMElem *>(arg_key))->ele, value_i);
             }
           }
           break;
@@ -519,7 +526,7 @@ static int bpy_slot_from_py(BMesh *bm,
             while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
               int value_i;
 
-              if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key,
+              if (bpy_slot_from_py_elem_check(reinterpret_cast<BPy_BMElem *>(arg_key),
                                               bm,
                                               BM_ALL_NOLOOP,
                                               opname,
@@ -541,7 +548,8 @@ static int bpy_slot_from_py(BMesh *bm,
                 return -1;
               }
 
-              BMO_slot_map_bool_insert(bmop, slot, ((BPy_BMElem *)arg_key)->ele, value_i != 0);
+              BMO_slot_map_bool_insert(
+                  bmop, slot, (reinterpret_cast<BPy_BMElem *>(arg_key))->ele, value_i != 0);
             }
           }
           break;
@@ -554,7 +562,7 @@ static int bpy_slot_from_py(BMesh *bm,
               /* Borrow from the set. */
               Py_DECREF(arg_key);
 
-              if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key,
+              if (bpy_slot_from_py_elem_check(reinterpret_cast<BPy_BMElem *>(arg_key),
                                               bm,
                                               BM_ALL_NOLOOP,
                                               opname,
@@ -565,7 +573,8 @@ static int bpy_slot_from_py(BMesh *bm,
                 break;
               }
 
-              BMO_slot_map_empty_insert(bmop, slot, ((BPy_BMElem *)arg_key)->ele);
+              BMO_slot_map_empty_insert(
+                  bmop, slot, (reinterpret_cast<BPy_BMElem *>(arg_key))->ele);
             }
             Py_DECREF(it);
             if (arg_key) {
@@ -619,7 +628,8 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
       item = PyFloat_FromDouble(double(BMO_SLOT_AS_FLOAT(slot)));
       break;
     case BMO_OP_SLOT_MAT:
-      item = Matrix_CreatePyObject((float *)BMO_SLOT_AS_MATRIX(slot), 4, 4, nullptr);
+      item = Matrix_CreatePyObject(
+          reinterpret_cast<float *> BMO_SLOT_AS_MATRIX(slot), 4, 4, nullptr);
       break;
     case BMO_OP_SLOT_VEC:
       item = Vector_CreatePyObject(BMO_SLOT_AS_VECTOR(slot), slot->len, nullptr);
@@ -676,7 +686,7 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
               void *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
               PyObject *py_key = BPy_BMElem_CreatePyObject(bm, ele_key);
-              PyObject *py_val = PyFloat_FromDouble(*(float *)&ele_val);
+              PyObject *py_val = PyFloat_FromDouble(*reinterpret_cast<float *>(&ele_val));
 
               PyDict_SetItem(item, py_key, py_val);
               Py_DECREF(py_key);
@@ -693,7 +703,7 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
               void *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
               PyObject *py_key = BPy_BMElem_CreatePyObject(bm, ele_key);
-              PyObject *py_val = PyLong_FromLong(*(int *)&ele_val);
+              PyObject *py_val = PyLong_FromLong(*reinterpret_cast<int *>(&ele_val));
 
               PyDict_SetItem(item, py_key, py_val);
               Py_DECREF(py_key);
@@ -710,7 +720,7 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
               void *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
               PyObject *py_key = BPy_BMElem_CreatePyObject(bm, ele_key);
-              PyObject *py_val = PyBool_FromLong(*(bool *)&ele_val);
+              PyObject *py_val = PyBool_FromLong(*reinterpret_cast<bool *>(&ele_val));
 
               PyDict_SetItem(item, py_key, py_val);
               Py_DECREF(py_key);
@@ -755,8 +765,8 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 
   BMOperator bmop;
 
-  if ((PyTuple_GET_SIZE(args) == 1) && (py_bm = (BPy_BMesh *)PyTuple_GET_ITEM(args, 0)) &&
-      BPy_BMesh_Check(py_bm))
+  if ((PyTuple_GET_SIZE(args) == 1) &&
+      (py_bm = reinterpret_cast<BPy_BMesh *> PyTuple_GET_ITEM(args, 0)) && BPy_BMesh_Check(py_bm))
   {
     BPY_BM_CHECK_OBJ(py_bm);
     bm = py_bm->bm;
@@ -856,3 +866,5 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
   BMO_op_finish(bm, &bmop);
   return ret;
 }
+
+}  // namespace blender

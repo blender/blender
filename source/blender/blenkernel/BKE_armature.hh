@@ -17,12 +17,15 @@
 #include "BLI_set.hh"
 
 #include "DNA_armature_types.h"
+#include "DNA_listBase.h"
 
+namespace blender {
+
+struct bDeformGroup;
 struct BMEditMesh;
 struct Bone;
 struct Depsgraph;
 struct IDProperty;
-struct ListBase;
 struct Main;
 struct Mesh;
 struct Object;
@@ -35,86 +38,86 @@ struct bPoseChannel;
 struct MDeformVert;
 
 struct EditBone {
-  EditBone *next, *prev;
+  EditBone *next = nullptr, *prev = nullptr;
   /** User-Defined Properties on this Bone */
-  IDProperty *prop;
+  IDProperty *prop = nullptr;
   /** System-Defined Properties storage. */
-  IDProperty *system_properties;
+  IDProperty *system_properties = nullptr;
   /**
    * Edit-bones have a one-way link  (i.e. children refer
    * to parents.  This is converted to a two-way link for
    * normal bones when leaving edit-mode.
    */
-  EditBone *parent;
-  char name[/*MAXBONENAME*/ 64];
+  EditBone *parent = nullptr;
+  char name[/*MAXBONENAME*/ 64] = "";
   /**
    * Roll along axis.  We'll ultimately use the axis/angle method
    * for determining the transformation matrix of the bone.  The axis
    * is tail-head while roll provides the angle. Refer to Graphics
    * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere.
    */
-  float roll;
+  float roll = 0.0f;
 
   /** Orientation and length is implicit during editing */
-  float head[3];
-  float tail[3];
+  float head[3] = {};
+  float tail[3] = {};
   /**
    * All joints are considered to have zero rotation with respect to
    * their parents. Therefore any rotations specified during the
    * animation are automatically relative to the bones' rest positions.
    */
-  int flag;
-  int layer;
-  int drawtype; /* eArmature_Drawtype */
-  char inherit_scale_mode;
+  int flag = 0;
+  int layer = 0;
+  int drawtype = 0; /* eArmature_Drawtype */
+  char inherit_scale_mode = 0;
 
   /* Envelope distance & weight */
-  float dist, weight;
+  float dist = 0, weight = 0;
   /** put them in order! transform uses this as scale */
-  float xwidth, length, zwidth;
-  float rad_head, rad_tail;
+  float xwidth = 0, length = 0, zwidth = 0;
+  float rad_head = 0, rad_tail = 0;
 
   /* Bendy-Bone parameters */
-  short segments;
-  float roll1, roll2;
-  float curve_in_x, curve_in_z;
-  float curve_out_x, curve_out_z;
-  float ease1, ease2;
-  float scale_in[3], scale_out[3];
+  short segments = 0;
+  float roll1 = 0, roll2 = 0;
+  float curve_in_x = 0, curve_in_z = 0;
+  float curve_out_x = 0, curve_out_z = 0;
+  float ease1 = 0, ease2 = 0;
+  float scale_in[3] = {}, scale_out[3] = {};
 
   /** for envelope scaling */
-  float oldlength;
+  float oldlength = 0;
 
   /** Mapping of vertices to segments. */
-  eBone_BBoneMappingMode bbone_mapping_mode;
+  eBone_BBoneMappingMode bbone_mapping_mode = BBONE_MAPPING_STRAIGHT;
   /** Type of next/prev bone handles */
-  char bbone_prev_type;
-  char bbone_next_type;
+  char bbone_prev_type = 0;
+  char bbone_next_type = 0;
   /** B-Bone flags. */
-  int bbone_flag;
-  short bbone_prev_flag;
-  short bbone_next_flag;
+  int bbone_flag = 0;
+  short bbone_prev_flag = 0;
+  short bbone_next_flag = 0;
   /** Next/prev bones to use as handle references when calculating bbones (optional) */
-  EditBone *bbone_prev;
-  EditBone *bbone_next;
+  EditBone *bbone_prev = nullptr;
+  EditBone *bbone_next = nullptr;
 
   /* Used for display */
   /** in Armature space, rest pos matrix */
-  float disp_mat[4][4];
+  float disp_mat[4][4] = {};
   /** in Armature space, rest pos matrix */
-  float disp_tail_mat[4][4];
+  float disp_tail_mat[4][4] = {};
   /** in Armature space, rest pos matrix. */
-  float disp_bbone_mat[/*MAX_BBONE_SUBDIV*/ 32][4][4];
+  float disp_bbone_mat[/*MAX_BBONE_SUBDIV*/ 32][4][4] = {};
 
   /** connected child temporary during drawing */
-  EditBone *bbone_child;
+  EditBone *bbone_child = nullptr;
 
-  ::BoneColor color; /* MUST be named the same as in bPoseChannel and Bone structs. */
-  ListBase /*BoneCollectionReference*/ bone_collections;
+  BoneColor color; /* MUST be named the same as in bPoseChannel and Bone structs. */
+  ListBaseT<BoneCollectionReference> bone_collections = {};
 
   /* Used to store temporary data */
   union {
-    EditBone *ebone;
+    EditBone *ebone = nullptr;
     Bone *bone;
     void *p;
     int i;
@@ -134,9 +137,9 @@ struct PoseTree {
   int type;       /* type of IK that this serves (CONSTRAINT_TYPE_KINEMATIC or ..._SPLINEIK) */
   int totchannel; /* number of pose channels */
 
-  ListBase targets;     /* list of targets of the tree */
-  bPoseChannel **pchan; /* array of pose channels */
-  int *parent;          /* and their parents */
+  ListBaseT<PoseTarget> targets; /* list of targets of the tree */
+  bPoseChannel **pchan;          /* array of pose channels */
+  int *parent;                   /* and their parents */
 
   float (*basis_change)[3][3]; /* basis change result from solver */
   int iterations;              /* iterations from the constraint */
@@ -147,9 +150,9 @@ struct PoseTree {
 
 bArmature *BKE_armature_add(Main *bmain, const char *name);
 bArmature *BKE_armature_from_object(Object *ob);
-int BKE_armature_bonelist_count(const ListBase *lb);
-void BKE_armature_bonelist_free(ListBase *lb, bool do_id_user);
-void BKE_armature_editbonelist_free(ListBase *lb, bool do_id_user);
+int BKE_armature_bonelist_count(const ListBaseT<Bone> *lb);
+void BKE_armature_bonelist_free(ListBaseT<Bone> *lb, bool do_id_user);
+void BKE_armature_editbonelist_free(ListBaseT<EditBone> *lb, bool do_id_user);
 
 void BKE_armature_copy_bone_transforms(bArmature *armature_dst, const bArmature *armature_src);
 
@@ -158,7 +161,7 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], bool do_props
 /**
  * Return the posed Armature bounding box in object-local coordinate space.
  */
-std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob);
+std::optional<Bounds<float3>> BKE_armature_min_max(const Object *ob);
 
 /**
  * Calculate the axis-aligned bounds of `pchan` in object-space,
@@ -178,8 +181,8 @@ std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Objec
 void BKE_pchan_minmax(const Object *ob,
                       const bPoseChannel *pchan,
                       const bool use_empty_drawtype,
-                      blender::float3 &r_min,
-                      blender::float3 &r_max);
+                      float3 &r_min,
+                      float3 &r_max);
 /**
  * Calculate the axis aligned bounds of the pose of `ob` in object-space.
  *
@@ -192,7 +195,7 @@ void BKE_pchan_minmax(const Object *ob,
  * \param use_select: When true, only consider selected bones. When false, selection state is
  * ignored and all bones are included in the bounds.
  */
-std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob, bool use_select);
+std::optional<Bounds<float3>> BKE_pose_minmax(const Object *ob, bool use_select);
 
 /**
  * Finds the best possible extension to the name on a particular axis.
@@ -221,9 +224,9 @@ bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag);
 /**
  * Bone influence factor from envelope distance.
  */
-float distfactor_to_bone(const blender::float3 &position,
-                         const blender::float3 &head,
-                         const blender::float3 &tail,
+float distfactor_to_bone(const float3 &position,
+                         const float3 &head,
+                         const float3 &tail,
                          float radius_head,
                          float radius_tail,
                          float falloff_distance);
@@ -573,7 +576,7 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
        _pchan = _pchan->next) \
   { \
-    if (blender::animrig::bone_is_visible(((bArmature *)(_ob)->data), _pchan) && \
+    if (animrig::bone_is_visible(((bArmature *)(_ob)->data), _pchan) && \
         ((_pchan)->flag & POSE_SELECTED)) \
     {
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_END \
@@ -585,7 +588,7 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
        _pchan = _pchan->next) \
   { \
-    if (blender::animrig::bone_is_visible(((bArmature *)(_ob)->data), _pchan)) {
+    if (animrig::bone_is_visible(((bArmature *)(_ob)->data), _pchan)) {
 #define FOREACH_PCHAN_VISIBLE_IN_OBJECT_END \
   } \
   } \
@@ -642,55 +645,55 @@ void BKE_pose_eval_cleanup(Depsgraph *depsgraph, Scene *scene, Object *object);
 /* Note that we could have a #BKE_armature_deform_coords that doesn't take object data
  * currently there are no callers for this though. */
 
-void BKE_armature_deform_coords_with_curves(
-    const Object &ob_arm,
-    const Object &ob_target,
-    const ListBase *defbase,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
-    blender::Span<MDeformVert> dverts,
-    int deformflag,
-    blender::StringRefNull defgrp_name);
+void BKE_armature_deform_coords_with_curves(const Object &ob_arm,
+                                            const Object &ob_target,
+                                            const ListBaseT<bDeformGroup> *defbase,
+                                            MutableSpan<float3> vert_coords,
+                                            std::optional<Span<float3>> vert_coords_prev,
+                                            std::optional<MutableSpan<float3x3>> vert_deform_mats,
+                                            Span<MDeformVert> dverts,
+                                            int deformflag,
+                                            StringRefNull defgrp_name);
 
-void BKE_armature_deform_coords_with_mesh(
-    const Object &ob_arm,
-    const Object &ob_target,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
-    int deformflag,
-    blender::StringRefNull defgrp_name,
-    const Mesh *me_target);
+void BKE_armature_deform_coords_with_mesh(const Object &ob_arm,
+                                          const Object &ob_target,
+                                          MutableSpan<float3> vert_coords,
+                                          std::optional<Span<float3>> vert_coords_prev,
+                                          std::optional<MutableSpan<float3x3>> vert_deform_mats,
+                                          int deformflag,
+                                          StringRefNull defgrp_name,
+                                          const Mesh *me_target);
 
 void BKE_armature_deform_coords_with_editmesh(
     const Object &ob_arm,
     const Object &ob_target,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
+    MutableSpan<float3> vert_coords,
+    std::optional<Span<float3>> vert_coords_prev,
+    std::optional<MutableSpan<float3x3>> vert_deform_mats,
     int deformflag,
-    blender::StringRefNull defgrp_name,
+    StringRefNull defgrp_name,
     const BMEditMesh &em_target);
 
 /** \} */
 
-namespace blender::bke {
+namespace bke {
 
 struct SelectedBonesResult {
   bool all_bones_selected = true;
   bool no_bones_selected = true;
 };
 
-using SelectedBoneCallback = blender::FunctionRef<void(Bone *bone)>;
+using SelectedBoneCallback = FunctionRef<void(Bone *bone)>;
 SelectedBonesResult BKE_armature_find_selected_bones(const bArmature *armature,
                                                      SelectedBoneCallback callback);
 
-using BoneNameSet = blender::Set<std::string>;
+using BoneNameSet = Set<std::string>;
 /**
  * Return a set of names of the selected bones.
  */
 BoneNameSet BKE_armature_find_selected_bone_names(const bArmature *armature);
 
 BoneNameSet BKE_pose_channel_find_selected_names(const Object *object);
-};  // namespace blender::bke
+};  // namespace bke
+
+}  // namespace blender

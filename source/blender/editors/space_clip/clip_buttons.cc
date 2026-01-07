@@ -50,13 +50,13 @@
 
 #include "clip_intern.hh" /* own include */
 
-using blender::StringRefNull;
+namespace blender {
 
 /* Panels */
 
 static bool metadata_panel_context_poll(const bContext *C, PanelType * /*pt*/)
 {
-  return ED_space_clip_poll((bContext *)C);
+  return ED_space_clip_poll(const_cast<bContext *>(C));
 }
 
 static void metadata_panel_context_draw(const bContext *C, Panel *panel)
@@ -91,11 +91,8 @@ void ED_clip_buttons_register(ARegionType *art)
 
 /********************* MovieClip Template ************************/
 
-void uiTemplateMovieClip(blender::ui::Layout *layout,
-                         bContext *C,
-                         PointerRNA *ptr,
-                         const blender::StringRefNull propname,
-                         bool compact)
+void uiTemplateMovieClip(
+    ui::Layout *layout, bContext *C, PointerRNA *ptr, const StringRefNull propname, bool compact)
 {
   if (!ptr->data) {
     return;
@@ -124,30 +121,31 @@ void uiTemplateMovieClip(blender::ui::Layout *layout,
   layout->context_ptr_set("edit_movieclip", &clipptr);
 
   if (!compact) {
-    uiTemplateID(layout, C, ptr, propname, nullptr, "CLIP_OT_open", nullptr);
+    template_id(layout, C, ptr, propname, nullptr, "CLIP_OT_open", nullptr);
   }
 
   if (clip) {
-    blender::ui::Layout &row = layout->row(false);
-    uiBlock *block = row.block();
-    uiDefBut(block, ButType::Label, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, "");
+    ui::Layout &row = layout->row(false);
+    ui::Block *block = row.block();
+    uiDefBut(
+        block, ui::ButtonType::Label, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, "");
 
-    blender::ui::Layout &file_row = layout->row(true);
+    ui::Layout &file_row = layout->row(true);
     file_row.prop(&clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
     file_row.op("clip.reload", "", ICON_FILE_REFRESH);
 
-    blender::ui::Layout &col = layout->column(true);
+    ui::Layout &col = layout->column(true);
     col.separator();
     col.prop(&clipptr, "frame_start", UI_ITEM_NONE, IFACE_("Start Frame"), ICON_NONE);
     col.prop(&clipptr, "frame_offset", UI_ITEM_NONE, IFACE_("Frame Offset"), ICON_NONE);
     col.separator();
-    uiTemplateColorspaceSettings(&col, &clipptr, "colorspace_settings");
+    template_colorspace_settings(&col, &clipptr, "colorspace_settings");
   }
 }
 
 /********************* Track Template ************************/
 
-void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void uiTemplateTrack(ui::Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   if (!ptr->data) {
     return;
@@ -171,7 +169,7 @@ void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringR
   }
 
   PointerRNA scopesptr = RNA_property_pointer_get(ptr, prop);
-  MovieClipScopes *scopes = (MovieClipScopes *)scopesptr.data;
+  MovieClipScopes *scopes = static_cast<MovieClipScopes *>(scopesptr.data);
 
   if (scopes->track_preview_height < UI_UNIT_Y) {
     scopes->track_preview_height = UI_UNIT_Y;
@@ -180,11 +178,11 @@ void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringR
     scopes->track_preview_height = UI_UNIT_Y * 20;
   }
 
-  blender::ui::Layout &col = layout->column(true);
-  uiBlock *block = col.block();
+  ui::Layout &col = layout->column(true);
+  ui::Block *block = col.block();
 
   uiDefBut(block,
-           ButType::TrackPreview,
+           ui::ButtonType::TrackPreview,
            "",
            0,
            0,
@@ -197,7 +195,7 @@ void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringR
 
   /* Resize grip. */
   uiDefIconButI(block,
-                ButType::Grip,
+                ui::ButtonType::Grip,
                 ICON_GRIP,
                 0,
                 0,
@@ -251,7 +249,7 @@ static void to_pixel_space(float r[2], const float a[2], int width, int height)
 
 static void marker_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 {
-  MarkerUpdateCb *cb = (MarkerUpdateCb *)arg_cb;
+  MarkerUpdateCb *cb = static_cast<MarkerUpdateCb *>(arg_cb);
 
   if (!cb->compact) {
     return;
@@ -266,7 +264,7 @@ static void marker_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 
 static void marker_block_handler(bContext *C, void *arg_cb, int event)
 {
-  MarkerUpdateCb *cb = (MarkerUpdateCb *)arg_cb;
+  MarkerUpdateCb *cb = static_cast<MarkerUpdateCb *>(arg_cb);
   int width, height;
   bool ok = false;
 
@@ -374,7 +372,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
   }
 }
 
-void uiTemplateMarker(blender::ui::Layout *layout,
+void uiTemplateMarker(ui::Layout *layout,
                       PointerRNA *ptr,
                       const StringRefNull propname,
                       PointerRNA *userptr,
@@ -403,7 +401,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
   }
 
   PointerRNA clipptr = RNA_property_pointer_get(ptr, prop);
-  MovieClip *clip = (MovieClip *)clipptr.data;
+  MovieClip *clip = static_cast<MovieClip *>(clipptr.data);
   MovieClipUser *user = static_cast<MovieClipUser *>(userptr->data);
   MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(trackptr->data);
 
@@ -420,9 +418,9 @@ void uiTemplateMarker(blender::ui::Layout *layout,
   cb->framenr = user->framenr;
 
   if (compact) {
-    uiBlock *block = layout->block();
+    ui::Block *block = layout->block();
 
-    blender::StringRef tip;
+    StringRef tip;
     if (cb->marker_flag & MARKER_DISABLED) {
       tip = TIP_("Marker is disabled at current frame");
     }
@@ -430,20 +428,20 @@ void uiTemplateMarker(blender::ui::Layout *layout,
       tip = TIP_("Marker is enabled at current frame");
     }
 
-    uiBut *bt = uiDefIconButBitI(block,
-                                 ButType::ToggleN,
-                                 MARKER_DISABLED,
-                                 ICON_HIDE_OFF,
-                                 0,
-                                 0,
-                                 UI_UNIT_X,
-                                 UI_UNIT_Y,
-                                 &cb->marker_flag,
-                                 0,
-                                 0,
-                                 tip);
-    UI_but_funcN_set(bt, marker_update_cb, cb, nullptr);
-    UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
+    ui::Button *bt = uiDefIconButBitI(block,
+                                      ui::ButtonType::ToggleN,
+                                      MARKER_DISABLED,
+                                      ICON_HIDE_OFF,
+                                      0,
+                                      0,
+                                      UI_UNIT_X,
+                                      UI_UNIT_Y,
+                                      &cb->marker_flag,
+                                      0,
+                                      0,
+                                      tip);
+    button_funcN_set(bt, marker_update_cb, cb, nullptr);
+    button_drawflag_enable(bt, ui::BUT_ICON_REVERSE);
   }
   else {
     int width, height;
@@ -452,9 +450,9 @@ void uiTemplateMarker(blender::ui::Layout *layout,
 
     if (track->flag & TRACK_LOCKED) {
       layout->active_set(false);
-      uiBlock *block = layout->absolute().block();
+      ui::Block *block = layout->absolute().block();
       uiDefBut(block,
-               ButType::Label,
+               ui::ButtonType::Label,
                IFACE_("Track is locked"),
                0,
                0,
@@ -487,11 +485,11 @@ void uiTemplateMarker(blender::ui::Layout *layout,
 
     cb->marker_flag = marker->flag;
 
-    uiBlock *block = layout->absolute().block();
-    UI_block_func_handle_set(block, marker_block_handler, cb);
-    UI_block_funcN_set(block, marker_update_cb, cb, nullptr);
+    ui::Block *block = layout->absolute().block();
+    block_func_handle_set(block, marker_block_handler, cb);
+    block_funcN_set(block, marker_update_cb, cb, nullptr);
 
-    blender::StringRef tip;
+    StringRef tip;
     int step = 100;
     int digits = 2;
 
@@ -502,28 +500,28 @@ void uiTemplateMarker(blender::ui::Layout *layout,
       tip = TIP_("Marker is enabled at current frame");
     }
 
-    uiBut *but = uiDefButBitI(block,
-                              ButType::CheckboxN,
-                              MARKER_DISABLED,
-                              IFACE_("Enabled"),
-                              0.5 * UI_UNIT_X,
-                              9.5 * UI_UNIT_Y,
-                              7.25 * UI_UNIT_X,
-                              UI_UNIT_Y,
-                              &cb->marker_flag,
-                              0,
-                              0,
-                              tip);
-    UI_but_retval_set(but, B_MARKER_FLAG);
+    ui::Button *but = uiDefButBitI(block,
+                                   ui::ButtonType::CheckboxN,
+                                   MARKER_DISABLED,
+                                   IFACE_("Enabled"),
+                                   0.5 * UI_UNIT_X,
+                                   9.5 * UI_UNIT_Y,
+                                   7.25 * UI_UNIT_X,
+                                   UI_UNIT_Y,
+                                   &cb->marker_flag,
+                                   0,
+                                   0,
+                                   tip);
+    button_retval_set(but, B_MARKER_FLAG);
 
-    blender::ui::Layout &col = layout->column(true);
+    ui::Layout &col = layout->column(true);
     col.active_set((cb->marker_flag & MARKER_DISABLED) == 0);
 
     block = col.absolute().block();
-    UI_block_align_begin(block);
+    block_align_begin(block);
 
     uiDefBut(block,
-             ButType::Label,
+             ui::ButtonType::Label,
              IFACE_("Position:"),
              0,
              10 * UI_UNIT_Y,
@@ -533,22 +531,22 @@ void uiTemplateMarker(blender::ui::Layout *layout,
              0,
              0,
              "");
-    uiBut *bt = uiDefButF(block,
-                          ButType::Num,
-                          IFACE_("X:"),
-                          0.5 * UI_UNIT_X,
-                          9 * UI_UNIT_Y,
-                          7.25 * UI_UNIT_X,
-                          UI_UNIT_Y,
-                          &cb->marker_pos[0],
-                          -10 * width,
-                          10.0 * width,
-                          TIP_("X-position of marker at frame in screen coordinates"));
-    UI_but_retval_set(bt, B_MARKER_POS);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    ui::Button *bt = uiDefButF(block,
+                               ui::ButtonType::Num,
+                               IFACE_("X:"),
+                               0.5 * UI_UNIT_X,
+                               9 * UI_UNIT_Y,
+                               7.25 * UI_UNIT_X,
+                               UI_UNIT_Y,
+                               &cb->marker_pos[0],
+                               -10 * width,
+                               10.0 * width,
+                               TIP_("X-position of marker at frame in screen coordinates"));
+    button_retval_set(bt, B_MARKER_POS);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    9 * UI_UNIT_Y,
@@ -558,12 +556,12 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    -10 * height,
                    10.0 * height,
                    TIP_("Y-position of marker at frame in screen coordinates"));
-    UI_but_retval_set(bt, B_MARKER_POS);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_POS);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
 
     uiDefBut(block,
-             ButType::Label,
+             ui::ButtonType::Label,
              IFACE_("Offset:"),
              0,
              8 * UI_UNIT_Y,
@@ -574,7 +572,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
              0,
              "");
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("X:"),
                    0.5 * UI_UNIT_X,
                    7 * UI_UNIT_Y,
@@ -584,11 +582,11 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    -10 * width,
                    10.0 * width,
                    TIP_("X-offset to parenting point"));
-    UI_but_retval_set(bt, B_MARKER_OFFSET);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_OFFSET);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    7 * UI_UNIT_Y,
@@ -598,12 +596,12 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    -10 * height,
                    10.0 * height,
                    TIP_("Y-offset to parenting point"));
-    UI_but_retval_set(bt, B_MARKER_OFFSET);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_OFFSET);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
 
     uiDefBut(block,
-             ButType::Label,
+             ui::ButtonType::Label,
              IFACE_("Pattern Area:"),
              0,
              6 * UI_UNIT_Y,
@@ -614,7 +612,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
              0,
              "");
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("Width:"),
                    0.5 * UI_UNIT_X,
                    5 * UI_UNIT_Y,
@@ -624,11 +622,11 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    3.0f,
                    10.0 * width,
                    TIP_("Width of marker's pattern in screen coordinates"));
-    UI_but_retval_set(bt, B_MARKER_PAT_DIM);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_PAT_DIM);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("Height:"),
                    0.5 * UI_UNIT_X,
                    4 * UI_UNIT_Y,
@@ -638,12 +636,12 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    3.0f,
                    10.0 * height,
                    TIP_("Height of marker's pattern in screen coordinates"));
-    UI_but_retval_set(bt, B_MARKER_PAT_DIM);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_PAT_DIM);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
 
     uiDefBut(block,
-             ButType::Label,
+             ui::ButtonType::Label,
              IFACE_("Search Area:"),
              0,
              3 * UI_UNIT_Y,
@@ -654,7 +652,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
              0,
              "");
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("X:"),
                    0.5 * UI_UNIT_X,
                    2 * UI_UNIT_Y,
@@ -664,11 +662,11 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    -width,
                    width,
                    TIP_("X-position of search at frame relative to marker's position"));
-    UI_but_retval_set(bt, B_MARKER_SEARCH_POS);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_SEARCH_POS);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    2 * UI_UNIT_Y,
@@ -678,11 +676,11 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    -height,
                    height,
                    TIP_("Y-position of search at frame relative to marker's position"));
-    UI_but_retval_set(bt, B_MARKER_SEARCH_POS);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_SEARCH_POS);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("Width:"),
                    0.5 * UI_UNIT_X,
                    1 * UI_UNIT_Y,
@@ -692,11 +690,11 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    3.0f,
                    10.0 * width,
                    TIP_("Width of marker's search in screen coordinates"));
-    UI_but_retval_set(bt, B_MARKER_SEARCH_DIM);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_SEARCH_DIM);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ui::ButtonType::Num,
                    IFACE_("Height:"),
                    0.5 * UI_UNIT_X,
                    0 * UI_UNIT_Y,
@@ -706,17 +704,17 @@ void uiTemplateMarker(blender::ui::Layout *layout,
                    3.0f,
                    10.0 * height,
                    TIP_("Height of marker's search in screen coordinates"));
-    UI_but_retval_set(bt, B_MARKER_SEARCH_DIM);
-    UI_but_number_step_size_set(bt, step);
-    UI_but_number_precision_set(bt, digits);
+    button_retval_set(bt, B_MARKER_SEARCH_DIM);
+    button_number_step_size_set(bt, step);
+    button_number_precision_set(bt, digits);
 
-    UI_block_align_end(block);
+    block_align_end(block);
   }
 }
 
 /********************* Footage Information Template ************************/
 
-void uiTemplateMovieclipInformation(blender::ui::Layout *layout,
+void uiTemplateMovieclipInformation(ui::Layout *layout,
                                     PointerRNA *ptr,
                                     const StringRefNull propname,
                                     PointerRNA *userptr)
@@ -746,8 +744,8 @@ void uiTemplateMovieclipInformation(blender::ui::Layout *layout,
   MovieClip *clip = static_cast<MovieClip *>(clipptr.data);
   MovieClipUser *user = static_cast<MovieClipUser *>(userptr->data);
 
-  blender::ui::Layout &col = layout->column(false);
-  col.alignment_set(blender::ui::LayoutAlign::Right);
+  ui::Layout &col = layout->column(false);
+  col.alignment_set(ui::LayoutAlign::Right);
 
   /* NOTE: Put the frame to cache. If the panel is drawn, the display will also be shown, as well
    * as metadata panel. So if the cache is skipped here it is not really a memory saver, but
@@ -830,3 +828,5 @@ void uiTemplateMovieclipInformation(blender::ui::Layout *layout,
 
   IMB_freeImBuf(ibuf);
 }
+
+}  // namespace blender

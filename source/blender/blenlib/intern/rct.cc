@@ -24,6 +24,8 @@
 
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 bool BLI_rcti_is_empty(const rcti *rect)
 {
   return ((rect->xmax <= rect->xmin) || (rect->ymax <= rect->ymin));
@@ -1130,8 +1132,6 @@ void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 
 bool BLI_rctf_clamp_segment(const rctf *rect, float s1[2], float s2[2])
 {
-  using namespace blender;
-
   const bool p1_inside = BLI_rctf_isect_pt_v(rect, s1);
   const bool p2_inside = BLI_rctf_isect_pt_v(rect, s2);
   if (p1_inside && p2_inside) {
@@ -1191,3 +1191,5 @@ bool BLI_rctf_clamp_segment(const rctf *rect, float s1[2], float s2[2])
 }
 
 /** \} */
+
+}  // namespace blender

@@ -25,6 +25,8 @@
 
 #include <cstring>
 
+namespace blender {
+
 void IMB_blend_color_byte(uchar dst[4],
                           const uchar src1[4],
                           const uchar src2[4],
@@ -235,7 +237,7 @@ static void rect_crop_16bytes(void **buf_p, const int size_src[2], const rcti *c
   for (int y = 0; y < size_dst[1]; y++, src += size_dst[0], dst += size_src[0]) {
     memmove(src, dst, sizeof(uint[4]) * size_dst[0]);
   }
-  *buf_p = (void *)MEM_reallocN(*buf_p, sizeof(uint[4]) * size_dst[0] * size_dst[1]);
+  *buf_p = static_cast<void *>(MEM_reallocN(*buf_p, sizeof(uint[4]) * size_dst[0] * size_dst[1]));
 }
 
 void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
@@ -257,8 +259,8 @@ void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
   }
 
   /* TODO(sergey: Validate ownership. */
-  rect_crop_4bytes((void **)&ibuf->byte_buffer.data, size_src, crop);
-  rect_crop_16bytes((void **)&ibuf->float_buffer.data, size_src, crop);
+  rect_crop_4bytes(reinterpret_cast<void **>(&ibuf->byte_buffer.data), size_src, crop);
+  rect_crop_16bytes(reinterpret_cast<void **>(&ibuf->float_buffer.data), size_src, crop);
 
   ibuf->x = size_dst[0];
   ibuf->y = size_dst[1];
@@ -293,8 +295,8 @@ void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
   }
 
   /* TODO(sergey: Validate ownership. */
-  rect_realloc_4bytes((void **)&ibuf->byte_buffer.data, size);
-  rect_realloc_16bytes((void **)&ibuf->float_buffer.data, size);
+  rect_realloc_4bytes(reinterpret_cast<void **>(&ibuf->byte_buffer.data), size);
+  rect_realloc_16bytes(reinterpret_cast<void **>(&ibuf->float_buffer.data), size);
 
   ibuf->x = size[0];
   ibuf->y = size[1];
@@ -521,8 +523,8 @@ void IMB_rectblend(ImBuf *dbuf,
                          obuf->float_buffer.data);
 
   if (do_char) {
-    drect = (uint *)dbuf->byte_buffer.data + size_t(desty) * dbuf->x + destx;
-    orect = (uint *)obuf->byte_buffer.data + size_t(origy) * obuf->x + origx;
+    drect = reinterpret_cast<uint *>(dbuf->byte_buffer.data) + size_t(desty) * dbuf->x + destx;
+    orect = reinterpret_cast<uint *>(obuf->byte_buffer.data) + size_t(origy) * obuf->x + origx;
   }
   if (do_float) {
     drectf = dbuf->float_buffer.data + (size_t(desty) * dbuf->x + destx) * 4;
@@ -538,7 +540,7 @@ void IMB_rectblend(ImBuf *dbuf,
 
   if (sbuf) {
     if (do_char) {
-      srect = (uint *)sbuf->byte_buffer.data + size_t(srcy) * sbuf->x + srcx;
+      srect = reinterpret_cast<uint *>(sbuf->byte_buffer.data) + size_t(srcy) * sbuf->x + srcx;
     }
     if (do_float) {
       srectf = sbuf->float_buffer.data + (size_t(srcy) * sbuf->x + srcx) * 4;
@@ -582,9 +584,9 @@ void IMB_rectblend(ImBuf *dbuf,
         dr = drect;
         sr = srect;
         for (x = width; x > 0; x--, dr++, sr++) {
-          ((char *)dr)[0] = ((char *)sr)[0];
-          ((char *)dr)[1] = ((char *)sr)[1];
-          ((char *)dr)[2] = ((char *)sr)[2];
+          (reinterpret_cast<char *>(dr))[0] = (reinterpret_cast<char *>(sr))[0];
+          (reinterpret_cast<char *>(dr))[1] = (reinterpret_cast<char *>(sr))[1];
+          (reinterpret_cast<char *>(dr))[2] = (reinterpret_cast<char *>(sr))[2];
         }
         drect += destskip;
         srect += srcskip;
@@ -612,7 +614,7 @@ void IMB_rectblend(ImBuf *dbuf,
         dr = drect;
         sr = srect;
         for (x = width; x > 0; x--, dr++, sr++) {
-          ((char *)dr)[3] = ((char *)sr)[3];
+          (reinterpret_cast<char *>(dr))[3] = (reinterpret_cast<char *>(sr))[3];
         }
         drect += destskip;
         srect += srcskip;
@@ -748,7 +750,7 @@ void IMB_rectblend(ImBuf *dbuf,
           if (dmaskrect) {
             dmr = dmaskrect;
             for (x = width; x > 0; x--, dr++, outr++, sr++, dmr++, cmr++) {
-              uchar *src = (uchar *)sr;
+              uchar *src = reinterpret_cast<uchar *>(sr);
               float mask_lim = mask_max * (*cmr);
 
               if (texmaskrect) {
@@ -778,12 +780,14 @@ void IMB_rectblend(ImBuf *dbuf,
 
                   if (mode == IMB_BLEND_INTERPOLATE) {
                     mask_src[3] = src[3];
-                    blend_color_interpolate_byte(
-                        (uchar *)dr, (uchar *)outr, mask_src, mask / 65535.0f);
+                    blend_color_interpolate_byte(reinterpret_cast<uchar *>(dr),
+                                                 reinterpret_cast<uchar *>(outr),
+                                                 mask_src,
+                                                 mask / 65535.0f);
                   }
                   else {
                     mask_src[3] = divide_round_i(src[3] * mask, 65535);
-                    func((uchar *)dr, (uchar *)outr, mask_src);
+                    func(reinterpret_cast<uchar *>(dr), reinterpret_cast<uchar *>(outr), mask_src);
                   }
                 }
               }
@@ -793,7 +797,7 @@ void IMB_rectblend(ImBuf *dbuf,
           /* No destination mask buffer, do regular blend with mask-texture if present. */
           else {
             for (x = width; x > 0; x--, dr++, outr++, sr++, cmr++) {
-              uchar *src = (uchar *)sr;
+              uchar *src = reinterpret_cast<uchar *>(sr);
               float mask = mask_max * float(*cmr);
 
               if (texmaskrect) {
@@ -811,12 +815,14 @@ void IMB_rectblend(ImBuf *dbuf,
 
                 if (mode == IMB_BLEND_INTERPOLATE) {
                   mask_src[3] = src[3];
-                  blend_color_interpolate_byte(
-                      (uchar *)dr, (uchar *)outr, mask_src, mask / 65535.0f);
+                  blend_color_interpolate_byte(reinterpret_cast<uchar *>(dr),
+                                               reinterpret_cast<uchar *>(outr),
+                                               mask_src,
+                                               mask / 65535.0f);
                 }
                 else {
                   mask_src[3] = divide_round_i(src[3] * mask, 65535);
-                  func((uchar *)dr, (uchar *)outr, mask_src);
+                  func(reinterpret_cast<uchar *>(dr), reinterpret_cast<uchar *>(outr), mask_src);
                 }
               }
             }
@@ -830,8 +836,10 @@ void IMB_rectblend(ImBuf *dbuf,
         else {
           /* regular blending */
           for (x = width; x > 0; x--, dr++, outr++, sr++) {
-            if (((uchar *)sr)[3]) {
-              func((uchar *)dr, (uchar *)outr, (uchar *)sr);
+            if ((reinterpret_cast<uchar *>(sr))[3]) {
+              func(reinterpret_cast<uchar *>(dr),
+                   reinterpret_cast<uchar *>(outr),
+                   reinterpret_cast<uchar *>(sr));
             }
           }
         }
@@ -953,7 +961,6 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
                             IMB_BlendMode mode,
                             bool accumulate)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(height), 16, [&](const IndexRange y_range) {
     IMB_rectblend(dbuf,
                   obuf,
@@ -980,14 +987,14 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
   size_t num;
 
   if (drect->byte_buffer.data) {
-    uint *rrect = (uint *)drect->byte_buffer.data;
+    uint *rrect = reinterpret_cast<uint *>(drect->byte_buffer.data);
 
     char ccol[4];
     unit_float_to_uchar_clamp_v4(ccol, col);
 
     num = IMB_get_pixel_count(drect);
     for (; num > 0; num--) {
-      *rrect++ = *((uint *)ccol);
+      *rrect++ = *(reinterpret_cast<uint *>(ccol));
     }
   }
 
@@ -1138,3 +1145,5 @@ void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
     }
   }
 }
+
+}  // namespace blender

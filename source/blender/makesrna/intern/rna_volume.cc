@@ -21,6 +21,8 @@
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.hh"
+struct DummyVolumeGridData;
+namespace blender {
 
 const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_BOOLEAN, "BOOLEAN", 0, "Boolean", "Boolean"},
@@ -41,14 +43,14 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}
+
 /**
  * Dummy type used as a stand-in for the actual #VolumeGridData class. Generated RNA callbacks need
  * a C struct as the main "self" argument. The struct does not have to be an actual DNA struct.
  * This dummy struct is used as a placeholder for the callbacks and reinterpreted as the actual
  * VolumeGrid type.
  */
-struct DummyVolumeGridData;
-
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_base.h"
@@ -60,6 +62,8 @@ struct DummyVolumeGridData;
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"
+
+namespace blender {
 
 static std::optional<std::string> rna_VolumeRender_path(const PointerRNA * /*ptr*/)
 {
@@ -75,13 +79,13 @@ static std::optional<std::string> rna_VolumeDisplay_path(const PointerRNA * /*pt
 
 static void rna_Volume_update_display(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->owner_id;
+  Volume *volume = id_cast<Volume *>(ptr->owner_id);
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
 }
 
 static void rna_Volume_update_filepath(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->owner_id;
+  Volume *volume = id_cast<Volume *>(ptr->owner_id);
   BKE_volume_unload(volume);
   DEG_id_tag_update(&volume->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
@@ -95,7 +99,7 @@ static void rna_Volume_update_is_sequence(Main *bmain, Scene *scene, PointerRNA 
 
 static void rna_Volume_velocity_grid_set(PointerRNA *ptr, const char *value)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   if (!BKE_volume_set_velocity_grid_by_name(volume, value)) {
     WM_global_reportf(RPT_ERROR, "Could not find grid with name %s", value);
   }
@@ -106,45 +110,45 @@ static void rna_Volume_velocity_grid_set(PointerRNA *ptr, const char *value)
 
 static void rna_VolumeGrid_name_get(PointerRNA *ptr, char *value)
 {
-  auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  strcpy(value, blender::bke::volume_grid::get_name(*grid).c_str());
+  auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  strcpy(value, bke::volume_grid::get_name(*grid).c_str());
 }
 
 static int rna_VolumeGrid_name_length(PointerRNA *ptr)
 {
-  auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  return blender::bke::volume_grid::get_name(*grid).size();
+  auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  return bke::volume_grid::get_name(*grid).size();
 }
 
 static int rna_VolumeGrid_data_type_get(PointerRNA *ptr)
 {
-  const auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  return blender::bke::volume_grid::get_type(*grid);
+  const auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  return bke::volume_grid::get_type(*grid);
 }
 
 static int rna_VolumeGrid_channels_get(PointerRNA *ptr)
 {
-  const auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  return blender::bke::volume_grid::get_channels_num(blender::bke::volume_grid::get_type(*grid));
+  const auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  return bke::volume_grid::get_channels_num(bke::volume_grid::get_type(*grid));
 }
 
 static void rna_VolumeGrid_matrix_object_get(PointerRNA *ptr, float *value)
 {
-  auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  *(blender::float4x4 *)value = blender::bke::volume_grid::get_transform_matrix(*grid);
+  auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  *reinterpret_cast<float4x4 *>(value) = bke::volume_grid::get_transform_matrix(*grid);
 }
 
 static bool rna_VolumeGrid_is_loaded_get(PointerRNA *ptr)
 {
-  auto *grid = static_cast<const blender::bke::VolumeGridData *>(ptr->data);
-  return blender::bke::volume_grid::is_loaded(*grid);
+  auto *grid = static_cast<const bke::VolumeGridData *>(ptr->data);
+  return bke::volume_grid::is_loaded(*grid);
 }
 
 static bool rna_VolumeGrid_load(ID * /*id*/, DummyVolumeGridData *dummy_grid)
 {
-  auto *grid = reinterpret_cast<const blender::bke::VolumeGridData *>(dummy_grid);
-  blender::bke::volume_grid::load(*grid);
-  return blender::bke::volume_grid::error_message_from_load(*grid).empty();
+  auto *grid = reinterpret_cast<const bke::VolumeGridData *>(dummy_grid);
+  bke::volume_grid::load(*grid);
+  return bke::volume_grid::error_message_from_load(*grid).empty();
 }
 
 static void rna_VolumeGrid_unload(ID * /*id*/, DummyVolumeGridData * /*dummy_grid*/)
@@ -177,8 +181,7 @@ static void rna_Volume_grids_end(CollectionPropertyIterator * /*iter*/) {}
 static PointerRNA rna_Volume_grids_get(CollectionPropertyIterator *iter)
 {
   Volume *volume = static_cast<Volume *>(iter->internal.count.ptr);
-  const blender::bke::VolumeGridData *grid = BKE_volume_grid_get(volume,
-                                                                 iter->internal.count.item);
+  const bke::VolumeGridData *grid = BKE_volume_grid_get(volume, iter->internal.count.item);
   return RNA_pointer_create_with_parent(iter->parent, &RNA_VolumeGrid, (void *)grid);
 }
 
@@ -193,7 +196,7 @@ static int rna_Volume_grids_length(PointerRNA *ptr)
 static void rna_VolumeGrids_active_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   int num_grids = BKE_volume_num_grids(volume);
 
   *min = 0;
@@ -202,14 +205,14 @@ static void rna_VolumeGrids_active_index_range(
 
 static int rna_VolumeGrids_active_index_get(PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   int num_grids = BKE_volume_num_grids(volume);
   return clamp_i(volume->active_grid, 0, max_ii(num_grids - 1, 0));
 }
 
 static void rna_VolumeGrids_active_index_set(PointerRNA *ptr, int value)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   volume->active_grid = value;
 }
 
@@ -217,7 +220,7 @@ static void rna_VolumeGrids_active_index_set(PointerRNA *ptr, int value)
 
 static bool rna_VolumeGrids_is_loaded_get(PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   return BKE_volume_is_loaded(volume);
 }
 
@@ -225,26 +228,26 @@ static bool rna_VolumeGrids_is_loaded_get(PointerRNA *ptr)
 
 static void rna_VolumeGrids_error_message_get(PointerRNA *ptr, char *value)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   strcpy(value, BKE_volume_grids_error_msg(volume));
 }
 
 static int rna_VolumeGrids_error_message_length(PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   return strlen(BKE_volume_grids_error_msg(volume));
 }
 
 /* Frame Filepath */
 static void rna_VolumeGrids_frame_filepath_get(PointerRNA *ptr, char *value)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   strcpy(value, BKE_volume_grids_frame_filepath(volume));
 }
 
 static int rna_VolumeGrids_frame_filepath_length(PointerRNA *ptr)
 {
-  Volume *volume = (Volume *)ptr->data;
+  Volume *volume = static_cast<Volume *>(ptr->data);
   return strlen(BKE_volume_grids_frame_filepath(volume));
 }
 
@@ -258,7 +261,11 @@ static bool rna_Volume_save(Volume *volume, Main *bmain, ReportList *reports, co
   return BKE_volume_save(volume, bmain, reports, filepath);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_volume_grid(BlenderRNA *brna)
 {
@@ -735,5 +742,7 @@ void RNA_def_volume(BlenderRNA *brna)
   rna_def_volume_render(brna);
   rna_def_volume(brna);
 }
+
+}  // namespace blender
 
 #endif

@@ -19,6 +19,8 @@
 
 #include "particle_private.h"
 
+namespace blender {
+
 /* ------------------------------------------------------------------------- */
 
 struct ParticlePathIterator {
@@ -232,7 +234,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
         mul_m3_v3(rot, kink);
       }
 
-      do_kink_spiral_deform((ParticleKey *)key,
+      do_kink_spiral_deform(reinterpret_cast<ParticleKey *>(key),
                             dir,
                             kink,
                             spiral_time,
@@ -249,7 +251,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
     modifier_ctx.par_orco = parent_orco;
 
     /* Apply different deformations to the child path/ */
-    do_child_modifiers(&modifier_ctx, hairmat, (ParticleKey *)key, par_time);
+    do_child_modifiers(&modifier_ctx, hairmat, reinterpret_cast<ParticleKey *>(key), par_time);
   }
 
   totlen = 0.0f;
@@ -285,7 +287,7 @@ static bool check_path_length(int k,
 }
 
 void psys_apply_child_modifiers(ParticleThreadContext *ctx,
-                                ListBase * /*modifiers*/,
+                                ListBaseT<ModifierData> * /*modifiers*/,
                                 ChildParticle *cpa,
                                 ParticleTexture *ptex,
                                 const float orco[3],
@@ -327,7 +329,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx,
       ParticlePathIterator iter;
       psys_path_iter_get(&iter, keys, totkeys, parent_keys, k);
 
-      ParticleKey *par = (ParticleKey *)iter.parent_key;
+      ParticleKey *par = reinterpret_cast<ParticleKey *>(iter.parent_key);
 
       /* Fill in variant part of modifier context. */
       modifier_ctx.par_co = par->co;
@@ -336,7 +338,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx,
       modifier_ctx.par_orco = parent_orco;
 
       /* Apply different deformations to the child path. */
-      do_child_modifiers(&modifier_ctx, hairmat, (ParticleKey *)key, iter.time);
+      do_child_modifiers(&modifier_ctx, hairmat, reinterpret_cast<ParticleKey *>(key), iter.time);
     }
   }
 
@@ -894,3 +896,5 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
     }
   }
 }
+
+}  // namespace blender

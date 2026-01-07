@@ -12,6 +12,8 @@
 #include "BLI_sys_types.h" /* bool */
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 struct rctf;
 struct rcti;
 
@@ -168,11 +170,11 @@ void print_rcti(const char *str, const struct rcti *rect);
 
 BLI_INLINE float BLI_rcti_cent_x_fl(const struct rcti *rct)
 {
-  return (float)(rct->xmin + rct->xmax) / 2.0f;
+  return float(rct->xmin + rct->xmax) / 2.0f;
 }
 BLI_INLINE float BLI_rcti_cent_y_fl(const struct rcti *rct)
 {
-  return (float)(rct->ymin + rct->ymax) / 2.0f;
+  return float(rct->ymin + rct->ymax) / 2.0f;
 }
 BLI_INLINE int BLI_rcti_cent_x(const struct rcti *rct)
 {
@@ -207,3 +209,5 @@ BLI_INLINE float BLI_rctf_size_y(const struct rctf *rct)
 {
   return (rct->ymax - rct->ymin);
 }
+
+}  // namespace blender

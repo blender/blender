@@ -30,6 +30,8 @@
 #include "clip_intern.hh"
 #include "tracking_ops_intern.hh"
 
+namespace blender {
+
 /********************** detect features operator *********************/
 
 static bGPDlayer *detect_get_layer(MovieClip *clip)
@@ -38,9 +40,9 @@ static bGPDlayer *detect_get_layer(MovieClip *clip)
     return nullptr;
   }
 
-  LISTBASE_FOREACH (bGPDlayer *, layer, &clip->gpd->layers) {
-    if (layer->flag & GP_LAYER_ACTIVE) {
-      return layer;
+  for (bGPDlayer &layer : clip->gpd->layers) {
+    if (layer.flag & GP_LAYER_ACTIVE) {
+      return &layer;
     }
   }
   return nullptr;
@@ -156,3 +158,5 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
               0,
               300);
 }
+
+}  // namespace blender

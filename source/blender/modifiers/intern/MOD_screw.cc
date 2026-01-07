@@ -21,7 +21,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -50,15 +49,12 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-using namespace blender;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ltmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(ltmd, DNA_struct_default_get(ScrewModifierData), modifier);
+  ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(ltmd, modifier);
 }
 
 /** Used for gathering edge connectivity. */
@@ -70,7 +66,7 @@ struct ScrewVertConnect {
   /** 2 verts on either side of this one. */
   uint v[2];
   /** Edges on either side, a bit of a waste since each edge ref's 2 edges. */
-  blender::int2 *e[2];
+  int2 *e[2];
   char flag;
 };
 
@@ -78,7 +74,7 @@ struct ScrewVertIter {
   ScrewVertConnect *v_array;
   ScrewVertConnect *v_poin;
   uint v, v_other;
-  blender::int2 *e;
+  int2 *e;
 };
 
 #define SV_UNUSED (UINT_MAX)
@@ -125,7 +121,7 @@ static void screwvert_iter_step(ScrewVertIter *iter)
 }
 
 static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
-                                         blender::MutableSpan<blender::float3> vert_positions_new,
+                                         MutableSpan<float3> vert_positions_new,
                                          const uint totvert,
                                          const uint step_tot,
                                          const float axis_vec[3],
@@ -196,10 +192,9 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
 {
-  using namespace blender;
   const Mesh *mesh = meshData;
   Mesh *result;
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
+  ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER) != 0;
 
   int face_index = 0;
@@ -232,7 +227,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   /* UV Coords */
   const VectorSet<StringRefNull> uv_map_names = mesh->uv_map_names();
-  blender::Array<bke::SpanAttributeWriter<float2>> uv_map_layers(uv_map_names.size());
+  Array<bke::SpanAttributeWriter<float2>> uv_map_layers(uv_map_names.size());
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
   float uv_v_range_inv;
@@ -256,7 +251,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   uint edge_offset;
 
-  blender::int2 *edge_new, *med_new_firstloop;
+  int2 *edge_new, *med_new_firstloop;
   Object *ob_axis = ltmd->ob_axis;
 
   ScrewVertConnect *vc, *vc_tmp, *vert_connect = nullptr;
@@ -399,17 +394,17 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   CustomData_free_layers(&result->edge_data, CD_ORIGINDEX);
   CustomData_free_layers(&result->face_data, CD_ORIGINDEX);
 
-  const blender::Span<float3> vert_positions_orig = mesh->vert_positions();
-  const blender::Span<int2> edges_orig = mesh->edges();
+  const Span<float3> vert_positions_orig = mesh->vert_positions();
+  const Span<int2> edges_orig = mesh->edges();
   const OffsetIndices faces_orig = mesh->faces();
-  const blender::Span<int> corner_verts_orig = mesh->corner_verts();
-  const blender::Span<int> corner_edges_orig = mesh->corner_edges();
+  const Span<int> corner_verts_orig = mesh->corner_verts();
+  const Span<int> corner_edges_orig = mesh->corner_edges();
 
-  blender::MutableSpan<float3> vert_positions_new = result->vert_positions_for_write();
-  blender::MutableSpan<int2> edges_new = result->edges_for_write();
+  MutableSpan<float3> vert_positions_new = result->vert_positions_for_write();
+  MutableSpan<int2> edges_new = result->edges_for_write();
   MutableSpan<int> face_offests_new = result->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts_new = result->corner_verts_for_write();
-  blender::MutableSpan<int> corner_edges_new = result->corner_edges_for_write();
+  MutableSpan<int> corner_verts_new = result->corner_verts_for_write();
+  MutableSpan<int> corner_edges_new = result->corner_edges_for_write();
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_face", bke::AttrDomain::Face);
@@ -455,7 +450,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* Set the locations of the first set of verts */
 
   /* Copy the first set of edges */
-  const blender::int2 *edge_orig = edges_orig.data();
+  const int2 *edge_orig = edges_orig.data();
   edge_new = edges_new.data();
   for (uint i = 0; i < totedge; i++, edge_orig++, edge_new++) {
     *edge_new = *edge_orig;
@@ -900,7 +895,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
           const float uv_u_offset_a = float(step) * uv_u_scale;
           const float uv_u_offset_b = float(step + 1) * uv_u_scale;
           for (const int64_t uv_lay : uv_map_layers.index_range()) {
-            blender::float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
+            float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
 
             mluv[quad_ord[0]][0] += uv_u_offset_a;
             mluv[quad_ord[1]][0] += uv_u_offset_a;
@@ -914,7 +909,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
           const float uv_u_offset_a = float(step) * uv_u_scale;
           const float uv_u_offset_b = float(step + 1) * uv_u_scale;
           for (const int64_t uv_lay : uv_map_layers.index_range()) {
-            blender::float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
+            float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
 
             copy_v2_fl2(mluv[quad_ord[0]], uv_u_offset_a, uv_v_offset_a);
             copy_v2_fl2(mluv[quad_ord[1]], uv_u_offset_a, uv_v_offset_b);
@@ -1028,7 +1023,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
+  ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
   if (ltmd->ob_axis != nullptr) {
     DEG_add_object_relation(ctx->node, ltmd->ob_axis, DEG_OB_COMP_TRANSFORM, "Screw Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "Screw Modifier");
@@ -1037,16 +1032,16 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
+  ScrewModifierData *ltmd = reinterpret_cast<ScrewModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&ltmd->ob_axis, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&ltmd->ob_axis), IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   ui::Layout *sub, *row, *col;
   ui::Layout &layout = *panel->layout;
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -1065,7 +1060,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.separator();
   col = &layout.column(false);
   row = &col->row(false);
-  row->prop(ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(ptr, "axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   col->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Axis Object"), ICON_NONE);
   sub = &col->column(false);
   sub->active_set(!RNA_pointer_is_null(&screw_obj_ptr));
@@ -1152,3 +1147,5 @@ ModifierTypeInfo modifierType_Screw = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

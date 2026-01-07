@@ -21,41 +21,43 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
+namespace blender::ui {
+
 /**
  * Function with void * argument for #uiListPanelIDFromDataFunc.
  */
 static void shaderfx_panel_id(void *fx_v, char *r_idname)
 {
-  ShaderFxData *fx = (ShaderFxData *)fx_v;
+  ShaderFxData *fx = static_cast<ShaderFxData *>(fx_v);
   BKE_shaderfxType_panel_id(ShaderFxType(fx->type), r_idname);
 }
 
-void uiTemplateShaderFx(blender::ui::Layout * /*layout*/, bContext *C)
+void template_shader_fx(Layout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
-  Object *ob = blender::ed::object::context_active_object(C);
-  ListBase *shaderfx = &ob->shader_fx;
+  Object *ob = ed::object::context_active_object(C);
+  ListBaseT<ShaderFxData> *shaderfx = &ob->shader_fx;
 
-  const bool panels_match = UI_panel_list_matches_data(region, shaderfx, shaderfx_panel_id);
+  const bool panels_match = panel_list_matches_data(region, shaderfx, shaderfx_panel_id);
 
   if (!panels_match) {
-    UI_panels_free_instanced(C, region);
-    LISTBASE_FOREACH (ShaderFxData *, fx, shaderfx) {
+    panels_free_instanced(C, region);
+    for (ShaderFxData &fx : *shaderfx) {
       char panel_idname[MAX_NAME];
-      shaderfx_panel_id(fx, panel_idname);
+      shaderfx_panel_id(&fx, panel_idname);
 
       /* Create custom data RNA pointer. */
       PointerRNA *fx_ptr = MEM_new<PointerRNA>(__func__);
-      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, fx);
+      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, &fx);
 
-      UI_panel_add_instanced(C, region, &region->panels, panel_idname, fx_ptr);
+      panel_add_instanced(C, region, &region->panels, panel_idname, fx_ptr);
     }
   }
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = static_cast<Panel *>(region->panels.first);
-    LISTBASE_FOREACH (ShaderFxData *, fx, shaderfx) {
-      const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
+    for (ShaderFxData &fx : *shaderfx) {
+      const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx.type));
       if (fxi->panel_register == nullptr) {
         continue;
       }
@@ -68,10 +70,12 @@ void uiTemplateShaderFx(blender::ui::Layout * /*layout*/, bContext *C)
       }
 
       PointerRNA *fx_ptr = MEM_new<PointerRNA>(__func__);
-      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, fx);
-      UI_panel_custom_data_set(panel, fx_ptr);
+      *fx_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, &fx);
+      panel_custom_data_set(panel, fx_ptr);
 
       panel = panel->next;
     }
   }
 }
+
+}  // namespace blender::ui

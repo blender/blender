@@ -34,14 +34,18 @@
 
 #  include "DEG_depsgraph.hh"
 
+#  include "NOD_defaults.hh"
+
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
 #  include "ED_node.hh"
 
+namespace blender {
+
 static StructRNA *rna_Light_refine(PointerRNA *ptr)
 {
-  Light *la = (Light *)ptr->data;
+  Light *la = static_cast<Light *>(ptr->data);
 
   switch (la->type) {
     case LA_LOCAL:
@@ -59,7 +63,7 @@ static StructRNA *rna_Light_refine(PointerRNA *ptr)
 
 static void rna_Light_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Light *la = (Light *)ptr->owner_id;
+  Light *la = id_cast<Light *>(ptr->owner_id);
 
   DEG_id_tag_update(&la->id, 0);
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING, la);
@@ -67,27 +71,29 @@ static void rna_Light_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *pt
 
 static void rna_Light_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Light *la = (Light *)ptr->owner_id;
+  Light *la = id_cast<Light *>(ptr->owner_id);
 
   DEG_id_tag_update(&la->id, 0);
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
 }
 
-static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
+static bool rna_Light_use_nodes_get(PointerRNA * /*ptr*/)
 {
-  Light *la = (Light *)ptr->data;
-  Main *bmain = CTX_data_main(C);
+  /* #use_nodes is deprecated. All lights now use nodes. */
+  return true;
+}
 
-  if (la->use_nodes && la->nodetree == nullptr) {
-    ED_node_shader_default(C, bmain, &la->id);
-  }
-
-  rna_Light_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+static void rna_Light_use_nodes_set(PointerRNA * /*ptr*/, bool /*new_value*/)
+{
+  /* #use_nodes is deprecated. Setting the property has no effect.
+   * Note: Users will get a warning through the RNA deprecation warning, so no need to log a
+   * warning here. */
+  return;
 }
 
 static void rna_Light_temperature_color_get(PointerRNA *ptr, float *color)
 {
-  Light *la = (Light *)ptr->data;
+  Light *la = static_cast<Light *>(ptr->data);
 
   if (la->mode & LA_USE_TEMPERATURE) {
     float rgb[4];
@@ -104,11 +110,15 @@ static void rna_Light_temperature_color_get(PointerRNA *ptr, float *color)
 
 static float rna_Light_area(Light *light, const float matrix_world[16])
 {
-  blender::float4x4 mat(matrix_world);
+  float4x4 mat(matrix_world);
   return BKE_light_area(*light, mat);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 /* NOTE(@dingto): Don't define icons here,
  * so they don't show up in the Light UI (properties editor). */
@@ -267,9 +277,13 @@ static void rna_def_light(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "use_nodes", 1);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the light");
-  RNA_def_property_update(prop, 0, "rna_Light_use_nodes_update");
+  RNA_def_property_boolean_funcs(prop, "rna_Light_use_nodes_get", "rna_Light_use_nodes_set");
+  RNA_def_property_deprecated(prop,
+                              "Unused but kept for compatibility reasons. Setting the property "
+                              "has no effect, and getting it always returns True.",
+                              510,
+                              600);
 
   /* common */
   rna_def_animdata_common(srna);
@@ -590,5 +604,7 @@ void RNA_def_light(BlenderRNA *brna)
   rna_def_spot_light(brna);
   rna_def_sun_light(brna);
 }
+
+}  // namespace blender
 
 #endif

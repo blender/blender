@@ -15,6 +15,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /******************************** Quaternions ********************************/
 
 /* used to test is a quat is not normalized (only used for debug prints) */
@@ -2090,7 +2092,7 @@ void add_weighted_dq_dq(DualQuat *dq_sum, const DualQuat *dq, float weight)
       weight = -weight;
     }
 
-    copy_m4_m4(wmat, (float (*)[4])dq->scale);
+    copy_m4_m4(wmat, const_cast<float (*)[4]>(dq->scale));
     mul_m4_fl(wmat, weight);
     add_m4_m4m4(dq_sum->scale, dq_sum->scale, wmat);
     dq_sum->scale_weight += weight;
@@ -2468,3 +2470,5 @@ bool mat3_from_axis_conversion_single(int src_axis, int dst_axis, float r_mat[3]
 
   return mat3_from_axis_conversion(src_axis, src_axis_next, dst_axis, dst_axis_next, r_mat);
 }
+
+}  // namespace blender

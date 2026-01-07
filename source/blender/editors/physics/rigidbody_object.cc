@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
@@ -39,6 +40,8 @@
 
 #include "physics_intern.hh"
 
+namespace blender {
+
 /* ********************************************** */
 /* Helper API's for RigidBody Objects Editing */
 
@@ -62,7 +65,7 @@ static bool operator_rigidbody_active_poll(bContext *C)
   }
 
   if (ED_operator_object_active_editable(C)) {
-    Object *ob = blender::ed::object::context_active_object(C);
+    Object *ob = ed::object::context_active_object(C);
     return (ob && ob->rigidbody_object);
   }
 
@@ -77,7 +80,7 @@ static bool operator_rigidbody_add_poll(bContext *C)
   }
 
   if (ED_operator_object_active_editable(C)) {
-    Object *ob = blender::ed::object::context_active_object(C);
+    Object *ob = ed::object::context_active_object(C);
     return (ob && ob->type == OB_MESH);
   }
 
@@ -105,7 +108,7 @@ static wmOperatorStatus rigidbody_object_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   int type = RNA_enum_get(op->ptr, "type");
   bool changed;
 
@@ -152,7 +155,7 @@ static wmOperatorStatus rigidbody_object_remove_exec(bContext *C, wmOperator *op
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   bool changed = false;
 
   /* apply to active object */
@@ -516,10 +519,10 @@ static bool mass_calculate_poll_property(const bContext * /*C*/,
   if (STREQ(prop_id, "density")) {
     int material = RNA_enum_get(op->ptr, "material");
     if (material >= 0) {
-      RNA_def_property_clear_flag((PropertyRNA *)prop, PROP_EDITABLE);
+      RNA_def_property_clear_flag(const_cast<PropertyRNA *>(prop), PROP_EDITABLE);
     }
     else {
-      RNA_def_property_flag((PropertyRNA *)prop, PROP_EDITABLE);
+      RNA_def_property_flag(const_cast<PropertyRNA *>(prop), PROP_EDITABLE);
     }
   }
 
@@ -567,3 +570,5 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
 }
 
 /* ********************************************** */
+
+}  // namespace blender

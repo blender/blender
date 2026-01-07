@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct bContext;
 struct KeyBlock;
 struct Lattice;
@@ -37,3 +39,5 @@ bool ED_lattice_deselect_all_multi(bContext *C);
 
 /** Export for ED_undo_sys. */
 void ED_lattice_undosys_type(UndoType *ut);
+
+}  // namespace blender

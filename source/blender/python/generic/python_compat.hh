@@ -14,6 +14,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 /* Removes `initialized` member from Python 3.13+. */
 #if PY_VERSION_HEX >= 0x030d0000
 #  define PY_ARG_PARSER_HEAD_COMPAT()
@@ -53,4 +55,8 @@
 
 #if PY_VERSION_HEX >= 0x030d0000 /* >= 3.13 */
 int _PyArg_CheckPositional(const char *name, Py_ssize_t nargs, Py_ssize_t min, Py_ssize_t max);
+/* NOTE: this is needed so we can swap between the Python C/API and Blender's implementation. */
+#  define _PyArg_CheckPositional blender::_PyArg_CheckPositional
 #endif
+
+}  // namespace blender

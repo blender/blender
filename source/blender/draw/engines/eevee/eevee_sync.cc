@@ -44,7 +44,7 @@ ObjectHandle &SyncModule::sync_object(const ObjectRef &ob_ref)
   return handle;
 }
 
-WorldHandle SyncModule::sync_world(const ::World &world)
+WorldHandle SyncModule::sync_world(const blender::World &world)
 {
   WorldHandle handle;
   handle.recalc = inst_.get_recalc_flags(world);
@@ -148,7 +148,7 @@ void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle, const ObjectRef 
     is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;
     has_transparent_shadows = has_transparent_shadows || material.has_transparent_shadows;
 
-    ::Material *mat = GPU_material_get_material(gpu_material);
+    blender::Material *mat = GPU_material_get_material(gpu_material);
     inst_.cryptomatte.sync_material(mat);
 
     if (GPU_material_has_displacement_output(gpu_material)) {
@@ -226,7 +226,7 @@ bool SyncModule::sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRe
     has_transparent_shadows = has_transparent_shadows || material.has_transparent_shadows;
 
     GPUMaterial *gpu_material = material_array.gpu_materials[batch.material_slot];
-    ::Material *mat = GPU_material_get_material(gpu_material);
+    blender::Material *mat = GPU_material_get_material(gpu_material);
     inst_.cryptomatte.sync_material(mat);
 
     if (GPU_material_has_displacement_output(gpu_material)) {
@@ -310,7 +310,7 @@ void SyncModule::sync_pointcloud(Object *ob, ObjectHandle &ob_handle, const Obje
 
   inst_.cryptomatte.sync_object(ob, res_handle);
   GPUMaterial *gpu_material = material.shading.gpumat;
-  ::Material *mat = GPU_material_get_material(gpu_material);
+  blender::Material *mat = GPU_material_get_material(gpu_material);
   inst_.cryptomatte.sync_material(mat);
 
   if (GPU_material_has_displacement_output(gpu_material) && mat->inflate_bounds != 0.0f) {
@@ -354,7 +354,8 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle &ob_handle, const ObjectRe
 
   /* Do not render the object if there is no attribute used in the volume.
    * This mimic Cycles behavior (see #124061). */
-  ListBase attr_list = GPU_material_attributes(material.volume_material.gpumat);
+  ListBaseT<GPUMaterialAttribute> attr_list = GPU_material_attributes(
+      material.volume_material.gpumat);
   if (BLI_listbase_is_empty(&attr_list)) {
     return;
   }
@@ -467,7 +468,7 @@ void SyncModule::sync_curves(Object *ob,
 
   inst_.cryptomatte.sync_object(ob, res_handle);
   GPUMaterial *gpu_material = material.shading.gpumat;
-  ::Material *mat = GPU_material_get_material(gpu_material);
+  blender::Material *mat = GPU_material_get_material(gpu_material);
   inst_.cryptomatte.sync_material(mat);
 
   if (GPU_material_has_displacement_output(gpu_material) && mat->inflate_bounds != 0.0f) {
@@ -492,9 +493,9 @@ void foreach_hair_particle_handle(Instance &inst,
 {
   int sub_key = 1;
 
-  LISTBASE_FOREACH (ModifierData *, md, &ob_ref.object->modifiers) {
-    if (md->type == eModifierType_ParticleSystem) {
-      ParticleSystem *particle_sys = reinterpret_cast<ParticleSystemModifierData *>(md)->psys;
+  for (ModifierData &md : ob_ref.object->modifiers) {
+    if (md.type == eModifierType_ParticleSystem) {
+      ParticleSystem *particle_sys = reinterpret_cast<ParticleSystemModifierData *>(&md)->psys;
       ParticleSettings *part_settings = particle_sys->part;
       /* Only use the viewport drawing mode for material preview. */
       const int draw_as = (part_settings->draw_as == PART_DRAW_REND || !inst.is_viewport()) ?
@@ -510,7 +511,7 @@ void foreach_hair_particle_handle(Instance &inst,
       particle_sys_handle.object_key = ObjectKey(ob_ref, sub_key++);
       particle_sys_handle.recalc = particle_sys->recalc;
 
-      callback(particle_sys_handle, *md, *particle_sys);
+      callback(particle_sys_handle, md, *particle_sys);
     }
   }
 }

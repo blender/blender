@@ -44,7 +44,7 @@ eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
     if (ob->type != OB_ARMATURE) {
       return TFM_RESIZE;
     }
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
     if (arm->drawtype == ARM_DRAW_TYPE_ENVELOPE) {
       return TFM_BONE_ENVELOPE_DIST;
     }
@@ -270,7 +270,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
     /* Evaluate valid constraints. */
     for (con = td->con; con; con = con->next) {
       const bConstraintTypeInfo *cti = nullptr;
-      ListBase targets = {nullptr, nullptr};
+      ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
       /* Only consider constraint if enabled. */
       if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
@@ -282,7 +282,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
 
       /* Only use it if it's tagged for this purpose (and the right type). */
       if (con->type == CONSTRAINT_TYPE_LOCLIMIT) {
-        bLocLimitConstraint *data = (bLocLimitConstraint *)con->data;
+        bLocLimitConstraint *data = static_cast<bLocLimitConstraint *>(con->data);
 
         if ((data->flag2 & LIMIT_TRANSFORM) == 0) {
           continue;
@@ -290,7 +290,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
         cti = ctiLoc;
       }
       else if (con->type == CONSTRAINT_TYPE_DISTLIMIT) {
-        bDistLimitConstraint *data = (bDistLimitConstraint *)con->data;
+        bDistLimitConstraint *data = static_cast<bDistLimitConstraint *>(con->data);
 
         if ((data->flag & LIMITDIST_TRANSFORM) == 0) {
           continue;
@@ -396,7 +396,7 @@ static void constraintRotLim(const TransInfo * /*t*/, TransData *td, TransDataEx
 
       /* We're only interested in Limit-Rotation constraints. */
       if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
-        bRotLimitConstraint *data = (bRotLimitConstraint *)con->data;
+        bRotLimitConstraint *data = static_cast<bRotLimitConstraint *>(con->data);
 
         /* Only use it if it's tagged for this purpose. */
         if ((data->flag2 & LIMIT_TRANSFORM) == 0) {
@@ -1276,7 +1276,8 @@ void transform_mode_rotation_axis_get(const TransInfo *t, float3 &r_axis)
     r_axis = t->spacemtx[t->orient_axis];
     /* For unconstrained rotation in the 3D viewport, flip the axis so the rotation direction
      * matches the mouse movement in view space. */
-    if (t->mode == TFM_ROTATION && (t->con.mode & CON_APPLY) == 0 && t->spacetype == SPACE_VIEW3D)
+    if ((t->flag & T_MODAL) && (t->mode == TFM_ROTATION) && (t->con.mode & CON_APPLY) == 0 &&
+        (t->spacetype == SPACE_VIEW3D))
     {
       r_axis = -r_axis;
     }

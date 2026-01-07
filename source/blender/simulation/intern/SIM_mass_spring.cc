@@ -30,6 +30,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 static float I3[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 
 /* Number of off-diagonal non-zero matrix blocks.
@@ -41,7 +43,7 @@ static int cloth_count_nondiag_blocks(Cloth *cloth)
   int nondiag = 0;
 
   for (link = cloth->springs; link; link = link->next) {
-    ClothSpring *spring = (ClothSpring *)link->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(link->link);
     switch (spring->type) {
       case CLOTH_SPRING_TYPE_BENDING_HAIR:
         /* angular bending combines 3 vertices */
@@ -59,7 +61,7 @@ static int cloth_count_nondiag_blocks(Cloth *cloth)
 }
 
 static bool cloth_get_pressure_weights(ClothModifierData *clmd,
-                                       const blender::int3 &vert_tri,
+                                       const int3 &vert_tri,
                                        float *r_weights)
 {
   /* We have custom vertex weights for pressure. */
@@ -99,7 +101,7 @@ static float cloth_calc_volume(ClothModifierData *clmd)
 {
   /* Calculate the (closed) cloth volume. */
   Cloth *cloth = clmd->clothObject;
-  const blender::int3 *vert_tris = cloth->vert_tris;
+  const int3 *vert_tris = cloth->vert_tris;
   Implicit_Data *data = cloth->implicit;
   float weights[3] = {1.0f, 1.0f, 1.0f};
   float vol = 0;
@@ -110,7 +112,7 @@ static float cloth_calc_volume(ClothModifierData *clmd)
   }
 
   for (uint i = 0; i < cloth->primitive_num; i++) {
-    const blender::int3 tri = vert_tris[i];
+    const int3 tri = vert_tris[i];
 
     if (cloth_get_pressure_weights(clmd, tri, weights)) {
       vol += SIM_tri_tetra_volume_signed_6x(data, tri[0], tri[1], tri[2]);
@@ -127,7 +129,7 @@ static float cloth_calc_rest_volume(ClothModifierData *clmd)
 {
   /* Calculate the (closed) cloth volume. */
   Cloth *cloth = clmd->clothObject;
-  const blender::int3 *vert_tris = cloth->vert_tris;
+  const int3 *vert_tris = cloth->vert_tris;
   const ClothVertex *v = cloth->verts;
   float weights[3] = {1.0f, 1.0f, 1.0f};
   float vol = 0;
@@ -138,7 +140,7 @@ static float cloth_calc_rest_volume(ClothModifierData *clmd)
   }
 
   for (uint i = 0; i < cloth->primitive_num; i++) {
-    const blender::int3 tri = vert_tris[i];
+    const int3 tri = vert_tris[i];
 
     if (cloth_get_pressure_weights(clmd, tri, weights)) {
       vol += volume_tri_tetrahedron_signed_v3_6x(
@@ -155,14 +157,14 @@ static float cloth_calc_rest_volume(ClothModifierData *clmd)
 static float cloth_calc_average_pressure(ClothModifierData *clmd, const float *vertex_pressure)
 {
   Cloth *cloth = clmd->clothObject;
-  const blender::int3 *vert_tris = cloth->vert_tris;
+  const int3 *vert_tris = cloth->vert_tris;
   Implicit_Data *data = cloth->implicit;
   float weights[3] = {1.0f, 1.0f, 1.0f};
   float total_force = 0;
   float total_area = 0;
 
   for (uint i = 0; i < cloth->primitive_num; i++) {
-    const blender::int3 tri = vert_tris[i];
+    const int3 tri = vert_tris[i];
 
     if (cloth_get_pressure_weights(clmd, tri, weights)) {
       float area = SIM_tri_area(data, tri[0], tri[1], tri[2]);
@@ -303,7 +305,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
       int v1, v2;
       float len, c, l, vec[3];
 
-      spring = (ClothSpring *)node->link;
+      spring = static_cast<ClothSpring *>(node->link);
       if (!ELEM(spring->type, CLOTH_SPRING_TYPE_STRUCTURAL, CLOTH_SPRING_TYPE_SHEAR)) {
         continue;
       }
@@ -546,9 +548,7 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
   }
 }
 
-static void hair_get_boundbox(ClothModifierData *clmd,
-                              blender::float3 &gmin,
-                              blender::float3 &gmax)
+static void hair_get_boundbox(ClothModifierData *clmd, float3 &gmin, float3 &gmax)
 {
   Cloth *cloth = clmd->clothObject;
   Implicit_Data *data = cloth->implicit;
@@ -557,14 +557,17 @@ static void hair_get_boundbox(ClothModifierData *clmd,
 
   INIT_MINMAX(gmin, gmax);
   for (i = 0; i < mvert_num; i++) {
-    blender::float3 x;
+    float3 x;
     SIM_mass_spring_get_motion_state(data, i, x, nullptr);
-    blender::math::min_max(x, gmin, gmax);
+    math::min_max(x, gmin, gmax);
   }
 }
 
-static void cloth_calc_force(
-    Scene *scene, ClothModifierData *clmd, float /*frame*/, ListBase *effectors, float time)
+static void cloth_calc_force(Scene *scene,
+                             ClothModifierData *clmd,
+                             float /*frame*/,
+                             ListBaseT<EffectorCache> *effectors,
+                             float time)
 {
   /* Collect forces and derivatives: F, dFdX, dFdV. */
   Cloth *cloth = clmd->clothObject;
@@ -573,7 +576,7 @@ static void cloth_calc_force(
   uint i = 0;
   float drag = clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
   float gravity[3] = {0.0f, 0.0f, 0.0f};
-  const blender::int3 *vert_tris = cloth->vert_tris;
+  const int3 *vert_tris = cloth->vert_tris;
   uint mvert_num = cloth->mvert_num;
   ClothVertex *vert;
 
@@ -679,7 +682,7 @@ static void cloth_calc_force(
       float weights[3] = {1.0f, 1.0f, 1.0f};
 
       for (i = 0; i < cloth->primitive_num; i++) {
-        const blender::int3 tri = vert_tris[i];
+        const int3 tri = vert_tris[i];
 
         if (cloth_get_pressure_weights(clmd, tri, weights)) {
           SIM_mass_spring_force_pressure(
@@ -723,7 +726,7 @@ static void cloth_calc_force(
     /* Hair has only edges. */
     if (is_not_hair) {
       for (i = 0; i < cloth->primitive_num; i++) {
-        const blender::int3 tri = vert_tris[i];
+        const int3 tri = vert_tris[i];
         if (has_wind) {
           SIM_mass_spring_force_face_wind(data, tri[0], tri[1], tri[2], winvec);
         }
@@ -772,7 +775,7 @@ static void cloth_calc_force(
 
   /* calculate spring forces */
   for (LinkNode *link = cloth->springs; link; link = link->next) {
-    ClothSpring *spring = (ClothSpring *)link->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(link->link);
     /* only handle active springs */
     if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE)) {
       cloth_calc_spring_force(clmd, spring);
@@ -798,10 +801,10 @@ BLI_INLINE void cloth_get_grid_location(Implicit_Data *data,
 /* returns next spring forming a continuous hair sequence */
 BLI_INLINE LinkNode *hair_spring_next(LinkNode *spring_link)
 {
-  ClothSpring *spring = (ClothSpring *)spring_link->link;
+  ClothSpring *spring = static_cast<ClothSpring *>(spring_link->link);
   LinkNode *next = spring_link->next;
   if (next) {
-    ClothSpring *next_spring = (ClothSpring *)next->link;
+    ClothSpring *next_spring = static_cast<ClothSpring *>(next->link);
     if (next_spring->type == CLOTH_SPRING_TYPE_STRUCTURAL && next_spring->kl == spring->ij) {
       return next;
     }
@@ -832,7 +835,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
 
   spring1 = nullptr;
   spring2 = nullptr;
-  spring3 = (ClothSpring *)spring_link->link;
+  spring3 = static_cast<ClothSpring *>(spring_link->link);
 
   zero_v3(x1);
   zero_v3(v1);
@@ -870,7 +873,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
     spring_link = hair_spring_next(spring_link);
 
     if (spring_link) {
-      spring3 = (ClothSpring *)spring_link->link;
+      spring3 = static_cast<ClothSpring *>(spring_link->link);
       // vert4 = &verts[spring3->ij];
       cloth_get_grid_location(data, cell_scale, cell_offset, spring3->ij, x4, v4);
       sub_v3_v3v3(dir3, x4, x3);
@@ -929,7 +932,7 @@ static void cloth_continuum_fill_grid(HairGrid *grid, Cloth *cloth)
 
   link = cloth->springs;
   while (link) {
-    ClothSpring *spring = (ClothSpring *)link->link;
+    ClothSpring *spring = static_cast<ClothSpring *>(link->link);
     if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL) {
       link = cloth_continuum_add_hair_segments(grid, cell_scale, cell_offset, cloth, link);
     }
@@ -956,7 +959,7 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
    */
   float density_target = parms->density_target;
   float density_strength = parms->density_strength;
-  blender::float3 gmin, gmax;
+  float3 gmin, gmax;
   int i;
 
   /* clear grid info */
@@ -1251,8 +1254,11 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
   sres->status |= result->status;
 }
 
-int SIM_cloth_solve(
-    Depsgraph *depsgraph, Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
+int SIM_cloth_solve(Depsgraph *depsgraph,
+                    Object *ob,
+                    float frame,
+                    ClothModifierData *clmd,
+                    ListBaseT<EffectorCache> *effectors)
 {
   /* Hair currently is a cloth sim in disguise ...
    * Collision detection and volumetrics work differently then.
@@ -1355,3 +1361,5 @@ int SIM_cloth_solve(
 
   return 1;
 }
+
+}  // namespace blender

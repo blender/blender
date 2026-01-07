@@ -7,9 +7,13 @@
  * \ingroup bke
  */
 
+#include "DNA_listBase.h"
+
+namespace blender {
+
 struct Collection;
+struct ColliderCache;
 struct Depsgraph;
-struct ListBase;
 struct RNG;
 struct Object;
 struct ParticleData;
@@ -21,7 +25,7 @@ struct ViewLayer;
 struct EffectorWeights *BKE_effector_add_weights(struct Collection *collection);
 
 /* Input to effector code */
-typedef struct EffectedPoint {
+struct EffectedPoint {
   float *loc;
   float *vel;
   float *ave; /* angular velocity for particles with dynamic rotation */
@@ -36,14 +40,14 @@ typedef struct EffectedPoint {
   int index;
 
   struct ParticleSystem *psys; /* particle system the point belongs to */
-} EffectedPoint;
+};
 
-typedef struct GuideEffectorData {
+struct GuideEffectorData {
   float vec_to_point[3];
   float strength;
-} GuideEffectorData;
+};
 
-typedef struct EffectorData {
+struct EffectorData {
   /* Effector point */
   float loc[3];
   float nor[3];
@@ -59,10 +63,10 @@ typedef struct EffectorData {
   float nor2[3], vec_to_point2[3];
 
   int *index; /* point index */
-} EffectorData;
+};
 
 /* used for calculating the effector force */
-typedef struct EffectorCache {
+struct EffectorCache {
   struct EffectorCache *next, *prev;
 
   struct Depsgraph *depsgraph;
@@ -82,15 +86,15 @@ typedef struct EffectorCache {
 
   float frame;
   int flag;
-} EffectorCache;
+};
 
-typedef struct EffectorRelation {
+struct EffectorRelation {
   struct EffectorRelation *next, *prev;
 
   struct Object *ob;
   struct ParticleSystem *psys;
   struct PartDeflect *pd;
-} EffectorRelation;
+};
 
 struct PartDeflect *BKE_partdeflect_new(int type);
 struct PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src);
@@ -101,31 +105,31 @@ void BKE_partdeflect_free(struct PartDeflect *pd);
  * This is used by the depsgraph to build relations, as well as faster
  * lookup of effectors during evaluation.
  */
-struct ListBase *BKE_effector_relations_create(struct Depsgraph *depsgraph,
-                                               const struct Scene *scene,
-                                               struct ViewLayer *view_layer,
-                                               struct Collection *collection);
-void BKE_effector_relations_free(struct ListBase *lb);
+ListBaseT<EffectorRelation> *BKE_effector_relations_create(struct Depsgraph *depsgraph,
+                                                           const struct Scene *scene,
+                                                           struct ViewLayer *view_layer,
+                                                           struct Collection *collection);
+void BKE_effector_relations_free(ListBaseT<EffectorRelation> *lb);
 
 /**
  * Create effective list of effectors from relations built beforehand.
  */
-struct ListBase *BKE_effectors_create(struct Depsgraph *depsgraph,
-                                      struct Object *ob_src,
-                                      struct ParticleSystem *psys_src,
-                                      struct EffectorWeights *weights,
-                                      bool use_rotation);
+ListBaseT<EffectorCache> *BKE_effectors_create(struct Depsgraph *depsgraph,
+                                               struct Object *ob_src,
+                                               struct ParticleSystem *psys_src,
+                                               struct EffectorWeights *weights,
+                                               bool use_rotation);
 /**
  * Generic force/speed system, now used for particles, soft-bodies & dynamic-paint.
  */
-void BKE_effectors_apply(struct ListBase *effectors,
-                         struct ListBase *colliders,
+void BKE_effectors_apply(ListBaseT<EffectorCache> *effectors,
+                         ListBaseT<ColliderCache> *colliders,
                          struct EffectorWeights *weights,
                          struct EffectedPoint *point,
                          float *force,
                          float *wind_force,
                          float *impulse);
-void BKE_effectors_free(struct ListBase *lb);
+void BKE_effectors_free(ListBaseT<EffectorCache> *lb);
 
 void pd_point_from_particle(struct ParticleSimulationData *sim,
                             struct ParticleData *pa,
@@ -195,7 +199,7 @@ unsigned int BKE_sim_debug_data_hash_combine(unsigned int kx, unsigned int ky);
 
 #define SIM_DEBUG_HASH(...) VA_NARGS_CALL_OVERLOAD(_VA_SIM_DEBUG_HASH, __VA_ARGS__)
 
-typedef struct SimDebugElement {
+struct SimDebugElement {
   unsigned int category_hash;
   unsigned int hash;
 
@@ -204,19 +208,19 @@ typedef struct SimDebugElement {
 
   float v1[3], v2[3];
   char str[64];
-} SimDebugElement;
+};
 
-typedef enum eSimDebugElement_Type {
+enum eSimDebugElement_Type {
   SIM_DEBUG_ELEM_DOT,
   SIM_DEBUG_ELEM_CIRCLE,
   SIM_DEBUG_ELEM_LINE,
   SIM_DEBUG_ELEM_VECTOR,
   SIM_DEBUG_ELEM_STRING,
-} eSimDebugElement_Type;
+};
 
-typedef struct SimDebugData {
+struct SimDebugData {
   struct GHash *gh;
-} SimDebugData;
+};
 
 extern SimDebugData *_sim_debug_data;
 
@@ -272,3 +276,5 @@ void BKE_sim_debug_data_remove_element(unsigned int hash);
 
 void BKE_sim_debug_data_clear(void);
 void BKE_sim_debug_data_clear_category(const char *category);
+
+}  // namespace blender

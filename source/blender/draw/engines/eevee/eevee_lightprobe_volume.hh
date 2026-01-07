@@ -16,8 +16,8 @@
 
 namespace blender::eevee {
 
-using blender::math::AxisSigned;
-using blender::math::CartesianBasis;
+using math::AxisSigned;
+using math::CartesianBasis;
 
 class Instance;
 class CapturePipeline;

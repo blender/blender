@@ -19,6 +19,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 // #define SMOOTH_LAPLACIAN_AREA_FACTOR 4.0f  /* UNUSED */
 // #define SMOOTH_LAPLACIAN_EDGE_FACTOR 2.0f  /* UNUSED */
 #define SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE 1.8f
@@ -104,8 +106,7 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, in
     return nullptr;
   }
 
-  sys->fweights = static_cast<float (*)[3]>(
-      MEM_callocN(sizeof(float[3]) * sys->numLoops, "ModLaplSmoothFWeight"));
+  sys->fweights = MEM_calloc_arrayN<float[3]>(sys->numLoops, "ModLaplSmoothFWeight");
   if (!sys->fweights) {
     delete_laplacian_system(sys);
     return nullptr;
@@ -495,3 +496,5 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 
   delete_laplacian_system(sys);
 }
+
+}  // namespace blender

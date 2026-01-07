@@ -31,6 +31,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 static size_t str_utf8_truncate_at_size_unchecked(char *str, const size_t str_size);
 
 /* -------------------------------------------------------------------- */
@@ -161,11 +163,11 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len)
    * length is in bytes, since without knowing whether the string is valid
    * it's hard to know how many characters there are! */
 
-  const uchar *p, *perr, *pend = (const uchar *)str + str_len;
+  const uchar *p, *perr, *pend = reinterpret_cast<const uchar *>(str) + str_len;
   uchar c;
   int ab;
 
-  for (p = (const uchar *)str; p < pend; p++, str_len--) {
+  for (p = reinterpret_cast<const uchar *>(str); p < pend; p++, str_len--) {
     c = *p;
     perr = p; /* Erroneous char is always the first of an invalid UTF8 sequence... */
     if (ELEM(c, 0xfe, 0xff, 0x00)) {
@@ -281,7 +283,7 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len)
 
 utf8_error:
 
-  return ((const char *)perr - (const char *)str);
+  return (reinterpret_cast<const char *>(perr) - static_cast<const char *>(str));
 }
 
 int BLI_str_utf8_invalid_strip(char *str, size_t str_len)
@@ -541,7 +543,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
   /* NOTE: it would be more efficient to calculate the length as part of #conv_utf_8_to_16. */
   return wcslen(dst_w);
 #else
-  return BLI_str_utf8_as_utf32((char32_t *)dst_w, src_c, dst_w_maxncpy);
+  return BLI_str_utf8_as_utf32(reinterpret_cast<char32_t *>(dst_w), src_c, dst_w_maxncpy);
 #endif
 }
 
@@ -1293,7 +1295,7 @@ const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
   if (str_start < p) {
     for (--p; p >= str_start; p--) {
       if ((*p & 0xc0) != 0x80) {
-        return (char *)p;
+        return const_cast<char *>(p);
       }
     }
   }
@@ -1344,12 +1346,13 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   /* Note that here, we assume end points to a valid UTF8 char! */
   BLI_assert((end >= str) && (BLI_str_utf8_as_unicode_or_error(end) != BLI_UTF8_ERR));
 
-  char *suf = (char *)(str + str_len);
+  char *suf = const_cast<char *>(str + str_len);
   size_t index = 0;
-  for (char *sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(end, str) : str);
+  for (char *sep = const_cast<char *>(from_right ? BLI_str_find_prev_char_utf8(end, str) : str);
        from_right ? (sep > str) : ((sep < end) && (*sep != '\0'));
-       sep = (char *)(from_right ? (str != sep ? BLI_str_find_prev_char_utf8(sep, str) : nullptr) :
-                                   str + index))
+       sep = const_cast<char *>(
+           from_right ? (str != sep ? BLI_str_find_prev_char_utf8(sep, str) : nullptr) :
+                        str + index))
   {
     size_t index_ofs = 0;
     const uint c = BLI_str_utf8_as_unicode_step_or_error(sep, size_t(end - sep), &index_ofs);
@@ -1362,7 +1365,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
       if (*d == c) {
         /* `suf` is already correct in case from_right is true. */
         *r_sep = sep;
-        *r_suf = from_right ? suf : (char *)(str + index);
+        *r_suf = from_right ? suf : const_cast<char *>(str + index);
         return size_t(sep - str);
       }
     }
@@ -1511,3 +1514,5 @@ int BLI_str_utf8_column_count(const char *str, size_t str_len)
 }
 
 /** \} */
+
+}  // namespace blender

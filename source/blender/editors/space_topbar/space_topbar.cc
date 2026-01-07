@@ -36,6 +36,8 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* ******************** default callbacks for topbar space ***************** */
 
 static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -43,7 +45,7 @@ static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*
   ARegion *region;
   SpaceTopBar *stopbar;
 
-  stopbar = MEM_callocN<SpaceTopBar>("init topbar");
+  stopbar = MEM_new_for_free<SpaceTopBar>("init topbar");
   stopbar->spacetype = SPACE_TOPBAR;
 
   /* header */
@@ -61,7 +63,7 @@ static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*
   BLI_addtail(&stopbar->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)stopbar;
+  return reinterpret_cast<SpaceLink *>(stopbar);
 }
 
 /* Doesn't free the space-link itself. */
@@ -76,7 +78,7 @@ static SpaceLink *topbar_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)stopbarn;
+  return reinterpret_cast<SpaceLink *>(stopbarn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -84,11 +86,11 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  /* force delayed UI_view2d_region_reinit call */
+  /* force delayed view2d_region_reinit call */
   if (ELEM(RGN_ALIGN_ENUM_FROM_MASK(region->alignment), RGN_ALIGN_RIGHT)) {
     region->flag |= RGN_FLAG_DYNAMIC_SIZE;
   }
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_HEADER, region->winx, region->winy);
+  ui::view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_HEADER, region->winx, region->winy);
 
   keymap = WM_keymap_ensure(
       wm->runtime->defaultconf, "View2D Buttons List", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -188,15 +190,15 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
 
 static void recent_files_menu_draw(const bContext *C, Menu *menu)
 {
-  blender::ui::Layout &layout = *menu->layout;
-  layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
+  ui::Layout &layout = *menu->layout;
+  layout.operator_context_set(wm::OpCallContext::InvokeDefault);
   const bool is_menu_search = CTX_data_int_get(C, "is_menu_search").value_or(false);
   if (is_menu_search) {
-    uiTemplateRecentFiles(&layout, U.recent_files);
+    template_recent_files(&layout, U.recent_files);
   }
   else {
     const int limit = std::min<int>(U.recent_files, 20);
-    if (uiTemplateRecentFiles(&layout, limit) != 0) {
+    if (template_recent_files(&layout, limit) != 0) {
       layout.separator();
       PointerRNA search_props = layout.op(
           "WM_OT_search_single_menu", IFACE_("More..."), ICON_VIEWZOOM);
@@ -230,16 +232,16 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
 
   int undo_step_count = 0;
   int undo_step_count_all = 0;
-  LISTBASE_FOREACH_BACKWARD (UndoStep *, us, &wm->runtime->undo_stack->steps) {
+  for (UndoStep &us : wm->runtime->undo_stack->steps.items_reversed()) {
     undo_step_count_all += 1;
-    if (us->skip) {
+    if (us.skip) {
       continue;
     }
     undo_step_count += 1;
   }
 
-  blender::ui::Layout &split = menu->layout->split(0.0f, false);
-  blender::ui::Layout *column = nullptr;
+  ui::Layout &split = menu->layout->split(0.0f, false);
+  ui::Layout *column = nullptr;
 
   const int col_size = 20 + (undo_step_count / 12);
 
@@ -257,7 +259,7 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
       column = &split.column(false);
     }
     const bool is_active = (us == wm->runtime->undo_stack->step_active);
-    blender::ui::Layout &row = column->row(false);
+    ui::Layout &row = column->row(false);
     row.enabled_set(!is_active);
     PointerRNA op_ptr = row.op("ED_OT_undo_history",
                                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, us->name),
@@ -281,7 +283,7 @@ static void undo_history_menu_register()
 
 static void topbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceTopBar, sl);
+  writer->write_struct_cast<SpaceTopBar>(sl);
 }
 
 void ED_spacetype_topbar()
@@ -331,3 +333,5 @@ void ED_spacetype_topbar()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

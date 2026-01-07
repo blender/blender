@@ -7,18 +7,20 @@
 /** \file
  * \ingroup bli
  *
- * This file only exists to forward declare `blender::ImplicitSharingInfo` in C code.
+ * This file only exists to forward declare `ImplicitSharingInfo` in C code.
  */
+
+namespace blender {
 
 #ifdef __cplusplus
 
-namespace blender {
 class ImplicitSharingInfo;
-}
-using ImplicitSharingInfoHandle = blender::ImplicitSharingInfo;
+using ImplicitSharingInfoHandle = ImplicitSharingInfo;
 
 #else
 
-typedef struct ImplicitSharingInfoHandle ImplicitSharingInfoHandle;
+struct ImplicitSharingInfoHandle;
 
 #endif
+
+}  // namespace blender

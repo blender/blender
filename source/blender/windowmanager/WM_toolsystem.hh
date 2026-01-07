@@ -7,6 +7,8 @@
  * \ingroup wm
  */
 
+namespace blender {
+
 struct Brush;
 struct IDProperty;
 struct Main;
@@ -157,3 +159,5 @@ bool WM_toolsystem_refresh_screen_area(WorkSpace *workspace,
                                        ScrArea *area);
 void WM_toolsystem_refresh_screen_window(wmWindow *win);
 void WM_toolsystem_refresh_screen_all(Main *bmain);
+
+}  // namespace blender

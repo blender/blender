@@ -33,9 +33,8 @@
 
 #include "ED_undo.hh"
 
-using blender::StringRefNull;
-
-namespace blender::ui::light_linking {
+namespace blender::ui {
+namespace light_linking {
 
 namespace {
 
@@ -97,10 +96,10 @@ class InsertCollectionDropTarget : public DropTargetInterface {
     Main *bmain = CTX_data_main(C);
     Scene *scene = CTX_data_scene(C);
 
-    LISTBASE_FOREACH (wmDragID *, drag_id, &drag.drag_data.ids) {
+    for (wmDragID &drag_id : drag.drag_data.ids) {
       BKE_light_linking_add_receiver_to_collection(bmain,
                                                    &collection_target_.get_collection(),
-                                                   drag_id->id,
+                                                   drag_id.id,
                                                    COLLECTION_LIGHT_LINKING_STATE_INCLUDE);
     }
 
@@ -158,25 +157,24 @@ class ReorderCollectionDropTarget : public TreeViewItemDropTarget {
     Collection &collection = collection_target_.get_collection();
     const eCollectionLightLinkingState link_state = COLLECTION_LIGHT_LINKING_STATE_INCLUDE;
 
-    LISTBASE_FOREACH (wmDragID *, drag_id, &drag.drag_data.ids) {
-      if (drag_id->id == &drop_id_) {
+    for (wmDragID &drag_id : drag.drag_data.ids) {
+      if (drag_id.id == &drop_id_) {
         continue;
       }
 
-      BKE_light_linking_unlink_id_from_collection(bmain, &collection, drag_id->id, nullptr);
+      BKE_light_linking_unlink_id_from_collection(bmain, &collection, drag_id.id, nullptr);
 
       switch (drag.drop_location) {
         case DropLocation::Into:
-          BKE_light_linking_add_receiver_to_collection(
-              bmain, &collection, drag_id->id, link_state);
+          BKE_light_linking_add_receiver_to_collection(bmain, &collection, drag_id.id, link_state);
           break;
         case DropLocation::Before:
           BKE_light_linking_add_receiver_to_collection_before(
-              bmain, &collection, drag_id->id, &drop_id_, link_state);
+              bmain, &collection, drag_id.id, &drop_id_, link_state);
           break;
         case DropLocation::After:
           BKE_light_linking_add_receiver_to_collection_after(
-              bmain, &collection, drag_id->id, &drop_id_, link_state);
+              bmain, &collection, drag_id.id, &drop_id_, link_state);
           break;
       }
     }
@@ -290,27 +288,27 @@ class CollectionViewItem : public BasicTreeViewItem {
 
   void build_state_button(Layout &row)
   {
-    uiBlock *block = row.block();
+    Block *block = row.block();
     const int icon = get_state_icon();
 
     PointerRNA collection_light_linking_ptr = RNA_pointer_create_discrete(
         &collection_.id, &RNA_CollectionLightLinking, &collection_light_linking_);
 
-    uiBut *button = uiDefIconButR(block,
-                                  ButType::But,
-                                  icon,
-                                  0,
-                                  0,
-                                  UI_UNIT_X,
-                                  UI_UNIT_Y,
-                                  &collection_light_linking_ptr,
-                                  "link_state",
-                                  0,
-                                  0.0f,
-                                  0.0f,
-                                  std::nullopt);
+    Button *button = uiDefIconButR(block,
+                                   ButtonType::But,
+                                   icon,
+                                   0,
+                                   0,
+                                   UI_UNIT_X,
+                                   UI_UNIT_Y,
+                                   &collection_light_linking_ptr,
+                                   "link_state",
+                                   0,
+                                   0.0f,
+                                   0.0f,
+                                   std::nullopt);
 
-    UI_but_func_set(button, [&collection_light_linking = collection_light_linking_](bContext &) {
+    button_func_set(button, [&collection_light_linking = collection_light_linking_](bContext &) {
       link_state_toggle(collection_light_linking);
     });
   }
@@ -328,21 +326,21 @@ class CollectionView : public AbstractTreeView {
 
   void build_tree() override
   {
-    LISTBASE_FOREACH (CollectionChild *, collection_child, &collection_.children) {
-      Collection *child_collection = collection_child->collection;
+    for (CollectionChild &collection_child : collection_.children) {
+      Collection *child_collection = collection_child.collection;
       add_tree_item<CollectionViewItem>(context_layout_,
                                         collection_,
                                         child_collection->id,
-                                        collection_child->light_linking,
+                                        collection_child.light_linking,
                                         ICON_OUTLINER_COLLECTION);
     }
 
-    LISTBASE_FOREACH (CollectionObject *, collection_object, &collection_.gobject) {
-      Object *child_object = collection_object->ob;
+    for (CollectionObject &collection_object : collection_.gobject) {
+      Object *child_object = collection_object.ob;
       add_tree_item<CollectionViewItem>(context_layout_,
                                         collection_,
                                         child_object->id,
-                                        collection_object->light_linking,
+                                        collection_object.light_linking,
                                         ICON_OBJECT_DATA);
     }
   }
@@ -354,14 +352,13 @@ class CollectionView : public AbstractTreeView {
 };
 
 }  // namespace
+}  // namespace light_linking
 
-}  // namespace blender::ui::light_linking
-
-void uiTemplateLightLinkingCollection(blender::ui::Layout *layout,
-                                      bContext *C,
-                                      blender::ui::Layout *context_layout,
-                                      PointerRNA *ptr,
-                                      const StringRefNull propname)
+void template_light_linking_collection(Layout *layout,
+                                       bContext *C,
+                                       Layout *context_layout,
+                                       PointerRNA *ptr,
+                                       const StringRefNull propname)
 {
   if (!ptr->data) {
     return;
@@ -398,14 +395,16 @@ void uiTemplateLightLinkingCollection(blender::ui::Layout *layout,
 
   Collection *collection = static_cast<Collection *>(collection_ptr.data);
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
-  blender::ui::AbstractTreeView *tree_view = UI_block_add_view(
+  AbstractTreeView *tree_view = block_add_view(
       *block,
       "Light Linking Collection Tree View",
-      std::make_unique<blender::ui::light_linking::CollectionView>(*context_layout, *collection));
+      std::make_unique<light_linking::CollectionView>(*context_layout, *collection));
   tree_view->set_context_menu_title("Light Linking");
   tree_view->set_default_rows(5);
 
-  blender::ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
+  TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }
+
+}  // namespace blender::ui

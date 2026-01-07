@@ -13,6 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Callback
  * \{ */
@@ -55,3 +57,5 @@ void WM_generic_user_data_free(wmGenericUserData *wm_userdata)
 }
 
 /** \} */
+
+}  // namespace blender

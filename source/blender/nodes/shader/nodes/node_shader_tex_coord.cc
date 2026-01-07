@@ -9,7 +9,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tex_coord_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_coord_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -24,8 +26,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tex_coord(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "object", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout.prop(ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "object", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "from_instancer", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static int node_shader_gpu_tex_coord(GPUMaterial *mat,
@@ -49,8 +51,7 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
 
   GPU_stack_link(mat, node, "node_tex_coord", in, out, inv_obmat, orco, mtface);
 
-  int i;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
+  for (const auto [i, sock] : node->outputs.enumerate()) {
     node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
     /* Normalize some vectors after dFdx/dFdy offsets.
      * This is the case for interpolated, non linear functions.
@@ -97,14 +98,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tex_coord_cc
+}  // namespace nodes::node_shader_tex_coord_cc
 
 /* node type definition */
 void register_node_type_sh_tex_coord()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_coord_cc;
+  namespace file_ns = nodes::node_shader_tex_coord_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeTexCoord", SH_NODE_TEX_COORD);
   ntype.ui_name = "Texture Coordinate";
@@ -118,5 +119,7 @@ void register_node_type_sh_tex_coord()
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_coord;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

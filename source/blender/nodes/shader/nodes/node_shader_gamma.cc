@@ -10,7 +10,10 @@
 #include "FN_multi_function_builder.hh"
 
 #include "NOD_multi_function.hh"
-namespace blender::nodes::node_shader_gamma_cc {
+
+namespace blender {
+
+namespace nodes::node_shader_gamma_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -45,7 +48,7 @@ static int node_shader_gpu_gamma(GPUMaterial *mat,
 
 using namespace blender::math;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto fn = mf::build::SI2_SO<ColorGeometry4f, float, ColorGeometry4f>(
       "Gamma",
@@ -68,13 +71,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_gamma_cc
+}  // namespace nodes::node_shader_gamma_cc
 
 void register_node_type_sh_gamma()
 {
-  namespace file_ns = blender::nodes::node_shader_gamma_cc;
+  namespace file_ns = nodes::node_shader_gamma_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeGamma", SH_NODE_GAMMA);
   ntype.ui_name = "Gamma";
@@ -86,5 +89,7 @@ void register_node_type_sh_gamma()
   ntype.build_multi_function = file_ns::node_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

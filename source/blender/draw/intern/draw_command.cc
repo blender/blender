@@ -285,13 +285,13 @@ void Barrier::execute() const
 void Clear::execute() const
 {
   gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
-  GPU_framebuffer_clear(fb, (GPUFrameBufferBits)clear_channels, color, depth, stencil);
+  GPU_framebuffer_clear(fb, GPUFrameBufferBits(clear_channels), color, depth, stencil);
 }
 
 void ClearMulti::execute() const
 {
   gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
-  GPU_framebuffer_multi_clear(fb, (const float (*)[4])colors);
+  GPU_framebuffer_multi_clear(fb, reinterpret_cast<const float (*)[4]>(colors));
 }
 
 void StateSet::execute(RecordingState &recording_state) const

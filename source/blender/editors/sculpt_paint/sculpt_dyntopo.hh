@@ -10,6 +10,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 struct bContext;
 struct BMesh;
 struct Brush;
@@ -17,11 +19,11 @@ struct Depsgraph;
 struct Main;
 struct Object;
 struct Scene;
-namespace blender::ed::sculpt_paint::undo {
+namespace ed::sculpt_paint::undo {
 struct StepData;
 }
 
-namespace blender::ed::sculpt_paint::dyntopo {
+namespace ed::sculpt_paint::dyntopo {
 
 enum WarnFlag {
   OKAY = 0,
@@ -94,4 +96,6 @@ float constant_to_relative_detail(float constant_detail,
                                   float pixel_size,
                                   const Object &ob);
 }  // namespace detail_size
-}  // namespace blender::ed::sculpt_paint::dyntopo
+}  // namespace ed::sculpt_paint::dyntopo
+
+}  // namespace blender

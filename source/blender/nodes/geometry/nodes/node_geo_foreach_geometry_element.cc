@@ -28,7 +28,9 @@
 
 #include "fmt/core.h"
 
-namespace blender::nodes::node_geo_foreach_geometry_element_cc {
+namespace blender {
+
+namespace nodes::node_geo_foreach_geometry_element_cc {
 
 /** Shared between zone input and output node. */
 static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *current_node_ptr)
@@ -180,7 +182,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryForeachGeometryElementInput *data =
-      MEM_callocN<NodeGeometryForeachGeometryElementInput>(__func__);
+      MEM_new_for_free<NodeGeometryForeachGeometryElementInput>(__func__);
   /* Needs to be initialized for the node to work. */
   data->output_node_id = 0;
   node->storage = data;
@@ -208,7 +210,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(
       &ntype, "GeometryNodeForeachGeometryElementInput", GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT);
   ntype.ui_name = "For Each Geometry Element Input";
@@ -222,11 +224,11 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.gather_link_search_ops = nullptr;
   ntype.no_muting = true;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryForeachGeometryElementInput",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryForeachGeometryElementInput",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
@@ -315,9 +317,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryForeachGeometryElementOutput *data =
-      MEM_callocN<NodeGeometryForeachGeometryElementOutput>(__func__);
+      MEM_new_for_free<NodeGeometryForeachGeometryElementOutput>(__func__);
 
-  data->generation_items.items = MEM_calloc_arrayN<NodeForeachGeometryElementGenerationItem>(
+  data->generation_items.items = MEM_new_array_for_free<NodeForeachGeometryElementGenerationItem>(
       1, __func__);
   NodeForeachGeometryElementGenerationItem &item = data->generation_items.items[0];
   item.name = BLI_strdup(DATA_("Geometry"));
@@ -333,14 +335,14 @@ static void node_free_storage(bNode *node)
   socket_items::destruct_array<ForeachGeometryElementInputItemsAccessor>(*node);
   socket_items::destruct_array<ForeachGeometryElementGenerationItemsAccessor>(*node);
   socket_items::destruct_array<ForeachGeometryElementMainItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_freeN(reinterpret_cast<NodeGeometryForeachGeometryElementOutput *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryForeachGeometryElementOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometryForeachGeometryElementOutput>(__func__,
-                                                                              src_storage);
+  auto *dst_storage = MEM_new_for_free<NodeGeometryForeachGeometryElementOutput>(
+      __func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ForeachGeometryElementInputItemsAccessor>(*src_node, *dst_node);
@@ -446,7 +448,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype,
                      "GeometryNodeForeachGeometryElementOutput",
                      GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT);
@@ -464,17 +466,17 @@ static void node_register()
   ntype.no_muting = true;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryForeachGeometryElementOutput", node_free_storage, node_copy_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
 }  // namespace output_node
 
-}  // namespace blender::nodes::node_geo_foreach_geometry_element_cc
+}  // namespace nodes::node_geo_foreach_geometry_element_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 StructRNA *ForeachGeometryElementInputItemsAccessor::item_srna =
     &RNA_ForeachGeometryElementInputItem;
@@ -521,4 +523,5 @@ void ForeachGeometryElementGenerationItemsAccessor::blend_read_data_item(BlendDa
   BLO_read_string(reader, &item.name);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

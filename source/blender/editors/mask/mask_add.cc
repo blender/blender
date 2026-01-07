@@ -34,6 +34,8 @@
 
 #include "mask_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Add Vertex
  * \{ */
@@ -226,8 +228,8 @@ static void mask_spline_add_point_at_index(MaskSpline *spline, int point_index)
 {
   MaskSplinePoint *new_point_array;
 
-  new_point_array = MEM_calloc_arrayN<MaskSplinePoint>(spline->tot_point + 1,
-                                                       "add mask vert points");
+  new_point_array = MEM_new_array_for_free<MaskSplinePoint>(spline->tot_point + 1,
+                                                            "add mask vert points");
 
   memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * (point_index + 1));
   memcpy(new_point_array + point_index + 2,
@@ -921,3 +923,5 @@ void MASK_OT_primitive_square_add(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

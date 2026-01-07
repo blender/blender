@@ -29,29 +29,31 @@
 
 #include "info_intern.hh"
 
+namespace blender {
+
 static void reports_select_all(ReportList *reports, int report_mask, int action)
 {
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    LISTBASE_FOREACH_BACKWARD (const Report *, report, &reports->list) {
-      if ((report->type & report_mask) && (report->flag & SELECT)) {
+    for (const Report &report : reports->list.items_reversed()) {
+      if ((report.type & report_mask) && (report.flag & SELECT)) {
         action = SEL_DESELECT;
         break;
       }
     }
   }
 
-  LISTBASE_FOREACH_BACKWARD (Report *, report, &reports->list) {
-    if (report->type & report_mask) {
+  for (Report &report : reports->list.items_reversed()) {
+    if (report.type & report_mask) {
       switch (action) {
         case SEL_SELECT:
-          report->flag = SELECT;
+          report.flag = SELECT;
           break;
         case SEL_DESELECT:
-          report->flag = ~SELECT;
+          report.flag = ~SELECT;
           break;
         case SEL_INVERT:
-          report->flag ^= SELECT;
+          report.flag ^= SELECT;
           break;
         default:
           BLI_assert(0);
@@ -104,7 +106,7 @@ static wmOperatorStatus report_replay_exec(bContext *C, wmOperator * /*op*/)
         (report->flag & SELECT))
     {
       console_history_add_str(sc, report->message, 0);
-      WM_operator_name_call(C, "CONSOLE_OT_execute", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
+      WM_operator_name_call(C, "CONSOLE_OT_execute", wm::OpCallContext::ExecDefault, nullptr, nullptr);
 
       ED_area_tag_redraw(CTX_wm_area(C));
     }
@@ -241,11 +243,11 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const int select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    LISTBASE_FOREACH (Report *, report, &reports->list) {
-      if ((report->type & report_mask) == 0) {
+    for (Report &report : reports->list) {
+      if ((report.type & report_mask) == 0) {
         continue;
       }
-      report->flag &= ~SELECT;
+      report.flag &= ~SELECT;
     }
   }
 
@@ -255,9 +257,9 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
   /* get the first report if none found */
   if (report_min == nullptr) {
     // printf("find_min\n");
-    LISTBASE_FOREACH (Report *, report, &reports->list) {
-      if (report->type & report_mask) {
-        report_min = report;
+    for (Report &report : reports->list) {
+      if (report.type & report_mask) {
+        report_min = &report;
         break;
       }
     }
@@ -265,9 +267,9 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
 
   if (report_max == nullptr) {
     // printf("find_max\n");
-    LISTBASE_FOREACH_BACKWARD (Report *, report, &reports->list) {
-      if (report->type & report_mask) {
-        report_max = report;
+    for (Report &report : reports->list.items_reversed()) {
+      if (report.type & report_mask) {
+        report_max = &report;
         break;
       }
     }
@@ -365,9 +367,9 @@ static wmOperatorStatus report_copy_exec(bContext *C, wmOperator * /*op*/)
   DynStr *buf_dyn = BLI_dynstr_new();
   char *buf_str;
 
-  LISTBASE_FOREACH (Report *, report, &reports->list) {
-    if ((report->type & report_mask) && (report->flag & SELECT)) {
-      BLI_dynstr_append(buf_dyn, report->message);
+  for (Report &report : reports->list) {
+    if ((report.type & report_mask) && (report.flag & SELECT)) {
+      BLI_dynstr_append(buf_dyn, report.message);
       BLI_dynstr_append(buf_dyn, "\n");
     }
   }
@@ -397,3 +399,5 @@ void INFO_OT_report_copy(wmOperatorType *ot)
 
   /* properties */
 }
+
+}  // namespace blender

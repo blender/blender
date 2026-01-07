@@ -7,6 +7,8 @@
  */
 #include <string>
 
+namespace blender {
+
 #if defined(WIN32)
 #  include <Windows.h>
 #  include <intrin.h>
@@ -50,9 +52,9 @@ static const char *cpu_brand_string()
   int result[4] = {0};
   __cpuid(result, 0x80000000);
   if (result[0] >= int(0x80000004)) {
-    __cpuid((int *)(buf + 0), 0x80000002);
-    __cpuid((int *)(buf + 16), 0x80000003);
-    __cpuid((int *)(buf + 32), 0x80000004);
+    __cpuid(reinterpret_cast<int *>(buf + 0), 0x80000002);
+    __cpuid(reinterpret_cast<int *>(buf + 16), 0x80000003);
+    __cpuid(reinterpret_cast<int *>(buf + 32), 0x80000004);
     const char *buf_ptr = buf;
     /* Trim any leading spaces. */
     while (*buf_ptr == ' ') {
@@ -104,3 +106,5 @@ static __attribute__((constructor)) void cpu_check()
 #  endif
 }
 #endif
+
+}  // namespace blender

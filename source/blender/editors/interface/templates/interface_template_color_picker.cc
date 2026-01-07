@@ -20,11 +20,11 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 #define WHEEL_SIZE (5 * U.widget_unit)
 
-void uiTemplateColorPicker(blender::ui::Layout *layout,
+void template_color_picker(Layout *layout,
                            PointerRNA *ptr,
                            const StringRefNull propname,
                            bool value_slider,
@@ -33,8 +33,8 @@ void uiTemplateColorPicker(blender::ui::Layout *layout,
                            bool cubic)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  uiBlock *block = layout->block();
-  ColorPicker *cpicker = ui_block_colorpicker_create(block);
+  Block *block = layout->block();
+  ColorPicker *cpicker = block_colorpicker_create(block);
 
   if (!prop) {
     RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());
@@ -44,26 +44,37 @@ void uiTemplateColorPicker(blender::ui::Layout *layout,
   float softmin, softmax, step, precision;
   RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 
-  blender::ui::Layout &col = layout->column(true);
-  blender::ui::Layout &row = col.row(true);
+  Layout &col = layout->column(true);
+  Layout &row = col.row(true);
 
-  uiBut *but = nullptr;
-  uiButHSVCube *hsv_but;
+  Button *but = nullptr;
+  ButtonHSVCube *hsv_but;
   switch (U.color_picker_type) {
     case USER_CP_SQUARE_SV:
     case USER_CP_SQUARE_HS:
     case USER_CP_SQUARE_HV:
-      hsv_but = (uiButHSVCube *)uiDefButR_prop(
-          block, ButType::HsvCube, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, "");
+      hsv_but = static_cast<ButtonHSVCube *>(uiDefButR_prop(block,
+                                                            ButtonType::HsvCube,
+                                                            "",
+                                                            0,
+                                                            0,
+                                                            WHEEL_SIZE,
+                                                            WHEEL_SIZE,
+                                                            ptr,
+                                                            prop,
+                                                            -1,
+                                                            0.0,
+                                                            0.0,
+                                                            ""));
       switch (U.color_picker_type) {
         case USER_CP_SQUARE_SV:
-          hsv_but->gradient_type = UI_GRAD_SV;
+          hsv_but->gradient_type = GRAD_SV;
           break;
         case USER_CP_SQUARE_HS:
-          hsv_but->gradient_type = UI_GRAD_HS;
+          hsv_but->gradient_type = GRAD_HS;
           break;
         case USER_CP_SQUARE_HV:
-          hsv_but->gradient_type = UI_GRAD_HV;
+          hsv_but->gradient_type = GRAD_HV;
           break;
       }
       but = hsv_but;
@@ -74,7 +85,7 @@ void uiTemplateColorPicker(blender::ui::Layout *layout,
     case USER_CP_CIRCLE_HSL:
     default:
       but = uiDefButR_prop(block,
-                           ButType::HsvCircle,
+                           ButtonType::HsvCircle,
                            "",
                            0,
                            0,
@@ -105,91 +116,91 @@ void uiTemplateColorPicker(blender::ui::Layout *layout,
     switch (U.color_picker_type) {
       case USER_CP_CIRCLE_HSL:
         row.separator();
-        hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 ButType::HsvCube,
-                                                 "",
-                                                 WHEEL_SIZE + 6,
-                                                 0,
-                                                 14 * UI_SCALE_FAC,
-                                                 WHEEL_SIZE,
-                                                 ptr,
-                                                 prop,
-                                                 -1,
-                                                 softmin,
-                                                 softmax,
-                                                 "");
-        hsv_but->gradient_type = UI_GRAD_L_ALT;
+        hsv_but = static_cast<ButtonHSVCube *>(uiDefButR_prop(block,
+                                                              ButtonType::HsvCube,
+                                                              "",
+                                                              WHEEL_SIZE + 6,
+                                                              0,
+                                                              14 * UI_SCALE_FAC,
+                                                              WHEEL_SIZE,
+                                                              ptr,
+                                                              prop,
+                                                              -1,
+                                                              softmin,
+                                                              softmax,
+                                                              ""));
+        hsv_but->gradient_type = GRAD_L_ALT;
         break;
       case USER_CP_SQUARE_SV:
         col.separator();
-        hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 ButType::HsvCube,
-                                                 "",
-                                                 0,
-                                                 4,
-                                                 WHEEL_SIZE,
-                                                 18 * UI_SCALE_FAC,
-                                                 ptr,
-                                                 prop,
-                                                 -1,
-                                                 softmin,
-                                                 softmax,
-                                                 "");
-        hsv_but->gradient_type = eButGradientType(UI_GRAD_SV + 3);
+        hsv_but = static_cast<ButtonHSVCube *>(uiDefButR_prop(block,
+                                                              ButtonType::HsvCube,
+                                                              "",
+                                                              0,
+                                                              4,
+                                                              WHEEL_SIZE,
+                                                              18 * UI_SCALE_FAC,
+                                                              ptr,
+                                                              prop,
+                                                              -1,
+                                                              softmin,
+                                                              softmax,
+                                                              ""));
+        hsv_but->gradient_type = eButGradientType(GRAD_SV + 3);
         break;
       case USER_CP_SQUARE_HS:
         col.separator();
-        hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 ButType::HsvCube,
-                                                 "",
-                                                 0,
-                                                 4,
-                                                 WHEEL_SIZE,
-                                                 18 * UI_SCALE_FAC,
-                                                 ptr,
-                                                 prop,
-                                                 -1,
-                                                 softmin,
-                                                 softmax,
-                                                 "");
-        hsv_but->gradient_type = eButGradientType(UI_GRAD_HS + 3);
+        hsv_but = static_cast<ButtonHSVCube *>(uiDefButR_prop(block,
+                                                              ButtonType::HsvCube,
+                                                              "",
+                                                              0,
+                                                              4,
+                                                              WHEEL_SIZE,
+                                                              18 * UI_SCALE_FAC,
+                                                              ptr,
+                                                              prop,
+                                                              -1,
+                                                              softmin,
+                                                              softmax,
+                                                              ""));
+        hsv_but->gradient_type = eButGradientType(GRAD_HS + 3);
         break;
       case USER_CP_SQUARE_HV:
         col.separator();
-        hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 ButType::HsvCube,
-                                                 "",
-                                                 0,
-                                                 4,
-                                                 WHEEL_SIZE,
-                                                 18 * UI_SCALE_FAC,
-                                                 ptr,
-                                                 prop,
-                                                 -1,
-                                                 softmin,
-                                                 softmax,
-                                                 "");
-        hsv_but->gradient_type = eButGradientType(UI_GRAD_HV + 3);
+        hsv_but = static_cast<ButtonHSVCube *>(uiDefButR_prop(block,
+                                                              ButtonType::HsvCube,
+                                                              "",
+                                                              0,
+                                                              4,
+                                                              WHEEL_SIZE,
+                                                              18 * UI_SCALE_FAC,
+                                                              ptr,
+                                                              prop,
+                                                              -1,
+                                                              softmin,
+                                                              softmax,
+                                                              ""));
+        hsv_but->gradient_type = eButGradientType(GRAD_HV + 3);
         break;
 
         /* user default */
       case USER_CP_CIRCLE_HSV:
       default:
         row.separator();
-        hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 ButType::HsvCube,
-                                                 "",
-                                                 WHEEL_SIZE + 6,
-                                                 0,
-                                                 14 * UI_SCALE_FAC,
-                                                 WHEEL_SIZE,
-                                                 ptr,
-                                                 prop,
-                                                 -1,
-                                                 softmin,
-                                                 softmax,
-                                                 "");
-        hsv_but->gradient_type = UI_GRAD_V_ALT;
+        hsv_but = static_cast<ButtonHSVCube *>(uiDefButR_prop(block,
+                                                              ButtonType::HsvCube,
+                                                              "",
+                                                              WHEEL_SIZE + 6,
+                                                              0,
+                                                              14 * UI_SCALE_FAC,
+                                                              WHEEL_SIZE,
+                                                              ptr,
+                                                              prop,
+                                                              -1,
+                                                              softmin,
+                                                              softmax,
+                                                              ""));
+        hsv_but->gradient_type = GRAD_V_ALT;
         break;
     }
 
@@ -197,13 +208,11 @@ void uiTemplateColorPicker(blender::ui::Layout *layout,
   }
 }
 
-static void ui_template_palette_menu(bContext * /*C*/,
-                                     blender::ui::Layout *layout,
-                                     void * /*but_p*/)
+static void ui_template_palette_menu(bContext * /*C*/, Layout *layout, void * /*but_p*/)
 {
 
   layout->label(IFACE_("Sort By:"), ICON_NONE);
-  blender::ui::Layout *row = &layout->row(false);
+  Layout *row = &layout->row(false);
   PointerRNA op_ptr = row->op("PALETTE_OT_sort", IFACE_("Hue"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", 1);
   row = &layout->row(false);
@@ -217,13 +226,13 @@ static void ui_template_palette_menu(bContext * /*C*/,
   RNA_enum_set(&op_ptr, "type", 4);
 }
 
-void uiTemplatePalette(blender::ui::Layout *layout,
-                       PointerRNA *ptr,
-                       const StringRefNull propname,
-                       bool /*colors*/)
+void template_palette(Layout *layout,
+                      PointerRNA *ptr,
+                      const StringRefNull propname,
+                      bool /*colors*/)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  uiBut *but = nullptr;
+  Button *but = nullptr;
 
   const int cols_per_row = std::max(layout->width() / UI_UNIT_X, 1);
 
@@ -237,16 +246,16 @@ void uiTemplatePalette(blender::ui::Layout *layout,
     return;
   }
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   Palette *palette = static_cast<Palette *>(cptr.data);
 
-  blender::ui::Layout *col = &layout->column(true);
+  Layout *col = &layout->column(true);
   col->row(true);
   uiDefIconButO(block,
-                ButType::But,
+                ButtonType::But,
                 "PALETTE_OT_color_add",
-                blender::wm::OpCallContext::InvokeDefault,
+                wm::OpCallContext::InvokeDefault,
                 ICON_ADD,
                 0,
                 0,
@@ -254,9 +263,9 @@ void uiTemplatePalette(blender::ui::Layout *layout,
                 UI_UNIT_Y,
                 std::nullopt);
   uiDefIconButO(block,
-                ButType::But,
+                ButtonType::But,
                 "PALETTE_OT_color_delete",
-                blender::wm::OpCallContext::InvokeDefault,
+                wm::OpCallContext::InvokeDefault,
                 ICON_REMOVE,
                 0,
                 0,
@@ -265,29 +274,29 @@ void uiTemplatePalette(blender::ui::Layout *layout,
                 std::nullopt);
   if (palette->colors.first != nullptr) {
     but = uiDefIconButO(block,
-                        ButType::But,
+                        ButtonType::But,
                         "PALETTE_OT_color_move",
-                        blender::wm::OpCallContext::InvokeDefault,
+                        wm::OpCallContext::InvokeDefault,
                         ICON_TRIA_UP,
                         0,
                         0,
                         UI_UNIT_X,
                         UI_UNIT_Y,
                         std::nullopt);
-    UI_but_operator_ptr_ensure(but);
+    button_operator_ptr_ensure(but);
     RNA_enum_set(but->opptr, "type", -1);
 
     but = uiDefIconButO(block,
-                        ButType::But,
+                        ButtonType::But,
                         "PALETTE_OT_color_move",
-                        blender::wm::OpCallContext::InvokeDefault,
+                        wm::OpCallContext::InvokeDefault,
                         ICON_TRIA_DOWN,
                         0,
                         0,
                         UI_UNIT_X,
                         UI_UNIT_Y,
                         std::nullopt);
-    UI_but_operator_ptr_ensure(but);
+    button_operator_ptr_ensure(but);
     RNA_enum_set(but->opptr, "type", 1);
 
     /* Menu. */
@@ -299,26 +308,26 @@ void uiTemplatePalette(blender::ui::Layout *layout,
   col->row(true);
 
   int row_cols = 0, col_id = 0;
-  LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
+  for (PaletteColor &color : palette->colors) {
     if (row_cols >= cols_per_row) {
       col->row(true);
       row_cols = 0;
     }
 
-    PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, &RNA_PaletteColor, color);
-    uiButColor *color_but = (uiButColor *)uiDefButR(block,
-                                                    ButType::Color,
-                                                    "",
-                                                    0,
-                                                    0,
-                                                    UI_UNIT_X,
-                                                    UI_UNIT_Y,
-                                                    &color_ptr,
-                                                    "color",
-                                                    -1,
-                                                    0.0,
-                                                    1.0,
-                                                    "");
+    PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, &RNA_PaletteColor, &color);
+    ButtonColor *color_but = static_cast<ButtonColor *>(uiDefButR(block,
+                                                                  ButtonType::Color,
+                                                                  "",
+                                                                  0,
+                                                                  0,
+                                                                  UI_UNIT_X,
+                                                                  UI_UNIT_Y,
+                                                                  &color_ptr,
+                                                                  "color",
+                                                                  -1,
+                                                                  0.0,
+                                                                  1.0,
+                                                                  ""));
     color_but->is_pallete_color = true;
     color_but->palette_color_index = col_id;
     row_cols++;
@@ -326,7 +335,7 @@ void uiTemplatePalette(blender::ui::Layout *layout,
   }
 }
 
-void uiTemplateCryptoPicker(blender::ui::Layout *layout,
+void template_crypto_picker(Layout *layout,
                             PointerRNA *ptr,
                             const StringRefNull propname,
                             int icon)
@@ -338,19 +347,21 @@ void uiTemplateCryptoPicker(blender::ui::Layout *layout,
     return;
   }
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
-  uiBut *but = uiDefIconButO(block,
-                             ButType::But,
-                             "UI_OT_eyedropper_color",
-                             blender::wm::OpCallContext::InvokeDefault,
-                             icon,
-                             0,
-                             0,
-                             UI_UNIT_X,
-                             UI_UNIT_Y,
-                             RNA_property_ui_description(prop));
+  Button *but = uiDefIconButO(block,
+                              ButtonType::But,
+                              "UI_OT_eyedropper_color",
+                              wm::OpCallContext::InvokeDefault,
+                              icon,
+                              0,
+                              0,
+                              UI_UNIT_X,
+                              UI_UNIT_Y,
+                              RNA_property_ui_description(prop));
   but->rnapoin = *ptr;
   but->rnaprop = prop;
   but->rnaindex = -1;
 }
+
+}  // namespace blender::ui

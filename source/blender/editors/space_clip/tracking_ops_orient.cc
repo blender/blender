@@ -35,6 +35,8 @@
 
 #include "clip_intern.hh"
 
+namespace blender {
+
 /********************** set origin operator *********************/
 
 static Object *get_camera_with_movieclip(Scene *scene, const MovieClip *clip)
@@ -109,8 +111,8 @@ static int count_selected_bundles(bContext *C)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   int tot = 0;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && (track.flag & TRACK_HAS_BUNDLE)) {
       tot++;
     }
   }
@@ -120,13 +122,13 @@ static int count_selected_bundles(bContext *C)
 static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat[4][4])
 {
   bool found = false;
-  LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+  for (bConstraint &con : ob->constraints) {
+    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(&con);
     if (cti == nullptr) {
       continue;
     }
     if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
-      bObjectSolverConstraint *data = (bObjectSolverConstraint *)con->data;
+      bObjectSolverConstraint *data = static_cast<bObjectSolverConstraint *>(con.data);
       if (!found) {
         Object *cam = data->camera ? data->camera : scene->camera;
         BKE_object_where_is_calc_mat4(cam, invmat);
@@ -145,13 +147,13 @@ static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat
 
 static Object *object_solver_camera(Scene *scene, Object *ob)
 {
-  LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+  for (bConstraint &con : ob->constraints) {
+    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(&con);
     if (cti == nullptr) {
       continue;
     }
     if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
-      bObjectSolverConstraint *data = (bObjectSolverConstraint *)con->data;
+      bObjectSolverConstraint *data = static_cast<bObjectSolverConstraint *>(con.data);
       return (data->camera != nullptr) ? data->camera : scene->camera;
     }
   }
@@ -186,9 +188,9 @@ static wmOperatorStatus set_origin_exec(bContext *C, wmOperator *op)
 
   float median[3] = {0.0f, 0.0f, 0.0f};
   zero_v3(median);
-  LISTBASE_FOREACH (const MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
-      add_v3_v3(median, track->bundle_pos);
+  for (const MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && (track.flag & TRACK_HAS_BUNDLE)) {
+      add_v3_v3(median, track.bundle_pos);
     }
   }
   mul_v3_fl(median, 1.0f / selected_count);
@@ -617,9 +619,9 @@ static wmOperatorStatus do_set_scale(bContext *C,
 
   BKE_tracking_get_camera_object_matrix(camera, mat);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track)) {
-      mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track)) {
+      mul_v3_m4v3(vec[tot], mat, track.bundle_pos);
       tot++;
     }
   }
@@ -634,8 +636,8 @@ static wmOperatorStatus do_set_scale(bContext *C,
       MovieReconstructedCamera *reconstructed_cameras;
       int i;
 
-      LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-        mul_v3_fl(track->bundle_pos, scale);
+      for (MovieTrackingTrack &track : tracking_object->tracks) {
+        mul_v3_fl(track.bundle_pos, scale);
       }
 
       reconstructed_cameras = reconstruction->cameras;
@@ -851,3 +853,5 @@ void CLIP_OT_apply_solution_scale(wmOperatorType *ot)
                 -100.0f,
                 100.0f);
 }
+
+}  // namespace blender

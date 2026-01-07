@@ -45,12 +45,7 @@
 #  include "quadriflow_capi.hpp"
 #endif
 
-using blender::Array;
-using blender::float3;
-using blender::IndexRange;
-using blender::int3;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 #ifdef WITH_QUADRIFLOW
 static Mesh *remesh_quadriflow(const Mesh *input_mesh,
@@ -62,7 +57,6 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
                                void (*update_cb)(void *, float progress, int *cancel),
                                void *update_cb_data)
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> input_positions = input_mesh->vert_positions();
   const Span<int> input_corner_verts = input_mesh->corner_verts();
@@ -111,7 +105,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
-  blender::offset_indices::fill_constant_group_size(4, 0, face_offsets);
+  offset_indices::fill_constant_group_size(4, 0, face_offsets);
 
   mesh->vert_positions_for_write().copy_from(
       Span(reinterpret_cast<float3 *>(qrd.out_verts), qrd.out_totverts));
@@ -200,7 +194,6 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
                                          const float adaptivity,
                                          const bool relax_disoriented_triangles)
 {
-  using namespace blender;
   using namespace blender::bke;
   std::vector<openvdb::Vec3s> vertices;
   std::vector<openvdb::Vec4I> quads;
@@ -216,8 +209,8 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
 
   const int triangle_loop_start = quads.size() * 4;
   if (!face_offsets.is_empty()) {
-    blender::offset_indices::fill_constant_group_size(4, 0, face_offsets.take_front(quads.size()));
-    blender::offset_indices::fill_constant_group_size(
+    offset_indices::fill_constant_group_size(4, 0, face_offsets.take_front(quads.size()));
+    offset_indices::fill_constant_group_size(
         3, triangle_loop_start, face_offsets.drop_front(quads.size()));
   }
 
@@ -304,7 +297,7 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
 #endif
 }
 
-namespace blender::bke {
+namespace bke {
 
 static void calc_edge_centers(const Span<float3> positions,
                               const Span<int2> edges,
@@ -635,7 +628,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   }
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
 {
@@ -742,3 +735,5 @@ Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
   BM_mesh_free(bm);
   return result;
 }
+
+}  // namespace blender

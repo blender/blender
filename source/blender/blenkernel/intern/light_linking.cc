@@ -27,10 +27,12 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 void BKE_light_linking_ensure(Object *object)
 {
   if (object->light_linking == nullptr) {
-    object->light_linking = MEM_callocN<LightLinking>(__func__);
+    object->light_linking = MEM_new_for_free<LightLinking>(__func__);
   }
 }
 
@@ -41,8 +43,8 @@ void BKE_light_linking_copy(Object *object_dst, const Object *object_src, const 
     object_dst->light_linking = MEM_dupallocN<LightLinking>(__func__,
                                                             *(object_src->light_linking));
     if ((copy_flags & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-      id_us_plus(blender::id_cast<ID *>(object_dst->light_linking->receiver_collection));
-      id_us_plus(blender::id_cast<ID *>(object_dst->light_linking->blocker_collection));
+      id_us_plus(id_cast<ID *>(object_dst->light_linking->receiver_collection));
+      id_us_plus(id_cast<ID *>(object_dst->light_linking->blocker_collection));
     }
   }
 }
@@ -51,8 +53,8 @@ void BKE_light_linking_delete(Object *object, const int delete_flags)
 {
   if (object->light_linking) {
     if ((delete_flags & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-      id_us_min(blender::id_cast<ID *>(object->light_linking->receiver_collection));
-      id_us_min(blender::id_cast<ID *>(object->light_linking->blocker_collection));
+      id_us_min(id_cast<ID *>(object->light_linking->receiver_collection));
+      id_us_min(id_cast<ID *>(object->light_linking->blocker_collection));
     }
     MEM_SAFE_FREE(object->light_linking);
   }
@@ -167,9 +169,9 @@ void BKE_light_linking_collection_assign(Main *bmain,
 
 static CollectionObject *find_collection_object(const Collection *collection, const Object *object)
 {
-  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
-    if (collection_object->ob == object) {
-      return collection_object;
+  for (CollectionObject &collection_object : collection->gobject) {
+    if (collection_object.ob == object) {
+      return &collection_object;
     }
   }
 
@@ -179,9 +181,9 @@ static CollectionObject *find_collection_object(const Collection *collection, co
 static CollectionChild *find_collection_child(const Collection *collection,
                                               const Collection *child)
 {
-  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
-    if (collection_child->collection == child) {
-      return collection_child;
+  for (CollectionChild &collection_child : collection->children) {
+    if (collection_child.collection == child) {
+      return &collection_child;
     }
   }
 
@@ -519,16 +521,16 @@ void BKE_light_linking_select_receivers_of_emitter(Scene *scene,
   /* Deselect all currently selected objects in the view layer, but keep the emitter selected.
    * This is because the operation is called from the emitter being active, and it will be
    * confusing to deselect it but keep active. */
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (base->object == emitter) {
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    if (base.object == emitter) {
       continue;
     }
-    base->flag &= ~BASE_SELECTED;
+    base.flag &= ~BASE_SELECTED;
   }
 
   /* Select objects which are reachable via the receiver collection hierarchy. */
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
+  for (CollectionObject &cob : collection->gobject) {
+    Base *base = BKE_view_layer_base_find(view_layer, cob.ob);
     if (!base) {
       continue;
     }
@@ -540,3 +542,5 @@ void BKE_light_linking_select_receivers_of_emitter(Scene *scene,
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 }
+
+}  // namespace blender

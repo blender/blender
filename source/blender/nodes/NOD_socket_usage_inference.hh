@@ -15,11 +15,13 @@
 #include "NOD_socket_usage_inference_fwd.hh"
 #include "NOD_socket_value_inference.hh"
 
+namespace blender {
+
 struct bNodeTree;
 struct bNodeSocket;
 struct IDProperty;
 
-namespace blender::nodes::socket_usage_inference {
+namespace nodes::socket_usage_inference {
 
 class SocketUsageInferencerImpl;
 
@@ -127,4 +129,6 @@ void infer_group_interface_usage(
     MutableSpan<SocketUsage> r_input_usages,
     std::optional<MutableSpan<SocketUsage>> r_output_usages = std::nullopt);
 
-}  // namespace blender::nodes::socket_usage_inference
+}  // namespace nodes::socket_usage_inference
+
+}  // namespace blender

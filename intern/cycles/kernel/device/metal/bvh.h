@@ -476,7 +476,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 }
 #endif
 
-#ifdef __SHADOW_RECORD_ALL__
+#ifdef __TRANSPARENT_SHADOWS__
 ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,

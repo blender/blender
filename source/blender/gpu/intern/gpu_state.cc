@@ -23,6 +23,8 @@
 
 #include "gpu_state_private.hh"
 
+namespace blender {
+
 using namespace blender::gpu;
 
 #define SET_STATE(_prefix, _state, _value) \
@@ -52,7 +54,7 @@ void GPU_face_culling(GPUFaceCullTest culling)
 GPUFaceCullTest GPU_face_culling_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (GPUFaceCullTest)state.culling_test;
+  return GPUFaceCullTest(state.culling_test);
 }
 
 void GPU_front_facing(bool invert)
@@ -214,13 +216,13 @@ void GPU_stencil_compare_mask_set(uint compare_mask)
 GPUBlend GPU_blend_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (GPUBlend)state.blend;
+  return GPUBlend(state.blend);
 }
 
 GPUWriteMask GPU_write_mask_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (GPUWriteMask)state.write_mask;
+  return GPUWriteMask(state.write_mask);
 }
 
 uint GPU_stencil_mask_get()
@@ -232,13 +234,13 @@ uint GPU_stencil_mask_get()
 GPUDepthTest GPU_depth_test_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (GPUDepthTest)state.depth_test;
+  return GPUDepthTest(state.depth_test);
 }
 
 GPUStencilTest GPU_stencil_test_get()
 {
   GPUState &state = Context::get()->state_manager->state;
-  return (GPUStencilTest)state.stencil_test;
+  return GPUStencilTest(state.stencil_test);
 }
 
 float GPU_line_width_get()
@@ -370,3 +372,5 @@ StateManager::StateManager()
 }
 
 /** \} */
+
+}  // namespace blender

@@ -82,7 +82,7 @@ ShaderFxData *shaderfx_add(
   BKE_shaderfx_unique_name(&ob->shader_fx, new_fx);
 
   BLI_assert(ob->type == OB_GREASE_PENCIL);
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -97,8 +97,8 @@ static bool UNUSED_FUNCTION(object_has_shaderfx)(const Object *ob,
                                                  const ShaderFxData *exclude,
                                                  ShaderFxType type)
 {
-  LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
-    if ((fx != exclude) && (fx->type == type)) {
+  for (ShaderFxData &fx : ob->shader_fx) {
+    if ((&fx != exclude) && (fx.type == type)) {
       return true;
     }
   }
@@ -254,7 +254,7 @@ static bool edit_shaderfx_poll_generic(bContext *C,
                                        const bool is_liboverride_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", rna_type);
-  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
+  Object *ob = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   ShaderFxData *fx = static_cast<ShaderFxData *>(ptr.data); /* May be nullptr. */
 
   if (!ED_operator_object_active_editable_ex(C, ob)) {
@@ -425,7 +425,7 @@ static bool edit_shaderfx_invoke_properties(bContext *C,
 
   /* Check the custom data of panels under the mouse for an effect. */
   if (event != nullptr) {
-    PointerRNA *panel_ptr = UI_region_panel_custom_data_under_cursor(C, event);
+    PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
 
     if (!(panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr))) {
       if (RNA_struct_is_a(panel_ptr->type, &RNA_ShaderFx)) {

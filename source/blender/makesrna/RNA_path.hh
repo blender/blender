@@ -18,9 +18,12 @@
 #include <optional>
 #include <string>
 
+#include "DNA_listBase.h"
+
 #include "RNA_types.hh"
 
-struct ListBase;
+namespace blender {
+
 struct IDProperty;
 
 /**
@@ -223,7 +226,9 @@ struct PropertyElemRNA {
  * \return True if there was no error while resolving the path
  * \note Assumes all pointers provided are valid
  */
-bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_elements);
+bool RNA_path_resolve_elements(PointerRNA *ptr,
+                               const char *path,
+                               ListBaseT<PropertyElemRNA> *r_elements);
 
 /**
  * Find the path from the structure referenced by the pointer to the runtime RNA-defined
@@ -317,3 +322,5 @@ std::optional<std::string> RNA_path_struct_property_py(PointerRNA *ptr,
  *   some_prop[10]
  */
 std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);
+
+}  // namespace blender

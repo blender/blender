@@ -76,7 +76,7 @@ void Cryptomatte::sync_object(Object *ob, ResourceHandleRange res_handle)
   cryptomatte_object_buf.get_or_resize(resource_id) = object_hashes;
 }
 
-void Cryptomatte::sync_material(const ::Material *material)
+void Cryptomatte::sync_material(const blender::Material *material)
 {
   /* Material crypto hashes are generated during shader codegen stage. We only need to register
    * them to store inside the metadata. */

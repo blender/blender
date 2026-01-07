@@ -321,6 +321,11 @@
 #elif defined(__pnacl__) || defined(__asmjs__) || defined(__wasm__)
 #  define ARCH_CPU_32_BITS 1
 #  define ARCH_CPU_LITTLE_ENDIAN 1
+#elif defined(__loongarch_lp64)
+#  define ARCH_CPU_LOONG_FAMILY 1
+#  define ARCH_CPU_LOONG64 1
+#  define ARCH_CPU_64_BITS 1
+#  define ARCH_CPU_LITTLE_ENDIAN 1
 #elif defined(__MIPSEL__)
 #  if defined(__LP64__)
 #    define ARCH_CPU_MIPS_FAMILY 1
@@ -388,6 +393,9 @@
 #endif
 #if !defined(ARCH_CPU_ARM_FAMILY)
 #  define ARCH_CPU_ARM_FAMILY 0
+#endif
+#if !defined(ARCH_CPU_LOONG_FAMILY)
+#  define ARCH_CPU_LOONG_FAMILY 0
 #endif
 #if !defined(ARCH_CPU_MIPS_FAMILY)
 #  define ARCH_CPU_MIPS_FAMILY 0

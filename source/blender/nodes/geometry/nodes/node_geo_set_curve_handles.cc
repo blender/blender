@@ -51,13 +51,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometrySetCurveHandlePositions *data = MEM_callocN<NodeGeometrySetCurveHandlePositions>(
-      __func__);
+  NodeGeometrySetCurveHandlePositions *data =
+      MEM_new_for_free<NodeGeometrySetCurveHandlePositions>(__func__);
 
   data->mode = GEO_NODE_CURVE_HANDLE_LEFT;
   node->storage = data;
@@ -168,7 +168,7 @@ static void set_position_in_component(Curves &curves_id,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometrySetCurveHandlePositions &storage = node_storage(params.node());
-  const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage.mode;
+  const GeometryNodeCurveHandleMode mode = GeometryNodeCurveHandleMode(storage.mode);
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -212,7 +212,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSetCurveHandlePositions", GEO_NODE_SET_CURVE_HANDLES);
   ntype.ui_name = "Set Handle Positions";
@@ -223,12 +223,12 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.minwidth = 100.0f;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometrySetCurveHandlePositions",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometrySetCurveHandlePositions",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

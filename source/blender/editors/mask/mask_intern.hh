@@ -12,6 +12,8 @@
 
 #include "ED_clip.hh"
 
+namespace blender {
+
 struct Mask;
 struct MaskLayer;
 struct MaskSpline;
@@ -144,3 +146,5 @@ void MASK_OT_shape_key_insert(wmOperatorType *ot);
 void MASK_OT_shape_key_clear(wmOperatorType *ot);
 void MASK_OT_shape_key_feather_reset(wmOperatorType *ot);
 void MASK_OT_shape_key_rekey(wmOperatorType *ot);
+
+}  // namespace blender

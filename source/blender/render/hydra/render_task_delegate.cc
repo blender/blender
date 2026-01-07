@@ -160,7 +160,7 @@ void RenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
   }
   else if (pxr::HdGetComponentFormat(format) == pxr::HdFormatFloat16) {
     Eigen::half *buf_data = (Eigen::half *)buffer->Map();
-    float *fdata = (float *)data;
+    float *fdata = static_cast<float *>(data);
     for (size_t i = 0; i < len; ++i) {
       fdata[i] = buf_data[i];
     }
@@ -220,14 +220,14 @@ void GPURenderTaskDelegate::set_viewport(pxr::GfVec4d const &viewport)
 
 void GPURenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 {
-  blender::gpu::TextureFormat format;
-  blender::gpu::Texture **tex;
+  gpu::TextureFormat format;
+  gpu::Texture **tex;
   if (aov_key == pxr::HdAovTokens->color) {
-    format = blender::gpu::TextureFormat::SFLOAT_32_32_32_32;
+    format = gpu::TextureFormat::SFLOAT_32_32_32_32;
     tex = &tex_color_;
   }
   else if (aov_key == pxr::HdAovTokens->depth) {
-    format = blender::gpu::TextureFormat::SFLOAT_32_DEPTH;
+    format = gpu::TextureFormat::SFLOAT_32_DEPTH;
     tex = &tex_depth_;
   }
   else {
@@ -252,7 +252,7 @@ void GPURenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 
 void GPURenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
 {
-  blender::gpu::Texture *tex = nullptr;
+  gpu::Texture *tex = nullptr;
   int c;
   if (aov_key == pxr::HdAovTokens->color) {
     tex = tex_color_;
@@ -306,7 +306,7 @@ void GPURenderTaskDelegate::unbind()
   CLOG_DEBUG(LOG_HYDRA_RENDER, "unbind");
 }
 
-blender::gpu::Texture *GPURenderTaskDelegate::get_aov_texture(pxr::TfToken const &aov_key)
+gpu::Texture *GPURenderTaskDelegate::get_aov_texture(pxr::TfToken const &aov_key)
 {
   if (aov_key == pxr::HdAovTokens->color) {
     return tex_color_;

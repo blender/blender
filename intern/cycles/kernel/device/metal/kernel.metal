@@ -197,7 +197,7 @@ bool metalrt_shadow_all_hit(
     return true;
   }
 
-#  ifdef __SHADOW_RECORD_ALL__
+#  ifdef __TRANSPARENT_SHADOWS__
   float u = barycentrics.x;
   float v = barycentrics.y;
   const int prim_type = kernel_data_fetch(objects, object).primitive_type;
@@ -337,7 +337,7 @@ bool metalrt_shadow_all_hit(
 
   /* Continue tracing. */
 #    endif /* __TRANSPARENT_SHADOWS__ */
-#  endif   /* __SHADOW_RECORD_ALL__ */
+#  endif   /* __TRANSPARENT_SHADOWS__ */
 
   return true;
 }
@@ -382,6 +382,13 @@ __intersection__volume_tri(constant KernelParamsMetal &launch_params_metal [[buf
   uint prim = primitive_id + primitive_id_offset;
   MetalKernelContext context(launch_params_metal);
   if (context.intersection_skip_self(payload.self, object, prim)) {
+    result.accept = false;
+    return result;
+  }
+
+  const int shader = kernel_data_fetch(tri_shader, prim);
+  const int shader_flag = kernel_data_fetch(shaders, (shader & SHADER_MASK)).flags;
+  if ((shader_flag & SD_HAS_VOLUME) == 0) {
     result.accept = false;
     return result;
   }

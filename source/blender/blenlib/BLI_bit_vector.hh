@@ -7,9 +7,9 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::BitVector` is a dynamically growing contiguous arrays of bits. Its main purpose is
+ * A `BitVector` is a dynamically growing contiguous arrays of bits. Its main purpose is
  * to provide a compact way to map indices to bools. It requires 8 times less memory compared to a
- * `blender::Vector<bool>`.
+ * `Vector<bool>`.
  *
  * Advantages of using a bit- instead of byte-vector are:
  * - Uses less memory.
@@ -28,13 +28,13 @@
  *   read.
  *
  * Comparison to `std::vector<bool>`:
- * - `blender::BitVector` has an interface that is more optimized for dealing with bits.
- * - `blender::BitVector` has an inline buffer that is used to avoid allocations when the vector is
+ * - `BitVector` has an interface that is more optimized for dealing with bits.
+ * - `BitVector` has an inline buffer that is used to avoid allocations when the vector is
  *   small.
  *
  * Comparison to `BLI_bitmap`:
- * - `blender::BitVector` offers a more C++ friendly interface.
- * - `BLI_bitmap` should only be used in C code that can not use `blender::BitVector`.
+ * - `BitVector` offers a more C++ friendly interface.
+ * - `BLI_bitmap` should only be used in C code that can not use `BitVector`.
  */
 
 #include "BLI_allocator.hh"
@@ -42,7 +42,9 @@
 #include "BLI_bit_span.hh"
 #include "BLI_span.hh"
 
-namespace blender::bits {
+namespace blender {
+
+namespace bits {
 
 template<
     /**
@@ -397,8 +399,8 @@ inline MutableBoundedBitSpan to_best_bit_span(BitVector<InlineBufferCapacity, Al
   return data;
 }
 
-}  // namespace blender::bits
+}  // namespace bits
 
-namespace blender {
 using bits::BitVector;
+
 }  // namespace blender

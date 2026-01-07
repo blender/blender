@@ -8,11 +8,13 @@
 
 #include "DNA_node_types.h"
 
-namespace blender::compositor {
+namespace blender {
+
+namespace compositor {
 class RenderContext;
 class Profiler;
 enum class OutputTypes : uint8_t;
-}  // namespace blender::compositor
+}  // namespace compositor
 
 struct Render;
 
@@ -54,9 +56,9 @@ void COM_execute(Render *render,
                  Scene *scene,
                  bNodeTree *node_tree,
                  const char *view_name,
-                 blender::compositor::RenderContext *render_context,
-                 blender::compositor::Profiler *profiler,
-                 blender::compositor::OutputTypes needed_outputs);
+                 compositor::RenderContext *render_context,
+                 compositor::Profiler *profiler,
+                 compositor::OutputTypes needed_outputs);
 
 /**
  * \brief Deinitialize the compositor caches and allocated memory.
@@ -69,3 +71,5 @@ void COM_deinitialize();
  * To deinitialize the compositor use the COM_deinitialize method.
  */
 // void COM_clear_caches(); // NOT YET WRITTEN
+
+}  // namespace blender

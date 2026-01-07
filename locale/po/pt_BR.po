@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -10765,6 +10765,22 @@ msgid "Bundle"
 msgstr "Encapsulamento"
 
 
+msgid "Font"
+msgstr "Fonte"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Mask"
+msgstr "Máscara"
+
+
+msgid "Sound"
+msgstr "Som"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle - Conjuntos de linhas"
 
@@ -12996,10 +13012,6 @@ msgstr "Texto em curva"
 
 msgid "Curve deforming text object"
 msgstr "Curva deformando o objeto de texto"
-
-
-msgid "Font"
-msgstr "Fonte"
 
 
 msgid "Font Bold"
@@ -16664,10 +16676,6 @@ msgstr "Compasso"
 
 msgid "Playback pitch of the sound"
 msgstr "Valor de compasso para a reprodução dos sons."
-
-
-msgid "Sound"
-msgstr "Som"
 
 
 msgid "Sound data-block used by this speaker"
@@ -21207,10 +21215,6 @@ msgid "UV Factor"
 msgstr "Fator UV"
 
 
-msgid "Mask"
-msgstr "Máscara"
-
-
 msgid "Material slot in an object"
 msgstr "Compartimentos de material dentro de um objeto."
 
@@ -21227,112 +21231,24 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
 
 
 msgid "Names"
 msgstr "Nomes"
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
 msgid "Math"
 msgstr "Matemática"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Pivot Point"
@@ -21345,6 +21261,14 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Mirror"
@@ -21383,8 +21307,8 @@ msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
-msgid "Instances"
-msgstr "Instâncias"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Similar"
@@ -21403,12 +21327,8 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Light"
@@ -21429,6 +21349,86 @@ msgstr "Relações"
 
 msgid "Rigid Body"
 msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
 msgid "Basic"
@@ -21468,8 +21468,8 @@ msgid "Console"
 msgstr "Console"
 
 
-msgid "Languages..."
-msgstr "Linguagens..."
+msgid "Languages"
+msgstr "Línguas para tradução"
 
 
 msgid "Cache"
@@ -29556,11 +29556,6 @@ msgstr "Remover propriedade"
 
 msgid "Generate system information, saved into a text file"
 msgstr "Gera informações sobre o sistema, salvando-as em um arquivo de texto."
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Salvar as informações sobre o sistema"
 
 
 msgctxt "Operator"
@@ -52212,10 +52207,6 @@ msgid "Whether these settings have already been auto-set or not"
 msgstr "Caso estes ajustes já tenham sido configurados automaticamente ou não."
 
 
-msgid "Languages"
-msgstr "Línguas para tradução"
-
-
 msgid "POT File Path"
 msgstr "Caminho de arquivo POT"
 
@@ -60479,11 +60470,6 @@ msgstr "Modo de extrapolação"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Mover..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Atrair"
 
@@ -60809,11 +60795,6 @@ msgstr "Renomear..."
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Ordenamento das trilhas..."
-
-
-msgctxt "Operator"
 msgid "Stop Tweaking Strip Actions"
 msgstr "Interromper os ajustes de faixa de ações"
 
@@ -61081,11 +61062,6 @@ msgstr "Vizinho Direito"
 msgctxt "Operator"
 msgid "Both Sides"
 msgstr "Ambos os Lados"
-
-
-msgctxt "Operator"
-msgid "Side of Frame..."
-msgstr "Lado do Quadro..."
 
 
 msgctxt "Operator"
@@ -61849,11 +61825,6 @@ msgstr "Alto-falante"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Tornar local..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Gerar e gravar ação..."
 
@@ -62036,11 +62007,6 @@ msgstr "Adicionar (com alvos)..."
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Ordenar elementos..."
-
-
-msgctxt "Operator"
 msgid "Connect Vertex Path"
 msgstr "Conectar o caminho dos vértices"
 
@@ -62199,16 +62165,6 @@ msgstr "Instância de Coleção..."
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "Instância de Coleção"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Referência"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Plano de fundo"
 
 
 msgctxt "Operator"
@@ -62659,10 +62615,6 @@ msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %
 msgstr "Não é possível limpar o quadro-chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Path = %s)."
 
 
-msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
-msgstr "Não é possível a limpeza de todos os quadros-chave a partir da curva-f bloqueada '%s' para %s '%s'"
-
-
 msgid "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')"
 msgstr "Saltando caminho dentro do conjunto de inserção de chaves, pois este não possui identificador (KS = '%s', Caminho = '%s[%d]')."
 
@@ -62934,6 +62886,14 @@ msgstr "Sistema de partículas"
 
 msgid "ParticleSettings"
 msgstr "Configurações de partículas"
+
+
+msgid "Mesh has no UV data"
+msgstr "Malha não possui dados UV"
+
+
+msgid "Mesh has no VCol data"
+msgstr "A malha não possui dados de cores de vértices."
 
 
 msgid "%i frames found!"
@@ -63573,16 +63533,6 @@ msgstr "Afixar"
 
 msgid "Only keyboard shortcuts can be edited that way, please use User Preferences otherwise"
 msgstr "Somente atalhos relacionados ao teclado podem ser editados desta maneira. Em caso contrário, por favor, utilize as \"Preferências de usuário\"."
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Alterar atalho"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "Atribuir Atalho"
 
 
 msgctxt "Operator"
@@ -65939,10 +65889,6 @@ msgid "Cannot swap selected strips as they will not be able to fit in their new 
 msgstr "Não é possível alternar as faixas selecionadas pois estas não se encaixam em seus novos locais."
 
 
-msgid "Action '%s' does not specify what data-blocks it can be used on (try setting the 'ID Root Type' setting from the data-blocks editor for this action to avoid future problems)"
-msgstr "A ação '%s' não especifica em quais blocos de dados pode ser usada. (tente configurar o \"Tipo de identificador raiz\" a partir do editor de blocos de dados nesta ação para evitar problemas futuros)."
-
-
 msgid "Could not add action '%s' as it cannot be used relative to ID-blocks of type '%s'"
 msgstr "Não foi possível adicionar ação '%s' pelo fato de não poder ser usada estando relacionada aos identificadores de blocos do tipo '%s'"
 
@@ -67153,14 +67099,6 @@ msgid "Palette '%s' does not contain color given"
 msgstr "A paleta '%s' não contém a cor fornecida."
 
 
-msgid "Mesh has no UV data"
-msgstr "Malha não possui dados UV"
-
-
-msgid "Mesh has no VCol data"
-msgstr "A malha não possui dados de cores de vértices."
-
-
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Restrição '%s' não encontrada dentro do osso de pose '%s'"
 
@@ -67958,18 +67896,6 @@ msgstr "A propriedade deve ser expressa em números inteiros ou em ponto flutuan
 
 msgid "Property must be a none, distance, factor, percentage, angle, or pixel"
 msgstr "A propriedade deve ser obtida a partir de um nulo, distância, fator, porcentagem, ângulo ou pixel."
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', at position %d"
-msgstr "Erro ao registrar a classe de operador para '%s'. O nome ou bloco '%s' é inválido na posição %d."
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d"
-msgstr "Erro ao registrar a classe de operador '%s'. O nome do identificador do bloco '%s' é muito grande O comprimento máximo é %d."
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character"
-msgstr "Erro ao registrar a classe de operador '%s'. O nome do identificador do bloco '%s' deve conter ao menos um caractere do tipo ponto para definição."
 
 
 msgid "Cannot read %s '%s': %s"

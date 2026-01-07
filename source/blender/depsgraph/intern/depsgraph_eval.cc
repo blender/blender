@@ -25,11 +25,13 @@
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_tag.hh"
 
-namespace deg = blender::deg;
+namespace blender {
 
 static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph,
                                           const DepsgraphEvaluateSyncWriteback sync_writeback)
 {
+  BLI_assert(!deg_graph->need_update_relations);
+
   /* Update the time on the cow scene. */
   if (deg_graph->scene_cow) {
     BKE_scene_frame_set(deg_graph->scene_cow, deg_graph->frame);
@@ -86,3 +88,5 @@ void DEG_evaluate_on_framechange(Depsgraph *graph,
   deg_graph->ctime = BKE_scene_frame_to_ctime(scene, frame);
   deg_flush_updates_and_refresh(deg_graph, sync_writeback);
 }
+
+}  // namespace blender

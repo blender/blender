@@ -46,9 +46,9 @@ class RenderTaskDelegate : public pxr::HdSceneDelegate {
 
 class GPURenderTaskDelegate : public RenderTaskDelegate {
  private:
-  blender::gpu::FrameBuffer *framebuffer_ = nullptr;
-  blender::gpu::Texture *tex_color_ = nullptr;
-  blender::gpu::Texture *tex_depth_ = nullptr;
+  gpu::FrameBuffer *framebuffer_ = nullptr;
+  gpu::Texture *tex_color_ = nullptr;
+  gpu::Texture *tex_depth_ = nullptr;
   unsigned int VAO_ = 0;
 
  public:
@@ -60,7 +60,7 @@ class GPURenderTaskDelegate : public RenderTaskDelegate {
   void read_aov(pxr::TfToken const &aov_key, void *data) override;
   void bind() override;
   void unbind() override;
-  blender::gpu::Texture *get_aov_texture(pxr::TfToken const &aov_key);
+  gpu::Texture *get_aov_texture(pxr::TfToken const &aov_key);
 };
 
 }  // namespace blender::render::hydra

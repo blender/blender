@@ -29,7 +29,7 @@ static void vertex_buffer_fetch_mode(ColorType color)
       Size, Size, false, TextureFormat::SFLOAT_32_32_32_32, usage, false, nullptr);
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);
-  blender::gpu::Texture *color_texture = GPU_offscreen_color_texture(offscreen);
+  gpu::Texture *color_texture = GPU_offscreen_color_texture(offscreen);
   GPU_texture_clear(color_texture, GPU_DATA_FLOAT, float4(1.0f, 2.0f, 3.0f, 0.0f));
 
   GPUVertFormat format = {0};

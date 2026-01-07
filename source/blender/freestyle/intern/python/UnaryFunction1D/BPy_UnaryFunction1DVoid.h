@@ -18,10 +18,10 @@ extern PyTypeObject UnaryFunction1DVoid_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DVoid_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DVoid structure definition----------*/
-typedef struct {
+struct BPy_UnaryFunction1DVoid {
   BPy_UnaryFunction1D py_uf1D;
   Freestyle::UnaryFunction1D_void *uf1D_void;
-} BPy_UnaryFunction1DVoid;
+};
 
 /*---------------------------Python BPy_UnaryFunction1DVoid visible prototypes-----------*/
 int UnaryFunction1DVoid_Init(PyObject *module);

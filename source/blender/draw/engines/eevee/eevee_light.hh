@@ -86,7 +86,7 @@ struct Light : public LightData, NonCopyable {
   void sync(ShadowModule &shadows,
             float4x4 object_to_world,
             char visibility_flag,
-            const ::Light *la,
+            const blender::Light *la,
             const LightLinking *light_linking,
             float threshold);
 
@@ -96,10 +96,10 @@ struct Light : public LightData, NonCopyable {
   void debug_draw();
 
  private:
-  float shadow_lod_min_get(const ::Light *la);
-  float shadow_shape_size_get(const ::Light *la);
-  float attenuation_radius_get(const ::Light *la, float light_threshold, float light_power);
-  void shape_parameters_set(const ::Light *la,
+  float shadow_lod_min_get(const blender::Light *la);
+  float shadow_shape_size_get(const blender::Light *la);
+  float attenuation_radius_get(const blender::Light *la, float light_threshold, float light_power);
+  void shape_parameters_set(const blender::Light *la,
                             const float3 &scale,
                             const float3 &z_axis,
                             float threshold,

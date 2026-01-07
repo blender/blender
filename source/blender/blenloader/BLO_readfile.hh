@@ -10,6 +10,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utility_mixins.hh"
+struct BlendHandle;
+namespace blender {
 
 /** \file
  * \ingroup blenloader
@@ -19,14 +21,12 @@
 struct AssetMetaData;
 struct BHead;
 struct BlendfileLinkAppendContext;
-struct BlendHandle;
 struct BlendThumbnail;
 struct FileData;
 struct FileReader;
 struct ID;
 struct Library;
 struct LinkNode;
-struct ListBase;
 struct Main;
 struct MemFile;
 struct PreviewImage;
@@ -42,7 +42,7 @@ struct wmWindowManager;
 struct WorkspaceConfigFileData {
   Main *main; /* has to be freed when done reading file data */
 
-  ListBase workspaces;
+  ListBaseT<WorkSpace> workspaces;
 };
 
 /* -------------------------------------------------------------------- */
@@ -57,7 +57,7 @@ enum eBlenFileType {
   // BLENFILETYPE_RUNTIME = 3, /* UNUSED */
 };
 
-struct BlendFileData : blender::NonCopyable, blender::NonMovable {
+struct BlendFileData : NonCopyable, NonMovable {
   Main *main = nullptr;
   UserDef *user = nullptr;
 
@@ -274,7 +274,7 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem,
                                          BlendFileReadReport *reports);
 
 /** Returns the major and minor version number of Blender used to create the file. */
-blender::int3 BLO_blendhandle_get_version(const BlendHandle *bh);
+int3 BLO_blendhandle_get_version(const BlendHandle *bh);
 
 /**
  * Gets the names of all the data-blocks in a file of a certain type
@@ -575,6 +575,15 @@ struct ID_Readfile_Data {
      */
     bool needs_linking : 1;
 
+    /**
+     * Memfile undo only: mark IDs used by 'no undo' IDs (e.g. brush dependencies).
+     *
+     * This is currently used to ensure that all linked 'no undo' IDs are preserved and remain
+     * fully valid across undo steps (also used to tag libraries containing such no-undo linked
+     * IDs).
+     */
+    bool used_by_no_undo_id : 1;
+
     /* Specific ID-type reading/versioning related tags. */
 
     /**
@@ -614,3 +623,5 @@ void BLO_readfile_id_runtime_data_free_all(Main &bmain);
 void BLO_readfile_id_runtime_data_free(ID &id);
 
 #define BLEN_THUMB_MEMSIZE_FILE(_x, _y) (sizeof(int) * (2 + (size_t)(_x) * (size_t)(_y)))
+
+}  // namespace blender

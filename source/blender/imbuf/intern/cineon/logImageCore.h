@@ -20,6 +20,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 #ifdef _WIN32
 #  define PATHSEP_CHAR '\\'
 #else
@@ -261,8 +263,10 @@ BLI_INLINE unsigned int float_uint(float value, unsigned int max)
   if (value < 0.0f) {
     return 0;
   }
-  if (value > (1.0f - 0.5f / (float)max)) {
+  if (value > (1.0f - 0.5f / float(max))) {
     return max;
   }
-  return (unsigned int)(((float)max * value) + 0.5f);
+  return static_cast<unsigned int>((float(max) * value) + 0.5f);
 }
+
+}  // namespace blender

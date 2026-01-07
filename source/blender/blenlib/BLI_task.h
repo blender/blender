@@ -15,6 +15,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 struct BLI_mempool;
 
 /* -------------------------------------------------------------------- */
@@ -48,12 +50,12 @@ int BLI_task_scheduler_num_threads(void);
  * be launched.
  * \{ */
 
-typedef enum eTaskPriority {
+enum eTaskPriority {
   TASK_PRIORITY_LOW,
   TASK_PRIORITY_HIGH,
-} eTaskPriority;
+};
 
-typedef struct TaskPool TaskPool;
+struct TaskPool;
 typedef void (*TaskRunFunction)(TaskPool *__restrict pool, void *taskdata);
 typedef void (*TaskFreeFunction)(TaskPool *__restrict pool, void *taskdata);
 
@@ -129,13 +131,13 @@ void *BLI_task_pool_user_data(TaskPool *pool);
 /**
  * Per-thread specific data passed to the callback.
  */
-typedef struct TaskParallelTLS {
+struct TaskParallelTLS {
   /**
    * Copy of user-specifier chunk, which is copied from original chunk to all worker threads.
    * This is similar to OpenMP's `firstprivate`.
    */
   void *userdata_chunk;
-} TaskParallelTLS;
+};
 
 typedef void (*TaskParallelRangeFunc)(void *__restrict userdata,
                                       int iter,
@@ -149,7 +151,7 @@ typedef void (*TaskParallelReduceFunc)(const void *__restrict userdata,
 
 typedef void (*TaskParallelFreeFunc)(const void *__restrict userdata, void *__restrict chunk);
 
-typedef struct TaskParallelSettings {
+struct TaskParallelSettings {
   /* Whether caller allows to do threading of the particular range.
    * Usually set by some equation, which forces threading off when threading
    * overhead becomes higher than speed benefit.
@@ -187,7 +189,7 @@ typedef struct TaskParallelSettings {
    * having a global use_threading switch based on just range size.
    */
   int min_iter_per_thread;
-} TaskParallelSettings;
+};
 
 BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *settings);
 
@@ -197,7 +199,7 @@ void BLI_task_parallel_range(int start,
                              TaskParallelRangeFunc func,
                              const TaskParallelSettings *settings);
 
-typedef struct MempoolIterData MempoolIterData;
+struct MempoolIterData;
 
 typedef void (*TaskParallelMempoolFunc)(void *userdata,
                                         MempoolIterData *iter,
@@ -300,7 +302,7 @@ int BLI_task_parallel_thread_id(const TaskParallelTLS *tls);
  * Task data is freed when calling #BLI_task_graph_free.
  *
  * \code{.c}
- * MyData *task_data = MEM_callocN(sizeof(MyData), __func__);
+ * MyData *task_data = MEM_callocN<MyData>(__func__);
  * TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, task_data, MEM_freeN);
  * TaskNode *node_1 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
  * TaskNode *node_2 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
@@ -360,5 +362,7 @@ void BLI_task_graph_edge_create(struct TaskNode *from_node, struct TaskNode *to_
 void BLI_task_isolate(void (*func)(void *userdata), void *userdata);
 
 /** \} */
+
+}  // namespace blender
 
 #endif

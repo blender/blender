@@ -35,12 +35,14 @@
 #include "rna_access_internal.hh"
 #include "rna_internal.hh"
 
+namespace blender {
+
 int64_t RNAPath::hash() const
 {
   if (key.has_value()) {
-    return blender::get_default_hash(path, key.value());
+    return get_default_hash(path, key.value());
   }
-  return blender::get_default_hash(path, index.value_or(0));
+  return get_default_hash(path, index.value_or(0));
 };
 
 bool operator==(const RNAPath &left, const RNAPath &right)
@@ -379,7 +381,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
                            PropertyRNA **r_prop,
                            int *r_index,
                            PointerRNA *r_item_ptr,
-                           ListBase *r_elements,
+                           ListBaseT<PropertyElemRNA> *r_elements,
                            const bool eval_pointer)
 {
   BLI_assert(r_item_ptr == nullptr || !eval_pointer);
@@ -427,7 +429,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
     if (use_id_prop) { /* look up property name in current struct */
       IDProperty *group = RNA_struct_idprops(&curptr, false);
       if (group && quoted) {
-        prop = (PropertyRNA *)IDP_GetPropertyFromGroup(group, token);
+        prop = reinterpret_cast<PropertyRNA *>(IDP_GetPropertyFromGroup(group, token));
       }
     }
     else {
@@ -605,7 +607,9 @@ bool RNA_path_resolve_property_and_item_pointer_full(const PointerRNA *ptr,
 
   return r_ptr->data != nullptr && *r_prop != nullptr;
 }
-bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_elements)
+bool RNA_path_resolve_elements(PointerRNA *ptr,
+                               const char *path,
+                               ListBaseT<PropertyElemRNA> *r_elements)
 {
   return rna_path_parse(ptr, path, nullptr, nullptr, nullptr, nullptr, r_elements, false);
 }
@@ -981,7 +985,7 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
 
 static std::optional<std::string> rna_prepend_real_ID_path(Main * /*bmain*/,
                                                            ID *id,
-                                                           const blender::StringRef path,
+                                                           const StringRef path,
                                                            ID **r_real_id)
 {
   if (r_real_id != nullptr) {
@@ -1022,7 +1026,7 @@ std::optional<std::string> RNA_path_from_ID_to_struct(const PointerRNA *ptr)
   if (!RNA_struct_is_ID(ptr->type)) {
     if (ptr->type->path) {
       /* if type has a path to some ID, use it */
-      ptrpath = ptr->type->path((PointerRNA *)ptr);
+      ptrpath = ptr->type->path(const_cast<PointerRNA *>(ptr));
     }
     else if (ptr->type->nested && RNA_struct_is_ID(ptr->type->nested)) {
       PropertyRNA *userprop;
@@ -1107,7 +1111,7 @@ static std::string rna_path_from_ptr_to_property_index_ex(const PointerRNA *ptr,
                                                           PropertyRNA *prop,
                                                           int index_dim,
                                                           int index,
-                                                          const blender::StringRef path_prefix)
+                                                          const StringRef path_prefix)
 {
   const bool is_rna = (prop->magic == RNA_MAGIC);
 
@@ -1199,7 +1203,7 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
 {
   /* Try to recursively find an "type"'d ancestor,
    * to handle situations where path from ID is not enough. */
-  ListBase path_elems = {nullptr};
+  ListBaseT<PropertyElemRNA> path_elems = {nullptr};
   const std::optional<std::string> full_path = RNA_path_from_ID_to_property(ptr, prop);
   if (!full_path) {
     return std::nullopt;
@@ -1209,19 +1213,18 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
 
   std::optional<std::string> path;
   if (RNA_path_resolve_elements(&idptr, full_path->c_str(), &path_elems)) {
-    LISTBASE_FOREACH_BACKWARD (PropertyElemRNA *, prop_elem, &path_elems) {
-      if (RNA_struct_is_a(prop_elem->ptr.type, type)) {
-        if (const std::optional<std::string> ref_path = RNA_path_from_ID_to_struct(
-                &prop_elem->ptr))
+    for (PropertyElemRNA &prop_elem : path_elems.items_reversed()) {
+      if (RNA_struct_is_a(prop_elem.ptr.type, type)) {
+        if (const std::optional<std::string> ref_path = RNA_path_from_ID_to_struct(&prop_elem.ptr))
         {
-          path = blender::StringRef(*full_path).drop_prefix(ref_path->size() + 1);
+          path = StringRef(*full_path).drop_prefix(ref_path->size() + 1);
         }
         break;
       }
     }
 
-    LISTBASE_FOREACH_MUTABLE (PropertyElemRNA *, prop_elem, &path_elems) {
-      MEM_delete(prop_elem);
+    for (PropertyElemRNA &prop_elem : path_elems.items_mutable()) {
+      MEM_delete(&prop_elem);
     }
     BLI_listbase_clear(&path_elems);
   }
@@ -1357,3 +1360,5 @@ std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int i
   const int index_dim = (index == -1) ? 0 : 1;
   return RNA_path_from_ptr_to_property_index(ptr, prop, index_dim, index);
 }
+
+}  // namespace blender

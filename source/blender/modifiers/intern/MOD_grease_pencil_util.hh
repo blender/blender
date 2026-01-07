@@ -13,20 +13,22 @@
 
 #include "BKE_modifier.hh"
 
+namespace blender {
+
 struct bContext;
 struct GreasePencil;
 struct GreasePencilModifierInfluenceData;
 struct PointerRNA;
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
 namespace greasepencil {
 class Drawing;
 }
-}  // namespace blender::bke
-namespace blender::ui {
+}  // namespace bke
+namespace ui {
 struct Layout;
-}  // namespace blender::ui
-namespace blender::modifier::greasepencil {
+}  // namespace ui
+namespace modifier::greasepencil {
 
 void init_influence_data(GreasePencilModifierInfluenceData *influence_data, bool has_custom_curve);
 void copy_influence_data(const GreasePencilModifierInfluenceData *influence_data_src,
@@ -85,4 +87,5 @@ Vector<FrameDrawingInfo> get_drawing_infos_by_frame(GreasePencil &grease_pencil,
 
 void ensure_no_bezier_curves(bke::greasepencil::Drawing &drawing);
 
-}  // namespace blender::modifier::greasepencil
+}  // namespace modifier::greasepencil
+}  // namespace blender

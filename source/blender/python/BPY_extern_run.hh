@@ -26,6 +26,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 struct ReportList;
 struct Text;
 struct bContext;
@@ -111,6 +113,20 @@ bool BPY_run_string_eval(bContext *C, const char *imports[], const char *expr);
 bool BPY_run_string_with_locals(bContext *C,
                                 const blender::StringRefNull script,
                                 IDProperty &locals);
+
+/**
+ * Run a script, with the given local variables.
+ *
+ * \param C: Optional context (may be null),
+ *  used for `bpy.context` and reporting errors to `CTX_wm_reports(C)`.
+ *
+ * \param script: The Python script to run, can be multiple lines.
+ *
+ * \param locals: group property with string keys, defining the script's local variables.
+ */
+bool BPY_run_string_exec_with_locals(bContext *C,
+                                     blender::StringRefNull script,
+                                     IDProperty &locals);
 
 /** \} */
 
@@ -219,3 +235,5 @@ struct BPy_RunErrInfo {
                                                     char **r_value) ATTR_NONNULL(1, 3, 5);
 
 /** \} */
+
+}  // namespace blender

@@ -11,6 +11,7 @@
 
 #include <algorithm>
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_context.hh"
@@ -42,7 +43,7 @@
 
 #include "DEG_depsgraph.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -154,24 +155,24 @@ static wmOperatorStatus edbm_polybuild_transform_at_cursor_invoke(bContext *C,
   edbm_flag_disable_all_multi(vc.scene, vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 
   if (ele_act->head.htype == BM_VERT) {
-    BM_vert_select_set(bm, (BMVert *)ele_act, true);
+    BM_vert_select_set(bm, reinterpret_cast<BMVert *>(ele_act), true);
   }
   if (ele_act->head.htype == BM_EDGE) {
-    BM_edge_select_set(bm, (BMEdge *)ele_act, true);
+    BM_edge_select_set(bm, reinterpret_cast<BMEdge *>(ele_act), true);
   }
   if (ele_act->head.htype == BM_FACE) {
-    BM_face_select_set(bm, (BMFace *)ele_act, true);
+    BM_face_select_set(bm, reinterpret_cast<BMFace *>(ele_act), true);
   }
 
   EDBMUpdate_Params params{};
   params.calc_looptris = true;
   params.calc_normals = true;
   params.is_destructive = true;
-  EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
+  EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
   if (basact != nullptr) {
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      blender::ed::object::base_activate(C, basact);
+      ed::object::base_activate(C, basact);
     }
   }
   BM_select_history_store(bm, ele_act);
@@ -193,7 +194,7 @@ void MESH_OT_polybuild_transform_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 static wmOperatorStatus edbm_polybuild_delete_at_cursor_invoke(bContext *C,
@@ -217,7 +218,7 @@ static wmOperatorStatus edbm_polybuild_delete_at_cursor_invoke(bContext *C,
   edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
 
   if (ele_act->head.htype == BM_FACE) {
-    BMFace *f_act = (BMFace *)ele_act;
+    BMFace *f_act = reinterpret_cast<BMFace *>(ele_act);
     EDBM_flag_disable_all(em, BM_ELEM_TAG);
     BM_elem_flag_enable(f_act, BM_ELEM_TAG);
     if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_TAG, DEL_FACES)) {
@@ -226,7 +227,7 @@ static wmOperatorStatus edbm_polybuild_delete_at_cursor_invoke(bContext *C,
     changed = true;
   }
   if (ele_act->head.htype == BM_VERT) {
-    BMVert *v_act = (BMVert *)ele_act;
+    BMVert *v_act = reinterpret_cast<BMVert *>(ele_act);
     if (BM_vert_is_edge_pair(v_act) && !BM_vert_is_wire(v_act)) {
       BM_edge_collapse(bm, v_act->e, v_act, true, true);
       changed = true;
@@ -253,11 +254,11 @@ static wmOperatorStatus edbm_polybuild_delete_at_cursor_invoke(bContext *C,
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
     if (basact != nullptr) {
       BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
       if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-        blender::ed::object::base_activate(C, basact);
+        ed::object::base_activate(C, basact);
       }
     }
     WM_event_add_mousemove(vc.win);
@@ -280,7 +281,7 @@ void MESH_OT_polybuild_delete_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -321,7 +322,7 @@ static wmOperatorStatus edbm_polybuild_face_at_cursor_invoke(bContext *C,
     changed = true;
   }
   else if (ele_act->head.htype == BM_EDGE) {
-    BMEdge *e_act = (BMEdge *)ele_act;
+    BMEdge *e_act = reinterpret_cast<BMEdge *>(ele_act);
     BMFace *f_reference = e_act->l ? e_act->l->f : nullptr;
 
     mid_v3_v3v3(center, e_act->v1->co, e_act->v2->co);
@@ -352,7 +353,7 @@ static wmOperatorStatus edbm_polybuild_face_at_cursor_invoke(bContext *C,
     changed = true;
   }
   else if (ele_act->head.htype == BM_VERT) {
-    BMVert *v_act = (BMVert *)ele_act;
+    BMVert *v_act = reinterpret_cast<BMVert *>(ele_act);
     BMEdge *e_pair[2] = {nullptr};
 
     if (v_act->e != nullptr) {
@@ -422,12 +423,12 @@ static wmOperatorStatus edbm_polybuild_face_at_cursor_invoke(bContext *C,
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
 
     if (basact != nullptr) {
       BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
       if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-        blender::ed::object::base_activate(C, basact);
+        ed::object::base_activate(C, basact);
       }
     }
 
@@ -457,7 +458,7 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
                   "Create Quads",
                   "Automatically split edges in triangles to maintain quad topology");
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -488,7 +489,7 @@ static wmOperatorStatus edbm_polybuild_split_at_cursor_invoke(bContext *C,
     return OPERATOR_PASS_THROUGH;
   }
   if (ele_act->head.htype == BM_EDGE) {
-    BMEdge *e_act = (BMEdge *)ele_act;
+    BMEdge *e_act = reinterpret_cast<BMEdge *>(ele_act);
     mid_v3_v3v3(center, e_act->v1->co, e_act->v2->co);
     mul_m4_v3(vc.obedit->object_to_world().ptr(), center);
     ED_view3d_win_to_3d_int(vc.v3d, vc.region, center, event->mval, center);
@@ -513,13 +514,13 @@ static wmOperatorStatus edbm_polybuild_split_at_cursor_invoke(bContext *C,
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
 
     WM_event_add_mousemove(vc.win);
 
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      blender::ed::object::base_activate(C, basact);
+      ed::object::base_activate(C, basact);
     }
 
     return OPERATOR_FINISHED;
@@ -541,7 +542,7 @@ void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
 }
 
 /** \} */
@@ -566,7 +567,7 @@ static wmOperatorStatus edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
     /* pass */
   }
   else if (ele_act->head.htype == BM_EDGE) {
-    BMEdge *e_act = (BMEdge *)ele_act;
+    BMEdge *e_act = reinterpret_cast<BMEdge *>(ele_act);
     BMLoop *l_a, *l_b;
     if (BM_edge_loop_pair(e_act, &l_a, &l_b)) {
       BMFace *f_double;
@@ -581,7 +582,7 @@ static wmOperatorStatus edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
     }
   }
   else if (ele_act->head.htype == BM_VERT) {
-    BMVert *v_act = (BMVert *)ele_act;
+    BMVert *v_act = reinterpret_cast<BMVert *>(ele_act);
     if (BM_vert_is_edge_pair(v_act)) {
       BM_edge_collapse(bm, v_act->e, v_act, true, true);
     }
@@ -609,11 +610,11 @@ static wmOperatorStatus edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
     edbm_flag_disable_all_multi(vc.scene, vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 
     EDBMUpdate_Params params{};
-    EDBM_update(static_cast<Mesh *>(vc.obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(vc.obedit->data), &params);
 
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      blender::ed::object::base_activate(C, basact);
+      ed::object::base_activate(C, basact);
     }
 
     WM_event_add_mousemove(vc.win);
@@ -638,3 +639,5 @@ void MESH_OT_polybuild_dissolve_at_cursor(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

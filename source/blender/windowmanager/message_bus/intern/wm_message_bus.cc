@@ -22,6 +22,8 @@
 #include "message_bus/intern/wm_message_bus_intern.hh"
 #include "message_bus/wm_message_bus.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------------- */
 /** \name Public API
  * \{ */
@@ -105,10 +107,10 @@ void WM_msgbus_clear_by_owner(wmMsgBus *mbus, void *owner)
 void WM_msg_dump(wmMsgBus *mbus, const char *info_str)
 {
   printf(">>>> %s\n", info_str);
-  LISTBASE_FOREACH (wmMsgSubscribeKey *, key, &mbus->messages) {
-    const wmMsg *msg = wm_msg_subscribe_value_msg_cast(key);
+  for (wmMsgSubscribeKey &key : mbus->messages) {
+    const wmMsg *msg = wm_msg_subscribe_value_msg_cast(&key);
     const wmMsgTypeInfo *info = &wm_msg_types[msg->type];
-    info->repr(stdout, key);
+    info->repr(stdout, &key);
   }
   printf("<<<< %s\n", info_str);
 }
@@ -125,11 +127,11 @@ void WM_msgbus_handle(wmMsgBus *mbus, bContext *C)
   }
 
   // uint a = 0, b = 0;
-  LISTBASE_FOREACH (wmMsgSubscribeKey *, key, &mbus->messages) {
-    LISTBASE_FOREACH (wmMsgSubscribeValueLink *, msg_lnk, &key->values) {
-      if (msg_lnk->params.tag) {
-        msg_lnk->params.notify(C, key, &msg_lnk->params);
-        msg_lnk->params.tag = false;
+  for (wmMsgSubscribeKey &key : mbus->messages) {
+    for (wmMsgSubscribeValueLink &msg_lnk : key.values) {
+      if (msg_lnk.params.tag) {
+        msg_lnk.params.notify(C, &key, &msg_lnk.params);
+        msg_lnk.params.tag = false;
         mbus->messages_tag_count -= 1;
       }
       // b++;
@@ -159,10 +161,10 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(wmMsgBus *mbus,
   }
   else {
     key = static_cast<wmMsgSubscribeKey *>(*r_key);
-    LISTBASE_FOREACH (wmMsgSubscribeValueLink *, msg_lnk, &key->values) {
-      if ((msg_lnk->params.notify == msg_val_params->notify) &&
-          (msg_lnk->params.owner == msg_val_params->owner) &&
-          (msg_lnk->params.user_data == msg_val_params->user_data))
+    for (wmMsgSubscribeValueLink &msg_lnk : key->values) {
+      if ((msg_lnk.params.notify == msg_val_params->notify) &&
+          (msg_lnk.params.owner == msg_val_params->owner) &&
+          (msg_lnk.params.user_data == msg_val_params->user_data))
       {
         return key;
       }
@@ -182,13 +184,13 @@ void WM_msg_publish_with_key(wmMsgBus *mbus, wmMsgSubscribeKey *msg_key)
              msg_key,
              BLI_listbase_count(&msg_key->values));
 
-  LISTBASE_FOREACH (wmMsgSubscribeValueLink *, msg_lnk, &msg_key->values) {
+  for (wmMsgSubscribeValueLink &msg_lnk : msg_key->values) {
     if (false) { /* Make an option? */
-      msg_lnk->params.notify(nullptr, msg_key, &msg_lnk->params);
+      msg_lnk.params.notify(nullptr, msg_key, &msg_lnk.params);
     }
     else {
-      if (msg_lnk->params.tag == false) {
-        msg_lnk->params.tag = true;
+      if (msg_lnk.params.tag == false) {
+        msg_lnk.params.tag = true;
         mbus->messages_tag_count += 1;
       }
     }
@@ -233,3 +235,5 @@ void wm_msg_subscribe_value_free(wmMsgSubscribeKey *msg_key, wmMsgSubscribeValue
 }
 
 /** \} */
+
+}  // namespace blender

@@ -27,15 +27,19 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"asset.catalog"};
 
-namespace blender::asset_system {
+namespace asset_system {
 
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
 
-AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root)
+AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root,
+                                         std::optional<read_only_tag> read_only_tag)
     : catalog_collection_(std::make_unique<AssetCatalogCollection>()),
-      asset_library_root_(asset_library_root)
+      asset_library_root_(asset_library_root),
+      is_read_only_(read_only_tag ? true : false)
 {
 }
 
@@ -467,7 +471,12 @@ bool AssetCatalogService::is_catalog_known_with_unsaved_changes(const CatalogID 
 
 bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
 {
+  /* The caller should probably check this somewhat earlier and properly disable whatever operation
+   * triggers the writing. */
   BLI_assert(!is_read_only_);
+  if (is_read_only_) {
+    return false;
+  }
 
   if (!this->write_to_disk_ex(blend_file_path)) {
     return false;
@@ -736,4 +745,6 @@ bool AssetCatalogFilter::is_known(const CatalogID asset_catalog_id) const
   return known_catalog_ids_.contains(asset_catalog_id);
 }
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
+
+}  // namespace blender

@@ -32,6 +32,8 @@
 
 #define B_MATPRV 1
 
+namespace blender::ui {
+
 static void do_preview_buttons(bContext *C, void *arg, int event)
 {
   switch (event) {
@@ -41,13 +43,13 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
   }
 }
 
-void uiTemplatePreview(blender::ui::Layout *layout,
-                       bContext *C,
-                       ID *id,
-                       bool show_buttons,
-                       ID *parent,
-                       MTex *slot,
-                       const char *preview_id)
+void template_preview(Layout *layout,
+                      bContext *C,
+                      ID *id,
+                      bool show_buttons,
+                      ID *parent,
+                      MTex *slot,
+                      const char *preview_id)
 {
   Material *ma = nullptr;
   short *pr_texture = nullptr;
@@ -65,16 +67,16 @@ void uiTemplatePreview(blender::ui::Layout *layout,
 
   if (id && (GS(id->name) == ID_TE)) {
     if (parent && (GS(parent->name) == ID_MA)) {
-      pr_texture = &((Material *)parent)->pr_texture;
+      pr_texture = &(id_cast<Material *>(parent))->pr_texture;
     }
     else if (parent && (GS(parent->name) == ID_WO)) {
-      pr_texture = &((World *)parent)->pr_texture;
+      pr_texture = &(id_cast<World *>(parent))->pr_texture;
     }
     else if (parent && (GS(parent->name) == ID_LA)) {
-      pr_texture = &((Light *)parent)->pr_texture;
+      pr_texture = &(id_cast<Light *>(parent))->pr_texture;
     }
     else if (parent && (GS(parent->name) == ID_LS)) {
-      pr_texture = &((FreestyleLineStyle *)parent)->pr_texture;
+      pr_texture = &(id_cast<FreestyleLineStyle *>(parent))->pr_texture;
     }
 
     if (pr_texture) {
@@ -99,7 +101,7 @@ void uiTemplatePreview(blender::ui::Layout *layout,
       BLI_findstring(&region->ui_previews, preview_id, offsetof(uiPreview, preview_id)));
 
   if (!ui_preview) {
-    ui_preview = MEM_callocN<uiPreview>(__func__);
+    ui_preview = MEM_new_for_free<uiPreview>(__func__);
     STRNCPY_UTF8(ui_preview->preview_id, preview_id);
     ui_preview->height = short(UI_UNIT_Y * 7.6f);
     ui_preview->id_session_uid = pid->session_uid;
@@ -119,20 +121,21 @@ void uiTemplatePreview(blender::ui::Layout *layout,
   }
 
   /* layout */
-  uiBlock *block = layout->block();
-  blender::ui::Layout *row = &layout->row(false);
-  blender::ui::Layout *col = &row->column(false);
+  Block *block = layout->block();
+  Layout *row = &layout->row(false);
+  Layout *col = &row->column(false);
 
   /* add preview */
-  uiDefBut(block, ButType::Extra, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");
-  UI_but_func_drawextra_set(block,
+  uiDefBut(
+      block, ButtonType::Extra, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");
+  button_func_drawextra_set(block,
                             [pid, pparent, slot, ui_preview](const bContext *C, rcti *rect) {
                               ED_preview_draw(C, pid, pparent, slot, ui_preview, rect);
                             });
-  UI_block_func_handle_set(block, do_preview_buttons, nullptr);
+  block_func_handle_set(block, do_preview_buttons, nullptr);
 
   uiDefIconButS(block,
-                ButType::Grip,
+                ButtonType::Grip,
                 ICON_GRIP,
                 0,
                 0,
@@ -147,10 +150,10 @@ void uiTemplatePreview(blender::ui::Layout *layout,
   if (pid && show_buttons) {
     if (GS(pid->name) == ID_MA || (pparent && GS(pparent->name) == ID_MA)) {
       if (GS(pid->name) == ID_MA) {
-        ma = (Material *)pid;
+        ma = id_cast<Material *>(pid);
       }
       else {
-        ma = (Material *)pparent;
+        ma = id_cast<Material *>(pparent);
       }
 
       /* Create RNA Pointer */
@@ -158,7 +161,7 @@ void uiTemplatePreview(blender::ui::Layout *layout,
 
       col = &row->column(true);
       col->scale_x_set(1.5);
-      col->prop(&material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NONE);
+      col->prop(&material_ptr, "preview_render_type", ITEM_R_EXPAND, "", ICON_NONE);
 
       /* EEVEE preview file has baked lighting so use_preview_world has no effect,
        * just hide the option until this feature is supported. */
@@ -173,21 +176,21 @@ void uiTemplatePreview(blender::ui::Layout *layout,
       PointerRNA texture_ptr = RNA_id_pointer_create(id);
 
       layout->row(true);
-      uiBut *but = uiDefButS(block,
-                             ButType::Row,
-                             IFACE_("Texture"),
-                             0,
-                             0,
-                             UI_UNIT_X * 10,
-                             UI_UNIT_Y,
-                             pr_texture,
-                             10,
-                             TEX_PR_TEXTURE,
-                             "");
-      UI_but_retval_set(but, B_MATPRV);
+      Button *but = uiDefButS(block,
+                              ButtonType::Row,
+                              IFACE_("Texture"),
+                              0,
+                              0,
+                              UI_UNIT_X * 10,
+                              UI_UNIT_Y,
+                              pr_texture,
+                              10,
+                              TEX_PR_TEXTURE,
+                              "");
+      button_retval_set(but, B_MATPRV);
       if (GS(parent->name) == ID_MA) {
         but = uiDefButS(block,
-                        ButType::Row,
+                        ButtonType::Row,
                         IFACE_("Material"),
                         0,
                         0,
@@ -197,11 +200,11 @@ void uiTemplatePreview(blender::ui::Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        UI_but_retval_set(but, B_MATPRV);
+        button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_LA) {
         but = uiDefButS(block,
-                        ButType::Row,
+                        ButtonType::Row,
                         CTX_IFACE_(BLT_I18NCONTEXT_ID_LIGHT, "Light"),
                         0,
                         0,
@@ -211,11 +214,11 @@ void uiTemplatePreview(blender::ui::Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        UI_but_retval_set(but, B_MATPRV);
+        button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_WO) {
         but = uiDefButS(block,
-                        ButType::Row,
+                        ButtonType::Row,
                         CTX_IFACE_(BLT_I18NCONTEXT_ID_WORLD, "World"),
                         0,
                         0,
@@ -225,11 +228,11 @@ void uiTemplatePreview(blender::ui::Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        UI_but_retval_set(but, B_MATPRV);
+        button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_LS) {
         but = uiDefButS(block,
-                        ButType::Row,
+                        ButtonType::Row,
                         IFACE_("Line Style"),
                         0,
                         0,
@@ -239,10 +242,10 @@ void uiTemplatePreview(blender::ui::Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        UI_but_retval_set(but, B_MATPRV);
+        button_retval_set(but, B_MATPRV);
       }
       but = uiDefButS(block,
-                      ButType::Row,
+                      ButtonType::Row,
                       IFACE_("Both"),
                       0,
                       0,
@@ -252,7 +255,7 @@ void uiTemplatePreview(blender::ui::Layout *layout,
                       10,
                       TEX_PR_BOTH,
                       "");
-      UI_but_retval_set(but, B_MATPRV);
+      button_retval_set(but, B_MATPRV);
 
       /* Alpha button for texture preview */
       if (*pr_texture != TEX_PR_OTHER) {
@@ -262,3 +265,5 @@ void uiTemplatePreview(blender::ui::Layout *layout,
     }
   }
 }
+
+}  // namespace blender::ui

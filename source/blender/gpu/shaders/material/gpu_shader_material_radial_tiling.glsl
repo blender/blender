@@ -15,6 +15,7 @@
 /* Undefine macro flags used for code adaption. */
 /* No macro flags necessary, as code is adapted to GLSL by default. */
 
+[[node]]
 void node_radial_tiling(float2 coord,
                         float r_gon_sides,
                         float r_gon_roundness,
@@ -23,10 +24,10 @@ void node_radial_tiling(float2 coord,
                         float calculate_segment_id,
                         float calculate_max_unit_parameter,
                         float calculate_x_axis_A_angle_bisector,
-                        out float3 out_segment_coordinates,
-                        out float out_segment_id,
-                        out float out_max_unit_parameter,
-                        out float out_x_axis_A_angle_bisector)
+                        float3 &out_segment_coordinates,
+                        float &out_segment_id,
+                        float &out_max_unit_parameter,
+                        float &out_x_axis_A_angle_bisector)
 {
   if (bool(calculate_r_gon_parameter_field) || bool(calculate_max_unit_parameter) ||
       bool(calculate_x_axis_A_angle_bisector))

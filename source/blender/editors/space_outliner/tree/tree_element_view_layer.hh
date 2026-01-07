@@ -10,10 +10,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct Scene;
 struct ViewLayer;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementViewLayerBase final : public AbstractTreeElement {
   Scene &scene_;
@@ -33,4 +35,5 @@ class TreeElementViewLayer final : public AbstractTreeElement {
   TreeElementViewLayer(TreeElement &legacy_te, Scene &scene, ViewLayer &view_layer);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

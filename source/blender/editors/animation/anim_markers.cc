@@ -59,11 +59,13 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Marker API
  * \{ */
 
-ListBase *ED_scene_markers_get(const bContext *C, Scene *scene)
+ListBaseT<TimeMarker> *ED_scene_markers_get(const bContext *C, Scene *scene)
 {
   if (!scene) {
     return nullptr;
@@ -76,7 +78,9 @@ ListBase *ED_scene_markers_get(const bContext *C, Scene *scene)
   return ac.markers;
 }
 
-ListBase *ED_scene_markers_get_from_area(Scene *scene, ViewLayer *view_layer, const ScrArea *area)
+ListBaseT<TimeMarker> *ED_scene_markers_get_from_area(Scene *scene,
+                                                      ViewLayer *view_layer,
+                                                      const ScrArea *area)
 {
   if (!scene) {
     return nullptr;
@@ -100,12 +104,12 @@ ListBase *ED_scene_markers_get_from_area(Scene *scene, ViewLayer *view_layer, co
 
 /* ............. */
 
-ListBase *ED_context_get_markers(const bContext *C)
+ListBaseT<TimeMarker> *ED_context_get_markers(const bContext *C)
 {
   return ED_scene_markers_get(C, CTX_data_scene(C));
 }
 
-ListBase *ED_sequencer_context_get_markers(const bContext *C)
+ListBaseT<TimeMarker> *ED_sequencer_context_get_markers(const bContext *C)
 {
   return ED_scene_markers_get(C, CTX_data_sequencer_scene(C));
 }
@@ -113,7 +117,7 @@ ListBase *ED_sequencer_context_get_markers(const bContext *C)
 /* --------------------------------- */
 
 int ED_markers_post_apply_transform(
-    ListBase *markers, Scene *scene, int mode, float value, char side)
+    ListBaseT<TimeMarker> *markers, Scene *scene, int mode, float value, char side)
 {
   float cfra = float(scene->r.cfra);
   int changed_tot = 0;
@@ -124,23 +128,23 @@ int ED_markers_post_apply_transform(
   }
 
   /* affect selected markers - it's unlikely that we will want to affect all in this way? */
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if (marker->flag & SELECT) {
+  for (TimeMarker &marker : *markers) {
+    if (marker.flag & SELECT) {
       switch (mode) {
-        case blender::ed::transform::TFM_TIME_TRANSLATE:
-        case blender::ed::transform::TFM_TIME_EXTEND: {
+        case ed::transform::TFM_TIME_TRANSLATE:
+        case ed::transform::TFM_TIME_EXTEND: {
           /* apply delta if marker is on the right side of the current frame */
-          if ((side == 'B') || (side == 'L' && marker->frame < cfra) ||
-              (side == 'R' && marker->frame >= cfra))
+          if ((side == 'B') || (side == 'L' && marker.frame < cfra) ||
+              (side == 'R' && marker.frame >= cfra))
           {
-            marker->frame += round_fl_to_int(value);
+            marker.frame += round_fl_to_int(value);
             changed_tot++;
           }
           break;
         }
-        case blender::ed::transform::TFM_TIME_SCALE: {
+        case ed::transform::TFM_TIME_SCALE: {
           /* rescale the distance between the marker and the current frame */
-          marker->frame = cfra + round_fl_to_int(float(marker->frame - cfra) * value);
+          marker.frame = cfra + round_fl_to_int(float(marker.frame - cfra) * value);
           changed_tot++;
           break;
         }
@@ -153,7 +157,7 @@ int ED_markers_post_apply_transform(
 
 /* --------------------------------- */
 
-TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, const float frame)
+TimeMarker *ED_markers_find_nearest_marker(ListBaseT<TimeMarker> *markers, const float frame)
 {
   if (markers == nullptr || BLI_listbase_is_empty(markers)) {
     return nullptr;
@@ -175,13 +179,16 @@ TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, const float frame)
   return nearest;
 }
 
-int ED_markers_find_nearest_marker_time(ListBase *markers, float x)
+int ED_markers_find_nearest_marker_time(ListBaseT<TimeMarker> *markers, float x)
 {
   TimeMarker *nearest = ED_markers_find_nearest_marker(markers, x);
   return (nearest) ? (nearest->frame) : round_fl_to_int(x);
 }
 
-void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *r_last)
+void ED_markers_get_minmax(ListBaseT<TimeMarker> *markers,
+                           short sel,
+                           float *r_first,
+                           float *r_last)
 {
   float min, max;
 
@@ -195,13 +202,13 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *
 
   min = FLT_MAX;
   max = -FLT_MAX;
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if (!sel || (marker->flag & SELECT)) {
-      if (marker->frame < min) {
-        min = float(marker->frame);
+  for (TimeMarker &marker : *markers) {
+    if (!sel || (marker.flag & SELECT)) {
+      if (marker.frame < min) {
+        min = float(marker.frame);
       }
-      if (marker->frame > max) {
-        max = float(marker->frame);
+      if (marker.frame > max) {
+        max = float(marker.frame);
       }
     }
   }
@@ -256,16 +263,16 @@ static bool operator_markers_region_active(bContext *C)
 }
 
 static TimeMarker *region_position_is_over_marker(const View2D *v2d,
-                                                  ListBase *markers,
+                                                  ListBaseT<TimeMarker> *markers,
                                                   float region_x)
 {
   if (markers == nullptr || BLI_listbase_is_empty(markers)) {
     return nullptr;
   }
 
-  float frame_at_position = UI_view2d_region_to_view_x(v2d, region_x);
+  float frame_at_position = ui::view2d_region_to_view_x(v2d, region_x);
   TimeMarker *nearest_marker = ED_markers_find_nearest_marker(markers, frame_at_position);
-  float pixel_distance = UI_view2d_scale_get_x(v2d) *
+  float pixel_distance = ui::view2d_scale_get_x(v2d) *
                          fabsf(nearest_marker->frame - frame_at_position);
 
   if (pixel_distance <= UI_ICON_SIZE) {
@@ -277,7 +284,9 @@ static TimeMarker *region_position_is_over_marker(const View2D *v2d,
 /* --------------------------------- */
 
 /** Adds a marker to list of `cfra` elements. */
-static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, const bool only_selected)
+static void add_marker_to_cfra_elem(ListBaseT<CfraElem> *lb,
+                                    TimeMarker *marker,
+                                    const bool only_selected)
 {
   CfraElem *ce, *cen;
 
@@ -312,7 +321,9 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, const bool
   cen->sel = marker->flag;
 }
 
-void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, const bool only_selected)
+void ED_markers_make_cfra_list(ListBaseT<TimeMarker> *markers,
+                               ListBaseT<CfraElem> *lb,
+                               const bool only_selected)
 {
   if (lb) {
     /* Clear the list first, since callers have no way of knowing
@@ -329,26 +340,26 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, const bool only_
     return;
   }
 
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    add_marker_to_cfra_elem(lb, marker, only_selected);
+  for (TimeMarker &marker : *markers) {
+    add_marker_to_cfra_elem(lb, &marker, only_selected);
   }
 }
 
-void ED_markers_deselect_all(ListBase *markers, int action)
+void ED_markers_deselect_all(ListBaseT<TimeMarker> *markers, int action)
 {
   if (action == SEL_TOGGLE) {
     action = ED_markers_get_first_selected(markers) ? SEL_DESELECT : SEL_SELECT;
   }
 
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
+  for (TimeMarker &marker : *markers) {
     if (action == SEL_SELECT) {
-      marker->flag |= SELECT;
+      marker.flag |= SELECT;
     }
     else if (action == SEL_DESELECT) {
-      marker->flag &= ~SELECT;
+      marker.flag &= ~SELECT;
     }
     else if (action == SEL_INVERT) {
-      marker->flag ^= SELECT;
+      marker.flag ^= SELECT;
     }
     else {
       BLI_assert(0);
@@ -358,12 +369,12 @@ void ED_markers_deselect_all(ListBase *markers, int action)
 
 /* --------------------------------- */
 
-TimeMarker *ED_markers_get_first_selected(ListBase *markers)
+TimeMarker *ED_markers_get_first_selected(ListBaseT<TimeMarker> *markers)
 {
   if (markers) {
-    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-      if (marker->flag & SELECT) {
-        return marker;
+    for (TimeMarker &marker : *markers) {
+      if (marker.flag & SELECT) {
+        return &marker;
       }
     }
   }
@@ -420,7 +431,7 @@ bool ED_markers_region_visible(const ScrArea *area, const ARegion *region)
 
 /* --------------------------------- */
 
-void debug_markers_print_list(ListBase *markers)
+void debug_markers_print_list(ListBaseT<TimeMarker> *markers)
 {
   /* NOTE: do NOT make static or use `ifdef`'s as "unused code".
    * That's too much trouble when we need to use for quick debugging! */
@@ -431,9 +442,12 @@ void debug_markers_print_list(ListBase *markers)
 
   printf("List of markers follows: -----\n");
 
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    printf(
-        "\t'%s' on %d at %p with %u\n", marker->name, marker->frame, (void *)marker, marker->flag);
+  for (TimeMarker &marker : *markers) {
+    printf("\t'%s' on %d at %p with %u\n",
+           marker.name,
+           marker.frame,
+           static_cast<void *>(&marker),
+           marker.flag);
   }
 
   printf("End of list ------------------\n");
@@ -448,12 +462,12 @@ void debug_markers_print_list(ListBase *markers)
 static void marker_color_get(const TimeMarker *marker, uchar *r_text_color, uchar *r_line_color)
 {
   if (marker->flag & SELECT) {
-    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE_SELECTED, r_text_color);
-    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE_SELECTED, r_line_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_text_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_line_color);
   }
   else {
-    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE, r_text_color);
-    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE, r_line_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_text_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_line_color);
   }
 }
 
@@ -478,8 +492,8 @@ static void draw_marker_name(const uchar *text_color,
   }
 
   const int icon_half_width = UI_ICON_SIZE * 0.6;
-  uiFontStyleDraw_Params fs_params{};
-  fs_params.align = UI_STYLE_TEXT_LEFT;
+  ui::FontStyleDrawParams fs_params{};
+  fs_params.align = ui::UI_STYLE_TEXT_LEFT;
   fs_params.word_wrap = 0;
 
   rcti rect{};
@@ -488,13 +502,13 @@ static void draw_marker_name(const uchar *text_color,
   rect.ymin = text_y;
   rect.ymax = text_y;
 
-  UI_fontstyle_draw(fstyle, &rect, name, strlen(name), final_text_color, &fs_params);
+  fontstyle_draw(fstyle, &rect, name, strlen(name), final_text_color, &fs_params);
 }
 
 static void draw_marker_line(const uchar *color, int xpos, int ymin, int ymax)
 {
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -540,46 +554,48 @@ static void draw_marker(const uiFontStyle *fstyle,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  draw_marker_line(line_color, xpos, UI_SCALE_FAC * 28, region_height);
+  draw_marker_line(line_color, xpos, UI_SCALE_FAC * 22, region_height);
 
   int icon_id = marker_get_icon_id(marker, flag);
 
   uchar marker_color[4];
   if (marker->flag & SELECT) {
-    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE_SELECTED, marker_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, marker_color);
   }
   else {
-    UI_GetThemeColor4ubv(TH_TIME_MARKER_LINE, marker_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, marker_color);
   }
 
-  UI_icon_draw_ex(xpos - (0.5f * UI_ICON_SIZE) - (0.5f * U.pixelsize),
-                  UI_SCALE_FAC * 18,
-                  icon_id,
-                  UI_INV_SCALE_FAC,
-                  1.0f,
-                  0.0f,
-                  marker_color,
-                  false,
-                  UI_NO_ICON_OVERLAY_TEXT);
+  constexpr int marker_y = 10;
+
+  ui::icon_draw_ex(xpos - (0.5f * UI_ICON_SIZE) - (0.5f * U.pixelsize),
+                   UI_SCALE_FAC * marker_y,
+                   icon_id,
+                   UI_INV_SCALE_FAC,
+                   1.0f,
+                   0.0f,
+                   marker_color,
+                   false,
+                   UI_NO_ICON_OVERLAY_TEXT);
 
   GPU_blend(GPU_BLEND_NONE);
 
-  float name_y = UI_SCALE_FAC * 18;
+  /* Adding an offset because the text is drawn downwards, but the icon is drawn upwards. */
+  float name_y = UI_SCALE_FAC * (marker_y + 5);
   /* Give an offset to the marker that is elevated. */
   if (is_elevated) {
-    name_y += UI_SCALE_FAC * 10;
+    name_y += UI_SCALE_FAC * 6;
   }
   draw_marker_name(text_color, fstyle, marker, xpos, xmax, name_y);
 }
 
 static void draw_markers_background(const rctf *rect)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   uchar shade[4];
-  UI_GetThemeColor4ubv(TH_TIME_SCRUB_BACKGROUND, shade);
+  ui::theme::get_color_4ubv(TH_TIME_SCRUB_BACKGROUND, shade);
 
   immUniformColor4ubv(shade);
 
@@ -629,14 +645,14 @@ static int markers_frame_sort(const void *a, const void *b)
 void ED_markers_draw(const bContext *C, int flag)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   if (markers == nullptr || BLI_listbase_is_empty(markers)) {
     return;
   }
 
   ARegion *region = CTX_wm_region(C);
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
   int cfra = CTX_data_scene(C)->r.cfra;
 
   GPU_line_width(1.0f);
@@ -648,7 +664,7 @@ void ED_markers_draw(const bContext *C, int flag)
 
   /* no time correction for framelen! space is drawn with old values */
   float xscale, dummy;
-  UI_view2d_scale_get(v2d, &xscale, &dummy);
+  ui::view2d_scale_get(v2d, &xscale, &dummy);
   GPU_matrix_push();
   GPU_matrix_scale_2f(1.0f / xscale, 1.0f);
 
@@ -658,7 +674,7 @@ void ED_markers_draw(const bContext *C, int flag)
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
   /* Markers are not stored by frame order, so we need to sort it here. */
-  ListBase sorted_markers;
+  ListBaseT<TimeMarker> sorted_markers;
 
   BLI_duplicatelist(&sorted_markers, markers);
   BLI_listbase_sort(&sorted_markers, markers_frame_sort);
@@ -668,11 +684,11 @@ void ED_markers_draw(const bContext *C, int flag)
    * This bit will be flipped back at the end of this function.
    */
   const int ELEVATED = 0x10;
-  LISTBASE_FOREACH (TimeMarker *, marker, &sorted_markers) {
-    const bool is_elevated = (marker->flag & SELECT) ||
-                             (cfra >= marker->frame &&
-                              (marker->next == nullptr || cfra < marker->next->frame));
-    SET_FLAG_FROM_TEST(marker->flag, is_elevated, ELEVATED);
+  for (TimeMarker &marker : sorted_markers) {
+    const bool is_elevated = (marker.flag & SELECT) ||
+                             (cfra >= marker.frame &&
+                              (marker.next == nullptr || cfra < marker.next->frame));
+    SET_FLAG_FROM_TEST(marker.flag, is_elevated, ELEVATED);
   }
 
   /* Separate loops in order to draw selected markers on top. */
@@ -683,11 +699,11 @@ void ED_markers_draw(const bContext *C, int flag)
    * proceeding marker. This is done because otherwise, the text overlaps with the icon of the
    * marker itself.
    */
-  LISTBASE_FOREACH (TimeMarker *, marker, &sorted_markers) {
-    if ((marker->flag & ELEVATED) == 0 && marker_is_in_frame_range(marker, clip_frame_range)) {
-      const int xmax = marker->next ? marker->next->frame : clip_frame_range[1] + 1;
+  for (TimeMarker &marker : sorted_markers) {
+    if ((marker.flag & ELEVATED) == 0 && marker_is_in_frame_range(&marker, clip_frame_range)) {
+      const int xmax = marker.next ? marker.next->frame : clip_frame_range[1] + 1;
       draw_marker(
-          fstyle, marker, marker->frame * xscale, xmax * xscale, flag, region->winy, false);
+          fstyle, &marker, marker.frame * xscale, xmax * xscale, flag, region->winy, false);
     }
   }
 
@@ -714,8 +730,8 @@ void ED_markers_draw(const bContext *C, int flag)
   }
 
   /* Reset the elevated flag. */
-  LISTBASE_FOREACH (TimeMarker *, marker, &sorted_markers) {
-    marker->flag &= ~ELEVATED;
+  for (TimeMarker &marker : sorted_markers) {
+    marker.flag &= ~ELEVATED;
   }
 
   BLI_freelistN(&sorted_markers);
@@ -739,8 +755,8 @@ void ED_markers_draw(const bContext *C, int flag)
 static bool ed_markers_poll_selected_markers(bContext *C)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
 
   if (!operator_markers_region_active(C)) {
     return false;
@@ -758,8 +774,8 @@ static bool ed_markers_poll_selected_markers(bContext *C)
 static bool ed_markers_poll_selected_no_locked_markers(bContext *C)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
   if (!operator_markers_region_active(C)) {
@@ -784,8 +800,8 @@ static bool ed_markers_poll_selected_no_locked_markers(bContext *C)
 static bool ed_markers_poll_markers_exist(bContext *C)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
   if (ts->lock_markers || !operator_markers_region_active(C)) {
@@ -823,8 +839,8 @@ static wmOperatorStatus ed_marker_add_exec(bContext *C, wmOperator * /*op*/)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
   Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
 
   if (markers == nullptr || scene == nullptr) {
     return OPERATOR_CANCELLED;
@@ -834,18 +850,18 @@ static wmOperatorStatus ed_marker_add_exec(bContext *C, wmOperator * /*op*/)
 
   /* prefer not having 2 markers at the same place,
    * though the user can move them to overlap once added */
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if (marker->frame == frame) {
+  for (TimeMarker &marker : *markers) {
+    if (marker.frame == frame) {
       return OPERATOR_CANCELLED;
     }
   }
 
   /* deselect all */
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    marker->flag &= ~SELECT;
+  for (TimeMarker &marker : *markers) {
+    marker.flag &= ~SELECT;
   }
 
-  TimeMarker *marker = MEM_callocN<TimeMarker>("TimeMarker");
+  TimeMarker *marker = MEM_new_for_free<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
   SNPRINTF_UTF8(marker->name, "F_%02d", frame);
@@ -902,7 +918,7 @@ static void MARKER_OT_add(wmOperatorType *ot)
 
 struct MarkerMove {
   SpaceLink *slink;
-  ListBase *markers;
+  ListBaseT<TimeMarker> *markers;
   short event_type, event_val; /* store invoke-event, to verify */
   int *oldframe, evtx, firstx;
   NumInput num;
@@ -978,8 +994,8 @@ static bool ed_marker_move_init(bContext *C, wmOperator *op)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
   Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   MarkerMove *mm;
   TimeMarker *marker;
   int a, totmark;
@@ -1045,8 +1061,8 @@ static wmOperatorStatus ed_marker_move_invoke(bContext *C, wmOperator *op, const
     ARegion *region = CTX_wm_region(C);
     View2D *v2d = &region->v2d;
     const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-    ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                       ED_context_get_markers(C);
+    ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                    ED_context_get_markers(C);
     if (!region_position_is_over_marker(v2d, markers, event->xy[0] - region->winrct.xmin)) {
       return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
     }
@@ -1120,7 +1136,7 @@ static wmOperatorStatus ed_marker_move_modal(bContext *C, wmOperator *op, const 
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
   Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   MarkerMove *mm = static_cast<MarkerMove *>(op->customdata);
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
   const bool has_numinput = hasNumInput(&mm->num);
   const bool use_time = ed_marker_move_use_time(mm);
 
@@ -1271,8 +1287,8 @@ static void MARKER_OT_move(wmOperatorType *ot)
 static void ed_marker_duplicate_apply(bContext *C)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   if (markers == nullptr) {
     return;
   }
@@ -1280,20 +1296,20 @@ static void ed_marker_duplicate_apply(bContext *C)
   /* go through the list of markers, duplicate selected markers and add duplicated copies
    * to the beginning of the list (unselect original markers)
    */
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if (marker->flag & SELECT) {
+  for (TimeMarker &marker : *markers) {
+    if (marker.flag & SELECT) {
       /* unselect selected marker */
-      marker->flag &= ~SELECT;
+      marker.flag &= ~SELECT;
 
       /* create and set up new marker */
-      TimeMarker *newmarker = MEM_callocN<TimeMarker>("TimeMarker");
+      TimeMarker *newmarker = MEM_new_for_free<TimeMarker>("TimeMarker");
       newmarker->flag = SELECT;
-      newmarker->frame = marker->frame;
-      STRNCPY_UTF8(newmarker->name, marker->name);
-      newmarker->camera = marker->camera;
+      newmarker->frame = marker.frame;
+      STRNCPY_UTF8(newmarker->name, marker.name);
+      newmarker->camera = marker.camera;
 
-      if (marker->prop != nullptr) {
-        newmarker->prop = IDP_CopyProperty(marker->prop);
+      if (marker.prop != nullptr) {
+        newmarker->prop = IDP_CopyProperty(marker.prop);
       }
 
       /* new marker is added to the beginning of list */
@@ -1348,15 +1364,15 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
  * Select/de-select time-marker at the current frame.
  * \{ */
 
-static void deselect_markers(ListBase *markers)
+static void deselect_markers(ListBaseT<TimeMarker> *markers)
 {
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    marker->flag &= ~SELECT;
+  for (TimeMarker &marker : *markers) {
+    marker.flag &= ~SELECT;
   }
 }
 
 static void select_marker_camera_switch(
-    bContext *C, bool camera, bool extend, ListBase *markers, int cfra)
+    bContext *C, bool camera, bool extend, ListBaseT<TimeMarker> *markers, int cfra)
 {
   using namespace blender::ed;
   if (camera) {
@@ -1373,19 +1389,19 @@ static void select_marker_camera_switch(
       BKE_view_layer_base_deselect_all(scene, view_layer);
     }
 
-    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-      if (marker->frame == cfra && marker->camera) {
-        sel = (marker->flag & SELECT);
+    for (TimeMarker &marker : *markers) {
+      if (marker.frame == cfra && marker.camera) {
+        sel = (marker.flag & SELECT);
         break;
       }
     }
 
     BKE_view_layer_synced_ensure(scene, view_layer);
 
-    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-      if (marker->camera) {
-        if (marker->frame == cfra) {
-          base = BKE_view_layer_base_find(view_layer, marker->camera);
+    for (TimeMarker &marker : *markers) {
+      if (marker.camera) {
+        if (marker.frame == cfra) {
+          base = BKE_view_layer_base_find(view_layer, marker.camera);
           if (base) {
             object::base_select(base, object::eObjectSelect_Mode(sel));
             if (!extend) {
@@ -1417,13 +1433,13 @@ static wmOperatorStatus ed_marker_select(bContext *C,
    * selection can use identical checks to dope-sheet selection. */
 
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
 
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::view2d_fromcontext(C);
   wmOperatorStatus ret_val = OPERATOR_FINISHED;
   TimeMarker *nearest_marker = region_position_is_over_marker(v2d, markers, mval[0]);
-  const float frame_at_mouse_position = UI_view2d_region_to_view_x(v2d, mval[0]);
+  const float frame_at_mouse_position = ui::view2d_region_to_view_x(v2d, mval[0]);
   const int cfra = ED_markers_find_nearest_marker_time(markers, frame_at_mouse_position);
   const bool found = (nearest_marker != nullptr);
   const bool is_selected = (nearest_marker && nearest_marker->flag & SELECT);
@@ -1449,11 +1465,11 @@ static wmOperatorStatus ed_marker_select(bContext *C,
     TimeMarker *marker_found = nullptr;
 
     /* Support for selection cycling. */
-    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-      if (marker->frame == cfra) {
-        if (marker->flag & SELECT) {
-          marker_cycle_selected = static_cast<TimeMarker *>(marker->next ? marker->next :
-                                                                           markers->first);
+    for (TimeMarker &marker : *markers) {
+      if (marker.frame == cfra) {
+        if (marker.flag & SELECT) {
+          marker_cycle_selected = static_cast<TimeMarker *>(marker.next ? marker.next :
+                                                                          markers->first);
           break;
         }
       }
@@ -1574,8 +1590,8 @@ static wmOperatorStatus ed_marker_box_select_invoke(bContext *C,
   View2D *v2d = &region->v2d;
 
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   bool over_marker = region_position_is_over_marker(
                          v2d, markers, event->xy[0] - region->winrct.xmin) != nullptr;
 
@@ -1589,14 +1605,14 @@ static wmOperatorStatus ed_marker_box_select_invoke(bContext *C,
 
 static wmOperatorStatus ed_marker_box_select_exec(bContext *C, wmOperator *op)
 {
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   rctf rect;
 
   WM_operator_properties_border_to_rctf(op, &rect);
-  UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
+  ui::view2d_region_to_view_rctf(v2d, &rect, &rect);
 
   if (markers == nullptr) {
     return OPERATOR_CANCELLED;
@@ -1608,9 +1624,9 @@ static wmOperatorStatus ed_marker_box_select_exec(bContext *C, wmOperator *op)
     ED_markers_deselect_all(markers, SEL_DESELECT);
   }
 
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if (BLI_rctf_isect_x(&rect, marker->frame)) {
-      SET_FLAG_FROM_TEST(marker->flag, select, SELECT);
+  for (TimeMarker &marker : *markers) {
+    if (BLI_rctf_isect_x(&rect, marker.frame)) {
+      SET_FLAG_FROM_TEST(marker.flag, select, SELECT);
     }
   }
 
@@ -1656,8 +1672,8 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
 static wmOperatorStatus ed_marker_select_all_exec(bContext *C, wmOperator *op)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   if (markers == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -1710,7 +1726,7 @@ static void markers_select_leftright(bAnimContext *ac,
                                      const eMarkers_LeftRightSelect_Mode mode,
                                      const bool extend)
 {
-  ListBase *markers = ac->markers;
+  ListBaseT<TimeMarker> *markers = ac->markers;
   Scene *scene = ac->scene;
 
   if (markers == nullptr) {
@@ -1721,11 +1737,11 @@ static void markers_select_leftright(bAnimContext *ac,
     deselect_markers(markers);
   }
 
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if ((mode == MARKERS_LRSEL_LEFT && marker->frame <= scene->r.cfra) ||
-        (mode == MARKERS_LRSEL_RIGHT && marker->frame >= scene->r.cfra))
+  for (TimeMarker &marker : *markers) {
+    if ((mode == MARKERS_LRSEL_LEFT && marker.frame <= scene->r.cfra) ||
+        (mode == MARKERS_LRSEL_RIGHT && marker.frame >= scene->r.cfra))
     {
-      marker->flag |= SELECT;
+      marker.flag |= SELECT;
     }
   }
 }
@@ -1780,8 +1796,8 @@ static wmOperatorStatus ed_marker_delete_exec(bContext *C, wmOperator * /*op*/)
 
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   TimeMarker *marker, *nmarker;
   bool changed = false;
 
@@ -1819,7 +1835,7 @@ static wmOperatorStatus ed_marker_delete_invoke(bContext *C,
                                   IFACE_("Delete selected markers?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  blender::ui::AlertIcon::None,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return ed_marker_delete_exec(C, op);
@@ -1853,8 +1869,8 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 static wmOperatorStatus ed_marker_rename_exec(bContext *C, wmOperator *op)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   TimeMarker *marker = ED_markers_get_first_selected(markers);
 
   if (marker) {
@@ -1872,8 +1888,8 @@ static wmOperatorStatus ed_marker_rename_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus ed_marker_rename_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   /* must initialize the marker name first if there is a marker selected */
   TimeMarker *marker = ED_markers_get_first_selected(markers);
   if (marker) {
@@ -1921,8 +1937,8 @@ static wmOperatorStatus ed_marker_make_links_scene_exec(bContext *C, wmOperator 
 {
   Main *bmain = CTX_data_main(C);
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   Scene *scene_to = static_cast<Scene *>(
       BLI_findlink(&bmain->scenes, RNA_enum_get(op->ptr, "scene")));
   TimeMarker *marker_new;
@@ -1943,9 +1959,9 @@ static wmOperatorStatus ed_marker_make_links_scene_exec(bContext *C, wmOperator 
   }
 
   /* copy markers */
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if (marker->flag & SELECT) {
-      marker_new = static_cast<TimeMarker *>(MEM_dupallocN(marker));
+  for (TimeMarker &marker : *markers) {
+    if (marker.flag & SELECT) {
+      marker_new = static_cast<TimeMarker *>(MEM_dupallocN(&marker));
       marker_new->prev = marker_new->next = nullptr;
 
       BLI_addtail(&scene_to->markers, marker_new);
@@ -1993,8 +2009,8 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
-  ListBase *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
-                                     ED_context_get_markers(C);
+  ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
+                                                  ED_context_get_markers(C);
   Object *ob = CTX_data_active_object(C);
   TimeMarker *marker;
 
@@ -2011,7 +2027,7 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 
   marker = ED_markers_find_nearest_marker(markers, scene->r.cfra);
   if ((marker == nullptr) || (marker->frame != scene->r.cfra)) {
-    marker = MEM_callocN<TimeMarker>("Camera TimeMarker");
+    marker = MEM_new_for_free<TimeMarker>("Camera TimeMarker");
     /* This marker's name is only displayed in the viewport statistics, animation editors use the
      * camera's name when bound to a marker. */
     SNPRINTF_UTF8(marker->name, "F_%02d", scene->r.cfra);
@@ -2020,9 +2036,9 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
     BLI_addtail(markers, marker);
 
     /* deselect all others, so that the user can then move it without problems */
-    LISTBASE_FOREACH (TimeMarker *, m, markers) {
-      if (m != marker) {
-        m->flag &= ~SELECT;
+    for (TimeMarker &m : *markers) {
+      if (&m != marker) {
+        m.flag &= ~SELECT;
       }
     }
   }
@@ -2084,3 +2100,5 @@ void ED_keymap_marker(wmKeyConfig *keyconf)
 }
 
 /** \} */
+
+}  // namespace blender

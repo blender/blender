@@ -10,12 +10,16 @@
 
 #include "deg_builder_cache.h"
 
+#include "BLI_set.hh"
+
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct Scene;
 struct ViewLayer;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 class DepsgraphNodeBuilder;
@@ -31,7 +35,7 @@ class DepsgraphRelationBuilder;
  */
 class AbstractBuilderPipeline {
  public:
-  AbstractBuilderPipeline(::Depsgraph *graph);
+  AbstractBuilderPipeline(blender::Depsgraph *graph);
   virtual ~AbstractBuilderPipeline() = default;
 
   void build();
@@ -53,6 +57,10 @@ class AbstractBuilderPipeline {
 
   virtual void build_nodes(DepsgraphNodeBuilder &node_builder) = 0;
   virtual void build_relations(DepsgraphRelationBuilder &relation_builder) = 0;
+
+  Set<const ID *> ids_build_by_node_builder_;
+  Set<const ID *> ids_build_by_relations_builder_;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

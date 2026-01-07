@@ -8,6 +8,10 @@
 
 #include "gpu_query.hh"
 
+namespace blender {
+
 using namespace blender::gpu;
 
 /* TODO(fclem): Make the associated C-API to use inside DRW profiler. */
+
+}  // namespace blender

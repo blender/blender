@@ -10,12 +10,14 @@
 
 #include "draw_curves_private.hh"
 #include "draw_pass.hh"
+struct ParticleHairCache;
+namespace blender {
 
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
 }
 
-namespace blender::draw {
+namespace draw {
 
 struct CurvesEvalCache;
 
@@ -126,7 +128,7 @@ struct CurvesModule {
   void dispatch(int curve_count, PassSimple::Sub &pass);
 };
 
-}  // namespace blender::draw
+}  // namespace draw
 
 #define MAX_LAYER_NAME_CT 4 /* `u0123456789, u, au, a0123456789`. */
 #define MAX_LAYER_NAME_LEN (GPU_MAX_SAFE_ATTR_NAME + 2)
@@ -140,10 +142,9 @@ enum ParticleRefineShader {
 
 struct ModifierData;
 struct Object;
-struct ParticleHairCache;
 struct ParticleSystem;
 
-namespace blender::draw {
+namespace draw {
 
 void drw_particle_update_ptcache(Object *object_eval, ParticleSystem *psys);
 ParticleDrawSource drw_particle_get_hair_source(Object *object,
@@ -154,4 +155,5 @@ ParticleDrawSource drw_particle_get_hair_source(Object *object,
 
 CurvesEvalCache &hair_particle_get_eval_cache(ParticleDrawSource &src);
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

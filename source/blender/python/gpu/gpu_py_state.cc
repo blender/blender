@@ -23,6 +23,8 @@
 #include "gpu_py_framebuffer.hh"
 #include "gpu_py_state.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Helper Functions
  * \{ */
@@ -110,8 +112,10 @@ PyDoc_STRVAR(
     pygpu_state_blend_get_doc,
     ".. function:: blend_get()\n"
     "\n"
-    "    Current blending equation.\n"
-    "\n");
+    "   Current blending equation.\n"
+    "\n"
+    "   :return: The current blend mode.\n"
+    "   :rtype: str\n");
 static PyObject *pygpu_state_blend_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -174,8 +178,10 @@ PyDoc_STRVAR(
     pygpu_state_depth_test_get_doc,
     ".. function:: depth_test_get()\n"
     "\n"
-    "    Current depth_test equation.\n"
-    "\n");
+    "   Current depth_test equation.\n"
+    "\n"
+    "   :return: The current depth test mode.\n"
+    "   :rtype: str\n");
 static PyObject *pygpu_state_depth_test_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -192,7 +198,7 @@ PyDoc_STRVAR(
     "   Write to depth component.\n"
     "\n"
     "   :arg value: True for writing to the depth component.\n"
-    "   :type near: bool\n");
+    "   :type value: bool\n");
 static PyObject *pygpu_state_depth_mask_set(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -210,7 +216,10 @@ PyDoc_STRVAR(
     pygpu_state_depth_mask_get_doc,
     ".. function:: depth_mask_get()\n"
     "\n"
-    "   Writing status in the depth component.\n");
+    "   Writing status in the depth component.\n"
+    "\n"
+    "   :return: True if writing to the depth component is enabled.\n"
+    "   :rtype: bool\n");
 static PyObject *pygpu_state_depth_mask_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -226,10 +235,14 @@ PyDoc_STRVAR(
     "   Specifies the viewport of the active framebuffer.\n"
     "   Note: The viewport state is not saved upon framebuffer rebind.\n"
     "\n"
-    "   :arg x, y: lower left corner of the viewport_set rectangle, in pixels.\n"
-    "   :type x, y: int\n"
-    "   :arg xsize, ysize: width and height of the viewport_set.\n"
-    "   :type xsize, ysize: int\n");
+    "   :arg x: Lower left corner x coordinate, in pixels.\n"
+    "   :type x: int\n"
+    "   :arg y: Lower left corner y coordinate, in pixels.\n"
+    "   :type y: int\n"
+    "   :arg xsize: Width of the viewport.\n"
+    "   :type xsize: int\n"
+    "   :arg ysize: Height of the viewport.\n"
+    "   :type ysize: int\n");
 static PyObject *pygpu_state_viewport_set(PyObject * /*self*/, PyObject *args)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -248,7 +261,10 @@ PyDoc_STRVAR(
     pygpu_state_viewport_get_doc,
     ".. function:: viewport_get()\n"
     "\n"
-    "   Viewport of the active framebuffer.\n");
+    "   Viewport of the active framebuffer.\n"
+    "\n"
+    "   :return: The viewport as a tuple (x, y, xsize, ysize).\n"
+    "   :rtype: tuple[int, int, int, int]\n");
 static PyObject *pygpu_state_viewport_get(PyObject * /*self*/, PyObject * /*args*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -273,10 +289,14 @@ PyDoc_STRVAR(
     "   Specifies the scissor area of the active framebuffer.\n"
     "   Note: The scissor state is not saved upon framebuffer rebind.\n"
     "\n"
-    "   :arg x, y: lower left corner of the scissor rectangle, in pixels.\n"
-    "   :type x, y: int\n"
-    "   :arg xsize, ysize: width and height of the scissor rectangle.\n"
-    "   :type xsize, ysize: int\n");
+    "   :arg x: Lower left corner x coordinate, in pixels.\n"
+    "   :type x: int\n"
+    "   :arg y: Lower left corner y coordinate, in pixels.\n"
+    "   :type y: int\n"
+    "   :arg xsize: Width of the scissor rectangle.\n"
+    "   :type xsize: int\n"
+    "   :arg ysize: Height of the scissor rectangle.\n"
+    "   :type ysize: int\n");
 static PyObject *pygpu_state_scissor_set(PyObject * /*self*/, PyObject *args)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -350,8 +370,8 @@ PyDoc_STRVAR(
     "\n"
     "   Specify the width of rasterized lines.\n"
     "\n"
-    "   :arg size: New width.\n"
-    "   :type mode: float\n");
+    "   :arg width: New width.\n"
+    "   :type width: float\n");
 static PyObject *pygpu_state_line_width_set(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -370,7 +390,10 @@ PyDoc_STRVAR(
     pygpu_state_line_width_get_doc,
     ".. function:: line_width_get()\n"
     "\n"
-    "   Current width of rasterized lines.\n");
+    "   Current width of rasterized lines.\n"
+    "\n"
+    "   :return: The current line width.\n"
+    "   :rtype: float\n");
 static PyObject *pygpu_state_line_width_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -387,7 +410,7 @@ PyDoc_STRVAR(
     "   Specify the diameter of rasterized points.\n"
     "\n"
     "   :arg size: New diameter.\n"
-    "   :type mode: float\n");
+    "   :type size: float\n");
 static PyObject *pygpu_state_point_size_set(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -408,8 +431,14 @@ PyDoc_STRVAR(
     "\n"
     "   Enable or disable writing of frame buffer color components.\n"
     "\n"
-    "   :arg r, g, b, a: components red, green, blue, and alpha.\n"
-    "   :type r, g, b, a: bool\n");
+    "   :arg r: Red component.\n"
+    "   :type r: bool\n"
+    "   :arg g: Green component.\n"
+    "   :type g: bool\n"
+    "   :arg b: Blue component.\n"
+    "   :type b: bool\n"
+    "   :arg a: Alpha component.\n"
+    "   :type a: bool\n");
 static PyObject *pygpu_state_color_mask_set(PyObject * /*self*/, PyObject *args)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -430,8 +459,8 @@ PyDoc_STRVAR(
     "\n"
     "   Specify whether none, front-facing or back-facing facets can be culled.\n"
     "\n"
-    "   :arg mode: ``NONE``, ``FRONT`` or ``BACK``.\n"
-    "   :type mode: str\n");
+    "   :arg culling: ``NONE``, ``FRONT`` or ``BACK``.\n"
+    "   :type culling: str\n");
 static PyObject *pygpu_state_face_culling_set(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -453,7 +482,7 @@ PyDoc_STRVAR(
     "   Specifies the orientation of front-facing polygons.\n"
     "\n"
     "   :arg invert: True for clockwise polygons as front-facing.\n"
-    "   :type mode: bool\n");
+    "   :type invert: bool\n");
 static PyObject *pygpu_state_front_facing_set(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -493,14 +522,17 @@ static PyObject *pygpu_state_program_point_size_set(PyObject * /*self*/, PyObjec
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_state_active_framebuffer_get_doc,
-    ".. function:: active_framebuffer_get(enable)\n"
+    ".. function:: active_framebuffer_get()\n"
     "\n"
-    "   Return the active frame-buffer in context.\n");
+    "   Return the active frame-buffer in context.\n"
+    "\n"
+    "   :return: The active framebuffer.\n"
+    "   :rtype: :class:`gpu.types.GPUFrameBuffer`\n");
 static PyObject *pygpu_state_active_framebuffer_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
-  blender::gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
   return BPyGPUFrameBuffer_CreatePyObject(fb, true);
 }
 
@@ -522,78 +554,84 @@ static PyObject *pygpu_state_active_framebuffer_get(PyObject * /*self*/)
 
 static PyMethodDef pygpu_state__tp_methods[] = {
     /* Manage Stack */
-    {"blend_set", (PyCFunction)pygpu_state_blend_set, METH_O, pygpu_state_blend_set_doc},
-    {"blend_get", (PyCFunction)pygpu_state_blend_get, METH_NOARGS, pygpu_state_blend_get_doc},
+    {"blend_set",
+     static_cast<PyCFunction>(pygpu_state_blend_set),
+     METH_O,
+     pygpu_state_blend_set_doc},
+    {"blend_get",
+     reinterpret_cast<PyCFunction>(pygpu_state_blend_get),
+     METH_NOARGS,
+     pygpu_state_blend_get_doc},
     {"clip_distances_set",
-     (PyCFunction)pygpu_state_clip_distances_set,
+     static_cast<PyCFunction>(pygpu_state_clip_distances_set),
      METH_O,
      pygpu_state_clip_distances_set_doc},
     {"depth_test_set",
-     (PyCFunction)pygpu_state_depth_test_set,
+     static_cast<PyCFunction>(pygpu_state_depth_test_set),
      METH_O,
      pygpu_state_depth_test_set_doc},
     {"depth_test_get",
-     (PyCFunction)pygpu_state_depth_test_get,
+     reinterpret_cast<PyCFunction>(pygpu_state_depth_test_get),
      METH_NOARGS,
      pygpu_state_depth_test_get_doc},
     {"depth_mask_set",
-     (PyCFunction)pygpu_state_depth_mask_set,
+     static_cast<PyCFunction>(pygpu_state_depth_mask_set),
      METH_O,
      pygpu_state_depth_mask_set_doc},
     {"depth_mask_get",
-     (PyCFunction)pygpu_state_depth_mask_get,
+     reinterpret_cast<PyCFunction>(pygpu_state_depth_mask_get),
      METH_NOARGS,
      pygpu_state_depth_mask_get_doc},
     {"viewport_set",
-     (PyCFunction)pygpu_state_viewport_set,
+     static_cast<PyCFunction>(pygpu_state_viewport_set),
      METH_VARARGS,
      pygpu_state_viewport_set_doc},
     {"viewport_get",
-     (PyCFunction)pygpu_state_viewport_get,
+     static_cast<PyCFunction>(pygpu_state_viewport_get),
      METH_NOARGS,
      pygpu_state_viewport_get_doc},
     {"scissor_set",
-     (PyCFunction)pygpu_state_scissor_set,
+     static_cast<PyCFunction>(pygpu_state_scissor_set),
      METH_VARARGS,
      pygpu_state_scissor_set_doc},
     {"scissor_get",
-     (PyCFunction)pygpu_state_scissor_get,
+     static_cast<PyCFunction>(pygpu_state_scissor_get),
      METH_NOARGS,
      pygpu_state_scissor_get_doc},
     {"scissor_test_set",
-     (PyCFunction)pygpu_state_scissor_test_set,
+     static_cast<PyCFunction>(pygpu_state_scissor_test_set),
      METH_O,
      pygpu_state_scissor_test_set_doc},
     {"line_width_set",
-     (PyCFunction)pygpu_state_line_width_set,
+     static_cast<PyCFunction>(pygpu_state_line_width_set),
      METH_O,
      pygpu_state_line_width_set_doc},
     {"line_width_get",
-     (PyCFunction)pygpu_state_line_width_get,
+     reinterpret_cast<PyCFunction>(pygpu_state_line_width_get),
      METH_NOARGS,
      pygpu_state_line_width_get_doc},
     {"point_size_set",
-     (PyCFunction)pygpu_state_point_size_set,
+     static_cast<PyCFunction>(pygpu_state_point_size_set),
      METH_O,
      pygpu_state_point_size_set_doc},
     {"color_mask_set",
-     (PyCFunction)pygpu_state_color_mask_set,
+     static_cast<PyCFunction>(pygpu_state_color_mask_set),
      METH_VARARGS,
      pygpu_state_color_mask_set_doc},
     {"face_culling_set",
-     (PyCFunction)pygpu_state_face_culling_set,
+     static_cast<PyCFunction>(pygpu_state_face_culling_set),
      METH_O,
      pygpu_state_face_culling_set_doc},
     {"front_facing_set",
-     (PyCFunction)pygpu_state_front_facing_set,
+     static_cast<PyCFunction>(pygpu_state_front_facing_set),
      METH_O,
      pygpu_state_front_facing_set_doc},
     {"program_point_size_set",
-     (PyCFunction)pygpu_state_program_point_size_set,
+     static_cast<PyCFunction>(pygpu_state_program_point_size_set),
      METH_O,
      pygpu_state_program_point_size_set_doc},
     {"active_framebuffer_get",
-     (PyCFunction)pygpu_state_active_framebuffer_get,
+     reinterpret_cast<PyCFunction>(pygpu_state_active_framebuffer_get),
      METH_NOARGS,
      pygpu_state_active_framebuffer_get_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -633,3 +671,5 @@ PyObject *bpygpu_state_init()
 }
 
 /** \} */
+
+}  // namespace blender

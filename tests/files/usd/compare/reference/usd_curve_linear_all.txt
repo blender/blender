@@ -1,0 +1,199 @@
+==== Curves(new): 8
+- Curve 'linear_nonperiodic_multiple_constant' splines:4 control-points:14
+  - attr 'curve_type' INT8 CURVE
+    - 1 1 1 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (-0.500, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (0.500, 0.000, 0.500)
+    - (1.000, 0.000, 1.000)
+    - (2.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (2.000, 0.000, 1.000)
+    - (2.300, 0.000, 0.700)
+    - (3.000, 0.000, 0.000)
+    - (2.500, 0.000, 0.500)
+    - (3.000, 0.000, 1.000)
+    - (3.300, 0.000, 0.700)
+    - (3.300, 0.000, 0.300)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'linear_nonperiodic_multiple_varying' splines:4 control-points:14
+  - attr 'curve_type' INT8 CURVE
+    - 1 1 1 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (-0.500, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (0.500, 0.000, 0.500)
+    - (1.000, 0.000, 1.000)
+    - (2.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (2.000, 0.000, 1.000)
+    - (2.300, 0.000, 0.700)
+    - (3.000, 0.000, 0.000)
+    - (2.500, 0.000, 0.500)
+    - (3.000, 0.000, 1.000)
+    - (3.300, 0.000, 0.700)
+    - (3.300, 0.000, 0.300)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.200 0.100 0.200 0.300 0.100 0.200 0.300 0.200 0.100 0.200 0.300 0.200 0.100 
+
+- Curve 'linear_nonperiodic_single_constant' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (-0.500, 0.000, 0.500)
+    - (0.000, 0.000, 1.000)
+    - (0.300, 0.000, 0.700)
+    - (0.300, 0.000, 0.300)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'linear_nonperiodic_single_varying' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (-0.500, 0.000, 0.500)
+    - (0.000, 0.000, 1.000)
+    - (0.300, 0.000, 0.700)
+    - (0.300, 0.000, 0.300)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.200 0.300 0.200 0.100 
+
+- Curve 'linear_periodic_multiple_constant' splines:3 control-points:12
+  - attr 'curve_type' INT8 CURVE
+    - 1 1 1 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 1 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 0.000, 0.000)
+    - (0.500, 0.000, 0.500)
+    - (1.000, 0.000, 1.000)
+    - (2.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (2.000, 0.000, 1.000)
+    - (2.300, 0.000, 0.700)
+    - (3.000, 0.000, 0.000)
+    - (2.500, 0.000, 0.500)
+    - (3.000, 0.000, 1.000)
+    - (3.300, 0.000, 0.700)
+    - (3.300, 0.000, 0.300)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'linear_periodic_multiple_varying' splines:3 control-points:12
+  - attr 'curve_type' INT8 CURVE
+    - 1 1 1 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 1 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 0.000, 0.000)
+    - (0.500, 0.000, 0.500)
+    - (1.000, 0.000, 1.000)
+    - (2.000, 0.000, 0.000)
+    - (1.500, 0.000, 0.500)
+    - (2.000, 0.000, 1.000)
+    - (2.300, 0.000, 0.700)
+    - (3.000, 0.000, 0.000)
+    - (2.500, 0.000, 0.500)
+    - (3.000, 0.000, 1.000)
+    - (3.300, 0.000, 0.700)
+    - (3.300, 0.000, 0.300)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.200 0.300 0.100 0.200 0.300 0.200 0.100 0.200 0.300 0.200 0.100 
+
+- Curve 'linear_periodic_single_constant' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 1 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (-0.500, 0.000, 0.500)
+    - (0.000, 0.000, 1.000)
+    - (0.300, 0.000, 0.700)
+    - (0.300, 0.000, 0.300)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'linear_periodic_single_varying' splines:1 control-points:5
+  - attr 'curve_type' INT8 CURVE
+    - 1 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (-0.500, 0.000, 0.500)
+    - (0.000, 0.000, 1.000)
+    - (0.300, 0.000, 0.700)
+    - (0.300, 0.000, 0.300)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.200 0.300 0.200 0.100 
+
+==== Objects: 15
+- Obj 'linear_nonperiodic' EMPTY par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_nonperiodic_multiple_constant' CURVES data:'linear_nonperiodic_multiple_constant' par:'multiple'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_nonperiodic_multiple_varying' CURVES data:'linear_nonperiodic_multiple_varying' par:'multiple'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_nonperiodic_single_constant' CURVES data:'linear_nonperiodic_single_constant' par:'single'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_nonperiodic_single_varying' CURVES data:'linear_nonperiodic_single_varying' par:'single'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_periodic' EMPTY par:'root'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_periodic_multiple_constant' CURVES data:'linear_periodic_multiple_constant' par:'multiple.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_periodic_multiple_varying' CURVES data:'linear_periodic_multiple_varying' par:'multiple.001'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_periodic_single_constant' CURVES data:'linear_periodic_single_constant' par:'single.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_periodic_single_varying' CURVES data:'linear_periodic_single_varying' par:'single.001'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'multiple' EMPTY par:'linear_nonperiodic'
+  - pos 2.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'multiple.001' EMPTY par:'linear_periodic'
+  - pos 2.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'root' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'single' EMPTY par:'linear_nonperiodic'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'single.001' EMPTY par:'linear_periodic'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

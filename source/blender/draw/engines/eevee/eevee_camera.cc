@@ -7,6 +7,7 @@
  */
 
 #include "BLI_bounds.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 
 #include "DRW_render.hh"
@@ -34,7 +35,7 @@ void Camera::init()
   CameraData &data = data_;
 
   if (camera_eval && camera_eval->type == OB_CAMERA) {
-    const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
+    const blender::Camera *cam = reinterpret_cast<const blender::Camera *>(camera_eval->data);
     switch (cam->type) {
       default:
       case CAM_PERSP:
@@ -156,7 +157,12 @@ void Camera::sync()
     else {
       /* Can happen for the case of XR or if `rv3d->dist == 0`.
        * In this case the produced winmat is degenerate. So just revert to the input matrix. */
+      float2 film_center = float2(film_offset) + float2(film_extent) / 2.0f;
+      float2 uv_offset = float2(0.5f) - (film_center / float2(display_extent));
       data.winmat = inst_.drw_view->winmat();
+      data.winmat = math::projection::translate(data.winmat, uv_offset * 2.0f);
+      data.winmat = math::from_scale<float4x4>(float4(1.0f / data.uv_scale, 1.0f, 1.0f)) *
+                    data.winmat;
     }
   }
   else if (inst_.render) {
@@ -183,7 +189,7 @@ void Camera::sync()
     data.winmat = math::projection::perspective(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
   }
 
-  /* Compute a part of the frustrum planes. In some cases (#134320, #148258)
+  /* Compute a part of the frustum planes. In some cases (#134320, #148258)
    * the window matrix becomes degenerate during render or draw_view.
    * Simply fall back to something we can render with. */
   float bottom = (-data.winmat[3][1] - 1.0f) / data.winmat[1][1];
@@ -197,7 +203,7 @@ void Camera::sync()
 
   is_camera_object_ = false;
   if (camera_eval && camera_eval->type == OB_CAMERA) {
-    const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
+    const blender::Camera *cam = reinterpret_cast<const blender::Camera *>(camera_eval->data);
     data.clip_near = cam->clip_start;
     data.clip_far = cam->clip_end;
 #if 0 /* TODO(fclem): Make fisheye properties inside blender. */

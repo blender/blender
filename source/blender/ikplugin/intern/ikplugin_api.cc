@@ -22,6 +22,8 @@
 #  include "itasc_plugin.h"
 #endif
 
+namespace blender {
+
 static IKPlugin ikplugin_tab[] = {
 #ifdef WITH_IK_SOLVER
     /* Legacy IK solver */
@@ -126,3 +128,5 @@ void BIK_test_constraint(Object *ob, bConstraint *cons)
     plugin->test_constraint(ob, cons);
   }
 }
+
+}  // namespace blender

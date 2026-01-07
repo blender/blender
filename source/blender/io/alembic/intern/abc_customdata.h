@@ -24,13 +24,15 @@
 #include <string>
 #include <vector>
 
+namespace blender {
+
 struct CustomData;
 struct Mesh;
 
 using Alembic::Abc::ICompoundProperty;
 using Alembic::Abc::OCompoundProperty;
 using Alembic::Abc::V3fArraySamplePtr;
-namespace blender::io::alembic {
+namespace io::alembic {
 
 struct UVSample {
   std::vector<Imath::V2f> uvs;
@@ -120,4 +122,5 @@ AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
                         const CDStreamConfig &config,
                         const Alembic::AbcGeom::UInt32ArraySamplePtr &indices);
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

@@ -11,7 +11,6 @@
 
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "usd_attribute_utils.hh"
 #include "usd_mesh_utils.hh"
@@ -45,14 +44,14 @@ void USDShapeReader::create_object(Main *bmain)
 {
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_MESH, name_.c_str());
-  object_->data = mesh;
+  object_->data = id_cast<ID *>(mesh);
 }
 
 void USDShapeReader::read_object_data(Main *bmain, pxr::UsdTimeCode time)
 {
   const USDMeshReadParams params = create_mesh_read_params(time.GetValue(),
                                                            import_params_.mesh_read_flag);
-  Mesh *mesh = (Mesh *)object_->data;
+  Mesh *mesh = id_cast<Mesh *>(object_->data);
   Mesh *read_mesh = this->read_mesh(mesh, params, nullptr);
 
   if (read_mesh != mesh) {
@@ -138,34 +137,19 @@ Mesh *USDShapeReader::read_mesh(Mesh *existing_mesh,
     return existing_mesh;
   }
 
+  pxr::VtVec3fArray usd_positions;
   pxr::VtIntArray usd_face_indices;
   pxr::VtIntArray usd_face_counts;
-
-  /* Should have a good set of data by this point-- copy over. */
-  Mesh *active_mesh = mesh_from_prim(existing_mesh, params, usd_face_indices, usd_face_counts);
-
-  if (active_mesh == existing_mesh) {
+  if (!read_mesh_values(
+          params.motion_sample_time, usd_positions, usd_face_indices, usd_face_counts))
+  {
     return existing_mesh;
   }
 
-  Span<int> face_indices = Span(usd_face_indices.cdata(), usd_face_indices.size());
-  Span<int> face_counts = Span(usd_face_counts.cdata(), usd_face_counts.size());
+  /* Build or update the existing mesh. */
+  Mesh *active_mesh = mesh_from_prim(
+      existing_mesh, params, usd_positions, usd_face_indices, usd_face_counts);
 
-  MutableSpan<int> face_offsets = active_mesh->face_offsets_for_write();
-  for (const int i : IndexRange(active_mesh->faces_num)) {
-    face_offsets[i] = face_counts[i];
-  }
-  offset_indices::accumulate_counts_to_offsets(face_offsets);
-
-  /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
-  bke::mesh_smooth_set(*active_mesh, !prim_.IsA<pxr::UsdGeomCube>());
-
-  MutableSpan<int> corner_verts = active_mesh->corner_verts_for_write();
-  for (const int i : corner_verts.index_range()) {
-    corner_verts[i] = face_indices[i];
-  }
-
-  bke::mesh_calc_edges(*active_mesh, false, false);
   return active_mesh;
 }
 
@@ -232,14 +216,13 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const pxr::UsdTimeCode t
 
 Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
                                      const USDMeshReadParams params,
-                                     pxr::VtIntArray &face_indices,
-                                     pxr::VtIntArray &face_counts) const
+                                     pxr::VtVec3fArray &usd_positions,
+                                     pxr::VtIntArray &usd_face_indices,
+                                     pxr::VtIntArray &usd_face_counts) const
 {
-  pxr::VtVec3fArray positions;
-
-  if (!read_mesh_values(params.motion_sample_time, positions, face_indices, face_counts)) {
-    return existing_mesh;
-  }
+  Span<int> face_indices = Span(usd_face_indices.cdata(), usd_face_indices.size());
+  Span<int> face_counts = Span(usd_face_counts.cdata(), usd_face_counts.size());
+  Span<float3> positions = Span(usd_positions.cdata(), usd_positions.size()).cast<float3>();
 
   const bool poly_counts_match = existing_mesh ? face_counts.size() == existing_mesh->faces_num :
                                                  false;
@@ -256,13 +239,25 @@ Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
   }
 
   MutableSpan<float3> vert_positions = active_mesh->vert_positions_for_write();
-  vert_positions.copy_from(Span(positions.cdata(), positions.size()).cast<float3>());
+  vert_positions.copy_from(positions);
+
+  MutableSpan<int> face_offsets = active_mesh->face_offsets_for_write();
+  for (const int i : IndexRange(active_mesh->faces_num)) {
+    face_offsets[i] = face_counts[i];
+  }
+  offset_indices::accumulate_counts_to_offsets(face_offsets);
+
+  MutableSpan<int> corner_verts = active_mesh->corner_verts_for_write();
+  for (const int i : corner_verts.index_range()) {
+    corner_verts[i] = face_indices[i];
+  }
+
+  bke::mesh_calc_edges(*active_mesh, false, false);
+
+  /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
+  bke::mesh_smooth_set(*active_mesh, !prim_.IsA<pxr::UsdGeomCube>());
 
   if (params.read_flags & MOD_MESHSEQ_READ_COLOR) {
-    if (active_mesh != existing_mesh) {
-      /* Clear the primvar map to force attributes to be reloaded. */
-      this->primvar_time_varying_map_.clear();
-    }
     apply_primvars_to_mesh(active_mesh, params.motion_sample_time);
   }
 

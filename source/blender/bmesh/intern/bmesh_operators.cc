@@ -21,6 +21,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
+namespace blender {
+
 /* forward declarations */
 static void bmo_flag_layer_alloc(BMesh *bm);
 static void bmo_flag_layer_free(BMesh *bm);
@@ -255,7 +257,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
         const uint tot = slot_src->len;
         uint i;
         uint out = 0;
-        BMElem **ele_src = (BMElem **)slot_src->data.buf;
+        BMElem **ele_src = reinterpret_cast<BMElem **>(slot_src->data.buf);
         for (i = 0; i < tot; i++, ele_src++) {
           if ((*ele_src)->head.htype & dst_elem_flag) {
             out++;
@@ -276,8 +278,8 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
           /* only copy compatible elements */
           const uint tot = slot_src->len;
           uint i;
-          BMElem **ele_src = (BMElem **)slot_src->data.buf;
-          BMElem **ele_dst = (BMElem **)slot_dst->data.buf;
+          BMElem **ele_src = reinterpret_cast<BMElem **>(slot_src->data.buf);
+          BMElem **ele_dst = reinterpret_cast<BMElem **>(slot_dst->data.buf);
           for (i = 0; i < tot; i++, ele_src++) {
             if ((*ele_src)->head.htype & dst_elem_flag) {
               *ele_dst = *ele_src;
@@ -356,10 +358,10 @@ void BMO_slot_mat_set(BMOperator *op,
   slot->data.p = BLI_memarena_alloc(op->arena, sizeof(float[4][4]));
 
   if (size == 4) {
-    copy_m4_m4(static_cast<float (*)[4]>(slot->data.p), (const float (*)[4])mat);
+    copy_m4_m4(static_cast<float (*)[4]>(slot->data.p), reinterpret_cast<const float (*)[4]>(mat));
   }
   else if (size == 3) {
-    copy_m4_m3(static_cast<float (*)[4]>(slot->data.p), (const float (*)[3])mat);
+    copy_m4_m3(static_cast<float (*)[4]>(slot->data.p), reinterpret_cast<const float (*)[3]>(mat));
   }
   else {
     fprintf(stderr, "%s: invalid size argument %d (bmesh internal error)\n", __func__, size);
@@ -648,7 +650,7 @@ void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot, const void *element, co
   BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
   BMO_ASSERT_SLOT_IN_OP(slot, op);
 
-  BLI_ghash_insert(slot->data.ghash, (void *)element, (void *)data);
+  BLI_ghash_insert(slot->data.ghash, const_cast<void *>(element), const_cast<void *>(data));
 }
 
 #if 0
@@ -925,7 +927,7 @@ void *BMO_slot_buffer_get_single(BMOpSlot *slot)
   BLI_assert(slot->slot_subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE);
   BLI_assert(ELEM(slot->len, 0, 1));
 
-  return slot->len ? (BMHeader *)slot->data.buf[0] : nullptr;
+  return slot->len ? static_cast<BMHeader *>(slot->data.buf[0]) : nullptr;
 }
 
 void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
@@ -952,8 +954,9 @@ void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
 
     /* copy slot data */
     memcpy(buf, slot_dst->data.buf, elem_size * slot_dst->len);
-    memcpy(
-        ((char *)buf) + elem_size * slot_dst->len, slot_src->data.buf, elem_size * slot_src->len);
+    memcpy((static_cast<char *>(buf)) + elem_size * slot_dst->len,
+           slot_src->data.buf,
+           elem_size * slot_src->len);
 
     slot_dst->data.buf = static_cast<void **>(buf);
     slot_dst->len += slot_src->len;
@@ -997,7 +1000,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm,
 
     BMO_slot_buffer_alloc(op, slot_args, slot_name, totelement);
 
-    ele_array = (BMHeader **)slot->data.buf;
+    ele_array = reinterpret_cast<BMHeader **>(slot->data.buf);
 
     /* TODO: collapse these loops into one. */
 
@@ -1061,7 +1064,7 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm,
                                   const bool do_flush)
 {
   BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
-  BMElem **data = (BMElem **)slot->data.buf;
+  BMElem **data = reinterpret_cast<BMElem **>(slot->data.buf);
   int i;
   const bool do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
   const bool do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
@@ -1095,7 +1098,7 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm,
                                    const bool do_flush)
 {
   BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
-  BMElem **data = (BMElem **)slot->data.buf;
+  BMElem **data = reinterpret_cast<BMElem **>(slot->data.buf);
   int i;
   const bool do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
   const bool do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
@@ -1149,7 +1152,7 @@ void BMO_slot_buffer_flag_disable(BMesh *bm,
                                   const short oflag)
 {
   BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
-  BMHeader **data = (BMHeader **)slot->data.buf;
+  BMHeader **data = reinterpret_cast<BMHeader **>(slot->data.buf);
   int i;
 
   BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
@@ -1439,19 +1442,19 @@ void *BMO_iter_map_value_ptr(BMOIter *iter)
 float BMO_iter_map_value_float(BMOIter *iter)
 {
   BLI_assert(iter->slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_FLT);
-  return **((float **)iter->val);
+  return **(reinterpret_cast<float **>(iter->val));
 }
 
 int BMO_iter_map_value_int(BMOIter *iter)
 {
   BLI_assert(iter->slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_INT);
-  return **((int **)iter->val);
+  return **(reinterpret_cast<int **>(iter->val));
 }
 
 bool BMO_iter_map_value_bool(BMOIter *iter)
 {
   BLI_assert(iter->slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
-  return **((bool **)iter->val);
+  return **(reinterpret_cast<bool **>(iter->val));
 }
 
 /* error system */
@@ -1517,13 +1520,13 @@ bool BMO_error_get_at_level(BMesh *bm,
                             const char **r_msg,
                             BMOperator **r_op)
 {
-  LISTBASE_FOREACH (BMOpError *, err, &bm->errorstack) {
-    if (err->level >= level) {
+  for (BMOpError &err : bm->errorstack) {
+    if (err.level >= level) {
       if (r_msg) {
-        *r_msg = err->msg;
+        *r_msg = err.msg;
       }
       if (r_op) {
-        *r_op = err->op;
+        *r_op = err.op;
       }
       return true;
     }
@@ -1895,3 +1898,5 @@ bool BMO_op_callf(BMesh *bm, const int flag, const char *fmt, ...)
   va_end(list);
   return true;
 }
+
+}  // namespace blender

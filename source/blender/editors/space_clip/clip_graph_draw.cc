@@ -28,6 +28,8 @@
 
 #include "clip_intern.hh" /* own include */
 
+namespace blender {
+
 struct TrackMotionCurveUserData {
   SpaceClip *sc;
   MovieTrackingTrack *act_track;
@@ -43,7 +45,7 @@ static void tracking_segment_point_cb(void *userdata,
                                       int scene_framenr,
                                       float val)
 {
-  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  TrackMotionCurveUserData *data = static_cast<TrackMotionCurveUserData *>(userdata);
 
   if (!clip_graph_value_visible(data->sc, value_source)) {
     return;
@@ -57,7 +59,7 @@ static void tracking_segment_start_cb(void *userdata,
                                       eClipCurveValueSource value_source,
                                       bool is_point)
 {
-  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  TrackMotionCurveUserData *data = static_cast<TrackMotionCurveUserData *>(userdata);
   SpaceClip *sc = data->sc;
   float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -67,13 +69,13 @@ static void tracking_segment_start_cb(void *userdata,
 
   switch (value_source) {
     case CLIP_VALUE_SOURCE_SPEED_X:
-      UI_GetThemeColor4fv(TH_AXIS_X, col);
+      ui::theme::get_color_4fv(TH_AXIS_X, col);
       break;
     case CLIP_VALUE_SOURCE_SPEED_Y:
-      UI_GetThemeColor4fv(TH_AXIS_Y, col);
+      ui::theme::get_color_4fv(TH_AXIS_Y, col);
       break;
     case CLIP_VALUE_SOURCE_REPROJECTION_ERROR:
-      UI_GetThemeColor4fv(TH_AXIS_Z, col);
+      ui::theme::get_color_4fv(TH_AXIS_Z, col);
       break;
   }
 
@@ -106,7 +108,7 @@ static void tracking_segment_start_cb(void *userdata,
 
 static void tracking_segment_end_cb(void *userdata, eClipCurveValueSource value_source)
 {
-  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  TrackMotionCurveUserData *data = static_cast<TrackMotionCurveUserData *>(userdata);
   SpaceClip *sc = data->sc;
   if (!clip_graph_value_visible(sc, value_source)) {
     return;
@@ -122,7 +124,7 @@ static void tracking_segment_knot_cb(void *userdata,
                                      int scene_framenr,
                                      float val)
 {
-  TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
+  TrackMotionCurveUserData *data = static_cast<TrackMotionCurveUserData *>(userdata);
 
   if (track != data->act_track) {
     return;
@@ -167,14 +169,14 @@ static void draw_tracks_motion_and_error_curves(View2D *v2d, SpaceClip *sc, uint
 
   TrackMotionCurveUserData userdata;
   userdata.sc = sc;
-  userdata.hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
+  userdata.hsize = ui::theme::get_value_f(TH_HANDLE_VERTEX_SIZE);
   userdata.sel = false;
   userdata.act_track = active_track;
   userdata.pos = pos;
 
   /* Non-selected knot handles. */
   if (draw_knots) {
-    UI_view2d_scale_get(v2d, &userdata.xscale, &userdata.yscale);
+    ui::view2d_scale_get(v2d, &userdata.xscale, &userdata.yscale);
     clip_graph_tracking_values_iterate(sc,
                                        (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
                                        (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
@@ -266,12 +268,11 @@ void clip_draw_graph(SpaceClip *sc, ARegion *region, Scene *scene)
   View2D *v2d = &region->v2d;
 
   /* grid */
-  UI_view2d_draw_lines_x__values(v2d, 10);
-  UI_view2d_draw_lines_y__values(v2d, 10);
+  ui::view2d_draw_lines_x__values(v2d, 10);
+  ui::view2d_draw_lines_y__values(v2d, 10);
 
   if (clip) {
-    uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     if (sc->flag & (SC_SHOW_GRAPH_TRACKS_MOTION | SC_SHOW_GRAPH_TRACKS_ERROR)) {
       draw_tracks_motion_and_error_curves(v2d, sc, pos);
@@ -283,7 +284,9 @@ void clip_draw_graph(SpaceClip *sc, ARegion *region, Scene *scene)
   }
 
   /* Frame and preview range. */
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   ANIM_draw_framerange(scene, v2d);
   ANIM_draw_previewrange(scene, v2d, 0);
 }
+
+}  // namespace blender

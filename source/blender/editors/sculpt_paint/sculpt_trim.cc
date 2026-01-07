@@ -136,8 +136,8 @@ struct TrimOperation {
   bool use_cursor_depth;
 
   bool initial_hit;
-  blender::float3 initial_location;
-  blender::float3 initial_normal;
+  float3 initial_location;
+  float3 initial_normal;
 
   OperationType mode;
   geometry::boolean::Solver solver_mode;
@@ -148,7 +148,7 @@ struct TrimOperation {
 /* Recalculate the mesh normals for the generated trim mesh. */
 static void update_normals(gesture::GestureData &gesture_data)
 {
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   Mesh *trim_mesh = trim_operation->mesh;
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(trim_mesh);
@@ -184,7 +184,7 @@ static void get_origin_and_normal(gesture::GestureData &gesture_data,
                                   float *r_origin,
                                   float *r_normal)
 {
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   /* Use the view origin and normal in world space. The trimming mesh coordinates are
    * calculated in world space, aligned to the view, and then converted to object space to
    * store them in the final trimming mesh which is going to be used in the boolean operation.
@@ -214,7 +214,7 @@ static void calculate_depth(gesture::GestureData &gesture_data,
                             float &r_depth_front,
                             float &r_depth_back)
 {
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
 
   SculptSession &ss = *gesture_data.ss;
   ViewContext &vc = gesture_data.vc;
@@ -272,11 +272,8 @@ static void calculate_depth(gesture::GestureData &gesture_data,
        * compute the radius ourselves.  See #81452.
        */
 
-      Sculpt *sd = CTX_data_tool_settings(vc.C)->sculpt;
-      Brush *brush = BKE_paint_brush(&sd->paint);
-
       depth_radius = object_space_radius_get(
-          vc, sd->paint, *brush, trim_operation->initial_location);
+          vc, *gesture_data.paint, *gesture_data.brush, trim_operation->initial_location);
     }
 
     depth_front = mid_point_depth - depth_radius;
@@ -339,7 +336,7 @@ static Array<float2> gesture_to_screen_points(gesture::GestureData &gesture_data
 
 static void generate_geometry(gesture::GestureData &gesture_data)
 {
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   ViewContext &vc = gesture_data.vc;
   ARegion *region = vc.region;
 
@@ -539,9 +536,9 @@ static void apply_join_operation(Object &object, Mesh &sculpt_mesh, Mesh &trim_m
 
 static void apply_trim(gesture::GestureData &gesture_data)
 {
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   Object *object = gesture_data.vc.obact;
-  Mesh &sculpt_mesh = *static_cast<Mesh *>(object->data);
+  Mesh &sculpt_mesh = *id_cast<Mesh *>(object->data);
   Mesh &trim_mesh = *trim_operation->mesh;
 
   geometry::boolean::Operation boolean_op;
@@ -597,7 +594,7 @@ static void apply_trim(gesture::GestureData &gesture_data)
 
 static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   Mesh *trim_mesh = trim_operation->mesh;
   MutableSpan<float3> positions = trim_mesh->vert_positions_for_write();
   for (int i = 0; i < trim_mesh->verts_num; i++) {
@@ -609,7 +606,7 @@ static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureDa
 
 static void free_geometry(gesture::GestureData &gesture_data)
 {
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   BKE_id_free(nullptr, trim_operation->mesh);
   MEM_freeN(trim_operation->true_mesh_co);
 }
@@ -617,7 +614,7 @@ static void free_geometry(gesture::GestureData &gesture_data)
 static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
   Object *object = gesture_data.vc.obact;
-  Mesh *mesh = (Mesh *)object->data;
+  Mesh *mesh = id_cast<Mesh *>(object->data);
 
   /* Assign a new face set ID to the new faces created by the trim operation. */
   const int next_face_set_id = face_set::find_next_available_id(*object);
@@ -633,7 +630,7 @@ static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
 
 static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
 {
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   trim_operation->reports = op.reports;
   trim_operation->op.begin = gesture_begin;
   trim_operation->op.apply_for_symmetry_pass = gesture_apply_for_symmetry_pass;
@@ -716,7 +713,7 @@ static bool can_invoke(const bContext &C)
   return true;
 }
 
-static void report_invalid_mode(const blender::bke::pbvh::Type pbvh_type, ReportList &reports)
+static void report_invalid_mode(const bke::pbvh::Type pbvh_type, ReportList &reports)
 {
   if (pbvh_type == bke::pbvh::Type::BMesh) {
     BKE_report(&reports, RPT_ERROR, "Not supported in dynamic topology mode");
@@ -739,7 +736,7 @@ static bool can_exec(const bContext &C, ReportList &reports)
     return false;
   }
 
-  if (static_cast<const Mesh *>(object.data)->faces_num == 0) {
+  if (id_cast<const Mesh *>(object.data)->faces_num == 0) {
     /* No geometry to trim or to detect a valid position for the trimming shape. */
     return false;
   }
@@ -761,7 +758,7 @@ static void initialize_cursor_info(bContext &C,
   CursorGeometryInfo cgi;
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
-  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   trim_operation->initial_hit = cursor_geometry_info_update(&C, &cgi, mval_fl, false);
   if (trim_operation->initial_hit) {
     copy_v3_v3(trim_operation->initial_location, cgi.location);

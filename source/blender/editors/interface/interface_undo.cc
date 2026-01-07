@@ -18,22 +18,24 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Text Field Undo Stack
  * \{ */
 
-struct uiUndoStack_Text_State {
-  uiUndoStack_Text_State *next, *prev;
+struct UndoStack_Text_State {
+  UndoStack_Text_State *next, *prev;
   int cursor_index;
   char text[0];
 };
 
-struct uiUndoStack_Text {
-  ListBase states;
-  uiUndoStack_Text_State *current;
+struct UndoStack_Text {
+  ListBaseT<UndoStack_Text_State> states;
+  UndoStack_Text_State *current;
 };
 
-static const char *ui_textedit_undo_impl(uiUndoStack_Text *stack, int *r_cursor_index)
+static const char *ui_textedit_undo_impl(UndoStack_Text *stack, int *r_cursor_index)
 {
   /* Don't undo if no data has been pushed yet. */
   if (stack->current == nullptr) {
@@ -50,7 +52,7 @@ static const char *ui_textedit_undo_impl(uiUndoStack_Text *stack, int *r_cursor_
   return nullptr;
 }
 
-static const char *ui_textedit_redo_impl(uiUndoStack_Text *stack, int *r_cursor_index)
+static const char *ui_textedit_redo_impl(UndoStack_Text *stack, int *r_cursor_index)
 {
   /* Don't redo if no data has been pushed yet. */
   if (stack->current == nullptr) {
@@ -67,7 +69,7 @@ static const char *ui_textedit_redo_impl(uiUndoStack_Text *stack, int *r_cursor_
   return nullptr;
 }
 
-const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_cursor_index)
+const char *textedit_undo(UndoStack_Text *stack, int direction, int *r_cursor_index)
 {
   BLI_assert(ELEM(direction, -1, 1));
   if (direction < 0) {
@@ -76,12 +78,12 @@ const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_curs
   return ui_textedit_redo_impl(stack, r_cursor_index);
 }
 
-void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index)
+void textedit_undo_push(UndoStack_Text *stack, const char *text, int cursor_index)
 {
   /* Clear all redo actions from the current state. */
   if (stack->current != nullptr) {
     while (stack->current->next) {
-      uiUndoStack_Text_State *state = stack->current->next;
+      UndoStack_Text_State *state = stack->current->next;
       BLI_remlink(&stack->states, state);
       MEM_freeN(state);
     }
@@ -89,26 +91,28 @@ void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor
 
   /* Create the new state. */
   const int text_size = strlen(text) + 1;
-  stack->current = static_cast<uiUndoStack_Text_State *>(
-      MEM_mallocN(sizeof(uiUndoStack_Text_State) + text_size, __func__));
+  stack->current = static_cast<UndoStack_Text_State *>(
+      MEM_mallocN(sizeof(UndoStack_Text_State) + text_size, __func__));
   stack->current->cursor_index = cursor_index;
   memcpy(stack->current->text, text, text_size);
   BLI_addtail(&stack->states, stack->current);
 }
 
-uiUndoStack_Text *ui_textedit_undo_stack_create()
+UndoStack_Text *textedit_undo_stack_create()
 {
-  uiUndoStack_Text *stack = MEM_callocN<uiUndoStack_Text>(__func__);
+  UndoStack_Text *stack = MEM_callocN<UndoStack_Text>(__func__);
   stack->current = nullptr;
   BLI_listbase_clear(&stack->states);
 
   return stack;
 }
 
-void ui_textedit_undo_stack_destroy(uiUndoStack_Text *stack)
+void textedit_undo_stack_destroy(UndoStack_Text *stack)
 {
   BLI_freelistN(&stack->states);
   MEM_freeN(stack);
 }
 
 /** \} */
+
+}  // namespace blender::ui

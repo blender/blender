@@ -27,6 +27,8 @@
 
 #include "bpy_msgbus.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utils
  * \{ */
@@ -59,7 +61,7 @@ static int py_msgbus_rna_key_from_py(PyObject *py_sub,
 
   /* Allow common case, object rotation, location - etc. */
   if (BaseMathObject_CheckExact(py_sub)) {
-    BaseMathObject *py_sub_math = (BaseMathObject *)py_sub;
+    BaseMathObject *py_sub_math = reinterpret_cast<BaseMathObject *>(py_sub);
     if (py_sub_math->cb_user == nullptr) {
       PyErr_Format(PyExc_TypeError, "%s: math argument has no owner", error_prefix);
       return -1;
@@ -69,14 +71,14 @@ static int py_msgbus_rna_key_from_py(PyObject *py_sub,
   }
 
   if (BPy_PropertyRNA_Check(py_sub)) {
-    BPy_PropertyRNA *data_prop = (BPy_PropertyRNA *)py_sub;
+    BPy_PropertyRNA *data_prop = reinterpret_cast<BPy_PropertyRNA *>(py_sub);
     PYRNA_PROP_CHECK_INT(data_prop);
     msg_key_params->ptr = *data_prop->ptr;
     msg_key_params->prop = data_prop->prop;
   }
   else if (BPy_StructRNA_Check(py_sub)) {
     /* NOTE: this isn't typically used since we don't edit structs directly. */
-    BPy_StructRNA *data_srna = (BPy_StructRNA *)py_sub;
+    BPy_StructRNA *data_srna = reinterpret_cast<BPy_StructRNA *>(py_sub);
     PYRNA_STRUCT_CHECK_INT(data_srna);
     msg_key_params->ptr = *data_srna->ptr;
   }
@@ -391,15 +393,15 @@ static PyObject *bpy_msgbus_clear_by_owner(PyObject * /*self*/, PyObject *py_own
 
 static PyMethodDef BPy_msgbus_methods[] = {
     {"subscribe_rna",
-     (PyCFunction)bpy_msgbus_subscribe_rna,
+     reinterpret_cast<PyCFunction>(bpy_msgbus_subscribe_rna),
      METH_VARARGS | METH_KEYWORDS,
      bpy_msgbus_subscribe_rna_doc},
     {"publish_rna",
-     (PyCFunction)bpy_msgbus_publish_rna,
+     reinterpret_cast<PyCFunction>(bpy_msgbus_publish_rna),
      METH_VARARGS | METH_KEYWORDS,
      bpy_msgbus_publish_rna_doc},
     {"clear_by_owner",
-     (PyCFunction)bpy_msgbus_clear_by_owner,
+     static_cast<PyCFunction>(bpy_msgbus_clear_by_owner),
      METH_O,
      bpy_msgbus_clear_by_owner_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -435,3 +437,5 @@ PyObject *BPY_msgbus_module()
 }
 
 /** \} */
+
+}  // namespace blender

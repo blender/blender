@@ -18,7 +18,7 @@
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 
-using namespace blender;
+namespace blender {
 
 /* Using https://downloads.wortschatz-leipzig.de/corpora/eng_wikipedia_2010_1M.tar.gz
  * (1 million of words, about 122MB of text) from
@@ -756,3 +756,5 @@ TEST(ghash, MultiRandIntMurmur2a200000)
 
   multi_small_ghash_tests(ghash, "MultiSmall RandIntGHash - Murmur2a - 200000", 200000);
 }
+
+}  // namespace blender

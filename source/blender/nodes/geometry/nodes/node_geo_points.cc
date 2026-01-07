@@ -86,7 +86,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodePoints", GEO_NODE_POINTS);
   ntype.ui_name = "Points";
   ntype.ui_description = "Generate a point cloud with positions and radii defined by fields";
@@ -94,7 +94,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <pxr/base/vt/array.h>
+#include <pxr/base/vt/types.h>
 #include <pxr/imaging/hd/sceneDelegate.h>
 
 #include "BLI_set.hh"
@@ -12,7 +12,14 @@
 #include "material.hh"
 #include "object.hh"
 
-namespace blender::io::hydra {
+namespace blender {
+
+struct Mesh;
+struct Object;
+
+namespace io::hydra {
+
+class HydraSceneDelegate;
 
 class MeshData : public ObjectData {
  public:
@@ -60,4 +67,5 @@ class MeshData : public ObjectData {
   void update_prims();
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

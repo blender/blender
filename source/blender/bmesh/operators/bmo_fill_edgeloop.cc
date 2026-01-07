@@ -14,6 +14,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define VERT_USED 1
 #define EDGE_MARK 2
 #define ELE_OUT 4
@@ -136,3 +138,5 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 cleanup:
   MEM_freeN(verts);
 }
+
+}  // namespace blender

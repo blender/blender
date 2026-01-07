@@ -16,6 +16,8 @@
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /** Useful to print Python objects while debugging. */
 void PyC_ObSpit(const char *name, PyObject *var);
 /**
@@ -358,14 +360,14 @@ struct PyC_StringEnum {
 [[nodiscard]] Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
 {
 #if PY_VERSION_HEX < 0x030d0000 /* <3.13 */
-  return (int32_t)_PyLong_AsInt(value);
+  return int32_t(_PyLong_AsInt(value));
 #else
-  return (int32_t)PyLong_AsInt(value);
+  return int32_t(PyLong_AsInt(value));
 #endif
 }
 [[nodiscard]] Py_LOCAL_INLINE(int64_t) PyC_Long_AsI64(PyObject *value)
 {
-  return (int64_t)PyLong_AsLongLong(value);
+  return int64_t(PyLong_AsLongLong(value));
 }
 
 /* utils for format string in `struct` module style syntax */
@@ -380,23 +382,25 @@ struct PyC_StringEnum {
  */
 [[nodiscard]] PyObject *PyC_UnicodeFromStdStr(const std::string &str);
 
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_F32(const blender::Span<float> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_F32(const Span<float> values)
 {
   return PyC_Tuple_PackArray_F32(values.data(), values.size());
 }
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_F64(const blender::Span<double> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_F64(const Span<double> values)
 {
   return PyC_Tuple_PackArray_F64(values.data(), values.size());
 }
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_I32(const blender::Span<int> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_I32(const Span<int> values)
 {
   return PyC_Tuple_PackArray_I32(values.data(), values.size());
 }
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_I32FromBool(const blender::Span<int> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_I32FromBool(const Span<int> values)
 {
   return PyC_Tuple_PackArray_I32FromBool(values.data(), values.size());
 }
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_Bool(const blender::Span<bool> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_Bool(const Span<bool> values)
 {
   return PyC_Tuple_PackArray_Bool(values.data(), values.size());
 }
+
+}  // namespace blender

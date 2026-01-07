@@ -37,13 +37,15 @@
 
 #include "pbvh_intern.hh"
 
+namespace blender {
+
 // #define DEBUG_BUILD_TIME
 
 #ifdef DEBUG_BUILD_TIME
 #  include "BLI_timeit.hh"
 #endif
 
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 
 #define STACK_FIXED_DEPTH 100
 
@@ -698,7 +700,7 @@ struct StackItem {
 
 struct PBVHIter {
   Tree *pbvh;
-  blender::FunctionRef<bool(Node &)> scb;
+  FunctionRef<bool(Node &)> scb;
 
   Stack<StackItem, 100> stack;
 };
@@ -844,14 +846,14 @@ static void free_tree(NodeTree *tree)
   ::free(tree);
 }
 
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
 
-float BKE_pbvh_node_get_tmin(const blender::bke::pbvh::Node *node)
+float BKE_pbvh_node_get_tmin(const bke::pbvh::Node *node)
 {
   return node->tmin_;
 }
 
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 
 static void search_callback_occluded(Tree &pbvh,
                                      const FunctionRef<bool(Node &)> scb,
@@ -917,7 +919,7 @@ struct PositionSourceResult {
 static PositionSourceResult cache_source_get(const Object &object_orig, const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
+  const Mesh &mesh_orig = *id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   if (object_orig.mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
     if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(&object_eval)) {
@@ -946,7 +948,7 @@ static const SharedCache<Vector<float3>> &vert_normals_cache_eval(const Object &
                                                                   const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
+  const Mesh &mesh_orig = *id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
 
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
@@ -974,7 +976,7 @@ static const SharedCache<Vector<float3>> &face_normals_cache_eval(const Object &
                                                                   const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
+  const Mesh &mesh_orig = *id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
   switch (result.cache_source) {
@@ -1000,7 +1002,7 @@ static SharedCache<Vector<float3>> &face_normals_cache_eval_for_write(Object &ob
 static Span<float3> vert_positions_eval(const Object &object_orig, const Object &object_eval)
 {
   const SculptSession &ss = *object_orig.sculpt;
-  const Mesh &mesh_orig = *static_cast<const Mesh *>(object_orig.data);
+  const Mesh &mesh_orig = *id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
   switch (result.cache_source) {
@@ -1020,7 +1022,7 @@ static Span<float3> vert_positions_eval(const Object &object_orig, const Object 
 static MutableSpan<float3> vert_positions_eval_for_write(Object &object_orig, Object &object_eval)
 {
   SculptSession &ss = *object_orig.sculpt;
-  Mesh &mesh_orig = *static_cast<Mesh *>(object_orig.data);
+  Mesh &mesh_orig = *id_cast<Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
   switch (result.cache_source) {
@@ -1166,7 +1168,7 @@ static void update_normals_mesh(Object &object_orig,
    * Those boundary face and vertex indices are deduplicated with #VectorSet in order to avoid
    * duplicate work recalculation for the same vertex, and to make parallel storage for vertices
    * during recalculation thread-safe. */
-  Mesh &mesh = *static_cast<Mesh *>(object_orig.data);
+  Mesh &mesh = *id_cast<Mesh *>(object_orig.data);
   const Span<float3> positions = bke::pbvh::vert_positions_eval_from_eval(object_eval);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1586,7 +1588,7 @@ void Tree::update_visibility(const Object &object)
   visibility_dirty_.clear_and_shrink();
   switch (this->type()) {
     case Type::Mesh: {
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<const Mesh *>(object.data);
       update_visibility_faces(mesh, this->nodes<MeshNode>(), node_mask);
       break;
     }
@@ -1622,7 +1624,7 @@ int count_grid_quads(const BitGroupVector<> &grid_hidden,
 
   int totquad = 0;
   for (const int grid : grid_indices) {
-    const blender::BoundedBitSpan gh = grid_hidden[grid];
+    const BoundedBitSpan gh = grid_hidden[grid];
     /* grid hidden are present, have to check each element */
     for (int y = 0; y < gridsize - skip; y += skip) {
       for (int x = 0; x < gridsize - skip; x += skip) {
@@ -1636,9 +1638,9 @@ int count_grid_quads(const BitGroupVector<> &grid_hidden,
   return totquad;
 }
 
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
 
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 
 IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
                                         const Span<GridsNode> nodes,
@@ -1670,83 +1672,80 @@ Bounds<float3> bounds_get(const Tree &pbvh)
       pbvh.nodes_);
 }
 
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
 
 /***************************** Node Access ***********************************/
 
-void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node)
+void BKE_pbvh_node_mark_update(bke::pbvh::Node &node)
 {
-  node.flag_ |= blender::bke::pbvh::Node::RebuildPixels;
+  node.flag_ |= bke::pbvh::Node::RebuildPixels;
 }
 
-void BKE_pbvh_mark_rebuild_pixels(blender::bke::pbvh::Tree &pbvh)
+void BKE_pbvh_mark_rebuild_pixels(bke::pbvh::Tree &pbvh)
 {
   std::visit(
       [](auto &nodes) {
-        for (blender::bke::pbvh::Node &node : nodes) {
-          if (node.flag_ & blender::bke::pbvh::Node::Leaf) {
-            node.flag_ |= blender::bke::pbvh::Node::RebuildPixels;
+        for (bke::pbvh::Node &node : nodes) {
+          if (node.flag_ & bke::pbvh::Node::Leaf) {
+            node.flag_ |= bke::pbvh::Node::RebuildPixels;
           }
         }
       },
       pbvh.nodes_);
 }
 
-void BKE_pbvh_node_fully_hidden_set(blender::bke::pbvh::Node &node, int fully_hidden)
+void BKE_pbvh_node_fully_hidden_set(bke::pbvh::Node &node, int fully_hidden)
 {
-  BLI_assert(node.flag_ & blender::bke::pbvh::Node::Leaf);
+  BLI_assert(node.flag_ & bke::pbvh::Node::Leaf);
 
   if (fully_hidden) {
-    node.flag_ |= blender::bke::pbvh::Node::FullyHidden;
+    node.flag_ |= bke::pbvh::Node::FullyHidden;
   }
   else {
-    node.flag_ &= ~blender::bke::pbvh::Node::FullyHidden;
+    node.flag_ &= ~bke::pbvh::Node::FullyHidden;
   }
 }
 
-bool BKE_pbvh_node_fully_hidden_get(const blender::bke::pbvh::Node &node)
+bool BKE_pbvh_node_fully_hidden_get(const bke::pbvh::Node &node)
 {
-  return (node.flag_ & blender::bke::pbvh::Node::Leaf) &&
-         (node.flag_ & blender::bke::pbvh::Node::FullyHidden);
+  return (node.flag_ & bke::pbvh::Node::Leaf) && (node.flag_ & bke::pbvh::Node::FullyHidden);
 }
 
-void BKE_pbvh_node_fully_masked_set(blender::bke::pbvh::Node &node, int fully_masked)
+void BKE_pbvh_node_fully_masked_set(bke::pbvh::Node &node, int fully_masked)
 {
-  BLI_assert(node.flag_ & blender::bke::pbvh::Node::Leaf);
+  BLI_assert(node.flag_ & bke::pbvh::Node::Leaf);
 
   if (fully_masked) {
-    node.flag_ |= blender::bke::pbvh::Node::FullyMasked;
+    node.flag_ |= bke::pbvh::Node::FullyMasked;
   }
   else {
-    node.flag_ &= ~blender::bke::pbvh::Node::FullyMasked;
+    node.flag_ &= ~bke::pbvh::Node::FullyMasked;
   }
 }
 
-bool BKE_pbvh_node_fully_masked_get(const blender::bke::pbvh::Node &node)
+bool BKE_pbvh_node_fully_masked_get(const bke::pbvh::Node &node)
 {
-  return (node.flag_ & blender::bke::pbvh::Node::Leaf) &&
-         (node.flag_ & blender::bke::pbvh::Node::FullyMasked);
+  return (node.flag_ & bke::pbvh::Node::Leaf) && (node.flag_ & bke::pbvh::Node::FullyMasked);
 }
 
-void BKE_pbvh_node_fully_unmasked_set(blender::bke::pbvh::Node &node, int fully_masked)
+void BKE_pbvh_node_fully_unmasked_set(bke::pbvh::Node &node, int fully_masked)
 {
-  BLI_assert(node.flag_ & blender::bke::pbvh::Node::Leaf);
+  BLI_assert(node.flag_ & bke::pbvh::Node::Leaf);
 
   if (fully_masked) {
-    node.flag_ |= blender::bke::pbvh::Node::FullyUnmasked;
+    node.flag_ |= bke::pbvh::Node::FullyUnmasked;
   }
   else {
-    node.flag_ &= ~blender::bke::pbvh::Node::FullyUnmasked;
+    node.flag_ &= ~bke::pbvh::Node::FullyUnmasked;
   }
 }
 
-bool BKE_pbvh_node_fully_unmasked_get(const blender::bke::pbvh::Node &node)
+bool BKE_pbvh_node_fully_unmasked_get(const bke::pbvh::Node &node)
 {
-  return (node.flag_ & blender::bke::pbvh::Node::Leaf) &&
-         (node.flag_ & blender::bke::pbvh::Node::FullyUnmasked);
+  return (node.flag_ & bke::pbvh::Node::Leaf) && (node.flag_ & bke::pbvh::Node::FullyUnmasked);
 }
 
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 
 Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
                                        const GridsNode &node,
@@ -1765,11 +1764,11 @@ Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
   return faces.as_span();
 }
 
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
 
-void BKE_pbvh_node_get_bm_orco_data(const blender::bke::pbvh::BMeshNode &node,
-                                    blender::Span<blender::float3> &r_orig_positions,
-                                    blender::Span<blender::int3> &r_orig_tris)
+void BKE_pbvh_node_get_bm_orco_data(const bke::pbvh::BMeshNode &node,
+                                    Span<float3> &r_orig_positions,
+                                    Span<int3> &r_orig_tris)
 {
   r_orig_positions = node.orig_positions_;
   r_orig_tris = node.orig_tris_;
@@ -1777,7 +1776,7 @@ void BKE_pbvh_node_get_bm_orco_data(const blender::bke::pbvh::BMeshNode &node,
 
 /********************************* Ray-cast ***********************************/
 
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 
 struct RaycastData {
   IsectRayAABB_Precalc ray;
@@ -2511,34 +2510,32 @@ bool node_frustum_exclude_aabb(const Node &node, const Span<float4> frustum_plan
   return test_frustum_aabb(node.bounds_, frustum_planes) != PlaneAABBIsect::Inside;
 }
 
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
 
-void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
-                                const blender::Span<blender::float3> vert_positions)
+void BKE_pbvh_vert_coords_apply(bke::pbvh::Tree &pbvh, const Span<float3> vert_positions)
 {
   using namespace blender::bke::pbvh;
-  pbvh.tag_positions_changed(blender::IndexRange(pbvh.nodes_num()));
+  pbvh.tag_positions_changed(IndexRange(pbvh.nodes_num()));
   pbvh.update_bounds_mesh(vert_positions);
   store_bounds_orig(pbvh);
 }
 
-int BKE_pbvh_debug_draw_gen_get(blender::bke::pbvh::Node &node)
+int BKE_pbvh_debug_draw_gen_get(bke::pbvh::Node &node)
 {
   return node.debug_draw_gen_;
 }
 
 void BKE_pbvh_sync_visibility_from_verts(Object &object)
 {
-  using namespace blender;
   using namespace blender::bke;
   const SculptSession &ss = *object.sculpt;
   switch (object::pbvh_get(object)->type()) {
-    case blender::bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+    case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       mesh_hide_vert_flush(mesh);
       break;
     }
-    case blender::bke::pbvh::Type::BMesh: {
+    case bke::pbvh::Type::BMesh: {
       BMesh &bm = *ss.bm;
       BMIter iter;
       BMVert *v;
@@ -2567,8 +2564,8 @@ void BKE_pbvh_sync_visibility_from_verts(Object &object)
       }
       break;
     }
-    case blender::bke::pbvh::Type::Grids: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+    case bke::pbvh::Type::Grids: {
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
@@ -2607,7 +2604,7 @@ void BKE_pbvh_sync_visibility_from_verts(Object &object)
   }
 }
 
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 
 IndexMask all_leaf_nodes(const Tree &pbvh, IndexMaskMemory &memory)
 {
@@ -2663,4 +2660,5 @@ IndexMask search_nodes(const Tree &pbvh,
   return IndexMask::from_indices(indices.as_span(), memory);
 }
 
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
+}  // namespace blender

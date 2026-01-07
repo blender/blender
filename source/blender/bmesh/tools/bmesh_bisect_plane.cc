@@ -15,11 +15,14 @@
  * see: #bm_face_bisect_verts
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_geom.h"
+
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
@@ -28,6 +31,8 @@
 #include "bmesh_bisect_plane.hh" /* Own include. */
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Math Functions
@@ -130,26 +135,13 @@ BLI_INLINE bool face_in_stack_test(BMFace *f)
 /** \name BMesh Face Bisect
  * \{ */
 
-static int bm_vert_sortval_cb(const void *v_a_v, const void *v_b_v)
-{
-  const float val_a = BM_VERT_SORTVAL(*((BMVert **)v_a_v));
-  const float val_b = BM_VERT_SORTVAL(*((BMVert **)v_b_v));
-
-  if (val_a > val_b) {
-    return 1;
-  }
-  if (val_a < val_b) {
-    return -1;
-  }
-  return 0;
-}
-
 static void bm_face_bisect_verts(
     BMesh *bm, BMFace *f, const float plane[4], const short oflag_center, const short oflag_new)
 {
   /* Unlikely more than 2 verts are needed. */
   const uint f_len_orig = uint(f->len);
-  BMVert **vert_split_arr = BLI_array_alloca(vert_split_arr, f_len_orig);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vert_split_arr_buf(f_len_orig);
+  BMVert **vert_split_arr = vert_split_arr_buf.data();
   STACK_DECLARE(vert_split_arr);
   BMLoop *l_iter, *l_first;
   bool use_dirs[3] = {false, false, false};
@@ -261,7 +253,8 @@ static void bm_face_bisect_verts(
         } while ((l_iter = l_iter->next) != l_first_non_center);
       }
 
-      BMFace **face_split_arr = BLI_array_alloca(face_split_arr, STACK_SIZE(vert_split_arr));
+      Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> face_split_arr_buf(STACK_SIZE(vert_split_arr));
+      BMFace **face_split_arr = face_split_arr_buf.data();
       STACK_DECLARE(face_split_arr);
 
       float sort_dir[3];
@@ -295,8 +288,10 @@ static void bm_face_bisect_verts(
         BM_VERT_SORTVAL(v) = dot_v3v3(sort_dir, v->co);
       }
 
-      qsort(
-          vert_split_arr, STACK_SIZE(vert_split_arr), sizeof(*vert_split_arr), bm_vert_sortval_cb);
+      std::sort(
+          vert_split_arr,
+          vert_split_arr + STACK_SIZE(vert_split_arr),
+          [](BMVert *v_a, BMVert *v_b) { return BM_VERT_SORTVAL(v_a) < BM_VERT_SORTVAL(v_b); });
 
       /* ---- */
       /* Split the face across sorted splits. */
@@ -392,8 +387,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
 {
   uint einput_len;
   uint i;
-  BMEdge **edges_arr = static_cast<BMEdge **>(
-      MEM_mallocN(sizeof(*edges_arr) * size_t(bm->totedge), __func__));
+  BMEdge **edges_arr = MEM_malloc_arrayN<BMEdge *>(size_t(bm->totedge), __func__);
 
   BLI_LINKSTACK_DECLARE(face_stack, BMFace *);
 
@@ -546,3 +540,5 @@ void BM_mesh_bisect_plane(BMesh *bm,
 }
 
 /** \} */
+
+}  // namespace blender

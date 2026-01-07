@@ -23,6 +23,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name IDProp Repr
  *
@@ -192,13 +194,13 @@ static void idp_repr_fn_recursive(ReprState *state, const IDProperty *prop)
     }
     case IDP_GROUP: {
       STR_APPEND_STR("{");
-      LISTBASE_FOREACH (const IDProperty *, subprop, &prop->data.group) {
-        if (subprop != prop->data.group.first) {
+      for (const IDProperty &subprop : prop->data.group) {
+        if (&subprop != prop->data.group.first) {
           STR_APPEND_STR(", ");
         }
-        STR_APPEND_STR_QUOTE(subprop->name);
+        STR_APPEND_STR_QUOTE(subprop.name);
         STR_APPEND_STR(": ");
-        idp_repr_fn_recursive(state, subprop);
+        idp_repr_fn_recursive(state, &subprop);
       }
       STR_APPEND_STR("}");
       break;
@@ -314,3 +316,5 @@ const char *IDP_type_str(const IDProperty *prop)
 }
 
 /** \} */
+
+}  // namespace blender

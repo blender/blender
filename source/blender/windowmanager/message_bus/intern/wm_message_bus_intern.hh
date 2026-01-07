@@ -12,10 +12,12 @@
 
 struct GSet;
 
+namespace blender {
+
 struct wmMsgBus {
   GSet *messages_gset[WM_MSG_TYPE_NUM];
   /** Messages in order of being added. */
-  ListBase messages;
+  ListBaseT<wmMsgSubscribeKey> messages;
   /** Avoid checking messages when no tags exist. */
   uint messages_tag_count;
 };
@@ -32,9 +34,12 @@ struct wmMsgSubscribeKey_Generic {
 
 BLI_INLINE const wmMsg *wm_msg_subscribe_value_msg_cast(const wmMsgSubscribeKey *key)
 {
-  return &((wmMsgSubscribeKey_Generic *)key)->msg;
+  return &(reinterpret_cast<wmMsgSubscribeKey_Generic *>(const_cast<wmMsgSubscribeKey *>(key)))
+              ->msg;
 }
 BLI_INLINE wmMsg *wm_msg_subscribe_value_msg_cast_mut(wmMsgSubscribeKey *key)
 {
-  return &((wmMsgSubscribeKey_Generic *)key)->msg;
+  return &(reinterpret_cast<wmMsgSubscribeKey_Generic *>(key))->msg;
 }
+
+}  // namespace blender

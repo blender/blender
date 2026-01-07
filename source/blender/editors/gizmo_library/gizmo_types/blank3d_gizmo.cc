@@ -15,6 +15,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* own includes */
 
 static void gizmo_blank_draw(const bContext * /*C*/, wmGizmo * /*gz*/)
@@ -57,3 +59,5 @@ void ED_gizmotypes_blank_3d()
 }
 
 /** \} */
+
+}  // namespace blender

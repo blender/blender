@@ -41,7 +41,9 @@
 
 #include "outliner_intern.hh" /* own include */
 
-namespace blender::ed::outliner {
+namespace blender {
+
+namespace ed::outliner {
 
 /* -------------------------------------------------------------------- */
 /** \name Utility API
@@ -80,11 +82,11 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
     return lc->collection;
   }
   if (ELEM(tselem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
-    Scene *scene = (Scene *)tselem->id;
+    Scene *scene = id_cast<Scene *>(tselem->id);
     return scene->master_collection;
   }
   if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_GR)) {
-    return (Collection *)tselem->id;
+    return id_cast<Collection *>(tselem->id);
   }
 
   return nullptr;
@@ -141,9 +143,9 @@ TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *cus
   return TRAVERSE_CONTINUE;
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
 
-void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
+void ED_outliner_selected_objects_get(const bContext *C, ListBaseT<LinkData> *objects)
 {
   using namespace blender::ed::outliner;
 
@@ -155,15 +157,15 @@ void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
                          TSE_SELECTED,
                          outliner_collect_selected_objects,
                          &data);
-  LISTBASE_FOREACH (LinkData *, link, &data.selected_array) {
-    TreeElement *ten_selected = (TreeElement *)link->data;
-    Object *ob = (Object *)TREESTORE(ten_selected)->id;
+  for (LinkData &link : data.selected_array) {
+    TreeElement *ten_selected = static_cast<TreeElement *>(link.data);
+    Object *ob = id_cast<Object *>(TREESTORE(ten_selected)->id);
     BLI_addtail(objects, BLI_genericNodeN(ob));
   }
   BLI_freelistN(&data.selected_array);
 }
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 /** \} */
 
@@ -171,7 +173,7 @@ namespace blender::ed::outliner {
 /** \name Poll Functions
  * \{ */
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
 
 bool ED_outliner_collections_editor_poll(bContext *C)
 {
@@ -180,7 +182,7 @@ bool ED_outliner_collections_editor_poll(bContext *C)
          ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
 }
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 static bool outliner_view_layer_collections_editor_poll(bContext *C)
 {
@@ -397,8 +399,8 @@ void outliner_collection_delete(
           skip = true;
         }
         else {
-          LISTBASE_FOREACH (CollectionParent *, cparent, &collection->runtime->parents) {
-            Collection *parent = cparent->collection;
+          for (CollectionParent &cparent : collection->runtime->parents) {
+            Collection *parent = cparent.collection;
             if (!ID_IS_EDITABLE(parent) || ID_IS_OVERRIDE_LIBRARY(parent)) {
               skip = true;
               break;
@@ -537,8 +539,8 @@ static wmOperatorStatus collection_objects_select_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (LinkData *, link, &selected_collections.selected_array) {
-    TreeElement *te = static_cast<TreeElement *>(link->data);
+  for (LinkData &link : selected_collections.selected_array) {
+    TreeElement *te = static_cast<TreeElement *>(link.data);
     if (te->store_elem->type == TSE_LAYER_COLLECTION) {
       LayerCollection *layer_collection = static_cast<LayerCollection *>(te->directdata);
       BKE_layer_collection_objects_select(scene, view_layer, layer_collection, deselect);
@@ -647,8 +649,8 @@ static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
   }
 
   int failed_count = 0;
-  LISTBASE_FOREACH (LinkData *, link, &selected_collections.selected_array) {
-    TreeElement *te = static_cast<TreeElement *>(link->data);
+  for (LinkData &link : selected_collections.selected_array) {
+    TreeElement *te = static_cast<TreeElement *>(link.data);
     Collection *collection = outliner_collection_from_tree_element(te);
     Collection *parent = (te->parent) ? outliner_collection_from_tree_element(te->parent) :
                                         nullptr;
@@ -682,8 +684,8 @@ static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
       }
     }
 
-    const eDupli_ID_Flags dupli_flags = (eDupli_ID_Flags)(USER_DUP_OBJECT |
-                                                          (linked ? 0 : U.dupflag));
+    const eDupli_ID_Flags dupli_flags = eDupli_ID_Flags(USER_DUP_OBJECT |
+                                                        (linked ? 0 : U.dupflag));
     BKE_collection_duplicate(
         bmain, parent, child, collection, dupli_flags, LIB_ID_DUPLICATE_IS_ROOT_ID);
   }
@@ -1505,7 +1507,7 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
     }
   }
   else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-    Object *ob = (Object *)tselem->id;
+    Object *ob = id_cast<Object *>(tselem->id);
     BKE_view_layer_synced_ensure(data->scene, data->view_layer);
     Base *base = BKE_view_layer_base_find(data->view_layer, ob);
     data->bases_to_edit.add(base);
@@ -1568,14 +1570,14 @@ static wmOperatorStatus outliner_unhide_all_exec(bContext *C, wmOperator * /*op*
 
   /* Unhide all the collections. */
   LayerCollection *lc_master = static_cast<LayerCollection *>(view_layer->layer_collections.first);
-  LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
-    BKE_layer_collection_set_flag(lc_iter, LAYER_COLLECTION_HIDE, false);
+  for (LayerCollection &lc_iter : lc_master->layer_collections) {
+    BKE_layer_collection_set_flag(&lc_iter, LAYER_COLLECTION_HIDE, false);
   }
 
   /* Unhide all objects. */
   BKE_view_layer_synced_ensure(scene, view_layer);
-  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    base->flag &= ~BASE_HIDDEN;
+  for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
+    base.flag &= ~BASE_HIDDEN;
   }
 
   BKE_view_layer_need_resync_tag(view_layer);
@@ -1621,8 +1623,8 @@ static wmOperatorStatus outliner_color_tag_set_exec(bContext *C, wmOperator *op)
                          outliner_collect_selected_collections,
                          &selected);
 
-  LISTBASE_FOREACH (LinkData *, link, &selected.selected_array) {
-    TreeElement *te_selected = (TreeElement *)link->data;
+  for (LinkData &link : selected.selected_array) {
+    TreeElement *te_selected = static_cast<TreeElement *>(link.data);
 
     Collection *collection = outliner_collection_from_tree_element(te_selected);
     if (collection == scene->master_collection) {
@@ -1663,4 +1665,5 @@ void OUTLINER_OT_collection_color_tag_set(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

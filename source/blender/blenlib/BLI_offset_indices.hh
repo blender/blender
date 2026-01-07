@@ -15,7 +15,9 @@
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 
-namespace blender::offset_indices {
+namespace blender {
+
+namespace offset_indices {
 
 /** Utility struct that can be passed into a function to skip a check for sorted indices. */
 struct NoSortCheck {};
@@ -194,9 +196,9 @@ void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
  */
 void build_reverse_offsets(Span<int> indices, MutableSpan<int> offsets);
 
-}  // namespace blender::offset_indices
+}  // namespace offset_indices
 
-namespace blender {
 using offset_indices::GroupedSpan;
 using offset_indices::OffsetIndices;
+
 }  // namespace blender

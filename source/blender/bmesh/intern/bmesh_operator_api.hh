@@ -15,6 +15,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /**
  * operators represent logical, executable mesh modules.  all topological
  * operations involving a bmesh has to go through them.
@@ -59,11 +61,11 @@ BLI_INLINE BMFlagLayer *BMO_elem_flag_from_header(BMHeader *ele_head)
 {
   switch (ele_head->htype) {
     case BM_VERT:
-      return ((BMVert_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMVert_OFlag *>(ele_head))->oflags;
     case BM_EDGE:
-      return ((BMEdge_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMEdge_OFlag *>(ele_head))->oflags;
     default:
-      return ((BMFace_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMFace_OFlag *>(ele_head))->oflags;
   }
 }
 
@@ -838,3 +840,5 @@ bool BMO_iter_map_value_bool(BMOIter *iter);
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 
 int BMO_opcode_from_opname(const char *opname);
+
+}  // namespace blender

@@ -89,6 +89,21 @@ template<typename T> static std::optional<eNodeSocketDatatype> static_type_to_so
   if constexpr (is_same_any_v<T, Material *>) {
     return SOCK_MATERIAL;
   }
+  if constexpr (is_same_any_v<T, VFont *>) {
+    return SOCK_FONT;
+  }
+  if constexpr (is_same_any_v<T, Scene *>) {
+    return SOCK_SCENE;
+  }
+  if constexpr (is_same_any_v<T, Text *>) {
+    return SOCK_TEXT_ID;
+  }
+  if constexpr (is_same_any_v<T, Mask *>) {
+    return SOCK_MASK;
+  }
+  if constexpr (is_same_any_v<T, bSound *>) {
+    return SOCK_SOUND;
+  }
   if constexpr (is_same_any_v<T, bke::GeometrySet>) {
     return SOCK_GEOMETRY;
   }
@@ -134,6 +149,16 @@ static bool static_type_is_base_socket_type(const eNodeSocketDatatype socket_typ
       return std::is_same_v<T, Image *>;
     case SOCK_MATERIAL:
       return std::is_same_v<T, Material *>;
+    case SOCK_FONT:
+      return std::is_same_v<T, VFont *>;
+    case SOCK_SCENE:
+      return std::is_same_v<T, Scene *>;
+    case SOCK_TEXT_ID:
+      return std::is_same_v<T, Text *>;
+    case SOCK_MASK:
+      return std::is_same_v<T, Mask *>;
+    case SOCK_SOUND:
+      return std::is_same_v<T, bSound *>;
     case SOCK_GEOMETRY:
       return std::is_same_v<T, bke::GeometrySet>;
     case SOCK_CUSTOM:
@@ -345,6 +370,26 @@ void SocketValueVariant::store_single(const eNodeSocketDatatype socket_type, con
       value_.emplace<Material *>(*static_cast<Material *const *>(value));
       break;
     }
+    case SOCK_FONT: {
+      value_.emplace<VFont *>(*static_cast<VFont *const *>(value));
+      break;
+    }
+    case SOCK_SCENE: {
+      value_.emplace<Scene *>(*static_cast<Scene *const *>(value));
+      break;
+    }
+    case SOCK_TEXT_ID: {
+      value_.emplace<Text *>(*static_cast<Text *const *>(value));
+      break;
+    }
+    case SOCK_MASK: {
+      value_.emplace<Mask *>(*static_cast<Mask *const *>(value));
+      break;
+    }
+    case SOCK_SOUND: {
+      value_.emplace<bSound *>(*static_cast<bSound *const *>(value));
+      break;
+    }
     case SOCK_GEOMETRY: {
       value_.emplace<bke::GeometrySet>(*static_cast<const bke::GeometrySet *>(value));
       break;
@@ -366,6 +411,11 @@ bool SocketValueVariant::is_context_dependent_field() const
     return false;
   }
   return field.node().depends_on_input();
+}
+
+bool SocketValueVariant::is_field() const
+{
+  return kind_ == Kind::Field;
 }
 
 bool SocketValueVariant::is_volume_grid() const
@@ -465,12 +515,133 @@ void *SocketValueVariant::allocate_single(const eNodeSocketDatatype socket_type)
       return value_.allocate<Image *>();
     case SOCK_MATERIAL:
       return value_.allocate<Material *>();
+    case SOCK_FONT:
+      return value_.allocate<VFont *>();
+    case SOCK_SCENE:
+      return value_.allocate<Scene *>();
+    case SOCK_TEXT_ID:
+      return value_.allocate<Text *>();
+    case SOCK_MASK:
+      return value_.allocate<Mask *>();
+    case SOCK_SOUND:
+      return value_.allocate<bSound *>();
     case SOCK_GEOMETRY:
       return value_.allocate<bke::GeometrySet>();
     default: {
       BLI_assert_unreachable();
       return nullptr;
     }
+  }
+}
+
+void SocketValueVariant::ensure_owns_direct_data()
+{
+  if (this->owns_direct_data()) {
+    return;
+  }
+  switch (socket_type_) {
+    case SOCK_FLOAT:
+    case SOCK_INT:
+    case SOCK_VECTOR:
+    case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
+    case SOCK_MATRIX:
+    case SOCK_RGBA:
+    case SOCK_STRING:
+    case SOCK_MENU:
+    case SOCK_OBJECT:
+    case SOCK_COLLECTION:
+    case SOCK_TEXTURE:
+    case SOCK_IMAGE:
+    case SOCK_MATERIAL:
+    case SOCK_FONT:
+    case SOCK_SCENE:
+    case SOCK_TEXT_ID:
+    case SOCK_MASK:
+    case SOCK_SOUND:
+    case SOCK_CLOSURE: {
+      break;
+    }
+    case SOCK_BUNDLE: {
+      if (this->is_single()) {
+        if (nodes::BundlePtr &bundle_ptr = value_.get<nodes::BundlePtr>()) {
+          if (!bundle_ptr->is_mutable()) {
+            bundle_ptr = bundle_ptr->copy();
+          }
+          nodes::Bundle &bundle = const_cast<nodes::Bundle &>(*bundle_ptr);
+          bundle.ensure_owns_direct_data();
+        }
+      }
+      else if (this->is_list()) {
+        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      }
+      break;
+    }
+    case SOCK_GEOMETRY: {
+      if (this->is_single()) {
+        GeometrySet &geometry = value_.get<GeometrySet>();
+        geometry.ensure_owns_direct_data();
+      }
+      else if (this->is_list()) {
+        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      }
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+  BLI_assert(this->owns_direct_data());
+}
+
+bool SocketValueVariant::owns_direct_data() const
+{
+  switch (socket_type_) {
+    case SOCK_FLOAT:
+    case SOCK_INT:
+    case SOCK_VECTOR:
+    case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
+    case SOCK_MATRIX:
+    case SOCK_RGBA:
+    case SOCK_STRING:
+    case SOCK_MENU:
+    case SOCK_OBJECT:
+    case SOCK_COLLECTION:
+    case SOCK_TEXTURE:
+    case SOCK_IMAGE:
+    case SOCK_MATERIAL:
+    case SOCK_FONT:
+    case SOCK_SCENE:
+    case SOCK_TEXT_ID:
+    case SOCK_MASK:
+    case SOCK_SOUND:
+    case SOCK_CLOSURE: {
+      return true;
+    }
+    case SOCK_BUNDLE: {
+      if (this->is_single()) {
+        if (const nodes::BundlePtr &bundle_ptr = value_.get<nodes::BundlePtr>()) {
+          return bundle_ptr->owns_direct_data();
+        }
+      }
+      else if (this->is_list()) {
+        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      }
+      return true;
+    }
+    case SOCK_GEOMETRY: {
+      if (this->is_single()) {
+        const GeometrySet &geometry = value_.get<GeometrySet>();
+        return geometry.owns_direct_data();
+      }
+      if (this->is_list()) {
+        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      }
+      return true;
+    }
+    default:
+      return true;
   }
 }
 
@@ -519,22 +690,27 @@ bool SocketValueVariant::valid_for_socket(eNodeSocketDatatype socket_type) const
 INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(int)
 INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(bool)
 INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(float)
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(blender::float3)
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(blender::ColorGeometry4f)
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(blender::math::Quaternion)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(float3)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(ColorGeometry4f)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(math::Quaternion)
 
 INSTANTIATE(std::string)
 INSTANTIATE(fn::GField)
-INSTANTIATE(blender::nodes::BundlePtr)
-INSTANTIATE(blender::nodes::ClosurePtr)
-INSTANTIATE(blender::nodes::ListPtr)
-INSTANTIATE(blender::bke::GeometrySet)
+INSTANTIATE(nodes::BundlePtr)
+INSTANTIATE(nodes::ClosurePtr)
+INSTANTIATE(nodes::ListPtr)
+INSTANTIATE(bke::GeometrySet)
 
 INSTANTIATE(Object *)
 INSTANTIATE(Collection *)
 INSTANTIATE(Tex *)
 INSTANTIATE(Image *)
 INSTANTIATE(Material *)
+INSTANTIATE(VFont *)
+INSTANTIATE(Scene *)
+INSTANTIATE(Text *)
+INSTANTIATE(Mask *)
+INSTANTIATE(bSound *)
 
 INSTANTIATE(float4x4)
 INSTANTIATE(fn::Field<float4x4>)

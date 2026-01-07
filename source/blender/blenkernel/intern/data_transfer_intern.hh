@@ -10,9 +10,10 @@
 
 #include "BKE_customdata.hh" /* For cd_datatransfer_interp */
 
+namespace blender {
+
 struct CustomData;
 struct CustomDataTransferLayerMap;
-struct ListBase;
 struct Object;
 struct Mesh;
 
@@ -46,7 +47,7 @@ enum {
 
 float data_transfer_interp_float_do(int mix_mode, float val_dst, float val_src, float mix_factor);
 
-void data_transfer_layersmapping_add_item(blender::Vector<CustomDataTransferLayerMap> *r_map,
+void data_transfer_layersmapping_add_item(Vector<CustomDataTransferLayerMap> *r_map,
                                           int data_type,
                                           int mix_mode,
                                           float mix_factor,
@@ -63,7 +64,7 @@ void data_transfer_layersmapping_add_item(blender::Vector<CustomDataTransferLaye
 
 /* Type-specific. */
 
-bool data_transfer_layersmapping_vgroups(blender::Vector<CustomDataTransferLayerMap> *r_map,
+bool data_transfer_layersmapping_vgroups(Vector<CustomDataTransferLayerMap> *r_map,
                                          int mix_mode,
                                          float mix_factor,
                                          const float *mix_weights,
@@ -88,3 +89,5 @@ void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLaye
                                                     const float *weights,
                                                     int count,
                                                     float mix_factor);
+
+}  // namespace blender

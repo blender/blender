@@ -28,11 +28,13 @@
 
 #include <fmt/format.h>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
 using namespace blender::gpu::shader;
 
-namespace blender::gpu {
+namespace gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Create Info
@@ -353,7 +355,8 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
 
 static void print_resource(std::ostream &os,
                            const VKDescriptorSet::Location location,
-                           const ShaderCreateInfo::Resource &res)
+                           const ShaderCreateInfo::Resource &res,
+                           const ShaderCreateInfo &info)
 {
   os << "layout(binding = " << uint32_t(location);
   if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
@@ -380,35 +383,38 @@ static void print_resource(std::ostream &os,
       os << res.image.name << ";";
       break;
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
-      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { " << res.uniformbuf.type_name
-         << " " << res.uniformbuf.name << "; };";
+      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { "
+         << info.buffer_typename(res.uniformbuf.type_name, true) << " " << res.uniformbuf.name
+         << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       print_qualifier(os, res.storagebuf.qualifiers);
-      os << "buffer _" << res.storagebuf.name.str_no_array() << " { " << res.storagebuf.type_name
-         << " " << res.storagebuf.name << "; };";
+      os << "buffer _" << res.storagebuf.name.str_no_array() << " { "
+         << info.buffer_typename(res.storagebuf.type_name) << " " << res.storagebuf.name << "; };";
       break;
   }
 }
 
 static void print_resource(std::ostream &os,
                            const VKShaderInterface &shader_interface,
-                           const ShaderCreateInfo::Resource &res)
+                           const ShaderCreateInfo::Resource &res,
+                           const ShaderCreateInfo &info)
 {
   const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(res);
-  print_resource(os, location, res);
+  print_resource(os, location, res, info);
 }
 
 static void print_resource(std::ostream &os,
                            const VKShaderInterface &shader_interface,
                            const ShaderCreateInfo::Resource &res,
+                           const ShaderCreateInfo &info,
                            StringRefNull res_frequency,
                            StringRefNull &active_info_name)
 {
   if (assign_if_different(active_info_name, res.info_name)) {
     os << "\n#define CREATE_INFO_RES_" << res_frequency << "_" << res.info_name << " \\\n";
   }
-  print_resource(os, shader_interface, res);
+  print_resource(os, shader_interface, res, info);
   os << " \\\n";
 }
 
@@ -802,21 +808,21 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
   {
     StringRefNull active_info = "";
     for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-      print_resource(ss, vk_interface, res, "PASS", active_info);
+      print_resource(ss, vk_interface, res, info, "PASS", active_info);
     }
     ss << "\n";
   }
   {
     StringRefNull active_info = "";
     for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-      print_resource(ss, vk_interface, res, "BATCH", active_info);
+      print_resource(ss, vk_interface, res, info, "BATCH", active_info);
     }
     ss << "\n";
   }
   {
     StringRefNull active_info = "";
     for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
-      print_resource(ss, vk_interface, res, "GEOMETRY", active_info);
+      print_resource(ss, vk_interface, res, info, "GEOMETRY", active_info);
     }
     ss << "\n";
   }
@@ -1041,11 +1047,11 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
       using Resource = ShaderCreateInfo::Resource;
       /* NOTE(fclem): Using the attachment index as resource index might be problematic as it might
        * collide with other resources. */
-      Resource res(info, Resource::BindType::SAMPLER, input.index);
+      Resource res(info, Resource::BindType::SAMPLER, input.index, nullptr);
       res.sampler.type = input.img_type;
       res.sampler.sampler = GPUSamplerState::default_sampler();
       res.sampler.name = image_name;
-      print_resource(ss, interface, res);
+      print_resource(ss, interface, res, info);
 
       char swizzle[] = "xyzw";
       swizzle[to_component_count(input.type)] = '\0';
@@ -1300,18 +1306,22 @@ VkPipeline VKShader::ensure_and_get_compute_pipeline(
 bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_states)
 {
   BLI_assert(!is_compute_shader_);
-  has_precompiled_pipelines_ = !pipeline_states.is_empty();
+
+  VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
+  if (!extensions.vertex_input_dynamic_state) {
+    return true;
+  }
+
   for (const shader::PipelineState &pipeline_state : pipeline_states) {
     const VkPrimitiveTopology vk_topology = to_vk_primitive_topology(pipeline_state.primitive_);
 
-    VKDevice &device = VKBackend::get().device;
-    const VKExtensions &extensions = device.extensions_get();
-
-    VKVertexInputDescription vertex_input_description(pipeline_state);
     VKGraphicsInfo graphics_info = {};
     graphics_info.vertex_in.vk_topology = vk_topology;
-    graphics_info.vertex_in.vertex_input_key = device.vertex_input_descriptions.get_or_insert(
-        vertex_input_description);
+    /* When vertex input dynamic state is enabled the actual vertex input doesn't matter. We use an
+     * invalid key to ensure that same hash-keys are constructed for compatible graphics infos and
+     * incorrect usages would still assert.*/
+    graphics_info.vertex_in.vertex_input_key = VKVertexInputDescriptionPool::invalid_key;
 
     graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
     graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;
@@ -1343,6 +1353,7 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
     bool pipeline_created = false;
     VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
         graphics_info, is_static_shader_, vk_pipeline_base_, name_get(), pipeline_created);
+    has_precompiled_pipelines_ = true;
     UNUSED_VARS_NDEBUG(pipeline_created);
     if (vk_pipeline == VK_NULL_HANDLE) {
       return false;
@@ -1378,7 +1389,12 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
 
   VKGraphicsInfo graphics_info = {};
   graphics_info.vertex_in.vk_topology = vk_topology;
-  graphics_info.vertex_in.vertex_input_key = vertex_input_description_key;
+  /* When vertex input dynamic state is enabled the actual vertex input doesn't matter. We use an
+   * invalid key to ensure that same hash-keys are constructed for compatible graphics infos and
+   * incorrect usages would still assert.*/
+  graphics_info.vertex_in.vertex_input_key = extensions.vertex_input_dynamic_state ?
+                                                 VKVertexInputDescriptionPool::invalid_key :
+                                                 vertex_input_description_key;
 
   graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
   graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;
@@ -1421,6 +1437,10 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
               "Pipeline states were compiled for `%s`, however a pipeline state triggered a new "
               "pipeline compilation.",
               name_get().c_str());
+    if (G.debug & G_DEBUG_GPU) {
+      CLOG_DEBUG(
+          &LOG, "Missing pipeline state:\n%s", graphics_info.pipeline_info_source().c_str());
+    }
     const VKContext &context = *VKContext::get();
     BLI_assert(!context.debug_pipeline_creation);
   }
@@ -1440,4 +1460,5 @@ const VKShaderInterface &VKShader::interface_get() const
   return *static_cast<const VKShaderInterface *>(interface);
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

@@ -31,7 +31,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   Object *active_object = CTX_data_active_object(C);
   BLI_assert(active_object);
   BLI_assert(active_object->type == OB_POINTCLOUD);
-  PointCloud &active_pointcloud = *static_cast<PointCloud *>(active_object->data);
+  PointCloud &active_pointcloud = *id_cast<PointCloud *>(active_object->data);
   const float4x4 &world_to_active = active_object->world_to_object();
 
   Vector<Object *> objects{active_object};
@@ -60,7 +60,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   Map<const PointCloud *, int> reference_by_orig_points;
   for (const int i : objects.index_range()) {
     transforms[i] = world_to_active * objects[i]->object_to_world();
-    const PointCloud *orig_points = static_cast<const PointCloud *>(objects[i]->data);
+    const PointCloud *orig_points = id_cast<const PointCloud *>(objects[i]->data);
     references[i] = reference_by_orig_points.lookup_or_add_cb(orig_points, [&]() {
       auto geometry = bke::GeometrySet::from_pointcloud(BKE_pointcloud_copy_for_eval(orig_points));
       return instances.add_new_reference(std::move(geometry));

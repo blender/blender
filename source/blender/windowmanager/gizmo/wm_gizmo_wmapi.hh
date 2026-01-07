@@ -15,6 +15,10 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
+namespace blender {
+
 struct bContext;
 struct wmEvent;
 struct wmEventHandler_Gizmo;
@@ -24,7 +28,6 @@ struct wmGizmoGroup;
 struct wmGizmoMap;
 struct wmKeyConfig;
 struct wmOperatorType;
-struct ListBase;
 
 /* -------------------------------------------------------------------- */
 /** \name #wmGizmo
@@ -98,7 +101,7 @@ void wm_gizmomap_modal_set(
 
 wmGizmo *wm_gizmomap_modal_get(wmGizmoMap *gzmap);
 wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len);
-ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
+ListBaseT<wmGizmoGroup> *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 
 /** \} */
 
@@ -109,3 +112,5 @@ ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 void wm_gizmomaptypes_free();
 
 /** \} */
+
+}  // namespace blender

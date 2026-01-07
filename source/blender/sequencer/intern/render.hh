@@ -8,20 +8,23 @@
  * \ingroup sequencer
  */
 
+#include "DNA_listBase.h"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-#include "BLI_vector.hh"
+
+namespace blender {
 
 struct Depsgraph;
 struct ImBuf;
 struct LinkNode;
-struct ListBase;
 struct Mask;
-struct Scene;
 struct RenderData;
+struct Scene;
+struct SeqTimelineChannel;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 /* Mutable state while rendering one sequencer frame. */
 struct SeqRenderState {
@@ -44,11 +47,9 @@ ImBuf *seq_render_give_ibuf_seqbase(const RenderData *context,
                                     SeqRenderState *state,
                                     float timeline_frame,
                                     int chan_shown,
-                                    ListBase *channels,
-                                    ListBase *seqbasep);
+                                    ListBaseT<SeqTimelineChannel> *channels,
+                                    ListBaseT<Strip> *seqbasep);
 void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float);
-Vector<Strip *> seq_shown_strips_get(
-    const Scene *scene, ListBase *channels, ListBase *seqbase, int timeline_frame, int chanshown);
 ImBuf *seq_render_strip(const RenderData *context,
                         SeqRenderState *state,
                         Strip *strip,
@@ -66,4 +67,5 @@ void seq_imbuf_assign_spaces(const Scene *scene, ImBuf *ibuf);
 
 StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *strip);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

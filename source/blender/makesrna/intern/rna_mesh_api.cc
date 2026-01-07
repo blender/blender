@@ -22,6 +22,7 @@
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_attribute.hh"
+#  include "BKE_customdata.hh"
 #  include "BKE_geometry_compare.hh"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh.hh"
@@ -36,9 +37,11 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 static const char *rna_Mesh_unit_test_compare(Mesh *mesh, Mesh *mesh2, float threshold)
 {
-  using namespace blender::bke::compare_geometry;
+  using namespace bke::compare_geometry;
   const std::optional<GeoMismatch> mismatch = compare_meshes(*mesh, *mesh2, threshold);
 
   if (!mismatch) {
@@ -52,13 +55,12 @@ static void rna_Mesh_sharp_from_angle_set(Mesh *mesh, const float angle)
 {
   mesh->attributes_for_write().remove("sharp_edge");
   mesh->attributes_for_write().remove("sharp_face");
-  blender::bke::mesh_sharp_edges_set_from_angle(*mesh, angle);
+  bke::mesh_sharp_edges_set_from_angle(*mesh, angle);
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
 }
 
 static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *uvmap)
 {
-  using namespace blender;
   float4 *r_looptangents;
   if (CustomData_has_layer(&mesh->corner_data, CD_MLOOPTANGENT)) {
     r_looptangents = static_cast<float4 *>(
@@ -111,7 +113,6 @@ static void rna_Mesh_calc_smooth_groups(Mesh *mesh,
                                         int *r_poly_group_num,
                                         int *r_group_total)
 {
-  using namespace blender;
   *r_poly_group_num = mesh->faces_num;
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", bke::AttrDomain::Edge);
@@ -142,8 +143,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               const float *normals,
                                               int normals_num)
 {
-  using namespace blender;
-  float3 *corner_normals = (float3 *)normals;
+  float3 *corner_normals = reinterpret_cast<float3 *>(const_cast<float *>(normals));
   const int numloops = mesh->corners_num;
   if (normals_num != numloops * 3) {
     BKE_reportf(reports,
@@ -164,8 +164,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
                                                             const float *normals,
                                                             int normals_num)
 {
-  using namespace blender;
-  float3 *vert_normals = (float3 *)normals;
+  float3 *vert_normals = reinterpret_cast<float3 *>(const_cast<float *>(normals));
   const int numverts = mesh->verts_num;
   if (normals_num != numverts * 3) {
     BKE_reportf(reports,
@@ -183,14 +182,13 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
 
 static void rna_Mesh_transform(Mesh *mesh, const float mat[16], bool shape_keys)
 {
-  blender::bke::mesh_transform(*mesh, blender::float4x4(mat), shape_keys);
+  bke::mesh_transform(*mesh, float4x4(mat), shape_keys);
 
   DEG_id_tag_update(&mesh->id, 0);
 }
 
 static void rna_Mesh_flip_normals(Mesh *mesh)
 {
-  using namespace blender;
   bke::mesh_flip_faces(*mesh, IndexMask(mesh->faces_num));
   BKE_mesh_tessface_clear(mesh);
   BKE_mesh_runtime_clear_geometry(mesh);
@@ -203,7 +201,7 @@ static void rna_Mesh_update(Mesh *mesh,
                             const bool calc_edges_loose)
 {
   if (calc_edges || ((mesh->faces_num || mesh->totface_legacy) && mesh->edges_num == 0)) {
-    blender::bke::mesh_calc_edges(*mesh, calc_edges, true);
+    bke::mesh_calc_edges(*mesh, calc_edges, true);
   }
 
   if (calc_edges_loose) {
@@ -238,7 +236,7 @@ static void rna_Mesh_clear_geometry(Mesh *mesh)
   BKE_mesh_clear_geometry_and_metadata(mesh);
   BKE_animdata_free(&mesh->id, false);
 
-  blender::bke::mesh_ensure_required_data_layers(*mesh);
+  bke::mesh_ensure_required_data_layers(*mesh);
 
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);
   WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
@@ -246,15 +244,19 @@ static void rna_Mesh_clear_geometry(Mesh *mesh)
 
 static bool rna_Mesh_validate(Mesh *mesh, const bool verbose, const bool /*clean_customdata*/)
 {
-  return !blender::bke::mesh_validate(*mesh, verbose);
+  return !bke::mesh_validate(*mesh, verbose);
 }
 
 static bool rna_Mesh_validate_material_indices(Mesh *mesh)
 {
-  return !blender::bke::mesh_validate_material_indices(*mesh);
+  return !bke::mesh_validate_material_indices(*mesh);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_mesh(StructRNA *srna)
 {
@@ -411,5 +413,7 @@ void RNA_api_mesh(StructRNA *srna)
   parm = RNA_def_int_vector(func, "result", 3, nullptr, 0, INT_MAX, "Result", nullptr, 0, INT_MAX);
   RNA_def_function_output(func, parm);
 }
+
+}  // namespace blender
 
 #endif

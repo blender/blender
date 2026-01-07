@@ -7,6 +7,7 @@
  */
 
 #include "DNA_armature_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
@@ -59,7 +60,7 @@
 
 #include "view3d_intern.hh"
 
-using blender::Vector;
+namespace blender {
 
 static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_cursor[3]);
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3]);
@@ -98,7 +99,7 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
         }
       }
 
-      if (blender::ed::object::shape_key_report_if_locked(obedit, op->reports)) {
+      if (ed::object::shape_key_report_if_locked(obedit, op->reports)) {
         continue;
       }
 
@@ -130,22 +131,22 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
     }
   }
   else if (OBPOSE_FROM_OBACT(obact)) {
-    KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+    KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     Vector<Object *> objects_eval = BKE_object_pose_array_get(scene, view_layer_eval, v3d);
     for (Object *ob_eval : objects_eval) {
       Object *ob = DEG_get_original(ob_eval);
-      bArmature *arm_eval = static_cast<bArmature *>(ob_eval->data);
+      bArmature *arm_eval = id_cast<bArmature *>(ob_eval->data);
 
       invert_m4_m4(ob_eval->runtime->world_to_object.ptr(), ob_eval->object_to_world().ptr());
 
-      LISTBASE_FOREACH (bPoseChannel *, pchan_eval, &ob_eval->pose->chanbase) {
-        if (pchan_eval->flag & POSE_SELECTED) {
-          if (ANIM_bonecoll_is_visible_pchan(arm_eval, pchan_eval)) {
-            if ((pchan_eval->bone->flag & BONE_CONNECTED) == 0) {
+      for (bPoseChannel &pchan_eval : ob_eval->pose->chanbase) {
+        if (pchan_eval.flag & POSE_SELECTED) {
+          if (ANIM_bonecoll_is_visible_pchan(arm_eval, &pchan_eval)) {
+            if ((pchan_eval.bone->flag & BONE_CONNECTED) == 0) {
               float nLoc[3];
 
               /* get nearest grid point to snap to */
-              copy_v3_v3(nLoc, pchan_eval->pose_mat[3]);
+              copy_v3_v3(nLoc, pchan_eval.pose_mat[3]);
               /* We must operate in world space! */
               mul_m4_v3(ob_eval->object_to_world().ptr(), nLoc);
               vec[0] = gridf * floorf(0.5f + nLoc[0] / gridf);
@@ -155,14 +156,14 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
               mul_m4_v3(ob_eval->world_to_object().ptr(), vec);
 
               /* Get location of grid point in pose space. */
-              BKE_armature_loc_pose_to_bone(pchan_eval, vec, vec);
+              BKE_armature_loc_pose_to_bone(&pchan_eval, vec, vec);
 
               /* Adjust location on the original pchan. */
-              bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, pchan_eval->name);
+              bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, pchan_eval.name);
               BKE_pchan_protected_location_set(pchan, vec);
 
               /* auto-keyframing */
-              blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
+              animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
             }
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
@@ -179,7 +180,7 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
     /* Object mode. */
     Main *bmain = CTX_data_main(C);
 
-    KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+    KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
     const bool use_transform_skip_children = (scene->toolsettings->transform_flag &
                                               SCE_XFORM_SKIP_CHILDREN);
@@ -216,7 +217,7 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
       xds = object::data_xform_container_create();
     }
 
-    if (blender::animrig::is_autokey_on(scene)) {
+    if (animrig::is_autokey_on(scene)) {
       ANIM_deselect_keys_in_animation_editors(C);
     }
 
@@ -237,11 +238,11 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
         mul_m3_v3(imat, vec);
       }
 
-      const blender::float3 loc_final = blender::float3(ob_eval->loc) + blender::float3(vec);
+      const float3 loc_final = float3(ob_eval->loc) + float3(vec);
       BKE_object_protected_location_set(ob, loc_final);
 
       /* auto-keyframing */
-      blender::animrig::autokeyframe_object(C, scene, ob, ks);
+      animrig::autokeyframe_object(C, scene, ob, ks);
 
       if (use_transform_data_origin) {
         object::data_xform_container_item_ensure(xds, ob);
@@ -314,7 +315,7 @@ static bool pose_bone_runtime_flag_test_recursive(const bPoseChannel *pose_bone,
  */
 static bool snap_selected_to_location_rotation(bContext *C,
                                                wmOperator *op,
-                                               const blender::float3 &target_loc_global,
+                                               const float3 &target_loc_global,
                                                const View3DCursor *target_orientation_global,
                                                const bool use_offset,
                                                const int pivot_point,
@@ -335,9 +336,9 @@ static bool snap_selected_to_location_rotation(bContext *C,
 
   /* Some use of this needs to transform into local-space. */
   const bool use_rotation = target_orientation_global != nullptr;
-  const blender::float3x3 target_rot_global =
-      target_orientation_global ? target_orientation_global->matrix<blender::float3x3>() :
-                                  blender::float3x3::zero();
+  const float3x3 target_rot_global = target_orientation_global ?
+                                         target_orientation_global->matrix<float3x3>() :
+                                         float3x3::zero();
 
   if (use_offset) {
     if ((pivot_point == V3D_AROUND_ACTIVE) && snap_calc_active_center(C, true, center_global)) {
@@ -350,7 +351,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
   }
 
   if (obedit) {
-    blender::float3 target_loc_local;
+    float3 target_loc_local;
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, v3d);
@@ -365,7 +366,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
         }
       }
 
-      if (blender::ed::object::shape_key_report_if_locked(obedit, op->reports)) {
+      if (ed::object::shape_key_report_if_locked(obedit, op->reports)) {
         continue;
       }
 
@@ -383,7 +384,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
         mul_m3_v3(imat, target_loc_local);
 
         if (use_offset) {
-          blender::float3 offset_local;
+          float3 offset_local;
 
           mul_v3_m3v3(offset_local, imat, offset_global);
 
@@ -404,7 +405,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
     }
   }
   else if (OBPOSE_FROM_OBACT(obact)) {
-    KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+    KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Vector<Object *> objects = BKE_object_pose_array_get(scene, view_layer, v3d);
     Main *bmain = CTX_data_main(C);
@@ -412,37 +413,37 @@ static bool snap_selected_to_location_rotation(bContext *C,
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
     for (Object *ob : objects) {
-      bArmature *arm = static_cast<bArmature *>(ob->data);
-      blender::float3 target_loc_local;
+      bArmature *arm = id_cast<bArmature *>(ob->data);
+      float3 target_loc_local;
 
       invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
       mul_v3_m4v3(target_loc_local, ob->world_to_object().ptr(), target_loc_global);
 
-      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-        if ((pchan->flag & POSE_SELECTED) && blender::animrig::bone_is_visible(arm, pchan) &&
+      for (bPoseChannel &pchan : ob->pose->chanbase) {
+        if ((pchan.flag & POSE_SELECTED) && animrig::bone_is_visible(arm, &pchan) &&
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
              */
-            (pchan->bone->flag & BONE_CONNECTED) == 0)
+            (pchan.bone->flag & BONE_CONNECTED) == 0)
         {
-          pchan->runtime.flag |= POSE_RUNTIME_TRANSFORM;
+          pchan.runtime.flag |= POSE_RUNTIME_TRANSFORM;
         }
         else {
-          pchan->runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
+          pchan.runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
         }
       }
 
-      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-        if ((pchan->runtime.flag & POSE_RUNTIME_TRANSFORM) &&
+      for (bPoseChannel &pchan : ob->pose->chanbase) {
+        if ((pchan.runtime.flag & POSE_RUNTIME_TRANSFORM) &&
             /* check that our parents not transformed (if we have one) */
-            ((pchan->bone->parent &&
-              pose_bone_runtime_flag_test_recursive(pchan->parent, POSE_RUNTIME_TRANSFORM)) == 0))
+            ((pchan.bone->parent &&
+              pose_bone_runtime_flag_test_recursive(pchan.parent, POSE_RUNTIME_TRANSFORM)) == 0))
         {
           /* Get position in pchan (pose) space. */
-          blender::float3 target_loc_pose;
+          float3 target_loc_pose;
 
           if (use_offset) {
-            mul_v3_m4v3(target_loc_pose, ob->object_to_world().ptr(), pchan->pose_mat[3]);
+            mul_v3_m4v3(target_loc_pose, ob->object_to_world().ptr(), pchan.pose_mat[3]);
             add_v3_v3(target_loc_pose, offset_global);
 
             if (use_rotation) {
@@ -452,67 +453,67 @@ static bool snap_selected_to_location_rotation(bContext *C,
             }
 
             mul_m4_v3(ob->world_to_object().ptr(), target_loc_pose);
-            BKE_armature_loc_pose_to_bone(pchan, target_loc_pose, target_loc_pose);
+            BKE_armature_loc_pose_to_bone(&pchan, target_loc_pose, target_loc_pose);
           }
           else {
-            BKE_armature_loc_pose_to_bone(pchan, target_loc_local, target_loc_pose);
+            BKE_armature_loc_pose_to_bone(&pchan, target_loc_local, target_loc_pose);
           }
 
           if (use_rotation) {
-            BKE_pchan_mat3_to_rot(pchan, target_rot_global.ptr(), false);
+            BKE_pchan_mat3_to_rot(&pchan, target_rot_global.ptr(), false);
 
-            if (pchan->rotmode == ROT_MODE_QUAT) {
+            if (pchan.rotmode == ROT_MODE_QUAT) {
               float quat[4];
               mat3_normalized_to_quat(quat, target_rot_global.ptr());
 
               if (use_toolsettings) {
-                BKE_pchan_protected_rotation_quaternion_set(pchan, quat);
+                BKE_pchan_protected_rotation_quaternion_set(&pchan, quat);
               }
               else {
-                copy_v4_v4(pchan->quat, quat);
+                copy_v4_v4(pchan.quat, quat);
               }
             }
-            else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+            else if (pchan.rotmode == ROT_MODE_AXISANGLE) {
               float rot_axis[3];
               float rot_angle;
               mat3_to_axis_angle(rot_axis, &rot_angle, target_rot_global.ptr());
 
               if (use_toolsettings) {
-                BKE_pchan_protected_rotation_axisangle_set(pchan, rot_axis, rot_angle);
+                BKE_pchan_protected_rotation_axisangle_set(&pchan, rot_axis, rot_angle);
               }
               else {
-                copy_v3_v3(pchan->rotAxis, rot_axis);
-                pchan->rotAngle = rot_angle;
+                copy_v3_v3(pchan.rotAxis, rot_axis);
+                pchan.rotAngle = rot_angle;
               }
             }
             else {
               float rot_euler[3];
-              mat3_to_eulO(rot_euler, pchan->rotmode, target_rot_global.ptr());
+              mat3_to_eulO(rot_euler, pchan.rotmode, target_rot_global.ptr());
 
               if (use_toolsettings) {
-                BKE_pchan_protected_rotation_euler_set(pchan, rot_euler);
+                BKE_pchan_protected_rotation_euler_set(&pchan, rot_euler);
               }
               else {
-                copy_v3_v3(pchan->eul, rot_euler);
+                copy_v3_v3(pchan.eul, rot_euler);
               }
             }
           }
 
           /* copy new position */
           if (use_toolsettings) {
-            BKE_pchan_protected_location_set(pchan, target_loc_pose);
+            BKE_pchan_protected_location_set(&pchan, target_loc_pose);
 
             /* auto-keyframing */
-            blender::animrig::autokeyframe_pchan(C, scene, ob, pchan, ks);
+            animrig::autokeyframe_pchan(C, scene, ob, &pchan, ks);
           }
           else {
-            copy_v3_v3(pchan->loc, target_loc_pose);
+            copy_v3_v3(pchan.loc, target_loc_pose);
           }
         }
       }
 
-      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-        pchan->runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
+      for (bPoseChannel &pchan : ob->pose->chanbase) {
+        pchan.runtime.flag &= ~POSE_RUNTIME_TRANSFORM;
       }
 
       ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
@@ -521,7 +522,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
     }
   }
   else {
-    KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+    KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     Main *bmain = CTX_data_main(C);
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -568,7 +569,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
       }
     }
 
-    if (blender::animrig::is_autokey_on(scene)) {
+    if (animrig::is_autokey_on(scene)) {
       ANIM_deselect_keys_in_animation_editors(C);
     }
 
@@ -581,7 +582,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
         }
       }
 
-      blender::float3 target_loc_local; /* parent-relative */
+      float3 target_loc_local; /* parent-relative */
 
       if (use_offset) {
         add_v3_v3v3(target_loc_local, ob->object_to_world().location(), offset_global);
@@ -598,7 +599,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
       sub_v3_v3(target_loc_local, ob->object_to_world().location());
 
       /* Calculate a parent relative copy. */
-      blender::float3x3 target_rot = target_rot_global;
+      float3x3 target_rot = target_rot_global;
       if (ob->parent) {
         float originmat[3][3], parentmat[4][4];
         /* Use the evaluated object here because sometimes
@@ -613,11 +614,11 @@ static bool snap_selected_to_location_rotation(bContext *C,
         mul_m3_m3m3(target_rot.ptr(), imat, target_rot.ptr());
       }
       if (use_toolsettings) {
-        const blender::float3 loc_final = blender::float3(ob->loc) + target_loc_local;
+        const float3 loc_final = float3(ob->loc) + target_loc_local;
         BKE_object_protected_location_set(ob, loc_final);
 
         /* auto-keyframing */
-        blender::animrig::autokeyframe_object(C, scene, ob, ks);
+        animrig::autokeyframe_object(C, scene, ob, ks);
       }
       else {
         add_v3_v3(ob->loc, target_loc_local);
@@ -678,7 +679,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
         }
 
         /* auto-keyframing */
-        blender::animrig::autokeyframe_object(C, scene, ob, ks);
+        animrig::autokeyframe_object(C, scene, ob, ks);
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
@@ -873,26 +874,26 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 
   INIT_MINMAX(min, max);
 
-  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+  for (MovieTrackingObject &tracking_object : tracking->objects) {
     float obmat[4][4];
 
-    if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+    if (tracking_object.flag & TRACKING_OBJECT_CAMERA) {
       copy_m4_m4(obmat, mat);
     }
     else {
       float imat[4][4];
 
       BKE_tracking_camera_get_reconstructed_interpolate(
-          tracking, tracking_object, scene->r.cfra, imat);
+          tracking, &tracking_object, scene->r.cfra, imat);
       invert_m4(imat);
 
       mul_m4_m4m4(obmat, cammat, imat);
     }
 
-    LISTBASE_FOREACH (const MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if ((track->flag & TRACK_HAS_BUNDLE) && TRACK_SELECTED(track)) {
+    for (const MovieTrackingTrack &track : tracking_object.tracks) {
+      if ((track.flag & TRACK_HAS_BUNDLE) && TRACK_SELECTED(&track)) {
         ok = true;
-        mul_v3_m4v3(pos, obmat, track->bundle_pos);
+        mul_v3_m4v3(pos, obmat, track.bundle_pos);
         minmax_v3v3_v3(min, max, pos);
       }
     }
@@ -962,11 +963,11 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
 
     if (obact && (obact->mode & OB_MODE_POSE)) {
       Object *obact_eval = DEG_get_evaluated(depsgraph, obact);
-      bArmature *arm = static_cast<bArmature *>(obact_eval->data);
-      LISTBASE_FOREACH (bPoseChannel *, pchan, &obact_eval->pose->chanbase) {
-        if (ANIM_bonecoll_is_visible_pchan(arm, pchan)) {
-          if (pchan->flag & POSE_SELECTED) {
-            copy_v3_v3(vec, pchan->pose_head);
+      bArmature *arm = id_cast<bArmature *>(obact_eval->data);
+      for (bPoseChannel &pchan : obact_eval->pose->chanbase) {
+        if (ANIM_bonecoll_is_visible_pchan(arm, &pchan)) {
+          if (pchan.flag & POSE_SELECTED) {
+            copy_v3_v3(vec, pchan.pose_head);
             mul_m4_v3(obact_eval->object_to_world().ptr(), vec);
             add_v3_v3(centroid, vec);
             minmax_v3v3_v3(min, max, vec);
@@ -1055,7 +1056,7 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
   if (ob == nullptr) {
     return false;
   }
-  return blender::ed::object::calc_active_center(ob, select_only, r_center);
+  return ed::object::calc_active_center(ob, select_only, r_center);
 }
 
 static wmOperatorStatus snap_curs_to_active_exec(bContext *C, wmOperator * /*op*/)
@@ -1097,7 +1098,7 @@ static wmOperatorStatus snap_curs_to_center_exec(bContext *C, wmOperator * /*op*
 {
   Scene *scene = CTX_data_scene(C);
 
-  scene->cursor.set_matrix(blender::float4x4::identity(), false);
+  scene->cursor.set_matrix(float4x4::identity(), false);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
@@ -1126,12 +1127,10 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 /** \name Min/Max Object Vertices Utility
  * \{ */
 
-static std::optional<blender::Bounds<blender::float3>> bounds_min_max_with_transform(
-    const blender::float4x4 &transform,
-    const blender::Span<blender::float3> positions,
-    const blender::IndexMask &mask)
+static std::optional<Bounds<float3>> bounds_min_max_with_transform(const float4x4 &transform,
+                                                                   const Span<float3> positions,
+                                                                   const IndexMask &mask)
 {
-  using namespace blender;
   if (mask.is_empty()) {
     return std::nullopt;
   }
@@ -1140,7 +1139,7 @@ static std::optional<blender::Bounds<blender::float3>> bounds_min_max_with_trans
       1024,
       Bounds<float3>(math::transform_point(transform, positions[mask.first()])),
       [&](const IndexRange range, Bounds<float3> init) {
-        mask.slice(range).foreach_index([&](const int i) {
+        mask.slice(range).foreach_index_optimized<int>([&](const int i) {
           math::min_max(math::transform_point(transform, positions[i]), init.min, init.max);
         });
         return init;
@@ -1150,7 +1149,6 @@ static std::optional<blender::Bounds<blender::float3>> bounds_min_max_with_trans
 
 bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], float r_max[3])
 {
-  using namespace blender;
   using namespace blender::ed;
   TransVertStore tvs = {nullptr};
   TransVert *tv;
@@ -1161,7 +1159,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
     float ob_min[3], ob_max[3];
     bool changed;
 
-    changed = BKE_mball_minmax_ex(static_cast<const MetaBall *>(obedit->data),
+    changed = BKE_mball_minmax_ex(id_cast<const MetaBall *>(obedit->data),
                                   ob_min,
                                   ob_max,
                                   obedit->object_to_world().ptr(),
@@ -1174,7 +1172,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
   }
   if (obedit->type == OB_POINTCLOUD) {
     const Object &ob_orig = *DEG_get_original(obedit);
-    const PointCloud &pointcloud = *static_cast<const PointCloud *>(ob_orig.data);
+    const PointCloud &pointcloud = *id_cast<const PointCloud *>(ob_orig.data);
 
     IndexMaskMemory memory;
     const IndexMask mask = pointcloud::retrieve_selected_points(pointcloud, memory);
@@ -1191,7 +1189,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
   }
   if (obedit->type == OB_CURVES) {
     const Object &ob_orig = *DEG_get_original(obedit);
-    const Curves &curves_id = *static_cast<const Curves *>(ob_orig.data);
+    const Curves &curves_id = *id_cast<const Curves *>(ob_orig.data);
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
     IndexMaskMemory memory;
@@ -1212,7 +1210,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
   }
   if (obedit->type == OB_GREASE_PENCIL) {
     Object &ob_orig = *DEG_get_original(obedit);
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob_orig.data);
 
     std::optional<Bounds<float3>> bounds = std::nullopt;
 
@@ -1275,3 +1273,5 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
 }
 
 /** \} */
+
+}  // namespace blender

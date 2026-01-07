@@ -57,6 +57,8 @@
 
 #include "buttons_intern.hh" /* own include */
 
+namespace blender {
+
 static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
 {
   for (int i = 0; i < path->len; i++) {
@@ -348,7 +350,7 @@ static bool buttons_context_path_material(ButsContextPath *path)
     if (ob && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
       Material *ma = BKE_object_material_get(ob, ob->actcol);
 
-      const int slot = blender::math::max(ob->actcol - 1, 0);
+      const int slot = math::max(ob->actcol - 1, 0);
       if (ob->matbits && ob->matbits[slot] == 0) {
         /* When material from active slot is stored in object data, include it in context path, see
          * !134968. */
@@ -405,10 +407,12 @@ static bool buttons_context_path_pose_bone(ButsContextPath *path)
   /* if we have an armature, get the active bone */
   if (buttons_context_path_object(path)) {
     Object *ob = static_cast<Object *>(path->ptr[path->len - 1].data);
-    bArmature *arm = static_cast<bArmature *>(
-        ob->data); /* path->ptr[path->len-1].data - works too */
+    if (ob->type != OB_ARMATURE) {
+      return false;
+    }
 
-    if (ob->type != OB_ARMATURE || arm->edbo) {
+    bArmature *arm = id_cast<bArmature *>(ob->data); /* path->ptr[path->len-1].data - works too */
+    if (arm->edbo) {
       return false;
     }
 
@@ -472,7 +476,7 @@ static bool buttons_context_path_brush(const bContext *C, ButsContextPath *path)
     }
 
     if (br) {
-      path->ptr[path->len] = RNA_id_pointer_create((ID *)br);
+      path->ptr[path->len] = RNA_id_pointer_create(reinterpret_cast<ID *>(br));
       path->len++;
 
       return true;
@@ -537,7 +541,7 @@ static bool buttons_context_path_strip(ButsContextPath *path)
 
   if (buttons_context_path_scene(path)) {
     Scene *scene = static_cast<Scene *>(path->ptr[path->len - 1].data);
-    Strip *active_strip = blender::seq::select_active_get(scene);
+    Strip *active_strip = seq::select_active_get(scene);
     if (active_strip == nullptr) {
       return false;
     }
@@ -555,7 +559,7 @@ static bool buttons_context_path_strip_modifier(Scene *sequencer_scene, ButsCont
   if (sequencer_scene && buttons_context_path_strip(path)) {
     Strip *active_strip = static_cast<Strip *>(path->ptr[path->len - 1].data);
 
-    StripModifierData *smd = blender::seq::modifier_get_active(active_strip);
+    StripModifierData *smd = seq::modifier_get_active(active_strip);
     if (smd) {
       path->ptr[path->len] = RNA_pointer_create_discrete(
           &sequencer_scene->id, &RNA_StripModifier, smd);
@@ -1045,8 +1049,10 @@ int /*eContextResult*/ buttons_context(const bContext *C,
         int matnr = ob->actcol - 1;
         matnr = std::max(matnr, 0);
         /* Keep aligned with rna_Object_material_slots_get. */
-        CTX_data_pointer_set(
-            result, &ob->id, &RNA_MaterialSlot, (void *)(matnr + uintptr_t(&ob->id)));
+        CTX_data_pointer_set(result,
+                             &ob->id,
+                             &RNA_MaterialSlot,
+                             reinterpret_cast<void *>(matnr + uintptr_t(&ob->id)));
       }
     }
 
@@ -1099,7 +1105,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
 
     /* Particles slots are used in both old and new textures handling. */
     if ((ptr = get_pointer_type(path, &RNA_ParticleSystem))) {
-      ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
+      ParticleSettings *part = (static_cast<ParticleSystem *>(ptr->data))->part;
 
       if (part) {
         CTX_data_pointer_set(
@@ -1137,7 +1143,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "particle_system_editable")) {
-    if (PE_poll((bContext *)C)) {
+    if (PE_poll(const_cast<bContext *>(C))) {
       set_pointer_type(path, result, &RNA_ParticleSystem);
     }
     else {
@@ -1158,7 +1164,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     ptr = get_pointer_type(path, &RNA_ParticleSystem);
 
     if (ptr && ptr->data) {
-      ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
+      ParticleSettings *part = (static_cast<ParticleSystem *>(ptr->data))->part;
       CTX_data_pointer_set(result, ptr->owner_id, &RNA_ParticleSettings, part);
       return CTX_RESULT_OK;
     }
@@ -1266,8 +1272,8 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  blender::ui::Layout &row = panel->layout->row(true);
-  row.alignment_set(blender::ui::LayoutAlign::Left);
+  ui::Layout &row = panel->layout->row(true);
+  row.alignment_set(ui::LayoutAlign::Left);
 
   bool first = true;
   for (int i = 0; i < path->len; i++) {
@@ -1325,10 +1331,10 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     first = false;
   }
 
-  blender::ui::Layout &pin_row = row.row(false);
-  pin_row.alignment_set(blender::ui::LayoutAlign::Right);
+  ui::Layout &pin_row = row.row(false);
+  pin_row.alignment_set(ui::LayoutAlign::Right);
   pin_row.separator_spacer();
-  pin_row.emboss_set(blender::ui::EmbossType::None);
+  pin_row.emboss_set(ui::EmbossType::None);
   pin_row.op(
       "BUTTONS_OT_toggle_pin", "", (sbuts->flag & SB_PIN_CONTEXT) ? ICON_PINNED : ICON_UNPINNED);
 }
@@ -1379,3 +1385,5 @@ ID *buttons_context_id_path(const bContext *C)
 
   return nullptr;
 }
+
+}  // namespace blender

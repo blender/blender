@@ -35,6 +35,8 @@
 
 #include "libmv-capi.h"
 
+namespace blender {
+
 /* Uncomment this to have caching-specific debug prints. */
 // #define DEBUG_CACHE
 
@@ -56,9 +58,9 @@ TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 
   map->num_tracks = num_tracks;
 
-  map->tracks = MEM_calloc_arrayN<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
+  map->tracks = MEM_new_array_for_free<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
 
-  map->hash = MEM_new<blender::Map<MovieTrackingTrack *, MovieTrackingTrack *>>("TracksMap hash");
+  map->hash = MEM_new<Map<MovieTrackingTrack *, MovieTrackingTrack *>>("TracksMap hash");
 
   BLI_spin_init(&map->spin_lock);
 
@@ -86,8 +88,8 @@ void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track)
 void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 {
   MovieTrackingTrack *track;
-  ListBase tracks = {nullptr, nullptr}, new_tracks = {nullptr, nullptr};
-  ListBase *old_tracks;
+  ListBaseT<MovieTrackingTrack> tracks = {nullptr, nullptr}, new_tracks = {nullptr, nullptr};
+  ListBaseT<MovieTrackingTrack> *old_tracks;
 
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking, map->object_name);
   if (!tracking_object) {
@@ -796,7 +798,7 @@ static libmv_CacheKey accessor_get_image_callback(libmv_FrameAccessorUserData *u
                                                   int *height,
                                                   int *channels)
 {
-  TrackingImageAccessor *accessor = (TrackingImageAccessor *)user_data;
+  TrackingImageAccessor *accessor = reinterpret_cast<TrackingImageAccessor *>(user_data);
   ImBuf *ibuf;
 
   BLI_assert(clip_index >= 0 && clip_index < accessor->num_clips);
@@ -821,7 +823,7 @@ static libmv_CacheKey accessor_get_image_callback(libmv_FrameAccessorUserData *u
 
 static void accessor_release_image_callback(libmv_CacheKey cache_key)
 {
-  ImBuf *ibuf = (ImBuf *)cache_key;
+  ImBuf *ibuf = static_cast<ImBuf *>(cache_key);
   IMB_freeImBuf(ibuf);
 }
 
@@ -835,7 +837,7 @@ static libmv_CacheKey accessor_get_mask_for_track_callback(libmv_FrameAccessorUs
                                                            int *r_height)
 {
   /* Perform sanity checks first. */
-  TrackingImageAccessor *accessor = (TrackingImageAccessor *)user_data;
+  TrackingImageAccessor *accessor = reinterpret_cast<TrackingImageAccessor *>(user_data);
   BLI_assert(clip_index < accessor->num_clips);
   BLI_assert(track_index < accessor->num_tracks);
   MovieTrackingTrack *track = accessor->tracks[track_index];
@@ -875,7 +877,7 @@ static libmv_CacheKey accessor_get_mask_for_track_callback(libmv_FrameAccessorUs
 static void accessor_release_mask_callback(libmv_CacheKey cache_key)
 {
   if (cache_key != nullptr) {
-    float *mask = (float *)cache_key;
+    float *mask = static_cast<float *>(cache_key);
     MEM_freeN(mask);
   }
 }
@@ -896,11 +898,12 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
   memcpy(accessor->tracks, tracks, num_tracks * sizeof(MovieTrackingTrack *));
   accessor->num_tracks = num_tracks;
 
-  accessor->libmv_accessor = libmv_FrameAccessorNew((libmv_FrameAccessorUserData *)accessor,
-                                                    accessor_get_image_callback,
-                                                    accessor_release_image_callback,
-                                                    accessor_get_mask_for_track_callback,
-                                                    accessor_release_mask_callback);
+  accessor->libmv_accessor = libmv_FrameAccessorNew(
+      reinterpret_cast<libmv_FrameAccessorUserData *>(accessor),
+      accessor_get_image_callback,
+      accessor_release_image_callback,
+      accessor_get_mask_for_track_callback,
+      accessor_release_mask_callback);
 
   BLI_spin_init(&accessor->cache_lock);
 
@@ -916,3 +919,5 @@ void tracking_image_accessor_destroy(TrackingImageAccessor *accessor)
 }
 
 /** \} */
+
+}  // namespace blender

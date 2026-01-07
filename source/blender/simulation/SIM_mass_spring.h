@@ -8,10 +8,14 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
+namespace blender {
+
 struct ClothModifierData;
 struct Depsgraph;
+struct EffectorCache;
 struct Implicit_Data;
-struct ListBase;
 struct Object;
 
 enum eMassSpringSolverStatus {
@@ -33,6 +37,8 @@ int SIM_cloth_solve(struct Depsgraph *depsgraph,
                     struct Object *ob,
                     float frame,
                     struct ClothModifierData *clmd,
-                    struct ListBase *effectors);
+                    ListBaseT<EffectorCache> *effectors);
 void SIM_cloth_solver_set_positions(struct ClothModifierData *clmd);
 void SIM_cloth_solver_set_volume(struct ClothModifierData *clmd);
+
+}  // namespace blender

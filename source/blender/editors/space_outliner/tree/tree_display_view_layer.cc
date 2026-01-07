@@ -25,8 +25,6 @@
 
 namespace blender::ed::outliner {
 
-template<typename T> using List = ListBaseWrapper<T>;
-
 class ObjectsChildrenBuilder {
   using TreeChildren = Vector<TreeElement *>;
   using ObjectTreeElementsMap = Map<Object *, TreeChildren>;
@@ -68,9 +66,9 @@ bool TreeDisplayViewLayer::supports_mode_column() const
   return true;
 }
 
-ListBase TreeDisplayViewLayer::build_tree(const TreeSourceData &source_data)
+ListBaseT<TreeElement> TreeDisplayViewLayer::build_tree(const TreeSourceData &source_data)
 {
-  ListBase tree = {nullptr};
+  ListBaseT<TreeElement> tree = {nullptr};
   Scene *scene = source_data.scene;
   scene_ = scene;
   show_objects_ = !(space_outliner_.filter & SO_FILTER_NO_OBJECT);
@@ -83,7 +81,7 @@ ListBase TreeDisplayViewLayer::build_tree(const TreeSourceData &source_data)
         continue;
       }
 
-      add_view_layer(*scene, tree, (TreeElement *)nullptr);
+      add_view_layer(*scene, tree, static_cast<TreeElement *>(nullptr));
     }
     else {
       TreeElement &te_view_layer = *add_element(
@@ -105,17 +103,19 @@ ListBase TreeDisplayViewLayer::build_tree(const TreeSourceData &source_data)
   return tree;
 }
 
-void TreeDisplayViewLayer::add_view_layer(Scene &scene, ListBase &tree, TreeElement *parent)
+void TreeDisplayViewLayer::add_view_layer(Scene &scene,
+                                          ListBaseT<TreeElement> &tree,
+                                          TreeElement *parent)
 {
   const bool show_children = (space_outliner_.filter & SO_FILTER_NO_CHILDREN) == 0;
 
   if (space_outliner_.filter & SO_FILTER_NO_COLLECTION) {
     /* Show objects in the view layer. */
     BKE_view_layer_synced_ensure(&scene, view_layer_);
-    for (Base *base : List<Base>(*BKE_view_layer_object_bases_get(view_layer_))) {
+    for (Base &base : *BKE_view_layer_object_bases_get(view_layer_)) {
       TreeElement *te_object = add_element(
-          &tree, reinterpret_cast<ID *>(base->object), nullptr, parent, TSE_SOME_ID, 0);
-      te_object->directdata = base;
+          &tree, reinterpret_cast<ID *>(base.object), nullptr, parent, TSE_SOME_ID, 0);
+      te_object->directdata = &base;
     }
 
     if (show_children) {
@@ -144,20 +144,21 @@ void TreeDisplayViewLayer::add_view_layer(Scene &scene, ListBase &tree, TreeElem
   }
 }
 
-void TreeDisplayViewLayer::add_layer_collections_recursive(ListBase &tree,
-                                                           ListBase &layer_collections,
-                                                           TreeElement &parent_ten)
+void TreeDisplayViewLayer::add_layer_collections_recursive(
+    ListBaseT<TreeElement> &tree,
+    ListBaseT<LayerCollection> &layer_collections,
+    TreeElement &parent_ten)
 {
-  for (LayerCollection *lc : List<LayerCollection>(layer_collections)) {
-    const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
+  for (LayerCollection &lc : layer_collections) {
+    const bool exclude = (lc.flag & LAYER_COLLECTION_EXCLUDE) != 0;
     TreeElement *ten;
 
     if (exclude && ((space_outliner_.show_restrict_flags & SO_RESTRICT_ENABLE) == 0)) {
       ten = &parent_ten;
     }
     else {
-      ID *id = &lc->collection->id;
-      ten = add_element(&tree, id, lc, &parent_ten, TSE_LAYER_COLLECTION, 0);
+      ID *id = &lc.collection->id;
+      ten = add_element(&tree, id, &lc, &parent_ten, TSE_LAYER_COLLECTION, 0);
 
       /* Open by default, except linked collections, which may contain many elements. */
       TreeStoreElem *tselem = TREESTORE(ten);
@@ -166,20 +167,20 @@ void TreeDisplayViewLayer::add_layer_collections_recursive(ListBase &tree,
       }
     }
 
-    add_layer_collections_recursive(ten->subtree, lc->layer_collections, *ten);
+    add_layer_collections_recursive(ten->subtree, lc.layer_collections, *ten);
     if (!exclude && show_objects_) {
-      add_layer_collection_objects(ten->subtree, *lc, *ten);
+      add_layer_collection_objects(ten->subtree, lc, *ten);
     }
   }
 }
 
-void TreeDisplayViewLayer::add_layer_collection_objects(ListBase &tree,
+void TreeDisplayViewLayer::add_layer_collection_objects(ListBaseT<TreeElement> &tree,
                                                         LayerCollection &lc,
                                                         TreeElement &ten)
 {
   BKE_view_layer_synced_ensure(scene_, view_layer_);
-  for (CollectionObject *cob : List<CollectionObject>(lc.collection->gobject)) {
-    Base *base = BKE_view_layer_base_find(view_layer_, cob->ob);
+  for (CollectionObject &cob : lc.collection->gobject) {
+    Base *base = BKE_view_layer_base_find(view_layer_, cob.ob);
     TreeElement *te_object = add_element(
         &tree, reinterpret_cast<ID *>(base->object), nullptr, &ten, TSE_SOME_ID, 0);
     te_object->directdata = base;
@@ -219,21 +220,21 @@ void ObjectsChildrenBuilder::operator()(TreeElement &collection_tree_elem)
  */
 void ObjectsChildrenBuilder::object_tree_elements_lookup_create_recursive(TreeElement *te_parent)
 {
-  for (TreeElement *te : List<TreeElement>(te_parent->subtree)) {
-    TreeStoreElem *tselem = TREESTORE(te);
+  for (TreeElement &te : te_parent->subtree) {
+    TreeStoreElem *tselem = TREESTORE(&te);
 
     if (tselem->type == TSE_LAYER_COLLECTION) {
-      object_tree_elements_lookup_create_recursive(te);
+      object_tree_elements_lookup_create_recursive(&te);
       continue;
     }
 
-    if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-      Object *ob = (Object *)tselem->id;
+    if ((tselem->type == TSE_SOME_ID) && (te.idcode == ID_OB)) {
+      Object *ob = id_cast<Object *>(tselem->id);
       /* Lookup children or add new, empty children vector. */
       Vector<TreeElement *> &tree_elements = object_tree_elements_map_.lookup_or_add(ob, {});
       add_object_and_parents_in_order(ob);
-      tree_elements.append(te);
-      object_tree_elements_lookup_create_recursive(te);
+      tree_elements.append(&te);
+      object_tree_elements_lookup_create_recursive(&te);
     }
   }
 }

@@ -12,6 +12,8 @@
 
 #include "MOD_meshcache_util.hh"
 
+namespace blender {
+
 void MOD_meshcache_calc_range(const float frame,
                               const char interp,
                               const int frame_tot,
@@ -48,3 +50,5 @@ void MOD_meshcache_calc_range(const float frame,
     }
   }
 }
+
+}  // namespace blender

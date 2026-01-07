@@ -8,7 +8,9 @@
 
 #include "node_texture_util.hh"
 
-static blender::bke::bNodeSocketTemplate inputs[] = {
+namespace blender {
+
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
@@ -20,7 +22,7 @@ static void exec(void *data,
                  bNodeStack **in,
                  bNodeStack ** /*out*/)
 {
-  TexCallData *cdata = (TexCallData *)data;
+  TexCallData *cdata = static_cast<TexCallData *>(data);
 
   if (cdata->do_preview) {
     TexParams params;
@@ -33,17 +35,19 @@ static void exec(void *data,
 
 void register_node_type_tex_viewer()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeViewer", TEX_NODE_VIEWER);
   ntype.ui_name = "Viewer";
   ntype.enum_name_legacy = "VIEWER";
   ntype.nclass = NODE_CLASS_OUTPUT;
-  blender::bke::node_type_socket_templates(&ntype, inputs, nullptr);
+  bke::node_type_socket_templates(&ntype, inputs, nullptr);
   ntype.exec_fn = exec;
 
   ntype.no_muting = true;
   ntype.flag |= NODE_PREVIEW;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <pxr/imaging/hd/bprim.h>
 #include <pxr/imaging/hd/tokens.h>
 #include <pxr/imaging/hd/volumeFieldSchema.h>
 #include <pxr/usd/usdHydra/tokens.h>
@@ -30,7 +29,7 @@ void VolumeData::init()
 {
   field_descriptors_.clear();
 
-  Volume *volume = (Volume *)((const Object *)this->id)->data;
+  Volume *volume = id_cast<Volume *>((id_cast<const Object *>(this->id))->data);
   if (!BKE_volume_load(volume, scene_delegate_->bmain)) {
     return;
   }
@@ -82,9 +81,11 @@ void VolumeData::remove()
 
 void VolumeData::update()
 {
-  const Object *object = (const Object *)id;
+  const Object *object = id_cast<const Object *>(id);
   pxr::HdDirtyBits bits = pxr::HdChangeTracker::Clean;
-  if ((id->recalc & ID_RECALC_GEOMETRY) || (((ID *)object->data)->recalc & ID_RECALC_GEOMETRY)) {
+  if ((id->recalc & ID_RECALC_GEOMETRY) ||
+      ((static_cast<ID *>(object->data))->recalc & ID_RECALC_GEOMETRY))
+  {
     init();
     bits = pxr::HdChangeTracker::AllDirty;
   }
@@ -151,7 +152,7 @@ pxr::HdVolumeFieldDescriptorVector VolumeData::field_descriptors() const
 
 void VolumeData::write_materials()
 {
-  const Object *object = (Object *)id;
+  const Object *object = id_cast<Object *>(const_cast<ID *>(id));
   const Material *mat = nullptr;
   /* TODO: Using only first material. Add support for multi-material. */
   if (BKE_object_material_count_eval(object) > 0) {

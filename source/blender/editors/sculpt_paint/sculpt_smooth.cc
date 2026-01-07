@@ -751,7 +751,7 @@ void blur_geometry_data_array(const Object &object,
     case bke::pbvh::Type::Mesh: {
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<const Mesh *>(object.data);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();

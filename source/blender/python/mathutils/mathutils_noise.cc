@@ -27,6 +27,8 @@
 #include "mathutils.hh"
 #include "mathutils_noise.hh"
 
+namespace blender {
+
 /*-----------------------------------------*/
 /* 'mersenne twister' random number generator */
 
@@ -311,7 +313,8 @@ static PyObject *M_Noise_random_unit_vector(PyObject * /*self*/, PyObject *args,
   float norm = 2.0f;
   int vec_num = 3;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kw, "|$i:random_unit_vector", (char **)kwlist, &vec_num))
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kw, "|$i:random_unit_vector", const_cast<char **>(kwlist), &vec_num))
   {
     return nullptr;
   }
@@ -346,7 +349,9 @@ static PyObject *M_Noise_random_vector(PyObject * /*self*/, PyObject *args, PyOb
   float *vec = nullptr;
   int vec_num = 3;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kw, "|$i:random_vector", (char **)kwlist, &vec_num)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kw, "|$i:random_vector", const_cast<char **>(kwlist), &vec_num))
+  {
     return nullptr;
   }
 
@@ -402,7 +407,7 @@ static PyObject *M_Noise_noise(PyObject * /*self*/, PyObject *args, PyObject *kw
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$s:noise", (char **)kwlist, &value, &noise_basis_str))
+          args, kw, "O|$s:noise", const_cast<char **>(kwlist), &value, &noise_basis_str))
   {
     return nullptr;
   }
@@ -445,7 +450,7 @@ static PyObject *M_Noise_noise_vector(PyObject * /*self*/, PyObject *args, PyObj
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$s:noise_vector", (char **)kwlist, &value, &noise_basis_str))
+          args, kw, "O|$s:noise_vector", const_cast<char **>(kwlist), &value, &noise_basis_str))
   {
     return nullptr;
   }
@@ -502,7 +507,7 @@ static PyObject *M_Noise_turbulence(PyObject * /*self*/, PyObject *args, PyObjec
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Oii|$sff:turbulence",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &oct,
                                    &hd,
@@ -563,7 +568,7 @@ static PyObject *M_Noise_turbulence_vector(PyObject * /*self*/, PyObject *args, 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Oii|$sff:turbulence_vector",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &oct,
                                    &hd,
@@ -621,8 +626,15 @@ static PyObject *M_Noise_fractal(PyObject * /*self*/, PyObject *args, PyObject *
   float H, lac, oct;
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "Offf|$s:fractal", (char **)kwlist, &value, &H, &lac, &oct, &noise_basis_str))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "Offf|$s:fractal",
+                                   const_cast<char **>(kwlist),
+                                   &value,
+                                   &H,
+                                   &lac,
+                                   &oct,
+                                   &noise_basis_str))
   {
     return nullptr;
   }
@@ -674,7 +686,7 @@ static PyObject *M_Noise_multi_fractal(PyObject * /*self*/, PyObject *args, PyOb
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Offf|$s:multi_fractal",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &H,
                                    &lac,
@@ -738,7 +750,7 @@ static PyObject *M_Noise_variable_lacunarity(PyObject * /*self*/, PyObject *args
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Of|$ss:variable_lacunarity",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &d,
                                    &noise_type1_str,
@@ -806,7 +818,7 @@ static PyObject *M_Noise_hetero_terrain(PyObject * /*self*/, PyObject *args, PyO
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Offff|$s:hetero_terrain",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &H,
                                    &lac,
@@ -868,7 +880,7 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject * /*self*/, PyObject *arg
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Offfff|$s:hybrid_multi_fractal",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &H,
                                    &lac,
@@ -933,7 +945,7 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject * /*self*/, PyObject *arg
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Offfff|$s:ridged_multi_fractal",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &H,
                                    &lac,
@@ -992,7 +1004,7 @@ static PyObject *M_Noise_voronoi(PyObject * /*self*/, PyObject *args, PyObject *
   int i;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$sf:voronoi", (char **)kwlist, &value, &metric_str, &me))
+          args, kw, "O|$sf:voronoi", const_cast<char **>(kwlist), &value, &metric_str, &me))
   {
     return nullptr;
   }
@@ -1088,53 +1100,65 @@ static PyObject *M_Noise_cell_vector(PyObject * /*self*/, PyObject *args)
 #endif
 
 static PyMethodDef M_Noise_methods[] = {
-    {"seed_set", (PyCFunction)M_Noise_seed_set, METH_VARARGS, M_Noise_seed_set_doc},
-    {"random", (PyCFunction)M_Noise_random, METH_NOARGS, M_Noise_random_doc},
+    {"seed_set", static_cast<PyCFunction>(M_Noise_seed_set), METH_VARARGS, M_Noise_seed_set_doc},
+    {"random", reinterpret_cast<PyCFunction>(M_Noise_random), METH_NOARGS, M_Noise_random_doc},
     {"random_unit_vector",
-     (PyCFunction)M_Noise_random_unit_vector,
+     reinterpret_cast<PyCFunction>(M_Noise_random_unit_vector),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_random_unit_vector_doc},
     {"random_vector",
-     (PyCFunction)M_Noise_random_vector,
+     reinterpret_cast<PyCFunction>(M_Noise_random_vector),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_random_vector_doc},
-    {"noise", (PyCFunction)M_Noise_noise, METH_VARARGS | METH_KEYWORDS, M_Noise_noise_doc},
+    {"noise",
+     reinterpret_cast<PyCFunction>(M_Noise_noise),
+     METH_VARARGS | METH_KEYWORDS,
+     M_Noise_noise_doc},
     {"noise_vector",
-     (PyCFunction)M_Noise_noise_vector,
+     reinterpret_cast<PyCFunction>(M_Noise_noise_vector),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_noise_vector_doc},
     {"turbulence",
-     (PyCFunction)M_Noise_turbulence,
+     reinterpret_cast<PyCFunction>(M_Noise_turbulence),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_turbulence_doc},
     {"turbulence_vector",
-     (PyCFunction)M_Noise_turbulence_vector,
+     reinterpret_cast<PyCFunction>(M_Noise_turbulence_vector),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_turbulence_vector_doc},
-    {"fractal", (PyCFunction)M_Noise_fractal, METH_VARARGS | METH_KEYWORDS, M_Noise_fractal_doc},
+    {"fractal",
+     reinterpret_cast<PyCFunction>(M_Noise_fractal),
+     METH_VARARGS | METH_KEYWORDS,
+     M_Noise_fractal_doc},
     {"multi_fractal",
-     (PyCFunction)M_Noise_multi_fractal,
+     reinterpret_cast<PyCFunction>(M_Noise_multi_fractal),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_multi_fractal_doc},
     {"variable_lacunarity",
-     (PyCFunction)M_Noise_variable_lacunarity,
+     reinterpret_cast<PyCFunction>(M_Noise_variable_lacunarity),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_variable_lacunarity_doc},
     {"hetero_terrain",
-     (PyCFunction)M_Noise_hetero_terrain,
+     reinterpret_cast<PyCFunction>(M_Noise_hetero_terrain),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_hetero_terrain_doc},
     {"hybrid_multi_fractal",
-     (PyCFunction)M_Noise_hybrid_multi_fractal,
+     reinterpret_cast<PyCFunction>(M_Noise_hybrid_multi_fractal),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_hybrid_multi_fractal_doc},
     {"ridged_multi_fractal",
-     (PyCFunction)M_Noise_ridged_multi_fractal,
+     reinterpret_cast<PyCFunction>(M_Noise_ridged_multi_fractal),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_ridged_multi_fractal_doc},
-    {"voronoi", (PyCFunction)M_Noise_voronoi, METH_VARARGS | METH_KEYWORDS, M_Noise_voronoi_doc},
-    {"cell", (PyCFunction)M_Noise_cell, METH_VARARGS, M_Noise_cell_doc},
-    {"cell_vector", (PyCFunction)M_Noise_cell_vector, METH_VARARGS, M_Noise_cell_vector_doc},
+    {"voronoi",
+     reinterpret_cast<PyCFunction>(M_Noise_voronoi),
+     METH_VARARGS | METH_KEYWORDS,
+     M_Noise_voronoi_doc},
+    {"cell", static_cast<PyCFunction>(M_Noise_cell), METH_VARARGS, M_Noise_cell_doc},
+    {"cell_vector",
+     static_cast<PyCFunction>(M_Noise_cell_vector),
+     METH_VARARGS,
+     M_Noise_cell_vector_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -1173,3 +1197,5 @@ PyMODINIT_FUNC PyInit_mathutils_noise()
 
   return submodule;
 }
+
+}  // namespace blender

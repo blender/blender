@@ -16,6 +16,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 {
   const float offset = BMO_slot_float_get(op->slots_in, "thickness");
@@ -49,3 +51,5 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 }
+
+}  // namespace blender

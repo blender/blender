@@ -15,9 +15,8 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include "DNA_defaults.h"
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
@@ -41,21 +40,23 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 /** Free (or release) any data used by this world (does not free the world itself). */
 static void world_free_data(ID *id)
 {
-  World *wrld = (World *)id;
+  World *wrld = id_cast<World *>(id);
 
   /* is no lib link block, but world extension */
   if (wrld->nodetree) {
-    blender::bke::node_tree_free_embedded_tree(wrld->nodetree);
+    bke::node_tree_free_embedded_tree(wrld->nodetree);
     MEM_freeN(wrld->nodetree);
     wrld->nodetree = nullptr;
   }
 
   GPU_material_free(&wrld->gpumaterial);
 
-  BKE_icon_id_delete((ID *)wrld);
+  BKE_icon_id_delete(id_cast<ID *>(wrld));
   BKE_previewimg_free(&wrld->preview);
 
   MEM_SAFE_FREE(wrld->lightgroup);
@@ -63,10 +64,8 @@ static void world_free_data(ID *id)
 
 static void world_init_data(ID *id)
 {
-  World *wrld = (World *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wrld, id));
-
-  MEMCPY_STRUCT_AFTER(wrld, DNA_struct_default_get(World), id);
+  World *wrld = id_cast<World *>(id);
+  INIT_DEFAULT_STRUCT_AFTER(wrld, id);
 }
 
 /**
@@ -85,8 +84,8 @@ static void world_copy_data(Main *bmain,
                             const ID *id_src,
                             const int flag)
 {
-  World *wrld_dst = (World *)id_dst;
-  const World *wrld_src = (const World *)id_src;
+  World *wrld_dst = id_cast<World *>(id_dst);
+  const World *wrld_src = id_cast<const World *>(id_src);
 
   const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* Never handle user-count here for own sub-data. */
@@ -96,7 +95,7 @@ static void world_copy_data(Main *bmain,
 
   if (wrld_src->nodetree) {
     if (is_localized) {
-      wrld_dst->nodetree = blender::bke::node_tree_localize(wrld_src->nodetree, &wrld_dst->id);
+      wrld_dst->nodetree = bke::node_tree_localize(wrld_src->nodetree, &wrld_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
@@ -118,7 +117,8 @@ static void world_copy_data(Main *bmain,
   }
 
   if (wrld_src->lightgroup) {
-    wrld_dst->lightgroup = (LightgroupMembership *)MEM_dupallocN(wrld_src->lightgroup);
+    wrld_dst->lightgroup = static_cast<LightgroupMembership *>(
+        MEM_dupallocN(wrld_src->lightgroup));
   }
 }
 
@@ -142,7 +142,7 @@ static void world_foreach_working_space_color(ID *id, const IDTypeForeachColorFu
 
 static void world_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  World *wrld = (World *)id;
+  World *wrld = id_cast<World *>(id);
 
   /* Clean up runtime data, important in undo case to reduce false detection of changed
    * datablocks. */
@@ -160,20 +160,20 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (wrld->nodetree) {
     BLO_Write_IDBuffer temp_embedded_id_buffer{wrld->nodetree->id, writer};
     BLO_write_struct_at_address(writer, bNodeTree, wrld->nodetree, temp_embedded_id_buffer.get());
-    blender::bke::node_tree_blend_write(
-        writer, reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
+    bke::node_tree_blend_write(writer,
+                               reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
   }
 
   BKE_previewimg_blend_write(writer, wrld->preview);
 
   if (wrld->lightgroup) {
-    BLO_write_struct(writer, LightgroupMembership, wrld->lightgroup);
+    writer->write_struct(wrld->lightgroup);
   }
 }
 
 static void world_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  World *wrld = (World *)id;
+  World *wrld = id_cast<World *>(id);
 
   BLO_read_struct(reader, PreviewImage, &wrld->preview);
   BKE_previewimg_blend_read(reader, wrld->preview);
@@ -228,3 +228,5 @@ void BKE_world_eval(Depsgraph *depsgraph, World *world)
   GPU_material_free(&world->gpumaterial);
   world->last_update = DEG_get_update_count(depsgraph);
 }
+
+}  // namespace blender

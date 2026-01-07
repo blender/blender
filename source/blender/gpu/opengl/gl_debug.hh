@@ -16,9 +16,7 @@
 #  define GL_CHECK_RESOURCES(info)
 #endif
 
-namespace blender {
-namespace gpu {
-namespace debug {
+namespace blender::gpu::debug {
 
 void raise_gl_error(const char *info);
 void check_gl_error(const char *info);
@@ -30,7 +28,4 @@ void init_gl_callbacks();
 
 void object_label(GLenum type, GLuint object, const char *name);
 
-}  // namespace debug
-
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu::debug

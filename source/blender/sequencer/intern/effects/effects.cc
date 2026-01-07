@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "BLI_math_filter.hh"
+
 #include "BKE_fcurve.hh"
 
 #include "DNA_scene_types.h"
@@ -17,12 +19,9 @@
 #include "IMB_imbuf.hh"
 #include "IMB_metadata.hh"
 
-#include "RE_pipeline.h"
-
 #include "RNA_prototypes.hh"
 
 #include "SEQ_render.hh"
-#include "SEQ_time.hh"
 
 #include "effects.hh"
 #include "render.hh"
@@ -89,7 +88,7 @@ Array<float> make_gaussian_blur_kernel(float rad, int size)
   float sum = 0.0f;
   float fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
   for (int i = -size; i <= size; i++) {
-    float val = RE_filter_value(R_FILTER_GAUSS, float(i) * fac);
+    float val = math::filter_kernel_value(math::FilterKernel::Gauss, float(i) * fac);
     sum += val;
     gaussian[i + size] = val;
   }
@@ -317,8 +316,8 @@ EffectHandle strip_blend_mode_handle_get(Strip *strip)
 
 static float transition_fader_calc(const Scene *scene, const Strip *strip, float timeline_frame)
 {
-  float fac = float(timeline_frame - time_left_handle_frame_get(scene, strip));
-  fac /= time_strip_length_get(scene, strip);
+  float fac = float(timeline_frame - strip->left_handle());
+  fac /= strip->length(scene);
   fac = math::clamp(fac, 0.0f, 1.0f);
   return fac;
 }

@@ -12,9 +12,11 @@
 
 #define TEXT_DOMAIN_NAME "blender"
 
-bool BLT_is_default_context(blender::StringRef msgctxt);
+namespace blender {
+
+bool BLT_is_default_context(StringRef msgctxt);
 const char *BLT_pgettext(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_pgettext(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_pgettext(StringRef msgctxt, StringRef msgid);
 
 /* Translation */
 /* - iface includes buttons in the user interface: short labels displayed in windows, panels,
@@ -28,16 +30,15 @@ bool BLT_translate_tooltips();
 bool BLT_translate_reports();
 bool BLT_translate_new_dataname();
 const char *BLT_translate_do(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_translate_do(StringRef msgctxt, StringRef msgid);
 const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do_iface(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_translate_do_iface(StringRef msgctxt, StringRef msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do_tooltip(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_translate_do_tooltip(StringRef msgctxt, StringRef msgid);
 const char *BLT_translate_do_report(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do_report(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_translate_do_report(StringRef msgctxt, StringRef msgid);
 const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do_new_dataname(blender::StringRef msgctxt,
-                                                 blender::StringRef msgid);
+StringRef BLT_translate_do_new_dataname(StringRef msgctxt, StringRef msgid);
 
 /* The "translation-marker" macro. */
 #define N_(msgid) msgid
@@ -241,3 +242,5 @@ struct BLT_i18n_contexts_descriptor {
       NULL, NULL, NULL \
     } \
   }
+
+}  // namespace blender

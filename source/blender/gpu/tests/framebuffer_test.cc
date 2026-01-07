@@ -24,7 +24,7 @@ static void test_framebuffer_clear_color_single_attachment()
 {
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *texture = GPU_texture_create_2d(
+  gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
 
   gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -51,9 +51,9 @@ static void test_framebuffer_clear_color_multiple_attachments()
 {
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *texture1 = GPU_texture_create_2d(
+  gpu::Texture *texture1 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
-  blender::gpu::Texture *texture2 = GPU_texture_create_2d(
+  gpu::Texture *texture2 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::UINT_32_32_32_32, usage, nullptr);
 
   gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -92,9 +92,9 @@ static void test_framebuffer_clear_multiple_color_multiple_attachments()
 {
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *texture1 = GPU_texture_create_2d(
+  gpu::Texture *texture1 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
-  blender::gpu::Texture *texture2 = GPU_texture_create_2d(
+  gpu::Texture *texture2 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
 
   gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -130,7 +130,7 @@ static void test_framebuffer_clear_depth()
 {
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *texture = GPU_texture_create_2d(
+  gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_DEPTH, usage, nullptr);
 
   gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -158,7 +158,7 @@ static void test_framebuffer_scissor_test()
 {
   const int2 size(2, 2);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *texture = GPU_texture_create_2d(
+  gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
 
   gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -201,7 +201,7 @@ static void test_framebuffer_cube()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *tex = GPU_texture_create_cube(
+  gpu::Texture *tex = GPU_texture_create_cube(
       "tex", SIZE, 1, TextureFormat::SFLOAT_32_32_32_32, usage, nullptr);
 
   const float4 clear_colors[6] = {
@@ -224,7 +224,7 @@ static void test_framebuffer_cube()
     GPU_framebuffer_clear_color(framebuffers[i], clear_colors[i]);
   };
 
-  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  float4 *data = static_cast<float4 *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   for (int side : IndexRange(6)) {
     for (int pixel_index : IndexRange(SIZE * SIZE)) {
       int index = pixel_index + (SIZE * SIZE) * side;
@@ -260,7 +260,7 @@ static void test_framebuffer_multi_viewport()
   const int2 size(4, 4);
   const int layers = 256;
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *texture = GPU_texture_create_2d_array(
+  gpu::Texture *texture = GPU_texture_create_2d_array(
       __func__, UNPACK2(size), layers, 1, TextureFormat::SINT_32_32, usage, nullptr);
 
   gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -333,9 +333,9 @@ static void test_framebuffer_subpass_input()
 
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *texture_a = GPU_texture_create_2d(
+  gpu::Texture *texture_a = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SINT_32, usage, nullptr);
-  blender::gpu::Texture *texture_b = GPU_texture_create_2d(
+  gpu::Texture *texture_b = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, TextureFormat::SINT_32, usage, nullptr);
 
   gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);

@@ -25,7 +25,7 @@
 
 #  include "intern/bmesh_operators_private.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 /* Internal operator flags */
 enum {
@@ -155,15 +155,15 @@ static void hull_output_triangles(BMesh *bm, BLI_mempool *hull_triangles)
 /***************************** Final Edges ****************************/
 
 struct HullFinalEdges {
-  blender::Map<BMVert *, ListBase *> *edges;
+  Map<BMVert *, ListBaseT<LinkData> *> *edges;
   BLI_mempool *base_pool, *link_pool;
 };
 
-static LinkData *final_edges_find_link(ListBase *adj, BMVert *v)
+static LinkData *final_edges_find_link(ListBaseT<LinkData> *adj, BMVert *v)
 {
-  LISTBASE_FOREACH (LinkData *, link, adj) {
-    if (link->data == v) {
-      return link;
+  for (LinkData &link : *adj) {
+    if (link.data == v) {
+      return &link;
     }
   }
 
@@ -172,7 +172,7 @@ static LinkData *final_edges_find_link(ListBase *adj, BMVert *v)
 
 static int hull_final_edges_lookup(HullFinalEdges *final_edges, BMVert *v1, BMVert *v2)
 {
-  ListBase *adj;
+  ListBaseT<LinkData> *adj;
 
   /* Use lower vertex pointer for hash key */
   if (v1 > v2) {
@@ -193,8 +193,9 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
   HullFinalEdges *final_edges;
 
   final_edges = MEM_callocN<HullFinalEdges>("HullFinalEdges");
-  final_edges->edges = MEM_new<blender::Map<BMVert *, ListBase *>>("final edges map");
-  final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 0, 128, BLI_MEMPOOL_NOP);
+  final_edges->edges = MEM_new<Map<BMVert *, ListBaseT<LinkData> *>>("final edges map");
+  final_edges->base_pool = BLI_mempool_create(
+      sizeof(ListBaseT<LinkData>), 0, 128, BLI_MEMPOOL_NOP);
   final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 0, 128, BLI_MEMPOOL_NOP);
 
   BLI_mempool_iter iter;
@@ -214,8 +215,8 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
         std::swap(v1, v2);
       }
 
-      ListBase *adj = final_edges->edges->lookup_or_add_cb(v1, [&]() {
-        return static_cast<ListBase *>(BLI_mempool_calloc(final_edges->base_pool));
+      ListBaseT<LinkData> *adj = final_edges->edges->lookup_or_add_cb(v1, [&]() {
+        return static_cast<ListBaseT<LinkData> *>(BLI_mempool_calloc(final_edges->base_pool));
       });
 
       if (!final_edges_find_link(adj, v2)) {
@@ -413,8 +414,7 @@ static BMVert **hull_input_verts_copy(BMOperator *op, const int num_input_verts)
 {
   BMOIter oiter;
   BMVert *v;
-  BMVert **input_verts = static_cast<BMVert **>(
-      MEM_callocN(sizeof(*input_verts) * num_input_verts, AT));
+  BMVert **input_verts = MEM_calloc_arrayN<BMVert *>(num_input_verts, AT);
   int i = 0;
 
   BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
@@ -426,8 +426,7 @@ static BMVert **hull_input_verts_copy(BMOperator *op, const int num_input_verts)
 
 static float (*hull_verts_for_bullet(BMVert **input_verts, const int num_input_verts))[3]
 {
-  float (*coords)[3] = static_cast<float (*)[3]>(
-      MEM_callocN(sizeof(*coords) * num_input_verts, __func__));
+  float (*coords)[3] = MEM_calloc_arrayN<float[3]>(num_input_verts, __func__);
   int i;
 
   for (i = 0; i < num_input_verts; i++) {
@@ -601,5 +600,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_from_enabled_flag(
       bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, HULL_FLAG_OUTPUT_GEOM);
 }
+
+}  // namespace blender
 
 #endif /* WITH_BULLET */

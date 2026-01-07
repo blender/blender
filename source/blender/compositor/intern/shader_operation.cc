@@ -86,11 +86,11 @@ void ShaderOperation::bind_material_resources(gpu::Shader *shader)
   }
 
   /* Bind color band textures needed by curve and ramp nodes. */
-  ListBase textures = GPU_material_textures(material_);
-  LISTBASE_FOREACH (GPUMaterialTexture *, texture, &textures) {
-    if (texture->colorband) {
-      const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture->sampler_name);
-      GPU_texture_bind(*texture->colorband, texture_image_unit);
+  ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material_);
+  for (GPUMaterialTexture &texture : textures) {
+    if (texture.colorband) {
+      const int texture_image_unit = GPU_shader_get_sampler_binding(shader, texture.sampler_name);
+      GPU_texture_bind(*texture.colorband, texture_image_unit);
     }
   }
 }
@@ -99,9 +99,9 @@ void ShaderOperation::bind_inputs(gpu::Shader *shader)
 {
   /* Attributes represents the inputs of the operation and their names match those of the inputs of
    * the operation as well as the corresponding texture samples in the shader. */
-  ListBase attributes = GPU_material_attributes(material_);
-  LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
-    get_input(attribute->name).bind_as_texture(shader, attribute->name);
+  ListBaseT<GPUMaterialAttribute> attributes = GPU_material_attributes(material_);
+  for (GPUMaterialAttribute &attribute : attributes) {
+    get_input(attribute.name).bind_as_texture(shader, attribute.name);
   }
 }
 
@@ -508,7 +508,7 @@ void ShaderOperation::populate_operation_result(DOutputSocket output_socket)
    * value is ignored since it is already written in the output, but it is used to track nodes that
    * contribute to the output of the compositor node tree. */
   GPUNodeLink *storer_output_link;
-  GPUNodeLink *id_link = GPU_constant((float *)&output_id);
+  GPUNodeLink *id_link = GPU_constant(reinterpret_cast<float *>(const_cast<uint *>(&output_id)));
   const char *store_function_name = get_store_function_name(result_type);
   GPU_link(material_, store_function_name, id_link, output_link, &storer_output_link);
 
@@ -579,8 +579,7 @@ void ShaderOperation::generate_code(void *thunk,
     res.info_name = "compositor_nodetrees";
   }
 
-  blender::Vector<blender::StringRefNull> dependencies =
-      code_generator_output->composite.dependencies;
+  Vector<StringRefNull> dependencies = code_generator_output->composite.dependencies;
   dependencies.prepend("compositor_node_tree_infos.hh");
   dependencies.prepend("gpu_shader_compositor_texture_utilities.glsl");
   dependencies.prepend("gpu_shader_compositor_code_generation.glsl");
@@ -847,7 +846,7 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
                                                       ShaderCreateInfo &shader_create_info)
 {
   /* The attributes of the GPU material represents the inputs of the operation. */
-  ListBase attributes = GPU_material_attributes(material);
+  ListBaseT<GPUMaterialAttribute> attributes = GPU_material_attributes(material);
 
   if (BLI_listbase_is_empty(&attributes)) {
     return "";
@@ -858,13 +857,13 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   /* Add a texture sampler for each of the inputs with the same name as the attribute, we start
    * counting the sampler slot location from the number of textures in the material, since some
    * sampler slots may be reserved for things like color band textures. */
-  const ListBase textures = GPU_material_textures(material);
+  const ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material);
   int input_slot_location = BLI_listbase_count(&textures);
-  LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
-    const InputDescriptor &input_descriptor = get_input_descriptor(attribute->name);
+  for (GPUMaterialAttribute &attribute : attributes) {
+    const InputDescriptor &input_descriptor = get_input_descriptor(attribute.name);
     shader_create_info.sampler(input_slot_location,
                                gpu_image_type_from_result_type(input_descriptor.type),
-                               attribute->name,
+                               attribute.name,
                                Frequency::PASS);
     input_slot_location++;
   }
@@ -874,10 +873,10 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
    * corresponding to the input. Such names are expected by the code generator. */
   std::stringstream declare_attributes;
   declare_attributes << "struct {\n";
-  LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
-    const InputDescriptor &input_descriptor = get_input_descriptor(attribute->name);
+  for (GPUMaterialAttribute &attribute : attributes) {
+    const InputDescriptor &input_descriptor = get_input_descriptor(attribute.name);
     const std::string type = glsl_type_from_result_type(input_descriptor.type);
-    declare_attributes << "  " << type << " v" << attribute->id << ";\n";
+    declare_attributes << "  " << type << " v" << attribute.id << ";\n";
   }
   declare_attributes << "} var_attrs;\n\n";
 
@@ -890,12 +889,12 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   /* Initialize each member of the previously declared struct by loading its corresponding texture
    * with an appropriate swizzle and cast for its type. */
   std::stringstream initialize_attributes;
-  LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
-    const InputDescriptor &input_descriptor = get_input_descriptor(attribute->name);
+  for (GPUMaterialAttribute &attribute : attributes) {
+    const InputDescriptor &input_descriptor = get_input_descriptor(attribute.name);
     const std::string swizzle = glsl_swizzle_from_result_type(input_descriptor.type);
     const std::string type = glsl_type_from_result_type(input_descriptor.type);
-    initialize_attributes << "var_attrs.v" << attribute->id << " = " << type << "("
-                          << "texture_load(" << attribute->name
+    initialize_attributes << "var_attrs.v" << attribute.id << " = " << type << "("
+                          << "texture_load(" << attribute.name
                           << ", ivec2(gl_GlobalInvocationID.xy))." << swizzle << ")"
                           << ";\n";
   }

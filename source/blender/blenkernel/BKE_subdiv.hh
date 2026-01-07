@@ -12,15 +12,18 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_math_vector_types.hh"
 
-struct Mesh;
-struct MultiresModifierData;
 struct OpenSubdiv_Converter;
 struct OpenSubdiv_Evaluator;
-namespace blender::opensubdiv {
+
+namespace blender {
+
+struct Mesh;
+struct MultiresModifierData;
+namespace opensubdiv {
 class TopologyRefinerImpl;
 }
 
-namespace blender::bke::subdiv {
+namespace bke::subdiv {
 
 enum VtxBoundaryInterpolation {
   /** Do not interpolate boundaries. */
@@ -103,7 +106,7 @@ struct SubdivStats {
        * time spent on topology orientation on OpenSubdiv C-API side.
        */
       double topology_refiner_creation_time;
-      /** Total time spent in #blender::bke::subdiv::subdiv_to_mesh(). */
+      /** Total time spent in #bke::subdiv::subdiv_to_mesh(). */
       double subdiv_to_mesh_time;
       /** Geometry (mesh vertices) creation time during SUBDIV_TO_MESH. */
       double subdiv_to_mesh_geometry_time;
@@ -183,7 +186,7 @@ struct Subdiv {
    * Topology refiner includes all the glue logic to feed Blender side
    * topology to OpenSubdiv. It can be shared by both evaluator and GL mesh drawer.
    */
-  blender::opensubdiv::TopologyRefinerImpl *topology_refiner;
+  opensubdiv::TopologyRefinerImpl *topology_refiner;
   /** CPU side evaluator. */
   OpenSubdiv_Evaluator *evaluator;
   /** Optional displacement evaluator. */
@@ -205,7 +208,7 @@ struct Subdiv {
      *
      * In total this array has a size of `num base faces + 1`.
      */
-    blender::Array<int> face_ptex_offset;
+    Array<int> face_ptex_offset;
   } cache_;
 };
 
@@ -360,6 +363,7 @@ BLI_INLINE float sharpness_to_crease(float sharpness);
 
 /** \} */
 
-}  // namespace blender::bke::subdiv
+}  // namespace bke::subdiv
+}  // namespace blender
 
 #include "intern/subdiv_inline.hh"  // IWYU pragma: export

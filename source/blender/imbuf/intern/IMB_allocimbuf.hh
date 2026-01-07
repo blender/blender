@@ -7,7 +7,11 @@
  */
 #pragma once
 
+namespace blender {
+
 struct ImBuf;
 
 bool imb_addencodedbufferImBuf(ImBuf *ibuf);
 bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf);
+
+}  // namespace blender

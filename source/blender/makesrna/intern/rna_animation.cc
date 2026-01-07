@@ -25,7 +25,7 @@
 
 #include "ED_keyframing.hh"
 
-using namespace blender;
+namespace blender {
 
 /* exported for use in API */
 const EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
@@ -84,15 +84,22 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_animsys.h"
+#  include "BKE_context.hh"
 #  include "BKE_fcurve.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_nla.hh"
 
 #  include "ANIM_action.hh"
@@ -109,6 +116,8 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 #  include "WM_api.hh"
 
 #  include "UI_interface_icons.hh"
+
+namespace blender {
 
 static void rna_AnimData_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -203,7 +212,7 @@ static PointerRNA rna_AnimData_action_get(PointerRNA *ptr)
 
 static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
 {
-  using namespace blender::animrig;
+  using namespace animrig;
   BLI_assert(ptr->owner_id);
   ID &animated_id = *ptr->owner_id;
 
@@ -216,11 +225,11 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value, ReportLis
 static void rna_AnimData_tmpact_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
 {
   ID *owner_id = ptr->owner_id;
-  AnimData *adt = (AnimData *)ptr->data;
+  AnimData *adt = static_cast<AnimData *>(ptr->data);
   BLI_assert(adt != nullptr);
 
   bAction *action = static_cast<bAction *>(value.data);
-  if (!blender::animrig::assign_tmpaction(action, {*owner_id, *adt})) {
+  if (!animrig::assign_tmpaction(action, {*owner_id, *adt})) {
     BKE_report(reports, RPT_WARNING, "Failed to set temporary action");
   }
 }
@@ -228,7 +237,7 @@ static void rna_AnimData_tmpact_set(PointerRNA *ptr, PointerRNA value, ReportLis
 static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const bool value)
 {
   ID *animated_id = ptr->owner_id;
-  AnimData *adt = (AnimData *)ptr->data;
+  AnimData *adt = static_cast<AnimData *>(ptr->data);
 
   /* NOTE: technically we should also set/unset SCE_NLA_EDIT_ON flag on the
    * scene which is used to make polling tests faster, but this flag is weak
@@ -257,8 +266,8 @@ bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
   PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
   PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
 
-  AnimData *anim_data_dst = (AnimData *)ptr_dst->data;
-  AnimData *anim_data_src = (AnimData *)ptr_src->data;
+  AnimData *anim_data_dst = static_cast<AnimData *>(ptr_dst->data);
+  AnimData *anim_data_src = static_cast<AnimData *>(ptr_src->data);
 
   anim_data_dst->flag = (anim_data_dst->flag & ~ADT_NLA_EDIT_ON) |
                         (anim_data_src->flag & ADT_NLA_EDIT_ON);
@@ -269,13 +278,13 @@ bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
   return true;
 }
 
-void rna_generic_action_slot_handle_set(blender::animrig::slot_handle_t slot_handle_to_assign,
+void rna_generic_action_slot_handle_set(animrig::slot_handle_t slot_handle_to_assign,
                                         ID &animated_id,
                                         bAction *&action_ptr_ref,
-                                        blender::animrig::slot_handle_t &slot_handle_ref,
+                                        animrig::slot_handle_t &slot_handle_ref,
                                         char *slot_name)
 {
-  using namespace blender::animrig;
+  using namespace animrig;
 
   const ActionSlotAssignmentResult result = generic_assign_action_slot_handle(
       slot_handle_to_assign, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
@@ -300,8 +309,8 @@ void rna_generic_action_slot_handle_set(blender::animrig::slot_handle_t slot_han
   }
 }
 
-static void rna_AnimData_action_slot_handle_set(
-    PointerRNA *ptr, const blender::animrig::slot_handle_t new_slot_handle)
+static void rna_AnimData_action_slot_handle_set(PointerRNA *ptr,
+                                                const animrig::slot_handle_t new_slot_handle)
 {
   ID &animated_id = *ptr->owner_id;
   AnimData *adt = BKE_animdata_from_id(&animated_id);
@@ -318,7 +327,7 @@ static AnimData &rna_animdata(const PointerRNA *ptr)
 PointerRNA rna_generic_action_slot_get(bAction *dna_action,
                                        const animrig::slot_handle_t slot_handle)
 {
-  using namespace blender::animrig;
+  using namespace animrig;
 
   if (!dna_action || slot_handle == Slot::unassigned) {
     return PointerRNA_NULL;
@@ -341,11 +350,11 @@ static PointerRNA rna_AnimData_action_slot_get(PointerRNA *ptr)
 void rna_generic_action_slot_set(PointerRNA rna_slot_to_assign,
                                  ID &animated_id,
                                  bAction *&action_ptr_ref,
-                                 blender::animrig::slot_handle_t &slot_handle_ref,
+                                 animrig::slot_handle_t &slot_handle_ref,
                                  char *slot_name,
                                  ReportList *reports)
 {
-  using namespace blender::animrig;
+  using namespace animrig;
 
   ActionSlot *dna_slot = static_cast<ActionSlot *>(rna_slot_to_assign.data);
   Slot *slot = dna_slot ? &dna_slot->wrap() : nullptr;
@@ -392,7 +401,7 @@ static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, Repo
 static void rna_AnimData_action_slot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   /* TODO: see if this is still necessary. */
-  blender::animrig::Slot::users_invalidate(*bmain);
+  animrig::Slot::users_invalidate(*bmain);
   rna_AnimData_dependency_update(bmain, scene, ptr);
 }
 
@@ -474,7 +483,7 @@ static bool RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 
     /* read the result */
     RNA_parameter_get_lookup(&list, "ok", &ret);
-    ok = *(bool *)ret;
+    ok = *static_cast<bool *>(ret);
   }
   RNA_parameter_list_free(&list);
 
@@ -536,7 +545,7 @@ static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks,
  * maybe we want to revise this at some point? */
 static StructRNA *rna_KeyingSetInfo_refine(PointerRNA *ptr)
 {
-  KeyingSetInfo *ksi = (KeyingSetInfo *)ptr->data;
+  KeyingSetInfo *ksi = static_cast<KeyingSetInfo *>(ptr->data);
   return (ksi->rna_ext.srna) ? ksi->rna_ext.srna : &RNA_KeyingSetInfo;
 }
 
@@ -550,12 +559,12 @@ static bool rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 
   /* free RNA data referencing this */
   RNA_struct_free_extension(type, &ksi->rna_ext);
-  RNA_struct_free(&BLENDER_RNA, type);
+  RNA_struct_free(&RNA_blender_rna_get(), type);
 
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
   /* unlink Blender-side data */
-  blender::animrig::keyingset_info_unregister(bmain, ksi);
+  animrig::keyingset_info_unregister(bmain, ksi);
   return true;
 }
 
@@ -593,7 +602,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   }
 
   /* check if we have registered this info before, and remove it */
-  ksi = blender::animrig::keyingset_info_find_name(dummy_ksi.idname);
+  ksi = animrig::keyingset_info_find_name(dummy_ksi.idname);
   if (ksi) {
     BKE_reportf(reports,
                 RPT_INFO,
@@ -620,7 +629,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   memcpy(ksi, &dummy_ksi, sizeof(KeyingSetInfo));
 
   /* set RNA-extensions info */
-  ksi->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ksi->idname, &RNA_KeyingSetInfo);
+  ksi->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), ksi->idname, &RNA_KeyingSetInfo);
   ksi->rna_ext.data = data;
   ksi->rna_ext.call = call;
   ksi->rna_ext.free = free;
@@ -633,7 +642,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   ksi->generate = (have_function[2]) ? RKS_GEN_rna_internal : nullptr;
 
   /* add and register with other info as needed */
-  blender::animrig::keyingset_info_register(ksi);
+  animrig::keyingset_info_register(ksi);
 
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
@@ -645,19 +654,19 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
 
 static StructRNA *rna_ksPath_id_typef(PointerRNA *ptr)
 {
-  KS_Path *ksp = (KS_Path *)ptr->data;
+  KS_Path *ksp = static_cast<KS_Path *>(ptr->data);
   return ID_code_to_RNA_type(ksp->idtype);
 }
 
 static int rna_ksPath_id_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
-  KS_Path *ksp = (KS_Path *)ptr->data;
+  KS_Path *ksp = static_cast<KS_Path *>(ptr->data);
   return (ksp->idtype) ? PROP_EDITABLE : PropertyFlag(0);
 }
 
 static void rna_ksPath_id_type_set(PointerRNA *ptr, int value)
 {
-  KS_Path *data = (KS_Path *)(ptr->data);
+  KS_Path *data = static_cast<KS_Path *>(ptr->data);
 
   /* set the driver type, then clear the id-block if the type is invalid */
   data->idtype = value;
@@ -668,7 +677,7 @@ static void rna_ksPath_id_type_set(PointerRNA *ptr, int value)
 
 static void rna_ksPath_RnaPath_get(PointerRNA *ptr, char *value)
 {
-  KS_Path *ksp = (KS_Path *)ptr->data;
+  KS_Path *ksp = static_cast<KS_Path *>(ptr->data);
 
   if (ksp->rna_path) {
     strcpy(value, ksp->rna_path);
@@ -680,7 +689,7 @@ static void rna_ksPath_RnaPath_get(PointerRNA *ptr, char *value)
 
 static int rna_ksPath_RnaPath_length(PointerRNA *ptr)
 {
-  KS_Path *ksp = (KS_Path *)ptr->data;
+  KS_Path *ksp = static_cast<KS_Path *>(ptr->data);
 
   if (ksp->rna_path) {
     return strlen(ksp->rna_path);
@@ -692,7 +701,7 @@ static int rna_ksPath_RnaPath_length(PointerRNA *ptr)
 
 static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 {
-  KS_Path *ksp = (KS_Path *)ptr->data;
+  KS_Path *ksp = static_cast<KS_Path *>(ptr->data);
 
   if (ksp->rna_path) {
     MEM_freeN(ksp->rna_path);
@@ -710,7 +719,7 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 
 static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
 {
-  KeyingSet *ks = (KeyingSet *)ptr->data;
+  KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
 
   /* update names of corresponding groups if name changes */
   if (!STREQ(ks->name, value)) {
@@ -742,7 +751,7 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
 
 static int rna_KeyingSet_active_ksPath_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
-  KeyingSet *ks = (KeyingSet *)ptr->data;
+  KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
 
   /* only editable if there are some paths to change to */
   return (BLI_listbase_is_empty(&ks->paths) == false) ? PROP_EDITABLE : PropertyFlag(0);
@@ -750,7 +759,7 @@ static int rna_KeyingSet_active_ksPath_editable(const PointerRNA *ptr, const cha
 
 static PointerRNA rna_KeyingSet_active_ksPath_get(PointerRNA *ptr)
 {
-  KeyingSet *ks = (KeyingSet *)ptr->data;
+  KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
   return RNA_pointer_create_with_parent(
       *ptr, &RNA_KeyingSetPath, BLI_findlink(&ks->paths, ks->active_path - 1));
 }
@@ -759,27 +768,27 @@ static void rna_KeyingSet_active_ksPath_set(PointerRNA *ptr,
                                             PointerRNA value,
                                             ReportList * /*reports*/)
 {
-  KeyingSet *ks = (KeyingSet *)ptr->data;
-  KS_Path *ksp = (KS_Path *)value.data;
+  KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
+  KS_Path *ksp = static_cast<KS_Path *>(value.data);
   ks->active_path = BLI_findindex(&ks->paths, ksp) + 1;
 }
 
 static int rna_KeyingSet_active_ksPath_index_get(PointerRNA *ptr)
 {
-  KeyingSet *ks = (KeyingSet *)ptr->data;
+  KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
   return std::max(ks->active_path - 1, 0);
 }
 
 static void rna_KeyingSet_active_ksPath_index_set(PointerRNA *ptr, int value)
 {
-  KeyingSet *ks = (KeyingSet *)ptr->data;
+  KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
   ks->active_path = value + 1;
 }
 
 static void rna_KeyingSet_active_ksPath_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  KeyingSet *ks = (KeyingSet *)ptr->data;
+  KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
 
   *min = 0;
   *max = max_ii(0, BLI_listbase_count(&ks->paths) - 1);
@@ -787,12 +796,12 @@ static void rna_KeyingSet_active_ksPath_index_range(
 
 static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
 {
-  KeyingSet *ks = (KeyingSet *)ptr->data;
+  KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
   KeyingSetInfo *ksi = nullptr;
 
   /* keying set info is only for builtin Keying Sets */
   if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-    ksi = blender::animrig::keyingset_info_find_name(ks->typeinfo);
+    ksi = animrig::keyingset_info_find_name(ks->typeinfo);
   }
   return RNA_pointer_create_with_parent(*ptr, &RNA_KeyingSetInfo, ksi);
 }
@@ -913,15 +922,15 @@ static void rna_NlaTrack_remove(
 
 static PointerRNA rna_NlaTrack_active_get(PointerRNA *ptr)
 {
-  AnimData *adt = (AnimData *)ptr->data;
+  AnimData *adt = static_cast<AnimData *>(ptr->data);
   NlaTrack *track = BKE_nlatrack_find_active(&adt->nla_tracks);
   return RNA_pointer_create_with_parent(*ptr, &RNA_NlaTrack, track);
 }
 
 static void rna_NlaTrack_active_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
-  AnimData *adt = (AnimData *)ptr->data;
-  NlaTrack *track = (NlaTrack *)value.data;
+  AnimData *adt = static_cast<AnimData *>(ptr->data);
+  NlaTrack *track = static_cast<NlaTrack *>(value.data);
   BKE_nlatrack_set_active(&adt->nla_tracks, track);
 }
 
@@ -1075,8 +1084,8 @@ bool rna_NLA_tracks_override_apply(Main *bmain, RNAPropertyOverrideApplyContext 
   BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER,
                  "Unsupported RNA override operation on constraints collection");
 
-  AnimData *anim_data_dst = (AnimData *)ptr_dst->data;
-  AnimData *anim_data_src = (AnimData *)ptr_src->data;
+  AnimData *anim_data_dst = static_cast<AnimData *>(ptr_dst->data);
+  AnimData *anim_data_src = static_cast<AnimData *>(ptr_src->data);
 
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
@@ -1119,7 +1128,11 @@ bool rna_NLA_tracks_override_apply(Main *bmain, RNAPropertyOverrideApplyContext 
   return true;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 /* helper function for Keying Set -> keying settings */
 static void rna_def_common_keying_flags(StructRNA *srna, short reg)
@@ -1812,5 +1825,7 @@ void RNA_def_animation(BlenderRNA *brna)
   rna_def_keyingset_path(brna);
   rna_def_keyingset_info(brna);
 }
+
+}  // namespace blender
 
 #endif

@@ -15,6 +15,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* This file implements both memory-backed and memory-mapped-file-backed reading. */
 struct MemoryReader {
   FileReader reader;
@@ -26,7 +28,7 @@ struct MemoryReader {
 
 static int64_t memory_read_raw(FileReader *reader, void *buffer, size_t size)
 {
-  MemoryReader *mem = (MemoryReader *)reader;
+  MemoryReader *mem = reinterpret_cast<MemoryReader *>(reader);
 
   /* Don't read more bytes than there are available in the buffer. */
   size_t readsize = std::min(size, size_t(mem->length - mem->reader.offset));
@@ -39,7 +41,7 @@ static int64_t memory_read_raw(FileReader *reader, void *buffer, size_t size)
 
 static off64_t memory_seek(FileReader *reader, off64_t offset, int whence)
 {
-  MemoryReader *mem = (MemoryReader *)reader;
+  MemoryReader *mem = reinterpret_cast<MemoryReader *>(reader);
 
   off64_t new_pos;
   if (whence == SEEK_CUR) {
@@ -72,14 +74,14 @@ FileReader *BLI_filereader_new_memory(const void *data, size_t len)
 {
   MemoryReader *mem = MEM_callocN<MemoryReader>(__func__);
 
-  mem->data = (const char *)data;
+  mem->data = static_cast<const char *>(data);
   mem->length = len;
 
   mem->reader.read = memory_read_raw;
   mem->reader.seek = memory_seek;
   mem->reader.close = memory_close_raw;
 
-  return (FileReader *)mem;
+  return reinterpret_cast<FileReader *>(mem);
 }
 
 /* Memory-mapped file reading.
@@ -90,7 +92,7 @@ FileReader *BLI_filereader_new_memory(const void *data, size_t len)
 
 static int64_t memory_read_mmap(FileReader *reader, void *buffer, size_t size)
 {
-  MemoryReader *mem = (MemoryReader *)reader;
+  MemoryReader *mem = reinterpret_cast<MemoryReader *>(reader);
 
   /* Don't read more bytes than there are available in the buffer. */
   size_t readsize = std::min(size, size_t(mem->length - mem->reader.offset));
@@ -106,7 +108,7 @@ static int64_t memory_read_mmap(FileReader *reader, void *buffer, size_t size)
 
 static void memory_close_mmap(FileReader *reader)
 {
-  MemoryReader *mem = (MemoryReader *)reader;
+  MemoryReader *mem = reinterpret_cast<MemoryReader *>(reader);
   BLI_mmap_free(mem->mmap);
   MEM_freeN(mem);
 }
@@ -127,5 +129,7 @@ FileReader *BLI_filereader_new_mmap(int filedes)
   mem->reader.seek = memory_seek;
   mem->reader.close = memory_close_mmap;
 
-  return (FileReader *)mem;
+  return reinterpret_cast<FileReader *>(mem);
 }
+
+}  // namespace blender

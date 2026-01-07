@@ -253,7 +253,7 @@ void draw_subdiv_cache_free(DRWSubdivCache &cache)
   MEM_SAFE_FREE(cache.subdiv_loop_subdiv_vert_index);
   MEM_SAFE_FREE(cache.subdiv_loop_subdiv_edge_index);
   MEM_SAFE_FREE(cache.subdiv_loop_face_index);
-  MEM_SAFE_FREE(cache.subdiv_face_offset);
+  cache.subdiv_face_offset = {};
   GPU_VERTBUF_DISCARD_SAFE(cache.subdiv_vert_face_adjacency_offsets);
   GPU_VERTBUF_DISCARD_SAFE(cache.subdiv_vert_face_adjacency);
   cache.resolution = 0;
@@ -489,7 +489,7 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
                                          const int num_edges,
                                          const int num_loops,
                                          const int num_faces,
-                                         const int *subdiv_face_offset)
+                                         const Span<int> subdiv_face_offset)
 {
   /* num_loops does not take into account meshes with only loose geometry, which might be meshes
    * used as custom bone shapes, so let's check the num_verts also. */
@@ -506,7 +506,7 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
     cache->num_subdiv_loops = uint(num_loops);
     cache->num_subdiv_verts = uint(num_verts);
     cache->num_subdiv_quads = uint(num_faces);
-    cache->subdiv_face_offset = static_cast<int *>(MEM_dupallocN(subdiv_face_offset));
+    cache->subdiv_face_offset = subdiv_face_offset;
   }
 
   cache->may_have_loose_geom = num_verts != 0 || num_edges != 0;
@@ -783,7 +783,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
     /* Either the traversal failed, or we have an empty mesh, either way we cannot go any further.
      * The subdiv_face_offset cannot then be reliably stored in the cache, so free it directly.
      */
-    MEM_SAFE_FREE(cache.subdiv_face_offset);
+    cache.subdiv_face_offset = {};
     return false;
   }
 
@@ -814,8 +814,8 @@ static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
       }
     }
 
-    cache.subdiv_face_offset_buffer = draw_subdiv_build_origindex_buffer(cache.subdiv_face_offset,
-                                                                         faces.size());
+    cache.subdiv_face_offset_buffer = draw_subdiv_build_origindex_buffer(
+        cache.subdiv_face_offset.data(), faces.size());
 
     cache.face_ptex_offset_buffer = draw_subdiv_build_origindex_buffer(cache.face_ptex_offset);
 
@@ -1533,7 +1533,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
 
   /* Count number of subdivided polygons for each material. */
   int *mat_start = MEM_calloc_arrayN<int>(mat_len, "subdiv mat_start");
-  int *subdiv_face_offset = cache.subdiv_face_offset;
+  int *subdiv_face_offset = cache.subdiv_face_offset.data();
 
   /* TODO: parallel_reduce? */
   for (int i = 0; i < mesh_eval->faces_num; i++) {
@@ -1758,7 +1758,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache &subdiv_cache, const MeshBufferCach
  * This is kind of garbage collection.
  */
 static LinkNode *gpu_subdiv_free_queue = nullptr;
-static blender::Mutex gpu_subdiv_queue_mutex;
+static Mutex gpu_subdiv_queue_mutex;
 
 void DRW_create_subdivision(Object &ob,
                             Mesh &mesh,

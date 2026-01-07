@@ -17,50 +17,52 @@
 #include "GPU_texture.hh"
 #include "GPU_vertex_buffer.hh"
 
-namespace blender::gpu {
-class StorageBuf;
-}  // namespace blender::gpu
+namespace blender {
 
-blender::gpu::StorageBuf *GPU_storagebuf_create_ex(size_t size,
-                                                   const void *data,
-                                                   GPUUsageType usage,
-                                                   const char *name);
+namespace gpu {
+class StorageBuf;
+}  // namespace gpu
+
+gpu::StorageBuf *GPU_storagebuf_create_ex(size_t size,
+                                          const void *data,
+                                          GPUUsageType usage,
+                                          const char *name);
 
 #define GPU_storagebuf_create(size) \
   GPU_storagebuf_create_ex(size, nullptr, GPU_USAGE_DYNAMIC, __func__);
 
-void GPU_storagebuf_free(blender::gpu::StorageBuf *ssbo);
+void GPU_storagebuf_free(gpu::StorageBuf *ssbo);
 
 /**
  * Limit the size of the storage buffer.
  *
  * Backends can optimize data transfers using the size that is actually used.
  */
-void GPU_storagebuf_usage_size_set(blender::gpu::StorageBuf *ssbo, size_t size);
-void GPU_storagebuf_update(blender::gpu::StorageBuf *ssbo, const void *data);
+void GPU_storagebuf_usage_size_set(gpu::StorageBuf *ssbo, size_t size);
+void GPU_storagebuf_update(gpu::StorageBuf *ssbo, const void *data);
 
-void GPU_storagebuf_bind(blender::gpu::StorageBuf *ssbo, int slot);
-void GPU_storagebuf_unbind(blender::gpu::StorageBuf *ssbo);
+void GPU_storagebuf_bind(gpu::StorageBuf *ssbo, int slot);
+void GPU_storagebuf_unbind(gpu::StorageBuf *ssbo);
 /**
  * Resets the internal slot usage tracking. But there is no guarantee that
  * this actually undo the bindings for the next draw call. Only has effect when G_DEBUG_GPU is set.
  */
 void GPU_storagebuf_debug_unbind_all();
 
-void GPU_storagebuf_clear_to_zero(blender::gpu::StorageBuf *ssbo);
+void GPU_storagebuf_clear_to_zero(gpu::StorageBuf *ssbo);
 
 /**
  * Clear the content of the buffer using the given #clear_value. #clear_value will be used as a
  * repeatable pattern of 32bits.
  */
-void GPU_storagebuf_clear(blender::gpu::StorageBuf *ssbo, uint32_t clear_value);
+void GPU_storagebuf_clear(gpu::StorageBuf *ssbo, uint32_t clear_value);
 
 /**
  * Explicitly sync updated storage buffer contents back to host within the GPU command stream. This
  * ensures any changes made by the GPU are visible to the host.
  * NOTE: This command is only valid for host-visible storage buffers.
  */
-void GPU_storagebuf_sync_to_host(blender::gpu::StorageBuf *ssbo);
+void GPU_storagebuf_sync_to_host(gpu::StorageBuf *ssbo);
 
 /**
  * Read back content of the buffer to CPU for inspection.
@@ -73,7 +75,7 @@ void GPU_storagebuf_sync_to_host(blender::gpu::StorageBuf *ssbo);
  * Otherwise, this command is synchronized against this call and will stall the CPU until the
  * buffer content can be read by the host.
  */
-void GPU_storagebuf_read(blender::gpu::StorageBuf *ssbo, void *data);
+void GPU_storagebuf_read(gpu::StorageBuf *ssbo, void *data);
 
 /**
  * \brief Copy a part of a vertex buffer to a storage buffer.
@@ -84,14 +86,13 @@ void GPU_storagebuf_read(blender::gpu::StorageBuf *ssbo, void *data);
  * \param src_offset: where to start copying from (in bytes).
  * \param copy_size: byte size of the segment to copy.
  */
-void GPU_storagebuf_copy_sub_from_vertbuf(blender::gpu::StorageBuf *ssbo,
-                                          blender::gpu::VertBuf *src,
-                                          uint dst_offset,
-                                          uint src_offset,
-                                          uint copy_size);
+void GPU_storagebuf_copy_sub_from_vertbuf(
+    gpu::StorageBuf *ssbo, gpu::VertBuf *src, uint dst_offset, uint src_offset, uint copy_size);
 
 /**
  * Ensure the ssbo is ready to be used as an indirect buffer in `GPU_batch_draw_indirect`.
  * NOTE: Internally, this is only required for the OpenGL backend.
  */
-void GPU_storagebuf_sync_as_indirect_buffer(blender::gpu::StorageBuf *ssbo);
+void GPU_storagebuf_sync_as_indirect_buffer(gpu::StorageBuf *ssbo);
+
+}  // namespace blender

@@ -26,11 +26,13 @@
 
 #include "WM_api.hh"
 
-/* Keying Set Type Info declarations. */
-static ListBase keyingset_type_infos = {nullptr, nullptr};
-ListBase builtin_keyingsets = {nullptr, nullptr};
+namespace blender {
 
-namespace blender::animrig {
+/* Keying Set Type Info declarations. */
+static ListBaseT<KeyingSetInfo> keyingset_type_infos = {nullptr, nullptr};
+ListBaseT<KeyingSet> builtin_keyingsets = {nullptr, nullptr};
+
+namespace animrig {
 
 void keyingset_info_register(KeyingSetInfo *keyingset_info)
 {
@@ -58,22 +60,22 @@ void keyingset_info_unregister(Main *bmain, KeyingSetInfo *keyingset_info)
   /* Find relevant builtin KeyingSets which use this, and remove them. */
   /* TODO: this isn't done now, since unregister is really only used at the moment when we
    * reload the scripts, which kind of defeats the purpose of "builtin"? */
-  LISTBASE_FOREACH_MUTABLE (KeyingSet *, keyingset, &builtin_keyingsets) {
+  for (KeyingSet &keyingset : builtin_keyingsets.items_mutable()) {
     /* Remove if matching typeinfo name. */
-    if (!STREQ(keyingset->typeinfo, keyingset_info->idname)) {
+    if (!STREQ(keyingset.typeinfo, keyingset_info->idname)) {
       continue;
     }
     Scene *scene;
-    BKE_keyingset_free_paths(keyingset);
-    BLI_remlink(&builtin_keyingsets, keyingset);
+    BKE_keyingset_free_paths(&keyingset);
+    BLI_remlink(&builtin_keyingsets, &keyingset);
 
     for (scene = static_cast<Scene *>(bmain->scenes.first); scene;
          scene = static_cast<Scene *>(scene->id.next))
     {
-      BLI_remlink_safe(&scene->keyingsets, keyingset);
+      BLI_remlink_safe(&scene->keyingsets, &keyingset);
     }
 
-    MEM_freeN(keyingset);
+    MEM_freeN(&keyingset);
   }
 
   BLI_freelinkN(&keyingset_type_infos, keyingset_info);
@@ -82,12 +84,12 @@ void keyingset_info_unregister(Main *bmain, KeyingSetInfo *keyingset_info)
 void keyingset_infos_exit()
 {
   /* Free type infos. */
-  LISTBASE_FOREACH_MUTABLE (KeyingSetInfo *, keyingset_info, &keyingset_type_infos) {
+  for (KeyingSetInfo &keyingset_info : keyingset_type_infos.items_mutable()) {
     /* Free extra RNA data, and remove from list. */
-    if (keyingset_info->rna_ext.free) {
-      keyingset_info->rna_ext.free(keyingset_info->rna_ext.data);
+    if (keyingset_info.rna_ext.free) {
+      keyingset_info.rna_ext.free(keyingset_info.rna_ext.data);
     }
-    BLI_freelinkN(&keyingset_type_infos, keyingset_info);
+    BLI_freelinkN(&keyingset_type_infos, &keyingset_info);
   }
 
   BKE_keyingsets_free(&builtin_keyingsets);
@@ -120,9 +122,9 @@ KeyingSet *builtin_keyingset_get_named(const char name[])
   }
 
   /* Loop over KeyingSets checking names. */
-  LISTBASE_FOREACH (KeyingSet *, keyingset, &builtin_keyingsets) {
-    if (STREQ(name, keyingset->idname)) {
-      return keyingset;
+  for (KeyingSet &keyingset : builtin_keyingsets) {
+    if (STREQ(name, keyingset.idname)) {
+      return &keyingset;
     }
   }
 
@@ -170,7 +172,7 @@ KeyingSet *scene_get_active_keyingset(const Scene *scene)
       BLI_findlink(&builtin_keyingsets, (-scene->active_keyingset) - 1));
 }
 
-void relative_keyingset_add_source(blender::Vector<PointerRNA> &sources,
+void relative_keyingset_add_source(Vector<PointerRNA> &sources,
                                    ID *id,
                                    StructRNA *srna,
                                    void *data)
@@ -181,7 +183,7 @@ void relative_keyingset_add_source(blender::Vector<PointerRNA> &sources,
   sources.append(RNA_pointer_create_discrete(id, srna, data));
 }
 
-void relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID *id)
+void relative_keyingset_add_source(Vector<PointerRNA> &sources, ID *id)
 {
   if (id == nullptr) {
     return;
@@ -198,7 +200,7 @@ void relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID *id)
 static void RKS_ITER_overrides_list(KeyingSetInfo *keyingset_info,
                                     bContext *C,
                                     KeyingSet *keyingset,
-                                    blender::Vector<PointerRNA> &sources)
+                                    Vector<PointerRNA> &sources)
 {
   for (PointerRNA ptr : sources) {
     /* Run generate callback on this data. */
@@ -206,9 +208,7 @@ static void RKS_ITER_overrides_list(KeyingSetInfo *keyingset_info,
   }
 }
 
-ModifyKeyReturn validate_keyingset(bContext *C,
-                                   blender::Vector<PointerRNA> *sources,
-                                   KeyingSet *keyingset)
+ModifyKeyReturn validate_keyingset(bContext *C, Vector<PointerRNA> *sources, KeyingSet *keyingset)
 {
   if (keyingset == nullptr) {
     return ModifyKeyReturn::SUCCESS;
@@ -356,8 +356,8 @@ static int insert_key_to_keying_set_path(bContext *C,
   CombinedKeyingResult combined_result;
   for (; array_index < array_length; array_index++) {
     if (mode == ModifyKeyMode::INSERT) {
-      const std::optional<blender::StringRefNull> group = groupname ? std::optional(groupname) :
-                                                                      std::nullopt;
+      const std::optional<StringRefNull> group = groupname ? std::optional(groupname) :
+                                                             std::nullopt;
       const std::optional<int> index = array_index >= 0 ? std::optional(array_index) :
                                                           std::nullopt;
       PointerRNA id_rna_pointer = RNA_id_pointer_create(keyingset_path->id);
@@ -405,7 +405,7 @@ static int insert_key_to_keying_set_path(bContext *C,
 }
 
 int apply_keyingset(bContext *C,
-                    blender::Vector<PointerRNA> *sources,
+                    Vector<PointerRNA> *sources,
                     KeyingSet *keyingset,
                     const ModifyKeyMode mode,
                     const float cfra)
@@ -440,20 +440,20 @@ int apply_keyingset(bContext *C,
   int keyed_channels = 0;
 
   /* Apply the paths as specified in the KeyingSet now. */
-  LISTBASE_FOREACH (KS_Path *, keyingset_path, &keyingset->paths) {
+  for (KS_Path &keyingset_path : keyingset->paths) {
     /* Skip path if no ID pointer is specified. */
-    if (keyingset_path->id == nullptr) {
+    if (keyingset_path.id == nullptr) {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')",
                   keyingset->name,
-                  keyingset_path->rna_path,
-                  keyingset_path->array_index);
+                  keyingset_path.rna_path,
+                  keyingset_path.array_index);
       continue;
     }
 
     keyed_channels += insert_key_to_keying_set_path(
-        C, keyingset_path, keyingset, kflag, mode, cfra);
+        C, &keyingset_path, keyingset, kflag, mode, cfra);
   }
 
   /* Return the number of channels successfully affected. */
@@ -461,4 +461,5 @@ int apply_keyingset(bContext *C,
   return keyed_channels;
 }
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

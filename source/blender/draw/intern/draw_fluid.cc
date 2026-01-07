@@ -32,6 +32,8 @@
 #  include "manta_fluid_API.h"
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Private API
  * \{ */
@@ -92,9 +94,9 @@ static void create_color_ramp(const ColorBand *coba, float *data)
   }
 }
 
-static blender::gpu::Texture *create_transfer_function(int type, const ColorBand *coba)
+static gpu::Texture *create_transfer_function(int type, const ColorBand *coba)
 {
-  float *data = (float *)MEM_mallocN(sizeof(float[4]) * TFUNC_WIDTH, __func__);
+  float *data = MEM_malloc_arrayN<float>(4 * TFUNC_WIDTH, __func__);
 
   switch (type) {
     case TFUNC_FLAME_SPECTRUM:
@@ -105,19 +107,19 @@ static blender::gpu::Texture *create_transfer_function(int type, const ColorBand
       break;
   }
 
-  blender::gpu::Texture *tex = GPU_texture_create_1d("transf_func",
-                                                     TFUNC_WIDTH,
-                                                     1,
-                                                     blender::gpu::TextureFormat::SRGBA_8_8_8_8,
-                                                     GPU_TEXTURE_USAGE_SHADER_READ,
-                                                     data);
+  gpu::Texture *tex = GPU_texture_create_1d("transf_func",
+                                            TFUNC_WIDTH,
+                                            1,
+                                            gpu::TextureFormat::SRGBA_8_8_8_8,
+                                            GPU_TEXTURE_USAGE_SHADER_READ,
+                                            data);
 
   MEM_freeN(data);
 
   return tex;
 }
 
-static void swizzle_texture_channel_single(blender::gpu::Texture *tex)
+static void swizzle_texture_channel_single(gpu::Texture *tex)
 {
   /* Swizzle texture channels so that we get useful RGBA values when sampling
    * a texture with fewer channels, e.g. when using density as color. */
@@ -133,7 +135,7 @@ static float *rescale_3d(const int dim[3],
   const uint fw = final_dim[0], fh = final_dim[1], fd = final_dim[2];
   const uint xf = w / fw, yf = h / fh, zf = d / fd;
   const uint pixel_count = fw * fh * fd;
-  float *nfpixels = (float *)MEM_mallocN(channels * sizeof(float) * pixel_count, __func__);
+  float *nfpixels = MEM_malloc_arrayN<float>(channels * pixel_count, __func__);
 
   if (nfpixels) {
     printf("Performance: You need to scale a 3D texture, feel the pain!\n");
@@ -169,13 +171,13 @@ static float *rescale_3d(const int dim[3],
 }
 
 /* Will resize input to fit GL system limits. */
-static blender::gpu::Texture *create_volume_texture(const int dim[3],
-                                                    blender::gpu::TextureFormat texture_format,
-                                                    eGPUDataFormat data_format,
-                                                    const void *data)
+static gpu::Texture *create_volume_texture(const int dim[3],
+                                           gpu::TextureFormat texture_format,
+                                           eGPUDataFormat data_format,
+                                           const void *data)
 {
-  blender::gpu::Texture *tex = nullptr;
-  blender::int3 final_dim = {UNPACK3(dim)};
+  gpu::Texture *tex = nullptr;
+  int3 final_dim = {UNPACK3(dim)};
 
   if (data == nullptr) {
     return nullptr;
@@ -202,7 +204,7 @@ static blender::gpu::Texture *create_volume_texture(const int dim[3],
     printf("Error: Could not create 3D texture.\n");
     tex = GPU_texture_create_error(3, false);
   }
-  else if (blender::int3(dim) == final_dim) {
+  else if (int3(dim) == final_dim) {
     /* No need to resize, just upload the data. */
     GPU_texture_update_sub(tex, data_format, data, 0, 0, 0, UNPACK3(final_dim));
   }
@@ -213,9 +215,9 @@ static blender::gpu::Texture *create_volume_texture(const int dim[3],
   else {
     /* We need to resize the input. */
     int channels = ELEM(texture_format,
-                        blender::gpu::TextureFormat::UNORM_8,
-                        blender::gpu::TextureFormat::SFLOAT_16,
-                        blender::gpu::TextureFormat::SFLOAT_32) ?
+                        gpu::TextureFormat::UNORM_8,
+                        gpu::TextureFormat::SFLOAT_16,
+                        gpu::TextureFormat::SFLOAT_32) ?
                        1 :
                        4;
     float *rescaled_data = rescale_3d(dim, final_dim, channels, static_cast<const float *>(data));
@@ -232,14 +234,14 @@ static blender::gpu::Texture *create_volume_texture(const int dim[3],
   return tex;
 }
 
-static blender::gpu::Texture *create_field_texture(FluidDomainSettings *fds, bool single_precision)
+static gpu::Texture *create_field_texture(FluidDomainSettings *fds, bool single_precision)
 {
   void *field = nullptr;
   eGPUDataFormat data_format = GPU_DATA_FLOAT;
-  blender::gpu::TextureFormat texture_format = blender::gpu::TextureFormat::UNORM_8;
+  gpu::TextureFormat texture_format = gpu::TextureFormat::UNORM_8;
 
   if (single_precision) {
-    texture_format = blender::gpu::TextureFormat::SFLOAT_32;
+    texture_format = gpu::TextureFormat::SFLOAT_32;
   }
 
   switch (fds->coba_field) {
@@ -287,28 +289,28 @@ static blender::gpu::Texture *create_field_texture(FluidDomainSettings *fds, boo
       break;
     case FLUID_DOMAIN_FIELD_PHI:
       field = manta_get_phi(fds->fluid);
-      texture_format = blender::gpu::TextureFormat::SFLOAT_16;
+      texture_format = gpu::TextureFormat::SFLOAT_16;
       break;
     case FLUID_DOMAIN_FIELD_PHI_IN:
       field = manta_get_phi_in(fds->fluid);
-      texture_format = blender::gpu::TextureFormat::SFLOAT_16;
+      texture_format = gpu::TextureFormat::SFLOAT_16;
       break;
     case FLUID_DOMAIN_FIELD_PHI_OUT:
       field = manta_get_phiout_in(fds->fluid);
-      texture_format = blender::gpu::TextureFormat::SFLOAT_16;
+      texture_format = gpu::TextureFormat::SFLOAT_16;
       break;
     case FLUID_DOMAIN_FIELD_PHI_OBSTACLE:
       field = manta_get_phiobs_in(fds->fluid);
-      texture_format = blender::gpu::TextureFormat::SFLOAT_16;
+      texture_format = gpu::TextureFormat::SFLOAT_16;
       break;
     case FLUID_DOMAIN_FIELD_FLAGS:
       field = manta_smoke_get_flags(fds->fluid);
       data_format = GPU_DATA_INT;
-      texture_format = blender::gpu::TextureFormat::UINT_8;
+      texture_format = gpu::TextureFormat::UINT_8;
       break;
     case FLUID_DOMAIN_FIELD_PRESSURE:
       field = manta_get_pressure(fds->fluid);
-      texture_format = blender::gpu::TextureFormat::SFLOAT_16;
+      texture_format = gpu::TextureFormat::SFLOAT_16;
       break;
     default:
       return nullptr;
@@ -318,12 +320,12 @@ static blender::gpu::Texture *create_field_texture(FluidDomainSettings *fds, boo
     return nullptr;
   }
 
-  blender::gpu::Texture *tex = create_volume_texture(fds->res, texture_format, data_format, field);
+  gpu::Texture *tex = create_volume_texture(fds->res, texture_format, data_format, field);
   swizzle_texture_channel_single(tex);
   return tex;
 }
 
-static blender::gpu::Texture *create_density_texture(FluidDomainSettings *fds, int highres)
+static gpu::Texture *create_density_texture(FluidDomainSettings *fds, int highres)
 {
   int *dim = (highres) ? fds->res_noise : fds->res;
 
@@ -339,13 +341,13 @@ static blender::gpu::Texture *create_density_texture(FluidDomainSettings *fds, i
     return nullptr;
   }
 
-  blender::gpu::Texture *tex = create_volume_texture(
-      dim, blender::gpu::TextureFormat::UNORM_8, GPU_DATA_FLOAT, data);
+  gpu::Texture *tex = create_volume_texture(
+      dim, gpu::TextureFormat::UNORM_8, GPU_DATA_FLOAT, data);
   swizzle_texture_channel_single(tex);
   return tex;
 }
 
-static blender::gpu::Texture *create_color_texture(FluidDomainSettings *fds, int highres)
+static gpu::Texture *create_color_texture(FluidDomainSettings *fds, int highres)
 {
   const bool has_color = (highres) ? manta_noise_has_colors(fds->fluid) :
                                      manta_smoke_has_colors(fds->fluid);
@@ -369,15 +371,15 @@ static blender::gpu::Texture *create_color_texture(FluidDomainSettings *fds, int
     manta_smoke_get_rgba(fds->fluid, data, 0);
   }
 
-  blender::gpu::Texture *tex = create_volume_texture(
-      dim, blender::gpu::TextureFormat::UNORM_8_8_8_8, GPU_DATA_FLOAT, data);
+  gpu::Texture *tex = create_volume_texture(
+      dim, gpu::TextureFormat::UNORM_8_8_8_8, GPU_DATA_FLOAT, data);
 
   MEM_freeN(data);
 
   return tex;
 }
 
-static blender::gpu::Texture *create_flame_texture(FluidDomainSettings *fds, int highres)
+static gpu::Texture *create_flame_texture(FluidDomainSettings *fds, int highres)
 {
   float *source = nullptr;
   const bool has_fuel = (highres) ? manta_noise_has_fuel(fds->fluid) :
@@ -395,8 +397,8 @@ static blender::gpu::Texture *create_flame_texture(FluidDomainSettings *fds, int
     source = manta_smoke_get_flame(fds->fluid);
   }
 
-  blender::gpu::Texture *tex = create_volume_texture(
-      dim, blender::gpu::TextureFormat::UNORM_8, GPU_DATA_FLOAT, source);
+  gpu::Texture *tex = create_volume_texture(
+      dim, gpu::TextureFormat::UNORM_8, GPU_DATA_FLOAT, source);
   swizzle_texture_channel_single(tex);
   return tex;
 }
@@ -489,7 +491,7 @@ void DRW_smoke_ensure(FluidModifierData *fmd, int highres)
     }
     if (!fds->tex_shadow) {
       fds->tex_shadow = create_volume_texture(fds->res,
-                                              blender::gpu::TextureFormat::UNORM_8,
+                                              gpu::TextureFormat::UNORM_8,
                                               GPU_DATA_FLOAT,
                                               manta_smoke_get_shadow(fds->fluid));
       BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_shadow));
@@ -520,19 +522,19 @@ void DRW_smoke_ensure_velocity(FluidModifierData *fmd)
       fds->tex_velocity_x = GPU_texture_create_3d("velx",
                                                   UNPACK3(fds->res),
                                                   1,
-                                                  blender::gpu::TextureFormat::SFLOAT_16,
+                                                  gpu::TextureFormat::SFLOAT_16,
                                                   GPU_TEXTURE_USAGE_SHADER_READ,
                                                   vel_x);
       fds->tex_velocity_y = GPU_texture_create_3d("vely",
                                                   UNPACK3(fds->res),
                                                   1,
-                                                  blender::gpu::TextureFormat::SFLOAT_16,
+                                                  gpu::TextureFormat::SFLOAT_16,
                                                   GPU_TEXTURE_USAGE_SHADER_READ,
                                                   vel_y);
       fds->tex_velocity_z = GPU_texture_create_3d("velz",
                                                   UNPACK3(fds->res),
                                                   1,
-                                                  blender::gpu::TextureFormat::SFLOAT_16,
+                                                  gpu::TextureFormat::SFLOAT_16,
                                                   GPU_TEXTURE_USAGE_SHADER_READ,
                                                   vel_z);
       BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_x));
@@ -551,10 +553,8 @@ void DRW_fluid_ensure_flags(FluidModifierData *fmd)
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
     FluidDomainSettings *fds = fmd->domain;
     if (!fds->tex_flags) {
-      fds->tex_flags = create_volume_texture(fds->res,
-                                             blender::gpu::TextureFormat::UINT_8,
-                                             GPU_DATA_INT,
-                                             manta_smoke_get_flags(fds->fluid));
+      fds->tex_flags = create_volume_texture(
+          fds->res, gpu::TextureFormat::UINT_8, GPU_DATA_INT, manta_smoke_get_flags(fds->fluid));
       BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_flags));
 
       swizzle_texture_channel_single(fds->tex_flags);
@@ -592,10 +592,12 @@ void DRW_smoke_exit(DRWData *drw_data)
    * modifier we don't want them to take precious VRAM if the
    * modifier is not used for display. We should share them for
    * all viewport in a redraw at least. */
-  LISTBASE_FOREACH (LinkData *, link, &drw_data->smoke_textures) {
-    GPU_TEXTURE_FREE_SAFE(*(blender::gpu::Texture **)link->data);
+  for (LinkData &link : drw_data->smoke_textures) {
+    GPU_TEXTURE_FREE_SAFE(*(gpu::Texture **)link.data);
   }
   BLI_freelistN(&drw_data->smoke_textures);
 }
 
 /** \} */
+
+}  // namespace blender

@@ -42,7 +42,7 @@ float3 lightprobe_volume_grid_sample_position(float4x4 grid_local_to_world_mat,
  * Return true if sample position is valid.
  * \a r_lP is the local position in grid units [0..grid_size).
  */
-bool lightprobe_volume_grid_local_coord(VolumeProbeData grid_data, float3 P, out float3 r_lP)
+bool lightprobe_volume_grid_local_coord(VolumeProbeData grid_data, float3 P, float3 &r_lP)
 {
   /* Position in cell units. */
   /* NOTE: The vector-matrix multiplication swapped on purpose to cancel the matrix transpose. */

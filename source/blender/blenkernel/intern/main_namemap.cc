@@ -30,11 +30,11 @@
 
 #include <fmt/format.h>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"lib.main_namemap"};
 
 // #define DEBUG_PRINT_MEMORY_USAGE
-
-using namespace blender;
 
 /* Assumes and ensure that the suffix number can never go beyond 1 billion. */
 constexpr int MAX_NUMBER = 999999999;
@@ -206,7 +206,7 @@ struct UniqueName_Map {
       if (this->is_global) {
         /* Global name-map is expected to have several IDs using the same name (from different
          * libraries). */
-        int &count = type_map.full_names.lookup_or_add_as(blender::StringRef{BKE_id_name(*id)}, 0);
+        int &count = type_map.full_names.lookup_or_add_as(StringRef{BKE_id_name(*id)}, 0);
         count++;
         if (count > 1) {
           /* Name is already used at least once, just increase user-count. */
@@ -278,7 +278,7 @@ struct UniqueName_Map {
 
   /* Remove a full name_full from the specified #type_map. Trying to remove an unknown
    * (unregistered) name_full is an error. */
-  void remove_full_name(UniqueName_TypeMap &type_map, blender::StringRef name_full)
+  void remove_full_name(UniqueName_TypeMap &type_map, StringRef name_full)
   {
     BLI_assert(name_full.size() < MAX_ID_NAME - 2);
 
@@ -318,7 +318,7 @@ struct UniqueName_Map {
       type_map.base_name_to_num_suffix.remove(name_base);
     }
   }
-  void remove_full_name(const short id_type, blender::StringRef name_full)
+  void remove_full_name(const short id_type, StringRef name_full)
   {
     this->remove_full_name(this->find_by_type(id_type), name_full);
   }
@@ -623,7 +623,7 @@ struct Uniqueness_Key {
   Library *lib;
   uint64_t hash() const
   {
-    return blender::get_default_hash(name, lib);
+    return get_default_hash(name, lib);
   }
   friend bool operator==(const Uniqueness_Key &a, const Uniqueness_Key &b)
   {
@@ -636,61 +636,61 @@ static bool main_namemap_validate_and_fix(Main &bmain, const bool do_fix)
   Set<Uniqueness_Key> id_names_libs;
   Set<ID *> id_validated;
   bool is_valid = true;
-  ListBase *lb_iter;
+  ListBaseT<ID> *lb_iter;
   FOREACH_MAIN_LISTBASE_BEGIN (&bmain, lb_iter) {
-    LISTBASE_FOREACH_MUTABLE (ID *, id_iter, lb_iter) {
-      if (id_validated.contains(id_iter)) {
+    for (ID &id_iter : lb_iter->items_mutable()) {
+      if (id_validated.contains(&id_iter)) {
         /* Do not re-check an already validated ID. */
         continue;
       }
 
-      Uniqueness_Key key = {id_iter->name, id_iter->lib};
+      Uniqueness_Key key = {id_iter.name, id_iter.lib};
       if (!id_names_libs.add(key)) {
         is_valid = false;
         if (do_fix) {
           CLOG_WARN(&LOG,
                     "ID name '%s' (from library '%s') is found more than once",
-                    id_iter->name,
-                    id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+                    id_iter.name,
+                    id_iter.lib != nullptr ? id_iter.lib->filepath : "<None>");
           /* NOTE: this may imply moving this ID in its listbase. The logic below will add the ID
            * to the validated set if it can now be added to `id_names_libs`, and will prevent
            * further checking (which would fail again, since the new ID name/lib key has already
            * been added to `id_names_libs`). */
           BKE_id_new_name_validate(bmain,
-                                   *which_libbase(&bmain, GS(id_iter->name)),
-                                   *id_iter,
+                                   *which_libbase(&bmain, GS(id_iter.name)),
+                                   id_iter,
                                    nullptr,
                                    IDNewNameMode::RenameExistingNever,
                                    true);
-          key.name = id_iter->name;
+          key.name = id_iter.name;
           if (!id_names_libs.add(key)) {
             /* This is a serious error, very likely a bug, keep it as CLOG_ERROR even when doing
              * fixes. */
             CLOG_ERROR(&LOG,
                        "\tID has been renamed to '%s', but it still seems to be already in use",
-                       id_iter->name);
+                       id_iter.name);
           }
           else {
-            CLOG_WARN(&LOG, "\tID has been renamed to '%s'", id_iter->name);
-            id_validated.add(id_iter);
+            CLOG_WARN(&LOG, "\tID has been renamed to '%s'", id_iter.name);
+            id_validated.add(&id_iter);
           }
         }
         else {
           CLOG_ERROR(&LOG,
                      "ID name '%s' (from library '%s') is found more than once",
-                     id_iter->name,
-                     id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+                     id_iter.name,
+                     id_iter.lib != nullptr ? id_iter.lib->filepath : "<None>");
         }
       }
 
-      UniqueName_Map *name_map = get_namemap_for(bmain, id_iter->lib, id_iter, false);
+      UniqueName_Map *name_map = get_namemap_for(bmain, id_iter.lib, &id_iter, false);
       if (name_map == nullptr) {
         continue;
       }
-      UniqueName_TypeMap &type_map = name_map->find_by_type(GS(id_iter->name));
+      UniqueName_TypeMap &type_map = name_map->find_by_type(GS(id_iter.name));
 
       /* Remove full name from the set. */
-      const std::string id_name = BKE_id_name(*id_iter);
+      const std::string id_name = BKE_id_name(id_iter);
       if (!type_map.full_names.contains(id_name)) {
         is_valid = false;
         if (do_fix) {
@@ -698,16 +698,16 @@ static bool main_namemap_validate_and_fix(Main &bmain, const bool do_fix)
               &LOG,
               "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
               "the namemap",
-              id_iter->name,
-              id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+              id_iter.name,
+              id_iter.lib != nullptr ? id_iter.lib->filepath : "<None>");
         }
         else {
           CLOG_ERROR(
               &LOG,
               "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
               "the namemap",
-              id_iter->name,
-              id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+              id_iter.name,
+              id_iter.lib != nullptr ? id_iter.lib->filepath : "<None>");
         }
       }
     }
@@ -772,3 +772,5 @@ bool BKE_main_namemap_validate(Main &bmain)
 {
   return main_namemap_validate_and_fix(bmain, false);
 }
+
+}  // namespace blender

@@ -17,6 +17,8 @@
 
 #include "BKE_text_suggestions.h" /* Own include. */
 
+namespace blender {
+
 /**********************/
 /* Static definitions */
 /**********************/
@@ -206,3 +208,5 @@ int *texttool_suggest_top()
 {
   return &suggestions.top;
 }
+
+}  // namespace blender

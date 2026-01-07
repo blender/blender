@@ -15,6 +15,8 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Pan Operator
  *
@@ -95,3 +97,5 @@ const ViewOpsType ViewOpsType_pan = {
     /*init_fn*/ viewpan_invoke_impl,
     /*apply_fn*/ nullptr,
 };
+
+}  // namespace blender

@@ -145,7 +145,7 @@ static void draw_left_column_content(const int scroll_offset_y,
 
   GPU_scissor(0, 0, drawer.left_column_width, region->winy - drawer.top_row_height);
 
-  uiBlock *left_column_block = UI_block_begin(C, region, __func__, ui::EmbossType::None);
+  ui::Block *left_column_block = block_begin(C, region, __func__, ui::EmbossType::None);
   int first_row, max_visible_rows;
   get_visible_rows(drawer, region, scroll_offset_y, &first_row, &max_visible_rows);
   for (const int row_index : IndexRange(first_row, max_visible_rows)) {
@@ -162,8 +162,8 @@ static void draw_left_column_content(const int scroll_offset_y,
     drawer.draw_left_column_cell(row_index, params);
   }
 
-  UI_block_end(C, left_column_block);
-  UI_block_draw(C, left_column_block);
+  block_end(C, left_column_block);
+  block_draw(C, left_column_block);
 
   GPU_scissor(UNPACK4(old_scissor));
 }
@@ -181,7 +181,7 @@ static void draw_top_row_content(const bContext *C,
               region->winx - drawer.left_column_width,
               drawer.top_row_height);
 
-  uiBlock *first_row_block = UI_block_begin(C, region, __func__, ui::EmbossType::None);
+  ui::Block *first_row_block = block_begin(C, region, __func__, ui::EmbossType::None);
 
   int left_x = drawer.left_column_width - scroll_offset_x;
   for (const int column_index : IndexRange(drawer.tot_columns)) {
@@ -199,8 +199,8 @@ static void draw_top_row_content(const bContext *C,
     left_x = right_x;
   }
 
-  UI_block_end(C, first_row_block);
-  UI_block_draw(C, first_row_block);
+  block_end(C, first_row_block);
+  block_draw(C, first_row_block);
 
   GPU_scissor(UNPACK4(old_scissor));
 }
@@ -219,7 +219,7 @@ static void draw_cell_contents(const bContext *C,
               region->winx - drawer.left_column_width,
               region->winy - drawer.top_row_height);
 
-  uiBlock *cells_block = UI_block_begin(C, region, __func__, ui::EmbossType::None);
+  ui::Block *cells_block = block_begin(C, region, __func__, ui::EmbossType::None);
 
   int first_row, max_visible_rows;
   get_visible_rows(drawer, region, scroll_offset_y, &first_row, &max_visible_rows);
@@ -249,8 +249,8 @@ static void draw_cell_contents(const bContext *C,
     left_x = right_x;
   }
 
-  UI_block_end(C, cells_block);
-  UI_block_draw(C, cells_block);
+  block_end(C, cells_block);
+  block_draw(C, cells_block);
 
   GPU_scissor(UNPACK4(old_scissor));
 }
@@ -267,9 +267,9 @@ static void update_view2d_tot_rect(const SpreadsheetDrawer &drawer,
    * elements like its border or the icon to open the sidebar. */
   const int right_padding = UI_UNIT_X * 0.5f;
 
-  UI_view2d_totRect_set(&region->v2d,
-                        column_width_sum + drawer.left_column_width + right_padding,
-                        row_amount * drawer.row_height + drawer.top_row_height);
+  ui::view2d_totRect_set(&region->v2d,
+                         column_width_sum + drawer.left_column_width + right_padding,
+                         row_amount * drawer.row_height + drawer.top_row_height);
 }
 
 static void draw_column_reorder_source(const uint pos,
@@ -308,7 +308,7 @@ static void draw_column_reorder_destination(const ARegion &region,
   {
     /* Draw column that is moved. */
     ColorTheme4f color;
-    UI_GetThemeColorShade4fv(TH_BACK, -20, color);
+    ui::theme::get_color_shade_4fv(TH_BACK, -20, color);
     color.a = 0.3f;
     rctf offset_column_rect;
     offset_column_rect.xmin = moving_column.runtime->left_x + data.current_offset_x_px -
@@ -317,12 +317,12 @@ static void draw_column_reorder_destination(const ARegion &region,
                               moving_column.width * SPREADSHEET_WIDTH_UNIT;
     offset_column_rect.ymin = 0;
     offset_column_rect.ymax = region.winy;
-    UI_draw_roundbox_4fv(&offset_column_rect, true, 0, color);
+    ui::draw_roundbox_4fv(&offset_column_rect, true, 0, color);
   }
   {
     /* Draw indicator where the column is inserted. */
     ColorTheme4f color;
-    UI_GetThemeColorShade4fv(TH_TEXT, 20, color);
+    ui::theme::get_color_shade_4fv(TH_TEXT, 20, color);
     color.a = 0.6f;
     const int insert_column_x = data.new_index <= data.old_index ? insert_column.runtime->left_x :
                                                                    insert_column.runtime->right_x;
@@ -338,7 +338,7 @@ static void draw_column_reorder_destination(const ARegion &region,
     insert_rect.xmin = std::max<float>(insert_rect.xmin, left_bound);
     insert_rect.xmax = std::max<float>(insert_rect.xmax, left_bound);
 
-    UI_draw_roundbox_4fv(&insert_rect, true, 0, color);
+    ui::draw_roundbox_4fv(&insert_rect, true, 0, color);
   }
 }
 
@@ -350,7 +350,7 @@ void draw_spreadsheet_in_region(const bContext *C,
 
   update_view2d_tot_rect(drawer, region, drawer.tot_rows);
 
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   View2D *v2d = &region->v2d;
   const int scroll_offset_y = v2d->cur.ymax;
@@ -358,7 +358,7 @@ void draw_spreadsheet_in_region(const bContext *C,
   bool is_reordering_columns = sspreadsheet.runtime->reorder_column_visualization_data.has_value();
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   draw_index_column_background(pos, region, drawer);
@@ -385,7 +385,7 @@ void draw_spreadsheet_in_region(const bContext *C,
                 region->winx,
                 0,
                 region->winy - drawer.top_row_height);
-  UI_view2d_scrollers_draw(v2d, &scroller_mask);
+  ui::view2d_scrollers_draw(v2d, &scroller_mask);
 }
 
 }  // namespace blender::ed::spreadsheet

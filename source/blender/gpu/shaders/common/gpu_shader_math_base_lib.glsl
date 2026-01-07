@@ -98,7 +98,7 @@ uint divide_ceil(uint a, uint b)
 /**
  * Component wise, use vector to replace min if it is smaller and max if bigger.
  */
-void min_max(float value, inout float min_v, inout float max_v)
+void min_max(float value, float &min_v, float &max_v)
 {
   min_v = min(value, min_v);
   max_v = max(value, max_v);
@@ -120,4 +120,9 @@ float sin_from_cos(float c)
 float cos_from_sin(float s)
 {
   return sqrt(max(0.0f, 1.0f - square(s)));
+}
+
+float cos_from_tan(float t)
+{
+  return inversesqrt(1.0f + square(t));
 }

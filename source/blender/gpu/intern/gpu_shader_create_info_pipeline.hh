@@ -19,20 +19,9 @@ namespace blender::gpu::shader {
  * \brief Description of a graphical pipeline to pre-compile during shader creation.
  */
 struct PipelineState {
-  struct AttributeBinding {
-    /** Shader binding location */
-    uint32_t location;
-    /** Vertex input buffer index */
-    uint32_t binding;
-    VertAttrType type;
-    uint32_t offset;
-    uint32_t stride;
-  };
-
   Vector<SpecializationConstant::Value> specialization_constants_;
   /* Vertex input */
   GPUPrimType primitive_;
-  Vector<AttributeBinding> vertex_inputs_;
   /* Pre-fragment and Fragment stage*/
   GPUState state_ = {{GPU_WRITE_COLOR}};
   uint32_t viewport_count_;
@@ -42,13 +31,6 @@ struct PipelineState {
   Vector<TextureTargetFormat> color_formats_;
 
   using Self = PipelineState;
-
-  Self &vertex_input(
-      uint32_t location, uint32_t binding, VertAttrType type, uint32_t offset, uint32_t stride)
-  {
-    vertex_inputs_.append({location, binding, type, offset, stride});
-    return *this;
-  }
 
   Self &state(GPUWriteMask write_mask,
               GPUBlend blend,
@@ -71,12 +53,6 @@ struct PipelineState {
   Self &logic_op_xor()
   {
     state_.logic_op_xor = 1;
-    return *this;
-  }
-
-  Self &invert_facing()
-  {
-    state_.invert_facing = 1;
     return *this;
   }
 

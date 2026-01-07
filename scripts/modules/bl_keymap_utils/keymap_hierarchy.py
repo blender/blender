@@ -208,7 +208,7 @@ _km_hierarchy = [
 
     ('Grease Pencil', 'EMPTY', 'WINDOW', [
         # Grease Pencil
-        ('Grease Pencil Paint Mode', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Draw Mode', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Brush Stroke', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Edit Mode', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Sculpt Mode', 'EMPTY', 'WINDOW', []),

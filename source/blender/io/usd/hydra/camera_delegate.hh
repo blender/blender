@@ -6,11 +6,13 @@
 
 #include <pxr/imaging/hdx/freeCameraSceneDelegate.h>
 
+namespace blender {
+
 struct Camera;
 struct ID;
 struct Scene;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
 class CameraDelegate : public pxr::HdxFreeCameraSceneDelegate {
  public:
@@ -26,4 +28,5 @@ class CameraDelegate : public pxr::HdxFreeCameraSceneDelegate {
   const Camera *camera_{nullptr};
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

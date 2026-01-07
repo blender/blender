@@ -10,9 +10,11 @@
 
 #include <stdbool.h>
 
-typedef struct Quadric {
+namespace blender {
+
+struct Quadric {
   double a2, ab, ac, ad, b2, bc, bd, c2, cd, d2;
-} Quadric;
+};
 
 /* Conversion. */
 
@@ -31,3 +33,5 @@ void BLI_quadric_mul(Quadric *a, double scalar);
 
 double BLI_quadric_evaluate(const Quadric *q, const double v[3]);
 bool BLI_quadric_optimize(const Quadric *q, double v[3], double epsilon);
+
+}  // namespace blender

@@ -95,7 +95,7 @@ void TintOperation::on_stroke_begin(const bContext &C, const InputSample & /*sta
   color_ = ColorGeometry4f(color_linear);
 
   Object *obact = CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(obact->data);
 
   if (active_layer_only_) {
     /* Tint only on the drawings of the active layer. */
@@ -279,7 +279,7 @@ void TintOperation::execute_tint(const bContext &C, const InputSample &extension
   const bool tint_fills = ELEM(
       brush->gpencil_settings->vertex_mode, GPPAINT_MODE_FILL, GPPAINT_MODE_BOTH);
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(obact->data);
 
   std::atomic<bool> changed = false;
   const auto execute_tint_on_drawing = [&](Drawing &drawing, const int drawing_index) {

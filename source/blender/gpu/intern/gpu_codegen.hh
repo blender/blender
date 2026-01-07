@@ -61,7 +61,7 @@ class GPUCodegen {
  private:
   uint32_t hash_ = 0;
   BLI_HashMurmur2A hm2a_;
-  ListBase ubo_inputs_ = {nullptr, nullptr};
+  ListBaseT<LinkData> ubo_inputs_ = {nullptr, nullptr};
   GPUInput *cryptomatte_input_ = nullptr;
 
   /** Cache parameters for complexity heuristic. */
@@ -91,7 +91,7 @@ class GPUCodegen {
  private:
   void set_unique_ids();
 
-  void node_serialize(blender::Set<blender::StringRefNull> &used_libraries,
+  void node_serialize(Set<StringRefNull> &used_libraries,
                       std::stringstream &eval_ss,
                       const GPUNode *node);
   GPUGraphOutput graph_serialize(GPUNodeTag tree_tag,

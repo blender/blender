@@ -19,7 +19,9 @@
 
 #include <fmt/format.h>
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 
 MeshFieldContext::MeshFieldContext(const Mesh &mesh, const AttrDomain domain)
     : mesh_(mesh), domain_(domain)
@@ -706,13 +708,13 @@ std::optional<AttrDomain> EvaluateOnDomainInput::preferred_domain(
   return src_domain_;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh and Curve Normals Field Input
  * \{ */
 
-namespace blender::bke {
+namespace bke {
 
 GVArray NormalFieldInput::get_varray_for_context(const GeometryFieldContext &context,
                                                  const IndexMask &mask) const
@@ -1087,6 +1089,8 @@ std::optional<AttrDomain> try_detect_field_domain(const GeometryComponent &compo
   return output_domain;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 /** \} */
+
+}  // namespace blender

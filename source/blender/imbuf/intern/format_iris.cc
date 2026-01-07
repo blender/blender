@@ -26,6 +26,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.jpeg"};
 
 /**
@@ -357,7 +359,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
         goto fail_rle;
       }
       ibuf->planes = std::min<int>(ibuf->planes, 32);
-      base = (uint *)ibuf->byte_buffer.data;
+      base = reinterpret_cast<uint *>(ibuf->byte_buffer.data);
 
       if (badorder) {
         for (size_t z = 0; z < zsize_read; z++) {
@@ -369,7 +371,11 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
             const uchar *rledat_next = MFILE_DATA(inf);
             uint *lptr_next = lptr + xsize;
             MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
-            dirty_flag |= expandrow((uchar *)lptr, (uchar *)lptr_next, rledat, rledat_next, 3 - z);
+            dirty_flag |= expandrow(reinterpret_cast<uchar *>(lptr),
+                                    reinterpret_cast<uchar *>(lptr_next),
+                                    rledat,
+                                    rledat_next,
+                                    3 - z);
             lptr = lptr_next;
           }
         }
@@ -387,8 +393,11 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
             const uchar *rledat_next = MFILE_DATA(inf);
             MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
             if (z < 4) {
-              dirty_flag |= expandrow(
-                  (uchar *)lptr, (uchar *)lptr_next, rledat, rledat_next, 3 - z);
+              dirty_flag |= expandrow(reinterpret_cast<uchar *>(lptr),
+                                      reinterpret_cast<uchar *>(lptr_next),
+                                      rledat,
+                                      rledat_next,
+                                      3 - z);
             }
             else {
               break;
@@ -466,7 +475,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
       }
       ibuf->planes = std::min<int>(ibuf->planes, 32);
 
-      base = (uint *)ibuf->byte_buffer.data;
+      base = reinterpret_cast<uint *>(ibuf->byte_buffer.data);
 
       MFILE_SEEK(inf, HEADER_SIZE);
       rledat = MFILE_DATA(inf);
@@ -484,7 +493,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
           const uchar *rledat_next = rledat + xsize;
           const int z_ofs = 3 - z;
           MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
-          interleaverow((uchar *)lptr, rledat, z_ofs, xsize);
+          interleaverow(reinterpret_cast<uchar *>(lptr), rledat, z_ofs, xsize);
           rledat = rledat_next;
           lptr += xsize;
         }
@@ -856,15 +865,16 @@ static bool output_iris(const char *filepath,
     for (z = 0; z < zsize; z++) {
 
       if (zsize == 1) {
-        lumrow((const uchar *)lptr, (uchar *)lumbuf, xsize);
-        len = compressrow((const uchar *)lumbuf, rlebuf, CHANOFFSET(z), xsize);
+        lumrow(reinterpret_cast<const uchar *>(lptr), reinterpret_cast<uchar *>(lumbuf), xsize);
+        len = compressrow(reinterpret_cast<const uchar *>(lumbuf), rlebuf, CHANOFFSET(z), xsize);
       }
       else {
         if (z < 4) {
-          len = compressrow((const uchar *)lptr, rlebuf, CHANOFFSET(z), xsize);
+          len = compressrow(reinterpret_cast<const uchar *>(lptr), rlebuf, CHANOFFSET(z), xsize);
         }
         else if (z < 8 && zptr) {
-          len = compressrow((const uchar *)zptr, rlebuf, CHANOFFSET(z - 4), xsize);
+          len = compressrow(
+              reinterpret_cast<const uchar *>(zptr), rlebuf, CHANOFFSET(z - 4), xsize);
         }
       }
 
@@ -983,11 +993,17 @@ bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
 
   imbuf_rgba_to_abgr(ibuf);
 
-  const bool ok = output_iris(
-      filepath, (uint *)ibuf->byte_buffer.data, nullptr, ibuf->x, ibuf->y, zsize);
+  const bool ok = output_iris(filepath,
+                              reinterpret_cast<uint *>(ibuf->byte_buffer.data),
+                              nullptr,
+                              ibuf->x,
+                              ibuf->y,
+                              zsize);
 
   /* restore! Quite clumsy, 2 times a switch... maybe better a malloc ? */
   imbuf_rgba_to_abgr(ibuf);
 
   return ok;
 }
+
+}  // namespace blender

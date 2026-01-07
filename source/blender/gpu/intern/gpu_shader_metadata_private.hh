@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include "glsl_preprocess/glsl_preprocess.hh"
 #include "gpu_shader_create_info.hh"
+#include "shader_tool/metadata.hh"
 
 namespace blender::gpu::shader {
 

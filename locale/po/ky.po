@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -828,6 +828,22 @@ msgid "Normal"
 msgstr "Нормаль"
 
 
+msgid "Font"
+msgstr "Арип"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Mask"
+msgstr "Маска"
+
+
+msgid "Sound"
+msgstr "Үн"
+
+
 msgid "Visibility"
 msgstr "Көрүнүү"
 
@@ -935,10 +951,6 @@ msgstr "Жартысы"
 
 msgid "Text Curve"
 msgstr "Текст ийриси"
-
-
-msgid "Font"
-msgstr "Арип"
 
 
 msgid "Font Size"
@@ -1118,10 +1130,6 @@ msgid "Pitch"
 msgstr "Бийиктик"
 
 
-msgid "Sound"
-msgstr "Үн"
-
-
 msgid "Clouds"
 msgstr "Булуттар"
 
@@ -1282,8 +1290,16 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Mask"
-msgstr "Маска"
+msgid "Import"
+msgstr "Импорттоо"
+
+
+msgid "Mirror"
+msgstr "Чагылтуу"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Apply"
@@ -1292,22 +1308,6 @@ msgstr "Колдонуу"
 
 msgid "Tracking"
 msgstr "Трекинг"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
-msgid "Import"
-msgstr "Импорттоо"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgctxt "MovieClip"
@@ -1327,8 +1327,8 @@ msgid "Console"
 msgstr "Консоль"
 
 
-msgid "Languages..."
-msgstr "Тилдер..."
+msgid "Languages"
+msgstr "Тилдер"
 
 
 msgid "Cache"
@@ -2698,10 +2698,6 @@ msgstr "Тил аты"
 
 msgid "Language ID"
 msgstr "Тил ID'си"
-
-
-msgid "Languages"
-msgstr "Тилдер"
 
 
 msgid "Sky"

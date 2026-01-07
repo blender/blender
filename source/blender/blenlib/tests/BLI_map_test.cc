@@ -191,7 +191,7 @@ TEST(map, ValueIterator)
   map.add(1, 2.0f);
   map.add(7, -2.0f);
 
-  blender::Set<float> values;
+  Set<float> values;
 
   int iterations = 0;
   for (float value : map.values()) {
@@ -212,7 +212,7 @@ TEST(map, KeyIterator)
   map.add(2, 4.0f);
   map.add(1, 3.0f);
 
-  blender::Set<int> keys;
+  Set<int> keys;
 
   int iterations = 0;
   for (int key : map.keys()) {
@@ -233,8 +233,8 @@ TEST(map, ItemIterator)
   map.add(2, 9.0f);
   map.add(1, 0.0f);
 
-  blender::Set<int> keys;
-  blender::Set<float> values;
+  Set<int> keys;
+  Set<float> values;
 
   int iterations = 0;
   const Map<int, float> &const_map = map;
@@ -854,12 +854,12 @@ BLI_NOINLINE void benchmark_random_ints(StringRef name, int amount, int factor)
 }
 
 /**
- * A wrapper for std::unordered_map with the API of blender::Map. This can be used for
+ * A wrapper for std::unordered_map with the API of Map. This can be used for
  * benchmarking.
  */
 template<typename Key, typename Value> class StdUnorderedMapWrapper {
  private:
-  using MapType = std::unordered_map<Key, Value, blender::DefaultHash<Key>>;
+  using MapType = std::unordered_map<Key, Value, DefaultHash<Key>>;
   MapType map_;
 
  public:
@@ -923,64 +923,62 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
 TEST(map, Benchmark)
 {
   for (int i = 0; i < 3; i++) {
-    benchmark_random_ints<blender::Map<int, int>>("blender::Map          ", 1000000, 1);
-    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>(
-        "std::unordered_map", 1000000, 1);
+    benchmark_random_ints<Map<int, int>>("Map          ", 1000000, 1);
+    benchmark_random_ints<StdUnorderedMapWrapper<int, int>>("std::unordered_map", 1000000, 1);
   }
   std::cout << "\n";
   for (int i = 0; i < 3; i++) {
     uint32_t factor = (3 << 10);
-    benchmark_random_ints<blender::Map<int, int>>("blender::Map          ", 1000000, factor);
-    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>(
-        "std::unordered_map", 1000000, factor);
+    benchmark_random_ints<Map<int, int>>("Map          ", 1000000, factor);
+    benchmark_random_ints<StdUnorderedMapWrapper<int, int>>("std::unordered_map", 1000000, factor);
   }
 }
 
 /**
- * Timer 'blender::Map           Add' took 61.7616 ms
- * Timer 'blender::Map           Contains' took 18.4989 ms
- * Timer 'blender::Map           Remove' took 20.5864 ms
+ * Timer 'Map           Add' took 61.7616 ms
+ * Timer 'Map           Contains' took 18.4989 ms
+ * Timer 'Map           Remove' took 20.5864 ms
  * Count: 1999755
  * Timer 'std::unordered_map Add' took 188.674 ms
  * Timer 'std::unordered_map Contains' took 44.3741 ms
  * Timer 'std::unordered_map Remove' took 169.52 ms
  * Count: 1999755
- * Timer 'blender::Map           Add' took 37.9196 ms
- * Timer 'blender::Map           Contains' took 16.7361 ms
- * Timer 'blender::Map           Remove' took 20.9568 ms
+ * Timer 'Map           Add' took 37.9196 ms
+ * Timer 'Map           Contains' took 16.7361 ms
+ * Timer 'Map           Remove' took 20.9568 ms
  * Count: 1999755
  * Timer 'std::unordered_map Add' took 166.09 ms
  * Timer 'std::unordered_map Contains' took 40.6133 ms
  * Timer 'std::unordered_map Remove' took 142.85 ms
  * Count: 1999755
- * Timer 'blender::Map           Add' took 37.3053 ms
- * Timer 'blender::Map           Contains' took 16.6731 ms
- * Timer 'blender::Map           Remove' took 18.8304 ms
+ * Timer 'Map           Add' took 37.3053 ms
+ * Timer 'Map           Contains' took 16.6731 ms
+ * Timer 'Map           Remove' took 18.8304 ms
  * Count: 1999755
  * Timer 'std::unordered_map Add' took 170.964 ms
  * Timer 'std::unordered_map Contains' took 38.1824 ms
  * Timer 'std::unordered_map Remove' took 140.263 ms
  * Count: 1999755
  *
- * Timer 'blender::Map           Add' took 50.1131 ms
- * Timer 'blender::Map           Contains' took 25.0491 ms
- * Timer 'blender::Map           Remove' took 32.4225 ms
+ * Timer 'Map           Add' took 50.1131 ms
+ * Timer 'Map           Contains' took 25.0491 ms
+ * Timer 'Map           Remove' took 32.4225 ms
  * Count: 1889920
  * Timer 'std::unordered_map Add' took 150.129 ms
  * Timer 'std::unordered_map Contains' took 34.6999 ms
  * Timer 'std::unordered_map Remove' took 120.907 ms
  * Count: 1889920
- * Timer 'blender::Map           Add' took 50.4438 ms
- * Timer 'blender::Map           Contains' took 25.2677 ms
- * Timer 'blender::Map           Remove' took 32.3047 ms
+ * Timer 'Map           Add' took 50.4438 ms
+ * Timer 'Map           Contains' took 25.2677 ms
+ * Timer 'Map           Remove' took 32.3047 ms
  * Count: 1889920
  * Timer 'std::unordered_map Add' took 144.015 ms
  * Timer 'std::unordered_map Contains' took 36.3387 ms
  * Timer 'std::unordered_map Remove' took 119.109 ms
  * Count: 1889920
- * Timer 'blender::Map           Add' took 48.6995 ms
- * Timer 'blender::Map           Contains' took 25.1846 ms
- * Timer 'blender::Map           Remove' took 33.0283 ms
+ * Timer 'Map           Add' took 48.6995 ms
+ * Timer 'Map           Contains' took 25.1846 ms
+ * Timer 'Map           Remove' took 33.0283 ms
  * Count: 1889920
  * Timer 'std::unordered_map Add' took 143.494 ms
  * Timer 'std::unordered_map Contains' took 34.8905 ms

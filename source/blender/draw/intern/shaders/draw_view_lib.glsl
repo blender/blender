@@ -30,6 +30,12 @@ float3 drw_view_forward()
   return drw_view().viewinv[2].xyz;
 }
 
+/* Returns the view up vector. */
+float3 drw_view_up()
+{
+  return drw_view().viewinv[1].xyz;
+}
+
 /* Returns the view origin. */
 float3 drw_view_position()
 {

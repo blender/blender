@@ -53,6 +53,8 @@
 
 #include "graph_intern.hh" /* own include */
 
+namespace blender {
+
 /* ******************** default callbacks for ipo space ***************** */
 
 static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
@@ -61,12 +63,12 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   SpaceGraph *sipo;
 
   /* Graph Editor - general stuff */
-  sipo = MEM_callocN<SpaceGraph>("init graphedit");
+  sipo = MEM_new_for_free<SpaceGraph>("init graphedit");
   sipo->spacetype = SPACE_GRAPH;
 
   /* allocate DopeSheet data for Graph Editor */
-  sipo->ads = MEM_callocN<bDopeSheet>("GraphEdit DopeSheet");
-  sipo->ads->source = (ID *)scene;
+  sipo->ads = MEM_new_for_free<bDopeSheet>("GraphEdit DopeSheet");
+  sipo->ads->source = id_cast<ID *>(const_cast<Scene *>(scene));
 
   /* settings for making it easier by default to just see what you're interested in tweaking */
   sipo->ads->filterflag |= ADS_FILTER_ONLYSEL;
@@ -127,13 +129,13 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
 
   region->v2d.keeptot = 0;
 
-  return (SpaceLink *)sipo;
+  return reinterpret_cast<SpaceLink *>(sipo);
 }
 
 /* Doesn't free the space-link itself. */
 static void graph_free(SpaceLink *sl)
 {
-  SpaceGraph *si = (SpaceGraph *)sl;
+  SpaceGraph *si = reinterpret_cast<SpaceGraph *>(sl);
 
   if (si->ads) {
     BLI_freelistN(&si->ads->chanbase);
@@ -148,13 +150,13 @@ static void graph_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void graph_init(wmWindowManager *wm, ScrArea *area)
 {
-  SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
 
   /* Init dope-sheet if non-existent (i.e. for old files). */
   if (sipo->ads == nullptr) {
     wmWindow *win = WM_window_find_by_area(wm, area);
-    sipo->ads = MEM_callocN<bDopeSheet>("GraphEdit DopeSheet");
-    sipo->ads->source = win ? (ID *)WM_window_get_active_scene(win) : nullptr;
+    sipo->ads = MEM_new_for_free<bDopeSheet>("GraphEdit DopeSheet");
+    sipo->ads->source = win ? id_cast<ID *>(WM_window_get_active_scene(win)) : nullptr;
   }
 
   /* force immediate init of any invalid F-Curve colors */
@@ -172,10 +174,11 @@ static SpaceLink *graph_duplicate(SpaceLink *sl)
   sipon->runtime = SpaceGraph_Runtime{};
 
   /* clear or remove stuff from old */
-  BLI_duplicatelist(&sipon->runtime.ghost_curves, &((SpaceGraph *)sl)->runtime.ghost_curves);
+  BLI_duplicatelist(&sipon->runtime.ghost_curves,
+                    &(reinterpret_cast<SpaceGraph *>(sl))->runtime.ghost_curves);
   sipon->ads = static_cast<bDopeSheet *>(MEM_dupallocN(sipon->ads));
 
-  return (SpaceLink *)sipon;
+  return reinterpret_cast<SpaceLink *>(sipon);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -183,7 +186,7 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(
@@ -201,8 +204,7 @@ static void draw_normalization_borders(Scene *scene, View2D *v2d)
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_BACK, -25, -180);
@@ -229,9 +231,9 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   const int min_height = UI_ANIM_MINY;
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* In driver mode, both X and Y axes are in the same units as the driven property, and so the
    * grid size should be independent of the scene's frame rate. */
@@ -240,12 +242,12 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) && (sipo->flag & SIPO_DRAWTIME);
   if (region->winy > min_height) {
     if (sipo->mode == SIPO_MODE_DRIVERS) {
-      UI_view2d_draw_lines_x__values(v2d, driver_step);
+      ui::view2d_draw_lines_x__values(v2d, driver_step);
     }
     else {
-      UI_view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
+      ui::view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
     }
-    UI_view2d_draw_lines_y__values(v2d, 10);
+    ui::view2d_draw_lines_y__values(v2d, 10);
   }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
@@ -279,8 +281,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   }
 
   if ((sipo->flag & SIPO_NODRAWCURSOR) == 0) {
-    uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -323,7 +324,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* markers */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
-    UI_view2d_view_orthoSpecial(region, v2d, true);
+    ui::view2d_view_orthoSpecial(region, v2d, true);
     int marker_draw_flag = DRAW_MARKERS_MARGIN;
     if (ED_markers_region_visible(CTX_wm_area(C), region)) {
       ED_markers_draw(C, marker_draw_flag);
@@ -332,16 +333,16 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* preview range */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
-    UI_view2d_view_ortho(v2d);
+    ui::view2d_view_ortho(v2d);
     ANIM_draw_previewrange(scene, v2d, 0);
   }
 
   /* callback */
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* time-scrubbing */
   int base = round_db_to_int(scene->frames_per_second());
@@ -371,14 +372,14 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
     const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
     /* FIXME: args for scrollers depend on the type of data being shown. */
     region->v2d.scroll |= V2D_SCROLL_BOTTOM;
-    UI_view2d_scrollers_draw(v2d, &scroller_mask);
+    ui::view2d_scrollers_draw(v2d, &scroller_mask);
 
     /* scale numbers */
     {
       rcti rect;
       BLI_rcti_init(
           &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-      UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT, 10);
+      ui::view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT, 10);
     }
   }
   else {
@@ -399,7 +400,7 @@ static void graph_channel_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
   region->v2d.scroll |= V2D_SCROLL_VERTICAL_HIDE;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(
@@ -414,7 +415,7 @@ static void set_v2d_height(View2D *v2d, const size_t item_count)
 {
   const int height = ANIM_UI_get_channels_total_height(v2d, item_count);
   v2d->tot.ymin = -height;
-  UI_view2d_curRect_clamp_y(v2d);
+  ui::view2d_curRect_clamp_y(v2d);
 }
 
 static void graph_channel_region_draw(const bContext *C, ARegion *region)
@@ -426,27 +427,27 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                     ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   const size_t item_count = ANIM_animdata_filter(
       &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
   set_v2d_height(v2d, item_count);
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* draw channels */
-  graph_draw_channel_names((bContext *)C, &ac, region, anim_data);
+  graph_draw_channel_names(const_cast<bContext *>(C), &ac, region, anim_data);
 
   /* channel filter next to scrubbing area */
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  ui::view2d_scrollers_draw(v2d, nullptr);
 
   ANIM_animdata_freelist(&anim_data);
 }
@@ -611,7 +612,7 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   const wmNotifier *wmn = params->notifier;
-  SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
 
   /* context changes */
   switch (wmn->category) {
@@ -691,7 +692,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 {
   bAnimContext ac;
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
   size_t items;
   int filter;
@@ -701,7 +702,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
     return;
   }
 
-  UI_SetTheme(SPACE_GRAPH, RGN_TYPE_WINDOW);
+  ui::theme::theme_set(SPACE_GRAPH, RGN_TYPE_WINDOW);
 
   /* build list of F-Curves which will be visible as channels in channel-region
    * - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
@@ -715,7 +716,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
   for (ale = static_cast<bAnimListElem *>(anim_data.first), i = 0; ale; ale = ale->next, i++) {
     BLI_assert_msg(ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE),
                    "Expecting only FCurves when using the ANIMFILTER_FCURVESONLY filter");
-    FCurve *fcu = (FCurve *)ale->data;
+    FCurve *fcu = static_cast<FCurve *>(ale->data);
 
     /* set color of curve here */
     switch (fcu->color_mode) {
@@ -735,13 +736,13 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
         switch (fcu->array_index) {
           case 0:
-            UI_GetThemeColor3fv(TH_AXIS_X, col);
+            ui::theme::get_color_3fv(TH_AXIS_X, col);
             break;
           case 1:
-            UI_GetThemeColor3fv(TH_AXIS_Y, col);
+            ui::theme::get_color_3fv(TH_AXIS_Y, col);
             break;
           case 2:
-            UI_GetThemeColor3fv(TH_AXIS_Z, col);
+            ui::theme::get_color_3fv(TH_AXIS_Z, col);
             break;
           default:
             /* 'unknown' color - bluish so as to not conflict with handles */
@@ -758,17 +759,17 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
         switch (fcu->array_index) {
           case 1:
-            UI_GetThemeColor3fv(TH_AXIS_X, col);
+            ui::theme::get_color_3fv(TH_AXIS_X, col);
             break;
           case 2:
-            UI_GetThemeColor3fv(TH_AXIS_Y, col);
+            ui::theme::get_color_3fv(TH_AXIS_Y, col);
             break;
           case 3:
-            UI_GetThemeColor3fv(TH_AXIS_Z, col);
+            ui::theme::get_color_3fv(TH_AXIS_Z, col);
             break;
 
           case 0: {
-            UI_GetThemeColor3fv(TH_AXIS_W, col);
+            ui::theme::get_color_3fv(TH_AXIS_W, col);
             break;
           }
 
@@ -798,7 +799,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
 static void graph_refresh(const bContext *C, ScrArea *area)
 {
-  SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(area->spacedata.first);
 
   /* updates to data needed depends on Graph Editor mode... */
   switch (sipo->mode) {
@@ -843,9 +844,9 @@ static void graph_refresh(const bContext *C, ScrArea *area)
 
 static void graph_id_remap(ScrArea * /*area*/,
                            SpaceLink *slink,
-                           const blender::bke::id::IDRemapper &mappings)
+                           const bke::id::IDRemapper &mappings)
 {
-  SpaceGraph *sgraph = (SpaceGraph *)slink;
+  SpaceGraph *sgraph = reinterpret_cast<SpaceGraph *>(slink);
   if (!sgraph->ads) {
     return;
   }
@@ -894,7 +895,7 @@ static void graph_space_subtype_item_extend(bContext * /*C*/,
   RNA_enum_items_add(item, totitem, rna_enum_space_graph_mode_items);
 }
 
-static blender::StringRefNull graph_space_name_get(const ScrArea *area)
+static StringRefNull graph_space_name_get(const ScrArea *area)
 {
   SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
   const int index = RNA_enum_from_value(rna_enum_space_graph_mode_items, sgraph->mode);
@@ -912,7 +913,7 @@ static int graph_space_icon_get(const ScrArea *area)
 
 static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
-  SpaceGraph *sipo = (SpaceGraph *)sl;
+  SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(sl);
 
   BLO_read_struct(reader, bDopeSheet, &sipo->ads);
   sipo->runtime = SpaceGraph_Runtime{};
@@ -920,15 +921,15 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
 static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceGraph *sipo = (SpaceGraph *)sl;
-  ListBase tmpGhosts = sipo->runtime.ghost_curves;
+  SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(sl);
+  ListBaseT<FCurve> tmpGhosts = sipo->runtime.ghost_curves;
 
   /* temporarily disable ghost curves when saving */
   BLI_listbase_clear(&sipo->runtime.ghost_curves);
 
-  BLO_write_struct(writer, SpaceGraph, sl);
+  writer->write_struct_cast<SpaceGraph>(sl);
   if (sipo->ads) {
-    BLO_write_struct(writer, bDopeSheet, sipo->ads);
+    writer->write_struct(sipo->ads);
   }
 
   /* Re-enable ghost curves. */
@@ -993,7 +994,7 @@ void ED_spacetype_ipo()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: footer */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype graphedit region"));
+  art = MEM_callocN<ARegionType>("spacetype graphedit region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
@@ -1029,8 +1030,10 @@ void ED_spacetype_ipo()
 
   graph_buttons_register(art);
 
-  art = ED_area_type_hud(st->spaceid);
+  art = ui::ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

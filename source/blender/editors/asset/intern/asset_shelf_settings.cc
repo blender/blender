@@ -10,6 +10,7 @@
 
 #include "AS_asset_catalog_path.hh"
 
+#include "DNA_defs.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
@@ -25,7 +26,8 @@
 
 #include "asset_shelf.hh"
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::ed::asset;
 
 AssetShelfSettings::AssetShelfSettings() = default;
@@ -70,11 +72,11 @@ AssetShelfSettings::~AssetShelfSettings()
   MEM_SAFE_FREE(active_catalog_path);
 }
 
-namespace blender::ed::asset::shelf {
+namespace ed::asset::shelf {
 
 void settings_blend_write(BlendWriter *writer, const AssetShelfSettings &settings)
 {
-  BLO_write_struct(writer, AssetShelfSettings, &settings);
+  writer->write_struct(&settings);
 
   BKE_asset_catalog_path_list_blend_write(writer, settings.enabled_catalog_paths);
   BLO_write_string(writer, settings.active_catalog_path);
@@ -115,7 +117,8 @@ static bool use_enabled_catalogs_from_prefs(const AssetShelf &shelf)
   return shelf.type && (shelf.type->flag & ASSET_SHELF_TYPE_FLAG_STORE_CATALOGS_IN_PREFS);
 }
 
-static const ListBase *get_enabled_catalog_path_list(const AssetShelf &shelf)
+static const ListBaseT<AssetCatalogPathLink> *get_enabled_catalog_path_list(
+    const AssetShelf &shelf)
 {
   if (use_enabled_catalogs_from_prefs(shelf)) {
     bUserAssetShelfSettings *pref_settings = BKE_preferences_asset_shelf_settings_get(
@@ -125,15 +128,15 @@ static const ListBase *get_enabled_catalog_path_list(const AssetShelf &shelf)
   return &shelf.settings.enabled_catalog_paths;
 }
 
-static ListBase *get_enabled_catalog_path_list(AssetShelf &shelf)
+static ListBaseT<AssetCatalogPathLink> *get_enabled_catalog_path_list(AssetShelf &shelf)
 {
-  return const_cast<ListBase *>(
+  return const_cast<ListBaseT<AssetCatalogPathLink> *>(
       get_enabled_catalog_path_list(const_cast<const AssetShelf &>(shelf)));
 }
 
 void settings_clear_enabled_catalogs(AssetShelf &shelf)
 {
-  ListBase *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
+  ListBaseT<AssetCatalogPathLink> *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
   if (enabled_catalog_paths) {
     BKE_asset_catalog_path_list_free(*enabled_catalog_paths);
     BLI_assert(BLI_listbase_is_empty(enabled_catalog_paths));
@@ -143,7 +146,8 @@ void settings_clear_enabled_catalogs(AssetShelf &shelf)
 bool settings_is_catalog_path_enabled(const AssetShelf &shelf,
                                       const asset_system::AssetCatalogPath &path)
 {
-  const ListBase *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
+  const ListBaseT<AssetCatalogPathLink> *enabled_catalog_paths = get_enabled_catalog_path_list(
+      shelf);
   if (!enabled_catalog_paths) {
     return false;
   }
@@ -173,14 +177,16 @@ void settings_foreach_enabled_catalog_path(
     const AssetShelf &shelf,
     FunctionRef<void(const asset_system::AssetCatalogPath &catalog_path)> fn)
 {
-  const ListBase *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
+  const ListBaseT<AssetCatalogPathLink> *enabled_catalog_paths = get_enabled_catalog_path_list(
+      shelf);
   if (!enabled_catalog_paths) {
     return;
   }
 
-  LISTBASE_FOREACH (const AssetCatalogPathLink *, path_link, enabled_catalog_paths) {
-    fn(asset_system::AssetCatalogPath(path_link->path));
+  for (const AssetCatalogPathLink &path_link : *enabled_catalog_paths) {
+    fn(asset_system::AssetCatalogPath(path_link.path));
   }
 }
 
-}  // namespace blender::ed::asset::shelf
+}  // namespace ed::asset::shelf
+}  // namespace blender

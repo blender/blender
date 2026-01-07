@@ -78,8 +78,8 @@ BLI_INLINE ColorSceneLinear4f<Alpha> decode(const ColorSceneLinearByteEncoded4b<
 {
   ColorSceneLinear4f<Alpha> decoded;
   srgb_to_linearrgb_uchar4(decoded, color);
-  if (!blender::colorspace::scene_linear_is_rec709) {
-    copy_v3_v3(decoded, blender::colorspace::rec709_to_scene_linear * blender::float3(decoded));
+  if (!colorspace::scene_linear_is_rec709) {
+    copy_v3_v3(decoded, colorspace::rec709_to_scene_linear * float3(decoded));
   }
   return decoded;
 }
@@ -152,5 +152,4 @@ BLI_INLINE ColorTheme4b to_theme4b(const ColorSceneLinear4f<eAlpha::Straight> &s
 }
 
 }  // namespace color
-
 }  // namespace blender

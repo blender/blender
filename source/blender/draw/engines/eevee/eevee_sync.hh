@@ -53,7 +53,7 @@ class SyncModule {
   ~SyncModule() {};
 
   ObjectHandle &sync_object(const ObjectRef &ob_ref);
-  WorldHandle sync_world(const ::World &world);
+  WorldHandle sync_world(const blender::World &world);
 
   void sync_mesh(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);
   bool sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);

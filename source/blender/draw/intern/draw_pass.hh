@@ -1142,7 +1142,7 @@ inline void PassBase<T>::material_set(Manager &manager,
   shader_set(GPU_pass_shader_get(gpupass));
 
   /* Bind all textures needed by the material. */
-  ListBase textures = GPU_material_textures(material);
+  ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material);
   for (GPUMaterialTexture *tex : ListBaseWrapper<GPUMaterialTexture>(textures)) {
     if (tex->ima) {
       /* Image */
@@ -1638,5 +1638,4 @@ inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
 /** \} */
 
 }  // namespace detail
-
 }  // namespace blender::draw

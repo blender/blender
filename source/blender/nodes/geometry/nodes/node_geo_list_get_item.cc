@@ -143,7 +143,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeListGetItem");
   ntype.ui_name = "Get List Item";
   ntype.ui_description = "Retrieve a value from a list";
@@ -152,7 +152,7 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)

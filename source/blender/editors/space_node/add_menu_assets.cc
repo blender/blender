@@ -171,13 +171,12 @@ static void node_catalog_assets_draw(const bContext *C, Menu *menu)
   }
   asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
 
-  const std::optional<blender::StringRefNull> menu_path = CTX_data_string_get(
-      C, "asset_catalog_path");
+  const std::optional<StringRefNull> menu_path = CTX_data_string_get(C, "asset_catalog_path");
   if (!menu_path) {
     return;
   }
 
-  const std::optional<blender::StringRefNull> operator_id = CTX_data_string_get(C, "operator_id");
+  const std::optional<StringRefNull> operator_id = CTX_data_string_get(C, "operator_id");
   if (!operator_id) {
     return;
   }
@@ -230,7 +229,7 @@ static void node_unassigned_assets_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  const std::optional<blender::StringRefNull> operator_id = CTX_data_string_get(C, "operator_id");
+  const std::optional<StringRefNull> operator_id = CTX_data_string_get(C, "operator_id");
   if (!operator_id) {
     return;
   }
@@ -354,7 +353,7 @@ MenuType swap_root_catalogs_menu_type()
 void ui_template_node_asset_menu_items(ui::Layout &layout,
                                        const bContext &C,
                                        const StringRef catalog_path,
-                                       const NodeAssetMenuOperatorType operator_type)
+                                       const ui::NodeAssetMenuOperatorType operator_type)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   if (snode.runtime->assets_for_menu == nullptr) {
@@ -369,7 +368,7 @@ void ui_template_node_asset_menu_items(ui::Layout &layout,
   StringRef operator_id;
 
   switch (operator_type) {
-    case NodeAssetMenuOperatorType::Swap:
+    case ui::NodeAssetMenuOperatorType::Swap:
       operator_id = "NODE_OT_swap_group_asset";
       break;
     default:

@@ -19,6 +19,8 @@
 #  include "ABC_alembic.h"
 #endif
 
+namespace blender {
+
 static PyTypeObject BlenderAppABCType;
 
 static PyStructSequence_Field app_alembic_info_fields[] = {
@@ -87,7 +89,9 @@ PyObject *BPY_app_alembic_struct()
   BlenderAppABCType.tp_init = nullptr;
   BlenderAppABCType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppABCType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppABCType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }
+
+}  // namespace blender

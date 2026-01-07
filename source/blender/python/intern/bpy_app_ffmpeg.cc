@@ -15,6 +15,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 #ifdef WITH_FFMPEG
 extern "C" {
 #  include <libavcodec/avcodec.h>
@@ -132,7 +134,9 @@ PyObject *BPY_app_ffmpeg_struct()
   BlenderAppFFmpegType.tp_init = nullptr;
   BlenderAppFFmpegType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppFFmpegType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppFFmpegType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }
+
+}  // namespace blender

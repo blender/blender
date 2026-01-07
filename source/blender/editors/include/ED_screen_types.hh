@@ -10,7 +10,11 @@
 
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 struct ARegion;
+struct Scene;
+struct ViewLayer;
 
 /* ----------------------------------------------------- */
 
@@ -125,3 +129,5 @@ enum {
    */
   AZONE_REGION_SCROLL,
 };
+
+}  // namespace blender

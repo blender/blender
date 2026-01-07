@@ -10,7 +10,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_output_aov_cc {
+namespace blender {
+
+namespace nodes::node_shader_output_aov_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -20,12 +22,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_output_aov(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "aov_name", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "aov_name", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static void node_shader_init_output_aov(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderOutputAOV *aov = MEM_callocN<NodeShaderOutputAOV>("NodeShaderOutputAOV");
+  NodeShaderOutputAOV *aov = MEM_new_for_free<NodeShaderOutputAOV>("NodeShaderOutputAOV");
   node->storage = aov;
 }
 
@@ -36,13 +38,13 @@ static int node_shader_gpu_output_aov(GPUMaterial *mat,
                                       GPUNodeStack *out)
 {
   GPUNodeLink *outlink;
-  NodeShaderOutputAOV *aov = (NodeShaderOutputAOV *)node->storage;
+  NodeShaderOutputAOV *aov = static_cast<NodeShaderOutputAOV *>(node->storage);
   uint hash = BLI_hash_string(aov->name);
   /* WORKAROUND: We don't support int/uint constants for now. So make sure the aliasing works.
    * We cast back to uint in GLSL. */
   BLI_STATIC_ASSERT(sizeof(float) == sizeof(uint),
                     "GPUCodegen: AOV hash needs float and uint to be the same size.");
-  GPUNodeLink *hash_link = GPU_constant((float *)&hash);
+  GPUNodeLink *hash_link = GPU_constant(reinterpret_cast<float *>(&hash));
 
   GPU_material_flag_set(mat, GPU_MATFLAG_AOV);
   GPU_stack_link(mat, node, "node_output_aov", in, out, hash_link, &outlink);
@@ -50,14 +52,14 @@ static int node_shader_gpu_output_aov(GPUMaterial *mat,
   return true;
 }
 
-}  // namespace blender::nodes::node_shader_output_aov_cc
+}  // namespace nodes::node_shader_output_aov_cc
 
 /* node type definition */
 void register_node_type_sh_output_aov()
 {
-  namespace file_ns = blender::nodes::node_shader_output_aov_cc;
+  namespace file_ns = nodes::node_shader_output_aov_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeOutputAOV", SH_NODE_OUTPUT_AOV);
   ntype.ui_name = "AOV Output";
@@ -69,11 +71,13 @@ void register_node_type_sh_output_aov()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_output_aov;
   ntype.initfunc = file_ns::node_shader_init_output_aov;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderOutputAOV", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_output_aov;
 
   ntype.no_muting = true;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

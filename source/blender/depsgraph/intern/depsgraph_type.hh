@@ -16,12 +16,14 @@
 
 #include <cstdint>
 
+namespace blender {
+
 /* TODO(sergey): Ideally we'll just use char* and statically allocated strings
  * to avoid any possible overhead caused by string (re)allocation/formatting. */
 
 struct CustomData_MeshMasks;
 
-namespace blender::deg {
+namespace deg {
 
 /* Source of the dependency graph node update tag.
  *
@@ -128,4 +130,5 @@ struct DEGCustomDataMeshMasks {
   }
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

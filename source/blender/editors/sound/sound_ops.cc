@@ -57,6 +57,8 @@
 #include "ED_sound.hh"
 #include "ED_util.hh"
 
+namespace blender {
+
 /******************** open sound operator ********************/
 
 static void sound_open_cancel(bContext * /*C*/, wmOperator *op)
@@ -70,7 +72,7 @@ static void sound_open_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
 
   op->customdata = pprop = MEM_new<PropertyPointerRNA>(__func__);
-  UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 #ifdef WITH_AUDASPACE
@@ -82,7 +84,7 @@ static wmOperatorStatus sound_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
 
   RNA_string_get(op->ptr, "filepath", filepath);
-  sound = BKE_sound_new_file(bmain, filepath);
+  sound = BKE_sound_new_file_exists(bmain, filepath);
 
   if (!op->customdata) {
     sound_open_init(C, op);
@@ -198,7 +200,7 @@ static void sound_update_animation_flags(Scene *scene);
 static bool sound_update_animation_flags_fn(Strip *strip, void *user_data)
 {
   const FCurve *fcu;
-  Scene *scene = (Scene *)user_data;
+  Scene *scene = static_cast<Scene *>(user_data);
   bool driven;
 
   fcu = id_data_find_fcurve(&scene->id, strip, &RNA_Strip, "volume", 0, &driven);
@@ -246,7 +248,7 @@ static void sound_update_animation_flags(Scene *scene)
   scene->id.tag |= ID_TAG_DOIT;
 
   if (scene->ed != nullptr) {
-    blender::seq::foreach_strip(&scene->ed->seqbase, sound_update_animation_flags_fn, scene);
+    seq::foreach_strip(&scene->ed->seqbase, sound_update_animation_flags_fn, scene);
   }
 
   fcu = id_data_find_fcurve(&scene->id, scene, &RNA_Scene, "audio_volume", 0, &driven);
@@ -557,7 +559,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  blender::ui::Layout &layout = *op->layout;
+  ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
   PropertyRNA *prop_format;
   PropertyRNA *prop_codec;
@@ -669,7 +671,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
                    sound_mixdown_draw_check_prop,
                    nullptr,
                    nullptr,
-                   UI_BUT_LABEL_ALIGN_NONE,
+                   ui::BUT_LABEL_ALIGN_NONE,
                    false);
 }
 #endif /* WITH_AUDASPACE */
@@ -778,7 +780,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 
 static bool sound_poll(bContext *C)
 {
-  Editing *ed = blender::seq::editing_get(CTX_data_sequencer_scene(C));
+  Editing *ed = seq::editing_get(CTX_data_sequencer_scene(C));
 
   if (!ed || !ed->act_strip || ed->act_strip->type != STRIP_TYPE_SOUND) {
     return false;
@@ -791,7 +793,7 @@ static bool sound_poll(bContext *C)
 static wmOperatorStatus sound_pack_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Editing *ed = blender::seq::editing_get(CTX_data_sequencer_scene(C));
+  Editing *ed = seq::editing_get(CTX_data_sequencer_scene(C));
   bSound *sound;
 
   if (!ed || !ed->act_strip || ed->act_strip->type != STRIP_TYPE_SOUND) {
@@ -864,7 +866,7 @@ static wmOperatorStatus sound_unpack_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  Editing *ed = blender::seq::editing_get(CTX_data_sequencer_scene(C));
+  Editing *ed = seq::editing_get(CTX_data_sequencer_scene(C));
   bSound *sound;
 
   if (RNA_struct_property_is_set(op->ptr, "id")) {
@@ -933,3 +935,5 @@ void ED_operatortypes_sound()
   WM_operatortype_append(SOUND_OT_update_animation_flags);
   WM_operatortype_append(SOUND_OT_bake_animation);
 }
+
+}  // namespace blender

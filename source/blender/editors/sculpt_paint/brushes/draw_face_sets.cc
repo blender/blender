@@ -128,7 +128,7 @@ static void calc_faces(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
 
@@ -182,7 +182,7 @@ static void do_draw_face_sets_brush_mesh(const Depsgraph &depsgraph,
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::FaceSet);
 
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(
-      *static_cast<Mesh *>(object.data));
+      *id_cast<Mesh *>(object.data));
 
   threading::EnumerableThreadSpecific<MeshLocalData> all_tls;
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
@@ -244,7 +244,7 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   tls.factors.resize(positions.size());
   const MutableSpan<float> factors = tls.factors;
-  blender::ed::sculpt_paint::fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
+  ed::sculpt_paint::fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, subdiv_ccg, grids, factors);
@@ -280,7 +280,7 @@ static void do_draw_face_sets_brush_grids(const Depsgraph &depsgraph,
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::FaceSet);
 
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(
-      *static_cast<Mesh *>(object.data));
+      *id_cast<Mesh *>(object.data));
 
   threading::EnumerableThreadSpecific<GridLocalData> all_tls;
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();

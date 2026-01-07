@@ -41,10 +41,12 @@
 #include "DNA_world_types.h"
 
 #include <cmath>
-#include <cstdint>
 #include <string>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
@@ -55,11 +57,10 @@ static const pxr::TfToken pole_axis_z("Z", pxr::TfToken::Immortal);
 namespace {
 
 struct WorldNtreeSearchPayload {
-  const blender::io::usd::USDExportParams &params;
+  const io::usd::USDExportParams &params;
   pxr::UsdStageRefPtr stage;
 
-  WorldNtreeSearchPayload(const blender::io::usd::USDExportParams &in_params,
-                          pxr::UsdStageRefPtr in_stage)
+  WorldNtreeSearchPayload(const io::usd::USDExportParams &in_params, pxr::UsdStageRefPtr in_stage)
       : params(in_params), stage(in_stage)
   {
   }
@@ -67,7 +68,7 @@ struct WorldNtreeSearchPayload {
 
 }  // End anonymous namespace.
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /**
  * Load the image at the given path.  Handle packing and copying based in the import options.
@@ -120,7 +121,7 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
 /* Create a new node of type 'new_node_type' and connect it
  * as an upstream source to 'dst_node' with the given sockets. */
 static bNode *append_node(bNode *dst_node,
-                          int16_t new_node_type,
+                          int new_node_type,
                           const StringRef out_sock,
                           const StringRef in_sock,
                           bNodeTree *ntree,
@@ -268,7 +269,8 @@ void dome_light_to_world_material(const USDImportParams &params,
 
     /* Set the default background color. */
     bNodeSocket *color_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Color");
-    copy_v3_v3(((bNodeSocketValueRGBA *)color_sock->default_value)->value, &scene->world->horr);
+    copy_v3_v3(color_sock->default_value_typed<bNodeSocketValueRGBA>()->value,
+               &scene->world->horr);
   }
 
   /* Make sure the first input to the shader node is disconnected. */
@@ -282,14 +284,14 @@ void dome_light_to_world_material(const USDImportParams &params,
   float intensity = dome_light_data.intensity * params.light_intensity_scale;
 
   bNodeSocket *strength_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Strength");
-  ((bNodeSocketValueFloat *)strength_sock->default_value)->value = intensity;
+  strength_sock->default_value_typed<bNodeSocketValueFloat>()->value = intensity;
 
   if (!dome_light_data.has_tex) {
     /* No texture file is authored on the dome light.  Set the color, if it was authored,
      * and return early. */
     if (dome_light_data.has_color) {
       bNodeSocket *color_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Color");
-      copy_v3_v3(((bNodeSocketValueRGBA *)color_sock->default_value)->value,
+      copy_v3_v3(color_sock->default_value_typed<bNodeSocketValueRGBA>()->value,
                  dome_light_data.color.data());
     }
 
@@ -314,7 +316,7 @@ void dome_light_to_world_material(const USDImportParams &params,
     }
 
     if (vec_sock) {
-      copy_v3_v3(((bNodeSocketValueVector *)vec_sock->default_value)->value,
+      copy_v3_v3(vec_sock->default_value_typed<bNodeSocketValueVector>()->value,
                  dome_light_data.color.data());
     }
     else {
@@ -432,6 +434,11 @@ static bool node_search(bNode *fromnode, bNode * /*tonode*/, void *userdata, boo
     NodeTexImage *tex = static_cast<NodeTexImage *>(fromnode->storage);
     res.image = reinterpret_cast<Image *>(fromnode->id);
     res.iuser = &tex->iuser;
+
+    /* Always adjust for rotational differences between Blender and USD. */
+    res.transform =
+        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), 90.0)) *
+        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), 90.0));
   }
   else if (!res.image && !res.mult_found && fromnode->type_legacy == SH_NODE_VECTOR_MATH) {
     if (fromnode->custom1 == NODE_VECTOR_MATH_MULTIPLY) {
@@ -443,20 +450,19 @@ static bool node_search(bNode *fromnode, bNode * /*tonode*/, void *userdata, boo
       }
 
       if (vec_sock) {
-        copy_v3_v3(res.color_mult, ((bNodeSocketValueVector *)vec_sock->default_value)->value);
+        copy_v3_v3(res.color_mult, vec_sock->default_value_typed<bNodeSocketValueVector>()->value);
       }
     }
   }
   else if (res.image && fromnode->type_legacy == SH_NODE_MAPPING) {
     if (bNodeSocket *socket = bke::node_find_socket(*fromnode, SOCK_IN, "Rotation")) {
-      const bNodeSocketValueVector *rot_value = static_cast<bNodeSocketValueVector *>(
-          socket->default_value);
+      const bNodeSocketValueVector *rot_value =
+          socket->default_value_typed<bNodeSocketValueVector>();
       /* Convert radians to degrees. */
       pxr::GfVec3f rot(rot_value->value);
-      mul_v3_fl(rot.data(), 180.0f / M_PI);
-      res.transform =
-          pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), 90.0)) *
-          pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), 90.0)) *
+      rot *= 180.0f / M_PI;
+
+      res.transform *=
           pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), -rot[2])) *
           pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 1.0, 0.0), -rot[1])) *
           pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), -rot[0]));
@@ -480,4 +486,5 @@ void world_material_to_dome_light(const Scene *scene, WorldToDomeLight &res)
   }
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

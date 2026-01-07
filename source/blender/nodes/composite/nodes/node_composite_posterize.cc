@@ -20,9 +20,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** Posterize ******************** */
 
-namespace blender::nodes::node_composite_posterize_cc {
+namespace nodes::node_composite_posterize_cc {
 
 static void cmp_node_posterize_declare(NodeDeclarationBuilder &b)
 {
@@ -46,7 +48,7 @@ static int node_gpu_material(GPUMaterial *material,
   return GPU_stack_link(material, node, "node_composite_posterize", inputs, outputs);
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
 static float4 posterize(const float4 &color, const float steps)
 {
@@ -54,7 +56,7 @@ static float4 posterize(const float4 &color, const float steps)
   return float4(math::floor(color.xyz() * sanitized_steps) / sanitized_steps, color.w);
 }
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto function = mf::build::SI2_SO<Color, float, Color>(
       "Posterize",
@@ -65,13 +67,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   builder.set_matching_fn(function);
 }
 
-}  // namespace blender::nodes::node_composite_posterize_cc
+}  // namespace nodes::node_composite_posterize_cc
 
 static void register_node_type_cmp_posterize()
 {
-  namespace file_ns = blender::nodes::node_composite_posterize_cc;
+  namespace file_ns = nodes::node_composite_posterize_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodePosterize", CMP_NODE_POSTERIZE);
   ntype.ui_name = "Posterize";
@@ -83,6 +85,8 @@ static void register_node_type_cmp_posterize()
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_posterize)
+
+}  // namespace blender

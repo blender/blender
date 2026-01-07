@@ -44,6 +44,8 @@
 /* own includes */
 #include "../gizmo_library_intern.hh"
 
+namespace blender {
+
 #define MVAL_MAX_PX_DIST 12.0f
 #define RING_2D_RESOLUTION 32
 
@@ -55,7 +57,7 @@ struct MoveGizmo3D {
 
 static void gizmo_move_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4])
 {
-  MoveGizmo3D *move = (MoveGizmo3D *)gz;
+  MoveGizmo3D *move = reinterpret_cast<MoveGizmo3D *>(const_cast<wmGizmo *>(gz));
 
   copy_m4_m4(r_matrix, move->gizmo.matrix_basis);
   add_v3_v3(r_matrix[3], move->prop_co);
@@ -78,7 +80,7 @@ struct MoveInteraction {
   } prev;
 
   /* We could have other snap contexts, for now only support 3D view. */
-  blender::ed::transform::SnapObjectContext *snap_context_v3d;
+  ed::transform::SnapObjectContext *snap_context_v3d;
 };
 
 /* -------------------------------------------------------------------- */
@@ -100,7 +102,7 @@ static void move_geom_draw(const wmGizmo *gz,
 
   GPUVertFormat *format = immVertexFormat();
   /* NOTE(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   immBindBuiltinProgram(filled ? GPU_SHADER_3D_UNIFORM_COLOR :
                                  GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
@@ -209,7 +211,7 @@ static void move3d_draw_intern(const bContext *C,
     }
 
     GPU_blend(GPU_BLEND_ALPHA);
-    move_geom_draw(gz, blender::float4(0.5f, 0.5f, 0.5f, 0.5f), select, draw_options);
+    move_geom_draw(gz, float4(0.5f, 0.5f, 0.5f, 0.5f), select, draw_options);
     GPU_blend(GPU_BLEND_NONE);
     GPU_matrix_pop();
   }
@@ -243,7 +245,7 @@ static wmOperatorStatus gizmo_move_modal(bContext *C,
   if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
     return OPERATOR_RUNNING_MODAL;
   }
-  MoveGizmo3D *move = (MoveGizmo3D *)gz;
+  MoveGizmo3D *move = reinterpret_cast<MoveGizmo3D *>(gz);
   ARegion *region = CTX_wm_region(C);
 
   float prop_delta[3];
@@ -253,8 +255,7 @@ static wmOperatorStatus gizmo_move_modal(bContext *C,
   else {
     float mval_proj_init[2], mval_proj_curr[2];
     if ((gizmo_window_project_2d(C, gz, inter->init.mval, 2, false, mval_proj_init) == false) ||
-        (gizmo_window_project_2d(
-             C, gz, blender::float2(blender::int2(event->mval)), 2, false, mval_proj_curr) ==
+        (gizmo_window_project_2d(C, gz, float2(int2(event->mval)), 2, false, mval_proj_curr) ==
          false))
     {
       return OPERATOR_RUNNING_MODAL;
@@ -340,7 +341,7 @@ static void gizmo_move_exit(bContext *C, wmGizmo *gz, const bool cancel)
   }
 
   if (inter->snap_context_v3d) {
-    blender::ed::transform::snap_object_context_destroy(inter->snap_context_v3d);
+    ed::transform::snap_object_context_destroy(inter->snap_context_v3d);
     inter->snap_context_v3d = nullptr;
   }
 
@@ -376,8 +377,8 @@ static wmOperatorStatus gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEven
     if (area) {
       switch (area->spacetype) {
         case SPACE_VIEW3D: {
-          inter->snap_context_v3d = blender::ed::transform::snap_object_context_create(
-              CTX_data_scene(C), 0);
+          inter->snap_context_v3d = ed::transform::snap_object_context_create(CTX_data_scene(C),
+                                                                              0);
           break;
         }
         default:
@@ -396,9 +397,7 @@ static int gizmo_move_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   float point_local[2];
 
-  if (gizmo_window_project_2d(C, gz, blender::float2(blender::int2(mval)), 2, true, point_local) ==
-      false)
-  {
+  if (gizmo_window_project_2d(C, gz, float2(int2(mval)), 2, true, point_local) == false) {
     return -1;
   }
 
@@ -414,7 +413,7 @@ static int gizmo_move_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 
 static void gizmo_move_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
 {
-  MoveGizmo3D *move = (MoveGizmo3D *)gz;
+  MoveGizmo3D *move = reinterpret_cast<MoveGizmo3D *>(gz);
   if (WM_gizmo_target_property_is_valid(gz_prop)) {
     WM_gizmo_target_property_float_get_array(gz, gz_prop, move->prop_co);
   }
@@ -477,3 +476,5 @@ void ED_gizmotypes_move_3d()
 }
 
 /** \} */ /* Move Gizmo API */
+
+}  // namespace blender

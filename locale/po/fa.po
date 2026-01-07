@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -2381,6 +2381,18 @@ msgid "Top"
 msgstr "ﻻ﻿ﺎﺑ"
 
 
+msgid "Font"
+msgstr "ﺖﻧﻮﻓ"
+
+
+msgid "Text"
+msgstr "ﻦﺘﻣ"
+
+
+msgid "Sound"
+msgstr "ﺍﺪﺻ"
+
+
 msgid "Visibility"
 msgstr "ﺪﯾﺩ"
 
@@ -2654,10 +2666,6 @@ msgid "Text on Curve"
 msgstr "ﯽﻨﺤﻨﻣ ﯼﻭﺭ ﺮﺑ ﻦﺘﻣ"
 
 
-msgid "Font"
-msgstr "ﺖﻧﻮﻓ"
-
-
 msgid "X Offset"
 msgstr "X ﺖﺴﻓﺍ"
 
@@ -2921,10 +2929,6 @@ msgid "Mute"
 msgstr "ﺵﻮﻣ‌ﺎﺧ"
 
 
-msgid "Sound"
-msgstr "ﺍﺪﺻ"
-
-
 msgid "Memory"
 msgstr "ﻪﻈﻓﺎﺣ"
 
@@ -3074,6 +3078,34 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
+
+
+msgid "Pivot Point"
+msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
+
+
+msgid "Import"
+msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
+
+
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgid "Relations"
+msgstr "ﻂﺑﺍﻭﺭ"
+
+
 msgid "Apply"
 msgstr "ﻝﺎﻤﻋﺍ"
 
@@ -3088,38 +3120,6 @@ msgstr "ﺡﺮﻃ"
 
 msgid "Tracking"
 msgstr "ﯽﺑﺎﯾﺩﺭ"
-
-
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Text"
-msgstr "ﻦﺘﻣ"
-
-
-msgid "Pivot Point"
-msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
-
-
-msgid "Import"
-msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Add Image"
-msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
-msgid "Relations"
-msgstr "ﻂﺑﺍﻭﺭ"
 
 
 msgid "Key"

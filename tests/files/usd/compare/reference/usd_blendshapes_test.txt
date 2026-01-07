@@ -1,0 +1,66 @@
+==== Meshes: 1
+- Mesh 'Plane' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'skel:jointWeights' FLOAT POINT
+    - 1.000 1.000 1.000 1.000 
+  - attr 'skel:jointIndices' INT POINT
+    - 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, 0.000)
+    - (1.000, -1.000, 0.000)
+    - (-1.000, 1.000, 0.000)
+    - (1.000, 1.000, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+  - shape key 'Basis' w:0.000 vgrp:'' 0:(-1.000, -1.000, 0.000) 1:(1.000, -1.000, 0.000) 2:(-1.000, 1.000, 0.000)
+  - shape key 'Key_1' w:0.000 vgrp:'' 0:(-2.510, -1.920, 0.200) 1:(0.860, -1.460, -0.100) 2:(-1.330, 1.290, 0.840)
+  - props: str:blenderName:data='Plane'
+
+==== Objects: 3
+- Obj 'Plane' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Plane.001' MESH data:'Plane' par:'Plane'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 vertex groups
+    - 'joint1' 
+  - 1 modifiers
+    - ARMATURE 'Armature'
+- Obj 'Skel' ARMATURE data:'Skel' par:'Plane'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Actions: 1
+- Action 'PlaneAction' curverange:(1.0 .. 60.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'KEKey' curves:1
+  - fcu 'key_blocks["Key_1"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3
+    - (1.000, 0.003) lh:(-8.667, 0.003 AUTO) rh:(10.667, 0.003 AUTO)
+    - (30.000, 0.900) lh:(20.333, 0.862 AUTO) rh:(40.000, 0.939 AUTO)
+    - (60.000, 0.100) lh:(50.000, 0.100 AUTO) rh:(70.000, 0.100 AUTO)
+
+==== Armatures: 1
+- Armature 'Skel' 1 bones
+  - bone 'joint1' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+

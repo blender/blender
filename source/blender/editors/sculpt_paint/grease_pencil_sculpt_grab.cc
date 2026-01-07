@@ -30,7 +30,7 @@ namespace blender::ed::sculpt_paint::greasepencil {
 class GrabOperation : public GreasePencilStrokeOperationCommon {
  public:
   using GreasePencilStrokeOperationCommon::GreasePencilStrokeOperationCommon;
-  using MutableDrawingInfo = blender::ed::greasepencil::MutableDrawingInfo;
+  using MutableDrawingInfo = ed::greasepencil::MutableDrawingInfo;
 
   /* Cached point mask and influence for a particular drawing. */
   struct PointWeights {
@@ -89,7 +89,7 @@ void GrabOperation::foreach_grabbed_drawing(
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
   Object &object_eval = *DEG_get_evaluated(&depsgraph, &object);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   bool changed = false;
   threading::parallel_for_each(this->drawing_data.index_range(), [&](const int i) {
@@ -144,7 +144,7 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
   Object &ob_orig = *CTX_data_active_object(&C);
   Object &ob_eval = *DEG_get_evaluated(&depsgraph, &ob_orig);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_orig.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob_orig.data);
 
   init_brush(brush);
   init_auto_masking(C, start_sample);
@@ -256,10 +256,10 @@ void GrabOperation::on_stroke_extended(const bContext &C, const InputSample &ext
               projection_fn, deformation, point_i, mouse_delta_win * weights[index]);
         });
 
-        MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
-        MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
+        if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+          MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
+          MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
 
-        if (!handle_positions_left.is_empty()) {
           mask_left.foreach_index(GrainSize(4096), [&](const int64_t point_i, const int index) {
             handle_positions_left[point_i] += compute_orig_delta(
                 projection_fn, deformation, point_i, mouse_delta_win * weights_left[index]);

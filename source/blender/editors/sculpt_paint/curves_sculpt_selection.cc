@@ -17,8 +17,7 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
   if (const auto meta_data = attributes.lookup_meta_data(".selection")) {
     if (meta_data->data_type == bke::AttrType::Bool) {
       const VArray<float> selection = *attributes.lookup<float>(".selection");
-      float *dst = static_cast<float *>(
-          MEM_malloc_arrayN(selection.size(), sizeof(float), __func__));
+      float *dst = MEM_malloc_arrayN<float>(selection.size(), __func__);
       selection.materialize({dst, selection.size()});
 
       attributes.remove(".selection");

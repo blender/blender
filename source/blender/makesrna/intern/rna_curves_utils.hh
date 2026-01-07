@@ -12,38 +12,42 @@
 
 #ifdef RNA_RUNTIME
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 class CurvesGeometry;
 }
 
 struct ReportList;
 
-bool rna_CurvesGeometry_add_curves(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_add_curves(bke::CurvesGeometry &curves,
                                    ReportList *reports,
                                    const int *sizes,
                                    int sizes_num);
 
-bool rna_CurvesGeometry_remove_curves(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_remove_curves(bke::CurvesGeometry &curves,
                                       ReportList *reports,
                                       const int *indices_ptr,
                                       int indices_num);
 
-bool rna_CurvesGeometry_resize_curves(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_resize_curves(bke::CurvesGeometry &curves,
                                       ReportList *reports,
                                       const int *sizes_ptr,
                                       int sizes_num,
                                       const int *indices_ptr,
                                       int indices_num);
 
-bool rna_CurvesGeometry_reorder_curves(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_reorder_curves(bke::CurvesGeometry &curves,
                                        ReportList *reports,
                                        const int *reorder_indices_ptr,
                                        int reorder_indices_num);
 
-bool rna_CurvesGeometry_set_types(blender::bke::CurvesGeometry &curves,
+bool rna_CurvesGeometry_set_types(bke::CurvesGeometry &curves,
                                   ReportList *reports,
                                   int type,
                                   const int *indices_ptr,
                                   int indices_num);
+
+}  // namespace blender
 
 #endif

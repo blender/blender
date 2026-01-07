@@ -45,6 +45,8 @@
 #  include <openvdb/tools/ValueTransformer.h>
 #endif
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
@@ -71,8 +73,8 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
-  walk(user_data, ob, (ID **)&vdmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&vdmd->texture_map_object, IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&vdmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&vdmd->texture_map_object), IDWALK_CB_USER);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -93,7 +95,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -101,7 +103,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  uiTemplateID(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
   layout.prop(ptr, "texture_map_mode", UI_ITEM_NONE, IFACE_("Texture Mapping"), ICON_NONE);
 
   if (vdmd->texture_map_mode == MOD_VOLUME_DISPLACE_MAP_OBJECT) {
@@ -122,7 +124,7 @@ static void panel_register(ARegionType *region_type)
 
 #ifdef WITH_OPENVDB
 
-static openvdb::Mat4s matrix_to_openvdb(const blender::float4x4 &m)
+static openvdb::Mat4s matrix_to_openvdb(const float4x4 &m)
 {
   /* OpenVDB matrices are transposed Blender matrices, i.e. the translation is in the last row
    * instead of in the last column. However, the layout in memory is the same, because OpenVDB
@@ -187,9 +189,7 @@ struct DisplaceGridOp {
 
   template<typename GridType> void operator()()
   {
-    if constexpr (blender::
-                      is_same_any_v<GridType, openvdb::points::PointDataGrid, openvdb::MaskGrid>)
-    {
+    if constexpr (is_same_any_v<GridType, openvdb::points::PointDataGrid, openvdb::MaskGrid>) {
       /* We don't support displacing these grid types yet. */
       return;
     }
@@ -236,7 +236,7 @@ struct DisplaceGridOp {
      * slowing down subsequent operations. */
     typename GridType::ValueType prune_tolerance{0};
     openvdb::tools::deactivate(*temp_grid, temp_grid->background(), prune_tolerance);
-    blender::bke::volume_grid::prune_inactive(*temp_grid);
+    bke::volume_grid::prune_inactive(*temp_grid);
 
     /* Overwrite the old volume grid with the new grid. */
     grid.clear();
@@ -282,10 +282,10 @@ static void displace_volume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
   const int grid_amount = BKE_volume_num_grids(volume);
   for (int grid_index = 0; grid_index < grid_amount; grid_index++) {
-    blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_get_for_write(volume, grid_index);
+    bke::VolumeGridData *volume_grid = BKE_volume_grid_get_for_write(volume, grid_index);
     BLI_assert(volume_grid);
 
-    blender::bke::VolumeTreeAccessToken tree_token;
+    bke::VolumeTreeAccessToken tree_token;
     openvdb::GridBase &grid = volume_grid->grid_for_write(tree_token);
     VolumeGridType grid_type = volume_grid->grid_type();
 
@@ -302,7 +302,7 @@ static void displace_volume(ModifierData *md, const ModifierEvalContext *ctx, Vo
 
 static void modify_geometry_set(ModifierData *md,
                                 const ModifierEvalContext *ctx,
-                                blender::bke::GeometrySet *geometry_set)
+                                bke::GeometrySet *geometry_set)
 {
   Volume *input_volume = geometry_set->get_volume_for_write();
   if (input_volume != nullptr) {
@@ -345,3 +345,5 @@ ModifierTypeInfo modifierType_VolumeDisplace = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

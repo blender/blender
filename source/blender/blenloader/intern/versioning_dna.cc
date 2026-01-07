@@ -12,6 +12,8 @@
 
 #include "readfile.hh"
 
+namespace blender {
+
 void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversionfile)
 {
 #define DNA_VERSION_ATLEAST(ver, subver) \
@@ -61,3 +63,5 @@ void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversion
 
 #undef DNA_VERSION_ATLEAST
 }
+
+}  // namespace blender

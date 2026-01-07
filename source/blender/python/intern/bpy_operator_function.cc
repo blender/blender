@@ -30,6 +30,8 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Private Utility Functions
  * \{ */
@@ -55,9 +57,9 @@ static void bpy_op_fn_view_layer_update(bContext *C)
   }
   else {
     /* No active view layer: update all view layers in all scenes. */
-    LISTBASE_FOREACH (Scene *, scene_iter, &bmain->scenes) {
-      LISTBASE_FOREACH (ViewLayer *, vl, &scene_iter->view_layers) {
-        Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene_iter, vl);
+    for (Scene &scene_iter : bmain->scenes) {
+      for (ViewLayer &vl : scene_iter.view_layers) {
+        Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, &scene_iter, &vl);
         if (depsgraph && !DEG_is_evaluating(depsgraph)) {
           DEG_make_active(depsgraph);
           BKE_scene_graph_update_tagged(depsgraph, bmain);
@@ -112,7 +114,7 @@ static bool bpy_op_fn_parse_args(PyObject *args, const char **r_context_str, boo
 
 static void bpy_op_fn_dealloc(BPyOpFunction *self)
 {
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
 }
 
 static PyObject *bpy_op_fn_call(BPyOpFunction *self, PyObject *args, PyObject *kwargs)
@@ -206,7 +208,8 @@ static PyObject *bpy_op_fn_str(BPyOpFunction *self)
   /* Extract module and function from idname_py. */
   const char *dot_pos = strchr(idname_py, '.');
   if (!dot_pos) {
-    return PyUnicode_FromFormat("<function bpy.ops.%s at %p>", idname_py, (void *)self);
+    return PyUnicode_FromFormat(
+        "<function bpy.ops.%s at %p>", idname_py, static_cast<void *>(self));
   }
 
   size_t op_mod_str_len = dot_pos - idname_py;
@@ -223,7 +226,7 @@ static PyObject *bpy_op_fn_str(BPyOpFunction *self)
   STRNCPY(op_fn_str, dot_pos + 1);
 
   return PyUnicode_FromFormat(
-      "<function bpy.ops.%s.%s at %p>", op_mod_str, op_fn_str, (void *)self);
+      "<function bpy.ops.%s.%s at %p>", op_mod_str, op_fn_str, static_cast<void *>(self));
 }
 
 /**
@@ -387,7 +390,6 @@ static PyObject *bpy_op_fn_get_doc_impl(BPyOpFunction *self)
   /* Get RNA type and description using Blender format idname. */
   PyObject *idname_bl_obj = PyUnicode_FromString(self->idname);
   if (!idname_bl_obj) {
-    Py_DECREF(sig_result);
     return sig_result; /* Return just signature on failure. */
   }
 
@@ -424,10 +426,16 @@ static PyObject *bpy_op_fn_get_doc_impl(BPyOpFunction *self)
 
 /** Method definitions for BPyOpFunction. */
 static PyMethodDef bpy_op_fn_methods[] = {
-    {"poll", (PyCFunction)bpy_op_fn_poll, METH_VARARGS, bpy_op_fn_poll_doc},
-    {"get_rna_type", (PyCFunction)bpy_op_fn_get_rna_type, METH_NOARGS, bpy_op_fn_get_rna_type_doc},
-    {"idname", (PyCFunction)bpy_op_fn_idname, METH_NOARGS, bpy_op_fn_idname_doc},
-    {"idname_py", (PyCFunction)bpy_op_fn_idname_py, METH_NOARGS, bpy_op_fn_idname_py_doc},
+    {"poll", reinterpret_cast<PyCFunction>(bpy_op_fn_poll), METH_VARARGS, bpy_op_fn_poll_doc},
+    {"get_rna_type",
+     reinterpret_cast<PyCFunction>(bpy_op_fn_get_rna_type),
+     METH_NOARGS,
+     bpy_op_fn_get_rna_type_doc},
+    {"idname", reinterpret_cast<PyCFunction>(bpy_op_fn_idname), METH_NOARGS, bpy_op_fn_idname_doc},
+    {"idname_py",
+     reinterpret_cast<PyCFunction>(bpy_op_fn_idname_py),
+     METH_NOARGS,
+     bpy_op_fn_idname_py_doc},
     {nullptr, nullptr, 0, nullptr}};
 
 /** \} */
@@ -458,12 +466,12 @@ static PyObject *bpy_op_fn_get_doc(BPyOpFunction *self, void * /*closure*/)
 
 static PyGetSetDef bpy_op_fn_getsetters[] = {
     {"bl_options",
-     (getter)bpy_op_fn_get_bl_options,
+     reinterpret_cast<getter>(bpy_op_fn_get_bl_options),
      nullptr,
      bpy_op_fn_get_bl_options_doc,
      nullptr},
     /* No doc-string, as this is standard part of the Python spec. */
-    {"__doc__", (getter)bpy_op_fn_get_doc, nullptr, nullptr, nullptr},
+    {"__doc__", reinterpret_cast<getter>(bpy_op_fn_get_doc), nullptr, nullptr, nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr}};
 
 /** \} */
@@ -491,18 +499,18 @@ PyTypeObject BPyOpFunctionType = {
     /*tp_name*/ "BPyOpFunction",
     /*tp_basicsize*/ sizeof(BPyOpFunction),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)bpy_op_fn_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(bpy_op_fn_dealloc),
     /*tp_print*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_as_async*/ nullptr,
-    /*tp_repr*/ (reprfunc)bpy_op_fn_repr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(bpy_op_fn_repr),
     /*tp_as_number*/ nullptr,
     /*tp_as_sequence*/ nullptr,
     /*tp_as_mapping*/ nullptr,
     /*tp_hash*/ nullptr,
-    /*tp_call*/ (ternaryfunc)bpy_op_fn_call,
-    /*tp_str*/ (reprfunc)bpy_op_fn_str,
+    /*tp_call*/ reinterpret_cast<ternaryfunc>(bpy_op_fn_call),
+    /*tp_str*/ reinterpret_cast<reprfunc>(bpy_op_fn_str),
     /*tp_getattro*/ PyObject_GenericGetAttr,
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
@@ -568,7 +576,8 @@ PyObject *pyop_create_function(PyObject * /*self*/, PyObject *args)
   }
 
   /* Create a new #BPyOpFunction instance for direct operator execution. */
-  BPyOpFunction *op_fn = (BPyOpFunction *)PyObject_New(BPyOpFunction, &BPyOpFunctionType);
+  BPyOpFunction *op_fn = static_cast<BPyOpFunction *> PyObject_New(BPyOpFunction,
+                                                                   &BPyOpFunctionType);
   if (!op_fn) {
     return nullptr;
   }
@@ -582,7 +591,9 @@ PyObject *pyop_create_function(PyObject * /*self*/, PyObject *args)
   /* Prevented by the #OP_MAX_TYPENAME check. */
   BLI_assert(idname_len < sizeof(op_fn->idname));
   UNUSED_VARS_NDEBUG(idname_len);
-  return (PyObject *)op_fn;
+  return reinterpret_cast<PyObject *>(op_fn);
 }
 
 /** \} */
+
+}  // namespace blender

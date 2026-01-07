@@ -26,7 +26,8 @@
 
 #include <fmt/format.h>
 
-namespace blender::ui::bonecollections {
+namespace blender::ui {
+namespace bonecollections {
 
 using namespace blender::animrig;
 
@@ -83,7 +84,7 @@ class BoneCollectionDragController : public AbstractViewItemDragController {
 
   std::optional<eWM_DragDataType> get_drag_type() const override;
   void *create_drag_data() const override;
-  void on_drag_start(bContext &C) override;
+  void on_drag_start(bContext &C, AbstractViewItem &item) override;
 };
 
 class BoneCollectionDropTarget : public TreeViewItemDropTarget {
@@ -219,9 +220,9 @@ class BoneCollectionItem : public AbstractTreeViewItem {
   {
     Layout &sub = row.row(true);
 
-    uiBut *name_label = uiItemL_ex(&sub, bone_collection_.name, ICON_NONE, false, false);
+    Button *name_label = uiItemL_ex(&sub, bone_collection_.name, ICON_NONE, false, false);
     if (!ANIM_armature_bonecoll_is_editable(&armature_, &bone_collection_)) {
-      UI_but_flag_enable(name_label, UI_BUT_INACTIVE);
+      button_flag_enable(name_label, BUT_INACTIVE);
     }
 
     /* Contains Active Bone icon. */
@@ -249,14 +250,14 @@ class BoneCollectionItem : public AbstractTreeViewItem {
 
       const int icon = bone_collection_.is_visible() ? ICON_HIDE_OFF : ICON_HIDE_ON;
       PointerRNA bcoll_ptr = rna_pointer();
-      visibility_sub.prop(&bcoll_ptr, "is_visible", UI_ITEM_R_ICON_ONLY, "", icon);
+      visibility_sub.prop(&bcoll_ptr, "is_visible", ITEM_R_ICON_ONLY, "", icon);
     }
 
     /* Solo icon. */
     {
       const int icon = bone_collection_.is_solo() ? ICON_SOLO_ON : ICON_SOLO_OFF;
       PointerRNA bcoll_ptr = rna_pointer();
-      sub.prop(&bcoll_ptr, "is_solo", UI_ITEM_R_ICON_ONLY, "", icon);
+      sub.prop(&bcoll_ptr, "is_solo", ITEM_R_ICON_ONLY, "", icon);
     }
   }
 
@@ -266,7 +267,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     if (!mt) {
       return;
     }
-    UI_menutype_draw(&C, mt, &column);
+    menutype_draw(&C, mt, &column);
   }
 
   std::optional<bool> should_be_active() const override
@@ -412,13 +413,13 @@ void BoneCollectionTreeView::build_bcolls_with_selected_bones()
 
   /* Armature Edit mode. */
   if (armature_.edbo) {
-    LISTBASE_FOREACH (EditBone *, ebone, armature_.edbo) {
-      if ((ebone->flag & BONE_SELECTED) == 0) {
+    for (EditBone &ebone : *armature_.edbo) {
+      if ((ebone.flag & BONE_SELECTED) == 0) {
         continue;
       }
 
-      LISTBASE_FOREACH (BoneCollectionReference *, ref, &ebone->bone_collections) {
-        bcolls_with_selected_bones_.add(ref->bcoll);
+      for (BoneCollectionReference &ref : ebone.bone_collections) {
+        bcolls_with_selected_bones_.add(ref.bcoll);
       }
     }
     return;
@@ -430,8 +431,8 @@ void BoneCollectionTreeView::build_bcolls_with_selected_bones()
       return;
     }
 
-    LISTBASE_FOREACH (const BoneCollectionReference *, ref, &bone->runtime.collections) {
-      bcolls_with_selected_bones_.add(ref->bcoll);
+    for (const BoneCollectionReference &ref : bone->runtime.collections) {
+      bcolls_with_selected_bones_.add(ref.bcoll);
     }
   });
 }
@@ -455,31 +456,31 @@ void *BoneCollectionDragController::create_drag_data() const
   return drag_data;
 }
 
-void BoneCollectionDragController::on_drag_start(bContext & /*C*/)
+void BoneCollectionDragController::on_drag_start(bContext & /*C*/, AbstractViewItem & /*item*/)
 {
   ANIM_armature_bonecoll_active_index_set(drag_arm_bcoll_.armature, drag_arm_bcoll_.bcoll_index);
 }
 
-}  // namespace blender::ui::bonecollections
+}  // namespace bonecollections
 
-void uiTemplateBoneCollectionTree(blender::ui::Layout *layout, bContext *C)
+void template_bone_collection_tree(Layout *layout, bContext *C)
 {
-  using namespace blender;
-
   bArmature *armature = ED_armature_context(C);
   if (armature == nullptr) {
     return;
   }
   BLI_assert(GS(armature->id.name) == ID_AR);
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  AbstractTreeView *tree_view = block_add_view(
       *block,
       "Bone Collection Tree View",
-      std::make_unique<blender::ui::bonecollections::BoneCollectionTreeView>(*armature));
+      std::make_unique<bonecollections::BoneCollectionTreeView>(*armature));
   tree_view->set_context_menu_title("Bone Collection");
   tree_view->set_default_rows(5);
 
-  ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
+  TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }
+
+}  // namespace blender::ui

@@ -23,7 +23,7 @@ namespace blender::seq {
 
 static void whiteBalance_init_data(StripModifierData *smd)
 {
-  WhiteBalanceModifierData *cbmd = (WhiteBalanceModifierData *)smd;
+  WhiteBalanceModifierData *cbmd = reinterpret_cast<WhiteBalanceModifierData *>(smd);
   copy_v3_fl(cbmd->white_value, 1.0f);
 }
 
@@ -64,7 +64,7 @@ struct WhiteBalanceApplyOp {
 
 static void whiteBalance_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
-  const WhiteBalanceModifierData *data = (const WhiteBalanceModifierData *)smd;
+  const WhiteBalanceModifierData *data = reinterpret_cast<const WhiteBalanceModifierData *>(smd);
 
   WhiteBalanceApplyOp op;
   op.multiplier[0] = (data->white_value[0] != 0.0f) ? 1.0f / data->white_value[0] : FLT_MAX;
@@ -76,7 +76,7 @@ static void whiteBalance_apply(ModifierApplyContext &context, StripModifierData 
 static void whiteBalance_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
   layout.use_property_split_set(true);
 

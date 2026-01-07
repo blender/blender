@@ -20,6 +20,8 @@
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 
+namespace blender {
+
 void BKE_colorband_init(ColorBand *coba, bool rangetype)
 {
   int a;
@@ -299,7 +301,7 @@ ColorBand *BKE_colorband_add(bool rangetype)
 {
   ColorBand *coba;
 
-  coba = MEM_callocN<ColorBand>("colorband");
+  coba = MEM_new_for_free<ColorBand>("colorband");
   BKE_colorband_init(coba, rangetype);
 
   return coba;
@@ -656,3 +658,5 @@ void BKE_colorband_foreach_working_space_color(ColorBand *coba,
     fn.single(&coba->data[a].r);
   }
 }
+
+}  // namespace blender

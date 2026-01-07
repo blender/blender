@@ -10,7 +10,6 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_utf8.h"
 
-#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
 
@@ -30,7 +29,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_trackpos_cc {
+namespace blender {
+
+namespace nodes::node_composite_trackpos_cc {
 
 NODE_STORAGE_FUNCS(NodeTrackPosData)
 
@@ -77,9 +78,9 @@ static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
 
-  NodeTrackPosData *data = MEM_callocN<NodeTrackPosData>(__func__);
+  NodeTrackPosData *data = MEM_new_for_free<NodeTrackPosData>(__func__);
   node->storage = data;
 
   const Scene *scene = CTX_data_scene(C);
@@ -101,12 +102,12 @@ static void init(const bContext *C, PointerRNA *ptr)
 
 static void node_composit_buts_trackpos(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
 
-  uiTemplateID(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
+  template_id(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 
   if (node->id) {
-    MovieClip *clip = (MovieClip *)node->id;
+    MovieClip *clip = id_cast<MovieClip *>(node->id);
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *tracking_object;
     NodeTrackPosData *data = (NodeTrackPosData *)node->storage;
@@ -123,7 +124,7 @@ static void node_composit_buts_trackpos(ui::Layout &layout, bContext *C, Pointer
       col.prop_search(ptr, "track_name", &object_ptr, "tracks", "", ICON_ANIM_DATA);
     }
     else {
-      layout.prop(ptr, "track_name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_ANIM_DATA);
+      layout.prop(ptr, "track_name", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_ANIM_DATA);
     }
   }
 }
@@ -299,20 +300,20 @@ class TrackPositionOperation : public NodeOperation {
     MovieTracking *movie_tracking = &movie_clip->tracking;
 
     MovieTrackingObject *movie_tracking_object = BKE_tracking_object_get_named(
-        movie_tracking, node_storage(bnode()).tracking_object);
+        movie_tracking, node_storage(node()).tracking_object);
     if (!movie_tracking_object) {
       return nullptr;
     }
 
     return BKE_tracking_object_find_track_with_name(movie_tracking_object,
-                                                    node_storage(bnode()).track_name);
+                                                    node_storage(node()).track_name);
   }
 
   /* Get the size of the movie clip at the evaluation frame. This is constant for all frames in
    * most cases. */
   int2 get_size()
   {
-    MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+    MovieClipUser user = {};
     BKE_movieclip_user_set_frame(&user, get_frame());
 
     int2 size;
@@ -325,7 +326,7 @@ class TrackPositionOperation : public NodeOperation {
    * added to the current scene frame. See the get_mode() method for more information. */
   int get_relative_frame()
   {
-    return this->get_input("Frame").get_single_value_default(0);
+    return this->get_input("Frame").get_single_value_default<int>();
   }
 
   /* Get the frame where the marker will be retrieved. This is the absolute frame for the absolute
@@ -343,20 +344,18 @@ class TrackPositionOperation : public NodeOperation {
    * will be retrieved. See the get_mode() method for more information. */
   int get_absolute_frame()
   {
-    return this->get_input("Frame").get_single_value_default(0);
+    return this->get_input("Frame").get_single_value_default<int>();
   }
 
   CMPNodeTrackPositionMode get_mode()
   {
-    const Result &input = this->get_input("Mode");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_TRACK_POSITION_ABSOLUTE);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeTrackPositionMode>(menu_value.value);
+    return CMPNodeTrackPositionMode(
+        this->get_input("Mode").get_single_value_default<MenuValue>().value);
   }
 
   MovieClip *get_movie_clip()
   {
-    return (MovieClip *)bnode().id;
+    return id_cast<MovieClip *>(node().id);
   }
 };
 
@@ -365,13 +364,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new TrackPositionOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_trackpos_cc
+}  // namespace nodes::node_composite_trackpos_cc
 
 static void register_node_type_cmp_trackpos()
 {
-  namespace file_ns = blender::nodes::node_composite_trackpos_cc;
+  namespace file_ns = nodes::node_composite_trackpos_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeTrackPos", CMP_NODE_TRACKPOS);
   ntype.ui_name = "Track Position";
@@ -382,10 +381,12 @@ static void register_node_type_cmp_trackpos()
   ntype.declare = file_ns::cmp_node_trackpos_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_trackpos;
   ntype.initfunc_api = file_ns::init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_trackpos)
+
+}  // namespace blender

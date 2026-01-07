@@ -11,32 +11,34 @@
 #include "gpu_backend.hh"
 #include "gpu_debug_private.hh"
 
-void GPU_compute_dispatch(blender::gpu::Shader *shader,
+namespace blender {
+
+void GPU_compute_dispatch(gpu::Shader *shader,
                           uint groups_x_len,
                           uint groups_y_len,
                           uint groups_z_len,
-                          const blender::gpu::shader::SpecializationConstants *constants_state)
+                          const gpu::shader::SpecializationConstants *constants_state)
 {
-  blender::gpu::GPUBackend &gpu_backend = *blender::gpu::GPUBackend::get();
+  gpu::GPUBackend &gpu_backend = *gpu::GPUBackend::get();
   GPU_shader_bind(shader, constants_state);
 #ifndef NDEBUG
-  blender::gpu::debug_validate_binding_image_format();
+  gpu::debug_validate_binding_image_format();
 #endif
   gpu_backend.compute_dispatch(groups_x_len, groups_y_len, groups_z_len);
 }
 
-void GPU_compute_dispatch_indirect(
-    blender::gpu::Shader *shader,
-    blender::gpu::StorageBuf *indirect_buf_,
-    const blender::gpu::shader::SpecializationConstants *constants_state)
+void GPU_compute_dispatch_indirect(gpu::Shader *shader,
+                                   gpu::StorageBuf *indirect_buf_,
+                                   const gpu::shader::SpecializationConstants *constants_state)
 {
-  blender::gpu::GPUBackend &gpu_backend = *blender::gpu::GPUBackend::get();
-  blender::gpu::StorageBuf *indirect_buf = reinterpret_cast<blender::gpu::StorageBuf *>(
-      indirect_buf_);
+  gpu::GPUBackend &gpu_backend = *gpu::GPUBackend::get();
+  gpu::StorageBuf *indirect_buf = reinterpret_cast<gpu::StorageBuf *>(indirect_buf_);
 
   GPU_shader_bind(shader, constants_state);
 #ifndef NDEBUG
-  blender::gpu::debug_validate_binding_image_format();
+  gpu::debug_validate_binding_image_format();
 #endif
   gpu_backend.compute_dispatch_indirect(indirect_buf);
 }
+
+}  // namespace blender

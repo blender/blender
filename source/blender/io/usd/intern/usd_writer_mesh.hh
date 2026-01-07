@@ -9,13 +9,15 @@
 
 #include <pxr/usd/usdGeom/mesh.h>
 
+namespace blender {
+
 struct SubsurfModifierData;
 
-namespace blender::bke {
+namespace bke {
 class AttributeIter;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::io::usd {
+namespace io::usd {
 
 struct USDMeshData;
 
@@ -81,4 +83,5 @@ class USDMeshWriter : public USDGenericMeshWriter {
   void add_shape_key_weights_sample(const Object *obj);
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

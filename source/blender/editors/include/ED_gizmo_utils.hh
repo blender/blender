@@ -10,6 +10,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct bContext;
 struct wmGizmoGroupType;
 
@@ -24,3 +26,5 @@ bool ED_gizmo_poll_or_unlink_delayed_from_tool_ex(const bContext *C,
 
 /** Use this as poll function directly for: #wmGizmoGroupType.poll */
 bool ED_gizmo_poll_or_unlink_delayed_from_tool(const bContext *C, wmGizmoGroupType *gzgt);
+
+}  // namespace blender

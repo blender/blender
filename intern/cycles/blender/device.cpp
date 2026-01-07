@@ -6,6 +6,9 @@
 #include "blender/session.h"
 #include "blender/util.h"
 
+#include "BKE_scene.hh"
+#include "RNA_prototypes.hh"
+
 CCL_NAMESPACE_BEGIN
 
 enum ComputeDevice {
@@ -19,18 +22,18 @@ enum ComputeDevice {
   COMPUTE_DEVICE_NUM
 };
 
-int blender_device_threads(BL::Scene &b_scene)
+int blender_device_threads(blender::Scene &b_scene)
 {
-  BL::RenderSettings b_r = b_scene.render();
-
-  if (b_r.threads_mode() == BL::RenderSettings::threads_mode_FIXED) {
-    return b_r.threads();
+  blender::RenderData &b_r = b_scene.r;
+  int threads_override = blender::BLI_system_num_threads_override_get();
+  if (threads_override > 0 || (b_r.mode & blender::R_FIXED_THREADS) != 0) {
+    return BKE_render_num_threads(&b_r);
   }
 
   return 0;
 }
 
-static void adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpreferences)
+static void adjust_device_info_from_preferences(DeviceInfo &info, blender::PointerRNA cpreferences)
 {
   if (!get_boolean(cpreferences, "peer_memory")) {
     info.has_peer_memory = false;
@@ -58,7 +61,7 @@ static void adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpr
   }
 }
 
-static void adjust_device_info(DeviceInfo &device, PointerRNA cpreferences, bool preview)
+static void adjust_device_info(DeviceInfo &device, blender::PointerRNA cpreferences, bool preview)
 {
   adjust_device_info_from_preferences(device, cpreferences);
   for (DeviceInfo &info : device.multi_devices) {
@@ -78,19 +81,22 @@ static void adjust_device_info(DeviceInfo &device, PointerRNA cpreferences, bool
   }
 }
 
-DeviceInfo blender_device_info(BL::Preferences &b_preferences,
-                               BL::Scene &b_scene,
+DeviceInfo blender_device_info(blender::UserDef &b_preferences,
+                               blender::Scene &b_scene,
                                bool background,
                                bool preview,
                                DeviceInfo &preferences_device)
 {
-  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene.id);
+  blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
 
   /* Find cycles preferences. */
-  PointerRNA cpreferences;
-  for (BL::Addon &b_addon : b_preferences.addons) {
-    if (b_addon.module() == "cycles") {
-      cpreferences = b_addon.preferences().ptr;
+  blender::PointerRNA cpreferences;
+  for (blender::bAddon &b_addon : b_preferences.addons) {
+    if (STREQ(b_addon.module, "cycles")) {
+      blender::PointerRNA addon_rna_ptr = RNA_pointer_create_discrete(
+          nullptr, &blender::RNA_Addon, &b_addon);
+      cpreferences = RNA_pointer_get(&addon_rna_ptr, "preferences");
       break;
     }
   }
@@ -127,7 +133,11 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
 
     /* Match device preferences and available devices. */
     vector<DeviceInfo> used_devices;
-    RNA_BEGIN (&cpreferences, device, "devices") {
+    blender::CollectionPropertyIterator rna_iter;
+    for (RNA_collection_begin(&cpreferences, "devices", &rna_iter); rna_iter.valid;
+         RNA_property_collection_next(&rna_iter))
+    {
+      blender::PointerRNA device = rna_iter.ptr;
       if (get_boolean(device, "use")) {
         const string id = get_string(device, "id");
         for (const DeviceInfo &info : devices) {
@@ -138,7 +148,7 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
         }
       }
     }
-    RNA_END;
+    blender::RNA_property_collection_end(&rna_iter);
 
     if (!used_devices.empty()) {
       const int threads = blender_device_threads(b_scene);

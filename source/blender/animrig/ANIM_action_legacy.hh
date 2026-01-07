@@ -55,7 +55,7 @@ Channelbag &channelbag_ensure(Action &action);
  * inspected to see if this is _really_ the desired behavior, or whether the
  * F-Curves for a specific slot/layer/strip should be used instead.
  *
- * \see #blender::animrig::legacy::fcurves_for_action_slot
+ * \see #animrig::legacy::fcurves_for_action_slot
  */
 Vector<const FCurve *> fcurves_all(const bAction *action);
 Vector<FCurve *> fcurves_all(bAction *action);
@@ -75,10 +75,10 @@ Vector<FCurve *> fcurves_first_slot(bAction *action);
  *
  * The use of this function is an indicator for code that can be simplified when the slotted
  * Actions feature is no longer experimental. When that switchover happens, calls to this function
- * can be replaced with the more efficient `blender::animrig::fcurves_for_action_slot()`.
+ * can be replaced with the more efficient `animrig::fcurves_for_action_slot()`.
  *
- * \see #blender::animrig::fcurves_for_action_slot
- * \see #blender::animrig::legacy::fcurves_all
+ * \see #animrig::fcurves_for_action_slot
+ * \see #animrig::legacy::fcurves_all
  */
 Vector<FCurve *> fcurves_for_action_slot(bAction *action, slot_handle_t slot_handle);
 Vector<const FCurve *> fcurves_for_action_slot(const bAction *action, slot_handle_t slot_handle);
@@ -111,7 +111,7 @@ bool assigned_action_has_keyframes(AnimData *adt);
  * This works for both legacy and layered Actions. For the latter, it will
  * return all channel groups for all slots/layers/strips.
  *
- * \see #blender::animrig::legacy::channel_groups_for_assigned_slot
+ * \see #animrig::legacy::channel_groups_for_assigned_slot
  */
 Vector<bActionGroup *> channel_groups_all(bAction *action);
 
@@ -121,7 +121,7 @@ Vector<bActionGroup *> channel_groups_all(bAction *action);
  * This works for both legacy and layered Actions. For the former, this function
  * acts identical to channel_groups_all().
  *
- * \see #blender::animrig::legacy::channel_groups_all
+ * \see #animrig::legacy::channel_groups_all
  */
 Vector<bActionGroup *> channel_groups_for_assigned_slot(AnimData *adt);
 

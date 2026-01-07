@@ -15,6 +15,8 @@
 #include "bmesh_tools.hh"
 #include "intern/bmesh_operators_private.hh"
 
+namespace blender {
+
 #define ELE_NEW 1
 #define FACE_MARK 2
 
@@ -67,3 +69,5 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_EDGE | BM_FACE, ELE_NEW);
 }
+
+}  // namespace blender

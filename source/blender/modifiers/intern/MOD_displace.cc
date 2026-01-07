@@ -14,7 +14,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -45,20 +44,19 @@
 
 #include "RE_texture.h"
 
+namespace blender {
+
 /* Displace */
 
 static void init_data(ModifierData *md)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(dmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(dmd, DNA_struct_default_get(DisplaceModifierData), modifier);
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(dmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (dmd->defgrp_name[0] != '\0') {
@@ -73,7 +71,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
 
   if (dmd->texture) {
     return BKE_texture_dependsOnTime(dmd->texture);
@@ -84,10 +82,10 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&dmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&dmd->map_object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&dmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&dmd->map_object), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -99,13 +97,13 @@ static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, voi
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
   return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+  DisplaceModifierData *dmd = reinterpret_cast<DisplaceModifierData *>(md);
   bool need_transform_relation = false;
 
   if (dmd->space == MOD_DISP_SPACE_GLOBAL &&
@@ -143,16 +141,16 @@ struct DisplaceUserdata {
   bool use_global_direction;
   Tex *tex_target;
   float (*tex_co)[3];
-  blender::MutableSpan<blender::float3> positions;
+  MutableSpan<float3> positions;
   float local_mat[4][4];
-  blender::Span<blender::float3> vert_normals;
+  Span<float3> vert_normals;
 };
 
 static void displaceModifier_do_task(void *__restrict userdata,
                                      const int iter,
                                      const TaskParallelTLS *__restrict /*tls*/)
 {
-  DisplaceUserdata *data = (DisplaceUserdata *)userdata;
+  DisplaceUserdata *data = static_cast<DisplaceUserdata *>(userdata);
   DisplaceModifierData *dmd = data->dmd;
   const MDeformVert *dvert = data->dvert;
   const bool invert_vgroup = (dmd->flag & MOD_DISP_INVERT_VGROUP) != 0;
@@ -161,7 +159,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
   int direction = data->direction;
   bool use_global_direction = data->use_global_direction;
   float (*tex_co)[3] = data->tex_co;
-  blender::MutableSpan<blender::float3> positions = data->positions;
+  MutableSpan<float3> positions = data->positions;
 
   /* When no texture is used, we fall back to white. */
   const float delta_fixed = 1.0f - dmd->midlevel;
@@ -245,7 +243,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
 static void displaceModifier_do(DisplaceModifierData *dmd,
                                 const ModifierEvalContext *ctx,
                                 Mesh *mesh,
-                                blender::MutableSpan<blender::float3> positions)
+                                MutableSpan<float3> positions)
 {
   Object *ob = ctx->object;
   const MDeformVert *dvert;
@@ -272,14 +270,14 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   Tex *tex_target = dmd->texture;
   if (tex_target != nullptr) {
     tex_co = MEM_calloc_arrayN<float[3]>(positions.size(), "displaceModifier_do tex_co");
-    MOD_get_texture_coords((MappingInfoModifierData *)dmd,
+    MOD_get_texture_coords(reinterpret_cast<MappingInfoModifierData *>(dmd),
                            ctx,
                            ob,
                            mesh,
                            reinterpret_cast<float (*)[3]>(positions.data()),
                            tex_co);
 
-    MOD_init_texture((MappingInfoModifierData *)dmd, ctx);
+    MOD_init_texture(reinterpret_cast<MappingInfoModifierData *>(dmd), ctx);
   }
   else {
     tex_co = nullptr;
@@ -328,14 +326,14 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
-  displaceModifier_do((DisplaceModifierData *)md, ctx, mesh, positions);
+  displaceModifier_do(reinterpret_cast<DisplaceModifierData *>(md), ctx, mesh, positions);
 }
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -348,9 +346,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  uiTemplateID(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
-  blender::ui::Layout *col = &layout.column(false);
+  ui::Layout *col = &layout.column(false);
   col->active_set(has_texture);
   col->prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
@@ -436,3 +434,5 @@ ModifierTypeInfo modifierType_Displace = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

@@ -50,6 +50,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /**
  * Convert glyph coverage amounts to lightness values. Uses a LUT that perceptually improves
  * anti-aliasing and results in text that looks a bit fuller and slightly brighter. This should
@@ -66,7 +68,7 @@
  */
 static FT_Fixed to_16dot16(const double val)
 {
-  return (FT_Fixed)lround(val * 65536.0);
+  return FT_Fixed(lround(val * 65536.0));
 }
 
 /**
@@ -231,19 +233,19 @@ static GlyphBLF *blf_glyph_cache_add_glyph(GlyphCacheBLF *gc,
   std::unique_ptr<GlyphBLF> g = std::make_unique<GlyphBLF>();
   g->c = charcode;
   g->idx = glyph_index;
-  g->advance_x = (ft_pix)glyph->advance.x;
+  g->advance_x = ft_pix(glyph->advance.x);
   g->subpixel = subpixel;
 
   FT_BBox bbox;
   FT_Outline_Get_CBox(&(glyph->outline), &bbox);
-  g->box_xmin = (ft_pix)bbox.xMin;
-  g->box_xmax = (ft_pix)bbox.xMax;
-  g->box_ymin = (ft_pix)bbox.yMin;
-  g->box_ymax = (ft_pix)bbox.yMax;
+  g->box_xmin = ft_pix(bbox.xMin);
+  g->box_xmax = ft_pix(bbox.xMax);
+  g->box_ymin = ft_pix(bbox.yMin);
+  g->box_ymax = ft_pix(bbox.yMax);
 
   /* Used to improve advance when hinting is enabled. */
-  g->lsb_delta = (ft_pix)glyph->lsb_delta;
-  g->rsb_delta = (ft_pix)glyph->rsb_delta;
+  g->lsb_delta = ft_pix(glyph->lsb_delta);
+  g->rsb_delta = ft_pix(glyph->rsb_delta);
 
   if (glyph->format == FT_GLYPH_FORMAT_BITMAP) {
     /* This has been rendered and we have a bitmap. */
@@ -353,11 +355,10 @@ static GlyphBLF *blf_glyph_cache_add_blank(GlyphCacheBLF *gc, const uint charcod
   return result;
 }
 
-static GlyphBLF *blf_glyph_cache_add_svg(
-    GlyphCacheBLF *gc,
-    const uint charcode,
-    const bool color,
-    blender::FunctionRef<void(std::string &)> edit_source_cb = nullptr)
+static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc,
+                                         const uint charcode,
+                                         const bool color,
+                                         FunctionRef<void(std::string &)> edit_source_cb = nullptr)
 {
   std::string svg_source = blf_get_icon_svg(int(charcode) - BLF_ICON_OFFSET);
   if (edit_source_cb) {
@@ -386,7 +387,7 @@ static GlyphBLF *blf_glyph_cache_add_svg(
   const int dest_h = int(ceil(image->height * scale));
   scale = float(dest_w) / image->width;
 
-  blender::Array<uchar> render_bmp(dest_w * dest_h * 4);
+  Array<uchar> render_bmp(dest_w * dest_h * 4);
 
   nsvgRasterize(rast, image, 0.0f, 0.0f, scale, render_bmp.data(), dest_w, dest_h, dest_w * 4);
   nsvgDeleteRasterizer(rast);
@@ -790,8 +791,8 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     return glyph_index;
   }
 
-  /* Fonts managed by the cache can fallback. Unless specifically forbidden. */
-  if (!((*font)->flags & BLF_CACHED) || ((*font)->flags & BLF_NO_FALLBACK)) {
+  /* Fallback disabled. */
+  if ((*font)->flags & BLF_NO_FALLBACK) {
     return 0;
   }
 
@@ -975,11 +976,11 @@ static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
   FT_Fixed value = axis->def;
   if (factor > 0) {
     /* Map 0-1 to axis->def - axis->maximum */
-    value += (FT_Fixed)(double(axis->maximum - axis->def) * factor);
+    value += FT_Fixed(double(axis->maximum - axis->def) * factor);
   }
   else if (factor < 0) {
     /* Map -1-0 to axis->minimum - axis->def */
-    value += (FT_Fixed)(double(axis->def - axis->minimum) * factor);
+    value += FT_Fixed(double(axis->def - axis->minimum) * factor);
   }
   return value;
 }
@@ -1140,10 +1141,10 @@ static bool blf_glyph_set_variation_optical_size(const FontBLF *font,
 static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float width, bool monospaced)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
-    const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+    const FontBLF *font = static_cast<FontBLF *>(glyph->face->generic.data);
     const FT_Pos average_width = font->ft_size->metrics.height;
     float factor = width * 0.000225f;
-    FT_Pos change = (FT_Pos)(float(average_width) * factor);
+    FT_Pos change = FT_Pos(float(average_width) * factor);
     FT_Outline_EmboldenXY(&glyph->outline, change, 0);
     if (monospaced) {
       /* Widened fixed-pitch font needs a nudge left. */
@@ -1171,9 +1172,9 @@ static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float degrees)
     FT_Outline_Transform(&glyph->outline, &transform);
     if (degrees < 0.0f) {
       /* Leftward slant could interfere with prior characters to nudge right. */
-      const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+      const FontBLF *font = static_cast<FontBLF *>(glyph->face->generic.data);
       const FT_Pos average_width = font->ft_size->metrics.height;
-      FT_Pos change = (FT_Pos)(float(average_width) * degrees * -0.01f);
+      FT_Pos change = FT_Pos(float(average_width) * degrees * -0.01f);
       FT_Outline_Translate(&glyph->outline, change, 0);
     }
     return true;
@@ -1193,7 +1194,7 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
     float scale = factor + 1.0f;
     FT_Matrix matrix = {to_16dot16(scale), 0, 0, to_16dot16(1)};
     FT_Outline_Transform(&glyph->outline, &matrix);
-    glyph->advance.x = (FT_Pos)(double(glyph->advance.x) * scale);
+    glyph->advance.x = FT_Pos(double(glyph->advance.x) * scale);
     return true;
   }
   return false;
@@ -1208,9 +1209,9 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
 static bool blf_glyph_transform_spacing(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->advance.x > 0) {
-    const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+    const FontBLF *font = static_cast<FontBLF *>(glyph->face->generic.data);
     const long int size = font->ft_size->metrics.height;
-    glyph->advance.x += (FT_Pos)(factor * float(size) / 6.0f);
+    glyph->advance.x += FT_Pos(factor * float(size) / 6.0f);
     return true;
   }
   return false;
@@ -1227,7 +1228,7 @@ static bool blf_glyph_transform_monospace(FT_GlyphSlot glyph, int width)
     FT_Fixed current = glyph->linearHoriAdvance;
     FT_Fixed target = FT_Fixed(width) << 16; /* Do math in 16.16 values. */
     if (target < current) {
-      const FT_Pos embolden = (FT_Pos)((current - target) >> 13);
+      const FT_Pos embolden = FT_Pos((current - target) >> 13);
       /* Horizontally widen strokes to counteract narrowing. */
       FT_Outline_EmboldenXY(&glyph->outline, embolden, 0);
       const float scale = float(target - (embolden << 9)) / float(current);
@@ -1236,7 +1237,7 @@ static bool blf_glyph_transform_monospace(FT_GlyphSlot glyph, int width)
     }
     else if (target > current) {
       /* Center narrow glyphs. */
-      FT_Outline_Translate(&glyph->outline, (FT_Pos)((target - current) >> 11), 0);
+      FT_Outline_Translate(&glyph->outline, FT_Pos((target - current) >> 11), 0);
     }
     glyph->advance.x = width << 6;
     return true;
@@ -1334,7 +1335,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
     return glyph;
   }
 
-  FT_Outline_Translate(&glyph->outline, (FT_Pos)subpixel, 0);
+  FT_Outline_Translate(&glyph->outline, FT_Pos(subpixel), 0);
 
   if (blf_glyph_render_bitmap(glyph_font, glyph)) {
     return glyph;
@@ -1391,7 +1392,7 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
 GlyphBLF *blf_glyph_ensure_icon(GlyphCacheBLF *gc,
                                 const uint icon_id,
                                 bool color,
-                                blender::FunctionRef<void(std::string &)> edit_source_cb)
+                                FunctionRef<void(std::string &)> edit_source_cb)
 {
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, icon_id + BLF_ICON_OFFSET, 0);
   if (g) {
@@ -1476,7 +1477,6 @@ static void blf_texture_draw(const GlyphBLF *g,
                              const int x2,
                              const int y2)
 {
-  using namespace blender;
   BLI_assert(size_t(g_batch.glyph_len) < ARRAY_SIZE(g_batch.glyph_data));
   GlyphQuad &glyph_data = g_batch.glyph_data[g_batch.glyph_len++];
   /* One vertex per glyph, instancing expands it into a quad. */
@@ -1522,13 +1522,8 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
       if (gc->texture) {
         GPU_texture_free(gc->texture);
       }
-      gc->texture = GPU_texture_create_2d(__func__,
-                                          w,
-                                          h,
-                                          1,
-                                          blender::gpu::TextureFormat::UNORM_8,
-                                          GPU_TEXTURE_USAGE_SHADER_READ,
-                                          nullptr);
+      gc->texture = GPU_texture_create_2d(
+          __func__, w, h, 1, gpu::TextureFormat::UNORM_8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
       gc->bitmap_len_landed = 0;
     }
@@ -1669,7 +1664,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
  */
 
 static void blf_glyph_to_curves(const FT_Outline &ftoutline,
-                                ListBase *nurbsbase,
+                                ListBaseT<Nurb> *nurbsbase,
                                 const float scale)
 {
   const float eps = 0.0001f;
@@ -1717,7 +1712,7 @@ static void blf_glyph_to_curves(const FT_Outline &ftoutline,
     contour_prev = ftoutline.contours[j];
 
     /* add new curve */
-    nu = MEM_callocN<Nurb>("objfnt_nurb");
+    nu = MEM_new_for_free<Nurb>("objfnt_nurb");
     bezt = MEM_calloc_arrayN<BezTriple>(size_t(onpoints[j]), "objfnt_bezt");
     BLI_addtail(nurbsbase, nu);
 
@@ -1890,7 +1885,7 @@ static FT_GlyphSlot blf_glyphslot_ensure_outline(FontBLF *font, uint charcode, b
 
 bool blf_character_to_curves(FontBLF *font,
                              uint unicode,
-                             ListBase *nurbsbase,
+                             ListBaseT<Nurb> *nurbsbase,
                              const float scale,
                              bool use_fallback,
                              float *r_advance)
@@ -1907,3 +1902,5 @@ bool blf_character_to_curves(FontBLF *font,
 }
 
 /** \} */
+
+}  // namespace blender

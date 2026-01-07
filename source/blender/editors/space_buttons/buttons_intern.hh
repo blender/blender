@@ -14,6 +14,8 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct ARegionType;
 struct ID;
 struct SpaceProperties;
@@ -64,7 +66,7 @@ struct ButsTextureUser {
 };
 
 struct ButsContextTexture {
-  ListBase users;
+  ListBaseT<ButsTextureUser> users;
 
   struct Tex *texture;
 
@@ -98,3 +100,5 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot);
  */
 void BUTTONS_OT_directory_browse(wmOperatorType *ot);
 void BUTTONS_OT_context_menu(wmOperatorType *ot);
+
+}  // namespace blender

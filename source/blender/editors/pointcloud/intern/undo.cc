@@ -25,9 +25,11 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"undo.pointcloud"};
 
-namespace blender::ed::pointcloud {
+namespace ed::pointcloud {
 namespace undo {
 
 /* -------------------------------------------------------------------- */
@@ -67,7 +69,7 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
     for (const int i : range) {
       Object *ob = objects[i];
       StepObject &object = us->objects[i];
-      const PointCloud &pointcloud = *static_cast<const PointCloud *>(ob->data);
+      const PointCloud &pointcloud = *id_cast<const PointCloud *>(ob->data);
       object.obedit_ref.ptr = ob;
       object.attribute_storage.wrap() = pointcloud.attribute_storage.wrap();
       object.bounds_cache = pointcloud.runtime->bounds_cache;
@@ -99,7 +101,7 @@ static void step_decode(
   BLI_assert(BKE_object_is_in_editmode(us->objects.first().obedit_ref.ptr));
 
   for (const StepObject &object : us->objects) {
-    PointCloud &pointcloud = *static_cast<PointCloud *>(object.obedit_ref.ptr->data);
+    PointCloud &pointcloud = *id_cast<PointCloud *>(object.obedit_ref.ptr->data);
 
     const bool positions_changed = [&]() {
       const bke::Attribute *attr_a = pointcloud.attribute_storage.wrap().lookup("position");
@@ -145,9 +147,11 @@ static void foreach_ID_ref(UndoStep *us_p,
 {
   PointCloudUndoStep *us = reinterpret_cast<PointCloudUndoStep *>(us_p);
 
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->scene_ref)));
   for (const StepObject &object : us->objects) {
-    foreach_ID_ref_fn(user_data, ((UndoRefID *)&object.obedit_ref));
+    foreach_ID_ref_fn(
+        user_data,
+        (reinterpret_cast<UndoRefID *>(const_cast<UndoRefID_Object *>(&object.obedit_ref))));
   }
 }
 
@@ -170,4 +174,5 @@ void undosys_type_register(UndoType *ut)
   ut->step_size = sizeof(undo::PointCloudUndoStep);
 }
 
-}  // namespace blender::ed::pointcloud
+}  // namespace ed::pointcloud
+}  // namespace blender

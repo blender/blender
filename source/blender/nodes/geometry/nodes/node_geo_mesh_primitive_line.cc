@@ -62,7 +62,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryMeshLine *node_storage = MEM_callocN<NodeGeometryMeshLine>(__func__);
+  NodeGeometryMeshLine *node_storage = MEM_new_for_free<NodeGeometryMeshLine>(__func__);
 
   node_storage->mode = GEO_NODE_MESH_LINE_MODE_OFFSET;
   node_storage->count_mode = GEO_NODE_MESH_LINE_COUNT_TOTAL;
@@ -76,9 +76,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *resolution_socket = count_socket->next;
 
   const NodeGeometryMeshLine &storage = node_storage(*node);
-  const GeometryNodeMeshLineMode mode = (GeometryNodeMeshLineMode)storage.mode;
-  const GeometryNodeMeshLineCountMode count_mode = (GeometryNodeMeshLineCountMode)
-                                                       storage.count_mode;
+  const GeometryNodeMeshLineMode mode = GeometryNodeMeshLineMode(storage.mode);
+  const GeometryNodeMeshLineCountMode count_mode = GeometryNodeMeshLineCountMode(
+      storage.count_mode);
 
   bke::node_set_socket_availability(*ntree,
                                     *resolution_socket,
@@ -131,9 +131,9 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryMeshLine &storage = node_storage(params.node());
-  const GeometryNodeMeshLineMode mode = (GeometryNodeMeshLineMode)storage.mode;
-  const GeometryNodeMeshLineCountMode count_mode = (GeometryNodeMeshLineCountMode)
-                                                       storage.count_mode;
+  const GeometryNodeMeshLineMode mode = GeometryNodeMeshLineMode(storage.mode);
+  const GeometryNodeMeshLineCountMode count_mode = GeometryNodeMeshLineCountMode(
+      storage.count_mode);
 
   Mesh *mesh = nullptr;
   const float3 start = params.extract_input<float3>("Start Location");
@@ -222,7 +222,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeMeshLine", GEO_NODE_MESH_PRIMITIVE_LINE);
   ntype.ui_name = "Mesh Line";
@@ -231,13 +231,13 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.updatefunc = node_update;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

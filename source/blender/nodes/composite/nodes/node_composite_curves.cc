@@ -27,9 +27,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** CURVE Time  ******************** */
 
-namespace blender::nodes::node_composite_time_curves_cc {
+namespace nodes::node_composite_time_curves_cc {
 
 static void cmp_node_time_declare(NodeDeclarationBuilder &b)
 {
@@ -80,17 +82,17 @@ class TimeCurveOperation : public NodeOperation {
 
   int get_start_frame()
   {
-    return this->get_input("Start Frame").get_single_value_default(1);
+    return this->get_input("Start Frame").get_single_value_default<int>();
   }
 
   int get_end_frame()
   {
-    return this->get_input("End Frame").get_single_value_default(250);
+    return this->get_input("End Frame").get_single_value_default<int>();
   }
 
   const CurveMapping *get_curve_mapping()
   {
-    return static_cast<const CurveMapping *>(bnode().storage);
+    return static_cast<const CurveMapping *>(node().storage);
   }
 };
 
@@ -99,13 +101,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new TimeCurveOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_time_curves_cc
+}  // namespace nodes::node_composite_time_curves_cc
 
 static void register_node_type_cmp_curve_time()
 {
-  namespace file_ns = blender::nodes::node_composite_time_curves_cc;
+  namespace file_ns = nodes::node_composite_time_curves_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeTime", CMP_NODE_TIME);
   ntype.ui_name = "Time Curve";
@@ -115,18 +117,18 @@ static void register_node_type_cmp_curve_time()
   ntype.enum_name_legacy = "TIME";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_time_declare;
-  blender::bke::node_type_size(ntype, 200, 140, 320);
+  bke::node_type_size(ntype, 200, 140, 320);
   ntype.initfunc = file_ns::node_composit_init_curves_time;
-  blender::bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_curve_time)
 
 /* **************** CURVE RGB  ******************** */
 
-namespace blender::nodes::node_composite_rgb_curves_cc {
+namespace nodes::node_composite_rgb_curves_cc {
 
 static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
 {
@@ -252,9 +254,9 @@ static float4 curves_rgba(const CurveMapping *curve_mapping,
   return float4(math::interpolate(color.xyz(), result, math::clamp(factor, 0.0f, 1.0f)), color.w);
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   CurveMapping *curve_mapping = get_curve_mapping(builder.node());
   BKE_curvemapping_init(curve_mapping);
@@ -275,13 +277,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   });
 }
 
-}  // namespace blender::nodes::node_composite_rgb_curves_cc
+}  // namespace nodes::node_composite_rgb_curves_cc
 
 static void register_node_type_cmp_curve_rgb()
 {
-  namespace file_ns = blender::nodes::node_composite_rgb_curves_cc;
+  namespace file_ns = nodes::node_composite_rgb_curves_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeCurveRGB", CMP_NODE_CURVE_RGB);
   ntype.ui_name = "RGB Curves";
@@ -289,12 +291,14 @@ static void register_node_type_cmp_curve_rgb()
   ntype.enum_name_legacy = "CURVE_RGB";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_rgbcurves_declare;
-  blender::bke::node_type_size(ntype, 200, 140, 320);
+  bke::node_type_size(ntype, 200, 140, 320);
   ntype.initfunc = file_ns::node_composit_init_curve_rgb;
-  blender::bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_curve_rgb)
+
+}  // namespace blender

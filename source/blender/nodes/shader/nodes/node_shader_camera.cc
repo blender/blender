@@ -8,7 +8,9 @@
 
 #include "node_shader_util.hh"
 
-namespace blender::nodes::node_shader_camera_cc {
+namespace blender {
+
+namespace nodes::node_shader_camera_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -35,13 +37,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_camera_cc
+}  // namespace nodes::node_shader_camera_cc
 
 void register_node_type_sh_camera()
 {
-  namespace file_ns = blender::nodes::node_shader_camera_cc;
+  namespace file_ns = nodes::node_shader_camera_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeCameraData", SH_NODE_CAMERA);
   ntype.ui_name = "Camera Data";
@@ -54,5 +56,7 @@ void register_node_type_sh_camera()
   ntype.gpu_fn = file_ns::gpu_shader_camera;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

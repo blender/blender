@@ -10,10 +10,12 @@
 
 #include "BKE_node_runtime.hh"
 
+namespace blender {
+
 struct bNode;
 struct bNodeSocket;
 
-namespace blender::nodes {
+namespace nodes {
 
 struct NodeInContext;
 struct SocketInContext;
@@ -187,4 +189,5 @@ inline TreeInContext::operator bool() const
 
 /** \} */
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

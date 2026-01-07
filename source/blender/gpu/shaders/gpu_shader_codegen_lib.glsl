@@ -253,7 +253,7 @@ float3 dF_impl(float3 v)
   return float3(0.0f);
 }
 
-void dF_branch(float fn, out float2 result)
+void dF_branch(float fn, float2 &result)
 {
   /* NOTE: this function is currently unused, once it is used we need to check if
    * `g_derivative_filter_width` needs to be applied. */

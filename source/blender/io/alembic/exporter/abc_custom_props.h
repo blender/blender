@@ -15,9 +15,11 @@
 
 #include <string>
 
+namespace blender {
+
 struct IDProperty;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 class ABCAbstractWriter;
 
@@ -78,4 +80,5 @@ class CustomPropertiesExporter {
   Alembic::Abc::OArrayProperty create_abc_property(StringRef property_name);
 };
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

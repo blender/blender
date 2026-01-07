@@ -92,45 +92,45 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
   void draw_top_row_cell(int column_index, const CellDrawParams &params) const final
   {
     const StringRefNull name = spreadsheet_layout_.columns[column_index].values->name();
-    uiBut *but = uiDefIconTextBut(params.block,
-                                  ButType::Label,
-                                  ICON_NONE,
-                                  name,
-                                  params.xmin,
-                                  params.ymin,
-                                  params.width,
-                                  params.height,
-                                  nullptr,
-                                  std::nullopt);
-    UI_but_func_tooltip_set(
+    ui::Button *but = uiDefIconTextBut(params.block,
+                                       ui::ButtonType::Label,
+                                       ICON_NONE,
+                                       name,
+                                       params.xmin,
+                                       params.ymin,
+                                       params.width,
+                                       params.height,
+                                       nullptr,
+                                       std::nullopt);
+    button_func_tooltip_set(
         but,
-        [](bContext * /*C*/, void *arg, blender::StringRef /*tip*/) {
+        [](bContext * /*C*/, void *arg, StringRef /*tip*/) {
           return *static_cast<std::string *>(arg);
         },
         MEM_new<std::string>(__func__, name),
         [](void *arg) { MEM_delete(static_cast<std::string *>(arg)); });
     /* Center-align column headers. */
-    UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-    UI_but_drawflag_disable(but, UI_BUT_TEXT_RIGHT);
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+    button_drawflag_disable(but, ui::BUT_TEXT_RIGHT);
   }
 
   void draw_left_column_cell(int row_index, const CellDrawParams &params) const final
   {
     const int real_index = spreadsheet_layout_.row_indices[row_index];
     std::string index_str = std::to_string(real_index);
-    uiBut *but = uiDefIconTextBut(params.block,
-                                  ButType::Label,
-                                  ICON_NONE,
-                                  index_str,
-                                  params.xmin,
-                                  params.ymin,
-                                  params.width,
-                                  params.height,
-                                  nullptr,
-                                  std::nullopt);
+    ui::Button *but = uiDefIconTextBut(params.block,
+                                       ui::ButtonType::Label,
+                                       ICON_NONE,
+                                       index_str,
+                                       params.xmin,
+                                       params.ymin,
+                                       params.width,
+                                       params.height,
+                                       nullptr,
+                                       std::nullopt);
     /* Right-align indices. */
-    UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
-    UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+    button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
   }
 
   void draw_content_cell(int row_index, int column_index, const CellDrawParams &params) const final
@@ -165,19 +165,19 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     if (type.is<int8_t>()) {
       const int8_t value = *value_ptr.get<int8_t>();
       const std::string value_str = std::to_string(value);
-      uiBut *but = uiDefIconTextBut(params.block,
-                                    ButType::Label,
-                                    ICON_NONE,
-                                    value_str,
-                                    params.xmin,
-                                    params.ymin,
-                                    params.width,
-                                    params.height,
-                                    nullptr,
-                                    std::nullopt);
+      ui::Button *but = uiDefIconTextBut(params.block,
+                                         ui::ButtonType::Label,
+                                         ICON_NONE,
+                                         value_str,
+                                         params.xmin,
+                                         params.ymin,
+                                         params.width,
+                                         params.height,
+                                         nullptr,
+                                         std::nullopt);
       /* Right-align Integers. */
-      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
       return;
     }
     if (type.is<short2>()) {
@@ -200,42 +200,42 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       std::stringstream ss;
       ss << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
-      uiBut *but = uiDefIconTextBut(params.block,
-                                    ButType::Label,
-                                    ICON_NONE,
-                                    value_str,
-                                    params.xmin,
-                                    params.ymin,
-                                    params.width,
-                                    params.height,
-                                    nullptr,
-                                    std::nullopt);
-      UI_but_func_tooltip_set(
+      ui::Button *but = uiDefIconTextBut(params.block,
+                                         ui::ButtonType::Label,
+                                         ICON_NONE,
+                                         value_str,
+                                         params.xmin,
+                                         params.ymin,
+                                         params.width,
+                                         params.height,
+                                         nullptr,
+                                         std::nullopt);
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-            return fmt::format("{:f}", *((float *)argN));
+            return fmt::format("{:f}", *(static_cast<float *>(argN)));
           },
           MEM_dupallocN<float>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
-      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
       return;
     }
     if (type.is<bool>()) {
       const bool value = *value_ptr.get<bool>();
       const int icon = value ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
-      uiBut *but = uiDefIconTextBut(params.block,
-                                    ButType::Label,
-                                    icon,
-                                    "",
-                                    params.xmin,
-                                    params.ymin,
-                                    params.width,
-                                    params.height,
-                                    nullptr,
-                                    std::nullopt);
-      UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
+      ui::Button *but = uiDefIconTextBut(params.block,
+                                         ui::ButtonType::Label,
+                                         icon,
+                                         "",
+                                         params.xmin,
+                                         params.ymin,
+                                         params.width,
+                                         params.height,
+                                         nullptr,
+                                         std::nullopt);
+      button_drawflag_disable(but, ui::BUT_ICON_LEFT);
       return;
     }
     if (type.is<float2>()) {
@@ -272,7 +272,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const StringRefNull name = value.name().is_empty() ? IFACE_("(Geometry)") : value.name();
       const int icon = get_instance_reference_icon(value);
       uiDefIconTextBut(params.block,
-                       ButType::Label,
+                       ui::ButtonType::Label,
                        icon,
                        name.c_str(),
                        params.xmin,
@@ -285,7 +285,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     }
     if (type.is<std::string>()) {
       uiDefIconTextBut(params.block,
-                       ButType::Label,
+                       ui::ButtonType::Label,
                        ICON_NONE,
                        *value_ptr.get<std::string>(),
                        params.xmin + CELL_PADDING_X,
@@ -299,18 +299,18 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     if (type.is<MStringProperty>()) {
       MStringProperty *prop = MEM_callocN<MStringProperty>(__func__);
       *prop = *value_ptr.get<MStringProperty>();
-      uiBut *but = uiDefIconTextBut(params.block,
-                                    ButType::Label,
-                                    ICON_NONE,
-                                    StringRef(prop->s, prop->s_len),
-                                    params.xmin + CELL_PADDING_X,
-                                    params.ymin,
-                                    params.width - 2.0f * CELL_PADDING_X,
-                                    params.height,
-                                    nullptr,
-                                    std::nullopt);
+      ui::Button *but = uiDefIconTextBut(params.block,
+                                         ui::ButtonType::Label,
+                                         ICON_NONE,
+                                         StringRef(prop->s, prop->s_len),
+                                         params.xmin + CELL_PADDING_X,
+                                         params.ymin,
+                                         params.width - 2.0f * CELL_PADDING_X,
+                                         params.height,
+                                         nullptr,
+                                         std::nullopt);
 
-      UI_but_func_tooltip_set(
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             const MStringProperty &prop = *static_cast<MStringProperty *>(argN);
@@ -340,7 +340,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       if (object) {
         const int icon = ED_outliner_icon_from_id(object->id);
         uiDefIconTextBut(params.block,
-                         ButType::Label,
+                         ui::ButtonType::Label,
                          icon,
                          BKE_id_name(object->id),
                          params.xmin,
@@ -352,7 +352,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       }
       else {
         uiDefIconTextBut(params.block,
-                         ButType::Label,
+                         ui::ButtonType::Label,
                          ICON_OBJECT_DATA,
                          "",
                          params.xmin,
@@ -376,27 +376,27 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const float value = values[i];
       ss << " " << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
-      uiBut *but = uiDefIconTextBut(params.block,
-                                    ButType::Label,
-                                    ICON_NONE,
-                                    value_str,
-                                    params.xmin + i * segment_width,
-                                    params.ymin,
-                                    segment_width,
-                                    params.height,
-                                    nullptr,
-                                    std::nullopt);
+      ui::Button *but = uiDefIconTextBut(params.block,
+                                         ui::ButtonType::Label,
+                                         ICON_NONE,
+                                         value_str,
+                                         params.xmin + i * segment_width,
+                                         params.ymin,
+                                         segment_width,
+                                         params.height,
+                                         nullptr,
+                                         std::nullopt);
 
-      UI_but_func_tooltip_set(
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-            return fmt::format("{:f}", *((float *)argN));
+            return fmt::format("{:f}", *(static_cast<float *>(argN)));
           },
           MEM_dupallocN<float>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
-      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
     }
   }
 
@@ -419,23 +419,23 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
         break;
       }
     }
-    uiBut *but = uiDefIconTextBut(params.block,
-                                  ButType::Label,
-                                  ICON_NONE,
-                                  value_str,
-                                  params.xmin,
-                                  params.ymin,
-                                  params.width,
-                                  params.height,
-                                  nullptr,
-                                  std::nullopt);
+    ui::Button *but = uiDefIconTextBut(params.block,
+                                       ui::ButtonType::Label,
+                                       ICON_NONE,
+                                       value_str,
+                                       params.xmin,
+                                       params.ymin,
+                                       params.width,
+                                       params.height,
+                                       nullptr,
+                                       std::nullopt);
     switch (display_hint) {
       case ColumnValueDisplayHint::Bytes: {
-        UI_but_func_tooltip_set(
+        button_func_tooltip_set(
             but,
             [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
               char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
-              BLI_str_format_int64_grouped(dst, *(int64_t *)argN);
+              BLI_str_format_int64_grouped(dst, *static_cast<int64_t *>(argN));
               return fmt::format("{} {}", dst, TIP_("bytes"));
             },
             MEM_dupallocN<int64_t>(__func__, value),
@@ -443,10 +443,10 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
         break;
       }
       default: {
-        UI_but_func_tooltip_set(
+        button_func_tooltip_set(
             but,
             [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-              return fmt::format("{}", *(int64_t *)argN);
+              return fmt::format("{}", *static_cast<int64_t *>(argN));
             },
             MEM_dupallocN<int64_t>(__func__, value),
             MEM_freeN);
@@ -454,8 +454,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       }
     }
     /* Right-align Integers. */
-    UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-    UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+    button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
   }
 
   void draw_int_vector(const CellDrawParams &params, const Span<int> values) const
@@ -467,26 +467,26 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const int value = values[i];
       ss << " " << value;
       const std::string value_str = ss.str();
-      uiBut *but = uiDefIconTextBut(params.block,
-                                    ButType::Label,
-                                    ICON_NONE,
-                                    value_str,
-                                    params.xmin + i * segment_width,
-                                    params.ymin,
-                                    segment_width,
-                                    params.height,
-                                    nullptr,
-                                    std::nullopt);
-      UI_but_func_tooltip_set(
+      ui::Button *but = uiDefIconTextBut(params.block,
+                                         ui::ButtonType::Label,
+                                         ICON_NONE,
+                                         value_str,
+                                         params.xmin + i * segment_width,
+                                         params.ymin,
+                                         segment_width,
+                                         params.height,
+                                         nullptr,
+                                         std::nullopt);
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-            return fmt::format("{}", *((int *)argN));
+            return fmt::format("{}", *(static_cast<int *>(argN)));
           },
           MEM_dupallocN<int>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
-      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
     }
   }
 
@@ -500,26 +500,27 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const float value = values[i];
       ss << " " << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
-      uiBut *but = uiDefIconTextBut(params.block,
-                                    ButType::Label,
-                                    ICON_NONE,
-                                    value_str,
-                                    params.xmin + i * segment_width,
-                                    params.ymin,
-                                    segment_width,
-                                    params.height,
-                                    nullptr,
-                                    std::nullopt);
+      ui::Button *but = uiDefIconTextBut(params.block,
+                                         ui::ButtonType::Label,
+                                         ICON_NONE,
+                                         value_str,
+                                         params.xmin + i * segment_width,
+                                         params.ymin,
+                                         segment_width,
+                                         params.height,
+                                         nullptr,
+                                         std::nullopt);
       /* Right-align Floats. */
-      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
 
       /* Tooltip showing raw byte values. Encode values in pointer to avoid memory allocation. */
-      UI_but_func_tooltip_set(
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             const uint32_t uint_color = POINTER_AS_UINT(argN);
-            ColorGeometry4b color = *(ColorGeometry4b *)&uint_color;
+            ColorGeometry4b color = *reinterpret_cast<ColorGeometry4b *>(
+                const_cast<uint32_t *>(&uint_color));
             return fmt::format(fmt::runtime(TIP_("Byte Color (sRGB encoded):\n{}  {}  {}  {}")),
                                color.r,
                                color.g,
@@ -533,34 +534,34 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
 
   void draw_float4x4(const CellDrawParams &params, const float4x4 &value) const
   {
-    uiBut *but = this->draw_undrawable(params);
+    ui::Button *but = this->draw_undrawable(params);
     /* Center alignment. */
-    UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-    UI_but_func_tooltip_custom_set(
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+    button_func_tooltip_custom_set(
         but,
-        [](bContext & /*C*/, uiTooltipData &tip, uiBut * /*but*/, void *argN) {
+        [](bContext & /*C*/, ui::TooltipData &tip, ui::Button * /*but*/, void *argN) {
           const float4x4 matrix = *static_cast<const float4x4 *>(argN);
-          UI_tooltip_text_field_add(
-              tip, format_matrix_to_grid(matrix), {}, UI_TIP_STYLE_MONO, UI_TIP_LC_VALUE);
+          tooltip_text_field_add(
+              tip, format_matrix_to_grid(matrix), {}, ui::TIP_STYLE_MONO, ui::TIP_LC_VALUE);
         },
         MEM_dupallocN<float4x4>(__func__, value),
         MEM_freeN);
   }
 
-  uiBut *draw_undrawable(const CellDrawParams &params) const
+  ui::Button *draw_undrawable(const CellDrawParams &params) const
   {
-    uiBut *but = uiDefIconTextBut(params.block,
-                                  ButType::Label,
-                                  ICON_NONE,
-                                  "...",
-                                  params.xmin,
-                                  params.ymin,
-                                  params.width,
-                                  params.height,
-                                  nullptr,
-                                  std::nullopt);
+    ui::Button *but = uiDefIconTextBut(params.block,
+                                       ui::ButtonType::Label,
+                                       ICON_NONE,
+                                       "...",
+                                       params.xmin,
+                                       params.ymin,
+                                       params.width,
+                                       params.height,
+                                       nullptr,
+                                       std::nullopt);
     /* Center alignment. */
-    UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
     return but;
   }
 

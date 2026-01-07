@@ -1,0 +1,405 @@
+None
+None
+None
+{
+  "asset": {
+    "generator": "glTF-Blender-IO Test Suite",
+    "version": "2.0"
+  },
+  "extensionsUsed": [
+    "EXT_mesh_gpu_instancing"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        5
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "plane"
+    },
+    {
+      "children": [
+        0
+      ],
+      "name": "Placement_3",
+      "scale": [
+        240.0,
+        240,
+        240.0
+      ]
+    },
+    {
+      "children": [
+        1
+      ],
+      "name": "Placement",
+      "rotation": [
+        0,
+        0.383,
+        0,
+        0.924
+      ]
+    },
+    {
+      "extensions": {
+        "EXT_mesh_gpu_instancing": {
+          "attributes": {
+            "TRANSLATION": 7,
+            "ROTATION": 8,
+            "SCALE": 9
+          }
+        }
+      },
+      "mesh": 1,
+      "name": "teapot",
+      "scale": [
+        1,
+        1.3,
+        1
+      ]
+    },
+    {
+      "extensions": {
+        "EXT_mesh_gpu_instancing": {
+          "attributes": {
+            "TRANSLATION": 10,
+            "ROTATION": 11,
+            "SCALE": 12
+          }
+        }
+      },
+      "mesh": 1,
+      "name": "teapot0"
+    },
+    {
+      "children": [
+        2,
+        3,
+        4
+      ],
+      "name": "teapots_galore_id"
+    }
+  ],
+  "materials": [
+    {
+      "name": "cube_2",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.158,
+          0.107,
+          0.094,
+          1
+        ],
+        "metallicFactor": 0.115,
+        "roughnessFactor": 0.135
+      }
+    },
+    {
+      "name": "cube",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.7,
+          0.7,
+          0.7,
+          1
+        ],
+        "roughnessFactor": 0.063
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "plane",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "teapot",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5
+          },
+          "indices": 6,
+          "material": 1
+        }
+      ]
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        1,
+        0,
+        1
+      ],
+      "min": [
+        -1,
+        0,
+        -1
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 6,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 2205,
+      "max": [
+        3.433,
+        3.15,
+        2
+      ],
+      "min": [
+        -3,
+        0,
+        -2
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 2205,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5123,
+      "count": 12096,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 958,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 958,
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 958,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 941,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5126,
+      "count": 941,
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 941,
+      "type": "VEC3"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 48,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 32,
+      "byteOffset": 96,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12,
+      "byteOffset": 128,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26460,
+      "byteOffset": 140,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26460,
+      "byteOffset": 26600,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 24192,
+      "byteOffset": 53060,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11496,
+      "byteOffset": 77252
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15328,
+      "byteOffset": 88748
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11496,
+      "byteOffset": 104076
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11292,
+      "byteOffset": 115572
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15056,
+      "byteOffset": 126864
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11292,
+      "byteOffset": 141920
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 153212,
+      "uri": "24_gpu_instancing.bin"
+    }
+  ]
+}[[1.000 0.000 1.000]
+ [1.000 0.000 -1.000]
+ [-1.000 0.000 -1.000]
+ [-1.000 0.000 1.000]]
+[[0.000 1.000 0.000]
+ [0.000 1.000 0.000]
+ [0.000 1.000 0.000]
+ [0.000 1.000 0.000]]
+[[1.000 0.000]
+ [0.000 0.000]
+ [0.000 1.000]
+ [1.000 1.000]]
+[[0]
+ [1]
+ [2]
+ [0]
+ [2]
+ [3]]
+[[1.400 2.400 0.000]
+ [1.372 2.400 0.285]
+ [1.356 2.443 0.282]
+ ...
+ [1.247 0.150 0.844]
+ [1.384 0.150 0.589]
+ [1.470 0.150 0.306]]
+[[-0.903 -0.430 0.000]
+ [-0.885 -0.430 -0.177]
+ [-0.950 -0.246 -0.190]
+ ...
+ [0.831 0.000 0.557]
+ [0.923 0.000 0.385]
+ [0.981 0.000 0.196]]
+[[   0]
+ [   1]
+ [   2]
+ ...
+ [ 632]
+ [2204]
+ [2195]]
+[[201.448 0.000 -116.438]
+ [200.793 0.000 -131.246]
+ [205.366 0.000 -126.830]
+ ...
+ [-3.285 0.000 206.676]
+ [-332.313 0.000 2.531]
+ [-302.031 0.000 5.228]]
+[[0.000 0.718 0.000 0.696]
+ [0.000 -0.981 0.000 0.195]
+ [0.000 0.842 0.000 0.539]
+ ...
+ [0.000 0.981 0.000 0.195]
+ [0.000 -0.969 0.000 0.246]
+ [0.000 -0.303 0.000 0.953]]
+[[1.079 1.403 1.079]
+ [1.006 1.308 1.006]
+ [1.068 1.388 1.068]
+ ...
+ [1.014 1.318 1.014]
+ [1.023 1.329 1.023]
+ [1.000 1.301 1.000]]
+[[131.455 0.000 -10.568]
+ [160.510 0.000 -37.653]
+ [120.142 0.000 -26.437]
+ ...
+ [216.023 0.000 21.224]
+ [139.091 0.000 -3.582]
+ [133.135 0.000 5.291]]
+[[0.000 -0.590 0.000 0.808]
+ [0.000 -0.403 0.000 0.915]
+ [0.000 0.154 0.000 0.988]
+ ...
+ [0.000 0.012 0.000 1.000]
+ [0.000 -0.609 0.000 0.793]
+ [0.000 0.997 0.000 0.079]]
+[[2.335 2.335 2.335]
+ [1.116 1.116 1.116]
+ [2.482 2.482 2.482]
+ ...
+ [1.001 1.001 1.001]
+ [2.056 2.056 2.056]
+ [1.896 1.897 1.896]]

@@ -25,16 +25,21 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
     {MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},
     {MOD_DYNAMICPAINT_TYPE_BRUSH, "BRUSH", 0, "Brush", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
 
+#  include "BLI_listbase.h"
 #  include "BLI_string.h"
 
 #  include "BKE_context.hh"
@@ -44,10 +49,13 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static std::optional<std::string> rna_DynamicPaintCanvasSettings_path(const PointerRNA *ptr)
 {
-  const DynamicPaintCanvasSettings *settings = (DynamicPaintCanvasSettings *)ptr->data;
-  const ModifierData *md = (ModifierData *)settings->pmd;
+  const DynamicPaintCanvasSettings *settings = static_cast<DynamicPaintCanvasSettings *>(
+      ptr->data);
+  const ModifierData *md = reinterpret_cast<ModifierData *>(settings->pmd);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
@@ -56,8 +64,8 @@ static std::optional<std::string> rna_DynamicPaintCanvasSettings_path(const Poin
 
 static std::optional<std::string> rna_DynamicPaintBrushSettings_path(const PointerRNA *ptr)
 {
-  const DynamicPaintBrushSettings *settings = (DynamicPaintBrushSettings *)ptr->data;
-  const ModifierData *md = (ModifierData *)settings->pmd;
+  const DynamicPaintBrushSettings *settings = static_cast<DynamicPaintBrushSettings *>(ptr->data);
+  const ModifierData *md = reinterpret_cast<ModifierData *>(settings->pmd);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
@@ -66,8 +74,8 @@ static std::optional<std::string> rna_DynamicPaintBrushSettings_path(const Point
 
 static std::optional<std::string> rna_DynamicPaintSurface_path(const PointerRNA *ptr)
 {
-  const DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
-  const ModifierData *md = (ModifierData *)surface->canvas->pmd;
+  const DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(ptr->data);
+  const ModifierData *md = reinterpret_cast<ModifierData *>(surface->canvas->pmd);
   char name_esc[sizeof(md->name) * 2];
   char name_esc_surface[sizeof(surface->name) * 2];
 
@@ -90,18 +98,18 @@ static void rna_DynamicPaintSurfaces_updateFrames(Main * /*bmain*/,
                                                   Scene * /*scene*/,
                                                   PointerRNA *ptr)
 {
-  dynamicPaint_cacheUpdateFrames((DynamicPaintSurface *)ptr->data);
+  dynamicPaint_cacheUpdateFrames(static_cast<DynamicPaintSurface *>(ptr->data));
 }
 
 static void rna_DynamicPaintSurface_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  dynamicPaint_resetSurface(scene, (DynamicPaintSurface *)ptr->data);
+  dynamicPaint_resetSurface(scene, static_cast<DynamicPaintSurface *>(ptr->data));
   rna_DynamicPaint_redoModifier(bmain, scene, ptr);
 }
 
 static void rna_DynamicPaintSurface_initialcolortype(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
+  DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(ptr->data);
 
   surface->init_layername[0] = '\0';
   dynamicPaint_clearSurface(scene, surface);
@@ -112,20 +120,20 @@ static void rna_DynamicPaintSurface_uniqueName(Main * /*bmain*/,
                                                Scene * /*scene*/,
                                                PointerRNA *ptr)
 {
-  dynamicPaintSurface_setUniqueName((DynamicPaintSurface *)ptr->data,
-                                    ((DynamicPaintSurface *)ptr->data)->name);
+  dynamicPaintSurface_setUniqueName(static_cast<DynamicPaintSurface *>(ptr->data),
+                                    (static_cast<DynamicPaintSurface *>(ptr->data))->name);
 }
 
 static void rna_DynamicPaintSurface_changeType(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  dynamicPaintSurface_updateType((DynamicPaintSurface *)ptr->data);
-  dynamicPaint_resetSurface(scene, (DynamicPaintSurface *)ptr->data);
+  dynamicPaintSurface_updateType(static_cast<DynamicPaintSurface *>(ptr->data));
+  dynamicPaint_resetSurface(scene, static_cast<DynamicPaintSurface *>(ptr->data));
   rna_DynamicPaintSurface_reset(bmain, scene, ptr);
 }
 
 static void rna_DynamicPaintSurfaces_changeFormat(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
+  DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(ptr->data);
 
   /* Only #MOD_DPAINT_SURFACE_F_VERTEX supports #MOD_DPAINT_SURFACE_T_WEIGHT. */
   if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ &&
@@ -134,7 +142,7 @@ static void rna_DynamicPaintSurfaces_changeFormat(Main *bmain, Scene *scene, Poi
     surface->type = MOD_DPAINT_SURFACE_T_PAINT;
   }
 
-  dynamicPaintSurface_updateType((DynamicPaintSurface *)ptr->data);
+  dynamicPaintSurface_updateType(static_cast<DynamicPaintSurface *>(ptr->data));
   rna_DynamicPaintSurface_reset(bmain, scene, ptr);
 }
 
@@ -151,7 +159,7 @@ static void rna_DynamicPaintSurface_reset_dependency(Main *bmain, Scene *scene, 
 
 static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
 {
-  DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
+  DynamicPaintCanvasSettings *canvas = static_cast<DynamicPaintCanvasSettings *>(ptr->data);
   DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(canvas->surfaces.first);
   int id = 0;
 
@@ -166,7 +174,7 @@ static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
 
 static void rna_DynamicPaint_surfaces_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
+  DynamicPaintCanvasSettings *canvas = static_cast<DynamicPaintCanvasSettings *>(ptr->data);
 #  if 0
   rna_iterator_array_begin(
       iter, ptr,(void *)canvas->surfaces, sizeof(PaintSurface), canvas->totsur, 0, 0);
@@ -176,20 +184,20 @@ static void rna_DynamicPaint_surfaces_begin(CollectionPropertyIterator *iter, Po
 
 static int rna_Surface_active_point_index_get(PointerRNA *ptr)
 {
-  DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
+  DynamicPaintCanvasSettings *canvas = static_cast<DynamicPaintCanvasSettings *>(ptr->data);
   return canvas->active_sur;
 }
 
 static void rna_Surface_active_point_index_set(PointerRNA *ptr, int value)
 {
-  DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
+  DynamicPaintCanvasSettings *canvas = static_cast<DynamicPaintCanvasSettings *>(ptr->data);
   canvas->active_sur = value;
 }
 
 static void rna_Surface_active_point_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
-  DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
+  DynamicPaintCanvasSettings *canvas = static_cast<DynamicPaintCanvasSettings *>(ptr->data);
 
   *min = 0;
   *max = BLI_listbase_count(&canvas->surfaces) - 1;
@@ -198,7 +206,7 @@ static void rna_Surface_active_point_range(
 /* uvlayer */
 static void rna_DynamicPaint_uvlayer_set(PointerRNA *ptr, const char *value)
 {
-  DynamicPaintCanvasSettings *canvas = ((DynamicPaintSurface *)ptr->data)->canvas;
+  DynamicPaintCanvasSettings *canvas = (static_cast<DynamicPaintSurface *>(ptr->data))->canvas;
   DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(canvas->surfaces.first);
   int id = 0;
 
@@ -215,7 +223,7 @@ static void rna_DynamicPaint_uvlayer_set(PointerRNA *ptr, const char *value)
 /* is point cache used */
 static bool rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
 {
-  DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
+  DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(ptr->data);
 
   return (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) ? true : false;
 }
@@ -231,7 +239,7 @@ static const EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext * /*
                                                                    PropertyRNA * /*prop*/,
                                                                    bool *r_free)
 {
-  DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
+  DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(ptr->data);
 
   EnumPropertyItem *item = nullptr;
   EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -277,7 +285,11 @@ static const EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext * /*
   return item;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 /* canvas.canvas_surfaces */
 static void rna_def_canvas_surfaces(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1002,5 +1014,7 @@ void RNA_def_dynamic_paint(BlenderRNA *brna)
   rna_def_dynamic_paint_brush_settings(brna);
   rna_def_canvas_surface(brna);
 }
+
+}  // namespace blender
 
 #endif

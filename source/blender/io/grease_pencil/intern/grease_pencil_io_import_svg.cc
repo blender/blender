@@ -33,15 +33,17 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
+namespace blender {
+
 /** \file
  * \ingroup bgrease_pencil
  */
 
-using blender::bke::greasepencil::Drawing;
-using blender::bke::greasepencil::Layer;
-using blender::bke::greasepencil::TreeNode;
+using bke::greasepencil::Drawing;
+using bke::greasepencil::Layer;
+using bke::greasepencil::TreeNode;
 
-namespace blender::io::grease_pencil {
+namespace io::grease_pencil {
 
 class SVGImporter : public GreasePencilImporter {
  public:
@@ -132,7 +134,19 @@ static IndexRange extend_curves_geometry(bke::CurvesGeometry &curves, const NSVG
     BLI_assert(path->npts >= 1 && path->npts == int(path->npts / 3) * 3 + 1);
     /* nanosvg converts everything to bezier curves, points come in triplets. Round up to the
      * next full integer, since there is one point without handles (3*n+1 points in total). */
-    const int point_num = (path->npts + 2) / 3;
+    int point_num = (path->npts + 2) / 3;
+
+    /* 2D vectors in triplets: [control point, left handle, right handle]. */
+    const Span<float2> svg_path_data = Span<float>(path->pts, 2 * path->npts).cast<float2>();
+
+    /* Extra points can be at the end of the path, so loop through until they are gone. */
+    const float2 pos_first = svg_path_data.first();
+    float2 pos_last = svg_path_data[(point_num - 1) * 3];
+    while (math::almost_equal_relative(pos_first, pos_last, 1e-6f)) {
+      point_num--;
+      pos_last = svg_path_data[(point_num - 1) * 3];
+    }
+
     new_curve_offsets.append(point_num);
   }
   if (new_curve_offsets.is_empty()) {
@@ -213,19 +227,45 @@ static void shape_attributes_to_curves(bke::CurvesGeometry &curves,
     if (path->npts == 0) {
       continue;
     }
-
-    cyclic[curve_index] = bool(path->closed);
+    const bool closed = bool(path->closed);
+    cyclic[curve_index] = closed;
 
     /* 2D vectors in triplets: [control point, left handle, right handle]. */
     const Span<float2> svg_path_data = Span<float>(path->pts, 2 * path->npts).cast<float2>();
 
     const IndexRange points = points_by_curve[curve_index];
-    for (const int i : points.index_range()) {
+    const ColorGeometry4f point_color = convert_svg_color(shape.stroke);
+
+    /* Handle first point separately. */
+    {
+      const float2 pos_center = svg_path_data.first();
+      const float2 pos_handle_left = closed ? svg_path_data[points.size() * 3 - 1] : pos_center;
+
+      const float2 pos_handle_right = svg_path_data[1];
+      positions[points.first()] = math::transform_point(transform, float3(pos_center, 0.0f));
+      handle_positions_left[points.first()] = math::transform_point(transform,
+                                                                    float3(pos_handle_left, 0.0f));
+      handle_positions_right[points.first()] = math::transform_point(
+          transform, float3(pos_handle_right, 0.0f));
+      handle_types_left[points.first()] = BEZIER_HANDLE_FREE;
+      handle_types_right[points.first()] = BEZIER_HANDLE_FREE;
+
+      radii.span[points.first()] = shape.strokeWidth * path_width_scale;
+
+      if (vertex_colors) {
+        vertex_colors.span[points.first()] = point_color;
+      }
+      if (point_opacities) {
+        point_opacities.span[points.first()] = point_color.a;
+      }
+    }
+
+    for (const int i : points.index_range().drop_front(1)) {
       const int point_index = points[i];
       const float2 pos_center = svg_path_data[i * 3];
-      const float2 pos_handle_left = (i > 0) ? svg_path_data[i * 3 - 1] : pos_center;
-      const float2 pos_handle_right = (i < points.size() - 1) ? svg_path_data[i * 3 + 1] :
-                                                                pos_center;
+      float2 pos_handle_left = svg_path_data[i * 3 - 1];
+      const float2 pos_handle_right = (i < points.size() - 1 + closed) ? svg_path_data[i * 3 + 1] :
+                                                                         pos_center;
       positions[point_index] = math::transform_point(transform, float3(pos_center, 0.0f));
       handle_positions_left[point_index] = math::transform_point(transform,
                                                                  float3(pos_handle_left, 0.0f));
@@ -236,7 +276,6 @@ static void shape_attributes_to_curves(bke::CurvesGeometry &curves,
 
       radii.span[point_index] = shape.strokeWidth * path_width_scale;
 
-      const ColorGeometry4f point_color = convert_svg_color(shape.stroke);
       if (vertex_colors) {
         vertex_colors.span[point_index] = point_color;
       }
@@ -312,7 +351,7 @@ bool SVGImporter::read(StringRefNull filepath)
     nsvgDelete(svg_data);
     return false;
   }
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object_->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object_->data);
 
   const float scene_unit_scale = (context_.scene->unit.system != USER_UNIT_NONE &&
                                   params_.use_scene_unit) ?
@@ -402,4 +441,6 @@ bool import_svg(const IOContext &context, const ImportParams &params, StringRefN
   return importer.read(filepath);
 }
 
-}  // namespace blender::io::grease_pencil
+}  // namespace io::grease_pencil
+
+}  // namespace blender

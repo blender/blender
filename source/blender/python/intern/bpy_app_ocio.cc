@@ -17,7 +17,7 @@
 
 #include "OCIO_version.hh"
 
-namespace ocio = blender::ocio;
+namespace blender {
 
 static PyTypeObject BlenderAppOCIOType;
 
@@ -86,7 +86,9 @@ PyObject *BPY_app_ocio_struct()
   BlenderAppOCIOType.tp_init = nullptr;
   BlenderAppOCIOType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppOCIOType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppOCIOType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }
+
+}  // namespace blender

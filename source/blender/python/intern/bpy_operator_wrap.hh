@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 struct wmOperatorType;
 
 /**
@@ -31,3 +33,5 @@ void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata);
  * it's passed as an argument to #WM_operatortype_append_ptr in for operator registration.
  */
 void BPY_RNA_operator_macro_wrapper(wmOperatorType *ot, void *userdata);
+
+}  // namespace blender

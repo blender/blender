@@ -20,9 +20,9 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
-/* Whole Database Ops -------------------------------------------- */
+namespace blender {
 
-using namespace blender;
+/* Whole Database Ops -------------------------------------------- */
 
 void BKE_animdata_main_cb(Main *bmain, const FunctionRef<void(ID *, AnimData *)> func)
 {
@@ -157,3 +157,5 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
         id, adt, ref_id, prefix, oldName, newName, oldSubscript, newSubscript, verify_paths);
   });
 }
+
+}  // namespace blender

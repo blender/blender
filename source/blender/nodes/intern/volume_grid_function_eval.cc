@@ -113,7 +113,7 @@ BLI_NOINLINE static void process_leaf_node(const mf::MultiFunction &fn,
             const Span<openvdb::Coord> voxels = ensure_voxel_coords();
             MutableSpan<bool> values = scope.allocator().allocate_array<bool>(
                 index_mask.min_array_size());
-            index_mask.foreach_index([&](const int64_t i) {
+            index_mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
               const openvdb::Coord &coord = voxels[i];
               values[i] = tree.getValue(coord);
             });

@@ -11,6 +11,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 BLI_INLINE float D(const float *data, const int res[3], int x, int y, int z)
 {
   CLAMP(x, 0, res[0] - 1);
@@ -81,3 +83,5 @@ float BLI_voxel_sample_trilinear(const float *data, const int res[3], const floa
   }
   return 0.0f;
 }
+
+}  // namespace blender

@@ -49,6 +49,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Reset Default Theme Operator
  * \{ */
@@ -56,8 +58,8 @@
 static wmOperatorStatus preferences_reset_default_theme_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  UI_theme_init_default();
-  UI_style_init_default();
+  ui::theme::init_default();
+  ui::style_init_default();
   WM_reinit_gizmomap_all(bmain);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
   U.runtime.is_dirty = true;
@@ -86,7 +88,7 @@ static void PREFERENCES_OT_reset_default_theme(wmOperatorType *ot)
 
 static wmOperatorStatus preferences_autoexec_add_exec(bContext * /*C*/, wmOperator * /*op*/)
 {
-  bPathCompare *path_cmp = MEM_callocN<bPathCompare>("bPathCompare");
+  bPathCompare *path_cmp = MEM_new_for_free<bPathCompare>("bPathCompare");
   BLI_addtail(&U.autoexec_paths, path_cmp);
   U.runtime.is_dirty = true;
   return OPERATOR_FINISHED;
@@ -201,7 +203,7 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
 
   /* There's no dedicated notifier for the Preferences. */
   WM_main_add_notifier(NC_WINDOW, nullptr);
-  blender::ed::asset::list::clear_all_library(C);
+  ed::asset::list::clear_all_library(C);
 
   return OPERATOR_FINISHED;
 }
@@ -344,7 +346,7 @@ static wmOperatorStatus preferences_asset_library_remove_exec(bContext *C, wmOpe
   CLAMP(U.active_asset_library, 0, count_remaining - 1);
   U.runtime.is_dirty = true;
 
-  blender::ed::asset::list::clear_all_library(C);
+  ed::asset::list::clear_all_library(C);
   /* Trigger refresh for the Asset Browser. */
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 
@@ -551,7 +553,7 @@ static wmOperatorStatus preferences_extension_repo_add_invoke(bContext *C,
 static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
 {
 
-  blender::ui::Layout &layout = *op->layout;
+  ui::Layout &layout = *op->layout;
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
@@ -560,35 +562,35 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
 
   switch (repo_type) {
     case bUserExtensionRepoAddType::Remote: {
-      layout.prop(op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "remote_url", ui::ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       layout.prop(op->ptr, "use_sync_on_startup", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-      layout.separator(0.2f, LayoutSeparatorType::Line);
+      layout.separator(0.2f, ui::LayoutSeparatorType::Line);
 
       const bool use_access_token = RNA_boolean_get(ptr, "use_access_token");
       const int token_icon = (use_access_token && RNA_string_length(op->ptr, "access_token")) ?
                                  ICON_LOCKED :
                                  ICON_UNLOCKED;
 
-      blender::ui::Layout &row = layout.row(true, IFACE_("Authentication"));
+      ui::Layout &row = layout.row(true, IFACE_("Authentication"));
       row.prop(op->ptr, "use_access_token", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      blender::ui::Layout &col = layout.row(false);
+      ui::Layout &col = layout.row(false);
       col.active_set(use_access_token);
       /* Use "immediate" flag to refresh the icon. */
-      col.prop(op->ptr, "access_token", UI_ITEM_R_IMMEDIATE, std::nullopt, token_icon);
+      col.prop(op->ptr, "access_token", ui::ITEM_R_IMMEDIATE, std::nullopt, token_icon);
 
-      layout.separator(0.2f, LayoutSeparatorType::Line);
+      layout.separator(0.2f, ui::LayoutSeparatorType::Line);
 
       break;
     }
     case bUserExtensionRepoAddType::Local: {
-      layout.prop(op->ptr, "name", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "name", ui::ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       break;
     }
   }
 
   layout.prop(op->ptr, "use_custom_directory", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  blender::ui::Layout &col = layout.row(false);
+  ui::Layout &col = layout.row(false);
   col.active_set(RNA_boolean_get(ptr, "use_custom_directory"));
   col.prop(op->ptr, "custom_directory", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
@@ -786,7 +788,7 @@ static wmOperatorStatus preferences_extension_repo_remove_invoke(bContext *C,
                                             IFACE_("Remove Repository");
 
   return WM_operator_confirm_ex(
-      C, op, nullptr, message.c_str(), confirm_text, blender::ui::AlertIcon::Warning, true);
+      C, op, nullptr, message.c_str(), confirm_text, ui::AlertIcon::Warning, true);
 }
 
 static wmOperatorStatus preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
@@ -931,12 +933,11 @@ static wmOperatorStatus preferences_extension_url_drop_invoke(bContext *C,
   wmOperatorType *ot = WM_operatortype_find(idname_external, true);
   wmOperatorStatus retval;
   if (ot) {
-    PointerRNA props_ptr;
-    WM_operator_properties_create_ptr(&props_ptr, ot);
+    PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
     if (use_url) {
       RNA_string_set(&props_ptr, "url", url.c_str());
     }
-    WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, event);
+    WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &props_ptr, event);
     WM_operator_properties_free(&props_ptr);
     retval = OPERATOR_FINISHED;
   }
@@ -1197,7 +1198,7 @@ static void drop_extension_path_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *
 
 static void ED_dropbox_drop_extension()
 {
-  ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_dropbox_add(lb,
                  "PREFERENCES_OT_extension_url_drop",
                  drop_extension_url_poll,
@@ -1231,3 +1232,5 @@ void ED_operatortypes_userpref()
 
   ED_dropbox_drop_extension();
 }
+
+}  // namespace blender

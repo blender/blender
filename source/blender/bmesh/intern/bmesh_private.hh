@@ -14,6 +14,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /* returns positive nonzero on error */
 
 #ifdef NDEBUG
@@ -86,6 +88,8 @@ enum {
  * normal is pointing towards the mesh Z axis
  */
 void poly_rotate_plane(const float normal[3], float (*verts)[3], uint nverts);
+
+}  // namespace blender
 
 /* include the rest of our private declarations */
 #include "bmesh_structure.hh" /* IWYU pragma: export */

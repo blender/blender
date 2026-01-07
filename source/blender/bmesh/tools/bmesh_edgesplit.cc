@@ -17,6 +17,8 @@
 
 #include "bmesh_edgesplit.hh" /* own include */
 
+namespace blender {
+
 void BM_mesh_edgesplit(BMesh *bm,
                        const bool use_verts,
                        const bool tag_only,
@@ -26,12 +28,12 @@ void BM_mesh_edgesplit(BMesh *bm,
   BMEdge *e;
 
   bool use_ese = false;
-  blender::Map<BMElem *, BMEditSelection *> ese_gh;
+  Map<BMElem *, BMEditSelection *> ese_gh;
 
   if (copy_select && bm->selected.first) {
-    LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
-      if (ese->htype != BM_FACE) {
-        ese_gh.add(ese->ele, ese);
+    for (BMEditSelection &ese : bm->selected) {
+      if (ese.htype != BM_FACE) {
+        ese_gh.add(ese.ele, &ese);
       }
     }
 
@@ -114,3 +116,5 @@ void BM_mesh_edgesplit(BMesh *bm,
   }
 #endif
 }
+
+}  // namespace blender

@@ -68,7 +68,7 @@ void generate_preview(const bContext *C, ID *id)
     BKE_previewimg_clear(preview);
   }
 
-  UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, !G.background);
+  ui::icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, !G.background);
 }
 
 bool clear_id(ID *id)

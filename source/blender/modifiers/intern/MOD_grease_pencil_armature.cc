@@ -6,7 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
@@ -46,10 +45,7 @@ using bke::greasepencil::Drawing;
 static void init_data(ModifierData *md)
 {
   auto *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(amd, modifier));
-
-  MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(GreasePencilArmatureModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(amd, modifier);
   modifier::greasepencil::init_influence_data(&amd->influence, false);
 }
 
@@ -74,7 +70,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 {
   auto *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(md);
   modifier::greasepencil::foreach_influence_ID_link(&amd->influence, ob, walk, user_data);
-  walk(user_data, ob, (ID **)&amd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->object), IDWALK_CB_NOP);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
@@ -137,7 +133,11 @@ static void modify_curves(ModifierData &md,
                            std::optional<MutableSpan<float3x3>> deform_mats,
                            Span<MDeformVert> dverts,
                            const OffsetIndices<int> points_by_curve) {
-    curves_mask.foreach_index(blender::GrainSize(128), [&](const int curve_i) {
+    /* Deform verts attribute can be empty after converting Bezier curves (#152102). */
+    if (dverts.is_empty()) {
+      return;
+    }
+    curves_mask.foreach_index(GrainSize(128), [&](const int curve_i) {
       const IndexRange points = points_by_curve[curve_i];
       std::optional<Span<float3>> old_positions_for_curve;
       if (old_positions) {
@@ -163,8 +163,8 @@ static void modify_curves(ModifierData &md,
    * long as topology does not change, don't use this after converting Bezier curves! */
   const ImplicitSharingPtrAndData old_positions_data = save_shared_attribute(
       drawing.strokes().attributes().lookup("position", bke::AttrType::Float3));
-  const Span<blender::float3> old_positions = {
-      static_cast<const float3 *>(old_positions_data.data), drawing.strokes().points_num()};
+  const Span<float3> old_positions = {static_cast<const float3 *>(old_positions_data.data),
+                                      drawing.strokes().points_num()};
 
   const bool has_bezier_curves = drawing.strokes().has_curve_with_type(
       CurveType::CURVE_TYPE_BEZIER);
@@ -293,7 +293,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *amd = reinterpret_cast<const GreasePencilArmatureModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilArmatureModifierData, amd);
+  writer->write_struct(amd);
   modifier::greasepencil::write_influence_data(writer, &amd->influence);
 }
 
@@ -303,8 +303,6 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   modifier::greasepencil::read_influence_data(reader, &amd->influence);
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilArmature = {
     /*idname*/ "GreasePencilArmature",
@@ -317,26 +315,28 @@ ModifierTypeInfo modifierType_GreasePencilArmature = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_ARMATURE,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
-    /*update_depsgraph*/ blender::update_depsgraph,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

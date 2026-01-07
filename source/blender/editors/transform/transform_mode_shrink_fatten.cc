@@ -199,8 +199,7 @@ static void initShrinkFatten(TransInfo *t, wmOperator *op)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_LENGTH;
 
-  ShrinkFattenCustomData *custom_data = static_cast<ShrinkFattenCustomData *>(
-      MEM_callocN(sizeof(*custom_data), __func__));
+  ShrinkFattenCustomData *custom_data = MEM_callocN<ShrinkFattenCustomData>(__func__);
   t->custom.mode.data = custom_data;
   t->custom.mode.free_cb = [](TransInfo *t, TransDataContainer *, TransCustomData *custom_data) {
     ShrinkFattenCustomData *data = static_cast<ShrinkFattenCustomData *>(custom_data->data);

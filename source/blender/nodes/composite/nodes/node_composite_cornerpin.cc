@@ -29,7 +29,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_cornerpin_cc {
+namespace blender {
+
+namespace nodes::node_composite_cornerpin_cc {
 
 static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 {
@@ -89,7 +91,7 @@ static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_cornerpin(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeCornerPinData *data = MEM_callocN<NodeCornerPinData>(__func__);
+  NodeCornerPinData *data = MEM_new_for_free<NodeCornerPinData>(__func__);
   node->storage = data;
 }
 
@@ -166,8 +168,8 @@ class CornerPinOperation : public NodeOperation {
      * cases, as the logic used by the bicubic realization shader expects textures to use
      * bilinear interpolation. */
     const Interpolation interpolation = this->get_interpolation();
-    const ExtensionMode extension_mode_x = this->get_extension_mode_x();
-    const ExtensionMode extension_mode_y = this->get_extension_mode_y();
+    const Extension extension_mode_x = this->get_extension_mode_x();
+    const Extension extension_mode_y = this->get_extension_mode_y();
 
     const bool use_bilinear = ELEM(interpolation, Interpolation::Bicubic, Interpolation::Bilinear);
     const bool use_anisotropic = interpolation == Interpolation::Anisotropic;
@@ -204,8 +206,8 @@ class CornerPinOperation : public NodeOperation {
     Result &output = get_result("Image");
     output.allocate_texture(domain);
     const Interpolation interpolation = this->get_interpolation();
-    const ExtensionMode extension_mode_x = this->get_extension_mode_x();
-    const ExtensionMode extension_mode_y = this->get_extension_mode_y();
+    const Extension extension_mode_x = this->get_extension_mode_x();
+    const Extension extension_mode_y = this->get_extension_mode_y();
 
     const int2 size = domain.data_size;
     parallel_for(size, [&](const int2 texel) {
@@ -232,7 +234,8 @@ class CornerPinOperation : public NodeOperation {
          * output size since sample_ewa assumes derivatives with respect to texel coordinates. */
         float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
         float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
-        sampled_color = input.sample_ewa_extended(projected_coordinates, x_gradient, y_gradient);
+        sampled_color = float4(
+            input.sample_ewa(projected_coordinates, x_gradient, y_gradient, Extension::Extend));
       }
 
       float4 plane_color = plane_mask ? sampled_color * plane_mask->load_pixel<float>(texel) :
@@ -253,8 +256,8 @@ class CornerPinOperation : public NodeOperation {
 
   Result compute_plane_mask_gpu(const float3x3 &homography_matrix)
   {
-    const bool is_x_clipped = this->get_extension_mode_x() == ExtensionMode::Clip;
-    const bool is_y_clipped = this->get_extension_mode_y() == ExtensionMode::Clip;
+    const bool is_x_clipped = this->get_extension_mode_x() == Extension::Clip;
+    const bool is_y_clipped = this->get_extension_mode_y() == Extension::Clip;
 
     gpu::Shader *shader = context().get_shader("compositor_plane_deform_mask");
     GPU_shader_bind(shader);
@@ -278,8 +281,8 @@ class CornerPinOperation : public NodeOperation {
 
   Result compute_plane_mask_cpu(const float3x3 &homography_matrix)
   {
-    const bool is_x_clipped = this->get_extension_mode_x() == ExtensionMode::Clip;
-    const bool is_y_clipped = this->get_extension_mode_y() == ExtensionMode::Clip;
+    const bool is_x_clipped = this->get_extension_mode_x() == Extension::Clip;
+    const bool is_y_clipped = this->get_extension_mode_y() == Extension::Clip;
     const Domain domain = compute_domain();
     Result plane_mask = context().create_result(ResultType::Float);
     plane_mask.allocate_texture(domain);
@@ -312,10 +315,10 @@ class CornerPinOperation : public NodeOperation {
 
   float3x3 compute_homography_matrix()
   {
-    float2 lower_left = get_input("Lower Left").get_single_value_default(float2(0.0f));
-    float2 lower_right = get_input("Lower Right").get_single_value_default(float2(0.0f));
-    float2 upper_right = get_input("Upper Right").get_single_value_default(float2(0.0f));
-    float2 upper_left = get_input("Upper Left").get_single_value_default(float2(0.0f));
+    float2 lower_left = get_input("Lower Left").get_single_value_default<float2>();
+    float2 lower_right = get_input("Lower Right").get_single_value_default<float2>();
+    float2 upper_right = get_input("Upper Right").get_single_value_default<float2>();
+    float2 upper_left = get_input("Upper Left").get_single_value_default<float2>();
 
     /* The inputs are invalid because the plane is not convex, fall back to an identity operation
      * in that case. */
@@ -337,10 +340,8 @@ class CornerPinOperation : public NodeOperation {
 
   Interpolation get_interpolation()
   {
-    const Result &input = this->get_input("Interpolation");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_INTERPOLATION_BILINEAR);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPNodeInterpolation interpolation = static_cast<CMPNodeInterpolation>(menu_value.value);
+    const CMPNodeInterpolation interpolation = static_cast<CMPNodeInterpolation>(
+        this->get_input("Interpolation").get_single_value_default<MenuValue>().value);
     switch (interpolation) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
@@ -355,48 +356,44 @@ class CornerPinOperation : public NodeOperation {
     return Interpolation::Nearest;
   }
 
-  ExtensionMode get_extension_mode_x()
+  Extension get_extension_mode_x()
   {
     if (this->get_interpolation() == Interpolation::Anisotropic) {
-      return ExtensionMode::Clip;
+      return Extension::Clip;
     }
 
-    const Result &input = this->get_input("Extension X");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(
+        this->get_input("Extension X").get_single_value_default<MenuValue>().value);
     switch (extension_x) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
+        return Extension::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
+        return Extension::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
+        return Extension::Extend;
     }
 
-    return ExtensionMode::Clip;
+    return Extension::Clip;
   }
 
-  ExtensionMode get_extension_mode_y()
+  Extension get_extension_mode_y()
   {
     if (this->get_interpolation() == Interpolation::Anisotropic) {
-      return ExtensionMode::Clip;
+      return Extension::Clip;
     }
 
-    const Result &input = this->get_input("Extension Y");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(
+        this->get_input("Extension Y").get_single_value_default<MenuValue>().value);
     switch (extension_y) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
+        return Extension::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
+        return Extension::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
+        return Extension::Extend;
     }
 
-    return ExtensionMode::Clip;
+    return Extension::Clip;
   }
 
   const char *get_shader_name()
@@ -430,8 +427,8 @@ class CornerPinOperation : public NodeOperation {
   bool should_compute_mask()
   {
     Result &output_mask = this->get_result("Plane");
-    const bool is_clipped_x = this->get_extension_mode_x() == ExtensionMode::Clip;
-    const bool is_clipped_y = this->get_extension_mode_y() == ExtensionMode::Clip;
+    const bool is_clipped_x = this->get_extension_mode_x() == Extension::Clip;
+    const bool is_clipped_y = this->get_extension_mode_y() == Extension::Clip;
     const bool output_needed = output_mask.should_compute();
     const bool use_anisotropic = this->get_interpolation() == Interpolation::Anisotropic;
 
@@ -453,13 +450,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new CornerPinOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_cornerpin_cc
+}  // namespace nodes::node_composite_cornerpin_cc
 
 static void register_node_type_cmp_cornerpin()
 {
-  namespace file_ns = blender::nodes::node_composite_cornerpin_cc;
+  namespace file_ns = nodes::node_composite_cornerpin_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeCornerPin", CMP_NODE_CORNERPIN);
   ntype.ui_name = "Corner Pin";
@@ -469,8 +466,10 @@ static void register_node_type_cmp_cornerpin()
   ntype.declare = file_ns::cmp_node_cornerpin_declare;
   ntype.initfunc = file_ns::node_composit_init_cornerpin;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeCornerPinData", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_cornerpin)
+
+}  // namespace blender

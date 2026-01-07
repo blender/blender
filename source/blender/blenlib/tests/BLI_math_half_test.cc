@@ -15,34 +15,34 @@ namespace blender::tests {
 
 TEST(math_half, half_to_float_scalar)
 {
-  EXPECT_EQ(blender::math::half_to_float(0), 0.0f);
-  EXPECT_EQ(blender::math::half_to_float(1), 5.960464478e-08f);
-  EXPECT_EQ(blender::math::half_to_float(32), 1.907348633e-06f);
-  EXPECT_EQ(blender::math::half_to_float(37), 2.205371857e-06f);
-  EXPECT_EQ(blender::math::half_to_float(511), 3.045797348e-05f);
-  EXPECT_EQ(blender::math::half_to_float(999), 5.954504013e-05f);
-  EXPECT_EQ(blender::math::half_to_float(1024), 6.103515625e-05f);
-  EXPECT_EQ(blender::math::half_to_float(1357), 8.088350296e-05f);
-  EXPECT_EQ(blender::math::half_to_float(6789), 0.003183364868f);
-  EXPECT_EQ(blender::math::half_to_float(16383), 1.999023438f);
-  EXPECT_EQ(blender::math::half_to_float(16384), 2.0f);
-  EXPECT_EQ(blender::math::half_to_float(31743), 65504.0f);
-  EXPECT_EQ(blender::math::half_to_float(31744), std::numeric_limits<float>::infinity());
-  EXPECT_TRUE(std::isnan(blender::math::half_to_float(31746)));
-  EXPECT_TRUE(std::isnan(blender::math::half_to_float(32767)));
-  EXPECT_EQ(blender::math::half_to_float(32768), -0.0f);
-  EXPECT_EQ(blender::math::half_to_float(32769), -5.960464478e-08f);
-  EXPECT_EQ(blender::math::half_to_float(46765), -0.4172363281f);
-  EXPECT_EQ(blender::math::half_to_float(54501), -78.3125f);
-  EXPECT_EQ(blender::math::half_to_float(64511), -65504.0f);
-  EXPECT_EQ(blender::math::half_to_float(64512), -std::numeric_limits<float>::infinity());
-  EXPECT_TRUE(std::isnan(blender::math::half_to_float(64513)));
-  EXPECT_TRUE(std::isnan(blender::math::half_to_float(65535)));
+  EXPECT_EQ(math::half_to_float(0), 0.0f);
+  EXPECT_EQ(math::half_to_float(1), 5.960464478e-08f);
+  EXPECT_EQ(math::half_to_float(32), 1.907348633e-06f);
+  EXPECT_EQ(math::half_to_float(37), 2.205371857e-06f);
+  EXPECT_EQ(math::half_to_float(511), 3.045797348e-05f);
+  EXPECT_EQ(math::half_to_float(999), 5.954504013e-05f);
+  EXPECT_EQ(math::half_to_float(1024), 6.103515625e-05f);
+  EXPECT_EQ(math::half_to_float(1357), 8.088350296e-05f);
+  EXPECT_EQ(math::half_to_float(6789), 0.003183364868f);
+  EXPECT_EQ(math::half_to_float(16383), 1.999023438f);
+  EXPECT_EQ(math::half_to_float(16384), 2.0f);
+  EXPECT_EQ(math::half_to_float(31743), 65504.0f);
+  EXPECT_EQ(math::half_to_float(31744), std::numeric_limits<float>::infinity());
+  EXPECT_TRUE(std::isnan(math::half_to_float(31746)));
+  EXPECT_TRUE(std::isnan(math::half_to_float(32767)));
+  EXPECT_EQ(math::half_to_float(32768), -0.0f);
+  EXPECT_EQ(math::half_to_float(32769), -5.960464478e-08f);
+  EXPECT_EQ(math::half_to_float(46765), -0.4172363281f);
+  EXPECT_EQ(math::half_to_float(54501), -78.3125f);
+  EXPECT_EQ(math::half_to_float(64511), -65504.0f);
+  EXPECT_EQ(math::half_to_float(64512), -std::numeric_limits<float>::infinity());
+  EXPECT_TRUE(std::isnan(math::half_to_float(64513)));
+  EXPECT_TRUE(std::isnan(math::half_to_float(65535)));
 }
 
 TEST(math_half, float_to_half_scalar)
 {
-#define HFUN(v) blender::math::float_to_half(v)
+#define HFUN(v) math::float_to_half(v)
   EXPECT_EQ(HFUN(0.0f), 0);
   EXPECT_EQ(HFUN(std::numeric_limits<float>::min()), 0);
   EXPECT_EQ(HFUN(5.960464478e-08f), 1);
@@ -80,7 +80,7 @@ TEST(math_half, float_to_half_scalar)
 
 TEST(math_half, float_to_half_make_finite_scalar)
 {
-#define HFUN(v) blender::math::float_to_half_make_finite(v)
+#define HFUN(v) math::float_to_half_make_finite(v)
   EXPECT_EQ(HFUN(0.0f), 0);
   EXPECT_EQ(HFUN(std::numeric_limits<float>::min()), 0);
   EXPECT_EQ(HFUN(5.960464478e-08f), 1);
@@ -147,7 +147,7 @@ TEST(math_half, half_to_float_array)
   float dst[14] = {};
   dst[13] = 1.2345f;
 
-  blender::math::half_to_float_array(src, dst, 13);
+  math::half_to_float_array(src, dst, 13);
   EXPECT_EQ_ARRAY(exp, dst, 14);
 }
 
@@ -172,7 +172,7 @@ TEST(math_half, float_to_half_array)
   uint16_t dst[14] = {};
   dst[13] = 12345;
 
-  blender::math::float_to_half_array(src, dst, 13);
+  math::float_to_half_array(src, dst, 13);
   EXPECT_EQ_ARRAY(exp, dst, 14);
 }
 
@@ -218,7 +218,7 @@ TEST(math_half, float_to_half_make_finite_array)
                             12345};
   uint16_t dst[18] = {};
   dst[17] = 12345;
-  blender::math::float_to_half_make_finite_array(src, dst, 17);
+  math::float_to_half_make_finite_array(src, dst, 17);
   EXPECT_EQ_ARRAY(exp, dst, 18);
 }
 
@@ -242,7 +242,7 @@ TEST(math_half_perf, half_to_float_scalar)
   double t0 = BLI_time_now_seconds();
   size_t sum = 0;
   for (int i = 0; i < 100'000'000; i++) {
-    float f = blender::math::half_to_float(uint16_t(i & 0xFFFF));
+    float f = math::half_to_float(uint16_t(i & 0xFFFF));
     uint32_t fu;
     memcpy(&fu, &f, sizeof(f));
     sum += fu;
@@ -261,7 +261,7 @@ TEST(math_half_perf, half_to_float_array)
   }
   double t0 = BLI_time_now_seconds();
   size_t sum = 0;
-  blender::math::half_to_float_array(src, dst, test_size);
+  math::half_to_float_array(src, dst, test_size);
   for (int i = 0; i < test_size; i++) {
     uint32_t fu;
     memcpy(&fu, &dst[i], sizeof(fu));
@@ -292,7 +292,7 @@ TEST(math_half_perf, float_to_half_scalar)
   uint32_t sum = 0;
   for (int i = 0; i < 100'000'000; i++) {
     float f = ((i & 0xFFFF) - 0x8000) + 0.1f;
-    uint16_t h = blender::math::float_to_half(f);
+    uint16_t h = math::float_to_half(f);
     sum += h;
   }
   double t1 = BLI_time_now_seconds();
@@ -310,7 +310,7 @@ TEST(math_half_perf, float_to_half_array)
 
   double t0 = BLI_time_now_seconds();
   uint32_t sum = 0;
-  blender::math::float_to_half_array(src, dst, test_size);
+  math::float_to_half_array(src, dst, test_size);
   for (int i = 0; i < test_size; i++) {
     sum += dst[i];
   }
@@ -330,7 +330,7 @@ TEST(math_half_perf, float_to_half_make_finite_array)
   }
   double t0 = BLI_time_now_seconds();
   uint32_t sum = 0;
-  blender::math::float_to_half_make_finite_array(src, dst, test_size);
+  math::float_to_half_make_finite_array(src, dst, test_size);
   for (int i = 0; i < test_size; i++) {
     sum += dst[i];
   }

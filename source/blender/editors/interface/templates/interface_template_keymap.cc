@@ -16,16 +16,16 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 static void keymap_item_modified(bContext * /*C*/, void *kmi_p, void * /*unused*/)
 {
-  wmKeyMapItem *kmi = (wmKeyMapItem *)kmi_p;
+  wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(kmi_p);
   WM_keyconfig_update_tag(nullptr, kmi);
   U.runtime.is_dirty = true;
 }
 
-static void template_keymap_item_properties(blender::ui::Layout &layout,
-                                            const char *title,
-                                            PointerRNA *ptr)
+static void template_keymap_item_properties(Layout &layout, const char *title, PointerRNA *ptr)
 {
   layout.separator();
 
@@ -33,11 +33,11 @@ static void template_keymap_item_properties(blender::ui::Layout &layout,
     layout.label(title, ICON_NONE);
   }
 
-  blender::ui::Layout &flow = layout.column_flow(2, false);
+  Layout &flow = layout.column_flow(2, false);
 
   RNA_STRUCT_BEGIN_SKIP_RNA_TYPE (ptr, prop) {
     const bool is_set = RNA_property_is_set(ptr, prop);
-    uiBut *but;
+    Button *but;
 
     /* recurse for nested properties */
     if (RNA_property_type(prop) == PROP_POINTER) {
@@ -50,21 +50,21 @@ static void template_keymap_item_properties(blender::ui::Layout &layout,
       }
     }
 
-    blender::ui::Layout &box = flow.box();
+    Layout &box = flow.box();
     box.active_set(is_set);
-    blender::ui::Layout &row = box.row(false);
+    Layout &row = box.row(false);
 
     /* property value */
     row.prop(ptr, prop, -1, 0, UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     if (is_set) {
       /* unset operator */
-      uiBlock *block = row.block();
-      UI_block_emboss_set(block, blender::ui::EmbossType::None);
+      Block *block = row.block();
+      block_emboss_set(block, EmbossType::None);
       but = uiDefIconButO(block,
-                          ButType::But,
+                          ButtonType::But,
                           "UI_OT_unset_property_button",
-                          blender::wm::OpCallContext::ExecDefault,
+                          wm::OpCallContext::ExecDefault,
                           ICON_X,
                           0,
                           0,
@@ -73,18 +73,18 @@ static void template_keymap_item_properties(blender::ui::Layout &layout,
                           std::nullopt);
       but->rnapoin = *ptr;
       but->rnaprop = prop;
-      UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+      block_emboss_set(block, EmbossType::Emboss);
     }
   }
   RNA_STRUCT_END;
 }
 
-void uiTemplateKeymapItemProperties(blender::ui::Layout *layout, PointerRNA *ptr)
+void uiTemplateKeymapItemProperties(Layout *layout, PointerRNA *ptr)
 {
   PointerRNA propptr = RNA_pointer_get(ptr, "properties");
 
   if (propptr.data) {
-    uiBlock *block = layout->block();
+    Block *block = layout->block();
     int i = layout->block()->buttons.size() - 1;
 
     WM_operator_properties_sanitize(&propptr, false);
@@ -95,15 +95,17 @@ void uiTemplateKeymapItemProperties(blender::ui::Layout *layout, PointerRNA *ptr
     /* attach callbacks to compensate for missing properties update,
      * we don't know which keymap (item) is being modified there */
     for (; i < block->buttons.size(); i++) {
-      uiBut *but = block->buttons[i].get();
+      Button *but = block->buttons[i].get();
       /* operator buttons may store props for use (file selector, #36492) */
       if (but->rnaprop) {
-        UI_but_func_set(but, keymap_item_modified, ptr->data, nullptr);
+        button_func_set(but, keymap_item_modified, ptr->data, nullptr);
 
         /* Otherwise the keymap will be re-generated which we're trying to edit,
          * see: #47685 */
-        UI_but_flag_enable(but, UI_BUT_UPDATE_DELAY);
+        button_flag_enable(but, BUT_UPDATE_DELAY);
       }
     }
   }
 }
+
+}  // namespace blender::ui

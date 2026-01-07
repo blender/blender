@@ -100,7 +100,7 @@ static wmOperatorStatus set_persistent_base_exec(bContext *C, wmOperator * /*op*
 
   switch (bke::object::pbvh_get(ob)->type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      Mesh &mesh = *id_cast<Mesh *>(ob.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       attributes.remove(".sculpt_persistent_co");
       attributes.remove(".sculpt_persistent_no");
@@ -269,7 +269,7 @@ static wmOperatorStatus symmetrize_exec(bContext *C, wmOperator *op)
     case bke::pbvh::Type::Mesh: {
       /* Mesh Symmetrize. */
       undo::geometry_begin(scene, ob, op);
-      Mesh *mesh = static_cast<Mesh *>(ob.data);
+      Mesh *mesh = id_cast<Mesh *>(ob.data);
 
       BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd.symmetrize_direction, dist);
 
@@ -340,7 +340,7 @@ static void init_sculpt_mode_session(Main &bmain, Depsgraph &depsgraph, Scene &s
   /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(&depsgraph, &ob, false);
 
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *id_cast<Mesh *>(ob.data);
   if (mesh.attributes().contains(".sculpt_face_set")) {
     /* Here we can detect geometry that was just added to Sculpt Mode as it has the
      * SCULPT_FACE_SET_NONE assigned, so we can create a new face set for it. */
@@ -353,7 +353,7 @@ static void init_sculpt_mode_session(Main &bmain, Depsgraph &depsgraph, Scene &s
      * objects, like moving the transform pivot position to the new area or masking existing
      * geometry. */
     const int new_face_set = face_set::find_next_available_id(ob);
-    face_set::initialize_none_to_id(static_cast<Mesh *>(ob.data), new_face_set);
+    face_set::initialize_none_to_id(id_cast<Mesh *>(ob.data), new_face_set);
   }
 }
 
@@ -563,7 +563,7 @@ static wmOperatorStatus sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_brushes_validate(&bmain, &ts.sculpt->paint);
 
     if (ob.mode & mode_flag) {
-      Mesh *mesh = static_cast<Mesh *>(ob.data);
+      Mesh *mesh = id_cast<Mesh *>(ob.data);
       /* Dyntopo adds its own undo step. */
       if ((mesh->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) == 0) {
         /* Without this the memfile undo step is used,
@@ -596,71 +596,6 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
   ot->poll = ED_operator_object_active_editable_mesh;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Sample Color Operator
- * \{ */
-
-static wmOperatorStatus sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  Scene &scene = *CTX_data_scene(C);
-  Object &ob = *CTX_data_active_object(C);
-  Brush &brush = *BKE_paint_brush(&sd.paint);
-  SculptSession &ss = *ob.sculpt;
-
-  if (!color_supported_check(scene, ob, op->reports)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  const View3D *v3d = CTX_wm_view3d(C);
-  const Base *base = CTX_data_active_base(C);
-  if (!BKE_base_is_visible(v3d, base)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), &ob, false);
-
-  const Mesh &mesh = *static_cast<const Mesh *>(ob.data);
-  const OffsetIndices<int> faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
-  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const bke::GAttributeReader color_attribute = color::active_color_attribute(mesh);
-
-  float4 active_vertex_color;
-  if (!color_attribute || std::holds_alternative<std::monostate>(ss.active_vert())) {
-    active_vertex_color = float4(1.0f);
-  }
-  else {
-    const GVArraySpan colors = *color_attribute;
-    active_vertex_color = color::color_vert_get(faces,
-                                                corner_verts,
-                                                vert_to_face_map,
-                                                colors,
-                                                color_attribute.domain,
-                                                std::get<int>(ss.active_vert()));
-  }
-
-  BKE_brush_color_set(&sd.paint, &brush, active_vertex_color);
-
-  WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, &brush);
-
-  return OPERATOR_FINISHED;
-}
-
-static void SCULPT_OT_sample_color(wmOperatorType *ot)
-{
-  ot->name = "Sample Color";
-  ot->idname = "SCULPT_OT_sample_color";
-  ot->description = "Sample the vertex color of the active vertex";
-
-  ot->invoke = sample_color_invoke;
-  ot->poll = SCULPT_mode_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 }
 
 /** \} */
@@ -729,7 +664,7 @@ static void mask_by_color_contiguous_mesh(const Depsgraph &depsgraph,
                                           const bool preserve_mask)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan colors = *attributes.lookup_or_default<ColorGeometry4f>(
@@ -772,7 +707,7 @@ static void mask_by_color_full_mesh(const Depsgraph &depsgraph,
                                     const bool preserve_mask)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan colors = *attributes.lookup_or_default<ColorGeometry4f>(
       mesh.active_color_attribute, bke::AttrDomain::Point, {});
@@ -1107,7 +1042,7 @@ static void apply_mask_from_settings(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       bke::SpanAttributeWriter mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
@@ -1189,7 +1124,7 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
   /* Set up automasking settings. */
   Sculpt scene_copy = dna::shallow_copy(sd);
 
-  MaskSettingsSource src = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  MaskSettingsSource src = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
   switch (src) {
     case MaskSettingsSource::Operator:
       if (RNA_boolean_get(op->ptr, "invert")) {
@@ -1277,7 +1212,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
-  MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  MaskSettingsSource source = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
 
   if (!sd) {
     source = MaskSettingsSource::Operator;
@@ -1294,7 +1229,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
         PointerRNA sculpt_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_Sculpt, sd);
-        uiTemplateCurveMapping(&layout,
+        template_curve_mapping(&layout,
                                &sculpt_ptr,
                                "automasking_cavity_curve_op",
                                'v',
@@ -1390,7 +1325,7 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
   /* Set up automasking settings. */
   Sculpt scene_copy = dna::shallow_copy(sd);
 
-  MaskSettingsSource src = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  MaskSettingsSource src = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
   switch (src) {
     case MaskSettingsSource::Operator: {
       const MaskBoundaryMode boundary_mode = MaskBoundaryMode(
@@ -1466,7 +1401,7 @@ static void mask_from_boundary_ui(bContext *C, wmOperator *op)
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
-  MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
+  MaskSettingsSource source = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
 
   if (!sd) {
     source = MaskSettingsSource::Operator;
@@ -1564,7 +1499,6 @@ void operatortypes_sculpt()
   WM_operatortype_append(trim::SCULPT_OT_trim_polyline_gesture);
   WM_operatortype_append(project::SCULPT_OT_project_line_gesture);
 
-  WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(color::SCULPT_OT_color_filter);
   WM_operatortype_append(mask::SCULPT_OT_mask_by_color);
   WM_operatortype_append(dyntopo::SCULPT_OT_dyntopo_detail_size_edit);
@@ -1573,6 +1507,9 @@ void operatortypes_sculpt()
   WM_operatortype_append(expand::SCULPT_OT_expand);
   WM_operatortype_append(mask::SCULPT_OT_mask_from_cavity);
   WM_operatortype_append(mask::SCULPT_OT_mask_from_boundary);
+  WM_operatortype_append(SCULPT_OT_paint_mask_extract);
+  WM_operatortype_append(SCULPT_OT_face_set_extract);
+  WM_operatortype_append(SCULPT_OT_paint_mask_slice);
 }
 
 void keymap_sculpt(wmKeyConfig *keyconf)

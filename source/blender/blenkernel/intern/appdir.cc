@@ -51,6 +51,8 @@
 #  include <unistd.h>
 #endif /* !WIN32 */
 
+namespace blender {
+
 static const char _str_null[] = "(null)";
 #define STR_OR_FALLBACK(a) ((a) ? (a) : _str_null)
 
@@ -445,11 +447,11 @@ static bool get_path_environment(char *targetpath,
       targetpath, targetpath_maxncpy, subfolder_name, envvar, check_is_dir);
 }
 
-static blender::Vector<std::string> get_path_environment_multiple(const char *subfolder_name,
-                                                                  const char *envvar,
-                                                                  const bool check_is_dir)
+static Vector<std::string> get_path_environment_multiple(const char *subfolder_name,
+                                                         const char *envvar,
+                                                         const bool check_is_dir)
 {
-  blender::Vector<std::string> paths;
+  Vector<std::string> paths;
   const char *env_path = envvar ? BLI_getenv(envvar) : nullptr;
   if (!env_path) {
     return paths;
@@ -865,7 +867,7 @@ static void where_am_i(char *program_filepath,
 #  ifdef WITH_BINRELOC
   /* Linux uses `binreloc` since `argv[0]` is not reliable, call `br_init(nullptr)` first. */
   {
-    const char *path = nullptr;
+    char *path = nullptr;
     path = br_find_exe(nullptr);
     if (path) {
       BLI_strncpy(program_filepath, path, program_filepath_maxncpy);
@@ -1044,9 +1046,9 @@ bool BKE_appdir_program_python_search(char *program_filepath,
 /** \name Application Templates
  * \{ */
 
-static blender::Vector<std::string> appdir_app_template_directories()
+static Vector<std::string> appdir_app_template_directories()
 {
-  blender::Vector<std::string> directories;
+  Vector<std::string> directories;
 
   /** Keep in sync with `bpy.utils.app_template_paths()` */
   char temp_dir[FILE_MAX];
@@ -1081,7 +1083,7 @@ bool BKE_appdir_app_template_any()
 
 bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_maxncpy)
 {
-  const blender::Vector<std::string> directories = appdir_app_template_directories();
+  const Vector<std::string> directories = appdir_app_template_directories();
 
   for (const std::string &directory : directories) {
     BLI_path_join(path, path_maxncpy, directory.c_str(), app_template);
@@ -1113,11 +1115,11 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
   return BLI_exists(userpref_path);
 }
 
-void BKE_appdir_app_templates(ListBase *templates)
+void BKE_appdir_app_templates(ListBaseT<LinkData> *templates)
 {
   BLI_listbase_clear(templates);
 
-  const blender::Vector<std::string> directories = appdir_app_template_directories();
+  const Vector<std::string> directories = appdir_app_template_directories();
 
   for (const std::string &subdir : directories) {
     direntry *dirs;
@@ -1258,3 +1260,5 @@ void BKE_tempdir_session_purge()
 }
 
 /** \} */
+
+}  // namespace blender

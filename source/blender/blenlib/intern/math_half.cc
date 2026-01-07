@@ -14,22 +14,25 @@
 #  include <arm_neon.h>
 #endif
 #if (defined(__x86_64__) || defined(_M_X64))
-/* All AVX2 CPUs have F16C instructions, so use those if we're compiling for AVX2.
- * Otherwise use "manual" SSE2 4x-wide conversion. */
-#  if defined(__AVX2__)
+/* Sandy Bridge has AVX but no F16C. MSVC does not define __F16C__, but any CPU having AVX2 is sure
+ * to have it. */
+#  if (defined(__AVX__) && defined(__F16C__)) || defined(__AVX2__)
 #    define USE_HARDWARE_FP16_F16C
 #  else
+/* Use "manual" SSE2 4x-wide conversion. */
 #    define USE_SSE2_FP16
 #  endif
 #  include <immintrin.h>
 #endif
 
-uint16_t blender::math::float_to_half(float v)
+namespace blender {
+
+uint16_t math::float_to_half(float v)
 {
 #if defined(USE_HARDWARE_FP16_NEON)
   float16x4_t h4 = vcvt_f16_f32(vdupq_n_f32(v));
   float16_t h = vget_lane_f16(h4, 0);
-  return *(uint16_t *)&h;
+  return *reinterpret_cast<uint16_t *>(&h);
 #else
   /* Based on float_to_half_fast3_rtne from public domain https://gist.github.com/rygorous/2156668
    * see corresponding blog post https://fgiesen.wordpress.com/2012/03/28/half-to-float-done-quic/
@@ -88,7 +91,7 @@ uint16_t blender::math::float_to_half(float v)
 #endif
 }
 
-uint16_t blender::math::float_to_half_make_finite(float v)
+uint16_t math::float_to_half_make_finite(float v)
 {
   uint16_t h = float_to_half(v);
   /* Infinity or NaN? */
@@ -105,7 +108,7 @@ uint16_t blender::math::float_to_half_make_finite(float v)
   return h;
 }
 
-float blender::math::half_to_float(uint16_t v)
+float math::half_to_float(uint16_t v)
 {
 #if defined(USE_HARDWARE_FP16_NEON)
   uint16x4_t v4 = vdup_n_u16(v);
@@ -235,14 +238,14 @@ static inline __m128 F16_to_F32_4x(const __m128i &h)
 
 #endif  // USE_SSE2_FP16
 
-void blender::math::float_to_half_array(const float *src, uint16_t *dst, size_t length)
+void math::float_to_half_array(const float *src, uint16_t *dst, size_t length)
 {
   size_t i = 0;
-#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using AVX2 F16C */
+#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using F16C and AVX */
   for (; i + 7 < length; i += 8) {
-    __m256 src8 = _mm256_loadu_ps(src);
-    __m128i h8 = _mm256_cvtps_ph(src8, _MM_FROUND_TO_NEAREST_INT);
-    _mm_storeu_epi32(dst, h8);
+    __m256 src8 = _mm256_loadu_ps(src);                            /* AVX */
+    __m128i h8 = _mm256_cvtps_ph(src8, _MM_FROUND_TO_NEAREST_INT); /* F16C */
+    _mm_storeu_si128((__m128i *)dst, h8);                          /* SSE2 */
     src += 8;
     dst += 8;
   }
@@ -271,7 +274,7 @@ void blender::math::float_to_half_array(const float *src, uint16_t *dst, size_t 
   }
 }
 
-void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *dst, size_t length)
+void math::float_to_half_make_finite_array(const float *src, uint16_t *dst, size_t length)
 {
   size_t i = 0;
 #if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using AVX2 F16C */
@@ -300,7 +303,7 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
     src += 8;
     dst += 8;
   }
-#elif defined(USE_SSE2_FP16)          /* 4-wide loop using SSE2 */
+#elif (defined(USE_SSE2_FP16) && defined(__SSE4_1__)) /* 4-wide loop using SSE2 and SSE4.1 */
   for (; i + 3 < length; i += 4) {
     __m128 src4 = _mm_loadu_ps(src);
     __m128i h4 = F32_to_F16_4x(src4);
@@ -330,7 +333,7 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
     src += 4;
     dst += 4;
   }
-#elif defined(USE_HARDWARE_FP16_NEON) /* 4-wide loop using NEON */
+#elif defined(USE_HARDWARE_FP16_NEON)                 /* 4-wide loop using NEON */
   for (; i + 3 < length; i += 4) {
     float32x4_t src4 = vld1q_f32(src);
     float16x4_t h4 = vcvt_f16_f32(src4);
@@ -365,14 +368,14 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
   }
 }
 
-void blender::math::half_to_float_array(const uint16_t *src, float *dst, size_t length)
+void math::half_to_float_array(const uint16_t *src, float *dst, size_t length)
 {
   size_t i = 0;
-#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using AVX2 F16C */
+#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using F16C and AVX */
   for (; i + 7 < length; i += 8) {
-    __m128i src8 = _mm_loadu_epi32(src);
-    __m256 f8 = _mm256_cvtph_ps(src8);
-    _mm256_storeu_ps(dst, f8);
+    __m128i src8 = _mm_loadu_si128((__m128i *)src); /* SSE2 */
+    __m256 f8 = _mm256_cvtph_ps(src8);              /* F16C */
+    _mm256_storeu_ps(dst, f8);                      /* AVX */
     src += 8;
     dst += 8;
   }
@@ -410,3 +413,5 @@ void blender::math::half_to_float_array(const uint16_t *src, float *dst, size_t 
 #ifdef USE_SSE2_FP16
 #  undef USE_SSE2_FP16
 #endif
+
+}  // namespace blender

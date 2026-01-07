@@ -14,6 +14,8 @@
 
 #include "intern/bmesh_callback_generic.hh"
 
+namespace blender {
+
 bool BM_elem_cb_check_hflag_ex(BMElem *ele, void *user_data)
 {
   const uint hflag_pair = POINTER_AS_INT(user_data);
@@ -41,3 +43,5 @@ bool BM_elem_cb_check_elem_not_equal(BMElem *ele, void *user_data)
 {
   return (ele != user_data);
 }
+
+}  // namespace blender

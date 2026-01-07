@@ -58,11 +58,11 @@ class ViewMapBuilder {
   int _currentSVertexId;
 
  public:
-  typedef enum {
+  enum intersection_algo {
     sweep_line,
-  } intersection_algo;
+  };
 
-  typedef enum {
+  enum visibility_algo {
     ray_casting,
     ray_casting_fast,
     ray_casting_very_fast,
@@ -70,7 +70,7 @@ class ViewMapBuilder {
     ray_casting_adaptive_traditional,
     ray_casting_culled_adaptive_cumulative,
     ray_casting_adaptive_cumulative,
-  } visibility_algo;
+  };
 
   inline ViewMapBuilder()
   {

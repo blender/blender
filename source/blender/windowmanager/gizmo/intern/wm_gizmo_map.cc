@@ -46,11 +46,13 @@
 #include "wm_gizmo_intern.hh"
 #include "wm_gizmo_wmapi.hh"
 
+namespace blender {
+
 /**
  * Store all gizmo-maps here. Anyone who wants to register a gizmo for a certain
  * area type can query the gizmo-map to do so.
  */
-static ListBase gizmomaptypes = {nullptr, nullptr};
+static ListBaseT<wmGizmoMapType> gizmomaptypes = {nullptr, nullptr};
 
 /**
  * Update when gizmo-map types change.
@@ -171,8 +173,8 @@ static wmGizmoMap *wm_gizmomap_new_from_type_ex(wmGizmoMapType *gzmap_type, wmGi
 
   /* Create all gizmo-groups for this gizmo-map. We may create an empty one
    * too in anticipation of gizmos from operators etc. */
-  LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
-    wm_gizmogroup_new_from_type(gzmap, gzgt_ref->type);
+  for (wmGizmoGroupTypeRef &gzgt_ref : gzmap_type->grouptype_refs) {
+    wm_gizmogroup_new_from_type(gzmap, gzgt_ref.type);
   }
 
   return gzmap;
@@ -227,15 +229,15 @@ wmGizmoGroup *WM_gizmomap_group_find(wmGizmoMap *gzmap, const char *idname)
 
 wmGizmoGroup *WM_gizmomap_group_find_ptr(wmGizmoMap *gzmap, const wmGizmoGroupType *gzgt)
 {
-  LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
-    if (gzgroup->type == gzgt) {
-      return gzgroup;
+  for (wmGizmoGroup &gzgroup : gzmap->groups) {
+    if (gzgroup.type == gzgt) {
+      return &gzgroup;
     }
   }
   return nullptr;
 }
 
-const ListBase *WM_gizmomap_group_list(wmGizmoMap *gzmap)
+const ListBaseT<wmGizmoGroup> *WM_gizmomap_group_list(wmGizmoMap *gzmap)
 {
   return &gzmap->groups;
 }
@@ -275,21 +277,21 @@ bool WM_gizmomap_minmax(
  * TODO(@ideasman42): this uses unreliable order,
  * best we use an iterator function instead of a hash.
  */
-static blender::Set<wmGizmo *> WM_gizmomap_gizmo_hash_new(const bContext *C,
-                                                          wmGizmoMap *gzmap,
-                                                          bool (*poll)(const wmGizmo *, void *),
-                                                          void *data,
-                                                          const eWM_GizmoFlag flag_exclude)
+static Set<wmGizmo *> WM_gizmomap_gizmo_hash_new(const bContext *C,
+                                                 wmGizmoMap *gzmap,
+                                                 bool (*poll)(const wmGizmo *, void *),
+                                                 void *data,
+                                                 const eWM_GizmoFlag flag_exclude)
 {
-  blender::Set<wmGizmo *> hash;
+  Set<wmGizmo *> hash;
 
   /* Collect gizmos. */
-  LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
-    if (WM_gizmo_group_type_poll(C, gzgroup->type)) {
-      LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-        if (((flag_exclude == 0) || ((gz->flag & flag_exclude) == 0)) && (!poll || poll(gz, data)))
+  for (wmGizmoGroup &gzgroup : gzmap->groups) {
+    if (WM_gizmo_group_type_poll(C, gzgroup.type)) {
+      for (wmGizmo &gz : gzgroup.gizmos) {
+        if (((flag_exclude == 0) || ((gz.flag & flag_exclude) == 0)) && (!poll || poll(&gz, data)))
         {
-          hash.add(gz);
+          hash.add(&gz);
         }
       }
     }
@@ -334,8 +336,8 @@ void WM_gizmomap_tag_refresh(wmGizmoMap *gzmap)
 
 bool WM_gizmomap_tag_delay_refresh_for_tweak_check(wmGizmoMap *gzmap)
 {
-  LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
-    if (gzgroup->hide.delay_refresh_for_tweak) {
+  for (wmGizmoGroup &gzgroup : gzmap->groups) {
+    if (gzgroup.hide.delay_refresh_for_tweak) {
       return true;
     }
   }
@@ -345,7 +347,7 @@ bool WM_gizmomap_tag_delay_refresh_for_tweak_check(wmGizmoMap *gzmap)
 static bool gizmo_prepare_drawing(wmGizmoMap *gzmap,
                                   wmGizmo *gz,
                                   const bContext *C,
-                                  ListBase *draw_gizmos,
+                                  ListBaseT<wmGizmo> *draw_gizmos,
                                   const eWM_GizmoFlagMapDrawStep drawstep)
 {
   int do_draw = wm_gizmo_is_visible(gz);
@@ -373,7 +375,7 @@ static bool gizmo_prepare_drawing(wmGizmoMap *gzmap,
  */
 static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
                                      const bContext *C,
-                                     ListBase *draw_gizmos,
+                                     ListBaseT<wmGizmo> *draw_gizmos,
                                      const eWM_GizmoFlagMapDrawStep drawstep)
 {
   if (!gzmap || BLI_listbase_is_empty(&gzmap->groups)) {
@@ -388,23 +390,23 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
   const bool do_refresh = gzmap->update_flag[drawstep] & GIZMOMAP_IS_REFRESH_CALLBACK;
   gzmap->update_flag[drawstep] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;
 
-  LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
+  for (wmGizmoGroup &gzgroup : gzmap->groups) {
     /* Check group visibility - drawstep first to avoid unnecessary call of group poll callback. */
-    if (!wm_gizmogroup_is_visible_in_drawstep(gzgroup, drawstep)) {
+    if (!wm_gizmogroup_is_visible_in_drawstep(&gzgroup, drawstep)) {
       continue;
     }
 
-    if (gz_modal && (gzgroup == gz_modal->parent_gzgroup)) {
-      if (gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE) {
+    if (gz_modal && (&gzgroup == gz_modal->parent_gzgroup)) {
+      if (gzgroup.type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE) {
         continue;
       }
     }
     else { /* Don't poll modal gizmo since some poll functions unlink. */
-      if (!WM_gizmo_group_type_poll(C, gzgroup->type)) {
+      if (!WM_gizmo_group_type_poll(C, gzgroup.type)) {
         continue;
       }
       /* When modal only show other gizmo groups tagged with #WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL. */
-      if (gz_modal && ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0)) {
+      if (gz_modal && ((gzgroup.type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0)) {
         continue;
       }
     }
@@ -414,23 +416,23 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
      * (map gets untagged nevertheless). */
     if (do_refresh) {
       /* Force refresh again. */
-      gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
+      gzgroup.init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
     }
     /* Calls `setup`, `setup_keymap` and `refresh` if they're defined. */
-    WM_gizmogroup_ensure_init(C, gzgroup);
+    WM_gizmogroup_ensure_init(C, &gzgroup);
 
     /* Check after ensure which can run refresh and update this value. */
-    if (gzgroup->hide.any != 0) {
+    if (gzgroup.hide.any != 0) {
       continue;
     }
 
     /* Prepare drawing. */
-    if (gzgroup->type->draw_prepare) {
-      gzgroup->type->draw_prepare(C, gzgroup);
+    if (gzgroup.type->draw_prepare) {
+      gzgroup.type->draw_prepare(C, &gzgroup);
     }
 
-    LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-      gizmo_prepare_drawing(gzmap, gz, C, draw_gizmos, drawstep);
+    for (wmGizmo &gz : gzgroup.gizmos) {
+      gizmo_prepare_drawing(gzmap, &gz, C, draw_gizmos, drawstep);
     }
   }
 
@@ -441,7 +443,9 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
  * Draw all visible gizmos in \a gzmap.
  * Uses global draw_gizmos listbase.
  */
-static void gizmos_draw_list(const wmGizmoMap *gzmap, const bContext *C, ListBase *draw_gizmos)
+static void gizmos_draw_list(const wmGizmoMap *gzmap,
+                             const bContext *C,
+                             ListBaseT<wmGizmo> *draw_gizmos)
 {
   /* Can be empty if we're dynamically added and removed. */
   if ((gzmap == nullptr) || BLI_listbase_is_empty(&gzmap->groups)) {
@@ -508,7 +512,7 @@ void WM_gizmomap_draw(wmGizmoMap *gzmap,
     return;
   }
 
-  ListBase draw_gizmos = {nullptr};
+  ListBaseT<wmGizmo> draw_gizmos = {nullptr};
 
   gizmomap_prepare_drawing(gzmap, C, &draw_gizmos, drawstep);
   gizmos_draw_list(gzmap, C, &draw_gizmos);
@@ -621,11 +625,11 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
   ED_view3d_draw_setup_view(
       wm, CTX_wm_window(C), depsgraph, CTX_data_scene(C), region, v3d, nullptr, nullptr, nullptr);
 
-  const blender::Span<GPUSelectResult> hit_results = buffer.storage.as_span().take_front(hits);
+  const Span<GPUSelectResult> hit_results = buffer.storage.as_span().take_front(hits);
   if (use_select_bias && (hits > 1)) {
     float co_direction[3];
     float co_screen[3] = {float(co[0]), float(co[1]), 0.0f};
-    ED_view3d_win_to_vector(region, blender::float2{float(co[0]), float(co[1])}, co_direction);
+    ED_view3d_win_to_vector(region, float2{float(co[0]), float(co[1])}, co_direction);
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
     const int viewport[4] = {0, 0, region->winx, region->winy};
@@ -715,8 +719,8 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
     if (viewport == nullptr) {
       return nullptr;
     }
-    blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
-    blender::gpu::FrameBuffer *depth_read_fb = nullptr;
+    gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
+    gpu::FrameBuffer *depth_read_fb = nullptr;
     GPU_framebuffer_ensure_config(&depth_read_fb,
                                   {
                                       GPU_ATTACHMENT_TEXTURE(depth_tx),
@@ -780,7 +784,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmGizmo *gz = nullptr;
-  blender::Vector<wmGizmo *, 128> visible_3d_gizmos;
+  Vector<wmGizmo *, 128> visible_3d_gizmos;
   bool do_step[WM_GIZMOMAP_DRAWSTEP_MAX];
 
   int mval[2];
@@ -795,29 +799,29 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     do_step[i] = WM_gizmo_context_check_drawstep(C, eWM_GizmoFlagMapDrawStep(i));
   }
 
-  LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
+  for (wmGizmoGroup &gzgroup : gzmap->groups) {
 
     /* If it were important we could initialize here,
      * but this only happens when events are handled before drawing,
      * just skip to keep code-path for initializing gizmos simple. */
-    if ((gzgroup->hide.any != 0) || ((gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0)) {
+    if ((gzgroup.hide.any != 0) || ((gzgroup.init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0)) {
       continue;
     }
 
-    if (WM_gizmo_group_type_poll(C, gzgroup->type)) {
-      const eWM_GizmoFlagMapDrawStep step = WM_gizmomap_drawstep_from_gizmo_group(gzgroup);
+    if (WM_gizmo_group_type_poll(C, gzgroup.type)) {
+      const eWM_GizmoFlagMapDrawStep step = WM_gizmomap_drawstep_from_gizmo_group(&gzgroup);
       if (do_step[step]) {
         if (gzmap->update_flag[step] & GIZMOMAP_IS_REFRESH_CALLBACK) {
-          WM_gizmo_group_refresh(C, gzgroup);
+          WM_gizmo_group_refresh(C, &gzgroup);
           /* Cleared below. */
         }
         if (step == WM_GIZMOMAP_DRAWSTEP_3D) {
           wm_gizmogroup_intersectable_gizmos_to_list(
-              wm, gzgroup, event->modifier, &visible_3d_gizmos);
+              wm, &gzgroup, event->modifier, &visible_3d_gizmos);
         }
         else if (step == WM_GIZMOMAP_DRAWSTEP_2D) {
           if ((gz = wm_gizmogroup_find_intersected_gizmo(
-                   wm, gzgroup, C, event->modifier, mval, r_part)))
+                   wm, &gzgroup, C, event->modifier, mval, r_part)))
           {
             break;
           }
@@ -842,9 +846,9 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
 
 void WM_gizmomap_add_handlers(ARegion *region, wmGizmoMap *gzmap)
 {
-  LISTBASE_FOREACH (wmEventHandler *, handler_base, &region->runtime->handlers) {
-    if (handler_base->type == WM_HANDLER_TYPE_GIZMO) {
-      wmEventHandler_Gizmo *handler = (wmEventHandler_Gizmo *)handler_base;
+  for (wmEventHandler &handler_base : region->runtime->handlers) {
+    if (handler_base.type == WM_HANDLER_TYPE_GIZMO) {
+      wmEventHandler_Gizmo *handler = reinterpret_cast<wmEventHandler_Gizmo *>(&handler_base);
       if (handler->gizmo_map == gzmap) {
         return;
       }
@@ -941,7 +945,7 @@ static bool wm_gizmomap_select_all_intern(bContext *C, wmGizmoMap *gzmap)
    * get tot_sel for allocating, once for actually selecting). Instead we collect
    * selectable gizmos in hash table and use this to get tot_sel and do selection. */
 
-  blender::Set<wmGizmo *> hash = WM_gizmomap_gizmo_hash_new(
+  Set<wmGizmo *> hash = WM_gizmomap_gizmo_hash_new(
       C, gzmap, gizmo_selectable_poll, nullptr, WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT);
   bool changed = false;
 
@@ -1180,16 +1184,16 @@ void wm_gizmomap_modal_set(
 
     /* Ensure the update flag is set for gizmos that were hidden while modal, see #104817. */
     for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
-      const eWM_GizmoFlagMapDrawStep step_iter = (eWM_GizmoFlagMapDrawStep)i;
+      const eWM_GizmoFlagMapDrawStep step_iter = eWM_GizmoFlagMapDrawStep(i);
       if (step_iter == step) {
         continue;
       }
       if ((gzmap->update_flag[i] & update_flag) == update_flag) {
         continue;
       }
-      LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
-        if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) &&
-            wm_gizmogroup_is_visible_in_drawstep(gzgroup, step_iter))
+      for (wmGizmoGroup &gzgroup : gzmap->groups) {
+        if (((gzgroup.type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) &&
+            wm_gizmogroup_is_visible_in_drawstep(&gzgroup, step_iter))
         {
           gzmap->update_flag[i] |= update_flag;
           break;
@@ -1210,7 +1214,7 @@ wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len)
   return gzmap->gzmap_context.select.items;
 }
 
-ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap)
+ListBaseT<wmGizmoGroup> *wm_gizmomap_groups_get(wmGizmoMap *gzmap)
 {
   return &gzmap->groups;
 }
@@ -1220,20 +1224,20 @@ void WM_gizmomap_message_subscribe(const bContext *C,
                                    ARegion *region,
                                    wmMsgBus *mbus)
 {
-  LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
-    if ((gzgroup->hide.any != 0) || (gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0 ||
-        !WM_gizmo_group_type_poll(C, gzgroup->type))
+  for (wmGizmoGroup &gzgroup : gzmap->groups) {
+    if ((gzgroup.hide.any != 0) || (gzgroup.init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0 ||
+        !WM_gizmo_group_type_poll(C, gzgroup.type))
     {
       continue;
     }
-    LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-      if (gz->flag & WM_GIZMO_HIDDEN) {
+    for (wmGizmo &gz : gzgroup.gizmos) {
+      if (gz.flag & WM_GIZMO_HIDDEN) {
         continue;
       }
-      WM_gizmo_target_property_subscribe_all(gz, mbus, region);
+      WM_gizmo_target_property_subscribe_all(&gz, mbus, region);
     }
-    if (gzgroup->type->message_subscribe != nullptr) {
-      gzgroup->type->message_subscribe(C, gzgroup, mbus);
+    if (gzgroup.type->message_subscribe != nullptr) {
+      gzgroup.type->message_subscribe(C, &gzgroup, mbus);
     }
   }
 }
@@ -1257,7 +1261,7 @@ ARegion *WM_gizmomap_tooltip_init(
         /* On screen area of 3D gizmos may be large, exit on cursor motion. */
         *r_exit_on_event = true;
       }
-      return UI_tooltip_create_from_gizmo(C, gz);
+      return ui::tooltip_create_from_gizmo(C, gz);
     }
   }
   return nullptr;
@@ -1271,11 +1275,11 @@ ARegion *WM_gizmomap_tooltip_init(
 
 wmGizmoMapType *WM_gizmomaptype_find(const wmGizmoMapType_Params *gzmap_params)
 {
-  LISTBASE_FOREACH (wmGizmoMapType *, gzmap_type, &gizmomaptypes) {
-    if (gzmap_type->spaceid == gzmap_params->spaceid &&
-        gzmap_type->regionid == gzmap_params->regionid)
+  for (wmGizmoMapType &gzmap_type : gizmomaptypes) {
+    if (gzmap_type.spaceid == gzmap_params->spaceid &&
+        gzmap_type.regionid == gzmap_params->regionid)
     {
-      return gzmap_type;
+      return &gzmap_type;
     }
   }
 
@@ -1321,9 +1325,9 @@ void wm_gizmomaptypes_free()
 
 void wm_gizmos_keymap(wmKeyConfig *keyconf)
 {
-  LISTBASE_FOREACH (wmGizmoMapType *, gzmap_type, &gizmomaptypes) {
-    LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
-      wm_gizmogrouptype_setup_keymap(gzgt_ref->type, keyconf);
+  for (wmGizmoMapType &gzmap_type : gizmomaptypes) {
+    for (wmGizmoGroupTypeRef &gzgt_ref : gzmap_type.grouptype_refs) {
+      wm_gizmogrouptype_setup_keymap(gzgt_ref.type, keyconf);
     }
   }
 
@@ -1378,11 +1382,11 @@ void WM_gizmoconfig_update(Main *bmain)
   }
 
   if (wm_gzmap_type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE) {
-    LISTBASE_FOREACH (wmGizmoMapType *, gzmap_type, &gizmomaptypes) {
-      if (gzmap_type->type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE) {
-        gzmap_type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_REMOVE;
+    for (wmGizmoMapType &gzmap_type : gizmomaptypes) {
+      if (gzmap_type.type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE) {
+        gzmap_type.type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_REMOVE;
         for (wmGizmoGroupTypeRef *
-                 gzgt_ref = static_cast<wmGizmoGroupTypeRef *>(gzmap_type->grouptype_refs.first),
+                 gzgt_ref = static_cast<wmGizmoGroupTypeRef *>(gzmap_type.grouptype_refs.first),
                 *gzgt_ref_next;
              gzgt_ref;
              gzgt_ref = gzgt_ref_next)
@@ -1390,7 +1394,7 @@ void WM_gizmoconfig_update(Main *bmain)
           gzgt_ref_next = gzgt_ref->next;
           if (gzgt_ref->type->type_update_flag & WM_GIZMOMAPTYPE_UPDATE_REMOVE) {
             gzgt_ref->type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_REMOVE;
-            WM_gizmomaptype_group_unlink(nullptr, bmain, gzmap_type, gzgt_ref->type);
+            WM_gizmomaptype_group_unlink(nullptr, bmain, &gzmap_type, gzgt_ref->type);
           }
         }
       }
@@ -1400,19 +1404,19 @@ void WM_gizmoconfig_update(Main *bmain)
   }
 
   if (wm_gzmap_type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_INIT) {
-    LISTBASE_FOREACH (wmGizmoMapType *, gzmap_type, &gizmomaptypes) {
+    for (wmGizmoMapType &gzmap_type : gizmomaptypes) {
       const uchar type_update_all = WM_GIZMOMAPTYPE_UPDATE_INIT | WM_GIZMOMAPTYPE_KEYMAP_INIT;
-      if (gzmap_type->type_update_flag & type_update_all) {
-        gzmap_type->type_update_flag &= ~eWM_GizmoFlagMapTypeUpdateFlag(type_update_all);
-        LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
-          if (gzgt_ref->type->type_update_flag & WM_GIZMOMAPTYPE_KEYMAP_INIT) {
-            WM_gizmomaptype_group_init_runtime_keymap(bmain, gzgt_ref->type);
-            gzgt_ref->type->type_update_flag &= ~WM_GIZMOMAPTYPE_KEYMAP_INIT;
+      if (gzmap_type.type_update_flag & type_update_all) {
+        gzmap_type.type_update_flag &= ~eWM_GizmoFlagMapTypeUpdateFlag(type_update_all);
+        for (wmGizmoGroupTypeRef &gzgt_ref : gzmap_type.grouptype_refs) {
+          if (gzgt_ref.type->type_update_flag & WM_GIZMOMAPTYPE_KEYMAP_INIT) {
+            WM_gizmomaptype_group_init_runtime_keymap(bmain, gzgt_ref.type);
+            gzgt_ref.type->type_update_flag &= ~WM_GIZMOMAPTYPE_KEYMAP_INIT;
           }
 
-          if (gzgt_ref->type->type_update_flag & WM_GIZMOMAPTYPE_UPDATE_INIT) {
-            WM_gizmomaptype_group_init_runtime(bmain, gzmap_type, gzgt_ref->type);
-            gzgt_ref->type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_INIT;
+          if (gzgt_ref.type->type_update_flag & WM_GIZMOMAPTYPE_UPDATE_INIT) {
+            WM_gizmomaptype_group_init_runtime(bmain, &gzmap_type, gzgt_ref.type);
+            gzgt_ref.type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_INIT;
           }
         }
       }
@@ -1425,12 +1429,12 @@ void WM_gizmoconfig_update(Main *bmain)
     for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                 &sl->regionbase;
-          LISTBASE_FOREACH (ARegion *, region, regionbase) {
-            wmGizmoMap *gzmap = region->runtime->gizmo_map;
+      for (ScrArea &area : screen->areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
+                                                                           &sl.regionbase;
+          for (ARegion &region : *regionbase) {
+            wmGizmoMap *gzmap = region.runtime->gizmo_map;
             if (gzmap != nullptr && gzmap->tag_remove_group) {
               gzmap->tag_remove_group = false;
 
@@ -1442,7 +1446,7 @@ void WM_gizmoconfig_update(Main *bmain)
                 gzgroup_next = gzgroup->next;
                 if (gzgroup->tag_remove) {
                   wm_gizmogroup_free(nullptr, gzgroup);
-                  ED_region_tag_redraw_editor_overlays(region);
+                  ED_region_tag_redraw_editor_overlays(&region);
                 }
               }
             }
@@ -1473,17 +1477,18 @@ void WM_reinit_gizmomap_all(Main *bmain)
   for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
-        LISTBASE_FOREACH (ARegion *, region, regionbase) {
-          wmGizmoMap *gzmap = region->runtime->gizmo_map;
+    for (ScrArea &area : screen->areabase) {
+      for (SpaceLink &sl : area.spacedata) {
+        ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
+                                                                         &sl.regionbase;
+        for (ARegion &region : *regionbase) {
+          wmGizmoMap *gzmap = region.runtime->gizmo_map;
           if ((gzmap != nullptr) && (gzmap->is_init == false)) {
             WM_gizmomap_reinit(gzmap);
 
             /* Without a redraw elements can fail to activate
              * (such as the 2D viewport buttons). */
-            ED_region_tag_redraw(region);
+            ED_region_tag_redraw(&region);
           }
         }
       }
@@ -1492,3 +1497,5 @@ void WM_reinit_gizmomap_all(Main *bmain)
 }
 
 /** \} */
+
+}  // namespace blender

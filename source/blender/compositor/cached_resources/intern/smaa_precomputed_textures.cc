@@ -70,7 +70,7 @@ void SMAAPrecomputedTextures::compute_gpu()
                                           SEARCHTEX_WIDTH,
                                           SEARCHTEX_HEIGHT,
                                           1,
-                                          blender::gpu::TextureFormat::UNORM_8,
+                                          gpu::TextureFormat::UNORM_8,
                                           GPU_TEXTURE_USAGE_SHADER_READ,
                                           nullptr);
   GPU_texture_update(search_texture_, GPU_DATA_UBYTE, searchTexBytes);
@@ -80,7 +80,7 @@ void SMAAPrecomputedTextures::compute_gpu()
                                         AREATEX_WIDTH,
                                         AREATEX_HEIGHT,
                                         1,
-                                        blender::gpu::TextureFormat::UNORM_8_8,
+                                        gpu::TextureFormat::UNORM_8_8,
                                         GPU_TEXTURE_USAGE_SHADER_READ,
                                         nullptr);
   GPU_texture_update(area_texture_, GPU_DATA_UBYTE, areaTexBytes);

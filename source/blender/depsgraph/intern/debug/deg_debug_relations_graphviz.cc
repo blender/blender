@@ -25,13 +25,12 @@
 
 #include <sstream>
 
-namespace deg = blender::deg;
-namespace dot_export = blender::dot_export;
+namespace blender {
 
 /* ****************** */
 /* Graphviz Debugging */
 
-namespace blender::deg {
+namespace deg {
 
 /* Only one should be enabled, defines whether graphviz nodes
  * get colored by individual types or classes.
@@ -104,7 +103,7 @@ static int deg_debug_node_color_index(const Node *node)
     case NodeType::ID_REF:
       return 5;
     case NodeType::OPERATION: {
-      OperationNode *op_node = (OperationNode *)node;
+      OperationNode *op_node = static_cast<OperationNode *>(const_cast<Node *>(node));
       if (op_node->is_noop()) {
         if (op_node->flag & OperationFlag::DEPSOP_FLAG_PINNED) {
           return 7;
@@ -203,7 +202,7 @@ static void deg_debug_graphviz_node_color(DotExportContext &ctx,
   const char *color = color_default;
   if (ctx.show_tags) {
     if (node->get_class() == NodeClass::OPERATION) {
-      OperationNode *op_node = (OperationNode *)node;
+      OperationNode *op_node = static_cast<OperationNode *>(const_cast<Node *>(node));
       if (op_node->flag & DEPSOP_FLAG_DIRECTLY_MODIFIED) {
         color = color_modified;
       }
@@ -225,7 +224,7 @@ static void deg_debug_graphviz_node_penwidth(DotExportContext &ctx,
   float penwidth = penwidth_default;
   if (ctx.show_tags) {
     if (node->get_class() == NodeClass::OPERATION) {
-      OperationNode *op_node = (OperationNode *)node;
+      OperationNode *op_node = static_cast<OperationNode *>(const_cast<Node *>(node));
       if (op_node->flag & DEPSOP_FLAG_DIRECTLY_MODIFIED) {
         penwidth = penwidth_modified;
       }
@@ -287,8 +286,8 @@ static void deg_debug_graphviz_relation_arrowhead(const Relation *rel,
   if (rel->from->get_class() == NodeClass::OPERATION &&
       rel->to->get_class() == NodeClass::OPERATION)
   {
-    OperationNode *op_from = (OperationNode *)rel->from;
-    OperationNode *op_to = (OperationNode *)rel->to;
+    OperationNode *op_from = static_cast<OperationNode *>(rel->from);
+    OperationNode *op_to = static_cast<OperationNode *>(rel->to);
     if (op_from->owner->type == NodeType::COPY_ON_EVAL &&
         /* The #ID::recalc flag depends on run-time state which is not valid at this point in time.
          * Pass in all flags although there may be a better way to represent this. */
@@ -307,7 +306,7 @@ static void deg_debug_graphviz_node_style(DotExportContext &ctx,
   StringRef base_style = "filled"; /* default style */
   if (ctx.show_tags) {
     if (node->get_class() == NodeClass::OPERATION) {
-      OperationNode *op_node = (OperationNode *)node;
+      OperationNode *op_node = static_cast<OperationNode *>(const_cast<Node *>(node));
       if (op_node->flag & (DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE)) {
         base_style = "striped";
       }
@@ -377,7 +376,7 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
 {
   switch (node->type) {
     case NodeType::ID_REF: {
-      const IDNode *id_node = (const IDNode *)node;
+      const IDNode *id_node = static_cast<const IDNode *>(node);
       if (id_node->components.is_empty()) {
         deg_debug_graphviz_node_single(ctx, node, parent_cluster);
       }
@@ -417,7 +416,7 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
     case NodeType::VISIBILITY:
     case NodeType::NTREE_OUTPUT:
     case NodeType::NTREE_GEOMETRY_PREPROCESS: {
-      ComponentNode *comp_node = (ComponentNode *)node;
+      ComponentNode *comp_node = static_cast<ComponentNode *>(const_cast<Node *>(node));
       if (comp_node->operations.is_empty()) {
         deg_debug_graphviz_node_single(ctx, node, parent_cluster);
       }
@@ -500,9 +499,9 @@ static void deg_debug_graphviz_graph_relations(DotExportContext &ctx, const Deps
   }
 }
 
-}  // namespace blender::deg
+}  // namespace deg
 
-std::string DEG_debug_graph_to_dot(const Depsgraph &graph, const blender::StringRef label)
+std::string DEG_debug_graph_to_dot(const Depsgraph &graph, const StringRef label)
 {
   const deg::Depsgraph &deg_graph = reinterpret_cast<const deg::Depsgraph &>(graph);
 
@@ -525,3 +524,5 @@ std::string DEG_debug_graph_to_dot(const Depsgraph &graph, const blender::String
 
   return digraph.to_dot_string();
 }
+
+}  // namespace blender

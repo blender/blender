@@ -61,7 +61,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
   const float beta = brush.surface_smooth_current_vertex;
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();

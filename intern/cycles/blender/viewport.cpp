@@ -7,6 +7,11 @@
 
 #include "scene/pass.h"
 
+#include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
+
+#include "RNA_prototypes.hh"
+
 CCL_NAMESPACE_BEGIN
 
 BlenderViewportParameters::BlenderViewportParameters()
@@ -20,27 +25,33 @@ BlenderViewportParameters::BlenderViewportParameters()
 {
 }
 
-BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d, bool use_developer_ui)
+BlenderViewportParameters::BlenderViewportParameters(blender::bScreen *b_screen,
+                                                     blender::View3D *b_v3d,
+                                                     bool use_developer_ui)
     : BlenderViewportParameters()
 {
   if (!b_v3d) {
     return;
   }
 
-  BL::View3DShading shading = b_v3d.shading();
-  PointerRNA cshading = RNA_pointer_get(&shading.ptr, "cycles");
+  blender::View3DShading shading = b_v3d->shading;
+  blender::PointerRNA v3d_rna_ptr = RNA_pointer_create_discrete(
+      &b_screen->id, &blender::RNA_SpaceView3D, b_v3d);
+  blender::PointerRNA shading_rna_ptr = RNA_pointer_get(&v3d_rna_ptr, "shading");
 
   /* We only copy the shading parameters if we are in look-dev mode.
    * Otherwise defaults are being used. These defaults mimic normal render settings. */
-  if (shading.type() == BL::View3DShading::type_RENDERED) {
-    use_scene_world = shading.use_scene_world_render();
-    use_scene_lights = shading.use_scene_lights_render();
+  if (shading.type == blender::OB_RENDER) {
+    use_scene_world = shading.flag & blender::V3D_SHADING_SCENE_WORLD_RENDER;
+    use_scene_lights = shading.flag & blender::V3D_SHADING_SCENE_LIGHTS_RENDER;
 
     if (!use_scene_world) {
-      studiolight_rotate_z = shading.studiolight_rotate_z();
-      studiolight_intensity = shading.studiolight_intensity();
-      studiolight_background_alpha = shading.studiolight_background_alpha();
-      studiolight_path = shading.selected_studio_light().path();
+      studiolight_rotate_z = shading.studiolight_rot_z;
+      studiolight_intensity = shading.studiolight_intensity;
+      studiolight_background_alpha = shading.studiolight_background;
+      blender::PointerRNA selected_studiolight_rna_ptr = RNA_pointer_get(&shading_rna_ptr,
+                                                                         "selected_studio_light");
+      studiolight_path = RNA_string_get(&selected_studiolight_rna_ptr, "path");
     }
   }
 
@@ -52,7 +63,8 @@ BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d, boo
 
   display_pass = PASS_COMBINED;
 
-  const string display_pass_identifier = get_enum_identifier(cshading, "render_pass");
+  blender::PointerRNA cycles_shading_ptr = RNA_pointer_get(&shading_rna_ptr, "cycles");
+  const string display_pass_identifier = get_enum_identifier(cycles_shading_ptr, "render_pass");
   if (!display_pass_identifier.empty()) {
     const ustring pass_type_identifier(string_to_lower(display_pass_identifier));
     const NodeEnum *pass_type_enum = Pass::get_type_enum();
@@ -62,7 +74,7 @@ BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d, boo
   }
 
   if (use_developer_ui) {
-    show_active_pixels = get_boolean(cshading, "show_active_pixels");
+    show_active_pixels = get_boolean(cycles_shading_ptr, "show_active_pixels");
   }
 }
 

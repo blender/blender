@@ -32,7 +32,9 @@
 #include "node_util.hh"
 #include <optional>
 
-bool tex_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
+namespace blender {
+
+bool tex_node_poll_default(const bke::bNodeType * /*ntype*/,
                            const bNodeTree *ntree,
                            const char **r_disabled_hint)
 {
@@ -43,11 +45,11 @@ bool tex_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
   return true;
 }
 
-void tex_node_type_base(blender::bke::bNodeType *ntype,
+void tex_node_type_base(bke::bNodeType *ntype,
                         std::string idname,
                         const std::optional<int16_t> legacy_type)
 {
-  blender::bke::node_type_base(*ntype, idname, legacy_type);
+  bke::node_type_base(*ntype, idname, legacy_type);
 
   ntype->poll = tex_node_poll_default;
   ntype->insert_link = node_insert_link_default;
@@ -142,25 +144,27 @@ void tex_output(bNode *node,
 
 void ntreeTexCheckCyclics(bNodeTree *ntree)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode &node : ntree->nodes) {
 
-    if (node->type_legacy == TEX_NODE_TEXTURE && node->id) {
+    if (node.type_legacy == TEX_NODE_TEXTURE && node.id) {
       /* custom2 stops the node from rendering */
-      if (node->custom1) {
-        node->custom2 = 1;
-        node->custom1 = 0;
+      if (node.custom1) {
+        node.custom2 = 1;
+        node.custom1 = 0;
       }
       else {
-        Tex *tex = (Tex *)node->id;
+        Tex *tex = id_cast<Tex *>(node.id);
 
-        node->custom2 = 0;
+        node.custom2 = 0;
 
-        node->custom1 = 1;
+        node.custom1 = 1;
         if (tex->use_nodes && tex->nodetree) {
           ntreeTexCheckCyclics(tex->nodetree);
         }
-        node->custom1 = 0;
+        node.custom1 = 0;
       }
     }
   }
 }
+
+}  // namespace blender

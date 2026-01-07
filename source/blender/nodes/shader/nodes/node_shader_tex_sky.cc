@@ -18,7 +18,9 @@
 
 #include "NOD_socket_search_link.hh"
 
-namespace blender::nodes::node_shader_tex_sky_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_sky_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -28,49 +30,49 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tex_sky(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout.prop(ptr, "sky_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "sky_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_PREETHAM) {
-    layout.prop(ptr, "sun_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    layout.prop(ptr, "turbidity", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "sun_direction", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "turbidity", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_HOSEK) {
-    layout.prop(ptr, "sun_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    layout.prop(ptr, "turbidity", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    layout.prop(ptr, "ground_albedo", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "sun_direction", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "turbidity", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "ground_albedo", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else {
     Scene *scene = CTX_data_scene(C);
     if (BKE_scene_uses_blender_eevee(scene)) {
       layout.label(RPT_("Sun disc not available in EEVEE"), ICON_ERROR);
     }
-    layout.prop(ptr, "sun_disc", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "sun_disc", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     if (RNA_boolean_get(ptr, "sun_disc")) {
       ui::Layout &col = layout.column(true);
-      col.prop(ptr, "sun_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      col.prop(ptr, "sun_intensity", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "sun_size", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "sun_intensity", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
 
     {
       ui::Layout &col = layout.column(true);
-      col.prop(ptr, "sun_elevation", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      col.prop(ptr, "sun_rotation", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "sun_elevation", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "sun_rotation", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
-    layout.prop(ptr, "altitude", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "altitude", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     {
       ui::Layout &col = layout.column(true);
-      col.prop(ptr, "air_density", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      col.prop(ptr, "aerosol_density", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      col.prop(ptr, "ozone_density", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "air_density", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "aerosol_density", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "ozone_density", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
   }
 }
 
 static void node_shader_init_tex_sky(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexSky *tex = MEM_callocN<NodeTexSky>("NodeTexSky");
+  NodeTexSky *tex = MEM_new_for_free<NodeTexSky>("NodeTexSky");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->sun_direction[0] = 0.0f;
@@ -190,7 +192,7 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
 {
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
-  NodeTexSky *tex = (NodeTexSky *)node->storage;
+  NodeTexSky *tex = static_cast<NodeTexSky *>(node->storage);
   float sun_angles[2]; /* [0]=theta=zenith angle  [1]=phi=azimuth */
   sun_angles[0] = acosf(tex->sun_direction[2]);
   sun_angles[1] = atan2f(tex->sun_direction[0], tex->sun_direction[1]);
@@ -326,7 +328,7 @@ static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector");
 
-  NodeTexSky *tex = (NodeTexSky *)node->storage;
+  NodeTexSky *tex = static_cast<NodeTexSky *>(node->storage);
   bke::node_set_socket_availability(
       *ntree,
       *sockVector,
@@ -346,21 +348,21 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   {
     params.add_item(IFACE_("Vector"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("ShaderNodeTexSky");
-      NodeTexSky *tex = (NodeTexSky *)node.storage;
+      NodeTexSky *tex = static_cast<NodeTexSky *>(node.storage);
       tex->sun_disc = false;
       params.update_and_connect_available_socket(node, "Vector");
     });
   }
 }
 
-}  // namespace blender::nodes::node_shader_tex_sky_cc
+}  // namespace nodes::node_shader_tex_sky_cc
 
 /* node type definition */
 void register_node_type_sh_tex_sky()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_sky_cc;
+  namespace file_ns = nodes::node_shader_tex_sky_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeTexSky", SH_NODE_TEX_SKY);
   ntype.ui_name = "Sky Texture";
@@ -369,13 +371,15 @@ void register_node_type_sh_tex_sky()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_sky;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Default);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Default);
   ntype.initfunc = file_ns::node_shader_init_tex_sky;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_sky;
   ntype.updatefunc = file_ns::node_shader_update_sky;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

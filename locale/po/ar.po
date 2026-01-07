@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -7873,6 +7873,22 @@ msgid "Shader"
 msgstr "ﻞﻠﻈﻤﻟﺍ"
 
 
+msgid "Font"
+msgstr "ﻂﺨﻟﺍ"
+
+
+msgid "Text"
+msgstr "ﺺﻧ"
+
+
+msgid "Mask"
+msgstr "ءﺎﻄﻏ"
+
+
+msgid "Sound"
+msgstr "ﺕﻮﺻ"
+
+
 msgid "Freestyle Line Set"
 msgstr "ﻞﻳﺎﺘﺴﻳﺮﻓ ﻂﺧ ﺔﻋﻮﻤﺠﻣ"
 
@@ -9662,10 +9678,6 @@ msgstr "ﻰﻨﺤﻨﻣ ﻰﻠﻋ ﺺﻨﻟﺍ"
 
 msgid "Curve deforming text object"
 msgstr "ﺺﻨﻟﺍ ﻦﺋﺎﻜﻟ ﻉﻮّﻄﻤﻟﺍ ﻰﻨﺤﻨﻤﻟﺍ"
-
-
-msgid "Font"
-msgstr "ﻂﺨﻟﺍ"
 
 
 msgid "Font Bold"
@@ -12942,10 +12954,6 @@ msgid "Playback pitch of the sound"
 msgstr "ﺕﻮﺼﻠﻟ ﺽﺮﻌﻟﺍ ﺔﻤﻐﻧ"
 
 
-msgid "Sound"
-msgstr "ﺕﻮﺻ"
-
-
 msgid "How loud the sound is"
 msgstr "ﺕﻮﺼﻟﺍ ﻉﺎﻔﺗﺭﺍ ﻢﻛ"
 
@@ -15651,10 +15659,6 @@ msgid "Dots"
 msgstr "ﺕﺎﺨﻄﻟ"
 
 
-msgid "Mask"
-msgstr "ءﺎﻄﻏ"
-
-
 msgid "Material slot in an object"
 msgstr "ﻦﺋﺎﻛ ﻲﻓ ﺔﻣﺎﺧ ﺔﺤﺘﻓ"
 
@@ -15667,76 +15671,16 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Apply"
-msgstr "ﻖﺒﻃ"
-
-
-msgid "Track"
-msgstr "ﺐﻘّﻌﺗ"
-
-
-msgid "Quick Effects"
-msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
-
-
-msgid "Make Single User"
-msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
-
-
-msgid "Hooks"
-msgstr "ﺕﺎﻓﺎﻄﺧ"
-
-
-msgid "In-Betweens"
-msgstr "ﻦﻴﺑ ﺎﻣ"
-
-
-msgid "Propagate"
-msgstr "ﻢﻤﻋ"
-
-
 msgid "Names"
 msgstr "ءﺎﻤﺳﺃ"
 
 
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
-
-
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
-
-
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
-
-
-msgid "Keying"
-msgstr "ﺺﺤﻔﻟﺍ"
-
-
-msgid "Tracking"
-msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
 msgid "Math"
 msgstr "ﺏﺎﺴﺣ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
-msgid "Text"
-msgstr "ﺺﻧ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
-
-
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
 msgid "Snap"
@@ -15745,6 +15689,10 @@ msgstr "ﻱﺫﺎﺣ"
 
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Mirror"
@@ -15771,6 +15719,10 @@ msgid "Select More/Less"
 msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
 
 
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
+
+
 msgid "Select Similar"
 msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
 
@@ -15783,12 +15735,8 @@ msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
-
-
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
 msgid "Light"
@@ -15801,6 +15749,58 @@ msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
 
 msgid "Rigid Body"
 msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
+
+
+msgid "Apply"
+msgstr "ﻖﺒﻃ"
+
+
+msgid "Track"
+msgstr "ﺐﻘّﻌﺗ"
+
+
+msgid "Quick Effects"
+msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
+
+
+msgid "Make Single User"
+msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
+
+
+msgid "Hooks"
+msgstr "ﺕﺎﻓﺎﻄﺧ"
+
+
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
+
+
+msgid "In-Betweens"
+msgstr "ﻦﻴﺑ ﺎﻣ"
+
+
+msgid "Propagate"
+msgstr "ﻢﻤﻋ"
+
+
+msgid "Keying"
+msgstr "ﺺﺤﻔﻟﺍ"
+
+
+msgid "Tracking"
+msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
+
+
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
 
 
 msgctxt "MovieClip"
@@ -15824,8 +15824,8 @@ msgid "Console"
 msgstr "ﺮﻣﺍﻭﻷ﻿ﺍ ﺔﺣﻮﻟ"
 
 
-msgid "Languages..."
-msgstr "...ﺕﺎﻐﻠﻟﺍ"
+msgid "Languages"
+msgstr "ﺔﻐﻠﻟﺍ"
 
 
 msgid "Cache"
@@ -30155,10 +30155,6 @@ msgid "Language ID"
 msgstr "ﺔﻐﻠﻟﺍ"
 
 
-msgid "Languages"
-msgstr "ﺔﻐﻠﻟﺍ"
-
-
 msgid "POT File Path"
 msgstr "ﻒﻠﻤﻟﺍ ﺭﺎﺴﻣ"
 
@@ -34065,11 +34061,6 @@ msgstr "ءﺍﺮﻘﺘﺳﻻ﻿ﺍ ﻊﺿﻭ"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "...ﻙﺮﺣ"
-
-
-msgctxt "Operator"
 msgid "Keyframe Type"
 msgstr "ﺡﺎﺘﻔﻤﻟﺍ ﻉﻮﻧ"
 
@@ -34286,11 +34277,6 @@ msgstr "ﻍﺮّﻓ"
 msgctxt "Operator"
 msgid "Sound"
 msgstr "ﺕﻮﺻ"
-
-
-msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "...ﺕﺍﺭﺎﺴﻤﻟﺍ ﺐﻴﺗﺮﺗ"
 
 
 msgctxt "Operator"
@@ -34703,11 +34689,6 @@ msgstr "ﺕﻮﺻ ﺮﺒﻜﻣ"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "...ﻲﻠﺤﻣ ﻞﻌﺟﺍ"
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "...ﺔﻛﺮﺤﻟﺍ ﻥﺰﺧ"
 
@@ -34803,11 +34784,6 @@ msgstr "ﻢﻈﻌﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
 msgctxt "Operator"
 msgid "Calculate"
 msgstr "ﺏﺎﺴﺣ"
-
-
-msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "...ﺮﺻﺎﻨﻌﻟﺍ ﺐﺗّﺭ"
 
 
 msgctxt "Operator"
@@ -35327,11 +35303,6 @@ msgstr "ﺭﺎﺘﺨﻣ ءﻲﺷ ﻻ﻿"
 
 msgid "Pin"
 msgstr "ﺖﺒّﺛ"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "ﺭﺎﺼﺘﺧﻹ﻿ﺍ ﺮﻴﻏ"
 
 
 msgctxt "Operator"

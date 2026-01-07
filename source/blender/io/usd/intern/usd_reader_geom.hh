@@ -6,13 +6,15 @@
 #include "usd.hh"
 #include "usd_reader_xform.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::bke {
+namespace bke {
 struct GeometrySet;
 }
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDGeomReader : public USDXformReader {
 
@@ -37,4 +39,5 @@ class USDGeomReader : public USDXformReader {
   void add_subdiv_modifier();
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

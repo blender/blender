@@ -30,8 +30,8 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "primary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "secondary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "primary_axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "secondary_axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static float3 get_orthogonal_of_non_zero_vector(const float3 &v)
@@ -174,7 +174,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeAxesToRotation", FN_NODE_AXES_TO_ROTATION);
   ntype.ui_name = "Axes to Rotation";
   ntype.ui_description =
@@ -187,7 +187,7 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.get_extra_info = node_extra_info;
   node_rna(ntype.rna_ext.srna);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

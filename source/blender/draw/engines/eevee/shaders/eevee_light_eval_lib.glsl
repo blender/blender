@@ -36,6 +36,10 @@ SHADER_LIBRARY_CREATE_INFO(eevee_light_data)
 #  define PIXEL float2(0)
 #endif
 
+#ifdef GLSL_CPP_STUBS
+#  define LIGHT_CLOSURE_EVAL_COUNT 3
+#endif
+
 #if !defined(LIGHT_CLOSURE_EVAL_COUNT)
 #  define LIGHT_CLOSURE_EVAL_COUNT 1
 #  define SKIP_LIGHT_EVAL
@@ -67,7 +71,7 @@ ClosureLight closure_light_get(ClosureLightStack stack, uchar index)
   return closure_null;
 }
 
-void closure_light_set(inout ClosureLightStack stack, uchar index, ClosureLight cl_light)
+void closure_light_set(ClosureLightStack &stack, uchar index, ClosureLight cl_light)
 {
   switch (index) {
     case 0:
@@ -102,7 +106,7 @@ bool light_linking_affects_receiver(uint2 light_set_membership, uchar receiver_l
 
 void light_eval_single_closure(LightData light,
                                LightVector lv,
-                               inout ClosureLight cl,
+                               ClosureLight &cl,
                                float3 V,
                                float attenuation,
                                float shadow,
@@ -122,7 +126,7 @@ void light_eval_single_closure(LightData light,
 void light_eval_single(uint l_idx,
                        const bool is_directional,
                        const bool is_transmission,
-                       inout ClosureLightStack stack,
+                       ClosureLightStack &stack,
                        float3 P,
                        float3 Ng,
                        float3 V,
@@ -201,7 +205,7 @@ void light_eval_single(uint l_idx,
   }
 }
 
-void light_eval_transmission(inout ClosureLightStack stack,
+void light_eval_transmission(ClosureLightStack &stack,
                              float3 P,
                              float3 Ng,
                              float3 V,
@@ -246,7 +250,7 @@ void light_eval_transmission(inout ClosureLightStack stack,
   LIGHT_FOREACH_END
 }
 
-void light_eval_reflection(inout ClosureLightStack stack,
+void light_eval_reflection(ClosureLightStack &stack,
                            float3 P,
                            float3 Ng,
                            float3 V,

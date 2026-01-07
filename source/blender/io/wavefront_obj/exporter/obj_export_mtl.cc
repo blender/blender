@@ -21,9 +21,12 @@
 #include "obj_export_mtl.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.obj"};
 
-namespace blender::io::obj {
+namespace io::obj {
 
 const char *tex_map_type_to_socket_id[] = {
     "Base Color",
@@ -392,4 +395,5 @@ MTLMaterial mtlmaterial_for_material(const Material *material)
   return mtlmat;
 }
 
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

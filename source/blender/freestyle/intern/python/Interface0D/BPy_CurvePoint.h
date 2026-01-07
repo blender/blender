@@ -19,9 +19,9 @@ extern PyTypeObject CurvePoint_Type;
 #define BPy_CurvePoint_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&CurvePoint_Type))
 
 /*---------------------------Python BPy_CurvePoint structure definition----------*/
-typedef struct {
+struct BPy_CurvePoint {
   BPy_Interface0D py_if0D;
   Freestyle::CurvePoint *cp;
-} BPy_CurvePoint;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

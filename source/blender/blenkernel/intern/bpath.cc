@@ -46,6 +46,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 #ifndef _MSC_VER
 #  include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 #endif
@@ -94,7 +96,7 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
                                          sizeof(id->library_weak_reference->library_filepath));
   }
 
-  bNodeTree *embedded_node_tree = blender::bke::node_tree_from_id(id);
+  bNodeTree *embedded_node_tree = bke::node_tree_from_id(id);
   if (embedded_node_tree != nullptr) {
     BKE_bpath_foreach_path_id(bpath_data, &embedded_node_tree->id);
   }
@@ -174,7 +176,7 @@ bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_da
   }
 
   if (bpath_data->callback_function(
-          bpath_data, path_dst, sizeof(path_dst), (const char *)path_src))
+          bpath_data, path_dst, sizeof(path_dst), const_cast<const char *>(path_src)))
   {
     BLI_path_split_dir_file(path_dst, path_dir, path_dir_maxncpy, path_file, path_file_maxncpy);
     bpath_data->is_path_modified = true;
@@ -222,7 +224,7 @@ static bool check_missing_files_foreach_path_cb(BPathForeachPathData *bpath_data
                                                 size_t /*path_dst_maxncpy*/,
                                                 const char *path_src)
 {
-  ReportList *reports = (ReportList *)bpath_data->user_data;
+  ReportList *reports = static_cast<ReportList *>(bpath_data->user_data);
 
   if (!BLI_exists(path_src)) {
     ID *owner_id = bpath_data->owner_id;
@@ -364,7 +366,7 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
                                                size_t path_dst_maxncpy,
                                                const char *path_src)
 {
-  BPathFind_Data *data = (BPathFind_Data *)bpath_data->user_data;
+  BPathFind_Data *data = static_cast<BPathFind_Data *>(bpath_data->user_data);
   char filepath_new[FILE_MAX];
 
   int64_t filesize = FILESIZE_INVALID_DIRECTORY;
@@ -448,7 +450,7 @@ static bool relative_rebase_foreach_path_cb(BPathForeachPathData *bpath_data,
                                             size_t path_dst_maxncpy,
                                             const char *path_src)
 {
-  BPathRebase_Data *data = (BPathRebase_Data *)bpath_data->user_data;
+  BPathRebase_Data *data = static_cast<BPathRebase_Data *>(bpath_data->user_data);
 
   data->summary.count_total++;
 
@@ -521,7 +523,7 @@ static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                                              size_t path_dst_maxncpy,
                                              const char *path_src)
 {
-  BPathRemap_Data *data = (BPathRemap_Data *)bpath_data->user_data;
+  BPathRemap_Data *data = static_cast<BPathRemap_Data *>(bpath_data->user_data);
 
   data->summary.count_total++;
 
@@ -556,7 +558,7 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                                              size_t path_dst_maxncpy,
                                              const char *path_src)
 {
-  BPathRemap_Data *data = (BPathRemap_Data *)bpath_data->user_data;
+  BPathRemap_Data *data = static_cast<BPathRemap_Data *>(bpath_data->user_data);
 
   data->summary.count_total++;
 
@@ -651,7 +653,7 @@ static bool bpath_list_append(BPathForeachPathData *bpath_data,
                               size_t /*path_dst_maxncpy*/,
                               const char *path_src)
 {
-  ListBase *path_list = static_cast<ListBase *>(bpath_data->user_data);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(bpath_data->user_data);
   size_t path_size = strlen(path_src) + 1;
 
   /* NOTE: the PathStore and its string are allocated together in a single alloc. */
@@ -670,7 +672,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
                                size_t path_dst_maxncpy,
                                const char *path_src)
 {
-  ListBase *path_list = static_cast<ListBase *>(bpath_data->user_data);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(bpath_data->user_data);
 
   /* `ls->first` should never be nullptr, because the number of paths should not change.
    * If this happens, there is a bug in caller code. */
@@ -691,7 +693,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
 
 void *BKE_bpath_list_backup(Main *bmain, const eBPathForeachFlag flag)
 {
-  ListBase *path_list = MEM_callocN<ListBase>(__func__);
+  ListBaseT<PathStore> *path_list = MEM_callocN<ListBaseT<PathStore>>(__func__);
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;
@@ -705,7 +707,7 @@ void *BKE_bpath_list_backup(Main *bmain, const eBPathForeachFlag flag)
 
 void BKE_bpath_list_restore(Main *bmain, const eBPathForeachFlag flag, void *path_list_handle)
 {
-  ListBase *path_list = static_cast<ListBase *>(path_list_handle);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;
@@ -717,7 +719,7 @@ void BKE_bpath_list_restore(Main *bmain, const eBPathForeachFlag flag, void *pat
 
 void BKE_bpath_list_free(void *path_list_handle)
 {
-  ListBase *path_list = static_cast<ListBase *>(path_list_handle);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
   /* The whole list should have been consumed by #BKE_bpath_list_restore, see also comment in
    * #bpath_list_restore. */
   BLI_assert(BLI_listbase_is_empty(path_list));
@@ -727,3 +729,5 @@ void BKE_bpath_list_free(void *path_list_handle)
 }
 
 /** \} */
+
+}  // namespace blender

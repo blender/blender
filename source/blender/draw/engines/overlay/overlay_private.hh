@@ -32,14 +32,16 @@
 
 #include "draw_common.hh"
 
-template<> struct blender::gpu::AttrType<VertexClass> {
+namespace blender {
+
+template<> struct gpu::AttrType<VertexClass> {
   static constexpr VertAttrType type = VertAttrType::SINT_32;
 };
-template<> struct blender::gpu::AttrType<StickBoneFlag> {
+template<> struct gpu::AttrType<StickBoneFlag> {
   static constexpr VertAttrType type = VertAttrType::SINT_32;
 };
 
-namespace blender::draw::overlay {
+namespace draw::overlay {
 
 struct BoneInstanceData {
   /* Keep sync with bone instance vertex format (OVERLAY_InstanceFormats) */
@@ -75,7 +77,7 @@ struct BoneInstanceData {
     mat44[0] = ob_mat[0] * radius;
     mat44[1] = ob_mat[1] * radius;
     mat44[2] = ob_mat[2] * radius;
-    mat44[3] = float4(blender::math::transform_point(ob_mat, pos), 0.0f);
+    mat44[3] = float4(math::transform_point(ob_mat, pos), 0.0f);
     set_color(color);
   }
 
@@ -116,11 +118,11 @@ struct BoneInstanceData {
 
 using SelectionType = select::SelectionType;
 
-using blender::draw::Framebuffer;
-using blender::draw::StorageVectorBuffer;
-using blender::draw::Texture;
-using blender::draw::TextureFromPool;
-using blender::draw::TextureRef;
+using draw::Framebuffer;
+using draw::StorageVectorBuffer;
+using draw::Texture;
+using draw::TextureFromPool;
+using draw::TextureRef;
 
 struct State {
   Depsgraph *depsgraph = nullptr;
@@ -928,7 +930,7 @@ struct Resources : public select::SelectMap {
   float4 background_blend_color(ThemeColorID theme_id) const
   {
     float4 color;
-    UI_GetThemeColorBlendShade4fv(theme_id, TH_BACK, 0.5, 0, color);
+    ui::theme::get_color_blend_shade_4fv(theme_id, TH_BACK, 0.5, 0, color);
     return color;
   }
 
@@ -949,7 +951,7 @@ struct Resources : public select::SelectMap {
       return state.v3d->shading.background_color;
     }
     float4 color;
-    UI_GetThemeColor3fv(TH_BACK, color);
+    ui::theme::get_color_3fv(TH_BACK, color);
     return color;
   }
 
@@ -965,7 +967,7 @@ struct Resources : public select::SelectMap {
   static float vertex_size_get()
   {
     /* M_SQRT2 to be at least the same size of the old square */
-    return max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f);
+    return max_ff(1.0f, ui::theme::get_value_f(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f);
   }
 
   /** Convenience functions. */
@@ -1202,4 +1204,5 @@ static inline bool is_from_dupli_or_set(const ObjectRef &ob_ref)
   return is_from_dupli_or_set(ob_ref.object);
 }
 
-}  // namespace blender::draw::overlay
+}  // namespace draw::overlay
+}  // namespace blender

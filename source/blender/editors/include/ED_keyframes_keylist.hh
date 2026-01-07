@@ -12,8 +12,11 @@
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_curve_types.h"
+#include "DNA_listBase.h"
 
 #include "ANIM_action.hh"
+
+namespace blender {
 
 struct AnimData;
 struct CacheFile;
@@ -21,7 +24,6 @@ struct FCurve;
 struct GreasePencil;
 struct GreasePencilLayer;
 struct GreasePencilLayerTreeGroup;
-struct ListBase;
 struct MaskLayer;
 struct Object;
 struct Scene;
@@ -33,10 +35,10 @@ struct bDopeSheet;
 struct bGPDlayer;
 struct bGPdata;
 
-namespace blender::animrig {
+namespace animrig {
 class Action;
 class Slot;
-}  // namespace blender::animrig
+}  // namespace animrig
 
 /* ****************************** Base Structs ****************************** */
 
@@ -55,7 +57,7 @@ struct ActKeyBlockInfo {
 
 /** Keyframe Column Struct. */
 struct ActKeyColumn {
-  /* ListBase linkage */
+  /* ListBaseT linkage */
   ActKeyColumn *next, *prev;
 
   /* sorting-tree linkage */
@@ -145,17 +147,16 @@ const ActKeyColumn *ED_keylist_find_next(const AnimKeylist *keylist, float cfra)
 const ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, float cfra);
 const ActKeyColumn *ED_keylist_find_closest(const AnimKeylist *keylist, float cfra);
 const ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
-                                                const blender::Bounds<float> frame_range);
+                                                const Bounds<float> frame_range);
 bool ED_keylist_is_empty(const AnimKeylist *keylist);
-const ListBase /*ActKeyColumn*/ *ED_keylist_listbase(const AnimKeylist *keylist);
-bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist,
-                                     blender::Bounds<float> *r_frame_range);
+const ListBaseT<ActKeyColumn> *ED_keylist_listbase(const AnimKeylist *keylist);
+bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist, Bounds<float> *r_frame_range);
 /**
  * Return the selected key-frame's range. If none are selected, return False and
  * do not affect the frame range.
  */
 bool ED_keylist_selected_keys_frame_range(const AnimKeylist *keylist,
-                                          blender::Bounds<float> *r_frame_range);
+                                          Bounds<float> *r_frame_range);
 const ActKeyColumn *ED_keylist_array(const AnimKeylist *keylist);
 int64_t ED_keylist_array_len(const AnimKeylist *keylist);
 
@@ -177,14 +178,11 @@ void fcurve_to_keylist(AnimData *adt,
                        FCurve *fcu,
                        AnimKeylist *keylist,
                        int saction_flag,
-                       blender::float2 range,
+                       float2 range,
                        bool use_nla_remapping);
 /* Action Group */
-void action_group_to_keylist(AnimData *adt,
-                             bActionGroup *agrp,
-                             AnimKeylist *keylist,
-                             int saction_flag,
-                             blender::float2 range);
+void action_group_to_keylist(
+    AnimData *adt, bActionGroup *agrp, AnimKeylist *keylist, int saction_flag, float2 range);
 /* Action */
 
 /**
@@ -201,15 +199,12 @@ void action_group_to_keylist(AnimData *adt,
  *
  * \see action_slot_summary_to_keylist()
  */
-void action_to_keylist(AnimData *adt,
-                       bAction *dna_action,
-                       AnimKeylist *keylist,
-                       int saction_flag,
-                       blender::float2 range);
+void action_to_keylist(
+    AnimData *adt, bAction *dna_action, AnimKeylist *keylist, int saction_flag, float2 range);
 
 /* Object */
 void ob_to_keylist(
-    bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int saction_flag, blender::float2 range);
+    bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int saction_flag, float2 range);
 /* Cache File */
 void cachefile_to_keylist(bDopeSheet *ads,
                           CacheFile *cache_file,
@@ -217,12 +212,9 @@ void cachefile_to_keylist(bDopeSheet *ads,
                           int saction_flag);
 /* Scene */
 void scene_to_keylist(
-    bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, int saction_flag, blender::float2 range);
+    bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, int saction_flag, float2 range);
 /* DopeSheet Summary */
-void summary_to_keylist(bAnimContext *ac,
-                        AnimKeylist *keylist,
-                        int saction_flag,
-                        blender::float2 range);
+void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, int saction_flag, float2 range);
 
 /**
  * Generate a summary channel keylist for the specified slot, merging it into
@@ -254,11 +246,11 @@ void summary_to_keylist(bAnimContext *ac,
  */
 void action_slot_summary_to_keylist(bAnimContext *ac,
                                     ID *animated_id,
-                                    blender::animrig::Action &action,
-                                    blender::animrig::slot_handle_t slot_handle,
+                                    animrig::Action &action,
+                                    animrig::slot_handle_t slot_handle,
                                     AnimKeylist *keylist,
                                     int /* eSAction_Flag */ saction_flag,
-                                    blender::float2 range);
+                                    float2 range);
 
 /* Grease Pencil datablock summary (Legacy) */
 void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, bool active);
@@ -296,3 +288,5 @@ bool actkeyblock_is_valid(const ActKeyColumn *ac);
 
 /** Checks if #ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds"). */
 int actkeyblock_get_valid_hold(const ActKeyColumn *ac);
+
+}  // namespace blender

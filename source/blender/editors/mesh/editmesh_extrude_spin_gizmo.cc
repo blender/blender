@@ -40,6 +40,8 @@
 #include "ED_gizmo_library.hh"
 #include "ED_undo.hh"
 
+namespace blender {
+
 /**
  * Orient the handles towards the selection (can be slow with high-poly mesh!).
  */
@@ -117,12 +119,12 @@ static void gizmo_mesh_spin_init_setup(const bContext * /*C*/, wmGizmoGroup *gzg
       wmGizmo *gz = WM_gizmo_new_ptr(gzt_button, gzgroup, nullptr);
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "shape");
       RNA_property_string_set_bytes(
-          gz->ptr, prop, (const char *)shape_plus, ARRAY_SIZE(shape_plus));
+          gz->ptr, prop, reinterpret_cast<const char *>(shape_plus), ARRAY_SIZE(shape_plus));
 
       RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_BACKDROP);
 
       float color[4];
-      UI_GetThemeColor3fv(TH_AXIS_X + i, color);
+      ui::theme::get_color_3fv(TH_AXIS_X + i, color);
       color[3] = alpha;
       WM_gizmo_set_color(gz, color);
 
@@ -137,7 +139,7 @@ static void gizmo_mesh_spin_init_setup(const bContext * /*C*/, wmGizmoGroup *gzg
 
   for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, nullptr);
-    UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+    ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE | WM_GIZMO_HIDDEN_SELECT, true);
     ggd->gizmos.xyz_view[i] = gz;
   }
@@ -149,7 +151,7 @@ static void gizmo_mesh_spin_init_setup(const bContext * /*C*/, wmGizmoGroup *gzg
 #endif
     WM_gizmo_set_line_width(gz, 2.0f);
     float color[4];
-    UI_GetThemeColor3fv(TH_AXIS_X + i, color);
+    ui::theme::get_color_3fv(TH_AXIS_X + i, color);
     color[3] = alpha;
     WM_gizmo_set_color(gz, color);
     color[3] = alpha_hi;
@@ -255,7 +257,7 @@ static void gizmo_mesh_spin_init_draw_prepare(const bContext *C, wmGizmoGroup *g
 #ifdef USE_DIAL_HOVER
   {
     PointerRNA ptr;
-    bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+    bToolRef *tref = WM_toolsystem_ref_from_context(const_cast<bContext *>(C));
     WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &ptr);
     const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.gzgt_axis_prop);
     for (int i = 0; i < 4; i++) {
@@ -303,7 +305,7 @@ static void gizmo_mesh_spin_init_invoke_prepare(const bContext * /*C*/,
 static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroupData_SpinInit *ggd = static_cast<GizmoGroupData_SpinInit *>(gzgroup->customdata);
-  RegionView3D *rv3d = ED_view3d_context_rv3d((bContext *)C);
+  RegionView3D *rv3d = ED_view3d_context_rv3d(const_cast<bContext *>(C));
   const float *gizmo_center = nullptr;
   {
     Scene *scene = CTX_data_scene(C);
@@ -323,7 +325,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
     }
   }
 
-  blender::ed::transform::calc_orientation_from_type(C, ggd->data.orient_mat);
+  ed::transform::calc_orientation_from_type(C, ggd->data.orient_mat);
   for (int i = 0; i < 3; i++) {
     const int axis_ortho = (i + ORTHO_AXIS_OFFSET) % 3;
     const float *axis_ortho_vec = ggd->data.orient_mat[axis_ortho];
@@ -400,7 +402,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 
   {
     PointerRNA ptr;
-    bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+    bToolRef *tref = WM_toolsystem_ref_from_context(const_cast<bContext *>(C));
     WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &ptr);
     const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.gzgt_axis_prop);
     for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
@@ -801,7 +803,7 @@ static void gizmo_mesh_spin_redo_modal_from_setup(const bContext *C, wmGizmoGrou
 
   ggd->is_init = true;
 
-  WM_gizmo_modal_set_from_setup(gzmap, (bContext *)C, gz, 0, win->eventstate);
+  WM_gizmo_modal_set_from_setup(gzmap, const_cast<bContext *>(C), gz, 0, win->runtime->eventstate);
 }
 
 static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
@@ -823,7 +825,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   /* Rotate View Axis (rotate_view) */
   {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, nullptr);
-    UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+    ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
     zero_v4(gz->color);
     copy_v3_fl(gz->color_hi, 1.0f);
     gz->color_hi[3] = 0.1f;
@@ -838,7 +840,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   /* Translate Center (translate_c) */
   {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_move, gzgroup, nullptr);
-    UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+    ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
     gz->color[3] = 0.6f;
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
@@ -865,7 +867,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   /* Translate X/Y Tangents (translate_xy) */
   for (int i = 0; i < 2; i++) {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
-    UI_GetThemeColor3fv(TH_AXIS_X + i, gz->color);
+    ui::theme::get_color_3fv(TH_AXIS_X + i, gz->color);
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
     RNA_enum_set(gz->ptr, "draw_options", 0);
     WM_gizmo_set_scale(gz, 1.2f);
@@ -875,7 +877,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   /* Rotate X/Y Tangents (rotate_xy) */
   for (int i = 0; i < 2; i++) {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, nullptr);
-    UI_GetThemeColor3fv(TH_AXIS_X + i, gz->color);
+    ui::theme::get_color_3fv(TH_AXIS_X + i, gz->color);
     gz->color[3] = 0.6f;
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
     WM_gizmo_set_line_width(gz, 3.0f);
@@ -888,7 +890,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   {
-    ggd->data.context = (bContext *)C;
+    ggd->data.context = const_cast<bContext *>(C);
     ggd->data.ot = ot;
     ggd->data.op = op;
     ggd->data.prop_axis_co = RNA_struct_type_find_property(ot->srna, "center");
@@ -929,7 +931,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
     wmWindow *win = CTX_wm_window(C);
     View3D *v3d = CTX_wm_view3d(C);
     ARegion *region = CTX_wm_region(C);
-    const wmEvent *event = win->eventstate;
+    const wmEvent *event = win->runtime->eventstate;
     float plane_co[3], plane_no[3];
     RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
     RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
@@ -1029,8 +1031,8 @@ static void gizmo_mesh_spin_redo_draw_prepare(const bContext * /*C*/, wmGizmoGro
    * could shift because of float precision.
    * Updates in this case are also redundant. */
   bool is_modal = false;
-  LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-    if (gz->state & WM_GIZMO_STATE_MODAL) {
+  for (wmGizmo &gz : gzgroup->gizmos) {
+    if (gz.state & WM_GIZMO_STATE_MODAL) {
       is_modal = true;
       break;
     }
@@ -1069,3 +1071,5 @@ void MESH_GGT_spin_redo(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender

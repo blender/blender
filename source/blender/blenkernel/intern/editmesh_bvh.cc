@@ -16,7 +16,7 @@
 
 #include "BKE_editmesh_bvh.hh" /* own include */
 
-using blender::Span;
+namespace blender {
 
 struct BMBVHTree {
   BVHTree *tree = nullptr;
@@ -25,7 +25,7 @@ struct BMBVHTree {
 
   BMesh *bm = nullptr;
 
-  const blender::float3 *cos_cage = nullptr;
+  const float3 *cos_cage = nullptr;
   bool cos_cage_free = false;
 
   int flag = 0;
@@ -33,7 +33,7 @@ struct BMBVHTree {
 
 BMBVHTree *BKE_bmbvh_new_from_editmesh(BMEditMesh *em,
                                        int flag,
-                                       const blender::float3 *cos_cage,
+                                       const float3 *cos_cage,
                                        const bool cos_cage_free)
 {
   return BKE_bmbvh_new(em->bm, em->looptris, flag, cos_cage, cos_cage_free);
@@ -42,7 +42,7 @@ BMBVHTree *BKE_bmbvh_new_from_editmesh(BMEditMesh *em,
 BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
                             const Span<std::array<BMLoop *, 3>> looptris,
                             int flag,
-                            const blender::float3 *cos_cage,
+                            const float3 *cos_cage,
                             const bool cos_cage_free,
                             bool (*test_fn)(BMFace *, void *user_data),
                             void *user_data)
@@ -125,7 +125,7 @@ BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
       copy_v3_v3(cos[2], looptris[i][2]->v->co);
     }
 
-    BLI_bvhtree_insert(bmtree->tree, i, (float *)cos, 3);
+    BLI_bvhtree_insert(bmtree->tree, i, reinterpret_cast<float *>(cos), 3);
   }
 
   BLI_bvhtree_balance(bmtree->tree);
@@ -146,7 +146,7 @@ static bool bm_face_is_not_hidden(BMFace *f, void * /*user_data*/)
 BMBVHTree *BKE_bmbvh_new(BMesh *bm,
                          const Span<std::array<BMLoop *, 3>> looptris,
                          int flag,
-                         const blender::float3 *cos_cage,
+                         const float3 *cos_cage,
                          const bool cos_cage_free)
 {
   bool (*test_fn)(BMFace *, void *user_data);
@@ -190,7 +190,7 @@ BVHTree *BKE_bmbvh_tree_get(BMBVHTree *bmtree)
  */
 static void bmbvh_tri_from_face(const float *cos[3],
                                 const std::array<BMLoop *, 3> &ltri,
-                                const blender::float3 *cos_cage)
+                                const float3 *cos_cage)
 {
   if (cos_cage == nullptr) {
     cos[0] = ltri[0]->v->co;
@@ -212,7 +212,7 @@ static void bmbvh_tri_from_face(const float *cos[3],
 struct RayCastUserData {
   /* from the bmtree */
   Span<std::array<BMLoop *, 3>> looptris;
-  const blender::float3 *cos_cage;
+  const float3 *cos_cage;
 
   /* from the hit */
   float uv[2];
@@ -389,7 +389,7 @@ BMFace *BKE_bmbvh_ray_cast_filter(const BMBVHTree *bmtree,
 struct VertSearchUserData {
   /* from the bmtree */
   Span<std::array<BMLoop *, 3>> looptris;
-  const blender::float3 *cos_cage;
+  const float3 *cos_cage;
 
   /* from the hit */
   float dist_max_sq;
@@ -452,7 +452,7 @@ BMVert *BKE_bmbvh_find_vert_closest(const BMBVHTree *bmtree,
 struct FaceSearchUserData {
   /* from the bmtree */
   Span<std::array<BMLoop *, 3>> looptris;
-  const blender::float3 *cos_cage;
+  const float3 *cos_cage;
 
   /* from the hit */
   float dist_max_sq;
@@ -584,3 +584,5 @@ BVHTreeOverlap *BKE_bmbvh_overlap_self(const BMBVHTree *bmtree, uint *r_overlap_
   return BLI_bvhtree_overlap(
       bmtree->tree, bmtree->tree, r_overlap_tot, bmbvh_overlap_self_cb, &data);
 }
+
+}  // namespace blender

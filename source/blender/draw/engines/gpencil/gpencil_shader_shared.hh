@@ -6,7 +6,7 @@
 
 #include "GPU_shader_shared_utils.hh"
 
-enum gpMaterialFlag : uint32_t {
+enum [[host_shared]] gpMaterialFlag : uint32_t {
   GP_FLAG_NONE = 0u,
   GP_STROKE_ALIGNMENT_STROKE = 1u,
   GP_STROKE_ALIGNMENT_OBJECT = 2u,
@@ -28,7 +28,7 @@ enum gpMaterialFlag : uint32_t {
                    GP_FILL_GRADIENT_USE | GP_FILL_GRADIENT_RADIAL | GP_FILL_HOLDOUT),
 };
 
-enum gpLightType : uint32_t {
+enum [[host_shared]] gpLightType : uint32_t {
   GP_LIGHT_TYPE_POINT = 0u,
   GP_LIGHT_TYPE_SPOT = 1u,
   GP_LIGHT_TYPE_SUN = 2u,
@@ -47,7 +47,7 @@ enum gpLightType : uint32_t {
 #  define gpLightType uint
 #endif
 
-struct gpMaterial {
+struct [[host_shared]] gpMaterial {
   float4 stroke_color;
   float4 fill_color;
   float4 fill_mix_color;
@@ -75,9 +75,8 @@ struct gpMaterial {
 #  define _flag packed2.w
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(gpMaterial, 16)
 
-struct gpLight {
+struct [[host_shared]] gpLight {
 #ifndef GPU_SHADER
   float3 color;
   gpLightType type;
@@ -109,7 +108,6 @@ struct gpLight {
 #  define _position packed4.xyz
 #endif
 };
-BLI_STATIC_ASSERT_ALIGN(gpLight, 16)
 
 #ifndef GPU_SHADER
 #  undef gpMaterialFlag

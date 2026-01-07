@@ -31,6 +31,8 @@
 
 #include "bmesh_py_api.hh" /* own include */
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_new_doc,
@@ -49,7 +51,7 @@ static PyObject *bpy_bm_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
   bool use_operators = true;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "|$O&:new", (char **)kwlist, PyC_ParseBool, &use_operators))
+          args, kw, "|$O&:new", const_cast<char **>(kwlist), PyC_ParseBool, &use_operators))
   {
     return nullptr;
   }
@@ -119,7 +121,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject * /*self*/, PyObject *args, Py
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "O|$O&O&:update_edit_mesh",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &py_me,
                                    PyC_ParseBool,
                                    &do_loop_triangles,
@@ -158,10 +160,16 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject * /*self*/, PyObject *args, Py
 #endif
 
 static PyMethodDef BPy_BM_methods[] = {
-    {"new", (PyCFunction)bpy_bm_new, METH_VARARGS | METH_KEYWORDS, bpy_bm_new_doc},
-    {"from_edit_mesh", (PyCFunction)bpy_bm_from_edit_mesh, METH_O, bpy_bm_from_edit_mesh_doc},
+    {"new",
+     reinterpret_cast<PyCFunction>(bpy_bm_new),
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bm_new_doc},
+    {"from_edit_mesh",
+     static_cast<PyCFunction>(bpy_bm_from_edit_mesh),
+     METH_O,
+     bpy_bm_from_edit_mesh_doc},
     {"update_edit_mesh",
-     (PyCFunction)bpy_bm_update_edit_mesh,
+     reinterpret_cast<PyCFunction>(bpy_bm_update_edit_mesh),
      METH_VARARGS | METH_KEYWORDS,
      bpy_bm_update_edit_mesh_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -222,3 +230,5 @@ PyObject *BPyInit_bmesh()
 
   return mod;
 }
+
+}  // namespace blender

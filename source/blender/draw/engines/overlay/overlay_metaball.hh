@@ -52,11 +52,11 @@ class Metaballs : Overlay {
     const float *col_stiffness_select = res.theme.colors.mball_stiffness_select;
 
     int elem_num = 0;
-    LISTBASE_FOREACH (MetaElem *, ml, mb.editelems) {
-      const bool is_selected = (ml->flag & SELECT) != 0;
-      const bool is_scale_radius = (ml->flag & MB_SCALE_RAD) != 0;
-      blender::float2 radius_stiffness = BKE_mball_element_display_radius_calc_with_stiffness(ml);
-      const float3 position = float3(&ml->x);
+    for (const MetaElem &ml : *(mb.editelems)) {
+      const bool is_selected = (ml.flag & SELECT) != 0;
+      const bool is_scale_radius = (ml.flag & MB_SCALE_RAD) != 0;
+      float2 radius_stiffness = BKE_mball_element_display_radius_calc_with_stiffness(&ml);
+      const float3 position = float3(&ml.x);
 
       const select::ID radius_id = res.select_id(ob_ref, MBALLSEL_RADIUS | elem_num);
       color = (is_selected && is_scale_radius) ? col_radius_select : col_radius;
@@ -80,10 +80,10 @@ class Metaballs : Overlay {
     const float4 &color = res.object_wire_color(ob_ref, state);
     const select::ID select_id = res.select_id(ob_ref);
 
-    LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
-      const float3 position = float3(&ml->x);
+    for (MetaElem &ml : mb->elems) {
+      const float3 position = float3(&ml.x);
       /* Draw radius only. */
-      const float radius = BKE_mball_element_display_radius_calc(ml);
+      const float radius = BKE_mball_element_display_radius_calc(&ml);
       circle_buf_.append({ob->object_to_world(), position, radius, color}, select_id);
     }
   }

@@ -18,10 +18,10 @@ extern PyTypeObject UnaryFunction0DDouble_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DDouble_Type))
 
 /*---------------------------Python BPy_UnaryFunction0DDouble structure definition----------*/
-typedef struct {
+struct BPy_UnaryFunction0DDouble {
   BPy_UnaryFunction0D py_uf0D;
   Freestyle::UnaryFunction0D<double> *uf0D_double;
-} BPy_UnaryFunction0DDouble;
+};
 
 /*---------------------------Python BPy_UnaryFunction0DDouble visible prototypes-----------*/
 int UnaryFunction0DDouble_Init(PyObject *module);

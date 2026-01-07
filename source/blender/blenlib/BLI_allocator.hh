@@ -7,7 +7,7 @@
  * \ingroup bli
  *
  * An `Allocator` can allocate and deallocate memory. It is used by containers such as
- * blender::Vector. The allocators defined in this file do not work with standard library
+ * Vector. The allocators defined in this file do not work with standard library
  * containers such as std::vector.
  *
  * Every allocator has to implement two methods:

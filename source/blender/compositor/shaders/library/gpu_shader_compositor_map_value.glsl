@@ -5,13 +5,14 @@
 /* An arbitrary value determined by Blender. */
 #define BLENDER_ZMAX 10000.0f
 
+[[node]]
 void node_composite_map_range(float value,
                               float from_min,
                               float from_max,
                               float to_min,
                               float to_max,
                               const float should_clamp,
-                              out float result)
+                              float &result)
 {
   if (abs(from_max - from_min) < 1e-6f) {
     result = 0.0f;
@@ -39,6 +40,7 @@ void node_composite_map_range(float value,
   }
 }
 
+[[node]]
 void node_composite_map_value(float value,
                               float offset,
                               float size,
@@ -46,7 +48,7 @@ void node_composite_map_value(float value,
                               float min,
                               const float use_max,
                               float max,
-                              out float result)
+                              float &result)
 {
   result = (value + offset) * size;
 

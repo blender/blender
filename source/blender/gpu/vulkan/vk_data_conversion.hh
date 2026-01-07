@@ -18,6 +18,17 @@ namespace blender::gpu {
 struct VKWorkarounds;
 
 /**
+ * \brief Check if data conversion is needed when uploading host_format to a device_format.
+ *
+ * \param host_format:         format of the host buffer.
+ * \param host_texture_format: texture format of the host buffer.
+ * \param device_format:       format of the device buffer.
+ */
+bool needs_conversion(eGPUDataFormat host_format,
+                      TextureFormat host_texture_format,
+                      TextureFormat device_format);
+
+/**
  * Convert host buffer to device buffer.
  *
  * \param dst_buffer: device buffer.

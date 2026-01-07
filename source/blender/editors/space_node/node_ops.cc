@@ -18,7 +18,9 @@
 
 #include "node_intern.hh" /* own include */
 
-namespace blender::ed::space_node {
+namespace blender {
+
+namespace ed::space_node {
 
 void node_operatortypes()
 {
@@ -138,7 +140,7 @@ void node_keymap(wmKeyConfig *keyconf)
   node_resize_modal_keymap(keyconf);
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
 
 void ED_operatormacros_node()
 {
@@ -234,3 +236,5 @@ void ED_operatormacros_node()
   WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
   WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 }
+
+}  // namespace blender

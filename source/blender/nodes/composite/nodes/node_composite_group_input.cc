@@ -20,7 +20,9 @@
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
-namespace blender::nodes::node_composite_group_input_cc {
+namespace blender {
+
+namespace nodes::node_composite_group_input_cc {
 
 using namespace blender::compositor;
 
@@ -30,7 +32,7 @@ class GroupInputOperation : public NodeOperation {
 
   void execute() override
   {
-    for (const bNodeSocket *output : this->node()->output_sockets()) {
+    for (const bNodeSocket *output : this->node().output_sockets()) {
       if (!is_socket_available(output)) {
         continue;
       }
@@ -40,57 +42,68 @@ class GroupInputOperation : public NodeOperation {
         continue;
       }
 
-      const Result pass = this->context().get_input(output->name);
-      this->execute_pass(pass, result);
+      const Result input = this->context().get_input(output->name);
+      if (!input.is_allocated()) {
+        /* Context does not support this input. */
+        result.allocate_invalid();
+        return;
+      }
+
+      this->execute_input(input, result);
     }
   }
 
-  void execute_pass(const Result &pass, Result &result)
+  void execute_input(const Result &input, Result &result)
   {
-    if (!pass.is_allocated()) {
-      /* Pass not rendered yet, or not supported by viewport. */
-      result.allocate_invalid();
+    result.set_type(input.type());
+    result.set_precision(input.precision());
+
+    const Domain domain = this->context().use_compositing_domain_for_input_output() ?
+                              this->context().get_compositing_domain() :
+                              input.domain();
+
+    if (this->context().get_input_region().min == int2(0) &&
+        domain.data_size == input.domain().data_size)
+    {
+      result.wrap_external(input);
       return;
     }
 
-    result.set_type(pass.type());
-    result.set_precision(pass.precision());
-
+    result.allocate_texture(domain);
+    result.set_transformation(input.domain().transformation);
     if (this->context().use_gpu()) {
-      this->execute_pass_gpu(pass, result);
+      this->execute_input_gpu(input, result);
     }
     else {
-      this->execute_pass_cpu(pass, result);
+      this->execute_input_cpu(input, result);
     }
-    result.set_transformation(pass.domain().transformation);
   }
 
-  void execute_pass_gpu(const Result &pass, Result &result)
+  void execute_input_gpu(const Result &input, Result &result)
   {
-    gpu::Shader *shader = this->context().get_shader(this->get_shader_name(pass),
+    gpu::Shader *shader = this->context().get_shader(this->get_shader_name(input),
                                                      result.precision());
     GPU_shader_bind(shader);
 
-    /* The compositing space might be limited to a subset of the pass texture, so only read that
+    /* The compositing space might be limited to a subset of the input, so only read that
      * compositing region into an appropriately sized result. */
     const int2 lower_bound = this->context().get_input_region().min;
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
 
-    pass.bind_as_texture(shader, "input_tx");
+    input.bind_as_texture(shader, "input_tx");
 
-    result.allocate_texture(this->context().get_compositing_domain());
     result.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, result.domain().data_size);
 
     GPU_shader_unbind();
-    pass.unbind_as_texture();
+    input.unbind_as_texture();
     result.unbind_as_image();
   }
 
-  const char *get_shader_name(const Result &pass)
+  const char *get_shader_name(const Result &input)
   {
-    switch (pass.type()) {
+    switch (input.type()) {
       case ResultType::Float:
         return "compositor_read_input_float";
       case ResultType::Float3:
@@ -106,7 +119,7 @@ class GroupInputOperation : public NodeOperation {
         break;
       case ResultType::String:
         /* Single only types do not support GPU code path. */
-        BLI_assert(Result::is_single_value_only_type(pass.type()));
+        BLI_assert(Result::is_single_value_only_type(input.type()));
         BLI_assert_unreachable();
         break;
     }
@@ -115,26 +128,29 @@ class GroupInputOperation : public NodeOperation {
     return nullptr;
   }
 
-  void execute_pass_cpu(const Result &pass, Result &result)
+  void execute_input_cpu(const Result &input, Result &result)
   {
-    /* The compositing space might be limited to a subset of the pass texture, so only read that
+    /* The compositing space might be limited to a subset of the input, so only read that
      * compositing region into an appropriately sized result. */
     const int2 lower_bound = this->context().get_input_region().min;
-
-    const Domain domain = this->context().use_context_bounds_for_input_output() ?
-                              this->context().get_compositing_domain() :
-                              pass.domain();
-    result.allocate_texture(domain);
-
-    parallel_for(domain.data_size, [&](const int2 texel) {
-      result.store_pixel_generic_type(texel, pass.load_pixel_generic_type(texel + lower_bound));
+    input.get_cpp_type().to_static_type_tag<float, float3, float4, Color>([&](auto type_tag) {
+      using T = typename decltype(type_tag)::type;
+      if constexpr (std::is_same_v<T, void>) {
+        /* Unsupported type. */
+        BLI_assert_unreachable();
+      }
+      else {
+        parallel_for(result.domain().data_size, [&](const int2 texel) {
+          result.store_pixel(texel, input.load_pixel<T>(texel + lower_bound));
+        });
+      }
     });
   }
 };
 
-}  // namespace blender::nodes::node_composite_group_input_cc
+}  // namespace nodes::node_composite_group_input_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 compositor::NodeOperation *get_group_input_compositor_operation(compositor::Context &context,
                                                                 DNode node)
@@ -142,7 +158,7 @@ compositor::NodeOperation *get_group_input_compositor_operation(compositor::Cont
   return new node_composite_group_input_cc::GroupInputOperation(context, node);
 }
 
-void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &parameters)
+void get_compositor_group_input_extra_info(nodes::NodeExtraInfoParams &parameters)
 {
   if (parameters.tree.type != NTREE_COMPOSIT) {
     return;
@@ -162,7 +178,7 @@ void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &
   for (const bNodeSocket *input : group_inputs) {
     if (StringRef(input->name) == "Image") {
       if (input->type != SOCK_RGBA) {
-        blender::nodes::NodeExtraInfoRow row;
+        nodes::NodeExtraInfoRow row;
         row.text = IFACE_("Wrong Image Input Type");
         row.icon = ICON_ERROR;
         row.tooltip = TIP_("Node group's main Image input should be of type Color");
@@ -171,7 +187,7 @@ void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &
     }
     else if (StringRef(input->name) == "Mask") {
       if (input->type != SOCK_RGBA) {
-        blender::nodes::NodeExtraInfoRow row;
+        nodes::NodeExtraInfoRow row;
         row.text = IFACE_("Wrong Mask Input Type");
         row.icon = ICON_ERROR;
         row.tooltip = TIP_("Node group's Mask input should be of type Color");
@@ -182,7 +198,7 @@ void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &
       if (added_warning_for_unsupported_inputs) {
         continue;
       }
-      blender::nodes::NodeExtraInfoRow row;
+      nodes::NodeExtraInfoRow row;
       row.text = IFACE_("Unsupported Inputs");
       row.icon = ICON_WARNING_LARGE;
       row.tooltip = TIP_(
@@ -194,4 +210,5 @@ void get_compositor_group_input_extra_info(blender::nodes::NodeExtraInfoParams &
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

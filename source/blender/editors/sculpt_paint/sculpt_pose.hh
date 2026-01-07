@@ -15,17 +15,19 @@
 
 #include "BKE_paint.hh"
 
+namespace blender {
+
 struct Brush;
 struct Depsgraph;
 struct Object;
 struct Sculpt;
 struct SculptPoseIKChainPreview;
 struct SculptSession;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 class Node;
 }
 
-namespace blender::ed::sculpt_paint::pose {
+namespace ed::sculpt_paint::pose {
 
 /** Pose Brush IK Chain. */
 struct IKChainSegment {
@@ -47,7 +49,7 @@ struct IKChainSegment {
 };
 
 struct IKChain {
-  Array<IKChainSegment> segments;
+  Vector<IKChainSegment> segments;
   float3 grab_delta_offset;
 };
 
@@ -66,4 +68,6 @@ std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(const Depsgraph 
                                                                 const float3 &initial_location,
                                                                 float radius);
 
-}  // namespace blender::ed::sculpt_paint::pose
+}  // namespace ed::sculpt_paint::pose
+
+}  // namespace blender

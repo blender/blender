@@ -11,7 +11,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 
 #include "BKE_movieclip.hh"
@@ -22,6 +21,8 @@
 
 #include "libmv-capi.h"
 #include "tracking_private.hh"
+
+namespace blender {
 
 /* **** utility functions for tracking **** */
 
@@ -306,7 +307,7 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   int search_area_height, search_area_width;
   MovieClipFlag clip_flag = MovieClipFlag(clip->flag & MCLIP_TIMECODE_FLAGS);
   int reference_framenr;
-  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+  MovieClipUser user = {};
   double dst_pixel_x[5], dst_pixel_y[5];
   bool tracked;
 
@@ -376,3 +377,5 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   IMB_freeImBuf(reference_ibuf);
   IMB_freeImBuf(destination_ibuf);
 }
+
+}  // namespace blender

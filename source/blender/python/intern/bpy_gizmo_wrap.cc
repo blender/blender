@@ -29,6 +29,8 @@
 #include "../generic/py_capi_rna.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
+namespace blender {
+
 /* we may want to add, but not now */
 
 /* -------------------------------------------------------------------- */
@@ -145,7 +147,7 @@ void BPY_RNA_gizmo_wrapper(wmGizmoType *gzt, void *userdata)
   /* take care not to overwrite anything set in
    * #WM_gizmomaptype_group_link_ptr before `opfunc()` is called. */
   StructRNA *srna = gzt->srna;
-  *gzt = *((wmGizmoType *)userdata);
+  *gzt = *(static_cast<wmGizmoType *>(userdata));
   gzt->srna = srna; /* restore */
 
 /* don't do translations here yet */
@@ -187,7 +189,7 @@ void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata)
   /* take care not to overwrite anything set in
    * WM_gizmomaptype_group_link_ptr before opfunc() is called */
   StructRNA *srna = gzgt->srna;
-  *gzgt = *((wmGizmoGroupType *)userdata);
+  *gzgt = *(static_cast<wmGizmoGroupType *>(userdata));
   gzgt->srna = srna; /* restore */
 
 /* don't do translations here yet */
@@ -203,3 +205,5 @@ void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -278,13 +278,13 @@ class ShaderModule {
                                bool use_lightprobe_eval);
 
   gpu::Shader *static_shader_get(eShaderType shader_type);
-  GPUMaterial *material_shader_get(::Material *blender_mat,
+  GPUMaterial *material_shader_get(blender::Material *blender_mat,
                                    bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type,
                                    bool deferred_compilation,
-                                   ::Material *default_mat);
-  GPUMaterial *world_shader_get(::World *blender_world,
+                                   blender::Material *default_mat);
+  GPUMaterial *world_shader_get(blender::World *blender_world,
                                 bNodeTree *nodetree,
                                 eMaterialPipeline pipeline_type,
                                 bool deferred_compilation);
@@ -298,6 +298,9 @@ class ShaderModule {
  private:
   const char *static_shader_create_info_name_get(eShaderType shader_type);
   ShaderGroups static_shaders_load(ShaderGroups request_bits, bool block_until_ready);
+  void material_create_info_pipelines_amend(eMaterialGeometry geometry_type,
+                                            eMaterialPipeline pipeline_type,
+                                            gpu::shader::ShaderCreateInfo &r_info);
 };
 
 }  // namespace blender::eevee

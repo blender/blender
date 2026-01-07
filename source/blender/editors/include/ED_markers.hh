@@ -8,7 +8,10 @@
 
 #pragma once
 
-struct ListBase;
+#include "DNA_listBase.h"
+
+namespace blender {
+
 struct Scene;
 struct ScrArea;
 struct TimeMarker;
@@ -16,6 +19,8 @@ struct bAnimContext;
 struct bContext;
 struct wmKeyConfig;
 struct ARegion;
+struct ViewLayer;
+struct CfraElem;
 
 /* -------------------------------------------------------------------- */
 /** \name Drawing API
@@ -42,16 +47,18 @@ void ED_markers_draw(const bContext *C, int flag);
  *
  * \return A #TimeMarker list.
  */
-ListBase *ED_scene_markers_get(const bContext *C, Scene *scene);
+ListBaseT<TimeMarker> *ED_scene_markers_get(const bContext *C, Scene *scene);
 
 /**
  * Public API for getting markers from context.
  *
  * \return A #TimeMarker list.
  */
-ListBase *ED_context_get_markers(const bContext *C);
-ListBase *ED_sequencer_context_get_markers(const bContext *C);
-ListBase *ED_scene_markers_get_from_area(Scene *scene, ViewLayer *view_layer, const ScrArea *area);
+ListBaseT<TimeMarker> *ED_context_get_markers(const bContext *C);
+ListBaseT<TimeMarker> *ED_sequencer_context_get_markers(const bContext *C);
+ListBaseT<TimeMarker> *ED_scene_markers_get_from_area(Scene *scene,
+                                                      ViewLayer *view_layer,
+                                                      const ScrArea *area);
 
 /**
  * Apply some transformation to markers after the fact
@@ -65,7 +72,7 @@ ListBase *ED_scene_markers_get_from_area(Scene *scene, ViewLayer *view_layer, co
  * \param side: (B/L/R) for 'extend' functionality, which side of current frame to use
  */
 int ED_markers_post_apply_transform(
-    ListBase *markers, Scene *scene, int mode, float value, char side);
+    ListBaseT<TimeMarker> *markers, Scene *scene, int mode, float value, char side);
 
 /**
  * \return the marker that is closest to `frame`.
@@ -73,27 +80,32 @@ int ED_markers_post_apply_transform(
  *
  * \note For selecting, the caller is expected to exclude markers beyond a small threshold.
  */
-TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float frame);
+TimeMarker *ED_markers_find_nearest_marker(ListBaseT<TimeMarker> *markers, float frame);
 /**
  * Return the time of the marker that occurs on a frame closest to the given time.
  */
-int ED_markers_find_nearest_marker_time(ListBase *markers, float x);
+int ED_markers_find_nearest_marker_time(ListBaseT<TimeMarker> *markers, float x);
 
-void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *r_last);
+void ED_markers_get_minmax(ListBaseT<TimeMarker> *markers,
+                           short sel,
+                           float *r_first,
+                           float *r_last);
 
 /**
  * This function makes a list of all the markers. The only_sel
  * argument is used to specify whether only the selected markers
  * are added.
  */
-void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, bool only_selected);
+void ED_markers_make_cfra_list(ListBaseT<TimeMarker> *markers,
+                               ListBaseT<CfraElem> *lb,
+                               bool only_selected);
 
-void ED_markers_deselect_all(ListBase *markers, int action);
+void ED_markers_deselect_all(ListBaseT<TimeMarker> *markers, int action);
 
 /**
  * Get the first selected marker.
  */
-TimeMarker *ED_markers_get_first_selected(ListBase *markers);
+TimeMarker *ED_markers_get_first_selected(ListBaseT<TimeMarker> *markers);
 
 /**
  * Returns true if the marker region is currently visible in the area.
@@ -118,6 +130,8 @@ void ED_keymap_marker(wmKeyConfig *keyconf);
 /**
  * Debugging only: print debugging prints of list of markers.
  */
-void debug_markers_print_list(ListBase *markers);
+void debug_markers_print_list(ListBaseT<TimeMarker> *markers);
 
 /** \} */
+
+}  // namespace blender

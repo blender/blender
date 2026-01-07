@@ -132,7 +132,7 @@ OperationNode *ComponentNode::add_operation(const DepsEvalOperationCb &op,
   OperationNode *op_node = find_operation(opcode, name, name_tag);
   if (!op_node) {
     DepsNodeFactory *factory = type_get_factory(NodeType::OPERATION);
-    op_node = (OperationNode *)factory->create_node(this->owner->id_orig, "", name);
+    op_node = static_cast<OperationNode *>(factory->create_node(this->owner->id_orig, "", name));
 
     /* register opnode in this component's operation set */
     OperationIDKey key(opcode, op_node->name, name_tag);
@@ -270,7 +270,7 @@ void BoneComponentNode::init(const ID *id, const char *subdata)
   // this->name = subdata;
 
   /* bone-specific node data */
-  Object *object = (Object *)id;
+  Object *object = id_cast<Object *>(const_cast<ID *>(id));
   this->pchan = BKE_pose_channel_find_name(object->pose, subdata);
 }
 

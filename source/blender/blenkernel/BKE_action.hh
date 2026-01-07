@@ -12,6 +12,8 @@
 #include "BLI_function_ref.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
@@ -32,7 +34,7 @@ struct bPose;
 struct bPoseChannel;
 struct bPoseChannel_Runtime;
 
-namespace blender::animrig {
+namespace animrig {
 
 /**
  * Action slot handle type.
@@ -49,21 +51,12 @@ namespace blender::animrig {
  */
 using slot_handle_t = int32_t;
 
-}  // namespace blender::animrig
+}  // namespace animrig
 
 /* Action Lib Stuff ----------------- */
 
 /* Allocate a new bAction with the given name */
 bAction *BKE_action_add(Main *bmain, const char name[]);
-
-/* Action API ----------------- */
-
-/**
- * Remove all fcurves from the action.
- *
- * \note This function only supports legacy Actions.
- */
-void BKE_action_fcurves_clear(bAction *act);
 
 /* Action Groups API ----------------- */
 
@@ -100,45 +93,6 @@ void action_group_colors_set(bActionGroup *grp, const BoneColor *color);
  * Note that if `pchan->bone` is `nullptr`, this function silently does nothing.
  */
 void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan);
-
-/**
- * Add a new action group with the given name to the action>
- *
- * \note This function ONLY works on legacy Actions, not on layered Actions.
- */
-bActionGroup *action_groups_add_new(bAction *act, const char name[]);
-
-/**
- * Add given channel into (active) group
- * - assumes that channel is not linked to anything anymore
- * - always adds at the end of the group
- *
- * \note This function ONLY works on legacy Actions, not on layered Actions.
- */
-void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve);
-
-/**
- * Remove the given channel from all groups.
- *
- * \note This function ONLY works on legacy Actions, not on layered Actions.
- */
-void action_groups_remove_channel(bAction *act, FCurve *fcu);
-
-/**
- * Reconstruct channel pointers.
- * Assumes that the groups referred to by the FCurves are already in act->groups.
- * Reorders the main channel list to match group order.
- *
- * \note This function ONLY works on legacy Actions, not on layered Actions.
- */
-void BKE_action_groups_reconstruct(bAction *act);
-
-/**
- * Find a group with the given name.
- *
- * \note This function supports only legacy Actions.
- */
-bActionGroup *BKE_action_group_find_name(bAction *act, const char name[]);
 
 /**
  * Clear all 'temp' flags on all groups.
@@ -383,13 +337,12 @@ void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose
  * Flip the action so it can be applied as a mirror. Only data of slots that are related to the
  * given objects is mirrored.
  */
-void BKE_action_flip_with_pose(bAction *act, blender::Span<Object *> objects) ATTR_NONNULL(1);
+void BKE_action_flip_with_pose(bAction *act, Span<Object *> objects) ATTR_NONNULL(1);
 
-namespace blender::bke {
+namespace bke {
 
-using FoundFCurveCallback = blender::FunctionRef<void(FCurve *fcurve, const char *bone_name)>;
-using FoundFCurveCallbackConst =
-    blender::FunctionRef<void(const FCurve *fcurve, const char *bone_name)>;
+using FoundFCurveCallback = FunctionRef<void(FCurve *fcurve, const char *bone_name)>;
+using FoundFCurveCallbackConst = FunctionRef<void(const FCurve *fcurve, const char *bone_name)>;
 
 /**
  * Calls `callback` for every fcurve in an action slot that targets any bone.
@@ -397,10 +350,12 @@ using FoundFCurveCallbackConst =
  * \param slot_handle: only FCurves from the given action slot are visited.
  */
 void BKE_action_find_fcurves_with_bones(bAction *action,
-                                        blender::animrig::slot_handle_t slot_handle,
+                                        animrig::slot_handle_t slot_handle,
                                         FoundFCurveCallback callback);
 void BKE_action_find_fcurves_with_bones(const bAction *action,
-                                        blender::animrig::slot_handle_t slot_handle,
+                                        animrig::slot_handle_t slot_handle,
                                         FoundFCurveCallbackConst callback);
 
-};  // namespace blender::bke
+};  // namespace bke
+
+}  // namespace blender

@@ -10,7 +10,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_film_cryptomatte_post)
 
 #define CRYPTOMATTE_LEVELS_MAX 16
 
-void cryptomatte_load_samples(int2 texel, int layer, out float2 samples[CRYPTOMATTE_LEVELS_MAX])
+void cryptomatte_load_samples(int2 texel, int layer, float2 (&samples)[CRYPTOMATTE_LEVELS_MAX])
 {
   int pass_len = divide_ceil(cryptomatte_samples_per_layer, 2);
   int layer_id = layer * pass_len;
@@ -26,7 +26,7 @@ void cryptomatte_load_samples(int2 texel, int layer, out float2 samples[CRYPTOMA
   }
 }
 
-void cryptomatte_sort_samples(inout float2 samples[CRYPTOMATTE_LEVELS_MAX])
+void cryptomatte_sort_samples(float2 (&samples)[CRYPTOMATTE_LEVELS_MAX])
 {
   /* Sort samples. Lame implementation, can be replaced with a more efficient algorithm. */
   for (int i = 0; i < cryptomatte_samples_per_layer - 1 && samples[i].y != 0.0f; i++) {

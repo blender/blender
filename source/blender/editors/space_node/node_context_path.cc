@@ -33,9 +33,11 @@
 
 #include "node_intern.hh"
 
+namespace blender {
+
 struct Material;
 
-namespace blender::ed::space_node {
+namespace ed::space_node {
 
 static void context_path_add_object_data(Vector<ui::ContextPathItem> &path, Object &object)
 {
@@ -59,12 +61,10 @@ static void context_path_add_object_data(Vector<ui::ContextPathItem> &path, Obje
 static std::function<void(bContext &)> tree_path_handle_func(int i)
 {
   return [i](bContext &C) {
-    PointerRNA op_props;
     wmOperatorType *ot = WM_operatortype_find("NODE_OT_tree_path_parent", false);
-    WM_operator_properties_create_ptr(&op_props, ot);
+    PointerRNA op_props = WM_operator_properties_create_ptr(ot);
     RNA_int_set(&op_props, "parent_tree_index", i);
-    WM_operator_name_call_ptr(
-        &C, ot, blender::wm::OpCallContext::InvokeDefault, &op_props, nullptr);
+    WM_operator_name_call_ptr(&C, ot, wm::OpCallContext::InvokeDefault, &op_props, nullptr);
     WM_operator_properties_free(&op_props);
   };
 }
@@ -86,33 +86,33 @@ static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
                                                        Vector<ui::ContextPathItem> &path,
                                                        const bool skip_base = false)
 {
-  int i = 0;
-  LISTBASE_FOREACH_INDEX (const bNodeTreePath *, path_item, &snode.treepath, i) {
-    if (skip_base && path_item == snode.treepath.first) {
+
+  for (const auto [i, path_item] : snode.treepath.enumerate()) {
+    if (skip_base && &path_item == snode.treepath.first) {
       continue;
     }
-    if (path_item->nodetree == nullptr) {
+    if (path_item.nodetree == nullptr) {
       continue;
     }
 
     int icon = ICON_NODETREE;
-    if (ID_IS_PACKED(&path_item->nodetree->id)) {
+    if (ID_IS_PACKED(&path_item.nodetree->id)) {
       icon = ICON_PACKAGE;
     }
-    else if (ID_IS_LINKED(&path_item->nodetree->id)) {
+    else if (ID_IS_LINKED(&path_item.nodetree->id)) {
       icon = ICON_LINKED;
     }
-    else if (ID_IS_ASSET(&path_item->nodetree->id)) {
+    else if (ID_IS_ASSET(&path_item.nodetree->id)) {
       icon = ICON_ASSET_MANAGER;
     }
 
-    if (path_item != snode.treepath.last) {
+    if (&path_item != snode.treepath.last) {
       /* We don't need to add handle function to last node-tree. */
       ui::context_path_add_generic(
-          path, RNA_NodeTree, path_item->nodetree, icon, tree_path_handle_func(i));
+          path, RNA_NodeTree, path_item.nodetree, icon, tree_path_handle_func(i));
     }
     else {
-      ui::context_path_add_generic(path, RNA_NodeTree, path_item->nodetree, icon);
+      ui::context_path_add_generic(path, RNA_NodeTree, path_item.nodetree, icon);
     }
   }
 }
@@ -263,4 +263,6 @@ Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C)
   return context_path;
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

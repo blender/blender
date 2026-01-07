@@ -63,10 +63,7 @@
 
 #include "uvedit_intern.hh"
 
-using blender::Array;
-using blender::int2;
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 static void uv_select_all_perform_multi_ex(const Scene *scene,
                                            Span<Object *> objects,
@@ -116,7 +113,7 @@ BMLoop *ED_uvedit_active_vert_loop_get(const ToolSettings *ts, BMesh *bm)
   BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
   if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && bm->uv_select_sync_valid) {
     if (ese && ese->htype == BM_VERT) {
-      BMVert *v = (BMVert *)ese->ele;
+      BMVert *v = reinterpret_cast<BMVert *>(ese->ele);
 
       BMLoop *l;
       BMIter liter;
@@ -166,7 +163,8 @@ BMLoop *ED_uvedit_active_vert_loop_get(const ToolSettings *ts, BMesh *bm)
     BMEditSelection *ese_prev = ese->prev;
     if ((ese->htype == BM_VERT) && (ese_prev->htype == BM_FACE)) {
       /* May be null. */
-      return BM_face_vert_share_loop((BMFace *)ese_prev->ele, (BMVert *)ese->ele);
+      return BM_face_vert_share_loop(reinterpret_cast<BMFace *>(ese_prev->ele),
+                                     reinterpret_cast<BMVert *>(ese->ele));
     }
   }
   return nullptr;
@@ -186,7 +184,7 @@ BMLoop *ED_uvedit_active_edge_loop_get(const ToolSettings *ts, BMesh *bm)
   BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
   if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) && bm->uv_select_sync_valid) {
     if (ese && ese->htype == BM_EDGE) {
-      BMEdge *e = (BMEdge *)ese->ele;
+      BMEdge *e = reinterpret_cast<BMEdge *>(ese->ele);
 
       BMLoop *l;
       BMIter liter;
@@ -221,7 +219,8 @@ BMLoop *ED_uvedit_active_edge_loop_get(const ToolSettings *ts, BMesh *bm)
     BMEditSelection *ese_prev = ese->prev;
     if ((ese->htype == BM_EDGE) && (ese_prev->htype == BM_FACE)) {
       /* May be null. */
-      return BM_face_edge_share_loop((BMFace *)ese_prev->ele, (BMEdge *)ese->ele);
+      return BM_face_edge_share_loop(reinterpret_cast<BMFace *>(ese_prev->ele),
+                                     reinterpret_cast<BMEdge *>(ese->ele));
     }
   }
   return nullptr;
@@ -1210,8 +1209,8 @@ UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, const float dist_px)
 {
   UvNearestHit hit = {nullptr};
   hit.dist_sq = square_f(U.pixelsize * dist_px);
-  hit.scale[0] = UI_view2d_scale_get_x(v2d);
-  hit.scale[1] = UI_view2d_scale_get_y(v2d);
+  hit.scale[0] = ui::view2d_scale_get_x(v2d);
+  hit.scale[1] = ui::view2d_scale_get_y(v2d);
   return hit;
 }
 
@@ -1219,8 +1218,8 @@ UvNearestHit uv_nearest_hit_init_max(const View2D *v2d)
 {
   UvNearestHit hit = {nullptr};
   hit.dist_sq = FLT_MAX;
-  hit.scale[0] = UI_view2d_scale_get_x(v2d);
-  hit.scale[1] = UI_view2d_scale_get_y(v2d);
+  hit.scale[0] = ui::view2d_scale_get_x(v2d);
+  hit.scale[1] = ui::view2d_scale_get_y(v2d);
   return hit;
 }
 
@@ -1511,8 +1510,8 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
   bool found = false;
 
   float scale[2], offset[2];
-  UI_view2d_scale_get(v2d, &scale[0], &scale[1]);
-  UI_view2d_view_to_region_fl(v2d, 0.0f, 0.0f, &offset[0], &offset[1]);
+  ui::view2d_scale_get(v2d, &scale[0], &scale[1]);
+  ui::view2d_view_to_region_fl(v2d, 0.0f, 0.0f, &offset[0], &offset[1]);
 
   float co[2];
   sub_v2_v2v2(co, mval_fl, offset);
@@ -1814,7 +1813,7 @@ void uvedit_face_select_set_no_sync(const ToolSettings *ts,
  * to abstract away details regarding which selections modes are enabled.
  * \{ */
 
-namespace blender::ed::uv {
+namespace ed::uv {
 
 std::unique_ptr<UVSyncSelectFromMesh> UVSyncSelectFromMesh::create_if_needed(
     const ToolSettings &ts, BMesh &bm)
@@ -1913,7 +1912,7 @@ void UVSyncSelectFromMesh::face_select_set(BMFace *f, bool value)
   }
 }
 
-}  // namespace blender::ed::uv
+}  // namespace ed::uv
 
 /** \} */
 
@@ -3542,13 +3541,13 @@ static bool uv_mouse_select_multi(bContext *C,
         if (select_value) {
           /* Postpone setting active until it's known if the underlying element is selected. */
           if (selectmode == UV_SELECT_FACE) {
-            ele_active = (BMElem *)hit.efa;
+            ele_active = reinterpret_cast<BMElem *>(hit.efa);
           }
           else if (selectmode == UV_SELECT_EDGE) {
-            ele_active = (BMElem *)hit.l->e;
+            ele_active = reinterpret_cast<BMElem *>(hit.l->e);
           }
           else if (selectmode == UV_SELECT_VERT) {
-            ele_active = (BMElem *)hit.l->v;
+            ele_active = reinterpret_cast<BMElem *>(hit.l->v);
           }
         }
         else {
@@ -3636,7 +3635,7 @@ static wmOperatorStatus uv_select_invoke(bContext *C, wmOperator *op, const wmEv
   const ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   const wmOperatorStatus retval = uv_select_exec(C, op);
@@ -3789,7 +3788,7 @@ static wmOperatorStatus uv_select_loop_invoke(bContext *C, wmOperator *op, const
   const ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   const wmOperatorStatus retval = uv_select_loop_exec(C, op);
@@ -3853,7 +3852,7 @@ static wmOperatorStatus uv_select_edge_ring_invoke(bContext *C,
   const ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   const wmOperatorStatus retval = uv_select_edge_ring_exec(C, op);
@@ -3932,7 +3931,7 @@ static wmOperatorStatus uv_select_linked_internal(bContext *C,
 
     if (event) {
       /* invoke */
-      UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+      ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
       RNA_float_set_array(op->ptr, "location", co);
     }
     else {
@@ -4225,7 +4224,7 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
   }
   else {
     Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
-    BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(obedit_eval->data),
+    BKE_mesh_batch_cache_dirty_tag(id_cast<Mesh *>(obedit_eval->data),
                                    BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
     /* Only for region redraw. */
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
@@ -4630,7 +4629,7 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rectf);
-  UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
+  ui::view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const bool select = (sel_op != SEL_OP_SUB);
@@ -4900,7 +4899,7 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
   ellipse[0] = width * zoomx / radius;
   ellipse[1] = height * zoomy / radius;
 
-  UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
+  ui::view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
 
   bool changed_multi = false;
 
@@ -5079,7 +5078,7 @@ static bool do_lasso_select_mesh_uv_is_point_inside(const ARegion *region,
                                                     const float co_test[2])
 {
   int co_screen[2];
-  if (UI_view2d_view_to_region_clip(
+  if (ui::view2d_view_to_region_clip(
           &region->v2d, co_test[0], co_test[1], &co_screen[0], &co_screen[1]) &&
       BLI_rcti_isect_pt_v(clip_rect, co_screen) &&
       BLI_lasso_is_point_inside(mcoords, co_screen[0], co_screen[1], V2D_IS_CLIPPED))
@@ -5096,7 +5095,7 @@ static bool do_lasso_select_mesh_uv_is_edge_inside(const ARegion *region,
                                                    const float co_test_b[2])
 {
   int co_screen_a[2], co_screen_b[2];
-  if (UI_view2d_view_to_region_segment_clip(
+  if (ui::view2d_view_to_region_segment_clip(
           &region->v2d, co_test_a, co_test_b, co_screen_a, co_screen_b) &&
       BLI_rcti_isect_segment(clip_rect, co_screen_a, co_screen_b) &&
       BLI_lasso_is_edge_inside(
@@ -5356,10 +5355,10 @@ static wmOperatorStatus uv_select_pinned_exec(bContext *C, wmOperator *op)
       scene, view_layer, nullptr);
 
   for (Object *obedit : objects) {
-    Mesh &mesh = *static_cast<Mesh *>(obedit->data);
+    Mesh &mesh = *id_cast<Mesh *>(obedit->data);
     BMesh *bm = mesh.runtime->edit_mesh->bm;
 
-    const blender::StringRef active_uv_name = mesh.active_uv_map_name();
+    const StringRef active_uv_name = mesh.active_uv_map_name();
     if (!BM_uv_map_attr_pin_exists(bm, active_uv_name)) {
       continue;
     }
@@ -5500,7 +5499,7 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
 
   /* Calculate maximum number of tree nodes and prepare initial selection. */
   uint uv_tri_len = 0;
-  for (const int i : blender::IndexRange(objects.size())) {
+  for (const int i : IndexRange(objects.size())) {
     Object *obedit = objects[i];
 
     BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
@@ -5530,10 +5529,8 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
   int data_index = 0;
 
   int face_len_alloc = 3;
-  float (*uv_verts)[2] = static_cast<float (*)[2]>(
-      MEM_mallocN(sizeof(*uv_verts) * face_len_alloc, "UvOverlapCoords"));
-  uint(*indices)[3] = static_cast<uint(*)[3]>(
-      MEM_mallocN(sizeof(*indices) * (face_len_alloc - 2), "UvOverlapTris"));
+  float (*uv_verts)[2] = MEM_malloc_arrayN<float[2]>(face_len_alloc, "UvOverlapCoords");
+  uint(*indices)[3] = MEM_malloc_arrayN<uint[3]>(face_len_alloc - 2, "UvOverlapTris");
 
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   Heap *heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
@@ -5561,10 +5558,8 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
       if (face_len_alloc < face_len) {
         MEM_freeN(uv_verts);
         MEM_freeN(indices);
-        uv_verts = static_cast<float (*)[2]>(
-            MEM_mallocN(sizeof(*uv_verts) * face_len, "UvOverlapCoords"));
-        indices = static_cast<uint(*)[3]>(
-            MEM_mallocN(sizeof(*indices) * tri_len, "UvOverlapTris"));
+        uv_verts = MEM_malloc_arrayN<float[2]>(face_len, "UvOverlapCoords");
+        indices = MEM_malloc_arrayN<uint[3]>(tri_len, "UvOverlapTris");
         face_len_alloc = face_len;
       }
 
@@ -5704,7 +5699,7 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
     BLI_bvhtree_overlap_ex(probe_tree, uv_tree, nullptr, bvh_overlap_fn, &query_data, 1, 0);
   }
 
-  for (const int i : blender::IndexRange(objects.size())) {
+  for (const int i : IndexRange(objects.size())) {
     Object *obedit = objects[i];
     const ChangedInfo &tag_info = objects_tag[i];
     const bool select = true;
@@ -5971,7 +5966,7 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  blender::KDTree_1d *tree_1d = blender::BLI_kdtree_1d_new(max_verts_selected_all);
+  KDTree_1d *tree_1d = kdtree_1d_new(max_verts_selected_all);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -5996,14 +5991,14 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
           continue;
         }
         float needle = get_uv_vert_needle(type, l->v, ob_m3, l, offsets);
-        blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        kdtree_1d_insert(tree_1d, tree_index++, &needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    blender::BLI_kdtree_1d_deduplicate(tree_1d);
-    blender::BLI_kdtree_1d_balance(tree_1d);
+    kdtree_1d_deduplicate(tree_1d);
+    kdtree_1d_balance(tree_1d);
   }
 
   for (Object *ob : objects) {
@@ -6062,7 +6057,7 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  blender::BLI_kdtree_1d_free(tree_1d);
+  kdtree_1d_free(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6095,7 +6090,7 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  blender::KDTree_1d *tree_1d = blender::BLI_kdtree_1d_new(max_edges_selected_all);
+  KDTree_1d *tree_1d = kdtree_1d_new(max_edges_selected_all);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6122,15 +6117,15 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
 
         float needle = get_uv_edge_needle(type, l->e, ob_m3, l, l->next, offsets);
         if (tree_1d) {
-          blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+          kdtree_1d_insert(tree_1d, tree_index++, &needle);
         }
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    blender::BLI_kdtree_1d_deduplicate(tree_1d);
-    blender::BLI_kdtree_1d_balance(tree_1d);
+    kdtree_1d_deduplicate(tree_1d);
+    kdtree_1d_balance(tree_1d);
   }
 
   for (Object *ob : objects) {
@@ -6189,7 +6184,7 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
     }
   }
 
-  blender::BLI_kdtree_1d_free(tree_1d);
+  kdtree_1d_free(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6215,7 +6210,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  blender::KDTree_1d *tree_1d = blender::BLI_kdtree_1d_new(max_faces_selected_all);
+  KDTree_1d *tree_1d = kdtree_1d_new(max_faces_selected_all);
 
   for (const int ob_index : objects.index_range()) {
     Object *ob = objects[ob_index];
@@ -6241,14 +6236,14 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
 
       float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets);
       if (tree_1d) {
-        blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        kdtree_1d_insert(tree_1d, tree_index++, &needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    blender::BLI_kdtree_1d_deduplicate(tree_1d);
-    blender::BLI_kdtree_1d_balance(tree_1d);
+    kdtree_1d_deduplicate(tree_1d);
+    kdtree_1d_balance(tree_1d);
   }
 
   for (const int ob_index : objects.index_range()) {
@@ -6306,7 +6301,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
     }
   }
 
-  blender::BLI_kdtree_1d_free(tree_1d);
+  kdtree_1d_free(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6330,7 +6325,8 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
 
-  ListBase *island_list_ptr = MEM_calloc_arrayN<ListBase>(objects.size(), __func__);
+  ListBaseT<FaceIsland> *island_list_ptr = MEM_calloc_arrayN<ListBaseT<FaceIsland>>(objects.size(),
+                                                                                    __func__);
   int island_list_len = 0;
 
   const bool face_selected = !(scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC);
@@ -6344,11 +6340,10 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
         scene, bm, &island_list_ptr[ob_index], face_selected, false, false, aspect_y, offsets);
   }
 
-  FaceIsland **island_array = static_cast<FaceIsland **>(
-      MEM_callocN(sizeof(*island_array) * island_list_len, __func__));
+  FaceIsland **island_array = MEM_calloc_arrayN<FaceIsland *>(island_list_len, __func__);
 
   int tree_index = 0;
-  blender::KDTree_1d *tree_1d = blender::BLI_kdtree_1d_new(island_list_len);
+  KDTree_1d *tree_1d = kdtree_1d_new(island_list_len);
 
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
@@ -6357,22 +6352,21 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, obedit->object_to_world().ptr());
 
-    int index;
-    LISTBASE_FOREACH_INDEX (FaceIsland *, island, &island_list_ptr[ob_index], index) {
-      island_array[index] = island;
-      if (!uv_island_selected(scene, bm, island)) {
+    for (const auto [index, island] : island_list_ptr[ob_index].enumerate()) {
+      island_array[index] = &island;
+      if (!uv_island_selected(scene, bm, &island)) {
         continue;
       }
-      float needle = get_uv_island_needle(type, island, ob_m3, island->offsets);
+      float needle = get_uv_island_needle(type, &island, ob_m3, island.offsets);
       if (tree_1d) {
-        blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        kdtree_1d_insert(tree_1d, tree_index++, &needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    blender::BLI_kdtree_1d_deduplicate(tree_1d);
-    blender::BLI_kdtree_1d_balance(tree_1d);
+    kdtree_1d_deduplicate(tree_1d);
+    kdtree_1d_balance(tree_1d);
   }
 
   int tot_island_index = 0;
@@ -6388,19 +6382,19 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
     copy_m3_m4(ob_m3, obedit->object_to_world().ptr());
 
     bool changed = false;
-    int index;
-    LISTBASE_FOREACH_INDEX (FaceIsland *, island, &island_list_ptr[ob_index], index) {
-      island_array[tot_island_index++] = island; /* To deallocate later. */
-      if (uv_island_selected(scene, bm, island)) {
+
+    for (const auto [index, island] : island_list_ptr[ob_index].enumerate()) {
+      island_array[tot_island_index++] = &island; /* To deallocate later. */
+      if (uv_island_selected(scene, bm, &island)) {
         continue;
       }
-      float needle = get_uv_island_needle(type, island, ob_m3, island->offsets);
+      float needle = get_uv_island_needle(type, &island, ob_m3, island.offsets);
       bool select = ED_select_similar_compare_float_tree(tree_1d, needle, threshold, compare);
       if (!select) {
         continue;
       }
-      for (int j = 0; j < island->faces_len; j++) {
-        uvedit_face_select_set(scene, bm, island->faces[j], select);
+      for (int j = 0; j < island.faces_len; j++) {
+        uvedit_face_select_set(scene, bm, island.faces[j], select);
       }
       changed = true;
     }
@@ -6430,7 +6424,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
 
   MEM_SAFE_FREE(island_array);
   MEM_SAFE_FREE(island_list_ptr);
-  blender::BLI_kdtree_1d_free(tree_1d);
+  kdtree_1d_free(tree_1d);
 
   return OPERATOR_FINISHED;
 }
@@ -6898,6 +6892,116 @@ void UV_OT_select_mode(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+static wmOperatorStatus uv_select_tile_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  const ToolSettings *ts = scene->toolsettings;
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+
+  int2 tile;
+  RNA_int_get_array(op->ptr, "tile", tile);
+  const rctf tile_rect = {
+      /*xmin*/ float(tile.x),
+      /*xmax*/ float(tile.x + 1),
+      /*ymin*/ float(tile.y),
+      /*ymax*/ float(tile.y + 1),
+  };
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+  for (Object *ob : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
+
+    bool changed = false;
+    if (!extend) {
+      ED_uvedit_deselect_all(scene, ob, SEL_DESELECT);
+      changed = true;
+    }
+
+    if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+      uvedit_select_prepare_sync_select(scene, em->bm);
+    }
+    else {
+      uvedit_select_prepare_custom_data(scene, em->bm);
+    }
+
+    BMFace *f;
+    BMIter iter;
+    BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, f)) {
+        continue;
+      }
+
+      /* Center median does not work correctly for concave n-gons.
+       * TODO: Tessellate UVs then check the center of each triangle with a non-zero area. */
+      float2 center;
+      BM_face_uv_calc_center_median(f, offsets.uv, center);
+      if (BLI_rctf_isect_pt_v(&tile_rect, center)) {
+        uvedit_face_select_set_with_sticky(scene, em->bm, f, true, offsets);
+        changed = true;
+      }
+    }
+    if (changed) {
+      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+        ED_uvedit_select_sync_flush(ts, em->bm, true);
+      }
+      else {
+        ED_uvedit_selectmode_flush(scene, em->bm);
+      }
+      uv_select_tag_update_for_object(depsgraph, ts, ob);
+    }
+  }
+
+  /* Always return "finished" even if nothing changed because returning canceled
+   * prevents the user changing values that *would* succeed in the "redo" panel. */
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus uv_select_tile_invoke(bContext *C,
+                                              wmOperator *op,
+                                              const wmEvent * /*event*/)
+{
+  PropertyRNA *prop_tile = RNA_struct_find_property(op->ptr, "tile");
+  if (!RNA_property_is_set(op->ptr, prop_tile)) {
+    if (const SpaceImage *sima = CTX_wm_space_image(C)) {
+      const int2 tile = int2(int(sima->cursor[0]), int(sima->cursor[1]));
+      RNA_property_int_set_array(op->ptr, prop_tile, tile);
+    }
+  }
+  return uv_select_tile_exec(C, op);
+}
+
+void UV_OT_select_tile(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Tile";
+  ot->description = "Select UVs in specified tile";
+  ot->idname = "UV_OT_select_tile";
+
+  /* API callbacks. */
+  ot->invoke = uv_select_tile_invoke;
+  ot->exec = uv_select_tile_exec;
+  ot->poll = ED_operator_uvedit;
+
+  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+  RNA_def_int_array(ot->srna,
+                    "tile",
+                    2,
+                    nullptr,
+                    std::numeric_limits<int>::min(),
+                    std::numeric_limits<int>::max(),
+                    "Tile",
+                    "Tile location to select UVs",
+                    std::numeric_limits<int>::min(),
+                    std::numeric_limits<int>::max());
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 static wmOperatorStatus uv_custom_region_set_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
@@ -6905,7 +7009,7 @@ static wmOperatorStatus uv_custom_region_set_exec(bContext *C, wmOperator *op)
   ToolSettings *ts = scene->toolsettings;
 
   WM_operator_properties_border_to_rctf(op, &ts->uv_custom_region);
-  UI_view2d_region_to_view_rctf(&region->v2d, &ts->uv_custom_region, &ts->uv_custom_region);
+  ui::view2d_region_to_view_rctf(&region->v2d, &ts->uv_custom_region, &ts->uv_custom_region);
   ts->uv_flag |= UV_FLAG_CUSTOM_REGION;
 
   return OPERATOR_FINISHED;
@@ -6933,3 +7037,5 @@ void UV_OT_custom_region_set(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

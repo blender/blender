@@ -33,10 +33,10 @@
 
 namespace blender::draw {
 
-blender::gpu::VertBuf *hair_pos_buffer_get(Scene *scene,
-                                           Object *object,
-                                           ParticleSystem *psys,
-                                           ModifierData *md)
+gpu::VertBuf *hair_pos_buffer_get(Scene *scene,
+                                  Object *object,
+                                  ParticleSystem *psys,
+                                  ModifierData *md)
 {
   /* TODO(fclem): Remove Global access. */
   CurvesModule &module = *drw_get().data->curves_module;
@@ -52,12 +52,12 @@ blender::gpu::VertBuf *hair_pos_buffer_get(Scene *scene,
 }
 
 template<typename PassT>
-blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
-                                                        const Scene *scene,
-                                                        const ObjectRef &ob_ref,
-                                                        ParticleSystem *psys,
-                                                        ModifierData *md,
-                                                        GPUMaterial *gpu_material)
+gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
+                                               const Scene *scene,
+                                               const ObjectRef &ob_ref,
+                                               ParticleSystem *psys,
+                                               ModifierData *md,
+                                               GPUMaterial *gpu_material)
 {
   /** NOTE: This still relies on the old DRW_hair implementation. */
   Object *object = ob_ref.object;
@@ -88,7 +88,7 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
   gpu::VertBufPtr &indirection_buf = cache.indirection_buf_get(module, source, face_per_segment);
 
   {
-    ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)source.md;
+    ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(source.md);
     Mesh &mesh = *psmd->mesh_final;
     const StringRef active_uv = mesh.active_uv_map_name();
     curves_bind_resources(
@@ -100,22 +100,22 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
       source.evaluated_points_num(), source.curves_num(), face_per_segment, false, unused_error);
 }
 
-blender::gpu::Batch *hair_sub_pass_setup(PassMain::Sub &sub_ps,
-                                         const Scene *scene,
-                                         const ObjectRef &ob_ref,
-                                         ParticleSystem *psys,
-                                         ModifierData *md,
-                                         GPUMaterial *gpu_material)
+gpu::Batch *hair_sub_pass_setup(PassMain::Sub &sub_ps,
+                                const Scene *scene,
+                                const ObjectRef &ob_ref,
+                                ParticleSystem *psys,
+                                ModifierData *md,
+                                GPUMaterial *gpu_material)
 {
   return hair_sub_pass_setup_implementation(sub_ps, scene, ob_ref, psys, md, gpu_material);
 }
 
-blender::gpu::Batch *hair_sub_pass_setup(PassSimple::Sub &sub_ps,
-                                         const Scene *scene,
-                                         const ObjectRef &ob_ref,
-                                         ParticleSystem *psys,
-                                         ModifierData *md,
-                                         GPUMaterial *gpu_material)
+gpu::Batch *hair_sub_pass_setup(PassSimple::Sub &sub_ps,
+                                const Scene *scene,
+                                const ObjectRef &ob_ref,
+                                ParticleSystem *psys,
+                                ModifierData *md,
+                                GPUMaterial *gpu_material)
 {
   return hair_sub_pass_setup_implementation(sub_ps, scene, ob_ref, psys, md, gpu_material);
 }

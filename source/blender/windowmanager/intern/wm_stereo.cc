@@ -38,18 +38,19 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
+namespace blender {
+
 void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 {
   bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
 
   GPUVertFormat *format = immVertexFormat();
-  uint texcoord = GPU_vertformat_attr_add(
-      format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint texcoord = GPU_vertformat_attr_add(format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
 
   int soffx = win_size[0] / 2;
   if (view == STEREO_LEFT_ID) {
@@ -91,13 +92,12 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
 {
   GPUVertFormat *format = immVertexFormat();
-  uint texcoord = GPU_vertformat_attr_add(
-      format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint texcoord = GPU_vertformat_attr_add(format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
 
   int soffy;
   if (view == STEREO_LEFT_ID) {
@@ -145,7 +145,7 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
   /* Some 3d methods change the window arrangement, thus they shouldn't
    * toggle on/off just because there is no 3d elements being drawn. */
   if (wm_stereo3d_is_fullscreen_required(eStereoDisplayMode(win->stereo3d_format->display_mode))) {
-    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin)) ==
+    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin)) ==
            GHOST_kWindowStateFullScreen;
   }
 
@@ -156,7 +156,7 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
   /* Some 3d methods change the window arrangement, thus they shouldn't
    * toggle on/off just because there is no 3d elements being drawn. */
   if (wm_stereo3d_is_fullscreen_required(eStereoDisplayMode(win->stereo3d_format->display_mode))) {
-    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin)) ==
+    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin)) ==
            GHOST_kWindowStateFullScreen;
   }
 
@@ -246,7 +246,7 @@ static void wm_stereo3d_set_init(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  Stereo3dData *s3dd = MEM_callocN<Stereo3dData>(__func__);
+  Stereo3dData *s3dd = MEM_new_for_free<Stereo3dData>(__func__);
   op->customdata = s3dd;
 
   /* Store the original win stereo 3d settings in case of cancel. */
@@ -356,7 +356,7 @@ wmOperatorStatus wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEve
 void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
 {
   Stereo3dData *s3dd = static_cast<Stereo3dData *>(op->customdata);
-  blender::ui::Layout &layout = *op->layout;
+  ui::Layout &layout = *op->layout;
 
   PointerRNA stereo3d_format_ptr = RNA_pointer_create_discrete(
       nullptr, &RNA_Stereo3dDisplay, &s3dd->stereo3d_format);
@@ -364,7 +364,7 @@ void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(&stereo3d_format_ptr, "display_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   switch (s3dd->stereo3d_format.display_mode) {
@@ -404,3 +404,5 @@ void wm_stereo3d_set_cancel(bContext * /*C*/, wmOperator *op)
   MEM_freeN(s3dd);
   op->customdata = nullptr;
 }
+
+}  // namespace blender

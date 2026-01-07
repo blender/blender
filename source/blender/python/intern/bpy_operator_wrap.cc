@@ -24,6 +24,8 @@
 #include "bpy_operator_wrap.hh" /* own include */
 #include "bpy_rna.hh"
 
+namespace blender {
+
 static void operator_properties_init(wmOperatorType *ot)
 {
   PyTypeObject *py_class = static_cast<PyTypeObject *>(ot->rna_ext.data);
@@ -85,7 +87,7 @@ void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata)
   /* take care not to overwrite anything set in
    * WM_operatortype_append_ptr before opfunc() is called */
   StructRNA *srna = ot->srna;
-  *ot = *((wmOperatorType *)userdata);
+  *ot = std::move(*(static_cast<wmOperatorType *>(userdata)));
   ot->srna = srna; /* restore */
 
   /* Use i18n context from rna_ext.srna if possible (py operators). */
@@ -98,7 +100,7 @@ void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata)
 
 void BPY_RNA_operator_macro_wrapper(wmOperatorType *ot, void *userdata)
 {
-  wmOperatorType *data = (wmOperatorType *)userdata;
+  wmOperatorType *data = static_cast<wmOperatorType *>(userdata);
 
   /* only copy a couple of things, the rest is set by the macro registration */
   ot->name = data->name;
@@ -157,3 +159,5 @@ PyObject *PYOP_wrap_macro_define(PyObject * /*self*/, PyObject *args)
   PointerRNA ptr_otmacro = RNA_pointer_create_discrete(nullptr, &RNA_OperatorMacro, otmacro);
   return pyrna_struct_CreatePyObject(&ptr_otmacro);
 }
+
+}  // namespace blender

@@ -10,13 +10,16 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct bGPDlayer;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementGPencilLayer final : public AbstractTreeElement {
  public:
   TreeElementGPencilLayer(TreeElement &legacy_te, bGPDlayer &gplayer);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

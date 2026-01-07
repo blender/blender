@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -40,6 +41,8 @@
 
 #include "mesh_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Helper Functions
  * \{ */
@@ -63,7 +66,7 @@ static void calc_initial_placement_point_from_view(bContext *C,
 
   bool use_mouse_project = true; /* TODO: make optional */
 
-  const blender::float4x4 cursor_matrix = scene->cursor.matrix<blender::float4x4>();
+  const float4x4 cursor_matrix = scene->cursor.matrix<float4x4>();
   float orient_matrix[3][3];
 
   const float dots[3] = {
@@ -208,10 +211,10 @@ static void gizmo_mesh_placement_modal_from_setup(const bContext *C, wmGizmoGrou
       float mat3[3][3];
       float location[3];
       float mval[2] = {
-          float(win->eventstate->xy[0] - region->winrct.xmin),
-          float(win->eventstate->xy[1] - region->winrct.ymin),
+          float(win->runtime->eventstate->xy[0] - region->winrct.xmin),
+          float(win->runtime->eventstate->xy[1] - region->winrct.ymin),
       };
-      calc_initial_placement_point_from_view((bContext *)C, mval, location, mat3);
+      calc_initial_placement_point_from_view(const_cast<bContext *>(C), mval, location, mat3);
       copy_m4_m3(gz->matrix_basis, mat3);
       copy_v3_v3(gz->matrix_basis[3], location);
     }
@@ -219,10 +222,10 @@ static void gizmo_mesh_placement_modal_from_setup(const bContext *C, wmGizmoGrou
     if (true) {
       wmGizmoMap *gzmap = gzgroup->parent_gzmap;
       WM_gizmo_modal_set_from_setup(gzmap,
-                                    (bContext *)C,
+                                    const_cast<bContext *>(C),
                                     ggd->cage,
                                     ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z,
-                                    win->eventstate);
+                                    win->runtime->eventstate);
     }
   }
 }
@@ -242,7 +245,7 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   ggd->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, nullptr);
 
-  UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->cage->color);
+  ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->cage->color);
 
   RNA_enum_set(ggd->cage->ptr,
                "transform",
@@ -251,7 +254,7 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   WM_gizmo_set_flag(ggd->cage, WM_GIZMO_DRAW_VALUE, true);
 
-  ggd->data.context = (bContext *)C;
+  ggd->data.context = const_cast<bContext *>(C);
   ggd->data.op = op;
   ggd->data.prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
 
@@ -327,7 +330,7 @@ static wmOperatorStatus add_primitive_cube_gizmo_exec(bContext *C, wmOperator *o
   const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
   if (calc_uvs) {
-    ED_mesh_uv_ensure(static_cast<Mesh *>(obedit->data), nullptr);
+    ED_mesh_uv_ensure(id_cast<Mesh *>(obedit->data), nullptr);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -350,7 +353,7 @@ static wmOperatorStatus add_primitive_cube_gizmo_exec(bContext *C, wmOperator *o
   params.calc_looptris = true;
   params.calc_normals = false;
   params.is_destructive = true;
-  EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+  EDBM_update(id_cast<Mesh *>(obedit->data), &params);
 
   return OPERATOR_FINISHED;
 }
@@ -391,8 +394,8 @@ void MESH_OT_primitive_cube_add_gizmo(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_mesh_props(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_mesh_props(ot);
+  ed::object::add_generic_props(ot, true);
 
   /* hidden props */
   PropertyRNA *prop = RNA_def_float_matrix(
@@ -403,3 +406,5 @@ void MESH_OT_primitive_cube_add_gizmo(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

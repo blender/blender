@@ -10,7 +10,6 @@
 #include <utility>
 
 #include "DNA_ID.h"
-#include "DNA_defaults.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -27,12 +26,11 @@
 
 #include "MEM_guardedalloc.h"
 
-using namespace blender;
+namespace blender {
 
 AssetMetaData *BKE_asset_metadata_create()
 {
-  const AssetMetaData *default_metadata = DNA_struct_default_get(AssetMetaData);
-  return MEM_new<AssetMetaData>(__func__, *default_metadata);
+  return MEM_new<AssetMetaData>(__func__);
 }
 
 void BKE_asset_metadata_free(AssetMetaData **asset_data)
@@ -97,7 +95,7 @@ AssetMetaData::~AssetMetaData()
 
 static AssetTag *asset_metadata_tag_add(AssetMetaData *asset_data, const char *const name)
 {
-  AssetTag *tag = MEM_callocN<AssetTag>(__func__);
+  AssetTag *tag = MEM_new_for_free<AssetTag>(__func__);
   STRNCPY_UTF8(tag->name, name);
 
   BLI_addtail(&asset_data->tags, tag);
@@ -122,7 +120,8 @@ AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data, co
     return result;
   }
 
-  AssetTag *tag = (AssetTag *)BLI_findstring(&asset_data->tags, name, offsetof(AssetTag, name));
+  AssetTag *tag = static_cast<AssetTag *>(
+      BLI_findstring(&asset_data->tags, name, offsetof(AssetTag, name)));
 
   if (tag) {
     result.tag = tag;
@@ -148,7 +147,7 @@ void BKE_asset_metadata_tag_remove(AssetMetaData *asset_data, AssetTag *tag)
 
 void BKE_asset_library_reference_init_default(AssetLibraryReference *library_ref)
 {
-  memcpy(library_ref, DNA_struct_default_get(AssetLibraryReference), sizeof(*library_ref));
+  *library_ref = AssetLibraryReference();
 }
 
 void BKE_asset_metadata_catalog_id_clear(AssetMetaData *asset_data)
@@ -158,7 +157,7 @@ void BKE_asset_metadata_catalog_id_clear(AssetMetaData *asset_data)
 }
 
 void BKE_asset_metadata_catalog_id_set(AssetMetaData *asset_data,
-                                       const ::bUUID catalog_id,
+                                       const bUUID catalog_id,
                                        const char *catalog_simple_name)
 {
   asset_data->catalog_id = catalog_id;
@@ -196,7 +195,7 @@ PreviewImage *BKE_asset_metadata_preview_get_from_id(const AssetMetaData * /*ass
 
 void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
 {
-  BLO_write_struct(writer, AssetMetaData, asset_data);
+  writer->write_struct(asset_data);
 
   if (asset_data->properties) {
     IDP_BlendWrite(writer, asset_data->properties);
@@ -207,8 +206,8 @@ void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
   BLO_write_string(writer, asset_data->copyright);
   BLO_write_string(writer, asset_data->license);
 
-  LISTBASE_FOREACH (AssetTag *, tag, &asset_data->tags) {
-    BLO_write_struct(writer, AssetTag, tag);
+  for (AssetTag &tag : asset_data->tags) {
+    writer->write_struct(&tag);
   }
 }
 
@@ -230,3 +229,5 @@ void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data)
   BLO_read_struct_list(reader, AssetTag, &asset_data->tags);
   BLI_assert(BLI_listbase_count(&asset_data->tags) == asset_data->tot_tags);
 }
+
+}  // namespace blender

@@ -16,6 +16,8 @@
 
 #include <string>
 
+namespace blender {
+
 struct bContext;
 struct BlendFileData;
 struct BlendFileReadParams;
@@ -157,7 +159,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
                                                              ReportList *reports);
 void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace_config);
 
-namespace blender::bke::blendfile {
+namespace bke::blendfile {
 
 /**
  * Partial blendfile writing.
@@ -204,7 +206,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
   IDNameLib_Map *matching_uid_map_;
 
   /** A mapping from the absolute library paths to the #Library IDs in the context. */
-  blender::Map<std::string, Library *> libraries_map_;
+  Map<std::string, Library *> libraries_map_;
 
  public:
   /* Passing a reference root filepath is mandatory, for remapping of relative paths to work as
@@ -322,9 +324,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
    */
   ID *id_add(const ID *id,
              IDAddOptions options,
-             blender::FunctionRef<IDAddOperations(LibraryIDLinkCallbackData *cb_data,
-                                                  IDAddOptions options)> dependencies_filter_cb =
-                 nullptr);
+             FunctionRef<IDAddOperations(LibraryIDLinkCallbackData *cb_data, IDAddOptions options)>
+                 dependencies_filter_cb = nullptr);
 
   /**
    * Add and return a new ID into the partial write context.
@@ -432,4 +433,5 @@ class PartialWriteContext : NonCopyable, NonMovable {
 
 ENUM_OPERATORS(PartialWriteContext::IDAddOperations);
 
-}  // namespace blender::bke::blendfile
+}  // namespace bke::blendfile
+}  // namespace blender

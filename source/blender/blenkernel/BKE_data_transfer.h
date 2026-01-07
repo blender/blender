@@ -10,6 +10,8 @@
 
 #include "DNA_modifier_enums.h"
 
+namespace blender {
+
 struct Depsgraph;
 struct Object;
 struct ReportList;
@@ -86,3 +88,5 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                  const char *vgroup_name,
                                  bool invert_vgroup,
                                  struct ReportList *reports);
+
+}  // namespace blender

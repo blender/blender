@@ -36,6 +36,8 @@
 
 #include "curve_intern.hh"
 
+namespace blender {
+
 static const float nurbcircle[8][2] = {
     {0.0, -1.0},
     {-1.0, -1.0},
@@ -105,12 +107,12 @@ Nurb *ED_curve_add_nurbs_primitive(
     bContext *C, Object *obedit, float mat[4][4], int type, int newob)
 {
   static int xzproj = 0; /* this function calls itself... */
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   RegionView3D *rv3d = ED_view3d_context_rv3d(C);
   Nurb *nu = nullptr;
   BezTriple *bezt;
   BPoint *bp;
-  Curve *cu = (Curve *)obedit->data;
+  Curve *cu = id_cast<Curve *>(obedit->data);
   float vec[3], zvec[3] = {0.0f, 0.0f, 1.0f};
   float umat[4][4], viewmat[4][4];
   float fac;
@@ -131,7 +133,7 @@ Nurb *ED_curve_add_nurbs_primitive(
 
   /* these types call this function to return a Nurb */
   if (!ELEM(stype, CU_PRIM_TUBE, CU_PRIM_DONUT)) {
-    nu = MEM_callocN<Nurb>("addNurbprim");
+    nu = MEM_new_for_free<Nurb>("addNurbprim");
     nu->type = cutype;
     nu->resolu = cu->resolu;
     nu->resolv = cu->resolv;
@@ -500,7 +502,7 @@ static wmOperatorStatus curvesurf_prim_add(bContext *C, wmOperator *op, int type
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
-  ListBase *editnurb;
+  ListBaseT<Nurb> *editnurb;
   Nurb *nu;
   bool newob = false;
   bool enter_editmode;
@@ -510,7 +512,7 @@ static wmOperatorStatus curvesurf_prim_add(bContext *C, wmOperator *op, int type
 
   WM_operator_view3d_unit_defaults(C, op);
 
-  blender::ed::object::add_generic_get_opts(
+  ed::object::add_generic_get_opts(
       C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr);
 
   if (!isSurf) { /* adding curve */
@@ -518,11 +520,10 @@ static wmOperatorStatus curvesurf_prim_add(bContext *C, wmOperator *op, int type
       const char *name = get_curve_defname(type);
       Curve *cu;
 
-      obedit = blender::ed::object::add_type(
-          C, OB_CURVES_LEGACY, name, loc, rot, true, local_view_bits);
+      obedit = ed::object::add_type(C, OB_CURVES_LEGACY, name, loc, rot, true, local_view_bits);
       newob = true;
 
-      cu = (Curve *)obedit->data;
+      cu = id_cast<Curve *>(obedit->data);
 
       if (type & CU_PRIM_PATH) {
         cu->flag |= CU_PATH | CU_3D;
@@ -535,7 +536,7 @@ static wmOperatorStatus curvesurf_prim_add(bContext *C, wmOperator *op, int type
   else { /* adding surface */
     if (obedit == nullptr || obedit->type != OB_SURF) {
       const char *name = get_surf_defname(type);
-      obedit = blender::ed::object::add_type(C, OB_SURF, name, loc, rot, true, local_view_bits);
+      obedit = ed::object::add_type(C, OB_SURF, name, loc, rot, true, local_view_bits);
       newob = true;
     }
     else {
@@ -546,7 +547,7 @@ static wmOperatorStatus curvesurf_prim_add(bContext *C, wmOperator *op, int type
   float radius = RNA_float_get(op->ptr, "radius");
   float scale[3];
   copy_v3_fl(scale, radius);
-  blender::ed::object::new_primitive_matrix(C, obedit, loc, rot, scale, mat);
+  ed::object::new_primitive_matrix(C, obedit, loc, rot, scale, mat);
 
   nu = ED_curve_add_nurbs_primitive(C, obedit, mat, type, newob);
   editnurb = object_editcurve_get(obedit);
@@ -554,7 +555,7 @@ static wmOperatorStatus curvesurf_prim_add(bContext *C, wmOperator *op, int type
 
   /* userdef */
   if (newob && !enter_editmode) {
-    blender::ed::object::editmode_exit_ex(bmain, scene, obedit, blender::ed::object::EM_FREEDATA);
+    ed::object::editmode_exit_ex(bmain, scene, obedit, ed::object::EM_FREEDATA);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
@@ -593,8 +594,8 @@ void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
@@ -616,8 +617,8 @@ void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
@@ -639,8 +640,8 @@ void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
@@ -662,8 +663,8 @@ void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_curve_path_exec(bContext *C, wmOperator *op)
@@ -685,8 +686,8 @@ void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 /* **************** NURBS surfaces ********************** */
@@ -709,8 +710,8 @@ void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_nurbs_surface_circle_exec(bContext *C, wmOperator *op)
@@ -732,8 +733,8 @@ void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_nurbs_surface_surface_exec(bContext *C, wmOperator *op)
@@ -755,8 +756,8 @@ void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_nurbs_surface_cylinder_exec(bContext *C, wmOperator *op)
@@ -778,8 +779,8 @@ void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_nurbs_surface_sphere_exec(bContext *C, wmOperator *op)
@@ -801,8 +802,8 @@ void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
 
 static wmOperatorStatus add_primitive_nurbs_surface_torus_exec(bContext *C, wmOperator *op)
@@ -824,6 +825,8 @@ void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  blender::ed::object::add_unit_props_radius(ot);
-  blender::ed::object::add_generic_props(ot, true);
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_generic_props(ot, true);
 }
+
+}  // namespace blender

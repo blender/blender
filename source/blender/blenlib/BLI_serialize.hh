@@ -229,7 +229,7 @@ class ArrayValue : public Value {
 
 /**
  * Object is a key-value container where the key must be a std::string.
- * Internally it is stored in a blender::Vector to ensure the order of keys.
+ * Internally it is stored in a Vector to ensure the order of keys.
  */
 class DictionaryValue : public Value {
  public:

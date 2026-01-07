@@ -49,6 +49,8 @@
 #  include "bpy_rna.hh"
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -127,9 +129,9 @@ static PyObject *bpy_lib_dir(BPy_Library *self);
 #endif
 
 static PyMethodDef bpy_lib_methods[] = {
-    {"__enter__", (PyCFunction)bpy_lib_enter, METH_NOARGS},
-    {"__exit__", (PyCFunction)bpy_lib_exit, METH_VARARGS},
-    {"__dir__", (PyCFunction)bpy_lib_dir, METH_NOARGS},
+    {"__enter__", reinterpret_cast<PyCFunction>(bpy_lib_enter), METH_NOARGS},
+    {"__exit__", reinterpret_cast<PyCFunction>(bpy_lib_exit), METH_VARARGS},
+    {"__dir__", reinterpret_cast<PyCFunction>(bpy_lib_dir), METH_NOARGS},
     {nullptr} /* sentinel */
 };
 
@@ -152,7 +154,7 @@ static PyTypeObject bpy_lib_Type = {
     /*tp_name*/ "bpy_lib",
     /*tp_basicsize*/ sizeof(BPy_Library),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)bpy_lib_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(bpy_lib_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -206,6 +208,7 @@ PyDoc_STRVAR(
     "filepath, "
     "*, "
     "link=False, "
+    "pack=False, "
     "relative=False, "
     "set_fake=False, "
     "recursive=False, "
@@ -446,7 +449,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
 
   ret->dict = _PyDict_NewPresized(bpy_library_dict_num);
 
-  return (PyObject *)ret;
+  return reinterpret_cast<PyObject *>(ret);
 }
 
 static PyObject *_bpy_names(BPy_Library *self, int blocktype)
@@ -516,7 +519,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   {
     PyObject *version;
     PyObject *identifier = PyUnicode_FromString("version");
-    blender::int3 blendfile_version;
+    int3 blendfile_version;
 
     /* Source. */
     blendfile_version = BLO_blendhandle_get_version(self->blo_handle);
@@ -525,7 +528,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
     Py_DECREF(version);
 
     /* Destination. */
-    blendfile_version = blender::int3(
+    blendfile_version = int3(
         BLENDER_FILE_VERSION / 100, BLENDER_FILE_VERSION % 100, BLENDER_FILE_SUBVERSION);
     version = PyC_Tuple_PackArray_I32(&blendfile_version[0], 3);
     PyDict_SetItem(dict_dst, identifier, version);
@@ -569,7 +572,7 @@ static void bpy_lib_exit_warn_idname(BPy_Library *self,
   {
     /* Spurious errors can appear at shutdown */
     if (PyErr_ExceptionMatches(PyExc_Warning)) {
-      PyErr_WriteUnraisable((PyObject *)self);
+      PyErr_WriteUnraisable(reinterpret_cast<PyObject *>(self));
     }
   }
   PyErr_Restore(exc, val, tb);
@@ -587,7 +590,7 @@ static void bpy_lib_exit_warn_type(BPy_Library *self, PyObject *item)
   {
     /* Spurious errors can appear at shutdown */
     if (PyErr_ExceptionMatches(PyExc_Warning)) {
-      PyErr_WriteUnraisable((PyObject *)self);
+      PyErr_WriteUnraisable(reinterpret_cast<PyObject *>(self));
     }
   }
   PyErr_Restore(exc, val, tb);
@@ -799,7 +802,7 @@ static PyObject *bpy_lib_dir(BPy_Library *self)
 
 PyMethodDef BPY_library_load_method_def = {
     "load",
-    (PyCFunction)bpy_lib_load,
+    reinterpret_cast<PyCFunction>(bpy_lib_load),
     METH_VARARGS | METH_KEYWORDS,
     bpy_lib_load_doc,
 };
@@ -820,3 +823,5 @@ int BPY_library_load_type_ready()
 
   return 0;
 }
+
+}  // namespace blender

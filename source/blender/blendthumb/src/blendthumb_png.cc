@@ -19,57 +19,60 @@
 #include "BLI_endian_switch.h"
 #include "BLI_vector.hh"
 
-static void png_extend_native_int32(blender::Vector<uint8_t> &output, int32_t data)
+namespace blender {
+
+static void png_extend_native_int32(Vector<uint8_t> &output, int32_t data)
 {
   /* NOTE: this is endianness-sensitive. */
   /* PNG is big-endian, its values need to be switched on little-endian systems. */
   BLI_endian_switch_int32(&data);
-  output.extend_unchecked(blender::Span((uint8_t *)&data, 4));
+  output.extend_unchecked(Span(reinterpret_cast<uint8_t *>(&data), 4));
 }
 
 /** The number of bytes each chunk uses on top of the data that's written. */
 #define PNG_CHUNK_EXTRA 12
 
-static void png_chunk_create(blender::Vector<uint8_t> &output,
+static void png_chunk_create(Vector<uint8_t> &output,
                              const uint32_t tag,
-                             const blender::Vector<uint8_t> &data)
+                             const Vector<uint8_t> &data)
 {
   uint32_t crc = crc32(0, nullptr, 0);
-  crc = crc32(crc, (uint8_t *)&tag, sizeof(tag));
-  crc = crc32(crc, (uint8_t *)data.data(), data.size());
+  crc = crc32(crc, reinterpret_cast<uint8_t *>(const_cast<uint32_t *>(&tag)), sizeof(tag));
+  crc = crc32(crc, const_cast<uint8_t *>(data.data()), data.size());
 
   png_extend_native_int32(output, data.size());
-  output.extend_unchecked(blender::Span((uint8_t *)&tag, sizeof(tag)));
+  output.extend_unchecked(
+      Span(reinterpret_cast<uint8_t *>(const_cast<uint32_t *>(&tag)), sizeof(tag)));
   output.extend_unchecked(data);
   png_extend_native_int32(output, crc);
 }
 
-static blender::Vector<uint8_t> filtered_rows_from_thumb(const Thumbnail *thumb)
+static Vector<uint8_t> filtered_rows_from_thumb(const Thumbnail *thumb)
 {
   /* In the image data sent to the compression step, each scan-line is preceded by a filter type
    * byte containing the numeric code of the filter algorithm used for that scan-line. */
   const size_t line_size = thumb->width * 4;
-  blender::Vector<uint8_t> filtered;
+  Vector<uint8_t> filtered;
   size_t final_size = thumb->height * (line_size + 1);
   filtered.reserve(final_size);
   for (int i = 0; i < thumb->height; i++) {
     filtered.append_unchecked(0x00);
-    filtered.extend_unchecked(blender::Span(&thumb->data[i * line_size], line_size));
+    filtered.extend_unchecked(Span(&thumb->data[i * line_size], line_size));
   }
   BLI_assert(final_size == filtered.size());
   return filtered;
 }
 
-static std::optional<blender::Vector<uint8_t>> zlib_compress(const blender::Vector<uint8_t> &data)
+static std::optional<Vector<uint8_t>> zlib_compress(const Vector<uint8_t> &data)
 {
   ulong uncompressed_size = data.size();
   uLongf compressed_size = compressBound(uncompressed_size);
 
-  blender::Vector<uint8_t> compressed(compressed_size, 0x00);
+  Vector<uint8_t> compressed(compressed_size, 0x00);
 
-  int return_value = compress2((uchar *)compressed.data(),
+  int return_value = compress2(static_cast<uchar *>(compressed.data()),
                                &compressed_size,
-                               (uchar *)data.data(),
+                               const_cast<uchar *>(data.data()),
                                uncompressed_size,
                                Z_NO_COMPRESSION);
   if (return_value != Z_OK) {
@@ -80,15 +83,14 @@ static std::optional<blender::Vector<uint8_t>> zlib_compress(const blender::Vect
   return compressed;
 }
 
-std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
-    const Thumbnail *thumb)
+std::optional<Vector<uint8_t>> blendthumb_create_png_data_from_thumb(const Thumbnail *thumb)
 {
   if (thumb->data.is_empty()) {
     return std::nullopt;
   }
 
   /* Create `IDAT` chunk data. */
-  blender::Vector<uint8_t> image_data;
+  Vector<uint8_t> image_data;
   {
     auto image_data_opt = zlib_compress(filtered_rows_from_thumb(thumb));
     if (image_data_opt == std::nullopt) {
@@ -98,7 +100,7 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
   }
 
   /* Create the IHDR chunk data. */
-  blender::Vector<uint8_t> ihdr_data;
+  Vector<uint8_t> ihdr_data;
   {
     const size_t ihdr_data_final_size = 4 + 4 + 5;
     ihdr_data.reserve(ihdr_data_final_size);
@@ -115,7 +117,7 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
   }
 
   /* Join it all together to create a PNG image. */
-  blender::Vector<uint8_t> png_buf;
+  Vector<uint8_t> png_buf;
   {
     const size_t png_buf_final_size = (
         /* Header. */
@@ -141,3 +143,5 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
 
   return png_buf;
 }
+
+}  // namespace blender

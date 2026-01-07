@@ -23,9 +23,11 @@
 #include "FX_shader_types.hh"
 #include "FX_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *fx)
 {
-  BlurShaderFxData *gpfx = (BlurShaderFxData *)fx;
+  BlurShaderFxData *gpfx = reinterpret_cast<BlurShaderFxData *>(fx);
   copy_v2_fl(gpfx->radius, 50.0f);
   gpfx->samples = 8;
   gpfx->rotation = 0.0f;
@@ -38,7 +40,7 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -47,7 +49,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   layout.prop(ptr, "use_dof_mode", UI_ITEM_NONE, IFACE_("Use Depth of Field"), ICON_NONE);
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.active_set(!RNA_boolean_get(ptr, "use_dof_mode"));
   col.prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -78,3 +80,5 @@ ShaderFxTypeInfo shaderfx_Type_Blur = {
     /*foreach_working_space_color*/ nullptr,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

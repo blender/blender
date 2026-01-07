@@ -10,6 +10,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup bli
  *
@@ -71,7 +73,7 @@ enum CDT_output_type {
   CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES,
 };
 
-namespace blender::meshintersect {
+namespace meshintersect {
 
 /**
  * Input to Constrained Delaunay Triangulation.
@@ -185,4 +187,5 @@ CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<mpq_class> &input,
                                        CDT_output_type output_type);
 #endif
 
-} /* namespace blender::meshintersect */
+}  // namespace meshintersect
+}  // namespace blender

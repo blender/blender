@@ -37,6 +37,8 @@
 #include "BKE_vfont.hh"
 #include "BKE_vfontdata.hh"
 
+namespace blender {
+
 /**
  * Locking on when manipulating the #VFont because multiple objects may share a VFont.
  * Depsgraph evaluation can evaluate multiple objects in different threads,
@@ -196,7 +198,7 @@ static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, char32
     const float line_width = 0.05 * metrics->em_ratio;
 
     /* The rectangle size within the available bounds. */
-    const blender::float2 size_factor = {
+    const float2 size_factor = {
         0.9f,
         0.9f - (line_width * 2),
     };
@@ -298,7 +300,7 @@ static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
  * as the `ul_prev_nu` in future calls to this function.
  */
 static Nurb *build_underline(const Curve &cu,
-                             ListBase *nubase,
+                             ListBaseT<Nurb> *nubase,
                              const rctf *rect,
                              const float yofs,
                              const float rotate,
@@ -310,7 +312,7 @@ static Nurb *build_underline(const Curve &cu,
   Nurb *nu;
   BPoint *bp;
 
-  nu = MEM_callocN<Nurb>("underline_nurb");
+  nu = MEM_new_for_free<Nurb>("underline_nurb");
   nu->resolu = cu.resolu;
   nu->bezt = nullptr;
   nu->knotsu = nu->knotsv = nullptr;
@@ -372,11 +374,11 @@ static Nurb *build_underline(const Curve &cu,
 }
 
 static void vfont_char_build_impl(const Curve &cu,
-                                  ListBase *nubase,
+                                  ListBaseT<Nurb> *nubase,
                                   const VChar *che,
                                   const CharInfo *info,
                                   const bool is_smallcaps,
-                                  const blender::float2 &offset,
+                                  const float2 &offset,
                                   const float rotate,
                                   const int charidx,
                                   const float fsize)
@@ -396,11 +398,11 @@ static void vfont_char_build_impl(const Curve &cu,
   while (nu_from_vchar) {
     const BezTriple *bezt_from_vchar = nu_from_vchar->bezt;
     if (bezt_from_vchar) {
-      Nurb *nu = MEM_mallocN<Nurb>("duplichar_nurb");
+      Nurb *nu = MEM_new_for_free<Nurb>("duplichar_nurb");
       if (nu == nullptr) {
         break;
       }
-      *nu = blender::dna::shallow_copy(*nu_from_vchar);
+      *nu = dna::shallow_copy(*nu_from_vchar);
       nu->resolu = cu.resolu;
       nu->bp = nullptr;
       nu->knotsu = nu->knotsv = nullptr;
@@ -486,11 +488,11 @@ static void vfont_char_build_impl(const Curve &cu,
 }
 
 void BKE_vfont_char_build(const Curve &cu,
-                          ListBase *nubase,
+                          ListBaseT<Nurb> *nubase,
                           uint charcode,
                           const CharInfo *info,
                           const bool is_smallcaps,
-                          const blender::float2 &offset,
+                          const float2 &offset,
                           float rotate,
                           int charidx,
                           const float fsize)
@@ -579,7 +581,7 @@ struct VFontToCurveIter {
 /** Used when translating a mouse cursor location to a position within the string. */
 struct VFontCursor_Params {
   /** Mouse cursor location in Object coordinate space as input. */
-  blender::float2 cursor_location;
+  float2 cursor_location;
   /** Character position within #EditFont::textbuf as output. */
   int r_string_offset;
 };
@@ -670,7 +672,7 @@ static bool vfont_to_curve(Object *ob,
                            const eEditFontMode mode,
                            VFontToCurveIter &iter_data,
                            VFontCursor_Params *cursor_params,
-                           ListBase *r_nubase,
+                           ListBaseT<Nurb> *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
@@ -697,7 +699,7 @@ static bool vfont_to_curve(Object *ob,
   /* Shift down vertically to be 25% below & 75% above baseline (before font scale is applied). */
   const float font_select_y_offset = 0.25;
   const bool word_wrap = iter_data.word_wrap;
-  const blender::float2 cu_offset_scale = {
+  const float2 cu_offset_scale = {
       safe_divide(cu.xof, font_size),
       safe_divide(cu.yof, font_size),
   };
@@ -708,7 +710,7 @@ static bool vfont_to_curve(Object *ob,
 
   /* Text at the beginning of the last used text-box (use for y-axis alignment).
    * We over-allocate by one to simplify logic of getting last char. */
-  blender::Array<int> i_textbox_array(cu.totbox + 1, 0);
+  Array<int> i_textbox_array(cu.totbox + 1, 0);
 
 #define MARGIN_X_MIN (cu_offset_scale.x + tb_scale.x)
 #define MARGIN_Y_MIN (cu_offset_scale.y + tb_scale.y)
@@ -819,7 +821,7 @@ static bool vfont_to_curve(Object *ob,
   textbox_scale(&tb_scale, &cu.tb[curbox], safe_divide(1.0f, font_size));
   const bool use_textbox = (tb_scale.w != 0.0f);
 
-  blender::float2 offset{
+  float2 offset{
       MARGIN_X_MIN,
       MARGIN_Y_MIN,
   };
@@ -828,8 +830,8 @@ static bool vfont_to_curve(Object *ob,
   TextBoxBounds_ForCursor *tb_bounds_for_cursor = nullptr;
   if (cursor_params != nullptr) {
     if (cu.textoncurve == nullptr && (cu.totbox > 1) && (slen > 0)) {
-      tb_bounds_for_cursor = MEM_malloc_arrayN<TextBoxBounds_ForCursor>(size_t(cu.totbox),
-                                                                        "TextboxBounds_Cursor");
+      tb_bounds_for_cursor = MEM_new_array_for_free<TextBoxBounds_ForCursor>(
+          size_t(cu.totbox), "TextboxBounds_Cursor");
       for (curbox = 0; curbox < cu.totbox; curbox++) {
         TextBoxBounds_ForCursor *tb_bounds = &tb_bounds_for_cursor[curbox];
         tb_bounds->char_index_last = -1;
@@ -1482,16 +1484,16 @@ static bool vfont_to_curve(Object *ob,
      * that the zero point before rotation, rotate, then apply offsets afterward. */
 
     /* Bottom left. */
-    ef->textcurs[0] = blender::float2(cursor_left, 0.0f - font_select_y_offset);
+    ef->textcurs[0] = float2(cursor_left, 0.0f - font_select_y_offset);
     /* Bottom right. */
-    ef->textcurs[1] = blender::float2(cursor_left + cursor_width, 0.0f - font_select_y_offset);
+    ef->textcurs[1] = float2(cursor_left + cursor_width, 0.0f - font_select_y_offset);
     /* Top left. */
-    ef->textcurs[3] = blender::float2(cursor_left, 1.0f - font_select_y_offset);
+    ef->textcurs[3] = float2(cursor_left, 1.0f - font_select_y_offset);
     /* Top right. */
-    ef->textcurs[2] = blender::float2(cursor_left + cursor_width, 1.0f - font_select_y_offset);
+    ef->textcurs[2] = float2(cursor_left + cursor_width, 1.0f - font_select_y_offset);
 
     for (int vert = 0; vert < 4; vert++) {
-      blender::float2 temp_fl;
+      float2 temp_fl;
       /* Rotate around the cursor's bottom-left corner. */
       rotate_v2_v2fl(temp_fl, &ef->textcurs[vert][0], -cursor_rotate);
       ef->textcurs[vert] = font_size * (ct->offset + temp_fl);
@@ -1678,7 +1680,7 @@ static bool vfont_to_curve(Object *ob,
   }
 
   if (cursor_params) {
-    const blender::float2 &cursor_location = cursor_params->cursor_location;
+    const float2 &cursor_location = cursor_params->cursor_location;
     /* Erasing all text could give `slen = 0`. */
     if (slen == 0) {
       cursor_params->r_string_offset = -1;
@@ -1689,8 +1691,8 @@ static bool vfont_to_curve(Object *ob,
       float closest_dist_sq = FLT_MAX;
 
       for (i = 0; i <= slen; i++) {
-        const blender::float2 char_location = chartransdata[i].offset * font_size;
-        const float test_dist_sq = blender::math::distance_squared(cursor_location, char_location);
+        const float2 char_location = chartransdata[i].offset * font_size;
+        const float test_dist_sq = math::distance_squared(cursor_location, char_location);
         if (closest_dist_sq > test_dist_sq) {
           closest_char = i;
           closest_dist_sq = test_dist_sq;
@@ -1715,13 +1717,13 @@ static bool vfont_to_curve(Object *ob,
           }
           /* The closest point in the box to the `cursor_location`
            * by clamping it to the bounding box. */
-          const blender::float2 cursor_location_clamped = {
+          const float2 cursor_location_clamped = {
               clamp_f(cursor_location.x, tb_bounds->bounds.xmin, tb_bounds->bounds.xmax),
               clamp_f(cursor_location.y, tb_bounds->bounds.ymin, tb_bounds->bounds.ymax),
           };
 
-          const float test_dist_sq = blender::math::distance_squared(cursor_location,
-                                                                     cursor_location_clamped);
+          const float test_dist_sq = math::distance_squared(cursor_location,
+                                                            cursor_location_clamped);
           if (test_dist_sq < closest_dist_sq) {
             closest_dist_sq = test_dist_sq;
             closest_box = curbox;
@@ -1841,7 +1843,7 @@ static bool vfont_to_curve(Object *ob,
 bool BKE_vfont_to_curve_ex(Object *ob,
                            const Curve &cu,
                            const eEditFontMode mode,
-                           ListBase *r_nubase,
+                           ListBaseT<Nurb> *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
@@ -1872,10 +1874,10 @@ bool BKE_vfont_to_curve_ex(Object *ob,
   return data.ok;
 }
 
-int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_location)
+int BKE_vfont_cursor_to_text_index(Object *ob, const float2 &cursor_location)
 {
-  Curve &cu = *(Curve *)ob->data;
-  ListBase *r_nubase = &cu.nurb;
+  Curve &cu = *id_cast<Curve *>(ob->data);
+  ListBaseT<Nurb> *r_nubase = &cu.nurb;
 
   /* TODO: iterating to calculate the scale can be avoided. */
   VFontToCurveIter data = {};
@@ -1909,19 +1911,21 @@ int BKE_vfont_cursor_to_text_index(Object *ob, const blender::float2 &cursor_loc
 #undef FONT_TO_CURVE_SCALE_ITERATIONS
 #undef FONT_TO_CURVE_SCALE_THRESHOLD
 
-bool BKE_vfont_to_curve_nubase(Object *ob, const eEditFontMode mode, ListBase *r_nubase)
+bool BKE_vfont_to_curve_nubase(Object *ob, const eEditFontMode mode, ListBaseT<Nurb> *r_nubase)
 {
   BLI_assert(ob->type == OB_FONT);
-  const Curve &cu = *static_cast<const Curve *>(ob->data);
+  const Curve &cu = *id_cast<const Curve *>(ob->data);
   return BKE_vfont_to_curve_ex(
       ob, cu, mode, r_nubase, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 bool BKE_vfont_to_curve(Object *ob, const eEditFontMode mode)
 {
-  Curve &cu = *static_cast<Curve *>(ob->data);
+  Curve &cu = *id_cast<Curve *>(ob->data);
   return BKE_vfont_to_curve_ex(
       ob, cu, mode, &cu.nurb, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 /** \} */
+
+}  // namespace blender

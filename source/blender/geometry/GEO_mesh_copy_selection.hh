@@ -10,17 +10,17 @@
 
 #include "BKE_attribute_filter.hh"
 
-struct Mesh;
 namespace blender {
+
+struct Mesh;
 namespace fn {
 template<typename T> class Field;
 }
 namespace bke {
 enum class AttrDomain : int8_t;
 }  // namespace bke
-}  // namespace blender
 
-namespace blender::geometry {
+namespace geometry {
 
 std::optional<Mesh *> mesh_copy_selection(const Mesh &src_mesh,
                                           const VArray<bool> &selection,
@@ -39,4 +39,5 @@ std::optional<Mesh *> mesh_copy_selection_keep_edges(
     bke::AttrDomain selection_domain,
     const bke::AttributeFilter &attribute_filter = {});
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

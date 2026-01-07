@@ -13,6 +13,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
 size_t BLI_strncpy_utf8_rlen(char *__restrict dst,
@@ -344,3 +346,5 @@ int BLI_str_utf8_column_count(const char *str, size_t str_len) ATTR_WARN_UNUSED_
   BLI_vsnprintf_utf8_rlen(dst, ARRAY_SIZE(dst), format, args)
 
 /** \} */
+
+}  // namespace blender

@@ -13,7 +13,7 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 struct IconViewMenuArgs {
   PointerRNA ptr;
@@ -23,18 +23,18 @@ struct IconViewMenuArgs {
 };
 
 /* ID Search browse menu, open */
-static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem)
+static Block *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem)
 {
   static IconViewMenuArgs args;
 
   /* arg_litem is malloced, can be freed by parent button */
-  args = *((IconViewMenuArgs *)arg_litem);
+  args = *(static_cast<IconViewMenuArgs *>(arg_litem));
   const int w = UI_UNIT_X * (args.icon_scale);
   const int h = UI_UNIT_X * (args.icon_scale + args.show_labels);
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Pulldown);
-  UI_block_flag_enable(block, UI_BLOCK_LOOP);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  Block *block = block_begin(C, region, "_popup", EmbossType::Pulldown);
+  block_flag_enable(block, BLOCK_LOOP);
+  block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
 
   bool free;
   const EnumPropertyItem *item;
@@ -46,10 +46,10 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
 
     const int icon = item[a].icon;
     const int value = item[a].value;
-    uiBut *but;
+    Button *but;
     if (args.show_labels) {
       but = uiDefIconTextButR_prop(block,
-                                   ButType::Row,
+                                   ButtonType::Row,
                                    icon,
                                    item[a].name,
                                    x,
@@ -64,14 +64,25 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
                                    std::nullopt);
     }
     else {
-      but = uiDefIconButR_prop(
-          block, ButType::Row, icon, x, y, w, h, &args.ptr, args.prop, -1, 0, value, std::nullopt);
+      but = uiDefIconButR_prop(block,
+                               ButtonType::Row,
+                               icon,
+                               x,
+                               y,
+                               w,
+                               h,
+                               &args.ptr,
+                               args.prop,
+                               -1,
+                               0,
+                               value,
+                               std::nullopt);
     }
-    ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+    def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
   }
 
-  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
-  UI_block_direction_set(block, UI_DIR_DOWN);
+  block_bounds_set_normal(block, 0.3f * U.widget_unit);
+  block_direction_set(block, UI_DIR_DOWN);
 
   if (free) {
     MEM_freeN(item);
@@ -80,24 +91,24 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   return block;
 }
 
-void uiTemplateIcon(blender::ui::Layout *layout, int icon_value, float icon_scale)
+void template_icon(Layout *layout, int icon_value, float icon_scale)
 {
-  uiBlock *block = layout->absolute().block();
-  uiBut *but = uiDefIconBut(block,
-                            ButType::Label,
-                            ICON_X,
-                            0,
-                            0,
-                            UI_UNIT_X * icon_scale,
-                            UI_UNIT_Y * icon_scale,
-                            nullptr,
-                            0.0,
-                            0.0,
-                            "");
-  ui_def_but_icon(but, icon_value, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  Block *block = layout->absolute().block();
+  Button *but = uiDefIconBut(block,
+                             ButtonType::Label,
+                             ICON_X,
+                             0,
+                             0,
+                             UI_UNIT_X * icon_scale,
+                             UI_UNIT_Y * icon_scale,
+                             nullptr,
+                             0.0,
+                             0.0,
+                             "");
+  def_but_icon(but, icon_value, UI_HAS_ICON | BUT_ICON_PREVIEW);
 }
 
-void uiTemplateIconView(blender::ui::Layout *layout,
+void template_icon_view(Layout *layout,
                         PointerRNA *ptr,
                         const StringRefNull propname,
                         bool show_labels,
@@ -113,7 +124,7 @@ void uiTemplateIconView(blender::ui::Layout *layout,
     return;
   }
 
-  uiBlock *block = layout->absolute().block();
+  Block *block = layout->absolute().block();
 
   int tot_items;
   bool free_items;
@@ -124,7 +135,7 @@ void uiTemplateIconView(blender::ui::Layout *layout,
   int icon = ICON_NONE;
   RNA_enum_icon_from_value(items, value, &icon);
 
-  uiBut *but;
+  Button *but;
   if (RNA_property_editable(ptr, prop)) {
     IconViewMenuArgs *cb_args = MEM_new<IconViewMenuArgs>(__func__);
     cb_args->ptr = *ptr;
@@ -146,7 +157,7 @@ void uiTemplateIconView(blender::ui::Layout *layout,
   }
   else {
     but = uiDefIconBut(block,
-                       ButType::Label,
+                       ButtonType::Label,
                        ICON_X,
                        0,
                        0,
@@ -158,9 +169,11 @@ void uiTemplateIconView(blender::ui::Layout *layout,
                        "");
   }
 
-  ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
 
   if (free_items) {
     MEM_freeN(items);
   }
 }
+
+}  // namespace blender::ui

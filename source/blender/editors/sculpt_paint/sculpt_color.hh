@@ -15,18 +15,20 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Depsgraph;
 struct Mesh;
-namespace blender::bke {
+namespace bke {
 enum class AttrDomain : int8_t;
 struct GAttributeReader;
 struct GSpanAttributeWriter;
 namespace pbvh {
 class Node;
 }
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::ed::sculpt_paint::color {
+namespace ed::sculpt_paint::color {
 
 /* Swaps colors at each element in indices with values in colors. */
 void swap_gathered_colors(Span<int> indices,
@@ -72,4 +74,6 @@ void do_smear_brush(const Depsgraph &depsgraph,
                     const Sculpt &sd,
                     Object &ob,
                     const IndexMask &node_mask);
-}  // namespace blender::ed::sculpt_paint::color
+}  // namespace ed::sculpt_paint::color
+
+}  // namespace blender

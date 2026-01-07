@@ -22,6 +22,8 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 extern PyTypeObject bpy_inline_shader_nodes_Type;
 
 struct BPy_InlineShaderNodes {
@@ -36,10 +38,10 @@ static BPy_InlineShaderNodes *create_from_shader_node_tree(const bNodeTree &tree
   if (!self) {
     return nullptr;
   }
-  self->inline_node_tree = blender::bke::node_tree_add_tree(
-      nullptr, (blender::StringRef(tree.id.name) + " Inlined").c_str(), tree.idname);
-  blender::nodes::InlineShaderNodeTreeParams params;
-  blender::nodes::inline_shader_node_tree(tree, *self->inline_node_tree, params);
+  self->inline_node_tree = bke::node_tree_add_tree(
+      nullptr, (StringRef(tree.id.name) + " Inlined").c_str(), tree.idname);
+  nodes::InlineShaderNodeTreeParams params;
+  nodes::inline_shader_node_tree(tree, *self->inline_node_tree, params);
   return self;
 }
 
@@ -73,7 +75,7 @@ static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_material(PyObjec
                  BKE_idtype_idcode_to_name(GS(material_id->name)));
     return nullptr;
   }
-  Material *material = blender::id_cast<Material *>(material_id);
+  Material *material = id_cast<Material *>(material_id);
   if (!material->nodetree) {
     PyErr_Format(PyExc_TypeError, "Material '%s' has no node tree", BKE_id_name(*material_id));
     return nullptr;
@@ -110,7 +112,7 @@ static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_light(PyObject *
                  BKE_idtype_idcode_to_name(GS(light_id->name)));
     return nullptr;
   }
-  Light *light = blender::id_cast<Light *>(light_id);
+  Light *light = id_cast<Light *>(light_id);
   if (!light->nodetree) {
     PyErr_Format(PyExc_TypeError, "Light '%s' has no node tree", BKE_id_name(*light_id));
     return nullptr;
@@ -147,7 +149,7 @@ static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_world(PyObject *
                  BKE_idtype_idcode_to_name(GS(world_id->name)));
     return nullptr;
   }
-  World *world = blender::id_cast<World *>(world_id);
+  World *world = id_cast<World *>(world_id);
   if (!world->nodetree) {
     PyErr_Format(PyExc_TypeError, "World '%s' has no node tree", BKE_id_name(*world_id));
     return nullptr;
@@ -170,12 +172,12 @@ PyDoc_STRVAR(
 static PyObject *BPy_InlineShaderNodes_get_node_tree(BPy_InlineShaderNodes *self,
                                                      void * /*closure*/)
 {
-  return pyrna_id_CreatePyObject(blender::id_cast<ID *>(self->inline_node_tree));
+  return pyrna_id_CreatePyObject(id_cast<ID *>(self->inline_node_tree));
 }
 
 static PyGetSetDef BPy_InlineShaderNodes_getseters[] = {
     {"node_tree",
-     (getter)BPy_InlineShaderNodes_get_node_tree,
+     reinterpret_cast<getter>(BPy_InlineShaderNodes_get_node_tree),
      nullptr,
      bpy_inline_shader_nodes_node_tree_doc,
      nullptr},
@@ -194,15 +196,15 @@ static PyGetSetDef BPy_InlineShaderNodes_getseters[] = {
 
 static PyMethodDef BPy_InlineShaderNodes_methods[] = {
     {"from_material",
-     (PyCFunction)BPy_InlineShaderNodes_static_from_material,
+     reinterpret_cast<PyCFunction>(BPy_InlineShaderNodes_static_from_material),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_inline_shader_nodes_from_material_doc},
     {"from_light",
-     (PyCFunction)BPy_InlineShaderNodes_static_from_light,
+     reinterpret_cast<PyCFunction>(BPy_InlineShaderNodes_static_from_light),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_inline_shader_nodes_from_light_doc},
     {"from_world",
-     (PyCFunction)BPy_InlineShaderNodes_static_from_world,
+     reinterpret_cast<PyCFunction>(BPy_InlineShaderNodes_static_from_world),
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_inline_shader_nodes_from_world_doc},
     {nullptr},
@@ -268,3 +270,5 @@ PyObject *BPyInit_inline_shader_nodes_type()
   }
   return reinterpret_cast<PyObject *>(&bpy_inline_shader_nodes_Type);
 }
+
+}  // namespace blender

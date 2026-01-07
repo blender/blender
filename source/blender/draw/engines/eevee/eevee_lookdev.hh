@@ -27,20 +27,23 @@
 
 #include "draw_pass.hh"
 
+namespace blender {
+
 struct bNode;
 struct bNodeSocketValueFloat;
+struct bNodeSocketValueVector;
 struct View3D;
 
-namespace blender::eevee {
+namespace eevee {
 
 class Instance;
 class LookdevView;
 
-using blender::draw::Framebuffer;
-using blender::draw::PassSimple;
-using blender::draw::ResourceHandleRange;
-using blender::draw::Texture;
-using blender::draw::View;
+using draw::Framebuffer;
+using draw::PassSimple;
+using draw::ResourceHandleRange;
+using draw::Texture;
+using draw::View;
 
 /* -------------------------------------------------------------------- */
 /** \name Parameters
@@ -50,13 +53,15 @@ using blender::draw::View;
  * \{ */
 struct LookdevParameters {
   std::string hdri;
+  float rot_z = 0.0f;
   float background_opacity = 0.0f;
   float intensity = 1.0f;
   float blur = 0.0f;
   bool show_scene_world = true;
+  bool camera_space = true;
 
   LookdevParameters();
-  LookdevParameters(const ::View3D *v3d);
+  LookdevParameters(const blender::View3D *v3d);
   bool operator==(const LookdevParameters &other) const;
   bool operator!=(const LookdevParameters &other) const;
 };
@@ -73,8 +78,15 @@ class LookdevWorld {
  private:
   bNode *environment_node_ = nullptr;
   bNodeSocketValueFloat *intensity_socket_ = nullptr;
-  ::Image *image = nullptr;
-  ::World *world = nullptr;
+  bNodeSocketValueFloat *angle_socket_ = nullptr;
+  /* Vector multiply socket for flipping Y axes when transforming to camera space. */
+  bNodeSocketValueVector *flip_y_socket_ = nullptr;
+  /* Vector transform socket `convert_to`. */
+  int *xform_socket_ = nullptr;
+  /* Set to M_PI/2 for rotating the HDRI horizon line in camera space mode. */
+  float *rotation_x_socket_ = nullptr;
+  blender::Image *image = nullptr;
+  blender::World *world = nullptr;
 
   LookdevParameters parameters_;
 
@@ -85,7 +97,7 @@ class LookdevWorld {
   /* Returns true if an update was detected. */
   bool sync(const LookdevParameters &new_parameters);
 
-  ::World *world_get()
+  blender::World *world_get()
   {
     return world;
   }
@@ -197,17 +209,18 @@ class LookdevModule {
  private:
   void sync_pass(PassSimple &pass,
                  gpu::Batch *geom,
-                 ::Material *mat,
+                 blender::Material *mat,
                  ResourceHandleRange res_handle);
   void sync_display();
 
   float calc_viewport_scale();
   SphereLOD calc_level_of_detail(const float viewport_scale);
-  blender::gpu::Batch *sphere_get(const SphereLOD level_of_detail);
+  gpu::Batch *sphere_get(const SphereLOD level_of_detail);
 
   friend class LookdevView;
 };
 
 /** \} */
 
-}  // namespace blender::eevee
+}  // namespace eevee
+}  // namespace blender

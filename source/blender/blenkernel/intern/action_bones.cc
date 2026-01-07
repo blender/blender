@@ -19,7 +19,7 @@
 namespace blender::bke {
 
 void BKE_action_find_fcurves_with_bones(bAction *action,
-                                        const blender::animrig::slot_handle_t slot_handle,
+                                        const animrig::slot_handle_t slot_handle,
                                         FoundFCurveCallback callback)
 {
   auto const_callback = [&](const FCurve *fcurve, const char *bone_name) {
@@ -30,7 +30,7 @@ void BKE_action_find_fcurves_with_bones(bAction *action,
 }
 
 void BKE_action_find_fcurves_with_bones(const bAction *action,
-                                        const blender::animrig::slot_handle_t slot_handle,
+                                        const animrig::slot_handle_t slot_handle,
                                         FoundFCurveCallbackConst callback)
 {
   for (const FCurve *fcu : animrig::legacy::fcurves_for_action_slot(action, slot_handle)) {

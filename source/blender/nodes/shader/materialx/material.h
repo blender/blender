@@ -9,6 +9,8 @@
 #include <functional>
 #include <string>
 
+namespace blender {
+
 struct Depsgraph;
 struct Image;
 struct ImageUser;
@@ -16,7 +18,7 @@ struct Main;
 struct Material;
 struct Scene;
 
-namespace blender::nodes::materialx {
+namespace nodes::materialx {
 
 struct ExportParams {
   std::string output_node_name;
@@ -29,4 +31,5 @@ MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                                            Material *material,
                                            const ExportParams &export_params);
 
-}  // namespace blender::nodes::materialx
+}  // namespace nodes::materialx
+}  // namespace blender

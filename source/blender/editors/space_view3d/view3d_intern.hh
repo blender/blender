@@ -10,6 +10,8 @@
 
 #include "ED_view3d.hh"
 
+namespace blender {
+
 /* internal exports only */
 
 struct ARegion;
@@ -236,3 +238,5 @@ extern bool view3d_camera_border_hack_test;
 
 /* view3d_navigate_smoothview.cc */
 void view3d_smooth_free(RegionView3D *rv3d);
+
+}  // namespace blender

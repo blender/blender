@@ -59,11 +59,8 @@ float neighbor_dist(float3 line_dir_and_dist, float2 ofs)
   return dist;
 }
 
-void neighbor_blend(float line_coverage,
-                    float line_depth,
-                    float4 line_color,
-                    inout float frag_depth,
-                    inout float4 col)
+void neighbor_blend(
+    float line_coverage, float line_depth, float4 line_color, float &frag_depth, float4 &col)
 {
   line_color *= line_coverage;
   if (line_coverage > 0.0f && line_depth < frag_depth) {

@@ -13,6 +13,8 @@
 
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 struct MDeformVert;
 struct Mesh;
 struct ModifierData;
@@ -42,3 +44,5 @@ void MOD_depsgraph_update_object_bone_relation(DepsNodeHandle *node,
                                                Object *object,
                                                const char *bonename,
                                                const char *description);
+
+}  // namespace blender

@@ -10,7 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_enum_flags.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_vector.h"
@@ -23,7 +22,7 @@
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */
@@ -164,7 +163,7 @@ BMVert *BM_vert_create(BMesh *bm,
 
   /* allocate flags */
   if (bm->use_toolflags) {
-    ((BMVert_OFlag *)v)->oflags = static_cast<BMFlagLayer *>(
+    (reinterpret_cast<BMVert_OFlag *>(v))->oflags = static_cast<BMFlagLayer *>(
         bm->vtoolflagpool ? BLI_mempool_calloc(bm->vtoolflagpool) : nullptr);
   }
 
@@ -253,7 +252,7 @@ BMEdge *BM_edge_create(
 
   /* allocate flags */
   if (bm->use_toolflags) {
-    ((BMEdge_OFlag *)e)->oflags = static_cast<BMFlagLayer *>(
+    (reinterpret_cast<BMEdge_OFlag *>(e))->oflags = static_cast<BMFlagLayer *>(
         bm->etoolflagpool ? BLI_mempool_calloc(bm->etoolflagpool) : nullptr);
   }
 
@@ -384,8 +383,8 @@ static BMFace *bm_face_copy_impl(BMesh *bm_dst,
                                  const bool copy_verts,
                                  const bool copy_edges)
 {
-  BMVert **verts = BLI_array_alloca(verts, f->len);
-  BMEdge **edges = BLI_array_alloca(edges, f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(f->len);
   BMLoop *l_iter;
   BMLoop *l_first;
   BMFace *f_copy;
@@ -426,7 +425,7 @@ static BMFace *bm_face_copy_impl(BMesh *bm_dst,
     i++;
   } while ((l_iter = l_iter->next) != l_first);
 
-  f_copy = BM_face_create(bm_dst, verts, edges, f->len, nullptr, BM_CREATE_SKIP_CD);
+  f_copy = BM_face_create(bm_dst, verts.data(), edges.data(), f->len, nullptr, BM_CREATE_SKIP_CD);
 
   return f_copy;
 }
@@ -496,7 +495,7 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 
   /* allocate flags */
   if (bm->use_toolflags) {
-    ((BMFace_OFlag *)f)->oflags = static_cast<BMFlagLayer *>(
+    (reinterpret_cast<BMFace_OFlag *>(f))->oflags = static_cast<BMFlagLayer *>(
         bm->ftoolflagpool ? BLI_mempool_calloc(bm->ftoolflagpool) : nullptr);
   }
 
@@ -601,18 +600,18 @@ BMFace *BM_face_create_verts(BMesh *bm,
                              const eBMCreateFlag create_flag,
                              const bool create_edges)
 {
-  BMEdge **edge_arr = BLI_array_alloca(edge_arr, len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edge_arr(len);
 
   if (create_edges) {
-    BM_edges_from_verts_ensure(bm, edge_arr, vert_arr, len);
+    BM_edges_from_verts_ensure(bm, edge_arr.data(), vert_arr, len);
   }
   else {
-    if (BM_edges_from_verts(edge_arr, vert_arr, len) == false) {
+    if (BM_edges_from_verts(edge_arr.data(), vert_arr, len) == false) {
       return nullptr;
     }
   }
 
-  return BM_face_create(bm, vert_arr, edge_arr, len, f_example, create_flag);
+  return BM_face_create(bm, vert_arr, edge_arr.data(), len, f_example, create_flag);
 }
 
 #ifndef NDEBUG
@@ -858,7 +857,7 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
   }
 
   if (bm->vtoolflagpool) {
-    BLI_mempool_free(bm->vtoolflagpool, ((BMVert_OFlag *)v)->oflags);
+    BLI_mempool_free(bm->vtoolflagpool, (reinterpret_cast<BMVert_OFlag *>(v))->oflags);
   }
   BLI_mempool_free(bm->vpool, v);
 }
@@ -881,7 +880,7 @@ static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
   }
 
   if (bm->etoolflagpool) {
-    BLI_mempool_free(bm->etoolflagpool, ((BMEdge_OFlag *)e)->oflags);
+    BLI_mempool_free(bm->etoolflagpool, (reinterpret_cast<BMEdge_OFlag *>(e))->oflags);
   }
   BLI_mempool_free(bm->epool, e);
 }
@@ -908,7 +907,7 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
   }
 
   if (bm->ftoolflagpool) {
-    BLI_mempool_free(bm->ftoolflagpool, ((BMFace_OFlag *)f)->oflags);
+    BLI_mempool_free(bm->ftoolflagpool, (reinterpret_cast<BMFace_OFlag *>(f))->oflags);
   }
   BLI_mempool_free(bm->fpool, f);
 }
@@ -932,7 +931,7 @@ static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
 
 void BM_face_edges_kill(BMesh *bm, BMFace *f)
 {
-  BMEdge **edges = BLI_array_alloca(edges, f->len);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(f->len);
   BMLoop *l_iter;
   BMLoop *l_first;
   int i = 0;
@@ -949,7 +948,7 @@ void BM_face_edges_kill(BMesh *bm, BMFace *f)
 
 void BM_face_verts_kill(BMesh *bm, BMFace *f)
 {
-  BMVert **verts = BLI_array_alloca(verts, f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(f->len);
   BMLoop *l_iter;
   BMLoop *l_first;
   int i = 0;
@@ -1264,7 +1263,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
   BMFace *f, *f_new;
 #ifdef USE_BMESH_HOLES
   BMLoopList *lst;
-  ListBase holes = {nullptr, nullptr};
+  ListBaseT<BMLoopList> holes = {nullptr, nullptr};
 #endif
   BMLoop *l_iter;
   BMLoop *l_first;
@@ -1431,7 +1430,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
     /* handle multi-res data */
     if (cd_loop_mdisp_offset != -1) {
       float f_center[3];
-      float (*faces_center)[3] = BLI_array_alloca(faces_center, totface);
+      Array<float3, BM_DEFAULT_TOPOLOGY_STACK_SIZE> faces_center(totface);
 
       BM_face_calc_center_median(f_new, f_center);
       for (i = 0; i < totface; i++) {
@@ -1509,7 +1508,7 @@ BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
                                           BMLoop *l_v2,
                                           BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
-                                          ListBase *holes,
+                                          ListBaseT<BMLoopList> *holes,
 #endif
                                           BMEdge *e_example,
                                           const bool no_double)
@@ -2143,7 +2142,7 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
 
   /* deallocate edge and its two loops as well as f2 */
   if (bm->etoolflagpool) {
-    BLI_mempool_free(bm->etoolflagpool, ((BMEdge_OFlag *)l_f1->e)->oflags);
+    BLI_mempool_free(bm->etoolflagpool, (reinterpret_cast<BMEdge_OFlag *>(l_f1->e))->oflags);
   }
   BLI_mempool_free(bm->epool, l_f1->e);
   bm->totedge--;
@@ -2152,7 +2151,7 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
   BLI_mempool_free(bm->lpool, l_f2);
   bm->totloop--;
   if (bm->ftoolflagpool) {
-    BLI_mempool_free(bm->ftoolflagpool, ((BMFace_OFlag *)f2)->oflags);
+    BLI_mempool_free(bm->ftoolflagpool, (reinterpret_cast<BMFace_OFlag *>(f2))->oflags);
   }
   BLI_mempool_free(bm->fpool, f2);
   bm->totface--;
@@ -2218,9 +2217,9 @@ bool BM_vert_splice_check_double_face(BMVert *v_a, BMVert *v_b)
   }
 
   BMVert *v_pair[2] = {v_a, v_b};
-  blender::Vector<BMLoop *, BM_DEFAULT_ITER_STACK_SIZE> loops_pair[2];
+  Vector<BMLoop *, BM_DEFAULT_ITER_STACK_SIZE> loops_pair[2];
 
-  for (const int side : blender::IndexRange(2)) {
+  for (const int side : IndexRange(2)) {
     BMEdge *e_iter = v_pair[side]->e;
     do {
       if (BMLoop *l = e_iter->l) {
@@ -2236,7 +2235,7 @@ bool BM_vert_splice_check_double_face(BMVert *v_a, BMVert *v_b)
     }
   }
 
-  for (const int side : blender::IndexRange(2)) {
+  for (const int side : IndexRange(2)) {
     if (loops_pair[side].size() > 1) {
       std::sort(loops_pair[side].begin(), loops_pair[side].end(), [](BMLoop *a, BMLoop *b) {
         return a->f->len < b->f->len;
@@ -2843,7 +2842,8 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
     }
   }
 
-  BMEdge **edges = BLI_array_alloca(edges, edges_len);
+  Array<BMEdge *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> edges_buf(edges_len);
+  BMEdge **edges = edges_buf.data();
   STACK_DECLARE(edges);
 
   STACK_INIT(edges, edges_len);
@@ -3016,3 +3016,5 @@ void bmesh_face_swap_data(BMFace *f_a, BMFace *f_b)
   std::swap(f_a->head.data, f_b->head.data);
   std::swap(f_a->head.index, f_b->head.index);
 }
+
+}  // namespace blender

@@ -16,7 +16,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -39,6 +38,8 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void uv_warp_from_mat4_pair(float uv_dst[2],
                                    const float uv_src[2],
                                    const float warp_mat[4][4])
@@ -52,16 +53,13 @@ static void uv_warp_from_mat4_pair(float uv_dst[2],
 
 static void init_data(ModifierData *md)
 {
-  UVWarpModifierData *umd = (UVWarpModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(umd, modifier));
-
-  MEMCPY_STRUCT_AFTER(umd, DNA_struct_default_get(UVWarpModifierData), modifier);
+  UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(umd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  UVWarpModifierData *umd = (UVWarpModifierData *)md;
+  UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (umd->vgroup_name[0] != '\0') {
@@ -81,9 +79,9 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 }
 
 struct UVWarpData {
-  blender::OffsetIndices<int> faces;
-  blender::Span<int> corner_verts;
-  blender::MutableSpan<blender::float2> uv_map;
+  OffsetIndices<int> faces;
+  Span<int> corner_verts;
+  MutableSpan<float2> uv_map;
 
   const MDeformVert *dvert;
   int defgrp_index;
@@ -97,10 +95,10 @@ static void uv_warp_compute(void *__restrict userdata,
                             const TaskParallelTLS *__restrict /*tls*/)
 {
   const UVWarpData *data = static_cast<const UVWarpData *>(userdata);
-  const blender::IndexRange face = data->faces[i];
-  const blender::Span<int> face_verts = data->corner_verts.slice(face);
+  const IndexRange face = data->faces[i];
+  const Span<int> face_verts = data->corner_verts.slice(face);
 
-  blender::float2 *mluv = &data->uv_map[face.start()];
+  float2 *mluv = &data->uv_map[face.start()];
 
   const MDeformVert *dvert = data->dvert;
   const int defgrp_index = data->defgrp_index;
@@ -130,7 +128,7 @@ static void uv_warp_compute(void *__restrict userdata,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  UVWarpModifierData *umd = (UVWarpModifierData *)md;
+  UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(md);
   const MDeformVert *dvert;
   int defgrp_index;
   float warp_mat[4][4];
@@ -190,17 +188,16 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   translate_m4(warp_mat, -umd->center[0], -umd->center[1], 0.0f);
 
   /* make sure we're using an existing layer */
-  const blender::StringRef uvname = mesh->uv_map_names().contains(umd->uvlayer_name) ?
-                                        umd->uvlayer_name :
-                                        mesh->active_uv_map_name();
+  const StringRef uvname = mesh->uv_map_names().contains(umd->uvlayer_name) ?
+                               umd->uvlayer_name :
+                               mesh->active_uv_map_name();
 
-  const blender::OffsetIndices faces = mesh->faces();
-  const blender::Span<int> corner_verts = mesh->corner_verts();
+  const OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
 
-  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  blender::bke::SpanAttributeWriter uv_map =
-      attributes.lookup_or_add_for_write_span<blender::float2>(uvname,
-                                                               blender::bke::AttrDomain::Corner);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter uv_map = attributes.lookup_or_add_for_write_span<float2>(
+      uvname, bke::AttrDomain::Corner);
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data{};
@@ -226,15 +223,15 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  UVWarpModifierData *umd = (UVWarpModifierData *)md;
+  UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&umd->object_dst, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&umd->object_src, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&umd->object_dst), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&umd->object_src), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  UVWarpModifierData *umd = (UVWarpModifierData *)md;
+  UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(md);
 
   MOD_depsgraph_update_object_bone_relation(
       ctx->node, umd->object_src, umd->bone_src, "UVWarp Modifier");
@@ -246,7 +243,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -258,7 +255,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop_search(ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
-  blender::ui::Layout *col = &layout.column(false);
+  ui::Layout *col = &layout.column(false);
   col->prop(ptr, "center", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout.column(false);
@@ -287,7 +284,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void transform_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -341,3 +338,5 @@ ModifierTypeInfo modifierType_UVWarp = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

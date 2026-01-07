@@ -37,6 +37,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* TODO: Valgrind. */
 
 using data_t = uintptr_t;
@@ -89,11 +91,11 @@ BLI_INLINE uint data_offset_from_size(uint size)
 
 static void memiter_set_rewind_offset(BLI_memiter *mi)
 {
-  BLI_memiter_elem *elem = (BLI_memiter_elem *)mi->data_curr;
+  BLI_memiter_elem *elem = reinterpret_cast<BLI_memiter_elem *>(mi->data_curr);
 
   BLI_asan_unpoison(elem, sizeof(BLI_memiter_elem));
 
-  elem->size = (offset_t)(((data_t *)mi->tail) - mi->data_curr);
+  elem->size = offset_t((reinterpret_cast<data_t *>(mi->tail)) - mi->data_curr);
   BLI_assert(elem->size < 0);
 }
 
@@ -170,11 +172,11 @@ void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
 
   BLI_assert(data_curr_next <= mi->data_last);
 
-  BLI_memiter_elem *elem = (BLI_memiter_elem *)mi->data_curr;
+  BLI_memiter_elem *elem = reinterpret_cast<BLI_memiter_elem *>(mi->data_curr);
 
   BLI_asan_unpoison(elem, sizeof(BLI_memiter_elem) + elem_size);
 
-  elem->size = (offset_t)elem_size;
+  elem->size = offset_t(elem_size);
   mi->data_curr = data_curr_next;
 
 #ifdef USE_TERMINATE_PARANOID
@@ -244,7 +246,7 @@ void *BLI_memiter_elem_first(BLI_memiter *mi)
 {
   if (mi->head != nullptr) {
     BLI_memiter_chunk *chunk = mi->head;
-    BLI_memiter_elem *elem = (BLI_memiter_elem *)chunk->data;
+    BLI_memiter_elem *elem = reinterpret_cast<BLI_memiter_elem *>(chunk->data);
     return elem->data;
   }
   return nullptr;
@@ -254,7 +256,7 @@ void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
 {
   if (mi->head != nullptr) {
     BLI_memiter_chunk *chunk = mi->head;
-    BLI_memiter_elem *elem = (BLI_memiter_elem *)chunk->data;
+    BLI_memiter_elem *elem = reinterpret_cast<BLI_memiter_elem *>(chunk->data);
     *r_size = uint(elem->size);
     return elem->data;
   }
@@ -276,7 +278,7 @@ void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
 
 void BLI_memiter_iter_init(BLI_memiter *mi, BLI_memiter_handle *iter)
 {
-  iter->elem = mi->head ? (BLI_memiter_elem *)mi->head->data : nullptr;
+  iter->elem = mi->head ? reinterpret_cast<BLI_memiter_elem *>(mi->head->data) : nullptr;
   iter->elem_left = mi->count;
 }
 
@@ -288,9 +290,10 @@ bool BLI_memiter_iter_done(const BLI_memiter_handle *iter)
 BLI_INLINE void memiter_chunk_step(BLI_memiter_handle *iter)
 {
   BLI_assert(iter->elem->size < 0);
-  BLI_memiter_chunk *chunk = (BLI_memiter_chunk *)(((data_t *)iter->elem) + iter->elem->size);
+  BLI_memiter_chunk *chunk = reinterpret_cast<BLI_memiter_chunk *>(
+      (reinterpret_cast<data_t *>(iter->elem)) + iter->elem->size);
   chunk = chunk->next;
-  iter->elem = chunk ? (BLI_memiter_elem *)chunk->data : nullptr;
+  iter->elem = chunk ? reinterpret_cast<BLI_memiter_elem *>(chunk->data) : nullptr;
   BLI_assert(iter->elem == nullptr || iter->elem->size >= 0);
 }
 
@@ -305,8 +308,8 @@ void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size)
     uint size = uint(iter->elem->size);
     *r_size = size; /* <-- only difference */
     data_t *data = iter->elem->data;
-    iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
-    return (void *)data;
+    iter->elem = reinterpret_cast<BLI_memiter_elem *>(&data[data_offset_from_size(size)]);
+    return static_cast<void *>(data);
   }
   return nullptr;
 }
@@ -321,10 +324,12 @@ void *BLI_memiter_iter_step(BLI_memiter_handle *iter)
     BLI_assert(iter->elem->size >= 0);
     uint size = uint(iter->elem->size);
     data_t *data = iter->elem->data;
-    iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
-    return (void *)data;
+    iter->elem = reinterpret_cast<BLI_memiter_elem *>(&data[data_offset_from_size(size)]);
+    return static_cast<void *>(data);
   }
   return nullptr;
 }
 
 /** \} */
+
+}  // namespace blender

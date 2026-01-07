@@ -29,9 +29,11 @@
 
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *md)
 {
-  ShadowShaderFxData *gpfx = (ShadowShaderFxData *)md;
+  ShadowShaderFxData *gpfx = reinterpret_cast<ShadowShaderFxData *>(md);
   gpfx->rotation = 0.0f;
   ARRAY_SET_ITEMS(gpfx->offset, 15, 20);
   ARRAY_SET_ITEMS(gpfx->scale, 1.0f, 1.0f);
@@ -55,7 +57,7 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  ShadowShaderFxData *fxd = reinterpret_cast<ShadowShaderFxData *>(fx);
   if (fxd->object != nullptr) {
     DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Shadow ShaderFx");
   }
@@ -64,21 +66,21 @@ static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphCont
 
 static bool is_disabled(ShaderFxData *fx, bool /*use_render_params*/)
 {
-  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  ShadowShaderFxData *fxd = reinterpret_cast<ShadowShaderFxData *>(fx);
 
   return (!fxd->object) && (fxd->flag & FX_SHADOW_USE_OBJECT);
 }
 
 static void foreach_ID_link(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  ShadowShaderFxData *fxd = reinterpret_cast<ShadowShaderFxData *>(fx);
 
-  walk(user_data, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&fxd->object), IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -87,7 +89,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "shadow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "offset");
   col.prop(ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Offset X"), ICON_NONE);
   col.prop(ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
@@ -95,7 +97,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  blender::ui::Layout &row = layout.row(true, IFACE_("Object Pivot"));
+  ui::Layout &row = layout.row(true, IFACE_("Object Pivot"));
   row.prop(ptr, "use_object", UI_ITEM_NONE, "", ICON_NONE);
   row.prop(ptr, "object", UI_ITEM_NONE, "", ICON_NONE);
 
@@ -104,14 +106,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void blur_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "blur");
   col.prop(ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Blur X"), ICON_NONE);
   col.prop(ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
@@ -121,7 +123,7 @@ static void blur_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void wave_header_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -130,7 +132,7 @@ static void wave_header_draw(const bContext * /*C*/, Panel *panel)
 
 static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -138,7 +140,7 @@ static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.active_set(RNA_boolean_get(ptr, "use_wave"));
 
-  layout.prop(ptr, "orientation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "orientation", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.prop(ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "phase", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -155,7 +157,7 @@ static void panel_register(ARegionType *region_type)
 static void foreach_working_space_color(ShaderFxData *fx,
                                         const IDTypeForeachColorFunctionCallback &fn)
 {
-  ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
+  ShadowShaderFxData *fxd = reinterpret_cast<ShadowShaderFxData *>(fx);
   fn.single(fxd->shadow_rgba);
 }
 
@@ -177,3 +179,5 @@ ShaderFxTypeInfo shaderfx_Type_Shadow = {
     /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

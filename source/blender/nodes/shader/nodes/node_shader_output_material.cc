@@ -4,7 +4,9 @@
 
 #include "node_shader_util.hh"
 
-namespace blender::nodes::node_shader_output_material_cc {
+namespace blender {
+
+namespace nodes::node_shader_output_material_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -69,14 +71,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_output_material_cc
+}  // namespace nodes::node_shader_output_material_cc
 
 /* node type definition */
 void register_node_type_sh_output_material()
 {
-  namespace file_ns = blender::nodes::node_shader_output_material_cc;
+  namespace file_ns = nodes::node_shader_output_material_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeOutputMaterial", SH_NODE_OUTPUT_MATERIAL);
   ntype.ui_name = "Material Output";
@@ -90,5 +92,7 @@ void register_node_type_sh_output_material()
 
   ntype.no_muting = true;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

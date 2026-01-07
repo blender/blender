@@ -29,6 +29,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static ShaderFxTypeInfo *shader_fx_types[NUM_SHADER_FX_TYPES] = {nullptr};
 
 /* *************************************************** */
@@ -36,8 +38,8 @@ static ShaderFxTypeInfo *shader_fx_types[NUM_SHADER_FX_TYPES] = {nullptr};
 
 bool BKE_shaderfx_has_gpencil(const Object *ob)
 {
-  LISTBASE_FOREACH (const ShaderFxData *, fx, &ob->shader_fx) {
-    const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
+  for (const ShaderFxData &fx : ob->shader_fx) {
+    const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx.type));
     if (fxi->type == eShaderFxType_GpencilType) {
       return true;
     }
@@ -112,7 +114,7 @@ void BKE_shaderfx_free(ShaderFxData *fx)
   BKE_shaderfx_free_ex(fx, 0);
 }
 
-void BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx)
+void BKE_shaderfx_unique_name(ListBaseT<ShaderFxData> *shaders, ShaderFxData *fx)
 {
   if (shaders && fx) {
     const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
@@ -166,8 +168,8 @@ void BKE_shaderfx_copydata_generic(const ShaderFxData *fx_src, ShaderFxData *fx_
   }
 
   const size_t data_size = sizeof(ShaderFxData);
-  const char *fx_src_data = ((const char *)fx_src) + data_size;
-  char *fx_dst_data = ((char *)fx_dst) + data_size;
+  const char *fx_src_data = (reinterpret_cast<const char *>(fx_src)) + data_size;
+  char *fx_dst_data = (reinterpret_cast<char *>(fx_dst)) + data_size;
   BLI_assert(data_size <= size_t(fxi->struct_size));
   memcpy(fx_dst_data, fx_src_data, size_t(fxi->struct_size) - data_size);
 }
@@ -207,7 +209,7 @@ void BKE_shaderfx_copydata(ShaderFxData *fx, ShaderFxData *target)
   BKE_shaderfx_copydata_ex(fx, target, 0);
 }
 
-void BKE_shaderfx_copy(ListBase *dst, const ListBase *src)
+void BKE_shaderfx_copy(ListBaseT<ShaderFxData> *dst, const ListBaseT<ShaderFxData> *src)
 {
   ShaderFxData *fx;
   ShaderFxData *srcfx;
@@ -256,37 +258,39 @@ ShaderFxData *BKE_shaderfx_findby_name(Object *ob, const char *name)
       BLI_findstring(&(ob->shader_fx), name, offsetof(ShaderFxData, name)));
 }
 
-void BKE_shaderfx_blend_write(BlendWriter *writer, ListBase *fxbase)
+void BKE_shaderfx_blend_write(BlendWriter *writer, ListBaseT<ShaderFxData> *fxbase)
 {
   if (fxbase == nullptr) {
     return;
   }
 
-  LISTBASE_FOREACH (ShaderFxData *, fx, fxbase) {
-    const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
+  for (ShaderFxData &fx : *fxbase) {
+    const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx.type));
     if (fxi == nullptr) {
       return;
     }
 
-    BLO_write_struct_by_name(writer, fxi->struct_name, fx);
+    writer->write_struct_by_name(fxi->struct_name, &fx);
   }
 }
 
-void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob)
+void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBaseT<ShaderFxData> *lb, Object *ob)
 {
   BLO_read_struct_list(reader, ShaderFxData, lb);
 
-  LISTBASE_FOREACH (ShaderFxData *, fx, lb) {
-    fx->error = nullptr;
+  for (ShaderFxData &fx : *lb) {
+    fx.error = nullptr;
 
     /* If linking from a library, clear 'local' library override flag. */
     if (ID_IS_LINKED(ob)) {
-      fx->flag &= ~eShaderFxFlag_OverrideLibrary_Local;
+      fx.flag &= ~eShaderFxFlag_OverrideLibrary_Local;
     }
 
     /* if shader disappear, or for upward compatibility */
-    if (nullptr == BKE_shaderfx_get_info(ShaderFxType(fx->type))) {
-      fx->type = eShaderFxType_None;
+    if (nullptr == BKE_shaderfx_get_info(ShaderFxType(fx.type))) {
+      fx.type = eShaderFxType_None;
     }
   }
 }
+
+}  // namespace blender

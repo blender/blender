@@ -111,7 +111,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeInstancesToPoints", GEO_NODE_INSTANCES_TO_POINTS);
   ntype.ui_name = "Instances to Points";
@@ -122,7 +122,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

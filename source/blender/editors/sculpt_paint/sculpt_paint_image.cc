@@ -32,7 +32,9 @@
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
 
-namespace blender::ed::sculpt_paint::paint::image {
+namespace blender {
+
+namespace ed::sculpt_paint::paint::image {
 
 using namespace blender::bke::pbvh::pixels;
 using namespace blender::bke::image;
@@ -290,8 +292,8 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   ImageUser image_user = *image_data.image_user;
   bool pixels_updated = false;
   for (UDIMTilePixels &tile_data : node_data.tiles) {
-    LISTBASE_FOREACH (ImageTile *, tile, &image_data.image->tiles) {
-      ImageTileWrapper image_tile(tile);
+    for (ImageTile &tile : image_data.image->tiles) {
+      ImageTileWrapper image_tile(&tile);
       if (image_tile.get_tile_number() == tile_data.tile_number) {
         image_user.tile = image_tile.get_tile_number();
 
@@ -408,8 +410,8 @@ static void do_push_undo_tile(Image &image, ImageUser &image_user, bke::pbvh::No
 
   ImBuf *tmpibuf = nullptr;
   ImageUser local_image_user = image_user;
-  LISTBASE_FOREACH (ImageTile *, tile, &image.tiles) {
-    image::ImageTileWrapper image_tile(tile);
+  for (ImageTile &tile : image.tiles) {
+    image::ImageTileWrapper image_tile(&tile);
     local_image_user.tile = image_tile.get_tile_number();
     ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &local_image_user, nullptr);
     if (image_buffer == nullptr) {
@@ -459,7 +461,7 @@ static void fix_non_manifold_seam_bleeding(Object &ob,
 
 /** \} */
 
-}  // namespace blender::ed::sculpt_paint::paint::image
+}  // namespace ed::sculpt_paint::paint::image
 
 using namespace blender::ed::sculpt_paint::paint::image;
 
@@ -498,9 +500,8 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
                                  PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 const blender::IndexMask &node_mask)
+                                 const IndexMask &node_mask)
 {
-  using namespace blender;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   ImageData image_data;
@@ -524,3 +525,5 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
     bke::pbvh::pixels::mark_image_dirty(nodes[i], *image_data.image, *image_data.image_user);
   });
 }
+
+}  // namespace blender

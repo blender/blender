@@ -51,6 +51,8 @@
 #include "paint_mask.hh"
 #include "sculpt_intern.hh"
 
+namespace blender {
+
 static wmOperatorStatus brush_scale_size_exec(bContext *C, wmOperator *op)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -343,15 +345,15 @@ static wmOperatorStatus palette_sort_exec(bContext *C, wmOperator *op)
   const int totcol = BLI_listbase_count(&palette->colors);
 
   if (totcol > 0) {
-    color_array = MEM_calloc_arrayN<tPaletteColorHSV>(totcol, __func__);
+    color_array = MEM_new_array_for_free<tPaletteColorHSV>(totcol, __func__);
     /* Put all colors in an array. */
     int t = 0;
-    LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
+    for (PaletteColor &color : palette->colors) {
       float h, s, v;
-      rgb_to_hsv(color->color[0], color->color[1], color->color[2], &h, &s, &v);
+      rgb_to_hsv(color.color[0], color.color[1], color.color[2], &h, &s, &v);
       col_elm = &color_array[t];
-      copy_v3_v3(col_elm->rgb, color->color);
-      col_elm->value = color->value;
+      copy_v3_v3(col_elm->rgb, color.color);
+      col_elm->value = color.value;
       col_elm->h = h;
       col_elm->s = s;
       col_elm->v = v;
@@ -372,8 +374,8 @@ static wmOperatorStatus palette_sort_exec(bContext *C, wmOperator *op)
     }
 
     /* Clear old color swatches. */
-    LISTBASE_FOREACH_MUTABLE (PaletteColor *, color, &palette->colors) {
-      BKE_palette_color_remove(palette, color);
+    for (PaletteColor &color : palette->colors.items_mutable()) {
+      BKE_palette_color_remove(palette, &color);
     }
 
     /* Recreate swatches sorted. */
@@ -483,7 +485,7 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  palette_join = (Palette *)BKE_libblock_find_name(bmain, ID_PAL, name);
+  palette_join = id_cast<Palette *>(BKE_libblock_find_name(bmain, ID_PAL, name));
   if (palette_join == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -491,11 +493,11 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
   const int totcol = BLI_listbase_count(&palette_join->colors);
 
   if (totcol > 0) {
-    LISTBASE_FOREACH (PaletteColor *, color, &palette_join->colors) {
+    for (PaletteColor &color : palette_join->colors) {
       PaletteColor *palcol = BKE_palette_color_add(palette);
       if (palcol) {
-        copy_v3_v3(palcol->color, color->color);
-        palcol->value = color->value;
+        copy_v3_v3(palcol->color, color.color);
+        palcol->value = color.value;
         done = true;
       }
     }
@@ -503,8 +505,8 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
 
   if (done) {
     /* Clear old color swatches. */
-    LISTBASE_FOREACH_MUTABLE (PaletteColor *, color, &palette_join->colors) {
-      BKE_palette_color_remove(palette_join, color);
+    for (PaletteColor &color : palette_join->colors.items_mutable()) {
+      BKE_palette_color_remove(palette_join, &color);
     }
 
     /* Notifier. */
@@ -772,7 +774,7 @@ static bool stencil_control_poll(bContext *C)
   Paint *paint;
   Brush *br;
 
-  if (!blender::ed::sculpt_paint::paint_supports_texture(mode)) {
+  if (!ed::sculpt_paint::paint_supports_texture(mode)) {
     return false;
   }
 
@@ -1124,3 +1126,5 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   /* sculpt expand. */
   expand::modal_keymap(keyconf);
 }
+
+}  // namespace blender

@@ -8,12 +8,14 @@
 
 #pragma once
 
+namespace blender {
+
 struct AssetMetaData;
 struct bContext;
 struct ID;
 struct Main;
 
-namespace blender::ed::asset {
+namespace ed::asset {
 
 /**
  * Mark the data-block as asset.
@@ -57,4 +59,5 @@ void pre_save_assets(Main *bmain);
 
 bool can_mark_single_from_context(const bContext *C);
 
-}  // namespace blender::ed::asset
+}  // namespace ed::asset
+}  // namespace blender

@@ -12,6 +12,8 @@
 
 #include "bmesh.hh"
 
+namespace blender {
+
 struct BMesh;
 struct BMEdge;
 struct BMElem;
@@ -277,3 +279,5 @@ enum {
            (bpy_bmelemseq)->py_ele ? ((BPy_BMElem *)(bpy_bmelemseq)->py_ele)->ele : NULL); \
        ele; \
        BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_step(iter))
+
+}  // namespace blender

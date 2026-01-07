@@ -12,7 +12,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 
@@ -38,10 +37,7 @@ namespace blender {
 static void init_data(ModifierData *md)
 {
   GreasePencilSmoothModifierData *gpmd = reinterpret_cast<GreasePencilSmoothModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilSmoothModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(gpmd, modifier);
   modifier::greasepencil::init_influence_data(&gpmd->influence, false);
 }
 
@@ -75,7 +71,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
   const GreasePencilSmoothModifierData *mmd =
       reinterpret_cast<const GreasePencilSmoothModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilSmoothModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 
@@ -233,15 +229,15 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   ui::Layout &row = layout.row(true);
-  row.prop(ptr, "use_edit_position", UI_ITEM_R_TOGGLE, IFACE_("Position"), ICON_NONE);
+  row.prop(ptr, "use_edit_position", ui::ITEM_R_TOGGLE, IFACE_("Position"), ICON_NONE);
   row.prop(ptr,
            "use_edit_strength",
-           UI_ITEM_R_TOGGLE,
+           ui::ITEM_R_TOGGLE,
            CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Strength"),
            ICON_NONE);
-  row.prop(ptr, "use_edit_thickness", UI_ITEM_R_TOGGLE, IFACE_("Thickness"), ICON_NONE);
+  row.prop(ptr, "use_edit_thickness", ui::ITEM_R_TOGGLE, IFACE_("Thickness"), ICON_NONE);
 
-  row.prop(ptr, "use_edit_uv", UI_ITEM_R_TOGGLE, IFACE_("UV"), ICON_NONE);
+  row.prop(ptr, "use_edit_uv", ui::ITEM_R_TOGGLE, IFACE_("UV"), ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -269,8 +265,6 @@ static void panel_register(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_GreasePencilSmooth, panel_draw);
 }
 
-}  // namespace blender
-
 ModifierTypeInfo modifierType_GreasePencilSmooth = {
     /*idname*/ "GreasePencilSmoothModifier",
     /*name*/ N_("Smooth"),
@@ -283,26 +277,28 @@ ModifierTypeInfo modifierType_GreasePencilSmooth = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_SMOOTHCURVE,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
+    /*free_data*/ free_data,
     /*is_disabled*/ nullptr,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

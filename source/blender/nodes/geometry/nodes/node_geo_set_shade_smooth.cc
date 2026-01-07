@@ -32,7 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "domain", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -115,7 +115,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSetShadeSmooth", GEO_NODE_SET_SHADE_SMOOTH);
   ntype.ui_name = "Set Shade Smooth";
@@ -128,7 +128,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

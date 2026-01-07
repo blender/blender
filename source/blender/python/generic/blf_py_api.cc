@@ -31,6 +31,8 @@
 
 #include "imbuf_py_api.hh"
 
+namespace blender {
+
 struct BPyBLFImBufContext {
   PyObject_HEAD /* Required Python macro. */
   PyObject *py_imbuf;
@@ -429,10 +431,10 @@ PyDoc_STRVAR(
     "   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :arg x: Vertical shadow offset value in pixels.\n"
-    "   :type x: float\n"
-    "   :arg y: Horizontal shadow offset value in pixels.\n"
-    "   :type y: float\n");
+    "   :arg x: Horizontal shadow offset value in pixels.\n"
+    "   :type x: int\n"
+    "   :arg y: Vertical shadow offset value in pixels.\n"
+    "   :type y: int\n");
 static PyObject *py_blf_shadow_offset(PyObject * /*self*/, PyObject *args)
 {
   int x, y, fontid;
@@ -582,8 +584,8 @@ static int py_blf_bind_imbuf_clear(BPyBLFImBufContext *self)
 #endif
 
 static PyMethodDef py_blf_bind_imbuf_methods[] = {
-    {"__enter__", (PyCFunction)py_blf_bind_imbuf_enter, METH_NOARGS},
-    {"__exit__", (PyCFunction)py_blf_bind_imbuf_exit, METH_VARARGS},
+    {"__enter__", reinterpret_cast<PyCFunction>(py_blf_bind_imbuf_enter), METH_NOARGS},
+    {"__exit__", reinterpret_cast<PyCFunction>(py_blf_bind_imbuf_exit), METH_VARARGS},
     {nullptr},
 };
 
@@ -600,7 +602,7 @@ static PyTypeObject BPyBLFImBufContext_Type = {
     /*tp_name*/ "BLFImBufContext",
     /*tp_basicsize*/ sizeof(BPyBLFImBufContext),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)py_blf_bind_imbuf_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(py_blf_bind_imbuf_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -617,8 +619,8 @@ static PyTypeObject BPyBLFImBufContext_Type = {
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ nullptr,
-    /*tp_traverse*/ (traverseproc)py_blf_bind_imbuf_traverse,
-    /*tp_clear*/ (inquiry)py_blf_bind_imbuf_clear,
+    /*tp_traverse*/ reinterpret_cast<traverseproc>(py_blf_bind_imbuf_traverse),
+    /*tp_clear*/ reinterpret_cast<inquiry>(py_blf_bind_imbuf_clear),
     /*tp_richcompare*/ nullptr,
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ nullptr,
@@ -652,7 +654,7 @@ static PyTypeObject BPyBLFImBufContext_Type = {
 PyDoc_STRVAR(
     /* Wrap. */
     py_blf_bind_imbuf_doc,
-    ".. method:: bind_imbuf(fontid, image)\n"
+    ".. method:: bind_imbuf(fontid, imbuf)\n"
     "\n"
     "   Context manager to draw text into an image buffer instead of the GPU's context.\n"
     "\n"
@@ -705,7 +707,7 @@ static PyObject *py_blf_bind_imbuf(PyObject * /*self*/, PyObject *args, PyObject
 
   PyObject_GC_Track(ret);
 
-  return (PyObject *)ret;
+  return reinterpret_cast<PyObject *>(ret);
 }
 
 /** \} */
@@ -722,25 +724,34 @@ static PyObject *py_blf_bind_imbuf(PyObject * /*self*/, PyObject *args, PyObject
 
 /*----------------------------MODULE INIT-------------------------*/
 static PyMethodDef BLF_methods[] = {
-    {"aspect", (PyCFunction)py_blf_aspect, METH_VARARGS, py_blf_aspect_doc},
-    {"clipping", (PyCFunction)py_blf_clipping, METH_VARARGS, py_blf_clipping_doc},
-    {"word_wrap", (PyCFunction)py_blf_word_wrap, METH_VARARGS, py_blf_word_wrap_doc},
-    {"disable", (PyCFunction)py_blf_disable, METH_VARARGS, py_blf_disable_doc},
-    {"dimensions", (PyCFunction)py_blf_dimensions, METH_VARARGS, py_blf_dimensions_doc},
-    {"draw", (PyCFunction)py_blf_draw, METH_VARARGS, py_blf_draw_doc},
-    {"draw_buffer", (PyCFunction)py_blf_draw_buffer, METH_VARARGS, py_blf_draw_buffer_doc},
-    {"enable", (PyCFunction)py_blf_enable, METH_VARARGS, py_blf_enable_doc},
-    {"position", (PyCFunction)py_blf_position, METH_VARARGS, py_blf_position_doc},
-    {"rotation", (PyCFunction)py_blf_rotation, METH_VARARGS, py_blf_rotation_doc},
-    {"shadow", (PyCFunction)py_blf_shadow, METH_VARARGS, py_blf_shadow_doc},
-    {"shadow_offset", (PyCFunction)py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},
-    {"size", (PyCFunction)py_blf_size, METH_VARARGS, py_blf_size_doc},
-    {"color", (PyCFunction)py_blf_color, METH_VARARGS, py_blf_color_doc},
-    {"load", (PyCFunction)py_blf_load, METH_VARARGS, py_blf_load_doc},
-    {"unload", (PyCFunction)py_blf_unload, METH_VARARGS, py_blf_unload_doc},
+    {"aspect", static_cast<PyCFunction>(py_blf_aspect), METH_VARARGS, py_blf_aspect_doc},
+    {"clipping", static_cast<PyCFunction>(py_blf_clipping), METH_VARARGS, py_blf_clipping_doc},
+    {"word_wrap", static_cast<PyCFunction>(py_blf_word_wrap), METH_VARARGS, py_blf_word_wrap_doc},
+    {"disable", static_cast<PyCFunction>(py_blf_disable), METH_VARARGS, py_blf_disable_doc},
+    {"dimensions",
+     static_cast<PyCFunction>(py_blf_dimensions),
+     METH_VARARGS,
+     py_blf_dimensions_doc},
+    {"draw", static_cast<PyCFunction>(py_blf_draw), METH_VARARGS, py_blf_draw_doc},
+    {"draw_buffer",
+     static_cast<PyCFunction>(py_blf_draw_buffer),
+     METH_VARARGS,
+     py_blf_draw_buffer_doc},
+    {"enable", static_cast<PyCFunction>(py_blf_enable), METH_VARARGS, py_blf_enable_doc},
+    {"position", static_cast<PyCFunction>(py_blf_position), METH_VARARGS, py_blf_position_doc},
+    {"rotation", static_cast<PyCFunction>(py_blf_rotation), METH_VARARGS, py_blf_rotation_doc},
+    {"shadow", static_cast<PyCFunction>(py_blf_shadow), METH_VARARGS, py_blf_shadow_doc},
+    {"shadow_offset",
+     static_cast<PyCFunction>(py_blf_shadow_offset),
+     METH_VARARGS,
+     py_blf_shadow_offset_doc},
+    {"size", static_cast<PyCFunction>(py_blf_size), METH_VARARGS, py_blf_size_doc},
+    {"color", static_cast<PyCFunction>(py_blf_color), METH_VARARGS, py_blf_color_doc},
+    {"load", static_cast<PyCFunction>(py_blf_load), METH_VARARGS, py_blf_load_doc},
+    {"unload", static_cast<PyCFunction>(py_blf_unload), METH_VARARGS, py_blf_unload_doc},
 
     {"bind_imbuf",
-     (PyCFunction)py_blf_bind_imbuf,
+     reinterpret_cast<PyCFunction>(py_blf_bind_imbuf),
      METH_VARARGS | METH_KEYWORDS,
      py_blf_bind_imbuf_doc},
 
@@ -785,3 +796,5 @@ PyObject *BPyInit_blf()
 
   return submodule;
 }
+
+}  // namespace blender

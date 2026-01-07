@@ -30,6 +30,8 @@
 
 #include "DNA_meshdata_types.h"
 
+namespace blender {
+
 static CustomData *bpy_bm_customdata_get(BMesh *bm, char htype)
 {
   switch (htype) {
@@ -208,181 +210,181 @@ static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void * /*flag*/
 
 static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
     {"deform",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__deform_doc,
-     (void *)CD_MDEFORMVERT},
+     reinterpret_cast<void *>(CD_MDEFORMVERT)},
 
     {"float",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_doc,
-     (void *)CD_PROP_FLOAT},
+     reinterpret_cast<void *>(CD_PROP_FLOAT)},
     {"bool",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__bool_doc,
-     (void *)CD_PROP_BOOL},
+     reinterpret_cast<void *>(CD_PROP_BOOL)},
     {"int",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__int_doc,
-     (void *)CD_PROP_INT32},
+     reinterpret_cast<void *>(CD_PROP_INT32)},
     {"float_vector",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_vector_doc,
-     (void *)CD_PROP_FLOAT3},
+     reinterpret_cast<void *>(CD_PROP_FLOAT3)},
     {"float_color",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_color_doc,
-     (void *)CD_PROP_COLOR},
+     reinterpret_cast<void *>(CD_PROP_COLOR)},
     {"color",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__color_doc,
-     (void *)CD_PROP_BYTE_COLOR},
+     reinterpret_cast<void *>(CD_PROP_BYTE_COLOR)},
     {"string",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__string_doc,
-     (void *)CD_PROP_STRING},
+     reinterpret_cast<void *>(CD_PROP_STRING)},
 
     {"shape",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__shape_doc,
-     (void *)CD_SHAPEKEY},
+     reinterpret_cast<void *>(CD_SHAPEKEY)},
     {"skin",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__skin_doc,
-     (void *)CD_MVERT_SKIN},
+     reinterpret_cast<void *>(CD_MVERT_SKIN)},
 
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
     {"float",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_doc,
-     (void *)CD_PROP_FLOAT},
+     reinterpret_cast<void *>(CD_PROP_FLOAT)},
     {"int",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__int_doc,
-     (void *)CD_PROP_INT32},
+     reinterpret_cast<void *>(CD_PROP_INT32)},
     {"bool",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__bool_doc,
-     (void *)CD_PROP_BOOL},
+     reinterpret_cast<void *>(CD_PROP_BOOL)},
     {"float_vector",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_vector_doc,
-     (void *)CD_PROP_FLOAT3},
+     reinterpret_cast<void *>(CD_PROP_FLOAT3)},
     {"float_color",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_color_doc,
-     (void *)CD_PROP_COLOR},
+     reinterpret_cast<void *>(CD_PROP_COLOR)},
     {"color",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__color_doc,
-     (void *)CD_PROP_BYTE_COLOR},
+     reinterpret_cast<void *>(CD_PROP_BYTE_COLOR)},
     {"string",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__string_doc,
-     (void *)CD_PROP_STRING},
+     reinterpret_cast<void *>(CD_PROP_STRING)},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
     {"float",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_doc,
-     (void *)CD_PROP_FLOAT},
+     reinterpret_cast<void *>(CD_PROP_FLOAT)},
     {"int",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__int_doc,
-     (void *)CD_PROP_INT32},
+     reinterpret_cast<void *>(CD_PROP_INT32)},
     {"bool",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__bool_doc,
-     (void *)CD_PROP_BOOL},
+     reinterpret_cast<void *>(CD_PROP_BOOL)},
     {"float_vector",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_vector_doc,
-     (void *)CD_PROP_FLOAT3},
+     reinterpret_cast<void *>(CD_PROP_FLOAT3)},
     {"float_color",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_color_doc,
-     (void *)CD_PROP_COLOR},
+     reinterpret_cast<void *>(CD_PROP_COLOR)},
     {"color",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__color_doc,
-     (void *)CD_PROP_BYTE_COLOR},
+     reinterpret_cast<void *>(CD_PROP_BYTE_COLOR)},
     {"string",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__string_doc,
-     (void *)CD_PROP_STRING},
+     reinterpret_cast<void *>(CD_PROP_STRING)},
 
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
 static PyGetSetDef bpy_bmlayeraccess_loop_getseters[] = {
     {"float",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_doc,
-     (void *)CD_PROP_FLOAT},
+     reinterpret_cast<void *>(CD_PROP_FLOAT)},
     {"int",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__int_doc,
-     (void *)CD_PROP_INT32},
+     reinterpret_cast<void *>(CD_PROP_INT32)},
     {"bool",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__bool_doc,
-     (void *)CD_PROP_BOOL},
+     reinterpret_cast<void *>(CD_PROP_BOOL)},
     {"float_vector",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_vector_doc,
-     (void *)CD_PROP_FLOAT3},
+     reinterpret_cast<void *>(CD_PROP_FLOAT3)},
     {"float_color",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__float_color_doc,
-     (void *)CD_PROP_COLOR},
+     reinterpret_cast<void *>(CD_PROP_COLOR)},
     {"string",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__string_doc,
-     (void *)CD_PROP_STRING},
+     reinterpret_cast<void *>(CD_PROP_STRING)},
     {"uv",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__uv_doc,
-     (void *)CD_PROP_FLOAT2},
+     reinterpret_cast<void *>(CD_PROP_FLOAT2)},
     {"color",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeraccess_collection_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayeraccess_collection__color_doc,
-     (void *)CD_PROP_BYTE_COLOR},
+     reinterpret_cast<void *>(CD_PROP_BYTE_COLOR)},
 
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
@@ -390,13 +392,13 @@ static PyGetSetDef bpy_bmlayeraccess_loop_getseters[] = {
 static PyGetSetDef bpy_bmlayercollection_getseters[] = {
     /* BMESH_TODO, make writeable */
     {"active",
-     (getter)bpy_bmlayercollection_active_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayercollection_active_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayercollection_active_doc,
      nullptr},
     {"is_singleton",
-     (getter)bpy_bmlayercollection_is_singleton_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayercollection_is_singleton_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayercollection_is_singleton_doc,
      nullptr},
 
@@ -406,8 +408,8 @@ static PyGetSetDef bpy_bmlayercollection_getseters[] = {
 static PyGetSetDef bpy_bmlayeritem_getseters[] = {
     /* BMESH_TODO, make writeable */
     {"name",
-     (getter)bpy_bmlayeritem_name_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmlayeritem_name_get),
+     static_cast<setter>(nullptr),
      bpy_bmlayercollection_name_doc,
      nullptr},
 
@@ -425,7 +427,7 @@ PyDoc_STRVAR(
     bpy_bmlayeritem_copy_from_doc,
     ".. method:: copy_from(other)\n"
     "\n"
-    "   Return a copy of the layer\n"
+    "   Copy data from another layer.\n"
     "\n"
     "   :arg other: Another layer to copy from.\n"
     "   :type other: :class:`bmesh.types.BMLayerItem`\n");
@@ -733,7 +735,10 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 }
 
 static PyMethodDef bpy_bmlayeritem_methods[] = {
-    {"copy_from", (PyCFunction)bpy_bmlayeritem_copy_from, METH_O, bpy_bmlayeritem_copy_from_doc},
+    {"copy_from",
+     reinterpret_cast<PyCFunction>(bpy_bmlayeritem_copy_from),
+     METH_O,
+     bpy_bmlayeritem_copy_from_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -749,25 +754,34 @@ static PyMethodDef bpy_bmlayeritem_methods[] = {
 
 static PyMethodDef bpy_bmelemseq_methods[] = {
     {"verify",
-     (PyCFunction)bpy_bmlayercollection_verify,
+     reinterpret_cast<PyCFunction>(bpy_bmlayercollection_verify),
      METH_NOARGS,
      bpy_bmlayercollection_verify_doc},
-    {"new", (PyCFunction)bpy_bmlayercollection_new, METH_VARARGS, bpy_bmlayercollection_new_doc},
+    {"new",
+     reinterpret_cast<PyCFunction>(bpy_bmlayercollection_new),
+     METH_VARARGS,
+     bpy_bmlayercollection_new_doc},
     {"remove",
-     (PyCFunction)bpy_bmlayercollection_remove,
+     reinterpret_cast<PyCFunction>(bpy_bmlayercollection_remove),
      METH_O,
      bpy_bmlayercollection_remove_doc},
 
-    {"keys", (PyCFunction)bpy_bmlayercollection_keys, METH_NOARGS, bpy_bmlayercollection_keys_doc},
+    {"keys",
+     reinterpret_cast<PyCFunction>(bpy_bmlayercollection_keys),
+     METH_NOARGS,
+     bpy_bmlayercollection_keys_doc},
     {"values",
-     (PyCFunction)bpy_bmlayercollection_values,
+     reinterpret_cast<PyCFunction>(bpy_bmlayercollection_values),
      METH_NOARGS,
      bpy_bmlayercollection_values_doc},
     {"items",
-     (PyCFunction)bpy_bmlayercollection_items,
+     reinterpret_cast<PyCFunction>(bpy_bmlayercollection_items),
      METH_NOARGS,
      bpy_bmlayercollection_items_doc},
-    {"get", (PyCFunction)bpy_bmlayercollection_get, METH_VARARGS, bpy_bmlayercollection_get_doc},
+    {"get",
+     reinterpret_cast<PyCFunction>(bpy_bmlayercollection_get),
+     METH_VARARGS,
+     bpy_bmlayercollection_get_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -873,7 +887,7 @@ static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, Py
     return bpy_bmlayercollection_subscript_int(self, i);
   }
   if (PySlice_Check(key)) {
-    PySliceObject *key_slice = (PySliceObject *)key;
+    PySliceObject *key_slice = reinterpret_cast<PySliceObject *>(key);
     Py_ssize_t step = 1;
 
     if (key_slice->step != Py_None && !_PyEval_SliceIndex(key, &step)) {
@@ -941,23 +955,23 @@ static int bpy_bmlayercollection_contains(BPy_BMLayerCollection *self, PyObject 
 }
 
 static PySequenceMethods bpy_bmlayercollection_as_sequence = {
-    /*sq_length*/ (lenfunc)bpy_bmlayercollection_length,
+    /*sq_length*/ reinterpret_cast<lenfunc>(bpy_bmlayercollection_length),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
     /* Only set this so `PySequence_Check()` returns True. */
-    /*sq_item*/ (ssizeargfunc)bpy_bmlayercollection_subscript_int,
+    /*sq_item*/ reinterpret_cast<ssizeargfunc>(bpy_bmlayercollection_subscript_int),
     /*was_sq_slice*/ nullptr, /* DEPRECATED. */
     /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
-    /*sq_contains*/ (objobjproc)bpy_bmlayercollection_contains,
+    /*sq_contains*/ reinterpret_cast<objobjproc>(bpy_bmlayercollection_contains),
     /*sq_inplace_concat*/ nullptr,
     /*sq_inplace_repeat*/ nullptr,
 };
 
 static PyMappingMethods bpy_bmlayercollection_as_mapping = {
-    /*mp_length*/ (lenfunc)bpy_bmlayercollection_length,
-    /*mp_subscript*/ (binaryfunc)bpy_bmlayercollection_subscript,
-    /*mp_ass_subscript*/ (objobjargproc) nullptr,
+    /*mp_length*/ reinterpret_cast<lenfunc>(bpy_bmlayercollection_length),
+    /*mp_subscript*/ reinterpret_cast<binaryfunc>(bpy_bmlayercollection_subscript),
+    /*mp_ass_subscript*/ static_cast<objobjargproc>(nullptr),
 };
 
 /* Iterator
@@ -1033,7 +1047,7 @@ PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, const char htype)
   self = PyObject_New(BPy_BMLayerAccess, type);
   self->bm = bm;
   self->htype = htype;
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *BPy_BMLayerCollection_CreatePyObject(BMesh *bm, const char htype, int type)
@@ -1042,7 +1056,7 @@ PyObject *BPy_BMLayerCollection_CreatePyObject(BMesh *bm, const char htype, int 
   self->bm = bm;
   self->htype = htype;
   self->type = type;
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *BPy_BMLayerItem_CreatePyObject(BMesh *bm, const char htype, int type, int index)
@@ -1052,7 +1066,7 @@ PyObject *BPy_BMLayerItem_CreatePyObject(BMesh *bm, const char htype, int type, 
   self->htype = htype;
   self->type = type;
   self->index = index;
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 void BPy_BM_init_types_customdata()
@@ -1079,12 +1093,12 @@ void BPy_BM_init_types_customdata()
   BPy_BMLayerCollection_Type.tp_doc = bpy_bmlayercollection_type_doc;
   BPy_BMLayerItem_Type.tp_doc = bpy_bmlayeritem_type_doc;
 
-  BPy_BMLayerAccessVert_Type.tp_repr = (reprfunc) nullptr;
-  BPy_BMLayerAccessEdge_Type.tp_repr = (reprfunc) nullptr;
-  BPy_BMLayerAccessFace_Type.tp_repr = (reprfunc) nullptr;
-  BPy_BMLayerAccessLoop_Type.tp_repr = (reprfunc) nullptr;
-  BPy_BMLayerCollection_Type.tp_repr = (reprfunc) nullptr;
-  BPy_BMLayerItem_Type.tp_repr = (reprfunc) nullptr;
+  BPy_BMLayerAccessVert_Type.tp_repr = static_cast<reprfunc>(nullptr);
+  BPy_BMLayerAccessEdge_Type.tp_repr = static_cast<reprfunc>(nullptr);
+  BPy_BMLayerAccessFace_Type.tp_repr = static_cast<reprfunc>(nullptr);
+  BPy_BMLayerAccessLoop_Type.tp_repr = static_cast<reprfunc>(nullptr);
+  BPy_BMLayerCollection_Type.tp_repr = static_cast<reprfunc>(nullptr);
+  BPy_BMLayerItem_Type.tp_repr = static_cast<reprfunc>(nullptr);
 
   BPy_BMLayerAccessVert_Type.tp_getset = bpy_bmlayeraccess_vert_getseters;
   BPy_BMLayerAccessEdge_Type.tp_getset = bpy_bmlayeraccess_edge_getseters;
@@ -1101,7 +1115,7 @@ void BPy_BM_init_types_customdata()
 
   BPy_BMLayerCollection_Type.tp_as_mapping = &bpy_bmlayercollection_as_mapping;
 
-  BPy_BMLayerCollection_Type.tp_iter = (getiterfunc)bpy_bmlayercollection_iter;
+  BPy_BMLayerCollection_Type.tp_iter = reinterpret_cast<getiterfunc>(bpy_bmlayercollection_iter);
 
   BPy_BMLayerAccessVert_Type.tp_dealloc = nullptr;
   BPy_BMLayerAccessEdge_Type.tp_dealloc = nullptr;
@@ -1184,23 +1198,23 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
       break;
     }
     case CD_PROP_FLOAT: {
-      ret = PyFloat_FromDouble(*(float *)value);
+      ret = PyFloat_FromDouble(*static_cast<float *>(value));
       break;
     }
     case CD_PROP_INT32: {
-      ret = PyLong_FromLong(*(int *)value);
+      ret = PyLong_FromLong(*static_cast<int *>(value));
       break;
     }
     case CD_PROP_BOOL: {
-      ret = PyBool_FromLong(*(bool *)value);
+      ret = PyBool_FromLong(*static_cast<bool *>(value));
       break;
     }
     case CD_PROP_FLOAT3: {
-      ret = Vector_CreatePyObject_wrap((float *)value, 3, nullptr);
+      ret = Vector_CreatePyObject_wrap(static_cast<float *>(value), 3, nullptr);
       break;
     }
     case CD_PROP_COLOR: {
-      ret = Vector_CreatePyObject_wrap((float *)value, 4, nullptr);
+      ret = Vector_CreatePyObject_wrap(static_cast<float *>(value), 4, nullptr);
       break;
     }
     case CD_PROP_STRING: {
@@ -1213,7 +1227,8 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
         PyErr_SetString(PyExc_ValueError, "BMElem[layer]: layer is from another mesh");
         return nullptr;
       }
-      ret = BPy_BMLoopUV_CreatePyObject(py_ele->bm, (BMLoop *)py_ele->ele, py_layer->index);
+      ret = BPy_BMLoopUV_CreatePyObject(
+          py_ele->bm, reinterpret_cast<BMLoop *>(py_ele->ele), py_layer->index);
       break;
     }
     case CD_PROP_BYTE_COLOR: {
@@ -1221,7 +1236,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
       break;
     }
     case CD_SHAPEKEY: {
-      ret = Vector_CreatePyObject_wrap((float *)value, 3, nullptr);
+      ret = Vector_CreatePyObject_wrap(static_cast<float *>(value), 3, nullptr);
       break;
     }
     case CD_MVERT_SKIN: {
@@ -1260,7 +1275,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
         ret = -1;
       }
       else {
-        *(float *)value = tmp_val;
+        *static_cast<float *>(value) = tmp_val;
       }
       break;
     }
@@ -1271,7 +1286,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
         ret = -1;
       }
       else {
-        *(int *)value = tmp_val;
+        *static_cast<int *>(value) = tmp_val;
       }
       break;
     }
@@ -1282,18 +1297,22 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
         ret = -1;
       }
       else {
-        *(bool *)value = tmp_val;
+        *static_cast<bool *>(value) = tmp_val;
       }
       break;
     }
     case CD_PROP_FLOAT3: {
-      if (mathutils_array_parse((float *)value, 3, 3, py_value, "BMElem Float Vector") == -1) {
+      if (mathutils_array_parse(
+              static_cast<float *>(value), 3, 3, py_value, "BMElem Float Vector") == -1)
+      {
         ret = -1;
       }
       break;
     }
     case CD_PROP_COLOR: {
-      if (mathutils_array_parse((float *)value, 4, 4, py_value, "BMElem Float Color") == -1) {
+      if (mathutils_array_parse(
+              static_cast<float *>(value), 4, 4, py_value, "BMElem Float Color") == -1)
+      {
         ret = -1;
       }
       break;
@@ -1319,7 +1338,8 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
         ret = -1;
       }
       else {
-        ret = BPy_BMLoopUV_AssignPyObject(py_ele->bm, (BMLoop *)py_ele->ele, py_value);
+        ret = BPy_BMLoopUV_AssignPyObject(
+            py_ele->bm, reinterpret_cast<BMLoop *>(py_ele->ele), py_value);
       }
       break;
     }
@@ -1334,7 +1354,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
         ret = -1;
       }
       else {
-        copy_v3_v3((float *)value, tmp_val);
+        copy_v3_v3(static_cast<float *>(value), tmp_val);
       }
       break;
     }
@@ -1351,3 +1371,5 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 
   return ret;
 }
+
+}  // namespace blender

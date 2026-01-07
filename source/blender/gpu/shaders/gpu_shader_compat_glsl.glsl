@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
+/* Do not apply C++ processing to this file. */
+#pragma no_processing
 
 #include "gpu_shader_glsl_extension.glsl"
 
@@ -145,15 +147,6 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define FRAGMENT_SHADER_CREATE_INFO(a)
 #define COMPUTE_SHADER_CREATE_INFO(a)
 
-/* Stubs. These are defined by default in GLSL. */
-#define METAL_CONSTRUCTOR_1(class_name, t1, m1)
-#define METAL_CONSTRUCTOR_2(class_name, t1, m1, t2, m2)
-#define METAL_CONSTRUCTOR_3(class_name, t1, m1, t2, m2, t3, m3)
-#define METAL_CONSTRUCTOR_4(class_name, t1, m1, t2, m2, t3, m3, t4, m4)
-#define METAL_CONSTRUCTOR_5(class_name, t1, m1, t2, m2, t3, m3, t4, m4, t5, m5)
-#define METAL_CONSTRUCTOR_6(class_name, t1, m1, t2, m2, t3, m3, t4, m4, t5, m5, t6, m6)
-#define METAL_CONSTRUCTOR_7(class_name, t1, m1, t2, m2, t3, m3, t4, m4, t5, m5, t6, m6, t7, m7)
-
 #define ATTR_FALLTHROUGH
 
 #define _in_sta
@@ -164,6 +157,12 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define _inout_end
 #define _shared_sta
 #define _shared_end
+/* References (inout and out).
+ * Less verbose that the above for reading processed code. */
+#define _ref(_type, _var) inout _type _var
+/* Constructor / initializer. */
+#define _ctor(_type) _type(
+#define _rotc() )
 
 /* Resource accessor. */
 #define specialization_constant_get(create_info, _res) _res
@@ -178,11 +177,31 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 
 /* Incompatible keywords. */
 #define static
-#define inline
 #define constant
 #define device
 #define thread
 #define threadgroup
+
+/**
+ * This string type is much like the OSL string.
+ * It is merely a hash of the actual string and it immutable.
+ * Named `string_t` to avoid name collision with `std::string`.
+ */
+struct string_t {
+  uint hash;
+};
+
+#if 0 /* Causes NVidia compiler error on OpenGL. To be fixed. */
+bool equal(string_t a, string_t b)
+{
+  return a.hash == b.hash;
+}
+#endif
+
+uint as_uint(string_t str)
+{
+  return str.hash;
+}
 
 float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
 {

@@ -36,12 +36,14 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 /**************************************
  * Modifiers functions.               *
  **************************************/
 static void init_data(ModifierData *md)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
   int i;
 
   dtmd->ob_source = nullptr;
@@ -69,7 +71,7 @@ static void init_data(ModifierData *md)
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
 
   if (dtmd->defgrp_name[0] != '\0') {
     /* We need vertex groups! */
@@ -81,13 +83,13 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
-  walk(user_data, ob, (ID **)&dtmd->ob_source, IDWALK_CB_NOP);
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
+  walk(user_data, ob, reinterpret_cast<ID **>(&dtmd->ob_source), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
   if (dtmd->ob_source != nullptr) {
     CustomData_MeshMasks cddata_masks = {0};
     BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, &cddata_masks);
@@ -107,7 +109,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   /* If no source object, bypass. */
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the mesh is missing).
    *
@@ -122,12 +124,12 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me_mod)
 {
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
+  DataTransferModifierData *dtmd = reinterpret_cast<DataTransferModifierData *>(md);
   Mesh *result = me_mod;
   ReportList reports;
 
   /* Only used to check whether we are operating on org data or not... */
-  const Mesh *mesh = static_cast<const Mesh *>(ctx->object->data);
+  const Mesh *mesh = id_cast<const Mesh *>(ctx->object->data);
 
   Object *ob_source = dtmd->ob_source;
 
@@ -145,11 +147,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, ob_source);
   }
 
-  const blender::Span<blender::float3> me_positions = mesh->vert_positions();
-  const blender::Span<blender::int2> me_edges = mesh->edges();
-  const blender::Span<blender::float3> result_positions = result->vert_positions();
+  const Span<float3> me_positions = mesh->vert_positions();
+  const Span<int2> me_edges = mesh->edges();
+  const Span<float3> result_positions = result->vert_positions();
 
-  const blender::Span<blender::int2> result_edges = result->edges();
+  const Span<int2> result_edges = result->edges();
 
   if (((result == mesh) || (me_positions.data() == result_positions.data()) ||
        (me_edges.data() == result_edges.data())) &&
@@ -157,7 +159,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   {
     /* We need to duplicate data here, otherwise setting custom normals, edges' sharpness, etc.,
      * could modify org mesh, see #43671. */
-    result = (Mesh *)BKE_id_copy_ex(nullptr, &me_mod->id, nullptr, LIB_ID_COPY_LOCALIZE);
+    result = id_cast<Mesh *>(BKE_id_copy_ex(nullptr, &me_mod->id, nullptr, LIB_ID_COPY_LOCALIZE));
   }
 
   BKE_reports_init(&reports, RPT_STORE);
@@ -202,16 +204,16 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout *row = &layout.row(true);
+  ui::Layout *row = &layout.row(true);
   row->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Source"), ICON_NONE);
-  blender::ui::Layout &sub = row->row(true);
+  ui::Layout &sub = row->row(true);
   sub.use_property_decorate_set(false);
   sub.prop(ptr, "use_object_transform", UI_ITEM_NONE, "", ICON_ORIENTATION_GLOBAL);
 
@@ -234,21 +236,21 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 static void vertex_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   layout.prop(ptr, "use_vert_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   bool use_vert_data = RNA_boolean_get(ptr, "use_vert_data");
   layout.active_set(use_vert_data);
 
-  layout.prop(ptr, "data_types_verts", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_verts", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -257,7 +259,7 @@ static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void vertex_vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -271,7 +273,7 @@ static void vertex_vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void edge_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -280,13 +282,13 @@ static void edge_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
 static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.active_set(RNA_boolean_get(ptr, "use_edge_data"));
 
-  layout.prop(ptr, "data_types_edges", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_edges", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -295,7 +297,7 @@ static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void face_corner_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -304,13 +306,13 @@ static void face_corner_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
 static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.active_set(RNA_boolean_get(ptr, "use_loop_data"));
 
-  layout.prop(ptr, "data_types_loops", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_loops", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -319,7 +321,7 @@ static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void vert_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -336,7 +338,7 @@ static void vert_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void face_corner_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -353,7 +355,7 @@ static void face_corner_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void face_corner_uv_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -368,7 +370,7 @@ static void face_corner_uv_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void face_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -377,7 +379,7 @@ static void face_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
 static void face_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -392,15 +394,15 @@ static void face_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &row = layout.row(true, IFACE_("Max Distance"));
+  ui::Layout &row = layout.row(true, IFACE_("Max Distance"));
   row.prop(ptr, "use_max_distance", UI_ITEM_NONE, "", ICON_NONE);
-  blender::ui::Layout &sub = row.row(true);
+  ui::Layout &sub = row.row(true);
   sub.active_set(RNA_boolean_get(ptr, "use_max_distance"));
   sub.prop(ptr, "max_distance", UI_ITEM_NONE, "", ICON_NONE);
 
@@ -485,3 +487,5 @@ ModifierTypeInfo modifierType_DataTransfer = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

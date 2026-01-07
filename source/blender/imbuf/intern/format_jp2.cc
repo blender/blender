@@ -22,6 +22,8 @@
 #include <algorithm>
 #include <cstring>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.openjpeg"};
 
 #define JP2_FILEHEADER_SIZE 12
@@ -1265,3 +1267,5 @@ finally:
 
   return ok;
 }
+
+}  // namespace blender

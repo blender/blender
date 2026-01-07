@@ -6,7 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_colortools.hh"
@@ -39,10 +38,7 @@ using bke::greasepencil::Layer;
 static void init_data(ModifierData *md)
 {
   auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(omd, modifier));
-
-  MEMCPY_STRUCT_AFTER(omd, DNA_struct_default_get(GreasePencilOpacityModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(omd, modifier);
   modifier::greasepencil::init_influence_data(&omd->influence, true);
 }
 
@@ -167,7 +163,7 @@ static void modify_softness(const GreasePencilOpacityModifierData &omd,
   bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
       "softness", bke::AttrDomain::Curve);
 
-  curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
+  curves_mask.foreach_index_optimized<int64_t>(GrainSize(512), [&](int64_t curve_i) {
     softness.span[curve_i] =
         1.0f - std::clamp((1.0f - softness.span[curve_i]) * omd.hardness_factor, 0.0f, 1.0f);
   });
@@ -278,7 +274,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *omd = reinterpret_cast<const GreasePencilOpacityModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilOpacityModifierData, omd);
+  writer->write_struct(omd);
   modifier::greasepencil::write_influence_data(writer, &omd->influence);
 }
 
@@ -288,8 +284,6 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   modifier::greasepencil::read_influence_data(reader, &omd->influence);
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilOpacity = {
     /*idname*/ "GreasePencilOpacity",
@@ -302,28 +296,30 @@ ModifierTypeInfo modifierType_GreasePencilOpacity = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_OPACITY,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
+    /*free_data*/ free_data,
     /*is_disabled*/ nullptr,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

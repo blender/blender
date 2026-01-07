@@ -29,6 +29,8 @@
 
 #include "BKE_blender_cli_command.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal API
  * \{ */
@@ -39,7 +41,7 @@ using CommandHandlerPtr = std::unique_ptr<CommandHandler>;
  * All registered command handlers.
  * \note the order doesn't matter as duplicates are detected and prevented from running.
  */
-blender::Vector<CommandHandlerPtr> g_command_handlers;
+Vector<CommandHandlerPtr> g_command_handlers;
 
 static CommandHandler *blender_cli_command_lookup(const std::string &id)
 {
@@ -176,3 +178,5 @@ void BKE_blender_cli_command_free_all()
 }
 
 /** \} */
+
+}  // namespace blender

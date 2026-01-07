@@ -13,6 +13,8 @@
 #include "WM_types.hh"
 #include <optional>
 
+namespace blender {
+
 static void send_notifiers_after_node_tree_change(ID *id, bNodeTree *ntree)
 {
   WM_main_add_notifier(NC_NODE | NA_EDITED, id);
@@ -36,11 +38,16 @@ static void send_notifiers_after_node_tree_change(ID *id, bNodeTree *ntree)
   }
   else if (ntree->type == NTREE_GEOMETRY) {
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
+    if (ntree->geometry_node_asset_traits) {
+      if (ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) {
+        /* Notifier to re-register node group operators. */
+        WM_main_add_notifier(NC_NODE | ND_NODE_ASSET_DATA, id);
+      }
+    }
   }
 }
 
-static void propagate_node_tree_changes(Main &bmain,
-                                        const std::optional<blender::Span<ID *>> modified_ids)
+static void propagate_node_tree_changes(Main &bmain, const std::optional<Span<ID *>> modified_ids)
 {
   NodeTreeUpdateExtraParams params;
   params.tree_changed_fn = [](bNodeTree &ntree, ID &owner_id) {
@@ -51,7 +58,7 @@ static void propagate_node_tree_changes(Main &bmain,
     DEG_id_tag_update(&ntree.id, ID_RECALC_NTREE_OUTPUT);
   };
 
-  std::optional<blender::Vector<bNodeTree *>> modified_trees;
+  std::optional<Vector<bNodeTree *>> modified_trees;
   if (modified_ids.has_value()) {
     modified_trees.emplace();
     for (ID *id : *modified_ids) {
@@ -64,7 +71,7 @@ static void propagate_node_tree_changes(Main &bmain,
   BKE_ntree_update(bmain, modified_trees, params);
 }
 
-void BKE_main_ensure_invariants(Main &bmain, const std::optional<blender::Span<ID *>> modified_ids)
+void BKE_main_ensure_invariants(Main &bmain, const std::optional<Span<ID *>> modified_ids)
 {
   propagate_node_tree_changes(bmain, modified_ids);
 }
@@ -73,3 +80,5 @@ void BKE_main_ensure_invariants(Main &bmain, ID &modified_id)
 {
   BKE_main_ensure_invariants(bmain, {{&modified_id}});
 }
+
+}  // namespace blender

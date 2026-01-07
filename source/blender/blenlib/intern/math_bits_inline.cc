@@ -6,8 +6,7 @@
  * \ingroup bli
  */
 
-#ifndef __MATH_BITS_INLINE_C__
-#define __MATH_BITS_INLINE_C__
+#pragma once
 
 #ifdef _MSC_VER
 #  include <intrin.h>
@@ -15,6 +14,8 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_bits.h"
+
+namespace blender {
 
 MINLINE unsigned int bitscan_forward_uint(unsigned int a)
 {
@@ -24,7 +25,7 @@ MINLINE unsigned int bitscan_forward_uint(unsigned int a)
   _BitScanForward(&ctz, a);
   return ctz;
 #else
-  return (unsigned int)__builtin_ctz(a);
+  return static_cast<unsigned int>(__builtin_ctz(a));
 #endif
 }
 
@@ -36,13 +37,13 @@ MINLINE unsigned int bitscan_forward_uint64(unsigned long long a)
   _BitScanForward64(&ctz, a);
   return ctz;
 #else
-  return (unsigned int)__builtin_ctzll(a);
+  return static_cast<unsigned int>(__builtin_ctzll(a));
 #endif
 }
 
 MINLINE int bitscan_forward_i(int a)
 {
-  return (int)bitscan_forward_uint((unsigned int)a);
+  return int(bitscan_forward_uint(static_cast<unsigned int>(a)));
 }
 
 MINLINE unsigned int bitscan_forward_clear_uint(unsigned int *a)
@@ -61,7 +62,7 @@ MINLINE unsigned int bitscan_forward_clear_uint64(uint64_t *a)
 
 MINLINE int bitscan_forward_clear_i(int *a)
 {
-  return (int)bitscan_forward_clear_uint((unsigned int *)a);
+  return int(bitscan_forward_clear_uint(reinterpret_cast<unsigned int *>(a)));
 }
 
 MINLINE unsigned int bitscan_reverse_uint(unsigned int a)
@@ -72,7 +73,7 @@ MINLINE unsigned int bitscan_reverse_uint(unsigned int a)
   _BitScanReverse(&clz, a);
   return 31 - clz;
 #else
-  return (unsigned int)__builtin_clz(a);
+  return static_cast<unsigned int>(__builtin_clz(a));
 #endif
 }
 
@@ -84,13 +85,13 @@ MINLINE unsigned int bitscan_reverse_uint64(unsigned long long a)
   _BitScanReverse64(&clz, a);
   return 63 - clz;
 #else
-  return (unsigned int)__builtin_clzll(a);
+  return static_cast<unsigned int>(__builtin_clzll(a));
 #endif
 }
 
 MINLINE int bitscan_reverse_i(int a)
 {
-  return (int)bitscan_reverse_uint((unsigned int)a);
+  return int(bitscan_reverse_uint(static_cast<unsigned int>(a)));
 }
 
 MINLINE unsigned int bitscan_reverse_clear_uint(unsigned int *a)
@@ -102,7 +103,7 @@ MINLINE unsigned int bitscan_reverse_clear_uint(unsigned int *a)
 
 MINLINE int bitscan_reverse_clear_i(int *a)
 {
-  return (int)bitscan_reverse_clear_uint((unsigned int *)a);
+  return int(bitscan_reverse_clear_uint(reinterpret_cast<unsigned int *>(a)));
 }
 
 MINLINE unsigned int highest_order_bit_uint(unsigned int n)
@@ -115,11 +116,11 @@ MINLINE unsigned int highest_order_bit_uint(unsigned int n)
 
 MINLINE unsigned short highest_order_bit_s(unsigned short n)
 {
-  n |= (unsigned short)(n >> 1);
-  n |= (unsigned short)(n >> 2);
-  n |= (unsigned short)(n >> 4);
-  n |= (unsigned short)(n >> 8);
-  return (unsigned short)(n - (n >> 1));
+  n |= static_cast<unsigned short>(n >> 1);
+  n |= static_cast<unsigned short>(n >> 2);
+  n |= static_cast<unsigned short>(n >> 4);
+  n |= static_cast<unsigned short>(n >> 8);
+  return static_cast<unsigned short>(n - (n >> 1));
 }
 
 #if !(COMPILER_GCC || COMPILER_CLANG || COMPILER_MSVC)
@@ -181,4 +182,4 @@ MINLINE float xor_fl(float x, int y)
   return int_as_float(float_as_int(x) ^ y);
 }
 
-#endif /* __MATH_BITS_INLINE_C__ */
+}  // namespace blender

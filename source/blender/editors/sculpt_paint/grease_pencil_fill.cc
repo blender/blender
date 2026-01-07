@@ -267,7 +267,7 @@ FillResult flood_fill(ImageBufferAccessor &buffer, const int leak_filter_width =
   const int width = buffer.width();
   const int height = buffer.height();
 
-  blender::Stack<int> active_pixels;
+  Stack<int> active_pixels;
   /* Initialize the stack with filled pixels (dot at mouse position). */
   for (const int i : pixels.index_range()) {
     if (get_flag(pixels[i], ColorFlag::Seed)) {
@@ -380,7 +380,7 @@ static void dilate(ImageBufferAccessor &buffer, int iterations = 1)
 {
   const MutableSpan<ColorGeometry4b> pixels = buffer.pixels();
 
-  blender::Stack<int> active_pixels;
+  Stack<int> active_pixels;
   for ([[maybe_unused]] const int iter : IndexRange(iterations)) {
     for (const int i : pixels.index_range()) {
       /* Ignore already filled pixels */
@@ -410,7 +410,7 @@ static void erode(ImageBufferAccessor &buffer, int iterations = 1)
 {
   const MutableSpan<ColorGeometry4b> pixels = buffer.pixels();
 
-  blender::Stack<int> active_pixels;
+  Stack<int> active_pixels;
   for ([[maybe_unused]] const int iter : IndexRange(iterations)) {
     for (const int i : pixels.index_range()) {
       /* Ignore empty pixels */
@@ -872,7 +872,7 @@ static std::optional<Bounds<float2>> get_boundary_bounds(const ARegion &region,
   std::optional<Bounds<float2>> boundary_bounds;
 
   BLI_assert(object.type == OB_GREASE_PENCIL);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   BLI_assert(grease_pencil.has_active_layer());
 
@@ -1020,7 +1020,7 @@ static Image *render_strokes(const ViewContext &view_context,
   Object &object = *view_context.obact;
 
   BLI_assert(object.type == OB_GREASE_PENCIL);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   /* Scale stroke radius by half to hide gaps between filled areas and boundaries. */
   const float radius_scale = (brush.gpencil_settings->fill_draw_mode == GP_FILL_DMODE_CONTROL) ?

@@ -13,15 +13,17 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_sys_types.h"
 
+#include "DNA_listBase.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include <optional>
 
+namespace blender {
+
 struct AnimData;
 struct Depsgraph;
 struct ID;
-struct ListBase;
 
 struct ARegion;
 struct ARegionType;
@@ -48,17 +50,19 @@ struct FCurve;
 struct FModifier;
 struct bAction;
 
-struct uiBlock;
+namespace ui {
+struct Block;
+}
 
 struct PointerRNA;
 struct PropertyRNA;
 
 struct MPathTarget;
 
-namespace blender::animrig {
+namespace animrig {
 class Action;
 class Slot;
-}  // namespace blender::animrig
+}  // namespace animrig
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -154,7 +158,7 @@ struct bAnimContext {
   ID *active_action_user;
 
   /** active set of markers */
-  ListBase *markers;
+  ListBaseT<TimeMarker> *markers;
 
   /** pointer to current reports list */
   ReportList *reports;
@@ -294,7 +298,7 @@ struct bAnimListElem {
   /**
    * For data that is owned by a specific slot, its handle.
    *
-   * This is not declared as #blender::animrig::slot_handle_t to avoid all the users of this
+   * This is not declared as #animrig::slot_handle_t to avoid all the users of this
    * header file to get the `animrig` module as extra dependency (which would spread to the undo
    * system, line-art, etc). It's probably best to split off this struct definition from the rest
    * of this header, as most code that uses this header doesn't need to know the definition of this
@@ -487,34 +491,34 @@ ENUM_OPERATORS(eAnimFilter_Flags);
 #define SEL_FCU(fcu) ((fcu)->flag & FCURVE_SELECTED)
 
 /* ShapeKey mode only */
-#define EDITABLE_SHAPEKEY(kb) ((kb->flag & KEYBLOCK_LOCKED) == 0)
-#define SEL_SHAPEKEY(kb) (kb->flag & KEYBLOCK_SEL)
+#define EDITABLE_SHAPEKEY(kb) (((kb)->flag & KEYBLOCK_LOCKED) == 0)
+#define SEL_SHAPEKEY(kb) ((kb)->flag & KEYBLOCK_SEL)
 
 /* Grease Pencil only */
 /** Grease Pencil data-block settings. */
-#define EXPANDED_GPD(gpd) (gpd->flag & GP_DATA_EXPAND)
+#define EXPANDED_GPD(gpd) ((gpd)->flag & GP_DATA_EXPAND)
 /** Grease Pencil Layer settings. */
-#define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED) == 0)
-#define SEL_GPL(gpl) (gpl->flag & GP_LAYER_SELECT)
+#define EDITABLE_GPL(gpl) (((gpl)->flag & GP_LAYER_LOCKED) == 0)
+#define SEL_GPL(gpl) ((gpl)->flag & GP_LAYER_SELECT)
 
 /* Mask Only */
-#define EXPANDED_MASK(mask) (mask->flag & MASK_ANIMF_EXPAND)
+#define EXPANDED_MASK(mask) ((mask)->flag & MASK_ANIMF_EXPAND)
 /** Grease Pencil Layer settings. */
-#define EDITABLE_MASK(masklay) ((masklay->flag & MASK_LAYERFLAG_LOCKED) == 0)
-#define SEL_MASKLAY(masklay) (masklay->flag & SELECT)
+#define EDITABLE_MASK(masklay) (((masklay)->flag & MASK_LAYERFLAG_LOCKED) == 0)
+#define SEL_MASKLAY(masklay) ((masklay)->flag & SELECT)
 
 /* NLA only */
-#define SEL_NLT(nlt) (nlt->flag & NLATRACK_SELECTED)
-#define EDITABLE_NLT(nlt) ((nlt->flag & NLATRACK_PROTECTED) == 0)
+#define SEL_NLT(nlt) ((nlt)->flag & NLATRACK_SELECTED)
+#define EDITABLE_NLT(nlt) (((nlt)->flag & NLATRACK_PROTECTED) == 0)
 
 /* Movie clip only */
-#define EXPANDED_MCLIP(clip) (clip->flag & MCLIP_DATA_EXPAND)
+#define EXPANDED_MCLIP(clip) ((clip)->flag & MCLIP_DATA_EXPAND)
 
 /* Palette only */
-#define EXPANDED_PALETTE(palette) (palette->flag & PALETTE_DATA_EXPAND)
+#define EXPANDED_PALETTE(palette) ((palette)->flag & PALETTE_DATA_EXPAND)
 
 /* AnimData - NLA mostly... */
-#define SEL_ANIMDATA(adt) (adt->flag & ADT_UI_SELECTED)
+#define SEL_ANIMDATA(adt) ((adt)->flag & ADT_UI_SELECTED)
 
 /** \} */
 
@@ -524,7 +528,7 @@ ENUM_OPERATORS(eAnimFilter_Flags);
 
 /** NLA track heights */
 #define NLATRACK_FIRST_TOP(ac) \
-  (UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLATRACK_SKIP)
+  (ui::view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLATRACK_SKIP)
 #define NLATRACK_HEIGHT(snla) \
   (((snla) && ((snla)->flag & SNLA_NOSTRIPCURVES)) ? (0.8f * U.widget_unit) : \
                                                      (1.2f * U.widget_unit))
@@ -564,9 +568,9 @@ ENUM_OPERATORS(eAnimFilter_Flags);
  * \return The number of items added to `anim_data`.
  */
 size_t ANIM_animfilter_action_slot(bAnimContext *ac,
-                                   ListBase * /* bAnimListElem */ anim_data,
-                                   blender::animrig::Action &action,
-                                   blender::animrig::Slot &slot,
+                                   ListBaseT<bAnimListElem> *anim_data,
+                                   animrig::Action &action,
+                                   animrig::Slot &slot,
                                    eAnimFilter_Flags filter_mode,
                                    ID *animated_id);
 
@@ -579,7 +583,7 @@ size_t ANIM_animfilter_action_slot(bAnimContext *ac,
  * \param filter_mode: how should the data be filtered - bit-mapping accessed flags.
  */
 size_t ANIM_animdata_filter(bAnimContext *ac,
-                            ListBase *anim_data,
+                            ListBaseT<bAnimListElem> *anim_data,
                             eAnimFilter_Flags filter_mode,
                             void *data,
                             eAnimCont_Types datatype);
@@ -608,9 +612,9 @@ bool ANIM_animdata_context_getdata(bAnimContext *ac);
 /**
  * Acts on bAnimListElem eAnim_Update_Flags.
  */
-void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data);
+void ANIM_animdata_update(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data);
 
-void ANIM_animdata_freelist(ListBase *anim_data);
+void ANIM_animdata_freelist(ListBaseT<bAnimListElem> *anim_data);
 
 /**
  * Check if the given animation container can contain grease pencil layer keyframes.
@@ -776,7 +780,7 @@ void ANIM_channel_draw(
 void ANIM_channel_draw_widgets(const bContext *C,
                                bAnimContext *ac,
                                bAnimListElem *ale,
-                               uiBlock *block,
+                               ui::Block *block,
                                const rctf *rect,
                                size_t channel_index);
 
@@ -813,7 +817,7 @@ void ANIM_channel_setting_set(bAnimContext *ac,
  * - on: whether the visibility setting has been enabled or disabled
  */
 void ANIM_flush_setting_anim_channels(bAnimContext *ac,
-                                      ListBase *anim_data,
+                                      ListBaseT<bAnimListElem> *anim_data,
                                       bAnimListElem *ale_setting,
                                       eAnimChannel_Settings setting,
                                       eAnimChannels_SetFlag mode);
@@ -942,7 +946,7 @@ using uiListPanelIDFromDataFunc = void (*)(void *data_link, char *r_idname);
  */
 void ANIM_fmodifier_panels(const bContext *C,
                            ID *owner_id,
-                           ListBase *fmodifiers,
+                           ListBaseT<FModifier> *fmodifiers,
                            uiListPanelIDFromDataFunc panel_id_fn);
 
 void ANIM_modifier_panels_register_graph_and_NLA(ARegionType *region_type,
@@ -968,13 +972,13 @@ void ANIM_fmodifiers_copybuf_free();
  * assuming that the buffer has been cleared already with #ANIM_fmodifiers_copybuf_free()
  * \param active: Only copy the active modifier.
  */
-bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active);
+bool ANIM_fmodifiers_copy_to_buf(ListBaseT<FModifier> *modifiers, bool active);
 
 /**
  * 'Paste' the F-Modifier(s) from the buffer to the specified list
  * \param replace: Free all the existing modifiers to leave only the pasted ones.
  */
-bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *curve);
+bool ANIM_fmodifiers_paste_from_buf(ListBaseT<FModifier> *modifiers, bool replace, FCurve *curve);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */
@@ -1007,9 +1011,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu);
  *
  * This function iterates the Slot's users to find an ID that allows it to resolve its RNA path.
  */
-std::string getname_anim_fcurve_for_slot(Main &bmain,
-                                         const blender::animrig::Slot &slot,
-                                         FCurve &fcurve);
+std::string getname_anim_fcurve_for_slot(Main &bmain, const animrig::Slot &slot, FCurve &fcurve);
 
 /**
  * Automatically determine a color for the nth F-Curve.
@@ -1270,12 +1272,12 @@ enum eAnimvizCalcRange {
 Depsgraph *animviz_depsgraph_build(Main *bmain,
                                    Scene *scene,
                                    ViewLayer *view_layer,
-                                   blender::Span<MPathTarget *> targets);
+                                   Span<MPathTarget *> targets);
 
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
-                              blender::MutableSpan<MPathTarget *> targets,
+                              MutableSpan<MPathTarget *> targets,
                               eAnimvizCalcRange range,
                               bool restore);
 
@@ -1293,12 +1295,14 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene);
  * Will look for pose bones as well. `animviz_free_motionpath_targets` needs to be called
  * to free the memory allocated in this function.
  */
-void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *> &r_targets);
+void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget *> &r_targets);
 
 /**
  * Free the elements of the vector populated with `animviz_build_motionpath_targets`.
  * After this function the Vector will have a length of 0.
  */
-void animviz_free_motionpath_targets(blender::Vector<MPathTarget *> &targets);
+void animviz_free_motionpath_targets(Vector<MPathTarget *> &targets);
 
 /** \} */
+
+}  // namespace blender

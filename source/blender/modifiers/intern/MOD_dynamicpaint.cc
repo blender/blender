@@ -14,7 +14,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -36,19 +35,18 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(pmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(pmd, DNA_struct_default_get(DynamicPaintModifierData), modifier);
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(pmd, modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const DynamicPaintModifierData *pmd = (const DynamicPaintModifierData *)md;
-  DynamicPaintModifierData *tpmd = (DynamicPaintModifierData *)target;
+  const DynamicPaintModifierData *pmd = reinterpret_cast<const DynamicPaintModifierData *>(md);
+  DynamicPaintModifierData *tpmd = reinterpret_cast<DynamicPaintModifierData *>(target);
 
   dynamicPaint_Modifier_copy(pmd, tpmd, flag);
 }
@@ -58,19 +56,19 @@ static void free_runtime_data(void *runtime_data_v)
   if (runtime_data_v == nullptr) {
     return;
   }
-  DynamicPaintRuntime *runtime_data = (DynamicPaintRuntime *)runtime_data_v;
+  DynamicPaintRuntime *runtime_data = static_cast<DynamicPaintRuntime *>(runtime_data_v);
   dynamicPaint_Modifier_free_runtime(runtime_data);
 }
 
 static void free_data(ModifierData *md)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
   dynamicPaint_Modifier_free(pmd);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
   if (pmd->canvas) {
     DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
@@ -97,7 +95,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
   /* Don't apply dynamic paint on ORCO mesh stack. */
   if (!(ctx->flag & MOD_APPLY_ORCO)) {
@@ -109,26 +107,26 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static bool is_brush_cb(Object * /*ob*/, ModifierData *md)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
   return (pmd->brush != nullptr && pmd->type == MOD_DYNAMICPAINT_TYPE_BRUSH);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
   /* Add relation from canvases to all brush objects. */
   if (pmd->canvas != nullptr && pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
-    LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
-      if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
+    for (DynamicPaintSurface &surface : pmd->canvas->surfaces) {
+      if (surface.effect & MOD_DPAINT_EFFECT_DO_DRIP) {
         DEG_add_forcefield_relations(
-            ctx->node, ctx->object, surface->effector_weights, true, 0, "Dynamic Paint Field");
+            ctx->node, ctx->object, surface.effector_weights, true, 0, "Dynamic Paint Field");
       }
 
       /* Actual code uses custom loop over group/scene
        * without layer checks in dynamicPaint_doStep. */
       DEG_add_collision_relations(ctx->node,
                                   ctx->object,
-                                  surface->brush_group,
+                                  surface.brush_group,
                                   eModifierType_DynamicPaint,
                                   is_brush_cb,
                                   "Dynamic Paint Brush");
@@ -143,16 +141,19 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+  DynamicPaintModifierData *pmd = reinterpret_cast<DynamicPaintModifierData *>(md);
 
   if (pmd->canvas) {
     DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
 
     for (; surface; surface = surface->next) {
-      walk(user_data, ob, (ID **)&surface->brush_group, IDWALK_CB_NOP);
-      walk(user_data, ob, (ID **)&surface->init_texture, IDWALK_CB_USER);
+      walk(user_data, ob, reinterpret_cast<ID **>(&surface->brush_group), IDWALK_CB_NOP);
+      walk(user_data, ob, reinterpret_cast<ID **>(&surface->init_texture), IDWALK_CB_USER);
       if (surface->effector_weights) {
-        walk(user_data, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_USER);
+        walk(user_data,
+             ob,
+             reinterpret_cast<ID **>(&surface->effector_weights->group),
+             IDWALK_CB_USER);
       }
     }
   }
@@ -168,7 +169,7 @@ static void foreach_tex_link(ModifierData * /*md*/,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -218,3 +219,5 @@ ModifierTypeInfo modifierType_DynamicPaint = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

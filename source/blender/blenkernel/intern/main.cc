@@ -42,6 +42,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 using namespace blender::bke;
 
 static CLG_LogRef LOG = {"lib.main"};
@@ -107,7 +109,7 @@ void BKE_main_clear(Main &bmain)
   MainListsArray lbarray = BKE_main_lists_get(bmain);
   int a = lbarray.size();
   while (a--) {
-    ListBase *lb = lbarray[a];
+    ListBaseT<ID> *lb = lbarray[a];
     ID *id, *id_next;
 
     for (id = static_cast<ID *>(lb->first); id != nullptr; id = id_next) {
@@ -253,6 +255,17 @@ static bool are_ids_from_different_mains_matching(Main *bmain_1, ID *id_1, Main 
     return true;
   }
 
+  /* Linked packed IDs only match with other packed IDs, and only if their deephashes are
+   * identical. */
+  if (ID_IS_PACKED(id_1) && ID_IS_PACKED(id_2)) {
+    BLI_assert_msg(false, "No packed ID should be passed to this function currently.");
+    return (id_1->deep_hash == id_2->deep_hash);
+  }
+  if (ID_IS_PACKED(id_1) || ID_IS_PACKED(id_2)) {
+    BLI_assert_msg(false, "No packed ID should be passed to this function currently.");
+    return false;
+  }
+
   if (id_1->lib && id_2->lib) {
     if (id_1->lib == id_2->lib) {
       return true;
@@ -284,26 +297,27 @@ static bool are_ids_from_different_mains_matching(Main *bmain_1, ID *id_1, Main 
 }
 
 static void main_merge_add_id_to_move(Main *bmain_dst,
-                                      blender::Map<std::string, blender::Vector<ID *>> &id_map_dst,
+                                      Map<std::string, Vector<ID *>> &id_map_dst,
                                       ID *id_src,
                                       id::IDRemapper &id_remapper,
-                                      blender::Vector<ID *> &ids_to_move,
+                                      Vector<ID *> &ids_to_move,
                                       const bool is_library,
                                       MainMergeReport &reports)
 {
-  const bool is_id_src_linked(id_src->lib);
+  const bool is_id_src_linked = ID_IS_LINKED(id_src);
   bool is_id_src_from_bmain_dst = false;
   if (is_id_src_linked) {
     BLI_assert(!is_library);
-    UNUSED_VARS_NDEBUG(is_library);
-    blender::Vector<ID *> id_src_lib_dst = id_map_dst.lookup_default(
-        id_src->lib->runtime->filepath_abs, {});
+    Library *ref_src_library = ID_IS_PACKED(id_src) ? id_src->lib->archive_parent_library :
+                                                      id_src->lib;
+    BLI_assert((ref_src_library->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0);
+    Vector<ID *> id_src_lib_dst = id_map_dst.lookup_default(ref_src_library->runtime->filepath_abs,
+                                                            {});
     /* The current library of the source ID would be remapped to null, which means that it comes
      * from the destination Main. */
     is_id_src_from_bmain_dst = !id_src_lib_dst.is_empty() && !id_src_lib_dst[0];
   }
-  std::cout << id_src->name << " is linked from dst Main: " << is_id_src_from_bmain_dst << "\n";
-  std::cout.flush();
+  CLOG_DEBUG(&LOG, "ID '%s' is linked from dst Main: %d", id_src->name, is_id_src_from_bmain_dst);
 
   if (is_id_src_from_bmain_dst) {
     /* Do not move an ID supposed to be from `bmain_dst` (used as library in `bmain_src`) into
@@ -311,15 +325,29 @@ static void main_merge_add_id_to_move(Main *bmain_dst,
      * e.g. in case `bmain_dst` has been updated since it file was loaded as library in
      * `bmain_src`. */
     CLOG_WARN(&LOG,
-              "ID '%s' defined in source Main as linked from destination Main (file '%s') not "
-              "found in given destination Main",
+              "ID '%s' defined in source Main as linked from destination Main (file '%s'), but "
+              "not found in given destination Main, will be skipped",
               id_src->name,
               bmain_dst->filepath);
     id_remapper.add(id_src, nullptr);
     reports.num_unknown_ids++;
   }
   else {
-    ids_to_move.append(id_src);
+    if (is_library) {
+      /* Archive libraries are never moved.
+       * When moved, regular libraries need to see their vector of owned archive libraries cleared,
+       * since these will remain in the source Main. */
+      Library *lib_src = id_cast<Library *>(id_src);
+      BLI_assert((lib_src->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0);
+      lib_src->runtime->archived_libraries.clear();
+      /* Libraries should be added to destination Main before any other ID, to ensure that
+       * potential packed IDs can find the required owner 'regular' library for their archive
+       * library containers. */
+      ids_to_move.prepend(id_src);
+    }
+    else {
+      ids_to_move.append(id_src);
+    }
   }
 }
 
@@ -327,15 +355,29 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
 {
   Main *bmain_src = *r_bmain_src;
   /* NOTE: Dedicated mapping type is needed here, to handle properly the library cases. */
-  blender::Map<std::string, blender::Vector<ID *>> id_map_dst;
+  Map<std::string, Vector<ID *>> id_map_dst;
+  /* Packed IDs are only matched by their deep hashes, and can only match with other packed IDS, so
+   * they have their own dedicated mapping. */
+  Map<IDHash, ID *> id_packed_map_dst;
   ID *id_iter_dst, *id_iter_src;
   FOREACH_MAIN_ID_BEGIN (bmain_dst, id_iter_dst) {
     if (GS(id_iter_dst->name) == ID_LI) {
       /* Libraries need specific handling, as we want to check them by their filepath, not the IDs
        * themselves. */
       Library *lib_dst = reinterpret_cast<Library *>(id_iter_dst);
+      if (lib_dst->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+        /* Archive libraries are never merged per-se, since they are only 'namespace' containers
+         * for packed linked data. Existing matching archive libraries will be re-used for packed
+         * IDs in the destination Main, or new ones will be created as needed. */
+        BLI_assert(lib_dst->archive_parent_library);
+        continue;
+      }
       BLI_assert(!id_map_dst.contains(lib_dst->runtime->filepath_abs));
       id_map_dst.add(lib_dst->runtime->filepath_abs, {id_iter_dst});
+    }
+    else if (ID_IS_PACKED(id_iter_dst)) {
+      BLI_assert(!id_packed_map_dst.contains(id_iter_dst->deep_hash));
+      id_packed_map_dst.add_new(id_iter_dst->deep_hash, id_iter_dst);
     }
     else {
       id_map_dst.lookup_or_add(id_iter_dst->name, {}).append(id_iter_dst);
@@ -351,48 +393,74 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
    * afterwards (especially in case some source linked IDs become local in `bmain_dst`). */
   id::IDRemapper id_remapper;
   id::IDRemapper id_remapper_libraries;
-  blender::Vector<ID *> ids_to_move;
+  Vector<ID *> ids_to_move;
 
   FOREACH_MAIN_ID_BEGIN (bmain_src, id_iter_src) {
     const bool is_library = GS(id_iter_src->name) == ID_LI;
+    const bool is_packed = ID_IS_PACKED(id_iter_src);
+    BLI_assert(!is_packed || !is_library);
+    BLI_assert(!is_library || !ID_IS_LINKED(id_iter_src));
+    BLI_assert(!is_packed || ID_IS_LINKED(id_iter_src));
 
-    blender::Vector<ID *> ids_dst = id_map_dst.lookup_default(
-        is_library ? reinterpret_cast<Library *>(id_iter_src)->runtime->filepath_abs :
-                     id_iter_src->name,
-        {});
     if (is_library) {
-      BLI_assert(ids_dst.size() <= 1);
-    }
-    if (ids_dst.is_empty()) {
-      main_merge_add_id_to_move(
-          bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
-      continue;
-    }
-
-    bool src_has_match_in_dst = false;
-    for (ID *id_iter_dst : ids_dst) {
-      if (are_ids_from_different_mains_matching(bmain_dst, id_iter_dst, bmain_src, id_iter_src)) {
-        /* There should only ever be one potential match, never more. */
-        BLI_assert(!src_has_match_in_dst);
-        if (!src_has_match_in_dst) {
-          if (is_library) {
-            id_remapper_libraries.add(id_iter_src, id_iter_dst);
-            reports.num_remapped_libraries++;
-          }
-          else {
-            id_remapper.add(id_iter_src, id_iter_dst);
-            reports.num_remapped_ids++;
-          }
-          src_has_match_in_dst = true;
-        }
-#ifdef NDEBUG /* In DEBUG builds, keep looping to ensure there is only one match. */
-        break;
-#endif
+      Library *lib_src = reinterpret_cast<Library *>(id_iter_src);
+      if (lib_src->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+        BLI_assert(lib_src->archive_parent_library);
+        continue;
       }
     }
-    if (!src_has_match_in_dst) {
-      main_merge_add_id_to_move(
-          bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+
+    if (is_packed) {
+      ID *id_packed_dst = id_packed_map_dst.lookup_default(id_iter_src->deep_hash, nullptr);
+      if (id_packed_dst) {
+        id_remapper.add(id_iter_src, id_packed_dst);
+        reports.num_remapped_ids++;
+      }
+      else {
+        main_merge_add_id_to_move(
+            bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+      }
+    }
+    else {
+      Vector<ID *> ids_dst = id_map_dst.lookup_default(
+          is_library ? reinterpret_cast<Library *>(id_iter_src)->runtime->filepath_abs :
+                       id_iter_src->name,
+          {});
+      if (is_library) {
+        BLI_assert(ids_dst.size() <= 1);
+      }
+      if (ids_dst.is_empty()) {
+        main_merge_add_id_to_move(
+            bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+        continue;
+      }
+
+      bool src_has_match_in_dst = false;
+      for (ID *id_iter_dst : ids_dst) {
+        if (are_ids_from_different_mains_matching(bmain_dst, id_iter_dst, bmain_src, id_iter_src))
+        {
+          /* There should only ever be one potential match, never more. */
+          BLI_assert(!src_has_match_in_dst);
+          if (!src_has_match_in_dst) {
+            if (is_library) {
+              id_remapper_libraries.add(id_iter_src, id_iter_dst);
+              reports.num_remapped_libraries++;
+            }
+            else {
+              id_remapper.add(id_iter_src, id_iter_dst);
+              reports.num_remapped_ids++;
+            }
+            src_has_match_in_dst = true;
+          }
+#ifdef NDEBUG /* In DEBUG builds, keep looping to ensure there is only one match. */
+          break;
+#endif
+        }
+      }
+      if (!src_has_match_in_dst) {
+        main_merge_add_id_to_move(
+            bmain_dst, id_map_dst, id_iter_src, id_remapper, ids_to_move, is_library, reports);
+      }
     }
   }
   FOREACH_MAIN_ID_END;
@@ -417,17 +485,28 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
     }
   }
 
-  /* Libraries need to be remapped before moving IDs into `bmain_dst`, to ensure that the sorting
-   * of inserted IDs is correct. Note that no bmain is given here, so this is only a 'raw'
-   * remapping. */
-  BKE_libblock_relink_multiple(nullptr,
-                               ids_to_move,
-                               ID_REMAP_TYPE_REMAP,
-                               id_remapper_libraries,
-                               ID_REMAP_DO_LIBRARY_POINTERS);
-
   for (ID *id_iter_src : ids_to_move) {
     BKE_libblock_management_main_remove(bmain_src, id_iter_src);
+    if (ID_IS_PACKED(id_iter_src)) {
+      /* Set the packed ID's library back to the regular library, so that the call to
+       * #BKE_libblock_management_main_add() later in that function can select or create a suitable
+       * archive library for it in `bmain_dst`. */
+      id_iter_src->lib = id_iter_src->lib->archive_parent_library;
+    }
+    /* Libraries need to be remapped:
+     *  - _After_ removing IDs from the old source Main, to ensure that they get properly removed
+     *    from the expected namemap.
+     *  - _Before_ moving them into `bmain_dst`, to ensure that the sorting of inserted IDs is
+     *    correct. */
+    if (ID_IS_LINKED(id_iter_src)) {
+      /* Note that no bmain is given here, so this is only a 'raw' remapping. */
+      BKE_libblock_relink_multiple(nullptr,
+                                   Span(&id_iter_src, 1),
+                                   ID_REMAP_TYPE_REMAP,
+                                   id_remapper_libraries,
+                                   ID_REMAP_DO_LIBRARY_POINTERS);
+      BLI_assert(id_iter_src->lib);
+    }
     BKE_libblock_management_main_add(bmain_dst, id_iter_src);
   }
 
@@ -485,12 +564,12 @@ bool BKE_main_needs_overwrite_confirm(const Main *bmain)
 
 void BKE_main_lock(Main *bmain)
 {
-  BLI_spin_lock((SpinLock *)bmain->lock);
+  BLI_spin_lock(reinterpret_cast<SpinLock *>(bmain->lock));
 }
 
 void BKE_main_unlock(Main *bmain)
 {
-  BLI_spin_unlock((SpinLock *)bmain->lock);
+  BLI_spin_unlock(reinterpret_cast<SpinLock *>(bmain->lock));
 }
 
 static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
@@ -550,8 +629,8 @@ void BKE_main_relations_create(Main *bmain, const short flag)
   }
 
   bmain->relations = MEM_mallocN<MainIDRelations>(__func__);
-  bmain->relations->relations_from_pointers =
-      MEM_new<blender::Map<const ID *, MainIDRelationsEntry *>>(__func__);
+  bmain->relations->relations_from_pointers = MEM_new<Map<const ID *, MainIDRelationsEntry *>>(
+      __func__);
   bmain->relations->entry_items_pool = BLI_mempool_create(
       sizeof(MainIDRelationsEntryItem), 128, 128, BLI_MEMPOOL_NOP);
 
@@ -608,10 +687,10 @@ void BKE_main_relations_tag_set(Main *bmain, const eMainIDRelationsEntryTags tag
   }
 }
 
-blender::Set<const ID *> *BKE_main_set_create(Main *bmain, blender::Set<const ID *> *set)
+Set<const ID *> *BKE_main_set_create(Main *bmain, Set<const ID *> *set)
 {
   if (set == nullptr) {
-    set = MEM_new<blender::Set<const ID *>>(__func__);
+    set = MEM_new<Set<const ID *>>(__func__);
   }
 
   ID *id;
@@ -640,20 +719,19 @@ struct LibWeakRefKey {
 
   uint64_t hash() const
   {
-    return blender::get_default_hash(blender::StringRef(this->filepath),
-                                     blender::StringRef(this->id_name));
+    return get_default_hash(StringRef(this->filepath), StringRef(this->id_name));
   }
 };
 
 struct MainLibraryWeakReferenceMap {
-  blender::Map<LibWeakRefKey, ID *> map;
+  Map<LibWeakRefKey, ID *> map;
 };
 
 MainLibraryWeakReferenceMap *BKE_main_library_weak_reference_create(Main *bmain)
 {
   auto *library_weak_reference_mapping = MEM_new<MainLibraryWeakReferenceMap>(__func__);
 
-  ListBase *lb;
+  ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     ID *id_iter = static_cast<ID *>(lb->first);
     if (id_iter == nullptr) {
@@ -766,23 +844,23 @@ ID *BKE_main_library_weak_reference_find(Main *bmain,
   STRNCPY(library_filepath_abs, library_filepath);
   BLI_path_abs(library_filepath_abs, BKE_main_blendfile_path(bmain));
 
-  ListBase *id_list = which_libbase(bmain, GS(library_id_name));
-  LISTBASE_FOREACH (ID *, existing_id, id_list) {
-    if (!(existing_id->library_weak_reference &&
-          STREQ(existing_id->library_weak_reference->library_id_name, library_id_name)))
+  ListBaseT<ID> *id_list = which_libbase(bmain, GS(library_id_name));
+  for (ID &existing_id : *id_list) {
+    if (!(existing_id.library_weak_reference &&
+          STREQ(existing_id.library_weak_reference->library_id_name, library_id_name)))
     {
       continue;
     }
 
     char existing_filepath_abs[FILE_MAX];
-    STRNCPY(existing_filepath_abs, existing_id->library_weak_reference->library_filepath);
+    STRNCPY(existing_filepath_abs, existing_id.library_weak_reference->library_filepath);
     BLI_path_abs(existing_filepath_abs, BKE_main_blendfile_path(bmain));
 
     if (!STREQ(existing_filepath_abs, library_filepath_abs)) {
       continue;
     }
 
-    return existing_id;
+    return &existing_id;
   }
 
   return nullptr;
@@ -793,7 +871,7 @@ void BKE_main_library_weak_reference_add(ID *local_id,
                                          const char *library_id_name)
 {
   if (local_id->library_weak_reference == nullptr) {
-    local_id->library_weak_reference = MEM_callocN<LibraryWeakReference>(__func__);
+    local_id->library_weak_reference = MEM_new_for_free<LibraryWeakReference>(__func__);
   }
 
   STRNCPY(local_id->library_weak_reference->library_filepath, library_filepath);
@@ -855,8 +933,11 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
   }
 
   if (data) {
-    img = IMB_allocFromBuffer(
-        (const uint8_t *)data->rect, nullptr, uint(data->width), uint(data->height), 4);
+    img = IMB_allocFromBuffer(reinterpret_cast<const uint8_t *>(data->rect),
+                              nullptr,
+                              uint(data->width),
+                              uint(data->height),
+                              4);
   }
 
   return img;
@@ -887,87 +968,87 @@ const char *BKE_main_blendfile_path_from_library(const Library &library)
   return library.runtime->filepath_abs;
 }
 
-ListBase *which_libbase(Main *bmain, short type)
+ListBaseT<ID> *which_libbase(Main *bmain, short type)
 {
-  switch ((ID_Type)type) {
+  switch (ID_Type(type)) {
     case ID_SCE:
-      return &(bmain->scenes);
+      return &(bmain->scenes.cast<ID>());
     case ID_LI:
-      return &(bmain->libraries);
+      return &(bmain->libraries.cast<ID>());
     case ID_OB:
-      return &(bmain->objects);
+      return &(bmain->objects.cast<ID>());
     case ID_ME:
-      return &(bmain->meshes);
+      return &(bmain->meshes.cast<ID>());
     case ID_CU_LEGACY:
-      return &(bmain->curves);
+      return &(bmain->curves.cast<ID>());
     case ID_MB:
-      return &(bmain->metaballs);
+      return &(bmain->metaballs.cast<ID>());
     case ID_MA:
-      return &(bmain->materials);
+      return &(bmain->materials.cast<ID>());
     case ID_TE:
-      return &(bmain->textures);
+      return &(bmain->textures.cast<ID>());
     case ID_IM:
-      return &(bmain->images);
+      return &(bmain->images.cast<ID>());
     case ID_LT:
-      return &(bmain->lattices);
+      return &(bmain->lattices.cast<ID>());
     case ID_LA:
-      return &(bmain->lights);
+      return &(bmain->lights.cast<ID>());
     case ID_CA:
-      return &(bmain->cameras);
+      return &(bmain->cameras.cast<ID>());
     case ID_KE:
-      return &(bmain->shapekeys);
+      return &(bmain->shapekeys.cast<ID>());
     case ID_WO:
-      return &(bmain->worlds);
+      return &(bmain->worlds.cast<ID>());
     case ID_SCR:
-      return &(bmain->screens);
+      return &(bmain->screens.cast<ID>());
     case ID_VF:
-      return &(bmain->fonts);
+      return &(bmain->fonts.cast<ID>());
     case ID_TXT:
-      return &(bmain->texts);
+      return &(bmain->texts.cast<ID>());
     case ID_SPK:
-      return &(bmain->speakers);
+      return &(bmain->speakers.cast<ID>());
     case ID_LP:
-      return &(bmain->lightprobes);
+      return &(bmain->lightprobes.cast<ID>());
     case ID_SO:
-      return &(bmain->sounds);
+      return &(bmain->sounds.cast<ID>());
     case ID_GR:
-      return &(bmain->collections);
+      return &(bmain->collections.cast<ID>());
     case ID_AR:
-      return &(bmain->armatures);
+      return &(bmain->armatures.cast<ID>());
     case ID_AC:
-      return &(bmain->actions);
+      return &(bmain->actions.cast<ID>());
     case ID_NT:
-      return &(bmain->nodetrees);
+      return &(bmain->nodetrees.cast<ID>());
     case ID_BR:
-      return &(bmain->brushes);
+      return &(bmain->brushes.cast<ID>());
     case ID_PA:
-      return &(bmain->particles);
+      return &(bmain->particles.cast<ID>());
     case ID_WM:
-      return &(bmain->wm);
+      return &(bmain->wm.cast<ID>());
     case ID_GD_LEGACY:
-      return &(bmain->gpencils);
+      return &(bmain->gpencils.cast<ID>());
     case ID_GP:
-      return &(bmain->grease_pencils);
+      return &(bmain->grease_pencils.cast<ID>());
     case ID_MC:
-      return &(bmain->movieclips);
+      return &(bmain->movieclips.cast<ID>());
     case ID_MSK:
-      return &(bmain->masks);
+      return &(bmain->masks.cast<ID>());
     case ID_LS:
-      return &(bmain->linestyles);
+      return &(bmain->linestyles.cast<ID>());
     case ID_PAL:
-      return &(bmain->palettes);
+      return &(bmain->palettes.cast<ID>());
     case ID_PC:
-      return &(bmain->paintcurves);
+      return &(bmain->paintcurves.cast<ID>());
     case ID_CF:
-      return &(bmain->cachefiles);
+      return &(bmain->cachefiles.cast<ID>());
     case ID_WS:
-      return &(bmain->workspaces);
+      return &(bmain->workspaces.cast<ID>());
     case ID_CV:
-      return &(bmain->hair_curves);
+      return &(bmain->hair_curves.cast<ID>());
     case ID_PT:
-      return &(bmain->pointclouds);
+      return &(bmain->pointclouds.cast<ID>());
     case ID_VO:
-      return &(bmain->volumes);
+      return &(bmain->volumes.cast<ID>());
   }
   return nullptr;
 }
@@ -976,64 +1057,66 @@ MainListsArray BKE_main_lists_get(Main &bmain)
 {
   MainListsArray lb{};
   /* Libraries may be accessed from pretty much any other ID. */
-  lb[INDEX_ID_LI] = &bmain.libraries;
+  lb[INDEX_ID_LI] = &(bmain.libraries.cast<ID>());
 
   /* Moved here to avoid problems when freeing with animato (aligorith). */
-  lb[INDEX_ID_AC] = &bmain.actions;
+  lb[INDEX_ID_AC] = &(bmain.actions.cast<ID>());
 
-  lb[INDEX_ID_KE] = &bmain.shapekeys;
+  lb[INDEX_ID_KE] = &(bmain.shapekeys.cast<ID>());
 
   /* Referenced by gpencil, so needs to be before that to avoid crashes. */
-  lb[INDEX_ID_PAL] = &bmain.palettes;
+  lb[INDEX_ID_PAL] = &(bmain.palettes.cast<ID>());
 
   /* Referenced by nodes, objects, view, scene etc, before to free after. */
-  lb[INDEX_ID_GD_LEGACY] = &bmain.gpencils;
-  lb[INDEX_ID_GP] = &bmain.grease_pencils;
+  lb[INDEX_ID_GD_LEGACY] = &(bmain.gpencils.cast<ID>());
+  lb[INDEX_ID_GP] = &(bmain.grease_pencils.cast<ID>());
 
-  lb[INDEX_ID_NT] = &bmain.nodetrees;
-  lb[INDEX_ID_IM] = &bmain.images;
-  lb[INDEX_ID_TE] = &bmain.textures;
-  lb[INDEX_ID_MA] = &bmain.materials;
-  lb[INDEX_ID_VF] = &bmain.fonts;
+  lb[INDEX_ID_NT] = &(bmain.nodetrees.cast<ID>());
+  lb[INDEX_ID_IM] = &(bmain.images.cast<ID>());
+  lb[INDEX_ID_TE] = &(bmain.textures.cast<ID>());
+  lb[INDEX_ID_MA] = &(bmain.materials.cast<ID>());
+  lb[INDEX_ID_VF] = &(bmain.fonts.cast<ID>());
 
   /* Important!: When adding a new object type,
    * the specific data should be inserted here. */
 
-  lb[INDEX_ID_AR] = &bmain.armatures;
+  lb[INDEX_ID_AR] = &(bmain.armatures.cast<ID>());
 
-  lb[INDEX_ID_CF] = &bmain.cachefiles;
-  lb[INDEX_ID_ME] = &bmain.meshes;
-  lb[INDEX_ID_CU_LEGACY] = &bmain.curves;
-  lb[INDEX_ID_MB] = &bmain.metaballs;
-  lb[INDEX_ID_CV] = &bmain.hair_curves;
-  lb[INDEX_ID_PT] = &bmain.pointclouds;
-  lb[INDEX_ID_VO] = &bmain.volumes;
+  lb[INDEX_ID_CF] = &(bmain.cachefiles.cast<ID>());
+  lb[INDEX_ID_ME] = &(bmain.meshes.cast<ID>());
+  lb[INDEX_ID_CU_LEGACY] = &(bmain.curves.cast<ID>());
+  lb[INDEX_ID_MB] = &(bmain.metaballs.cast<ID>());
+  lb[INDEX_ID_CV] = &(bmain.hair_curves.cast<ID>());
+  lb[INDEX_ID_PT] = &(bmain.pointclouds.cast<ID>());
+  lb[INDEX_ID_VO] = &(bmain.volumes.cast<ID>());
 
-  lb[INDEX_ID_LT] = &bmain.lattices;
-  lb[INDEX_ID_LA] = &bmain.lights;
-  lb[INDEX_ID_CA] = &bmain.cameras;
+  lb[INDEX_ID_LT] = &(bmain.lattices.cast<ID>());
+  lb[INDEX_ID_LA] = &(bmain.lights.cast<ID>());
+  lb[INDEX_ID_CA] = &(bmain.cameras.cast<ID>());
 
-  lb[INDEX_ID_TXT] = &bmain.texts;
-  lb[INDEX_ID_SO] = &bmain.sounds;
-  lb[INDEX_ID_GR] = &bmain.collections;
-  lb[INDEX_ID_PAL] = &bmain.palettes;
-  lb[INDEX_ID_PC] = &bmain.paintcurves;
-  lb[INDEX_ID_BR] = &bmain.brushes;
-  lb[INDEX_ID_PA] = &bmain.particles;
-  lb[INDEX_ID_SPK] = &bmain.speakers;
-  lb[INDEX_ID_LP] = &bmain.lightprobes;
+  lb[INDEX_ID_TXT] = &(bmain.texts.cast<ID>());
+  lb[INDEX_ID_SO] = &(bmain.sounds.cast<ID>());
+  lb[INDEX_ID_GR] = &(bmain.collections.cast<ID>());
+  lb[INDEX_ID_PAL] = &(bmain.palettes.cast<ID>());
+  lb[INDEX_ID_PC] = &(bmain.paintcurves.cast<ID>());
+  lb[INDEX_ID_BR] = &(bmain.brushes.cast<ID>());
+  lb[INDEX_ID_PA] = &(bmain.particles.cast<ID>());
+  lb[INDEX_ID_SPK] = &(bmain.speakers.cast<ID>());
+  lb[INDEX_ID_LP] = &(bmain.lightprobes.cast<ID>());
 
-  lb[INDEX_ID_WO] = &bmain.worlds;
-  lb[INDEX_ID_MC] = &bmain.movieclips;
-  lb[INDEX_ID_SCR] = &bmain.screens;
-  lb[INDEX_ID_OB] = &bmain.objects;
+  lb[INDEX_ID_WO] = &(bmain.worlds.cast<ID>());
+  lb[INDEX_ID_MC] = &(bmain.movieclips.cast<ID>());
+  lb[INDEX_ID_SCR] = &(bmain.screens.cast<ID>());
+  lb[INDEX_ID_OB] = &(bmain.objects.cast<ID>());
   /* referenced by scenes */
-  lb[INDEX_ID_LS] = &bmain.linestyles;
-  lb[INDEX_ID_SCE] = &bmain.scenes;
+  lb[INDEX_ID_LS] = &(bmain.linestyles.cast<ID>());
+  lb[INDEX_ID_SCE] = &(bmain.scenes.cast<ID>());
   /* before wm, so it's freed after it! */
-  lb[INDEX_ID_WS] = &bmain.workspaces;
-  lb[INDEX_ID_WM] = &bmain.wm;
-  lb[INDEX_ID_MSK] = &bmain.masks;
+  lb[INDEX_ID_WS] = &(bmain.workspaces.cast<ID>());
+  lb[INDEX_ID_WM] = &(bmain.wm.cast<ID>());
+  lb[INDEX_ID_MSK] = &(bmain.masks.cast<ID>());
 
   return lb;
 }
+
+}  // namespace blender

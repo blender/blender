@@ -8,9 +8,11 @@
 
 #pragma once
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Shader;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /**
  * To Identity transform & empty stack.
@@ -152,7 +154,7 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 /**
  * Set uniform values for currently bound shader.
  */
-void GPU_matrix_bind(blender::gpu::Shader *shader);
+void GPU_matrix_bind(gpu::Shader *shader);
 bool GPU_matrix_dirty_get(); /* since last bind */
 
 /**
@@ -225,3 +227,5 @@ int GPU_matrix_stack_level_get_projection();
  * however we need to check these limits in code that calls into these API's. */
 constexpr static int GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT = -100;
 constexpr static int GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT = 100;
+
+}  // namespace blender

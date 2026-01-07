@@ -34,6 +34,8 @@
 
 #include "physics_intern.hh"
 
+namespace blender {
+
 static bool ptcache_bake_all_poll(bContext *C)
 {
   return CTX_data_scene(C) != nullptr;
@@ -190,7 +192,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
   if (!all) {
     PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
     ID *id = ptr.owner_id;
-    Object *ob = (GS(id->name) == ID_OB) ? (Object *)id : nullptr;
+    Object *ob = (GS(id->name) == ID_OB) ? id_cast<Object *>(id) : nullptr;
     PointCache *cache = static_cast<PointCache *>(ptr.data);
     baker->pid = BKE_ptcache_id_find(ob, baker->scene, cache);
   }
@@ -244,7 +246,7 @@ static wmOperatorStatus ptcache_bake_invoke(bContext *C, wmOperator *op, const w
 
 static wmOperatorStatus ptcache_bake_modal(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  Scene *scene = (Scene *)op->customdata;
+  Scene *scene = static_cast<Scene *>(op->customdata);
 
   /* no running blender, remove handler and pass through */
   if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_POINTCACHE)) {
@@ -257,7 +259,7 @@ static wmOperatorStatus ptcache_bake_modal(bContext *C, wmOperator *op, const wm
 static void ptcache_bake_cancel(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  Scene *scene = (Scene *)op->customdata;
+  Scene *scene = static_cast<Scene *>(op->customdata);
 
   /* kill on cancel, because job is using op->reports */
   WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_POINTCACHE);
@@ -266,13 +268,13 @@ static void ptcache_bake_cancel(bContext *C, wmOperator *op)
 static wmOperatorStatus ptcache_free_bake_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
-  ListBase pidlist;
+  ListBaseT<PTCacheID> pidlist;
 
   FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
     BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
 
-    LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
-      ptcache_free_bake(pid->cache);
+    for (PTCacheID &pid : pidlist) {
+      ptcache_free_bake(pid.cache);
     }
 
     BLI_freelistN(&pidlist);
@@ -324,7 +326,7 @@ static wmOperatorStatus ptcache_free_bake_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
-  Object *ob = (Object *)ptr.owner_id;
+  Object *ob = id_cast<Object *>(ptr.owner_id);
 
   ptcache_free_bake(cache);
 
@@ -336,7 +338,7 @@ static wmOperatorStatus ptcache_bake_from_cache_exec(bContext *C, wmOperator * /
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
-  Object *ob = (Object *)ptr.owner_id;
+  Object *ob = id_cast<Object *>(ptr.owner_id);
 
   cache->flag |= PTCACHE_BAKED;
 
@@ -396,7 +398,7 @@ static wmOperatorStatus ptcache_add_new_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
-  Object *ob = (Object *)ptr.owner_id;
+  Object *ob = id_cast<Object *>(ptr.owner_id);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
@@ -416,7 +418,7 @@ static wmOperatorStatus ptcache_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = (Object *)ptr.owner_id;
+  Object *ob = id_cast<Object *>(ptr.owner_id);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
@@ -460,3 +462,5 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

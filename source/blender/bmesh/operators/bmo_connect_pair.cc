@@ -21,6 +21,8 @@
 
 #include "BLI_mempool.h"
 
+namespace blender {
+
 /**
  * Method for connecting across many faces.
  *
@@ -266,10 +268,13 @@ static void state_link_add(PathContext *pc, PathLinkState *state, BMElem *ele, B
   {
     float co[3];
     if (ele->head.htype == BM_VERT) {
-      copy_v3_v3(co, ((BMVert *)ele)->co);
+      copy_v3_v3(co, (reinterpret_cast<BMVert *>(ele))->co);
     }
     else if (ele->head.htype == BM_EDGE) {
-      state_calc_co_pair(pc, ((BMEdge *)ele)->v1->co, ((BMEdge *)ele)->v2->co, co);
+      state_calc_co_pair(pc,
+                         (reinterpret_cast<BMEdge *>(ele))->v1->co,
+                         (reinterpret_cast<BMEdge *>(ele))->v2->co,
+                         co);
     }
     else {
       BLI_assert(0);
@@ -340,8 +345,8 @@ static PathLinkState *state_step__face_edges(PathContext *pc,
       sub_v3_v3v3(dist_dir, co_isect, state_orig->co_prev);
       dist_test = len_squared_v3(dist_dir);
       if ((index = min_dist_dir_test(mddir, dist_dir, dist_test)) != -1) {
-        BMElem *ele_next = (BMElem *)l_iter->e;
-        BMElem *ele_next_from = (BMElem *)l_iter->f;
+        BMElem *ele_next = reinterpret_cast<BMElem *>(l_iter->e);
+        BMElem *ele_next_from = reinterpret_cast<BMElem *>(l_iter->f);
 
         if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
             (ELE_TOUCH_TEST_EDGE((BMEdge *)ele_next) == false))
@@ -356,8 +361,8 @@ static PathLinkState *state_step__face_edges(PathContext *pc,
 
   for (i = 0; i < 2; i++) {
     if ((l_iter = l_iter_best[i])) {
-      BMElem *ele_next = (BMElem *)l_iter->e;
-      BMElem *ele_next_from = (BMElem *)l_iter->f;
+      BMElem *ele_next = reinterpret_cast<BMElem *>(l_iter->e);
+      BMElem *ele_next_from = reinterpret_cast<BMElem *>(l_iter->f);
       state = state_link_add_test(pc, state, state_orig, ele_next, ele_next_from);
     }
   }
@@ -386,8 +391,8 @@ static PathLinkState *state_step__face_verts(PathContext *pc,
       sub_v3_v3v3(dist_dir, co_isect, state_orig->co_prev);
       dist_test = len_squared_v3(dist_dir);
       if ((index = min_dist_dir_test(mddir, dist_dir, dist_test)) != -1) {
-        BMElem *ele_next = (BMElem *)l_iter->v;
-        BMElem *ele_next_from = (BMElem *)l_iter->f;
+        BMElem *ele_next = reinterpret_cast<BMElem *>(l_iter->v);
+        BMElem *ele_next_from = reinterpret_cast<BMElem *>(l_iter->f);
 
         if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
             (ELE_TOUCH_TEST_VERT((BMVert *)ele_next) == false))
@@ -402,8 +407,8 @@ static PathLinkState *state_step__face_verts(PathContext *pc,
 
   for (i = 0; i < 2; i++) {
     if ((l_iter = l_iter_best[i])) {
-      BMElem *ele_next = (BMElem *)l_iter->v;
-      BMElem *ele_next_from = (BMElem *)l_iter->f;
+      BMElem *ele_next = reinterpret_cast<BMElem *>(l_iter->v);
+      BMElem *ele_next_from = reinterpret_cast<BMElem *>(l_iter->f);
       state = state_link_add_test(pc, state, state_orig, ele_next, ele_next_from);
     }
   }
@@ -418,7 +423,7 @@ static bool state_step(PathContext *pc, PathLinkState *state)
   const void *ele_from = state->link_last->ele_from;
 
   if (ele->head.htype == BM_EDGE) {
-    BMEdge *e = (BMEdge *)ele;
+    BMEdge *e = reinterpret_cast<BMEdge *>(ele);
 
     BMIter liter;
     BMLoop *l_start;
@@ -434,7 +439,7 @@ static bool state_step(PathContext *pc, PathLinkState *state)
     }
   }
   else if (ele->head.htype == BM_VERT) {
-    BMVert *v = (BMVert *)ele;
+    BMVert *v = reinterpret_cast<BMVert *>(ele);
 
     /* Vert loops. */
     {
@@ -462,10 +467,10 @@ static bool state_step(PathContext *pc, PathLinkState *state)
       BMEdge *e;
       BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
         BMVert *v_other = BM_edge_other_vert(e, v);
-        if (((BMElem *)e != ele_from) && VERT_WALK_TEST(v_other)) {
+        if ((reinterpret_cast<BMElem *>(e) != ele_from) && VERT_WALK_TEST(v_other)) {
           if (state_isect_co_exact(pc, v_other->co)) {
-            BMElem *ele_next = (BMElem *)v_other;
-            BMElem *ele_next_from = (BMElem *)e;
+            BMElem *ele_next = reinterpret_cast<BMElem *>(v_other);
+            BMElem *ele_next_from = reinterpret_cast<BMElem *>(e);
             if (ELE_TOUCH_TEST_VERT((BMVert *)ele_next) == false) {
               state = state_link_add_test(pc, state, &state_orig, ele_next, ele_next_from);
             }
@@ -598,8 +603,8 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
   }
 
   pc.bm_bmoflag = bm;
-  pc.v_pair[0] = ((BMVert **)op_verts_slot->data.p)[0];
-  pc.v_pair[1] = ((BMVert **)op_verts_slot->data.p)[1];
+  pc.v_pair[0] = (static_cast<BMVert **>(op_verts_slot->data.p))[0];
+  pc.v_pair[1] = (static_cast<BMVert **>(op_verts_slot->data.p))[1];
 
   /* fail! */
   if (!(pc.v_pair[0] && pc.v_pair[1])) {
@@ -631,7 +636,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
   {
     PathLinkState *state;
     state = MEM_callocN<PathLinkState>(__func__);
-    state_link_add(&pc, state, (BMElem *)pc.v_pair[0], nullptr);
+    state_link_add(&pc, state, reinterpret_cast<BMElem *>(pc.v_pair[0]), nullptr);
     BLI_heapsimple_insert(pc.states, state->dist, state);
   }
 
@@ -647,7 +652,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
       /* either we insert this into 'pc.states' or its freed */
       bool continue_search;
 
-      if (state->link_last->ele == (BMElem *)pc.v_pair[1]) {
+      if (state->link_last->ele == reinterpret_cast<BMElem *>(pc.v_pair[1])) {
 /* pass, wait until all are found */
 #ifdef DEBUG_PRINT
         printf("%s: state %p loop found %.4f\n", __func__, state, state->dist);
@@ -687,14 +692,14 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
     link = state_best.link_last;
     do {
       if (link->ele->head.htype == BM_EDGE) {
-        BMEdge *e = (BMEdge *)link->ele;
+        BMEdge *e = reinterpret_cast<BMEdge *>(link->ele);
         BMVert *v_new;
         float e_fac = state_calc_co_pair_fac(&pc, e->v1->co, e->v2->co);
         v_new = BM_edge_split(bm, e, e->v1, nullptr, e_fac);
         BMO_vert_flag_enable(bm, v_new, VERT_OUT);
       }
       else if (link->ele->head.htype == BM_VERT) {
-        BMVert *v = (BMVert *)link->ele;
+        BMVert *v = reinterpret_cast<BMVert *>(link->ele);
         BMO_vert_flag_enable(bm, v, VERT_OUT);
       }
       else {
@@ -727,3 +732,5 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
   }
 #endif
 }
+
+}  // namespace blender

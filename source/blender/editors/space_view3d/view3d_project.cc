@@ -7,6 +7,7 @@
  */
 
 #include "DNA_camera_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -25,14 +26,14 @@
 
 #include "ED_view3d.hh" /* own include */
 
+namespace blender {
+
 #define BL_ZERO_CLIP 0.001
 
 /* Non Clipping Projection Functions
  * ********************************* */
 
-blender::float2 ED_view3d_project_float_v2_m4(const ARegion *region,
-                                              const float co[3],
-                                              const blender::float4x4 &mat)
+float2 ED_view3d_project_float_v2_m4(const ARegion *region, const float co[3], const float4x4 &mat)
 {
   float vec4[4];
 
@@ -42,7 +43,7 @@ blender::float2 ED_view3d_project_float_v2_m4(const ARegion *region,
 
   mul_m4_v4(mat.ptr(), vec4);
 
-  blender::float2 co_region;
+  float2 co_region;
   if (vec4[3] > FLT_EPSILON) {
     co_region[0] = float(region->winx / 2.0f) + (region->winx / 2.0f) * vec4[0] / vec4[3];
     co_region[1] = float(region->winy / 2.0f) + (region->winy / 2.0f) * vec4[1] / vec4[3];
@@ -507,7 +508,7 @@ void ED_view3d_win_to_3d(const View3D *v3d,
 
     if (rv3d->persp == RV3D_CAMOB) {
       /* ortho camera needs offset applied */
-      const Camera *cam = static_cast<const Camera *>(v3d->camera->data);
+      const Camera *cam = id_cast<const Camera *>(v3d->camera->data);
       const int sensor_fit = BKE_camera_sensor_fit(cam->sensor_fit, region->winx, region->winy);
       const float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom) * 4.0f;
       const float aspx = region->winx / float(region->winy);
@@ -560,7 +561,7 @@ void ED_view3d_win_to_3d_with_shift(const View3D *v3d,
 
     if (rv3d->persp == RV3D_CAMOB) {
       /* ortho camera needs offset applied */
-      const Camera *cam = static_cast<const Camera *>(v3d->camera->data);
+      const Camera *cam = id_cast<const Camera *>(v3d->camera->data);
       const int sensor_fit = BKE_camera_sensor_fit(cam->sensor_fit, region->winx, region->winy);
       const float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom) * 4.0f;
       const float aspx = region->winx / float(region->winy);
@@ -747,7 +748,8 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
 
   /* bounds clipping */
   if (do_clip_planes) {
-    return ED_view3d_clip_segment((RegionView3D *)region->regiondata, r_ray_start, r_ray_end);
+    return ED_view3d_clip_segment(
+        static_cast<RegionView3D *>(region->regiondata), r_ray_start, r_ray_end);
   }
 
   return true;
@@ -757,20 +759,19 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
 /** \name Utility functions for projection
  * \{ */
 
-blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob)
+float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob)
 {
   float vmat[4][4];
-  blender::float4x4 pmat;
+  float4x4 pmat;
 
   mul_m4_m4m4(vmat, rv3d->viewmat, ob->object_to_world().ptr());
   mul_m4_m4m4(pmat.ptr(), rv3d->winmat, vmat);
   return pmat;
 }
 
-blender::float4x4 ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
-                                                          const blender::float4x4 &obmat)
+float4x4 ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d, const float4x4 &obmat)
 {
-  return blender::float4x4_view(rv3d->winmat) * blender::float4x4_view(rv3d->viewmat) * obmat;
+  return float4x4_view(rv3d->winmat) * float4x4_view(rv3d->viewmat) * obmat;
 }
 
 void ED_view3d_project_v3(const ARegion *region, const float world[3], float r_region_co[3])
@@ -800,3 +801,5 @@ bool ED_view3d_unproject_v3(
 }
 
 /** \} */
+
+}  // namespace blender

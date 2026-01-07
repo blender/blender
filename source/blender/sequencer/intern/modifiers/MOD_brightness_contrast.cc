@@ -55,7 +55,7 @@ static void brightcontrast_apply(ModifierApplyContext &context,
                                  StripModifierData *smd,
                                  ImBuf *mask)
 {
-  const BrightContrastModifierData *bcmd = (BrightContrastModifierData *)smd;
+  const BrightContrastModifierData *bcmd = reinterpret_cast<BrightContrastModifierData *>(smd);
 
   BrightContrastApplyOp op;
 
@@ -83,7 +83,7 @@ static void brightcontrast_apply(ModifierApplyContext &context,
 static void brightcontrast_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
   layout.use_property_split_set(true);
 

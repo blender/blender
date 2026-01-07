@@ -14,8 +14,14 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "DNA_text_types.h"
+
+#  include "BKE_text.h"
+
 #  include "WM_api.hh"
 #  include "WM_types.hh"
+
+namespace blender {
 
 static void rna_Text_clear(Text *text)
 {
@@ -54,7 +60,11 @@ static void rna_Text_cursor_set(Text *text, int line, int ch, bool select)
   WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_text(StructRNA *srna)
 {
@@ -107,5 +117,7 @@ void RNA_api_text(StructRNA *srna)
   parm = RNA_def_int(func, "character", 0, 0, INT_MAX, "Character", "", 0, INT_MAX);
   RNA_def_boolean(func, "select", false, "", "Select when moving the cursor");
 }
+
+}  // namespace blender
 
 #endif

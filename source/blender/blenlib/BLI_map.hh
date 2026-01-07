@@ -7,14 +7,14 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::Map<Key, Value>` is an unordered associative container that stores key-value pairs.
+ * A `Map<Key, Value>` is an unordered associative container that stores key-value pairs.
  * The keys have to be unique. It is designed to be a more convenient and efficient replacement for
  * `std::unordered_map`. All core operations (add, lookup, remove and contains) can be done in O(1)
  * amortized expected time.
  *
- * Your default choice for a hash map in Blender should be `blender::Map`.
+ * Your default choice for a hash map in Blender should be `Map`.
  *
- * blender::Map is implemented using open addressing in a slot array with a power-of-two size.
+ * Map is implemented using open addressing in a slot array with a power-of-two size.
  * Every slot is in one of three states: empty, occupied or removed. If a slot is occupied, it
  * contains a Key and Value instance.
  *
@@ -25,7 +25,7 @@
  * that allow it to be optimized for a specific use case.
  *
  * A rudimentary benchmark can be found in BLI_map_test.cc. The results of that benchmark are there
- * as well. The numbers show that in this specific case blender::Map outperforms std::unordered_map
+ * as well. The numbers show that in this specific case Map outperforms std::unordered_map
  * consistently by a good amount.
  *
  * Some noteworthy information:
@@ -1098,6 +1098,10 @@ class Map {
  private:
   BLI_NOINLINE void realloc_and_reinsert(int64_t min_usable_slots)
   {
+    /* Avoid rebuilding the hash table just to get rid of a few removed slots. In this case, also
+     * increase the map size to avoid a bad edge case. */
+    min_usable_slots = std::max(min_usable_slots, this->size() * 2);
+
     int64_t total_slots, usable_slots;
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
@@ -1197,6 +1201,10 @@ class Map {
       if (slot.contains(key, is_equal_, hash)) {
         return false;
       }
+      /* This intentionally does not check if the slot is in removed state because that would cause
+       * additional overhead in the common case when nothing is ever removed from the map. These
+       * slots will be cleaned up when the map is rebuilt. There could be alternative methods or
+       * template arguments in the future to enable overridding removed slots here. */
     }
     MAP_SLOT_PROBING_END();
   }

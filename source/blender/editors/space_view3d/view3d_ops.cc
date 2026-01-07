@@ -38,6 +38,8 @@
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
  * \{ */
@@ -85,8 +87,8 @@ static wmOperatorStatus view3d_copybuffer_exec(bContext *C, wmOperator *op)
   int num_copied = 0;
 
   /* Count & mark the active as done (when set). */
-  LISTBASE_FOREACH (Object *, ob, &copybuffer.bmain.objects) {
-    ob->flag &= ~OB_FLAG_ACTIVE_CLIPBOARD;
+  for (Object &ob : copybuffer.bmain.objects) {
+    ob.flag &= ~OB_FLAG_ACTIVE_CLIPBOARD;
     num_copied += 1;
   }
 
@@ -256,7 +258,7 @@ void view3d_operatortypes()
   WM_operatortype_append(VIEW3D_OT_ruler_add);
   WM_operatortype_append(VIEW3D_OT_ruler_remove);
 
-  blender::ed::transform::transform_operatortypes();
+  ed::transform::transform_operatortypes();
 }
 
 void view3d_keymap(wmKeyConfig *keyconf)
@@ -276,3 +278,5 @@ void view3d_keymap(wmKeyConfig *keyconf)
 }
 
 /** \} */
+
+}  // namespace blender

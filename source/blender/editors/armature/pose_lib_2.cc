@@ -53,6 +53,8 @@
 
 #include "armature_intern.hh"
 
+namespace blender {
+
 enum ePoseBlendState {
   POSE_BLEND_INIT,
   POSE_BLEND_BLENDING,
@@ -81,9 +83,9 @@ struct PoseBlendData {
   bool is_flipped;
   PoseBackup *pose_backup;
 
-  blender::Vector<Object *> objects; /* Objects to work on. */
-  bAction *act;                      /* Pose to blend into the current pose. */
-  bAction *act_flipped;              /* Flipped copy of `act`. */
+  Vector<Object *> objects; /* Objects to work on. */
+  bAction *act;             /* Pose to blend into the current pose. */
+  bAction *act_flipped;     /* Flipped copy of `act`. */
 
   Scene *scene;  /* For auto-keying. */
   ScrArea *area; /* For drawing status text. */
@@ -121,7 +123,7 @@ static void poselib_backup_posecopy(PoseBlendData *pbd)
 static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 {
   for (Object *ob : pbd->objects) {
-    if (!blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
+    if (!animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
       return;
     }
 
@@ -135,14 +137,13 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 
     bPose *pose = ob->pose;
     bAction *act = poselib_action_to_blend(pbd);
-    const bArmature *armature = static_cast<const bArmature *>(ob->data);
+    const bArmature *armature = id_cast<const bArmature *>(ob->data);
 
-    blender::animrig::Slot &slot = blender::animrig::get_best_pose_slot_for_id(ob->id,
-                                                                               act->wrap());
+    animrig::Slot &slot = animrig::get_best_pose_slot_for_id(ob->id, act->wrap());
 
     /* Storing which pose bones were already keyed since multiple FCurves will probably exist per
      * pose bone. */
-    blender::Set<bPoseChannel *> keyed_pose_bones;
+    Set<bPoseChannel *> keyed_pose_bones;
     auto autokey_pose_bones = [&](FCurve * /* fcu */, const char *bone_name) {
       bPoseChannel *pchan = BKE_pose_channel_find_name(pose, bone_name);
       if (!pchan) {
@@ -152,7 +153,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
         return;
       }
       if (BKE_pose_backup_is_selection_relevant(pbd->pose_backup) &&
-          !blender::animrig::bone_is_selected(armature, pchan))
+          !animrig::bone_is_selected(armature, pchan))
       {
         return;
       }
@@ -162,17 +163,16 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
       /* This mimics the Whole Character Keying Set that was used here previously. In the future we
        * could only key rna paths of FCurves that are actually in the applied pose. */
       PointerRNA pose_bone_pointer = RNA_pointer_create_discrete(&ob->id, &RNA_PoseBone, pchan);
-      blender::Vector<RNAPath> rna_paths = blender::animrig::get_keyable_id_property_paths(
-          pose_bone_pointer);
+      Vector<RNAPath> rna_paths = animrig::get_keyable_id_property_paths(pose_bone_pointer);
       rna_paths.append({"location"});
-      const blender::StringRef rotation_mode_path = blender::animrig::get_rotation_mode_path(
+      const StringRef rotation_mode_path = animrig::get_rotation_mode_path(
           eRotationModes(pchan->rotmode));
       rna_paths.append({rotation_mode_path});
       rna_paths.append({"scale"});
-      blender::animrig::autokeyframe_pose_channel(C, scene, ob, pchan, rna_paths, 0);
+      animrig::autokeyframe_pose_channel(C, scene, ob, pchan, rna_paths, 0);
       keyed_pose_bones.add(pchan);
     };
-    blender::bke::BKE_action_find_fcurves_with_bones(act, slot.handle, autokey_pose_bones);
+    bke::BKE_action_find_fcurves_with_bones(act, slot.handle, autokey_pose_bones);
   }
 
   /* send notifiers for this */
@@ -205,13 +205,12 @@ static void poselib_blend_apply(bContext *C, wmOperator *op)
   /* Perform the actual blending. */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph, 0.0f);
-  blender::animrig::Action &pose_action = poselib_action_to_blend(pbd)->wrap();
+  animrig::Action &pose_action = poselib_action_to_blend(pbd)->wrap();
   if (pose_action.slot_array_num == 0) {
     return;
   }
 
-  blender::animrig::pose_apply_action(
-      pbd->objects, pose_action, &anim_eval_context, pbd->blend_factor);
+  animrig::pose_apply_action(pbd->objects, pose_action, &anim_eval_context, pbd->blend_factor);
 }
 
 /* ---------------------------- */
@@ -303,12 +302,12 @@ static wmOperatorStatus poselib_blend_handle_event(bContext * /*C*/,
 
 /* ---------------------------- */
 
-static blender::Vector<Object *> get_poselib_objects(bContext &C)
+static Vector<Object *> get_poselib_objects(bContext &C)
 {
-  blender::Vector<PointerRNA> selected_objects;
+  Vector<PointerRNA> selected_objects;
   CTX_data_selected_objects(&C, &selected_objects);
 
-  blender::Vector<Object *> selected_pose_objects;
+  Vector<Object *> selected_pose_objects;
   for (const PointerRNA &ptr : selected_objects) {
     Object *object = reinterpret_cast<Object *>(ptr.owner_id);
     if (!object || !object->pose) {
@@ -336,7 +335,7 @@ static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
 {
   using namespace blender::ed;
 
-  const blender::asset_system::AssetRepresentation *asset = nullptr;
+  const asset_system::AssetRepresentation *asset = nullptr;
 
   if (asset::operator_asset_reference_props_is_set(*op->ptr)) {
     asset = asset::operator_asset_reference_props_get_asset_from_all_library(
@@ -374,7 +373,7 @@ static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
       pbd->temp_id_consumer, ID_AC, CTX_data_main(C), op->reports));
 }
 
-static bAction *flip_pose(bContext *C, blender::Span<Object *> objects, bAction *action)
+static bAction *flip_pose(bContext *C, Span<Object *> objects, bAction *action)
 {
   bAction *action_copy = reinterpret_cast<bAction *>(
       BKE_id_copy_ex(nullptr, &action->id, nullptr, LIB_ID_COPY_LOCALIZE));
@@ -397,7 +396,7 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
   op->customdata = nullptr;
 
   /* check if valid poselib */
-  blender::Vector<Object *> selected_pose_objects = get_poselib_objects(*C);
+  Vector<Object *> selected_pose_objects = get_poselib_objects(*C);
   if (selected_pose_objects.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "Pose lib is only for armatures in pose mode");
     return false;
@@ -650,7 +649,7 @@ static wmOperatorStatus poselib_blend_exec(bContext *C, wmOperator *op)
 /* Poll callback for operators that require existing PoseLib data (with poses) to work. */
 static bool poselib_blend_poll(bContext *C)
 {
-  blender::Span<Object *> selected_pose_objects = get_poselib_objects(*C);
+  Span<Object *> selected_pose_objects = get_poselib_objects(*C);
   if (selected_pose_objects.is_empty()) {
     /* Pose lib is only for armatures in pose mode. */
     return false;
@@ -680,7 +679,7 @@ void POSELIB_OT_apply_pose_asset(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties: */
-  blender::ed::asset::operator_asset_reference_props_register(*ot->srna);
+  ed::asset::operator_asset_reference_props_register(*ot->srna);
   RNA_def_float_factor(ot->srna,
                        "blend_factor",
                        1.0f,
@@ -720,7 +719,7 @@ void POSELIB_OT_blend_pose_asset(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   /* Properties: */
-  blender::ed::asset::operator_asset_reference_props_register(*ot->srna);
+  ed::asset::operator_asset_reference_props_register(*ot->srna);
   prop = RNA_def_float_factor(ot->srna,
                               "blend_factor",
                               0.0f,
@@ -750,3 +749,5 @@ void POSELIB_OT_blend_pose_asset(wmOperatorType *ot)
                          "Always confirm operation when releasing button");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
+
+}  // namespace blender

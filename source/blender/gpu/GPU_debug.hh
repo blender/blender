@@ -65,6 +65,8 @@
 
 #include <string>
 
+namespace blender {
+
 #define GPU_DEBUG_SHADER_COMPILATION_GROUP "Shader Compilation"
 #define GPU_DEBUG_SHADER_SPECIALIZATION_GROUP "Shader Specialization"
 
@@ -75,7 +77,7 @@ void GPU_debug_group_end();
  * "Group1 > Group 2 > Group3 > ... > GroupN : "
  */
 void GPU_debug_get_groups_names(int name_buf_len, char *r_name_buf);
-std::string GPU_debug_get_groups_names(blender::IndexRange levels = blender::IndexRange(0, 9999));
+std::string GPU_debug_get_groups_names(IndexRange levels = IndexRange(0, 9999));
 /**
  * Return true if inside a debug group with the same name.
  */
@@ -114,7 +116,7 @@ void *GPU_debug_capture_scope_create(const char *name);
 bool GPU_debug_capture_scope_begin(void *scope);
 void GPU_debug_capture_scope_end(void *scope);
 
-namespace blender::gpu {
+namespace gpu {
 
 /**
  * Need to be declared as static with a unique identifier string.
@@ -157,4 +159,5 @@ struct DebugScope {
   }
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

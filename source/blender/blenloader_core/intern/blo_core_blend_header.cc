@@ -12,6 +12,8 @@
 #include "BLO_core_bhead.hh"
 #include "BLO_core_blend_header.hh"
 
+namespace blender {
+
 BHeadType BlenderHeader::bhead_type() const
 {
   if (this->pointer_size == 4) {
@@ -123,3 +125,5 @@ BlenderHeaderVariant BLO_readfile_blender_header_decode(FileReader *file)
   header.file_version = std::atoi(version_str);
   return header;
 }
+
+}  // namespace blender

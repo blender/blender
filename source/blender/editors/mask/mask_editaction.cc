@@ -25,6 +25,8 @@
 #include "ED_markers.hh"
 #include "ED_mask.hh" /* own include */
 
+namespace blender {
+
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
  * This file contains code for editing Mask data in the Action Editor
@@ -44,9 +46,9 @@ bool ED_masklayer_frames_looper(MaskLayer *mask_layer,
   }
 
   /* do loop */
-  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes) {
     /* execute callback */
-    if (mask_layer_shape_cb(mask_layer_shape, scene)) {
+    if (mask_layer_shape_cb(&mask_layer_shape, scene)) {
       return true;
     }
   }
@@ -58,7 +60,7 @@ bool ED_masklayer_frames_looper(MaskLayer *mask_layer,
 /* ****************************************** */
 /* Data Conversion Tools */
 
-void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool onlysel)
+void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBaseT<CfraElem> *elems, bool onlysel)
 {
 
   /* error checking */
@@ -67,12 +69,12 @@ void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool on
   }
 
   /* loop through mask-frames, adding */
-  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
-    if ((onlysel == false) || (mask_layer_shape->flag & MASK_SHAPE_SELECT)) {
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes) {
+    if ((onlysel == false) || (mask_layer_shape.flag & MASK_SHAPE_SELECT)) {
       CfraElem *ce = MEM_callocN<CfraElem>("CfraElem");
 
-      ce->cfra = float(mask_layer_shape->frame);
-      ce->sel = (mask_layer_shape->flag & MASK_SHAPE_SELECT) ? 1 : 0;
+      ce->cfra = float(mask_layer_shape.frame);
+      ce->sel = (mask_layer_shape.flag & MASK_SHAPE_SELECT) ? 1 : 0;
 
       BLI_addtail(elems, ce);
     }
@@ -90,8 +92,8 @@ bool ED_masklayer_frame_select_check(const MaskLayer *mask_layer)
   }
 
   /* stop at the first one found */
-  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
-    if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes) {
+    if (mask_layer_shape.flag & MASK_SHAPE_SELECT) {
       return true;
     }
   }
@@ -128,8 +130,8 @@ void ED_mask_select_frames(MaskLayer *mask_layer, short select_mode)
   }
 
   /* handle according to mode */
-  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
-    mask_layer_shape_select(mask_layer_shape, select_mode);
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes) {
+    mask_layer_shape_select(&mask_layer_shape, select_mode);
   }
 }
 
@@ -166,9 +168,9 @@ void ED_masklayer_frames_select_box(MaskLayer *mask_layer, float min, float max,
   }
 
   /* only select those frames which are in bounds */
-  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
-    if (IN_RANGE(mask_layer_shape->frame, min, max)) {
-      mask_layer_shape_select(mask_layer_shape, select_mode);
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes) {
+    if (IN_RANGE(mask_layer_shape.frame, min, max)) {
+      mask_layer_shape_select(&mask_layer_shape, select_mode);
     }
   }
 }
@@ -183,24 +185,24 @@ void ED_masklayer_frames_select_region(KeyframeEditData *ked,
   }
 
   /* only select frames which are within the region */
-  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes) {
     /* construct a dummy point coordinate to do this testing with */
     float pt[2] = {0};
 
-    pt[0] = mask_layer_shape->frame;
+    pt[0] = mask_layer_shape.frame;
     pt[1] = ked->channel_y;
 
     /* check the necessary regions */
     if (tool == BEZT_OK_CHANNEL_LASSO) {
       /* Lasso */
       if (keyframe_region_lasso_test(static_cast<KeyframeEdit_LassoData *>(ked->data), pt)) {
-        mask_layer_shape_select(mask_layer_shape, select_mode);
+        mask_layer_shape_select(&mask_layer_shape, select_mode);
       }
     }
     else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
       /* Circle */
       if (keyframe_region_circle_test(static_cast<KeyframeEdit_CircleData *>(ked->data), pt)) {
-        mask_layer_shape_select(mask_layer_shape, select_mode);
+        mask_layer_shape_select(&mask_layer_shape, select_mode);
       }
     }
   }
@@ -219,9 +221,9 @@ bool ED_masklayer_frames_delete(MaskLayer *mask_layer)
   }
 
   /* check for frames to delete */
-  LISTBASE_FOREACH_MUTABLE (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
-    if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
-      BKE_mask_layer_shape_unlink(mask_layer, mask_layer_shape);
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes.items_mutable()) {
+    if (mask_layer_shape.flag & MASK_SHAPE_SELECT) {
+      BKE_mask_layer_shape_unlink(mask_layer, &mask_layer_shape);
       changed = true;
     }
   }
@@ -239,18 +241,18 @@ bool ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
   }
 
   /* Duplicate selected frames. */
-  LISTBASE_FOREACH_MUTABLE (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
+  for (MaskLayerShape &mask_layer_shape : mask_layer->splines_shapes.items_mutable()) {
 
     /* Duplicate this frame. */
-    if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
+    if (mask_layer_shape.flag & MASK_SHAPE_SELECT) {
       MaskLayerShape *mask_shape_dupe;
 
       /* Duplicate frame, and deselect self. */
-      mask_shape_dupe = BKE_mask_layer_shape_duplicate(mask_layer_shape);
-      mask_layer_shape->flag &= ~MASK_SHAPE_SELECT;
+      mask_shape_dupe = BKE_mask_layer_shape_duplicate(&mask_layer_shape);
+      mask_layer_shape.flag &= ~MASK_SHAPE_SELECT;
 
       /* XXX: how to handle duplicate frames? */
-      BLI_insertlinkafter(&mask_layer->splines_shapes, mask_layer_shape, mask_shape_dupe);
+      BLI_insertlinkafter(&mask_layer->splines_shapes, &mask_layer_shape, mask_shape_dupe);
       changed = true;
     }
   }
@@ -314,3 +316,5 @@ void ED_masklayer_snap_frames(MaskLayer *mask_layer, Scene *scene, short mode)
       break;
   }
 }
+
+}  // namespace blender

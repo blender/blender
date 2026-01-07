@@ -53,18 +53,18 @@
 namespace blender::seq {
 
 struct IndexBuildContext {
-  MovieProxyBuilder *proxy_builder;
+  MovieProxyBuilder *proxy_builder = nullptr;
 
-  int tc_flags;
-  int size_flags;
-  int quality;
-  bool overwrite;
-  int view_id;
+  int tc_flags = 0;
+  int size_flags = 0;
+  int quality = 0;
+  bool overwrite = false;
+  int view_id = 0;
 
-  Main *bmain;
-  Depsgraph *depsgraph;
-  Scene *scene;
-  Strip *strip, *orig_seq;
+  Main *bmain = nullptr;
+  Depsgraph *depsgraph = nullptr;
+  Scene *scene = nullptr;
+  Strip *strip = nullptr, *orig_seq = nullptr;
   SessionUID orig_seq_uid;
 };
 
@@ -430,7 +430,7 @@ bool proxy_rebuild_context(Main *bmain,
                            Scene *scene,
                            Strip *strip,
                            Set<std::string> *processed_paths,
-                           ListBase *queue,
+                           ListBaseT<LinkData> *queue,
                            bool build_only_on_bad_performance)
 {
   if (!strip->data || !strip->data->proxy) {
@@ -459,7 +459,8 @@ bool proxy_rebuild_context(Main *bmain,
 
     strip_free_movie_readers(strip);
 
-    IndexBuildContext *context = MEM_callocN<IndexBuildContext>("strip proxy rebuild context");
+    IndexBuildContext *context = MEM_new_for_free<IndexBuildContext>(
+        "strip proxy rebuild context");
 
     Strip *strip_new = strip_duplicate_recursive(
         bmain, scene, scene, nullptr, strip, StripDuplicate::Selected);
@@ -503,7 +504,9 @@ bool proxy_rebuild_context(Main *bmain,
   return true;
 }
 
-void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
+void proxy_rebuild(IndexBuildContext *context,
+                   wmJobWorkerStatus *worker_status,
+                   const FunctionRef<void(float progress)> set_progress_fn)
 {
   const bool overwrite = context->overwrite;
   RenderData render_context;
@@ -516,7 +519,7 @@ void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
       MOV_proxy_builder_process(context->proxy_builder,
                                 &worker_status->stop,
                                 &worker_status->do_update,
-                                &worker_status->progress);
+                                set_progress_fn);
     }
 
     return;
@@ -550,8 +553,7 @@ void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
 
   SeqRenderState state;
 
-  for (int timeline_frame = time_left_handle_frame_get(scene, strip);
-       timeline_frame < time_right_handle_frame_get(scene, strip);
+  for (int timeline_frame = strip->left_handle(); timeline_frame < strip->right_handle(scene);
        timeline_frame++)
   {
     intra_frame_cache_set_cur_frame(render_context.scene,
@@ -573,9 +575,8 @@ void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
       seq_proxy_build_frame(&render_context, &state, strip, timeline_frame, 100, overwrite);
     }
 
-    worker_status->progress = float(timeline_frame - time_left_handle_frame_get(scene, strip)) /
-                              (time_right_handle_frame_get(scene, strip) -
-                               time_left_handle_frame_get(scene, strip));
+    worker_status->progress = float(timeline_frame - strip->left_handle()) /
+                              (strip->right_handle(scene) - strip->left_handle());
     worker_status->do_update = true;
 
     if (worker_status->stop || G.is_break) {

@@ -57,7 +57,7 @@ using bke::CurvesGeometry;
 class AddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Used when some data should be interpolated from existing curves. */
-  blender::KDTree_3d *curve_roots_kdtree_ = nullptr;
+  KDTree_3d *curve_roots_kdtree_ = nullptr;
 
   friend struct AddOperationExecutor;
 
@@ -65,11 +65,12 @@ class AddOperation : public CurvesSculptStrokeOperation {
   ~AddOperation() override
   {
     if (curve_roots_kdtree_ != nullptr) {
-      blender::BLI_kdtree_3d_free(curve_roots_kdtree_);
+      kdtree_3d_free(curve_roots_kdtree_);
     }
   }
 
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -103,14 +104,14 @@ struct AddOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  AddOperationExecutor(const bContext &C) : ctx_(C) {}
+  AddOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(AddOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
+  void execute(AddOperation &self, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
-    curves_ob_orig_ = CTX_data_active_object(&C);
+    curves_ob_orig_ = ctx_.object;
 
-    curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
+    curves_id_orig_ = id_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
 
     if (curves_id_orig_->surface == nullptr || curves_id_orig_->surface->type != OB_MESH) {
@@ -121,7 +122,7 @@ struct AddOperationExecutor {
     transforms_ = CurvesSurfaceTransforms(*curves_ob_orig_, curves_id_orig_->surface);
 
     Object &surface_ob_orig = *curves_id_orig_->surface;
-    const Mesh &surface_orig = *static_cast<const Mesh *>(surface_ob_orig.data);
+    const Mesh &surface_orig = *id_cast<const Mesh *>(surface_ob_orig.data);
     if (surface_orig.faces_num == 0) {
       report_empty_original_surface(stroke_extension.reports);
       return;
@@ -498,22 +499,22 @@ struct AddOperationExecutor {
   void ensure_curve_roots_kdtree()
   {
     if (self_->curve_roots_kdtree_ == nullptr) {
-      self_->curve_roots_kdtree_ = BLI_kdtree_3d_new(curves_orig_->curves_num());
+      self_->curve_roots_kdtree_ = kdtree_3d_new(curves_orig_->curves_num());
       const Span<int> offsets = curves_orig_->offsets();
       const Span<float3> positions = curves_orig_->positions();
       for (const int curve_i : curves_orig_->curves_range()) {
-        blender::BLI_kdtree_3d_insert(
-            self_->curve_roots_kdtree_, curve_i, positions[offsets[curve_i]]);
+        kdtree_3d_insert(self_->curve_roots_kdtree_, curve_i, positions[offsets[curve_i]]);
       }
-      blender::BLI_kdtree_3d_balance(self_->curve_roots_kdtree_);
+      kdtree_3d_balance(self_->curve_roots_kdtree_);
     }
   }
 };
 
-void AddOperation::on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension)
+void AddOperation::on_stroke_extended(const PaintStroke &stroke,
+                                      const StrokeExtension &stroke_extension)
 {
-  AddOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  AddOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation()

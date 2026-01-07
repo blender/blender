@@ -39,7 +39,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-using blender::bke::CurvesGeometry;
+using bke::CurvesGeometry;
 
 /**
  * Drags the tip point of each curve and resamples the rest of the curve.
@@ -53,7 +53,8 @@ class SnakeHookOperation : public CurvesSculptStrokeOperation {
   friend struct SnakeHookOperatorExecutor;
 
  public:
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -84,16 +85,14 @@ struct SnakeHookOperatorExecutor {
   float2 brush_pos_re_;
   float2 brush_pos_diff_re_;
 
-  SnakeHookOperatorExecutor(const bContext &C) : ctx_(C) {}
+  SnakeHookOperatorExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(SnakeHookOperation &self,
-               const bContext &C,
-               const StrokeExtension &stroke_extension)
+  void execute(SnakeHookOperation &self, const StrokeExtension &stroke_extension)
   {
     BLI_SCOPED_DEFER([&]() { self.last_mouse_position_re_ = stroke_extension.mouse_position; });
 
     self_ = &self;
-    object_ = CTX_data_active_object(&C);
+    object_ = ctx_.object;
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
@@ -104,7 +103,7 @@ struct SnakeHookOperatorExecutor {
 
     const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
-    curves_id_ = static_cast<Curves *>(object_->data);
+    curves_id_ = id_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
     if (curves_->is_empty()) {
       return;
@@ -290,11 +289,11 @@ struct SnakeHookOperatorExecutor {
   }
 };
 
-void SnakeHookOperation::on_stroke_extended(const bContext &C,
+void SnakeHookOperation::on_stroke_extended(const PaintStroke &stroke,
                                             const StrokeExtension &stroke_extension)
 {
-  SnakeHookOperatorExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  SnakeHookOperatorExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_snake_hook_operation()

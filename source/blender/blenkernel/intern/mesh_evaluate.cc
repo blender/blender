@@ -23,18 +23,13 @@
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
 
-using blender::float3;
-using blender::int2;
-using blender::MutableSpan;
-using blender::OffsetIndices;
-using blender::Span;
-using blender::VArray;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Polygon Calculations
  * \{ */
 
-namespace blender::bke::mesh {
+namespace bke::mesh {
 
 static float3 face_center_calc_ngon(const Span<float3> vert_positions, const Span<int> face_verts)
 {
@@ -80,20 +75,20 @@ float face_area_calc(const Span<float3> vert_positions, const Span<int> face_ver
   for (const int i : face_verts.index_range()) {
     coords[i] = vert_positions[face_verts[i]];
   }
-  return area_poly_v3((const float (*)[3])coords.data(), face_verts.size());
+  return area_poly_v3(reinterpret_cast<const float (*)[3]>(coords.data()), face_verts.size());
 }
 
-}  // namespace blender::bke::mesh
+}  // namespace bke::mesh
 
 float BKE_mesh_calc_area(const Mesh *mesh)
 {
   const Span<float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   float total_area = 0.0f;
   for (const int i : faces.index_range()) {
-    total_area += blender::bke::mesh::face_area_calc(positions, corner_verts.slice(faces[i]));
+    total_area += bke::mesh::face_area_calc(positions, corner_verts.slice(faces[i]));
   }
   return total_area;
 }
@@ -135,7 +130,7 @@ static float UNUSED_FUNCTION(mesh_calc_face_volume_centroid)(const int *face_ver
   return total_volume;
 }
 
-namespace blender::bke::mesh {
+namespace bke::mesh {
 
 /**
  * A version of mesh_calc_face_volume_centroid that takes an initial reference center,
@@ -179,7 +174,7 @@ static float face_area_centroid_calc(const Span<float3> positions,
   float total_area = 0.0f;
   float v1[3], v2[3], v3[3], tri_cent[3];
 
-  const float3 normal = blender::bke::mesh::face_normal_calc(positions, face_verts);
+  const float3 normal = bke::mesh::face_normal_calc(positions, face_verts);
 
   copy_v3_v3(v1, positions[face_verts[0]]);
   copy_v3_v3(v2, positions[face_verts[1]]);
@@ -229,7 +224,7 @@ void face_angles_calc(const Span<float3> vert_positions,
   }
 }
 
-}  // namespace blender::bke::mesh
+}  // namespace bke::mesh
 
 /** \} */
 
@@ -239,7 +234,7 @@ void face_angles_calc(const Span<float3> vert_positions,
 
 bool BKE_mesh_center_median(const Mesh *mesh, float r_cent[3])
 {
-  float3 center = blender::array_utils::compute_sum<float3>(mesh->vert_positions());
+  float3 center = array_utils::compute_sum<float3>(mesh->vert_positions());
 
   /* otherwise we get NAN for 0 verts */
   if (mesh->verts_num) {
@@ -255,7 +250,7 @@ bool BKE_mesh_center_median_from_faces(const Mesh *mesh, float r_cent[3])
 {
   int tot = 0;
   const Span<float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
   zero_v3(r_cent);
   for (const int i : faces.index_range()) {
@@ -277,14 +272,14 @@ bool BKE_mesh_center_of_surface(const Mesh *mesh, float r_cent[3])
   float total_area = 0.0f;
   float face_cent[3];
   const Span<float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   zero_v3(r_cent);
 
   /* calculate a weighted average of face centroids */
   for (const int i : faces.index_range()) {
-    face_area = blender::bke::mesh::face_area_centroid_calc(
+    face_area = bke::mesh::face_area_centroid_calc(
         positions, corner_verts.slice(faces[i]), face_cent);
 
     madd_v3_v3fl(r_cent, face_cent, face_area);
@@ -309,7 +304,7 @@ bool BKE_mesh_center_of_volume(const Mesh *mesh, float r_cent[3])
   float total_volume = 0.0f;
   float face_cent[3];
   const Span<float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   /* Use an initial center to avoid numeric instability of geometry far away from the center. */
@@ -320,7 +315,7 @@ bool BKE_mesh_center_of_volume(const Mesh *mesh, float r_cent[3])
 
   /* calculate a weighted average of polyhedron centroids */
   for (const int i : faces.index_range()) {
-    face_volume = blender::bke::mesh::mesh_calc_face_volume_centroid_with_reference_center(
+    face_volume = bke::mesh::mesh_calc_face_volume_centroid_with_reference_center(
         positions, corner_verts.slice(faces[i]), init_cent, face_cent);
 
     /* face_cent is already volume-weighted, so no need to multiply by the volume */
@@ -352,7 +347,7 @@ bool BKE_mesh_center_of_volume(const Mesh *mesh, float r_cent[3])
 
 static bool mesh_calc_center_centroid_ex(const float (*positions)[3],
                                          int /*mverts_num*/,
-                                         const blender::int3 *corner_tris,
+                                         const int3 *corner_tris,
                                          int corner_tris_num,
                                          const int *corner_verts,
                                          float r_center[3])
@@ -389,7 +384,7 @@ static bool mesh_calc_center_centroid_ex(const float (*positions)[3],
 
 void BKE_mesh_calc_volume(const float (*vert_positions)[3],
                           const int mverts_num,
-                          const blender::int3 *corner_tris,
+                          const int3 *corner_tris,
                           const int corner_tris_num,
                           const int *corner_verts,
                           float *r_volume,
@@ -501,13 +496,12 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
 /** \name Visibility Interpolation
  * \{ */
 
-namespace blender::bke {
+namespace bke {
 
 void mesh_edge_hide_from_vert(const Span<int2> edges,
                               const Span<bool> hide_vert,
                               MutableSpan<bool> hide_edge)
 {
-  using namespace blender;
   threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
       hide_edge[i] = hide_vert[edges[i][0]] || hide_vert[edges[i][1]];
@@ -520,7 +514,6 @@ void mesh_face_hide_from_vert(const OffsetIndices<int> faces,
                               const Span<bool> hide_vert,
                               MutableSpan<bool> hide_poly)
 {
-  using namespace blender;
   threading::parallel_for(faces.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
       const Span<int> face_verts = corner_verts.slice(faces[i]);
@@ -702,7 +695,7 @@ void mesh_select_edge_flush(Mesh &mesh)
   select_poly.finish();
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 /** \} */
 
@@ -721,14 +714,14 @@ void BKE_mesh_calc_relative_deform(const int *face_offsets,
                                    const float (*vert_cos_org)[3],
                                    float (*vert_cos_new)[3])
 {
-  const blender::OffsetIndices<int> faces({face_offsets, faces_num + 1});
+  const OffsetIndices<int> faces({face_offsets, faces_num + 1});
 
   int *vert_accum = MEM_calloc_arrayN<int>(totvert, __func__);
 
   memset(vert_cos_new, '\0', sizeof(*vert_cos_new) * size_t(totvert));
 
   for (const int i : faces.index_range()) {
-    const blender::IndexRange face = faces[i];
+    const IndexRange face = faces[i];
     const int *face_verts = &corner_verts[face.start()];
 
     for (int j = 0; j < face.size(); j++) {
@@ -765,3 +758,5 @@ void BKE_mesh_calc_relative_deform(const int *face_offsets,
 }
 
 /** \} */
+
+}  // namespace blender

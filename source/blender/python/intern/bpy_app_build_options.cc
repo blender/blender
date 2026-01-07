@@ -14,6 +14,8 @@
 
 #include "bpy_app_build_options.hh"
 
+namespace blender {
+
 static PyTypeObject BlenderAppBuildOptionsType;
 
 static PyStructSequence_Field app_builtopts_info_fields[] = {
@@ -352,7 +354,9 @@ PyObject *BPY_app_build_options_struct()
   BlenderAppBuildOptionsType.tp_init = nullptr;
   BlenderAppBuildOptionsType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppBuildOptionsType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppBuildOptionsType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }
+
+}  // namespace blender

@@ -41,6 +41,8 @@
 
 #include "gpencil_intern.hh"
 
+namespace blender {
+
 /* ******************************************************** */
 /* Context Wrangling... */
 
@@ -71,7 +73,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
       }
       case SPACE_NODE: /* Nodes Editor */
       {
-        SpaceNode *snode = (SpaceNode *)sl;
+        SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
 
         /* return the GP data for the active node block/node */
         if (snode && snode->nodetree) {
@@ -88,7 +90,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
       }
       case SPACE_SEQ: /* Sequencer */
       {
-        SpaceSeq *sseq = (SpaceSeq *)sl;
+        SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(sl);
 
         /* For now, Grease Pencil data is associated with the space
          * (actually preview region only). */
@@ -99,7 +101,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
       }
       case SPACE_IMAGE: /* Image/UV Editor */
       {
-        SpaceImage *sima = (SpaceImage *)sl;
+        SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
 
         /* For now, Grease Pencil data is associated with the space... */
         if (r_ptr) {
@@ -109,7 +111,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
       }
       case SPACE_CLIP: /* Nodes Editor */
       {
-        SpaceClip *sc = (SpaceClip *)sl;
+        SpaceClip *sc = reinterpret_cast<SpaceClip *>(sl);
         MovieClip *clip = ED_space_clip_get_clip(sc);
 
         if (clip) {
@@ -144,7 +146,7 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
 
 bGPdata **ED_annotation_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
 {
-  ID *screen_id = (ID *)CTX_wm_screen(C);
+  ID *screen_id = id_cast<ID *>(CTX_wm_screen(C));
   Scene *scene = CTX_data_scene(C);
   ScrArea *area = CTX_wm_area(C);
 
@@ -237,7 +239,7 @@ void gpencil_point_to_xy(
   else if (gps->flag & GP_STROKE_2DSPACE) {
     float vec[3] = {pt->x, pt->y, 0.0f};
     mul_m4_v3(gsc->mat, vec);
-    UI_view2d_view_to_region_clip(v2d, vec[0], vec[1], r_x, r_y);
+    ui::view2d_view_to_region_clip(v2d, vec[0], vec[1], r_x, r_y);
   }
   else {
     if (subrect == nullptr) {
@@ -290,3 +292,5 @@ tGPspoint *ED_gpencil_sbuffer_ensure(tGPspoint *buffer_array,
 
   return buffer_array;
 }
+
+}  // namespace blender

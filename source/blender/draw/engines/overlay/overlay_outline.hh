@@ -55,7 +55,7 @@ class Outline : Overlay {
       return;
     }
 
-    const float outline_width = UI_GetThemeValuef(TH_OUTLINE_WIDTH);
+    const float outline_width = ui::theme::get_value_f(TH_OUTLINE_WIDTH);
     const bool do_smooth_lines = (U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0;
     const bool do_expand = (U.pixelsize > 1.0) || (outline_width > 2.0f);
     const bool is_transform = (G.moving & G_TRANSFORM_OBJ) != 0;

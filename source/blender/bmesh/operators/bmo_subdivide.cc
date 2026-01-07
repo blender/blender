@@ -25,7 +25,7 @@
 #include "intern/bmesh_operators_private.hh"
 #include "intern/bmesh_private.hh"
 
-using blender::Vector;
+namespace blender {
 
 struct SubDParams {
   int numcuts;
@@ -800,10 +800,9 @@ static void tri_3edge_subdivide(BMesh *bm,
   int i, j, a, b, numcuts = params->numcuts;
 
   /* number of verts in each lin */
-  lines = static_cast<BMVert ***>(
-      MEM_callocN(sizeof(void *) * (numcuts + 2), "triangle vert table"));
+  lines = MEM_calloc_arrayN<BMVert **>((numcuts + 2), "triangle vert table");
 
-  lines[0] = (BMVert **)stackarr;
+  lines[0] = reinterpret_cast<BMVert **>(stackarr);
   lines[0][0] = verts[numcuts * 2 + 1];
 
   lines[numcuts + 1] = MEM_calloc_arrayN<BMVert *>(numcuts + 2, "triangle vert table 2");
@@ -1431,3 +1430,5 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 
   BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, params.shape_info.tmpkey);
 }
+
+}  // namespace blender

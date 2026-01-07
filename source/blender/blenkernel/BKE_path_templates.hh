@@ -78,11 +78,13 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender::bke::path_templates {
+namespace bke::path_templates {
 
 /**
  * Variables (names and associated values) for use in template substitution.
@@ -109,16 +111,16 @@ namespace blender::bke::path_templates {
  * contents of filepath variables are left as-is.
  */
 class VariableMap {
-  blender::Map<std::string, std::string> strings_;
-  blender::Map<std::string, std::string> filepaths_;
-  blender::Map<std::string, int64_t> integers_;
-  blender::Map<std::string, double> floats_;
+  Map<std::string, std::string> strings_;
+  Map<std::string, std::string> filepaths_;
+  Map<std::string, int64_t> integers_;
+  Map<std::string, double> floats_;
 
  public:
   /**
    * Check if a variable of the given name exists.
    */
-  bool contains(blender::StringRef name) const;
+  bool contains(StringRef name) const;
 
   /**
    * Remove the variable with the given name.
@@ -126,7 +128,7 @@ class VariableMap {
    * \return True if the variable existed and was removed, false if it didn't
    * exist in the first place.
    */
-  bool remove(blender::StringRef name);
+  bool remove(StringRef name);
 
   /**
    * Add a string variable with the given name and value.
@@ -137,7 +139,7 @@ class VariableMap {
    * \return True if the variable was successfully added, false if there was
    * already a variable with that name.
    */
-  bool add_string(blender::StringRef name, blender::StringRef value);
+  bool add_string(StringRef name, StringRef value);
 
   /**
    * Add a filepath variable with the given name and value.
@@ -148,7 +150,7 @@ class VariableMap {
    * \return True if the variable was successfully added, false if there was
    * already a variable with that name.
    */
-  bool add_filepath(blender::StringRef name, blender::StringRef value);
+  bool add_filepath(StringRef name, StringRef value);
 
   /**
    * Add an integer variable with the given name and value.
@@ -159,7 +161,7 @@ class VariableMap {
    * \return True if the variable was successfully added, false if there was
    * already a variable with that name.
    */
-  bool add_integer(blender::StringRef name, int64_t value);
+  bool add_integer(StringRef name, int64_t value);
 
   /**
    * Add a float variable with the given name and value.
@@ -170,7 +172,7 @@ class VariableMap {
    * \return True if the variable was successfully added, false if there was
    * already a variable with that name.
    */
-  bool add_float(blender::StringRef name, double value);
+  bool add_float(StringRef name, double value);
 
   /**
    * Fetch the value of the string variable with the given name.
@@ -178,7 +180,7 @@ class VariableMap {
    * \return The value if a string variable with that name exists,
    * #std::nullopt otherwise.
    */
-  std::optional<blender::StringRefNull> get_string(blender::StringRef name) const;
+  std::optional<StringRefNull> get_string(StringRef name) const;
 
   /**
    * Fetch the value of the filepath variable with the given name.
@@ -186,7 +188,7 @@ class VariableMap {
    * \return The value if a filepath variable with that name exists,
    * #std::nullopt otherwise.
    */
-  std::optional<blender::StringRefNull> get_filepath(blender::StringRef name) const;
+  std::optional<StringRefNull> get_filepath(StringRef name) const;
 
   /**
    * Fetch the value of the integer variable with the given name.
@@ -194,7 +196,7 @@ class VariableMap {
    * \return The value if a integer variable with that name exists,
    * #std::nullopt otherwise.
    */
-  std::optional<int64_t> get_integer(blender::StringRef name) const;
+  std::optional<int64_t> get_integer(StringRef name) const;
 
   /**
    * Fetch the value of the float variable with the given name.
@@ -202,7 +204,7 @@ class VariableMap {
    * \return The value if a float variable with that name exists,
    * #std::nullopt otherwise.
    */
-  std::optional<double> get_float(blender::StringRef name) const;
+  std::optional<double> get_float(StringRef name) const;
 
   /* ------------------------------------------------------------------
    * Convenience methods, to aid in consistency across different uses. */
@@ -222,9 +224,7 @@ class VariableMap {
    * \return True if the variable was successfully added, false if there was
    * already a variable with that name.
    */
-  bool add_filename_only(blender::StringRef var_name,
-                         blender::StringRefNull full_path,
-                         blender::StringRef fallback);
+  bool add_filename_only(StringRef var_name, StringRefNull full_path, StringRef fallback);
 
   /**
    * Add the path up-to-but-not-including the filename as a variable.
@@ -241,9 +241,7 @@ class VariableMap {
    * \return True if the variable was successfully added, false if there was
    * already a variable with that name.
    */
-  bool add_path_up_to_file(blender::StringRef var_name,
-                           blender::StringRefNull full_path,
-                           blender::StringRef fallback);
+  bool add_path_up_to_file(StringRef var_name, StringRefNull full_path, StringRef fallback);
 };
 
 enum class ErrorType {
@@ -255,12 +253,12 @@ enum class ErrorType {
 
 struct Error {
   ErrorType type;
-  blender::IndexRange byte_range;
+  IndexRange byte_range;
 };
 
 bool operator==(const Error &left, const Error &right);
 
-}  // namespace blender::bke::path_templates
+}  // namespace bke::path_templates
 
 /**
  * Build a template variable map for the passed RNA property.
@@ -274,7 +272,7 @@ bool operator==(const Error &left, const Error &right);
  * property is provided or if the property doesn't support path templates,
  * returns #std::nullopt.
  */
-std::optional<blender::bke::path_templates::VariableMap> BKE_build_template_variables_for_prop(
+std::optional<bke::path_templates::VariableMap> BKE_build_template_variables_for_prop(
     const bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 
 /**
@@ -291,7 +289,7 @@ std::optional<blender::bke::path_templates::VariableMap> BKE_build_template_vari
  *
  * \see #BKE_path_apply_template()
  */
-void BKE_add_template_variables_general(blender::bke::path_templates::VariableMap &variables,
+void BKE_add_template_variables_general(bke::path_templates::VariableMap &variables,
                                         const ID *path_owner_id);
 
 /**
@@ -310,8 +308,8 @@ void BKE_add_template_variables_general(blender::bke::path_templates::VariableMa
  *
  * \see #BKE_path_apply_template()
  */
-void BKE_add_template_variables_for_render_path(
-    blender::bke::path_templates::VariableMap &variables, const Scene &scene);
+void BKE_add_template_variables_for_render_path(bke::path_templates::VariableMap &variables,
+                                                const Scene &scene);
 
 /**
  * Add the variables that should be available for paths owned by a node.
@@ -324,7 +322,7 @@ void BKE_add_template_variables_for_render_path(
  *
  * \see BKE_path_apply_template()
  */
-void BKE_add_template_variables_for_node(blender::bke::path_templates::VariableMap &variables,
+void BKE_add_template_variables_for_node(bke::path_templates::VariableMap &variables,
                                          const bNode &owning_node);
 
 /**
@@ -337,7 +335,7 @@ void BKE_add_template_variables_for_node(blender::bke::path_templates::VariableM
  * processing is needed). True if the path does contain templating syntax
  * (template processing *is* needed).
  */
-bool BKE_path_contains_template_syntax(blender::StringRef path);
+bool BKE_path_contains_template_syntax(StringRef path);
 
 /**
  * Validate the templating in the given path.
@@ -350,8 +348,8 @@ bool BKE_path_contains_template_syntax(blender::StringRef path);
  *
  * \see BKE_path_apply_template()
  */
-blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
-    blender::StringRef path, const blender::bke::path_templates::VariableMap &template_variables);
+Vector<bke::path_templates::Error> BKE_path_validate_template(
+    StringRef path, const bke::path_templates::VariableMap &template_variables);
 
 /**
  * Perform variable substitution and escaping on the given path.
@@ -392,15 +390,13 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  * \return On success, an empty vector. If there are errors, a vector of all
  * errors encountered.
  */
-blender::Vector<blender::bke::path_templates::Error> BKE_path_apply_template(
-    char *path,
-    int path_maxncpy,
-    const blender::bke::path_templates::VariableMap &template_variables);
+Vector<bke::path_templates::Error> BKE_path_apply_template(
+    char *path, int path_maxncpy, const bke::path_templates::VariableMap &template_variables);
 /**
  * Produces a human-readable error message for the given template error.
  */
-std::string BKE_path_template_error_to_string(const blender::bke::path_templates::Error &error,
-                                              blender::StringRef path);
+std::string BKE_path_template_error_to_string(const bke::path_templates::Error &error,
+                                              StringRef path);
 
 /**
  * Logs a report for the given template errors, with human-readable error
@@ -408,8 +404,8 @@ std::string BKE_path_template_error_to_string(const blender::bke::path_templates
  */
 void BKE_report_path_template_errors(ReportList *reports,
                                      eReportType report_type,
-                                     blender::StringRef path,
-                                     blender::Span<blender::bke::path_templates::Error> errors);
+                                     StringRef path,
+                                     Span<bke::path_templates::Error> errors);
 
 /**
  * Format the given floating point value with the provided format specifier. The format specifier
@@ -417,9 +413,10 @@ void BKE_report_path_template_errors(ReportList *reports,
  *
  * \return #std::nullopt if the format specifier is invalid.
  */
-std::optional<std::string> BKE_path_template_format_float(blender::StringRef format_specifier,
+std::optional<std::string> BKE_path_template_format_float(StringRef format_specifier,
                                                           double value);
 
 /** Same as #BKE_path_template_format_float but for formatting an integer value. */
-std::optional<std::string> BKE_path_template_format_int(blender::StringRef format_specifier,
-                                                        int64_t value);
+std::optional<std::string> BKE_path_template_format_int(StringRef format_specifier, int64_t value);
+
+}  // namespace blender

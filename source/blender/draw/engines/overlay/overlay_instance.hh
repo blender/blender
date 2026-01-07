@@ -108,7 +108,6 @@ class Instance : public DrawEngine {
   } regular{selection_type_}, infront{selection_type_};
 
   Grid grid;
-
   AntiAliasing anti_aliasing;
   XrayFade xray_fade;
 
@@ -119,7 +118,7 @@ class Instance : public DrawEngine {
     DRW_text_cache_destroy(state.dt);
   }
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "Overlay";
   }

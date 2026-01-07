@@ -112,7 +112,7 @@ float4x4 normalize(float4x4 mat)
  * Return the length of each column vector.
  */
 #if 0 /* Remove unused variants as they are slow down compilation. */
-float2x2 normalize_and_get_size(float2x2 mat, out float2 r_size)
+float2x2 normalize_and_get_size(float2x2 mat, float2 & r_size)
 {
   float size_x = 0.0f, size_y = 0.0f;
   float2x2 ret;
@@ -121,7 +121,7 @@ float2x2 normalize_and_get_size(float2x2 mat, out float2 r_size)
   r_size = float2(size_x, size_y);
   return ret;
 }
-float2x3 normalize_and_get_size(float2x3 mat, out float2 r_size)
+float2x3 normalize_and_get_size(float2x3 mat, float2 & r_size)
 {
   float size_x = 0.0f, size_y = 0.0f;
   float2x3 ret;
@@ -130,7 +130,7 @@ float2x3 normalize_and_get_size(float2x3 mat, out float2 r_size)
   r_size = float2(size_x, size_y);
   return ret;
 }
-float2x4 normalize_and_get_size(float2x4 mat, out float2 r_size)
+float2x4 normalize_and_get_size(float2x4 mat, float2 & r_size)
 {
   float size_x = 0.0f, size_y = 0.0f;
   float2x4 ret;
@@ -139,7 +139,7 @@ float2x4 normalize_and_get_size(float2x4 mat, out float2 r_size)
   r_size = float2(size_x, size_y);
   return ret;
 }
-float3x2 normalize_and_get_size(float3x2 mat, out float3 r_size)
+float3x2 normalize_and_get_size(float3x2 mat, float3 & r_size)
 {
   float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f;
   float3x2 ret;
@@ -150,7 +150,7 @@ float3x2 normalize_and_get_size(float3x2 mat, out float3 r_size)
   return ret;
 }
 #endif
-float3x3 normalize_and_get_size(float3x3 mat, out float3 r_size)
+float3x3 normalize_and_get_size(float3x3 mat, float3 &r_size)
 {
   float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f;
   float3x3 ret;
@@ -161,7 +161,7 @@ float3x3 normalize_and_get_size(float3x3 mat, out float3 r_size)
   return ret;
 }
 #if 0 /* Remove unused variants as they are slow down compilation. */
-float3x4 normalize_and_get_size(float3x4 mat, out float3 r_size)
+float3x4 normalize_and_get_size(float3x4 mat, float3 & r_size)
 {
   float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f;
   float3x4 ret;
@@ -171,7 +171,7 @@ float3x4 normalize_and_get_size(float3x4 mat, out float3 r_size)
   r_size = float3(size_x, size_y, size_z);
   return ret;
 }
-float4x2 normalize_and_get_size(float4x2 mat, out float4 r_size)
+float4x2 normalize_and_get_size(float4x2 mat, float4 & r_size)
 {
   float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f, size_w = 0.0f;
   float4x2 ret;
@@ -182,7 +182,7 @@ float4x2 normalize_and_get_size(float4x2 mat, out float4 r_size)
   r_size = float4(size_x, size_y, size_z, size_w);
   return ret;
 }
-float4x3 normalize_and_get_size(float4x3 mat, out float4 r_size)
+float4x3 normalize_and_get_size(float4x3 mat, float4 & r_size)
 {
   float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f, size_w = 0.0f;
   float4x3 ret;
@@ -194,7 +194,7 @@ float4x3 normalize_and_get_size(float4x3 mat, out float4 r_size)
   return ret;
 }
 #endif
-float4x4 normalize_and_get_size(float4x4 mat, out float4 r_size)
+float4x4 normalize_and_get_size(float4x4 mat, float4 &r_size)
 {
   float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f, size_w = 0.0f;
   float4x4 ret;

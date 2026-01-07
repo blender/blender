@@ -31,6 +31,10 @@ template<typename T, int Size, bool is_trivial_type> struct vec_struct_base {
   std::array<T, Size> values;
 };
 
+template<typename T> struct vec_struct_base<T, 1, false> {
+  T x;
+};
+
 template<typename T> struct vec_struct_base<T, 2, false> : VecSwizzleFunc<T, 2> {
   T x, y;
 };
@@ -57,6 +61,18 @@ template<typename T> struct vec_struct_base<T, 4, false> : VecSwizzleFunc<T, 4> 
 #  pragma warning(push)
 #  pragma warning(disable : 4201)  // nonstandard extension used : nameless struct/union
 #endif
+
+template<typename T> struct vec_struct_base<T, 1, true> {
+  union {
+#ifndef NDEBUG
+    /* Easier to read inside a debugger. */
+    std::array<T, 1> debug_values_;
+#endif
+    T x;
+    /* Nesting to avoid readability issues inside a debugger. */
+    X_SWIZZLES;
+  };
+};
 
 template<typename T> struct vec_struct_base<T, 2, true> {
   union {
@@ -693,13 +709,13 @@ template<typename T> struct AssertUnitEpsilon {
 
 }  // namespace math
 
-using char2 = blender::VecBase<int8_t, 2>;
-using char3 = blender::VecBase<int8_t, 3>;
-using char4 = blender::VecBase<int8_t, 4>;
+using char2 = VecBase<int8_t, 2>;
+using char3 = VecBase<int8_t, 3>;
+using char4 = VecBase<int8_t, 4>;
 
-using uchar2 = blender::VecBase<uint8_t, 2>;
-using uchar3 = blender::VecBase<uint8_t, 3>;
-using uchar4 = blender::VecBase<uint8_t, 4>;
+using uchar2 = VecBase<uint8_t, 2>;
+using uchar3 = VecBase<uint8_t, 3>;
+using uchar4 = VecBase<uint8_t, 4>;
 
 using int2 = VecBase<int32_t, 2>;
 using int3 = VecBase<int32_t, 3>;
@@ -709,13 +725,13 @@ using uint2 = VecBase<uint32_t, 2>;
 using uint3 = VecBase<uint32_t, 3>;
 using uint4 = VecBase<uint32_t, 4>;
 
-using short2 = blender::VecBase<int16_t, 2>;
-using short3 = blender::VecBase<int16_t, 3>;
-using short4 = blender::VecBase<int16_t, 4>;
+using short2 = VecBase<int16_t, 2>;
+using short3 = VecBase<int16_t, 3>;
+using short4 = VecBase<int16_t, 4>;
 
 using ushort2 = VecBase<uint16_t, 2>;
-using ushort3 = blender::VecBase<uint16_t, 3>;
-using ushort4 = blender::VecBase<uint16_t, 4>;
+using ushort3 = VecBase<uint16_t, 3>;
+using ushort4 = VecBase<uint16_t, 4>;
 
 using float1 = VecBase<float, 1>;
 using float2 = VecBase<float, 2>;

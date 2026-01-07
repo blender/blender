@@ -129,10 +129,10 @@ set(SRC_GLSL_COMP
   eevee_ray_trace_planar_comp.glsl
   eevee_ray_trace_screen_comp.glsl
   eevee_shadow_clipmap_clear_comp.glsl
-  eevee_shadow_page_allocate_comp.glsl
+  eevee_shadow_page_allocate.bsl.hh
   eevee_shadow_page_clear_comp.glsl
-  eevee_shadow_page_defrag_comp.glsl
-  eevee_shadow_page_free_comp.glsl
+  eevee_shadow_page_defrag.bsl.hh
+  eevee_shadow_page_free.bsl.hh
   eevee_shadow_page_mask_comp.glsl
   eevee_shadow_tag_update_comp.glsl
   eevee_shadow_tag_usage_comp.glsl
@@ -202,7 +202,7 @@ set(SRC_GLSL_LIB
   eevee_reverse_z_lib.glsl
   eevee_sampling_lib.glsl
   eevee_shadow_lib.glsl
-  eevee_shadow_page_ops_lib.glsl
+  eevee_shadow_page_ops.bsl.hh
   eevee_shadow_tag_usage_lib.glsl
   eevee_shadow_tilemap_lib.glsl
   eevee_shadow_tracing_lib.glsl

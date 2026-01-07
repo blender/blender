@@ -51,9 +51,11 @@
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 
+namespace blender {
+
 uint64_t SpreadsheetInstanceID::hash() const
 {
-  return blender::get_default_hash(this->reference_index);
+  return get_default_hash(this->reference_index);
 }
 
 bool operator==(const SpreadsheetInstanceID &a, const SpreadsheetInstanceID &b)
@@ -76,7 +78,7 @@ bool operator!=(const SpreadsheetBundlePathElem &a, const SpreadsheetBundlePathE
   return !(a == b);
 }
 
-namespace blender::ed::spreadsheet {
+namespace ed::spreadsheet {
 
 static void add_mesh_debug_column_names(
     const Mesh &mesh,
@@ -86,30 +88,30 @@ static void add_mesh_debug_column_names(
   switch (domain) {
     case bke::AttrDomain::Point:
       if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
-        fn({(char *)"Original Index"}, false);
+        fn({const_cast<char *>("Original Index")}, false);
       }
       if (CustomData_has_layer(&mesh.vert_data, CD_ORCO)) {
-        fn({(char *)"CD_ORCO"}, false);
+        fn({const_cast<char *>("CD_ORCO")}, false);
       }
       if (CustomData_has_layer(&mesh.vert_data, CD_CLOTH_ORCO)) {
-        fn({(char *)"CD_CLOTH_ORCO"}, false);
+        fn({const_cast<char *>("CD_CLOTH_ORCO")}, false);
       }
       break;
     case bke::AttrDomain::Edge:
       if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
-        fn({(char *)"Original Index"}, false);
+        fn({const_cast<char *>("Original Index")}, false);
       }
       break;
     case bke::AttrDomain::Face:
       if (CustomData_has_layer(&mesh.face_data, CD_ORIGINDEX)) {
-        fn({(char *)"Original Index"}, false);
+        fn({const_cast<char *>("Original Index")}, false);
       }
-      fn({(char *)"Corner Start"}, false);
-      fn({(char *)"Corner Size"}, false);
+      fn({const_cast<char *>("Corner Start")}, false);
+      fn({const_cast<char *>("Corner Size")}, false);
       break;
     case bke::AttrDomain::Corner:
       if (CustomData_has_layer(&mesh.corner_data, CD_ORIGSPACE_MLOOP)) {
-        fn({(char *)"CD_ORIGSPACE_MLOOP"}, false);
+        fn({const_cast<char *>("CD_ORIGSPACE_MLOOP")}, false);
       }
       break;
     default:
@@ -231,11 +233,11 @@ void GeometryDataSource::foreach_default_column_ids(
   }
 
   if (component_->type() == bke::GeometryComponent::Type::Instance) {
-    fn({(char *)"Name"}, false);
+    fn({const_cast<char *>("Name")}, false);
   }
 
   if (component_->type() == bke::GeometryComponent::Type::GreasePencil) {
-    fn({(char *)"Name"}, false);
+    fn({const_cast<char *>("Name")}, false);
   }
 
   attributes->foreach_attribute([&](const bke::AttributeIter &iter) {
@@ -246,15 +248,15 @@ void GeometryDataSource::foreach_default_column_ids(
       return;
     }
     SpreadsheetColumnID column_id;
-    column_id.name = (char *)iter.name.data();
+    column_id.name = const_cast<char *>(iter.name.data());
     const bool is_front = iter.name == ".viewer";
     fn(column_id, is_front);
   });
 
   if (component_->type() == bke::GeometryComponent::Type::Instance) {
-    fn({(char *)"Position"}, false);
-    fn({(char *)"Rotation"}, false);
-    fn({(char *)"Scale"}, false);
+    fn({const_cast<char *>("Position")}, false);
+    fn({const_cast<char *>("Rotation")}, false);
+    fn({const_cast<char *>("Scale")}, false);
   }
   else if (G.debug_value == 4001 && component_->type() == bke::GeometryComponent::Type::Mesh) {
     const bke::MeshComponent &component = static_cast<const bke::MeshComponent &>(*component_);
@@ -533,7 +535,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       BLI_assert(object_orig_->type == OB_MESH);
       BLI_assert(object_orig_->mode == OB_MODE_EDIT);
       const Mesh *mesh_eval = geometry_set_.get_mesh();
-      const Mesh *mesh_orig = static_cast<const Mesh *>(object_orig_->data);
+      const Mesh *mesh_orig = id_cast<const Mesh *>(object_orig_->data);
       return calc_mesh_selection_mask(*mesh_eval, *mesh_orig, domain_, memory);
     }
     case bke::GeometryComponent::Type::Curve: {
@@ -594,7 +596,7 @@ void VolumeDataSource::foreach_default_column_ids(
   for (const char *name :
        {"Grid Name", "Data Type", "Class", "Extent", "Voxels", "Leaf Voxels", "Tiles", "Size"})
   {
-    SpreadsheetColumnID column_id{(char *)name};
+    SpreadsheetColumnID column_id{const_cast<char *>(name)};
     fn(column_id, false);
   }
 }
@@ -713,7 +715,7 @@ void VolumeGridDataSource::foreach_default_column_ids(
   for (const char *name :
        {"Data Type", "Class", "Extent", "Voxels", "Leaf Voxels", "Tiles", "Size"})
   {
-    SpreadsheetColumnID column_id{(char *)name};
+    SpreadsheetColumnID column_id{const_cast<char *>(name)};
     fn(column_id, false);
   }
 }
@@ -778,7 +780,7 @@ void ListDataSource::foreach_default_column_ids(
   }
 
   for (const char *name : {"Value"}) {
-    SpreadsheetColumnID column_id{(char *)name};
+    SpreadsheetColumnID column_id{const_cast<char *>(name)};
     fn(column_id, false);
   }
 }
@@ -810,7 +812,7 @@ void BundleDataSource::foreach_default_column_ids(
   }
 
   for (const char *name : {"Identifier", "Type", "Value"}) {
-    SpreadsheetColumnID column_id{(char *)name};
+    SpreadsheetColumnID column_id{const_cast<char *>(name)};
     fn(column_id, false);
   }
 }
@@ -908,7 +910,7 @@ void ClosureSignatureDataSource::foreach_default_column_ids(
   columns_names.extend({"Identifier", "Type"});
 
   for (const StringRefNull name : columns_names) {
-    SpreadsheetColumnID column_id{(char *)name.c_str()};
+    SpreadsheetColumnID column_id{const_cast<char *>(name.c_str())};
     fn(column_id, false);
   }
 }
@@ -1004,7 +1006,7 @@ void SingleValueDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
   for (const char *name : {"Value"}) {
-    SpreadsheetColumnID column_id{(char *)name};
+    SpreadsheetColumnID column_id{const_cast<char *>(name)};
     fn(column_id, false);
   }
 }
@@ -1056,7 +1058,7 @@ bke::SocketValueVariant geometry_display_data_get(const SpaceSpreadsheet *ssprea
   if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     const Object *object_orig = DEG_get_original(object_eval);
     if (object_orig->type == OB_MESH) {
-      const Mesh *mesh = static_cast<const Mesh *>(object_orig->data);
+      const Mesh *mesh = id_cast<const Mesh *>(object_orig->data);
       if (object_orig->mode == OB_MODE_EDIT) {
         if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
           Mesh *new_mesh = BKE_id_new_nomain<Mesh>(nullptr);
@@ -1073,17 +1075,17 @@ bke::SocketValueVariant geometry_display_data_get(const SpaceSpreadsheet *ssprea
       }
     }
     else if (object_orig->type == OB_POINTCLOUD) {
-      const PointCloud *pointcloud = static_cast<const PointCloud *>(object_orig->data);
+      const PointCloud *pointcloud = id_cast<const PointCloud *>(object_orig->data);
       return bke::SocketValueVariant::From(bke::GeometrySet::from_pointcloud(
           const_cast<PointCloud *>(pointcloud), bke::GeometryOwnershipType::ReadOnly));
     }
     else if (object_orig->type == OB_CURVES) {
-      const Curves &curves_id = *static_cast<const Curves *>(object_orig->data);
+      const Curves &curves_id = *id_cast<const Curves *>(object_orig->data);
       return bke::SocketValueVariant::From(bke::GeometrySet::from_curves(
           &const_cast<Curves &>(curves_id), bke::GeometryOwnershipType::ReadOnly));
     }
     else if (object_orig->type == OB_GREASE_PENCIL) {
-      const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(object_orig->data);
+      const GreasePencil &grease_pencil = *id_cast<const GreasePencil *>(object_orig->data);
       return bke::SocketValueVariant::From(bke::GeometrySet::from_grease_pencil(
           &const_cast<GreasePencil &>(grease_pencil), bke::GeometryOwnershipType::ReadOnly));
     }
@@ -1216,7 +1218,7 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
         root_geometry_set,
         Span{sspreadsheet->geometry_id.instance_ids, sspreadsheet->geometry_id.instance_ids_num});
 
-    const bke::AttrDomain domain = (bke::AttrDomain)sspreadsheet->geometry_id.attribute_domain;
+    const bke::AttrDomain domain = bke::AttrDomain(sspreadsheet->geometry_id.attribute_domain);
     const auto component_type = bke::GeometryComponent::Type(
         sspreadsheet->geometry_id.geometry_component_type);
     const int layer_index = sspreadsheet->geometry_id.layer_index;
@@ -1261,4 +1263,5 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   return std::make_unique<SingleValueDataSource>(ptr);
 }
 
-}  // namespace blender::ed::spreadsheet
+}  // namespace ed::spreadsheet
+}  // namespace blender

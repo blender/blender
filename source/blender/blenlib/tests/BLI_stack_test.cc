@@ -8,6 +8,8 @@
 #include "BLI_stack.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define SIZE 1024
 
 /* number of items per chunk. use a small value to expose bugs */
@@ -33,10 +35,10 @@ TEST(stack, One)
 
   stack = BLI_stack_new(sizeof(in), __func__);
 
-  BLI_stack_push(stack, (void *)&in);
+  BLI_stack_push(stack, static_cast<void *>(&in));
   EXPECT_FALSE(BLI_stack_is_empty(stack));
   EXPECT_EQ(BLI_stack_count(stack), 1);
-  BLI_stack_pop(stack, (void *)&out);
+  BLI_stack_pop(stack, static_cast<void *>(&out));
   EXPECT_EQ(out, in);
   EXPECT_TRUE(BLI_stack_is_empty(stack));
   EXPECT_EQ(BLI_stack_count(stack), 0);
@@ -52,12 +54,12 @@ TEST(stack, Range)
   stack = BLI_stack_new(sizeof(in), __func__);
 
   for (in = 0; in < tot; in++) {
-    BLI_stack_push(stack, (void *)&in);
+    BLI_stack_push(stack, static_cast<void *>(&in));
   }
 
   for (in = tot - 1; in >= 0; in--) {
     EXPECT_FALSE(BLI_stack_is_empty(stack));
-    BLI_stack_pop(stack, (void *)&out);
+    BLI_stack_pop(stack, static_cast<void *>(&out));
     EXPECT_EQ(out, in);
   }
   EXPECT_TRUE(BLI_stack_is_empty(stack));
@@ -77,14 +79,14 @@ TEST(stack, String)
   stack = BLI_stack_new(sizeof(in), __func__);
 
   for (i = 0; i < tot; i++) {
-    *((int *)in) = i;
-    BLI_stack_push(stack, (void *)in);
+    *(reinterpret_cast<int *>(in)) = i;
+    BLI_stack_push(stack, static_cast<void *>(in));
   }
 
   for (i = tot - 1; i >= 0; i--) {
     EXPECT_FALSE(BLI_stack_is_empty(stack));
-    *((int *)in) = i;
-    BLI_stack_pop(stack, (void *)&out);
+    *(reinterpret_cast<int *>(in)) = i;
+    BLI_stack_pop(stack, static_cast<void *>(&out));
     EXPECT_STREQ(in, out);
   }
   EXPECT_TRUE(BLI_stack_is_empty(stack));
@@ -107,7 +109,7 @@ TEST(stack, Peek)
   }
 
   for (i = tot - 1; i >= 0; i--, BLI_stack_discard(stack)) {
-    short *ret = (short *)BLI_stack_peek(stack);
+    short *ret = static_cast<short *>(BLI_stack_peek(stack));
     EXPECT_EQ(*ret, in[i % ARRAY_SIZE(in)]);
   }
 
@@ -132,7 +134,7 @@ TEST(stack, Clear)
 
   for (rerun = 0; rerun < tot_rerun; rerun++) {
     for (in = 0; in < tot; in++) {
-      BLI_stack_push(stack, (void *)&in);
+      BLI_stack_push(stack, static_cast<void *>(&in));
     }
 
     BLI_stack_clear(stack);
@@ -140,12 +142,12 @@ TEST(stack, Clear)
 
     /* and again, this time check it is valid */
     for (in = 0; in < tot; in++) {
-      BLI_stack_push(stack, (void *)&in);
+      BLI_stack_push(stack, static_cast<void *>(&in));
     }
 
     for (in = tot - 1; in >= 0; in--) {
       EXPECT_FALSE(BLI_stack_is_empty(stack));
-      BLI_stack_pop(stack, (void *)&out);
+      BLI_stack_pop(stack, static_cast<void *>(&out));
       EXPECT_EQ(out, in);
     }
 
@@ -174,13 +176,13 @@ TEST(stack, Reuse)
   sum = 0;
   for (s = sizes; *s; s++) {
     for (i = *s; i != 0; i--) {
-      BLI_stack_push(stack, (void *)&i);
+      BLI_stack_push(stack, static_cast<void *>(&i));
       sum += i;
     }
   }
   sum_test = 0;
   while (!BLI_stack_is_empty(stack)) {
-    BLI_stack_pop(stack, (void *)&out);
+    BLI_stack_pop(stack, static_cast<void *>(&out));
     sum_test += out;
   }
   EXPECT_EQ(sum, sum_test);
@@ -188,17 +190,17 @@ TEST(stack, Reuse)
   /* add and remove all except last */
   for (s = sizes; *s; s++) {
     for (i = *s; i >= 0; i--) {
-      BLI_stack_push(stack, (void *)&i);
+      BLI_stack_push(stack, static_cast<void *>(&i));
     }
     for (i = *s; i > 0; i--) {
-      BLI_stack_pop(stack, (void *)&out);
+      BLI_stack_pop(stack, static_cast<void *>(&out));
     }
   }
 
   i = ARRAY_SIZE(sizes) - 1;
   while (!BLI_stack_is_empty(stack)) {
     i--;
-    BLI_stack_pop(stack, (void *)&sizes_test[i]);
+    BLI_stack_pop(stack, static_cast<void *>(&sizes_test[i]));
     EXPECT_EQ(sizes_test[i], sizes[i]);
     EXPECT_GT(i, -1);
   }
@@ -210,8 +212,10 @@ TEST(stack, Reuse)
     BLI_stack_push(stack, (void *)&sizes[i]);
   }
   EXPECT_EQ(BLI_stack_count(stack), ARRAY_SIZE(sizes));
-  BLI_stack_pop_n(stack, (void *)sizes_test, ARRAY_SIZE(sizes));
+  BLI_stack_pop_n(stack, static_cast<void *>(sizes_test), ARRAY_SIZE(sizes));
   EXPECT_EQ(memcmp(sizes, sizes_test, sizeof(sizes) - sizeof(int)), 0);
 
   BLI_stack_free(stack);
 }
+
+}  // namespace blender

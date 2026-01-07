@@ -37,7 +37,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-using blender::bke::CurvesGeometry;
+using bke::CurvesGeometry;
 
 class DeleteOperation : public CurvesSculptStrokeOperation {
  private:
@@ -52,7 +52,8 @@ class DeleteOperation : public CurvesSculptStrokeOperation {
   friend struct DeleteOperationExecutor;
 
  public:
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 struct DeleteOperationExecutor {
@@ -75,14 +76,14 @@ struct DeleteOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  DeleteOperationExecutor(const bContext &C) : ctx_(C) {}
+  DeleteOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(DeleteOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
+  void execute(DeleteOperation &self, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
-    object_ = CTX_data_active_object(&C);
+    object_ = ctx_.object;
 
-    curves_id_ = static_cast<Curves *>(object_->data);
+    curves_id_ = id_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
 
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
@@ -261,11 +262,11 @@ struct DeleteOperationExecutor {
   }
 };
 
-void DeleteOperation::on_stroke_extended(const bContext &C,
+void DeleteOperation::on_stroke_extended(const PaintStroke &stroke,
                                          const StrokeExtension &stroke_extension)
 {
-  DeleteOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  DeleteOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_delete_operation()

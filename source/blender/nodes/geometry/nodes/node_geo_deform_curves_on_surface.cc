@@ -223,7 +223,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Error, TIP_("Node only works for curves objects"));
     return;
   }
-  const Curves *self_curves_eval = static_cast<const Curves *>(self_ob_eval->data);
+  const Curves *self_curves_eval = id_cast<const Curves *>(self_ob_eval->data);
   if (self_curves_eval->surface_uv_map == nullptr || self_curves_eval->surface_uv_map[0] == '\0') {
     pass_through_input();
     params.error_message_add(NodeWarningType::Error, TIP_("Surface UV map not defined"));
@@ -244,7 +244,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   Object *surface_ob_orig = DEG_get_original(surface_ob_eval);
-  Mesh &surface_object_data = *static_cast<Mesh *>(surface_ob_orig->data);
+  Mesh &surface_object_data = *id_cast<Mesh *>(surface_ob_orig->data);
 
   if (BMEditMesh *em = surface_object_data.runtime->edit_mesh.get()) {
     surface_mesh_orig = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, &surface_object_data);
@@ -397,7 +397,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(
       &ntype, "GeometryNodeDeformCurvesOnSurface", GEO_NODE_DEFORM_CURVES_ON_SURFACE);
   ntype.ui_name = "Deform Curves on Surface";
@@ -408,8 +408,8 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_type_size(ntype, 170, 120, 700);
-  blender::bke::node_register_type(ntype);
+  bke::node_type_size(ntype, 170, 120, 700);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

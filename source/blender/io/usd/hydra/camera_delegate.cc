@@ -40,7 +40,7 @@ void CameraDelegate::sync(const Scene *scene)
     return;
   }
 
-  const Camera *camera = static_cast<const Camera *>(scene->camera->data);
+  const Camera *camera = id_cast<const Camera *>(scene->camera->data);
   if (camera_ == camera) {
     return;
   }

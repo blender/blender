@@ -19,9 +19,12 @@
 #include "DNA_object_types.h"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.alembic"};
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 using Alembic::Abc::OObject;
 using Alembic::AbcGeom::OXform;
@@ -112,4 +115,5 @@ bool ABCTransformWriter::check_is_animated(const HierarchyContext &context) cons
   return BKE_object_moves_in_time(context.object, context.animation_check_include_parent);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

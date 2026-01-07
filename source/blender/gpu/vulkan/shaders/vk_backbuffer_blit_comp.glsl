@@ -15,21 +15,21 @@ float srgb_to_linearrgb(float c)
   return pow((c + 0.055f) * (1.0f / 1.055f), 2.4f);
 }
 
-vec3 nonlinear_to_linear_scrgb(vec3 c)
+float3 nonlinear_to_linear_scrgb(float3 c)
 {
 #ifdef USE_GAMMA22
-  return pow(c, vec3(2.2f));
+  return pow(c, float3(2.2f));
 #else
-  return vec3(srgb_to_linearrgb(c.r), srgb_to_linearrgb(c.g), srgb_to_linearrgb(c.b));
+  return float3(srgb_to_linearrgb(c.r), srgb_to_linearrgb(c.g), srgb_to_linearrgb(c.b));
 #endif
 }
 
 void main()
 {
-  ivec2 dst_texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 src_size = ivec2(imageSize(src_img));
-  ivec2 src_texel = ivec2(dst_texel.x, src_size.y - dst_texel.y - 1);
-  vec4 color = imageLoad(src_img, ivec2(src_texel));
+  int2 dst_texel = int2(gl_GlobalInvocationID.xy);
+  int2 src_size = int2(imageSize(src_img));
+  int2 src_texel = int2(dst_texel.x, src_size.y - dst_texel.y - 1);
+  float4 color = imageLoad(src_img, int2(src_texel));
   /*
    * Convert from extended sRGB non-linear to linear.
    *
@@ -38,5 +38,5 @@ void main()
    * match Windows SDR applications in HDR node.
    */
   color.rgb = sign(color.rgb) * nonlinear_to_linear_scrgb(abs(color.rgb)) * sdr_scale;
-  imageStore(dst_img, ivec2(dst_texel), color);
+  imageStore(dst_img, int2(dst_texel), color);
 }

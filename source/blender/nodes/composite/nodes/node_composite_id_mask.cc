@@ -21,9 +21,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** ID Mask  ******************** */
 
-namespace blender::nodes::node_composite_id_mask_cc {
+namespace nodes::node_composite_id_mask_cc {
 
 static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
 {
@@ -117,12 +119,12 @@ class IDMaskOperation : public NodeOperation {
 
   int get_index()
   {
-    return math::max(0, this->get_input("Index").get_single_value_default(0));
+    return math::max(0, this->get_input("Index").get_single_value_default<int>());
   }
 
   bool use_anti_aliasing()
   {
-    return this->get_input("Anti-Alias").get_single_value_default(false);
+    return this->get_input("Anti-Alias").get_single_value_default<bool>();
   }
 };
 
@@ -131,13 +133,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new IDMaskOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_id_mask_cc
+}  // namespace nodes::node_composite_id_mask_cc
 
 static void register_node_type_cmp_idmask()
 {
-  namespace file_ns = blender::nodes::node_composite_id_mask_cc;
+  namespace file_ns = nodes::node_composite_id_mask_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeIDMask", CMP_NODE_ID_MASK);
   ntype.ui_name = "ID Mask";
@@ -147,6 +149,8 @@ static void register_node_type_cmp_idmask()
   ntype.declare = file_ns::cmp_node_idmask_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_idmask)
+
+}  // namespace blender

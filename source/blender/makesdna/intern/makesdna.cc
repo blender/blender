@@ -43,19 +43,31 @@
 #include "BLI_sys_types.h" /* For `intptr_t` support. */
 #include "BLI_system.h"    /* For #BLI_system_backtrace stub. */
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_sdna_types.h"
 #include "dna_utils.h"
 
+namespace blender {
+
 #define SDNA_MAX_FILENAME_LENGTH 255
 
-/* The include file below is automatically generated from the `SRC_DNA_INC`
+/* The include files that are needed to generate full Blender DNA.
+ *
+ * The include file below is automatically generated from the `SRC_DNA_INC`
  * variable in `source/blender/CMakeLists.txt`. */
-static const char *includefiles[] = {
+
+static const char *blender_includefiles[] = {
 #include "dna_includes_as_strings.h"
+
     /* Empty string to indicate end of include files. */
     "",
 };
+
+/* Include files that will be used to generate makesdna output.
+ * By default, they match the blender_includefiles, but could be overridden via a command line
+ * argument for the purposes of regression testing. */
+static const char **includefiles = blender_includefiles;
 
 /* -------------------------------------------------------------------- */
 /** \name Variables
@@ -574,63 +586,84 @@ static int preprocess_include(char *maindata, const int maindata_len)
 
   memcpy(temp, maindata, maindata_len);
 
-  /* remove all c++ comments */
+  /* remove all strings literals and comments */
   /* replace all enters/tabs/etc with spaces */
-  char *cp = temp;
-  int a = maindata_len;
-  bool comment = false;
-  while (a--) {
-    if (cp[0] == '/' && cp[1] == '/') {
-      comment = true;
+  bool c_comment = false;
+  bool cxx_comment = false;
+  bool string_literal = false;
+  for (char *cp = temp; cp < temp + maindata_len; cp++) {
+    if (string_literal) {
+      if (cp[0] == '"') {
+        /* End string literal */
+        string_literal = false;
+      }
+      else if (cp[0] == '\\' && cp[1] == '"') {
+        /* Skip escaped quote in string literal. */
+        cp[0] = ' ';
+        cp++;
+      }
+      cp[0] = ' ';
     }
-    else if (*cp == '\n') {
-      comment = false;
+    else if (cxx_comment) {
+      if (*cp == '\n') {
+        cxx_comment = false;
+      }
+      cp[0] = ' ';
     }
-    if (comment || *cp < 32 || *cp > 128) {
-      *cp = 32;
+    else if (c_comment) {
+      if (cp[0] == '*' && cp[1] == '/') {
+        /* End C comment */
+        c_comment = false;
+        cp[0] = ' ';
+        cp++;
+      }
+      cp[0] = ' ';
     }
-    cp++;
+    else if (cp[0] == '"') {
+      /* Start string literal. */
+      string_literal = true;
+      cp[0] = ' ';
+    }
+    else if (cp[0] == '/' && cp[1] == '/') {
+      /* Start C++ comment */
+      cxx_comment = true;
+      cp[0] = ' ';
+      cp++;
+      cp[0] = ' ';
+    }
+    else if (cp[0] == '/' && cp[1] == '*') {
+      /* Start C comment */
+      c_comment = true;
+      cp[0] = ' ';
+      cp++;
+      cp[0] = ' ';
+    }
+    else if (cp[0] < ' ' || cp[0] > 128) {
+      cp[0] = ' ';
+    }
   }
 
   /* No need for leading '#' character. */
   const char *cpp_block_start = "ifdef __cplusplus";
+  const char *cpp_block_start_alt = "if defined(__cplusplus)";
   const char *cpp_block_end = "endif";
 
-  /* data from temp copy to maindata, remove comments and double spaces */
-  cp = temp;
+  /* data from temp copy to maindata, remove irrelevant identifiers and double spaces */
   char *md = maindata;
   int newlen = 0;
-  comment = false;
-  a = maindata_len;
-  int square_bracket_level = 0;
   bool skip_until_closing_brace = false;
-  while (a--) {
-
-    if (cp[0] == '/' && cp[1] == '*') {
-      BLI_assert(comment == false);
-      comment = true;
-      cp[0] = cp[1] = 32;
+  int square_bracket_level = 0;
+  int angle_bracket_level = 0;
+  for (char *cp = temp; cp < temp + maindata_len; cp++) {
+    if (cp[0] == '[') {
+      square_bracket_level++;
     }
-    if (cp[0] == '*' && cp[1] == '/') {
-      BLI_assert(comment == true);
-      comment = false;
-      cp[0] = cp[1] = 32;
-    }
-
-    if (comment == false) {
-      if (cp[0] == '[') {
-        square_bracket_level++;
-      }
-      else if (cp[0] == ']') {
-        square_bracket_level--;
-      }
+    else if (cp[0] == ']') {
+      square_bracket_level--;
     }
 
     /* do not copy when: */
-    if (comment) {
-      /* pass */
-    }
-    else if (cp[0] == ' ' && (square_bracket_level > 0)) {
+    if (cp[0] == ' ' && (square_bracket_level > 0)) {
       /* NOTE(@ideasman42): This is done to allow `member[C_STYLE_COMMENT 1024]`,
        * which is then read as `member[1024]`.
        * It's important to skip the spaces here,
@@ -644,13 +677,11 @@ static int preprocess_include(char *maindata, const int maindata_len)
     } /* skip special keywords */
     else if (match_identifier(cp, "DNA_DEPRECATED")) {
       /* single values are skipped already, so decrement 1 less */
-      a -= 13;
-      cp += 13;
+      cp += strlen("DNA_DEPRECATED") - 1;
     }
     else if (match_identifier(cp, "DNA_DEFINE_CXX_METHODS")) {
       /* single values are skipped already, so decrement 1 less */
-      a -= 21;
-      cp += 21;
+      cp += strlen("DNA_DEFINE_CXX_METHODS") - 1;
       skip_until_closing_brace = true;
     }
     else if (skip_until_closing_brace) {
@@ -658,7 +689,9 @@ static int preprocess_include(char *maindata, const int maindata_len)
         skip_until_closing_brace = false;
       }
     }
-    else if (match_preproc_prefix(cp, cpp_block_start)) {
+    else if (match_preproc_prefix(cp, cpp_block_start) ||
+             match_preproc_prefix(cp, cpp_block_start_alt))
+    {
       char *end_ptr = match_preproc_strstr(cp, cpp_block_end);
 
       if (end_ptr == nullptr) {
@@ -666,8 +699,21 @@ static int preprocess_include(char *maindata, const int maindata_len)
       }
       else {
         const int skip_offset = end_ptr - cp + strlen(cpp_block_end);
-        a -= skip_offset;
         cp += skip_offset;
+      }
+    }
+    /* Assume that type names ending with `T<` are templated types of legacy types. This is used to
+     * treat `ListBaseT<Type>` as `ListBase` in SDNA. */
+    else if (cp[0] == 'T' && cp[1] == '<') {
+      angle_bracket_level = 1;
+      cp++;
+    }
+    else if (angle_bracket_level >= 1) {
+      if (cp[0] == '<') {
+        angle_bracket_level++;
+      }
+      else if (cp[0] == '>') {
+        angle_bracket_level--;
       }
     }
     else {
@@ -675,7 +721,6 @@ static int preprocess_include(char *maindata, const int maindata_len)
       md++;
       newlen++;
     }
-    cp++;
   }
 
   BLI_assert(square_bracket_level == 0);
@@ -787,6 +832,36 @@ static int convert_include(const char *filepath)
           while (*md1 != '}') {
             if (md1 > mainend) {
               break;
+            }
+
+            /* Skip default value initializers. */
+            if (*md1 == '=') {
+              int braces_depth = 0;
+              int brackets_depth = 0;
+              while (true) {
+                if (md1 > mainend) {
+                  break;
+                }
+
+                if (*md1 == '{') {
+                  braces_depth++;
+                }
+                else if (*md1 == '}') {
+                  braces_depth--;
+                }
+                else if (*md1 == '(') {
+                  brackets_depth++;
+                }
+                else if (*md1 == ')') {
+                  brackets_depth--;
+                }
+                else if (braces_depth == 0 && brackets_depth == 0 && ELEM(*md1, ';', ',')) {
+                  break;
+                }
+
+                *md1 = 0;
+                md1++;
+              }
             }
 
             if (ELEM(*md1, ',', ' ')) {
@@ -976,6 +1051,8 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
     fprintf(file_verify, "#include \"%s%s\"\n", base_directory, includefiles[i]);
   }
   fprintf(file_verify, "#undef assert_line_\n");
+  fprintf(file_verify, "\n");
+  fprintf(file_verify, "using namespace blender;\n");
   fprintf(file_verify, "\n");
 
   /* Multiple iterations to handle nested structs. */
@@ -1253,7 +1330,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
 static void dna_write(FILE *file, const void *pntr, const int size)
 {
   static int linelength = 0;
-  const char *data = (const char *)pntr;
+  const char *data = static_cast<const char *>(pntr);
 
   for (int i = 0; i < size; i++) {
     fprintf(file, "%d, ", data[i]);
@@ -1284,8 +1361,12 @@ void print_struct_sizes()
   printf("*** End of list\n");
 }
 
-static int make_structDNA(
-    const char *base_directory, FILE *file, FILE *file_offsets, FILE *file_verify, FILE *file_ids)
+static int make_structDNA(const char *base_directory,
+                          FILE *file,
+                          FILE *file_offsets,
+                          FILE *file_verify,
+                          FILE *file_ids,
+                          FILE *file_defaults)
 {
   if (debugSDNA > 0) {
     fflush(stdout);
@@ -1479,7 +1560,8 @@ static int make_structDNA(
     /* calc datablock size */
     const short *sp = structs[structs_num - 1];
     sp += 2 + 2 * (sp[1]);
-    len = intptr_t((char *)sp - (char *)structs[0]);
+    len = intptr_t(reinterpret_cast<char *>(const_cast<short *>(sp)) -
+                   reinterpret_cast<char *>(structs[0]));
     len = (len + 3) & ~3;
 
     dna_write(file, structs[0], len);
@@ -1504,7 +1586,8 @@ static int make_structDNA(
   }
 
   {
-    fprintf(file_ids, "\n\nnamespace blender::dna {\n\n");
+    fprintf(file_ids, "namespace blender {\n");
+    fprintf(file_ids, "namespace dna {\n\n");
     fprintf(file_ids, "template<typename T> int sdna_struct_id_get();\n\n");
     fprintf(file_ids, "int sdna_struct_id_get_max();\n");
     fprintf(file_ids, "int sdna_struct_id_get_max() { return %d; }\n", structs_num - 1);
@@ -1516,11 +1599,49 @@ static int make_structDNA(
       const int struct_type_index = structpoin[0];
       const char *name = version_struct_alias_from_static(types[struct_type_index]);
       fprintf(file_ids, "struct %s;\n", name);
-      fprintf(file_ids,
-              "template<> int blender::dna::sdna_struct_id_get<%s>() { return %d; }\n",
-              name,
-              i);
+      fprintf(file_ids, "template<> int dna::sdna_struct_id_get<%s>() { return %d; }\n", name, i);
     }
+
+    fprintf(file_ids, "\n}\n");
+  }
+
+  {
+    /* Write default struct member values for RNA. */
+    fprintf(file_defaults, "/* Default struct member values for RNA. */\n");
+    fprintf(file_defaults, "#define DNA_DEPRECATED_ALLOW\n");
+    fprintf(file_defaults, "#define DNA_NO_EXTERNAL_CONSTRUCTORS\n");
+    for (int i = 0; *(includefiles[i]) != '\0'; i++) {
+      fprintf(file_defaults, "#include \"%s%s\"\n", base_directory, includefiles[i]);
+    }
+    fprintf(file_defaults, "using namespace blender;\n");
+    /* Starting at 1, because 0 is "raw data". */
+    for (int i = 1; i < structs_num; i++) {
+      const short *structpoin = structs[i];
+      const int struct_type_index = structpoin[0];
+      const char *name = version_struct_alias_from_static(types[struct_type_index]);
+      if (STREQ(name, "bTheme")) {
+        /* Exception for bTheme which is auto-generated. */
+        fprintf(file_defaults, "extern \"C\" const bTheme U_theme_default;\n");
+      }
+      else {
+        fprintf(file_defaults, "static const %s DNA_DEFAULT_%s = {};\n", name, name);
+      }
+    }
+    fprintf(file_defaults, "const void *DNA_default_table[%d] = {\n", structs_num);
+    fprintf(file_defaults, "  nullptr,\n");
+    for (int i = 1; i < structs_num; i++) {
+      const short *structpoin = structs[i];
+      const int struct_type_index = structpoin[0];
+      const char *name = version_struct_alias_from_static(types[struct_type_index]);
+      if (STREQ(name, "bTheme")) {
+        fprintf(file_defaults, "  &U_theme_default,\n");
+      }
+      else {
+        fprintf(file_defaults, "  &DNA_DEFAULT_%s,\n", name);
+      }
+    }
+    fprintf(file_defaults, "};\n");
+    fprintf(file_defaults, "\n");
   }
 
   /* Check versioning errors which could cause duplicate names,
@@ -1531,7 +1652,7 @@ static int make_structDNA(
       const char *type = types[sp[0]];
       const int len = sp[1];
       sp += 2;
-      blender::Set<blender::StringRef> members_unique;
+      Set<StringRef> members_unique;
       members_unique.reserve(len);
       for (int a = 0; a < len; a++, sp += 2) {
         char *member = members[sp[1]];
@@ -1592,85 +1713,142 @@ static void make_bad_file(const char *file, int line)
 #  define BASE_HEADER "../"
 #endif
 
+static void print_usage(const char *argv0)
+{
+  printf(
+      "Usage: %s [--include-file <file>, ...] "
+      "dna.cc dna_type_offsets.h dna_verify.cc dna_struct_ids.cc dna_defaults.cc "
+      "[base directory]\n",
+      argv0);
+}
+
+}  // namespace blender
+
 int main(int argc, char **argv)
 {
+  using namespace blender;
+  Vector<const char *> cli_include_files;
+
+  /* There is a number of non-optional arguments that must be provided to the executable. */
+  if (argc < 6) {
+    print_usage(argv[0]);
+    return 1;
+  }
+
+  /* Parse optional arguments. */
+  int arg_index = 1; /* Skip the argv0. */
+  while (arg_index < argc) {
+    if (STREQ(argv[arg_index], "--include-file")) {
+      ++arg_index;
+      if (arg_index == argc) {
+        printf("Missing argument for --include-file\n");
+        print_usage(argv[0]);
+        return 1;
+      }
+      cli_include_files.append(argv[arg_index]);
+      ++arg_index;
+      continue;
+    }
+    break;
+  }
+
+  if (!cli_include_files.is_empty()) {
+    /* Append end sentinel. */
+    cli_include_files.append("");
+
+    includefiles = cli_include_files.data();
+  }
+
+  /* Check the number of non-optional positional arguments. */
+  const int num_arguments = argc - arg_index;
+  if (!ELEM(num_arguments, 5, 6)) {
+    print_usage(argv[0]);
+    return 0;
+  }
+
   int return_status = 0;
 
-  if (!ELEM(argc, 5, 6)) {
-    printf("Usage: %s dna.c dna_struct_offsets.h dna_struct_ids.cc [base directory]\n", argv[0]);
+  FILE *file_dna = fopen(argv[arg_index], "w");
+  FILE *file_dna_offsets = fopen(argv[arg_index + 1], "w");
+  FILE *file_dna_verify = fopen(argv[arg_index + 2], "w");
+  FILE *file_dna_ids = fopen(argv[arg_index + 3], "w");
+  FILE *file_dna_defaults = fopen(argv[arg_index + 4], "w");
+  if (!file_dna) {
+    printf("Unable to open file: %s\n", argv[arg_index]);
+    return_status = 1;
+  }
+  else if (!file_dna_offsets) {
+    printf("Unable to open file: %s\n", argv[arg_index + 1]);
+    return_status = 1;
+  }
+  else if (!file_dna_verify) {
+    printf("Unable to open file: %s\n", argv[arg_index + 2]);
+    return_status = 1;
+  }
+  else if (!file_dna_ids) {
+    printf("Unable to open file: %s\n", argv[arg_index + 3]);
+    return_status = 1;
+  }
+  else if (!file_dna_defaults) {
+    printf("Unable to open file: %s\n", argv[arg_index + 4]);
     return_status = 1;
   }
   else {
-    FILE *file_dna = fopen(argv[1], "w");
-    FILE *file_dna_offsets = fopen(argv[2], "w");
-    FILE *file_dna_verify = fopen(argv[3], "w");
-    FILE *file_dna_ids = fopen(argv[4], "w");
-    if (!file_dna) {
-      printf("Unable to open file: %s\n", argv[1]);
-      return_status = 1;
-    }
-    else if (!file_dna_offsets) {
-      printf("Unable to open file: %s\n", argv[2]);
-      return_status = 1;
-    }
-    else if (!file_dna_verify) {
-      printf("Unable to open file: %s\n", argv[3]);
-      return_status = 1;
-    }
-    else if (!file_dna_ids) {
-      printf("Unable to open file: %s\n", argv[4]);
-      return_status = 1;
+    const char *base_directory;
+
+    if (num_arguments == 6) {
+      base_directory = argv[arg_index + 5];
     }
     else {
-      const char *base_directory;
+      base_directory = BASE_HEADER;
+    }
 
-      if (argc == 6) {
-        base_directory = argv[5];
-      }
-      else {
-        base_directory = BASE_HEADER;
-      }
-
-      /* NOTE: #init_structDNA() in dna_genfile.cc expects `sdna->data` is 4-bytes aligned.
-       * `DNAstr[]` buffer written by `makesdna` is used for this data, so make `DNAstr` forcefully
-       * 4-bytes aligned. */
+    /* NOTE: #init_structDNA() in dna_genfile.cc expects `sdna->data` is 4-bytes aligned.
+     * `DNAstr[]` buffer written by `makesdna` is used for this data, so make `DNAstr` forcefully
+     * 4-bytes aligned. */
 #ifdef __GNUC__
 #  define FORCE_ALIGN_4 " __attribute__((aligned(4))) "
 #else
 #  define FORCE_ALIGN_4 " "
 #endif
-      fprintf(file_dna, "extern const unsigned char DNAstr[];\n");
-      fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
+    fprintf(file_dna, "extern const unsigned char DNAstr[];\n");
+    fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
 #undef FORCE_ALIGN_4
 
-      if (make_structDNA(
-              base_directory, file_dna, file_dna_offsets, file_dna_verify, file_dna_ids))
-      {
-        /* error */
-        fclose(file_dna);
-        file_dna = nullptr;
-        make_bad_file(argv[1], __LINE__);
-        return_status = 1;
-      }
-      else {
-        fprintf(file_dna, "};\n");
-        fprintf(file_dna, "extern const int DNAlen;\n");
-        fprintf(file_dna, "const int DNAlen = sizeof(DNAstr);\n");
-      }
-    }
-
-    if (file_dna) {
+    if (make_structDNA(base_directory,
+                       file_dna,
+                       file_dna_offsets,
+                       file_dna_verify,
+                       file_dna_ids,
+                       file_dna_defaults))
+    {
+      /* error */
       fclose(file_dna);
+      file_dna = nullptr;
+      make_bad_file(argv[1], __LINE__);
+      return_status = 1;
     }
-    if (file_dna_offsets) {
-      fclose(file_dna_offsets);
+    else {
+      fprintf(file_dna, "};\n");
+      fprintf(file_dna, "extern const int DNAlen;\n");
+      fprintf(file_dna, "const int DNAlen = sizeof(DNAstr);\n");
     }
-    if (file_dna_verify) {
-      fclose(file_dna_verify);
-    }
-    if (file_dna_ids) {
-      fclose(file_dna_ids);
-    }
+  }
+
+  if (file_dna) {
+    fclose(file_dna);
+  }
+  if (file_dna_offsets) {
+    fclose(file_dna_offsets);
+  }
+  if (file_dna_verify) {
+    fclose(file_dna_verify);
+  }
+  if (file_dna_ids) {
+    fclose(file_dna_ids);
+  }
+  if (file_dna_defaults) {
+    fclose(file_dna_defaults);
   }
 
   return return_status;
@@ -1707,9 +1885,11 @@ int main(int argc, char **argv)
 
 static void UNUSED_FUNCTION(dna_rename_defs_ensure)()
 {
+  using namespace blender;
 #define DNA_STRUCT_RENAME(old, new) (void)sizeof(new);
 #define DNA_STRUCT_RENAME_MEMBER(struct_name, old, new) (void)offsetof(struct_name, new);
 #include "dna_rename_defs.h"
+
 #undef DNA_STRUCT_RENAME
 #undef DNA_STRUCT_RENAME_MEMBER
 }

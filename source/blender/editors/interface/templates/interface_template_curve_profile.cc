@@ -26,17 +26,16 @@
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender::ui {
 
-static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
+static Block *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
 {
   RNAUpdateCb &cb = *static_cast<RNAUpdateCb *>(cb_v);
   PointerRNA profile_ptr = RNA_property_pointer_get(&cb.ptr, cb.prop);
   CurveProfile *profile = static_cast<CurveProfile *>(profile_ptr.data);
   short yco = 0;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
 
   for (const auto &item :
        {std::pair<StringRef, eCurveProfilePresets>(IFACE_("Default"), PROF_PRESET_LINE),
@@ -49,19 +48,19 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
         std::pair<StringRef, eCurveProfilePresets>(CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Steps"),
                                                    PROF_PRESET_STEPS)})
   {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::ButMenu,
-                                  ICON_BLANK1,
-                                  item.first,
-                                  0,
-                                  yco -= UI_UNIT_Y,
-                                  0,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  "");
-    UI_but_retval_set(but, 1);
+    Button *but = uiDefIconTextBut(block,
+                                   ButtonType::ButMenu,
+                                   ICON_BLANK1,
+                                   item.first,
+                                   0,
+                                   yco -= UI_UNIT_Y,
+                                   0,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   "");
+    button_retval_set(but, 1);
     const eCurveProfilePresets preset = item.second;
-    UI_but_func_set(but, [profile, cb, preset](bContext &C) {
+    button_func_set(but, [profile, cb, preset](bContext &C) {
       profile->preset = preset;
       BKE_curveprofile_reset(profile);
       BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
@@ -71,51 +70,51 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
     });
   }
 
-  UI_block_direction_set(block, UI_DIR_DOWN);
-  UI_block_bounds_set_text(block, int(3.0f * UI_UNIT_X));
+  block_direction_set(block, UI_DIR_DOWN);
+  block_bounds_set_text(block, int(3.0f * UI_UNIT_X));
 
   return block;
 }
 
-static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
+static Block *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
 {
   RNAUpdateCb &cb = *static_cast<RNAUpdateCb *>(cb_v);
   PointerRNA profile_ptr = RNA_property_pointer_get(&cb.ptr, cb.prop);
   CurveProfile *profile = static_cast<CurveProfile *>(profile_ptr.data);
   short yco = 0;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
 
   {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::ButMenu,
-                                  ICON_BLANK1,
-                                  IFACE_("Reset View"),
-                                  0,
-                                  yco -= UI_UNIT_Y,
-                                  0,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  "");
-    UI_but_retval_set(but, 1);
-    UI_but_func_set(but, [profile](bContext &C) {
+    Button *but = uiDefIconTextBut(block,
+                                   ButtonType::ButMenu,
+                                   ICON_BLANK1,
+                                   IFACE_("Reset View"),
+                                   0,
+                                   yco -= UI_UNIT_Y,
+                                   0,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   "");
+    button_retval_set(but, 1);
+    button_func_set(but, [profile](bContext &C) {
       BKE_curveprofile_reset_view(profile);
       ED_region_tag_redraw(CTX_wm_region(&C));
     });
   }
   {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::ButMenu,
-                                  ICON_BLANK1,
-                                  IFACE_("Reset Curve"),
-                                  0,
-                                  yco -= UI_UNIT_Y,
-                                  0,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  "");
-    UI_but_retval_set(but, 1);
-    UI_but_func_set(but, [profile, cb](bContext &C) {
+    Button *but = uiDefIconTextBut(block,
+                                   ButtonType::ButMenu,
+                                   ICON_BLANK1,
+                                   IFACE_("Reset Curve"),
+                                   0,
+                                   yco -= UI_UNIT_Y,
+                                   0,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   "");
+    button_retval_set(but, 1);
+    button_func_set(but, [profile, cb](bContext &C) {
       BKE_curveprofile_reset(profile);
       BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
       ED_undo_push(&C, "Reset Profile");
@@ -124,8 +123,8 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
     });
   }
 
-  UI_block_direction_set(block, UI_DIR_DOWN);
-  UI_block_bounds_set_text(block, int(3.0f * UI_UNIT_X));
+  block_direction_set(block, UI_DIR_DOWN);
+  block_bounds_set_text(block, int(3.0f * UI_UNIT_X));
 
   return block;
 }
@@ -197,23 +196,21 @@ static void curve_profile_zoom_out(bContext *C, CurveProfile *profile)
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
-                                        PointerRNA *ptr,
-                                        const RNAUpdateCb &cb)
+static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const RNAUpdateCb &cb)
 {
   CurveProfile *profile = static_cast<CurveProfile *>(ptr->data);
-  uiBut *bt;
+  Button *bt;
 
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
 
-  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+  block_emboss_set(block, EmbossType::Emboss);
 
   layout.use_property_split_set(false);
 
   /* Preset selector */
-  /* There is probably potential to use simpler "blender::ui::Layout::prop" functions here, but
+  /* There is probably potential to use simpler "Layout::prop" functions here, but
    * automatic updating after a preset is selected would be more complicated. */
-  blender::ui::Layout *row = &layout.row(true);
+  Layout *row = &layout.row(true);
   RNAUpdateCb *presets_cb = MEM_new<RNAUpdateCb>(__func__, cb);
   bt = uiDefBlockBut(block,
                      curve_profile_presets_fn,
@@ -225,7 +222,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                      UI_UNIT_X,
                      "");
   /* Pass ownership of `presets_cb` to the button. */
-  UI_but_funcN_set(
+  button_funcN_set(
       bt,
       [](bContext *, void *, void *) {},
       presets_cb,
@@ -238,7 +235,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
     /* Only for dynamic presets. */
     if (ELEM(profile->preset, PROF_PRESET_STEPS, PROF_PRESET_SUPPORTS)) {
       bt = uiDefIconTextBut(block,
-                            ButType::But,
+                            ButtonType::But,
                             ICON_NONE,
                             IFACE_("Apply Preset"),
                             0,
@@ -247,7 +244,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                             UI_UNIT_X,
                             nullptr,
                             TIP_("Reapply and update the preset, removing changes"));
-      UI_but_func_set(bt, [profile, cb](bContext &C) {
+      button_func_set(bt, [profile, cb](bContext &C) {
         BKE_curveprofile_reset(profile);
         BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
         rna_update_cb(C, cb);
@@ -258,12 +255,12 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
   row = &layout.row(false);
 
   /* (Left aligned) */
-  blender::ui::Layout *sub = &row->row(true);
-  sub->alignment_set(blender::ui::LayoutAlign::Left);
+  Layout *sub = &row->row(true);
+  sub->alignment_set(LayoutAlign::Left);
 
   /* Zoom in */
   bt = uiDefIconBut(block,
-                    ButType::But,
+                    ButtonType::But,
                     ICON_ZOOM_IN,
                     0,
                     0,
@@ -273,14 +270,14 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                     0.0,
                     0.0,
                     TIP_("Zoom in"));
-  UI_but_func_set(bt, [profile](bContext &C) { curve_profile_zoom_in(&C, profile); });
+  button_func_set(bt, [profile](bContext &C) { curve_profile_zoom_in(&C, profile); });
   if (!curve_profile_can_zoom_in(profile)) {
-    UI_but_disable(bt, "");
+    button_disable(bt, "");
   }
 
   /* Zoom out */
   bt = uiDefIconBut(block,
-                    ButType::But,
+                    ButtonType::But,
                     ICON_ZOOM_OUT,
                     0,
                     0,
@@ -290,18 +287,18 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                     0.0,
                     0.0,
                     TIP_("Zoom out"));
-  UI_but_func_set(bt, [profile](bContext &C) { curve_profile_zoom_out(&C, profile); });
+  button_func_set(bt, [profile](bContext &C) { curve_profile_zoom_out(&C, profile); });
   if (!curve_profile_can_zoom_out(profile)) {
-    UI_but_disable(bt, "");
+    button_disable(bt, "");
   }
 
   /* (Right aligned) */
   sub = &row->row(true);
-  sub->alignment_set(blender::ui::LayoutAlign::Right);
+  sub->alignment_set(LayoutAlign::Right);
 
   /* Flip path */
   bt = uiDefIconBut(block,
-                    ButType::But,
+                    ButtonType::But,
                     ICON_ARROW_LEFTRIGHT,
                     0,
                     0,
@@ -311,7 +308,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                     0.0,
                     0.0,
                     TIP_("Reverse Path"));
-  UI_but_func_set(bt, [profile, cb](bContext &C) {
+  button_func_set(bt, [profile, cb](bContext &C) {
     BKE_curveprofile_reverse(profile);
     BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
     rna_update_cb(C, cb);
@@ -320,7 +317,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
   /* Clipping toggle */
   const int icon = (profile->flag & PROF_USE_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
   bt = uiDefIconBut(block,
-                    ButType::But,
+                    ButtonType::But,
                     icon,
                     0,
                     0,
@@ -330,7 +327,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                     0.0,
                     0.0,
                     TIP_("Toggle Profile Clipping"));
-  UI_but_func_set(bt, [profile, cb](bContext &C) {
+  button_func_set(bt, [profile, cb](bContext &C) {
     profile->flag ^= PROF_USE_CLIP;
     BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
     rna_update_cb(C, cb);
@@ -348,7 +345,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                          UI_UNIT_X,
                          TIP_("Tools"));
   /* Pass ownership of `presets_cb` to the button. */
-  UI_but_funcN_set(
+  button_funcN_set(
       bt,
       [](bContext *, void *, void *) {},
       tools_cb,
@@ -356,12 +353,12 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
       but_func_argN_free<RNAUpdateCb>,
       but_func_argN_copy<RNAUpdateCb>);
 
-  UI_block_funcN_set(block,
-                     rna_update_cb,
-                     MEM_new<RNAUpdateCb>(__func__, cb),
-                     nullptr,
-                     but_func_argN_free<RNAUpdateCb>,
-                     but_func_argN_copy<RNAUpdateCb>);
+  block_funcN_set(block,
+                  rna_update_cb,
+                  MEM_new<RNAUpdateCb>(__func__, cb),
+                  nullptr,
+                  but_func_argN_free<RNAUpdateCb>,
+                  but_func_argN_copy<RNAUpdateCb>);
 
   /* The path itself */
   int path_width = max_ii(layout.width(), UI_UNIT_X);
@@ -369,7 +366,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
   const int path_height = path_width;
   layout.row(false);
   uiDefBut(block,
-           ButType::CurveProfile,
+           ButtonType::CurveProfile,
            "",
            0,
            0,
@@ -427,13 +424,13 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
               prop_handle_type,
               RNA_NO_INDEX,
               0,
-              UI_ITEM_R_EXPAND | UI_ITEM_R_ICON_ONLY,
+              ITEM_R_EXPAND | ITEM_R_ICON_ONLY,
               "",
               ICON_NONE);
 
     /* Position */
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ButtonType::Num,
                    "X:",
                    0,
                    2 * UI_UNIT_Y,
@@ -443,17 +440,17 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                    bounds.xmin,
                    bounds.xmax,
                    "");
-    UI_but_number_step_size_set(bt, 1);
-    UI_but_number_precision_set(bt, 5);
-    UI_but_func_set(bt, [profile, cb](bContext &C) {
+    button_number_step_size_set(bt, 1);
+    button_number_precision_set(bt, 5);
+    button_func_set(bt, [profile, cb](bContext &C) {
       BKE_curveprofile_update(profile, PROF_UPDATE_REMOVE_DOUBLES | PROF_UPDATE_CLIP);
       rna_update_cb(C, cb);
     });
     if (point_last_or_first) {
-      UI_but_flag_enable(bt, UI_BUT_DISABLED);
+      button_flag_enable(bt, BUT_DISABLED);
     }
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ButtonType::Num,
                    "Y:",
                    0,
                    1 * UI_UNIT_Y,
@@ -463,19 +460,19 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                    bounds.ymin,
                    bounds.ymax,
                    "");
-    UI_but_number_step_size_set(bt, 1);
-    UI_but_number_precision_set(bt, 5);
-    UI_but_func_set(bt, [profile, cb](bContext &C) {
+    button_number_step_size_set(bt, 1);
+    button_number_precision_set(bt, 5);
+    button_func_set(bt, [profile, cb](bContext &C) {
       BKE_curveprofile_update(profile, PROF_UPDATE_REMOVE_DOUBLES | PROF_UPDATE_CLIP);
       rna_update_cb(C, cb);
     });
     if (point_last_or_first) {
-      UI_but_flag_enable(bt, UI_BUT_DISABLED);
+      button_flag_enable(bt, BUT_DISABLED);
     }
 
     /* Delete points */
     bt = uiDefIconBut(block,
-                      ButType::But,
+                      ButtonType::But,
                       ICON_X,
                       0,
                       0,
@@ -485,29 +482,27 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
                       0.0,
                       0.0,
                       TIP_("Delete points"));
-    UI_but_func_set(bt, [profile, cb](bContext &C) {
+    button_func_set(bt, [profile, cb](bContext &C) {
       BKE_curveprofile_remove_by_flag(profile, SELECT);
       BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
       rna_update_cb(C, cb);
     });
     if (point_last_or_first) {
-      UI_but_flag_enable(bt, UI_BUT_DISABLED);
+      button_flag_enable(bt, BUT_DISABLED);
     }
   }
 
   layout.prop(ptr, "use_sample_straight_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "use_sample_even_lengths", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  UI_block_funcN_set(block, nullptr, nullptr, nullptr);
+  block_funcN_set(block, nullptr, nullptr, nullptr);
 }
 
-void uiTemplateCurveProfile(blender::ui::Layout *layout,
-                            PointerRNA *ptr,
-                            const StringRefNull propname)
+void template_curve_profile(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   if (!prop) {
     RNA_warning("Curve Profile property not found: %s.%s",
@@ -529,9 +524,11 @@ void uiTemplateCurveProfile(blender::ui::Layout *layout,
   }
 
   ID *id = cptr.owner_id;
-  UI_block_lock_set(block, (id && !ID_IS_EDITABLE(id)), ERROR_LIBDATA_MESSAGE);
+  block_lock_set(block, (id && !ID_IS_EDITABLE(id)), ERROR_LIBDATA_MESSAGE);
 
   CurveProfile_buttons_layout(*layout, &cptr, RNAUpdateCb{*ptr, prop});
 
-  UI_block_lock_clear(block);
+  block_lock_clear(block);
 }
+
+}  // namespace blender::ui

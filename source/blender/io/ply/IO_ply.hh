@@ -14,6 +14,8 @@
 
 #include "IO_orientation.hh"
 
+namespace blender {
+
 struct Mesh;
 struct bContext;
 struct ReportList;
@@ -73,3 +75,5 @@ void PLY_export(bContext *C, const PLYExportParams &params);
 void PLY_import(bContext *C, const PLYImportParams &params);
 
 Mesh *PLY_import_mesh(const PLYImportParams &params);
+
+}  // namespace blender

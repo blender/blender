@@ -13,6 +13,8 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define SIZE 1024
 
 static void range_fl(float *array_tar, const int size)
@@ -41,7 +43,7 @@ TEST(heap, SimpleOne)
 
   heap = BLI_heapsimple_new();
 
-  BLI_heapsimple_insert(heap, 0.0f, (void *)in);
+  BLI_heapsimple_insert(heap, 0.0f, const_cast<char *>(in));
   EXPECT_FALSE(BLI_heapsimple_is_empty(heap));
   EXPECT_EQ(BLI_heapsimple_len(heap), 1);
   EXPECT_EQ(in, BLI_heapsimple_pop_min(heap));
@@ -121,3 +123,5 @@ TEST(heap, SimpleRand100)
 {
   random_heapsimple_helper(100, 4321);
 }
+
+}  // namespace blender

@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 static ImBuf *imb_load_dpx_cineon(
     const uchar *mem, size_t size, int use_cineon, int flags, ImFileColorSpace &r_colorspace)
 {
@@ -188,3 +190,5 @@ ImBuf *imb_load_cineon(const uchar *mem, size_t size, int flags, ImFileColorSpac
   }
   return imb_load_dpx_cineon(mem, size, 1, flags, r_colorspace);
 }
+
+}  // namespace blender

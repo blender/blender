@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <climits>
 
+namespace blender {
+
 #define L 0
 #define R 1
 #define LL 2
@@ -30,18 +32,18 @@
 GraphISO::GraphISO(int n)
 {
   this->n = n;
-  label = static_cast<uint *>(MEM_mallocN(n * sizeof *label, __func__));
-  adjmat = static_cast<uint8_t **>(MEM_mallocN(n * sizeof *adjmat, __func__));
+  label = MEM_malloc_arrayN<uint>(n, __func__);
+  adjmat = MEM_malloc_arrayN<uint8_t *>(n, __func__);
 
   /* \note Allocation of `n * n` bytes total! */
 
   for (int i = 0; i < n; i++) {
     /* Caution, are you trying to change the representation of adjmat?
-     * Consider `blender::Vector<std::pair<int, int>> adjmat;` instead.
+     * Consider `Vector<std::pair<int, int>> adjmat;` instead.
      * Better still is to use a different algorithm. See for example:
      * https://www.uni-ulm.de/fileadmin/website_uni_ulm/iui.inst.190/Mitarbeiter/toran/beatcs09.pdf
      */
-    adjmat[i] = static_cast<uchar *>(MEM_callocN(n * sizeof *adjmat[i], __func__));
+    adjmat[i] = MEM_calloc_arrayN<uint8_t>(n * sizeof *adjmat[i], __func__);
   }
   degree = nullptr;
 }
@@ -70,7 +72,7 @@ void GraphISO::calculate_degrees() const
   if (degree) {
     return;
   }
-  degree = static_cast<uint *>(MEM_mallocN(n * sizeof *degree, __func__));
+  degree = MEM_malloc_arrayN<uint>(n, __func__);
   for (int v = 0; v < n; v++) {
     int row_count = 0;
     for (int w = 0; w < n; w++) {
@@ -100,7 +102,7 @@ GraphISO *GraphISO::sort_vertices_by_degree() const
 {
   calculate_degrees();
 
-  int *vv = static_cast<int *>(MEM_mallocN(n * sizeof *vv, __func__));
+  int *vv = MEM_malloc_arrayN<int>(n, __func__);
   for (int i = 0; i < n; i++) {
     vv[i] = i;
   }
@@ -318,10 +320,10 @@ static void maximum_common_subgraph_internal(int incumbent[][2],
 {
   int min = std::min(n0, n1);
 
-  uint8_t (*cur)[2] = (uint8_t (*)[2])MEM_mallocN(min * sizeof(*cur), __func__);
-  uint8_t (*domains)[BDS] = (uint8_t (*)[8])MEM_mallocN(min * min * sizeof(*domains), __func__);
-  uint8_t *left = static_cast<uint8_t *>(MEM_mallocN(n0 * sizeof *left, __func__));
-  uint8_t *right = static_cast<uint8_t *>(MEM_mallocN(n1 * sizeof *right, __func__));
+  uint8_t (*cur)[2] = MEM_malloc_arrayN<uint8_t[2]>(min, __func__);
+  uint8_t (*domains)[BDS] = MEM_malloc_arrayN<uint8_t[BDS]>(min * min, __func__);
+  uint8_t *left = MEM_malloc_arrayN<uint8_t>(n0, __func__);
+  uint8_t *right = MEM_malloc_arrayN<uint8_t>(n1, __func__);
 
   uint8_t v, w, *bd;
   int bd_pos = 0;
@@ -438,3 +440,5 @@ bool ED_uvedit_clipboard_maximum_common_subgraph(GraphISO *g0_input,
 
   return result;
 }
+
+}  // namespace blender

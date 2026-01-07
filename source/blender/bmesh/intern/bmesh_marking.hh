@@ -13,6 +13,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 struct BMEditSelection {
   struct BMEditSelection *next, *prev;
   BMElem *ele;
@@ -212,17 +214,19 @@ struct GHash *BM_select_history_map_create(BMesh *bm);
  * Map arguments may all be the same pointer.
  */
 void BM_select_history_merge_from_targetmap(BMesh *bm,
-                                            blender::Map<void *, void *> *vert_map,
-                                            blender::Map<void *, void *> *edge_map,
-                                            blender::Map<void *, void *> *face_map,
+                                            Map<void *, void *> *vert_map,
+                                            Map<void *, void *> *edge_map,
+                                            Map<void *, void *> *face_map,
                                             bool use_chain);
 
 #define BM_SELECT_HISTORY_BACKUP(bm) \
   { \
-    ListBase _bm_prev_selected = (bm)->selected; \
+    ListBaseT<BMEditSelection> _bm_prev_selected = (bm)->selected; \
     BLI_listbase_clear(&(bm)->selected)
 
 #define BM_SELECT_HISTORY_RESTORE(bm) \
   (bm)->selected = _bm_prev_selected; \
   } \
   (void)0
+
+}  // namespace blender

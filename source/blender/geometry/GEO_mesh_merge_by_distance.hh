@@ -9,13 +9,15 @@
 #include "BLI_index_mask.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Mesh;
 
 /** \file
  * \ingroup geo
  */
 
-namespace blender::geometry {
+namespace geometry {
 
 /**
  * Merge selected vertices into other selected vertices within the \a merge_distance. The merged
@@ -62,4 +64,5 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
                        int vert_dest_map_len,
                        const bool do_mix_data);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

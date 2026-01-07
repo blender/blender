@@ -29,7 +29,7 @@ class AssetCatalogDefinitionFile;
 class AssetCatalogFilter;
 class AssetCatalogTree;
 
-using CatalogID = bUUID;
+using CatalogID = UUID;
 using CatalogPathComponent = std::string;
 /* Would be nice to be able to use `std::filesystem::path` for this, but it's currently not
  * available on the minimum macOS target version. */
@@ -61,7 +61,8 @@ class AssetCatalogService {
 
   struct read_only_tag {};
 
-  explicit AssetCatalogService(const CatalogFilePath &asset_library_root = {});
+  explicit AssetCatalogService(const CatalogFilePath &asset_library_root = {},
+                               std::optional<read_only_tag> read_only_tag = std::nullopt);
   explicit AssetCatalogService(read_only_tag);
 
   /**

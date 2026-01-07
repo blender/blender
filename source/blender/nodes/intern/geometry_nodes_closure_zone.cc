@@ -196,11 +196,16 @@ class LazyFunctionForClosureZone : public LazyFunction {
     closure_indices.inputs.output_usages = lf_graph.graph_inputs().index_range().take_back(
         storage.output_items.items_num);
 
+    Vector<const bke::SocketValueVariant *> captured_values;
     for (const int i : zone_.border_links.index_range()) {
       bke::SocketValueVariant *input_ptr = params.try_get_input_data_ptr<bke::SocketValueVariant>(
           zone_info_.indices.inputs.border_links[i]);
       bke::SocketValueVariant &stored_ptr = closure_scope->construct<bke::SocketValueVariant>(
           std::move(*input_ptr));
+      /* The value is captured here and we need to make sure that it doesn't reference data which
+       * may become dangling. */
+      stored_ptr.ensure_owns_direct_data();
+      captured_values.append(&stored_ptr);
       lf_body_node.input(body_fn_.indices.inputs.border_links[i]).set_default_value(&stored_ptr);
     }
 
@@ -264,7 +269,8 @@ class LazyFunctionForClosureZone : public LazyFunction {
                                         closure_indices,
                                         std::move(default_input_values),
                                         source_location,
-                                        std::make_shared<ClosureEvalLog>())};
+                                        std::make_shared<ClosureEvalLog>(),
+                                        std::move(captured_values))};
 
     params.set_output(zone_info_.indices.outputs.main[0],
                       bke::SocketValueVariant::From(std::move(closure)));

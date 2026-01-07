@@ -27,13 +27,16 @@
 #include "draw_cache_extract.hh"
 
 struct DRWSubdivCache;
+
+namespace blender {
+
 struct BMVert;
 struct BMEdge;
 struct BMEditMesh;
 struct BMFace;
 struct BMLoop;
 
-namespace blender::draw {
+namespace draw {
 
 /* ---------------------------------------------------------------------- */
 /** \name Mesh Render Data
@@ -131,8 +134,6 @@ inline const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh
 
   return mesh;
 }
-
-const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh);
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)
 {
@@ -396,4 +397,5 @@ gpu::VertBufPtr extract_paint_overlay_flags(const MeshRenderData &mr);
 gpu::VertBufPtr extract_paint_overlay_flags_subdiv(const MeshRenderData &mr,
                                                    const DRWSubdivCache &subdiv_cache);
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

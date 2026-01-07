@@ -4,7 +4,8 @@
 
 #include "gpu_shader_math_vector_safe_lib.glsl"
 
-void node_bsdf_translucent(float4 color, float3 N, float weight, out Closure result)
+[[node]]
+void node_bsdf_translucent(float4 color, float3 N, float weight, Closure &result)
 {
   color = max(color, float4(0.0f));
   N = safe_normalize(N);

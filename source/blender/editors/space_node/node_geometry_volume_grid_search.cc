@@ -31,10 +31,12 @@
 
 #include <fmt/format.h>
 
-using blender::nodes::geo_eval_log::GeometryInfoLog;
-using blender::nodes::geo_eval_log::VolumeGridInfo;
+namespace blender {
 
-namespace blender::ed::space_node {
+using nodes::geo_eval_log::GeometryInfoLog;
+using nodes::geo_eval_log::VolumeGridInfo;
+
+namespace ed::space_node {
 
 struct GridSearchData {
   int32_t node_id;
@@ -112,17 +114,17 @@ static StringRef grid_data_type_string(const VolumeGridType type)
   return IFACE_(StringRef(name));
 }
 
-static bool grid_search_item_add(uiSearchItems &items, const VolumeGridInfo &item)
+static bool grid_search_item_add(ui::SearchItems &items, const VolumeGridInfo &item)
 {
   std::string text = fmt::format(
       "{}" UI_SEP_CHAR_S "{}", item.name, grid_data_type_string(item.grid_type));
-  return UI_search_item_add(&items, text, (void *)&item, ICON_NONE, UI_BUT_HAS_SEP_CHAR, 0);
+  return search_item_add(&items, text, (void *)&item, ICON_NONE, ui::BUT_HAS_SEP_CHAR, 0);
 }
 
 static void volume_grid_search_add_items(const StringRef str,
                                          const bool can_create_grid,
                                          const Span<const VolumeGridInfo *> grids,
-                                         uiSearchItems &seach_items,
+                                         ui::SearchItems &seach_items,
                                          const bool is_first)
 {
   static std::string dummy_str;
@@ -137,8 +139,7 @@ static void volume_grid_search_add_items(const StringRef str,
     }
     if (!contained) {
       dummy_str = str;
-      UI_search_item_add(
-          &seach_items, str, &dummy_str, can_create_grid ? ICON_ADD : ICON_NONE, 0, 0);
+      search_item_add(&seach_items, str, &dummy_str, can_create_grid ? ICON_ADD : ICON_NONE, 0, 0);
     }
   }
 
@@ -146,7 +147,7 @@ static void volume_grid_search_add_items(const StringRef str,
     /* Allow clearing the text field when the string is empty, but not on the first pass,
      * or opening a name field for the first time would show this search item. */
     dummy_str = str;
-    UI_search_item_add(&seach_items, str, &dummy_str, ICON_X, 0, 0);
+    search_item_add(&seach_items, str, &dummy_str, ICON_X, 0, 0);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
@@ -167,7 +168,7 @@ static void volume_grid_search_add_items(const StringRef str,
 }
 
 static void grid_search_update_fn(
-    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+    const bContext *C, void *arg, const char *str, ui::SearchItems *items, const bool is_first)
 {
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
     return;
@@ -226,20 +227,20 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
                                                  ui::Layout &layout,
                                                  const StringRef placeholder)
 {
-  uiBlock *block = layout.block();
-  uiBut *but = uiDefIconTextButR(block,
-                                 ButType::SearchMenu,
-                                 ICON_NONE,
-                                 "",
-                                 0,
-                                 0,
-                                 10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
-                                 UI_UNIT_Y,
-                                 &socket_ptr,
-                                 "default_value",
-                                 0,
-                                 "");
-  UI_but_placeholder_set(but, placeholder);
+  ui::Block *block = layout.block();
+  ui::Button *but = uiDefIconTextButR(block,
+                                      ui::ButtonType::SearchMenu,
+                                      ICON_NONE,
+                                      "",
+                                      0,
+                                      0,
+                                      10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
+                                      UI_UNIT_Y,
+                                      &socket_ptr,
+                                      "default_value",
+                                      0,
+                                      "");
+  button_placeholder_set(but, placeholder);
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   GridSearchData *data = MEM_callocN<GridSearchData>(__func__);
@@ -247,9 +248,9 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
   data->can_create_grid = node.is_type("GeometryNodeStoreNamedGrid");
   STRNCPY_UTF8(data->socket_identifier, socket.identifier);
 
-  UI_but_func_search_set_results_are_suggestions(but, true);
-  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  UI_but_func_search_set(but,
+  button_func_search_set_results_are_suggestions(but, true);
+  button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
+  button_func_search_set(but,
                          nullptr,
                          grid_search_update_fn,
                          static_cast<void *>(data),
@@ -259,4 +260,6 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
                          nullptr);
 }
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
+
+}  // namespace blender

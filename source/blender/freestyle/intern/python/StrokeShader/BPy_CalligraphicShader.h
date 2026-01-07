@@ -18,8 +18,8 @@ extern PyTypeObject CalligraphicShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&CalligraphicShader_Type)
 
 /*---------------------------Python BPy_CalligraphicShader structure definition----------*/
-typedef struct {
+struct BPy_CalligraphicShader {
   BPy_StrokeShader py_ss;
-} BPy_CalligraphicShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -42,6 +42,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 #ifdef _MSC_VER
 #  pragma fenv_access(on)
 #endif
@@ -97,7 +99,7 @@ struct ExprOp {
 };
 
 struct ExprPyLike_Parsed {
-  blender::Vector<ExprOp> ops;
+  Vector<ExprOp> ops;
   int max_stack;
 };
 
@@ -494,12 +496,12 @@ struct ExprParseState {
 
   /* Current token */
   short token = 0;
-  blender::Vector<char> tokenbuf;
+  Vector<char> tokenbuf;
   double tokenval = 0.0;
 
   /* Opcode buffer */
   int last_jmp = 0;
-  blender::Vector<ExprOp> ops;
+  Vector<ExprOp> ops;
 
   /* Stack space requirement tracking */
   int stack_ptr = 0;
@@ -988,7 +990,7 @@ static bool parse_expr(ExprParseState *state)
      * main body with condition, so stash the body opcodes. */
     const int size = state->ops.size() - start;
 
-    blender::Vector<ExprOp> body(size);
+    Vector<ExprOp> body(size);
     std::copy_n(state->ops.data() + start, size, body.data());
 
     state->ops.resize(start);
@@ -1066,3 +1068,5 @@ ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression,
 }
 
 /** \} */
+
+}  // namespace blender

@@ -24,6 +24,8 @@
 
 #include "../generic/python_utildefines.hh"
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmeditselseq_active_doc,
@@ -45,8 +47,8 @@ static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void * /*cl
 
 static PyGetSetDef bpy_bmeditselseq_getseters[] = {
     {"active",
-     (getter)bpy_bmeditselseq_active_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(bpy_bmeditselseq_active_get),
+     static_cast<setter>(nullptr),
      bpy_bmeditselseq_active_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
@@ -173,14 +175,23 @@ static PyObject *bpy_bmeditselseq_discard(BPy_BMEditSelSeq *self, BPy_BMElem *va
 
 static PyMethodDef bpy_bmeditselseq_methods[] = {
     {"validate",
-     (PyCFunction)bpy_bmeditselseq_validate,
+     reinterpret_cast<PyCFunction>(bpy_bmeditselseq_validate),
      METH_NOARGS,
      bpy_bmeditselseq_validate_doc},
-    {"clear", (PyCFunction)bpy_bmeditselseq_clear, METH_NOARGS, bpy_bmeditselseq_clear_doc},
+    {"clear",
+     reinterpret_cast<PyCFunction>(bpy_bmeditselseq_clear),
+     METH_NOARGS,
+     bpy_bmeditselseq_clear_doc},
 
-    {"add", (PyCFunction)bpy_bmeditselseq_add, METH_O, bpy_bmeditselseq_add_doc},
-    {"remove", (PyCFunction)bpy_bmeditselseq_remove, METH_O, bpy_bmeditselseq_remove_doc},
-    {"discard", (PyCFunction)bpy_bmeditselseq_discard, METH_O, bpy_bmeditselseq_discard_doc},
+    {"add", reinterpret_cast<PyCFunction>(bpy_bmeditselseq_add), METH_O, bpy_bmeditselseq_add_doc},
+    {"remove",
+     reinterpret_cast<PyCFunction>(bpy_bmeditselseq_remove),
+     METH_O,
+     bpy_bmeditselseq_remove_doc},
+    {"discard",
+     reinterpret_cast<PyCFunction>(bpy_bmeditselseq_discard),
+     METH_O,
+     bpy_bmeditselseq_discard_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -267,7 +278,7 @@ static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *ke
     return bpy_bmeditselseq_subscript_int(self, i);
   }
   if (PySlice_Check(key)) {
-    PySliceObject *key_slice = (PySliceObject *)key;
+    PySliceObject *key_slice = reinterpret_cast<PySliceObject *>(key);
     Py_ssize_t step = 1;
 
     if (key_slice->step != Py_None && !_PyEval_SliceIndex(key, &step)) {
@@ -321,7 +332,7 @@ static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
 
   BPY_BM_CHECK_INT(self);
 
-  value_bm_ele = (BPy_BMElem *)value;
+  value_bm_ele = reinterpret_cast<BPy_BMElem *>(value);
   if (value_bm_ele->bm == self->bm) {
     return BM_select_history_check(self->bm, value_bm_ele->ele);
   }
@@ -330,23 +341,23 @@ static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
 }
 
 static PySequenceMethods bpy_bmeditselseq_as_sequence = {
-    /*sq_length*/ (lenfunc)bpy_bmeditselseq_length,
+    /*sq_length*/ reinterpret_cast<lenfunc>(bpy_bmeditselseq_length),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
     /* Only set this so `PySequence_Check()` returns True. */
-    /*sq_item*/ (ssizeargfunc)bpy_bmeditselseq_subscript_int,
+    /*sq_item*/ reinterpret_cast<ssizeargfunc>(bpy_bmeditselseq_subscript_int),
     /*was_sq_slice*/ nullptr,
     /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr,
-    /*sq_contains*/ (objobjproc)bpy_bmeditselseq_contains,
+    /*sq_contains*/ reinterpret_cast<objobjproc>(bpy_bmeditselseq_contains),
     /*sq_inplace_concat*/ nullptr,
     /*sq_inplace_repeat*/ nullptr,
 };
 
 static PyMappingMethods bpy_bmeditselseq_as_mapping = {
-    /*mp_length*/ (lenfunc)bpy_bmeditselseq_length,
-    /*mp_subscript*/ (binaryfunc)bpy_bmeditselseq_subscript,
-    /*mp_ass_subscript*/ (objobjargproc) nullptr,
+    /*mp_length*/ reinterpret_cast<lenfunc>(bpy_bmeditselseq_length),
+    /*mp_subscript*/ reinterpret_cast<binaryfunc>(bpy_bmeditselseq_subscript),
+    /*mp_ass_subscript*/ static_cast<objobjargproc>(nullptr),
 };
 
 /* Iterator
@@ -357,9 +368,9 @@ static PyObject *bpy_bmeditselseq_iter(BPy_BMEditSelSeq *self)
   BPy_BMEditSelIter *py_iter;
 
   BPY_BM_CHECK_OBJ(self);
-  py_iter = (BPy_BMEditSelIter *)BPy_BMEditSelIter_CreatePyObject(self->bm);
+  py_iter = reinterpret_cast<BPy_BMEditSelIter *>(BPy_BMEditSelIter_CreatePyObject(self->bm));
   py_iter->ese = static_cast<BMEditSelection *>(self->bm->selected.first);
-  return (PyObject *)py_iter;
+  return reinterpret_cast<PyObject *>(py_iter);
 }
 
 static PyObject *bpy_bmeditseliter_next(BPy_BMEditSelIter *self)
@@ -382,7 +393,7 @@ PyObject *BPy_BMEditSel_CreatePyObject(BMesh *bm)
   BPy_BMEditSelSeq *self = PyObject_New(BPy_BMEditSelSeq, &BPy_BMEditSelSeq_Type);
   self->bm = bm;
   /* caller must initialize 'iter' member */
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *BPy_BMEditSelIter_CreatePyObject(BMesh *bm)
@@ -390,7 +401,7 @@ PyObject *BPy_BMEditSelIter_CreatePyObject(BMesh *bm)
   BPy_BMEditSelIter *self = PyObject_New(BPy_BMEditSelIter, &BPy_BMEditSelIter_Type);
   self->bm = bm;
   /* caller must initialize 'iter' member */
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 void BPy_BM_init_types_select()
@@ -404,8 +415,8 @@ void BPy_BM_init_types_select()
   BPy_BMEditSelSeq_Type.tp_doc = nullptr; /* todo */
   BPy_BMEditSelIter_Type.tp_doc = nullptr;
 
-  BPy_BMEditSelSeq_Type.tp_repr = (reprfunc) nullptr;
-  BPy_BMEditSelIter_Type.tp_repr = (reprfunc) nullptr;
+  BPy_BMEditSelSeq_Type.tp_repr = static_cast<reprfunc>(nullptr);
+  BPy_BMEditSelIter_Type.tp_repr = static_cast<reprfunc>(nullptr);
 
   BPy_BMEditSelSeq_Type.tp_getset = bpy_bmeditselseq_getseters;
   BPy_BMEditSelIter_Type.tp_getset = nullptr;
@@ -417,10 +428,10 @@ void BPy_BM_init_types_select()
 
   BPy_BMEditSelSeq_Type.tp_as_mapping = &bpy_bmeditselseq_as_mapping;
 
-  BPy_BMEditSelSeq_Type.tp_iter = (getiterfunc)bpy_bmeditselseq_iter;
+  BPy_BMEditSelSeq_Type.tp_iter = reinterpret_cast<getiterfunc>(bpy_bmeditselseq_iter);
 
   /* Only 1 iterator so far. */
-  BPy_BMEditSelIter_Type.tp_iternext = (iternextfunc)bpy_bmeditseliter_next;
+  BPy_BMEditSelIter_Type.tp_iternext = reinterpret_cast<iternextfunc>(bpy_bmeditseliter_next);
 
   BPy_BMEditSelSeq_Type.tp_dealloc = nullptr;   //(destructor)bpy_bmeditselseq_dealloc;
   BPy_BMEditSelIter_Type.tp_dealloc = nullptr;  //(destructor)bpy_bmvert_dealloc;
@@ -466,3 +477,5 @@ int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value)
   PyMem_FREE(value_array);
   return 0;
 }
+
+}  // namespace blender

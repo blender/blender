@@ -4,8 +4,8 @@
 
 #include "instancer.hh"
 
-#include <pxr/base/gf/vec2f.h>
-#include <pxr/imaging/hd/light.h>
+#include <pxr/base/vt/types.h>
+#include <pxr/base/vt/value.h>
 
 #include "BKE_duplilist.hh"
 #include "BKE_particle.h"
@@ -13,8 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "DEG_depsgraph_query.hh"
-
+#include "DNA_light_types.h"
 #include "DNA_particle_types.h"
 
 #include "hydra_scene_delegate.hh"
@@ -167,20 +166,20 @@ void InstancerData::update_instance(DupliObject *dupli)
     nm_inst->transforms.push_back(gf_matrix_from_transform(dupli->mat));
   }
 
-  LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
-    if (psys_in_edit_mode(scene_delegate_->depsgraph, psys)) {
+  for (ParticleSystem &psys : object->particlesystem) {
+    if (psys_in_edit_mode(scene_delegate_->depsgraph, &psys)) {
       continue;
     }
-    if (HairData::is_supported(psys) && HairData::is_visible(scene_delegate_, object, psys)) {
-      pxr::SdfPath h_id = hair_prim_id(object, psys);
+    if (HairData::is_supported(&psys) && HairData::is_visible(scene_delegate_, object, &psys)) {
+      pxr::SdfPath h_id = hair_prim_id(object, &psys);
       NonmeshInstance *nm_inst = nonmesh_instance(h_id);
       if (!nm_inst) {
         nm_inst = &nonmesh_instances_.lookup_or_add_default(h_id);
-        nm_inst->data = std::make_unique<HairData>(scene_delegate_, object, h_id, psys);
+        nm_inst->data = std::make_unique<HairData>(scene_delegate_, object, h_id, &psys);
         nm_inst->data->init();
       }
       ID_LOG("Nonmesh %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
-      nm_inst->transforms.push_back(gf_matrix_from_transform(psys->imat) *
+      nm_inst->transforms.push_back(gf_matrix_from_transform(psys.imat) *
                                     gf_matrix_from_transform(dupli->mat));
     }
   }
@@ -270,7 +269,10 @@ void InstancerData::update_nonmesh_instance(NonmeshInstance &nm_inst)
   /* NOTE: Special case: recreate instances when prim_type was changed.
    * Doing only update for other Nonmesh objects. */
   LightData *l_data = dynamic_cast<LightData *>(obj_data);
-  if (l_data && l_data->prim_type((Light *)((Object *)l_data->id)->data) != l_data->prim_type_) {
+  if (l_data && l_data->prim_type(
+                    id_cast<Light *>((id_cast<Object *>(const_cast<ID *>(l_data->id)))->data)) !=
+                    l_data->prim_type_)
+  {
     for (i = 0; i < nm_inst.count; ++i) {
       obj_data->prim_id = nonmesh_prim_id(prev_id, i);
       obj_data->remove();

@@ -17,10 +17,10 @@
 #include "../geometry/Bezier.h"
 #include "../geometry/Geom.h"
 
-extern "C" {
+namespace blender {
 struct MTex;
 struct bNodeTree;
-}
+}  // namespace blender
 
 using namespace std;
 
@@ -573,15 +573,15 @@ class TipRemoverShader : public StrokeShader {
  */
 class BlenderTextureShader : public StrokeShader {
  private:
-  MTex *_mtex;
-  bNodeTree *_nodeTree;
+  blender::MTex *_mtex;
+  blender::bNodeTree *_nodeTree;
 
  public:
   /** Builds the shader.
    *  \param mtex:
    *    The blender texture to use.
    */
-  BlenderTextureShader(MTex *mtex)
+  BlenderTextureShader(blender::MTex *mtex)
   {
     _mtex = mtex;
     _nodeTree = nullptr;
@@ -591,7 +591,7 @@ class BlenderTextureShader : public StrokeShader {
    *  \param nodetree:
    *    A node tree (of new shading nodes) to define textures.
    */
-  BlenderTextureShader(bNodeTree *nodetree)
+  BlenderTextureShader(blender::bNodeTree *nodetree)
   {
     _nodeTree = nodetree;
     _mtex = nullptr;

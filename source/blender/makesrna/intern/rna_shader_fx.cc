@@ -27,6 +27,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_object_shaderfx_type_items[] = {
     {eShaderFxType_Blur, "FX_BLUR", ICON_SHADERFX, "Blur", "Apply Gaussian Blur to object"},
     {eShaderFxType_Colorize,
@@ -78,20 +80,28 @@ static const EnumPropertyItem rna_enum_glow_blend_modes_items[] = {
     {eGplBlendMode_Divide, "DIVIDE", 0, "Divide", ""},
     {0, nullptr, 0, nullptr, nullptr}};
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
 
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
+
+#  include "BKE_lib_id.hh"
 #  include "BKE_shader_fx.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static StructRNA *rna_ShaderFx_refine(PointerRNA *ptr)
 {
-  ShaderFxData *md = (ShaderFxData *)ptr->data;
+  ShaderFxData *md = static_cast<ShaderFxData *>(ptr->data);
 
-  switch ((ShaderFxType)md->type) {
+  switch (ShaderFxType(md->type)) {
     case eShaderFxType_Blur:
       return &RNA_ShaderFxBlur;
     case eShaderFxType_Colorize:
@@ -133,7 +143,7 @@ static void rna_ShaderFx_name_set(PointerRNA *ptr, const char *value)
 
   /* make sure the name is truly unique */
   if (ptr->owner_id) {
-    Object *ob = (Object *)ptr->owner_id;
+    Object *ob = id_cast<Object *>(ptr->owner_id);
     BKE_shaderfx_unique_name(&ob->shader_fx, gmd);
   }
 
@@ -170,7 +180,7 @@ static void shaderfx_object_set(Object *self, Object **ob_p, int type, PointerRN
 
   if (!self || ob != self) {
     if (!ob || type == OB_EMPTY || ob->type == type) {
-      id_lib_extern((ID *)ob);
+      id_lib_extern(id_cast<ID *>(ob));
       *ob_p = ob;
     }
   }
@@ -189,7 +199,11 @@ RNA_FX_OBJECT_SET(Swirl, object, OB_EMPTY);
 
 #  undef RNA_FX_OBJECT_SET
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_shader_fx_blur(BlenderRNA *brna)
 {
@@ -714,5 +728,7 @@ void RNA_def_shader_fx(BlenderRNA *brna)
   rna_def_shader_fx_swirl(brna);
   rna_def_shader_fx_flip(brna);
 }
+
+}  // namespace blender
 
 #endif

@@ -77,6 +77,7 @@ void kernel_global_memory_copy(KernelGlobalsCPU *kg,
     kg->tname.width = size; \
   }
 #include "kernel/data_arrays.h"
+
   else {
     assert(0);
   }

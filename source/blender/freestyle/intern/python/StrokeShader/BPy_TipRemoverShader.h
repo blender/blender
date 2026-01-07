@@ -18,8 +18,8 @@ extern PyTypeObject TipRemoverShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&TipRemoverShader_Type))
 
 /*---------------------------Python BPy_TipRemoverShader structure definition----------*/
-typedef struct {
+struct BPy_TipRemoverShader {
   BPy_StrokeShader py_ss;
-} BPy_TipRemoverShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -12,11 +12,12 @@
 #include "mtl_backend.hh"
 #include "mtl_shader_generate.hh"
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
-namespace blender::gpu {
+namespace gpu {
 
 struct Separator {};
 
@@ -537,7 +538,7 @@ static void generate_uniforms(GeneratedStreams &generated,
 
 static void generate_buffer(GeneratedStreams &generated,
                             const bool writeable,
-                            StringRefNull type,
+                            std::string type,
                             ResourceString name,
                             int slot,
                             const ShaderStage stage)
@@ -703,6 +704,7 @@ static void generate_texture(GeneratedStreams &generated,
 static void generate_resource(GeneratedStreams &generated,
                               const ShaderCreateInfo::Resource &res,
                               const ShaderStage stage,
+                              const ShaderCreateInfo &info,
                               const bool use_sampler_argument_buffer)
 {
   switch (res.bind_type) {
@@ -728,7 +730,7 @@ static void generate_resource(GeneratedStreams &generated,
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       generate_buffer(generated,
                       false,
-                      res.uniformbuf.type_name,
+                      info.buffer_typename(res.uniformbuf.type_name, true),
                       res.uniformbuf.name,
                       MTL_UBO_SLOT_OFFSET + res.slot,
                       stage);
@@ -736,7 +738,7 @@ static void generate_resource(GeneratedStreams &generated,
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
       generate_buffer(generated,
                       bool(res.storagebuf.qualifiers & shader::Qualifier::write),
-                      res.storagebuf.type_name,
+                      info.buffer_typename(res.storagebuf.type_name),
                       res.storagebuf.name,
                       MTL_SSBO_SLOT_OFFSET + res.slot,
                       stage);
@@ -750,7 +752,7 @@ static void generate_compilation_constant(GeneratedStreams &generated,
   /* Global scope definition before the wrapper class. */
   auto &out = generated.wrapper_class_prefix;
   out << "constant " << constant.type << " " << constant.name;
-  out << " = " << to_string(constant.type, constant.value) << ";\n";
+  out << " [[maybe_unused]] = " << to_string(constant.type, constant.value) << ";\n";
 }
 
 static void generate_specialization_constant(GeneratedStreams &generated,
@@ -831,13 +833,13 @@ void generate_resources(GeneratedStreams &generated,
   }
 
   for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-    generate_resource(generated, res, stage, use_sampler_argument_buffer);
+    generate_resource(generated, res, stage, info, use_sampler_argument_buffer);
   }
   for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-    generate_resource(generated, res, stage, use_sampler_argument_buffer);
+    generate_resource(generated, res, stage, info, use_sampler_argument_buffer);
   }
   for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
-    generate_resource(generated, res, stage, use_sampler_argument_buffer);
+    generate_resource(generated, res, stage, info, use_sampler_argument_buffer);
   }
 
   if (use_sampler_argument_buffer) {
@@ -1515,4 +1517,5 @@ void patch_create_info_atomic_workaround(std::unique_ptr<PatchedShaderCreateInfo
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

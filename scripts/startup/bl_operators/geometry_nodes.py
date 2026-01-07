@@ -39,10 +39,15 @@ def geometry_node_group_empty_modifier_new(name):
 
 
 def geometry_node_group_empty_tool_new(context):
+    import re
+
     group = geometry_node_group_empty_new(data_("Tool"))
     # Node tools have fake users by default, otherwise Blender will delete them since they have no users.
     group.use_fake_user = True
     group.is_tool = True
+
+    # Operator identifier names only support lowercase ASCII characters or numbers.
+    group.node_tool_idname = "geometry." + re.sub('[^0-9a-z]+', '_', group.name.strip().lower())
 
     ob = context.object
     ob_type = ob.type if ob else 'MESH'

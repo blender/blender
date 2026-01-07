@@ -21,6 +21,8 @@
 
 #  include "SIM_mass_spring.h"
 
+namespace blender {
+
 #  ifdef __GNUC__
 #    pragma GCC diagnostic ignored "-Wtype-limits"
 #  endif
@@ -168,11 +170,11 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3],
   /* TODO: try enabling this and measuring performance. It was previously disabled
    * due to non-deterministic behavior, but parallel_deterministic_reduce should
    * give consistent results. */
-  return blender::threading::parallel_deterministic_reduce(
-      blender::IndexRange(0, verts),
+  return threading::parallel_deterministic_reduce(
+      IndexRange(0, verts),
       CLOTH_PARALLEL_LIMIT,
       0.0,
-      [=](const blender::IndexRange &range, float value) {
+      [=](const IndexRange &range, float value) {
         float temp = value;
         for (const int i : range) {
           temp += dot_v3v3(fLongVectorA[i], fLongVectorB[i]);
@@ -290,7 +292,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
 {
   int tot = m[0].vcount + m[0].scount;
   int size = m[0].vcount * 3;
-  float *t = MEM_calloc_array<float>N(size * size, "bfmatrix");
+  float *t = MEM_calloc_arrayN<float>(size * size, "bfmatrix");
   int q, i, j;
 
   for (q = 0; q < tot; q++) {
@@ -593,7 +595,7 @@ DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector 
 
   zero_lfvector(to, vcount);
 
-  blender::threading::parallel_invoke(
+  threading::parallel_invoke(
       vcount > CLOTH_PARALLEL_LIMIT,
       [&]() {
         for (uint i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
@@ -919,9 +921,9 @@ static int cg_filtered(lfVector *ldV,
 DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
   /* Take only the diagonal blocks of A */
-  blender::threading::parallel_for(blender::IndexRange(0, lA[0].vcount),
+  threading::parallel_for(IndexRange(0, lA[0].vcount),
                                    CLOTH_PARALLEL_LIMIT,
-                                   [&](const blender::IndexRange &range) {
+                                   [&](const IndexRange &range) {
                                      for (int64_t i : range) {
                                        /* block diagonalizer */
                                        cp_fmatrix(P[i].m, lA[i].m);
@@ -2336,5 +2338,7 @@ bool SIM_mass_spring_force_spring_goal(Implicit_Data *data,
 
   return false;
 }
+
+}  // namespace blender
 
 #endif /* IMPLICIT_SOLVER_BLENDER */

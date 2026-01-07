@@ -12,6 +12,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define SIZE 1024
 
 static void range_fl(float *array_tar, const int size)
@@ -40,7 +42,7 @@ TEST(heap, One)
 
   heap = BLI_heap_new();
 
-  BLI_heap_insert(heap, 0.0f, (void *)in);
+  BLI_heap_insert(heap, 0.0f, const_cast<char *>(in));
   EXPECT_FALSE(BLI_heap_is_empty(heap));
   EXPECT_EQ(BLI_heap_len(heap), 1);
   EXPECT_EQ(in, BLI_heap_pop_min(heap));
@@ -207,3 +209,5 @@ TEST(heap, ReInsertRandom2048)
 {
   random_heap_reinsert_helper(2048, 5321);
 }
+
+}  // namespace blender

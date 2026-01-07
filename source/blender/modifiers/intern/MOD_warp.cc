@@ -16,7 +16,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -43,21 +42,20 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WarpModifierData), modifier);
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 
   wmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const WarpModifierData *wmd = (const WarpModifierData *)md;
-  WarpModifierData *twmd = (WarpModifierData *)target;
+  const WarpModifierData *wmd = reinterpret_cast<const WarpModifierData *>(md);
+  WarpModifierData *twmd = reinterpret_cast<WarpModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -66,7 +64,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (wmd->defgrp_name[0] != '\0') {
@@ -97,7 +95,7 @@ static void matrix_from_obj_pchan(float mat[4][4],
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
   if (wmd->texture) {
     return BKE_texture_dependsOnTime(wmd->texture);
@@ -108,25 +106,25 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void free_data(ModifierData *md)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
   BKE_curvemapping_free(wmd->curfalloff);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
   return !(wmd->object_from && wmd->object_to);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&wmd->object_from, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&wmd->object_to, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&wmd->map_object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->object_from), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->object_to), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->map_object), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -138,7 +136,7 @@ static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, voi
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
   bool need_transform_relation = false;
 
   if (wmd->object_from != nullptr && wmd->object_to != nullptr) {
@@ -236,9 +234,10 @@ static void warpModifier_do(WarpModifierData *wmd,
   Tex *tex_target = wmd->texture;
   if (mesh != nullptr && tex_target != nullptr) {
     tex_co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
-    MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
+    MOD_get_texture_coords(
+        reinterpret_cast<MappingInfoModifierData *>(wmd), ctx, ob, mesh, vertexCos, tex_co);
 
-    MOD_init_texture((MappingInfoModifierData *)wmd, ctx);
+    MOD_init_texture(reinterpret_cast<MappingInfoModifierData *>(wmd), ctx);
   }
 
   for (i = 0; i < verts_num; i++) {
@@ -332,23 +331,23 @@ static void warpModifier_do(WarpModifierData *wmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
   warpModifier_do(
       wmd, ctx, mesh, reinterpret_cast<float (*)[3]>(positions.data()), positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout *col = &layout.column(true);
+  ui::Layout *col = &layout.column(true);
   col->prop(ptr, "object_from", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   PointerRNA from_obj_ptr = RNA_pointer_get(ptr, "object_from");
   if (!RNA_pointer_is_null(&from_obj_ptr) && RNA_enum_get(&from_obj_ptr, "type") == OB_ARMATURE) {
@@ -377,7 +376,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -392,24 +391,24 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   if (use_falloff && RNA_enum_get(ptr, "falloff_type") == eWarp_Falloff_Curve) {
-    uiTemplateCurveMapping(&layout, ptr, "falloff_curve", 0, false, false, false, false, false);
+    template_curve_mapping(&layout, ptr, "falloff_curve", 0, false, false, false, false, false);
   }
 }
 
 static void texture_panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int texture_coords = RNA_enum_get(ptr, "texture_coords");
 
-  uiTemplateID(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
     col.prop(ptr, "texture_coords_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
@@ -443,9 +442,9 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
-  const WarpModifierData *wmd = (const WarpModifierData *)md;
+  const WarpModifierData *wmd = reinterpret_cast<const WarpModifierData *>(md);
 
-  BLO_write_struct(writer, WarpModifierData, wmd);
+  writer->write_struct(wmd);
 
   if (wmd->curfalloff) {
     BKE_curvemapping_blend_write(writer, wmd->curfalloff);
@@ -454,7 +453,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
   BLO_read_struct(reader, CurveMapping, &wmd->curfalloff);
   if (wmd->curfalloff) {
@@ -497,3 +496,5 @@ ModifierTypeInfo modifierType_Warp = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

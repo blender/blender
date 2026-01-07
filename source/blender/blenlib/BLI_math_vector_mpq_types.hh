@@ -74,7 +74,6 @@ inline mpq_class dot_with_buffer(const mpq3 &a, const mpq3 &b, mpq3 &buffer)
 }
 
 }  // namespace math
-
 }  // namespace blender
 
 #endif /* WITH_GMP */

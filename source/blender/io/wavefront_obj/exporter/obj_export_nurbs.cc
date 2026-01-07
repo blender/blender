@@ -170,7 +170,7 @@ OBJLegacyCurve::OBJLegacyCurve(const Depsgraph *depsgraph, Object *curve_object)
     : export_object_eval_(curve_object)
 {
   export_object_eval_ = DEG_get_evaluated(depsgraph, curve_object);
-  export_curve_ = static_cast<Curve *>(export_object_eval_->data);
+  export_curve_ = id_cast<Curve *>(export_object_eval_->data);
 }
 
 const Nurb *OBJLegacyCurve::get_spline(const int spline_index) const

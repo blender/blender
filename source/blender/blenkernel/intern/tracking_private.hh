@@ -15,11 +15,13 @@
 
 #include "BLI_map.hh"
 #include "BLI_threads.h"
+struct libmv_CameraIntrinsicsOptions;
+struct libmv_TrackRegionOptions;
+struct libmv_FrameAccessor;
+namespace blender {
 
 struct MovieTracking;
 struct MovieTrackingMarker;
-
-struct libmv_CameraIntrinsicsOptions;
 
 /*********************** Tracks map *************************/
 
@@ -29,7 +31,7 @@ struct TracksMap {
   int num_tracks;
   MovieTrackingTrack *tracks;
 
-  blender::Map<MovieTrackingTrack *, MovieTrackingTrack *> *hash;
+  Map<MovieTrackingTrack *, MovieTrackingTrack *> *hash;
 
   int ptr;
 
@@ -119,8 +121,6 @@ void tracking_cameraIntrinscisOptionsFromTracking(
 void tracking_trackingCameraFromIntrinscisOptions(
     MovieTracking *tracking, const libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
 
-struct libmv_TrackRegionOptions;
-
 /**
  * Fill in libmv tracker options structure with settings need to be used to perform track.
  */
@@ -149,8 +149,6 @@ float *tracking_track_get_mask_for_region(const int frame_width,
 
 /*********************** Frame Accessor *************************/
 
-struct libmv_FrameAccessor;
-
 #define MAX_ACCESSOR_CLIP 64
 struct TrackingImageAccessor {
   MovieClip *clips[MAX_ACCESSOR_CLIP];
@@ -178,3 +176,5 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
                                                    MovieTrackingTrack **tracks,
                                                    int num_tracks);
 void tracking_image_accessor_destroy(TrackingImageAccessor *accessor);
+
+}  // namespace blender

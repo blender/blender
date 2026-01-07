@@ -17,6 +17,8 @@
 
 #include "gpencil_intern.hh"
 
+namespace blender {
+
 void ED_keymap_gpencil_legacy(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Grease Pencil", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -36,3 +38,5 @@ void ED_operatortypes_gpencil_legacy()
 
   /* Editing (Time) --------------- */
 }
+
+}  // namespace blender

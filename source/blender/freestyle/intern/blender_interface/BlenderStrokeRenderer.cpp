@@ -62,14 +62,17 @@
 #include <climits>
 
 using blender::float3;
+using blender::Material;
 
 namespace Freestyle {
 
 const char *BlenderStrokeRenderer::uvNames[] = {"along_stroke", "along_stroke_tips"};
 
-BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
+BlenderStrokeRenderer::BlenderStrokeRenderer(blender::Render *re, int render_count)
 {
-  freestyle_bmain = BKE_main_new();
+  using namespace blender;
+
+  freestyle_bmain = blender::BKE_main_new();
 
   /* NOTE(@sergey): We use the same window manager for freestyle `bmain` as real `bmain` uses.
    * This is needed because freestyle's `bmain` could be used to tag scenes for update,
@@ -106,7 +109,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   STRNCPY(freestyle_scene->r.pic, old_scene->r.pic);
   freestyle_scene->r.dither_intensity = old_scene->r.dither_intensity;
   STRNCPY(freestyle_scene->r.engine, old_scene->r.engine);
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Stroke rendering engine : " << freestyle_scene->r.engine << endl;
   }
   freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA;
@@ -126,7 +129,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   /* Render with transparent background. */
   freestyle_scene->r.alphamode = R_ALPHAPREMUL;
 
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("%s: %d thread(s)\n", __func__, BKE_render_num_threads(&freestyle_scene->r));
   }
 
@@ -199,10 +202,12 @@ uint BlenderStrokeRenderer::get_stroke_mesh_id() const
   return mesh_id;
 }
 
-Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
-                                                 bNodeTree *iNodeTree,
+Material *BlenderStrokeRenderer::GetStrokeShader(blender::Main *bmain,
+                                                 blender::bNodeTree *iNodeTree,
                                                  bool do_id_user)
 {
+  using namespace blender;
+
   Material *ma = BKE_material_add(bmain, "stroke_shader");
   bNodeTree *ntree;
   bNode *output_linestyle = nullptr;
@@ -217,9 +222,9 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     ntree = blender::bke::node_tree_copy_tree_ex(*iNodeTree, bmain, do_id_user);
 
     // find the active Output Line Style node
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type_legacy == SH_NODE_OUTPUT_LINESTYLE && (node->flag & NODE_DO_OUTPUT)) {
-        output_linestyle = node;
+    for (bNode &node : ntree->nodes) {
+      if (node.type_legacy == SH_NODE_OUTPUT_LINESTYLE && (node.flag & NODE_DO_OUTPUT)) {
+        output_linestyle = &node;
         break;
       }
     }
@@ -390,17 +395,17 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
       RNA_float_set(&toptr, "default_value", RNA_float_get(&fromptr, "default_value"));
     }
 
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type_legacy == SH_NODE_UVALONGSTROKE) {
+    for (bNode &node : ntree->nodes) {
+      if (node.type_legacy == SH_NODE_UVALONGSTROKE) {
         // UV output of the UV Along Stroke node
-        bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node->outputs, 0);
+        bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node.outputs, 0);
 
         // add new UV Map node
         bNode *input_uvmap = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_UVMAP);
-        input_uvmap->location[0] = node->location[0] - 200.0f;
-        input_uvmap->location[1] = node->location[1];
+        input_uvmap->location[0] = node.location[0] - 200.0f;
+        input_uvmap->location[1] = node.location[1];
         NodeShaderUVMap *storage = (NodeShaderUVMap *)input_uvmap->storage;
-        if (node->custom1 & 1) {  // use_tips
+        if (node.custom1 & 1) {  // use_tips
           STRNCPY(storage->uv_map, uvNames[1]);
         }
         else {
@@ -409,10 +414,10 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
         fromsock = (bNodeSocket *)BLI_findlink(&input_uvmap->outputs, 0);  // UV
 
         // replace links from the UV Along Stroke node by links from the UV Map node
-        LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-          if (link->fromnode == node && link->fromsock == sock) {
+        for (bNodeLink &link : ntree->links) {
+          if (link.fromnode == &node && link.fromsock == sock) {
             blender::bke::node_add_link(
-                *ntree, *input_uvmap, *fromsock, *link->tonode, *link->tosock);
+                *ntree, *input_uvmap, *fromsock, *link.tonode, *link.tosock);
           }
         }
         blender::bke::node_remove_socket_links(*ntree, *sock);
@@ -433,6 +438,7 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 
 void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 {
+  using namespace blender;
   bNodeTree *nt = iStrokeRep->getNodeTree();
   Material *ma = _nodetree_hash.lookup_or_add_cb(
       nt, [&]() { return BlenderStrokeRenderer::GetStrokeShader(freestyle_bmain, nt, false); });
@@ -593,7 +599,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   mesh->totcol = group->materials.size();
   BKE_mesh_face_offsets_ensure_alloc(mesh);
   blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   bke::SpanAttributeWriter position_attr = attributes.lookup_or_add_for_write_span<float3>(
       "position", bke::AttrDomain::Point);
   bke::SpanAttributeWriter edge_verts_attr = attributes.lookup_or_add_for_write_span<int2>(
@@ -833,8 +839,9 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 }
 
 // A replacement of BKE_object_add() for better performance.
-Object *BlenderStrokeRenderer::NewMesh() const
+blender::Object *BlenderStrokeRenderer::NewMesh() const
 {
+  using namespace blender;
   Object *ob;
   char name[MAX_ID_NAME];
   uint mesh_id = get_stroke_mesh_id();
@@ -842,7 +849,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
   SNPRINTF(name, "0%08xOB", mesh_id);
   ob = BKE_object_add_only_object(freestyle_bmain, OB_MESH, name);
   SNPRINTF(name, "0%08xME", mesh_id);
-  ob->data = BKE_mesh_add(freestyle_bmain, name);
+  ob->data = blender::id_cast<ID *>(BKE_mesh_add(freestyle_bmain, name));
 
   Collection *collection_master = freestyle_scene->master_collection;
   BKE_collection_object_add(freestyle_bmain, collection_master, ob);
@@ -856,14 +863,15 @@ Object *BlenderStrokeRenderer::NewMesh() const
   return ob;
 }
 
-Render *BlenderStrokeRenderer::RenderScene(Render * /*re*/, bool render)
+blender::Render *BlenderStrokeRenderer::RenderScene(blender::Render * /*re*/, bool render)
 {
+  using namespace blender;
   Camera *camera = (Camera *)freestyle_scene->camera->data;
   if (camera->clip_end < _z) {
     camera->clip_end = _z + _z_delta * 100.0f;
   }
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "clip_start " << camera->clip_start << ", clip_end " << camera->clip_end << endl;
   }
 #endif

@@ -19,9 +19,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** SPLIT NODE ******************** */
 
-namespace blender::nodes::node_composite_split_cc {
+namespace nodes::node_composite_split_cc {
 
 static void cmp_node_split_declare(NodeDeclarationBuilder &b)
 {
@@ -114,13 +116,13 @@ class SplitOperation : public NodeOperation {
   float2 get_position(const Domain &domain)
   {
     const float2 relative_position =
-        this->get_input("Position").get_single_value_default(float2(0.5f, 0.5f));
+        this->get_input("Position").get_single_value_default<float2>();
     return float2(domain.data_size) * relative_position;
   }
 
   math::AngleRadian get_rotation()
   {
-    return this->get_input("Rotation").get_single_value_default(0.0f);
+    return this->get_input("Rotation").get_single_value_default<float>();
   }
 };
 
@@ -129,13 +131,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new SplitOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_split_cc
+}  // namespace nodes::node_composite_split_cc
 
 static void register_node_type_cmp_split()
 {
-  namespace file_ns = blender::nodes::node_composite_split_cc;
+  namespace file_ns = nodes::node_composite_split_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeSplit", CMP_NODE_SPLIT);
   ntype.ui_name = "Split";
@@ -148,6 +150,8 @@ static void register_node_type_cmp_split()
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_split)
+
+}  // namespace blender

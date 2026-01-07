@@ -33,6 +33,8 @@
 #include "text_format.hh"
 #include "text_intern.hh" /* Own include. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Public API
  * \{ */
@@ -153,24 +155,24 @@ static GHash *text_autocomplete_build(Text *text)
   {
     gh = BLI_ghash_str_new(__func__);
 
-    LISTBASE_FOREACH (TextLine *, linep, &text->lines) {
+    for (TextLine &linep : text->lines) {
       size_t i_start = 0;
       size_t i_end = 0;
       size_t i_pos = 0;
 
-      while (i_start < linep->len) {
+      while (i_start < linep.len) {
         /* Seek identifier beginning. */
         i_pos = i_start;
-        while ((i_start < linep->len) &&
+        while ((i_start < linep.len) &&
                !text_check_identifier_nodigit_unicode(
-                   BLI_str_utf8_as_unicode_step_safe(linep->line, linep->len, &i_pos)))
+                   BLI_str_utf8_as_unicode_step_safe(linep.line, linep.len, &i_pos)))
         {
           i_start = i_pos;
         }
         i_pos = i_end = i_start;
-        while ((i_end < linep->len) &&
+        while ((i_end < linep.len) &&
                text_check_identifier_unicode(
-                   BLI_str_utf8_as_unicode_step_safe(linep->line, linep->len, &i_pos)))
+                   BLI_str_utf8_as_unicode_step_safe(linep.line, linep.len, &i_pos)))
         {
           i_end = i_pos;
         }
@@ -179,9 +181,9 @@ static GHash *text_autocomplete_build(Text *text)
             /* Check we're at the beginning of a line or that the previous char is not an
              * identifier this prevents digits from being added. */
             ((i_start < 1) || !text_check_identifier_unicode(
-                                  BLI_str_utf8_as_unicode_or_error(&linep->line[i_start - 1]))))
+                                  BLI_str_utf8_as_unicode_or_error(&linep.line[i_start - 1]))))
         {
-          char *str_sub = &linep->line[i_start];
+          char *str_sub = &linep.line[i_start];
           const int choice_len = i_end - i_start;
 
           if ((choice_len > seek_len) && (seek_len == 0 || STREQLEN(seek, str_sub, seek_len)) &&
@@ -581,3 +583,5 @@ void TEXT_OT_autocomplete(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

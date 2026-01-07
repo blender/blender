@@ -12,7 +12,11 @@
 
 #include "bmesh.hh"
 
+namespace blender {
+
 #ifndef NDEBUG
 char *BM_mesh_debug_info(BMesh *bm) ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void BM_mesh_debug_print(BMesh *bm) ATTR_NONNULL(1);
 #endif /* !NDEBUG */
+
+}  // namespace blender

@@ -20,9 +20,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** DEPTH COMBINE ******************** */
 
-namespace blender::nodes::node_composite_zcombine_cc {
+namespace nodes::node_composite_zcombine_cc {
 
 static void cmp_node_zcombine_declare(NodeDeclarationBuilder &b)
 {
@@ -406,12 +408,12 @@ class ZCombineOperation : public NodeOperation {
 
   bool use_alpha()
   {
-    return this->get_input("Use Alpha").get_single_value_default(false);
+    return this->get_input("Use Alpha").get_single_value_default<bool>();
   }
 
   bool use_anti_aliasing()
   {
-    return this->get_input("Anti-Alias").get_single_value_default(true);
+    return this->get_input("Anti-Alias").get_single_value_default<bool>();
   }
 };
 
@@ -420,13 +422,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new ZCombineOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_zcombine_cc
+}  // namespace nodes::node_composite_zcombine_cc
 
 static void register_node_type_cmp_zcombine()
 {
-  namespace file_ns = blender::nodes::node_composite_zcombine_cc;
+  namespace file_ns = nodes::node_composite_zcombine_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeZcombine", CMP_NODE_ZCOMBINE);
   ntype.ui_name = "Depth Combine";
@@ -436,6 +438,8 @@ static void register_node_type_cmp_zcombine()
   ntype.declare = file_ns::cmp_node_zcombine_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_zcombine)
+
+}  // namespace blender

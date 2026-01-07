@@ -19,7 +19,9 @@
 
 #include "UI_interface_c.hh"  // IWYU pragma: export
 
-namespace blender::nodes::geo_eval_log {
+namespace blender {
+
+namespace nodes::geo_eval_log {
 struct GeometryAttributeInfo;
 }
 
@@ -27,20 +29,21 @@ struct ARegion;
 struct bContext;
 struct PointerRNA;
 struct StructRNA;
-struct uiBlock;
-struct uiBut;
 struct uiList;
-struct uiSearchItems;
 struct wmDrag;
 struct wmEvent;
-namespace blender::ui {
+
+namespace ui {
 class AbstractView;
 class AbstractViewItem;
 struct Layout;
-}  // namespace blender::ui
+struct SearchItems;
+}  // namespace ui
 
-void UI_but_func_set(uiBut *but, std::function<void(bContext &)> func);
-void UI_but_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func);
+namespace ui {
+
+void button_func_set(Button *but, std::function<void(bContext &)> func);
+void button_func_pushed_state_set(Button *but, std::function<bool(const Button &)> func);
 
 /**
  * Template generating a freeing callback matching the #uiButArgNFree signature, for data created
@@ -59,8 +62,6 @@ template<typename T> void *but_func_argN_copy(const void *argN)
 {
   return MEM_new<T>(__func__, *static_cast<const T *>(argN));
 }
-
-namespace blender::ui {
 
 class AbstractGridView;
 class AbstractTreeView;
@@ -91,16 +92,14 @@ void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path);
 void attribute_search_add_items(StringRef str,
                                 bool can_create_attribute,
                                 Span<const nodes::geo_eval_log::GeometryAttributeInfo *> infos,
-                                uiSearchItems *items,
+                                SearchItems *items,
                                 bool is_first);
 void grease_pencil_layer_search_add_items(StringRef str,
                                           Span<const std::string *> layer_names,
-                                          uiSearchItems &items,
+                                          SearchItems &items,
                                           bool is_first);
 
-bool asset_shelf_popover_invoke(bContext &C,
-                                blender::StringRef asset_shelf_idname,
-                                ReportList &reports);
+bool asset_shelf_popover_invoke(bContext &C, StringRef asset_shelf_idname, ReportList &reports);
 /**
  * Some drop targets simply allow dropping onto/into them, others support dragging in-between them.
  * Classes implementing the drop-target interface can use this type to control the behavior by
@@ -204,7 +203,7 @@ bool drop_target_apply_drop(bContext &C,
                             const ARegion &region,
                             const wmEvent &event,
                             const DropTargetInterface &drop_target,
-                            const ListBase &drags);
+                            const ListBaseT<wmDrag> &drags);
 /**
  * Call #DropTargetInterface::drop_tooltip() and return the result as newly allocated C string
  * (unless the result is empty, returns null then). Needs freeing with MEM_freeN().
@@ -222,8 +221,6 @@ std::string drop_target_tooltip(const ARegion &region,
 std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const ARegion *region,
                                                                       const int xy[2]);
 
-}  // namespace blender::ui
-
 enum eUIListFilterResult {
   /** Never show this item, even when filter results are inverted (#UILST_FLT_EXCLUDE). */
   UI_LIST_ITEM_NEVER_SHOW,
@@ -235,7 +232,7 @@ enum eUIListFilterResult {
 
 /**
  * Function object for UI list item filtering that does the default name comparison with '*'
- * wildcards. Create an instance of this once and pass it to #UI_list_filter_and_sort_items(), do
+ * wildcards. Create an instance of this once and pass it to #list_filter_and_sort_items(), do
  * NOT create an instance for every item, this would be costly.
  */
 class uiListNameFilter {
@@ -250,15 +247,12 @@ class uiListNameFilter {
   uiListNameFilter(uiList &list);
   ~uiListNameFilter();
 
-  eUIListFilterResult operator()(const PointerRNA &itemptr,
-                                 blender::StringRefNull name,
-                                 int index);
+  eUIListFilterResult operator()(const PointerRNA &itemptr, StringRefNull name, int index);
 };
 
-using uiListItemFilterFn = blender::FunctionRef<eUIListFilterResult(
-    const PointerRNA &itemptr, blender::StringRefNull name, int index)>;
-using uiListItemGetNameFn =
-    blender::FunctionRef<std::string(const PointerRNA &itemptr, int index)>;
+using uiListItemFilterFn =
+    FunctionRef<eUIListFilterResult(const PointerRNA &itemptr, StringRefNull name, int index)>;
+using uiListItemGetNameFn = FunctionRef<std::string(const PointerRNA &itemptr, int index)>;
 
 /**
  * Helper to apply custom filtering to UI lists not defined in Python. Custom filtering for
@@ -275,29 +269,26 @@ using uiListItemGetNameFn =
  * \param get_name_fn: In some cases the name cannot be retrieved via RNA. This function can be set
  *                     to provide the name still.
  */
-void UI_list_filter_and_sort_items(uiList *ui_list,
-                                   const bContext *C,
-                                   uiListItemFilterFn item_filter_fn,
-                                   PointerRNA *dataptr,
-                                   const char *propname,
-                                   uiListItemGetNameFn get_name_fn = nullptr);
+void list_filter_and_sort_items(uiList *ui_list,
+                                const bContext *C,
+                                uiListItemFilterFn item_filter_fn,
+                                PointerRNA *dataptr,
+                                const char *propname,
+                                uiListItemGetNameFn get_name_fn = nullptr);
 
 /**
  * Override this for all available view types.
  * \param idname: Used for restoring persistent state of this view, potentially written to files.
  * Must not be longer than #BKE_ST_MAXNAME (including 0 terminator).
  */
-blender::ui::AbstractGridView *UI_block_add_view(
-    uiBlock &block,
-    blender::StringRef idname,
-    std::unique_ptr<blender::ui::AbstractGridView> grid_view);
-blender::ui::AbstractTreeView *UI_block_add_view(
-    uiBlock &block,
-    blender::StringRef idname,
-    std::unique_ptr<blender::ui::AbstractTreeView> tree_view);
+AbstractGridView *block_add_view(Block &block,
+                                 StringRef idname,
+                                 std::unique_ptr<AbstractGridView> grid_view);
+AbstractTreeView *block_add_view(Block &block,
+                                 StringRef idname,
+                                 std::unique_ptr<AbstractTreeView> tree_view);
 
-void UI_alert(bContext *C,
-              blender::StringRef title,
-              blender::StringRef message,
-              blender::ui::AlertIcon icon,
-              bool compact);
+void alert(bContext *C, StringRef title, StringRef message, AlertIcon icon, bool compact);
+
+}  // namespace ui
+}  // namespace blender

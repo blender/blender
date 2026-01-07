@@ -18,8 +18,8 @@ extern PyTypeObject IncreasingThicknessShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&IncreasingThicknessShader_Type))
 
 /*---------------------------Python BPy_IncreasingThicknessShader structure definition----------*/
-typedef struct {
+struct BPy_IncreasingThicknessShader {
   BPy_StrokeShader py_ss;
-} BPy_IncreasingThicknessShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

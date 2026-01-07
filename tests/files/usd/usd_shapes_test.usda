@@ -1,7 +1,7 @@
 #usda 1.0
 (
     defaultPrim = "root"
-    metersPerUnit = 1
+    metersPerUnit = .01
     upAxis = "Z"
     startFrame = 1
     endFrame = 2
@@ -124,6 +124,24 @@ def Xform "root" (
             double size.timeSamples = {
                 1: 0.5,
                 2: 0.6,
+            }
+        }
+    }
+
+    def Xform "BoxUniformColor"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (4, 2, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Cube "cube_color"
+        {
+            double size = 0.5
+            color3f[] primvars:displayColor = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 0, 1)] (
+                interpolation = "uniform"
+            )
+            color3f[] primvars:displayColor.timeSamples = {
+                1: [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 0, 1)],
+                2: [(0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 0, 1), (1, 0, 0)],
             }
         }
     }

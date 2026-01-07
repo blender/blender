@@ -27,6 +27,8 @@
 #  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
 
+namespace blender {
+
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
 static bool rna_Main_use_autopack_get(PointerRNA * /*ptr*/)
@@ -50,14 +52,14 @@ static void rna_Main_use_autopack_set(PointerRNA * /*ptr*/, bool value)
 
 static bool rna_Main_is_saved_get(PointerRNA *ptr)
 {
-  const Main *bmain = (Main *)ptr->data;
+  const Main *bmain = static_cast<Main *>(ptr->data);
   return (bmain->filepath[0] != '\0');
 }
 
 static bool rna_Main_is_dirty_get(PointerRNA *ptr)
 {
   /* XXX, not totally nice to do it this way, should store in main ? */
-  Main *bmain = (Main *)ptr->data;
+  Main *bmain = static_cast<Main *>(ptr->data);
   wmWindowManager *wm;
   if ((wm = static_cast<wmWindowManager *>(bmain->wm.first))) {
     return !wm->file_saved;
@@ -68,13 +70,13 @@ static bool rna_Main_is_dirty_get(PointerRNA *ptr)
 
 static void rna_Main_filepath_get(PointerRNA *ptr, char *value)
 {
-  Main *bmain = (Main *)ptr->data;
+  Main *bmain = static_cast<Main *>(ptr->data);
   strcpy(value, bmain->filepath);
 }
 
 static int rna_Main_filepath_length(PointerRNA *ptr)
 {
-  Main *bmain = (Main *)ptr->data;
+  Main *bmain = static_cast<Main *>(ptr->data);
   return strlen(bmain->filepath);
 }
 
@@ -88,7 +90,7 @@ static void rna_Main_filepath_set(PointerRNA *ptr, const char *value)
 
 static PointerRNA rna_Main_colorspace_get(PointerRNA *ptr)
 {
-  Main *bmain = (Main *)ptr->data;
+  Main *bmain = static_cast<Main *>(ptr->data);
   return PointerRNA(nullptr, &RNA_BlendFileColorspace, &bmain->colorspace);
 }
 
@@ -189,7 +191,7 @@ RNA_MAIN_LISTBASE_FUNCS_DEF(worlds)
 
 static void rna_Main_version_get(PointerRNA *ptr, int *value)
 {
-  Main *bmain = (Main *)ptr->data;
+  Main *bmain = static_cast<Main *>(ptr->data);
   value[0] = bmain->versionfile / 100;
   value[1] = bmain->versionfile % 100;
   value[2] = bmain->subversionfile;
@@ -207,7 +209,11 @@ static PointerRNA rna_Test_test_get(PointerRNA *ptr)
 
 #  endif
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 /* local convenience types */
 using CollectionDefFunc = void(BlenderRNA *brna, PropertyRNA *cprop);
@@ -596,5 +602,7 @@ void RNA_def_main(BlenderRNA *brna)
 
 #  endif
 }
+
+}  // namespace blender
 
 #endif

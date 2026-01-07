@@ -20,13 +20,10 @@
 
 #include "interface_intern.hh"
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender::ui {
 
 /* Format translation/rotation value as a string based on Blender unit settings. */
-static std::string format_unit_value(float value,
-                                     PropertySubType subtype,
-                                     blender::ui::Layout &layout)
+static std::string format_unit_value(float value, PropertySubType subtype, Layout &layout)
 {
   const UnitSettings *unit = layout.block()->unit;
   const int unit_type = RNA_SUBTYPE_UNIT(subtype);
@@ -60,35 +57,35 @@ static std::string format_coefficient(float value)
  * Defaults to XYZ Euler. */
 static int rotation_mode_index = ROT_MODE_EUL;
 
-static void rotation_mode_menu_callback(bContext *, blender::ui::Layout *layout, void *)
+static void rotation_mode_menu_callback(bContext *, Layout *layout, void *)
 {
   for (size_t i = 0; i < RNA_enum_items_count(rna_enum_object_rotation_mode_items); i++) {
     const EnumPropertyItem &mode_info = rna_enum_object_rotation_mode_items[i];
     const int yco = -1.5f * UI_UNIT_Y;
     const int width = 9 * UI_UNIT_X;
-    uiBut *but = uiDefButI(layout->block(),
-                           ButType::Row,
-                           IFACE_(mode_info.name),
-                           0,
-                           yco,
-                           width / 2,
-                           UI_UNIT_Y,
-                           &rotation_mode_index,
-                           i,
-                           i,
-                           TIP_(mode_info.description));
-    UI_but_flag_disable(but, UI_BUT_UNDO);
+    Button *but = uiDefButI(layout->block(),
+                            ButtonType::Row,
+                            IFACE_(mode_info.name),
+                            0,
+                            yco,
+                            width / 2,
+                            UI_UNIT_Y,
+                            &rotation_mode_index,
+                            i,
+                            i,
+                            TIP_(mode_info.description));
+    button_flag_disable(but, BUT_UNDO);
     if (i == rotation_mode_index) {
-      UI_but_flag_enable(but, UI_SELECT_DRAW);
+      button_flag_enable(but, UI_SELECT_DRAW);
     }
   }
 }
 
-static void draw_matrix_template(blender::ui::Layout &layout, PointerRNA &ptr, PropertyRNA &prop)
+static void draw_matrix_template(Layout &layout, PointerRNA &ptr, PropertyRNA &prop)
 {
   /* Matrix template UI is mirroring Object's Transform UI for better UX. */
-  blender::ui::Layout *row, *col;
-  blender::ui::Layout &layout_ = layout.box();
+  Layout *row, *col;
+  Layout &layout_ = layout.box();
 
   float m4[4][4];
   RNA_property_float_get_array(&ptr, &prop, &m4[0][0]);
@@ -184,18 +181,18 @@ static void draw_matrix_template(blender::ui::Layout &layout, PointerRNA &ptr, P
   /* Mirror RNA enum property drop-down UI - with menu triangle an drop-down items. */
   row = &layout_.row(true);
   uiItemL_respect_property_split(row, IFACE_("Mode"), ICON_NONE);
-  uiBlock *block = row->block();
-  uiBut *but = uiDefMenuBut(block,
-                            rotation_mode_menu_callback,
-                            nullptr,
-                            IFACE_(mode_info.name),
-                            0,
-                            0,
-                            UI_UNIT_X * 10,
-                            UI_UNIT_Y,
-                            TIP_("Rotation mode.\n\nOnly affects the way "
-                                 "rotation is displayed, rotation itself is unaffected."));
-  UI_but_type_set_menu_from_pulldown(but);
+  Block *block = row->block();
+  Button *but = uiDefMenuBut(block,
+                             rotation_mode_menu_callback,
+                             nullptr,
+                             IFACE_(mode_info.name),
+                             0,
+                             0,
+                             UI_UNIT_X * 10,
+                             UI_UNIT_Y,
+                             TIP_("Rotation mode.\n\nOnly affects the way "
+                                  "rotation is displayed, rotation itself is unaffected."));
+  button_type_set_menu_from_pulldown(but);
 
   /* Scale. */
   col = &layout_.column(true);
@@ -214,7 +211,7 @@ static void draw_matrix_template(blender::ui::Layout &layout, PointerRNA &ptr, P
   row->label(format_coefficient(size[2]), ICON_NONE);
 }
 
-void uiTemplateMatrix(blender::ui::Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void template_matrix(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -228,3 +225,5 @@ void uiTemplateMatrix(blender::ui::Layout *layout, PointerRNA *ptr, const String
   }
   draw_matrix_template(*layout, *ptr, *prop);
 }
+
+}  // namespace blender::ui

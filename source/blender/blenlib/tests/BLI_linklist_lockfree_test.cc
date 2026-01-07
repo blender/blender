@@ -11,6 +11,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 TEST(LockfreeLinkList, Init)
 {
   LockfreeLinkList list;
@@ -68,11 +70,11 @@ struct IndexedNode {
 
 void concurrent_insert(TaskPool *__restrict pool, void *taskdata)
 {
-  LockfreeLinkList *list = (LockfreeLinkList *)BLI_task_pool_user_data(pool);
+  LockfreeLinkList *list = static_cast<LockfreeLinkList *>(BLI_task_pool_user_data(pool));
   CHECK_NOTNULL(list);
   IndexedNode *node = MEM_mallocN<IndexedNode>("test node");
   node->index = POINTER_AS_INT(taskdata);
-  BLI_linklist_lockfree_insert(list, (LockfreeLinkNode *)node);
+  BLI_linklist_lockfree_insert(list, reinterpret_cast<LockfreeLinkNode *>(node));
 }
 
 }  // namespace
@@ -98,7 +100,7 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   for (LockfreeLinkNode *node_v = BLI_linklist_lockfree_begin(&list); node_v != nullptr;
        node_v = node_v->next)
   {
-    IndexedNode *node = (IndexedNode *)node_v;
+    IndexedNode *node = reinterpret_cast<IndexedNode *>(node_v);
     EXPECT_GE(node->index, 0);
     EXPECT_LT(node->index, nodes_num);
     EXPECT_FALSE(visited_nodes[node->index]);
@@ -113,3 +115,5 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   BLI_linklist_lockfree_free(&list, MEM_freeN);
   BLI_task_pool_free(pool);
 }
+
+}  // namespace blender

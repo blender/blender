@@ -15,17 +15,14 @@
 
 #include "BLI_enum_flags.hh"
 
-#ifdef __cplusplus
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 class CurvesGeometry;
 class CurvesGeometryRuntime;
-}  // namespace blender::bke
-using CurvesGeometryRuntimeHandle = blender::bke::CurvesGeometryRuntime;
-#else
-typedef struct CurvesGeometryRuntimeHandle CurvesGeometryRuntimeHandle;
-#endif
+}  // namespace bke
 
-typedef enum CurveType {
+enum CurveType {
   /**
    * Catmull Rom curves provide automatic smoothness, like Bezier curves with automatic handle
    * positions. This is the default type for the hair system because of the simplicity of
@@ -54,11 +51,11 @@ typedef enum CurveType {
    * supported in the long term.
    */
   CURVE_TYPE_NURBS = 3,
-} CurveType;
+};
 /* The number of supported curve types. */
 #define CURVE_TYPES_NUM 4
 
-typedef enum HandleType {
+enum HandleType {
   /** The handle can be moved anywhere, and doesn't influence the point's other handle. */
   BEZIER_HANDLE_FREE = 0,
   /** The location is automatically calculated to be smooth. */
@@ -67,20 +64,20 @@ typedef enum HandleType {
   BEZIER_HANDLE_VECTOR = 2,
   /** The location is constrained to point in the opposite direction as the other handle. */
   BEZIER_HANDLE_ALIGN = 3,
-} HandleType;
+};
 #define BEZIER_HANDLES_NUM 4
 
 /** Method used to calculate a NURBS curve's knot vector. */
-typedef enum KnotsMode {
+enum KnotsMode {
   NURBS_KNOT_MODE_NORMAL = 0,
   NURBS_KNOT_MODE_ENDPOINT = 1,
   NURBS_KNOT_MODE_BEZIER = 2,
   NURBS_KNOT_MODE_ENDPOINT_BEZIER = 3,
   NURBS_KNOT_MODE_CUSTOM = 4,
-} KnotsMode;
+};
 
 /** Method used to calculate the normals of a curve's evaluated points. */
-typedef enum NormalMode {
+enum NormalMode {
   /** Calculate normals with the smallest twist around the curve tangent across the whole curve. */
   NORMAL_MODE_MINIMUM_TWIST = 0,
   /**
@@ -90,7 +87,21 @@ typedef enum NormalMode {
   NORMAL_MODE_Z_UP = 1,
   /** Interpolate the stored "custom_normal" attribute for the final normals. */
   NORMAL_MODE_FREE = 2,
-} NormalMode;
+};
+
+/** #Curves.flag */
+enum {
+  HA_DS_EXPAND = (1 << 0),
+  CV_SCULPT_COLLISION_ENABLED = (1 << 1),
+};
+
+/** #Curves.symmetry */
+enum eCurvesSymmetryType {
+  CURVES_SYMMETRY_X = 1 << 0,
+  CURVES_SYMMETRY_Y = 1 << 1,
+  CURVES_SYMMETRY_Z = 1 << 2,
+};
+ENUM_OPERATORS(eCurvesSymmetryType)
 
 /**
  * A reusable data structure for geometry consisting of many curves. All control point data is
@@ -101,7 +112,7 @@ typedef enum NormalMode {
  * The data structure is meant to separate geometry data storage and processing from Blender
  * focused ID data-block handling. The struct can also be embedded to allow reusing it.
  */
-typedef struct CurvesGeometry {
+struct CurvesGeometry {
   /**
    * The start index of each curve in the point data. The size of each curve can be calculated by
    * subtracting the offset from the next offset. That is valid even for the last curve because
@@ -116,7 +127,7 @@ typedef struct CurvesGeometry {
    *
    * \note This is *not* stored as an attribute because its size is one larger than #curve_num.
    */
-  int *curve_offsets;
+  int *curve_offsets = nullptr;
 
   /** Curve and point domain attributes. */
   struct AttributeStorage attribute_storage;
@@ -132,26 +143,26 @@ typedef struct CurvesGeometry {
   /**
    * The total number of control points in all curves.
    */
-  int point_num;
+  int point_num = 0;
   /**
    * The number of curves.
    */
-  int curve_num;
+  int curve_num = 0;
 
   /**
    * List of vertex group (#bDeformGroup) names and flags only.
    */
-  ListBase vertex_group_names;
+  ListBaseT<struct bDeformGroup> vertex_group_names = {nullptr, nullptr};
   /** The active index in the #vertex_group_names list. */
-  int vertex_group_active_index;
+  int vertex_group_active_index = 0;
 
   /** Set to -1 when none is active. */
-  int attributes_active_index;
+  int attributes_active_index = 0;
 
   /**
    * Runtime data for curves, stored as a pointer to allow defining this as a C++ class.
    */
-  CurvesGeometryRuntimeHandle *runtime;
+  bke::CurvesGeometryRuntime *runtime = nullptr;
 
   /**
    * Knot values for NURBS curves with NURBS_KNOT_MODE_CUSTOM mode.
@@ -159,24 +170,24 @@ typedef struct CurvesGeometry {
    * bke::CurvesGeometry::nurbs_custom_knots_resize().
    * Indexed with bke::CurvesGeometry::nurbs_custom_knots_by_curve().
    */
-  float *custom_knots;
+  float *custom_knots = nullptr;
 
-  int custom_knot_num;
+  int custom_knot_num = 0;
 
-  char _pad[4];
+  char _pad[4] = {};
 
 #ifdef __cplusplus
-  blender::bke::CurvesGeometry &wrap();
-  const blender::bke::CurvesGeometry &wrap() const;
+  bke::CurvesGeometry &wrap();
+  const bke::CurvesGeometry &wrap() const;
 #endif
-} CurvesGeometry;
+};
 
 /**
  * A data-block corresponding to a number of curves of various types with various attributes.
  * Geometry data (as opposed to pointers to other data-blocks and higher level data for user
  * interaction) is embedded in the #CurvesGeometry struct.
  */
-typedef struct Curves {
+struct Curves {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_CV;
@@ -184,29 +195,29 @@ typedef struct Curves {
 
   ID id;
   /** Animation data (must be immediately after #id). */
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
   /** Geometry data. */
   CurvesGeometry geometry;
 
-  int flag;
-  int attributes_active_index_legacy;
+  int flag = 0;
+  int attributes_active_index_legacy = 0;
 
   /* Materials. */
-  struct Material **mat;
-  short totcol;
+  struct Material **mat = nullptr;
+  short totcol = 0;
 
   /**
    * User-defined symmetry flag (#eCurvesSymmetryType) that causes editing operations to maintain
    * symmetrical geometry.
    */
-  char symmetry;
+  char symmetry = 0;
   /**
    * #AttrDomain. The active domain for edit/sculpt mode selection. Only one selection mode can
    * be active at a time.
    */
-  char selection_domain;
-  char _pad[4];
+  char selection_domain = 0;
+  char _pad[4] = {};
 
   /**
    * Used as base mesh when curves represent e.g. hair or fur. This surface is used in edit modes.
@@ -215,36 +226,24 @@ typedef struct Curves {
    *
    * This is expected to be a mesh object.
    */
-  struct Object *surface;
+  struct Object *surface = nullptr;
 
   /**
    * The name of the attribute on the surface #Mesh used to give meaning to the UV attachment
    * coordinates stored for each curve. Expected to be a 2D vector attribute on the face corner
    * domain.
    */
-  char *surface_uv_map;
+  char *surface_uv_map = nullptr;
 
   /* Distance to keep the curves away from the surface. */
-  float surface_collision_distance;
-  char _pad2[4];
+  float surface_collision_distance = 0.005f;
+  char _pad2[4] = {};
 
   /* Draw cache to store data used for viewport drawing. */
-  void *batch_cache;
-} Curves;
-
-/** #Curves.flag */
-enum {
-  HA_DS_EXPAND = (1 << 0),
-  CV_SCULPT_COLLISION_ENABLED = (1 << 1),
+  void *batch_cache = nullptr;
 };
-
-/** #Curves.symmetry */
-typedef enum eCurvesSymmetryType {
-  CURVES_SYMMETRY_X = 1 << 0,
-  CURVES_SYMMETRY_Y = 1 << 1,
-  CURVES_SYMMETRY_Z = 1 << 2,
-} eCurvesSymmetryType;
-ENUM_OPERATORS(eCurvesSymmetryType)
 
 /* Only one material supported currently. */
 #define CURVES_MATERIAL_NR 1
+
+}  // namespace blender

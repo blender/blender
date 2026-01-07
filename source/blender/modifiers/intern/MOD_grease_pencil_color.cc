@@ -6,7 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 
@@ -46,10 +45,7 @@ using bke::greasepencil::Drawing;
 static void init_data(ModifierData *md)
 {
   auto *cmd = reinterpret_cast<GreasePencilColorModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(cmd, DNA_struct_default_get(GreasePencilColorModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(cmd, modifier);
   modifier::greasepencil::init_influence_data(&cmd->influence, true);
 }
 
@@ -213,9 +209,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout.prop(ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout.prop(ptr, "hue", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "saturation", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "value", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "hue", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "saturation", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "value", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
@@ -237,7 +233,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *cmd = reinterpret_cast<const GreasePencilColorModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilColorModifierData, cmd);
+  writer->write_struct<GreasePencilColorModifierData>(cmd);
   modifier::greasepencil::write_influence_data(writer, &cmd->influence);
 }
 
@@ -247,8 +243,6 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   modifier::greasepencil::read_influence_data(reader, &cmd->influence);
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilColor = {
     /*idname*/ "GreasePencilColor",
@@ -261,26 +255,28 @@ ModifierTypeInfo modifierType_GreasePencilColor = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_HUE_SATURATION,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
+    /*free_data*/ free_data,
     /*is_disabled*/ nullptr,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

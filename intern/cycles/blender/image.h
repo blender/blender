@@ -6,8 +6,6 @@
 
 #include "DNA_image_types.h"
 
-#include "RNA_blender_cpp.hh"
-
 #include "scene/image.h"
 #include "scene/image_vdb.h"
 
@@ -18,8 +16,8 @@ CCL_NAMESPACE_BEGIN
 
 class BlenderImageLoader : public ImageLoader {
  public:
-  BlenderImageLoader(::Image *b_image,
-                     ::ImageUser *b_iuser,
+  BlenderImageLoader(blender::Image *b_image,
+                     blender::ImageUser *b_iuser,
                      const int frame,
                      const int tile_number,
                      const bool is_preview_render);
@@ -34,8 +32,8 @@ class BlenderImageLoader : public ImageLoader {
 
   int get_tile_number() const override;
 
-  ::Image *b_image;
-  ::ImageUser b_iuser;
+  blender::Image *b_image;
+  blender::ImageUser b_iuser;
   bool free_cache;
 };
 

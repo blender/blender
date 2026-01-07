@@ -8,7 +8,10 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
+
+namespace blender {
 
 // #define DEBUG_SNAP_TIME
 
@@ -18,12 +21,11 @@ struct BMVert;
 
 struct ARegion;
 struct Depsgraph;
-struct ListBase;
 struct Object;
 struct Scene;
 struct View3D;
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 /* `transform_snap_object.cc` */
 
@@ -71,7 +73,12 @@ struct SnapObjectParams {
   bool use_backface_culling : 1;
   /** Enable to force nearest face snapping to snap to target the source was initially near. */
   bool keep_on_same_target : 1;
-  /** Allow snapping to include all objects even when a mesh is in edit mode. */
+  /**
+   * Allow snapping to include all objects even when a mesh is in edit mode.
+   *
+   * \note Use with care: multiple calls to the snap-context may crash.
+   * See #148788.
+   */
   bool ignore_editmode_filtering : 1;
 };
 
@@ -131,7 +138,7 @@ bool snap_object_project_ray_all(SnapObjectContext *sctx,
                                  const float ray_normal[3],
                                  float ray_depth,
                                  bool sort,
-                                 ListBase *r_hit_list);
+                                 ListBaseT<SnapObjectHitDepth> *r_hit_list);
 
 /**
  * Perform snapping.
@@ -210,7 +217,7 @@ bool object_project_all_view3d_ex(SnapObjectContext *sctx,
                                   const float mval[2],
                                   float ray_depth,
                                   bool sort,
-                                  ListBase *r_hit_list);
+                                  ListBaseT<SnapObjectHitDepth> *r_hit_list);
 
 #ifdef DEBUG_SNAP_TIME
 void ED_transform_snap_object_time_average_print();
@@ -218,4 +225,5 @@ void ED_transform_snap_object_time_average_print();
 #  define ED_transform_snap_object_time_average_print() void(0)
 #endif
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

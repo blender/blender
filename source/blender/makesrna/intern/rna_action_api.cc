@@ -23,6 +23,8 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 static void rna_Action_flip_with_pose(bAction *act, ReportList *reports, Object *ob)
 {
   if (ob->type != OB_ARMATURE) {
@@ -35,7 +37,11 @@ static void rna_Action_flip_with_pose(bAction *act, ReportList *reports, Object 
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_action(StructRNA *srna)
 {
@@ -50,5 +56,7 @@ void RNA_api_action(StructRNA *srna)
       func, "object", "Object", "", "The reference armature object to use when flipping");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 }
+
+}  // namespace blender
 
 #endif

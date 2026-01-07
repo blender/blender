@@ -10,6 +10,8 @@
 
 #include <memory>
 
+namespace blender {
+
 struct ARegion;
 struct ARegionType;
 struct AssetShelf;
@@ -26,15 +28,13 @@ struct wmRegionListenerParams;
 struct wmRegionMessageSubscribeParams;
 struct wmWindowManager;
 
-namespace blender {
 class StringRef;
 class StringRefNull;
 namespace asset_system {
 class AssetRepresentation;
 }
-}  // namespace blender
 
-namespace blender::ed::asset::shelf {
+namespace ed::asset::shelf {
 
 /* -------------------------------------------------------------------- */
 /** \name Asset Shelf Regions
@@ -87,7 +87,7 @@ void type_unregister(const AssetShelfType &shelf_type);
  */
 bool type_poll_for_popup(const bContext &C, const AssetShelfType *shelf_type);
 bool type_asset_poll(const AssetShelfType &shelf_type,
-                     const blender::asset_system::AssetRepresentation &asset);
+                     const asset_system::AssetRepresentation &asset);
 AssetShelfType *type_find_from_idname(StringRef idname);
 
 /** \} */
@@ -117,4 +117,5 @@ void show_catalog_in_visible_shelves(const bContext &C, const StringRefNull cata
 
 int context(const bContext *C, const char *member, bContextDataResult *result);
 
-}  // namespace blender::ed::asset::shelf
+}  // namespace ed::asset::shelf
+}  // namespace blender

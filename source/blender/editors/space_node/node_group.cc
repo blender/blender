@@ -160,10 +160,17 @@ static void remap_pairing(bNodeTree &dst_tree,
       }
       output_node_id = identifier_map.lookup_default(output_node_id, 0);
       if (output_node_id == 0) {
-        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
+        nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
       }
     }
   }
+}
+
+static std::string node_basepath(const bNodeTree &tree, const bNode &node)
+{
+  const PointerRNA ptr = RNA_pointer_create_discrete(
+      &const_cast<bNodeTree &>(tree).id, &RNA_Node, &const_cast<bNode &>(node));
+  return *RNA_path_from_ID_to_struct(&ptr);
 }
 
 /** \} */
@@ -184,7 +191,7 @@ static wmOperatorStatus node_group_edit_exec(bContext *C, wmOperator *op)
   bNode *gnode = node_group_get_active(C, node_idname);
 
   if (gnode && !exit) {
-    bNodeTree *ngroup = (bNodeTree *)gnode->id;
+    bNodeTree *ngroup = id_cast<bNodeTree *>(gnode->id);
 
     if (ngroup) {
       ED_node_tree_push(region, snode, ngroup, gnode);
@@ -232,12 +239,12 @@ static wmOperatorStatus node_group_enter_exit_invoke(bContext *C,
   ARegion &region = *CTX_wm_region(C);
 
   /* Don't interfere when the mouse is interacting with some button. See #147282. */
-  if (ISMOUSE_BUTTON(event->type) && UI_but_find_mouse_over(&region, event)) {
+  if (ISMOUSE_BUTTON(event->type) && ui::but_find_mouse_over(&region, event)) {
     return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
   }
 
   float2 cursor;
-  UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+  ui::view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
   bNode *node = node_under_mouse_get(snode, cursor);
 
   if (!node || node->is_frame()) {
@@ -276,29 +283,6 @@ void NODE_OT_group_enter_exit(wmOperatorType *ot)
 /** \name Ungroup Operator
  * \{ */
 
-/**
- * The given paths will be owned by the returned instance.
- * Both pointers are allowed to point to the same string.
- */
-static AnimationBasePathChange *animation_basepath_change_new(const StringRef src_basepath,
-                                                              const StringRef dst_basepath)
-{
-  AnimationBasePathChange *basepath_change = (AnimationBasePathChange *)MEM_callocN(
-      sizeof(*basepath_change), AT);
-  basepath_change->src_basepath = BLI_strdupn(src_basepath.data(), src_basepath.size());
-  basepath_change->dst_basepath = BLI_strdupn(dst_basepath.data(), dst_basepath.size());
-  return basepath_change;
-}
-
-static void animation_basepath_change_free(AnimationBasePathChange *basepath_change)
-{
-  if (basepath_change->src_basepath != basepath_change->dst_basepath) {
-    MEM_freeN(basepath_change->src_basepath);
-  }
-  MEM_freeN(basepath_change->dst_basepath);
-  MEM_freeN(basepath_change);
-}
-
 static void update_nested_node_refs_after_ungroup(bNodeTree &ntree,
                                                   const bNodeTree &ngroup,
                                                   const bNode &gnode,
@@ -328,7 +312,7 @@ static void update_nested_node_refs_after_ungroup(bNodeTree &ntree,
  */
 static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 {
-  ListBase anim_basepaths = {nullptr, nullptr};
+  Vector<AnimationBasePathChange> anim_basepaths;
   Vector<bNode *> nodes_delayed_free;
   const bNodeTree *ngroup = reinterpret_cast<const bNodeTree *>(gnode->id);
 
@@ -342,85 +326,51 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   /* Add the nodes into the `ntree`. */
   Vector<bNode *> new_nodes;
   Map<int32_t, int32_t> node_identifier_map;
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &wgroup->nodes) {
-    new_nodes.append(node);
+  for (bNode &node : wgroup->nodes.items_mutable()) {
+    new_nodes.append(&node);
     /* Remove interface nodes.
      * This also removes remaining links to and from interface nodes.
      */
-    if (node->is_group_input() || node->is_group_output()) {
+    if (node.is_group_input() || node.is_group_output()) {
       /* We must delay removal since sockets will reference this node. see: #52092 */
-      nodes_delayed_free.append(node);
+      nodes_delayed_free.append(&node);
     }
 
-    /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
-     * if the old node-tree has animation data which potentially covers this node. */
-    std::optional<std::string> old_animation_basepath;
-    if (wgroup->adt) {
-      PointerRNA ptr = RNA_pointer_create_discrete(&wgroup->id, &RNA_Node, node);
-      old_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
-    }
+    /* Keep track of this node's RNA "base" path (the part of the path identifying the node). */
+    const std::string old_basepath = node_basepath(*wgroup, node);
 
     /* migrate node */
-    BLI_remlink(&wgroup->nodes, node);
-    BLI_addtail(&ntree->nodes, node);
-    const int32_t old_identifier = node->identifier;
-    bke::node_unique_id(*ntree, *node);
-    bke::node_unique_name(*ntree, *node);
-    node_identifier_map.add(old_identifier, node->identifier);
+    BLI_remlink(&wgroup->nodes, &node);
+    BLI_addtail(&ntree->nodes, &node);
+    const int32_t old_identifier = node.identifier;
+    bke::node_unique_id(*ntree, node);
+    bke::node_unique_name(*ntree, node);
+    node_identifier_map.add(old_identifier, node.identifier);
 
-    BKE_ntree_update_tag_node_new(ntree, node);
+    BKE_ntree_update_tag_node_new(ntree, &node);
 
-    if (wgroup->adt) {
-      PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, node);
-      const std::optional<std::string> new_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
-      BLI_addtail(&anim_basepaths,
-                  animation_basepath_change_new(*old_animation_basepath, *new_animation_basepath));
-    }
+    const std::string new_basepath = node_basepath(*ntree, node);
+    anim_basepaths.append({old_basepath, new_basepath});
 
-    node->location[0] += gnode->location[0];
-    node->location[1] += gnode->location[1];
+    node.location[0] += gnode->location[0];
+    node.location[1] += gnode->location[1];
 
-    node->flag |= NODE_SELECT;
+    node.flag |= NODE_SELECT;
   }
   wgroup->runtime->nodes_by_id.clear();
 
-  bNodeLink *glinks_first = (bNodeLink *)ntree->links.last;
+  bNodeLink *glinks_first = static_cast<bNodeLink *>(ntree->links.last);
 
   /* Add internal links to the ntree */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &wgroup->links) {
-    BLI_remlink(&wgroup->links, link);
-    BLI_addtail(&ntree->links, link);
-    BKE_ntree_update_tag_link_added(ntree, link);
+  for (bNodeLink &link : wgroup->links.items_mutable()) {
+    BLI_remlink(&wgroup->links, &link);
+    BLI_addtail(&ntree->links, &link);
+    BKE_ntree_update_tag_link_added(ntree, &link);
   }
 
-  bNodeLink *glinks_last = (bNodeLink *)ntree->links.last;
+  bNodeLink *glinks_last = static_cast<bNodeLink *>(ntree->links.last);
 
-  /* and copy across the animation,
-   * note that the animation data's action can be nullptr here */
-  if (wgroup->adt) {
-    /* firstly, wgroup needs to temporary dummy action
-     * that can be destroyed, as it shares copies */
-    bAction *waction = reinterpret_cast<bAction *>(BKE_id_copy(bmain, &wgroup->adt->action->id));
-    const bool assign_ok = animrig::assign_action(waction, {wgroup->id, *wgroup->adt});
-    BLI_assert_msg(assign_ok, "assigning a copy of an already-assigned Action should work");
-    UNUSED_VARS_NDEBUG(assign_ok);
-
-    /* now perform the moving */
-    BKE_animdata_transfer_by_basepath(bmain, &wgroup->id, &ntree->id, &anim_basepaths);
-
-    /* paths + their wrappers need to be freed */
-    LISTBASE_FOREACH_MUTABLE (AnimationBasePathChange *, basepath_change, &anim_basepaths) {
-      animation_basepath_change_free(basepath_change);
-    }
-
-    /* free temp action too */
-    if (waction) {
-      const bool unassign_ok = animrig::unassign_action({wgroup->id, *wgroup->adt});
-      BLI_assert_msg(unassign_ok, "unassigning an Action that was just assigned should work");
-      UNUSED_VARS_NDEBUG(unassign_ok);
-      BKE_id_free(bmain, waction);
-    }
-  }
+  BKE_animdata_copy_by_basepath(*bmain, wgroup->id, ntree->id, anim_basepaths);
 
   remap_pairing(*ntree, new_nodes, node_identifier_map);
 
@@ -437,7 +387,8 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
         int num_external_links = 0;
 
         /* find external links to this input */
-        for (bNodeLink *tlink = (bNodeLink *)ntree->links.first; tlink != glinks_first->next;
+        for (bNodeLink *tlink = static_cast<bNodeLink *>(ntree->links.first);
+             tlink != glinks_first->next;
              tlink = tlink->next)
         {
           if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
@@ -463,10 +414,11 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     }
 
     /* Also iterate over new links to cover passthrough links. */
-    glinks_last = (bNodeLink *)ntree->links.last;
+    glinks_last = static_cast<bNodeLink *>(ntree->links.last);
 
     /* output links */
-    for (bNodeLink *link = (bNodeLink *)ntree->links.first; link != glinks_first->next;
+    for (bNodeLink *link = static_cast<bNodeLink *>(ntree->links.first);
+         link != glinks_first->next;
          link = link->next)
     {
       if (link->fromnode == gnode) {
@@ -569,8 +521,7 @@ static bool node_group_separate_selected(
 {
   node_deselect_all(ntree);
 
-  ListBase anim_basepaths = {nullptr, nullptr};
-
+  Vector<AnimationBasePathChange> anim_basepaths;
   Map<bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
   Map<int32_t, int32_t> node_identifier_map;
@@ -581,6 +532,7 @@ static bool node_group_separate_selected(
       [](const bNode *node) { return node->is_group_input() || node->is_group_output(); });
 
   for (bNode *node : nodes_to_move) {
+    const std::string old_basepath = node_basepath(ngroup, *node);
     bNode *newnode;
     if (make_copy) {
       newnode = bke::node_copy_with_mapping(
@@ -598,50 +550,51 @@ static bool node_group_separate_selected(
     }
     node_map.add_new(node, newnode);
 
-    /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
-     * if the old node-tree has animation data which potentially covers this node. */
-    if (ngroup.adt) {
-      PointerRNA ptr = RNA_pointer_create_discrete(&ngroup.id, &RNA_Node, newnode);
-      if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
-        BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
-      }
-    }
-
-    /* ensure valid parent pointers, detach if parent stays inside the group */
-    if (newnode->parent && !(newnode->parent->flag & NODE_SELECT)) {
-      bke::node_detach_node(ngroup, *newnode);
-    }
+    /* Keep track of this node's RNA "base" path (the part of the path identifying the node). */
+    const std::string new_basepath = node_basepath(ngroup, *newnode);
+    anim_basepaths.append({old_basepath, new_basepath});
 
     newnode->location[0] += offset.x;
     newnode->location[1] += offset.y;
+  }
+  for (bNode *newnode : node_map.values()) {
+    /* Ensure valid parent pointers. Detach if parent stays inside the group. */
+    if (newnode->parent) {
+      if (newnode->parent->flag & NODE_SELECT) {
+        newnode->parent = node_map.lookup(newnode->parent);
+      }
+      else {
+        bke::node_detach_node(ngroup, *newnode);
+      }
+    }
   }
   if (!make_copy) {
     bke::node_rebuild_id_vector(ngroup);
   }
 
   /* add internal links to the ntree */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ngroup.links) {
-    const bool fromselect = (link->fromnode && nodes_to_move.contains(link->fromnode));
-    const bool toselect = (link->tonode && nodes_to_move.contains(link->tonode));
+  for (bNodeLink &link : ngroup.links.items_mutable()) {
+    const bool fromselect = (link.fromnode && nodes_to_move.contains(link.fromnode));
+    const bool toselect = (link.tonode && nodes_to_move.contains(link.tonode));
 
     if (make_copy) {
       /* make a copy of internal links */
       if (fromselect && toselect) {
         bke::node_add_link(ntree,
-                           *node_map.lookup(link->fromnode),
-                           *socket_map.lookup(link->fromsock),
-                           *node_map.lookup(link->tonode),
-                           *socket_map.lookup(link->tosock));
+                           *node_map.lookup(link.fromnode),
+                           *socket_map.lookup(link.fromsock),
+                           *node_map.lookup(link.tonode),
+                           *socket_map.lookup(link.tosock));
       }
     }
     else {
       /* move valid links over, delete broken links */
       if (fromselect && toselect) {
-        BLI_remlink(&ngroup.links, link);
-        BLI_addtail(&ntree.links, link);
+        BLI_remlink(&ngroup.links, &link);
+        BLI_addtail(&ntree.links, &link);
       }
       else if (fromselect || toselect) {
-        bke::node_remove_link(&ngroup, *link);
+        bke::node_remove_link(&ngroup, link);
       }
     }
   }
@@ -654,14 +607,11 @@ static bool node_group_separate_selected(
 
   /* and copy across the animation,
    * note that the animation data's action can be nullptr here */
-  if (ngroup.adt) {
-    /* now perform the moving */
-    BKE_animdata_transfer_by_basepath(&bmain, &ngroup.id, &ntree.id, &anim_basepaths);
-
-    /* paths + their wrappers need to be freed */
-    LISTBASE_FOREACH_MUTABLE (AnimationBasePathChange *, basepath_change, &anim_basepaths) {
-      animation_basepath_change_free(basepath_change);
-    }
+  if (make_copy) {
+    BKE_animdata_copy_by_basepath(bmain, ngroup.id, ntree.id, anim_basepaths);
+  }
+  else {
+    BKE_animdata_move_by_basepath(bmain, ngroup.id, ntree.id, anim_basepaths);
   }
 
   BKE_ntree_update_tag_all(&ntree);
@@ -730,9 +680,9 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
                                                    wmOperator * /*op*/,
                                                    const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(
+  ui::PopupMenu *pup = ui::popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
-  ui::Layout *layout = UI_popup_menu_layout(pup);
+  ui::Layout *layout = popup_menu_layout(pup);
 
   layout->operator_context_set(wm::OpCallContext::ExecDefault);
   PointerRNA op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Copy"), ICON_NONE);
@@ -740,7 +690,7 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
   op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Move"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", NODE_GS_MOVE);
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }
@@ -953,7 +903,6 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
   for (const bNestedNodeRef &ref : group.nested_node_refs_span()) {
     used_nested_node_ref_ids.add(ref.id);
   }
-  Map<bNestedNodePath, int32_t> new_id_by_old_path;
   for (bNestedNodeRef &ref : ntree.nested_node_refs_span()) {
     const int32_t new_node_id = node_identifier_map.lookup_default(ref.path.node_id, -1);
     if (new_node_id == -1) {
@@ -970,7 +919,6 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
         break;
       }
     }
-    new_id_by_old_path.add_new(ref.path, new_ref.id);
     new_nested_node_refs.append(new_ref);
     /* Updated the nested node ref in the parent so that it points to the same node that is now
      * inside of a nested group. */
@@ -978,8 +926,8 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
     ref.path.id_in_node = new_ref.id;
   }
   MEM_SAFE_FREE(group.nested_node_refs);
-  group.nested_node_refs = MEM_malloc_arrayN<bNestedNodeRef>(new_nested_node_refs.size(),
-                                                             __func__);
+  group.nested_node_refs = MEM_new_array_for_free<bNestedNodeRef>(new_nested_node_refs.size(),
+                                                                  __func__);
   uninitialized_copy_n(
       new_nested_node_refs.data(), new_nested_node_refs.size(), group.nested_node_refs);
   group.nested_node_refs_num = new_nested_node_refs.size();
@@ -1143,25 +1091,11 @@ static void node_group_make_insert_selected(const bContext &C,
     }
   }
 
-  /* Move animation data from the parent tree to the group. */
-  if (ntree.adt) {
-    ListBase anim_basepaths = {nullptr, nullptr};
-    for (bNode *node : nodes_to_move) {
-      PointerRNA ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, node);
-      if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
-        BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
-      }
-    }
-    BKE_animdata_transfer_by_basepath(bmain, &ntree.id, &group.id, &anim_basepaths);
-
-    LISTBASE_FOREACH_MUTABLE (AnimationBasePathChange *, basepath_change, &anim_basepaths) {
-      animation_basepath_change_free(basepath_change);
-    }
-  }
-
   /* Move nodes into the group. */
+  Vector<AnimationBasePathChange> anim_basepaths;
   for (bNode *node : nodes_to_move) {
     const int32_t old_identifier = node->identifier;
+    const std::string old_basepath = node_basepath(ntree, *node);
 
     BLI_remlink(&ntree.nodes, node);
     BLI_addtail(&group.nodes, node);
@@ -1169,6 +1103,9 @@ static void node_group_make_insert_selected(const bContext &C,
     bke::node_unique_name(group, *node);
 
     node_identifier_map.add(old_identifier, node->identifier);
+
+    const std::string new_basepath = node_basepath(group, *node);
+    anim_basepaths.append({old_basepath, new_basepath});
 
     BKE_ntree_update_tag_node_removed(&ntree);
     BKE_ntree_update_tag_node_new(&group, node);
@@ -1184,6 +1121,8 @@ static void node_group_make_insert_selected(const bContext &C,
     node->location[0] -= center[0];
     node->location[1] -= center[1];
   }
+
+  BKE_animdata_move_by_basepath(*bmain, ntree.id, group.id, anim_basepaths);
 
   for (bNodeLink *link : internal_links_to_move) {
     BLI_remlink(&ntree.links, link);
@@ -1219,6 +1158,13 @@ static void node_group_make_insert_selected(const bContext &C,
     bNodeSocket *output_sock = node_group_output_find_socket(output_node, io_identifier);
     bke::node_add_link(
         group, *info.link->fromnode, *info.link->fromsock, *output_node, *output_sock);
+
+    /* Temporarily remove the link from the tree, because it points to an invalid node. This
+     * prevents invalid pointer access during node updates below. The link is added back to the
+     * tree once the group node sockets have been created and the link fromsock pointer can be
+     * updated (#151786). */
+    BLI_remlink(&ntree.links, info.link);
+    BKE_ntree_update_tag_link_removed(&ntree);
   }
 
   /* Handle new links inside the group. */
@@ -1240,11 +1186,9 @@ static void node_group_make_insert_selected(const bContext &C,
     bke::node_field_inferencing::update_field_inferencing(group);
   }
 
-  if (ELEM(group.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
-    bke::node_structure_type_inferencing::update_structure_type_interface(group);
-  }
+  update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
 
-  nodes::update_node_declaration_and_sockets(ntree, *gnode);
+  BKE_main_ensure_invariants(*bmain, Span<ID *>{&group.id});
 
   /* Add new links to inputs outside of the group. */
   for (const auto item : input_links.items()) {
@@ -1258,9 +1202,11 @@ static void node_group_make_insert_selected(const bContext &C,
     /* Reconnect the link to the group node instead of the node now inside the group. */
     info.link->fromnode = gnode;
     info.link->fromsock = node_group_find_output_socket(gnode, info.interface_socket->identifier);
+    /* Now that the fromnode/fromsock pointers are valid again we can add the link back to the
+     * tree. */
+    BLI_addtail(&ntree.links, info.link);
+    BKE_ntree_update_tag_link_added(&ntree, info.link);
   }
-
-  update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
 
   BKE_main_ensure_invariants(*bmain);
 }
@@ -1283,7 +1229,7 @@ static bNode *node_group_make_from_nodes(const bContext &C,
 
   /* make group node */
   bNode *gnode = bke::node_add_node(&C, ntree, ntype);
-  gnode->id = (ID *)ngroup;
+  gnode->id = id_cast<ID *>(ngroup);
 
   gnode->location[0] = 0.5f * (min[0] + max[0]);
   gnode->location[1] = 0.5f * (min[1] + max[1]);
@@ -1300,6 +1246,7 @@ struct WrapperNodeGroupMapping {
   Map<int, int> new_by_old_panel_identifier;
   Vector<int> exposed_input_indices;
   Vector<int> exposed_output_indices;
+  int inner_node_identifier;
 
   bNodeSocket *get_new_input(const bNodeSocket *old_socket, bNode &new_node) const
   {
@@ -1388,6 +1335,7 @@ static bNodeTree *node_group_make_wrapper(const bContext &C,
   Map<const bNodeSocket *, bNodeSocket *> inner_node_socket_mapping;
   bNode &inner_node = *bke::node_copy_with_mapping(
       dst_group, src_node, 0, std::nullopt, std::nullopt, inner_node_socket_mapping);
+  r_mapping.inner_node_identifier = inner_node.identifier;
 
   /* Position nodes. */
   input_node.location[0] = -300 - input_node.width;
@@ -1434,6 +1382,10 @@ static bNodeTree *node_group_make_wrapper(const bContext &C,
                        output_node,
                        *group_outputs[i]);
   }
+
+  const std::string old_basepath = node_basepath(src_tree, src_node);
+  const std::string new_basepath = node_basepath(*dst_group, inner_node);
+  BKE_animdata_copy_by_basepath(bmain, src_tree.id, dst_group->id, {{old_basepath, new_basepath}});
 
   BKE_main_ensure_invariants(bmain, dst_group->id);
   return dst_group;
@@ -1495,32 +1447,41 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
   }
 
   /* Relink links from old to new node. */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    if (link->tonode == &src_node) {
-      if (bNodeSocket *new_to_socket = mapping.get_new_input(link->tosock, *gnode)) {
-        link->tonode = gnode;
-        link->tosock = new_to_socket;
+  for (bNodeLink &link : ntree.links.items_mutable()) {
+    if (link.tonode == &src_node) {
+      if (bNodeSocket *new_to_socket = mapping.get_new_input(link.tosock, *gnode)) {
+        link.tonode = gnode;
+        link.tosock = new_to_socket;
         continue;
       }
-      bke::node_remove_link(&ntree, *link);
+      bke::node_remove_link(&ntree, link);
       continue;
     }
-    if (link->fromnode == &src_node) {
-      if (bNodeSocket *new_from_socket = mapping.get_new_output(link->fromsock, *gnode)) {
-        link->fromnode = gnode;
-        link->fromsock = new_from_socket;
+    if (link.fromnode == &src_node) {
+      if (bNodeSocket *new_from_socket = mapping.get_new_output(link.fromsock, *gnode)) {
+        link.fromnode = gnode;
+        link.fromsock = new_from_socket;
         continue;
       }
-      bke::node_remove_link(&ntree, *link);
+      bke::node_remove_link(&ntree, link);
       continue;
     }
   }
+
+  Map<int32_t, int32_t> node_identifier_map;
+  node_identifier_map.add_new(src_node.identifier, mapping.inner_node_identifier);
 
   /* Remove the old node because it has been replaced. Use the name of the removed node for the new
    * group node. This also keeps animation data working. */
   std::string old_node_name = src_node.name;
   bke::node_remove_node(&bmain, ntree, src_node, true, false);
   STRNCPY(gnode->name, old_node_name.c_str());
+
+  /* Clear already created nested node refs to create new stable ones below. */
+  MEM_SAFE_FREE(wrapper_group->nested_node_refs);
+  wrapper_group->nested_node_refs_num = 0;
+  update_nested_node_refs_after_moving_nodes_into_group(
+      ntree, *wrapper_group, *gnode, node_identifier_map);
 
   BKE_ntree_update_tag_node_property(&ntree, gnode);
   BKE_main_ensure_invariants(bmain);
@@ -1552,7 +1513,7 @@ static wmOperatorStatus node_group_make_exec(bContext *C, wmOperator *op)
   }
 
   if (gnode) {
-    bNodeTree *ngroup = (bNodeTree *)gnode->id;
+    bNodeTree *ngroup = id_cast<bNodeTree *>(gnode->id);
 
     bke::node_set_active(ntree, *gnode);
     if (ngroup) {

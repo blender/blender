@@ -24,9 +24,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* ******************* Color Correction ********************************* */
 
-namespace blender::nodes::node_composite_colorcorrection_cc {
+namespace nodes::node_composite_colorcorrection_cc {
 
 static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
 {
@@ -303,9 +305,9 @@ static float4 color_correction(const float4 &color,
                 color.w);
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   float3 luminance_coefficients;
   IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
@@ -400,13 +402,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   });
 }
 
-}  // namespace blender::nodes::node_composite_colorcorrection_cc
+}  // namespace nodes::node_composite_colorcorrection_cc
 
 static void register_node_type_cmp_colorcorrection()
 {
-  namespace file_ns = blender::nodes::node_composite_colorcorrection_cc;
+  namespace file_ns = nodes::node_composite_colorcorrection_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeColorCorrection", CMP_NODE_COLORCORRECTION);
   ntype.ui_name = "Color Correction";
@@ -419,6 +421,8 @@ static void register_node_type_cmp_colorcorrection()
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_colorcorrection)
+
+}  // namespace blender

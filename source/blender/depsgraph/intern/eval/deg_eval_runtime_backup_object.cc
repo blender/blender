@@ -57,25 +57,25 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
 
 void ObjectRuntimeBackup::backup_modifier_runtime_data(Object *object)
 {
-  LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
-    if (modifier_data->runtime == nullptr) {
+  for (ModifierData &modifier_data : object->modifiers) {
+    if (modifier_data.runtime == nullptr) {
       continue;
     }
 
-    modifier_runtime_data.add(modifier_data->persistent_uid, ModifierDataBackup(modifier_data));
-    modifier_data->runtime = nullptr;
+    modifier_runtime_data.add(modifier_data.persistent_uid, ModifierDataBackup(&modifier_data));
+    modifier_data.runtime = nullptr;
   }
 }
 
 void ObjectRuntimeBackup::backup_pose_channel_runtime_data(Object *object)
 {
   if (object->pose != nullptr) {
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      const SessionUID &session_uid = pchan->runtime.session_uid;
+    for (bPoseChannel &pchan : object->pose->chanbase) {
+      const SessionUID &session_uid = pchan.runtime.session_uid;
       BLI_assert(BLI_session_uid_is_generated(&session_uid));
 
-      pose_channel_runtime_data.add(session_uid, pchan->runtime);
-      BKE_pose_channel_runtime_reset(&pchan->runtime);
+      pose_channel_runtime_data.add(session_uid, pchan.runtime);
+      BKE_pose_channel_runtime_reset(&pchan.runtime);
     }
   }
 }
@@ -112,8 +112,8 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
        * original mesh during update, need to make sure no dead
        * pointers are left behind. */
       if (object->type == OB_MESH) {
-        Mesh *mesh_eval = (Mesh *)data_eval;
-        Mesh *mesh_orig = (Mesh *)data_orig;
+        Mesh *mesh_eval = id_cast<Mesh *>(data_eval);
+        Mesh *mesh_orig = id_cast<Mesh *>(data_orig);
         mesh_eval->runtime->edit_mesh = mesh_orig->runtime->edit_mesh;
       }
     }
@@ -147,11 +147,11 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
 
 void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 {
-  LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
+  for (ModifierData &modifier_data : object->modifiers) {
     std::optional<ModifierDataBackup> backup = modifier_runtime_data.pop_try(
-        modifier_data->persistent_uid);
+        modifier_data.persistent_uid);
     if (backup.has_value()) {
-      modifier_data->runtime = backup->runtime;
+      modifier_data.runtime = backup->runtime;
     }
   }
 
@@ -162,7 +162,7 @@ void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 
     if (backup.type == eModifierType_Subsurf) {
       if (object->type == OB_MESH) {
-        Mesh *mesh = (Mesh *)object->data;
+        Mesh *mesh = id_cast<Mesh *>(object->data);
         if (mesh->runtime->subsurf_runtime_data == backup.runtime) {
           mesh->runtime->subsurf_runtime_data = nullptr;
         }
@@ -174,11 +174,11 @@ void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 void ObjectRuntimeBackup::restore_pose_channel_runtime_data(Object *object)
 {
   if (object->pose != nullptr) {
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      const SessionUID &session_uid = pchan->runtime.session_uid;
+    for (bPoseChannel &pchan : object->pose->chanbase) {
+      const SessionUID &session_uid = pchan.runtime.session_uid;
       std::optional<bPoseChannel_Runtime> runtime = pose_channel_runtime_data.pop_try(session_uid);
       if (runtime.has_value()) {
-        pchan->runtime = *runtime;
+        pchan.runtime = *runtime;
       }
     }
   }

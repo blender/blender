@@ -107,11 +107,11 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
     return;
   }
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      for (int i = 1; i < track->markersnr; i++) {
-        const MovieTrackingMarker *marker = &track->markers[i];
-        const MovieTrackingMarker *prev_marker = &track->markers[i - 1];
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && (track.flag & TRACK_LOCKED) == 0) {
+      for (int i = 1; i < track.markersnr; i++) {
+        const MovieTrackingMarker *marker = &track.markers[i];
+        const MovieTrackingMarker *prev_marker = &track.markers[i - 1];
 
         if ((marker->flag & MARKER_DISABLED) || (prev_marker->flag & MARKER_DISABLED)) {
           continue;
@@ -139,11 +139,11 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
   tc->custom.type.free_cb = nullptr;
 
   /* Create actual data. */
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      for (int i = 1; i < track->markersnr; i++) {
-        MovieTrackingMarker *marker = &track->markers[i];
-        MovieTrackingMarker *prev_marker = &track->markers[i - 1];
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && (track.flag & TRACK_LOCKED) == 0) {
+      for (int i = 1; i < track.markersnr; i++) {
+        MovieTrackingMarker *marker = &track.markers[i];
+        MovieTrackingMarker *prev_marker = &track.markers[i - 1];
 
         if ((marker->flag & MARKER_DISABLED) || (prev_marker->flag & MARKER_DISABLED)) {
           continue;
@@ -151,7 +151,7 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
 
         if (marker->flag & MARKER_GRAPH_SEL_X) {
           markerToTransCurveDataInit(
-              td, td2d, tdt, track, marker, &track->markers[i - 1], 0, width);
+              td, td2d, tdt, &track, marker, &track.markers[i - 1], 0, width);
           td += 1;
           td2d += 1;
           tdt += 1;
@@ -159,7 +159,7 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
 
         if (marker->flag & MARKER_GRAPH_SEL_Y) {
           markerToTransCurveDataInit(
-              td, td2d, tdt, track, marker, &track->markers[i - 1], 1, height);
+              td, td2d, tdt, &track, marker, &track.markers[i - 1], 1, height);
 
           td += 1;
           td2d += 1;

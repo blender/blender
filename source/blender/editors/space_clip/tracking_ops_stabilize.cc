@@ -25,6 +25,8 @@
 
 #include "clip_intern.hh"
 
+namespace blender {
+
 /********************* add 2d stabilization tracks operator ********************/
 
 static bool stabilize_2d_poll(bContext *C)
@@ -47,9 +49,9 @@ static wmOperatorStatus stabilize_2d_add_exec(bContext *C, wmOperator * /*op*/)
   MovieTrackingStabilization *stabilization = &tracking->stabilization;
 
   bool update = false;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_USE_2D_STAB) == 0) {
-      track->flag |= TRACK_USE_2D_STAB;
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && (track.flag & TRACK_USE_2D_STAB) == 0) {
+      track.flag |= TRACK_USE_2D_STAB;
       stabilization->tot_track++;
       update = true;
     }
@@ -90,10 +92,10 @@ static wmOperatorStatus stabilize_2d_remove_exec(bContext *C, wmOperator * /*op*
   int a = 0;
   bool update = false;
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (track->flag & TRACK_USE_2D_STAB) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (track.flag & TRACK_USE_2D_STAB) {
       if (a == stabilization->act_track) {
-        track->flag &= ~TRACK_USE_2D_STAB;
+        track.flag &= ~TRACK_USE_2D_STAB;
         stabilization->act_track--;
         stabilization->tot_track--;
         stabilization->act_track = std::max(stabilization->act_track, 0);
@@ -136,9 +138,9 @@ static wmOperatorStatus stabilize_2d_select_exec(bContext *C, wmOperator * /*op*
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   bool update = false;
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (track->flag & TRACK_USE_2D_STAB) {
-      BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (track.flag & TRACK_USE_2D_STAB) {
+      BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
       update = true;
     }
   }
@@ -176,9 +178,9 @@ static wmOperatorStatus stabilize_2d_rotation_add_exec(bContext *C, wmOperator *
   MovieTrackingStabilization *stabilization = &tracking->stabilization;
 
   bool update = false;
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_USE_2D_STAB_ROT) == 0) {
-      track->flag |= TRACK_USE_2D_STAB_ROT;
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && (track.flag & TRACK_USE_2D_STAB_ROT) == 0) {
+      track.flag |= TRACK_USE_2D_STAB_ROT;
       stabilization->tot_rot_track++;
       update = true;
     }
@@ -219,10 +221,10 @@ static wmOperatorStatus stabilize_2d_rotation_remove_exec(bContext *C, wmOperato
   int a = 0;
   bool update = false;
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (track->flag & TRACK_USE_2D_STAB_ROT) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (track.flag & TRACK_USE_2D_STAB_ROT) {
       if (a == stabilization->act_rot_track) {
-        track->flag &= ~TRACK_USE_2D_STAB_ROT;
+        track.flag &= ~TRACK_USE_2D_STAB_ROT;
         stabilization->act_rot_track--;
         stabilization->tot_rot_track--;
         stabilization->act_rot_track = std::max(stabilization->act_rot_track, 0);
@@ -265,9 +267,9 @@ static wmOperatorStatus stabilize_2d_rotation_select_exec(bContext *C, wmOperato
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   bool update = false;
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (track->flag & TRACK_USE_2D_STAB_ROT) {
-      BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (track.flag & TRACK_USE_2D_STAB_ROT) {
+      BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
       update = true;
     }
   }
@@ -293,3 +295,5 @@ void CLIP_OT_stabilize_2d_rotation_select(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

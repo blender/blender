@@ -279,8 +279,8 @@ static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
       }
     }
 
-    LISTBASE_FOREACH (StripModifierData *, smd, &active_strip->modifiers) {
-      StripModifierData *smd_new = seq::modifier_copy(*strip_iter, smd);
+    for (StripModifierData &smd : active_strip->modifiers) {
+      StripModifierData *smd_new = seq::modifier_copy(*strip_iter, &smd);
       seq::modifier_persistent_uid_init(*strip_iter, *smd_new);
     }
   }
@@ -346,7 +346,8 @@ static wmOperatorStatus strip_modifier_equalizer_redefine_exec(bContext *C, wmOp
     return OPERATOR_CANCELLED;
   }
 
-  seq::sound_equalizermodifier_set_graphs((SoundEqualizerModifierData *)smd, number);
+  seq::sound_equalizermodifier_set_graphs(reinterpret_cast<SoundEqualizerModifierData *>(smd),
+                                          number);
 
   seq::relations_invalidate_cache(scene, strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

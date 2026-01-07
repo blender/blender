@@ -18,11 +18,13 @@
 
 #include "BLI_vector_set.hh"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 enum class AttrDomain : int8_t;
 }
 
-namespace blender::draw {
+namespace draw {
 
 struct DRW_MeshCDMask {
   VectorSet<std::string> uv;
@@ -51,4 +53,5 @@ bool drw_attributes_overlap(const VectorSet<std::string> *a, const VectorSet<std
 
 void drw_attributes_add_request(VectorSet<std::string> *attrs, StringRef name);
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

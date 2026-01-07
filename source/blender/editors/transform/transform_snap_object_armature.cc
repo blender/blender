@@ -33,7 +33,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     return retval;
   }
 
-  bArmature *arm = static_cast<bArmature *>(ob_eval->data);
+  bArmature *arm = id_cast<bArmature *>(ob_eval->data);
 
   SnapData nearest2d(sctx, obmat);
 
@@ -48,35 +48,35 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
                               SCE_SNAP_TARGET_NOT_SELECTED);
 
   if (arm->edbo) {
-    LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
-      if (blender::animrig::bone_is_visible(arm, eBone)) {
-        const bool is_selected = (eBone->flag & (BONE_ROOTSEL | BONE_TIPSEL)) != 0;
+    for (EditBone &eBone : *arm->edbo) {
+      if (animrig::bone_is_visible(arm, &eBone)) {
+        const bool is_selected = (eBone.flag & (BONE_ROOTSEL | BONE_TIPSEL)) != 0;
         if (is_selected && skip_selected) {
           continue;
         }
 
-        if (nearest2d.snap_edge(eBone->head, eBone->tail)) {
-          head_vec = eBone->head;
-          tail_vec = eBone->tail;
+        if (nearest2d.snap_edge(eBone.head, eBone.tail)) {
+          head_vec = eBone.head;
+          tail_vec = eBone.tail;
         }
       }
     }
   }
   else if (ob_eval->pose && ob_eval->pose->chanbase.first) {
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_eval->pose->chanbase) {
-      if (!blender::animrig::bone_is_visible(arm, pchan)) {
+    for (bPoseChannel &pchan : ob_eval->pose->chanbase) {
+      if (!animrig::bone_is_visible(arm, &pchan)) {
         /* Skip hidden bones. */
         continue;
       }
 
-      const bool is_selected = (pchan->flag & POSE_SELECTED) != 0;
+      const bool is_selected = (pchan.flag & POSE_SELECTED) != 0;
       if (is_selected && skip_selected) {
         continue;
       }
 
-      if (nearest2d.snap_edge(pchan->pose_head, pchan->pose_tail)) {
-        head_vec = pchan->pose_head;
-        tail_vec = pchan->pose_tail;
+      if (nearest2d.snap_edge(pchan.pose_head, pchan.pose_tail)) {
+        head_vec = pchan.pose_head;
+        tail_vec = pchan.pose_tail;
       }
     }
   }

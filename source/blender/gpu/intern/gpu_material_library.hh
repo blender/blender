@@ -12,6 +12,8 @@
 #include "BLI_set.hh"
 #include "GPU_material.hh"
 
+namespace blender {
+
 #define MAX_FUNCTION_NAME 64
 #define MAX_PARAMETER 36
 
@@ -31,5 +33,6 @@ struct GPUFunction {
 };
 
 GPUFunction *gpu_material_library_get_function(const char *name);
-void gpu_material_library_use_function(blender::Set<blender::StringRefNull> &used_libraries,
-                                       const char *name);
+void gpu_material_library_use_function(Set<StringRefNull> &used_libraries, const char *name);
+
+}  // namespace blender

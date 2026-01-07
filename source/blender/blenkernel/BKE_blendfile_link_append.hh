@@ -17,6 +17,9 @@
 #include "BLO_readfile.hh"
 
 struct BlendHandle;
+
+namespace blender {
+
 struct ID;
 struct Library;
 struct LibraryLink_Params;
@@ -24,7 +27,7 @@ struct MainLibraryWeakReferenceMap;
 struct ReportList;
 
 /* TODO: Rename file to `BKE_blendfile_import.hh`. */
-/* TODO: Replace `BlendfileLinkAppend` prefix by `blender::bke::blendfile::import` namespace. */
+/* TODO: Replace `BlendfileLinkAppend` prefix by `bke::blendfile::import` namespace. */
 /* TODO: Move these enums to scoped enum classes. */
 
 /** Actions to apply to an item (i.e. linked ID). */
@@ -74,7 +77,7 @@ struct BlendfileLinkAppendContextItem {
   /** Name of the ID (without the heading two-chars IDcode). */
   std::string name;
   /** All libraries (from #BlendfileLinkAppendContext.libraries) to try to load this ID from. */
-  blender::BitVector<> libraries;
+  BitVector<> libraries;
   /** ID type. */
   short idcode;
 
@@ -126,7 +129,7 @@ struct BlendfileLinkAppendContextLibrary {
  */
 struct BlendfileLinkAppendContext {
   /** List of library paths to search IDs in. */
-  blender::Vector<BlendfileLinkAppendContextLibrary> libraries;
+  Vector<BlendfileLinkAppendContextLibrary> libraries;
   /**
    * List of all ID to try to link from #libraries. This is a linked list because iterators must
    * not be invalidated when adding more items.
@@ -170,7 +173,7 @@ struct BlendfileLinkAppendContext {
   ProcessStage process_stage;
 
   /** Allows to easily find an existing items from an ID pointer. */
-  blender::Map<ID *, BlendfileLinkAppendContextItem *> new_id_to_item;
+  Map<ID *, BlendfileLinkAppendContextItem *> new_id_to_item;
 
   /** Runtime info used by append code to manage re-use of already appended matching IDs. */
   MainLibraryWeakReferenceMap *library_weak_reference_mapping = nullptr;
@@ -318,8 +321,8 @@ void BKE_blendfile_link_append_context_item_foreach(
      *
      * \return `true` if iteration should continue, `false` otherwise.
      */
-    blender::FunctionRef<bool(BlendfileLinkAppendContext *lapp_context,
-                              BlendfileLinkAppendContextItem *item)> callback_function,
+    FunctionRef<bool(BlendfileLinkAppendContext *lapp_context,
+                     BlendfileLinkAppendContextItem *item)> callback_function,
     eBlendfileLinkAppendForeachItemFlag flag);
 
 /**
@@ -437,3 +440,5 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
  * anymore, and should immediately be freed.
  */
 void BKE_blendfile_id_relocate(BlendfileLinkAppendContext &lapp_context, ReportList *reports);
+
+}  // namespace blender

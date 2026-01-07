@@ -11,9 +11,12 @@
 #include "DNA_mesh_types.h"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
-namespace blender::io::usd {
+namespace io::usd {
 
 template<typename USDT>
 static void read_face_display_color(Mesh *mesh,
@@ -56,8 +59,8 @@ static void read_face_display_color(Mesh *mesh,
 
 static std::optional<bke::AttrDomain> convert_usd_varying_to_blender(const pxr::TfToken usd_domain)
 {
-  static const blender::Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
-    blender::Map<pxr::TfToken, bke::AttrDomain> map;
+  static const Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
+    Map<pxr::TfToken, bke::AttrDomain> map;
     map.add_new(pxr::UsdGeomTokens->faceVarying, bke::AttrDomain::Corner);
     map.add_new(pxr::UsdGeomTokens->vertex, bke::AttrDomain::Point);
     map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Point);
@@ -127,4 +130,5 @@ void read_generic_mesh_primvar(Mesh *mesh,
   copy_primvar_to_blender_attribute(primvar, time, *type, *domain, faces, attributes);
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

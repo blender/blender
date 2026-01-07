@@ -376,6 +376,9 @@ const ColorSpace *LibOCIOConfig::get_color_space_for_hdr_image(StringRefNull nam
   /* Based on empirical testing, video works with 100 nits diffuse white, while
    * images need 203 nits diffuse whites to show matching results. */
   const ColorSpace *colorspece = get_color_space(name);
+  if (colorspece == nullptr) {
+    return nullptr;
+  }
   if (colorspece->interop_id() == "pq_rec2020_display") {
     return get_color_space("blender:pq_rec2020_display_203nits");
   }

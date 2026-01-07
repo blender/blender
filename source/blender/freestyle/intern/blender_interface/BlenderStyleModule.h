@@ -13,7 +13,9 @@
 
 #include "BLI_utildefines.h"  // BLI_assert()
 
+namespace blender {
 struct Text;
+}
 
 namespace Freestyle {
 
@@ -43,7 +45,7 @@ class BufferedStyleModule : public StyleModule {
 
 class BlenderStyleModule : public StyleModule {
  public:
-  BlenderStyleModule(struct Text *text, const string &name, Interpreter *inter)
+  BlenderStyleModule(blender::Text *text, const string &name, Interpreter *inter)
       : StyleModule(name, inter)
   {
     _text = text;
@@ -60,7 +62,7 @@ class BlenderStyleModule : public StyleModule {
   }
 
  private:
-  struct Text *_text;
+  struct blender::Text *_text;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BlenderStyleModule")
 };

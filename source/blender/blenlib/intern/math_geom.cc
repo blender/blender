@@ -21,6 +21,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /********************************** Polygons *********************************/
 
 void cross_tri_v3(float n[3], const float v1[3], const float v2[3], const float v3[3])
@@ -3961,11 +3963,11 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
   float valid_last = skipval;
   int valid_ofs = 0;
 
-  blender::Array<float> array_up(list_size);
-  blender::Array<float> array_down(list_size);
+  Array<float> array_up(list_size);
+  Array<float> array_down(list_size);
 
-  blender::Array<int> ofs_tot_up(list_size);
-  blender::Array<int> ofs_tot_down(list_size);
+  Array<int> ofs_tot_up(list_size);
+  Array<int> ofs_tot_down(list_size);
 
   for (i = 0; i < list_size; i++) {
     if (array[i] == skipval) {
@@ -5033,7 +5035,7 @@ void accumulate_vertex_normals_tri_v3(float n1[3],
 
     for (i = 0; i < nverts; i++) {
       const float *cur_edge = vdiffs[i];
-      const float fac = blender::math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
+      const float fac = math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
 
       /* accumulate */
       madd_v3_v3fl(vn[i], f_no, fac);
@@ -5080,7 +5082,7 @@ void accumulate_vertex_normals_v3(float n1[3],
 
     for (i = 0; i < nverts; i++) {
       const float *cur_edge = vdiffs[i];
-      const float fac = blender::math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
+      const float fac = math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
 
       /* accumulate */
       madd_v3_v3fl(vn[i], f_no, fac);
@@ -5112,7 +5114,7 @@ void accumulate_vertex_normals_poly_v3(float **vertnos,
 
       /* calculate angle between the two poly edges incident on
        * this vertex */
-      const float fac = blender::math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
+      const float fac = math::safe_acos_approx(-dot_v3v3(cur_edge, prev_edge));
 
       /* accumulate */
       madd_v3_v3fl(vertnos[i], polyno, fac);
@@ -5544,3 +5546,5 @@ float geodesic_distance_propagate_across_triangle(
    * point found that connects to v0 across the triangle. */
   return min_ff(dist1 + len_v3(v10), dist2 + len_v3v3(v0, v2));
 }
+
+}  // namespace blender

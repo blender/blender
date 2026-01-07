@@ -35,7 +35,9 @@
 
 #include "WM_types.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 static void ensure_valid_frame_end(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   const int frame_start = RNA_int_get(ptr, "frame_start");
@@ -123,7 +125,7 @@ static Set<int> get_selected_object_keyframes(Span<Object *> bake_targets)
   Set<int> keyframes;
   for (Object *bake_target : bake_targets) {
     AnimData *adt = BKE_animdata_from_id(&bake_target->id);
-    for (FCurve *fcurve : blender::animrig::legacy::fcurves_for_assigned_action(adt)) {
+    for (FCurve *fcurve : animrig::legacy::fcurves_for_assigned_action(adt)) {
       for (const int i : IndexRange(fcurve->totvert)) {
         BezTriple bezt = fcurve->bezt[i];
         if (bezt.f2 & SELECT) {
@@ -171,7 +173,7 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
 
   WM_cursor_wait(true);
 
-  GreasePencil &target = *static_cast<GreasePencil *>(target_object->data);
+  GreasePencil &target = *id_cast<GreasePencil *>(target_object->data);
   Object *target_object_eval = DEG_get_evaluated(&depsgraph, target_object);
 
   std::optional<Set<int>> keyframes;
@@ -195,8 +197,7 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
 
     for (Object *source_object : bake_targets) {
       Object *source_object_eval = DEG_get_evaluated(&depsgraph, source_object);
-      GreasePencil &source_eval_grease_pencil = *static_cast<GreasePencil *>(
-          source_object_eval->data);
+      GreasePencil &source_eval_grease_pencil = *id_cast<GreasePencil *>(source_object_eval->data);
       const float4x4 to_target = source_object_eval->object_to_world() * target_imat;
 
       for (const Layer *source_layer : source_eval_grease_pencil.layers()) {
@@ -362,10 +363,12 @@ static void GREASE_PENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)
                "Projection Type",
                "");
 }
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 void ED_operatortypes_grease_pencil_bake_animation()
 {
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_bake_grease_pencil_animation);
 }
+
+}  // namespace blender

@@ -18,7 +18,6 @@
 #include "BLT_translation.hh"
 
 #include "DNA_color_types.h" /* CurveMapping. */
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -54,6 +53,8 @@
 #include "MOD_util.hh"
 #include "MOD_weightvg_util.hh"
 
+namespace blender {
+
 // #define USE_TIMEIT
 
 #ifdef USE_TIMEIT
@@ -70,13 +71,13 @@
 
 struct Vert2GeomData {
   /* Read-only data */
-  blender::Span<blender::float3> positions;
+  Span<float3> positions;
 
   const int *indices;
 
   const SpaceTransform *loc2trgt;
 
-  blender::bke::BVHTreeFromMesh *treeData[3];
+  bke::BVHTreeFromMesh *treeData[3];
 
   /* Write data, but not needing locking (two different threads will never write same index). */
   float *dist[3];
@@ -145,7 +146,7 @@ static void vert2geom_task_cb_ex(void *__restrict userdata,
  * Find nearest vertex and/or edge and/or face, for each vertex (adapted from `shrinkwrap.cc`).
  */
 static void get_vert2geom_distance(int verts_num,
-                                   const blender::Span<blender::float3> positions,
+                                   const Span<float3> positions,
                                    const int *indices,
                                    float *dist_v,
                                    float *dist_e,
@@ -156,9 +157,9 @@ static void get_vert2geom_distance(int verts_num,
   Vert2GeomData data{};
   Vert2GeomDataChunk data_chunk = {{{0}}};
 
-  blender::bke::BVHTreeFromMesh treeData_v{};
-  blender::bke::BVHTreeFromMesh treeData_e{};
-  blender::bke::BVHTreeFromMesh treeData_f{};
+  bke::BVHTreeFromMesh treeData_v{};
+  bke::BVHTreeFromMesh treeData_e{};
+  bke::BVHTreeFromMesh treeData_f{};
 
   if (dist_v) {
     /* Create a BVH-tree of the given target's verts. */
@@ -208,7 +209,7 @@ static void get_vert2geom_distance(int verts_num,
  * Note that it works in final world space (i.e. with constraints etc. applied).
  */
 static void get_vert2ob_distance(int verts_num,
-                                 const blender::Span<blender::float3> positions,
+                                 const Span<float3> positions,
                                  const int *indices,
                                  float *dist,
                                  Object *ob,
@@ -301,11 +302,8 @@ static void do_map(Object *ob,
  **************************************/
 static void init_data(ModifierData *md)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeightVGProximityModifierData), modifier);
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 
   wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
   BKE_curvemapping_init(wmd->cmap_curve);
@@ -313,14 +311,15 @@ static void init_data(ModifierData *md)
 
 static void free_data(ModifierData *md)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   BKE_curvemapping_free(wmd->cmap_curve);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const WeightVGProximityModifierData *wmd = (const WeightVGProximityModifierData *)md;
-  WeightVGProximityModifierData *twmd = (WeightVGProximityModifierData *)target;
+  const WeightVGProximityModifierData *wmd =
+      reinterpret_cast<const WeightVGProximityModifierData *>(md);
+  WeightVGProximityModifierData *twmd = reinterpret_cast<WeightVGProximityModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -329,7 +328,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
 
   /* We need vertex groups! */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
@@ -342,7 +341,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
 
   if (wmd->mask_texture) {
     return BKE_texture_dependsOnTime(wmd->mask_texture);
@@ -352,11 +351,11 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&wmd->mask_texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&wmd->proximity_ob_target, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&wmd->mask_tex_map_obj, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->mask_texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->proximity_ob_target), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->mask_tex_map_obj), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -368,7 +367,7 @@ static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, voi
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   bool need_transform_relation = false;
 
   if (wmd->proximity_ob_target != nullptr) {
@@ -403,7 +402,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   /* If no vertex group, bypass. */
   if (wmd->defgrp_name[0] == '\0') {
     return true;
@@ -416,7 +415,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 {
   BLI_assert(mesh != nullptr);
 
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
   MDeformWeight **dw, **tdw;
   Object *ob = ctx->object;
   Object *obr = nullptr; /* Our target object. */
@@ -509,7 +508,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   new_w = MEM_malloc_arrayN<float>(size_t(index_num), __func__);
   MEM_freeN(tidx);
 
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const Span<float3> positions = mesh->vert_positions();
 
   /* Compute wanted distances. */
   if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJECT) {
@@ -627,7 +626,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -643,10 +642,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "proximity_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "proximity_mode") == MOD_WVG_PROXIMITY_GEOMETRY) {
-    layout.prop(ptr, "proximity_geometry", UI_ITEM_R_EXPAND, IFACE_("Geometry"), ICON_NONE);
+    layout.prop(ptr, "proximity_geometry", ui::ITEM_R_EXPAND, IFACE_("Geometry"), ICON_NONE);
   }
 
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.prop(ptr, "min_dist", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "max_dist", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -655,27 +654,27 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &row = layout.row(true);
+  ui::Layout &row = layout.row(true);
   row.prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
-  blender::ui::Layout &sub = row.row(true);
+  ui::Layout &sub = row.row(true);
   sub.use_property_split_set(false);
   row.prop(ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
-    uiTemplateCurveMapping(&layout, ptr, "map_curve", 0, false, false, false, false, false);
+    template_curve_mapping(&layout, ptr, "map_curve", 0, false, false, false, false, false);
   }
   modifier_error_message_draw(layout, ptr);
 }
 
 static void influence_panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -695,9 +694,10 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
-  const WeightVGProximityModifierData *wmd = (const WeightVGProximityModifierData *)md;
+  const WeightVGProximityModifierData *wmd =
+      reinterpret_cast<const WeightVGProximityModifierData *>(md);
 
-  BLO_write_struct(writer, WeightVGProximityModifierData, wmd);
+  writer->write_struct(wmd);
 
   if (wmd->cmap_curve) {
     BKE_curvemapping_blend_write(writer, wmd->cmap_curve);
@@ -706,7 +706,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
+  WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
 
   BLO_read_struct(reader, CurveMapping, &wmd->cmap_curve);
   if (wmd->cmap_curve) {
@@ -750,3 +750,5 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

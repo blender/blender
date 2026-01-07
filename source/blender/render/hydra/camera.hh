@@ -7,12 +7,13 @@
 #include <pxr/base/gf/camera.h>
 #include <pxr/base/gf/vec2f.h>
 
+namespace blender {
+
 struct ARegion;
+struct Depsgraph;
 struct Object;
 struct View3D;
-struct Depsgraph;
-
-namespace blender::render::hydra {
+namespace render::hydra {
 
 pxr::GfCamera gf_camera(const Depsgraph *depsgraph,
                         const View3D *v3d,
@@ -23,4 +24,5 @@ pxr::GfCamera gf_camera(const Object *camera_obj,
                         const pxr::GfVec2i &res,
                         const pxr::GfVec4f &border);
 
-}  // namespace blender::render::hydra
+}  // namespace render::hydra
+}  // namespace blender

@@ -60,7 +60,7 @@ PatchHandle bogus_patch_handle()
   return ret;
 }
 
-int transformUVToQuadQuadrant(float median, inout float u, inout float v)
+int transformUVToQuadQuadrant(float median, float &u, float &v)
 {
   int uHalf = (u >= median) ? 1 : 0;
   if (uHalf != 0) {
@@ -73,7 +73,7 @@ int transformUVToQuadQuadrant(float median, inout float u, inout float v)
   return (vHalf << 1) | uHalf;
 }
 
-int transformUVToTriQuadrant(float median, inout float u, inout float v, inout bool rotated)
+int transformUVToTriQuadrant(float median, float &u, float &v, bool &rotated)
 {
 
   if (!rotated) {
@@ -174,7 +174,7 @@ OsdPatchCoord GetPatchCoord(int face_index, float u, float v)
  */
 
 #if defined(FVAR_EVALUATION)
-void evaluate_patches_limits(int patch_index, float u, float v, inout float2 dst)
+void evaluate_patches_limits(int patch_index, float u, float v, float2 &dst)
 {
   OsdPatchCoord coord = GetPatchCoord(patch_index, u, v);
   OsdPatchArray array = GetPatchArray(coord.arrayIndex);
@@ -196,7 +196,7 @@ void evaluate_patches_limits(int patch_index, float u, float v, inout float2 dst
 }
 #else
 void evaluate_patches_limits(
-    int patch_index, float u, float v, inout float3 dst, inout float3 du, inout float3 dv)
+    int patch_index, float u, float v, float3 &dst, float3 &du, float3 &dv)
 {
   OsdPatchCoord coord = GetPatchCoord(patch_index, u, v);
   OsdPatchArray array = GetPatchArray(coord.arrayIndex);
@@ -222,7 +222,7 @@ void evaluate_patches_limits(
 
 #  if defined(ORCO_EVALUATION)
 /* Evaluate the patches limits from the extra source vertex buffer. */
-void evaluate_patches_limits_extra(int patch_index, float u, float v, inout float3 dst)
+void evaluate_patches_limits_extra(int patch_index, float u, float v, float3 &dst)
 {
   OsdPatchCoord coord = GetPatchCoord(patch_index, u, v);
   OsdPatchArray array = GetPatchArray(coord.arrayIndex);

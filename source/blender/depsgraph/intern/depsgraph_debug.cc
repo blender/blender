@@ -26,7 +26,7 @@
 
 #include "BLI_math_bits.h"
 
-namespace deg = blender::deg;
+namespace blender {
 
 void DEG_debug_flags_set(Depsgraph *depsgraph, int flags)
 {
@@ -151,7 +151,7 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
     }
     for (deg::Relation *rel : node->outlinks) {
       if (rel->to->type == deg::NodeType::OPERATION) {
-        deg::OperationNode *to = (deg::OperationNode *)rel->to;
+        deg::OperationNode *to = static_cast<deg::OperationNode *>(rel->to);
         BLI_assert(to->num_links_pending < to->inlinks.size());
         ++to->num_links_pending;
       }
@@ -387,8 +387,10 @@ std::string DEG_stringify_recalc_flags(uint flags)
   }
   /* Handle all the rest of the flags. */
   while (current_flag != 0) {
-    IDRecalcFlag tag = (IDRecalcFlag)(1 << bitscan_forward_clear_uint(&current_flag));
+    IDRecalcFlag tag = IDRecalcFlag(1 << bitscan_forward_clear_uint(&current_flag));
     result = stringify_append_bit(result, tag);
   }
   return result;
 }
+
+}  // namespace blender

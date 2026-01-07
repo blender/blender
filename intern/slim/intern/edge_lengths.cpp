@@ -11,6 +11,8 @@
 
 #include "edge_lengths.h"
 
+#include <cassert>
+
 namespace slim {
 
 template<typename DerivedV, typename DerivedF, typename DerivedL>

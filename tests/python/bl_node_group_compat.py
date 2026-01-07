@@ -29,6 +29,11 @@ base_idname = {
     "COLLECTION": "NodeSocketCollection",
     "TEXTURE": "NodeSocketTexture",
     "MATERIAL": "NodeSocketMaterial",
+    "FONT": "NodeSocketFont",
+    "SCENE": "NodeSocketScene",
+    "TEXT": "NodeSocketText",
+    "MASK": "NodeSocketMask",
+    "SOUND": "NodeSocketSound",
 }
 
 
@@ -66,6 +71,11 @@ subtype_idname = {
     ("COLLECTION", "NONE"): "NodeSocketCollection",
     ("TEXTURE", "NONE"): "NodeSocketTexture",
     ("MATERIAL", "NONE"): "NodeSocketMaterial",
+    ("FONT", "NONE"): "NodeSocketFont",
+    ("SCENE", "NONE"): "NodeSocketScene",
+    ("TEXT", "NONE"): "NodeSocketText",
+    ("MASK", "NONE"): "NodeSocketMask",
+    ("SOUND", "NONE"): "NodeSocketSound",
 }
 
 

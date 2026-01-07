@@ -241,7 +241,7 @@ class GVArrayImpl_For_SingleValue : public GVArrayImpl_For_SingleValueRef,
       : GVArrayImpl_For_SingleValueRef(type, size)
   {
     value_ = MEM_mallocN_aligned(type.size, type.alignment, __func__);
-    type.copy_construct(value, (void *)value_);
+    type.copy_construct(value, const_cast<void *>(value_));
   }
 
   ~GVArrayImpl_For_SingleValue() override

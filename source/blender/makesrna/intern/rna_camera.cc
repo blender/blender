@@ -26,7 +26,12 @@
 
 #  include <fmt/format.h>
 
+#  include "BLI_path_utils.hh"
+#  include "BLI_string.h"
+
 #  include "BKE_camera.h"
+#  include "BKE_lib_id.hh"
+#  include "BKE_main.hh"
 #  include "BKE_object.hh"
 #  include "BKE_report.hh"
 
@@ -37,61 +42,63 @@
 
 #  include "RE_engine.h"
 
+namespace blender {
+
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
-  const Camera *cam = (const Camera *)ptr->owner_id;
+  const Camera *cam = id_cast<const Camera *>(ptr->owner_id);
   float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
   return focallength_to_fov(cam->lens, sensor);
 }
 
 static void rna_Camera_angle_set(PointerRNA *ptr, float value)
 {
-  Camera *cam = (Camera *)ptr->owner_id;
+  Camera *cam = id_cast<Camera *>(ptr->owner_id);
   float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
   cam->lens = fov_to_focallength(value, sensor);
 }
 
 static float rna_Camera_angle_x_get(PointerRNA *ptr)
 {
-  const Camera *cam = (const Camera *)ptr->owner_id;
+  const Camera *cam = id_cast<const Camera *>(ptr->owner_id);
   return focallength_to_fov(cam->lens, cam->sensor_x);
 }
 
 static void rna_Camera_angle_x_set(PointerRNA *ptr, float value)
 {
-  Camera *cam = (Camera *)ptr->owner_id;
+  Camera *cam = id_cast<Camera *>(ptr->owner_id);
   cam->lens = fov_to_focallength(value, cam->sensor_x);
 }
 
 static float rna_Camera_angle_y_get(PointerRNA *ptr)
 {
-  const Camera *cam = (const Camera *)ptr->owner_id;
+  const Camera *cam = id_cast<const Camera *>(ptr->owner_id);
   return focallength_to_fov(cam->lens, cam->sensor_y);
 }
 
 static void rna_Camera_angle_y_set(PointerRNA *ptr, float value)
 {
-  Camera *cam = (Camera *)ptr->owner_id;
+  Camera *cam = id_cast<Camera *>(ptr->owner_id);
   cam->lens = fov_to_focallength(value, cam->sensor_y);
 }
 
 static void rna_Camera_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Camera *camera = (Camera *)ptr->owner_id;
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
 
   DEG_id_tag_update(&camera->id, 0);
 }
 
 static void rna_Camera_dependency_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Camera *camera = (Camera *)ptr->owner_id;
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&camera->id, 0);
 }
 
 static void rna_Camera_custom_update(Main * /*bmain*/, Scene *scene, PointerRNA *ptr)
 {
-  Camera *camera = (Camera *)ptr->owner_id;
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
   RenderEngineType *engine_type = (scene != nullptr) ? RE_engines_find(scene->r.engine) : nullptr;
 
   if (engine_type && engine_type->update_custom_camera) {
@@ -106,7 +113,7 @@ static void rna_Camera_custom_update(Main * /*bmain*/, Scene *scene, PointerRNA 
 
 static void rna_Camera_custom_mode_set(PointerRNA *ptr, int value)
 {
-  Camera *camera = (Camera *)ptr->owner_id;
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
 
   if (camera->custom_mode != value) {
     camera->custom_mode = value;
@@ -137,19 +144,19 @@ static void rna_Camera_custom_mode_set(PointerRNA *ptr, int value)
 
 static void rna_Camera_custom_bytecode_get(PointerRNA *ptr, char *value)
 {
-  Camera *camera = (Camera *)ptr->owner_id;
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
   strcpy(value, (camera->custom_bytecode) ? camera->custom_bytecode : "");
 }
 
 static int rna_Camera_custom_bytecode_length(PointerRNA *ptr)
 {
-  Camera *camera = (Camera *)ptr->owner_id;
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
   return (camera->custom_bytecode) ? strlen(camera->custom_bytecode) : 0;
 }
 
 static void rna_Camera_custom_bytecode_set(PointerRNA *ptr, const char *value)
 {
-  Camera *camera = (Camera *)ptr->owner_id;
+  Camera *camera = id_cast<Camera *>(ptr->owner_id);
   if (camera->custom_bytecode) {
     MEM_freeN(camera->custom_bytecode);
   }
@@ -196,7 +203,7 @@ static void rna_Camera_background_images_clear(Camera *cam)
 static std::optional<std::string> rna_Camera_background_image_path(const PointerRNA *ptr)
 {
   const CameraBGImage *bgpic = static_cast<const CameraBGImage *>(ptr->data);
-  const Camera *camera = (const Camera *)ptr->owner_id;
+  const Camera *camera = id_cast<const Camera *>(ptr->owner_id);
 
   const int bgpic_index = BLI_findindex(&camera->bg_images, bgpic);
 
@@ -211,7 +218,7 @@ std::optional<std::string> rna_CameraBackgroundImage_image_or_movieclip_user_pat
     const PointerRNA *ptr)
 {
   const char *user = static_cast<const char *>(ptr->data);
-  const Camera *camera = (const Camera *)ptr->owner_id;
+  const Camera *camera = id_cast<const Camera *>(ptr->owner_id);
 
   int bgpic_index = BLI_findindex(&camera->bg_images, user - offsetof(CameraBGImage, iuser));
   if (bgpic_index >= 0) {
@@ -237,8 +244,8 @@ static bool rna_Camera_background_images_override_apply(
   BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER,
                  "Unsupported RNA override operation on background images collection");
 
-  Camera *cam_dst = (Camera *)ptr_dst->owner_id;
-  const Camera *cam_src = (const Camera *)ptr_src->owner_id;
+  Camera *cam_dst = id_cast<Camera *>(ptr_dst->owner_id);
+  const Camera *cam_src = id_cast<const Camera *>(ptr_src->owner_id);
 
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
@@ -266,7 +273,7 @@ static bool rna_Camera_background_images_override_apply(
 
 static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA * /*ptr*/)
 {
-  blender::seq::relations_invalidate_scene_strips(bmain, scene);
+  seq::relations_invalidate_scene_strips(bmain, scene);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
@@ -287,7 +294,7 @@ std::optional<std::string> rna_CameraDOFSettings_path(const PointerRNA *ptr)
 
 static void rna_CameraDOFSettings_aperture_blades_set(PointerRNA *ptr, const int value)
 {
-  CameraDOFSettings *dofsettings = (CameraDOFSettings *)ptr->data;
+  CameraDOFSettings *dofsettings = static_cast<CameraDOFSettings *>(ptr->data);
 
   if (ELEM(value, 1, 2)) {
     if (dofsettings->aperture_blades == 0) {
@@ -302,7 +309,11 @@ static void rna_CameraDOFSettings_aperture_blades_set(PointerRNA *ptr, const int
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_camera_background_image(BlenderRNA *brna)
 {
@@ -1119,5 +1130,7 @@ void RNA_def_camera(BlenderRNA *brna)
   /* Camera API */
   RNA_api_camera(srna);
 }
+
+}  // namespace blender
 
 #endif

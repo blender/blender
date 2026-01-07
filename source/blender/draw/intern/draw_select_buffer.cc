@@ -19,6 +19,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_rect.h"
 
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
@@ -35,8 +36,7 @@
 
 #include "../engines/select/select_engine.hh"
 
-using blender::int2;
-using blender::Span;
+namespace blender {
 
 bool SELECTID_Context::is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d)
 {
@@ -46,7 +46,7 @@ bool SELECTID_Context::is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d)
   /* Check if the viewport has changed.
    * This can happen when triggering the selection operator *while* playing back animation and
    * looking through an animated camera. */
-  if (!blender::math::is_equal(this->persmat, blender::float4x4(rv3d->persmat), FLT_EPSILON)) {
+  if (!math::is_equal(this->persmat, float4x4(rv3d->persmat), FLT_EPSILON)) {
     return true;
   }
   /* Check if any of the drawn objects have been transformed.
@@ -99,7 +99,7 @@ uint *DRW_select_buffer_read(
       buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
       buf = MEM_malloc_arrayN<uint>(buf_len, __func__);
 
-      blender::gpu::FrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
+      gpu::FrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
       GPU_framebuffer_bind(select_id_fb);
       GPU_framebuffer_read_color(select_id_fb,
                                  rect_clamp.xmin,
@@ -337,7 +337,7 @@ struct SelectReadData {
 static bool select_buffer_test_fn(const void *__restrict value, void *__restrict userdata)
 {
   SelectReadData *data = static_cast<SelectReadData *>(userdata);
-  uint hit_id = *(uint *)value;
+  uint hit_id = *static_cast<uint *>(const_cast<void *>(value));
   if (hit_id && hit_id >= data->id_min && hit_id < data->id_max) {
     /* Start at 1 to confirm. */
     data->val_ptr = value;
@@ -463,7 +463,7 @@ uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
  * \{ */
 
 void DRW_select_buffer_context_create(Depsgraph *depsgraph,
-                                      const blender::Span<Base *> bases,
+                                      const Span<Base *> bases,
                                       short select_mode)
 {
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
@@ -476,7 +476,9 @@ void DRW_select_buffer_context_create(Depsgraph *depsgraph,
   }
 
   select_ctx->select_mode = select_mode;
-  select_ctx->persmat = blender::float4x4::zero();
+  select_ctx->persmat = float4x4::zero();
 }
 
 /** \} */
+
+}  // namespace blender

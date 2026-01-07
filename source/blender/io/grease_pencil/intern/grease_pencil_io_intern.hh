@@ -14,6 +14,8 @@
 #include <cstdint>
 #include <optional>
 
+namespace blender {
+
 #pragma once
 
 /** \file
@@ -24,12 +26,12 @@ struct Scene;
 struct Object;
 struct Material;
 struct RegionView3D;
-namespace blender::bke::greasepencil {
+namespace bke::greasepencil {
 class Layer;
 class Drawing;
-}  // namespace blender::bke::greasepencil
+}  // namespace bke::greasepencil
 
-namespace blender::io::grease_pencil {
+namespace io::grease_pencil {
 
 class GreasePencilImporter {
  protected:
@@ -58,9 +60,9 @@ class GreasePencilExporter {
 
   /* Camera projection matrix, only available with an active camera. */
   std::optional<float4x4> camera_persmat_;
-  blender::Bounds<float2> camera_rect_;
+  Bounds<float2> camera_rect_;
   float2 camera_fac_;
-  blender::Bounds<float2> screen_rect_;
+  Bounds<float2> screen_rect_;
 
  public:
   GreasePencilExporter(const IOContext &context, const ExportParams &params);
@@ -113,4 +115,6 @@ class GreasePencilExporter {
       int frame_number);
 };
 
-}  // namespace blender::io::grease_pencil
+}  // namespace io::grease_pencil
+
+}  // namespace blender

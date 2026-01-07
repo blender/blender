@@ -27,7 +27,7 @@
 
 #include "UI_interface.hh"
 
-using namespace blender::ui;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name View Drag/Drop Callbacks
@@ -46,8 +46,9 @@ static bool ui_view_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   const char *disabled_info = "";
   const bool can_drop = drop_target->can_drop(*drag, &disabled_info);
 
-  drag->drop_state.disabled_info = disabled_info;
-
+  if (disabled_info) {
+    drag->drop_state.disabled_info = disabled_info;
+  }
   return can_drop;
 }
 
@@ -64,7 +65,7 @@ static std::string ui_view_drop_tooltip(bContext *C,
     return {};
   }
 
-  return drop_target_tooltip(*region, *drop_target, *drag, *win->eventstate);
+  return drop_target_tooltip(*region, *drop_target, *drag, *win->runtime->eventstate);
 }
 
 /** \} */
@@ -75,13 +76,15 @@ static std::string ui_view_drop_tooltip(bContext *C,
 
 static bool ui_drop_name_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return UI_but_active_drop_name(C) && ELEM(drag->type, WM_DRAG_ID, WM_DRAG_ASSET);
+  return button_active_drop_name(C) && ELEM(drag->type, WM_DRAG_ID, WM_DRAG_ASSET);
 }
 
 static void ui_drop_name_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   const ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
-  RNA_string_set(drop->ptr, "string", id->name + 2);
+  if (id) {
+    RNA_string_set(drop->ptr, "string", id->name + 2);
+  }
 }
 
 /** \} */
@@ -110,7 +113,9 @@ static bool ui_drop_material_poll(bContext *C, wmDrag *drag, const wmEvent * /*e
 static void ui_drop_material_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   const ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, ID_MA);
-  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  if (id) {
+    RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  }
 }
 
 static std::string ui_drop_material_tooltip(bContext *C,
@@ -119,7 +124,7 @@ static std::string ui_drop_material_tooltip(bContext *C,
                                             wmDropBox * /*drop*/)
 {
   PointerRNA rna_ptr = CTX_data_pointer_get_type(C, "object", &RNA_Object);
-  Object *ob = (Object *)rna_ptr.data;
+  Object *ob = static_cast<Object *>(rna_ptr.data);
   BLI_assert(ob);
 
   PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", &RNA_MaterialSlot);
@@ -128,7 +133,7 @@ static std::string ui_drop_material_tooltip(bContext *C,
   const int target_slot = RNA_int_get(&mat_slot, "slot_index") + 1;
 
   PointerRNA rna_prev_material = RNA_pointer_get(&mat_slot, "material");
-  Material *prev_mat_in_slot = (Material *)rna_prev_material.data;
+  Material *prev_mat_in_slot = static_cast<Material *>(rna_prev_material.data);
   const char *dragged_material_name = WM_drag_get_item_name(drag);
 
   if (prev_mat_in_slot) {
@@ -171,9 +176,9 @@ static void ui_prefetch_assets(bContext &C, wmDrag &drag)
 /** \name Add User Interface Drop Boxes
  * \{ */
 
-void ED_dropboxes_ui()
+void dropboxes_ui()
 {
-  ListBase *lb = WM_dropboxmap_find("User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(lb, "UI_OT_view_drop", ui_view_drop_poll, nullptr, nullptr, ui_view_drop_tooltip);
   WM_dropbox_add(lb,
@@ -193,3 +198,5 @@ void ED_dropboxes_ui()
 }
 
 /** \} */
+
+}  // namespace blender::ui

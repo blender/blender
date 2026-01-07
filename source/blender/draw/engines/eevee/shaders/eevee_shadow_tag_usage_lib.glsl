@@ -44,8 +44,7 @@ void shadow_tag_usage_tilemap_directional_at_level(uint l_idx, float3 P, int lev
 
   float3 lP = light_world_to_local_direction(light, P);
 
-  level = clamp(
-      level, light_sun_data_get(light).clipmap_lod_min, light_sun_data_get(light).clipmap_lod_max);
+  level = clamp(level, light.sun().clipmap_lod_min, light.sun().clipmap_lod_max);
 
   ShadowCoordinates coord = shadow_directional_coordinates_at_level(light, lP, level);
   shadow_tag_usage_tile(light, coord.tilemap_tile, 0, coord.tilemap_index);
@@ -62,7 +61,7 @@ void shadow_tag_usage_tilemap_directional(
 
   float3 lP = light_world_to_local_direction(light, P);
 
-  LightSunData sun = light_sun_data_get(light);
+  LightSunData sun = light.sun();
 
   if (radius == 0.0f) {
     int level = shadow_directional_level(light, lP - light_position_get(light));
@@ -103,13 +102,13 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, float3 P, float radius, int l
 
   float3 lP = light_world_to_local_point(light, P);
   float dist_to_light = max(length(lP) - radius, 1e-5f);
-  if (dist_to_light > light_local_data_get(light).influence_radius_max) {
+  if (dist_to_light > light.local().local.influence_radius_max) {
     return;
   }
   if (is_spot_light(light.type)) {
     /* Early out if out of cone. */
     float angle_tan = length(lP.xy / dist_to_light);
-    if (angle_tan > light_spot_data_get(light).spot_tan) {
+    if (angle_tan > light.spot().spot_tan) {
       return;
     }
   }
@@ -121,7 +120,7 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, float3 P, float radius, int l
   }
 
   /* Transform to shadow local space. */
-  lP -= light_local_data_get(light).shadow_position;
+  lP -= light.local().local.shadow_position;
 
   int lod = shadow_punctual_level(light,
                                   lP,

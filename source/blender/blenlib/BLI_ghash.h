@@ -16,6 +16,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h" /* for bool */
 
+namespace blender {
+
 #define _GHASH_INTERNAL_ATTR
 #ifndef GHASH_INTERNAL_API
 #  ifdef __GNUC__
@@ -36,17 +38,17 @@ typedef void (*GHashValFreeFP)(void *val);
 typedef void *(*GHashKeyCopyFP)(const void *key);
 typedef void *(*GHashValCopyFP)(const void *val);
 
-typedef struct GHash GHash;
+struct GHash;
 
-typedef struct GHashIterator {
+struct GHashIterator {
   GHash *gh;
   struct Entry *curEntry;
   unsigned int curBucket;
-} GHashIterator;
+};
 
-typedef struct GHashIterState {
+struct GHashIterState {
   unsigned int curr_bucket _GHASH_INTERNAL_ATTR;
-} GHashIterState;
+};
 
 enum {
   GHASH_FLAG_ALLOW_DUPES = (1 << 0),  /* Only checked for in debug mode */
@@ -294,15 +296,15 @@ struct _gh_Entry {
 };
 BLI_INLINE void *BLI_ghashIterator_getKey(GHashIterator *ghi)
 {
-  return ((struct _gh_Entry *)ghi->curEntry)->key;
+  return (reinterpret_cast<struct _gh_Entry *>(ghi->curEntry))->key;
 }
 BLI_INLINE void *BLI_ghashIterator_getValue(GHashIterator *ghi)
 {
-  return ((struct _gh_Entry *)ghi->curEntry)->val;
+  return (reinterpret_cast<struct _gh_Entry *>(ghi->curEntry))->val;
 }
 BLI_INLINE void **BLI_ghashIterator_getValue_p(GHashIterator *ghi)
 {
-  return &((struct _gh_Entry *)ghi->curEntry)->val;
+  return &(reinterpret_cast<struct _gh_Entry *>(ghi->curEntry))->val;
 }
 BLI_INLINE bool BLI_ghashIterator_done(const GHashIterator *ghi)
 {
@@ -334,7 +336,7 @@ BLI_INLINE bool BLI_ghashIterator_done(const GHashIterator *ghi)
  * which is why this API's are in the same header & source file.
  * \{ */
 
-typedef struct GSet GSet;
+struct GSet;
 
 typedef GHashHashFP GSetHashFP;
 typedef GHashCmpFP GSetCmpFP;
@@ -432,37 +434,37 @@ void *BLI_gset_pop_key(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 /* Rely on inline API for now. */
 
 /** Use a GSet specific type so we can cast but compiler sees as different */
-typedef struct GSetIterator {
+struct GSetIterator {
   GHashIterator _ghi
 #if defined(__GNUC__) && !defined(__clang__)
       __attribute__((deprecated))
 #endif
       ;
-} GSetIterator;
+};
 
 BLI_INLINE GSetIterator *BLI_gsetIterator_new(GSet *gs)
 {
-  return (GSetIterator *)BLI_ghashIterator_new((GHash *)gs);
+  return reinterpret_cast<GSetIterator *>(BLI_ghashIterator_new(reinterpret_cast<GHash *>(gs)));
 }
 BLI_INLINE void BLI_gsetIterator_init(GSetIterator *gsi, GSet *gs)
 {
-  BLI_ghashIterator_init((GHashIterator *)gsi, (GHash *)gs);
+  BLI_ghashIterator_init(reinterpret_cast<GHashIterator *>(gsi), reinterpret_cast<GHash *>(gs));
 }
 BLI_INLINE void BLI_gsetIterator_free(GSetIterator *gsi)
 {
-  BLI_ghashIterator_free((GHashIterator *)gsi);
+  BLI_ghashIterator_free(reinterpret_cast<GHashIterator *>(gsi));
 }
 BLI_INLINE void *BLI_gsetIterator_getKey(GSetIterator *gsi)
 {
-  return BLI_ghashIterator_getKey((GHashIterator *)gsi);
+  return BLI_ghashIterator_getKey(reinterpret_cast<GHashIterator *>(gsi));
 }
 BLI_INLINE void BLI_gsetIterator_step(GSetIterator *gsi)
 {
-  BLI_ghashIterator_step((GHashIterator *)gsi);
+  BLI_ghashIterator_step(reinterpret_cast<GHashIterator *>(gsi));
 }
 BLI_INLINE bool BLI_gsetIterator_done(const GSetIterator *gsi)
 {
-  return BLI_ghashIterator_done((const GHashIterator *)gsi);
+  return BLI_ghashIterator_done(reinterpret_cast<const GHashIterator *>(gsi));
 }
 
 #define GSET_ITER(gs_iter_, gset_) \
@@ -597,10 +599,10 @@ unsigned int BLI_ghashutil_uinthash_v4_murmur(const unsigned int key[4]);
 bool BLI_ghashutil_uinthash_v4_cmp(const void *a, const void *b);
 #define BLI_ghashutil_inthash_v4_cmp BLI_ghashutil_uinthash_v4_cmp
 
-typedef struct GHashPair {
+struct GHashPair {
   const void *first;
   const void *second;
-} GHashPair;
+};
 
 GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second);
 unsigned int BLI_ghashutil_pairhash(const void *ptr);
@@ -638,3 +640,5 @@ GSet *BLI_gset_int_new_ex(const char *info,
 GSet *BLI_gset_int_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 
 /** \} */
+
+}  // namespace blender

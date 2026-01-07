@@ -12,6 +12,8 @@
 
 #include "BKE_scene.hh"
 
+namespace blender {
+
 struct ReportList;
 struct bContext;
 struct wmWindow;
@@ -81,3 +83,5 @@ bool ED_scene_fps_average_calc(const Scene *scene, SceneFPS_State *r_state) ATTR
 void ED_scene_fps_average_clear(Scene *scene) ATTR_NONNULL(1);
 
 /** \} */
+
+}  // namespace blender

@@ -32,7 +32,6 @@
 #include "SEQ_render.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
 #include "UI_interface.hh"
@@ -51,8 +50,8 @@ namespace blender::seq {
 
 static bool modifier_has_persistent_uid(const Strip &strip, int uid)
 {
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip.modifiers) {
-    if (smd->persistent_uid == uid) {
+  for (StripModifierData &smd : strip.modifiers) {
+    if (smd.persistent_uid == uid) {
       return true;
     }
   }
@@ -80,11 +79,11 @@ bool modifier_persistent_uids_are_valid(const Strip &strip)
 {
   Set<int> uids;
   int modifiers_num = 0;
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip.modifiers) {
-    if (smd->persistent_uid <= 0) {
+  for (StripModifierData &smd : strip.modifiers) {
+    if (smd.persistent_uid <= 0) {
       return false;
     }
-    uids.add(smd->persistent_uid);
+    uids.add(smd.persistent_uid);
     modifiers_num++;
   }
   if (uids.size() != modifiers_num) {
@@ -98,10 +97,10 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
   ui::Layout &layout = *panel->layout;
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
   StripModifierData *smd = static_cast<StripModifierData *>(ptr->data);
 
-  UI_panel_context_pointer_set(panel, "modifier", ptr);
+  ui::panel_context_pointer_set(panel, "modifier", ptr);
 
   /* Modifier Icon. */
   ui::Layout *sub = &layout.row(true);
@@ -151,7 +150,7 @@ void draw_mask_input_type_settings(const bContext *C, ui::Layout &layout, Pointe
 
   ui::Layout &col = layout.column(false);
   ui::Layout *row = &col.row(true);
-  row->prop(ptr, "input_mask_type", UI_ITEM_R_EXPAND, IFACE_("Type"), ICON_NONE);
+  row->prop(ptr, "input_mask_type", ui::ITEM_R_EXPAND, IFACE_("Type"), ICON_NONE);
 
   if (input_mask_type == STRIP_MASK_INPUT_STRIP) {
     PointerRNA sequences_object = RNA_pointer_create_discrete(
@@ -162,7 +161,7 @@ void draw_mask_input_type_settings(const bContext *C, ui::Layout &layout, Pointe
   else {
     col.prop(ptr, "input_mask_id", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     row = &col.row(true);
-    row->prop(ptr, "mask_time", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    row->prop(ptr, "mask_time", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 }
 
@@ -181,12 +180,11 @@ bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
  */
 static void modifier_reorder(bContext *C, Panel *panel, const int new_index)
 {
-  PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *smd_ptr = ui::panel_custom_data_get(panel);
   StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
 
-  PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("SEQUENCER_OT_strip_modifier_move_to_index", false);
-  WM_operator_properties_create_ptr(&props_ptr, ot);
+  PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&props_ptr, "modifier", smd->name);
   RNA_int_set(&props_ptr, "index", new_index);
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
@@ -195,14 +193,14 @@ static void modifier_reorder(bContext *C, Panel *panel, const int new_index)
 
 static short get_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel)
 {
-  PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *smd_ptr = ui::panel_custom_data_get(panel);
   StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
   return smd->ui_expand_flag;
 }
 
 static void set_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
-  PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *smd_ptr = ui::panel_custom_data_get(panel);
   StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
   smd->ui_expand_flag = expand_flag;
 }
@@ -445,8 +443,7 @@ static bool skip_modifier(Scene *scene, const StripModifierData *smd, int timeli
   }
   const bool strip_has_ended_skip = smd->mask_input_type == STRIP_MASK_INPUT_STRIP &&
                                     smd->mask_time == STRIP_MASK_TIME_RELATIVE &&
-                                    !time_strip_intersects_frame(
-                                        scene, smd->mask_strip, timeline_frame);
+                                    !smd->mask_strip->intersects_frame(scene, timeline_frame);
   const bool missing_data_skip = !strip_has_valid_data(smd->mask_strip) ||
                                  media_presence_is_missing(scene, smd->mask_strip);
 
@@ -463,8 +460,8 @@ void modifier_apply_stack(ModifierApplyContext &context, int timeline_frame)
     render_imbuf_from_sequencer_space(context.render_data.scene, context.image);
   }
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &context.strip.modifiers) {
-    const StripModifierTypeInfo *smti = modifier_type_info_get(smd->type);
+  for (StripModifierData &smd : context.strip.modifiers) {
+    const StripModifierTypeInfo *smti = modifier_type_info_get(smd.type);
 
     /* could happen if modifier is being removed or not exists in current version of blender */
     if (!smti) {
@@ -472,27 +469,27 @@ void modifier_apply_stack(ModifierApplyContext &context, int timeline_frame)
     }
 
     /* modifier is muted, do nothing */
-    if (smd->flag & STRIP_MODIFIER_FLAG_MUTE) {
+    if (smd.flag & STRIP_MODIFIER_FLAG_MUTE) {
       continue;
     }
 
-    if (smti->apply && !skip_modifier(context.render_data.scene, smd, timeline_frame)) {
+    if (smti->apply && !skip_modifier(context.render_data.scene, &smd, timeline_frame)) {
       int frame_offset;
-      if (smd->mask_time == STRIP_MASK_TIME_RELATIVE) {
+      if (smd.mask_time == STRIP_MASK_TIME_RELATIVE) {
         frame_offset = context.strip.start;
       }
       else /* if (smd->mask_time == STRIP_MASK_TIME_ABSOLUTE) */ {
-        frame_offset = smd->mask_id ? ((Mask *)smd->mask_id)->sfra : 0;
+        frame_offset = smd.mask_id ? (static_cast<Mask *>(smd.mask_id))->sfra : 0;
       }
 
       ImBuf *mask = modifier_render_mask_input(context.render_data,
                                                context.render_state,
-                                               smd->mask_input_type,
-                                               smd->mask_strip,
-                                               smd->mask_id,
+                                               smd.mask_input_type,
+                                               smd.mask_strip,
+                                               smd.mask_id,
                                                timeline_frame,
                                                frame_offset);
-      smti->apply(context, smd, mask);
+      smti->apply(context, &smd, mask);
       if (mask) {
         IMB_freeImBuf(mask);
       }
@@ -525,8 +522,8 @@ StripModifierData *modifier_copy(Strip &strip_dst, StripModifierData *mod_src)
 
 void modifier_list_copy(Strip *strip_new, Strip *strip)
 {
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    modifier_copy(*strip_new, smd);
+  for (StripModifierData &smd : strip->modifiers) {
+    modifier_copy(*strip_new, &smd);
   }
 }
 
@@ -546,17 +543,17 @@ StripModifierData *modifier_get_active(const Strip *strip)
   /* In debug mode, check for only one active modifier. */
 #ifndef NDEBUG
   int active_count = 0;
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    if (smd->flag & STRIP_MODIFIER_FLAG_ACTIVE) {
+  for (StripModifierData &smd : strip->modifiers) {
+    if (smd.flag & STRIP_MODIFIER_FLAG_ACTIVE) {
       active_count++;
     }
   }
   BLI_assert(ELEM(active_count, 0, 1));
 #endif
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    if (smd->flag & STRIP_MODIFIER_FLAG_ACTIVE) {
-      return smd;
+  for (StripModifierData &smd : strip->modifiers) {
+    if (smd.flag & STRIP_MODIFIER_FLAG_ACTIVE) {
+      return &smd;
     }
   }
 
@@ -565,8 +562,8 @@ StripModifierData *modifier_get_active(const Strip *strip)
 
 void modifier_set_active(Strip *strip, StripModifierData *smd)
 {
-  LISTBASE_FOREACH (StripModifierData *, smd_iter, &strip->modifiers) {
-    smd_iter->flag &= ~STRIP_MODIFIER_FLAG_ACTIVE;
+  for (StripModifierData &smd_iter : strip->modifiers) {
+    smd_iter.flag &= ~STRIP_MODIFIER_FLAG_ACTIVE;
   }
 
   if (smd != nullptr) {
@@ -584,12 +581,12 @@ void modifier_type_panel_id(eStripModifierType type, char *r_idname)
 
 void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn)
 {
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    if (smd->mask_id) {
-      fn(reinterpret_cast<ID *>(smd->mask_id));
+  for (StripModifierData &smd : strip->modifiers) {
+    if (smd.mask_id) {
+      fn(reinterpret_cast<ID *>(smd.mask_id));
     }
-    if (smd->type == eSeqModifierType_Compositor) {
-      auto *modifier_data = reinterpret_cast<SequencerCompositorModifierData *>(smd);
+    if (smd.type == eSeqModifierType_Compositor) {
+      auto *modifier_data = reinterpret_cast<SequencerCompositorModifierData *>(&smd);
       if (modifier_data->node_group) {
         fn(reinterpret_cast<ID *>(modifier_data->node_group));
       }
@@ -603,35 +600,35 @@ void foreach_strip_modifier_id(Strip *strip, const FunctionRef<void(ID *)> fn)
 /** \name .blend File I/O
  * \{ */
 
-void modifier_blend_write(BlendWriter *writer, ListBase *modbase)
+void modifier_blend_write(BlendWriter *writer, ListBaseT<StripModifierData> *modbase)
 {
-  LISTBASE_FOREACH (StripModifierData *, smd, modbase) {
-    const StripModifierTypeInfo *smti = modifier_type_info_get(smd->type);
+  for (StripModifierData &smd : *modbase) {
+    const StripModifierTypeInfo *smti = modifier_type_info_get(smd.type);
 
     if (smti) {
-      BLO_write_struct_by_name(writer, smti->struct_name, smd);
+      writer->write_struct_by_name(smti->struct_name, &smd);
       if (smti->blend_write) {
-        smti->blend_write(writer, smd);
+        smti->blend_write(writer, &smd);
       }
     }
     else {
-      BLO_write_struct(writer, StripModifierData, smd);
+      writer->write_struct(&smd);
     }
   }
 }
 
-void modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
+void modifier_blend_read_data(BlendDataReader *reader, ListBaseT<StripModifierData> *lb)
 {
   BLO_read_struct_list(reader, StripModifierData, lb);
 
-  LISTBASE_FOREACH (StripModifierData *, smd, lb) {
-    if (smd->mask_strip) {
-      BLO_read_struct(reader, Strip, &smd->mask_strip);
+  for (StripModifierData &smd : *lb) {
+    if (smd.mask_strip) {
+      BLO_read_struct(reader, Strip, &smd.mask_strip);
     }
 
-    const StripModifierTypeInfo *smti = modifier_type_info_get(smd->type);
+    const StripModifierTypeInfo *smti = modifier_type_info_get(smd.type);
     if (smti && smti->blend_read) {
-      smti->blend_read(reader, smd);
+      smti->blend_read(reader, &smd);
     }
   }
 }

@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryLinearGizmo *storage = MEM_callocN<NodeGeometryLinearGizmo>(__func__);
+  NodeGeometryLinearGizmo *storage = MEM_new_for_free<NodeGeometryLinearGizmo>(__func__);
   node->storage = storage;
 }
 

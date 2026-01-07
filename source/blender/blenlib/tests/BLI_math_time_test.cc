@@ -6,6 +6,8 @@
 
 #include "BLI_math_time.h"
 
+namespace blender {
+
 TEST(math_time, SecondsExplode)
 {
   const double seconds = 2.0 * SECONDS_IN_DAY + 13.0 * SECONDS_IN_HOUR + 33.0 * SECONDS_IN_MINUTE +
@@ -35,3 +37,5 @@ TEST(math_time, SecondsExplode)
   EXPECT_NEAR(813.0, r_minutes, epsilon);
   EXPECT_NEAR(9369.0, r_milliseconds, epsilon);
 }
+
+}  // namespace blender

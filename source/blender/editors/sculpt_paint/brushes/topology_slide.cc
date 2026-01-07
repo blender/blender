@@ -285,7 +285,7 @@ void do_topology_slide_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const PositionDeformData position_data(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
       const Span<int> corner_verts = mesh.corner_verts();

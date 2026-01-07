@@ -39,6 +39,7 @@ GPU_SHADER_NAMED_INTERFACE_END(drw_ResourceID_iface)
 GPU_SHADER_CREATE_INFO(draw_resource_id_varying)
 VERTEX_OUT(draw_resource_id_iface)
 GEOMETRY_OUT(draw_resource_id_iface)
+DEFINE("RESOURCE_ID_VARYING")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_resource_id)

@@ -301,7 +301,7 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
   threading::EnumerableThreadSpecific<TransformLocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(ob.data);
+      Mesh &mesh = *id_cast<Mesh *>(ob.data);
       const MeshAttributeData attribute_data(mesh);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       const PositionDeformData position_data(depsgraph, ob);
@@ -488,7 +488,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
     float4x4 elastic_transform_mat = transform_mats[symm_area];
     switch (pbvh.type()) {
       case bke::pbvh::Type::Mesh: {
-        Mesh &mesh = *static_cast<Mesh *>(ob.data);
+        Mesh &mesh = *id_cast<Mesh *>(ob.data);
         MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
         const PositionDeformData position_data(depsgraph, ob);
         const MeshAttributeData attribute_data(mesh);
@@ -689,7 +689,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<const Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const AveragePositionAccumulation total = threading::parallel_reduce(
@@ -812,7 +812,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      const Mesh &mesh = *static_cast<const Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<const Mesh *>(object.data);
       const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan mask_attr = *attributes.lookup_or_default<float>(

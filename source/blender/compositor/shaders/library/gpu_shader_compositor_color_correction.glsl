@@ -6,6 +6,7 @@
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_math_vector_safe_lib.glsl"
 
+[[node]]
 void node_composite_color_correction(float4 color,
                                      float mask,
                                      float master_saturation,
@@ -34,7 +35,7 @@ void node_composite_color_correction(float4 color,
                                      float apply_on_green,
                                      float apply_on_blue,
                                      const float3 luminance_coefficients,
-                                     out float4 result)
+                                     float4 &result)
 {
   constexpr float margin = 0.10f;
   constexpr float margin_divider = 0.5f / margin;

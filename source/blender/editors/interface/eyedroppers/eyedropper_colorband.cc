@@ -61,7 +61,7 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 {
   ColorBand *band = nullptr;
 
-  uiBut *but = UI_context_active_but_get(C);
+  Button *but = context_active_but_get(C);
 
   PointerRNA rna_update_ptr = PointerRNA_NULL;
   PropertyRNA *rna_update_prop = nullptr;
@@ -71,19 +71,19 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
     /* pass */
   }
   else {
-    if (but->type == ButType::ColorBand) {
+    if (but->type == ButtonType::ColorBand) {
       /* When invoked with a hotkey, we can find the band in 'but->poin'. */
-      band = (ColorBand *)but->poin;
+      band = reinterpret_cast<ColorBand *>(but->poin);
     }
     else {
       /* When invoked from a button it's in custom_data field. */
-      band = (ColorBand *)but->custom_data;
+      band = static_cast<ColorBand *>(but->custom_data);
     }
 
     if (band) {
       rna_update_ptr = but->rnapoin;
       rna_update_prop = but->rnaprop;
-      is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
+      is_undo = button_flag_is_set(but, BUT_UNDO);
     }
   }
 
@@ -279,7 +279,7 @@ static wmOperatorStatus eyedropper_colorband_invoke(bContext *C,
   if (eyedropper_colorband_init(C, op)) {
     wmWindow *win = CTX_wm_window(C);
     /* Workaround for de-activating the button clearing the cursor, see #76794 */
-    UI_context_active_but_clear(C, win, CTX_wm_region(C));
+    context_active_but_clear(C, win, CTX_wm_region(C));
     WM_cursor_modal_set(win, WM_CURSOR_EYEDROPPER);
 
     /* add temp handler */
@@ -308,8 +308,8 @@ static wmOperatorStatus eyedropper_colorband_exec(bContext *C, wmOperator *op)
 
 static bool eyedropper_colorband_poll(bContext *C)
 {
-  uiBut *but = UI_context_active_but_get(C);
-  if (but && but->type == ButType::ColorBand) {
+  Button *but = context_active_but_get(C);
+  if (but && but->type == ButtonType::ColorBand) {
     return true;
   }
   const PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);

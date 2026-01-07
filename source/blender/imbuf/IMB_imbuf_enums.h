@@ -10,6 +10,8 @@
  * \ingroup imbuf
  */
 
+namespace blender {
+
 #define IM_MAX_SPACE 64
 
 /** #ImBuf.ftype: main image types. */
@@ -48,3 +50,5 @@ enum IMB_Proxy_Size {
   IMB_PROXY_MAX_SLOT = 4,
 };
 ENUM_OPERATORS(IMB_Proxy_Size);
+
+}  // namespace blender

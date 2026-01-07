@@ -10,6 +10,8 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /* Note that 'common' UTF8 variants of string functions (like copy, etc.) are tested in
  * `BLI_string_test.cc` However, tests below are specific UTF8 conformance ones,
  * and since they eat quite their share of lines, they deserved their own file. */
@@ -1414,3 +1416,5 @@ TEST(string, StrCursorStepPrevUtf8Invalid)
 }
 
 /** \} */
+
+}  // namespace blender

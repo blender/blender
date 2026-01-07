@@ -23,7 +23,7 @@
 
 #include "WM_api.hh"
 
-using blender::StringRef;
+namespace blender {
 
 static auto &get_panel_type_map()
 {
@@ -33,7 +33,7 @@ static auto &get_panel_type_map()
       return StringRef(value->idname);
     }
   };
-  static blender::CustomIDVectorSet<PanelType *, IDNameGetter> map;
+  static CustomIDVectorSet<PanelType *, IDNameGetter> map;
   return map;
 }
 
@@ -81,7 +81,7 @@ void WM_paneltype_idname_visit_for_search(
     PointerRNA * /*ptr*/,
     PropertyRNA * /*prop*/,
     const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   for (PanelType *pt : get_panel_type_map()) {
     StringPropertySearchVisitParams visit_params{};
@@ -90,3 +90,5 @@ void WM_paneltype_idname_visit_for_search(
     visit_fn(visit_params);
   }
 }
+
+}  // namespace blender

@@ -23,6 +23,8 @@
 
 #include "text_format.hh"
 
+namespace blender {
+
 /****************** flatten string **********************/
 
 static void flatten_string_append(FlattenString *fs, const char *c, int accum, int len)
@@ -167,7 +169,7 @@ void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, c
 }
 
 /* *** Registration *** */
-static ListBase tft_lb = {nullptr, nullptr};
+static ListBaseT<TextFormatType> tft_lb = {nullptr, nullptr};
 void ED_text_format_register(TextFormatType *tft)
 {
   BLI_addtail(&tft_lb, tft);
@@ -180,13 +182,13 @@ TextFormatType *ED_text_format_get(Text *text)
     if (text_ext) {
       text_ext++; /* Skip the `.`. */
       /* Check all text formats in the static list. */
-      LISTBASE_FOREACH (TextFormatType *, tft, &tft_lb) {
+      for (TextFormatType &tft : tft_lb) {
         /* All formats should have an ext, but just in case. */
         const char **ext;
-        for (ext = tft->ext; *ext; ext++) {
+        for (ext = tft.ext; *ext; ext++) {
           /* If extension matches text name, return the matching tft. */
           if (BLI_strcasecmp(text_ext, *ext) == 0) {
-            return tft;
+            return &tft;
           }
         }
       }
@@ -225,10 +227,10 @@ bool ED_text_is_syntax_highlight_supported(Text *text)
   }
 
   /* Check all text formats in the static list. */
-  LISTBASE_FOREACH (TextFormatType *, tft, &tft_lb) {
+  for (TextFormatType &tft : tft_lb) {
     /* All formats should have an ext, but just in case. */
     const char **ext;
-    for (ext = tft->ext; *ext; ext++) {
+    for (ext = tft.ext; *ext; ext++) {
       /* If extension matches text name, return the matching tft. */
       if (BLI_strcasecmp(text_ext, *ext) == 0) {
         return true;
@@ -267,3 +269,5 @@ bool text_format_string_literals_check_sorted_array(const Span<const char *> str
                         [](const char *a, const char *b) { return strcmp(a, b) < 0; });
 }
 #endif
+
+}  // namespace blender

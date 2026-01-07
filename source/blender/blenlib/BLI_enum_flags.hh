@@ -25,7 +25,7 @@ template<typename T> struct BitwiseNotEnumValue {
   }
 };
 
-};  // namespace blender
+}  // namespace blender
 
 /* Use for enum classes that represent bit flags.
  * Defines logical operators to combine and mask the flag values.
@@ -34,42 +34,46 @@ template<typename T> struct BitwiseNotEnumValue {
  * set bits that are not part of the enum values. However that is fine in typical
  * inversion operator usage, which is often for masking out bits (`a & ~b`). */
 #  define ENUM_OPERATORS(_enum_type) \
-    [[nodiscard]] inline constexpr _enum_type operator|(_enum_type a, _enum_type b) \
+    [[maybe_unused]] [[nodiscard]] inline constexpr _enum_type operator|(_enum_type a, \
+                                                                         _enum_type b) \
     { \
       return (_enum_type)(uint64_t(a) | uint64_t(b)); \
     } \
-    [[nodiscard]] inline constexpr _enum_type operator&(_enum_type a, _enum_type b) \
+    [[maybe_unused]] [[nodiscard]] inline constexpr _enum_type operator&(_enum_type a, \
+                                                                         _enum_type b) \
     { \
       return (_enum_type)(uint64_t(a) & uint64_t(b)); \
     } \
-    [[nodiscard]] inline constexpr _enum_type operator&( \
-        _enum_type a, blender::BitwiseNotEnumValue<_enum_type> b) \
+    [[maybe_unused]] [[nodiscard]] inline constexpr _enum_type operator&( \
+        _enum_type a, ::blender::BitwiseNotEnumValue<_enum_type> b) \
     { \
       return (_enum_type)(uint64_t(a) & uint64_t(b.value)); \
     } \
-    [[nodiscard]] inline constexpr blender::BitwiseNotEnumValue<_enum_type> operator~( \
-        _enum_type a) \
+    [[maybe_unused]] [[nodiscard]] inline constexpr ::blender::BitwiseNotEnumValue<_enum_type> \
+    operator~(_enum_type a) \
     { \
-      blender::BitwiseNotEnumValue<_enum_type> result = {~uint64_t(a)}; \
+      ::blender::BitwiseNotEnumValue<_enum_type> result = {~uint64_t(a)}; \
       return result; \
     } \
-    inline _enum_type &operator|=(_enum_type &a, _enum_type b) \
+    [[maybe_unused]] inline _enum_type &operator|=(_enum_type &a, _enum_type b) \
     { \
       return a = (_enum_type)(uint64_t(a) | uint64_t(b)); \
     } \
-    inline _enum_type &operator&=(_enum_type &a, _enum_type b) \
+    [[maybe_unused]] inline _enum_type &operator&=(_enum_type &a, _enum_type b) \
     { \
       return a = (_enum_type)(uint64_t(a) & uint64_t(b)); \
     } \
-    inline _enum_type &operator&=(_enum_type &a, blender::BitwiseNotEnumValue<_enum_type> b) \
+    [[maybe_unused]] inline _enum_type &operator&=(_enum_type &a, \
+                                                   ::blender::BitwiseNotEnumValue<_enum_type> b) \
     { \
       return a = (_enum_type)(uint64_t(a) & uint64_t(b.value)); \
     } \
-    inline _enum_type &operator^=(_enum_type &a, _enum_type b) \
+    [[maybe_unused]] inline _enum_type &operator^=(_enum_type &a, _enum_type b) \
     { \
       return a = (_enum_type)(uint64_t(a) ^ uint64_t(b)); \
     } \
-    [[nodiscard]] inline constexpr bool flag_is_set(_enum_type flags, _enum_type flag_to_test) \
+    [[maybe_unused]] [[nodiscard]] inline constexpr bool flag_is_set(_enum_type flags, \
+                                                                     _enum_type flag_to_test) \
     { \
       return (uint64_t(flags) & uint64_t(flag_to_test)) != 0; \
     }

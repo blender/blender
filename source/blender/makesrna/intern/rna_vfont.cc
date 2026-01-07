@@ -26,10 +26,12 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 /* Matching function in rna_ID.cc */
 static int rna_VectorFont_filepath_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
-  VFont *vfont = (VFont *)ptr->owner_id;
+  VFont *vfont = id_cast<VFont *>(ptr->owner_id);
   if (BKE_vfont_is_builtin(vfont)) {
     return 0;
   }
@@ -38,7 +40,7 @@ static int rna_VectorFont_filepath_editable(const PointerRNA *ptr, const char **
 
 static void rna_VectorFont_reload_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  VFont *vf = (VFont *)ptr->owner_id;
+  VFont *vf = id_cast<VFont *>(ptr->owner_id);
   BKE_vfont_data_free(vf);
 
   /* update */
@@ -46,7 +48,11 @@ static void rna_VectorFont_reload_update(Main * /*bmain*/, Scene * /*scene*/, Po
   DEG_id_tag_update(&vf->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_def_vfont(BlenderRNA *brna)
 {
@@ -71,5 +77,7 @@ void RNA_def_vfont(BlenderRNA *brna)
 
   RNA_api_vfont(srna);
 }
+
+}  // namespace blender
 
 #endif

@@ -317,7 +317,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeMeshBoolean", GEO_NODE_MESH_BOOLEAN);
   ntype.ui_name = "Mesh Boolean";
   ntype.ui_description = "Cut, subtract, or join multiple mesh inputs";
@@ -327,7 +327,7 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

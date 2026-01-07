@@ -10,6 +10,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_screen.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
@@ -25,6 +26,8 @@
 #include "WM_types.hh"
 
 #include "view3d_intern.hh" /* own include */
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name View3D Navigation Gizmo Group
@@ -162,7 +165,7 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
 
 static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  NavigateWidgetGroup *navgroup = MEM_callocN<NavigateWidgetGroup>(__func__);
+  NavigateWidgetGroup *navgroup = MEM_new_for_free<NavigateWidgetGroup>(__func__);
 
   wmOperatorType *ot_view_axis = WM_operatortype_find("VIEW3D_OT_view_axis", true);
   wmOperatorType *ot_view_camera = WM_operatortype_find("VIEW3D_OT_view_camera", true);
@@ -180,7 +183,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
     }
     else {
       uchar icon_color[3];
-      UI_GetThemeColor3ubv(TH_TEXT, icon_color);
+      ui::theme::get_color_3ubv(TH_TEXT, icon_color);
       int color_tint, color_tint_hi;
       if (icon_color[0] > 128) {
         color_tint = -40;
@@ -194,8 +197,8 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
         gz->color[3] = 0.5f;
         gz->color_hi[3] = 0.75f;
       }
-      UI_GetThemeColorShade3fv(TH_HEADER, color_tint, gz->color);
-      UI_GetThemeColorShade3fv(TH_HEADER, color_tint_hi, gz->color_hi);
+      ui::theme::get_color_shade_3fv(TH_HEADER, color_tint, gz->color);
+      ui::theme::get_color_shade_3fv(TH_HEADER, color_tint_hi, gz->color_hi);
     }
 
     /* may be overwritten later */
@@ -311,8 +314,12 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
   navgroup->state.rv3d.cameralock = v3d->flag2 & V3D_LOCK_CAMERA;
 
   const bool show_navigate = (U.uiflag & USER_SHOW_GIZMO_NAVIGATE) != 0;
-  const bool show_rotate_gizmo = (U.mini_axis_type == USER_MINI_AXIS_TYPE_GIZMO);
-  const float icon_offset = ((GIZMO_SIZE / 2.0f) + GIZMO_OFFSET) * UI_SCALE_FAC;
+  const bool show_rotate_gizmo = (U.mini_axis_type == USER_MINI_AXIS_TYPE_GIZMO &&
+                                  (region->alignment != RGN_ALIGN_QSPLIT ||
+                                   region->runtime->quadview_index ==
+                                       bke::ARegionQuadviewIndex::TopRight));
+  const float icon_offset = UI_SCALE_FAC *
+                            (GIZMO_OFFSET + (show_rotate_gizmo ? GIZMO_SIZE / 2.0f : 0.0f));
   const float icon_offset_mini = (GIZMO_MINI_SIZE + GIZMO_MINI_OFFSET) * UI_SCALE_FAC;
   const float co_rotate[2] = {
       rect_visible->xmax - icon_offset,
@@ -320,7 +327,7 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
   };
 
   float icon_offset_from_axis = 0.0f;
-  switch ((eUserpref_MiniAxisType)U.mini_axis_type) {
+  switch (eUserpref_MiniAxisType(U.mini_axis_type)) {
     case USER_MINI_AXIS_TYPE_GIZMO:
       icon_offset_from_axis = icon_offset * 2.1f;
       break;
@@ -406,3 +413,5 @@ void VIEW3D_GGT_navigate(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender

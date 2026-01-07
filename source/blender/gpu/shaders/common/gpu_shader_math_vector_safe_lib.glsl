@@ -125,7 +125,7 @@ float4 safe_divide(float4 a, float b)
 /**
  * Return normalized version of the `vector` or a default normalized vector if `vector` is invalid.
  */
-template<typename VecT> VecT safe_normalize_and_get_length(VecT vector, out float out_length)
+template<typename VecT> VecT safe_normalize_and_get_length(VecT vector, float &out_length)
 {
   float length_squared = dot(vector, vector);
   constexpr float threshold = 1e-35f;
@@ -139,9 +139,9 @@ template<typename VecT> VecT safe_normalize_and_get_length(VecT vector, out floa
   result[0] = 1.0f;
   return result;
 }
-template float2 safe_normalize_and_get_length<float2>(float2, out float);
-template float3 safe_normalize_and_get_length<float3>(float3, out float);
-template float4 safe_normalize_and_get_length<float4>(float4, out float);
+template float2 safe_normalize_and_get_length<float2>(float2, float &);
+template float3 safe_normalize_and_get_length<float3>(float3, float &);
+template float4 safe_normalize_and_get_length<float4>(float4, float &);
 
 /**
  * Return normalized version of the `vector` or a default normalized vector if `vector` is invalid.

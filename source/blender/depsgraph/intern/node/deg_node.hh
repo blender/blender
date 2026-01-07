@@ -18,10 +18,12 @@
 
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct ID;
 struct Scene;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 struct OperationNode;
@@ -221,4 +223,5 @@ struct Node {
 
 void deg_register_base_depsnodes();
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

@@ -108,5 +108,4 @@ void *resize_trivial_array_impl(void *old_data,
 }
 
 }  // namespace detail
-
 }  // namespace blender::implicit_sharing

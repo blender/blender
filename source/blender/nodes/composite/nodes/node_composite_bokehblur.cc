@@ -12,7 +12,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_bokehblur_cc {
+namespace blender {
+
+namespace nodes::node_composite_bokehblur_cc {
 
 static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
 {
@@ -253,8 +255,8 @@ class BokehBlurOperation : public NodeOperation {
        * transform the texel into the normalized range [0, 1] needed to sample the weights sampler.
        * Finally, invert the textures coordinates by subtracting from 1 to maintain the shape of
        * the weights as mentioned in the function description. */
-      return weights.sample_bilinear_extended(
-          1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f)));
+      return float4(weights.sample_bilinear_extended<Color>(
+          1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f))));
     };
 
     parallel_for(domain.data_size, [&](const int2 texel) {
@@ -321,7 +323,7 @@ class BokehBlurOperation : public NodeOperation {
        * invert the textures coordinates by subtracting from 1 to maintain the shape of the weights
        * as mentioned above. */
       const float2 weight_coordinates = 1.0f - ((float2(texel) + 0.5f) / float2(kernel_size));
-      float4 weight = bokeh.sample_bilinear_extended(weight_coordinates);
+      float4 weight = float4(bokeh.sample_bilinear_extended<Color>(weight_coordinates));
       kernel.store_pixel(texel, Color(weight));
     });
 
@@ -360,7 +362,7 @@ class BokehBlurOperation : public NodeOperation {
 
   bool get_extend_bounds()
   {
-    return this->get_input("Extend Bounds").get_single_value_default(false);
+    return this->get_input("Extend Bounds").get_single_value_default<bool>();
   }
 };
 
@@ -369,13 +371,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new BokehBlurOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_bokehblur_cc
+}  // namespace nodes::node_composite_bokehblur_cc
 
 static void register_node_type_cmp_bokehblur()
 {
-  namespace file_ns = blender::nodes::node_composite_bokehblur_cc;
+  namespace file_ns = nodes::node_composite_bokehblur_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeBokehBlur", CMP_NODE_BOKEHBLUR);
   ntype.ui_name = "Bokeh Blur";
@@ -386,8 +388,10 @@ static void register_node_type_cmp_bokehblur()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  blender::bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_bokehblur)
+
+}  // namespace blender

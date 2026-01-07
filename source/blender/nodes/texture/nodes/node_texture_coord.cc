@@ -9,7 +9,9 @@
 #include "BLI_math_vector.h"
 #include "node_texture_util.hh"
 
-static blender::bke::bNodeSocketTemplate outputs[] = {
+namespace blender {
+
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_VECTOR, N_("Coordinates")},
     {-1, ""},
 };
@@ -32,14 +34,16 @@ static void exec(void *data,
 
 void register_node_type_tex_coord()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeCoordinates", TEX_NODE_COORD);
   ntype.ui_name = "Coordinates";
   ntype.enum_name_legacy = "COORD";
   ntype.nclass = NODE_CLASS_INPUT;
-  blender::bke::node_type_socket_templates(&ntype, nullptr, outputs);
+  bke::node_type_socket_templates(&ntype, nullptr, outputs);
   ntype.exec_fn = exec;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

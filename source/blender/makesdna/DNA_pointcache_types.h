@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 /**
  * Point cache file data types:
  * - Used as `(1 << flag)` so poke jahka if you reach the limit of 15.
@@ -38,87 +40,6 @@ enum {
   BPHYS_EXTRA_FLUID_SPRINGS = 1,
   BPHYS_EXTRA_CLOTH_ACCELERATION = 2,
 };
-
-typedef struct PTCacheExtra {
-  struct PTCacheExtra *next, *prev;
-  unsigned int type, totdata;
-  void *data;
-} PTCacheExtra;
-
-typedef struct PTCacheMem {
-  struct PTCacheMem *next, *prev;
-  unsigned int frame, totpoint;
-  unsigned int data_types, flag;
-
-  /** BPHYS_TOT_DATA. */
-  void *data[8];
-
-  struct ListBase extradata;
-} PTCacheMem;
-
-typedef struct PointCache {
-  struct PointCache *next, *prev;
-  /** Generic flag. */
-  int flag;
-
-  /**
-   * The number of frames between cached frames.
-   * This should probably be an upper bound for a per point adaptive step in the future,
-   * but for now it's the same for all points. Without adaptivity this can effect the perceived
-   * simulation quite a bit though. If for example particles are colliding with a horizontal
-   * plane (with high damping) they quickly come to a stop on the plane, however there are still
-   * forces acting on the particle (gravity and collisions), so the particle velocity isn't
-   * necessarily zero for the whole duration of the frame even if the particle seems stationary.
-   * If all simulation frames aren't cached (step > 1) these velocities are interpolated into
-   * movement for the non-cached frames.
-   * The result will look like the point is oscillating around the collision location.
-   * So for now cache step should be set to 1 for accurate reproduction of collisions.
-   */
-  int step;
-
-  /** Current frame of simulation (only if SIMULATION_VALID). */
-  int simframe;
-  /** Simulation start frame. */
-  int startframe;
-  /** Simulation end frame. */
-  int endframe;
-  /** Frame being edited (runtime only). */
-  int editframe;
-  /** Last exact frame that's cached. */
-  int last_exact;
-  /** Used for editing cache - what is the last baked frame. */
-  int last_valid;
-  char _pad[4];
-
-  /* for external cache files */
-  /** Number of cached points. */
-  int totpoint;
-  /** Modifier stack index. */
-  int index;
-  /** #PointCacheCompression. Used for versioning only; now cache is always compressed. */
-  short compression;
-  char _pad0[2];
-
-  char name[64];
-  char prev_name[64];
-  char info[128];
-  /** File path. */
-  char path[/*FILE_MAX*/ 1024];
-
-  /**
-   * Array of length `endframe - startframe + 1` with flags to indicate cached frames.
-   * Can be later used for other per frame flags too if needed.
-   */
-  char *cached_frames;
-  int cached_frames_len;
-  char _pad1[4];
-
-  struct ListBase mem_cache;
-
-  struct PTCacheEdit *edit;
-  /** Free callback. */
-  void (*free_edit)(struct PTCacheEdit *edit);
-} PointCache;
 
 /** #PointCache.flag */
 enum {
@@ -154,11 +75,94 @@ enum {
  * During 5.0 alpha ZSTD compression had two settings.
  * Now only the ZSTD+filtering option is used.
  */
-typedef enum PointCacheCompression {
+enum PointCacheCompression {
   PTCACHE_COMPRESS_NO = 0,
   PTCACHE_COMPRESS_LZO_DEPRECATED = 1,  /* Removed in 5.0. */
   PTCACHE_COMPRESS_LZMA_DEPRECATED = 2, /* Removed in 5.0. */
   PTCACHE_COMPRESS_ZSTD_FILTERED = 3,
   PTCACHE_COMPRESS_ZSTD_FAST_DEPRECATED = 4, /* Used only during 5.0 alpha. */
   PTCACHE_COMPRESS_ZSTD_SLOW_DEPRECATED = 8, /* Used only during 5.0 alpha. */
-} PointCacheCompression;
+};
+
+struct PTCacheExtra {
+  struct PTCacheExtra *next = nullptr, *prev = nullptr;
+  unsigned int type = 0, totdata = 0;
+  void *data = nullptr;
+};
+
+struct PTCacheMem {
+  struct PTCacheMem *next = nullptr, *prev = nullptr;
+  unsigned int frame = 0, totpoint = 0;
+  unsigned int data_types = 0, flag = 0;
+
+  /** BPHYS_TOT_DATA. */
+  void *data[8] = {};
+
+  ListBaseT<PTCacheExtra> extradata = {nullptr, nullptr};
+};
+
+struct PointCache {
+  struct PointCache *next = nullptr, *prev = nullptr;
+  /** Generic flag. */
+  int flag = 0;
+
+  /**
+   * The number of frames between cached frames.
+   * This should probably be an upper bound for a per point adaptive step in the future,
+   * but for now it's the same for all points. Without adaptivity this can effect the perceived
+   * simulation quite a bit though. If for example particles are colliding with a horizontal
+   * plane (with high damping) they quickly come to a stop on the plane, however there are still
+   * forces acting on the particle (gravity and collisions), so the particle velocity isn't
+   * necessarily zero for the whole duration of the frame even if the particle seems stationary.
+   * If all simulation frames aren't cached (step > 1) these velocities are interpolated into
+   * movement for the non-cached frames.
+   * The result will look like the point is oscillating around the collision location.
+   * So for now cache step should be set to 1 for accurate reproduction of collisions.
+   */
+  int step = 0;
+
+  /** Current frame of simulation (only if SIMULATION_VALID). */
+  int simframe = 0;
+  /** Simulation start frame. */
+  int startframe = 0;
+  /** Simulation end frame. */
+  int endframe = 0;
+  /** Frame being edited (runtime only). */
+  int editframe = 0;
+  /** Last exact frame that's cached. */
+  int last_exact = 0;
+  /** Used for editing cache - what is the last baked frame. */
+  int last_valid = 0;
+  char _pad[4] = {};
+
+  /* for external cache files */
+  /** Number of cached points. */
+  int totpoint = 0;
+  /** Modifier stack index. */
+  int index = 0;
+  /** #PointCacheCompression. Used for versioning only; now cache is always compressed. */
+  short compression = 0;
+  char _pad0[2] = {};
+
+  char name[64] = "";
+  char prev_name[64] = "";
+  char info[128] = "";
+  /** File path. */
+  char path[/*FILE_MAX*/ 1024] = "";
+
+  /**
+   * Array of length `endframe - startframe + 1` with flags to indicate cached frames.
+   * Can be later used for other per frame flags too if needed.
+   */
+  char *cached_frames = nullptr;
+  int cached_frames_len = 0;
+  char _pad1[4] = {};
+
+  ListBaseT<PTCacheMem> mem_cache = {nullptr, nullptr};
+
+  struct PTCacheEdit *edit = nullptr;
+  /** Free callback. */
+  void (*free_edit)(struct PTCacheEdit *edit) = nullptr;
+};
+
+}  // namespace blender

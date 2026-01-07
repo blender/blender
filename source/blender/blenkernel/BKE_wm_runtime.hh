@@ -8,21 +8,27 @@
 
 #pragma once
 
-struct UndoStack;
-struct wmMsgBus;
-struct wmKeyConfig;
-struct wmWindow;
-#ifdef WITH_INPUT_IME
-struct wmIMEData;
-#endif
-
 #include "BKE_report.hh"
 
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_set.hh"
 
-namespace blender::bke {
+namespace blender {
+
+struct UndoStack;
+struct wmMsgBus;
+struct wmKeyConfig;
+struct wmEvent;
+struct wmWindow;
+struct wmIMEData;
+struct wmGesture;
+struct wmJob;
+struct wmDrag;
+struct wmPaintCursor;
+struct WindowDrawCB;
+
+namespace bke {
 
 struct wmNotifierHashForQueue {
   uint64_t operator()(const wmNotifier *note) const;
@@ -59,7 +65,7 @@ struct WindowManagerRuntime {
    * With the exception of clearing notifiers for data which has been removed,
    * see: #NOTE_CATEGORY_TAG_CLEARED.
    */
-  ListBase notifier_queue = {nullptr, nullptr};
+  ListBaseT<wmNotifier> notifier_queue = {nullptr, nullptr};
   /**
    * For duplicate detection.
    * \note keep in sync with `notifier_queue` adding/removing elements must also update this set.
@@ -70,25 +76,25 @@ struct WindowManagerRuntime {
   const wmNotifier *notifier_current = nullptr;
 
   /** Operator registry. */
-  ListBase operators = {nullptr, nullptr};
+  ListBaseT<wmOperator> operators = {nullptr, nullptr};
 
   /** Extra overlay cursors to draw, like circles. */
-  ListBase paintcursors = {nullptr, nullptr};
+  ListBaseT<wmPaintCursor> paintcursors = {nullptr, nullptr};
 
   /**
    * Known key configurations.
    * This includes all the #wmKeyConfig members (`defaultconf`, `addonconf`, etc).
    */
-  ListBase keyconfigs = {nullptr, nullptr};
+  ListBaseT<wmKeyConfig> keyconfigs = {nullptr, nullptr};
 
   /** Active timers. */
-  ListBase timers = {nullptr, nullptr};
+  ListBaseT<wmTimer> timers = {nullptr, nullptr};
 
   /** Threaded jobs manager. */
-  ListBase jobs = {nullptr, nullptr};
+  ListBaseT<wmJob> jobs = {nullptr, nullptr};
 
   /** Active dragged items. */
-  ListBase drags = {nullptr, nullptr};
+  ListBaseT<wmDrag> drags = {nullptr, nullptr};
 
   /** Default configuration. */
   wmKeyConfig *defaultconf = nullptr;
@@ -110,19 +116,71 @@ struct WindowManagerRuntime {
 
 struct WindowRuntime {
   /** All events #wmEvent (ghost level events were handled). */
-  ListBase event_queue = {nullptr, nullptr};
+  ListBaseT<wmEvent> event_queue = {nullptr, nullptr};
 
-#ifdef WITH_INPUT_IME
   /**
    * Input Method Editor data - complex character input (especially for Asian character input)
    * Only used when `WITH_INPUT_IME` is defined.
    */
   wmIMEData *ime_data = nullptr;
   bool ime_data_is_composing = false;
-#endif
+
+  /** Don't want to include ghost.h stuff. */
+  void *ghostwin = nullptr;
+
+  /** Don't want to include gpu stuff. */
+  void *gpuctx = nullptr;
+
+  /** Window+screen handlers, handled last. */
+  ListBaseT<wmEventHandler> handlers = {nullptr, nullptr};
+
+  /** Priority handlers, handled first. */
+  ListBaseT<wmEventHandler> modalhandlers = {nullptr, nullptr};
+
+  /** Custom drawing callbacks. */
+  ListBaseT<WindowDrawCB> drawcalls = {nullptr, nullptr};
+
+  /** Gesture stuff. */
+  ListBaseT<wmGesture> gesture = {nullptr, nullptr};
+
+  /**
+   * Keep the last handled event in `event_queue` here (owned and must be freed).
+   *
+   * \warning This must only to be used for event queue logic.
+   * User interactions should use `eventstate` instead (if the event isn't passed to the function).
+   */
+  wmEvent *event_last_handled = nullptr;
+
+  /**
+   * Storage for event system.
+   *
+   * For the most part this is storage for `wmEvent.xy` & `wmEvent.modifiers`.
+   * newly added key/button events copy the cursor location and modifier state stored here.
+   *
+   * It's also convenient at times to be able to pass this as if it's a regular event.
+   *
+   * - This is not simply the current event being handled.
+   *   The type and value is always set to the last press/release events
+   *   otherwise cursor motion would always clear these values.
+   *
+   * - The value of `eventstate->modifiers` is set from the last pressed/released modifier key.
+   *   This has the down side that the modifier value will be incorrect if users hold both
+   *   left/right modifiers then release one. See note in #wm_event_add_ghostevent for details.
+   */
+  wmEvent *eventstate = nullptr;
+
+  /**
+   * The time when the key is pressed in milliseconds (see #GHOST_GetEventTime).
+   * Used to detect double-click events.
+   */
+  uint64_t eventstate_prev_press_time_ms = 0;
+
+  /** Private runtime info to show text in the status bar. */
+  void *cursor_keymap_status = nullptr;
 
   WindowRuntime() = default;
   ~WindowRuntime();
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

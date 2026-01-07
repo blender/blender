@@ -13,6 +13,8 @@
 /* Required for #eIconSizes. */
 #include "DNA_ID_enums.h"
 
+namespace blender {
+
 struct Collection;
 struct ID;
 struct ImBuf;
@@ -21,6 +23,8 @@ struct PointerRNA;
 struct PreviewImage;
 struct Scene;
 struct bContext;
+
+namespace ui {
 
 struct IconTextOverlay {
   char text[5];
@@ -41,7 +45,6 @@ struct IconTextOverlay {
 
 #define PREVIEW_DRAG_DRAW_SIZE 96.0f
 
-namespace blender::ui {
 enum class AlertIcon : int8_t {
   None = -1,
   Warning = 0,
@@ -50,71 +53,71 @@ enum class AlertIcon : int8_t {
   Info = 3,
   Max,
 };
-}
 
-ImBuf *UI_icon_alert_imbuf_get(blender::ui::AlertIcon icon, float size);
+ImBuf *icon_alert_imbuf_get(AlertIcon icon, float size);
 
 /**
  * Resizable Icons for Blender
  */
-void UI_icons_init();
+void icons_init();
 
-bool UI_icon_get_theme_color(int icon_id, unsigned char color[4]);
+bool icon_get_theme_color(int icon_id, unsigned char color[4]);
 
 /**
  * Render a #PreviewImage for the data block.
  *
  * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
  */
-void UI_icon_render_id(
-    const bContext *C, Scene *scene, ID *id, enum eIconSizes size, bool use_job);
+void icon_render_id(const bContext *C, Scene *scene, ID *id, enum eIconSizes size, bool use_job);
 
 /**
  * Render the data block into the provided #PreviewImage.
  */
-void UI_icon_render_id_ex(const bContext *C,
-                          Scene *scene,
-                          ID *id_to_render,
-                          const enum eIconSizes size,
-                          const bool use_job,
-                          PreviewImage *r_preview_image);
+void icon_render_id_ex(const bContext *C,
+                       Scene *scene,
+                       ID *id_to_render,
+                       const enum eIconSizes size,
+                       const bool use_job,
+                       PreviewImage *r_preview_image);
 
 /**
  * Render size for preview images and icons
  */
-int UI_icon_preview_to_render_size(enum eIconSizes size);
+int icon_preview_to_render_size(enum eIconSizes size);
 
 /**
  * Draws icon with DPI scale factor.
  */
-void UI_icon_draw(float x, float y, int icon_id);
-void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha);
-void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size);
+void icon_draw(float x, float y, int icon_id);
+void icon_draw_alpha(float x, float y, int icon_id, float alpha);
+void icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size);
 
-void UI_icon_draw_ex(float x,
-                     float y,
-                     int icon_id,
-                     float aspect,
-                     float alpha,
-                     float desaturate,
-                     const uchar mono_color[4],
-                     bool mono_border,
-                     const IconTextOverlay *text_overlay,
-                     const bool inverted = false);
+void icon_draw_ex(float x,
+                  float y,
+                  int icon_id,
+                  float aspect,
+                  float alpha,
+                  float desaturate,
+                  const uchar mono_color[4],
+                  bool mono_border,
+                  const IconTextOverlay *text_overlay,
+                  const bool inverted = false);
 
-ImBuf *UI_svg_icon_bitmap(uint icon_id, float size, bool multicolor = false);
+ImBuf *svg_icon_bitmap(uint icon_id, float size, bool multicolor = false);
 
-void UI_icons_free();
-void UI_icons_free_drawinfo(void *drawinfo);
+void icons_free();
+void icons_free_drawinfo(void *drawinfo);
 
-PreviewImage *UI_icon_to_preview(int icon_id);
+PreviewImage *icon_to_preview(int icon_id);
 
-int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, bool big);
-int UI_icon_from_idcode(int idcode);
-int UI_icon_from_library(const ID *id);
-int UI_icon_from_object_mode(int mode);
-int UI_icon_from_object_type(const Object *object);
-int UI_icon_color_from_collection(const Collection *collection);
+int icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, bool big);
+int icon_from_idcode(int idcode);
+int icon_from_library(const ID *id);
+int icon_from_object_mode(int mode);
+int icon_from_object_type(const Object *object);
+int icon_color_from_collection(const Collection *collection);
 
-void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
-                                          const int icon_indicator_number);
+void icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
+                                       const int icon_indicator_number);
+}  // namespace ui
+}  // namespace blender

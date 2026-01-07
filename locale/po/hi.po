@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
-"PO-Revision-Date: 2025-07-23 15:34+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"PO-Revision-Date: 2025-12-04 22:18+0000\n"
+"Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.12.1"
+"X-Generator: Weblate 5.14.3"
 
 
 msgid "Valid"
@@ -173,6 +173,11 @@ msgstr "कार्य समूह का चयन किया है"
 
 msgid "Expanded"
 msgstr "विस्तृत"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "तैलीय पेंसिल v3"
 
 
 msgid "Off"
@@ -1519,6 +1524,22 @@ msgid "Add fire"
 msgstr "अग्नि में जोड़ें"
 
 
+msgid "Font"
+msgstr "मुद्र"
+
+
+msgid "Text"
+msgstr "पाठ"
+
+
+msgid "Mask"
+msgstr "आवरण"
+
+
+msgid "Sound"
+msgstr "ध्वनि"
+
+
 msgid "Border"
 msgstr "सीमांत"
 
@@ -1801,10 +1822,6 @@ msgstr "स्वरूप संपादन"
 
 msgid "Text on Curve"
 msgstr "वक्र पर पाठ"
-
-
-msgid "Font"
-msgstr "मुद्र"
 
 
 msgid "Font Bold"
@@ -2284,10 +2301,6 @@ msgid "Mute the speaker"
 msgstr "स्पीकर म्यूट करें"
 
 
-msgid "Sound"
-msgstr "ध्वनि"
-
-
 msgid "Current Line"
 msgstr "वर्तमान रेखा"
 
@@ -2568,8 +2581,44 @@ msgid "Dots"
 msgstr "बिन्दु्"
 
 
-msgid "Mask"
-msgstr "आवरण"
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Import"
+msgstr "आयात करें"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "UV"
+msgstr "यूवी"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
 
 
 msgid "Apply"
@@ -2584,20 +2633,12 @@ msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
 
 msgid "Hooks"
 msgstr "खूँटी"
-
-
-msgid "Names"
-msgstr "नाम"
 
 
 msgid "Toggle Bone Options"
@@ -2608,48 +2649,12 @@ msgid "Enable Bone Options"
 msgstr "हड्डी विकल्प को सक्षम करें"
 
 
-msgid "Merge"
-msgstr "विलय करें"
-
-
 msgid "Keying"
 msgstr "कुंजीयन"
 
 
-msgid "Math"
-msgstr "गणित"
-
-
-msgid "Text"
-msgstr "पाठ"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Import"
-msgstr "आयात करें"
-
-
-msgid "UV"
-msgstr "यूवी"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "Basic"
@@ -5828,11 +5833,6 @@ msgstr "रद्द करें"
 msgctxt "Curve"
 msgid "Surface"
 msgstr "सतह"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "परिवर्तन शॉर्टकट"
 
 
 msgctxt "Operator"

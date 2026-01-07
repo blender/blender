@@ -14,7 +14,9 @@
 #include "BLI_index_mask.hh"
 #include "BLI_utildefines.h"
 
-namespace blender::cpp_type_util {
+namespace blender {
+
+namespace cpp_type_util {
 
 template<typename T> inline bool pointer_has_valid_alignment(const void *ptr)
 {
@@ -116,7 +118,7 @@ template<typename T> void copy_construct_cb(const void *src, void *dst)
   BLI_assert(src != dst || std::is_trivially_copy_constructible_v<T>);
   BLI_assert(pointer_can_point_to_instance<T>(src));
   BLI_assert(pointer_can_point_to_instance<T>(dst));
-  blender::uninitialized_copy_n(static_cast<const T *>(src), 1, static_cast<T *>(dst));
+  uninitialized_copy_n(static_cast<const T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T>
 void copy_construct_indices_cb(const void *src, void *dst, const IndexMask &mask)
@@ -150,7 +152,7 @@ template<typename T> void move_assign_cb(void *src, void *dst)
 {
   BLI_assert(pointer_can_point_to_instance<T>(src));
   BLI_assert(pointer_can_point_to_instance<T>(dst));
-  blender::initialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
+  initialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T> void move_assign_indices_cb(void *src, void *dst, const IndexMask &mask)
 {
@@ -173,7 +175,7 @@ template<typename T> void move_construct_cb(void *src, void *dst)
   BLI_assert(pointer_can_point_to_instance<T>(src));
   BLI_assert(pointer_can_point_to_instance<T>(dst));
 
-  blender::uninitialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
+  uninitialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T> void move_construct_indices_cb(void *src, void *dst, const IndexMask &mask)
 {
@@ -308,9 +310,7 @@ template<typename T> uint64_t hash_cb(const void *value)
   return get_default_hash(value_);
 }
 
-}  // namespace blender::cpp_type_util
-
-namespace blender {
+}  // namespace cpp_type_util
 
 template<typename T, CPPTypeFlags Flags>
 CPPType::CPPType(TypeTag<T> /*type*/,
@@ -429,13 +429,13 @@ CPPType::CPPType(TypeTag<T> /*type*/,
       fill_construct_indices_ = fill_construct_indices_cb<T>;
     }
   }
-  if constexpr ((bool)(Flags & CPPTypeFlags::Hashable)) {
+  if constexpr (bool(Flags & CPPTypeFlags::Hashable)) {
     hash_ = hash_cb<T>;
   }
-  if constexpr ((bool)(Flags & CPPTypeFlags::Printable)) {
+  if constexpr (bool(Flags & CPPTypeFlags::Printable)) {
     print_ = print_cb<T>;
   }
-  if constexpr ((bool)(Flags & CPPTypeFlags::EqualityComparable)) {
+  if constexpr (bool(Flags & CPPTypeFlags::EqualityComparable)) {
     is_equal_ = is_equal_cb<T>;
   }
 
@@ -450,17 +450,16 @@ CPPType::CPPType(TypeTag<T> /*type*/,
   this->is_move_assignable = move_assign_ != nullptr;
 }
 
-}  // namespace blender
-
 /** Create a new #CPPType that can be accessed through `CPPType::get<T>()`. */
 #define BLI_CPP_TYPE_MAKE(TYPE_NAME, FLAGS) \
-  template<> const blender::CPPType &blender::CPPType::get_impl<TYPE_NAME>() \
+  template<> const CPPType &CPPType::get_impl<TYPE_NAME>() \
   { \
-    static CPPType type{blender::TypeTag<TYPE_NAME>(), \
-                        TypeForValue<CPPTypeFlags, FLAGS>(), \
-                        STRINGIFY(TYPE_NAME)}; \
+    static CPPType type{ \
+        TypeTag<TYPE_NAME>(), TypeForValue<CPPTypeFlags, FLAGS>(), STRINGIFY(TYPE_NAME)}; \
     return type; \
   }
 
 /** Register a #CPPType created with #BLI_CPP_TYPE_MAKE. */
-#define BLI_CPP_TYPE_REGISTER(TYPE_NAME) blender::CPPType::get<TYPE_NAME>()
+#define BLI_CPP_TYPE_REGISTER(TYPE_NAME) CPPType::get<TYPE_NAME>()
+
+}  // namespace blender

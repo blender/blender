@@ -193,7 +193,7 @@ static void gizmo2d_get_axis_color(const int axis_idx, float *r_col, float *r_co
       break;
   }
 
-  UI_GetThemeColor4fv(col_id, r_col);
+  ui::theme::get_color_4fv(col_id, r_col);
 
   copy_v4_v4(r_col_hi, r_col);
   r_col[3] *= alpha;
@@ -267,8 +267,8 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   else if (area->spacetype == SPACE_SEQ) {
     Scene *scene = CTX_data_scene(C);
     Editing *ed = seq::editing_get(scene);
-    ListBase *seqbase = seq::active_seqbase_get(ed);
-    ListBase *channels = seq::channels_displayed_get(ed);
+    ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+    ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
     VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
     strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
     int selected_strips = strips.size();
@@ -321,8 +321,8 @@ static int gizmo2d_calc_transform_orientation(const bContext *C)
 
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
 
@@ -343,8 +343,8 @@ static float gizmo2d_calc_rotation(const bContext *C)
 
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
 
@@ -365,8 +365,8 @@ static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
   zero_v2(r_pivot);
 
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
   bool has_select = !strips.is_empty();
@@ -412,8 +412,8 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
       copy_v2_v2(r_pivot, cursor_pixel);
 
       Editing *ed = seq::editing_get(scene);
-      ListBase *seqbase = seq::active_seqbase_get(ed);
-      ListBase *channels = seq::channels_displayed_get(ed);
+      ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+      ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
       VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
       strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
       has_select = !strips.is_empty();
@@ -436,7 +436,7 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
  */
 BLI_INLINE void gizmo2d_origin_to_region(ARegion *region, float *r_origin)
 {
-  UI_view2d_view_to_region_fl(&region->v2d, r_origin[0], r_origin[1], &r_origin[0], &r_origin[1]);
+  ui::view2d_view_to_region_fl(&region->v2d, r_origin[0], r_origin[1], &r_origin[0], &r_origin[1]);
 }
 
 /**
@@ -494,7 +494,7 @@ static void gizmo2d_xform_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
     else {
       float color[4], color_hi[4];
-      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
       copy_v4_v4(color_hi, color);
       color[3] *= 0.6f;
 
@@ -629,7 +629,7 @@ static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
     WM_gizmo_set_matrix_location(gz, origin);
   }
 
-  UI_view2d_view_to_region_m4(&region->v2d, ggd->cage->matrix_space);
+  ui::view2d_view_to_region_m4(&region->v2d, ggd->cage->matrix_space);
   /* Define the bounding box of the gizmo in the offset transform matrix. */
   unit_m4(ggd->cage->matrix_offset);
   const float min_gizmo_pixel_size = 0.001f; /* Draw Gizmo larger than this many pixels. */
@@ -894,7 +894,7 @@ static void gizmo2d_resize_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
     else {
       float color[4], color_hi[4];
-      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
       copy_v4_v4(color_hi, color);
       color[3] *= 0.6f;
 
@@ -1028,7 +1028,7 @@ static void gizmo2d_rotate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 
     {
       float color[4];
-      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
 
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
       RNA_property_enum_set(gz->ptr, prop, ICON_NONE);

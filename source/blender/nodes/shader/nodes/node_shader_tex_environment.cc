@@ -13,7 +13,9 @@
 
 #include "DEG_depsgraph_query.hh"
 
-namespace blender::nodes::node_shader_tex_environment_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_environment_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -23,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_tex_environment(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexEnvironment *tex = MEM_callocN<NodeTexEnvironment>("NodeTexEnvironment");
+  NodeTexEnvironment *tex = MEM_new_for_free<NodeTexEnvironment>("NodeTexEnvironment");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->projection = SHD_PROJ_EQUIRECTANGULAR;
@@ -38,13 +40,13 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
                                            GPUNodeStack *in,
                                            GPUNodeStack *out)
 {
-  Image *ima = (Image *)node->id;
-  NodeTexEnvironment *tex = (NodeTexEnvironment *)node->storage;
+  Image *ima = id_cast<Image *>(node->id);
+  NodeTexEnvironment *tex = static_cast<NodeTexEnvironment *>(node->storage);
 
   /* We get the image user from the original node, since GPU image keeps
    * a pointer to it and the dependency refreshes the original. */
   bNode *node_original = node->runtime->original ? node->runtime->original : node;
-  NodeTexImage *tex_original = (NodeTexImage *)node_original->storage;
+  NodeTexImage *tex_original = static_cast<NodeTexImage *>(node_original->storage);
   ImageUser *iuser = &tex_original->iuser;
   GPUSamplerState sampler = {GPU_SAMPLER_FILTERING_LINEAR | GPU_SAMPLER_FILTERING_ANISOTROPIC,
                              GPU_SAMPLER_EXTEND_MODE_REPEAT,
@@ -178,14 +180,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tex_environment_cc
+}  // namespace nodes::node_shader_tex_environment_cc
 
 /* node type definition */
 void register_node_type_sh_tex_environment()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_environment_cc;
+  namespace file_ns = nodes::node_shader_tex_environment_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeTexEnvironment", SH_NODE_TEX_ENVIRONMENT);
   ntype.ui_name = "Environment Texture";
@@ -196,12 +198,14 @@ void register_node_type_sh_tex_environment()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::node_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_environment;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexEnvironment", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_environment;
   ntype.labelfunc = node_image_label;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

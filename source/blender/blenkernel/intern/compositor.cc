@@ -37,7 +37,12 @@ static void add_passes_used_by_render_layer_node(const bNode *node, Set<std::str
 {
   for (const bNodeSocket *output : node->output_sockets()) {
     if (output->is_logically_linked()) {
-      used_passes.add(static_cast<NodeImageLayer *>(output->storage)->pass_name);
+      if (output->identifier == StringRef("Alpha")) {
+        used_passes.add(RE_PASSNAME_COMBINED);
+      }
+      else {
+        used_passes.add(output->identifier);
+      }
     }
   }
 }
@@ -187,10 +192,10 @@ bool is_viewport_compositor_used(const bContext &context)
   }
 
   wmWindowManager *window_manager = CTX_wm_manager(&context);
-  LISTBASE_FOREACH (const wmWindow *, window, &window_manager->windows) {
-    const bScreen *screen = WM_window_get_active_screen(window);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink &space = *static_cast<const SpaceLink *>(area->spacedata.first);
+  for (const wmWindow &window : window_manager->windows) {
+    const bScreen *screen = WM_window_get_active_screen(&window);
+    for (const ScrArea &area : screen->areabase) {
+      const SpaceLink &space = *static_cast<const SpaceLink *>(area.spacedata.first);
       if (space.spacetype == SPACE_VIEW3D) {
         const View3D &view_3d = reinterpret_cast<const View3D &>(space);
 

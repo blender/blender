@@ -47,7 +47,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryDeleteGeometry *data = MEM_callocN<NodeGeometryDeleteGeometry>(__func__);
+  NodeGeometryDeleteGeometry *data = MEM_new_for_free<NodeGeometryDeleteGeometry>(__func__);
   data->domain = int(AttrDomain::Point);
   data->mode = GEO_NODE_DELETE_GEOMETRY_MODE_ALL;
 
@@ -66,7 +66,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
   const AttrDomain domain = AttrDomain(storage.domain);
-  const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
+  const GeometryNodeDeleteGeometryMode mode = GeometryNodeDeleteGeometryMode(storage.mode);
 
   const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry");
 
@@ -114,21 +114,21 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeDeleteGeometry", GEO_NODE_DELETE_GEOMETRY);
   ntype.ui_name = "Delete Geometry";
   ntype.ui_description = "Remove selected elements of a geometry";
   ntype.enum_name_legacy = "DELETE_GEOMETRY";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryDeleteGeometry", node_free_standard_storage, node_copy_standard_storage);
 
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

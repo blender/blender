@@ -17,7 +17,6 @@
 
 #include <fstream>
 
-using namespace blender;
 using namespace blender::gpu;
 
 namespace blender::gpu {

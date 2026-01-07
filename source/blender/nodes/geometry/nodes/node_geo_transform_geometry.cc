@@ -106,7 +106,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeTransform", GEO_NODE_TRANSFORM_GEOMETRY);
   ntype.ui_name = "Transform Geometry";
   ntype.ui_description = "Translate, rotate or scale the geometry";
@@ -114,7 +114,7 @@ static void register_node()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node)
 

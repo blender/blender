@@ -23,8 +23,7 @@
 
 #include "bmesh.hh"
 
-using blender::float3;
-using blender::Span;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Edge Ring Pre-Select
@@ -131,9 +130,7 @@ struct EditMesh_PreSelEdgeRing {
 
 EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create()
 {
-  EditMesh_PreSelEdgeRing *psel = static_cast<EditMesh_PreSelEdgeRing *>(
-      MEM_callocN(sizeof(*psel), __func__));
-  return psel;
+  return MEM_callocN<EditMesh_PreSelEdgeRing>(__func__);
 }
 
 void EDBM_preselect_edgering_destroy(EditMesh_PreSelEdgeRing *psel)
@@ -163,8 +160,7 @@ void EDBM_preselect_edgering_draw(EditMesh_PreSelEdgeRing *psel, const float mat
   GPU_matrix_push();
   GPU_matrix_mul(matrix);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   if (psel->edges_len > 0) {
     float viewport[4];
@@ -193,7 +189,7 @@ void EDBM_preselect_edgering_draw(EditMesh_PreSelEdgeRing *psel, const float mat
     /* Same size as an edit mode vertex */
     immUniform1f("size",
                  2.0 * U.pixelsize *
-                     max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f));
+                     max_ff(1.0f, ui::theme::get_value_f(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f));
 
     immBegin(GPU_PRIM_POINTS, psel->verts_len);
 
@@ -224,7 +220,7 @@ static void view3d_preselect_mesh_edgering_update_verts_from_edge(
   float (*verts)[3];
   int i, tot = 0;
 
-  verts = static_cast<float (*)[3]>(MEM_mallocN(sizeof(*psel->verts) * previewlines, __func__));
+  verts = MEM_malloc_arrayN<float[3]>(previewlines, __func__);
 
   edgering_vcos_get_pair(&eed_start->v1, v_cos, vert_positions);
 
@@ -272,7 +268,7 @@ static void view3d_preselect_mesh_edgering_update_edges_from_edge(
   }
   BMW_end(&walker);
 
-  eed_start = *(BMEdge **)BLI_stack_peek(edge_stack);
+  eed_start = *static_cast<BMEdge **>(BLI_stack_peek(edge_stack));
 
   edges = static_cast<float (*)[2][3]>(MEM_mallocN(
       (sizeof(*edges) * (BLI_stack_count(edge_stack) + (eed_last != eed_start))) * previewlines,
@@ -370,3 +366,5 @@ void EDBM_preselect_edgering_update_from_edge(EditMesh_PreSelEdgeRing *psel,
 }
 
 /** \} */
+
+}  // namespace blender

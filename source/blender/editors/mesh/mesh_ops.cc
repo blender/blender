@@ -16,6 +16,8 @@
 
 #include "mesh_intern.hh" /* own include */
 
+namespace blender {
+
 /**************************** registration **********************************/
 
 void ED_operatortypes_mesh()
@@ -177,10 +179,6 @@ void ED_operatortypes_mesh()
   WM_operatortype_append(MESH_OT_bisect);
   WM_operatortype_append(MESH_OT_symmetrize);
   WM_operatortype_append(MESH_OT_symmetry_snap);
-
-  WM_operatortype_append(SCULPT_OT_paint_mask_extract);
-  WM_operatortype_append(SCULPT_OT_face_set_extract);
-  WM_operatortype_append(SCULPT_OT_paint_mask_slice);
 
   WM_operatortype_append(MESH_OT_point_normals);
   WM_operatortype_append(MESH_OT_merge_normals);
@@ -368,3 +366,5 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
   point_normals_modal_keymap(keyconf);
   bevel_modal_keymap(keyconf);
 }
+
+}  // namespace blender

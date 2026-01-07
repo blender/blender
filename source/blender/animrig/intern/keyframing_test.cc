@@ -81,14 +81,14 @@ class KeyframingTest : public testing::Test {
     object = BKE_object_add_only_object(bmain, OB_EMPTY, "Empty");
     object_rna_pointer = RNA_id_pointer_create(&object->id);
 
-    Bone *bone = MEM_callocN<Bone>("BONE");
+    Bone *bone = MEM_new_for_free<Bone>("BONE");
     STRNCPY(bone->name, "Bone");
 
     armature = BKE_armature_add(bmain, "Armature");
     BLI_addtail(&armature->bonebase, bone);
 
     armature_object = BKE_object_add_only_object(bmain, OB_ARMATURE, "Armature");
-    armature_object->data = armature;
+    armature_object->data = id_cast<ID *>(armature);
     BKE_pose_ensure(bmain, armature_object, armature, false);
     armature_object_rna_pointer = RNA_id_pointer_create(&armature_object->id);
 

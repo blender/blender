@@ -314,7 +314,7 @@ VisibilityBuf &View::get_visibility_buffer()
   return visibility_buf_;
 }
 
-blender::draw::View &View::default_get()
+draw::View &View::default_get()
 {
   return *drw_get().data->default_view;
 }

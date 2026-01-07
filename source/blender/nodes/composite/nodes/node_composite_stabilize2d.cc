@@ -28,7 +28,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_stabilize2d_cc {
+namespace blender {
+
+namespace nodes::node_composite_stabilize2d_cc {
 
 static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 {
@@ -43,7 +45,7 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
 
   b.add_layout([](ui::Layout &layout, bContext *context, PointerRNA *node_pointer) {
-    uiTemplateID(&layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
+    template_id(&layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
   });
 
   b.add_input<decl::Bool>("Invert").default_value(false).description(
@@ -69,10 +71,10 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
   Scene *scene = CTX_data_scene(C);
 
-  node->id = (ID *)scene->clip;
+  node->id = id_cast<ID *>(scene->clip);
   id_us_plus(node->id);
 }
 
@@ -118,10 +120,8 @@ class Stabilize2DOperation : public NodeOperation {
 
   Interpolation get_interpolation()
   {
-    const Result &input = this->get_input("Interpolation");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_INTERPOLATION_BILINEAR);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPNodeInterpolation interpolation = static_cast<CMPNodeInterpolation>(menu_value.value);
+    const CMPNodeInterpolation interpolation = CMPNodeInterpolation(
+        this->get_input("Interpolation").get_single_value_default<MenuValue>().value);
     switch (interpolation) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
@@ -135,50 +135,46 @@ class Stabilize2DOperation : public NodeOperation {
     return Interpolation::Nearest;
   }
 
-  ExtensionMode get_extension_mode_x()
+  Extension get_extension_mode_x()
   {
-    const Result &input = this->get_input("Extension X");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_x = CMPExtensionMode(
+        this->get_input("Extension X").get_single_value_default<MenuValue>().value);
     switch (extension_x) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
+        return Extension::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
+        return Extension::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
+        return Extension::Extend;
     }
 
-    return ExtensionMode::Clip;
+    return Extension::Clip;
   }
 
-  ExtensionMode get_extension_mode_y()
+  Extension get_extension_mode_y()
   {
-    const Result &input = this->get_input("Extension Y");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_y = CMPExtensionMode(
+        this->get_input("Extension Y").get_single_value_default<MenuValue>().value);
     switch (extension_y) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
+        return Extension::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
+        return Extension::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
+        return Extension::Extend;
     }
 
-    return ExtensionMode::Clip;
+    return Extension::Clip;
   }
 
   bool do_inverse_stabilization()
   {
-    return this->get_input("Invert").get_single_value_default(false);
+    return this->get_input("Invert").get_single_value_default<bool>();
   }
 
   MovieClip *get_movie_clip()
   {
-    return reinterpret_cast<MovieClip *>(bnode().id);
+    return reinterpret_cast<MovieClip *>(node().id);
   }
 };
 
@@ -187,13 +183,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new Stabilize2DOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_stabilize2d_cc
+}  // namespace nodes::node_composite_stabilize2d_cc
 
 static void register_node_type_cmp_stabilize2d()
 {
-  namespace file_ns = blender::nodes::node_composite_stabilize2d_cc;
+  namespace file_ns = nodes::node_composite_stabilize2d_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeStabilize", CMP_NODE_STABILIZE2D);
   ntype.ui_name = "Stabilize 2D";
@@ -204,6 +200,8 @@ static void register_node_type_cmp_stabilize2d()
   ntype.initfunc_api = file_ns::init;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_stabilize2d)
+
+}  // namespace blender

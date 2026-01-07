@@ -12,6 +12,8 @@
 
 #include "script_intern.hh"
 
+namespace blender {
+
 /* ************************** registration **********************************/
 
 void script_operatortypes()
@@ -24,3 +26,5 @@ void script_keymap(wmKeyConfig * /*keyconf*/)
 {
   /* Script space is deprecated, and doesn't need a keymap */
 }
+
+}  // namespace blender

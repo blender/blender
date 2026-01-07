@@ -34,6 +34,8 @@
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
+namespace blender {
+
 /* NOTE: for now only UVs and Vertex Colors are supported for streaming.
  * Although Alembic only allows for a single UV layer per {I|O}Schema, and does
  * not have a vertex color concept, there is a convention between DCCs to write
@@ -51,7 +53,7 @@ using Alembic::Abc::V2fArraySample;
 using Alembic::AbcGeom::OC4fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
 using Alembic::AbcGeom::OV3fGeomParam;
-namespace blender::io::alembic {
+namespace io::alembic {
 
 /* ORCO, Generated Coordinates, and Reference Points ("Pref") are all terms for the same thing.
  * Other applications (Maya, Houdini) write these to a property called "Pref". */
@@ -633,4 +635,5 @@ AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
   return ABC_UV_SCOPE_NONE;
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

@@ -25,13 +25,15 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define hash BLI_noise_hash_uchar_512
 
 /**
  * Random Number Generator.
  */
 struct RNG {
-  blender::RandomNumberGenerator rng;
+  RandomNumberGenerator rng;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("RNG")
 };
@@ -67,7 +69,7 @@ void BLI_rng_srandom(RNG *rng, uint seed)
 
 void BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len)
 {
-  rng->rng.get_bytes(blender::MutableSpan(bytes, int64_t(bytes_len)));
+  rng->rng.get_bytes(MutableSpan(bytes, int64_t(bytes_len)));
 }
 
 int BLI_rng_get_int(RNG *rng)
@@ -109,8 +111,8 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, uint elem_size_i, uint elem_num
   while (i--) {
     const uint j = BLI_rng_get_uint(rng) % elem_num;
     if (i != j) {
-      void *iElem = (uchar *)data + i * elem_size_i;
-      void *jElem = (uchar *)data + j * elem_size_i;
+      void *iElem = static_cast<uchar *>(data) + i * elem_size_i;
+      void *jElem = static_cast<uchar *>(data) + j * elem_size_i;
       memcpy(temp, iElem, elem_size);
       memcpy(iElem, jElem, elem_size);
       memcpy(jElem, temp, elem_size);
@@ -283,8 +285,6 @@ void BLI_hammersley_1d(uint n, double *r)
   *r = radical_inverse(n);
 }
 
-namespace blender {
-
 RandomNumberGenerator RandomNumberGenerator::from_random_seed()
 {
   std::random_device rd;
@@ -387,7 +387,7 @@ void RandomNumberGenerator::get_bytes(MutableSpan<char> r_bytes)
     last_len = r_bytes.size();
   }
 
-  const char *data_src = (const char *)&x_;
+  const char *data_src = reinterpret_cast<const char *>(&x_);
   int64_t i = 0;
   while (i != trim_len) {
     BLI_assert(i < trim_len);

@@ -16,8 +16,7 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-using blender::int2;
-using blender::Span;
+namespace blender {
 
 void BLI_lasso_boundbox(rcti *rect, const Span<int2> mcoords)
 {
@@ -85,3 +84,5 @@ bool BLI_lasso_is_edge_inside(
 
   return false;
 }
+
+}  // namespace blender

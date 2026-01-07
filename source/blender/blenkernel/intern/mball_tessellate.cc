@@ -15,6 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_layer_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -39,6 +40,8 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+
+namespace blender {
 
 /* experimental (faster) normal calculation (see #103021) */
 #define USE_ACCUM_NORMAL
@@ -126,8 +129,8 @@ struct PROCESS {
   uint totindex;     /* size of memory allocated for indices */
   uint curindex;     /* number of currently added indices */
 
-  blender::Vector<blender::float3> co; /* surface vertices positions */
-  blender::Vector<blender::float3> no; /* surface vertex normals */
+  Vector<float3> co; /* surface vertices positions */
+  Vector<float3> no; /* surface vertex normals */
 
   /* memory allocation from common pool */
   MemArena *pgn_elements;
@@ -312,7 +315,7 @@ static float densfunc(const MetaElem *ball, float x, float y, float z)
   float dist2;
   float dvec[3] = {x, y, z};
 
-  mul_m4_v3((const float (*)[4])ball->imat, dvec);
+  mul_m4_v3(reinterpret_cast<const float (*)[4]>(ball->imat), dvec);
 
   switch (ball->type) {
     case MB_BALL:
@@ -1084,7 +1087,7 @@ static void closest_latice(int r[3], const float pos[3], const float size)
 static void find_first_points(PROCESS *process, const uint em)
 {
   const MetaElem *ml;
-  blender::int3 center, lbn, rtf, it, dir, add;
+  int3 center, lbn, rtf, it, dir, add;
   float tmp[3], a, b;
 
   ml = process->mainb[em];
@@ -1115,7 +1118,7 @@ static void find_first_points(PROCESS *process, const uint em)
             add[0] = it[0] - dir[0];
             add[1] = it[1] - dir[1];
             add[2] = it[2] - dir[2];
-            add = blender::math::min(add, it);
+            add = math::min(add, it);
             add_cube(process, add[0], add[1], add[2]);
             break;
           }
@@ -1227,19 +1230,19 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       continue;
     }
 
-    const MetaBall *mb = static_cast<MetaBall *>(bob->data);
-    LISTBASE_FOREACH (const MetaElem *, ml, (mb->editelems ? mb->editelems : &mb->elems)) {
-      if (ml->flag & MB_HIDE) {
+    const MetaBall *mb = id_cast<MetaBall *>(bob->data);
+    for (const MetaElem &ml : mb->editelems ? *mb->editelems : mb->elems) {
+      if (ml.flag & MB_HIDE) {
         continue;
       }
       float pos[4][4], rot[4][4];
       float expx, expy, expz;
-      blender::float3 tempmin, tempmax;
+      float3 tempmin, tempmax;
 
       /* make a copy because of duplicates */
       MetaElem *new_ml = static_cast<MetaElem *>(
           BLI_memarena_alloc(process->pgn_elements, sizeof(MetaElem)));
-      *(new_ml) = *ml;
+      *(new_ml) = ml;
       new_ml->bb = static_cast<BoundBox *>(
           BLI_memarena_alloc(process->pgn_elements, sizeof(BoundBox)));
       new_ml->mat = static_cast<float *>(
@@ -1249,11 +1252,11 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
       /* too big stiffness seems only ugly due to linear interpolation
        * no need to have possibility for too big stiffness */
-      if (ml->s > 10.0f) {
+      if (ml.s > 10.0f) {
         new_ml->s = 10.0f;
       }
       else {
-        new_ml->s = ml->s;
+        new_ml->s = ml.s;
       }
 
       /* if metaball is negative, set stiffness negative */
@@ -1263,12 +1266,12 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
       /* Translation of MetaElem */
       unit_m4(pos);
-      pos[3][0] = ml->x;
-      pos[3][1] = ml->y;
-      pos[3][2] = ml->z;
+      pos[3][0] = ml.x;
+      pos[3][1] = ml.y;
+      pos[3][2] = ml.z;
 
       /* Rotation of MetaElem is stored in quat */
-      quat_to_mat4(rot, ml->quat);
+      quat_to_mat4(rot, ml.quat);
 
       /* Matrix multiply is as follows:
        *   basis object space ->
@@ -1280,32 +1283,33 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
        */
       mul_m4_series((float (*)[4])new_ml->mat, obinv, bob->object_to_world().ptr(), pos, rot);
       /* ml local space -> basis object space */
-      invert_m4_m4((float (*)[4])new_ml->imat, (float (*)[4])new_ml->mat);
+      invert_m4_m4(reinterpret_cast<float (*)[4]>(new_ml->imat),
+                   reinterpret_cast<float (*)[4]>(new_ml->mat));
 
       /* rad2 is inverse of squared radius */
-      new_ml->rad2 = 1 / (ml->rad * ml->rad);
+      new_ml->rad2 = 1 / (ml.rad * ml.rad);
 
       /* initial dimensions = radius */
-      expx = ml->rad;
-      expy = ml->rad;
-      expz = ml->rad;
+      expx = ml.rad;
+      expy = ml.rad;
+      expz = ml.rad;
 
-      switch (ml->type) {
+      switch (ml.type) {
         case MB_BALL:
           break;
         case MB_CUBE: /* cube is "expanded" by expz, expy and expx */
-          expz += ml->expz;
+          expz += ml.expz;
           ATTR_FALLTHROUGH;
         case MB_PLANE: /* plane is "expanded" by expy and expx */
-          expy += ml->expy;
+          expy += ml.expy;
           ATTR_FALLTHROUGH;
         case MB_TUBE: /* tube is "expanded" by expx */
-          expx += ml->expx;
+          expx += ml.expx;
           break;
         case MB_ELIPSOID: /* ellipsoid is "stretched" by exp* */
-          expx *= ml->expx;
-          expy *= ml->expy;
-          expz *= ml->expz;
+          expx *= ml.expx;
+          expy *= ml.expy;
+          expz *= ml.expz;
           break;
       }
 
@@ -1323,13 +1327,13 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
       /* Transformation of meta-elem bounding-box. */
       for (uint i = 0; i < 8; i++) {
-        mul_m4_v3((float (*)[4])new_ml->mat, new_ml->bb->vec[i]);
+        mul_m4_v3(reinterpret_cast<float (*)[4]>(new_ml->mat), new_ml->bb->vec[i]);
       }
 
       /* Find max and min of transformed bounding-box. */
       INIT_MINMAX(tempmin, tempmax);
       for (uint i = 0; i < 8; i++) {
-        blender::math::min_max(blender::float3(new_ml->bb->vec[i]), tempmin, tempmax);
+        math::min_max(float3(new_ml->bb->vec[i]), tempmin, tempmax);
       }
 
       /* Set only point 0 and 6 - AABB of meta-elem. */
@@ -1361,7 +1365,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   PROCESS process{};
   const bool is_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
 
-  MetaBall *mb = static_cast<MetaBall *>(ob->data);
+  MetaBall *mb = id_cast<MetaBall *>(ob->data);
 
   process.thresh = mb->thresh;
 
@@ -1415,10 +1419,10 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
      * NOTE: Epsilon was 0.0001f but this was giving problems for blood animation for
      * the open movie "Sintel", using 0.00001f. */
     const float eps = 0.00001f;
-    const blender::float4x4 &object_to_world = ob->object_to_world();
+    const float4x4 &object_to_world = ob->object_to_world();
     for (int i = 0; i < 3; i++) {
-      if (blender::math::length_squared(object_to_world[i].xyz()) <
-          blender::math::square(eps * (process.allbb.max[i] - process.allbb.min[i])))
+      if (math::length_squared(object_to_world[i].xyz()) <
+          math::square(eps * (process.allbb.max[i] - process.allbb.min[i])))
       {
         freepolygonize(&process);
         return nullptr;
@@ -1443,8 +1447,8 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   Mesh *mesh = BKE_mesh_new_nomain(int(process.co.size()), 0, int(process.curindex), corners_num);
   mesh->vert_positions_for_write().copy_from(process.co);
-  blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   int loop_offset = 0;
   for (int i = 0; i < mesh->faces_num; i++) {
@@ -1467,9 +1471,11 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   for (int i = 0; i < mesh->verts_num; i++) {
     normalize_v3(process.no[i]);
   }
-  blender::bke::mesh_vert_normals_assign(*mesh, std::move(process.no));
+  bke::mesh_vert_normals_assign(*mesh, std::move(process.no));
 
-  blender::bke::mesh_calc_edges(*mesh, false, false);
+  bke::mesh_calc_edges(*mesh, false, false);
 
   return mesh;
 }
+
+}  // namespace blender

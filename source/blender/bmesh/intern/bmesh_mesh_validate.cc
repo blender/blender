@@ -20,6 +20,8 @@
 
 #  include "bmesh_mesh_validate.hh"
 
+namespace blender {
+
 /* macro which inserts the function name */
 #  if defined __GNUC__
 #    define ERRMSG(format, args...) \
@@ -44,8 +46,8 @@
       (void)0
 #  endif
 
-template<> struct blender::DefaultHash<blender::Set<blender::Vector<int>>> {
-  uint64_t operator()(const blender::Vector<int> &value) const
+template<> struct DefaultHash<Set<Vector<int>>> {
+  uint64_t operator()(const Vector<int> &value) const
   {
     uint64_t hash = 0;
     for (const int v : value) {
@@ -57,7 +59,7 @@ template<> struct blender::DefaultHash<blender::Set<blender::Vector<int>>> {
 
 bool BM_mesh_is_valid(BMesh *bm)
 {
-  blender::Map<blender::OrderedEdge, BMEdge *> edge_hash;
+  Map<OrderedEdge, BMEdge *> edge_hash;
   edge_hash.reserve(bm->totedge);
   int errtot;
 
@@ -138,7 +140,7 @@ bool BM_mesh_is_valid(BMesh *bm)
   }
 
   /* face structure */
-  blender::Map<blender::Vector<int>, int> face_map;
+  Map<Vector<int>, int> face_map;
   BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
     BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
     BMLoop *l_iter;
@@ -211,7 +213,7 @@ bool BM_mesh_is_valid(BMesh *bm)
 
     /* Store ordered face verts, walking over the lowest index first
      * so faces with flipped winding still match. */
-    blender::Vector<int> face_verts;
+    Vector<int> face_verts;
     face_verts.reserve(f_len);
     if (BM_elem_index_get(l_vert_min->next->v) < BM_elem_index_get(l_vert_min->prev->v)) {
       l_iter = l_vert_min;
@@ -243,5 +245,7 @@ bool BM_mesh_is_valid(BMesh *bm)
   ERRMSG("Finished - errors %d", errtot);
   return is_valid;
 }
+
+}  // namespace blender
 
 #endif

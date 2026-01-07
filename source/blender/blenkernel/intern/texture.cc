@@ -29,7 +29,6 @@
 #include "BKE_node_legacy_types.hh"
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
-#include "DNA_defaults.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -56,13 +55,12 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static void texture_init_data(ID *id)
 {
-  Tex *texture = (Tex *)id;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(texture, id));
-
-  MEMCPY_STRUCT_AFTER(texture, DNA_struct_default_get(Tex), id);
+  Tex *texture = id_cast<Tex *>(id);
+  INIT_DEFAULT_STRUCT_AFTER(texture, id);
 
   BKE_imageuser_default(&texture->iuser);
 }
@@ -73,8 +71,8 @@ static void texture_copy_data(Main *bmain,
                               const ID *id_src,
                               const int flag)
 {
-  Tex *texture_dst = (Tex *)id_dst;
-  const Tex *texture_src = (const Tex *)id_src;
+  Tex *texture_dst = id_cast<Tex *>(id_dst);
+  const Tex *texture_src = id_cast<const Tex *>(id_src);
 
   const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* Never handle user-count here for own sub-data. */
@@ -95,8 +93,7 @@ static void texture_copy_data(Main *bmain,
     }
 
     if (is_localized) {
-      texture_dst->nodetree = blender::bke::node_tree_localize(texture_src->nodetree,
-                                                               &texture_dst->id);
+      texture_dst->nodetree = bke::node_tree_localize(texture_src->nodetree, &texture_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
@@ -118,18 +115,18 @@ static void texture_copy_data(Main *bmain,
 
 static void texture_free_data(ID *id)
 {
-  Tex *texture = (Tex *)id;
+  Tex *texture = id_cast<Tex *>(id);
 
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {
-    blender::bke::node_tree_free_embedded_tree(texture->nodetree);
+    bke::node_tree_free_embedded_tree(texture->nodetree);
     MEM_freeN(texture->nodetree);
     texture->nodetree = nullptr;
   }
 
   MEM_SAFE_FREE(texture->coba);
 
-  BKE_icon_id_delete((ID *)texture);
+  BKE_icon_id_delete(id_cast<ID *>(texture));
   BKE_previewimg_free(&texture->preview);
 }
 
@@ -147,7 +144,7 @@ static void texture_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Tex *tex = (Tex *)id;
+  Tex *tex = id_cast<Tex *>(id);
 
   /* write LibData */
   BLO_write_id_struct(writer, Tex, id_address, &tex->id);
@@ -155,15 +152,15 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
   /* direct data */
   if (tex->coba) {
-    BLO_write_struct(writer, ColorBand, tex->coba);
+    writer->write_struct(tex->coba);
   }
 
   /* nodetree is integral part of texture, no libdata */
   if (tex->nodetree) {
     BLO_Write_IDBuffer temp_embedded_id_buffer{tex->nodetree->id, writer};
     BLO_write_struct_at_address(writer, bNodeTree, tex->nodetree, temp_embedded_id_buffer.get());
-    blender::bke::node_tree_blend_write(
-        writer, reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
+    bke::node_tree_blend_write(writer,
+                               reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
   }
 
   BKE_previewimg_blend_write(writer, tex->preview);
@@ -171,7 +168,7 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
 static void texture_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Tex *tex = (Tex *)id;
+  Tex *tex = id_cast<Tex *>(id);
 
   BLO_read_struct(reader, ColorBand, &tex->coba);
 
@@ -224,7 +221,7 @@ void BKE_texture_mtex_foreach_id(LibraryForeachIDData *data, MTex *mtex)
 
 TexMapping *BKE_texture_mapping_add(int type)
 {
-  TexMapping *texmap = MEM_callocN<TexMapping>("TexMapping");
+  TexMapping *texmap = MEM_new_for_free<TexMapping>("TexMapping");
 
   BKE_texture_mapping_default(texmap, type);
 
@@ -327,7 +324,7 @@ void BKE_texture_mapping_init(TexMapping *texmap)
 
 ColorMapping *BKE_texture_colormapping_add()
 {
-  ColorMapping *colormap = MEM_callocN<ColorMapping>("ColorMapping");
+  ColorMapping *colormap = MEM_new_for_free<ColorMapping>("ColorMapping");
 
   BKE_texture_colormapping_default(colormap);
 
@@ -380,7 +377,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 
 void BKE_texture_mtex_default(MTex *mtex)
 {
-  *mtex = blender::dna::shallow_copy(*DNA_struct_default_get(MTex));
+  *mtex = dna::shallow_copy(MTex());
 }
 
 /* ------------------------------------------------------------------------- */
@@ -389,7 +386,7 @@ MTex *BKE_texture_mtex_add()
 {
   MTex *mtex;
 
-  mtex = MEM_callocN<MTex>("BKE_texture_mtex_add");
+  mtex = MEM_new_for_free<MTex>("BKE_texture_mtex_add");
 
   BKE_texture_mtex_default(mtex);
 
@@ -428,7 +425,7 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
   }
 
   if (mtex_ar[slot]) {
-    id_us_min((ID *)mtex_ar[slot]->tex);
+    id_us_min(id_cast<ID *>(mtex_ar[slot]->tex));
     MEM_freeN(mtex_ar[slot]);
     mtex_ar[slot] = nullptr;
   }
@@ -481,15 +478,15 @@ bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 {
   switch (GS(id->name)) {
     case ID_LS:
-      *mtex_ar = ((FreestyleLineStyle *)id)->mtex;
+      *mtex_ar = (id_cast<FreestyleLineStyle *>(id))->mtex;
       if (act) {
-        *act = (((FreestyleLineStyle *)id)->texact);
+        *act = ((id_cast<FreestyleLineStyle *>(id))->texact);
       }
       break;
     case ID_PA:
-      *mtex_ar = ((ParticleSettings *)id)->mtex;
+      *mtex_ar = (id_cast<ParticleSettings *>(id))->mtex;
       if (act) {
-        *act = (((ParticleSettings *)id)->texact);
+        *act = ((id_cast<ParticleSettings *>(id))->texact);
       }
       break;
     default:
@@ -514,10 +511,10 @@ void set_active_mtex(ID *id, short act)
 
   switch (GS(id->name)) {
     case ID_LS:
-      ((FreestyleLineStyle *)id)->texact = act;
+      (id_cast<FreestyleLineStyle *>(id))->texact = act;
       break;
     case ID_PA:
-      ((ParticleSettings *)id)->texact = act;
+      (id_cast<ParticleSettings *>(id))->texact = act;
       break;
     default:
       break;
@@ -647,12 +644,12 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture, bNodeTree *ntree, 
 {
   for (bNode *node : ntree->all_nodes()) {
     if (node->type_legacy == SH_NODE_TEX_IMAGE && node->id != nullptr) {
-      Image *image = (Image *)node->id;
+      Image *image = id_cast<Image *>(node->id);
       BKE_image_pool_acquire_ibuf(image, &texture->iuser, pool);
     }
     else if (node->is_group() && node->id != nullptr) {
       /* TODO(sergey): Do we need to control recursion here? */
-      bNodeTree *nested_tree = (bNodeTree *)node->id;
+      bNodeTree *nested_tree = id_cast<bNodeTree *>(node->id);
       texture_nodes_fetch_images_for_pool(texture, nested_tree, pool);
     }
   }
@@ -671,3 +668,5 @@ void BKE_texture_fetch_images_for_pool(Tex *texture, ImagePool *pool)
     }
   }
 }
+
+}  // namespace blender

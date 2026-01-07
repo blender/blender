@@ -15,15 +15,19 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.h"
 
+namespace blender {
+
 void BKE_id_eval_properties_copy(ID *id_cow, ID *id)
 {
   const ID_Type id_type = GS(id->name);
   BLI_assert((id_cow->tag & ID_TAG_COPIED_ON_EVAL) && !(id->tag & ID_TAG_COPIED_ON_EVAL));
   BLI_assert(ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(id_type));
   if (id_type == ID_ME) {
-    BKE_mesh_copy_parameters((Mesh *)id_cow, (const Mesh *)id);
+    BKE_mesh_copy_parameters(id_cast<Mesh *>(id_cow), id_cast<const Mesh *>(id));
   }
   else {
     BLI_assert_unreachable();
   }
 }
+
+}  // namespace blender

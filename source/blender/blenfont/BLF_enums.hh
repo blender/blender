@@ -10,6 +10,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 enum class FontShadowType {
   None = 0,
   Blur3x3 = 3,
@@ -52,8 +54,6 @@ enum FontFlags {
   BLF_LAST_RESORT = 1 << 15,
   /** Failure to load this font. Don't try again. */
   BLF_BAD_FONT = 1 << 16,
-  /** This font is managed by the FreeType cache subsystem. */
-  BLF_CACHED = 1 << 17,
   /**
    * At small sizes glyphs are rendered at multiple sub-pixel positions.
    *
@@ -65,3 +65,5 @@ enum FontFlags {
   BLF_NO_FALLBACK = 1 << 19,
 };
 ENUM_OPERATORS(FontFlags);
+
+}  // namespace blender

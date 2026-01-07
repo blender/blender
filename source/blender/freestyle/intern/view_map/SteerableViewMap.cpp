@@ -196,7 +196,7 @@ float SteerableViewMap::readSteerableViewMapPixel(uint iOrientation, int iLevel,
 {
   ImagePyramid *pyramid = _imagesPyramids[iOrientation];
   if (!pyramid) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Warning: this steerable ViewMap level doesn't exist" << endl;
     }
     return 0.0f;
@@ -244,7 +244,7 @@ void SteerableViewMap::saveSteerableViewMap() const
     for (int j = 0; j < _imagesPyramids[i]->getNumberOfLevels(); ++j) {  // soc
       float coeff = 1.0f;  // 1 / 255.0f; // 100 * 255; // * pow(2, j);
       // soc QImage qtmp(ow, oh, QImage::Format_RGB32);
-      ImBuf *ibuf = IMB_allocImBuf(ow, oh, 32, IB_byte_data);
+      blender::ImBuf *ibuf = IMB_allocImBuf(ow, oh, 32, blender::IB_byte_data);
       int rowbytes = ow * 4;
       uchar *pix;
 
@@ -265,7 +265,7 @@ void SteerableViewMap::saveSteerableViewMap() const
       // soc qtmp.save(base+QString::number(i)+"-"+QString::number(j)+".png", "PNG");
       filepath << base;
       filepath << i << "-" << j << ".png";
-      ibuf->ftype = IMB_FTYPE_PNG;
+      ibuf->ftype = blender::IMB_FTYPE_PNG;
       IMB_save_image(ibuf, const_cast<char *>(filepath.str().c_str()), 0);
     }
 #if 0

@@ -46,7 +46,7 @@
 
 #include "uvedit_intern.hh"
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name UV Loop Rip Data Struct
@@ -90,7 +90,7 @@ BLI_STATIC_ASSERT(sizeof(ULData) <= sizeof(int), "");
 
 BLI_INLINE ULData *UL(BMLoop *l)
 {
-  return (ULData *)&l->head.index;
+  return reinterpret_cast<ULData *>(&l->head.index);
 }
 
 /** \} */
@@ -230,7 +230,7 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
                                            int *r_edge_index)
 {
   /* Calculate 3 directions, return the shortest angle. */
-  blender::float2 dir_test[3];
+  float2 dir_test[3];
   const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
   const float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l->prev, cd_loop_uv_offset);
   const float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l->next, cd_loop_uv_offset);
@@ -283,7 +283,7 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
 
 struct UVRipSingle {
   /** Walk around the selected UV point, store #BMLoop. */
-  blender::Set<BMLoop *> *loops;
+  Set<BMLoop *> *loops;
 };
 
 /**
@@ -307,7 +307,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
 {
   UVRipSingle *rip = MEM_callocN<UVRipSingle>(__func__);
   const float *co_center = BM_ELEM_CD_GET_FLOAT_P(l_init_orig, cd_loop_uv_offset);
-  rip->loops = MEM_new<blender::Set<BMLoop *>>(__func__);
+  rip->loops = MEM_new<Set<BMLoop *>>(__func__);
 
   /* Track the closest loop, start walking from this so in the event we have multiple
    * disconnected fans, we can rip away loops connected to this one. */
@@ -433,7 +433,7 @@ static void uv_rip_single_free(UVRipSingle *rip)
 
 struct UVRipPairs {
   /** Walk along the UV selection, store #BMLoop. */
-  blender::Set<BMLoop *> *loops;
+  Set<BMLoop *> *loops;
 };
 
 static void uv_rip_pairs_add(UVRipPairs *rip, BMLoop *l)
@@ -557,7 +557,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
                                           const int cd_loop_uv_offset)
 {
   UVRipPairs *rip = MEM_callocN<UVRipPairs>(__func__);
-  rip->loops = MEM_new<blender::Set<BMLoop *>>(__func__);
+  rip->loops = MEM_new<Set<BMLoop *>>(__func__);
 
   /* We can rely on this stack being small, as we're walking down two sides of an edge loop,
    * so the stack won't be much larger than the total number of fans at any one vertex. */
@@ -968,7 +968,7 @@ static wmOperatorStatus uv_rip_invoke(bContext *C, wmOperator *op, const wmEvent
   ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   return uv_rip_exec(C, op);
@@ -988,7 +988,7 @@ void UV_OT_rip(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit;
 
   /* translation data */
-  blender::ed::transform::properties_register(ot, P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_MIRROR_DUMMY);
 
   /* properties */
   RNA_def_float_vector(
@@ -1005,3 +1005,5 @@ void UV_OT_rip(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

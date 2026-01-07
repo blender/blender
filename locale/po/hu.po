@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -3629,6 +3629,22 @@ msgid "Menu"
 msgstr "Menü"
 
 
+msgid "Font"
+msgstr "Betűkészlet"
+
+
+msgid "Text"
+msgstr "Szöveg"
+
+
+msgid "Mask"
+msgstr "Maszk"
+
+
+msgid "Sound"
+msgstr "Hang"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle vonalkészlet"
 
@@ -4281,10 +4297,6 @@ msgstr "Hozzárendelés típusa"
 
 msgid "Path"
 msgstr "Útvonal"
-
-
-msgid "Font"
-msgstr "Betűkészlet"
 
 
 msgid "Text Selected"
@@ -5444,10 +5456,6 @@ msgid "Attenuation"
 msgstr "Gyengítés"
 
 
-msgid "Sound"
-msgstr "Hang"
-
-
 msgid "Memory"
 msgstr "Memória"
 
@@ -6569,18 +6577,6 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Mask"
-msgstr "Maszk"
-
-
-msgid "Apply"
-msgstr "Elfogadás"
-
-
-msgid "Track"
-msgstr "Nyom"
-
-
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
@@ -6589,24 +6585,8 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
-
-
-msgid "Keying"
-msgstr "Kulcsozás"
-
-
-msgid "Tracking"
-msgstr "Követés"
-
-
-msgid "Text"
-msgstr "Szöveg"
-
-
-msgid "Metaball"
-msgstr "Meta test"
+msgid "Import"
+msgstr "Importálás"
 
 
 msgid "Mirror"
@@ -6625,12 +6605,12 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "Import"
-msgstr "Importálás"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Light"
@@ -6643,6 +6623,26 @@ msgstr "Kapcsolatok"
 
 msgid "Rigid Body"
 msgstr "Szilárd test"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Track"
+msgstr "Nyom"
+
+
+msgid "Keying"
+msgstr "Kulcsozás"
+
+
+msgid "Tracking"
+msgstr "Követés"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"

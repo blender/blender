@@ -69,7 +69,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveToPoints *data = MEM_callocN<NodeGeometryCurveToPoints>(__func__);
+  NodeGeometryCurveToPoints *data = MEM_new_for_free<NodeGeometryCurveToPoints>(__func__);
 
   data->mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
   node->storage = data;
@@ -195,7 +195,7 @@ static void layer_pointclouds_to_instances(const Span<PointCloud *> pointcloud_b
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveToPoints &storage = node_storage(params.node());
-  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
+  const GeometryNodeCurveResampleMode mode = GeometryNodeCurveResampleMode(storage.mode);
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
@@ -367,7 +367,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeCurveToPoints", GEO_NODE_CURVE_TO_POINTS);
   ntype.ui_name = "Curve to Points";
@@ -377,10 +377,10 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveToPoints", node_free_standard_storage, node_copy_standard_storage);
   ntype.initfunc = node_init;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

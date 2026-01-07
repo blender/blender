@@ -18,7 +18,9 @@
 #include "COM_node_operation.hh"
 #include "COM_result.hh"
 
-namespace blender::nodes::node_geo_enable_output_cc {
+namespace blender {
+
+namespace nodes::node_geo_enable_output_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -110,7 +112,7 @@ class EnableOutputOperation : public NodeOperation {
 
   void execute() override
   {
-    const bool keep = this->get_input("Enable").get_single_value_default<bool>(true);
+    const bool keep = this->get_input("Enable").get_single_value_default<bool>();
     Result &output = this->get_result("Value");
     if (keep) {
       const Result &input = this->get_input("Value");
@@ -154,7 +156,7 @@ static const EnumPropertyItem *data_type_items_callback(bContext * /*C*/,
 {
   *r_free = true;
   const bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  blender::bke::bNodeTreeType *ntree_type = ntree.typeinfo;
+  bke::bNodeTreeType *ntree_type = ntree.typeinfo;
   return enum_items_filter(
       rna_enum_node_socket_data_type_items, [&](const EnumPropertyItem &item) -> bool {
         bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(item.value);
@@ -184,7 +186,7 @@ static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_cmp_node_type_base(&ntype, "NodeEnableOutput");
   ntype.ui_name = "Enable Output";
@@ -197,15 +199,15 @@ static void node_register()
   ntype.get_compositor_operation = node_get_compositor_operation;
   ntype.get_extra_info = node_extra_info;
   ntype.internally_linked_input = node_internally_linked_input;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_geo_enable_output_cc
+}  // namespace nodes::node_geo_enable_output_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 std::unique_ptr<LazyFunction> get_enable_output_node_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info)
@@ -215,4 +217,5 @@ std::unique_ptr<LazyFunction> get_enable_output_node_lazy_function(
       node, own_lf_graph_info.mapping.lf_index_by_bsocket);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

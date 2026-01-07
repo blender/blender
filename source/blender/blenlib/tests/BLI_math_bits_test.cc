@@ -6,6 +6,8 @@
 #include "BLI_sys_types.h"
 #include "testing/testing.h"
 
+namespace blender {
+
 TEST(math_bits, BitscanReverseClearUint)
 {
   uint a = 1234;
@@ -80,3 +82,5 @@ TEST(math_bits, PopCount)
     EXPECT_EQ(count, 64);
   }
 }
+
+}  // namespace blender

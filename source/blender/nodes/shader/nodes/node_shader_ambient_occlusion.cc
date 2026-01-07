@@ -9,7 +9,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_ambient_occlusion_cc {
+namespace blender {
+
+namespace nodes::node_shader_ambient_occlusion_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -24,9 +26,9 @@ static void node_shader_buts_ambient_occlusion(ui::Layout &layout,
                                                bContext * /*C*/,
                                                PointerRNA *ptr)
 {
-  layout.prop(ptr, "samples", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "inside", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "only_local", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "samples", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "inside", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "only_local", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,
@@ -76,14 +78,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_ambient_occlusion_cc
+}  // namespace nodes::node_shader_ambient_occlusion_cc
 
 /* node type definition */
 void register_node_type_sh_ambient_occlusion()
 {
-  namespace file_ns = blender::nodes::node_shader_ambient_occlusion_cc;
+  namespace file_ns = nodes::node_shader_ambient_occlusion_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeAmbientOcclusion", SH_NODE_AMBIENT_OCCLUSION);
   ntype.ui_name = "Ambient Occlusion";
@@ -98,5 +100,7 @@ void register_node_type_sh_ambient_occlusion()
   ntype.gpu_fn = file_ns::node_shader_gpu_ambient_occlusion;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

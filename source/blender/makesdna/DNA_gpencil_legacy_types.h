@@ -12,98 +12,22 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct AnimData;
 struct MDeformVert;
 
-#define GP_DEFAULT_PIX_FACTOR 1.0f
-#define GP_DEFAULT_GRID_LINES 4
-#define GP_MAX_INPUT_SAMPLES 10
-
-#define GP_DEFAULT_CURVE_RESOLUTION 32
-#define GP_DEFAULT_CURVE_ERROR 0.1f
-#define GP_DEFAULT_CURVE_EDIT_CORNER_ANGLE M_PI_2
-
-#define GPENCIL_MIN_FILL_FAC 0.05f
-#define GPENCIL_MAX_FILL_FAC 8.0f
-
-/**
- * Grease-Pencil Annotations - 'Stroke Point'
- * -> Coordinates may either be 2d or 3d depending on settings at the time
- * -> Coordinates of point on stroke, in proportions of window size
- *    This assumes that the bottom-left corner is (0,0)
- */
-typedef struct bGPDspoint {
-  DNA_DEFINE_CXX_METHODS(bGPDspoint)
-
-  /** Co-ordinates of point (usually 2d, but can be 3d as well). */
-  float x, y, z;
-  /** Pressure of input device (from 0 to 1) at this point. */
-  float pressure;
-  /** Color strength (used for alpha factor). */
-  float strength;
-  /** Seconds since start of stroke. */
-  float time;
-  /** Additional options. */
-  int flag;
-
-  /** Factor of uv along the stroke. */
-  float uv_fac;
-  /** UV rotation for dot mode. */
-  float uv_rot;
-  /** UV for fill mode */
-  float uv_fill[2];
-
-  /** Vertex Color RGBA (A=mix factor). */
-  float vert_color[4];
-
-  /** Runtime data */
-  char _pad2[4];
-} bGPDspoint;
-
 /** #bGPDspoint.flag */
-typedef enum eGPDspoint_Flag {
+enum eGPDspoint_Flag {
   /* stroke point is selected (for editing) */
   GP_SPOINT_SELECT = (1 << 0),
 
   /* stroke point is tagged (for some editing operation) */
   GP_SPOINT_TAG = (1 << 1),
-} eGPSPoint_Flag;
-
-/* ***************************************** */
-/* GP Fill - Triangle Tessellation Data */
-
-/* Grease-Pencil Annotations - 'Triangle'
- * -> A triangle contains the index of three vertices for filling the stroke
- *    This is only used if high quality fill is enabled
- */
-typedef struct bGPDtriangle {
-  /* indices for tessellated triangle used for GP Fill */
-  unsigned int verts[3];
-} bGPDtriangle;
-
-/* ***************************************** */
-
-/* ***************************************** */
-/* GP Palettes (Deprecated - 2.78 - 2.79 only) */
-
-/* color of palettes */
-typedef struct bGPDpalettecolor {
-  DNA_DEFINE_CXX_METHODS(bGPDpalettecolor)
-
-  struct bGPDpalettecolor *next, *prev;
-  /** Color name. Must be unique. */
-  char info[64];
-  float color[4];
-  /** Color that should be used for drawing "fills" for strokes. */
-  float fill[4];
-  /** Settings for palette color. */
-  short flag;
-  /** Padding for compiler alignment error. */
-  char _pad[6];
-} bGPDpalettecolor;
+};
 
 /** #bGPDpalettecolor.flag */
-typedef enum eGPDpalettecolor_Flag {
+enum eGPDpalettecolor_Flag {
   /* color is active */
   /* PC_COLOR_ACTIVE = (1 << 0), */ /* UNUSED */
   /* don't display color */
@@ -114,183 +38,29 @@ typedef enum eGPDpalettecolor_Flag {
   PC_COLOR_ONIONSKIN = (1 << 3),
   /* "volumetric" strokes */
   PC_COLOR_VOLUMETRIC = (1 << 4),
-} eGPDpalettecolor_Flag;
-
-/* palette of colors */
-typedef struct bGPDpalette {
-  DNA_DEFINE_CXX_METHODS(bGPDpalette)
-
-  struct bGPDpalette *next, *prev;
-
-  /** Pointer to individual colors. */
-  ListBase colors;
-  /** Palette name. Must be unique. */
-  char info[64];
-
-  short flag;
-  char _pad[6];
-} bGPDpalette;
+};
 
 /** #bGPDpalette.flag */
-typedef enum eGPDpalette_Flag {
+enum eGPDpalette_Flag {
   /* palette is active */
   PL_PALETTE_ACTIVE = (1 << 0),
-} eGPDpalette_Flag;
-
-/* ***************************************** */
-/* GP Curve Point */
-
-typedef struct bGPDcurve_point {
-  /** Bezier Triple for the handles and control points. */
-  BezTriple bezt;
-  /** Pressure of input device (from 0 to 1) at this point. */
-  float pressure;
-  /** Color strength (used for alpha factor). */
-  float strength;
-  /** Index of corresponding point in gps->points. */
-  int point_index;
-
-  /** Additional options. */
-  int flag;
-
-  /** Factor of uv along the stroke. */
-  float uv_fac;
-  /** UV rotation for dot mode. */
-  float uv_rot;
-  /** UV for fill mode. */
-  float uv_fill[2];
-
-  /** Vertex Color RGBA (A=mix factor). */
-  float vert_color[4];
-  char _pad[4];
-} bGPDcurve_point;
+};
 
 /* bGPDcurve_point->flag */
-typedef enum eGPDcurve_point_Flag {
+enum eGPDcurve_point_Flag {
   GP_CURVE_POINT_SELECT = (1 << 0),
-} eGPDcurve_point_Flag;
-
-/* ***************************************** */
-/* GP Curve */
-
-/* Curve for Bezier Editing. */
-typedef struct bGPDcurve {
-  DNA_DEFINE_CXX_METHODS(bGPDcurve)
-
-  /** Array of BezTriple. */
-  bGPDcurve_point *curve_points;
-  /** Total number of curve points. */
-  int tot_curve_points;
-  /** General flag. */
-  short flag;
-  char _pad[2];
-} bGPDcurve;
+};
 
 /* bGPDcurve_Flag->flag */
-typedef enum bGPDcurve_Flag {
+enum bGPDcurve_Flag {
   /* Flag to indicated that the stroke data has been changed and the curve needs to be refitted */
   GP_CURVE_NEEDS_STROKE_UPDATE = (1 << 0),
   /* Curve is selected */
   GP_CURVE_SELECT = (1 << 1),
-} bGPDcurve_Flag;
-
-/* ***************************************** */
-/* GP Strokes */
-
-/* Runtime temp data for bGPDstroke */
-typedef struct bGPDstroke_Runtime {
-  DNA_DEFINE_CXX_METHODS(bGPDstroke_Runtime)
-
-  /** temporary layer name only used during copy/paste to put the stroke in the original layer */
-  char tmp_layerinfo[128];
-
-  /** Runtime falloff factor (only for transform). */
-  float multi_frame_falloff;
-
-  /** Triangle offset in the IBO where this stroke starts. */
-  int stroke_start;
-  /** Triangle offset in the IBO where this fill starts. */
-  int fill_start;
-  /** Vertex offset in the VBO where this stroke starts. */
-  int vertex_start;
-  /** Curve Handles offset in the IBO where this handle starts. */
-  int curve_start;
-  int _pad0;
-
-  /** Original stroke (used to dereference evaluated data) */
-  struct bGPDstroke *gps_orig;
-  void *_pad2;
-} bGPDstroke_Runtime;
-
-/**
- * Grease-Pencil Annotations - 'Stroke'
- * -> A stroke represents a (simplified version) of the curve
- *    drawn by the user in one 'mouse-down'->'mouse-up' operation
- */
-typedef struct bGPDstroke {
-  DNA_DEFINE_CXX_METHODS(bGPDstroke)
-
-  struct bGPDstroke *next, *prev;
-
-  /** Array of data-points for stroke. */
-  bGPDspoint *points;
-  /** Tessellated triangles for GP Fill. */
-  bGPDtriangle *triangles;
-  /** Number of data-points in array. */
-  int totpoints;
-  /** Number of triangles in array. */
-  int tot_triangles;
-
-  /** Thickness of stroke. */
-  short thickness;
-  /** Various settings about this stroke. */
-  short flag, _pad[2];
-
-  /** Init time of stroke. */
-  double inittime;
-
-  /** Color name. */
-  char colorname[128] DNA_DEPRECATED;
-
-  /** Material index. */
-  int mat_nr;
-  /** Caps mode for each stroke extreme */
-  short caps[2];
-
-  /** gradient control along y for color */
-  float hardness;
-  /** factor xy of shape for dots gradients */
-  float aspect_ratio[2];
-
-  /** Factor of opacity for Fill color (used by opacity modifier). */
-  float fill_opacity_fac;
-
-  /** UV rotation */
-  float uv_rotation;
-  /** UV translation (X and Y axis) */
-  float uv_translation[2];
-  float uv_scale;
-
-  /** Stroke selection index. */
-  int select_index;
-  char _pad4[4];
-
-  /** Vertex weight data. */
-  struct MDeformVert *dvert;
-  void *_pad3;
-
-  /** Vertex Color for Fill (one for all stroke, A=mix factor). */
-  float vert_color_fill[4];
-
-  /** Curve used to edit the stroke using Bezier handlers. */
-  struct bGPDcurve *editcurve;
-
-  bGPDstroke_Runtime runtime;
-  void *_pad5;
-} bGPDstroke;
+};
 
 /** #bGPDstroke.flag */
-typedef enum eGPDstroke_Flag {
+enum eGPDstroke_Flag {
   /* stroke is in 3d-space */
   GP_STROKE_3DSPACE = (1 << 0),
   /* stroke is in 2d-space */
@@ -319,194 +89,47 @@ typedef enum eGPDstroke_Flag {
   GP_STROKE_TAG = (1 << 14),
   /* only for use with stroke-buffer (while drawing eraser) */
   GP_STROKE_ERASER = (1 << 15),
-} eGPDstroke_Flag;
+};
 
 /** #bGPDstroke.caps */
-typedef enum eGPDstroke_Caps {
+enum eGPDstroke_Caps {
   /* type of extreme */
   GP_STROKE_CAP_ROUND = 0,
   GP_STROKE_CAP_FLAT = 1,
 
   /* Keep last. */
   GP_STROKE_CAP_MAX,
-} GPDstroke_Caps;
-
-/* Arrows ----------------------- */
+};
 
 /** #bGPDataRuntime.arrowstyle */
-typedef enum eGPDstroke_Arrowstyle {
+enum eGPDstroke_Arrowstyle {
   GP_STROKE_ARROWSTYLE_NONE = 0,
   GP_STROKE_ARROWSTYLE_SEGMENT = 2,
   GP_STROKE_ARROWSTYLE_OPEN = 3,
   GP_STROKE_ARROWSTYLE_CLOSED = 4,
   GP_STROKE_ARROWSTYLE_SQUARE = 6,
-} eGPDstroke_Arrowstyle;
-
-/* ***************************************** */
-/* GP Frame */
-
-/* Runtime temp data for bGPDframe */
-typedef struct bGPDframe_Runtime {
-  DNA_DEFINE_CXX_METHODS(bGPDframe_Runtime)
-
-  /** Index of this frame in the listbase of frames. */
-  int frameid;
-  /** Onion offset from active frame. 0 if not onion. INT_MAX to bypass frame. */
-  int onion_id;
-} bGPDframe_Runtime;
-
-/**
- * Grease-Pencil Annotations - 'Frame'
- * -> Acts as storage for the 'image' formed by strokes
- */
-typedef struct bGPDframe {
-  DNA_DEFINE_CXX_METHODS(bGPDframe)
-
-  struct bGPDframe *next, *prev;
-
-  /** List of the simplified 'strokes' that make up the frame's data. */
-  ListBase strokes;
-
-  /** Frame number of this frame. */
-  int framenum;
-
-  /** Temp settings. */
-  short flag;
-  /** Keyframe type (eBezTriple_KeyframeType). */
-  short key_type;
-
-  bGPDframe_Runtime runtime;
-} bGPDframe;
+};
 
 /* bGPDframe->flag */
-typedef enum eGPDframe_Flag {
+enum eGPDframe_Flag {
   /* frame is being painted on */
   GP_FRAME_PAINT = (1 << 0),
   /* for editing in Action Editor */
   GP_FRAME_SELECT = (1 << 1),
   /* Line Art generation */
   GP_FRAME_LRT_CLEARED = (1 << 2),
-} eGPDframe_Flag;
-
-/* ***************************************** */
-/* GP Layer */
-
-/* List of masking layers. */
-typedef struct bGPDlayer_Mask {
-  DNA_DEFINE_CXX_METHODS(bGPDlayer_Mask)
-
-  struct bGPDlayer_Mask *next, *prev;
-  char name[128];
-  short flag;
-  /** Index for sorting. Only valid while sorting algorithm is running. */
-  short sort_index;
-  char _pad[4];
-} bGPDlayer_Mask;
+};
 
 /* bGPDlayer_Mask->flag */
-typedef enum ebGPDlayer_Mask_Flag {
+enum ebGPDlayer_Mask_Flag {
   /* Mask is hidden. */
   GP_MASK_HIDE = (1 << 0),
   /* Mask is inverted. */
   GP_MASK_INVERT = (1 << 1),
-} ebGPDlayer_Mask_Flag;
-
-/** Runtime temp data for #bGPDlayer. */
-typedef struct bGPDlayer_Runtime {
-  DNA_DEFINE_CXX_METHODS(bGPDlayer_Runtime)
-
-  /** Id for dynamic icon used to show annotation color preview for layer. */
-  int icon_id;
-  char _pad[4];
-} bGPDlayer_Runtime;
-
-/** Grease-Pencil Annotations - 'Layer'. */
-typedef struct bGPDlayer {
-  DNA_DEFINE_CXX_METHODS(bGPDlayer)
-
-  struct bGPDlayer *next, *prev;
-
-  /** List of annotations to display for frames (bGPDframe list). */
-  ListBase frames;
-  /** Active frame (should be the frame that is currently being displayed). */
-  bGPDframe *actframe;
-
-  /** Settings for layer. */
-  short flag;
-  /** Per-layer onion-skinning flags (eGPDlayer_OnionFlag). */
-  short onion_flag;
-
-  /** Color for strokes in layers. Used for annotations, and for ruler
-   * (which uses GPencil internally). */
-  float color[4];
-  /** Fill color for strokes in layers. Not used anymore (was only for). */
-  float fill[4];
-
-  /** Name/reference info for this layer (i.e. "director's comments, 12/.3")
-   * needs to be kept unique, as it's used as the layer identifier */
-  char info[128];
-
-  /** Thickness to apply to strokes (Annotations). */
-  short thickness;
-  /** Used to filter groups of layers in modifiers. */
-  short pass_index;
-
-  /** Parent object. */
-  struct Object *parent;
-  /** Inverse matrix (only used if parented). */
-  float inverse[4][4];
-  /** String describing sub-object info. */
-  char parsubstr[/*MAX_NAME*/ 64];
-  short partype;
-
-  /** Thickness adjustment. */
-  short line_change;
-  /** Color used to tint layer, alpha value is used as factor. */
-  float tintcolor[4];
-  /** Opacity of the layer. */
-  float opacity;
-  /** Name of the layer used to filter render output. */
-  char viewlayername[64];
-
-  /** Blend modes. */
-  int blend_mode;
-  /** Vertex Paint opacity by Layer. */
-  float vertex_paint_opacity;
-
-  /* annotation onion skin */
-  /**
-   * Ghosts Before: max number of ghost frames to show between
-   * active frame and the one before it (0 = only the ghost itself).
-   */
-  short gstep;
-  /**
-   * Ghosts After: max number of ghost frames to show after
-   * active frame and the following it    (0 = only the ghost itself).
-   */
-  short gstep_next;
-
-  /** Color for ghosts before the active frame. */
-  float gcolor_prev[3];
-  /** Color for ghosts after the active frame. */
-  float gcolor_next[3];
-  char _pad1[4];
-
-  /** Mask list (bGPDlayer_Mask). */
-  ListBase mask_layers;
-  /** Current Mask index (noted base 1). */
-  int act_mask;
-  char _pad2[4];
-
-  /** Layer transforms. */
-  float location[3], rotation[3], scale[3];
-  float layer_mat[4][4], layer_invmat[4][4];
-  char _pad3[4];
-
-  bGPDlayer_Runtime runtime;
-} bGPDlayer;
+};
 
 /* bGPDlayer->flag */
-typedef enum eGPDlayer_Flag {
+enum eGPDlayer_Flag {
   /* don't display layer */
   GP_LAYER_HIDE = (1 << 0),
   /* protected from further editing */
@@ -535,169 +158,24 @@ typedef enum eGPDlayer_Flag {
   GP_LAYER_IS_RULER = (1 << 14),
   /* Disable masks in view-layer render */
   GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER = (1 << 15),
-} eGPDlayer_Flag;
+};
 
 /** #bGPDlayer.onion_flag */
-typedef enum eGPDlayer_OnionFlag {
+enum eGPDlayer_OnionFlag {
   /* do onion skinning */
   GP_LAYER_ONIONSKIN = (1 << 0),
   GP_LAYER_ONIONSKIN_CUSTOM_COLOR = (1 << 1),
-} eGPDlayer_OnionFlag;
+};
 
 /** #bGPDlayer.blend_mode */
-typedef enum eGPLayerBlendModes {
+enum eGPLayerBlendModes {
   eGplBlendMode_Regular = 0,
   eGplBlendMode_HardLight = 1,
   eGplBlendMode_Add = 2,
   eGplBlendMode_Subtract = 3,
   eGplBlendMode_Multiply = 4,
   eGplBlendMode_Divide = 5,
-} eGPLayerBlendModes;
-
-/* ***************************************** */
-/* GP Datablock */
-
-/* Runtime temp data for bGPdata */
-typedef struct bGPdata_Runtime {
-  DNA_DEFINE_CXX_METHODS(bGPdata_Runtime)
-
-  /** Stroke buffer. */
-  void *sbuffer;
-
-  /** Animation playing flag. */
-  short playing;
-
-  /** Material index of the stroke. */
-  short matid;
-
-  /* Stroke Buffer data (only used during paint-session)
-   * - buffer must be initialized before use, but freed after
-   *   whole paint operation is over
-   */
-  /** Flags for stroke that cache represents. */
-  short sbuffer_sflag;
-  char _pad1[2];
-  /** Number of elements currently used in cache. */
-  int sbuffer_used;
-  /** Number of total elements available in cache. */
-  int sbuffer_size;
-
-  /** Vertex Color applied to Fill (while drawing). */
-  float vert_color_fill[4];
-
-  /** Opacity for fills while drawing. */
-  float fill_opacity_fac;
-
-  /** Arrow points for stroke corners. */
-  float arrow_start[8];
-  float arrow_end[8];
-  /* Arrow style for each corner */
-  int arrow_start_style;
-  int arrow_end_style;
-
-  char _pad[4];
-} bGPdata_Runtime;
-
-/* grid configuration */
-typedef struct bGPgrid {
-  float color[3];
-  float scale[2];
-  float offset[2];
-  char _pad1[4];
-
-  int lines;
-  char _pad[4];
-} bGPgrid;
-
-/** Grease-Pencil Annotations - 'DataBlock'. */
-typedef struct bGPdata {
-#ifdef __cplusplus
-  DNA_DEFINE_CXX_METHODS(bGPdata)
-  /** See #ID_Type comment for why this is here. */
-  static constexpr ID_Type id_type = ID_GD_LEGACY;
-#endif
-
-  /** Grease Pencil data is a data-block. */
-  ID id;
-  /** Animation data - for animating draw settings. */
-  struct AnimData *adt;
-
-  /* Grease-Pencil data */
-  /** bGPDlayer. */
-  ListBase layers;
-  /** Settings for this data-block. */
-  int flag;
-  /** Default resolution for generated curves using curve editing method. */
-  int curve_edit_resolution;
-  /** Curve Editing error threshold. */
-  float curve_edit_threshold;
-  /** Curve Editing corner angle (less or equal is treated as corner). */
-  float curve_edit_corner_angle;
-
-  /* Palettes */
-  /** List of bGPDpalette's   - Deprecated (2.78 - 2.79 only). */
-  ListBase palettes DNA_DEPRECATED;
-
-  /** List of bDeformGroup names and flag only. */
-  ListBase vertex_group_names;
-
-  /* 3D Viewport/Appearance Settings */
-  /** Factor to define pixel size conversion. */
-  float pixfactor;
-  /** Color for edit line. */
-  float line_color[4];
-
-  /* Onion skinning */
-  /** Onion alpha factor change. */
-  float onion_factor;
-  /** Onion skinning range (eGP_OnionModes). */
-  int onion_mode;
-  /** Onion skinning flags (eGPD_OnionFlag). */
-  int onion_flag;
-  /**
-   * Ghosts Before: max number of ghost frames to show between
-   * active frame and the one before it (0 = only the ghost itself).
-   */
-  short gstep;
-  /**
-   * Ghosts After: max number of ghost frames to show after
-   * active frame and the following it (0 = only the ghost itself).
-   */
-  short gstep_next;
-
-  /** Optional color for ghosts before the active frame. */
-  float gcolor_prev[3];
-  /** Optional color for ghosts after the active frame. */
-  float gcolor_next[3];
-
-  /** Offset for drawing over surfaces to keep strokes on top. */
-  float zdepth_offset;
-  /** Materials array. */
-  struct Material **mat;
-  /** Total materials. */
-  short totcol;
-
-  /* stats */
-  short totlayer;
-  short totframe;
-  char _pad2[6];
-  int totstroke;
-  int totpoint;
-
-  /** Draw mode for strokes (eGP_DrawMode). */
-  short draw_mode;
-  /** Keyframe type for onion filter  (eBezTriple_KeyframeType plus All option) */
-  short onion_keytype;
-
-  /** Stroke selection last index. Used to generate a unique selection index. */
-  int select_last_index;
-
-  int vertex_group_active_index;
-
-  bGPgrid grid;
-
-  bGPdata_Runtime runtime;
-} bGPdata;
+};
 
 /**
  * #bGPdata.flag
@@ -706,7 +184,7 @@ typedef struct bGPdata {
  *       since they have been made redundant by interaction
  *       changes made during the porting process.
  */
-typedef enum eGPdata_Flag {
+enum eGPdata_Flag {
   /* data-block is used for "annotations"
    * NOTE: This flag used to be used in 2.4x, but should hardly ever have been set.
    *       We can use this freely now, as all GP data-blocks from pre-2.8 will get
@@ -766,10 +244,10 @@ typedef enum eGPdata_Flag {
   GP_DATA_CURVE_EDIT_MODE = (1 << 21),
   /* Use adaptive curve resolution */
   GP_DATA_CURVE_ADAPTIVE_RESOLUTION = (1 << 22),
-} eGPdata_Flag;
+};
 
 /* gpd->onion_flag */
-typedef enum eGPD_OnionFlag {
+enum eGPD_OnionFlag {
   /* use custom color for ghosts before current frame */
   GP_ONION_GHOST_PREVCOL = (1 << 0),
   /* use custom color for ghosts after current frame */
@@ -780,23 +258,549 @@ typedef enum eGPD_OnionFlag {
   GP_ONION_FADE = (1 << 3),
   /* Loop showing first frame after last frame */
   GP_ONION_LOOP = (1 << 4),
-} eGPD_OnionFlag;
+};
 
 /* gpd->onion_mode */
-typedef enum eGP_OnionModes {
+enum eGP_OnionModes {
   GP_ONION_MODE_ABSOLUTE = 0,
   GP_ONION_MODE_RELATIVE = 1,
   GP_ONION_MODE_SELECTED = 2,
-} eGP_OnionModes;
+};
 
 /* X-ray modes (Depth Ordering). */
-typedef enum eGP_DepthOrdering {
+enum eGP_DepthOrdering {
   GP_XRAY_FRONT = 0,
   GP_XRAY_3DSPACE = 1,
-} eGP_DepthOrdering;
+};
 
 /* draw modes (Use 2D or 3D position) */
-typedef enum eGP_DrawMode {
+enum eGP_DrawMode {
   GP_DRAWMODE_2D = 0,
   GP_DRAWMODE_3D = 1,
-} eGP_DrawMode;
+};
+
+#define GP_DEFAULT_PIX_FACTOR 1.0f
+#define GP_DEFAULT_GRID_LINES 4
+#define GP_MAX_INPUT_SAMPLES 10
+
+#define GP_DEFAULT_CURVE_RESOLUTION 32
+#define GP_DEFAULT_CURVE_ERROR 0.1f
+#define GP_DEFAULT_CURVE_EDIT_CORNER_ANGLE M_PI_2
+
+#define GPENCIL_MIN_FILL_FAC 0.05f
+#define GPENCIL_MAX_FILL_FAC 8.0f
+
+/**
+ * Grease-Pencil Annotations - 'Stroke Point'
+ * -> Coordinates may either be 2d or 3d depending on settings at the time
+ * -> Coordinates of point on stroke, in proportions of window size
+ *    This assumes that the bottom-left corner is (0,0)
+ */
+struct bGPDspoint {
+  DNA_DEFINE_CXX_METHODS(bGPDspoint)
+
+  /** Co-ordinates of point (usually 2d, but can be 3d as well). */
+  float x = 0, y = 0, z = 0;
+  /** Pressure of input device (from 0 to 1) at this point. */
+  float pressure = 0;
+  /** Color strength (used for alpha factor). */
+  float strength = 0;
+  /** Seconds since start of stroke. */
+  float time = 0;
+  /** Additional options. */
+  int flag = 0;
+
+  /** Factor of uv along the stroke. */
+  float uv_fac = 0;
+  /** UV rotation for dot mode. */
+  float uv_rot = 0;
+  /** UV for fill mode */
+  float uv_fill[2] = {};
+
+  /** Vertex Color RGBA (A=mix factor). */
+  float vert_color[4] = {};
+
+  /** Runtime data */
+  char _pad2[4] = {};
+};
+
+/* ***************************************** */
+/* GP Fill - Triangle Tessellation Data */
+
+/* Grease-Pencil Annotations - 'Triangle'
+ * -> A triangle contains the index of three vertices for filling the stroke
+ *    This is only used if high quality fill is enabled
+ */
+struct bGPDtriangle {
+  /* indices for tessellated triangle used for GP Fill */
+  unsigned int verts[3] = {};
+};
+
+/* ***************************************** */
+
+/* ***************************************** */
+/* GP Palettes (Deprecated - 2.78 - 2.79 only) */
+
+/* color of palettes */
+struct bGPDpalettecolor {
+  DNA_DEFINE_CXX_METHODS(bGPDpalettecolor)
+
+  struct bGPDpalettecolor *next = nullptr, *prev = nullptr;
+  /** Color name. Must be unique. */
+  char info[64] = "";
+  float color[4] = {};
+  /** Color that should be used for drawing "fills" for strokes. */
+  float fill[4] = {};
+  /** Settings for palette color. */
+  short flag = 0;
+  /** Padding for compiler alignment error. */
+  char _pad[6] = {};
+};
+
+/* palette of colors */
+struct bGPDpalette {
+  DNA_DEFINE_CXX_METHODS(bGPDpalette)
+
+  struct bGPDpalette *next = nullptr, *prev = nullptr;
+
+  /** Pointer to individual colors. */
+  ListBaseT<bGPDpalettecolor> colors = {nullptr, nullptr};
+  /** Palette name. Must be unique. */
+  char info[64] = "";
+
+  short flag = 0;
+  char _pad[6] = {};
+};
+
+/* ***************************************** */
+/* GP Curve Point */
+
+struct bGPDcurve_point {
+  /** Bezier Triple for the handles and control points. */
+  BezTriple bezt = {};
+  /** Pressure of input device (from 0 to 1) at this point. */
+  float pressure = 0;
+  /** Color strength (used for alpha factor). */
+  float strength = 0;
+  /** Index of corresponding point in gps->points. */
+  int point_index = 0;
+
+  /** Additional options. */
+  int flag = 0;
+
+  /** Factor of uv along the stroke. */
+  float uv_fac = 0;
+  /** UV rotation for dot mode. */
+  float uv_rot = 0;
+  /** UV for fill mode. */
+  float uv_fill[2] = {};
+
+  /** Vertex Color RGBA (A=mix factor). */
+  float vert_color[4] = {};
+  char _pad[4] = {};
+};
+
+/* ***************************************** */
+/* GP Curve */
+
+/* Curve for Bezier Editing. */
+struct bGPDcurve {
+  DNA_DEFINE_CXX_METHODS(bGPDcurve)
+
+  /** Array of BezTriple. */
+  bGPDcurve_point *curve_points = nullptr;
+  /** Total number of curve points. */
+  int tot_curve_points = 0;
+  /** General flag. */
+  short flag = 0;
+  char _pad[2] = {};
+};
+
+/* ***************************************** */
+/* GP Strokes */
+
+/* Runtime temp data for bGPDstroke */
+struct bGPDstroke_Runtime {
+  DNA_DEFINE_CXX_METHODS(bGPDstroke_Runtime)
+
+  /** temporary layer name only used during copy/paste to put the stroke in the original layer */
+  char tmp_layerinfo[128] = "";
+
+  /** Runtime falloff factor (only for transform). */
+  float multi_frame_falloff = 0;
+
+  /** Triangle offset in the IBO where this stroke starts. */
+  int stroke_start = 0;
+  /** Triangle offset in the IBO where this fill starts. */
+  int fill_start = 0;
+  /** Vertex offset in the VBO where this stroke starts. */
+  int vertex_start = 0;
+  /** Curve Handles offset in the IBO where this handle starts. */
+  int curve_start = 0;
+  int _pad0 = {};
+
+  /** Original stroke (used to dereference evaluated data) */
+  struct bGPDstroke *gps_orig = nullptr;
+  void *_pad2 = nullptr;
+};
+
+/**
+ * Grease-Pencil Annotations - 'Stroke'
+ * -> A stroke represents a (simplified version) of the curve
+ *    drawn by the user in one 'mouse-down'->'mouse-up' operation
+ */
+struct bGPDstroke {
+  DNA_DEFINE_CXX_METHODS(bGPDstroke)
+
+  struct bGPDstroke *next = nullptr, *prev = nullptr;
+
+  /** Array of data-points for stroke. */
+  bGPDspoint *points = nullptr;
+  /** Tessellated triangles for GP Fill. */
+  bGPDtriangle *triangles = nullptr;
+  /** Number of data-points in array. */
+  int totpoints = 0;
+  /** Number of triangles in array. */
+  int tot_triangles = 0;
+
+  /** Thickness of stroke. */
+  short thickness = 0;
+  /** Various settings about this stroke. */
+  short flag = 0, _pad[2] = {};
+
+  /** Init time of stroke. */
+  double inittime = 0;
+
+  /** Color name. */
+  DNA_DEPRECATED char colorname[128] = "";
+
+  /** Material index. */
+  int mat_nr = 0;
+  /** Caps mode for each stroke extreme */
+  short caps[2] = {};
+
+  /** gradient control along y for color */
+  float hardness = 0;
+  /** factor xy of shape for dots gradients */
+  float aspect_ratio[2] = {};
+
+  /** Factor of opacity for Fill color (used by opacity modifier). */
+  float fill_opacity_fac = 0;
+
+  /** UV rotation */
+  float uv_rotation = 0;
+  /** UV translation (X and Y axis) */
+  float uv_translation[2] = {};
+  float uv_scale = 0;
+
+  /** Stroke selection index. */
+  int select_index = 0;
+  char _pad4[4] = {};
+
+  /** Vertex weight data. */
+  struct MDeformVert *dvert = nullptr;
+  void *_pad3 = nullptr;
+
+  /** Vertex Color for Fill (one for all stroke, A=mix factor). */
+  float vert_color_fill[4] = {};
+
+  /** Curve used to edit the stroke using Bezier handlers. */
+  struct bGPDcurve *editcurve = nullptr;
+
+  bGPDstroke_Runtime runtime;
+  void *_pad5 = nullptr;
+};
+
+/* Arrows ----------------------- */
+
+/* ***************************************** */
+/* GP Frame */
+
+/* Runtime temp data for bGPDframe */
+struct bGPDframe_Runtime {
+  DNA_DEFINE_CXX_METHODS(bGPDframe_Runtime)
+
+  /** Index of this frame in the listbase of frames. */
+  int frameid = 0;
+  /** Onion offset from active frame. 0 if not onion. INT_MAX to bypass frame. */
+  int onion_id = 0;
+};
+
+/**
+ * Grease-Pencil Annotations - 'Frame'
+ * -> Acts as storage for the 'image' formed by strokes
+ */
+struct bGPDframe {
+  DNA_DEFINE_CXX_METHODS(bGPDframe)
+
+  struct bGPDframe *next = nullptr, *prev = nullptr;
+
+  /** List of the simplified 'strokes' that make up the frame's data. */
+  ListBaseT<bGPDstroke> strokes = {nullptr, nullptr};
+
+  /** Frame number of this frame. */
+  int framenum = 0;
+
+  /** Temp settings. */
+  short flag = 0;
+  /** Keyframe type (eBezTriple_KeyframeType). */
+  short key_type = 0;
+
+  bGPDframe_Runtime runtime;
+};
+
+/* ***************************************** */
+/* GP Layer */
+
+/* List of masking layers. */
+struct bGPDlayer_Mask {
+  DNA_DEFINE_CXX_METHODS(bGPDlayer_Mask)
+
+  struct bGPDlayer_Mask *next = nullptr, *prev = nullptr;
+  char name[128] = "";
+  short flag = 0;
+  /** Index for sorting. Only valid while sorting algorithm is running. */
+  short sort_index = 0;
+  char _pad[4] = {};
+};
+
+/** Runtime temp data for #bGPDlayer. */
+struct bGPDlayer_Runtime {
+  DNA_DEFINE_CXX_METHODS(bGPDlayer_Runtime)
+
+  /** Id for dynamic icon used to show annotation color preview for layer. */
+  int icon_id = 0;
+  char _pad[4] = {};
+};
+
+/** Grease-Pencil Annotations - 'Layer'. */
+struct bGPDlayer {
+  DNA_DEFINE_CXX_METHODS(bGPDlayer)
+
+  struct bGPDlayer *next = nullptr, *prev = nullptr;
+
+  /** List of annotations to display for frames (bGPDframe list). */
+  ListBaseT<bGPDframe> frames = {nullptr, nullptr};
+  /** Active frame (should be the frame that is currently being displayed). */
+  bGPDframe *actframe = nullptr;
+
+  /** Settings for layer. */
+  short flag = 0;
+  /** Per-layer onion-skinning flags (eGPDlayer_OnionFlag). */
+  short onion_flag = 0;
+
+  /** Color for strokes in layers. Used for annotations, and for ruler
+   * (which uses GPencil internally). */
+  float color[4] = {};
+  /** Fill color for strokes in layers. Not used anymore (was only for). */
+  float fill[4] = {};
+
+  /** Name/reference info for this layer (i.e. "director's comments, 12/.3")
+   * needs to be kept unique, as it's used as the layer identifier */
+  char info[128] = "";
+
+  /** Thickness to apply to strokes (Annotations). */
+  short thickness = 0;
+  /** Used to filter groups of layers in modifiers. */
+  short pass_index = 0;
+
+  /** Parent object. */
+  struct Object *parent = nullptr;
+  /** Inverse matrix (only used if parented). */
+  float inverse[4][4] = {};
+  /** String describing sub-object info. */
+  char parsubstr[/*MAX_NAME*/ 64] = "";
+  short partype = 0;
+
+  /** Thickness adjustment. */
+  short line_change = 0;
+  /** Color used to tint layer, alpha value is used as factor. */
+  float tintcolor[4] = {};
+  /** Opacity of the layer. */
+  float opacity = 0;
+  /** Name of the layer used to filter render output. */
+  char viewlayername[64] = "";
+
+  /** Blend modes. */
+  int blend_mode = 0;
+  /** Vertex Paint opacity by Layer. */
+  float vertex_paint_opacity = 0;
+
+  /* annotation onion skin */
+  /**
+   * Ghosts Before: max number of ghost frames to show between
+   * active frame and the one before it (0 = only the ghost itself).
+   */
+  short gstep = 0;
+  /**
+   * Ghosts After: max number of ghost frames to show after
+   * active frame and the following it    (0 = only the ghost itself).
+   */
+  short gstep_next = 0;
+
+  /** Color for ghosts before the active frame. */
+  float gcolor_prev[3] = {0.302f, 0.851f, 0.302f};
+  /** Color for ghosts after the active frame. */
+  float gcolor_next[3] = {0.250f, 0.1f, 1.0f};
+  char _pad1[4] = {};
+
+  /** Mask list (bGPDlayer_Mask). */
+  ListBaseT<bGPDlayer_Mask> mask_layers = {nullptr, nullptr};
+  /** Current Mask index (noted base 1). */
+  int act_mask = 0;
+  char _pad2[4] = {};
+
+  /** Layer transforms. */
+  float location[3] = {}, rotation[3] = {}, scale[3] = {};
+  float layer_mat[4][4] = {}, layer_invmat[4][4] = {};
+  char _pad3[4] = {};
+
+  bGPDlayer_Runtime runtime;
+};
+
+/* ***************************************** */
+/* GP Datablock */
+
+/* Runtime temp data for bGPdata */
+struct bGPdata_Runtime {
+  DNA_DEFINE_CXX_METHODS(bGPdata_Runtime)
+
+  /** Stroke buffer. */
+  void *sbuffer = nullptr;
+
+  /** Animation playing flag. */
+  short playing = 0;
+
+  /** Material index of the stroke. */
+  short matid = 0;
+
+  /* Stroke Buffer data (only used during paint-session)
+   * - buffer must be initialized before use, but freed after
+   *   whole paint operation is over
+   */
+  /** Flags for stroke that cache represents. */
+  short sbuffer_sflag = 0;
+  char _pad1[2] = {};
+  /** Number of elements currently used in cache. */
+  int sbuffer_used = 0;
+  /** Number of total elements available in cache. */
+  int sbuffer_size = 0;
+
+  /** Vertex Color applied to Fill (while drawing). */
+  float vert_color_fill[4] = {};
+
+  /** Opacity for fills while drawing. */
+  float fill_opacity_fac = 0;
+
+  /** Arrow points for stroke corners. */
+  float arrow_start[8] = {};
+  float arrow_end[8] = {};
+  /* Arrow style for each corner */
+  int arrow_start_style = 0;
+  int arrow_end_style = 0;
+
+  char _pad[4] = {};
+};
+
+/* grid configuration */
+struct bGPgrid {
+  float color[3] = {};
+  float scale[2] = {};
+  float offset[2] = {};
+  char _pad1[4] = {};
+
+  int lines = 0;
+  char _pad[4] = {};
+};
+
+/** Grease-Pencil Annotations - 'DataBlock'. */
+struct bGPdata {
+#ifdef __cplusplus
+  DNA_DEFINE_CXX_METHODS(bGPdata)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_GD_LEGACY;
+#endif
+
+  /** Grease Pencil data is a data-block. */
+  ID id;
+  /** Animation data - for animating draw settings. */
+  struct AnimData *adt = nullptr;
+
+  /* Grease-Pencil data */
+  /** bGPDlayer. */
+  ListBaseT<bGPDlayer> layers = {nullptr, nullptr};
+  /** Settings for this data-block. */
+  int flag = 0;
+  /** Default resolution for generated curves using curve editing method. */
+  int curve_edit_resolution = 0;
+  /** Curve Editing error threshold. */
+  float curve_edit_threshold = 0;
+  /** Curve Editing corner angle (less or equal is treated as corner). */
+  float curve_edit_corner_angle = 0;
+
+  /* Palettes */
+  /** List of bGPDpalette's   - Deprecated (2.78 - 2.79 only). */
+  ListBaseT<bGPDpalette> palettes = {nullptr, nullptr};
+
+  /** List of bDeformGroup names and flag only. */
+  ListBaseT<bDeformGroup> vertex_group_names = {nullptr, nullptr};
+
+  /* 3D Viewport/Appearance Settings */
+  /** Factor to define pixel size conversion. */
+  float pixfactor = 0;
+  /** Color for edit line. */
+  float line_color[4] = {};
+
+  /* Onion skinning */
+  /** Onion alpha factor change. */
+  float onion_factor = 0;
+  /** Onion skinning range (eGP_OnionModes). */
+  int onion_mode = 0;
+  /** Onion skinning flags (eGPD_OnionFlag). */
+  int onion_flag = 0;
+  /**
+   * Ghosts Before: max number of ghost frames to show between
+   * active frame and the one before it (0 = only the ghost itself).
+   */
+  short gstep = 0;
+  /**
+   * Ghosts After: max number of ghost frames to show after
+   * active frame and the following it (0 = only the ghost itself).
+   */
+  short gstep_next = 0;
+
+  /** Optional color for ghosts before the active frame. */
+  float gcolor_prev[3] = {};
+  /** Optional color for ghosts after the active frame. */
+  float gcolor_next[3] = {};
+
+  /** Offset for drawing over surfaces to keep strokes on top. */
+  float zdepth_offset = 0;
+  /** Materials array. */
+  struct Material **mat = nullptr;
+  /** Total materials. */
+  short totcol = 0;
+
+  /* stats */
+  short totlayer = 0;
+  short totframe = 0;
+  char _pad2[6] = {};
+  int totstroke = 0;
+  int totpoint = 0;
+
+  /** Draw mode for strokes (eGP_DrawMode). */
+  short draw_mode = 0;
+  /** Keyframe type for onion filter  (eBezTriple_KeyframeType plus All option) */
+  short onion_keytype = 0;
+
+  /** Stroke selection last index. Used to generate a unique selection index. */
+  int select_last_index = 0;
+
+  int vertex_group_active_index = 0;
+
+  bGPgrid grid;
+
+  bGPdata_Runtime runtime;
+};
+
+}  // namespace blender

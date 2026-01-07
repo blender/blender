@@ -10,13 +10,15 @@
 
 #include <functional>
 
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct Image;
 struct ImageUser;
 struct Scene;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDHierarchyIterator;
 
@@ -42,4 +44,5 @@ struct USDExporterContext {
   USDHierarchyIterator *hierarchy_iterator;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

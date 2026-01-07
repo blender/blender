@@ -12,6 +12,8 @@
 
 #pragma once
 
+namespace blender {
+
 #define AREATEX_WIDTH 160
 #define AREATEX_HEIGHT 560
 #define AREATEX_PITCH (AREATEX_WIDTH * 2)
@@ -20,7 +22,7 @@
 /**
  * Stored in R8G8 format. Load it in the following format:
  *  - DX10: DXGI_FORMAT_R8G8_UNORM
- *  - GPU: blender::gpu::TextureFormat::UNORM_8_8 texture format and GPU_DATA_UBYTE data format.
+ *  - GPU: gpu::TextureFormat::UNORM_8_8 texture format and GPU_DATA_UBYTE data format.
  */
 extern const unsigned char areaTexBytes[];
 
@@ -32,6 +34,8 @@ extern const unsigned char areaTexBytes[];
 /**
  * Stored in R8 format. Load it in the following format:
  *  - DX10: DXGI_FORMAT_R8_UNORM
- *  - GPU: blender::gpu::TextureFormat::UNORM_8 texture format and GPU_DATA_UBYTE data format.
+ *  - GPU: gpu::TextureFormat::UNORM_8 texture format and GPU_DATA_UBYTE data format.
  */
 extern const unsigned char searchTexBytes[];
+
+}  // namespace blender

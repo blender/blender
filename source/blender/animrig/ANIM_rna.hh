@@ -15,10 +15,12 @@
 
 #include "RNA_path.hh"
 
+namespace blender {
+
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender::animrig {
+namespace animrig {
 
 /** Get the values of the given property. Casts non-float properties to float. */
 Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop);
@@ -32,4 +34,5 @@ StringRef get_rotation_mode_path(eRotationModes rotation_mode);
  */
 Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr);
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

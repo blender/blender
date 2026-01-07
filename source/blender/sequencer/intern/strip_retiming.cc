@@ -37,7 +37,7 @@ namespace blender::seq {
 
 MutableSpan<SeqRetimingKey> retiming_keys_get(const Strip *strip)
 {
-  blender::MutableSpan<SeqRetimingKey> handles(strip->retiming_keys, strip->retiming_keys_num);
+  MutableSpan<SeqRetimingKey> handles(strip->retiming_keys, strip->retiming_keys_num);
   return handles;
 }
 
@@ -61,9 +61,9 @@ static int content_frame_index_get(const Scene *scene,
                                    const int timeline_frame)
 {
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const int sound_offset = time_get_rounded_sound_offset(strip, scene_fps);
-  return (timeline_frame - time_start_frame_get(strip) - sound_offset) *
-         time_media_playback_rate_factor_get(strip, scene_fps);
+  const int sound_offset = strip->rounded_sound_offset(scene_fps);
+  return (timeline_frame - strip->content_start() - sound_offset) *
+         strip->media_playback_rate_factor(scene_fps);
 }
 
 SeqRetimingKey *retiming_key_get_by_timeline_frame(const Scene *scene,
@@ -112,7 +112,7 @@ void retiming_data_ensure(Strip *strip)
     return;
   }
 
-  strip->retiming_keys = MEM_calloc_arrayN<SeqRetimingKey>(2, __func__);
+  strip->retiming_keys = MEM_new_array_for_free<SeqRetimingKey>(2, __func__);
   SeqRetimingKey *key = strip->retiming_keys + 1;
   key->strip_frame_index = strip->len;
   key->retiming_factor = 1.0f;
@@ -131,9 +131,9 @@ void retiming_data_clear(Strip *strip)
 
 static void retiming_key_overlap(Scene *scene, Strip *strip)
 {
-  ListBase *seqbase = active_seqbase_get(editing_get(scene));
-  blender::VectorSet<Strip *> strips;
-  blender::VectorSet<Strip *> dependant;
+  ListBaseT<Strip> *seqbase = active_seqbase_get(editing_get(scene));
+  VectorSet<Strip *> strips;
+  VectorSet<Strip *> dependant;
   dependant.add(strip);
   iterator_set_expand(scene, seqbase, dependant, query_strip_effect_chain);
   strips.add_multiple(dependant);
@@ -149,7 +149,7 @@ void retiming_reset(Scene *scene, Strip *strip)
 
   retiming_data_clear(strip);
 
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
+  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 
@@ -211,7 +211,7 @@ static void strip_retiming_line_segments_tangent_circle(const SeqRetimingKey *st
                                                         double r_center[2],
                                                         double *radius)
 {
-  blender::double2 s1_1, s1_2, s2_1, s2_2, p1_2;
+  double2 s1_1, s1_2, s2_1, s2_2, p1_2;
 
   /* Get 2 segments. */
   strip_retiming_segment_as_line_segment(start_key - 1, s1_1, s1_2);
@@ -219,7 +219,7 @@ static void strip_retiming_line_segments_tangent_circle(const SeqRetimingKey *st
   /* Backup first segment end point - needed to calculate arc radius. */
   copy_v2_v2_db(p1_2, s1_2);
   /* Convert segments to vectors. */
-  blender::double2 v1, v2;
+  double2 v1, v2;
   sub_v2_v2v2_db(v1, s1_1, s1_2);
   sub_v2_v2v2_db(v2, s2_1, s2_2);
   /* Rotate segments by 90 degrees around seg. 1 end and seg. 2 start point. */
@@ -346,7 +346,7 @@ static SeqRetimingKey *strip_retiming_add_key(Strip *strip, float frame_index)
   BLI_assert(new_key_index >= 0);
   BLI_assert(new_key_index < keys_count);
 
-  SeqRetimingKey *new_keys = MEM_calloc_arrayN<SeqRetimingKey>(keys_count + 1, __func__);
+  SeqRetimingKey *new_keys = MEM_new_array_for_free<SeqRetimingKey>(keys_count + 1, __func__);
   if (new_key_index > 0) {
     memcpy(new_keys, keys, new_key_index * sizeof(SeqRetimingKey));
   }
@@ -415,10 +415,10 @@ static void strip_retiming_cleanup_freeze_frame(SeqRetimingKey *key)
   }
 }
 
-void retiming_remove_multiple_keys(Strip *strip, blender::Vector<SeqRetimingKey *> &keys_to_remove)
+void retiming_remove_multiple_keys(Strip *strip, Vector<SeqRetimingKey *> &keys_to_remove)
 {
   /* Transitions need special treatment, so separate these from `keys_to_remove`. */
-  blender::Vector<SeqRetimingKey *> transitions;
+  Vector<SeqRetimingKey *> transitions;
 
   /* Cleanup freeze frames and extract transition keys. */
   for (SeqRetimingKey *key : keys_to_remove) {
@@ -443,7 +443,7 @@ void retiming_remove_multiple_keys(Strip *strip, blender::Vector<SeqRetimingKey 
 
   const size_t keys_count = retiming_keys_count(strip);
   size_t new_keys_count = keys_count - keys_to_remove.size() - transitions.size() / 2;
-  SeqRetimingKey *new_keys = MEM_calloc_arrayN<SeqRetimingKey>(new_keys_count, __func__);
+  SeqRetimingKey *new_keys = MEM_new_array_for_free<SeqRetimingKey>(new_keys_count, __func__);
   int keys_copied = 0;
 
   /* Copy keys to new array. */
@@ -479,7 +479,7 @@ static void strip_retiming_remove_key_ex(Strip *strip, SeqRetimingKey *key)
   }
 
   size_t keys_count = retiming_keys_count(strip);
-  SeqRetimingKey *keys = MEM_calloc_arrayN<SeqRetimingKey>(keys_count - 1, __func__);
+  SeqRetimingKey *keys = MEM_new_array_for_free<SeqRetimingKey>(keys_count - 1, __func__);
 
   const int key_index = key - strip->retiming_keys;
   memcpy(keys, strip->retiming_keys, (key_index) * sizeof(SeqRetimingKey));
@@ -559,7 +559,7 @@ static std::pair<SeqRetimingKey *, SeqRetimingKey *> freeze_key_pair_create(cons
   if (retiming_is_last_key(strip, key)) {
     const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
     const float frame_index_offset = tml_frame_offset *
-                                     time_media_playback_rate_factor_get(strip, scene_fps);
+                                     strip->media_playback_rate_factor(scene_fps);
     key->strip_frame_index += frame_index_offset;
     SeqRetimingKey *freeze_start = retiming_add_key(scene, strip, orig_timeline_frame);
 
@@ -656,7 +656,7 @@ static float strip_retiming_clamp_transition_offset(const Scene *scene,
   const float prev_max_offset = prev_key->strip_frame_index - start_key->strip_frame_index;
   const float next_max_offset = next_key->strip_frame_index - end_key->strip_frame_index;
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const float min_step = time_media_playback_rate_factor_get(strip, scene_fps);
+  const float min_step = strip->media_playback_rate_factor(scene_fps);
 
   return std::clamp(offset, prev_max_offset + min_step, next_max_offset - min_step);
 }
@@ -669,7 +669,7 @@ static void strip_retiming_transition_offset(const Scene *scene,
   float clamped_offset = strip_retiming_clamp_transition_offset(scene, strip, key, offset);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float duration = (key->original_strip_frame_index - key->strip_frame_index) /
-                         time_media_playback_rate_factor_get(strip, scene_fps);
+                         strip->media_playback_rate_factor(scene_fps);
   const bool was_selected = retiming_selection_contains(editing_get(scene), key);
 
   SeqRetimingKey *original_key = strip_retiming_remove_transition(strip, key);
@@ -717,7 +717,7 @@ static void strip_retiming_fix_transition(const Scene *scene, Strip *strip, SeqR
   const int keys_num = strip->retiming_keys_num;
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float transition_duration = (key->original_strip_frame_index - key->strip_frame_index) /
-                                    time_media_playback_rate_factor_get(strip, scene_fps);
+                                    strip->media_playback_rate_factor(scene_fps);
   SeqRetimingKey *orig_key = strip_retiming_remove_transition(strip, key);
   retiming_add_transition(scene, strip, orig_key, transition_duration);
   BLI_assert(keys_num == strip->retiming_keys_num);
@@ -763,10 +763,9 @@ int retiming_key_timeline_frame_get(const Scene *scene,
                                     const SeqRetimingKey *key)
 {
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const int sound_offset = time_get_rounded_sound_offset(strip, scene_fps);
-  return round_fl_to_int(time_start_frame_get(strip) + sound_offset +
-                         key->strip_frame_index /
-                             time_media_playback_rate_factor_get(strip, scene_fps));
+  const int sound_offset = strip->rounded_sound_offset(scene_fps);
+  return round_fl_to_int(strip->content_start() + sound_offset +
+                         key->strip_frame_index / strip->media_playback_rate_factor(scene_fps));
 }
 
 void retiming_key_timeline_frame_set(
@@ -781,20 +780,18 @@ void retiming_key_timeline_frame_set(
       scene, strip, key, timeline_frame);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float offset = (clamped_timeline_frame - orig_timeline_frame) *
-                       time_media_playback_rate_factor_get(strip, scene_fps);
+                       strip->media_playback_rate_factor(scene_fps);
 
   const int key_count = retiming_keys_get(strip).size();
   const int key_index = retiming_key_index_get(strip, key);
 
-  if (orig_timeline_frame == time_right_handle_frame_get(scene, strip) && keep_retiming) {
+  if (orig_timeline_frame == strip->right_handle(scene) && keep_retiming) {
     for (int i = key_index; i < key_count; i++) {
       SeqRetimingKey *key_iter = &retiming_keys_get(strip)[i];
       strip_retiming_key_offset(scene, strip, key_iter, offset);
     }
   }
-  else if (orig_timeline_frame == time_left_handle_frame_get(scene, strip) ||
-           key->strip_frame_index == 0)
-  {
+  else if (orig_timeline_frame == strip->left_handle() || key->strip_frame_index == 0) {
     strip->start += clamped_timeline_frame - orig_timeline_frame;
     for (int i = key_index + 1; i < key_count; i++) {
       SeqRetimingKey *key_iter = &retiming_keys_get(strip)[i];
@@ -805,7 +802,7 @@ void retiming_key_timeline_frame_set(
     strip_retiming_key_offset(scene, strip, key, offset);
   }
 
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
+  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 }
@@ -842,7 +839,7 @@ void retiming_key_speed_set(
 
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float segment_timeline_duration = (frame_index - frame_index_prev) /
-                                          time_media_playback_rate_factor_get(strip, scene_fps);
+                                          strip->media_playback_rate_factor(scene_fps);
   const float new_timeline_duration = segment_timeline_duration / speed;
 
   const float new_timeline_frame = std::round(
@@ -868,7 +865,7 @@ class RetimingRange {
  public:
   int start, end;
   float speed;
-  blender::Vector<float> speed_table;
+  Vector<float> speed_table;
 
   eRangeType type;
   RetimingRange(const Strip *strip, int start_frame, int end_frame, float speed, eRangeType type)
@@ -962,7 +959,7 @@ class RetimingRange {
       /* We need number actual number of frames here. */
       const double normal_step = 1 / double(strip->len - 1);
 
-      const int frame_index = timeline_frame - time_start_frame_get(strip);
+      const int frame_index = timeline_frame - strip->content_start();
       /* Who needs calculus, when you can have slow code? */
       const double val_prev = strip_retiming_evaluate(strip, frame_index - 1);
       const double val = strip_retiming_evaluate(strip, frame_index);
@@ -991,7 +988,7 @@ class RetimingRange {
 
 class RetimingRangeData {
  public:
-  blender::Vector<RetimingRange> ranges;
+  Vector<RetimingRange> ranges;
   RetimingRangeData(const Strip *strip)
   {
     for (const SeqRetimingKey &key : retiming_keys_get(strip)) {
@@ -1000,8 +997,8 @@ class RetimingRangeData {
       }
       const SeqRetimingKey *key_prev = &key - 1;
       float speed = retiming_key_speed_get(strip, &key);
-      int frame_start = time_start_frame_get(strip) + key_prev->strip_frame_index;
-      int frame_end = time_start_frame_get(strip) + key.strip_frame_index;
+      int frame_start = strip->content_start() + key_prev->strip_frame_index;
+      int frame_end = strip->content_start() + key.strip_frame_index;
 
       eRangeType type = retiming_key_is_transition_start(key_prev) ? TRANSITION : LINEAR;
       RetimingRange range = RetimingRange(strip, frame_start, frame_end, speed, type);
@@ -1098,12 +1095,12 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
   /* Content cut off by `anim_startofs` is as if it does not exist for sequencer. But Audaspace
    * seeking relies on having animation buffer initialized for whole sequence. */
   if (strip->anim_startofs > 0) {
-    const int strip_start = time_start_frame_get(strip);
+    const int strip_start = strip->content_start();
     BKE_sound_set_scene_sound_pitch_constant_range(
         strip->runtime->scene_sound, strip_start - strip->anim_startofs, strip_start, 1.0f);
   }
 
-  const int sound_offset = time_get_rounded_sound_offset(strip, scene_fps);
+  const int sound_offset = strip->rounded_sound_offset(scene_fps);
 
   for (int i = 0; i < retiming_data.ranges.size(); i++) {
     const RetimingRange &range = retiming_data.ranges[i];
@@ -1145,8 +1142,8 @@ bool retiming_selection_clear(const Editing *ed)
 {
   bool was_empty = true;
 
-  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    for (SeqRetimingKey &key : retiming_keys_get(strip)) {
+  for (Strip &strip : *ed->current_strips()) {
+    for (SeqRetimingKey &key : retiming_keys_get(&strip)) {
       was_empty &= (key.flag & SEQ_KEY_SELECTED) == 0;
       key.flag &= ~SEQ_KEY_SELECTED;
     }
@@ -1172,16 +1169,16 @@ void retiming_selection_copy(SeqRetimingKey *dst, const SeqRetimingKey *src)
   dst->flag |= (src->flag & SEQ_KEY_SELECTED);
 }
 
-blender::Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed)
+Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed)
 {
-  blender::Map<SeqRetimingKey *, Strip *> selection;
+  Map<SeqRetimingKey *, Strip *> selection;
   if (!ed) {
     return selection;
   }
-  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    for (SeqRetimingKey &key : retiming_keys_get(strip)) {
+  for (Strip &strip : *ed->current_strips()) {
+    for (SeqRetimingKey &key : retiming_keys_get(&strip)) {
       if ((key.flag & SEQ_KEY_SELECTED) != 0) {
-        selection.add(&key, strip);
+        selection.add(&key, &strip);
       }
     }
   }
@@ -1190,8 +1187,8 @@ blender::Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed
 
 bool retiming_selection_contains(const Editing *ed, const SeqRetimingKey *key)
 {
-  LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    for (const SeqRetimingKey &key_iter : retiming_keys_get(strip)) {
+  for (Strip &strip : *ed->current_strips()) {
+    for (const SeqRetimingKey &key_iter : retiming_keys_get(&strip)) {
       if ((key_iter.flag & SEQ_KEY_SELECTED) != 0 && &key_iter == key) {
         return true;
       }
@@ -1206,7 +1203,7 @@ bool retiming_selection_has_whole_transition(const Editing *ed, SeqRetimingKey *
   SeqRetimingKey *key_end = key_start + 1;
   bool has_start = false, has_end = false;
 
-  blender::Map<SeqRetimingKey *, Strip *> selection = retiming_selection_get(ed);
+  Map<SeqRetimingKey *, Strip *> selection = retiming_selection_get(ed);
 
   for (auto item : selection.items()) {
     if (item.key == key_start) {

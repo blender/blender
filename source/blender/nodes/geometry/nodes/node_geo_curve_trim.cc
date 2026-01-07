@@ -78,12 +78,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveTrim *data = MEM_callocN<NodeGeometryCurveTrim>(__func__);
+  NodeGeometryCurveTrim *data = MEM_new_for_free<NodeGeometryCurveTrim>(__func__);
 
   data->mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
   node->storage = data;
@@ -209,7 +209,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveTrim &storage = node_storage(params.node());
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
+  const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
@@ -263,7 +263,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeTrimCurve", GEO_NODE_TRIM_CURVE);
   ntype.ui_name = "Trim Curve";
   ntype.ui_description = "Shorten curves by removing portions at the start or end";
@@ -272,11 +272,11 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveTrim", node_free_standard_storage, node_copy_standard_storage);
   ntype.initfunc = node_init;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

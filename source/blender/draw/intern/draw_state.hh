@@ -8,6 +8,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup draw
  *
@@ -22,7 +24,7 @@
  * The Write Stencil, Stencil test, Depth test and Blend state options are mutual exclusive
  * therefore they aren't ordered as a bit mask.
  */
-typedef enum : uint32_t {
+enum DRWState : uint32_t {
   /** To be used for compute passes. */
   DRW_STATE_NO_DRAW = 0,
   /** Write mask */
@@ -71,8 +73,7 @@ typedef enum : uint32_t {
   DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 30),
   /** DO NOT USE. Assumed always enabled. Only used internally. */
   DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),
-} DRWState;
-
+};
 ENUM_OPERATORS(DRWState);
 
 #define DRW_STATE_DEFAULT \
@@ -94,7 +95,7 @@ ENUM_OPERATORS(DRWState);
   (DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW_PASS | \
    DRW_STATE_WRITE_STENCIL_SHADOW_FAIL)
 
-namespace blender::draw {
+namespace draw {
 
 /* -------------------------------------------------------------------- */
 /** \name DRWState to GPU state conversion
@@ -219,4 +220,6 @@ static inline GPUProvokingVertex to_provoking_vertex(DRWState state)
 
 /** \} */
 
-};  // namespace blender::draw
+};  // namespace draw
+
+}  // namespace blender

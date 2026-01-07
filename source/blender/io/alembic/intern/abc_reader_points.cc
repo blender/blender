@@ -23,9 +23,11 @@
 
 #include <algorithm>
 
+namespace blender {
+
 using namespace Alembic::AbcGeom;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 AbcPointsReader::AbcPointsReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
@@ -76,7 +78,7 @@ void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSel
   }
 
   m_object = BKE_object_add_only_object(bmain, OB_POINTCLOUD, m_object_name.c_str());
-  m_object->data = pointcloud;
+  m_object->data = id_cast<ID *>(pointcloud);
 
   if (m_settings->always_add_cache_reader || has_animations(m_schema, m_settings)) {
     addCacheModifier();
@@ -273,4 +275,5 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   geometry_set.replace_pointcloud(pointcloud);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

@@ -118,7 +118,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
       }
     }
     if (indexar_num) {
-      const ListBase *defbase = BKE_object_defgroup_list(obedit);
+      const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(obedit);
       bDeformGroup *dg = static_cast<bDeformGroup *>(BLI_findlink(defbase, defgrp_index));
       BLI_strncpy_utf8(r_name, dg->name, sizeof(dg->name));
       mul_v3_fl(r_cent, 1.0f / float(indexar_num));
@@ -131,7 +131,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
 
 static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMVert *eve;
   BMIter iter;
@@ -205,7 +205,7 @@ static int return_editlattice_indexar(Lattice *editlatt,
 
 static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 {
-  Lattice *lt = static_cast<Lattice *>(obedit->data), *editlt;
+  Lattice *lt = id_cast<Lattice *>(obedit->data), *editlt;
   BPoint *bp;
   int index = 0, nr = 0, a;
 
@@ -230,15 +230,15 @@ static int return_editcurve_indexar(Object *obedit,
                                     int *r_indexar_num,
                                     float r_cent[3])
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   BPoint *bp;
   BezTriple *bezt;
   int *index, a, nr, indexar_num = 0;
 
-  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
-    if (nu->type == CU_BEZIER) {
-      bezt = nu->bezt;
-      a = nu->pntsu;
+  for (Nurb &nu : *editnurb) {
+    if (nu.type == CU_BEZIER) {
+      bezt = nu.bezt;
+      a = nu.pntsu;
       while (a--) {
         if (bezt->f1 & SELECT) {
           indexar_num++;
@@ -253,8 +253,8 @@ static int return_editcurve_indexar(Object *obedit,
       }
     }
     else {
-      bp = nu->bp;
-      a = nu->pntsu * nu->pntsv;
+      bp = nu.bp;
+      a = nu.pntsu * nu.pntsv;
       while (a--) {
         if (bp->f1 & SELECT) {
           indexar_num++;
@@ -272,10 +272,10 @@ static int return_editcurve_indexar(Object *obedit,
   nr = 0;
   zero_v3(r_cent);
 
-  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
-    if (nu->type == CU_BEZIER) {
-      bezt = nu->bezt;
-      a = nu->pntsu;
+  for (Nurb &nu : *editnurb) {
+    if (nu.type == CU_BEZIER) {
+      bezt = nu.bezt;
+      a = nu.pntsu;
       while (a--) {
         if (bezt->f1 & SELECT) {
           *index = nr;
@@ -299,8 +299,8 @@ static int return_editcurve_indexar(Object *obedit,
       }
     }
     else {
-      bp = nu->bp;
-      a = nu->pntsu * nu->pntsv;
+      bp = nu.bp;
+      a = nu.pntsu * nu.pntsv;
       while (a--) {
         if (bp->f1 & SELECT) {
           *index = nr;
@@ -332,7 +332,7 @@ static bool object_hook_index_array(Main *bmain,
 
   switch (obedit->type) {
     case OB_MESH: {
-      Mesh *mesh = static_cast<Mesh *>(obedit->data);
+      Mesh *mesh = id_cast<Mesh *>(obedit->data);
 
       EDBM_mesh_load(bmain, obedit);
       EDBM_mesh_make(obedit, scene->toolsettings->selectmode, true);
@@ -355,7 +355,7 @@ static bool object_hook_index_array(Main *bmain,
       ED_curve_editnurb_make(obedit);
       return return_editcurve_indexar(obedit, r_indexar, r_indexar_num, r_cent);
     case OB_LATTICE: {
-      Lattice *lt = static_cast<Lattice *>(obedit->data);
+      Lattice *lt = id_cast<Lattice *>(obedit->data);
       return return_editlattice_indexar(lt->editlatt->latt, r_indexar, r_indexar_num, r_cent);
     }
     default:
@@ -365,15 +365,15 @@ static bool object_hook_index_array(Main *bmain,
 
 static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 {
-  ListBase *editnurb = object_editcurve_get(obedit);
+  ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   BPoint *bp;
   BezTriple *bezt;
   int index = 0, a, nr = 0;
 
-  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
-    if (nu->type == CU_BEZIER) {
-      bezt = nu->bezt;
-      a = nu->pntsu;
+  for (Nurb &nu : *editnurb) {
+    if (nu.type == CU_BEZIER) {
+      bezt = nu.bezt;
+      a = nu.pntsu;
       while (a--) {
         if (nr == hmd->indexar[index]) {
           bezt->f1 |= SELECT;
@@ -401,8 +401,8 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
       }
     }
     else {
-      bp = nu->bp;
-      a = nu->pntsu * nu->pntsv;
+      bp = nu.bp;
+      a = nu.pntsu * nu.pntsv;
       while (a--) {
         if (nr == hmd->indexar[index]) {
           bp->f1 |= SELECT;
@@ -424,12 +424,12 @@ static void object_hook_from_context(
   HookModifierData *hmd;
 
   if (ptr->data) { /* if modifier context is available, use that */
-    ob = (Object *)ptr->owner_id;
+    ob = id_cast<Object *>(ptr->owner_id);
     hmd = static_cast<HookModifierData *>(ptr->data);
   }
   else { /* use the provided property */
     ob = CTX_data_edit_object(C);
-    hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+    hmd = static_cast<HookModifierData *>(BLI_findlink(&ob->modifiers, num));
   }
 
   if (ob && hmd && (hmd->modifier.type == eModifierType_Hook)) {
@@ -537,10 +537,10 @@ static int add_hook_object(const bContext *C,
     mul_v3_m4v3(ob->loc, obedit->object_to_world().ptr(), cent);
   }
 
-  hmd = (HookModifierData *)BKE_modifier_new(eModifierType_Hook);
+  hmd = reinterpret_cast<HookModifierData *>(BKE_modifier_new(eModifierType_Hook));
   BKE_modifiers_add_at_end_if_possible(obedit, &hmd->modifier);
   SNPRINTF_UTF8(hmd->modifier.name, "Hook-%s", ob->id.name + 2);
-  BKE_modifier_unique_name(&obedit->modifiers, (ModifierData *)hmd);
+  BKE_modifier_unique_name(&obedit->modifiers, reinterpret_cast<ModifierData *>(hmd));
   BKE_modifiers_persistent_uid_init(*obedit, hmd->modifier);
 
   hmd->object = ob;
@@ -561,7 +561,7 @@ static int add_hook_object(const bContext *C,
   }
 
   if (mode == OBJECT_ADDHOOK_SELOB_BONE) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
     BLI_assert(ob->type == OB_ARMATURE);
     if (arm->act_bone) {
       bPoseChannel *pchan_act;
@@ -700,7 +700,7 @@ static wmOperatorStatus object_hook_remove_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_edit_object(C);
   HookModifierData *hmd = nullptr;
 
-  hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
+  hmd = static_cast<HookModifierData *>(BLI_findlink(&ob->modifiers, num));
   if (!hmd) {
     BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
     return OPERATOR_CANCELLED;
@@ -708,8 +708,8 @@ static wmOperatorStatus object_hook_remove_exec(bContext *C, wmOperator *op)
 
   /* remove functionality */
 
-  BKE_modifier_remove_from_list(ob, (ModifierData *)hmd);
-  BKE_modifier_free((ModifierData *)hmd);
+  BKE_modifier_remove_from_list(ob, reinterpret_cast<ModifierData *>(hmd));
+  BKE_modifier_free(reinterpret_cast<ModifierData *>(hmd));
 
   DEG_relations_tag_update(CTX_data_main(C));
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

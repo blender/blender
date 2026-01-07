@@ -14,7 +14,7 @@ namespace blender::deg {
 
 class RenderBuilderPipeline : public AbstractBuilderPipeline {
  public:
-  RenderBuilderPipeline(::Depsgraph *graph);
+  RenderBuilderPipeline(blender::Depsgraph *graph);
 
  protected:
   std::unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;

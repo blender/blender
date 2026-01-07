@@ -416,9 +416,9 @@ HANDLE_TABLET_EVENT(tabletProximity)
 
 - (void)processImeEvent:(GHOST_TEventType)imeEventType
 {
-  GHOST_Event *event = new GHOST_EventIME(
+  auto event = std::make_unique<GHOST_EventIME>(
       system_cocoa_->getMilliSeconds(), imeEventType, window_cocoa_, &ime.event);
-  system_cocoa_->pushEvent(event);
+  system_cocoa_->pushEvent(std::move(event));
 }
 
 - (std::string)convertNSString:(NSString *)inString

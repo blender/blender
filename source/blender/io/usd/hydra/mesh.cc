@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <pxr/base/gf/vec2f.h>
-#include <pxr/base/tf/staticTokens.h>
+#include <pxr/base/tf/token.h>
 #include <pxr/imaging/hd/tokens.h>
 
 #include "BLI_array_utils.hh"
@@ -11,7 +11,6 @@
 #include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
 
@@ -35,7 +34,7 @@ void MeshData::init()
 {
   ID_LOGN("");
 
-  Object *object = (Object *)id;
+  Object *object = id_cast<Object *>(const_cast<ID *>(id));
   Mesh *mesh = BKE_object_to_mesh(nullptr, object, false);
   if (mesh) {
     write_submeshes(mesh);
@@ -61,8 +60,10 @@ void MeshData::remove()
 
 void MeshData::update()
 {
-  Object *object = (Object *)id;
-  if ((id->recalc & ID_RECALC_GEOMETRY) || (((ID *)object->data)->recalc & ID_RECALC_GEOMETRY)) {
+  Object *object = id_cast<Object *>(const_cast<ID *>(id));
+  if ((id->recalc & ID_RECALC_GEOMETRY) ||
+      ((static_cast<ID *>(object->data))->recalc & ID_RECALC_GEOMETRY))
+  {
     init();
     update_prims();
     return;
@@ -196,7 +197,7 @@ pxr::SdfPathVector MeshData::submesh_paths() const
 
 void MeshData::write_materials()
 {
-  const Object *object = (const Object *)id;
+  const Object *object = id_cast<const Object *>(id);
   for (int i = 0; i < submeshes_.size(); ++i) {
     SubMesh &m = submeshes_[i];
     const Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object),

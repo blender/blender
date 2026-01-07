@@ -15,7 +15,7 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 static const wmKeyMapItem *keymap_item_from_enum_item(const wmKeyMap *keymap,
                                                       const EnumPropertyItem *item)
@@ -40,10 +40,10 @@ static bool keymap_item_can_collapse(const wmKeyMapItem *kmi_a, const wmKeyMapIt
           kmi_a->oskey == kmi_b->oskey && kmi_a->hyper == kmi_b->hyper);
 }
 
-int uiTemplateStatusBarModalItem(blender::ui::Layout *layout,
-                                 wmOperator *op,
-                                 const wmKeyMap *keymap,
-                                 const EnumPropertyItem *item)
+int template_status_bar_modal_item(Layout *layout,
+                                   wmOperator *op,
+                                   const wmKeyMap *keymap,
+                                   const EnumPropertyItem *item)
 {
   const wmKeyMapItem *kmi = keymap_item_from_enum_item(keymap, item);
   if (kmi == nullptr) {
@@ -89,33 +89,33 @@ int uiTemplateStatusBarModalItem(blender::ui::Layout *layout,
 #ifdef WITH_HEADLESS
       int icon = 0;
 #else
-      int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+      int icon = icon_from_keymap_item(kmi, icon_mod);
 #endif
       for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
         layout->label("", icon_mod[j]);
-        const float offset = ui_event_icon_offset(icon_mod[j]);
+        const float offset = event_icon_offset(icon_mod[j]);
         if (offset != 0.0f) {
           layout->separator(offset);
         }
       }
       layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
-      icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
+      icon = icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(event_icon_offset(icon));
 
       if ((keymap->poll_modal_item == nullptr) ||
           (keymap->poll_modal_item(op, item_z->value) != false))
       {
         /* Z item is included. */
 #ifndef WITH_HEADLESS
-        icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
+        icon = icon_from_keymap_item(kmi_z, icon_mod);
 #endif
         layout->label("", icon);
-        layout->separator(ui_event_icon_offset(icon));
+        layout->separator(event_icon_offset(icon));
         layout->separator(0.2f);
       }
 
@@ -140,23 +140,23 @@ int uiTemplateStatusBarModalItem(blender::ui::Layout *layout,
 #ifdef WITH_HEADLESS
       int icon = 0;
 #else
-      int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+      int icon = icon_from_keymap_item(kmi, icon_mod);
 #endif
       for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
         layout->label("", icon_mod[j]);
-        const float offset = ui_event_icon_offset(icon_mod[j]);
+        const float offset = event_icon_offset(icon_mod[j]);
         if (offset != 0.0f) {
           layout->separator(offset);
         }
       }
       layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
-      icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
+      icon = icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(event_icon_offset(icon));
       layout->separator(0.2f);
       layout->label(ab_label, ICON_NONE);
       layout->separator(0.6f);
@@ -165,13 +165,13 @@ int uiTemplateStatusBarModalItem(blender::ui::Layout *layout,
   }
 
   /* Single item without merging. */
-  return uiTemplateEventFromKeymapItem(layout, item->name, kmi, false) ? 1 : 0;
+  return template_event_from_keymap_item(layout, item->name, kmi, false) ? 1 : 0;
 }
 
-bool uiTemplateEventFromKeymapItem(blender::ui::Layout *layout,
-                                   const StringRefNull text,
-                                   const wmKeyMapItem *kmi,
-                                   bool text_fallback)
+bool template_event_from_keymap_item(Layout *layout,
+                                     const StringRefNull text,
+                                     const wmKeyMapItem *kmi,
+                                     bool text_fallback)
 {
   bool ok = false;
 
@@ -179,12 +179,12 @@ bool uiTemplateEventFromKeymapItem(blender::ui::Layout *layout,
 #ifdef WITH_HEADLESS
   int icon = 0;
 #else
-  const int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+  const int icon = icon_from_keymap_item(kmi, icon_mod);
 #endif
   if (icon != 0) {
     for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
       layout->label("", icon_mod[j]);
-      const float offset = ui_event_icon_offset(icon_mod[j]);
+      const float offset = event_icon_offset(icon_mod[j]);
       if (offset != 0.0f) {
         layout->separator(offset);
       }
@@ -198,7 +198,7 @@ bool uiTemplateEventFromKeymapItem(blender::ui::Layout *layout,
       layout->separator(-0.68f);
     }
 
-    const float offset = ui_event_icon_offset(icon);
+    const float offset = event_icon_offset(icon);
     if (offset != 0.0f) {
       layout->separator(offset);
     }
@@ -217,3 +217,5 @@ bool uiTemplateEventFromKeymapItem(blender::ui::Layout *layout,
   }
   return ok;
 }
+
+}  // namespace blender::ui

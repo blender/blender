@@ -16,7 +16,9 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
-static blender::bke::bNodeSocketTemplate outputs[] = {
+namespace blender {
+
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Image")},
     {-1, ""},
 };
@@ -25,8 +27,8 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack ** /*in*/,
 {
   float x = p->co[0];
   float y = p->co[1];
-  Image *ima = (Image *)node->id;
-  ImageUser *iuser = (ImageUser *)node->storage;
+  Image *ima = id_cast<Image *>(node->id);
+  ImageUser *iuser = static_cast<ImageUser *>(node->storage);
 
   if (ima) {
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
@@ -89,7 +91,7 @@ static void exec(void *data,
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  ImageUser *iuser = MEM_callocN<ImageUser>("node image user");
+  ImageUser *iuser = MEM_new_for_free<ImageUser>("node image user");
   node->storage = iuser;
   iuser->sfra = 1;
   iuser->flag |= IMA_ANIM_ALWAYS;
@@ -97,19 +99,21 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
 
 void register_node_type_tex_image()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeImage", TEX_NODE_IMAGE);
   ntype.ui_name = "Image";
   ntype.enum_name_legacy = "IMAGE";
   ntype.nclass = NODE_CLASS_INPUT;
-  blender::bke::node_type_socket_templates(&ntype, nullptr, outputs);
+  bke::node_type_socket_templates(&ntype, nullptr, outputs);
   ntype.initfunc = init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
   ntype.exec_fn = exec;
   ntype.labelfunc = node_image_label;
   ntype.flag |= NODE_PREVIEW;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

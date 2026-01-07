@@ -72,7 +72,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   this->curve_num = curve_num;
   CustomData_reset(&this->point_data);
   CustomData_reset(&this->curve_data_legacy);
-  new (&this->attribute_storage.wrap()) blender::bke::AttributeStorage();
+  new (&this->attribute_storage.wrap()) bke::AttributeStorage();
   BLI_listbase_clear(&this->vertex_group_names);
 
   this->attributes_for_write().add<float3>(
@@ -1341,7 +1341,7 @@ void CurvesGeometry::translate(const float3 &translation)
   if (bounds) {
     bounds->min += translation;
     bounds->max += translation;
-    this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = *bounds; });
+    this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_data) { r_data = *bounds; });
   }
 }
 
@@ -1395,9 +1395,9 @@ std::optional<Bounds<float3>> CurvesGeometry::bounds_min_max(const bool use_radi
 std::optional<int> CurvesGeometry::material_index_max() const
 {
   this->runtime->max_material_index_cache.ensure([&](std::optional<int> &r_max_material_index) {
-    r_max_material_index = blender::bounds::max<int>(
+    r_max_material_index = bounds::max<int>(
         this->attributes()
-            .lookup_or_default<int>("material_index", blender::bke::AttrDomain::Curve, 0)
+            .lookup_or_default<int>("material_index", bke::AttrDomain::Curve, 0)
             .varray);
     if (r_max_material_index.has_value()) {
       r_max_material_index = std::clamp(*r_max_material_index, 0, MAXMAT);
@@ -1476,7 +1476,7 @@ CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
 {
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
   Array<int> curve_point_counts(curves.curves_num(), 0);
-  points_to_copy.foreach_index(
+  points_to_copy.foreach_index_optimized<int64_t>(
       [&](const int64_t point_i) { curve_point_counts[point_to_curve_map[point_i]]++; });
 
   IndexMaskMemory memory;
@@ -1906,7 +1906,7 @@ MutableAttributeAccessor CurvesGeometry::attributes_for_write()
 
 void CurvesGeometry::blend_read(BlendDataReader &reader)
 {
-  this->runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
+  this->runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   CustomData_blend_read(&reader, &this->point_data, this->point_num);
   CustomData_blend_read(&reader, &this->curve_data_legacy, this->curve_num);

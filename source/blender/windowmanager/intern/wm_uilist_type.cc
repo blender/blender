@@ -30,7 +30,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-using blender::StringRef;
+namespace blender {
 
 static auto &get_list_type_map()
 {
@@ -40,7 +40,7 @@ static auto &get_list_type_map()
       return StringRef(value->idname);
     }
   };
-  static blender::CustomIDVectorSet<uiListType *, IDNameGetter> map;
+  static CustomIDVectorSet<uiListType *, IDNameGetter> map;
   return map;
 }
 
@@ -67,22 +67,23 @@ bool WM_uilisttype_add(uiListType *ult)
 
 static void wm_uilisttype_unlink_from_region(const uiListType *ult, ARegion *region)
 {
-  LISTBASE_FOREACH (uiList *, list, &region->ui_lists) {
-    if (list->type == ult) {
+  for (uiList &list : region->ui_lists) {
+    if (list.type == ult) {
       /* Don't delete the list, it's not just runtime data but stored in files. Freeing would make
        * that data get lost. */
-      list->type = nullptr;
+      list.type = nullptr;
     }
   }
 }
 
 static void wm_uilisttype_unlink_from_area(const uiListType *ult, ScrArea *area)
 {
-  LISTBASE_FOREACH (SpaceLink *, space_link, &area->spacedata) {
-    ListBase *regionbase = (space_link == area->spacedata.first) ? &area->regionbase :
-                                                                   &space_link->regionbase;
-    LISTBASE_FOREACH (ARegion *, region, regionbase) {
-      wm_uilisttype_unlink_from_region(ult, region);
+  for (SpaceLink &space_link : area->spacedata) {
+    ListBaseT<ARegion> *regionbase = (&space_link == area->spacedata.first) ?
+                                         &area->regionbase :
+                                         &space_link.regionbase;
+    for (ARegion &region : *regionbase) {
+      wm_uilisttype_unlink_from_region(ult, &region);
     }
   }
 }
@@ -102,9 +103,9 @@ static void wm_uilisttype_unlink(Main *bmain, const uiListType *ult)
   for (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first); wm != nullptr;
        wm = static_cast<wmWindowManager *>(wm->id.next))
   {
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      LISTBASE_FOREACH (ScrArea *, global_area, &win->global_areas.areabase) {
-        wm_uilisttype_unlink_from_area(ult, global_area);
+    for (wmWindow &win : wm->windows) {
+      for (ScrArea &global_area : win.global_areas.areabase) {
+        wm_uilisttype_unlink_from_area(ult, &global_area);
       }
     }
   }
@@ -112,12 +113,12 @@ static void wm_uilisttype_unlink(Main *bmain, const uiListType *ult)
   for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen != nullptr;
        screen = static_cast<bScreen *>(screen->id.next))
   {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      wm_uilisttype_unlink_from_area(ult, area);
+    for (ScrArea &area : screen->areabase) {
+      wm_uilisttype_unlink_from_area(ult, &area);
     }
 
-    LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
-      wm_uilisttype_unlink_from_region(ult, region);
+    for (ARegion &region : screen->regionbase) {
+      wm_uilisttype_unlink_from_region(ult, &region);
     }
   }
 }
@@ -165,3 +166,5 @@ const char *WM_uilisttype_list_id_get(const uiListType *ult, uiList *list)
   /* +1 to skip the '_'. */
   return list->list_id + strlen(ult->idname) + 1;
 }
+
+}  // namespace blender

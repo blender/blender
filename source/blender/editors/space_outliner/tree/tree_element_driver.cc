@@ -33,11 +33,11 @@ void TreeElementDriverBase::expand(SpaceOutliner & /*space_outliner*/) const
 {
   ID *lastadded = nullptr;
 
-  for (FCurve *fcu : blender::ListBaseWrapper<FCurve>(anim_data_.drivers)) {
+  for (FCurve *fcu : ListBaseWrapper<FCurve>(anim_data_.drivers)) {
     if (fcu->driver && fcu->driver->variables.first) {
       ChannelDriver *driver = fcu->driver;
 
-      for (DriverVar *dvar : blender::ListBaseWrapper<DriverVar>(driver->variables)) {
+      for (DriverVar *dvar : ListBaseWrapper<DriverVar>(driver->variables)) {
         /* loop over all targets used here */
         DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
           if (lastadded != dtar->id) {

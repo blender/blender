@@ -42,6 +42,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"geom.armature_deform"};
 
 /* -------------------------------------------------------------------- */
@@ -52,8 +54,6 @@ static float bone_envelope_falloff(const float distance_squared,
                                    const float closest_radius,
                                    const float falloff_distance)
 {
-  using namespace blender;
-
   if (distance_squared < closest_radius * closest_radius) {
     return 1.0f;
   }
@@ -70,15 +70,13 @@ static float bone_envelope_falloff(const float distance_squared,
   return 1.0f - (dist_envelope * dist_envelope) / (falloff_distance * falloff_distance);
 }
 
-float distfactor_to_bone(const blender::float3 &position,
-                         const blender::float3 &head,
-                         const blender::float3 &tail,
+float distfactor_to_bone(const float3 &position,
+                         const float3 &head,
+                         const float3 &tail,
                          const float radius_head,
                          const float radius_tail,
                          const float falloff_distance)
 {
-  using namespace blender;
-
   float bone_length;
   const float3 bone_axis = math::normalize_and_get_length(tail - head, bone_length);
   /* Distance along the bone axis from head. */
@@ -105,7 +103,7 @@ float distfactor_to_bone(const blender::float3 &position,
   }
 }
 
-namespace blender::bke {
+namespace bke {
 
 /**
  * Utility class for accumulating linear bone deformation.
@@ -265,7 +263,7 @@ static float pchan_bone_deform(const bPoseChannel &pchan,
   return weight;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 /** \} */
 
@@ -275,7 +273,7 @@ static float pchan_bone_deform(const bPoseChannel &pchan,
  * #BKE_armature_deform_coords and related functions.
  * \{ */
 
-namespace blender::bke {
+namespace bke {
 
 struct ArmatureDeformParams {
   MutableSpan<float3> vert_coords;
@@ -302,12 +300,12 @@ struct ArmatureDeformParams {
 static ArmatureDeformParams get_armature_deform_params(
     const Object &ob_arm,
     const Object &ob_target,
-    const ListBase *defbase,
+    const ListBaseT<bDeformGroup> *defbase,
     MutableSpan<float3> vert_coords,
     std::optional<Span<float3>> vert_coords_prev,
     std::optional<MutableSpan<float3x3>> vert_deform_mats,
     const int deformflag,
-    blender::StringRefNull defgrp_name,
+    StringRefNull defgrp_name,
     const bool try_use_dverts)
 {
   const bool dverts_supported = BKE_object_supports_vertex_groups(&ob_target);
@@ -328,9 +326,9 @@ static ArmatureDeformParams get_armature_deform_params(
      *
      * - Check whether keeping this consistent across frames gives speedup.
      */
-    int i;
-    LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, defbase, i) {
-      bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm.pose, dg->name);
+
+    for (const auto [i, dg] : (defbase)->enumerate()) {
+      bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm.pose, dg.name);
       /* Exclude non-deforming bones. */
       deform_params.pose_channel_by_vertex_group[i] = (pchan &&
                                                        !(pchan->bone->flag & BONE_NO_DEFORM)) ?
@@ -492,12 +490,12 @@ static void armature_vert_task_with_dvert(const ArmatureDeformParams &deform_par
 
 static void armature_deform_coords(const Object &ob_arm,
                                    const Object &ob_target,
-                                   const ListBase *defbase,
+                                   const ListBaseT<bDeformGroup> *defbase,
                                    const MutableSpan<float3> vert_coords,
                                    const std::optional<MutableSpan<float3x3>> vert_deform_mats,
                                    const int deformflag,
                                    const std::optional<Span<float3>> vert_coords_prev,
-                                   blender::StringRefNull defgrp_name,
+                                   StringRefNull defgrp_name,
                                    const std::optional<Span<MDeformVert>> dverts,
                                    const Mesh *me_target)
 {
@@ -546,7 +544,7 @@ static void armature_vert_task_editmesh(void *__restrict userdata,
                                         const TaskParallelTLS *__restrict /*tls*/)
 {
   const ArmatureEditMeshUserdata &data = *static_cast<const ArmatureEditMeshUserdata *>(userdata);
-  BMVert *v = (BMVert *)iter;
+  BMVert *v = reinterpret_cast<BMVert *>(iter);
   const MDeformVert *dvert = use_dvert ? static_cast<const MDeformVert *>(
                                              BM_ELEM_CD_GET_VOID_P(v, data.cd_dvert_offset)) :
                                          nullptr;
@@ -556,12 +554,12 @@ static void armature_vert_task_editmesh(void *__restrict userdata,
 
 static void armature_deform_editmesh(const Object &ob_arm,
                                      const Object &ob_target,
-                                     const ListBase *defbase,
+                                     const ListBaseT<bDeformGroup> *defbase,
                                      const MutableSpan<float3> vert_coords,
                                      const std::optional<MutableSpan<float3x3>> vert_deform_mats,
                                      const int deformflag,
                                      const std::optional<Span<float3>> vert_coords_prev,
-                                     blender::StringRefNull defgrp_name,
+                                     StringRefNull defgrp_name,
                                      const BMEditMesh &em_target,
                                      const int cd_dvert_offset)
 {
@@ -600,7 +598,7 @@ static void armature_deform_editmesh(const Object &ob_arm,
 static bool verify_armature_deform_valid(const Object &ob_arm)
 {
   /* Not supported in armature edit mode or without pose data. */
-  const bArmature *arm = static_cast<const bArmature *>(ob_arm.data);
+  const bArmature *arm = id_cast<const bArmature *>(ob_arm.data);
   if (arm->edbo || (ob_arm.pose == nullptr)) {
     return false;
   }
@@ -613,21 +611,18 @@ static bool verify_armature_deform_valid(const Object &ob_arm)
   return true;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
-void BKE_armature_deform_coords_with_curves(
-    const Object &ob_arm,
-    const Object &ob_target,
-    const ListBase *defbase,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
-    blender::Span<MDeformVert> dverts,
-    int deformflag,
-    blender::StringRefNull defgrp_name)
+void BKE_armature_deform_coords_with_curves(const Object &ob_arm,
+                                            const Object &ob_target,
+                                            const ListBaseT<bDeformGroup> *defbase,
+                                            MutableSpan<float3> vert_coords,
+                                            std::optional<Span<float3>> vert_coords_prev,
+                                            std::optional<MutableSpan<float3x3>> vert_deform_mats,
+                                            Span<MDeformVert> dverts,
+                                            int deformflag,
+                                            StringRefNull defgrp_name)
 {
-  using namespace blender;
-
   if (!bke::verify_armature_deform_valid(ob_arm)) {
     return;
   }
@@ -648,18 +643,15 @@ void BKE_armature_deform_coords_with_curves(
                               nullptr);
 }
 
-void BKE_armature_deform_coords_with_mesh(
-    const Object &ob_arm,
-    const Object &ob_target,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
-    int deformflag,
-    blender::StringRefNull defgrp_name,
-    const Mesh *me_target)
+void BKE_armature_deform_coords_with_mesh(const Object &ob_arm,
+                                          const Object &ob_target,
+                                          MutableSpan<float3> vert_coords,
+                                          std::optional<Span<float3>> vert_coords_prev,
+                                          std::optional<MutableSpan<float3x3>> vert_deform_mats,
+                                          int deformflag,
+                                          StringRefNull defgrp_name,
+                                          const Mesh *me_target)
 {
-  using namespace blender;
-
   if (!bke::verify_armature_deform_valid(ob_arm)) {
     return;
   }
@@ -667,7 +659,7 @@ void BKE_armature_deform_coords_with_mesh(
   /* Note armature modifier on legacy curves calls this, so vertex groups are not guaranteed to
    * exist. */
   const ID *id_target = static_cast<const ID *>(ob_target.data);
-  const ListBase *defbase = nullptr;
+  const ListBaseT<bDeformGroup> *defbase = nullptr;
   if (me_target) {
     /* Use the vertex groups from the evaluated mesh that is being deformed. */
     defbase = BKE_id_defgroup_list_get(&me_target->id);
@@ -677,17 +669,17 @@ void BKE_armature_deform_coords_with_mesh(
     defbase = BKE_id_defgroup_list_get(id_target);
   }
 
-  blender::Span<MDeformVert> dverts;
+  Span<MDeformVert> dverts;
   if (ob_target.type == OB_MESH) {
     if (me_target == nullptr) {
-      me_target = static_cast<const Mesh *>(ob_target.data);
+      me_target = id_cast<const Mesh *>(ob_target.data);
     }
     dverts = me_target->deform_verts();
   }
   else if (ob_target.type == OB_LATTICE) {
-    const Lattice *lt = static_cast<const Lattice *>(ob_target.data);
+    const Lattice *lt = id_cast<const Lattice *>(ob_target.data);
     if (lt->dvert != nullptr) {
-      dverts = blender::Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+      dverts = Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
     }
   }
 
@@ -712,20 +704,19 @@ void BKE_armature_deform_coords_with_mesh(
 void BKE_armature_deform_coords_with_editmesh(
     const Object &ob_arm,
     const Object &ob_target,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::Span<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
+    MutableSpan<float3> vert_coords,
+    std::optional<Span<float3>> vert_coords_prev,
+    std::optional<MutableSpan<float3x3>> vert_deform_mats,
     int deformflag,
-    blender::StringRefNull defgrp_name,
+    StringRefNull defgrp_name,
     const BMEditMesh &em_target)
 {
-  using namespace blender;
-
   if (!bke::verify_armature_deform_valid(ob_arm)) {
     return;
   }
 
-  const ListBase *defbase = BKE_id_defgroup_list_get(static_cast<const ID *>(ob_target.data));
+  const ListBaseT<bDeformGroup> *defbase = BKE_id_defgroup_list_get(
+      static_cast<const ID *>(ob_target.data));
   const int cd_dvert_offset = CustomData_get_offset(&em_target.bm->vdata, CD_MDEFORMVERT);
   bke::armature_deform_editmesh(ob_arm,
                                 ob_target,
@@ -740,3 +731,5 @@ void BKE_armature_deform_coords_with_editmesh(
 }
 
 /** \} */
+
+}  // namespace blender

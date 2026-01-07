@@ -17,39 +17,41 @@
 
 #include "BLI_sys_types.h"
 
-struct ListBase;
+#include "DNA_listBase.h"
 
-namespace blender::gpu {
+namespace blender {
+
+struct GPUInput;
+
+namespace gpu {
 class UniformBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 
-blender::gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size,
-                                                   const void *data,
-                                                   const char *name);
+gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name);
 /**
  * Create UBO from inputs list.
  *
- * \param inputs: ListBase of #BLI_genericNodeN(#GPUInput).
+ * \param inputs: ListBaseT<LinkData>
  * \return nullptr if failed to create or if `inputs` is empty.
  */
-blender::gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, const char *name);
+gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs, const char *name);
 
 #define GPU_uniformbuf_create(size) GPU_uniformbuf_create_ex(size, nullptr, __func__);
 
-void GPU_uniformbuf_free(blender::gpu::UniformBuf *ubo);
+void GPU_uniformbuf_free(gpu::UniformBuf *ubo);
 
-void GPU_uniformbuf_update(blender::gpu::UniformBuf *ubo, const void *data);
+void GPU_uniformbuf_update(gpu::UniformBuf *ubo, const void *data);
 
-void GPU_uniformbuf_bind(blender::gpu::UniformBuf *ubo, int slot);
-void GPU_uniformbuf_bind_as_ssbo(blender::gpu::UniformBuf *ubo, int slot);
-void GPU_uniformbuf_unbind(blender::gpu::UniformBuf *ubo);
+void GPU_uniformbuf_bind(gpu::UniformBuf *ubo, int slot);
+void GPU_uniformbuf_bind_as_ssbo(gpu::UniformBuf *ubo, int slot);
+void GPU_uniformbuf_unbind(gpu::UniformBuf *ubo);
 /**
  * Resets the internal slot usage tracking. But there is no guarantee that
  * this actually undo the bindings for the next draw call. Only has effect when G_DEBUG_GPU is set.
  */
 void GPU_uniformbuf_debug_unbind_all();
 
-void GPU_uniformbuf_clear_to_zero(blender::gpu::UniformBuf *ubo);
+void GPU_uniformbuf_clear_to_zero(gpu::UniformBuf *ubo);
 
 #define GPU_UBO_BLOCK_NAME "node_tree"
 #define GPU_ATTRIBUTE_UBO_BLOCK_NAME "unf_attrs"
@@ -63,3 +65,5 @@ constexpr static int GPU_NODE_TREE_UBO_SLOT = 0;
       ubo = nullptr; \
     } \
   } while (0)
+
+}  // namespace blender

@@ -39,7 +39,7 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
     /* Do not extend Armature when we have pose-mode. */
     TreeStoreElem *tselem = TREESTORE(legacy_te_.parent);
     if (TSE_IS_REAL_ID(tselem) && GS(tselem->id->name) == ID_OB &&
-        ((Object *)tselem->id)->mode & OB_MODE_POSE)
+        (id_cast<Object *>(tselem->id))->mode & OB_MODE_POSE)
     {
       /* pass */
     }
@@ -55,19 +55,19 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
 
 void TreeElementIDArmature::expand_edit_bones() const
 {
-  int a = 0;
-  LISTBASE_FOREACH_INDEX (EditBone *, ebone, arm_.edbo, a) {
+
+  for (const auto [a, ebone] : (arm_.edbo)->enumerate()) {
     TreeElement *ten = add_element(
-        &legacy_te_.subtree, &arm_.id, ebone, &legacy_te_, TSE_EBONE, a);
-    ebone->temp.p = ten;
+        &legacy_te_.subtree, &arm_.id, &ebone, &legacy_te_, TSE_EBONE, a);
+    ebone.temp.p = ten;
   }
   /* make hierarchy */
-  TreeElement *ten = arm_.edbo->first ?
-                         static_cast<TreeElement *>(((EditBone *)arm_.edbo->first)->temp.p) :
-                         nullptr;
+  TreeElement *ten = arm_.edbo->first ? static_cast<TreeElement *>(
+                                            (static_cast<EditBone *>(arm_.edbo->first))->temp.p) :
+                                        nullptr;
   while (ten) {
     TreeElement *nten = ten->next, *par;
-    EditBone *ebone = (EditBone *)ten->directdata;
+    EditBone *ebone = static_cast<EditBone *>(ten->directdata);
     if (ebone->parent) {
       BLI_remlink(&legacy_te_.subtree, ten);
       par = static_cast<TreeElement *>(ebone->parent->temp.p);
@@ -80,7 +80,7 @@ void TreeElementIDArmature::expand_edit_bones() const
 
 /* special handling of hierarchical non-lib data */
 static void outliner_add_bone(SpaceOutliner *space_outliner,
-                              ListBase *lb,
+                              ListBaseT<TreeElement> *lb,
                               ID *id,
                               Bone *curBone,
                               TreeElement *parent,
@@ -91,16 +91,16 @@ static void outliner_add_bone(SpaceOutliner *space_outliner,
 
   (*a)++;
 
-  LISTBASE_FOREACH (Bone *, child_bone, &curBone->childbase) {
-    outliner_add_bone(space_outliner, &te->subtree, id, child_bone, te, a);
+  for (Bone &child_bone : curBone->childbase) {
+    outliner_add_bone(space_outliner, &te->subtree, id, &child_bone, te, a);
   }
 }
 
 void TreeElementIDArmature::expand_bones(SpaceOutliner &space_outliner) const
 {
   int a = 0;
-  LISTBASE_FOREACH (Bone *, bone, &arm_.bonebase) {
-    outliner_add_bone(&space_outliner, &legacy_te_.subtree, &arm_.id, bone, &legacy_te_, &a);
+  for (Bone &bone : arm_.bonebase) {
+    outliner_add_bone(&space_outliner, &legacy_te_.subtree, &arm_.id, &bone, &legacy_te_, &a);
   }
 }
 

@@ -35,12 +35,13 @@
 
 #include "BKE_bake_items.hh"
 #include "BKE_node_tree_zones.hh"
+namespace blender {
 
-struct Object;
 struct Depsgraph;
+struct Object;
 struct Scene;
 
-namespace blender::nodes {
+namespace nodes {
 
 using lf::LazyFunction;
 using mf::MultiFunction;
@@ -659,4 +660,5 @@ void report_from_multi_function(const mf::Context &context,
                                 NodeWarningType type,
                                 std::string message);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

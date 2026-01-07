@@ -19,6 +19,8 @@
 
 #include "multires_reshape.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Reshape from object
  * \{ */
@@ -26,14 +28,14 @@
 static bool multiresModifier_reshapeFromVertcos(Depsgraph *depsgraph,
                                                 Object *object,
                                                 MultiresModifierData *mmd,
-                                                blender::Span<blender::float3> positions)
+                                                Span<float3> positions)
 {
   MultiresReshapeContext reshape_context;
   if (!multires_reshape_context_create_from_object(&reshape_context, depsgraph, object, mmd)) {
     return false;
   }
   multires_reshape_store_original_grids(&reshape_context);
-  multires_reshape_ensure_grids(static_cast<Mesh *>(object->data), reshape_context.top.level);
+  multires_reshape_ensure_grids(id_cast<Mesh *>(object->data), reshape_context.top.level);
   if (!multires_reshape_assign_final_coords_from_vertcos(&reshape_context, positions)) {
     multires_reshape_context_free(&reshape_context);
     return false;
@@ -72,8 +74,7 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
                                                 MultiresModifierData *mmd,
                                                 ModifierData *deform_md)
 {
-  using namespace blender;
-  MultiresModifierData highest_mmd = blender::dna::shallow_copy(*mmd);
+  MultiresModifierData highest_mmd = dna::shallow_copy(*mmd);
   highest_mmd.sculptlvl = highest_mmd.totlvl;
   highest_mmd.lvl = highest_mmd.totlvl;
   highest_mmd.renderlvl = highest_mmd.totlvl;
@@ -155,7 +156,7 @@ void multiresModifier_subdivide_to_level(Object *object,
     return;
   }
 
-  Mesh *coarse_mesh = static_cast<Mesh *>(object->data);
+  Mesh *coarse_mesh = id_cast<Mesh *>(object->data);
   if (coarse_mesh->corners_num == 0) {
     /* If there are no loops in the mesh implies there is no CD_MDISPS as well. So can early output
      * from here as there is nothing to subdivide. */
@@ -274,3 +275,5 @@ void multiresModifier_base_apply(Depsgraph *depsgraph,
 }
 
 /** \} */
+
+}  // namespace blender

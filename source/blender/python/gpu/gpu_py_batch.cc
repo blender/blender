@@ -29,6 +29,8 @@
 
 #include "gpu_py_batch.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
  * \{ */
@@ -101,11 +103,11 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, Py
     return nullptr;
   }
 
-  blender::gpu::Batch *batch = GPU_batch_create(GPUPrimType(prim_type.value_found),
-                                                py_vertbuf->buf,
-                                                py_indexbuf ? py_indexbuf->elem : nullptr);
+  gpu::Batch *batch = GPU_batch_create(GPUPrimType(prim_type.value_found),
+                                       py_vertbuf->buf,
+                                       py_indexbuf ? py_indexbuf->elem : nullptr);
 
-  BPyGPUBatch *ret = (BPyGPUBatch *)BPyGPUBatch_CreatePyObject(batch);
+  BPyGPUBatch *ret = reinterpret_cast<BPyGPUBatch *>(BPyGPUBatch_CreatePyObject(batch));
 
 #ifdef USE_GPU_PY_REFERENCES
   ret->references = PyList_New(py_indexbuf ? 2 : 1);
@@ -121,7 +123,7 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, Py
   PyObject_GC_Track(ret);
 #endif
 
-  return (PyObject *)ret;
+  return reinterpret_cast<PyObject *>(ret);
 }
 
 PyDoc_STRVAR(
@@ -163,7 +165,7 @@ static PyObject *pygpu_batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_bu
 
 #ifdef USE_GPU_PY_REFERENCES
   /* Hold user */
-  PyList_Append(self->references, (PyObject *)py_buf);
+  PyList_Append(self->references, reinterpret_cast<PyObject *>(py_buf));
 #endif
 
   GPU_batch_vertbuf_add(self->batch, py_buf->buf, false);
@@ -201,7 +203,7 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
     return nullptr;
   }
 
-  blender::gpu::Shader *shader = py_shader->shader;
+  gpu::Shader *shader = py_shader->shader;
   GPU_batch_set_shader(self->batch, shader);
 
 #ifdef USE_GPU_PY_REFERENCES
@@ -217,8 +219,9 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
       break;
     }
   }
-  if (i != -1) {
-    PyList_Append(self->references, (PyObject *)py_shader);
+  if (i == -1) {
+    /* No references set in the loop, so add it here. */
+    PyList_Append(self->references, reinterpret_cast<PyObject *>(py_shader));
   }
 #endif
 
@@ -229,7 +232,7 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
  * Verify if the Shader is compatible with the batch and can be used for rendering.
  * Derived from `polyline_draw_workaround` in `gpu_immediate.cc`.
  */
-static const char *pygpu_shader_check_compatibility(blender::gpu::Batch *batch)
+static const char *pygpu_shader_check_compatibility(gpu::Batch *batch)
 {
   if (!batch->shader) {
     return nullptr;
@@ -241,7 +244,7 @@ static const char *pygpu_shader_check_compatibility(blender::gpu::Batch *batch)
   }
 
   /* Check batch compatibility with shader. */
-  for (auto *vert : blender::Span(batch->verts, ARRAY_SIZE(batch->verts))) {
+  for (auto *vert : Span(batch->verts, ARRAY_SIZE(batch->verts))) {
     if (!vert) {
       continue;
     }
@@ -257,7 +260,7 @@ static const char *pygpu_shader_check_compatibility(blender::gpu::Batch *batch)
       if ((a->offset % 4) != 0) {
         return "For POLYLINE shaders, only 4-byte aligned attributes are supported";
       }
-      const blender::StringRefNull name = GPU_vertformat_attr_name_get(&format, a, 0);
+      const StringRefNull name = GPU_vertformat_attr_name_get(&format, a, 0);
       if (pos_attr_id == -1 && name == "pos") {
         if (!ELEM(a->type.comp_type(), GPU_COMP_F32)) {
           return "For POLYLINE shaders, the 'pos' attribute needs to be 'F32'";
@@ -290,7 +293,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg shader: Shader that performs the drawing operations.\n"
     "      If ``None`` is passed, the last shader set to this batch will run.\n"
-    "   :type program: :class:`gpu.types.GPUShader`\n");
+    "   :type shader: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
 {
   static bool deprecation_warning_issued = false;
@@ -324,7 +327,7 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
   if (py_shader && py_shader->is_builtin &&
       ELEM(self->batch->prim_type, GPU_PRIM_LINES, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINE_LOOP))
   {
-    blender::gpu::Shader *shader = py_shader->shader;
+    gpu::Shader *shader = py_shader->shader;
     const float line_width = GPU_line_width_get();
     const bool use_linesmooth = GPU_line_smooth_get();
     if (line_width > 1.0f || use_linesmooth) {
@@ -355,7 +358,7 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
   /* Emit a warning when trying to draw points with a regular shader as it is too late to
    * automatically switch to a point shader. */
   if (py_shader && py_shader->is_builtin && self->batch->prim_type == GPU_PRIM_POINTS) {
-    blender::gpu::Shader *shader = py_shader->shader;
+    gpu::Shader *shader = py_shader->shader;
     if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR)) {
       PyErr_WarnEx(PyExc_DeprecationWarning,
                    "Calling GPUBatch.draw to draw points with "
@@ -507,19 +510,31 @@ static PyObject *pygpu_batch_program_use_end(BPyGPUBatch *self)
 #endif
 
 static PyMethodDef pygpu_batch__tp_methods[] = {
-    {"vertbuf_add", (PyCFunction)pygpu_batch_vertbuf_add, METH_O, pygpu_batch_vertbuf_add_doc},
-    {"program_set", (PyCFunction)pygpu_batch_program_set, METH_O, pygpu_batch_program_set_doc},
-    {"draw", (PyCFunction)pygpu_batch_draw, METH_VARARGS, pygpu_batch_draw_doc},
+    {"vertbuf_add",
+     reinterpret_cast<PyCFunction>(pygpu_batch_vertbuf_add),
+     METH_O,
+     pygpu_batch_vertbuf_add_doc},
+    {"program_set",
+     reinterpret_cast<PyCFunction>(pygpu_batch_program_set),
+     METH_O,
+     pygpu_batch_program_set_doc},
+    {"draw", reinterpret_cast<PyCFunction>(pygpu_batch_draw), METH_VARARGS, pygpu_batch_draw_doc},
     {"draw_instanced",
-     (PyCFunction)pygpu_batch_draw_instanced,
+     reinterpret_cast<PyCFunction>(pygpu_batch_draw_instanced),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_batch_draw_instanced_doc},
     {"draw_range",
-     (PyCFunction)pygpu_batch_draw_range,
+     reinterpret_cast<PyCFunction>(pygpu_batch_draw_range),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_batch_draw_range_doc},
-    {"_program_use_begin", (PyCFunction)pygpu_batch_program_use_begin, METH_NOARGS, ""},
-    {"_program_use_end", (PyCFunction)pygpu_batch_program_use_end, METH_NOARGS, ""},
+    {"_program_use_begin",
+     reinterpret_cast<PyCFunction>(pygpu_batch_program_use_begin),
+     METH_NOARGS,
+     ""},
+    {"_program_use_end",
+     reinterpret_cast<PyCFunction>(pygpu_batch_program_use_end),
+     METH_NOARGS,
+     ""},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -587,7 +602,7 @@ PyTypeObject BPyGPUBatch_Type = {
     /*tp_name*/ "GPUBatch",
     /*tp_basicsize*/ sizeof(BPyGPUBatch),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)pygpu_batch__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(pygpu_batch__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -609,12 +624,12 @@ PyTypeObject BPyGPUBatch_Type = {
 #endif
     /*tp_doc*/ pygpu_batch__tp_doc,
 #ifdef USE_GPU_PY_REFERENCES
-    /*tp_traverse*/ (traverseproc)pygpu_batch__tp_traverse,
+    /*tp_traverse*/ reinterpret_cast<traverseproc>(pygpu_batch__tp_traverse),
 #else
     /*tp_traverse*/ nullptr,
 #endif
 #ifdef USE_GPU_PY_REFERENCES
-    /*tp_clear*/ (inquiry)pygpu_batch__tp_clear,
+    /*tp_clear*/ reinterpret_cast<inquiry>(pygpu_batch__tp_clear),
 #else
     /*tp_clear*/ nullptr,
 #endif
@@ -635,7 +650,7 @@ PyTypeObject BPyGPUBatch_Type = {
     /*tp_new*/ pygpu_batch__tp_new,
     /*tp_free*/ nullptr,
 #ifdef USE_GPU_PY_REFERENCES
-    /*tp_is_gc*/ (inquiry)pygpu_batch__tp_is_gc,
+    /*tp_is_gc*/ reinterpret_cast<inquiry>(pygpu_batch__tp_is_gc),
 #else
     /*tp_is_gc*/ nullptr,
 #endif
@@ -656,12 +671,12 @@ PyTypeObject BPyGPUBatch_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch)
+PyObject *BPyGPUBatch_CreatePyObject(gpu::Batch *batch)
 {
   BPyGPUBatch *self;
 
 #ifdef USE_GPU_PY_REFERENCES
-  self = (BPyGPUBatch *)_PyObject_GC_New(&BPyGPUBatch_Type);
+  self = reinterpret_cast<BPyGPUBatch *>(_PyObject_GC_New(&BPyGPUBatch_Type));
   self->references = nullptr;
 #else
   self = PyObject_New(BPyGPUBatch, &BPyGPUBatch_Type);
@@ -669,9 +684,11 @@ PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch)
 
   self->batch = batch;
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */
 
 #undef BPY_GPU_BATCH_CHECK_OBJ
+
+}  // namespace blender

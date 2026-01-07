@@ -287,15 +287,13 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       )
     endif()
 
-    if(WITH_GHOST_WAYLAND_LIBDECOR)
-      list(APPEND INC_SYS
-        ${libdecor_INCLUDE_DIRS}
+    if(WITH_GHOST_CSD)
+      list(APPEND SRC
+        intern/GHOST_WindowWaylandCSD.cc
+
+        intern/GHOST_WindowWaylandCSD.hh
       )
-      if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
-        list(APPEND LIB
-          ${libdecor_LIBRARIES}
-        )
-      endif()
+      add_definitions(-DWITH_GHOST_CSD)
     endif()
 
     include(CheckSymbolExists)
@@ -309,14 +307,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     check_symbol_exists(poll "poll.h" HAVE_POLL)
     if(HAVE_POLL)
       add_definitions(-DHAVE_POLL)
-    endif()
-
-    if(WITH_GHOST_WAYLAND_LIBDECOR)
-      # See code-comment for `USE_LIBDECOR_CONFIG_COPY_WORKAROUND`.
-      check_symbol_exists(malloc_usable_size "malloc.h" HAVE_MALLOC_USABLE_SIZE)
-      if(HAVE_MALLOC_USABLE_SIZE)
-        add_definitions(-DHAVE_MALLOC_USABLE_SIZE)
-      endif()
     endif()
 
     list(APPEND SRC
@@ -365,7 +355,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${INC_DST}
     )
 
-    # Used when: LIBDECOR is not needed.
     # `xdg-shell`.
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
@@ -374,8 +363,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
     )
-    # End LIBDECOR alternative.
-
     # `xdg-output`.
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-output/xdg-output-unstable-v1.xml"

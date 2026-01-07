@@ -49,7 +49,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryMeshToPoints *data = MEM_callocN<NodeGeometryMeshToPoints>(__func__);
+  NodeGeometryMeshToPoints *data = MEM_new_for_free<NodeGeometryMeshToPoints>(__func__);
   data->mode = GEO_NODE_MESH_TO_POINTS_VERTICES;
   node->storage = data;
 }
@@ -162,7 +162,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<float> positive_radius(FieldOperation::from(max_zero_fn, {std::move(radius)}), 0);
 
   const NodeGeometryMeshToPoints &storage = node_storage(params.node());
-  const GeometryNodeMeshToPointsMode mode = (GeometryNodeMeshToPointsMode)storage.mode;
+  const GeometryNodeMeshToPointsMode mode = GeometryNodeMeshToPointsMode(storage.mode);
 
   const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Points");
 
@@ -245,7 +245,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeMeshToPoints", GEO_NODE_MESH_TO_POINTS);
   ntype.ui_name = "Mesh to Points";
@@ -256,9 +256,9 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryMeshToPoints", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

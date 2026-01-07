@@ -28,7 +28,7 @@ void main()
 
   /* TODO: MAKE SURE TO ALIGN SAMPLE POSITION TO AVOID OFFSET IN THE BOKEH. */
   float depth = texelFetch(scene_depth_tx, int2(gl_FragCoord.xy), 0).r;
-  float zdepth = dof_linear_depth(depth);
+  float zdepth = drw_depth_screen_to_view(depth);
   float coc = dof_calculate_coc(zdepth);
 
   float blend = smoothstep(1.0f, 3.0f, abs(coc));

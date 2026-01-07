@@ -11,4 +11,4 @@ namespace blender {
 template<typename T, typename... Args>
 inline uint64_t get_default_hash(const T &v, const Args &...args);
 
-}
+}  // namespace blender

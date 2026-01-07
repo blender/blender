@@ -20,6 +20,8 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct IDProperty;
 struct wmGizmo;
 struct wmGizmoType;
@@ -199,7 +201,11 @@ enum eWM_GizmoFlagTweak {
   WM_GIZMO_TWEAK_SNAP = (1 << 1),
 };
 
+}  // namespace blender
+
 #include "wm_gizmo_fn.hh"
+
+namespace blender {
 
 struct wmGizmoOpElem {
   wmOperatorType *type = nullptr;
@@ -279,13 +285,13 @@ struct wmGizmo {
 
   /** Operator to spawn when activating the gizmo (overrides property editing),
    * an array of items (aligned with #wmGizmo.highlight_part). */
-  blender::Vector<wmGizmoOpElem, 4> op_data;
+  Vector<wmGizmoOpElem, 4> op_data;
 
   IDProperty *properties;
 
   /* TODO: Once wmGizmo itself gets an actual constructor, this can most likely become a
-   * `blender::Array`, since length is defined by the gizmo type. */
-  blender::Vector<wmGizmoProperty, 0> target_properties;
+   * `Array`, since length is defined by the gizmo type. */
+  Vector<wmGizmoProperty, 0> target_properties;
 
   /** Redraw tag. */
   bool do_draw;
@@ -404,7 +410,7 @@ struct wmGizmoType {
   /** RNA integration. */
   ExtensionRNA rna_ext;
 
-  ListBase target_property_defs;
+  ListBaseT<wmGizmoPropertyType> target_property_defs;
   int target_property_defs_len;
 };
 
@@ -478,7 +484,7 @@ struct wmGizmoGroup {
   wmGizmoGroup *next, *prev;
 
   wmGizmoGroupType *type;
-  ListBase gizmos;
+  ListBaseT<wmGizmo> gizmos;
 
   wmGizmoMap *parent_gzmap;
 
@@ -516,3 +522,5 @@ enum eWM_GizmoFlagMapDrawStep {
   WM_GIZMOMAP_DRAWSTEP_3D,
 };
 #define WM_GIZMOMAP_DRAWSTEP_MAX 2
+
+}  // namespace blender

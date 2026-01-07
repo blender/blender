@@ -31,7 +31,7 @@ namespace blender::ed::transform {
 static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    MetaBall *mb = (MetaBall *)tc->obedit->data;
+    MetaBall *mb = id_cast<MetaBall *>(tc->obedit->data);
     TransData *td;
     TransDataExtension *tx;
     float mtx[3][3], smtx[3][3];
@@ -40,8 +40,8 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
     const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
 
     /* Count totals. */
-    LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
-      if (ml->flag & SELECT) {
+    for (MetaElem &ml : *mb->editelems) {
+      if (ml.flag & SELECT) {
         countsel++;
       }
       if (is_prop_edit) {
@@ -70,15 +70,15 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
-    LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
-      if (is_prop_edit || (ml->flag & SELECT)) {
-        td->loc = &ml->x;
+    for (MetaElem &ml : *mb->editelems) {
+      if (is_prop_edit || (ml.flag & SELECT)) {
+        td->loc = &ml.x;
         copy_v3_v3(td->iloc, td->loc);
         copy_v3_v3(td->center, td->loc);
 
-        quat_to_mat3(td->axismtx, ml->quat);
+        quat_to_mat3(td->axismtx, ml.quat);
 
-        if (ml->flag & SELECT) {
+        if (ml.flag & SELECT) {
           td->flag = TD_SELECTED | TD_USEQUAT | TD_SINGLE_SCALE;
         }
         else {
@@ -89,24 +89,24 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
         copy_m3_m3(td->mtx, mtx);
 
         /* Radius of MetaElem (mass of MetaElem influence). */
-        if (ml->flag & MB_SCALE_RAD) {
-          td->val = &ml->rad;
-          td->ival = ml->rad;
+        if (ml.flag & MB_SCALE_RAD) {
+          td->val = &ml.rad;
+          td->ival = ml.rad;
         }
         else {
-          td->val = &ml->s;
-          td->ival = ml->s;
+          td->val = &ml.s;
+          td->ival = ml.s;
         }
 
         /* `expx/expy/expz` determine "shape" of some MetaElem types. */
-        tx->scale = &ml->expx;
-        tx->iscale[0] = ml->expx;
-        tx->iscale[1] = ml->expy;
-        tx->iscale[2] = ml->expz;
+        tx->scale = &ml.expx;
+        tx->iscale[0] = ml.expx;
+        tx->iscale[1] = ml.expy;
+        tx->iscale[2] = ml.expz;
 
         /* `quat` is used for rotation of #MetaElem. */
-        tx->quat = ml->quat;
-        copy_qt_qt(tx->iquat, ml->quat);
+        tx->quat = ml.quat;
+        copy_qt_qt(tx->iquat, ml.quat);
 
         tx->rot = nullptr;
 

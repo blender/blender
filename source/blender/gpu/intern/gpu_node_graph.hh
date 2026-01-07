@@ -17,9 +17,11 @@
 
 #include "GPU_material.hh"
 
+namespace blender {
+
 struct GPUNode;
 struct GPUOutput;
-struct ListBase;
+struct GPUInput;
 
 enum GPUDataSource {
   GPU_SOURCE_OUTPUT,
@@ -72,8 +74,8 @@ struct GPUNode {
   /* Internal flag to mark nodes during pruning */
   GPUNodeTag tag;
 
-  ListBase inputs;
-  ListBase outputs;
+  ListBaseT<GPUInput> inputs;
+  ListBaseT<GPUOutput> outputs;
 
   /* Zones. */
   int zone_index;
@@ -90,7 +92,7 @@ struct GPUNodeLink {
     /* GPU_NODE_LINK_CONSTANT | GPU_NODE_LINK_UNIFORM */
     const float *data;
     /* GPU_NODE_LINK_COLORBAND */
-    blender::gpu::Texture **colorband;
+    gpu::Texture **colorband;
     /* GPU_NODE_LINK_OUTPUT */
     GPUOutput *output;
     /* GPU_NODE_LINK_ATTR */
@@ -169,7 +171,7 @@ struct GPUNodeGraphFunctionLink {
 
 struct GPUNodeGraph {
   /* Nodes */
-  ListBase nodes;
+  ListBaseT<GPUNode> nodes;
 
   /* Main Outputs. */
   GPUNodeLink *outlink_surface;
@@ -177,21 +179,21 @@ struct GPUNodeGraph {
   GPUNodeLink *outlink_displacement;
   GPUNodeLink *outlink_thickness;
   /* List of GPUNodeGraphOutputLink */
-  ListBase outlink_aovs;
+  ListBaseT<GPUNodeGraphOutputLink> outlink_aovs;
   /* List of GPUNodeGraphFunctionLink */
-  ListBase material_functions;
+  ListBaseT<GPUNodeGraphFunctionLink> material_functions;
   /* List of GPUNodeGraphOutputLink */
-  ListBase outlink_compositor;
+  ListBaseT<GPUNodeGraphOutputLink> outlink_compositor;
 
   /* Requested attributes and textures. */
-  ListBase attributes;
-  ListBase textures;
+  ListBaseT<GPUMaterialAttribute> attributes;
+  ListBaseT<GPUMaterialTexture> textures;
 
   /* The list of uniform attributes. */
   GPUUniformAttrList uniform_attrs;
 
   /* The list of layer attributes. */
-  ListBase layer_attrs;
+  ListBaseT<GPULayerAttr> layer_attrs;
 };
 
 /* Node Graph */
@@ -228,12 +230,14 @@ GPUNodeGraph *gpu_material_node_graph(GPUMaterial *material);
 /**
  * Returns the address of the future pointer to coba_tex.
  */
-blender::gpu::Texture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
-                                                          int size,
-                                                          const float *pixels,
-                                                          float *r_row);
+gpu::Texture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
+                                                 int size,
+                                                 const float *pixels,
+                                                 float *r_row);
 /**
  * Returns the address of the future pointer to sky_tex
  */
-blender::gpu::Texture **gpu_material_sky_texture_layer_set(
+gpu::Texture **gpu_material_sky_texture_layer_set(
     GPUMaterial *mat, int width, int height, const float *pixels, float *row);
+
+}  // namespace blender

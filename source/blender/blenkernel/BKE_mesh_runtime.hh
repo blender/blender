@@ -12,6 +12,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct Depsgraph;
@@ -44,7 +46,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh);
  */
 void BKE_mesh_runtime_clear_cache(Mesh *mesh);
 
-namespace blender::bke {
+namespace bke {
 
 void mesh_get_mapped_verts_coords(Mesh *mesh_eval, MutableSpan<float3> r_cos);
 
@@ -82,4 +84,5 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
                                         Object *ob,
                                         const CustomData_MeshMasks *dataMask);
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

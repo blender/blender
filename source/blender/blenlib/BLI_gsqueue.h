@@ -10,7 +10,9 @@
 
 #include "BLI_utildefines.h"
 
-typedef struct _GSQueue GSQueue;
+namespace blender {
+
+struct GSQueue;
 
 GSQueue *BLI_gsqueue_new(size_t elem_size);
 /**
@@ -38,3 +40,5 @@ void BLI_gsqueue_push(GSQueue *queue, const void *item);
  * Free the queue's data and the queue itself.
  */
 void BLI_gsqueue_free(GSQueue *queue);
+
+}  // namespace blender

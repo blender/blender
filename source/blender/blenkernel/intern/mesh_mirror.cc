@@ -27,6 +27,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mmd,
                                                           const Mesh *mesh,
                                                           int axis,
@@ -121,7 +123,6 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                                         int **r_vert_merge_map,
                                                         int *r_vert_merge_map_len)
 {
-  using namespace blender;
   using namespace blender::bke;
   const float tolerance_sq = mmd->tolerance * mmd->tolerance;
   const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0 && r_vert_merge_map != nullptr;
@@ -190,7 +191,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   const int src_verts_num = mesh->verts_num;
   const int src_edges_num = mesh->edges_num;
-  const blender::OffsetIndices src_faces = mesh->faces();
+  const OffsetIndices src_faces = mesh->faces();
   const int src_loops_num = mesh->corners_num;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
@@ -225,7 +226,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* mirror vertex coordinates */
-  blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
+  MutableSpan<float3> positions = result->vert_positions_for_write();
   for (int i = 0; i < src_verts_num; i++) {
     const int vert_index_prev = i;
     const int vert_index = src_verts_num + i;
@@ -297,10 +298,10 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     }
   }
 
-  blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
   /* adjust mirrored edge vertex indices */
   for (const int i : result_edges.index_range().drop_front(src_edges_num)) {
@@ -311,7 +312,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   for (const int i : src_faces.index_range()) {
     result_face_offsets[src_faces.size() + i] = src_faces[i].start() + src_loops_num;
   }
-  const blender::OffsetIndices result_faces = result->faces();
+  const OffsetIndices result_faces = result->faces();
 
   /* adjust mirrored loop vertex and edge indices */
   for (const int i : result_corner_verts.index_range().drop_front(src_loops_num)) {
@@ -324,9 +325,9 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   bke::mesh_flip_faces(*result, result_faces.index_range().drop_front(src_faces.size()));
 
   if (!mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
-    const blender::BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
+    const BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
     result->runtime->subsurf_optimal_display_edges.resize(result->edges_num);
-    blender::MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
+    MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
     dst.take_front(src.size()).copy_from(src);
     dst.take_back(src.size()).copy_from(src);
   }
@@ -379,9 +380,9 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   if (ob->type == OB_MESH && custom_normals && custom_normals.domain == bke::AttrDomain::Corner &&
       custom_normals.varray.type().is<short2>() && result->faces_num > 0)
   {
-    blender::Array<blender::float3> corner_normals(result_corner_verts.size());
+    Array<float3> corner_normals(result_corner_verts.size());
     MutableVArraySpan clnors(custom_normals.varray.typed<short2>());
-    blender::bke::mesh::CornerNormalSpaceArray lnors_spacearr;
+    bke::mesh::CornerNormalSpaceArray lnors_spacearr;
 
     /* The transform matrix of a normal must be
      * the transpose of inverse of transform matrix of the geometry... */
@@ -392,21 +393,21 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     /* calculate custom normals into corner_normals, then mirror first half into second half */
     const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
-    blender::bke::mesh::normals_calc_corners(result->vert_positions(),
-                                             result_faces,
-                                             result_corner_verts,
-                                             result_corner_edges,
-                                             result->vert_to_face_map(),
-                                             result->face_normals_true(),
-                                             sharp_edges,
-                                             sharp_faces,
-                                             clnors,
-                                             &lnors_spacearr,
-                                             corner_normals);
+    bke::mesh::normals_calc_corners(result->vert_positions(),
+                                    result_faces,
+                                    result_corner_verts,
+                                    result_corner_edges,
+                                    result->vert_to_face_map(),
+                                    result->face_normals_true(),
+                                    sharp_edges,
+                                    sharp_faces,
+                                    clnors,
+                                    &lnors_spacearr,
+                                    corner_normals);
 
     /* mirroring has to account for loops being reversed in faces in second half */
     for (const int i : src_faces.index_range()) {
-      const blender::IndexRange src_face = src_faces[i];
+      const IndexRange src_face = src_faces[i];
       const int mirror_i = src_faces.size() + i;
 
       for (const int j : src_face) {
@@ -419,7 +420,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         mul_m4_v3(mtx_nor, corner_normals[mirrorj]);
 
         const int space_index = lnors_spacearr.corner_space_indices[mirrorj];
-        clnors[mirrorj] = blender::bke::mesh::corner_space_custom_normal_to_data(
+        clnors[mirrorj] = bke::mesh::corner_space_custom_normal_to_data(
             lnors_spacearr.spaces[space_index], corner_normals[mirrorj]);
       }
     }
@@ -461,3 +462,5 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
   return result;
 }
+
+}  // namespace blender

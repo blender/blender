@@ -11,7 +11,7 @@ namespace blender::io::usd {
 
 class USDTransformWriter : public USDAbstractWriter {
  private:
-  blender::Vector<pxr::UsdGeomXformOp> xformOps_;
+  Vector<pxr::UsdGeomXformOp> xformOps_;
 
  public:
   USDTransformWriter(const USDExporterContext &ctx);

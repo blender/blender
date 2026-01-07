@@ -31,7 +31,9 @@
 
 #include "GPU_material.hh"
 
-namespace blender::nodes::node_geo_index_switch_cc {
+namespace blender {
+
+namespace nodes::node_geo_index_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeIndexSwitch)
 
@@ -118,7 +120,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       input.supports_field();
     }
     /* Labels are ugly in combination with data-block pickers and are usually disabled. */
-    input.optional_label(ELEM(data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_MATERIAL));
+    input.optional_label(ELEM(data_type,
+                              SOCK_OBJECT,
+                              SOCK_IMAGE,
+                              SOCK_COLLECTION,
+                              SOCK_MATERIAL,
+                              SOCK_FONT,
+                              SOCK_SCENE,
+                              SOCK_TEXT_ID,
+                              SOCK_MASK,
+                              SOCK_SOUND));
     input.structure_type(value_structure_type);
   }
 
@@ -183,13 +194,13 @@ static void node_operators()
 
 static void node_init(bNodeTree *tree, bNode *node)
 {
-  NodeIndexSwitch *data = MEM_callocN<NodeIndexSwitch>(__func__);
+  NodeIndexSwitch *data = MEM_new_for_free<NodeIndexSwitch>(__func__);
   data->data_type = tree->type == NTREE_GEOMETRY ? SOCK_FLOAT : SOCK_RGBA;
   data->next_identifier = 0;
 
   BLI_assert(data->items == nullptr);
   const int default_items_num = 2;
-  data->items = MEM_calloc_arrayN<IndexSwitchItem>(default_items_num, __func__);
+  data->items = MEM_new_array_for_free<IndexSwitchItem>(default_items_num, __func__);
   for (const int i : IndexRange(default_items_num)) {
     data->items[i].identifier = data->next_identifier++;
   }
@@ -404,8 +415,8 @@ class IndexSwitchOperation : public NodeOperation {
   void execute() override
   {
     Result &output = this->get_result("Output");
-    const int index = this->get_input("Index").get_single_value_default(0);
-    const NodeIndexSwitch &storage = node_storage(bnode());
+    const int index = this->get_input("Index").get_single_value_default<int>();
+    const NodeIndexSwitch &storage = node_storage(node());
 
     if (!IndexRange(storage.items_num).contains(index)) {
       output.allocate_invalid();
@@ -431,7 +442,7 @@ static const EnumPropertyItem *data_type_items_callback(bContext * /*C*/,
 {
   *r_free = true;
   const bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  blender::bke::bNodeTreeType *ntree_type = ntree.typeinfo;
+  bke::bNodeTreeType *ntree_type = ntree.typeinfo;
   return enum_items_filter(
       rna_enum_node_socket_data_type_items, [&](const EnumPropertyItem &item) -> bool {
         bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(item.value);
@@ -454,13 +465,13 @@ static void node_rna(StructRNA *srna)
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<IndexSwitchItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_freeN(reinterpret_cast<NodeIndexSwitch *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeIndexSwitch &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeIndexSwitch>(__func__, src_storage);
+  auto *dst_storage = MEM_new_for_free<NodeIndexSwitch>(__func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<IndexSwitchItemsAccessor>(*src_node, *dst_node);
@@ -496,7 +507,7 @@ static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_cmp_node_type_base(&ntype, "GeometryNodeIndexSwitch", GEO_NODE_INDEX_SWITCH);
   ntype.ui_name = "Index Switch";
@@ -506,7 +517,7 @@ static void register_node()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.insert_link = node_insert_link;
-  blender::bke::node_type_storage(ntype, "NodeIndexSwitch", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeIndexSwitch", node_free_storage, node_copy_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
@@ -516,15 +527,15 @@ static void register_node()
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.internally_linked_input = node_internally_linked_input;
   ntype.get_compositor_operation = get_compositor_operation;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(register_node)
 
-}  // namespace blender::nodes::node_geo_index_switch_cc
+}  // namespace nodes::node_geo_index_switch_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
@@ -544,14 +555,16 @@ void IndexSwitchItemsAccessor::blend_read_data_item(BlendDataReader * /*reader*/
 {
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
 
-blender::Span<IndexSwitchItem> NodeIndexSwitch::items_span() const
+Span<IndexSwitchItem> NodeIndexSwitch::items_span() const
 {
-  return blender::Span<IndexSwitchItem>(items, items_num);
+  return Span<IndexSwitchItem>(items, items_num);
 }
 
-blender::MutableSpan<IndexSwitchItem> NodeIndexSwitch::items_span()
+MutableSpan<IndexSwitchItem> NodeIndexSwitch::items_span()
 {
-  return blender::MutableSpan<IndexSwitchItem>(items, items_num);
+  return MutableSpan<IndexSwitchItem>(items, items_num);
 }
+
+}  // namespace blender

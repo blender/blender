@@ -20,14 +20,16 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct BezTriple;
-struct BezTriple;
+struct BevList;
 struct BMEditMesh;
 struct BPoint;
 struct Curve;
 struct Depsgraph;
+struct DispList;
 struct GHash;
-struct ListBase;
 struct Main;
 struct MDeformVert;
 struct Nurb;
@@ -38,9 +40,9 @@ struct TextBox;
 using eBezTriple_Flag__Alias = int;
 
 struct CurveCache {
-  ListBase disp;
-  ListBase bev;
-  ListBase deformed_nurbs;
+  ListBaseT<DispList> disp;
+  ListBaseT<BevList> bev;
+  ListBaseT<Nurb> deformed_nurbs;
   /* This array contains the accumulative length of the curve segments.
    * So you can see this as a "total distance traveled" along the curve.
    * The first entry is the length between point 0 and 1 while the last is the
@@ -107,7 +109,7 @@ void BKE_curve_texspace_ensure(Curve *cu);
 
 /* Basic vertex data functions. */
 
-std::optional<blender::Bounds<blender::float3>> BKE_curve_minmax(const Curve *cu, bool use_radius);
+std::optional<Bounds<float3>> BKE_curve_minmax(const Curve *cu, bool use_radius);
 bool BKE_curve_center_median(Curve *cu, float cent[3]);
 void BKE_curve_transform_ex(
     Curve *cu, const float mat[4][4], bool do_keys, bool do_props, float unit_scale);
@@ -124,8 +126,8 @@ void BKE_curve_smooth_flag_set(Curve *cu, bool use_smooth);
 /**
  * \return edit-nurbs or normal nurbs list.
  */
-ListBase *BKE_curve_nurbs_get(Curve *cu);
-const ListBase *BKE_curve_nurbs_get_for_read(const Curve *cu);
+ListBaseT<Nurb> *BKE_curve_nurbs_get(Curve *cu);
+const ListBaseT<Nurb> *BKE_curve_nurbs_get_for_read(const Curve *cu);
 
 int BKE_curve_nurb_vert_index_get(const Nurb *nu, const void *vert);
 void BKE_curve_nurb_active_set(Curve *cu, const Nurb *nu);
@@ -144,22 +146,20 @@ void BKE_curve_nurb_vert_active_set(Curve *cu, const Nurb *nu, const void *vert)
 bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert);
 void BKE_curve_nurb_vert_active_validate(Curve *cu);
 
-blender::Array<blender::float3> BKE_curve_nurbs_vert_coords_alloc(const ListBase *lb);
-void BKE_curve_nurbs_vert_coords_get(const ListBase *lb,
-                                     blender::MutableSpan<blender::float3> vert_coords);
+Array<float3> BKE_curve_nurbs_vert_coords_alloc(const ListBaseT<Nurb> *lb);
+void BKE_curve_nurbs_vert_coords_get(const ListBaseT<Nurb> *lb, MutableSpan<float3> vert_coords);
 
-void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
-                                                 const blender::Span<blender::float3>,
-                                                 const blender::float4x4 &transform,
+void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBaseT<Nurb> *lb,
+                                                 const Span<float3>,
+                                                 const float4x4 &transform,
                                                  bool constrain_2d);
 
-void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
-                                       const blender::Span<blender::float3> vert_coords,
+void BKE_curve_nurbs_vert_coords_apply(ListBaseT<Nurb> *lb,
+                                       const Span<float3> vert_coords,
                                        bool constrain_2d);
 
-blender::Array<blender::float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb,
-                                                                      const float *key);
-void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key);
+Array<float3> BKE_curve_nurbs_key_vert_coords_alloc(const ListBaseT<Nurb> *lb, const float *key);
+void BKE_curve_nurbs_key_vert_tilts_apply(ListBaseT<Nurb> *lb, const float *key);
 
 void BKE_curve_editNurb_keyIndex_delCV(CVKeyIndexMap *keyindex, const void *cv);
 void BKE_curve_editNurb_keyIndex_free(CVKeyIndexMap **keyindex);
@@ -167,12 +167,12 @@ void BKE_curve_editNurb_free(Curve *cu);
 /**
  * Get list of nurbs from edit-nurbs structure.
  */
-ListBase *BKE_curve_editNurbs_get(Curve *cu);
-const ListBase *BKE_curve_editNurbs_get_for_read(const Curve *cu);
+ListBaseT<Nurb> *BKE_curve_editNurbs_get(Curve *cu);
+const ListBaseT<Nurb> *BKE_curve_editNurbs_get_for_read(const Curve *cu);
 
-void BKE_curve_bevelList_free(ListBase *bev);
-void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, bool for_render);
-ListBase BKE_curve_bevel_make(const Curve *curve);
+void BKE_curve_bevelList_free(ListBaseT<BevList> *bev);
+void BKE_curve_bevelList_make(Object *ob, const ListBaseT<Nurb> *nurbs, bool for_render);
+ListBaseT<DispList> BKE_curve_bevel_make(const Curve *curve);
 
 /**
  * Forward differencing method for bezier curve.
@@ -195,13 +195,13 @@ void BKE_curve_correct_bezpart(const float v1[2], float v2[2], float v3[2], cons
 
 /* ** Nurbs ** */
 
-bool BKE_nurbList_index_get_co(ListBase *nurb, int index, float r_co[3]);
+bool BKE_nurbList_index_get_co(ListBaseT<Nurb> *nurb, int index, float r_co[3]);
 
-int BKE_nurbList_verts_count(const ListBase *nurb);
-int BKE_nurbList_verts_count_without_handles(const ListBase *nurb);
+int BKE_nurbList_verts_count(const ListBaseT<Nurb> *nurb);
+int BKE_nurbList_verts_count_without_handles(const ListBaseT<Nurb> *nurb);
 
-void BKE_nurbList_free(ListBase *lb);
-void BKE_nurbList_duplicate(ListBase *lb1, const ListBase *lb2);
+void BKE_nurbList_free(ListBaseT<Nurb> *lb);
+void BKE_nurbList_duplicate(ListBaseT<Nurb> *lb1, const ListBaseT<Nurb> *lb2);
 /**
  * \param code:
  * - 1 (#HD_AUTO): set auto-handle.
@@ -211,15 +211,17 @@ void BKE_nurbList_duplicate(ListBase *lb1, const ListBase *lb2);
  * - 5: Set align, like 3 but no toggle.
  * - 6: Clear align (setting #HD_FREE), like 3 but no toggle.
  */
-void BKE_nurbList_handles_set(ListBase *editnurb, eNurbHandleTest_Mode handle_mode, char code);
-void BKE_nurbList_handles_recalculate(ListBase *editnurb, bool calc_length, uint8_t flag);
+void BKE_nurbList_handles_set(ListBaseT<Nurb> *editnurb,
+                              eNurbHandleTest_Mode handle_mode,
+                              char code);
+void BKE_nurbList_handles_recalculate(ListBaseT<Nurb> *editnurb, bool calc_length, uint8_t flag);
 
-void BKE_nurbList_handles_autocalc(ListBase *editnurb, uint8_t flag);
-void BKE_nurbList_flag_set(ListBase *editnurb, uint8_t flag, bool set);
+void BKE_nurbList_handles_autocalc(ListBaseT<Nurb> *editnurb, uint8_t flag);
+void BKE_nurbList_flag_set(ListBaseT<Nurb> *editnurb, uint8_t flag, bool set);
 /**
  * Set \a flag for every point that already has \a from_flag set.
  */
-bool BKE_nurbList_flag_set_from_flag(ListBase *editnurb, uint8_t from_flag, uint8_t flag);
+bool BKE_nurbList_flag_set_from_flag(ListBaseT<Nurb> *editnurb, uint8_t from_flag, uint8_t flag);
 
 void BKE_nurb_free(Nurb *nu);
 Nurb *BKE_nurb_duplicate(const Nurb *nu);
@@ -454,3 +456,5 @@ void BKE_curve_deform_co(const Object *ob_curve,
  * applied on the control points of the splines.
  */
 Curve *BKE_curve_new_from_object(Object *object, Depsgraph *depsgraph, bool apply_modifiers);
+
+}  // namespace blender

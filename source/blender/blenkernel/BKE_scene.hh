@@ -14,6 +14,8 @@
 
 #include "DNA_userdef_enums.h"
 
+namespace blender {
+
 struct Base;
 struct Collection;
 struct Depsgraph;
@@ -151,7 +153,7 @@ bool BKE_scene_can_be_removed(const Main *bmain, const Scene *scene);
 Scene *BKE_scene_find_replacement(
     const Main &bmain,
     const Scene &scene,
-    blender::FunctionRef<bool(const Scene &scene)> scene_validate_cb = nullptr);
+    FunctionRef<bool(const Scene &scene)> scene_validate_cb = nullptr);
 
 bool BKE_scene_has_view_layer(const Scene *scene, const ViewLayer *layer);
 Scene *BKE_scene_find_from_collection(const Main *bmain, const Collection *collection);
@@ -337,3 +339,5 @@ TransformOrientation *BKE_scene_transform_orientation_find(const Scene *scene, i
  */
 int BKE_scene_transform_orientation_get_index(const Scene *scene,
                                               const TransformOrientation *orientation);
+
+}  // namespace blender

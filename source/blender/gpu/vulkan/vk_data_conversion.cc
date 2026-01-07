@@ -1089,15 +1089,15 @@ static void convert_buffer(void *dst_memory,
          * regarding Inf and NaNs. Use make finite version to avoid unexpected black pixels on
          * certain implementation. For platform parity we clamp these infinite values to finite
          * values. */
-        blender::math::float_to_half_make_finite_array(
+        math::float_to_half_make_finite_array(
             src.slice(range).data(), dst.slice(range).data(), range.size());
       });
       break;
     }
     case ConversionType::HALF_TO_FLOAT:
-      blender::math::half_to_float_array(static_cast<const uint16_t *>(src_memory),
-                                         static_cast<float *>(dst_memory),
-                                         to_component_len(device_format) * buffer_size);
+      math::half_to_float_array(static_cast<const uint16_t *>(src_memory),
+                                static_cast<float *>(dst_memory),
+                                to_component_len(device_format) * buffer_size);
       break;
 
     case ConversionType::FLOAT_TO_B10F_G11F_R11F:
@@ -1134,6 +1134,14 @@ static void convert_buffer(void *dst_memory,
 /* -------------------------------------------------------------------- */
 /** \name API
  * \{ */
+
+bool needs_conversion(eGPUDataFormat host_format,
+                      TextureFormat host_texture_format,
+                      TextureFormat device_format)
+{
+  ConversionType conversion_type = host_to_device(host_format, host_texture_format, device_format);
+  return conversion_type != ConversionType::PASS_THROUGH;
+}
 
 void convert_host_to_device(void *dst_buffer,
                             const void *src_buffer,

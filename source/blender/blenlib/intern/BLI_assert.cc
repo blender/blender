@@ -36,7 +36,7 @@ void _BLI_assert_unreachable_print(const char *file, const int line, const char 
 void _BLI_assert_print_backtrace()
 {
 #ifndef NDEBUG
-  BLI_system_backtrace(stderr);
+  blender::BLI_system_backtrace(stderr);
 #endif
 }
 

@@ -26,7 +26,7 @@ namespace blender::seq {
 static void init_speed_effect(Strip *strip)
 {
   MEM_SAFE_FREE(strip->effectdata);
-  SpeedControlVars *data = MEM_callocN<SpeedControlVars>("speedcontrolvars");
+  SpeedControlVars *data = MEM_new_for_free<SpeedControlVars>("speedcontrolvars");
   strip->effectdata = data;
   data->speed_control_type = SEQ_SPEED_STRETCH;
   data->speed_fader = 1.0f;
@@ -41,7 +41,7 @@ static int num_inputs_speed()
 
 static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
 {
-  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
+  SpeedControlVars *v = static_cast<SpeedControlVars *>(strip->effectdata);
   if (v->frameMap) {
     MEM_freeN(v->frameMap);
   }
@@ -51,7 +51,7 @@ static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
 static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
-  SpeedControlVars *v = (SpeedControlVars *)dst->effectdata;
+  SpeedControlVars *v = static_cast<SpeedControlVars *>(dst->effectdata);
   v->frameMap = nullptr;
 }
 
@@ -67,8 +67,7 @@ static FCurve *strip_effect_speed_speed_factor_curve_get(Scene *scene, Strip *st
 
 void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
 {
-  const int effect_strip_length = time_right_handle_frame_get(scene, strip) -
-                                  time_left_handle_frame_get(scene, strip);
+  const int effect_strip_length = strip->right_handle(scene) - strip->left_handle();
 
   if ((strip->input1 == nullptr) || (effect_strip_length < 1)) {
     return; /* Make COVERITY happy and check for (CID 598) input strip. */
@@ -79,7 +78,7 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
     return;
   }
 
-  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
+  SpeedControlVars *v = static_cast<SpeedControlVars *>(strip->effectdata);
   if (v->frameMap) {
     MEM_freeN(v->frameMap);
   }
@@ -89,8 +88,8 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
 
   float target_frame = 0;
   for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
-    target_frame += evaluate_fcurve(fcu, time_left_handle_frame_get(scene, strip) + frame_index);
-    const int target_frame_max = time_strip_length_get(scene, strip->input1);
+    target_frame += evaluate_fcurve(fcu, strip->left_handle() + frame_index);
+    const int target_frame_max = strip->input1->length(scene);
     CLAMP(target_frame, 0, target_frame_max);
     v->frameMap[frame_index] = target_frame;
   }
@@ -98,7 +97,7 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
 
 static void strip_effect_speed_frame_map_ensure(Scene *scene, Strip *strip)
 {
-  const SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
+  const SpeedControlVars *v = static_cast<SpeedControlVars *>(strip->effectdata);
   if (v->frameMap != nullptr) {
     return;
   }
@@ -117,16 +116,16 @@ float strip_speed_effect_target_frame_get(Scene *scene,
 
   strip_effect_handle_get(strip_speed); /* Ensure, that data are initialized. */
   int frame_index = round_fl_to_int(give_frame_index(scene, strip_speed, timeline_frame));
-  SpeedControlVars *s = (SpeedControlVars *)strip_speed->effectdata;
+  SpeedControlVars *s = static_cast<SpeedControlVars *>(strip_speed->effectdata);
   const Strip *source = strip_speed->input1;
 
   float target_frame = 0.0f;
   switch (s->speed_control_type) {
     case SEQ_SPEED_STRETCH: {
       /* Only right handle controls effect speed! */
-      const float target_content_length = time_strip_length_get(scene, source) - source->startofs;
-      const float speed_effetct_length = time_right_handle_frame_get(scene, strip_speed) -
-                                         time_left_handle_frame_get(scene, strip_speed);
+      const float target_content_length = source->length(scene) - source->startofs;
+      const float speed_effetct_length = strip_speed->right_handle(scene) -
+                                         strip_speed->left_handle();
       const float ratio = frame_index / speed_effetct_length;
       target_frame = target_content_length * ratio;
       break;
@@ -143,14 +142,14 @@ float strip_speed_effect_target_frame_get(Scene *scene,
       break;
     }
     case SEQ_SPEED_LENGTH:
-      target_frame = time_strip_length_get(scene, source) * (s->speed_fader_length / 100.0f);
+      target_frame = source->length(scene) * (s->speed_fader_length / 100.0f);
       break;
     case SEQ_SPEED_FRAME_NUMBER:
       target_frame = s->speed_fader_frame_number;
       break;
   }
 
-  CLAMP(target_frame, 0, time_strip_length_get(scene, source));
+  CLAMP(target_frame, 0, source->length(scene));
   target_frame += strip_speed->start;
 
   /* No interpolation. */
@@ -180,7 +179,7 @@ static ImBuf *do_speed_effect(const RenderData *context,
                               ImBuf *ibuf1,
                               ImBuf *ibuf2)
 {
-  const SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
+  const SpeedControlVars *s = static_cast<SpeedControlVars *>(strip->effectdata);
   EffectHandle cross_effect = effect_handle_get(STRIP_TYPE_CROSS);
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -335,6 +335,18 @@ msgid "Collision"
 msgstr "Σύγκρουση"
 
 
+msgid "Font"
+msgstr "Γραμματοσειρά"
+
+
+msgid "Text"
+msgstr "Κείμενο"
+
+
+msgid "Sound"
+msgstr "Ήχος"
+
+
 msgid "Border"
 msgstr "Πλαίσιο"
 
@@ -377,10 +389,6 @@ msgstr "Προεξοχή"
 
 msgid "Path"
 msgstr "Μονοπάτι"
-
-
-msgid "Font"
-msgstr "Γραμματοσειρά"
 
 
 msgid "Shear"
@@ -471,10 +479,6 @@ msgid "Lattice"
 msgstr "Πλέγμα"
 
 
-msgid "Sound"
-msgstr "Ήχος"
-
-
 msgid "Blend"
 msgstr "Ανάμιξη"
 
@@ -515,6 +519,34 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
+msgid "Snap"
+msgstr "Προσκόλληση"
+
+
+msgid "Import"
+msgstr "Εισαγωγή"
+
+
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
+
+
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
+
+
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
+
+
+msgid "Light"
+msgstr "Φως"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
 msgid "Apply"
 msgstr "Εφαρμογή"
 
@@ -529,38 +561,6 @@ msgstr "Ορισμός Ενός Χρήστη"
 
 msgid "Merge"
 msgstr "Συγχώνευση"
-
-
-msgid "Text"
-msgstr "Κείμενο"
-
-
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
-
-
-msgid "Snap"
-msgstr "Προσκόλληση"
-
-
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
-
-
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
-
-
-msgid "Import"
-msgstr "Εισαγωγή"
-
-
-msgid "Light"
-msgstr "Φως"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
 
 
 msgid "Cache"

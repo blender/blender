@@ -12,7 +12,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -32,18 +31,17 @@
 #include "bmesh.hh"
 #include "tools/bmesh_wireframe.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  WireframeModifierData *wmd = (WireframeModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WireframeModifierData), modifier);
+  WireframeModifierData *wmd = reinterpret_cast<WireframeModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WireframeModifierData *wmd = (WireframeModifierData *)md;
+  WireframeModifierData *wmd = reinterpret_cast<WireframeModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (wmd->defgrp_name[0] != '\0') {
@@ -95,12 +93,12 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  return WireframeModifier_do((WireframeModifierData *)md, ctx->object, mesh);
+  return WireframeModifier_do(reinterpret_cast<WireframeModifierData *>(md), ctx->object, mesh);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -110,7 +108,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
   layout.prop(ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  blender::ui::Layout *col = &layout.column(true);
+  ui::Layout *col = &layout.column(true);
   col->prop(ptr, "use_boundary", UI_ITEM_NONE, IFACE_("Boundary"), ICON_NONE);
   col->prop(ptr, "use_replace", UI_ITEM_NONE, IFACE_("Replace Original"), ICON_NONE);
 
@@ -118,11 +116,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   col->prop(ptr, "use_even_offset", UI_ITEM_NONE, IFACE_("Even"), ICON_NONE);
   col->prop(ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Relative"), ICON_NONE);
 
-  blender::ui::Layout &row = layout.row(true, IFACE_("Crease Edges"));
+  ui::Layout &row = layout.row(true, IFACE_("Crease Edges"));
   row.prop(ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
-  blender::ui::Layout &sub = row.row(true);
+  ui::Layout &sub = row.row(true);
   sub.active_set(RNA_boolean_get(ptr, "use_crease"));
-  sub.prop(ptr, "crease_weight", UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub.prop(ptr, "crease_weight", ui::ITEM_R_SLIDER, "", ICON_NONE);
 
   layout.prop(ptr, "material_offset", UI_ITEM_NONE, IFACE_("Material Offset"), ICON_NONE);
 
@@ -131,7 +129,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -142,7 +140,7 @@ static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  blender::ui::Layout &row = layout.row(true);
+  ui::Layout &row = layout.row(true);
   row.active_set(has_vertex_group);
   row.prop(ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 }
@@ -190,3 +188,5 @@ ModifierTypeInfo modifierType_Wireframe = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

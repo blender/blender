@@ -24,13 +24,13 @@ static void test_compute_direct()
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
-  blender::gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
-                                                         SIZE,
-                                                         SIZE,
-                                                         1,
-                                                         TextureFormat::SFLOAT_32_32_32_32,
-                                                         GPU_TEXTURE_USAGE_GENERAL,
-                                                         nullptr);
+  gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
+                                                SIZE,
+                                                SIZE,
+                                                1,
+                                                TextureFormat::SFLOAT_32_32_32_32,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
@@ -66,13 +66,13 @@ static void test_compute_indirect()
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
-  blender::gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
-                                                         SIZE,
-                                                         SIZE,
-                                                         1,
-                                                         TextureFormat::SFLOAT_32_32_32_32,
-                                                         GPU_TEXTURE_USAGE_GENERAL,
-                                                         nullptr);
+  gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
+                                                SIZE,
+                                                SIZE,
+                                                1,
+                                                TextureFormat::SFLOAT_32_32_32_32,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                nullptr);
   EXPECT_NE(texture, nullptr);
   GPU_texture_clear(texture, GPU_DATA_FLOAT, float4(0.0f));
 

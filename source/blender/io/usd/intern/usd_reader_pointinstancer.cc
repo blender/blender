@@ -43,7 +43,7 @@ void USDPointInstancerReader::create_object(Main *bmain)
 {
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, name_.c_str());
   this->object_ = BKE_object_add_only_object(bmain, OB_POINTCLOUD, name_.c_str());
-  this->object_->data = pointcloud;
+  this->object_->data = id_cast<ID *>(pointcloud);
 }
 
 void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
@@ -157,7 +157,7 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
 
 void USDPointInstancerReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
-  PointCloud *pointcloud = static_cast<PointCloud *>(object_->data);
+  PointCloud *pointcloud = id_cast<PointCloud *>(object_->data);
 
   bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
       pointcloud, bke::GeometryOwnershipType::Editable);

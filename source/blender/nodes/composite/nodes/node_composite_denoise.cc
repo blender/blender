@@ -30,11 +30,13 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 #ifdef WITH_OPENIMAGEDENOISE
 #  include <OpenImageDenoise/oidn.hpp>
 #endif
 
-namespace blender::nodes::node_composite_denoise_cc {
+namespace nodes::node_composite_denoise_cc {
 
 static const EnumPropertyItem prefilter_items[] = {
     {CMP_NODE_DENOISE_PREFILTER_NONE,
@@ -105,7 +107,7 @@ static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeDenoise *ndg = MEM_callocN<NodeDenoise>(__func__);
+  NodeDenoise *ndg = MEM_new_for_free<NodeDenoise>(__func__);
   node->storage = ndg;
 }
 
@@ -372,23 +374,19 @@ class DenoiseOperation : public NodeOperation {
 
   bool use_hdr()
   {
-    return this->get_input("HDR").get_single_value_default(true);
+    return this->get_input("HDR").get_single_value_default<bool>();
   }
 
   CMPNodeDenoisePrefilter get_prefilter_mode()
   {
-    const Result &input = this->get_input("Prefilter");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_DENOISE_PREFILTER_ACCURATE);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeDenoisePrefilter>(menu_value.value);
+    return CMPNodeDenoisePrefilter(
+        this->get_input("Prefilter").get_single_value_default<MenuValue>().value);
   }
 
   CMPNodeDenoiseQuality get_quality_mode()
   {
-    const Result &input = this->get_input("Quality");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_DENOISE_QUALITY_SCENE);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeDenoiseQuality>(menu_value.value);
+    return CMPNodeDenoiseQuality(
+        this->get_input("Quality").get_single_value_default<MenuValue>().value);
   }
 };
 
@@ -397,13 +395,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new DenoiseOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_denoise_cc
+}  // namespace nodes::node_composite_denoise_cc
 
 static void register_node_type_cmp_denoise()
 {
-  namespace file_ns = blender::nodes::node_composite_denoise_cc;
+  namespace file_ns = nodes::node_composite_denoise_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDenoise", CMP_NODE_DENOISE);
   ntype.ui_name = "Denoise";
@@ -413,10 +411,12 @@ static void register_node_type_cmp_denoise()
   ntype.declare = file_ns::cmp_node_denoise_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_denoise;
   ntype.initfunc = file_ns::node_composit_init_denonise;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeDenoise", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_denoise)
+
+}  // namespace blender

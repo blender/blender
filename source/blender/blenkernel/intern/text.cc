@@ -41,6 +41,8 @@
 #  include "BPY_extern.hh"
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Prototypes
  * \{ */
@@ -61,9 +63,9 @@ static TextLine *txt_line_malloc() ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 
 static void text_init_data(ID *id)
 {
-  Text *text = (Text *)id;
+  Text *text = id_cast<Text *>(id);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(text, id));
+  INIT_DEFAULT_STRUCT_AFTER(text, id);
 
   text->filepath = nullptr;
 
@@ -108,8 +110,8 @@ static void text_copy_data(Main * /*bmain*/,
                            const ID *id_src,
                            const int /*flag*/)
 {
-  Text *text_dst = (Text *)id_dst;
-  const Text *text_src = (Text *)id_src;
+  Text *text_dst = id_cast<Text *>(id_dst);
+  const Text *text_src = id_cast<Text *>(const_cast<ID *>(id_src));
 
   /* File name can be nullptr. */
   if (text_src->filepath) {
@@ -123,11 +125,11 @@ static void text_copy_data(Main * /*bmain*/,
   text_dst->compiled = nullptr;
 
   /* Walk down, reconstructing. */
-  LISTBASE_FOREACH (TextLine *, line_src, &text_src->lines) {
+  for (TextLine &line_src : text_src->lines) {
     TextLine *line_dst = txt_line_malloc();
 
-    line_dst->line = BLI_strdupn(line_src->line, line_src->len);
-    line_dst->len = line_src->len;
+    line_dst->line = BLI_strdupn(line_src.line, line_src.len);
+    line_dst->len = line_src.len;
     line_dst->format = nullptr;
 
     BLI_addtail(&text_dst->lines, line_dst);
@@ -141,7 +143,7 @@ static void text_copy_data(Main * /*bmain*/,
 static void text_free_data(ID *id)
 {
   /* No animation-data here. */
-  Text *text = (Text *)id;
+  Text *text = id_cast<Text *>(id);
 
   BKE_text_free_lines(text);
 
@@ -153,7 +155,7 @@ static void text_free_data(ID *id)
 
 static void text_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Text *text = (Text *)id;
+  Text *text = id_cast<Text *>(id);
 
   if (text->filepath != nullptr && text->filepath[0] != '\0') {
     BKE_bpath_foreach_path_allocated_process(bpath_data, &text->filepath);
@@ -162,7 +164,7 @@ static void text_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Text *text = (Text *)id;
+  Text *text = id_cast<Text *>(id);
 
   /* NOTE: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */
   if ((text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) {
@@ -182,19 +184,19 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
   if (!(text->flags & TXT_ISEXT)) {
     /* Now write the text data, in two steps for optimization in the read-function. */
-    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      BLO_write_struct(writer, TextLine, tmp);
+    for (TextLine &tmp : text->lines) {
+      writer->write_struct(&tmp);
     }
 
-    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      BLO_write_string(writer, tmp->line);
+    for (TextLine &tmp : text->lines) {
+      BLO_write_string(writer, tmp.line);
     }
   }
 }
 
 static void text_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Text *text = (Text *)id;
+  Text *text = id_cast<Text *>(id);
   BLO_read_string(reader, &text->filepath);
 
   text->compiled = nullptr;
@@ -211,13 +213,13 @@ static void text_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct(reader, TextLine, &text->curl);
   BLO_read_struct(reader, TextLine, &text->sell);
 
-  LISTBASE_FOREACH (TextLine *, ln, &text->lines) {
-    BLO_read_string(reader, &ln->line);
-    ln->format = nullptr;
+  for (TextLine &ln : text->lines) {
+    BLO_read_string(reader, &ln.line);
+    ln.format = nullptr;
 
-    if (ln->len != int(strlen(ln->line))) {
+    if (ln.len != int(strlen(ln.line))) {
       printf("Error loading text, line lengths differ\n");
-      ln->len = strlen(ln->line);
+      ln.len = strlen(ln.line);
     }
   }
 
@@ -590,7 +592,7 @@ void BKE_text_file_modified_ignore(Text *text)
 
 static TextLine *txt_line_malloc()
 {
-  TextLine *l = MEM_mallocN<TextLine>("textline");
+  TextLine *l = MEM_new_for_free<TextLine>("textline");
   /* Quiet VALGRIND warning, may avoid unintended differences with MEMFILE undo as well. */
   memset(l->_pad0, 0, sizeof(l->_pad0));
   return l;
@@ -648,8 +650,8 @@ void txt_clean_text(Text *text)
     text->lines.last = text->lines.first;
   }
 
-  top = (TextLine **)&text->lines.first;
-  bot = (TextLine **)&text->lines.last;
+  top = reinterpret_cast<TextLine **>(&text->lines.first);
+  bot = reinterpret_cast<TextLine **>(&text->lines.last);
 
   while ((*top)->prev) {
     *top = (*top)->prev;
@@ -1345,14 +1347,14 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
 char *txt_to_buf_for_undo(Text *text, size_t *r_buf_len)
 {
   int buf_len = 0;
-  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
-    buf_len += l->len + 1;
+  for (const TextLine &l : text->lines) {
+    buf_len += l.len + 1;
   }
   char *buf = MEM_malloc_arrayN<char>(size_t(buf_len), __func__);
   char *buf_step = buf;
-  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
-    memcpy(buf_step, l->line, l->len);
-    buf_step += l->len;
+  for (const TextLine &l : text->lines) {
+    memcpy(buf_step, l.line, l.len);
+    buf_step += l.len;
     *buf_step++ = '\n';
   }
   *r_buf_len = buf_len;
@@ -1432,17 +1434,17 @@ char *txt_to_buf(Text *text, size_t *r_buf_strlen)
   const bool has_data = !BLI_listbase_is_empty(&text->lines);
   /* Identical to #txt_to_buf_for_undo except that the string is nil terminated. */
   size_t buf_len = 0;
-  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
-    buf_len += l->len + 1;
+  for (const TextLine &l : text->lines) {
+    buf_len += l.len + 1;
   }
   if (has_data) {
     buf_len -= 1;
   }
   char *buf = MEM_malloc_arrayN<char>(buf_len + 1, __func__);
   char *buf_step = buf;
-  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
-    memcpy(buf_step, l->line, l->len);
-    buf_step += l->len;
+  for (const TextLine &l : text->lines) {
+    memcpy(buf_step, l.line, l.len);
+    buf_step += l.len;
     *buf_step++ = '\n';
   }
   /* Remove the trailing new-line so a round-trip doesn't add a newline:
@@ -2393,3 +2395,5 @@ int text_find_identifier_start(const char *str, int i)
 }
 
 /** \} */
+
+}  // namespace blender

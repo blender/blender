@@ -9,7 +9,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes {
+namespace blender {
+
+namespace nodes {
 
 static void cmp_node_scene_time_declare(NodeDeclarationBuilder &b)
 {
@@ -57,20 +59,22 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new SceneTimeOperation(context, node);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
 
 static void register_node_type_cmp_scene_time()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeSceneTime", CMP_NODE_SCENE_TIME);
   ntype.ui_name = "Scene Time";
   ntype.ui_description = "Input the current scene time in seconds or frames";
   ntype.enum_name_legacy = "SCENE_TIME";
   ntype.nclass = NODE_CLASS_INPUT;
-  ntype.declare = blender::nodes::cmp_node_scene_time_declare;
-  ntype.get_compositor_operation = blender::nodes::get_compositor_operation;
+  ntype.declare = nodes::cmp_node_scene_time_declare;
+  ntype.get_compositor_operation = nodes::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_scene_time)
+
+}  // namespace blender

@@ -44,7 +44,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-using blender::bke::CurvesGeometry;
+using bke::CurvesGeometry;
 
 /**
  * Moves individual points under the brush and does a length preservation step afterwards.
@@ -65,7 +65,8 @@ class CombOperation : public CurvesSculptStrokeOperation {
   friend struct CombOperationExecutor;
 
  public:
-  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const PaintStroke &stroke,
+                          const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -96,16 +97,16 @@ struct CombOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  CombOperationExecutor(const bContext &C) : ctx_(C) {}
+  CombOperationExecutor(const PaintStroke &stroke) : ctx_(stroke) {}
 
-  void execute(CombOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
+  void execute(CombOperation &self, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
 
     BLI_SCOPED_DEFER([&]() { self_->brush_pos_last_re_ = stroke_extension.mouse_position; });
 
-    curves_ob_orig_ = CTX_data_active_object(&C);
-    curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
+    curves_ob_orig_ = ctx_.object;
+    curves_id_orig_ = id_cast<Curves *>(curves_ob_orig_->data);
     curves_orig_ = &curves_id_orig_->geometry.wrap();
     if (curves_orig_->is_empty()) {
       return;
@@ -165,7 +166,7 @@ struct CombOperationExecutor {
     }
 
     const Mesh *surface = curves_id_orig_->surface && curves_id_orig_->surface->type == OB_MESH ?
-                              static_cast<Mesh *>(curves_id_orig_->surface->data) :
+                              id_cast<Mesh *>(curves_id_orig_->surface->data) :
                               nullptr;
 
     IndexMaskMemory memory;
@@ -394,10 +395,11 @@ struct CombOperationExecutor {
   }
 };
 
-void CombOperation::on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension)
+void CombOperation::on_stroke_extended(const PaintStroke &stroke,
+                                       const StrokeExtension &stroke_extension)
 {
-  CombOperationExecutor executor{C};
-  executor.execute(*this, C, stroke_extension);
+  CombOperationExecutor executor{stroke};
+  executor.execute(*this, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_comb_operation()

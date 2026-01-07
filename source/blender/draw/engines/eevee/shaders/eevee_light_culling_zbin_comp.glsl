@@ -36,7 +36,7 @@ void main()
     LightData light = light_buf[index];
     float3 P = light_position_get(light);
     /* TODO(fclem): Could have better bounds for spot and area lights. */
-    float radius = light_local_data_get(light).influence_radius_max;
+    float radius = light.local().local.influence_radius_max;
     float z_dist = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
     int z_min = culling_z_to_zbin(
         light_cull_buf.zbin_scale, light_cull_buf.zbin_bias, z_dist + radius);

@@ -14,6 +14,8 @@
 
 #include "IO_orientation.hh"
 
+namespace blender {
+
 struct Mesh;
 struct bContext;
 struct ReportList;
@@ -52,3 +54,5 @@ struct FBXImportParams {
 };
 
 void FBX_import(bContext *C, const FBXImportParams &params);
+
+}  // namespace blender

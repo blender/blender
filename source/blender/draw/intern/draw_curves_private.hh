@@ -18,23 +18,25 @@
 
 #include "draw_pass.hh"
 
+namespace blender {
+
 struct Curves;
 struct Object;
 struct ParticleSystem;
 struct PTCacheEdit;
 struct ModifierData;
 struct ParticleCacheKey;
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::gpu {
+namespace gpu {
 class Batch;
 class VertBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct GPUMaterial;
 
-namespace blender::draw {
+namespace draw {
 
 struct CurvesModule;
 
@@ -273,4 +275,5 @@ void curves_bind_resources(draw::PassSimple::Sub &sub_ps,
                            gpu::VertBufPtr &indirection_buf,
                            std::optional<StringRef> active_uv_name);
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

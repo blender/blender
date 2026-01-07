@@ -6,7 +6,6 @@
 
 #include <cstdint>
 
-#include "BLI_math_interp.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -23,14 +22,14 @@ enum class Interpolation : uint8_t {
   Anisotropic,
 };
 
-/* Possible extension modes when computing samples in the domain's exterior. */
-enum class ExtensionMode : uint8_t {
-  /* Areas outside of the image are filled with zero. */
-  Clip,
+/* Possible extensions when computing samples in the domain's exterior. */
+enum class Extension : uint8_t {
   /* Areas outside of the image are filled with the closest boundary pixel in the image. */
   Extend,
   /* Areas outside of the image are filled with repetitions of the image. */
   Repeat,
+  /* Areas outside of the image are filled with zero. */
+  Clip,
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -46,9 +45,9 @@ struct RealizationOptions {
    * value at those arbitrary locations. */
   Interpolation interpolation = Interpolation::Bilinear;
   /* The extend mode for the x-axis. Defaults to Zero padding. */
-  ExtensionMode extension_x = ExtensionMode::Clip;
+  Extension extension_x = Extension::Clip;
   /* The extend mode for the y-axis. Defaults to Zero padding. */
-  ExtensionMode extension_y = ExtensionMode::Clip;
+  Extension extension_y = Extension::Clip;
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -197,7 +196,6 @@ class Domain {
 bool operator==(const Domain &a, const Domain &b);
 bool operator!=(const Domain &a, const Domain &b);
 
-math::InterpWrapMode map_extension_mode_to_wrap_mode(const ExtensionMode &mode);
-GPUSamplerExtendMode map_extension_mode_to_extend_mode(const ExtensionMode &mode);
+GPUSamplerExtendMode map_extension_mode_to_extend_mode(const Extension &mode);
 
 }  // namespace blender::compositor

@@ -10,11 +10,14 @@
 
 #include "intern/bmesh_operator_api.hh"
 
+namespace blender {
+
 /* See comments in `intern/bmesh_opdefines.cc` for documentation of specific operators. */
 
 /*--------defines/enumerations for specific operators-------*/
 
 /* Quad `innervert` values. */
+
 enum {
   SUBD_CORNER_INNERVERT,
   SUBD_CORNER_PATH,
@@ -217,5 +220,7 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
  * \param oflag: The flag to check faces with.
  */
 void BM_mesh_calc_uvs_cube(BMesh *bm, short oflag);
+
+}  // namespace blender
 
 #include "intern/bmesh_operator_api_inline.hh" /* IWYU pragma: export */

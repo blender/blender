@@ -6,8 +6,7 @@
 
 #include "DNA_light_types.h"
 
-#include "IMB_colormanagement.hh"
-
+#include "DNA_world_types.h"
 #include "blender/sync.h"
 #include "blender/util.h"
 #include "scene/object.h"
@@ -16,60 +15,50 @@ CCL_NAMESPACE_BEGIN
 
 void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
 {
-  BL::Light b_light(b_ob_info.object_data);
+  blender::Light &b_light = *blender::id_cast<blender::Light *>(b_ob_info.object_data);
 
-  light->name = b_light.name().c_str();
+  light->name = b_light.id.name + 2;
 
   /* type */
-  switch (b_light.type()) {
-    case BL::Light::type_POINT: {
-      BL::PointLight b_point_light(b_light);
-      light->set_size(b_point_light.shadow_soft_size());
+  switch (b_light.type) {
+    case blender::LA_LOCAL: {
+      light->set_size(b_light.radius);
       light->set_light_type(LIGHT_POINT);
-      light->set_is_sphere(!b_point_light.use_soft_falloff());
+      light->set_is_sphere(!(b_light.mode & blender::LA_USE_SOFT_FALLOFF));
       break;
     }
-    case BL::Light::type_SPOT: {
-      BL::SpotLight b_spot_light(b_light);
-      light->set_size(b_spot_light.shadow_soft_size());
+    case blender::LA_SPOT: {
+      light->set_size(b_light.radius);
       light->set_light_type(LIGHT_SPOT);
-      light->set_spot_angle(b_spot_light.spot_size());
-      light->set_spot_smooth(b_spot_light.spot_blend());
-      light->set_is_sphere(!b_spot_light.use_soft_falloff());
+      light->set_spot_angle(b_light.spotsize);
+      light->set_spot_smooth(b_light.spotblend);
+      light->set_is_sphere(!(b_light.mode & blender::LA_USE_SOFT_FALLOFF));
       break;
     }
-    /* Hemi were removed from 2.8 */
-    // case BL::Light::type_HEMI: {
-    //  light->type = LIGHT_DISTANT;
-    //  light->size = 0.0f;
-    //  break;
-    // }
-    case BL::Light::type_SUN: {
-      BL::SunLight b_sun_light(b_light);
-      light->set_angle(b_sun_light.angle());
+    case blender::LA_SUN: {
+      light->set_angle(b_light.sun_angle);
       light->set_light_type(LIGHT_DISTANT);
       break;
     }
-    case BL::Light::type_AREA: {
-      BL::AreaLight b_area_light(b_light);
+    case blender::LA_AREA: {
       light->set_size(1.0f);
-      light->set_sizeu(b_area_light.size());
-      light->set_spread(b_area_light.spread());
-      switch (b_area_light.shape()) {
-        case BL::AreaLight::shape_SQUARE:
+      light->set_sizeu(b_light.area_size);
+      light->set_spread(b_light.area_spread);
+      switch (b_light.area_shape) {
+        case blender::LA_AREA_SQUARE:
           light->set_sizev(light->get_sizeu());
           light->set_ellipse(false);
           break;
-        case BL::AreaLight::shape_RECTANGLE:
-          light->set_sizev(b_area_light.size_y());
+        case blender::LA_AREA_RECT:
+          light->set_sizev(b_light.area_sizey);
           light->set_ellipse(false);
           break;
-        case BL::AreaLight::shape_DISK:
+        case blender::LA_AREA_DISK:
           light->set_sizev(light->get_sizeu());
           light->set_ellipse(true);
           break;
-        case BL::AreaLight::shape_ELLIPSE:
-          light->set_sizev(b_area_light.size_y());
+        case blender::LA_AREA_ELLIPSE:
+          light->set_sizev(b_light.area_sizey);
           light->set_ellipse(true);
           break;
       }
@@ -78,22 +67,25 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
     }
   }
 
+  blender::PointerRNA light_rna_ptr = RNA_id_pointer_create(&b_light.id);
+
   /* Color and strength. */
-  float3 light_color = get_float3(b_light.color());
-  if (b_light.use_temperature()) {
-    light_color *= get_float3(b_light.temperature_color());
+  float3 light_color = make_float3(b_light.r, b_light.g, b_light.b);
+  if (b_light.mode & blender::LA_USE_TEMPERATURE) {
+    float color[3];
+    RNA_float_get_array(&light_rna_ptr, "temperature_color", color);
+    light_color *= make_float3(color[0], color[1], color[2]);
   }
 
-  const float3 strength = light_color * BL::PointLight(b_light).energy() *
-                          exp2f(b_light.exposure());
+  const float3 strength = light_color * b_light.energy * exp2f(b_light.exposure);
   light->set_strength(strength);
 
   /* normalize */
-  light->set_normalize(b_light.normalize());
+  light->set_normalize(!(b_light.mode & blender::LA_UNNORMALIZED));
 
   /* shadow */
-  PointerRNA clight = RNA_pointer_get(&b_light.ptr, "cycles");
-  light->set_cast_shadow(b_light.use_shadow());
+  blender::PointerRNA clight = RNA_pointer_get(&light_rna_ptr, "cycles");
+  light->set_cast_shadow(b_light.mode & blender::LA_SHADOW);
   light->set_use_mis(get_boolean(clight, "use_multiple_importance_sampling"));
 
   /* caustics light */
@@ -112,12 +104,13 @@ void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
   light->tag_update(scene);
 }
 
-void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
+void BlenderSync::sync_background_light(blender::bScreen *b_screen, blender::View3D *b_v3d)
 {
-  BL::World b_world = view_layer.world_override ? view_layer.world_override : b_scene.world();
+  blender::World *b_world = view_layer.world_override ? view_layer.world_override : b_scene->world;
 
   if (b_world) {
-    PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
+    blender::PointerRNA world_rna_ptr = RNA_id_pointer_create(&b_world->id);
+    blender::PointerRNA cworld = RNA_pointer_get(&world_rna_ptr, "cycles");
 
     enum SamplingMethod { SAMPLING_NONE = 0, SAMPLING_AUTOMATIC, SAMPLING_MANUAL, SAMPLING_NUM };
     const int sampling_method = get_enum(
@@ -127,20 +120,21 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
     /* Create object. */
     Object *object;
     const ObjectKey object_key(b_world, nullptr, b_world, false);
-    bool update = object_map.add_or_update(&object, b_world, b_world, object_key);
+    bool update = object_map.add_or_update(&object, &b_world->id, &b_world->id, object_key);
     if (update) {
       /* Lights should be shadow catchers by default. */
       object->set_is_shadow_catcher(true);
-      object->set_lightgroup(ustring(b_world ? b_world.lightgroup() : ""));
+      object->set_lightgroup(
+          ustring((b_world && b_world->lightgroup) ? b_world->lightgroup->name : ""));
     }
 
-    object->set_asset_name(ustring(b_world.name()));
+    object->set_asset_name(ustring(b_world->id.name + 2));
 
     /* Create geometry. */
-    const GeometryKey geom_key{b_world.ptr.data, Geometry::LIGHT};
+    const GeometryKey geom_key{b_world, Geometry::LIGHT};
     Geometry *geom = geometry_map.find(geom_key);
     if (geom) {
-      update |= geometry_map.update(geom, b_world);
+      update |= geometry_map.update(geom, &b_world->id);
     }
     else {
       geom = scene->create_node<Light>();
@@ -149,7 +143,7 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
       update = true;
     }
 
-    if (update || world_recalc || b_world.ptr.data != world_map) {
+    if (update || world_recalc || b_world != world_map) {
       /* Initialize light geometry. */
       Light *light = static_cast<Light *>(geom);
 
@@ -178,9 +172,9 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
     }
   }
 
-  world_map = b_world.ptr.data;
+  world_map = b_world;
   world_recalc = false;
-  viewport_parameters = BlenderViewportParameters(b_v3d, use_developer_ui);
+  viewport_parameters = BlenderViewportParameters(b_screen, b_v3d, use_developer_ui);
 }
 
 CCL_NAMESPACE_END

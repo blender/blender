@@ -8,9 +8,12 @@
 #include "BLI_string.h"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.common"};
 
-namespace blender::io {
+namespace io {
 
 std::string path_reference(StringRefNull filepath,
                            StringRefNull base_src,
@@ -84,4 +87,5 @@ void path_reference_copy(const Set<std::pair<std::string, std::string>> &copy_se
   }
 }
 
-}  // namespace blender::io
+}  // namespace io
+}  // namespace blender

@@ -43,6 +43,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Scene Utilities
  * \{ */
@@ -125,15 +127,15 @@ bool ED_scene_replace_active_for_deletion(bContext &C, Main &bmain, Scene &scene
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
   WM_jobs_kill_all_from_owner(wm, &scene);
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (win->parent != nullptr) { /* We only care about main windows here... */
+  for (wmWindow &win : wm->windows) {
+    if (win.parent != nullptr) { /* We only care about main windows here... */
       continue;
     }
-    if (win->scene == &scene) {
+    if (win.scene == &scene) {
 #ifdef WITH_PYTHON
       BPy_BEGIN_ALLOW_THREADS;
 #endif
-      WM_window_set_active_scene(&bmain, &C, win, scene_new);
+      WM_window_set_active_scene(&bmain, &C, &win, scene_new);
 #ifdef WITH_PYTHON
       BPy_END_ALLOW_THREADS;
 #endif
@@ -141,9 +143,9 @@ bool ED_scene_replace_active_for_deletion(bContext &C, Main &bmain, Scene &scene
   }
 
   /* Update scenes used by the sequencer. */
-  LISTBASE_FOREACH (WorkSpace *, workspace, &bmain.workspaces) {
-    if (workspace->sequencer_scene == &scene) {
-      workspace->sequencer_scene = scene_new;
+  for (WorkSpace &workspace : bmain.workspaces) {
+    if (workspace.sequencer_scene == &scene) {
+      workspace.sequencer_scene = scene_new;
       WM_event_add_notifier(&C, NC_WINDOW, nullptr);
     }
   }
@@ -177,6 +179,11 @@ bool ED_scene_delete(bContext *C, Main *bmain, Scene *scene)
 void ED_scene_change_update(Main *bmain, Scene *scene, ViewLayer *layer)
 {
   Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, layer);
+  /* When switching to a scene for the first time after loading a file, the dependency graph above
+   * will not be active. This can cause issues (e.g. #151159) because there might be code running
+   * immediately after that expects this dependency graph to be active and then silently fail.
+   * Similar to #CTX_data_depsgraph_pointer. */
+  DEG_make_active(depsgraph);
 
   BKE_scene_set_background(bmain, scene);
   DEG_graph_relations_update(depsgraph);
@@ -210,7 +217,7 @@ static void view_layer_remove_unset_nodetrees(const Main *bmain, Scene *scene, V
        sce = static_cast<Scene *>(sce->id.next))
   {
     if (sce->compositing_node_group) {
-      blender::bke::node_tree_remove_layer_n(sce->compositing_node_group, scene, act_layer_index);
+      bke::node_tree_remove_layer_n(sce->compositing_node_group, scene, act_layer_index);
     }
   }
 }
@@ -237,10 +244,10 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
 
   /* Remove from windows. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (win->scene == scene && STREQ(win->view_layer_name, layer->name)) {
+  for (wmWindow &win : wm->windows) {
+    if (win.scene == scene && STREQ(win.view_layer_name, layer->name)) {
       ViewLayer *first_layer = BKE_view_layer_default_view(scene);
-      STRNCPY_UTF8(win->view_layer_name, first_layer->name);
+      STRNCPY_UTF8(win.view_layer_name, first_layer->name);
     }
   }
 
@@ -320,7 +327,7 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   int type = RNA_enum_get(op->ptr, "type");
   Scene *sequencer_scene = CTX_data_sequencer_scene(C);
-  Strip *strip = blender::seq::select_active_get(sequencer_scene);
+  Strip *strip = seq::select_active_get(sequencer_scene);
   BLI_assert(strip != nullptr);
 
   if (!strip->scene) {
@@ -333,7 +340,7 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
   }
   strip->scene = scene_new;
   /* Do a refresh of the sequencer data. */
-  blender::seq::relations_invalidate_cache_raw(sequencer_scene, strip);
+  seq::relations_invalidate_cache_raw(sequencer_scene, strip);
   DEG_id_tag_update(&sequencer_scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);
   return OPERATOR_FINISHED;
@@ -342,7 +349,7 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
 static bool scene_new_sequencer_poll(bContext *C)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  const Strip *strip = blender::seq::select_active_get(scene);
+  const Strip *strip = seq::select_active_get(scene);
   return (strip && (strip->type == STRIP_TYPE_SCENE));
 }
 
@@ -365,7 +372,7 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
   }
   else {
     Scene *scene = CTX_data_sequencer_scene(C);
-    Strip *strip = blender::seq::select_active_get(scene);
+    Strip *strip = seq::select_active_get(scene);
     if (strip && (strip->type == STRIP_TYPE_SCENE) && (strip->scene != nullptr)) {
       has_scene_or_no_context = true;
     }
@@ -421,7 +428,7 @@ static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
   const int type = RNA_enum_get(op->ptr, "type");
 
   Scene *new_scene = scene_add(bmain, scene_old, eSceneCopyMethod(type));
-  blender::seq::editing_ensure(new_scene);
+  seq::editing_ensure(new_scene);
 
   workspace->sequencer_scene = new_scene;
 
@@ -572,3 +579,5 @@ void ED_operatortypes_scene()
 }
 
 /** \} */
+
+}  // namespace blender

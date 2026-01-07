@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math_geom.h"
@@ -37,10 +38,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::float2;
-using blender::float3;
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -55,7 +53,7 @@ using blender::Vector;
  */
 #define INSET_DEFAULT 0.00001f
 static float edbm_rip_edgedist_squared(ARegion *region,
-                                       const blender::float4x4 &mat,
+                                       const float4x4 &mat,
                                        const float co1[3],
                                        const float co2[3],
                                        const float mvalf[2],
@@ -108,11 +106,8 @@ static void edbm_calc_loop_co(BMLoop *l, float l_mid_co[3])
   add_v3_v3(l_mid_co, l->v->co);
 }
 
-static float edbm_rip_edge_side_measure(BMEdge *e,
-                                        BMLoop *e_l,
-                                        ARegion *region,
-                                        const blender::float4x4 &projectMat,
-                                        const float fmval[2])
+static float edbm_rip_edge_side_measure(
+    BMEdge *e, BMLoop *e_l, ARegion *region, const float4x4 &projectMat, const float fmval[2])
 {
   float vec[2];
   float fmval_tweak[2];
@@ -135,9 +130,9 @@ static float edbm_rip_edge_side_measure(BMEdge *e,
   v2_other = BM_face_other_vert_loop(e_l->f, e->v1, e->v2)->v;
 
   float2 cent = ED_view3d_project_float_v2_m4(
-      region, blender::math::midpoint(float3(v1_other->co), float3(v2_other->co)), projectMat);
+      region, math::midpoint(float3(v1_other->co), float3(v2_other->co)), projectMat);
   float2 mid = ED_view3d_project_float_v2_m4(
-      region, blender::math::midpoint(float3(e->v1->co), float3(e->v2->co)), projectMat);
+      region, math::midpoint(float3(e->v1->co), float3(e->v2->co)), projectMat);
 
   float2 e_v1_co = ED_view3d_project_float_v2_m4(region, e->v1->co, projectMat);
   float2 e_v2_co = ED_view3d_project_float_v2_m4(region, e->v2->co, projectMat);
@@ -350,7 +345,7 @@ static BMVert *edbm_ripsel_edloop_pair_start_vert(BMEdge *e)
 static void edbm_ripsel_deselect_helper(BMesh *bm,
                                         const Span<EdgeLoopPair> eloop_pairs,
                                         ARegion *region,
-                                        const blender::float4x4 &projectMat,
+                                        const float4x4 &projectMat,
                                         const float fmval[2])
 {
   for (const EdgeLoopPair &lp : eloop_pairs) {
@@ -541,11 +536,11 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
   BMEditSelection ese;
   int totboundary_edge = 0;
 
-  const blender::float4x4 projectMat = ED_view3d_ob_project_mat_get(rv3d, obedit);
+  const float4x4 projectMat = ED_view3d_ob_project_mat_get(rv3d, obedit);
 
   /* find selected vert - same some time and check history first */
   if (BM_select_history_active_get(bm, &ese) && ese.htype == BM_VERT) {
-    v = (BMVert *)ese.ele;
+    v = reinterpret_cast<BMVert *>(ese.ele);
   }
   else {
     ese.ele = nullptr;
@@ -618,8 +613,8 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
     BMLoop *l_all[3];
     int i1, i2;
 
-    BM_iter_as_array(bm, BM_EDGES_OF_VERT, v, (void **)e_all, 3);
-    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, (void **)l_all, 3);
+    BM_iter_as_array(bm, BM_EDGES_OF_VERT, v, reinterpret_cast<void **>(e_all), 3);
+    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, reinterpret_cast<void **>(l_all), 3);
 
     /* not do a loop similar to the one above, but test against loops */
     for (i1 = 0; i1 < 3; i1++) {
@@ -901,7 +896,7 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
   const int totedge_orig = bm->totedge;
   float fmval[3] = {float(event->mval[0]), float(event->mval[1])};
 
-  const blender::float4x4 projectMat = ED_view3d_ob_project_mat_get(rv3d, obedit);
+  const float4x4 projectMat = ED_view3d_ob_project_mat_get(rv3d, obedit);
 
   /* important this runs on the original selection, before tampering with tagging */
   Vector<EdgeLoopPair> eloop_pairs = edbm_ripsel_looptag_helper(bm);
@@ -1051,7 +1046,7 @@ static wmOperatorStatus edbm_rip_invoke(bContext *C, wmOperator *op, const wmEve
       /* highly nifty but hard to support since the operator can fail and we're left
        * with modified selection */
       // WM_operator_name_call(C, "MESH_OT_region_to_loop",
-      // blender::wm::OpCallContext::InvokeDefault, nullptr, event);
+      // wm::OpCallContext::InvokeDefault, nullptr, event);
       continue;
     }
     error_face_selected = false;
@@ -1104,7 +1099,7 @@ static wmOperatorStatus edbm_rip_invoke(bContext *C, wmOperator *op, const wmEve
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
   }
 
   if (no_vertex_selected) {
@@ -1144,9 +1139,11 @@ void MESH_OT_rip(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
   prop = RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill the ripped region");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
 }
 
 /** \} */
+
+}  // namespace blender

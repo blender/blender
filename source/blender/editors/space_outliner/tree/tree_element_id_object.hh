@@ -10,9 +10,11 @@
 
 #include "tree_element_id.hh"
 
+namespace blender {
+
 struct Object;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementIDObject final : public TreeElementID {
   Object &object_;
@@ -34,4 +36,5 @@ class TreeElementIDObject final : public TreeElementID {
   void expand_duplicated_group() const;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

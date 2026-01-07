@@ -16,6 +16,8 @@
 #include "RNA_types.hh"
 #include <cstdio>
 
+namespace blender {
+
 struct ID;
 struct bContext;
 struct wmMsg;
@@ -71,7 +73,7 @@ struct wmMsg {
 struct wmMsgSubscribeKey {
   /** Linked list for predictable ordering, otherwise we would depend on #GHash bucketing. */
   wmMsgSubscribeKey *next, *prev;
-  ListBase values;
+  ListBaseT<wmMsgSubscribeValueLink> values;
   /* Over-allocate, eg: #wmMsgSubscribeKey_RNA. */
   /* Last member will be `wmMsg_*`. */
 };
@@ -195,13 +197,13 @@ void WM_msgtypeinfo_init_remote_io(wmMsgTypeInfo *msgtype_info);
 wmMsgSubscribeKey_RemoteIO *WM_msg_lookup_remote_io(wmMsgBus *mbus,
                                                     const wmMsgParams_RemoteIO *msg_key_params);
 void WM_msg_publish_remote_io_params(wmMsgBus *mbus, const wmMsgParams_RemoteIO *msg_key_params);
-void WM_msg_publish_remote_io(wmMsgBus *mbus, blender::StringRef remote_url);
+void WM_msg_publish_remote_io(wmMsgBus *mbus, StringRef remote_url);
 void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
                                        const wmMsgParams_RemoteIO *msg_key_params,
                                        const wmMsgSubscribeValue *msg_val_params,
                                        const char *id_repr);
 void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
-                                blender::StringRef remote_url,
+                                StringRef remote_url,
                                 const wmMsgSubscribeValue *msg_val_params,
                                 const char *id_repr);
 
@@ -293,3 +295,5 @@ void WM_msg_publish_ID(wmMsgBus *mbus, ID *id);
     WM_msg_subscribe_rna_params(mbus, &msg_key_params_, value, __func__); \
   } \
   ((void)0)
+
+}  // namespace blender

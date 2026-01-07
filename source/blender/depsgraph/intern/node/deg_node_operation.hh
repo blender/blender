@@ -15,15 +15,17 @@
 
 #include "intern/depsgraph_type.hh"
 
+namespace blender {
+
 struct Depsgraph;
 
-namespace blender::deg {
+namespace deg {
 
 struct ComponentNode;
 
 /* Evaluation Operation for atomic operation */
 /* XXX: move this to another header that can be exposed? */
-using DepsEvalOperationCb = std::function<void(::Depsgraph *)>;
+using DepsEvalOperationCb = std::function<void(blender::Depsgraph *)>;
 
 /* Identifiers for common operations (as an enum). */
 enum class OperationCode {
@@ -261,7 +263,7 @@ struct OperationNode : public Node {
 
   bool is_noop() const
   {
-    return (bool)evaluate == false;
+    return bool(evaluate) == false;
   }
 
   OperationNode *get_entry_operation() override
@@ -299,4 +301,5 @@ struct OperationNode : public Node {
 
 void deg_register_operation_depsnodes();
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

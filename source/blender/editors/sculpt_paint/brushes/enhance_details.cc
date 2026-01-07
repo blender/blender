@@ -25,7 +25,9 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint::brushes {
+namespace blender {
+
+namespace ed::sculpt_paint::brushes {
 inline namespace enhance_details_cc {
 
 struct LocalData {
@@ -219,7 +221,7 @@ void do_enhance_details_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      const Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
@@ -266,8 +268,8 @@ void do_enhance_details_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
-}  // namespace blender::ed::sculpt_paint::brushes
-namespace blender::ed::sculpt_paint {
+}  // namespace ed::sculpt_paint::brushes
+namespace ed::sculpt_paint {
 void calc_smooth_translations(const Depsgraph &depsgraph,
                               const Object &object,
                               const IndexMask &node_mask,
@@ -279,7 +281,7 @@ void calc_smooth_translations(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<brushes::LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const MeshAttributeData attribute_data(mesh);
       const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
       const OffsetIndices faces = mesh.faces();
@@ -319,4 +321,6 @@ void calc_smooth_translations(const Depsgraph &depsgraph,
   }
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace ed::sculpt_paint
+
+}  // namespace blender

@@ -27,6 +27,8 @@
 
 #include "textview.hh"
 
+namespace blender {
+
 static void textview_font_begin(const int font_id, const int lheight)
 {
   /* Font size in relation to line height. */
@@ -80,7 +82,7 @@ static void textview_draw_sel(const char *str,
     GPU_blend(GPU_BLEND_ALPHA);
 
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor4ubv(bg_sel);
@@ -207,7 +209,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
   if (bg) {
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4ubv(bg);
     immRectf(pos, tds->draw_rect_outer->xmin, line_bottom, tds->draw_rect_outer->xmax, line_top);
@@ -221,7 +223,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
     float hpadding = tds->draw_rect->xmin - (bg_size * 1.2f);
 
     rgba_uchar_to_float(col, icon_bg);
-    UI_draw_roundbox_corner_set(UI_CNR_ALL);
+    draw_roundbox_corner_set(ui::CNR_ALL);
 
     rctf roundbox_rect;
     roundbox_rect.xmin = hpadding;
@@ -229,7 +231,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
     roundbox_rect.ymin = line_top - bg_size - vpadding;
     roundbox_rect.ymax = line_top - vpadding;
 
-    UI_draw_roundbox_4fv(&roundbox_rect, true, 4 * UI_SCALE_FAC, col);
+    ui::draw_roundbox_4fv(&roundbox_rect, true, 4 * UI_SCALE_FAC, col);
   }
 
   if (icon) {
@@ -237,15 +239,15 @@ static bool textview_draw_string(TextViewDrawState *tds,
     int hpadding = tds->draw_rect->xmin - (UI_ICON_SIZE * 1.3f);
 
     GPU_blend(GPU_BLEND_ALPHA);
-    UI_icon_draw_ex(hpadding,
-                    line_top - UI_ICON_SIZE - vpadding,
-                    icon,
-                    (16 / UI_ICON_SIZE),
-                    1.0f,
-                    0.0f,
-                    icon_fg,
-                    false,
-                    UI_NO_ICON_OVERLAY_TEXT);
+    ui::icon_draw_ex(hpadding,
+                     line_top - UI_ICON_SIZE - vpadding,
+                     icon,
+                     (16 / UI_ICON_SIZE),
+                     1.0f,
+                     0.0f,
+                     icon_fg,
+                     false,
+                     UI_NO_ICON_OVERLAY_TEXT);
     GPU_blend(GPU_BLEND_NONE);
   }
 
@@ -407,7 +409,7 @@ int textview_draw(TextViewContext *tvc,
       }
 
       if ((mval[1] != INT_MAX) && (mval[1] >= y_prev && mval[1] <= xy[1])) {
-        *r_mval_pick_item = (void *)tvc->iter;
+        *r_mval_pick_item = const_cast<void *>(tvc->iter);
         break;
       }
 
@@ -427,3 +429,5 @@ int textview_draw(TextViewContext *tvc,
 
   return xy[1] - y_orig;
 }
+
+}  // namespace blender

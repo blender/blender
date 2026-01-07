@@ -14,6 +14,8 @@
 #include "DNA_windowmanager_types.h"
 #include "WM_types.hh"
 
+namespace blender {
+
 #ifdef hyper /* MSVC defines. */
 #  undef hyper
 #endif
@@ -101,8 +103,11 @@ wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, const wmKeyMapItem *kmi_
 void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi);
 std::optional<std::string> WM_keymap_item_to_string(const wmKeyMapItem *kmi, bool compact);
 
-wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
-wmKeyMap *WM_keymap_list_find_spaceid_or_empty(ListBase *lb,
+wmKeyMap *WM_keymap_list_find(ListBaseT<wmKeyMap> *lb,
+                              const char *idname,
+                              int spaceid,
+                              int regionid);
+wmKeyMap *WM_keymap_list_find_spaceid_or_empty(ListBaseT<wmKeyMap> *lb,
                                                const char *idname,
                                                int spaceid,
                                                int regionid);
@@ -219,14 +224,14 @@ std::optional<std::string> WM_keymap_item_raw_to_string(int8_t shift,
  */
 wmKeyMapItem *WM_key_event_operator(const bContext *C,
                                     const char *opname,
-                                    blender::wm::OpCallContext opcontext,
+                                    wm::OpCallContext opcontext,
                                     IDProperty *properties,
                                     short include_mask,
                                     short exclude_mask,
                                     wmKeyMap **r_keymap);
 std::optional<std::string> WM_key_event_operator_string(const bContext *C,
                                                         const char *opname,
-                                                        blender::wm::OpCallContext opcontext,
+                                                        wm::OpCallContext opcontext,
                                                         IDProperty *properties,
                                                         bool is_strict);
 
@@ -237,3 +242,5 @@ wmKeyMapItem *WM_key_event_operator_from_keymap(wmKeyMap *keymap,
                                                 short exclude_mask);
 
 const char *WM_bool_as_string(bool test);
+
+}  // namespace blender

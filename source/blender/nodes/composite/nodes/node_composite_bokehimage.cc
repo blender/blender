@@ -16,9 +16,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** Bokeh image Tools  ******************** */
 
-namespace blender::nodes::node_composite_bokehimage_cc {
+namespace nodes::node_composite_bokehimage_cc {
 
 static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
 {
@@ -83,28 +85,29 @@ class BokehImageOperation : public NodeOperation {
 
   int get_flaps()
   {
-    return math::clamp(this->get_input("Flaps").get_single_value_default(5), 3, 24);
+    return math::clamp(this->get_input("Flaps").get_single_value_default<int>(), 3, 24);
   }
 
   float get_angle()
   {
-    return this->get_input("Angle").get_single_value_default(0.0f);
+    return this->get_input("Angle").get_single_value_default<float>();
   }
 
   float get_roundness()
   {
-    return math::clamp(this->get_input("Roundness").get_single_value_default(0.0f), 0.0f, 1.0f);
+    return math::clamp(this->get_input("Roundness").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_catadioptric_size()
   {
     return math::clamp(
-        this->get_input("Catadioptric Size").get_single_value_default(0.0f), 0.0f, 1.0f);
+        this->get_input("Catadioptric Size").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_color_shift()
   {
-    return math::clamp(this->get_input("Color Shift").get_single_value_default(0.0f), -1.0f, 1.0f);
+    return math::clamp(
+        this->get_input("Color Shift").get_single_value_default<float>(), -1.0f, 1.0f);
   }
 };
 
@@ -113,13 +116,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new BokehImageOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_bokehimage_cc
+}  // namespace nodes::node_composite_bokehimage_cc
 
 static void register_node_type_cmp_bokehimage()
 {
-  namespace file_ns = blender::nodes::node_composite_bokehimage_cc;
+  namespace file_ns = nodes::node_composite_bokehimage_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeBokehImage", CMP_NODE_BOKEHIMAGE);
   ntype.ui_name = "Bokeh Image";
@@ -129,8 +132,10 @@ static void register_node_type_cmp_bokehimage()
   ntype.declare = file_ns::cmp_node_bokehimage_declare;
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  blender::bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_bokehimage)
+
+}  // namespace blender

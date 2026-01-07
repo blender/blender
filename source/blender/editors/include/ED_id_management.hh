@@ -10,8 +10,12 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct ID;
 struct Main;
 
 /** Handle complex user-facing ID renaming behavior, including user feedback (reporting). */
-bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name);
+bool ED_id_rename(Main &bmain, ID &id, StringRefNull name);
+
+}  // namespace blender

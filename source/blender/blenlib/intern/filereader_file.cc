@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 struct RawFileReader {
   FileReader reader;
 
@@ -27,7 +29,7 @@ struct RawFileReader {
 
 static int64_t file_read(FileReader *reader, void *buffer, size_t size)
 {
-  RawFileReader *rawfile = (RawFileReader *)reader;
+  RawFileReader *rawfile = reinterpret_cast<RawFileReader *>(reader);
   int64_t readsize = BLI_read(rawfile->filedes, buffer, size);
 
   if (readsize >= 0) {
@@ -39,14 +41,14 @@ static int64_t file_read(FileReader *reader, void *buffer, size_t size)
 
 static off64_t file_seek(FileReader *reader, off64_t offset, int whence)
 {
-  RawFileReader *rawfile = (RawFileReader *)reader;
+  RawFileReader *rawfile = reinterpret_cast<RawFileReader *>(reader);
   rawfile->reader.offset = BLI_lseek(rawfile->filedes, offset, whence);
   return rawfile->reader.offset;
 }
 
 static void file_close(FileReader *reader)
 {
-  RawFileReader *rawfile = (RawFileReader *)reader;
+  RawFileReader *rawfile = reinterpret_cast<RawFileReader *>(reader);
   close(rawfile->filedes);
   MEM_freeN(rawfile);
 }
@@ -61,5 +63,7 @@ FileReader *BLI_filereader_new_file(int filedes)
   rawfile->reader.seek = file_seek;
   rawfile->reader.close = file_close;
 
-  return (FileReader *)rawfile;
+  return reinterpret_cast<FileReader *>(rawfile);
 }
+
+}  // namespace blender

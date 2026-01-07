@@ -7,9 +7,11 @@
 #include <optional>
 #include <string>
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::geometry {
+namespace geometry {
 
 struct ConeAttributeOutputs {
   std::optional<std::string> top_id;
@@ -33,4 +35,5 @@ Mesh *create_cylinder_or_cone_mesh(float radius_top,
                                    ConeFillType fill_type,
                                    ConeAttributeOutputs &attribute_outputs);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

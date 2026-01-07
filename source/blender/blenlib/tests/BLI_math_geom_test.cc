@@ -7,7 +7,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
 
-using namespace blender;
+namespace blender {
 
 TEST(math_geom, DistToLine2DSimple)
 {
@@ -149,3 +149,5 @@ TEST(math_geom, CrossPoly)
   EXPECT_EQ(cross_poly_v3_as_float3(tri_ccw_3d)[2], 2);
   EXPECT_EQ(cross_poly_v2(tri_ccw_2d, 3), 2);
 }
+
+}  // namespace blender

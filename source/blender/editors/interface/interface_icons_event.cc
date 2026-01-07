@@ -20,6 +20,8 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 static int inverted_icon(int icon_id)
 {
   switch (icon_id) {
@@ -61,7 +63,7 @@ static void icon_draw_icon(const rctf *rect,
                            const bool inverted)
 {
   float color[4];
-  UI_GetThemeColor4fv(TH_TEXT, color);
+  theme::get_color_4fv(TH_TEXT, color);
   if (alpha < 1.0f) {
     color[3] *= alpha;
   }
@@ -91,7 +93,7 @@ static void icon_draw_rect_input_text(const rctf *rect,
 
   const int font_id = BLF_default();
   float color[4];
-  UI_GetThemeColor4fv(inverted ? TH_BACK : TH_TEXT, color);
+  theme::get_color_4fv(inverted ? TH_BACK : TH_TEXT, color);
   if (alpha < 1.0f) {
     color[3] *= alpha;
   }
@@ -129,7 +131,7 @@ static void icon_draw_rect_input_icon(const rctf *rect,
   icon_draw_icon(rect, icon, aspect, alpha, false);
 }
 
-float ui_event_icon_offset(const int icon_id)
+float event_icon_offset(const int icon_id)
 {
   const enum {
     UNIX,
@@ -209,7 +211,7 @@ void icon_draw_rect_input(const float x,
 #endif
       ;
 
-  const float offset = ui_event_icon_offset(icon_id);
+  const float offset = event_icon_offset(icon_id);
   if (offset >= 2.0f) {
     rect.xmax = rect.xmin + BLI_rctf_size_x(&rect) * 2.0f;
   }
@@ -570,3 +572,5 @@ void icon_draw_rect_input(const float x,
     }
   }
 }
+
+}  // namespace blender::ui

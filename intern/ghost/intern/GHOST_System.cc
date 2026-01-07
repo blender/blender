@@ -21,6 +21,8 @@ GHOST_System::GHOST_System()
     : native_pixel_(false),
       window_focus_(true),
       auto_focus_(true),
+      window_csd_params_({nullptr}),
+      window_csd_layout_({0}),
       timer_manager_(nullptr),
       window_manager_(nullptr),
       event_manager_(nullptr),
@@ -53,6 +55,25 @@ GHOST_TSuccess GHOST_System::putClipboardImage(uint * /*rgba*/,
                                                int /*height*/) const
 {
   return GHOST_kFailure;
+}
+
+void GHOST_System::setWindowCSD(const GHOST_CSD_Params &params)
+{
+  window_csd_params_ = params;
+}
+
+const GHOST_CSD_Params &GHOST_System::getWindowCSD() const
+{
+  return window_csd_params_;
+}
+
+const GHOST_CSD_Layout &GHOST_System::getWindowCSD_Layout() const
+{
+  return window_csd_layout_;
+}
+void GHOST_System::setWindowCSD_Layout(const GHOST_CSD_Layout &layout)
+{
+  window_csd_layout_ = layout;
 }
 
 GHOST_ITimerTask *GHOST_System::installTimer(uint64_t delay,
@@ -179,11 +200,11 @@ GHOST_TSuccess GHOST_System::removeEventConsumer(GHOST_IEventConsumer *consumer)
   return success;
 }
 
-GHOST_TSuccess GHOST_System::pushEvent(const GHOST_IEvent *event)
+GHOST_TSuccess GHOST_System::pushEvent(std::unique_ptr<const GHOST_IEvent> event)
 {
   GHOST_TSuccess success;
   if (event_manager_) {
-    success = event_manager_->pushEvent(event);
+    success = event_manager_->pushEvent(std::move(event));
   }
   else {
     success = GHOST_kFailure;

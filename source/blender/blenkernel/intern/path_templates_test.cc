@@ -433,7 +433,7 @@ TEST(path_templates, validate_and_apply_template)
         << "  Template errors: " << errors_to_string(validation_errors) << std::endl
         << "  Expected errors: " << errors_to_string(test_case.expected_errors) << std::endl
         << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
-    EXPECT_EQ(blender::StringRef(path), test_case.path_in)
+    EXPECT_EQ(StringRef(path), test_case.path_in)
         << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
 
     /* Then do application, which should modify the path. */
@@ -442,7 +442,7 @@ TEST(path_templates, validate_and_apply_template)
         << "  Template errors: " << errors_to_string(application_errors) << std::endl
         << "  Expected errors: " << errors_to_string(test_case.expected_errors) << std::endl
         << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
-    EXPECT_EQ(blender::StringRef(path), test_case.path_result)
+    EXPECT_EQ(StringRef(path), test_case.path_result)
         << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
   }
 }

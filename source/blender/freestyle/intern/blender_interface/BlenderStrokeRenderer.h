@@ -13,7 +13,7 @@
 #include "../stroke/StrokeRenderer.h"
 #include "../system/FreestyleConfig.h"
 
-extern "C" {
+namespace blender {
 struct Depsgraph;
 struct GHash;
 struct Main;
@@ -23,25 +23,25 @@ struct Render;
 struct Scene;
 struct bContext;
 struct bNodeTree;
-}
+}  // namespace blender
 
 namespace Freestyle {
 
 class BlenderStrokeRenderer : public StrokeRenderer {
  public:
-  BlenderStrokeRenderer(Render *re, int render_count);
+  BlenderStrokeRenderer(blender::Render *re, int render_count);
   virtual ~BlenderStrokeRenderer();
 
   /** Renders a stroke rep */
   virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;
   virtual void RenderStrokeRepBasic(StrokeRep *iStrokeRep) const;
 
-  Object *NewMesh() const;
+  blender::Object *NewMesh() const;
 
   struct StrokeGroup {
     explicit StrokeGroup() : totvert(0), totedge(0), faces_num(0), totloop(0) {}
     vector<StrokeRep *> strokes;
-    blender::Map<Material *, int> materials;
+    blender::Map<blender::Material *, int> materials;
     int totvert;
     int totedge;
     int faces_num;
@@ -53,21 +53,23 @@ class BlenderStrokeRenderer : public StrokeRenderer {
   void GenerateStrokeMesh(StrokeGroup *group, bool hasTex);
   void FreeStrokeGroups();
 
-  Render *RenderScene(Render *re, bool render);
+  blender::Render *RenderScene(blender::Render *re, bool render);
 
-  static Material *GetStrokeShader(Main *bmain, bNodeTree *iNodeTree, bool do_id_user);
+  static blender::Material *GetStrokeShader(blender::Main *bmain,
+                                            blender::bNodeTree *iNodeTree,
+                                            bool do_id_user);
 
  protected:
-  Main *freestyle_bmain;
-  Scene *old_scene;
-  Scene *freestyle_scene;
-  Depsgraph *freestyle_depsgraph;
-  bContext *_context;
+  blender::Main *freestyle_bmain;
+  blender::Scene *old_scene;
+  blender::Scene *freestyle_scene;
+  blender::Depsgraph *freestyle_depsgraph;
+  blender::bContext *_context;
   float _width, _height;
   float _z, _z_delta;
   uint _mesh_id;
   bool _use_shading_nodes;
-  mutable blender::Map<bNodeTree *, Material *> _nodetree_hash;
+  mutable blender::Map<blender::bNodeTree *, blender::Material *> _nodetree_hash;
 
   static const char *uvNames[];
 

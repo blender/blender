@@ -43,7 +43,7 @@ class OBJMTLParserTest : public testing::Test {
   }
   void check(const char *file, const MTLMaterial *expect, size_t expect_count)
   {
-    std::string obj_dir = blender::tests::flags_test_asset_dir() +
+    std::string obj_dir = tests::flags_test_asset_dir() +
                           (SEP_STR "io_tests" SEP_STR "obj" SEP_STR);
     check_impl(file, obj_dir, expect, expect_count);
   }

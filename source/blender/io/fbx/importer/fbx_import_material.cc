@@ -449,7 +449,7 @@ Material *import_material(Main *bmain, const std::string &base_dir, const ufbx_m
   Material *mat = BKE_material_add(bmain, fmat.name.data);
   id_us_min(&mat->id);
 
-  bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
+  bNodeTree *ntree = bke::node_tree_add_tree_embedded(
       nullptr, &mat->id, "Shader Nodetree", ntreeType_Shader->idname);
   bNode *bsdf = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, node_locx_bsdf, node_locy_top);
   bNode *output = add_node(ntree, SH_NODE_OUTPUT_MATERIAL, node_locx_output, node_locy_top);

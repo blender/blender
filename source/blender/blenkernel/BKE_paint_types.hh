@@ -8,15 +8,15 @@
 #include "BLI_utildefines.h"
 #include "BLI_utility_mixins.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  */
 
-namespace blender {
 namespace ocio {
 class ColorSpace;
 }
-}  // namespace blender
 struct AssetWeakReference;
 enum class PaintMode : int8_t {
   Sculpt = 0,
@@ -40,18 +40,18 @@ enum class PaintMode : int8_t {
   Invalid = 11,
 };
 
-namespace blender::bke {
+namespace bke {
 struct PaintRuntime : NonCopyable, NonMovable {
   bool initialized = false;
   uint16_t ob_mode = 0;
   PaintMode paint_mode = PaintMode::Invalid;
   AssetWeakReference *previous_active_brush_reference = nullptr;
 
-  blender::float2 last_rake = float2(0.0f, 0.0f);
+  float2 last_rake = float2(0.0f, 0.0f);
   float last_rake_angle = 0.0f;
 
   int last_stroke_valid = false;
-  blender::float3 average_stroke_accum = float3(0.0f, 0.0f, 0.0f);
+  float3 average_stroke_accum = float3(0.0f, 0.0f, 0.0f);
   int average_stroke_counter = 0;
 
   /**
@@ -82,10 +82,10 @@ struct PaintRuntime : NonCopyable, NonMovable {
    * Store last location of stroke or whether the mesh was hit.
    * Valid only while stroke is active.
    */
-  blender::float3 last_location = float3(0.0f, 0.0f, 0.0f);
+  float3 last_location = float3(0.0f, 0.0f, 0.0f);
   bool last_hit = false;
 
-  blender::float2 anchored_initial_mouse = float2(0.0f, 0.0f);
+  float2 anchored_initial_mouse = float2(0.0f, 0.0f);
 
   /**
    * Radius of brush, pre-multiplied with pressure.
@@ -99,14 +99,14 @@ struct PaintRuntime : NonCopyable, NonMovable {
   float size_pressure_value = 0.0f;
 
   /** Position of mouse, used to sample the texture. */
-  blender::float2 tex_mouse = float2(0.0f, 0.0f);
+  float2 tex_mouse = float2(0.0f, 0.0f);
 
   /** Position of mouse, used to sample the mask texture. */
-  blender::float2 mask_tex_mouse = float2(0.0f, 0.0f);
+  float2 mask_tex_mouse = float2(0.0f, 0.0f);
 
   /** ColorSpace cache to avoid locking up during sampling. */
   bool do_linear_conversion = false;
-  const blender::ocio::ColorSpace *colorspace = nullptr;
+  const ocio::ColorSpace *colorspace = nullptr;
 
   /** WM Paint cursor. */
   void *paint_cursor = nullptr;
@@ -114,4 +114,6 @@ struct PaintRuntime : NonCopyable, NonMovable {
   PaintRuntime();
   ~PaintRuntime();
 };
-};  // namespace blender::bke
+};  // namespace bke
+
+}  // namespace blender

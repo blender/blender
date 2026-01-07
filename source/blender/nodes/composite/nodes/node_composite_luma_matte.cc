@@ -24,9 +24,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* ******************* Luma Matte Node ********************************* */
 
-namespace blender::nodes::node_composite_luma_matte_cc {
+namespace nodes::node_composite_luma_matte_cc {
 
 static void cmp_node_luma_matte_declare(NodeDeclarationBuilder &b)
 {
@@ -70,7 +72,7 @@ static int node_gpu_material(GPUMaterial *material,
                         GPU_constant(luminance_coefficients));
 }
 
-using blender::compositor::Color;
+using compositor::Color;
 
 static void luminance_matte(const float4 &color,
                             const float &minimum,
@@ -85,7 +87,7 @@ static void luminance_matte(const float4 &color,
   result = color * matte;
 }
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   float3 luminance_coefficients;
   IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
@@ -107,13 +109,13 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   });
 }
 
-}  // namespace blender::nodes::node_composite_luma_matte_cc
+}  // namespace nodes::node_composite_luma_matte_cc
 
 static void register_node_type_cmp_luma_matte()
 {
-  namespace file_ns = blender::nodes::node_composite_luma_matte_cc;
+  namespace file_ns = nodes::node_composite_luma_matte_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeLumaMatte", CMP_NODE_LUMA_MATTE);
   ntype.ui_name = "Luminance Key";
@@ -125,6 +127,8 @@ static void register_node_type_cmp_luma_matte()
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_luma_matte)
+
+}  // namespace blender

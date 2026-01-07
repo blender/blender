@@ -11,7 +11,9 @@
 
 #include "RNA_access.hh"
 
-namespace blender::nodes::node_shader_attribute_cc {
+namespace blender {
+
+namespace nodes::node_shader_attribute_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -36,7 +38,7 @@ static void node_shader_buts_attribute(ui::Layout &layout, bContext * /*C*/, Poi
 
 static void node_shader_init_attribute(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderAttribute *attr = MEM_callocN<NodeShaderAttribute>("NodeShaderAttribute");
+  NodeShaderAttribute *attr = MEM_new_for_free<NodeShaderAttribute>("NodeShaderAttribute");
   node->storage = attr;
 }
 
@@ -77,8 +79,8 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 
   if (is_varying) {
-    int i;
-    LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
+
+    for (const auto [i, sock] : node->outputs.enumerate()) {
       node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
     }
   }
@@ -96,14 +98,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_attribute_cc
+}  // namespace nodes::node_shader_attribute_cc
 
 /* node type definition */
 void register_node_type_sh_attribute()
 {
-  namespace file_ns = blender::nodes::node_shader_attribute_cc;
+  namespace file_ns = nodes::node_shader_attribute_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeAttribute", SH_NODE_ATTRIBUTE);
   ntype.ui_name = "Attribute";
@@ -113,10 +115,12 @@ void register_node_type_sh_attribute()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_attribute;
   ntype.initfunc = file_ns::node_shader_init_attribute;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderAttribute", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_attribute;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

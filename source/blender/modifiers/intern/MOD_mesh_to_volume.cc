@@ -34,6 +34,8 @@
 #include "RNA_prototypes.hh"
 #include "RNA_types.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   MeshToVolumeModifierData *mvmd = reinterpret_cast<MeshToVolumeModifierData *>(md);
@@ -60,12 +62,12 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   MeshToVolumeModifierData *mvmd = reinterpret_cast<MeshToVolumeModifierData *>(md);
-  walk(user_data, ob, (ID **)&mvmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&mvmd->object), IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   MeshToVolumeModifierData *mvmd = static_cast<MeshToVolumeModifierData *>(ptr->data);
@@ -76,11 +78,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "density", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   {
-    blender::ui::Layout &col = layout.column(false);
+    ui::Layout &col = layout.column(false);
     col.prop(ptr, "interior_band_width", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   {
-    blender::ui::Layout &col = layout.column(false);
+    ui::Layout &col = layout.column(false);
     col.prop(ptr, "resolution_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (mvmd->resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT) {
       col.prop(ptr, "voxel_amount", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -103,8 +105,6 @@ static Volume *mesh_to_volume(ModifierData *md,
                               Volume *input_volume)
 {
 #ifdef WITH_OPENVDB
-  using namespace blender;
-
   MeshToVolumeModifierData *mvmd = reinterpret_cast<MeshToVolumeModifierData *>(md);
   Object *object_to_convert = mvmd->object;
 
@@ -175,7 +175,7 @@ static Volume *mesh_to_volume(ModifierData *md,
 
 static void modify_geometry_set(ModifierData *md,
                                 const ModifierEvalContext *ctx,
-                                blender::bke::GeometrySet *geometry_set)
+                                bke::GeometrySet *geometry_set)
 {
   Volume *input_volume = geometry_set->get_volume_for_write();
   Volume *result_volume = mesh_to_volume(md, ctx, input_volume);
@@ -219,3 +219,5 @@ ModifierTypeInfo modifierType_MeshToVolume = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

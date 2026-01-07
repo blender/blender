@@ -34,7 +34,7 @@ gpu::VertBufPtr extract_skin_roots(const MeshRenderData &mr)
   BMIter iter;
   BMVert *vert;
   BM_ITER_MESH (vert, &iter, mr.bm, BM_VERTS_OF_MESH) {
-    const MVertSkin *vs = (const MVertSkin *)BM_ELEM_CD_GET_VOID_P(vert, offset);
+    const MVertSkin *vs = static_cast<const MVertSkin *> BM_ELEM_CD_GET_VOID_P(vert, offset);
     if (vs->flag & MVERT_SKIN_ROOT) {
       skin_roots.append({(vs->radius[0] + vs->radius[1]) * 0.5f, bm_vert_co_get(mr, vert)});
     }

@@ -12,7 +12,10 @@
 #include "BLI_array.hh"
 #include "BLI_string_ref.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
+
+namespace blender {
 
 struct BMesh;
 struct BMeshCreateParams;
@@ -23,7 +26,6 @@ struct CustomData_MeshMasks;
 struct Depsgraph;
 struct KeyBlock;
 struct LinkNode;
-struct ListBase;
 struct MDeformVert;
 struct MDisps;
 struct MFace;
@@ -32,6 +34,8 @@ struct MemArena;
 struct Mesh;
 struct Object;
 struct Scene;
+struct DispList;
+struct Nurb;
 
 /* TODO: Move to `BKE_mesh_types.hh` when possible. */
 enum eMeshBatchDirtyMode : int8_t {
@@ -130,14 +134,13 @@ Mesh *BKE_mesh_copy_for_eval(const Mesh &source);
  * contrary to #BKE_mesh_to_curve_nurblist which modifies ob itself.
  */
 Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob);
-Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *dispbase);
+Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob,
+                                              const ListBaseT<DispList> *dispbase);
 
-bool BKE_mesh_attribute_required(blender::StringRef name);
+bool BKE_mesh_attribute_required(StringRef name);
 
-blender::Array<blender::float3> BKE_mesh_orco_verts_get(const Object *ob);
-void BKE_mesh_orco_verts_transform(Mesh *mesh,
-                                   blender::MutableSpan<blender::float3> orco,
-                                   bool invert);
+Array<float3> BKE_mesh_orco_verts_get(const Object *ob);
+void BKE_mesh_orco_verts_transform(Mesh *mesh, MutableSpan<float3> orco, bool invert);
 void BKE_mesh_orco_verts_transform(Mesh *mesh, float (*orco)[3], int totvert, bool invert);
 
 /**
@@ -147,7 +150,7 @@ void BKE_mesh_orco_ensure(Object *ob, Mesh *mesh);
 
 Mesh *BKE_mesh_from_object(Object *ob);
 void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *mesh);
-void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, int edge_users_test);
+void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBaseT<Nurb> *nurblist, int edge_users_test);
 void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
 void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
@@ -333,7 +336,7 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float lnor[3],
                            const float vec_ref[3],
                            const float vec_other[3],
-                           blender::Span<blender::float3> edge_vectors);
+                           Span<float3> edge_vectors);
 
 /**
  * Add a new given loop to given lnor_space.
@@ -385,7 +388,7 @@ bool BKE_mesh_center_of_volume(const Mesh *mesh, float r_cent[3]);
  */
 void BKE_mesh_calc_volume(const float (*vert_positions)[3],
                           int mverts_num,
-                          const blender::int3 *corner_tris,
+                          const int3 *corner_tris,
                           int corner_tris_num,
                           const int *corner_verts,
                           float *r_volume,
@@ -447,3 +450,5 @@ extern void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache);
 char *BKE_mesh_debug_info(const Mesh *mesh) ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void BKE_mesh_debug_print(const Mesh *mesh) ATTR_NONNULL(1);
 #endif
+
+}  // namespace blender

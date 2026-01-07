@@ -26,6 +26,8 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 /* ******************** default callbacks for statusbar space ******************** */
 
 static SpaceLink *statusbar_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -33,7 +35,7 @@ static SpaceLink *statusbar_create(const ScrArea * /*area*/, const Scene * /*sce
   ARegion *region;
   SpaceStatusBar *sstatusbar;
 
-  sstatusbar = MEM_callocN<SpaceStatusBar>("init statusbar");
+  sstatusbar = MEM_new_for_free<SpaceStatusBar>("init statusbar");
   sstatusbar->spacetype = SPACE_STATUSBAR;
 
   /* header region */
@@ -42,7 +44,7 @@ static SpaceLink *statusbar_create(const ScrArea * /*area*/, const Scene * /*sce
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = RGN_ALIGN_NONE;
 
-  return (SpaceLink *)sstatusbar;
+  return reinterpret_cast<SpaceLink *>(sstatusbar);
 }
 
 /* Doesn't free the space-link itself. */
@@ -57,7 +59,7 @@ static SpaceLink *statusbar_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sstatusbarn;
+  return reinterpret_cast<SpaceLink *>(sstatusbarn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -124,7 +126,7 @@ static void statusbar_header_region_message_subscribe(const wmRegionMessageSubsc
 
 static void statusbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceStatusBar, sl);
+  writer->write_struct_cast<SpaceStatusBar>(sl);
 }
 
 void ED_spacetype_statusbar()
@@ -158,3 +160,5 @@ void ED_spacetype_statusbar()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

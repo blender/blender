@@ -11,9 +11,14 @@
 #ifdef WITH_OCEANSIM
 #  include "BLI_threads.h"
 #  include "fftw3.h"
+#endif
+
+namespace blender {
+
+#ifdef WITH_OCEANSIM
 #  define GRAVITY 9.81f
 
-typedef struct Ocean {
+struct Ocean {
   /* ********* input parameters to the sim ********* */
   float _V;
   float _l;
@@ -105,11 +110,13 @@ typedef struct Ocean {
 
   /* two dimensional float array */
   float *_k; /* init w   sim r */
-} Ocean;
+};
 #else
 /* stub */
-typedef struct Ocean {
+struct Ocean {
   /* need some data here, C does not allow empty struct */
   int stub;
-} Ocean;
+};
 #endif
+
+}  // namespace blender

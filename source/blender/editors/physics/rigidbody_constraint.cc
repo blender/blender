@@ -39,6 +39,8 @@
 
 #include "physics_intern.hh"
 
+namespace blender {
+
 /* ********************************************** */
 /* Helper API's for RigidBody Constraint Editing */
 
@@ -62,7 +64,7 @@ static bool operator_rigidbody_con_active_poll(bContext *C)
   }
 
   if (ED_operator_object_active_editable(C)) {
-    Object *ob = blender::ed::object::context_active_object(C);
+    Object *ob = ed::object::context_active_object(C);
     return (ob && ob->rigidbody_constraint);
   }
   return false;
@@ -209,3 +211,5 @@ void RIGIDBODY_OT_constraint_remove(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

@@ -43,6 +43,8 @@
 /* own includes */
 #include "../gizmo_library_intern.hh"
 
+namespace blender {
+
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 /* The same as in `draw_cache.cc`. */
 #define CIRCLE_RESOL 32
@@ -89,8 +91,7 @@ static void cage2d_draw_box_corners(const rctf *r,
                                     const float line_width)
 {
   /* NOTE(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
   immUniformColor3fv(color);
@@ -374,22 +375,24 @@ static void cage2d_draw_box_interaction(const float color[4],
   struct {
     uint pos, col;
   } attr_id{};
-  attr_id.pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  attr_id.col = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32);
-  immBindBuiltinProgram(is_solid ? GPU_SHADER_3D_FLAT_COLOR : GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
+
+  attr_id.pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  attr_id.col = GPU_vertformat_attr_add(format, "color", gpu::VertAttrType::SFLOAT_32_32_32);
 
   {
     if (is_solid) {
 
       if (margin[0] == 0.0f && margin[1] == 0.0) {
         prim_type = GPU_PRIM_POINTS;
+        immBindBuiltinProgram(GPU_SHADER_3D_POINT_FLAT_COLOR);
       }
       else if (margin[0] == 0.0f || margin[1] == 0.0) {
         prim_type = GPU_PRIM_LINE_STRIP;
+        immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
       }
       else {
         BLI_assert(ELEM(prim_type, GPU_PRIM_TRI_FAN));
+        immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
       }
 
       immBegin(prim_type, verts_len);
@@ -400,6 +403,8 @@ static void cage2d_draw_box_interaction(const float color[4],
       immEnd();
     }
     else {
+      immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
+
       BLI_assert(ELEM(prim_type, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINES));
 
       float viewport[4];
@@ -492,8 +497,7 @@ static void cage2d_draw_rect_wire(const rctf *r,
 {
   /* NOTE(Metal): Prefer using 3D coordinates with 3D shader input, even if rendering 2D gizmo's.
    */
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
   immUniformColor3fv(color);
@@ -552,8 +556,7 @@ static void cage2d_draw_circle_wire(const float color[3],
                                     const int draw_options,
                                     const float line_width)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   const bool use_points = is_zero_v2(margin);
   immBindBuiltinProgram(use_points ? GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA :
@@ -616,8 +619,7 @@ static void cage2d_draw_rect_rotate_handle(const rctf *r,
                                            const float color[3],
                                            bool solid)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   void (*circle_fn)(uint, float, float, float, float, int) = (solid) ?
                                                                  imm_draw_circle_fill_aspect_2d :
                                                                  imm_draw_circle_wire_aspect_2d;
@@ -641,11 +643,10 @@ static void cage2d_draw_rect_corner_handles(const rctf *r,
                                             const float color[3],
                                             bool solid)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   const float rad[2] = {margin[0] / 3, margin[1] / 3};
 
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_COLOR);
   immUniformColor3fv(color);
 
   /* Should really divide by two, but looks too bulky. */
@@ -666,8 +667,7 @@ static void cage2d_draw_rect_edge_handles(const rctf *r,
                                           const float color[3],
                                           bool solid)
 {
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3fv(color);
@@ -721,8 +721,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
   /* Handy for quick testing draw (if it's outside bounds). */
   if (false) {
     GPU_blend(GPU_BLEND_ALPHA);
-    uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4f(1, 1, 1, 0.5f);
     float s = 0.5f;
@@ -933,9 +932,7 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   RNA_float_get_array(gz->ptr, "dimensions", dims);
   const float size_real[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
 
-  if (gizmo_window_project_2d(C, gz, blender::float2(blender::int2(mval)), 2, true, point_local) ==
-      false)
-  {
+  if (gizmo_window_project_2d(C, gz, float2(int2(mval)), 2, true, point_local) == false) {
     return -1;
   }
 
@@ -1087,9 +1084,7 @@ static wmOperatorStatus gizmo_cage2d_invoke(bContext *C, wmGizmo *gz, const wmEv
   copy_m4_m4(data->orig_matrix_offset, gz->matrix_offset);
   WM_gizmo_calc_matrix_final_no_offset(gz, data->orig_matrix_final_no_offset);
 
-  if (gizmo_window_project_2d(
-          C, gz, blender::float2(blender::int2(event->mval)), 2, false, data->orig_mouse) == 0)
-  {
+  if (gizmo_window_project_2d(C, gz, float2(int2(event->mval)), 2, false, data->orig_mouse) == 0) {
     zero_v2(data->orig_mouse);
   }
 
@@ -1191,8 +1186,7 @@ static wmOperatorStatus gizmo_cage2d_modal(bContext *C,
 
     /* The mouse coords are projected into the matrix so we don't need to worry about axis
      * alignment. */
-    bool ok = gizmo_window_project_2d(
-        C, gz, blender::float2(blender::int2(event->mval)), 2, false, point_local);
+    bool ok = gizmo_window_project_2d(C, gz, float2(int2(event->mval)), 2, false, point_local);
     copy_m4_m4(gz->matrix_offset, matrix_back);
     if (!ok) {
       return OPERATOR_RUNNING_MODAL;
@@ -1217,7 +1211,7 @@ static wmOperatorStatus gizmo_cage2d_modal(bContext *C,
   else if (gz->highlight_part == ED_GIZMO_CAGE2D_PART_ROTATE) {
 
 #define MUL_V2_V3_M4_FINAL(test_co, mouse_co) \
-  mul_v3_m4v3(test_co, data->orig_matrix_final_no_offset, blender::float3{UNPACK2(mouse_co), 0.0})
+  mul_v3_m4v3(test_co, data->orig_matrix_final_no_offset, float3{UNPACK2(mouse_co), 0.0})
 
     float test_co[3];
 
@@ -1350,7 +1344,7 @@ static wmOperatorStatus gizmo_cage2d_modal(bContext *C,
     mul_v3_fl(matrix_scale[0], scale[0]);
     mul_v3_fl(matrix_scale[1], scale[1]);
 
-    transform_pivot_set_m4(matrix_scale, blender::float3(UNPACK2(pivot), 0.0f));
+    transform_pivot_set_m4(matrix_scale, float3(UNPACK2(pivot), 0.0f));
     mul_m4_m4_post(gz->matrix_offset, matrix_scale);
   }
 
@@ -1472,3 +1466,5 @@ void ED_gizmotypes_cage_2d()
 }
 
 /** \} */
+
+}  // namespace blender

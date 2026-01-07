@@ -19,18 +19,18 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Selected Object Array
  * \{ */
-
-using blender::Vector;
 
 Vector<Object *> BKE_view_layer_array_selected_objects_params(
     ViewLayer *view_layer, const View3D *v3d, const ObjectsInViewLayerParams *params)
 {
   if (params->no_dup_data) {
     FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob_iter) {
-      ID *id = static_cast<ID *>(ob_iter->data);
+      ID *id = ob_iter->data;
       if (id) {
         id->tag |= ID_TAG_DOIT;
       }
@@ -48,7 +48,7 @@ Vector<Object *> BKE_view_layer_array_selected_objects_params(
     }
 
     if (params->no_dup_data) {
-      ID *id = static_cast<ID *>(ob_iter->data);
+      ID *id = ob_iter->data;
       if (id) {
         if (id->tag & ID_TAG_DOIT) {
           id->tag &= ~ID_TAG_DOIT;
@@ -79,7 +79,7 @@ Vector<Base *> BKE_view_layer_array_from_bases_in_mode_params(const Scene *scene
 {
   if (params->no_dup_data) {
     FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, v3d, -1, params->object_mode, base_iter) {
-      ID *id = static_cast<ID *>(base_iter->object->data);
+      ID *id = base_iter->object->data;
       if (id) {
         id->tag |= ID_TAG_DOIT;
       }
@@ -96,7 +96,7 @@ Vector<Base *> BKE_view_layer_array_from_bases_in_mode_params(const Scene *scene
       }
     }
     if (params->no_dup_data) {
-      ID *id = static_cast<ID *>(base_iter->object->data);
+      ID *id = base_iter->object->data;
       if (id) {
         if (id->tag & ID_TAG_DOIT) {
           id->tag &= ~ID_TAG_DOIT;
@@ -186,12 +186,12 @@ Vector<Object *> BKE_view_layer_array_from_objects_in_mode_unique_data(const Sce
   return BKE_view_layer_array_from_objects_in_mode_params(scene, view_layer, v3d, &params);
 }
 
-ListBase *BKE_view_layer_object_bases_unsynced_get(ViewLayer *view_layer)
+ListBaseT<Base> *BKE_view_layer_object_bases_unsynced_get(ViewLayer *view_layer)
 {
   return &view_layer->object_bases;
 }
 
-ListBase *BKE_view_layer_object_bases_get(ViewLayer *view_layer)
+ListBaseT<Base> *BKE_view_layer_object_bases_get(ViewLayer *view_layer)
 {
   BLI_assert_msg((view_layer->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
                  "Object Bases out of sync, invoke BKE_view_layer_synced_ensure.");
@@ -221,7 +221,7 @@ LayerCollection *BKE_view_layer_active_collection_get(ViewLayer *view_layer)
 bool BKE_view_layer_filter_edit_mesh_has_uvs(const Object *ob, void * /*user_data*/)
 {
   if (ob->type == OB_MESH) {
-    const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+    const Mesh *mesh = id_cast<const Mesh *>(ob->data);
     if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       if (CustomData_has_layer(&em->bm->ldata, CD_PROP_FLOAT2)) {
         return true;
@@ -234,7 +234,7 @@ bool BKE_view_layer_filter_edit_mesh_has_uvs(const Object *ob, void * /*user_dat
 bool BKE_view_layer_filter_edit_mesh_has_edges(const Object *ob, void * /*user_data*/)
 {
   if (ob->type == OB_MESH) {
-    const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+    const Mesh *mesh = id_cast<const Mesh *>(ob->data);
     if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       if (em->bm->totedge != 0) {
         return true;
@@ -276,7 +276,7 @@ Object *BKE_view_layer_non_active_selected_object(const Scene *scene,
 
 Object *BKE_view_layer_active_object_get(const ViewLayer *view_layer)
 {
-  Base *base = BKE_view_layer_active_base_get((ViewLayer *)view_layer);
+  Base *base = BKE_view_layer_active_base_get(const_cast<ViewLayer *>(view_layer));
   return base ? base->object : nullptr;
 }
 
@@ -293,3 +293,5 @@ Object *BKE_view_layer_edit_object_get(const ViewLayer *view_layer)
 }
 
 /** \} */
+
+}  // namespace blender

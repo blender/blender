@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace blender {
+
 /** \file
  * \ingroup bli
  */
@@ -37,3 +39,5 @@ int BLI_sortutil_cmp_float_reverse(const void *a_, const void *b_);
 
 int BLI_sortutil_cmp_int(const void *a_, const void *b_);
 int BLI_sortutil_cmp_int_reverse(const void *a_, const void *b_);
+
+}  // namespace blender

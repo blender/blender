@@ -22,18 +22,20 @@
 #include "gpu_py_shader.hh" /* own include */
 #include "gpu_py_texture.hh"
 
+namespace blender {
+
 #define USE_PYGPU_SHADER_INFO_IMAGE_METHOD
 
-using blender::gpu::shader::DepthWrite;
-using blender::gpu::shader::DualBlend;
-using blender::gpu::shader::Frequency;
-using blender::gpu::shader::ImageType;
-using blender::gpu::shader::ShaderCreateInfo;
-using blender::gpu::shader::StageInterfaceInfo;
-using blender::gpu::shader::Type;
+using gpu::shader::DepthWrite;
+using gpu::shader::DualBlend;
+using gpu::shader::Frequency;
+using gpu::shader::ImageType;
+using gpu::shader::ShaderCreateInfo;
+using gpu::shader::StageInterfaceInfo;
+using gpu::shader::Type;
 
 #ifdef USE_PYGPU_SHADER_INFO_IMAGE_METHOD
-using blender::gpu::shader::Qualifier;
+using gpu::shader::Qualifier;
 
 #  define PYDOC_QUALIFIERS \
     "      - ``NO_RESTRICT``\n" \
@@ -245,7 +247,7 @@ static bool pygpu_interface_info_get_args(BPyGPUStageInterfaceInfo *self,
   PyList_Append(self->references, py_name);
 #endif
 
-  *r_type = (Type)pygpu_type.value_found;
+  *r_type = Type(pygpu_type.value_found);
   *r_name = name;
   return true;
 }
@@ -331,12 +333,15 @@ static PyObject *pygpu_interface_info_no_perspective(BPyGPUStageInterfaceInfo *s
 
 static PyMethodDef pygpu_interface_info__tp_methods[] = {
     {"smooth",
-     (PyCFunction)pygpu_interface_info_smooth,
+     reinterpret_cast<PyCFunction>(pygpu_interface_info_smooth),
      METH_VARARGS,
      pygpu_interface_info_smooth_doc},
-    {"flat", (PyCFunction)pygpu_interface_info_flat, METH_VARARGS, pygpu_interface_info_flat_doc},
+    {"flat",
+     reinterpret_cast<PyCFunction>(pygpu_interface_info_flat),
+     METH_VARARGS,
+     pygpu_interface_info_flat_doc},
     {"no_perspective",
-     (PyCFunction)pygpu_interface_info_no_perspective,
+     reinterpret_cast<PyCFunction>(pygpu_interface_info_no_perspective),
      METH_VARARGS,
      pygpu_interface_info_no_perspective_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -362,8 +367,8 @@ static PyObject *pygpu_interface_info_name_get(BPyGPUStageInterfaceInfo *self, v
 
 static PyGetSetDef pygpu_interface_info__tp_getseters[] = {
     {"name",
-     (getter)pygpu_interface_info_name_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(pygpu_interface_info_name_get),
+     static_cast<setter>(nullptr),
      pygpu_interface_info_name_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
@@ -396,7 +401,7 @@ static PyObject *pygpu_interface_info__tp_new(PyTypeObject * /*type*/,
 
 #ifdef USE_GPU_PY_REFERENCES
   PyObject *py_name = PyTuple_GET_ITEM(args, 0);
-  PyList_Append(((BPyGPUStageInterfaceInfo *)self)->references, py_name);
+  PyList_Append((reinterpret_cast<BPyGPUStageInterfaceInfo *>(self))->references, py_name);
 #endif
 
   return self;
@@ -445,7 +450,7 @@ PyDoc_STRVAR(
     "   List of varyings between shader stages.\n"
     "\n"
     "   :arg name: Name of the interface block.\n"
-    "   :type value: str\n");
+    "   :type name: str\n");
 PyTypeObject BPyGPUStageInterfaceInfo_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUStageInterfaceInfo",
@@ -547,7 +552,7 @@ static PyObject *pygpu_shader_info_vertex_in(BPyGPUShaderCreateInfo *self, PyObj
 #endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
-  info->vertex_in(slot, (Type)pygpu_type.value_found, param);
+  info->vertex_in(slot, Type(pygpu_type.value_found), param);
   Py_RETURN_NONE;
 }
 
@@ -569,7 +574,7 @@ static PyObject *pygpu_shader_info_vertex_out(BPyGPUShaderCreateInfo *self,
   }
 
 #ifdef USE_GPU_PY_REFERENCES
-  PyList_Append(self->references, (PyObject *)o);
+  PyList_Append(self->references, reinterpret_cast<PyObject *>(o));
 #endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
@@ -636,7 +641,7 @@ static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
 #endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
-  info->fragment_out(slot, (Type)pygpu_type.value_found, name, (DualBlend)blend_type.value_found);
+  info->fragment_out(slot, Type(pygpu_type.value_found), name, DualBlend(blend_type.value_found));
 
   Py_RETURN_NONE;
 }
@@ -669,7 +674,7 @@ PyDoc_STRVAR(
     "are greater than the depth value in the output buffer.\n"
     "      :LESS: enables depth write in a fragment shader for depth values that"
     "are less than the depth value in the output buffer.\n"
-    "   :type blend: str\n");
+    "   :type value: str\n");
 static PyObject *pygpu_shader_info_depth_write(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
   PyC_StringEnum depth_write = {pygpu_depth_write_items, int(DepthWrite::UNCHANGED)};
@@ -784,20 +789,21 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
     return nullptr;
   }
 
-  if (py_qualifiers &&
-      PyC_FlagSet_ToBitfield(
-          pygpu_qualifiers, py_qualifiers, (int *)&qualifier, "shader_info.image") == -1)
+  if (py_qualifiers && PyC_FlagSet_ToBitfield(pygpu_qualifiers,
+                                              py_qualifiers,
+                                              reinterpret_cast<int *>(&qualifier),
+                                              "shader_info.image") == -1)
   {
     return nullptr;
   }
 
   if (pygpu_texformat.value_found == GPU_DEPTH24_STENCIL8_DEPRECATED) {
-    pygpu_texformat.value_found = int(blender::gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+    pygpu_texformat.value_found = int(gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
     PyErr_WarnEx(
         PyExc_DeprecationWarning, "'DEPTH24_STENCIL8' is deprecated. Use 'DEPTH32F_STENCIL8'.", 1);
   }
   if (pygpu_texformat.value_found == GPU_DEPTH_COMPONENT24_DEPRECATED) {
-    pygpu_texformat.value_found = int(blender::gpu::TextureFormat::SFLOAT_32_DEPTH);
+    pygpu_texformat.value_found = int(gpu::TextureFormat::SFLOAT_32_DEPTH);
     PyErr_WarnEx(PyExc_DeprecationWarning,
                  "'DEPTH_COMPONENT24' is deprecated. Use 'DEPTH_COMPONENT32F'.",
                  1);
@@ -809,9 +815,9 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
   info->image(slot,
-              (blender::gpu::TextureFormat)pygpu_texformat.value_found,
+              gpu::TextureFormat(pygpu_texformat.value_found),
               qualifier,
-              blender::gpu::shader::ImageReadWriteType(pygpu_imagetype.value_found),
+              gpu::shader::ImageReadWriteType(pygpu_imagetype.value_found),
               name);
 
   Py_RETURN_NONE;
@@ -851,7 +857,7 @@ static PyObject *pygpu_shader_info_sampler(BPyGPUShaderCreateInfo *self, PyObjec
 #endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
-  info->sampler(slot, (ImageType)pygpu_samplertype.value_found, name);
+  info->sampler(slot, ImageType(pygpu_samplertype.value_found), name);
 
   Py_RETURN_NONE;
 }
@@ -989,7 +995,7 @@ static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
 #endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
-  info->push_constant((Type)pygpu_type.value_found, name, array_size);
+  info->push_constant(Type(pygpu_type.value_found), name, array_size);
 
 #define VULKAN_LIMIT 128
   int size = constants_calc_size(info);
@@ -1246,58 +1252,61 @@ static PyObject *pygpu_shader_info_local_group_size(BPyGPUShaderCreateInfo *self
 
 static PyMethodDef pygpu_shader_info__tp_methods[] = {
     {"vertex_in",
-     (PyCFunction)pygpu_shader_info_vertex_in,
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_vertex_in),
      METH_VARARGS,
      pygpu_shader_info_vertex_in_doc},
     {"vertex_out",
-     (PyCFunction)pygpu_shader_info_vertex_out,
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_vertex_out),
      METH_O,
      pygpu_shader_info_vertex_out_doc},
     {"depth_write",
-     (PyCFunction)(void *)pygpu_shader_info_depth_write,
+     (PyCFunction)(void *)(pygpu_shader_info_depth_write),
      METH_O,
      pygpu_shader_info_depth_write_doc},
     {"fragment_out",
-     (PyCFunction)(void *)pygpu_shader_info_fragment_out,
+     (PyCFunction)(void *)(pygpu_shader_info_fragment_out),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_shader_info_fragment_out_doc},
     {"uniform_buf",
-     (PyCFunction)(void *)pygpu_shader_info_uniform_buf,
+     (PyCFunction)(void *)(pygpu_shader_info_uniform_buf),
      METH_VARARGS,
      pygpu_shader_info_uniform_buf_doc},
 #ifdef USE_PYGPU_SHADER_INFO_IMAGE_METHOD
     {"image",
-     (PyCFunction)(void *)pygpu_shader_info_image,
+     (PyCFunction)(void *)(pygpu_shader_info_image),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_shader_info_image_doc},
 #endif
     {"sampler",
-     (PyCFunction)pygpu_shader_info_sampler,
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_sampler),
      METH_VARARGS,
      pygpu_shader_info_sampler_doc},
     {"push_constant",
-     (PyCFunction)(void *)pygpu_shader_info_push_constant,
+     (PyCFunction)(void *)(pygpu_shader_info_push_constant),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_shader_info_push_constant_doc},
     {"vertex_source",
-     (PyCFunction)pygpu_shader_info_vertex_source,
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_vertex_source),
      METH_O,
      pygpu_shader_info_vertex_source_doc},
     {"fragment_source",
-     (PyCFunction)pygpu_shader_info_fragment_source,
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_fragment_source),
      METH_O,
      pygpu_shader_info_fragment_source_doc},
     {"compute_source",
-     (PyCFunction)pygpu_shader_info_compute_source,
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_compute_source),
      METH_O,
      pygpu_shader_info_compute_source_doc},
     {"typedef_source",
-     (PyCFunction)pygpu_shader_info_typedef_source,
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_typedef_source),
      METH_O,
      pygpu_shader_info_typedef_source_doc},
-    {"define", (PyCFunction)pygpu_shader_info_define, METH_VARARGS, pygpu_shader_info_define_doc},
+    {"define",
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_define),
+     METH_VARARGS,
+     pygpu_shader_info_define_doc},
     {"local_group_size",
-     (PyCFunction)pygpu_shader_info_local_group_size,
+     reinterpret_cast<PyCFunction>(pygpu_shader_info_local_group_size),
      METH_VARARGS,
      pygpu_shader_info_local_group_size_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -1448,7 +1457,8 @@ PyObject *BPyGPUStageInterfaceInfo_CreatePyObject(GPUStageInterfaceInfo *interfa
   BPyGPUStageInterfaceInfo *self;
 
 #ifdef USE_GPU_PY_REFERENCES
-  self = (BPyGPUStageInterfaceInfo *)_PyObject_GC_New(&BPyGPUStageInterfaceInfo_Type);
+  self = reinterpret_cast<BPyGPUStageInterfaceInfo *>(
+      _PyObject_GC_New(&BPyGPUStageInterfaceInfo_Type));
   self->references = PyList_New(0);
 #else
   self = PyObject_New(BPyGPUStageInterfaceInfo, &BPyGPUStageInterfaceInfo_Type);
@@ -1456,7 +1466,7 @@ PyObject *BPyGPUStageInterfaceInfo_CreatePyObject(GPUStageInterfaceInfo *interfa
 
   self->interface = interface;
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *BPyGPUShaderCreateInfo_CreatePyObject(GPUShaderCreateInfo *info)
@@ -1464,7 +1474,8 @@ PyObject *BPyGPUShaderCreateInfo_CreatePyObject(GPUShaderCreateInfo *info)
   BPyGPUShaderCreateInfo *self;
 
 #ifdef USE_GPU_PY_REFERENCES
-  self = (BPyGPUShaderCreateInfo *)_PyObject_GC_New(&BPyGPUShaderCreateInfo_Type);
+  self = reinterpret_cast<BPyGPUShaderCreateInfo *>(
+      _PyObject_GC_New(&BPyGPUShaderCreateInfo_Type));
   self->vertex_source = nullptr;
   self->fragment_source = nullptr;
   self->compute_source = nullptr;
@@ -1477,7 +1488,9 @@ PyObject *BPyGPUShaderCreateInfo_CreatePyObject(GPUShaderCreateInfo *info)
   self->info = info;
   self->constants_total_size = 0;
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */
+
+}  // namespace blender

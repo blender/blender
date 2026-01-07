@@ -21,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -33,7 +34,7 @@
 
 #include "ANIM_action.hh"
 
-using namespace blender;
+namespace blender {
 
 /* This file defines an API and set of callback-operators for
  * non-destructive editing of keyframe data.
@@ -157,9 +158,9 @@ static short agrp_keyframes_loop(KeyframeEditData *ked,
 
   /* Legacy actions. */
   if (agrp->wrap().is_legacy()) {
-    LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
-      if (fcu->grp == agrp) {
-        if (ANIM_fcurve_keyframes_loop(ked, fcu, key_ok, key_cb, fcu_cb)) {
+    for (FCurve &fcu : agrp->channels) {
+      if (fcu.grp == agrp) {
+        if (ANIM_fcurve_keyframes_loop(ked, &fcu, key_ok, key_cb, fcu_cb)) {
           return 1;
         }
       }
@@ -215,8 +216,8 @@ static short action_legacy_keyframes_loop(KeyframeEditData *ked,
   }
 
   /* just loop through all F-Curves */
-  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
-    if (ANIM_fcurve_keyframes_loop(ked, fcu, key_ok, key_cb, fcu_cb)) {
+  for (FCurve &fcu : act->curves) {
+    if (ANIM_fcurve_keyframes_loop(ked, &fcu, key_ok, key_cb, fcu_cb)) {
       return 1;
     }
   }
@@ -233,7 +234,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked,
                                FcuEditFunc fcu_cb)
 {
   bAnimContext ac = {nullptr};
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   int ret = 0;
 
@@ -265,9 +266,8 @@ static short ob_keyframes_loop(KeyframeEditData *ked,
 
   /* Loop through each F-Curve, applying the operation as required,
    * but stopping on the first one. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ANIM_fcurve_keyframes_loop(ked, static_cast<FCurve *>(ale->data), key_ok, key_cb, fcu_cb))
-    {
+  for (bAnimListElem &ale : anim_data) {
+    if (ANIM_fcurve_keyframes_loop(ked, static_cast<FCurve *>(ale.data), key_ok, key_cb, fcu_cb)) {
       ret = 1;
       break;
     }
@@ -288,7 +288,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked,
                                   FcuEditFunc fcu_cb)
 {
   bAnimContext ac = {nullptr};
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
   int ret = 0;
 
@@ -317,9 +317,8 @@ static short scene_keyframes_loop(KeyframeEditData *ked,
 
   /* Loop through each F-Curve, applying the operation as required,
    * but stopping on the first one. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    if (ANIM_fcurve_keyframes_loop(ked, static_cast<FCurve *>(ale->data), key_ok, key_cb, fcu_cb))
-    {
+  for (bAnimListElem &ale : anim_data) {
+    if (ANIM_fcurve_keyframes_loop(ked, static_cast<FCurve *>(ale.data), key_ok, key_cb, fcu_cb)) {
       ret = 1;
       break;
     }
@@ -338,7 +337,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
                                     KeyframeEditFunc key_cb,
                                     FcuEditFunc fcu_cb)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter, ret_code = 0;
 
   /* sanity check */
@@ -352,8 +351,8 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* loop through each F-Curve, working on the keyframes until the first curve aborts */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->datatype) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.datatype) {
       case ALE_MASKLAY:
       case ALE_GPFRAME:
       case ALE_GREASE_PENCIL_CEL:
@@ -369,15 +368,15 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
           float f2 = ked->f2;
 
           if (ked->iterflags & KED_F1_NLA_UNMAP) {
-            ked->f1 = ANIM_nla_tweakedit_remap(ale, f1, NLATIME_CONVERT_UNMAP);
+            ked->f1 = ANIM_nla_tweakedit_remap(&ale, f1, NLATIME_CONVERT_UNMAP);
           }
           if (ked->iterflags & KED_F2_NLA_UNMAP) {
-            ked->f2 = ANIM_nla_tweakedit_remap(ale, f2, NLATIME_CONVERT_UNMAP);
+            ked->f2 = ANIM_nla_tweakedit_remap(&ale, f2, NLATIME_CONVERT_UNMAP);
           }
 
           /* now operate on the channel as per normal */
           ret_code = ANIM_fcurve_keyframes_loop(
-              ked, static_cast<FCurve *>(ale->data), key_ok, key_cb, fcu_cb);
+              ked, static_cast<FCurve *>(ale.data), key_ok, key_cb, fcu_cb);
 
           /* reset */
           ked->f1 = f1;
@@ -386,7 +385,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
         else {
           /* no special handling required... */
           ret_code = ANIM_fcurve_keyframes_loop(
-              ked, static_cast<FCurve *>(ale->data), key_ok, key_cb, fcu_cb);
+              ked, static_cast<FCurve *>(ale.data), key_ok, key_cb, fcu_cb);
         }
         break;
       }
@@ -474,18 +473,18 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
                                      eAnimFilter_Flags filter,
                                      KeyframeEditFunc callback_fn)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     ANIM_fcurve_keyframes_loop(nullptr,
-                               static_cast<FCurve *>(ale->key_data),
+                               static_cast<FCurve *>(ale.key_data),
                                nullptr,
                                callback_fn,
                                BKE_fcurve_handles_recalc);
-    ale->update |= ANIM_UPDATE_DEFAULT;
+    ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -497,7 +496,7 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
 
 void ANIM_editkeyframes_refresh(bAnimContext *ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   /* filter animation data */
@@ -507,8 +506,8 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 
   /* Loop over F-Curves that are likely to have been edited, and tag them to
    * ensure the keyframes are in order and handles are in a valid position. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    ale->update |= ANIM_UPDATE_DEPS | ANIM_UPDATE_HANDLES | ANIM_UPDATE_ORDER;
+  for (bAnimListElem &ale : anim_data) {
+    ale.update |= ANIM_UPDATE_DEPS | ANIM_UPDATE_HANDLES | ANIM_UPDATE_ORDER;
   }
 
   /* free temp data */
@@ -536,7 +535,7 @@ static bool handles_visible(KeyframeEditData *ked, BezTriple *bezt)
 static short keyframe_ok_checks(
     KeyframeEditData *ked,
     BezTriple *bezt,
-    blender::FunctionRef<bool(KeyframeEditData *ked, BezTriple *bezt, const int index)> check)
+    FunctionRef<bool(KeyframeEditData *ked, BezTriple *bezt, const int index)> check)
 {
   short ok = 0;
   if (check(ked, bezt, 1)) {
@@ -830,7 +829,7 @@ short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
   }
 
   CfraElem *ce = MEM_callocN<CfraElem>("cfraElem");
-  BLI_addtail(&ked->list, ce);
+  BLI_addtail(&ked->cfra_elem_list, ce);
 
   /* bAnimListElem so we can do NLA mapping, we want the cfra to be in "global" time */
   bAnimListElem *ale = static_cast<bAnimListElem *>(ked->data);
@@ -896,7 +895,7 @@ static short snap_bezier_nearmarker(KeyframeEditData *ked, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
     BKE_fcurve_keyframe_move_time_with_handles(
-        bezt, float(ED_markers_find_nearest_marker_time(&ked->list, bezt->vec[1][0])));
+        bezt, float(ED_markers_find_nearest_marker_time(&ked->time_marker_list, bezt->vec[1][0])));
   }
   return 0;
 }
@@ -1083,21 +1082,10 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short mode)
 /* Sets the selected bezier handles to type 'auto' */
 static short set_bezier_auto(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
-  /* If the key is selected, always apply to both handles. */
-  if (bezt->f2 & SELECT) {
+  if (BEZT_ISSEL_ANY(bezt)) {
+    /* Setting one handle to `HD_AUTO` is not a valid state. Both need to be the same. */
     bezt->h1 = bezt->h2 = HD_AUTO;
   }
-  else {
-    if (bezt->f1 & SELECT) {
-      bezt->h1 = HD_AUTO;
-    }
-    if (bezt->f3 & SELECT) {
-      bezt->h2 = HD_AUTO;
-    }
-
-    ENSURE_HANDLES_MATCH(bezt);
-  }
-
   return 0;
 }
 
@@ -1106,21 +1094,10 @@ static short set_bezier_auto(KeyframeEditData * /*ked*/, BezTriple *bezt)
  */
 static short set_bezier_auto_clamped(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
-  /* If the key is selected, always apply to both handles. */
-  if (bezt->f2 & SELECT) {
+  if (BEZT_ISSEL_ANY(bezt)) {
+    /* Setting one handle to `HD_AUTO_ANIM` is not a valid state. Both need to be the same. */
     bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
   }
-  else {
-    if (bezt->f1 & SELECT) {
-      bezt->h1 = HD_AUTO_ANIM;
-    }
-    if (bezt->f3 & SELECT) {
-      bezt->h2 = HD_AUTO_ANIM;
-    }
-
-    ENSURE_HANDLES_MATCH(bezt);
-  }
-
   return 0;
 }
 
@@ -1134,9 +1111,11 @@ static short set_bezier_vector(KeyframeEditData * /*ked*/, BezTriple *bezt)
   else {
     if (bezt->f1 & SELECT) {
       bezt->h1 = HD_VECT;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::LEFT);
     }
     if (bezt->f3 & SELECT) {
       bezt->h2 = HD_VECT;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::RIGHT);
     }
   }
 
@@ -1163,19 +1142,10 @@ static short bezier_isfree(KeyframeEditData * /*ked*/, BezTriple *bezt)
 /* Sets selected bezier handles to type 'align' */
 static short set_bezier_align(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
-  /* If the key is selected, always apply to both handles. */
-  if (bezt->f2 & SELECT) {
+  if (BEZT_ISSEL_ANY(bezt)) {
+    /* Setting one handle to `HD_ALIGN` is not a valid state. Both need to be the same. */
     bezt->h1 = bezt->h2 = HD_ALIGN;
   }
-  else {
-    if (bezt->f1 & SELECT) {
-      bezt->h1 = HD_ALIGN;
-    }
-    if (bezt->f3 & SELECT) {
-      bezt->h2 = HD_ALIGN;
-    }
-  }
-
   return 0;
 }
 
@@ -1189,9 +1159,11 @@ static short set_bezier_free(KeyframeEditData * /*ked*/, BezTriple *bezt)
   else {
     if (bezt->f1 & SELECT) {
       bezt->h1 = HD_FREE;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::LEFT);
     }
     if (bezt->f3 & SELECT) {
       bezt->h2 = HD_FREE;
+      BKE_fcurve_update_handle_flag_from_opposite(*bezt, HandleSide::RIGHT);
     }
   }
 
@@ -1751,3 +1723,5 @@ short bezt_selmap_flush(KeyframeEditData *ked, BezTriple *bezt)
 
   return 0;
 }
+
+}  // namespace blender

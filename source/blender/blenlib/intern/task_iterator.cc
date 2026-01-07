@@ -16,6 +16,8 @@
 #include "BLI_mempool_private.h"
 #include "BLI_task.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Macros
  * \{ */
@@ -43,8 +45,8 @@ static void parallel_mempool_func(TaskPool *__restrict pool, void *taskdata)
 {
   ParallelMempoolState *__restrict state = static_cast<ParallelMempoolState *>(
       BLI_task_pool_user_data(pool));
-  BLI_mempool_threadsafe_iter *iter = &((ParallelMempoolTaskData *)taskdata)->ts_iter;
-  TaskParallelTLS *tls = &((ParallelMempoolTaskData *)taskdata)->tls;
+  BLI_mempool_threadsafe_iter *iter = &(static_cast<ParallelMempoolTaskData *>(taskdata))->ts_iter;
+  TaskParallelTLS *tls = &(static_cast<ParallelMempoolTaskData *>(taskdata))->tls;
 
   MempoolIterData *item;
   while ((item = static_cast<MempoolIterData *>(mempool_iter_threadsafe_step(iter))) != nullptr) {
@@ -116,7 +118,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
   for (int i = 0; i < tasks_num; i++) {
     void *userdata_chunk_local = nullptr;
     if (use_userdata_chunk) {
-      userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
+      userdata_chunk_local = static_cast<char *>(userdata_chunk_array) + (userdata_chunk_size * i);
       memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
       if (settings->func_init != nullptr) {
         settings->func_init(userdata, userdata_chunk_local);
@@ -154,3 +156,5 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
 #undef MALLOCA_FREE
 
 /** \} */
+
+}  // namespace blender

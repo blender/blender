@@ -23,6 +23,8 @@
 
 #include "IMB_colormanagement.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Paste API based on 'partial' blend-files.
  * \{ */
@@ -127,3 +129,5 @@ int BKE_copybuffer_paste(bContext *C,
 }
 
 /** \} */
+
+}  // namespace blender

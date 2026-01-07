@@ -54,9 +54,9 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"lib.packedfile"};
+namespace blender {
 
-using namespace blender;
+static CLG_LogRef LOG = {"lib.packedfile"};
 
 int BKE_packedfile_seek(PackedFile *pf, int offset, int whence)
 {
@@ -103,7 +103,7 @@ int BKE_packedfile_read(PackedFile *pf, void *data, int size)
     }
 
     if (size > 0) {
-      memcpy(data, ((const char *)pf->data) + pf->seek, size);
+      memcpy(data, (static_cast<const char *>(pf->data)) + pf->seek, size);
     }
     else {
       size = 0;
@@ -158,14 +158,14 @@ PackedFileCount BKE_packedfile_count_all(Main *bmain)
     }
   }
 
-  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ID_IS_LINKED(object)) {
+  for (Object &object : bmain->objects) {
+    if (ID_IS_LINKED(&object)) {
       continue;
     }
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        for (const NodesModifierBake &bake : blender::Span{nmd->bakes, nmd->bakes_num}) {
+    for (ModifierData &md : object.modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
+        for (const NodesModifierBake &bake : Span{nmd->bakes, nmd->bakes_num}) {
           if (bake.packed) {
             count.bakes++;
           }
@@ -206,15 +206,15 @@ PackedFile *BKE_packedfile_duplicate(const PackedFile *pf_src)
 
 PackedFile *BKE_packedfile_new_from_memory(const void *mem,
                                            int memlen,
-                                           const blender::ImplicitSharingInfo *sharing_info)
+                                           const ImplicitSharingInfo *sharing_info)
 {
   BLI_assert(mem != nullptr);
   if (!sharing_info) {
     /* Assume we are the only owner of that memory currently. */
-    sharing_info = blender::implicit_sharing::info_for_mem_free(const_cast<void *>(mem));
+    sharing_info = implicit_sharing::info_for_mem_free(const_cast<void *>(mem));
   }
 
-  PackedFile *pf = MEM_callocN<PackedFile>("PackedFile");
+  PackedFile *pf = MEM_new_for_free<PackedFile>("PackedFile");
   pf->data = mem;
   pf->size = memlen;
   pf->sharing_info = sharing_info;
@@ -332,15 +332,15 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
     }
   }
 
-  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ID_IS_LINKED(object)) {
+  for (Object &object : bmain->objects) {
+    if (ID_IS_LINKED(&object)) {
       continue;
     }
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        for (NodesModifierBake &bake : blender::MutableSpan{nmd->bakes, nmd->bakes_num}) {
-          blender::bke::bake::pack_geometry_nodes_bake(*bmain, reports, *object, *nmd, bake);
+    for (ModifierData &md : object.modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
+        for (NodesModifierBake &bake : MutableSpan{nmd->bakes, nmd->bakes_num}) {
+          bke::bake::pack_geometry_nodes_bake(*bmain, reports, object, *nmd, bake);
         }
       }
     }
@@ -458,7 +458,7 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
           break;
         }
 
-        if (memcmp(buf, ((const char *)pf->data) + i, len) != 0) {
+        if (memcmp(buf, (static_cast<const char *>(pf->data)) + i, len) != 0) {
           ret_val = PF_CMP_DIFFERS;
           break;
         }
@@ -562,12 +562,12 @@ static void unpack_generate_paths(const char *filepath,
     /* For images ensure that the temporary filename contains tile number information as well as
      * a file extension based on the file magic. */
     if (id_type == ID_IM) {
-      Image *ima = (Image *)id;
+      Image *ima = id_cast<Image *>(id);
       ImagePackedFile *imapf = static_cast<ImagePackedFile *>(ima->packedfiles.last);
       if (imapf != nullptr && imapf->packedfile != nullptr) {
         const PackedFile *pf = imapf->packedfile;
         enum eImbFileType ftype = eImbFileType(
-            IMB_test_image_type_from_memory((const uchar *)pf->data, pf->size));
+            IMB_test_image_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
         if (ima->source == IMA_SRC_TILED) {
           char tile_number[6];
           SNPRINTF(tile_number, ".%d", imapf->tile_number);
@@ -646,7 +646,7 @@ int BKE_packedfile_unpack_vfont(Main *bmain,
   int ret_value = RET_ERROR;
   if (vfont) {
     char *new_file_path = BKE_packedfile_unpack(
-        bmain, reports, (ID *)vfont, vfont->filepath, vfont->packedfile, how);
+        bmain, reports, id_cast<ID *>(vfont), vfont->filepath, vfont->packedfile, how);
 
     if (new_file_path != nullptr) {
       ret_value = RET_OK;
@@ -669,7 +669,7 @@ int BKE_packedfile_unpack_sound(Main *bmain,
 
   if (sound != nullptr) {
     char *new_file_path = BKE_packedfile_unpack(
-        bmain, reports, (ID *)sound, sound->filepath, sound->packedfile, how);
+        bmain, reports, id_cast<ID *>(sound), sound->filepath, sound->packedfile, how);
     if (new_file_path != nullptr) {
       STRNCPY(sound->filepath, new_file_path);
       MEM_freeN(new_file_path);
@@ -697,7 +697,7 @@ int BKE_packedfile_unpack_image(Main *bmain,
     while (ima->packedfiles.last) {
       ImagePackedFile *imapf = static_cast<ImagePackedFile *>(ima->packedfiles.last);
       char *new_file_path = BKE_packedfile_unpack(
-          bmain, reports, (ID *)ima, imapf->filepath, imapf->packedfile, how);
+          bmain, reports, id_cast<ID *>(ima), imapf->filepath, imapf->packedfile, how);
 
       if (new_file_path != nullptr) {
         ImageView *iv;
@@ -748,7 +748,7 @@ int BKE_packedfile_unpack_volume(Main *bmain,
 
   if (volume != nullptr) {
     char *new_file_path = BKE_packedfile_unpack(
-        bmain, reports, (ID *)volume, volume->filepath, volume->packedfile, how);
+        bmain, reports, id_cast<ID *>(volume), volume->filepath, volume->packedfile, how);
     if (new_file_path != nullptr) {
       STRNCPY(volume->filepath, new_file_path);
       MEM_freeN(new_file_path);
@@ -810,9 +810,7 @@ void BKE_packedfile_pack_all_libraries(Main *bmain, ReportList *reports)
   {
     /* Exception to the above: essential assets have an absolute path and should not prevent to
      * operator from continuing. */
-    if (BLI_path_contains(blender::asset_system::essentials_directory_path().c_str(),
-                          lib->filepath))
-    {
+    if (BLI_path_contains(asset_system::essentials_directory_path().c_str(), lib->filepath)) {
       continue;
     }
 
@@ -830,9 +828,7 @@ void BKE_packedfile_pack_all_libraries(Main *bmain, ReportList *reports)
        lib = static_cast<Library *>(lib->id.next))
   {
     /* Do not really pack essential assets though (see above). */
-    if (BLI_path_contains(blender::asset_system::essentials_directory_path().c_str(),
-                          lib->filepath))
-    {
+    if (BLI_path_contains(asset_system::essentials_directory_path().c_str(), lib->filepath)) {
       continue;
     }
     if (lib->packedfile == nullptr) {
@@ -878,16 +874,15 @@ void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileSt
     }
   }
 
-  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ID_IS_LINKED(object)) {
+  for (Object &object : bmain->objects) {
+    if (ID_IS_LINKED(&object)) {
       continue;
     }
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      if (md->type == eModifierType_Nodes) {
-        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        for (NodesModifierBake &bake : blender::MutableSpan{nmd->bakes, nmd->bakes_num}) {
-          blender::bke::bake::unpack_geometry_nodes_bake(
-              *bmain, reports, *object, *nmd, bake, how);
+    for (ModifierData &md : object.modifiers) {
+      if (md.type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
+        for (NodesModifierBake &bake : MutableSpan{nmd->bakes, nmd->bakes_num}) {
+          bke::bake::unpack_geometry_nodes_bake(*bmain, reports, object, *nmd, bake, how);
         }
       }
     }
@@ -898,23 +893,23 @@ bool BKE_packedfile_id_check(const ID *id)
 {
   switch (GS(id->name)) {
     case ID_IM: {
-      const Image *ima = (const Image *)id;
+      const Image *ima = id_cast<const Image *>(id);
       return BKE_image_has_packedfile(ima);
     }
     case ID_VF: {
-      const VFont *vf = (const VFont *)id;
+      const VFont *vf = id_cast<const VFont *>(id);
       return vf->packedfile != nullptr;
     }
     case ID_SO: {
-      const bSound *snd = (const bSound *)id;
+      const bSound *snd = id_cast<const bSound *>(id);
       return snd->packedfile != nullptr;
     }
     case ID_VO: {
-      const Volume *volume = (const Volume *)id;
+      const Volume *volume = id_cast<const Volume *>(id);
       return volume->packedfile != nullptr;
     }
     case ID_LI: {
-      const Library *li = (const Library *)id;
+      const Library *li = id_cast<const Library *>(id);
       return li->packedfile != nullptr;
     }
     default:
@@ -932,35 +927,35 @@ void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF
 
   switch (GS(id->name)) {
     case ID_IM: {
-      Image *ima = (Image *)id;
+      Image *ima = id_cast<Image *>(id);
       if (BKE_image_has_packedfile(ima)) {
         BKE_packedfile_unpack_image(bmain, reports, ima, how);
       }
       break;
     }
     case ID_VF: {
-      VFont *vf = (VFont *)id;
+      VFont *vf = id_cast<VFont *>(id);
       if (vf->packedfile) {
         BKE_packedfile_unpack_vfont(bmain, reports, vf, how);
       }
       break;
     }
     case ID_SO: {
-      bSound *snd = (bSound *)id;
+      bSound *snd = id_cast<bSound *>(id);
       if (snd->packedfile) {
         BKE_packedfile_unpack_sound(bmain, reports, snd, how);
       }
       break;
     }
     case ID_VO: {
-      Volume *volume = (Volume *)id;
+      Volume *volume = id_cast<Volume *>(id);
       if (volume->packedfile) {
         BKE_packedfile_unpack_volume(bmain, reports, volume, how);
       }
       break;
     }
     case ID_LI: {
-      Library *li = (Library *)id;
+      Library *li = id_cast<Library *>(id);
       BKE_reportf(reports, RPT_ERROR, "Cannot unpack individual Library file, '%s'", li->filepath);
       break;
     }
@@ -977,7 +972,7 @@ void BKE_packedfile_blend_write(BlendWriter *writer, const PackedFile *pf)
   BLO_write_shared(writer, pf->data, pf->size, pf->sharing_info, [&]() {
     BLO_write_raw(writer, pf->size, pf->data);
   });
-  BLO_write_struct(writer, PackedFile, pf);
+  writer->write_struct(pf);
 }
 
 void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p, StringRefNull filepath)
@@ -992,8 +987,7 @@ void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p, Strin
   pf->sharing_info = BLO_read_shared(reader, &pf->data, [&]() {
     BLO_read_data_address(reader, &pf->data);
     /* Do not create an implicit sharing if read data pointer is `nullptr`. */
-    return pf->data ? blender::implicit_sharing::info_for_mem_free(const_cast<void *>(pf->data)) :
-                      nullptr;
+    return pf->data ? implicit_sharing::info_for_mem_free(const_cast<void *>(pf->data)) : nullptr;
   });
   if (pf->data == nullptr) {
     /* We cannot allow a #PackedFile with a nullptr data field,
@@ -1006,3 +1000,5 @@ void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p, Strin
     MEM_SAFE_FREE(*pf_p);
   }
 }
+
+}  // namespace blender

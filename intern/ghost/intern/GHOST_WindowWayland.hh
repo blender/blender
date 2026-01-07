@@ -62,6 +62,31 @@ class GHOST_SystemWayland;
 struct GWL_Output;
 struct GWL_Window;
 
+struct GHOST_CSD_EventState_ButtonAction {
+  GHOST_TCSD_Type type = GHOST_kCSDTypeBody;
+  int32_t xy[2] = {0, 0};
+  uint32_t serial = 0;
+  uint64_t ms = 0;
+  bool is_press = false;
+};
+
+struct GHOST_CSD_EventState_Button {
+  GHOST_CSD_EventState_ButtonAction action_history[3];
+  int action_history_num = 0;
+};
+
+struct GHOST_CSD_EventState {
+  int32_t event_xy[2] = {0, 0};
+  /**
+   * Pointing device button, indexed with #GHOST_TButton.
+   *
+   * Only track the left-button for now since there is no need
+   * to track double-click or press-drag for other buttons.
+   * Extend as needed.
+   */
+  GHOST_CSD_EventState_Button buttons[/*GHOST_kButtonMaskLeft + 1*/ 1];
+};
+
 class GHOST_WindowWayland : public GHOST_Window {
  public:
   GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor cursor_shape) override;
@@ -196,6 +221,17 @@ class GHOST_WindowWayland : public GHOST_Window {
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   void pending_actions_handle();
+#endif
+
+#ifdef WITH_GHOST_CSD
+  struct xdg_toplevel *xdg_toplevel_get();
+  GHOST_TWindowState xdg_toplevel_state_get();
+
+  const GHOST_CSD_Elem *csd_layout(int *r_num);
+  GHOST_CSD_EventState &csd_eventstate_get();
+
+  GHOST_TCSD_Type csd_elem_active_type_get() const;
+  void csd_elem_active_type_set(GHOST_TCSD_Type type);
 #endif
 
  private:

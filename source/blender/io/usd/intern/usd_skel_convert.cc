@@ -51,6 +51,9 @@
 #include <vector>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace {
@@ -86,7 +89,7 @@ void resize_fcurve(FCurve *fcu, uint bezt_count)
 void import_skeleton_curves(Main *bmain,
                             Object *arm_obj,
                             const pxr::UsdSkelSkeletonQuery &skel_query,
-                            const blender::Map<pxr::TfToken, std::string> &joint_to_bone_map,
+                            const Map<pxr::TfToken, std::string> &joint_to_bone_map,
                             ReportList *reports)
 {
   using namespace blender::io::usd;
@@ -116,19 +119,18 @@ void import_skeleton_curves(Main *bmain,
   const size_t num_samples = samples.size();
 
   /* Create the action on the armature. */
-  bAction *act = blender::animrig::id_action_ensure(bmain, &arm_obj->id);
+  bAction *act = animrig::id_action_ensure(bmain, &arm_obj->id);
   BKE_id_rename(*bmain, act->id, anim_query.GetPrim().GetName().GetText());
 
-  blender::animrig::Channelbag &channelbag = blender::animrig::action_channelbag_ensure(
-      *act, arm_obj->id);
+  animrig::Channelbag &channelbag = animrig::action_channelbag_ensure(*act, arm_obj->id);
 
   /* Get the joint paths. */
   const pxr::VtTokenArray joint_order = skel_query.GetJointOrder();
 
   /* Create the curves. */
   constexpr int curves_per_joint = 10; /* 3 loc, 4 rot, 3 scale */
-  blender::LinearAllocator path_alloc;
-  blender::Vector<blender::animrig::FCurveDescriptor> curve_desc;
+  LinearAllocator path_alloc;
+  Vector<animrig::FCurveDescriptor> curve_desc;
   curve_desc.reserve(joint_order.size() * curves_per_joint);
 
   /* Iterate over the joints and create the corresponding curves for the bones. */
@@ -143,7 +145,7 @@ void import_skeleton_curves(Main *bmain,
 
     /* Translation curves. */
     std::string rna_path = "pose.bones[\"" + *name + "\"].location";
-    blender::StringRefNull path_desc = path_alloc.copy_string(rna_path);
+    StringRefNull path_desc = path_alloc.copy_string(rna_path);
     curve_desc.append({path_desc, 0, {}, {}, *name});
     curve_desc.append({path_desc, 1, {}, {}, *name});
     curve_desc.append({path_desc, 2, {}, {}, *name});
@@ -164,7 +166,7 @@ void import_skeleton_curves(Main *bmain,
     curve_desc.append({path_desc, 2, {}, {}, *name});
   }
 
-  blender::Vector<FCurve *> fcurves = channelbag.fcurve_create_many(nullptr, curve_desc.as_span());
+  Vector<FCurve *> fcurves = channelbag.fcurve_create_many(nullptr, curve_desc.as_span());
   BLI_assert_msg(fcurves.size() == curve_desc.size(), "USD: animation curve count mismatch");
   for (FCurve *fcu : fcurves) {
     if (fcu != nullptr) {
@@ -223,7 +225,7 @@ void import_skeleton_curves(Main *bmain,
   }
 
   /* Set the curve samples. */
-  blender::Array<pxr::GfQuatf> prev_rot(joint_order.size());
+  Array<pxr::GfQuatf> prev_rot(joint_order.size());
   uint bezt_index = 0;
   for (const double frame : samples) {
     pxr::VtMatrix4dArray joint_local_xforms;
@@ -354,7 +356,7 @@ void add_skinned_mesh_bindings(const pxr::UsdSkelSkeleton &skel,
 
 }  // namespace
 
-namespace blender::io::usd {
+namespace io::usd {
 
 void import_blendshapes(Main *bmain,
                         Object *mesh_obj,
@@ -432,10 +434,10 @@ void import_blendshapes(Main *bmain,
     return;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(mesh_obj->data);
+  Mesh *mesh = id_cast<Mesh *>(mesh_obj->data);
 
   /* Insert key to source mesh. */
-  Key *key = BKE_key_add(bmain, (ID *)mesh);
+  Key *key = BKE_key_add(bmain, id_cast<ID *>(mesh));
   key->type = KEY_RELATIVE;
 
   mesh->key = key;
@@ -446,7 +448,7 @@ void import_blendshapes(Main *bmain,
 
   /* Keep track of the shape-keys we're adding,
    * for validation when creating curves later. */
-  blender::Set<pxr::TfToken> shapekey_names;
+  Set<pxr::TfToken> shapekey_names;
   Span<pxr::TfToken> blendshapes = Span(usd_blendshapes.cdata(), usd_blendshapes.size());
 
   for (int i = 0; i < targets.size(); ++i) {
@@ -611,12 +613,11 @@ void import_blendshapes(Main *bmain,
   }
 
   /* Create the animation and curves. */
-  bAction *act = blender::animrig::id_action_ensure(bmain, &key->id);
-  blender::animrig::Channelbag &channelbag = blender::animrig::action_channelbag_ensure(*act,
-                                                                                        key->id);
+  bAction *act = animrig::id_action_ensure(bmain, &key->id);
+  animrig::Channelbag &channelbag = animrig::action_channelbag_ensure(*act, key->id);
 
-  blender::Set<pxr::TfToken> processed_shapes;
-  blender::Vector<FCurve *> curves;
+  Set<pxr::TfToken> processed_shapes;
+  Vector<FCurve *> curves;
   curves.reserve(usd_blendshapes.size());
   processed_shapes.reserve(usd_blendshapes.size());
 
@@ -683,7 +684,7 @@ static void set_rest_pose(Main *bmain,
                           bArmature *arm,
                           const pxr::VtArray<pxr::GfMatrix4d> &bind_xforms,
                           const pxr::VtTokenArray &joint_order,
-                          const blender::Map<pxr::TfToken, std::string> &joint_to_bone_map,
+                          const Map<pxr::TfToken, std::string> &joint_to_bone_map,
                           const pxr::UsdSkelTopology &skel_topology,
                           const pxr::UsdSkelSkeletonQuery &skel_query)
 {
@@ -758,7 +759,7 @@ void import_skeleton(Main *bmain,
   }
 
   /* Each joint path should be valid and unique. */
-  blender::Set<pxr::TfToken> unique_joint_paths;
+  Set<pxr::TfToken> unique_joint_paths;
   unique_joint_paths.reserve(joint_order.size());
   const bool all_valid_paths = std::all_of(
       joint_order.cbegin(), joint_order.cend(), [&unique_joint_paths](const pxr::TfToken &val) {
@@ -774,18 +775,18 @@ void import_skeleton(Main *bmain,
     return;
   }
 
-  bArmature *arm = static_cast<bArmature *>(arm_obj->data);
+  bArmature *arm = id_cast<bArmature *>(arm_obj->data);
 
   /* Set the armature to edit mode when creating the bones. */
   ED_armature_to_edit(arm);
 
   /* The bones we create, stored in the skeleton's joint order. */
-  blender::Vector<EditBone *> edit_bones;
+  Vector<EditBone *> edit_bones;
 
   /* Keep track of the bones we create for each joint.
    * We'll need this when creating animation curves
    * later. */
-  blender::Map<pxr::TfToken, std::string> joint_to_bone_map;
+  Map<pxr::TfToken, std::string> joint_to_bone_map;
 
   /* Create the bones. */
   for (const pxr::TfToken &joint : joint_order) {
@@ -895,7 +896,7 @@ void import_skeleton(Main *bmain,
 
   /* This will record the child bone indices per parent bone,
    * to simplify accessing children when computing lengths. */
-  blender::Vector<blender::Vector<int>> child_bones(num_joints);
+  Vector<Vector<int>> child_bones(num_joints);
 
   for (size_t i = 0; i < num_joints; ++i) {
     const int parent_idx = skel_topology.GetParent(i);
@@ -1092,7 +1093,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
     return;
   }
 
-  Mesh *mesh = static_cast<Mesh *>(mesh_obj->data);
+  Mesh *mesh = id_cast<Mesh *>(mesh_obj->data);
 
   const pxr::TfToken interp = joint_weights_primvar.GetInterpolation();
 
@@ -1129,7 +1130,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
   }
 
   /* Determine which joint indices are used for skinning this prim. */
-  blender::Vector<int> used_indices;
+  Vector<int> used_indices;
   for (int index : joint_indices.AsConst()) {
     if (std::find(used_indices.begin(), used_indices.end(), index) == used_indices.end()) {
       /* We haven't accounted for this index yet. */
@@ -1162,7 +1163,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
   }
 
   /* Create a deform group per joint. */
-  blender::Vector<bDeformGroup *> joint_def_grps(joints.size(), nullptr);
+  Vector<bDeformGroup *> joint_def_grps(joints.size(), nullptr);
 
   for (int idx : used_indices) {
     std::string joint_name = pxr::SdfPath(joints.AsConst()[idx]).GetName();
@@ -1189,7 +1190,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
       }
       const int joint_idx = joint_indices.AsConst()[k];
       if (bDeformGroup *def_grp = joint_def_grps[joint_idx]) {
-        blender::ed::object::vgroup_vert_add(mesh_obj, def_grp, i, w, WEIGHT_REPLACE);
+        ed::object::vgroup_vert_add(mesh_obj, def_grp, i, w, WEIGHT_REPLACE);
       }
     }
   }
@@ -1337,11 +1338,11 @@ void export_deform_verts(const Mesh *mesh,
   Vector<int> joint_index;
 
   /* Build the index mapping. */
-  LISTBASE_FOREACH (const bDeformGroup *, def, &mesh->vertex_group_names) {
+  for (const bDeformGroup &def : mesh->vertex_group_names) {
     int bone_idx = -1;
     /* For now, n-squared search is acceptable. */
     for (int i = 0; i < bone_names.size(); ++i) {
-      if (bone_names[i] == def->name) {
+      if (bone_names[i] == def.name) {
         bone_idx = i;
         break;
       }
@@ -1409,4 +1410,5 @@ void export_deform_verts(const Mesh *mesh,
   skel_api.CreateJointWeightsPrimvar(false, element_size).GetAttr().Set(joint_weights);
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

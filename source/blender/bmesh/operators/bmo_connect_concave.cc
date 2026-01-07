@@ -16,10 +16,13 @@
  * - merge the sorted edges as long as they don't create convex ngons.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_heap.h"
+
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
@@ -31,39 +34,10 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define EDGE_OUT (1 << 0)
 #define FACE_OUT (1 << 1)
-
-static int bm_edge_length_cmp(const void *a_, const void *b_)
-{
-  const BMEdge *e_a = static_cast<const BMEdge *>(*(const void **)a_);
-  const BMEdge *e_b = static_cast<const BMEdge *>(*(const void **)b_);
-
-  int e_a_concave = (BM_elem_flag_test(e_a->v1, BM_ELEM_TAG) &&
-                     BM_elem_flag_test(e_a->v2, BM_ELEM_TAG));
-  int e_b_concave = (BM_elem_flag_test(e_b->v1, BM_ELEM_TAG) &&
-                     BM_elem_flag_test(e_b->v2, BM_ELEM_TAG));
-
-  /* merge edges between concave edges last since these
-   * are most likely to remain and be the main dividers */
-  if (e_a_concave < e_b_concave) {
-    return -1;
-  }
-  if (e_a_concave > e_b_concave) {
-    return 1;
-  }
-
-  /* otherwise shortest edges last */
-  const float e_a_len = BM_edge_calc_length_squared(e_a);
-  const float e_b_len = BM_edge_calc_length_squared(e_b);
-  if (e_a_len < e_b_len) {
-    return 1;
-  }
-  if (e_a_len > e_b_len) {
-    return -1;
-  }
-  return 0;
-}
 
 static bool bm_face_split_by_concave(BMesh *bm,
                                      BMFace *f_base,
@@ -75,8 +49,8 @@ static bool bm_face_split_by_concave(BMesh *bm,
   const int f_base_len = f_base->len;
   int faces_array_tot = f_base_len - 3;
   int edges_array_tot = f_base_len - 3;
-  BMFace **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
-  BMEdge **edges_array = BLI_array_alloca(edges_array, edges_array_tot);
+  Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> faces_array(faces_array_tot);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_array(edges_array_tot);
   const int quad_method = 0, ngon_method = 0; /* beauty */
   LinkNode *faces_double = nullptr;
 
@@ -87,9 +61,9 @@ static bool bm_face_split_by_concave(BMesh *bm,
 
   BM_face_triangulate(bm,
                       f_base,
-                      faces_array,
+                      faces_array.data(),
                       &faces_array_tot,
-                      edges_array,
+                      edges_array.data(),
                       &edges_array_tot,
                       &faces_double,
                       quad_method,
@@ -112,7 +86,24 @@ static bool bm_face_split_by_concave(BMesh *bm,
   if (edges_array_tot) {
     int i;
 
-    qsort(edges_array, edges_array_tot, sizeof(*edges_array), bm_edge_length_cmp);
+    std::sort(
+        edges_array.begin(), edges_array.begin() + edges_array_tot, [](BMEdge *e_a, BMEdge *e_b) {
+          int e_a_concave = (BM_elem_flag_test(e_a->v1, BM_ELEM_TAG) &&
+                             BM_elem_flag_test(e_a->v2, BM_ELEM_TAG));
+          int e_b_concave = (BM_elem_flag_test(e_b->v1, BM_ELEM_TAG) &&
+                             BM_elem_flag_test(e_b->v2, BM_ELEM_TAG));
+
+          /* merge edges between concave edges last since these
+           * are most likely to remain and be the main dividers */
+          if (e_a_concave != e_b_concave) {
+            return e_a_concave < e_b_concave;
+          }
+
+          /* otherwise shortest edges last */
+          const float e_a_len = BM_edge_calc_length_squared(e_a);
+          const float e_b_len = BM_edge_calc_length_squared(e_b);
+          return e_a_len > e_b_len;
+        });
 
     for (i = 0; i < edges_array_tot; i++) {
       BMLoop *l_pair[2];
@@ -215,3 +206,5 @@ void bmo_connect_verts_concave_exec(BMesh *bm, BMOperator *op)
   BLI_memarena_free(pf_arena);
   BLI_heap_free(pf_heap, nullptr);
 }
+
+}  // namespace blender

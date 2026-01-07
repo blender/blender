@@ -986,7 +986,7 @@ class AutoKeying:
                 case 'NAMED':
                     group = keysetpath.group
                 case 'KEYINGSET':
-                    group = keyingset.name
+                    group = keyingset.bl_label
                 case 'NONE', _:
                     group = ""
 

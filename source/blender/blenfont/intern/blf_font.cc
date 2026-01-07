@@ -50,6 +50,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #ifdef WIN32
 #  define FT_New_Face FT_New_Face__win32_compat
 #endif
@@ -63,10 +65,16 @@ static FT_Library ft_lib = nullptr;
 static FTC_Manager ftc_manager = nullptr;
 static FTC_CMapCache ftc_charmap_cache = nullptr;
 
-/* Lock for FreeType library, used around face creation and deletion. */
-static blender::Mutex ft_lib_mutex;
+/* Mutex around face creation and deletion. */
+static Mutex ft_face_load_mutex;
 
-/* May be set to #UI_widgetbase_draw_cache_flush. */
+/* Lock around places that query free type caching system, and use the
+ * calculated ft_size result. `FTC_Manager_LookupSize` can remove
+ * ft_size of a completely different font instance, when the cache
+ * is full! */
+static Mutex ft_cache_size_mutex;
+
+/* May be set to #widgetbase_draw_cache_flush. */
 static void (*blf_draw_cache_flush)() = nullptr;
 
 static ft_pix blf_font_height_max_ft_pix(FontBLF *font);
@@ -85,7 +93,7 @@ static bool blf_setup_face(FontBLF *font);
 static void blf_face_finalizer(void *object)
 {
   FT_Face face = static_cast<FT_Face>(object);
-  FontBLF *font = (FontBLF *)face->generic.data;
+  FontBLF *font = static_cast<FontBLF *>(face->generic.data);
   font->face = nullptr;
 }
 
@@ -99,16 +107,16 @@ static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
                                          FT_Pointer /*req_data*/,
                                          FT_Face *face)
 {
-  FontBLF *font = (FontBLF *)faceID;
+  FontBLF *font = static_cast<FontBLF *>(faceID);
   int err = FT_Err_Cannot_Open_Resource;
 
-  std::scoped_lock lock(ft_lib_mutex);
+  std::scoped_lock lock(ft_face_load_mutex);
   if (font->filepath) {
     err = FT_New_Face(lib, font->filepath, 0, face);
   }
   else if (font->mem) {
     err = FT_New_Memory_Face(
-        lib, static_cast<const FT_Byte *>(font->mem), (FT_Long)font->mem_size, 0, face);
+        lib, static_cast<const FT_Byte *>(font->mem), FT_Long(font->mem_size), 0, face);
   }
 
   if (err == FT_Err_Ok) {
@@ -135,7 +143,7 @@ static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
 static void blf_size_finalizer(void *object)
 {
   FT_Size size = static_cast<FT_Size>(object);
-  FontBLF *font = (FontBLF *)size->generic.data;
+  FontBLF *font = static_cast<FontBLF *>(size->generic.data);
   font->ft_size = nullptr;
 }
 
@@ -147,18 +155,13 @@ static void blf_size_finalizer(void *object)
 
 uint blf_get_char_index(FontBLF *font, const uint charcode)
 {
-  if (font->flags & BLF_CACHED) {
-    /* Use char-map cache for much faster lookup. */
-    return FTC_CMapCache_Lookup(ftc_charmap_cache, font, -1, charcode);
-  }
-  /* Fonts that are not cached need to use the regular lookup function. */
-  return blf_ensure_face(font) ? FT_Get_Char_Index(font->face, charcode) : 0;
+  return FTC_CMapCache_Lookup(ftc_charmap_cache, font, -1, charcode);
 }
 
 /* Convert a FreeType 26.6 value representing an unscaled design size to fractional pixels. */
 static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, const FT_Pos value)
 {
-  /* Make sure we have a valid font->ft_size. */
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
 
   /* Scale value by font size using integer-optimized multiplication. */
@@ -170,7 +173,7 @@ static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, const FT_Pos value)
     scaled = FT_MulDiv(scaled, font->ft_size->metrics.x_ppem, 25);
   }
 
-  return (ft_pix)scaled;
+  return ft_pix(scaled);
 }
 
 /** \} */
@@ -262,7 +265,7 @@ void blf_batch_draw_begin(FontBLF *font)
   }
 }
 
-static blender::gpu::Texture *blf_batch_cache_texture_load()
+static gpu::Texture *blf_batch_cache_texture_load()
 {
   GlyphCacheBLF *gc = g_batch.glyph_cache;
   BLI_assert(gc);
@@ -315,7 +318,7 @@ void blf_batch_draw()
     blf_draw_cache_flush();
   }
 
-  blender::gpu::Texture *texture = blf_batch_cache_texture_load();
+  gpu::Texture *texture = blf_batch_cache_texture_load();
   GPU_storagebuf_usage_size_set(g_batch.glyph_buf, size_t(g_batch.glyph_len) * sizeof(GlyphQuad));
   GPU_storagebuf_update(g_batch.glyph_buf, g_batch.glyph_data);
   GPU_storagebuf_bind(g_batch.glyph_buf, 0);
@@ -535,7 +538,7 @@ void blf_draw_svg_icon(FontBLF *font,
                        const float color[4],
                        const float outline_alpha,
                        const bool multicolor,
-                       blender::FunctionRef<void(std::string &)> edit_source_cb)
+                       FunctionRef<void(std::string &)> edit_source_cb)
 {
   BLI_assert(outline_alpha <= 1.0f); /* Higher values overflow, caller must ensure. */
   blf_font_size(font, size);
@@ -574,13 +577,13 @@ void blf_draw_svg_icon(FontBLF *font,
   blf_glyph_cache_release(font);
 }
 
-blender::Array<uchar> blf_svg_icon_bitmap(FontBLF *font,
-                                          const uint icon_id,
-                                          const float size,
-                                          int *r_width,
-                                          int *r_height,
-                                          const bool multicolor,
-                                          blender::FunctionRef<void(std::string &)> edit_source_cb)
+Array<uchar> blf_svg_icon_bitmap(FontBLF *font,
+                                 const uint icon_id,
+                                 const float size,
+                                 int *r_width,
+                                 int *r_height,
+                                 const bool multicolor,
+                                 FunctionRef<void(std::string &)> edit_source_cb)
 {
   blf_font_size(font, size);
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
@@ -595,7 +598,7 @@ blender::Array<uchar> blf_svg_icon_bitmap(FontBLF *font,
 
   *r_width = g->dims[0];
   *r_height = g->dims[1];
-  blender::Array<uchar> bitmap(g->dims[0] * g->dims[1] * 4);
+  Array<uchar> bitmap(g->dims[0] * g->dims[1] * 4);
 
   if (g->num_channels == 4) {
     memcpy(bitmap.data(), g->bitmap, size_t(bitmap.size()));
@@ -1231,13 +1234,13 @@ int blf_str_offset_to_cursor(FontBLF *font,
   return int(blf_font_width(font, str, str_len, nullptr));
 }
 
-blender::Vector<blender::Bounds<int>> blf_str_selection_boxes(
+Vector<Bounds<int>> blf_str_selection_boxes(
     FontBLF *font, const char *str, size_t str_len, size_t sel_start, size_t sel_length)
 {
-  blender::Vector<blender::Bounds<int>> boxes;
+  Vector<Bounds<int>> boxes;
   const int start = blf_str_offset_to_cursor(font, str, str_len, sel_start, 0);
   const int end = blf_str_offset_to_cursor(font, str, str_len, sel_start + sel_length, 0);
-  boxes.append(blender::Bounds(start, end));
+  boxes.append(Bounds(start, end));
   return boxes;
 }
 
@@ -1503,7 +1506,7 @@ void blf_font_draw_buffer__wrap(FontBLF *font,
                       nullptr);
 }
 
-/** Wrap a blender::StringRef. */
+/** Wrap a StringRef. */
 static void blf_font_string_wrap_cb(FontBLF * /*font*/,
                                     GlyphCacheBLF * /*gc*/,
                                     const char *str,
@@ -1511,18 +1514,17 @@ static void blf_font_string_wrap_cb(FontBLF * /*font*/,
                                     const ft_pix /*pen_y*/,
                                     void *str_list_ptr)
 {
-  blender::Vector<blender::StringRef> *list = static_cast<blender::Vector<blender::StringRef> *>(
-      str_list_ptr);
-  blender::StringRef line(str, str + str_len);
+  Vector<StringRef> *list = static_cast<Vector<StringRef> *>(str_list_ptr);
+  StringRef line(str, str + str_len);
   list->append(line);
 }
 
-blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
-                                                         blender::StringRef str,
-                                                         int max_pixel_width,
-                                                         BLFWrapMode mode)
+Vector<StringRef> blf_font_string_wrap(FontBLF *font,
+                                       StringRef str,
+                                       int max_pixel_width,
+                                       BLFWrapMode mode)
 {
-  blender::Vector<blender::StringRef> list;
+  Vector<StringRef> list;
   blf_font_wrap_apply(font,
                       str.data(),
                       size_t(str.size()),
@@ -1542,9 +1544,10 @@ blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
 
 static ft_pix blf_font_height_max_ft_pix(FontBLF *font)
 {
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
   /* #Metrics::height is rounded to pixel. Force minimum of one pixel. */
-  return std::max((ft_pix)font->ft_size->metrics.height, ft_pix_from_int(1));
+  return std::max(ft_pix(font->ft_size->metrics.height), ft_pix_from_int(1));
 }
 
 int blf_font_height_max(FontBLF *font)
@@ -1554,9 +1557,10 @@ int blf_font_height_max(FontBLF *font)
 
 static ft_pix blf_font_width_max_ft_pix(FontBLF *font)
 {
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
   /* #Metrics::max_advance is rounded to pixel. Force minimum of one pixel. */
-  return std::max((ft_pix)font->ft_size->metrics.max_advance, ft_pix_from_int(1));
+  return std::max(ft_pix(font->ft_size->metrics.max_advance), ft_pix_from_int(1));
 }
 
 int blf_font_width_max(FontBLF *font)
@@ -1566,14 +1570,16 @@ int blf_font_width_max(FontBLF *font)
 
 int blf_font_descender(FontBLF *font)
 {
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
-  return ft_pix_to_int((ft_pix)font->ft_size->metrics.descender);
+  return ft_pix_to_int(ft_pix(font->ft_size->metrics.descender));
 }
 
 int blf_font_ascender(FontBLF *font)
 {
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
-  return ft_pix_to_int((ft_pix)font->ft_size->metrics.ascender);
+  return ft_pix_to_int(ft_pix(font->ft_size->metrics.ascender));
 }
 
 bool blf_font_bounds_max(FontBLF *font, rctf *r_bounds)
@@ -1696,7 +1702,7 @@ static void blf_font_metrics(FT_Face face, FontMetrics *metrics)
   metrics->weight = 400;
   metrics->width = 1.0f;
 
-  const TT_OS2 *os2_table = (const TT_OS2 *)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
+  const TT_OS2 *os2_table = static_cast<const TT_OS2 *>(FT_Get_Sfnt_Table(face, FT_SFNT_OS2));
   if (os2_table) {
     /* The default (resting) font weight. */
     if (os2_table->usWeightClass >= 1 && os2_table->usWeightClass <= 1000) {
@@ -1755,7 +1761,8 @@ static void blf_font_metrics(FT_Face face, FontMetrics *metrics)
   }
 
   /* The Post table usually contains a slant value, but in counter-clockwise degrees. */
-  const TT_Postscript *post_table = (const TT_Postscript *)FT_Get_Sfnt_Table(face, FT_SFNT_POST);
+  const TT_Postscript *post_table = static_cast<const TT_Postscript *>(
+      FT_Get_Sfnt_Table(face, FT_SFNT_POST));
   if (post_table) {
     if (post_table->italicAngle != 0) {
       metrics->slant = float(post_table->italicAngle) / -65536.0f;
@@ -1902,27 +1909,7 @@ bool blf_ensure_face(FontBLF *font)
     return false;
   }
 
-  FT_Error err;
-
-  if (font->flags & BLF_CACHED) {
-    err = FTC_Manager_LookupFace(ftc_manager, font, &font->face);
-  }
-  else {
-    std::scoped_lock lock(ft_lib_mutex);
-    if (font->filepath) {
-      err = FT_New_Face(font->ft_lib, font->filepath, 0, &font->face);
-    }
-    if (font->mem) {
-      err = FT_New_Memory_Face(font->ft_lib,
-                               static_cast<const FT_Byte *>(font->mem),
-                               (FT_Long)font->mem_size,
-                               0,
-                               &font->face);
-    }
-    if (!err) {
-      font->face->generic.data = font;
-    }
-  }
+  FT_Error err = FTC_Manager_LookupFace(ftc_manager, font, &font->face);
 
   if (err) {
     if (ELEM(err, FT_Err_Unknown_File_Format, FT_Err_Unimplemented_Feature)) {
@@ -1965,11 +1952,6 @@ bool blf_ensure_face(FontBLF *font)
       }
       MEM_freeN(mfile);
     }
-  }
-
-  if (!(font->flags & BLF_CACHED)) {
-    /* Not cached so point at the face's size for convenience. */
-    font->ft_size = font->face->size;
   }
 
   /* Setup Font details that require having a Face. */
@@ -2022,33 +2004,22 @@ static const FaceDetails static_face_details[] = {
 
 /**
  * Create a new font from filename OR memory pointer.
- * For normal operation pass nullptr as FT_Library object. Pass a custom FT_Library if you
- * want to use the font without its lifetime being managed by the FreeType cache subsystem.
  */
 static FontBLF *blf_font_new_impl(const char *filepath,
                                   const char *mem_name,
                                   const uchar *mem,
-                                  const size_t mem_size,
-                                  void *ft_library)
+                                  const size_t mem_size)
 {
   FontBLF *font = MEM_new<FontBLF>(__func__);
 
   font->mem_name = mem_name ? BLI_strdup(mem_name) : nullptr;
   font->filepath = filepath ? BLI_strdup(filepath) : nullptr;
   if (mem) {
-    font->mem = (void *)mem;
+    font->mem = mem;
     font->mem_size = mem_size;
   }
   blf_font_fill(font);
-
-  if (ft_library && ((FT_Library)ft_library != ft_lib)) {
-    /* Pass. */
-  }
-  else {
-    font->flags |= BLF_CACHED;
-  }
-
-  font->ft_lib = ft_library ? (FT_Library)ft_library : ft_lib;
+  font->ft_lib = ft_lib;
 
   /* If we have static details about this font file, we don't have to load the Face yet. */
   bool face_needed = true;
@@ -2075,7 +2046,8 @@ static FontBLF *blf_font_new_impl(const char *filepath,
     }
 
     /* Save TrueType table with bits to quickly test most unicode block coverage. */
-    const TT_OS2 *os2_table = (const TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
+    const TT_OS2 *os2_table = static_cast<const TT_OS2 *>(
+        FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2));
     if (os2_table) {
       font->unicode_ranges[0] = uint(os2_table->ulUnicodeRange1);
       font->unicode_ranges[1] = uint(os2_table->ulUnicodeRange2);
@@ -2096,12 +2068,12 @@ static FontBLF *blf_font_new_impl(const char *filepath,
 
 FontBLF *blf_font_new_from_filepath(const char *filepath)
 {
-  return blf_font_new_impl(filepath, nullptr, nullptr, 0, nullptr);
+  return blf_font_new_impl(filepath, nullptr, nullptr, 0);
 }
 
 FontBLF *blf_font_new_from_mem(const char *mem_name, const uchar *mem, const size_t mem_size)
 {
-  return blf_font_new_impl(nullptr, mem_name, mem, mem_size, nullptr);
+  return blf_font_new_impl(nullptr, mem_name, mem, mem_size);
 }
 
 void blf_font_attach_from_mem(FontBLF *font, const uchar *mem, const size_t mem_size)
@@ -2109,8 +2081,8 @@ void blf_font_attach_from_mem(FontBLF *font, const uchar *mem, const size_t mem_
   FT_Open_Args open;
 
   open.flags = FT_OPEN_MEMORY;
-  open.memory_base = (const FT_Byte *)mem;
-  open.memory_size = (FT_Long)mem_size;
+  open.memory_base = static_cast<const FT_Byte *>(mem);
+  open.memory_size = FT_Long(mem_size);
   if (blf_ensure_face(font)) {
     FT_Attach_Stream(font->face, &open);
   }
@@ -2129,13 +2101,8 @@ void blf_font_free(FontBLF *font)
   }
 
   if (font->face) {
-    std::scoped_lock lock(ft_lib_mutex);
-    if (font->flags & BLF_CACHED) {
-      FTC_Manager_RemoveFaceID(ftc_manager, font);
-    }
-    else {
-      FT_Done_Face(font->face);
-    }
+    std::scoped_lock lock(ft_face_load_mutex);
+    FTC_Manager_RemoveFaceID(ftc_manager, font);
     font->face = nullptr;
   }
   if (font->filepath) {
@@ -2156,7 +2123,7 @@ void blf_font_free(FontBLF *font)
 
 void blf_ensure_size(FontBLF *font)
 {
-  if (font->ft_size || !(font->flags & BLF_CACHED)) {
+  if (font->ft_size) {
     return;
   }
 
@@ -2168,7 +2135,7 @@ void blf_ensure_size(FontBLF *font)
   scaler.x_res = BLF_DPI;
   scaler.y_res = BLF_DPI;
   if (FTC_Manager_LookupSize(ftc_manager, &scaler, &font->ft_size) == FT_Err_Ok) {
-    font->ft_size->generic.data = (void *)font;
+    font->ft_size->generic.data = static_cast<void *>(font);
     font->ft_size->generic.finalizer = blf_size_finalizer;
     return;
   }
@@ -2188,26 +2155,19 @@ bool blf_font_size(FontBLF *font, float size)
   size = float(ft_size) / 64.0f;
 
   if (font->size != size) {
-    if (font->flags & BLF_CACHED) {
-      FTC_ScalerRec scaler = {nullptr};
-      scaler.face_id = font;
-      scaler.width = 0;
-      scaler.height = ft_size;
-      scaler.pixel = 0;
-      scaler.x_res = BLF_DPI;
-      scaler.y_res = BLF_DPI;
-      if (FTC_Manager_LookupSize(ftc_manager, &scaler, &font->ft_size) != FT_Err_Ok) {
-        return false;
-      }
-      font->ft_size->generic.data = (void *)font;
-      font->ft_size->generic.finalizer = blf_size_finalizer;
+    std::lock_guard lock(ft_cache_size_mutex);
+    FTC_ScalerRec scaler = {nullptr};
+    scaler.face_id = font;
+    scaler.width = 0;
+    scaler.height = ft_size;
+    scaler.pixel = 0;
+    scaler.x_res = BLF_DPI;
+    scaler.y_res = BLF_DPI;
+    if (FTC_Manager_LookupSize(ftc_manager, &scaler, &font->ft_size) != FT_Err_Ok) {
+      return false;
     }
-    else {
-      if (FT_Set_Char_Size(font->face, 0, ft_size, BLF_DPI, BLF_DPI) != FT_Err_Ok) {
-        return false;
-      }
-      font->ft_size = font->face->size;
-    }
+    font->ft_size->generic.data = static_cast<void *>(font);
+    font->ft_size->generic.finalizer = blf_size_finalizer;
   }
 
   font->size = size;
@@ -2215,3 +2175,5 @@ bool blf_font_size(FontBLF *font, float size)
 }
 
 /** \} */
+
+}  // namespace blender

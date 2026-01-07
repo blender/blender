@@ -10,6 +10,8 @@
 
 namespace blender::io::hydra {
 
+class HydraSceneDelegate;
+
 class VolumeData : public ObjectData {
  protected:
   std::string filepath_;

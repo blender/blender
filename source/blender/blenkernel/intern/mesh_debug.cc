@@ -25,6 +25,8 @@
 
 #  include "BLI_dynstr.h"
 
+namespace blender {
+
 char *BKE_mesh_debug_info(const Mesh *mesh)
 {
   DynStr *dynstr = BLI_dynstr_new();
@@ -33,7 +35,7 @@ char *BKE_mesh_debug_info(const Mesh *mesh)
   const char *indent8 = "        ";
 
   BLI_dynstr_append(dynstr, "{\n");
-  BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)mesh);
+  BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", mesh);
   BLI_dynstr_appendf(dynstr, "    'totvert': %d,\n", mesh->verts_num);
   BLI_dynstr_appendf(dynstr, "    'totedge': %d,\n", mesh->edges_num);
   BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", mesh->totface_legacy);
@@ -77,5 +79,7 @@ void BKE_mesh_debug_print(const Mesh *mesh)
   fflush(stdout);
   MEM_freeN(str);
 }
+
+}  // namespace blender
 
 #endif /* !NDEBUG */

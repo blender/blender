@@ -26,36 +26,37 @@
 #include "engines/select/select_engine.hh"
 #include "engines/workbench/workbench_engine.h"
 
+namespace blender {
+
 #define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT_SIZE */
 
-namespace blender::draw {
+namespace draw {
 class TextureFromPool;
 class Manager;
-}  // namespace blender::draw
+}  // namespace draw
 
 struct DRWTextStore;
-namespace blender::gpu {
+namespace gpu {
 class FrameBuffer;
 class Texture;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct GPUViewport;
-struct ListBase;
 
 /** Buffer and textures used by the viewport by default. */
 struct DefaultFramebufferList {
-  blender::gpu::FrameBuffer *default_fb;
-  blender::gpu::FrameBuffer *overlay_fb;
-  blender::gpu::FrameBuffer *in_front_fb;
-  blender::gpu::FrameBuffer *color_only_fb;
-  blender::gpu::FrameBuffer *depth_only_fb;
-  blender::gpu::FrameBuffer *overlay_only_fb;
+  gpu::FrameBuffer *default_fb;
+  gpu::FrameBuffer *overlay_fb;
+  gpu::FrameBuffer *in_front_fb;
+  gpu::FrameBuffer *color_only_fb;
+  gpu::FrameBuffer *depth_only_fb;
+  gpu::FrameBuffer *overlay_only_fb;
 };
 
 struct DefaultTextureList {
-  blender::gpu::Texture *color;
-  blender::gpu::Texture *color_overlay;
-  blender::gpu::Texture *depth;
-  blender::gpu::Texture *depth_in_front;
+  gpu::Texture *color;
+  gpu::Texture *color_overlay;
+  gpu::Texture *depth;
+  gpu::Texture *depth_in_front;
 };
 
 struct DRWViewData {
@@ -66,21 +67,21 @@ struct DRWViewData {
   bool from_viewport = false;
   /** Common size for texture in the engines texture list.
    * We free all texture lists if it changes. */
-  blender::int2 texture_list_size = {0, 0};
+  int2 texture_list_size = {0, 0};
 
   /** Engines running for this viewport. nullptr if not enabled. */
-  blender::eevee::Engine eevee;
-  blender::workbench::Engine workbench;
-  blender::draw::external::Engine external;
-  blender::image_engine::Engine image;
-  blender::draw::gpencil::Engine grease_pencil;
-  blender::draw::overlay::Engine overlay;
-  blender::draw::select::Engine object_select;
-  blender::draw::edit_select::Engine edit_select;
+  eevee::Engine eevee;
+  workbench::Engine workbench;
+  draw::external::Engine external;
+  image_engine::Engine image;
+  draw::gpencil::Engine grease_pencil;
+  draw::overlay::Engine overlay;
+  draw::select::Engine object_select;
+  draw::edit_select::Engine edit_select;
 #ifdef WITH_DRAW_DEBUG
-  blender::draw::edit_select_debug::Engine edit_select_debug;
+  draw::edit_select_debug::Engine edit_select_debug;
 #endif
-  blender::draw::compositor_engine::Engine compositor;
+  draw::compositor_engine::Engine compositor;
 
   /**
    * Stores passes needed by the viewport compositor. Engines are expected to populate those in
@@ -88,17 +89,16 @@ struct DRWViewData {
    * then call the same function to retrieve the passes it needs, which are expected to be
    * initialized. Those textures are release when view data is reset.
    */
-  blender::Map<std::string, std::unique_ptr<blender::draw::TextureFromPool>>
-      viewport_compositor_passes;
+  Map<std::string, std::unique_ptr<draw::TextureFromPool>> viewport_compositor_passes;
 
   /** New per view/viewport manager. Null if not supported by current hardware. */
-  blender::draw::Manager *manager = nullptr;
+  draw::Manager *manager = nullptr;
 
  public:
   DRWViewData();
   ~DRWViewData();
 
-  void texture_list_size_validate(const blender::int2 &size);
+  void texture_list_size_validate(const int2 &size);
 
   template<typename CallbackT> void foreach_engine(CallbackT callback)
   {
@@ -142,3 +142,5 @@ struct DRWViewData {
 void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewport *viewport);
 void DRW_view_data_reset(DRWViewData *view_data);
 void DRW_view_data_free_unused(DRWViewData *view_data);
+
+}  // namespace blender

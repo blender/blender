@@ -39,7 +39,7 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
                                                       icon_override;
 
   if (&rna_type == &RNA_NodeTree) {
-    ID *id = (ID *)ptr;
+    ID *id = static_cast<ID *>(ptr);
     path.append({name, icon, ID_REAL_USERS(id), handle_func});
   }
   else {
@@ -66,7 +66,7 @@ void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path)
     if (i > 0) {
       sub_row.label("", ICON_RIGHTARROW_THIN);
     }
-    uiBut *but;
+    Button *but;
     int icon = context_path[i].icon;
     std::string name = context_path[i].name;
     if (context_path[i].handle_func) {
@@ -75,7 +75,7 @@ void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path)
     else {
       but = uiItemL_ex(&sub_row, name.c_str(), icon, false, false);
     }
-    UI_but_icon_indicator_number_set(but, context_path[i].icon_indicator_number);
+    button_icon_indicator_number_set(but, context_path[i].icon_indicator_number);
   }
 }
 

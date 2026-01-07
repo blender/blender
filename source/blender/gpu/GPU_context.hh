@@ -12,6 +12,10 @@
 
 #include "GPU_platform.hh"
 
+namespace blender {
+
+struct GPUContext;
+
 /* GPU back-ends abstract the differences between different APIs. #GPU_context_create
  * automatically initializes the back-end, and #GPU_context_discard frees it when there
  * are no more contexts. */
@@ -58,9 +62,7 @@ int GPU_backend_vsync_get();
 void GPU_backend_vsync_set_override(int vsync);
 bool GPU_backend_vsync_is_overridden();
 
-/** Opaque type hiding blender::gpu::Context. */
-struct GPUContext;
-
+/** Opaque type hiding gpu::Context. */
 GPUContext *GPU_context_create(void *ghost_window, void *ghost_context);
 /**
  * To be called after #GPU_context_active_set(ctx_to_destroy).
@@ -121,7 +123,7 @@ void GPU_render_step(bool force_resource_release = false);
 void GPU_backend_ghost_system_set(void *ghost_system_handle);
 void *GPU_backend_ghost_system_get();
 
-namespace blender::gpu {
+namespace gpu {
 
 /**
  * Abstracts secondary GHOST and GPU context creation, activation and deletion.
@@ -159,4 +161,5 @@ struct DebugScopePipelineCreation {
   }
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

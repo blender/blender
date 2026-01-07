@@ -472,68 +472,69 @@ ccl_device_inline IntegratorState integrator_state_shadow_catcher_split(KernelGl
 }
 
 #ifndef __KERNEL_GPU__
-ccl_device_inline int integrator_state_bounce(ConstIntegratorState state, const int /*unused*/)
+ccl_device_inline int integrator_state_bounce(ConstIntegratorState state,
+                                              const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, path, bounce);
 }
 
 ccl_device_inline int integrator_state_bounce(ConstIntegratorShadowState state,
-                                              const int /*unused*/)
+                                              const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, shadow_path, bounce);
 }
 
 ccl_device_inline int integrator_state_diffuse_bounce(ConstIntegratorState state,
-                                                      const int /*unused*/)
+                                                      const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, path, diffuse_bounce);
 }
 
 ccl_device_inline int integrator_state_diffuse_bounce(ConstIntegratorShadowState state,
-                                                      const int /*unused*/)
+                                                      const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, shadow_path, diffuse_bounce);
 }
 
 ccl_device_inline int integrator_state_glossy_bounce(ConstIntegratorState state,
-                                                     const int /*unused*/)
+                                                     const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, path, glossy_bounce);
 }
 
 ccl_device_inline int integrator_state_glossy_bounce(ConstIntegratorShadowState state,
-                                                     const int /*unused*/)
+                                                     const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, shadow_path, glossy_bounce);
 }
 
 ccl_device_inline int integrator_state_transmission_bounce(ConstIntegratorState state,
-                                                           const int /*unused*/)
+                                                           const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, path, transmission_bounce);
 }
 
 ccl_device_inline int integrator_state_transmission_bounce(ConstIntegratorShadowState state,
-                                                           const int /*unused*/)
+                                                           const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, shadow_path, transmission_bounce);
 }
 
 ccl_device_inline int integrator_state_transparent_bounce(ConstIntegratorState state,
-                                                          const int /*unused*/)
+                                                          const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, path, transparent_bounce);
 }
 
 ccl_device_inline int integrator_state_transparent_bounce(ConstIntegratorShadowState state,
-                                                          const int /*unused*/)
+                                                          const uint32_t /*path_flag*/)
 {
   return INTEGRATOR_STATE(state, shadow_path, transparent_bounce);
 }
 
 ccl_device_inline int integrator_state_portal_bounce(KernelGlobals kg,
                                                      ConstIntegratorState state,
-                                                     const int /*unused*/)
+                                                     const uint32_t /*path_flag*/)
 {
   return (kernel_data.kernel_features & KERNEL_FEATURE_NODE_PORTAL) ?
              INTEGRATOR_STATE(state, path, portal_bounce) :
@@ -542,7 +543,7 @@ ccl_device_inline int integrator_state_portal_bounce(KernelGlobals kg,
 
 ccl_device_inline int integrator_state_portal_bounce(KernelGlobals kg,
                                                      ConstIntegratorShadowState state,
-                                                     const int /*unused*/)
+                                                     const uint32_t /*path_flag*/)
 {
   return (kernel_data.kernel_features & KERNEL_FEATURE_NODE_PORTAL) ?
              INTEGRATOR_STATE(state, shadow_path, portal_bounce) :

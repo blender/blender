@@ -37,6 +37,8 @@
 
 #include "atomic_ops.h"
 
+namespace blender {
+
 /**
  * Basic Thread Control API
  * ========================
@@ -51,7 +53,7 @@
  *
  * \code{.c}
  *
- *   ListBase lb;
+ *   ListBaseT<ThreadSlot> lb;
  *   int max_threads = 2;
  *   int cont = 1;
  *
@@ -118,7 +120,7 @@ void BLI_threadapi_init()
 
 void BLI_threadapi_exit() {}
 
-void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int tot)
+void BLI_threadpool_init(ListBaseT<ThreadSlot> *threadbase, void *(*do_thread)(void *), int tot)
 {
   int a;
 
@@ -143,12 +145,12 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
   atomic_fetch_and_add_u(&thread_levels, 1);
 }
 
-int BLI_available_threads(ListBase *threadbase)
+int BLI_available_threads(ListBaseT<ThreadSlot> *threadbase)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
       counter++;
     }
   }
@@ -156,12 +158,12 @@ int BLI_available_threads(ListBase *threadbase)
   return counter;
 }
 
-int BLI_threadpool_available_thread_index(ListBase *threadbase)
+int BLI_threadpool_available_thread_index(ListBaseT<ThreadSlot> *threadbase)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
       return counter;
     }
     ++counter;
@@ -172,7 +174,7 @@ int BLI_threadpool_available_thread_index(ListBase *threadbase)
 
 static void *tslot_thread_start(void *tslot_p)
 {
-  ThreadSlot *tslot = (ThreadSlot *)tslot_p;
+  ThreadSlot *tslot = static_cast<ThreadSlot *>(tslot_p);
   return tslot->do_thread(tslot->callerdata);
 }
 
@@ -181,57 +183,57 @@ int BLI_thread_is_main()
   return pthread_equal(pthread_self(), mainid);
 }
 
-void BLI_threadpool_insert(ListBase *threadbase, void *callerdata)
+void BLI_threadpool_insert(ListBaseT<ThreadSlot> *threadbase, void *callerdata)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
-      tslot->avail = 0;
-      tslot->callerdata = callerdata;
-      pthread_create(&tslot->pthread, nullptr, tslot_thread_start, tslot);
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
+      tslot.avail = 0;
+      tslot.callerdata = callerdata;
+      pthread_create(&tslot.pthread, nullptr, tslot_thread_start, &tslot);
       return;
     }
   }
   printf("ERROR: could not insert thread slot\n");
 }
 
-void BLI_threadpool_remove(ListBase *threadbase, void *callerdata)
+void BLI_threadpool_remove(ListBaseT<ThreadSlot> *threadbase, void *callerdata)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->callerdata == callerdata) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.callerdata == callerdata) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
     }
   }
 }
 
-void BLI_threadpool_remove_index(ListBase *threadbase, int index)
+void BLI_threadpool_remove_index(ListBaseT<ThreadSlot> *threadbase, int index)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (counter == index && tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (counter == index && tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
       break;
     }
     ++counter;
   }
 }
 
-void BLI_threadpool_clear(ListBase *threadbase)
+void BLI_threadpool_clear(ListBaseT<ThreadSlot> *threadbase)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
     }
   }
 }
 
-void BLI_threadpool_end(ListBase *threadbase)
+void BLI_threadpool_end(ListBaseT<ThreadSlot> *threadbase)
 {
 
   /* Only needed if there's actually some stuff to end
@@ -240,9 +242,9 @@ void BLI_threadpool_end(ListBase *threadbase)
     return;
   }
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
     }
   }
   BLI_freelistN(threadbase);
@@ -874,3 +876,5 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 
   pthread_mutex_unlock(&queue->mutex);
 }
+
+}  // namespace blender

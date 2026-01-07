@@ -12,6 +12,9 @@
 #include "BLI_span.hh"
 
 #include "DNA_key_types.h"
+#include "DNA_listBase.h"
+
+namespace blender {
 
 /** \file
  * \ingroup bke
@@ -21,9 +24,9 @@ struct ID;
 struct Key;
 struct KeyBlock;
 struct Lattice;
-struct ListBase;
 struct Main;
 struct Mesh;
+struct Nurb;
 struct Object;
 
 void BKE_key_free_nolib(Key *key);
@@ -120,19 +123,18 @@ void BKE_keyblock_update_from_lattice(const Lattice *lt, KeyBlock *kb);
 void BKE_keyblock_convert_from_lattice(const Lattice *lt, KeyBlock *kb);
 void BKE_keyblock_convert_to_lattice(const KeyBlock *kb, Lattice *lt);
 
-int BKE_keyblock_curve_element_count(const ListBase *nurb);
-void BKE_keyblock_curve_data_transform(const ListBase *nurb,
+int BKE_keyblock_curve_element_count(const ListBaseT<Nurb> *nurb);
+void BKE_keyblock_curve_data_transform(const ListBaseT<Nurb> *nurb,
                                        const float mat[4][4],
                                        const void *src,
                                        void *dst);
-void BKE_keyblock_update_from_curve(const Curve *cu, KeyBlock *kb, const ListBase *nurb);
-void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBase *nurb);
-void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *cu, ListBase *nurb);
+void BKE_keyblock_update_from_curve(const Curve *cu, KeyBlock *kb, const ListBaseT<Nurb> *nurb);
+void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBaseT<Nurb> *nurb);
+void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *cu, ListBaseT<Nurb> *nurb);
 
 void BKE_keyblock_update_from_mesh(const Mesh *mesh, KeyBlock *kb);
 void BKE_keyblock_convert_from_mesh(const Mesh *mesh, const Key *key, KeyBlock *kb);
-void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
-                                  blender::MutableSpan<blender::float3> vert_positions);
+void BKE_keyblock_convert_to_mesh(const KeyBlock *kb, MutableSpan<float3> vert_positions);
 
 /**
  * Computes normals (vertices, faces and/or loops ones) of given mesh for given shape key.
@@ -171,7 +173,7 @@ bool BKE_keyblock_is_basis(const Key *key, int index);
  * Returns a newly allocated array containing true for every key that has this one as basis.
  * If none are found, returns null.
  */
-std::optional<blender::Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, int index);
+std::optional<Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, int index);
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Block Data Access
@@ -180,30 +182,30 @@ std::optional<blender::Array<bool>> BKE_keyblock_get_dependent_keys(const Key *k
 /**
  * \param shape_index: The index to use or all (when -1).
  */
-void BKE_keyblock_data_get_from_shape(const Key *key,
-                                      blender::MutableSpan<blender::float3> arr,
-                                      int shape_index);
-void BKE_keyblock_data_get(const Key *key, blender::MutableSpan<blender::float3> arr);
+void BKE_keyblock_data_get_from_shape(const Key *key, MutableSpan<float3> arr, int shape_index);
+void BKE_keyblock_data_get(const Key *key, MutableSpan<float3> arr);
 
 /**
  * Set the data to all key-blocks (or shape_index if != -1).
  */
 void BKE_keyblock_data_set_with_mat4(Key *key,
                                      int shape_index,
-                                     blender::Span<blender::float3> coords,
-                                     const blender::float4x4 &transform);
+                                     Span<float3> coords,
+                                     const float4x4 &transform);
 /**
  * Set the data for all key-blocks (or shape_index if != -1),
  * transforming by \a mat.
  */
 void BKE_keyblock_curve_data_set_with_mat4(Key *key,
-                                           const ListBase *nurb,
+                                           const ListBaseT<Nurb> *nurb,
                                            int shape_index,
                                            const void *data,
-                                           const blender::float4x4 &transform);
+                                           const float4x4 &transform);
 /**
  * Set the data for all key-blocks (or shape_index if != -1).
  */
 void BKE_keyblock_data_set(Key *key, int shape_index, const void *data);
 
 /** \} */
+
+}  // namespace blender

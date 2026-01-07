@@ -11,8 +11,6 @@
 
 #include "intern/dna_utils.h"
 
-struct SDNA;
-
 /**
  * DNAstr contains the prebuilt SDNA structure defining the layouts of the types
  * used by this version of Blender. It is defined in a file dna.c, which is
@@ -22,6 +20,10 @@ extern const unsigned char DNAstr[];
 /** Length of DNAstr. */
 extern const int DNAlen;
 
+namespace blender {
+
+struct SDNA;
+
 /**
  * Primitive (non-struct, non-pointer/function/array) types,
  *
@@ -30,7 +32,7 @@ extern const int DNAlen;
  * Currently changes here will work on native endianness, however before 5.0,
  * #DNA_struct_switch_endian used to check these hard-coded values against those from old files.
  */
-typedef enum eSDNA_Type {
+enum eSDNA_Type {
   SDNA_TYPE_CHAR = 0,
   SDNA_TYPE_UCHAR = 1,
   SDNA_TYPE_SHORT = 2,
@@ -53,7 +55,7 @@ typedef enum eSDNA_Type {
    * Technically, it also covers all 'raw data' types above.
    */
   SDNA_TYPE_RAW_DATA = 13,
-} eSDNA_Type;
+};
 
 /**
  * For use with #DNA_struct_reconstruct & #DNA_struct_get_compareflags
@@ -238,3 +240,5 @@ void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
 #  define DNA_struct_member_exists(sdna, stype, vartype, name) \
     DNA_struct_member_exists_with_alias(sdna, stype, vartype, name)
 #endif
+
+}  // namespace blender

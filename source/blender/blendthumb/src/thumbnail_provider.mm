@@ -75,7 +75,7 @@ class FileDescriptorRAII : blender::NonCopyable, blender::NonMovable {
  public:
   explicit FileDescriptorRAII(const char *file_path)
   {
-    src_fd = BLI_open(file_path, O_BINARY | O_RDONLY, 0);
+    src_fd = blender::BLI_open(file_path, O_BINARY | O_RDONLY, 0);
   }
 
   ~FileDescriptorRAII()
@@ -116,16 +116,16 @@ static NSImage *generate_nsimage_for_file(const char *src_blend_path, NSError *e
     return nil;
   }
 
-  FileReader *file_content = BLI_filereader_new_file(src_file_fd.get());
+  blender::FileReader *file_content = blender::BLI_filereader_new_file(src_file_fd.get());
   if (file_content == nullptr) {
     error = create_nserror_from_string(@"Failed to read from blend");
     return nil;
   }
 
   /* Extract thumbnail from file. */
-  Thumbnail thumb;
-  eThumbStatus err = blendthumb_create_thumb_from_file(file_content, &thumb);
-  if (err != BT_OK) {
+  blender::Thumbnail thumb;
+  blender::eThumbStatus err = blendthumb_create_thumb_from_file(file_content, &thumb);
+  if (err != blender::BT_OK) {
     error = create_nserror_from_string(@"Failed to create thumbnail from file");
     return nil;
   }

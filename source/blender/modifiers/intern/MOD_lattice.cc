@@ -12,7 +12,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
@@ -30,18 +29,17 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(lmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(lmd, DNA_struct_default_get(LatticeModifierData), modifier);
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(lmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (lmd->name[0] != '\0') {
@@ -61,20 +59,20 @@ static bool is_disabled(LatticeModifierData *lmd)
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
   return is_disabled(lmd);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&lmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&lmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
   if (is_disabled(lmd)) {
     return;
   }
@@ -87,9 +85,9 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
 
   /* if next modifier needs original vertices */
   MOD_previous_vcos_store(md, reinterpret_cast<const float (*)[3]>(positions.data()));
@@ -108,14 +106,14 @@ static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             const BMEditMesh *em,
                             Mesh *mesh,
-                            blender::MutableSpan<blender::float3> positions)
+                            MutableSpan<float3> positions)
 {
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     deform_verts(md, ctx, mesh, positions);
     return;
   }
 
-  LatticeModifierData *lmd = (LatticeModifierData *)md;
+  LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(md);
 
   /* if next modifier needs original vertices */
   MOD_previous_vcos_store(md, reinterpret_cast<const float (*)[3]>(positions.data()));
@@ -132,7 +130,7 @@ static void deform_verts_EM(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -143,7 +141,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  layout.prop(ptr, "strength", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "strength", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
@@ -189,3 +187,5 @@ ModifierTypeInfo modifierType_Lattice = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

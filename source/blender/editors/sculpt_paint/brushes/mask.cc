@@ -214,9 +214,9 @@ void do_mask_brush(const Depsgraph &depsgraph,
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
-    case blender::bke::pbvh::Type::Mesh: {
+    case bke::pbvh::Type::Mesh: {
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
 
@@ -243,7 +243,7 @@ void do_mask_brush(const Depsgraph &depsgraph,
       mask.finish();
       break;
     }
-    case blender::bke::pbvh::Type::Grids: {
+    case bke::pbvh::Type::Grids: {
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       MutableSpan<float> masks = subdiv_ccg.masks;
@@ -255,7 +255,7 @@ void do_mask_brush(const Depsgraph &depsgraph,
       });
       break;
     }
-    case blender::bke::pbvh::Type::BMesh: {
+    case bke::pbvh::Type::BMesh: {
       const int mask_offset = CustomData_get_offset_named(
           &ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();

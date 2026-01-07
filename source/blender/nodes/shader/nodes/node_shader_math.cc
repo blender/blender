@@ -16,9 +16,11 @@
 
 #include "RNA_enum_types.hh"
 
+namespace blender {
+
 /* **************** SCALAR MATH ******************** */
 
-namespace blender::nodes::node_shader_math_cc {
+namespace nodes::node_shader_math_cc {
 
 static void sh_node_math_declare(NodeDeclarationBuilder &b)
 {
@@ -116,7 +118,7 @@ static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
               -1 :
               weight;
       params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                      SocketSearchOp{"Value", (NodeMathOperation)item->value},
+                      SocketSearchOp{"Value", NodeMathOperation(item->value)},
                       gn_weight);
     }
   }
@@ -407,13 +409,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_math_cc
+}  // namespace nodes::node_shader_math_cc
 
 void register_node_type_sh_math()
 {
-  namespace file_ns = blender::nodes::node_shader_math_cc;
+  namespace file_ns = nodes::node_shader_math_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeMath", SH_NODE_MATH);
   ntype.ui_name = "Math";
@@ -424,12 +426,14 @@ void register_node_type_sh_math()
   ntype.labelfunc = node_math_label;
   ntype.gpu_fn = file_ns::gpu_shader_math;
   ntype.updatefunc = node_math_update;
-  ntype.build_multi_function = blender::nodes::node_math_build_multi_function;
+  ntype.build_multi_function = nodes::node_math_build_multi_function;
   ntype.gather_link_search_ops = file_ns::sh_node_math_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
   ntype.eval_elem = file_ns::node_eval_elem;
   ntype.eval_inverse_elem = file_ns::node_eval_inverse_elem;
   ntype.eval_inverse = file_ns::node_eval_inverse;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

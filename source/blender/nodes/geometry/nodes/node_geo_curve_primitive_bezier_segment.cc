@@ -47,13 +47,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurvePrimitiveBezierSegment *data =
-      MEM_callocN<NodeGeometryCurvePrimitiveBezierSegment>(__func__);
+      MEM_new_for_free<NodeGeometryCurvePrimitiveBezierSegment>(__func__);
 
   data->mode = GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION;
   node->storage = data;
@@ -102,7 +102,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurvePrimitiveBezierSegment &storage = node_storage(params.node());
   const GeometryNodeCurvePrimitiveBezierSegmentMode mode =
-      (const GeometryNodeCurvePrimitiveBezierSegmentMode)storage.mode;
+      GeometryNodeCurvePrimitiveBezierSegmentMode(storage.mode);
 
   Curves *curves = create_bezier_segment_curve(
       params.extract_input<float3>("Start"),
@@ -142,7 +142,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(
       &ntype, "GeometryNodeCurvePrimitiveBezierSegment", GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT);
   ntype.ui_name = "Bézier Segment";
@@ -150,14 +150,14 @@ static void node_register()
   ntype.enum_name_legacy = "CURVE_PRIMITIVE_BEZIER_SEGMENT";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryCurvePrimitiveBezierSegment",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryCurvePrimitiveBezierSegment",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

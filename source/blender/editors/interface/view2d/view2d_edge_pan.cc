@@ -24,6 +24,8 @@
 
 #include "view2d_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Edge Pan Operator Utilities
  * \{ */
@@ -48,14 +50,14 @@ bool view2d_edge_pan_poll(bContext *C)
   return true;
 }
 
-void UI_view2d_edge_pan_init(bContext *C,
-                             View2DEdgePanData *vpd,
-                             float inside_pad,
-                             float outside_pad,
-                             float speed_ramp,
-                             float max_speed,
-                             float delay,
-                             float zoom_influence)
+void view2d_edge_pan_init(bContext *C,
+                          View2DEdgePanData *vpd,
+                          float inside_pad,
+                          float outside_pad,
+                          float speed_ramp,
+                          float max_speed,
+                          float delay,
+                          float zoom_influence)
 {
   if (!view2d_edge_pan_poll(C)) {
     return;
@@ -84,16 +86,16 @@ void UI_view2d_edge_pan_init(bContext *C,
   vpd->facx = BLI_rctf_size_x(&vpd->v2d->cur) / winx;
   vpd->facy = BLI_rctf_size_y(&vpd->v2d->cur) / winy;
 
-  UI_view2d_edge_pan_reset(vpd);
+  view2d_edge_pan_reset(vpd);
 }
 
-void UI_view2d_edge_pan_set_limits(
+void view2d_edge_pan_set_limits(
     View2DEdgePanData *vpd, float xmin, float xmax, float ymin, float ymax)
 {
   BLI_rctf_init(&vpd->limit, xmin, xmax, ymin, ymax);
 }
 
-void UI_view2d_edge_pan_reset(View2DEdgePanData *vpd)
+void view2d_edge_pan_reset(View2DEdgePanData *vpd)
 {
   vpd->edge_pan_start_time_x = 0.0;
   vpd->edge_pan_start_time_y = 0.0;
@@ -199,7 +201,7 @@ static void edge_pan_apply_delta(bContext *C, View2DEdgePanData *vpd, float dx, 
 
   if (dx != 0.0f || dy != 0.0f) {
     /* Inform v2d about changes after this operation. */
-    UI_view2d_curRect_changed(C, v2d);
+    view2d_curRect_changed(C, v2d);
 
     /* Don't rebuild full tree in outliner, since we're just changing our view. */
     ED_region_tag_redraw_no_rebuild(vpd->region);
@@ -207,11 +209,11 @@ static void edge_pan_apply_delta(bContext *C, View2DEdgePanData *vpd, float dx, 
     /* Request updates to be done. */
     WM_event_add_mousemove(CTX_wm_window(C));
 
-    UI_view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
+    view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
   }
 }
 
-void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[2])
+void view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[2])
 {
   ARegion *region = vpd->region;
 
@@ -269,17 +271,17 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[
   edge_pan_apply_delta(C, vpd, dx, dy);
 }
 
-void UI_view2d_edge_pan_apply_event(bContext *C, View2DEdgePanData *vpd, const wmEvent *event)
+void view2d_edge_pan_apply_event(bContext *C, View2DEdgePanData *vpd, const wmEvent *event)
 {
   /* Only mouse-move events matter here, ignore others. */
   if (event->type != MOUSEMOVE) {
     return;
   }
 
-  UI_view2d_edge_pan_apply(C, vpd, event->xy);
+  view2d_edge_pan_apply(C, vpd, event->xy);
 }
 
-void UI_view2d_edge_pan_cancel(bContext *C, View2DEdgePanData *vpd)
+void view2d_edge_pan_cancel(bContext *C, View2DEdgePanData *vpd)
 {
   View2D *v2d = vpd->v2d;
   if (!v2d) {
@@ -289,7 +291,7 @@ void UI_view2d_edge_pan_cancel(bContext *C, View2DEdgePanData *vpd)
   v2d->cur = vpd->initial_rect;
 
   /* Inform v2d about changes after this operation. */
-  UI_view2d_curRect_changed(C, v2d);
+  view2d_curRect_changed(C, v2d);
 
   /* Don't rebuild full tree in outliner, since we're just changing our view. */
   ED_region_tag_redraw_no_rebuild(vpd->region);
@@ -297,28 +299,28 @@ void UI_view2d_edge_pan_cancel(bContext *C, View2DEdgePanData *vpd)
   /* Request updates to be done. */
   WM_event_add_mousemove(CTX_wm_window(C));
 
-  UI_view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
+  view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
 }
 
-void UI_view2d_edge_pan_operator_properties(wmOperatorType *ot)
+void view2d_edge_pan_operator_properties(wmOperatorType *ot)
 {
   /* Default values for edge panning operators. */
-  UI_view2d_edge_pan_operator_properties_ex(ot,
-                                            /*inside_pad*/ 1.0f,
-                                            /*outside_pad*/ 0.0f,
-                                            /*speed_ramp*/ 1.0f,
-                                            /*max_speed*/ 500.0f,
-                                            /*delay*/ 1.0f,
-                                            /*zoom_influence*/ 0.0f);
+  view2d_edge_pan_operator_properties_ex(ot,
+                                         /*inside_pad*/ 1.0f,
+                                         /*outside_pad*/ 0.0f,
+                                         /*speed_ramp*/ 1.0f,
+                                         /*max_speed*/ 500.0f,
+                                         /*delay*/ 1.0f,
+                                         /*zoom_influence*/ 0.0f);
 }
 
-void UI_view2d_edge_pan_operator_properties_ex(wmOperatorType *ot,
-                                               float inside_pad,
-                                               float outside_pad,
-                                               float speed_ramp,
-                                               float max_speed,
-                                               float delay,
-                                               float zoom_influence)
+void view2d_edge_pan_operator_properties_ex(wmOperatorType *ot,
+                                            float inside_pad,
+                                            float outside_pad,
+                                            float speed_ramp,
+                                            float max_speed,
+                                            float delay,
+                                            float zoom_influence)
 {
   RNA_def_float(
       ot->srna,
@@ -378,16 +380,18 @@ void UI_view2d_edge_pan_operator_properties_ex(wmOperatorType *ot,
                 1.0f);
 }
 
-void UI_view2d_edge_pan_operator_init(bContext *C, View2DEdgePanData *vpd, wmOperator *op)
+void view2d_edge_pan_operator_init(bContext *C, View2DEdgePanData *vpd, wmOperator *op)
 {
-  UI_view2d_edge_pan_init(C,
-                          vpd,
-                          RNA_float_get(op->ptr, "inside_padding"),
-                          RNA_float_get(op->ptr, "outside_padding"),
-                          RNA_float_get(op->ptr, "speed_ramp"),
-                          RNA_float_get(op->ptr, "max_speed"),
-                          RNA_float_get(op->ptr, "delay"),
-                          RNA_float_get(op->ptr, "zoom_influence"));
+  view2d_edge_pan_init(C,
+                       vpd,
+                       RNA_float_get(op->ptr, "inside_padding"),
+                       RNA_float_get(op->ptr, "outside_padding"),
+                       RNA_float_get(op->ptr, "speed_ramp"),
+                       RNA_float_get(op->ptr, "max_speed"),
+                       RNA_float_get(op->ptr, "delay"),
+                       RNA_float_get(op->ptr, "zoom_influence"));
 }
 
 /** \} */
+
+}  // namespace blender::ui

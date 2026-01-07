@@ -226,7 +226,7 @@ ccl_device float3 svm_bevel(
       /* Get geometric normal. */
       float3 hit_Ng = isect.Ng[hit];
       const int object = isect.hits[hit].object;
-      const int object_flag = kernel_data_fetch(object_flag, object);
+      const uint object_flag = kernel_data_fetch(object_flag, object);
       if (object_negative_scale_applied(object_flag)) {
         hit_Ng = -hit_Ng;
       }

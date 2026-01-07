@@ -18,10 +18,12 @@
 
 #include "ED_id_management.hh"
 
+namespace blender {
+
 /** We only need this locally. */
 static CLG_LogRef LOG = {"lib.id_management"};
 
-bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
+bool ED_id_rename(Main &bmain, ID &id, StringRefNull name)
 {
   BLI_assert(ID_IS_EDITABLE(&id));
 
@@ -69,3 +71,5 @@ bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
 
   return false;
 }
+
+}  // namespace blender

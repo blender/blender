@@ -63,6 +63,7 @@ class Closure : public ImplicitSharingMixin {
   const fn::lazy_function::LazyFunction &function_;
   ClosureFunctionIndices indices_;
   Vector<bke::SocketValueVariant> default_input_values_;
+  Vector<const bke::SocketValueVariant *> captured_values_;
 
  public:
   Closure(std::shared_ptr<ClosureSignature> signature,
@@ -71,14 +72,16 @@ class Closure : public ImplicitSharingMixin {
           ClosureFunctionIndices indices,
           Vector<bke::SocketValueVariant> default_input_values,
           std::optional<ClosureSourceLocation> source_location,
-          std::shared_ptr<ClosureEvalLog> eval_log)
+          std::shared_ptr<ClosureEvalLog> eval_log,
+          Vector<const bke::SocketValueVariant *> captured_values)
       : signature_(signature),
         source_location_(source_location),
         eval_log_(eval_log),
         scope_(std::move(scope)),
         function_(function),
         indices_(indices),
-        default_input_values_(std::move(default_input_values))
+        default_input_values_(std::move(default_input_values)),
+        captured_values_(std::move(captured_values))
   {
   }
 
@@ -110,6 +113,11 @@ class Closure : public ImplicitSharingMixin {
   const bke::SocketValueVariant &default_input_value(const int index) const
   {
     return default_input_values_[index];
+  }
+
+  Span<const bke::SocketValueVariant *> captured_values() const
+  {
+    return captured_values_;
   }
 
   void delete_self() override

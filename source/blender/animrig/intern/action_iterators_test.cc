@@ -57,7 +57,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   EXPECT_TRUE(action->is_action_layered());
 
   /* Try iterating an empty action. */
-  blender::Vector<FCurve *> no_fcurves;
+  Vector<FCurve *> no_fcurves;
   foreach_fcurve_in_action_slot(
       *action, cube_slot.handle, [&](FCurve &fcurve) { no_fcurves.append(&fcurve); });
 
@@ -82,7 +82,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   }
 
   /* Get all FCurves. */
-  blender::Vector<FCurve *> cube_fcurves;
+  Vector<FCurve *> cube_fcurves;
   foreach_fcurve_in_action_slot(
       *action, cube_slot.handle, [&](FCurve &fcurve) { cube_fcurves.append(&fcurve); });
 
@@ -92,7 +92,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   }
 
   /* Get only FCurves with index 0 which should be 1. */
-  blender::Vector<FCurve *> monkey_fcurves;
+  Vector<FCurve *> monkey_fcurves;
   foreach_fcurve_in_action_slot(*action, monkey_slot.handle, [&](FCurve &fcurve) {
     if (fcurve.array_index == 0) {
       monkey_fcurves.append(&fcurve);
@@ -104,7 +104,7 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
 
   /* Slots handles are just numbers. Passing in a slot handle that doesn't exist should return
    * nothing. */
-  blender::Vector<FCurve *> invalid_slot_fcurves;
+  Vector<FCurve *> invalid_slot_fcurves;
   foreach_fcurve_in_action_slot(*action,
                                 monkey_slot.handle + cube_slot.handle,
                                 [&](FCurve &fcurve) { invalid_slot_fcurves.append(&fcurve); });

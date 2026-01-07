@@ -9,6 +9,8 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -48,6 +50,8 @@
 
 #include <utility>
 
+namespace blender {
+
 /* *************************************************** */
 /* CURRENT FRAME DRAWING */
 
@@ -61,7 +65,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
   GPU_line_width((flag & DRAWCFRA_WIDE) ? 3.0 : 2.0);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -86,7 +90,7 @@ void ANIM_draw_previewrange(const Scene *scene, View2D *v2d, int end_frame_width
     GPU_blend(GPU_BLEND_ALPHA);
 
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColorShadeAlpha(TH_ANIM_PREVIEW_RANGE, -25, -30);
@@ -112,7 +116,6 @@ void ANIM_draw_previewrange(const Scene *scene, View2D *v2d, int end_frame_width
 
 void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
 {
-  using namespace blender;
   SpaceAction *space_action = CTX_wm_space_action(C);
   if (!space_action || (space_action->overlays.flag & ADS_OVERLAY_SHOW_OVERLAYS) == 0 ||
       (space_action->overlays.flag & ADS_SHOW_SCENE_STRIP_FRAME_RANGE) == 0)
@@ -130,14 +133,14 @@ void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
   if (!sequencer_scene) {
     return;
   }
-  const Strip *scene_strip = blender::ed::vse::get_scene_strip_for_time_sync(sequencer_scene);
+  const Strip *scene_strip = ed::vse::get_scene_strip_for_time_sync(sequencer_scene);
   if (!scene_strip || !scene_strip->scene) {
     return;
   }
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_ANIM_SCENE_STRIP_RANGE, -25, -30);
@@ -145,8 +148,8 @@ void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
   /* ..._handle are frames in "sequencer logic", meaning that on the right_handle point in time,
    * the strip is not visible any more. The last visible frame of the strip is actually on
    * (right_handle-1), hence the -1 when computing the end_frame. */
-  const float left_handle = seq::time_left_handle_frame_get(sequencer_scene, scene_strip);
-  const float right_handle = seq::time_right_handle_frame_get(sequencer_scene, scene_strip);
+  const float left_handle = scene_strip->left_handle();
+  const float right_handle = scene_strip->right_handle(sequencer_scene);
   float start_frame = seq::give_frame_index(sequencer_scene, scene_strip, left_handle) +
                       scene_strip->scene->r.sfra;
   float end_frame = seq::give_frame_index(sequencer_scene, scene_strip, right_handle - 1) +
@@ -174,7 +177,7 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
@@ -226,12 +229,12 @@ void ANIM_draw_action_framerange(
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
   float color[4];
-  UI_GetThemeColorShadeAlpha4fv(TH_BACK, -40, -50, color);
+  ui::theme::get_color_shade_alpha_4fv(TH_BACK, -40, -50, color);
 
   immUniform4f("color1", color[0], color[1], color[2], color[3]);
   immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
@@ -383,7 +386,7 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
    * - AnimData is stored in 'data'
    * - only_keys is stored in 'i1'
    */
-  ked.data = (void *)adt;
+  ked.data = static_cast<void *>(adt);
   ked.i1 = int(only_keys);
 
   /* get editing callback */
@@ -694,7 +697,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
 
   if (ob) {
     ob_to_keylist(&ads, ob, keylist, 0, {-FLT_MAX, FLT_MAX});
-    gpencil_to_keylist(&ads, static_cast<bGPdata *>(ob->data), keylist, false);
+    gpencil_to_keylist(&ads, id_cast<bGPdata *>(ob->data), keylist, false);
   }
 
   if (mask) {
@@ -809,7 +812,7 @@ void ANIM_center_frame(bContext *C, int smooth_viewtx)
       break;
   }
 
-  UI_view2d_smooth_view(C, region, &newrct, smooth_viewtx);
+  ui::view2d_smooth_view(C, region, &newrct, smooth_viewtx);
 }
 /* *************************************************** */
 
@@ -819,12 +822,12 @@ rctf ANIM_frame_range_view2d_add_xmargin(const View2D &view_2d, const rctf view_
   const float keyframe_size = 10 * UI_SCALE_FAC;
   const float margin_in_px = 4 * keyframe_size;
 
-  /* This cannot use UI_view2d_scale_get_x(view_2d) because that would use the
+  /* This cannot use view2d_scale_get_x(view_2d) because that would use the
    * current scale of the view, and not the one we'd get once `view_rect` is
    * applied. And this function should not assume that view_2d.cur == view_rect.
    *
    * As an added bonus, the division is inverted (compared to
-   * UI_view2d_scale_get_x()) so that we can multiply with the result instead of
+   * view2d_scale_get_x()) so that we can multiply with the result instead of
    * doing yet another division. */
   const float target_scale = BLI_rctf_size_x(&view_rect) / BLI_rcti_size_x(&view_2d.mask);
   const float margin_in_frames = margin_in_px * target_scale;
@@ -841,3 +844,5 @@ rctf ANIM_frame_range_view2d_add_xmargin(const View2D &view_2d, const rctf view_
 
   return rect_with_margin;
 }
+
+}  // namespace blender

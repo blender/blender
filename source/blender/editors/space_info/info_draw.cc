@@ -18,6 +18,8 @@
 #include "info_intern.hh"
 #include "textview.hh"
 
+namespace blender {
+
 static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
                                                        uchar fg[4],
                                                        uchar bg[4],
@@ -28,18 +30,18 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   const Report *report = static_cast<const Report *>(tvc->iter);
 
   /* Same text color no matter what type of report. */
-  UI_GetThemeColor4ubv((report->flag & SELECT) ? TH_INFO_SELECTED_TEXT : TH_TEXT, fg);
+  ui::theme::get_color_4ubv((report->flag & SELECT) ? TH_INFO_SELECTED_TEXT : TH_TEXT, fg);
 
   /* Zebra striping for background. */
   int bg_id = (report->flag & SELECT) ? TH_INFO_SELECTED : TH_BACK;
   int shade = (tvc->iter_tmp % 2) ? 4 : -4;
-  UI_GetThemeColorShade4ubv(bg_id, shade, bg);
+  ui::theme::get_color_shade_4ubv(bg_id, shade, bg);
 
   /* Don't show icon on subsequent rows of multi-row report. */
-  *r_icon = (tvc->iter_char_begin != 0) ? ICON_NONE : UI_icon_from_report_type(report->type);
+  *r_icon = (tvc->iter_char_begin != 0) ? ICON_NONE : ui::icon_from_report_type(report->type);
 
-  int icon_fg_id = UI_text_colorid_from_report_type(report->type);
-  int icon_bg_id = UI_icon_colorid_from_report_type(report->type);
+  int icon_fg_id = ui::UI_text_colorid_from_report_type(report->type);
+  int icon_bg_id = ui::icon_colorid_from_report_type(report->type);
 
   if (report->flag & SELECT) {
     icon_fg_id = TH_INFO_SELECTED;
@@ -47,10 +49,10 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   }
 
   if (*r_icon != ICON_NONE) {
-    UI_GetThemeColor4ubv(icon_fg_id, r_icon_fg);
+    ui::theme::get_color_4ubv(icon_fg_id, r_icon_fg);
     /* This theme color is RGB only, so set alpha. */
     r_icon_fg[3] = 255;
-    UI_GetThemeColor4ubv(icon_bg_id, r_icon_bg);
+    ui::theme::get_color_4ubv(icon_bg_id, r_icon_bg);
     return TVC_LINE_FG | TVC_LINE_BG | TVC_LINE_ICON | TVC_LINE_ICON_FG | TVC_LINE_ICON_BG;
   }
 
@@ -75,8 +77,8 @@ static int report_textview_skip__internal(TextViewContext *tvc)
 {
   const SpaceInfo *sinfo = static_cast<const SpaceInfo *>(tvc->arg1);
   const int report_mask = info_report_mask(sinfo);
-  while (tvc->iter && (((const Report *)tvc->iter)->type & report_mask) == 0) {
-    tvc->iter = (void *)((Link *)tvc->iter)->prev;
+  while (tvc->iter && ((static_cast<const Report *>(tvc->iter))->type & report_mask) == 0) {
+    tvc->iter = static_cast<void *>((static_cast<Link *>(const_cast<void *>(tvc->iter)))->prev);
   }
   return (tvc->iter != nullptr);
 }
@@ -91,7 +93,7 @@ static int report_textview_begin(TextViewContext *tvc)
   /* iterator */
   tvc->iter = reports->list.last;
 
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   tvc->iter_tmp = 0;
   if (tvc->iter && report_textview_skip__internal(tvc)) {
@@ -115,7 +117,7 @@ static int report_textview_step(TextViewContext *tvc)
 {
   /* simple case, but no newline support */
   if (tvc->iter_char_begin <= 0) {
-    tvc->iter = (void *)((Link *)tvc->iter)->prev;
+    tvc->iter = static_cast<void *>((static_cast<Link *>(const_cast<void *>(tvc->iter)))->prev);
     if (tvc->iter && report_textview_skip__internal(tvc)) {
       tvc->iter_tmp++;
 
@@ -221,3 +223,5 @@ void info_textview_main(const SpaceInfo *sinfo, const ARegion *region, const Rep
   const int mval[2] = {INT_MAX, INT_MAX};
   info_textview_main__internal(sinfo, region, reports, true, mval, nullptr, nullptr);
 }
+
+}  // namespace blender

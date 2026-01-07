@@ -27,7 +27,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(file_path.c_str(), 0, &buffer_len);
   if (buffer != nullptr) {
-    res.assign((const char *)buffer, buffer_len);
+    res.assign(static_cast<const char *>(buffer), buffer_len);
     MEM_freeN(buffer);
   }
   return res;
@@ -81,7 +81,7 @@ class STLExportTest : public BlendfileLoadingBaseTest {
 
     std::string out_file_path = get_temp_filename(BLI_path_basename(golden_stl.c_str()));
     STRNCPY(_params.filepath, out_file_path.c_str());
-    std::string golden_file_path = blender::tests::flags_test_asset_dir() + SEP_STR + golden_stl;
+    std::string golden_file_path = tests::flags_test_asset_dir() + SEP_STR + golden_stl;
     export_frame(depsgraph, 1.0f, _params);
     std::string output_str = read_temp_file_in_string(out_file_path);
 

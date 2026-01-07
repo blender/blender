@@ -27,6 +27,8 @@
 
 #include "screen_intern.hh"
 
+namespace blender {
+
 int screen_geom_area_height(const ScrArea *area)
 {
   return area->v2->vec.y - area->v1->vec.y + 1;
@@ -38,7 +40,7 @@ int screen_geom_area_width(const ScrArea *area)
 
 ScrVert *screen_geom_vertex_add_ex(ScrAreaMap *area_map, short x, short y)
 {
-  ScrVert *sv = MEM_callocN<ScrVert>("addscrvert");
+  ScrVert *sv = MEM_new_for_free<ScrVert>("addscrvert");
   sv->vec.x = x;
   sv->vec.y = y;
 
@@ -52,7 +54,7 @@ ScrVert *screen_geom_vertex_add(bScreen *screen, short x, short y)
 
 ScrEdge *screen_geom_edge_add_ex(ScrAreaMap *area_map, ScrVert *v1, ScrVert *v2)
 {
-  ScrEdge *se = MEM_callocN<ScrEdge>("addscredge");
+  ScrEdge *se = MEM_new_for_free<ScrEdge>("addscredge");
 
   BKE_screen_sort_scrvert(&v1, &v2);
   se->v1 = v1;
@@ -76,26 +78,26 @@ ScrEdge *screen_geom_area_map_find_active_scredge(
 {
   CLAMP_MIN(safety, 2);
 
-  LISTBASE_FOREACH (ScrEdge *, se, &area_map->edgebase) {
-    if (screen_geom_edge_is_horizontal(se)) {
-      if ((se->v1->vec.y > bounds_rect->ymin) && (se->v1->vec.y < (bounds_rect->ymax - 1))) {
+  for (ScrEdge &se : area_map->edgebase) {
+    if (screen_geom_edge_is_horizontal(&se)) {
+      if ((se.v1->vec.y > bounds_rect->ymin) && (se.v1->vec.y < (bounds_rect->ymax - 1))) {
         short min, max;
-        min = std::min(se->v1->vec.x, se->v2->vec.x);
-        max = std::max(se->v1->vec.x, se->v2->vec.x);
+        min = std::min(se.v1->vec.x, se.v2->vec.x);
+        max = std::max(se.v1->vec.x, se.v2->vec.x);
 
-        if (abs(my - se->v1->vec.y) <= safety && mx >= min && mx <= max) {
-          return se;
+        if (abs(my - se.v1->vec.y) <= safety && mx >= min && mx <= max) {
+          return &se;
         }
       }
     }
     else {
-      if ((se->v1->vec.x > bounds_rect->xmin) && (se->v1->vec.x < (bounds_rect->xmax - 1))) {
+      if ((se.v1->vec.x > bounds_rect->xmin) && (se.v1->vec.x < (bounds_rect->xmax - 1))) {
         short min, max;
-        min = std::min(se->v1->vec.y, se->v2->vec.y);
-        max = std::max(se->v1->vec.y, se->v2->vec.y);
+        min = std::min(se.v1->vec.y, se.v2->vec.y);
+        max = std::max(se.v1->vec.y, se.v2->vec.y);
 
-        if (abs(mx - se->v1->vec.x) <= safety && my >= min && my <= max) {
-          return se;
+        if (abs(mx - se.v1->vec.x) <= safety && my >= min && my <= max) {
+          return &se;
         }
       }
     }
@@ -146,8 +148,8 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
   float min[2] = {20000.0f, 20000.0f};
   float max[2] = {0.0f, 0.0f};
 
-  LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
-    const float fv[2] = {float(sv->vec.x), float(sv->vec.y)};
+  for (ScrVert &sv : screen->vertbase) {
+    const float fv[2] = {float(sv.vec.x), float(sv.vec.y)};
     minmax_v2v2_v2(min, max, fv);
   }
 
@@ -159,12 +161,12 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
     const float facy = (float(screen_size_y) - 1) / (float(screen_size_y_prev) - 1);
 
     /* make sure it fits! */
-    LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
-      sv->vec.x = screen_rect->xmin + round_fl_to_short((sv->vec.x - min[0]) * facx);
-      CLAMP(sv->vec.x, screen_rect->xmin, screen_rect->xmax - 1);
+    for (ScrVert &sv : screen->vertbase) {
+      sv.vec.x = screen_rect->xmin + round_fl_to_short((sv.vec.x - min[0]) * facx);
+      CLAMP(sv.vec.x, screen_rect->xmin, screen_rect->xmax - 1);
 
-      sv->vec.y = screen_rect->ymin + round_fl_to_short((sv->vec.y - min[1]) * facy);
-      CLAMP(sv->vec.y, screen_rect->ymin, screen_rect->ymax - 1);
+      sv.vec.y = screen_rect->ymin + round_fl_to_short((sv.vec.y - min[1]) * facy);
+      CLAMP(sv.vec.y, screen_rect->ymin, screen_rect->ymax - 1);
     }
 
     /* test for collapsed areas. This could happen in some blender version... */
@@ -172,27 +174,27 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
 
     if (facy > 1) {
       /* Keep timeline small in video edit workspace. */
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      for (ScrArea &area : screen->areabase) {
         const int border_width = int(ceil(float(U.border_width) * UI_SCALE_FAC));
         int min = ED_area_headersize() + border_width;
-        if (area->v1->vec.y > screen_rect->ymin) {
+        if (area.v1->vec.y > screen_rect->ymin) {
           min += border_width;
         }
-        if (area->spacetype == SPACE_ACTION && area->v1->vec.y == screen_rect->ymin &&
-            screen_geom_area_height(area) <= int(min * 1.5f))
+        if (area.spacetype == SPACE_ACTION && area.v1->vec.y == screen_rect->ymin &&
+            screen_geom_area_height(&area) <= int(min * 1.5f))
         {
-          ScrEdge *se = BKE_screen_find_edge(screen, area->v2, area->v3);
+          ScrEdge *se = BKE_screen_find_edge(screen, area.v2, area.v3);
           if (se) {
-            const int yval = area->v1->vec.y + min - 1;
+            const int yval = area.v1->vec.y + min - 1;
 
             screen_geom_select_connected_edge(win, se);
 
             /* all selected vertices get the right offset */
-            LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
+            for (ScrVert &sv : screen->vertbase) {
               /* if is a collapsed area */
-              if (!ELEM(sv, area->v1, area->v4)) {
-                if (sv->flag) {
-                  sv->vec.y = yval;
+              if (!ELEM(&sv, area.v1, area.v4)) {
+                if (sv.flag) {
+                  sv.vec.y = yval;
                   /* Changed size of a area. Run another pass to ensure everything still fits. */
                   needs_another_pass = true;
                 }
@@ -207,33 +209,33 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
      * should be done whether we are increasing or decreasing the
      * vertical size since this is called on file load, not just
      * during resize operations. */
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    for (ScrArea &area : screen->areabase) {
       const int border_width = int(ceil(float(U.border_width) * UI_SCALE_FAC));
       int min = ED_area_headersize() + border_width + border_width - U.pixelsize;
-      if (area->v3->vec.y >= (screen_rect->ymax - 1)) {
+      if (area.v3->vec.y >= (screen_rect->ymax - 1)) {
         /* Area aligned to top screen edge. */
         min = ED_area_headersize() + border_width;
       }
-      else if (area->v4->vec.y <= (screen_rect->ymin + 1)) {
+      else if (area.v4->vec.y <= (screen_rect->ymin + 1)) {
         /* Area aligned to bottom screen edge. */
         min = ED_area_headersize() + border_width + 1;
       }
 
-      const int height = screen_geom_area_height(area);
+      const int height = screen_geom_area_height(&area);
       if (height < min) {
         /* lower edge */
-        ScrEdge *se = BKE_screen_find_edge(screen, area->v4, area->v1);
-        if (se && area->v1 != area->v2) {
-          const int yval = area->v2->vec.y - min;
+        ScrEdge *se = BKE_screen_find_edge(screen, area.v4, area.v1);
+        if (se && area.v1 != area.v2) {
+          const int yval = area.v2->vec.y - min;
 
           screen_geom_select_connected_edge(win, se);
 
           /* all selected vertices get the right offset */
-          LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
+          for (ScrVert &sv : screen->vertbase) {
             /* if is not a collapsed area */
-            if (!ELEM(sv, area->v2, area->v3)) {
-              if (sv->flag) {
-                sv->vec.y = yval;
+            if (!ELEM(&sv, area.v2, area.v3)) {
+              if (sv.flag) {
+                sv.vec.y = yval;
                 /* Changed size of a area. Run another pass to ensure everything still fits. */
                 needs_another_pass = true;
               }
@@ -262,33 +264,33 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
 
   /* Global areas have a fixed size that only changes with the DPI.
    * Here we ensure that exactly this size is set. */
-  LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
-    if (area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
+  for (ScrArea &area : win->global_areas.areabase) {
+    if (area.global->flag & GLOBAL_AREA_IS_HIDDEN) {
       continue;
     }
 
-    int height = ED_area_global_size_y(area) - 1;
+    int height = ED_area_global_size_y(&area) - 1;
 
-    if (area->v1->vec.y > window_rect.ymin) {
+    if (area.v1->vec.y > window_rect.ymin) {
       height += U.pixelsize;
     }
-    if (area->v2->vec.y < (window_rect.ymax - 1)) {
+    if (area.v2->vec.y < (window_rect.ymax - 1)) {
       height += U.pixelsize;
     }
 
     /* width */
-    area->v1->vec.x = area->v2->vec.x = window_rect.xmin;
-    area->v3->vec.x = area->v4->vec.x = window_rect.xmax - 1;
+    area.v1->vec.x = area.v2->vec.x = window_rect.xmin;
+    area.v3->vec.x = area.v4->vec.x = window_rect.xmax - 1;
     /* height */
-    area->v1->vec.y = area->v4->vec.y = window_rect.ymin;
-    area->v2->vec.y = area->v3->vec.y = window_rect.ymax - 1;
+    area.v1->vec.y = area.v4->vec.y = window_rect.ymin;
+    area.v2->vec.y = area.v3->vec.y = window_rect.ymax - 1;
 
-    switch (area->global->align) {
+    switch (area.global->align) {
       case GLOBAL_AREA_ALIGN_TOP:
-        area->v1->vec.y = area->v4->vec.y = area->v2->vec.y - height;
+        area.v1->vec.y = area.v4->vec.y = area.v2->vec.y - height;
         break;
       case GLOBAL_AREA_ALIGN_BOTTOM:
-        area->v2->vec.y = area->v3->vec.y = area->v1->vec.y + height;
+        area.v2->vec.y = area.v3->vec.y = area.v1->vec.y + height;
         break;
     }
   }
@@ -387,17 +389,17 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
   bool oneselected = true;
   while (oneselected) {
     oneselected = false;
-    LISTBASE_FOREACH (ScrEdge *, se, &screen->edgebase) {
-      if (se->v1->flag + se->v2->flag == 1) {
+    for (ScrEdge &se : screen->edgebase) {
+      if (se.v1->flag + se.v2->flag == 1) {
         if (dir_axis == SCREEN_AXIS_H) {
-          if (se->v1->vec.y == se->v2->vec.y) {
-            se->v1->flag = se->v2->flag = 1;
+          if (se.v1->vec.y == se.v2->vec.y) {
+            se.v1->flag = se.v2->flag = 1;
             oneselected = true;
           }
         }
         else if (dir_axis == SCREEN_AXIS_V) {
-          if (se->v1->vec.x == se->v2->vec.x) {
-            se->v1->flag = se->v2->flag = 1;
+          if (se.v1->vec.x == se.v2->vec.x) {
+            se.v1->flag = se.v2->flag = 1;
             oneselected = true;
           }
         }
@@ -405,3 +407,5 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
     }
   }
 }
+
+}  // namespace blender

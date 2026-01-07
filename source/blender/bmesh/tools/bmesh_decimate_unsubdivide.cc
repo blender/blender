@@ -13,6 +13,8 @@
 #include "bmesh.hh"
 #include "bmesh_decimate.hh" /* own include */
 
+namespace blender {
+
 static bool bm_vert_dissolve_fan_test(BMVert *v)
 {
   /* check if we should walk over these verts */
@@ -125,7 +127,7 @@ static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 
     /* ensure there are exactly tot_loop loops */
     BLI_assert(BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v, tot_loop) == nullptr);
-    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, (void **)f_loop, tot_loop);
+    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, reinterpret_cast<void **>(f_loop), tot_loop);
 
     for (i = 0; i < tot_loop; i++) {
       BMLoop *l = f_loop[i];
@@ -299,3 +301,5 @@ void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations)
 {
   BM_mesh_decimate_unsubdivide_ex(bm, iterations, false);
 }
+
+}  // namespace blender

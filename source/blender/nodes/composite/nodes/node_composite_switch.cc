@@ -12,9 +12,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** Switch ******************** */
 
-namespace blender::nodes::node_composite_switch_cc {
+namespace nodes::node_composite_switch_cc {
 
 static void cmp_node_switch_declare(NodeDeclarationBuilder &b)
 {
@@ -46,7 +48,7 @@ class SwitchOperation : public NodeOperation {
 
   bool get_condition()
   {
-    return this->get_input("Switch").get_single_value_default(false);
+    return this->get_input("Switch").get_single_value_default<bool>();
   }
 };
 
@@ -55,13 +57,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new SwitchOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_switch_cc
+}  // namespace nodes::node_composite_switch_cc
 
 static void register_node_type_cmp_switch()
 {
-  namespace file_ns = blender::nodes::node_composite_switch_cc;
+  namespace file_ns = nodes::node_composite_switch_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeSwitch", CMP_NODE_SWITCH);
   ntype.ui_name = "Switch";
@@ -69,9 +71,11 @@ static void register_node_type_cmp_switch()
   ntype.enum_name_legacy = "SWITCH";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_switch_declare;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Default);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Default);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_switch)
+
+}  // namespace blender

@@ -10,7 +10,9 @@
 
 #include "BKE_node.hh"
 
-extern struct blender::bke::bNodeTreeType *ntreeType_Texture;
+namespace blender {
+
+extern struct bke::bNodeTreeType *ntreeType_Texture;
 
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
 struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);
@@ -24,3 +26,5 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
                      int cfra,
                      int preview,
                      struct MTex *mtex);
+
+}  // namespace blender

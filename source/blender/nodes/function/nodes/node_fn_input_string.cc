@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                        prop,
                        -1,
                        0,
-                       UI_ITEM_R_SPLIT_EMPTY_NAME,
+                       ui::ITEM_R_SPLIT_EMPTY_NAME,
                        "",
                        ICON_NONE,
                        IFACE_("String"));
@@ -45,12 +45,12 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->storage = MEM_callocN<NodeInputString>(__func__);
+  node->storage = MEM_new_for_free<NodeInputString>(__func__);
 }
 
 static void node_storage_free(bNode *node)
 {
-  NodeInputString *storage = (NodeInputString *)node->storage;
+  NodeInputString *storage = static_cast<NodeInputString *>(node->storage);
   if (storage == nullptr) {
     return;
   }
@@ -62,11 +62,12 @@ static void node_storage_free(bNode *node)
 
 static void node_storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
 {
-  NodeInputString *source_storage = (NodeInputString *)src_node->storage;
-  NodeInputString *destination_storage = (NodeInputString *)MEM_dupallocN(source_storage);
+  NodeInputString *source_storage = static_cast<NodeInputString *>(src_node->storage);
+  NodeInputString *destination_storage = static_cast<NodeInputString *>(
+      MEM_dupallocN(source_storage));
 
   if (source_storage->string) {
-    destination_storage->string = (char *)MEM_dupallocN(source_storage->string);
+    destination_storage->string = static_cast<char *>(MEM_dupallocN(source_storage->string));
   }
 
   dest_node->storage = destination_storage;
@@ -100,7 +101,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
     /* Adapt width of the new node to its content. */
     const StringRef string = static_cast<NodeInputString *>(node.storage)->string;
-    const uiFontStyle &fstyle = UI_style_get()->widget;
+    const uiFontStyle &fstyle = ui::style_get()->widget;
     BLF_size(fstyle.uifont_id, fstyle.points);
     const float width = BLF_width(fstyle.uifont_id, string.data(), string.size()) + 40.0f;
     node.width = std::clamp(width, 140.0f, 1000.0f);
@@ -109,7 +110,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeInputString", FN_NODE_INPUT_STRING);
   ntype.ui_name = "String";
@@ -118,12 +119,12 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype, "NodeInputString", node_storage_free, node_storage_copy);
+  bke::node_type_storage(ntype, "NodeInputString", node_storage_free, node_storage_copy);
   ntype.build_multi_function = node_build_multi_function;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

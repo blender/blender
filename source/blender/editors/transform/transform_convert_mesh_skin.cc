@@ -69,7 +69,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
   BLI_assert(t->mode == TFM_SKIN_RESIZE);
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    Mesh *mesh = static_cast<Mesh *>(tc->obedit->data);
+    Mesh *mesh = id_cast<Mesh *>(tc->obedit->data);
     BMesh *bm = em->bm;
     BMVert *eve;
     BMIter iter;
@@ -157,8 +157,8 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
 
       if (mirror_data.vert_map) {
         tc->data_mirror_len = mirror_data.mirror_elem_len;
-        tc->data_mirror = static_cast<TransDataMirror *>(
-            MEM_callocN(mirror_data.mirror_elem_len * sizeof(*tc->data_mirror), __func__));
+        tc->data_mirror = MEM_calloc_arrayN<TransDataMirror>(mirror_data.mirror_elem_len,
+                                                             __func__);
 
         BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
           if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
@@ -193,7 +193,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
 
       if (mirror_data.vert_map && mirror_data.vert_map[a].index != -1) {
         mesh_skin_transdata_create(
-            (TransDataBasic *)td_mirror, em, eve, &island_data, island_index);
+            static_cast<TransDataBasic *>(td_mirror), em, eve, &island_data, island_index);
 
         int elem_index = mirror_data.vert_map[a].index;
         BMVert *v_src = BM_vert_at_index(bm, elem_index);
@@ -205,7 +205,8 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
         td_mirror++;
       }
       else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-        mesh_skin_transdata_create((TransDataBasic *)td, em, eve, &island_data, island_index);
+        mesh_skin_transdata_create(
+            static_cast<TransDataBasic *>(td), em, eve, &island_data, island_index);
 
         if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
           createSpaceNormal(td->axismtx, eve->no);

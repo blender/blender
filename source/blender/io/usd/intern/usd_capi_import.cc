@@ -43,8 +43,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.hh"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -65,7 +63,8 @@ static USDStageReader *stage_reader_from_handle(CacheArchiveHandle *handle)
   return reinterpret_cast<USDStageReader *>(handle);
 }
 
-static bool gather_objects_paths(const pxr::UsdPrim &object, ListBase *object_paths)
+static bool gather_objects_paths(const pxr::UsdPrim &object,
+                                 ListBaseT<CacheObjectPath> *object_paths)
 {
   if (!object.IsValid()) {
     return false;
@@ -75,7 +74,7 @@ static bool gather_objects_paths(const pxr::UsdPrim &object, ListBase *object_pa
     gather_objects_paths(childPrim, object_paths);
   }
 
-  CacheObjectPath *usd_path = MEM_callocN<CacheObjectPath>("CacheObjectPath");
+  CacheObjectPath *usd_path = MEM_new_for_free<CacheObjectPath>("CacheObjectPath");
 
   STRNCPY(usd_path->path, object.GetPrimPath().GetString().c_str());
   BLI_addtail(object_paths, usd_path);
@@ -100,10 +99,6 @@ struct ImportJobData {
 
   USDStageReader *archive;
 
-  bool *stop;
-  bool *do_update;
-  float *progress;
-
   char error_code;
   bool was_canceled;
   bool import_ok;
@@ -124,10 +119,6 @@ static void report_job_duration(const ImportJobData *data)
 static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   ImportJobData *data = static_cast<ImportJobData *>(customdata);
-
-  data->stop = &worker_status->stop;
-  data->do_update = &worker_status->do_update;
-  data->progress = &worker_status->progress;
   data->was_canceled = false;
   data->archive = nullptr;
   data->start_time = timeit::Clock::now();
@@ -155,16 +146,12 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   BLI_path_abs(data->filepath, BKE_main_blendfile_path_from_global());
 
-  *data->do_update = true;
-  *data->progress = 0.05f;
-
+  worker_status->progress = 0.05f;
+  worker_status->do_update = true;
   if (G.is_break) {
     data->was_canceled = true;
     return;
   }
-
-  *data->do_update = true;
-  *data->progress = 0.1f;
 
   pxr::UsdStagePopulationMask pop_mask;
   for (const std::string &mask_token : pxr::TfStringTokenize(data->params.prim_path_mask, ",;")) {
@@ -188,6 +175,13 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     return;
   }
 
+  worker_status->progress = 0.1f;
+  worker_status->do_update = true;
+  if (G.is_break) {
+    data->was_canceled = true;
+    return;
+  }
+
   double scene_scale = data->params.scale;
   if (data->params.apply_unit_conversion_scale) {
     scene_scale *= pxr::UsdGeomGetStageMetersPerUnit(stage);
@@ -198,9 +192,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     data->scene->r.sfra = stage->GetStartTimeCode();
     data->scene->r.efra = stage->GetEndTimeCode();
   }
-
-  *data->do_update = true;
-  *data->progress = 0.15f;
 
   /* Callback function to lazily create a cache file when converting
    * time varying data. */
@@ -225,15 +216,21 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   };
 
   USDStageReader *archive = new USDStageReader(stage, data->params, get_cache_file);
+  data->archive = archive;
 
   /* Ensure Python types for invoking hooks are registered. */
   register_hook_converters();
 
   archive->find_material_import_hook_sources();
 
-  data->archive = archive;
-
   archive->collect_readers();
+
+  worker_status->progress = 0.15f;
+  worker_status->do_update = true;
+  if (G.is_break) {
+    data->was_canceled = true;
+    return;
+  }
 
   if (data->params.import_lights && data->params.create_world_material &&
       !archive->dome_light_readers().is_empty())
@@ -246,24 +243,29 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     archive->import_all_materials(data->bmain);
   }
 
-  *data->do_update = true;
-  *data->progress = 0.2f;
-
-  const float size = float(archive->readers().size());
-  size_t i = 0;
+  worker_status->progress = 0.2f;
+  worker_status->do_update = true;
 
   /* Sort readers by name: when creating a lot of objects in Blender,
    * it is much faster if the order is sorted by name. */
   archive->sort_readers();
-  *data->do_update = true;
-  *data->progress = 0.25f;
+
+  worker_status->progress = 0.25f;
+  worker_status->do_update = true;
+
+  const float size = float(archive->readers().size());
+  size_t i = 0;
 
   /* Create blender objects. */
   for (USDPrimReader *reader : archive->readers()) {
     reader->create_object(data->bmain);
-    if ((++i & 1023) == 0) {
-      *data->do_update = true;
-      *data->progress = 0.25f + 0.25f * (i / size);
+
+    worker_status->progress = 0.25f + 0.25f * (++i / size);
+    worker_status->do_update = true;
+
+    if (G.is_break) {
+      data->was_canceled = true;
+      return;
     }
   }
 
@@ -281,8 +283,8 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
       ob->parent = parent->object();
     }
 
-    *data->progress = 0.5f + 0.5f * (++i / size);
-    *data->do_update = true;
+    worker_status->progress = 0.5f + 0.5f * (++i / size);
+    worker_status->do_update = true;
 
     if (G.is_break) {
       data->was_canceled = true;
@@ -488,7 +490,7 @@ USDMeshReadParams create_mesh_read_params(const double motion_sample_time, const
 
 void USD_read_geometry(CacheReader *reader,
                        const Object *ob,
-                       blender::bke::GeometrySet &geometry_set,
+                       bke::GeometrySet &geometry_set,
                        const USDMeshReadParams params,
                        const char **r_err_str)
 {
@@ -570,7 +572,7 @@ void USD_CacheReader_free(CacheReader *reader)
 
 CacheArchiveHandle *USD_create_handle(Main * /*bmain*/,
                                       const char *filepath,
-                                      ListBase *object_paths)
+                                      ListBaseT<CacheObjectPath> *object_paths)
 {
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filepath);
 

@@ -31,9 +31,12 @@
 #include "ply_import_mesh.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.ply"};
 
-namespace blender::io::ply {
+namespace io::ply {
 
 /* If line starts with keyword, returns true and drops it from the line. */
 static bool parse_keyword(Span<char> &str, StringRef keyword)
@@ -238,7 +241,7 @@ void importer_main(Main *bmain,
   BKE_view_layer_base_deselect_all(scene, view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
-  obj->data = mesh_in_main;
+  obj->data = id_cast<ID *>(mesh_in_main);
   BKE_collection_object_add(bmain, lc->collection, obj);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, obj);
@@ -270,4 +273,5 @@ void importer_main(Main *bmain,
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
 }
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

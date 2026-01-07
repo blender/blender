@@ -58,7 +58,7 @@ SphericalGrid::Iterator::Iterator(SphericalGrid &grid, Vec3r &center, real /*eps
   // Find target cell
   _cell = grid.findCell(_target);
 #if SPHERICAL_GRID_LOGGING
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Searching for occluders of edge centered at " << _target << " in cell ["
          << _cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2] << ", "
          << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
@@ -79,22 +79,22 @@ SphericalGrid::SphericalGrid(OccluderSource &source,
                              bool enableQI)
     : _viewpoint(viewpoint), _enableQI(enableQI)
 {
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Generate Cell structure" << endl;
   }
   // Generate Cell structure
   assignCells(source, density, viewMap);
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Distribute occluders" << endl;
   }
   // Fill Cells
   distributePolygons(source);
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Reorganize cells" << endl;
   }
   // Reorganize Cells
   reorganizeCells();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Ready to use SphericalGrid" << endl;
   }
 }
@@ -110,7 +110,7 @@ void SphericalGrid::assignCells(OccluderSource & /*source*/,
   _cellsY = density.cellsY();
   _cellOrigin[0] = density.cellOrigin(0);
   _cellOrigin[1] = density.cellOrigin(1);
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Using " << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square."
          << endl;
     cout << "Cell origin: " << _cellOrigin[0] << ", " << _cellOrigin[1] << endl;
@@ -171,7 +171,7 @@ void SphericalGrid::distributePolygons(OccluderSource &source)
     }
     ++nFaces;
   }
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Distributed " << nFaces << " occluders. Retained " << nKeptFaces << "." << endl;
   }
 }

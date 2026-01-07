@@ -80,6 +80,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 
+namespace blender {
+
 /**
  * Different types support different features. Features like copy constructability can be detected
  * automatically easily. For some features this is harder as of C++17. Those have flags in this
@@ -95,8 +97,6 @@ enum class CPPTypeFlags {
   BasicType = Hashable | Printable | EqualityComparable,
 };
 ENUM_OPERATORS(CPPTypeFlags)
-
-namespace blender {
 
 class CPPType : NonCopyable, NonMovable {
  public:
@@ -438,15 +438,10 @@ class CPPType : NonCopyable, NonMovable {
  */
 void register_cpp_types();
 
-}  // namespace blender
-
 /* Utility for allocating an uninitialized buffer for a single value of the given #CPPType. */
 #define BUFFER_FOR_CPP_TYPE_VALUE(type, variable_name) \
-  blender::DynamicStackBuffer<64, 64> stack_buffer_for_##variable_name((type).size, \
-                                                                       (type).alignment); \
+  DynamicStackBuffer<64, 64> stack_buffer_for_##variable_name((type).size, (type).alignment); \
   void *variable_name = stack_buffer_for_##variable_name.buffer();
-
-namespace blender {
 
 /* Give a compile error instead of a link error when type information is missing. */
 template<> const CPPType &CPPType::get_impl<void>() = delete;

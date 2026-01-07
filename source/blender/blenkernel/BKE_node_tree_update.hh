@@ -13,6 +13,8 @@
 
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct ID;
 struct ImageUser;
 struct Main;
@@ -88,7 +90,7 @@ struct NodeTreeUpdateExtraParams {
  *   sent notifiers.
  */
 void BKE_ntree_update(Main &bmain,
-                      std::optional<blender::Span<bNodeTree *>> modified_trees = std::nullopt,
+                      std::optional<Span<bNodeTree *>> modified_trees = std::nullopt,
                       const NodeTreeUpdateExtraParams &params = {});
 
 /**
@@ -104,3 +106,5 @@ void BKE_ntree_update_after_single_tree_change(Main &bmain,
  * temporary node tree that is not in bmain.
  */
 void BKE_ntree_update_without_main(bNodeTree &tree);
+
+}  // namespace blender

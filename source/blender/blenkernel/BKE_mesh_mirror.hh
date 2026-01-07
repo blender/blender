@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Main;
 struct Mesh;
 struct MirrorModifierData;
@@ -32,3 +34,5 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                                         bool use_correct_order_on_merge,
                                                         int **r_vert_merge_map,
                                                         int *r_vert_merge_map_len);
+
+}  // namespace blender

@@ -21,12 +21,12 @@ void strip_box(float left,
                float bottom,
                float top,
                float2 pos,
-               out float2 r_pos1,
-               out float2 r_pos2,
-               out float2 r_size,
-               out float2 r_center,
-               out float2 r_pos,
-               out float r_radius)
+               float2 &r_pos1,
+               float2 &r_pos2,
+               float2 &r_size,
+               float2 &r_center,
+               float2 &r_pos,
+               float &r_radius)
 {
   /* Snap to pixel grid coordinates, so that outline/border is non-fractional
    * pixel sizes. */

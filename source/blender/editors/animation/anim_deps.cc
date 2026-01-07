@@ -47,6 +47,8 @@
 
 #include "ANIM_action.hh"
 
+namespace blender {
+
 /* **************************** depsgraph tagging ******************************** */
 
 void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
@@ -142,7 +144,7 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
      */
     if (ob->pose) {
       bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
-      bArmature *arm = static_cast<bArmature *>(ob->data);
+      bArmature *arm = id_cast<bArmature *>(ob->data);
 
       if (pchan) {
         /* if one matches, sync the selection status */
@@ -192,13 +194,13 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
   }
 
   /* Check if this strip is selected. */
-  Editing *ed = blender::seq::editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
   if (ed == nullptr) {
     /* The existence of the F-Curve doesn't imply the existence of the sequencer
      * strip, or even the sequencer itself. */
     return;
   }
-  strip = blender::seq::get_strip_by_name(ed->current_strips(), strip_name, false);
+  strip = seq::get_strip_by_name(ed->current_strips(), strip_name, false);
   if (strip == nullptr) {
     return;
   }
@@ -261,7 +263,7 @@ static void animchan_sync_gplayer(bAnimListElem *ale)
 void ANIM_sync_animchannels_to_data(const bContext *C)
 {
   bAnimContext ac;
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
 
   bActionGroup *active_agrp = nullptr;
@@ -282,23 +284,23 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* flush settings as appropriate depending on the types of the channels */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    switch (ale->type) {
+  for (bAnimListElem &ale : anim_data) {
+    switch (ale.type) {
       case ANIMTYPE_GROUP:
-        animchan_sync_group(&ac, ale, &active_agrp);
+        animchan_sync_group(&ac, &ale, &active_agrp);
         break;
 
       case ANIMTYPE_FCURVE:
-        animchan_sync_fcurve(ale);
+        animchan_sync_fcurve(&ale);
         break;
 
       case ANIMTYPE_GPLAYER:
-        animchan_sync_gplayer(ale);
+        animchan_sync_gplayer(&ale);
         break;
       case ANIMTYPE_GREASE_PENCIL_LAYER: {
         using namespace blender::bke::greasepencil;
-        GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
-        Layer *layer = static_cast<Layer *>(ale->data);
+        GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
+        Layer *layer = static_cast<Layer *>(ale.data);
         layer->set_selected(grease_pencil->is_layer_active(layer));
         break;
       }
@@ -353,33 +355,33 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
   ANIM_animdata_freelist(&anim_data);
 }
 
-void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
+void ANIM_animdata_update(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
 {
-  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
-    if (ale->type == ANIMTYPE_GPLAYER) {
-      bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
+  for (bAnimListElem &ale : *anim_data) {
+    if (ale.type == ANIMTYPE_GPLAYER) {
+      bGPDlayer *gpl = static_cast<bGPDlayer *>(ale.data);
 
-      if (ale->update & ANIM_UPDATE_ORDER) {
-        ale->update &= ~ANIM_UPDATE_ORDER;
+      if (ale.update & ANIM_UPDATE_ORDER) {
+        ale.update &= ~ANIM_UPDATE_ORDER;
         if (gpl) {
           BKE_gpencil_layer_frames_sort(gpl, nullptr);
         }
       }
 
-      if (ale->update & ANIM_UPDATE_DEPS) {
-        ale->update &= ~ANIM_UPDATE_DEPS;
-        ANIM_list_elem_update(ac->bmain, ac->scene, ale);
+      if (ale.update & ANIM_UPDATE_DEPS) {
+        ale.update &= ~ANIM_UPDATE_DEPS;
+        ANIM_list_elem_update(ac->bmain, ac->scene, &ale);
       }
       /* disable handles to avoid crash */
-      if (ale->update & ANIM_UPDATE_HANDLES) {
-        ale->update &= ~ANIM_UPDATE_HANDLES;
+      if (ale.update & ANIM_UPDATE_HANDLES) {
+        ale.update &= ~ANIM_UPDATE_HANDLES;
       }
     }
-    else if (ale->datatype == ALE_MASKLAY) {
-      MaskLayer *masklay = static_cast<MaskLayer *>(ale->data);
+    else if (ale.datatype == ALE_MASKLAY) {
+      MaskLayer *masklay = static_cast<MaskLayer *>(ale.data);
 
-      if (ale->update & ANIM_UPDATE_ORDER) {
-        ale->update &= ~ANIM_UPDATE_ORDER;
+      if (ale.update & ANIM_UPDATE_ORDER) {
+        ale.update &= ~ANIM_UPDATE_ORDER;
         if (masklay) {
           /* While correct & we could enable it: 'posttrans_mask_clean' currently
            * both sorts and removes doubles, so this is not necessary here. */
@@ -387,62 +389,62 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
         }
       }
 
-      if (ale->update & ANIM_UPDATE_DEPS) {
-        ale->update &= ~ANIM_UPDATE_DEPS;
-        ANIM_list_elem_update(ac->bmain, ac->scene, ale);
+      if (ale.update & ANIM_UPDATE_DEPS) {
+        ale.update &= ~ANIM_UPDATE_DEPS;
+        ANIM_list_elem_update(ac->bmain, ac->scene, &ale);
       }
       /* Disable handles to avoid assert. */
-      if (ale->update & ANIM_UPDATE_HANDLES) {
-        ale->update &= ~ANIM_UPDATE_HANDLES;
+      if (ale.update & ANIM_UPDATE_HANDLES) {
+        ale.update &= ~ANIM_UPDATE_HANDLES;
       }
     }
-    else if (ale->datatype == ALE_FCURVE) {
-      FCurve *fcu = static_cast<FCurve *>(ale->key_data);
+    else if (ale.datatype == ALE_FCURVE) {
+      FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
-      if (ale->update & ANIM_UPDATE_ORDER) {
-        ale->update &= ~ANIM_UPDATE_ORDER;
+      if (ale.update & ANIM_UPDATE_ORDER) {
+        ale.update &= ~ANIM_UPDATE_ORDER;
         if (fcu) {
           sort_time_fcurve(fcu);
         }
       }
 
-      if (ale->update & ANIM_UPDATE_HANDLES) {
-        ale->update &= ~ANIM_UPDATE_HANDLES;
+      if (ale.update & ANIM_UPDATE_HANDLES) {
+        ale.update &= ~ANIM_UPDATE_HANDLES;
         if (fcu) {
           BKE_fcurve_handles_recalc(fcu);
         }
       }
 
-      if (ale->update & ANIM_UPDATE_DEPS) {
-        ale->update &= ~ANIM_UPDATE_DEPS;
-        ANIM_list_elem_update(ac->bmain, ac->scene, ale);
+      if (ale.update & ANIM_UPDATE_DEPS) {
+        ale.update &= ~ANIM_UPDATE_DEPS;
+        ANIM_list_elem_update(ac->bmain, ac->scene, &ale);
       }
     }
-    else if (ELEM(ale->type,
+    else if (ELEM(ale.type,
                   ANIMTYPE_ANIMDATA,
                   ANIMTYPE_NLAACTION,
                   ANIMTYPE_NLATRACK,
                   ANIMTYPE_NLACURVE))
     {
-      if (ale->update & ANIM_UPDATE_DEPS) {
-        ale->update &= ~ANIM_UPDATE_DEPS;
-        ANIM_list_elem_update(ac->bmain, ac->scene, ale);
+      if (ale.update & ANIM_UPDATE_DEPS) {
+        ale.update &= ~ANIM_UPDATE_DEPS;
+        ANIM_list_elem_update(ac->bmain, ac->scene, &ale);
       }
     }
-    else if (ELEM(ale->type,
+    else if (ELEM(ale.type,
                   ANIMTYPE_GREASE_PENCIL_LAYER,
                   ANIMTYPE_GREASE_PENCIL_LAYER_GROUP,
                   ANIMTYPE_GREASE_PENCIL_DATABLOCK))
     {
-      if (ale->update & ANIM_UPDATE_DEPS) {
-        ale->update &= ~ANIM_UPDATE_DEPS;
-        ANIM_list_elem_update(ac->bmain, ac->scene, ale);
+      if (ale.update & ANIM_UPDATE_DEPS) {
+        ale.update &= ~ANIM_UPDATE_DEPS;
+        ANIM_list_elem_update(ac->bmain, ac->scene, &ale);
       }
       /* Order appears to be already handled in `grease_pencil_layer_apply_trans_data` when
        * translating. */
-      ale->update &= ~(ANIM_UPDATE_HANDLES | ANIM_UPDATE_ORDER);
+      ale.update &= ~(ANIM_UPDATE_HANDLES | ANIM_UPDATE_ORDER);
     }
-    else if (ale->update) {
+    else if (ale.update) {
 #if 0
       if (G.debug & G_DEBUG) {
         printf("%s: Unhandled animchannel updates (%d) for type=%d (%p)\n",
@@ -453,14 +455,14 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
       }
 #endif
       /* Prevent crashes in cases where it can't be handled */
-      ale->update = eAnim_Update_Flags(0);
+      ale.update = eAnim_Update_Flags(0);
     }
 
-    BLI_assert(ale->update == 0);
+    BLI_assert(ale.update == 0);
   }
 }
 
-void ANIM_animdata_freelist(ListBase *anim_data)
+void ANIM_animdata_freelist(ListBaseT<bAnimListElem> *anim_data)
 {
 #ifndef NDEBUG
   bAnimListElem *ale, *ale_next;
@@ -477,41 +479,39 @@ void ANIM_animdata_freelist(ListBase *anim_data)
 
 void ANIM_deselect_keys_in_animation_editors(bContext *C)
 {
-  using namespace blender;
-
   wmWindow *ctx_window = CTX_wm_window(C);
   ScrArea *ctx_area = CTX_wm_area(C);
   ARegion *ctx_region = CTX_wm_region(C);
 
   Set<bAction *> dna_actions;
-  LISTBASE_FOREACH (wmWindow *, win, &CTX_wm_manager(C)->windows) {
-    bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+  for (wmWindow &win : CTX_wm_manager(C)->windows) {
+    bScreen *screen = BKE_workspace_active_screen_get(win.workspace_hook);
 
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (!ELEM(area->spacetype, SPACE_GRAPH, SPACE_ACTION)) {
+    for (ScrArea &area : screen->areabase) {
+      if (!ELEM(area.spacetype, SPACE_GRAPH, SPACE_ACTION)) {
         continue;
       }
-      ARegion *window_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+      ARegion *window_region = BKE_area_find_region_type(&area, RGN_TYPE_WINDOW);
 
       if (!window_region) {
         continue;
       }
 
-      CTX_wm_window_set(C, win);
-      CTX_wm_area_set(C, area);
+      CTX_wm_window_set(C, &win);
+      CTX_wm_area_set(C, &area);
       CTX_wm_region_set(C, window_region);
       bAnimContext ac;
       if (!ANIM_animdata_get_context(C, &ac)) {
         continue;
       }
-      ListBase anim_data = {nullptr, nullptr};
+      ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
       eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY);
       ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
-      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-        if (!ale->adt || !ale->adt->action) {
+      for (bAnimListElem &ale : anim_data) {
+        if (!ale.adt || !ale.adt->action) {
           continue;
         }
-        dna_actions.add(ale->adt->action);
+        dna_actions.add(ale.adt->action);
       }
       ANIM_animdata_freelist(&anim_data);
     }
@@ -525,3 +525,5 @@ void ANIM_deselect_keys_in_animation_editors(bContext *C)
     animrig::action_deselect_keys(dna_action->wrap());
   }
 }
+
+}  // namespace blender

@@ -10,4 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 [[nodiscard]] PyObject *BPY_app_timers_module();
+
+}  // namespace blender

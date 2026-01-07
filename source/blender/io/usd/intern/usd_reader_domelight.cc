@@ -9,6 +9,8 @@
 #include <pxr/usd/usdLux/domeLight_1.h>
 #include <pxr/usd/usdLux/tokens.h>
 
+namespace blender {
+
 namespace usdtokens {
 // Attribute names.
 static const pxr::TfToken color("color", pxr::TfToken::Immortal);
@@ -17,7 +19,7 @@ static const pxr::TfToken texture_file("texture:file", pxr::TfToken::Immortal);
 static const pxr::TfToken pole_axis("poleAxis", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /**
  * If the given attribute has an authored value, return its value in the r_value
@@ -114,4 +116,5 @@ void USDDomeLightReader::create_object(Scene *scene, Main *bmain)
   dome_light_to_world_material(import_params_, scene, bmain, dome_light_data, prim_);
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

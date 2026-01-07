@@ -22,6 +22,13 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+#define LISTBASE_FOREACH(type, var, list) \
+  for (type var = (type)((list)->first); var != nullptr; var = (type)(((Link *)(var))->next))
+#define LISTBASE_FOREACH_BACKWARD(type, var, list) \
+  for (type var = (type)((list)->last); var != nullptr; var = (type)(((Link *)(var))->prev))
+
+namespace blender {
+
 void BLI_movelisttolist(ListBase *dst, ListBase *src)
 {
   if (src->first == nullptr) {
@@ -33,8 +40,8 @@ void BLI_movelisttolist(ListBase *dst, ListBase *src)
     dst->last = src->last;
   }
   else {
-    ((Link *)dst->last)->next = static_cast<Link *>(src->first);
-    ((Link *)src->first)->prev = static_cast<Link *>(dst->last);
+    (static_cast<Link *>(dst->last))->next = static_cast<Link *>(src->first);
+    (static_cast<Link *>(src->first))->prev = static_cast<Link *>(dst->last);
     dst->last = src->last;
   }
   src->first = src->last = nullptr;
@@ -51,8 +58,8 @@ void BLI_movelisttolist_reverse(ListBase *dst, ListBase *src)
     dst->last = src->last;
   }
   else {
-    ((Link *)src->last)->next = static_cast<Link *>(dst->first);
-    ((Link *)dst->first)->prev = static_cast<Link *>(src->last);
+    (static_cast<Link *>(src->last))->next = static_cast<Link *>(dst->first);
+    (static_cast<Link *>(dst->first))->prev = static_cast<Link *>(src->last);
     dst->first = src->first;
   }
 
@@ -100,7 +107,7 @@ void BLI_addhead(ListBase *listbase, void *vlink)
   link->prev = nullptr;
 
   if (listbase->first) {
-    ((Link *)listbase->first)->prev = link;
+    (static_cast<Link *>(listbase->first))->prev = link;
   }
   if (listbase->last == nullptr) {
     listbase->last = link;
@@ -120,7 +127,7 @@ void BLI_addtail(ListBase *listbase, void *vlink)
   link->prev = static_cast<Link *>(listbase->last);
 
   if (listbase->last) {
-    ((Link *)listbase->last)->next = link;
+    (static_cast<Link *>(listbase->last))->next = link;
   }
   if (listbase->first == nullptr) {
     listbase->first = link;
@@ -389,7 +396,7 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
   if (nextlink == nullptr) {
     newlink->prev = static_cast<Link *>(listbase->last);
     newlink->next = nullptr;
-    ((Link *)listbase->last)->next = newlink;
+    (static_cast<Link *>(listbase->last))->next = newlink;
     listbase->last = newlink;
     return;
   }
@@ -614,7 +621,7 @@ void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
   }
 
   LISTBASE_FOREACH (Link *, link, listbase) {
-    id_iter = ((const char *)link) + offset;
+    id_iter = (reinterpret_cast<const char *>(link)) + offset;
 
     if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
@@ -627,7 +634,7 @@ void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset
 {
   /* Same as #BLI_findstring but find reverse. */
   LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
-    const char *id_iter = ((const char *)link) + offset;
+    const char *id_iter = (reinterpret_cast<const char *>(link)) + offset;
     if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
@@ -639,7 +646,7 @@ void *BLI_listbase_findafter_string(Link *link, const char *id, const int offset
 {
   /* Same as #BLI_findstring but start searching after given link. */
   for (link = link->next; link; link = link->next) {
-    const char *id_iter = ((const char *)link) + offset;
+    const char *id_iter = (reinterpret_cast<const char *>(link)) + offset;
     if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
@@ -655,7 +662,8 @@ void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int off
   LISTBASE_FOREACH (Link *, link, listbase) {
     /* Exact copy of BLI_findstring(), except for this line, and the check for potential nullptr
      * below. */
-    id_iter = *((const char **)(((const char *)link) + offset));
+    id_iter = *(reinterpret_cast<const char **>(
+        const_cast<char *>(((reinterpret_cast<const char *>(link)) + offset))));
     if (id_iter && id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
@@ -672,7 +680,8 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
   LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
     /* Exact copy of BLI_rfindstring(), except for this line, and the check for potential nullptr
      * below. */
-    id_iter = *((const char **)(((const char *)link) + offset));
+    id_iter = *(reinterpret_cast<const char **>(
+        const_cast<char *>(((reinterpret_cast<const char *>(link)) + offset))));
     if (id_iter && id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
@@ -688,7 +697,8 @@ void *BLI_listbase_findafter_string_ptr(Link *link, const char *id, const int of
   for (link = link->next; link; link = link->next) {
     /* Exact copy of BLI_findstring(), except for this line, and the check for potential nullptr
      * below. */
-    id_iter = *((const char **)(((const char *)link) + offset));
+    id_iter = *(reinterpret_cast<const char **>(
+        const_cast<char *>(((reinterpret_cast<const char *>(link)) + offset))));
     if (id_iter && id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
@@ -701,7 +711,8 @@ void *BLI_findptr(const ListBase *listbase, const void *ptr, const int offset)
 {
   LISTBASE_FOREACH (Link *, link, listbase) {
     /* Exact copy of #BLI_findstring(), except for this line. */
-    const void *ptr_iter = *((const void **)(((const char *)link) + offset));
+    const void *ptr_iter = *(reinterpret_cast<const void **>(
+        const_cast<char *>(((reinterpret_cast<const char *>(link)) + offset))));
     if (ptr == ptr_iter) {
       return link;
     }
@@ -713,7 +724,8 @@ void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
   /* Same as #BLI_findptr but find reverse. */
   LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
     /* Exact copy of #BLI_rfindstring(), except for this line. */
-    const void *ptr_iter = *((const void **)(((const char *)link) + offset));
+    const void *ptr_iter = *(reinterpret_cast<const void **>(
+        const_cast<char *>(((reinterpret_cast<const char *>(link)) + offset))));
 
     if (ptr == ptr_iter) {
       return link;
@@ -728,7 +740,8 @@ void *BLI_listbase_bytes_find(const ListBase *listbase,
                               const int offset)
 {
   LISTBASE_FOREACH (Link *, link, listbase) {
-    const void *ptr_iter = (const void *)(((const char *)link) + offset);
+    const void *ptr_iter = static_cast<const void *>((reinterpret_cast<const char *>(link)) +
+                                                     offset);
     if (memcmp(bytes, ptr_iter, bytes_size) == 0) {
       return link;
     }
@@ -743,7 +756,8 @@ void *BLI_listbase_bytes_rfind(const ListBase *listbase,
 {
   /* Same as #BLI_listbase_bytes_find but find reverse. */
   LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
-    const void *ptr_iter = (const void *)(((const char *)link) + offset);
+    const void *ptr_iter = static_cast<const void *>((reinterpret_cast<const char *>(link)) +
+                                                     offset);
     if (memcmp(bytes, ptr_iter, bytes_size) == 0) {
       return link;
     }
@@ -764,7 +778,7 @@ void *BLI_listbase_string_or_index_find(const ListBase *listbase,
        link = link->next, index_iter++)
   {
     if (string != nullptr && string[0] != '\0') {
-      const char *string_iter = ((const char *)link) + string_offset;
+      const char *string_iter = (reinterpret_cast<const char *>(link)) + string_offset;
 
       if (string[0] == string_iter[0] && STREQ(string, string_iter)) {
         return link;
@@ -785,7 +799,7 @@ int BLI_findstringindex(const ListBase *listbase, const char *id, const int offs
 
   link = static_cast<Link *>(listbase->first);
   while (link) {
-    id_iter = ((const char *)link) + offset;
+    id_iter = (reinterpret_cast<const char *>(link)) + offset;
 
     if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return i;
@@ -805,13 +819,13 @@ ListBase BLI_listbase_from_link(Link *some_link)
   }
 
   /* Find the first element. */
-  while (((Link *)list.first)->prev != nullptr) {
-    list.first = ((Link *)list.first)->prev;
+  while ((static_cast<Link *>(list.first))->prev != nullptr) {
+    list.first = (static_cast<Link *>(list.first))->prev;
   }
 
   /* Find the last element. */
-  while (((Link *)list.last)->next != nullptr) {
-    list.last = ((Link *)list.last)->next;
+  while ((static_cast<Link *>(list.last))->next != nullptr) {
+    list.last = (static_cast<Link *>(list.last))->next;
   }
 
   return list;
@@ -855,27 +869,27 @@ void BLI_listbase_reverse(ListBase *lb)
 void BLI_listbase_rotate_first(ListBase *lb, void *vlink)
 {
   /* make circular */
-  ((Link *)lb->first)->prev = static_cast<Link *>(lb->last);
-  ((Link *)lb->last)->next = static_cast<Link *>(lb->first);
+  (static_cast<Link *>(lb->first))->prev = static_cast<Link *>(lb->last);
+  (static_cast<Link *>(lb->last))->next = static_cast<Link *>(lb->first);
 
   lb->first = vlink;
-  lb->last = ((Link *)vlink)->prev;
+  lb->last = (static_cast<Link *>(vlink))->prev;
 
-  ((Link *)lb->first)->prev = nullptr;
-  ((Link *)lb->last)->next = nullptr;
+  (static_cast<Link *>(lb->first))->prev = nullptr;
+  (static_cast<Link *>(lb->last))->next = nullptr;
 }
 
 void BLI_listbase_rotate_last(ListBase *lb, void *vlink)
 {
   /* make circular */
-  ((Link *)lb->first)->prev = static_cast<Link *>(lb->last);
-  ((Link *)lb->last)->next = static_cast<Link *>(lb->first);
+  (static_cast<Link *>(lb->first))->prev = static_cast<Link *>(lb->last);
+  (static_cast<Link *>(lb->last))->next = static_cast<Link *>(lb->first);
 
-  lb->first = ((Link *)vlink)->next;
+  lb->first = (static_cast<Link *>(vlink))->next;
   lb->last = vlink;
 
-  ((Link *)lb->first)->prev = nullptr;
-  ((Link *)lb->last)->next = nullptr;
+  (static_cast<Link *>(lb->first))->prev = nullptr;
+  (static_cast<Link *>(lb->last))->next = nullptr;
 }
 
 bool BLI_listbase_validate(ListBase *lb)
@@ -933,3 +947,5 @@ LinkData *BLI_genericNodeN(void *data)
 
   return ld;
 }
+
+}  // namespace blender

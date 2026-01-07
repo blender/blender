@@ -17,11 +17,13 @@
 
 #include "BLI_map.hh"
 
+namespace blender {
+
 struct BLI_mempool;
 struct ID;
 struct TreeStoreElem;
 
-namespace blender::bke::outliner::treehash {
+namespace bke::outliner::treehash {
 
 /* -------------------------------------------------------------------- */
 
@@ -75,4 +77,5 @@ class TreeHash {
   void fill_treehash(BLI_mempool &treestore);
 };
 
-}  // namespace blender::bke::outliner::treehash
+}  // namespace bke::outliner::treehash
+}  // namespace blender

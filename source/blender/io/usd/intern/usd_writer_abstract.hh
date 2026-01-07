@@ -12,23 +12,21 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdUtils/sparseValueWriter.h>
 
-#include "WM_types.hh"
-
 #include <string>
+
+namespace blender {
 
 struct ID;
 struct IDProperty;
 struct Material;
 struct ReportList;
 
-namespace blender {
 template<typename T> struct Bounds;
-}
 
-namespace blender::io::usd {
+namespace io::usd {
 
-using blender::io::AbstractHierarchyWriter;
-using blender::io::HierarchyContext;
+using io::AbstractHierarchyWriter;
+using io::HierarchyContext;
 
 class USDAbstractWriter : public AbstractHierarchyWriter {
  protected:
@@ -57,10 +55,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   const pxr::SdfPath &usd_path() const;
 
   /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
-  ReportList *reports() const
-  {
-    return usd_export_context_.export_params.worker_status->reports;
-  }
+  ReportList *reports() const;
 
  protected:
   virtual void do_write(HierarchyContext &context) = 0;
@@ -127,4 +122,5 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   void add_to_prim_map(const pxr::SdfPath &usd_path, const ID *id) const;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

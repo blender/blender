@@ -35,14 +35,16 @@
 #include "BKE_attribute_storage.hh"
 #include "BKE_geometry_set.hh"
 
+namespace blender {
+
 struct Object;
 struct Collection;
-namespace blender::bke {
+namespace bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::bke {
+namespace bke {
 
 struct GeometrySet;
 struct AttributeAccessorFunctions;
@@ -286,13 +288,13 @@ inline InstanceReference::Type InstanceReference::type() const
 inline Object &InstanceReference::object() const
 {
   BLI_assert(type_ == Type::Object);
-  return *(Object *)data_;
+  return *static_cast<Object *>(data_);
 }
 
 inline Collection &InstanceReference::collection() const
 {
   BLI_assert(type_ == Type::Collection);
-  return *(Collection *)data_;
+  return *static_cast<Collection *>(data_);
 }
 
 inline GeometrySet &InstanceReference::geometry_set()
@@ -319,4 +321,5 @@ inline const AttributeStorage &Instances::attribute_storage() const
 
 /** \} */
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

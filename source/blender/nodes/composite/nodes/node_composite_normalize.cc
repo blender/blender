@@ -12,9 +12,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** NORMALIZE single channel, useful for Z buffer ******************** */
 
-namespace blender::nodes::node_composite_normalize_cc {
+namespace nodes::node_composite_normalize_cc {
 
 static void cmp_node_normalize_declare(NodeDeclarationBuilder &b)
 {
@@ -105,13 +107,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new NormalizeOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_normalize_cc
+}  // namespace nodes::node_composite_normalize_cc
 
 static void register_node_type_cmp_normalize()
 {
-  namespace file_ns = blender::nodes::node_composite_normalize_cc;
+  namespace file_ns = nodes::node_composite_normalize_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeNormalize", CMP_NODE_NORMALIZE);
   ntype.ui_name = "Normalize";
@@ -122,6 +124,8 @@ static void register_node_type_cmp_normalize()
   ntype.declare = file_ns::cmp_node_normalize_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_normalize)
+
+}  // namespace blender

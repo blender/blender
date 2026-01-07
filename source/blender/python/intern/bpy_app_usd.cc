@@ -19,6 +19,8 @@
 #  include "usd.hh"
 #endif
 
+namespace blender {
+
 static PyTypeObject BlenderAppUSDType;
 
 static PyStructSequence_Field app_usd_info_fields[] = {
@@ -54,7 +56,7 @@ static PyObject *make_usd_info()
 #define SetObjItem(obj) PyStructSequence_SET_ITEM(usd_info, pos++, obj)
 
 #ifdef WITH_USD
-  const int curversion = blender::io::usd::USD_get_version();
+  const int curversion = io::usd::USD_get_version();
   const int major = curversion / 10000;
   const int minor = (curversion / 100) % 100;
   const int patch = curversion % 100;
@@ -89,7 +91,9 @@ PyObject *BPY_app_usd_struct()
   BlenderAppUSDType.tp_init = nullptr;
   BlenderAppUSDType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppUSDType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppUSDType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }
+
+}  // namespace blender

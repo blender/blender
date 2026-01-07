@@ -14,6 +14,8 @@
 
 #include "BLF_api.hh"
 
+namespace blender {
+
 /* call BLF_default_set first! */
 #define ASSERT_DEFAULT_SET BLI_assert(global_font_default != -1)
 
@@ -57,3 +59,5 @@ void BLF_draw_default(
   BLF_position(global_font_default, x, y, z);
   BLF_draw(global_font_default, str, str_len);
 }
+
+}  // namespace blender

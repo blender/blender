@@ -65,7 +65,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const std::string loader_key = fmt::format("import_csv_node_{}", delimiter[0]);
   std::shared_ptr<const LoadCsvCache> cached_value = memory_cache::get_loaded<LoadCsvCache>(
       GenericStringKey{loader_key}, {StringRefNull(*path)}, [&]() {
-        blender::io::csv::CSVImportParams import_params{};
+        io::csv::CSVImportParams import_params{};
         import_params.delimiter = delimiter[0];
         STRNCPY(import_params.filepath, path->c_str());
 
@@ -74,13 +74,13 @@ static void node_geo_exec(GeoNodeExecParams params)
         BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); });
         import_params.reports = &reports;
 
-        PointCloud *pointcloud = blender::io::csv::import_csv_as_pointcloud(import_params);
+        PointCloud *pointcloud = io::csv::import_csv_as_pointcloud(import_params);
 
         auto cached_value = std::make_unique<LoadCsvCache>();
         cached_value->geometry = GeometrySet::from_pointcloud(pointcloud);
 
-        LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
-          cached_value->warnings.append_as(*report);
+        for (Report &report : (import_params.reports)->list) {
+          cached_value->warnings.append_as(report);
         }
         return cached_value;
       });
@@ -94,7 +94,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeImportCSV");
   ntype.ui_name = "Import CSV";
@@ -103,7 +103,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

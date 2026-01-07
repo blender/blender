@@ -34,6 +34,8 @@
 
 #include "particle_edit_utildefines.h"
 
+namespace blender {
+
 /** Only needed this locally. */
 static CLG_LogRef LOG = {"undo.particle"};
 
@@ -220,7 +222,7 @@ static bool particle_undosys_poll(bContext *C)
 static bool particle_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *us_p)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  ParticleUndoStep *us = (ParticleUndoStep *)us_p;
+  ParticleUndoStep *us = reinterpret_cast<ParticleUndoStep *>(us_p);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   us->scene_ref.ptr = CTX_data_scene(C);
   BKE_view_layer_synced_ensure(us->scene_ref.ptr, view_layer);
@@ -235,7 +237,7 @@ static void particle_undosys_step_decode(
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  ParticleUndoStep *us = (ParticleUndoStep *)us_p;
+  ParticleUndoStep *us = reinterpret_cast<ParticleUndoStep *>(us_p);
   Scene *scene = us->scene_ref.ptr;
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -272,7 +274,7 @@ static void particle_undosys_step_decode(
 
 static void particle_undosys_step_free(UndoStep *us_p)
 {
-  ParticleUndoStep *us = (ParticleUndoStep *)us_p;
+  ParticleUndoStep *us = reinterpret_cast<ParticleUndoStep *>(us_p);
   undoptcache_free_data(&us->data);
 }
 
@@ -280,9 +282,9 @@ static void particle_undosys_foreach_ID_ref(UndoStep *us_p,
                                             UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                             void *user_data)
 {
-  ParticleUndoStep *us = (ParticleUndoStep *)us_p;
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->object_ref));
+  ParticleUndoStep *us = reinterpret_cast<ParticleUndoStep *>(us_p);
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->scene_ref)));
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->object_ref)));
 }
 
 void ED_particle_undosys_type(UndoType *ut)
@@ -301,3 +303,5 @@ void ED_particle_undosys_type(UndoType *ut)
 }
 
 /** \} */
+
+}  // namespace blender

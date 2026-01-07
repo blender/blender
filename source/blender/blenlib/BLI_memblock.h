@@ -11,11 +11,13 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 #define BLI_MEM_BLOCK_CHUNK_SIZE (1 << 15) /* 32KiB */
 
 struct BLI_memblock;
 
-typedef struct BLI_memblock BLI_memblock;
+struct BLI_memblock;
 typedef void (*MemblockValFreeFP)(void *val);
 
 BLI_memblock *BLI_memblock_create_ex(uint elem_size, uint chunk_size) ATTR_WARN_UNUSED_RESULT;
@@ -29,7 +31,7 @@ void BLI_memblock_destroy(BLI_memblock *mblk, MemblockValFreeFP free_callback) A
 
 #define BLI_memblock_create(elem_size) BLI_memblock_create_ex(elem_size, BLI_MEM_BLOCK_CHUNK_SIZE)
 
-typedef struct BLI_memblock_iter {
+struct BLI_memblock_iter {
   void **chunk_list;
   int cur_index;
   int end_index;
@@ -37,7 +39,7 @@ typedef struct BLI_memblock_iter {
   int chunk_idx;
   int elem_size;
   int elem_ofs;
-} BLI_memblock_iter;
+};
 
 void BLI_memblock_iternew(BLI_memblock *mblk, BLI_memblock_iter *iter) ATTR_NONNULL();
 void *BLI_memblock_iterstep(BLI_memblock_iter *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -49,3 +51,5 @@ void *BLI_memblock_iterstep(BLI_memblock_iter *iter) ATTR_WARN_UNUSED_RESULT ATT
  */
 void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
+
+}  // namespace blender

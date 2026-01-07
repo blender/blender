@@ -41,6 +41,8 @@
 
 #include "anim_intern.hh"
 
+namespace blender {
+
 /* ************************************************** */
 /* KEYING SETS - OPERATORS (for use in UI panels) */
 /* These operators are really duplication of existing functionality, but just for completeness,
@@ -97,7 +99,7 @@ static wmOperatorStatus add_default_keyingset_exec(bContext *C, wmOperator * /*o
    */
   const eKS_Settings flag = KEYINGSET_ABSOLUTE;
 
-  const eInsertKeyFlags keyingflag = blender::animrig::get_keyframing_flags(scene);
+  const eInsertKeyFlags keyingflag = animrig::get_keyframing_flags(scene);
 
   /* Call the API func, and set the active keyingset index. */
   BKE_keyingset_add(&scene->keyingsets, nullptr, nullptr, flag, keyingflag);
@@ -187,7 +189,7 @@ static wmOperatorStatus add_empty_ks_path_exec(bContext *C, wmOperator *op)
       BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
 
   /* Don't use the API method for this, since that checks on values... */
-  KS_Path *keyingset_path = MEM_callocN<KS_Path>("KeyingSetPath Empty");
+  KS_Path *keyingset_path = MEM_new_for_free<KS_Path>("KeyingSetPath Empty");
   BLI_addtail(&keyingset->paths, keyingset_path);
   keyingset->active_path = BLI_listbase_count(&keyingset->paths);
 
@@ -263,7 +265,7 @@ static wmOperatorStatus add_keyingset_button_exec(bContext *C, wmOperator *op)
   PointerRNA ptr = {};
   int index = 0, pflag = 0;
 
-  if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
+  if (!ui::context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* Pass event on if no active button found. */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
@@ -280,7 +282,7 @@ static wmOperatorStatus add_keyingset_button_exec(bContext *C, wmOperator *op)
      */
     const eKS_Settings flag = KEYINGSET_ABSOLUTE;
 
-    const eInsertKeyFlags keyingflag = blender::animrig::get_keyframing_flags(scene);
+    const eInsertKeyFlags keyingflag = animrig::get_keyframing_flags(scene);
 
     /* Call the API func, and set the active keyingset index. */
     keyingset = BKE_keyingset_add(
@@ -356,7 +358,7 @@ static wmOperatorStatus remove_keyingset_button_exec(bContext *C, wmOperator *op
   PointerRNA ptr = {};
   int index = 0;
 
-  if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
+  if (!ui::context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* Pass event on if no active button found. */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
@@ -429,10 +431,10 @@ static wmOperatorStatus keyingset_active_menu_invoke(bContext *C,
                                                      const wmEvent * /*event*/)
 {
   /* Call the menu, which will call this operator again, hence the canceled. */
-  uiPopupMenu *pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, op->type->name, ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
   layout.op_enum("ANIM_OT_keying_set_active_set", "type");
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }
@@ -587,7 +589,7 @@ int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *keyingset)
 
 static void anim_keyingset_visit_for_search_impl(
     const bContext *C,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn,
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn,
     const bool use_poll)
 {
   /* Poll requires context. */
@@ -607,35 +609,34 @@ static void anim_keyingset_visit_for_search_impl(
 
   /* User-defined Keying Sets. */
   if (scene && scene->keyingsets.first) {
-    LISTBASE_FOREACH (KeyingSet *, keyingset, &scene->keyingsets) {
-      if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, keyingset)) {
+    for (KeyingSet &keyingset : scene->keyingsets) {
+      if (use_poll && !ANIM_keyingset_context_ok_poll(const_cast<bContext *>(C), &keyingset)) {
         continue;
       }
       StringPropertySearchVisitParams visit_params{};
-      visit_params.text = keyingset->idname;
-      visit_params.info = keyingset->name;
+      visit_params.text = keyingset.idname;
+      visit_params.info = keyingset.name;
       visit_fn(visit_params);
     }
   }
 
   /* Builtin Keying Sets. */
-  LISTBASE_FOREACH (KeyingSet *, keyingset, &builtin_keyingsets) {
-    if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, keyingset)) {
+  for (KeyingSet &keyingset : builtin_keyingsets) {
+    if (use_poll && !ANIM_keyingset_context_ok_poll(const_cast<bContext *>(C), &keyingset)) {
       continue;
     }
     StringPropertySearchVisitParams visit_params{};
-    visit_params.text = keyingset->idname;
-    visit_params.info = keyingset->name;
+    visit_params.text = keyingset.idname;
+    visit_params.info = keyingset.name;
     visit_fn(visit_params);
   }
 }
 
-void ANIM_keyingset_visit_for_search(
-    const bContext *C,
-    PointerRNA * /*ptr*/,
-    PropertyRNA * /*prop*/,
-    const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+void ANIM_keyingset_visit_for_search(const bContext *C,
+                                     PointerRNA * /*ptr*/,
+                                     PropertyRNA * /*prop*/,
+                                     const char * /*edit_text*/,
+                                     FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   anim_keyingset_visit_for_search_impl(C, visit_fn, false);
 }
@@ -645,7 +646,7 @@ void ANIM_keyingset_visit_for_search_no_poll(
     PointerRNA * /*ptr*/,
     PropertyRNA * /*prop*/,
     const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   anim_keyingset_visit_for_search_impl(C, visit_fn, true);
 }
@@ -717,7 +718,7 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *keyingset)
     return true;
   }
 
-  KeyingSetInfo *keyingset_info = blender::animrig::keyingset_info_find_name(keyingset->typeinfo);
+  KeyingSetInfo *keyingset_info = animrig::keyingset_info_find_name(keyingset->typeinfo);
 
   /* Get the associated 'type info' for this KeyingSet. */
   if (keyingset_info == nullptr) {
@@ -728,3 +729,5 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *keyingset)
   /* Check if it can be used in the current context. */
   return keyingset_info->poll(keyingset_info, C);
 }
+
+}  // namespace blender

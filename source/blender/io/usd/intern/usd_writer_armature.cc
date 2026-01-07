@@ -14,6 +14,7 @@
 #include "BKE_action.hh"
 
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
 
 #include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/matrix4f.h>
@@ -24,6 +25,9 @@
 #include <pxr/usd/usdSkel/utils.h>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 /**
@@ -52,7 +56,7 @@ static pxr::GfMatrix4d parent_relative_pose_mat(const bPoseChannel *pchan)
 static void initialize(const Object *obj,
                        pxr::UsdSkelSkeleton &skel,
                        pxr::UsdSkelAnimation &skel_anim,
-                       const blender::Map<blender::StringRef, const Bone *> *deform_bones,
+                       const Map<StringRef, const Bone *> *deform_bones,
                        bool allow_unicode)
 {
   using namespace blender::io::usd;
@@ -118,13 +122,13 @@ static void initialize(const Object *obj,
   }
 }
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /* Add skeleton transform samples from the armature pose channels. */
 static void add_anim_sample(pxr::UsdSkelAnimation &skel_anim,
                             const Object *obj,
                             const pxr::UsdTimeCode time,
-                            const blender::Map<blender::StringRef, const Bone *> *deform_map,
+                            const Map<StringRef, const Bone *> *deform_map,
                             pxr::UsdUtilsSparseValueWriter &value_writer)
 {
   if (!(skel_anim && obj && obj->pose)) {
@@ -135,17 +139,17 @@ static void add_anim_sample(pxr::UsdSkelAnimation &skel_anim,
 
   const bPose *pose = obj->pose;
 
-  LISTBASE_FOREACH (const bPoseChannel *, pchan, &pose->chanbase) {
+  for (const bPoseChannel &pchan : pose->chanbase) {
 
-    BLI_assert(pchan->bone);
+    BLI_assert(pchan.bone);
 
-    if (deform_map && !deform_map->contains(pchan->bone->name)) {
+    if (deform_map && !deform_map->contains(pchan.bone->name)) {
       /* If deform_map is passed in, assume we're going deform-only.
        * Bones not found in the map should be skipped. */
       continue;
     }
 
-    xforms.push_back(parent_relative_pose_mat(pchan));
+    xforms.push_back(parent_relative_pose_mat(&pchan));
   }
 
   /* Perform the same steps as UsdSkelAnimation::SetTransforms but write data out sparsely. */
@@ -228,4 +232,5 @@ bool USDArmatureWriter::check_is_animated(const HierarchyContext &context) const
   return obj->adt != nullptr;
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

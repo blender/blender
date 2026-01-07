@@ -27,7 +27,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_dilate_cc {
+namespace blender {
+
+namespace nodes::node_composite_dilate_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_DILATE_ERODE_STEP, "STEP", 0, N_("Steps"), ""},
@@ -68,7 +70,7 @@ static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_dilateerode(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused but kept for forward compatibility. */
-  NodeDilateErode *data = MEM_callocN<NodeDilateErode>(__func__);
+  NodeDilateErode *data = MEM_new_for_free<NodeDilateErode>(__func__);
   node->storage = data;
 }
 
@@ -540,28 +542,23 @@ class DilateErodeOperation : public NodeOperation {
    * sign indicates either dilation or erosion, where negative values means erosion. */
   int get_size()
   {
-    return this->get_input("Size").get_single_value_default(0);
+    return this->get_input("Size").get_single_value_default<int>();
   }
 
   float get_falloff_size()
   {
-    return math::max(0.0f, this->get_input("Falloff Size").get_single_value_default(0.0f));
+    return math::max(0.0f, this->get_input("Falloff Size").get_single_value_default<float>());
   }
 
   CMPNodeDilateErodeMethod get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_DILATE_ERODE_STEP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeDilateErodeMethod>(menu_value.value);
+    return CMPNodeDilateErodeMethod(
+        this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 
   int get_falloff()
   {
-    const Result &input = this->get_input("Falloff");
-    const MenuValue default_menu_value = MenuValue(PROP_SMOOTH);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return menu_value.value;
+    return this->get_input("Falloff").get_single_value_default<MenuValue>().value;
   }
 };
 
@@ -570,13 +567,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new DilateErodeOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_dilate_cc
+}  // namespace nodes::node_composite_dilate_cc
 
 static void register_node_type_cmp_dilateerode()
 {
-  namespace file_ns = blender::nodes::node_composite_dilate_cc;
+  namespace file_ns = nodes::node_composite_dilate_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDilateErode", CMP_NODE_DILATEERODE);
   ntype.ui_name = "Dilate/Erode";
@@ -585,10 +582,12 @@ static void register_node_type_cmp_dilateerode()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_dilate_declare;
   ntype.initfunc = file_ns::node_composit_init_dilateerode;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_dilateerode)
+
+}  // namespace blender

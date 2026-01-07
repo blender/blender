@@ -81,7 +81,7 @@ void FillDataMesh::execute(Object &object,
                            const GroupedSpan<int> vert_to_face_map,
                            FunctionRef<bool(int from_v, int to_v)> func)
 {
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  Mesh &mesh = *id_cast<Mesh *>(object.data);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const bke::AttributeAccessor attributes = mesh.attributes();

@@ -25,9 +25,11 @@
 #include "FX_shader_types.hh"
 #include "FX_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *fx)
 {
-  RimShaderFxData *gpfx = (RimShaderFxData *)fx;
+  RimShaderFxData *gpfx = reinterpret_cast<RimShaderFxData *>(fx);
   ARRAY_SET_ITEMS(gpfx->offset, 50, -100);
   ARRAY_SET_ITEMS(gpfx->rim_rgb, 1.0f, 1.0f, 0.5f);
   ARRAY_SET_ITEMS(gpfx->mask_rgb, 0.0f, 0.0f, 0.0f);
@@ -44,7 +46,7 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
@@ -55,7 +57,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "mode", UI_ITEM_NONE, IFACE_("Blend Mode"), ICON_NONE);
 
   /* Add the X, Y labels manually because offset is a #PROP_PIXEL. */
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "offset");
   col.prop(ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Offset X"), ICON_NONE);
   col.prop(ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
@@ -65,14 +67,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void blur_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
   /* Add the X, Y labels manually because blur is a #PROP_PIXEL. */
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "blur");
   col.prop(ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Blur X"), ICON_NONE);
   col.prop(ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
@@ -89,7 +91,7 @@ static void panel_register(ARegionType *region_type)
 static void foreach_working_space_color(ShaderFxData *fx,
                                         const IDTypeForeachColorFunctionCallback &fn)
 {
-  RimShaderFxData *gpfx = (RimShaderFxData *)fx;
+  RimShaderFxData *gpfx = reinterpret_cast<RimShaderFxData *>(fx);
   fn.single(gpfx->rim_rgb);
   fn.single(gpfx->mask_rgb);
 }
@@ -112,3 +114,5 @@ ShaderFxTypeInfo shaderfx_Type_Rim = {
     /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

@@ -53,6 +53,8 @@
 
 #include "itasc_plugin.h"
 
+namespace blender {
+
 /* default parameters */
 static bItasc DefIKParam;
 
@@ -229,7 +231,7 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
   bKinematicConstraint *data;
   int a, t, segcount = 0, size, newsize, *oldparent, parent, rootbone, treecount;
 
-  data = (bKinematicConstraint *)con->data;
+  data = static_cast<bKinematicConstraint *>(con->data);
 
   /* exclude tip from chain? */
   if (!(data->flag & CONSTRAINT_IK_TIP)) {
@@ -284,7 +286,7 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
   target->con = con;
   /* by construction there can be only one tree per channel
    * and each channel can be part of at most one tree. */
-  tree = (PoseTree *)pchan_root->iktree.first;
+  tree = static_cast<PoseTree *>(pchan_root->iktree.first);
 
   if (tree == nullptr) {
     /* make new tree */
@@ -385,7 +387,7 @@ static bool is_cartesian_constraint(bConstraint * /*con*/)
 
 static bool constraint_valid(bConstraint *con)
 {
-  bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+  bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
 
   if (data->flag & CONSTRAINT_IK_AUTO) {
     return true;
@@ -409,10 +411,10 @@ static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 {
   /* Find all IK constraints and validate them. */
   int treecount = 0;
-  LISTBASE_FOREACH (bConstraint *, con, &pchan_tip->constraints) {
-    if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-      if (constraint_valid(con)) {
-        treecount += initialize_chain(ob, pchan_tip, con);
+  for (bConstraint &con : pchan_tip->constraints) {
+    if (con.type == CONSTRAINT_TYPE_KINEMATIC) {
+      if (constraint_valid(&con)) {
+        treecount += initialize_chain(ob, pchan_tip, &con);
       }
     }
   }
@@ -422,7 +424,7 @@ static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 static IK_Data *get_ikdata(bPose *pose)
 {
   if (pose->ikdata) {
-    return (IK_Data *)pose->ikdata;
+    return static_cast<IK_Data *>(pose->ikdata);
   }
   pose->ikdata = MEM_callocN<IK_Data>("iTaSC ikdata");
   /* here init ikdata if needed
@@ -431,7 +433,7 @@ static IK_Data *get_ikdata(bPose *pose)
     BKE_pose_itasc_init(&DefIKParam);
   }
 
-  return (IK_Data *)pose->ikdata;
+  return static_cast<IK_Data *>(pose->ikdata);
 }
 static double EulerAngleFromMatrix(const KDL::Rotation &R, int axis)
 {
@@ -569,7 +571,7 @@ static bool target_callback(const iTaSC::Timestamp & /*timestamp*/,
                             iTaSC::Frame &next,
                             void *param)
 {
-  IK_Target *target = (IK_Target *)param;
+  IK_Target *target = static_cast<IK_Target *>(param);
   /* compute next target position
    * get target matrix from constraint. */
   bConstraint *constraint = target->blenderConstraint;
@@ -614,7 +616,7 @@ static bool base_callback(const iTaSC::Timestamp &timestamp,
                           iTaSC::Frame &next,
                           void *param)
 {
-  IK_Scene *ikscene = (IK_Scene *)param;
+  IK_Scene *ikscene = static_cast<IK_Scene *>(param);
   /* compute next armature base pose
    * algorithm:
    * ikscene->pchan[0] is the root channel of the tree
@@ -645,7 +647,8 @@ static bool base_callback(const iTaSC::Timestamp &timestamp,
     float polemat[4][4]; /* polar target in IK tree base frame */
     float goalmat[4][4]; /* target in IK tree base frame */
     float mat[4][4];     /* temp matrix */
-    bKinematicConstraint *poledata = (bKinematicConstraint *)ikscene->polarConstraint->data;
+    bKinematicConstraint *poledata = static_cast<bKinematicConstraint *>(
+        ikscene->polarConstraint->data);
 
     invert_m4_m4(imat, rootmat);
     /* polar constraint imply only one target */
@@ -718,10 +721,11 @@ static bool copypose_callback(const iTaSC::Timestamp & /*timestamp*/,
                               uint /*nvalues*/,
                               void *_param)
 {
-  IK_Target *iktarget = (IK_Target *)_param;
-  bKinematicConstraint *condata = (bKinematicConstraint *)iktarget->blenderConstraint->data;
+  IK_Target *iktarget = static_cast<IK_Target *>(_param);
+  bKinematicConstraint *condata = static_cast<bKinematicConstraint *>(
+      iktarget->blenderConstraint->data);
   iTaSC::ConstraintValues *values = _values;
-  bItasc *ikparam = (bItasc *)iktarget->owner->pose->ikparam;
+  bItasc *ikparam = static_cast<bItasc *>(iktarget->owner->pose->ikparam);
 
   /* we need default parameters */
   if (!ikparam) {
@@ -790,10 +794,11 @@ static bool distance_callback(const iTaSC::Timestamp &timestamp,
                               uint /*nvalues*/,
                               void *_param)
 {
-  IK_Target *iktarget = (IK_Target *)_param;
-  bKinematicConstraint *condata = (bKinematicConstraint *)iktarget->blenderConstraint->data;
+  IK_Target *iktarget = static_cast<IK_Target *>(_param);
+  bKinematicConstraint *condata = static_cast<bKinematicConstraint *>(
+      iktarget->blenderConstraint->data);
   iTaSC::ConstraintValues *values = _values;
-  bItasc *ikparam = (bItasc *)iktarget->owner->pose->ikparam;
+  bItasc *ikparam = static_cast<bItasc *>(iktarget->owner->pose->ikparam);
   /* we need default parameters */
   if (!ikparam) {
     ikparam = &DefIKParam;
@@ -848,8 +853,8 @@ static bool joint_callback(const iTaSC::Timestamp & /*timestamp*/,
                            uint _nvalues,
                            void *_param)
 {
-  IK_Channel *ikchan = (IK_Channel *)_param;
-  bItasc *ikparam = (bItasc *)ikchan->owner->pose->ikparam;
+  IK_Channel *ikchan = static_cast<IK_Channel *>(_param);
+  bItasc *ikparam = static_cast<bItasc *>(ikchan->owner->pose->ikparam);
   bPoseChannel *chan = ikchan->pchan;
   int dof;
 
@@ -1140,7 +1145,7 @@ static void BKE_pose_rest(IK_Scene *ikscene)
 static IK_Scene *convert_tree(
     Depsgraph *depsgraph, Scene *blscene, Object *ob, bPoseChannel *pchan, float ctime)
 {
-  PoseTree *tree = (PoseTree *)pchan->iktree.first;
+  PoseTree *tree = static_cast<PoseTree *>(pchan->iktree.first);
   PoseTarget *target;
   bKinematicConstraint *condata;
   bConstraint *polarcon;
@@ -1171,7 +1176,7 @@ static IK_Scene *convert_tree(
   ikscene->numchan = tree->totchannel;
   ikscene->armature = arm;
   ikscene->scene = scene;
-  ikparam = (bItasc *)ob->pose->ikparam;
+  ikparam = static_cast<bItasc *>(ob->pose->ikparam);
 
   if (!ikparam) {
     /* you must have our own copy */
@@ -1441,11 +1446,14 @@ static IK_Scene *convert_tree(
     return nullptr;
   }
   /* for each target, we need to add an end effector in the armature */
-  for (numtarget = 0, polarcon = nullptr, ret = true, target = (PoseTarget *)tree->targets.first;
+  for (numtarget = 0,
+      polarcon = nullptr,
+      ret = true,
+      target = static_cast<PoseTarget *>(tree->targets.first);
        target;
        target = target->next)
   {
-    condata = (bKinematicConstraint *)target->con->data;
+    condata = static_cast<bKinematicConstraint *>(target->con->data);
     pchan = tree->pchan[target->tip];
 
     if (is_cartesian_constraint(target->con)) {
@@ -1528,7 +1536,7 @@ static IK_Scene *convert_tree(
     IK_Target *iktarget = ikscene->targets[t];
     iktarget->blscene = blscene;
     iktarget->bldepsgraph = depsgraph;
-    condata = (bKinematicConstraint *)iktarget->blenderConstraint->data;
+    condata = static_cast<bKinematicConstraint *>(iktarget->blenderConstraint->data);
     pchan = tree->pchan[iktarget->channel];
     uint controltype, bone_count;
     double bone_length;
@@ -1649,20 +1657,20 @@ static IK_Scene *convert_tree(
 static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
 {
   /* create the IK scene */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+  for (bPoseChannel &pchan : ob->pose->chanbase) {
     /* by construction there is only one tree */
-    PoseTree *tree = (PoseTree *)pchan->iktree.first;
+    PoseTree *tree = (PoseTree *)pchan.iktree.first;
     if (tree) {
       IK_Data *ikdata = get_ikdata(ob->pose);
       /* convert tree in iTaSC::Scene */
-      IK_Scene *ikscene = convert_tree(depsgraph, scene, ob, pchan, ctime);
+      IK_Scene *ikscene = convert_tree(depsgraph, scene, ob, &pchan, ctime);
       if (ikscene) {
         ikscene->next = ikdata->first;
         ikdata->first = ikscene;
       }
       /* delete the trees once we are done */
       while (tree) {
-        BLI_remlink(&pchan->iktree, tree);
+        BLI_remlink(&pchan.iktree, tree);
         BLI_freelistN(&tree->targets);
         if (tree->pchan) {
           MEM_freeN(tree->pchan);
@@ -1674,7 +1682,7 @@ static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float c
           MEM_freeN(tree->basis_change);
         }
         MEM_freeN(tree);
-        tree = (PoseTree *)pchan->iktree.first;
+        tree = (PoseTree *)pchan.iktree.first;
       }
     }
   }
@@ -1688,7 +1696,9 @@ static int init_scene(Object *ob)
   IK_Scene *scene;
 
   if (ob->pose->ikdata) {
-    for (scene = ((IK_Data *)ob->pose->ikdata)->first; scene != nullptr; scene = scene->next) {
+    for (scene = (static_cast<IK_Data *>(ob->pose->ikdata))->first; scene != nullptr;
+         scene = scene->next)
+    {
       if (fabs(scene->blScale - scale) > KDL::epsilon) {
         return 1;
       }
@@ -1894,9 +1904,9 @@ void itasc_initialize_tree(Depsgraph *depsgraph, Scene *scene, Object *ob, float
   itasc_clear_data(ob->pose);
   /* we should handle all the constraint and mark them all disabled
    * for blender but we'll start with the IK constraint alone */
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    if (pchan->constflag & PCHAN_HAS_IK) {
-      count += initialize_scene(ob, pchan);
+  for (bPoseChannel &pchan : ob->pose->chanbase) {
+    if (pchan.constflag & PCHAN_HAS_IK) {
+      count += initialize_scene(ob, &pchan);
     }
   }
   /* if at least one tree, create the scenes from the PoseTree stored in the channels
@@ -1913,8 +1923,8 @@ void itasc_execute_tree(
     Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
 {
   if (ob->pose->ikdata) {
-    IK_Data *ikdata = (IK_Data *)ob->pose->ikdata;
-    bItasc *ikparam = (bItasc *)ob->pose->ikparam;
+    IK_Data *ikdata = static_cast<IK_Data *>(ob->pose->ikdata);
+    bItasc *ikparam = static_cast<bItasc *>(ob->pose->ikparam);
     /* we need default parameters */
     if (!ikparam) {
       ikparam = &DefIKParam;
@@ -1938,7 +1948,7 @@ void itasc_release_tree(Scene * /*scene*/, Object * /*ob*/, float /*ctime*/)
 void itasc_clear_data(bPose *pose)
 {
   if (pose->ikdata) {
-    IK_Data *ikdata = (IK_Data *)pose->ikdata;
+    IK_Data *ikdata = static_cast<IK_Data *>(pose->ikdata);
     for (IK_Scene *scene = ikdata->first; scene; scene = ikdata->first) {
       ikdata->first = scene->next;
       delete scene;
@@ -1951,7 +1961,7 @@ void itasc_clear_data(bPose *pose)
 void itasc_clear_cache(bPose *pose)
 {
   if (pose->ikdata) {
-    IK_Data *ikdata = (IK_Data *)pose->ikdata;
+    IK_Data *ikdata = static_cast<IK_Data *>(pose->ikdata);
     for (IK_Scene *scene = ikdata->first; scene; scene = scene->next) {
       if (scene->cache) {
         /* clear all cache but leaving the timestamp 0 (=rest pose) */
@@ -1964,8 +1974,8 @@ void itasc_clear_cache(bPose *pose)
 void itasc_update_param(bPose *pose)
 {
   if (pose->ikdata && pose->ikparam) {
-    IK_Data *ikdata = (IK_Data *)pose->ikdata;
-    bItasc *ikparam = (bItasc *)pose->ikparam;
+    IK_Data *ikdata = static_cast<IK_Data *>(pose->ikdata);
+    bItasc *ikparam = static_cast<bItasc *>(pose->ikparam);
     for (IK_Scene *ikscene = ikdata->first; ikscene; ikscene = ikscene->next) {
       double armlength = ikscene->armature->getArmLength();
       ikscene->solver->setParam(iTaSC::Solver::DLS_LAMBDA_MAX, ikparam->dampmax * armlength);
@@ -1992,7 +2002,7 @@ void itasc_update_param(bPose *pose)
 
 void itasc_test_constraint(Object * /*ob*/, bConstraint *cons)
 {
-  bKinematicConstraint *data = (bKinematicConstraint *)cons->data;
+  bKinematicConstraint *data = static_cast<bKinematicConstraint *>(cons->data);
 
   /* only for IK constraint */
   if (cons->type != CONSTRAINT_TYPE_KINEMATIC || data == nullptr) {
@@ -2008,3 +2018,5 @@ void itasc_test_constraint(Object * /*ob*/, bConstraint *cons)
 }
 
 /** \} */
+
+}  // namespace blender

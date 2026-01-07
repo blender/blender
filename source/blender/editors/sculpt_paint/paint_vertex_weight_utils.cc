@@ -36,6 +36,8 @@
 
 #include "paint_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Weight Paint Sanity Checks
  * \{ */
@@ -67,13 +69,13 @@ bool ED_wpaint_ensure_data(bContext *C,
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
   }
 
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
 
   /* this happens on a Bone select, when no vgroup existed yet */
   if (mesh->vertex_group_active_index <= 0) {
     Object *modob;
     if ((modob = BKE_modifiers_is_deformed_by_armature(ob))) {
-      Bone *actbone = ((bArmature *)modob->data)->act_bone;
+      Bone *actbone = (id_cast<bArmature *>(modob->data))->act_bone;
       if (actbone) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(modob->pose, actbone->name);
 
@@ -124,7 +126,7 @@ bool ED_wpaint_ensure_data(bContext *C,
 
 int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 {
-  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   bDeformGroup *defgroup = static_cast<bDeformGroup *>(BLI_findlink(defbase, vgroup_active));
 
   if (defgroup) {
@@ -269,7 +271,7 @@ float ED_wpaint_blend_tool(const int tool,
                            const float paintval,
                            const float alpha)
 {
-  switch ((IMB_BlendMode)tool) {
+  switch (IMB_BlendMode(tool)) {
     case IMB_BLEND_MIX:
       return wval_blend(weight, paintval, alpha);
     case IMB_BLEND_ADD:
@@ -304,3 +306,5 @@ float ED_wpaint_blend_tool(const int tool,
 }
 
 /** \} */
+
+}  // namespace blender

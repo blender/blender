@@ -10,14 +10,7 @@
 
 #include "DNA_listBase.h"
 
-struct PaintSurfaceData;
-
-/* surface format */
-enum {
-  MOD_DPAINT_SURFACE_F_PTEX = 0,
-  MOD_DPAINT_SURFACE_F_VERTEX = 1,
-  MOD_DPAINT_SURFACE_F_IMAGESEQ = 2,
-};
+namespace blender {
 
 /* surface type */
 enum {
@@ -72,78 +65,11 @@ enum {
   MOD_DPAINT_INITIAL_VERTEXCOLOR = 3,
 };
 
-typedef struct DynamicPaintSurface {
-
-  struct DynamicPaintSurface *next, *prev;
-  /** For fast RNA access. */
-  struct DynamicPaintCanvasSettings *canvas;
-  struct PaintSurfaceData *data;
-
-  struct Collection *brush_group;
-  struct EffectorWeights *effector_weights;
-
-  /* cache */
-  struct PointCache *pointcache;
-  struct ListBase ptcaches;
-  int current_frame;
-
-  /* surface */
-  char name[64];
-  short format, type;
-  short disp_type, image_fileformat;
-  /** Ui selection box. */
-  short effect_ui;
-  short init_color_type;
-  int flags, effect;
-
-  int image_resolution, substeps;
-  int start_frame, end_frame;
-
-  /* initial color */
-  float init_color[4];
-  struct Tex *init_texture;
-  char init_layername[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-
-  int dry_speed, diss_speed;
-  float color_dry_threshold;
-  float depth_clamp, disp_factor;
-
-  float spread_speed, color_spread_speed, shrink_speed;
-  float drip_vel, drip_acc;
-
-  /* per surface brush settings */
-  float influence_scale, radius_scale;
-
-  /* wave settings */
-  float wave_damping, wave_speed, wave_timescale, wave_spring, wave_smoothness;
-  char _pad2[4];
-
-  char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-  char image_output_path[/*FILE_MAX*/ 1024];
-  char output_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-  char output_name2[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-
-} DynamicPaintSurface;
-
 /* canvas flags */
 enum {
   /** surface is already baking, so it won't get updated (loop) */
   MOD_DPAINT_BAKING = 1 << 1,
 };
-
-/* Canvas settings */
-typedef struct DynamicPaintCanvasSettings {
-  /** For fast RNA access. */
-  struct DynamicPaintModifierData *pmd;
-
-  struct ListBase surfaces;
-  short active_sur, flags;
-  char _pad[4];
-
-  /** Bake error description. */
-  char error[64];
-
-} DynamicPaintCanvasSettings;
 
 /* flags */
 enum {
@@ -208,10 +134,84 @@ enum {
   MOD_DPAINT_RAY_ZPLUS = 2,
 };
 
-/* Brush settings */
-typedef struct DynamicPaintBrushSettings {
+struct PaintSurfaceData;
+
+/* surface format */
+enum {
+  MOD_DPAINT_SURFACE_F_PTEX = 0,
+  MOD_DPAINT_SURFACE_F_VERTEX = 1,
+  MOD_DPAINT_SURFACE_F_IMAGESEQ = 2,
+};
+
+struct DynamicPaintSurface {
+
+  struct DynamicPaintSurface *next = nullptr, *prev = nullptr;
   /** For fast RNA access. */
-  struct DynamicPaintModifierData *pmd;
+  struct DynamicPaintCanvasSettings *canvas = nullptr;
+  struct PaintSurfaceData *data = nullptr;
+
+  struct Collection *brush_group = nullptr;
+  struct EffectorWeights *effector_weights = nullptr;
+
+  /* cache */
+  struct PointCache *pointcache = nullptr;
+  ListBaseT<PointCache> ptcaches = {nullptr, nullptr};
+  int current_frame = 0;
+
+  /* surface */
+  char name[64] = "";
+  short format = 0, type = 0;
+  short disp_type = 0, image_fileformat = 0;
+  /** Ui selection box. */
+  short effect_ui = 0;
+  short init_color_type = 0;
+  int flags = 0, effect = 0;
+
+  int image_resolution = 0, substeps = 0;
+  int start_frame = 0, end_frame = 0;
+
+  /* initial color */
+  float init_color[4] = {};
+  struct Tex *init_texture = nullptr;
+  char init_layername[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68] = "";
+
+  int dry_speed = 0, diss_speed = 0;
+  float color_dry_threshold = 0;
+  float depth_clamp = 0, disp_factor = 0;
+
+  float spread_speed = 0, color_spread_speed = 0, shrink_speed = 0;
+  float drip_vel = 0, drip_acc = 0;
+
+  /* per surface brush settings */
+  float influence_scale = 0, radius_scale = 0;
+
+  /* wave settings */
+  float wave_damping = 0, wave_speed = 0, wave_timescale = 0, wave_spring = 0, wave_smoothness = 0;
+  char _pad2[4] = {};
+
+  char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68] = "";
+  char image_output_path[/*FILE_MAX*/ 1024] = "";
+  char output_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68] = "";
+  char output_name2[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68] = "";
+};
+
+/* Canvas settings */
+struct DynamicPaintCanvasSettings {
+  /** For fast RNA access. */
+  struct DynamicPaintModifierData *pmd = nullptr;
+
+  ListBaseT<DynamicPaintSurface> surfaces = {nullptr, nullptr};
+  short active_sur = 0, flags = 0;
+  char _pad[4] = {};
+
+  /** Bake error description. */
+  char error[64] = "";
+};
+
+/* Brush settings */
+struct DynamicPaintBrushSettings {
+  /** For fast RNA access. */
+  struct DynamicPaintModifierData *pmd = nullptr;
 
   /**
    * \note Storing the particle system pointer here is very weak, as it prevents modifiers' data
@@ -219,28 +219,30 @@ typedef struct DynamicPaintBrushSettings {
    * when the modifier data is copied from one object to another). See e.g.
    * `BKE_object_copy_particlesystems` or `BKE_object_copy_modifier`.
    */
-  struct ParticleSystem *psys;
+  struct ParticleSystem *psys = nullptr;
 
-  int flags;
-  int collision;
+  int flags = 0;
+  int collision = 0;
 
-  float r, g, b, alpha;
-  float wetness;
+  float r = 0, g = 0, b = 0, alpha = 0;
+  float wetness = 0;
 
-  float particle_radius, particle_smooth;
-  float paint_distance;
+  float particle_radius = 0, particle_smooth = 0;
+  float paint_distance = 0;
 
   /* color ramps */
   /** Proximity paint falloff. */
-  struct ColorBand *paint_ramp;
+  struct ColorBand *paint_ramp = nullptr;
   /** Velocity paint ramp. */
-  struct ColorBand *vel_ramp;
+  struct ColorBand *vel_ramp = nullptr;
 
-  short proximity_falloff;
-  short wave_type;
-  short ray_dir;
-  char _pad[2];
+  short proximity_falloff = 0;
+  short wave_type = 0;
+  short ray_dir = 0;
+  char _pad[2] = {};
 
-  float wave_factor, wave_clamp;
-  float max_velocity, smudge_strength;
-} DynamicPaintBrushSettings;
+  float wave_factor = 0, wave_clamp = 0;
+  float max_velocity = 0, smudge_strength = 0;
+};
+
+}  // namespace blender

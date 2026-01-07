@@ -126,7 +126,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(file_path.c_str(), 0, &buffer_len);
   if (buffer != nullptr) {
-    res.assign((const char *)buffer, buffer_len);
+    res.assign(static_cast<const char *>(buffer), buffer_len);
     MEM_freeN(buffer);
   }
   return res;
@@ -296,7 +296,7 @@ class OBJExportRegressionTest : public OBJExportTest {
     std::string out_file_path = tempdir + BLI_path_basename(golden_obj.c_str());
     STRNCPY(params.filepath, out_file_path.c_str());
     params.blen_filepath = bfile->main->filepath;
-    std::string golden_file_path = blender::tests::flags_test_asset_dir() + SEP_STR + golden_obj;
+    std::string golden_file_path = tests::flags_test_asset_dir() + SEP_STR + golden_obj;
     BLI_path_split_dir_part(
         golden_file_path.c_str(), params.file_base_for_tests, sizeof(params.file_base_for_tests));
     export_frame(depsgraph, params, out_file_path.c_str());
@@ -317,8 +317,7 @@ class OBJExportRegressionTest : public OBJExportTest {
     if (!golden_mtl.empty()) {
       std::string out_mtl_file_path = tempdir + BLI_path_basename(golden_mtl.c_str());
       std::string output_mtl_str = read_temp_file_in_string(out_mtl_file_path);
-      std::string golden_mtl_file_path = blender::tests::flags_test_asset_dir() + SEP_STR +
-                                         golden_mtl;
+      std::string golden_mtl_file_path = tests::flags_test_asset_dir() + SEP_STR + golden_mtl;
       std::string golden_mtl_str = read_temp_file_in_string(golden_mtl_file_path);
       are_equal = strings_equal_after_first_lines(output_mtl_str, golden_mtl_str);
       if (!are_equal) {

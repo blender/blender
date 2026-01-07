@@ -18,8 +18,8 @@ extern PyTypeObject Curvature2DAngleF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&Curvature2DAngleF0D_Type))
 
 /*---------------------------Python BPy_Curvature2DAngleF0D structure definition----------*/
-typedef struct {
+struct BPy_Curvature2DAngleF0D {
   BPy_UnaryFunction0DDouble py_uf0D_double;
-} BPy_Curvature2DAngleF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

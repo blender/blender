@@ -18,9 +18,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 /* **************** RGB ******************** */
 
-namespace blender::nodes::node_composite_rgb_cc {
+namespace nodes::node_composite_rgb_cc {
 
 static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
 {
@@ -29,11 +31,11 @@ static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
       .custom_draw([](CustomSocketDrawParams &params) {
         params.layout.alignment_set(ui::LayoutAlign::Expand);
         ui::Layout &col = params.layout.column(false);
-        uiTemplateColorPicker(
+        template_color_picker(
             &col, &params.socket_ptr, "default_value", true, false, false, false);
         col.prop(&params.socket_ptr,
                  "default_value",
-                 UI_ITEM_R_SLIDER | UI_ITEM_R_SPLIT_EMPTY_NAME,
+                 ui::ITEM_R_SLIDER | ui::ITEM_R_SPLIT_EMPTY_NAME,
                  "",
                  ICON_NONE);
       });
@@ -50,7 +52,7 @@ class RGBOperation : public NodeOperation {
     Result &result = get_result("Color");
     result.allocate_single_value();
 
-    const bNodeSocket *socket = static_cast<const bNodeSocket *>(bnode().outputs.first);
+    const bNodeSocket *socket = static_cast<const bNodeSocket *>(node().outputs.first);
     Color color = Color(static_cast<const bNodeSocketValueRGBA *>(socket->default_value)->value);
 
     result.set_single_value(color);
@@ -62,13 +64,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new RGBOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_rgb_cc
+}  // namespace nodes::node_composite_rgb_cc
 
 static void register_node_type_cmp_rgb()
 {
-  namespace file_ns = blender::nodes::node_composite_rgb_cc;
+  namespace file_ns = nodes::node_composite_rgb_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeRGB", CMP_NODE_RGB);
   ntype.ui_name = "Color";
@@ -76,9 +78,11 @@ static void register_node_type_cmp_rgb()
   ntype.enum_name_legacy = "RGB";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_rgb_declare;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Default);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Default);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_rgb)
+
+}  // namespace blender

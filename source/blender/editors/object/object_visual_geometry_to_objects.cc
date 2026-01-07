@@ -196,7 +196,7 @@ class GeometryToObjectsBuilder {
     return new_object_by_generated_geometry_.lookup_or_add_cb(&src_mesh.id, [&]() {
       Mesh *new_mesh = BKE_id_new<Mesh>(&bmain_, name.c_str());
       Object *new_ob = BKE_object_add_only_object(&bmain_, OB_MESH, name.c_str());
-      new_ob->data = new_mesh;
+      new_ob->data = id_cast<ID *>(new_mesh);
 
       BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(src_mesh), new_mesh, new_ob);
       new_mesh->attributes_for_write().remove_anonymous();
@@ -214,7 +214,7 @@ class GeometryToObjectsBuilder {
     return new_object_by_generated_geometry_.lookup_or_add_cb(&src_curves.id, [&]() {
       Curves *new_curves = BKE_id_new<Curves>(&bmain_, name.c_str());
       Object *new_ob = BKE_object_add_only_object(&bmain_, OB_CURVES, name.c_str());
-      new_ob->data = new_curves;
+      new_ob->data = id_cast<ID *>(new_curves);
 
       new_curves->geometry.wrap() = src_curves.geometry.wrap();
       new_curves->geometry.wrap().attributes_for_write().remove_anonymous();
@@ -230,7 +230,7 @@ class GeometryToObjectsBuilder {
     return new_object_by_generated_geometry_.lookup_or_add_cb(&src_pointcloud.id, [&]() {
       PointCloud *new_pointcloud = BKE_id_new<PointCloud>(&bmain_, name.c_str());
       Object *new_ob = BKE_object_add_only_object(&bmain_, OB_POINTCLOUD, name.c_str());
-      new_ob->data = new_pointcloud;
+      new_ob->data = id_cast<ID *>(new_pointcloud);
 
       BKE_pointcloud_nomain_to_pointcloud(BKE_pointcloud_copy_for_eval(&src_pointcloud),
                                           new_pointcloud);
@@ -248,7 +248,7 @@ class GeometryToObjectsBuilder {
     return new_object_by_generated_geometry_.lookup_or_add_cb(&src_grease_pencil.id, [&]() {
       GreasePencil *new_grease_pencil = BKE_id_new<GreasePencil>(&bmain_, name.c_str());
       Object *new_ob = BKE_object_add_only_object(&bmain_, OB_GREASE_PENCIL, name.c_str());
-      new_ob->data = new_grease_pencil;
+      new_ob->data = id_cast<ID *>(new_grease_pencil);
 
       GreasePencil *greasepencil_to_move_from = BKE_grease_pencil_copy_for_eval(
           &src_grease_pencil);
@@ -505,10 +505,10 @@ static wmOperatorStatus visual_geometry_to_objects_exec(bContext *C, wmOperator 
   }
   /* Exclude the new collections. This is done because they are only instanced by other objects but
    * should not be visible by themselves. */
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene.view_layers) {
+  for (ViewLayer &view_layer : scene.view_layers) {
     for (Collection *new_collection : new_instance_collections) {
       LayerCollection *new_layer_collection = BKE_layer_collection_first_from_scene_collection(
-          view_layer, new_collection);
+          &view_layer, new_collection);
       BKE_layer_collection_set_flag(new_layer_collection, LAYER_COLLECTION_EXCLUDE, true);
     }
   }

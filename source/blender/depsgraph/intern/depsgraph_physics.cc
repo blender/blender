@@ -29,11 +29,11 @@
 
 #include "depsgraph.hh"
 
-namespace deg = blender::deg;
+namespace blender {
 
 /*************************** Evaluation Query API *****************************/
 
-static ePhysicsRelationType modifier_to_relation_type(uint modifier_type)
+static ePhysicsCollisionType modifier_to_collision_type(uint modifier_type)
 {
   switch (modifier_type) {
     case eModifierType_Collision:
@@ -45,7 +45,7 @@ static ePhysicsRelationType modifier_to_relation_type(uint modifier_type)
   }
 
   BLI_assert_msg(0, "Unknown collision modifier type");
-  return DEG_PHYSICS_RELATIONS_NUM;
+  return DEG_PHYSICS_COLLISION_NUM;
 }
 /* Get ID from an ID type object, in a safe manner. This means that object can be nullptr,
  * in which case the function returns nullptr.
@@ -58,10 +58,11 @@ template<class T> static ID *object_id_safe(T *object)
   return &object->id;
 }
 
-ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collection)
+ListBaseT<EffectorRelation> *DEG_get_effector_relations(const Depsgraph *graph,
+                                                        Collection *collection)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
-  blender::Map<const ID *, ListBase *> *hash = deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR];
+  Map<const ID *, ListBaseT<EffectorRelation> *> *hash = deg_graph->physics_relations_effector;
   if (hash == nullptr) {
     return nullptr;
   }
@@ -71,13 +72,14 @@ ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collect
   return hash->lookup_default(collection_orig, nullptr);
 }
 
-ListBase *DEG_get_collision_relations(const Depsgraph *graph,
-                                      Collection *collection,
-                                      uint modifier_type)
+ListBaseT<CollisionRelation> *DEG_get_collision_relations(const Depsgraph *graph,
+                                                          Collection *collection,
+                                                          uint modifier_type)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
-  const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
-  blender::Map<const ID *, ListBase *> *hash = deg_graph->physics_relations[type];
+  const ePhysicsCollisionType type = modifier_to_collision_type(modifier_type);
+  Map<const ID *, ListBaseT<CollisionRelation> *> *hash =
+      deg_graph->physics_relations_collision[type];
   if (hash == nullptr) {
     return nullptr;
   }
@@ -115,8 +117,9 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  const char *name)
 {
   Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
-  deg::Depsgraph *deg_graph = (deg::Depsgraph *)depsgraph;
-  ListBase *relations = build_collision_relations(deg_graph, collection, modifier_type);
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
+  ListBaseT<CollisionRelation> *relations = build_collision_relations(
+      deg_graph, collection, modifier_type);
 
   /* Expand tag objects, matching: #BKE_object_modifier_update_subframe behavior. */
 
@@ -124,18 +127,18 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
    * leave out for the purpose of validating the fix for dynamic paint only. */
   const bool use_recursive_parents = (modifier_type == eModifierType_DynamicPaint);
 
-  blender::Map<Object *, CollisionComponentFlag> *object_component_map = nullptr;
+  Map<Object *, CollisionComponentFlag> *object_component_map = nullptr;
   if (use_recursive_parents) {
-    object_component_map = MEM_new<blender::Map<Object *, CollisionComponentFlag>>(__func__);
+    object_component_map = MEM_new<Map<Object *, CollisionComponentFlag>>(__func__);
   }
 
-  LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
-    Object *ob1 = relation->ob;
+  for (CollisionRelation &relation : *relations) {
+    Object *ob1 = relation.ob;
     if (ob1 == object) {
       continue;
     }
     if (filter_function &&
-        !filter_function(ob1, BKE_modifiers_findby_type(ob1, (ModifierType)modifier_type)))
+        !filter_function(ob1, BKE_modifiers_findby_type(ob1, ModifierType(modifier_type))))
     {
       continue;
     }
@@ -205,38 +208,39 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   const char *name)
 {
   Depsgraph *depsgraph = DEG_get_graph_from_handle(handle);
-  deg::Depsgraph *deg_graph = (deg::Depsgraph *)depsgraph;
-  ListBase *relations = build_effector_relations(deg_graph, effector_weights->group);
-  LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
-    if (relation->ob == object) {
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
+  ListBaseT<EffectorRelation> *relations = build_effector_relations(deg_graph,
+                                                                    effector_weights->group);
+  for (EffectorRelation &relation : *relations) {
+    if (relation.ob == object) {
       continue;
     }
-    if (relation->pd->forcefield == skip_forcefield) {
+    if (relation.pd->forcefield == skip_forcefield) {
       continue;
     }
 
     /* Relation to forcefield object, optionally including geometry.
      * Use special point cache relations for automatic cache clearing. */
-    DEG_add_object_pointcache_relation(handle, relation->ob, DEG_OB_COMP_TRANSFORM, name);
+    DEG_add_object_pointcache_relation(handle, relation.ob, DEG_OB_COMP_TRANSFORM, name);
 
-    if (relation->psys || ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
-        relation->pd->forcefield == PFIELD_GUIDE)
+    if (relation.psys || ELEM(relation.pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
+        relation.pd->forcefield == PFIELD_GUIDE)
     {
       /* TODO(sergey): Consider going more granular with more dedicated
        * particle system operation. */
-      DEG_add_object_pointcache_relation(handle, relation->ob, DEG_OB_COMP_GEOMETRY, name);
+      DEG_add_object_pointcache_relation(handle, relation.ob, DEG_OB_COMP_GEOMETRY, name);
     }
 
     /* Smoke flow relations. */
-    if (relation->pd->forcefield == PFIELD_FLUIDFLOW && relation->pd->f_source != nullptr) {
+    if (relation.pd->forcefield == PFIELD_FLUIDFLOW && relation.pd->f_source != nullptr) {
       DEG_add_object_pointcache_relation(
-          handle, relation->pd->f_source, DEG_OB_COMP_TRANSFORM, "Fluid Force Domain");
+          handle, relation.pd->f_source, DEG_OB_COMP_TRANSFORM, "Fluid Force Domain");
       DEG_add_object_pointcache_relation(
-          handle, relation->pd->f_source, DEG_OB_COMP_GEOMETRY, "Fluid Force Domain");
+          handle, relation.pd->f_source, DEG_OB_COMP_GEOMETRY, "Fluid Force Domain");
     }
 
     /* Absorption forces need collision relation. */
-    if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
+    if (add_absorption && (relation.pd->flag & PFIELD_VISIBILITY)) {
       DEG_add_collision_relations(
           handle, object, nullptr, eModifierType_Collision, nullptr, "Force Absorption");
     }
@@ -245,14 +249,14 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 
 /******************************** Internal API ********************************/
 
-namespace blender::deg {
+namespace deg {
 
-ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
+ListBaseT<EffectorRelation> *build_effector_relations(Depsgraph *graph, Collection *collection)
 {
-  Map<const ID *, ListBase *> *hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
+  Map<const ID *, ListBaseT<EffectorRelation> *> *hash = graph->physics_relations_effector;
   if (hash == nullptr) {
-    graph->physics_relations[DEG_PHYSICS_EFFECTOR] = new Map<const ID *, ListBase *>();
-    hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
+    graph->physics_relations_effector = new Map<const ID *, ListBaseT<EffectorRelation> *>();
+    hash = graph->physics_relations_effector;
   }
   /* If collection is nullptr still use it as a key.
    * In this case the BKE_effector_relations_create() will create relates for all bases in the
@@ -260,18 +264,21 @@ ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
    */
   ID *collection_id = object_id_safe(collection);
   return hash->lookup_or_add_cb(collection_id, [&]() {
-    ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
+    ::blender::Depsgraph *depsgraph = reinterpret_cast<::blender::Depsgraph *>(graph);
     return BKE_effector_relations_create(depsgraph, graph->scene, graph->view_layer, collection);
   });
 }
 
-ListBase *build_collision_relations(Depsgraph *graph, Collection *collection, uint modifier_type)
+ListBaseT<CollisionRelation> *build_collision_relations(Depsgraph *graph,
+                                                        Collection *collection,
+                                                        uint modifier_type)
 {
-  const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
-  Map<const ID *, ListBase *> *hash = graph->physics_relations[type];
+  const ePhysicsCollisionType type = modifier_to_collision_type(modifier_type);
+  Map<const ID *, ListBaseT<CollisionRelation> *> *hash = graph->physics_relations_collision[type];
   if (hash == nullptr) {
-    graph->physics_relations[type] = new Map<const ID *, ListBase *>();
-    hash = graph->physics_relations[type];
+    graph->physics_relations_collision[type] =
+        new Map<const ID *, ListBaseT<CollisionRelation> *>();
+    hash = graph->physics_relations_collision[type];
   }
   /* If collection is nullptr still use it as a key.
    * In this case the BKE_collision_relations_create() will create relates for all bases in the
@@ -279,38 +286,32 @@ ListBase *build_collision_relations(Depsgraph *graph, Collection *collection, ui
    */
   ID *collection_id = object_id_safe(collection);
   return hash->lookup_or_add_cb(collection_id, [&]() {
-    ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
+    ::blender::Depsgraph *depsgraph = reinterpret_cast<::blender::Depsgraph *>(graph);
     return BKE_collision_relations_create(depsgraph, collection, modifier_type);
   });
 }
 
 void clear_physics_relations(Depsgraph *graph)
 {
-  for (int i = 0; i < DEG_PHYSICS_RELATIONS_NUM; i++) {
-    Map<const ID *, ListBase *> *hash = graph->physics_relations[i];
-    if (hash) {
-      const ePhysicsRelationType type = (ePhysicsRelationType)i;
+  if (graph->physics_relations_effector) {
+    for (ListBaseT<EffectorRelation> *list : graph->physics_relations_effector->values()) {
+      BKE_effector_relations_free(list);
+    }
+    delete graph->physics_relations_effector;
+    graph->physics_relations_effector = nullptr;
+  }
 
-      switch (type) {
-        case DEG_PHYSICS_EFFECTOR:
-          for (ListBase *list : hash->values()) {
-            BKE_effector_relations_free(list);
-          }
-          break;
-        case DEG_PHYSICS_COLLISION:
-        case DEG_PHYSICS_SMOKE_COLLISION:
-        case DEG_PHYSICS_DYNAMIC_BRUSH:
-          for (ListBase *list : hash->values()) {
-            BKE_collision_relations_free(list);
-          }
-          break;
-        case DEG_PHYSICS_RELATIONS_NUM:
-          break;
+  for (int i = 0; i < DEG_PHYSICS_COLLISION_NUM; i++) {
+    Map<const ID *, ListBaseT<CollisionRelation> *> *hash = graph->physics_relations_collision[i];
+    if (hash) {
+      for (ListBaseT<CollisionRelation> *list : hash->values()) {
+        BKE_collision_relations_free(list);
       }
       delete hash;
-      graph->physics_relations[i] = nullptr;
+      graph->physics_relations_collision[i] = nullptr;
     }
   }
 }
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

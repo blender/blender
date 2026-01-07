@@ -11,8 +11,10 @@
 
 #include "BLI_sys_types.h"
 
-typedef struct BArrayState BArrayState;
-typedef struct BArrayStore BArrayStore;
+namespace blender {
+
+struct BArrayState;
+struct BArrayStore;
 
 /**
  * Create a new array store, which can store any number of arrays
@@ -125,3 +127,5 @@ void BLI_array_store_rle_decode(const uint8_t *data_enc,
                                 const size_t data_enc_len,
                                 void *data_dec_v,
                                 const size_t data_dec_len);
+
+}  // namespace blender

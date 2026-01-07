@@ -28,7 +28,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4
     return SCE_SNAP_TO_NONE;
   }
 
-  Curve *cu = static_cast<Curve *>(ob_eval->data);
+  Curve *cu = id_cast<Curve *>(ob_eval->data);
 
   SnapData nearest2d(sctx, obmat);
 
@@ -47,51 +47,51 @@ eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4
   bool skip_selected = (sctx->runtime.params.snap_target_select & SCE_SNAP_TARGET_NOT_SELECTED) !=
                        0;
 
-  LISTBASE_FOREACH (Nurb *, nu, (use_obedit ? &cu->editnurb->nurbs : &cu->nurb)) {
-    if (nu->bezt) {
-      for (int u : IndexRange(nu->pntsu)) {
+  for (Nurb &nu : use_obedit ? cu->editnurb->nurbs : cu->nurb) {
+    if (nu.bezt) {
+      for (int u : IndexRange(nu.pntsu)) {
         if (use_obedit) {
-          if (nu->bezt[u].hide) {
+          if (nu.bezt[u].hide) {
             /* Skip hidden. */
             continue;
           }
 
-          bool is_selected = (nu->bezt[u].f2 & SELECT) != 0;
+          bool is_selected = (nu.bezt[u].f2 & SELECT) != 0;
           if (is_selected && skip_selected) {
             continue;
           }
 
           /* Don't snap if handle is selected (moving),
            * or if it is aligning to a moving handle. */
-          bool is_selected_h1 = (nu->bezt[u].f1 & SELECT) != 0;
-          bool is_selected_h2 = (nu->bezt[u].f3 & SELECT) != 0;
-          bool is_autoalign_h1 = (nu->bezt[u].h1 & HD_ALIGN) != 0;
-          bool is_autoalign_h2 = (nu->bezt[u].h2 & HD_ALIGN) != 0;
+          bool is_selected_h1 = (nu.bezt[u].f1 & SELECT) != 0;
+          bool is_selected_h2 = (nu.bezt[u].f3 & SELECT) != 0;
+          bool is_autoalign_h1 = (nu.bezt[u].h1 & HD_ALIGN) != 0;
+          bool is_autoalign_h2 = (nu.bezt[u].h2 & HD_ALIGN) != 0;
           if (!skip_selected || !(is_selected_h1 || (is_autoalign_h1 && is_selected_h2))) {
-            has_snap |= nearest2d.snap_point(nu->bezt[u].vec[0]);
+            has_snap |= nearest2d.snap_point(nu.bezt[u].vec[0]);
           }
 
           if (!skip_selected || !(is_selected_h2 || (is_autoalign_h2 && is_selected_h1))) {
-            has_snap |= nearest2d.snap_point(nu->bezt[u].vec[2]);
+            has_snap |= nearest2d.snap_point(nu.bezt[u].vec[2]);
           }
         }
-        has_snap |= nearest2d.snap_point(nu->bezt[u].vec[1]);
+        has_snap |= nearest2d.snap_point(nu.bezt[u].vec[1]);
       }
     }
-    else if (nu->bp) {
-      for (int u : IndexRange(nu->pntsu * nu->pntsv)) {
+    else if (nu.bp) {
+      for (int u : IndexRange(nu.pntsu * nu.pntsv)) {
         if (use_obedit) {
-          if (nu->bp[u].hide) {
+          if (nu.bp[u].hide) {
             /* Skip hidden. */
             continue;
           }
 
-          bool is_selected = (nu->bp[u].f1 & SELECT) != 0;
+          bool is_selected = (nu.bp[u].f1 & SELECT) != 0;
           if (is_selected && skip_selected) {
             continue;
           }
         }
-        has_snap |= nearest2d.snap_point(nu->bp[u].vec);
+        has_snap |= nearest2d.snap_point(nu.bp[u].vec);
       }
     }
   }

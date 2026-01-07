@@ -20,10 +20,10 @@ extern PyTypeObject UnaryFunction1DVec3f_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DVec3f_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DVec3f structure definition----------*/
-typedef struct {
+struct BPy_UnaryFunction1DVec3f {
   BPy_UnaryFunction1D py_uf1D;
   Freestyle::UnaryFunction1D<Freestyle::Geometry::Vec3f> *uf1D_vec3f;
-} BPy_UnaryFunction1DVec3f;
+};
 
 /*---------------------------Python BPy_UnaryFunction1DVec3f visible prototypes-----------*/
 int UnaryFunction1DVec3f_Init(PyObject *module);

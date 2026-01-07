@@ -27,6 +27,8 @@
 #  include <io.h> /* For `_get_osfhandle`. */
 #endif
 
+namespace blender {
+
 struct BLI_mmap_file {
   /* The address to which the file was mapped. */
   char *memory;
@@ -49,7 +51,7 @@ struct BLI_mmap_file {
 /* General mutex used to protect access to the list of open mapped files, ensure the handler is
  * initialized only once and to prevent multiple threads from trying to remap the same
  * memory-mapped region in parallel. */
-static blender::Mutex mmap_mutex;
+static Mutex mmap_mutex;
 
 /* When using memory-mapped files, any IO errors will result in an EXCEPTION_IN_PAGE_ERROR on
  * Windows and a SIGBUS signal on other platforms. Therefore, we need to catch that signal and
@@ -61,9 +63,9 @@ static blender::Mutex mmap_mutex;
  * error occurred outside of a memory-mapped region or the remapping failed, we call the previous
  * handler if one was initialized and abort the process otherwise on Linux and on Windows let the
  * exception crash the program. */
-static blender::Vector<BLI_mmap_file *> &open_mmaps_vector()
+static Vector<BLI_mmap_file *> &open_mmaps_vector()
 {
-  static blender::Vector<BLI_mmap_file *> open_mmaps;
+  static Vector<BLI_mmap_file *> open_mmaps;
   return open_mmaps;
 }
 
@@ -488,7 +490,7 @@ void BLI_mmap_free(BLI_mmap_file *file)
 {
   error_handler_remove(file);
 #ifndef WIN32
-  munmap((void *)file->memory, file->length);
+  munmap(static_cast<void *>(file->memory), file->length);
 #else
   UnmapViewOfFile(file->memory);
   CloseHandle(file->handle);
@@ -496,3 +498,5 @@ void BLI_mmap_free(BLI_mmap_file *file)
 
   MEM_freeN(file);
 }
+
+}  // namespace blender

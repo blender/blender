@@ -15,10 +15,12 @@
 
 #include "FN_field.hh"
 
+namespace blender {
+
 struct Mesh;
 struct PointCloud;
 
-namespace blender::bke {
+namespace bke {
 
 class CurvesGeometry;
 class GeometryFieldInput;
@@ -509,4 +511,5 @@ inline bool try_capture_field_on_geometry(GeometryComponent &component,
 std::optional<AttrDomain> try_detect_field_domain(const GeometryComponent &component,
                                                   const fn::GField &field);
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

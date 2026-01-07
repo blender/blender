@@ -10,6 +10,8 @@
 
 #include "rna_internal_types.hh"
 
+namespace blender {
+
 struct IDProperty;
 struct PropertyRNAOrID;
 
@@ -33,3 +35,5 @@ IDProperty *rna_system_idproperty_find(PointerRNA *ptr, const char *name);
  * Find the property which uses the given nested struct.
  */
 PropertyRNA *rna_struct_find_nested(PointerRNA *ptr, StructRNA *srna);
+
+}  // namespace blender

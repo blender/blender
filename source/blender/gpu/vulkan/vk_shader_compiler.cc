@@ -128,7 +128,7 @@ void VKShaderCompiler::cache_dir_clear_old()
 
   direntry *entries = nullptr;
   uint32_t dir_len = BLI_filelist_dir_contents(cache_dir_get()->c_str(), &entries);
-  for (int i : blender::IndexRange(dir_len)) {
+  for (int i : IndexRange(dir_len)) {
     direntry entry = entries[i];
     if (S_ISDIR(entry.s.st_mode)) {
       continue;

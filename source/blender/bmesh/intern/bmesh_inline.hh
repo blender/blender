@@ -15,6 +15,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /* stuff for dealing with header flags */
 #define BM_elem_flag_test(ele, hflag) _bm_elem_flag_test(&(ele)->head, hflag)
 #define BM_elem_flag_test_bool(ele, hflag) _bm_elem_flag_test_bool(&(ele)->head, hflag)
@@ -47,7 +49,7 @@ BLI_INLINE void _bm_elem_flag_enable(BMHeader *head, const char hflag)
 
 BLI_INLINE void _bm_elem_flag_disable(BMHeader *head, const char hflag)
 {
-  head->hflag &= (char)~hflag;
+  head->hflag &= char(~hflag);
 }
 
 BLI_INLINE void _bm_elem_flag_set(BMHeader *head, const char hflag, const int val)
@@ -127,3 +129,5 @@ BLI_INLINE int _bm_elem_index_get(const BMHeader *head)
 {
   return head->index;
 }
+
+}  // namespace blender

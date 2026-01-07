@@ -7,8 +7,7 @@
 #include "gpu_shader_compat.hh"
 
 /** \param f: Offset from texel center in pixel space. */
-void cubic_bspline_coefficients(
-    float2 f, out float2 w0, out float2 w1, out float2 w2, out float2 w3)
+void cubic_bspline_coefficients(float2 f, float2 &w0, float2 &w1, float2 &w2, float2 &w3)
 {
   float2 f2 = f * f;
   float2 f3 = f2 * f;

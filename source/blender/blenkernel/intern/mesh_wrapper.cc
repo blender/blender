@@ -36,8 +36,7 @@
 #include "BKE_subdiv_mesh.hh"
 #include "BKE_subdiv_modifier.hh"
 
-using blender::float3;
-using blender::Span;
+namespace blender {
 
 Mesh *BKE_mesh_wrapper_from_editmesh(std::shared_ptr<BMEditMesh> em,
                                      const CustomData_MeshMasks *cd_mask_extra,
@@ -89,7 +88,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
   }
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
-  blender::threading::isolate_task([&]() {
+  threading::isolate_task([&]() {
     if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
       mesh->verts_num = 0;
       mesh->edges_num = 0;
@@ -112,7 +111,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
        * be wrong, but it's not harmful. */
       BKE_mesh_ensure_default_orig_index_customdata_no_check(mesh);
 
-      blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
+      bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
       if (!edit_data.vert_positions.is_empty()) {
         mesh->vert_positions_for_write().copy_from(edit_data.vert_positions);
         mesh->runtime->is_original_bmesh = false;
@@ -165,7 +164,7 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (blender::bke::EditMeshData *edit_data = mesh->runtime->edit_data.get()) {
+      if (bke::EditMeshData *edit_data = mesh->runtime->edit_data.get()) {
         edit_data->vert_normals = {};
         edit_data->face_centers = {};
         edit_data->face_normals = {};
@@ -178,12 +177,12 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
   }
 }
 
-void BKE_mesh_wrapper_vert_coords_copy(const Mesh *mesh, blender::MutableSpan<float3> positions)
+void BKE_mesh_wrapper_vert_coords_copy(const Mesh *mesh, MutableSpan<float3> positions)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = mesh->runtime->edit_mesh->bm;
-      const blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
+      const bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
       if (!edit_data.vert_positions.is_empty()) {
         positions.copy_from(edit_data.vert_positions);
       }
@@ -215,7 +214,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = mesh->runtime->edit_mesh->bm;
       BLI_assert(vert_coords_len == bm->totvert);
-      const blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
+      const bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
       if (!edit_data.vert_positions.is_empty()) {
         for (int i = 0; i < vert_coords_len; i++) {
           mul_v3_m4v3(vert_coords[i], mat, edit_data.vert_positions[i]);
@@ -394,7 +393,7 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *mesh)
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
   Mesh *result;
-  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(mesh); });
+  threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(mesh); });
   return result;
 }
 
@@ -406,3 +405,5 @@ const Mesh *BKE_mesh_wrapper_ensure_subdivision(const Mesh *mesh)
 }
 
 /** \} */
+
+}  // namespace blender

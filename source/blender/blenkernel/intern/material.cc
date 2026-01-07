@@ -11,6 +11,7 @@
 #include <cstring>
 #include <optional>
 
+#include "BLI_utildefines.h"
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -21,7 +22,6 @@
 #include "DNA_ID.h"
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
@@ -78,15 +78,14 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"material"};
 
 static void material_init_data(ID *id)
 {
-  Material *material = (Material *)id;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(material, id));
-
-  MEMCPY_STRUCT_AFTER(material, DNA_struct_default_get(Material), id);
+  Material *material = id_cast<Material *>(id);
+  INIT_DEFAULT_STRUCT_AFTER(material, id);
 }
 
 static void material_copy_data(Main *bmain,
@@ -95,8 +94,8 @@ static void material_copy_data(Main *bmain,
                                const ID *id_src,
                                const int flag)
 {
-  Material *material_dst = (Material *)id_dst;
-  const Material *material_src = (const Material *)id_src;
+  Material *material_dst = id_cast<Material *>(id_dst);
+  const Material *material_src = id_cast<const Material *>(id_src);
 
   const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* Never handle user-count here for own sub-data. */
@@ -106,8 +105,7 @@ static void material_copy_data(Main *bmain,
 
   if (material_src->nodetree != nullptr) {
     if (is_localized) {
-      material_dst->nodetree = blender::bke::node_tree_localize(material_src->nodetree,
-                                                                &material_dst->id);
+      material_dst->nodetree = bke::node_tree_localize(material_src->nodetree, &material_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
@@ -145,14 +143,14 @@ static void material_copy_data(Main *bmain,
 
 static void material_free_data(ID *id)
 {
-  Material *material = (Material *)id;
+  Material *material = id_cast<Material *>(id);
 
   /* Free gpu material before the ntree */
   GPU_material_free(&material->gpumaterial);
 
   /* is no lib link block, but material extension */
   if (material->nodetree) {
-    blender::bke::node_tree_free_embedded_tree(material->nodetree);
+    bke::node_tree_free_embedded_tree(material->nodetree);
     MEM_freeN(material->nodetree);
     material->nodetree = nullptr;
   }
@@ -163,7 +161,7 @@ static void material_free_data(ID *id)
 
   BKE_previewimg_free(&material->preview);
 
-  BKE_icon_id_delete((ID *)material);
+  BKE_icon_id_delete(id_cast<ID *>(material));
 }
 
 static void material_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -200,7 +198,7 @@ static void material_foreach_working_space_color(ID *id,
 
 static void material_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Material *ma = (Material *)id;
+  Material *ma = id_cast<Material *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   ma->texpaintslot = nullptr;
@@ -217,21 +215,21 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
   if (ma->nodetree) {
     BLO_Write_IDBuffer temp_embedded_id_buffer{ma->nodetree->id, writer};
     BLO_write_struct_at_address(writer, bNodeTree, ma->nodetree, temp_embedded_id_buffer.get());
-    blender::bke::node_tree_blend_write(
-        writer, reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
+    bke::node_tree_blend_write(writer,
+                               reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
   }
 
   BKE_previewimg_blend_write(writer, ma->preview);
 
   /* grease pencil settings */
   if (ma->gp_style) {
-    BLO_write_struct(writer, MaterialGPencilStyle, ma->gp_style);
+    writer->write_struct(ma->gp_style);
   }
 }
 
 static void material_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Material *ma = (Material *)id;
+  Material *ma = id_cast<Material *>(id);
 
   ma->texpaintslot = nullptr;
 
@@ -277,7 +275,7 @@ IDTypeInfo IDType_ID_MA = {
 void BKE_gpencil_material_attr_init(Material *ma)
 {
   if ((ma) && (ma->gp_style == nullptr)) {
-    ma->gp_style = MEM_callocN<MaterialGPencilStyle>("Grease Pencil Material Settings");
+    ma->gp_style = MEM_new_for_free<MaterialGPencilStyle>("Grease Pencil Material Settings");
 
     MaterialGPencilStyle *gp_style = ma->gp_style;
     /* set basic settings */
@@ -339,31 +337,31 @@ Material *BKE_gpencil_material_add(Main *bmain, const char *name)
 Material ***BKE_object_material_array_p(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
     return &(mesh->mat);
   }
   if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
-    Curve *cu = static_cast<Curve *>(ob->data);
+    Curve *cu = id_cast<Curve *>(ob->data);
     return &(cu->mat);
   }
   if (ob->type == OB_MBALL) {
-    MetaBall *mb = static_cast<MetaBall *>(ob->data);
+    MetaBall *mb = id_cast<MetaBall *>(ob->data);
     return &(mb->mat);
   }
   if (ob->type == OB_CURVES) {
-    Curves *curves = static_cast<Curves *>(ob->data);
+    Curves *curves = id_cast<Curves *>(ob->data);
     return &(curves->mat);
   }
   if (ob->type == OB_POINTCLOUD) {
-    PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
+    PointCloud *pointcloud = id_cast<PointCloud *>(ob->data);
     return &(pointcloud->mat);
   }
   if (ob->type == OB_VOLUME) {
-    Volume *volume = static_cast<Volume *>(ob->data);
+    Volume *volume = id_cast<Volume *>(ob->data);
     return &(volume->mat);
   }
   if (ob->type == OB_GREASE_PENCIL) {
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
     return &(grease_pencil->material_array);
   }
   return nullptr;
@@ -372,31 +370,31 @@ Material ***BKE_object_material_array_p(Object *ob)
 short *BKE_object_material_len_p(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
     return &(mesh->totcol);
   }
   if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
-    Curve *cu = static_cast<Curve *>(ob->data);
+    Curve *cu = id_cast<Curve *>(ob->data);
     return &(cu->totcol);
   }
   if (ob->type == OB_MBALL) {
-    MetaBall *mb = static_cast<MetaBall *>(ob->data);
+    MetaBall *mb = id_cast<MetaBall *>(ob->data);
     return &(mb->totcol);
   }
   if (ob->type == OB_CURVES) {
-    Curves *curves = static_cast<Curves *>(ob->data);
+    Curves *curves = id_cast<Curves *>(ob->data);
     return &(curves->totcol);
   }
   if (ob->type == OB_POINTCLOUD) {
-    PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
+    PointCloud *pointcloud = id_cast<PointCloud *>(ob->data);
     return &(pointcloud->totcol);
   }
   if (ob->type == OB_VOLUME) {
-    Volume *volume = static_cast<Volume *>(ob->data);
+    Volume *volume = id_cast<Volume *>(ob->data);
     return &(volume->totcol);
   }
   if (ob->type == OB_GREASE_PENCIL) {
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    GreasePencil *grease_pencil = id_cast<GreasePencil *>(ob->data);
     return &(grease_pencil->material_array_num);
   }
   return nullptr;
@@ -409,21 +407,21 @@ Material ***BKE_id_material_array_p(ID *id)
 
   switch (GS(id->name)) {
     case ID_ME:
-      return &(((Mesh *)id)->mat);
+      return &((id_cast<Mesh *>(id))->mat);
     case ID_CU_LEGACY:
-      return &(((Curve *)id)->mat);
+      return &((id_cast<Curve *>(id))->mat);
     case ID_MB:
-      return &(((MetaBall *)id)->mat);
+      return &((id_cast<MetaBall *>(id))->mat);
     case ID_GD_LEGACY:
-      return &(((bGPdata *)id)->mat);
+      return &((id_cast<bGPdata *>(id))->mat);
     case ID_CV:
-      return &(((Curves *)id)->mat);
+      return &((id_cast<Curves *>(id))->mat);
     case ID_PT:
-      return &(((PointCloud *)id)->mat);
+      return &((id_cast<PointCloud *>(id))->mat);
     case ID_VO:
-      return &(((Volume *)id)->mat);
+      return &((id_cast<Volume *>(id))->mat);
     case ID_GP:
-      return &(((GreasePencil *)id)->material_array);
+      return &((id_cast<GreasePencil *>(id))->material_array);
     default:
       break;
   }
@@ -437,21 +435,21 @@ short *BKE_id_material_len_p(ID *id)
 
   switch (GS(id->name)) {
     case ID_ME:
-      return &(((Mesh *)id)->totcol);
+      return &((id_cast<Mesh *>(id))->totcol);
     case ID_CU_LEGACY:
-      return &(((Curve *)id)->totcol);
+      return &((id_cast<Curve *>(id))->totcol);
     case ID_MB:
-      return &(((MetaBall *)id)->totcol);
+      return &((id_cast<MetaBall *>(id))->totcol);
     case ID_GD_LEGACY:
-      return &(((bGPdata *)id)->totcol);
+      return &((id_cast<bGPdata *>(id))->totcol);
     case ID_CV:
-      return &(((Curves *)id)->totcol);
+      return &((id_cast<Curves *>(id))->totcol);
     case ID_PT:
-      return &(((PointCloud *)id)->totcol);
+      return &((id_cast<PointCloud *>(id))->totcol);
     case ID_VO:
-      return &(((Volume *)id)->totcol);
+      return &((id_cast<Volume *>(id))->totcol);
     case ID_GP:
-      return &(((GreasePencil *)id)->material_array_num);
+      return &((id_cast<GreasePencil *>(id))->material_array_num);
     default:
       break;
   }
@@ -465,10 +463,10 @@ static void material_data_index_remove_id(ID *id, short index)
 
   switch (GS(id->name)) {
     case ID_ME:
-      BKE_mesh_material_index_remove((Mesh *)id, index);
+      BKE_mesh_material_index_remove(id_cast<Mesh *>(id), index);
       break;
     case ID_CU_LEGACY:
-      BKE_curve_material_index_remove((Curve *)id, index);
+      BKE_curve_material_index_remove(id_cast<Curve *>(id), index);
       break;
     case ID_GP:
       BKE_grease_pencil_material_index_remove(reinterpret_cast<GreasePencil *>(id), index);
@@ -490,22 +488,22 @@ bool BKE_object_material_slot_used(Object *object, short actcol)
     return false;
   }
 
-  LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
-    if (psys->part->omat == actcol) {
+  for (ParticleSystem &psys : object->particlesystem) {
+    if (psys.part->omat == actcol) {
       return true;
     }
   }
 
-  ID *ob_data = static_cast<ID *>(object->data);
+  ID *ob_data = object->data;
   if (ob_data == nullptr || !OB_DATA_SUPPORT_ID(GS(ob_data->name))) {
     return false;
   }
 
   switch (GS(ob_data->name)) {
     case ID_ME:
-      return BKE_mesh_material_index_used((Mesh *)ob_data, actcol - 1);
+      return BKE_mesh_material_index_used(id_cast<Mesh *>(ob_data), actcol - 1);
     case ID_CU_LEGACY:
-      return BKE_curve_material_index_used((Curve *)ob_data, actcol - 1);
+      return BKE_curve_material_index_used(id_cast<Curve *>(ob_data), actcol - 1);
     case ID_MB:
       /* Meta-elements don't support materials at the moment. */
       return false;
@@ -524,10 +522,10 @@ static void material_data_index_clear_id(ID *id)
 
   switch (GS(id->name)) {
     case ID_ME:
-      BKE_mesh_material_index_clear((Mesh *)id);
+      BKE_mesh_material_index_clear(id_cast<Mesh *>(id));
       break;
     case ID_CU_LEGACY:
-      BKE_curve_material_index_clear((Curve *)id);
+      BKE_curve_material_index_clear(id_cast<Curve *>(id));
       break;
     case ID_MB:
     case ID_CV:
@@ -553,7 +551,7 @@ void BKE_id_materials_copy(Main *bmain, ID *id_src, ID *id_dst)
     (*matar_dst) = static_cast<Material **>(MEM_dupallocN(*matar_src));
 
     for (int a = 0; a < *materials_len_p_src; a++) {
-      id_us_plus((ID *)(*matar_dst)[a]);
+      id_us_plus(id_cast<ID *>((*matar_dst)[a]));
     }
 
     DEG_id_tag_update(id_dst, ID_RECALC_SYNC_TO_EVAL);
@@ -577,7 +575,7 @@ void BKE_id_material_resize(Main *bmain, ID *id, short totcol, bool do_id_user)
   if (do_id_user && totcol < (*totcolp)) {
     short i;
     for (i = totcol; i < (*totcolp); i++) {
-      id_us_min((ID *)(*matar)[i]);
+      id_us_min(id_cast<ID *>((*matar)[i]));
     }
   }
 
@@ -612,7 +610,7 @@ void BKE_id_material_append(Main *bmain, ID *id, Material *ma)
     *matar = mat;
     (*matar)[(*totcol)++] = ma;
 
-    id_us_plus((ID *)ma);
+    id_us_plus(id_cast<ID *>(ma));
     BKE_objects_materials_sync_length_all(bmain, id);
 
     DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
@@ -629,7 +627,7 @@ Material *BKE_id_material_pop(Main *bmain, ID *id, int index_i)
     short *totcol = BKE_id_material_len_p(id);
     if (index >= 0 && index < (*totcol)) {
       ret = (*matar)[index];
-      id_us_min((ID *)ret);
+      id_us_min(id_cast<ID *>(ret));
 
       if (*totcol <= 1) {
         *totcol = 0;
@@ -665,7 +663,7 @@ void BKE_id_material_clear(Main *bmain, ID *id)
     short *totcol = BKE_id_material_len_p(id);
 
     while ((*totcol)--) {
-      id_us_min((ID *)((*matar)[*totcol]));
+      id_us_min(id_cast<ID *>((*matar)[*totcol]));
     }
     *totcol = 0;
     if (*matar) {
@@ -741,7 +739,7 @@ static const ID *get_evaluated_object_data_with_materials(const Object *ob)
   const ID *data = static_cast<ID *>(ob->data);
   /* Meshes in edit mode need special handling. */
   if (ob->type == OB_MESH && ob->mode == OB_MODE_EDIT) {
-    const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+    const Mesh *mesh = id_cast<const Mesh *>(ob->data);
     const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
     if (mesh->runtime->edit_mesh && editmesh_eval_final) {
       data = &editmesh_eval_final->id;
@@ -993,7 +991,7 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
 
   if (do_id_user && totcol < ob->totcol) {
     for (int i = totcol; i < ob->totcol; i++) {
-      id_us_min((ID *)ob->mat[i]);
+      id_us_min(id_cast<ID *>(ob->mat[i]));
     }
   }
 
@@ -1197,7 +1195,7 @@ static void object_material_assign(
       id_us_min(&mao->id);
     }
     ob->mat[act - 1] = ma;
-    BKE_object_materials_sync_length(bmain, ob, static_cast<ID *>(ob->data));
+    BKE_object_materials_sync_length(bmain, ob, ob->data);
   }
   else { /* in data */
     mao = (*matarar)[act - 1];
@@ -1207,7 +1205,7 @@ static void object_material_assign(
     (*matarar)[act - 1] = ma;
     /* Data may be used by several objects. */
     if (do_test_all) {
-      BKE_objects_materials_sync_length_all(bmain, static_cast<ID *>(ob->data));
+      BKE_objects_materials_sync_length_all(bmain, ob->data);
     }
   }
 
@@ -1245,13 +1243,13 @@ void BKE_object_material_remap(Object *ob, const uint *remap)
   }
 
   if (ob->type == OB_MESH) {
-    BKE_mesh_material_remap(static_cast<Mesh *>(ob->data), remap, ob->totcol);
+    BKE_mesh_material_remap(id_cast<Mesh *>(ob->data), remap, ob->totcol);
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
-    BKE_curve_material_remap(static_cast<Curve *>(ob->data), remap, ob->totcol);
+    BKE_curve_material_remap(id_cast<Curve *>(ob->data), remap, ob->totcol);
   }
   else if (ob->type == OB_GREASE_PENCIL) {
-    BKE_grease_pencil_material_remap(static_cast<GreasePencil *>(ob->data), remap, ob->totcol);
+    BKE_grease_pencil_material_remap(id_cast<GreasePencil *>(ob->data), remap, ob->totcol);
   }
   else {
     /* add support for this object data! */
@@ -1265,7 +1263,7 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
     return;
   }
 
-  blender::Map<Material *, int> mat_map;
+  Map<Material *, int> mat_map;
   mat_map.reserve(ob_src->totcol);
 
   for (int i = 0; i < ob_dst->totcol; i++) {
@@ -1307,14 +1305,14 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
 
 void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *data_eval)
 {
-  ID *data_orig = static_cast<ID *>(ob_orig->data);
+  ID *data_orig = ob_orig->data;
 
   short *orig_totcol = BKE_id_material_len_p(data_orig);
   Material ***orig_mat = BKE_id_material_array_p(data_orig);
 
   /* Can cast away const, because the data is not changed. */
-  const short *eval_totcol = BKE_id_material_len_p((ID *)data_eval);
-  Material ***eval_mat = BKE_id_material_array_p((ID *)data_eval);
+  const short *eval_totcol = BKE_id_material_len_p(const_cast<ID *>(data_eval));
+  Material ***eval_mat = BKE_id_material_array_p(const_cast<ID *>(data_eval));
 
   if (ELEM(nullptr, orig_totcol, orig_mat, eval_totcol, eval_mat)) {
     return;
@@ -1491,7 +1489,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 
   /* check indices from mesh and grease pencil. */
   if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_GREASE_PENCIL)) {
-    material_data_index_remove_id((ID *)ob->data, actcol - 1);
+    material_data_index_remove_id(ob->data, actcol - 1);
     if (ob->runtime->curve_cache) {
       BKE_displist_free(&ob->runtime->curve_cache->disp);
     }
@@ -1502,9 +1500,9 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 
 static bNode *nodetree_uv_node_recursive(bNode *node)
 {
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (sock->link) {
-      bNode *inode = sock->link->fromnode;
+  for (bNodeSocket &sock : node->inputs) {
+    if (sock.link) {
+      bNode *inode = sock.link->fromnode;
       if (inode->typeinfo->nclass == NODE_CLASS_INPUT &&
           inode->typeinfo->type_legacy == SH_NODE_UVMAP)
       {
@@ -1548,7 +1546,8 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
     }
     else if (node->is_group() && node->id) {
       /* recurse into the node group and see if it contains any textures */
-      if (!ntree_foreach_texnode_recursive((bNodeTree *)node->id, callback, userdata, slot_filter))
+      if (!ntree_foreach_texnode_recursive(
+              id_cast<bNodeTree *>(node->id), callback, userdata, slot_filter))
       {
         return false;
       }
@@ -1559,7 +1558,7 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
 
 static bool count_texture_nodes_cb(bNode * /*node*/, void *userdata)
 {
-  (*((int *)userdata))++;
+  (*(static_cast<int *>(userdata)))++;
   return true;
 }
 
@@ -1581,7 +1580,6 @@ struct FillTexPaintSlotsData {
 
 static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
 {
-  using namespace blender;
   FillTexPaintSlotsData *fill_data = static_cast<FillTexPaintSlotsData *>(userdata);
 
   Material *ma = fill_data->ma;
@@ -1595,15 +1593,15 @@ static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
   switch (node->type_legacy) {
     case SH_NODE_TEX_IMAGE: {
       TexPaintSlot *slot = &ma->texpaintslot[index];
-      slot->ima = (Image *)node->id;
-      NodeTexImage *storage = (NodeTexImage *)node->storage;
+      slot->ima = id_cast<Image *>(node->id);
+      NodeTexImage *storage = static_cast<NodeTexImage *>(node->storage);
       slot->interp = storage->interpolation;
       slot->image_user = &storage->iuser;
       /* For new renderer, we need to traverse the tree back in search of a UV node. */
       bNode *uvnode = nodetree_uv_node_recursive(node);
 
       if (uvnode) {
-        NodeShaderUVMap *uv_storage = (NodeShaderUVMap *)uvnode->storage;
+        NodeShaderUVMap *uv_storage = static_cast<NodeShaderUVMap *>(uvnode->storage);
         slot->uvname = uv_storage->uv_map;
         /* set a value to index so UI knows that we have a valid pointer for the mesh */
         slot->valid = true;
@@ -1620,7 +1618,7 @@ static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
       NodeShaderAttribute *storage = static_cast<NodeShaderAttribute *>(node->storage);
       slot->attribute_name = storage->name;
       if (storage->type == SHD_ATTRIBUTE_GEOMETRY) {
-        const Mesh *mesh = (const Mesh *)fill_data->ob->data;
+        const Mesh *mesh = id_cast<const Mesh *>(fill_data->ob->data);
         if (mesh->runtime->edit_mesh) {
           const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm,
                                                               storage->name);
@@ -1698,9 +1696,9 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *o
       ma->paint_clone_slot = 0;
     }
     else {
-      ma->texpaintslot = MEM_calloc_arrayN<TexPaintSlot>(count, "texpaint_slots");
+      ma->texpaintslot = MEM_new_array_for_free<TexPaintSlot>(count, "texpaint_slots");
 
-      bNode *active_node = blender::bke::node_get_active_paint_canvas(*ma->nodetree);
+      bNode *active_node = bke::node_get_active_paint_canvas(*ma->nodetree);
 
       fill_texpaint_slots_recursive(ma->nodetree, active_node, ob, ma, count, slot_filter);
 
@@ -1747,7 +1745,7 @@ static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 {
   FindTexPaintNodeData *find_data = static_cast<FindTexPaintNodeData *>(userdata);
   if (find_data->slot->ima && node->type_legacy == SH_NODE_TEX_IMAGE) {
-    Image *node_ima = (Image *)node->id;
+    Image *node_ima = id_cast<Image *>(node->id);
     if (find_data->slot->ima == node_ima) {
       find_data->r_node = node;
       return false;
@@ -2079,76 +2077,75 @@ static void material_default_surface_init(Material **ma_p)
 {
   Material *ma = material_default_create(ma_p, "Default Surface");
 
-  bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
+  bNodeTree *ntree = bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
 
-  bNode *principled = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_PRINCIPLED);
-  bNodeSocket *base_color = blender::bke::node_find_socket(*principled, SOCK_IN, "Base Color");
-  copy_v3_v3(((bNodeSocketValueRGBA *)base_color->default_value)->value, &ma->r);
+  bNode *principled = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_PRINCIPLED);
+  bNodeSocket *base_color = bke::node_find_socket(*principled, SOCK_IN, "Base Color");
+  copy_v3_v3((static_cast<bNodeSocketValueRGBA *>(base_color->default_value))->value, &ma->r);
 
-  bNode *output = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
-  blender::bke::node_add_link(*ntree,
-                              *principled,
-                              *blender::bke::node_find_socket(*principled, SOCK_OUT, "BSDF"),
-                              *output,
-                              *blender::bke::node_find_socket(*output, SOCK_IN, "Surface"));
+  bke::node_add_link(*ntree,
+                     *principled,
+                     *bke::node_find_socket(*principled, SOCK_OUT, "BSDF"),
+                     *output,
+                     *bke::node_find_socket(*output, SOCK_IN, "Surface"));
 
   principled->location[0] = -200.0f;
   principled->location[1] = 100.0f;
   output->location[0] = 200.0f;
   output->location[1] = 100.0f;
 
-  blender::bke::node_set_active(*ntree, *output);
+  bke::node_set_active(*ntree, *output);
 }
 
 static void material_default_volume_init(Material **ma_p)
 {
   Material *ma = material_default_create(ma_p, "Default Volume");
 
-  bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
+  bNodeTree *ntree = bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
 
-  bNode *principled = blender::bke::node_add_static_node(
-      nullptr, *ntree, SH_NODE_VOLUME_PRINCIPLED);
-  bNode *output = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *principled = bke::node_add_static_node(nullptr, *ntree, SH_NODE_VOLUME_PRINCIPLED);
+  bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
-  blender::bke::node_add_link(*ntree,
-                              *principled,
-                              *blender::bke::node_find_socket(*principled, SOCK_OUT, "Volume"),
-                              *output,
-                              *blender::bke::node_find_socket(*output, SOCK_IN, "Volume"));
+  bke::node_add_link(*ntree,
+                     *principled,
+                     *bke::node_find_socket(*principled, SOCK_OUT, "Volume"),
+                     *output,
+                     *bke::node_find_socket(*output, SOCK_IN, "Volume"));
 
   principled->location[0] = -200.0f;
   principled->location[1] = 100.0f;
   output->location[0] = 200.0f;
   output->location[1] = 100.0f;
 
-  blender::bke::node_set_active(*ntree, *output);
+  bke::node_set_active(*ntree, *output);
 }
 
 static void material_default_holdout_init(Material **ma_p)
 {
   Material *ma = material_default_create(ma_p, "Default Holdout");
 
-  bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
+  bNodeTree *ntree = bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
 
-  bNode *holdout = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_HOLDOUT);
-  bNode *output = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *holdout = bke::node_add_static_node(nullptr, *ntree, SH_NODE_HOLDOUT);
+  bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
-  blender::bke::node_add_link(*ntree,
-                              *holdout,
-                              *blender::bke::node_find_socket(*holdout, SOCK_OUT, "Holdout"),
-                              *output,
-                              *blender::bke::node_find_socket(*output, SOCK_IN, "Surface"));
+  bke::node_add_link(*ntree,
+                     *holdout,
+                     *bke::node_find_socket(*holdout, SOCK_OUT, "Holdout"),
+                     *output,
+                     *bke::node_find_socket(*output, SOCK_IN, "Surface"));
 
   holdout->location[0] = 10.0f;
   holdout->location[1] = 300.0f;
   output->location[0] = 300.0f;
   output->location[1] = 300.0f;
 
-  blender::bke::node_set_active(*ntree, *output);
+  bke::node_set_active(*ntree, *output);
 }
 
 Material *BKE_material_default_empty()
@@ -2213,3 +2210,5 @@ void BKE_materials_exit()
     }
   }
 }
+
+}  // namespace blender

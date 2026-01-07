@@ -217,7 +217,7 @@ void do_draw_vector_displacement_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      Mesh &mesh = *id_cast<Mesh *>(object.data);
       const PositionDeformData position_data(depsgraph, object);
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(depsgraph, object);
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();

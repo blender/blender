@@ -59,6 +59,8 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 
+#include "NOD_defaults.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -132,7 +134,7 @@ static void node_templateID_assign(bContext *C, bNodeTree *node_tree)
   PointerRNA ptr;
   PropertyRNA *prop;
 
-  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+  ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
     /* #RNA_property_pointer_set increases the user count, fixed here as the editor is the initial
@@ -195,7 +197,7 @@ static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
     float2 loc_region;
     RNA_float_get_array(&itemptr, "loc", loc_region);
     float2 loc_view;
-    UI_view2d_region_to_view(&region.v2d, loc_region.x, loc_region.y, &loc_view.x, &loc_view.y);
+    ui::view2d_region_to_view(&region.v2d, loc_region.x, loc_region.y, &loc_view.x, &loc_view.y);
     path.append(loc_view);
     if (path.size() >= 256) {
       break;
@@ -221,18 +223,18 @@ static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
 
   int intersection_count = 0;
 
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+  for (bNodeLink &link : ntree.links) {
 
-    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, link)) {
       continue;
     }
-    const std::optional<float2> cut = link_path_intersection(*link, path);
+    const std::optional<float2> cut = link_path_intersection(link, path);
     if (!cut) {
       continue;
     }
-    RerouteCutsForSocket &from_cuts = cuts_per_socket.lookup_or_add_default(link->fromsock);
-    from_cuts.from_node = link->fromnode;
-    from_cuts.links.add(link, *cut);
+    RerouteCutsForSocket &from_cuts = cuts_per_socket.lookup_or_add_default(link.fromsock);
+    from_cuts.from_node = link.fromnode;
+    from_cuts.links.add(&link, *cut);
     intersection_count++;
   }
 
@@ -428,11 +430,11 @@ static wmOperatorStatus node_add_group_invoke(bContext *C, wmOperator *op, const
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -529,11 +531,11 @@ static wmOperatorStatus node_add_group_asset_invoke(bContext *C,
   }
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region.v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode.runtime->cursor[0],
-                           &snode.runtime->cursor[1]);
+  ui::view2d_region_to_view(&region.v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode.runtime->cursor[0],
+                            &snode.runtime->cursor[1]);
 
   snode.runtime->cursor /= UI_SCALE_FAC;
 
@@ -543,8 +545,7 @@ static wmOperatorStatus node_add_group_asset_invoke(bContext *C,
 
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_translate_attach_remove_on_cancel", true);
   BLI_assert(ot);
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
@@ -567,13 +568,16 @@ static wmOperatorStatus node_swap_group_asset_invoke(bContext *C,
   }
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
       asset::asset_local_id_ensure_imported(bmain, *asset));
+  if (!node_group) {
+    return OPERATOR_CANCELLED;
+  }
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region.v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode.runtime->cursor[0],
-                           &snode.runtime->cursor[1]);
+  ui::view2d_region_to_view(&region.v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode.runtime->cursor[0],
+                            &snode.runtime->cursor[1]);
 
   snode.runtime->cursor /= UI_SCALE_FAC;
 
@@ -584,9 +588,8 @@ static wmOperatorStatus node_swap_group_asset_invoke(bContext *C,
   }
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_swap_node", true);
   BLI_assert(ot);
-  PointerRNA ptr;
   PointerRNA itemptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&ptr, "type", node_idname.data());
 
   /* Assign node group via operator.settings. This needs to be done here so that NODE_OT_swap_node
@@ -702,7 +705,7 @@ static wmOperatorStatus node_add_object_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeSocketValueObject *socket_data = (bNodeSocketValueObject *)sock->default_value;
+  bNodeSocketValueObject *socket_data = static_cast<bNodeSocketValueObject *>(sock->default_value);
   socket_data->value = object;
   id_us_plus(&object->id);
   BKE_ntree_update_tag_socket_property(ntree, sock);
@@ -720,11 +723,11 @@ static wmOperatorStatus node_add_object_invoke(bContext *C, wmOperator *op, cons
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -789,7 +792,8 @@ static wmOperatorStatus node_add_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeSocketValueCollection *socket_data = (bNodeSocketValueCollection *)sock->default_value;
+  bNodeSocketValueCollection *socket_data = static_cast<bNodeSocketValueCollection *>(
+      sock->default_value);
   socket_data->value = collection;
   id_us_plus(&collection->id);
   BKE_ntree_update_tag_socket_property(&ntree, sock);
@@ -809,11 +813,11 @@ static wmOperatorStatus node_add_collection_invoke(bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -940,7 +944,7 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
   const Vector<std::string> paths = ed::io::paths_from_operator_properties(op->ptr);
   for (const std::string &path : paths) {
     RNA_string_set(op->ptr, "filepath", path.c_str());
-    Image *image = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+    Image *image = id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
     if (!image) {
       BKE_report(op->reports, RPT_WARNING, fmt::format("Could not load {}", path).c_str());
       continue;
@@ -954,7 +958,7 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
 
   /* If not path is provided, try to get a ID Image from operator. */
   if (paths.is_empty()) {
-    Image *image = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+    Image *image = id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
     if (image) {
       images.append(image);
     }
@@ -971,14 +975,15 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
       continue;
     }
     if (type == GEO_NODE_IMAGE_TEXTURE) {
-      bNodeSocket *image_socket = (bNodeSocket *)node->inputs.first;
-      bNodeSocketValueImage *socket_value = (bNodeSocketValueImage *)image_socket->default_value;
+      bNodeSocket *image_socket = static_cast<bNodeSocket *>(node->inputs.first);
+      bNodeSocketValueImage *socket_value = static_cast<bNodeSocketValueImage *>(
+          image_socket->default_value);
       socket_value->value = image;
       BKE_ntree_update_tag_socket_property(&node_tree, image_socket);
     }
     else {
-      node->id = (ID *)image;
-      blender::bke::node_tag_update_id(*node);
+      node->id = id_cast<ID *>(image);
+      bke::node_tag_update_id(*node);
     }
     BKE_ntree_update_tag_node_property(&node_tree, node);
     nodes.append(node);
@@ -1029,11 +1034,11 @@ static wmOperatorStatus node_add_image_invoke(bContext *C, wmOperator *op, const
   }
 
   /* Convert mouse coordinates to `v2d` space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1173,11 +1178,11 @@ static wmOperatorStatus node_add_material_invoke(bContext *C, wmOperator *op, co
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1285,11 +1290,11 @@ static wmOperatorStatus node_add_import_node_invoke(bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1397,16 +1402,16 @@ static wmOperatorStatus node_add_group_input_node_exec(bContext *C, wmOperator *
 
   if (single_socket) {
     /* Hide all other sockets in the new node, to only display the selected one. */
-    LISTBASE_FOREACH (bNodeSocket *, socket, &group_input_node->outputs) {
-      if (!STREQ(socket->identifier, socket_identifier)) {
-        socket->flag |= SOCK_HIDDEN;
+    for (bNodeSocket &socket : group_input_node->outputs) {
+      if (!STREQ(socket.identifier, socket_identifier)) {
+        socket.flag |= SOCK_HIDDEN;
       }
     }
   }
   if (single_panel) {
     /* Initially hide all sockets. */
-    LISTBASE_FOREACH (bNodeSocket *, socket, &group_input_node->outputs) {
-      socket->flag |= SOCK_HIDDEN;
+    for (bNodeSocket &socket : group_input_node->outputs) {
+      socket.flag |= SOCK_HIDDEN;
     }
     /* Show only sockets contained in the dragged panel. */
     for (bNodeTreeInterfaceSocket *iface_socket : ntree->interface_inputs()) {
@@ -1430,11 +1435,11 @@ static wmOperatorStatus node_add_group_input_node_invoke(bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1586,11 +1591,11 @@ static wmOperatorStatus node_add_color_invoke(bContext *C, wmOperator *op, const
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1724,7 +1729,7 @@ static wmOperatorStatus new_compositing_node_group_exec(bContext *C, wmOperator 
   RNA_string_get(op->ptr, "name", tree_name);
 
   bNodeTree *ntree = new_node_tree_impl(C, tree_name, "CompositorNodeTree");
-  ED_node_composit_default_init(C, ntree);
+  nodes::node_tree_composit_default_init(C, ntree);
 
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
   BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
@@ -1776,7 +1781,8 @@ static wmOperatorStatus duplicate_and_assign_node_tree(bContext *C, bNodeTree *s
     return OPERATOR_CANCELLED;
   }
 
-  bNodeTree *node_tree = bke::node_tree_copy_tree(bmain, *source_node_tree);
+  bNodeTree *node_tree = reinterpret_cast<bNodeTree *>(
+      BKE_id_copy_ex(bmain, &source_node_tree->id, nullptr, LIB_ID_COPY_ACTIONS));
   node_templateID_assign(C, node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
@@ -1856,40 +1862,40 @@ static void initialize_compositor_sequencer_node_group(const bContext *C, bNodeT
   ntree.tree_interface.add_socket(
       "Image", "", "NodeSocketColor", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
 
-  bNode *output_node = blender::bke::node_add_node(C, ntree, "NodeGroupOutput");
+  bNode *output_node = bke::node_add_node(C, ntree, "NodeGroupOutput");
   output_node->location[0] = 200.0f;
   output_node->location[1] = 0.0f;
 
-  bNode *input_node = blender::bke::node_add_node(C, ntree, "NodeGroupInput");
+  bNode *input_node = bke::node_add_node(C, ntree, "NodeGroupInput");
   input_node->location[0] = -150.0f - input_node->width;
   input_node->location[1] = 0.0f;
-  blender::bke::node_set_active(ntree, *input_node);
+  bke::node_set_active(ntree, *input_node);
 
-  bNode *reroute = blender::bke::node_add_static_node(C, ntree, NODE_REROUTE);
+  bNode *reroute = bke::node_add_static_node(C, ntree, NODE_REROUTE);
   reroute->location[0] = 100.0f;
   reroute->location[1] = -35.0f;
 
-  bNode *viewer = blender::bke::node_add_static_node(C, ntree, CMP_NODE_VIEWER);
+  bNode *viewer = bke::node_add_static_node(C, ntree, CMP_NODE_VIEWER);
   viewer->location[0] = 200.0f;
   viewer->location[1] = -80.0f;
 
-  blender::bke::node_add_link(ntree,
-                              *input_node,
-                              *static_cast<bNodeSocket *>(input_node->outputs.first),
-                              *reroute,
-                              *static_cast<bNodeSocket *>(reroute->inputs.first));
+  bke::node_add_link(ntree,
+                     *input_node,
+                     *static_cast<bNodeSocket *>(input_node->outputs.first),
+                     *reroute,
+                     *static_cast<bNodeSocket *>(reroute->inputs.first));
 
-  blender::bke::node_add_link(ntree,
-                              *reroute,
-                              *static_cast<bNodeSocket *>(reroute->outputs.first),
-                              *output_node,
-                              *static_cast<bNodeSocket *>(output_node->inputs.first));
+  bke::node_add_link(ntree,
+                     *reroute,
+                     *static_cast<bNodeSocket *>(reroute->outputs.first),
+                     *output_node,
+                     *static_cast<bNodeSocket *>(output_node->inputs.first));
 
-  blender::bke::node_add_link(ntree,
-                              *reroute,
-                              *static_cast<bNodeSocket *>(reroute->outputs.first),
-                              *viewer,
-                              *static_cast<bNodeSocket *>(viewer->inputs.first));
+  bke::node_add_link(ntree,
+                     *reroute,
+                     *static_cast<bNodeSocket *>(reroute->outputs.first),
+                     *viewer,
+                     *static_cast<bNodeSocket *>(viewer->inputs.first));
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), ntree);
 }

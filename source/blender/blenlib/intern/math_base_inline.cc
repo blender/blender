@@ -6,8 +6,7 @@
  * \ingroup bli
  */
 
-#ifndef __MATH_BASE_INLINE_C__
-#define __MATH_BASE_INLINE_C__
+#pragma once
 
 #include <float.h>
 #include <limits.h>
@@ -18,6 +17,8 @@
 #include "BLI_assert.h"
 #include "BLI_math_inline.h"
 #include "BLI_sys_types.h"
+
+namespace blender {
 
 /* copied from BLI_utildefines.h */
 #ifdef __GNUC__
@@ -53,9 +54,9 @@ MINLINE float sqrt3f(float f)
     return 0.0f;
   }
   if (UNLIKELY(f < 0.0f)) {
-    return -(float)(exp(log(-f) / 3.0));
+    return -float(exp(log(-f) / 3.0));
   }
-  return (float)(exp(log(f) / 3.0));
+  return float(exp(log(f) / 3.0));
 }
 
 MINLINE double sqrt3d(double d)
@@ -98,7 +99,7 @@ MINLINE double ratiod(double min, double max, double pos)
 
 MINLINE float power_of_2(float val)
 {
-  return (float)pow(2.0, ceil(log((double)val) / M_LN2));
+  return float(pow(2.0, ceil(log(double(val)) / M_LN2)));
 }
 
 MINLINE int is_power_of_2_i(int n)
@@ -146,7 +147,7 @@ MINLINE unsigned int log2_floor_u(unsigned int x)
 
 MINLINE unsigned int log2_ceil_u(unsigned int x)
 {
-  if (is_power_of_2_i((int)x)) {
+  if (is_power_of_2_i(int(x))) {
     return log2_floor_u(x);
   }
   return log2_floor_u(x) + 1;
@@ -497,7 +498,7 @@ MINLINE int compare_ff_relative(float a, float b, const float max_diff, const in
     return 1;
   }
 
-  return (ulp_diff_ff(a, b) <= (uint)max_ulps) ? 1 : 0;
+  return (ulp_diff_ff(a, b) <= uint(max_ulps)) ? 1 : 0;
 }
 
 MINLINE bool compare_threshold_relative(const float value1, const float value2, const float thresh)
@@ -602,36 +603,36 @@ MINLINE int signum_i(float a)
 
 MINLINE int integer_digits_f(const float f)
 {
-  return (f == 0.0f) ? 0 : (int)floor(log10(fabs(f))) + 1;
+  return (f == 0.0f) ? 0 : int(floor(log10(fabs(f)))) + 1;
 }
 
 MINLINE int integer_digits_d(const double d)
 {
-  return (d == 0.0) ? 0 : (int)floor(log10(fabs(d))) + 1;
+  return (d == 0.0) ? 0 : int(floor(log10(fabs(d)))) + 1;
 }
 
 MINLINE int integer_digits_i(const int i)
 {
-  return (int)log10((double)i) + 1;
+  return int(log10(double(i))) + 1;
 }
 
 /* Low level conversion functions */
 MINLINE unsigned char unit_float_to_uchar_clamp(float val)
 {
-  return (unsigned char)((
-      (val <= 0.0f) ? 0 : ((val > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * val) + 0.5f))));
+  return static_cast<unsigned char>(
+      ((val <= 0.0f) ? 0 : ((val > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * val) + 0.5f))));
 }
 
 MINLINE unsigned short unit_float_to_ushort_clamp(float val)
 {
-  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ? 65535 :
-                          (val <= 0.0f)                ? 0 :
-                                                         (val * 65535.0f + 0.5f));
+  return static_cast<unsigned short>((val >= 1.0f - 0.5f / 65535) ? 65535 :
+                                     (val <= 0.0f)                ? 0 :
+                                                                    (val * 65535.0f + 0.5f));
 }
 
 MINLINE unsigned char unit_ushort_to_uchar(unsigned short val)
 {
-  return (unsigned char)(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8);
+  return static_cast<unsigned char>(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8);
 }
 
 #define unit_float_to_uchar_clamp_v3(v1, v2) \
@@ -650,4 +651,4 @@ MINLINE unsigned char unit_ushort_to_uchar(unsigned short val)
   } \
   ((void)0)
 
-#endif /* __MATH_BASE_INLINE_C__ */
+}  // namespace blender

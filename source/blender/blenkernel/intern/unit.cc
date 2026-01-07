@@ -26,6 +26,8 @@
 #  include "BLI_winstuff.h"
 #endif
 
+namespace blender {
+
 /* No BKE or DNA includes! */
 
 /* Keep alignment. */
@@ -2184,7 +2186,7 @@ static int unit_scale_str(char *str,
   }
 
   /* XXX: investigate, does not respect str_maxncpy properly. */
-  char *str_found = (char *)unit_find_str(str, replace_str, case_sensitive);
+  char *str_found = const_cast<char *>(unit_find_str(str, replace_str, case_sensitive));
 
   if (str_found == nullptr) {
     return 0;
@@ -2531,7 +2533,7 @@ void BKE_unit_system_get(int system, int type, void const **r_usys_pt, int *r_le
 
 int BKE_unit_base_get(const void *usys_pt)
 {
-  return ((bUnitCollection *)usys_pt)->base_unit;
+  return (static_cast<bUnitCollection *>(const_cast<void *>(usys_pt)))->base_unit;
 }
 
 int BKE_unit_base_of_type_get(int system, int type)
@@ -2575,3 +2577,5 @@ bool BKE_unit_is_suppressed(const void *usys_pt, int index)
   BLI_assert(uint(index) < uint(usys->length));
   return (usys->units[index].flag & B_UNIT_DEF_SUPPRESS) != 0;
 }
+
+}  // namespace blender

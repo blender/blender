@@ -4,7 +4,8 @@
 
 #include "gpu_shader_math_vector_safe_lib.glsl"
 
-void node_bsdf_diffuse(float4 color, float roughness, float3 N, float weight, out Closure result)
+[[node]]
+void node_bsdf_diffuse(float4 color, float roughness, float3 N, float weight, Closure &result)
 {
   ClosureDiffuse diffuse_data;
   diffuse_data.weight = weight;

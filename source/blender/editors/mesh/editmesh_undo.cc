@@ -101,6 +101,8 @@
 #  include "BLI_task.h"
 #endif
 
+namespace blender {
+
 /** We only need this locally. */
 static CLG_LogRef LOG = {"undo.mesh"};
 
@@ -123,10 +125,9 @@ struct BArrayCustomData {
    * Non-trivial data is just stored directly since allocated arrays cannot be easily deduplicated
    * with the array-store system.
    */
-  blender::Map<eCustomDataType, blender::Array<blender::ImplicitSharingInfoAndData>>
-      non_trivial_arrays;
+  Map<eCustomDataType, Array<ImplicitSharingInfoAndData>> non_trivial_arrays;
   /** Array-store states for custom data layers of each type. */
-  blender::Map<eCustomDataType, blender::Array<BArrayState *>> trivial_arrays;
+  Map<eCustomDataType, Array<BArrayState *>> trivial_arrays;
 };
 
 #  ifdef USE_ARRAY_STORE_RLE
@@ -200,6 +201,8 @@ enum {
 };
 #  define ARRAY_STORE_INDEX_NUM (ARRAY_STORE_INDEX_MSEL + 1)
 
+struct UndoMesh;
+
 static struct {
   BArrayStore_AtSize bs_stride[ARRAY_STORE_INDEX_NUM];
   int users;
@@ -208,7 +211,7 @@ static struct {
    * A list of #UndoMesh items ordered from oldest to newest
    * used to access previous undo data for a mesh.
    */
-  ListBase local_links;
+  ListBaseT<UndoMesh> local_links;
 
 #  ifdef USE_ARRAY_STORE_THREAD
   TaskPool *task_pool;
@@ -221,7 +224,6 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
                                                  const int bs_index,
                                                  const BArrayCustomData *bcd_reference)
 {
-  using namespace blender;
   BArrayCustomData bcd;
 
   MutableSpan all_layers(cdata->layers, cdata->totlayer);
@@ -326,7 +328,6 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
 
 static void um_arraystore_cd_clear(CustomData *cdata)
 {
-  using namespace blender;
   for (CustomDataLayer &layer : MutableSpan(cdata->layers, cdata->totlayer)) {
     if (layer.data) {
       layer.sharing_info->remove_user_and_delete_if_last();
@@ -344,7 +345,10 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
                                     CustomData *cdata,
                                     const size_t data_len)
 {
-  using namespace blender;
+  if (bcd == nullptr) {
+    return;
+  }
+
   MutableSpan all_layers(cdata->layers, cdata->totlayer);
   for (const auto &item : bcd->non_trivial_arrays.items()) {
     const eCustomDataType type = item.key;
@@ -405,7 +409,10 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
 
 static void um_arraystore_cd_free(BArrayCustomData *bcd, const int bs_index)
 {
-  using namespace blender;
+  if (bcd == nullptr) {
+    return;
+  }
+
   for (Array<ImplicitSharingInfoAndData> &states : bcd->non_trivial_arrays.values()) {
     for (ImplicitSharingInfoAndData &state : states) {
       state.sharing_info->remove_user_and_delete_if_last();
@@ -438,8 +445,16 @@ static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
    * At the moment it seems fast enough to split by domain.
    * Since this is itself a background thread, using too many threads here could
    * interfere with foreground tasks. */
-  blender::threading::parallel_invoke(
-      4096 < (mesh->verts_num + mesh->edges_num + mesh->corners_num + mesh->faces_num),
+
+#  ifdef USE_ARRAY_STORE_THREAD
+  const bool use_threading = 4096 < (mesh->verts_num + mesh->edges_num + mesh->corners_num +
+                                     mesh->faces_num);
+#  else
+  const bool use_threading = false;
+#  endif
+
+  threading::parallel_invoke(
+      use_threading,
       [&]() {
         um->store.vdata = um_arraystore_cd_create(&mesh->vert_data,
                                                   mesh->verts_num,
@@ -479,8 +494,8 @@ static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
                                                                         stride,
                                                                     state_reference);
 
-          blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
-                                                      &mesh->runtime->face_offsets_sharing_info);
+          implicit_sharing::free_shared_data(&mesh->face_offset_indices,
+                                             &mesh->runtime->face_offsets_sharing_info);
         }
       },
       [&]() {
@@ -490,8 +505,7 @@ static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
               &um_arraystore.bs_stride[ARRAY_STORE_INDEX_SHAPE],
               stride,
               array_chunk_size_calc(stride));
-          um->store.keyblocks = static_cast<BArrayState **>(
-              MEM_mallocN(mesh->key->totkey * sizeof(*um->store.keyblocks), __func__));
+          um->store.keyblocks = MEM_malloc_arrayN<BArrayState *>(mesh->key->totkey, __func__);
 
           KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
           for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
@@ -540,8 +554,8 @@ static void um_arraystore_expand_clear(UndoMesh *um)
   um_arraystore_cd_clear(&mesh->corner_data);
   um_arraystore_cd_clear(&mesh->face_data);
   if (mesh->face_offset_indices) {
-    blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
-                                                &mesh->runtime->face_offsets_sharing_info);
+    implicit_sharing::free_shared_data(&mesh->face_offset_indices,
+                                       &mesh->runtime->face_offsets_sharing_info);
   }
   if (mesh->key && mesh->key->totkey) {
     KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
@@ -653,7 +667,7 @@ static void um_arraystore_expand(UndoMesh *um)
     size_t state_len;
     mesh->face_offset_indices = static_cast<int *>(
         BLI_array_store_state_data_get_alloc(state, &state_len));
-    mesh->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+    mesh->runtime->face_offsets_sharing_info = implicit_sharing::info_for_mem_free(
         mesh->face_offset_indices);
     BLI_assert((mesh->faces_num + 1) == (state_len / stride));
     UNUSED_VARS_NDEBUG(stride);
@@ -745,11 +759,11 @@ static void um_arraystore_free(UndoMesh *um)
 static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, int object_len)
 {
   /* Map: `Mesh.id.session_uid` -> `UndoMesh`. */
-  blender::Map<int, UndoMesh **> uuid_map;
+  Map<int, UndoMesh **> uuid_map;
   uuid_map.reserve(object_len);
   UndoMesh **um_references = MEM_calloc_arrayN<UndoMesh *>(object_len, __func__);
   for (int i = 0; i < object_len; i++) {
-    const Mesh *mesh = static_cast<const Mesh *>(object[i]->data);
+    const Mesh *mesh = id_cast<const Mesh *>(object[i]->data);
     uuid_map.add(mesh->id.session_uid, &um_references[i]);
   }
   int uuid_map_len = object_len;
@@ -790,7 +804,7 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
 static void *undomesh_from_editmesh(UndoMesh *um,
                                     BMEditMesh *em,
                                     Key *key,
-                                    const ListBase *vertex_group_names,
+                                    const ListBaseT<bDeformGroup> *vertex_group_names,
                                     const int vertex_group_active_index,
                                     UndoMesh *um_ref)
 {
@@ -802,12 +816,12 @@ static void *undomesh_from_editmesh(UndoMesh *um,
   }
 #endif
 
-  um->mesh = blender::bke::mesh_new_no_attributes(0, 0, 0, 0);
+  um->mesh = bke::mesh_new_no_attributes(0, 0, 0, 0);
 
   /* make sure shape keys work */
   if (key != nullptr) {
-    um->mesh->key = (Key *)BKE_id_copy_ex(
-        nullptr, &key->id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
+    um->mesh->key = id_cast<Key *>(BKE_id_copy_ex(
+        nullptr, &key->id, nullptr, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA));
   }
   else {
     um->mesh->key = nullptr;
@@ -884,7 +898,7 @@ static void *undomesh_from_editmesh(UndoMesh *um,
  */
 static void undomesh_to_editmesh(UndoMesh *um,
                                  BMEditMesh *em,
-                                 ListBase *vertex_group_names,
+                                 ListBaseT<bDeformGroup> *vertex_group_names,
                                  int *vertex_group_active_index)
 {
   BMEditMesh *em_tmp;
@@ -981,7 +995,7 @@ static Object *editmesh_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_MESH) {
-    const Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    const Mesh *mesh = id_cast<Mesh *>(obedit->data);
     if (mesh->runtime->edit_mesh != nullptr) {
       return obedit;
     }
@@ -1030,14 +1044,14 @@ static bool mesh_undosys_poll(bContext *C)
 
 static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
-  MeshUndoStep *us = (MeshUndoStep *)us_p;
+  MeshUndoStep *us = reinterpret_cast<MeshUndoStep *>(us_p);
 
   /* Important not to use the 3D view when getting objects because all objects
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const ToolSettings *ts = scene->toolsettings;
-  blender::Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
+  Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
   us->elems = MEM_calloc_arrayN<MeshUndoStep_Elem>(objects.size(), __func__);
@@ -1062,7 +1076,7 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
     MeshUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = obedit;
-    Mesh *mesh = static_cast<Mesh *>(elem->obedit_ref.ptr->data);
+    Mesh *mesh = id_cast<Mesh *>(elem->obedit_ref.ptr->data);
     BMEditMesh *em = mesh->runtime->edit_mesh.get();
     undomesh_from_editmesh(&elem->data,
                            em,
@@ -1092,7 +1106,7 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 static void mesh_undosys_step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
-  MeshUndoStep *us = (MeshUndoStep *)us_p;
+  MeshUndoStep *us = reinterpret_cast<MeshUndoStep *>(us_p);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -1106,7 +1120,7 @@ static void mesh_undosys_step_decode(
   for (uint i = 0; i < us->elems_len; i++) {
     MeshUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    Mesh *mesh = static_cast<Mesh *>(obedit->data);
+    Mesh *mesh = id_cast<Mesh *>(obedit->data);
     if (mesh->runtime->edit_mesh == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
@@ -1157,7 +1171,7 @@ static void mesh_undosys_step_decode(
 
 static void mesh_undosys_step_free(UndoStep *us_p)
 {
-  MeshUndoStep *us = (MeshUndoStep *)us_p;
+  MeshUndoStep *us = reinterpret_cast<MeshUndoStep *>(us_p);
 
   for (uint i = 0; i < us->elems_len; i++) {
     MeshUndoStep_Elem *elem = &us->elems[i];
@@ -1170,12 +1184,12 @@ static void mesh_undosys_foreach_ID_ref(UndoStep *us_p,
                                         UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                         void *user_data)
 {
-  MeshUndoStep *us = (MeshUndoStep *)us_p;
+  MeshUndoStep *us = reinterpret_cast<MeshUndoStep *>(us_p);
 
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->scene_ref)));
   for (uint i = 0; i < us->elems_len; i++) {
     MeshUndoStep_Elem *elem = &us->elems[i];
-    foreach_ID_ref_fn(user_data, ((UndoRefID *)&elem->obedit_ref));
+    foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&elem->obedit_ref)));
   }
 }
 
@@ -1195,3 +1209,5 @@ void ED_mesh_undosys_type(UndoType *ut)
 }
 
 /** \} */
+
+}  // namespace blender

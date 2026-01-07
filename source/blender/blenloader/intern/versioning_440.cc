@@ -16,7 +16,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
@@ -52,6 +51,8 @@
 #include "readfile.hh"
 
 #include "versioning_common.hh"
+
+namespace blender {
 
 /* The Threshold, Mix, and Size properties of the node were converted into node inputs, and
  * two new outputs were added.
@@ -114,27 +115,25 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
 
   /* Function to remap the Mix property to the range of the new Strength input. See function
    * description. */
-  auto mix_to_strength = [](const float mix) {
-    return 1.0f - blender::math::clamp(-mix, 0.0f, 1.0f);
-  };
+  auto mix_to_strength = [](const float mix) { return 1.0f - math::clamp(-mix, 0.0f, 1.0f); };
 
   /* Find the render size to guess the Size value. The node tree might not belong to a scene, so we
    * just assume an arbitrary HDTV 1080p render size. */
-  blender::int2 render_size;
+  int2 render_size;
   if (scene) {
     BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
   }
   else {
-    render_size = blender::int2(1920, 1080);
+    render_size = int2(1920, 1080);
   }
 
   /* Function to remap the Size property to its new range. See function description. */
-  const int max_render_size = blender::math::reduce_max(render_size);
+  const int max_render_size = math::reduce_max(render_size);
   auto size_to_linear = [&](const int size) {
     if (storage->type == CMP_NODE_GLARE_BLOOM) {
-      return blender::math::pow(2.0f, float(size - 9));
+      return math::pow(2.0f, float(size - 9));
     }
-    return blender::math::min(1.0f, float((1 << size) + 1) / float(max_render_size));
+    return math::min(1.0f, float((1 << size) + 1) / float(max_render_size));
   };
 
   /* Assign the inputs the values from the old deprecated properties. */
@@ -155,7 +154,7 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
   BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
     /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
      * path. */
-    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+    if (!StringRef(fcurve->rna_path).startswith(node_rna_path)) {
       return;
     }
 
@@ -205,33 +204,31 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
     bNodeSocket *glare_output = version_node_add_socket_if_not_exist(
         node_tree, node, SOCK_OUT, SOCK_RGBA, PROP_NONE, "Glare", "Glare");
 
-    LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
-      if (link->fromsock != image_output) {
+    for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
+      if (link.fromsock != image_output) {
         continue;
       }
 
       /* Relink from the Image output to the Glare output. */
-      blender::bke::node_add_link(*node_tree, *node, *glare_output, *link->tonode, *link->tosock);
-      blender::bke::node_remove_link(node_tree, *link);
+      bke::node_add_link(*node_tree, *node, *glare_output, *link.tonode, *link.tosock);
+      bke::node_remove_link(node_tree, link);
     }
   }
 }
 
 static void do_version_glare_node_options_to_inputs_recursive(
-    const Scene *scene,
-    bNodeTree *node_tree,
-    blender::Set<bNodeTree *> &node_trees_already_versioned)
+    const Scene *scene, bNodeTree *node_tree, Set<bNodeTree *> &node_trees_already_versioned)
 {
   if (node_trees_already_versioned.contains(node_tree)) {
     return;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (node->type_legacy == CMP_NODE_GLARE) {
-      do_version_glare_node_options_to_inputs(scene, node_tree, node);
+  for (bNode &node : node_tree->nodes) {
+    if (node.type_legacy == CMP_NODE_GLARE) {
+      do_version_glare_node_options_to_inputs(scene, node_tree, &node);
     }
-    else if (node->is_group()) {
-      bNodeTree *child_tree = reinterpret_cast<bNodeTree *>(node->id);
+    else if (node.is_group()) {
+      bNodeTree *child_tree = reinterpret_cast<bNodeTree *>(node.id);
       if (child_tree) {
         do_version_glare_node_options_to_inputs_recursive(
             scene, child_tree, node_trees_already_versioned);
@@ -264,24 +261,24 @@ static void do_version_glare_node_bloom_strength(const Scene *scene,
 
   /* Find the render size to guess the Strength value. The node tree might not belong to a scene,
    * so we just assume an arbitrary HDTV 1080p render size. */
-  blender::int2 render_size;
+  int2 render_size;
   if (scene) {
     BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
   }
   else {
-    render_size = blender::int2(1920, 1080);
+    render_size = int2(1920, 1080);
   }
 
-  const blender::int2 highlights_size = render_size / quality_factor;
+  const int2 highlights_size = render_size / quality_factor;
 
   bNodeSocket *size = version_node_add_socket_if_not_exist(
       node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Size", "Size");
   const float size_value = size->default_value_typed<bNodeSocketValueFloat>()->value;
 
   /* See the compute_bloom_chain_length method in the glare code. */
-  const int smaller_dimension = blender::math::reduce_min(highlights_size);
+  const int smaller_dimension = math::reduce_min(highlights_size);
   const float scaled_dimension = smaller_dimension * size_value;
-  const int chain_length = int(std::log2(blender::math::max(1.0f, scaled_dimension)));
+  const int chain_length = int(std::log2(math::max(1.0f, scaled_dimension)));
 
   auto scale_strength = [chain_length](const float strength) { return strength * chain_length; };
 
@@ -306,20 +303,18 @@ static void do_version_glare_node_bloom_strength(const Scene *scene,
 }
 
 static void do_version_glare_node_bloom_strength_recursive(
-    const Scene *scene,
-    bNodeTree *node_tree,
-    blender::Set<bNodeTree *> &node_trees_already_versioned)
+    const Scene *scene, bNodeTree *node_tree, Set<bNodeTree *> &node_trees_already_versioned)
 {
   if (node_trees_already_versioned.contains(node_tree)) {
     return;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (node->type_legacy == CMP_NODE_GLARE) {
-      do_version_glare_node_bloom_strength(scene, node_tree, node);
+  for (bNode &node : node_tree->nodes) {
+    if (node.type_legacy == CMP_NODE_GLARE) {
+      do_version_glare_node_bloom_strength(scene, node_tree, &node);
     }
-    else if (node->is_group()) {
-      bNodeTree *child_tree = reinterpret_cast<bNodeTree *>(node->id);
+    else if (node.is_group()) {
+      bNodeTree *child_tree = reinterpret_cast<bNodeTree *>(node.id);
       if (child_tree) {
         do_version_glare_node_bloom_strength_recursive(
             scene, child_tree, node_trees_already_versioned);
@@ -338,67 +333,63 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
   /* Stores a mapping between an output and the final link of the versioning node tree that was
    * added for it, in order to share the same versioning node tree with potentially multiple
    * outgoing links from that same output. */
-  blender::Map<bNodeSocket *, bNodeLink *> color_to_float_links;
-  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
-    if (!(link->fromsock->type == SOCK_RGBA && link->tosock->type == SOCK_FLOAT)) {
+  Map<bNodeSocket *, bNodeLink *> color_to_float_links;
+  for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
+    if (!(link.fromsock->type == SOCK_RGBA && link.tosock->type == SOCK_FLOAT)) {
       continue;
     }
 
     /* If that output was versioned before, just connect the existing link. */
-    bNodeLink *existing_link = color_to_float_links.lookup_default(link->fromsock, nullptr);
+    bNodeLink *existing_link = color_to_float_links.lookup_default(link.fromsock, nullptr);
     if (existing_link) {
       version_node_add_link(*node_tree,
                             *existing_link->fromnode,
                             *existing_link->fromsock,
-                            *link->tonode,
-                            *link->tosock);
-      blender::bke::node_remove_link(node_tree, *link);
+                            *link.tonode,
+                            *link.tosock);
+      bke::node_remove_link(node_tree, link);
       continue;
     }
 
     /* Add a hidden dot product node. */
-    bNode *dot_product_node = blender::bke::node_add_static_node(
-        nullptr, *node_tree, SH_NODE_VECTOR_MATH);
+    bNode *dot_product_node = bke::node_add_static_node(nullptr, *node_tree, SH_NODE_VECTOR_MATH);
     dot_product_node->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
     dot_product_node->flag |= NODE_COLLAPSED;
-    dot_product_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 10.0f;
-    dot_product_node->location[1] = link->fromnode->location[1];
+    dot_product_node->location[0] = link.fromnode->location[0] + link.fromnode->width + 10.0f;
+    dot_product_node->location[1] = link.fromnode->location[1];
 
     /* Link the source socket to the dot product input. */
-    bNodeSocket *dot_product_a_input = blender::bke::node_find_socket(
-        *dot_product_node, SOCK_IN, "Vector");
+    bNodeSocket *dot_product_a_input = bke::node_find_socket(*dot_product_node, SOCK_IN, "Vector");
     version_node_add_link(
-        *node_tree, *link->fromnode, *link->fromsock, *dot_product_node, *dot_product_a_input);
+        *node_tree, *link.fromnode, *link.fromsock, *dot_product_node, *dot_product_a_input);
 
     /* Set the dot product vector to 1 / 3 to compute the average. */
-    bNodeSocket *dot_product_b_input = blender::bke::node_find_socket(
+    bNodeSocket *dot_product_b_input = bke::node_find_socket(
         *dot_product_node, SOCK_IN, "Vector_001");
     copy_v3_fl(dot_product_b_input->default_value_typed<bNodeSocketValueVector>()->value,
                1.0f / 3.0f);
 
     /* Link the dot product node output to the link target. */
-    bNodeSocket *dot_product_output = blender::bke::node_find_socket(
-        *dot_product_node, SOCK_OUT, "Value");
+    bNodeSocket *dot_product_output = bke::node_find_socket(*dot_product_node, SOCK_OUT, "Value");
     bNodeLink *output_link = &version_node_add_link(
-        *node_tree, *dot_product_node, *dot_product_output, *link->tonode, *link->tosock);
+        *node_tree, *dot_product_node, *dot_product_output, *link.tonode, *link.tosock);
 
     /* Add the new link to the cache. */
-    color_to_float_links.add_new(link->fromsock, output_link);
+    color_to_float_links.add_new(link.fromsock, output_link);
 
     /* Remove the old link. */
-    blender::bke::node_remove_link(node_tree, *link);
+    bke::node_remove_link(node_tree, link);
   }
 }
 
 static void do_version_bump_filter_width(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
-    if (node->type_legacy != SH_NODE_BUMP) {
+  for (bNode &node : node_tree->nodes.items_mutable()) {
+    if (node.type_legacy != SH_NODE_BUMP) {
       continue;
     }
 
-    bNodeSocket *filter_width_input = blender::bke::node_find_socket(
-        *node, SOCK_IN, "Filter Width");
+    bNodeSocket *filter_width_input = bke::node_find_socket(node, SOCK_IN, "Filter Width");
     if (filter_width_input) {
       *version_cycles_node_socket_float_value(filter_width_input) = 1.0f;
     }
@@ -408,49 +399,49 @@ static void do_version_bump_filter_width(bNodeTree *node_tree)
 void do_versions_after_linking_440(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
-    blender::animrig::versioning::convert_legacy_animato_actions(*bmain);
-    blender::animrig::versioning::tag_action_users_for_slotted_actions_conversion(*bmain);
-    blender::animrig::versioning::convert_legacy_action_assignments(*bmain, fd->reports->reports);
+    animrig::versioning::convert_legacy_animato_actions(*bmain);
+    animrig::versioning::tag_action_users_for_slotted_actions_conversion(*bmain);
+    animrig::versioning::convert_legacy_action_assignments(*bmain, fd->reports->reports);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 7)) {
     constexpr char SCE_SNAP_TO_NODE_X = (1 << 0);
     constexpr char SCE_SNAP_TO_NODE_Y = (1 << 1);
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->toolsettings->snap_node_mode & SCE_SNAP_TO_NODE_X ||
-          scene->toolsettings->snap_node_mode & SCE_SNAP_TO_NODE_Y)
+    for (Scene &scene : bmain->scenes) {
+      if (scene.toolsettings->snap_node_mode & SCE_SNAP_TO_NODE_X ||
+          scene.toolsettings->snap_node_mode & SCE_SNAP_TO_NODE_Y)
       {
-        scene->toolsettings->snap_node_mode = SCE_SNAP_TO_GRID;
+        scene.toolsettings->snap_node_mode = SCE_SNAP_TO_GRID;
       }
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 18)) {
-    blender::Set<bNodeTree *> node_trees_already_versioned;
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      bNodeTree *node_tree = scene->nodetree;
+    Set<bNodeTree *> node_trees_already_versioned;
+    for (Scene &scene : bmain->scenes) {
+      bNodeTree *node_tree = scene.nodetree;
       if (!node_tree) {
         continue;
       }
       do_version_glare_node_options_to_inputs_recursive(
-          scene, node_tree, node_trees_already_versioned);
+          &scene, node_tree, node_trees_already_versioned);
     }
 
     /* The above loop versioned all node trees used in a scene, but other node trees might exist
      * that are not used in a scene. For those, assume the first scene in the file, as this is
      * better than not doing versioning at all. */
     Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    LISTBASE_FOREACH (bNodeTree *, node_tree, &bmain->nodetrees) {
-      if (node_trees_already_versioned.contains(node_tree)) {
+    for (bNodeTree &node_tree : bmain->nodetrees) {
+      if (node_trees_already_versioned.contains(&node_tree)) {
         continue;
       }
 
-      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-        if (node->type_legacy == CMP_NODE_GLARE) {
-          do_version_glare_node_options_to_inputs(scene, node_tree, node);
+      for (bNode &node : node_tree.nodes) {
+        if (node.type_legacy == CMP_NODE_GLARE) {
+          do_version_glare_node_options_to_inputs(scene, &node_tree, &node);
         }
       }
-      node_trees_already_versioned.add_new(node_tree);
+      node_trees_already_versioned.add_new(&node_tree);
     }
   }
 
@@ -465,40 +456,39 @@ void do_versions_after_linking_440(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 21)) {
-    blender::Set<bNodeTree *> node_trees_already_versioned;
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      bNodeTree *node_tree = scene->nodetree;
+    Set<bNodeTree *> node_trees_already_versioned;
+    for (Scene &scene : bmain->scenes) {
+      bNodeTree *node_tree = scene.nodetree;
       if (!node_tree) {
         continue;
       }
       do_version_glare_node_bloom_strength_recursive(
-          scene, node_tree, node_trees_already_versioned);
+          &scene, node_tree, node_trees_already_versioned);
     }
 
     /* The above loop versioned all node trees used in a scene, but other node trees might exist
      * that are not used in a scene. For those, assume the first scene in the file, as this is
      * better than not doing versioning at all. */
     Scene *scene = static_cast<Scene *>(bmain->scenes.first);
-    LISTBASE_FOREACH (bNodeTree *, node_tree, &bmain->nodetrees) {
-      if (node_trees_already_versioned.contains(node_tree)) {
+    for (bNodeTree &node_tree : bmain->nodetrees) {
+      if (node_trees_already_versioned.contains(&node_tree)) {
         continue;
       }
 
-      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-        if (node->type_legacy == CMP_NODE_GLARE) {
-          do_version_glare_node_bloom_strength(scene, node_tree, node);
+      for (bNode &node : node_tree.nodes) {
+        if (node.type_legacy == CMP_NODE_GLARE) {
+          do_version_glare_node_bloom_strength(scene, &node_tree, &node);
         }
       }
-      node_trees_already_versioned.add_new(node_tree);
+      node_trees_already_versioned.add_new(&node_tree);
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 25)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (!scene->adt) {
+    for (Scene &scene : bmain->scenes) {
+      if (!scene.adt) {
         continue;
       }
-      using namespace blender;
       auto replace_rna_path_prefix =
           [](FCurve &fcurve, const StringRef old_prefix, const StringRef new_prefix) {
             const StringRef rna_path = fcurve.rna_path;
@@ -510,13 +500,13 @@ void do_versions_after_linking_440(FileData *fd, Main *bmain)
             MEM_freeN(fcurve.rna_path);
             fcurve.rna_path = new_rna_path;
           };
-      if (scene->adt->action) {
-        animrig::foreach_fcurve_in_action(scene->adt->action->wrap(), [&](FCurve &fcurve) {
+      if (scene.adt->action) {
+        animrig::foreach_fcurve_in_action(scene.adt->action->wrap(), [&](FCurve &fcurve) {
           replace_rna_path_prefix(fcurve, "sequence_editor.sequences", "sequence_editor.strips");
         });
       }
-      LISTBASE_FOREACH (FCurve *, driver, &scene->adt->drivers) {
-        replace_rna_path_prefix(*driver, "sequence_editor.sequences", "sequence_editor.strips");
+      for (FCurve &driver : scene.adt->drivers) {
+        replace_rna_path_prefix(driver, "sequence_editor.sequences", "sequence_editor.strips");
       }
     }
   }
@@ -550,12 +540,12 @@ static bool versioning_convert_seq_text_anchor(Strip *strip, void * /*user_data*
 
 static void add_subsurf_node_limit_surface_option(Main &bmain)
 {
-  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain.nodetrees) {
-    if (ntree->type == NTREE_GEOMETRY) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type_legacy == GEO_NODE_SUBDIVISION_SURFACE) {
+  for (bNodeTree &ntree : bmain.nodetrees) {
+    if (ntree.type == NTREE_GEOMETRY) {
+      for (bNode &node : ntree.nodes) {
+        if (node.type_legacy == GEO_NODE_SUBDIVISION_SURFACE) {
           bNodeSocket *socket = version_node_add_socket_if_not_exist(
-              ntree, node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Limit Surface", "Limit Surface");
+              &ntree, &node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Limit Surface", "Limit Surface");
           static_cast<bNodeSocketValueBoolean *>(socket->default_value)->value = false;
         }
       }
@@ -565,18 +555,17 @@ static void add_subsurf_node_limit_surface_option(Main &bmain)
 
 static void remove_triangulate_node_min_size_input(bNodeTree *tree)
 {
-  using namespace blender;
   Set<bNode *> triangulate_nodes;
-  LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
-    if (node->type_legacy == GEO_NODE_TRIANGULATE) {
-      triangulate_nodes.add(node);
+  for (bNode &node : tree->nodes) {
+    if (node.type_legacy == GEO_NODE_TRIANGULATE) {
+      triangulate_nodes.add(&node);
     }
   }
 
   Map<bNodeSocket *, bNodeLink *> input_links;
-  LISTBASE_FOREACH (bNodeLink *, link, &tree->links) {
-    if (triangulate_nodes.contains(link->tonode)) {
-      input_links.add_new(link->tosock, link);
+  for (bNodeLink &link : tree->links) {
+    if (triangulate_nodes.contains(link.tonode)) {
+      input_links.add_new(link.tosock, &link);
     }
   }
 
@@ -605,17 +594,17 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
     corners_of_face.locx_legacy = triangulate->locx_legacy - 200;
     corners_of_face.locy_legacy = triangulate->locy_legacy - 50;
     corners_of_face.parent = triangulate->parent;
-    LISTBASE_FOREACH (bNodeSocket *, socket, &corners_of_face.inputs) {
-      socket->flag |= SOCK_HIDDEN;
+    for (bNodeSocket &socket : corners_of_face.inputs) {
+      socket.flag |= SOCK_HIDDEN;
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &corners_of_face.outputs) {
-      if (!STREQ(socket->identifier, "Total")) {
-        socket->flag |= SOCK_HIDDEN;
+    for (bNodeSocket &socket : corners_of_face.outputs) {
+      if (!STREQ(socket.identifier, "Total")) {
+        socket.flag |= SOCK_HIDDEN;
       }
     }
 
     bNode &greater_or_equal = version_node_add_empty(*tree, "FunctionNodeCompare");
-    auto *compare_storage = MEM_callocN<NodeFunctionCompare>(__func__);
+    auto *compare_storage = MEM_new_for_free<NodeFunctionCompare>(__func__);
     compare_storage->operation = NODE_COMPARE_GREATER_EQUAL;
     compare_storage->data_type = SOCK_INT;
     greater_or_equal.storage = compare_storage;
@@ -686,11 +675,11 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
 
 static void version_fcurve_noise_modifier(FCurve &fcurve)
 {
-  LISTBASE_FOREACH (FModifier *, fcurve_modifier, &fcurve.modifiers) {
-    if (fcurve_modifier->type != FMODIFIER_TYPE_NOISE) {
+  for (FModifier &fcurve_modifier : fcurve.modifiers) {
+    if (fcurve_modifier.type != FMODIFIER_TYPE_NOISE) {
       continue;
     }
-    FMod_Noise *data = static_cast<FMod_Noise *>(fcurve_modifier->data);
+    FMod_Noise *data = static_cast<FMod_Noise *>(fcurve_modifier.data);
     data->lacunarity = 2.0f;
     data->roughness = 0.5f;
     data->legacy_noise = true;
@@ -699,18 +688,18 @@ static void version_fcurve_noise_modifier(FCurve &fcurve)
 
 static void version_node_locations_to_global(bNodeTree &ntree)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    node->location[0] = node->locx_legacy;
-    node->location[1] = node->locy_legacy;
-    for (const bNode *parent = node->parent; parent; parent = parent->parent) {
-      node->location[0] += parent->locx_legacy;
-      node->location[1] += parent->locy_legacy;
+  for (bNode &node : ntree.nodes) {
+    node.location[0] = node.locx_legacy;
+    node.location[1] = node.locy_legacy;
+    for (const bNode *parent = node.parent; parent; parent = parent->parent) {
+      node.location[0] += parent->locx_legacy;
+      node.location[1] += parent->locy_legacy;
     }
 
-    node->location[0] += node->offsetx_legacy;
-    node->location[1] += node->offsety_legacy;
-    node->offsetx_legacy = 0.0f;
-    node->offsety_legacy = 0.0f;
+    node.location[0] += node.offsetx_legacy;
+    node.location[1] += node.offsety_legacy;
+    node.offsetx_legacy = 0.0f;
+    node.offsety_legacy = 0.0f;
   }
 }
 
@@ -721,26 +710,26 @@ static void version_node_locations_to_global(bNodeTree &ntree)
  */
 static void version_group_input_socket_data_block_reference(bNodeTree &ntree)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (!node->is_group_input()) {
+  for (bNode &node : ntree.nodes) {
+    if (!node.is_group_input()) {
       continue;
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-      switch (socket->type) {
+    for (bNodeSocket &socket : node.outputs) {
+      switch (socket.type) {
         case SOCK_OBJECT:
-          socket->default_value_typed<bNodeSocketValueObject>()->value = nullptr;
+          socket.default_value_typed<bNodeSocketValueObject>()->value = nullptr;
           break;
         case SOCK_IMAGE:
-          socket->default_value_typed<bNodeSocketValueImage>()->value = nullptr;
+          socket.default_value_typed<bNodeSocketValueImage>()->value = nullptr;
           break;
         case SOCK_COLLECTION:
-          socket->default_value_typed<bNodeSocketValueCollection>()->value = nullptr;
+          socket.default_value_typed<bNodeSocketValueCollection>()->value = nullptr;
           break;
         case SOCK_TEXTURE:
-          socket->default_value_typed<bNodeSocketValueTexture>()->value = nullptr;
+          socket.default_value_typed<bNodeSocketValueTexture>()->value = nullptr;
           break;
         case SOCK_MATERIAL:
-          socket->default_value_typed<bNodeSocketValueMaterial>()->value = nullptr;
+          socket.default_value_typed<bNodeSocketValueMaterial>()->value = nullptr;
           break;
       }
     }
@@ -756,9 +745,9 @@ static bool versioning_clear_strip_unused_flag(Strip *strip, void * /*user_data*
 static void version_geometry_normal_input_node(bNodeTree &ntree)
 {
   if (ntree.type == NTREE_GEOMETRY) {
-    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-      if (STREQ(node->idname, "GeometryNodeInputNormal")) {
-        node->custom1 = 1;
+    for (bNode &node : ntree.nodes) {
+      if (STREQ(node.idname, "GeometryNodeInputNormal")) {
+        node.custom1 = 1;
       }
     }
   }
@@ -766,34 +755,34 @@ static void version_geometry_normal_input_node(bNodeTree &ntree)
 
 static void do_version_viewer_shortcut(bNodeTree *node_tree)
 {
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
-    if (node->type_legacy != CMP_NODE_VIEWER) {
+  for (bNode &node : node_tree->nodes.items_mutable()) {
+    if (node.type_legacy != CMP_NODE_VIEWER) {
       continue;
     }
     /* custom1 was previously used for Tile Order for the Tiled Compositor. */
-    node->custom1 = NODE_VIEWER_SHORTCUT_NONE;
+    node.custom1 = NODE_VIEWER_SHORTCUT_NONE;
   }
 }
 
 void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 1)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = blender::seq::editing_get(scene);
+    for (Scene &scene : bmain->scenes) {
+      Editing *ed = seq::editing_get(&scene);
       if (ed != nullptr) {
-        blender::seq::foreach_strip(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
+        seq::foreach_strip(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
       }
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 4)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype != SPACE_FILE) {
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype != SPACE_FILE) {
             continue;
           }
-          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(&sl);
           if (sfile->asset_params) {
             sfile->asset_params->base_params.sort = FILE_SORT_ASSET_CATALOG;
           }
@@ -807,17 +796,17 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 8)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        remove_triangulate_node_min_size_input(ntree);
+    for (bNodeTree &ntree : bmain->nodetrees) {
+      if (ntree.type == NTREE_GEOMETRY) {
+        remove_triangulate_node_min_size_input(&ntree);
       }
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 10)) {
-    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
-      blender::animrig::Action &action = dna_action->wrap();
-      blender::animrig::foreach_fcurve_in_action(
+    for (bAction &dna_action : bmain->actions) {
+      animrig::Action &action = dna_action.wrap();
+      animrig::foreach_fcurve_in_action(
           action, [&](FCurve &fcurve) { version_fcurve_noise_modifier(fcurve); });
     }
 
@@ -828,8 +817,8 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
 
-      LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-        version_fcurve_noise_modifier(*fcu);
+      for (FCurve &fcu : adt->drivers) {
+        version_fcurve_noise_modifier(fcu);
       }
     }
     FOREACH_MAIN_ID_END;
@@ -838,10 +827,10 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 11)) {
     /* #update_paint_modes_for_brush_assets() didn't handle image editor tools for some time. 4.3
      * files saved during that period could have invalid tool references stored. */
-    LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
-      LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-        if (tref->space_type == SPACE_IMAGE && tref->mode == SI_MODE_PAINT) {
-          STRNCPY_UTF8(tref->idname, "builtin.brush");
+    for (WorkSpace &workspace : bmain->workspaces) {
+      for (bToolRef &tref : workspace.tools) {
+        if (tref.space_type == SPACE_IMAGE && tref.mode == SI_MODE_PAINT) {
+          STRNCPY_UTF8(tref.idname, "builtin.brush");
         }
       }
     }
@@ -855,22 +844,22 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 13)) {
-    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
-        if (modifier->type != eModifierType_Nodes) {
+    for (Object &object : bmain->objects) {
+      for (ModifierData &modifier : object.modifiers) {
+        if (modifier.type != eModifierType_Nodes) {
           continue;
         }
-        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(modifier);
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&modifier);
         if (!nmd->settings.properties) {
           continue;
         }
-        LISTBASE_FOREACH (IDProperty *, idprop, &nmd->settings.properties->data.group) {
-          if (idprop->type != IDP_STRING) {
+        for (IDProperty &idprop : nmd->settings.properties->data.group) {
+          if (idprop.type != IDP_STRING) {
             continue;
           }
-          blender::StringRef prop_name(idprop->name);
+          StringRef prop_name(idprop.name);
           if (prop_name.endswith("_attribute_name") || prop_name.endswith("_use_attribute")) {
-            idprop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE;
+            idprop.flag |= IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE;
           }
         }
       }
@@ -878,16 +867,16 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 14)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      version_group_input_socket_data_block_reference(*ntree);
+    for (bNodeTree &ntree : bmain->nodetrees) {
+      version_group_input_socket_data_block_reference(ntree);
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 15)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = blender::seq::editing_get(scene);
+    for (Scene &scene : bmain->scenes) {
+      Editing *ed = seq::editing_get(&scene);
       if (ed != nullptr) {
-        blender::seq::foreach_strip(&ed->seqbase, versioning_clear_strip_unused_flag, scene);
+        seq::foreach_strip(&ed->seqbase, versioning_clear_strip_unused_flag, &scene);
       }
     }
   }
@@ -896,11 +885,11 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 16)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type_legacy == SH_NODE_MIX_SHADER) {
-            LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-              if (STREQ(socket->identifier, "Shader.001")) {
-                STRNCPY_UTF8(socket->identifier, "Shader_001");
+        for (bNode &node : ntree->nodes) {
+          if (node.type_legacy == SH_NODE_MIX_SHADER) {
+            for (bNodeSocket &socket : node.inputs) {
+              if (STREQ(socket.identifier, "Shader.001")) {
+                STRNCPY_UTF8(socket.identifier, "Shader_001");
               }
             }
           }
@@ -914,22 +903,22 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(
             fd->filesdna, "RenderData", "RenderSettings", "compositor_denoise_preview_quality"))
     {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->r.compositor_denoise_preview_quality = SCE_COMPOSITOR_DENOISE_BALANCED;
+      for (Scene &scene : bmain->scenes) {
+        scene.r.compositor_denoise_preview_quality = SCE_COMPOSITOR_DENOISE_BALANCED;
       }
     }
     if (!DNA_struct_member_exists(
             fd->filesdna, "RenderData", "RenderSettings", "compositor_denoise_final_quality"))
     {
-      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->r.compositor_denoise_final_quality = SCE_COMPOSITOR_DENOISE_HIGH;
+      for (Scene &scene : bmain->scenes) {
+        scene.r.compositor_denoise_final_quality = SCE_COMPOSITOR_DENOISE_HIGH;
       }
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 22)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      IDProperty *cscene = version_cycles_properties_from_ID(&scene->id);
+    for (Scene &scene : bmain->scenes) {
+      IDProperty *cscene = version_cycles_properties_from_ID(&scene.id);
       if (cscene) {
         if (version_cycles_property_int(cscene, "sample_offset", 0) > 0) {
           version_cycles_property_boolean_set(cscene, "use_sample_subset", true);
@@ -941,28 +930,28 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 23)) {
     if (!DNA_struct_member_exists(fd->filesdna, "Curves", "float", "surface_collision_distance")) {
-      LISTBASE_FOREACH (Curves *, curves, &bmain->hair_curves) {
-        curves->surface_collision_distance = 0.005f;
+      for (Curves &curves : bmain->hair_curves) {
+        curves.surface_collision_distance = 0.005f;
       }
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 24)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      version_geometry_normal_input_node(*ntree);
+    for (bNodeTree &ntree : bmain->nodetrees) {
+      version_geometry_normal_input_node(ntree);
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 26)) {
-    const Brush *default_brush = DNA_struct_default_get(Brush);
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if ((brush->mask_stencil_dimension[0] == 0) && (brush->mask_stencil_dimension[1] == 0)) {
-        brush->mask_stencil_dimension[0] = default_brush->mask_stencil_dimension[0];
-        brush->mask_stencil_dimension[1] = default_brush->mask_stencil_dimension[1];
+    const Brush default_brush;
+    for (Brush &brush : bmain->brushes) {
+      if ((brush.mask_stencil_dimension[0] == 0) && (brush.mask_stencil_dimension[1] == 0)) {
+        brush.mask_stencil_dimension[0] = default_brush.mask_stencil_dimension[0];
+        brush.mask_stencil_dimension[1] = default_brush.mask_stencil_dimension[1];
       }
-      if ((brush->mask_stencil_pos[0] == 0) && (brush->mask_stencil_pos[1] == 0)) {
-        brush->mask_stencil_pos[0] = default_brush->mask_stencil_pos[0];
-        brush->mask_stencil_pos[1] = default_brush->mask_stencil_pos[1];
+      if ((brush.mask_stencil_pos[0] == 0) && (brush.mask_stencil_pos[1] == 0)) {
+        brush.mask_stencil_pos[0] = default_brush.mask_stencil_pos[0];
+        brush.mask_stencil_pos[1] = default_brush.mask_stencil_pos[1];
       }
     }
   }
@@ -977,29 +966,29 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 28)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
+    for (Scene &scene : bmain->scenes) {
+      SequencerToolSettings *sequencer_tool_settings = seq::tool_settings_ensure(&scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_RETIMING;
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 29)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      ToolSettings *ts = scene->toolsettings;
+    for (Scene &scene : bmain->scenes) {
+      ToolSettings *ts = scene.toolsettings;
       ts->imapaint.clone_alpha = 0.5f;
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 30)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_INFO, SPACE_CONSOLE)) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
-            LISTBASE_FOREACH (ARegion *, region, regionbase) {
-              if (region->regiontype == RGN_TYPE_WINDOW) {
-                region->v2d.scroll |= V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (ELEM(sl.spacetype, SPACE_ACTION, SPACE_INFO, SPACE_CONSOLE)) {
+            ListBaseT<ARegion> *regionbase = (&sl == area.spacedata.first) ? &area.regionbase :
+                                                                             &sl.regionbase;
+            for (ARegion &region : *regionbase) {
+              if (region.regiontype == RGN_TYPE_WINDOW) {
+                region.v2d.scroll |= V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
               }
             }
           }
@@ -1008,3 +997,5 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 }
+
+}  // namespace blender

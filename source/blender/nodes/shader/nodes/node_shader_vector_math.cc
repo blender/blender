@@ -20,7 +20,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_vector_math_cc {
+namespace blender {
+
+namespace nodes::node_shader_vector_math_cc {
 
 static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
 {
@@ -83,7 +85,7 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_vect_math(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "operation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "operation", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 class SocketSearchOp {
@@ -118,12 +120,12 @@ static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &p
                                                 NODE_VECTOR_MATH_DOT_PRODUCT))
       {
         params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                        SocketSearchOp{"Value", (NodeVectorMathOperation)item->value},
+                        SocketSearchOp{"Value", NodeVectorMathOperation(item->value)},
                         weight);
       }
       else {
         params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                        SocketSearchOp{"Vector", (NodeVectorMathOperation)item->value},
+                        SocketSearchOp{"Vector", NodeVectorMathOperation(item->value)},
                         weight);
       }
     }
@@ -215,8 +217,8 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
 
 static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
-  bNodeSocket *sockC = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
+  bNodeSocket *sockB = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
+  bNodeSocket *sockC = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
   bNodeSocket *sockScale = bke::node_find_socket(*node, SOCK_IN, "Scale");
 
   bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_OUT, "Vector");
@@ -573,13 +575,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_vector_math_cc
+}  // namespace nodes::node_shader_vector_math_cc
 
 void register_node_type_sh_vect_math()
 {
-  namespace file_ns = blender::nodes::node_shader_vector_math_cc;
+  namespace file_ns = nodes::node_shader_vector_math_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeVectorMath", SH_NODE_VECTOR_MATH);
   ntype.ui_name = "Vector Math";
@@ -598,5 +600,7 @@ void register_node_type_sh_vect_math()
   ntype.eval_inverse_elem = file_ns::node_eval_inverse_elem;
   ntype.eval_inverse = file_ns::node_eval_inverse;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

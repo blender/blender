@@ -12,6 +12,8 @@
 
 #include "WM_api.hh"
 
+namespace blender {
+
 /**
  * Checks if the viewer path stored in the workspace is still active and resets it if not.
  * The viewer path stored in the workspace is the ground truth for other editors, so it should be
@@ -45,3 +47,5 @@ void ED_workspace_do_listen(bContext *C, const wmNotifier * /*note*/)
   WorkSpace *workspace = CTX_wm_workspace(C);
   validate_viewer_paths(*C, *workspace);
 }
+
+}  // namespace blender

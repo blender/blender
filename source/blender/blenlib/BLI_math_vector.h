@@ -12,6 +12,8 @@
 #include "BLI_math_inline.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Init
  * \{ */
@@ -625,6 +627,8 @@ void add_vn_vnvn_d(double *array_tar,
 void mul_vn_db(double *array_tar, int size, double f);
 
 /** \} */
+
+}  // namespace blender
 
 /* -------------------------------------------------------------------- */
 /** \name Inline Definitions

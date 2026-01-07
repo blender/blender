@@ -156,7 +156,7 @@ ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg,
       return true;
     }
 
-    const int object_flag = kernel_data_fetch(object_flag, object);
+    const uint object_flag = kernel_data_fetch(object_flag, object);
     if (object_flag & SD_OBJECT_HAS_VOLUME_ATTRIBUTES) {
       /* If both the shader and the object needs volume attributes, the volume is heterogeneous. */
       return false;

@@ -15,32 +15,53 @@ COMPUTE_SHADER_CREATE_INFO(draw_command_generate)
 /* This is only called by the last thread executed over the group's prototype draws. */
 void write_draw_call(DrawGroup group, uint group_id)
 {
-  DrawCommand cmd;
-  cmd.vertex_len = uint(group.vertex_len);
-  cmd.vertex_first = uint(group.vertex_first);
-  bool indexed_draw = group.base_index != -1;
+  const bool indexed_draw = group.base_index != -1;
+
+  const uint back_facing_len = group_buf[group_id].back_facing_counter;
+  const uint back_facing_start = group.start * uint(view_len);
+  const uint front_facing_len = group_buf[group_id].front_facing_counter;
+  const uint front_facing_start = (group.start + (group.len - group.front_facing_len)) *
+                                  uint(view_len);
 
   /* Back-facing command. */
-  uint back_facing_start = group.start * uint(view_len);
+  DrawCommand cmd;
   if (indexed_draw) {
-    cmd.base_index = uint(group.base_index);
-    cmd.instance_first_indexed = back_facing_start;
+    DrawCommandIndexed cmd_indexed;
+    cmd_indexed.vertex_len = uint(group.vertex_len);
+    cmd_indexed.instance_len = back_facing_len;
+    cmd_indexed.vertex_first = uint(group.vertex_first);
+    cmd_indexed.base_index = uint(group.base_index);
+    cmd_indexed.instance_first = back_facing_start;
+    cmd.indexed() = cmd_indexed;
   }
   else {
-    cmd._instance_first_array = back_facing_start;
+    DrawCommandArray cmd_array;
+    cmd_array.vertex_len = uint(group.vertex_len);
+    cmd_array.instance_len = back_facing_len;
+    cmd_array.vertex_first = uint(group.vertex_first);
+    cmd_array.instance_first = back_facing_start;
+    cmd.array() = cmd_array;
   }
-  cmd.instance_len = group_buf[group_id].back_facing_counter;
   command_buf[group_id * 2 + 0] = cmd;
 
   /* Front-facing command. */
-  uint front_facing_start = (group.start + (group.len - group.front_facing_len)) * uint(view_len);
   if (indexed_draw) {
-    cmd.instance_first_indexed = front_facing_start;
+    DrawCommandIndexed cmd_indexed;
+    cmd_indexed.vertex_len = uint(group.vertex_len);
+    cmd_indexed.instance_len = front_facing_len;
+    cmd_indexed.vertex_first = uint(group.vertex_first);
+    cmd_indexed.base_index = uint(group.base_index);
+    cmd_indexed.instance_first = front_facing_start;
+    cmd.indexed() = cmd_indexed;
   }
   else {
-    cmd._instance_first_array = front_facing_start;
+    DrawCommandArray cmd_array;
+    cmd_array.vertex_len = uint(group.vertex_len);
+    cmd_array.instance_len = front_facing_len;
+    cmd_array.vertex_first = uint(group.vertex_first);
+    cmd_array.instance_first = front_facing_start;
+    cmd.array() = cmd_array;
   }
-  cmd.instance_len = group_buf[group_id].front_facing_counter;
   command_buf[group_id * 2 + 1] = cmd;
 
   /* Reset the counters for a next command gen dispatch. Avoids re-sending the whole data just

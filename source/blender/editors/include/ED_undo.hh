@@ -10,9 +10,10 @@
 
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
+struct CLG_LogRef;
+namespace blender {
 
 struct Base;
-struct CLG_LogRef;
 struct ID;
 struct MemFile;
 struct PointerRNA;
@@ -105,10 +106,9 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
                                             uint object_array_len,
                                             uint object_array_stride);
 
-blender::Vector<Object *> ED_undo_editmode_objects_from_view_layer(const Scene *scene,
-                                                                   ViewLayer *view_layer);
-blender::Vector<Base *> ED_undo_editmode_bases_from_view_layer(const Scene *scene,
-                                                               ViewLayer *view_layer);
+Vector<Object *> ED_undo_editmode_objects_from_view_layer(const Scene *scene,
+                                                          ViewLayer *view_layer);
+Vector<Base *> ED_undo_editmode_bases_from_view_layer(const Scene *scene, ViewLayer *view_layer);
 
 /**
  * Ideally we won't access the stack directly,
@@ -158,3 +158,5 @@ void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id);
  * \return Total memory usage in bytes, or 0 if no undo stack is available.
  */
 size_t ED_undosys_total_memory_calc(UndoStack *ustack);
+
+}  // namespace blender

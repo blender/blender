@@ -13,6 +13,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 
+namespace blender {
+
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
 
@@ -39,97 +41,97 @@ ATTR_NONNULL(1) BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char
   iter->itype = itype;
 
   /* inlining optimizes out this switch when called with the defined type */
-  switch ((BMIterType)itype) {
+  switch (BMIterType(itype)) {
     case BM_VERTS_OF_MESH:
       BLI_assert(bm != nullptr);
       BLI_assert(data == nullptr);
-      iter->begin = (BMIter__begin_cb)bmiter__elem_of_mesh_begin;
-      iter->step = (BMIter__step_cb)bmiter__elem_of_mesh_step;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__elem_of_mesh_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__elem_of_mesh_step);
       iter->data.elem_of_mesh.pooliter.pool = bm->vpool;
       break;
     case BM_EDGES_OF_MESH:
       BLI_assert(bm != nullptr);
       BLI_assert(data == nullptr);
-      iter->begin = (BMIter__begin_cb)bmiter__elem_of_mesh_begin;
-      iter->step = (BMIter__step_cb)bmiter__elem_of_mesh_step;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__elem_of_mesh_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__elem_of_mesh_step);
       iter->data.elem_of_mesh.pooliter.pool = bm->epool;
       break;
     case BM_FACES_OF_MESH:
       BLI_assert(bm != nullptr);
       BLI_assert(data == nullptr);
-      iter->begin = (BMIter__begin_cb)bmiter__elem_of_mesh_begin;
-      iter->step = (BMIter__step_cb)bmiter__elem_of_mesh_step;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__elem_of_mesh_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__elem_of_mesh_step);
       iter->data.elem_of_mesh.pooliter.pool = bm->fpool;
       break;
     case BM_EDGES_OF_VERT:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_VERT);
-      iter->begin = (BMIter__begin_cb)bmiter__edge_of_vert_begin;
-      iter->step = (BMIter__step_cb)bmiter__edge_of_vert_step;
-      iter->data.edge_of_vert.vdata = (BMVert *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__edge_of_vert_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__edge_of_vert_step);
+      iter->data.edge_of_vert.vdata = static_cast<BMVert *>(data);
       break;
     case BM_FACES_OF_VERT:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_VERT);
-      iter->begin = (BMIter__begin_cb)bmiter__face_of_vert_begin;
-      iter->step = (BMIter__step_cb)bmiter__face_of_vert_step;
-      iter->data.face_of_vert.vdata = (BMVert *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__face_of_vert_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__face_of_vert_step);
+      iter->data.face_of_vert.vdata = static_cast<BMVert *>(data);
       break;
     case BM_LOOPS_OF_VERT:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_VERT);
-      iter->begin = (BMIter__begin_cb)bmiter__loop_of_vert_begin;
-      iter->step = (BMIter__step_cb)bmiter__loop_of_vert_step;
-      iter->data.loop_of_vert.vdata = (BMVert *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__loop_of_vert_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__loop_of_vert_step);
+      iter->data.loop_of_vert.vdata = static_cast<BMVert *>(data);
       break;
     case BM_VERTS_OF_EDGE:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_EDGE);
-      iter->begin = (BMIter__begin_cb)bmiter__vert_of_edge_begin;
-      iter->step = (BMIter__step_cb)bmiter__vert_of_edge_step;
-      iter->data.vert_of_edge.edata = (BMEdge *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__vert_of_edge_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__vert_of_edge_step);
+      iter->data.vert_of_edge.edata = static_cast<BMEdge *>(data);
       break;
     case BM_FACES_OF_EDGE:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_EDGE);
-      iter->begin = (BMIter__begin_cb)bmiter__face_of_edge_begin;
-      iter->step = (BMIter__step_cb)bmiter__face_of_edge_step;
-      iter->data.face_of_edge.edata = (BMEdge *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__face_of_edge_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__face_of_edge_step);
+      iter->data.face_of_edge.edata = static_cast<BMEdge *>(data);
       break;
     case BM_VERTS_OF_FACE:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_FACE);
-      iter->begin = (BMIter__begin_cb)bmiter__vert_of_face_begin;
-      iter->step = (BMIter__step_cb)bmiter__vert_of_face_step;
-      iter->data.vert_of_face.pdata = (BMFace *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__vert_of_face_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__vert_of_face_step);
+      iter->data.vert_of_face.pdata = static_cast<BMFace *>(data);
       break;
     case BM_EDGES_OF_FACE:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_FACE);
-      iter->begin = (BMIter__begin_cb)bmiter__edge_of_face_begin;
-      iter->step = (BMIter__step_cb)bmiter__edge_of_face_step;
-      iter->data.edge_of_face.pdata = (BMFace *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__edge_of_face_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__edge_of_face_step);
+      iter->data.edge_of_face.pdata = static_cast<BMFace *>(data);
       break;
     case BM_LOOPS_OF_FACE:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_FACE);
-      iter->begin = (BMIter__begin_cb)bmiter__loop_of_face_begin;
-      iter->step = (BMIter__step_cb)bmiter__loop_of_face_step;
-      iter->data.loop_of_face.pdata = (BMFace *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__loop_of_face_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__loop_of_face_step);
+      iter->data.loop_of_face.pdata = static_cast<BMFace *>(data);
       break;
     case BM_LOOPS_OF_LOOP:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_LOOP);
-      iter->begin = (BMIter__begin_cb)bmiter__loop_of_loop_begin;
-      iter->step = (BMIter__step_cb)bmiter__loop_of_loop_step;
-      iter->data.loop_of_loop.ldata = (BMLoop *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__loop_of_loop_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__loop_of_loop_step);
+      iter->data.loop_of_loop.ldata = static_cast<BMLoop *>(data);
       break;
     case BM_LOOPS_OF_EDGE:
       BLI_assert(data != nullptr);
       BLI_assert(((BMElem *)data)->head.htype == BM_EDGE);
-      iter->begin = (BMIter__begin_cb)bmiter__loop_of_edge_begin;
-      iter->step = (BMIter__step_cb)bmiter__loop_of_edge_step;
-      iter->data.loop_of_edge.edata = (BMEdge *)data;
+      iter->begin = reinterpret_cast<BMIter__begin_cb>(bmiter__loop_of_edge_begin);
+      iter->step = reinterpret_cast<BMIter__step_cb>(bmiter__loop_of_edge_step);
+      iter->data.loop_of_edge.edata = static_cast<BMEdge *>(data);
       break;
     default:
       /* should never happen */
@@ -181,7 +183,7 @@ BLI_INLINE void BM_iter_parallel(BMesh *bm,
                                  const TaskParallelSettings *settings)
 {
   /* inlining optimizes out this switch when called with the defined type */
-  switch ((BMIterType)itype) {
+  switch (BMIterType(itype)) {
     case BM_VERTS_OF_MESH:
       BLI_task_parallel_mempool(bm->vpool, userdata, func, settings);
       break;
@@ -199,3 +201,5 @@ BLI_INLINE void BM_iter_parallel(BMesh *bm,
 }
 
 #endif /* __BLI_TASK_H__ */
+
+}  // namespace blender

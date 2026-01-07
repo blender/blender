@@ -17,7 +17,9 @@
 
 #include "gpu_capabilities_private.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 GPUCapabilities GCaps = {};
 
@@ -251,3 +253,5 @@ void GPU_compilation_subprocess_override_set(int count)
 }
 
 /** \} */
+
+}  // namespace blender

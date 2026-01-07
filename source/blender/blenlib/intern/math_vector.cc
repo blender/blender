@@ -17,6 +17,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Interpolation
  * \{ */
@@ -1075,3 +1077,5 @@ void interp_v2_v2v2_db(double target[2], const double a[2], const double b[2], c
 }
 
 /** \} */
+
+}  // namespace blender

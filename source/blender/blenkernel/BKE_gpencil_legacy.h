@@ -8,11 +8,14 @@
  * \ingroup bke
  */
 
+#include "DNA_listBase.h"
+
+namespace blender {
+
 struct BlendDataReader;
 struct Brush;
 struct CurveMapping;
 struct Depsgraph;
-struct ListBase;
 struct MDeformVert;
 struct Main;
 struct Material;
@@ -28,6 +31,7 @@ struct bGPDlayer;
 struct bGPDlayer_Mask;
 struct bGPDstroke;
 struct bGPdata;
+struct bGPDpalette;
 
 #define GPENCIL_SIMPLIFY(scene) \
   ((scene->r.mode & R_SIMPLIFY) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))
@@ -62,9 +66,9 @@ bool BKE_gpencil_free_strokes(struct bGPDframe *gpf);
 /** Free all of a gp-layer's frames. */
 void BKE_gpencil_free_frames(struct bGPDlayer *gpl);
 /** Free all of the gp-layers for a viewport (list should be `&gpd->layers` or so). */
-void BKE_gpencil_free_layers(struct ListBase *list);
+void BKE_gpencil_free_layers(ListBaseT<bGPDlayer> *list);
 /** Free all of the palettes & colors (list should be `&gpd->palettes` or so). */
-void BKE_gpencil_free_legacy_palette_data(struct ListBase *list);
+void BKE_gpencil_free_legacy_palette_data(ListBaseT<bGPDpalette> *list);
 /** Free (or release) any data used by this grease pencil (does not free the gpencil itself). */
 void BKE_gpencil_free_data(struct bGPdata *gpd, bool free_all);
 void BKE_gpencil_free_layer_masks(struct bGPDlayer *gpl);
@@ -158,7 +162,7 @@ bool BKE_gpencil_layer_is_editable(const struct bGPDlayer *gpl);
 /* How gpencil_layer_getframe() should behave when there
  * is no existing GP-Frame on the frame requested.
  */
-typedef enum eGP_GetFrame_Mode {
+enum eGP_GetFrame_Mode {
   /* Use the preceding gp-frame (i.e. don't add anything) */
   GP_GETFRAME_USE_PREV = 0,
 
@@ -166,7 +170,7 @@ typedef enum eGP_GetFrame_Mode {
   GP_GETFRAME_ADD_NEW = 1,
   /* Make a copy of the active frame */
   GP_GETFRAME_ADD_COPY = 2,
-} eGP_GetFrame_Mode;
+};
 
 /**
  * Get the appropriate gp-frame from a given layer
@@ -252,3 +256,5 @@ void BKE_gpencil_stroke_weights_duplicate(struct bGPDstroke *gps_src, struct bGP
 void BKE_gpencil_palette_ensure(struct Main *bmain, struct Scene *scene);
 
 void BKE_gpencil_blend_read_data(struct BlendDataReader *reader, struct bGPdata *gpd);
+
+}  // namespace blender

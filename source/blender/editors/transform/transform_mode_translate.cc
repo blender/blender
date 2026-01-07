@@ -282,7 +282,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
   else {
     if (t->spacetype == SPACE_NODE) {
-      SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
+      SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
       if (U.uiflag & USER_NODE_AUTO_OFFSET) {
         const char *str_dir = (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) ?
                                   IFACE_("right") :
@@ -600,8 +600,8 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
   if (t->spacetype == SPACE_GRAPH) {
     View2D *v2d = &t->region->v2d;
     Scene *scene = t->scene;
-    aspect[0] = UI_view2d_grid_resolution_x__frames_or_seconds(v2d, scene);
-    aspect[1] = UI_view2d_grid_resolution_y__values(v2d, 10);
+    aspect[0] = ui::view2d_grid_resolution_x__frames_or_seconds(v2d, scene);
+    aspect[1] = ui::view2d_grid_resolution_y__values(v2d, 10);
   }
 
   t->increment = t->snap_spatial * aspect;
@@ -625,8 +625,7 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
   transform_mode_default_modal_orientation_set(
       t, (t->options & CTX_CAMERA) ? V3D_ORIENT_VIEW : V3D_ORIENT_GLOBAL);
 
-  TranslateCustomData *custom_data = static_cast<TranslateCustomData *>(
-      MEM_callocN(sizeof(*custom_data), __func__));
+  TranslateCustomData *custom_data = MEM_callocN<TranslateCustomData>(__func__);
   custom_data->prev.rotate_mode = TRANSLATE_ROTATE_OFF;
   t->custom.mode.data = custom_data;
   t->custom.mode.use_free = true;

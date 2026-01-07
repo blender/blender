@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Depsgraph;
 struct FluidDomainSettings;
 struct FluidEffectorSettings;
@@ -82,3 +84,5 @@ void BKE_fluid_fields_sanitize(struct FluidDomainSettings *settings);
 void BKE_fluid_flow_behavior_set(struct Object *object,
                                  struct FluidFlowSettings *settings,
                                  int behavior);
+
+}  // namespace blender

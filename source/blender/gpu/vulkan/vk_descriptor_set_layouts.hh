@@ -24,7 +24,9 @@
 
 #include "vk_common.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 class VKDevice;
 
@@ -45,11 +47,10 @@ struct VKDescriptorSetLayoutInfo {
   };
 };
 
-};  // namespace blender::gpu
+};  // namespace gpu
 
-namespace blender {
 /**
- * Default hash for blender::gpu::VKDescriptorSetLayoutInfo.
+ * Default hash for gpu::VKDescriptorSetLayoutInfo.
  *
  * NOTE: DefaultHash needs to be implemented in namespace `blender`.
  */
@@ -63,9 +64,8 @@ template<> struct DefaultHash<gpu::VKDescriptorSetLayoutInfo> {
     return hash;
   }
 };
-}  // namespace blender
 
-namespace blender::gpu {
+namespace gpu {
 
 /**
  * Registries of descriptor set layouts.
@@ -119,4 +119,5 @@ class VKDescriptorSetLayouts : NonCopyable {
   void update_layout_bindings(const VKDescriptorSetLayoutInfo &info);
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

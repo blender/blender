@@ -10,6 +10,8 @@
 
 #include "BLI_function_ref.hh"
 
+namespace blender {
+
 struct ARegion;
 struct ARegionType;
 struct AssetLibraryReference;
@@ -21,15 +23,15 @@ struct BlendDataReader;
 struct BlendWriter;
 struct RegionAssetShelf;
 
-namespace blender::asset_system {
+namespace asset_system {
 class AssetCatalogPath;
 }
 
-namespace blender::ui {
+namespace ui {
 struct Layout;
-}  // namespace blender::ui
+}  // namespace ui
 
-namespace blender::ed::asset::shelf {
+namespace ed::asset::shelf {
 
 void build_asset_view(ui::Layout &layout,
                       const AssetLibraryReference &library_ref,
@@ -81,4 +83,5 @@ void settings_foreach_enabled_catalog_path(
     const AssetShelf &shelf,
     FunctionRef<void(const asset_system::AssetCatalogPath &catalog_path)> fn);
 
-}  // namespace blender::ed::asset::shelf
+}  // namespace ed::asset::shelf
+}  // namespace blender

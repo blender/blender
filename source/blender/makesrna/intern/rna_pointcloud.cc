@@ -28,11 +28,11 @@
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-using blender::float3;
+namespace blender {
 
 static PointCloud *rna_pointcloud(const PointerRNA *ptr)
 {
-  return (PointCloud *)ptr->owner_id;
+  return id_cast<PointCloud *>(ptr->owner_id);
 }
 
 static float3 *get_pointcloud_positions(PointCloud *pointcloud)
@@ -125,7 +125,11 @@ static void rna_PointCloud_update_data(Main * /*bmain*/, Scene * /*scene*/, Poin
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_point(BlenderRNA *brna)
 {
@@ -204,5 +208,7 @@ void RNA_def_pointcloud(BlenderRNA *brna)
   rna_def_point(brna);
   rna_def_pointcloud(brna);
 }
+
+}  // namespace blender
 
 #endif

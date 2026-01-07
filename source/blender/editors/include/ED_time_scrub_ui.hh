@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct ARegion;
 struct Scene;
 struct ScrArea;
@@ -34,7 +36,7 @@ void ED_time_scrub_draw(const ARegion *region,
                         int base);
 /**
  * Scroll-bars shouldn't overlap the time scrub UI. So this returns a mask adjusted to exclude it,
- * which can be passed to #UI_view2d_scrollers_draw().
+ * which can be passed to #view2d_scrollers_draw().
  *
  * \param scroller_mask: Typically #View2D.mask (or something smaller, if further parts have been
  * masked out already).
@@ -50,3 +52,5 @@ bool ED_time_scrub_event_in_region_poll(const wmWindow *win,
 
 void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDopeSheet *dopesheet);
 void ED_time_scrub_region_rect_get(const ARegion *region, rcti *r_rect);
+
+}  // namespace blender

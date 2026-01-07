@@ -14,16 +14,18 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct Depsgraph;
 struct Mesh;
 struct Object;
 struct Scene;
 struct wmOperator;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 class Node;
 }
 
-namespace blender::ed::sculpt_paint::undo {
+namespace ed::sculpt_paint::undo {
 
 enum class Type : int8_t {
   None,
@@ -99,4 +101,6 @@ void filter_decompress(const Span<std::byte> src, Vector<std::byte> &buffer, Vec
 
 }  // namespace compression
 
-}  // namespace blender::ed::sculpt_paint::undo
+}  // namespace ed::sculpt_paint::undo
+
+}  // namespace blender

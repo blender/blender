@@ -14,9 +14,11 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct bContext;
 
-namespace blender::bke {
+namespace bke {
 
 #define FH_MAX_FILE_EXTENSIONS_STR 512
 
@@ -47,7 +49,7 @@ struct FileHandlerType {
   /**
    * Return a vector of indices in #paths of file paths supported by the file handler.
    */
-  blender::Vector<int64_t> filter_supported_paths(const blender::Span<std::string> paths) const;
+  Vector<int64_t> filter_supported_paths(const Span<std::string> paths) const;
 
   /**
    * Generate a default file name for use with this file handler.
@@ -81,7 +83,8 @@ Span<std::unique_ptr<FileHandlerType>> file_handlers();
  * `poll_drop` returns #true. Caller must check if each file handler have a valid
  * `import_operator`.
  */
-blender::Vector<FileHandlerType *> file_handlers_poll_file_drop(
-    const bContext *C, const blender::Span<std::string> paths);
+Vector<FileHandlerType *> file_handlers_poll_file_drop(const bContext *C,
+                                                       const Span<std::string> paths);
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

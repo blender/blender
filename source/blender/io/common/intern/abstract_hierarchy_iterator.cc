@@ -596,7 +596,7 @@ bool AbstractHierarchyIterator::determine_duplication_references(
       }
 
       if (context->object->data) {
-        ID *source_data_id = (ID *)context->object->data;
+        ID *source_data_id = static_cast<ID *>(context->object->data);
         if (!duplisource_export_path_.contains(source_data_id)) {
           /* The original was not found, so mark this instance as "original". */
           std::string data_path = get_object_data_path(context);

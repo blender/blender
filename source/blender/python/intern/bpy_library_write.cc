@@ -32,6 +32,8 @@
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
+namespace blender {
+
 using namespace blender::bke::blendfile;
 
 PyDoc_STRVAR(
@@ -193,7 +195,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
 
 PyMethodDef BPY_library_write_method_def = {
     "write",
-    (PyCFunction)bpy_lib_write,
+    reinterpret_cast<PyCFunction>(bpy_lib_write),
     METH_VARARGS | METH_KEYWORDS,
     bpy_lib_write_doc,
 };
@@ -205,3 +207,5 @@ PyMethodDef BPY_library_write_method_def = {
 #    pragma GCC diagnostic pop
 #  endif
 #endif
+
+}  // namespace blender

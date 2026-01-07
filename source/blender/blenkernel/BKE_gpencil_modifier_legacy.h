@@ -8,13 +8,15 @@
  */
 
 #include "DNA_gpencil_modifier_types.h" /* Needed for all enum type definitions. */
+#include "DNA_listBase.h"
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
+
+namespace blender {
 
 struct BlendDataReader;
 struct GpencilModifierData;
 struct ID;
-struct ListBase;
 struct Object;
 /* NOTE: bake_modifier() called from UI:
  * needs to create new data-blocks, hence the need for this. */
@@ -47,5 +49,7 @@ void BKE_gpencil_modifiers_foreach_ID_link(struct Object *ob,
                                            void *user_data);
 
 void BKE_gpencil_modifier_blend_read_data(struct BlendDataReader *reader,
-                                          struct ListBase *lb,
+                                          ListBaseT<GpencilModifierData> *lb,
                                           struct Object *ob);
+
+}  // namespace blender

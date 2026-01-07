@@ -20,18 +20,21 @@
 
 #include "BLO_core_bhead.hh"
 #include "BLO_core_blend_header.hh"
+#include "BLO_core_file_reader.hh"
 
 #include "blendthumb.hh"
+
+namespace blender {
 
 BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
 
 static void thumb_data_vertical_flip(Thumbnail *thumb)
 {
-  uint32_t *rect = (uint32_t *)thumb->data.data();
+  uint32_t *rect = reinterpret_cast<uint32_t *>(thumb->data.data());
   int x = thumb->width, y = thumb->height;
   uint32_t *top = rect;
   uint32_t *bottom = top + ((y - 1) * x);
-  uint32_t *line = (uint32_t *)malloc(x * sizeof(uint32_t));
+  uint32_t *line = static_cast<uint32_t *>(malloc(x * sizeof(uint32_t)));
 
   y >>= 1;
   for (; y > 0; y--) {
@@ -69,7 +72,7 @@ static bool file_seek(FileReader *file, size_t len)
 
   /* File doesn't support seeking (e.g. gzip), so read and discard in chunks. */
   constexpr size_t dummy_data_size = 4096;
-  blender::Array<char> dummy_data(dummy_data_size);
+  Array<char> dummy_data(dummy_data_size);
   while (len > 0) {
     const size_t len_chunk = std::min(len, dummy_data_size);
     if (size_t(file->read(file, dummy_data.data(), len_chunk)) != len_chunk) {
@@ -113,7 +116,7 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
           return BT_INVALID_THUMB;
         }
 
-        thumb->data = blender::Array<uint8_t>(data_size);
+        thumb->data = Array<uint8_t>(data_size);
         if (!file_read(file, thumb->data.data(), data_size)) {
           return BT_INVALID_THUMB;
         }
@@ -138,39 +141,7 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
 
 eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *thumb)
 {
-  /* Read header in order to identify file type. */
-  char magic_bytes[12];
-  if (rawfile->read(rawfile, magic_bytes, sizeof(magic_bytes)) != sizeof(magic_bytes)) {
-    rawfile->close(rawfile);
-    return BT_ERROR;
-  }
-
-  /* Rewind the file after reading the header. */
-  rawfile->seek(rawfile, 0, SEEK_SET);
-
-  /* Try to identify the file type from the header. */
-  FileReader *file = nullptr;
-  if (BLI_str_startswith(magic_bytes, "BLENDER")) {
-    file = rawfile;
-    rawfile = nullptr;
-  }
-  else if (BLI_file_magic_is_gzip(magic_bytes)) {
-    file = BLI_filereader_new_gzip(rawfile);
-    if (file != nullptr) {
-      rawfile = nullptr; /* The GZIP #FileReader takes ownership of raw-file. */
-    }
-  }
-  else if (BLI_file_magic_is_zstd(magic_bytes)) {
-    file = BLI_filereader_new_zstd(rawfile);
-    if (file != nullptr) {
-      rawfile = nullptr; /* The ZSTD #FileReader takes ownership of raw-file. */
-    }
-  }
-
-  /* Clean up rawfile if it wasn't taken over. */
-  if (rawfile != nullptr) {
-    rawfile->close(rawfile);
-  }
+  FileReader *file = BLO_file_reader_uncompressed(rawfile);
 
   if (file == nullptr) {
     return BT_ERROR;
@@ -206,3 +177,5 @@ eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *t
   thumb_data_vertical_flip(thumb);
   return BT_OK;
 }
+
+}  // namespace blender

@@ -10,7 +10,7 @@
 
 #define SRD_STRUCT_BEGIN(srd) \
   struct srd { \
-    static void populate(blender::gpu::shader::ShaderCreateInfo &info) \
+    static void populate(gpu::shader::ShaderCreateInfo &info) \
     {
 
 #define SRD_STRUCT_END(srd) \

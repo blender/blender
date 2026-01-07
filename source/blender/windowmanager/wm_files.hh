@@ -10,6 +10,8 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 struct bContext;
 struct Main;
 struct ReportList;
@@ -135,3 +137,5 @@ void WM_OT_lib_reload(wmOperatorType *ot);
 /* `wm_files_colorspace.cc` */
 
 void WM_OT_set_working_color_space(wmOperatorType *ot);
+
+}  // namespace blender

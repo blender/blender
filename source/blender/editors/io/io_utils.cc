@@ -55,7 +55,7 @@ wmOperatorStatus filesel_drop_import_invoke(bContext *C, wmOperator *op, const w
   return OPERATOR_RUNNING_MODAL;
 }
 
-bool poll_file_object_drop(const bContext *C, blender::bke::FileHandlerType * /*fh*/)
+bool poll_file_object_drop(const bContext *C, bke::FileHandlerType * /*fh*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);

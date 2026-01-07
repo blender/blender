@@ -19,7 +19,7 @@ class USDMeshReader : public USDGeomReader {
  private:
   pxr::UsdGeomMesh mesh_prim_;
 
-  blender::Map<const pxr::TfToken, bool> primvar_varying_map_;
+  Map<const pxr::TfToken, bool> primvar_varying_map_;
 
   /* TODO(makowalski): Is it the best strategy to cache the
    * mesh geometry in the following members? It appears these
@@ -79,7 +79,7 @@ class USDMeshReader : public USDGeomReader {
   void readFaceSetsSample(Main *bmain, Mesh *mesh, pxr::UsdTimeCode time);
   void assign_facesets_to_material_indices(pxr::UsdTimeCode time,
                                            MutableSpan<int> material_indices,
-                                           blender::Map<pxr::SdfPath, int> *r_mat_map);
+                                           Map<pxr::SdfPath, int> *r_mat_map);
 
   bool read_faces(Mesh *mesh) const;
   void read_subdiv();

@@ -12,6 +12,7 @@
 
 #include "BLO_userdef_default.h"
 
+#include "DNA_defs.h"
 #include "IMB_imbuf.hh"
 
 #include "DNA_action_types.h"
@@ -67,7 +68,7 @@ class SceneTest : public ::testing::Test {
     IMB_init();
     BKE_idtype_init();
     /* #BKE_scene_duplicate() uses #U::dupflag. */
-    U = blender::dna::shallow_copy(U_default);
+    U = dna::shallow_copy(UserDef());
   }
 
   static void TearDownTestSuite()
@@ -97,10 +98,10 @@ TEST_F(SceneTest, linked_copy_id_remapping)
   ASSERT_NE(animdata_src, nullptr);
   EXPECT_EQ(animdata_src->action, action_src);
 
-  constexpr blender::StringRef idp_scene2scene_name = "scene2scene";
-  constexpr blender::StringRef idp_scene2action_name = "scene2action";
-  constexpr blender::StringRef idp_action2scene_name = "action2scene";
-  constexpr blender::StringRef idp_action2action_name = "action2action";
+  constexpr StringRef idp_scene2scene_name = "scene2scene";
+  constexpr StringRef idp_scene2action_name = "scene2action";
+  constexpr StringRef idp_action2scene_name = "action2scene";
+  constexpr StringRef idp_action2action_name = "action2action";
 
   IDProperty *scene_idgroup_src = IDP_EnsureProperties(&scene_src->id);
   IDP_AddToGroup(scene_idgroup_src,

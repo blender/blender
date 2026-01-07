@@ -18,7 +18,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_directionalblur_cc {
+namespace blender {
+
+namespace nodes::node_composite_directionalblur_cc {
 
 static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
 {
@@ -31,7 +33,7 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
 
-  b.add_input<decl::Int>("Samples").default_value(1).min(1).max(32).description(
+  b.add_input<decl::Int>("Samples").default_value(1).min(1).max(29).description(
       "The number of samples used to compute the blur. The more samples the smoother the "
       "result, but at the expense of more compute time. The actual number of samples is two "
       "to the power of this input, so it increases exponentially");
@@ -165,7 +167,8 @@ class DirectionalBlurOperation : public NodeOperation {
                                            float2(-current_sin, current_cos));
         transformed_coordinates += origin;
 
-        accumulated_color += input.sample_bilinear_zero(transformed_coordinates / float2(size));
+        accumulated_color += float4(
+            input.sample_bilinear_zero<Color>(transformed_coordinates / float2(size)));
 
         current_scale += delta_scale;
         current_translation += delta_translation;
@@ -249,35 +252,34 @@ class DirectionalBlurOperation : public NodeOperation {
 
   int get_samples()
   {
-    return math::clamp(this->get_input("Samples").get_single_value_default(1), 1, 32);
+    return math::clamp(this->get_input("Samples").get_single_value_default<int>(), 1, 29);
   }
 
   float2 get_center()
   {
-    return math::clamp(this->get_input("Center").get_single_value_default(float2(0.5f)),
-                       float2(0.0f),
-                       float2(1.0f));
+    return math::clamp(
+        this->get_input("Center").get_single_value_default<float2>(), float2(0.0f), float2(1.0f));
   }
 
   float get_translation_amount()
   {
     return math::clamp(
-        this->get_input("Translation Amount").get_single_value_default(0.0f), -1.0f, 1.0f);
+        this->get_input("Translation Amount").get_single_value_default<float>(), -1.0f, 1.0f);
   }
 
   float get_translation_direction()
   {
-    return this->get_input("Translation Direction").get_single_value_default(0.0f);
+    return this->get_input("Translation Direction").get_single_value_default<float>();
   }
 
   float get_rotation()
   {
-    return this->get_input("Rotation").get_single_value_default(0.0f);
+    return this->get_input("Rotation").get_single_value_default<float>();
   }
 
   float get_scale()
   {
-    return math::max(10e-6f, this->get_input("Scale").get_single_value_default(1.0f));
+    return math::max(10e-6f, this->get_input("Scale").get_single_value_default<float>());
   }
 };
 
@@ -286,13 +288,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new DirectionalBlurOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_directionalblur_cc
+}  // namespace nodes::node_composite_directionalblur_cc
 
 static void register_node_type_cmp_dblur()
 {
-  namespace file_ns = blender::nodes::node_composite_directionalblur_cc;
+  namespace file_ns = nodes::node_composite_directionalblur_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDBlur", CMP_NODE_DBLUR);
   ntype.ui_name = "Directional Blur";
@@ -302,6 +304,8 @@ static void register_node_type_cmp_dblur()
   ntype.declare = file_ns::cmp_node_directional_blur_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_dblur)
+
+}  // namespace blender

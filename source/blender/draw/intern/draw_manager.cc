@@ -178,7 +178,7 @@ ResourceHandleRange Manager::unique_handle_for_sculpt(const ObjectRef &ref)
     return ref.sculpt_handle_;
   }
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*ref.object);
-  const blender::Bounds<float3> bounds = bke::pbvh::bounds_get(pbvh);
+  const Bounds<float3> bounds = bke::pbvh::bounds_get(pbvh);
   const float3 center = math::midpoint(bounds.min, bounds.max);
   const float3 half_extent = bounds.max - center;
   /* WORKAROUND: Instead of breaking const correctness everywhere, we only break it for this. */
@@ -384,7 +384,7 @@ Manager::SubmitDebugOutput Manager::submit_debug(PassSimple &pass, View &view)
   output.resource_id = {pass.draw_commands_buf_.resource_id_buf_.data(),
                         pass.draw_commands_buf_.resource_id_count_};
   /* There is no visibility data for PassSimple. */
-  output.visibility = {(uint *)view.get_visibility_buffer().data(), 0};
+  output.visibility = {static_cast<uint *>(view.get_visibility_buffer().data()), 0};
   return output;
 }
 
@@ -400,7 +400,7 @@ Manager::SubmitDebugOutput Manager::submit_debug(PassMain &pass, View &view)
   Manager::SubmitDebugOutput output;
   output.resource_id = {pass.draw_commands_buf_.resource_id_buf_.data(),
                         pass.draw_commands_buf_.resource_id_count_};
-  output.visibility = {(uint *)view.get_visibility_buffer().data(),
+  output.visibility = {static_cast<uint *>(view.get_visibility_buffer().data()),
                        divide_ceil_u(resource_len_, 32)};
   return output;
 }

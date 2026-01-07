@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace blender {
+
 void register_node_tree_type_tex();
 
 void register_node_type_tex_group();
@@ -41,3 +43,5 @@ void register_node_type_tex_translate();
 void register_node_type_tex_valtonor();
 void register_node_type_tex_valtorgb();
 void register_node_type_tex_viewer();
+
+}  // namespace blender

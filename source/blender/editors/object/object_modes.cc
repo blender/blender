@@ -404,7 +404,8 @@ void mode_generic_exit(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *
 
 bool mode_generic_has_data(Depsgraph *depsgraph, const Object *ob)
 {
-  return ed_object_mode_generic_exit_ex(nullptr, depsgraph, nullptr, (Object *)ob, true);
+  return ed_object_mode_generic_exit_ex(
+      nullptr, depsgraph, nullptr, const_cast<Object *>(ob), true);
 }
 
 /** \} */

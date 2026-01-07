@@ -73,11 +73,11 @@ void StripBackup::init_from_strip(Strip *strip)
   scene_sound = strip->runtime->scene_sound;
   movie_readers = std::move(strip->runtime->movie_readers);
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
+  for (StripModifierData &smd : strip->modifiers) {
     StripModifierDataBackup mod_backup;
-    mod_backup.init_from_modifier(smd);
+    mod_backup.init_from_modifier(&smd);
     if (!mod_backup.isEmpty()) {
-      modifiers.add(smd->persistent_uid, mod_backup);
+      modifiers.add(smd.persistent_uid, mod_backup);
     }
   }
 
@@ -90,10 +90,10 @@ void StripBackup::restore_to_strip(Strip *strip)
   strip->runtime->scene_sound = scene_sound;
   strip->runtime->movie_readers = std::move(movie_readers);
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    std::optional<StripModifierDataBackup> backup = modifiers.pop_try(smd->persistent_uid);
+  for (StripModifierData &smd : strip->modifiers) {
+    std::optional<StripModifierDataBackup> backup = modifiers.pop_try(smd.persistent_uid);
     if (backup.has_value()) {
-      backup->restore_to_modifier(smd);
+      backup->restore_to_modifier(&smd);
     }
   }
 

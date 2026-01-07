@@ -43,7 +43,9 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 
-namespace blender::ed::transform {
+namespace blender {
+
+namespace ed::transform {
 
 struct TransformModeItem {
   const char *idname;
@@ -120,61 +122,45 @@ static TransformModeItem transform_modes[] = {
     {nullptr, 0},
 };
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
 
 const EnumPropertyItem rna_enum_transform_mode_type_items[] = {
-    {blender::ed::transform::TFM_INIT, "INIT", 0, "Init", ""},
-    {blender::ed::transform::TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
-    {blender::ed::transform::TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
-    {blender::ed::transform::TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
-    {blender::ed::transform::TFM_RESIZE, "RESIZE", 0, "Resize", ""},
-    {blender::ed::transform::TFM_SKIN_RESIZE, "SKIN_RESIZE", 0, "Skin Resize", ""},
-    {blender::ed::transform::TFM_TOSPHERE, "TOSPHERE", 0, "To Sphere", ""},
-    {blender::ed::transform::TFM_SHEAR, "SHEAR", 0, "Shear", ""},
-    {blender::ed::transform::TFM_BEND, "BEND", 0, "Bend", ""},
-    {blender::ed::transform::TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrink/Fatten", ""},
-    {blender::ed::transform::TFM_TILT, "TILT", 0, "Tilt", ""},
-    {blender::ed::transform::TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
-    {blender::ed::transform::TFM_PUSHPULL, "PUSHPULL", 0, "Push/Pull", ""},
-    {blender::ed::transform::TFM_EDGE_CREASE, "CREASE", 0, "Crease", ""},
-    {blender::ed::transform::TFM_VERT_CREASE, "VERTEX_CREASE", 0, "Vertex Crease", ""},
-    {blender::ed::transform::TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
-    {blender::ed::transform::TFM_BONESIZE, "BONE_SIZE", 0, "Bone Size", ""},
-    {blender::ed::transform::TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone Envelope", ""},
-    {blender::ed::transform::TFM_BONE_ENVELOPE_DIST,
-     "BONE_ENVELOPE_DIST",
-     0,
-     "Bone Envelope Distance",
-     ""},
-    {blender::ed::transform::TFM_CURVE_SHRINKFATTEN,
-     "CURVE_SHRINKFATTEN",
-     0,
-     "Curve Shrink/Fatten",
-     ""},
-    {blender::ed::transform::TFM_MASK_SHRINKFATTEN,
-     "MASK_SHRINKFATTEN",
-     0,
-     "Mask Shrink/Fatten",
-     ""},
-    {blender::ed::transform::TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone Roll", ""},
-    {blender::ed::transform::TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time Translate", ""},
-    {blender::ed::transform::TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time Slide", ""},
-    {blender::ed::transform::TFM_TIME_SCALE, "TIME_SCALE", 0, "Time Scale", ""},
-    {blender::ed::transform::TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time Extend", ""},
-    {blender::ed::transform::TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake Time", ""},
-    {blender::ed::transform::TFM_BWEIGHT, "BWEIGHT", 0, "Bevel Weight", ""},
-    {blender::ed::transform::TFM_ALIGN, "ALIGN", 0, "Align", ""},
-    {blender::ed::transform::TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
-    {blender::ed::transform::TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
-    {blender::ed::transform::TFM_GPENCIL_OPACITY,
-     "GPENCIL_OPACITY",
-     0,
-     "Grease Pencil Opacity",
-     ""},
+    {ed::transform::TFM_INIT, "INIT", 0, "Init", ""},
+    {ed::transform::TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
+    {ed::transform::TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
+    {ed::transform::TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
+    {ed::transform::TFM_RESIZE, "RESIZE", 0, "Resize", ""},
+    {ed::transform::TFM_SKIN_RESIZE, "SKIN_RESIZE", 0, "Skin Resize", ""},
+    {ed::transform::TFM_TOSPHERE, "TOSPHERE", 0, "To Sphere", ""},
+    {ed::transform::TFM_SHEAR, "SHEAR", 0, "Shear", ""},
+    {ed::transform::TFM_BEND, "BEND", 0, "Bend", ""},
+    {ed::transform::TFM_SHRINKFATTEN, "SHRINKFATTEN", 0, "Shrink/Fatten", ""},
+    {ed::transform::TFM_TILT, "TILT", 0, "Tilt", ""},
+    {ed::transform::TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
+    {ed::transform::TFM_PUSHPULL, "PUSHPULL", 0, "Push/Pull", ""},
+    {ed::transform::TFM_EDGE_CREASE, "CREASE", 0, "Crease", ""},
+    {ed::transform::TFM_VERT_CREASE, "VERTEX_CREASE", 0, "Vertex Crease", ""},
+    {ed::transform::TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
+    {ed::transform::TFM_BONESIZE, "BONE_SIZE", 0, "Bone Size", ""},
+    {ed::transform::TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone Envelope", ""},
+    {ed::transform::TFM_BONE_ENVELOPE_DIST, "BONE_ENVELOPE_DIST", 0, "Bone Envelope Distance", ""},
+    {ed::transform::TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve Shrink/Fatten", ""},
+    {ed::transform::TFM_MASK_SHRINKFATTEN, "MASK_SHRINKFATTEN", 0, "Mask Shrink/Fatten", ""},
+    {ed::transform::TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone Roll", ""},
+    {ed::transform::TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time Translate", ""},
+    {ed::transform::TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time Slide", ""},
+    {ed::transform::TFM_TIME_SCALE, "TIME_SCALE", 0, "Time Scale", ""},
+    {ed::transform::TFM_TIME_EXTEND, "TIME_EXTEND", 0, "Time Extend", ""},
+    {ed::transform::TFM_BAKE_TIME, "BAKE_TIME", 0, "Bake Time", ""},
+    {ed::transform::TFM_BWEIGHT, "BWEIGHT", 0, "Bevel Weight", ""},
+    {ed::transform::TFM_ALIGN, "ALIGN", 0, "Align", ""},
+    {ed::transform::TFM_EDGE_SLIDE, "EDGESLIDE", 0, "Edge Slide", ""},
+    {ed::transform::TFM_SEQ_SLIDE, "SEQSLIDE", 0, "Sequence Slide", ""},
+    {ed::transform::TFM_GPENCIL_OPACITY, "GPENCIL_OPACITY", 0, "Grease Pencil Opacity", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 static wmOperatorStatus select_orientation_exec(bContext *C, wmOperator *op)
 {
@@ -197,10 +183,10 @@ static wmOperatorStatus select_orientation_invoke(bContext *C,
                                                   wmOperator * /*op*/,
                                                   const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Orientation"), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, IFACE_("Orientation"), ICON_NONE);
+  ui::Layout &layout = *ui::popup_menu_layout(pup);
   layout.op_enum("TRANSFORM_OT_select_orientation", "orientation");
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }
@@ -602,7 +588,7 @@ static bool transform_poll_property(const bContext *C, wmOperator *op, const Pro
 
   /* Orientation Axis. */
   if (STREQ(prop_id, "orient_axis")) {
-    eTfmMode mode = (eTfmMode)transformops_mode(op);
+    eTfmMode mode = eTfmMode(transformops_mode(op));
     return mode != TFM_ALIGN;
   }
 
@@ -1011,7 +997,7 @@ static bool tilt_poll(bContext *C)
     return false;
   }
   if (obedit->type == OB_CURVES_LEGACY) {
-    Curve *cu = (Curve *)obedit->data;
+    Curve *cu = id_cast<Curve *>(obedit->data);
     return (cu->flag & CU_3D) && (nullptr != cu->editnurb);
   }
   if (obedit->type == OB_CURVES) {
@@ -1282,6 +1268,7 @@ static void TRANSFORM_OT_vert_slide(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh;
   ot->poll_property = transform_poll_property;
 
+  PropertyRNA *prop;
   RNA_def_float_factor(ot->srna, "value", 0, -10.0f, 10.0f, "Factor", "", -1.0f, 1.0f);
   RNA_def_boolean(ot->srna,
                   "use_even",
@@ -1297,6 +1284,18 @@ static void TRANSFORM_OT_vert_slide(wmOperatorType *ot)
                   "Flipped",
                   "When Even mode is active, flips between the two adjacent edge loops");
   RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp", "Clamp within the edge extents");
+  /* The direction is only needed to support "redo", see: #147956. */
+  prop = RNA_def_float_vector(ot->srna,
+                              "direction",
+                              3,
+                              nullptr,
+                              -FLT_MAX,
+                              FLT_MAX,
+                              "Slide Direction",
+                              "World-space direction",
+                              -FLT_MAX,
+                              FLT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   properties_register(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV);
 }
@@ -1487,8 +1486,7 @@ static wmOperatorStatus transform_from_gizmo_invoke(bContext *C,
       }
       if (op_id) {
         wmOperatorType *ot = WM_operatortype_find(op_id, true);
-        PointerRNA op_ptr;
-        WM_operator_properties_create_ptr(&op_ptr, ot);
+        PointerRNA op_ptr = WM_operator_properties_create_ptr(ot);
         RNA_boolean_set(&op_ptr, "release_confirm", true);
         WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &op_ptr, event);
         WM_operator_properties_free(&op_ptr);
@@ -1542,4 +1540,5 @@ void keymap_transform(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(modalmap, "TRANSFORM_OT_transform");
 }
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

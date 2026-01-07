@@ -22,14 +22,16 @@
 
 #include "NOD_socket_usage_inference_fwd.hh"
 
+namespace blender {
+
 struct bContext;
 struct bNode;
 
-namespace blender::ui {
+namespace ui {
 struct Layout;
-}  // namespace blender::ui
+}  // namespace ui
 
-namespace blender::nodes {
+namespace nodes {
 
 class NodeDeclarationBuilder;
 class PanelDeclaration;
@@ -843,4 +845,5 @@ inline bool BaseSocketDeclarationBuilder::is_output() const
 
 /** \} */
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

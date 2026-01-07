@@ -19,9 +19,12 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.alembic"};
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 using Alembic::AbcGeom::kVertexScope;
 using Alembic::AbcGeom::OPoints;
@@ -126,4 +129,5 @@ void ABCPointsWriter::do_write(HierarchyContext &context)
   abc_points_schema_.set(sample);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

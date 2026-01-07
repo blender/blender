@@ -14,6 +14,8 @@
 #include "eigen_utils.h"
 #include "implicit.h"
 
+namespace blender {
+
 /* ================ Volumetric Hair Interaction ================
  * adapted from
  *
@@ -1189,7 +1191,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   int res = hair_grid_res;
   int size = hair_grid_size(res);
   HairGridVert *collgrid;
-  ListBase *colliders;
+  ListBaseT<ColliderCache> *colliders;
   ColliderCache *col = nullptr;
   float gmin[3], gmax[3], scale[3];
   /* 2.0f is an experimental value that seems to give good results */
@@ -1256,3 +1258,5 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   return collgrid;
 }
 #endif
+
+}  // namespace blender

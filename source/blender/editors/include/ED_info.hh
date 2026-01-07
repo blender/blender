@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct Main;
 struct Scene;
 struct View3D;
@@ -39,3 +41,5 @@ void ED_info_draw_stats(Main *bmain,
                         int x,
                         int *y,
                         int height);
+
+}  // namespace blender

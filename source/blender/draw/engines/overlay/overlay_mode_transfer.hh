@@ -70,7 +70,7 @@ class ModeTransfer : Overlay {
       }
     }
     else {
-      gpu::Batch *geom = DRW_cache_object_surface_get((Object *)ob_ref.object);
+      gpu::Batch *geom = DRW_cache_object_surface_get(const_cast<Object *>(ob_ref.object));
       if (geom) {
         ps_.draw(geom, manager.unique_handle(ob_ref));
       }

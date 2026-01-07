@@ -16,6 +16,8 @@
 
 #include "IMB_imbuf.hh"
 
+namespace blender {
+
 struct bContext;
 struct ARegionType;
 struct ImBuf;
@@ -24,11 +26,11 @@ struct Panel;
 struct PanelType;
 struct PointerRNA;
 
-namespace blender::ui {
+namespace ui {
 struct Layout;
-}  // namespace blender::ui
+}  // namespace ui
 
-namespace blender::seq {
+namespace seq {
 
 struct RenderData;
 struct SeqRenderState;
@@ -338,4 +340,5 @@ void apply_modifier_op(T &op, ImBuf *ibuf, const ImBuf *mask, const float3x3 &ma
   });
 }
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

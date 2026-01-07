@@ -22,15 +22,17 @@
 
 #include "NOD_geometry_nodes_closure_location.hh"
 
+namespace blender {
+
 struct bNode;
 struct bNodeTree;
 struct NodesModifierData;
 
-namespace blender::nodes {
+namespace nodes {
 class Closure;
 }
 
-namespace blender::bke {
+namespace bke {
 
 class ModifierComputeContext : public ComputeContext {
  private:
@@ -217,4 +219,5 @@ class ShaderComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

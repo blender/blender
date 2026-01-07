@@ -190,7 +190,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   int shader;
   triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
 
-  const int object_flag = kernel_data_fetch(object_flag, object);
+  const uint object_flag = kernel_data_fetch(object_flag, object);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
     P = transform_point_auto(&tfm, P);

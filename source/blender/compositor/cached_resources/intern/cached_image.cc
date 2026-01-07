@@ -8,6 +8,8 @@
 
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
@@ -58,21 +60,25 @@ bool operator==(const CachedImageKey &a, const CachedImageKey &b)
  * Cached Image.
  */
 
-/* Get the render layer in the given render result specified by the given image user. */
+/* Get the render layer in the given render result specified by the given image user. Returns
+ * nullptr if not found. */
 static RenderLayer *get_render_layer(const RenderResult *render_result,
                                      const ImageUser &image_user)
 {
-  const ListBase *layers = &render_result->layers;
+  const ListBaseT<RenderLayer> *layers = &render_result->layers;
   return static_cast<RenderLayer *>(BLI_findlink(layers, image_user.layer));
 }
 
 /* Get the index of the pass with the given name in the render layer specified by the given image
- * user in the given render result. */
+ * user in the given render result. Returns -1 if not found. */
 static int get_pass_index(const RenderResult *render_result,
                           const ImageUser &image_user,
                           const char *name)
 {
   const RenderLayer *render_layer = get_render_layer(render_result, image_user);
+  if (!render_layer) {
+    return -1;
+  }
   return BLI_findstringindex(&render_layer->passes, name, offsetof(RenderPass, name));
 }
 
@@ -99,7 +105,7 @@ static int get_view_index(const Context &context,
     return 0;
   }
 
-  const ListBase *views = &render_result->views;
+  const ListBaseT<RenderView> *views = &render_result->views;
   /* There is only one view and its index is 0. */
   if (BLI_listbase_count_at_most(views, 2) < 2) {
     return 0;
@@ -128,7 +134,8 @@ static int get_view_index(const Context &context,
 /* Get a copy of the image user that is appropriate to retrieve the needed image buffer from the
  * image. This essentially sets the appropriate frame, pass, and view that corresponds to the
  * given context and pass name. If the image is a multi-layer image, then the render_result
- * argument should be set, otherwise, it is ignored. */
+ * argument should be set, otherwise, it is ignored. The image user will have a pass index of -1 if
+ * the pass/later were not found in the image for multi-layer images. */
 static ImageUser compute_image_user_for_pass(const Context &context,
                                              const Image *image,
                                              const RenderResult *render_result,
@@ -202,6 +209,26 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
   return linear_image_buffer;
 }
 
+/* Returns the float type of a result given the channels count. */
+static ResultType float_type(const int channels_count)
+{
+  switch (channels_count) {
+    case 1:
+      return ResultType::Float;
+    case 2:
+      return ResultType::Float2;
+    case 3:
+      return ResultType::Float3;
+    case 4:
+      return ResultType::Color;
+    default:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return ResultType::Color;
+}
+
 /* Returns the appropriate result type for the given image buffer, which represents the pass in the
  * given render result with the given image user. The type is determined based on the channels
  * count of the buffer for simple images, while channel IDs are also considered for multi-layer
@@ -212,17 +239,17 @@ static ResultType get_result_type(const RenderResult *render_result,
                                   const ImBuf *image_buffer)
 {
   if (!render_result) {
-    return Result::float_type(image_buffer->channels);
+    return float_type(image_buffer->channels);
   }
 
   const RenderLayer *render_layer = get_render_layer(render_result, image_user);
   if (!render_layer) {
-    return Result::float_type(image_buffer->channels);
+    return float_type(image_buffer->channels);
   }
 
   const RenderPass *render_pass = get_render_pass(render_layer, image_user);
   if (!render_pass) {
-    return Result::float_type(image_buffer->channels);
+    return float_type(image_buffer->channels);
   }
 
   switch (render_pass->channels) {
@@ -276,6 +303,12 @@ CachedImage::CachedImage(Context &context,
   ImageUser image_user_for_pass = compute_image_user_for_pass(
       context, image, render_result, image_user, pass_name);
 
+  /* Pass or layer were not found. */
+  if (BKE_image_is_multilayer(image) && image_user_for_pass.pass == -1) {
+    BKE_image_release_renderresult(nullptr, image, render_result);
+    return;
+  }
+
   this->populate_meta_data(render_result, image_user_for_pass);
 
   BKE_image_release_renderresult(nullptr, image, render_result);
@@ -285,7 +318,6 @@ CachedImage::CachedImage(Context &context,
 
   const bool use_half_float = linear_image_buffer->foptions.flag & OPENEXR_HALF;
   this->result.set_precision(use_half_float ? ResultPrecision::Half : ResultPrecision::Full);
-
   this->result.set_type(get_result_type(render_result, image_user_for_pass, linear_image_buffer));
 
   /* For GPU, we wrap the texture returned by IMB module and free it ourselves in destructor. For
@@ -297,13 +329,44 @@ CachedImage::CachedImage(Context &context,
   }
   else {
     const int2 size = int2(image_buffer->x, image_buffer->y);
-    Result buffer_result(
-        context, Result::float_type(image_buffer->channels), ResultPrecision::Full);
+    Result buffer_result(context, float_type(image_buffer->channels), ResultPrecision::Full);
     buffer_result.wrap_external(linear_image_buffer->float_buffer.data, size);
     this->result.allocate_texture(size, false);
-    parallel_for(size, [&](const int2 texel) {
-      this->result.store_pixel_generic_type(texel, buffer_result.load_pixel_generic_type(texel));
-    });
+
+    if (buffer_result.type() == ResultType::Color && result.type() == ResultType::Float4) {
+      parallel_for(size, [&](const int2 texel) {
+        this->result.store_pixel(texel, float4(buffer_result.load_pixel<Color>(texel)));
+      });
+    }
+    else if (buffer_result.type() == ResultType::Float3 && result.type() == ResultType::Color) {
+      /* Color passes with no alpha could be stored in a Float3 type. */
+      parallel_for(size, [&](const int2 texel) {
+        this->result.store_pixel(texel,
+                                 Color(float4(buffer_result.load_pixel<float3>(texel), 1.0f)));
+      });
+    }
+    else {
+      result.get_cpp_type().to_static_type_tag<float, float2, float3, float4, Color>(
+          [&](auto type_tag) {
+            using T = typename decltype(type_tag)::type;
+            if constexpr (std::is_same_v<T, void>) {
+              /* Unsupported type. */
+              BLI_assert_unreachable();
+            }
+            else {
+              parallel_for(result.domain().data_size, [&](const int2 texel) {
+                result.store_pixel(texel, buffer_result.load_pixel<T>(texel));
+              });
+            }
+          });
+    }
+  }
+
+  if (image_buffer->flags & IB_has_display_window) {
+    this->result.domain().display_size = int2(image_buffer->display_size);
+    this->result.domain().data_offset = int2(image_buffer->data_offset);
+    this->result.transform(
+        math::from_location<float3x3>(float2(int2(image_buffer->display_offset))));
   }
 
   IMB_freeImBuf(linear_image_buffer);

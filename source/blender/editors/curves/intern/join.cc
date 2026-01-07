@@ -28,7 +28,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   Object *active_object = CTX_data_active_object(C);
   BLI_assert(active_object);
   BLI_assert(active_object->type == OB_CURVES);
-  Curves &active_curves = *static_cast<Curves *>(active_object->data);
+  Curves &active_curves = *id_cast<Curves *>(active_object->data);
   const float4x4 &world_to_active = active_object->world_to_object();
 
   Vector<Object *> objects{active_object};
@@ -57,7 +57,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   Map<const Curves *, int> reference_by_orig_curves;
   for (const int i : objects.index_range()) {
     transforms[i] = world_to_active * objects[i]->object_to_world();
-    const Curves *orig_curves = static_cast<const Curves *>(objects[i]->data);
+    const Curves *orig_curves = id_cast<const Curves *>(objects[i]->data);
     references[i] = reference_by_orig_curves.lookup_or_add_cb(orig_curves, [&]() {
       auto geometry = bke::GeometrySet::from_curves(BKE_curves_copy_for_eval(orig_curves));
       return instances.add_new_reference(std::move(geometry));

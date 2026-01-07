@@ -132,7 +132,7 @@ uchar *GLImmediate::begin()
   BLI_assert(data != nullptr);
 
   bytes_mapped_ = bytes_needed;
-  return (uchar *)data;
+  return static_cast<uchar *>(data);
 }
 
 void GLImmediate::end()

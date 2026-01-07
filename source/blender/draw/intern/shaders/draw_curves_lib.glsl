@@ -17,15 +17,6 @@
  * of data the CPU has to precompute and transfer for each update.
  */
 
-/* Avoid including hair functionality for shaders and materials which do not require hair.
- * Required to prevent compilation failure for missing shader inputs and uniforms when hair library
- * is included via other libraries. These are only specified in the ShaderCreateInfo when needed.
- */
-#ifdef CURVES_SHADER
-#  ifndef DRW_HAIR_INFO
-#    error Ensure createInfo includes draw_hair.
-#  endif
-
 namespace curves {
 
 struct Segment {
@@ -282,5 +273,3 @@ float3 get_curve_root_pos(const int point_id, const int curve_segment)
 }
 
 }  // namespace curves
-
-#endif

@@ -39,11 +39,18 @@ static void proxy_freejob(void *pjv)
 static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
+  Vector<IndexBuildContext *> contexts;
+  for (LinkData &link : pj->queue) {
+    contexts.append(static_cast<IndexBuildContext *>(link.data));
+  }
 
-  LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
-    IndexBuildContext *context = static_cast<IndexBuildContext *>(link->data);
-
-    proxy_rebuild(context, worker_status);
+  for (const int i : contexts.index_range()) {
+    IndexBuildContext *context = contexts[i];
+    proxy_rebuild(context, worker_status, [&](const float new_progress) {
+      /* Remap the progress of the current proxy to the total progress. */
+      const float total_progress = (i + new_progress) / contexts.size();
+      worker_status->progress = total_progress;
+    });
 
     if (worker_status->stop) {
       pj->stop = true;
@@ -58,8 +65,8 @@ static void proxy_endjob(void *pjv)
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
   Editing *ed = editing_get(pj->scene);
 
-  LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
-    proxy_rebuild_finish(static_cast<IndexBuildContext *>(link->data), pj->stop);
+  for (LinkData &link : pj->queue) {
+    proxy_rebuild_finish(static_cast<IndexBuildContext *>(link.data), pj->stop);
   }
 
   relations_free_imbuf(pj->scene, &ed->seqbase, false);

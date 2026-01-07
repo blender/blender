@@ -14,6 +14,8 @@
 
 #include "gpu_select_private.hh"
 
+namespace blender {
+
 struct GPUSelectNextState {
   /** Result buffer set on initialization. */
   GPUSelectBuffer *buffer = nullptr;
@@ -50,9 +52,9 @@ void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len)
 {
   const int old_size = g_state.buffer->storage.size();
   g_state.buffer->storage.resize(old_size + hit_len);
-  blender::MutableSpan<GPUSelectResult> hit_results =
-      g_state.buffer->storage.as_mutable_span().slice(old_size, hit_len);
-  const blender::Span<GPUSelectResult> hits(hit_buf, hit_len);
+  MutableSpan<GPUSelectResult> hit_results = g_state.buffer->storage.as_mutable_span().slice(
+      old_size, hit_len);
+  const Span<GPUSelectResult> hits(hit_buf, hit_len);
 
   /* TODO(fclem): There might be some conversion to do to align to the other APIs output. */
   switch (g_state.mode) {
@@ -79,3 +81,5 @@ uint gpu_select_next_end()
 {
   return g_state.hits;
 }
+
+}  // namespace blender

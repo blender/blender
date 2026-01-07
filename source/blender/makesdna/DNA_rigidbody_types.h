@@ -12,155 +12,33 @@
 #include "DNA_listBase.h"
 #include "DNA_object_force_types.h"
 
+namespace blender {
+
 struct Collection;
 
 struct EffectorWeights;
 struct RigidBodyWorld_Runtime;
 
-/* ******************************** */
-/* RigidBody World */
-
-/** Container for data shared by original and evaluated copies of #RigidBodyWorld. */
-typedef struct RigidBodyWorld_Shared {
-  /* cache */
-  struct PointCache *pointcache;
-  struct ListBase ptcaches;
-
-  /* Runtime data. */
-  struct RigidBodyWorld_Runtime *runtime;
-} RigidBodyWorld_Shared;
-
-/* RigidBodyWorld (rbw)
- *
- * Represents a "simulation scene" existing within the parent scene.
- */
-typedef struct RigidBodyWorld {
-  /* Sim World Settings ------------------------------------------------------------- */
-  /** Effectors info. */
-  struct EffectorWeights *effector_weights;
-
-  /** Group containing objects to use for Rigid Bodies. */
-  struct Collection *group;
-  /** Array to access group objects by index, only used at runtime. */
-  struct Object **objects;
-
-  /** Group containing objects to use for Rigid Body Constraints. */
-  struct Collection *constraints;
-
-  char _pad[4];
-  /** Last frame world was evaluated for (internal). */
-  float ltime;
-
-  /** This pointer is shared between all evaluated copies. */
-  struct RigidBodyWorld_Shared *shared;
-  /** Moved to `shared->pointcache`. */
-  struct PointCache *pointcache DNA_DEPRECATED;
-  /** Moved to `shared->ptcaches`. */
-  struct ListBase ptcaches DNA_DEPRECATED;
-  /** Number of objects in rigid body group. */
-  int numbodies;
-
-  /** Number of simulation sub-steps steps taken per frame. */
-  short substeps_per_frame;
-  /** Number of constraint solver iterations made per simulation step. */
-  short num_solver_iterations;
-
-  /** (#eRigidBodyWorld_Flag) settings for this RigidBodyWorld. */
-  int flag;
-  /** Used to speed up or slow down the simulation. */
-  float time_scale;
-} RigidBodyWorld;
-
 /** RigidBodyWorld.flag */
-typedef enum eRigidBodyWorld_Flag {
+enum eRigidBodyWorld_Flag {
   /* should sim world be skipped when evaluating (user setting) */
   RBW_FLAG_MUTED = (1 << 0),
   /* sim data needs to be rebuilt */
   /* RBW_FLAG_NEEDS_REBUILD = (1 << 1), */ /* UNUSED */
   /** Use split impulse when stepping the simulation. */
   RBW_FLAG_USE_SPLIT_IMPULSE = (1 << 2),
-} eRigidBodyWorld_Flag;
-
-/* ******************************** */
-/* RigidBody Object */
-
-/* Container for data that is shared among evaluated copies.
- *
- * This is placed in a separate struct so that, for example, the physics_shape
- * pointer can be replaced without having to update all evaluated copies. */
-#
-#
-typedef struct RigidBodyOb_Shared {
-  /* References to Physics Sim objects. Exist at runtime only */
-  /** Physics object representation (i.e. btRigidBody). */
-  void *physics_object;
-  /** Collision shape used by physics sim (i.e. btCollisionShape). */
-  void *physics_shape;
-} RigidBodyOb_Shared;
-
-/* RigidBodyObject (rbo)
- *
- * Represents an object participating in a RigidBody sim.
- * This is attached to each object that is currently
- * participating in a sim.
- */
-typedef struct RigidBodyOb {
-  /* General Settings for this RigidBodyOb */
-  /** (eRigidBodyOb_Type) role of RigidBody in sim. */
-  short type;
-  /** (eRigidBody_Shape) collision shape to use. */
-  short shape;
-
-  /** (eRigidBodyOb_Flag). */
-  int flag;
-  /** Collision groups that determines which rigid bodies can collide with each other. */
-  int col_groups;
-  /** (eRigidBody_MeshSource) mesh source for mesh based collision shapes. */
-  short mesh_source;
-  char _pad[2];
-
-  /* Physics Parameters */
-  /** How much object 'weighs' (i.e. absolute 'amount of stuff' it holds). */
-  float mass;
-
-  /** Resistance of object to movement. */
-  float friction;
-  /** How 'bouncy' object is when it collides. */
-  float restitution;
-
-  /** Tolerance for detecting collisions. */
-  float margin;
-
-  /** Damping for linear velocities. */
-  float lin_damping;
-  /** Damping for angular velocities. */
-  float ang_damping;
-
-  /** Deactivation threshold for linear velocities. */
-  float lin_sleep_thresh;
-  /** Deactivation threshold for angular velocities. */
-  float ang_sleep_thresh;
-
-  /** Rigid body orientation. */
-  float orn[4];
-  /** Rigid body position. */
-  float pos[3];
-  char _pad1[4];
-
-  /** This pointer is shared between all evaluated copies. */
-  struct RigidBodyOb_Shared *shared;
-} RigidBodyOb;
+};
 
 /** #RigidBodyOb.type */
-typedef enum eRigidBodyOb_Type {
+enum eRigidBodyOb_Type {
   /* active geometry participant in simulation. is directly controlled by sim */
   RBO_TYPE_ACTIVE = 0,
   /* passive geometry participant in simulation. is directly controlled by animsys */
   RBO_TYPE_PASSIVE = 1,
-} eRigidBodyOb_Type;
+};
 
 /** #RigidBodyOb.flag */
-typedef enum eRigidBodyOb_Flag {
+enum eRigidBodyOb_Flag {
   /* rigidbody is kinematic (controlled by the animation system) */
   RBO_FLAG_KINEMATIC = (1 << 0),
   /* rigidbody needs to be validated (usually set after duplicating and not hooked up yet) */
@@ -177,10 +55,10 @@ typedef enum eRigidBodyOb_Flag {
   RBO_FLAG_USE_MARGIN = (1 << 6),
   /* collision shape deforms during simulation (only for passive triangle mesh shapes) */
   RBO_FLAG_USE_DEFORM = (1 << 7),
-} eRigidBodyOb_Flag;
+};
 
 /** Rigid Body Collision Shape. */
-typedef enum eRigidBody_Shape {
+enum eRigidBody_Shape {
   /** Simple box (i.e. bounding box). */
   RB_SHAPE_BOX = 0,
   /** Sphere. */
@@ -199,94 +77,19 @@ typedef enum eRigidBody_Shape {
 
   /* concave mesh approximated using primitives */
   RB_SHAPE_COMPOUND = 7,
-} eRigidBody_Shape;
+};
 
-typedef enum eRigidBody_MeshSource {
+enum eRigidBody_MeshSource {
   /** Base mesh. */
   RBO_MESH_BASE = 0,
   /** Only deformations. */
   RBO_MESH_DEFORM = 1,
   /** Final evaluated mesh. */
   RBO_MESH_FINAL = 2,
-} eRigidBody_MeshSource;
-
-/* ******************************** */
-/* RigidBody Constraint */
-
-/* RigidBodyConstraint (rbc)
- *
- * Represents an constraint connecting two rigid bodies.
- */
-typedef struct RigidBodyCon {
-  /** First object influenced by the constraint. */
-  struct Object *ob1;
-  /** Second object influenced by the constraint. */
-  struct Object *ob2;
-
-  /* General Settings for this RigidBodyCon */
-  /** (eRigidBodyCon_Type) role of RigidBody in sim. */
-  short type;
-  /** Number of constraint solver iterations made per simulation step. */
-  short num_solver_iterations;
-
-  /** (eRigidBodyCon_Flag). */
-  int flag;
-
-  /** Breaking impulse threshold. */
-  float breaking_threshold;
-  /** Spring implementation to use. */
-  char spring_type;
-  char _pad[3];
-
-  /* limits */
-  /* translation limits */
-  float limit_lin_x_lower;
-  float limit_lin_x_upper;
-  float limit_lin_y_lower;
-  float limit_lin_y_upper;
-  float limit_lin_z_lower;
-  float limit_lin_z_upper;
-  /* rotation limits */
-  float limit_ang_x_lower;
-  float limit_ang_x_upper;
-  float limit_ang_y_lower;
-  float limit_ang_y_upper;
-  float limit_ang_z_lower;
-  float limit_ang_z_upper;
-
-  /* spring settings */
-  /* resistance to deformation */
-  float spring_stiffness_x;
-  float spring_stiffness_y;
-  float spring_stiffness_z;
-  float spring_stiffness_ang_x;
-  float spring_stiffness_ang_y;
-  float spring_stiffness_ang_z;
-  /* amount of velocity lost over time */
-  float spring_damping_x;
-  float spring_damping_y;
-  float spring_damping_z;
-  float spring_damping_ang_x;
-  float spring_damping_ang_y;
-  float spring_damping_ang_z;
-
-  /* motor settings */
-  /** Linear velocity the motor tries to hold. */
-  float motor_lin_target_velocity;
-  /** Angular velocity the motor tries to hold. */
-  float motor_ang_target_velocity;
-  /** Maximum force used to reach linear target velocity. */
-  float motor_lin_max_impulse;
-  /** Maximum force used to reach angular target velocity. */
-  float motor_ang_max_impulse;
-
-  /* References to Physics Sim object. Exist at runtime only */
-  /** Physics object representation (i.e. btTypedConstraint). */
-  void *physics_constraint;
-} RigidBodyCon;
+};
 
 /** Participation types for #RigidBodyOb.type */
-typedef enum eRigidBodyCon_Type {
+enum eRigidBodyCon_Type {
   /** lets bodies rotate around a specified point */
   RBC_TYPE_POINT = 0,
   /** lets bodies rotate around a specified axis */
@@ -312,16 +115,16 @@ typedef enum eRigidBodyCon_Type {
   /* RBC_TYPE_SPRING = 10, */ /* UNUSED */
   /** Drives bodies by applying linear and angular forces. */
   RBC_TYPE_MOTOR = 11,
-} eRigidBodyCon_Type;
+};
 
 /** Spring implementation type for RigidBodyOb. */
-typedef enum eRigidBodyCon_SpringType {
+enum eRigidBodyCon_SpringType {
   RBC_SPRING_TYPE1 = 0, /* btGeneric6DofSpringConstraint */
   RBC_SPRING_TYPE2 = 1, /* btGeneric6DofSpring2Constraint */
-} eRigidBodyCon_SpringType;
+};
 
 /** #RigidBodyCon.flag */
-typedef enum eRigidBodyCon_Flag {
+enum eRigidBodyCon_Flag {
   /* constraint influences rigid body motion */
   RBC_FLAG_ENABLED = (1 << 0),
   /* constraint needs to be validated */
@@ -350,6 +153,209 @@ typedef enum eRigidBodyCon_Flag {
   RBC_FLAG_USE_SPRING_ANG_X = (1 << 16),
   RBC_FLAG_USE_SPRING_ANG_Y = (1 << 17),
   RBC_FLAG_USE_SPRING_ANG_Z = (1 << 18),
-} eRigidBodyCon_Flag;
+};
 
 /* ******************************** */
+/* RigidBody World */
+
+/** Container for data shared by original and evaluated copies of #RigidBodyWorld. */
+struct RigidBodyWorld_Shared {
+  /* cache */
+  struct PointCache *pointcache = nullptr;
+  ListBaseT<PointCache> ptcaches = {nullptr, nullptr};
+
+  /* Runtime data. */
+  struct RigidBodyWorld_Runtime *runtime = nullptr;
+};
+
+/* RigidBodyWorld (rbw)
+ *
+ * Represents a "simulation scene" existing within the parent scene.
+ */
+struct RigidBodyWorld {
+  DNA_DEFINE_CXX_METHODS(RigidBodyWorld)
+
+  /* Sim World Settings ------------------------------------------------------------- */
+  /** Effectors info. */
+  struct EffectorWeights *effector_weights = nullptr;
+
+  /** Group containing objects to use for Rigid Bodies. */
+  struct Collection *group = nullptr;
+  /** Array to access group objects by index, only used at runtime. */
+  struct Object **objects = nullptr;
+
+  /** Group containing objects to use for Rigid Body Constraints. */
+  struct Collection *constraints = nullptr;
+
+  char _pad[4] = {};
+  /** Last frame world was evaluated for (internal). */
+  float ltime = 0;
+
+  /** This pointer is shared between all evaluated copies. */
+  struct RigidBodyWorld_Shared *shared = nullptr;
+  /** Moved to `shared->pointcache`. */
+  DNA_DEPRECATED struct PointCache *pointcache = nullptr;
+  /** Moved to `shared->ptcaches`. */
+  ListBaseT<PointCache> ptcaches = {nullptr, nullptr};
+  /** Number of objects in rigid body group. */
+  int numbodies = 0;
+
+  /** Number of simulation sub-steps steps taken per frame. */
+  short substeps_per_frame = 0;
+  /** Number of constraint solver iterations made per simulation step. */
+  short num_solver_iterations = 0;
+
+  /** (#eRigidBodyWorld_Flag) settings for this RigidBodyWorld. */
+  int flag = 0;
+  /** Used to speed up or slow down the simulation. */
+  float time_scale = 0;
+};
+
+/* ******************************** */
+/* RigidBody Object */
+
+/* Container for data that is shared among evaluated copies.
+ *
+ * This is placed in a separate struct so that, for example, the physics_shape
+ * pointer can be replaced without having to update all evaluated copies. */
+#
+#
+struct RigidBodyOb_Shared {
+  /* References to Physics Sim objects. Exist at runtime only */
+  /** Physics object representation (i.e. btRigidBody). */
+  void *physics_object = nullptr;
+  /** Collision shape used by physics sim (i.e. btCollisionShape). */
+  void *physics_shape = nullptr;
+};
+
+/* RigidBodyObject (rbo)
+ *
+ * Represents an object participating in a RigidBody sim.
+ * This is attached to each object that is currently
+ * participating in a sim.
+ */
+struct RigidBodyOb {
+  /* General Settings for this RigidBodyOb */
+  /** (eRigidBodyOb_Type) role of RigidBody in sim. */
+  short type = 0;
+  /** (eRigidBody_Shape) collision shape to use. */
+  short shape = 0;
+
+  /** (eRigidBodyOb_Flag). */
+  int flag = 0;
+  /** Collision groups that determines which rigid bodies can collide with each other. */
+  int col_groups = 0;
+  /** (eRigidBody_MeshSource) mesh source for mesh based collision shapes. */
+  short mesh_source = 0;
+  char _pad[2] = {};
+
+  /* Physics Parameters */
+  /** How much object 'weighs' (i.e. absolute 'amount of stuff' it holds). */
+  float mass = 0;
+
+  /** Resistance of object to movement. */
+  float friction = 0;
+  /** How 'bouncy' object is when it collides. */
+  float restitution = 0;
+
+  /** Tolerance for detecting collisions. */
+  float margin = 0;
+
+  /** Damping for linear velocities. */
+  float lin_damping = 0;
+  /** Damping for angular velocities. */
+  float ang_damping = 0;
+
+  /** Deactivation threshold for linear velocities. */
+  float lin_sleep_thresh = 0;
+  /** Deactivation threshold for angular velocities. */
+  float ang_sleep_thresh = 0;
+
+  /** Rigid body orientation. */
+  float orn[4] = {};
+  /** Rigid body position. */
+  float pos[3] = {};
+  char _pad1[4] = {};
+
+  /** This pointer is shared between all evaluated copies. */
+  struct RigidBodyOb_Shared *shared = nullptr;
+};
+
+/* ******************************** */
+/* RigidBody Constraint */
+
+/* RigidBodyConstraint (rbc)
+ *
+ * Represents an constraint connecting two rigid bodies.
+ */
+struct RigidBodyCon {
+  /** First object influenced by the constraint. */
+  struct Object *ob1 = nullptr;
+  /** Second object influenced by the constraint. */
+  struct Object *ob2 = nullptr;
+
+  /* General Settings for this RigidBodyCon */
+  /** (eRigidBodyCon_Type) role of RigidBody in sim. */
+  short type = 0;
+  /** Number of constraint solver iterations made per simulation step. */
+  short num_solver_iterations = 0;
+
+  /** (eRigidBodyCon_Flag). */
+  int flag = 0;
+
+  /** Breaking impulse threshold. */
+  float breaking_threshold = 0;
+  /** Spring implementation to use. */
+  char spring_type = 0;
+  char _pad[3] = {};
+
+  /* limits */
+  /* translation limits */
+  float limit_lin_x_lower = 0;
+  float limit_lin_x_upper = 0;
+  float limit_lin_y_lower = 0;
+  float limit_lin_y_upper = 0;
+  float limit_lin_z_lower = 0;
+  float limit_lin_z_upper = 0;
+  /* rotation limits */
+  float limit_ang_x_lower = 0;
+  float limit_ang_x_upper = 0;
+  float limit_ang_y_lower = 0;
+  float limit_ang_y_upper = 0;
+  float limit_ang_z_lower = 0;
+  float limit_ang_z_upper = 0;
+
+  /* spring settings */
+  /* resistance to deformation */
+  float spring_stiffness_x = 0;
+  float spring_stiffness_y = 0;
+  float spring_stiffness_z = 0;
+  float spring_stiffness_ang_x = 0;
+  float spring_stiffness_ang_y = 0;
+  float spring_stiffness_ang_z = 0;
+  /* amount of velocity lost over time */
+  float spring_damping_x = 0;
+  float spring_damping_y = 0;
+  float spring_damping_z = 0;
+  float spring_damping_ang_x = 0;
+  float spring_damping_ang_y = 0;
+  float spring_damping_ang_z = 0;
+
+  /* motor settings */
+  /** Linear velocity the motor tries to hold. */
+  float motor_lin_target_velocity = 0;
+  /** Angular velocity the motor tries to hold. */
+  float motor_ang_target_velocity = 0;
+  /** Maximum force used to reach linear target velocity. */
+  float motor_lin_max_impulse = 0;
+  /** Maximum force used to reach angular target velocity. */
+  float motor_ang_max_impulse = 0;
+
+  /* References to Physics Sim object. Exist at runtime only */
+  /** Physics object representation (i.e. btTypedConstraint). */
+  void *physics_constraint = nullptr;
+};
+
+/* ******************************** */
+
+}  // namespace blender

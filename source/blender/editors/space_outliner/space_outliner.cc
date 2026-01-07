@@ -42,6 +42,8 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 
+namespace blender {
+
 /**
  * Since 2.8x outliner drawing itself can change the scroll position of the outliner
  * after drawing has completed. Failing to draw a second time can cause nothing to display.
@@ -50,7 +52,7 @@
  */
 #define USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*other*/)
     : tree_display(nullptr), tree_hash(nullptr)
@@ -59,7 +61,7 @@ SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*oth
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 {
-  ListBase *lb;
+  ListBaseT<wmDropBox> *lb;
   wmKeyMap *keymap;
 
   region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
@@ -75,7 +77,7 @@ static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keeptot = V2D_KEEPTOT_STRICT;
   region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
@@ -94,25 +96,25 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   const rctf v2d_cur_prev = v2d->cur;
 #endif
 
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
   draw_outliner(C, true);
 
 #ifdef USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK
   /* This happens when scrolling is clamped & occasionally when resizing the area.
    * In practice this isn't often which is important as that would hurt performance. */
   if (!BLI_rctf_compare(&v2d->cur, &v2d_cur_prev, FLT_EPSILON)) {
-    UI_ThemeClearColor(TH_BACK);
+    ui::theme::frame_buffer_clear(TH_BACK);
     draw_outliner(C, false);
   }
 #endif
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   ED_region_draw_overflow_indication(CTX_wm_area(C), region);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  ui::view2d_scrollers_draw(v2d, nullptr);
 }
 
 static void outliner_main_region_free(ARegion * /*region*/) {}
@@ -384,7 +386,7 @@ static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scen
   ARegion *region;
   SpaceOutliner *space_outliner;
 
-  space_outliner = MEM_callocN<SpaceOutliner>("initoutliner");
+  space_outliner = MEM_new_for_free<SpaceOutliner>("initoutliner");
   space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>(__func__);
   space_outliner->spacetype = SPACE_OUTLINER;
   space_outliner->filter_id_type = ID_GR;
@@ -407,13 +409,13 @@ static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scen
   BLI_addtail(&space_outliner->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  return (SpaceLink *)space_outliner;
+  return reinterpret_cast<SpaceLink *>(space_outliner);
 }
 
 /* Doesn't free the space-link itself. */
 static void outliner_free(SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
 
   outliner_free_tree(&space_outliner->tree);
   if (space_outliner->treestore) {
@@ -428,7 +430,7 @@ static void outliner_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *outliner_duplicate(SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
   SpaceOutliner *space_outliner_new = MEM_dupallocN<SpaceOutliner>(__func__, *space_outliner);
   space_outliner_new->runtime = MEM_new<SpaceOutliner_Runtime>(__func__, *space_outliner->runtime);
 
@@ -437,14 +439,12 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 
   space_outliner_new->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 
-  return (SpaceLink *)space_outliner_new;
+  return reinterpret_cast<SpaceLink *>(space_outliner_new);
 }
 
-static void outliner_id_remap(ScrArea *area,
-                              SpaceLink *slink,
-                              const blender::bke::id::IDRemapper &mappings)
+static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const bke::id::IDRemapper &mappings)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(slink);
 
   if (!space_outliner->treestore) {
     return;
@@ -532,7 +532,7 @@ static void outliner_deactivate(ScrArea *area)
 
 static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
   space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>(__func__);
 
   /* use #BLO_read_get_new_data_address_no_us and do not free old memory avoiding double
@@ -594,7 +594,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
                                   nullptr;
 
     if (data) {
-      BLO_write_struct(writer, SpaceOutliner, space_outliner);
+      writer->write_struct_cast<SpaceOutliner>(space_outliner);
 
       /* To store #TreeStore (instead of the mempool), two unique memory addresses are needed,
        * which can be used to identify the data on read:
@@ -610,7 +610,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
        * hold the #TreeStore directly. */
 
       /* Address relative to the tree-store, as noted above. */
-      void *data_addr = (void *)POINTER_OFFSET(ts, sizeof(void *));
+      void *data_addr = static_cast<void *> POINTER_OFFSET(ts, sizeof(void *));
       /* There should be plenty of memory addresses within the mempool data that we can point into,
        * just double-check we don't potentially end up with a memory address that another DNA
        * struct might use. Assumes BLI_mempool uses the guarded allocator. */
@@ -633,17 +633,17 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
     }
   }
   else {
-    BLO_write_struct(writer, SpaceOutliner, space_outliner);
+    writer->write_struct_cast<SpaceOutliner>(space_outliner);
   }
 }
 
 static void outliner_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
   write_space_outliner(writer, space_outliner);
 }
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
 
 void ED_spacetype_outliner()
 {
@@ -696,3 +696,5 @@ void ED_spacetype_outliner()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

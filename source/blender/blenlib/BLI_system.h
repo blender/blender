@@ -6,6 +6,8 @@
 
 #include <stdio.h>
 
+namespace blender {
+
 /** \file
  * \ingroup bli
  */
@@ -60,3 +62,5 @@ void BLI_windows_exception_show_dialog(const char *filepath_crashlog,
 #else
 #  define BLI_SYSTEM_PID_H <unistd.h>
 #endif
+
+}  // namespace blender

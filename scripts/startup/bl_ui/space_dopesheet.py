@@ -605,7 +605,7 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator("action.clean", text="Clean Channels").channels = True
 
         layout.separator()
-        layout.operator("anim.channels_group")
+        layout.operator("anim.channels_group", text="Group Channels...")
         layout.operator("anim.channels_ungroup")
 
         layout.separator()
@@ -622,7 +622,7 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator("anim.channels_collapse")
 
         layout.separator()
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move Channels")
 
         layout.separator()
         layout.operator("anim.channels_fcurves_enable")
@@ -812,7 +812,7 @@ class DOPESHEET_MT_gpencil_channel(Menu):
         # layout.operator("anim.channels_collapse")
 
         layout.separator()
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move Channels")
 
         layout.separator()
         layout.operator("anim.channels_view_selected")
@@ -893,7 +893,7 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         layout.operator("anim.channels_setting_disable", text="Unprotect Channels").type = 'PROTECT'
 
         layout.separator()
-        layout.operator("anim.channels_group")
+        layout.operator("anim.channels_group", text="Group Channels...")
         layout.operator("anim.channels_ungroup")
 
         layout.separator()
@@ -917,7 +917,7 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         layout.operator("anim.channels_collapse")
 
         layout.separator()
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move Channels")
 
         layout.separator()
 

@@ -17,9 +17,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 VKVertexBuffer::~VKVertexBuffer()
 {
@@ -130,7 +132,7 @@ void VKVertexBuffer::resize_data()
     return;
   }
 
-  data_ = (uchar *)MEM_reallocN(data_, sizeof(uchar) * this->size_alloc_get());
+  data_ = static_cast<uchar *>(MEM_reallocN(data_, sizeof(uchar) * this->size_alloc_get()));
 }
 
 void VKVertexBuffer::release_data()
@@ -212,4 +214,5 @@ void VKVertexBuffer::allocate()
   debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

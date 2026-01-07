@@ -20,7 +20,11 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
-namespace blender::bke::tests {
+namespace blender {
+
+struct PathStore;
+
+namespace bke::tests {
 
 #ifdef WIN32
 #  define ABSOLUTE_ROOT "C:" SEP_STR
@@ -147,7 +151,7 @@ TEST_F(BPathTest, list_backup_restore)
 
   void *path_list_handle = BKE_bpath_list_backup(bmain, static_cast<eBPathForeachFlag>(0));
 
-  ListBase *path_list = reinterpret_cast<ListBase *>(path_list_handle);
+  ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
   EXPECT_EQ(BLI_listbase_count(path_list), 2);
 
   MEM_freeN(text->filepath);
@@ -163,4 +167,5 @@ TEST_F(BPathTest, list_backup_restore)
   BKE_bpath_list_free(path_list_handle);
 }
 
-}  // namespace blender::bke::tests
+}  // namespace bke::tests
+}  // namespace blender

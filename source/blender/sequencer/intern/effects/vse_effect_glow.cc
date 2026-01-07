@@ -24,8 +24,6 @@ namespace blender::seq {
 static void glow_blur_bitmap(
     const float4 *src, float4 *map, int width, int height, float blur, int quality)
 {
-  using namespace blender;
-
   /* If we're not really blurring, bail out */
   if (blur <= 0) {
     return;
@@ -40,7 +38,7 @@ static void glow_blur_bitmap(
   Array<float4> temp(width * height);
 
   /* Initialize the gaussian filter.
-   * TODO: use code from #RE_filter_value. */
+   * TODO: use code from #filter_kernel_value. */
   Array<float> filter(halfWidth * 2);
   const float k = -1.0f / (2.0f * float(M_PI) * blur * blur);
   float weight = 0;
@@ -102,7 +100,6 @@ static void blur_isolate_highlights(const float4 *in,
                                     float boost,
                                     float clamp)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
     const float4 clampv = float4(clamp);
     for (const int y : y_range) {
@@ -127,7 +124,7 @@ static void blur_isolate_highlights(const float4 *in,
 static void init_glow_effect(Strip *strip)
 {
   MEM_SAFE_FREE(strip->effectdata);
-  GlowVars *data = MEM_callocN<GlowVars>("glowvars");
+  GlowVars *data = MEM_new_for_free<GlowVars>("glowvars");
   strip->effectdata = data;
   data->fMini = 0.25f;
   data->fClamp = 1.0f;
@@ -151,13 +148,11 @@ static void do_glow_effect_byte(Strip *strip,
                                 uchar * /*rect2*/,
                                 uchar *out)
 {
-  using namespace blender;
-  GlowVars *glow = (GlowVars *)strip->effectdata;
+  GlowVars *glow = static_cast<GlowVars *>(strip->effectdata);
 
   Array<float4> inbuf(x * y);
   Array<float4> outbuf(x * y);
 
-  using namespace blender;
   IMB_colormanagement_transform_byte_to_float(*inbuf.data(), rect1, x, y, 4, "sRGB", "sRGB");
 
   blur_isolate_highlights(
@@ -194,10 +189,9 @@ static void do_glow_effect_float(Strip *strip,
                                  float * /*rect2*/,
                                  float *out)
 {
-  using namespace blender;
   float4 *outbuf = reinterpret_cast<float4 *>(out);
   float4 *inbuf = reinterpret_cast<float4 *>(rect1);
-  GlowVars *glow = (GlowVars *)strip->effectdata;
+  GlowVars *glow = static_cast<GlowVars *>(strip->effectdata);
 
   blur_isolate_highlights(
       inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);

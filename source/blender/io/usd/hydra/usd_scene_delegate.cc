@@ -19,9 +19,11 @@
 #include "usd.hh"
 #include "usd_private.hh"
 
+namespace blender {
+
 using namespace blender::io::usd;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
 USDSceneDelegate::USDSceneDelegate(pxr::HdRenderIndex *render_index,
                                    pxr::SdfPath const &delegate_id,
@@ -86,4 +88,5 @@ void USDSceneDelegate::populate(Depsgraph *depsgraph)
   BKE_reports_free(&worker_reports);
 }
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

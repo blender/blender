@@ -10,6 +10,8 @@
 
 #include <optional>
 
+namespace blender {
+
 struct EnumPropertyItem;
 struct ID;
 struct MDeformVert;
@@ -24,7 +26,7 @@ struct bDeformGroup;
 #define WEIGHT_ADD 2
 #define WEIGHT_SUBTRACT 3
 
-namespace blender::ed::object {
+namespace ed::object {
 
 bool vgroup_sync_from_pose(Object *ob);
 void vgroup_select_by_name(Object *ob, const char *name);
@@ -103,4 +105,5 @@ const EnumPropertyItem *vgroup_selection_itemf_helper(const bContext *C,
                                                       bool *r_free,
                                                       unsigned int selection_mask);
 
-}  // namespace blender::ed::object
+}  // namespace ed::object
+}  // namespace blender

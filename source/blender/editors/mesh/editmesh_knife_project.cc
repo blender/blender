@@ -38,7 +38,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, LinkNode *polys)
 {
@@ -62,24 +62,23 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
   }
 
   if (mesh_eval) {
-    ListBase nurbslist = {nullptr, nullptr};
+    ListBaseT<Nurb> nurbslist = {nullptr, nullptr};
 
     BKE_mesh_to_curve_nurblist(mesh_eval, &nurbslist, 0); /* wire */
     BKE_mesh_to_curve_nurblist(mesh_eval, &nurbslist, 1); /* boundary */
 
-    const blender::float4x4 projmat = ED_view3d_ob_project_mat_get(
+    const float4x4 projmat = ED_view3d_ob_project_mat_get(
         static_cast<RegionView3D *>(region->regiondata), ob);
 
     if (nurbslist.first) {
-      LISTBASE_FOREACH (Nurb *, nu, &nurbslist) {
-        if (nu->bp) {
+      for (Nurb &nu : nurbslist) {
+        if (nu.bp) {
           int a;
           BPoint *bp;
-          bool is_cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
-          float (*mval)[2] = static_cast<float (*)[2]>(
-              MEM_mallocN(sizeof(*mval) * (nu->pntsu + is_cyclic), __func__));
+          bool is_cyclic = (nu.flagu & CU_NURB_CYCLIC) != 0;
+          float (*mval)[2] = MEM_malloc_arrayN<float[2]>(nu.pntsu + is_cyclic, __func__);
 
-          for (bp = nu->bp, a = 0; a < nu->pntsu; a++, bp++) {
+          for (bp = nu.bp, a = 0; a < nu.pntsu; a++, bp++) {
             copy_v2_v2(mval[a], ED_view3d_project_float_v2_m4(region, bp->vec, projmat));
           }
           if (is_cyclic) {
@@ -94,7 +93,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
     BKE_nurbList_free(&nurbslist);
 
     if (mesh_eval_needs_free) {
-      BKE_id_free(nullptr, (ID *)mesh_eval);
+      BKE_id_free(nullptr, id_cast<ID *>(const_cast<Mesh *>(mesh_eval)));
     }
   }
 
@@ -170,3 +169,5 @@ void MESH_OT_knife_project(wmOperatorType *ot)
                   "Cut Through",
                   "Cut through all faces, not just visible ones");
 }
+
+}  // namespace blender

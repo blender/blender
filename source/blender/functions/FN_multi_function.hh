@@ -37,7 +37,9 @@
 #include "FN_multi_function_context.hh"
 #include "FN_multi_function_params.hh"
 
-namespace blender::fn::multi_function {
+namespace blender {
+
+namespace fn::multi_function {
 
 class MultiFunction : NonCopyable, NonMovable {
  private:
@@ -143,8 +145,8 @@ inline ParamsBuilder::ParamsBuilder(const MultiFunction &fn, const IndexMask *ma
 {
 }
 
-}  // namespace blender::fn::multi_function
+}  // namespace fn::multi_function
 
-namespace blender {
 namespace mf = fn::multi_function;
-}
+
+}  // namespace blender

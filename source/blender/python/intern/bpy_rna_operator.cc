@@ -19,6 +19,8 @@
 
 #include "bpy_rna_operator.hh" /* Own include, #BPY_rna_operator_poll_message_set_method_def. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Operator `poll_message_set` Method
  * \{ */
@@ -138,9 +140,11 @@ static PyObject *BPY_rna_operator_poll_message_set(PyObject * /*self*/, PyObject
 
 PyMethodDef BPY_rna_operator_poll_message_set_method_def = {
     "poll_message_set",
-    (PyCFunction)BPY_rna_operator_poll_message_set,
+    static_cast<PyCFunction>(BPY_rna_operator_poll_message_set),
     METH_VARARGS | METH_STATIC,
     BPY_rna_operator_poll_message_set_doc,
 };
 
 /** \} */
+
+}  // namespace blender

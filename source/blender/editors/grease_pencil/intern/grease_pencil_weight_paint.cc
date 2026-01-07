@@ -23,6 +23,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -35,15 +36,17 @@
 
 #include "GEO_smooth_curves.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 
 Set<std::string> get_bone_deformed_vertex_group_names(const Object &object)
 {
   /* Get all vertex group names in the object. */
-  const ListBase *defbase = BKE_object_defgroup_list(&object);
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(&object);
   Set<std::string> defgroups;
-  LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
-    defgroups.add(dg->name);
+  for (bDeformGroup &dg : *defbase) {
+    defgroups.add(dg.name);
   }
 
   /* Inspect all armature modifiers in the object. */
@@ -63,13 +66,13 @@ Set<std::string> get_bone_deformed_vertex_group_names(const Object &object)
     }
 
     bPose *pose = gamd->object->pose;
-    LISTBASE_FOREACH (bPoseChannel *, channel, &pose->chanbase) {
-      if (channel->bone->flag & BONE_NO_DEFORM) {
+    for (bPoseChannel &channel : pose->chanbase) {
+      if (channel.bone->flag & BONE_NO_DEFORM) {
         continue;
       }
       /* When a vertex group name matches the bone name, it is bone-deformed. */
-      if (defgroups.contains(channel->name)) {
-        bone_deformed_vgroups.add(channel->name);
+      if (defgroups.contains(channel.name)) {
+        bone_deformed_vgroups.add(channel.name);
       }
     }
   }
@@ -236,7 +239,7 @@ static int foreach_bone_in_armature(Object &ob,
 
 bool add_armature_vertex_groups(Object &object, const Object &ob_armature)
 {
-  const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
+  const bArmature &armature = *id_cast<const bArmature *>(ob_armature.data);
 
   const int added_vertex_groups = foreach_bone_in_armature(
       object, armature, [&](Object &object, const Bone *bone) {
@@ -301,7 +304,7 @@ static int lookup_or_add_deform_group_index(CurvesGeometry &curves, const String
 
   /* Lazily add the vertex group. */
   if (def_nr == -1) {
-    bDeformGroup *defgroup = MEM_callocN<bDeformGroup>(__func__);
+    bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>(__func__);
     name.copy_utf8_truncated(defgroup->name);
     BLI_addtail(&curves.vertex_group_names, defgroup);
     def_nr = BLI_listbase_count(&curves.vertex_group_names) - 1;
@@ -314,8 +317,8 @@ static int lookup_or_add_deform_group_index(CurvesGeometry &curves, const String
 void add_armature_envelope_weights(Scene &scene, Object &object, const Object &ob_armature)
 {
   using namespace bke;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-  const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
+  const bArmature &armature = *id_cast<const bArmature *>(ob_armature.data);
   const float4x4 armature_to_world = ob_armature.object_to_world();
   const float scale = mat4_to_scale(armature_to_world.ptr());
 
@@ -339,7 +342,7 @@ void add_armature_envelope_weights(Scene &scene, Object &object, const Object &o
     const bke::greasepencil::Layer &layer = *layers[info.layer_index];
     const float4x4 layer_to_world = layer.to_world_space(object);
 
-    CurvesGeometry &curves = info.drawing.strokes_for_write();
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
     /* Get all the positions in world space. */
     Array<float3> positions(curves.points_num());
@@ -373,8 +376,8 @@ void add_armature_envelope_weights(Scene &scene, Object &object, const Object &o
 void add_armature_automatic_weights(Scene &scene, Object &object, const Object &ob_armature)
 {
   using namespace bke;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
-  const bArmature &armature = *static_cast<const bArmature *>(ob_armature.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
+  const bArmature &armature = *id_cast<const bArmature *>(ob_armature.data);
   const float4x4 armature_to_world = ob_armature.object_to_world();
   /* Note: These constant values are taken from the legacy grease pencil code. */
   const float default_ratio = 0.1f;
@@ -406,7 +409,7 @@ void add_armature_automatic_weights(Scene &scene, Object &object, const Object &
     const bke::greasepencil::Layer &layer = *layers[info.layer_index];
     const float4x4 layer_to_world = layer.to_world_space(object);
 
-    CurvesGeometry &curves = info.drawing.strokes_for_write();
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
     /* Get all the positions in world space. */
     Array<float3> positions(curves.points_num());
@@ -462,7 +465,7 @@ static wmOperatorStatus weight_sample_invoke(bContext *C,
 
   /* Collect visible drawings. */
   const Object *ob_eval = DEG_get_evaluated(vc.depsgraph, vc.obact);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obact->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(vc.obact->data);
   const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*vc.scene, grease_pencil, false);
 
   /* Find stroke points closest to mouse cursor position. */
@@ -606,7 +609,7 @@ static wmOperatorStatus grease_pencil_weight_invert_exec(bContext *C, wmOperator
 {
   const Scene &scene = *CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   /* Object vgroup index. */
   const int active_index = BKE_object_defgroup_active_index_get(object) - 1;
@@ -697,7 +700,7 @@ static wmOperatorStatus vertex_group_smooth_exec(bContext *C, wmOperator *op)
   const float smooth_factor = RNA_float_get(op->ptr, "factor");
   const int repeat = RNA_int_get(op->ptr, "repeat");
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const Scene &scene = *CTX_data_scene(C);
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 
@@ -768,7 +771,7 @@ static wmOperatorStatus vertex_group_normalize_exec(bContext *C, wmOperator *op)
   }
 
   /* Get all editable drawings, grouped per frame. */
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const Scene &scene = *CTX_data_scene(C);
   Array<Vector<MutableDrawingInfo>> drawings_per_frame =
       retrieve_editable_drawings_grouped_per_frame(scene, grease_pencil);
@@ -877,16 +880,16 @@ static wmOperatorStatus vertex_group_normalize_all_exec(bContext *C, wmOperator 
 
   /* Get the locked vertex groups in the object. */
   Set<std::string> object_locked_defgroups;
-  const ListBase *defgroups = BKE_object_defgroup_list(object);
-  LISTBASE_FOREACH (bDeformGroup *, dg, defgroups) {
-    if ((dg->flag & DG_LOCK_WEIGHT) != 0) {
-      object_locked_defgroups.add(dg->name);
+  const ListBaseT<bDeformGroup> *defgroups = BKE_object_defgroup_list(object);
+  for (bDeformGroup &dg : *defgroups) {
+    if ((dg.flag & DG_LOCK_WEIGHT) != 0) {
+      object_locked_defgroups.add(dg.name);
     }
   }
   const bool lock_active_group = RNA_boolean_get(op->ptr, "lock_active");
 
   /* Get all editable drawings. */
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const Scene &scene = *CTX_data_scene(C);
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 
@@ -905,8 +908,8 @@ static wmOperatorStatus vertex_group_normalize_all_exec(bContext *C, wmOperator 
       /* Put the lock state of every vertex group in a boolean array. */
       Vector<bool> vertex_group_is_locked;
       Vector<bool> vertex_group_is_included;
-      LISTBASE_FOREACH (bDeformGroup *, dg, &curves.vertex_group_names) {
-        vertex_group_is_locked.append(object_locked_defgroups.contains(dg->name));
+      for (bDeformGroup &dg : curves.vertex_group_names) {
+        vertex_group_is_locked.append(object_locked_defgroups.contains(dg.name));
         /* Dummy, needed for the #normalize_vertex_weights() call. */
         vertex_group_is_included.append(true);
       }
@@ -955,7 +958,7 @@ static void GREASE_PENCIL_OT_vertex_group_normalize_all(wmOperatorType *ot)
                   "Keep the values of the active group while normalizing others");
 }
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 void ED_operatortypes_grease_pencil_weight_paint()
 {
@@ -967,3 +970,5 @@ void ED_operatortypes_grease_pencil_weight_paint()
   WM_operatortype_append(GREASE_PENCIL_OT_vertex_group_normalize);
   WM_operatortype_append(GREASE_PENCIL_OT_vertex_group_normalize_all);
 }
+
+}  // namespace blender

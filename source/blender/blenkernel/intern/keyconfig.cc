@@ -25,6 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Key-Config Preference (UserDef) API
  *
@@ -36,13 +38,13 @@ wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idna
   wmKeyConfigPref *kpt = static_cast<wmKeyConfigPref *>(BLI_findstring(
       &userdef->user_keyconfig_prefs, kc_idname, offsetof(wmKeyConfigPref, idname)));
   if (kpt == nullptr) {
-    kpt = MEM_callocN<wmKeyConfigPref>(__func__);
+    kpt = MEM_new_for_free<wmKeyConfigPref>(__func__);
     STRNCPY(kpt->idname, kc_idname);
     BLI_addtail(&userdef->user_keyconfig_prefs, kpt);
   }
   if (kpt->prop == nullptr) {
     /* name is unimportant. */
-    kpt->prop = blender::bke::idprop::create_group(kc_idname).release();
+    kpt->prop = bke::idprop::create_group(kc_idname).release();
   }
   return kpt;
 }
@@ -114,7 +116,7 @@ void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool overr
   wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, WM_KEYCONFIG_STR_DEFAULT);
   IDProperty *idprop = IDP_GetPropertyFromGroup(kpt->prop, "select_mouse");
   if (!idprop) {
-    IDP_AddToGroup(kpt->prop, blender::bke::idprop::create("select_mouse", value).release());
+    IDP_AddToGroup(kpt->prop, bke::idprop::create("select_mouse", value).release());
   }
   else if (override) {
     IDP_int_set(idprop, value);
@@ -196,9 +198,11 @@ void BKE_keyconfig_pref_filter_items(UserDef *userdef,
                                      bool (*filter_fn)(wmKeyMapItem *kmi, void *user_data),
                                      void *user_data)
 {
-  LISTBASE_FOREACH (wmKeyMap *, keymap, &userdef->user_keymaps) {
-    BKE_keyconfig_keymap_filter_item(keymap, params, filter_fn, user_data);
+  for (wmKeyMap &keymap : userdef->user_keymaps) {
+    BKE_keyconfig_keymap_filter_item(&keymap, params, filter_fn, user_data);
   }
 }
 
 /** \} */
+
+}  // namespace blender

@@ -16,7 +16,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -44,24 +43,23 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mcmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshCacheModifierData), modifier);
+  MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(mcmd, modifier);
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
+  MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
   return (mcmd->play_mode == MOD_MESHCACHE_PLAY_CFEA);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
+  MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
 
   /* leave it up to the modifier to check the file is valid on calculation */
   return (mcmd->factor <= 0.0f) || (mcmd->filepath[0] == '\0');
@@ -159,7 +157,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   /* -------------------------------------------------------------------- */
   /* tricky shape key integration (slow!) */
   if (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
 
     /* we could support any object type */
     if (UNLIKELY(ob->type != OB_MESH)) {
@@ -273,9 +271,9 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
-  MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
+  MeshCacheModifierData *mcmd = reinterpret_cast<MeshCacheModifierData *>(md);
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
   meshcache_do(mcmd,
@@ -288,7 +286,7 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -298,7 +296,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "cache_format", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout.prop(ptr, "factor", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "factor", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   layout.prop(ptr, "deform_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
@@ -308,15 +306,15 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void time_remapping_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout.prop(ptr, "time_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "time_mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
-  layout.prop(ptr, "play_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "play_mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   if (RNA_enum_get(ptr, "play_mode") == MOD_MESHCACHE_PLAY_CFEA) {
     layout.prop(ptr, "frame_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -338,20 +336,20 @@ static void time_remapping_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.red_alert_set(RNA_enum_get(ptr, "forward_axis") == RNA_enum_get(ptr, "up_axis"));
   col.prop(ptr, "forward_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
   PropertyRNA *prop = RNA_struct_find_property(ptr, "flip_axis");
-  blender::ui::Layout &row = col.row(true, IFACE_("Flip Axis"));
+  ui::Layout &row = col.row(true, IFACE_("Flip Axis"));
   row.prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
   row.prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   row.prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
@@ -407,3 +405,5 @@ ModifierTypeInfo modifierType_MeshCache = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

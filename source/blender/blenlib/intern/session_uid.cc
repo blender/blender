@@ -10,6 +10,8 @@
 
 #include "atomic_ops.h"
 
+namespace blender {
+
 /* Special value which indicates the UID has not been assigned yet. */
 #define BLI_session_uid_NONE 0
 
@@ -52,13 +54,15 @@ uint64_t BLI_session_uid_hash_uint64(const SessionUID *uid)
 
 uint BLI_session_uid_ghash_hash(const void *uid_v)
 {
-  const SessionUID *uid = (const SessionUID *)uid_v;
+  const SessionUID *uid = static_cast<const SessionUID *>(uid_v);
   return uid->uid_ & 0xffffffff;
 }
 
 bool BLI_session_uid_ghash_compare(const void *lhs_v, const void *rhs_v)
 {
-  const SessionUID *lhs = (const SessionUID *)lhs_v;
-  const SessionUID *rhs = (const SessionUID *)rhs_v;
+  const SessionUID *lhs = static_cast<const SessionUID *>(lhs_v);
+  const SessionUID *rhs = static_cast<const SessionUID *>(rhs_v);
   return !BLI_session_uid_is_equal(lhs, rhs);
 }
+
+}  // namespace blender

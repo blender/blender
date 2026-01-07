@@ -23,7 +23,6 @@
 #include "DNA_array_utils.hh"
 #include "DNA_collection_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -93,20 +92,18 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket_usage_inference.hh"
 
-namespace lf = blender::fn::lazy_function;
-namespace geo_log = blender::nodes::geo_eval_log;
-namespace bake = blender::bke::bake;
-
 namespace blender {
+
+namespace lf = fn::lazy_function;
+namespace geo_log = nodes::geo_eval_log;
+namespace bake = bke::bake;
 
 static void init_data(ModifierData *md)
 {
-  NodesModifierData *nmd = (NodesModifierData *)md;
+  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(nmd, modifier));
+  INIT_DEFAULT_STRUCT_AFTER(nmd, modifier);
   nmd->modifier.layout_panel_open_flag |= 1 << NODES_MODIFIER_PANEL_WARNINGS;
-
-  MEMCPY_STRUCT_AFTER(nmd, DNA_struct_default_get(NodesModifierData), modifier);
   nmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
   nmd->runtime->cache = std::make_shared<bake::ModifierCache>();
 }
@@ -143,7 +140,7 @@ static void add_object_relation(
   if (info.transform) {
     DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
   }
-  if (&(ID &)object == &ctx->object->id) {
+  if (&object == ctx->object) {
     return;
   }
   if (info.geometry) {
@@ -158,6 +155,11 @@ static void add_object_relation(
   if (object.type == OB_CAMERA) {
     if (info.camera_parameters) {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_PARAMETERS, "Nodes Modifier");
+    }
+  }
+  if (object.type == OB_ARMATURE) {
+    if (info.pose) {
+      DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_EVAL_POSE, "Nodes Modifier");
     }
   }
 }
@@ -181,7 +183,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   find_dependencies_from_settings(nmd->settings, eval_deps);
 
   if (ctx->object->type == OB_CURVES) {
-    Curves *curves_id = static_cast<Curves *>(ctx->object->data);
+    Curves *curves_id = id_cast<Curves *>(ctx->object->data);
     if (curves_id->surface != nullptr) {
       eval_deps.add_object(curves_id->surface);
     }
@@ -196,7 +198,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   }
 
   for (ID *id : eval_deps.ids.values()) {
-    switch ((ID_Type)GS(id->name)) {
+    switch (ID_Type(GS(id->name))) {
       case ID_OB: {
         Object *object = reinterpret_cast<Object *>(id);
         add_object_relation(
@@ -213,9 +215,13 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
         DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
         break;
       }
-      default: {
+      case ID_MA: {
         /* Purposefully don't add relations for materials. While there are material sockets,
          * the pointers are only passed around as handles rather than dereferenced. */
+        break;
+      }
+      default: {
+        /* Other types don't need depsgraph dependencies currently. */
         break;
       }
     }
@@ -256,10 +262,10 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  walk(user_data, ob, (ID **)&nmd->node_group, IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&nmd->node_group), IDWALK_CB_USER);
 
   IDP_foreach_property(nmd->settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *id_prop) {
-    walk(user_data, ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
+    walk(user_data, ob, reinterpret_cast<ID **>(&id_prop->data.pointer), IDWALK_CB_USER);
   });
 
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
@@ -368,8 +374,8 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
     }
   }
 
-  NodesModifierBake *new_bake_data = MEM_calloc_arrayN<NodesModifierBake>(new_bake_ids.size(),
-                                                                          __func__);
+  NodesModifierBake *new_bake_data = MEM_new_array_for_free<NodesModifierBake>(new_bake_ids.size(),
+                                                                               __func__);
   for (const int i : new_bake_ids.index_range()) {
     const int id = new_bake_ids[i];
     NodesModifierBake *old_bake = old_bake_by_id.lookup_default(id, nullptr);
@@ -420,8 +426,8 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
     });
   }
 
-  NodesModifierPanel *new_panels = MEM_calloc_arrayN<NodesModifierPanel>(interface_panels.size(),
-                                                                         __func__);
+  NodesModifierPanel *new_panels = MEM_new_array_for_free<NodesModifierPanel>(
+      interface_panels.size(), __func__);
 
   for (const int i : interface_panels.index_range()) {
     const bNodeTreeInterfacePanel &interface_panel = *interface_panels[i];
@@ -444,11 +450,8 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
   nmd.panels_num = interface_panels.size();
 }
 
-}  // namespace blender
-
 void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 {
-  using namespace blender;
   update_id_properties_from_node_group(nmd);
   update_bakes_from_node_group(*nmd);
   update_panels_from_node_group(*nmd);
@@ -464,15 +467,13 @@ NodesModifierBake *NodesModifierData::find_bake(const int id)
 
 const NodesModifierBake *NodesModifierData::find_bake(const int id) const
 {
-  for (const NodesModifierBake &bake : blender::Span{this->bakes, this->bakes_num}) {
+  for (const NodesModifierBake &bake : Span{this->bakes, this->bakes_num}) {
     if (bake.id == id) {
       return &bake;
     }
   }
   return nullptr;
 }
-
-namespace blender {
 
 /**
  * Setup side effects nodes so that the given node in the given compute context will be executed.
@@ -840,16 +841,16 @@ static void find_side_effect_nodes(const NodesModifierData &nmd,
                                    Set<ComputeContextHash> &r_socket_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm == nullptr) {
     return;
   }
-  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
-    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    const WorkSpace *workspace = BKE_workspace_active_get(window->workspace_hook);
+  for (const wmWindow &window : wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
+    const WorkSpace *workspace = BKE_workspace_active_get(window.workspace_hook);
     find_side_effect_nodes_for_viewer_path(workspace->viewer_path, nmd, ctx, r_side_effect_nodes);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+    for (const ScrArea &area : screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
       if (sl->spacetype == SPACE_SPREADSHEET) {
         const SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<const SpaceSpreadsheet *>(sl);
         find_side_effect_nodes_for_viewer_path(
@@ -872,15 +873,15 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
                                      Set<ComputeContextHash> &r_socket_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm == nullptr) {
     return;
   }
   bke::ComputeContextCache compute_context_cache;
-  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
-    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+  for (const wmWindow &window : wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
+    for (const ScrArea &area : screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
       if (sl->spacetype == SPACE_NODE) {
         const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
         if (snode.edittree == nullptr || snode.edittree->type != NTREE_GEOMETRY) {
@@ -1106,9 +1107,11 @@ static bool try_find_baked_data(const NodesModifierBake &bake,
         return false;
       }
     }
+
     /* Make sure frames processed in the right order. */
     Vector<SubFrame> frames;
     frames.extend(file_by_frame.keys().begin(), file_by_frame.keys().end());
+    std::sort(frames.begin(), frames.end());
 
     for (const SubFrame &frame : frames) {
       const NodesModifierBakeFile &meta_file = *file_by_frame.lookup(frame);
@@ -1661,7 +1664,7 @@ static void add_missing_data_block_mappings(
       MEM_recallocN(bake.data_blocks, sizeof(NodesModifierDataBlock) * new_num));
   for (const int i : missing.index_range()) {
     NodesModifierDataBlock &data_block = bake.data_blocks[old_num + i];
-    const blender::bke::bake::BakeDataBlockID &key = missing[i];
+    const bke::bake::BakeDataBlockID &key = missing[i];
 
     data_block.id_name = BLI_strdup(key.id_name.c_str());
     if (!key.lib_name.empty()) {
@@ -1816,7 +1819,6 @@ static void modifyGeometry(ModifierData *md,
                            const ModifierEvalContext *ctx,
                            bke::GeometrySet &geometry_set)
 {
-  using namespace blender;
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   if (nmd->node_group == nullptr) {
     return;
@@ -2022,7 +2024,6 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void panel_register(ARegionType *region_type)
 {
-  using namespace blender;
   modifier_panel_register(region_type, eModifierType_Nodes, panel_draw);
 }
 
@@ -2030,7 +2031,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
 
-  BLO_write_struct(writer, NodesModifierData, nmd);
+  writer->write_struct(nmd);
 
   BLO_write_string(writer, nmd->bake_directory);
 
@@ -2041,11 +2042,11 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
        * properties are automatically converted to boolean sockets where applicable as well.
        * However, boolean properties will crash old versions of Blender, so convert them to integer
        * properties for writing. The actual value is stored in the same variable for both types */
-      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
-        if (prop->type == IDP_BOOLEAN) {
-          boolean_props.add_new(prop, reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data));
-          prop->type = IDP_INT;
-          prop->ui_data = nullptr;
+      for (IDProperty &prop : nmd->settings.properties->data.group) {
+        if (prop.type == IDP_BOOLEAN) {
+          boolean_props.add_new(&prop, reinterpret_cast<IDPropertyUIDataBool *>(prop.ui_data));
+          prop.type = IDP_INT;
+          prop.ui_data = nullptr;
         }
       }
     }
@@ -2065,7 +2066,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
       BLO_write_string(writer, item.lib_name);
     }
     if (bake.packed) {
-      BLO_write_struct(writer, NodesModifierPackedBake, bake.packed);
+      writer->write_struct(bake.packed);
       BLO_write_struct_array(
           writer, NodesModifierBakeFile, bake.packed->meta_files_num, bake.packed->meta_files);
       BLO_write_struct_array(
@@ -2092,12 +2093,12 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
   if (nmd->settings.properties) {
     if (!BLO_write_is_undo(writer)) {
-      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
-        if (prop->type == IDP_INT) {
-          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(prop)) {
-            prop->type = IDP_BOOLEAN;
+      for (IDProperty &prop : nmd->settings.properties->data.group) {
+        if (prop.type == IDP_INT) {
+          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(&prop)) {
+            prop.type = IDP_BOOLEAN;
             if (ui_data) {
-              prop->ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
+              prop.ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
             }
           }
         }
@@ -2297,8 +2298,6 @@ static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cd
   r_cddata_masks->vmask |= CD_MASK_PROP_ALL;
 }
 
-}  // namespace blender
-
 ModifierTypeInfo modifierType_Nodes = {
     /*idname*/ "GeometryNodes",
     /*name*/ N_("GeometryNodes"),
@@ -2312,28 +2311,30 @@ ModifierTypeInfo modifierType_Nodes = {
      eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_AcceptsGreasePencil),
     /*icon*/ ICON_GEOMETRY_NODES,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
-    /*modify_mesh*/ blender::modify_mesh,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
-    /*required_data_mask*/ blender::required_data_mask,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
-    /*update_depsgraph*/ blender::update_depsgraph,
-    /*depends_on_time*/ blender::depends_on_time,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ depends_on_time,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
-    /*foreach_tex_link*/ blender::foreach_tex_link,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ foreach_tex_link,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

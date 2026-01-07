@@ -41,7 +41,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometrySeparateGeometry *data = MEM_callocN<NodeGeometrySeparateGeometry>(__func__);
+  NodeGeometrySeparateGeometry *data = MEM_new_for_free<NodeGeometrySeparateGeometry>(__func__);
   data->domain = int8_t(AttrDomain::Point);
   node->storage = data;
 }
@@ -107,24 +107,24 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSeparateGeometry", GEO_NODE_SEPARATE_GEOMETRY);
   ntype.ui_name = "Separate Geometry";
   ntype.ui_description = "Split a geometry into two geometry outputs based on a selection";
   ntype.enum_name_legacy = "SEPARATE_GEOMETRY";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometrySeparateGeometry",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometrySeparateGeometry",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
 
   ntype.initfunc = node_init;
 
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

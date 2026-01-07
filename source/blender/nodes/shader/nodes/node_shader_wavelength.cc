@@ -6,7 +6,9 @@
 
 #include "IMB_colormanagement.hh"
 
-namespace blender::nodes::node_shader_wavelength_cc {
+namespace blender {
+
+namespace nodes::node_shader_wavelength_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -34,14 +36,14 @@ static int node_shader_gpu_wavelength(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_wavelength", in, out, ramp_texture, GPU_constant(&layer));
 }
 
-}  // namespace blender::nodes::node_shader_wavelength_cc
+}  // namespace nodes::node_shader_wavelength_cc
 
 /* node type definition */
 void register_node_type_sh_wavelength()
 {
-  namespace file_ns = blender::nodes::node_shader_wavelength_cc;
+  namespace file_ns = nodes::node_shader_wavelength_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeWavelength", SH_NODE_WAVELENGTH);
   ntype.ui_name = "Wavelength";
@@ -49,8 +51,10 @@ void register_node_type_sh_wavelength()
   ntype.enum_name_legacy = "WAVELENGTH";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::node_declare;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.gpu_fn = file_ns::node_shader_gpu_wavelength;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

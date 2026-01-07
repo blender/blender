@@ -42,7 +42,7 @@ static MaterialPool *gpencil_material_pool_add(Instance *inst)
   return matpool;
 }
 
-static gpu::Texture *gpencil_image_texture_get(::Image *image, bool *r_alpha_premult)
+static gpu::Texture *gpencil_image_texture_get(blender::Image *image, bool *r_alpha_premult)
 {
   ImageUser iuser = {nullptr};
   gpu::Texture *gpu_tex = nullptr;

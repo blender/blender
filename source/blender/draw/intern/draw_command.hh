@@ -24,13 +24,15 @@
 #include "draw_state.hh"
 #include "draw_view.hh"
 
+namespace blender {
+
 /* Forward declarations. */
-namespace blender::draw::detail {
+namespace draw::detail {
 template<typename T, int64_t block_size> class SubPassVector;
 template<typename DrawCommandBufType> class PassBase;
-}  // namespace blender::draw::detail
+}  // namespace draw::detail
 
-namespace blender::draw::command {
+namespace draw::command {
 
 class DrawCommandBuf;
 class DrawMultiBuf;
@@ -684,7 +686,7 @@ class DrawMultiBuf {
     if (headers.is_empty() || headers.last().type != Type::DrawMulti) {
       uint index = commands.append_and_get_index({});
       headers.append({Type::DrawMulti, index});
-      commands[index].draw_multi = {batch, this, (uint)-1, header_id_counter_++};
+      commands[index].draw_multi = {batch, this, uint(-1), header_id_counter_++};
     }
 
     DrawMulti &cmd = commands.last().draw_multi;
@@ -756,4 +758,6 @@ class DrawMultiBuf {
 
 /** \} */
 
-};  // namespace blender::draw::command
+};  // namespace draw::command
+
+}  // namespace blender

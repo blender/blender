@@ -22,19 +22,19 @@
 namespace blender::asset_system::tests {
 
 /* UUIDs from tests/files/asset_library/blender_assets.cats.txt */
-const bUUID UUID_ID_WITHOUT_PATH("e34dd2c5-5d2e-4668-9794-1db5de2a4f71");
-const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
-const bUUID UUID_POSES_ELLIE_WHITESPACE("b06132f6-5687-4751-a6dd-392740eb3c46");
-const bUUID UUID_POSES_ELLIE_TRAILING_SLASH("3376b94b-a28d-4d05-86c1-bf30b937130d");
-const bUUID UUID_POSES_ELLIE_BACKSLASHES("a51e17ae-34fc-47d5-ba0f-64c2c9b771f7");
-const bUUID UUID_POSES_RUZENA("79a4f887-ab60-4bd4-94da-d572e27d6aed");
-const bUUID UUID_POSES_RUZENA_HAND("81811c31-1a88-4bd7-bb34-c6fc2607a12e");
-const bUUID UUID_POSES_RUZENA_FACE("82162c1f-06cc-4d91-a9bf-4f72c104e348");
-const bUUID UUID_WITHOUT_SIMPLENAME("d7916a31-6ca9-4909-955f-182ca2b81fa3");
-const bUUID UUID_ANOTHER_RUZENA("00000000-d9fa-4b91-b704-e6af1f1339ef");
+const UUID UUID_ID_WITHOUT_PATH("e34dd2c5-5d2e-4668-9794-1db5de2a4f71");
+const UUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
+const UUID UUID_POSES_ELLIE_WHITESPACE("b06132f6-5687-4751-a6dd-392740eb3c46");
+const UUID UUID_POSES_ELLIE_TRAILING_SLASH("3376b94b-a28d-4d05-86c1-bf30b937130d");
+const UUID UUID_POSES_ELLIE_BACKSLASHES("a51e17ae-34fc-47d5-ba0f-64c2c9b771f7");
+const UUID UUID_POSES_RUZENA("79a4f887-ab60-4bd4-94da-d572e27d6aed");
+const UUID UUID_POSES_RUZENA_HAND("81811c31-1a88-4bd7-bb34-c6fc2607a12e");
+const UUID UUID_POSES_RUZENA_FACE("82162c1f-06cc-4d91-a9bf-4f72c104e348");
+const UUID UUID_WITHOUT_SIMPLENAME("d7916a31-6ca9-4909-955f-182ca2b81fa3");
+const UUID UUID_ANOTHER_RUZENA("00000000-d9fa-4b91-b704-e6af1f1339ef");
 
 /* UUIDs from tests/files/asset_library/modified_assets.cats.txt */
-const bUUID UUID_AGENT_47("c5744ba5-43f5-4f73-8e52-010ad4a61b34");
+const UUID UUID_AGENT_47("c5744ba5-43f5-4f73-8e52-010ad4a61b34");
 
 /* Subclass that adds accessors such that protected fields can be used in tests. */
 class TestableAssetCatalogService : public AssetCatalogService {
@@ -304,7 +304,7 @@ TEST_F(AssetCatalogTest, read_write_unicode_filepath)
   loaded_service.load_from_disk();
 
   /* Test that the file was loaded correctly. */
-  const bUUID materials_uuid("a2151dff-dead-4f29-b6bc-b2c7d6cccdb4");
+  const UUID materials_uuid("a2151dff-dead-4f29-b6bc-b2c7d6cccdb4");
   const AssetCatalog *cat = loaded_service.find_catalog(materials_uuid);
   ASSERT_NE(nullptr, cat);
   EXPECT_EQ(materials_uuid, cat->catalog_id);
@@ -502,7 +502,7 @@ TEST_F(AssetCatalogTest, create_catalog_after_loading_file)
 
   /* This should create a new catalog but not write to disk. */
   const AssetCatalog *new_catalog = service.create_catalog("new/catalog");
-  const bUUID new_catalog_id = new_catalog->catalog_id;
+  const UUID new_catalog_id = new_catalog->catalog_id;
   service.tag_has_unsaved_changes();
 
   /* Reload the on-disk catalog file. */
@@ -601,8 +601,8 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
   /* Create an extra catalog with the to-be-deleted path, and one with a child of that.
    * This creates some duplicates that are bound to occur in production asset libraries as well.
    */
-  const bUUID cat1_uuid = service.create_catalog("character/Ružena/poselib")->catalog_id;
-  const bUUID cat2_uuid = service.create_catalog("character/Ružena/poselib/body")->catalog_id;
+  const UUID cat1_uuid = service.create_catalog("character/Ružena/poselib")->catalog_id;
+  const UUID cat2_uuid = service.create_catalog("character/Ružena/poselib/body")->catalog_id;
 
   /* Delete a parent catalog. */
   service.prune_catalogs_by_path("character/Ružena/poselib");
@@ -914,8 +914,8 @@ TEST_F(AssetCatalogTest, backups)
 
 TEST_F(AssetCatalogTest, order_by_path)
 {
-  const bUUID cat2_uuid("22222222-b847-44d9-bdca-ff04db1c24f5");
-  const bUUID cat4_uuid("11111111-b847-44d9-bdca-ff04db1c24f5"); /* Sorts earlier than above. */
+  const UUID cat2_uuid("22222222-b847-44d9-bdca-ff04db1c24f5");
+  const UUID cat4_uuid("11111111-b847-44d9-bdca-ff04db1c24f5"); /* Sorts earlier than above. */
   const AssetCatalog cat1(BLI_uuid_generate_random(), "simple/path/child", "");
   const AssetCatalog cat2(cat2_uuid, "simple/path", "");
   const AssetCatalog cat3(BLI_uuid_generate_random(), "complex/path/...or/is/it?", "");
@@ -956,9 +956,9 @@ TEST_F(AssetCatalogTest, order_by_path_and_first_seen)
   AssetCatalogService service;
   service.load_from_disk(asset_library_root_);
 
-  const bUUID first_seen_uuid("3d451c87-27d1-40fd-87fc-f4c9e829c848");
-  const bUUID first_sorted_uuid("00000000-0000-0000-0000-000000000001");
-  const bUUID last_sorted_uuid("ffffffff-ffff-ffff-ffff-ffffffffffff");
+  const UUID first_seen_uuid("3d451c87-27d1-40fd-87fc-f4c9e829c848");
+  const UUID first_sorted_uuid("00000000-0000-0000-0000-000000000001");
+  const UUID last_sorted_uuid("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
   AssetCatalog first_seen_cat(first_seen_uuid, "simple/path/child", "");
   const AssetCatalog first_sorted_cat(first_sorted_uuid, "simple/path/child", "");
@@ -1084,7 +1084,7 @@ TEST_F(AssetCatalogTest, create_catalog_filter)
 TEST_F(AssetCatalogTest, create_catalog_filter_for_unknown_uuid)
 {
   AssetCatalogService service;
-  const bUUID unknown_uuid = BLI_uuid_generate_random();
+  const UUID unknown_uuid = BLI_uuid_generate_random();
 
   AssetCatalogFilter filter = service.create_catalog_filter(unknown_uuid);
   EXPECT_TRUE(filter.contains(unknown_uuid));
@@ -1227,7 +1227,7 @@ TEST_F(AssetCatalogTest, undo_redo_one_step)
       << "Undo steps should be created explicitly, and not after creating any catalog.";
 
   service.undo_push();
-  const bUUID other_catalog_id = service.create_catalog("other/catalog/path")->catalog_id;
+  const UUID other_catalog_id = service.create_catalog("other/catalog/path")->catalog_id;
   EXPECT_TRUE(service.is_undo_possbile())
       << "Undo should be possible after creating an undo snapshot.";
 

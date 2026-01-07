@@ -45,7 +45,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeConvertToDisplay *nctd = MEM_callocN<NodeConvertToDisplay>(__func__);
+  NodeConvertToDisplay *nctd = MEM_new_for_free<NodeConvertToDisplay>(__func__);
   BKE_color_managed_display_settings_init(&nctd->display_settings);
   BKE_color_managed_view_settings_init(&nctd->view_settings, &nctd->display_settings, nullptr);
   nctd->view_settings.flag |= COLORMANAGE_VIEW_ONLY_VIEW_LOOK;
@@ -61,7 +61,7 @@ static void node_free(bNode *node)
 
 static void node_copy(bNodeTree * /*dest_ntree*/, bNode *dest_node, const bNode *src_node)
 {
-  NodeConvertToDisplay *dest = MEM_callocN<NodeConvertToDisplay>(__func__);
+  NodeConvertToDisplay *dest = MEM_new_for_free<NodeConvertToDisplay>(__func__);
   const NodeConvertToDisplay *src = static_cast<const NodeConvertToDisplay *>(src_node->storage);
   BKE_color_managed_view_settings_copy(&dest->view_settings, &src->view_settings);
   BKE_color_managed_display_settings_copy(&dest->display_settings, &src->display_settings);
@@ -102,7 +102,7 @@ class ConvertToDisplayOperation : public NodeOperation {
 
   bool do_inverse()
   {
-    return this->get_input("Invert").get_single_value_default(false);
+    return this->get_input("Invert").get_single_value_default<bool>();
   }
 
   void execute() override
@@ -123,7 +123,7 @@ class ConvertToDisplayOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    const NodeConvertToDisplay &nctd = node_storage(bnode());
+    const NodeConvertToDisplay &nctd = node_storage(node());
 
     OCIOToDisplayShader &ocio_shader = context().cache_manager().ocio_to_display_shaders.get(
         context(), nctd.display_settings, nctd.view_settings, do_inverse());
@@ -154,7 +154,7 @@ class ConvertToDisplayOperation : public NodeOperation {
 
   void execute_cpu()
   {
-    const NodeConvertToDisplay &nctd = node_storage(bnode());
+    const NodeConvertToDisplay &nctd = node_storage(node());
     ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
         &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_VIDEO_OUTPUT, do_inverse());
 
@@ -179,7 +179,7 @@ class ConvertToDisplayOperation : public NodeOperation {
 
   void execute_single()
   {
-    const NodeConvertToDisplay &nctd = node_storage(bnode());
+    const NodeConvertToDisplay &nctd = node_storage(node());
     ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
         &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_VIDEO_OUTPUT, do_inverse());
 
@@ -202,8 +202,8 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 static void register_node_type_cmp_convert_to_display()
 {
-  namespace file_ns = blender::nodes::node_composite_convert_to_display_cc;
-  static blender::bke::bNodeType ntype;
+  namespace file_ns = nodes::node_composite_convert_to_display_cc;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeConvertToDisplay", CMP_NODE_CONVERT_TO_DISPLAY);
   ntype.ui_name = "Convert to Display";
@@ -214,15 +214,15 @@ static void register_node_type_cmp_convert_to_display()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_draw_buttons;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype, "NodeConvertToDisplay", node_free, node_copy);
+  bke::node_type_storage(ntype, "NodeConvertToDisplay", node_free, node_copy);
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.get_compositor_operation = get_compositor_operation;
-  blender::bke::node_type_size(ntype, 240, 150, NODE_DEFAULT_MAX_WIDTH);
+  bke::node_type_size(ntype, 240, 150, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_convert_to_display)
 

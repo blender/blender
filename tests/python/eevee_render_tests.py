@@ -40,6 +40,8 @@ BLOCKLIST = [
     "light_path_is_shadow_ray.blend",
     # Blocked as the test seems to alternate between two different states
     "light_path_is_diffuse_ray.blend",
+    # Blocked due to stochastic diffuse/transmission layering resulting in non-deterministic surfel lighting.
+    "principled_bsdf_transmission.blend",
 ]
 
 BLOCKLIST_METAL = [
@@ -56,18 +58,11 @@ BLOCKLIST_METAL = [
 ]
 
 BLOCKLIST_VULKAN = [
-    # Blocked due to difference in screen space tracing (to be fixed).
-    "sss_reflection_clamp.blend",
     # Blocked due to difference in screen space tracing (to be investigated).
     "image.blend"
 ]
 
 BLOCKLIST_INTEL = [
-    # Blocked due to large differences in dithered surfaces and shadows.
-    "transparency_blended.blend",
-    "transparency_dithered.blend",
-    # Blocked due to differences in shadow edges (to be investigated).
-    "shadow_resolution_scale.blend"
 ]
 
 

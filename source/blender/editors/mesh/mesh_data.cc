@@ -43,12 +43,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Array;
-using blender::float2;
-using blender::float3;
-using blender::MutableSpan;
-using blender::Span;
-using blender::StringRef;
+namespace blender {
 
 static void mesh_uv_reset_array(float **fuv, const int len)
 {
@@ -98,13 +93,13 @@ static void reset_uvs_bmesh(BMFace *f, const int cd_loop_uv_offset)
   int i;
 
   BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, i) {
-    fuv[i] = ((float *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset));
+    fuv[i] = (static_cast<float *> BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset));
   }
 
   mesh_uv_reset_array(fuv.data(), f->len);
 }
 
-static void reset_uvs_mesh(const blender::IndexRange face, MutableSpan<float2> uv_map)
+static void reset_uvs_mesh(const IndexRange face, MutableSpan<float2> uv_map)
 {
   Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(face.size());
 
@@ -117,7 +112,6 @@ static void reset_uvs_mesh(const blender::IndexRange face, MutableSpan<float2> u
 
 static void reset_uv_map(Mesh *mesh, const StringRef name)
 {
-  using namespace blender;
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     const int cd_loop_uv_offset = CustomData_get_offset_named(
         &em->bm->ldata, CD_PROP_FLOAT2, name);
@@ -156,7 +150,6 @@ void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh)
 int ED_mesh_uv_add(
     Mesh *mesh, const char *name, const bool active_set, const bool do_init, ReportList *reports)
 {
-  using namespace blender;
   /* NOTE: keep in sync with #ED_mesh_color_add. */
 
   int layernum_dst;
@@ -227,13 +220,13 @@ int ED_mesh_uv_add(
   return layernum_dst;
 }
 
-static blender::VArray<bool> get_corner_boolean_attribute(const Mesh &mesh, const StringRef name)
+static VArray<bool> get_corner_boolean_attribute(const Mesh &mesh, const StringRef name)
 {
-  const blender::bke::AttributeAccessor attributes = mesh.attributes();
-  return *attributes.lookup_or_default<bool>(name, blender::bke::AttrDomain::Corner, false);
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  return *attributes.lookup_or_default<bool>(name, bke::AttrDomain::Corner, false);
 }
 
-blender::VArray<bool> ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
+VArray<bool> ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
@@ -241,15 +234,14 @@ blender::VArray<bool> ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int u
   return get_corner_boolean_attribute(*mesh, BKE_uv_map_pin_name_get(uv_name, buffer));
 }
 
-static blender::bke::AttributeWriter<bool> ensure_corner_boolean_attribute(Mesh &mesh,
-                                                                           const StringRef name)
+static bke::AttributeWriter<bool> ensure_corner_boolean_attribute(Mesh &mesh, const StringRef name)
 {
-  blender::bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   return attributes.lookup_or_add_for_write<bool>(
-      name, blender::bke::AttrDomain::Corner, blender::bke::AttributeInitDefaultValue());
+      name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
 }
 
-blender::bke::AttributeWriter<bool> ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, const int uv_index)
+bke::AttributeWriter<bool> ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, const int uv_index)
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
@@ -278,7 +270,6 @@ std::string ED_mesh_color_add(Mesh *mesh,
                               const bool do_init,
                               ReportList * /*reports*/)
 {
-  using namespace blender;
   /* If no name is supplied, provide a backwards compatible default. */
   if (!name) {
     name = "Col";
@@ -330,7 +321,6 @@ std::string ED_mesh_color_add(Mesh *mesh,
 
 bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 {
-  using namespace blender;
   BLI_assert(mesh->runtime->edit_mesh == nullptr);
   if (BKE_id_attributes_color_find(&mesh->id, mesh->active_color_attribute)) {
     return true;
@@ -358,8 +348,8 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 
 static bool uv_maps_poll(bContext *C)
 {
-  Object *ob = blender::ed::object::context_object(C);
-  ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  Object *ob = ed::object::context_object(C);
+  ID *data = (ob) ? ob->data : nullptr;
   return (ob && ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
           ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
@@ -370,8 +360,8 @@ static bool uv_texture_remove_poll(bContext *C)
     return false;
   }
 
-  Object *ob = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Object *ob = ed::object::context_object(C);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   const StringRef active_name = mesh->active_uv_map_name();
   if (mesh->runtime->edit_mesh) {
     const BMesh &bm = *mesh->runtime->edit_mesh->bm;
@@ -390,8 +380,8 @@ static bool uv_texture_remove_poll(bContext *C)
 
 static wmOperatorStatus mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Object *ob = ed::object::context_object(C);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   if (ED_mesh_uv_add(mesh, nullptr, true, true, op->reports) == -1) {
     return OPERATOR_CANCELLED;
@@ -420,8 +410,8 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 
 static wmOperatorStatus mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Object *ob = ed::object::context_object(C);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   const StringRef name = mesh->active_uv_map_name();
@@ -455,7 +445,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 
 static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   if (!ob) {
     return false;
   }
@@ -465,7 +455,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
   if (ob->mode & OB_MODE_SCULPT) {
     return false;
   }
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
     return false;
   }
@@ -489,8 +479,8 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
 
 static wmOperatorStatus mesh_customdata_mask_clear_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *object = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  Object *object = ed::object::context_object(C);
+  Mesh *mesh = id_cast<Mesh *>(object->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     const bool removed_a = CustomData_free_layer_named(&em->bm->vdata, ".sculpt_mask");
     const bool removed_b = CustomData_free_layers(&em->bm->ldata, CD_GRID_PAINT_MASK);
@@ -529,14 +519,14 @@ enum class SkinState {
 };
 static SkinState mesh_customdata_skin_state(bContext *C)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   if (!ob) {
     return SkinState::Invalid;
   }
   if (ob->type != OB_MESH) {
     return SkinState::Invalid;
   }
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
     return SkinState::Invalid;
   }
@@ -555,8 +545,8 @@ static bool mesh_customdata_skin_add_poll(bContext *C)
 
 static wmOperatorStatus mesh_customdata_skin_add_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Object *ob = ed::object::context_object(C);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   BKE_mesh_ensure_skin_customdata(mesh);
 
@@ -585,8 +575,8 @@ static bool mesh_customdata_skin_clear_poll(bContext *C)
 
 static wmOperatorStatus mesh_customdata_skin_clear_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *object = blender::ed::object::context_object(C);
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  Object *object = ed::object::context_object(C);
+  Mesh *mesh = id_cast<Mesh *>(object->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     if (!CustomData_free_layers(&em->bm->vdata, CD_MVERT_SKIN)) {
       return OPERATOR_CANCELLED;
@@ -617,7 +607,6 @@ void MESH_OT_customdata_skin_clear(wmOperatorType *ot)
 static wmOperatorStatus mesh_customdata_custom_splitnormals_add_exec(bContext *C,
                                                                      wmOperator * /*op*/)
 {
-  using namespace blender;
   Mesh *mesh = ED_mesh_context(C);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     if (BM_data_layer_lookup(*em->bm, "custom_normal")) {
@@ -654,7 +643,6 @@ void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
 static wmOperatorStatus mesh_customdata_custom_splitnormals_clear_exec(bContext *C,
                                                                        wmOperator * /*op*/)
 {
-  using namespace blender;
   Mesh *mesh = ED_mesh_context(C);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     BMesh &bm = *em->bm;
@@ -694,7 +682,6 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
 
 static void mesh_add_verts(Mesh *mesh, int len)
 {
-  using namespace blender;
   if (len == 0) {
     return;
   }
@@ -725,7 +712,6 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
 static void mesh_add_edges(Mesh *mesh, int len)
 {
-  using namespace blender;
   CustomData edge_data;
   int totedge;
 
@@ -798,7 +784,6 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
 static void mesh_add_faces(Mesh *mesh, int len)
 {
-  using namespace blender;
   CustomData face_data;
   int faces_num;
 
@@ -1032,22 +1017,21 @@ Mesh *ED_mesh_context(bContext *C)
     return mesh;
   }
 
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   if (ob == nullptr) {
     return nullptr;
   }
 
-  ID *data = (ID *)ob->data;
+  ID *data = ob->data;
   if (data == nullptr || GS(data->name) != ID_ME) {
     return nullptr;
   }
 
-  return (Mesh *)data;
+  return id_cast<Mesh *>(data);
 }
 
 void ED_mesh_split_faces(Mesh *mesh)
 {
-  using namespace blender;
   const OffsetIndices polys = mesh->faces();
   const Span<int> corner_edges = mesh->corner_edges();
   const bke::AttributeAccessor attributes = mesh->attributes();
@@ -1077,3 +1061,5 @@ void ED_mesh_split_faces(Mesh *mesh)
 
   geometry::split_edges(*mesh, split_mask, {});
 }
+
+}  // namespace blender

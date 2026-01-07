@@ -53,7 +53,7 @@ class Names : Overlay {
 
     uchar color[4];
     /* Color Management: Exception here as texts are drawn in sRGB space directly. */
-    UI_GetThemeColor4ubv(theme_id, color);
+    ui::theme::get_color_4ubv(theme_id, color);
 
     DRW_text_cache_add(state.dt,
                        ob->object_to_world().location(),

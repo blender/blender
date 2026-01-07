@@ -49,6 +49,8 @@
 
 #include "paint_intern.hh"
 
+namespace blender {
+
 bool paint_convert_bb_to_rect(rcti *rect,
                               const float bb_min[3],
                               const float bb_max[3],
@@ -65,7 +67,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
     return false;
   }
 
-  const blender::float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &ob);
+  const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &ob);
 
   for (i = 0; i < 2; i++) {
     for (j = 0; j < 2; j++) {
@@ -76,7 +78,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
         vec[1] = j ? bb_min[1] : bb_max[1];
         vec[2] = k ? bb_min[2] : bb_max[2];
         /* convert corner to screen space */
-        const blender::float2 proj = ED_view3d_project_float_v2_m4(&region, vec, projection);
+        const float2 proj = ED_view3d_project_float_v2_m4(&region, vec, projection);
         /* expand 2D rectangle */
 
         /* we could project directly to int? */
@@ -93,7 +95,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
 }
 
 float paint_calc_object_space_radius(const ViewContext &vc,
-                                     const blender::float3 &center,
+                                     const float3 &center,
                                      const float pixel_radius)
 {
   Object *ob = vc.obact;
@@ -366,7 +368,7 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 static wmOperatorStatus vert_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   if (BLI_listbase_is_empty(&mesh->vertex_group_names) || mesh->deform_verts().is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
@@ -603,3 +605,5 @@ void PAINT_OT_face_vert_reveal(wmOperatorType *ot)
                   "Select",
                   "Specifies whether the newly revealed geometry should be selected");
 }
+
+}  // namespace blender

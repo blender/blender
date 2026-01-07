@@ -57,13 +57,13 @@ static void strip_by_scene_lookup_build(Strip *strip, StripLookup *lookup)
 
 static void strip_by_compositor_node_group_lookup_build(Strip *strip, StripLookup *lookup)
 {
-  LISTBASE_FOREACH (StripModifierData *, modifier, &strip->modifiers) {
-    if (modifier->type != eSeqModifierType_Compositor) {
+  for (StripModifierData &modifier : strip->modifiers) {
+    if (modifier.type != eSeqModifierType_Compositor) {
       continue;
     }
 
     const SequencerCompositorModifierData *modifier_data =
-        reinterpret_cast<SequencerCompositorModifierData *>(modifier);
+        reinterpret_cast<SequencerCompositorModifierData *>(&modifier);
     if (!modifier_data->node_group) {
       continue;
     }
@@ -85,24 +85,24 @@ static void strip_lookup_build_effect(Strip *strip, StripLookup *lookup)
 }
 
 static void strip_lookup_build_from_seqbase(Strip *parent_meta,
-                                            const ListBase *seqbase,
+                                            const ListBaseT<Strip> *seqbase,
                                             StripLookup *lookup)
 {
   if (parent_meta != nullptr) {
-    LISTBASE_FOREACH (SeqTimelineChannel *, channel, &parent_meta->channels) {
-      lookup->owner_by_channel.add(channel, parent_meta);
+    for (SeqTimelineChannel &channel : parent_meta->channels) {
+      lookup->owner_by_channel.add(&channel, parent_meta);
     }
   }
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    lookup->strip_by_name.add(strip->name + 2, strip);
-    lookup->meta_by_strip.add(strip, parent_meta);
-    strip_lookup_build_effect(strip, lookup);
-    strip_by_scene_lookup_build(strip, lookup);
-    strip_by_compositor_node_group_lookup_build(strip, lookup);
+  for (Strip &strip : *seqbase) {
+    lookup->strip_by_name.add(strip.name + 2, &strip);
+    lookup->meta_by_strip.add(&strip, parent_meta);
+    strip_lookup_build_effect(&strip, lookup);
+    strip_by_scene_lookup_build(&strip, lookup);
+    strip_by_compositor_node_group_lookup_build(&strip, lookup);
 
-    if (strip->type == STRIP_TYPE_META) {
-      strip_lookup_build_from_seqbase(strip, &strip->seqbase, lookup);
+    if (strip.type == STRIP_TYPE_META) {
+      strip_lookup_build_from_seqbase(&strip, &strip.seqbase, lookup);
     }
   }
 }

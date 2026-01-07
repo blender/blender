@@ -42,7 +42,7 @@ class Fluids : Overlay {
   void begin_sync(Resources &res, const State &state) final
   {
     /* Against design. Should not sync depending on view. */
-    float3 camera_direction = blender::draw::View::default_get().viewinv().z_axis();
+    float3 camera_direction = draw::View::default_get().viewinv().z_axis();
     dominant_axis = math::dominant_axis(camera_direction);
 
     {
@@ -95,7 +95,7 @@ class Fluids : Overlay {
       return;
     }
 
-    FluidModifierData *fmd = (FluidModifierData *)md;
+    FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
     FluidDomainSettings *fds = fmd->domain;
 
     if (fds == nullptr) {

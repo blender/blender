@@ -15,7 +15,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tex_gradient_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_gradient_cc {
 
 static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
 {
@@ -28,12 +30,12 @@ static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tex_gradient(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "gradient_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "gradient_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_tex_gradient(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexGradient *tex = MEM_callocN<NodeTexGradient>(__func__);
+  NodeTexGradient *tex = MEM_new_for_free<NodeTexGradient>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->gradient_type = SHD_BLEND_LINEAR;
@@ -50,7 +52,7 @@ static int node_shader_gpu_tex_gradient(GPUMaterial *mat,
   node_shader_gpu_default_tex_coord(mat, node, &in[0].link);
   node_shader_gpu_tex_mapping(mat, node, in, out);
 
-  NodeTexGradient *tex = (NodeTexGradient *)node->storage;
+  NodeTexGradient *tex = static_cast<NodeTexGradient *>(node->storage);
   float gradient_type = tex->gradient_type;
   return GPU_stack_link(mat, node, "node_tex_gradient", in, out, GPU_constant(&gradient_type));
 }
@@ -85,19 +87,19 @@ class GradientFunction : public mf::MultiFunction {
 
     switch (gradient_type_) {
       case SHD_BLEND_LINEAR: {
-        mask.foreach_index(
+        mask.foreach_index_optimized<int64_t>(
             [&](const int64_t i) { fac[i] = math::clamp(vector[i].x, 0.0f, 1.0f); });
         break;
       }
       case SHD_BLEND_QUADRATIC: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           const float r = std::max(vector[i].x, 0.0f);
           fac[i] = math::clamp(r * r, 0.0f, 1.0f);
         });
         break;
       }
       case SHD_BLEND_EASING: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           const float r = std::min(std::max(vector[i].x, 0.0f), 1.0f);
           const float t = r * r;
           fac[i] = (3.0f * t - 2.0f * t * r);
@@ -105,20 +107,20 @@ class GradientFunction : public mf::MultiFunction {
         break;
       }
       case SHD_BLEND_DIAGONAL: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           fac[i] = (vector[i].x + vector[i].y) * 0.5f;
           fac[i] = math::clamp(fac[i], 0.0f, 1.0f);
         });
         break;
       }
       case SHD_BLEND_RADIAL: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           fac[i] = atan2f(vector[i].y, vector[i].x) / (M_PI * 2.0f) + 0.5f;
         });
         break;
       }
       case SHD_BLEND_QUADRATIC_SPHERE: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           /* Bias a little bit for the case where input is a unit length vector,
            * to get exactly zero instead of a small random value depending
            * on float precision. */
@@ -128,7 +130,7 @@ class GradientFunction : public mf::MultiFunction {
         break;
       }
       case SHD_BLEND_SPHERICAL: {
-        mask.foreach_index([&](const int64_t i) {
+        mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
           /* Bias a little bit for the case where input is a unit length vector,
            * to get exactly zero instead of a small random value depending
            * on float precision. */
@@ -138,7 +140,7 @@ class GradientFunction : public mf::MultiFunction {
       }
     }
     if (compute_color) {
-      mask.foreach_index(
+      mask.foreach_index_optimized<int64_t>(
           [&](const int64_t i) { r_color[i] = ColorGeometry4f(fac[i], fac[i], fac[i], 1.0f); });
     }
   }
@@ -147,7 +149,7 @@ class GradientFunction : public mf::MultiFunction {
 static void sh_node_gradient_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
-  NodeTexGradient *tex = (NodeTexGradient *)node.storage;
+  NodeTexGradient *tex = static_cast<NodeTexGradient *>(node.storage);
   builder.construct_and_set_matching_fn<GradientFunction>(tex->gradient_type);
 }
 
@@ -195,13 +197,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tex_gradient_cc
+}  // namespace nodes::node_shader_tex_gradient_cc
 
 void register_node_type_sh_tex_gradient()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_gradient_cc;
+  namespace file_ns = nodes::node_shader_tex_gradient_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeTexGradient", SH_NODE_TEX_GRADIENT);
   ntype.ui_name = "Gradient Texture";
@@ -212,11 +214,13 @@ void register_node_type_sh_tex_gradient()
   ntype.declare = file_ns::sh_node_tex_gradient_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_gradient;
   ntype.initfunc = file_ns::node_shader_init_tex_gradient;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexGradient", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_gradient;
   ntype.build_multi_function = file_ns::sh_node_gradient_tex_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

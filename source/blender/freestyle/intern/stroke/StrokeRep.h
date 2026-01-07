@@ -16,7 +16,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h"  // for MAX_MTEX
+
+namespace blender {
 struct bNodeTree;
+struct MTex;
+}  // namespace blender
 
 namespace Freestyle {
 
@@ -162,9 +166,9 @@ class StrokeRep {
   Stroke::MediumType _strokeType;
   uint _textureId;
   float _textureStep;
-  MTex *_mtex[MAX_MTEX];
-  bNodeTree *_nodeTree;
-  Material *_material;
+  blender::MTex *_mtex[MAX_MTEX];
+  blender::bNodeTree *_nodeTree;
+  blender::Material *_material;
   bool _hasTex;
 
   // float _averageTextureAlpha;
@@ -192,17 +196,17 @@ class StrokeRep {
     return _textureId;
   }
 
-  inline MTex *getMTex(int idx) const
+  inline blender::MTex *getMTex(int idx) const
   {
     return _mtex[idx];
   }
 
-  inline Material *getMaterial() const
+  inline blender::Material *getMaterial() const
   {
     return _material;
   }
 
-  inline bNodeTree *getNodeTree() const
+  inline blender::bNodeTree *getNodeTree() const
   {
     return _nodeTree;
   }
@@ -238,12 +242,12 @@ class StrokeRep {
     _textureId = textureId;
   }
 
-  inline void setMaterial(Material *mat)
+  inline void setMaterial(blender::Material *mat)
   {
     _material = mat;
   }
 #if 0
-  inline void setMTex(int idx, MTex *mtex_ptr)
+  inline void setMTex(int idx, blender::MTex *mtex_ptr)
   {
     _mtex[idx] = mtex_ptr;
   }

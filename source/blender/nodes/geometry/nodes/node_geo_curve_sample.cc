@@ -75,13 +75,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
-  layout.prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.prop(ptr, "use_all_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveSample *data = MEM_callocN<NodeGeometryCurveSample>(__func__);
+  NodeGeometryCurveSample *data = MEM_new_for_free<NodeGeometryCurveSample>(__func__);
   data->mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
   data->use_all_curves = false;
   data->data_type = CD_PROP_FLOAT;
@@ -117,7 +117,7 @@ static void sample_indices_and_lengths(const Span<float> accumulated_lengths,
   const float total_length = accumulated_lengths.last();
   length_parameterize::SampleSegmentHint hint;
 
-  mask.foreach_index_optimized<int>([&](const int i) {
+  mask.foreach_index([&](const int i) {
     const float sample_length = length_mode == GEO_NODE_CURVE_SAMPLE_FACTOR ?
                                     sample_lengths[i] * total_length :
                                     sample_lengths[i];
@@ -149,7 +149,7 @@ static void sample_indices_and_factors_to_compressed(const Span<float> accumulat
 
   switch (length_mode) {
     case GEO_NODE_CURVE_SAMPLE_FACTOR:
-      mask.foreach_index_optimized<int>([&](const int i, const int pos) {
+      mask.foreach_index([&](const int i, const int pos) {
         const float length = sample_lengths[i] * total_length;
         length_parameterize::sample_at_length(accumulated_lengths,
                                               std::clamp(length, 0.0f, total_length),
@@ -159,7 +159,7 @@ static void sample_indices_and_factors_to_compressed(const Span<float> accumulat
       });
       break;
     case GEO_NODE_CURVE_SAMPLE_LENGTH:
-      mask.foreach_index_optimized<int>([&](const int i, const int pos) {
+      mask.foreach_index([&](const int i, const int pos) {
         const float length = sample_lengths[i];
         length_parameterize::sample_at_length(accumulated_lengths,
                                               std::clamp(length, 0.0f, total_length),
@@ -564,7 +564,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSampleCurve", GEO_NODE_SAMPLE_CURVE);
   ntype.ui_name = "Sample Curve";
@@ -575,11 +575,11 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveSample", node_free_standard_storage, node_copy_standard_storage);
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -18,8 +18,10 @@
 #include <string>
 #include <tuple>
 
+namespace blender {
+
 /* Ensure the UUID struct doesn't have any padding, to be compatible with memcmp(). */
-static_assert(sizeof(bUUID) == 16, "expect UUIDs to be 128 bit exactly");
+static_assert(sizeof(UUID) == 16, "expect UUIDs to be 128 bit exactly");
 
 bUUID BLI_uuid_generate_random()
 {
@@ -136,11 +138,9 @@ std::ostream &operator<<(std::ostream &stream, bUUID uuid)
   return stream;
 }
 
-namespace blender {
-
-bUUID::bUUID(const std::initializer_list<uint32_t> field_values)
+UUID::UUID(const std::initializer_list<uint32_t> field_values)
 {
-  BLI_assert_msg(field_values.size() == 11, "bUUID requires 5 regular fields + 6 `node` values");
+  BLI_assert_msg(field_values.size() == 11, "UUID requires 5 regular fields + 6 `node` values");
 
   const auto *field_iter = field_values.begin();
 
@@ -153,7 +153,7 @@ bUUID::bUUID(const std::initializer_list<uint32_t> field_values)
   std::copy(field_iter, field_values.end(), this->node);
 }
 
-bUUID::bUUID(const StringRefNull string_formatted_uuid)
+UUID::UUID(const StringRefNull string_formatted_uuid)
 {
   const bool parsed_ok = BLI_uuid_parse_string(this, string_formatted_uuid.c_str());
   if (!parsed_ok) {
@@ -163,36 +163,36 @@ bUUID::bUUID(const StringRefNull string_formatted_uuid)
   }
 }
 
-bUUID::bUUID(const ::bUUID &struct_uuid)
+UUID::UUID(const bUUID &struct_uuid)
 {
-  *(static_cast<::bUUID *>(this)) = struct_uuid;
+  *(static_cast<bUUID *>(this)) = struct_uuid;
 }
 
-std::string bUUID::str() const
+std::string UUID::str() const
 {
   std::string string(36, '\0');
   BLI_uuid_format(string.data(), *this);
   return string;
 }
 
-uint64_t bUUID::hash() const
+uint64_t UUID::hash() const
 {
   /* Convert the struct into two 64-bit numbers, and XOR them to get the hash. */
   const uint64_t *uuid_as_int64 = reinterpret_cast<const uint64_t *>(this);
   return uuid_as_int64[0] ^ uuid_as_int64[1];
 }
 
-bool operator==(const bUUID uuid1, const bUUID uuid2)
+bool operator==(const UUID uuid1, const UUID uuid2)
 {
   return BLI_uuid_equal(uuid1, uuid2);
 }
 
-bool operator!=(const bUUID uuid1, const bUUID uuid2)
+bool operator!=(const UUID uuid1, const UUID uuid2)
 {
   return !(uuid1 == uuid2);
 }
 
-bool operator<(const bUUID uuid1, const bUUID uuid2)
+bool operator<(const UUID uuid1, const UUID uuid2)
 {
   auto simple_fields1 = std::tie(uuid1.time_low,
                                  uuid1.time_mid,

@@ -10,6 +10,8 @@
 
 #include "ikplugin_api.h"
 
+namespace blender {
+
 void iksolver_initialize_tree(struct Depsgraph *depsgraph,
                               struct Scene *scene,
                               struct Object *ob,
@@ -21,3 +23,5 @@ void iksolver_execute_tree(struct Depsgraph *depsgraph,
                            float ctime);
 void iksolver_release_tree(struct Scene *scene, struct Object *ob, float ctime);
 void iksolver_clear_data(struct bPose *pose);
+
+}  // namespace blender

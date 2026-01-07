@@ -14,7 +14,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -35,18 +34,17 @@
 
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  CollisionModifierData *collmd = (CollisionModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(collmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(collmd, DNA_struct_default_get(CollisionModifierData), modifier);
+  CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(collmd, modifier);
 }
 
 static void free_data(ModifierData *md)
 {
-  CollisionModifierData *collmd = (CollisionModifierData *)md;
+  CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(md);
 
   if (collmd) { /* Seriously? */
     if (collmd->bvhtree) {
@@ -77,9 +75,9 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
-  CollisionModifierData *collmd = (CollisionModifierData *)md;
+  CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(md);
   Object *ob = ctx->object;
 
   /* If collision is disabled, free the stale data and exit. */
@@ -108,24 +106,24 @@ static void deform_verts(ModifierData *md,
     mvert_num = mesh->verts_num;
 
     if (current_time < collmd->time_xnew) {
-      free_data((ModifierData *)collmd);
+      free_data(reinterpret_cast<ModifierData *>(collmd));
     }
     else if (current_time == collmd->time_xnew) {
       if (mvert_num != collmd->mvert_num) {
-        free_data((ModifierData *)collmd);
+        free_data(reinterpret_cast<ModifierData *>(collmd));
       }
     }
 
     /* check if mesh has changed */
     if (collmd->x && (mvert_num != collmd->mvert_num)) {
-      free_data((ModifierData *)collmd);
+      free_data(reinterpret_cast<ModifierData *>(collmd));
     }
 
     if (collmd->time_xnew == -1000) { /* first time */
 
       mvert_num = mesh->verts_num;
       collmd->x = MEM_malloc_arrayN<float[3]>(size_t(mvert_num), __func__);
-      blender::MutableSpan(reinterpret_cast<blender::float3 *>(collmd->x), mvert_num)
+      MutableSpan(reinterpret_cast<float3 *>(collmd->x), mvert_num)
           .copy_from(mesh->vert_positions());
 
       for (uint i = 0; i < mvert_num; i++) {
@@ -142,22 +140,21 @@ static void deform_verts(ModifierData *md,
       collmd->mvert_num = mvert_num;
 
       {
-        const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
+        const Span<int3> corner_tris = mesh->corner_tris();
         collmd->tri_num = corner_tris.size();
         int (*vert_tris)[3] = MEM_malloc_arrayN<int[3]>(collmd->tri_num, __func__);
-        blender::bke::mesh::vert_tris_from_corner_tris(
+        bke::mesh::vert_tris_from_corner_tris(
             mesh->corner_verts(),
             corner_tris,
-            {reinterpret_cast<blender::int3 *>(vert_tris), collmd->tri_num});
+            {reinterpret_cast<int3 *>(vert_tris), collmd->tri_num});
         collmd->vert_tris = vert_tris;
       }
 
       /* create bounding box hierarchy */
-      collmd->bvhtree = bvhtree_build_from_mvert(
-          collmd->x,
-          reinterpret_cast<blender::int3 *>(collmd->vert_tris),
-          collmd->tri_num,
-          ob->pd->pdef_sboft);
+      collmd->bvhtree = bvhtree_build_from_mvert(collmd->x,
+                                                 reinterpret_cast<int3 *>(collmd->vert_tris),
+                                                 collmd->tri_num,
+                                                 ob->pd->pdef_sboft);
 
       collmd->time_x = collmd->time_xnew = current_time;
       collmd->is_static = true;
@@ -190,7 +187,7 @@ static void deform_verts(ModifierData *md,
           BLI_bvhtree_free(collmd->bvhtree);
           collmd->bvhtree = bvhtree_build_from_mvert(
               collmd->current_x,
-              reinterpret_cast<const blender::int3 *>(collmd->vert_tris),
+              reinterpret_cast<const int3 *>(collmd->vert_tris),
               collmd->tri_num,
               ob->pd->pdef_sboft);
         }
@@ -200,7 +197,7 @@ static void deform_verts(ModifierData *md,
       if (!collmd->bvhtree) {
         collmd->bvhtree = bvhtree_build_from_mvert(
             collmd->current_x,
-            reinterpret_cast<const blender::int3 *>(collmd->vert_tris),
+            reinterpret_cast<const int3 *>(collmd->vert_tris),
             collmd->tri_num,
             ob->pd->pdef_sboft);
       }
@@ -209,7 +206,7 @@ static void deform_verts(ModifierData *md,
         bvhtree_update_from_mvert(collmd->bvhtree,
                                   collmd->current_x,
                                   collmd->current_xnew,
-                                  reinterpret_cast<const blender::int3 *>(collmd->vert_tris),
+                                  reinterpret_cast<const int3 *>(collmd->vert_tris),
                                   collmd->tri_num,
                                   true);
       }
@@ -218,7 +215,7 @@ static void deform_verts(ModifierData *md,
       collmd->time_xnew = current_time;
     }
     else if (mvert_num != collmd->mvert_num) {
-      free_data((ModifierData *)collmd);
+      free_data(reinterpret_cast<ModifierData *>(collmd));
     }
   }
 }
@@ -230,7 +227,7 @@ static void update_depsgraph(ModifierData * /*md*/, const ModifierUpdateDepsgrap
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -246,7 +243,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
-  CollisionModifierData *collmd = (CollisionModifierData *)md;
+  CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(md);
 #if 0
   /* TODO: #CollisionModifier should use point-cache
    * + have proper reset events before enabling this. */
@@ -307,3 +304,5 @@ ModifierTypeInfo modifierType_Collision = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

@@ -36,7 +36,7 @@ TEST(cryptomatte, extract_layer_name)
 
 TEST(cryptomatte, layer)
 {
-  blender::bke::cryptomatte::CryptomatteLayer layer;
+  bke::cryptomatte::CryptomatteLayer layer;
   ASSERT_EQ("{}", layer.manifest());
 
   layer.add_hash("Object", 123);
@@ -48,7 +48,7 @@ TEST(cryptomatte, layer)
 
 TEST(cryptomatte, layer_quoted)
 {
-  blender::bke::cryptomatte::CryptomatteLayer layer;
+  bke::cryptomatte::CryptomatteLayer layer;
   layer.add_hash("\"Object\"", 123);
   ASSERT_EQ("{\"\\\"Object\\\"\":\"0000007b\"}", layer.manifest());
 }
@@ -56,7 +56,7 @@ TEST(cryptomatte, layer_quoted)
 static void test_cryptomatte_manifest(std::string expected, std::string manifest)
 {
   EXPECT_EQ(expected,
-            blender::bke::cryptomatte::CryptomatteLayer::read_from_manifest(manifest)->manifest());
+            bke::cryptomatte::CryptomatteLayer::read_from_manifest(manifest)->manifest());
 }
 
 TEST(cryptomatte, layer_from_manifest)
@@ -76,18 +76,17 @@ TEST(cryptomatte, layer_from_manifest)
 TEST(cryptomatte, extract_layer_hash_from_metadata_key)
 {
   EXPECT_EQ("eb4c67b",
-            blender::bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_hash(
+            bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_hash(
                 "cryptomatte/eb4c67b/conversion"));
   EXPECT_EQ("qwerty",
-            blender::bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_hash(
+            bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_hash(
                 "cryptomatte/qwerty/name"));
   /* Check if undefined behaviors are handled. */
-  EXPECT_EQ("",
-            blender::bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_hash(
-                "cryptomatte/name"));
-  EXPECT_EQ("",
-            blender::bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_hash(
-                "cryptomatte/"));
+  EXPECT_EQ(
+      "",
+      bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_hash("cryptomatte/name"));
+  EXPECT_EQ(
+      "", bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_hash("cryptomatte/"));
 }
 
 static void validate_cryptomatte_session_from_stamp_data(void * /*data*/,
@@ -95,7 +94,7 @@ static void validate_cryptomatte_session_from_stamp_data(void * /*data*/,
                                                          char *propvalue,
                                                          int /*propvalue_maxncpy*/)
 {
-  blender::StringRefNull prop_name(propname);
+  StringRefNull prop_name(propname);
   if (!prop_name.startswith("cryptomatte/")) {
     return;
   }
@@ -134,7 +133,7 @@ static void validate_cryptomatte_session_from_stamp_data(void * /*data*/,
 TEST(cryptomatte, session_from_stamp_data)
 {
   /* Create CryptomatteSession from stamp data. */
-  RenderResult *render_result = MEM_callocN<RenderResult>(__func__);
+  RenderResult *render_result = MEM_new_for_free<RenderResult>(__func__);
   BKE_render_result_stamp_data(render_result, "cryptomatte/qwerty/name", "layer1");
   BKE_render_result_stamp_data(
       render_result, "cryptomatte/qwerty/manifest", R"({"Object":"12345678"})");
@@ -146,7 +145,7 @@ TEST(cryptomatte, session_from_stamp_data)
   RE_FreeRenderResult(render_result);
 
   /* Create StampData from CryptomatteSession. */
-  RenderResult *render_result2 = MEM_callocN<RenderResult>(__func__);
+  RenderResult *render_result2 = MEM_new_for_free<RenderResult>(__func__);
   BKE_cryptomatte_store_metadata(session.get(), render_result2);
 
   /* Validate StampData. */

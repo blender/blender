@@ -177,7 +177,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
                                                     const float2 &brush_pos_re,
                                                     const float brush_radius_re)
 {
-  const Curves &curves_id = *static_cast<Curves *>(curves_object.data);
+  const Curves &curves_id = *id_cast<Curves *>(curves_object.data);
   const CurvesGeometry &curves = curves_id.geometry.wrap();
   Object *surface_object = curves_id.surface;
   Object *surface_object_eval = DEG_get_evaluated(&depsgraph, surface_object);
@@ -398,13 +398,14 @@ void move_last_point_and_resample(MoveAndResampleBuffers &buffer,
   positions.last() = new_last_position;
 }
 
-CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
+CurvesSculptCommonContext::CurvesSculptCommonContext(const PaintStroke &stroke)
 {
-  this->depsgraph = CTX_data_depsgraph_pointer(&C);
-  this->scene = CTX_data_scene(&C);
-  this->region = CTX_wm_region(&C);
-  this->v3d = CTX_wm_view3d(&C);
-  this->rv3d = CTX_wm_region_view3d(&C);
+  this->depsgraph = stroke.vc.depsgraph;
+  this->scene = stroke.vc.scene;
+  this->region = stroke.vc.region;
+  this->v3d = stroke.vc.v3d;
+  this->rv3d = stroke.vc.rv3d;
+  this->object = stroke.object;
 }
 
 void report_empty_original_surface(ReportList *reports)

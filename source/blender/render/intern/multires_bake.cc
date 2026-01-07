@@ -103,7 +103,9 @@
 
 #include "RE_texture_margin.h"
 
-namespace blender::render {
+namespace blender {
+
+namespace render {
 namespace {
 
 namespace subdiv = bke::subdiv;
@@ -1057,7 +1059,7 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
                                      const int /*num_edges*/,
                                      const int num_corners,
                                      const int /*num_faces*/,
-                                     const int * /*subdiv_face_offset*/) -> bool {
+                                     const Span<int> /*subdiv_face_offset*/) -> bool {
     SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
         context->user_data);
     data->corner_grid_coords.reinitialize(num_corners);
@@ -1313,7 +1315,7 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
                                      const int /*num_edges*/,
                                      const int num_corners,
                                      const int /*num_faces*/,
-                                     const int * /*subdiv_face_offset*/) -> bool {
+                                     const Span<int> /*subdiv_face_offset*/) -> bool {
     HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
         context->user_data);
     data->corner_grid_coords.reinitialize(num_corners);
@@ -1487,10 +1489,10 @@ static void bake_images(MultiresBakeRender &bake,
                         MultiresBakeResult &result)
 {
   for (Image *image : bake.images) {
-    LISTBASE_FOREACH (ImageTile *, image_tile, &image->tiles) {
+    for (ImageTile &image_tile : image->tiles) {
       ImageUser iuser;
       BKE_imageuser_default(&iuser);
-      iuser.tile = image_tile->tile_number;
+      iuser.tile = image_tile.tile_number;
 
       ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
       if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
@@ -1499,14 +1501,14 @@ static void bake_images(MultiresBakeRender &bake,
         BakedImBuf &baked_ibuf = result.baked_ibufs.last();
         baked_ibuf.image = image;
         baked_ibuf.ibuf = ibuf;
-        baked_ibuf.uv_offset = get_tile_uv(*image, *image_tile);
+        baked_ibuf.uv_offset = get_tile_uv(*image, image_tile);
 
         ExtraBuffers &extra_buffers = baked_ibuf.extra_buffers;
         extra_buffers.mask_buffer.reinitialize(int64_t(ibuf->y) * ibuf->x);
         extra_buffers.mask_buffer.fill(FILTER_MASK_NULL);
 
         bake_single_image(
-            bake, bake_level_mesh, subdiv_ccg, *image, *image_tile, *ibuf, extra_buffers, result);
+            bake, bake_level_mesh, subdiv_ccg, *image, image_tile, *ibuf, extra_buffers, result);
       }
     }
   }
@@ -1698,7 +1700,7 @@ static Mesh *create_bake_level_mesh(const Mesh &base_mesh,
 /** \} */
 
 }  // namespace
-}  // namespace blender::render
+}  // namespace render
 
 void RE_multires_bake_images(MultiresBakeRender &bake)
 {
@@ -1726,3 +1728,5 @@ void RE_multires_bake_images(MultiresBakeRender &bake)
     BKE_id_free(nullptr, bake_level_mesh);
   }
 }
+
+}  // namespace blender

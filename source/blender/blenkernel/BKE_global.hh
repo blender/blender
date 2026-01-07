@@ -13,7 +13,10 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Main;
+struct RecentFile;
 
 /**
  * Global data, typically accessed from #G.
@@ -53,7 +56,7 @@ struct Global {
    * Strings of recently opened files to show in the file menu.
    * A list of #RecentFile read from #BLENDER_HISTORY_FILE.
    */
-  ListBase recent_files;
+  ListBaseT<RecentFile> recent_files;
 
   /**
    * Set when Escape been pressed or `Ctrl-C` pressed in background mode.
@@ -100,8 +103,6 @@ struct Global {
    *   *    666: Use quicker batch delete for outliners' delete hierarchy (01/2019).
    *   *    777: Enable UI node panel's sockets polling (11/2011).
    *   *    799: Enable some mysterious new depsgraph behavior (05/2015).
-   *   *    887: Enable tablet pressure statusbar text for paint modals (08/2025).
-   *   *    889: Enable PBVH visualization in Solid / XRay rendering mode (09/2019)
    *   *   1112: Disable new Cloth internal springs handling (09/2014).
    *   *   1234: Disable new dyntopo code fixing skinny faces generation (04/2015).
    *   *   3001: Enable additional Fluid modifier (Mantaflow) options (02/2020).
@@ -370,3 +371,5 @@ extern Global G;
  * helps with cleanup task.
  */
 #define G_MAIN (G).main
+
+}  // namespace blender

@@ -38,6 +38,8 @@
 
 #include "BKE_deform.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Lattice Deform API
  * \{ */
@@ -221,7 +223,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
           /* We need to address special case for last item to avoid accessing invalid memory. */
           __m128 lattice_vec;
           if (idx * 3 == idx_w_max) {
-            copy_v3_v3((float *)&lattice_vec, &latticedata[idx * 3]);
+            copy_v3_v3(reinterpret_cast<float *>(&lattice_vec), &latticedata[idx * 3]);
           }
           else {
             /* When not on last item, we can safely access one extra float, it will be ignored
@@ -241,7 +243,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
   }
 #if BLI_HAVE_SSE2
   {
-    copy_v3_v3(co, (float *)&co_vec);
+    copy_v3_v3(co, reinterpret_cast<float *>(&co_vec));
   }
 #endif
 
@@ -313,7 +315,7 @@ static void lattice_vert_task_editmesh(void *__restrict userdata,
                                        const TaskParallelTLS *__restrict /*tls*/)
 {
   const LatticeDeformUserdata *data = static_cast<const LatticeDeformUserdata *>(userdata);
-  BMVert *v = (BMVert *)iter;
+  BMVert *v = reinterpret_cast<BMVert *>(iter);
   MDeformVert *dvert = static_cast<MDeformVert *>(
       BM_ELEM_CD_GET_VOID_P(v, data->bmesh.cd_dvert_offset));
   lattice_deform_vert_with_dvert(data, BM_elem_index_get(v), dvert);
@@ -324,7 +326,7 @@ static void lattice_vert_task_editmesh_no_dvert(void *__restrict userdata,
                                                 const TaskParallelTLS *__restrict /*tls*/)
 {
   const LatticeDeformUserdata *data = static_cast<const LatticeDeformUserdata *>(userdata);
-  BMVert *v = (BMVert *)iter;
+  BMVert *v = reinterpret_cast<BMVert *>(iter);
   lattice_deform_vert_with_dvert(data, BM_elem_index_get(v), nullptr);
 }
 
@@ -353,7 +355,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
    * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
    */
   if (defgrp_name && defgrp_name[0] && ob_target && ELEM(ob_target->type, OB_MESH, OB_LATTICE)) {
-    defgrp_index = BKE_id_defgroup_name_index(me_target ? &me_target->id : (ID *)ob_target->data,
+    defgrp_index = BKE_id_defgroup_name_index(me_target ? &me_target->id : ob_target->data,
                                               defgrp_name);
 
     if (defgrp_index != -1) {
@@ -365,10 +367,10 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
         dvert = me_target->deform_verts().data();
       }
       else if (ob_target->type == OB_LATTICE) {
-        dvert = ((Lattice *)ob_target->data)->dvert;
+        dvert = (id_cast<Lattice *>(ob_target->data))->dvert;
       }
       else {
-        dvert = ((Mesh *)ob_target->data)->deform_verts().data();
+        dvert = (id_cast<Mesh *>(ob_target->data))->deform_verts().data();
       }
     }
   }
@@ -469,3 +471,5 @@ void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
 }
 
 /** \} */
+
+}  // namespace blender

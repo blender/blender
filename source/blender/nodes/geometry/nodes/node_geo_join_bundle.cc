@@ -43,13 +43,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!output_bundle) {
     output_bundle = Bundle::create();
   }
-  else if (!output_bundle->is_mutable()) {
-    output_bundle = output_bundle->copy();
-  }
-  else {
-    output_bundle->tag_ensured_mutable();
-  }
-  Bundle &mutable_output_bundle = const_cast<Bundle &>(*output_bundle);
+  Bundle &mutable_output_bundle = output_bundle.ensure_mutable_inplace();
 
   VectorSet<StringRef> overridden_keys;
   for (; bundle_i < bundles.values.size(); bundle_i++) {
@@ -75,14 +69,14 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "NodeJoinBundle");
   ntype.ui_name = "Join Bundle";
   ntype.ui_description = "Join multiple bundles together";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -68,7 +68,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   };
 
   struct PointsTouchedByBrush {
-    blender::KDTree_2d *kdtree;
+    KDTree_2d *kdtree;
     Array<float> weights;
   };
 
@@ -126,7 +126,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
     using namespace blender::ed::greasepencil;
 
     this->object = CTX_data_active_object(&C);
-    this->grease_pencil = static_cast<GreasePencil *>(this->object->data);
+    this->grease_pencil = id_cast<GreasePencil *>(this->object->data);
     Paint *paint = BKE_paint_get_active_from_context(&C);
     Brush *brush = BKE_paint_brush(paint);
 
@@ -150,10 +150,10 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   {
     int object_defgroup_nr = BKE_object_defgroup_active_index_get(this->object) - 1;
     if (object_defgroup_nr == -1) {
-      const ListBase *defbase = BKE_object_defgroup_list(this->object);
+      const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(this->object);
       if (const Object *modob = BKE_modifiers_is_deformed_by_armature(this->object)) {
         /* This happens on a Bone select, when no vgroup existed yet. */
-        const Bone *actbone = static_cast<bArmature *>(modob->data)->act_bone;
+        const Bone *actbone = id_cast<bArmature *>(modob->data)->act_bone;
         if (actbone) {
           const bPoseChannel *pchan = BKE_pose_channel_find_name(modob->pose, actbone->name);
 
@@ -184,10 +184,10 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   /* Get locked and bone-deformed vertex groups in GP object. */
   void get_locked_and_bone_deformed_vertex_groups()
   {
-    const ListBase *defgroups = BKE_object_defgroup_list(this->object);
-    LISTBASE_FOREACH (bDeformGroup *, dg, defgroups) {
-      if ((dg->flag & DG_LOCK_WEIGHT) != 0) {
-        this->object_locked_defgroups.add(dg->name);
+    const ListBaseT<bDeformGroup> &defgroups = *BKE_object_defgroup_list(this->object);
+    for (const bDeformGroup &dg : defgroups) {
+      if ((dg.flag & DG_LOCK_WEIGHT) != 0) {
+        this->object_locked_defgroups.add(dg.name);
       }
     }
     this->object_bone_deformed_defgroups = ed::greasepencil::get_bone_deformed_vertex_group_names(
@@ -227,11 +227,11 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
         /* Create boolean arrays indicating whether a vertex group is locked/bone deformed
          * or not. */
         if (this->auto_normalize) {
-          LISTBASE_FOREACH (bDeformGroup *, dg, &curves.vertex_group_names) {
+          for (const bDeformGroup &dg : curves.vertex_group_names) {
             drawing_weight_data.locked_vgroups.append(
-                this->object_locked_defgroups.contains(dg->name));
+                this->object_locked_defgroups.contains(dg.name));
             drawing_weight_data.bone_deformed_vgroups.append(
-                this->object_bone_deformed_defgroups.contains(dg->name));
+                this->object_bone_deformed_defgroups.contains(dg.name));
           }
         }
 
@@ -258,9 +258,8 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
         IndexMaskMemory memory;
         const IndexMask editable_points = ed::greasepencil::retrieve_editable_points(
             *this->object, drawing_info.drawing, drawing_info.layer_index, memory);
-        editable_points.foreach_index(GrainSize(1024), [&](const int64_t index) {
-          drawing_weight_data.point_is_read_only[index] = false;
-        });
+        index_mask::masked_fill(
+            drawing_weight_data.point_is_read_only.as_mutable_span(), false, editable_points);
 
         /* Initialize the flag for stroke points being touched by the brush. */
         drawing_weight_data.points_touched_by_brush_num = 0;
@@ -334,20 +333,20 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
     }
 
     /* Create KDTree of stroke points touched by the brush. */
-    blender::KDTree_2d *touched_points = blender::BLI_kdtree_2d_new(point_num);
+    KDTree_2d *touched_points = kdtree_2d_new(point_num);
     Array<float> touched_points_weights(point_num);
     int kdtree_index = 0;
     for (const DrawingWeightData &drawing_weight : drawing_weights) {
       for (const int point_index : drawing_weight.point_positions.index_range()) {
         if (drawing_weight.points_touched_by_brush[point_index]) {
-          blender::BLI_kdtree_2d_insert(
+          kdtree_2d_insert(
               touched_points, kdtree_index, drawing_weight.point_positions[point_index]);
           touched_points_weights[kdtree_index] = drawing_weight.deform_weights[point_index];
           kdtree_index++;
         }
       }
     }
-    blender::BLI_kdtree_2d_balance(touched_points);
+    kdtree_2d_balance(touched_points);
 
     return {touched_points, touched_points_weights};
   }

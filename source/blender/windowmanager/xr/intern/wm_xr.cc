@@ -30,6 +30,8 @@
 
 #include "wm_xr_intern.hh"
 
+namespace blender {
+
 struct wmXrErrorHandlerData {
   wmWindowManager *wm;
 };
@@ -65,7 +67,7 @@ bool wm_xr_init(wmWindowManager *wm)
   GHOST_XrErrorHandler(wm_xr_error_handler, &error_customdata);
 
   {
-    blender::Vector<GHOST_TXrGraphicsBinding> gpu_bindings_candidates;
+    Vector<GHOST_TXrGraphicsBinding> gpu_bindings_candidates;
     switch (GPU_backend_get_type()) {
 #ifdef WITH_OPENGL_BACKEND
       case GPU_BACKEND_OPENGL:
@@ -191,7 +193,7 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
       wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
       wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, (*runtime));
 
-      WM_event_remove_handlers_by_area(&win->handlers, (*runtime)->area);
+      WM_event_remove_handlers_by_area(&win->runtime->handlers, (*runtime)->area);
       ED_area_offscreen_free(wm, win, (*runtime)->area);
       (*runtime)->area = nullptr;
     }
@@ -204,3 +206,5 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
 }
 
 /** \} */ /* XR Runtime Data. */
+
+}  // namespace blender

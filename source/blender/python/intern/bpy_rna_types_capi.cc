@@ -9,7 +9,7 @@
  *
  * We should avoid adding code here, and prefer:
  * - `source/blender/makesrna/intern/rna_context.cc` using the RNA C API.
- * - `scripts/modules/_bpy_types.py` when additions c an be written in Python.
+ * - `scripts/modules/_bpy_types.py` when additions can be written in Python.
  *
  * Otherwise functions can be added here as a last resort.
  */
@@ -38,6 +38,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "WM_api.hh"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Blend Data
@@ -181,11 +183,11 @@ PyDoc_STRVAR(
 
 static PyMethodDef pyrna_windowmanager_methods[] = {
     {"draw_cursor_add",
-     (PyCFunction)pyrna_callback_classmethod_add,
+     static_cast<PyCFunction>(pyrna_callback_classmethod_add),
      METH_VARARGS | METH_CLASS,
      pyrna_draw_cursor_add_doc},
     {"draw_cursor_remove",
-     (PyCFunction)pyrna_callback_classmethod_remove,
+     static_cast<PyCFunction>(pyrna_callback_classmethod_remove),
      METH_VARARGS | METH_CLASS,
      pyrna_draw_cursor_remove_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -255,11 +257,11 @@ PyDoc_STRVAR(
 
 static PyMethodDef pyrna_space_methods[] = {
     {"draw_handler_add",
-     (PyCFunction)pyrna_callback_classmethod_add,
+     static_cast<PyCFunction>(pyrna_callback_classmethod_add),
      METH_VARARGS | METH_CLASS,
      pyrna_draw_handler_add_doc},
     {"draw_handler_remove",
-     (PyCFunction)pyrna_callback_classmethod_remove,
+     static_cast<PyCFunction>(pyrna_callback_classmethod_remove),
      METH_VARARGS | METH_CLASS,
      pyrna_draw_handler_remove_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -292,7 +294,7 @@ void BPY_rna_types_extend_capi()
   pyrna_struct_type_extend_capi(
       &RNA_BlendDataLibraries, pyrna_blenddatalibraries_methods, nullptr);
 
-  /* blender::ui::Layout */
+  /* ui::Layout */
   ARRAY_SET_ITEMS(pyrna_uilayout_methods, BPY_rna_uilayout_introspect_method_def);
   BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_uilayout_methods) == 2, "Unexpected number of methods")
   pyrna_struct_type_extend_capi(&RNA_UILayout, pyrna_uilayout_methods, nullptr);
@@ -324,3 +326,5 @@ void BPY_rna_types_extend_capi()
 }
 
 /** \} */
+
+}  // namespace blender

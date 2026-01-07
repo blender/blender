@@ -23,10 +23,11 @@
 
 #include "BLF_api.hh"
 
+namespace blender {
+
 void BKE_image_buf_fill_color(
     uchar *rect_byte, float *rect_float, int width, int height, const float color[4])
 {
-  using namespace blender;
   threading::parallel_for(
       IndexRange(int64_t(width) * height), 64 * 1024, [&](const IndexRange i_range) {
         if (rect_float != nullptr) {
@@ -150,7 +151,6 @@ static void image_buf_fill_checker_slice(
 
 void BKE_image_buf_fill_checker(uchar *rect, float *rect_float, int width, int height)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
     int64_t offset = y_range.first() * width * 4;
     uchar *dst_byte = (rect != nullptr) ? (rect + offset) : nullptr;
@@ -371,7 +371,6 @@ static void checker_board_color_prepare_slice(
 
 void BKE_image_buf_fill_checker_color(uchar *rect, float *rect_float, int width, int height)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
     int64_t offset = y_range.first() * width * 4;
     uchar *dst_byte = (rect != nullptr) ? (rect + offset) : nullptr;
@@ -399,3 +398,5 @@ void BKE_image_buf_fill_checker_color(uchar *rect, float *rect_float, int width,
                                          width);
   }
 }
+
+}  // namespace blender

@@ -87,21 +87,21 @@ TEST(lib_id_main_sort, linked_ids_1)
   ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
 
   change_lib(ctx.bmain, id_a, lib_a);
-  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_a, nullptr);
   change_lib(ctx.bmain, id_b, lib_a);
-  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_b, nullptr);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_b);
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
 
   change_lib(ctx.bmain, id_a, lib_b);
-  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_a, nullptr);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_a);
   test_lib_id_main_sort_check_order({id_c, id_b, id_a});
 
   change_lib(ctx.bmain, id_b, lib_b);
-  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_b, nullptr);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_b);
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
@@ -289,9 +289,9 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   EXPECT_TRUE(BKE_main_namemap_validate(*ctx.bmain));
 
   change_lib(ctx.bmain, id_a, lib_a);
-  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_a, nullptr);
   change_lib(ctx.bmain, id_b, lib_a);
-  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_b, nullptr);
 
   change_name(ctx.bmain, id_b, "OB_A", IDNewNameMode::RenameExistingNever);
   EXPECT_STREQ(id_b->name + 2, "OB_A.001");
@@ -303,7 +303,7 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   EXPECT_TRUE(BKE_main_namemap_validate(*ctx.bmain));
 
   change_lib(ctx.bmain, id_b, lib_b);
-  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_b, nullptr);
   change_name(ctx.bmain, id_b, "OB_A", IDNewNameMode::RenameExistingNever);
   EXPECT_STREQ(id_b->name + 2, "OB_A");
   EXPECT_STREQ(id_a->name + 2, "OB_A");
@@ -323,7 +323,7 @@ static void change_name_global(Main *bmain, ID *id, const char *name)
 
   BKE_main_global_namemap_get_unique_name(*bmain, *id, id->name + 2);
 
-  id_sort_by_name(&bmain->objects, id, nullptr);
+  id_sort_by_name(&bmain->objects.cast<ID>(), id, nullptr);
 }
 
 TEST(lib_id_main_global_unique_name, linked_ids_1)
@@ -340,9 +340,9 @@ TEST(lib_id_main_global_unique_name, linked_ids_1)
   EXPECT_TRUE(BKE_main_namemap_validate(*ctx.bmain));
 
   change_lib(ctx.bmain, id_a, lib_a);
-  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_a, nullptr);
   change_lib(ctx.bmain, id_b, lib_b);
-  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_b, nullptr);
 
   change_name_global(ctx.bmain, id_b, "OB_A");
   EXPECT_NE(ctx.bmain->name_map_global, nullptr);
@@ -355,7 +355,7 @@ TEST(lib_id_main_global_unique_name, linked_ids_1)
   EXPECT_TRUE(BKE_main_namemap_validate(*ctx.bmain));
 
   change_lib(ctx.bmain, id_b, lib_a);
-  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  id_sort_by_name(&ctx.bmain->objects.cast<ID>(), id_b, nullptr);
   change_name_global(ctx.bmain, id_b, "OB_C");
   EXPECT_STREQ(id_b->name + 2, "OB_C.001");
   EXPECT_STREQ(id_a->name + 2, "OB_A");
@@ -400,7 +400,7 @@ static ID *add_id_in_library(Main *bmain, const char *name, Library *lib)
 {
   ID *id = static_cast<ID *>(BKE_id_new(bmain, ID_OB, name));
   change_lib(bmain, id, lib);
-  id_sort_by_name(&bmain->objects, id, nullptr);
+  id_sort_by_name(&bmain->objects.cast<ID>(), id, nullptr);
   return id;
 }
 

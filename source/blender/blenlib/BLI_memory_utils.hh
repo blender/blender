@@ -379,9 +379,7 @@ template<typename T> inline bool assign_if_different(T &old_value, T new_value)
   return false;
 }
 
-}  // namespace blender
-
-namespace blender::detail {
+namespace blenlib_detail {
 
 template<typename Func> struct ScopedDeferHelper {
   Func func;
@@ -392,7 +390,7 @@ template<typename Func> struct ScopedDeferHelper {
   }
 };
 
-}  // namespace blender::detail
+}  // namespace blenlib_detail
 
 #define BLI_SCOPED_DEFER_NAME1(a, b) a##b
 #define BLI_SCOPED_DEFER_NAME2(a, b) BLI_SCOPED_DEFER_NAME1(a, b)
@@ -406,5 +404,7 @@ template<typename Func> struct ScopedDeferHelper {
  */
 #define BLI_SCOPED_DEFER(function_to_defer) \
   auto BLI_SCOPED_DEFER_NAME(func) = (function_to_defer); \
-  blender::detail::ScopedDeferHelper<decltype(BLI_SCOPED_DEFER_NAME(func))> \
-      BLI_SCOPED_DEFER_NAME(helper){std::move(BLI_SCOPED_DEFER_NAME(func))};
+  blenlib_detail::ScopedDeferHelper<decltype(BLI_SCOPED_DEFER_NAME(func))> BLI_SCOPED_DEFER_NAME( \
+      helper){std::move(BLI_SCOPED_DEFER_NAME(func))};
+
+}  // namespace blender

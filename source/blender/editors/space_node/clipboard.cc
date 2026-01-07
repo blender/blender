@@ -29,7 +29,9 @@
 
 #include "node_intern.hh"
 
-namespace blender::ed::space_node {
+namespace blender {
+
+namespace ed::space_node {
 
 struct NodeClipboardItemIDInfo {
   /** Name of the referenced ID. */
@@ -126,7 +128,7 @@ struct NodeClipboard {
       {
         libraries_path_to_id.add(
             id_info.library_path,
-            blender::bke::library::search_filepath_abs(&bmain.libraries, id_info.library_path));
+            bke::library::search_filepath_abs(&bmain.libraries, id_info.library_path));
       }
     }
 
@@ -351,18 +353,18 @@ static wmOperatorStatus node_clipboard_copy_exec(bContext *C, wmOperator * /*op*
   }
 
   /* Copy links between selected nodes. */
-  LISTBASE_FOREACH (bNodeLink *, link, &tree.links) {
-    BLI_assert(link->tonode);
-    BLI_assert(link->fromnode);
-    if (link->tonode->flag & NODE_SELECT && link->fromnode->flag & NODE_SELECT) {
+  for (bNodeLink &link : tree.links) {
+    BLI_assert(link.tonode);
+    BLI_assert(link.fromnode);
+    if (link.tonode->flag & NODE_SELECT && link.fromnode->flag & NODE_SELECT) {
       clipboard.links.append({});
       ClipboardLink &new_link = clipboard.links.last();
-      new_link.flag = link->flag;
-      new_link.to_node = node_map.lookup(link->tonode);
-      new_link.from_node = node_map.lookup(link->fromnode);
-      new_link.to_socket = link->tosock->identifier;
-      new_link.from_socket = link->fromsock->identifier;
-      new_link.multi_input_sort_id = link->multi_input_sort_id;
+      new_link.flag = link.flag;
+      new_link.to_node = node_map.lookup(link.tonode);
+      new_link.from_node = node_map.lookup(link.fromnode);
+      new_link.to_socket = link.tosock->identifier;
+      new_link.from_socket = link.fromsock->identifier;
+      new_link.multi_input_sort_id = link.multi_input_sort_id;
     }
   }
 
@@ -434,11 +436,11 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
     /* Update the newly copied node's ID references. */
     clipboard.paste_update_node_id_references(*new_node);
     /* Reset socket shape in case a node is copied to a different tree type. */
-    LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->inputs) {
-      socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+    for (bNodeSocket &socket : new_node->inputs) {
+      socket.display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
     }
-    LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->outputs) {
-      socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+    for (bNodeSocket &socket : new_node->outputs) {
+      socket.display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
     }
 
     if (!new_node->typeinfo->poll_instance ||
@@ -547,7 +549,7 @@ static wmOperatorStatus node_clipboard_paste_invoke(bContext *C,
 {
   const ARegion *region = CTX_wm_region(C);
   float2 cursor;
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
   RNA_float_set_array(op->ptr, "offset", cursor);
   return node_clipboard_paste_exec(C, op);
 }
@@ -581,7 +583,7 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::space_node
+}  // namespace ed::space_node
 
 void ED_node_clipboard_free()
 {
@@ -589,3 +591,5 @@ void ED_node_clipboard_free()
   NodeClipboard &clipboard = get_node_clipboard();
   clipboard.clear();
 }
+
+}  // namespace blender

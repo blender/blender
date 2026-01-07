@@ -133,8 +133,8 @@ tObject *gpencil_object_cache_add(Instance *inst,
 
 static int gpencil_tobject_dist_sort(const void *a, const void *b)
 {
-  const tObject *ob_a = (const tObject *)a;
-  const tObject *ob_b = (const tObject *)b;
+  const tObject *ob_a = static_cast<const tObject *>(a);
+  const tObject *ob_b = static_cast<const tObject *>(b);
   /* Reminder, camera_z is negative in front of the camera. */
   if (ob_a->camera_z > ob_b->camera_z) {
     return 1;
@@ -235,8 +235,8 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const Instance *inst,
       color_prev = float3(grease_pencil.onion_skinning_settings.color_before);
     }
     else {
-      UI_GetThemeColor3fv(TH_FRAME_AFTER, color_next);
-      UI_GetThemeColor3fv(TH_FRAME_BEFORE, color_prev);
+      ui::theme::get_color_3fv(TH_FRAME_AFTER, color_next);
+      ui::theme::get_color_3fv(TH_FRAME_BEFORE, color_prev);
     }
 
     const float4 onion_col_custom = use_next_col ? float4(color_next, 1.0f) :
@@ -353,11 +353,11 @@ tLayer *grease_pencil_layer_cache_add(Instance *inst,
         BLI_memblock_alloc(inst->gp_maskbit_pool));
     BLI_bitmap_set_all(tgp_layer->mask_bits, false, GP_MAX_MASKBITS);
 
-    LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &layer.masks) {
-      if (mask->flag & GP_LAYER_MASK_HIDE) {
+    for (GreasePencilLayerMask &mask : layer.masks) {
+      if (mask.flag & GP_LAYER_MASK_HIDE) {
         continue;
       }
-      const TreeNode *node = grease_pencil.find_node_by_name(mask->layer_name);
+      const TreeNode *node = grease_pencil.find_node_by_name(mask.layer_name);
       if (node == nullptr) {
         continue;
       }
@@ -367,7 +367,7 @@ tLayer *grease_pencil_layer_cache_add(Instance *inst,
       }
       const int index = *grease_pencil.get_layer_index(mask_layer);
       if (index < GP_MAX_MASKBITS) {
-        const bool invert = (mask->flag & GP_LAYER_MASK_INVERT) != 0;
+        const bool invert = (mask.flag & GP_LAYER_MASK_INVERT) != 0;
         BLI_BITMAP_SET(tgp_layer->mask_bits, index, true);
         BLI_BITMAP_SET(tgp_layer->mask_invert_bits, index, invert);
         valid_mask = true;

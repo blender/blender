@@ -12,7 +12,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -35,18 +34,17 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  SurfaceModifierData *surmd = (SurfaceModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(surmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(surmd, DNA_struct_default_get(SurfaceModifierData), modifier);
+  SurfaceModifierData *surmd = reinterpret_cast<SurfaceModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(surmd, modifier);
 }
 
 static void copy_data(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
-  SurfaceModifierData *surmd_dst = (SurfaceModifierData *)md_dst;
+  SurfaceModifierData *surmd_dst = reinterpret_cast<SurfaceModifierData *>(md_dst);
 
   BKE_modifier_copydata_generic(md_src, md_dst, flag);
 
@@ -55,7 +53,7 @@ static void copy_data(const ModifierData *md_src, ModifierData *md_dst, const in
 
 static void free_data(ModifierData *md)
 {
-  SurfaceModifierData *surmd = (SurfaceModifierData *)md;
+  SurfaceModifierData *surmd = reinterpret_cast<SurfaceModifierData *>(md);
 
   if (surmd) {
     MEM_SAFE_DELETE(surmd->runtime.bvhtree);
@@ -79,9 +77,9 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
-  SurfaceModifierData *surmd = (SurfaceModifierData *)md;
+  SurfaceModifierData *surmd = reinterpret_cast<SurfaceModifierData *>(md);
   const int cfra = int(DEG_get_ctime(ctx->depsgraph));
 
   /* Free mesh and BVH cache. */
@@ -126,8 +124,7 @@ static void deform_verts(ModifierData *md,
     }
 
     /* convert to global coordinates and calculate velocity */
-    blender::MutableSpan<blender::float3> positions =
-        surmd->runtime.mesh->vert_positions_for_write();
+    MutableSpan<float3> positions = surmd->runtime.mesh->vert_positions_for_write();
     for (i = 0; i < mesh_verts_num; i++) {
       float *vec = positions[i];
       mul_m4_v3(ctx->object->object_to_world().ptr(), vec);
@@ -147,19 +144,19 @@ static void deform_verts(ModifierData *md,
     const bool has_face = surmd->runtime.mesh->faces_num > 0;
     const bool has_edge = surmd->runtime.mesh->edges_num > 0;
     if (has_face) {
-      surmd->runtime.bvhtree = MEM_new<blender::bke::BVHTreeFromMesh>(
+      surmd->runtime.bvhtree = MEM_new<bke::BVHTreeFromMesh>(
           __func__, surmd->runtime.mesh->bvh_corner_tris());
     }
     else if (has_edge) {
-      surmd->runtime.bvhtree = MEM_new<blender::bke::BVHTreeFromMesh>(
-          __func__, surmd->runtime.mesh->bvh_edges());
+      surmd->runtime.bvhtree = MEM_new<bke::BVHTreeFromMesh>(__func__,
+                                                             surmd->runtime.mesh->bvh_edges());
     }
   }
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -175,7 +172,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
-  SurfaceModifierData *surmd = (SurfaceModifierData *)md;
+  SurfaceModifierData *surmd = reinterpret_cast<SurfaceModifierData *>(md);
 
   surmd->runtime = SurfaceModifierData_Runtime{};
 }
@@ -216,3 +213,5 @@ ModifierTypeInfo modifierType_Surface = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

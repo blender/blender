@@ -68,7 +68,7 @@ static void WIDGETGROUP_xform_shear_setup(const bContext * /*C*/, wmGizmoGroup *
 
   float axis_color[3][3];
   for (int i = 0; i < 3; i++) {
-    UI_GetThemeColor3fv(TH_AXIS_X + i, axis_color[i]);
+    ui::theme::get_color_3fv(TH_AXIS_X + i, axis_color[i]);
   }
 
   for (int i = 0; i < 3; i++) {
@@ -227,19 +227,19 @@ static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup
 
   /* Basic ordering for drawing only. */
   {
-    LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
+    for (wmGizmo &gz : gzgroup->gizmos) {
       /* Since we have two pairs of each axis,
        * bias the values so gizmos that are orthogonal to the view get priority.
        * This means we never default to shearing along
        * the view axis in the case of an overlap. */
       float axis_order[3], axis_bias[3];
-      copy_v3_v3(axis_order, gz->matrix_basis[2]);
-      copy_v3_v3(axis_bias, gz->matrix_basis[1]);
+      copy_v3_v3(axis_order, gz.matrix_basis[2]);
+      copy_v3_v3(axis_bias, gz.matrix_basis[1]);
       if (dot_v3v3(axis_bias, rv3d->viewinv[2]) < 0.0f) {
         negate_v3(axis_bias);
       }
       madd_v3_v3fl(axis_order, axis_bias, 0.01f);
-      gz->temp.f = dot_v3v3(rv3d->viewinv[2], axis_order);
+      gz.temp.f = dot_v3v3(rv3d->viewinv[2], axis_order);
     }
     BLI_listbase_sort(&gzgroup->gizmos, WM_gizmo_cmp_temp_fl_reverse);
   }

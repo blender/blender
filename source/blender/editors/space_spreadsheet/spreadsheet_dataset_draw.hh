@@ -4,11 +4,14 @@
 
 #pragma once
 
+namespace blender {
+
 struct Panel;
 struct bContext;
 
-namespace blender::ed::spreadsheet {
+namespace ed::spreadsheet {
 
 void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel);
 
-}  // namespace blender::ed::spreadsheet
+}  // namespace ed::spreadsheet
+}  // namespace blender

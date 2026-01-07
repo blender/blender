@@ -13,6 +13,7 @@
 #endif
 
 namespace blender {
+
 fstream::fstream(const char *filepath, std::ios_base::openmode mode)
 {
   this->open(filepath, mode);

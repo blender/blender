@@ -21,6 +21,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
+#include "DNA_layer_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_appdir.hh"
@@ -40,6 +41,8 @@
 
 #include "render_result.h"
 #include "render_types.h"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Free
@@ -104,7 +107,7 @@ void render_result_free(RenderResult *rr)
   MEM_freeN(rr);
 }
 
-void render_result_free_list(ListBase *lb, RenderResult *rr)
+void render_result_free_list(ListBaseT<RenderResult> *lb, RenderResult *rr)
 {
   RenderResult *rrnext;
 
@@ -121,9 +124,9 @@ void render_result_free_list(ListBase *lb, RenderResult *rr)
 
 void render_result_free_gpu_texture_caches(RenderResult *rr)
 {
-  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
-    LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
-      IMB_free_gpu_textures(rpass->ibuf);
+  for (RenderLayer &rl : rr->layers) {
+    for (RenderPass &rpass : rl.passes) {
+      IMB_free_gpu_textures(rpass.ibuf);
     }
   }
 }
@@ -140,15 +143,15 @@ void render_result_views_shallowcopy(RenderResult *dst, RenderResult *src)
     return;
   }
 
-  LISTBASE_FOREACH (RenderView *, rview, &src->views) {
+  for (RenderView &rview : src->views) {
     RenderView *rv;
 
-    rv = MEM_callocN<RenderView>("new render view");
+    rv = MEM_new_for_free<RenderView>("new render view");
     BLI_addtail(&dst->views, rv);
 
-    STRNCPY_UTF8(rv->name, rview->name);
+    STRNCPY_UTF8(rv->name, rview.name);
 
-    rv->ibuf = rview->ibuf;
+    rv->ibuf = rview.ibuf;
   }
 }
 
@@ -236,7 +239,7 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
                                   const bool allocate)
 {
   const int view_id = BLI_findstringindex(&rr->views, viewname, offsetof(RenderView, name));
-  RenderPass *rpass = MEM_callocN<RenderPass>(name);
+  RenderPass *rpass = MEM_new_for_free<RenderPass>(name);
 
   rpass->channels = channels;
   rpass->rectx = rl->rectx;
@@ -278,7 +281,7 @@ RenderResult *render_result_new(Render *re,
     return nullptr;
   }
 
-  rr = MEM_callocN<RenderResult>("new render result");
+  rr = MEM_new_for_free<RenderResult>("new render result");
   rr->rectx = rectx;
   rr->recty = recty;
 
@@ -302,7 +305,7 @@ RenderResult *render_result_new(Render *re,
       }
     }
 
-    rl = MEM_callocN<RenderLayer>("new render layer");
+    rl = MEM_new_for_free<RenderLayer>("new render layer");
     BLI_addtail(&rr->layers, rl);
 
     STRNCPY_UTF8(rl->name, view_layer->name);
@@ -313,8 +316,8 @@ RenderResult *render_result_new(Render *re,
     rl->rectx = rectx;
     rl->recty = recty;
 
-    LISTBASE_FOREACH (RenderView *, rv, &rr->views) {
-      const char *view = rv->name;
+    for (RenderView &rv : rr->views) {
+      const char *view = rv.name;
 
       if (viewname && viewname[0]) {
         if (!STREQ(view, viewname)) {
@@ -330,14 +333,14 @@ RenderResult *render_result_new(Render *re,
 
   /* Preview-render doesn't do layers, so we make a default one. */
   if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {
-    rl = MEM_callocN<RenderLayer>("new render layer");
+    rl = MEM_new_for_free<RenderLayer>("new render layer");
     BLI_addtail(&rr->layers, rl);
 
     rl->rectx = rectx;
     rl->recty = recty;
 
-    LISTBASE_FOREACH (RenderView *, rv, &rr->views) {
-      const char *view = rv->name;
+    for (RenderView &rv : rr->views) {
+      const char *view = rv.name;
 
       if (viewname && viewname[0]) {
         if (!STREQ(view, viewname)) {
@@ -367,9 +370,9 @@ void render_result_passes_allocated_ensure(RenderResult *rr)
     return;
   }
 
-  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
-    LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
-      render_layer_allocate_pass(rr, rp);
+  for (RenderLayer &rl : rr->layers) {
+    for (RenderPass &rp : rl.passes) {
+      render_layer_allocate_pass(rr, &rp);
     }
   }
 
@@ -378,23 +381,23 @@ void render_result_passes_allocated_ensure(RenderResult *rr)
 
 void render_result_clone_passes(Render *re, RenderResult *rr, const char *viewname)
 {
-  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
-    RenderLayer *main_rl = RE_GetRenderLayer(re->result, rl->name);
+  for (RenderLayer &rl : rr->layers) {
+    RenderLayer *main_rl = RE_GetRenderLayer(re->result, rl.name);
     if (!main_rl) {
       continue;
     }
 
-    LISTBASE_FOREACH (RenderPass *, main_rp, &main_rl->passes) {
-      if (viewname && viewname[0] && !STREQ(main_rp->view, viewname)) {
+    for (RenderPass &main_rp : main_rl->passes) {
+      if (viewname && viewname[0] && !STREQ(main_rp.view, viewname)) {
         continue;
       }
 
       /* Compare `fullname` to make sure that the view also is equal. */
       const RenderPass *rp = static_cast<const RenderPass *>(
-          BLI_findstring(&rl->passes, main_rp->fullname, offsetof(RenderPass, fullname)));
+          BLI_findstring(&rl.passes, main_rp.fullname, offsetof(RenderPass, fullname)));
       if (!rp) {
         render_layer_add_pass(
-            rr, rl, main_rp->channels, main_rp->name, main_rp->view, main_rp->chan_id, false);
+            rr, &rl, main_rp.channels, main_rp.name, main_rp.view, main_rp.chan_id, false);
       }
     }
   }
@@ -408,13 +411,13 @@ void RE_create_render_pass(RenderResult *rr,
                            const char *viewname,
                            const bool allocate)
 {
-  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
-    if (layername && layername[0] && !STREQ(rl->name, layername)) {
+  for (RenderLayer &rl : rr->layers) {
+    if (layername && layername[0] && !STREQ(rl.name, layername)) {
       continue;
     }
 
-    LISTBASE_FOREACH (RenderView *, rv, &rr->views) {
-      const char *view = rv->name;
+    for (RenderView &rv : rr->views) {
+      const char *view = rv.name;
 
       if (viewname && viewname[0] && !STREQ(view, viewname)) {
         continue;
@@ -422,15 +425,15 @@ void RE_create_render_pass(RenderResult *rr,
 
       /* Ensure that the pass doesn't exist yet. */
       bool pass_exists = false;
-      LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
-        if (STREQ(rp->name, name) && STREQ(rp->view, view)) {
+      for (RenderPass &rp : rl.passes) {
+        if (STREQ(rp.name, name) && STREQ(rp.view, view)) {
           pass_exists = true;
           break;
         }
       }
 
       if (!pass_exists) {
-        render_layer_add_pass(rr, rl, channels, name, view, chan_id, allocate);
+        render_layer_add_pass(rr, &rl, channels, name, view, chan_id, allocate);
       }
     }
   }
@@ -443,7 +446,7 @@ void RE_pass_set_buffer_data(RenderPass *pass, float *data)
   IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
 }
 
-blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
+gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
 {
   ImBuf *ibuf = rpass->ibuf;
 
@@ -462,11 +465,11 @@ blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *
     return nullptr;
   }
 
-  const blender::gpu::TextureFormat format = (rpass->channels == 1) ?
-                                                 blender::gpu::TextureFormat::SFLOAT_32 :
-                                             (rpass->channels == 3) ?
-                                                 blender::gpu::TextureFormat::SFLOAT_32_32_32 :
-                                                 blender::gpu::TextureFormat::SFLOAT_32_32_32_32;
+  const gpu::TextureFormat format = (rpass->channels == 1) ?
+                                        gpu::TextureFormat::SFLOAT_32 :
+                                    (rpass->channels == 3) ?
+                                        gpu::TextureFormat::SFLOAT_32_32_32 :
+                                        gpu::TextureFormat::SFLOAT_32_32_32_32;
 
   /* TODO(sergey): Use utility to assign the texture. */
   ibuf->gpu.texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
@@ -561,7 +564,7 @@ static void *ml_addlayer_cb(void *base, const char *str)
 {
   RenderResult *rr = static_cast<RenderResult *>(base);
 
-  RenderLayer *rl = MEM_callocN<RenderLayer>("new render layer");
+  RenderLayer *rl = MEM_new_for_free<RenderLayer>("new render layer");
   BLI_addtail(&rr->layers, rl);
 
   BLI_strncpy(rl->name, str, EXR_LAY_MAXNAME);
@@ -578,7 +581,7 @@ static void ml_addpass_cb(void *base,
 {
   RenderResult *rr = static_cast<RenderResult *>(base);
   RenderLayer *rl = static_cast<RenderLayer *>(lay);
-  RenderPass *rpass = MEM_callocN<RenderPass>("loaded pass");
+  RenderPass *rpass = MEM_new_for_free<RenderPass>("loaded pass");
 
   BLI_addtail(&rl->passes, rpass);
   rpass->rectx = rr->rectx;
@@ -607,7 +610,7 @@ static void *ml_addview_cb(void *base, const char *str)
 {
   RenderResult *rr = static_cast<RenderResult *>(base);
 
-  RenderView *rv = MEM_callocN<RenderView>("new render view");
+  RenderView *rv = MEM_new_for_free<RenderView>("new render view");
   STRNCPY_UTF8(rv->name, str);
 
   /* For stereo drawing we need to ensure:
@@ -638,8 +641,8 @@ static void *ml_addview_cb(void *base, const char *str)
 static int order_render_passes(const void *a, const void *b)
 {
   /* 1 if `a` is after `b`. */
-  const RenderPass *rpa = (const RenderPass *)a;
-  const RenderPass *rpb = (const RenderPass *)b;
+  const RenderPass *rpa = static_cast<const RenderPass *>(a);
+  const RenderPass *rpb = static_cast<const RenderPass *>(b);
   uint passtype_a = passtype_from_name(rpa->name);
   uint passtype_b = passtype_from_name(rpb->name);
 
@@ -693,7 +696,7 @@ static int order_render_passes(const void *a, const void *b)
 RenderResult *render_result_new_from_exr(
     ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {
-  RenderResult *rr = MEM_callocN<RenderResult>(__func__);
+  RenderResult *rr = MEM_new_for_free<RenderResult>(__func__);
   const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
       COLOR_ROLE_SCENE_LINEAR);
   const char *data_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA);
@@ -710,33 +713,33 @@ RenderResult *render_result_new_from_exr(
 
   IMB_exr_multilayer_convert(exrhandle, rr, ml_addview_cb, ml_addlayer_cb, ml_addpass_cb);
 
-  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
-    rl->rectx = rectx;
-    rl->recty = recty;
+  for (RenderLayer &rl : rr->layers) {
+    rl.rectx = rectx;
+    rl.recty = recty;
 
-    BLI_listbase_sort(&rl->passes, order_render_passes);
+    BLI_listbase_sort(&rl.passes, order_render_passes);
 
-    LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
-      rpass->rectx = rectx;
-      rpass->recty = recty;
+    for (RenderPass &rpass : rl.passes) {
+      rpass.rectx = rectx;
+      rpass.recty = recty;
 
-      copy_v2_v2_db(rpass->ibuf->ppm, rr->ppm);
-      rpass->ibuf->flags |= IB_has_display_window;
-      copy_v2_v2_int(rpass->ibuf->display_size, display_size);
-      copy_v2_v2_int(rpass->ibuf->display_offset, display_offset);
-      copy_v2_v2_int(rpass->ibuf->data_offset, data_offset);
+      copy_v2_v2_db(rpass.ibuf->ppm, rr->ppm);
+      rpass.ibuf->flags |= IB_has_display_window;
+      copy_v2_v2_int(rpass.ibuf->display_size, display_size);
+      copy_v2_v2_int(rpass.ibuf->display_offset, display_offset);
+      copy_v2_v2_int(rpass.ibuf->data_offset, data_offset);
 
-      if (RE_RenderPassIsColor(rpass)) {
-        IMB_colormanagement_transform_float(rpass->ibuf->float_buffer.data,
-                                            rpass->rectx,
-                                            rpass->recty,
-                                            rpass->channels,
+      if (RE_RenderPassIsColor(&rpass)) {
+        IMB_colormanagement_transform_float(rpass.ibuf->float_buffer.data,
+                                            rpass.rectx,
+                                            rpass.recty,
+                                            rpass.channels,
                                             colorspace,
                                             to_colorspace,
                                             predivide);
       }
       else {
-        IMB_colormanagement_assign_float_colorspace(rpass->ibuf, data_colorspace);
+        IMB_colormanagement_assign_float_colorspace(rpass.ibuf, data_colorspace);
       }
     }
   }
@@ -746,7 +749,7 @@ RenderResult *render_result_new_from_exr(
 
 void render_result_view_new(RenderResult *rr, const char *viewname)
 {
-  RenderView *rv = MEM_callocN<RenderView>("new render view");
+  RenderView *rv = MEM_new_for_free<RenderView>("new render view");
   BLI_addtail(&rr->views, rv);
   STRNCPY_UTF8(rv->name, viewname);
 }
@@ -758,11 +761,11 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
 
   /* check renderdata for amount of views */
   if (rd->scemode & R_MULTIVIEW) {
-    LISTBASE_FOREACH (SceneRenderView *, srv, &rd->views) {
-      if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
+    for (SceneRenderView &srv : rd->views) {
+      if (BKE_scene_multiview_is_render_view_active(rd, &srv) == false) {
         continue;
       }
-      render_result_view_new(rr, srv->name);
+      render_result_view_new(rr, srv.name);
     }
   }
 
@@ -803,12 +806,12 @@ static void do_merge_tile(
 
 void render_result_merge(RenderResult *rr, RenderResult *rrpart)
 {
-  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
-    RenderLayer *rlp = RE_GetRenderLayer(rrpart, rl->name);
+  for (RenderLayer &rl : rr->layers) {
+    RenderLayer *rlp = RE_GetRenderLayer(rrpart, rl.name);
 
     if (rlp) {
       /* Passes are allocated in sync. */
-      for (RenderPass *rpass = static_cast<RenderPass *>(rl->passes.first),
+      for (RenderPass *rpass = static_cast<RenderPass *>(rl.passes.first),
                       *rpassp = static_cast<RenderPass *>(rlp->passes.first);
            rpass && rpassp;
            rpass = rpass->next)
@@ -877,12 +880,12 @@ void render_result_single_layer_end(Render *re)
     BLI_remlink(&re->result->layers, rl);
 
     /* reconstruct render result layers */
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->scene->view_layers) {
-      if (STREQ(view_layer->name, re->single_view_layer)) {
+    for (ViewLayer &view_layer : re->scene->view_layers) {
+      if (STREQ(view_layer.name, re->single_view_layer)) {
         BLI_addtail(&re->result->layers, rl);
       }
       else {
-        RenderLayer *rlpush = RE_GetRenderLayer(re->pushedresult, view_layer->name);
+        RenderLayer *rlpush = RE_GetRenderLayer(re->pushedresult, view_layer.name);
         if (rlpush) {
           BLI_remlink(&re->pushedresult->layers, rlpush);
           BLI_addtail(&re->result->layers, rlpush);
@@ -908,7 +911,7 @@ bool render_result_exr_file_read_path(RenderResult *rr,
     return false;
   }
 
-  ListBase layers = (rr) ? rr->layers : ListBase{rl_single, rl_single};
+  ListBaseT<RenderLayer> layers = (rr) ? rr->layers : ListBaseT<RenderLayer>{rl_single, rl_single};
   const int expected_rectx = (rr) ? rr->rectx : rl_single->rectx;
   const int expected_recty = (rr) ? rr->recty : rl_single->recty;
   bool found_channels = false;
@@ -923,14 +926,14 @@ bool render_result_exr_file_read_path(RenderResult *rr,
     return true;
   }
 
-  LISTBASE_FOREACH (RenderLayer *, rl, &layers) {
-    if (rl_single && rl_single != rl) {
+  for (RenderLayer &rl : layers) {
+    if (rl_single && rl_single != &rl) {
       continue;
     }
 
     /* passes are allocated in sync */
-    LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
-      const int xstride = rpass->channels;
+    for (RenderPass &rpass : rl.passes) {
+      const int xstride = rpass.channels;
       const int ystride = xstride * rectx;
       int a;
       char fullname[EXR_PASS_MAXNAME];
@@ -938,18 +941,18 @@ bool render_result_exr_file_read_path(RenderResult *rr,
       for (a = 0; a < xstride; a++) {
         /* First try with layer included. */
         RE_render_result_full_channel_name(
-            fullname, rl->name, rpass->name, rpass->view, rpass->chan_id, a);
+            fullname, rl.name, rpass.name, rpass.view, rpass.chan_id, a);
         if (IMB_exr_set_channel(
-                exrhandle, fullname, xstride, ystride, rpass->ibuf->float_buffer.data + a))
+                exrhandle, fullname, xstride, ystride, rpass.ibuf->float_buffer.data + a))
         {
           found_channels = true;
         }
         else if (rl_single) {
           /* Then try without layer name. */
           RE_render_result_full_channel_name(
-              fullname, nullptr, rpass->name, rpass->view, rpass->chan_id, a);
+              fullname, nullptr, rpass.name, rpass.view, rpass.chan_id, a);
           if (IMB_exr_set_channel(
-                  exrhandle, fullname, xstride, ystride, rpass->ibuf->float_buffer.data + a))
+                  exrhandle, fullname, xstride, ystride, rpass.ibuf->float_buffer.data + a))
           {
             found_channels = true;
           }
@@ -957,7 +960,7 @@ bool render_result_exr_file_read_path(RenderResult *rr,
             BKE_reportf(nullptr,
                         RPT_WARNING,
                         "Reading render result: expected channel \"%s.%s\" or \"%s\" not found",
-                        rl->name,
+                        rl.name,
                         fullname,
                         fullname);
           }
@@ -966,13 +969,13 @@ bool render_result_exr_file_read_path(RenderResult *rr,
           BKE_reportf(nullptr,
                       RPT_WARNING,
                       "Reading render result: expected channel \"%s.%s\" not found",
-                      rl->name,
+                      rl.name,
                       fullname);
         }
       }
 
       RE_render_result_full_channel_name(
-          rpass->fullname, nullptr, rpass->name, rpass->view, rpass->chan_id, -1);
+          rpass.fullname, nullptr, rpass.name, rpass.view, rpass.chan_id, -1);
     }
   }
 
@@ -1216,7 +1219,7 @@ void render_result_rect_get_pixels(RenderResult *rr,
       return;
     }
     if (ibuf->float_buffer.data) {
-      IMB_display_buffer_transform_apply((uchar *)rect,
+      IMB_display_buffer_transform_apply(reinterpret_cast<uchar *>(rect),
                                          ibuf->float_buffer.data,
                                          rr->rectx,
                                          rr->recty,
@@ -1254,8 +1257,8 @@ bool RE_HasCombinedLayer(const RenderResult *result)
 
 bool RE_HasFloatPixels(const RenderResult *result)
 {
-  LISTBASE_FOREACH (const RenderView *, rview, &result->views) {
-    ImBuf *ibuf = rview->ibuf;
+  for (const RenderView &rview : result->views) {
+    ImBuf *ibuf = rview.ibuf;
     if (!ibuf) {
       continue;
     }
@@ -1297,7 +1300,7 @@ RenderView *RE_RenderViewGetByName(RenderResult *rr, const char *viewname)
 
 static RenderPass *duplicate_render_pass(RenderPass *rpass)
 {
-  RenderPass *new_rpass = MEM_dupallocN<RenderPass>("new render pass", *rpass);
+  RenderPass *new_rpass = MEM_new_for_free<RenderPass>("new render pass", *rpass);
   new_rpass->next = new_rpass->prev = nullptr;
 
   new_rpass->ibuf = IMB_dupImBuf(rpass->ibuf);
@@ -1307,11 +1310,11 @@ static RenderPass *duplicate_render_pass(RenderPass *rpass)
 
 static RenderLayer *duplicate_render_layer(RenderLayer *rl)
 {
-  RenderLayer *new_rl = MEM_dupallocN<RenderLayer>("new render layer", *rl);
+  RenderLayer *new_rl = MEM_new_for_free<RenderLayer>("new render layer", *rl);
   new_rl->next = new_rl->prev = nullptr;
   new_rl->passes.first = new_rl->passes.last = nullptr;
-  LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
-    RenderPass *new_rpass = duplicate_render_pass(rpass);
+  for (RenderPass &rpass : rl->passes) {
+    RenderPass *new_rpass = duplicate_render_pass(&rpass);
     BLI_addtail(&new_rl->passes, new_rpass);
   }
   return new_rl;
@@ -1319,7 +1322,7 @@ static RenderLayer *duplicate_render_layer(RenderLayer *rl)
 
 static RenderView *duplicate_render_view(RenderView *rview)
 {
-  RenderView *new_rview = MEM_dupallocN<RenderView>("new render view", *rview);
+  RenderView *new_rview = MEM_new_for_free<RenderView>("new render view", *rview);
 
   new_rview->ibuf = IMB_dupImBuf(rview->ibuf);
 
@@ -1328,16 +1331,16 @@ static RenderView *duplicate_render_view(RenderView *rview)
 
 RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
 {
-  RenderResult *new_rr = MEM_dupallocN<RenderResult>("new duplicated render result", *rr);
+  RenderResult *new_rr = MEM_new_for_free<RenderResult>("new duplicated render result", *rr);
   new_rr->next = new_rr->prev = nullptr;
   new_rr->layers.first = new_rr->layers.last = nullptr;
   new_rr->views.first = new_rr->views.last = nullptr;
-  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
-    RenderLayer *new_rl = duplicate_render_layer(rl);
+  for (RenderLayer &rl : rr->layers) {
+    RenderLayer *new_rl = duplicate_render_layer(&rl);
     BLI_addtail(&new_rr->layers, new_rl);
   }
-  LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-    RenderView *new_rview = duplicate_render_view(rview);
+  for (RenderView &rview : rr->views) {
+    RenderView *new_rview = duplicate_render_view(&rview);
     BLI_addtail(&new_rr->views, new_rview);
   }
 
@@ -1377,3 +1380,5 @@ bool RE_RenderPassIsColor(const RenderPass *render_pass)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -8,11 +8,16 @@
  * \ingroup bke
  */
 
+#include "DNA_listBase.h"
+
+namespace blender {
+
 struct AnimationEvalContext;
 struct ChannelDriver;
 struct DriverTarget;
 struct DriverVar;
 struct FCurve;
+struct ListBase;
 struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
@@ -29,16 +34,16 @@ struct ViewLayer;
 /* convenience looper over ALL driver targets for a given variable (even the unused ones) */
 #define DRIVER_TARGETS_LOOPER_BEGIN(dvar) \
   { \
-    DriverTarget *dtar = &dvar->targets[0]; \
+    auto *dtar = &(dvar)->targets[0]; \
     int tarIndex = 0; \
     for (; tarIndex < MAX_DRIVER_TARGETS; tarIndex++, dtar++)
 
 /* convenience looper over USED driver targets only */
 #define DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar) \
   { \
-    DriverTarget *dtar = &dvar->targets[0]; \
+    auto *dtar = &(dvar)->targets[0]; \
     int tarIndex = 0; \
-    for (; tarIndex < dvar->num_targets; tarIndex++, dtar++)
+    for (; tarIndex < (dvar)->num_targets; tarIndex++, dtar++)
 
 /* tidy up for driver targets loopers */
 #define DRIVER_TARGETS_LOOPER_END \
@@ -73,10 +78,10 @@ struct ChannelDriver *fcurve_copy_driver(const struct ChannelDriver *driver);
  *
  * If the target property can not be resolved false is returned.
  */
-typedef struct DriverTargetContext {
+struct DriverTargetContext {
   struct Scene *scene;
   struct ViewLayer *view_layer;
-} DriverTargetContext;
+};
 bool driver_get_target_property(const DriverTargetContext *driver_target_context,
                                 struct DriverVar *dvar,
                                 struct DriverTarget *dtar,
@@ -85,7 +90,7 @@ bool driver_get_target_property(const DriverTargetContext *driver_target_context
 /**
  * Copy driver variables from src_vars list to dst_vars list.
  */
-void driver_variables_copy(struct ListBase *dst_vars, const struct ListBase *src_vars);
+void driver_variables_copy(ListBaseT<DriverVar> *dst_vars, const ListBaseT<DriverVar> *src_vars);
 
 /**
  * Compute channel values for a rotational Transform Channel driver variable.
@@ -96,7 +101,7 @@ void BKE_driver_target_matrix_to_rot_channels(
 /**
  * Perform actual freeing driver variable and remove it from the given list.
  */
-void driver_free_variable(struct ListBase *variables, struct DriverVar *dvar);
+void driver_free_variable(ListBaseT<DriverVar> *variables, struct DriverVar *dvar);
 /**
  * Free the driver variable and do extra updates.
  */
@@ -129,7 +134,7 @@ float driver_get_variable_value(const struct AnimationEvalContext *anim_eval_con
                                 struct ChannelDriver *driver,
                                 struct DriverVar *dvar);
 
-typedef enum eDriverVariablePropertyResult {
+enum eDriverVariablePropertyResult {
   /** The property reference has been successfully resolved and can be accessed. */
   DRIVER_VAR_PROPERTY_SUCCESS,
   /** Evaluation should use the fallback value. */
@@ -141,7 +146,7 @@ typedef enum eDriverVariablePropertyResult {
    * but the array index is out of bounds.
    */
   DRIVER_VAR_PROPERTY_INVALID_INDEX
-} eDriverVariablePropertyResult;
+};
 
 /**
  * Same as 'dtar_get_prop_val'. but get the RNA property.
@@ -183,3 +188,5 @@ float evaluate_driver(struct PathResolvedRNA *anim_rna,
                       struct ChannelDriver *driver,
                       struct ChannelDriver *driver_orig,
                       const struct AnimationEvalContext *anim_eval_context);
+
+}  // namespace blender

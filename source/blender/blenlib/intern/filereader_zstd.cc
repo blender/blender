@@ -15,6 +15,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 struct ZstdReader {
   FileReader reader;
 
@@ -193,7 +195,7 @@ static const char *zstd_ensure_cache(ZstdReader *zstd, int frame)
 
 static int64_t zstd_read_seekable(FileReader *reader, void *buffer, size_t size)
 {
-  ZstdReader *zstd = (ZstdReader *)reader;
+  ZstdReader *zstd = reinterpret_cast<ZstdReader *>(reader);
 
   size_t end_offset = zstd->reader.offset + size, read_len = 0;
   while (zstd->reader.offset < end_offset) {
@@ -213,7 +215,7 @@ static int64_t zstd_read_seekable(FileReader *reader, void *buffer, size_t size)
     size_t frame_read_len = frame_end_offset - zstd->reader.offset;
 
     size_t offset_in_frame = zstd->reader.offset - zstd->seek.uncompressed_ofs[frame];
-    memcpy((char *)buffer + read_len, framedata + offset_in_frame, frame_read_len);
+    memcpy(static_cast<char *>(buffer) + read_len, framedata + offset_in_frame, frame_read_len);
     read_len += frame_read_len;
     zstd->reader.offset = frame_end_offset;
   }
@@ -223,7 +225,7 @@ static int64_t zstd_read_seekable(FileReader *reader, void *buffer, size_t size)
 
 static off64_t zstd_seek(FileReader *reader, off64_t offset, int whence)
 {
-  ZstdReader *zstd = (ZstdReader *)reader;
+  ZstdReader *zstd = reinterpret_cast<ZstdReader *>(reader);
   off64_t new_pos;
   if (whence == SEEK_SET) {
     new_pos = offset;
@@ -244,7 +246,7 @@ static off64_t zstd_seek(FileReader *reader, off64_t offset, int whence)
 
 static int64_t zstd_read(FileReader *reader, void *buffer, size_t size)
 {
-  ZstdReader *zstd = (ZstdReader *)reader;
+  ZstdReader *zstd = reinterpret_cast<ZstdReader *>(reader);
   ZSTD_outBuffer output = {buffer, size, 0};
 
   while (output.pos < output.size) {
@@ -252,7 +254,9 @@ static int64_t zstd_read(FileReader *reader, void *buffer, size_t size)
       /* Ran out of buffered input data, read some more. */
       zstd->in_buf.pos = 0;
       int64_t readsize = zstd->base->read(
-          zstd->base, (char *)zstd->in_buf.src, zstd->in_buf_max_size);
+          zstd->base,
+          static_cast<char *>(const_cast<void *>(zstd->in_buf.src)),
+          zstd->in_buf_max_size);
 
       if (readsize > 0) {
         /* We got some data, so mark the buffer as refilled. */
@@ -275,7 +279,7 @@ static int64_t zstd_read(FileReader *reader, void *buffer, size_t size)
 
 static void zstd_close(FileReader *reader)
 {
-  ZstdReader *zstd = (ZstdReader *)reader;
+  ZstdReader *zstd = reinterpret_cast<ZstdReader *>(reader);
 
   ZSTD_freeDCtx(zstd->ctx);
   if (zstd->reader.seek) {
@@ -321,5 +325,7 @@ FileReader *BLI_filereader_new_zstd(FileReader *base)
   /* Rewind after the seek table check so that zstd_read starts at the file's start. */
   zstd->base->seek(zstd->base, 0, SEEK_SET);
 
-  return (FileReader *)zstd;
+  return reinterpret_cast<FileReader *>(zstd);
 }
+
+}  // namespace blender

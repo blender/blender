@@ -54,7 +54,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void geo_proximity_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryProximity *node_storage = MEM_callocN<NodeGeometryProximity>(__func__);
+  NodeGeometryProximity *node_storage = MEM_new_for_free<NodeGeometryProximity>(__func__);
   node_storage->target_element = GEO_NODE_PROX_TARGET_FACES;
   node->storage = node_storage;
 }
@@ -330,7 +330,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeProximity", GEO_NODE_PROXIMITY);
   ntype.ui_name = "Geometry Proximity";
@@ -338,12 +338,12 @@ static void node_register()
   ntype.enum_name_legacy = "PROXIMITY";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = geo_proximity_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

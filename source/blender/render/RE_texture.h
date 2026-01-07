@@ -12,6 +12,9 @@
 #include "BLI_compiler_attrs.h"
 
 /* called by meshtools */
+
+namespace blender {
+
 struct Depsgraph;
 struct ImagePool;
 struct MTex;
@@ -105,3 +108,5 @@ int multitex_nodes(struct Tex *tex,
                    short which_output,
                    const struct MTex *mtex,
                    struct ImagePool *pool);
+
+}  // namespace blender

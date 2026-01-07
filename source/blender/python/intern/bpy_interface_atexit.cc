@@ -17,6 +17,8 @@
 
 #include "WM_api.hh"
 
+namespace blender {
+
 static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject * /*kw*/)
 {
   /* NOTE(@ideasman42): This doesn't have to match Blender shutting down exactly,
@@ -53,7 +55,8 @@ static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject *
 #  endif
 #endif
 
-static PyMethodDef meth_bpy_atexit = {"bpy_atexit", (PyCFunction)bpy_atexit, METH_NOARGS, nullptr};
+static PyMethodDef meth_bpy_atexit = {
+    "bpy_atexit", reinterpret_cast<PyCFunction>(bpy_atexit), METH_NOARGS, nullptr};
 
 #ifdef __GNUC__
 #  ifdef __clang__
@@ -97,7 +100,7 @@ void BPY_atexit_register()
   /* atexit module owns this new function reference */
   BLI_assert(func_bpy_atregister == nullptr);
 
-  func_bpy_atregister = (PyObject *)PyCFunction_New(&meth_bpy_atexit, nullptr);
+  func_bpy_atregister = static_cast<PyObject *>(PyCFunction_New(&meth_bpy_atexit, nullptr));
   atexit_func_call("register", func_bpy_atregister);
 }
 
@@ -108,3 +111,5 @@ void BPY_atexit_unregister()
   atexit_func_call("unregister", func_bpy_atregister);
   func_bpy_atregister = nullptr; /* don't really need to set but just in case */
 }
+
+}  // namespace blender

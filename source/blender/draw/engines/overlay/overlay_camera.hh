@@ -10,6 +10,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_tracking.hh"
+#include "BLI_math_color.h"
 #include "BLI_math_rotation.h"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
@@ -438,8 +439,8 @@ class Cameras : Overlay {
     float *bundle_color_unselected = res.theme.colors.wire;
     uchar4 text_color_selected, text_color_unselected;
     /* Color Management: Exception here as texts are drawn in sRGB space directly. */
-    UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
-    UI_GetThemeColor4ubv(TH_TEXT, text_color_unselected);
+    ui::theme::get_color_4ubv(TH_SELECT, text_color_selected);
+    ui::theme::get_color_4ubv(TH_TEXT, text_color_unselected);
 
     float4x4 camera_mat;
     BKE_tracking_get_camera_object_matrix(ob, camera_mat.ptr());
@@ -687,8 +688,8 @@ class Cameras : Overlay {
                                                     bool &r_use_alpha_premult,
                                                     bool &r_use_view_transform)
   {
-    ::Image *image = bgpic->ima;
-    ImageUser *iuser = (ImageUser *)&bgpic->iuser;
+    blender::Image *image = bgpic->ima;
+    ImageUser *iuser = const_cast<ImageUser *>(&bgpic->iuser);
     MovieClip *clip = nullptr;
     gpu::Texture *tex = nullptr;
     float aspect_x, aspect_y;
@@ -713,7 +714,7 @@ class Cameras : Overlay {
 
         Images::stereo_setup(state.scene, state.v3d, image, iuser);
 
-        iuser->scene = (Scene *)state.scene;
+        iuser->scene = const_cast<Scene *>(state.scene);
         tex = BKE_image_get_gpu_viewer_texture(image, iuser);
         iuser->scene = nullptr;
 
@@ -732,7 +733,8 @@ class Cameras : Overlay {
       case CAM_BGIMG_SOURCE_MOVIE: {
         if (bgpic->flag & CAM_BGIMG_FLAG_CAMERACLIP) {
           if (state.scene->camera) {
-            clip = BKE_object_movieclip_get((Scene *)state.scene, state.scene->camera, true);
+            clip = BKE_object_movieclip_get(
+                const_cast<Scene *>(state.scene), state.scene->camera, true);
           }
         }
         else {
@@ -743,8 +745,8 @@ class Cameras : Overlay {
           return nullptr;
         }
 
-        BKE_movieclip_user_set_frame((MovieClipUser *)&bgpic->cuser, ctime);
-        tex = BKE_movieclip_get_gpu_texture(clip, (MovieClipUser *)&bgpic->cuser);
+        BKE_movieclip_user_set_frame(const_cast<MovieClipUser *>(&bgpic->cuser), ctime);
+        tex = BKE_movieclip_get_gpu_texture(clip, const_cast<MovieClipUser *>(&bgpic->cuser));
         if (tex == nullptr) {
           return nullptr;
         }

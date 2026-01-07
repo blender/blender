@@ -29,6 +29,8 @@
 
 #include "script_intern.hh" /* own include */
 
+namespace blender {
+
 // static script_run_python(char *funcname, )
 
 /* ******************** default callbacks for script space ***************** */
@@ -38,7 +40,7 @@ static SpaceLink *script_create(const ScrArea * /*area*/, const Scene * /*scene*
   ARegion *region;
   SpaceScript *sscript;
 
-  sscript = MEM_callocN<SpaceScript>("initscript");
+  sscript = MEM_new_for_free<SpaceScript>("initscript");
   sscript->spacetype = SPACE_SCRIPT;
 
   /* header */
@@ -56,13 +58,13 @@ static SpaceLink *script_create(const ScrArea * /*area*/, const Scene * /*scene*
 
   /* channel list region XXX */
 
-  return (SpaceLink *)sscript;
+  return reinterpret_cast<SpaceLink *>(sscript);
 }
 
 /* Doesn't free the space-link itself. */
 static void script_free(SpaceLink *sl)
 {
-  SpaceScript *sscript = (SpaceScript *)sl;
+  SpaceScript *sscript = reinterpret_cast<SpaceScript *>(sl);
 
 #ifdef WITH_PYTHON
   /* Free buttons references. */
@@ -82,7 +84,7 @@ static SpaceLink *script_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sscriptn;
+  return reinterpret_cast<SpaceLink *>(sscriptn);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -90,7 +92,7 @@ static void script_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Script", SPACE_SCRIPT, RGN_TYPE_WINDOW);
@@ -100,13 +102,13 @@ static void script_main_region_init(wmWindowManager *wm, ARegion *region)
 static void script_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
-  SpaceScript *sscript = (SpaceScript *)CTX_wm_space_data(C);
+  SpaceScript *sscript = reinterpret_cast<SpaceScript *>(CTX_wm_space_data(C));
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* data... */
   // BPY_script_exec(C, "/root/blender-svn/blender25/test.py", nullptr);
@@ -120,7 +122,7 @@ static void script_main_region_draw(const bContext *C, ARegion *region)
 #endif
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* scrollers? */
 }
@@ -164,9 +166,9 @@ static void script_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
 
 static void script_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceScript *scr = (SpaceScript *)sl;
+  SpaceScript *scr = reinterpret_cast<SpaceScript *>(sl);
   scr->but_refs = nullptr;
-  BLO_write_struct(writer, SpaceScript, sl);
+  writer->write_struct_cast<SpaceScript>(sl);
 }
 
 void ED_spacetype_script()
@@ -211,3 +213,5 @@ void ED_spacetype_script()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

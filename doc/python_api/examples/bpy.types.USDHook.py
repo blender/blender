@@ -251,18 +251,18 @@ class USDHookExample(bpy.types.USDHook):
         """
 
         ###########################################################
-        # Store some USD metadata on each imported data block.
+        # Store some USD metadata on each imported data-block.
         ###########################################################
         prim_map = import_context.get_prim_map()
 
-        # Store prim path as a string on each data block created.
+        # Store prim path as a string on each data-block created.
         for prim_path, data_blocks in prim_map.items():
 
             # Type hints for prim map.
             prim_path: Sdf.Path
             data_blocks: list[bpy.types.ID]
 
-            # Loop over mapped data blocks to store some metadata.
+            # Loop over mapped data-blocks to store some metadata.
             for data_block in data_blocks:
                 data_block["prim_path"] = str(prim_path)
 

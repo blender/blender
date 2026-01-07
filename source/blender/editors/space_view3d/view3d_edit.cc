@@ -47,6 +47,8 @@
 #include "view3d_intern.hh" /* own include */
 #include "view3d_navigate.hh"
 
+namespace blender {
+
 /* test for unlocked camera view in quad view */
 static bool view3d_camera_user_poll(bContext *C)
 {
@@ -136,7 +138,7 @@ static wmOperatorStatus view_lock_to_active_exec(bContext *C, wmOperator * /*op*
         }
       }
       else {
-        EditBone *ebone_act = ((bArmature *)obact->data)->act_edbone;
+        EditBone *ebone_act = (id_cast<bArmature *>(obact->data))->act_edbone;
         if (ebone_act) {
           STRNCPY_UTF8(v3d->ob_center_bone, ebone_act->name);
         }
@@ -536,13 +538,11 @@ static wmOperatorStatus view3d_navigate_invoke(bContext *C,
 
   switch (mode) {
     case VIEW_NAVIGATION_FLY:
-      WM_operator_name_call(
-          C, "VIEW3D_OT_fly", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
+      WM_operator_name_call(C, "VIEW3D_OT_fly", wm::OpCallContext::InvokeDefault, nullptr, event);
       break;
     case VIEW_NAVIGATION_WALK:
     default:
-      WM_operator_name_call(
-          C, "VIEW3D_OT_walk", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
+      WM_operator_name_call(C, "VIEW3D_OT_walk", wm::OpCallContext::InvokeDefault, nullptr, event);
       break;
   }
 
@@ -574,7 +574,7 @@ static Camera *background_image_camera_from_context(bContext *C)
   View3D *v3d = CTX_wm_view3d(C);
   if (v3d != nullptr) {
     if (v3d->camera && v3d->camera->data && v3d->camera->type == OB_CAMERA) {
-      return static_cast<Camera *>(v3d->camera->data);
+      return id_cast<Camera *>(v3d->camera->data);
     }
     return nullptr;
   }
@@ -588,7 +588,7 @@ static wmOperatorStatus camera_background_image_add_exec(bContext *C, wmOperator
   Image *ima;
   CameraBGImage *bgpic;
 
-  ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+  ima = id_cast<Image *>(WM_operator_drop_load_path(C, op, ID_IM));
   /* may be nullptr, continue anyway */
 
   bgpic = BKE_camera_background_image_new(cam);
@@ -661,8 +661,8 @@ static wmOperatorStatus camera_background_image_remove_exec(bContext *C, wmOpera
       return OPERATOR_CANCELLED;
     }
 
-    id_us_min((ID *)bgpic_rem->ima);
-    id_us_min((ID *)bgpic_rem->clip);
+    id_us_min(id_cast<ID *>(bgpic_rem->ima));
+    id_us_min(id_cast<ID *>(bgpic_rem->clip));
 
     BKE_camera_background_image_remove(cam, bgpic_rem);
 
@@ -704,13 +704,13 @@ static wmOperatorStatus drop_world_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  World *world = (World *)WM_operator_properties_id_lookup_from_name_or_session_uid(
-      bmain, op->ptr, ID_WO);
+  World *world = id_cast<World *>(
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_WO));
   if (world == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  id_us_min((ID *)scene->world);
+  id_us_min(id_cast<ID *>(scene->world));
   id_us_plus(&world->id);
   scene->world = world;
 
@@ -785,7 +785,7 @@ static wmOperatorStatus view3d_clipping_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rcti(op, &rect);
 
   rv3d->rflag |= RV3D_CLIPPING;
-  rv3d->clipbb = MEM_callocN<BoundBox>("clipbb");
+  rv3d->clipbb = MEM_new_for_free<BoundBox>("clipbb");
 
   /* nullptr object because we don't want it in object space */
   ED_view3d_clipping_calc(rv3d->clipbb, rv3d->clip, region, nullptr, &rect);
@@ -910,7 +910,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
   }
   else if (orientation == V3D_CURSOR_ORIENT_XFORM) {
     float mat[3][3];
-    blender::ed::transform::calc_orientation_from_type(C, mat);
+    ed::transform::calc_orientation_from_type(C, mat);
     mat3_to_quat(r_cursor_quat, mat);
   }
   else if (orientation == V3D_CURSOR_ORIENT_GEOM) {
@@ -921,33 +921,32 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     float ray_no[3];
     float ray_co[3];
 
-    blender::ed::transform::SnapObjectContext *snap_context =
-        blender::ed::transform::snap_object_context_create(scene, 0);
+    ed::transform::SnapObjectContext *snap_context = ed::transform::snap_object_context_create(
+        scene, 0);
 
     float obmat[4][4];
     const Object *ob_dummy = nullptr;
     float dist_px = 0;
-    blender::ed::transform::SnapObjectParams params{};
+    ed::transform::SnapObjectParams params{};
     params.snap_target_select = SCE_SNAP_TARGET_ALL;
-    params.edit_mode_type = blender::ed::transform::SNAP_GEOM_FINAL;
-    params.occlusion_test = blender::ed::transform::SNAP_OCCLUSION_AS_SEEM;
-    if (blender::ed::transform::snap_object_project_view3d_ex(
-            snap_context,
-            CTX_data_ensure_evaluated_depsgraph(C),
-            region,
-            v3d,
-            SCE_SNAP_TO_FACE,
-            &params,
-            nullptr,
-            mval_fl,
-            nullptr,
-            &dist_px,
-            ray_co,
-            ray_no,
-            nullptr,
-            &ob_dummy,
-            obmat,
-            nullptr) != 0)
+    params.edit_mode_type = ed::transform::SNAP_GEOM_FINAL;
+    params.occlusion_test = ed::transform::SNAP_OCCLUSION_AS_SEEM;
+    if (ed::transform::snap_object_project_view3d_ex(snap_context,
+                                                     CTX_data_ensure_evaluated_depsgraph(C),
+                                                     region,
+                                                     v3d,
+                                                     SCE_SNAP_TO_FACE,
+                                                     &params,
+                                                     nullptr,
+                                                     mval_fl,
+                                                     nullptr,
+                                                     &dist_px,
+                                                     ray_co,
+                                                     ray_no,
+                                                     nullptr,
+                                                     &ob_dummy,
+                                                     obmat,
+                                                     nullptr) != 0)
     {
       if (use_depth) {
         copy_v3_v3(r_cursor_co, ray_co);
@@ -1000,7 +999,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
         mul_qt_qtqt(r_cursor_quat, tquat_best, r_cursor_quat);
       }
     }
-    blender::ed::transform::snap_object_context_destroy(snap_context);
+    ed::transform::snap_object_context_destroy(snap_context);
   }
 }
 
@@ -1018,7 +1017,7 @@ void ED_view3d_cursor3d_update(bContext *C,
   View3DCursor cursor_prev = *cursor_curr;
 
   {
-    blender::math::Quaternion quat, quat_prev;
+    math::Quaternion quat, quat_prev;
     quat = cursor_curr->rotation();
     copy_qt_qt(&quat_prev.w, &quat.w);
     ED_view3d_cursor3d_position_rotation(
@@ -1261,3 +1260,5 @@ void VIEW3D_OT_toggle_xray(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

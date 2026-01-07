@@ -49,6 +49,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Documentation String (snippets)
  * \{ */
@@ -124,7 +126,7 @@ static PyObject *bvhtree_CreatePyObject(BVHTree *tree,
   result->orig_index = orig_index;
   result->orig_normal = orig_normal;
 
-  return (PyObject *)result;
+  return reinterpret_cast<PyObject *>(result);
 }
 
 /** \} */
@@ -249,7 +251,7 @@ static void py_bvhtree__tp_dealloc(PyBVHTree *self)
   MEM_SAFE_FREE(self->orig_index);
   MEM_SAFE_FREE(self->orig_normal);
 
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
 }
 
 /* -------------------------------------------------------------------- */
@@ -269,11 +271,10 @@ static void py_bvhtree_raycast_cb(void *userdata,
   float dist;
 
   if (self->epsilon == 0.0f) {
-    dist = blender::bke::bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(tri_co));
+    dist = bke::bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(tri_co));
   }
   else {
-    dist = blender::bke::bvhtree_sphereray_tri_intersection(
-        ray, self->epsilon, hit->dist, UNPACK3(tri_co));
+    dist = bke::bvhtree_sphereray_tri_intersection(ray, self->epsilon, hit->dist, UNPACK3(tri_co));
   }
 
   if (dist >= 0 && dist < hit->dist) {
@@ -296,7 +297,7 @@ static void py_bvhtree_nearest_point_cb(void *userdata,
 {
   PyBVHTree *self = static_cast<PyBVHTree *>(userdata);
 
-  const float (*coords)[3] = (const float (*)[3])self->coords;
+  const float (*coords)[3] = const_cast<const float (*)[3]>(self->coords);
   const uint *tri = self->tris[index];
   const float *tri_co[3] = {coords[tri[0]], coords[tri[1]], coords[tri[2]]};
   float nearest_tmp[3], dist_sq;
@@ -376,8 +377,8 @@ PyDoc_STRVAR(
     "\n"
     "   Find the nearest element (typically face index) to a point.\n"
     "\n"
-    "   :arg co: Find nearest element to this point.\n"
-    "   :type co: :class:`Vector`\n" PYBVH_FIND_GENERIC_DISTANCE_DOC
+    "   :arg origin: Find nearest element to this point.\n"
+    "   :type origin: :class:`Vector`\n" PYBVH_FIND_GENERIC_DISTANCE_DOC
         PYBVH_FIND_GENERIC_RETURN_DOC);
 static PyObject *py_bvhtree_find_nearest(PyBVHTree *self, PyObject *args)
 {
@@ -585,7 +586,7 @@ static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
   }
   else {
     const bool use_unique = (self->orig_index || other->orig_index);
-    blender::Set<BVHTreeOverlap> pair_test;
+    Set<BVHTreeOverlap> pair_test;
     if (use_unique) {
       pair_test.reserve(overlap_len);
     }
@@ -671,7 +672,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
                                    "OO|$O&f:BVHTree.FromPolygons",
-                                   (char **)keywords,
+                                   const_cast<char **>(keywords),
                                    &py_coords,
                                    &py_tris,
                                    PyC_ParseBool,
@@ -947,7 +948,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
                                    "O!|$f:BVHTree.FromBMesh",
-                                   (char **)keywords,
+                                   const_cast<char **>(keywords),
                                    &BPy_BMesh_Type,
                                    &py_bm,
                                    &epsilon))
@@ -965,7 +966,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
   coords = MEM_malloc_arrayN<float[3]>(size_t(coords_len), __func__);
   tris = MEM_malloc_arrayN<uint[3]>(size_t(tris_len), __func__);
 
-  blender::Array<std::array<BMLoop *, 3>> corner_tris(tris_len);
+  Array<std::array<BMLoop *, 3>> corner_tris(tris_len);
   BM_mesh_calc_tessellation(bm, corner_tris);
 
   {
@@ -1044,7 +1045,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
         return nullptr;
       }
 
-      mesh = blender::bke::mesh_create_eval_final(depsgraph, scene, ob, &data_masks);
+      mesh = bke::mesh_create_eval_final(depsgraph, scene, ob, &data_masks);
       if (mesh == nullptr) {
         PyErr_Format(PyExc_ValueError,
                      "%s(...): Cannot get a mesh from object '%s'",
@@ -1058,7 +1059,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
     }
     if (ob_eval != nullptr) {
       if (use_cage) {
-        mesh = blender::bke::mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);
+        mesh = bke::mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);
       }
       else {
         mesh = BKE_object_get_evaluated_mesh(ob_eval);
@@ -1088,7 +1089,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
           funcname);
       return nullptr;
     }
-    mesh = blender::bke::mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
+    mesh = bke::mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
     if (mesh == nullptr) {
       PyErr_Format(PyExc_ValueError,
                    "%s(...): Cannot get a mesh from object '%s'",
@@ -1108,7 +1109,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
     return nullptr;
   }
 
-  mesh = blender::bke::mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
+  mesh = bke::mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
   if (mesh == nullptr) {
     PyErr_Format(PyExc_ValueError,
                  "%s(...): Cannot get a mesh from object '%s'",
@@ -1155,7 +1156,7 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
                                    "OO|$O&O&f:BVHTree.FromObject",
-                                   (char **)keywords,
+                                   const_cast<char **>(keywords),
                                    &py_ob,
                                    &py_depsgraph,
                                    PyC_ParseBool,
@@ -1177,9 +1178,9 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
     return nullptr;
   }
 
-  const blender::Span<int> corner_verts = mesh->corner_verts();
-  const blender::Span<blender::int3> corner_tris = mesh->corner_tris();
-  const blender::Span<int> tri_faces = mesh->corner_tri_faces();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int3> corner_tris = mesh->corner_tris();
+  const Span<int> tri_faces = mesh->corner_tri_faces();
 
   /* Get data for tessellation */
 
@@ -1192,16 +1193,16 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
   BVHTree *tree;
 
   int *orig_index = nullptr;
-  blender::float3 *orig_normal = nullptr;
+  float3 *orig_normal = nullptr;
 
   tree = BLI_bvhtree_new(
       int(corner_tris.size()), epsilon, PY_BVH_TREE_TYPE_DEFAULT, PY_BVH_AXIS_DEFAULT);
   if (tree) {
     orig_index = MEM_malloc_arrayN<int>(size_t(corner_tris.size()), __func__);
     if (!BKE_mesh_face_normals_are_dirty(mesh)) {
-      const blender::Span<blender::float3> face_normals = mesh->face_normals();
-      orig_normal = MEM_malloc_arrayN<blender::float3>(size_t(mesh->faces_num), __func__);
-      blender::MutableSpan(orig_normal, face_normals.size()).copy_from(face_normals);
+      const Span<float3> face_normals = mesh->face_normals();
+      orig_normal = MEM_malloc_arrayN<float3>(size_t(mesh->faces_num), __func__);
+      MutableSpan(orig_normal, face_normals.size()).copy_from(face_normals);
     }
 
     for (const int64_t i : corner_tris.index_range()) {
@@ -1299,7 +1300,7 @@ PyTypeObject PyBVHTree_Type = {
     /*tp_name*/ "BVHTree",
     /*tp_basicsize*/ sizeof(PyBVHTree),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)py_bvhtree__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(py_bvhtree__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -1331,16 +1332,16 @@ PyTypeObject PyBVHTree_Type = {
     /*tp_descr_set*/ nullptr,
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
-    /*tp_alloc*/ (allocfunc)PyType_GenericAlloc,
-    /*tp_new*/ (newfunc)PyType_GenericNew,
-    /*tp_free*/ (freefunc) nullptr,
+    /*tp_alloc*/ static_cast<allocfunc>(PyType_GenericAlloc),
+    /*tp_new*/ static_cast<newfunc>(PyType_GenericNew),
+    /*tp_free*/ static_cast<freefunc>(nullptr),
     /*tp_is_gc*/ nullptr,
     /*tp_bases*/ nullptr,
     /*tp_mro*/ nullptr,
     /*tp_cache*/ nullptr,
     /*tp_subclasses*/ nullptr,
     /*tp_weaklist*/ nullptr,
-    /*tp_del*/ (destructor) nullptr,
+    /*tp_del*/ static_cast<destructor>(nullptr),
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
     /*tp_vectorcall*/ nullptr,
@@ -1384,3 +1385,5 @@ PyMODINIT_FUNC PyInit_mathutils_bvhtree()
 }
 
 /** \} */
+
+}  // namespace blender

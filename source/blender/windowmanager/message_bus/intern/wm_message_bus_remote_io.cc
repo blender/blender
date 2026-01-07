@@ -19,6 +19,8 @@
 #include "WM_types.hh"
 #include "message_bus/intern/wm_message_bus_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------------- */
 
 static uint wm_msg_remote_io_gset_hash(const void *key_p)
@@ -64,7 +66,8 @@ static void wm_msg_remote_io_gset_key_free(void *key_p)
 
 static void wm_msg_remote_io_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
 {
-  const wmMsgSubscribeKey_RemoteIO *m = (wmMsgSubscribeKey_RemoteIO *)msg_key;
+  const wmMsgSubscribeKey_RemoteIO *m = reinterpret_cast<wmMsgSubscribeKey_RemoteIO *>(
+      const_cast<wmMsgSubscribeKey *>(msg_key));
   fprintf(stream,
           "<wmMsg_RemoteIO %p, "
           "id='%s', "
@@ -104,7 +107,7 @@ void WM_msg_publish_remote_io_params(wmMsgBus *mbus, const wmMsgParams_RemoteIO 
   }
 }
 
-void WM_msg_publish_remote_io(wmMsgBus *mbus, const blender::StringRef remote_url)
+void WM_msg_publish_remote_io(wmMsgBus *mbus, const StringRef remote_url)
 {
   wmMsgParams_RemoteIO params{};
   params.remote_url = BLI_strdupn(remote_url.data(), remote_url.size());
@@ -131,7 +134,7 @@ void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
 }
 
 void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
-                                const blender::StringRef remote_url,
+                                const StringRef remote_url,
                                 const wmMsgSubscribeValue *msg_val_params,
                                 const char *id_repr)
 {
@@ -142,3 +145,5 @@ void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
   /* Value was copied into the subscribe key. */
   MEM_freeN(params.remote_url);
 }
+
+}  // namespace blender

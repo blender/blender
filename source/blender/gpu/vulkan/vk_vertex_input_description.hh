@@ -26,31 +26,10 @@ namespace blender::gpu {
  * \note Building descriptions are done in #VKVertexAttributeObject.
  */
 struct VKVertexInputDescription {
-  Vector<VkVertexInputBindingDescription> bindings;
-  Vector<VkVertexInputAttributeDescription> attributes;
+  Vector<VkVertexInputBindingDescription2EXT> bindings;
+  Vector<VkVertexInputAttributeDescription2EXT> attributes;
 
   VKVertexInputDescription() = default;
-
-  VKVertexInputDescription(const gpu::shader::PipelineState &pipeline_state)
-  {
-    attributes.reserve(pipeline_state.vertex_inputs_.size());
-    bindings.reserve(pipeline_state.vertex_inputs_.size());
-    uint32_t binding = 0;
-    for (const gpu::shader::PipelineState::AttributeBinding &attribute_binding :
-         pipeline_state.vertex_inputs_)
-    {
-      const GPUVertAttr::Type attribute_type = {attribute_binding.type};
-      attributes.append({attribute_binding.location,
-                         binding,
-                         to_vk_format(attribute_type.comp_type(),
-                                      attribute_type.size(),
-                                      attribute_type.fetch_mode()),
-                         attribute_binding.offset});
-      bindings.append(
-          {attribute_binding.binding, attribute_binding.stride, VK_VERTEX_INPUT_RATE_VERTEX});
-      binding++;
-    }
-  }
 
   void clear();
 
@@ -60,18 +39,18 @@ struct VKVertexInputDescription {
            bindings.size() == other.bindings.size() &&
            memcmp(attributes.data(),
                   other.attributes.data(),
-                  attributes.size() * sizeof(VkVertexInputAttributeDescription)) == 0 &&
+                  attributes.size() * sizeof(VkVertexInputAttributeDescription2EXT)) == 0 &&
            memcmp(bindings.data(),
                   other.bindings.data(),
-                  bindings.size() * sizeof(VkVertexInputBindingDescription)) == 0;
+                  bindings.size() * sizeof(VkVertexInputBindingDescription2EXT)) == 0;
   }
 
   uint64_t hash() const
   {
     uint64_t hash = XXH3_64bits(attributes.data(),
-                                attributes.size() * sizeof(VkVertexInputAttributeDescription));
-    hash = hash * 33 ^
-           XXH3_64bits(bindings.data(), bindings.size() * sizeof(VkVertexInputBindingDescription));
+                                attributes.size() * sizeof(VkVertexInputAttributeDescription2EXT));
+    hash = hash * 33 ^ XXH3_64bits(bindings.data(),
+                                   bindings.size() * sizeof(VkVertexInputBindingDescription2EXT));
     return hash;
   }
 };

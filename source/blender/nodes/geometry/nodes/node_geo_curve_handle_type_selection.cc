@@ -20,13 +20,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.prop(ptr, "handle_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveSelectHandles *data = MEM_callocN<NodeGeometryCurveSelectHandles>(__func__);
+  NodeGeometryCurveSelectHandles *data = MEM_new_for_free<NodeGeometryCurveSelectHandles>(
+      __func__);
 
   data->handle_type = GEO_NODE_CURVE_HANDLE_AUTO;
   data->mode = GEO_NODE_CURVE_HANDLE_LEFT | GEO_NODE_CURVE_HANDLE_RIGHT;
@@ -132,7 +133,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(
       &ntype, "GeometryNodeCurveHandleTypeSelection", GEO_NODE_CURVE_HANDLE_TYPE_SELECTION);
@@ -143,13 +144,13 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryCurveSelectHandles",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryCurveSelectHandles",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
   ntype.draw_buttons = node_layout;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

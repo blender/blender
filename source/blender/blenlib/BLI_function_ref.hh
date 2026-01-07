@@ -10,6 +10,8 @@
 #include "BLI_build_config.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /** \file
  * \ingroup bli
  *
@@ -66,8 +68,6 @@
  *   void some_function(FunctionRef<int()> f);
  *   some_function([]() { return 0; });
  */
-
-namespace blender {
 
 template<typename Function> class FunctionRef;
 

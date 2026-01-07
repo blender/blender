@@ -66,7 +66,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const blender::bke::bNodeType &node_type = params.node_type();
+  const bke::bNodeType &node_type = params.node_type();
   const NodeDeclaration &declaration = *node_type.static_declaration;
 
   /* Weight and Iterations inputs don't change based on the data type. */
@@ -492,7 +492,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeBlurAttribute", GEO_NODE_BLUR_ATTRIBUTE);
   ntype.ui_name = "Blur Attribute";
   ntype.ui_description = "Mix attribute values of neighboring elements";
@@ -503,7 +503,7 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

@@ -34,8 +34,10 @@
 
 #include "UI_resources.hh"
 
+namespace blender {
+
 static void texture_get_from_context(const bContext *C,
-                                     blender::bke::bNodeTreeType * /*treetype*/,
+                                     bke::bNodeTreeType * /*treetype*/,
                                      bNodeTree **r_ntree,
                                      ID **r_id,
                                      ID **r_from)
@@ -58,7 +60,7 @@ static void texture_get_from_context(const bContext *C,
     }
 
     if (brush) {
-      *r_from = (ID *)brush;
+      *r_from = reinterpret_cast<ID *>(brush);
       tx = give_current_brush_texture(brush);
       if (tx) {
         *r_id = &tx->id;
@@ -69,7 +71,7 @@ static void texture_get_from_context(const bContext *C,
   else if (snode->texfrom == SNODE_TEX_LINESTYLE) {
     FreestyleLineStyle *linestyle = BKE_linestyle_active_from_view_layer(view_layer);
     if (linestyle) {
-      *r_from = (ID *)linestyle;
+      *r_from = id_cast<ID *>(linestyle);
       tx = give_current_linestyle_texture(linestyle);
       if (tx) {
         *r_id = &tx->id;
@@ -79,7 +81,7 @@ static void texture_get_from_context(const bContext *C,
   }
 }
 
-static void foreach_nodeclass(void *calldata, blender::bke::bNodeClassCallback func)
+static void foreach_nodeclass(void *calldata, bke::bNodeClassCallback func)
 {
   func(calldata, NODE_CLASS_INPUT, N_("Input"));
   func(calldata, NODE_CLASS_OUTPUT, N_("Output"));
@@ -106,8 +108,8 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
     node_next = node->next;
 
     if (node->is_muted() || node->is_reroute()) {
-      blender::bke::node_internal_relink(*localtree, *node);
-      blender::bke::node_tree_free_local_node(*localtree, *node);
+      bke::node_internal_relink(*localtree, *node);
+      bke::node_tree_free_local_node(*localtree, *node);
     }
   }
 }
@@ -120,19 +122,18 @@ static void update(bNodeTree *ntree)
   ntree_update_reroute_nodes(ntree);
 }
 
-static bool texture_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /*ntreetype*/,
-                                                blender::bke::bNodeSocketType *socket_type)
+static bool texture_node_tree_socket_type_valid(bke::bNodeTreeType * /*ntreetype*/,
+                                                bke::bNodeSocketType *socket_type)
 {
-  return blender::bke::node_is_static_socket_type(*socket_type) &&
+  return bke::node_is_static_socket_type(*socket_type) &&
          ELEM(socket_type->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
 }
 
-blender::bke::bNodeTreeType *ntreeType_Texture;
+bke::bNodeTreeType *ntreeType_Texture;
 
 void register_node_tree_type_tex()
 {
-  blender::bke::bNodeTreeType *tt = ntreeType_Texture = MEM_new<blender::bke::bNodeTreeType>(
-      __func__);
+  bke::bNodeTreeType *tt = ntreeType_Texture = MEM_new<bke::bNodeTreeType>(__func__);
 
   tt->type = NTREE_TEXTURE;
   tt->idname = "TextureNodeTree";
@@ -149,17 +150,17 @@ void register_node_tree_type_tex()
 
   tt->rna_ext.srna = &RNA_TextureNodeTree;
 
-  blender::bke::node_tree_type_add(*tt);
+  bke::node_tree_type_add(*tt);
 }
 
 /**** Material/Texture trees ****/
 
 bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 {
-  ListBase *lb = &exec->threadstack[thread];
+  ListBaseT<bNodeThreadStack> *lb = &exec->threadstack[thread];
   bNodeThreadStack *nts;
 
-  for (nts = (bNodeThreadStack *)lb->first; nts; nts = nts->next) {
+  for (nts = static_cast<bNodeThreadStack *>(lb->first); nts; nts = nts->next) {
     if (!nts->used) {
       nts->used = true;
       break;
@@ -168,7 +169,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 
   if (!nts) {
     nts = MEM_callocN<bNodeThreadStack>("bNodeThreadStack");
-    nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
+    nts->stack = static_cast<bNodeStack *>(MEM_dupallocN(exec->stack));
     nts->used = true;
     BLI_addtail(lb, nts);
   }
@@ -219,10 +220,11 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
   exec = ntree_exec_begin(context, ntree, parent_key);
 
   /* allocate the thread stack listbase array */
-  exec->threadstack = MEM_calloc_arrayN<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
+  exec->threadstack = MEM_calloc_arrayN<ListBaseT<bNodeThreadStack>>(BLENDER_MAX_THREADS,
+                                                                     "thread stack array");
 
-  LISTBASE_FOREACH (bNode *, node, &exec->nodetree->nodes) {
-    node->runtime->need_exec = 1;
+  for (bNode &node : exec->nodetree->nodes) {
+    node.runtime->need_exec = 1;
   }
 
   return exec;
@@ -240,7 +242,7 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
     return ntree->runtime->execdata;
   }
 
-  exec = ntreeTexBeginExecTree_internal(&context, ntree, blender::bke::NODE_INSTANCE_KEY_BASE);
+  exec = ntreeTexBeginExecTree_internal(&context, ntree, bke::NODE_INSTANCE_KEY_BASE);
 
   /* XXX this should not be necessary, but is still used for compositor/shading/texture nodes,
    * which only store the ntree pointer. Should be fixed at some point!
@@ -257,8 +259,8 @@ static void tex_free_delegates(bNodeTreeExec *exec)
   int th, a;
 
   for (th = 0; th < BLENDER_MAX_THREADS; th++) {
-    LISTBASE_FOREACH (bNodeThreadStack *, nts, &exec->threadstack[th]) {
-      for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++) {
+    for (bNodeThreadStack &nts : exec->threadstack[th]) {
+      for (ns = nts.stack, a = 0; a < exec->stacksize; a++, ns++) {
         if (ns->data && !ns->is_copy) {
           MEM_freeN(ns->data);
         }
@@ -275,9 +277,9 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
     tex_free_delegates(exec);
 
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      LISTBASE_FOREACH (bNodeThreadStack *, nts, &exec->threadstack[a]) {
-        if (nts->stack) {
-          MEM_freeN(nts->stack);
+      for (bNodeThreadStack &nts : exec->threadstack[a]) {
+        if (nts.stack) {
+          MEM_freeN(nts.stack);
         }
       }
       BLI_freelistN(&exec->threadstack[a]);
@@ -346,3 +348,5 @@ int ntreeTexExecTree(bNodeTree *ntree,
 
   return retval;
 }
+
+}  // namespace blender

@@ -189,6 +189,12 @@ typedef enum {
    * without the need to include the windows file-path in its title.
    */
   GHOST_kCapabilityWindowPath = (1 << 13),
+  /**
+   * Support for window decoration styles on the "server".
+   * In other words the windowing system is capable of showing window decorations.
+   * Otherwise client-side-decorations should be used, see: `WITH_GHOST_CSD`.
+   */
+  GHOST_kCapabilityWindowDecorationServerSide = (1 << 14),
 } GHOST_TCapabilityFlag;
 
 /**
@@ -202,7 +208,7 @@ typedef enum {
    GHOST_kCapabilityTrackpadPhysicalDirection | GHOST_kCapabilityWindowDecorationStyles | \
    GHOST_kCapabilityKeyboardHyperKey | GHOST_kCapabilityCursorRGBA | \
    GHOST_kCapabilityCursorGenerator | GHOST_kCapabilityMultiMonitorPlacement | \
-   GHOST_kCapabilityWindowPath)
+   GHOST_kCapabilityWindowPath | GHOST_kCapabilityWindowDecorationServerSide)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the
@@ -296,8 +302,9 @@ typedef enum {
 #endif
 } GHOST_TDrawingContextType;
 
+/** Set "None" as -1 so this can be used as an index. */
 typedef enum {
-  GHOST_kButtonMaskNone,
+  GHOST_kButtonMaskNone = -1,
   GHOST_kButtonMaskLeft,
   GHOST_kButtonMaskMiddle,
   GHOST_kButtonMaskRight,
@@ -1041,6 +1048,67 @@ typedef void (*GHOST_TimerProcPtr)(GHOST_ITimerTask *task, uint64_t time);
 struct GHOST_TimerTaskHandle__;
 typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, uint64_t time);
 #endif
+
+/* Window client-side-decorations (CSD). */
+typedef enum {
+  /**
+   * Use for window contents.
+   * This must be ordered before other items so the contents its prioritized.
+   */
+  GHOST_kCSDTypeBody = 0,
+
+  GHOST_kCSDTypeBorderTopLeft,
+  GHOST_kCSDTypeBorderTopRight,
+  GHOST_kCSDTypeBorderBottomLeft,
+  GHOST_kCSDTypeBorderBottomRight,
+
+  GHOST_kCSDTypeBorderTop,
+  GHOST_kCSDTypeBorderBottom,
+  GHOST_kCSDTypeBorderLeft,
+  GHOST_kCSDTypeBorderRight,
+
+  GHOST_kCSDTypeButtonClose,
+  GHOST_kCSDTypeButtonMaximize,
+  GHOST_kCSDTypeButtonMinimize,
+  GHOST_kCSDTypeButtonMenu,
+
+  GHOST_kCSDTypeTitlebar,
+} GHOST_TCSD_Type;
+#define GHOST_kCSDType_NUM (int(GHOST_kCSDTypeTitlebar) + 1)
+/**
+ * Note that coordinates are flipped Y from WM.
+ * Where the top-left has a Y of zero.
+ *
+ * Coordinates are in physical pixels.
+ */
+struct GHOST_CSD_Elem {
+  /** Bounds as [X,Y][MIN,MAX]. */
+  int32_t bounds[2][2];
+  /** The window element this type represents. */
+  GHOST_TCSD_Type type;
+};
+
+/**
+ * CSD Layout.
+ * Currently only supports configuring button order separated by the title text.
+ */
+typedef struct GHOST_CSD_Layout {
+  int32_t buttons_num;
+  GHOST_TCSD_Type buttons[5];
+} GHOST_CSD_Layout;
+
+#define GHOST_CSD_DPI_FRACTIONAL_BASE 96
+
+typedef struct GHOST_CSD_Params {
+  int32_t (*layout_callback)(const int32_t window_size[2],
+                             const int32_t fractional_scale[2],
+                             GHOST_TWindowState windowstate,
+                             const struct GHOST_CSD_Layout *csd_layout,
+                             GHOST_CSD_Elem *csd_elems);
+  /** Used for window interactions. */
+  int cursor_drag_threshold;
+  int cursor_double_click_ms;
+} GHOST_CSD_Params;
 
 #ifdef WITH_XR_OPENXR
 

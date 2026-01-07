@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -1748,6 +1748,22 @@ msgid "Collection"
 msgstr "Collectie"
 
 
+msgid "Font"
+msgstr "Lettertype"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Mask"
+msgstr "Mask"
+
+
+msgid "Sound"
+msgstr "Geluid"
+
+
 msgid "Inclusive"
 msgstr "Inclusief"
 
@@ -2127,10 +2143,6 @@ msgid "Edit Format"
 msgstr "Bewerk Formaat"
 
 
-msgid "Font"
-msgstr "Lettertype"
-
-
 msgid "Font Size"
 msgstr "Groote Lettertype"
 
@@ -2428,10 +2440,6 @@ msgid "Mute the speaker"
 msgstr "Demp de speaker"
 
 
-msgid "Sound"
-msgstr "Geluid"
-
-
 msgid "Mirror X"
 msgstr "Spiegel X"
 
@@ -2678,40 +2686,16 @@ msgid "Dots"
 msgstr "Stippen"
 
 
-msgid "Mask"
-msgstr "Mask"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
 
 
 msgid "Names"
 msgstr "Namen"
 
 
-msgid "Layout"
-msgstr "Indeling"
-
-
-msgid "Text"
-msgstr "Tekst"
+msgid "Import"
+msgstr "Importeren"
 
 
 msgid "Mirror"
@@ -2734,10 +2718,6 @@ msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
 
-msgid "Import"
-msgstr "Importeren"
-
-
 msgid "Light"
 msgstr "Licht"
 
@@ -2754,6 +2734,26 @@ msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Layout"
+msgstr "Indeling"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Clip"
@@ -2761,10 +2761,6 @@ msgstr "Clip"
 
 msgid "Console"
 msgstr "Console"
-
-
-msgid "Languages..."
-msgstr "Talen..."
 
 
 msgid "Channel"
@@ -3349,11 +3345,6 @@ msgstr "Bewerk Eigenschap"
 msgctxt "Operator"
 msgid "Remove Property"
 msgstr "Verwijder Eigenschap"
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Systeem Informatie Opslaan"
 
 
 msgctxt "Operator"
@@ -7478,11 +7469,6 @@ msgstr "Ontgrendel Banen"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Verplaats..."
-
-
-msgctxt "Operator"
 msgid "More"
 msgstr "Meer"
 
@@ -8023,11 +8009,6 @@ msgstr "Luidspreker"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Maak Lokaal..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Bak Actie..."
 
@@ -8127,11 +8108,6 @@ msgstr "Bereken"
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Sorteer Elementen..."
-
-
-msgctxt "Operator"
 msgid "Weak"
 msgstr "Zwak"
 
@@ -8196,11 +8172,6 @@ msgstr "Rol Rechts"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Skelet"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Achtergrond"
 
 
 msgctxt "Operator"
@@ -8437,11 +8408,6 @@ msgstr "Niets geselecteerd"
 
 msgid "Pin"
 msgstr "Prik"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Verander Sneltoets"
 
 
 msgctxt "Operator"
@@ -8825,10 +8791,6 @@ msgstr "Afbeeldingen"
 
 msgid "Videos"
 msgstr "Video's"
-
-
-msgid "Movies"
-msgstr "Films"
 
 
 msgid "It cannot be left blank"

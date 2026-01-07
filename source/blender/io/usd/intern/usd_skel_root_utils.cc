@@ -14,6 +14,9 @@
 #include "WM_types.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 /* Utility: return the common Xform ancestor of the given prims. Is no such ancestor can
@@ -47,7 +50,7 @@ static pxr::UsdGeomXform get_xform_ancestor(const pxr::UsdPrim &prim1, const pxr
   return pxr::UsdGeomXform();
 }
 
-namespace blender::io::usd {
+namespace io::usd {
 
 void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 {
@@ -138,4 +141,5 @@ void create_skel_roots(pxr::UsdStageRefPtr stage, const USDExportParams &params)
   }
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

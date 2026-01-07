@@ -125,7 +125,6 @@ set(SRC_GLSL_FRAG
   overlay_extra_loose_point_frag.glsl
   overlay_extra_wire_frag.glsl
   overlay_facing_frag.glsl
-  overlay_grid_background_frag.glsl
   overlay_grid_frag.glsl
   overlay_image_frag.glsl
   overlay_motion_path_line_frag.glsl

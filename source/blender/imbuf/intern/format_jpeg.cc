@@ -35,6 +35,8 @@
 #include <jerror.h>
 #include <jpeglib.h>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.jpeg"};
 
 /* the types are from the jpeg lib */
@@ -74,7 +76,7 @@ using my_error_ptr = my_error_mgr *;
 
 static void jpeg_error(j_common_ptr cinfo)
 {
-  my_error_ptr err = (my_error_ptr)cinfo->err;
+  my_error_ptr err = reinterpret_cast<my_error_ptr>(cinfo->err);
 
   /* Always display the message */
   (*cinfo->err->output_message)(cinfo);
@@ -107,7 +109,7 @@ static void init_source(j_decompress_ptr cinfo)
 
 static boolean fill_input_buffer(j_decompress_ptr cinfo)
 {
-  my_src_ptr src = (my_src_ptr)cinfo->src;
+  my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
 
   /* Since we have given all we have got already
    * we simply fake an end of file
@@ -115,15 +117,15 @@ static boolean fill_input_buffer(j_decompress_ptr cinfo)
 
   src->pub.next_input_byte = src->terminal;
   src->pub.bytes_in_buffer = 2;
-  src->terminal[0] = (JOCTET)0xFF;
-  src->terminal[1] = (JOCTET)JPEG_EOI;
+  src->terminal[0] = JOCTET(0xFF);
+  src->terminal[1] = JOCTET(JPEG_EOI);
 
   return true;
 }
 
 static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 {
-  my_src_ptr src = (my_src_ptr)cinfo->src;
+  my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
 
   if (num_bytes > 0) {
     /* prevent skipping over file end */
@@ -145,11 +147,11 @@ static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t si
   my_src_ptr src;
 
   if (cinfo->src == nullptr) { /* first time for this JPEG object? */
-    cinfo->src = (jpeg_source_mgr *)(*cinfo->mem->alloc_small)(
-        (j_common_ptr)cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
+    cinfo->src = static_cast<jpeg_source_mgr *>((*cinfo->mem->alloc_small)(
+        reinterpret_cast<j_common_ptr>(cinfo), JPOOL_PERMANENT, sizeof(my_source_mgr)));
   }
 
-  src = (my_src_ptr)cinfo->src;
+  src = reinterpret_cast<my_src_ptr>(cinfo->src);
   src->pub.init_source = init_source;
   src->pub.fill_input_buffer = fill_input_buffer;
   src->pub.skip_input_data = skip_input_data;
@@ -235,7 +237,7 @@ static boolean handle_app1(j_decompress_ptr cinfo)
     }
     length = 0;
     if (STRPREFIX(neogeo, "NeoGeo")) {
-      NeoGeo_Word *neogeo_word = (NeoGeo_Word *)(neogeo + 6);
+      NeoGeo_Word *neogeo_word = reinterpret_cast<NeoGeo_Word *>(neogeo + 6);
       ibuf_quality = neogeo_word->quality;
     }
   }
@@ -305,7 +307,8 @@ static ImBuf *ibJpegImageFromCinfo(
     else {
       row_stride = cinfo->output_width * depth;
 
-      row_pointer = (*cinfo->mem->alloc_sarray)((j_common_ptr)cinfo, JPOOL_IMAGE, row_stride, 1);
+      row_pointer = (*cinfo->mem->alloc_sarray)(
+          reinterpret_cast<j_common_ptr>(cinfo), JPOOL_IMAGE, row_stride, 1);
 
       for (y = ibuf->y - 1; y >= 0; y--) {
         jpeg_read_scanlines(cinfo, row_pointer, 1);
@@ -362,8 +365,9 @@ static ImBuf *ibJpegImageFromCinfo(
          *
          * Files saved from Blender pre v4.0 were null terminated,
          * use `BLI_strnlen` to prevent assertion on passing in too short a string. */
-        str = BLI_strdupn((const char *)marker->data,
-                          BLI_strnlen((const char *)marker->data, marker->data_length));
+        str = BLI_strdupn(
+            reinterpret_cast<const char *>(marker->data),
+            BLI_strnlen(reinterpret_cast<const char *>(marker->data), marker->data_length));
 
         /*
          * Because JPEG format don't support the
@@ -437,7 +441,7 @@ static ImBuf *ibJpegImageFromCinfo(
       ibuf->ftype = IMB_FTYPE_JPG;
       ibuf->foptions.quality = std::min<char>(ibuf_quality, 100);
     }
-    jpeg_destroy((j_common_ptr)cinfo);
+    jpeg_destroy(reinterpret_cast<j_common_ptr>(cinfo));
   }
 
   return ibuf;
@@ -569,20 +573,21 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
   jpeg_start_compress(cinfo, true);
 
   STRNCPY_UTF8(neogeo, "NeoGeo");
-  neogeo_word = (NeoGeo_Word *)(neogeo + 6);
+  neogeo_word = reinterpret_cast<NeoGeo_Word *>(neogeo + 6);
   memset(neogeo_word, 0, sizeof(*neogeo_word));
   neogeo_word->quality = ibuf->foptions.quality;
-  jpeg_write_marker(cinfo, 0xe1, (JOCTET *)neogeo, 10);
+  jpeg_write_marker(cinfo, 0xe1, reinterpret_cast<JOCTET *>(neogeo), 10);
   if (ibuf->metadata) {
 
     /* Static storage array for the short metadata. */
     char static_text[1024];
     const size_t static_text_size = ARRAY_SIZE(static_text);
-    LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
-      if (prop->type == IDP_STRING) {
+    for (IDProperty &prop : ibuf->metadata->data.group) {
+      if (prop.type == IDP_STRING) {
         size_t text_len;
-        if (STREQ(prop->name, "None")) {
-          jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_string_get(prop), prop->len);
+        if (STREQ(prop.name, "None")) {
+          jpeg_write_marker(
+              cinfo, JPEG_COM, reinterpret_cast<JOCTET *> IDP_string_get(&prop), prop.len);
         }
 
         char *text = static_text;
@@ -590,8 +595,8 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
         /* 7 is for Blender, 2 colon separators, length of property
          * name and property value, followed by the nullptr-terminator
          * which isn't needed by JPEG but #BLI_snprintf_rlen requires it. */
-        const size_t text_length_required = 7 + 2 + strlen(prop->name) +
-                                            strlen(IDP_string_get(prop)) + 1;
+        const size_t text_length_required = 7 + 2 + strlen(prop.name) +
+                                            strlen(IDP_string_get(&prop)) + 1;
         if (text_length_required > static_text_size) {
           text = MEM_malloc_arrayN<char>(text_length_required, "jpeg metadata field");
           text_size = text_length_required;
@@ -607,9 +612,9 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
          * in the read process.
          */
         text_len = BLI_snprintf_utf8_rlen(
-            text, text_size, "Blender:%s:%s", prop->name, IDP_string_get(prop));
+            text, text_size, "Blender:%s:%s", prop.name, IDP_string_get(&prop));
         /* Don't write the null byte (not expected by the JPEG format). */
-        jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)text, uint(text_len));
+        jpeg_write_marker(cinfo, JPEG_COM, reinterpret_cast<JOCTET *>(text), uint(text_len));
 
         /* TODO(sergey): Ideally we will try to re-use allocation as
          * much as possible. In practice, such long fields don't happen
@@ -624,7 +629,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
   /* Write ICC profile if there is one associated with the colorspace. */
   const ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
   if (colorspace) {
-    blender::Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
+    Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
     if (!icc_profile.is_empty()) {
       icc_profile.prepend({'I', 'C', 'C', '_', 'P', 'R', 'O', 'F', 'I', 'L', 'E', 0, 0, 1});
       jpeg_write_marker(cinfo,
@@ -765,3 +770,5 @@ bool imb_savejpeg(ImBuf *ibuf, const char *filepath, int flags)
   ibuf->flags = flags;
   return save_stdjpeg(filepath, ibuf);
 }
+
+}  // namespace blender

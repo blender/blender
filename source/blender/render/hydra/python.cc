@@ -19,7 +19,9 @@
 
 #include "hydra/image.hh"
 
-namespace blender::render::hydra {
+namespace blender {
+
+namespace render::hydra {
 
 template<typename T> T *pyrna_to_pointer(PyObject *pyobject, const StructRNA *rnatype)
 {
@@ -202,12 +204,14 @@ static PyModuleDef module = {
     nullptr,
 };
 
-}  // namespace blender::render::hydra
+}  // namespace render::hydra
 
 PyObject *BPyInit_hydra();
 
 PyObject *BPyInit_hydra()
 {
-  PyObject *mod = PyModule_Create(&blender::render::hydra::module);
+  PyObject *mod = PyModule_Create(&render::hydra::module);
   return mod;
 }
+
+}  // namespace blender

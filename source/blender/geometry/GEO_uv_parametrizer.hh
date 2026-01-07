@@ -4,26 +4,28 @@
 
 #pragma once
 
+/** \file
+ * \ingroup geo
+ */
+
 #include <cstdint>
 
 namespace slim {
 struct MatrixTransfer;
 }
 
-namespace blender::geometry {
+namespace blender {
+
+namespace geometry {
 class UVPackIsland_Params;
 }
-
-/** \file
- * \ingroup geo
- */
 
 struct GHash;
 struct Heap;
 struct MemArena;
 struct RNG;
 
-namespace blender::geometry {
+namespace geometry {
 
 struct PChart;
 struct PHash;
@@ -191,4 +193,5 @@ void uv_parametrizer_flush_restore(ParamHandle *handle);
 
 /** \} */
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

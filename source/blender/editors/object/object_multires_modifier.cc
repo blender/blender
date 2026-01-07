@@ -47,8 +47,8 @@ static wmOperatorStatus multires_higher_levels_delete_exec(bContext *C, wmOperat
 {
   Scene *scene = CTX_data_scene(C);
   Object *ob = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Multires);
+  MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_Multires));
 
   if (!mmd) {
     return OPERATOR_CANCELLED;
@@ -116,15 +116,15 @@ static EnumPropertyItem prop_multires_subdivide_mode_type[] = {
 static wmOperatorStatus multires_subdivide_exec(bContext *C, wmOperator *op)
 {
   Object *object = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, object, eModifierType_Multires);
+  MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(
+      edit_modifier_property_get(op, object, eModifierType_Multires));
 
   if (!mmd) {
     return OPERATOR_CANCELLED;
   }
 
-  const MultiresSubdivideModeType subdivide_mode = (MultiresSubdivideModeType)RNA_enum_get(op->ptr,
-                                                                                           "mode");
+  const MultiresSubdivideModeType subdivide_mode = MultiresSubdivideModeType(
+      RNA_enum_get(op->ptr, "mode"));
   multiresModifier_subdivide(object, mmd, subdivide_mode);
 
   iter_other(CTX_data_main(C), object, true, multires_update_totlevels, &mmd->totlvl);
@@ -182,8 +182,8 @@ static wmOperatorStatus multires_reshape_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = context_active_object(C), *secondob = nullptr;
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Multires);
+  MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_Multires));
 
   if (!mmd) {
     return OPERATOR_CANCELLED;
@@ -253,7 +253,7 @@ static wmOperatorStatus multires_external_save_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
-  Mesh *mesh = (ob) ? static_cast<Mesh *>(ob->data) : static_cast<Mesh *>(op->customdata);
+  Mesh *mesh = (ob) ? id_cast<Mesh *>(ob->data) : static_cast<Mesh *>(op->customdata);
   char filepath[FILE_MAX];
   const bool relative = RNA_boolean_get(op->ptr, "relative_path");
 
@@ -283,15 +283,15 @@ static wmOperatorStatus multires_external_save_invoke(bContext *C,
                                                       const wmEvent * /*event*/)
 {
   Object *ob = context_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   char filepath[FILE_MAX];
 
   if (!edit_modifier_invoke_properties(C, op)) {
     return OPERATOR_CANCELLED;
   }
 
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Multires);
+  MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_Multires));
 
   if (!mmd) {
     return OPERATOR_CANCELLED;
@@ -349,7 +349,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 static wmOperatorStatus multires_external_pack_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = context_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   if (!CustomData_external_test(&mesh->corner_data, CD_MDISPS)) {
     return OPERATOR_CANCELLED;
@@ -384,8 +384,8 @@ static wmOperatorStatus multires_base_apply_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *object = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, object, eModifierType_Multires);
+  MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(
+      edit_modifier_property_get(op, object, eModifierType_Multires));
 
   if (!mmd) {
     return OPERATOR_CANCELLED;
@@ -450,8 +450,8 @@ static wmOperatorStatus multires_unsubdivide_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *object = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, object, eModifierType_Multires);
+  MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(
+      edit_modifier_property_get(op, object, eModifierType_Multires));
 
   if (!mmd) {
     return OPERATOR_CANCELLED;
@@ -504,8 +504,8 @@ static wmOperatorStatus multires_rebuild_subdiv_exec(bContext *C, wmOperator *op
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *object = context_active_object(C);
-  MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(
-      op, object, eModifierType_Multires);
+  MultiresModifierData *mmd = reinterpret_cast<MultiresModifierData *>(
+      edit_modifier_property_get(op, object, eModifierType_Multires));
 
   if (!mmd) {
     return OPERATOR_CANCELLED;

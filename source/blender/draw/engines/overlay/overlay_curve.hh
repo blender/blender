@@ -201,7 +201,7 @@ class Curves : Overlay {
     }
 
     Object *ob = ob_ref.object;
-    ::Curves &curves = DRW_object_get_data_for_drawing<::Curves>(*ob);
+    blender::Curves &curves = DRW_object_get_data_for_drawing<blender::Curves>(*ob);
     const bool show_points = bke::AttrDomain(curves.selection_domain) == bke::AttrDomain::Point;
 
     if (show_points) {
@@ -228,7 +228,7 @@ class Curves : Overlay {
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     Object *ob = ob_ref.object;
-    ::Curve &curve = DRW_object_get_data_for_drawing<::Curve>(*ob);
+    blender::Curve &curve = DRW_object_get_data_for_drawing<blender::Curve>(*ob);
 
     if (ob->type == OB_CURVES_LEGACY) {
       gpu::Batch *geom = DRW_cache_curve_edge_wire_get(ob);

@@ -8,6 +8,8 @@
 
 #include "../gizmo_geometry.h"
 
+namespace blender {
+
 /* The numerical values in the `verts` array are used in `arrow3d_gizmo.cc`
  * If you change this mesh geometry, update the selection code also. */
 static float verts[][3] = {
@@ -58,3 +60,5 @@ GizmoGeomInfo wm_gizmo_geom_data_arrow = {
     /*normals*/ normals,
     /*indices*/ indices,
 };
+
+}  // namespace blender

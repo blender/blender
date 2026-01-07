@@ -8,13 +8,16 @@
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/timeCode.h>
 
+namespace blender {
+
 struct ID;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 void set_id_props_from_prim(ID *id,
                             const pxr::UsdPrim &prim,
                             eUSDPropertyImportMode property_import_mode = USD_ATTR_IMPORT_ALL,
                             pxr::UsdTimeCode time_code = pxr::UsdTimeCode::Default());
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

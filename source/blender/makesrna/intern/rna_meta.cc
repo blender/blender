@@ -21,6 +21,7 @@
 
 #  include "MEM_guardedalloc.h"
 
+#  include "BLI_listbase.h"
 #  include "BLI_math_rotation.h"
 #  include "BLI_math_vector.h"
 
@@ -36,15 +37,17 @@
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
+namespace blender {
+
 static int rna_Meta_texspace_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
-  MetaBall *mb = (MetaBall *)ptr->data;
+  MetaBall *mb = static_cast<MetaBall *>(ptr->data);
   return (mb->texspace_flag & MB_TEXSPACE_FLAG_AUTO) ? 0 : int(PROP_EDITABLE);
 }
 
 static void rna_Meta_texspace_location_get(PointerRNA *ptr, float *values)
 {
-  MetaBall *mb = (MetaBall *)ptr->data;
+  MetaBall *mb = static_cast<MetaBall *>(ptr->data);
 
   /* tex_space_mball() needs object.. ugh */
 
@@ -53,14 +56,14 @@ static void rna_Meta_texspace_location_get(PointerRNA *ptr, float *values)
 
 static void rna_Meta_texspace_location_set(PointerRNA *ptr, const float *values)
 {
-  MetaBall *mb = (MetaBall *)ptr->data;
+  MetaBall *mb = static_cast<MetaBall *>(ptr->data);
 
   copy_v3_v3(mb->texspace_location, values);
 }
 
 static void rna_Meta_texspace_size_get(PointerRNA *ptr, float *values)
 {
-  MetaBall *mb = (MetaBall *)ptr->data;
+  MetaBall *mb = static_cast<MetaBall *>(ptr->data);
 
   /* tex_space_mball() needs object.. ugh */
 
@@ -69,7 +72,7 @@ static void rna_Meta_texspace_size_get(PointerRNA *ptr, float *values)
 
 static void rna_Meta_texspace_size_set(PointerRNA *ptr, const float *values)
 {
-  MetaBall *mb = (MetaBall *)ptr->data;
+  MetaBall *mb = static_cast<MetaBall *>(ptr->data);
 
   copy_v3_v3(mb->texspace_size, values);
 }
@@ -84,7 +87,7 @@ static void rna_MetaBall_redraw_data(Main * /*bmain*/, Scene * /*scene*/, Pointe
 
 static void rna_MetaBall_update_data(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  MetaBall *mb = (MetaBall *)ptr->owner_id;
+  MetaBall *mb = id_cast<MetaBall *>(ptr->owner_id);
 
   /* NOTE: The check on the number of users allows to avoid many repetitive (slow) updates in some
    * cases, like e.g. importers. Calling `BKE_mball_properties_copy` on an obdata with no users
@@ -151,13 +154,13 @@ static void rna_MetaBall_elements_clear(MetaBall *mb)
 
 static bool rna_Meta_is_editmode_get(PointerRNA *ptr)
 {
-  MetaBall *mb = (MetaBall *)ptr->owner_id;
+  MetaBall *mb = id_cast<MetaBall *>(ptr->owner_id);
   return (mb->editelems != nullptr);
 }
 
 static std::optional<std::string> rna_MetaElement_path(const PointerRNA *ptr)
 {
-  const MetaBall *mb = (MetaBall *)ptr->owner_id;
+  const MetaBall *mb = id_cast<MetaBall *>(ptr->owner_id);
   const MetaElem *ml = static_cast<MetaElem *>(ptr->data);
   int index = -1;
 
@@ -174,7 +177,11 @@ static std::optional<std::string> rna_MetaElement_path(const PointerRNA *ptr)
   return fmt::format("elements[{}]", index);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_metaelement(BlenderRNA *brna)
 {
@@ -424,5 +431,7 @@ void RNA_def_meta(BlenderRNA *brna)
   rna_def_metaelement(brna);
   rna_def_metaball(brna);
 }
+
+}  // namespace blender
 
 #endif

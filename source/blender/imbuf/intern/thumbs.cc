@@ -72,8 +72,7 @@
 
 #define URI_MAX (FILE_MAX * 3 + 8)
 
-using StringRef = blender::StringRef;
-using StringRefNull = blender::StringRefNull;
+namespace blender {
 
 static constexpr const char *get_thumb_size_dir_name(const ThumbSize size)
 {
@@ -369,6 +368,9 @@ static ImBuf *thumb_create_ex(const char *file_path,
                               ThumbSource source,
                               ImBuf *img)
 {
+  /* Just in case these folders got deleted somehow. */
+  IMB_thumb_makedirs();
+
   char desc[URI_MAX + 22];
   char tpath[FILE_MAX];
   char tdir[FILE_MAX];
@@ -731,7 +733,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
  */
 
 struct IMBThumbLocks {
-  blender::Set<std::string> locked_paths;
+  Set<std::string> locked_paths;
   int lock_counter = 0;
   ThreadCondition cond = {};
 };
@@ -799,3 +801,5 @@ void IMB_thumb_path_unlock(const char *path)
 
   BLI_thread_unlock(LOCK_IMAGE);
 }
+
+}  // namespace blender

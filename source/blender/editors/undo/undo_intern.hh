@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /* internal exports only */
 
 struct UndoType;
@@ -16,3 +18,5 @@ struct UndoType;
 
 /** Export for ED_undo_sys. */
 void ED_memfile_undosys_type(UndoType *ut);
+
+}  // namespace blender

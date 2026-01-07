@@ -13,6 +13,8 @@
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 struct bContext;
 struct BMEditMesh;
 struct BMEdge;
@@ -94,11 +96,6 @@ BMElem *EDBM_elem_from_index_any_multi(const Scene *scene,
                                        uint elem_index,
                                        Object **r_obedit);
 
-/**
- * Extrudes individual edges.
- */
-bool edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, char hflag, bool use_normal_flip);
-
 /* *** `editmesh_add.cc` *** */
 
 void MESH_OT_primitive_plane_add(wmOperatorType *ot);
@@ -176,11 +173,8 @@ void MESH_OT_knife_project(wmOperatorType *ot);
 /**
  * \param use_tag: When set, tag all faces inside the polylines.
  */
-void EDBM_mesh_knife(ViewContext *vc,
-                     blender::Span<Object *> objects,
-                     LinkNode *polys,
-                     bool use_tag,
-                     bool cut_through);
+void EDBM_mesh_knife(
+    ViewContext *vc, Span<Object *> objects, LinkNode *polys, bool use_tag, bool cut_through);
 
 wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf);
 
@@ -257,7 +251,7 @@ void MESH_OT_delete_loose(wmOperatorType *ot);
 void MESH_OT_edge_collapse(wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(wmOperatorType *ot);
 void MESH_OT_faces_shade_flat(wmOperatorType *ot);
-namespace blender::ed::mesh {
+namespace ed::mesh {
 void MESH_OT_set_sharpness_by_angle(wmOperatorType *ot);
 }
 void MESH_OT_split(wmOperatorType *ot);
@@ -298,12 +292,6 @@ void MESH_OT_smooth_normals(wmOperatorType *ot);
 void MESH_OT_mod_weighted_strength(wmOperatorType *ot);
 void MESH_OT_flip_quad_tessellation(wmOperatorType *ot);
 
-/* *** editmesh_mask_extract.cc *** */
-
-void SCULPT_OT_paint_mask_extract(wmOperatorType *ot);
-void SCULPT_OT_face_set_extract(wmOperatorType *ot);
-void SCULPT_OT_paint_mask_slice(wmOperatorType *ot);
-
 /** Called in `transform_ops.cc`, on each regeneration of key-maps. */
 wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf);
 
@@ -322,3 +310,5 @@ void MESH_OT_customdata_skin_clear(wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot);
 void MESH_OT_reorder_vertices_spatial(wmOperatorType *ot);
+
+}  // namespace blender

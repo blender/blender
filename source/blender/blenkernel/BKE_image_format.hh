@@ -12,6 +12,8 @@
 
 #include "BKE_path_templates.hh"
 
+namespace blender {
+
 struct BlendDataReader;
 struct BlendWriter;
 struct ID;
@@ -51,21 +53,21 @@ void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
  * \return If any template errors are encountered, returns those errors. On
  * success, returns an empty Vector.
  */
-blender::Vector<blender::bke::path_templates::Error> BKE_image_path_from_imformat(
+Vector<bke::path_templates::Error> BKE_image_path_from_imformat(
     char *filepath,
     const char *base,
     const char *relbase,
-    const blender::bke::path_templates::VariableMap *template_variables,
+    const bke::path_templates::VariableMap *template_variables,
     int frame,
     const ImageFormatData *im_format,
     bool use_ext,
     bool use_frames,
     const char *suffix);
-blender::Vector<blender::bke::path_templates::Error> BKE_image_path_from_imtype(
+Vector<bke::path_templates::Error> BKE_image_path_from_imtype(
     char *filepath,
     const char *base,
     const char *relbase,
-    const blender::bke::path_templates::VariableMap *template_variables,
+    const bke::path_templates::VariableMap *template_variables,
     int frame,
     char imtype,
     bool use_ext,
@@ -143,3 +145,5 @@ void BKE_image_format_init_for_write(ImageFormatData *imf,
                                      const Scene *scene_src,
                                      const ImageFormatData *imf_src,
                                      const bool allow_video = false);
+
+}  // namespace blender

@@ -13,7 +13,7 @@
 COMPUTE_SHADER_CREATE_INFO(subdiv_normals_accumulate)
 
 void find_prev_and_next_vertex_on_face(
-    uint face_index, uint vertex_index, out uint curr, out uint next, out uint prev)
+    uint face_index, uint vertex_index, uint &curr, uint &next, uint &prev)
 {
   uint start_loop_index = face_index * 4;
 

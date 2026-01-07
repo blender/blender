@@ -26,11 +26,12 @@
 #include <algorithm> /* For `min/max`. */
 #include <cstring>
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name IndexBufBuilder
  * \{ */
 
-using namespace blender;
 using namespace blender::gpu;
 
 void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
@@ -92,7 +93,7 @@ void GPU_indexbuf_init_build_on_device(IndexBuf *elem, uint index_len)
   elem_->init_build_on_device(index_len);
 }
 
-blender::MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *builder)
+MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *builder)
 {
   return {builder->data, builder->max_index_len};
 }
@@ -255,7 +256,7 @@ IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
   }
   bool tris = (prim_type == GPU_PRIM_TRIS);
   bool lines = (prim_type == GPU_PRIM_LINES);
-  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(
+  gpu::Shader *shader = GPU_shader_get_builtin_shader(
       tris ? GPU_SHADER_INDEXBUF_TRIS :
              (lines ? GPU_SHADER_INDEXBUF_LINES : GPU_SHADER_INDEXBUF_POINTS));
   GPU_shader_bind(shader);
@@ -286,7 +287,7 @@ IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
 /** \name Creation & Deletion
  * \{ */
 
-namespace blender::gpu {
+namespace gpu {
 
 IndexBuf::~IndexBuf()
 {
@@ -379,8 +380,8 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
 {
   /* data will never be *larger* than builder->data...
    * converting in place to avoid extra allocation */
-  uint16_t *ushort_idx = (uint16_t *)data_;
-  const uint32_t *uint_idx = (uint32_t *)data_;
+  uint16_t *ushort_idx = static_cast<uint16_t *>(data_);
+  const uint32_t *uint_idx = static_cast<uint32_t *>(data_);
 
   if (max_idx >= 0xFFFF) {
     index_base_ = min_idx;
@@ -410,7 +411,7 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /** \} */
 
@@ -542,3 +543,5 @@ void GPU_indexbuf_update_sub(IndexBuf *elem, uint start, uint len, const void *d
 }
 
 /** \} */
+
+}  // namespace blender

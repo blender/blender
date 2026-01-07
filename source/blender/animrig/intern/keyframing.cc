@@ -272,7 +272,7 @@ static bool assigned_action_has_keyframe_at(AnimData &adt, const float frame)
     return false;
   }
 
-  for (FCurve *fcu : blender::animrig::legacy::fcurves_for_assigned_action(&adt)) {
+  for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(&adt)) {
     if (fcurve_frame_has_keyframe(fcu, frame)) {
       return true;
     }
@@ -314,7 +314,7 @@ bool id_frame_has_keyframe(ID *id, float frame)
   /* Perform special checks for 'macro' types. */
   switch (GS(id->name)) {
     case ID_OB:
-      return object_frame_has_keyframe((Object *)id, frame);
+      return object_frame_has_keyframe(id_cast<Object *>(id), frame);
 
     default: {
       AnimData *adt = BKE_animdata_from_id(id);
@@ -424,7 +424,7 @@ static float nla_time_remap(float time,
                             PointerRNA *id_ptr,
                             AnimData *adt,
                             bAction *act,
-                            ListBase *nla_cache,
+                            ListBaseT<NlaKeyframingContext> *nla_cache,
                             NlaKeyframingContext **r_nla_context)
 {
   if (adt && adt->action == act) {
@@ -668,61 +668,22 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
   Action &action = act->wrap();
   int key_count = 0;
 
-  if (action.is_action_layered()) {
-    if (adt->slot_handle) {
-      Vector<FCurve *> fcurves;
-      foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
-        if (rna_path.index.has_value() && rna_path.index.value() != fcurve.array_index) {
-          return;
-        }
-        if (rna_path.path != fcurve.rna_path) {
-          return;
-        }
-        fcurves.append(&fcurve);
-      });
-
-      for (FCurve *fcu : fcurves) {
-        if (action_fcurve_remove(action, *fcu)) {
-          key_count++;
-        }
+  if (adt->slot_handle) {
+    Vector<FCurve *> fcurves;
+    foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+      if (rna_path.index.has_value() && rna_path.index.value() != fcurve.array_index) {
+        return;
       }
-    }
-  }
-  else {
-    int array_index = rna_path.index.value_or(0);
-    int array_index_max = array_index + 1;
-    if (!rna_path.index.has_value()) {
-      array_index_max = RNA_property_array_length(&ptr, prop);
-
-      /* For single properties, increase max_index so that the property itself gets included,
-       * but don't do this for standard arrays since that can cause corruption issues
-       * (extra unused curves).
-       */
-      if (array_index_max == array_index) {
-        array_index_max++;
+      if (rna_path.path != fcurve.rna_path) {
+        return;
       }
-    }
-    /* Will only loop once unless the array index was -1. */
-    for (; array_index < array_index_max; array_index++) {
-      FCurve *fcu = fcurve_find_in_action(act, {rna_path.path, array_index});
+      fcurves.append(&fcurve);
+    });
 
-      if (fcu == nullptr) {
-        continue;
+    for (FCurve *fcu : fcurves) {
+      if (action_fcurve_remove(action, *fcu)) {
+        key_count++;
       }
-
-      if (BKE_fcurve_is_protected(fcu)) {
-        BKE_reportf(reports,
-                    RPT_WARNING,
-                    "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'",
-                    fcu->rna_path,
-                    BKE_idtype_idcode_to_name(GS(id->name)),
-                    id->name + 2);
-        continue;
-      }
-
-      animdata_fcurve_delete(adt, fcu);
-
-      key_count++;
     }
   }
 
@@ -738,17 +699,16 @@ struct KeyInsertData {
   int array_index;
 };
 
-static SingleKeyingResult insert_key_layer(
-    Main *bmain,
-    Action &action,
-    Layer &layer,
-    const Slot &slot,
-    const std::string &rna_path,
-    PropertyRNA *prop,
-    const std::optional<blender::StringRefNull> channel_group,
-    const KeyInsertData &key_data,
-    const KeyframeSettings &key_settings,
-    const eInsertKeyFlags insert_key_flags)
+static SingleKeyingResult insert_key_layer(Main *bmain,
+                                           Action &action,
+                                           Layer &layer,
+                                           const Slot &slot,
+                                           const std::string &rna_path,
+                                           PropertyRNA *prop,
+                                           const std::optional<StringRefNull> channel_group,
+                                           const KeyInsertData &key_data,
+                                           const KeyframeSettings &key_settings,
+                                           const eInsertKeyFlags insert_key_flags)
 {
   assert_baklava_phase_1_invariants(layer);
   BLI_assert(layer.strips().size() == 1);
@@ -771,7 +731,6 @@ static SingleKeyingResult insert_key_layer(
 
 static std::pair<Layer *, Slot *> prep_action_layer_for_keying(Action &action, ID &animated_id)
 {
-  BLI_assert(action.is_action_layered());
   BLI_assert_msg(
       ELEM(get_action(animated_id), &action, nullptr),
       "The animated ID should not be using another Action than the one passed to this function");
@@ -810,7 +769,6 @@ static CombinedKeyingResult insert_key_layered_action(
     const BitSpan keying_mask)
 {
   BLI_assert(bmain != nullptr);
-  BLI_assert(action.is_action_layered());
 
   int property_array_index = 0;
   CombinedKeyingResult combined_result;
@@ -841,7 +799,7 @@ static CombinedKeyingResult insert_key_layered_action(
 CombinedKeyingResult insert_keyframes(Main *bmain,
                                       PointerRNA *struct_pointer,
                                       const std::optional<StringRefNull> channel_group,
-                                      const blender::Span<RNAPath> rna_paths,
+                                      const Span<RNAPath> rna_paths,
                                       const std::optional<float> scene_frame,
                                       const AnimationEvalContext &anim_eval_context,
                                       const eBezTriple_KeyframeType key_type,
@@ -880,7 +838,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
   key_settings.keyframe_type = key_type;
 
   /* NOTE: keyframing functions can deal with the nla_context being a nullptr. */
-  ListBase nla_cache = {nullptr, nullptr};
+  ListBaseT<NlaKeyframingContext> nla_cache = {nullptr, nullptr};
   NlaKeyframingContext *nla_context = nullptr;
   const float nla_frame = nla_time_remap(scene_frame.value_or(anim_eval_context.eval_time),
                                          &anim_eval_context,
@@ -975,7 +933,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
 
     CombinedKeyingResult result;
 
-    const std::optional<blender::StringRefNull> this_rna_path_channel_group =
+    const std::optional<StringRefNull> this_rna_path_channel_group =
         channel_group.has_value() ? *channel_group :
                                     default_channel_group_for_path(&ptr, *rna_path_id_to_prop);
 

@@ -12,11 +12,13 @@
 #include "draw_handle.hh"
 #include "draw_shader_shared.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name ObjectAttributes
  * \{ */
 
-bool ObjectAttribute::sync(const blender::draw::ObjectRef &ref, const GPUUniformAttr &attr)
+bool ObjectAttribute::sync(const draw::ObjectRef &ref, const GPUUniformAttr &attr)
 {
   /* This function mirrors `lookup_instance_property` in `cycles/blender/blender_object.cpp`. */
   hash_code = attr.hash_code;
@@ -37,3 +39,5 @@ bool LayerAttribute::sync(const Scene *scene, const ViewLayer *layer, const GPUL
 }
 
 /** \} */
+
+}  // namespace blender

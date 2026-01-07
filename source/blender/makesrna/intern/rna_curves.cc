@@ -21,6 +21,8 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_curves_type_items[] = {
     {CURVE_TYPE_CATMULL_ROM, "CATMULL_ROM", 0, "Catmull Rom", ""},
     {CURVE_TYPE_POLY, "POLY", 0, "Poly", ""},
@@ -74,6 +76,8 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
@@ -91,6 +95,8 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"
+
+namespace blender {
 
 static Curves *rna_curves(const PointerRNA *ptr)
 {
@@ -221,7 +227,6 @@ static void rna_CurvePoint_location_set(PointerRNA *ptr, const float value[3])
 
 static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 {
-  using namespace blender;
   const Curves *curves = rna_curves(ptr);
   const bke::AttributeAccessor attributes = curves->geometry.wrap().attributes();
   const VArray radii = *attributes.lookup_or_default<float>(
@@ -231,7 +236,6 @@ static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 
 static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
 {
-  using namespace blender;
   Curves *curves = rna_curves(ptr);
   bke::MutableAttributeAccessor attributes = curves->geometry.wrap().attributes_for_write();
   bke::AttributeWriter radii = attributes.lookup_or_add_for_write<float>("radius",
@@ -300,7 +304,7 @@ static void rna_CurveSlice_points_begin(CollectionPropertyIterator *iter, Pointe
 static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Curves *curves = rna_curves(ptr);
-  float (*positions)[3] = blender::ed::curves::point_normals_array_create(curves);
+  float (*positions)[3] = ed::curves::point_normals_array_create(curves);
   const int size = curves->geometry.point_num;
   rna_iterator_array_begin(iter, ptr, positions, sizeof(float[3]), size, true, nullptr);
 }
@@ -324,7 +328,11 @@ void rna_Curves_update_draw(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_curves_point(BlenderRNA *brna)
 {
@@ -580,5 +588,7 @@ void RNA_def_curves(BlenderRNA *brna)
   rna_def_curves_curve(brna);
   rna_def_curves(brna);
 }
+
+}  // namespace blender
 
 #endif

@@ -12,6 +12,8 @@
 
 #include "gpu_shader_cxx_vector.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Special Variables
  * \{ */
@@ -58,3 +60,5 @@ extern const uint gl_LocalInvocationIndex;
 }  // namespace gl_ComputeShader
 
 /** \} */
+
+}  // namespace blender

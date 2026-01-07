@@ -13,7 +13,9 @@
 
 #include "DEG_depsgraph_query.hh"
 
-namespace blender::nodes::node_shader_tex_image_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_image_cc {
 
 static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
 {
@@ -25,7 +27,7 @@ static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_tex_image(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexImage *tex = MEM_callocN<NodeTexImage>(__func__);
+  NodeTexImage *tex = MEM_new_for_free<NodeTexImage>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   BKE_imageuser_default(&tex->iuser);
@@ -39,13 +41,13 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
-  Image *ima = (Image *)node->id;
-  NodeTexImage *tex = (NodeTexImage *)node->storage;
+  Image *ima = id_cast<Image *>(node->id);
+  NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
 
   /* We get the image user from the original node, since GPU image keeps
    * a pointer to it and the dependency refreshes the original. */
   bNode *node_original = node->runtime->original ? node->runtime->original : node;
-  NodeTexImage *tex_original = (NodeTexImage *)node_original->storage;
+  NodeTexImage *tex_original = static_cast<NodeTexImage *>(node_original->storage);
   ImageUser *iuser = &tex_original->iuser;
 
   if (!ima) {
@@ -273,13 +275,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tex_image_cc
+}  // namespace nodes::node_shader_tex_image_cc
 
 void register_node_type_sh_tex_image()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_image_cc;
+  namespace file_ns = nodes::node_shader_tex_image_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeTexImage", SH_NODE_TEX_IMAGE);
   ntype.ui_name = "Image Texture";
@@ -288,12 +290,14 @@ void register_node_type_sh_tex_image()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_image_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_image;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexImage", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_image;
   ntype.labelfunc = node_image_label;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

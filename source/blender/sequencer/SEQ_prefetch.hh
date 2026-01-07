@@ -8,10 +8,12 @@
  * \ingroup sequencer
  */
 
+namespace blender {
+
 struct bContext;
 struct Scene;
 
-namespace blender::seq {
+namespace seq {
 
 void prefetch_stop_all();
 /**
@@ -21,4 +23,5 @@ void prefetch_stop_all();
 void prefetch_stop(Scene *scene);
 bool prefetch_need_redraw(const bContext *C, Scene *scene);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

@@ -14,11 +14,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 
 #include "MOD_lineart.hh"
 
 #include "lineart_intern.hh"
+
+namespace blender {
 
 /* Line art memory and list helper */
 
@@ -86,7 +89,7 @@ void *lineart_list_pop_pointer_no_free(ListBase *h)
 }
 void lineart_list_remove_pointer_item_no_free(ListBase *h, LinkData *lip)
 {
-  BLI_remlink(h, (void *)lip);
+  BLI_remlink(h, static_cast<void *>(lip));
 }
 
 LineartStaticMemPoolNode *lineart_mem_new_static_pool(LineartStaticMemPool *smp, size_t size)
@@ -112,7 +115,7 @@ void *lineart_mem_acquire(LineartStaticMemPool *smp, size_t size)
     smpn = lineart_mem_new_static_pool(smp, size);
   }
 
-  ret = ((uchar *)smpn) + smpn->used_byte;
+  ret = (reinterpret_cast<uchar *>(smpn)) + smpn->used_byte;
 
   smpn->used_byte += size;
 
@@ -130,7 +133,7 @@ void *lineart_mem_acquire_thread(LineartStaticMemPool *smp, size_t size)
     smpn = lineart_mem_new_static_pool(smp, size);
   }
 
-  ret = ((uchar *)smpn) + smpn->used_byte;
+  ret = (reinterpret_cast<uchar *>(smpn)) + smpn->used_byte;
 
   smpn->used_byte += size;
 
@@ -211,30 +214,26 @@ void lineart_matrix_ortho_44d(double (*mProjection)[4],
 void lineart_count_and_print_render_buffer_memory(LineartData *ld)
 {
   size_t total = 0;
-  size_t sum_this = 0;
-  size_t count_this = 0;
+  size_t count_this = BLI_listbase_count(&ld->render_data_pool.pools);
+  size_t sum_this = LRT_MEMORY_POOL_1MB * count_this;
 
-  LISTBASE_FOREACH (LineartStaticMemPoolNode *, smpn, &ld->render_data_pool.pools) {
-    count_this++;
-    sum_this += LRT_MEMORY_POOL_1MB;
-  }
   printf("LANPR Memory allocated %zu Standalone nodes, total %zu Bytes.\n", count_this, sum_this);
   total += sum_this;
   sum_this = 0;
   count_this = 0;
 
-  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &ld->geom.line_buffer_pointers) {
+  for (LineartElementLinkNode &reln : ld->geom.line_buffer_pointers) {
     count_this++;
-    sum_this += reln->element_count * sizeof(LineartEdge);
+    sum_this += reln.element_count * sizeof(LineartEdge);
   }
   printf("             allocated %zu edge blocks, total %zu Bytes.\n", count_this, sum_this);
   total += sum_this;
   sum_this = 0;
   count_this = 0;
 
-  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &ld->geom.triangle_buffer_pointers) {
+  for (LineartElementLinkNode &reln : ld->geom.triangle_buffer_pointers) {
     count_this++;
-    sum_this += reln->element_count * ld->sizeof_triangle;
+    sum_this += reln.element_count * ld->sizeof_triangle;
   }
   printf("             allocated %zu triangle blocks, total %zu Bytes.\n", count_this, sum_this);
   total += sum_this;
@@ -243,3 +242,5 @@ void lineart_count_and_print_render_buffer_memory(LineartData *ld)
 
   (void)total; /* Ignored. */
 }
+
+}  // namespace blender

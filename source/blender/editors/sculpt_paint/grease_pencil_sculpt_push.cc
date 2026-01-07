@@ -63,10 +63,10 @@ void PushOperation::on_stroke_extended(const bContext &C, const InputSample &ext
               projection_fn, deformation, point_i, mouse_delta * influence);
         });
 
-        MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
-        MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
+        if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+          MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
+          MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
 
-        if (!handle_positions_left.is_empty()) {
           const Array<float2> view_positions_left = view_positions_left_from_point_mask(
               params, point_mask);
           const Array<float2> view_positions_right = view_positions_right_from_point_mask(

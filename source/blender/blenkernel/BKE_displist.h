@@ -9,6 +9,13 @@
  * \brief display list (or rather multi purpose list) stuff.
  */
 
+#include "DNA_listBase.h"
+
+namespace blender {
+
+struct Depsgraph;
+struct Nurb;
+
 /** #DispList.type */
 enum {
   /** A closed polygon (that can be filled). */
@@ -36,13 +43,11 @@ enum {
 
 /* prototypes */
 
-struct Depsgraph;
-struct ListBase;
 struct Object;
 struct Scene;
 
 /* Used for curves, nurbs, meta-balls. */
-typedef struct DispList {
+struct DispList {
   struct DispList *next, *prev;
   short type, flag;
   int parts, nr;
@@ -51,10 +56,10 @@ typedef struct DispList {
   int *index;
   int charidx;
   int totindex; /* indexed array drawing surfaces */
-} DispList;
+};
 
-DispList *BKE_displist_find(struct ListBase *lb, int type);
-void BKE_displist_free(struct ListBase *lb);
+DispList *BKE_displist_find(ListBaseT<DispList> *lb, int type);
+void BKE_displist_free(ListBaseT<DispList> *lb);
 
 void BKE_displist_make_curveTypes(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,
@@ -64,8 +69,8 @@ void BKE_displist_make_curveTypes(struct Depsgraph *depsgraph,
 void BKE_curve_calc_modifiers_pre(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,
                                   struct Object *ob,
-                                  struct ListBase *source_nurb,
-                                  struct ListBase *target_nurb,
+                                  ListBaseT<Nurb> *source_nurb,
+                                  ListBaseT<Nurb> *target_nurb,
                                   bool for_render);
 bool BKE_displist_surfindex_get(
     const struct DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
@@ -76,8 +81,8 @@ bool BKE_displist_surfindex_get(
  * This is also used to initialize #DispList.nors (one normal per display list).
  * \param flip_normal: Flip the normal (same as passing \a normal_proj negated).
  */
-void BKE_displist_fill(const struct ListBase *dispbase,
-                       struct ListBase *to,
+void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
+                       ListBaseT<DispList> *to,
                        const float normal_proj[3],
                        bool flip_normal);
 
@@ -87,4 +92,6 @@ float BKE_displist_calc_taper(struct Depsgraph *depsgraph,
                               int cur,
                               int tot);
 
-void BKE_displist_minmax(const struct ListBase *dispbase, float min[3], float max[3]);
+void BKE_displist_minmax(const ListBaseT<DispList> *dispbase, float min[3], float max[3]);
+
+}  // namespace blender

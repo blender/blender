@@ -7,9 +7,11 @@
 
 #include "BLI_map.hh"
 
+namespace blender {
+
 struct Bone;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDArmatureWriter : public USDAbstractWriter {
  public:
@@ -24,4 +26,5 @@ class USDArmatureWriter : public USDAbstractWriter {
   Map<StringRef, const Bone *> deform_map_;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

@@ -40,6 +40,8 @@
 
 #include "DEG_depsgraph.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Global Undo
  * \{ */
@@ -145,3 +147,5 @@ void BKE_memfile_undo_free(MemFileUndoData *mfu)
 }
 
 /** \} */
+
+}  // namespace blender

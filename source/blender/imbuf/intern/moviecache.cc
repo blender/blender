@@ -24,6 +24,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 #ifdef DEBUG_MESSAGES
 #  if defined __GNUC__
 #    define PRINT(format, args...) printf(format, ##args)
@@ -82,22 +84,22 @@ struct MovieCacheItem {
 
 static uint moviecache_hashhash(const void *keyv)
 {
-  const MovieCacheKey *key = (const MovieCacheKey *)keyv;
+  const MovieCacheKey *key = static_cast<const MovieCacheKey *>(keyv);
 
   return key->cache_owner->hashfp(key->userkey);
 }
 
 static bool moviecache_hashcmp(const void *av, const void *bv)
 {
-  const MovieCacheKey *a = (const MovieCacheKey *)av;
-  const MovieCacheKey *b = (const MovieCacheKey *)bv;
+  const MovieCacheKey *a = static_cast<const MovieCacheKey *>(av);
+  const MovieCacheKey *b = static_cast<const MovieCacheKey *>(bv);
 
   return a->cache_owner->cmpfp(a->userkey, b->userkey);
 }
 
 static void moviecache_keyfree(void *val)
 {
-  MovieCacheKey *key = (MovieCacheKey *)val;
+  MovieCacheKey *key = static_cast<MovieCacheKey *>(val);
 
   BLI_mempool_free(key->cache_owner->userkeys_pool, key->userkey);
 
@@ -106,7 +108,7 @@ static void moviecache_keyfree(void *val)
 
 static void moviecache_valfree(void *val)
 {
-  MovieCacheItem *item = (MovieCacheItem *)val;
+  MovieCacheItem *item = static_cast<MovieCacheItem *>(val);
   MovieCache *cache = item->cache_owner;
 
   PRINT("%s: cache '%s' free item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
@@ -135,8 +137,10 @@ static void check_unused_keys(MovieCache *cache)
   BLI_ghashIterator_init(&gh_iter, cache->hash);
 
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    const MovieCacheKey *key = (const MovieCacheKey *)BLI_ghashIterator_getKey(&gh_iter);
-    const MovieCacheItem *item = (const MovieCacheItem *)BLI_ghashIterator_getValue(&gh_iter);
+    const MovieCacheKey *key = static_cast<const MovieCacheKey *>(
+        BLI_ghashIterator_getKey(&gh_iter));
+    const MovieCacheItem *item = static_cast<const MovieCacheItem *>(
+        BLI_ghashIterator_getValue(&gh_iter));
 
     BLI_ghashIterator_step(&gh_iter);
 
@@ -160,14 +164,14 @@ static void check_unused_keys(MovieCache *cache)
 
 static int compare_int(const void *av, const void *bv)
 {
-  const int *a = (int *)av;
-  const int *b = (int *)bv;
+  const int *a = static_cast<int *>(const_cast<void *>(av));
+  const int *b = static_cast<int *>(const_cast<void *>(bv));
   return *a - *b;
 }
 
 static void moviecache_destructor(void *p)
 {
-  MovieCacheItem *item = (MovieCacheItem *)p;
+  MovieCacheItem *item = static_cast<MovieCacheItem *>(p);
 
   if (item && item->ibuf) {
     MovieCache *cache = item->cache_owner;
@@ -196,7 +200,7 @@ static size_t get_size_in_memory(ImBuf *ibuf)
 static size_t get_item_size(void *p)
 {
   size_t size = sizeof(MovieCacheItem);
-  MovieCacheItem *item = (MovieCacheItem *)p;
+  MovieCacheItem *item = static_cast<MovieCacheItem *>(p);
 
   if (item->ibuf) {
     size += get_size_in_memory(item->ibuf);
@@ -207,7 +211,7 @@ static size_t get_item_size(void *p)
 
 static int get_item_priority(void *item_v, int default_priority)
 {
-  MovieCacheItem *item = (MovieCacheItem *)item_v;
+  MovieCacheItem *item = static_cast<MovieCacheItem *>(item_v);
   MovieCache *cache = item->cache_owner;
   int priority;
 
@@ -230,7 +234,7 @@ static int get_item_priority(void *item_v, int default_priority)
 
 static bool get_item_destroyable(void *item_v)
 {
-  MovieCacheItem *item = (MovieCacheItem *)item_v;
+  MovieCacheItem *item = static_cast<MovieCacheItem *>(item_v);
   if (item->ibuf == nullptr) {
     return true;
   }
@@ -318,12 +322,12 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
     IMB_refImBuf(ibuf);
   }
 
-  key = (MovieCacheKey *)BLI_mempool_alloc(cache->keys_pool);
+  key = static_cast<MovieCacheKey *>(BLI_mempool_alloc(cache->keys_pool));
   key->cache_owner = cache;
   key->userkey = BLI_mempool_alloc(cache->userkeys_pool);
   memcpy(key->userkey, userkey, cache->keysize);
 
-  item = (MovieCacheItem *)BLI_mempool_alloc(cache->items_pool);
+  item = static_cast<MovieCacheItem *>(BLI_mempool_alloc(cache->items_pool));
 
   PRINT("%s: cache '%s' put %p, item %p\n", __func__, cache->name, ibuf, item);
 
@@ -404,7 +408,7 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey, bool *r_is_cached_em
 
   key.cache_owner = cache;
   key.userkey = userkey;
-  item = (MovieCacheItem *)BLI_ghash_lookup(cache->hash, &key);
+  item = static_cast<MovieCacheItem *>(BLI_ghash_lookup(cache->hash, &key));
 
   if (r_is_cached_empty) {
     *r_is_cached_empty = false;
@@ -435,7 +439,7 @@ bool IMB_moviecache_has_frame(MovieCache *cache, void *userkey)
 
   key.cache_owner = cache;
   key.userkey = userkey;
-  item = (MovieCacheItem *)BLI_ghash_lookup(cache->hash, &key);
+  item = static_cast<MovieCacheItem *>(BLI_ghash_lookup(cache->hash, &key));
 
   return item != nullptr;
 }
@@ -472,8 +476,8 @@ void IMB_moviecache_cleanup(MovieCache *cache,
   BLI_ghashIterator_init(&gh_iter, cache->hash);
 
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    MovieCacheKey *key = (MovieCacheKey *)BLI_ghashIterator_getKey(&gh_iter);
-    MovieCacheItem *item = (MovieCacheItem *)BLI_ghashIterator_getValue(&gh_iter);
+    MovieCacheKey *key = static_cast<MovieCacheKey *>(BLI_ghashIterator_getKey(&gh_iter));
+    MovieCacheItem *item = static_cast<MovieCacheItem *>(BLI_ghashIterator_getValue(&gh_iter));
 
     BLI_ghashIterator_step(&gh_iter);
 
@@ -511,8 +515,8 @@ void IMB_moviecache_get_cache_segments(
 
     a = 0;
     GHASH_ITER (gh_iter, cache->hash) {
-      MovieCacheKey *key = (MovieCacheKey *)BLI_ghashIterator_getKey(&gh_iter);
-      MovieCacheItem *item = (MovieCacheItem *)BLI_ghashIterator_getValue(&gh_iter);
+      MovieCacheKey *key = static_cast<MovieCacheKey *>(BLI_ghashIterator_getKey(&gh_iter));
+      MovieCacheItem *item = static_cast<MovieCacheItem *>(BLI_ghashIterator_getValue(&gh_iter));
       int framenr, curproxy, curflags;
 
       if (item->ibuf) {
@@ -578,32 +582,36 @@ MovieCacheIter *IMB_moviecacheIter_new(MovieCache *cache)
   check_unused_keys(cache);
   iter = BLI_ghashIterator_new(cache->hash);
 
-  return (MovieCacheIter *)iter;
+  return reinterpret_cast<MovieCacheIter *>(iter);
 }
 
 void IMB_moviecacheIter_free(MovieCacheIter *iter)
 {
-  BLI_ghashIterator_free((GHashIterator *)iter);
+  BLI_ghashIterator_free(reinterpret_cast<GHashIterator *>(iter));
 }
 
 bool IMB_moviecacheIter_done(MovieCacheIter *iter)
 {
-  return BLI_ghashIterator_done((GHashIterator *)iter);
+  return BLI_ghashIterator_done(reinterpret_cast<GHashIterator *>(iter));
 }
 
 void IMB_moviecacheIter_step(MovieCacheIter *iter)
 {
-  BLI_ghashIterator_step((GHashIterator *)iter);
+  BLI_ghashIterator_step(reinterpret_cast<GHashIterator *>(iter));
 }
 
 ImBuf *IMB_moviecacheIter_getImBuf(MovieCacheIter *iter)
 {
-  MovieCacheItem *item = (MovieCacheItem *)BLI_ghashIterator_getValue((GHashIterator *)iter);
+  MovieCacheItem *item = static_cast<MovieCacheItem *>(
+      BLI_ghashIterator_getValue(reinterpret_cast<GHashIterator *>(iter)));
   return item->ibuf;
 }
 
 void *IMB_moviecacheIter_getUserKey(MovieCacheIter *iter)
 {
-  MovieCacheKey *key = (MovieCacheKey *)BLI_ghashIterator_getKey((GHashIterator *)iter);
+  MovieCacheKey *key = static_cast<MovieCacheKey *>(
+      BLI_ghashIterator_getKey(reinterpret_cast<GHashIterator *>(iter)));
   return key->userkey;
 }
+
+}  // namespace blender

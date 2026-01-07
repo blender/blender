@@ -62,7 +62,7 @@ class Background : Overlay {
       color_override = float4(UNPACK3(state.v3d->shading.background_color), 1.0f);
     }
     else {
-      switch (UI_GetThemeValue(TH_BACKGROUND_TYPE)) {
+      switch (ui::theme::get_value(TH_BACKGROUND_TYPE)) {
         case TH_BACKGROUND_GRADIENT_LINEAR:
           background_type = BG_GRADIENT;
           break;

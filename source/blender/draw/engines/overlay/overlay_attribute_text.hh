@@ -209,7 +209,7 @@ class AttributeTexts : Overlay {
                                  const Span<StringRef> lines,
                                  const uchar4 &color)
   {
-    const float text_size = UI_style_get()->widget.points;
+    const float text_size = ui::style_get()->widget.points;
     const float line_height = text_size * 1.1f * UI_SCALE_FAC;
     const float center_offset = (lines.size() - 1) / 2.0f;
     for (const int i : lines.index_range()) {
@@ -233,7 +233,7 @@ class AttributeTexts : Overlay {
                                 const float4x4 &object_to_world)
   {
     uchar col[4];
-    UI_GetThemeColor4ubv(TH_TEXT_HI, col);
+    ui::theme::get_color_4ubv(TH_TEXT_HI, col);
 
     bke::attribute_math::convert_to_static_type(values.type(), [&](auto dummy) {
       using T = decltype(dummy);
@@ -390,7 +390,7 @@ class AttributeTexts : Overlay {
 
     const float3 pos_o_world = math::transform_point(object_to_world, corner_pos);
     const float pixel_size = ED_view3d_pixel_size(rv3d, pos_o_world);
-    const float pixel_offset = UI_style_get()->widget.points * 7.0f * UI_SCALE_FAC;
+    const float pixel_offset = ui::style_get()->widget.points * 7.0f * UI_SCALE_FAC;
     const float screen_space_offset = pixel_size * pixel_offset;
 
     const float offset_distance = std::clamp(

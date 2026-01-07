@@ -9,10 +9,12 @@
 
 #include "mesh.hh"
 
+namespace blender {
+
 struct DupliObject;
 struct ParticleSystem;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
 class InstancerData : public IdData {
   struct MeshInstance {
@@ -68,4 +70,5 @@ class InstancerData : public IdData {
   NonmeshInstance *nonmesh_instance(pxr::SdfPath const &id) const;
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

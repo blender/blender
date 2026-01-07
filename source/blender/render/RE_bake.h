@@ -14,6 +14,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender {
+
 struct Depsgraph;
 struct ImBuf;
 struct Mesh;
@@ -102,7 +104,7 @@ void RE_bake_pixels_populate(struct Mesh *mesh,
                              struct BakePixel *pixel_array,
                              size_t pixels_num,
                              const struct BakeTargets *targets,
-                             blender::StringRef uv_layer);
+                             StringRef uv_layer);
 
 void RE_bake_mask_fill(const BakePixel pixel_array[], size_t pixels_num, char *mask);
 
@@ -111,7 +113,7 @@ void RE_bake_margin(struct ImBuf *ibuf,
                     int margin,
                     char margin_type,
                     const Mesh *mesh,
-                    blender::StringRef uv_layer,
+                    StringRef uv_layer,
                     const float uv_offset[2]);
 
 void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
@@ -138,3 +140,5 @@ void RE_bake_normal_world_to_world(const BakePixel pixel_array[],
                                    const eBakeNormalSwizzle normal_swizzle[3]);
 
 void RE_bake_ibuf_clear(struct Image *image, bool is_tangent);
+
+}  // namespace blender

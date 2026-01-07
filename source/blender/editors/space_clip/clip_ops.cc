@@ -19,7 +19,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
 #include "DNA_scene_types.h" /* min/max frames */
 #include "DNA_userdef_types.h"
 
@@ -65,6 +64,8 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "clip_intern.hh" /* own include */
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name View Navigation Utilities
@@ -170,7 +171,7 @@ static void open_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
 
   op->customdata = pprop = MEM_new<PropertyPointerRNA>("OpenPropertyPointerRNA");
-  UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static void open_cancel(bContext * /*C*/, wmOperator *op)
@@ -1107,7 +1108,7 @@ static int frame_from_event(bContext *C, const wmEvent *event)
   else {
     float viewx, viewy;
 
-    UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
+    ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
     framenr = round_fl_to_int(viewx);
   }
@@ -1247,7 +1248,9 @@ static void do_movie_proxy(void *pjv,
   MovieDistortion *distortion = nullptr;
 
   if (pj->proxy_builder) {
-    MOV_proxy_builder_process(pj->proxy_builder, stop, do_update, progress);
+    MOV_proxy_builder_process(pj->proxy_builder, stop, do_update, [&](const float new_progress) {
+      *progress = new_progress;
+    });
   }
 
   if (!build_undistort_count) {
@@ -1323,7 +1326,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 
   std::lock_guard lock(queue->mutex);
   if (!*queue->stop && queue->cfra <= queue->efra) {
-    MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+    MovieClipUser user = {};
     char filepath[FILE_MAX];
     int file;
 
@@ -1364,8 +1367,8 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 
 static void proxy_task_func(TaskPool *__restrict pool, void *task_data)
 {
-  ProxyThread *data = (ProxyThread *)task_data;
-  ProxyQueue *queue = (ProxyQueue *)BLI_task_pool_user_data(pool);
+  ProxyThread *data = static_cast<ProxyThread *>(task_data);
+  ProxyQueue *queue = static_cast<ProxyQueue *>(BLI_task_pool_user_data(pool));
   uchar *mem;
   size_t size;
   int cfra;
@@ -1653,7 +1656,7 @@ static wmOperatorStatus clip_view_ndof_invoke(bContext *C,
   const wmNDOFMotionData &ndof = *static_cast<wmNDOFMotionData *>(event->customdata);
   const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
-  blender::float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get_for_navigation(ndof);
+  float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get_for_navigation(ndof);
   mul_v2_fl(pan_vec, pan_speed / sc->zoom);
 
   sclip_zoom_set_factor(C, max_ff(0.0f, 1.0f - pan_vec[2]), nullptr, false);
@@ -1907,3 +1910,5 @@ void ED_operatormacros_clip()
 }
 
 /** \} */
+
+}  // namespace blender

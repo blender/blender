@@ -16,11 +16,13 @@
 #include "eevee_lookdev.hh"
 #include "eevee_sync.hh"
 
+namespace blender {
+
 struct bNodeTree;
 struct bNodeSocketValueRGBA;
 struct UniformBuffer;
 
-namespace blender::eevee {
+namespace eevee {
 
 class Instance;
 
@@ -43,10 +45,10 @@ class World {
   Instance &inst_;
 
   /* Used to detect if world change. */
-  ::World *prev_original_world = nullptr;
+  blender::World *prev_original_world = nullptr;
 
   /* Used when the scene doesn't have a world. */
-  ::World *default_world_ = nullptr;
+  blender::World *default_world_ = nullptr;
 
   /* Is true if world as a valid volume shader compiled. */
   bool has_volume_ = false;
@@ -123,12 +125,13 @@ class World {
 
   /* Returns a dummy black world for when a valid world isn't present or when we want to suppress
    * any light coming from the world. */
-  ::World *default_world_get();
+  blender::World *default_world_get();
 
   /* Returns either the scene world or the default world if scene has no world. */
-  ::World *scene_world_get();
+  blender::World *scene_world_get();
 };
 
 /** \} */
 
-}  // namespace blender::eevee
+}  // namespace eevee
+}  // namespace blender

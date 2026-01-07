@@ -818,9 +818,7 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
 }
 
 Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
-    const Scene &scene,
-    GreasePencil &grease_pencil,
-    const blender::bke::greasepencil::Layer &layer)
+    const Scene &scene, GreasePencil &grease_pencil, const bke::greasepencil::Layer &layer)
 {
   using namespace blender::bke::greasepencil;
   const int current_frame = scene.r.cfra;
@@ -842,9 +840,7 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
 }
 
 Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer_with_falloff(
-    const Scene &scene,
-    GreasePencil &grease_pencil,
-    const blender::bke::greasepencil::Layer &layer)
+    const Scene &scene, GreasePencil &grease_pencil, const bke::greasepencil::Layer &layer)
 {
   using namespace blender::bke::greasepencil;
   const int current_frame = scene.r.cfra;
@@ -961,7 +957,6 @@ IndexMask retrieve_editable_strokes(Object &object,
                                     int layer_index,
                                     IndexMaskMemory &memory)
 {
-  using namespace blender;
   const bke::CurvesGeometry &curves = drawing.strokes();
   const IndexRange curves_range = curves.curves_range();
 
@@ -969,7 +964,7 @@ IndexMask retrieve_editable_strokes(Object &object,
     return IndexMask(curves_range);
   }
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
   const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
 
   /* If we're not using material locking, the entire curves range is editable. */
@@ -1005,7 +1000,6 @@ IndexMask retrieve_editable_fill_strokes(Object &object,
                                          int layer_index,
                                          IndexMaskMemory &memory)
 {
-  using namespace blender;
   const IndexMask editable_strokes = retrieve_editable_strokes(
       object, drawing, layer_index, memory);
   if (editable_strokes.is_empty()) {
@@ -1039,8 +1033,6 @@ IndexMask retrieve_editable_strokes_by_material(Object &object,
                                                 const int mat_i,
                                                 IndexMaskMemory &memory)
 {
-  using namespace blender;
-
   const bke::CurvesGeometry &curves = drawing.strokes();
   const IndexRange curves_range = curves.curves_range();
 
@@ -1081,7 +1073,7 @@ IndexMask retrieve_editable_points(Object &object,
     return IndexMask(points_range);
   }
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
   const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
 
   /* If we're not using material locking, the entire points range is editable. */
@@ -1133,8 +1125,6 @@ IndexMask retrieve_visible_strokes(Object &object,
                                    const bke::greasepencil::Drawing &drawing,
                                    IndexMaskMemory &memory)
 {
-  using namespace blender;
-
   /* Get all the hidden material indices. */
   VectorSet<int> hidden_material_indices = get_hidden_material_indices(object);
 
@@ -1322,7 +1312,6 @@ IndexMask retrieve_editable_and_selected_strokes(Object &object,
                                                  int layer_index,
                                                  IndexMaskMemory &memory)
 {
-  using namespace blender;
   const bke::CurvesGeometry &curves = drawing.strokes();
 
   const IndexMask editable_strokes = retrieve_editable_strokes(
@@ -1337,7 +1326,6 @@ IndexMask retrieve_editable_and_selected_fill_strokes(Object &object,
                                                       int layer_index,
                                                       IndexMaskMemory &memory)
 {
-  using namespace blender;
   const bke::CurvesGeometry &curves = drawing.strokes();
 
   const IndexMask editable_strokes = retrieve_editable_fill_strokes(
@@ -1674,7 +1662,7 @@ wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   if (!grease_pencil.has_active_layer()) {
     BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
     return OPERATOR_CANCELLED;
@@ -1701,7 +1689,14 @@ wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
+
   if (inserted_keyframe) {
+    for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
+      for (auto [frame_number, frame] : layer->frames_for_write().items()) {
+        const bool select_keyframe = (frame_number == scene->r.cfra) && (layer == &active_layer);
+        SET_FLAG_FROM_TEST(frame.flag, select_keyframe, GP_FRAME_SELECTED);
+      }
+    }
     WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
   }
   return OPERATOR_RUNNING_MODAL;
@@ -1755,18 +1750,29 @@ GreasePencil *from_context(bContext &C)
   if (grease_pencil == nullptr) {
     Object *object = CTX_data_active_object(&C);
     if (object && object->type == OB_GREASE_PENCIL) {
-      grease_pencil = static_cast<GreasePencil *>(object->data);
+      grease_pencil = id_cast<GreasePencil *>(object->data);
     }
   }
   return grease_pencil;
 }
 
-void add_single_curve(bke::CurvesGeometry &curves, const bool at_end)
+void add_single_curve(bke::greasepencil::Drawing &drawing, const bool at_end)
 {
+  bke::CurvesGeometry &curves = drawing.strokes_for_write();
   if (at_end) {
     const int num_old_points = curves.points_num();
     curves.resize(curves.points_num() + 1, curves.curves_num() + 1);
     curves.offsets_for_write().last(1) = num_old_points;
+
+    /* Note: The triangle cache doesn't need to be resized here because the new curve has a single
+     * point and can't form a new triangle yet. However, the `curve_plane_normals_cache` and
+     * `curve_texture_matrices` are expected to have the same size as the number of curves in the
+     * drawing. */
+    drawing.runtime->curve_plane_normals_cache.update(
+        [&](Vector<float3> &normals) { normals.append(float3(0, 0, 1)); });
+    drawing.runtime->curve_texture_matrices.update([&](Vector<float4x2> &texture_matrices) {
+      texture_matrices.append(float4x2::identity());
+    });
     return;
   }
 
@@ -1971,8 +1977,8 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Gather the original vertex group names. */
   Set<StringRef> orig_vgroup_names;
-  LISTBASE_FOREACH (bDeformGroup *, dg, &orig_grease_pencil.vertex_group_names) {
-    orig_vgroup_names.add(dg->name);
+  for (bDeformGroup &dg : orig_grease_pencil.vertex_group_names) {
+    orig_vgroup_names.add(dg.name);
   }
 
   /* Update the drawings. */
@@ -1984,12 +1990,12 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
     Drawing *drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
 
     if (drawing_orig && drawing_eval) {
-      CurvesGeometry &eval_strokes = drawing_eval->strokes_for_write();
+      bke::CurvesGeometry &eval_strokes = drawing_eval->strokes_for_write();
 
       /* Check for new vertex groups in CurvesGeometry. */
-      LISTBASE_FOREACH (bDeformGroup *, dg, &eval_strokes.vertex_group_names) {
-        if (!orig_vgroup_names.contains(dg->name)) {
-          new_vgroup_names.add(dg->name);
+      for (bDeformGroup &dg : eval_strokes.vertex_group_names) {
+        if (!orig_vgroup_names.contains(dg.name)) {
+          new_vgroup_names.add(dg.name);
         }
       }
 
@@ -2004,7 +2010,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Add new vertex groups to GreasePencil object. */
   for (StringRef new_vgroup_name : new_vgroup_names) {
-    bDeformGroup *dst = MEM_callocN<bDeformGroup>(__func__);
+    bDeformGroup *dst = MEM_new_for_free<bDeformGroup>(__func__);
     new_vgroup_name.copy_utf8_truncated(dst->name);
     BLI_addtail(&orig_grease_pencil.vertex_group_names, dst);
   }

@@ -16,14 +16,16 @@
 
 #include "BKE_collision.h"
 
+namespace blender {
+
 struct Brush;
 struct Sculpt;
 struct SculptSession;
-namespace blender::bke::pbvh {
+namespace bke::pbvh {
 class Node;
 }
 
-namespace blender::ed::sculpt_paint::cloth {
+namespace ed::sculpt_paint::cloth {
 
 /* Cloth Simulation. */
 enum NodeSimState {
@@ -160,4 +162,6 @@ void do_cloth_brush(const Depsgraph &depsgraph,
 
 bool is_cloth_deform_brush(const Brush &brush);
 
-}  // namespace blender::ed::sculpt_paint::cloth
+}  // namespace ed::sculpt_paint::cloth
+
+}  // namespace blender

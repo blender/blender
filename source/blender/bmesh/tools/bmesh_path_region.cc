@@ -11,13 +11,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines_stack.h"
 
 #include "bmesh.hh"
 #include "bmesh_path_region.hh" /* own include */
+
+namespace blender {
 
 /**
  * Special handling of vertices with 2 edges
@@ -117,6 +119,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
                                             const char path_htype)
 {
   int ele_verts_len[2];
+  Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> ele_verts_buf[2];
   BMVert **ele_verts[2];
 
   /* Get vertices from any `ele_src/ele_dst` elements. */
@@ -125,8 +128,9 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
     int j = 0;
 
     if (ele->head.htype == BM_FACE) {
-      BMFace *f = (BMFace *)ele;
-      ele_verts[side] = BLI_array_alloca(ele_verts[side], f->len);
+      BMFace *f = reinterpret_cast<BMFace *>(ele);
+      ele_verts_buf[side].resize(f->len);
+      ele_verts[side] = ele_verts_buf[side].data();
 
       BMLoop *l_first, *l_iter;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -135,15 +139,17 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
       } while ((l_iter = l_iter->next) != l_first);
     }
     else if (ele->head.htype == BM_EDGE) {
-      BMEdge *e = (BMEdge *)ele;
-      ele_verts[side] = BLI_array_alloca(ele_verts[side], 2);
+      BMEdge *e = reinterpret_cast<BMEdge *>(ele);
+      ele_verts_buf[side].resize(2);
+      ele_verts[side] = ele_verts_buf[side].data();
 
       ele_verts[side][j++] = e->v1;
       ele_verts[side][j++] = e->v2;
     }
     else if (ele->head.htype == BM_VERT) {
-      BMVert *v = (BMVert *)ele;
-      ele_verts[side] = BLI_array_alloca(ele_verts[side], 1);
+      BMVert *v = reinterpret_cast<BMVert *>(ele);
+      ele_verts_buf[side].resize(1);
+      ele_verts[side] = ele_verts_buf[side].data();
 
       ele_verts[side][j++] = v;
     }
@@ -175,7 +181,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
     const int side_other = !side;
 
     /* initialize depths to -1 (un-touched), fill in with the depth as we walk over the edges. */
-    depths[side] = static_cast<int *>(MEM_mallocN(sizeof(*depths[side]) * bm->totvert, __func__));
+    depths[side] = MEM_malloc_arrayN<int>(bm->totvert, __func__);
     copy_vn_i(depths[side], bm->totvert, -1);
 
     /* needed for second side */
@@ -470,3 +476,5 @@ LinkNode *BM_mesh_calc_path_region_face(BMesh *bm,
 }
 
 /** \} */
+
+}  // namespace blender

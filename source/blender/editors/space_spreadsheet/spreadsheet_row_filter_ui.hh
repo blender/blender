@@ -4,10 +4,14 @@
 
 #pragma once
 
+namespace blender {
+
 struct ARegionType;
 
-namespace blender::ed::spreadsheet {
+namespace ed::spreadsheet {
 
 void register_row_filter_panels(ARegionType &region_type);
 
 }
+
+}  // namespace blender

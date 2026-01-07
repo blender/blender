@@ -48,14 +48,14 @@
 
 #include "CLG_log.h"
 
-/* Logging. */
-CLG_LOGREF_DECLARE_GLOBAL(BKE_LOG_CONTEXT, "context");
-
 #ifdef WITH_PYTHON
 #  include "BPY_extern.hh"
 #endif
 
-using blender::Vector;
+namespace blender {
+
+/* Logging. */
+CLG_LOGREF_DECLARE_GLOBAL(BKE_LOG_CONTEXT, "context");
 
 static CLG_LogRef LOG = {"context"};
 
@@ -157,7 +157,7 @@ static bContextStore *ctx_store_extend(Vector<std::unique_ptr<bContextStore>> &c
 }
 
 bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
-                             const blender::StringRef name,
+                             const StringRef name,
                              const PointerRNA *ptr)
 {
   bContextStore *ctx = ctx_store_extend(contexts);
@@ -166,8 +166,8 @@ bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
 }
 
 bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
-                             const blender::StringRef name,
-                             const blender::StringRef str)
+                             const StringRef name,
+                             const StringRef str)
 {
   bContextStore *ctx = ctx_store_extend(contexts);
   ctx->entries.append(bContextStoreEntry{name, std::string{str}});
@@ -175,7 +175,7 @@ bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
 }
 
 bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
-                             const blender::StringRef name,
+                             const StringRef name,
                              const int64_t value)
 {
   bContextStore *ctx = ctx_store_extend(contexts);
@@ -204,7 +204,7 @@ void CTX_store_set(bContext *C, const bContextStore *store)
 }
 
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
-                                       const blender::StringRef name,
+                                       const StringRef name,
                                        const StructRNA *type)
 {
   for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
@@ -219,7 +219,7 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
 }
 
 template<typename T>
-const T *ctx_store_lookup_impl(const bContextStore *store, const blender::StringRef name)
+const T *ctx_store_lookup_impl(const bContextStore *store, const StringRef name)
 {
   for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
     if (entry->name == name && std::holds_alternative<T>(entry->value)) {
@@ -229,8 +229,8 @@ const T *ctx_store_lookup_impl(const bContextStore *store, const blender::String
   return nullptr;
 }
 
-std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStore *store,
-                                                              const blender::StringRef name)
+std::optional<StringRefNull> CTX_store_string_lookup(const bContextStore *store,
+                                                     const StringRef name)
 {
   if (const std::string *value = ctx_store_lookup_impl<std::string>(store, name)) {
     return *value;
@@ -238,8 +238,7 @@ std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStor
   return {};
 }
 
-std::optional<int64_t> CTX_store_int_lookup(const bContextStore *store,
-                                            const blender::StringRef name)
+std::optional<int64_t> CTX_store_int_lookup(const bContextStore *store, const StringRef name)
 {
   if (const int64_t *value = ctx_store_lookup_impl<int64_t>(store, name)) {
     return *value;
@@ -293,7 +292,7 @@ struct bContextDataResult {
   Vector<PointerRNA> list;
   PropertyRNA *prop;
   int index;
-  blender::StringRefNull str;
+  StringRefNull str;
   std::optional<int64_t> int_value;
   const char **dir;
   ContextDataType type;
@@ -428,7 +427,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
 #ifdef WITH_PYTHON
   if (UNLIKELY(C && CTX_py_dict_get(C))) {
     bContextDataResult result{};
-    if (BPY_context_member_get((bContext *)C, member, &result)) {
+    if (BPY_context_member_get(const_cast<bContext *>(C), member, &result)) {
       found_member = true;
 
       if (result.ptr.data) {
@@ -516,9 +515,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
       result->ptr = *ptr;
       done = 1;
     }
-    else if (std::optional<blender::StringRefNull> str = CTX_store_string_lookup(C->wm.store,
-                                                                                 member))
-    {
+    else if (std::optional<StringRefNull> str = CTX_store_string_lookup(C->wm.store, member)) {
       result->str = *str;
       result->type = ContextDataType::String;
       done = 1;
@@ -574,7 +571,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
 static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
-  if (C && ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
+  if (C && ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Pointer);
     return result.ptr.data;
   }
@@ -591,7 +588,7 @@ static bool ctx_data_pointer_verify(const bContext *C, const char *member, void 
   }
 
   bContextDataResult result;
-  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
+  if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Pointer);
     *pointer = result.ptr.data;
     return true;
@@ -606,7 +603,7 @@ static bool ctx_data_collection_get(const bContext *C,
                                     Vector<PointerRNA> *list)
 {
   bContextDataResult result;
-  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
+  if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Collection);
     *list = std::move(result.list);
     return true;
@@ -653,7 +650,7 @@ static bool ctx_data_base_collection_get(const bContext *C,
 PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
-  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
+  if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Pointer);
     return result.ptr;
   }
@@ -694,14 +691,14 @@ PointerRNA CTX_data_pointer_get_type_silent(const bContext *C, const char *membe
 Vector<PointerRNA> CTX_data_collection_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
-  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
+  if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Collection);
     return result.list;
   }
   return {};
 }
 
-void CTX_data_collection_remap_property(blender::MutableSpan<PointerRNA> collection_pointers,
+void CTX_data_collection_remap_property(MutableSpan<PointerRNA> collection_pointers,
                                         const char *propname)
 {
   for (PointerRNA &ptr : collection_pointers) {
@@ -709,10 +706,10 @@ void CTX_data_collection_remap_property(blender::MutableSpan<PointerRNA> collect
   }
 }
 
-std::optional<blender::StringRefNull> CTX_data_string_get(const bContext *C, const char *member)
+std::optional<StringRefNull> CTX_data_string_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
-  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
+  if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::String);
     return result.str;
   }
@@ -723,7 +720,7 @@ std::optional<blender::StringRefNull> CTX_data_string_get(const bContext *C, con
 std::optional<int64_t> CTX_data_int_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
-  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
+  if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Int64);
     return result.int_value;
   }
@@ -737,12 +734,12 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
                                     Vector<PointerRNA> *r_lb,
                                     PropertyRNA **r_prop,
                                     int *r_index,
-                                    blender::StringRef *r_str,
+                                    StringRef *r_str,
                                     std::optional<int64_t> *r_int_value,
                                     ContextDataType *r_type)
 {
   bContextDataResult result;
-  eContextResult ret = ctx_data_get((bContext *)C, member, &result);
+  eContextResult ret = ctx_data_get(const_cast<bContext *>(C), member, &result);
 
   if (ret == CTX_RESULT_OK) {
     *r_ptr = result.ptr;
@@ -764,7 +761,7 @@ int /*eContextResult*/ CTX_data_get(const bContext *C,
   return ret;
 }
 
-static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
+static void data_dir_add(ListBaseT<LinkData> *lb, const char *member, const bool use_all)
 {
   LinkData *link;
 
@@ -777,17 +774,17 @@ static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
   }
 
   link = MEM_callocN<LinkData>(__func__);
-  link->data = (void *)member;
+  link->data = const_cast<char *>(member);
   BLI_addtail(lb, link);
 }
 
-ListBase CTX_data_dir_get_ex(const bContext *C,
-                             const bool use_store,
-                             const bool use_rna,
-                             const bool use_all)
+ListBaseT<LinkData> CTX_data_dir_get_ex(const bContext *C,
+                                        const bool use_store,
+                                        const bool use_rna,
+                                        const bool use_all)
 {
   bContextDataResult result{};
-  ListBase lb;
+  ListBaseT<LinkData> lb;
   bScreen *screen;
   ScrArea *area;
   ARegion *region;
@@ -800,7 +797,8 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
     int namelen;
 
     PropertyRNA *iterprop;
-    PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, (void *)C);
+    PointerRNA ctx_ptr = RNA_pointer_create_discrete(
+        nullptr, &RNA_Context, const_cast<bContext *>(C));
 
     iterprop = RNA_struct_iterator_property(ctx_ptr.type);
 
@@ -850,7 +848,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
   return lb;
 }
 
-ListBase CTX_data_dir_get(const bContext *C)
+ListBaseT<LinkData> CTX_data_dir_get(const bContext *C)
 {
   return CTX_data_dir_get_ex(C, true, false, false);
 }
@@ -895,10 +893,9 @@ void CTX_data_list_add_ptr(bContextDataResult *result, const PointerRNA *ptr)
   result->list.append(*ptr);
 }
 
-int ctx_data_list_count(const bContext *C,
-                        bool (*func)(const bContext *, blender::Vector<PointerRNA> *))
+int ctx_data_list_count(const bContext *C, bool (*func)(const bContext *, Vector<PointerRNA> *))
 {
-  blender::Vector<PointerRNA> list;
+  Vector<PointerRNA> list;
   if (func(C, &list)) {
     return list.size();
   }
@@ -1302,7 +1299,7 @@ const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free)
 Main *CTX_data_main(const bContext *C)
 {
   Main *bmain;
-  if (ctx_data_pointer_verify(C, "blend_data", (void **)&bmain)) {
+  if (ctx_data_pointer_verify(C, "blend_data", reinterpret_cast<void **>(&bmain))) {
     return bmain;
   }
 
@@ -1318,7 +1315,7 @@ void CTX_data_main_set(bContext *C, Main *bmain)
 Scene *CTX_data_scene(const bContext *C)
 {
   Scene *scene;
-  if (ctx_data_pointer_verify(C, "scene", (void **)&scene)) {
+  if (ctx_data_pointer_verify(C, "scene", reinterpret_cast<void **>(&scene))) {
     return scene;
   }
 
@@ -1328,7 +1325,7 @@ Scene *CTX_data_scene(const bContext *C)
 Scene *CTX_data_sequencer_scene(const bContext *C)
 {
   Scene *scene;
-  if (ctx_data_pointer_verify(C, "sequencer_scene", (void **)&scene)) {
+  if (ctx_data_pointer_verify(C, "sequencer_scene", reinterpret_cast<void **>(&scene))) {
     return scene;
   }
   WorkSpace *workspace = CTX_wm_workspace(C);
@@ -1342,7 +1339,7 @@ ViewLayer *CTX_data_view_layer(const bContext *C)
 {
   ViewLayer *view_layer;
 
-  if (ctx_data_pointer_verify(C, "view_layer", (void **)&view_layer)) {
+  if (ctx_data_pointer_verify(C, "view_layer", reinterpret_cast<void **>(&view_layer))) {
     return view_layer;
   }
 
@@ -1369,7 +1366,8 @@ LayerCollection *CTX_data_layer_collection(const bContext *C)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   LayerCollection *layer_collection;
 
-  if (ctx_data_pointer_verify(C, "layer_collection", (void **)&layer_collection)) {
+  if (ctx_data_pointer_verify(C, "layer_collection", reinterpret_cast<void **>(&layer_collection)))
+  {
     if (BKE_view_layer_has_collection(view_layer, layer_collection->collection)) {
       return layer_collection;
     }
@@ -1382,7 +1380,7 @@ LayerCollection *CTX_data_layer_collection(const bContext *C)
 Collection *CTX_data_collection(const bContext *C)
 {
   Collection *collection;
-  if (ctx_data_pointer_verify(C, "collection", (void **)&collection)) {
+  if (ctx_data_pointer_verify(C, "collection", reinterpret_cast<void **>(&collection))) {
     return collection;
   }
 
@@ -1542,7 +1540,7 @@ void CTX_data_scene_set(bContext *C, Scene *scene)
 ToolSettings *CTX_data_tool_settings(const bContext *C)
 {
   ToolSettings *toolsettings;
-  if (ctx_data_pointer_verify(C, "tool_settings", (void **)&toolsettings)) {
+  if (ctx_data_pointer_verify(C, "tool_settings", reinterpret_cast<void **>(&toolsettings))) {
     return toolsettings;
   }
 
@@ -1554,62 +1552,62 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
   return nullptr;
 }
 
-bool CTX_data_selected_ids(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_ids(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selected_ids", list);
 }
 
-bool CTX_data_selected_nodes(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_nodes(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selected_nodes", list);
 }
 
-bool CTX_data_selected_editable_objects(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_editable_objects(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selected_editable_objects", list);
 }
 
-bool CTX_data_selected_editable_bases(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_editable_bases(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_base_collection_get(C, "selected_editable_objects", list);
 }
 
-bool CTX_data_editable_objects(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_editable_objects(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "editable_objects", list);
 }
 
-bool CTX_data_editable_bases(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_editable_bases(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_base_collection_get(C, "editable_objects", list);
 }
 
-bool CTX_data_selected_objects(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_objects(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selected_objects", list);
 }
 
-bool CTX_data_selected_bases(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_bases(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_base_collection_get(C, "selected_objects", list);
 }
 
-bool CTX_data_visible_objects(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_visible_objects(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "visible_objects", list);
 }
 
-bool CTX_data_visible_bases(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_visible_bases(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_base_collection_get(C, "visible_objects", list);
 }
 
-bool CTX_data_selectable_objects(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selectable_objects(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selectable_objects", list);
 }
 
-bool CTX_data_selectable_bases(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selectable_bases(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_base_collection_get(C, "selectable_objects", list);
 }
@@ -1667,22 +1665,22 @@ CacheFile *CTX_data_edit_cachefile(const bContext *C)
   return static_cast<CacheFile *>(ctx_data_pointer_get(C, "edit_cachefile"));
 }
 
-bool CTX_data_selected_bones(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_bones(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selected_bones", list);
 }
 
-bool CTX_data_selected_editable_bones(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_editable_bones(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selected_editable_bones", list);
 }
 
-bool CTX_data_visible_bones(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_visible_bones(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "visible_bones", list);
 }
 
-bool CTX_data_editable_bones(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_editable_bones(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "editable_bones", list);
 }
@@ -1692,18 +1690,17 @@ bPoseChannel *CTX_data_active_pose_bone(const bContext *C)
   return static_cast<bPoseChannel *>(ctx_data_pointer_get(C, "active_pose_bone"));
 }
 
-bool CTX_data_selected_pose_bones(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_pose_bones(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selected_pose_bones", list);
 }
 
-bool CTX_data_selected_pose_bones_from_active_object(const bContext *C,
-                                                     blender::Vector<PointerRNA> *list)
+bool CTX_data_selected_pose_bones_from_active_object(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "selected_pose_bones_from_active_object", list);
 }
 
-bool CTX_data_visible_pose_bones(const bContext *C, blender::Vector<PointerRNA> *list)
+bool CTX_data_visible_pose_bones(const bContext *C, Vector<PointerRNA> *list)
 {
   return ctx_data_collection_get(C, "visible_pose_bones", list);
 }
@@ -1713,10 +1710,9 @@ const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C)
   return static_cast<AssetLibraryReference *>(ctx_data_pointer_get(C, "asset_library_reference"));
 }
 
-blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C)
+asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C)
 {
-  return static_cast<blender::asset_system::AssetRepresentation *>(
-      ctx_data_pointer_get(C, "asset"));
+  return static_cast<asset_system::AssetRepresentation *>(ctx_data_pointer_get(C, "asset"));
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)
@@ -1776,3 +1772,5 @@ bool CTX_member_rna_write_check(const bContext *C)
 {
   return C->data.rna_disallow_writes ? !(*C->data.rna_disallow_writes) : true;
 }
+
+}  // namespace blender

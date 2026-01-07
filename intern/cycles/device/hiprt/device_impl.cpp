@@ -66,6 +66,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
                          const bool headless)
     : HIPDevice(info, stats, profiler, headless),
       hiprt_context(nullptr),
+      hiprt_module_(nullptr),
       scene(nullptr),
       functions_table(nullptr),
       scratch_buffer_size(0),
@@ -129,6 +130,11 @@ HIPRTDevice::~HIPRTDevice()
   hiprtDestroyGlobalStackBuffer(hiprt_context, global_stack_buffer);
   hiprtDestroyFuncTable(hiprt_context, functions_table);
   hiprtDestroyScene(hiprt_context, scene);
+
+  if (hiprt_module_) {
+    hip_assert(hipModuleUnload(hiprt_module_));
+  }
+
   hiprtDestroyContext(hiprt_context);
 }
 
@@ -261,7 +267,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
 
 bool HIPRTDevice::load_kernels(const uint kernel_features)
 {
-  if (hipModule) {
+  if (hiprt_module_) {
     if (use_adaptive_compilation()) {
       LOG_INFO << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
     }
@@ -296,7 +302,7 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
   hipError_t result;
 
   if (path_read_compressed_text(fatbin, fatbin_data)) {
-    result = hipModuleLoadData(&hipModule, fatbin_data.c_str());
+    result = hipModuleLoadData(&hiprt_module_, fatbin_data.c_str());
   }
   else {
     result = hipErrorFileNotFound;
@@ -307,33 +313,20 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
         "Failed to load HIP kernel from '%s' (%s)", fatbin.c_str(), hipewErrorString(result)));
   }
 
-  if (result == hipSuccess) {
-    kernels.load(this);
-    {
-      const DeviceKernel test_kernel = (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
-                                           DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE :
-                                       (kernel_features & KERNEL_FEATURE_MNEE) ?
-                                           DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE :
-                                           DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE;
-
-      HIPRTDeviceQueue queue(this);
-
-      device_ptr d_path_index = 0;
-      device_ptr d_render_buffer = 0;
-      int d_work_size = 0;
-      DeviceKernelArguments args(&d_path_index, &d_render_buffer, &d_work_size);
-
-      queue.init_execution();
-      queue.enqueue(test_kernel, 1, args);
-      queue.synchronize();
-    }
+  if (result != hipSuccess) {
+    return false;
   }
 
-  return (result == hipSuccess);
+  kernels.load_raytrace(this, hiprt_module_);
+
+  return HIPDevice::load_kernels(kernel_features);
 }
 
 void HIPRTDevice::const_copy_to(const char *name, void *host, const size_t size)
 {
+  /* Set constant memory for HIP module. */
+  HIPDevice::const_copy_to(name, host, size);
+
   HIPContextScope scope(this);
   hipDeviceptr_t mem;
   size_t bytes;
@@ -344,7 +337,7 @@ void HIPRTDevice::const_copy_to(const char *name, void *host, const size_t size)
     *(hiprtScene *)&data->device_bvh = scene;
   }
 
-  hip_assert(hipModuleGetGlobal(&mem, &bytes, hipModule, "kernel_params"));
+  hip_assert(hipModuleGetGlobal(&mem, &bytes, hiprt_module_, "kernel_params"));
   assert(bytes == sizeof(KernelParamsHIPRT));
 
 #  define KERNEL_DATA_ARRAY(data_type, data_name) \
@@ -991,7 +984,8 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   size_t table_ptr_size = 0;
   hipDeviceptr_t table_device_ptr;
 
-  hip_assert(hipModuleGetGlobal(&table_device_ptr, &table_ptr_size, hipModule, "kernel_params"));
+  hip_assert(
+      hipModuleGetGlobal(&table_device_ptr, &table_ptr_size, hiprt_module_, "kernel_params"));
   if (have_error()) {
     return nullptr;
   }

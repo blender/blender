@@ -233,7 +233,7 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeCombineMatrix", FN_NODE_COMBINE_MATRIX);
   ntype.ui_name = "Combine Matrix";
   ntype.ui_description = "Construct a 4x4 matrix from its individual values";
@@ -244,7 +244,7 @@ static void node_register()
   ntype.eval_elem = node_eval_elem;
   ntype.eval_inverse_elem = node_eval_inverse_elem;
   ntype.eval_inverse = node_eval_inverse;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

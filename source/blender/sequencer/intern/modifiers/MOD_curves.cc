@@ -25,22 +25,22 @@ namespace blender::seq {
 
 static void curves_init_data(StripModifierData *smd)
 {
-  CurvesModifierData *cmd = (CurvesModifierData *)smd;
+  CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
 
   BKE_curvemapping_set_defaults(&cmd->curve_mapping, 4, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
 }
 
 static void curves_free_data(StripModifierData *smd)
 {
-  CurvesModifierData *cmd = (CurvesModifierData *)smd;
+  CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
 
   BKE_curvemapping_free_data(&cmd->curve_mapping);
 }
 
 static void curves_copy_data(StripModifierData *target, StripModifierData *smd)
 {
-  CurvesModifierData *cmd = (CurvesModifierData *)smd;
-  CurvesModifierData *cmd_target = (CurvesModifierData *)target;
+  CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
+  CurvesModifierData *cmd_target = reinterpret_cast<CurvesModifierData *>(target);
 
   BKE_curvemapping_copy_data(&cmd_target->curve_mapping, &cmd->curve_mapping);
 }
@@ -71,7 +71,7 @@ struct CurvesApplyOp {
 
 static void curves_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
-  CurvesModifierData *cmd = (CurvesModifierData *)smd;
+  CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
 
   const float black[3] = {0.0f, 0.0f, 0.0f};
   const float white[3] = {1.0f, 1.0f, 1.0f};
@@ -91,9 +91,9 @@ static void curves_apply(ModifierApplyContext &context, StripModifierData *smd, 
 static void curves_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
-  uiTemplateCurveMapping(&layout, ptr, "curve_mapping", 'c', false, false, false, true, false);
+  template_curve_mapping(&layout, ptr, "curve_mapping", 'c', false, false, false, true, false);
 
   if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))

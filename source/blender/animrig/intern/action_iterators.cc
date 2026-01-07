@@ -25,13 +25,6 @@ namespace blender::animrig {
 
 void foreach_fcurve_in_action(Action &action, FunctionRef<void(FCurve &fcurve)> callback)
 {
-  if (action.is_action_legacy()) {
-    LISTBASE_FOREACH (FCurve *, fcurve, &action.curves) {
-      callback(*fcurve);
-    }
-    return;
-  }
-
   for (Layer *layer : action.layers()) {
     for (Strip *strip : layer->strips()) {
       if (strip->type() != Strip::Type::Keyframe) {
@@ -50,25 +43,18 @@ void foreach_fcurve_in_action_slot(Action &action,
                                    slot_handle_t handle,
                                    FunctionRef<void(FCurve &fcurve)> callback)
 {
-  if (action.is_action_legacy()) {
-    LISTBASE_FOREACH (FCurve *, fcurve, &action.curves) {
-      callback(*fcurve);
-    }
-  }
-  else if (action.is_action_layered()) {
-    for (Layer *layer : action.layers()) {
-      for (Strip *strip : layer->strips()) {
-        if (strip->type() != Strip::Type::Keyframe) {
+  for (Layer *layer : action.layers()) {
+    for (Strip *strip : layer->strips()) {
+      if (strip->type() != Strip::Type::Keyframe) {
+        continue;
+      }
+      for (Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
+        if (bag->slot_handle != handle) {
           continue;
         }
-        for (Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
-          if (bag->slot_handle != handle) {
-            continue;
-          }
-          for (FCurve *fcu : bag->fcurves()) {
-            BLI_assert(fcu != nullptr);
-            callback(*fcu);
-          }
+        for (FCurve *fcu : bag->fcurves()) {
+          BLI_assert(fcu != nullptr);
+          callback(*fcu);
         }
       }
     }
@@ -155,17 +141,17 @@ bool foreach_action_slot_use_with_references(
   };
 
   /* Visit Object constraints. */
-  LISTBASE_FOREACH (bConstraint *, con, &object.constraints) {
-    if (!visit_constraint(*con)) {
+  for (bConstraint &con : object.constraints) {
+    if (!visit_constraint(con)) {
       return false;
     }
   }
 
   /* Visit Pose Bone constraints. */
   if (object.type == OB_ARMATURE) {
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &object.pose->chanbase) {
-      LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-        if (!visit_constraint(*con)) {
+    for (bPoseChannel &pchan : object.pose->chanbase) {
+      for (bConstraint &con : pchan.constraints) {
+        if (!visit_constraint(con)) {
           return false;
         }
       }
@@ -244,17 +230,17 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
   };
 
   /* Visit Object constraints. */
-  LISTBASE_FOREACH (bConstraint *, con, &object.constraints) {
-    if (!visit_constraint(*con)) {
+  for (bConstraint &con : object.constraints) {
+    if (!visit_constraint(con)) {
       return false;
     }
   }
 
   /* Visit Pose Bone constraints. */
   if (object.type == OB_ARMATURE) {
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &object.pose->chanbase) {
-      LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-        if (!visit_constraint(*con)) {
+    for (bPoseChannel &pchan : object.pose->chanbase) {
+      for (bConstraint &con : pchan.constraints) {
+        if (!visit_constraint(con)) {
           return false;
         }
       }

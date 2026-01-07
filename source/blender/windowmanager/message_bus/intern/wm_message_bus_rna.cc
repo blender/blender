@@ -24,6 +24,8 @@
 #include "RNA_access.hh"
 #include "RNA_path.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -47,8 +49,10 @@ static uint wm_msg_rna_gset_hash(const void *key_p)
 }
 static bool wm_msg_rna_gset_cmp(const void *key_a_p, const void *key_b_p)
 {
-  const wmMsgParams_RNA *params_a = &((const wmMsgSubscribeKey_RNA *)key_a_p)->msg.params;
-  const wmMsgParams_RNA *params_b = &((const wmMsgSubscribeKey_RNA *)key_b_p)->msg.params;
+  const wmMsgParams_RNA *params_a =
+      &(static_cast<const wmMsgSubscribeKey_RNA *>(key_a_p))->msg.params;
+  const wmMsgParams_RNA *params_b =
+      &(static_cast<const wmMsgSubscribeKey_RNA *>(key_b_p))->msg.params;
   return !((params_a->ptr.type == params_b->ptr.type) &&
            (params_a->ptr.owner_id == params_b->ptr.owner_id) &&
            (params_a->ptr.data == params_b->ptr.data) && (params_a->prop == params_b->prop));
@@ -79,7 +83,8 @@ static void wm_msg_rna_gset_key_free(void *key_p)
 
 static void wm_msg_rna_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
 {
-  const wmMsgSubscribeKey_RNA *m = (wmMsgSubscribeKey_RNA *)msg_key;
+  const wmMsgSubscribeKey_RNA *m = reinterpret_cast<wmMsgSubscribeKey_RNA *>(
+      const_cast<wmMsgSubscribeKey *>(msg_key));
   const char *none = "<none>";
   fprintf(stream,
           "<wmMsg_RNA %p, "
@@ -88,7 +93,9 @@ static void wm_msg_rna_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
           m,
           m->msg.head.id,
           m->msg.params.ptr.type ? RNA_struct_identifier(m->msg.params.ptr.type) : none,
-          m->msg.params.prop ? RNA_property_identifier((PropertyRNA *)m->msg.params.prop) : none,
+          m->msg.params.prop ?
+              RNA_property_identifier(const_cast<PropertyRNA *>(m->msg.params.prop)) :
+              none,
           BLI_listbase_count(&m->head.values));
 }
 
@@ -312,8 +319,8 @@ void WM_msg_subscribe_rna_params(wmMsgBus *mbus,
                                     none,
              id_repr);
 
-  wmMsgSubscribeKey_RNA *msg_key = (wmMsgSubscribeKey_RNA *)WM_msg_subscribe_with_key(
-      mbus, &msg_key_test.head, msg_val_params);
+  wmMsgSubscribeKey_RNA *msg_key = reinterpret_cast<wmMsgSubscribeKey_RNA *>(
+      WM_msg_subscribe_with_key(mbus, &msg_key_test.head, msg_val_params));
 
   if (msg_val_params->is_persistent) {
     if (msg_key->msg.params.data_path == nullptr) {
@@ -365,3 +372,5 @@ void WM_msg_publish_ID(wmMsgBus *mbus, ID *id)
 }
 
 /** \} */
+
+}  // namespace blender

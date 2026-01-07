@@ -19,9 +19,9 @@ extern PyTypeObject TVertex_Type;
 #define BPy_TVertex_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TVertex_Type))
 
 /*---------------------------Python BPy_TVertex structure definition----------*/
-typedef struct {
+struct BPy_TVertex {
   BPy_ViewVertex py_vv;
   Freestyle::TVertex *tv;
-} BPy_TVertex;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

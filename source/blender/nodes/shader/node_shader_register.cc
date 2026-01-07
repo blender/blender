@@ -6,6 +6,8 @@
 
 #include "node_shader_register.hh"
 
+namespace blender {
+
 void register_shader_nodes()
 {
   register_node_tree_type_sh();
@@ -110,3 +112,5 @@ void register_shader_nodes()
   register_node_type_sh_wavelength();
   register_node_type_sh_wireframe();
 }
+
+}  // namespace blender

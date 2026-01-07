@@ -27,6 +27,8 @@
 #  include "BLI_array_utils.h" /* #BLI_array_is_zeroed */
 #endif
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion
  * \{ */
@@ -107,7 +109,7 @@ static bool paintcurve_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoSt
     return false;
   }
 
-  PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
+  PaintCurveUndoStep *us = reinterpret_cast<PaintCurveUndoStep *>(us_p);
   BLI_assert(us->step.data_size == 0);
 
   us->pc_ref.ptr = pc;
@@ -122,13 +124,13 @@ static void paintcurve_undosys_step_decode(bContext * /*C*/,
                                            const eUndoStepDir /*dir*/,
                                            bool /*is_final*/)
 {
-  PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
+  PaintCurveUndoStep *us = reinterpret_cast<PaintCurveUndoStep *>(us_p);
   undocurve_to_paintcurve(&us->data, us->pc_ref.ptr);
 }
 
 static void paintcurve_undosys_step_free(UndoStep *us_p)
 {
-  PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
+  PaintCurveUndoStep *us = reinterpret_cast<PaintCurveUndoStep *>(us_p);
   undocurve_free_data(&us->data);
 }
 
@@ -136,8 +138,8 @@ static void paintcurve_undosys_foreach_ID_ref(UndoStep *us_p,
                                               UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                               void *user_data)
 {
-  PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->pc_ref));
+  PaintCurveUndoStep *us = reinterpret_cast<PaintCurveUndoStep *>(us_p);
+  foreach_ID_ref_fn(user_data, (reinterpret_cast<UndoRefID *>(&us->pc_ref)));
 }
 
 void ED_paintcurve_undosys_type(UndoType *ut)
@@ -178,3 +180,5 @@ void ED_paintcurve_undo_push_end(bContext *C)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -29,6 +29,8 @@
 #include "clip_intern.hh"
 #include "tracking_ops_intern.hh"
 
+namespace blender {
+
 /********************** Create plane track operator *********************/
 
 static wmOperatorStatus create_plane_track_tracks_exec(bContext *C, wmOperator *op)
@@ -219,7 +221,7 @@ static wmOperatorStatus slide_plane_marker_modal(bContext *C, wmOperator *op, co
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  SlidePlaneMarkerData *data = (SlidePlaneMarkerData *)op->customdata;
+  SlidePlaneMarkerData *data = static_cast<SlidePlaneMarkerData *>(op->customdata);
   float dx, dy, mdelta[2];
   int next_corner_index, prev_corner_index, diag_corner_index;
   const float *next_corner, *prev_corner, *diag_corner;
@@ -352,3 +354,5 @@ void CLIP_OT_slide_plane_marker(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR_XY | OPTYPE_BLOCKING;
 }
+
+}  // namespace blender

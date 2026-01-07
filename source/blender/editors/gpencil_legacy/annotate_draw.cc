@@ -40,6 +40,8 @@
 
 #include "UI_resources.hh"
 
+namespace blender {
+
 /* ************************************************** */
 /* GREASE PENCIL DRAWING */
 
@@ -109,7 +111,7 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
                                           short dflag,
                                           const float ink[4])
 {
-  bGPdata_Runtime runtime = blender::dna::shallow_copy(gps->runtime);
+  bGPdata_Runtime runtime = dna::shallow_copy(gps->runtime);
   const tGPspoint *points = static_cast<const tGPspoint *>(runtime.sbuffer);
   int totpoints = runtime.sbuffer_used;
   short sflag = runtime.sbuffer_sflag;
@@ -132,7 +134,7 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   const tGPspoint *pt = points;
 
@@ -266,7 +268,7 @@ static void annotation_draw_stroke_point(const bGPDspoint *points,
   copy_v3_v3(fpt, &pt->x);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   if (sflag & GP_STROKE_3DSPACE) {
     immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
@@ -310,7 +312,7 @@ static void annotation_draw_stroke_3d(
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
@@ -396,7 +398,7 @@ static void annotation_draw_stroke_2d(const bGPDspoint *points,
   float thickness = float(thickness_s);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   const bGPDspoint *pt;
   const bGPDspoint *pt_prev;
@@ -526,9 +528,9 @@ static void annotation_draw_strokes(const bGPDframe *gpf,
 {
   GPU_program_point_size(true);
 
-  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+  for (bGPDstroke &gps : gpf->strokes) {
     /* check if stroke can be drawn */
-    if (annotation_can_draw_stroke(gps, dflag) == false) {
+    if (annotation_can_draw_stroke(&gps, dflag) == false) {
       continue;
     }
 
@@ -545,13 +547,13 @@ static void annotation_draw_strokes(const bGPDframe *gpf,
       }
 
       /* 3D Lines - OpenGL primitives-based */
-      if (gps->totpoints == 1) {
+      if (gps.totpoints == 1) {
         annotation_draw_stroke_point(
-            gps->points, lthick, gps->flag, offsx, offsy, winx, winy, color);
+            gps.points, lthick, gps.flag, offsx, offsy, winx, winy, color);
       }
       else {
         annotation_draw_stroke_3d(
-            gps->points, gps->totpoints, lthick, color, gps->flag & GP_STROKE_CYCLIC);
+            gps.points, gps.totpoints, lthick, color, gps.flag & GP_STROKE_CYCLIC);
       }
 
       if (no_xray) {
@@ -562,13 +564,13 @@ static void annotation_draw_strokes(const bGPDframe *gpf,
     }
     else {
       /* 2D Strokes... */
-      if (gps->totpoints == 1) {
+      if (gps.totpoints == 1) {
         annotation_draw_stroke_point(
-            gps->points, lthick, gps->flag, offsx, offsy, winx, winy, color);
+            gps.points, lthick, gps.flag, offsx, offsy, winx, winy, color);
       }
       else {
         annotation_draw_stroke_2d(
-            gps->points, gps->totpoints, lthick, gps->flag, offsx, offsy, winx, winy, color);
+            gps.points, gps.totpoints, lthick, gps.flag, offsx, offsy, winx, winy, color);
       }
     }
   }
@@ -589,7 +591,7 @@ static void annotation_draw_onionskins(
     copy_v3_v3(color, gpl->gcolor_prev);
   }
   else {
-    UI_GetThemeColor3fv(TH_FRAME_BEFORE, color);
+    ui::theme::get_color_3fv(TH_FRAME_BEFORE, color);
   }
 
   if (gpl->gstep > 0) {
@@ -626,7 +628,7 @@ static void annotation_draw_onionskins(
     copy_v3_v3(color, gpl->gcolor_next);
   }
   else {
-    UI_GetThemeColor3fv(TH_FRAME_AFTER, color);
+    ui::theme::get_color_3fv(TH_FRAME_AFTER, color);
   }
 
   if (gpl->gstep_next > 0) {
@@ -665,22 +667,22 @@ static void annotation_draw_data_layers(
 {
   float ink[4];
 
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+  for (bGPDlayer &gpl : gpd->layers) {
     /* verify never thickness is less than 1 */
-    CLAMP_MIN(gpl->thickness, 1.0f);
-    short lthick = gpl->thickness;
+    CLAMP_MIN(gpl.thickness, 1.0f);
+    short lthick = gpl.thickness;
 
     /* apply layer opacity */
-    copy_v3_v3(ink, gpl->color);
-    ink[3] = gpl->opacity;
+    copy_v3_v3(ink, gpl.color);
+    ink[3] = gpl.opacity;
 
     /* don't draw layer if hidden */
-    if (gpl->flag & GP_LAYER_HIDE) {
+    if (gpl.flag & GP_LAYER_HIDE) {
       continue;
     }
 
     /* get frame to draw */
-    bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, cfra, GP_GETFRAME_USE_PREV);
+    bGPDframe *gpf = BKE_gpencil_layer_frame_get(&gpl, cfra, GP_GETFRAME_USE_PREV);
     if (gpf == nullptr) {
       continue;
     }
@@ -691,11 +693,11 @@ static void annotation_draw_data_layers(
      */
 
     /* xray... */
-    SET_FLAG_FROM_TEST(dflag, gpl->flag & GP_LAYER_NO_XRAY, GP_DRAWDATA_NO_XRAY);
+    SET_FLAG_FROM_TEST(dflag, gpl.flag & GP_LAYER_NO_XRAY, GP_DRAWDATA_NO_XRAY);
 
     /* Draw 'onionskins' (frame left + right) */
-    if (gpl->onion_flag & GP_LAYER_ONIONSKIN) {
-      annotation_draw_onionskins(gpl, gpf, offsx, offsy, winx, winy, dflag);
+    if (gpl.onion_flag & GP_LAYER_ONIONSKIN) {
+      annotation_draw_onionskins(&gpl, gpf, offsx, offsy, winx, winy, dflag);
     }
 
     /* draw the strokes already in active frame */
@@ -704,7 +706,7 @@ static void annotation_draw_data_layers(
     /* Check if may need to draw the active stroke cache, only if this layer is the active layer
      * that is being edited. (Stroke buffer is currently stored in gp-data)
      */
-    if ((gpl->flag & GP_LAYER_ACTIVE) && (gpf->flag & GP_FRAME_PAINT)) {
+    if ((gpl.flag & GP_LAYER_ACTIVE) && (gpf->flag & GP_FRAME_PAINT)) {
       /* Buffer stroke needs to be drawn with a different line-style
        * to help differentiate them from normal strokes.
        *
@@ -950,3 +952,5 @@ void ED_annotation_draw_ex(
 }
 
 /* ************************************************** */
+
+}  // namespace blender

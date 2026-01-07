@@ -23,6 +23,8 @@
 
 #include "blf_internal.hh"
 
+namespace blender {
+
 char *blf_dir_metrics_search(const char *filepath)
 {
   char *mfile;
@@ -55,3 +57,5 @@ char *blf_dir_metrics_search(const char *filepath)
   MEM_freeN(mfile);
   return nullptr;
 }
+
+}  // namespace blender

@@ -12,6 +12,10 @@
 #include "BLI_math_rotation.hh"
 #include "BLI_rand.hh"
 
+namespace blender::tests {
+
+using namespace blender::math;
+
 TEST(math_matrix, interp_m4_m4m4_regular)
 {
   /* Test 4x4 matrix interpolation without singularity, i.e. without axis flip. */
@@ -139,10 +143,6 @@ TEST(math_matrix, mul_m4_series)
   };
   EXPECT_M4_NEAR(matrix, expect, 1e-5);
 }
-
-namespace blender::tests {
-
-using namespace blender::math;
 
 TEST(math_matrix, MatrixInverse)
 {

@@ -13,50 +13,7 @@
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
-typedef struct TextLine {
-  struct TextLine *next, *prev;
-
-  char *line;
-  /** May be NULL if syntax is off or not yet formatted. */
-  char *format;
-  int len;
-  char _pad0[4];
-} TextLine;
-
-typedef struct Text {
-#ifdef __cplusplus
-  /** See #ID_Type comment for why this is here. */
-  static constexpr ID_Type id_type = ID_TXT;
-#endif
-
-  ID id;
-
-  void *_pad1;
-
-  /**
-   * Optional file path, when NULL text is considered internal.
-   * Otherwise this path will be used when saving/reloading.
-   *
-   * When set this is where the file will or has been saved.
-   */
-  char *filepath;
-
-  /**
-   * Python code object for this text (cached result of #Py_CompileStringObject).
-   */
-  void *compiled;
-
-  int flags;
-  char _pad0[4];
-
-  ListBase lines;
-  TextLine *curl, *sell;
-  int curc, selc;
-
-  double mtime;
-} Text;
-
-#define TXT_TABSIZE 4
+namespace blender {
 
 /** #Text.flags */
 enum {
@@ -75,3 +32,50 @@ enum {
   /** Use space instead of tabs. */
   TXT_TABSTOSPACES = 1 << 10,
 };
+
+struct TextLine {
+  struct TextLine *next = nullptr, *prev = nullptr;
+
+  char *line = nullptr;
+  /** May be NULL if syntax is off or not yet formatted. */
+  char *format = nullptr;
+  int len = 0;
+  char _pad0[4] = {};
+};
+
+struct Text {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_TXT;
+#endif
+
+  ID id;
+
+  void *_pad1 = nullptr;
+
+  /**
+   * Optional file path, when NULL text is considered internal.
+   * Otherwise this path will be used when saving/reloading.
+   *
+   * When set this is where the file will or has been saved.
+   */
+  char *filepath = nullptr;
+
+  /**
+   * Python code object for this text (cached result of #Py_CompileStringObject).
+   */
+  void *compiled = nullptr;
+
+  int flags = 0;
+  char _pad0[4] = {};
+
+  ListBaseT<TextLine> lines = {nullptr, nullptr};
+  TextLine *curl = nullptr, *sell = nullptr;
+  int curc = 0, selc = 0;
+
+  double mtime = 0;
+};
+
+#define TXT_TABSIZE 4
+
+}  // namespace blender

@@ -124,7 +124,7 @@ static const FieldInferencingInterface &get_node_field_inferencing_interface(con
 {
   /* Node groups already reference all required information, so just return that. */
   if (node.is_group()) {
-    bNodeTree *group = (bNodeTree *)node.id;
+    bNodeTree *group = id_cast<bNodeTree *>(node.id);
     if (group == nullptr) {
       static const FieldInferencingInterface empty_interface;
       return empty_interface;

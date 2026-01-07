@@ -12,6 +12,8 @@
 
 #include "DNA_collection_types.h" /* eCollectionLightLinkingState */
 
+namespace blender {
+
 struct ID;
 struct Main;
 struct Object;
@@ -20,10 +22,10 @@ struct ReportList;
 struct Scene;
 struct ViewLayer;
 
-typedef enum LightLinkingType {
+enum LightLinkingType {
   LIGHT_LINKING_RECEIVER,
   LIGHT_LINKING_BLOCKER,
-} LightLinkingType;
+};
 
 /**
  * Add an empty LightLinking data to an Object.
@@ -151,3 +153,5 @@ void BKE_light_linking_select_receivers_of_emitter(struct Scene *scene,
                                                    struct ViewLayer *view_layer,
                                                    struct Object *emitter,
                                                    LightLinkingType link_type);
+
+}  // namespace blender

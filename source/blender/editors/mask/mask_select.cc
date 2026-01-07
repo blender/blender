@@ -31,9 +31,7 @@
 
 #include "mask_intern.hh" /* own include */
 
-using blender::Array;
-using blender::int2;
-using blender::Span;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Public Mask Selection API
@@ -58,8 +56,8 @@ bool ED_mask_layer_select_check(const MaskLayer *mask_layer)
     return false;
   }
 
-  LISTBASE_FOREACH (const MaskSpline *, spline, &mask_layer->splines) {
-    if (ED_mask_spline_select_check(spline)) {
+  for (const MaskSpline &spline : mask_layer->splines) {
+    if (ED_mask_spline_select_check(&spline)) {
       return true;
     }
   }
@@ -69,8 +67,8 @@ bool ED_mask_layer_select_check(const MaskLayer *mask_layer)
 
 bool ED_mask_select_check(const Mask *mask)
 {
-  LISTBASE_FOREACH (const MaskLayer *, mask_layer, &mask->masklayers) {
-    if (ED_mask_layer_select_check(mask_layer)) {
+  for (const MaskLayer &mask_layer : mask->masklayers) {
+    if (ED_mask_layer_select_check(&mask_layer)) {
       return true;
     }
   }
@@ -102,8 +100,8 @@ void ED_mask_layer_select_set(MaskLayer *mask_layer, const bool do_select)
     }
   }
 
-  LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-    ED_mask_spline_select_set(spline, do_select);
+  for (MaskSpline &spline : mask_layer->splines) {
+    ED_mask_spline_select_set(&spline, do_select);
   }
 }
 
@@ -118,9 +116,9 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
     }
   }
 
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
+  for (MaskLayer &mask_layer : mask->masklayers) {
 
-    if (mask_layer->visibility_flag & MASK_HIDE_VIEW) {
+    if (mask_layer.visibility_flag & MASK_HIDE_VIEW) {
       continue;
     }
 
@@ -128,46 +126,46 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
       /* we don't have generic functions for this, its restricted to this operator
        * if one day we need to re-use such functionality, they can be split out */
 
-      if (mask_layer->visibility_flag & MASK_HIDE_SELECT) {
+      if (mask_layer.visibility_flag & MASK_HIDE_SELECT) {
         continue;
       }
-      LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-        for (int i = 0; i < spline->tot_point; i++) {
-          MaskSplinePoint *point = &spline->points[i];
+      for (MaskSpline &spline : mask_layer.splines) {
+        for (int i = 0; i < spline.tot_point; i++) {
+          MaskSplinePoint *point = &spline.points[i];
           BKE_mask_point_select_set(point, !BKE_mask_point_selected(point));
         }
       }
     }
     else {
-      ED_mask_layer_select_set(mask_layer, (action == SEL_SELECT) ? true : false);
+      ED_mask_layer_select_set(&mask_layer, (action == SEL_SELECT) ? true : false);
     }
   }
 }
 
 void ED_mask_select_flush_all(Mask *mask)
 {
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-      spline->flag &= ~SELECT;
+  for (MaskLayer &mask_layer : mask->masklayers) {
+    for (MaskSpline &spline : mask_layer.splines) {
+      spline.flag &= ~SELECT;
 
       /* Intentionally *don't* do this in the mask layer loop
        * so we clear flags on all splines. */
-      if (mask_layer->visibility_flag & MASK_HIDE_VIEW) {
+      if (mask_layer.visibility_flag & MASK_HIDE_VIEW) {
         continue;
       }
 
-      for (int i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *cur_point = &spline->points[i];
+      for (int i = 0; i < spline.tot_point; i++) {
+        MaskSplinePoint *cur_point = &spline.points[i];
 
         if (BKE_mask_point_selected(cur_point)) {
-          spline->flag |= SELECT;
+          spline.flag |= SELECT;
         }
         else {
           int j;
 
           for (j = 0; j < cur_point->tot_uw; j++) {
             if (cur_point->uw[j].flag & SELECT) {
-              spline->flag |= SELECT;
+              spline.flag |= SELECT;
               break;
             }
           }
@@ -836,14 +834,14 @@ static wmOperatorStatus mask_select_linked_exec(bContext *C, wmOperator * /*op*/
   bool changed = false;
 
   /* do actual selection */
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
+  for (MaskLayer &mask_layer : mask->masklayers) {
+    if (mask_layer.visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
-    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-      if (ED_mask_spline_select_check(spline)) {
-        ED_mask_spline_select_set(spline, true);
+    for (MaskSpline &spline : mask_layer.splines) {
+      if (ED_mask_spline_select_check(&spline)) {
+        ED_mask_spline_select_set(&spline, true);
         changed = true;
       }
     }
@@ -886,63 +884,63 @@ static wmOperatorStatus mask_select_more_less(bContext *C, bool more)
 {
   Mask *mask = CTX_data_edit_mask(C);
 
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
+  for (MaskLayer &mask_layer : mask->masklayers) {
+    if (mask_layer.visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
-    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-      const bool cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
+    for (MaskSpline &spline : mask_layer.splines) {
+      const bool cyclic = (spline.flag & MASK_SPLINE_CYCLIC) != 0;
       bool start_sel, end_sel, prev_sel, cur_sel;
 
       /* Re-select point if any handle is selected to make the result more predictable. */
-      for (int i = 0; i < spline->tot_point; i++) {
-        BKE_mask_point_select_set(spline->points + i, BKE_mask_point_selected(spline->points + i));
+      for (int i = 0; i < spline.tot_point; i++) {
+        BKE_mask_point_select_set(spline.points + i, BKE_mask_point_selected(spline.points + i));
       }
 
       /* select more/less does not affect empty/single point splines */
-      if (spline->tot_point < 2) {
+      if (spline.tot_point < 2) {
         continue;
       }
 
       if (cyclic) {
-        start_sel = BKE_mask_point_selected_knot(spline->points);
-        end_sel = BKE_mask_point_selected_knot(&spline->points[spline->tot_point - 1]);
+        start_sel = BKE_mask_point_selected_knot(spline.points);
+        end_sel = BKE_mask_point_selected_knot(&spline.points[spline.tot_point - 1]);
       }
       else {
         start_sel = false;
         end_sel = false;
       }
 
-      for (int i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline.tot_point; i++) {
         if (i == 0 && !cyclic) {
           continue;
         }
 
-        prev_sel = (i > 0) ? BKE_mask_point_selected_knot(&spline->points[i - 1]) : end_sel;
-        cur_sel = BKE_mask_point_selected_knot(&spline->points[i]);
+        prev_sel = (i > 0) ? BKE_mask_point_selected_knot(&spline.points[i - 1]) : end_sel;
+        cur_sel = BKE_mask_point_selected_knot(&spline.points[i]);
 
         if (cur_sel != more) {
           if (prev_sel == more) {
-            BKE_mask_point_select_set(&spline->points[i], more);
+            BKE_mask_point_select_set(&spline.points[i], more);
           }
           i++;
         }
       }
 
-      for (int i = spline->tot_point - 1; i >= 0; i--) {
-        if (i == spline->tot_point - 1 && !cyclic) {
+      for (int i = spline.tot_point - 1; i >= 0; i--) {
+        if (i == spline.tot_point - 1 && !cyclic) {
           continue;
         }
 
-        prev_sel = (i < spline->tot_point - 1) ?
-                       BKE_mask_point_selected_knot(&spline->points[i + 1]) :
+        prev_sel = (i < spline.tot_point - 1) ?
+                       BKE_mask_point_selected_knot(&spline.points[i + 1]) :
                        start_sel;
-        cur_sel = BKE_mask_point_selected_knot(&spline->points[i]);
+        cur_sel = BKE_mask_point_selected_knot(&spline.points[i]);
 
         if (cur_sel != more) {
           if (prev_sel == more) {
-            BKE_mask_point_select_set(&spline->points[i], more);
+            BKE_mask_point_select_set(&spline.points[i], more);
           }
           i--;
         }
@@ -997,3 +995,5 @@ void MASK_OT_select_less(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -9,12 +9,14 @@
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 
+namespace blender {
+
 struct Mesh;
-namespace blender::bke {
+namespace bke {
 struct GeometrySet;
 }
 
-namespace blender::geometry {
+namespace geometry {
 
 void transform_mesh(Mesh &mesh, float3 translation, math::Quaternion rotation, float3 scale);
 
@@ -28,4 +30,5 @@ std::optional<TransformGeometryErrors> transform_geometry(bke::GeometrySet &geom
 
 void translate_geometry(bke::GeometrySet &geometry, const float3 translation);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

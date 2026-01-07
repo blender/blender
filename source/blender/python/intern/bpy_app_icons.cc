@@ -19,6 +19,8 @@
 
 #include "bpy_app_icons.hh"
 
+namespace blender {
+
 /* We may want to load direct from file. */
 PyDoc_STRVAR(
     /* Wrap. */
@@ -168,15 +170,15 @@ static PyObject *bpy_app_icons_release(PyObject * /*self*/, PyObject *args, PyOb
 
 static PyMethodDef M_AppIcons_methods[] = {
     {"new_triangles",
-     (PyCFunction)bpy_app_icons_new_triangles,
+     reinterpret_cast<PyCFunction>(bpy_app_icons_new_triangles),
      METH_VARARGS | METH_KEYWORDS,
      bpy_app_icons_new_triangles_doc},
     {"new_triangles_from_file",
-     (PyCFunction)bpy_app_icons_new_triangles_from_file,
+     reinterpret_cast<PyCFunction>(bpy_app_icons_new_triangles_from_file),
      METH_VARARGS | METH_KEYWORDS,
      bpy_app_icons_new_triangles_from_file_doc},
     {"release",
-     (PyCFunction)bpy_app_icons_release,
+     reinterpret_cast<PyCFunction>(bpy_app_icons_release),
      METH_VARARGS | METH_KEYWORDS,
      bpy_app_icons_release_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -212,3 +214,5 @@ PyObject *BPY_app_icons_module()
 
   return mod;
 }
+
+}  // namespace blender

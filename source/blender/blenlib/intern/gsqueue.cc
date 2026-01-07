@@ -18,6 +18,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* target chunk size: 64kb */
 #define CHUNK_SIZE_DEFAULT (1 << 16)
 /* ensure we get at least this many elems per chunk */
@@ -28,7 +30,7 @@ struct QueueChunk {
   char data[0];
 };
 
-struct _GSQueue {
+struct GSQueue {
   QueueChunk *chunk_first;  /* first active chunk to pop from */
   QueueChunk *chunk_last;   /* last active chunk to push onto */
   QueueChunk *chunk_free;   /* free chunks to reuse */
@@ -41,12 +43,14 @@ struct _GSQueue {
 
 static void *queue_get_first_elem(GSQueue *queue)
 {
-  return ((char *)(queue)->chunk_first->data) + ((queue)->elem_size * (queue)->chunk_first_index);
+  return (static_cast<char *>((queue)->chunk_first->data)) +
+         ((queue)->elem_size * (queue)->chunk_first_index);
 }
 
 static void *queue_get_last_elem(GSQueue *queue)
 {
-  return ((char *)(queue)->chunk_last->data) + ((queue)->elem_size * (queue)->chunk_last_index);
+  return (static_cast<char *>((queue)->chunk_last->data)) +
+         ((queue)->elem_size * (queue)->chunk_last_index);
 }
 
 /**
@@ -164,3 +168,5 @@ bool BLI_gsqueue_is_empty(const GSQueue *queue)
 {
   return (queue->chunk_first == nullptr);
 }
+
+}  // namespace blender

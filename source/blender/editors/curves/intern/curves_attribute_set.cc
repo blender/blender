@@ -92,7 +92,7 @@ static void validate_value(const bke::AttributeAccessor attributes,
 static wmOperatorStatus set_attribute_exec(bContext *C, wmOperator *op)
 {
   Object *active_object = CTX_data_active_object(C);
-  Curves &active_curves_id = *static_cast<Curves *>(active_object->data);
+  Curves &active_curves_id = *id_cast<Curves *>(active_object->data);
 
   AttributeOwner active_owner = AttributeOwner::from_id(&active_curves_id.id);
   const StringRef name = *BKE_attributes_active_name_get(active_owner);
@@ -148,7 +148,7 @@ static wmOperatorStatus set_attribute_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *active_object = CTX_data_active_object(C);
-  Curves &active_curves_id = *static_cast<Curves *>(active_object->data);
+  Curves &active_curves_id = *id_cast<Curves *>(active_object->data);
 
   AttributeOwner owner = AttributeOwner::from_id(&active_curves_id.id);
   const StringRef name = *BKE_attributes_active_name_get(owner);
@@ -191,7 +191,7 @@ static void set_attribute_ui(bContext *C, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   Object *object = CTX_data_active_object(C);
-  Curves &curves_id = *static_cast<Curves *>(object->data);
+  Curves &curves_id = *id_cast<Curves *>(object->data);
 
   AttributeOwner owner = AttributeOwner::from_id(&curves_id.id);
   const StringRef name = *BKE_attributes_active_name_get(owner);

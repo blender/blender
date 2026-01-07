@@ -31,6 +31,8 @@
 
 #include "info_intern.hh" /* own include */
 
+namespace blender {
+
 /* ******************** default callbacks for info space ***************** */
 
 static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -38,7 +40,7 @@ static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   ARegion *region;
   SpaceInfo *sinfo;
 
-  sinfo = MEM_callocN<SpaceInfo>("initinfo");
+  sinfo = MEM_new_for_free<SpaceInfo>("initinfo");
   sinfo->spacetype = SPACE_INFO;
 
   sinfo->rpt_mask = INFO_RPT_OP;
@@ -67,7 +69,7 @@ static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   /* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
   // region->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
 
-  return (SpaceLink *)sinfo;
+  return reinterpret_cast<SpaceLink *>(sinfo);
 }
 
 /* Doesn't free the space-link itself. */
@@ -85,7 +87,7 @@ static SpaceLink *info_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  return (SpaceLink *)sinfon;
+  return reinterpret_cast<SpaceLink *>(sinfon);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -93,7 +95,7 @@ static void info_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Info", SPACE_INFO, RGN_TYPE_WINDOW);
@@ -105,7 +107,7 @@ static void info_textview_update_rect(const bContext *C, ARegion *region)
   SpaceInfo *sinfo = CTX_wm_space_info(C);
   View2D *v2d = &region->v2d;
 
-  UI_view2d_totRect_set(
+  ui::view2d_totRect_set(
       v2d, region->winx - 1, info_textview_height(sinfo, region, CTX_wm_reports(C)));
 }
 
@@ -116,7 +118,7 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   /* quick way to avoid drawing if not bug enough */
   if (region->winy < 16) {
@@ -126,15 +128,15 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
   info_textview_update_rect(C, region);
 
   /* Works best with no view2d matrix set. */
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   info_textview_main(sinfo, region, CTX_wm_reports(C));
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  ui::view2d_scrollers_draw(v2d, nullptr);
 }
 
 static void info_operatortypes()
@@ -246,7 +248,7 @@ static void info_header_region_message_subscribe(const wmRegionMessageSubscribeP
 
 static void info_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  BLO_write_struct(writer, SpaceInfo, sl);
+  writer->write_struct_cast<SpaceInfo>(sl);
 }
 
 void ED_spacetype_info()
@@ -291,3 +293,5 @@ void ED_spacetype_info()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

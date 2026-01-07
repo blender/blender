@@ -13,13 +13,14 @@
 #include "usd_reader_prim.hh"
 
 #include <pxr/usd/usdGeom/imageable.h>
+struct ImportSettings;
+namespace blender {
 
 struct Collection;
-struct ImportSettings;
 struct Main;
 struct ReportList;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDPointInstancerReader;
 
@@ -27,9 +28,9 @@ class USDPointInstancerReader;
  * Map a USD prototype prim path to the list of readers that convert
  * the prototype data.
  */
-using ProtoReaderMap = blender::Map<pxr::SdfPath, blender::Vector<USDPrimReader *>>;
+using ProtoReaderMap = Map<pxr::SdfPath, Vector<USDPrimReader *>>;
 
-using UsdPathSet = blender::Set<pxr::SdfPath>;
+using UsdPathSet = Set<pxr::SdfPath>;
 
 class USDStageReader {
 
@@ -38,15 +39,15 @@ class USDStageReader {
   USDImportParams params_;
   ImportSettings settings_;
 
-  blender::Vector<USDPrimReader *> readers_;
+  Vector<USDPrimReader *> readers_;
 
   /* USD dome lights are converted to a world material,
    * rather than light objects, so are handled differently */
-  blender::Vector<USDDomeLightReader *> dome_light_readers_;
+  Vector<USDDomeLightReader *> dome_light_readers_;
 
   /* USD material prim paths encountered during stage
    * traversal, for importing unused materials. */
-  blender::Vector<pxr::SdfPath> material_paths_;
+  Vector<pxr::SdfPath> material_paths_;
 
   /* Readers for scene-graph instance prototypes. */
   ProtoReaderMap proto_readers_;
@@ -115,20 +116,17 @@ class USDStageReader {
   }
 
   /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
-  ReportList *reports() const
-  {
-    return params_.worker_status ? params_.worker_status->reports : nullptr;
-  }
+  ReportList *reports() const;
 
   /** Clear all cached reader collections. */
   void clear_readers();
 
-  const blender::Vector<USDPrimReader *> &readers() const
+  const Vector<USDPrimReader *> &readers() const
   {
     return readers_;
   };
 
-  const blender::Vector<USDDomeLightReader *> &dome_light_readers() const
+  const Vector<USDDomeLightReader *> &dome_light_readers() const
   {
     return dome_light_readers_;
   };
@@ -161,7 +159,7 @@ class USDStageReader {
   USDPrimReader *collect_readers(const pxr::UsdPrim &prim,
                                  const UsdPathSet &pruned_prims,
                                  bool defined_prims_only,
-                                 blender::Vector<USDPrimReader *> &r_readers);
+                                 Vector<USDPrimReader *> &r_readers);
 
   /**
    * Returns true if the given prim should be included in the
@@ -213,4 +211,6 @@ class USDStageReader {
   void create_point_instancer_proto_readers(const UsdPathSet &proto_paths);
 };
 
-};  // namespace blender::io::usd
+};  // namespace io::usd
+
+}  // namespace blender

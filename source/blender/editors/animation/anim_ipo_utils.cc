@@ -39,13 +39,14 @@
 
 #include <cstring>
 
+namespace blender {
+
 struct StructRNA;
 
 /* ----------------------- Getter functions ----------------------- */
 
 std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
-  using namespace blender;
   /* Could make an argument, it's a documented limit at the moment. */
   constexpr size_t name_maxncpy = 256;
 
@@ -229,9 +230,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
   return RNA_struct_ui_icon(ptr.type);
 }
 
-std::string getname_anim_fcurve_for_slot(Main &bmain,
-                                         const blender::animrig::Slot &slot,
-                                         FCurve &fcurve)
+std::string getname_anim_fcurve_for_slot(Main &bmain, const animrig::Slot &slot, FCurve &fcurve)
 {
   /* TODO: Refactor to avoid this variable. */
   constexpr size_t name_maxncpy = 256;
@@ -266,7 +265,7 @@ std::string getname_anim_fcurve_for_slot(Main &bmain,
     return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
   }
 
-  if (blender::StringRef(fcurve.rna_path).find(".") != blender::StringRef::not_found) {
+  if (StringRef(fcurve.rna_path).find(".") != StringRef::not_found) {
     /* Not a simple property, so bail out. This needs path resolution, which needs an ID*. */
     return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
   }
@@ -345,3 +344,5 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
   /* finally, convert this to RGB colors */
   hsv_to_rgb_v(hsv, out);
 }
+
+}  // namespace blender

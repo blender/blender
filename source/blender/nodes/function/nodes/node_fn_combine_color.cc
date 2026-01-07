@@ -77,7 +77,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeCombSepColor *data = MEM_callocN<NodeCombSepColor>(__func__);
+  NodeCombSepColor *data = MEM_new_for_free<NodeCombSepColor>(__func__);
   data->mode = NODE_COMBSEP_COLOR_RGB;
   node->storage = data;
 }
@@ -134,7 +134,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeCombineColor", FN_NODE_COMBINE_COLOR);
   ntype.ui_name = "Combine Color";
@@ -144,12 +144,12 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = node_build_multi_function;
   ntype.draw_buttons = node_layout;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

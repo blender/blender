@@ -19,6 +19,8 @@
 #  include <tbb/flow_graph.h>
 #endif
 
+namespace blender {
+
 /* Task Graph */
 struct TaskGraph {
 #ifdef WITH_TBB
@@ -145,3 +147,5 @@ void BLI_task_graph_edge_create(TaskNode *from_node, TaskNode *to_node)
 
   from_node->successors.push_back(to_node);
 }
+
+}  // namespace blender

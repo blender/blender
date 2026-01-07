@@ -99,6 +99,9 @@ set(SRC_GLSL_COMP
   compositor_radial_lens_distortion.glsl
   compositor_read_input.glsl
   compositor_realize_on_domain.glsl
+  compositor_relative_to_pixel_float.glsl
+  compositor_relative_to_pixel_float_per_dimension.glsl
+  compositor_relative_to_pixel_vector.glsl
   compositor_sample_pixel.glsl
   compositor_scale_variable.glsl
   compositor_smaa_blending_weight_calculation.glsl

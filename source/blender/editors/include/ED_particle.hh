@@ -10,6 +10,8 @@
 
 #include "BLI_math_vector_types.hh"
 
+namespace blender {
+
 struct Depsgraph;
 struct Object;
 struct PTCacheEdit;
@@ -34,11 +36,7 @@ PTCacheEdit *PE_get_current_from_psys(ParticleSystem *psys);
 PTCacheEdit *PE_get_current(Depsgraph *depsgraph, Scene *scene, Object *ob);
 PTCacheEdit *PE_create_current(Depsgraph *depsgraph, Scene *scene, Object *ob);
 void PE_current_changed(Depsgraph *depsgraph, Scene *scene, Object *ob);
-int PE_minmax(Depsgraph *depsgraph,
-              Scene *scene,
-              ViewLayer *view_layer,
-              blender::float3 &min,
-              blender::float3 &max);
+int PE_minmax(Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float3 &min, float3 &max);
 ParticleEditSettings *PE_settings(Scene *scene);
 
 /* update calls */
@@ -60,3 +58,5 @@ bool PE_deselect_all_visible(bContext *C);
 
 /** Export for ED_undo_sys. */
 void ED_particle_undosys_type(UndoType *ut);
+
+}  // namespace blender

@@ -17,7 +17,9 @@
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
-namespace blender::nodes::node_shader_color_ramp_cc {
+namespace blender {
+
+namespace nodes::node_shader_color_ramp_cc {
 
 static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
 {
@@ -45,7 +47,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
                                GPUNodeStack *in,
                                GPUNodeStack *out)
 {
-  ColorBand *coba = (ColorBand *)node->storage;
+  ColorBand *coba = static_cast<ColorBand *>(node->storage);
   float *array, layer;
   int size;
 
@@ -143,7 +145,7 @@ class ColorBandFunction : public mf::MultiFunction {
 static void sh_node_valtorgb_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   const bNode &bnode = builder.node();
-  const ColorBand *color_band = (const ColorBand *)bnode.storage;
+  const ColorBand *color_band = static_cast<const ColorBand *>(bnode.storage);
   builder.construct_and_set_matching_fn<ColorBandFunction>(*color_band, builder.shared_tree());
 }
 
@@ -157,13 +159,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_color_ramp_cc
+}  // namespace nodes::node_shader_color_ramp_cc
 
 void register_node_type_sh_valtorgb()
 {
-  namespace file_ns = blender::nodes::node_shader_color_ramp_cc;
+  namespace file_ns = nodes::node_shader_color_ramp_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeValToRGB", SH_NODE_VALTORGB);
   ntype.ui_name = "Color Ramp";
@@ -172,12 +174,14 @@ void register_node_type_sh_valtorgb()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_valtorgb_declare;
   ntype.initfunc = file_ns::node_shader_init_valtorgb;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
-  blender::bke::node_type_storage(
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
+  bke::node_type_storage(
       ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::gpu_shader_valtorgb;
   ntype.build_multi_function = file_ns::sh_node_valtorgb_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

@@ -10,4 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 [[nodiscard]] PyObject *BPY_app_build_options_struct();
+
+}  // namespace blender

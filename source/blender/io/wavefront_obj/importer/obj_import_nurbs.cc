@@ -25,7 +25,7 @@
 
 namespace blender::io::obj {
 
-Curves *blender::io::obj::CurveFromGeometry::create_curve(const OBJImportParams &import_params)
+Curves *io::obj::CurveFromGeometry::create_curve(const OBJImportParams &import_params)
 {
   BLI_assert(!curve_geometry_.nurbs_element_.curv_indices.is_empty());
 
@@ -57,11 +57,11 @@ Object *CurveFromGeometry::create_curve_object(Main *bmain, const OBJImportParam
   /* Only one NURBS spline will be created in the curve object. */
   curve->actnu = 0;
 
-  Nurb *nurb = MEM_callocN<Nurb>(__func__);
+  Nurb *nurb = MEM_new_for_free<Nurb>(__func__);
   BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
   this->create_nurbs(curve, import_params);
 
-  obj->data = curve;
+  obj->data = id_cast<ID *>(curve);
   transform_object(obj, import_params);
 
   return obj;

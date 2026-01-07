@@ -856,7 +856,7 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
       if (value->type() != io::serialize::eValueType::String) {
         return cancel();
       }
-      bDeformGroup *defgroup = MEM_callocN<bDeformGroup>(__func__);
+      bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>(__func__);
       STRNCPY_UTF8(defgroup->name, value->as_string_value()->value().c_str());
       BLI_addtail(&mesh->vertex_group_names, defgroup);
     }
@@ -1116,8 +1116,8 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
 
     if (!BLI_listbase_is_empty(&mesh.vertex_group_names)) {
       auto io_vertex_group_names = io_mesh->append_array("vertex_group_names");
-      LISTBASE_FOREACH (bDeformGroup *, defgroup, &mesh.vertex_group_names) {
-        io_vertex_group_names->append_str(defgroup->name);
+      for (bDeformGroup &defgroup : mesh.vertex_group_names) {
+        io_vertex_group_names->append_str(defgroup.name);
       }
     }
 

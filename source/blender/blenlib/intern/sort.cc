@@ -10,6 +10,8 @@
 
 #include "BLI_sort.h"
 
+namespace blender {
+
 #ifdef min /* For MSVC. */
 #  undef min
 #endif
@@ -83,9 +85,9 @@ loop:
   SWAPINIT(a, es);
   swap_cnt = 0;
   if (n < 7) {
-    for (pm = (char *)a + es; pm < (char *)a + n * es; pm += es) {
+    for (pm = static_cast<char *>(a) + es; pm < static_cast<char *>(a) + n * es; pm += es) {
       for (pl = pm;
-           pl > (char *)a && CMP(thunk, pl - es, pl) > 0;
+           pl > static_cast<char *>(a) && CMP(thunk, pl - es, pl) > 0;
            pl -= es)
       {
         swap(pl, pl - es);
@@ -93,10 +95,10 @@ loop:
     }
     return;
   }
-  pm = (char *)a + (n / 2) * es;
+  pm = static_cast<char *>(a) + (n / 2) * es;
   if (n > 7) {
-    pl = (char *)a;
-    pn = (char *)a + (n - 1) * es;
+    pl = static_cast<char *>(a);
+    pn = static_cast<char *>(a) + (n - 1) * es;
     if (n > 40) {
       d = (n / 8) * es;
       pl = med3(pl, pl + d, pl + 2 * d, cmp, thunk);
@@ -106,9 +108,9 @@ loop:
     pm = med3(pl, pm, pn, cmp, thunk);
   }
   swap((char *)a, pm);
-  pa = pb = (char *)a + es;
+  pa = pb = static_cast<char *>(a) + es;
 
-  pc = pd = (char *)a + (n - 1) * es;
+  pc = pd = static_cast<char *>(a) + (n - 1) * es;
   for (;;) {
     while (pb <= pc && (r = CMP(thunk, pb, a)) <= 0) {
       if (r == 0) {
@@ -135,9 +137,9 @@ loop:
     pc -= es;
   }
   if (swap_cnt == 0) {  /* Switch to insertion sort */
-    for (pm = (char *)a + es; pm < (char *)a + n * es; pm += es) {
+    for (pm = static_cast<char *>(a) + es; pm < static_cast<char *>(a) + n * es; pm += es) {
       for (pl = pm;
-           pl > (char *)a && CMP(thunk, pl - es, pl) > 0;
+           pl > static_cast<char *>(a) && CMP(thunk, pl - es, pl) > 0;
            pl -= es)
       {
         swap(pl, pl - es);
@@ -146,7 +148,7 @@ loop:
     return;
   }
 
-  pn = (char *)a + n * es;
+  pn = static_cast<char *>(a) + n * es;
   r = min(pa - (char *)a, pb - pa);
   vecswap((char *)a, pb - r, r);
   r = min(pd - pc, pn - pd - es);
@@ -167,3 +169,5 @@ loop:
 #ifdef __clang__
 #  pragma clang diagnostic pop
 #endif
+
+}  // namespace blender

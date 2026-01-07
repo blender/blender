@@ -3186,6 +3186,13 @@ class _defs_sequencer_generic:
             props = tool.operator_properties("sequencer.split")
             row = layout.row()
             row.prop(props, "type", expand=True)
+
+            layout.separator()
+
+            props = tool.operator_properties("sequencer.box_blade")
+            layout.prop(props, "remove_gaps", expand=True)
+            layout.prop(props, "ignore_selection", expand=True)
+            layout.prop(props, "ignore_connections", expand=True)
         return dict(
             idname="builtin.blade",
             label="Blade",

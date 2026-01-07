@@ -228,9 +228,6 @@ set(SRC
   ${DEFSRC}
   ${APISRC}
   ../../../../intern/clog/clog.cc
-  # Needed for defaults.
-  ../../../../release/datafiles/userdef/userdef_default.c
-  ../../../../release/datafiles/userdef/userdef_default_theme.c
 
   makesrna_utils.hh
 )
@@ -428,6 +425,7 @@ target_link_libraries(makesrna PRIVATE bf_dna)
 target_link_libraries(makesrna PRIVATE bf::intern::atomic)
 target_link_libraries(makesrna PRIVATE bf::intern::guardedalloc)
 target_link_libraries(makesrna PRIVATE bf_dna_blenlib)
+target_link_libraries(makesrna PRIVATE bf_dna_defaults)
 target_link_libraries(makesrna PRIVATE bf::dependencies::optional::tbb)
 
 if(WIN32 AND NOT UNIX)
@@ -450,6 +448,7 @@ add_custom_command(
 # Build bf_rna
 set(SRC
   rna_access.cc
+  rna_define.cc
   rna_access_compare_override.cc
   rna_path.cc
   ${GENSRC}
@@ -457,8 +456,10 @@ set(SRC
   ${SRC_RNA_INC}
   rna_access_internal.hh
   rna_curves_utils.hh
+  rna_defaults.hh
   rna_internal.hh
   rna_internal_types.hh
+  rna_screen_utils.hh
 )
 
 set(LIB
@@ -491,6 +492,8 @@ set(LIB
 )
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+target_compile_definitions(bf_rna PRIVATE RNA_RUNTIME)
 
 if(WITH_GTESTS)
   set(TEST_SRC

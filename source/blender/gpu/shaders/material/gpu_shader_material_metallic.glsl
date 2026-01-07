@@ -20,6 +20,7 @@ float3 fresnel_conductor(float cosi, float3 eta, float3 k)
   return (Rparl2 + Rperp2) * 0.5f;
 }
 
+[[node]]
 void node_bsdf_metallic(float4 base_color,
                         float4 edge_tint,
                         float3 ior,
@@ -34,7 +35,7 @@ void node_bsdf_metallic(float4 base_color,
                         float thin_film_ior,
                         const float do_multiscatter,
                         const float use_complex_ior,
-                        out Closure result)
+                        Closure &result)
 {
   float3 F0 = base_color.rgb;
   float3 F82 = edge_tint.rgb;

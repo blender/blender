@@ -15,7 +15,7 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-using namespace blender;
+namespace blender {
 
 enum {
   CMP_CLOSE = 0,
@@ -136,3 +136,5 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *mesh)
     attr.finish();
   }
 }
+
+}  // namespace blender

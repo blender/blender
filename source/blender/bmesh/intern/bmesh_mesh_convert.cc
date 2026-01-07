@@ -79,7 +79,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_array.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
@@ -106,16 +105,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"geom.bmesh.convert"};
 
-using blender::Array;
-using blender::float3;
-using blender::IndexRange;
-using blender::MutableSpan;
-using blender::Span;
-using blender::StringRef;
-using blender::Vector;
-using blender::bke::AttrDomain;
+using bke::AttrDomain;
 
 bool BM_attribute_stored_in_bmesh_builtin(const StringRef name)
 {
@@ -217,7 +211,6 @@ static void mesh_attributes_copy_to_bmesh_block(CustomData &data,
 
 void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *params)
 {
-  using namespace blender;
   if (!mesh) {
     /* Sanity check. */
     return;
@@ -238,7 +231,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(&mesh->corner_data,
                                                                               mask.lmask);
 
-  blender::Vector<std::string> temporary_layers_to_delete;
+  Vector<std::string> temporary_layers_to_delete;
 
   for (const int layer_index :
        IndexRange(CustomData_number_of_layers(&mesh_ldata, CD_PROP_FLOAT2)))
@@ -282,7 +275,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     return;
   }
 
-  blender::Span<blender::float3> vert_normals;
+  Span<float3> vert_normals;
   if (params->calc_vert_normal) {
     vert_normals = mesh->vert_normals();
   }
@@ -345,9 +338,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
   if (is_new == false) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
   }
-  const float (**shape_key_table)[3] = tot_shape_keys ? (const float (**)[3])BLI_array_alloca(
-                                                            shape_key_table, tot_shape_keys) :
-                                                        nullptr;
+  Array<const float (*)[3], 32> shape_key_table_buf(tot_shape_keys);
+  const float (**shape_key_table)[3] = tot_shape_keys ? shape_key_table_buf.data() : nullptr;
 
   if ((params->active_shapekey != 0) && tot_shape_keys > 0) {
     actkey = static_cast<KeyBlock *>(BLI_findlink(&mesh->key->block, params->active_shapekey - 1));
@@ -373,8 +365,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
                 __func__);
 
         mesh->key->uidgen = 1;
-        LISTBASE_FOREACH (KeyBlock *, block, &mesh->key->block) {
-          block->uid = mesh->key->uidgen++;
+        for (KeyBlock &block : mesh->key->block) {
+          block.uid = mesh->key->uidgen++;
         }
       }
     }
@@ -467,7 +459,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
 
     /* Set shape-key data. */
     if (tot_shape_keys) {
-      float (*co_dst)[3] = (float (*)[3])BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
+      float (*co_dst)[3] = static_cast<float (*)[3]> BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
       for (int j = 0; j < tot_shape_keys; j++, co_dst++) {
         copy_v3_v3(*co_dst, shape_key_table[j][i]);
       }
@@ -477,7 +469,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     bm->elem_index_dirty &= ~BM_VERT; /* Added in order, clear dirty flag. */
   }
 
-  const Span<blender::int2> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   Array<BMEdge *> etable(mesh->edges_num);
   for (const int i : edges.index_range()) {
     BMEdge *e = etable[i] = BM_edge_create(
@@ -504,7 +496,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     bm->elem_index_dirty &= ~BM_EDGE; /* Added in order, clear dirty flag. */
   }
 
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
 
@@ -605,13 +597,13 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
       BMElem **ele_p;
       switch (msel.type) {
         case ME_VSEL:
-          ele_p = (BMElem **)&vtable[msel.index];
+          ele_p = reinterpret_cast<BMElem **>(&vtable[msel.index]);
           break;
         case ME_ESEL:
-          ele_p = (BMElem **)&etable[msel.index];
+          ele_p = reinterpret_cast<BMElem **>(&etable[msel.index]);
           break;
         case ME_FSEL:
-          ele_p = (BMElem **)&ftable[msel.index];
+          ele_p = reinterpret_cast<BMElem **>(&ftable[msel.index]);
           break;
         default:
           continue;
@@ -801,7 +793,7 @@ static void bm_to_mesh_shape(BMesh *bm,
     }
 
     KeyBlock *currkey;
-    for (currkey = (KeyBlock *)key->block.first; currkey; currkey = currkey->next) {
+    for (currkey = static_cast<KeyBlock *>(key->block.first); currkey; currkey = currkey->next) {
       if (currkey->uid == bm->vdata.layers[i].uid) {
         break;
       }
@@ -842,13 +834,13 @@ static void bm_to_mesh_shape(BMesh *bm,
 
     const int cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, actkey_uuid);
 
-    ofs = static_cast<float (*)[3]>(MEM_mallocN(sizeof(float[3]) * bm->totvert, __func__));
+    ofs = MEM_malloc_arrayN<float[3]>(bm->totvert, __func__);
     int i;
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
       const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
       /* Check the vertex existed when entering edit-mode (otherwise don't apply an offset). */
       if (keyi != ORIGINDEX_NONE) {
-        float *co_orig = (float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset);
+        float *co_orig = static_cast<float *> BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset);
         /* Could use 'eve->co' or the destination position, they're the same at this point. */
         sub_v3_v3v3(ofs[i], eve->co, co_orig);
       }
@@ -885,41 +877,42 @@ static void bm_to_mesh_shape(BMesh *bm,
     }
   }
 
-  int currkey_i;
-  LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &key->block, currkey_i) {
+  for (const auto [currkey_i, currkey] : key->block.enumerate()) {
     int keyi;
     float (*currkey_data)[3];
 
-    const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
+    const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, &currkey);
     const int cd_shape_offset = (currkey_uuid == -1) ?
                                     -1 :
                                     CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, currkey_uuid);
 
     /* Common case, the layer data is available, use it where possible. */
     if (cd_shape_offset != -1) {
-      const bool apply_offset = (ofs != nullptr) && (currkey != actkey) && (*dependent)[currkey_i];
+      const bool apply_offset = (ofs != nullptr) && (&currkey != actkey) &&
+                                (*dependent)[currkey_i];
 
-      if (currkey->data && (currkey->totelem == bm->totvert)) {
+      if (currkey.data && (currkey.totelem == bm->totvert)) {
         /* Use memory in-place. */
       }
       else {
-        currkey->data = MEM_reallocN(currkey->data, key->elemsize * bm->totvert);
-        currkey->totelem = bm->totvert;
+        currkey.data = MEM_reallocN(currkey.data, key->elemsize * bm->totvert);
+        currkey.totelem = bm->totvert;
       }
-      currkey_data = (float (*)[3])currkey->data;
+      currkey_data = static_cast<float (*)[3]>(currkey.data);
 
       int i;
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-        float *co_orig = (float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset);
+        float *co_orig = static_cast<float *> BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset);
 
-        if (currkey == actkey) {
+        if (&currkey == actkey) {
           copy_v3_v3(currkey_data[i], eve->co);
 
           if (update_vertex_coords_from_refkey) {
             BLI_assert(actkey != key->refkey);
             keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
             if (keyi != ORIGINDEX_NONE) {
-              float *co_refkey = (float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset_refkey);
+              float *co_refkey = static_cast<float *> BM_ELEM_CD_GET_VOID_P(
+                  eve, cd_shape_offset_refkey);
               copy_v3_v3(positions[i], co_refkey);
             }
           }
@@ -942,7 +935,7 @@ static void bm_to_mesh_shape(BMesh *bm,
     }
     else {
       /* No original layer data, use fallback information. */
-      if (currkey->data && (cd_shape_keyindex_offset != -1)) {
+      if (currkey.data && (cd_shape_keyindex_offset != -1)) {
         CLOG_WARN(&LOG,
                   "Found shape-key but no CD_SHAPEKEY layers to read from, "
                   "using existing shake-key data where possible");
@@ -959,16 +952,16 @@ static void bm_to_mesh_shape(BMesh *bm,
       int i;
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
 
-        if ((currkey->data != nullptr) && (cd_shape_keyindex_offset != -1) &&
+        if ((currkey.data != nullptr) && (cd_shape_keyindex_offset != -1) &&
             ((keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset)) != ORIGINDEX_NONE) &&
-            (keyi < currkey->totelem))
+            (keyi < currkey.totelem))
         {
           /* Reconstruct keys via vertices original key indices.
            * WARNING(@ideasman42): `currkey->data` is known to be unreliable as the edit-mesh
            * coordinates may be flushed back to the shape-key when exporting or rendering.
            * This is a last resort! If this branch is running as part of regular usage
            * it can be considered a bug. */
-          const float (*oldkey)[3] = static_cast<const float (*)[3]>(currkey->data);
+          const float (*oldkey)[3] = static_cast<const float (*)[3]>(currkey.data);
           copy_v3_v3(currkey_data[i], oldkey[keyi]);
         }
         else {
@@ -977,11 +970,11 @@ static void bm_to_mesh_shape(BMesh *bm,
         }
       }
 
-      currkey->totelem = bm->totvert;
-      if (currkey->data) {
-        MEM_freeN(currkey->data);
+      currkey.totelem = bm->totvert;
+      if (currkey.data) {
+        MEM_freeN(currkey.data);
       }
-      currkey->data = currkey_data;
+      currkey.data = currkey_data;
     }
   }
 
@@ -1015,36 +1008,38 @@ static void bmesh_to_mesh_calc_object_remap(Main &bmain,
   BMVert **vertMap = nullptr;
   BMVert *eve;
 
-  LISTBASE_FOREACH (Object *, ob, &bmain.objects) {
-    if ((ob->parent) && (ob->parent->data == &mesh) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
+  for (Object &ob : bmain.objects) {
+    if ((ob.parent) && (ob.parent->data == id_cast<ID *>(&mesh)) &&
+        ELEM(ob.partype, PARVERT1, PARVERT3))
+    {
 
       if (vertMap == nullptr) {
         vertMap = bm_to_mesh_vertex_map(&bm, old_totvert);
       }
 
-      if (ob->par1 < old_totvert) {
-        eve = vertMap[ob->par1];
+      if (ob.par1 < old_totvert) {
+        eve = vertMap[ob.par1];
         if (eve) {
-          ob->par1 = BM_elem_index_get(eve);
+          ob.par1 = BM_elem_index_get(eve);
         }
       }
-      if (ob->par2 < old_totvert) {
-        eve = vertMap[ob->par2];
+      if (ob.par2 < old_totvert) {
+        eve = vertMap[ob.par2];
         if (eve) {
-          ob->par2 = BM_elem_index_get(eve);
+          ob.par2 = BM_elem_index_get(eve);
         }
       }
-      if (ob->par3 < old_totvert) {
-        eve = vertMap[ob->par3];
+      if (ob.par3 < old_totvert) {
+        eve = vertMap[ob.par3];
         if (eve) {
-          ob->par3 = BM_elem_index_get(eve);
+          ob.par3 = BM_elem_index_get(eve);
         }
       }
     }
-    if (ob->data == &mesh) {
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (md->type == eModifierType_Hook) {
-          HookModifierData *hmd = (HookModifierData *)md;
+    if (ob.data == id_cast<ID *>(&mesh)) {
+      for (ModifierData &md : ob.modifiers) {
+        if (md.type == eModifierType_Hook) {
+          HookModifierData *hmd = reinterpret_cast<HookModifierData *>(&md);
 
           if (vertMap == nullptr) {
             vertMap = bm_to_mesh_vertex_map(&bm, old_totvert);
@@ -1122,8 +1117,6 @@ static Vector<BMeshToMeshLayerInfo> bm_to_mesh_copy_info_calc(const CustomData &
   }
   return infos;
 }
-
-namespace blender {
 
 static void bm_vert_table_build(BMesh &bm,
                                 MutableSpan<const BMVert *> table,
@@ -1421,11 +1414,8 @@ static void bm_to_mesh_loops(const BMesh &bm,
   });
 }
 
-}  // namespace blender
-
 void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParams *params)
 {
-  using namespace blender;
   const int old_verts_num = mesh->verts_num;
 
   BKE_mesh_clear_geometry(mesh);
@@ -1617,19 +1607,19 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
         if (mesh->totselect != 0) {
           mesh->mselect = MEM_malloc_arrayN<MSelect>(mesh->totselect, "Mesh selection history");
         }
-        int i;
-        LISTBASE_FOREACH_INDEX (BMEditSelection *, selected, &bm->selected, i) {
-          if (selected->htype == BM_VERT) {
+
+        for (const auto [i, selected] : bm->selected.enumerate()) {
+          if (selected.htype == BM_VERT) {
             mesh->mselect[i].type = ME_VSEL;
           }
-          else if (selected->htype == BM_EDGE) {
+          else if (selected.htype == BM_EDGE) {
             mesh->mselect[i].type = ME_ESEL;
           }
-          else if (selected->htype == BM_FACE) {
+          else if (selected.htype == BM_FACE) {
             mesh->mselect[i].type = ME_FSEL;
           }
 
-          mesh->mselect[i].index = BM_elem_index_get(selected->ele);
+          mesh->mselect[i].index = BM_elem_index_get(selected.ele);
         }
       },
       [&]() {
@@ -1674,7 +1664,6 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
   /* NOTE: The function is called from multiple threads with the same input BMesh and different
    * mesh objects. */
 
-  using namespace blender;
   /* Must be an empty mesh. */
   BLI_assert(mesh.verts_num == 0);
   /* Just in case, clear the derived geometry caches from the input mesh. */
@@ -1892,3 +1881,5 @@ void BM_mesh_bm_to_me_for_eval(BMesh &bm, Mesh &mesh, const CustomData_MeshMasks
 
   BM_mesh_bm_to_me_compact(bm, mesh, &mask, true);
 }
+
+}  // namespace blender

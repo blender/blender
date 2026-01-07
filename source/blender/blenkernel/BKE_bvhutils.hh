@@ -15,12 +15,14 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct BVHTree;
 struct MFace;
 struct Mesh;
 struct PointCloud;
 
-namespace blender::bke {
+namespace bke {
 
 /**
  * Struct that stores basic information about a #BVHTree built from a mesh.
@@ -105,4 +107,5 @@ struct BVHTreeFromPointCloud {
 BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
                                                   const IndexMask &points_mask);
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

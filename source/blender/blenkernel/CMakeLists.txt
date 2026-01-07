@@ -33,7 +33,6 @@ set(INC_SYS
 )
 
 set(SRC
-  ${CMAKE_SOURCE_DIR}/release/datafiles/userdef/userdef_default.c
   intern/action.cc
   intern/action_bones.cc
   intern/action_mirror.cc
@@ -788,7 +787,7 @@ add_dependencies(bf_blenkernel bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_SRC
-    intern/action_test.cc
+    intern/anim_data_test.cc
     intern/armature_deform_test.cc
     intern/armature_test.cc
     intern/asset_metadata_test.cc
@@ -805,6 +804,7 @@ if(WITH_GTESTS)
     intern/idprop_test.cc
     intern/image_partial_update_test.cc
     intern/image_test.cc
+    intern/key_test.cc
     intern/lattice_deform_test.cc
     intern/layer_test.cc
     intern/lib_id_remapper_test.cc

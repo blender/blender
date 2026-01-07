@@ -20,6 +20,7 @@
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_shader_operation.hh"
+#include "COM_undefined_node_operation.hh"
 #include "COM_utilities.hh"
 
 namespace blender::compositor {
@@ -30,8 +31,6 @@ Evaluator::Evaluator(Context &context) : context_(context) {}
 
 void Evaluator::evaluate()
 {
-  context_.reset();
-
   BLI_SCOPED_DEFER([&]() {
     if (context_.profiler()) {
       context_.profiler()->finalize(context_.get_node_tree());
@@ -39,18 +38,7 @@ void Evaluator::evaluate()
   });
 
   derived_node_tree_ = std::make_unique<DerivedNodeTree>(context_.get_node_tree());
-
-  if (!this->validate_node_tree()) {
-    return;
-  }
-
-  if (context_.is_canceled()) {
-    this->cancel_evaluation();
-    return;
-  }
-
   const Schedule schedule = compute_schedule(context_, *derived_node_tree_);
-
   CompileState compile_state(context_, schedule);
 
   for (const DNode &node : schedule) {
@@ -72,41 +60,19 @@ void Evaluator::evaluate()
   }
 }
 
-bool Evaluator::validate_node_tree()
+static NodeOperation *get_node_operation(Context &context, DNode node)
 {
-  if (derived_node_tree_->has_link_cycles()) {
-    context_.set_info_message("Compositor node tree has cyclic links!");
-    return false;
+  const char *disabled_hint = nullptr;
+  if (node->typeinfo->poll(node->typeinfo, &node->owner_tree(), &disabled_hint)) {
+    return node->typeinfo->get_compositor_operation(context, node);
   }
 
-  if (derived_node_tree_->has_undefined_nodes_or_sockets()) {
-    context_.set_info_message("Compositor node tree has undefined nodes or sockets!");
-    return false;
-  }
-
-  for (const bNodeTree *node_tree : derived_node_tree_->used_btrees()) {
-    for (const bNode *node : node_tree->all_nodes()) {
-      /* The poll method of those two nodes perform raw pointer comparisons of node trees, so they
-       * can wrongly fail since the compositor localizes the node tree, changing its pointer value
-       * than the one in the main database. So handle those two nodes. */
-      if (STR_ELEM(node->idname, "CompositorNodeRLayers", "CompositorNodeCryptomatteV2")) {
-        continue;
-      }
-
-      const char *disabled_hint = nullptr;
-      if (!node->typeinfo->poll(node->typeinfo, node_tree, &disabled_hint)) {
-        context_.set_info_message("Compositor node tree has unsupported nodes.");
-        return false;
-      }
-    }
-  }
-
-  return true;
+  return get_undefined_node_operation(context, node);
 }
 
 void Evaluator::evaluate_node(DNode node, CompileState &compile_state)
 {
-  NodeOperation *operation = node->typeinfo->get_compositor_operation(context_, node);
+  NodeOperation *operation = get_node_operation(context_, node);
 
   compile_state.map_node_to_node_operation(node, operation);
 
@@ -256,7 +222,6 @@ void Evaluator::map_pixel_operation_inputs_to_their_results(PixelOperation *oper
 
 void Evaluator::cancel_evaluation()
 {
-  context_.cache_manager().skip_next_reset();
   for (const std::unique_ptr<Operation> &operation : operations_stream_) {
     operation->free_results();
   }

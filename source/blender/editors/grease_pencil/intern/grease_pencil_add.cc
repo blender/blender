@@ -1134,8 +1134,8 @@ static bke::CurvesGeometry create_drawing_data(const Span<float3> positions,
                                                const Span<int> materials,
                                                const float4x4 &matrix)
 {
-  using namespace blender::bke;
-  CurvesGeometry curves(offsets.last(), offsets.size() - 1);
+  using namespace bke;
+  bke::CurvesGeometry curves(offsets.last(), offsets.size() - 1);
   curves.offsets_for_write().copy_from(offsets);
 
   curves.fill_curve_types(CURVE_TYPE_POLY);
@@ -1176,7 +1176,7 @@ static bke::CurvesGeometry create_drawing_data(const Span<float3> positions,
 void create_blank(Main &bmain, Object &object, const int frame_number)
 {
   using namespace blender::bke::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   int material_index = add_material_from_template(bmain, object, gp_stroke_material_black);
   object.actcol = material_index + 1;
@@ -1189,7 +1189,7 @@ void create_blank(Main &bmain, Object &object, const int frame_number)
 void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const int frame_number)
 {
   using namespace blender::bke::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   int material_index = add_material_from_template(bmain, object, gp_stroke_material_black);
   add_material_from_template(bmain, object, gp_stroke_material_white);
@@ -1216,7 +1216,7 @@ void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const i
 {
   /* Original model created by Matias Mendiola. */
   using namespace blender::bke::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   int color_black = add_material_from_template(bmain, object, gp_monkey_material_black);
   int color_eyes = add_material_from_template(bmain, object, gp_monkey_material_eyes);

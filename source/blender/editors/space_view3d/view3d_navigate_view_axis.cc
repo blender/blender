@@ -28,6 +28,8 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Axis Operator
  * \{ */
@@ -72,7 +74,7 @@ static wmOperatorStatus view_axis_exec(bContext *C, wmOperator *op)
       ViewLayer *view_layer = CTX_data_view_layer(C);
       Object *obedit = CTX_data_edit_object(C);
       /* same as transform gizmo when normal is set */
-      blender::ed::transform::ED_getTransformOrientationMatrix(
+      ed::transform::ED_getTransformOrientationMatrix(
           scene, view_layer, v3d, obact, obedit, V3D_AROUND_ACTIVE, twmat);
       align_quat = align_quat_buf;
       mat3_to_quat(align_quat, twmat);
@@ -184,3 +186,5 @@ void VIEW3D_OT_view_axis(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

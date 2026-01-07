@@ -15,7 +15,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -49,28 +48,28 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(csmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(csmd, DNA_struct_default_get(CorrectiveSmoothModifierData), modifier);
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(csmd, modifier);
 
   csmd->delta_cache.deltas = nullptr;
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const CorrectiveSmoothModifierData *csmd = (const CorrectiveSmoothModifierData *)md;
-  CorrectiveSmoothModifierData *tcsmd = (CorrectiveSmoothModifierData *)target;
+  const CorrectiveSmoothModifierData *csmd =
+      reinterpret_cast<const CorrectiveSmoothModifierData *>(md);
+  CorrectiveSmoothModifierData *tcsmd = reinterpret_cast<CorrectiveSmoothModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
-  blender::implicit_sharing::copy_shared_pointer(csmd->bind_coords,
-                                                 csmd->bind_coords_sharing_info,
-                                                 &tcsmd->bind_coords,
-                                                 &tcsmd->bind_coords_sharing_info);
+  implicit_sharing::copy_shared_pointer(csmd->bind_coords,
+                                        csmd->bind_coords_sharing_info,
+                                        &tcsmd->bind_coords,
+                                        &tcsmd->bind_coords_sharing_info);
 
   tcsmd->delta_cache.deltas = nullptr;
   tcsmd->delta_cache.deltas_num = 0;
@@ -78,7 +77,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void freeBind(CorrectiveSmoothModifierData *csmd)
 {
-  blender::implicit_sharing::free_shared_data(&csmd->bind_coords, &csmd->bind_coords_sharing_info);
+  implicit_sharing::free_shared_data(&csmd->bind_coords, &csmd->bind_coords_sharing_info);
   MEM_SAFE_FREE(csmd->delta_cache.deltas);
 
   csmd->bind_coords_num = 0;
@@ -86,13 +85,13 @@ static void freeBind(CorrectiveSmoothModifierData *csmd)
 
 static void free_data(ModifierData *md)
 {
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
   freeBind(csmd);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
 
   /* ask for vertex groups if we need them */
   if (csmd->defgrp_name[0] != '\0') {
@@ -123,9 +122,9 @@ static void mesh_get_weights(const MDeformVert *dvert,
 
 static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
 {
-  const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices faces = mesh->faces();
-  const blender::Span<int> corner_edges = mesh->corner_edges();
+  const Span<int2> edges = mesh->edges();
+  const OffsetIndices faces = mesh->faces();
+  const Span<int> corner_edges = mesh->corner_edges();
 
   /* Flag boundary edges so only boundaries are set to 1. */
   uint8_t *boundaries = MEM_calloc_arrayN<uint8_t>(size_t(edges.size()), __func__);
@@ -154,7 +153,7 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
  */
 static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
                                 Mesh *mesh,
-                                blender::MutableSpan<blender::float3> vertexCos,
+                                MutableSpan<float3> vertexCos,
                                 const float *smooth_weights,
                                 uint iterations)
 {
@@ -162,7 +161,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   int i;
 
   const int edges_num = mesh->edges_num;
-  const blender::Span<blender::int2> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
 
   struct SmoothingData_Simple {
     float delta[3];
@@ -230,7 +229,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
  */
 static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
                                        Mesh *mesh,
-                                       blender::MutableSpan<blender::float3> vertexCos,
+                                       MutableSpan<float3> vertexCos,
                                        const float *smooth_weights,
                                        uint iterations)
 {
@@ -239,7 +238,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
   /* NOTE: the way this smoothing method works, its approx half as strong as the simple-smooth,
    * and 2.0 rarely spikes, double the value for consistent behavior. */
   const float lambda = csmd->lambda * 2.0f;
-  const blender::Span<blender::int2> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   uint i;
 
   struct SmoothingData_Weighted {
@@ -324,7 +323,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
 
 static void smooth_iter(CorrectiveSmoothModifierData *csmd,
                         Mesh *mesh,
-                        blender::MutableSpan<blender::float3> vertexCos,
+                        MutableSpan<float3> vertexCos,
                         const float *smooth_weights,
                         uint iterations)
 {
@@ -344,7 +343,7 @@ static void smooth_verts(CorrectiveSmoothModifierData *csmd,
                          Mesh *mesh,
                          const MDeformVert *dvert,
                          const int defgrp_index,
-                         blender::MutableSpan<blender::float3> vertexCos)
+                         MutableSpan<float3> vertexCos)
 {
   float *smooth_weights = nullptr;
 
@@ -416,21 +415,21 @@ static bool calc_tangent_loop(const float v_dir_prev[3],
  * (may be nullptr).
  */
 static void calc_tangent_spaces(const Mesh *mesh,
-                                blender::Span<blender::float3> vertexCos,
+                                Span<float3> vertexCos,
                                 float (*r_tangent_spaces)[3][3],
                                 float *r_tangent_weights,
                                 float *r_tangent_weights_per_vertex)
 {
   const uint mvert_num = uint(mesh->verts_num);
-  const blender::OffsetIndices faces = mesh->faces();
-  blender::Span<int> corner_verts = mesh->corner_verts();
+  const OffsetIndices faces = mesh->faces();
+  Span<int> corner_verts = mesh->corner_verts();
 
   if (r_tangent_weights_per_vertex != nullptr) {
     copy_vn_fl(r_tangent_weights_per_vertex, int(mvert_num), 0.0f);
   }
 
   for (const int64_t i : faces.index_range()) {
-    const blender::IndexRange face = faces[i];
+    const IndexRange face = faces[i];
     int next_corner = int(face.start());
     int term_corner = next_corner + int(face.size());
     int prev_corner = term_corner - 2;
@@ -461,8 +460,7 @@ static void calc_tangent_spaces(const Mesh *mesh,
 
       if (calc_tangent_loop(v_dir_prev, v_dir_next, ts)) {
         if (r_tangent_weights != nullptr) {
-          const float weight = fabsf(
-              blender::math::safe_acos_approx(dot_v3v3(v_dir_next, v_dir_prev)));
+          const float weight = fabsf(math::safe_acos_approx(dot_v3v3(v_dir_next, v_dir_prev)));
           r_tangent_weights[curr_corner] = weight;
           r_tangent_weights_per_vertex[corner_verts[curr_corner]] += weight;
         }
@@ -503,11 +501,11 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
                         Mesh *mesh,
                         const MDeformVert *dvert,
                         const int defgrp_index,
-                        const blender::Span<blender::float3> rest_coords)
+                        const Span<float3> rest_coords)
 {
-  const blender::Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_verts = mesh->corner_verts();
 
-  blender::Array<blender::float3> smooth_vertex_coords(rest_coords);
+  Array<float3> smooth_vertex_coords(rest_coords);
 
   uint l_index;
 
@@ -549,19 +547,18 @@ static void correctivesmooth_modifier_do(ModifierData *md,
                                          Depsgraph *depsgraph,
                                          Object *ob,
                                          Mesh *mesh,
-                                         blender::MutableSpan<blender::float3> vertexCos,
+                                         MutableSpan<float3> vertexCos,
                                          BMEditMesh *em)
 {
-  using namespace blender;
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
 
   const bool force_delta_cache_update =
       /* XXX, take care! if mesh data itself changes we need to forcefully recalculate deltas */
       !cache_settings_equal(csmd) ||
       ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO) &&
-       (((ID *)ob->data)->recalc & ID_RECALC_ALL));
+       ((static_cast<ID *>(ob->data))->recalc & ID_RECALC_ALL));
 
-  blender::Span<int> corner_verts = mesh->corner_verts();
+  Span<int> corner_verts = mesh->corner_verts();
 
   bool use_only_smooth = (csmd->flag & MOD_CORRECTIVESMOOTH_ONLY_SMOOTH) != 0;
   const MDeformVert *dvert = nullptr;
@@ -583,8 +580,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       BLI_assert(csmd->bind_coords != nullptr);
 
       /* Copy bound data to the original modifier. */
-      CorrectiveSmoothModifierData *csmd_orig = (CorrectiveSmoothModifierData *)
-          BKE_modifier_get_original(ob, &csmd->modifier);
+      CorrectiveSmoothModifierData *csmd_orig = reinterpret_cast<CorrectiveSmoothModifierData *>(
+          BKE_modifier_get_original(ob, &csmd->modifier));
       implicit_sharing::copy_shared_pointer(csmd->bind_coords,
                                             csmd->bind_coords_sharing_info,
                                             &csmd_orig->bind_coords,
@@ -627,7 +624,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       goto error;
     }
     else {
-      const int me_numVerts = (em) ? em->bm->totvert : ((Mesh *)ob->data)->verts_num;
+      const int me_numVerts = (em) ? em->bm->totvert : (id_cast<Mesh *>(ob->data))->verts_num;
 
       if (me_numVerts != vertexCos.size()) {
         BKE_modifier_set_error(ob,
@@ -644,16 +641,15 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   if (!csmd->delta_cache.deltas || (csmd->delta_cache.deltas_num != corner_verts.size()) ||
       force_delta_cache_update)
   {
-    blender::Array<blender::float3> rest_coords_alloc;
-    blender::Span<blender::float3> rest_coords;
+    Array<float3> rest_coords_alloc;
+    Span<float3> rest_coords;
 
     store_cache_settings(csmd);
 
     if (csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
       /* caller needs to do sanity check here */
       csmd->bind_coords_num = uint(vertexCos.size());
-      rest_coords = {reinterpret_cast<const blender::float3 *>(csmd->bind_coords),
-                     csmd->bind_coords_num};
+      rest_coords = {reinterpret_cast<const float3 *>(csmd->bind_coords), csmd->bind_coords_num};
     }
     else {
       if (em) {
@@ -661,7 +657,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
         rest_coords = rest_coords_alloc;
       }
       else {
-        const Mesh *object_mesh = static_cast<const Mesh *>(ob->data);
+        const Mesh *object_mesh = id_cast<const Mesh *>(ob->data);
         rest_coords = object_mesh->vert_positions();
       }
     }
@@ -736,14 +732,14 @@ error:
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
   correctivesmooth_modifier_do(md, ctx->depsgraph, ctx->object, mesh, positions, nullptr);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -777,7 +773,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  CorrectiveSmoothModifierData csmd = *(const CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData csmd = *reinterpret_cast<const CorrectiveSmoothModifierData *>(md);
   const bool is_undo = BLO_write_is_undo(writer);
 
   if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
@@ -798,8 +794,9 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
                      sizeof(float[3]) * csmd.bind_coords_num,
                      csmd.bind_coords_sharing_info,
                      [&]() {
-                       BLO_write_float3_array(
-                           writer, csmd.bind_coords_num, (const float *)csmd.bind_coords);
+                       BLO_write_float3_array(writer,
+                                              csmd.bind_coords_num,
+                                              reinterpret_cast<const float *>(csmd.bind_coords));
                      });
   }
 
@@ -808,12 +805,13 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
 
   if (csmd->bind_coords) {
     csmd->bind_coords_sharing_info = BLO_read_shared(reader, &csmd->bind_coords, [&]() {
-      BLO_read_float3_array(reader, int(csmd->bind_coords_num), (float **)&csmd->bind_coords);
-      return blender::implicit_sharing::info_for_mem_free(csmd->bind_coords);
+      BLO_read_float3_array(
+          reader, int(csmd->bind_coords_num), reinterpret_cast<float **>(&csmd->bind_coords));
+      return implicit_sharing::info_for_mem_free(csmd->bind_coords);
     });
   }
 
@@ -857,3 +855,5 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

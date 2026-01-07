@@ -16,8 +16,7 @@
 
 #include <epoxy/gl.h>
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class GLFrameBuffer;
 class GLTexture;
@@ -154,5 +153,4 @@ static inline GLbitfield to_gl(GPUBarrier barrier_bits)
   return barrier;
 }
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

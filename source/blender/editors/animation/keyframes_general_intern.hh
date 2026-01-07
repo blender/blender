@@ -18,11 +18,13 @@
 #include <optional>
 #include <string>
 
+namespace blender {
+
 struct FCurve;
 struct ID;
 struct Main;
 
-namespace blender::ed::animation {
+namespace ed::animation {
 
 /**
  * Global copy/paste buffer for multi-slotted keyframe data.
@@ -157,4 +159,5 @@ bool pastebuf_match_index_only(Main *bmain,
                                bool to_single,
                                bool flip);
 
-}  // namespace blender::ed::animation
+}  // namespace ed::animation
+}  // namespace blender

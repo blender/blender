@@ -22,6 +22,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define EDGE_MARK 4
 #define FACE_OUT 16
 
@@ -234,8 +236,7 @@ static void bm_grid_fill_array(BMesh *bm,
 #endif
 
   if (use_interp_simple || use_vert_interp || use_loop_interp) {
-    weight_table = static_cast<float (*)[4]>(
-        MEM_mallocN(sizeof(*weight_table) * size_t(xtot * ytot), __func__));
+    weight_table = MEM_malloc_arrayN<float[4]>(xtot * ytot, __func__);
     barycentric_weights_v2_grid_cache(xtot, ytot, weight_table);
   }
   else {
@@ -481,11 +482,11 @@ static void bm_grid_fill(BMesh *bm,
   LinkData *el;
   bool use_flip = false;
 
-  ListBase *lb_a = BM_edgeloop_verts_get(estore_a);
-  ListBase *lb_b = BM_edgeloop_verts_get(estore_b);
+  ListBaseT<LinkData> *lb_a = BM_edgeloop_verts_get(estore_a);
+  ListBaseT<LinkData> *lb_b = BM_edgeloop_verts_get(estore_b);
 
-  ListBase *lb_rail_a = BM_edgeloop_verts_get(estore_rail_a);
-  ListBase *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
+  ListBaseT<LinkData> *lb_rail_a = BM_edgeloop_verts_get(estore_rail_a);
+  ListBaseT<LinkData> *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
 
   BMVert **v_grid = MEM_calloc_arrayN<BMVert *>(size_t(xtot * ytot), __func__);
   /**
@@ -532,7 +533,7 @@ static void bm_grid_fill(BMesh *bm,
 
 #ifdef USE_FLIP_DETECT
   {
-    ListBase *lb_iter[4] = {lb_a, lb_b, lb_rail_a, lb_rail_b};
+    ListBaseT<LinkData> *lb_iter[4] = {lb_a, lb_b, lb_rail_a, lb_rail_b};
     const int lb_iter_dir[4] = {-1, 1, 1, -1};
     int winding_votes = 0;
 
@@ -590,8 +591,8 @@ static bool bm_edge_test_rail_cb(BMEdge *e, void * /*bm_v*/)
 
 void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 {
-  ListBase eloops = {nullptr, nullptr};
-  ListBase eloops_rail = {nullptr, nullptr};
+  ListBaseT<BMEdgeLoopStore> eloops = {nullptr, nullptr};
+  ListBaseT<BMEdgeLoopStore> eloops_rail = {nullptr, nullptr};
   BMEdgeLoopStore *estore_a, *estore_b;
   BMEdgeLoopStore *estore_rail_a, *estore_rail_b;
   BMVert *v_a_first, *v_a_last;
@@ -599,13 +600,13 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   const short mat_nr = short(BMO_slot_int_get(op->slots_in, "mat_nr"));
   const bool use_smooth = BMO_slot_bool_get(op->slots_in, "use_smooth");
   const bool use_interp_simple = BMO_slot_bool_get(op->slots_in, "use_interp_simple");
-  std::unique_ptr<blender::Set<BMEdge *>> split_edges;
+  std::unique_ptr<Set<BMEdge *>> split_edges;
 
   int count;
   bool changed = false;
   BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
 
-  count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_cb, (void *)bm);
+  count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_cb, static_cast<void *>(bm));
 
   if (count != 2) {
     /* Note that this error message has been adjusted to make sense when called
@@ -622,10 +623,14 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   estore_a = static_cast<BMEdgeLoopStore *>(eloops.first);
   estore_b = static_cast<BMEdgeLoopStore *>(eloops.last);
 
-  v_a_first = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(estore_a)->first)->data);
-  v_a_last = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(estore_a)->last)->data);
-  v_b_first = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(estore_b)->first)->data);
-  v_b_last = static_cast<BMVert *>(((LinkData *)BM_edgeloop_verts_get(estore_b)->last)->data);
+  v_a_first = static_cast<BMVert *>(
+      (static_cast<LinkData *>(BM_edgeloop_verts_get(estore_a)->first))->data);
+  v_a_last = static_cast<BMVert *>(
+      (static_cast<LinkData *>(BM_edgeloop_verts_get(estore_a)->last))->data);
+  v_b_first = static_cast<BMVert *>(
+      (static_cast<LinkData *>(BM_edgeloop_verts_get(estore_b)->first))->data);
+  v_b_last = static_cast<BMVert *>(
+      (static_cast<LinkData *>(BM_edgeloop_verts_get(estore_b)->last))->data);
 
   if (BM_edgeloop_is_closed(estore_a) || BM_edgeloop_is_closed(estore_b)) {
     BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Closed loops unsupported");
@@ -692,7 +697,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
       const int len_b = BM_edgeloop_length_get(estore_pairs[i][1]);
       if (len_a != len_b) {
         if (split_edges == nullptr) {
-          split_edges = std::make_unique<blender::Set<BMEdge *>>();
+          split_edges = std::make_unique<Set<BMEdge *>>();
         }
 
         if (len_a < len_b) {
@@ -725,3 +730,5 @@ cleanup:
     BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
   }
 }
+
+}  // namespace blender

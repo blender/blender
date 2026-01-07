@@ -21,7 +21,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_transform_cc {
+namespace blender {
+
+namespace nodes::node_composite_transform_cc {
 
 static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
 {
@@ -62,7 +64,7 @@ static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
 static void cmp_node_init_transform(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeTransformData *data = MEM_callocN<NodeTransformData>(__func__);
+  NodeTransformData *data = MEM_new_for_free<NodeTransformData>(__func__);
   node->storage = data;
 }
 
@@ -74,10 +76,10 @@ class TransformOperation : public NodeOperation {
 
   void execute() override
   {
-    const float2 translation = float2(this->get_input("X").get_single_value_default(0.0f),
-                                      this->get_input("Y").get_single_value_default(0.0f));
-    const math::AngleRadian rotation = this->get_input("Angle").get_single_value_default(0.0f);
-    const float2 scale = float2(this->get_input("Scale").get_single_value_default(1.0f));
+    const float2 translation = float2(this->get_input("X").get_single_value_default<float>(),
+                                      this->get_input("Y").get_single_value_default<float>());
+    const math::AngleRadian rotation = this->get_input("Angle").get_single_value_default<float>();
+    const float2 scale = float2(this->get_input("Scale").get_single_value_default<float>());
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 
@@ -92,10 +94,8 @@ class TransformOperation : public NodeOperation {
 
   Interpolation get_interpolation()
   {
-    const Result &input = this->get_input("Interpolation");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_INTERPOLATION_BILINEAR);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPNodeInterpolation interpolation = static_cast<CMPNodeInterpolation>(menu_value.value);
+    const CMPNodeInterpolation interpolation = CMPNodeInterpolation(
+        this->get_input("Interpolation").get_single_value_default<MenuValue>().value);
     switch (interpolation) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
@@ -109,40 +109,36 @@ class TransformOperation : public NodeOperation {
     return Interpolation::Nearest;
   }
 
-  ExtensionMode get_extension_mode_x()
+  Extension get_extension_mode_x()
   {
-    const Result &input = this->get_input("Extension X");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_x = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_x = CMPExtensionMode(
+        this->get_input("Extension X").get_single_value_default<MenuValue>().value);
     switch (extension_x) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
+        return Extension::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
+        return Extension::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
+        return Extension::Extend;
     }
 
-    return ExtensionMode::Clip;
+    return Extension::Clip;
   }
 
-  ExtensionMode get_extension_mode_y()
+  Extension get_extension_mode_y()
   {
-    const Result &input = this->get_input("Extension Y");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_EXTENSION_MODE_CLIP);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    const CMPExtensionMode extension_y = static_cast<CMPExtensionMode>(menu_value.value);
+    const CMPExtensionMode extension_y = CMPExtensionMode(
+        this->get_input("Extension Y").get_single_value_default<MenuValue>().value);
     switch (extension_y) {
       case CMP_NODE_EXTENSION_MODE_CLIP:
-        return ExtensionMode::Clip;
+        return Extension::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
-        return ExtensionMode::Repeat;
+        return Extension::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
-        return ExtensionMode::Extend;
+        return Extension::Extend;
     }
 
-    return ExtensionMode::Clip;
+    return Extension::Clip;
   }
 };
 
@@ -151,13 +147,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new TransformOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_transform_cc
+}  // namespace nodes::node_composite_transform_cc
 
 static void register_node_type_cmp_transform()
 {
-  namespace file_ns = blender::nodes::node_composite_transform_cc;
+  namespace file_ns = nodes::node_composite_transform_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeTransform", CMP_NODE_TRANSFORM);
   ntype.ui_name = "Transform";
@@ -167,9 +163,11 @@ static void register_node_type_cmp_transform()
   ntype.declare = file_ns::cmp_node_transform_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.initfunc = file_ns::cmp_node_init_transform;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTransformData", node_free_standard_storage, node_copy_standard_storage);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_transform)
+
+}  // namespace blender

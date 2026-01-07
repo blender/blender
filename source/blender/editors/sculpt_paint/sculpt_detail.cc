@@ -59,7 +59,9 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint::dyntopo {
+namespace blender {
+
+namespace ed::sculpt_paint::dyntopo {
 
 static CLG_LogRef LOG = {"sculpt.detail"};
 
@@ -205,7 +207,7 @@ static bool sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *vc->obact;
   SculptSession &ss = *ob.sculpt;
-  Mesh &mesh = *static_cast<Mesh *>(ob.data);
+  Mesh &mesh = *id_cast<Mesh *>(ob.data);
   const Span<float3> positions = bke::pbvh::vert_positions_eval(*depsgraph, ob);
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -560,7 +562,7 @@ static void dyntopo_detail_size_edit_draw(const bContext * /*C*/, ARegion * /*re
   GPU_line_smooth(true);
 
   uint pos3d = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_matrix_push();
   GPU_matrix_mul(cd->gizmo_mat);
@@ -925,9 +927,9 @@ void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-}  // namespace blender::ed::sculpt_paint::dyntopo
+}  // namespace ed::sculpt_paint::dyntopo
 
-namespace blender::ed::sculpt_paint::dyntopo::detail_size {
+namespace ed::sculpt_paint::dyntopo::detail_size {
 
 float constant_to_detail_size(const float constant_detail, const Object &ob)
 {
@@ -968,6 +970,8 @@ float constant_to_relative_detail(const float constant_detail,
          (1.0f / (constant_detail * object_scale));
 }
 
-}  // namespace blender::ed::sculpt_paint::dyntopo::detail_size
+}  // namespace ed::sculpt_paint::dyntopo::detail_size
 
 /** \} */
+
+}  // namespace blender

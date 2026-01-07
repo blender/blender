@@ -25,7 +25,20 @@ def gltf_generate_descr(output_datafile: pathlib.Path) -> str:
     # we need to override generator field to avoid test failures
     gltf.json['asset']['generator'] = "glTF-Blender-IO Test Suite"
 
-    text += json.dumps(gltf.json, indent=2, ensure_ascii=False)
+    def round_floats(o):
+        if isinstance(o, float):
+            # round to avoid precision issues
+            # Also avoid -0.0
+            if abs(o) < 0.0005:
+                return 0.000
+            return round(o, 3)
+        if isinstance(o, dict):
+            return {k: round_floats(v) for k, v in o.items()}
+        if isinstance(o, (list, tuple)):
+            return [round_floats(x) for x in o]
+        return o
+
+    text += json.dumps(round_floats(gltf.json), indent=2, ensure_ascii=False)
     for accessor in gltf.accessors_data:
         text += accessor + "\n"
     return text

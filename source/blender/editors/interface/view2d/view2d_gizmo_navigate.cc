@@ -24,6 +24,8 @@
 
 #include "UI_view2d.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name View2D Navigation Gizmo Group
  *
@@ -166,7 +168,7 @@ static void WIDGETGROUP_navigate_setup(const bContext * /*C*/, wmGizmoGroup *gzg
 
     {
       uchar icon_color[3];
-      UI_GetThemeColor3ubv(TH_TEXT, icon_color);
+      theme::get_color_3ubv(TH_TEXT, icon_color);
       int color_tint, color_tint_hi;
       if (icon_color[0] > 128) {
         color_tint = -40;
@@ -180,8 +182,8 @@ static void WIDGETGROUP_navigate_setup(const bContext * /*C*/, wmGizmoGroup *gzg
         gz->color[3] = 0.5f;
         gz->color_hi[3] = 0.75f;
       }
-      UI_GetThemeColorShade3fv(TH_HEADER, color_tint, gz->color);
-      UI_GetThemeColorShade3fv(TH_HEADER, color_tint_hi, gz->color_hi);
+      theme::get_color_shade_3fv(TH_HEADER, color_tint, gz->color);
+      theme::get_color_shade_3fv(TH_HEADER, color_tint_hi, gz->color_hi);
     }
 
     /* may be overwritten later */
@@ -271,3 +273,5 @@ void VIEW2D_GGT_navigate_impl(wmGizmoGroupType *gzgt, const char *idname)
 }
 
 /** \} */
+
+}  // namespace blender::ui

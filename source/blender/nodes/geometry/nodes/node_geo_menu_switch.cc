@@ -36,11 +36,13 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::nodes::node_geo_menu_switch_cc {
+namespace blender {
+
+namespace nodes::node_geo_menu_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeMenuSwitch)
 
-static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
+static void node_declare(nodes::NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -101,7 +103,16 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
       input.supports_field();
     }
     /* Labels are ugly in combination with data-block pickers and are usually disabled. */
-    input.optional_label(ELEM(data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_MATERIAL));
+    input.optional_label(ELEM(data_type,
+                              SOCK_OBJECT,
+                              SOCK_IMAGE,
+                              SOCK_COLLECTION,
+                              SOCK_MATERIAL,
+                              SOCK_FONT,
+                              SOCK_SCENE,
+                              SOCK_TEXT_ID,
+                              SOCK_MASK,
+                              SOCK_SOUND));
     input.structure_type(value_structure_type);
     auto &item_output = b.add_output<decl::Bool>(enum_item.name, std::move(identifier))
                             .align_with_previous()
@@ -129,7 +140,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree *tree, bNode *node)
 {
-  NodeMenuSwitch *data = MEM_callocN<NodeMenuSwitch>(__func__);
+  NodeMenuSwitch *data = MEM_new_for_free<NodeMenuSwitch>(__func__);
   data->data_type = tree->type == NTREE_GEOMETRY ? SOCK_GEOMETRY : SOCK_RGBA;
   data->enum_definition.next_identifier = 0;
   data->enum_definition.items_array = nullptr;
@@ -143,13 +154,14 @@ static void node_init(bNodeTree *tree, bNode *node)
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<MenuSwitchItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_freeN(reinterpret_cast<NodeMenuSwitch *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeMenuSwitch &src_storage = node_storage(*src_node);
-  NodeMenuSwitch *dst_storage = MEM_dupallocN<NodeMenuSwitch>(__func__, src_storage);
+  NodeMenuSwitch *dst_storage = MEM_new_for_free<NodeMenuSwitch>(__func__,
+                                                                 dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<MenuSwitchItemsAccessor>(*src_node, *dst_node);
@@ -440,7 +452,7 @@ class MenuSwitchOperation : public NodeOperation {
   {
     Result &value_output = this->get_result("Output");
     const MenuValue menu_identifier = this->get_input("Menu").get_single_value<MenuValue>();
-    const NodeEnumDefinition &enum_definition = node_storage(bnode()).enum_definition;
+    const NodeEnumDefinition &enum_definition = node_storage(node()).enum_definition;
     bool found_item = false;
 
     for (const int i : IndexRange(enum_definition.items_num)) {
@@ -535,7 +547,7 @@ static const EnumPropertyItem *data_type_items_callback(bContext * /*C*/,
 {
   *r_free = true;
   const bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  blender::bke::bNodeTreeType *ntree_type = ntree.typeinfo;
+  bke::bNodeTreeType *ntree_type = ntree.typeinfo;
   return enum_items_filter(
       rna_enum_node_socket_data_type_items, [&](const EnumPropertyItem &item) -> bool {
         bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(item.value);
@@ -557,7 +569,7 @@ static void node_rna(StructRNA *srna)
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "GeometryNodeMenuSwitch", GEO_NODE_MENU_SWITCH);
   ntype.ui_name = "Menu Switch";
@@ -566,7 +578,7 @@ static void register_node()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype, "NodeMenuSwitch", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeMenuSwitch", node_free_storage, node_copy_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
@@ -577,15 +589,15 @@ static void register_node()
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.internally_linked_input = node_internally_linked_input;
   ntype.get_compositor_operation = get_compositor_operation;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(register_node)
 
-}  // namespace blender::nodes::node_geo_menu_switch_cc
+}  // namespace nodes::node_geo_menu_switch_cc
 
-namespace blender::nodes {
+namespace nodes {
 
 std::unique_ptr<LazyFunction> get_menu_switch_node_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
@@ -616,4 +628,5 @@ void MenuSwitchItemsAccessor::blend_read_data_item(BlendDataReader *reader, Item
   BLO_read_string(reader, &item.description);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

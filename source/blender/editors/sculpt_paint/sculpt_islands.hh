@@ -8,10 +8,12 @@
 
 #pragma once
 
+namespace blender {
+
 struct Object;
 struct SculptSession;
 
-namespace blender::ed::sculpt_paint::islands {
+namespace ed::sculpt_paint::islands {
 
 /* Ensure vertex island keys exist and are valid. */
 void ensure_cache(Object &object);
@@ -22,4 +24,6 @@ void invalidate(SculptSession &ss);
 /** Get vertex island key. */
 int vert_id_get(const SculptSession &ss, int vert);
 
-}  // namespace blender::ed::sculpt_paint::islands
+}  // namespace ed::sculpt_paint::islands
+
+}  // namespace blender

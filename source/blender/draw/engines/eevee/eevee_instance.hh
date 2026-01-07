@@ -82,6 +82,7 @@ class Instance : public DrawEngine {
   friend MotionBlurModule;
 
   /** Debug scopes. */
+  static void *debug_scope_render_frame;
   static void *debug_scope_render_sample;
   static void *debug_scope_irradiance_setup;
   static void *debug_scope_irradiance_sample;
@@ -208,7 +209,7 @@ class Instance : public DrawEngine {
         volume(*this, uniform_data.data.volumes) {};
   ~Instance() {};
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "EEVEE";
   }
@@ -351,7 +352,7 @@ class Instance : public DrawEngine {
     return ob_ref.recalc_flags(depsgraph_last_update_);
   }
 
-  int get_recalc_flags(const ::World &world)
+  int get_recalc_flags(const blender::World &world)
   {
     return world.last_update > depsgraph_last_update_ ? int(ID_RECALC_SHADING) : 0;
   }

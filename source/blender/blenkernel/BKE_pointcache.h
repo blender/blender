@@ -10,11 +10,14 @@
 
 #include "BLI_function_ref.hh"
 
-#include "DNA_boid_types.h"       /* for #BoidData */
+#include "DNA_boid_types.h" /* for #BoidData */
+#include "DNA_listBase.h"
 #include "DNA_particle_types.h"   /* for KDTree3d */
 #include "DNA_pointcache_types.h" /* for #BPHYS_TOT_DATA */
 
 #include <stdio.h> /* for #FILE */
+
+namespace blender {
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non-inclusive (they won't remove the cfra) */
@@ -65,20 +68,21 @@ struct BlendWriter;
 struct ClothModifierData;
 struct DynamicPaintSurface;
 struct FluidModifierData;
-struct ListBase;
+struct LinkData;
 struct Main;
 struct ModifierData;
 struct Object;
 struct ParticleKey;
 struct ParticleSystem;
 struct PointCache;
+struct PTCacheMem;
 struct RigidBodyWorld;
 struct Scene;
 struct SoftBody;
 struct ViewLayer;
 
 /* temp structure for read/write */
-typedef struct PTCacheData {
+struct PTCacheData {
   unsigned int index;
   float loc[3];
   float vel[3];
@@ -87,9 +91,9 @@ typedef struct PTCacheData {
   float size;
   float times[3];
   struct BoidData boids;
-} PTCacheData;
+};
 
-typedef struct PTCacheFile {
+struct PTCacheFile {
   FILE *fp;
 
   int frame, old_format;
@@ -98,7 +102,7 @@ typedef struct PTCacheFile {
 
   struct PTCacheData data;
   void *cur[BPHYS_TOT_DATA];
-} PTCacheFile;
+};
 
 #define PTCACHE_VEL_PER_SEC 1
 
@@ -106,7 +110,7 @@ enum {
   PTCACHE_FILE_PTCACHE = 0,
 };
 
-typedef struct PTCacheID {
+struct PTCacheID {
   struct PTCacheID *next, *prev;
 
   struct Scene *scene;
@@ -164,10 +168,10 @@ typedef struct PTCacheID {
   struct PointCache *cache;
   /** Used for setting the current cache from `ptcaches` list. */
   struct PointCache **cache_ptr;
-  struct ListBase *ptcaches;
-} PTCacheID;
+  ListBaseT<PointCache> *ptcaches;
+};
 
-typedef struct PTCacheBaker {
+struct PTCacheBaker {
   struct Main *bmain;
   struct Scene *scene;
   struct ViewLayer *view_layer;
@@ -180,7 +184,7 @@ typedef struct PTCacheBaker {
 
   void (*update_progress)(void *data, float progress, int *cancel);
   void *bake_job;
-} PTCacheBaker;
+};
 
 /* PTCacheEditKey->flag */
 #define PEK_SELECT 1
@@ -188,7 +192,7 @@ typedef struct PTCacheBaker {
 #define PEK_HIDE 4
 #define PEK_USE_WCO 8
 
-typedef struct PTCacheEditKey {
+struct PTCacheEditKey {
   float *co;
   float *vel;
   float *rot;
@@ -198,7 +202,7 @@ typedef struct PTCacheEditKey {
   float ftime;
   float length;
   short flag;
-} PTCacheEditKey;
+};
 
 /* PTCacheEditPoint->flag */
 #define PEP_TAG 1
@@ -206,13 +210,13 @@ typedef struct PTCacheEditKey {
 #define PEP_TRANSFORM 4
 #define PEP_HIDE 8
 
-typedef struct PTCacheEditPoint {
+struct PTCacheEditPoint {
   struct PTCacheEditKey *keys;
   int totkey;
   short flag;
-} PTCacheEditPoint;
+};
 
-typedef struct PTCacheUndo {
+struct PTCacheUndo {
   struct PTCacheEditPoint *points;
 
   /* particles stuff */
@@ -222,12 +226,12 @@ typedef struct PTCacheUndo {
   int psys_flag;
 
   /* cache stuff */
-  struct ListBase mem_cache;
+  ListBaseT<PTCacheMem> mem_cache;
 
   int totpoint;
 
   size_t undo_size;
-} PTCacheUndo;
+};
 
 enum {
   /* Modifier stack got evaluated during particle edit mode, need to copy
@@ -236,7 +240,7 @@ enum {
   PT_CACHE_EDIT_UPDATE_PARTICLE_FROM_EVAL = (1 << 0),
 };
 
-typedef struct PTCacheEdit {
+struct PTCacheEdit {
   int flags;
 
   PTCacheEditPoint *points;
@@ -254,10 +258,10 @@ typedef struct PTCacheEdit {
   int *mirror_cache;
 
   struct ParticleCacheKey **pathcache; /* path cache (runtime) */
-  ListBase pathcachebufs;
+  ListBaseT<LinkData> pathcachebufs;
 
   int totpoint, totframes, totcached, edited;
-} PTCacheEdit;
+};
 
 void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **data, float time);
 
@@ -282,12 +286,12 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, struct Object *ob, struct Rig
  * \param scene: Optional may be NULL.
  */
 PTCacheID BKE_ptcache_id_find(struct Object *ob, struct Scene *scene, struct PointCache *cache);
-void BKE_ptcache_ids_from_object(struct ListBase *lb,
+void BKE_ptcache_ids_from_object(ListBaseT<PTCacheID> *lb,
                                  struct Object *ob,
                                  struct Scene *scene,
                                  int duplis);
 
-using PointCacheIdFn = blender::FunctionRef<bool(PTCacheID &pid, ModifierData *md)>;
+using PointCacheIdFn = FunctionRef<bool(PTCacheID &pid, ModifierData *md)>;
 void BKE_ptcache_foreach_object_cache(struct Object &ob,
                                       struct Scene &scene,
                                       bool duplis,
@@ -350,13 +354,13 @@ int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
 
 /******************* Allocate & free ***************/
 
-struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
-void BKE_ptcache_free_mem(struct ListBase *mem_cache);
+struct PointCache *BKE_ptcache_add(ListBaseT<PointCache> *ptcaches);
+void BKE_ptcache_free_mem(ListBaseT<PTCacheMem> *mem_cache);
 void BKE_ptcache_free(struct PointCache *cache);
-void BKE_ptcache_free_list(struct ListBase *ptcaches);
+void BKE_ptcache_free_list(ListBaseT<PointCache> *ptcaches);
 /** Returns first point cache. */
-struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new,
-                                         const struct ListBase *ptcaches_old,
+struct PointCache *BKE_ptcache_copy_list(ListBaseT<PointCache> *ptcaches_new,
+                                         const ListBaseT<PointCache> *ptcaches_old,
                                          int flag);
 
 /********************** Baking *********************/
@@ -408,8 +412,10 @@ void BKE_ptcache_invalidate(struct PointCache *cache);
 
 /********************** .blend File I/O *********************/
 
-void BKE_ptcache_blend_write(struct BlendWriter *writer, struct ListBase *ptcaches);
+void BKE_ptcache_blend_write(struct BlendWriter *writer, ListBaseT<PointCache> *ptcaches);
 void BKE_ptcache_blend_read_data(struct BlendDataReader *reader,
-                                 struct ListBase *ptcaches,
+                                 ListBaseT<PointCache> *ptcaches,
                                  struct PointCache **ocache,
                                  int force_disk);
+
+}  // namespace blender

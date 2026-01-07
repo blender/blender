@@ -23,6 +23,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /*
  * For debug purpose
  */
@@ -125,7 +127,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
 {
   CineonMainHeader header;
   LogImageFile *cineon = MEM_mallocN<LogImageFile>(__func__);
-  const char *filepath = (const char *)byteStuff;
+  const char *filepath = reinterpret_cast<const char *>(byteStuff);
   int i;
   uint dataOffset;
 
@@ -158,8 +160,8 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
     cineon->memBufferSize = 0;
   }
   else {
-    cineon->memBuffer = (uchar *)byteStuff;
-    cineon->memCursor = (uchar *)byteStuff;
+    cineon->memBuffer = const_cast<uchar *>(byteStuff);
+    cineon->memCursor = const_cast<uchar *>(byteStuff);
     cineon->memBufferSize = bufferSize;
   }
 
@@ -423,3 +425,5 @@ LogImageFile *cineonCreate(
 
   return cineon;
 }
+
+}  // namespace blender

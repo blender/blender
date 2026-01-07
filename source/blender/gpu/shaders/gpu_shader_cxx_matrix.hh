@@ -13,6 +13,8 @@
 #include "gpu_shader_cxx_builtin.hh"
 #include "gpu_shader_cxx_vector.hh"
 
+namespace blender {
+
 /* Some compilers complain about lack of return values. Keep it short. */
 #define RET \
   { \
@@ -152,3 +154,5 @@ template<int C, int R> MatBase<R, C> transpose(MatBase<C, R>) RET;
 /** \} */
 
 #undef RET
+
+}  // namespace blender

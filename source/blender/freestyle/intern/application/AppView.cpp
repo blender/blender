@@ -89,7 +89,7 @@ real AppView::distanceToSceneCenter()
 {
   BBox<Vec3r> bbox = _ModelRootNode->bbox();
 
-  Vec3r v(UNPACK3(g_freestyle.viewpoint));
+  Vec3r v(UNPACK3(blender::g_freestyle.viewpoint));
   v -= 0.5 * (bbox.getMin() + bbox.getMax());
 
   return v.norm();
@@ -100,7 +100,7 @@ real AppView::znear()
   BBox<Vec3r> bbox = _ModelRootNode->bbox();
   Vec3r u = bbox.getMin();
   Vec3r v = bbox.getMax();
-  Vec3r cameraCenter(UNPACK3(g_freestyle.viewpoint));
+  Vec3r cameraCenter(UNPACK3(blender::g_freestyle.viewpoint));
 
   Vec3r w1(u[0], u[1], u[2]);
   Vec3r w2(v[0], u[1], u[2]);
@@ -129,7 +129,7 @@ real AppView::zfar()
   BBox<Vec3r> bbox = _ModelRootNode->bbox();
   Vec3r u = bbox.getMin();
   Vec3r v = bbox.getMax();
-  Vec3r cameraCenter(UNPACK3(g_freestyle.viewpoint));
+  Vec3r cameraCenter(UNPACK3(blender::g_freestyle.viewpoint));
 
   Vec3r w1(u[0], u[1], u[2]);
   Vec3r w2(v[0], u[1], u[2]);

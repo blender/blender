@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /*
  * Declaration of static functions
  */
@@ -98,7 +100,7 @@ int logImageIsDpx(const void *buffer, const uint size)
   if (size < sizeof(magicNum)) {
     return 0;
   }
-  magicNum = *(uint *)buffer;
+  magicNum = *static_cast<uint *>(const_cast<void *>(buffer));
   return (magicNum == DPX_FILE_MAGIC || magicNum == swap_uint(DPX_FILE_MAGIC, 1));
 }
 
@@ -108,7 +110,7 @@ int logImageIsCineon(const void *buffer, const uint size)
   if (size < sizeof(magicNum)) {
     return 0;
   }
-  magicNum = *(uint *)buffer;
+  magicNum = *static_cast<uint *>(const_cast<void *>(buffer));
   return (magicNum == CINEON_FILE_MAGIC || magicNum == swap_uint(CINEON_FILE_MAGIC, 1));
 }
 
@@ -131,10 +133,10 @@ LogImageFile *logImageOpenFromFile(const char *filepath, int cineon)
   fclose(f);
 
   if (logImageIsDpx(&magicNum, sizeof(magicNum))) {
-    return dpxOpen((const uchar *)filepath, 0, 0);
+    return dpxOpen(reinterpret_cast<const uchar *>(filepath), 0, 0);
   }
   if (logImageIsCineon(&magicNum, sizeof(magicNum))) {
-    return cineonOpen((const uchar *)filepath, 0, 0);
+    return cineonOpen(reinterpret_cast<const uchar *>(filepath), 0, 0);
   }
 
   return nullptr;
@@ -251,8 +253,8 @@ int logImageSetDataRGBA(LogImageFile *logImage, const float *data, int dataIsLin
   float *elementData;
   int returnValue;
 
-  elementData = (float *)imb_alloc_pixels(
-      logImage->width, logImage->height, logImage->depth, sizeof(float), true, __func__);
+  elementData = static_cast<float *>(imb_alloc_pixels(
+      logImage->width, logImage->height, logImage->depth, sizeof(float), true, __func__));
   if (elementData == nullptr) {
     return 1;
   }
@@ -297,7 +299,7 @@ static int logImageSetData8(LogImageFile *logImage,
   size_t rowLength = getRowLength(logImage->width, logElement);
   uchar *row;
 
-  row = (uchar *)MEM_mallocN(rowLength, __func__);
+  row = static_cast<uchar *>(MEM_mallocN(rowLength, __func__));
   if (row == nullptr) {
     if (verbose) {
       printf("DPX/Cineon: Cannot allocate row.\n");
@@ -331,7 +333,7 @@ static int logImageSetData10(LogImageFile *logImage,
   uint pixel, index;
   uint *row;
 
-  row = (uint *)MEM_mallocN(rowLength, __func__);
+  row = static_cast<uint *>(MEM_mallocN(rowLength, __func__));
   if (row == nullptr) {
     if (verbose) {
       printf("DPX/Cineon: Cannot allocate row.\n");
@@ -377,7 +379,7 @@ static int logImageSetData12(LogImageFile *logImage,
   size_t rowLength = getRowLength(logImage->width, logElement);
   ushort *row;
 
-  row = (ushort *)MEM_mallocN(rowLength, __func__);
+  row = static_cast<ushort *>(MEM_mallocN(rowLength, __func__));
   if (row == nullptr) {
     if (verbose) {
       printf("DPX/Cineon: Cannot allocate row.\n");
@@ -411,7 +413,7 @@ static int logImageSetData16(LogImageFile *logImage,
   size_t rowLength = getRowLength(logImage->width, logElement);
   ushort *row;
 
-  row = (ushort *)MEM_mallocN(rowLength, __func__);
+  row = static_cast<ushort *>(MEM_mallocN(rowLength, __func__));
   if (row == nullptr) {
     if (verbose) {
       printf("DPX/Cineon: Cannot allocate row.\n");
@@ -650,8 +652,8 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
       }
     }
 
-    mergedData = (float *)imb_alloc_pixels(
-        logImage->width, logImage->height, mergedElement.depth, sizeof(float), true, __func__);
+    mergedData = static_cast<float *>(imb_alloc_pixels(
+        logImage->width, logImage->height, mergedElement.depth, sizeof(float), true, __func__));
     if (mergedData == nullptr) {
       if (verbose) {
         printf("DPX/Cineon: Cannot allocate mergedData.\n");
@@ -1444,7 +1446,7 @@ static int convertCbYCr_RGBA(const float *src,
   const float *src_ptr = src;
   float *dst_ptr = dst;
 
-  if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0) {
+  if (getYUVtoRGBMatrix(reinterpret_cast<float *>(&conversionMatrix), logElement) != 0) {
     return 1;
   }
 
@@ -1476,7 +1478,7 @@ static int convertCbYCrA_RGBA(const float *src,
   const float *src_ptr = src;
   float *dst_ptr = dst;
 
-  if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0) {
+  if (getYUVtoRGBMatrix(reinterpret_cast<float *>(&conversionMatrix), logElement) != 0) {
     return 1;
   }
 
@@ -1509,7 +1511,7 @@ static int convertCbYCrY_RGBA(const float *src,
   const float *src_ptr = src;
   float *dst_ptr = dst;
 
-  if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0) {
+  if (getYUVtoRGBMatrix(reinterpret_cast<float *>(&conversionMatrix), logElement) != 0) {
     return 1;
   }
 
@@ -1561,7 +1563,7 @@ static int convertCbYACrYA_RGBA(const float *src,
   const float *src_ptr = src;
   float *dst_ptr = dst;
 
-  if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0) {
+  if (getYUVtoRGBMatrix(reinterpret_cast<float *>(&conversionMatrix), logElement) != 0) {
     return 1;
   }
 
@@ -1615,7 +1617,7 @@ static int convertLuminance_RGBA(const float *src,
   const float *src_ptr = src;
   float *dst_ptr = dst;
 
-  if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0) {
+  if (getYUVtoRGBMatrix(reinterpret_cast<float *>(&conversionMatrix), logElement) != 0) {
     return 1;
   }
 
@@ -1641,7 +1643,7 @@ static int convertYA_RGBA(const float *src,
   const float *src_ptr = src;
   float *dst_ptr = dst;
 
-  if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0) {
+  if (getYUVtoRGBMatrix(reinterpret_cast<float *>(&conversionMatrix), logElement) != 0) {
     return 1;
   }
 
@@ -1746,8 +1748,8 @@ static int convertRGBAToLogElement(const float *src,
 
   if (srcIsLinearRGB != 0) {
     /* we need to convert src to sRGB */
-    srgbSrc_alloc = (float *)imb_alloc_pixels(
-        logImage->width, logImage->height, 4, sizeof(float), false, __func__);
+    srgbSrc_alloc = static_cast<float *>(
+        imb_alloc_pixels(logImage->width, logImage->height, 4, sizeof(float), false, __func__));
     if (srgbSrc_alloc == nullptr) {
       return 1;
     }
@@ -1802,3 +1804,5 @@ static int convertRGBAToLogElement(const float *src,
 
   return rvalue;
 }
+
+}  // namespace blender

@@ -25,7 +25,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_map_range_cc {
+namespace blender {
+
+namespace nodes::node_shader_map_range_cc {
 
 NODE_STORAGE_FUNCS(NodeMapRange)
 
@@ -50,13 +52,13 @@ static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_map_range(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "data_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout.prop(ptr, "interpolation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "data_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "interpolation_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   if (!ELEM(RNA_enum_get(ptr, "interpolation_type"),
             NODE_MAP_RANGE_SMOOTHSTEP,
             NODE_MAP_RANGE_SMOOTHERSTEP))
   {
-    layout.prop(ptr, "clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "clamp", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 
@@ -79,12 +81,11 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
   Array<bool> new_input_availability(BLI_listbase_count(&node->inputs));
   Array<bool> new_output_availability(BLI_listbase_count(&node->outputs));
 
-  int index;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
-    new_input_availability[index] = socket->type == type;
+  for (const auto [index, socket] : node->inputs.enumerate()) {
+    new_input_availability[index] = socket.type == type;
   }
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->outputs, index) {
-    new_output_availability[index] = socket->type == type;
+  for (const auto [index, socket] : node->outputs.enumerate()) {
+    new_output_availability[index] = socket.type == type;
   }
 
   if (storage.interpolation_type != NODE_MAP_RANGE_STEPPED) {
@@ -96,17 +97,17 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
     }
   }
 
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
-    bke::node_set_socket_availability(*ntree, *socket, new_input_availability[index]);
+  for (const auto [index, socket] : node->inputs.enumerate()) {
+    bke::node_set_socket_availability(*ntree, socket, new_input_availability[index]);
   }
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->outputs, index) {
-    bke::node_set_socket_availability(*ntree, *socket, new_output_availability[index]);
+  for (const auto [index, socket] : node->outputs.enumerate()) {
+    bke::node_set_socket_availability(*ntree, socket, new_output_availability[index]);
   }
 }
 
 static void node_shader_init_map_range(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeMapRange *data = MEM_callocN<NodeMapRange>(__func__);
+  NodeMapRange *data = MEM_new_for_free<NodeMapRange>(__func__);
   data->clamp = 1;
   data->data_type = CD_PROP_FLOAT;
   data->interpolation_type = NODE_MAP_RANGE_LINEAR;
@@ -516,13 +517,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_map_range_cc
+}  // namespace nodes::node_shader_map_range_cc
 
 void register_node_type_sh_map_range()
 {
-  namespace file_ns = blender::nodes::node_shader_map_range_cc;
+  namespace file_ns = nodes::node_shader_map_range_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeMapRange", SH_NODE_MAP_RANGE);
   ntype.ui_name = "Map Range";
@@ -533,12 +534,14 @@ void register_node_type_sh_map_range()
   ntype.draw_buttons = file_ns::node_shader_buts_map_range;
   ntype.ui_class = file_ns::node_shader_map_range_ui_class;
   ntype.initfunc = file_ns::node_shader_init_map_range;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::node_shader_update_map_range;
   ntype.gpu_fn = file_ns::gpu_shader_map_range;
   ntype.build_multi_function = file_ns::sh_node_map_range_build_multi_function;
   ntype.gather_link_search_ops = file_ns::node_map_range_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

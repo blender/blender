@@ -795,13 +795,12 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
     const AttributeAccessor accessor = mesh->attributes();
     const Span<MDeformVert> dverts = mesh->deform_verts();
 
-    int group_index = 0;
-    LISTBASE_FOREACH_INDEX (const bDeformGroup *, group, &mesh->vertex_group_names, group_index) {
-      const auto get_fn = [&]() {
+    for (const auto [group_index, group] : mesh->vertex_group_names.enumerate()) {
+      const auto get_fn = [&, group_index = group_index]() {
         return this->get_for_vertex_group_index(*mesh, dverts, group_index);
       };
 
-      AttributeIter iter{group->name, AttrDomain::Point, bke::AttrType::Float, get_fn};
+      AttributeIter iter{group.name, AttrDomain::Point, bke::AttrType::Float, get_fn};
       iter.is_builtin = false;
       iter.accessor = &accessor;
       fn(iter);

@@ -16,6 +16,8 @@
 
 #include "BLI_enum_flags.hh"
 
+namespace blender {
+
 struct ID;
 struct Main;
 struct ReportList;
@@ -250,3 +252,5 @@ void BKE_bpath_list_restore(Main *bmain, eBPathForeachFlag flag, void *path_list
 void BKE_bpath_list_free(void *path_list_handle);
 
 /** \} */
+
+}  // namespace blender

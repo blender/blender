@@ -578,6 +578,8 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         }
         if use_crf:
             layout.prop(ffmpeg, "constant_rate_factor")
+            if (ffmpeg.constant_rate_factor == 'CUSTOM'):
+                layout.prop(ffmpeg, "custom_constant_rate_factor")
 
         use_encoding_speed = needs_codec and ffmpeg.codec not in {'DNXHD', 'FFV1', 'HUFFYUV', 'PNG', 'PRORES', 'QTRLE'}
         use_bitrate = needs_codec and ffmpeg.codec not in {'FFV1', 'HUFFYUV', 'PNG', 'PRORES', 'QTRLE'}
@@ -644,7 +646,8 @@ class RENDER_PT_encoding_audio(RenderOutputButtonsPanel, Panel):
         if ffmpeg.audio_codec != 'NONE':
             layout.prop(ffmpeg, "audio_channels")
             layout.prop(ffmpeg, "audio_mixrate", text="Sample Rate")
-            layout.prop(ffmpeg, "audio_bitrate")
+            if ffmpeg.audio_codec not in {'FLAC', 'PCM'}:
+                layout.prop(ffmpeg, "audio_bitrate")
             layout.prop(ffmpeg, "audio_volume", slider=True)
 
 

@@ -9,22 +9,34 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
+/**
+ * The struct index representing type-less bytes buffers.
+ *
+ * Although code has historically (pre-4.3) be fairly unreliable (logically incorrect, see inline
+ * code-comments for #DNA_struct_get_compareflags regarding this), most of read/write blend-file
+ * code would assume that the `0` value was raw data, so keep it at this value.
+ */
+#define SDNA_RAW_DATA_STRUCT_INDEX 0
+
 struct MemArena;
+struct GHash;
 
 #
 #
-typedef struct SDNA_StructMember {
+struct SDNA_StructMember {
   /** This struct must not change, it's only a convenience view for raw data stored in SDNA. */
 
   /** An index into SDNA->types. */
   short type_index;
   /** An index into SDNA->members. */
   short member_index;
-} SDNA_StructMember;
+};
 
 #
 #
-typedef struct SDNA_Struct {
+struct SDNA_Struct {
   /** This struct must not change, it's only a convenience view for raw data stored in SDNA. */
 
   /** An index into SDNA->types. */
@@ -33,11 +45,11 @@ typedef struct SDNA_Struct {
   short members_num;
   /** "Flexible array member" that contains information about all members of this struct. */
   SDNA_StructMember members[];
-} SDNA_Struct;
+};
 
 #
 #
-typedef struct SDNA {
+struct SDNA {
   /** The 'encoded' data (full copy when #data_alloc is set, otherwise borrowed memory). */
   const char *data;
   /** Length of #data, in bytes. */
@@ -110,7 +122,7 @@ typedef struct SDNA {
    *
    * Requires WITH_DNA_GHASH to be used for now.
    */
-  struct GHash *types_to_structs_map;
+  GHash *types_to_structs_map;
 
   /**
    * Runtime versions of data stored in DNA, lazy initialized, only different when renaming is
@@ -126,18 +138,11 @@ typedef struct SDNA {
     /** Aligned with #SDNA.members, same pointers when unchanged. */
     const char **members;
     /** A version of #SDNA.types_to_structs_map that uses #SDNA.alias.types for its keys. */
-    struct GHash *types_to_structs_map;
+    GHash *types_to_structs_map;
   } alias;
 
   /** Temporary memory currently only used for version patching DNA. */
-  struct MemArena *mem_arena;
-} SDNA;
+  MemArena *mem_arena;
+};
 
-/**
- * The struct index representing type-less bytes buffers.
- *
- * Although code has historically (pre-4.3) be fairly unreliable (logically incorrect, see inline
- * code-comments for #DNA_struct_get_compareflags regarding this), most of read/write blend-file
- * code would assume that the `0` value was raw data, so keep it at this value.
- */
-#define SDNA_RAW_DATA_STRUCT_INDEX 0
+}  // namespace blender

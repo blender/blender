@@ -13,6 +13,8 @@
 
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 /* ********* exports for space_view3d/ module for offscreen rendering ********** */
 struct ARegion;
 struct Depsgraph;
@@ -72,6 +74,10 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
  * \param viewport: Optional viewport data, can be NULL.
  * (avoids re-creating when doing multiple GL renders,
  * allows keeping track of state across frames).
+ * \param use_camera_view_bounds if true and the viewport is looking through a camera, only render
+ * what the camera can see. In case the aspect ratio of the given `sizex` and `sizey` does not
+ * match the render aspect ratio of the scene, the returned image will be expanded so the camera
+ * view bounds are contained within it.
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       Scene *scene,
@@ -86,6 +92,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       bool restore_rv3d_mats,
                                       GPUOffScreen *ofs,
                                       GPUViewport *viewport,
+                                      bool use_camera_view_bounds,
                                       char err_out[256]);
 /**
  * Creates separate fake 3d views (wrapping #ED_view3d_draw_offscreen_imbuf)
@@ -119,3 +126,5 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
  * (Python scripting for example).
  */
 bool ED_view3d_draw_offscreen_check_nested();
+
+}  // namespace blender

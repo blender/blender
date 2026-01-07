@@ -13,7 +13,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -46,10 +45,7 @@ constexpr float GP_BUILD_TIME_DEFAULT_STROKES = 1.0f;
 static void init_data(ModifierData *md)
 {
   auto *gpmd = reinterpret_cast<GreasePencilBuildModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilBuildModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(gpmd, modifier);
   modifier::greasepencil::init_influence_data(&gpmd->influence, false);
 }
 
@@ -74,7 +70,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 {
   auto *omd = reinterpret_cast<GreasePencilBuildModifierData *>(md);
   modifier::greasepencil::foreach_influence_ID_link(&omd->influence, ob, walk, user_data);
-  walk(user_data, ob, (ID **)&omd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&omd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -90,7 +86,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *mmd = reinterpret_cast<const GreasePencilBuildModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilBuildModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 
@@ -580,8 +576,8 @@ static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
                               const float max_gap,
                               const float fade)
 {
-  const float use_time = blender::math::round(
-      float(current_frame) / float(math::min(frame_duration, length)) * float(length));
+  const float use_time = math::round(float(current_frame) /
+                                     float(math::min(frame_duration, length)) * float(length));
   const float build_factor_frames = math::clamp(
                                         float(use_time - start_frame) / length, 0.0f, 1.0f) *
                                     (1.0f + fade);
@@ -707,7 +703,7 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
 
 static void modify_geometry_set(ModifierData *md,
                                 const ModifierEvalContext *ctx,
-                                blender::bke::GeometrySet *geometry_set)
+                                bke::GeometrySet *geometry_set)
 {
   const auto *mmd = reinterpret_cast<GreasePencilBuildModifierData *>(md);
 
@@ -819,7 +815,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
   layout.separator();
   layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  PanelLayout restrict_frame_range_layout = layout.panel_prop_with_bool_header(
+  ui::PanelLayout restrict_frame_range_layout = layout.panel_prop_with_bool_header(
       C,
       ptr,
       "open_frame_range_panel",
@@ -833,7 +829,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     col.prop(ptr, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     col.prop(ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
-  PanelLayout fading_layout = layout.panel_prop_with_bool_header(
+  ui::PanelLayout fading_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_fading_panel", ptr, "use_fading", IFACE_("Fading"));
   if (ui::Layout *panel = fading_layout.body) {
     const bool active = RNA_boolean_get(ptr, "use_fading");
@@ -865,8 +861,6 @@ static void panel_register(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_GreasePencilBuild, panel_draw);
 }
 
-}  // namespace blender
-
 ModifierTypeInfo modifierType_GreasePencilBuild = {
     /*idname*/ "GreasePencilBuildModifier",
     /*name*/ N_("Build"),
@@ -879,26 +873,28 @@ ModifierTypeInfo modifierType_GreasePencilBuild = {
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_LENGTH,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
+    /*free_data*/ free_data,
     /*is_disabled*/ nullptr,
-    /*update_depsgraph*/ blender::update_depsgraph,
+    /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

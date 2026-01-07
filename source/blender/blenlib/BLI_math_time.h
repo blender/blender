@@ -8,6 +8,8 @@
  * \ingroup bli
  */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Time Constants Definitions
  * \{ */
@@ -51,3 +53,5 @@ void BLI_math_time_seconds_decompose(double seconds,
 /* None. */
 
 /** \} */
+
+}  // namespace blender

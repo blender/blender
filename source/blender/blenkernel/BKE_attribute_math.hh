@@ -22,10 +22,10 @@
 #include "BKE_attribute.hh"
 
 namespace blender {
-class GVArray;
-}
 
-namespace blender::bke::attribute_math {
+class GVArray;
+
+namespace bke::attribute_math {
 
 /**
  * Utility function that simplifies calling a templated function based on a run-time data type.
@@ -332,7 +332,7 @@ template<typename T> class SimpleMixer {
       : buffer_(buffer), default_value_(default_value), total_weights_(buffer.size(), 0.0f)
   {
     BLI_STATIC_ASSERT(std::is_trivial_v<T>, "");
-    mask.foreach_index([&](const int64_t i) { buffer_[i] = default_value_; });
+    index_mask::masked_fill(buffer_, default_value_, mask);
   }
 
   /**
@@ -401,7 +401,7 @@ class BooleanPropagationMixer {
    */
   BooleanPropagationMixer(MutableSpan<bool> buffer, const IndexMask &mask) : buffer_(buffer)
   {
-    mask.foreach_index([&](const int64_t i) { buffer_[i] = false; });
+    index_mask::masked_fill(buffer_, false, mask);
   }
 
   /**
@@ -462,7 +462,7 @@ class SimpleMixerWithAccumulationType {
                                   T default_value = {})
       : buffer_(buffer), default_value_(default_value), accumulation_buffer_(buffer.size())
   {
-    mask.foreach_index([&](const int64_t index) { buffer_[index] = default_value_; });
+    index_mask::masked_fill(buffer_, default_value_, mask);
   }
 
   void set(const int64_t index, const T &value, const float weight = 1.0f)
@@ -714,4 +714,6 @@ void gather_ranges_to_groups(Span<IndexRange> src_ranges,
 
 /** \} */
 
-}  // namespace blender::bke::attribute_math
+}  // namespace bke::attribute_math
+
+}  // namespace blender

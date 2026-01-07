@@ -12,10 +12,11 @@
 #include <cstdint>
 
 #include "DNA_space_types.h"
+struct BlendHandle;
+namespace blender {
 
 struct AssetLibraryReference;
 struct bContext;
-struct BlendHandle;
 struct FileIndexerType;
 struct FileList;
 struct FileSelection;
@@ -23,10 +24,10 @@ struct ID;
 struct ImBuf;
 struct bUUID;
 struct wmWindowManager;
-namespace blender::asset_system {
+namespace asset_system {
 class AssetLibrary;
 class AssetRepresentation;
-}  // namespace blender::asset_system
+}  // namespace asset_system
 
 struct FileDirEntry;
 
@@ -162,7 +163,7 @@ ID *filelist_file_get_id(const FileDirEntry *file);
  * Same as #filelist_file_get_id(), but gets the file by index (doesn't require the file to be
  * cached, uses #FileListInternEntry only). */
 ID *filelist_entry_get_id(const FileList *filelist, int index);
-blender::asset_system::AssetRepresentation *filelist_entry_get_asset_representation(
+asset_system::AssetRepresentation *filelist_entry_get_asset_representation(
     const FileList *filelist, const int index);
 /**
  * Get the #FileDirEntry.relpath value without requiring the #FileDirEntry to be available (doesn't
@@ -217,7 +218,7 @@ void filelist_entry_parent_select_set(FileList *filelist,
 
 void filelist_setrecursion(FileList *filelist, int recursion_level);
 
-blender::asset_system::AssetLibrary *filelist_asset_library(FileList *filelist);
+asset_system::AssetLibrary *filelist_asset_library(FileList *filelist);
 
 BlendHandle *filelist_lib(FileList *filelist);
 /**
@@ -244,3 +245,5 @@ bool filelist_cache_previews_update(FileList *filelist);
 void filelist_cache_previews_set(FileList *filelist, bool use_previews);
 bool filelist_cache_previews_running(FileList *filelist);
 bool filelist_cache_previews_done(FileList *filelist);
+
+}  // namespace blender

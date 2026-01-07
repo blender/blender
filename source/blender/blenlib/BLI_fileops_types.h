@@ -11,6 +11,8 @@
 
 #include <sys/stat.h>
 
+namespace blender {
+
 #if defined(WIN32)
 typedef unsigned int mode_t;
 #endif
@@ -40,3 +42,5 @@ struct dirlink {
   struct dirlink *next, *prev;
   char *name;
 };
+
+}  // namespace blender

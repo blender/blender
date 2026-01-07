@@ -11,7 +11,6 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_utf8.h"
 
-#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
 
@@ -37,7 +36,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_planetrackdeform_cc {
+namespace blender {
+
+namespace nodes::node_composite_planetrackdeform_cc {
 
 NODE_STORAGE_FUNCS(NodePlaneTrackDeformData)
 
@@ -56,7 +57,7 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
   b.add_layout([](ui::Layout &layout, bContext *C, PointerRNA *ptr) {
     bNode *node = ptr->data_as<bNode>();
 
-    uiTemplateID(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
+    template_id(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 
     if (node->id) {
       MovieClip *clip = reinterpret_cast<MovieClip *>(node->id);
@@ -102,9 +103,9 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  bNode *node = static_cast<bNode *>(ptr->data);
 
-  NodePlaneTrackDeformData *data = MEM_callocN<NodePlaneTrackDeformData>(__func__);
+  NodePlaneTrackDeformData *data = MEM_new_for_free<NodePlaneTrackDeformData>(__func__);
   node->storage = data;
 
   const Scene *scene = CTX_data_scene(C);
@@ -299,8 +300,8 @@ class PlaneTrackDeformOperation : public NodeOperation {
         float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
         float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
 
-        float4 sampled_color = input.sample_ewa_extended(
-            projected_coordinates, x_gradient, y_gradient);
+        float4 sampled_color = float4(
+            input.sample_ewa(projected_coordinates, x_gradient, y_gradient, Extension::Extend));
         accumulated_color += sampled_color;
       }
 
@@ -398,19 +399,19 @@ class PlaneTrackDeformOperation : public NodeOperation {
     }
 
     MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(
-        &movie_clip->tracking, node_storage(bnode()).tracking_object);
+        &movie_clip->tracking, node_storage(node()).tracking_object);
 
     if (!tracking_object) {
       return nullptr;
     }
 
     return BKE_tracking_object_find_plane_track_with_name(tracking_object,
-                                                          node_storage(bnode()).plane_track_name);
+                                                          node_storage(node()).plane_track_name);
   }
 
   int2 get_movie_clip_size()
   {
-    MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+    MovieClipUser user = {};
     BKE_movieclip_user_set_frame(&user, context().get_frame_number());
 
     int2 size;
@@ -421,24 +422,24 @@ class PlaneTrackDeformOperation : public NodeOperation {
   int get_motion_blur_samples()
   {
     const int samples = math::clamp(
-        this->get_input("Motion Blur Samples").get_single_value_default(16), 1, 64);
+        this->get_input("Motion Blur Samples").get_single_value_default<int>(), 1, 64);
     return this->use_motion_blur() ? samples : 1;
   }
 
   float get_motion_blur_shutter()
   {
     return math::clamp(
-        this->get_input("Motion Blur Shutter").get_single_value_default(0.5f), 0.0f, 1.0f);
+        this->get_input("Motion Blur Shutter").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   bool use_motion_blur()
   {
-    return this->get_input("Motion Blur").get_single_value_default(false);
+    return this->get_input("Motion Blur").get_single_value_default<bool>();
   }
 
   MovieClip *get_movie_clip()
   {
-    return reinterpret_cast<MovieClip *>(bnode().id);
+    return reinterpret_cast<MovieClip *>(node().id);
   }
 };
 
@@ -447,13 +448,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new PlaneTrackDeformOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_planetrackdeform_cc
+}  // namespace nodes::node_composite_planetrackdeform_cc
 
 static void register_node_type_cmp_planetrackdeform()
 {
-  namespace file_ns = blender::nodes::node_composite_planetrackdeform_cc;
+  namespace file_ns = nodes::node_composite_planetrackdeform_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodePlaneTrackDeform", CMP_NODE_PLANETRACKDEFORM);
   ntype.ui_name = "Plane Track Deform";
@@ -464,10 +465,12 @@ static void register_node_type_cmp_planetrackdeform()
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_planetrackdeform_declare;
   ntype.initfunc_api = file_ns::init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_planetrackdeform)
+
+}  // namespace blender

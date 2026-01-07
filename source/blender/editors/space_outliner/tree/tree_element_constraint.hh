@@ -10,10 +10,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct bConstraint;
 struct Object;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementConstraintBase final : public AbstractTreeElement {
   /* Not needed right now, avoid unused member variable warning. */
@@ -32,4 +34,5 @@ class TreeElementConstraint final : public AbstractTreeElement {
   TreeElementConstraint(TreeElement &legacy_te, Object &object, bConstraint &con);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

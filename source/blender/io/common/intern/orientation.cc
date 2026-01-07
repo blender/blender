@@ -7,6 +7,8 @@
 
 #include "IO_orientation.hh"
 
+namespace blender {
+
 const EnumPropertyItem io_transform_axis[] = {
     {IO_AXIS_X, "X", 0, "X", "Positive X axis"},
     {IO_AXIS_Y, "Y", 0, "Y", "Positive Y axis"},
@@ -35,3 +37,5 @@ void io_ui_up_axis_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
     RNA_enum_set(ptr, "forward_axis", (forward + 1) % 6);
   }
 }
+
+}  // namespace blender

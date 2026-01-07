@@ -45,7 +45,7 @@ void FastGrid::configure(const Vec3r &orig, const Vec3r &size, uint nb)
 Cell *FastGrid::getCell(const Vec3u &p)
 {
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << _cells << " " << p << " " << _cells_nb[0] << "-" << _cells_nb[1] << "-" << _cells_nb[2]
          << " " << _cells_size << endl;
   }

@@ -25,20 +25,19 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static KDTree_3d *build_kdtree(const Span<float3> positions, const IndexMask &mask)
 {
-  KDTree_3d *tree = BLI_kdtree_3d_new(mask.size());
-  mask.foreach_index(
-      [&](const int index) { BLI_kdtree_3d_insert(tree, index, positions[index]); });
-  BLI_kdtree_3d_balance(tree);
+  KDTree_3d *tree = kdtree_3d_new(mask.size());
+  mask.foreach_index([&](const int index) { kdtree_3d_insert(tree, index, positions[index]); });
+  kdtree_3d_balance(tree);
   return tree;
 }
 
 static int find_nearest_non_self(const KDTree_3d &tree, const float3 &position, const int index)
 {
-  return BLI_kdtree_3d_find_nearest_cb_cpp(
+  return kdtree_find_nearest_cb_cpp<float3>(
       &tree,
       position,
       nullptr,
-      [index](const int other, const float * /*co*/, const float /*dist_sq*/) {
+      [index](const int other, const float3 & /*co*/, const float /*dist_sq*/) {
         return index == other ? 0 : 1;
       });
 }
@@ -86,7 +85,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
       result.reinitialize(mask.min_array_size());
       KDTree_3d *tree = build_kdtree(positions, IndexRange(domain_size));
       find_neighbors(*tree, positions, mask, result);
-      BLI_kdtree_3d_free(tree);
+      kdtree_3d_free(tree);
       return VArray<int>::from_container(std::move(result));
     }
     const VArraySpan<int> group_ids_span(group_ids);
@@ -124,7 +123,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
         const IndexMask &lookup_mask = lookup_indices_by_group_id[group_index];
         KDTree_3d *tree = build_kdtree(positions, tree_mask);
         find_neighbors(*tree, positions, lookup_mask, result);
-        BLI_kdtree_3d_free(tree);
+        kdtree_3d_free(tree);
       }
     });
 
@@ -243,7 +242,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeIndexOfNearest", GEO_NODE_INDEX_OF_NEAREST);
   ntype.ui_name = "Index of Nearest";
@@ -253,7 +252,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

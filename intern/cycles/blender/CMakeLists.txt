@@ -5,7 +5,8 @@
 set(INC
   ..
   ../../../source/blender/makesrna
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna/intern
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -53,9 +54,11 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenkernel
+  PRIVATE bf::depsgraph
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::imbuf
+  PRIVATE bf::geometry
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog

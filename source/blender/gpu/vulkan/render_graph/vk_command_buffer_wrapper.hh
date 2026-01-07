@@ -10,15 +10,16 @@
 
 #include "vk_common.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 struct VKExtensions;
 }
 
-namespace blender::gpu::render_graph {
+namespace gpu::render_graph {
 class VKCommandBufferInterface {
  public:
   bool use_dynamic_rendering_local_read = true;
-  bool use_extended_dynamic_state = true;
 
   VKCommandBufferInterface() {}
   virtual ~VKCommandBufferInterface() = default;
@@ -139,6 +140,10 @@ class VKCommandBufferInterface {
   virtual void set_stencil_reference(const uint32_t reference) = 0;
   /* VK_EXT_extended_dynamic_state */
   virtual void set_front_face(const VkFrontFace front_face) = 0;
+  /* VK_EXT_vertex_input_dynamic_state */
+  virtual void set_vertex_input(
+      Span<VkVertexInputBindingDescription2EXT> vertex_binding_descriptions,
+      Span<VkVertexInputAttributeDescription2EXT> vertex_attribute_descriptions) = 0;
   /* VK_KHR_dynamic_rendering */
   virtual void begin_rendering(const VkRenderingInfo *p_rendering_info) = 0;
   virtual void end_rendering() = 0;
@@ -256,6 +261,9 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
   void set_scissor(const Vector<VkRect2D> scissors) override;
   void set_line_width(const float line_width) override;
   void set_front_face(const VkFrontFace front_face) override;
+  void set_vertex_input(
+      Span<VkVertexInputBindingDescription2EXT> vertex_binding_descriptions,
+      Span<VkVertexInputAttributeDescription2EXT> vertex_attribute_descriptions) override;
 
   void set_stencil_compare_mask(const uint32_t compare_mask) override;
   void set_stencil_write_mask(const uint32_t write_mask) override;
@@ -270,4 +278,6 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT *vk_debug_utils_label) override;
   void end_debug_utils_label() override;
 };
-}  // namespace blender::gpu::render_graph
+}  // namespace gpu::render_graph
+
+}  // namespace blender

@@ -50,6 +50,8 @@
 /* own includes */
 #include "../gizmo_library_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Types
  * \{ */
@@ -59,7 +61,7 @@ struct ButtonGizmo2D {
   bool is_init;
   /* Use an icon or shape */
   int icon;
-  blender::gpu::Batch *shape_batch[2];
+  gpu::Batch *shape_batch[2];
 };
 
 /** \} */
@@ -84,7 +86,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
 
   GPUVertFormat *format = immVertexFormat();
   /* NOTE(Metal): Prefer 3D coordinate for 2D rendering when using 3D shader. */
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   /* TODO: other draw styles. */
   if (color[3] == 1.0 && fill_alpha == 1.0 && select == false) {
@@ -129,7 +131,7 @@ static void button2d_draw_intern(const bContext *C,
                                  const bool select,
                                  const bool highlight)
 {
-  ButtonGizmo2D *button = (ButtonGizmo2D *)gz;
+  ButtonGizmo2D *button = reinterpret_cast<ButtonGizmo2D *>(gz);
   float viewport[4];
   GPU_viewport_size_get_f(viewport);
 
@@ -148,7 +150,7 @@ static void button2d_draw_intern(const bContext *C,
     }
     else if (RNA_property_is_set(gz->ptr, icon_value_prop)) {
       button->icon = RNA_property_int_get(gz->ptr, icon_value_prop);
-      ui_icon_ensure_deferred(C, button->icon, false);
+      ui::icon_ensure_deferred(C, button->icon, false);
     }
     else if (RNA_property_is_set(gz->ptr, shape_prop)) {
       const uint polys_len = RNA_property_string_length(gz->ptr, shape_prop);
@@ -156,9 +158,9 @@ static void button2d_draw_intern(const bContext *C,
         char *polys = MEM_malloc_arrayN<char>(polys_len, __func__);
         RNA_property_string_get(gz->ptr, shape_prop, polys);
         button->shape_batch[0] = GPU_batch_tris_from_poly_2d_encoded(
-            (const uchar *)polys, polys_len, nullptr);
+            reinterpret_cast<const uchar *>(polys), polys_len, nullptr);
         button->shape_batch[1] = GPU_batch_wire_from_poly_2d_encoded(
-            (const uchar *)polys, polys_len, nullptr);
+            reinterpret_cast<const uchar *>(polys), polys_len, nullptr);
         MEM_freeN(polys);
       }
     }
@@ -176,7 +178,7 @@ static void button2d_draw_intern(const bContext *C,
     float matrix_final_no_offset[4][4];
     WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);
     uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
     immUniform2fv("viewportSize", &viewport[2]);
     immUniform1f("lineWidth", (gz->line_width * U.pixelsize) + WM_gizmo_select_bias(select));
@@ -280,7 +282,7 @@ static void button2d_draw_intern(const bContext *C,
 
       float alpha = (highlight) ? 1.0f : 0.8f;
       GPU_polygon_smooth(false);
-      UI_icon_draw_alpha(pos[0], pos[1], button->icon, alpha);
+      ui::icon_draw_alpha(pos[0], pos[1], button->icon, alpha);
       GPU_polygon_smooth(true);
     }
     GPU_blend(GPU_BLEND_NONE);
@@ -312,14 +314,12 @@ static int gizmo_button2d_test_select(bContext *C, wmGizmo *gz, const int mval[2
 
   if (false) {
     /* correct, but unnecessarily slow. */
-    if (gizmo_window_project_2d(
-            C, gz, blender::float2{blender::int2(mval)}, 2, true, point_local) == false)
-    {
+    if (gizmo_window_project_2d(C, gz, float2{int2(mval)}, 2, true, point_local) == false) {
       return -1;
     }
   }
   else {
-    copy_v2_v2(point_local, blender::float2{blender::int2(mval)});
+    copy_v2_v2(point_local, float2{int2(mval)});
     sub_v2_v2(point_local, gz->matrix_basis[3]);
     mul_v2_fl(point_local, 1.0f / gz->scale_final);
   }
@@ -384,7 +384,7 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
 
 static void gizmo_button2d_free(wmGizmo *gz)
 {
-  ButtonGizmo2D *shape = (ButtonGizmo2D *)gz;
+  ButtonGizmo2D *shape = reinterpret_cast<ButtonGizmo2D *>(gz);
 
   for (uint i = 0; i < ARRAY_SIZE(shape->shape_batch); i++) {
     GPU_BATCH_DISCARD_SAFE(shape->shape_batch[i]);
@@ -451,3 +451,5 @@ void ED_gizmotypes_button_2d()
 }
 
 /** \} */ /* Button Gizmo API */
+
+}  // namespace blender

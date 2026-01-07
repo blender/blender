@@ -8,16 +8,19 @@
 
 #pragma once
 
+namespace blender {
+
 struct FBXImportParams;
 struct Main;
 struct Scene;
 struct ViewLayer;
 
-namespace blender::io::fbx {
+namespace io::fbx {
 
 void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
                    const FBXImportParams &params);
 
-}  // namespace blender::io::fbx
+}  // namespace io::fbx
+}  // namespace blender

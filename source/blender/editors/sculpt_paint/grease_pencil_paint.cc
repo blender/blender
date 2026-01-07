@@ -207,7 +207,7 @@ class PaintOperation : public GreasePencilStrokeOperation {
 
   /** The start index of the smoothing window. */
   int active_smooth_start_index_ = 0;
-  blender::float4x2 texture_space_ = float4x2::identity();
+  float4x2 texture_space_ = float4x2::identity();
 
   /** Helper class to project screen space coordinates to 3d. */
   ed::greasepencil::DrawingPlacement placement_;
@@ -371,8 +371,8 @@ struct PaintOperationExecutor {
     self.screen_space_final_coords_.append(start_coords);
 
     /* Resize the curves geometry so there is one more curve with a single point. */
+    ed::greasepencil::add_single_curve(*self.drawing_, on_back == false);
     bke::CurvesGeometry &curves = self.drawing_->strokes_for_write();
-    ed::greasepencil::add_single_curve(curves, on_back == false);
 
     const int active_curve = on_back ? curves.curves_range().first() :
                                        curves.curves_range().last();
@@ -527,7 +527,12 @@ struct PaintOperationExecutor {
         bke::attribute_filter_from_skip_ref(curve_attributes_to_skip),
         IndexRange(active_curve, 1));
 
-    self.drawing_->tag_topology_changed();
+    if (on_back) {
+      self.drawing_->tag_topology_changed();
+    }
+    else {
+      self.drawing_->tag_topology_changed(IndexRange::from_single(active_curve));
+    }
   }
 
   void active_smoothing(PaintOperation &self, const IndexRange smooth_window)
@@ -1152,7 +1157,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   scene_ = CTX_data_scene(&C);
   object_ = CTX_data_active_object(&C);
   Object *eval_object = DEG_get_evaluated(depsgraph, object_);
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object_->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(object_->data);
 
   if (do_fill_guides_) {
     this->toggle_fill_guides_brush_on(C);
@@ -1232,7 +1237,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
 
 void PaintOperation::on_stroke_extended(const bContext &C, const InputSample &extension_sample)
 {
-  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object_->data);
+  GreasePencil *grease_pencil = id_cast<GreasePencil *>(object_->data);
 
   PaintOperationExecutor executor{*scene_};
   executor.execute(*this, C, extension_sample);
@@ -1518,7 +1523,7 @@ static void process_stroke_weights(const Scene &scene,
 
   const StringRef vertex_group_name = defgroup->name;
 
-  blender::bke::greasepencil::assign_to_vertex_group_from_mask(
+  bke::greasepencil::assign_to_vertex_group_from_mask(
       curves, IndexMask(points), vertex_group_name, scene.toolsettings->vgroup_weight);
 
   if (scene.toolsettings->vgroup_weight == 0.0f) {
@@ -1528,18 +1533,18 @@ static void process_stroke_weights(const Scene &scene,
   /* Loop through all modifiers trying to find the pose channel for the vertex group name. */
   bPoseChannel *channel = nullptr;
   Object *ob_arm = nullptr;
-  LISTBASE_FOREACH (ModifierData *, md, &(&object)->modifiers) {
-    if (md->type != eModifierType_GreasePencilArmature) {
+  for (ModifierData &md : (&object)->modifiers) {
+    if (md.type != eModifierType_GreasePencilArmature) {
       continue;
     }
 
     /* Skip not visible modifiers. */
-    if (!(md->mode & eModifierMode_Realtime)) {
+    if (!(md.mode & eModifierMode_Realtime)) {
       continue;
     }
 
     GreasePencilArmatureModifierData *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(
-        md);
+        &md);
     if (amd == nullptr) {
       continue;
     }
@@ -1630,7 +1635,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
   using namespace blender::bke;
   RegionView3D *rv3d = CTX_wm_region_view3d(&C);
   const ARegion *region = CTX_wm_region(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object_->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object_->data);
 
   Paint *paint = &scene_->toolsettings->gp_paint->paint;
   Brush *brush = BKE_paint_brush(paint);
@@ -1708,7 +1713,12 @@ void PaintOperation::on_stroke_done(const bContext &C)
         *region, drawing.strokes(), layer_to_world, merge_distance, selection, {});
   }
 
-  drawing.tag_topology_changed();
+  if (do_automerge_endpoints || on_back) {
+    drawing.tag_topology_changed();
+  }
+  else {
+    drawing.tag_topology_changed(IndexRange::from_single(active_curve));
+  }
 
   const bool use_multi_frame_editing = (scene_->toolsettings->gpencil_flags &
                                         GP_USE_MULTI_FRAME_EDITING) != 0;

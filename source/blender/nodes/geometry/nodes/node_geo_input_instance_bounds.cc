@@ -54,19 +54,19 @@ class InstanceBoundsField final : public bke::InstancesFieldInput {
     Array<float3> reference_bounds(references.size());
 
     reference_mask.foreach_index(GrainSize(128), [&](const int reference_index) {
-      const blender::bke::InstanceReference &reference = references[reference_index];
+      const bke::InstanceReference &reference = references[reference_index];
 
       GeometrySet instance_geometry;
       switch (reference.type()) {
-        case blender::bke::InstanceReference::Type::GeometrySet:
+        case bke::InstanceReference::Type::GeometrySet:
           instance_geometry = reference.geometry_set();
           break;
-        case blender::bke::InstanceReference::Type::Object:
-          instance_geometry = blender::bke::object_get_evaluated_geometry_set(reference.object());
+        case bke::InstanceReference::Type::Object:
+          instance_geometry = bke::object_get_evaluated_geometry_set(reference.object());
           break;
-        case blender::bke::InstanceReference::Type::Collection:
+        case bke::InstanceReference::Type::Collection:
           break;
-        case blender::bke::InstanceReference::Type::None:
+        case bke::InstanceReference::Type::None:
           break;
       }
 
@@ -113,7 +113,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeInputInstanceBounds");
   ntype.ui_name = "Instance Bounds";
@@ -121,7 +121,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

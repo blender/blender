@@ -12,6 +12,8 @@
 
 #include "BLI_threads.h"
 
+namespace blender {
+
 OIIO_NAMESPACE_USING
 
 void OIIO_init()
@@ -35,3 +37,5 @@ int OIIO_getVersionHex()
 {
   return openimageio_version();
 }
+
+}  // namespace blender

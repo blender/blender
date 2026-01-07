@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /*
  * Initialize OpenImageIO on startup.
  */
@@ -17,3 +19,5 @@ void OIIO_init();
  * Get OpenImageIO version.
  */
 int OIIO_getVersionHex();
+
+}  // namespace blender

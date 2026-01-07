@@ -8,16 +8,20 @@
  * \ingroup sequencer
  */
 
+namespace blender {
+
 struct Depsgraph;
-struct ImBuf;
 struct GPUOffScreen;
 struct GPUViewport;
+struct ImBuf;
 struct Object;
+struct Scene;
 struct View3DShading;
+
 enum eDrawType;
 enum eV3DOffscreenDrawFlag;
 
-namespace blender::seq {
+namespace seq {
 using DrawViewFn = ImBuf *(*)(Depsgraph *,
                               Scene *,
                               View3DShading *,
@@ -33,4 +37,5 @@ using DrawViewFn = ImBuf *(*)(Depsgraph *,
                               GPUViewport *,
                               char *);
 extern DrawViewFn view3d_fn;
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

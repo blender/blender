@@ -9,15 +9,19 @@
 #include "BKE_idprop.hh"
 
 #include <pxr/usd/usd/attribute.h>
+#include <pxr/usd/usdUI/accessibilityAPI.h>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace {
 
 template<typename VECT>
 void set_array_prop(IDProperty *idgroup,
-                    const blender::StringRefNull prop_name,
+                    const StringRefNull prop_name,
                     const pxr::UsdAttribute &attr,
                     const pxr::UsdTimeCode time)
 {
@@ -82,7 +86,7 @@ bool equivalent(const pxr::SdfValueTypeName &type_name1, const pxr::SdfValueType
 
 }  // anonymous namespace
 
-namespace blender::io::usd {
+namespace io::usd {
 
 static void set_string_prop(IDProperty *idgroup,
                             const StringRefNull prop_name,
@@ -155,11 +159,49 @@ static void set_double_prop(IDProperty *idgroup, const StringRefNull prop_name, 
   IDP_AddToGroup(idgroup, prop);
 }
 
+static void set_accessibility_property(const pxr::UsdAttribute &attr,
+                                       IDProperty *idgroup,
+                                       const pxr::UsdTimeCode time_code)
+{
+  /* Only set the property if the attribute has an authored value. */
+  if (!attr.IsAuthored()) {
+    return;
+  }
+
+  /* Since STRING properties do not support keyframes, if there is already a value written
+   * for this property, don't try to write it again. */
+  std::string property_name = attr.GetName().GetString();
+  if (IDP_GetPropertyFromGroup(idgroup, property_name)) {
+    return;
+  }
+
+  pxr::SdfValueTypeName type_name = attr.GetTypeName();
+  if (type_name == pxr::SdfValueTypeNames->String) {
+    std::string value;
+    if (attr.Get<std::string>(&value, time_code)) {
+      set_string_prop(idgroup, property_name, value);
+    }
+  }
+  else if (type_name == pxr::SdfValueTypeNames->Token) {
+    pxr::TfToken value;
+    if (attr.Get<pxr::TfToken>(&value, time_code)) {
+      set_string_prop(idgroup, property_name, value.GetString());
+    }
+  }
+}
+
 void set_id_props_from_prim(ID *id,
                             const pxr::UsdPrim &prim,
                             const eUSDPropertyImportMode property_import_mode,
                             const pxr::UsdTimeCode time_code)
 {
+  for (const auto &api : pxr::UsdUIAccessibilityAPI::GetAll(prim)) {
+    IDProperty *idgroup = IDP_EnsureProperties(id);
+    set_accessibility_property(api.GetLabelAttr(), idgroup, time_code);
+    set_accessibility_property(api.GetDescriptionAttr(), idgroup, time_code);
+    set_accessibility_property(api.GetPriorityAttr(), idgroup, time_code);
+  }
+
   pxr::UsdAttributeVector attribs = prim.GetAuthoredAttributes();
   if (attribs.empty()) {
     return;
@@ -288,4 +330,5 @@ void set_id_props_from_prim(ID *id,
   }
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

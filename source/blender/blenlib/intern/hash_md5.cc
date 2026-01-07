@@ -17,6 +17,8 @@
 
 #include "BLI_hash_md5.hh" /* own include */
 
+namespace blender {
+
 #if defined HAVE_LIMITS_H || defined _LIBC
 #  include <limits.h>
 #endif
@@ -329,8 +331,8 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
   pad = pad >= 56 ? 64 + 56 - pad : 56 - pad;
 
   /* Put the 64-bit file length in *bits* at the end of the buffer. */
-  *(md5_uint32 *)&buffer[sum + pad] = SWAP(len[0] << 3);
-  *(md5_uint32 *)&buffer[sum + pad + 4] = SWAP((len[1] << 3) | (len[0] >> 29));
+  *reinterpret_cast<md5_uint32 *>(&buffer[sum + pad]) = SWAP(len[0] << 3);
+  *reinterpret_cast<md5_uint32 *>(&buffer[sum + pad + 4]) = SWAP((len[1] << 3) | (len[0] >> 29));
 
   /* Process last bytes. */
   md5_process_block(buffer, sum + pad + 8, &ctx);
@@ -366,8 +368,8 @@ void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock)
   pad = rest >= 56 ? 64 + 56 - rest : 56 - rest;
 
   /* Put length of buffer in *bits* in last eight bytes. */
-  *(md5_uint32 *)&restbuf[rest + pad] = (md5_uint32)SWAP(len << 3);
-  *(md5_uint32 *)&restbuf[rest + pad + 4] = (md5_uint32)SWAP(len >> 29);
+  *reinterpret_cast<md5_uint32 *>(&restbuf[rest + pad]) = md5_uint32(SWAP(len << 3));
+  *reinterpret_cast<md5_uint32 *>(&restbuf[rest + pad + 4]) = md5_uint32(SWAP(len >> 29));
 
   /* Process last bytes. */
   md5_process_block(restbuf, rest + pad + 8, &ctx);
@@ -383,7 +385,7 @@ char *BLI_hash_md5_to_hexdigest(const void *resblock, char r_hex_digest[33])
   char *q;
   short len;
 
-  for (q = r_hex_digest, p = (const uchar *)resblock, len = 0; len < 16; p++, len++) {
+  for (q = r_hex_digest, p = static_cast<const uchar *>(resblock), len = 0; len < 16; p++, len++) {
     const uchar c = *p;
     *q++ = hex_map[c >> 4];
     *q++ = hex_map[c & 15];
@@ -392,3 +394,5 @@ char *BLI_hash_md5_to_hexdigest(const void *resblock, char r_hex_digest[33])
 
   return r_hex_digest;
 }
+
+}  // namespace blender

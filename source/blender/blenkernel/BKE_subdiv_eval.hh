@@ -10,12 +10,12 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-
-struct Mesh;
 struct OpenSubdiv_EvaluatorCache;
 struct OpenSubdiv_EvaluatorSettings;
+namespace blender {
 
-namespace blender::bke::subdiv {
+struct Mesh;
+namespace bke::subdiv {
 
 struct Subdiv;
 
@@ -93,4 +93,5 @@ void eval_displacement(Subdiv *subdiv,
 /** Evaluate point on a limit surface with displacement applied to it. */
 float3 eval_final_point(Subdiv *subdiv, int ptex_face_index, float u, float v);
 
-}  // namespace blender::bke::subdiv
+}  // namespace bke::subdiv
+}  // namespace blender

@@ -14,13 +14,13 @@ TEST(makesrna_test, forward_struct_declarations_empty_set)
 {
   std::ostringstream stream;
   rna_write_struct_forward_declarations(stream, {});
-  EXPECT_EQ(stream.str(), blender::StringRef(""));
+  EXPECT_EQ(stream.str(), StringRef(""));
 }
 
 TEST(makesrna_test, forward_struct_declarations_unscoped_struct_set)
 {
   std::ostringstream stream;
-  blender::Vector<blender::StringRef> test_structs = {
+  Vector<StringRef> test_structs = {
       "bContext2",
       "PointerRNA2",
       "BContext",
@@ -42,13 +42,13 @@ TEST(makesrna_test, forward_struct_declarations_unscoped_struct_set)
       "struct PointerRNA2;\n"
       "struct pointerrna3;\n"
       "struct Scene;\n";
-  EXPECT_EQ(stream.str(), blender::StringRef(expected_stream));
+  EXPECT_EQ(stream.str(), StringRef(expected_stream));
 }
 
 TEST(makesrna_test, forward_struct_declarations_scoped_struct_set)
 {
   std::ostringstream stream;
-  blender::Vector<blender::StringRef> test_structs = {
+  Vector<StringRef> test_structs = {
       "bContext2",
       "PointerRNA2",
       "BContext",

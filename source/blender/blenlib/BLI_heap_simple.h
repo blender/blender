@@ -12,8 +12,9 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 struct HeapSimple;
-typedef struct HeapSimple HeapSimple;
 
 typedef void (*HeapSimpleFreeFP)(void *ptr);
 
@@ -41,3 +42,5 @@ float BLI_heapsimple_top_value(const HeapSimple *heap) ATTR_WARN_UNUSED_RESULT A
  * Pop the top node off the heap and return its pointer.
  */
 void *BLI_heapsimple_pop_min(HeapSimple *heap) ATTR_NONNULL(1);
+
+}  // namespace blender

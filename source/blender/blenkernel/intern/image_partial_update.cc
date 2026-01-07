@@ -9,7 +9,7 @@
  * image that are changed. These areas are organized in chunks. Changes that happen over time are
  * organized in changesets.
  *
- * A common use case is to update #blender::gpu::Texture for drawing where only that part is
+ * A common use case is to update #gpu::Texture for drawing where only that part is
  * uploaded that only changed.
  *
  * Usage:
@@ -61,7 +61,9 @@
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 
-namespace blender::bke::image::partial_update {
+namespace blender {
+
+namespace bke::image::partial_update {
 
 /** \brief Size of chunks to track changes. */
 constexpr int CHUNK_SIZE = 256;
@@ -163,7 +165,7 @@ struct PartialUpdateUserImpl {
 struct TileChangeset {
  private:
   /** \brief Dirty flag for each chunk. */
-  blender::BitVector<> chunk_dirty_flags_;
+  BitVector<> chunk_dirty_flags_;
   /** \brief are there dirty/ */
   bool has_dirty_chunks_ = false;
 
@@ -491,9 +493,9 @@ ePartialUpdateCollectResult BKE_image_partial_update_collect_changes(Image *imag
   }
 
   /* Collect changed tiles. */
-  LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+  for (ImageTile &tile : image->tiles) {
     std::optional<TileChangeset> changed_chunks = partial_updater->changed_tile_chunks_since(
-        tile, user_impl->last_changeset_id);
+        &tile, user_impl->last_changeset_id);
     /* Check if chunks of this tile are dirty. */
     if (!changed_chunks.has_value()) {
       continue;
@@ -510,7 +512,7 @@ ePartialUpdateCollectResult BKE_image_partial_update_collect_changes(Image *imag
         }
 
         PartialUpdateRegion region;
-        region.tile_number = tile->tile_number;
+        region.tile_number = tile.tile_number;
         BLI_rcti_init(&region.region,
                       chunk_x * CHUNK_SIZE,
                       (chunk_x + 1) * CHUNK_SIZE,
@@ -537,7 +539,7 @@ ePartialUpdateIterResult BKE_image_partial_update_get_next_change(PartialUpdateU
   return ePartialUpdateIterResult::ChangeAvailable;
 }
 
-}  // namespace blender::bke::image::partial_update
+}  // namespace bke::image::partial_update
 
 using namespace blender::bke::image::partial_update;
 
@@ -589,3 +591,5 @@ void BKE_image_partial_update_mark_full_update(Image *image)
   PartialUpdateRegisterImpl *partial_updater = unwrap(image_partial_update_register_ensure(image));
   partial_updater->mark_full_update();
 }
+
+}  // namespace blender

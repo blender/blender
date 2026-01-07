@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace blender {
+
 /* Data file, don't format. */
 /* clang-format off */
 
@@ -607,3 +609,5 @@ const char words10k[] =
 ;
 
 /* clang-format on */
+
+}  // namespace blender

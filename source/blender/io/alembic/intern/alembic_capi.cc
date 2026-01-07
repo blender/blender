@@ -28,6 +28,7 @@
 
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -56,6 +57,8 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
+
+namespace blender {
 
 using Alembic::Abc::IV3fArrayProperty;
 using Alembic::Abc::ObjectHeader;
@@ -107,9 +110,9 @@ BLI_INLINE CacheArchiveHandle *handle_from_archive(AlembicArchiveData *archive)
 /* Add the object's path to list of object paths. No duplication is done, callers are
  * responsible for ensuring that only unique paths are added to the list.
  */
-static void add_object_path(ListBase *object_paths, const IObject &object)
+static void add_object_path(ListBaseT<CacheObjectPath> *object_paths, const IObject &object)
 {
-  CacheObjectPath *abc_path = MEM_callocN<CacheObjectPath>("CacheObjectPath");
+  CacheObjectPath *abc_path = MEM_new_for_free<CacheObjectPath>("CacheObjectPath");
   STRNCPY(abc_path->path, object.getFullName().c_str());
   BLI_addtail(object_paths, abc_path);
 }
@@ -118,7 +121,7 @@ static void add_object_path(ListBase *object_paths, const IObject &object)
 
 /* NOTE: this function is similar to visit_objects below, need to keep them in
  * sync. */
-static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
+static bool gather_objects_paths(const IObject &object, ListBaseT<CacheObjectPath> *object_paths)
 {
   if (!object.valid()) {
     return false;
@@ -170,7 +173,7 @@ static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
 CacheArchiveHandle *ABC_create_handle(const Main *bmain,
                                       const char *filepath,
                                       const CacheFileLayer *layers,
-                                      ListBase *object_paths)
+                                      ListBaseT<CacheObjectPath> *object_paths)
 {
   std::vector<const char *> filepaths;
   filepaths.push_back(filepath);
@@ -447,10 +450,10 @@ struct ImportJobData {
 
   ImportSettings settings;
 
-  blender::Vector<ArchiveReader *> archives;
-  blender::Vector<AbcObjectReader *> readers;
+  Vector<ArchiveReader *> archives;
+  Vector<AbcObjectReader *> readers;
 
-  blender::Vector<std::string> paths;
+  Vector<std::string> paths;
 
   /** Min time read from file import. */
   chrono_t min_time = std::numeric_limits<chrono_t>::max();
@@ -465,20 +468,20 @@ struct ImportJobData {
   bool was_cancelled;
   bool import_ok;
   bool is_background_job;
-  blender::timeit::TimePoint start_time;
+  timeit::TimePoint start_time;
 };
 
 static void report_job_duration(const ImportJobData *data)
 {
-  blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - data->start_time;
+  timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
   std::cout << "Alembic import took ";
-  blender::timeit::print_duration(duration);
+  timeit::print_duration(duration);
   std::cout << '\n';
 }
 
-static void sort_readers(blender::MutableSpan<AbcObjectReader *> readers)
+static void sort_readers(MutableSpan<AbcObjectReader *> readers)
 {
-  blender::parallel_sort(
+  parallel_sort(
       readers.begin(), readers.end(), [](const AbcObjectReader *a, const AbcObjectReader *b) {
         const char *na = a->name().c_str();
         const char *nb = b->name().c_str();
@@ -488,7 +491,7 @@ static void sort_readers(blender::MutableSpan<AbcObjectReader *> readers)
 
 static void import_file(ImportJobData *data, const char *filepath, float progress_factor)
 {
-  blender::timeit::TimePoint start_time = blender::timeit::Clock::now();
+  timeit::TimePoint start_time = timeit::Clock::now();
 
   ArchiveReader *archive = ArchiveReader::get(data->bmain, {filepath});
 
@@ -596,9 +599,9 @@ static void import_file(ImportJobData *data, const char *filepath, float progres
       return;
     }
   }
-  blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - start_time;
+  timeit::Nanoseconds duration = timeit::Clock::now() - start_time;
   std::cout << "Alembic import " << filepath << " took ";
-  blender::timeit::print_duration(duration);
+  timeit::print_duration(duration);
   std::cout << '\n';
 }
 
@@ -626,7 +629,7 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
   data->stop = &worker_status->stop;
   data->do_update = &worker_status->do_update;
   data->progress = &worker_status->progress;
-  data->start_time = blender::timeit::Clock::now();
+  data->start_time = timeit::Clock::now();
 
   WM_locked_interface_set(data->wm, true);
   float file_progress_factor = 1.0f / float(data->paths.size());
@@ -849,7 +852,7 @@ static ISampleSelector sample_selector_for_time(chrono_t time)
 
 void ABC_read_geometry(CacheReader *reader,
                        Object *ob,
-                       blender::bke::GeometrySet &geometry_set,
+                       bke::GeometrySet &geometry_set,
                        const ABCReadParams *params,
                        const char **r_err_str)
 {
@@ -935,3 +938,5 @@ CacheReader *CacheReader_open_alembic_object(CacheArchiveHandle *handle,
 
   return reinterpret_cast<CacheReader *>(abc_reader);
 }
+
+}  // namespace blender

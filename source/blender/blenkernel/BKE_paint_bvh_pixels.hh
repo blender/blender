@@ -264,7 +264,7 @@ struct CopyPixelCommand {
 
     /* Can only extend when the delta between with the previous source fits in a single byte. */
     int2 delta_source_1 = source_1 - command.source_1;
-    if (max_ii(UNPACK2(blender::math::abs(delta_source_1))) > 127) {
+    if (max_ii(UNPACK2(math::abs(delta_source_1))) > 127) {
       return false;
     }
     return true;
@@ -341,7 +341,7 @@ struct CopyPixelTiles {
 /** \} */
 
 /**
- * Storage for texture painting on blender::bke::pbvh::Tree level.
+ * Storage for texture painting on bke::pbvh::Tree level.
  */
 struct PBVHData {
   /* Per UVPRimitive contains the paint data. */
@@ -356,12 +356,12 @@ struct PBVHData {
   }
 };
 
-NodeData &node_data_get(blender::bke::pbvh::Node &node);
-void mark_image_dirty(blender::bke::pbvh::Node &node, Image &image, ImageUser &image_user);
-PBVHData &data_get(blender::bke::pbvh::Tree &pbvh);
-void collect_dirty_tiles(blender::bke::pbvh::Node &node, Vector<image::TileNumber> &r_dirty_tiles);
+NodeData &node_data_get(bke::pbvh::Node &node);
+void mark_image_dirty(bke::pbvh::Node &node, Image &image, ImageUser &image_user);
+PBVHData &data_get(bke::pbvh::Tree &pbvh);
+void collect_dirty_tiles(bke::pbvh::Node &node, Vector<image::TileNumber> &r_dirty_tiles);
 
-void copy_pixels(blender::bke::pbvh::Tree &pbvh,
+void copy_pixels(bke::pbvh::Tree &pbvh,
                  Image &image,
                  ImageUser &image_user,
                  image::TileNumber tile_number);

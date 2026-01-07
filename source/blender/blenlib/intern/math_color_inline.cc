@@ -6,13 +6,14 @@
  * \ingroup bli
  */
 
+#pragma once
+
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 
 #include <cmath>
 
-#ifndef __MATH_COLOR_INLINE_C__
-#  define __MATH_COLOR_INLINE_C__
+namespace blender {
 
 /******************************** Color Space ********************************/
 
@@ -230,9 +231,10 @@ MINLINE unsigned char srgb_to_grayscale_byte(const unsigned char rgb[3])
 {
   /* The high precision values are used to calculate the rounded byte weights so they add up to
    * 255: `54(R) + 182(G) + 19(B)` */
-  return (unsigned char)(((54 * (unsigned short)rgb[0]) + (182 * (unsigned short)rgb[1]) +
-                          (19 * (unsigned short)rgb[2])) /
-                         255);
+  return static_cast<unsigned char>(((54 * static_cast<unsigned short>(rgb[0])) +
+                                     (182 * static_cast<unsigned short>(rgb[1])) +
+                                     (19 * static_cast<unsigned short>(rgb[2]))) /
+                                    255);
 }
 
 /** \} */
@@ -241,11 +243,11 @@ MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
                               const unsigned char col_b[3],
                               const int limit)
 {
-  const int r = (int)col_a[0] - (int)col_b[0];
+  const int r = int(col_a[0]) - int(col_b[0]);
   if (abs(r) < limit) {
-    const int g = (int)col_a[1] - (int)col_b[1];
+    const int g = int(col_a[1]) - int(col_b[1]);
     if (abs(g) < limit) {
-      const int b = (int)col_a[2] - (int)col_b[2];
+      const int b = int(col_a[2]) - int(col_b[2]);
       if (abs(b) < limit) {
         return 1;
       }
@@ -353,4 +355,4 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
   }
 }
 
-#endif /* !__MATH_COLOR_INLINE_C__ */
+}  // namespace blender

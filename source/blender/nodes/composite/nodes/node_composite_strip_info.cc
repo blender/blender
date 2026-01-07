@@ -17,13 +17,13 @@
 
 #include "NOD_node_extra_info.hh"
 
-#include "SEQ_time.hh"
-
 #include "UI_resources.hh"
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes::node_composite_strip_info_cc {
+namespace blender {
+
+namespace nodes::node_composite_strip_info_cc {
 
 static void cmp_node_strip_info_declare(NodeDeclarationBuilder &b)
 {
@@ -51,15 +51,13 @@ class StripInfoOperation : public NodeOperation {
     Result &start_frame_result = this->get_result("Start Frame");
     if (start_frame_result.should_compute()) {
       start_frame_result.allocate_single_value();
-      start_frame_result.set_single_value(
-          seq::time_left_handle_frame_get(&context().get_scene(), strip));
+      start_frame_result.set_single_value(strip->left_handle());
     }
 
     Result &end_frame_result = this->get_result("End Frame");
     if (end_frame_result.should_compute()) {
       end_frame_result.allocate_single_value();
-      end_frame_result.set_single_value(
-          seq::time_right_handle_frame_get(&context().get_scene(), strip));
+      end_frame_result.set_single_value(strip->right_handle(&context().get_scene()));
     }
 
     Result &location_result = this->get_result("Location");
@@ -129,13 +127,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new StripInfoOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_strip_info_cc
+}  // namespace nodes::node_composite_strip_info_cc
 
 static void register_node_type_cmp_strip_info()
 {
-  namespace file_ns = blender::nodes::node_composite_strip_info_cc;
+  namespace file_ns = nodes::node_composite_strip_info_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeSequencerStripInfo");
   ntype.ui_name = "Sequencer Strip Info";
@@ -145,6 +143,8 @@ static void register_node_type_cmp_strip_info()
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.get_extra_info = file_ns::node_extra_info;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_strip_info)
+
+}  // namespace blender

@@ -37,12 +37,15 @@ using std::ofstream;
 using std::ostringstream;
 using std::to_string;
 
+namespace blender {
+
 atomic<int> MANTA::solverID(0);
 int MANTA::with_debug(0);
 
 MANTA::MANTA(int *res, FluidModifierData *fmd)
     : mCurrentID(++solverID), mMaxRes(fmd->domain->maxres)
 {
+  using namespace blender;
   if (with_debug) {
     cout << "FLUID: " << mCurrentID << " with res(" << res[0] << ", " << res[1] << ", " << res[2]
          << ")" << endl;
@@ -2447,3 +2450,5 @@ string MANTA::getFile(
   BLI_path_frame(targetFile, sizeof(targetFile), framenr, 0);
   return targetFile;
 }
+
+}  // namespace blender

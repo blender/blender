@@ -23,7 +23,7 @@ namespace blender::eevee {
 #define SSS_TRANSMIT_LUT_BIAS (0.5f / float(SSS_TRANSMIT_LUT_SIZE))
 #define SSS_TRANSMIT_LUT_STEP_RES 64.0f
 
-struct SubsurfaceData {
+struct [[host_shared]] SubsurfaceData {
   /** xy: 2D sample position [-1..1], zw: sample_bounds. */
   /* NOTE(fclem) Using float4 for alignment. */
   float4 samples[SSS_SAMPLE_MAX];
@@ -36,7 +36,6 @@ struct SubsurfaceData {
   int _pad1;
   int _pad2;
 };
-BLI_STATIC_ASSERT_ALIGN(SubsurfaceData, 16)
 
 static inline float3 burley_setup(float3 radius, float3 albedo)
 {

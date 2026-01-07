@@ -35,8 +35,7 @@ void main()
     return;
   }
 
-  const IndexRange list_range = IndexRange(list_range_buf[list_id * 2 + 0],
-                                           list_range_buf[list_id * 2 + 1]);
+  const IndexRange list_range{list_range_buf[list_id * 2 + 0], list_range_buf[list_id * 2 + 1]};
   if (list_range.size() == 0) {
     list_start_buf[list_id] = -1;
     return;

@@ -21,9 +21,11 @@
 #include "FX_shader_types.hh"
 #include "FX_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *fx)
 {
-  FlipShaderFxData *gpfx = (FlipShaderFxData *)fx;
+  FlipShaderFxData *gpfx = reinterpret_cast<FlipShaderFxData *>(fx);
   gpfx->flag |= FX_FLIP_HORIZONTAL;
 }
 
@@ -34,14 +36,14 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  ui::Layout &layout = *panel->layout;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &row = layout.row(true, IFACE_("Axis"));
+  ui::Layout &row = layout.row(true, IFACE_("Axis"));
   row.prop(ptr, "use_flip_x", toggles_flag, std::nullopt, ICON_NONE);
   row.prop(ptr, "use_flip_y", toggles_flag, std::nullopt, ICON_NONE);
 
@@ -71,3 +73,5 @@ ShaderFxTypeInfo shaderfx_Type_Flip = {
     /*foreach_working_space_color*/ nullptr,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

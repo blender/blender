@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
-"PO-Revision-Date: 2025-11-25 23:12+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"PO-Revision-Date: 2026-01-05 05:12+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -179,6 +179,10 @@ msgid "Collection of animation layers"
 msgstr "היצמינא תובכש לש ףסוא"
 
 
+msgid "Collection of timeline markers"
+msgstr "ןמז-ריצ ינומיס לש ףסוא"
+
+
 msgctxt "ID"
 msgid "Collection"
 msgstr "ףסוא"
@@ -311,7 +315,7 @@ msgstr "הלועפ תועוצר"
 
 
 msgid "Collection of animation strips"
-msgstr "היצמינא תועוצר ףסוא"
+msgstr "היצמינא תועוצר לש ףסוא"
 
 
 msgid "Add-on"
@@ -338,8 +342,20 @@ msgid "Full"
 msgstr "אלמ"
 
 
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr ".םירמוח תויורשפא לוהינל glTF יצבק רובע שמתשמ קשממ גיצמ"
+
+
 msgid "Allow glTF Embedded format"
 msgstr "עמטומ glTF טמרופ רשפא"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "תויצמינא לוהינל glTF יצבק רובע שמתשמ קשממ גיצמ"
 
 
 msgid "Show only hotkeys that have this text in their name"
@@ -355,7 +371,7 @@ msgstr "שמתשמה לש םיפסות"
 
 
 msgid "Collection of add-ons"
-msgstr "םיפסות ףסוא"
+msgstr "םיפסות לש ףסוא"
 
 
 msgid "Animation Data"
@@ -454,6 +470,14 @@ msgid "Frame Step"
 msgstr "תרגסמ דעצ"
 
 
+msgid "Paths Range"
+msgstr "םיביתנ חווט"
+
+
+msgid "Type of range to calculate for Motion Paths"
+msgstr "העונת יביתנ בושיחל חווט גוס"
+
+
 msgid "Scene Frame Range"
 msgstr "הנצסב תורגסמ חווט"
 
@@ -498,6 +522,14 @@ msgid "Default"
 msgstr "לדחמ תרירב"
 
 
+msgid "Spaces"
+msgstr "םיבחרמ"
+
+
+msgid "Spaces contained in this area, the first being the active space (NOTE: Useful for example to restore a previously used 3D view space in a certain area to get the old view orientation)"
+msgstr "(הנשיה הגצהה תיווז תא גישהל ידכ םיוסמ רוזאב תידממ-תלת הגוצת בחרמ רוזחשל ,המגודל ,ישומיש :הרעה) ליעפה בחרמה אוה ןושארה ,הז רוזאב םילכומה םיבחרמ"
+
+
 msgid "Empty"
 msgstr "קיר"
 
@@ -530,8 +562,24 @@ msgid "Width"
 msgstr "בחור"
 
 
+msgid "Area Spaces"
+msgstr "רוזא יבחרמ"
+
+
+msgid "Collection of spaces"
+msgstr "םיבחרמ לש ףסוא"
+
+
 msgid "Active Bone"
 msgstr "הליעפ םצע"
+
+
+msgid "Regions for quick access to assets"
+msgstr "םיסכנל הריהמ השיגל םירוזא"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Blender םע םיעיגמש םירזעו היינבה יקולב תא גצה"
 
 
 msgid "Options"
@@ -566,12 +614,56 @@ msgid "Meshes"
 msgstr "תורוצ"
 
 
+msgid "Show Object data-blocks"
+msgstr "טקייבוא ינותנ-יקולב גצה"
+
+
+msgid "Palettes"
+msgstr "תוטלפ"
+
+
+msgid "Show Palette data-blocks"
+msgstr "הטלפ ינותנ-יקולב גצה"
+
+
+msgid "Particles Settings"
+msgstr "םיקיקלח תורדגה"
+
+
+msgid "Show Particle Settings data-blocks"
+msgstr "םיקיקלח ינותנ-יקולב גצה"
+
+
+msgid "Point Clouds"
+msgstr "ודוקנ יננע"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "תודוקנ יננע ינותנ-יקולב רתסה/גצה"
+
+
 msgid "Scenes"
 msgstr "תונצס"
 
 
+msgid "Show Scene data-blocks"
+msgstr "הנצס ינותנ-יקולב גצה"
+
+
 msgid "Sounds"
 msgstr "םילילצ"
+
+
+msgid "Show Sound data-blocks"
+msgstr "לילצ ינותנ-יקולב גצה"
+
+
+msgid "Speakers"
+msgstr "םילוקמר"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "םילוקמר ינותנ-יקולב גצה"
 
 
 msgid "Texts"
@@ -837,6 +929,10 @@ msgid "Collection of worlds"
 msgstr "תומלוע ףסוא"
 
 
+msgid "Separate"
+msgstr "הדרפה"
+
+
 msgid "Speed"
 msgstr "תוריהמ"
 
@@ -916,6 +1012,10 @@ msgid "Path"
 msgstr "ביתנ"
 
 
+msgid "Movie clip displayed and edited in this space"
+msgstr "הז בחרמב ךרענו גצומה ואדיווה פילק"
+
+
 msgctxt "Camera"
 msgid "Depth"
 msgstr "קמוע"
@@ -923,6 +1023,10 @@ msgstr "קמוע"
 
 msgid "Image"
 msgstr "הנומת"
+
+
+msgid "Image displayed and edited in this space"
+msgstr "הז בחרמב תכרענו תגצומה הנומתה"
 
 
 msgid "Rotation"
@@ -995,6 +1099,18 @@ msgstr "םיקיקלח דמשה"
 
 msgid "Kill collided particles"
 msgstr "םישגנתמ םיקיקלח דמשה"
+
+
+msgid "Input color space settings"
+msgstr "טלק יעבצ בחרמ תורדגה"
+
+
+msgid "Input Color Space"
+msgstr "טלק יעבצ בחרמ"
+
+
+msgid "Color space in the image file, to convert to and from when saving and loading the image"
+msgstr "הנומת תניעטו תרימשב וילאו ונממ הרמהל ,הנומתה ץבוקב םיעבצ בחרמ"
 
 
 msgid "Gamma"
@@ -1228,6 +1344,46 @@ msgid "Modifiers"
 msgstr "םינשמ"
 
 
+msgid "No Audio"
+msgstr "עמש אלל"
+
+
+msgid "Disables audio output, for video-only renders"
+msgstr "דבלב ואידיו לש םידוביעל ,עמש טלפ קתשה"
+
+
+msgid "AAC"
+msgstr "AAC"
+
+
+msgid "AC3"
+msgstr "AC3"
+
+
+msgid "FLAC"
+msgstr "FLAC"
+
+
+msgid "MP2"
+msgstr "MP2"
+
+
+msgid "MP3"
+msgstr "MP3"
+
+
+msgid "Opus"
+msgstr "Opus"
+
+
+msgid "PCM"
+msgstr "PCM"
+
+
+msgid "Vorbis"
+msgstr "Vorbis"
+
+
 msgctxt "Sound"
 msgid "Volume"
 msgstr "עמש תמצוע"
@@ -1264,6 +1420,22 @@ msgstr "םקרמ בצמ"
 
 msgid "Force field based on a texture"
 msgstr "םקרמ סיסב לע חוכ הדש"
+
+
+msgid "File Select Parameters"
+msgstr "ץבוק תריחב ירטמרפ"
+
+
+msgid "Save"
+msgstr "רומש"
+
+
+msgid "Whether this path is saved in bookmarks, or generated from OS"
+msgstr ".הלעפהה תכרעממ רצוימ וא ,תוינמיסב רומש הז ביתנ םאה"
+
+
+msgid "File Extensions"
+msgstr "םיצבק תומויס"
 
 
 msgid "Image strip"
@@ -1320,6 +1492,10 @@ msgstr "םידוקדוק תצובק"
 
 msgid "Collection"
 msgstr "ףסוא"
+
+
+msgid "Mask"
+msgstr "הכסמ"
 
 
 msgid "Sphere Radius"
@@ -1453,6 +1629,10 @@ msgstr "לילג סוידר"
 
 msgid "Radius of the virtual cylinder"
 msgstr "ילאוטריווה לילגה לש סוידר"
+
+
+msgid "Twist Method"
+msgstr "לותיפ תטיש"
 
 
 msgid "Path"
@@ -1611,8 +1791,100 @@ msgid "Use whole collection at once"
 msgstr "תחא תבב ףסואה לכב שמתשה"
 
 
+msgid "Speed of Sound"
+msgstr "לילצ תוריהמ"
+
+
+msgid "Background Scene"
+msgstr "עקר תנצס"
+
+
+msgid "Active camera, used for rendering the scene"
+msgstr "הנצסה דוביעל תשמשמ ,הליעפ המלצמ"
+
+
+msgid "Scene root collection that owns all the objects and other collections instantiated in the scene"
+msgstr "הנצסה ךותבש םירחאה םיפסואהו םיטקייבואה לכ תא קיזחמש הנצסל שרוש ףסוא"
+
+
 msgid "3D Cursor"
 msgstr "דממ-תלת ןמס"
+
+
+msgid "Cycles Render Settings"
+msgstr "Cycles דוביע תורדגה"
+
+
+msgid "Cycles render settings"
+msgstr "Cycles דוביע תורדגה"
+
+
+msgid "Cycles Curves Rendering Settings"
+msgstr "Cycles תומוקע דוביע תורדגה"
+
+
+msgid "Cycles curves rendering settings"
+msgstr "Cycles תומוקע דוביע תורדגה"
+
+
+msgid "Scene Display"
+msgstr "הנצס תגוצת"
+
+
+msgid "Scene display settings for 3D viewport"
+msgstr "דממ-תלתה תגוצתל הנצסה תגוצת תורדגה"
+
+
+msgid "Display Settings"
+msgstr "הגוצת תורדגה"
+
+
+msgid "EEVEE"
+msgstr "EEVEE"
+
+
+msgid "EEVEE settings for the scene"
+msgstr "הנצסל EEVEE תורדגה"
+
+
+msgid "Current Frame"
+msgstr "תיחכונ תרגסמ"
+
+
+msgid "Current frame, to update animation data from Python frame_set() instead"
+msgstr "Python -ב ()frame_set -מ היצמינאה ינותנ ןוכדעל ,תיחכונ תרגסמ"
+
+
+msgid "Final frame of the playback/rendering range"
+msgstr "הגצה\\דוביעה חווט לש תיפוס תרגסמ"
+
+
+msgid "Current Subframe"
+msgstr "תיחכונ תרגסמ-תת"
+
+
+msgid "Preview Range End Frame"
+msgstr "המידקמ-הגוצתה חווטל םויס תרגסמ"
+
+
+msgid "Alternative end frame for UI playback"
+msgstr "שמתשמה קשממב הגצהל תיפולח םויס תרגסמ"
+
+
+msgid "Preview Range Start Frame"
+msgstr "המידקמ-הגוצתה חווטל הלחתה תרגסמ"
+
+
+msgid "Alternative start frame for UI playback"
+msgstr "שמתשמה קשממב הגצהל תיפולח הלחתה תרגסמ"
+
+
+msgid "First frame of the playback/rendering range"
+msgstr "הגצה\\דוביעה חווט לש הנושאר תרגסמ"
+
+
+msgid "Number of frames to skip forward while rendering/playing back each frame"
+msgstr "תרגסמ לכ רובע הגצה\\דוביע ןמזב המידק גולידל תורגסמ רפסמ"
 
 
 msgid "Outer Cone Volume"
@@ -1711,8 +1983,8 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
-msgid "Mask"
-msgstr "הכסמ"
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Apply"
@@ -1731,16 +2003,12 @@ msgid "Face Data"
 msgstr "האפ ינותנ"
 
 
-msgid "Mirror"
-msgstr "הארמ"
-
-
 msgid "Proxy"
 msgstr "יסקורפ"
 
 
-msgid "Languages..."
-msgstr "..תופש"
+msgid "Languages"
+msgstr "תופש"
 
 
 msgid "Strip"
@@ -2037,14 +2305,6 @@ msgstr "תימניד העיבצ תייפא"
 
 msgid "Lamp"
 msgstr "הרונמ"
-
-
-msgid "3D Cursor Position"
-msgstr "דממ-תלתה ןמס םוקימ"
-
-
-msgid "3D Cursor Rotation"
-msgstr "דממ-תלתה ןמס בוביס"
 
 
 msgid "Eraser"
@@ -2427,8 +2687,20 @@ msgid "Language Name"
 msgstr "הפשה םש"
 
 
-msgid "Languages"
-msgstr "תופש"
+msgid "Space Preferences"
+msgstr "בחרמ תופדעה"
+
+
+msgid "Properties Space"
+msgstr "םינייפאמ בחרמ"
+
+
+msgid "Properties space data"
+msgstr "םינייפאמ בחרמ ינותנ"
+
+
+msgid "Active Tool and Workspace settings"
+msgstr "הדובע בחרמ תורדגהו ליעפ ילכ"
 
 
 msgctxt "Sequence"
@@ -2590,11 +2862,6 @@ msgstr "רבד רחבנ אל"
 
 
 msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "ךרד־רוציק הנש"
-
-
-msgctxt "Operator"
 msgid "Reset All to Default Values"
 msgstr "לדחמה תרירב יכרעל לכה לחתא"
 
@@ -2725,10 +2992,6 @@ msgstr "ץבוק ביתנ"
 
 msgid "File name"
 msgstr "ץבוק םש"
-
-
-msgid "Movies"
-msgstr "םיטרס"
 
 
 msgid "Select Layer"

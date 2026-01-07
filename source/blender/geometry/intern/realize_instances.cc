@@ -5,6 +5,7 @@
 #include "GEO_join_geometries.hh"
 #include "GEO_realize_instances.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
@@ -27,12 +28,12 @@
 
 namespace blender::geometry {
 
-using blender::bke::AttrDomain;
-using blender::bke::AttributeDomainAndType;
-using blender::bke::GSpanAttributeWriter;
-using blender::bke::InstanceReference;
-using blender::bke::Instances;
-using blender::bke::SpanAttributeWriter;
+using bke::AttrDomain;
+using bke::AttributeDomainAndType;
+using bke::GSpanAttributeWriter;
+using bke::InstanceReference;
+using bke::Instances;
+using bke::SpanAttributeWriter;
 
 /**
  * An ordered set of attribute ids. Attributes are ordered to avoid name lookups in many places.
@@ -966,9 +967,9 @@ static OrderedAttributes gather_generic_instance_attributes_to_propagate(
 
 static void execute_instances_tasks(
     const Span<bke::GeometryComponentPtr> src_components,
-    const Span<blender::float4x4> src_base_transforms,
+    const Span<float4x4> src_base_transforms,
     const OrderedAttributes &all_instances_attributes,
-    const Span<blender::geometry::AttributeFallbacksArray> attribute_fallback,
+    const Span<geometry::AttributeFallbacksArray> attribute_fallback,
     bke::GeometrySet &r_realized_geometry)
 {
   BLI_assert(src_components.size() == src_base_transforms.size() &&
@@ -1005,7 +1006,7 @@ static void execute_instances_tasks(
     const bke::InstancesComponent &src_component = static_cast<const bke::InstancesComponent &>(
         *src_components[component_index]);
     const bke::Instances &src_instances = *src_component.get();
-    const blender::float4x4 &src_base_transform = src_base_transforms[component_index];
+    const float4x4 &src_base_transform = src_base_transforms[component_index];
     const Span<const void *> attribute_fallback_array = attribute_fallback[component_index].array;
     const Span<bke::InstanceReference> src_references = src_instances.references();
     Array<int> handle_map(src_references.size());
@@ -1038,7 +1039,7 @@ static void execute_instances_tasks(
     array_utils::gather(handle_map.as_span(), src_handles, all_handles.slice(dst_range));
     array_utils::copy(src_instances.transforms(), all_transforms.slice(dst_range));
 
-    for (blender::float4x4 &transform : all_transforms.slice(dst_range)) {
+    for (float4x4 &transform : all_transforms.slice(dst_range)) {
       transform = src_base_transform * transform;
     }
   }
@@ -1047,7 +1048,7 @@ static void execute_instances_tasks(
   auto &dst_component = r_realized_geometry.get_component_for_write<bke::InstancesComponent>();
 
   Vector<const bke::GeometryComponent *> for_join_attributes;
-  for (bke::GeometryComponentPtr component : src_components) {
+  for (const bke::GeometryComponentPtr &component : src_components) {
     for_join_attributes.append(component.get());
   }
   /* Join attribute values from the 'unselected' instances, as they aren't included otherwise.
@@ -1611,7 +1612,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                     domain_to_range,
                                     dst_attribute_writers);
 }
-static void copy_vertex_group_name(ListBase *dst_deform_group,
+static void copy_vertex_group_name(ListBaseT<bDeformGroup> *dst_deform_group,
                                    const OrderedAttributes &ordered_attributes,
                                    const bDeformGroup &src_deform_group)
 {
@@ -1627,7 +1628,7 @@ static void copy_vertex_group_name(ListBase *dst_deform_group,
     /* Skip if the source attribute can't possibly contain vertex weights. */
     return;
   }
-  bDeformGroup *dst = MEM_callocN<bDeformGroup>(__func__);
+  bDeformGroup *dst = MEM_new_for_free<bDeformGroup>(__func__);
   src_name.copy_utf8_truncated(dst->name);
   BLI_addtail(dst_deform_group, dst);
 }
@@ -1637,15 +1638,15 @@ static void copy_vertex_group_names(Mesh &dst_mesh,
                                     const Span<const Mesh *> src_meshes)
 {
   Set<StringRef> existing_names;
-  LISTBASE_FOREACH (const bDeformGroup *, defgroup, &dst_mesh.vertex_group_names) {
-    existing_names.add(defgroup->name);
+  for (const bDeformGroup &defgroup : dst_mesh.vertex_group_names) {
+    existing_names.add(defgroup.name);
   }
   for (const Mesh *mesh : src_meshes) {
-    LISTBASE_FOREACH (const bDeformGroup *, src, &mesh->vertex_group_names) {
-      if (existing_names.contains(src->name)) {
+    for (const bDeformGroup &src : mesh->vertex_group_names) {
+      if (existing_names.contains(src.name)) {
         continue;
       }
-      copy_vertex_group_name(&dst_mesh.vertex_group_names, ordered_attributes, *src);
+      copy_vertex_group_name(&dst_mesh.vertex_group_names, ordered_attributes, src);
     }
   }
 }
@@ -2018,16 +2019,16 @@ static void copy_vertex_group_names(CurvesGeometry &dst_curve,
                                     const Span<const Curves *> src_curves)
 {
   Set<StringRef> existing_names;
-  LISTBASE_FOREACH (const bDeformGroup *, defgroup, &dst_curve.vertex_group_names) {
-    existing_names.add(defgroup->name);
+  for (const bDeformGroup &defgroup : dst_curve.vertex_group_names) {
+    existing_names.add(defgroup.name);
   }
   for (const Curves *src_curve : src_curves) {
-    LISTBASE_FOREACH (const bDeformGroup *, src, &src_curve->geometry.vertex_group_names) {
-      if (existing_names.contains(src->name)) {
+    for (const bDeformGroup &src : src_curve->geometry.vertex_group_names) {
+      if (existing_names.contains(src.name)) {
         continue;
       }
-      copy_vertex_group_name(&dst_curve.vertex_group_names, ordered_attributes, *src);
-      existing_names.add(src->name);
+      copy_vertex_group_name(&dst_curve.vertex_group_names, ordered_attributes, src);
+      existing_names.add(src.name);
     }
   }
 }

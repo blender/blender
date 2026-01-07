@@ -6,7 +6,9 @@
 
 #include "BLI_math_vector.h"
 
-namespace blender::nodes::node_shader_bsdf_ray_portal_cc {
+namespace blender {
+
+namespace nodes::node_shader_bsdf_ray_portal_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -51,14 +53,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_bsdf_ray_portal_cc
+}  // namespace nodes::node_shader_bsdf_ray_portal_cc
 
 /* node type definition */
 void register_node_type_sh_bsdf_ray_portal()
 {
-  namespace file_ns = blender::nodes::node_shader_bsdf_ray_portal_cc;
+  namespace file_ns = nodes::node_shader_bsdf_ray_portal_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeBsdfRayPortal", SH_NODE_BSDF_RAY_PORTAL);
   ntype.ui_name = "Ray Portal BSDF";
@@ -70,5 +72,7 @@ void register_node_type_sh_bsdf_ray_portal()
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_ray_portal;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

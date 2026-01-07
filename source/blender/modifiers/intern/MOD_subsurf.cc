@@ -17,7 +17,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -51,13 +50,12 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
-
-  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SubsurfModifierData), modifier);
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 }
 
 static void free_runtime_data(void *runtime_data_v)
@@ -65,26 +63,26 @@ static void free_runtime_data(void *runtime_data_v)
   if (runtime_data_v == nullptr) {
     return;
   }
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)runtime_data_v;
+  SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(runtime_data_v);
   if (runtime_data->subdiv_cpu != nullptr) {
-    blender::bke::subdiv::free(runtime_data->subdiv_cpu);
+    bke::subdiv::free(runtime_data->subdiv_cpu);
   }
   if (runtime_data->subdiv_gpu != nullptr) {
-    blender::bke::subdiv::free(runtime_data->subdiv_gpu);
+    bke::subdiv::free(runtime_data->subdiv_gpu);
   }
   MEM_freeN(runtime_data);
 }
 
 static void free_data(ModifierData *md)
 {
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
 
   free_runtime_data(smd->modifier.runtime);
 }
 
 static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_params)
 {
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
   int levels = (use_render_params) ? smd->renderLevels : smd->levels;
 
   return get_render_subsurf_level(&scene->r, levels, use_render_params != 0) == 0;
@@ -101,7 +99,7 @@ static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
 
 /* Subdivide into fully qualified mesh. */
 
-static void subdiv_mesh_settings_init(blender::bke::subdiv::ToMeshSettings *settings,
+static void subdiv_mesh_settings_init(bke::subdiv::ToMeshSettings *settings,
                                       const SubsurfModifierData *smd,
                                       const ModifierEvalContext *ctx)
 {
@@ -114,15 +112,15 @@ static void subdiv_mesh_settings_init(blender::bke::subdiv::ToMeshSettings *sett
 static Mesh *subdiv_as_mesh(SubsurfModifierData *smd,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
-                            blender::bke::subdiv::Subdiv *subdiv)
+                            bke::subdiv::Subdiv *subdiv)
 {
   Mesh *result = mesh;
-  blender::bke::subdiv::ToMeshSettings mesh_settings;
+  bke::subdiv::ToMeshSettings mesh_settings;
   subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
   if (mesh_settings.resolution < 3) {
     return result;
   }
-  result = blender::bke::subdiv::subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+  result = bke::subdiv::subdiv_to_mesh(subdiv, &mesh_settings, mesh);
   return result;
 }
 
@@ -141,7 +139,7 @@ static void subdiv_ccg_settings_init(SubdivToCCGSettings *settings,
 static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
                            const ModifierEvalContext *ctx,
                            Mesh *mesh,
-                           blender::bke::subdiv::Subdiv *subdiv)
+                           bke::subdiv::Subdiv *subdiv)
 {
   Mesh *result = mesh;
   SubdivToCCGSettings ccg_settings;
@@ -161,7 +159,7 @@ static void subdiv_cache_mesh_wrapper_settings(const ModifierEvalContext *ctx,
                                                SubsurfRuntimeData *runtime_data,
                                                const bool has_gpu_subdiv)
 {
-  blender::bke::subdiv::ToMeshSettings mesh_settings;
+  bke::subdiv::ToMeshSettings mesh_settings;
   subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
 
   runtime_data->has_gpu_subdiv = has_gpu_subdiv;
@@ -193,18 +191,17 @@ static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  using namespace blender;
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
   return result;
 #endif
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
   if (!BKE_subsurf_modifier_runtime_init(smd, (ctx->flag & MOD_APPLY_RENDER) != 0)) {
     return result;
   }
 
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(smd->modifier.runtime);
 
   /* Decrement the recent usage counters. */
   if (runtime_data->used_cpu) {
@@ -229,7 +226,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     /* Check if we are the last modifier in the stack. */
     ModifierData *md = modifier_get_last_enabled_for_mode(scene, ctx->object, required_mode);
-    if (md == (const ModifierData *)smd) {
+    if (md == reinterpret_cast<const ModifierData *>(smd)) {
       const bool has_gpu_subdiv = BKE_subsurf_modifier_can_do_gpu_subdiv(smd, mesh);
       subdiv_cache_mesh_wrapper_settings(ctx, mesh, smd, runtime_data, has_gpu_subdiv);
 
@@ -250,7 +247,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  blender::bke::subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
+  bke::subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
       runtime_data, mesh, false);
   if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
@@ -279,9 +276,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
          result->corners_num});
     CustomData_free_layers(&result->corner_data, CD_NORMAL);
   }
-  // blender::bke::subdiv::stats_print(&subdiv->stats);
+  // bke::subdiv::stats_print(&subdiv->stats);
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
-    blender::bke::subdiv::free(subdiv);
+    bke::subdiv::free(subdiv);
   }
   return result;
 }
@@ -289,8 +286,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 static void deform_matrices(ModifierData *md,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
-                            blender::MutableSpan<blender::float3> positions,
-                            blender::MutableSpan<blender::float3x3> /*matrices*/)
+                            MutableSpan<float3> positions,
+                            MutableSpan<float3x3> /*matrices*/)
 {
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -299,20 +296,20 @@ static void deform_matrices(ModifierData *md,
 
   /* Subsurf does not require extra space mapping, keep matrices as is. */
 
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
   if (!BKE_subsurf_modifier_runtime_init(smd, (ctx->flag & MOD_APPLY_RENDER) != 0)) {
     return;
   }
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
-  blender::bke::subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
+  SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(smd->modifier.runtime);
+  bke::subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
       runtime_data, mesh, false);
   if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
     return;
   }
-  blender::bke::subdiv::deform_coarse_vertices(subdiv, mesh, positions);
+  bke::subdiv::deform_coarse_vertices(subdiv, mesh, positions);
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
-    blender::bke::subdiv::free(subdiv);
+    bke::subdiv::free(subdiv);
   }
 }
 
@@ -336,17 +333,17 @@ static bool get_show_adaptive_options(const bContext *C, Panel *panel)
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout.prop(ptr, "subdivision_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "subdivision_type", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
   {
-    blender::ui::Layout &col = layout.column(true);
+    ui::Layout &col = layout.column(true);
     col.prop(ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
     col.prop(ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
   }
@@ -357,7 +354,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   SubsurfModifierData *smd = static_cast<SubsurfModifierData *>(ptr->data);
   Object *ob = static_cast<Object *>(ob_ptr.data);
   if (ob->type == OB_MESH && BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(
-                                 smd, static_cast<const Mesh *>(ob->data)))
+                                 smd, id_cast<const Mesh *>(ob->data)))
   {
     layout.label(RPT_("Sharp edges or custom normals detected, disabling GPU subdivision"),
                  ICON_INFO);
@@ -365,7 +362,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   else if (Object *ob_eval = DEG_get_evaluated(depsgraph, ob)) {
     if (ModifierData *md_eval = BKE_modifiers_findby_name(ob_eval, smd->modifier.name)) {
       if (md_eval->type == eModifierType_Subsurf) {
-        SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)md_eval->runtime;
+        SubsurfRuntimeData *runtime_data = static_cast<SubsurfRuntimeData *>(md_eval->runtime);
 
         if (runtime_data && runtime_data->used_gpu) {
           if (runtime_data->used_cpu) {
@@ -377,7 +374,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (get_show_adaptive_options(C, panel)) {
-    PanelLayout adaptive_panel = layout.panel_prop_with_bool_header(
+    ui::PanelLayout adaptive_panel = layout.panel_prop_with_bool_header(
         C,
         ptr,
         "open_adaptive_subdivision_panel",
@@ -409,9 +406,9 @@ static void panel_draw(const bContext *C, Panel *panel)
                                  std::max(render_rate * smd->adaptive_pixel_size, 0.1f));
       }
 
-      blender::ui::Layout &split = adaptive_panel.body->split(0.4f, false);
-      blender::ui::Layout *col = &split.column(true);
-      col->alignment_set(blender::ui::LayoutAlign::Right);
+      ui::Layout &split = adaptive_panel.body->split(0.4f, false);
+      ui::Layout *col = &split.column(true);
+      col->alignment_set(ui::LayoutAlign::Right);
       col->label(IFACE_("Viewport"), ICON_NONE);
       col->label(IFACE_("Render"), ICON_NONE);
       col = &split.column(true);
@@ -420,14 +417,14 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  if (blender::ui::Layout *advanced_layout = layout.panel_prop(
+  if (ui::Layout *advanced_layout = layout.panel_prop(
           C, ptr, "open_advanced_panel", IFACE_("Advanced")))
   {
     advanced_layout->use_property_split_set(true);
 
     advanced_layout->prop(ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    blender::ui::Layout &col = advanced_layout->column(true);
+    ui::Layout &col = advanced_layout->column(true);
     col.active_set((smd->flags & eSubsurfModifierFlag_UseAdaptiveSubdivision) ||
                    RNA_boolean_get(ptr, "use_limit_surface"));
     col.prop(ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -483,3 +480,5 @@ ModifierTypeInfo modifierType_Subsurf = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

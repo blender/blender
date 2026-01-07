@@ -330,7 +330,7 @@ class Texture {
  protected:
   virtual bool init_internal() = 0;
   virtual bool init_internal(VertBuf *vbo) = 0;
-  virtual bool init_internal(blender::gpu::Texture *src,
+  virtual bool init_internal(gpu::Texture *src,
                              int mip_offset,
                              int layer_offset,
                              bool use_stencil) = 0;

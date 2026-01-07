@@ -76,9 +76,9 @@ inline bool try_dispatch_float_math_fl_to_fl(const int operation, Callback &&cal
     case NODE_MATH_ABSOLUTE:
       return dispatch(exec_preset_fast, [](float a) { return fabs(a); });
     case NODE_MATH_RADIANS:
-      return dispatch(exec_preset_fast, [](float a) { return (float)DEG2RAD(a); });
+      return dispatch(exec_preset_fast, [](float a) { return float(DEG2RAD(a)); });
     case NODE_MATH_DEGREES:
-      return dispatch(exec_preset_fast, [](float a) { return (float)RAD2DEG(a); });
+      return dispatch(exec_preset_fast, [](float a) { return float(RAD2DEG(a)); });
     case NODE_MATH_SIGN:
       return dispatch(exec_preset_fast, [](float a) { return compatible_signf(a); });
     case NODE_MATH_ROUND:
@@ -151,9 +151,9 @@ inline bool try_dispatch_float_math_fl_fl_to_fl(const int operation, Callback &&
     case NODE_MATH_MAXIMUM:
       return dispatch(exec_preset_fast, [](float a, float b) { return std::max(a, b); });
     case NODE_MATH_LESS_THAN:
-      return dispatch(exec_preset_fast, [](float a, float b) { return (float)(a < b); });
+      return dispatch(exec_preset_fast, [](float a, float b) { return float(a < b); });
     case NODE_MATH_GREATER_THAN:
-      return dispatch(exec_preset_fast, [](float a, float b) { return (float)(a > b); });
+      return dispatch(exec_preset_fast, [](float a, float b) { return float(a > b); });
     case NODE_MATH_MODULO:
       return dispatch(exec_preset_fast, [](float a, float b) { return safe_modf(a, b); });
     case NODE_MATH_FLOORED_MODULO:

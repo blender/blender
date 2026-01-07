@@ -17,8 +17,8 @@ extern PyTypeObject ShapeIdF0D_Type;
 #define BPy_ShapeIdF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ShapeIdF0D_Type))
 
 /*---------------------------Python BPy_ShapeIdF0D structure definition----------*/
-typedef struct {
+struct BPy_ShapeIdF0D {
   BPy_UnaryFunction0DId py_uf0D_id;
-} BPy_ShapeIdF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -136,8 +136,8 @@ ccl_device_inline
                   continue;
                 }
 
-                int object_flag = kernel_data_fetch(object_flag, prim_object);
-                if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+                const int shader_flag = intersection_get_shader_flags(kg, prim, type);
+                if ((shader_flag & SD_HAS_VOLUME) == 0) {
                   continue;
                 }
                 triangle_intersect(
@@ -158,8 +158,8 @@ ccl_device_inline
                 if (intersection_skip_self(ray->self, prim_object, prim)) {
                   continue;
                 }
-                int object_flag = kernel_data_fetch(object_flag, prim_object);
-                if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+                const int shader_flag = intersection_get_shader_flags(kg, prim, type);
+                if ((shader_flag & SD_HAS_VOLUME) == 0) {
                   continue;
                 }
                 motion_triangle_intersect(kg,
@@ -185,7 +185,7 @@ ccl_device_inline
         else {
           /* instance push */
           object = kernel_data_fetch(prim_object, -prim_addr - 1);
-          int object_flag = kernel_data_fetch(object_flag, object);
+          uint object_flag = kernel_data_fetch(object_flag, object);
           if (object_flag & SD_OBJECT_HAS_VOLUME) {
 #if BVH_FEATURE(BVH_MOTION)
             bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir);

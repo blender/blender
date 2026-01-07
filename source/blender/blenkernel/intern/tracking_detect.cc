@@ -18,6 +18,8 @@
 
 #include "libmv-capi.h"
 
+namespace blender {
+
 /* Check whether point is inside grease pencil stroke. */
 static bool check_point_in_stroke(bGPDstroke *stroke, float x, float y)
 {
@@ -68,7 +70,7 @@ static bool check_point_in_layer(bGPDlayer *layer, float x, float y)
 
 /* Get features detected by libmv and create tracks on the clip for them. */
 static void detect_retrieve_libmv_features(MovieTracking *tracking,
-                                           ListBase *tracksbase,
+                                           ListBaseT<MovieTrackingTrack> *tracksbase,
                                            libmv_Features *features,
                                            int framenr,
                                            int width,
@@ -107,7 +109,7 @@ static void detect_retrieve_libmv_features(MovieTracking *tracking,
 }
 
 static void run_configured_detector(MovieTracking *tracking,
-                                    ListBase *tracksbase,
+                                    ListBaseT<MovieTrackingTrack> *tracksbase,
                                     ImBuf *ibuf,
                                     int framenr,
                                     bGPDlayer *layer,
@@ -132,7 +134,7 @@ static void run_configured_detector(MovieTracking *tracking,
 }
 
 void BKE_tracking_detect_fast(MovieTracking *tracking,
-                              ListBase *tracksbase,
+                              ListBaseT<MovieTrackingTrack> *tracksbase,
                               ImBuf *ibuf,
                               int framenr,
                               int margin,
@@ -153,7 +155,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking,
 }
 
 void BKE_tracking_detect_harris(MovieTracking *tracking,
-                                ListBase *tracksbase,
+                                ListBaseT<MovieTrackingTrack> *tracksbase,
                                 ImBuf *ibuf,
                                 int framenr,
                                 int margin,
@@ -172,3 +174,5 @@ void BKE_tracking_detect_harris(MovieTracking *tracking,
   run_configured_detector(
       tracking, tracksbase, ibuf, framenr, layer, place_outside_layer, &options);
 }
+
+}  // namespace blender

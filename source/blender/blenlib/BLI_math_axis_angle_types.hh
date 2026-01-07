@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::math::AxisAngle<T>` represents a rotation around a unit axis.
+ * A `math::AxisAngle<T>` represents a rotation around a unit axis.
  *
  * It is mainly useful for rotating a point around a given axis or quickly getting the rotation
  * between 2 vectors. It is cheaper to create than a #Quaternion or a matrix rotation.
@@ -15,8 +15,8 @@
  * If the rotation axis is one of the basis axes (eg: {1,0,0}), then most operations are reduced to
  * 2D operations and are thus faster.
  *
- * Interpolation isn't possible between two `blender::math::AxisAngle<T>`; they must be
- * converted to other rotation types for that. Converting to `blender::math::QuaternionBase<T>` is
+ * Interpolation isn't possible between two `math::AxisAngle<T>`; they must be
+ * converted to other rotation types for that. Converting to `math::QuaternionBase<T>` is
  * the fastest and more correct option.
  */
 

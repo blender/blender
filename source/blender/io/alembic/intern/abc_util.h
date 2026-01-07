@@ -22,13 +22,15 @@
 #include <string>
 #include <vector>
 
+namespace blender {
+
 using Alembic::Abc::chrono_t;
 using Alembic::Abc::V3fArraySamplePtr;
 
 struct ID;
 struct Object;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 class AbcObjectReader;
 struct ImportSettings;
@@ -111,4 +113,5 @@ std::optional<SampleInterpolationSettings> get_sample_interpolation_settings(
 
 AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSettings &settings);
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

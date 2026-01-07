@@ -20,7 +20,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -50,15 +49,12 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-using namespace blender;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(amd, modifier));
-
-  MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArrayModifierData), modifier);
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(amd, modifier);
 
   /* Open the first sub-panel by default,
    * it corresponds to Relative offset which is enabled too. */
@@ -67,17 +63,17 @@ static void init_data(ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&amd->start_cap, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->end_cap, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->curve_ob, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->offset_ob, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->start_cap), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->end_cap), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->curve_ob), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->offset_ob), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
   bool need_transform_dependency = false;
   if (amd->start_cap != nullptr) {
     DEG_add_object_relation(
@@ -284,16 +280,15 @@ static void mesh_merge_transform(Mesh *result,
                                  int remap_len,
                                  MutableSpan<float3> dst_vert_normals)
 {
-  using namespace blender;
   int *index_orig;
   int i;
   int2 *edge;
-  const blender::Span<int> cap_face_offsets = cap_mesh->face_offsets();
-  blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
-  blender::MutableSpan<int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  const Span<int> cap_face_offsets = cap_mesh->face_offsets();
+  MutableSpan<float3> result_positions = result->vert_positions_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
   bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   bke::LegacyMeshInterpolator vert_interp(*cap_mesh, *result, bke::AttrDomain::Point);
@@ -387,8 +382,6 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
    * merging start/end caps into the empty mesh. Avoid an early return here as it can cause
    * problems if the expected custom-data layers don't exist in the resulting mesh,
    * see: #107353, #132991. */
-
-  using namespace blender;
 
   int2 *edge;
   int i, j, c, count;
@@ -564,11 +557,11 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* Initialize a result dm */
   result = BKE_mesh_new_nomain_from_template(
       mesh, result_nverts, result_nedges, result_nfaces, result_nloops);
-  blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
-  blender::MutableSpan<int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  MutableSpan<float3> result_positions = result->vert_positions_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
   bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   if (use_merge) {
@@ -594,7 +587,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   first_chunk_nverts = chunk_nverts;
 
   unit_m4(current_offset);
-  blender::Span<blender::float3> src_vert_normals;
+  Span<float3> src_vert_normals;
   Vector<float3> dst_vert_normals;
   if (!use_recalc_normals) {
     src_vert_normals = mesh->vert_normals();
@@ -827,7 +820,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* done capping */
 
   if (!dst_vert_normals.is_empty()) {
-    blender::bke::mesh_vert_normals_assign(*result, std::move(dst_vert_normals));
+    bke::mesh_vert_normals_assign(*result, std::move(dst_vert_normals));
   }
 
   /* Handle merging */
@@ -872,13 +865,13 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
   return arrayModifier_doArray(amd, ctx, mesh);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
 
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the curve/mesh is missing).
@@ -1029,8 +1022,8 @@ static void uv_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.use_property_split_set(true);
 
   ui::Layout &col = layout.column(true);
-  col.prop(ptr, "offset_u", UI_ITEM_R_EXPAND, IFACE_("Offset U"), ICON_NONE);
-  col.prop(ptr, "offset_v", UI_ITEM_R_EXPAND, IFACE_("V"), ICON_NONE);
+  col.prop(ptr, "offset_u", ui::ITEM_R_EXPAND, IFACE_("Offset U"), ICON_NONE);
+  col.prop(ptr, "offset_v", ui::ITEM_R_EXPAND, IFACE_("V"), ICON_NONE);
 }
 
 static void caps_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -1106,3 +1099,5 @@ ModifierTypeInfo modifierType_Array = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

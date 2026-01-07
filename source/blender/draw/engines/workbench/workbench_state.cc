@@ -247,6 +247,11 @@ void SceneState::init(const DRWContext *context,
              shading.flag & V3D_SHADING_DEPTH_OF_FIELD;
 
   draw_object_id = (draw_outline || draw_curvature);
+
+  show_paint_bvh_debug = scene->toolsettings->sculpt ?
+                             scene->toolsettings->sculpt->paint.debug_flags &
+                                 PAINT_DEBUG_SHOW_BVH_NODES :
+                             false;
 };
 
 static bool mesh_has_color_attribute(const Mesh &mesh)
@@ -283,7 +288,7 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
   draw_shadow = scene_state.draw_shadows && (ob->dtx & OB_DRAW_NO_SHADOW_CAST) == 0 &&
                 !sculpt_pbvh && !(is_active && DRW_object_use_hide_faces(ob));
 
-  color_type = (eV3DShadingColorType)scene_state.shading.color_type;
+  color_type = eV3DShadingColorType(scene_state.shading.color_type);
 
   /* Don't perform CustomData lookup unless it's really necessary, since it's quite expensive. */
   const auto has_color = [&]() {
@@ -319,10 +324,29 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
 
     /* Bad call C is required to access the tool system that is context aware. Cast to non-const
      * due to current API. */
-    bContext *C = (bContext *)draw_ctx->evil_C;
+    bContext *C = const_cast<bContext *>(draw_ctx->evil_C);
     if (C != nullptr) {
-      color_type = ED_paint_shading_color_override(
-          C, &scene_state.scene->toolsettings->paint_mode, *ob, color_type);
+      const PaintModeSettings *paint_mode = &scene_state.scene->toolsettings->paint_mode;
+      color_type = ED_paint_shading_color_override(C, paint_mode, *ob, color_type);
+
+      /* Override object shading to show current image texture if using experimental texture paint
+       * and the canvas selector is set to image mode. */
+      const bool override_material = is_active && color_type == V3D_SHADING_TEXTURE_COLOR &&
+                                     paint_mode->canvas_source == PAINT_CANVAS_SOURCE_IMAGE;
+      if (override_material && has_uv()) {
+        show_missing_texture = true;
+        if (paint_mode->canvas_image) {
+          image_paint_override = MaterialTexture(paint_mode->canvas_image);
+          image_paint_override.sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+          image_paint_override.sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+          /* TODO: Add an image texture interpolation variable to PaintModeSettings, similar to
+           * ImagePaintSetting's interp variable, and make the material override apply the
+           * interpolation filter to achieve feature parity with legacy texture painting mode. */
+        }
+        else {
+          image_paint_override = resources.missing_texture;
+        }
+      }
     }
   }
   else if (ob->type == OB_MESH && !draw_ctx->is_scene_render()) {

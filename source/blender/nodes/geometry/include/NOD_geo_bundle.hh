@@ -13,36 +13,7 @@ namespace blender::nodes {
 inline bool socket_type_supported_in_bundle(const eNodeSocketDatatype socket_type,
                                             const int ntree_type)
 {
-  switch (ntree_type) {
-    case NTREE_GEOMETRY:
-      return ELEM(socket_type,
-                  SOCK_FLOAT,
-                  SOCK_VECTOR,
-                  SOCK_RGBA,
-                  SOCK_BOOLEAN,
-                  SOCK_ROTATION,
-                  SOCK_MATRIX,
-                  SOCK_INT,
-                  SOCK_STRING,
-                  SOCK_GEOMETRY,
-                  SOCK_OBJECT,
-                  SOCK_MATERIAL,
-                  SOCK_IMAGE,
-                  SOCK_COLLECTION,
-                  SOCK_BUNDLE,
-                  SOCK_CLOSURE);
-    case NTREE_SHADER:
-      return ELEM(socket_type,
-                  SOCK_FLOAT,
-                  SOCK_VECTOR,
-                  SOCK_RGBA,
-                  SOCK_SHADER,
-                  SOCK_BUNDLE,
-                  SOCK_CLOSURE,
-                  SOCK_INT);
-    default:
-      return false;
-  }
+  return bke::node_tree_type_supports_socket_type_static(ntree_type, socket_type);
 }
 
 struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefaults {

@@ -26,6 +26,8 @@
 
 #include "../space_info/textview.hh"
 
+namespace blender {
+
 static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
                                                         uchar fg[4],
                                                         uchar /*bg*/[4],
@@ -51,7 +53,7 @@ static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
       break;
   }
 
-  UI_GetThemeColor4ubv(fg_id, fg);
+  ui::theme::get_color_4ubv(fg_id, fg);
   return TVC_LINE_FG;
 }
 
@@ -78,7 +80,7 @@ void console_scrollback_prompt_end(SpaceConsole *sc, ConsoleLine *cl_dummy)
 /* console textview callbacks */
 static int console_textview_begin(TextViewContext *tvc)
 {
-  SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
+  SpaceConsole *sc = static_cast<SpaceConsole *>(const_cast<void *>(tvc->arg1));
   tvc->sel_start = sc->sel_start;
   tvc->sel_end = sc->sel_end;
 
@@ -90,13 +92,14 @@ static int console_textview_begin(TextViewContext *tvc)
 
 static void console_textview_end(TextViewContext *tvc)
 {
-  SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
+  SpaceConsole *sc = static_cast<SpaceConsole *>(const_cast<void *>(tvc->arg1));
   (void)sc;
 }
 
 static int console_textview_step(TextViewContext *tvc)
 {
-  return ((tvc->iter = (void *)((Link *)tvc->iter)->prev) != nullptr);
+  return ((tvc->iter = static_cast<void *>(
+               (static_cast<Link *>(const_cast<void *>(tvc->iter)))->prev)) != nullptr);
 }
 
 static void console_textview_line_get(TextViewContext *tvc, const char **r_line, int *r_len)
@@ -135,8 +138,8 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
 {
   int pen[2];
   {
-    const SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
-    const ConsoleLine *cl = (ConsoleLine *)sc->history.last;
+    const SpaceConsole *sc = static_cast<SpaceConsole *>(const_cast<void *>(tvc->arg1));
+    const ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
     int offl = 0, offc = 0;
 
     console_cursor_wrap_offset(sc->prompt, columns, &offl, &offc, nullptr);
@@ -153,7 +156,7 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
 
   /* cursor */
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CONSOLE_CURSOR);
 
@@ -164,7 +167,7 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
 
 static void console_textview_const_colors(TextViewContext * /*tvc*/, uchar bg_sel[4])
 {
-  UI_GetThemeColor4ubv(TH_CONSOLE_SELECT, bg_sel);
+  ui::theme::get_color_4ubv(TH_CONSOLE_SELECT, bg_sel);
 }
 
 static void console_textview_draw_rect_calc(const ARegion *region,
@@ -253,3 +256,5 @@ int console_char_pick(SpaceConsole *sc, const ARegion *region, const int mval[2]
   console_textview_main__internal(sc, region, false, mval, &mval_pick_item, &mval_pick_offset);
   return mval_pick_offset;
 }
+
+}  // namespace blender

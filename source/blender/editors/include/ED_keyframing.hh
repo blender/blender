@@ -11,6 +11,8 @@
 #include "DNA_anim_types.h"
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct ID;
 struct Main;
 struct Scene;
@@ -27,10 +29,10 @@ struct EnumPropertyItem;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender::animrig {
+namespace animrig {
 enum class ModifyKeyReturn;
 enum class ModifyKeyMode;
-}  // namespace blender::animrig
+}  // namespace animrig
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Framing Management
@@ -68,19 +70,18 @@ void ED_keyframes_add(FCurve *fcu, int num_keys_to_add);
  */
 int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *keyingset);
 
-void ANIM_keyingset_visit_for_search(
-    const bContext *C,
-    PointerRNA *ptr,
-    PropertyRNA *prop,
-    const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+void ANIM_keyingset_visit_for_search(const bContext *C,
+                                     PointerRNA *ptr,
+                                     PropertyRNA *prop,
+                                     const char *edit_text,
+                                     FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 void ANIM_keyingset_visit_for_search_no_poll(
     const bContext *C,
     PointerRNA *ptr,
     PropertyRNA *prop,
     const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
  * Dynamically populate an enum of Keying Sets.
@@ -298,3 +299,5 @@ bool fcurve_is_changed(PointerRNA ptr,
                        const AnimationEvalContext *anim_eval_context);
 
 /** \} */
+
+}  // namespace blender

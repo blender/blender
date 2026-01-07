@@ -15,8 +15,8 @@ namespace blender::compositor {
 Color sample_pixel(Context &context,
                    const Result &input,
                    const Interpolation &interpolation,
-                   const ExtensionMode &extension_mode_x,
-                   const ExtensionMode &extension_mode_y,
+                   const Extension &extension_mode_x,
+                   const Extension &extension_mode_y,
                    const float2 coordinates);
 
 }  // namespace blender::compositor

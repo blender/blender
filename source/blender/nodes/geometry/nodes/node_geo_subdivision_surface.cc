@@ -64,7 +64,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometrySubdivisionSurface>(__func__);
+  node->storage = MEM_new_for_free<NodeGeometrySubdivisionSurface>(__func__);
 }
 
 #ifdef WITH_OPENSUBDIV
@@ -213,7 +213,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSubdivisionSurface", GEO_NODE_SUBDIVISION_SURFACE);
   ntype.ui_name = "Subdivision Surface";
@@ -225,11 +225,11 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometrySubdivisionSurface",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_type_storage(ntype,
+                         "NodeGeometrySubdivisionSurface",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

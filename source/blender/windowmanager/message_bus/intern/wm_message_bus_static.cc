@@ -19,6 +19,8 @@
 #include "WM_types.hh"
 #include "message_bus/intern/wm_message_bus_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------------- */
 
 static uint wm_msg_static_gset_hash(const void *key_p)
@@ -30,8 +32,10 @@ static uint wm_msg_static_gset_hash(const void *key_p)
 }
 static bool wm_msg_static_gset_cmp(const void *key_a_p, const void *key_b_p)
 {
-  const wmMsgParams_Static *params_a = &((const wmMsgSubscribeKey_Static *)key_a_p)->msg.params;
-  const wmMsgParams_Static *params_b = &((const wmMsgSubscribeKey_Static *)key_b_p)->msg.params;
+  const wmMsgParams_Static *params_a =
+      &(static_cast<const wmMsgSubscribeKey_Static *>(key_a_p))->msg.params;
+  const wmMsgParams_Static *params_b =
+      &(static_cast<const wmMsgSubscribeKey_Static *>(key_b_p))->msg.params;
   return !(params_a->event == params_b->event);
 }
 
@@ -58,7 +62,8 @@ static void wm_msg_static_gset_key_free(void *key_p)
 
 static void wm_msg_static_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
 {
-  const wmMsgSubscribeKey_Static *m = (wmMsgSubscribeKey_Static *)msg_key;
+  const wmMsgSubscribeKey_Static *m = reinterpret_cast<wmMsgSubscribeKey_Static *>(
+      const_cast<wmMsgSubscribeKey *>(msg_key));
   fprintf(stream,
           "<wmMsg_Static %p, "
           "id='%s', "
@@ -130,3 +135,5 @@ void WM_msg_subscribe_static(wmMsgBus *mbus,
   params.event = event;
   WM_msg_subscribe_static_params(mbus, &params, msg_val_params, id_repr);
 }
+
+}  // namespace blender

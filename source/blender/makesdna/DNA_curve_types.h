@@ -12,13 +12,13 @@
 #include "DNA_curve_enums.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_vec_types.h"
+#include "DNA_object_types.h"
 
-#ifdef __cplusplus
-#  include "BLI_map.hh"
+#include "BLI_map.hh"
 
-#  include <optional>
-#endif
+#include <optional>
+
+namespace blender {
 
 struct AnimData;
 struct Curves;
@@ -33,19 +33,19 @@ struct VFont;
 /* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
-typedef struct BevPoint {
+struct BevPoint {
   float vec[3], tilt, radius, weight, offset;
   /** 2D Only. */
   float sina, cosa;
   /** 3D Only. */
   float dir[3], tan[3], quat[4];
   short dupe_tag;
-} BevPoint;
+};
 
 /* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
-typedef struct BevList {
+struct BevList {
   struct BevList *next, *prev;
   int nr, dupe_nr;
   /** Cyclic when set to any value besides -1. */
@@ -55,7 +55,7 @@ typedef struct BevList {
   int *segbevcount;
   float *seglen;
   BevPoint *bevpoints;
-} BevList;
+};
 
 /**
  * Keyframes on F-Curves (allows code reuse of Bezier eval code) and
@@ -74,7 +74,7 @@ typedef struct BevList {
  * - vec[2][1] = y location of handle 2
  * - vec[2][2] = z location of handle 2 (not used for FCurve Points(2d))
  */
-typedef struct BezTriple {
+struct BezTriple {
   float vec[3][3];
   /** Tilt in 3D View. */
   float tilt;
@@ -108,7 +108,7 @@ typedef struct BezTriple {
   /** Used during auto handle calculation to mark special cases (local extremes). */
   char auto_handle_type;
   char _pad[3];
-} BezTriple;
+};
 
 /**
  * Provide access to Keyframe Type info #eBezTriple_KeyframeType in #BezTriple::hide.
@@ -120,7 +120,7 @@ typedef struct BezTriple {
 /**
  * \note #BPoint.tilt location in struct is abused by Key system.
  */
-typedef struct BPoint {
+struct BPoint {
   float vec[4];
   /** Tilt in 3D View. */
   float tilt;
@@ -133,82 +133,77 @@ typedef struct BPoint {
   /** User-set radius per point for beveling etc. */
   float radius;
   char _pad[4];
-} BPoint;
+};
 
 /**
  * \note Nurb name is misleading, since it can be used for polygons too,
  * also, it should be NURBS (Nurb isn't the singular of Nurbs).
  */
-typedef struct Nurb {
+struct Nurb {
   DNA_DEFINE_CXX_METHODS(Nurb)
 
   /** Multiple nurbs per curve object are allowed. */
-  struct Nurb *next, *prev;
-  short type;
+  struct Nurb *next = nullptr, *prev = nullptr;
+  short type = 0;
   /** Index into material list. */
-  short mat_nr;
-  short hide, flag;
+  short mat_nr = 0;
+  short hide = 0, flag = 0;
   /** Number of points in the U or V directions. */
-  int pntsu, pntsv;
-  char _pad[4];
+  int pntsu = 0, pntsv = 0;
+  char _pad[4] = {};
   /** Tessellation resolution in the U or V directions. */
-  short resolu, resolv;
-  short orderu, orderv;
-  short flagu, flagv;
+  short resolu = 0, resolv = 0;
+  short orderu = 0, orderv = 0;
+  short flagu = 0, flagv = 0;
 
-  float *knotsu, *knotsv;
-  BPoint *bp;
-  BezTriple *bezt;
+  float *knotsu = nullptr, *knotsv = nullptr;
+  BPoint *bp = nullptr;
+  BezTriple *bezt = nullptr;
 
   /** KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE. */
-  short tilt_interp;
-  short radius_interp;
+  short tilt_interp = 0;
+  short radius_interp = 0;
 
   /* only used for dynamically generated Nurbs created from OB_FONT's */
-  int charidx;
-} Nurb;
+  int charidx = 0;
+};
 
-typedef struct CharInfo {
-  float kern;
-  short mat_nr;
-  char flag;
-  char _pad[1];
-} CharInfo;
+struct CharInfo {
+  float kern = 0;
+  short mat_nr = 0;
+  char flag = 0;
+  char _pad[1] = {};
+};
 
-typedef struct TextBox {
-  float x, y, w, h;
-} TextBox;
+struct TextBox {
+  float x = 0, y = 0, w = 0, h = 0;
+};
 
-#ifdef __cplusplus
-using CVKeyIndexMap = blender::Map<const void *, struct CVKeyIndex *>;
-#else
-typedef struct CVKeyIndexMap CVKeyIndexMap;
-#endif
+using CVKeyIndexMap = Map<const void *, struct CVKeyIndex *>;
 
 /* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
-typedef struct EditNurb {
+struct EditNurb {
   DNA_DEFINE_CXX_METHODS(EditNurb)
 
   /* base of nurbs' list (old Curve->editnurb) */
-  ListBase nurbs;
+  ListBaseT<Nurb> nurbs = {nullptr, nullptr};
 
   /* index data for shape keys */
-  CVKeyIndexMap *keyindex;
+  CVKeyIndexMap *keyindex = nullptr;
 
   /* shape key being edited */
-  int shapenr;
+  int shapenr = 0;
 
   /**
    * ID data is older than edit-mode data.
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
-  char needs_flush_to_id;
+  char needs_flush_to_id = 0;
+};
 
-} EditNurb;
-
-typedef struct Curve {
+struct Curve {
 #ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Curve)
   /** See #ID_Type comment for why this is here. */
@@ -217,22 +212,22 @@ typedef struct Curve {
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
   /** Actual data, called splines in rna. */
-  ListBase nurb;
+  ListBaseT<Nurb> nurb = {nullptr, nullptr};
 
   /** Edited data, not in file, use pointer so we can check for it. */
-  EditNurb *editnurb;
+  EditNurb *editnurb = nullptr;
 
-  struct Object *bevobj, *taperobj, *textoncurve;
-  struct Key *key;
-  struct Material **mat;
+  struct Object *bevobj = nullptr, *taperobj = nullptr, *textoncurve = nullptr;
+  struct Key *key = nullptr;
+  struct Material **mat = nullptr;
 
-  struct CurveProfile *bevel_profile;
+  struct CurveProfile *bevel_profile = nullptr;
 
-  float texspace_location[3];
-  float texspace_size[3];
+  float texspace_location[3] = {};
+  float texspace_size[3] = {1, 1, 1};
 
   /**
    * Object type of curve data-block (#ObjectType).
@@ -241,84 +236,85 @@ typedef struct Curve {
    * - #OB_FONT.
    * - #OB_SURF.
    */
-  short ob_type;
+  short ob_type = OB_CURVES_LEGACY;
 
-  char texspace_flag;
-  char _pad0[7];
-  short twist_mode;
-  float twist_smooth, smallcaps_scale;
+  char texspace_flag = CU_TEXSPACE_FLAG_AUTO;
+  char _pad0[7] = {};
+  short twist_mode = CU_TWIST_MINIMUM;
+  float twist_smooth = 0, smallcaps_scale = 0.75f;
 
-  int pathlen;
-  short bevresol, totcol;
-  int flag;
-  float offset, extrude, bevel_radius;
+  int pathlen = 100;
+  short bevresol = 4, totcol = 0;
+  int flag = CU_DEFORM_BOUNDS_OFF | CU_PATH_RADIUS;
+  float offset = 0.0, extrude = 0, bevel_radius = 0;
 
   /* default */
-  short resolu, resolv;
-  short resolu_ren, resolv_ren;
+  short resolu = 12, resolv = 12;
+  short resolu_ren = 0, resolv_ren = 0;
 
   /* edit, index in nurb list */
-  int actnu;
+  int actnu = 0;
   /* edit, index in active nurb (BPoint or BezTriple) */
-  int actvert;
+  int actvert = 0;
 
-  char overflow;
-  char spacemode, align_y;
-  char bevel_mode;
+  char overflow = 0;
+  char spacemode = 0, align_y = 0;
+  char bevel_mode = CU_BEV_MODE_ROUND;
   /**
    * Determine how the effective radius of the bevel point is computed when a taper object is
    * specified. The effective radius is a function of the bevel point radius and the taper radius.
    */
-  char taper_radius_mode;
-  char _pad[3];
+  char taper_radius_mode = CU_TAPER_RADIUS_OVERRIDE;
+  char _pad[3] = {};
 
   /* font part */
-  float spacing, linedist, shear, fsize, wordspace, ulpos, ulheight;
-  float xof, yof;
-  float linewidth;
+  float spacing = 1.0f, linedist = 1.0, shear = 0, fsize = 1.0, wordspace = 1.0, ulpos = 0,
+        ulheight = 0.05;
+  float xof = 0, yof = 0;
+  float linewidth = 0;
 
   /* copy of EditFont vars (wchar_t aligned),
    * warning! don't use in editmode (storage only) */
-  int pos;
-  int selstart, selend;
+  int pos = 0;
+  int selstart = 0, selend = 0;
 
   /* text data */
   /**
    * Number of characters (unicode code-points)
    * This is the length of #Curve.strinfo and the result of `BLI_strlen_utf8(cu->str)`.
    */
-  int len_char32;
+  int len_char32 = 0;
   /** Number of bytes: `strlen(Curve.str)`. */
-  int len;
-  char *str;
-  struct EditFont *editfont;
+  int len = 0;
+  char *str = nullptr;
+  struct EditFont *editfont = nullptr;
 
-  char family[64];
-  struct VFont *vfont;
-  struct VFont *vfontb;
-  struct VFont *vfonti;
-  struct VFont *vfontbi;
+  char family[64] = "";
+  struct VFont *vfont = nullptr;
+  struct VFont *vfontb = nullptr;
+  struct VFont *vfonti = nullptr;
+  struct VFont *vfontbi = nullptr;
 
-  struct TextBox *tb;
-  int totbox, actbox;
+  struct TextBox *tb = nullptr;
+  int totbox = 0, actbox = 0;
 
-  struct CharInfo *strinfo;
+  struct CharInfo *strinfo = nullptr;
   struct CharInfo curinfo;
   /* font part end */
 
   /** Current evaluation-time, for use by Objects parented to curves. */
-  float ctime;
-  float bevfac1, bevfac2;
-  char bevfac1_mapping, bevfac2_mapping;
+  float ctime = 0;
+  float bevfac1 = 0.0f, bevfac2 = 1.0f;
+  char bevfac1_mapping = CU_BEVFAC_MAP_RESOLU, bevfac2_mapping = CU_BEVFAC_MAP_RESOLU;
 
-  char _pad2[1];
+  char _pad2[1] = {};
 
   /**
    * If non-zero, the #editfont and #editnurb pointers are not owned by this #Curve. That means
    * this curve is a container for the result of object geometry evaluation. This only works
    * because evaluated object data never outlives original data.
    */
-  char edit_data_from_original;
+  char edit_data_from_original = 0;
 
   /**
    * A pointer to curve data from evaluation. Owned by the object's #geometry_set_eval, either as a
@@ -327,15 +323,15 @@ typedef struct Curve {
    * since it also contains the result of geometry nodes evaluation, and isn't just a copy of the
    * original object data.
    */
-  const struct Curves *curve_eval;
+  const struct Curves *curve_eval = nullptr;
 
-  void *batch_cache;
+  void *batch_cache = nullptr;
 
 #ifdef __cplusplus
   /** Get the largest material index used by the curves or `nullopt` if there are none. */
   std::optional<int> material_index_max() const;
 #endif
-} Curve;
+};
 
 /* **************** CURVE ********************* */
 
@@ -417,3 +413,5 @@ typedef struct Curve {
 
 #define BEZT_IS_AUTOH(bezt) \
   (ELEM((bezt)->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM((bezt)->h2, HD_AUTO, HD_AUTO_ANIM))
+
+}  // namespace blender

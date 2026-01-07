@@ -19,6 +19,8 @@
 #  include "opensubdiv_capi.hh"
 #endif
 
+namespace blender {
+
 static PyTypeObject BlenderAppOpenSubdivType;
 
 static PyStructSequence_Field app_opensubdiv_info_fields[] = {
@@ -87,7 +89,9 @@ PyObject *BPY_app_opensubdiv_struct()
   BlenderAppOpenSubdivType.tp_init = nullptr;
   BlenderAppOpenSubdivType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppOpenSubdivType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppOpenSubdivType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }
+
+}  // namespace blender

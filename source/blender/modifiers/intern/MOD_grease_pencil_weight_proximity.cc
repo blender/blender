@@ -13,7 +13,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -42,11 +41,7 @@ namespace blender {
 static void init_data(ModifierData *md)
 {
   auto *gpmd = reinterpret_cast<GreasePencilWeightProximityModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(
-      gpmd, DNA_struct_default_get(GreasePencilWeightProximityModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(gpmd, modifier);
   modifier::greasepencil::init_influence_data(&gpmd->influence, false);
 }
 
@@ -80,7 +75,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
   modifier::greasepencil::foreach_influence_ID_link(&mmd->influence, ob, walk, user_data);
 
-  walk(user_data, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&mmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -98,7 +93,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
   const GreasePencilWeightProximityModifierData *mmd =
       reinterpret_cast<const GreasePencilWeightProximityModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilWeightProximityModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 
@@ -142,7 +137,7 @@ static float get_distance_factor(float3 target_pos,
 }
 
 static bool target_vertex_group_available(const StringRefNull name,
-                                          const ListBase &vertex_group_names)
+                                          const ListBaseT<bDeformGroup> &vertex_group_names)
 {
   const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
   if (def_nr < 0) {
@@ -285,8 +280,6 @@ static void panel_register(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_GreasePencilWeightProximity, panel_draw);
 }
 
-}  // namespace blender
-
 ModifierTypeInfo modifierType_GreasePencilWeightProximity = {
     /*idname*/ "GreasePencilWeightProximityModifier",
     /*name*/ N_("Weight Proximity"),
@@ -299,26 +292,28 @@ ModifierTypeInfo modifierType_GreasePencilWeightProximity = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_VERTEX_WEIGHT,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
-    /*update_depsgraph*/ blender::update_depsgraph,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

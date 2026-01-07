@@ -19,6 +19,8 @@
 
 #include "BLI_hash.hh"
 
+namespace blender {
+
 /** Generate new UID which is unique throughout the Blender session. */
 SessionUID BLI_session_uid_generate(void);
 
@@ -39,8 +41,6 @@ inline bool operator==(const SessionUID &lhs, const SessionUID &rhs)
 {
   return BLI_session_uid_is_equal(&lhs, &rhs);
 }
-
-namespace blender {
 
 template<typename T> struct DefaultHash;
 

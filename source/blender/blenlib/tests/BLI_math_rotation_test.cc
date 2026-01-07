@@ -15,6 +15,8 @@
 
 #include <cmath>
 
+namespace blender {
+
 /* Test that quaternion converts to itself via matrix. */
 static void test_quat_to_mat_to_quat(float w, float x, float y, float z)
 {
@@ -230,7 +232,7 @@ static void test_sin_cos_from_fraction_symmetry(const int range)
     MULTIPLE_OF_4 = 3,
   } multiple_of = (range & 1) ? MULTIPLE_OF_1 : ((range & 3) ? MULTIPLE_OF_2 : MULTIPLE_OF_4);
 
-  blender::Vector<blender::float2> coords;
+  Vector<float2> coords;
   coords.reserve(range);
   for (int i = 0; i < range; i++) {
     float sin_cos_fl[2];
@@ -257,7 +259,7 @@ static void test_sin_cos_from_fraction_symmetry(const int range)
     coords.append_unchecked(sin_cos_fl);
   }
   /* Sort, then count unique items. */
-  std::sort(coords.begin(), coords.end(), [](const blender::float2 &a, const blender::float2 &b) {
+  std::sort(coords.begin(), coords.end(), [](const float2 &a, const float2 &b) {
     float delta = b[0] - a[0];
     if (delta == 0.0f) {
       delta = b[1] - a[1];
@@ -298,7 +300,7 @@ TEST(math_rotation, sin_cos_from_fraction_symmetry)
 
 /** \} */
 
-namespace blender::math::tests {
+namespace math::tests {
 
 TEST(math_rotation, DefaultConstructor)
 {
@@ -825,9 +827,9 @@ TEST(math_rotation, DualQuaternionTransform)
     float3 p0_expect = p0;
     float3 p1_expect = p1;
     float3 p2_expect = p2;
-    mul_v3m3_dq(p0_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
-    mul_v3m3_dq(p1_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
-    mul_v3m3_dq(p2_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
+    mul_v3m3_dq(p0_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
+    mul_v3m3_dq(p1_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
+    mul_v3m3_dq(p2_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
 
     float3 p0_result = transform_point(dq, p0);
     float3 p1_result = transform_point(dq, p1);
@@ -860,9 +862,9 @@ TEST(math_rotation, DualQuaternionTransform)
     float3 p0_expect = p0;
     float3 p1_expect = p1;
     float3 p2_expect = p2;
-    mul_v3m3_dq(p0_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
-    mul_v3m3_dq(p1_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
-    mul_v3m3_dq(p2_expect, crazy_space_mat.ptr(), (DualQuat *)&dq);
+    mul_v3m3_dq(p0_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
+    mul_v3m3_dq(p1_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
+    mul_v3m3_dq(p2_expect, crazy_space_mat.ptr(), reinterpret_cast<DualQuat *>(&dq));
 
     float3 p0_result = transform_point(dq, p0);
     float3 p1_result = transform_point(dq, p1);
@@ -897,4 +899,5 @@ TEST(math_axis_angle, AxisAngleFromQuaternion)
   }
 }
 
-}  // namespace blender::math::tests
+}  // namespace math::tests
+}  // namespace blender

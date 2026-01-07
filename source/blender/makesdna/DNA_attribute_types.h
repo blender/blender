@@ -4,49 +4,44 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "BLI_implicit_sharing.h"
 
-#ifdef __cplusplus
+namespace blender {
 
-namespace blender::bke {
+namespace bke {
 class AttributeStorage;
 class AttributeStorageRuntime;
-}  // namespace blender::bke
-
-using AttributeStorageRuntimeHandle = blender::bke::AttributeStorageRuntime;
-#else
-typedef struct AttributeStorageRuntimeHandle AttributeStorageRuntimeHandle;
-#endif
+}  // namespace bke
 
 /** DNA data for bke::Attribute::ArrayData. */
 struct AttributeArray {
-  void *data;
-  const ImplicitSharingInfoHandle *sharing_info;
+  void *data = nullptr;
+  const ImplicitSharingInfoHandle *sharing_info = nullptr;
   /* The number of elements in the array. */
-  int64_t size;
+  int64_t size = 0;
 };
 
 /** DNA data for bke::Attribute::SingleData. */
 struct AttributeSingle {
-  void *data;
-  const ImplicitSharingInfoHandle *sharing_info;
+  void *data = nullptr;
+  const ImplicitSharingInfoHandle *sharing_info = nullptr;
 };
 
 /** DNA data for bke::Attribute. */
 struct Attribute {
-  const char *name;
+  const char *name = nullptr;
   /* bke::AttrType. */
-  int16_t data_type;
+  int16_t data_type = 0;
   /* bke::AttrDomain. */
-  int8_t domain;
+  int8_t domain = 0;
   /* bke::AttrStorageType */
-  int8_t storage_type;
-  char _pad[4];
+  int8_t storage_type = 0;
+  char _pad[4] = {};
 
   /** Type depends on storage type. */
-  void *data;
+  void *data = nullptr;
 };
 
 /**
@@ -55,15 +50,17 @@ struct Attribute {
  */
 struct AttributeStorage {
   /* Array only used in files, otherwise #AttributeStorageRuntime::attributes is used. */
-  struct Attribute *dna_attributes;
-  int dna_attributes_num;
+  struct Attribute *dna_attributes = nullptr;
+  int dna_attributes_num = 0;
 
-  char _pad[4];
+  char _pad[4] = {};
 
-  AttributeStorageRuntimeHandle *runtime;
+  bke::AttributeStorageRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
-  blender::bke::AttributeStorage &wrap();
-  const blender::bke::AttributeStorage &wrap() const;
+  bke::AttributeStorage &wrap();
+  const bke::AttributeStorage &wrap() const;
 #endif
 };
+
+}  // namespace blender

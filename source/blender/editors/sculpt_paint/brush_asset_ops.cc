@@ -168,8 +168,8 @@ static wmOperatorStatus brush_asset_save_as_exec(bContext *C, wmOperator *op)
     STRNCPY_UTF8(name, brush->id.name + 2);
   }
 
-  const eAssetLibraryType enum_value = (eAssetLibraryType)RNA_enum_get(op->ptr,
-                                                                       "asset_library_reference");
+  const eAssetLibraryType enum_value = eAssetLibraryType(
+      RNA_enum_get(op->ptr, "asset_library_reference"));
   const bool is_local_library = enum_value == ASSET_LIBRARY_LOCAL;
 
   AssetLibraryReference library_reference;

@@ -4,8 +4,9 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
+[[node]]
 void node_composite_invert(
-    float4 color, float factor, float invert_color, float invert_alpha, out float4 result)
+    float4 color, float factor, float invert_color, float invert_alpha, float4 &result)
 {
   result = color;
   if (invert_color != 0.0f) {

@@ -698,9 +698,9 @@ struct EraseOperationExecutor {
    * curves.
    */
   bool soft_eraser(Object &ob,
-                   const blender::bke::CurvesGeometry &src,
+                   const bke::CurvesGeometry &src,
                    const Span<float2> screen_space_positions,
-                   blender::bke::CurvesGeometry &dst,
+                   bke::CurvesGeometry &dst,
                    const bool keep_caps)
   {
     using namespace blender::bke;
@@ -950,7 +950,7 @@ struct EraseOperationExecutor {
     this->eraser_squared_radius_pixels = eraser_radius_pixels * eraser_radius_pixels;
 
     /* Get the grease pencil drawing. */
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(obact->data);
 
     bool changed = false;
     const auto execute_eraser_on_drawing = [&](const int layer_index, Drawing &drawing) {
@@ -1044,7 +1044,7 @@ void EraseOperation::on_stroke_begin(const bContext &C, const InputSample & /*st
    * eraser brush instead. */
   if (temp_eraser_) {
     Object *object = CTX_data_active_object(&C);
-    GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
+    GreasePencil *grease_pencil = id_cast<GreasePencil *>(object->data);
 
     radius_ = paint->eraser_brush->size / 2.0f;
     grease_pencil->runtime->temp_eraser_size = radius_;
@@ -1076,7 +1076,7 @@ void EraseOperation::on_stroke_extended(const bContext &C, const InputSample &ex
   executor.execute(*this, C, extension_sample);
 }
 
-static void simplify_opacities(blender::bke::CurvesGeometry &curves,
+static void simplify_opacities(bke::CurvesGeometry &curves,
                                const VArray<float> &opacities,
                                const float epsilon)
 {
@@ -1116,7 +1116,7 @@ static void simplify_opacities(blender::bke::CurvesGeometry &curves,
   curves.remove_points(points_to_dissolve, {});
 }
 
-static void remove_points_with_low_opacity(blender::bke::CurvesGeometry &curves,
+static void remove_points_with_low_opacity(bke::CurvesGeometry &curves,
                                            const VArray<float> &opacities,
                                            const float epsilon)
 {
@@ -1131,7 +1131,7 @@ static void remove_points_with_low_opacity(blender::bke::CurvesGeometry &curves,
 void EraseOperation::on_stroke_done(const bContext &C)
 {
   Object *object = CTX_data_active_object(&C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   if (temp_eraser_) {
     /* If we're using the draw tool to temporarily erase, then we need to reset the
      * `temp_use_eraser` flag here. */

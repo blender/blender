@@ -82,12 +82,13 @@ float4 alpha_over_conjoint(float4 background,
   return mix(background, mix_result, factor);
 }
 
+[[node]]
 void node_composite_alpha_over(float4 background,
                                float4 foreground,
                                float factor,
                                float type,
                                float straight_alpha,
-                               out float4 result)
+                               float4 &result)
 {
   result = background;
   switch (int(type)) {

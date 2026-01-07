@@ -10,6 +10,8 @@
 
 #include "BLI_vector.hh"
 #include <string>
+struct EEVEE_LightBake;
+namespace blender {
 
 struct wmWindowManager;
 struct wmWindow;
@@ -21,8 +23,6 @@ struct wmJob;
 struct wmJobWorkerStatus;
 
 /** Opaque type hiding eevee::LightBake. */
-struct EEVEE_LightBake;
-
 /* -------------------------------------------------------------------- */
 /** \name Light Bake Job
  * \{ */
@@ -38,7 +38,7 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
                                   Main *bmain,
                                   ViewLayer *view_layer,
                                   Scene *scene,
-                                  blender::Vector<Object *> original_probes,
+                                  Vector<Object *> original_probes,
                                   std::string &report,
                                   int delay_ms,
                                   int frame);
@@ -54,7 +54,7 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
 void *EEVEE_lightbake_job_data_alloc(Main *bmain,
                                      ViewLayer *view_layer,
                                      Scene *scene,
-                                     blender::Vector<Object *> original_probes,
+                                     Vector<Object *> original_probes,
                                      std::string &report,
                                      int frame);
 
@@ -78,3 +78,5 @@ void EEVEE_lightbake_update(/*EEVEE_LightBake*/ void *job_data);
 void EEVEE_lightbake_job(/*EEVEE_LightBake*/ void *job_data, wmJobWorkerStatus *worker_status);
 
 /** \} */
+
+}  // namespace blender

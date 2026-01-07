@@ -100,6 +100,9 @@ if(POLICY CMP0177)
   cmake_policy(SET CMP0177 NEW)
 endif()
 
+# The target_sources() command converts relative paths to absolute.
+cmake_policy(SET CMP0076 NEW)
+
 # -----------------------------------------------------------------------------
 # Load Blender's Local Macros
 
@@ -395,8 +398,8 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   mark_as_advanced(WITH_GHOST_WAYLAND)
 
   if(WITH_GHOST_WAYLAND)
-    option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" ON)
-    mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
+    option(WITH_GHOST_CSD "Enable client side decorations with Wayland" ON)
+    mark_as_advanced(WITH_GHOST_CSD)
 
     option(WITH_GHOST_WAYLAND_DYNLOAD "Enable runtime dynamic WAYLAND libraries loading" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
@@ -407,6 +410,11 @@ this can be used to differentiate Blender instances by version or branch for exa
     )
     mark_as_advanced(WITH_GHOST_WAYLAND_APP_ID)
   endif()
+endif()
+
+# Only used for WAYLAND, avoid having to check for WAYLAND everywhere by setting as disabled.
+if(NOT DEFINED WITH_GHOST_CSD)
+  set(WITH_GHOST_CSD OFF)
 endif()
 
 if(WITH_GHOST_X11)
@@ -637,8 +645,8 @@ Path to python site-packages or dist-packages containing 'zstandard' module"
   mark_as_advanced(PYTHON_ZSTANDARD_PATH)
 endif()
 
-option(WITH_CPU_SIMD "Enable SIMD instruction if they're detected on the host machine" ON)
-mark_as_advanced(WITH_CPU_SIMD)
+option(WITH_COMPILER_SIMD "Add the recommended Blender default SIMD flags to the compiler's C_FLAGS/CXX_FLAGS" ON)
+mark_as_advanced(WITH_COMPILER_SIMD)
 
 # Cycles
 option(WITH_CYCLES "Enable Cycles Render Engine" ON)
@@ -652,6 +660,10 @@ option(WITH_CYCLES_STANDALONE_GUI "Build Cycles standalone with GUI" OFF)
 option(WITH_CYCLES_PRECOMPUTE "Build Cycles data precomputation tool" OFF)
 
 option(WITH_CYCLES_HYDRA_RENDER_DELEGATE "Build Cycles Hydra render delegate" OFF)
+
+option(WITH_CYCLES_PARALLEL_DEVICE_KERNEL_BUILD
+       "Build Cycles kernels of difference devices in parallel (faster, but uses more memory)" OFF)
+mark_as_advanced(WITH_CYCLES_PARALLEL_DEVICE_KERNEL_BUILD)
 
 option(WITH_CYCLES_DEBUG_NAN "\
 Build Cycles with additional asserts for detecting NaNs and invalid values"
@@ -1331,6 +1343,10 @@ if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE AND NOT WITH_CYCLES_HYDRA_REN
   )
 endif()
 
+# Doesn't make too much sense to check if the CPU supports our default SIMD options if they are
+# turned off.
+set_and_warn_dependency(WITH_COMPILER_SIMD WITH_CPU_CHECK OFF)
+
 set_and_warn_dependency(WITH_AUDASPACE WITH_OPENAL OFF)
 set_and_warn_dependency(WITH_AUDASPACE WITH_COREAUDIO OFF)
 set_and_warn_dependency(WITH_AUDASPACE WITH_JACK OFF)
@@ -1566,17 +1582,6 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
   endif()
 endif()
 
-# Test SIMD support, before platform includes to determine if sse2neon is needed.
-if(WITH_CPU_SIMD)
-  set(COMPILER_SSE42_FLAG)
-
-  # Test Neon first since macOS Arm can compile and run x86-64 SSE binaries.
-  test_neon_support()
-  if(NOT SUPPORT_NEON_BUILD)
-    test_sse_support(COMPILER_SSE42_FLAG)
-  endif()
-endif()
-
 
 # ----------------------------------------------------------------------------
 # Main Platform Checks
@@ -1597,53 +1602,20 @@ endif()
 # -----------------------------------------------------------------------------
 # Common Checks for Compatible Options
 
-# Enable SIMD support if detected by `test_sse_support()` or `test_neon_support()`.
+# Add the default compiler SIMD flags if enabled
 #
-if(WITH_CPU_SIMD)
-  if(SUPPORT_NEON_BUILD)
-    # Neon
-    if(SSE2NEON_FOUND)
-      include_directories(SYSTEM "${SSE2NEON_INCLUDE_DIRS}")
-      add_definitions(-DWITH_SSE2NEON)
-    endif()
-  else()
-    # SSE
-    if(SUPPORT_SSE42_BUILD)
-      string(APPEND CMAKE_CXX_FLAGS " ${COMPILER_SSE42_FLAG}")
-      string(APPEND CMAKE_C_FLAGS " ${COMPILER_SSE42_FLAG}")
-      # MSVC doesn't define any of these and only does the AVX and higher flags.
-      # For consistency we define these flags for MSVC.
-      if(WIN32)
-        add_compile_definitions(
-          __MMX__
-          __SSE__
-          __SSE2__
-          __SSE3__
-          __SSE4_1__
-          __SSE4_2__
-        )
-      endif()
-    endif()
-  endif()
+if(WITH_COMPILER_SIMD)
+  set(COMPILER_SSE42_FLAG)
+  get_sse_flags(COMPILER_SSE42_FLAG)
+  string(APPEND CMAKE_CXX_FLAGS " ${COMPILER_SSE42_FLAG}")
+  string(APPEND CMAKE_C_FLAGS " ${COMPILER_SSE42_FLAG}")
 endif()
 
-# Print instructions used on first run.
-if(FIRST_RUN)
-  if(WITH_CPU_SIMD)
-    if(SUPPORT_NEON_BUILD)
-      if(SSE2NEON_FOUND)
-        message(STATUS "Neon SIMD instructions enabled")
-      else()
-        message(STATUS "Neon SIMD instructions detected but unused, requires sse2neon")
-      endif()
-    elseif(SUPPORT_SSE42_BUILD)
-      message(STATUS "SSE42 SIMD instructions enabled")
-    else()
-      message(STATUS "No SIMD instructions detected")
-    endif()
-  else()
-    message(STATUS "SIMD instructions disabled")
-  endif()
+# Enable SSE2NEON SIMD support if found.
+#
+if(SUPPORTS_NEON_BUILD AND SSE2NEON_FOUND)
+  include_directories(SYSTEM "${SSE2NEON_INCLUDE_DIRS}")
+  add_definitions(-DWITH_SSE2NEON)
 endif()
 
 # Test endianness and set the endian define.
@@ -1667,6 +1639,17 @@ endif()
 
 if(NOT WITH_SYSTEM_EIGEN3)
   set(EIGEN3_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/Eigen3)
+endif()
+if (WITH_COMPILER_ASAN AND NOT WITH_COMPILER_ASAN_EXTERN)
+  # See also:
+  #   - `EIGEN_MALLOC_ALREADY_ALIGNED` definition and usages in extern/Eigen3/Eigen/src/Core/util/Memory.h
+  #   - Report: https://projects.blender.org/blender/blender/issues/152010
+  #
+  # NOTE: It seems to only affect GCC and its sanitizer library - but best be on the safe side here,
+  #       and do that for all compilers and systems.
+  message(DEBUG "Forcing Eigen to use their own allocator code because `WITH_COMPILER_ASAN` is enabled but "
+                "`WITH_COMPILER_ASAN_EXTERN` is disabled, which can cause mismatch usages of Eigen allocators." )
+  add_definitions(-DEIGEN_MALLOC_ALREADY_ALIGNED=0)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -2060,6 +2043,14 @@ if(CMAKE_COMPILER_IS_GNUCC)
     # Use `[[fallthrough]]` or `ATTR_FALLTHROUGH` macro to suppress.
     CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5
   )
+
+  if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+    # Silence warnings about GCC ABI breaking bug fixes on arm64
+    add_check_cxx_compiler_flags(
+      CXX_WARNINGS
+      CXX_WARN_NO_PSABI -Wno-psabi
+    )
+  endif()
 
   # causes too many warnings
   if(NOT APPLE)
@@ -2815,7 +2806,7 @@ if(FIRST_RUN)
 
     set(_msg "  - ${_setting}")
     string(LENGTH "${_msg}" _len)
-    while("36" GREATER "${_len}")
+    while("40" GREATER "${_len}")
       string(APPEND _msg " ")
       math(EXPR _len "${_len} + 1")
     endwhile()
@@ -2882,7 +2873,6 @@ if(FIRST_RUN)
     endif()
     if(WITH_GHOST_WAYLAND)
       info_cfg_option(WITH_GHOST_WAYLAND_DYNLOAD)
-      info_cfg_option(WITH_GHOST_WAYLAND_LIBDECOR)
     endif()
   endif()
 
@@ -2938,6 +2928,20 @@ if(FIRST_RUN)
       info_cfg_option(WITH_CYCLES_DEVICE_HIPRT)
     endif()
   endif()
+
+  info_cfg_text("Tests:")
+  info_cfg_option(WITH_GTESTS)
+  info_cfg_option(CYCLES_TEST_DEVICES)
+  info_cfg_option(WITH_CYCLES_TEST_OSL)
+  info_cfg_option(WITH_GPU_RENDER_TESTS)
+  info_cfg_option(WITH_GPU_BACKEND_TESTS)
+  info_cfg_option(WITH_GPU_DRAW_TESTS)
+  info_cfg_option(WITH_GPU_COMPOSITOR_TESTS)
+  info_cfg_option(WITH_GPU_MESH_PAINT_TESTS)
+  info_cfg_option(WITH_UI_TESTS)
+  info_cfg_option(WITH_UI_TESTS_HEADLESS)
+  info_cfg_option(WITH_GPU_RENDER_TESTS_VULKAN)
+  info_cfg_option(WITH_LINUX_OFFICIAL_RELEASE_TESTS)
 
   info_cfg_text("")
 

@@ -16,11 +16,12 @@ void main()
 {
   select_id_set(drw_custom_id());
 
-  float3 world_pos, world_nor;
-  float world_radius;
-  pointcloud_get_pos_nor_radius(world_pos, world_nor, world_radius);
+  const pointcloud::Point ls_pt = pointcloud::point_get(uint(gl_VertexID));
+  const pointcloud::Point ws_pt = pointcloud::object_to_world(ls_pt, drw_modelmat());
+  const pointcloud::ShapePoint pt = pointcloud::shape_point_get(
+      ws_pt, drw_world_incident_vector(ws_pt.P), drw_view_up());
 
-  gl_Position = drw_point_world_to_homogenous(world_pos);
+  gl_Position = drw_point_world_to_homogenous(pt.P);
 
 #ifdef CONSERVATIVE_RASTER
   /* Avoid expense of geometry shader by ensuring rastered point-cloud primitive
@@ -30,5 +31,5 @@ void main()
   gl_Position.xy += uniform_buf.size_viewport_inv * gl_Position.w * ofs;
 #endif
 
-  view_clipping_distances(world_pos);
+  view_clipping_distances(pt.P);
 }

@@ -14,9 +14,12 @@
 #include <Alembic/AbcGeom/Visibility.h>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.alembic"};
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 using Alembic::Abc::OObject;
 using Alembic::Abc::TimeSamplingPtr;
@@ -108,7 +111,7 @@ void ABCAbstractWriter::update_bounding_box(Object *object)
     return;
   }
 
-  const std::array<float3, 8> corners = blender::bounds::corners(*bounds);
+  const std::array<float3, 8> corners = bounds::corners(*bounds);
 
   /* Convert Z-up to Y-up. This also changes which vector goes into which min/max property. */
   bounding_box_.min.x = corners[0][0];
@@ -132,4 +135,5 @@ void ABCAbstractWriter::write_visibility(const HierarchyContext &context)
                                    Alembic::AbcGeom::kVisibilityHidden);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

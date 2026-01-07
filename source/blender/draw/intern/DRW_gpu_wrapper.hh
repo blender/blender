@@ -33,7 +33,7 @@
  *   Data can be accessed using the [] operator.
  *
  * `draw::StorageVectorBuffer<T, len>`
- *   Same as `StorageArrayBuffer` but has a length counter and act like a `blender::Vector` you can
+ *   Same as `StorageArrayBuffer` but has a length counter and act like a `Vector` you can
  *   clear and append to.
  *
  * `draw::StorageBuffer<T>`
@@ -287,7 +287,7 @@ class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
   UniformArrayBuffer(const char *name = nullptr) : detail::UniformCommon<T, len, false>(name)
   {
     /* TODO(@fclem): We should map memory instead. */
-    this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
+    this->data_ = static_cast<T *>(MEM_mallocN_aligned(len * sizeof(T), 16, this->name_));
   }
   ~UniformArrayBuffer()
   {
@@ -334,11 +334,11 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
   StorageArrayBuffer(const char *name = nullptr) : detail::StorageCommon<T, len, device_only>(name)
   {
     /* TODO(@fclem): We should map memory instead. */
-    this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
+    this->data_ = static_cast<T *>(MEM_mallocN_aligned(len * sizeof(T), 16, this->name_));
   }
   ~StorageArrayBuffer()
   {
-    /* NOTE: T is not always trivial (e.g. can be #blender::eevee::VelocityIndex), so cannot use
+    /* NOTE: T is not always trivial (e.g. can be #eevee::VelocityIndex), so cannot use
      * `MEM_freeN` directly on it, without casting it to `void *`. */
     MEM_freeN(static_cast<void *>(this->data_));
   }
@@ -349,7 +349,7 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
     BLI_assert(new_size > 0);
     if (new_size != this->len_) {
       /* Manual realloc since MEM_reallocN_aligned does not exists. */
-      T *new_data_ = (T *)MEM_mallocN_aligned(new_size * sizeof(T), 16, this->name_);
+      T *new_data_ = static_cast<T *>(MEM_mallocN_aligned(new_size * sizeof(T), 16, this->name_));
       memcpy(reinterpret_cast<void *>(new_data_),
              this->data_,
              min_uu(this->len_, new_size) * sizeof(T));
@@ -537,7 +537,7 @@ class Texture : NonCopyable {
   Texture(const char *name = "gpu::Texture") : name_(name) {}
 
   Texture(const char *name,
-          blender::gpu::TextureFormat format,
+          gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int extent,
           const float *data = nullptr,
@@ -549,7 +549,7 @@ class Texture : NonCopyable {
   }
 
   Texture(const char *name,
-          blender::gpu::TextureFormat format,
+          gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int extent,
           int layers,
@@ -562,7 +562,7 @@ class Texture : NonCopyable {
   }
 
   Texture(const char *name,
-          blender::gpu::TextureFormat format,
+          gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int2 extent,
           const float *data = nullptr,
@@ -573,7 +573,7 @@ class Texture : NonCopyable {
   }
 
   Texture(const char *name,
-          blender::gpu::TextureFormat format,
+          gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int2 extent,
           int layers,
@@ -585,7 +585,7 @@ class Texture : NonCopyable {
   }
 
   Texture(const char *name,
-          blender::gpu::TextureFormat format,
+          gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int3 extent,
           const float *data = nullptr,
@@ -651,7 +651,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_1d(blender::gpu::TextureFormat format,
+  bool ensure_1d(gpu::TextureFormat format,
                  int extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                  const float *data = nullptr,
@@ -664,7 +664,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_1d_array(blender::gpu::TextureFormat format,
+  bool ensure_1d_array(gpu::TextureFormat format,
                        int extent,
                        int layers,
                        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
@@ -679,7 +679,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_2d(blender::gpu::TextureFormat format,
+  bool ensure_2d(gpu::TextureFormat format,
                  int2 extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                  const float *data = nullptr,
@@ -692,7 +692,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_2d_array(blender::gpu::TextureFormat format,
+  bool ensure_2d_array(gpu::TextureFormat format,
                        int2 extent,
                        int layers,
                        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
@@ -707,7 +707,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_3d(blender::gpu::TextureFormat format,
+  bool ensure_3d(gpu::TextureFormat format,
                  int3 extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                  const float *data = nullptr,
@@ -720,7 +720,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_cube(blender::gpu::TextureFormat format,
+  bool ensure_cube(gpu::TextureFormat format,
                    int extent,
                    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                    float *data = nullptr,
@@ -733,7 +733,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_cube_array(blender::gpu::TextureFormat format,
+  bool ensure_cube_array(gpu::TextureFormat format,
                          int extent,
                          int layers,
                          eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
@@ -754,7 +754,7 @@ class Texture : NonCopyable {
       for (gpu::Texture *&view : mip_views_) {
         GPU_TEXTURE_FREE_SAFE(view);
       }
-      blender::gpu::TextureFormat format = GPU_texture_format(tx_);
+      gpu::TextureFormat format = GPU_texture_format(tx_);
       for (auto i : IndexRange(mip_len)) {
         mip_views_.append(
             GPU_texture_create_view(name_, tx_, format, i, 1, 0, 9999, cube_as_array, false));
@@ -789,7 +789,7 @@ class Texture : NonCopyable {
       for (gpu::Texture *&view : layer_views_) {
         GPU_TEXTURE_FREE_SAFE(view);
       }
-      blender::gpu::TextureFormat format = GPU_texture_format(tx_);
+      gpu::TextureFormat format = GPU_texture_format(tx_);
       for (auto i : IndexRange(layer_len)) {
         layer_views_.append(
             GPU_texture_create_view(name_, tx_, format, 0, 9999, i, 1, cube_as_array, false));
@@ -807,7 +807,7 @@ class Texture : NonCopyable {
   gpu::Texture *stencil_view(bool cube_as_array = false)
   {
     if (stencil_view_ == nullptr) {
-      blender::gpu::TextureFormat format = GPU_texture_format(tx_);
+      gpu::TextureFormat format = GPU_texture_format(tx_);
       stencil_view_ = GPU_texture_create_view(
           name_, tx_, format, 0, 9999, 0, 9999, cube_as_array, true);
     }
@@ -834,7 +834,7 @@ class Texture : NonCopyable {
     int view_layer_len = (layer_range_view_) ? GPU_texture_layer_count(layer_range_view_) : -1;
     if (layer_len != view_layer_len) {
       GPU_TEXTURE_FREE_SAFE(layer_range_view_);
-      blender::gpu::TextureFormat format = GPU_texture_format(tx_);
+      gpu::TextureFormat format = GPU_texture_format(tx_);
       layer_range_view_ = GPU_texture_create_view(
           name_, tx_, format, 0, 9999, layer_start, layer_len, cube_as_array, false);
     }
@@ -1005,7 +1005,7 @@ class Texture : NonCopyable {
                    int h = 0,
                    int d = 0,
                    int mip_len = 1,
-                   blender::gpu::TextureFormat format = blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                   gpu::TextureFormat format = gpu::TextureFormat::UNORM_8_8_8_8,
                    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                    const float *data = nullptr,
                    bool layered = false,
@@ -1037,7 +1037,7 @@ class Texture : NonCopyable {
                        int h,
                        int d,
                        int mip_len,
-                       blender::gpu::TextureFormat format,
+                       gpu::TextureFormat format,
                        eGPUTextureUsage usage,
                        const float *data,
                        bool layered,
@@ -1071,7 +1071,7 @@ class TextureFromPool : public Texture, NonMovable {
 
   /* Always use `release()` after rendering. */
   void acquire(int2 extent,
-               blender::gpu::TextureFormat format,
+               gpu::TextureFormat format,
                eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL)
   {
     BLI_assert(this->tx_ == nullptr);
@@ -1119,18 +1119,16 @@ class TextureFromPool : public Texture, NonMovable {
   }
 
   /** Remove methods that are forbidden with this type of textures. */
-  bool ensure_1d(int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_1d_array(
-      int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_2d(int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, float *) = delete;
-  bool ensure_2d_array(
-      int, int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_3d(
-      int, int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_cube(int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) =
+  bool ensure_1d(int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_1d_array(int, int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) =
       delete;
-  bool ensure_cube_array(
-      int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_2d(int, int, int, gpu::TextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_2d_array(int, int, int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) =
+      delete;
+  bool ensure_3d(int, int, int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_cube(int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_cube_array(int, int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) =
+      delete;
   void filter_mode(bool) = delete;
   void free() = delete;
   gpu::Texture *mip_view(int) = delete;
@@ -1155,13 +1153,13 @@ class TextureRef : public Texture {
   }
 
   /** Remove methods that are forbidden with this type of textures. */
-  bool ensure_1d(int, int, blender::gpu::TextureFormat, const float *) = delete;
-  bool ensure_1d_array(int, int, int, blender::gpu::TextureFormat, const float *) = delete;
-  bool ensure_2d(int, int, int, blender::gpu::TextureFormat, const float *) = delete;
-  bool ensure_2d_array(int, int, int, int, blender::gpu::TextureFormat, const float *) = delete;
-  bool ensure_3d(int, int, int, int, blender::gpu::TextureFormat, const float *) = delete;
-  bool ensure_cube(int, int, blender::gpu::TextureFormat, const float *) = delete;
-  bool ensure_cube_array(int, int, int, blender::gpu::TextureFormat, const float *) = delete;
+  bool ensure_1d(int, int, gpu::TextureFormat, const float *) = delete;
+  bool ensure_1d_array(int, int, int, gpu::TextureFormat, const float *) = delete;
+  bool ensure_2d(int, int, int, gpu::TextureFormat, const float *) = delete;
+  bool ensure_2d_array(int, int, int, int, gpu::TextureFormat, const float *) = delete;
+  bool ensure_3d(int, int, int, int, gpu::TextureFormat, const float *) = delete;
+  bool ensure_cube(int, int, gpu::TextureFormat, const float *) = delete;
+  bool ensure_cube_array(int, int, int, gpu::TextureFormat, const float *) = delete;
   void filter_mode(bool) = delete;
   void free() = delete;
   gpu::Texture *mip_view(int) = delete;

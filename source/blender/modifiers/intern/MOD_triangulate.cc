@@ -12,7 +12,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_mesh.hh"
@@ -29,13 +28,14 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static Mesh *triangulate_mesh(Mesh *mesh,
                               const int quad_method,
                               const int ngon_method,
                               const int min_vertices,
                               const int flag)
 {
-  using namespace blender;
   Mesh *result;
   BMesh *bm;
   CustomData_MeshMasks cd_mask_extra{};
@@ -80,11 +80,8 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 
 static void init_data(ModifierData *md)
 {
-  TriangulateModifierData *tmd = (TriangulateModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(tmd, DNA_struct_default_get(TriangulateModifierData), modifier);
+  TriangulateModifierData *tmd = reinterpret_cast<TriangulateModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(tmd, modifier);
 
   /* Enable in editmode by default */
   md->mode |= eModifierMode_Editmode;
@@ -92,7 +89,7 @@ static void init_data(ModifierData *md)
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
-  TriangulateModifierData *tmd = (TriangulateModifierData *)md;
+  TriangulateModifierData *tmd = reinterpret_cast<TriangulateModifierData *>(md);
   Mesh *result = triangulate_mesh(
       mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag);
   return (result) ? result : mesh;
@@ -100,7 +97,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -157,3 +154,5 @@ ModifierTypeInfo modifierType_Triangulate = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

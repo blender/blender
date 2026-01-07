@@ -12,15 +12,22 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct ARegion;
 struct bContext;
 struct bScreen;
 
+namespace ui {
+
 /* interface_region_menu_popup.cc */
 
-uint ui_popup_menu_hash(blender::StringRef str);
+uint ui_popup_menu_hash(StringRef str);
 
 /* interface_regions.cc */
 
-ARegion *ui_region_temp_add(bScreen *screen);
-void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region);
+ARegion *region_temp_add(bScreen *screen);
+void region_temp_remove(bContext *C, bScreen *screen, ARegion *region);
+
+}  // namespace ui
+}  // namespace blender

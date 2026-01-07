@@ -45,9 +45,11 @@
 
 #include "node_composite_util.hh"
 
+namespace blender {
+
 #define MAX_GLARE_ITERATIONS 5
 
-namespace blender::nodes::node_composite_glare_cc {
+namespace nodes::node_composite_glare_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_GLARE_BLOOM, "BLOOM", 0, N_("Bloom"), ""},
@@ -248,7 +250,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but kept for forward compatibility. */
-  NodeGlare *ndg = MEM_callocN<NodeGlare>(__func__);
+  NodeGlare *ndg = MEM_new_for_free<NodeGlare>(__func__);
   node->storage = ndg;
 }
 
@@ -258,7 +260,7 @@ class SocketSearchOp {
   void operator()(LinkSearchOpParams &params)
   {
     bNode &node = params.add_node("CompositorNodeGlare");
-    bNodeSocket &type_socket = *blender::bke::node_find_socket(node, SOCK_IN, "Type");
+    bNodeSocket &type_socket = *bke::node_find_socket(node, SOCK_IN, "Type");
     type_socket.default_value_typed<bNodeSocketValueMenu>()->value = this->type;
     params.update_and_connect_available_socket(node, "Image");
   }
@@ -401,7 +403,7 @@ class GlareOperation : public NodeOperation {
         case CMP_NODE_GLARE_QUALITY_MEDIUM: {
           float2 normalized_coordinates = (float2(texel) * 2.0f + float2(1.0f)) /
                                           float2(input_size);
-          color = input.sample_bilinear_extended(normalized_coordinates);
+          color = float4(input.sample_bilinear_extended<Color>(normalized_coordinates));
           break;
         }
 
@@ -413,19 +415,23 @@ class GlareOperation : public NodeOperation {
 
           float2 lower_left_coordinates = (float2(texel) * 4.0f + float2(1.0f)) /
                                           float2(input_size);
-          float4 lower_left_color = input.sample_bilinear_extended(lower_left_coordinates);
+          float4 lower_left_color = float4(
+              input.sample_bilinear_extended<Color>(lower_left_coordinates));
 
           float2 lower_right_coordinates = (float2(texel) * 4.0f + float2(3.0f, 1.0f)) /
                                            float2(input_size);
-          float4 lower_right_color = input.sample_bilinear_extended(lower_right_coordinates);
+          float4 lower_right_color = float4(
+              input.sample_bilinear_extended<Color>(lower_right_coordinates));
 
           float2 upper_left_coordinates = (float2(texel) * 4.0f + float2(1.0f, 3.0f)) /
                                           float2(input_size);
-          float4 upper_left_color = input.sample_bilinear_extended(upper_left_coordinates);
+          float4 upper_left_color = float4(
+              input.sample_bilinear_extended<Color>(upper_left_coordinates));
 
           float2 upper_right_coordinates = (float2(texel) * 4.0f + float2(3.0f)) /
                                            float2(input_size);
-          float4 upper_right_color = input.sample_bilinear_extended(upper_right_coordinates);
+          float4 upper_right_color = float4(
+              input.sample_bilinear_extended<Color>(upper_right_coordinates));
 
           color = (upper_left_color + upper_right_color + lower_left_color + lower_right_color) /
                   4.0f;
@@ -538,23 +544,25 @@ class GlareOperation : public NodeOperation {
 
   float get_threshold()
   {
-    return math::max(0.0f, this->get_input("Highlights Threshold").get_single_value_default(1.0f));
+    return math::max(0.0f,
+                     this->get_input("Highlights Threshold").get_single_value_default<float>());
   }
 
   float get_highlights_smoothness()
   {
     return math::max(0.0f,
-                     this->get_input("Highlights Smoothness").get_single_value_default(0.1f));
+                     this->get_input("Highlights Smoothness").get_single_value_default<float>());
   }
 
   bool get_clamp_highlights()
   {
-    return this->get_input("Clamp Highlights").get_single_value_default(false);
+    return this->get_input("Clamp Highlights").get_single_value_default<bool>();
   }
 
   float get_max_highlights()
   {
-    return math::max(0.0f, this->get_input("Maximum Highlights").get_single_value_default(0.0f));
+    return math::max(0.0f,
+                     this->get_input("Maximum Highlights").get_single_value_default<float>());
   }
 
   /* Writes the given input highlights by upsampling it using bilinear interpolation to match the
@@ -600,7 +608,7 @@ class GlareOperation : public NodeOperation {
     parallel_for(size, [&](const int2 texel) {
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
       output.store_pixel(texel,
-                         Color(highlights.sample_bilinear_extended(normalized_coordinates)));
+                         highlights.sample_bilinear_extended<Color>(normalized_coordinates));
     });
   }
 
@@ -1099,7 +1107,7 @@ class GlareOperation : public NodeOperation {
 
   bool get_diagonal_star()
   {
-    return this->get_input("Diagonal Star").get_single_value_default(true);
+    return this->get_input("Diagonal Star").get_single_value_default<bool>();
   }
 
   /* --------------
@@ -1230,9 +1238,9 @@ class GlareOperation : public NodeOperation {
         /* Load three equally spaced neighbors to the current pixel in the direction of the streak
          * vector. */
         float4 neighbors[3];
-        neighbors[0] = input.sample_bilinear_zero(coordinates + vector);
-        neighbors[1] = input.sample_bilinear_zero(coordinates + vector * 2.0f);
-        neighbors[2] = input.sample_bilinear_zero(coordinates + vector * 3.0f);
+        neighbors[0] = float4(input.sample_bilinear_zero<Color>(coordinates + vector));
+        neighbors[1] = float4(input.sample_bilinear_zero<Color>(coordinates + vector * 2.0f));
+        neighbors[2] = float4(input.sample_bilinear_zero<Color>(coordinates + vector * 3.0f));
 
         /* Attenuate the value of two of the channels for each of the neighbors by multiplying by
          * the color modulator. The particular channels for each neighbor were chosen to be
@@ -1251,7 +1259,7 @@ class GlareOperation : public NodeOperation {
         /* The output is the average between the center color and the weighted sum of the
          * neighbors. Which intuitively mean that highlights will spread in the direction of the
          * streak, which is the desired result. */
-        float4 center_color = input.sample_bilinear_zero(coordinates);
+        float4 center_color = float4(input.sample_bilinear_zero<Color>(coordinates));
         float4 output_color = (center_color + weighted_neighbors_sum) / 2.0f;
         output.store_pixel(texel, Color(output_color));
       });
@@ -1378,12 +1386,12 @@ class GlareOperation : public NodeOperation {
 
   int get_number_of_streaks()
   {
-    return math::clamp(this->get_input("Streaks").get_single_value_default(4), 1, 16);
+    return math::clamp(this->get_input("Streaks").get_single_value_default<int>(), 1, 16);
   }
 
   float get_streaks_angle()
   {
-    return this->get_input("Streaks Angle").get_single_value_default(0.0f);
+    return this->get_input("Streaks Angle").get_single_value_default<float>();
   }
 
   /* ------------
@@ -1512,7 +1520,8 @@ class GlareOperation : public NodeOperation {
 
           /* Accumulate the scaled ghost after attenuating and color modulating its value. */
           float4 multiplier = attenuator * color_modulator;
-          accumulated_ghost += input.sample_bilinear_zero(scaled_coordinates) * multiplier;
+          accumulated_ghost += float4(input.sample_bilinear_zero<Color>(scaled_coordinates)) *
+                               multiplier;
         }
 
         float4 current_accumulated_ghost = float4(
@@ -1544,11 +1553,14 @@ class GlareOperation : public NodeOperation {
                              highlights,
                              small_ghost_result,
                              float2(get_small_ghost_radius()),
-                             R_FILTER_GAUSS);
+                             math::FilterKernel::Gauss);
 
     Result big_ghost_result = context().create_result(ResultType::Color);
-    symmetric_separable_blur(
-        context(), highlights, big_ghost_result, float2(get_big_ghost_radius()), R_FILTER_GAUSS);
+    symmetric_separable_blur(context(),
+                             highlights,
+                             big_ghost_result,
+                             float2(get_big_ghost_radius()),
+                             math::FilterKernel::Gauss);
 
     Result base_ghost_result = context().create_result(ResultType::Color);
     if (this->context().use_gpu()) {
@@ -1626,9 +1638,11 @@ class GlareOperation : public NodeOperation {
       float big_ghost_attenuator = math::max(
           0.0f, 1.0f - distance_to_center * math::abs(big_ghost_scale));
 
-      float4 small_ghost = small_ghost_result.sample_bilinear_zero(small_ghost_coordinates) *
+      float4 small_ghost = float4(small_ghost_result.sample_bilinear_zero<Color>(
+                               small_ghost_coordinates)) *
                            small_ghost_attenuator;
-      float4 big_ghost = big_ghost_result.sample_bilinear_zero(big_ghost_coordinates) *
+      float4 big_ghost = float4(
+                             big_ghost_result.sample_bilinear_zero<Color>(big_ghost_coordinates)) *
                          big_ghost_attenuator;
 
       combined_ghost.store_pixel(texel, Color(small_ghost + big_ghost));
@@ -1825,23 +1839,23 @@ class GlareOperation : public NodeOperation {
        * In particular, the upsampling strategy is described and illustrated in slide 162 titled
        * "Upsampling - Our Solution". */
       float4 upsampled = float4(0.0f);
-      upsampled += (4.0f / 16.0f) * input.sample_bilinear_extended(coordinates);
-      upsampled += (2.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(-1.0f, 0.0f));
-      upsampled += (2.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(0.0f, 1.0f));
-      upsampled += (2.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(1.0f, 0.0f));
-      upsampled += (2.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(0.0f, -1.0f));
-      upsampled += (1.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(-1.0f, -1.0f));
-      upsampled += (1.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(-1.0f, 1.0f));
-      upsampled += (1.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(1.0f, -1.0f));
-      upsampled += (1.0f / 16.0f) *
-                   input.sample_bilinear_extended(coordinates + pixel_size * float2(1.0f, 1.0f));
+      upsampled += (4.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(coordinates));
+      upsampled += (2.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(-1.0f, 0.0f)));
+      upsampled += (2.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(0.0f, 1.0f)));
+      upsampled += (2.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(1.0f, 0.0f)));
+      upsampled += (2.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(0.0f, -1.0f)));
+      upsampled += (1.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(-1.0f, -1.0f)));
+      upsampled += (1.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(-1.0f, 1.0f)));
+      upsampled += (1.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(1.0f, -1.0f)));
+      upsampled += (1.0f / 16.0f) * float4(input.sample_bilinear_extended<Color>(
+                                        coordinates + pixel_size * float2(1.0f, 1.0f)));
 
       float4 combined = float4(output.load_pixel<Color>(texel)) + upsampled;
       output.store_pixel(texel, Color(float4(combined.xyz(), 1.0f)));
@@ -1949,31 +1963,31 @@ class GlareOperation : public NodeOperation {
        * In particular, the downsampling strategy is described and illustrated in slide 153 titled
        * "Downsampling - Our Solution". This is employed as it significantly improves the stability
        * of the glare as can be seen in the videos in the talk. */
-      float4 center = input.sample_bilinear_extended(coordinates);
-      float4 upper_left_near = input.sample_bilinear_extended(coordinates +
-                                                              pixel_size * float2(-1.0f, 1.0f));
-      float4 upper_right_near = input.sample_bilinear_extended(coordinates +
-                                                               pixel_size * float2(1.0f, 1.0f));
-      float4 lower_left_near = input.sample_bilinear_extended(coordinates +
-                                                              pixel_size * float2(-1.0f, -1.0f));
-      float4 lower_right_near = input.sample_bilinear_extended(coordinates +
-                                                               pixel_size * float2(1.0f, -1.0f));
-      float4 left_far = input.sample_bilinear_extended(coordinates +
-                                                       pixel_size * float2(-2.0f, 0.0f));
-      float4 right_far = input.sample_bilinear_extended(coordinates +
-                                                        pixel_size * float2(2.0f, 0.0f));
-      float4 upper_far = input.sample_bilinear_extended(coordinates +
-                                                        pixel_size * float2(0.0f, 2.0f));
-      float4 lower_far = input.sample_bilinear_extended(coordinates +
-                                                        pixel_size * float2(0.0f, -2.0f));
-      float4 upper_left_far = input.sample_bilinear_extended(coordinates +
-                                                             pixel_size * float2(-2.0f, 2.0f));
-      float4 upper_right_far = input.sample_bilinear_extended(coordinates +
-                                                              pixel_size * float2(2.0f, 2.0f));
-      float4 lower_left_far = input.sample_bilinear_extended(coordinates +
-                                                             pixel_size * float2(-2.0f, -2.0f));
-      float4 lower_right_far = input.sample_bilinear_extended(coordinates +
-                                                              pixel_size * float2(2.0f, -2.0f));
+      float4 center = float4(input.sample_bilinear_extended<Color>(coordinates));
+      float4 upper_left_near = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-1.0f, 1.0f)));
+      float4 upper_right_near = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(1.0f, 1.0f)));
+      float4 lower_left_near = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-1.0f, -1.0f)));
+      float4 lower_right_near = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(1.0f, -1.0f)));
+      float4 left_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-2.0f, 0.0f)));
+      float4 right_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(2.0f, 0.0f)));
+      float4 upper_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(0.0f, 2.0f)));
+      float4 lower_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(0.0f, -2.0f)));
+      float4 upper_left_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-2.0f, 2.0f)));
+      float4 upper_right_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(2.0f, 2.0f)));
+      float4 lower_left_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(-2.0f, -2.0f)));
+      float4 lower_right_far = float4(
+          input.sample_bilinear_extended<Color>(coordinates + pixel_size * float2(2.0f, -2.0f)));
 
       float4 result;
       if constexpr (!UseKarisAverage) {
@@ -2356,7 +2370,7 @@ class GlareOperation : public NodeOperation {
           break;
         }
 
-        float4 sample_color = highlights.sample_bilinear_zero(position);
+        float4 sample_color = float4(highlights.sample_bilinear_zero<Color>(position));
 
         /* Attenuate the contributions of pixels that are further away from the source using a
          * quadratic falloff. */
@@ -2370,7 +2384,7 @@ class GlareOperation : public NodeOperation {
         accumulated_color /= accumulated_weight;
       }
       else {
-        accumulated_color = highlights.sample_bilinear_zero(coordinates);
+        accumulated_color = float4(highlights.sample_bilinear_zero<Color>(coordinates));
       }
       output.store_pixel(texel, Color(accumulated_color));
     });
@@ -2404,7 +2418,7 @@ class GlareOperation : public NodeOperation {
 
   float get_jitter_factor()
   {
-    return math::clamp(this->get_input("Jitter").get_single_value_default(0.0f), 0.0f, 1.0f);
+    return math::clamp(this->get_input("Jitter").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   /* ----------
@@ -2459,15 +2473,15 @@ class GlareOperation : public NodeOperation {
     if (kernel.type() == ResultType::Float) {
       parallel_for(size, [&](const int2 texel) {
         const float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
-        downsampled_kernel.store_pixel(texel,
-                                       kernel.sample_bilinear_extended(normalized_coordinates).x);
+        downsampled_kernel.store_pixel(
+            texel, kernel.sample_bilinear_extended<float>(normalized_coordinates));
       });
     }
     else {
       parallel_for(size, [&](const int2 texel) {
         const float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
         downsampled_kernel.store_pixel(
-            texel, Color(kernel.sample_bilinear_extended(normalized_coordinates)));
+            texel, kernel.sample_bilinear_extended<Color>(normalized_coordinates));
       });
     }
 
@@ -2519,10 +2533,8 @@ class GlareOperation : public NodeOperation {
 
   KernelDataType get_kernel_data_type()
   {
-    const Result &input = this->get_input("Kernel Data Type");
-    const MenuValue default_menu_value = MenuValue(KernelDataType::Float);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<KernelDataType>(menu_value.value);
+    return KernelDataType(
+        this->get_input("Kernel Data Type").get_single_value_default<MenuValue>().value);
   }
 
   /* ----------
@@ -2589,7 +2601,8 @@ class GlareOperation : public NodeOperation {
 
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) /
                                       float2(input.domain().data_size);
-      float4 glare_color = glare_result.sample_bilinear_extended(normalized_coordinates);
+      float4 glare_color = float4(
+          glare_result.sample_bilinear_extended<Color>(normalized_coordinates));
 
       /* Adjust saturation of glare. */
       float4 glare_hsva;
@@ -2653,7 +2666,7 @@ class GlareOperation : public NodeOperation {
     const int2 size = output.domain().data_size;
     parallel_for(size, [&](const int2 texel) {
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
-      float4 glare_color = glare.sample_bilinear_extended(normalized_coordinates);
+      float4 glare_color = float4(glare.sample_bilinear_extended<Color>(normalized_coordinates));
 
       /* Adjust saturation of glare. */
       float4 glare_hsva;
@@ -2706,51 +2719,48 @@ class GlareOperation : public NodeOperation {
 
   CMPNodeGlareType get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_GLARE_STREAKS);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeGlareType>(menu_value.value);
+    return CMPNodeGlareType(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 
   float get_strength()
   {
-    return math::max(0.0f, this->get_input("Strength").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Strength").get_single_value_default<float>());
   }
 
   float get_saturation()
   {
-    return math::max(0.0f, this->get_input("Saturation").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Saturation").get_single_value_default<float>());
   }
 
   float3 get_tint()
   {
-    return float4(this->get_input("Tint").get_single_value_default(Color(1.0f))).xyz();
+    return float4(this->get_input("Tint").get_single_value_default<Color>()).xyz();
   }
 
   float get_size()
   {
-    return math::clamp(this->get_input("Size").get_single_value_default(0.5f), 0.0f, 1.0f);
+    return math::clamp(this->get_input("Size").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   int get_number_of_iterations()
   {
-    return math::clamp(this->get_input("Iterations").get_single_value_default(3), 2, 5);
+    return math::clamp(this->get_input("Iterations").get_single_value_default<int>(), 2, 5);
   }
 
   float get_fade()
   {
-    return math::clamp(this->get_input("Fade").get_single_value_default(0.9f), 0.75f, 1.0f);
+    return math::clamp(this->get_input("Fade").get_single_value_default<float>(), 0.75f, 1.0f);
   }
 
   float get_color_modulation()
   {
     return math::clamp(
-        this->get_input("Color Modulation").get_single_value_default(0.25f), 0.0f, 1.0f);
+        this->get_input("Color Modulation").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float2 get_sun_position()
   {
-    return this->get_input("Sun Position").get_single_value_default(float2(0.5f));
+    return this->get_input("Sun Position").get_single_value_default<float2>();
   }
 
   /* As a performance optimization, the operation can compute the glare on a fraction of the input
@@ -2779,10 +2789,8 @@ class GlareOperation : public NodeOperation {
 
   CMPNodeGlareQuality get_quality()
   {
-    const Result &input = this->get_input("Quality");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_GLARE_QUALITY_MEDIUM);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeGlareQuality>(menu_value.value);
+    return CMPNodeGlareQuality(
+        this->get_input("Quality").get_single_value_default<MenuValue>().value);
   }
 };
 
@@ -2791,13 +2799,13 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new GlareOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_glare_cc
+}  // namespace nodes::node_composite_glare_cc
 
 static void register_node_type_cmp_glare()
 {
-  namespace file_ns = blender::nodes::node_composite_glare_cc;
+  namespace file_ns = nodes::node_composite_glare_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeGlare", CMP_NODE_GLARE);
   ntype.ui_name = "Glare";
@@ -2807,10 +2815,12 @@ static void register_node_type_cmp_glare()
   ntype.declare = file_ns::cmp_node_glare_declare;
   ntype.initfunc = file_ns::node_composit_init_glare;
   ntype.gather_link_search_ops = file_ns::gather_link_searches;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_glare)
+
+}  // namespace blender

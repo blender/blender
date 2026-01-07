@@ -15,6 +15,7 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
 
 #include "RNA_access.hh"
@@ -22,6 +23,8 @@
 #include "GPU_viewport.hh"
 
 #include "sequencer_scopes.hh"
+
+namespace blender {
 
 /* Internal exports only. */
 
@@ -31,6 +34,7 @@ struct ColorManagedViewSettings;
 struct ColorManagedDisplaySettings;
 struct Scene;
 struct SeqRetimingKey;
+struct SeqTimelineChannel;
 struct Strip;
 struct SpaceSeq;
 struct StripElem;
@@ -42,13 +46,12 @@ struct wmOperator;
 struct wmOperatorType;
 struct ScrArea;
 struct Editing;
-struct ListBase;
 
-namespace blender::ed::asset {
+namespace ed::asset {
 struct AssetItemTree;
 }
 
-namespace blender::ed::vse {
+namespace ed::vse {
 
 class SeqQuadsBatch;
 class StripsDrawBatch;
@@ -77,8 +80,8 @@ struct SeqChannelDrawContext {
 
   Scene *scene;
   Editing *ed;
-  ListBase *seqbase;  /* Displayed seqbase. */
-  ListBase *channels; /* Displayed channels. */
+  ListBaseT<Strip> *seqbase;               /* Displayed seqbase. */
+  ListBaseT<SeqTimelineChannel> *channels; /* Displayed channels. */
 
   float draw_offset;
   float channel_height;
@@ -117,7 +120,7 @@ struct TimelineDrawContext {
   SpaceSeq *sseq;
   View2D *v2d;
   Editing *ed;
-  ListBase *channels;
+  ListBaseT<SeqTimelineChannel> *channels;
   GPUViewport *viewport;
   gpu::FrameBuffer *framebuffer_overlay;
   float pixelx, pixely; /* Width and height of pixel in timeline space. */
@@ -206,6 +209,7 @@ extern const EnumPropertyItem prop_side_types[];
 /* Operators. */
 
 void SEQUENCER_OT_split(wmOperatorType *ot);
+void SEQUENCER_OT_box_blade(wmOperatorType *ot);
 void SEQUENCER_OT_slip(wmOperatorType *ot);
 void SEQUENCER_OT_mute(wmOperatorType *ot);
 void SEQUENCER_OT_unmute(wmOperatorType *ot);
@@ -403,7 +407,7 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot);
-int2 strip_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset);
+int2 strip_text_cursor_offset_to_position(const seq::TextVarsRuntime *text, int cursor_offset);
 IndexRange strip_text_selection_range_get(const TextVars *data);
 
 /* `sequencer_timeline_draw.cc` */
@@ -422,4 +426,5 @@ MenuType add_catalog_assets_menu_type();
 MenuType add_unassigned_assets_menu_type();
 MenuType add_scene_menu_type();
 
-}  // namespace blender::ed::vse
+}  // namespace ed::vse
+}  // namespace blender

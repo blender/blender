@@ -21,7 +21,7 @@
 
 #include "bmesh.hh"
 
-using blender::MutableSpan;
+namespace blender {
 
 /**
  * On systems with 32+ cores,
@@ -206,7 +206,7 @@ static void bmesh_calc_tessellation_for_face_fn(void *__restrict userdata,
 {
   TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls->userdata_chunk);
   std::array<BMLoop *, 3> *looptris = static_cast<std::array<BMLoop *, 3> *>(userdata);
-  BMFace *f = (BMFace *)mp_f;
+  BMFace *f = reinterpret_cast<BMFace *>(mp_f);
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
   const int offset = BM_elem_index_get(l) - (BM_elem_index_get(f) * 2);
   bmesh_calc_tessellation_for_face(looptris + offset, f, &tls_data->pf_arena);
@@ -218,7 +218,7 @@ static void bmesh_calc_tessellation_for_face_with_normals_fn(void *__restrict us
 {
   TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls->userdata_chunk);
   std::array<BMLoop *, 3> *looptris = static_cast<std::array<BMLoop *, 3> *>(userdata);
-  BMFace *f = (BMFace *)mp_f;
+  BMFace *f = reinterpret_cast<BMFace *>(mp_f);
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
   const int offset = BM_elem_index_get(l) - (BM_elem_index_get(f) * 2);
   bmesh_calc_tessellation_for_face_with_normal(looptris + offset, f, &tls_data->pf_arena);
@@ -562,3 +562,5 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, MutableSpan<std::array<BMLoop *
 }
 
 /** \} */
+
+}  // namespace blender

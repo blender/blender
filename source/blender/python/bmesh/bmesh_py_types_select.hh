@@ -13,6 +13,9 @@
 #include "bmesh.hh"
 
 struct BBMesh;
+
+namespace blender {
+
 struct BMEditSelection;
 struct BPy_BMesh;
 
@@ -41,3 +44,5 @@ void BPy_BM_init_types_select();
  * \note doesn't actually check selection.
  */
 [[nodiscard]] int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value);
+
+}  // namespace blender

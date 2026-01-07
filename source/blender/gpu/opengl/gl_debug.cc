@@ -27,6 +27,8 @@
 
 #include "gl_debug.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.debug"};
 
 /* Avoid too much NVidia buffer info in the output log. */
@@ -34,7 +36,7 @@ static CLG_LogRef LOG = {"gpu.debug"};
 /* Avoid unneeded shader statistics. */
 #define TRIM_SHADER_STATS_INFO 1
 
-namespace blender::gpu::debug {
+namespace gpu::debug {
 
 /* -------------------------------------------------------------------- */
 /** \name Debug Callbacks
@@ -137,7 +139,7 @@ void init_gl_callbacks()
 {
   glEnable(GL_DEBUG_OUTPUT);
   glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-  glDebugMessageCallback((GLDEBUGPROC)debug_callback, nullptr);
+  glDebugMessageCallback(static_cast<GLDEBUGPROC>(debug_callback), nullptr);
   glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
   glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION,
                        GL_DEBUG_TYPE_MARKER,
@@ -356,9 +358,9 @@ void object_label(GLenum type, GLuint object, const char *name)
 
 /** \} */
 
-}  // namespace blender::gpu::debug
+}  // namespace gpu::debug
 
-namespace blender::gpu {
+namespace gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Debug Groups
@@ -552,4 +554,5 @@ void GLContext::debug_unbind_all_ssbo()
 
 /** \} */
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

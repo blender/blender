@@ -17,6 +17,8 @@
 #include "gpu_py.hh"
 #include "gpu_py_vertex_format.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Enum Conversion
  *
@@ -164,7 +166,7 @@ static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *arg
 
 static PyMethodDef pygpu_vertformat__tp_methods[] = {
     {"attr_add",
-     (PyCFunction)pygpu_vertformat_attr_add,
+     reinterpret_cast<PyCFunction>(pygpu_vertformat_attr_add),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_vertformat_attr_add_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -194,7 +196,7 @@ PyTypeObject BPyGPUVertFormat_Type = {
     /*tp_name*/ "GPUVertFormat",
     /*tp_basicsize*/ sizeof(BPyGPUVertFormat),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)pygpu_vertformat__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(pygpu_vertformat__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -259,7 +261,9 @@ PyObject *BPyGPUVertFormat_CreatePyObject(GPUVertFormat *fmt)
     memset(&self->fmt, 0, sizeof(self->fmt));
   }
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */
+
+}  // namespace blender

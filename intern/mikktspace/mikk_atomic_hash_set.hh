@@ -80,7 +80,7 @@ class AtomicHashSet {
 
  public:
   struct Config {
-    KeyT emptyKey = (KeyT)-1;
+    KeyT emptyKey = KeyT(-1);
     double maxLoadFactor = 0.8;
     double growthFactor = -1;
     size_t capacity = 0;  // if positive, overrides maxLoadFactor
@@ -116,7 +116,9 @@ class AtomicHashSet {
     /* Not great, but the best we can do to support both atomic and non-atomic cells
      * since std::atomic doesn't have a copy constructor so cells_(capacity_, kEmptyKey_)
      * in the initializer list won't work. */
-    std::fill((KeyT *)cells_.data(), (KeyT *)cells_.data() + capacity_, kEmptyKey_);
+    std::fill(reinterpret_cast<KeyT *>(cells_.data()),
+              reinterpret_cast<KeyT *>(cells_.data()) + capacity_,
+              kEmptyKey_);
   }
 
   AtomicHashSet(const AtomicHashSet &) = delete;

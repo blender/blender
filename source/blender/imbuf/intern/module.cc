@@ -12,6 +12,8 @@
 #include "IMB_filetype.hh"
 #include "IMB_imbuf.hh"
 
+namespace blender {
+
 void IMB_init()
 {
   imb_filetypes_init();
@@ -23,3 +25,5 @@ void IMB_exit()
   imb_filetypes_exit();
   colormanagement_exit();
 }
+
+}  // namespace blender

@@ -79,7 +79,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
 
     if (window->getValid()) {
       window_manager_->addWindow(window);
-      pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
+      pushEvent(std::make_unique<GHOST_Event>(getMilliSeconds(), GHOST_kEventWindowSize, window));
     }
     else {
       delete window;
@@ -455,7 +455,7 @@ static SDL_Window *SDL_GetWindowFromID_fallback(Uint32 id)
 
 void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 {
-  GHOST_Event *g_event = nullptr;
+  std::unique_ptr<GHOST_Event> g_event = nullptr;
 
   switch (sdl_event->type) {
     case SDL_WINDOWEVENT: {
@@ -470,22 +470,22 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 
       switch (sdl_sub_evt.event) {
         case SDL_WINDOWEVENT_EXPOSED:
-          g_event = new GHOST_Event(event_ms, GHOST_kEventWindowUpdate, window);
+          g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowUpdate, window);
           break;
         case SDL_WINDOWEVENT_RESIZED:
-          g_event = new GHOST_Event(event_ms, GHOST_kEventWindowSize, window);
+          g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowSize, window);
           break;
         case SDL_WINDOWEVENT_MOVED:
-          g_event = new GHOST_Event(event_ms, GHOST_kEventWindowMove, window);
+          g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowMove, window);
           break;
         case SDL_WINDOWEVENT_FOCUS_GAINED:
-          g_event = new GHOST_Event(event_ms, GHOST_kEventWindowActivate, window);
+          g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowActivate, window);
           break;
         case SDL_WINDOWEVENT_FOCUS_LOST:
-          g_event = new GHOST_Event(event_ms, GHOST_kEventWindowDeactivate, window);
+          g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowDeactivate, window);
           break;
         case SDL_WINDOWEVENT_CLOSE:
-          g_event = new GHOST_Event(event_ms, GHOST_kEventWindowClose, window);
+          g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowClose, window);
           break;
       }
 
@@ -496,7 +496,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       const SDL_QuitEvent &sdl_sub_evt = sdl_event->quit;
       const uint64_t event_ms = sdl_sub_evt.timestamp;
       GHOST_IWindow *window = window_manager_->getActiveWindow();
-      g_event = new GHOST_Event(event_ms, GHOST_kEventQuitRequest, window);
+      g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventQuitRequest, window);
       break;
     }
 
@@ -546,11 +546,11 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
             SDL_WarpMouseInWindow(sdl_win, x_new - x_win, y_new - y_win);
           }
 
-          g_event = new GHOST_EventCursor(
+          g_event = std::make_unique<GHOST_EventCursor>(
               event_ms, GHOST_kEventCursorMove, window, x_new, y_new, GHOST_TABLET_DATA_NONE);
         }
         else {
-          g_event = new GHOST_EventCursor(event_ms,
+          g_event = std::make_unique<GHOST_EventCursor>(event_ms,
                                           GHOST_kEventCursorMove,
                                           window,
                                           x_root + x_accum,
@@ -561,7 +561,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       else
 #endif
       {
-        g_event = new GHOST_EventCursor(
+        g_event = std::make_unique<GHOST_EventCursor>(
             event_ms, GHOST_kEventCursorMove, window, x_root, y_root, GHOST_TABLET_DATA_NONE);
       }
       break;
@@ -599,7 +599,8 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
         break;
       }
 
-      g_event = new GHOST_EventButton(event_ms, type, window, gbmask, GHOST_TABLET_DATA_NONE);
+      g_event = std::make_unique<GHOST_EventButton>(
+          event_ms, type, window, gbmask, GHOST_TABLET_DATA_NONE);
       break;
     }
     case SDL_MOUSEWHEEL: {
@@ -609,11 +610,11 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
       assert(window != nullptr);
       if (sdl_sub_evt.x != 0) {
-        g_event = new GHOST_EventWheel(
+        g_event = std::make_unique<GHOST_EventWheel>(
             event_ms, window, GHOST_kEventWheelAxisHorizontal, sdl_sub_evt.x);
       }
       else if (sdl_sub_evt.y != 0) {
-        g_event = new GHOST_EventWheel(
+        g_event = std::make_unique<GHOST_EventWheel>(
             event_ms, window, GHOST_kEventWheelAxisVertical, sdl_sub_evt.y);
       }
       break;
@@ -641,13 +642,14 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
         utf8_buf[0] = convert_keyboard_event_to_ascii(sdl_sub_evt);
       }
 
-      g_event = new GHOST_EventKey(event_ms, type, window, gkey, is_repeat, utf8_buf);
+      g_event = std::make_unique<GHOST_EventKey>(
+          event_ms, type, window, gkey, is_repeat, utf8_buf);
       break;
     }
   }
 
   if (g_event) {
-    pushEvent(g_event);
+    pushEvent(std::move(g_event));
   }
 }
 
@@ -684,13 +686,13 @@ bool GHOST_SystemSDL::generateWindowExposeEvents()
   for (; w_start != w_end; ++w_start) {
     /* The caller doesn't have a time-stamp. */
     const uint64_t event_ms = getMilliSeconds();
-    GHOST_Event *g_event = new GHOST_Event(event_ms, GHOST_kEventWindowUpdate, *w_start);
+    auto g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowUpdate, *w_start);
 
     (*w_start)->validate();
 
     if (g_event) {
       // printf("Expose events pushed\n");
-      pushEvent(g_event);
+      pushEvent(std::move(g_event));
       anyProcessed = true;
     }
   }

@@ -14,7 +14,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_tangent_cc {
+namespace blender {
+
+namespace nodes::node_shader_tangent_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -23,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tangent(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout.prop(ptr, "direction_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "direction_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -40,17 +42,17 @@ static void node_shader_buts_tangent(ui::Layout &layout, bContext *C, PointerRNA
       }
     }
 
-    layout.prop(ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
+    layout.prop(ptr, "uv_map", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
   }
   else {
     layout.prop(
-        ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+        ptr, "axis", ui::ITEM_R_SPLIT_EMPTY_NAME | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 }
 
 static void node_shader_init_tangent(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderTangent *attr = MEM_callocN<NodeShaderTangent>("NodeShaderTangent");
+  NodeShaderTangent *attr = MEM_new_for_free<NodeShaderTangent>("NodeShaderTangent");
   attr->axis = SHD_TANGENT_AXIS_Z;
   node->storage = attr;
 }
@@ -92,14 +94,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tangent_cc
+}  // namespace nodes::node_shader_tangent_cc
 
 /* node type definition */
 void register_node_type_sh_tangent()
 {
-  namespace file_ns = blender::nodes::node_shader_tangent_cc;
+  namespace file_ns = nodes::node_shader_tangent_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeTangent", SH_NODE_TANGENT);
   ntype.ui_name = "Tangent";
@@ -108,12 +110,14 @@ void register_node_type_sh_tangent()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tangent;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_tangent;
   ntype.gpu_fn = file_ns::node_shader_gpu_tangent;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

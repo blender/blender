@@ -37,6 +37,8 @@
 #  include "intern/eval/deg_eval_copy_on_write.h"
 #endif
 
+namespace blender {
+
 /* If defined, all working data will be set to an invalid state, helping
  * to catch issues when areas accessing data which is considered to be no
  * longer available. */
@@ -45,8 +47,6 @@
 #ifndef NDEBUG
 #  define INVALIDATE_WORK_DATA
 #endif
-
-namespace deg = blender::deg;
 
 using evil::DEG_iterator_temp_object_free_properties;
 using evil::DEG_iterator_temp_object_from_dupli;
@@ -59,7 +59,7 @@ void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
 {
 #ifdef INVALIDATE_WORK_DATA
   BLI_assert(data != nullptr);
-  memset((void *)&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
+  memset(static_cast<void *>(&data->temp_dupli_object), 0xff, sizeof(data->temp_dupli_object));
 #else
   (void)data;
 #endif
@@ -208,7 +208,7 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
         break;
     }
 
-    Object *object = (Object *)id_node->id_cow;
+    Object *object = id_cast<Object *>(id_node->id_cow);
     Object *object_orig = DEG_get_original(object);
 
     DEGObjectIterSettings *settings = data->settings;
@@ -285,7 +285,7 @@ void DEGObjectIterData::transfer_from(DEGObjectIterData &other)
   this->dupli_object_next = other.dupli_object_next;
   this->dupli_object_next_index = other.dupli_object_next_index;
   this->dupli_object_current = other.dupli_object_current;
-  this->temp_dupli_object = blender::dna::shallow_copy(other.temp_dupli_object);
+  this->temp_dupli_object = dna::shallow_copy(other.temp_dupli_object);
   this->temp_dupli_object_runtime = other.temp_dupli_object_runtime;
   this->temp_dupli_object.runtime = &temp_dupli_object_runtime;
   this->id_node_index = other.id_node_index;
@@ -360,7 +360,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 
 void DEG_iterator_objects_next(BLI_Iterator *iter)
 {
-  DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
+  DEGObjectIterData *data = static_cast<DEGObjectIterData *>(iter->data);
   while (true) {
     if (data->next_object != nullptr) {
       iter->current = data->next_object;
@@ -380,7 +380,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 
 void DEG_iterator_objects_end(BLI_Iterator *iter)
 {
-  DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
+  DEGObjectIterData *data = static_cast<DEGObjectIterData *>(iter->data);
   if (data != nullptr) {
     /* Force crash in case the iterator data is referenced and accessed down
      * the line. (#51718) */
@@ -406,7 +406,7 @@ static void DEG_iterator_ids_step(BLI_Iterator *iter, deg::IDNode *id_node, bool
 
   if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
     /* Node-tree is considered part of the data-block. */
-    bNodeTree *ntree = blender::bke::node_tree_from_id(id_cow);
+    bNodeTree *ntree = bke::node_tree_from_id(id_cow);
     if (ntree == nullptr) {
       iter->skip = true;
       return;
@@ -447,7 +447,7 @@ void DEG_iterator_ids_begin(BLI_Iterator *iter, DEGIDIterData *data)
 
 void DEG_iterator_ids_next(BLI_Iterator *iter)
 {
-  DEGIDIterData *data = (DEGIDIterData *)iter->data;
+  DEGIDIterData *data = static_cast<DEGIDIterData *>(iter->data);
   Depsgraph *depsgraph = data->graph;
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
 
@@ -495,9 +495,9 @@ bool evil::DEG_iterator_temp_object_from_dupli(const Object *dupli_parent,
                                                eEvaluationMode eval_mode,
                                                bool do_matrix_setup,
                                                Object *r_temp_object,
-                                               ObjectRuntimeHandle *r_temp_runtime)
+                                               bke::ObjectRuntime *r_temp_runtime)
 {
-  *r_temp_object = blender::dna::shallow_copy(*dupli->ob);
+  *r_temp_object = dna::shallow_copy(*dupli->ob);
   r_temp_object->runtime = r_temp_runtime;
   *r_temp_object->runtime = *dupli->ob->runtime;
 
@@ -558,3 +558,5 @@ void evil::DEG_iterator_temp_object_free_properties(const DupliObject *dupli, Ob
   ensure_id_properties_freed(dupli->ob->id.properties, &temp_object->id.properties);
   ensure_id_properties_freed(dupli->ob->id.system_properties, &temp_object->id.system_properties);
 }
+
+}  // namespace blender

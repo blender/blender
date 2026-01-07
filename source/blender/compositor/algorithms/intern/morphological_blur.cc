@@ -93,7 +93,7 @@ void morphological_blur(Context &context,
                         Result &output,
                         const float2 &radius,
                         const MorphologicalBlurOperation operation,
-                        const int filter_type)
+                        const math::FilterKernel filter_type)
 {
   BLI_assert(input.type() == ResultType::Float);
 

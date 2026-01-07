@@ -201,7 +201,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
 /* Transparent shadow BVH traversal, recording multiple intersections. */
 
-#  ifdef __SHADOW_RECORD_ALL__
+#  ifdef __TRANSPARENT_SHADOWS__
 
 #    define BVH_FUNCTION_NAME bvh_intersect_shadow_all
 #    define BVH_FUNCTION_FEATURES BVH_POINTCLOUD
@@ -279,7 +279,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   kernel_assert(false);
   return false;
 }
-#  endif /* __SHADOW_RECORD_ALL__ */
+#  endif /* __TRANSPARENT_SHADOWS__ */
 
 /* Volume BVH traversal, for initializing or updating the volume stack. */
 

@@ -24,10 +24,10 @@ namespace blender::math {
  * \{ */
 
 /**
- * A `blender::math::QuaternionBase<T>` represents either an orientation or a rotation.
+ * A `math::QuaternionBase<T>` represents either an orientation or a rotation.
  *
  * Mainly used for rigging and armature deformations as they have nice mathematical properties
- * (eg: smooth shortest path interpolation). A `blender::math::QuaternionBase<T>` is cheaper to
+ * (eg: smooth shortest path interpolation). A `math::QuaternionBase<T>` is cheaper to
  * combine than `MatBase<T, 3, 3>`. However, transforming points is slower. Consider converting to
  * a rotation matrix if you are rotating many points.
  *
@@ -178,10 +178,10 @@ template<typename T> struct QuaternionBase {
  * \{ */
 
 /**
- * A `blender::math::DualQuaternionBase<T>` implements dual-quaternion skinning with scale aware
+ * A `math::DualQuaternionBase<T>` implements dual-quaternion skinning with scale aware
  * transformation. It allows volume preserving deformation for skinning.
  *
- * The type is implemented so that multiple weighted `blender::math::DualQuaternionBase<T>`
+ * The type is implemented so that multiple weighted `math::DualQuaternionBase<T>`
  * can be aggregated into a final rotation. Calling `normalize(dual_quat)` is mandatory before
  * trying to transform points with it.
  */

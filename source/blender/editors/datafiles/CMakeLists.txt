@@ -917,6 +917,8 @@ if(WITH_BLENDER)
       unlocked
       unpinned
       url
+      usb_drive
+      usb_drive_large
       user
       uv
       uv_data
@@ -1009,7 +1011,7 @@ if(WITH_BLENDER)
         "extern const char datatoc_${svg}_svg[]\;\n"
       )
       list(APPEND SVG_CONTENTS_C
-        "case ICON_${svg_name_upper}: return datatoc_${svg}_svg\;\n"
+        "case blender::ICON_${svg_name_upper}: return datatoc_${svg}_svg\;\n"
       )
     endforeach()
     unset(svg_name_upper)

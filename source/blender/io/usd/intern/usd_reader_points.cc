@@ -23,7 +23,7 @@ void USDPointsReader::create_object(Main *bmain)
 {
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_POINTCLOUD, name_.c_str());
-  object_->data = pointcloud;
+  object_->data = id_cast<ID *>(pointcloud);
 }
 
 void USDPointsReader::read_object_data(Main *bmain, pxr::UsdTimeCode time)
@@ -31,7 +31,7 @@ void USDPointsReader::read_object_data(Main *bmain, pxr::UsdTimeCode time)
   const USDMeshReadParams params = create_mesh_read_params(time.GetValue(),
                                                            import_params_.mesh_read_flag);
 
-  PointCloud *pointcloud = static_cast<PointCloud *>(object_->data);
+  PointCloud *pointcloud = id_cast<PointCloud *>(object_->data);
 
   bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
       pointcloud, bke::GeometryOwnershipType::Editable);

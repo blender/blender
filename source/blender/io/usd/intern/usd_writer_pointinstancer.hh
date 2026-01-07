@@ -19,11 +19,11 @@ namespace blender::io::usd {
 class USDPointInstancerWriter final : public USDAbstractWriter {
  private:
   std::unique_ptr<USDAbstractWriter> base_writer_;
-  blender::Set<std::pair<pxr::SdfPath, Object *>> prototype_paths_;
+  Set<std::pair<pxr::SdfPath, Object *>> prototype_paths_;
 
  public:
   USDPointInstancerWriter(const USDExporterContext &ctx,
-                          const blender::Set<std::pair<pxr::SdfPath, Object *>> &prototype_paths,
+                          const Set<std::pair<pxr::SdfPath, Object *>> &prototype_paths,
                           std::unique_ptr<USDAbstractWriter> base_writer);
   ~USDPointInstancerWriter() override = default;
 
@@ -38,12 +38,12 @@ class USDPointInstancerWriter final : public USDAbstractWriter {
   void process_instance_reference(
       const bke::InstanceReference &reference,
       int instance_index,
-      blender::Map<std::string, int> &proto_index_map,
-      blender::Map<std::string, int> &final_proto_index_map,
-      blender::Map<std::string, pxr::SdfPath> &proto_path_map,
+      Map<std::string, int> &proto_index_map,
+      Map<std::string, int> &final_proto_index_map,
+      Map<std::string, pxr::SdfPath> &proto_path_map,
       pxr::UsdStageRefPtr stage,
       pxr::VtArray<int> &proto_indices,
-      blender::Vector<std::pair<int, int>> &collection_instance_object_count_map);
+      Vector<std::pair<int, int>> &collection_instance_object_count_map);
 
   void compact_prototypes(const pxr::UsdGeomPointInstancer &usd_instancer,
                           const pxr::UsdTimeCode time,
@@ -57,7 +57,7 @@ class USDPointInstancerWriter final : public USDAbstractWriter {
       const pxr::UsdGeomPointInstancer &usd_instancer,
       const pxr::UsdTimeCode time,
       int instance_num,
-      const blender::Span<std::pair<int, int>> collection_instance_object_count_map) const;
+      const Span<std::pair<int, int>> collection_instance_object_count_map) const;
 };
 
 }  // namespace blender::io::usd

@@ -67,6 +67,8 @@
 #include "file_intern.hh"
 #include "filelist.hh"
 
+namespace blender {
+
 static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectParams *params)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
@@ -97,14 +99,16 @@ static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectPara
 
 static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
 {
+  UserDef U_default = {};
+
   BLI_assert(sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);
   BLI_assert(sfile->op == nullptr);
 
   FileAssetSelectParams *asset_params = sfile->asset_params;
 
   if (!asset_params) {
-    asset_params = sfile->asset_params = static_cast<FileAssetSelectParams *>(
-        MEM_callocN(sizeof(*asset_params), "FileAssetSelectParams"));
+    asset_params = sfile->asset_params = MEM_new_for_free<FileAssetSelectParams>(
+        "FileAssetSelectParams");
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
     asset_params->asset_library_ref.type = ASSET_LIBRARY_ALL;
     asset_params->asset_library_ref.custom_library_index = -1;
@@ -142,6 +146,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 {
   BLI_assert(sfile->browse_mode == FILE_BROWSE_MODE_FILES);
 
+  UserDef U_default = {};
   FileSelectParams *params;
   wmOperator *op = sfile->op;
 
@@ -149,7 +154,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 
   /* create new parameters if necessary */
   if (!sfile->params) {
-    sfile->params = MEM_callocN<FileSelectParams>("fileselparams");
+    sfile->params = MEM_new_for_free<FileSelectParams>("fileselparams");
     /* set path to most recently opened .blend */
     BLI_path_split_dir_file(blendfile_path,
                             sfile->params->dir,
@@ -359,7 +364,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 
 FileSelectParams *ED_fileselect_ensure_active_params(SpaceFile *sfile)
 {
-  switch ((eFileBrowse_Mode)sfile->browse_mode) {
+  switch (eFileBrowse_Mode(sfile->browse_mode)) {
     case FILE_BROWSE_MODE_FILES:
       if (!sfile->params) {
         fileselect_ensure_updated_file_params(sfile);
@@ -383,11 +388,11 @@ FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
     return nullptr;
   }
 
-  switch ((eFileBrowse_Mode)sfile->browse_mode) {
+  switch (eFileBrowse_Mode(sfile->browse_mode)) {
     case FILE_BROWSE_MODE_FILES:
       return sfile->params;
     case FILE_BROWSE_MODE_ASSETS:
-      return (FileSelectParams *)sfile->asset_params;
+      return reinterpret_cast<FileSelectParams *>(sfile->asset_params);
   }
 
   BLI_assert_msg(0, "Invalid browse mode set in file space.");
@@ -431,7 +436,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 
   switch (eAssetLibraryType(library->type)) {
     case ASSET_LIBRARY_ESSENTIALS:
-      STRNCPY(base_params->dir, blender::asset_system::essentials_directory_path().c_str());
+      STRNCPY(base_params->dir, asset_system::essentials_directory_path().c_str());
       base_params->type = FILE_ASSET_LIBRARY;
       break;
     case ASSET_LIBRARY_ALL:
@@ -471,7 +476,7 @@ bool ED_fileselect_is_asset_browser(const SpaceFile *sfile)
   return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);
 }
 
-blender::asset_system::AssetLibrary *ED_fileselect_active_asset_library_get(const SpaceFile *sfile)
+asset_system::AssetLibrary *ED_fileselect_active_asset_library_get(const SpaceFile *sfile)
 {
   if (!ED_fileselect_is_asset_browser(sfile) || !sfile->files) {
     return nullptr;
@@ -551,7 +556,7 @@ int ED_fileselect_asset_import_method_get(const SpaceFile *sfile, const FileDirE
 
 static void on_reload_activate_by_id(SpaceFile *sfile, onReloadFnData custom_data)
 {
-  ID *asset_id = (ID *)custom_data;
+  ID *asset_id = static_cast<ID *>(custom_data);
   ED_fileselect_activate_by_id(sfile, asset_id, false);
 }
 
@@ -603,7 +608,8 @@ void ED_fileselect_activate_by_relpath(SpaceFile *sfile, const char *relative_pa
   if (files == nullptr || filelist_pending(files) || filelist_needs_force_reset(files)) {
     /* Casting away the constness of `relative_path` is safe here, because eventually it just ends
      * up in another call to this function, and then it's a const char* again. */
-    file_on_reload_callback_register(sfile, on_reload_select_by_relpath, (char *)relative_path);
+    file_on_reload_callback_register(
+        sfile, on_reload_select_by_relpath, const_cast<char *>(relative_path));
     return;
   }
 
@@ -637,7 +643,7 @@ void ED_fileselect_window_params_get(const wmWindow *win, int r_win_size[2], boo
   /* Get DPI/pixel-size independent size to be stored in preferences. */
   WM_window_dpi_set_userdef(win); /* Ensure the DPI is taken from the right window. */
 
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
   r_win_size[0] = win_size[0] / UI_SCALE_FAC;
   r_win_size[1] = win_size[1] / UI_SCALE_FAC;
 
@@ -924,7 +930,7 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
   float mx, my;
   int offset_tile;
 
-  UI_view2d_region_to_view(v2d, x, v2d->mask.ymax - layout->offset_top - 1, &mx, &my);
+  ui::view2d_region_to_view(v2d, x, v2d->mask.ymax - layout->offset_top - 1, &mx, &my);
   offset_tile = ED_fileselect_layout_offset(
       layout, int(v2d->tot.xmin + mx), int(v2d->tot.ymax - my));
   if (offset_tile > -1) {
@@ -958,15 +964,15 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 
 float file_string_width(const char *str)
 {
-  const uiStyle *style = UI_style_get();
-  UI_fontstyle_set(&style->widget);
+  const uiStyle *style = ui::style_get();
+  ui::fontstyle_set(&style->widget);
   return BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
 float file_font_pointsize()
 {
-  const uiStyle *style = UI_style_get();
-  return UI_fontstyle_height_max(&style->widget);
+  const uiStyle *style = ui::style_get();
+  return ui::fontstyle_height_max(&style->widget);
 }
 
 static void file_attribute_columns_widths(const FileSelectParams *params, FileLayout *layout)
@@ -1017,16 +1023,16 @@ static void file_attribute_columns_init(const FileSelectParams *params, FileLayo
 
   layout->attribute_columns[COLUMN_NAME].name = N_("Name");
   layout->attribute_columns[COLUMN_NAME].sort_type = FILE_SORT_ALPHA;
-  layout->attribute_columns[COLUMN_NAME].text_align = UI_STYLE_TEXT_LEFT;
+  layout->attribute_columns[COLUMN_NAME].text_align = ui::UI_STYLE_TEXT_LEFT;
 
   const bool compact = FILE_LAYOUT_COMPACT(layout);
   layout->attribute_columns[COLUMN_DATETIME].name = compact ? N_("Date") : N_("Date Modified");
 
   layout->attribute_columns[COLUMN_DATETIME].sort_type = FILE_SORT_TIME;
-  layout->attribute_columns[COLUMN_DATETIME].text_align = UI_STYLE_TEXT_LEFT;
+  layout->attribute_columns[COLUMN_DATETIME].text_align = ui::UI_STYLE_TEXT_LEFT;
   layout->attribute_columns[COLUMN_SIZE].name = N_("Size");
   layout->attribute_columns[COLUMN_SIZE].sort_type = FILE_SORT_SIZE;
-  layout->attribute_columns[COLUMN_SIZE].text_align = UI_STYLE_TEXT_RIGHT;
+  layout->attribute_columns[COLUMN_SIZE].text_align = ui::UI_STYLE_TEXT_RIGHT;
 }
 
 void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
@@ -1053,7 +1059,7 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   if (params->display == FILE_IMGDISPLAY) {
     /* More compact spacing for asset browser. */
     const float pad_fac = ED_fileselect_is_asset_browser(sfile) ? 0.15f : 0.3f;
-    /* Matches UI_preview_tile_size_x()/_y() by default. */
+    /* Matches preview_tile_size_x()/_y() by default. */
     layout->prv_w = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_X;
     layout->prv_h = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_Y;
     layout->tile_border_x = pad_fac * UI_UNIT_X;
@@ -1239,7 +1245,7 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
     dir = opendir(dirname);
 
     if (dir) {
-      AutoComplete *autocpl = UI_autocomplete_begin(str, FILE_MAX);
+      ui::AutoComplete *autocpl = ui::autocomplete_begin(str, FILE_MAX);
 
       while ((de = readdir(dir)) != nullptr) {
         if (FILENAME_IS_CURRPAR(de->d_name)) {
@@ -1253,14 +1259,14 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
 
           if (BLI_stat(dirpath, &status) == 0) {
             if (S_ISDIR(status.st_mode)) { /* is subdir */
-              UI_autocomplete_update_name(autocpl, dirpath);
+              autocomplete_update_name(autocpl, dirpath);
             }
           }
         }
       }
       closedir(dir);
 
-      match = UI_autocomplete_end(autocpl, str);
+      match = autocomplete_end(autocpl, str);
       if (match == AUTOCOMPLETE_FULL_MATCH) {
         BLI_path_slash_ensure(str, FILE_MAX);
       }
@@ -1277,14 +1283,14 @@ int autocomplete_file(bContext *C, char *str, void * /*arg_v*/)
 
   /* search if str matches the beginning of name */
   if (str[0] && sfile->files) {
-    AutoComplete *autocpl = UI_autocomplete_begin(str, FILE_MAX);
+    ui::AutoComplete *autocpl = ui::autocomplete_begin(str, FILE_MAX);
     int nentries = filelist_files_ensure(sfile->files);
 
     for (int i = 0; i < nentries; i++) {
       const char *relpath = filelist_entry_get_relpath(sfile->files, i);
-      UI_autocomplete_update_name(autocpl, relpath);
+      autocomplete_update_name(autocpl, relpath);
     }
-    match = UI_autocomplete_end(autocpl, str);
+    match = autocomplete_end(autocpl, str);
   }
 
   return match;
@@ -1488,11 +1494,11 @@ void ED_fileselect_ensure_default_filepath(bContext *C, wmOperator *op, const ch
   }
 }
 
-blender::Vector<std::string> ED_fileselect_selected_files_full_paths(const SpaceFile *sfile)
+Vector<std::string> ED_fileselect_selected_files_full_paths(const SpaceFile *sfile)
 {
-  blender::Vector<std::string> paths;
+  Vector<std::string> paths;
   char path[FILE_MAX_LIBEXTRA];
-  for (const int i : blender::IndexRange(filelist_files_ensure(sfile->files))) {
+  for (const int i : IndexRange(filelist_files_ensure(sfile->files))) {
     if (filelist_entry_is_selected(sfile->files, i)) {
       const FileDirEntry *entry = filelist_file(sfile->files, i);
       filelist_file_get_full_path(sfile->files, entry, path);
@@ -1501,3 +1507,5 @@ blender::Vector<std::string> ED_fileselect_selected_files_full_paths(const Space
   }
   return paths;
 }
+
+}  // namespace blender

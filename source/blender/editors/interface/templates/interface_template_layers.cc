@@ -16,20 +16,20 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 {
-  uiBut *but = static_cast<uiBut *>(arg1);
+  Button *but = static_cast<Button *>(arg1);
   const int cur = POINTER_AS_INT(arg2);
   wmWindow *win = CTX_wm_window(C);
-  const bool shift = win->eventstate->modifier & KM_SHIFT;
+  const bool shift = win->runtime->eventstate->modifier & KM_SHIFT;
 
   if (!shift) {
     const int tot = RNA_property_array_length(&but->rnapoin, but->rnaprop);
 
     BLI_assert(cur < tot);
-    blender::Array<bool, RNA_STACK_ARRAY> value_array(tot);
+    Array<bool, RNA_STACK_ARRAY> value_array(tot);
     value_array.fill(false);
     value_array[cur] = true;
 
@@ -41,12 +41,12 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
   /* see `view3d_header.cc` */
 }
 
-void uiTemplateLayers(blender::ui::Layout *layout,
-                      PointerRNA *ptr,
-                      const StringRefNull propname,
-                      PointerRNA *used_ptr,
-                      const char *used_propname,
-                      int active_layer)
+void template_layers(Layout *layout,
+                     PointerRNA *ptr,
+                     const StringRefNull propname,
+                     PointerRNA *used_ptr,
+                     const char *used_propname,
+                     int active_layer)
 {
   const int cols_per_group = 5;
 
@@ -85,11 +85,11 @@ void uiTemplateLayers(blender::ui::Layout *layout,
   /* layers are laid out going across rows, with the columns being divided into groups */
 
   for (int group = 0; group < groups; group++) {
-    blender::ui::Layout &uCol = layout->column(true);
+    Layout &uCol = layout->column(true);
 
     for (int row = 0; row < 2; row++) {
-      blender::ui::Layout &uRow = uCol.row(true);
-      uiBlock *block = uRow.block();
+      Layout &uRow = uCol.row(true);
+      Block *block = uRow.block();
       int layer = groups * cols_per_group * row + cols_per_group * group;
 
       /* add layers as toggle buts */
@@ -104,11 +104,13 @@ void uiTemplateLayers(blender::ui::Layout *layout,
           icon = ICON_LAYER_USED;
         }
 
-        uiBut *but = uiDefAutoButR(
+        Button *but = uiDefAutoButR(
             block, ptr, prop, layer, "", icon, 0, 0, UI_UNIT_X / 2, UI_UNIT_Y / 2);
-        UI_but_func_set(but, handle_layer_buttons, but, POINTER_FROM_INT(layer));
-        but->type = ButType::Toggle;
+        button_func_set(but, handle_layer_buttons, but, POINTER_FROM_INT(layer));
+        but->type = ButtonType::Toggle;
       }
     }
   }
 }
+
+}  // namespace blender::ui

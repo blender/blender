@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /* internal exports only */
 
 struct ARegion;
@@ -67,3 +69,5 @@ enum {
   DEL_NEXT_SEL,
   DEL_PREV_SEL
 };
+
+}  // namespace blender

@@ -115,6 +115,32 @@ using blender::float2x4;
 using blender::float3x4;
 using blender::float4x4;
 
+/**
+ * Wrapper type for members of unions in host shared structure.
+ * Passthrough implementation when compiled with host code.
+ * See gpu_shader_compat_cxx.hh for the C++ stub implementation.
+ * This implementation needs to have the correct base type and can safely cast to it.
+ */
+template<typename T> struct union_t {
+  T data;
+
+  const T &operator()() const
+  {
+    return *reinterpret_cast<const T *>(this);
+  }
+
+  T &operator()()
+  {
+    return *reinterpret_cast<T *>(this);
+  }
+};
+
+/* Mute the following attributes. Avoid warning about unknown attribute.
+ * These are parsed by our shader translation tool. */
+
+/* To be used on struct. Means the layout is to be used with uniform or storage buffers. */
+#    define host_shared
+
 #  endif
 
 /* For assert support. */

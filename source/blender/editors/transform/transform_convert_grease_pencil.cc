@@ -46,7 +46,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
   /* Count the number layers in all objects. */
   for (const int i : trans_data_contrainers.index_range()) {
     TransDataContainer &tc = trans_data_contrainers[i];
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(tc.obedit->data);
 
     CurvesTransformData *curves_transform_data = curves::create_curves_transform_custom_data(
         tc.custom.type);
@@ -181,7 +181,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       continue;
     }
     Object *object_eval = DEG_get_evaluated(depsgraph, tc.obedit);
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(tc.obedit->data);
     Span<const bke::greasepencil::Layer *> layers = grease_pencil.layers();
 
     CurvesTransformData &transform_data = *static_cast<CurvesTransformData *>(tc.custom.type.data);
@@ -245,7 +245,7 @@ static void recalcData_grease_pencil(TransInfo *t)
 
   const Span<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   for (const TransDataContainer &tc : trans_data_contrainers) {
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(tc.obedit->data);
     const CurvesTransformData &transform_data = *static_cast<CurvesTransformData *>(
         tc.custom.type.data);
 

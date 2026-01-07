@@ -13,7 +13,9 @@
 
 #include <cmath>
 
-static blender::bke::bNodeSocketTemplate inputs[] = {
+namespace blender {
+
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Bricks 1"), 0.596f, 0.282f, 0.0f, 1.0f},
     {SOCK_RGBA, N_("Bricks 2"), 0.632f, 0.504f, 0.05f, 1.0f},
     {SOCK_RGBA, N_("Mortar"), 0.0f, 0.0f, 0.0f, 1.0f},
@@ -23,7 +25,7 @@ static blender::bke::bNodeSocketTemplate inputs[] = {
     {SOCK_FLOAT, N_("Row Height"), 0.25f, 0.0f, 0.0f, 0.0f, 0.001f, 99.0f, PROP_UNSIGNED},
     {-1, ""},
 };
-static blender::bke::bNodeSocketTemplate outputs[] = {
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
 };
@@ -105,17 +107,19 @@ static void exec(void *data,
 
 void register_node_type_tex_bricks()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeBricks", TEX_NODE_BRICKS);
   ntype.ui_name = "Bricks";
   ntype.enum_name_legacy = "BRICKS";
   ntype.nclass = NODE_CLASS_PATTERN;
-  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_socket_templates(&ntype, inputs, outputs);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = init;
   ntype.exec_fn = exec;
   ntype.flag |= NODE_PREVIEW;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

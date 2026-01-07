@@ -23,6 +23,8 @@
 /* own includes */
 #include "zbuf.h"
 
+namespace blender {
+
 /* could enable at some point but for now there are far too many conversions */
 #ifdef __GNUC__
 #  pragma GCC diagnostic ignored "-Wdouble-promotion"
@@ -237,3 +239,5 @@ void zspan_scanconvert(ZSpan *zspan,
     }
   }
 }
+
+}  // namespace blender

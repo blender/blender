@@ -11,17 +11,20 @@
 #include "RNA_types.hh"
 
 #ifdef __cplusplus
+
+namespace blender {
+
 class AttributeOwner;
 #endif
 
 struct PointerRNA;
 struct PropertyRNA;
 struct bContext;
-namespace blender::bke {
+namespace bke {
 struct bNodeTreeType;
 struct bNodeSocketType;
 struct RuntimeNodeEnumItems;
-}  // namespace blender::bke
+}  // namespace bke
 
 /* Types */
 #define DEF_ENUM(id) extern const EnumPropertyItem id[];
@@ -49,14 +52,15 @@ extern const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[];
 
 /* API calls */
 int rna_node_tree_idname_to_enum(const char *idname);
-blender::bke::bNodeTreeType *rna_node_tree_type_from_enum(int value);
-const EnumPropertyItem *rna_node_tree_type_itemf(
-    void *data, bool (*poll)(void *data, blender::bke::bNodeTreeType *), bool *r_free);
+bke::bNodeTreeType *rna_node_tree_type_from_enum(int value);
+const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
+                                                 bool (*poll)(void *data, bke::bNodeTreeType *),
+                                                 bool *r_free);
 
 int rna_node_socket_idname_to_enum(const char *idname);
-blender::bke::bNodeSocketType *rna_node_socket_type_from_enum(int value);
+bke::bNodeSocketType *rna_node_socket_type_from_enum(int value);
 const EnumPropertyItem *rna_node_socket_type_itemf(
-    void *data, bool (*poll)(void *data, blender::bke::bNodeSocketType *), bool *r_free);
+    void *data, bool (*poll)(void *data, bke::bNodeSocketType *), bool *r_free);
 
 const EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C,
                                                        PointerRNA *ptr,
@@ -125,5 +129,7 @@ const EnumPropertyItem *RNA_mask_local_itemf(bContext *C,
 /* Non confirming, utility function. */
 const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(bContext *C, bool *r_free);
 
-const EnumPropertyItem *RNA_node_enum_definition_itemf(
-    const blender::bke::RuntimeNodeEnumItems &enum_items, bool *r_free);
+const EnumPropertyItem *RNA_node_enum_definition_itemf(const bke::RuntimeNodeEnumItems &enum_items,
+                                                       bool *r_free);
+
+}  // namespace blender

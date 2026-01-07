@@ -185,7 +185,7 @@ static void set_vert_data_from_orco(Subdiv *subdiv, const Mesh *mesh)
       CustomData_get_layer(&mesh->vert_data, CD_CLOTH_ORCO));
 
   if (orco || cloth_orco) {
-    blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
+    opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
     OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
     const int num_verts = topology_refiner->base_level().GetNumVertices();
 

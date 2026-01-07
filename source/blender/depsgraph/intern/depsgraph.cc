@@ -35,9 +35,9 @@
 #include "intern/node/deg_node_operation.hh"
 #include "intern/node/deg_node_time.hh"
 
-namespace deg = blender::deg;
+namespace blender {
 
-namespace blender::deg {
+namespace deg {
 
 Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(nullptr),
@@ -58,6 +58,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       is_evaluating(false),
       is_render_pipeline_depsgraph(false),
       use_editors_update(false),
+      physics_relations_effector(nullptr),
       update_count(0),
       sync_writeback(DEG_EVALUATE_SYNC_WRITEBACK_NO)
 {
@@ -65,7 +66,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
   memset(id_type_updated, 0, sizeof(id_type_updated));
   memset(id_type_updated_backup, 0, sizeof(id_type_updated_backup));
   memset(id_type_exist, 0, sizeof(id_type_exist));
-  memset(physics_relations, 0, sizeof(physics_relations));
+  memset(physics_relations_collision, 0, sizeof(physics_relations_collision));
 
   add_time_source();
 }
@@ -83,7 +84,7 @@ TimeSourceNode *Depsgraph::add_time_source()
 {
   if (time_source == nullptr) {
     DepsNodeFactory *factory = type_get_factory(NodeType::TIMESOURCE);
-    time_source = (TimeSourceNode *)factory->create_node(nullptr, "", "Time Source");
+    time_source = static_cast<TimeSourceNode *>(factory->create_node(nullptr, "", "Time Source"));
   }
   return time_source;
 }
@@ -109,7 +110,7 @@ IDNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
   IDNode *id_node = find_id_node(id);
   if (!id_node) {
     DepsNodeFactory *factory = type_get_factory(NodeType::ID_REF);
-    id_node = (IDNode *)factory->create_node(id, "", id->name);
+    id_node = static_cast<IDNode *>(factory->create_node(id, "", id->name));
     id_node->init_copy_on_write(id_cow_hint);
     /* Register node in ID hash.
      *
@@ -265,12 +266,12 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
        *   object data). */
       // BLI_assert_msg(0, "Request for non-existing copy-on-evaluation ID");
     }
-    return (ID *)id_orig;
+    return const_cast<ID *>(id_orig);
   }
   return id_node->id_cow;
 }
 
-}  // namespace blender::deg
+}  // namespace deg
 
 /* **************** */
 /* Public Graph API */
@@ -357,3 +358,5 @@ uint64_t DEG_get_update_count(const Depsgraph *depsgraph)
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(depsgraph);
   return deg_graph->update_count;
 }
+
+}  // namespace blender

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2026-01-05 11:52+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5211,6 +5211,22 @@ msgid "Collection"
 msgstr "Samling"
 
 
+msgid "Font"
+msgstr "Typsnitt"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Mask"
+msgstr "Mask"
+
+
+msgid "Sound"
+msgstr "Ljud"
+
+
 msgid "Exclusive"
 msgstr "Exklusiv"
 
@@ -6255,10 +6271,6 @@ msgstr "Redigera format"
 
 msgid "Text on Curve"
 msgstr "Text på kurva"
-
-
-msgid "Font"
-msgstr "Typsnitt"
 
 
 msgid "X Offset"
@@ -7348,10 +7360,6 @@ msgstr "Cachning"
 msgctxt "Sound"
 msgid "Mute"
 msgstr "Tyst"
-
-
-msgid "Sound"
-msgstr "Ljud"
 
 
 msgid "Minimum Volume"
@@ -9331,80 +9339,24 @@ msgid "Use Material Mask"
 msgstr "Använd materialmask"
 
 
-msgid "Mask"
-msgstr "Mask"
-
-
-msgid "Apply"
-msgstr "Applicera"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
 msgid "Show/Hide"
 msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Convert"
-msgstr "Konvertera"
-
-
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
-
-
-msgid "Propagate"
-msgstr "Propagera"
 
 
 msgid "Names"
 msgstr "Namn"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Adjust"
-msgstr "Justera"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
+msgid "Math"
+msgstr "Matematik"
 
 
 msgid "Utilities"
 msgstr "Verktyg"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
+msgid "Clean Up"
+msgstr "Städa upp"
 
 
 msgid "Pivot Point"
@@ -9427,6 +9379,14 @@ msgid "Primitives"
 msgstr "Primitiver"
 
 
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
 msgid "Mirror"
 msgstr "Spegla"
 
@@ -9443,6 +9403,10 @@ msgid "Navigation"
 msgstr "Navigering"
 
 
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
 msgid "Align View"
 msgstr "Justera vy"
 
@@ -9455,24 +9419,16 @@ msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
 
-msgid "Instances"
-msgstr "Instanser"
-
-
-msgid "Import"
-msgstr "Importera"
-
-
-msgid "Deprecated"
-msgstr "Föråldrad"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Tilldela material"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Metaboll"
 
 
 msgid "Light"
@@ -9493,6 +9449,50 @@ msgstr "Relationer"
 
 msgid "Rigid Body"
 msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Propagate"
+msgstr "Propagera"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
 
 
 msgid "Animals"
@@ -9528,8 +9528,8 @@ msgid "Console"
 msgstr "Konsol"
 
 
-msgid "Languages..."
-msgstr "Språk..."
+msgid "Languages"
+msgstr "Språk"
 
 
 msgid "Add Attribute"
@@ -13701,11 +13701,6 @@ msgstr "Generera systeminformation, sparat till en textfil"
 
 
 msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Spara systeminfo"
-
-
-msgctxt "Operator"
 msgid "Toolbar"
 msgstr "Verktygsrad"
 
@@ -15691,15 +15686,6 @@ msgstr "Ställ in standardfärgattribut som används för rendering"
 
 msgid "Name of color attribute"
 msgstr "Namn på färgattribut"
-
-
-msgctxt "Operator"
-msgid "Run Node Group"
-msgstr "Kör nodgrupp"
-
-
-msgid "Execute a node group on geometry"
-msgstr "Kör en nodgrupp på geometri"
 
 
 msgid "Arrow"
@@ -21385,10 +21371,6 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -21415,6 +21397,10 @@ msgstr "Mätning"
 
 msgid "Stroke Placement"
 msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Import Settings"
@@ -23024,10 +23010,6 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Kinesiska (traditionell) - 繁體中文"
 
 
-msgid "Croatian - Hrvatski"
-msgstr "Kroatiska - Hrvatski"
-
-
 msgid "Czech - Čeština"
 msgstr "Tjeckiska - Čeština"
 
@@ -23072,10 +23054,6 @@ msgid "Greek - Ελληνικά"
 msgstr "Grekiska - Ελληνικά"
 
 
-msgid "Hausa - Hausa"
-msgstr "Hausa - Hausa"
-
-
 msgid "Hebrew - תירִבְעִ"
 msgstr "Hebreiska - תירִבְעִ"
 
@@ -23100,10 +23078,6 @@ msgid "Japanese - 日本語"
 msgstr "Japanska - 日本語"
 
 
-msgid "Khmer - ខ្មែរ"
-msgstr "Khmer - ខ្មែរ"
-
-
 msgid "Korean - 한국어"
 msgstr "Koreanska - 한국어"
 
@@ -23118,10 +23092,6 @@ msgstr "Litauiska - Lietuviškai"
 
 msgid "Malayalam - മലയാളം"
 msgstr "Malayalam - മലയാളം"
-
-
-msgid "Nepali - नेपाली"
-msgstr "Nepali - नेपाली"
 
 
 msgid "Persian - ﯽﺳﺭﺎﻓ"
@@ -23727,10 +23697,6 @@ msgstr "ISO-kod (t.ex. \"sv_SE\")"
 
 msgid "Active Language"
 msgstr "Aktivt språk"
-
-
-msgid "Languages"
-msgstr "Språk"
 
 
 msgid "Collection Name"
@@ -25547,6 +25513,16 @@ msgstr "Öka segment"
 
 
 msgctxt "WindowManager"
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgctxt "WindowManager"
+msgid "Precision"
+msgstr "Precision"
+
+
+msgctxt "WindowManager"
 msgid "Lock Angle"
 msgstr "Lås vinkel"
 
@@ -25584,11 +25560,6 @@ msgstr "Hoppa"
 msgctxt "WindowManager"
 msgid "Jump (Off)"
 msgstr "Hoppa (av)"
-
-
-msgctxt "WindowManager"
-msgid "Precision"
-msgstr "Precision"
 
 
 msgctxt "WindowManager"
@@ -25754,11 +25725,6 @@ msgstr "Börja"
 msgctxt "WindowManager"
 msgid "Move"
 msgstr "Flytta"
-
-
-msgctxt "WindowManager"
-msgid "Snap"
-msgstr "Snäpp"
 
 
 msgctxt "WindowManager"
@@ -26264,12 +26230,12 @@ msgid "Use Geometry Nodes"
 msgstr "Använd geometrinoder"
 
 
-msgid "Node {} deleted"
-msgstr "Noden {} togs bort"
-
-
 msgid "{} does not exist"
 msgstr "{} finns inte"
+
+
+msgid "Node {} deleted"
+msgstr "Noden {} togs bort"
 
 
 msgid "Deleted {} nodes"
@@ -27809,11 +27775,6 @@ msgstr "Efter aktuell bildruta"
 msgctxt "Operator"
 msgid "Extrapolation Mode"
 msgstr "Extrapoleringsläge"
-
-
-msgctxt "Operator"
-msgid "Move..."
-msgstr "Flytta..."
 
 
 msgctxt "Operator"
@@ -29406,11 +29367,6 @@ msgstr "Högtalare"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Gör lokal..."
-
-
-msgctxt "Operator"
 msgid "Change Shape"
 msgstr "Ändra form"
 
@@ -29652,16 +29608,6 @@ msgstr "Nästa block"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Armatur"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Referens"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Bakgrund"
 
 
 msgctxt "Operator"
@@ -30533,10 +30479,6 @@ msgid "worlds"
 msgstr "världar"
 
 
-msgid "insufficient content"
-msgstr "otillräckligt innehåll"
-
-
 msgid "unknown error reading file"
 msgstr "okänt fel vid läsning av fil"
 
@@ -30559,10 +30501,6 @@ msgstr "Går inte att öppna blend <memory>"
 
 msgid "Blend file '%s' created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0, use an older version of Blender to open and convert it."
 msgstr "Blend-filen '%s' skapades av en Big Endian-version av Blender, stöd för dessa filer kommer att tas bort i Blender 5.0. Använd en äldre version av Blender för att öppna och konvertera den."
-
-
-msgid "Unable to read '%s': %s"
-msgstr "Det går inte att läsa '%s': %s"
 
 
 msgid "Unable to open '%s': %s"
@@ -30603,10 +30541,6 @@ msgstr "Skapa"
 
 msgid "CombinedAction"
 msgstr "CombinedAction"
-
-
-msgid "Active action is not layered"
-msgstr "Aktiv åtgärd är inte uppdelad i lager"
 
 
 msgid "<invalid>"
@@ -30782,11 +30716,6 @@ msgstr "Sök"
 
 msgid "%s: %s"
 msgstr "%s: %s"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Ändra genväg"
 
 
 msgctxt "Operator"
@@ -31935,10 +31864,6 @@ msgstr "Videor"
 
 msgid "OneDrive"
 msgstr "OneDrive"
-
-
-msgid "Movies"
-msgstr "Filmer"
 
 
 msgid "Interpolation:"
@@ -34407,26 +34332,6 @@ msgstr "filer"
 
 msgid "microphone"
 msgstr "mikrofon"
-
-
-msgid "Estonian - Eesti keel"
-msgstr "Estniska - Eesti keel"
-
-
-msgid "Amharic - አማርኛ"
-msgstr "Amhariska - አማርኛ"
-
-
-msgid "Uzbek (Latin) - Oʻzbek"
-msgstr "Uzbekiska (latin) - Oʻzbek"
-
-
-msgid "Uzbek (Cyrillic) - Ўзбек"
-msgstr "Uzbekisk (kyrilliska) - Ўзбек"
-
-
-msgid "Kazakh - Қазақша"
-msgstr "Kazakiska - Қазақша"
 
 
 msgid "Add & Subtract"

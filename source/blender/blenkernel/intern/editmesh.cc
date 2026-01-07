@@ -25,9 +25,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::Span;
+namespace blender {
 
 BMEditMesh *BKE_editmesh_create(BMesh *bm)
 {
@@ -61,7 +59,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 BMEditMesh *BKE_editmesh_from_object(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  return ((Mesh *)ob->data)->runtime->edit_mesh.get();
+  return (id_cast<Mesh *>(ob->data))->runtime->edit_mesh.get();
 }
 
 bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mesh_orig)
@@ -140,7 +138,7 @@ void BKE_editmesh_free_data(BMEditMesh *em)
 
 struct CageUserData {
   int totvert;
-  blender::MutableSpan<float3> positions_cage;
+  MutableSpan<float3> positions_cage;
   BLI_bitmap *visit_bitmap;
 };
 
@@ -162,7 +160,7 @@ Array<float3> BKE_editmesh_vert_coords_alloc(Depsgraph *depsgraph,
                                              Scene *scene,
                                              Object *ob)
 {
-  Mesh *cage = blender::bke::editbmesh_get_eval_cage(depsgraph, scene, ob, em, &CD_MASK_BAREMESH);
+  Mesh *cage = bke::editbmesh_get_eval_cage(depsgraph, scene, ob, em, &CD_MASK_BAREMESH);
   Array<float3> positions_cage(em->bm->totvert);
 
   /* When initializing cage verts, we only want the first cage coordinate for each vertex,
@@ -221,3 +219,5 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em)
 {
   BM_lnorspace_update(em->bm);
 }
+
+}  // namespace blender

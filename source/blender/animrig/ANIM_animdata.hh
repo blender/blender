@@ -13,6 +13,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct ID;
 struct Main;
 
@@ -20,7 +22,7 @@ struct AnimData;
 struct FCurve;
 struct bAction;
 
-namespace blender::animrig {
+namespace animrig {
 
 class Action;
 
@@ -79,4 +81,5 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
                                       StringRefNull rna_path,
                                       int array_index);
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

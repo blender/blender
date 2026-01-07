@@ -75,6 +75,8 @@
 
 #  include "creator_intern.h" /* Own include. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Build Defines
  * \{ */
@@ -105,8 +107,8 @@ struct BuildDefs {
 static void build_defs_init(BuildDefs *build_defs, bool force_all)
 {
   if (force_all) {
-    bool *var_end = (bool *)(build_defs + 1);
-    for (bool *var = (bool *)build_defs; var < var_end; var++) {
+    bool *var_end = reinterpret_cast<bool *>(build_defs + 1);
+    for (bool *var = reinterpret_cast<bool *>(build_defs); var < var_end; var++) {
       *var = true;
     }
     return;
@@ -934,7 +936,7 @@ static const char arg_handle_print_help_doc_win32[] =
     "Print this help text and exit (Windows only).";
 static int arg_handle_print_help(int /*argc*/, const char ** /*argv*/, void *data)
 {
-  bArgs *ba = (bArgs *)data;
+  bArgs *ba = static_cast<bArgs *>(data);
 
   print_help(ba, false);
 
@@ -1234,7 +1236,7 @@ static int arg_handle_log_show_backtrace_set(int /*argc*/, const char ** /*argv*
 {
   /* Ensure types don't become incompatible. */
   void (*fn)(FILE *fp) = BLI_system_backtrace;
-  CLG_backtrace_fn_set((void (*)(void *))fn);
+  CLG_backtrace_fn_set(reinterpret_cast<void (*)(void *)>(fn));
   return 0;
 }
 
@@ -2148,8 +2150,8 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 
     if (STREQ(engine_name, "help")) {
       printf("Blender Engine Listing:\n");
-      LISTBASE_FOREACH (RenderEngineType *, type, &R_engines) {
-        printf("\t%s\n", type->idname);
+      for (RenderEngineType &type : R_engines) {
+        printf("\t%s\n", type.idname);
       }
       WM_exit_ex(C, false, false);
       exit(0);
@@ -2571,7 +2573,7 @@ static int arg_handle_python_text_run(int argc, const char **argv, void *data)
 #  ifdef WITH_PYTHON
     Main *bmain = CTX_data_main(C);
     /* Make the path absolute because its needed for relative linked blends to be found. */
-    Text *text = (Text *)BKE_libblock_find_name(bmain, ID_TXT, argv[1]);
+    Text *text = reinterpret_cast<Text *>(BKE_libblock_find_name(bmain, ID_TXT, argv[1]));
     bool ok;
 
     if (text) {
@@ -2914,14 +2916,27 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   BLI_args_add(ba, "-v", "--version", CB(arg_handle_print_version), nullptr);
   BLI_args_add(ba, nullptr, "--log-list-categories", CB(arg_handle_list_clog_cats), nullptr);
 
-  BLI_args_add(ba, "-y", "--enable-autoexec", CB_EX(arg_handle_python_set, enable), (void *)true);
-  BLI_args_add(
-      ba, "-Y", "--disable-autoexec", CB_EX(arg_handle_python_set, disable), (void *)false);
+  BLI_args_add(ba,
+               "-y",
+               "--enable-autoexec",
+               CB_EX(arg_handle_python_set, enable),
+               reinterpret_cast<void *>(true));
+  BLI_args_add(ba,
+               "-Y",
+               "--disable-autoexec",
+               CB_EX(arg_handle_python_set, disable),
+               reinterpret_cast<void *>(false));
 
-  BLI_args_add(
-      ba, nullptr, "--offline-mode", CB_EX(arg_handle_internet_allow_set, offline), (void *)false);
-  BLI_args_add(
-      ba, nullptr, "--online-mode", CB_EX(arg_handle_internet_allow_set, online), (void *)true);
+  BLI_args_add(ba,
+               nullptr,
+               "--offline-mode",
+               CB_EX(arg_handle_internet_allow_set, offline),
+               reinterpret_cast<void *>(false));
+  BLI_args_add(ba,
+               nullptr,
+               "--online-mode",
+               CB_EX(arg_handle_internet_allow_set, online),
+               reinterpret_cast<void *>(true));
 
   BLI_args_add(
       ba, nullptr, "--disable-crash-handler", CB(arg_handle_crash_handler_disable), nullptr);
@@ -2960,47 +2975,50 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                  nullptr,
                  "--debug-freestyle",
                  CB_EX(arg_handle_debug_mode_generic_set, freestyle),
-                 (void *)G_DEBUG_FREESTYLE);
+                 reinterpret_cast<void *>(G_DEBUG_FREESTYLE));
   }
   BLI_args_add(ba,
                nullptr,
                "--debug-python",
                CB_EX(arg_handle_debug_mode_generic_set, python),
-               (void *)G_DEBUG_PYTHON);
+               reinterpret_cast<void *>(G_DEBUG_PYTHON));
   BLI_args_add(ba,
                nullptr,
                "--debug-events",
                CB_EX(arg_handle_debug_mode_generic_set, events),
-               (void *)G_DEBUG_EVENTS);
+               reinterpret_cast<void *>(G_DEBUG_EVENTS));
   BLI_args_add(ba,
                nullptr,
                "--debug-handlers",
                CB_EX(arg_handle_debug_mode_generic_set, handlers),
-               (void *)G_DEBUG_HANDLERS);
-  BLI_args_add(
-      ba, nullptr, "--debug-wm", CB_EX(arg_handle_debug_mode_generic_set, wm), (void *)G_DEBUG_WM);
+               reinterpret_cast<void *>(G_DEBUG_HANDLERS));
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-wm",
+               CB_EX(arg_handle_debug_mode_generic_set, wm),
+               reinterpret_cast<void *>(G_DEBUG_WM));
   if (defs.with_xr_openxr) {
     BLI_args_add(ba,
                  nullptr,
                  "--debug-xr",
                  CB_EX(arg_handle_debug_mode_generic_set, xr),
-                 (void *)G_DEBUG_XR);
+                 reinterpret_cast<void *>(G_DEBUG_XR));
     BLI_args_add(ba,
                  nullptr,
                  "--debug-xr-time",
                  CB_EX(arg_handle_debug_mode_generic_set, xr_time),
-                 (void *)G_DEBUG_XR_TIME);
+                 reinterpret_cast<void *>(G_DEBUG_XR_TIME));
   }
   BLI_args_add(ba,
                nullptr,
                "--debug-ghost",
                CB_EX(arg_handle_debug_mode_generic_set, ghost),
-               (void *)G_DEBUG_GHOST);
+               reinterpret_cast<void *>(G_DEBUG_GHOST));
   BLI_args_add(ba,
                nullptr,
                "--debug-wintab",
                CB_EX(arg_handle_debug_mode_generic_set, wintab),
-               (void *)G_DEBUG_WINTAB);
+               reinterpret_cast<void *>(G_DEBUG_WINTAB));
   BLI_args_add(ba, nullptr, "--debug-all", CB(arg_handle_debug_mode_all), nullptr);
 
   BLI_args_add(ba, nullptr, "--debug-io", CB(arg_handle_debug_mode_io), nullptr);
@@ -3020,7 +3038,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                nullptr,
                "--debug-jobs",
                CB_EX(arg_handle_debug_mode_generic_set, jobs),
-               (void *)G_DEBUG_JOBS);
+               reinterpret_cast<void *>(G_DEBUG_JOBS));
   BLI_args_add(ba, nullptr, "--debug-gpu", CB(arg_handle_debug_gpu_set), nullptr);
   BLI_args_add(ba,
                nullptr,
@@ -3048,54 +3066,54 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                nullptr,
                "--debug-depsgraph",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph),
-               (void *)G_DEBUG_DEPSGRAPH);
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-build",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_build),
-               (void *)G_DEBUG_DEPSGRAPH_BUILD);
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_BUILD));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-eval",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_eval),
-               (void *)G_DEBUG_DEPSGRAPH_EVAL);
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_EVAL));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-tag",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_tag),
-               (void *)G_DEBUG_DEPSGRAPH_TAG);
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_TAG));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-time",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_time),
-               (void *)G_DEBUG_DEPSGRAPH_TIME);
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_TIME));
   BLI_args_add(ba,
 
                nullptr,
                "--debug-depsgraph-no-threads",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_no_threads),
-               (void *)G_DEBUG_DEPSGRAPH_NO_THREADS);
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_NO_THREADS));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-pretty",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_pretty),
-               (void *)G_DEBUG_DEPSGRAPH_PRETTY);
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_PRETTY));
   BLI_args_add(ba,
                nullptr,
                "--debug-depsgraph-uid",
                CB_EX(arg_handle_debug_mode_generic_set, depsgraph_uid),
-               (void *)G_DEBUG_DEPSGRAPH_UID);
+               reinterpret_cast<void *>(G_DEBUG_DEPSGRAPH_UID));
   BLI_args_add(ba,
                nullptr,
                "--debug-gpu-force-workarounds",
                CB_EX(arg_handle_debug_mode_generic_set, gpu_force_workarounds),
-               (void *)G_DEBUG_GPU_FORCE_WORKAROUNDS);
+               reinterpret_cast<void *>(G_DEBUG_GPU_FORCE_WORKAROUNDS));
   if (defs.with_vulkan_backend) {
     BLI_args_add(ba,
                  nullptr,
                  "--debug-gpu-vulkan-local-read",
                  CB_EX(arg_handle_debug_mode_generic_set, gpu_force_vulkan_local_read),
-                 (void *)G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ);
+                 reinterpret_cast<void *>(G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ));
   }
   BLI_args_add(ba, nullptr, "--debug-exit-on-error", CB(arg_handle_debug_exit_on_error), nullptr);
 
@@ -3166,5 +3184,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
 }
 
 /** \} */
+
+}  // namespace blender
 
 #endif /* !WITH_PYTHON_MODULE */

@@ -13,6 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 struct GzipReader {
   FileReader reader;
 
@@ -26,7 +28,7 @@ struct GzipReader {
 
 static int64_t gzip_read(FileReader *reader, void *buffer, size_t size)
 {
-  GzipReader *gzip = (GzipReader *)reader;
+  GzipReader *gzip = reinterpret_cast<GzipReader *>(reader);
 
   gzip->strm.avail_out = size;
   gzip->strm.next_out = static_cast<Bytef *>(buffer);
@@ -61,7 +63,7 @@ static int64_t gzip_read(FileReader *reader, void *buffer, size_t size)
 
 static void gzip_close(FileReader *reader)
 {
-  GzipReader *gzip = (GzipReader *)reader;
+  GzipReader *gzip = reinterpret_cast<GzipReader *>(reader);
 
   if (inflateEnd(&gzip->strm) != Z_OK) {
     printf("close gzip stream error\n");
@@ -89,5 +91,7 @@ FileReader *BLI_filereader_new_gzip(FileReader *base)
   gzip->reader.seek = nullptr;
   gzip->reader.close = gzip_close;
 
-  return (FileReader *)gzip;
+  return reinterpret_cast<FileReader *>(gzip);
 }
+
+}  // namespace blender

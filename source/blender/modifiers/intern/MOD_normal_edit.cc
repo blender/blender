@@ -19,7 +19,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -39,15 +38,16 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void generate_vert_coordinates(Mesh *mesh,
                                       Object *ob,
                                       Object *ob_center,
                                       const float offset[3],
                                       const int verts_num,
                                       float (*r_cos)[3],
-                                      blender::float3 *r_size)
+                                      float3 *r_size)
 {
-  using namespace blender;
   float min_co[3], max_co[3];
   float diff[3];
   bool do_diff = false;
@@ -71,7 +71,7 @@ static void generate_vert_coordinates(Mesh *mesh,
 
       /* Not we are not interested in signs here - they are even troublesome actually,
        * due to security clamping! */
-      *r_size = blender::math::abs(blender::float3(ob_center->scale));
+      *r_size = math::abs(float3(ob_center->scale));
     }
     else {
       /* Set size. */
@@ -124,13 +124,13 @@ static void mix_normals(const float mix_factor,
                         const float mix_limit,
                         const short mix_mode,
                         const int verts_num,
-                        const blender::Span<int> corner_verts,
-                        blender::float3 *nos_old,
-                        blender::float3 *nos_new)
+                        const Span<int> corner_verts,
+                        float3 *nos_old,
+                        float3 *nos_new)
 {
   /* Mix with org normals... */
   float *facs = nullptr, *wfac;
-  blender::float3 *no_new, *no_old;
+  float3 *no_new, *no_old;
   int i;
 
   if (dvert) {
@@ -173,16 +173,13 @@ static void mix_normals(const float mix_factor,
 
 /* Check face normals and new loop normals are compatible, otherwise flip faces
  * (and invert matching face normals). */
-static void faces_check_flip(Mesh &mesh,
-                             blender::MutableSpan<blender::float3> nos,
-                             const blender::Span<blender::float3> face_normals)
+static void faces_check_flip(Mesh &mesh, MutableSpan<float3> nos, const Span<float3> face_normals)
 {
-  using namespace blender;
   const OffsetIndices faces = mesh.faces();
   IndexMaskMemory memory;
   const IndexMask faces_to_flip = IndexMask::from_predicate(
       faces.index_range(), GrainSize(1024), memory, [&](const int i) {
-        const blender::IndexRange face = faces[i];
+        const IndexRange face = faces[i];
         float norsum[3] = {0.0f};
 
         for (const int64_t j : face) {
@@ -207,27 +204,26 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          const ModifierEvalContext * /*ctx*/,
                                          Object *ob,
                                          Mesh *mesh,
-                                         blender::MutableSpan<blender::short2> clnors,
-                                         blender::MutableSpan<blender::float3> corner_normals,
+                                         MutableSpan<short2> clnors,
+                                         MutableSpan<float3> corner_normals,
                                          const short mix_mode,
                                          const float mix_factor,
                                          const float mix_limit,
                                          const MDeformVert *dvert,
                                          const int defgrp_index,
                                          const bool use_invert_vgroup,
-                                         blender::Span<blender::float3> vert_positions,
-                                         blender::MutableSpan<bool> sharp_edges,
-                                         blender::MutableSpan<int> corner_verts,
-                                         blender::MutableSpan<int> corner_edges,
-                                         const blender::OffsetIndices<int> faces)
+                                         Span<float3> vert_positions,
+                                         MutableSpan<bool> sharp_edges,
+                                         MutableSpan<int> corner_verts,
+                                         MutableSpan<int> corner_edges,
+                                         const OffsetIndices<int> faces)
 {
-  using namespace blender;
   Object *ob_target = enmd->target;
 
   const bool do_facenors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
 
   float (*cos)[3] = MEM_malloc_arrayN<float[3]>(size_t(vert_positions.size()), __func__);
-  blender::Array<blender::float3> nos(corner_verts.size());
+  Array<float3> nos(corner_verts.size());
   float3 size;
 
   BLI_bitmap *done_verts = BLI_BITMAP_NEW(size_t(vert_positions.size()), __func__);
@@ -332,27 +328,26 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               const ModifierEvalContext * /*ctx*/,
                                               Object *ob,
                                               Mesh *mesh,
-                                              blender::MutableSpan<blender::short2> clnors,
-                                              blender::MutableSpan<blender::float3> corner_normals,
+                                              MutableSpan<short2> clnors,
+                                              MutableSpan<float3> corner_normals,
                                               const short mix_mode,
                                               const float mix_factor,
                                               const float mix_limit,
                                               const MDeformVert *dvert,
                                               const int defgrp_index,
                                               const bool use_invert_vgroup,
-                                              const blender::Span<blender::float3> positions,
-                                              blender::MutableSpan<bool> sharp_edges,
-                                              blender::MutableSpan<int> corner_verts,
-                                              blender::MutableSpan<int> corner_edges,
-                                              const blender::OffsetIndices<int> faces)
+                                              const Span<float3> positions,
+                                              MutableSpan<bool> sharp_edges,
+                                              MutableSpan<int> corner_verts,
+                                              MutableSpan<int> corner_edges,
+                                              const OffsetIndices<int> faces)
 {
-  using namespace blender;
   Object *ob_target = enmd->target;
 
   const bool do_facenors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
   const bool use_parallel_normals = (enmd->flag & MOD_NORMALEDIT_USE_DIRECTION_PARALLEL) != 0;
 
-  blender::Array<blender::float3> nos(corner_verts.size());
+  Array<float3> nos(corner_verts.size());
 
   float target_co[3];
   int i;
@@ -445,7 +440,7 @@ static bool is_valid_target_with_error(const Object *ob, NormalEditModifierData 
   if (is_valid_target(enmd)) {
     return true;
   }
-  BKE_modifier_set_error(ob, (ModifierData *)enmd, "Invalid target settings");
+  BKE_modifier_set_error(ob, reinterpret_cast<ModifierData *>(enmd), "Invalid target settings");
   return false;
 }
 
@@ -454,7 +449,6 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                    Object *ob,
                                    Mesh *mesh)
 {
-  using namespace blender;
   const bool use_invert_vgroup = ((enmd->flag & MOD_NORMALEDIT_INVERT_VGROUP) != 0);
   const bool use_current_clnors = !((enmd->mix_mode == MOD_NORMALEDIT_MIX_COPY) &&
                                     (enmd->mix_factor == 1.0f) && (enmd->defgrp_name[0] == '\0') &&
@@ -466,25 +460,25 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   Mesh *result;
-  if (mesh->edges().data() == ((Mesh *)ob->data)->edges().data()) {
+  if (mesh->edges().data() == (id_cast<Mesh *>(ob->data))->edges().data()) {
     /* We need to duplicate data here, otherwise setting custom normals
      * (which may also affect sharp edges) could
      * modify original mesh, see #43671. */
-    result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
+    result = id_cast<Mesh *>(BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE));
   }
   else {
     result = mesh;
   }
 
-  const blender::Span<blender::float3> positions = result->vert_positions();
+  const Span<float3> positions = result->vert_positions();
   const OffsetIndices faces = result->faces();
-  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
+  MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   int defgrp_index;
   const MDeformVert *dvert;
 
-  blender::Array<blender::float3> corner_normals;
+  Array<float3> corner_normals;
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
@@ -498,17 +492,17 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   if (use_current_clnors) {
     corner_normals.reinitialize(corner_verts.size());
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
-    blender::bke::mesh::normals_calc_corners(positions,
-                                             faces,
-                                             corner_verts,
-                                             corner_edges,
-                                             result->vert_to_face_map(),
-                                             result->face_normals_true(),
-                                             sharp_edges.span,
-                                             sharp_faces,
-                                             custom_nors_dst.span,
-                                             nullptr,
-                                             corner_normals);
+    bke::mesh::normals_calc_corners(positions,
+                                    faces,
+                                    corner_verts,
+                                    corner_edges,
+                                    result->vert_to_face_map(),
+                                    result->face_normals_true(),
+                                    sharp_edges.span,
+                                    sharp_faces,
+                                    custom_nors_dst.span,
+                                    nullptr,
+                                    corner_normals);
   }
 
   MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
@@ -562,16 +556,13 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
 static void init_data(ModifierData *md)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(enmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(enmd, DNA_struct_default_get(NormalEditModifierData), modifier);
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(enmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (enmd->defgrp_name[0] != '\0') {
@@ -581,21 +572,21 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&enmd->target, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&enmd->target), IDWALK_CB_NOP);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
 
   return !is_valid_target(enmd);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  NormalEditModifierData *enmd = (NormalEditModifierData *)md;
+  NormalEditModifierData *enmd = reinterpret_cast<NormalEditModifierData *>(md);
   if (enmd->target) {
     DEG_add_object_relation(ctx->node, enmd->target, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "NormalEdit Modifier");
@@ -604,25 +595,26 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  return normalEditModifier_do((NormalEditModifierData *)md, ctx, ctx->object, mesh);
+  return normalEditModifier_do(
+      reinterpret_cast<NormalEditModifierData *>(md), ctx, ctx->object, mesh);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout.prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
   layout.prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  blender::ui::Layout &col = layout.column(false);
+  ui::Layout &col = layout.column(false);
   col.active_set(mode == MOD_NORMALEDIT_MODE_DIRECTIONAL);
   col.prop(ptr, "use_direction_parallel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -632,7 +624,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 /* This panel could be open by default, but it isn't currently. */
 static void mix_mode_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -644,7 +636,7 @@ static void mix_mode_panel_draw(const bContext * /*C*/, Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  blender::ui::Layout &row = layout.row(true);
+  ui::Layout &row = layout.row(true);
   row.prop(ptr, "mix_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row.prop(ptr,
            "no_polynors_fix",
@@ -655,7 +647,7 @@ static void mix_mode_panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void offset_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -717,3 +709,5 @@ ModifierTypeInfo modifierType_NormalEdit = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

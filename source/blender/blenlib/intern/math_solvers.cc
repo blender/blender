@@ -20,6 +20,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /********************************** Eigen Solvers *********************************/
 
 bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3],
@@ -33,13 +35,19 @@ bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3],
   }
 #endif
 
-  return EIG_self_adjoint_eigen_solve(
-      3, (const float *)m3, r_eigen_values, (float *)r_eigen_vectors);
+  return EIG_self_adjoint_eigen_solve(3,
+                                      reinterpret_cast<const float *>(m3),
+                                      r_eigen_values,
+                                      reinterpret_cast<float *>(r_eigen_vectors));
 }
 
 void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3][3])
 {
-  EIG_svd_square_matrix(3, (const float *)m3, (float *)r_U, r_S, (float *)r_V);
+  EIG_svd_square_matrix(3,
+                        reinterpret_cast<const float *>(m3),
+                        reinterpret_cast<float *>(r_U),
+                        r_S,
+                        reinterpret_cast<float *>(r_V));
 }
 
 /***************************** Simple Solvers ************************************/
@@ -235,3 +243,5 @@ bool BLI_newton3d_solve(Newton3D_DeltaFunc func_delta,
   copy_v3_v3(result, x);
   return success;
 }
+
+}  // namespace blender

@@ -21,7 +21,7 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
  public:
   SpaceNodeAccessor(SpaceNode *snode) : snode(snode) {}
 
-  ::Image *get_image(Main *bmain) override
+  blender::Image *get_image(Main *bmain) override
   {
     return BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   }
@@ -31,12 +31,12 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
     return nullptr;
   }
 
-  ImBuf *acquire_image_buffer(::Image *image, void **lock) override
+  ImBuf *acquire_image_buffer(blender::Image *image, void **lock) override
   {
     return BKE_image_acquire_ibuf(image, nullptr, lock);
   }
 
-  void release_buffer(::Image *image, ImBuf *ibuf, void *lock) override
+  void release_buffer(blender::Image *image, ImBuf *ibuf, void *lock) override
   {
     BKE_image_release_ibuf(image, ibuf, lock);
   }

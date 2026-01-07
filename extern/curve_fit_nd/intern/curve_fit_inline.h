@@ -225,7 +225,7 @@ MINLINE double len_vn(
 	return sqrt(len_squared_vn(v0, dims));
 }
 
-/* special case, save us negating a copy, then getting the length */
+/* Special case: save us negating a copy, then getting the length. */
 MINLINE double len_squared_negated_vnvn(
         const double v0[], const double v1[], const uint dims)
 {
@@ -252,7 +252,7 @@ MINLINE double normalize_vn(
 	return d;
 }
 
-/* v_out = (v0 - v1).normalized() */
+/* `v_out = (v0 - v1).normalized()`. */
 MINLINE double normalize_vn_vnvn(
         double v_out[],
         const double v0[], const double v1[], const uint dims)

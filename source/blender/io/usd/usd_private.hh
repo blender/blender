@@ -13,12 +13,14 @@
 
 #include "usd.hh"
 
+namespace blender {
+
 struct Depsgraph;
 struct Image;
 struct ImageUser;
 struct Scene;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
                                     Depsgraph *depsgraph,
@@ -47,4 +49,6 @@ struct WorldToDomeLight {
 
 void world_material_to_dome_light(const Scene *scene, WorldToDomeLight &res);
 
-};  // namespace blender::io::usd
+};  // namespace io::usd
+
+}  // namespace blender

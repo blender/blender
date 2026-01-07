@@ -12,6 +12,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+namespace blender {
+
 struct GPUOffScreen;
 struct GPUViewport;
 
@@ -26,3 +28,5 @@ struct BPyGPUOffScreen {
 };
 
 [[nodiscard]] PyObject *BPyGPUOffScreen_CreatePyObject(GPUOffScreen *ofs) ATTR_NONNULL(1);
+
+}  // namespace blender

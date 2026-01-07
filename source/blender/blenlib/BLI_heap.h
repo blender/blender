@@ -14,10 +14,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+namespace blender {
+
 struct Heap;
 struct HeapNode;
-typedef struct Heap Heap;
-typedef struct HeapNode HeapNode;
 
 typedef void (*HeapFreeFP)(void *ptr);
 
@@ -75,3 +75,5 @@ void *BLI_heap_node_ptr(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNU
  * Only for checking internal errors (gtest).
  */
 bool BLI_heap_is_valid(const Heap *heap);
+
+}  // namespace blender

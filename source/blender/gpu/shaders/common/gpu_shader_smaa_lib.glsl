@@ -635,13 +635,13 @@ float2 SMAACalculatePredicatedThreshold(float2 texcoord,
 /**
  * Conditional move:
  */
-void SMAAMovc(bool2 cond, inout float2 variable, float2 value)
+void SMAAMovc(bool2 cond, float2 &variable, float2 value)
 {
   /* Use select function (select(genType A, genType B, genBType cond)). */
   variable = select(variable, value, cond);
 }
 
-void SMAAMovc(bool4 cond, inout float4 variable, float4 value)
+void SMAAMovc(bool4 cond, float4 &variable, float4 value)
 {
   /* Use select function (select(genType A, genType B, genBType cond)). */
   variable = select(variable, value, cond);
@@ -664,7 +664,7 @@ void SMAAEdgeDetectionVS(float2 texcoord, float4 (&offset)[3])
 /**
  * Blend Weight Calculation Vertex Shader
  */
-void SMAABlendingWeightCalculationVS(float2 texcoord, out float2 pixcoord, float4 (&offset)[3])
+void SMAABlendingWeightCalculationVS(float2 texcoord, float2 &pixcoord, float4 (&offset)[3])
 {
   pixcoord = texcoord * SMAA_RT_METRICS.zw;
 
@@ -681,7 +681,7 @@ void SMAABlendingWeightCalculationVS(float2 texcoord, out float2 pixcoord, float
 /**
  * Neighborhood Blending Vertex Shader
  */
-void SMAANeighborhoodBlendingVS(float2 texcoord, out float4 offset)
+void SMAANeighborhoodBlendingVS(float2 texcoord, float4 &offset)
 {
   offset = mad(SMAA_RT_METRICS.xyxy, float4(1.0f, 0.0f, 0.0f, 1.0f), texcoord.xyxy);
 }
@@ -902,7 +902,7 @@ float4 SMAADecodeDiagBilinearAccess(float4 e)
 /**
  * These functions allows to perform diagonal pattern searches.
  */
-float2 SMAASearchDiag1(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e)
+float2 SMAASearchDiag1(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, float2 &e)
 {
   float4 coord = float4(texcoord, -1.0f, 1.0f);
   float3 t = float3(SMAA_RT_METRICS.xy, 1.0f);
@@ -914,7 +914,7 @@ float2 SMAASearchDiag1(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out
   return coord.zw;
 }
 
-float2 SMAASearchDiag2(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e)
+float2 SMAASearchDiag2(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, float2 &e)
 {
   float4 coord = float4(texcoord, -1.0f, 1.0f);
   coord.x += 0.25f * SMAA_RT_METRICS.x;  // See @SearchDiag2Optimization
@@ -976,8 +976,9 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
     d.xz = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0f, 1.0f), end);
     d.x += float(end.y > 0.9f);
   }
-  else
+  else {
     d.xz = float2(0.0f, 0.0f);
+  }
   d.yw = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(1.0f, -1.0f), end);
 
   SMAA_BRANCH
@@ -1014,8 +1015,9 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
     d.yw = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(1.0f, 1.0f), end);
     d.y += float(end.y > 0.9f);
   }
-  else
+  else {
     d.yw = float2(0.0f, 0.0f);
+  }
 
   SMAA_BRANCH
   if (d.x + d.y > 2.0f) {  // d.x + d.y + 1 > 3
@@ -1181,7 +1183,7 @@ float2 SMAAArea(SMAATexture2D(areaTex), float2 dist, float e1, float e2, float o
  * Corner Detection Functions */
 
 void SMAADetectHorizontalCornerPattern(SMAATexture2D(edgesTex),
-                                       inout float2 weights,
+                                       float2 &weights,
                                        float4 texcoord,
                                        float2 d)
 {
@@ -1202,7 +1204,7 @@ void SMAADetectHorizontalCornerPattern(SMAATexture2D(edgesTex),
 }
 
 void SMAADetectVerticalCornerPattern(SMAATexture2D(edgesTex),
-                                     inout float2 weights,
+                                     float2 &weights,
                                      float4 texcoord,
                                      float2 d)
 {
@@ -1289,19 +1291,16 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
       // Fix corners:
       coords.y = texcoord.y;
 
-#  ifdef GPU_METAL
-      /* Partial vector references are unsupported in MSL. */
+      /* Partial vector references are unsupported in MSL & BSL. */
       float2 _weights = weights.rg;
       SMAADetectHorizontalCornerPattern(SMAATexturePass2D(edgesTex), _weights, coords.xyzy, d);
       weights.rg = _weights;
-#  else
-    SMAADetectHorizontalCornerPattern(SMAATexturePass2D(edgesTex), weights.rg, coords.xyzy, d);
-#  endif
 
 #  if !defined(SMAA_DISABLE_DIAG_DETECTION)
     }
-    else
+    else {
       e.r = 0.0f;  // Skip vertical processing.
+    }
 #  endif
   }
 
@@ -1340,14 +1339,10 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
     // Fix corners:
     coords.x = texcoord.x;
 
-#  ifdef GPU_METAL
-    /* Partial vector references are unsupported in MSL. */
+    /* Partial vector references are unsupported in MSL & BSL. */
     float2 _weights = weights.zw;
     SMAADetectVerticalCornerPattern(SMAATexturePass2D(edgesTex), _weights, coords.xyxz, d);
     weights.zw = _weights;
-#  else
-    SMAADetectVerticalCornerPattern(SMAATexturePass2D(edgesTex), weights.zw, coords.xyxz, d);
-#  endif
   }
 
   return weights;
@@ -1463,8 +1458,8 @@ float4 SMAAResolvePS(float2 texcoord,
 #  ifdef SMAALoad
 void SMAASeparatePS(float4 position,
                     float2 texcoord,
-                    out float4 target0,
-                    out float4 target1,
+                    float4 &target0,
+                    float4 &target1,
                     SMAATexture2DMS2(colorTexMS))
 {
   int2 pos = int2(position.xy);

@@ -17,7 +17,7 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
+#include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -54,27 +54,17 @@
 #  include "BLI_timeit.hh"
 #endif
 
-using blender::Array;
-using blender::float3;
-using blender::float4x4;
-using blender::IndexRange;
-using blender::MutableSpan;
-using blender::Span;
-using blender::Vector;
-using blender::VectorSet;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(bmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BooleanModifierData), modifier);
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(bmd, modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   Collection *col = bmd->collection;
 
   if (bmd->flag & eBooleanModifierFlag_Object) {
@@ -89,15 +79,15 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&bmd->collection, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&bmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&bmd->collection), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&bmd->object), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   if ((bmd->flag & eBooleanModifierFlag_Object) && bmd->object != nullptr) {
     DEG_add_object_relation(ctx->node, bmd->object, DEG_OB_COMP_TRANSFORM, "Boolean Modifier");
     DEG_add_object_relation(ctx->node, bmd->object, DEG_OB_COMP_GEOMETRY, "Boolean Modifier");
@@ -128,8 +118,8 @@ static Mesh *get_quick_mesh(
           result = mesh_self;
         }
         else {
-          result = (Mesh *)BKE_id_copy_ex(
-              nullptr, &mesh_operand_ob->id, nullptr, LIB_ID_COPY_LOCALIZE);
+          result = id_cast<Mesh *>(
+              BKE_id_copy_ex(nullptr, &mesh_operand_ob->id, nullptr, LIB_ID_COPY_LOCALIZE));
 
           float imat[4][4];
           float omat[4][4];
@@ -168,7 +158,7 @@ static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
 
 static bool BMD_error_messages(const Object *ob, ModifierData *md)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   Collection *col = bmd->collection;
 
   bool error_returns_result = false;
@@ -270,12 +260,12 @@ static void BMD_mesh_intersection(BMesh *bm,
   SCOPED_TIMER(__func__);
 #endif
 
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
 
   /* Main BMesh intersection setup. */
   /* Create tessellation & intersect. */
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  blender::Array<std::array<BMLoop *, 3>> looptris(looptris_tot);
+  Array<std::array<BMLoop *, 3>> looptris(looptris_tot);
   BM_mesh_calc_tessellation_beauty(bm, looptris);
 
   /* postpone this until after tessellating
@@ -417,9 +407,9 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
     return mesh;
   }
 
-  blender::geometry::boolean::Solver solver = bmd->solver == eBooleanModifierSolver_Mesh_Arr ?
-                                                  blender::geometry::boolean::Solver::MeshArr :
-                                                  blender::geometry::boolean::Solver::Manifold;
+  geometry::boolean::Solver solver = bmd->solver == eBooleanModifierSolver_Mesh_Arr ?
+                                         geometry::boolean::Solver::MeshArr :
+                                         geometry::boolean::Solver::Manifold;
   meshes.append(mesh);
   transforms.append(float4x4::identity());
   material_remaps.append({});
@@ -479,22 +469,21 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
-  blender::geometry::boolean::BooleanOpParameters op_params;
-  op_params.boolean_mode = blender::geometry::boolean::Operation(bmd->operation);
+  geometry::boolean::BooleanOpParameters op_params;
+  op_params.boolean_mode = geometry::boolean::Operation(bmd->operation);
   op_params.no_self_intersections = !use_self;
   op_params.watertight = !hole_tolerant;
   op_params.no_nested_components = false;
-  blender::geometry::boolean::BooleanError error =
-      blender::geometry::boolean::BooleanError::NoError;
-  Mesh *result = blender::geometry::boolean::mesh_boolean(
+  geometry::boolean::BooleanError error = geometry::boolean::BooleanError::NoError;
+  Mesh *result = geometry::boolean::mesh_boolean(
       meshes, transforms, material_remaps, op_params, solver, nullptr, &error);
 
-  if (error != blender::geometry::boolean::BooleanError::NoError) {
-    if (error == blender::geometry::boolean::BooleanError::NonManifold) {
+  if (error != geometry::boolean::BooleanError::NoError) {
+    if (error == geometry::boolean::BooleanError::NonManifold) {
       BKE_modifier_set_error(
           ctx->object, (ModifierData *)bmd, "Cannot execute, non-manifold inputs");
     }
-    else if (error == blender::geometry::boolean::BooleanError::UnknownError) {
+    else if (error == geometry::boolean::BooleanError::UnknownError) {
       BKE_modifier_set_error(ctx->object, (ModifierData *)(bmd), "Cannot execute, unknown error");
     }
     return result;
@@ -506,7 +495,7 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
     MutableSpan(result->mat, result->totcol).copy_from(materials);
   }
 
-  blender::geometry::debug_randomize_mesh_order(result);
+  geometry::debug_randomize_mesh_order(result);
 
   return result;
 }
@@ -514,7 +503,7 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  BooleanModifierData *bmd = reinterpret_cast<BooleanModifierData *>(md);
   Object *object = ctx->object;
   Mesh *result = mesh;
   Collection *collection = bmd->collection;
@@ -605,7 +594,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
 
-  blender::geometry::debug_randomize_mesh_order(result);
+  geometry::debug_randomize_mesh_order(result);
 
   return result;
 }
@@ -618,10 +607,10 @@ static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cd
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout.prop(ptr, "operation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "operation", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -633,14 +622,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     layout.prop(ptr, "collection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout.prop(ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "solver", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
 
 static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  blender::ui::Layout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Mesh_Arr;
@@ -648,7 +637,7 @@ static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  blender::ui::Layout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   if (use_exact) {
     col.prop(ptr, "material_mode", UI_ITEM_NONE, IFACE_("Materials"), ICON_NONE);
     /* When operand is collection, we always use_self. */
@@ -712,3 +701,5 @@ ModifierTypeInfo modifierType_Boolean = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

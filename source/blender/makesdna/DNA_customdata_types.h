@@ -10,80 +10,14 @@
 
 #pragma once
 
-#include "DNA_defs.h"
+#include "BLI_sys_types.h"
 
 #include "BLI_implicit_sharing.h"
 
-/** Descriptor and storage for a custom data layer. */
-typedef struct CustomDataLayer {
-  /** Type of data in layer. */
-  int type;
-  /** In editmode, offset of layer in block. */
-  int offset;
-  /** General purpose flag. */
-  int flag;
-  /** Number of the active layer of this type. */
-  int active;
-  /** Number of the layer to render. */
-  int active_rnd;
-  /** Number of the layer to render. */
-  int active_clone;
-  /** Number of the layer to render. */
-  int active_mask;
-  /** Shape key-block unique id reference. */
-  int uid;
-  /** Layer name. */
-  char name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-  char _pad1[4];
-  /** Layer data. */
-  void *data;
-  /**
-   * Run-time data that allows sharing `data` with other entities (mostly custom data layers on
-   * other geometries).
-   */
-  const ImplicitSharingInfoHandle *sharing_info;
-} CustomDataLayer;
-
-#define MAX_CUSTOMDATA_LAYER_NAME 68
-#define MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX 64
-
-typedef struct CustomDataExternal {
-  char filepath[/*FILE_MAX*/ 1024];
-} CustomDataExternal;
-
-/**
- * #CustomData stores an arbitrary number of typed data "layers" for multiple elements.
- * The layers are typically geometry attributes, and the elements are typically geometry
- * elements like vertices, edges, or curves.
- *
- * Each layer has a type, often with certain semantics beyond the type of the raw data. However,
- * a subset of the layer types are exposed as attributes and accessed with a higher level API
- * built around #AttributeAccessor.
- *
- * For #BMesh, #CustomData is adapted to store the data from all layers in a single "block" which
- * is allocated for each element. Each layer's data is stored at a certain offset into every
- * block's data.
- */
-typedef struct CustomData {
-  /** Layers ordered by type. */
-  CustomDataLayer *layers;
-  /**
-   * Runtime only map from types to indices of first layer of that type,
-   * Correct size of #CD_NUMTYPES is ensured by CustomData_update_typemap.
-   */
-  int typemap[53];
-  /** Number of layers, size of layers array. */
-  int totlayer, maxlayer;
-  /** In editmode, total size of all data layers. */
-  int totsize;
-  /** (BMesh Only): Memory pool for allocation of blocks. */
-  struct BLI_mempool *pool;
-  /** External file storing custom-data layers. */
-  CustomDataExternal *external;
-} CustomData;
+namespace blender {
 
 /** #CustomDataLayer.type */
-typedef enum eCustomDataType {
+enum eCustomDataType {
   /**
    * Used by GPU attributes in the cases when we don't know which layer
    * we are addressing in advance.
@@ -178,11 +112,7 @@ typedef enum eCustomDataType {
   CD_PROP_QUATERNION = 52,
 
   CD_NUMTYPES = 53,
-} eCustomDataType;
-
-#ifdef __cplusplus
-using eCustomDataMask = uint64_t;
-#endif
+};
 
 /* Bits for #eCustomDataMask */
 
@@ -236,13 +166,11 @@ using eCustomDataMask = uint64_t;
 /** All color attributes */
 #define CD_MASK_COLOR_ALL (CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR)
 
-typedef struct CustomData_MeshMasks {
-  uint64_t vmask;
-  uint64_t emask;
-  uint64_t fmask;
-  uint64_t pmask;
-  uint64_t lmask;
-} CustomData_MeshMasks;
+/** Limits. */
+#define MAX_MTFACE 8
+
+#define MAX_CUSTOMDATA_LAYER_NAME 68
+#define MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX 64
 
 /** #CustomData.flag */
 enum {
@@ -263,5 +191,77 @@ enum {
 #endif
 };
 
-/** Limits. */
-#define MAX_MTFACE 8
+/** Descriptor and storage for a custom data layer. */
+struct CustomDataLayer {
+  /** Type of data in layer. */
+  int type = 0;
+  /** In editmode, offset of layer in block. */
+  int offset = 0;
+  /** General purpose flag. */
+  int flag = 0;
+  /** Number of the active layer of this type. */
+  int active = 0;
+  /** Number of the layer to render. */
+  int active_rnd = 0;
+  /** Shape key-block unique id reference. */
+  int uid = 0;
+  /** Layer name. */
+  char name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68] = "";
+  char _pad1[4] = {};
+  /** Layer data. */
+  void *data = nullptr;
+  /**
+   * Run-time data that allows sharing `data` with other entities (mostly custom data layers on
+   * other geometries).
+   */
+  const ImplicitSharingInfoHandle *sharing_info = nullptr;
+};
+
+struct CustomDataExternal {
+  char filepath[/*FILE_MAX*/ 1024] = "";
+};
+
+/**
+ * #CustomData stores an arbitrary number of typed data "layers" for multiple elements.
+ * The layers are typically geometry attributes, and the elements are typically geometry
+ * elements like vertices, edges, or curves.
+ *
+ * Each layer has a type, often with certain semantics beyond the type of the raw data. However,
+ * a subset of the layer types are exposed as attributes and accessed with a higher level API
+ * built around #AttributeAccessor.
+ *
+ * For #BMesh, #CustomData is adapted to store the data from all layers in a single "block" which
+ * is allocated for each element. Each layer's data is stored at a certain offset into every
+ * block's data.
+ */
+struct CustomData {
+  /** Layers ordered by type. */
+  CustomDataLayer *layers = nullptr;
+  /**
+   * Runtime only map from types to indices of first layer of that type,
+   * Correct size of #CD_NUMTYPES is ensured by CustomData_update_typemap.
+   */
+  int typemap[53] = {};
+  /** Number of layers, size of layers array. */
+  int totlayer = 0, maxlayer = 0;
+  /** In editmode, total size of all data layers. */
+  int totsize = 0;
+  /** (BMesh Only): Memory pool for allocation of blocks. */
+  struct BLI_mempool *pool = nullptr;
+  /** External file storing custom-data layers. */
+  CustomDataExternal *external = nullptr;
+};
+
+#ifdef __cplusplus
+using eCustomDataMask = uint64_t;
+#endif
+
+struct CustomData_MeshMasks {
+  uint64_t vmask = 0;
+  uint64_t emask = 0;
+  uint64_t fmask = 0;
+  uint64_t pmask = 0;
+  uint64_t lmask = 0;
+};
+
+}  // namespace blender

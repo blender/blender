@@ -10,15 +10,17 @@
 
 #include "BLI_math_vector_types.hh"
 
+namespace blender {
+
 struct Curve;
 struct Nurb;
 struct OBJExportParams;
 
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
 }
 
-namespace blender::io::obj {
+namespace io::obj {
 
 /**
  * Finds the range within the control points that represents the sequence of valid spans or
@@ -139,4 +141,5 @@ class OBJLegacyCurve : public IOBJCurve, NonCopyable {
                                   Vector<float3> &dynamic_point_buffer) const override;
 };
 
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

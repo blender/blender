@@ -13,6 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_stack.hh"
+#include "BLI_string.h"
 
 #include "NOD_menu_value.hh"
 #include "NOD_multi_function.hh"
@@ -281,11 +282,25 @@ class ShaderNodesInliner {
     Vector<TreeInContext> trees;
     this->find_trees_potentially_containing_shader_outputs_recursive(nullptr, src_tree_, trees);
 
+    auto get_engine_target = [](const bNode *output_node) {
+      if (STR_ELEM(output_node->idname,
+                   "ShaderNodeOutputMaterial",
+                   "ShaderNodeOutputLight",
+                   "ShaderNodeOutputWorld"))
+      {
+        return NodeShaderOutputTarget(output_node->custom1);
+      }
+      return SHD_OUTPUT_ALL;
+    };
+
     Vector<SocketInContext> output_sockets;
     auto add_output_type = [&](const char *output_type) {
       for (const TreeInContext &tree : trees) {
         const bke::bNodeTreeZones &zones = *tree->zones();
         for (const bNode *node : tree->nodes_by_type(output_type)) {
+          if (!ELEM(get_engine_target(node), SHD_OUTPUT_ALL, params_.target_engine_)) {
+            continue;
+          }
           const bke::bNodeTreeZone *zone = zones.get_zone_by_node(node->identifier);
           if (zone) {
             params_.r_error_messages.append({node, TIP_("Output node must not be in zone")});
@@ -304,8 +319,8 @@ class ShaderNodesInliner {
     switch (tree_type) {
       case ID_MA:
         add_output_type("ShaderNodeOutputMaterial");
-        add_output_type("ShaderNodeOutputAOV");
         add_output_type("ShaderNodeOutputLight");
+        add_output_type("ShaderNodeOutputAOV");
         break;
       case ID_WO:
         add_output_type("ShaderNodeOutputWorld");
@@ -1424,19 +1439,19 @@ bool inline_shader_node_tree(const bNodeTree &src_tree,
 
   if (inliner.do_inline()) {
     /* Update deprecated bNodeSocket.link pointers because some code still depends on it. */
-    LISTBASE_FOREACH (bNode *, node, &dst_tree.nodes) {
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        sock->link = nullptr;
+    for (bNode &node : dst_tree.nodes) {
+      for (bNodeSocket &sock : node.inputs) {
+        sock.link = nullptr;
       }
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        sock->link = nullptr;
+      for (bNodeSocket &sock : node.outputs) {
+        sock.link = nullptr;
       }
     }
-    LISTBASE_FOREACH (bNodeLink *, link, &dst_tree.links) {
-      link->tosock->link = link;
-      BLI_assert(dst_tree.typeinfo->validate_link(link->fromsock->typeinfo->type,
-                                                  link->tosock->typeinfo->type));
-      link->flag |= NODE_LINK_VALID;
+    for (bNodeLink &link : dst_tree.links) {
+      link.tosock->link = &link;
+      BLI_assert(dst_tree.typeinfo->validate_link(link.fromsock->typeinfo->type,
+                                                  link.tosock->typeinfo->type));
+      link.flag |= NODE_LINK_VALID;
     }
     return true;
   }

@@ -15,20 +15,22 @@
 
 #include "BKE_screen.hh"
 
+namespace blender {
+
 struct ReportList;
 struct PointerRNA;
 struct PropertyRNA;
 class AttributeOwner;
-namespace blender::bke {
+namespace bke {
 enum class AttrDomain : int8_t;
 enum class AttrType : int16_t;
 class MutableAttributeAccessor;
-}  // namespace blender::bke
-namespace blender::nodes::geo_eval_log {
+}  // namespace bke
+namespace nodes::geo_eval_log {
 class GeoNodesLog;
 }
 
-namespace blender::ed::geometry {
+namespace ed::geometry {
 
 /* -------------------------------------------------------------------- */
 /** \name Attribute Value RNA Property Helpers
@@ -49,6 +51,13 @@ bool attribute_set_poll(bContext &C, const ID &object_data);
 /** \} */
 
 void operatortypes_geometry();
+
+/**
+ * Re-register all operator types for node tool assets and local node groups. This process
+ * unregisters old operators.
+ */
+void register_node_group_operators(const bContext &C);
+void ui_template_node_operator_registration_errors(ui::Layout &layout, StringRefNull idname_py);
 
 /**
  * Convert an attribute with the given name to a new type and domain.
@@ -83,4 +92,5 @@ void ui_template_node_operator_asset_menu_items(ui::Layout &layout,
                                                 StringRef catalog_path);
 void ui_template_node_operator_asset_root_items(ui::Layout &layout, const bContext &C);
 
-}  // namespace blender::ed::geometry
+}  // namespace ed::geometry
+}  // namespace blender

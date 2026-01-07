@@ -42,6 +42,8 @@
 
 #include "view2d_intern.hh"
 
+namespace blender::ui {
+
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize);
 
 /* -------------------------------------------------------------------- */
@@ -106,7 +108,7 @@ static int view2d_scroll_mapped(int scroll)
   return scroll;
 }
 
-void UI_view2d_mask_from_win(const View2D *v2d, rcti *r_mask)
+void view2d_mask_from_win(const View2D *v2d, rcti *r_mask)
 {
   r_mask->xmin = 0;
   r_mask->ymin = 0;
@@ -124,7 +126,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
   int scroll;
 
   /* mask - view frame */
-  UI_view2d_mask_from_win(v2d, &v2d->mask);
+  view2d_mask_from_win(v2d, &v2d->mask);
   if (mask_scroll == nullptr) {
     mask_scroll = &v2d->mask;
   }
@@ -162,7 +164,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
   if (scroll) {
     float scroll_width, scroll_height;
 
-    UI_view2d_scroller_size_get(v2d, false, &scroll_width, &scroll_height);
+    view2d_scroller_size_get(v2d, false, &scroll_width, &scroll_height);
 
     /* vertical scroller */
     if (scroll & V2D_SCROLL_LEFT) {
@@ -218,10 +220,10 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 /** \name View2D Refresh and Validation (Spatial)
  * \{ */
 
-void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
+void view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
   bool tot_changed = false, do_init;
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = style_get();
 
   do_init = (v2d->flag & V2D_IS_INIT) == 0;
 
@@ -825,14 +827,14 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
   view2d_masks(v2d, nullptr);
 }
 
-void UI_view2d_curRect_validate(View2D *v2d)
+void view2d_curRect_validate(View2D *v2d)
 {
   ui_view2d_curRect_validate_resize(v2d, false);
 }
 
-void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
+void view2d_curRect_changed(const bContext *C, View2D *v2d)
 {
-  UI_view2d_curRect_validate(v2d);
+  view2d_curRect_validate(v2d);
 
   ARegion *region = CTX_wm_region(C);
 
@@ -841,7 +843,7 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
   }
 }
 
-void UI_view2d_curRect_clamp_y(View2D *v2d)
+void view2d_curRect_clamp_y(View2D *v2d)
 {
   const float cur_height_y = BLI_rctf_size_y(&v2d->cur);
 
@@ -857,12 +859,12 @@ void UI_view2d_curRect_clamp_y(View2D *v2d)
 
 /* ------------------ */
 
-bool UI_view2d_area_supports_sync(ScrArea *area)
+bool view2d_area_supports_sync(ScrArea *area)
 {
   return ELEM(area->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP, SPACE_GRAPH);
 }
 
-void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
+void view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 {
   /* don't continue if no view syncing to be done */
   if ((v2dcur->flag & (V2D_VIEWSYNC_SCREEN_TIME | V2D_VIEWSYNC_AREA_VERTICAL)) == 0) {
@@ -871,24 +873,24 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 
   /* check if doing within area syncing (i.e. channels/vertical) */
   if ((v2dcur->flag & V2D_VIEWSYNC_AREA_VERTICAL) && (area)) {
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    for (ARegion &region : area->regionbase) {
       /* don't operate on self */
-      if (v2dcur != &region->v2d) {
+      if (v2dcur != &region.v2d) {
         /* only if view has vertical locks enabled */
-        if (region->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) {
+        if (region.v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) {
           if (flag == V2D_LOCK_COPY) {
             /* other views with locks on must copy active */
-            region->v2d.cur.ymin = v2dcur->cur.ymin;
-            region->v2d.cur.ymax = v2dcur->cur.ymax;
+            region.v2d.cur.ymin = v2dcur->cur.ymin;
+            region.v2d.cur.ymax = v2dcur->cur.ymax;
           }
           else { /* V2D_LOCK_SET */
                  /* active must copy others */
-            v2dcur->cur.ymin = region->v2d.cur.ymin;
-            v2dcur->cur.ymax = region->v2d.cur.ymax;
+            v2dcur->cur.ymin = region.v2d.cur.ymin;
+            v2dcur->cur.ymax = region.v2d.cur.ymax;
           }
 
           /* region possibly changed, so refresh */
-          ED_region_tag_redraw_no_rebuild(region);
+          ED_region_tag_redraw_no_rebuild(&region);
         }
       }
     }
@@ -896,28 +898,28 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 
   /* check if doing whole screen syncing (i.e. time/horizontal) */
   if ((v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) && (screen)) {
-    LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
-      if (!UI_view2d_area_supports_sync(area_iter)) {
+    for (ScrArea &area_iter : screen->areabase) {
+      if (!view2d_area_supports_sync(&area_iter)) {
         continue;
       }
-      LISTBASE_FOREACH (ARegion *, region, &area_iter->regionbase) {
+      for (ARegion &region : area_iter.regionbase) {
         /* don't operate on self */
-        if (v2dcur != &region->v2d) {
+        if (v2dcur != &region.v2d) {
           /* only if view has horizontal locks enabled */
-          if (region->v2d.flag & V2D_VIEWSYNC_SCREEN_TIME) {
+          if (region.v2d.flag & V2D_VIEWSYNC_SCREEN_TIME) {
             if (flag == V2D_LOCK_COPY) {
               /* other views with locks on must copy active */
-              region->v2d.cur.xmin = v2dcur->cur.xmin;
-              region->v2d.cur.xmax = v2dcur->cur.xmax;
+              region.v2d.cur.xmin = v2dcur->cur.xmin;
+              region.v2d.cur.xmax = v2dcur->cur.xmax;
             }
             else { /* V2D_LOCK_SET */
                    /* active must copy others */
-              v2dcur->cur.xmin = region->v2d.cur.xmin;
-              v2dcur->cur.xmax = region->v2d.cur.xmax;
+              v2dcur->cur.xmin = region.v2d.cur.xmin;
+              v2dcur->cur.xmax = region.v2d.cur.xmax;
             }
 
             /* region possibly changed, so refresh */
-            ED_region_tag_redraw_no_rebuild(region);
+            ED_region_tag_redraw_no_rebuild(&region);
           }
         }
       }
@@ -925,7 +927,7 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
   }
 }
 
-void UI_view2d_curRect_reset(View2D *v2d)
+void view2d_curRect_reset(View2D *v2d)
 {
   float width, height;
 
@@ -984,7 +986,7 @@ void view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
     if (G.debug & G_DEBUG) {
       /* XXX: temp debug info. */
       printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d\n",
-             (void *)v2d,
+             static_cast<void *>(v2d),
              width,
              height);
     }
@@ -1033,12 +1035,12 @@ void view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
   ui_view2d_curRect_validate_resize(v2d, resize);
 }
 
-void UI_view2d_totRect_set(View2D *v2d, int width, int height)
+void view2d_totRect_set(View2D *v2d, int width, int height)
 {
   view2d_totRect_set_resize(v2d, width, height, false);
 }
 
-void UI_view2d_zoom_cache_reset()
+void view2d_zoom_cache_reset()
 {
   /* TODO(sergey): This way we avoid threading conflict with sequencer rendering
    * text strip. But ideally we want to make glyph cache to be fully safe
@@ -1092,7 +1094,7 @@ static void view2d_map_cur_using_mask(const View2D *v2d, rctf *r_curmasked)
   }
 }
 
-void UI_view2d_view_ortho(const View2D *v2d)
+void view2d_view_ortho(const View2D *v2d)
 {
   rctf curmasked;
   const int sizex = BLI_rcti_size_x(&v2d->mask);
@@ -1133,7 +1135,7 @@ void UI_view2d_view_ortho(const View2D *v2d)
   wmOrtho2(curmasked.xmin, curmasked.xmax, curmasked.ymin, curmasked.ymax);
 }
 
-void UI_view2d_view_orthoSpecial(ARegion *region, View2D *v2d, const bool xaxis)
+void view2d_view_orthoSpecial(ARegion *region, View2D *v2d, const bool xaxis)
 {
   rctf curmasked;
   float xofs, yofs;
@@ -1159,7 +1161,7 @@ void UI_view2d_view_orthoSpecial(ARegion *region, View2D *v2d, const bool xaxis)
   }
 }
 
-void UI_view2d_view_restore(const bContext *C)
+void view2d_view_restore(const bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
   const int width = BLI_rcti_size_x(&region->winrct) + 1;
@@ -1177,7 +1179,7 @@ void UI_view2d_view_restore(const bContext *C)
 /** \name Grid-Line Drawing
  * \{ */
 
-void UI_view2d_multi_grid_draw(
+void view2d_multi_grid_draw(
     const View2D *v2d, int colorid, float step, int level_size, int totlevels)
 {
   /* Exit if there is nothing to draw */
@@ -1195,9 +1197,8 @@ void UI_view2d_multi_grid_draw(
   vertex_count += 2 * (int((v2d->cur.ymax - v2d->cur.ymin) / lstep) + 1);
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  uint color = GPU_vertformat_attr_add(format, "color", blender::gpu::VertAttrType::UNORM_8_8_8_8);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  uint color = GPU_vertformat_attr_add(format, "color", gpu::VertAttrType::UNORM_8_8_8_8);
 
   GPU_line_width(1.0f);
 
@@ -1207,7 +1208,7 @@ void UI_view2d_multi_grid_draw(
   for (int level = 0; level < totlevels; level++) {
     /* Blend the background color (colorid) with the grid color, to avoid either too low contrast
      * or high contrast grid lines. This only has an effect if colorid != TH_GRID. */
-    UI_GetThemeColorBlendShade3ubv(colorid, TH_GRID, 0.25f, offset, grid_line_color);
+    theme::get_color_blend_shade_3ubv(colorid, TH_GRID, 0.25f, offset, grid_line_color);
 
     int i = int(v2d->cur.xmin / lstep);
     if (v2d->cur.xmin > 0.0f) {
@@ -1248,7 +1249,7 @@ void UI_view2d_multi_grid_draw(
   }
 
   /* X and Y axis */
-  UI_GetThemeColorBlendShade3ubv(
+  theme::get_color_blend_shade_3ubv(
       colorid, TH_GRID, 0.5f, -18 + ((totlevels - 1) * -6), grid_line_color);
 
   immAttrSkip(color);
@@ -1284,10 +1285,10 @@ static void grid_axis_start_and_count(
   }
 }
 
-void UI_view2d_dot_grid_draw(const View2D *v2d,
-                             const int grid_color_id,
-                             const float min_step,
-                             const int grid_subdivisions)
+void view2d_dot_grid_draw(const View2D *v2d,
+                          const int grid_color_id,
+                          const float min_step,
+                          const int grid_subdivisions)
 {
   BLI_assert(grid_subdivisions >= 0 && grid_subdivisions < 4);
   if (grid_subdivisions == 0) {
@@ -1297,8 +1298,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
   const float zoom_x = float(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
@@ -1345,7 +1345,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
     const float subdivision_fade = last_level ? (1.0f - fractf(view_level)) : 1.0f;
 
     float color[4];
-    UI_GetThemeColor3fv(grid_color_id, color);
+    theme::get_color_3fv(grid_color_id, color);
     color[3] = alpha_clamped * subdivision_fade;
 
     const float step = min_step * level_scale;
@@ -1501,11 +1501,11 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
   }
 }
 
-void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
+void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 {
   View2DScrollers scrollers;
   view2d_scrollers_calc(v2d, mask_custom, &scrollers);
-  bTheme *btheme = UI_GetTheme();
+  bTheme *btheme = theme::theme_get();
   rcti vert, hor;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   const char emboss_alpha = btheme->tui.widget_emboss[3];
@@ -1514,7 +1514,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
   uchar scrollers_back_color[4];
 
   /* Color for scroll-bar backs. */
-  UI_GetThemeColor4ubv(TH_BACK, scrollers_back_color);
+  theme::get_color_4ubv(TH_BACK, scrollers_back_color);
 
   /* make copies of rects for less typing */
   vert = scrollers.vert;
@@ -1533,7 +1533,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     slider.ymin = hor.ymin;
     slider.ymax = hor.ymax;
 
-    state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? UI_SCROLL_PRESSED : 0;
+    state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? SCROLL_PRESSED : 0;
 
     /* In the case that scroll-bar track is invisible, range from 0 ->`final_alpha` instead to
      * avoid errors with users trying to click into the underlying view. */
@@ -1558,10 +1558,10 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) &&
         (BLI_rcti_size_x(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT))
     {
-      state |= UI_SCROLL_ARROWS;
+      state |= SCROLL_ARROWS;
     }
 
-    UI_draw_widget_scroll(&wcol, &hor, &slider, state);
+    draw_widget_scroll(&wcol, &hor, &slider, state);
   }
 
   /* Vertical scroll-bar. */
@@ -1577,7 +1577,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     slider.ymin = scrollers.vert_min;
     slider.ymax = scrollers.vert_max;
 
-    state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? UI_SCROLL_PRESSED : 0;
+    state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? SCROLL_PRESSED : 0;
 
     /* In the case that scroll-bar track is invisible, range from 0 ->`final_alpha` instead to
      * avoid errors with users trying to click into the underlying view. */
@@ -1602,10 +1602,10 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) &&
         (BLI_rcti_size_y(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT))
     {
-      state |= UI_SCROLL_ARROWS;
+      state |= SCROLL_ARROWS;
     }
 
-    UI_draw_widget_scroll(&wcol, &vert, &slider, state);
+    draw_widget_scroll(&wcol, &vert, &slider, state);
   }
 
   /* Was changed above, so reset. */
@@ -1618,14 +1618,14 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 /** \name List View Utilities
  * \{ */
 
-void UI_view2d_listview_view_to_cell(float columnwidth,
-                                     float rowheight,
-                                     float startx,
-                                     float starty,
-                                     float viewx,
-                                     float viewy,
-                                     int *r_column,
-                                     int *r_row)
+void view2d_listview_view_to_cell(float columnwidth,
+                                  float rowheight,
+                                  float startx,
+                                  float starty,
+                                  float viewx,
+                                  float viewy,
+                                  int *r_column,
+                                  int *r_row)
 {
   if (r_column) {
     if (columnwidth > 0) {
@@ -1654,25 +1654,24 @@ void UI_view2d_listview_view_to_cell(float columnwidth,
 /** \name Coordinate Conversions
  * \{ */
 
-float UI_view2d_region_to_view_x(const View2D *v2d, float x)
+float view2d_region_to_view_x(const View2D *v2d, float x)
 {
   return (v2d->cur.xmin +
           (BLI_rctf_size_x(&v2d->cur) * (x - v2d->mask.xmin) / BLI_rcti_size_x(&v2d->mask)));
 }
-float UI_view2d_region_to_view_y(const View2D *v2d, float y)
+float view2d_region_to_view_y(const View2D *v2d, float y)
 {
   return (v2d->cur.ymin +
           (BLI_rctf_size_y(&v2d->cur) * (y - v2d->mask.ymin) / BLI_rcti_size_y(&v2d->mask)));
 }
 
-void UI_view2d_region_to_view(
-    const View2D *v2d, float x, float y, float *r_view_x, float *r_view_y)
+void view2d_region_to_view(const View2D *v2d, float x, float y, float *r_view_x, float *r_view_y)
 {
-  *r_view_x = UI_view2d_region_to_view_x(v2d, x);
-  *r_view_y = UI_view2d_region_to_view_y(v2d, y);
+  *r_view_x = view2d_region_to_view_x(v2d, x);
+  *r_view_y = view2d_region_to_view_y(v2d, y);
 }
 
-void UI_view2d_region_to_view_rctf(const View2D *v2d, const rctf *rect_src, rctf *rect_dst)
+void view2d_region_to_view_rctf(const View2D *v2d, const rctf *rect_src, rctf *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
   const float mask_size[2] = {float(BLI_rcti_size_x(&v2d->mask)),
@@ -1688,18 +1687,18 @@ void UI_view2d_region_to_view_rctf(const View2D *v2d, const rctf *rect_src, rctf
                     (cur_size[1] * (rect_src->ymax - v2d->mask.ymin) / mask_size[1]));
 }
 
-float UI_view2d_view_to_region_x(const View2D *v2d, float x)
+float view2d_view_to_region_x(const View2D *v2d, float x)
 {
   return (v2d->mask.xmin + (((x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur)) *
                             float(BLI_rcti_size_x(&v2d->mask) + 1)));
 }
-float UI_view2d_view_to_region_y(const View2D *v2d, float y)
+float view2d_view_to_region_y(const View2D *v2d, float y)
 {
   return (v2d->mask.ymin + (((y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur)) *
                             float(BLI_rcti_size_y(&v2d->mask) + 1)));
 }
 
-bool UI_view2d_view_to_region_clip(
+bool view2d_view_to_region_clip(
     const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
   /* express given coordinates as proportional values */
@@ -1720,8 +1719,7 @@ bool UI_view2d_view_to_region_clip(
   return false;
 }
 
-void UI_view2d_view_to_region(
-    const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
+void view2d_view_to_region(const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
   /* Step 1: express given coordinates as proportional values. */
   x = (x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
@@ -1736,7 +1734,7 @@ void UI_view2d_view_to_region(
   *r_region_y = clamp_float_to_int(y);
 }
 
-void UI_view2d_view_to_region_fl(
+void view2d_view_to_region_fl(
     const View2D *v2d, float x, float y, float *r_region_x, float *r_region_y)
 {
   /* express given coordinates as proportional values */
@@ -1748,11 +1746,11 @@ void UI_view2d_view_to_region_fl(
   *r_region_y = v2d->mask.ymin + (y * BLI_rcti_size_y(&v2d->mask));
 }
 
-bool UI_view2d_view_to_region_segment_clip(const View2D *v2d,
-                                           const float xy_a[2],
-                                           const float xy_b[2],
-                                           int r_region_a[2],
-                                           int r_region_b[2])
+bool view2d_view_to_region_segment_clip(const View2D *v2d,
+                                        const float xy_a[2],
+                                        const float xy_b[2],
+                                        int r_region_a[2],
+                                        int r_region_b[2])
 {
   rctf rect_unit;
   rect_unit.xmin = rect_unit.ymin = 0.0f;
@@ -1783,7 +1781,7 @@ bool UI_view2d_view_to_region_segment_clip(const View2D *v2d,
   return false;
 }
 
-void UI_view2d_view_to_region_rcti(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
+void view2d_view_to_region_rcti(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
   const float mask_size[2] = {float(BLI_rcti_size_x(&v2d->mask)),
@@ -1805,7 +1803,7 @@ void UI_view2d_view_to_region_rcti(const View2D *v2d, const rctf *rect_src, rcti
   clamp_rctf_to_rcti(rect_dst, &rect_tmp);
 }
 
-void UI_view2d_view_to_region_m4(const View2D *v2d, float matrix[4][4])
+void view2d_view_to_region_m4(const View2D *v2d, float matrix[4][4])
 {
   rctf mask;
   unit_m4(matrix);
@@ -1813,7 +1811,7 @@ void UI_view2d_view_to_region_m4(const View2D *v2d, float matrix[4][4])
   BLI_rctf_transform_calc_m4_pivot_min(&v2d->cur, &mask, matrix);
 }
 
-bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
+bool view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
   const float mask_size[2] = {float(BLI_rcti_size_x(&v2d->mask) + 1),
@@ -1852,7 +1850,7 @@ bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src,
 /** \name Utilities
  * \{ */
 
-View2D *UI_view2d_fromcontext(const bContext *C)
+View2D *view2d_fromcontext(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -1866,7 +1864,7 @@ View2D *UI_view2d_fromcontext(const bContext *C)
   return &(region->v2d);
 }
 
-View2D *UI_view2d_fromcontext_rwin(const bContext *C)
+View2D *view2d_fromcontext_rwin(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -1884,7 +1882,7 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
   return &(region->v2d);
 }
 
-void UI_view2d_scroller_size_get(const View2D *v2d, bool mapped, float *r_x, float *r_y)
+void view2d_scroller_size_get(const View2D *v2d, bool mapped, float *r_x, float *r_y)
 {
   const int scroll = (mapped) ? view2d_scroll_mapped(v2d->scroll) : v2d->scroll;
 
@@ -1909,24 +1907,24 @@ void UI_view2d_scroller_size_get(const View2D *v2d, bool mapped, float *r_x, flo
   }
 }
 
-void UI_view2d_scale_get(const View2D *v2d, float *r_x, float *r_y)
+void view2d_scale_get(const View2D *v2d, float *r_x, float *r_y)
 {
   if (r_x) {
-    *r_x = UI_view2d_scale_get_x(v2d);
+    *r_x = view2d_scale_get_x(v2d);
   }
   if (r_y) {
-    *r_y = UI_view2d_scale_get_y(v2d);
+    *r_y = view2d_scale_get_y(v2d);
   }
 }
-float UI_view2d_scale_get_x(const View2D *v2d)
+float view2d_scale_get_x(const View2D *v2d)
 {
   return BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
 }
-float UI_view2d_scale_get_y(const View2D *v2d)
+float view2d_scale_get_y(const View2D *v2d)
 {
   return BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
-void UI_view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
+void view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
 {
   if (r_x) {
     *r_x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
@@ -1936,7 +1934,7 @@ void UI_view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
   }
 }
 
-void UI_view2d_center_get(const View2D *v2d, float *r_x, float *r_y)
+void view2d_center_get(const View2D *v2d, float *r_x, float *r_y)
 {
   /* get center */
   if (r_x) {
@@ -1946,15 +1944,15 @@ void UI_view2d_center_get(const View2D *v2d, float *r_x, float *r_y)
     *r_y = BLI_rctf_cent_y(&v2d->cur);
   }
 }
-void UI_view2d_center_set(View2D *v2d, float x, float y)
+void view2d_center_set(View2D *v2d, float x, float y)
 {
   BLI_rctf_recenter(&v2d->cur, x, y);
 
   /* make sure that 'cur' rect is in a valid state as a result of these changes */
-  UI_view2d_curRect_validate(v2d);
+  view2d_curRect_validate(v2d);
 }
 
-void UI_view2d_offset(View2D *v2d, float xfac, float yfac)
+void view2d_offset(View2D *v2d, float xfac, float yfac)
 {
   if (xfac != -1.0f) {
     const float xsize = BLI_rctf_size_x(&v2d->cur);
@@ -1974,10 +1972,10 @@ void UI_view2d_offset(View2D *v2d, float xfac, float yfac)
     v2d->cur.ymax = v2d->cur.ymin + ysize;
   }
 
-  UI_view2d_curRect_validate(v2d);
+  view2d_curRect_validate(v2d);
 }
 
-void UI_view2d_offset_y_snap_to_closest_page(View2D *v2d)
+void view2d_offset_y_snap_to_closest_page(View2D *v2d)
 {
   const float cur_size_y = BLI_rctf_size_y(&v2d->cur);
   const float page_size_y = view2d_page_size_y(*v2d);
@@ -1985,13 +1983,13 @@ void UI_view2d_offset_y_snap_to_closest_page(View2D *v2d)
   v2d->cur.ymax = roundf(v2d->cur.ymax / page_size_y) * page_size_y;
   v2d->cur.ymin = v2d->cur.ymax - cur_size_y;
 
-  UI_view2d_curRect_validate(v2d);
+  view2d_curRect_validate(v2d);
 }
 
-char UI_view2d_mouse_in_scrollers_ex(const ARegion *region,
-                                     const View2D *v2d,
-                                     const int xy[2],
-                                     int *r_scroll)
+char view2d_mouse_in_scrollers_ex(const ARegion *region,
+                                  const View2D *v2d,
+                                  const int xy[2],
+                                  int *r_scroll)
 {
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   *r_scroll = scroll;
@@ -2017,10 +2015,10 @@ char UI_view2d_mouse_in_scrollers_ex(const ARegion *region,
   return 0;
 }
 
-char UI_view2d_rect_in_scrollers_ex(const ARegion *region,
-                                    const View2D *v2d,
-                                    const rcti *rect,
-                                    int *r_scroll)
+char view2d_rect_in_scrollers_ex(const ARegion *region,
+                                 const View2D *v2d,
+                                 const rcti *rect,
+                                 int *r_scroll)
 {
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   *r_scroll = scroll;
@@ -2044,16 +2042,16 @@ char UI_view2d_rect_in_scrollers_ex(const ARegion *region,
   return 0;
 }
 
-char UI_view2d_mouse_in_scrollers(const ARegion *region, const View2D *v2d, const int xy[2])
+char view2d_mouse_in_scrollers(const ARegion *region, const View2D *v2d, const int xy[2])
 {
   int scroll_dummy = 0;
-  return UI_view2d_mouse_in_scrollers_ex(region, v2d, xy, &scroll_dummy);
+  return view2d_mouse_in_scrollers_ex(region, v2d, xy, &scroll_dummy);
 }
 
-char UI_view2d_rect_in_scrollers(const ARegion *region, const View2D *v2d, const rcti *rect)
+char view2d_rect_in_scrollers(const ARegion *region, const View2D *v2d, const rcti *rect)
 {
   int scroll_dummy = 0;
-  return UI_view2d_rect_in_scrollers_ex(region, v2d, rect, &scroll_dummy);
+  return view2d_rect_in_scrollers_ex(region, v2d, rect, &scroll_dummy);
 }
 
 /** \} */
@@ -2079,14 +2077,14 @@ struct View2DString {
 static MemArena *g_v2d_strings_arena = nullptr;
 static View2DString *g_v2d_strings = nullptr;
 
-void UI_view2d_text_cache_add(
+void view2d_text_cache_add(
     View2D *v2d, float x, float y, const char *str, size_t str_len, const uchar col[4])
 {
   int mval[2];
 
   BLI_assert(str_len == strlen(str));
 
-  if (UI_view2d_view_to_region_clip(v2d, x, y, &mval[0], &mval[1])) {
+  if (view2d_view_to_region_clip(v2d, x, y, &mval[0], &mval[1])) {
     const int alloc_len = str_len + 1;
 
     if (g_v2d_strings_arena == nullptr) {
@@ -2098,7 +2096,7 @@ void UI_view2d_text_cache_add(
 
     BLI_LINKS_PREPEND(g_v2d_strings, v2s);
 
-    v2s->col.pack = *((const int *)col);
+    v2s->col.pack = *(reinterpret_cast<const int *>(col));
 
     v2s->rect = rcti{};
 
@@ -2109,14 +2107,14 @@ void UI_view2d_text_cache_add(
   }
 }
 
-void UI_view2d_text_cache_add_rectf(
+void view2d_text_cache_add_rectf(
     View2D *v2d, const rctf *rect_view, const char *str, size_t str_len, const uchar col[4])
 {
   rcti rect;
 
   BLI_assert(str_len == strlen(str));
 
-  if (UI_view2d_view_to_region_rcti_clip(v2d, rect_view, &rect)) {
+  if (view2d_view_to_region_rcti_clip(v2d, rect_view, &rect)) {
     const int alloc_len = str_len + 1;
 
     if (g_v2d_strings_arena == nullptr) {
@@ -2128,7 +2126,7 @@ void UI_view2d_text_cache_add_rectf(
 
     BLI_LINKS_PREPEND(g_v2d_strings, v2s);
 
-    v2s->col.pack = *((const int *)col);
+    v2s->col.pack = *(reinterpret_cast<const int *>(col));
 
     v2s->rect = rect;
 
@@ -2139,7 +2137,7 @@ void UI_view2d_text_cache_add_rectf(
   }
 }
 
-void UI_view2d_text_cache_draw(ARegion *region)
+void view2d_text_cache_draw(ARegion *region)
 {
   View2DString *v2s;
   int col_pack_prev = 0;
@@ -2189,3 +2187,5 @@ void UI_view2d_text_cache_draw(ARegion *region)
 }
 
 /** \} */
+
+}  // namespace blender::ui

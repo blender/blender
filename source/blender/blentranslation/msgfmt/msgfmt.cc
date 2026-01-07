@@ -32,6 +32,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* Stupid stub necessary because some BLI files includes winstuff.h, which uses G a bit... */
 #ifdef WIN32
 struct Global {
@@ -56,7 +58,7 @@ struct Message {
   bool is_fuzzy = false;
 };
 
-static blender::StringRef unescape(std::string &str)
+static StringRef unescape(std::string &str)
 {
   int curr, next;
   for (curr = next = 0; next < str.size(); curr++, next++) {
@@ -89,7 +91,7 @@ static blender::StringRef unescape(std::string &str)
       str[curr] = str[next];
     }
   }
-  blender::StringRef ret_str = str;
+  StringRef ret_str = str;
   BLI_assert(curr <= str.size());
 
   if (ret_str[0] == '"' && ret_str[curr - 1] == '"') {
@@ -119,12 +121,12 @@ struct Offset {
 };
 
 /* Return the generated binary output. */
-static char *generate(blender::Map<std::string, std::string> &messages, size_t *r_output_size)
+static char *generate(Map<std::string, std::string> &messages, size_t *r_output_size)
 {
-  using MapItem = blender::Map<std::string, std::string>::MutableItem;
+  using MapItem = Map<std::string, std::string>::MutableItem;
   struct Item {
-    blender::StringRef key;
-    blender::StringRef value;
+    StringRef key;
+    StringRef value;
 
     Item(const MapItem &other) : key(other.key), value(other.value) {}
     Item(const Item &other) = default;
@@ -133,7 +135,7 @@ static char *generate(blender::Map<std::string, std::string> &messages, size_t *
   const uint32_t num_keys = messages.size();
 
   /* Get a vector of (key, value) pairs sorted by their keys. */
-  blender::Vector<Item> items = {};
+  Vector<Item> items = {};
   for (const auto message_items_iter : messages.items()) {
     items.append(Item(message_items_iter));
   }
@@ -219,7 +221,7 @@ static void clear(Message &msg)
 }
 
 /* Add a non-fuzzy translation to the dictionary. */
-static void add(blender::Map<std::string, std::string> &messages, Message &msg)
+static void add(Map<std::string, std::string> &messages, Message &msg)
 {
   if (!msg.is_fuzzy && !msg.str.empty()) {
     std::string msgkey;
@@ -238,7 +240,7 @@ static void add(blender::Map<std::string, std::string> &messages, Message &msg)
 
 static int make(const char *input_file_name, const char *output_file_name)
 {
-  blender::Map<std::string, std::string> messages;
+  Map<std::string, std::string> messages;
 
   const char *msgctxt_kw = "msgctxt";
   const char *msgid_kw = "msgid";
@@ -262,7 +264,7 @@ static int make(const char *input_file_name, const char *output_file_name)
   /* Parse the catalog. */
   for (int lno = 1; ifl; ifl = ifl->next, lno++) {
     std::string line = static_cast<char *>(ifl->link);
-    blender::StringRef l = line;
+    StringRef l = line;
     if (l.is_empty()) {
       continue;
     }
@@ -274,7 +276,7 @@ static int make(const char *input_file_name, const char *output_file_name)
         section = SECTION_NONE;
       }
       /* Record a fuzzy mark. */
-      if (l[1] == ',' && l.find("fuzzy") != blender::StringRef::not_found) {
+      if (l[1] == ',' && l.find("fuzzy") != StringRef::not_found) {
         msg.is_fuzzy = true;
       }
       /* Skip comments */
@@ -324,7 +326,7 @@ static int make(const char *input_file_name, const char *output_file_name)
           return EXIT_FAILURE;
         }
         int64_t close_bracket_idx = l.find(']');
-        if (close_bracket_idx == blender::StringRef::not_found) {
+        if (close_bracket_idx == StringRef::not_found) {
           printf("Syntax error on %s:%d\n", input_file_name, lno);
           return EXIT_FAILURE;
         }
@@ -385,6 +387,8 @@ static int make(const char *input_file_name, const char *output_file_name)
   return EXIT_SUCCESS;
 }
 
+}  // namespace blender
+
 int main(int argc, char **argv)
 {
   if (argc != 3) {
@@ -394,5 +398,5 @@ int main(int argc, char **argv)
   const char *input_file = argv[1];
   const char *output_file = argv[2];
 
-  return make(input_file, output_file);
+  return blender::make(input_file, output_file);
 }

@@ -64,6 +64,7 @@ class Relations : Overlay {
 
     Object *ob = ob_ref.object;
     const float4 &relation_color = res.theme.colors.wire;
+    /* TODO (not_mark): pick literally anything else that's sensible. */
     const float4 &constraint_color = res.theme.colors.grid_axis_z; /* ? */
 
     if (ob->parent && (DRW_object_visibility_in_active_context(ob->parent) & OB_VISIBLE_SELF)) {
@@ -115,9 +116,9 @@ class Relations : Overlay {
 
     /* Drawing the constraint lines */
     if (!BLI_listbase_is_empty(&ob->constraints)) {
-      Scene *scene = (Scene *)state.scene;
+      Scene *scene = const_cast<Scene *>(state.scene);
       bConstraintOb *cob = BKE_constraints_make_evalob(
-          state.depsgraph, (Scene *)state.scene, ob, nullptr, CONSTRAINT_OBTYPE_OBJECT);
+          state.depsgraph, scene, ob, nullptr, CONSTRAINT_OBTYPE_OBJECT);
 
       for (bConstraint *constraint : ListBaseWrapper<bConstraint>(ob->constraints)) {
         if (ELEM(constraint->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
@@ -127,11 +128,12 @@ class Relations : Overlay {
           Object *camob = nullptr;
 
           if (constraint->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
-            bFollowTrackConstraint *data = (bFollowTrackConstraint *)constraint->data;
+            bFollowTrackConstraint *data = static_cast<bFollowTrackConstraint *>(constraint->data);
             camob = data->camera ? data->camera : scene->camera;
           }
           else if (constraint->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
-            bObjectSolverConstraint *data = (bObjectSolverConstraint *)constraint->data;
+            bObjectSolverConstraint *data = static_cast<bObjectSolverConstraint *>(
+                constraint->data);
             camob = data->camera ? data->camera : scene->camera;
           }
 
@@ -143,7 +145,7 @@ class Relations : Overlay {
         }
         else {
           const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(constraint);
-          ListBase targets = {nullptr, nullptr};
+          ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
           if ((constraint->ui_expand_flag & (1 << 0)) &&
               BKE_constraint_targets_get(constraint, &targets))

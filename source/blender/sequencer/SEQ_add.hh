@@ -10,9 +10,12 @@
 
 #include "BLI_enum_flags.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_scene_enums.h"
+#include "DNA_sequence_types.h"
 
-struct ListBase;
+namespace blender {
+
 struct Main;
 struct Mask;
 struct MovieClip;
@@ -20,7 +23,7 @@ struct Scene;
 struct Strip;
 struct Stereo3dFormat;
 
-namespace blender::seq {
+namespace seq {
 
 /** #SeqLoadData.flags */
 enum eLoadFlags {
@@ -79,22 +82,22 @@ void add_load_data_init(
  *
  * \param bmain: Main reference
  * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
+ * \param seqbase: List where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *load_data);
+Strip *add_image_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add sound strip.
  * \note Use SEQ_add_image_set_directory() and SEQ_add_image_load_file() to load image sequences
  *
  * \param bmain: Main reference
  * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
+ * \param seqbase: List where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *load_data);
+Strip *add_sound_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 
 /**
  * Sync up the sound strip 'seq' with the video data in 'load_data'.
@@ -111,57 +114,57 @@ void add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, LoadData *load_d
  * Add meta strip.
  *
  * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
+ * \param seqbase: List where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *add_meta_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
+Strip *add_meta_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add movie strip.
  *
  * \param bmain: Main reference
  * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
+ * \param seqbase: List where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *load_data);
+Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add scene strip.
  *
  * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
+ * \param seqbase: List where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *add_scene_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
+Strip *add_scene_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add movieclip strip.
  *
  * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
+ * \param seqbase: List where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *add_movieclip_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
+Strip *add_movieclip_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add mask strip.
  *
  * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
+ * \param seqbase: List where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *add_mask_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
+Strip *add_mask_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add effect strip.
  *
  * \param scene: Scene where strips will be added
- * \param seqbase: ListBase where strips will be added
+ * \param seqbase: List where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *add_effect_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
+Strip *add_effect_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Set directory used by image strip.
  *
@@ -187,4 +190,5 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, bool lock_rang
 void add_movie_reload_if_needed(
     Main *bmain, Scene *scene, Strip *strip, bool *r_was_reloaded, bool *r_can_produce_frames);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

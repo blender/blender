@@ -28,6 +28,8 @@
 
 #else
 
+namespace blender {
+
 static void rna_def_speaker(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -169,5 +171,7 @@ void RNA_def_speaker(BlenderRNA *brna)
 {
   rna_def_speaker(brna);
 }
+
+}  // namespace blender
 
 #endif

@@ -49,7 +49,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometryCurveFill>(__func__);
+  node->storage = MEM_new_for_free<NodeGeometryCurveFill>(__func__);
 }
 
 static void fill_curve_vert_indices(const OffsetIndices<int> offsets,
@@ -322,7 +322,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeFillCurve", GEO_NODE_FILL_CURVE);
   ntype.ui_name = "Fill Curve";
   ntype.ui_description =
@@ -330,11 +330,11 @@ static void node_register()
   ntype.enum_name_legacy = "FILL_CURVE";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

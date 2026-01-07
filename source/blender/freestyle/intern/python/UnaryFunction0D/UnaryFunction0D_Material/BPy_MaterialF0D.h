@@ -18,8 +18,8 @@ extern PyTypeObject MaterialF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&MaterialF0D_Type))
 
 /*---------------------------Python BPy_MaterialF0D structure definition----------*/
-typedef struct {
+struct BPy_MaterialF0D {
   BPy_UnaryFunction0DMaterial py_uf0D_material;
-} BPy_MaterialF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

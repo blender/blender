@@ -21,6 +21,8 @@
 #include "gpu_py.hh"
 #include "gpu_py_element.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name IndexBuf Type
  * \{ */
@@ -196,7 +198,7 @@ PyTypeObject BPyGPUIndexBuf_Type = {
     /*tp_name*/ "GPUIndexBuf",
     /*tp_basicsize*/ sizeof(BPyGPUIndexBuf),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)pygpu_IndexBuf__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(pygpu_IndexBuf__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -249,14 +251,16 @@ PyTypeObject BPyGPUIndexBuf_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUIndexBuf_CreatePyObject(blender::gpu::IndexBuf *elem)
+PyObject *BPyGPUIndexBuf_CreatePyObject(gpu::IndexBuf *elem)
 {
   BPyGPUIndexBuf *self;
 
   self = PyObject_New(BPyGPUIndexBuf, &BPyGPUIndexBuf_Type);
   self->elem = elem;
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */
+
+}  // namespace blender

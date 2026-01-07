@@ -14,9 +14,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 void VKIndexBuffer::ensure_updated()
 {
@@ -126,4 +128,5 @@ VKBuffer &VKIndexBuffer::buffer_get()
   return is_subrange_ ? unwrap(src_)->buffer_ : buffer_;
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

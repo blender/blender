@@ -35,9 +35,12 @@
 #include "stl_import_binary_reader.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.stl"};
 
-namespace blender::io::stl {
+namespace io::stl {
 
 void stl_import_report_error(FILE *file)
 {
@@ -132,7 +135,7 @@ void importer_main(Main *bmain,
   BKE_view_layer_base_deselect_all(scene, view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
-  obj->data = mesh_in_main;
+  obj->data = id_cast<ID *>(mesh_in_main);
   BKE_collection_object_add(bmain, lc->collection, obj);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, obj);
@@ -161,4 +164,5 @@ void importer_main(Main *bmain,
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
 }
-}  // namespace blender::io::stl
+}  // namespace io::stl
+}  // namespace blender

@@ -29,6 +29,9 @@
 #include <vector>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
@@ -60,7 +63,7 @@ struct BlendShapeMergeInfo {
  * Attempt to add the given name to the 'names' set as a unique entry, modifying
  * the name with a numerical suffix if necessary, and return the unique name that
  * was added to the set. */
-std::string add_unique_name(blender::Set<std::string> &names, const std::string &name)
+std::string add_unique_name(Set<std::string> &names, const std::string &name)
 {
   std::string unique_name = name;
   int suffix = 2;
@@ -73,7 +76,7 @@ std::string add_unique_name(blender::Set<std::string> &names, const std::string 
 
 }  // namespace
 
-namespace blender::io::usd {
+namespace io::usd {
 
 pxr::TfToken TempBlendShapeWeightsPrimvarName("temp:weights", pxr::TfToken::Immortal);
 
@@ -178,7 +181,7 @@ const Key *get_mesh_shape_key(const Object *obj)
     return nullptr;
   }
 
-  const Mesh *mesh = static_cast<const Mesh *>(obj->data);
+  const Mesh *mesh = id_cast<const Mesh *>(obj->data);
 
   return mesh->key;
 }
@@ -221,17 +224,13 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
 
   int basis_totelem = basis_key->totelem;
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    if (!kb) {
-      continue;
-    }
-
-    if (kb == basis_key) {
+  for (KeyBlock &kb : key->block) {
+    if (&kb == basis_key) {
       /* Skip the basis. */
       continue;
     }
 
-    pxr::TfToken name(make_safe_name(kb->name, allow_unicode));
+    pxr::TfToken name(make_safe_name(kb.name, allow_unicode));
     blendshape_names.push_back(name);
 
     pxr::SdfPath path = mesh_prim.GetPath().AppendChild(name);
@@ -246,15 +245,15 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
      * is included. */
     pxr::UsdAttribute point_indices_attr = blendshape.CreatePointIndicesAttr();
 
-    pxr::VtVec3fArray offsets(kb->totelem);
-    pxr::VtIntArray indices(kb->totelem);
+    pxr::VtVec3fArray offsets(kb.totelem);
+    pxr::VtIntArray indices(kb.totelem);
     std::iota(indices.begin(), indices.end(), 0);
 
-    const float (*fp)[3] = static_cast<float (*)[3]>(kb->data);
+    const float (*fp)[3] = static_cast<float (*)[3]>(kb.data);
 
     const float (*basis_fp)[3] = static_cast<float (*)[3]>(basis_key->data);
 
-    for (int i = 0; i < kb->totelem; ++i) {
+    for (int i = 0; i < kb.totelem; ++i) {
       /* Subtract the key positions from the
        * basis positions to get the offsets. */
       sub_v3_v3v3(offsets[i].data(), fp[i], basis_fp[i]);
@@ -289,12 +288,12 @@ pxr::VtFloatArray get_blendshape_weights(const Key *key)
 
   pxr::VtFloatArray weights;
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    if (kb == key->block.first) {
+  for (KeyBlock &kb : key->block) {
+    if (&kb == key->block.first) {
       /* Skip the first key, which is the basis. */
       continue;
     }
-    weights.push_back(kb->curval);
+    weights.push_back(kb.curval);
   }
 
   return weights;
@@ -464,4 +463,5 @@ Mesh *get_shape_key_basis_mesh(Object *obj)
   return temp_mesh;
 }
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

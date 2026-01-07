@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+/* SPDX-FileCopyrightText: 2017-2025 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,213 +6,93 @@
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_grid_next)
 
-/**
- * Infinite grid:
- * Draw anti-aliased grid and axes of different sizes with smooth blending between levels of
- * detail. We draw multiple triangles to avoid float precision issues due to perspective
- * interpolation.
- */
-
 #include "draw_view_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
+#include "overlay_common_lib.glsl"
 
-float get_grid(float2 co, float2 fwidthCos, float2 grid_scale)
+/* Returns true if both components of `v` fall within `epsilon` of 0. */
+bool is_zero(float2 v, float epsilon)
 {
-  float2 half_size = grid_scale / 2.0f;
-  /* Triangular wave pattern, amplitude is [0, half_size]. */
-  float2 grid_domain = abs(mod(co + half_size, grid_scale) - half_size);
-  /* Modulate by the absolute rate of change of the coordinates
-   * (make line have the same width under perspective). */
-  grid_domain /= fwidthCos;
-  /* Collapse waves. */
-  float line_dist = min(grid_domain.x, grid_domain.y);
-  return 1.0f - LINE_STEP(line_dist - grid_buf.line_size);
+  return all(lessThanEqual(abs(v), float2(epsilon)));
 }
-
-float3 get_axes(float3 co, float3 fwidthCos, float line_size)
-{
-  float3 axes_domain = abs(co);
-  /* Modulate by the absolute rate of change of the coordinates
-   * (make line have the same width under perspective). */
-  axes_domain /= fwidthCos;
-  return 1.0 - LINE_STEP(axes_domain - (line_size + grid_buf.line_size));
-}
-
-#define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0f, 1.0f))
 
 void main()
 {
-  float3 P = local_pos * grid_buf.size.xyz;
-  float3 dFdxPos = gpu_dfdx(P);
-  float3 dFdyPos = gpu_dfdy(P);
-  float3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);
-  P += drw_view_position() * plane_axes;
+  /* Fragment color. */
+  if (flag_test(grid_flag, SHOW_GRID)) {
+    /* Color is a mix of [grid, grid_emphasis], dependent on the level. */
+    out_color = mix(theme.colors.grid, theme.colors.grid_emphasis, vertex_out_flat.emphasis);
+  }
+  else if (flag_test(grid_flag, SHOW_AXES)) {
+    /* Color is fixed by theme. */
+    if (flag_test(grid_flag, AXIS_X) && is_zero(vertex_out.pos.yz, 1e-4f)) {
+      out_color = theme.colors.grid_axis_x;
+    }
+    else if (flag_test(grid_flag, AXIS_Y) && is_zero(vertex_out.pos.xz, 1e-4f)) {
+      out_color = theme.colors.grid_axis_y;
+    }
+    else if (flag_test(grid_flag, AXIS_Z) && is_zero(vertex_out.pos.xy, 1e-4f)) {
+      out_color = theme.colors.grid_axis_z;
+    }
+  }
 
-  float dist, fade;
-  bool is_persp = drw_view().winmat[3][3] == 0.0f;
-  if (is_persp) {
-    float3 V = drw_view_position() - P;
-    dist = length(V);
+  /* Fragment alpha. */
+  out_color.a *= vertex_out_flat.alpha;
+  if (drw_view_is_perspective()) {
+    /* Fade at edge of grid level. */
+    float length_fade = 1.0f - min(1.0f, length(vertex_out.coord));
+    out_color.a *= length_fade;
+
+    /* Compute normalized view vector. */
+    float3 V = drw_view_position() - vertex_out.pos;
+    float dist = length(V);
     V /= dist;
 
-    float angle;
-    if (flag_test(grid_flag, PLANE_XZ)) {
-      angle = V.y;
-    }
-    else if (flag_test(grid_flag, PLANE_YZ)) {
-      angle = V.x;
-    }
-    else {
-      angle = V.z;
+    /* Add fade at steep angles for contents of the floor plane. */
+    if (vertex_out.pos.z == 0.0f) {
+      out_color.a *= 1.0f - pow3f(1.0f - abs(V.z));
     }
 
-    angle = 1.0f - abs(angle);
-    angle *= angle;
-    fade = 1.0f - angle * angle;
-    fade *= 1.0f - smoothstep(0.0f, grid_buf.distance, dist - grid_buf.distance);
+    /* Add fade towards camera clip plane. */
+    float far_clip = -drw_view_far();
+    out_color.a *= 1.0f - smoothstep(0.0f, 0.5f * far_clip, dist - 0.5f * far_clip);
   }
   else {
-    dist = gl_FragCoord.z * 2.0f - 1.0f;
-    /* Avoid fading in +Z direction in camera view (see #70193). */
-    dist = flag_test(grid_flag, GRID_CAMERA) ? clamp(dist, 0.0f, 1.0f) : abs(dist);
-    fade = 1.0f - smoothstep(0.0f, 0.5f, dist - 0.5f);
-    dist = 1.0f; /* Avoid branch after. */
+    /* Fade at edge of grid level in orthographic, in case of rather small units. */
+    if (!flag_test(grid_flag, GRID_SIMA)) {
+      float length_fade = 1.0f - min(1.0f, dot(vertex_out.coord, vertex_out.coord));
+      out_color.a *= pow2f(length_fade);
+    }
 
+    /* Add fade at steep angles for contents of the floor plane. */
     if (flag_test(grid_flag, PLANE_XY)) {
-      float angle = 1.0f - abs(drw_view().viewinv[2].z);
-      dist = 1.0f + angle * 2.0f;
-      angle *= angle;
-      fade *= 1.0f - angle * angle;
+      float3 V = -drw_view_forward();
+      out_color.a *= 1.0f - pow3f(1.0f - abs(V.z));
     }
   }
 
-  if (flag_test(grid_flag, SHOW_GRID)) {
-    /* Using `max(dot(dFdxPos, drw_view().viewinv[0]), dot(dFdyPos, drw_view().viewinv[1]))`
-     * would be more accurate, but not really necessary. */
-    float grid_res = dot(dFdxPos, drw_view().viewinv[0].xyz);
-
-    /* The grid begins to appear when it comprises 4 pixels. */
-    grid_res *= 4;
-
-    /* For UV/Image editor use grid_buf.zoom_factor. */
-    if (flag_test(grid_flag, PLANE_IMAGE) &&
-        /* Grid begins to appear when the length of one grid unit is at least
-         * (256/grid_size) pixels Value of grid_size defined in `overlay_grid.c`. */
-        !flag_test(grid_flag, CUSTOM_GRID))
-    {
-      grid_res = grid_buf.zoom_factor;
-    }
-
-/** Keep in sync with `SI_GRID_STEPS_LEN` in `DNA_space_types.h`. */
-#define STEPS_LEN 8
-    int step_id_x = STEPS_LEN - 1;
-    int step_id_y = STEPS_LEN - 1;
-
-    /* Loop backwards a compile-time-constant number of steps. */
-    for (int i = STEPS_LEN - 2; i >= 0; --i) {
-      step_id_x = (grid_res < grid_buf.steps[i].x) ? i : step_id_x; /* Branchless. */
-      step_id_y = (grid_res < grid_buf.steps[i].y) ? i : step_id_y;
-    }
-
-    /* From biggest to smallest. */
-    float scale0x = step_id_x > 0 ? grid_buf.steps[step_id_x - 1].x : 0.0f;
-    float scaleAx = grid_buf.steps[step_id_x].x;
-    float scaleBx = grid_buf.steps[min(step_id_x + 1, STEPS_LEN - 1)].x;
-    float scaleCx = grid_buf.steps[min(step_id_x + 2, STEPS_LEN - 1)].x;
-
-    float scale0y = step_id_y > 0 ? grid_buf.steps[step_id_y - 1].y : 0.0f;
-    float scaleAy = grid_buf.steps[step_id_y].y;
-    float scaleBy = grid_buf.steps[min(step_id_y + 1, STEPS_LEN - 1)].y;
-    float scaleCy = grid_buf.steps[min(step_id_y + 2, STEPS_LEN - 1)].y;
-
-    /* Subtract from 1.0 to fix blending when `scale0x == scaleAx`. */
-    float blend = 1.0f - linearstep(scale0x + scale0y, scaleAx + scaleAy, grid_res + grid_res);
-    blend = blend * blend * blend;
-
-    float2 grid_pos, grid_fwidth;
-    if (flag_test(grid_flag, PLANE_XZ)) {
-      grid_pos = P.xz;
-      grid_fwidth = fwidthPos.xz;
-    }
-    else if (flag_test(grid_flag, PLANE_YZ)) {
-      grid_pos = P.yz;
-      grid_fwidth = fwidthPos.yz;
-    }
-    else {
-      grid_pos = P.xy;
-      grid_fwidth = fwidthPos.xy;
-    }
-
-    float gridA = get_grid(grid_pos, grid_fwidth, float2(scaleAx, scaleAy));
-    float gridB = get_grid(grid_pos, grid_fwidth, float2(scaleBx, scaleBy));
-    float gridC = get_grid(grid_pos, grid_fwidth, float2(scaleCx, scaleCy));
-
-    out_color = theme.colors.grid;
-    out_color.a *= gridA * blend;
-    out_color = mix(out_color, mix(theme.colors.grid, theme.colors.grid_emphasis, blend), gridB);
-    out_color = mix(out_color, theme.colors.grid_emphasis, gridC);
-  }
-  else {
-    out_color = float4(theme.colors.grid.rgb, 0.0f);
+  /* Viewport anti-aliasing output. */
+  if (out_color.a != 0.0f) {
+    line_output = pack_line_data(gl_FragCoord.xy, edge_start, edge_pos);
   }
 
-  if (flag_test(grid_flag, (SHOW_AXIS_X | SHOW_AXIS_Y | SHOW_AXIS_Z))) {
-    /* Setup axes 'domains' */
-    float3 axes_dist, axes_fwidth;
-
-    if (flag_test(grid_flag, SHOW_AXIS_X)) {
-      axes_dist.x = dot(P.yz, plane_axes.yz);
-      axes_fwidth.x = dot(fwidthPos.yz, plane_axes.yz);
-    }
-    if (flag_test(grid_flag, SHOW_AXIS_Y)) {
-      axes_dist.y = dot(P.xz, plane_axes.xz);
-      axes_fwidth.y = dot(fwidthPos.xz, plane_axes.xz);
-    }
-    if (flag_test(grid_flag, SHOW_AXIS_Z)) {
-      axes_dist.z = dot(P.xy, plane_axes.xy);
-      axes_fwidth.z = dot(fwidthPos.xy, plane_axes.xy);
-    }
-
-    /* Computing all axes at once using float3 */
-    float3 axes = get_axes(axes_dist, axes_fwidth, 0.1f);
-
-    if (flag_test(grid_flag, SHOW_AXIS_X)) {
-      out_color.a = max(out_color.a, axes.x);
-      out_color.rgb = (axes.x < 1e-8f) ? out_color.rgb : theme.colors.grid_axis_x.rgb;
-    }
-    if (flag_test(grid_flag, SHOW_AXIS_Y)) {
-      out_color.a = max(out_color.a, axes.y);
-      out_color.rgb = (axes.y < 1e-8f) ? out_color.rgb : theme.colors.grid_axis_y.rgb;
-    }
-    if (flag_test(grid_flag, SHOW_AXIS_Z)) {
-      out_color.a = max(out_color.a, axes.z);
-      out_color.rgb = (axes.z < 1e-8f) ? out_color.rgb : theme.colors.grid_axis_z.rgb;
+  /* Alpha discard; discard by stipple pattern for low alpha, to account for overlays
+   * incompatible with depth+blend, e.g. MeshEdit. */
+  {
+    constexpr float dash_width = 4.0f; /* Width of dash pattern; increase to make lines longer. */
+    constexpr float fade_start = 0.1f; /* Cutoff for dash fade; alpha above is fully drawn. */
+    constexpr float fade_rcp = 1.0f / fade_start;
+    float dist = distance(edge_start, edge_pos);
+    if (out_color.a < fade_start && fade_rcp * out_color.a < fract(dist / dash_width)) {
+      gpu_discard_fragment();
     }
   }
 
-  float2 uv = gl_FragCoord.xy / float2(textureSize(depth_tx, 0));
-  float scene_depth = texture(depth_tx, uv, 0).r;
-
-  float scene_depth_infront = texture(depth_infront_tx, uv, 0).r;
-  if (scene_depth_infront != 1.0f) {
-    /* Treat in front objects as if they were on the near plane to occlude the grid. */
-    scene_depth = 0.0f;
+  /* Grid iteration additive alpha in perspective view; lower iterations
+   * are given stronger alpha to minimize pop-in of upper iterations. */
+  if (drw_view_is_perspective()) {
+    constexpr float additive_alpha[4] = {0.4f, 0.3f, 0.2f, 0.1f};
+    out_color.a *= additive_alpha[grid_iter];
   }
-
-  if (flag_test(grid_flag, GRID_BACK)) {
-    fade *= (scene_depth == 1.0f) ? 1.0f : 0.0f;
-  }
-  else {
-    /* Add a small bias so the grid will always be below of a mesh with the same depth. */
-    float grid_depth = gl_FragCoord.z + 4.8e-7f;
-    /* Manual, non hard, depth test:
-     * Progressively fade the grid below occluders
-     * (avoids popping visuals due to depth buffer precision) */
-    /* Harder settings tend to flicker more,
-     * but have less "see through" appearance. */
-    float bias = max(gpu_fwidth(gl_FragCoord.z), 2.4e-7f);
-    fade *= linearstep(grid_depth, grid_depth + bias, scene_depth);
-  }
-
-  out_color.a *= fade;
 }

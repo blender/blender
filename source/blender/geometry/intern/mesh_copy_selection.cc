@@ -98,8 +98,8 @@ static void gather_vert_attributes(const Mesh &mesh_src,
                                    Mesh &mesh_dst)
 {
   Set<std::string> vertex_group_names;
-  LISTBASE_FOREACH (bDeformGroup *, group, &mesh_src.vertex_group_names) {
-    vertex_group_names.add(group->name);
+  for (bDeformGroup &group : mesh_src.vertex_group_names) {
+    vertex_group_names.add(group.name);
   }
 
   const Span<MDeformVert> src = mesh_src.deform_verts();

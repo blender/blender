@@ -34,15 +34,16 @@
 
 #include "MOD_lineart.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
 
-void get_lineart_modifier_limits(const Object &ob,
-                                 blender::ed::greasepencil::LineartLimitInfo &info)
+namespace ed::greasepencil {
+
+void get_lineart_modifier_limits(const Object &ob, ed::greasepencil::LineartLimitInfo &info)
 {
   bool is_first = true;
-  LISTBASE_FOREACH (const ModifierData *, md, &ob.modifiers) {
-    if (md->type == eModifierType_GreasePencilLineart) {
-      const auto *lmd = reinterpret_cast<const GreasePencilLineartModifierData *>(md);
+  for (const ModifierData &md : ob.modifiers) {
+    if (md.type == eModifierType_GreasePencilLineart) {
+      const auto *lmd = reinterpret_cast<const GreasePencilLineartModifierData *>(&md);
       if (is_first || (lmd->flags & MOD_LINEART_USE_CACHE)) {
         info.min_level = std::min<int>(info.min_level, lmd->level_start);
         info.max_level = std::max<int>(
@@ -57,7 +58,7 @@ void get_lineart_modifier_limits(const Object &ob,
 }
 
 void set_lineart_modifier_limits(GreasePencilLineartModifierData &lmd,
-                                 const blender::ed::greasepencil::LineartLimitInfo &info,
+                                 const ed::greasepencil::LineartLimitInfo &info,
                                  const bool cache_is_ready)
 {
   BLI_assert(lmd.modifier.type == eModifierType_GreasePencilLineart);
@@ -81,15 +82,15 @@ GreasePencilLineartModifierData *get_first_lineart_modifier(const Object &ob)
 {
   /* This function always gets the first line art modifier regardless of their visibility, because
    * cached line art configuration are always inside the first line art modifier. */
-  LISTBASE_FOREACH (ModifierData *, i_md, &ob.modifiers) {
-    if (i_md->type == eModifierType_GreasePencilLineart) {
-      return reinterpret_cast<GreasePencilLineartModifierData *>(i_md);
+  for (ModifierData &i_md : ob.modifiers) {
+    if (i_md.type == eModifierType_GreasePencilLineart) {
+      return reinterpret_cast<GreasePencilLineartModifierData *>(&i_md);
     }
   }
   return nullptr;
 }
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 struct LineartBakeJob {
   wmWindowManager *wm;
@@ -99,7 +100,7 @@ struct LineartBakeJob {
 
   /* C or ob must have one != nullptr. */
   bContext *C;
-  blender::Vector<Object *> objects;
+  Vector<Object *> objects;
   Scene *scene;
   Depsgraph *dg;
   int frame;
@@ -118,14 +119,14 @@ static bool clear_strokes(Object *ob, ModifierData *md, int frame)
   GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ob->data);
 
-  blender::bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(lmd->target_layer);
+  bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(lmd->target_layer);
   if (!node || !node->is_layer()) {
     return false;
   }
-  blender::bke::greasepencil::Layer &layer = node->as_layer();
+  bke::greasepencil::Layer &layer = node->as_layer();
 
   if (layer.start_frame_at(frame) == frame) {
-    blender::bke::greasepencil::Drawing *drawing = grease_pencil->get_drawing_at(layer, frame);
+    bke::greasepencil::Drawing *drawing = grease_pencil->get_drawing_at(layer, frame);
     if (!drawing) {
       return false;
     }
@@ -166,13 +167,13 @@ static bool bake_strokes(Object *ob,
 
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ob->data);
 
-  blender::bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(lmd->target_layer);
+  bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(lmd->target_layer);
   if (!node || !node->is_layer()) {
     return false;
   }
-  blender::bke::greasepencil::Layer &layer = node->as_layer();
+  bke::greasepencil::Layer &layer = node->as_layer();
 
-  blender::bke::greasepencil::Drawing *drawing = nullptr;
+  bke::greasepencil::Drawing *drawing = nullptr;
   if (layer.start_frame_at(frame) == frame) {
     drawing = grease_pencil->get_drawing_at(layer, frame);
   }
@@ -241,26 +242,27 @@ static bool bake_single_target(LineartBakeJob *bj, Object *ob, int frame)
   }
 
   if (bj->overwrite_frames) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_GreasePencilLineart) {
-        if (clear_strokes(ob, md, frame)) {
+    for (ModifierData &md : ob->modifiers) {
+      if (md.type == eModifierType_GreasePencilLineart) {
+        if (clear_strokes(ob, &md, frame)) {
           touched = true;
         }
       }
     }
   }
 
-  blender::ed::greasepencil::LineartLimitInfo info;
-  blender::ed::greasepencil::get_lineart_modifier_limits(*ob, info);
+  ed::greasepencil::LineartLimitInfo info;
+  ed::greasepencil::get_lineart_modifier_limits(*ob, info);
 
   LineartCache *lc = nullptr;
   bool is_first = true;
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type != eModifierType_GreasePencilLineart) {
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type != eModifierType_GreasePencilLineart) {
       continue;
     }
-    GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
-    blender::ed::greasepencil::set_lineart_modifier_limits(*lmd, info, is_first);
+    GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(
+        &md);
+    ed::greasepencil::set_lineart_modifier_limits(*lmd, info, is_first);
 
     if (bake_strokes(ob, bj->dg, &lc, lmd, frame, is_first)) {
       touched = true;
@@ -277,10 +279,10 @@ static void guard_modifiers(LineartBakeJob &bj)
   for (const int object : bj.objects.index_range()) {
     Object *ob = bj.objects[object];
 
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_GreasePencilLineart) {
+    for (ModifierData &md : ob->modifiers) {
+      if (md.type == eModifierType_GreasePencilLineart) {
         GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(
-            md);
+            &md);
         lmd->flags |= MOD_LINEART_IS_BAKED;
       }
     }
@@ -369,8 +371,8 @@ static wmOperatorStatus lineart_bake_common(bContext *C,
   else {
     /* #CTX_DATA_BEGIN is not available for iterating in objects while using the job system. */
     CTX_DATA_BEGIN (C, Object *, ob, visible_objects) {
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (md->type == eModifierType_GreasePencilLineart) {
+      for (ModifierData &md : ob->modifiers) {
+        if (md.type == eModifierType_GreasePencilLineart) {
           bj->objects.append(ob);
           break;
         }
@@ -449,25 +451,25 @@ static wmOperatorStatus lineart_bake_strokes_common_modal(bContext *C,
 
 static void lineart_gpencil_clear_strokes_exec_common(Object *ob)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type != eModifierType_GreasePencilLineart) {
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type != eModifierType_GreasePencilLineart) {
       continue;
     }
-    GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
+    GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(
+        &md);
     GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ob->data);
 
-    blender::bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(
-        lmd->target_layer);
+    bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(lmd->target_layer);
     if (!node || !node->is_layer()) {
       return;
     }
-    blender::bke::greasepencil::Layer &layer = node->as_layer();
+    bke::greasepencil::Layer &layer = node->as_layer();
 
     /* Remove all the keyframes in this layer. */
     grease_pencil->remove_frames(layer, layer.sorted_keys());
     grease_pencil->insert_frame(layer, 0);
 
-    md->mode |= eModifierMode_Realtime | eModifierMode_Render;
+    md.mode |= eModifierMode_Realtime | eModifierMode_Render;
 
     lmd->flags &= (~MOD_LINEART_IS_BAKED);
   }
@@ -508,7 +510,7 @@ static void OBJECT_OT_lineart_bake_strokes(wmOperatorType *ot)
   ot->description = "Bake Line Art for current Grease Pencil object";
   ot->idname = "OBJECT_OT_lineart_bake_strokes";
 
-  ot->poll = blender::ed::greasepencil::active_grease_pencil_poll;
+  ot->poll = ed::greasepencil::active_grease_pencil_poll;
   ot->invoke = lineart_bake_strokes_invoke;
   ot->exec = lineart_bake_strokes_exec;
   ot->modal = lineart_bake_strokes_common_modal;
@@ -522,7 +524,7 @@ static void OBJECT_OT_lineart_clear(wmOperatorType *ot)
   ot->description = "Clear all strokes in current Grease Pencil object";
   ot->idname = "OBJECT_OT_lineart_clear";
 
-  ot->poll = blender::ed::greasepencil::active_grease_pencil_poll;
+  ot->poll = ed::greasepencil::active_grease_pencil_poll;
   ot->exec = lineart_gpencil_clear_strokes_exec;
 
   RNA_def_boolean(ot->srna, "clear_all", false, "Clear All", "Clear all Line Art modifier bakes");
@@ -533,3 +535,5 @@ void ED_operatortypes_grease_pencil_lineart()
   WM_operatortype_append(OBJECT_OT_lineart_bake_strokes);
   WM_operatortype_append(OBJECT_OT_lineart_clear);
 }
+
+}  // namespace blender

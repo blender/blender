@@ -13,11 +13,13 @@
 
 #include "BKE_compute_context_cache_fwd.hh"
 
+namespace blender {
+
 struct Object;
 struct NodesModifierData;
 struct wmWindowManager;
 
-namespace blender::nodes::gizmos {
+namespace nodes::gizmos {
 
 namespace ie = inverse_eval;
 
@@ -140,4 +142,5 @@ void apply_gizmo_change(bContext &C,
  */
 bool value_node_has_gizmo(const bNodeTree &tree, const bNode &node);
 
-}  // namespace blender::nodes::gizmos
+}  // namespace nodes::gizmos
+}  // namespace blender

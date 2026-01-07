@@ -20,7 +20,7 @@ struct Vertex {
   float vertex_data[DIMENSIONS];
 };
 
-void clear(inout Vertex v)
+void clear(Vertex &v)
 {
   for (int i = 0; i < DIMENSIONS; i++) {
     v.vertex_data[i] = 0.0f;
@@ -92,7 +92,7 @@ void write_vertex(uint index, Vertex v)
 #else
   uint base_index = uint(shader_data.dst_offset) + index * DIMENSIONS;
 #  ifdef NORMALIZE
-  vec3 value = vec3(v.vertex_data[0], v.vertex_data[1], v.vertex_data[2]);
+  float3 value = float3(v.vertex_data[0], v.vertex_data[1], v.vertex_data[2]);
   value = normalize(value);
   v.vertex_data[0] = value.x;
   v.vertex_data[1] = value.y;
@@ -115,7 +115,7 @@ Vertex interp_vertex(Vertex v0, Vertex v1, Vertex v2, Vertex v3, float2 uv)
   return result;
 }
 
-void add_with_weight(inout Vertex v0, Vertex v1, float weight)
+void add_with_weight(Vertex &v0, Vertex v1, float weight)
 {
   for (int i = 0; i < DIMENSIONS; i++) {
     v0.vertex_data[i] += v1.vertex_data[i] * weight;

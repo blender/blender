@@ -92,15 +92,13 @@ class ConvolveOperation : public NodeOperation {
 
   KernelDataType get_kernel_data_type()
   {
-    const Result &input = this->get_input("Kernel Data Type");
-    const MenuValue default_menu_value = MenuValue(KernelDataType::Float);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<KernelDataType>(menu_value.value);
+    return KernelDataType(
+        this->get_input("Kernel Data Type").get_single_value_default<MenuValue>().value);
   }
 
   bool get_normalize_kernel()
   {
-    return this->get_input("Normalize Kernel").get_single_value_default(true);
+    return this->get_input("Normalize Kernel").get_single_value_default<bool>();
   }
 };
 
@@ -111,7 +109,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeConvolve");
   ntype.ui_name = "Convolve";
@@ -120,7 +118,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.get_compositor_operation = get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

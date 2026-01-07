@@ -228,7 +228,7 @@ struct SGLSLMeshToTangent {
         return mikk::float3(this->face_normals[face_index]);
       }
 #ifdef USE_TRI_DETECT_QUADS
-      const blender::IndexRange face = this->faces[face_index];
+      const IndexRange face = this->faces[face_index];
       float normal[3];
       if (face.size() == 4) {
         normal_quad_v3(normal,
@@ -329,6 +329,7 @@ Array<Array<float4>> calc_uv_tangents(const Span<float3> vert_positions,
       mesh2tangent.face_normals = face_normals;
       mesh2tangent.corner_normals = corner_normals;
       mesh2tangent.uv_map = uv_maps[i];
+      mesh2tangent.orco = vert_positions;
 
       mesh2tangent.face_as_quad_map = face_as_quad_map;
       mesh2tangent.num_face_as_quad_map = num_face_as_quad_map;

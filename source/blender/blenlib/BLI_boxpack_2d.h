@@ -8,13 +8,13 @@
  * \ingroup bli
  */
 
-#include <stdbool.h>
+#include "DNA_listBase.h"
 
-struct ListBase;
+namespace blender {
 
 /* Box Packer */
 
-typedef struct BoxPack {
+struct BoxPack {
   float x;
   float y;
   float w;
@@ -25,7 +25,7 @@ typedef struct BoxPack {
   struct BoxVert *v[4];
 
   int index;
-} BoxPack;
+};
 
 /**
  * Main box-packing function accessed from other functions
@@ -45,11 +45,11 @@ typedef struct BoxPack {
 void BLI_box_pack_2d(
     BoxPack *boxarray, unsigned int len, bool sort_boxes, float *r_tot_x, float *r_tot_y);
 
-typedef struct FixedSizeBoxPack {
+struct FixedSizeBoxPack {
   struct FixedSizeBoxPack *next, *prev;
   int x, y;
   int w, h;
-} FixedSizeBoxPack;
+};
 
 /**
  * Packs boxes into a fixed area.
@@ -66,7 +66,9 @@ typedef struct FixedSizeBoxPack {
  * larger boxes should come first, though how exactly size is best defined (e.g. area, perimeter)
  * depends on the particular application.
  */
-void BLI_box_pack_2d_fixedarea(struct ListBase *boxes,
+void BLI_box_pack_2d_fixedarea(ListBaseT<FixedSizeBoxPack> *boxes,
                                int width,
                                int height,
-                               struct ListBase *packed);
+                               ListBaseT<FixedSizeBoxPack> *packed);
+
+}  // namespace blender

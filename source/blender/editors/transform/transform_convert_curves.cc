@@ -294,7 +294,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
   /* Count selected elements per object and create TransData structs. */
   for (const int i : trans_data_contrainers.index_range()) {
     TransDataContainer &tc = trans_data_contrainers[i];
-    Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
+    Curves *curves_id = id_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     CurvesTransformData *curves_transform_data = create_curves_transform_custom_data(
         tc.custom.type);
@@ -368,7 +368,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
       continue;
     }
     Object *object = tc.obedit;
-    Curves *curves_id = static_cast<Curves *>(object->data);
+    Curves *curves_id = id_cast<Curves *>(object->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*depsgraph, *object);
@@ -445,7 +445,7 @@ static void recalcData_curves(TransInfo *t)
 
   const Span<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   for (const TransDataContainer &tc : trans_data_contrainers) {
-    Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
+    Curves *curves_id = id_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     if (t->mode == TFM_CURVE_SHRINKFATTEN) {
       curves.tag_radii_changed();
@@ -598,7 +598,8 @@ void curve_populate_trans_data_structs(const TransInfo &t,
         return;
       }
       float3 center(0.0f);
-      selection.foreach_index([&](const int64_t point_i) { center += point_positions[point_i]; });
+      selection.foreach_index_optimized<int64_t>(
+          [&](const int64_t point_i) { center += point_positions[point_i]; });
       center /= selection.size();
       mean_center_point_per_curve[curve_i] = center;
     });

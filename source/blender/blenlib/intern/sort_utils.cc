@@ -10,6 +10,8 @@
 
 #include "BLI_sort_utils.h" /* own include */
 
+namespace blender {
+
 struct SortAnyByFloat {
   float sort_value;
 };
@@ -77,3 +79,5 @@ int BLI_sortutil_cmp_int_reverse(const void *a_, const void *b_)
 
   return 0;
 }
+
+}  // namespace blender

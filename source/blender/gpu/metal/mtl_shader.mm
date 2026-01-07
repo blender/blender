@@ -42,7 +42,6 @@
 
 #include "GHOST_C-api.h"
 
-using namespace blender;
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
@@ -461,8 +460,8 @@ void MTLShader::warm_cache(int limit)
     MTLShader *parent_mtl = static_cast<MTLShader *>(parent_shader_);
 
     /* Extract PSO descriptors from parent shader. */
-    blender::Vector<MTLRenderPipelineStateDescriptor> descriptors;
-    blender::Vector<MTLPrimitiveTopologyClass> prim_classes;
+    Vector<MTLRenderPipelineStateDescriptor> descriptors;
+    Vector<MTLPrimitiveTopologyClass> prim_classes;
 
     parent_mtl->pso_cache_lock_.lock();
     for (const auto &pso_entry : parent_mtl->pso_cache_.items()) {

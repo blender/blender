@@ -10,9 +10,11 @@
 
 #include "BKE_node.hh"
 
-extern struct blender::bke::bNodeTreeType *ntreeType_Shader;
+namespace blender {
 
-void register_node_type_sh_custom_group(blender::bke::bNodeType *ntype);
+extern struct bke::bNodeTreeType *ntreeType_Shader;
+
+void register_node_type_sh_custom_group(bke::bNodeType *ntype);
 
 struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
 void ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
@@ -31,3 +33,5 @@ struct bNode *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
  * This one needs to work on a local tree.
  */
 void ntreeGPUMaterialNodes(struct bNodeTree *localtree, struct GPUMaterial *mat);
+
+}  // namespace blender

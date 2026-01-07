@@ -10,6 +10,7 @@
  */
 
 #include "DNA_ID.h"
+#include "DNA_listBase.h"
 
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -17,12 +18,13 @@
 
 #include "BKE_main.hh"
 
+namespace blender {
+
 struct FileData;
-struct ListBase;
 struct Main;
 struct UniqueName_Map;
 
-namespace blender::bke::library {
+namespace bke::library {
 
 struct LibraryRuntime {
   /** Used for efficient calculations of unique names. */
@@ -59,7 +61,7 @@ struct LibraryRuntime {
    * Helper listing all archived libraries 'versions' of this library.
    * Should only contain something if this library is a regular 'real' blendfile library.
    */
-  blender::Vector<Library *> archived_libraries = {};
+  Vector<Library *> archived_libraries = {};
 
   /** #eLibrary_Tag. */
   ushort tag = 0;
@@ -73,12 +75,19 @@ struct LibraryRuntime {
 
   /** Color-space information. */
   MainColorspace colorspace;
+
+  /**
+   * Temporary data used when reading a memfile undo step, to detect re-used regular linked IDs
+   * that are no more needed. See #read_undo_move_libmain_data, #read_libblock_undo_restore_linked
+   * and #read_undo_libraries_cleanup_unused_ids.
+   */
+  Set<ID *> unused_ids_on_undo;
 };
 
 /**
  * Search for given absolute filepath in all libraries in given #ListBase.
  */
-Library *search_filepath_abs(ListBase *libraries, blender::StringRef filepath_abs);
+Library *search_filepath_abs(ListBaseT<Library> *libraries, StringRef filepath_abs);
 
 /**
  * Pack given linked ID, and all the related hierarchy.
@@ -106,7 +115,7 @@ void main_cleanup_parent_archives(Main &bmain);
 Library *ensure_archive_library(
     Main &bmain, ID &id, Library &reference_library, const IDHash &id_deep_hash, bool &is_new);
 
-};  // namespace blender::bke::library
+};  // namespace bke::library
 
 /** #LibraryRuntime.tag */
 enum eLibrary_Tag {
@@ -136,3 +145,5 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath);
  * linked libraries lose their 'parent' pointer, making them wrongly directly used ones.
  */
 void BKE_library_main_rebuild_hierarchy(Main *bmain);
+
+}  // namespace blender
