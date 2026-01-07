@@ -3916,7 +3916,7 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
 
   cache->saved_smooth_size = BKE_brush_size_get(paint, smooth_brush);
   BKE_brush_size_set(paint, smooth_brush, cur_brush_size);
-  BKE_curvemapping_init(smooth_brush->curve_distance_falloff);
+  bke::brush::common_pressure_curves_init(*smooth_brush);
 }
 
 static void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)

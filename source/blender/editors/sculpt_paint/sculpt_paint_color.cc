@@ -579,8 +579,6 @@ void do_paint_brush(const Depsgraph &depsgraph,
     return;
   }
 
-  BKE_curvemapping_init(brush.curve_distance_falloff);
-
   float4x4 mat;
 
   /* If the brush is round the tip does not need to be aligned to the surface, so this saves a
@@ -907,8 +905,6 @@ void do_smear_brush(const Depsgraph &depsgraph,
       }
     });
   }
-
-  BKE_curvemapping_init(brush.curve_distance_falloff);
 
   /* Smooth colors mode. */
   if (ss.cache->alt_smooth) {

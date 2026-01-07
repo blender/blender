@@ -918,7 +918,7 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
   }
 
   /* initialize here to avoid initialization conflict with threaded strokes */
-  BKE_curvemapping_init(this->brush->curve_distance_falloff);
+  bke::brush::common_pressure_curves_init(*this->brush);
   if (this->paint->flags & PAINT_USE_CAVITY_MASK) {
     BKE_curvemapping_init(this->paint->cavity_curve);
   }
@@ -1499,10 +1499,6 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
         stroke_cursor_ = WM_paint_cursor_activate(
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_line_cursor, this);
       }
-
-      BKE_curvemapping_init(br->curve_size);
-      BKE_curvemapping_init(br->curve_strength);
-      BKE_curvemapping_init(br->curve_jitter);
 
       first_dab = true;
     }
