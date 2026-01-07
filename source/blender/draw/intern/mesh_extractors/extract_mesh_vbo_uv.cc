@@ -160,7 +160,12 @@ gpu::VertBufPtr extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
   /* Index of the UV layer in the compact buffer. Used UV layers are stored in a single buffer. */
   for (const int pack_layer_index : uv_layers.index_range()) {
     const StringRef name = uv_layers[pack_layer_index];
-    const int i = all_uv_maps.index_of(name);
+    /* This lookup may fail because some modifiers (e.g. Skin)
+     * do not generate UV maps. See: #151787. */
+    const int i = all_uv_maps.index_of_try(name);
+    if (i == -1) {
+      continue;
+    }
     const int offset = int(subdiv_cache.num_subdiv_loops) * pack_layer_index;
     draw_subdiv_extract_uvs(subdiv_cache, vbo.get(), i, offset);
   }
