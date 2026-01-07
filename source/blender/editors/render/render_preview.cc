@@ -373,7 +373,7 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
 
 World *ED_preview_prepare_world_simple(Main *pr_main)
 {
-  using namespace bke;
+  using namespace blender::bke;
 
   World *world = BKE_world_add(pr_main, "SimpleWorld");
   bNodeTree *ntree = world->nodetree;

@@ -32,8 +32,8 @@ typedef void (*IteratorBeginCb)(BLI_Iterator *iter, void *data_in);
 #define ITER_BEGIN(callback_begin, callback_next, callback_end, _data_in, _type, _instance) \
   { \
     _type _instance; \
-    ::blender::IteratorCb callback_end_func = callback_end; \
-    ::blender::BLI_Iterator iter_macro; \
+    blender::IteratorCb callback_end_func = callback_end; \
+    blender::BLI_Iterator iter_macro; \
     BLI_ITERATOR_INIT(&iter_macro); \
     for (callback_begin(&iter_macro, (_data_in)); iter_macro.valid; callback_next(&iter_macro)) { \
       if (iter_macro.skip) { \

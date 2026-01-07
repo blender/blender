@@ -587,7 +587,7 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 
 void ED_node_clipboard_free()
 {
-  using namespace ed::space_node;
+  using namespace blender::ed::space_node;
   NodeClipboard &clipboard = get_node_clipboard();
   clipboard.clear();
 }

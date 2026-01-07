@@ -195,7 +195,7 @@ static void ed_undo_step_post(bContext *C,
                               const enum eUndoStepDir undo_dir,
                               ReportList *reports)
 {
-  using namespace ed;
+  using namespace blender::ed;
   BLI_assert(ELEM(undo_dir, STEP_UNDO, STEP_REDO));
 
   Main *bmain = CTX_data_main(C);
@@ -773,7 +773,7 @@ void ED_OT_undo_history(wmOperatorType *ot)
 void ED_undo_object_set_active_or_warn(
     Scene *scene, ViewLayer *view_layer, Object *ob, const char *info, CLG_LogRef *log)
 {
-  using namespace ed;
+  using namespace blender::ed;
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob_prev = BKE_view_layer_active_object_get(view_layer);
   if (ob_prev != ob) {
@@ -812,7 +812,7 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
                                             uint object_array_len,
                                             uint object_array_stride)
 {
-  using namespace ed;
+  using namespace blender::ed;
   Main *bmain = G_MAIN;
   /* Don't request unique data because we want to de-select objects when exiting edit-mode
    * for that to be done on all objects we can't skip ones that share data. */

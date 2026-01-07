@@ -2708,7 +2708,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 
 static wmOperatorStatus copy_material_exec(bContext *C, wmOperator *op)
 {
-  using namespace bke::blendfile;
+  using namespace blender::bke::blendfile;
 
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);

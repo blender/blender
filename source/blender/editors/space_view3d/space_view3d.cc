@@ -1409,11 +1409,12 @@ static void view3d_tools_header_region_draw(const bContext *C, ARegion *region)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
+  using namespace blender::ed;
   wmKeyMap *keymap = WM_keymap_ensure(
       wm->runtime->defaultconf, "3D View Generic", SPACE_VIEW3D, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 
-  ed::asset::shelf::region_init(wm, region);
+  asset::shelf::region_init(wm, region);
 }
 
 /* area (not region) level listener */
@@ -1592,7 +1593,7 @@ static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_view3d()
 {
-  using namespace ed;
+  using namespace blender::ed;
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 

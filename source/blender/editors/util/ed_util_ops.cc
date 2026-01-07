@@ -261,7 +261,7 @@ static bool lib_id_generate_preview_poll(bContext *C)
 
 static wmOperatorStatus lib_id_generate_preview_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace ed;
+  using namespace blender::ed;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
@@ -322,7 +322,7 @@ static bool lib_id_generate_preview_from_object_poll(bContext *C)
 
 static wmOperatorStatus lib_id_generate_preview_from_object_exec(bContext *C, wmOperator * /*op*/)
 {
-  using namespace ed;
+  using namespace blender::ed;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 

@@ -136,8 +136,8 @@ using NodeGatherSocketLinkOperationsFunction = void (*)(nodes::GatherLinkSearchO
 using NodeGatherAddOperationsFunction = void (*)(nodes::GatherAddNodeSearchParams &params);
 
 using NodeGetCompositorOperationFunction =
-    ::blender::compositor::NodeOperation *(*)(::blender::compositor::Context & context,
-                                              nodes::DNode node);
+    blender::compositor::NodeOperation *(*)(blender::compositor::Context & context,
+                                            nodes::DNode node);
 using NodeExtraInfoFunction = void (*)(nodes::NodeExtraInfoParams &params);
 using NodeInverseElemEvalFunction = void (*)(nodes::value_elem::InverseElemEvalParams &params);
 using NodeElemEvalFunction = void (*)(nodes::value_elem::ElemEvalParams &params);
