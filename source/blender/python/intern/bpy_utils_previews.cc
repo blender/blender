@@ -28,7 +28,7 @@
 
 namespace blender {
 
-#define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT'"
+#define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT', 'OBJECT_IO'"
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -85,6 +85,7 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 {
   char *name;
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
+  /* Be sure to keep these in sync with #STR_SOURCE_TYPES. */
   const PyC_StringEnumItems path_type_items[] = {
       {THB_SOURCE_IMAGE, "IMAGE"},
       {THB_SOURCE_MOVIE, "MOVIE"},
