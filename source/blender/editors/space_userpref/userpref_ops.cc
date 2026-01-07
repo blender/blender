@@ -237,12 +237,12 @@ static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
       RNA_enum_get(ptr, "type"));
   switch (library_type) {
     case bUserAssetLibraryAddType::Remote: {
-      layout->prop(op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "remote_url", ui::ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       break;
     }
     case bUserAssetLibraryAddType::Local: {
       BLI_assert_unreachable();
-      layout->prop(op->ptr, "name", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "name", ui::ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       break;
     }
   }

@@ -54,13 +54,12 @@ RemoteAssetLibrary::RemoteAssetLibrary(const StringRef remote_url,
 
 std::optional<AssetLibraryReference> RemoteAssetLibrary::library_reference() const
 {
-  int i;
-  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
-    if ((asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) == 0) {
+  for (auto [i, asset_library] : U.asset_libraries.enumerate()) {
+    if ((asset_library.flag & ASSET_LIBRARY_USE_REMOTE_URL) == 0) {
       continue;
     }
 
-    if (asset_library->remote_url == this->remote_url_) {
+    if (asset_library.remote_url == this->remote_url_) {
       AssetLibraryReference library_ref{};
       library_ref.type = ASSET_LIBRARY_CUSTOM;
       library_ref.custom_library_index = i;

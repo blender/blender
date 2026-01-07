@@ -62,7 +62,7 @@ namespace blender {
 
 void ED_spacetypes_init()
 {
-  using namespace blender::ed;
+  using namespace ed;
   /* UI unit is a variable, may be used in some space type initialization. */
   U.widget_unit = 20;
 
@@ -151,7 +151,7 @@ void ED_spacetypes_init()
 
 void ED_spacemacros_init()
 {
-  using namespace blender::ed;
+  using namespace ed;
   /* Macros must go last since they reference other operators.
    * They need to be registered after python operators too. */
   ED_operatormacros_armature();
@@ -184,7 +184,7 @@ void ED_spacemacros_init()
 
 void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 {
-  using namespace blender::ed;
+  using namespace ed;
   ED_keymap_screen(keyconf);
   ED_keymap_anim(keyconf);
   ED_keymap_animchannels(keyconf);

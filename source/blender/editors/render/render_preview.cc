@@ -107,12 +107,6 @@ namespace blender {
 #  include "BLI_threads.h"
 #endif
 
-using blender::Map;
-using blender::Set;
-using blender::StringRef;
-using blender::StringRefNull;
-using blender::Vector;
-
 static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect);
 
 /* -------------------------------------------------------------------- */
@@ -379,7 +373,7 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
 
 World *ED_preview_prepare_world_simple(Main *pr_main)
 {
-  using namespace blender::bke;
+  using namespace bke;
 
   World *world = BKE_world_add(pr_main, "SimpleWorld");
   bNodeTree *ntree = world->nodetree;

@@ -459,7 +459,7 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   }
 
   for (const auto [i, asset_library] : U.asset_libraries.enumerate()) {
-    if (!BKE_preferences_asset_library_is_valid(asset_library, true)) {
+    if (!BKE_preferences_asset_library_is_valid(&asset_library, true)) {
       continue;
     }
     AssetLibraryReference library_ref{};
@@ -501,8 +501,8 @@ bool is_or_contains_remote_libraries(const AssetLibraryReference &reference)
 {
   switch (reference.type) {
     case ASSET_LIBRARY_ALL:
-      LISTBASE_FOREACH (const bUserAssetLibrary *, asset_library, &U.asset_libraries) {
-        if (asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+      for (const bUserAssetLibrary &asset_library : U.asset_libraries) {
+        if (asset_library.flag & ASSET_LIBRARY_USE_REMOTE_URL) {
           return true;
         }
       }

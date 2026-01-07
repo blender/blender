@@ -150,6 +150,18 @@ static bool is_filtered_id_file_type(const FileListInternEntry *file,
   return true;
 }
 
+/**
+ * Get the asset metadata of a file, if it represents an asset. This may either be of a local ID
+ * (ID in the current #Main) or read from an external asset library.
+ */
+static AssetMetaData *filelist_file_internal_get_asset_data(const FileListInternEntry *file)
+{
+  if (asset_system::AssetRepresentation *asset = file->get_asset()) {
+    return &asset->get_metadata();
+  }
+  return nullptr;
+}
+
 void prepare_filter_asset_library(const FileList *filelist, FileListFilter *filter)
 {
   /* Not used yet for the asset view template. */

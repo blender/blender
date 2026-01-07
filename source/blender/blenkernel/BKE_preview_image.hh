@@ -22,7 +22,6 @@ class StringRefNull;
 namespace gpu {
 class Texture;
 }
-}  // namespace blender
 struct ID;
 struct ImBuf;
 struct PreviewImage;

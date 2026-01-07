@@ -58,8 +58,7 @@ void ED_file_indexer_entries_extend_from_datablock_info(FileIndexerEntries *inde
                                                         const int idcode)
 {
   FileIndexerEntry *file_indexer_entry =
-      ed::file::indexer::file_indexer_entry_create_from_datablock_info(datablock_info,
-                                                                       idcode);
+      ed::file::indexer::file_indexer_entry_create_from_datablock_info(datablock_info, idcode);
   BLI_linklist_prepend(&indexer_entries->entries, file_indexer_entry);
 }
 

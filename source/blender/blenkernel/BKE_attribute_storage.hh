@@ -129,7 +129,7 @@ class AttributeStorageRuntime {
   CustomIDVectorSet<std::unique_ptr<Attribute>, AttributeNameGetter> attributes;
 };
 
-class AttributeStorage : public blender::AttributeStorage {
+class AttributeStorage : public ::blender::AttributeStorage {
  public:
   AttributeStorage();
   AttributeStorage(const AttributeStorage &other);
@@ -202,7 +202,7 @@ class AttributeStorage : public blender::AttributeStorage {
    */
   struct BlendWriteData {
     ResourceScope &scope;
-    Vector<blender::Attribute, 16> &attributes;
+    Vector<::blender::Attribute, 16> &attributes;
     explicit BlendWriteData(ResourceScope &scope);
   };
   /**

@@ -39,7 +39,6 @@ class StringRef;
 namespace asset_system {
 class AssetLibrary;
 }
-}  // namespace blender
 
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2

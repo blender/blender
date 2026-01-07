@@ -131,22 +131,23 @@ static int groupname_to_code(const char *group);
 
 static void remote_asset_library_refresh_online_assets_status(const FileList *filelist)
 {
-  LISTBASE_FOREACH (FileListInternEntry *, entry, &filelist->filelist_intern.entries) {
-    if ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
+  for (FileListInternEntry &entry : filelist->filelist_intern.entries) {
+    // LISTBASE_FOREACH (FileListInternEntry *, entry, &filelist->filelist_intern.entries) {
+    if ((entry.typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
       continue;
     }
 
     /* #AssetRepresentation.full_library_path() will only return a non-empty string if the asset's
      * path points into some .blend on disk. */
-    std::shared_ptr<asset_system::AssetRepresentation> asset = entry->asset.lock();
+    std::shared_ptr<asset_system::AssetRepresentation> asset = entry.asset.lock();
     std::string filepath = asset->full_library_path();
     if (!filepath.empty()) {
       BLI_assert(BLI_is_file(filepath.c_str()));
 
-      entry->typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+      entry.typeflag &= ~FILE_TYPE_ASSET_ONLINE;
       asset->online_asset_mark_downloaded();
 
-      if (FileDirEntry **cached_entry = filelist->filelist_cache->uids.lookup_ptr(entry->uid)) {
+      if (FileDirEntry **cached_entry = filelist->filelist_cache->uids.lookup_ptr(entry.uid)) {
         (*cached_entry)->typeflag &= ~FILE_TYPE_ASSET_ONLINE;
       }
     }
@@ -3356,7 +3357,7 @@ static void filelist_readjob_remote_asset_library_index_read(
       }
     }
 
-    ListBase entries = {nullptr};
+    ListBaseT<FileListInternEntry> entries = {nullptr};
 
     BLI_strncpy(job_params->cur_relbase,
                 entry.online_info.download_dst_filepath.c_str(),
@@ -3370,11 +3371,11 @@ static void filelist_readjob_remote_asset_library_index_read(
                                             entry.online_info);
 
     int entries_num = 0;
-    LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
-      entry->uid = filelist_uid_generate(filelist);
+    for (FileListInternEntry &entry : entries) {
+      entry.uid = filelist_uid_generate(filelist);
       char dir[FILE_MAX_LIBEXTRA];
-      entry->name = fileentry_uiname(dirpath, entry, dir);
-      entry->free_name = true;
+      entry.name = fileentry_uiname(dirpath, &entry, dir);
+      entry.free_name = true;
       entries_num++;
     }
 

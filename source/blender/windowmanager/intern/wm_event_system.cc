@@ -3535,7 +3535,7 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
                   continue;
                 }
 
-                if (wmDragAsset *asset_data = WM_drag_get_asset_data(drag, 0)) {
+                if (wmDragAsset *asset_data = WM_drag_get_asset_data(&drag, 0)) {
                   if (asset_data->asset->is_online()) {
                     BKE_reportf(CTX_wm_reports(C),
                                 RPT_ERROR,

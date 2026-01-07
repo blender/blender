@@ -582,7 +582,7 @@ static rcti file_measure_string_multiline(blender::StringRef string, const int w
     return {0, 0, 0, 0};
   }
 
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = ui::style_get();
   const int font_id = style->widget.uifont_id;
 
   rcti textbox;
@@ -989,20 +989,20 @@ static void file_draw_indicator_icons(const FileList *files,
                        0.6f,
                        0.0f,
                        light,
-                      true,
-                      UI_NO_ICON_OVERLAY_TEXT);
+                       true,
+                       UI_NO_ICON_OVERLAY_TEXT);
     }
     else if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) != 0) {
       if (selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_SELECTED)) {
         ui::icon_draw_ex(icon_x,
-                        icon_y,
-                        ICON_INTERNET,
-                        1.0f / UI_SCALE_FAC,
-                        0.6f,
-                        0.0f,
-                        light,
-                        true,
-                        UI_NO_ICON_OVERLAY_TEXT);
+                         icon_y,
+                         ICON_INTERNET,
+                         1.0f / UI_SCALE_FAC,
+                         0.6f,
+                         0.0f,
+                         light,
+                         true,
+                         UI_NO_ICON_OVERLAY_TEXT);
       }
     }
   }
@@ -1463,7 +1463,7 @@ void file_draw_list(const bContext *C, ARegion *region)
         /* Trigger the preview loader to wait until the download is done and load the preview from
          * disk. Has to be done explicitly here because the preview isn't attached to a button. */
         if (!file->asset->is_local_id()) {
-          UI_icon_render_id_ex(
+          ui::icon_render_id_ex(
               C, nullptr, nullptr, ICON_SIZE_PREVIEW, true, file->asset->get_preview());
         }
       }
@@ -1751,7 +1751,7 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
   using namespace blender;
 
   uchar text_col[4];
-  UI_GetThemeColor4ubv(TH_TEXT, text_col);
+  ui::theme::get_color_4ubv(TH_TEXT, text_col);
 
   const View2D *v2d = &region->v2d;
   const int pad_x = sfile->layout->tile_border_x * 2;
@@ -1782,10 +1782,10 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
   int sx = round_fl_to_int(BLI_rctf_cent_x(&v2d->tot) - box_width / 2.0f);
   int sy = round_fl_to_int(BLI_rctf_cent_y(&v2d->tot) + box_height / 2.0f);
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  ui::Block *block = ui::block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
 
   uiDefBut(block,
-           ButType::Roundbox,
+           ui::ButtonType::Roundbox,
            "",
            sx,
            sy - box_height,
@@ -1802,7 +1802,7 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
 
   {
     uiDefIconTextBut(block,
-                     ButType::Label,
+                     ui::ButtonType::Label,
                      ICON_INTERNET_OFFLINE,
                      "Internet Access Required",
                      sx,
@@ -1813,23 +1813,23 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
                      {});
 
     const int button_width = (wrap_width - pad_x) * 0.5f;
-    uiBut *but = uiDefIconTextButO(block,
-                                   ButType::But,
-                                   "WM_OT_context_set_boolean",
-                                   blender::wm::OpCallContext::InvokeDefault,
-                                   ICON_X,
-                                   "Continue Offline",
-                                   sx,
-                                   sy + pad_y - box_height + pad_y,
-                                   button_width,
-                                   UI_UNIT_Y,
-                                   {});
-    PointerRNA *but_opptr = UI_but_operator_ptr_ensure(but);
+    ui::Button *but = uiDefIconTextButO(block,
+                                        ui::ButtonType::But,
+                                        "WM_OT_context_set_boolean",
+                                        blender::wm::OpCallContext::InvokeDefault,
+                                        ICON_X,
+                                        "Continue Offline",
+                                        sx,
+                                        sy + pad_y - box_height + pad_y,
+                                        button_width,
+                                        UI_UNIT_Y,
+                                        {});
+    PointerRNA *but_opptr = ui::button_operator_ptr_ensure(but);
     RNA_string_set(but_opptr, "data_path", "preferences.extensions.use_online_access_handled");
     RNA_boolean_set(but_opptr, "value", true);
 
     uiDefIconTextButO(block,
-                      ButType::But,
+                      ui::ButtonType::But,
                       "extensions.userpref_allow_online",
                       blender::wm::OpCallContext::InvokeDefault,
                       ICON_CHECKMARK,
@@ -1841,8 +1841,8 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
                       {});
   }
 
-  UI_block_end(C, block);
-  UI_block_draw(C, block);
+  ui::block_end(C, block);
+  ui::block_draw(C, block);
 
   /* Draw multi-line text on top of widget drawing. */
   file_draw_string_multiline(sx,
@@ -1863,7 +1863,7 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
   using namespace blender;
 
   uchar text_col[4];
-  UI_GetThemeColor4ubv(TH_TEXT, text_col);
+  ui::theme::get_color_4ubv(TH_TEXT, text_col);
 
   const View2D *v2d = &region->v2d;
   const int pad_x = sfile->layout->tile_border_x * 2;
@@ -1873,7 +1873,7 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
   StringRefNull message =
       RemoteLibraryLoadingStatus::failure_message(library->remote_url).value_or("Unknown reason");
 
-  const int message_width = UI_fontstyle_string_width(&UI_style_get()->widget, message.c_str());
+  const int message_width = ui::fontstyle_string_width(&ui::style_get()->widget, message.c_str());
   const int box_width = std::min({available_width, UI_UNIT_X * 28, message_width + (2 * pad_x)});
   /* The width we have available inside the box. */
   const int wrap_width = box_width - 2 * pad_x;
@@ -1891,10 +1891,10 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
   int sx = round_fl_to_int(BLI_rctf_cent_x(&v2d->tot) - box_width / 2.0f);
   int sy = round_fl_to_int(BLI_rctf_cent_y(&v2d->tot) + box_height / 2.0f);
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  ui::Block *block = ui::block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
 
   uiDefBut(block,
-           ButType::Roundbox,
+           ui::ButtonType::Roundbox,
            "",
            sx,
            sy - box_height,
@@ -1911,7 +1911,7 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
 
   {
     uiDefIconTextBut(block,
-                     ButType::Label,
+                     ui::ButtonType::Label,
                      ICON_CANCEL,
                      "Asset Library Download Failed",
                      sx,
@@ -1922,8 +1922,8 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
                      {});
   }
 
-  UI_block_end(C, block);
-  UI_block_draw(C, block);
+  ui::block_end(C, block);
+  ui::block_draw(C, block);
 
   /* Draw multi-line text on top of widget drawing. */
   file_draw_string_multiline(sx,
@@ -1996,8 +1996,8 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
                                   filelist_islibrary(sfile->files, blendfile_path, nullptr);
   /* Call this before drawing a hint, otherwise drawing will not be visible. */
   const auto setup_view = [region]() {
-    UI_view2d_totRect_set(&region->v2d, region->winx, region->winy);
-    UI_view2d_view_ortho(&region->v2d);
+    ui::view2d_totRect_set(&region->v2d, region->winx, region->winy);
+    ui::view2d_view_ortho(&region->v2d);
   };
 
   if (is_asset_browser) {

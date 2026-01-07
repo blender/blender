@@ -14,12 +14,13 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender {
 struct bContext;
 struct bUserAssetLibrary;
 struct Main;
 struct ReportList;
 
-namespace blender::asset_system {
+namespace asset_system {
 
 /**
  * Combination of a URL of a remote resource, and its hash.
@@ -152,4 +153,5 @@ class RemoteLibraryLoadingStatus {
   void reset_timeout();
 };
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
+}  // namespace blender

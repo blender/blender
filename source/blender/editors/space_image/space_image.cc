@@ -1097,7 +1097,7 @@ static void image_header_region_listener(const wmRegionListenerParams *params)
 /* add handlers, stuff you only do once or on area/region changes */
 static void image_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
-  using namespace blender::ed;
+  using namespace ed;
   wmKeyMap *keymap = WM_keymap_ensure(
       wm->runtime->defaultconf, "Image Generic", SPACE_IMAGE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
@@ -1223,7 +1223,7 @@ static void image_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_image()
 {
-  using namespace blender::ed;
+  using namespace ed;
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 

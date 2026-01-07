@@ -390,7 +390,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
     return;
   }
 
-  using namespace blender::ed::space_node;
+  using namespace ed::space_node;
 
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);

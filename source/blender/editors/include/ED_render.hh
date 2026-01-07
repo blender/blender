@@ -30,9 +30,7 @@ struct ViewLayer;
 struct World;
 struct wmWindow;
 struct wmWindowManager;
-namespace blender {
 class StringRef;
-}
 
 /* `render_ops.cc` */
 
