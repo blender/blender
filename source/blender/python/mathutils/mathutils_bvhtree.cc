@@ -377,8 +377,8 @@ PyDoc_STRVAR(
     "\n"
     "   Find the nearest element (typically face index) to a point.\n"
     "\n"
-    "   :arg co: Find nearest element to this point.\n"
-    "   :type co: :class:`Vector`\n" PYBVH_FIND_GENERIC_DISTANCE_DOC
+    "   :arg origin: Find nearest element to this point.\n"
+    "   :type origin: :class:`Vector`\n" PYBVH_FIND_GENERIC_DISTANCE_DOC
         PYBVH_FIND_GENERIC_RETURN_DOC);
 static PyObject *py_bvhtree_find_nearest(PyBVHTree *self, PyObject *args)
 {

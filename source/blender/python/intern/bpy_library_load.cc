@@ -208,6 +208,7 @@ PyDoc_STRVAR(
     "filepath, "
     "*, "
     "link=False, "
+    "pack=False, "
     "relative=False, "
     "set_fake=False, "
     "recursive=False, "

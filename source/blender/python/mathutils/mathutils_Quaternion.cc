@@ -391,7 +391,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the exponential map representation of the quaternion.\n"
     "\n"
-    "   This representation consist of the rotation axis multiplied by the rotation angle.\n"
+    "   This representation consists of the rotation axis multiplied by the rotation angle.\n"
     "   Such a representation is useful for interpolation between multiple orientations.\n"
     "\n"
     "   :return: exponential map.\n"
@@ -694,8 +694,7 @@ static PyObject *Quaternion_normalized(QuaternionObject *self)
 /* -------------------------------------------------------------------- */
 /** \name Quaternion Methods: Invert
  *
- * Normalize the quaternion. This may change the angle as well as the
- * rotation axis, as all of (w, x, y, z) are scaled.
+ * Invert the quaternion, representing the inverse rotation.
  * \{ */
 
 PyDoc_STRVAR(

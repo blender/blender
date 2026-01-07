@@ -427,7 +427,7 @@ PyDoc_STRVAR(
     bpy_bmlayeritem_copy_from_doc,
     ".. method:: copy_from(other)\n"
     "\n"
-    "   Return a copy of the layer\n"
+    "   Copy data from another layer.\n"
     "\n"
     "   :arg other: Another layer to copy from.\n"
     "   :type other: :class:`bmesh.types.BMLayerItem`\n");

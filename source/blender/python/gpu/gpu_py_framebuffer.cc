@@ -541,7 +541,7 @@ static PyObject *pygpu_framebuffer_viewport_get(BPyGPUFrameBuffer *self)
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_read_color_doc,
-    ".. function:: read_color(x, y, xsize, ysize, channels, slot, format, *, data=data)\n"
+    ".. function:: read_color(x, y, xsize, ysize, channels, slot, format, *, data=None)\n"
     "\n"
     "   Read a block of pixels from the frame buffer.\n"
     "\n"
@@ -661,7 +661,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer_read_depth_doc,
-    ".. function:: read_depth(x, y, xsize, ysize, *, data=data)\n"
+    ".. function:: read_depth(x, y, xsize, ysize, *, data=None)\n"
     "\n"
     "   Read a pixel depth block from the frame buffer.\n"
     "\n"

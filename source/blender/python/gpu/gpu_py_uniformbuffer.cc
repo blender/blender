@@ -132,7 +132,7 @@ static PyObject *pygpu_uniformbuffer_update(BPyGPUUniformBuf *self, PyObject *ob
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_uniformbuffer_free_doc,
-    ".. method::free()\n"
+    ".. method:: free()\n"
     "\n"
     "   Free the uniform buffer object.\n"
     "   The uniform buffer object will no longer be accessible.\n");

@@ -1848,7 +1848,10 @@ PyDoc_STRVAR(
     BPy_IDGroup_keys_doc,
     ".. method:: keys()\n"
     "\n"
-    "   Return the keys associated with this group as a list of strings.\n");
+    "   Return the keys associated with this group.\n"
+    "\n"
+    "   :return: The keys.\n"
+    "   :rtype: idprop.types.IDPropertyGroupViewKeys\n");
 static PyObject *BPy_IDGroup_keys(BPy_IDProperty *self)
 {
   return BPy_IDGroup_ViewKeys_CreatePyObject(self);

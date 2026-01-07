@@ -429,8 +429,8 @@ PyDoc_STRVAR(
     "Setting to False means the UV selection will be ignored. "
     "While setting to true is supported it is up to the script author to "
     "ensure a correct selection state before doing so.\n"
-    ":type: "
-    "bool\n");
+    "\n"
+    ":type: bool\n");
 static PyObject *bpy_bmesh_uv_select_sync_valid_get(BPy_BMesh *self, void * /*closure*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -604,7 +604,7 @@ static PyObject *bpy_bmedge_is_boundary_get(BPy_BMEdge *self, void * /*closure*/
  * ^^^^ */
 
 PyDoc_STRVAR(
-    /* Warp. */
+    /* Wrap. */
     bpy_bmface_normal_doc,
     "The normal for this face as a 3D, wrapped vector.\n"
     "\n"
@@ -1401,6 +1401,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg object: The object data to load.\n"
     "   :type object: :class:`bpy.types.Object`\n"
+    "   :arg depsgraph: The dependency graph for evaluated data.\n"
     "   :type depsgraph: :class:`bpy.types.Depsgraph`\n"
     "   :arg cage: Get the mesh as a deformed cage.\n"
     "   :type cage: bool\n"
@@ -1506,7 +1507,9 @@ PyDoc_STRVAR(
     "\n"
     "   :arg mesh: The mesh data to load.\n"
     "   :type mesh: :class:`bpy.types.Mesh`\n"
+    "   :arg face_normals: Calculate face normals.\n"
     "   :type face_normals: bool\n"
+    "   :arg vertex_normals: Calculate vertex normals.\n"
     "   :type vertex_normals: bool\n"
     "   :arg use_shape_key: Use the locations from a shape key.\n"
     "   :type use_shape_key: bool\n"
@@ -2139,10 +2142,9 @@ PyDoc_STRVAR(
     "\n"
     "   Transform the mesh (optionally filtering flagged data only).\n"
     "\n"
-    "   :arg matrix: 4x4x transform matrix.\n"
+    "   :arg matrix: 4x4 transform matrix.\n"
     "   :type matrix: :class:`mathutils.Matrix`\n"
-    "   :arg filter: Flag to filter vertices."
-    ".\n"
+    "   :arg filter: Flag to filter vertices.\n"
     "   :type filter: set[Literal[" BPY_BM_HFLAG_ALL_STR "]]\n");
 static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject *kw)
 {
@@ -2399,6 +2401,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg vert_pair: The verts between which to interpolate data from.\n"
     "   :type vert_pair: Sequence[:class:`bmesh.types.BMVert`]\n"
+    "   :arg fac: The interpolation factor.\n"
     "   :type fac: float\n");
 static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *args)
 {
@@ -3402,6 +3405,7 @@ PyDoc_STRVAR(
     "\n"
     "   Remove a vert.\n"
     "\n"
+    "   :arg vert: The vert to remove.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n");
 static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 {
@@ -3429,6 +3433,7 @@ PyDoc_STRVAR(
     "\n"
     "   Remove an edge.\n"
     "\n"
+    "   :arg edge: The edge to remove.\n"
     "   :type edge: :class:`bmesh.types.BMEdge`\n");
 static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 {
@@ -3456,6 +3461,7 @@ PyDoc_STRVAR(
     "\n"
     "   Remove a face.\n"
     "\n"
+    "   :arg face: The face to remove.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 {
@@ -3486,6 +3492,7 @@ PyDoc_STRVAR(
     "   :arg verts: Sequence of verts.\n"
     "   :type verts: Sequence[:class:`bmesh.types.BMVert`]\n"
     "   :arg fallback: Return this value if nothing is found.\n"
+    "   :type fallback: Any\n"
     "   :return: The edge found or None\n"
     "   :rtype: :class:`bmesh.types.BMEdge`\n");
 static PyObject *bpy_bmedgeseq_get__method(BPy_BMElemSeq *self, PyObject *args)
@@ -3534,6 +3541,7 @@ PyDoc_STRVAR(
     "   :arg verts: Sequence of verts.\n"
     "   :type verts: Sequence[:class:`bmesh.types.BMVert`]\n"
     "   :arg fallback: Return this value if nothing is found.\n"
+    "   :type fallback: Any\n"
     "   :return: The face found or None\n"
     "   :rtype: :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)

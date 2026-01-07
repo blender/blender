@@ -293,7 +293,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg shader: Shader that performs the drawing operations.\n"
     "      If ``None`` is passed, the last shader set to this batch will run.\n"
-    "   :type program: :class:`gpu.types.GPUShader`\n");
+    "   :type shader: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
 {
   static bool deprecation_warning_issued = false;
