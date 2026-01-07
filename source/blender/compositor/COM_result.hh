@@ -364,6 +364,7 @@ class Result {
   int reference_count() const;
 
   /* Returns a reference to the domain of the result. See the Domain class. */
+  Domain &domain();
   const Domain &domain() const;
 
   /* Computes the number of channels of the result based on its type. */
@@ -476,6 +477,11 @@ class Result {
 /* -------------------------------------------------------------------- */
 /* Inline Methods.
  */
+
+BLI_INLINE_METHOD Domain &Result::domain()
+{
+  return domain_;
+}
 
 BLI_INLINE_METHOD const Domain &Result::domain() const
 {
