@@ -678,6 +678,13 @@ if(TEST_SRC_DIR_EXISTS)
     --
     --testdir "${TEST_SRC_DIR}/node_group"
   )
+
+  add_blender_test(
+    bl_node_copy_operators
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_node_copy_operators.py
+    --
+    --testdir "${TEST_SRC_DIR}/node_group"
+  )
 endif()
 
 # ------------------------------------------------------------------------------
