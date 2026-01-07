@@ -2883,7 +2883,13 @@ static bool ui_but_copy(bContext *C, Button *but, const bool copy_array)
         is_buf_set = true;
       }
       break;
-
+    case ButtonType::ViewItem: {
+      ButtonViewItem *viewitem_but = static_cast<ButtonViewItem *>(but);
+      StringRef name = viewitem_but->view_item->get_rename_string();
+      STRNCPY(buf, name.data());
+      is_buf_set = true;
+      break;
+    }
     default:
       break;
   }
@@ -2951,7 +2957,12 @@ static void ui_but_paste(bContext *C, Button *but, HandleButtonData *data, const
     case ButtonType::CurveProfile:
       ui_but_paste_CurveProfile(C, but);
       break;
-
+    case ButtonType::ViewItem: {
+      ButtonViewItem *viewitem_but = static_cast<ButtonViewItem *>(but);
+      viewitem_but->view_item->rename(*C, buf_paste);
+      ED_region_tag_redraw_no_rebuild(data->region);
+      break;
+    }
     default:
       break;
   }
