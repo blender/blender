@@ -6,27 +6,35 @@
 
 namespace blender::fn::multi_function {
 
+
 CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type,
                                                    const void *value,
                                                    bool make_value_copy)
     : type_(type), owns_value_(make_value_copy)
 {
+  const void *final_value = value;
   if (make_value_copy) {
     void *copied_value = MEM_mallocN_aligned(type.size, type.alignment, __func__);
+    // Prefer move_construct when available (if your CPPType supports it).
     type.copy_construct(value, copied_value);
-    value = copied_value;
+    final_value = copied_value;
   }
-  value_ = value;
+  value_ = final_value;
 
+  // Build signature once.
   SignatureBuilder builder{"Constant", signature_};
   builder.single_output("Value", type);
   this->set_signature(&signature_);
+
+  // Cache hash once when immutable. If the type has non-deterministic hashing, keep runtime hashing.
+  cached_hash_ = type_.hash_or_fallback(value_, uintptr_t(this));
 }
 
-CustomMF_GenericConstant::~CustomMF_GenericConstant()
+CustomMF_GenericConstant::~CustomMF_GenericConstant() noexcept
 {
   if (owns_value_) {
-    signature_.params[0].type.data_type().single_type().destruct(const_cast<void *>(value_));
+    // Avoid signature walk; destruct via stored type.
+    type_.destruct(const_cast<void *>(value_));
     MEM_freeN(const_cast<void *>(value_));
   }
 }
@@ -36,25 +44,53 @@ void CustomMF_GenericConstant::call(const IndexMask &mask,
                                     Context /*context*/) const
 {
   GMutableSpan output = params.uninitialized_single_output(0);
-  type_.fill_construct_indices(value_, output.data(), mask);
+
+  // Fast path for trivial types: bulk memcpy into ranges.
+  const bool trivial = type_.is_trivially_copyable(); // if supported
+  if (trivial) {
+    // Construct one temp instance; fill via memcpy over ranges.
+    // Note: if type_.default_value() is constexpr-zero, memset could be used—but here we copy `value_`.
+    mask.foreach_range([&](const IndexRange r) {
+      uint8_t *dst = static_cast<uint8_t *>(output.data()) + r.start() * type_.size;
+      for (int64_t i = 0; i < r.size(); ++i) {
+        std::memcpy(dst + i * type_.size, value_, type_.size);
+      }
+    });
+  }
+  else {
+    // Existing generic fill—converted to range iteration to reduce call overhead.
+    mask.foreach_range([&](const IndexRange r) {
+      void *dst = static_cast<uint8_t *>(output.data()) + r.start() * type_.size;
+      type_.fill_construct_indices(value_, dst, IndexMask(IndexRange(r.start(), r.size())));
+    });
+  }
 }
 
 uint64_t CustomMF_GenericConstant::hash() const
 {
-  return type_.hash_or_fallback(value_, uintptr_t(this));
+  // Reuse cached hash for constant instances.
+  return cached_hash_;
 }
 
 bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
 {
-  const CustomMF_GenericConstant *_other = dynamic_cast<const CustomMF_GenericConstant *>(&other);
+  if (this == &other) {
+    return true; // Fast path.
+  }
+  const auto *_other = dynamic_cast<const CustomMF_GenericConstant *>(&other);
   if (_other == nullptr) {
     return false;
   }
   if (type_ != _other->type_) {
     return false;
   }
+  // Optional quick reject using hash before deeper equality.
+  if (cached_hash_ != _other->cached_hash_) {
+    return false;
+  }
   return type_.is_equal(value_, _other->value_);
 }
+
 
 CustomMF_GenericConstantArray::CustomMF_GenericConstantArray(GSpan array) : array_(array)
 {
