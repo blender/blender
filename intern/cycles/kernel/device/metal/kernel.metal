@@ -16,6 +16,7 @@
 
 /* The rest of the includes. */
 #include "kernel/bvh/intersect_filter.h"
+#include "kernel/geom/geom_intersect.h"
 
 /* MetalRT intersection handlers. */
 
@@ -71,7 +72,8 @@ __intersection__local_tri_single_hit_mblur(
 }
 
 template<typename TReturn, uint intersection_type>
-TReturn metalrt_local_hit(ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload,
+TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
+                          ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload,
                           const uint prim,
                           const float2 barycentrics,
                           const float ray_tmax)
@@ -86,55 +88,39 @@ TReturn metalrt_local_hit(ray_data MetalKernelContext::MetalRTIntersectionLocalP
     return result;
   }
 
-  const short max_hits = payload.max_hits;
+  const int max_hits = payload.max_hits;
   if (max_hits == 0) {
-    /* Special case for when no hit information is requested, just report that something was hit */
+    /* Special case for when no hit information is requested, just report that something was hit.
+     */
     result.accept = true;
     result.continue_search = false;
     return result;
   }
 
-  int hit = 0;
-  if (payload.has_lcg_state) {
-    for (short i = min(max_hits, short(payload.num_hits)) - 1; i >= 0; --i) {
-      if (ray_tmax == payload.hit_t[i]) {
-        result.accept = false;
-        result.continue_search = true;
-        return result;
-      }
-    }
+  /* Make a copty of the lcg_state in the private address space, allowing to use utility function
+   * to find the hit index to write the intersection to. This function is used from both HW-RT
+   * code-path and non-HW-RT, making it hard to deal with the address spaces in the function
+   * signature. Hopefully, compiler is smart enough to eliminate this temporary copy. */
+  uint lcg_state = payload.lcg_state;
 
-    hit = payload.num_hits;
-    if (hit < max_hits) {
-      payload.num_hits++;
-    }
-    else {
-      hit = lcg_step_uint(&payload.lcg_state) % payload.num_hits;
-      if (hit >= max_hits) {
-        result.accept = false;
-        result.continue_search = true;
-        return result;
-      }
-    }
-  }
-  else {
-    if (payload.num_hits && ray_tmax > payload.hit_t[0]) {
-      /* Record closest intersection only. Do not terminate ray here, since there is no guarantee
-       * about distance ordering in any-hit */
-      result.accept = false;
-      result.continue_search = true;
-      return result;
-    }
+  MetalKernelContext context(launch_params_metal);
+  const int hit_index = context.local_intersect_get_record_index(
+      &payload, ray_tmax, payload.has_lcg_state ? &lcg_state : nullptr, max_hits);
 
-    payload.num_hits = 1;
+  payload.lcg_state = lcg_state;
+
+  if (hit_index == -1) {
+    result.accept = false;
+    result.continue_search = true;
+    return result;
   }
 
-  payload.hit_prim[hit] = prim;
-  payload.hit_t[hit] = ray_tmax;
-  payload.hit_u[hit] = barycentrics.x;
-  payload.hit_v[hit] = barycentrics.y;
+  payload.hits[hit_index].prim = prim;
+  payload.hits[hit_index].t = ray_tmax;
+  payload.hits[hit_index].u = barycentrics.x;
+  payload.hits[hit_index].v = barycentrics.y;
 
-  /* Continue tracing (without this the trace call would return after the first hit) */
+  /* Continue tracing (without this the trace call would return after the first hit). */
   result.accept = false;
   result.continue_search = true;
 #  endif
@@ -142,7 +128,8 @@ TReturn metalrt_local_hit(ray_data MetalKernelContext::MetalRTIntersectionLocalP
 }
 
 [[intersection(triangle, triangle_data, curve_data)]] PrimitiveIntersectionResult
-__intersection__local_tri(ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload
+__intersection__local_tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
+                          ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload
                           [[payload]],
                           uint primitive_id [[primitive_id]],
                           float2 barycentrics [[barycentric_coord]],
@@ -153,12 +140,13 @@ __intersection__local_tri(ray_data MetalKernelContext::MetalRTIntersectionLocalP
    * global AS. this means we will always be intersecting the correct object no need for the
    * user-id to check */
   return metalrt_local_hit<PrimitiveIntersectionResult, METALRT_HIT_TRIANGLE>(
-      payload, primitive_id, barycentrics, ray_tmax);
+      launch_params_metal, payload, primitive_id, barycentrics, ray_tmax);
 }
 
 [[intersection(
     triangle, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__local_tri_mblur(
+    constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
     ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload [[payload]],
     uint primitive_id [[primitive_id]],
 #  if defined(__METALRT_MOTION__)
@@ -177,7 +165,7 @@ __intersection__local_tri_mblur(
 #  endif
 
   return metalrt_local_hit<PrimitiveIntersectionResult, METALRT_HIT_TRIANGLE>(
-      payload, primitive_id, barycentrics, ray_tmax);
+      launch_params_metal, payload, primitive_id, barycentrics, ray_tmax);
 }
 
 inline bool metalrt_curve_skip_end_cap(const int type, const float u)

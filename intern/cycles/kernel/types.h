@@ -1067,7 +1067,7 @@ struct VolumeStack {
 /* Struct to gather multiple nearby intersections. */
 struct LocalIntersection {
   int num_hits;
-  struct Intersection hits[LOCAL_MAX_HITS];
+  Intersection hits[LOCAL_MAX_HITS];
   float3 Ng[LOCAL_MAX_HITS];
 };
 

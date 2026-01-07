@@ -30,22 +30,27 @@ struct MetalRTIntersectionLocalPayload_single_hit {
 #endif
 };
 
+struct MetalRTLocalHit {
+  uint prim;
+  float t, u, v;
+};
+
+/* Payload for the local intersection queries.
+ * It embeds a subset of storage that is typically found in the LocalIntersection. This is because
+ * it is not possible to store a pointer to the actual LocalIntersection in the payload. So some
+ * data is duplicated into the payload and then copied back to the LocalIntersection. */
 struct MetalRTIntersectionLocalPayload {
   int self_prim;
 #if defined(__METALRT_MOTION__)
   int self_object;
 #endif
+
   uint lcg_state;
-  uint hit_prim[LOCAL_MAX_HITS];
-  float hit_t[LOCAL_MAX_HITS];
-  float hit_u[LOCAL_MAX_HITS];
-  float hit_v[LOCAL_MAX_HITS];
-  uint max_hits : 3;
-  uint num_hits : 3;
-  uint has_lcg_state : 1;
+  MetalRTLocalHit hits[LOCAL_MAX_HITS];
+  int max_hits;
+  int num_hits;
+  bool has_lcg_state;
 };
-static_assert(LOCAL_MAX_HITS < 8,
-              "MetalRTIntersectionLocalPayload max_hits & num_hits bitfields are too small");
 
 struct MetalRTIntersectionShadowPayload {
   RaySelfPrimitives self;
@@ -403,8 +408,11 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     payload.max_hits = max_hits;
     payload.num_hits = 0;
     if (lcg_state) {
-      payload.has_lcg_state = 1;
+      payload.has_lcg_state = true;
       payload.lcg_state = *lcg_state;
+    }
+    else {
+      payload.has_lcg_state = false;
     }
 
     metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -445,11 +453,11 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
       local_isect->num_hits = num_hits;
       for (int hit = 0; hit < num_hits; hit++) {
-        uint prim = payload.hit_prim[hit] + primitive_id_offset;
+        const uint prim = payload.hits[hit].prim + primitive_id_offset;
         local_isect->hits[hit].prim = prim;
-        local_isect->hits[hit].t = payload.hit_t[hit];
-        local_isect->hits[hit].u = payload.hit_u[hit];
-        local_isect->hits[hit].v = payload.hit_v[hit];
+        local_isect->hits[hit].t = payload.hits[hit].t;
+        local_isect->hits[hit].u = payload.hits[hit].u;
+        local_isect->hits[hit].v = payload.hits[hit].v;
         local_isect->hits[hit].object = local_object;
         local_isect->hits[hit].type = prim_type;
 

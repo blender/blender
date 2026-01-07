@@ -11,11 +11,16 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* For an intersection with the given distance isect_t from the ray origin increase the number
- * of hits (when needed) and return an index within local_isect->hits where intersection is to
- * be stored. If the return value -1 then the intersection is to be ignored (nothing is to be
- * written to the local_isect->hits and intersection test function is to return false. */
+/* For an intersection with the given distance isect_t from the ray origin, increase the number
+ * of hits (when needed) and return an index within local_isect->hits where the intersection is to
+ * be stored. If the return value -1, then the intersection is to be ignored (nothing is to be
+ * written to the local_isect->hits, and the intersection test function is to return false.
+ *
+ * The LocalIntersection is a templated type, allowing different types that implement similar data
+ * layout to be passed here. This is needed for the MetalRT, where it is not possible to access the
+ * pointer to actual LocalIntersection from the git function. */
 #ifdef __BVH_LOCAL__
+template<class LocalIntersection>
 ccl_device_forceinline int local_intersect_get_record_index(
     ccl_private LocalIntersection *local_isect,
     const float isect_t,
@@ -24,7 +29,7 @@ ccl_device_forceinline int local_intersect_get_record_index(
 {
   if (lcg_state) {
     /* Record up to max_hits intersections. */
-    for (int i = min(max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
+    for (int i = min(max_hits, int(local_isect->num_hits)) - 1; i >= 0; --i) {
       if (local_isect->hits[i].t == isect_t) {
         return -1;
       }

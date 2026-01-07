@@ -130,39 +130,18 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
     return optixTerminateRay();
   }
 
-  int hit = 0;
+  const float isect_t = optixGetRayTmax();
   uint *const lcg_state = get_payload_ptr_0<uint>();
   LocalIntersection *const local_isect = get_payload_ptr_2<LocalIntersection>();
 
-  if (lcg_state) {
-    for (int i = min(max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
-      if (optixGetRayTmax() == local_isect->hits[i].t) {
-        return optixIgnoreIntersection();
-      }
-    }
-
-    hit = local_isect->num_hits++;
-
-    if (local_isect->num_hits > max_hits) {
-      hit = lcg_step_uint(lcg_state) % local_isect->num_hits;
-      if (hit >= max_hits) {
-        return optixIgnoreIntersection();
-      }
-    }
-  }
-  else {
-    if (local_isect->num_hits && optixGetRayTmax() > local_isect->hits[0].t) {
-      /* Record closest intersection only.
-       * Do not terminate ray here, since there is no guarantee about distance ordering in any-hit.
-       */
-      return optixIgnoreIntersection();
-    }
-
-    local_isect->num_hits = 1;
+  const int hit_index = local_intersect_get_record_index(
+      local_isect, isect_t, lcg_state, max_hits);
+  if (hit_index == -1) {
+    return optixIgnoreIntersection();
   }
 
-  Intersection *isect = &local_isect->hits[hit];
-  isect->t = optixGetRayTmax();
+  Intersection *isect = &local_isect->hits[hit_index];
+  isect->t = isect_t;
   isect->prim = prim;
   isect->object = get_object_id();
   isect->type = kernel_data_fetch(objects, isect->object).primitive_type;
@@ -177,7 +156,7 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
   const float3 tri_b = kernel_data_fetch(tri_verts, tri_vindex.y);
   const float3 tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
 
-  local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
+  local_isect->Ng[hit_index] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit). */
   optixIgnoreIntersection();
