@@ -86,11 +86,14 @@ static bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_node_image(
   }
   BLI_assert(GS(image->id.name) == ID_IM);
 
-  /* Construct an image user to retrieve the first image in the sequence, since the frame number
-   * might correspond to a non-existing image. We explicitly do not support the case where the
-   * image sequence has a changing structure. */
-  ImageUser image_user = {};
-  image_user.framenr = BKE_image_sequence_guess_offset(image);
+  NodeCryptomatte *node_cryptomatte = static_cast<NodeCryptomatte *>(node.storage);
+  ImageUser image_user = node_cryptomatte->iuser;
+  BKE_image_user_frame_calc(image, &image_user, image_user.framenr);
+
+  /* Fallback to the first frame in the image sequence if the current frame is out of range. */
+  if (!(image_user.flag & IMA_USER_FRAME_IN_RANGE)) {
+    image_user.framenr = BKE_image_sequence_guess_offset(image);
+  }
 
   ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user, nullptr);
   RenderResult *render_result = image->rr;
@@ -178,6 +181,7 @@ void ntreeCompositCryptomatteSyncFromRemove(bNode *node)
     zero_v3(n->runtime.remove);
   }
 }
+
 void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
 {
   BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE);
