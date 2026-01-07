@@ -3223,7 +3223,7 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 
   if (v == nullptr) {
     PyErr_SetString(PyExc_ValueError,
-                    "faces.new(verts): couldn't create the new face, internal error");
+                    "verts.new(co): couldn't create the new vert, internal error");
     return nullptr;
   }
 
@@ -3292,7 +3292,7 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 
   if (e == nullptr) {
     PyErr_SetString(PyExc_ValueError,
-                    "faces.new(verts): couldn't create the new face, internal error");
+                    "edges.new(verts): couldn't create the new edge, internal error");
     goto cleanup;
   }
 
