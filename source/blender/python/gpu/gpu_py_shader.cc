@@ -1072,7 +1072,7 @@ PyDoc_STRVAR(
     "\n"
     "All built-in shaders have the ``mat4 ModelViewProjectionMatrix`` uniform.\n"
     "\n"
-    "Its value must be modified using the :class:`gpu.matrix` module.\n"
+    "Its value must be modified using the :mod:`gpu.matrix` module.\n"
     "\n"
     ".. important::\n"
     "\n"

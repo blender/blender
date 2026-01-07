@@ -1118,7 +1118,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_angle_doc,
-    ".. function:: angle(other, fallback=None, /)\n"
+    ".. method:: angle(other, fallback=None, /)\n"
     "\n"
     "   Return the angle between two vectors.\n"
     "\n"
@@ -1191,7 +1191,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_angle_signed_doc,
-    ".. function:: angle_signed(other, fallback=None, /)\n"
+    ".. method:: angle_signed(other, fallback=None, /)\n"
     "\n"
     "   Return the signed angle between two 2D vectors (clockwise is positive).\n"
     "\n"
@@ -1253,7 +1253,7 @@ static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_rotation_difference_doc,
-    ".. function:: rotation_difference(other, /)\n"
+    ".. method:: rotation_difference(other, /)\n"
     "\n"
     "   Returns a quaternion representing the rotational difference between this\n"
     "   vector and another.\n"
@@ -1302,7 +1302,7 @@ static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_project_doc,
-    ".. function:: project(other, /)\n"
+    ".. method:: project(other, /)\n"
     "\n"
     "   Return the projection of this vector onto the *other*.\n"
     "\n"
@@ -1349,7 +1349,7 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_lerp_doc,
-    ".. function:: lerp(other, factor, /)\n"
+    ".. method:: lerp(other, factor, /)\n"
     "\n"
     "   Returns the interpolation of two vectors.\n"
     "\n"
@@ -1394,7 +1394,7 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_slerp_doc,
-    ".. function:: slerp(other, factor, fallback=None, /)\n"
+    ".. method:: slerp(other, factor, fallback=None, /)\n"
     "\n"
     "   Returns the interpolation of two non-zero vectors (spherical coordinates).\n"
     "\n"
@@ -1489,7 +1489,7 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_rotate_doc,
-    ".. function:: rotate(other, /)\n"
+    ".. method:: rotate(other, /)\n"
     "\n"
     "   Rotate the vector by a rotation value.\n"
     "\n"
@@ -1561,7 +1561,7 @@ static PyObject *Vector_negate(VectorObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_copy_doc,
-    ".. function:: copy()\n"
+    ".. method:: copy()\n"
     "\n"
     "   Returns a copy of this vector.\n"
     "\n"
