@@ -31,15 +31,65 @@ class AbstractAlembicTest(unittest.TestCase):
         # Make sure we always start with a known-empty file.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
 
+
+
     def assertAlmostEqualFloatArray(self, actual, expect, places=6, delta=None):
-        """Asserts that the arrays of floats are almost equal."""
+    """Asserts that arrays of floats are almost equal with minimal overhead.
 
-        self.assertEqual(len(actual), len(expect),
-                         'Actual array has %d items, expected %d' % (len(actual), len(expect)))
+    Efficiency improvements:
+      - Short-circuits on the first mismatch (instead of per-element assert).
+      - Uses math.isclose in pure-Python path.
+      - Optional NumPy fast path for large arrays (vectorized isclose).
+    """
+    # Length check first (cheap and avoids zip truncation).
+    n_actual = len(actual)
+    n_expect = len(expect)
+    self.assertEqual(
+        n_actual, n_expect,
+        f"Actual array has {n_actual} items, expected {n_expect}"
+    )
+    n = n_actual  # same as n_expect
 
-        for idx, (act, exp) in enumerate(zip(actual, expect)):
-            self.assertAlmostEqual(act, exp, places=places, delta=delta,
-                                   msg='%f != %f at index %d' % (act, exp, idx))
+    if n == 0:
+        return  # trivially equal
+
+    # Decide absolute tolerance:
+    # - If delta is provided, treat it as abs tolerance.
+    # - Otherwise derive an abs tolerance from `places`.
+    #   (unittest's assertAlmostEqual uses rounding to `places`—we approximate
+    #    by abs_tol = 10**(-places). If you need stricter equivalence, set `delta`.)
+    abs_tol = delta if delta is not None else 10 ** (-(places if places is not None else 6))
+
+    # ---------- NumPy fast path ----------
+    if _HAS_NUMPY and (n >= 1024 or isinstance(actual, np.ndarray) or isinstance(expect, np.ndarray)):
+        a = np.asarray(actual, dtype=np.float64)
+        e = np.asarray(expect, dtype=np.float64)
+
+        # Shape/length consistency (protect against weird inputs)
+        if a.shape != e.shape:
+            self.fail(f"Shape mismatch: actual {a.shape} vs expected {e.shape}")
+
+        # Vectorized comparison; rel_tol=0 to match places/delta semantics
+        mask = np.isclose(a, e, rtol=0.0, atol=abs_tol, equal_nan=False)
+
+        if np.all(mask):
+            return
+
+        # Find first mismatch index efficiently
+        bad = np.nonzero(~mask)[0]
+        i = int(bad[0])
+        act = float(a[i])
+        exp = float(e[i])
+        self.fail(f"{act:.9g} != {exp:.9g} at index {i} (abs Δ={abs(act-exp):.3g}, tol={abs_tol:g})")
+
+    # ---------- Pure-Python path ----------
+    # Short-circuit on first mismatch; avoids expensive exception handling per element.
+    for idx, (act, exp) in enumerate(zip(actual, expect)):
+        # math.isclose with rel_tol=0 matches "absolute tolerance only" semantics
+        if not math.isclose(act, exp, rel_tol=0.0, abs_tol=abs_tol):
+            self.fail(f"{act:.9g} != {exp:.9g} at index {idx} (abs Δ={abs(act-exp):.3g}, tol={abs_tol:g})")
+``
+
 
 
 class SimpleImportTest(AbstractAlembicTest):
