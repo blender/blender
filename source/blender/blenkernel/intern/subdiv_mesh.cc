@@ -887,6 +887,12 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
       if (ELEM(iter.name, ".corner_vert", ".corner_edge")) {
         return;
       }
+      /* Rely on #CD_NORMAL to propagate normals to subdivision surfaces.
+       * These are converted into "custom_normals" afterwards, otherwise these normals
+       * would interpolated without being normalized, see: #152277. */
+      if (ELEM(iter.name, "custom_normal")) {
+        return;
+      }
       if (iter.data_type == AttrType::Float2) {
         return;
       }
