@@ -448,6 +448,7 @@ struct HandleButtonData {
   int draglasty = 0;
   int dragstartx = 0;
   int dragstarty = 0;
+  float2 relative_drag = {0.0f, 0.0f};
   bool dragchange = false;
   bool draglock = false;
   int dragsel = 0;
@@ -7161,40 +7162,67 @@ static bool ui_numedit_but_HSVCIRCLE(Button *but,
                                      float mx,
                                      float my,
                                      const enum eSnapType snap,
-                                     const bool shift)
+                                     const bool shift,
+                                     const bool use_continuous_grab,
+                                     const bool start_drag = false)
 {
   const bool changed = true;
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   float *hsv = cpicker->hsv_perceptual;
 
-  float mx_fl, my_fl;
-  ui_mouse_scale_warp(data, mx, my, &mx_fl, &my_fl, shift);
-
-#ifdef USE_CONT_MOUSE_CORRECT
-  if (button_is_cursor_warp(but)) {
-    /* OK but can go outside bounds */
-    data->ungrab_mval[0] = mx_fl;
-    data->ungrab_mval[1] = my_fl;
-    { /* clamp */
-      const float radius = min_ff(BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect)) / 2.0f;
-      const float cent[2] = {BLI_rctf_cent_x(&but->rect), BLI_rctf_cent_y(&but->rect)};
-      const float len = len_v2v2(cent, data->ungrab_mval);
-      if (len > radius) {
-        dist_ensure_v2_v2fl(data->ungrab_mval, cent, radius);
-      }
-    }
-  }
-#endif
-
   rcti rect;
   BLI_rcti_rctf_copy(&rect, &but->rect);
+  if (start_drag) {
+    /* Allow start editing the original color if shift is pressed at start. */
+    if (shift) {
+      float hsvo[3], rgbo[3];
 
-  /* Always start from original value to avoid numerical drift. */
+      /* Get original hsv. */
+      copy_v3_v3(hsvo, hsv);
+      copy_v3_v3(rgbo, data->origvec);
+      scene_linear_to_perceptual_space(but, rgbo);
+      color_picker_rgb_to_hsv_compat(rgbo, hsvo);
+
+      /* Get original color pick position within the circle. */
+      hsvcircle_pos_from_vals(
+          cpicker, &rect, hsvo, &data->relative_drag.x, &data->relative_drag.y);
+    }
+    else {
+      data->relative_drag.x = mx;
+      data->relative_drag.y = my;
+    }
+  }
+
   float rgb[3];
   copy_v3_v3(rgb, data->origvec);
   scene_linear_to_perceptual_space(but, rgb);
   color_picker_rgb_to_hsv_compat(rgb, hsv);
 
+  if (use_continuous_grab || shift) {
+    const float fac = ui_mouse_scale_warp_factor(shift);
+    data->relative_drag.x += (mx - float(data->draglastx)) * fac;
+    data->relative_drag.y += (my - float(data->draglasty)) * fac;
+
+    const float radius = min_ff(BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect)) / 2.0f;
+    const float cent[2] = {BLI_rctf_cent_x(&but->rect), BLI_rctf_cent_y(&but->rect)};
+    const float len = len_v2v2(cent, data->relative_drag);
+
+    if (len > radius) {
+      dist_ensure_v2_v2fl(data->relative_drag, cent, radius);
+    }
+  }
+  else {
+    data->relative_drag.x = mx;
+    data->relative_drag.y = my;
+  }
+
+#ifdef USE_CONT_MOUSE_CORRECT
+  if (use_continuous_grab) {
+    /* OK but can go outside bounds */
+    data->ungrab_mval[0] = data->relative_drag.x;
+    data->ungrab_mval[1] = data->relative_drag.y;
+  }
+#endif
   /* exception, when using color wheel in 'locked' value state:
    * allow choosing a hue for black values, by giving a tiny increment */
   if (cpicker->use_color_lock) {
@@ -7211,24 +7239,7 @@ static bool ui_numedit_but_HSVCIRCLE(Button *but,
     }
   }
 
-  /* only apply the delta motion, not absolute */
-  if (shift) {
-    float xpos, ypos, hsvo[3], rgbo[3];
-
-    /* calculate original hsv again */
-    copy_v3_v3(hsvo, hsv);
-    copy_v3_v3(rgbo, data->origvec);
-    scene_linear_to_perceptual_space(but, rgbo);
-    color_picker_rgb_to_hsv_compat(rgbo, hsvo);
-
-    /* and original position */
-    hsvcircle_pos_from_vals(cpicker, &rect, hsvo, &xpos, &ypos);
-
-    mx_fl = xpos - (data->dragstartx - mx_fl);
-    my_fl = ypos - (data->dragstarty - my_fl);
-  }
-
-  hsvcircle_vals_from_pos(&rect, mx_fl, my_fl, hsv, hsv + 1);
+  hsvcircle_vals_from_pos(&rect, data->relative_drag.x, data->relative_drag.y, hsv, hsv + 1);
 
   if ((cpicker->use_color_cubic) && (U.color_picker_type == USER_CP_CIRCLE_HSV)) {
     hsv[1] = 1.0f - sqrt3f(1.0f - hsv[1]);
@@ -7350,9 +7361,11 @@ static int ui_do_but_HSVCIRCLE(
       data->draglastx = mx;
       data->draglasty = my;
       button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
+      const bool shift = event->modifier & KM_SHIFT;
+      const bool use_continuous_grab = button_is_cursor_warp(but) &&
+                                       event->tablet.active == EVT_TABLET_NONE;
       /* also do drag the first time */
-      if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->modifier & KM_SHIFT)) {
+      if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, shift, use_continuous_grab, true)) {
         ui_numedit_apply(C, block, but, data);
       }
 
@@ -7424,8 +7437,10 @@ static int ui_do_but_HSVCIRCLE(
     else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
       if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
         const enum eSnapType snap = ui_event_to_snap(event);
-
-        if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->modifier & KM_SHIFT)) {
+        const bool shift = event->modifier & KM_SHIFT;
+        const bool use_continuous_grab = button_is_cursor_warp(but) &&
+                                         event->tablet.active == EVT_TABLET_NONE;
+        if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, shift, use_continuous_grab)) {
           ui_numedit_apply(C, block, but, data);
         }
       }
