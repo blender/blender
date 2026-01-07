@@ -10,6 +10,7 @@
 #include "kernel/integrator/volume_stack.h"
 
 #include "kernel/geom/shader_data.h"
+#include "kernel/light/light.h"
 
 CCL_NAMESPACE_BEGIN
 

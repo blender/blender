@@ -447,6 +447,10 @@ ccl_device_forceinline void guiding_record_direct_light(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+  const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
+  if (path_flag & PATH_RAY_SHADOW_FOR_AO) {
+    return;
+  }
   if (state->shadow_path.path_segment) {
     const Spectrum Lo = safe_divide_color(INTEGRATOR_STATE(state, shadow_path, throughput),
                                           INTEGRATOR_STATE(state, shadow_path, unlit_throughput));

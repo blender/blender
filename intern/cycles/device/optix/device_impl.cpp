@@ -558,10 +558,14 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_RGEN_SHADE_BACKGROUND].raygen.module = optix_module;
     group_descs[PG_RGEN_SHADE_BACKGROUND].raygen.entryFunctionName =
         "__raygen__kernel_optix_integrator_shade_background";
-    group_descs[PG_RGEN_SHADE_LIGHT].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    group_descs[PG_RGEN_SHADE_LIGHT].raygen.module = optix_module;
-    group_descs[PG_RGEN_SHADE_LIGHT].raygen.entryFunctionName =
-        "__raygen__kernel_optix_integrator_shade_light";
+    group_descs[PG_RGEN_SHADE_LIGHT_NEE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_LIGHT_NEE].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_LIGHT_NEE].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_light_nee";
+    group_descs[PG_RGEN_SHADE_LIGHT_FORWARD].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_LIGHT_FORWARD].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_LIGHT_FORWARD].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_light_forward";
     group_descs[PG_RGEN_SHADE_SURFACE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
     group_descs[PG_RGEN_SHADE_SURFACE].raygen.module = optix_module;
     group_descs[PG_RGEN_SHADE_SURFACE].raygen.entryFunctionName =
@@ -1052,7 +1056,8 @@ bool OptiXDevice::load_osl_kernels()
     vector<OptixProgramGroup> pipeline_groups;
     pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_BACKGROUND]);
-    pipeline_groups.push_back(groups[PG_RGEN_SHADE_LIGHT]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_LIGHT_NEE]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_LIGHT_FORWARD]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_RAYTRACE]);
     pipeline_groups.push_back(groups[PG_CALL_SVM_AO]);

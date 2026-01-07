@@ -432,9 +432,18 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
               kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_background);
           break;
         }
-        case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT: {
+        case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_NEE: {
           oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_light);
+              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_light_nee);
+          break;
+        }
+        case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD: {
+          oneapi_call(kg,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_shade_light_forward);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW: {

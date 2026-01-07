@@ -247,12 +247,12 @@ ccl_device_forceinline bool area_light_is_ellipse(const ccl_global KernelAreaLig
 /* Common API. */
 /* Compute `eval_fac` and `pdf`. Also sample a new position on the light if `sample_coord`. */
 template<bool in_volume_segment>
-ccl_device_inline bool area_light_eval(const ccl_global KernelLight *klight,
-                                       const float3 ray_P,
-                                       ccl_private float3 *light_P,
-                                       ccl_private LightSample *ccl_restrict ls,
-                                       const float2 rand,
-                                       bool sample_coord)
+ccl_device_forceinline bool area_light_eval(const ccl_global KernelLight *klight,
+                                            const float3 ray_P,
+                                            ccl_private float3 *light_P,
+                                            ccl_private LightSample *ccl_restrict ls,
+                                            const float2 rand,
+                                            bool sample_coord)
 {
   float3 axis_u = klight->area.axis_u;
   float3 axis_v = klight->area.axis_v;
@@ -368,10 +368,6 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
   light_u /= klight->area.len_u;
   light_v /= klight->area.len_v;
 
-  /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
-  ls->u = light_v + 0.5f;
-  ls->v = -light_u - light_v;
-
   return true;
 }
 
@@ -393,9 +389,7 @@ ccl_device_forceinline void area_light_mnee_sample_update(const ccl_global Kerne
 
 ccl_device_inline bool area_light_intersect(const ccl_global KernelLight *klight,
                                             const ccl_private Ray *ccl_restrict ray,
-                                            ccl_private float *t,
-                                            ccl_private float *u,
-                                            ccl_private float *v)
+                                            ccl_private float *t)
 {
   /* Area light. */
   const float invarea = fabsf(klight->area.invarea);
@@ -416,6 +410,7 @@ ccl_device_inline bool area_light_intersect(const ccl_global KernelLight *klight
   const float3 light_P = klight->co;
 
   float3 P;
+  float u, v;
   return ray_quad_intersect(ray->P,
                             ray->D,
                             ray->tmin,
@@ -426,25 +421,44 @@ ccl_device_inline bool area_light_intersect(const ccl_global KernelLight *klight
                             Ng,
                             &P,
                             t,
-                            u,
-                            v,
+                            &u,
+                            &v,
                             is_ellipse);
 }
 
-ccl_device_inline bool area_light_sample_from_intersection(
-    const ccl_global KernelLight *klight,
-    const ccl_private Intersection *ccl_restrict isect,
-    const float3 ray_P,
-    const float3 ray_D,
-    ccl_private LightSample *ccl_restrict ls)
+ccl_device_inline float2 area_light_uv(const ccl_global KernelLight *klight, const float3 P)
 {
-  ls->u = isect->u;
-  ls->v = isect->v;
-  ls->D = ray_D;
-  ls->Ng = klight->area.dir;
+  /* Compute uv when we already know there is an intersection, to avoid the need
+   * of storing this in the integrate state. */
+  const float3 inv_extent_u = klight->area.axis_u / klight->area.len_u;
+  const float3 inv_extent_v = klight->area.axis_v / klight->area.len_v;
+  const float3 light_P = klight->co;
+
+  const float3 inplane = P - light_P;
+  const float u = clamp(dot(inplane, inv_extent_u), -0.5f, 0.5f);
+  const float v = clamp(dot(inplane, inv_extent_v), -0.5f, 0.5f);
+
+  /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
+  return make_float2(v + 0.5f, -u - v);
+}
+
+ccl_device_inline LightEval area_light_eval_from_intersection(const ccl_global KernelLight *klight,
+                                                              const float3 ray_P,
+                                                              const float3 ray_D,
+                                                              const float t)
+{
+  LightSample ls{};
+  ls.t = t;
+  ls.P = ray_P + ray_D * t;
+  ls.D = ray_D;
+  ls.Ng = klight->area.dir;
 
   float3 light_P = klight->co;
-  return area_light_eval<false>(klight, ray_P, &light_P, ls, zero_float2(), false);
+  if (!area_light_eval<false>(klight, ray_P, &light_P, &ls, zero_float2(), false)) {
+    return LightEval{};
+  }
+
+  return LightEval{ls.eval_fac, ls.pdf};
 }
 
 /* Returns the maximal distance between the light center and the boundary. */

@@ -208,12 +208,17 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
                                           const ccl_private Ray *ccl_restrict ray,
                                           const Spectrum bsdf_spectrum,
                                           const int light_group,
-                                          const int mnee_vertex_count)
+                                          const int mnee_vertex_count,
+                                          const bool constant_light_shader)
 {
 
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
-      kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
+      kg,
+      state,
+      (constant_light_shader) ? DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW :
+                                DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_NEE,
+      false);
 
 #ifdef __VOLUME__
   /* Copy volume stack and enter/exit volume. */
@@ -227,6 +232,10 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
   /* Copy state from main path to shadow path. */
   const Spectrum unlit_throughput = INTEGRATOR_STATE(state, path, throughput);
   const Spectrum throughput = unlit_throughput * bsdf_spectrum;
+
+  if (!(kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_TREE)) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bsdf_eval_average) = average(bsdf_spectrum);
+  }
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
       state, path, render_pixel_index);
@@ -341,15 +350,6 @@ ccl_device
     }
   }
 
-  /* Evaluate light shader.
-   *
-   * TODO: can we reuse sd memory? In theory we can move this after
-   * integrate_surface_bounce, evaluate the BSDF, and only then evaluate
-   * the light shader. This could also move to its own kernel, for
-   * non-constant light sources. */
-  ShaderDataCausticsStorage emission_sd_storage;
-  ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-
   Ray ray ccl_optional_struct_init;
   BsdfEval bsdf_eval ccl_optional_struct_init;
 
@@ -368,34 +368,51 @@ ccl_device
 
         /* Are we on a caustic receiver? */
         if (!is_transmission && (sd->object_flag & SD_OBJECT_CAUSTICS_RECEIVER)) {
+          ShaderDataCausticsStorage emission_sd_storage;
+          ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
+
           mnee_vertex_count = kernel_path_mnee_sample(
               kg, state, sd, emission_sd, rng_state, &ls, &bsdf_eval);
+
+          if (mnee_vertex_count > 0) {
+            /* Create shadow ray after successful manifold walk:
+             * emission_sd contains the last interface intersection and
+             * the light sample ls has been updated */
+            light_sample_to_surface_shadow_ray(kg, emission_sd, &ls, &ray);
+          }
         }
       }
     }
   }
+#endif
+
+  /* Evaluate constant part of light shader, rest will optionally be done in another kernel. */
+  Spectrum light_shader_eval ccl_optional_struct_init;
+  const bool is_constant_light_shader = light_sample_shader_eval_nee_constant(
+      kg, ls.shader, ls.prim, ls.type != LIGHT_TRIANGLE, light_shader_eval);
+
+#ifdef __MNEE__
   if (mnee_vertex_count > 0) {
-    /* Create shadow ray after successful manifold walk:
-     * emission_sd contains the last interface intersection and
-     * the light sample ls has been updated */
-    light_sample_to_surface_shadow_ray(kg, emission_sd, &ls, &ray);
+    bsdf_eval_mul(&bsdf_eval, light_shader_eval);
   }
   else
 #endif /* __MNEE__ */
   {
-    const Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, sd->time);
-    if (is_zero(light_eval)) {
-      return;
-    }
-
     /* Evaluate BSDF. */
     const float bsdf_pdf = surface_shader_bsdf_eval(kg, state, sd, ls.D, &bsdf_eval, ls.shader);
     const float mis_weight = light_sample_mis_weight_nee(kg, ls.pdf, bsdf_pdf);
-    bsdf_eval_mul(&bsdf_eval, light_eval / ls.pdf * mis_weight);
+    bsdf_eval_mul(&bsdf_eval, light_shader_eval * ls.eval_fac / ls.pdf * mis_weight);
 
-    /* Path termination. */
-    const float terminate = path_state_rng_light_termination(kg, rng_state);
-    if (light_sample_terminate(kg, &bsdf_eval, terminate)) {
+    /* Path termination for constant light shader. */
+    if (is_constant_light_shader && !(kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_TREE)) {
+      const float terminate = path_state_rng_light_termination(kg, rng_state);
+      if (light_sample_terminate(kg, &bsdf_eval, terminate)) {
+        return;
+      }
+    }
+    /* For non-constant light shader, probabilistic termination happens in
+     * SHADE_LIGHT_NEE when the full contribution is known. */
+    else if (bsdf_eval_is_zero(&bsdf_eval)) {
       return;
     }
 
@@ -409,7 +426,13 @@ ccl_device
 
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrate_direct_light_shadow_init_common(
-      kg, state, &ray, bsdf_eval_sum(&bsdf_eval), ls.group, mnee_vertex_count);
+      kg,
+      state,
+      &ray,
+      bsdf_eval_sum(&bsdf_eval),
+      ls.group,
+      mnee_vertex_count,
+      is_constant_light_shader);
 
   if (is_transmission) {
 #ifdef __VOLUME__

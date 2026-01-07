@@ -36,6 +36,9 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
           integrator_shade_shadow(kg, &state->shadow, render_buffer);
           break;
+        case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_NEE:
+          integrator_shade_light_nee(kg, &state->shadow, render_buffer);
+          break;
         default:
           kernel_assert(0);
           break;
@@ -85,8 +88,8 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
           integrator_shade_surface_mnee(kg, state, render_buffer);
           break;
-        case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT:
-          integrator_shade_light(kg, state, render_buffer);
+        case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD:
+          integrator_shade_light_forward(kg, state, render_buffer);
           break;
         case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT:
           integrator_shade_dedicated_light(kg, state, render_buffer);
