@@ -146,6 +146,22 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
   return offset;
 }
 
+#ifdef USE_FIND_FASTPATH
+/**
+ * Check if all bytes in `x` are identical.
+ * E.g., 0x42424242 returns true, 0x42434242 returns false.
+ */
+static inline bool all_bytes_homogeneous(const uintptr_t x)
+{
+  /* Pattern of 0x01 in each byte position (0x01010101... for any word size).
+   * Multiplying a byte value by this spreads it to all byte positions. */
+  constexpr uintptr_t byte_spread = ~(uintptr_t)0 / 255;
+
+  const uintptr_t first_byte = x & 0xFF;
+  return x == first_byte * byte_spread;
+}
+#endif /* USE_FIND_FASTPATH */
+
 /**
  * Scan forward from a position where a span was too short to RLE encode,
  * searching for the start of the next RLE-encodable span.
@@ -165,6 +181,53 @@ static size_t find_next_rle_span_start(const uint8_t *data,
 
   constexpr size_t rle_skip_threshold = RLE_SKIP_THRESHOLD;
   size_t ofs_test_start = offset;
+
+#ifdef USE_FIND_FASTPATH
+  using fast_int = uintptr_t;
+
+  /* Calculate the minimum size which may use an optimized search. */
+  constexpr size_t min_size_for_fast_path = (
+      /* Worst case advances one full `fast_int` to reach aligned boundary. */
+      sizeof(fast_int) +
+      /* Reads one `fast_int` to detect dense runs early. */
+      sizeof(fast_int) +
+      /* At least one `fast_int` read in the skip loop. */
+      sizeof(fast_int) +
+      /* `p_end` reserves `sizeof(fast_int)` for safe reads. */
+      sizeof(fast_int) +
+      /* Backtrack margin: `rle_skip_threshold - 1` bytes, rounded up to `fast_int`. */
+      (((rle_skip_threshold - 1) + (sizeof(fast_int) - 1)) & ~(sizeof(fast_int) - 1)));
+
+  /* Fast path: skip regions that cannot contain an RLE span. */
+  if (size - offset > min_size_for_fast_path) {
+    constexpr size_t ALIGN_BITS = sizeof(fast_int) - 1;
+
+    /* Align to next fast_int boundary. */
+    const fast_int *p = reinterpret_cast<const fast_int *>(
+        ((uintptr_t(data + offset) + sizeof(fast_int)) & ~ALIGN_BITS));
+    const fast_int *p_end = reinterpret_cast<const fast_int *>(
+        ((uintptr_t(data + size) - sizeof(fast_int)) & ~ALIGN_BITS));
+
+    /* Early check: if the first chunk is homogeneous, this region likely has
+     * dense runs. Skip the fast path to avoid overhead. */
+    if (p < p_end && !all_bytes_homogeneous(*p)) {
+      p++;
+
+      /* Skip non-homogeneous chunks. */
+      while (p < p_end && !all_bytes_homogeneous(*p)) {
+        p++;
+      }
+
+      /* Move back `rle_skip_threshold - 1` bytes from where we stopped to catch spans
+       * that may have started just before the homogeneous region. */
+      const size_t stop_pos = size_t(reinterpret_cast<const uint8_t *>(p) - data);
+      const size_t backtrack = rle_skip_threshold - 1;
+      if (stop_pos > offset + backtrack) {
+        ofs_test_start = stop_pos - backtrack;
+      }
+    }
+  }
+#endif /* USE_FIND_FASTPATH */
 
   /* Byte-level scan. */
   size_t ofs_test = ofs_test_start + 1;
