@@ -2406,25 +2406,19 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
 
   if (activeStrip->act) {
     animrig::Action &strip_action = activeStrip->act->wrap();
-    if (strip_action.is_action_layered()) {
-      animrig::Slot *strip_slot = strip_action.slot_for_handle(activeStrip->action_slot_handle);
-      if (animrig::assign_action_and_slot(&strip_action, strip_slot, owned_adt.owner_id) !=
-          animrig::ActionSlotAssignmentResult::OK)
-      {
-        printf("NLA tweak-mode enter - could not assign slot %s\n",
-               strip_slot ? strip_slot->identifier : "-unassigned-");
-        /* There is one other reason this could fail: when already in NLA tweak mode. But since
-         * we're here in the code, the ADT_NLA_EDIT_ON flag is not yet set, and thus that shouldn't
-         * be the case.
-         *
-         * Because this ADT is not in tweak mode, it means that the Action assignment will have
-         * succeeded (I know, too much coupling here, would be better to have another
-         * SlotAssignmentResult value for this). */
-      }
-    }
-    else {
-      adt.action = activeStrip->act;
-      id_us_plus(&adt.action->id);
+    animrig::Slot *strip_slot = strip_action.slot_for_handle(activeStrip->action_slot_handle);
+    if (animrig::assign_action_and_slot(&strip_action, strip_slot, owned_adt.owner_id) !=
+        animrig::ActionSlotAssignmentResult::OK)
+    {
+      printf("NLA tweak-mode enter - could not assign slot %s\n",
+             strip_slot ? strip_slot->identifier : "-unassigned-");
+      /* There is one other reason this could fail: when already in NLA tweak mode. But since
+       * we're here in the code, the ADT_NLA_EDIT_ON flag is not yet set, and thus that shouldn't
+       * be the case.
+       *
+       * Because this ADT is not in tweak mode, it means that the Action assignment will have
+       * succeeded (I know, too much coupling here, would be better to have another
+       * SlotAssignmentResult value for this). */
     }
   }
   else {
@@ -2553,8 +2547,6 @@ void BKE_nla_tweakmode_exit(const OwnedAnimData owned_adt)
    * gracefully handles duplicates. */
   if (owned_adt.adt.action && owned_adt.adt.slot_handle != animrig::Slot::unassigned) {
     animrig::Action &action = owned_adt.adt.action->wrap();
-    BLI_assert_msg(action.is_action_layered(),
-                   "when a slot is assigned, the action should layered");
     animrig::Slot *slot = action.slot_for_handle(owned_adt.adt.slot_handle);
     if (slot) {
       slot->users_add(owned_adt.owner_id);

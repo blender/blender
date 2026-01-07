@@ -155,33 +155,6 @@ bool BKE_animdata_action_editable(const AnimData *adt)
   return !is_tweaking_strip;
 }
 
-bool BKE_animdata_action_ensure_idroot(const ID *owner, bAction *action)
-{
-  const int idcode = GS(owner->name);
-
-  if (action == nullptr) {
-    /* A nullptr action is usable by any ID type. */
-    return true;
-  }
-
-  if (!animrig::legacy::action_treat_as_legacy(*action)) {
-    /* TODO: for layered Actions, this function doesn't make sense. Once all Actions are
-     * auto-versioned to layered Actions, this entire function can be removed. */
-    action->idroot = 0;
-    /* Layered Actions can always be assigned to any ID type. It's the slots
-     * that are specialized. */
-    return true;
-  }
-
-  if (action->idroot == 0) {
-    /* First time this Action is assigned, lock it to this ID type. */
-    action->idroot = idcode;
-    return true;
-  }
-
-  return (action->idroot == idcode);
-}
-
 /* Freeing -------------------------------------------- */
 
 void BKE_animdata_free(ID *id, const bool do_id_user)
@@ -247,10 +220,7 @@ bool BKE_animdata_id_is_animated(const ID *id)
 
   if (adt->action) {
     const animrig::Action &action = adt->action->wrap();
-    if (action.is_action_layered() && action.is_slot_animated(adt->slot_handle)) {
-      return true;
-    }
-    if (action.is_action_legacy() && !BLI_listbase_is_empty(&action.curves)) {
+    if (action.is_slot_animated(adt->slot_handle)) {
       return true;
     }
   }

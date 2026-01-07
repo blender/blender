@@ -21,6 +21,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utils.hh"
 
 #include "DEG_depsgraph_build.hh"
 
@@ -30,6 +31,68 @@
 #include "testing/testing.h"
 
 namespace blender::animrig::tests {
+
+static bActionGroup *action_groups_add_new(bAction *act, const char name[])
+{
+  if (ELEM(nullptr, act, name)) {
+    return nullptr;
+  }
+  BLI_assert(act->wrap().is_action_legacy());
+  bActionGroup *agrp = MEM_new_for_free<bActionGroup>("bActionGroup");
+  agrp->flag = AGRP_SELECTED;
+  STRNCPY_UTF8(agrp->name, name[0] ? name : "Group");
+  BLI_addtail(&act->groups, agrp);
+  BLI_uniquename(
+      &act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
+
+  return agrp;
+}
+
+/**
+ * Add given channel into (active) group
+ * - assumes that channel is not linked to anything anymore
+ * - always adds at the end of the group
+ *
+ * \note Only for unit testing since this function only works on legacy actions.
+ */
+static void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
+{
+  if (ELEM(nullptr, act, agrp, fcurve)) {
+    return;
+  }
+  BLI_assert(act->wrap().is_action_legacy());
+  /* If no channels anywhere, just add to two lists at the same time. */
+  if (BLI_listbase_is_empty(&act->curves)) {
+    fcurve->next = fcurve->prev = nullptr;
+    agrp->channels.first = agrp->channels.last = fcurve;
+    act->curves.first = act->curves.last = fcurve;
+  }
+  /* If the group already has channels, the F-Curve can simply be added to the list
+   * (i.e. as the last channel in the group).
+   */
+  else if (agrp->channels.first) {
+    if (agrp->channels.last == act->curves.last) {
+      act->curves.last = fcurve;
+    }
+    BLI_insertlinkafter(&agrp->channels, agrp->channels.last, fcurve);
+  }
+  /* Otherwise, need to find the nearest F-Curve in group before/after current to link with */
+  else {
+    bActionGroup *grp;
+    agrp->channels.first = agrp->channels.last = fcurve;
+    for (grp = agrp->prev; grp; grp = grp->prev) {
+      if (grp->channels.last) {
+        BLI_insertlinkafter(&act->curves, grp->channels.last, fcurve);
+        break;
+      }
+    }
+    if (grp == nullptr) {
+      BLI_insertlinkbefore(&act->curves, act->curves.first, fcurve);
+    }
+  }
+
+  fcurve->grp = agrp;
+}
 
 /**
  * Ensure an FCurve exists for a legacy action. Only useful for unit tests since legacy actions can
@@ -87,7 +150,8 @@ static FCurve *action_fcurve_ensure_legacy(Main *bmain,
   }
 
   if (group) {
-    bActionGroup *agrp = BKE_action_group_find_name(act, group);
+    bActionGroup *agrp = static_cast<bActionGroup *>(
+        BLI_findstring(&act->groups, group, offsetof(bActionGroup, name)));
 
     if (agrp == nullptr) {
       agrp = action_groups_add_new(act, group);

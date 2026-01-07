@@ -1125,7 +1125,6 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
       UNUSED_VARS_NDEBUG(remove_ok);
     }
 
-    BKE_action_groups_reconstruct(adt->action);
     DEG_id_tag_update(&adt->action->id, ID_RECALC_SYNC_TO_EVAL);
   }
 

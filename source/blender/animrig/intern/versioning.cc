@@ -263,4 +263,36 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
   FOREACH_MAIN_ID_END;
 }
 
+void action_groups_reconstruct(bAction *act)
+{
+  if (!act) {
+    return;
+  }
+  BLI_assert(act->wrap().is_action_legacy());
+  /* Clear out all group channels. Channels that are actually in use are
+   * reconstructed below; this step is necessary to clear out unused groups. */
+  for (bActionGroup &group : act->groups) {
+    BLI_listbase_clear(&group.channels);
+  }
+  /* Sort the channels into the group lists, destroying the act->curves list. */
+  ListBaseT<FCurve> ungrouped = {nullptr, nullptr};
+  for (FCurve &fcurve : act->curves.items_mutable()) {
+    if (fcurve.grp) {
+      BLI_assert(BLI_findindex(&act->groups, fcurve.grp) >= 0);
+      BLI_addtail(&fcurve.grp->channels, &fcurve);
+    }
+    else {
+      BLI_addtail(&ungrouped, &fcurve);
+    }
+  }
+  /* Recombine into the main list. */
+  BLI_listbase_clear(&act->curves);
+  for (bActionGroup &group : act->groups) {
+    /* Copy the list header to preserve the pointers in the group. */
+    ListBase tmp = group.channels;
+    BLI_movelisttolist(&act->curves, &tmp);
+  }
+  BLI_movelisttolist(&act->curves, &ungrouped);
+}
+
 }  // namespace blender::animrig::versioning

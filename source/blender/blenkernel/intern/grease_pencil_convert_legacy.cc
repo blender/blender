@@ -528,19 +528,6 @@ class AnimDataConvertor {
       return;
     }
 
-    /* Ensure existing actions moved to a different ID type keep a 'valid' `idroot` value. Not
-     * essential, but 'nice to have'. */
-    if (GS(this->id_src.name) != GS(this->id_dst.name)) {
-      if (!this->animdata_dst) {
-        this->animdata_dst = BKE_animdata_ensure_id(&this->id_dst);
-      }
-      auto actions_idroot_ensure = [&](bAction &action) -> bool {
-        BKE_animdata_action_ensure_idroot(&this->id_dst, &action);
-        return true;
-      };
-      this->animdata_action_foreach(*this->animdata_dst, actions_idroot_ensure);
-    }
-
     if (&id_src == &id_dst) {
       if (this->has_changes) {
         DEG_id_tag_update(&this->id_src, ID_RECALC_ANIMATION);
