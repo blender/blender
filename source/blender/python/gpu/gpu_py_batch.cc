@@ -219,7 +219,8 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
       break;
     }
   }
-  if (i != -1) {
+  if (i == -1) {
+    /* No references set in the loop, so add it here. */
     PyList_Append(self->references, reinterpret_cast<PyObject *>(py_shader));
   }
 #endif
