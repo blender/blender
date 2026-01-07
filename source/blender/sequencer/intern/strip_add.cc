@@ -307,17 +307,17 @@ void add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, LoadData *load_d
 
 Strip *add_sound_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data)
 {
-  bSound *sound = BKE_sound_new_file(bmain, load_data->path); /* Handles relative paths. */
+  bSound *sound = BKE_sound_new_file_exists(bmain, load_data->path); /* Handles relative paths. */
   SoundInfo info;
   bool sound_loaded = BKE_sound_info_get(bmain, sound, &info);
 
   if (!sound_loaded && !load_data->allow_invalid_file) {
-    BKE_id_free(bmain, sound);
+    BKE_id_free_us(bmain, sound);
     return nullptr;
   }
 
   if (info.specs.channels == SOUND_CHANNELS_INVALID && !load_data->allow_invalid_file) {
-    BKE_id_free(bmain, sound);
+    BKE_id_free_us(bmain, sound);
     return nullptr;
   }
 
