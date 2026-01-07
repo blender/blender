@@ -128,7 +128,9 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
   if (py_call_level == 1) {
     BPY_context_update(C);
 
-    pyrna_context_init(C);
+    if (C != nullptr) {
+      pyrna_context_init(C);
+    }
 
 #ifdef TIME_PY_RUN
     if (bpy_timer_count == 0) {
@@ -161,7 +163,9 @@ void bpy_context_clear(bContext *C, const PyGILState_STATE *gilstate)
     BPY_context_set(nullptr);
 #endif
 
-    pyrna_context_clear(C);
+    if (C != nullptr) {
+      pyrna_context_clear(C);
+    }
 
 #ifdef TIME_PY_RUN
     bpy_timer_run_tot += BLI_time_now_seconds() - bpy_timer_run;
