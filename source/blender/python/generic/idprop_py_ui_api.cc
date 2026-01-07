@@ -301,20 +301,26 @@ static bool idprop_ui_data_update_int(IDProperty *idprop, PyObject *args, PyObje
     int idprop_items_num = 0;
     IDPropertyUIDataEnumItem *idprop_items = idprop_enum_items_from_py(items_fast,
                                                                        idprop_items_num);
-    if (!idprop_items) {
-      Py_DECREF(items_fast);
-      return false;
-    }
-    if (!IDP_EnumItemsValidate(idprop_items, idprop_items_num, [](const char *msg) {
-          PyErr_SetString(PyExc_ValueError, msg);
-        }))
-    {
-      Py_DECREF(items_fast);
-      return false;
-    }
+    /* If `idprop_items` is null, an exception will have been raised.
+     * If validate fails, and exception will be raised. */
+    const bool has_error = (idprop_items == nullptr) ||
+                           !IDP_EnumItemsValidate(
+                               idprop_items, idprop_items_num, [](const char *msg) {
+                                 PyErr_SetString(PyExc_ValueError, msg);
+                               });
     Py_DECREF(items_fast);
-    ui_data.enum_items = idprop_items;
-    ui_data.enum_items_num = idprop_items_num;
+    if (idprop_items != nullptr) {
+      /* Assign the data even in the case of an error since it's not practical to free
+       * the partially constructed enum. */
+      ui_data.enum_items = idprop_items;
+      ui_data.enum_items_num = idprop_items_num;
+    }
+
+    if (has_error) {
+      IDP_ui_data_free_unique_contents(
+          &ui_data.base, IDP_ui_data_type(idprop), &ui_data_orig->base);
+      return false;
+    }
   }
   else {
     ui_data.enum_items = nullptr;
