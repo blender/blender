@@ -39,12 +39,22 @@ void LazyFunction::destruct_storage(void *storage) const
 void LazyFunction::possible_output_dependencies(const int /*output_index*/,
                                                 const FunctionRef<void(Span<int>)> fn) const
 {
-  /* The output depends on all inputs by default. */
-  Vector<int, 16> indices(inputs_.size());
-  for (const int i : inputs_.index_range()) {
-    indices[i] = i;
+  
+ const int n = inputs_.size();
+  if (n == 0) {
+    fn(Span<int>{});
+    return;
   }
-  fn(indices);
+
+  // Avoid default-initialization; size uninitialized, then fill.
+  Vector<int, 16> indices;
+  indices.resize_uninitialized(n);
+
+  // Fill with 0..n-1 efficiently.
+  std::iota(indices.begin(), indices.end(), 0);
+
+  fn(Span<int>(indices));
+
 }
 
 bool LazyFunction::always_used_inputs_available(const Params &params) const
