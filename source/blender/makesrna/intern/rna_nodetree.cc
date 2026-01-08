@@ -6427,7 +6427,7 @@ static void def_cmp_file_output(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_path_template_type(prop, PROP_VARIABLES_RENDER_OUTPUT);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "file_name", PROP_STRING, PROP_FILENAME);
+  prop = RNA_def_property(srna, "file_name", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "file_name");
   RNA_def_property_ui_text(prop,
                            "File Name",

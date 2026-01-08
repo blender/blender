@@ -916,7 +916,7 @@ std::string FileOutputItemsAccessor::validate_name(const StringRef name)
 {
   char file_name[FILE_MAX] = "";
   STRNCPY(file_name, name.data());
-  BLI_path_make_safe_filename(file_name);
+  BLI_path_make_safe(file_name);
   return file_name;
 }
 
