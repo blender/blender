@@ -46,7 +46,7 @@ class GroupInputOperation : public NodeOperation {
       if (!input.is_allocated()) {
         /* Context does not support this input. */
         result.allocate_invalid();
-        return;
+        continue;
       }
 
       this->execute_input(input, result);
