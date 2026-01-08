@@ -829,7 +829,7 @@ std::optional<int> BKE_id_material_index_max_eval(const ID &id)
     case ID_PT:
       return reinterpret_cast<const PointCloud &>(id).material_index_max();
     case ID_GP:
-      return reinterpret_cast<const GreasePencil &>(id).material_index_max_eval();
+      return reinterpret_cast<const GreasePencil &>(id).material_index_max();
     case ID_VO:
     case ID_MB:
       /* Always use the first material. */
