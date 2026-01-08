@@ -53,6 +53,7 @@
 #include "BLO_core_file_reader.hh"
 #include "BLO_readfile.hh"
 
+#include "BLT_lang.hh"
 #include "BLT_translation.hh"
 
 #include "BLF_api.hh"
@@ -2907,6 +2908,7 @@ static wmOperatorStatus wm_homefile_read_exec(bContext *C, wmOperator *op)
   }
 
   if (use_userdef) {
+    BLT_lang_set(nullptr);
     BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
   }
 
