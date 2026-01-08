@@ -1052,6 +1052,8 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
 
     BLI_stack_free(edges_loose);
 #endif /* USE_NET_ISLAND_CONNECT */
+
+    BM_mesh_select_mode_flush(bm);
   }
   return OPERATOR_FINISHED;
 }
