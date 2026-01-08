@@ -7,6 +7,7 @@
 #include "BLI_math_matrix.hh"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_openvdb.hh"
 
