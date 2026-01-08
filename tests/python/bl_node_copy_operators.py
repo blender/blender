@@ -55,9 +55,15 @@ class NodeMapping:
         for test_socket, expected_socket in zip(test_node.outputs, expected_node.outputs):
             self.socket_map[test_socket] = expected_socket
 
-    def extend_nodes(self, test_nodes, expected_nodes):
-        for test_node, expected_node in zip(test_nodes, expected_nodes):
+    def add_nodes_by_name(self, test_nodes, expected_nodes):
+        expected_nodes_map = {node.name: node for node in expected_nodes}
+        for test_node in test_nodes:
+            # Raises key error if not all test nodes can be mapped.
+            expected_node = expected_nodes_map.pop(test_node.name)
             self.add_node(test_node, expected_node)
+            self.add_node(test_node, expected_node)
+        # Should map all expected nodes.
+        assert not expected_nodes_map
 
 
 def open_test_file():
@@ -168,7 +174,7 @@ def execute_make_group(test_case, test_tree, expected_tree=None):
         mapping = NodeMapping()
         mapping.add_tree(group_node.node_tree, expected_node.node_tree)
         mapping.add_node(group_node, expected_node)
-        mapping.extend_nodes(group_node.node_tree.nodes, expected_node.node_tree.nodes)
+        mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
         return mapping
 
 
@@ -210,7 +216,7 @@ def execute_group_insert(test_case, test_tree, expected_tree=None):
         mapping = NodeMapping()
         mapping.add_tree(group_node.node_tree, expected_node.node_tree)
         mapping.add_node(group_node, expected_node)
-        mapping.extend_nodes(group_node.node_tree.nodes, expected_node.node_tree.nodes)
+        mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
         return mapping
 
 
@@ -223,13 +229,14 @@ def execute_ungroup(test_case, test_tree, expected_tree=None):
     internal_nodes = [node for node in test_tree.nodes if node.select]
     # Re-attach to the parent frame to identify the operator result.
     for node in internal_nodes:
-        node.parent = find_test_frame(test_tree, test_case)
+        if node.parent is None:
+            node.parent = find_test_frame(test_tree, test_case)
 
     if expected_tree:
         # Map resulting nodes to expected nodes.
         expected_nodes = find_expected_nodes(expected_tree, test_case)
         mapping = NodeMapping()
-        mapping.extend_nodes(internal_nodes, expected_nodes)
+        mapping.add_nodes_by_name(internal_nodes, expected_nodes)
         return mapping
 
 
@@ -253,7 +260,8 @@ def execute_group_separate(type, test_case, test_tree, expected_tree=None):
         # Select all nodes for separating.
         select_nodes(group_node.node_tree, selected_nodes=group_node.node_tree.nodes)
         bpy.ops.node.group_separate(type=type)
-    separated_nodes = [node for node in test_tree.nodes if node.select]
+
+    separated_nodes = [node for node in test_tree.nodes if node.select and node.parent is None]
     centroid = node_centroid(separated_nodes)
     # Re-attach to the parent frame to identify the operator result.
     for node in separated_nodes:
@@ -266,7 +274,7 @@ def execute_group_separate(type, test_case, test_tree, expected_tree=None):
         result_nodes = find_expected_nodes(test_tree, test_case)
         expected_nodes = find_expected_nodes(expected_tree, test_case)
         mapping = NodeMapping()
-        mapping.extend_nodes(result_nodes, expected_nodes)
+        mapping.add_nodes_by_name(result_nodes, expected_nodes)
         return mapping
 
 
