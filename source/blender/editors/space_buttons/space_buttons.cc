@@ -66,7 +66,7 @@ static SpaceLink *buttons_create(const ScrArea * /*area*/, const Scene * /*scene
   ARegion *region;
   SpaceProperties *sbuts;
 
-  sbuts = MEM_new_for_free<SpaceProperties>("initbuts");
+  sbuts = MEM_new<SpaceProperties>("initbuts");
 
   sbuts->runtime = MEM_new<SpaceProperties_Runtime>(__func__);
   sbuts->runtime->search_string[0] = '\0';
@@ -122,10 +122,10 @@ static void buttons_free(SpaceLink *sl)
       MEM_delete(&user);
     }
     BLI_listbase_clear(&ct->users);
-    MEM_freeN(ct);
+    MEM_delete(ct);
   }
 
-  MEM_SAFE_FREE(sbuts->runtime->tab_search_results);
+  MEM_SAFE_DELETE(sbuts->runtime->tab_search_results);
   MEM_delete(sbuts->runtime);
 }
 
@@ -135,7 +135,7 @@ static void buttons_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 static SpaceLink *buttons_duplicate(SpaceLink *sl)
 {
   SpaceProperties *sfile_old = reinterpret_cast<SpaceProperties *>(sl);
-  SpaceProperties *sbutsn = static_cast<SpaceProperties *>(MEM_dupallocN(sl));
+  SpaceProperties *sbutsn = MEM_dupalloc(reinterpret_cast<SpaceProperties *>(sl));
 
   /* clear or remove stuff from old */
   sbutsn->path = nullptr;
@@ -445,7 +445,7 @@ static void property_search_all_tabs(const bContext *C,
   }
 
   BKE_area_region_free(area_copy.type, region_copy);
-  MEM_freeN(region_copy);
+  MEM_delete(region_copy);
   buttons_free(reinterpret_cast<SpaceLink *>(&sbuts_copy));
 
   CTX_wm_area_set(const_cast<bContext *>(C), area_original);
@@ -1097,7 +1097,7 @@ void ED_spacetype_buttons()
   st->blend_write = buttons_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype buttons region");
+  art = MEM_new_zeroed<ARegionType>("spacetype buttons region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = buttons_main_region_init;
   art->layout = buttons_main_region_layout;
@@ -1135,7 +1135,7 @@ void ED_spacetype_buttons()
   }
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype buttons region");
+  art = MEM_new_zeroed<ARegionType>("spacetype buttons region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -1146,7 +1146,7 @@ void ED_spacetype_buttons()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: navigation bar */
-  art = MEM_callocN<ARegionType>("spacetype nav buttons region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nav buttons region");
   art->regionid = RGN_TYPE_NAV_BAR;
   art->prefsizex = AREAMINX;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES | ED_KEYMAP_NAVBAR;

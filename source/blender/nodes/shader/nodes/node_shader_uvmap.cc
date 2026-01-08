@@ -50,7 +50,7 @@ static void node_shader_buts_uvmap(ui::Layout &layout, bContext *C, PointerRNA *
 
 static void node_shader_init_uvmap(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderUVMap *attr = MEM_new_for_free<NodeShaderUVMap>("NodeShaderUVMap");
+  NodeShaderUVMap *attr = MEM_new<NodeShaderUVMap>("NodeShaderUVMap");
   node->storage = attr;
 }
 

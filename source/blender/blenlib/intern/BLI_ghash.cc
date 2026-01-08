@@ -197,7 +197,7 @@ static void ghash_buckets_resize(GHash *gh, const uint nbuckets)
   gh->bucket_mask = nbuckets - 1;
 #endif
 
-  buckets_new = MEM_calloc_arrayN<Entry *>(gh->nbuckets, __func__);
+  buckets_new = MEM_new_array_zeroed<Entry *>(gh->nbuckets, __func__);
 
   if (buckets_old) {
     if (nbuckets > nbuckets_old) {
@@ -242,7 +242,7 @@ static void ghash_buckets_resize(GHash *gh, const uint nbuckets)
 
   gh->buckets = buckets_new;
   if (buckets_old) {
-    MEM_freeN(buckets_old);
+    MEM_delete(buckets_old);
   }
 }
 
@@ -340,7 +340,7 @@ static void ghash_buckets_contract(GHash *gh,
  */
 BLI_INLINE void ghash_buckets_reset(GHash *gh, const uint nentries)
 {
-  MEM_SAFE_FREE(gh->buckets);
+  MEM_SAFE_DELETE(gh->buckets);
 
 #ifdef GHASH_USE_MODULO_BUCKETS
   gh->cursize = 0;
@@ -420,7 +420,7 @@ static GHash *ghash_new(GHashHashFP hashfp,
                         const uint nentries_reserve,
                         const uint flag)
 {
-  GHash *gh = MEM_callocN<GHash>(info);
+  GHash *gh = MEM_new_zeroed<GHash>(info);
 
   gh->hashfp = hashfp;
   gh->cmpfp = cmpfp;
@@ -870,9 +870,9 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
     ghash_free_cb(gh, keyfreefp, valfreefp);
   }
 
-  MEM_freeN(gh->buckets);
+  MEM_delete(gh->buckets);
   BLI_mempool_destroy(gh->entrypool);
-  MEM_freeN(gh);
+  MEM_delete(gh);
 }
 
 void BLI_ghash_flag_set(GHash *gh, uint flag)
@@ -893,7 +893,7 @@ void BLI_ghash_flag_clear(GHash *gh, uint flag)
 
 GHashIterator *BLI_ghashIterator_new(GHash *gh)
 {
-  GHashIterator *ghi = MEM_callocN<GHashIterator>("ghash iterator");
+  GHashIterator *ghi = MEM_new_zeroed<GHashIterator>("ghash iterator");
   BLI_ghashIterator_init(ghi, gh);
   return ghi;
 }
@@ -930,7 +930,7 @@ void BLI_ghashIterator_step(GHashIterator *ghi)
 
 void BLI_ghashIterator_free(GHashIterator *ghi)
 {
-  MEM_freeN(ghi);
+  MEM_delete(ghi);
 }
 
 /** \} */

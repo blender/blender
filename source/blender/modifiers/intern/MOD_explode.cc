@@ -57,7 +57,7 @@ static void free_data(ModifierData *md)
 {
   ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
 
-  MEM_SAFE_FREE(emd->facepa);
+  MEM_SAFE_DELETE(emd->facepa);
 }
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
@@ -105,11 +105,11 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   rng = BLI_rng_new_srandom(psys->seed);
 
   if (emd->facepa) {
-    MEM_freeN(emd->facepa);
+    MEM_delete(emd->facepa);
   }
-  facepa = emd->facepa = MEM_calloc_arrayN<int>(totface, __func__);
+  facepa = emd->facepa = MEM_new_array_zeroed<int>(totface, __func__);
 
-  vertpa = MEM_calloc_arrayN<int>(totvert, __func__);
+  vertpa = MEM_new_array_zeroed<int>(totvert, __func__);
 
   /* initialize all faces & verts to no particle */
   for (i = 0; i < totface; i++) {
@@ -194,7 +194,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   }
 
   if (vertpa) {
-    MEM_freeN(vertpa);
+    MEM_delete(vertpa);
   }
   kdtree_3d_free(tree);
 
@@ -655,8 +655,8 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int totvert = mesh->verts_num;
   int totface = mesh->totface_legacy;
 
-  int *facesplit = MEM_calloc_arrayN<int>(totface, __func__);
-  int *vertpa = MEM_calloc_arrayN<int>(totvert, __func__);
+  int *facesplit = MEM_new_array_zeroed<int>(totface, __func__);
+  int *vertpa = MEM_new_array_zeroed<int>(totvert, __func__);
   int *facepa = emd->facepa;
   int *fs, totfsplit = 0, curdupface = 0;
   int i, v1, v2, v3, v4, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
@@ -746,7 +746,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
    * later interpreted as triangles, for this to work right I think we probably
    * have to stop using tessface. */
 
-  facepa = MEM_calloc_arrayN<int>(size_t(totface) + (size_t(totfsplit) * 2), __func__);
+  facepa = MEM_new_array_zeroed<int>(size_t(totface) + (size_t(totfsplit) * 2), __func__);
   // memcpy(facepa, emd->facepa, totface*sizeof(int));
   emd->facepa = facepa;
 
@@ -879,8 +879,8 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
         mf, &split_m->fdata_legacy, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
   }
 
-  MEM_freeN(facesplit);
-  MEM_freeN(vertpa);
+  MEM_delete(facesplit);
+  MEM_delete(vertpa);
 
   BKE_mesh_calc_edges_tessface(split_m);
   BKE_mesh_convert_mfaces_to_mpolys(split_m);
@@ -1146,7 +1146,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       Mesh *split_m = cutEdges(emd, mesh);
       Mesh *explode = explodeMesh(emd, psmd, ctx, scene, split_m);
 
-      MEM_freeN(emd->facepa);
+      MEM_delete(emd->facepa);
       emd->facepa = facepa;
       BKE_id_free(nullptr, split_m);
       return explode;

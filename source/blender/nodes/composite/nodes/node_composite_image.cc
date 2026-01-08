@@ -221,7 +221,7 @@ static void node_init(bNodeTree * /*node_tree*/, bNode *node)
 {
   node->flag |= NODE_PREVIEW;
 
-  ImageUser *iuser = MEM_new_for_free<ImageUser>(__func__);
+  ImageUser *iuser = MEM_new<ImageUser>(__func__);
   node->storage = iuser;
   iuser->frames = 1;
   iuser->sfra = 1;

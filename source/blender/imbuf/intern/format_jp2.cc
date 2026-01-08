@@ -842,7 +842,8 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
       }
     }
     if (parameters->cp_cinema) {
-      img_fol.rates = MEM_malloc_arrayN<float>(size_t(parameters->tcp_numlayers), "jp2_rates");
+      img_fol.rates = MEM_new_array_uninitialized<float>(size_t(parameters->tcp_numlayers),
+                                                         "jp2_rates");
       for (i = 0; i < parameters->tcp_numlayers; i++) {
         img_fol.rates[i] = parameters->tcp_rates[i];
       }
@@ -1169,7 +1170,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   }
 
   if (img_fol.rates) {
-    MEM_freeN(img_fol.rates);
+    MEM_delete(img_fol.rates);
   }
 
   return image;

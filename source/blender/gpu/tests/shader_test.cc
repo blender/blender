@@ -124,7 +124,7 @@ static void test_shader_compute_2d()
     EXPECT_FLOAT_EQ(data[index * 4 + 2], 0.2f);
     EXPECT_FLOAT_EQ(data[index * 4 + 3], 1.0f);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   /* Cleanup. */
   GPU_shader_unbind();
@@ -170,7 +170,7 @@ static void test_shader_compute_1d()
     EXPECT_FLOAT_EQ(data[index * 4 + 2], expected_value);
     EXPECT_FLOAT_EQ(data[index * 4 + 3], expected_value);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   /* Cleanup. */
   GPU_shader_unbind();
@@ -583,7 +583,7 @@ static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additio
     }
   }
 
-  MEM_freeN(test_data);
+  MEM_delete(test_data);
 
   /* Cleanup. */
   GPU_shader_unbind();

@@ -327,7 +327,7 @@ void rna_mtex_texture_slots_clear(ID *self_id, bContext *C, ReportList *reports,
 
   if (mtex_ar[index]) {
     id_us_min(id_cast<ID *>(mtex_ar[index]->tex));
-    MEM_freeN(mtex_ar[index]);
+    MEM_delete(mtex_ar[index]);
     mtex_ar[index] = nullptr;
     DEG_id_tag_update(self_id, 0);
   }

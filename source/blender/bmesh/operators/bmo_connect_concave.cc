@@ -151,7 +151,7 @@ static bool bm_face_split_by_concave(BMesh *bm,
   while (faces_double) {
     LinkNode *next = faces_double->next;
     BM_face_kill(bm, static_cast<BMFace *>(faces_double->link));
-    MEM_freeN(faces_double);
+    MEM_delete(faces_double);
     faces_double = next;
   }
 

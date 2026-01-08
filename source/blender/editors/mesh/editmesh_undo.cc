@@ -296,7 +296,7 @@ static void store_layer(const eCustomDataType type,
 
 #  ifdef USE_ARRAY_STORE_RLE
   if (use_rle) {
-    MEM_freeN(data_enc);
+    MEM_delete(data_enc);
   }
 #  endif
 }
@@ -376,10 +376,10 @@ static void *get_arraystore_data(const BArrayState *state,
     const uint8_t *data_enc = reinterpret_cast<uint8_t *>(data);
     size_t data_dec_len;
     memcpy(&data_dec_len, data_enc, sizeof(size_t));
-    uint8_t *data_dec = MEM_malloc_arrayN<uint8_t>(data_dec_len, __func__);
+    uint8_t *data_dec = MEM_new_array_uninitialized<uint8_t>(data_dec_len, __func__);
     BLI_array_store_rle_decode(
         data_enc + data_enc_extra_size, state_len - data_enc_extra_size, data_dec, data_dec_len);
-    MEM_freeN(data);
+    MEM_delete_void(data);
     data = static_cast<void *>(data_dec);
     /* Just for the assert to succeed. */
     state_len = data_dec_len;
@@ -581,7 +581,8 @@ static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
               &um_arraystore.bs_stride[ARRAY_STORE_INDEX_SHAPE],
               stride,
               array_chunk_size_calc(stride));
-          um->store.keyblocks = MEM_malloc_arrayN<BArrayState *>(mesh->key->totkey, __func__);
+          um->store.keyblocks = MEM_new_array_uninitialized<BArrayState *>(mesh->key->totkey,
+                                                                           __func__);
 
           KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
           for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
@@ -593,7 +594,7 @@ static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
                 bs, keyblock->data, size_t(keyblock->totelem) * stride, state_reference);
 
             if (keyblock->data) {
-              MEM_freeN(keyblock->data);
+              MEM_delete_void(keyblock->data);
               keyblock->data = nullptr;
             }
           }
@@ -611,7 +612,7 @@ static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
               bs, mesh->mselect, size_t(mesh->totselect) * stride, state_reference);
 
           /* keep mesh->totselect for validation */
-          MEM_freeN(mesh->mselect);
+          MEM_delete(mesh->mselect);
           mesh->mselect = nullptr;
         }
       });
@@ -640,14 +641,14 @@ static void um_arraystore_expand_clear(UndoMesh *um)
     KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
     for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
       if (keyblock->data) {
-        MEM_freeN(keyblock->data);
+        MEM_delete_void(keyblock->data);
         keyblock->data = nullptr;
       }
     }
   }
   if (mesh->mselect && mesh->totselect) {
     /* keep mesh->totselect for validation */
-    MEM_freeN(mesh->mselect);
+    MEM_delete(mesh->mselect);
     mesh->mselect = nullptr;
   }
 }
@@ -793,7 +794,7 @@ static void um_arraystore_free(UndoMesh *um)
       BArrayState *state = um->store.keyblocks[i];
       BLI_array_store_state_remove(bs, state);
     }
-    MEM_freeN(um->store.keyblocks);
+    MEM_delete(um->store.keyblocks);
     um->store.keyblocks = nullptr;
   }
 
@@ -854,7 +855,7 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
   /* Map: `Mesh.id.session_uid` -> `UndoMesh`. */
   Map<int, UndoMesh **> uuid_map;
   uuid_map.reserve(object_len);
-  UndoMesh **um_references = MEM_calloc_arrayN<UndoMesh *>(object_len, __func__);
+  UndoMesh **um_references = MEM_new_array_zeroed<UndoMesh *>(object_len, __func__);
   for (int i = 0; i < object_len; i++) {
     const Mesh *mesh = id_cast<const Mesh *>(object[i]->data);
     uuid_map.add(mesh->id.session_uid, &um_references[i]);
@@ -874,7 +875,7 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
   }
   BLI_assert(uuid_map_len == uuid_map.size());
   if (uuid_map_len == object_len) {
-    MEM_freeN(um_references);
+    MEM_delete(um_references);
     um_references = nullptr;
   }
   return um_references;
@@ -965,7 +966,7 @@ static void *undomesh_from_editmesh(UndoMesh *um,
       um_arraystore.task_pool = BLI_task_pool_create_background(nullptr, TASK_PRIORITY_LOW);
     }
 
-    UMArrayData *um_data = MEM_mallocN<UMArrayData>(__func__);
+    UMArrayData *um_data = MEM_new_uninitialized<UMArrayData>(__func__);
     um_data->um = um;
     um_data->um_ref = um_ref;
 
@@ -1147,7 +1148,7 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
-  us->elems = MEM_calloc_arrayN<MeshUndoStep_Elem>(objects.size(), __func__);
+  us->elems = MEM_new_array_zeroed<MeshUndoStep_Elem>(objects.size(), __func__);
   us->elems_len = objects.size();
 
   UndoMesh **um_references = nullptr;
@@ -1188,7 +1189,7 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   }
 
   if (um_references != nullptr) {
-    MEM_freeN(um_references);
+    MEM_delete(um_references);
   }
 
   bmain->is_memfile_undo_flush_needed = true;
@@ -1270,7 +1271,7 @@ static void mesh_undosys_step_free(UndoStep *us_p)
     MeshUndoStep_Elem *elem = &us->elems[i];
     undomesh_free_data(&elem->data);
   }
-  MEM_freeN(us->elems);
+  MEM_delete(us->elems);
 }
 
 static void mesh_undosys_foreach_ID_ref(UndoStep *us_p,

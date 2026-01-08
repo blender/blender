@@ -120,14 +120,15 @@ static bool is_sampled_curve_valid(const CurveMaskCache *curve_mask_cache, const
 
 static void sampled_curve_free(CurveMaskCache *curve_mask_cache)
 {
-  MEM_SAFE_FREE(curve_mask_cache->sampled_curve);
+  MEM_SAFE_DELETE(curve_mask_cache->sampled_curve);
   curve_mask_cache->last_curve_timestamp = 0;
 }
 
 static void update_sampled_curve(CurveMaskCache *curve_mask_cache, const Brush *brush)
 {
   if (curve_mask_cache->sampled_curve == nullptr) {
-    curve_mask_cache->sampled_curve = MEM_malloc_arrayN<float>(CurveSamplesLen, __func__);
+    curve_mask_cache->sampled_curve = MEM_new_array_uninitialized<float>(CurveSamplesLen,
+                                                                         __func__);
   }
 
   for (int i = 0; i < CurveSamplesLen; i++) {
@@ -151,13 +152,14 @@ static bool is_curve_mask_size_valid(const CurveMaskCache *curve_mask_cache, con
 static void curve_mask_free(CurveMaskCache *curve_mask_cache)
 {
   curve_mask_cache->curve_mask_size = 0;
-  MEM_SAFE_FREE(curve_mask_cache->curve_mask);
+  MEM_SAFE_DELETE(curve_mask_cache->curve_mask);
 }
 
 static void curve_mask_allocate(CurveMaskCache *curve_mask_cache, const int diameter)
 {
   const size_t curve_mask_size = diameter_to_curve_mask_size(diameter);
-  curve_mask_cache->curve_mask = static_cast<ushort *>(MEM_mallocN(curve_mask_size, __func__));
+  curve_mask_cache->curve_mask = static_cast<ushort *>(
+      MEM_new_uninitialized(curve_mask_size, __func__));
   curve_mask_cache->curve_mask_size = curve_mask_size;
 }
 

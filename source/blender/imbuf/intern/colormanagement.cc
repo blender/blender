@@ -288,7 +288,7 @@ static bool colormanage_hashcmp(const void *av, const void *bv)
 static MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 {
   if (!ibuf->colormanage_cache) {
-    ibuf->colormanage_cache = MEM_callocN<ColormanageCache>("imbuf colormanage cache");
+    ibuf->colormanage_cache = MEM_new_zeroed<ColormanageCache>("imbuf colormanage cache");
   }
 
   if (!ibuf->colormanage_cache->moviecache) {
@@ -308,7 +308,7 @@ static MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 static void colormanage_cachedata_set(ImBuf *ibuf, ColormanageCacheData *data)
 {
   if (!ibuf->colormanage_cache) {
-    ibuf->colormanage_cache = MEM_callocN<ColormanageCache>("imbuf colormanage cache");
+    ibuf->colormanage_cache = MEM_new_zeroed<ColormanageCache>("imbuf colormanage cache");
   }
 
   ibuf->colormanage_cache->data = data;
@@ -450,7 +450,7 @@ static void colormanage_cache_put(ImBuf *ibuf,
 
   /* Store data which is needed to check whether cached buffer
    * could be used for color managed display settings. */
-  cache_data = MEM_callocN<ColormanageCacheData>("color manage cache imbuf data");
+  cache_data = MEM_new_zeroed<ColormanageCacheData>("color manage cache imbuf data");
   cache_data->look = view_settings->look;
   cache_data->exposure = view_settings->exposure;
   cache_data->gamma = view_settings->gamma;
@@ -726,21 +726,21 @@ static bool colormanage_use_look(const char *look_name, const char *view_name)
 
 void colormanage_cache_free(ImBuf *ibuf)
 {
-  MEM_SAFE_FREE(ibuf->display_buffer_flags);
+  MEM_SAFE_DELETE(ibuf->display_buffer_flags);
 
   if (ibuf->colormanage_cache) {
     ColormanageCacheData *cache_data = colormanage_cachedata_get(ibuf);
     MovieCache *moviecache = colormanage_moviecache_get(ibuf);
 
     if (cache_data) {
-      MEM_freeN(cache_data);
+      MEM_delete(cache_data);
     }
 
     if (moviecache) {
       IMB_moviecache_free(moviecache);
     }
 
-    MEM_freeN(ibuf->colormanage_cache);
+    MEM_delete(ibuf->colormanage_cache);
 
     ibuf->colormanage_cache = nullptr;
   }
@@ -1839,7 +1839,7 @@ static void do_display_buffer_apply_thread(DisplayBufferThread *handle)
   int channels = handle->channels;
   int width = handle->width;
   int height = handle->tot_line;
-  float *linear_buffer = MEM_malloc_arrayN<float>(
+  float *linear_buffer = MEM_new_array_uninitialized<float>(
       size_t(channels) * size_t(width) * size_t(height), "color conversion linear buffer");
 
   bool is_straight_alpha;
@@ -1884,7 +1884,7 @@ static void do_display_buffer_apply_thread(DisplayBufferThread *handle)
     }
   }
 
-  MEM_freeN(linear_buffer);
+  MEM_delete(linear_buffer);
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf,
@@ -2885,8 +2885,8 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
 
   /* ensure color management bit fields exists */
   if (!ibuf->display_buffer_flags) {
-    ibuf->display_buffer_flags = MEM_calloc_arrayN<uint>(g_config->get_num_displays(),
-                                                         "imbuf display_buffer_flags");
+    ibuf->display_buffer_flags = MEM_new_array_zeroed<uint>(g_config->get_num_displays(),
+                                                            "imbuf display_buffer_flags");
   }
   else if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
     /* all display buffers were marked as invalid from other areas,
@@ -2905,7 +2905,7 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
     return display_buffer;
   }
 
-  display_buffer = MEM_malloc_arrayN<uchar>(
+  display_buffer = MEM_new_array_uninitialized<uchar>(
       DISPLAY_BUFFER_CHANNELS * size_t(ibuf->x) * size_t(ibuf->y), "imbuf display buffer");
 
   colormanage_display_buffer_process(
@@ -2942,8 +2942,8 @@ void IMB_display_buffer_transform_apply(uchar *display_buffer,
   ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_new(view_settings,
                                                                                  display_settings);
 
-  buffer = MEM_malloc_arrayN<float>(size_t(channels) * size_t(width) * size_t(height),
-                                    "display transform temp buffer");
+  buffer = MEM_new_array_uninitialized<float>(size_t(channels) * size_t(width) * size_t(height),
+                                              "display transform temp buffer");
   memcpy(buffer, linear_buffer, size_t(channels) * width * height * sizeof(float));
 
   IMB_colormanagement_processor_apply(cm_processor, buffer, width, height, channels, predivide);
@@ -2962,7 +2962,7 @@ void IMB_display_buffer_transform_apply(uchar *display_buffer,
                              width,
                              width);
 
-  MEM_freeN(buffer);
+  MEM_delete(buffer);
 }
 
 void IMB_display_buffer_release(void *cache_handle)
@@ -3628,7 +3628,7 @@ void IMB_colormanagement_working_space_convert(Main *bmain,
          * has to be duplicated before being converted to avoid changing the original. */
         const Span<ColorGeometry4f> src_data(*item.value.data_ptrs.first(), item.value.max_size);
 
-        auto *dst_data = MEM_malloc_arrayN<ColorGeometry4f>(
+        auto *dst_data = MEM_new_array_uninitialized<ColorGeometry4f>(
             src_data.size(), "IMB_colormanagement_working_space_convert");
         const ImplicitSharingPtr<> sharing_ptr(implicit_sharing::info_for_mem_free(dst_data));
 
@@ -3860,7 +3860,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
       channels = 4;
     }
 
-    display_buffer_float = MEM_malloc_arrayN<float>(
+    display_buffer_float = MEM_new_array_uninitialized<float>(
         size_t(channels) * size_t(width) * size_t(height), "display buffer for dither");
   }
 
@@ -3972,7 +3972,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
                                width,
                                ymin);
 
-    MEM_freeN(display_buffer_float);
+    MEM_delete(display_buffer_float);
   }
 }
 

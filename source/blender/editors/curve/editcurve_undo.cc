@@ -217,7 +217,7 @@ static bool curve_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
-  us->elems = MEM_calloc_arrayN<CurveUndoStep_Elem>(objects.size(), __func__);
+  us->elems = MEM_new_array_zeroed<CurveUndoStep_Elem>(objects.size(), __func__);
   us->elems_len = objects.size();
 
   for (uint i = 0; i < objects.size(); i++) {
@@ -287,7 +287,7 @@ static void curve_undosys_step_free(UndoStep *us_p)
     CurveUndoStep_Elem *elem = &us->elems[i];
     undocurve_free_data(&elem->data);
   }
-  MEM_freeN(us->elems);
+  MEM_delete(us->elems);
 }
 
 static void curve_undosys_foreach_ID_ref(UndoStep *us_p,

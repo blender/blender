@@ -479,26 +479,26 @@ void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
     return nullptr;
   }
 
-  void *mem = MEM_mallocN(filelen + pad_bytes, __func__);
+  void *mem = MEM_new_uninitialized(filelen + pad_bytes, __func__);
   if (mem == nullptr) {
     return nullptr;
   }
 
   const long int filelen_read = fread(mem, 1, filelen, fp);
   if ((filelen_read < 0) || ferror(fp)) {
-    MEM_freeN(mem);
+    MEM_delete_void(mem);
     return nullptr;
   }
 
   if (read_size_exact) {
     if (filelen_read != filelen) {
-      MEM_freeN(mem);
+      MEM_delete_void(mem);
       return nullptr;
     }
   }
   else {
     if (filelen_read < filelen) {
-      mem = MEM_reallocN(mem, filelen_read + pad_bytes);
+      mem = MEM_realloc_uninitialized(mem, filelen_read + pad_bytes);
       if (mem == nullptr) {
         return nullptr;
       }
@@ -582,7 +582,7 @@ LinkNode *BLI_file_read_as_lines(const char *filepath)
     return nullptr;
   }
 
-  buf = MEM_calloc_arrayN<char>(size, "file_as_lines");
+  buf = MEM_new_array_zeroed<char>(size, "file_as_lines");
   if (buf) {
     size_t i, last = 0;
 
@@ -600,7 +600,7 @@ LinkNode *BLI_file_read_as_lines(const char *filepath)
       }
     }
 
-    MEM_freeN(buf);
+    MEM_delete(buf);
   }
 
   fclose(fp);

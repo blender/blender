@@ -504,7 +504,7 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
     md_dst->totdisp = md_src->totdisp;
     md_dst->level = md_src->level;
     if (md_dst->totdisp) {
-      md_dst->disps = MEM_calloc_arrayN<float[3]>(md_dst->totdisp, __func__);
+      md_dst->disps = MEM_new_array_zeroed<float[3]>(md_dst->totdisp, __func__);
     }
     else {
       return;
@@ -850,9 +850,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
 {
   CustomData olddata = *data;
-  olddata.layers = (olddata.layers) ?
-                       static_cast<CustomDataLayer *>(MEM_dupallocN(olddata.layers)) :
-                       nullptr;
+  olddata.layers = (olddata.layers) ? MEM_dupalloc(olddata.layers) : nullptr;
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = nullptr;
 
@@ -860,16 +858,14 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
-    MEM_freeN(olddata.layers);
+    MEM_delete(olddata.layers);
   }
 }
 
 void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const StringRef name)
 {
   CustomData olddata = *data;
-  olddata.layers = (olddata.layers) ?
-                       static_cast<CustomDataLayer *>(MEM_dupallocN(olddata.layers)) :
-                       nullptr;
+  olddata.layers = (olddata.layers) ? MEM_dupalloc(olddata.layers) : nullptr;
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = nullptr;
 
@@ -877,7 +873,7 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const String
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
-    MEM_freeN(olddata.layers);
+    MEM_delete(olddata.layers);
   }
 }
 
@@ -920,9 +916,7 @@ bool BM_uv_map_attr_pin_exists(const BMesh *bm, const StringRef uv_map_name)
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 {
   CustomData olddata = *data;
-  olddata.layers = (olddata.layers) ?
-                       static_cast<CustomDataLayer *>(MEM_dupallocN(olddata.layers)) :
-                       nullptr;
+  olddata.layers = (olddata.layers) ? MEM_dupalloc(olddata.layers) : nullptr;
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = nullptr;
 
@@ -933,16 +927,14 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
-    MEM_freeN(olddata.layers);
+    MEM_delete(olddata.layers);
   }
 }
 
 bool BM_data_layer_free_named(BMesh *bm, CustomData *data, StringRef name)
 {
   CustomData olddata = *data;
-  olddata.layers = (olddata.layers) ?
-                       static_cast<CustomDataLayer *>(MEM_dupallocN(olddata.layers)) :
-                       nullptr;
+  olddata.layers = (olddata.layers) ? MEM_dupalloc(olddata.layers) : nullptr;
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = nullptr;
 
@@ -957,7 +949,7 @@ bool BM_data_layer_free_named(BMesh *bm, CustomData *data, StringRef name)
   }
 
   if (olddata.layers) {
-    MEM_freeN(olddata.layers);
+    MEM_delete(olddata.layers);
   }
 
   return had_layer;
@@ -966,9 +958,7 @@ bool BM_data_layer_free_named(BMesh *bm, CustomData *data, StringRef name)
 void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 {
   CustomData olddata = *data;
-  olddata.layers = (olddata.layers) ?
-                       static_cast<CustomDataLayer *>(MEM_dupallocN(olddata.layers)) :
-                       nullptr;
+  olddata.layers = (olddata.layers) ? MEM_dupalloc(olddata.layers) : nullptr;
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = nullptr;
 
@@ -980,7 +970,7 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
-    MEM_freeN(olddata.layers);
+    MEM_delete(olddata.layers);
   }
 }
 

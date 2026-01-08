@@ -73,7 +73,7 @@ struct DRWTextStore {
 
 DRWTextStore *DRW_text_cache_create()
 {
-  DRWTextStore *dt = MEM_callocN<DRWTextStore>(__func__);
+  DRWTextStore *dt = MEM_new_zeroed<DRWTextStore>(__func__);
   dt->cache_strings = BLI_memiter_create(1 << 14); /* 16kb */
   return dt;
 }
@@ -84,7 +84,7 @@ void DRW_text_cache_destroy(DRWTextStore *dt)
     return;
   }
   BLI_memiter_destroy(dt->cache_strings);
-  MEM_freeN(dt);
+  MEM_delete(dt);
 }
 
 void DRW_text_cache_add(DRWTextStore *dt,

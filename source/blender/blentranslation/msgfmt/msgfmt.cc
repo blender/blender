@@ -143,7 +143,7 @@ static char *generate(Map<std::string, std::string> &messages, size_t *r_output_
     return a.key < b.key;
   });
 
-  Offset *offsets = MEM_calloc_arrayN<Offset>(num_keys, __func__);
+  Offset *offsets = MEM_new_array_zeroed<Offset>(num_keys, __func__);
   uint32_t tot_keys_len = 0;
   uint32_t tot_vals_len = 0;
 
@@ -172,7 +172,7 @@ static char *generate(Map<std::string, std::string> &messages, size_t *r_output_
 
   /* Final buffer representing the binary MO file. */
   *r_output_size = valstart + tot_vals_len;
-  char *output = MEM_calloc_arrayN<char>(*r_output_size, __func__);
+  char *output = MEM_new_array_zeroed<char>(*r_output_size, __func__);
   char *h = output;
   char *ik = output + idx_keystart;
   char *iv = output + idx_valstart;
@@ -207,7 +207,7 @@ static char *generate(Map<std::string, std::string> &messages, size_t *r_output_
   BLI_assert(iv == output + keystart);
   BLI_assert(k == output + valstart);
 
-  MEM_freeN(offsets);
+  MEM_delete(offsets);
 
   return output;
 }
@@ -382,7 +382,7 @@ static int make(const char *input_file_name, const char *output_file_name)
   fwrite(output, 1, output_size, fp);
   fclose(fp);
 
-  MEM_freeN(output);
+  MEM_delete(output);
 
   return EXIT_SUCCESS;
 }

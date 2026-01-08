@@ -269,7 +269,7 @@ bool IDP_EqualsProperties(const IDProperty *prop1,
  * \endcode
  *
  * Note that you MUST either attach the id property to an id property group with
- * IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
+ * IDP_AddToGroup or MEM_delete the property, doing anything else might result in
  * a memory leak.
  */
 IDProperty *IDP_New(char type,

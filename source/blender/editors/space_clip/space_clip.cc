@@ -160,7 +160,7 @@ static void clip_area_sync_frame_from_scene(ScrArea *area, const Scene *scene)
 static SpaceLink *clip_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   ARegion *region;
-  SpaceClip *sc = MEM_new_for_free<SpaceClip>(__func__);
+  SpaceClip *sc = MEM_new<SpaceClip>(__func__);
 
   /* header */
   region = BKE_area_region_new();
@@ -235,7 +235,7 @@ static void clip_init(wmWindowManager * /*wm*/, ScrArea *area)
 
 static SpaceLink *clip_duplicate(SpaceLink *sl)
 {
-  SpaceClip *scn = MEM_dupallocN("clip_duplicate", *reinterpret_cast<SpaceClip *>(sl));
+  SpaceClip *scn = MEM_new<SpaceClip>("clip_duplicate", *reinterpret_cast<SpaceClip *>(sl));
 
   /* clear or remove stuff from old */
   scn->scopes.track_search = nullptr;
@@ -1254,7 +1254,7 @@ void ED_spacetype_clip()
   st->blend_write = clip_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype clip region");
+  art = MEM_new_zeroed<ARegionType>("spacetype clip region");
   art->regionid = RGN_TYPE_WINDOW;
   art->poll = clip_main_region_poll;
   art->init = clip_main_region_init;
@@ -1265,7 +1265,7 @@ void ED_spacetype_clip()
   BLI_addhead(&st->regiontypes, art);
 
   /* preview */
-  art = MEM_callocN<ARegionType>("spacetype clip region preview");
+  art = MEM_new_zeroed<ARegionType>("spacetype clip region preview");
   art->regionid = RGN_TYPE_PREVIEW;
   art->prefsizey = 240;
   art->poll = clip_preview_region_poll;
@@ -1277,7 +1277,7 @@ void ED_spacetype_clip()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: properties */
-  art = MEM_callocN<ARegionType>("spacetype clip region properties");
+  art = MEM_new_zeroed<ARegionType>("spacetype clip region properties");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
@@ -1290,7 +1290,7 @@ void ED_spacetype_clip()
   ED_clip_buttons_register(art);
 
   /* regions: tools */
-  art = MEM_callocN<ARegionType>("spacetype clip region tools");
+  art = MEM_new_zeroed<ARegionType>("spacetype clip region tools");
   art->regionid = RGN_TYPE_TOOLS;
   art->flag = ARegionTypeFlag::UsePanelCategoryTabs;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
@@ -1303,7 +1303,7 @@ void ED_spacetype_clip()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype clip region");
+  art = MEM_new_zeroed<ARegionType>("spacetype clip region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
@@ -1315,7 +1315,7 @@ void ED_spacetype_clip()
   BLI_addhead(&st->regiontypes, art);
 
   /* channels */
-  art = MEM_callocN<ARegionType>("spacetype clip channels region");
+  art = MEM_new_zeroed<ARegionType>("spacetype clip channels region");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;

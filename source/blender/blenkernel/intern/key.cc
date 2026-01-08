@@ -76,7 +76,7 @@ static void shapekey_copy_data(Main * /*bmain*/,
        kb_src = kb_src->next, kb_dst = kb_dst->next)
   {
     if (kb_dst->data) {
-      kb_dst->data = MEM_dupallocN(kb_dst->data);
+      kb_dst->data = MEM_dupalloc_void(kb_dst->data);
     }
     if (kb_src == key_src->refkey) {
       key_dst->refkey = kb_dst;
@@ -89,9 +89,9 @@ static void shapekey_free_data(ID *id)
   Key *key = id_cast<Key *>(id);
   while (KeyBlock *kb = static_cast<KeyBlock *>(BLI_pophead(&key->block))) {
     if (kb->data) {
-      MEM_freeN(kb->data);
+      MEM_delete_void(kb->data);
     }
-    MEM_freeN(kb);
+    MEM_delete(kb);
   }
 }
 
@@ -214,9 +214,9 @@ void BKE_key_free_nolib(Key *key)
 {
   while (KeyBlock *kb = static_cast<KeyBlock *>(BLI_pophead(&key->block))) {
     if (kb->data) {
-      MEM_freeN(kb->data);
+      MEM_delete_void(kb->data);
     }
-    MEM_freeN(kb);
+    MEM_delete(kb);
   }
 }
 
@@ -535,8 +535,8 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
       if (mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->bm->totvert == kb->totelem) {
         int a = 0;
         float (*co)[3];
-        co = MEM_malloc_arrayN<float[3]>(size_t(mesh->runtime->edit_mesh->bm->totvert),
-                                         "key_block_get_data");
+        co = MEM_new_array_uninitialized<float[3]>(size_t(mesh->runtime->edit_mesh->bm->totvert),
+                                                   "key_block_get_data");
 
         BMVert *eve;
         BMIter iter;
@@ -613,7 +613,7 @@ static void copy_key_float3(
   }
 
   if (free_keyblock_data) {
-    MEM_freeN(free_keyblock_data);
+    MEM_delete(free_keyblock_data);
   }
 }
 
@@ -658,10 +658,10 @@ static void copy_key_float3_weighted(const int vertex_count,
   }
 
   if (free_source_data) {
-    MEM_freeN(free_source_data);
+    MEM_delete(free_source_data);
   }
   if (free_refkey_data) {
-    MEM_freeN(free_refkey_data);
+    MEM_delete(free_refkey_data);
   }
 }
 
@@ -721,7 +721,7 @@ static void key_evaluate_relative_float3(Key *key,
     });
 
     if (freefrom) {
-      MEM_freeN(freefrom);
+      MEM_delete(freefrom);
     }
   }
 }
@@ -765,16 +765,16 @@ static void key_evaluate_absolute(const int vertex_count,
   });
 
   if (freek1) {
-    MEM_freeN(freek1);
+    MEM_delete(freek1);
   }
   if (freek2) {
-    MEM_freeN(freek2);
+    MEM_delete(freek2);
   }
   if (freek3) {
-    MEM_freeN(freek3);
+    MEM_delete(freek3);
   }
   if (freek4) {
-    MEM_freeN(freek4);
+    MEM_delete(freek4);
   }
 }
 
@@ -817,8 +817,8 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
     if (cache) {
       if (cache->defgroup_weights == nullptr) {
         int num_defgroup = BKE_object_defgroup_count(ob);
-        cache->defgroup_weights = MEM_calloc_arrayN<float *>(num_defgroup,
-                                                             "cached defgroup weights");
+        cache->defgroup_weights = MEM_new_array_zeroed<float *>(num_defgroup,
+                                                                "cached defgroup weights");
         cache->num_defgroup_weights = num_defgroup;
       }
 
@@ -827,7 +827,7 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
       }
     }
 
-    weights = MEM_malloc_arrayN<float>(size_t(totvert), "weights");
+    weights = MEM_new_array_uninitialized<float>(size_t(totvert), "weights");
 
     if (em) {
       int i;
@@ -856,8 +856,8 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
 
 static float **keyblock_get_per_block_weights(Object *ob, Key *key, WeightsArrayCache *cache)
 {
-  float **per_keyblock_weights = MEM_malloc_arrayN<float *>(size_t(key->totkey),
-                                                            "per keyblock weights");
+  float **per_keyblock_weights = MEM_new_array_uninitialized<float *>(size_t(key->totkey),
+                                                                      "per keyblock weights");
 
   for (const auto [keyblock_index, keyblock] : key->block.enumerate()) {
     per_keyblock_weights[keyblock_index] = get_weights_array(ob, keyblock.vgroup, cache);
@@ -874,22 +874,22 @@ static void keyblock_free_per_block_weights(Key *key,
     if (cache->num_defgroup_weights) {
       for (int a = 0; a < cache->num_defgroup_weights; a++) {
         if (cache->defgroup_weights[a]) {
-          MEM_freeN(cache->defgroup_weights[a]);
+          MEM_delete(cache->defgroup_weights[a]);
         }
       }
-      MEM_freeN(cache->defgroup_weights);
+      MEM_delete(cache->defgroup_weights);
     }
     cache->defgroup_weights = nullptr;
   }
   else {
     for (int a = 0; a < key->totkey; a++) {
       if (per_keyblock_weights[a]) {
-        MEM_freeN(per_keyblock_weights[a]);
+        MEM_delete(per_keyblock_weights[a]);
       }
     }
   }
 
-  MEM_freeN(per_keyblock_weights);
+  MEM_delete(per_keyblock_weights);
 }
 
 static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
@@ -1021,7 +1021,7 @@ float *BKE_key_evaluate_object_ex(
   /* Allocate array. */
   char *out;
   if (arr == nullptr) {
-    out = MEM_calloc_arrayN<char>(size, "BKE_key_evaluate_object out");
+    out = MEM_new_array_zeroed<char>(size, "BKE_key_evaluate_object out");
   }
   else {
     if (arr_size != size) {
@@ -1049,7 +1049,7 @@ float *BKE_key_evaluate_object_ex(
       copy_key_float3_weighted(tot, key, actkb, kb, weights, reinterpret_cast<float *>(out));
 
       if (weights) {
-        MEM_freeN(weights);
+        MEM_delete(weights);
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
@@ -1300,7 +1300,7 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
     curpos = kb->pos;
   }
 
-  kb = MEM_new_for_free<KeyBlock>("Keyblock");
+  kb = MEM_new<KeyBlock>("Keyblock");
   BLI_addtail(&key->block, kb);
   kb->type = KEY_LINEAR;
 
@@ -1341,7 +1341,7 @@ KeyBlock *BKE_keyblock_duplicate(Key *key, KeyBlock *kb_src)
   BLI_assert(BLI_findindex(&key->block, kb_src) != -1);
   KeyBlock *kb_dst = BKE_keyblock_add(key, kb_src->name);
   kb_dst->totelem = kb_src->totelem;
-  kb_dst->data = MEM_dupallocN(kb_src->data);
+  kb_dst->data = MEM_dupalloc_void(kb_src->data);
   BLI_remlink(&key->block, kb_dst);
   BLI_insertlinkafter(&key->block, kb_src, kb_dst);
   BKE_keyblock_copy_settings(kb_dst, kb_src);
@@ -1469,9 +1469,9 @@ void BKE_keyblock_convert_from_lattice(const Lattice *lt, KeyBlock *kb)
     return;
   }
 
-  MEM_SAFE_FREE(kb->data);
+  MEM_SAFE_DELETE_VOID(kb->data);
 
-  kb->data = MEM_malloc_arrayN(size_t(tot), size_t(lt->key->elemsize), __func__);
+  kb->data = MEM_new_array_uninitialized(size_t(tot), size_t(lt->key->elemsize), __func__);
   kb->totelem = tot;
 
   BKE_keyblock_update_from_lattice(lt, kb);
@@ -1591,9 +1591,9 @@ void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBa
     return;
   }
 
-  MEM_SAFE_FREE(kb->data);
+  MEM_SAFE_DELETE_VOID(kb->data);
 
-  kb->data = MEM_malloc_arrayN(size_t(tot), size_t(cu->key->elemsize), __func__);
+  kb->data = MEM_new_array_uninitialized(size_t(tot), size_t(cu->key->elemsize), __func__);
   kb->totelem = tot;
 
   BKE_keyblock_update_from_curve(cu, kb, nurb);
@@ -1658,9 +1658,9 @@ void BKE_keyblock_convert_from_mesh(const Mesh *mesh, const Key *key, KeyBlock *
     return;
   }
 
-  MEM_SAFE_FREE(kb->data);
+  MEM_SAFE_DELETE_VOID(kb->data);
 
-  kb->data = MEM_malloc_arrayN(size_t(len), size_t(key->elemsize), __func__);
+  kb->data = MEM_new_array_uninitialized(size_t(len), size_t(key->elemsize), __func__);
   kb->totelem = len;
 
   BKE_keyblock_update_from_mesh(mesh, kb);
@@ -1698,11 +1698,11 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   bool free_vert_normals = false;
   bool free_face_normals = false;
   if (vert_normals_needed && r_vert_normals == nullptr) {
-    vert_normals = MEM_malloc_arrayN<float[3]>(size_t(mesh->verts_num), __func__);
+    vert_normals = MEM_new_array_uninitialized<float[3]>(size_t(mesh->verts_num), __func__);
     free_vert_normals = true;
   }
   if (face_normals_needed && r_face_normals == nullptr) {
-    face_normals = MEM_malloc_arrayN<float[3]>(size_t(mesh->faces_num), __func__);
+    face_normals = MEM_new_array_uninitialized<float[3]>(size_t(mesh->faces_num), __func__);
     free_face_normals = true;
   }
 
@@ -1738,10 +1738,10 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   }
 
   if (free_vert_normals) {
-    MEM_freeN(vert_normals);
+    MEM_delete(vert_normals);
   }
   if (free_face_normals) {
-    MEM_freeN(face_normals);
+    MEM_delete(face_normals);
   }
 }
 

@@ -157,7 +157,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, only kept for forward compatibility. */
-  NodeKeyingData *data = MEM_new_for_free<NodeKeyingData>(__func__);
+  NodeKeyingData *data = MEM_new<NodeKeyingData>(__func__);
   node->storage = data;
 }
 

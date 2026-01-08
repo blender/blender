@@ -110,7 +110,7 @@ AnimData *BKE_animdata_ensure_id(ID *id)
       AnimData *adt;
 
       /* add animdata */
-      adt = iat->adt = MEM_new_for_free<AnimData>("AnimData");
+      adt = iat->adt = MEM_new<AnimData>("AnimData");
 
       /* set default settings */
       adt->act_influence = 1.0f;
@@ -197,13 +197,13 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
   BKE_fcurves_free(&adt->drivers);
 
   /* free driver array cache */
-  MEM_SAFE_FREE(adt->driver_array);
+  MEM_SAFE_DELETE(adt->driver_array);
 
   /* free overrides */
   /* TODO... */
 
   /* free animdata now */
-  MEM_freeN(adt);
+  MEM_delete(adt);
   iat->adt = nullptr;
 }
 
@@ -261,7 +261,7 @@ AnimData *BKE_animdata_copy_in_lib(Main *bmain,
   if (adt == nullptr) {
     return nullptr;
   }
-  dadt = static_cast<AnimData *>(MEM_dupallocN(adt));
+  dadt = MEM_dupalloc(adt);
 
   /* make a copy of action - at worst, user has to delete copies... */
   if (do_action) {
@@ -514,7 +514,7 @@ static void animpath_update_basepath(FCurve *fcu,
   }
 
   std::string new_rna_path = new_basepath + StringRefNull(fcu->rna_path + old_basepath.size());
-  MEM_freeN(fcu->rna_path);
+  MEM_delete(fcu->rna_path);
   fcu->rna_path = BLI_strdup(new_rna_path.c_str());
 }
 
@@ -830,12 +830,12 @@ static char *rna_path_rename_fix(ID *owner_id,
       /* TODO: will need to check whether this step really helps in practice */
       if (!verify_paths || check_rna_path_is_valid(owner_id, newPath)) {
         /* free the old path, and return the new one, since we've solved the issues */
-        MEM_freeN(oldpath);
+        MEM_delete(oldpath);
         return newPath;
       }
 
       /* still couldn't resolve the path... so, might as well just leave it alone */
-      MEM_freeN(newPath);
+      MEM_delete(newPath);
     }
   }
 
@@ -1014,8 +1014,8 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
   }
 
   /* free the temp names */
-  MEM_freeN(oldN);
-  MEM_freeN(newN);
+  MEM_delete(oldN);
+  MEM_delete(newN);
 
   /* return the resulting path - may be the same path again if nothing changed */
   return result;
@@ -1069,8 +1069,8 @@ void BKE_action_fix_paths_rename(ID *owner_id,
                           verify_paths);
 
   /* free the temp names */
-  MEM_freeN(oldN);
-  MEM_freeN(newN);
+  MEM_delete(oldN);
+  MEM_delete(newN);
 
   DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION);
 }
@@ -1142,8 +1142,8 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
     DEG_id_tag_update(owner_id, ID_RECALC_SYNC_TO_EVAL);
   }
   /* free the temp names */
-  MEM_freeN(oldN);
-  MEM_freeN(newN);
+  MEM_delete(oldN);
+  MEM_delete(newN);
 }
 
 /* Remove FCurves with Prefix  -------------------------------------- */

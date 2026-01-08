@@ -74,7 +74,7 @@ void BLI_dynstr_vappendf(DynStr *__restrict ds, const char *__restrict format, v
 int BLI_dynstr_get_len(const DynStr *ds) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * Get a #DynStr's contents as a c-string.
- * \return The c-string which must be freed using #MEM_freeN.
+ * \return The c-string which must be freed using #MEM_delete.
  *
  * \param ds: The #DynStr of interest.
  * \return The contents of \a ds as a c-string.

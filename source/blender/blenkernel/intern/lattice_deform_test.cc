@@ -34,7 +34,7 @@ static void test_lattice_deform_init(LatticeDeformTestContext *ctx,
                                      int32_t num_items)
 {
   /* Generate random input data between -5 and 5. */
-  ctx->coords = MEM_malloc_arrayN<float[3]>(size_t(num_items), __func__);
+  ctx->coords = MEM_new_array_uninitialized<float[3]>(size_t(num_items), __func__);
   for (uint32_t index = 0; index < num_items; index++) {
     ctx->coords[index][0] = (rng->get_float() - 0.5f) * 10;
     ctx->coords[index][1] = (rng->get_float() - 0.5f) * 10;
@@ -64,7 +64,7 @@ static void test_lattice_deform(LatticeDeformTestContext *ctx, int32_t num_items
 static void test_lattice_deform_free(LatticeDeformTestContext *ctx)
 {
   BKE_lattice_deform_data_destroy(ctx->ldd);
-  MEM_freeN(ctx->coords);
+  MEM_delete(ctx->coords);
   IDType_ID_LT.free_data(&ctx->lattice.id);
   IDType_ID_OB.free_data(&ctx->ob_lattice.id);
   IDType_ID_OB.free_data(&ctx->ob_mesh.id);

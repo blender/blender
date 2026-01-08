@@ -78,8 +78,8 @@ class ShapeKeyDragController : public ui::AbstractViewItemDragController {
     }();
 
     /* Allocate one extra element, to use it as null-delimiter. */
-    KeyBlock **selected_keys_ = MEM_calloc_arrayN<KeyBlock *>(selected_count + 1,
-                                                              "Selected Key Blocks");
+    KeyBlock **selected_keys_ = MEM_new_array_zeroed<KeyBlock *>(selected_count + 1,
+                                                                 "Selected Key Blocks");
 
     selected_count = 0;
 

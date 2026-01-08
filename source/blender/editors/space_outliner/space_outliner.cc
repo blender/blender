@@ -386,7 +386,7 @@ static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scen
   ARegion *region;
   SpaceOutliner *space_outliner;
 
-  space_outliner = MEM_new_for_free<SpaceOutliner>("initoutliner");
+  space_outliner = MEM_new<SpaceOutliner>("initoutliner");
   space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>(__func__);
   space_outliner->spacetype = SPACE_OUTLINER;
   space_outliner->filter_id_type = ID_GR;
@@ -431,7 +431,7 @@ static void outliner_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 static SpaceLink *outliner_duplicate(SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
-  SpaceOutliner *space_outliner_new = MEM_dupallocN<SpaceOutliner>(__func__, *space_outliner);
+  SpaceOutliner *space_outliner_new = MEM_new<SpaceOutliner>(__func__, *space_outliner);
   space_outliner_new->runtime = MEM_new<SpaceOutliner_Runtime>(__func__, *space_outliner->runtime);
 
   BLI_listbase_clear(&space_outliner_new->tree);
@@ -624,7 +624,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
       writer->write_struct_at_address(ts, &ts_flat);
       writer->write_struct_array_at_address(elems, data_addr, data);
 
-      MEM_freeN(data);
+      MEM_delete(data);
     }
     else {
       SpaceOutliner space_outliner_flat = *space_outliner;
@@ -670,7 +670,7 @@ void ED_spacetype_outliner()
   st->blend_write = outliner_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype outliner region");
+  art = MEM_new_zeroed<ARegionType>("spacetype outliner region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 
@@ -683,7 +683,7 @@ void ED_spacetype_outliner()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype outliner header region");
+  art = MEM_new_zeroed<ARegionType>("spacetype outliner header region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;

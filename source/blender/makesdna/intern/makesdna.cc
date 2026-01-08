@@ -581,7 +581,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
 {
   /* NOTE: len + 1, last character is a dummy to prevent
    * comparisons using uninitialized memory */
-  char *temp = MEM_malloc_arrayN<char>(size_t(maindata_len) + 1, "preprocess_include");
+  char *temp = MEM_new_array_uninitialized<char>(size_t(maindata_len) + 1, "preprocess_include");
   temp[maindata_len] = ' ';
 
   memcpy(temp, maindata, maindata_len);
@@ -725,7 +725,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
 
   BLI_assert(square_bracket_level == 0);
 
-  MEM_freeN(temp);
+  MEM_delete(temp);
   return newlen;
 }
 
@@ -752,7 +752,7 @@ static void *read_file_data(const char *filepath, int *r_len)
     return nullptr;
   }
 
-  data = MEM_mallocN(*r_len, "read_file_data");
+  data = MEM_new_uninitialized(*r_len, "read_file_data");
   if (!data) {
     *r_len = -1;
     fclose(fp);
@@ -761,7 +761,7 @@ static void *read_file_data(const char *filepath, int *r_len)
 
   if (fread(data, *r_len, 1, fp) != 1) {
     *r_len = -1;
-    MEM_freeN(data);
+    MEM_delete_void(data);
     fclose(fp);
     return nullptr;
   }
@@ -992,7 +992,7 @@ static int convert_include(const char *filepath)
     md++;
   }
 
-  MEM_freeN(maindata);
+  MEM_delete(maindata);
 
   return 0;
 }
@@ -1376,18 +1376,18 @@ static int make_structDNA(const char *base_directory,
   mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
   /* the longest known struct is 50k, so we assume 100k is sufficient! */
-  structdata = MEM_calloc_arrayN<short>(max_data_size, "structdata");
+  structdata = MEM_new_array_zeroed<short>(max_data_size, "structdata");
 
   /* a maximum of 5000 variables, must be sufficient? */
-  members = MEM_calloc_arrayN<char *>(max_array_len, "names");
-  types = MEM_calloc_arrayN<char *>(max_array_len, "types");
-  types_size_native = MEM_calloc_arrayN<short>(max_array_len, "types_size_native");
-  types_size_32 = MEM_calloc_arrayN<short>(max_array_len, "types_size_32");
-  types_size_64 = MEM_calloc_arrayN<short>(max_array_len, "types_size_64");
-  types_align_32 = MEM_calloc_arrayN<short>(max_array_len, "types_size_32");
-  types_align_64 = MEM_calloc_arrayN<short>(max_array_len, "types_size_64");
+  members = MEM_new_array_zeroed<char *>(max_array_len, "names");
+  types = MEM_new_array_zeroed<char *>(max_array_len, "types");
+  types_size_native = MEM_new_array_zeroed<short>(max_array_len, "types_size_native");
+  types_size_32 = MEM_new_array_zeroed<short>(max_array_len, "types_size_32");
+  types_size_64 = MEM_new_array_zeroed<short>(max_array_len, "types_size_64");
+  types_align_32 = MEM_new_array_zeroed<short>(max_array_len, "types_size_32");
+  types_align_64 = MEM_new_array_zeroed<short>(max_array_len, "types_size_64");
 
-  structs = MEM_calloc_arrayN<short *>(max_array_len, "structs");
+  structs = MEM_new_array_zeroed<short *>(max_array_len, "structs");
 
   /* Build versioning data */
   DNA_alias_maps(DNA_RENAME_ALIAS_FROM_STATIC,
@@ -1669,22 +1669,22 @@ static int make_structDNA(const char *base_directory,
     }
   }
 
-  MEM_freeN(structdata);
-  MEM_freeN(members);
-  MEM_freeN(types);
-  MEM_freeN(types_size_native);
-  MEM_freeN(types_size_32);
-  MEM_freeN(types_size_64);
-  MEM_freeN(types_align_32);
-  MEM_freeN(types_align_64);
-  MEM_freeN(structs);
+  MEM_delete(structdata);
+  MEM_delete(members);
+  MEM_delete(types);
+  MEM_delete(types_size_native);
+  MEM_delete(types_size_32);
+  MEM_delete(types_size_64);
+  MEM_delete(types_align_32);
+  MEM_delete(types_align_64);
+  MEM_delete(structs);
 
   BLI_memarena_free(mem_arena);
 
   BLI_ghash_free(g_version_data.type_map_alias_from_static, nullptr, nullptr);
   BLI_ghash_free(g_version_data.type_map_static_from_alias, nullptr, nullptr);
-  BLI_ghash_free(g_version_data.member_map_static_from_alias, MEM_freeN, nullptr);
-  BLI_ghash_free(g_version_data.member_map_alias_from_static, MEM_freeN, nullptr);
+  BLI_ghash_free(g_version_data.member_map_static_from_alias, MEM_delete_void, nullptr);
+  BLI_ghash_free(g_version_data.member_map_alias_from_static, MEM_delete_void, nullptr);
 
   DEBUG_PRINTF(0, "done.\n");
 

@@ -50,8 +50,7 @@ static void init_data(ModifierData *md)
   INIT_DEFAULT_STRUCT_AFTER(tmd, modifier);
   modifier::greasepencil::init_influence_data(&tmd->influence, false);
 
-  GreasePencilTimeModifierSegment *segment = MEM_new_for_free<GreasePencilTimeModifierSegment>(
-      __func__);
+  GreasePencilTimeModifierSegment *segment = MEM_new<GreasePencilTimeModifierSegment>(__func__);
   STRNCPY_UTF8(segment->name, DATA_("Segment"));
   tmd->segments_array = segment;
   tmd->segments_num = 1;
@@ -68,7 +67,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   modifier::greasepencil::copy_influence_data(&tmd->influence, &tmmd->influence, flag);
 
   tmmd->segments_array = static_cast<GreasePencilTimeModifierSegment *>(
-      MEM_dupallocN(tmd->segments_array));
+      MEM_dupalloc(tmd->segments_array));
 }
 
 static void free_data(ModifierData *md)
@@ -76,7 +75,7 @@ static void free_data(ModifierData *md)
   auto *tmd = reinterpret_cast<GreasePencilTimeModifierData *>(md);
   modifier::greasepencil::free_influence_data(&tmd->influence);
 
-  MEM_SAFE_FREE(tmd->segments_array);
+  MEM_SAFE_DELETE(tmd->segments_array);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
@@ -631,7 +630,7 @@ static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_GreasePencilTime, panel_draw);
 
-  uiListType *list_type = MEM_callocN<uiListType>("Grease Pencil Time modifier segments");
+  uiListType *list_type = MEM_new_zeroed<uiListType>("Grease Pencil Time modifier segments");
   STRNCPY_UTF8(list_type->idname, "MOD_UL_grease_pencil_time_modifier_segments");
   list_type->draw_item = segment_list_item_draw;
   WM_uilisttype_add(list_type);

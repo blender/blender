@@ -722,7 +722,7 @@ static uchar *prefetch_read_file_to_memory(
     return nullptr;
   }
 
-  uchar *mem = MEM_calloc_arrayN<uchar>(size, "movieclip prefetch memory file");
+  uchar *mem = MEM_new_array_zeroed<uchar>(size, "movieclip prefetch memory file");
   if (mem == nullptr) {
     close(file);
     return nullptr;
@@ -730,7 +730,7 @@ static uchar *prefetch_read_file_to_memory(
 
   if (BLI_read(file, mem, size) != size) {
     close(file);
-    MEM_freeN(mem);
+    MEM_delete(mem);
     return nullptr;
   }
 
@@ -876,7 +876,7 @@ static void prefetch_task_func(TaskPool *__restrict pool, void *task_data)
 
     IMB_freeImBuf(ibuf);
 
-    MEM_freeN(mem);
+    MEM_delete(mem);
 
     if (!result) {
       /* no more space in the cache, stop reading frames */
@@ -1044,10 +1044,10 @@ static void prefetch_freejob(void *pjv)
     BKE_libblock_free_datablock(&clip_local->id, 0);
     BKE_libblock_free_data(&clip_local->id, false);
     BLI_assert(!clip_local->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
-    MEM_freeN(clip_local);
+    MEM_delete(clip_local);
   }
 
-  MEM_freeN(pj);
+  MEM_delete(pj);
 }
 
 static int prefetch_get_content_start(const bContext *C)
@@ -1126,7 +1126,7 @@ void clip_start_prefetch_job(const bContext *C)
                        WM_JOB_TYPE_CLIP_PREFETCH);
 
   /* create new job */
-  pj = MEM_callocN<PrefetchJob>("prefetch job");
+  pj = MEM_new_zeroed<PrefetchJob>("prefetch job");
   pj->clip = ED_space_clip_get_clip(sc);
   pj->start_frame = prefetch_get_content_start(C);
   pj->current_frame = sc->user.framenr;

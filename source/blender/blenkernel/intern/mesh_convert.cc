@@ -328,7 +328,7 @@ Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob,
 
   Mesh *mesh = mesh_nurbs_displist_to_mesh(cu, dispbase);
   mesh_copy_texture_space_from_curve_type(cu, mesh);
-  mesh->mat = static_cast<Material **>(MEM_dupallocN(cu->mat));
+  mesh->mat = MEM_dupalloc(cu->mat);
   mesh->totcol = cu->totcol;
 
   return mesh;
@@ -357,14 +357,14 @@ struct VertLink {
 
 static void prependPolyLineVert(ListBaseT<VertLink> *lb, uint index)
 {
-  VertLink *vl = MEM_callocN<VertLink>("VertLink");
+  VertLink *vl = MEM_new_zeroed<VertLink>("VertLink");
   vl->index = index;
   BLI_addhead(lb, vl);
 }
 
 static void appendPolyLineVert(ListBaseT<VertLink> *lb, uint index)
 {
-  VertLink *vl = MEM_callocN<VertLink>("VertLink");
+  VertLink *vl = MEM_new_zeroed<VertLink>("VertLink");
   vl->index = index;
   BLI_addtail(lb, vl);
 }
@@ -384,7 +384,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh,
   ListBaseT<EdgeLink> edges = {nullptr, nullptr};
 
   /* get boundary edges */
-  edge_users = MEM_calloc_arrayN<int>(mesh_edges.size(), __func__);
+  edge_users = MEM_new_array_zeroed<int>(mesh_edges.size(), __func__);
   for (const int i : polys.index_range()) {
     for (const int edge : corner_edges.slice(polys[i])) {
       edge_users[edge]++;
@@ -394,13 +394,13 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh,
   /* create edges from all faces (so as to find edges not in any faces) */
   for (const int i : mesh_edges.index_range()) {
     if (edge_users[i] == edge_users_test) {
-      EdgeLink *edl = MEM_callocN<EdgeLink>("EdgeLink");
+      EdgeLink *edl = MEM_new_zeroed<EdgeLink>("EdgeLink");
       edl->edge = &mesh_edges[i];
 
       BLI_addtail(&edges, edl);
     }
   }
-  MEM_freeN(edge_users);
+  MEM_delete(edge_users);
 
   if (edges.first) {
     while (edges.first) {
@@ -476,7 +476,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh,
         VertLink *vl;
 
         /* create new 'nurb' within the curve */
-        nu = MEM_new_for_free<Nurb>(__func__);
+        nu = MEM_new<Nurb>(__func__);
 
         nu->pntsu = faces_num;
         nu->pntsv = 1;
@@ -484,7 +484,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh,
         nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : 0); /* endpoint */
         nu->resolu = 12;
 
-        nu->bp = MEM_calloc_arrayN<BPoint>(faces_num, "bpoints");
+        nu->bp = MEM_new_array_zeroed<BPoint>(faces_num, "bpoints");
 
         /* add points */
         vl = static_cast<VertLink *>(polyline.first);
@@ -1091,10 +1091,10 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
     const CustomDataLayer &layer = custom_data.layers[layer_index];
 
     KeyBlock *kb = keyblock_ensure_from_uid(key_dst, layer.uid, layer.name);
-    MEM_SAFE_FREE(kb->data);
+    MEM_SAFE_DELETE_VOID(kb->data);
 
     kb->totelem = mesh.verts_num;
-    kb->data = MEM_malloc_arrayN<float3>(size_t(kb->totelem), __func__);
+    kb->data = MEM_new_array_uninitialized<float3>(size_t(kb->totelem), __func__);
     MutableSpan<float3> kb_coords(static_cast<float3 *>(kb->data), kb->totelem);
     if (kb->uid == actshape_uid) {
       mesh.attributes().lookup<float3>("position").varray.materialize(kb_coords);
@@ -1106,9 +1106,9 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
 
   for (KeyBlock &kb : key_dst.block) {
     if (kb.totelem != mesh.verts_num) {
-      MEM_SAFE_FREE(kb.data);
+      MEM_SAFE_DELETE_VOID(kb.data);
       kb.totelem = mesh.verts_num;
-      kb.data = MEM_calloc_arrayN<float3>(kb.totelem, __func__);
+      kb.data = MEM_new_array_zeroed<float3>(kb.totelem, __func__);
       CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb.name);
     }
   }
@@ -1195,9 +1195,9 @@ void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
   }
 
   if (kb->data) {
-    MEM_freeN(kb->data);
+    MEM_delete_void(kb->data);
   }
-  kb->data = MEM_malloc_arrayN(
+  kb->data = MEM_new_array_uninitialized(
       size_t(mesh_dst->verts_num), size_t(mesh_dst->key->elemsize), "kb->data");
   kb->totelem = totvert;
   MutableSpan(static_cast<float3 *>(kb->data), kb->totelem).copy_from(mesh_src->vert_positions());

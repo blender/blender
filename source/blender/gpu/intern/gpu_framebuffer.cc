@@ -669,7 +669,7 @@ GPUOffScreen *GPU_offscreen_create(int width,
                                    bool clear,
                                    char err_out[256])
 {
-  GPUOffScreen *ofs = MEM_callocN<GPUOffScreen>(__func__);
+  GPUOffScreen *ofs = MEM_new_zeroed<GPUOffScreen>(__func__);
 
   /* Sometimes areas can have 0 height or width and this will
    * create a 1D texture which we don't want. */
@@ -743,7 +743,7 @@ void GPU_offscreen_free(GPUOffScreen *offscreen)
     GPU_texture_free(offscreen->depth);
   }
 
-  MEM_freeN(offscreen);
+  MEM_delete(offscreen);
 }
 
 void GPU_offscreen_bind(GPUOffScreen *offscreen, bool save)

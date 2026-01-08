@@ -420,7 +420,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
     /* Create samples, but store them in a new curve
      * - we cannot use fcurve_store_samples() as that will only overwrite the original curve.
      */
-    gcu->fpt = fpt = MEM_calloc_arrayN<FPoint>((end - start + 1), "Ghost FPoint Samples");
+    gcu->fpt = fpt = MEM_new_array_zeroed<FPoint>((end - start + 1), "Ghost FPoint Samples");
     gcu->totvert = end - start + 1;
 
     /* Use the sampling callback at 1-frame intervals from start to end frames. */

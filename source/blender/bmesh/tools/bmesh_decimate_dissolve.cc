@@ -294,7 +294,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
   const float angle_limit_cos_neg = -cosf(angle_limit);
   DelimitData delimit_data = {0};
   const int eheap_table_len = do_dissolve_boundaries ? einput_len : max_ii(einput_len, vinput_len);
-  void *_heap_table = MEM_malloc_arrayN<HeapNode *>(eheap_table_len, __func__);
+  void *_heap_table = MEM_new_array_uninitialized<HeapNode *>(eheap_table_len, __func__);
 
   int i;
 
@@ -386,7 +386,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
 
     /* prepare for cleanup */
     BM_mesh_elem_index_ensure(bm, BM_VERT);
-    vert_reverse_lookup = MEM_malloc_arrayN<int>(bm->totvert, __func__);
+    vert_reverse_lookup = MEM_new_array_uninitialized<int>(bm->totvert, __func__);
     copy_vn_i(vert_reverse_lookup, bm->totvert, -1);
     for (i = 0; i < vinput_len; i++) {
       BMVert *v = vinput_arr[i];
@@ -394,7 +394,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     }
 
     /* --- cleanup --- */
-    earray = MEM_malloc_arrayN<BMEdge *>(bm->totedge, __func__);
+    earray = MEM_new_array_uninitialized<BMEdge *>(bm->totedge, __func__);
     BM_ITER_MESH_INDEX (e_iter, &iter, bm, BM_EDGES_OF_MESH, i) {
       earray[i] = e_iter;
     }
@@ -425,8 +425,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
         }
       }
     }
-    MEM_freeN(vert_reverse_lookup);
-    MEM_freeN(earray);
+    MEM_delete(vert_reverse_lookup);
+    MEM_delete(earray);
 
     BLI_heap_free(eheap, nullptr);
   }
@@ -543,7 +543,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     BLI_heap_free(vheap, nullptr);
   }
 
-  MEM_freeN(_heap_table);
+  MEM_delete_void(_heap_table);
 }
 
 void BM_mesh_decimate_dissolve(BMesh *bm,
@@ -569,8 +569,8 @@ void BM_mesh_decimate_dissolve(BMesh *bm,
                                einput_len,
                                0);
 
-  MEM_freeN(vinput_arr);
-  MEM_freeN(einput_arr);
+  MEM_delete(vinput_arr);
+  MEM_delete(einput_arr);
 }
 
 }  // namespace blender

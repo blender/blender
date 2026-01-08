@@ -162,7 +162,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
   }
   bool rename(const bContext &C, StringRefNull new_name) override
   {
-    MEM_SAFE_FREE(socket_.name);
+    MEM_SAFE_DELETE(socket_.name);
 
     socket_.name = BLI_strdup(new_name.c_str());
     nodetree_.tree_interface.tag_item_property_changed();
@@ -438,13 +438,13 @@ void *NodeTreeInterfaceDragController::create_drag_data() const
   Vector<bNodeTreeInterfaceItem *> drag_items;
   gather_drag_items_recursive(tree_.tree_interface.root_panel, drag_items, false);
 
-  bNodeTreeInterfaceItemReference *drag_data = MEM_callocN<bNodeTreeInterfaceItemReference>(
+  bNodeTreeInterfaceItemReference *drag_data = MEM_new_zeroed<bNodeTreeInterfaceItemReference>(
       __func__);
   drag_data->item = &item_;
   drag_data->tree = &tree_;
   drag_data->items_count = drag_items.size();
-  drag_data->items = MEM_calloc_arrayN<bNodeTreeInterfaceItem *>(drag_data->items_count,
-                                                                 "drag items");
+  drag_data->items = MEM_new_array_zeroed<bNodeTreeInterfaceItem *>(drag_data->items_count,
+                                                                    "drag items");
   std::copy(drag_items.begin(), drag_items.end(), drag_data->items);
   return drag_data;
 }

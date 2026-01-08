@@ -181,7 +181,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  NodeGeometryStringToCurves *data = MEM_new_for_free<NodeGeometryStringToCurves>(__func__);
+  NodeGeometryStringToCurves *data = MEM_new<NodeGeometryStringToCurves>(__func__);
   node->storage = data;
 }
 
@@ -283,7 +283,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.linedist = line_spacing;
   cu.vfont = vfont;
   cu.overflow = overflow;
-  cu.tb = MEM_new_array_for_free<TextBox>(MAXTEXTBOX, __func__);
+  cu.tb = MEM_new_array<TextBox>(MAXTEXTBOX, __func__);
   cu.tb->w = textbox_w;
   cu.tb->h = textbox_h;
   cu.totbox = 1;
@@ -293,9 +293,9 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.len = len_bytes;
   cu.pos = len_chars;
   /* The reason for the additional character here is unknown, but reflects other code elsewhere. */
-  cu.str = MEM_malloc_arrayN<char>(len_bytes + sizeof(char32_t), __func__);
+  cu.str = MEM_new_array_uninitialized<char>(len_bytes + sizeof(char32_t), __func__);
   memcpy(cu.str, layout.text.c_str(), len_bytes + 1);
-  cu.strinfo = MEM_new_array_for_free<CharInfo>(len_chars + 1, __func__);
+  cu.strinfo = MEM_new_array<CharInfo>(len_chars + 1, __func__);
 
   CharTrans *chartransdata = nullptr;
   int text_len;
@@ -314,7 +314,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
                         &final_font_size);
 
   if (text_free) {
-    MEM_freeN(r_text);
+    MEM_delete(r_text);
   }
 
   Span<CharInfo> info{cu.strinfo, text_len};
@@ -348,10 +348,10 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   BLI_str_utf8_as_utf32(layout.char_codes.data(), layout.text.c_str(), layout.char_codes.size());
   layout.char_codes.remove_last();
 
-  MEM_SAFE_FREE(chartransdata);
-  MEM_SAFE_FREE(cu.str);
-  MEM_SAFE_FREE(cu.strinfo);
-  MEM_SAFE_FREE(cu.tb);
+  MEM_SAFE_DELETE(chartransdata);
+  MEM_SAFE_DELETE(cu.str);
+  MEM_SAFE_DELETE(cu.strinfo);
+  MEM_SAFE_DELETE(cu.tb);
 
   return layout;
 }

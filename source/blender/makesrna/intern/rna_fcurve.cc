@@ -452,7 +452,7 @@ static void rna_DriverTarget_RnaPath_set(PointerRNA *ptr, const char *value)
   /* XXX in this case we need to be very careful,
    * as this will require some new dependencies to be added! */
   if (dtar->rna_path) {
-    MEM_freeN(dtar->rna_path);
+    MEM_delete(dtar->rna_path);
   }
 
   if (value[0]) {
@@ -636,7 +636,7 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
   FCurve *fcu = static_cast<FCurve *>(ptr->data);
 
   if (fcu->rna_path) {
-    MEM_freeN(fcu->rna_path);
+    MEM_delete(fcu->rna_path);
   }
 
   if (value[0]) {
@@ -1188,8 +1188,8 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(
     }
 
     /* realloc memory for extra point */
-    env->data = static_cast<FCM_EnvelopeData *>(
-        MEM_reallocN((void *)env->data, (env->totvert + 1) * sizeof(FCM_EnvelopeData)));
+    env->data = static_cast<FCM_EnvelopeData *>(MEM_realloc_uninitialized(
+        (void *)env->data, (env->totvert + 1) * sizeof(FCM_EnvelopeData)));
 
     /* move the points after the added point */
     if (i < env->totvert) {
@@ -1199,7 +1199,7 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(
     env->totvert++;
   }
   else {
-    env->data = MEM_new_for_free<FCM_EnvelopeData>("FCM_EnvelopeData");
+    env->data = MEM_new<FCM_EnvelopeData>("FCM_EnvelopeData");
     env->totvert = 1;
     i = 0;
   }
@@ -1235,12 +1235,12 @@ static void rna_FModifierEnvelope_points_remove(
     /* realloc smaller array */
     env->totvert--;
     env->data = static_cast<FCM_EnvelopeData *>(
-        MEM_reallocN((void *)env->data, (env->totvert) * sizeof(FCM_EnvelopeData)));
+        MEM_realloc_uninitialized((void *)env->data, (env->totvert) * sizeof(FCM_EnvelopeData)));
   }
   else {
     /* just free array, since the only vert was deleted */
     if (env->data) {
-      MEM_freeN(env->data);
+      MEM_delete(env->data);
       env->data = nullptr;
     }
     env->totvert = 0;

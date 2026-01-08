@@ -290,7 +290,7 @@ static void workspace_relation_add(ListBaseT<WorkSpaceDataRelation> *relation_li
                                    const int parentid,
                                    void *data)
 {
-  WorkSpaceDataRelation *relation = MEM_new_for_free<WorkSpaceDataRelation>(__func__);
+  WorkSpaceDataRelation *relation = MEM_new<WorkSpaceDataRelation>(__func__);
   relation->parent = parent;
   relation->parentid = parentid;
   relation->value = data;
@@ -301,7 +301,7 @@ static void workspace_relation_remove(ListBaseT<WorkSpaceDataRelation> *relation
                                       WorkSpaceDataRelation *relation)
 {
   BLI_remlink(relation_list, relation);
-  MEM_freeN(relation);
+  MEM_delete(relation);
 }
 
 static void workspace_relation_ensure_updated(ListBaseT<WorkSpaceDataRelation> *relation_list,
@@ -388,7 +388,7 @@ void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
 
 WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const Main *bmain, const int winid)
 {
-  WorkSpaceInstanceHook *hook = MEM_new_for_free<WorkSpaceInstanceHook>(__func__);
+  WorkSpaceInstanceHook *hook = MEM_new<WorkSpaceInstanceHook>(__func__);
 
   /* set an active screen-layout for each possible window/workspace combination */
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
@@ -424,7 +424,7 @@ void BKE_workspace_instance_hook_free(const Main *bmain, WorkSpaceInstanceHook *
     }
   }
 
-  MEM_freeN(hook);
+  MEM_delete(hook);
 }
 
 WorkSpaceLayout *BKE_workspace_layout_add(Main *bmain,
@@ -432,7 +432,7 @@ WorkSpaceLayout *BKE_workspace_layout_add(Main *bmain,
                                           bScreen &screen,
                                           const char *name)
 {
-  WorkSpaceLayout *layout = MEM_new_for_free<WorkSpaceLayout>(__func__);
+  WorkSpaceLayout *layout = MEM_new<WorkSpaceLayout>(__func__);
 
   BLI_assert(!bmain || !workspaces_is_screen_used(bmain, &screen));
 #ifdef NDEBUG
@@ -576,13 +576,13 @@ WorkSpaceLayout *BKE_workspace_layout_iter_circular(const WorkSpace *workspace,
 void BKE_workspace_tool_remove(WorkSpace *workspace, bToolRef *tref)
 {
   if (tref->runtime) {
-    MEM_freeN(tref->runtime);
+    MEM_delete(tref->runtime);
   }
   if (tref->properties) {
     IDP_FreeProperty(tref->properties);
   }
   BLI_remlink(&workspace->tools, tref);
-  MEM_freeN(tref);
+  MEM_delete(tref);
 }
 
 void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,

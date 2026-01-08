@@ -75,7 +75,7 @@ static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveResample *data = MEM_new_for_free<NodeGeometryCurveResample>(__func__);
+  NodeGeometryCurveResample *data = MEM_new<NodeGeometryCurveResample>(__func__);
   data->keep_last_segment = true;
   node->storage = data;
 }

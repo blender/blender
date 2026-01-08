@@ -312,7 +312,7 @@ static Nurb *build_underline(const Curve &cu,
   Nurb *nu;
   BPoint *bp;
 
-  nu = MEM_new_for_free<Nurb>("underline_nurb");
+  nu = MEM_new<Nurb>("underline_nurb");
   nu->resolu = cu.resolu;
   nu->bezt = nullptr;
   nu->knotsu = nu->knotsv = nullptr;
@@ -326,7 +326,7 @@ static Nurb *build_underline(const Curve &cu,
   nu->orderv = 1;
   nu->flagu = CU_NURB_CYCLIC;
 
-  bp = MEM_calloc_arrayN<BPoint>(4, "underline_bp");
+  bp = MEM_new_array_zeroed<BPoint>(4, "underline_bp");
 
   copy_v4_fl4(bp[0].vec, rect->xmin, (rect->ymax + yofs), 0.0f, 1.0f);
   copy_v4_fl4(bp[1].vec, rect->xmax, (rect->ymax + yofs), 0.0f, 1.0f);
@@ -398,7 +398,7 @@ static void vfont_char_build_impl(const Curve &cu,
   while (nu_from_vchar) {
     const BezTriple *bezt_from_vchar = nu_from_vchar->bezt;
     if (bezt_from_vchar) {
-      Nurb *nu = MEM_new_for_free<Nurb>("duplichar_nurb");
+      Nurb *nu = MEM_new<Nurb>("duplichar_nurb");
       if (nu == nullptr) {
         break;
       }
@@ -416,9 +416,9 @@ static void vfont_char_build_impl(const Curve &cu,
       }
       int u = nu->pntsu;
 
-      BezTriple *bezt = MEM_malloc_arrayN<BezTriple>(size_t(u), "duplichar_bezt2");
+      BezTriple *bezt = MEM_new_array_uninitialized<BezTriple>(size_t(u), "duplichar_bezt2");
       if (bezt == nullptr) {
-        MEM_freeN(nu);
+        MEM_delete(nu);
         break;
       }
       memcpy(bezt, bezt_from_vchar, u * sizeof(BezTriple));
@@ -757,7 +757,7 @@ static bool vfont_to_curve(Object *ob,
     slen = cu.len_char32;
 
     /* Create unicode string. */
-    mem_tmp = MEM_malloc_arrayN<char32_t>(size_t(slen) + 1, "convertedmem");
+    mem_tmp = MEM_new_array_uninitialized<char32_t>(size_t(slen) + 1, "convertedmem");
     if (!mem_tmp) {
       return false;
     }
@@ -794,12 +794,12 @@ static bool vfont_to_curve(Object *ob,
 
   if (ef != nullptr) {
     if (ef->selboxes) {
-      MEM_freeN(ef->selboxes);
+      MEM_delete(ef->selboxes);
     }
 
     if (BKE_vfont_select_get(&cu, &selstart, &selend)) {
       ef->selboxes_len = (selend - selstart) + 1;
-      ef->selboxes = MEM_calloc_arrayN<EditFontSelBox>(ef->selboxes_len, "font selboxes");
+      ef->selboxes = MEM_new_array_zeroed<EditFontSelBox>(ef->selboxes_len, "font selboxes");
     }
     else {
       ef->selboxes_len = 0;
@@ -810,10 +810,10 @@ static bool vfont_to_curve(Object *ob,
   }
 
   /* Calculate the offset and rotation of each char. */
-  ct = chartransdata = MEM_calloc_arrayN<CharTrans>(size_t(slen) + 1, "buildtext");
+  ct = chartransdata = MEM_new_array_zeroed<CharTrans>(size_t(slen) + 1, "buildtext");
 
   /* We assume the worst case: 1 character per line (is freed at end anyway). */
-  lineinfo = MEM_malloc_arrayN<TempLineInfo>(size_t(slen) * 2 + 1, "lineinfo");
+  lineinfo = MEM_new_array_uninitialized<TempLineInfo>(size_t(slen) * 2 + 1, "lineinfo");
 
   linedist = cu.linedist;
 
@@ -830,8 +830,8 @@ static bool vfont_to_curve(Object *ob,
   TextBoxBounds_ForCursor *tb_bounds_for_cursor = nullptr;
   if (cursor_params != nullptr) {
     if (cu.textoncurve == nullptr && (cu.totbox > 1) && (slen > 0)) {
-      tb_bounds_for_cursor = MEM_new_array_for_free<TextBoxBounds_ForCursor>(
-          size_t(cu.totbox), "TextboxBounds_Cursor");
+      tb_bounds_for_cursor = MEM_new_array<TextBoxBounds_ForCursor>(size_t(cu.totbox),
+                                                                    "TextboxBounds_Cursor");
       for (curbox = 0; curbox < cu.totbox; curbox++) {
         TextBoxBounds_ForCursor *tb_bounds = &tb_bounds_for_cursor[curbox];
         tb_bounds->char_index_last = -1;
@@ -1246,7 +1246,7 @@ static bool vfont_to_curve(Object *ob,
     }
   }
 
-  MEM_freeN(lineinfo);
+  MEM_delete(lineinfo);
 
   /* TEXT ON CURVE */
   /* NOTE: Only #OB_CURVES_LEGACY objects could have a path. */
@@ -1501,7 +1501,7 @@ static bool vfont_to_curve(Object *ob,
   }
 
   if (mode == FO_SELCHANGE) {
-    MEM_freeN(chartransdata);
+    MEM_delete(chartransdata);
     chartransdata = nullptr;
   }
   else if (mode == FO_EDIT) {
@@ -1735,7 +1735,7 @@ static bool vfont_to_curve(Object *ob,
           }
           char_end = tb_bounds_for_cursor[closest_box].char_index_last;
         }
-        MEM_freeN(tb_bounds_for_cursor);
+        MEM_delete(tb_bounds_for_cursor);
         tb_bounds_for_cursor = nullptr; /* Safety only. */
       }
       const float interline_offset = ((linedist - 0.5f) / 2.0f) * font_size;
@@ -1790,11 +1790,11 @@ static bool vfont_to_curve(Object *ob,
     }
 
     if (chartransdata != nullptr) {
-      MEM_freeN(chartransdata);
+      MEM_delete(chartransdata);
     }
 
     if (mem_alloc) {
-      MEM_freeN(mem);
+      MEM_delete(mem);
     }
     return true;
   }
@@ -1806,7 +1806,7 @@ static bool vfont_to_curve(Object *ob,
   }
   else {
     if (mem_alloc) {
-      MEM_freeN(mem);
+      MEM_delete(mem);
     }
   }
 
@@ -1815,7 +1815,7 @@ static bool vfont_to_curve(Object *ob,
       *r_chartransdata = chartransdata;
     }
     else {
-      MEM_freeN(chartransdata);
+      MEM_delete(chartransdata);
     }
   }
 

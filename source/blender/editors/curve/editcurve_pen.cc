@@ -603,7 +603,7 @@ static void insert_bezt_to_nurb(Nurb *nu, const CutData *data, Curve *cu)
 {
   EditNurb *editnurb = cu->editnurb;
 
-  BezTriple *new_bezt_array = MEM_malloc_arrayN<BezTriple>((nu->pntsu + 1), __func__);
+  BezTriple *new_bezt_array = MEM_new_array_uninitialized<BezTriple>((nu->pntsu + 1), __func__);
   const int index = data->bezt_index + 1;
   /* Copy all control points before the cut to the new memory. */
   ED_curve_beztcpy(editnurb, new_bezt_array, nu->bezt, index);
@@ -644,7 +644,7 @@ static void insert_bezt_to_nurb(Nurb *nu, const CutData *data, Curve *cu)
                              next_bezt->vec[1],
                              data->parameter);
 
-  MEM_freeN(nu->bezt);
+  MEM_delete(nu->bezt);
   nu->bezt = new_bezt_array;
   ED_curve_deselect_all(editnurb);
   BKE_nurb_handles_calc(nu);
@@ -658,7 +658,7 @@ static void insert_bp_to_nurb(Nurb *nu, const CutData *data, Curve *cu)
 {
   EditNurb *editnurb = cu->editnurb;
 
-  BPoint *new_bp_array = MEM_malloc_arrayN<BPoint>((nu->pntsu + 1), __func__);
+  BPoint *new_bp_array = MEM_new_array_uninitialized<BPoint>((nu->pntsu + 1), __func__);
   const int index = data->bp_index + 1;
   /* Copy all control points before the cut to the new memory. */
   ED_curve_bpcpy(editnurb, new_bp_array, nu->bp, index);
@@ -689,7 +689,7 @@ static void insert_bp_to_nurb(Nurb *nu, const CutData *data, Curve *cu)
   new_bp->radius = interpf(next_bp->radius, (new_bp - 1)->radius, data->parameter);
   new_bp->weight = interpf(next_bp->weight, (new_bp - 1)->weight, data->parameter);
 
-  MEM_freeN(nu->bp);
+  MEM_delete(nu->bp);
   nu->bp = new_bp_array;
   ED_curve_deselect_all(editnurb);
   BKE_nurb_knot_calc_u(nu);
@@ -757,7 +757,7 @@ static void update_cut_data_for_nurb(
 
   if (nu->type == CU_BEZIER) {
     for (int i = 0; i < end; i++) {
-      float *points = MEM_malloc_arrayN<float>(3 * (resolu + 1), __func__);
+      float *points = MEM_new_array_uninitialized<float>(3 * (resolu + 1), __func__);
 
       const BezTriple *bezt1 = nu->bezt + i;
       const BezTriple *bezt2 = nu->bezt + (i + 1) % nu->pntsu;
@@ -789,7 +789,7 @@ static void update_cut_data_for_nurb(
         copy_v2_v2(point1, point2);
       }
 
-      MEM_freeN(points);
+      MEM_delete(points);
     }
     if (cd->min_dist > min_dist) {
       cd->min_dist = min_dist;
@@ -946,7 +946,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
       const bool last_sel = BEZT_ISSEL_ANY(last_bezt) && nu1.pntsu > 1;
       if (first_sel) {
         if (last_sel) {
-          BezTriple *new_bezt = MEM_malloc_arrayN<BezTriple>((nu1.pntsu + 2), __func__);
+          BezTriple *new_bezt = MEM_new_array_uninitialized<BezTriple>((nu1.pntsu + 2), __func__);
           ED_curve_beztcpy(editnurb, new_bezt, nu1.bezt, 1);
           ED_curve_beztcpy(editnurb, new_bezt + nu1.pntsu + 1, last_bezt, 1);
           BEZT_DESEL_ALL(nu1.bezt);
@@ -955,7 +955,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
 
           move_bezt_by_displacement(new_bezt, disp_3d);
           move_bezt_by_displacement(new_bezt + nu1.pntsu + 1, disp_3d);
-          MEM_freeN(nu1.bezt);
+          MEM_delete(nu1.bezt);
           nu1.bezt = new_bezt;
           nu1.pntsu += 2;
 
@@ -967,12 +967,12 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
           BEZT_SEL_IDX(new_bezt + (nu1.pntsu - 1), 2);
         }
         else {
-          BezTriple *new_bezt = MEM_malloc_arrayN<BezTriple>((nu1.pntsu + 1), __func__);
+          BezTriple *new_bezt = MEM_new_array_uninitialized<BezTriple>((nu1.pntsu + 1), __func__);
           ED_curve_beztcpy(editnurb, new_bezt, nu1.bezt, 1);
           BEZT_DESEL_ALL(nu1.bezt);
           ED_curve_beztcpy(editnurb, new_bezt + 1, nu1.bezt, nu1.pntsu);
           move_bezt_by_displacement(new_bezt, disp_3d);
-          MEM_freeN(nu1.bezt);
+          MEM_delete(nu1.bezt);
           nu1.bezt = new_bezt;
           nu1.pntsu++;
 
@@ -984,12 +984,12 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
         cu->actvert = 0;
       }
       else if (last_sel) {
-        BezTriple *new_bezt = MEM_malloc_arrayN<BezTriple>((nu1.pntsu + 1), __func__);
+        BezTriple *new_bezt = MEM_new_array_uninitialized<BezTriple>((nu1.pntsu + 1), __func__);
         ED_curve_beztcpy(editnurb, new_bezt + nu1.pntsu, last_bezt, 1);
         BEZT_DESEL_ALL(last_bezt);
         ED_curve_beztcpy(editnurb, new_bezt, nu1.bezt, nu1.pntsu);
         move_bezt_by_displacement(new_bezt + nu1.pntsu, disp_3d);
-        MEM_freeN(nu1.bezt);
+        MEM_delete(nu1.bezt);
         nu1.bezt = new_bezt;
         nu1.pntsu++;
         cu->actnu = nu_index;
@@ -1006,7 +1006,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
       const bool last_sel = last_bp->f1 & SELECT && nu1.pntsu > 1;
       if (first_sel) {
         if (last_sel) {
-          BPoint *new_bp = MEM_malloc_arrayN<BPoint>((nu1.pntsu + 2), __func__);
+          BPoint *new_bp = MEM_new_array_uninitialized<BPoint>((nu1.pntsu + 2), __func__);
           ED_curve_bpcpy(editnurb, new_bp, nu1.bp, 1);
           ED_curve_bpcpy(editnurb, new_bp + nu1.pntsu + 1, last_bp, 1);
           nu1.bp->f1 &= ~SELECT;
@@ -1014,17 +1014,17 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
           ED_curve_bpcpy(editnurb, new_bp + 1, nu1.bp, nu1.pntsu);
           add_v3_v3(new_bp->vec, disp_3d);
           add_v3_v3((new_bp + nu1.pntsu + 1)->vec, disp_3d);
-          MEM_freeN(nu1.bp);
+          MEM_delete(nu1.bp);
           nu1.bp = new_bp;
           nu1.pntsu += 2;
         }
         else {
-          BPoint *new_bp = MEM_malloc_arrayN<BPoint>((nu1.pntsu + 1), __func__);
+          BPoint *new_bp = MEM_new_array_uninitialized<BPoint>((nu1.pntsu + 1), __func__);
           ED_curve_bpcpy(editnurb, new_bp, nu1.bp, 1);
           nu1.bp->f1 &= ~SELECT;
           ED_curve_bpcpy(editnurb, new_bp + 1, nu1.bp, nu1.pntsu);
           add_v3_v3(new_bp->vec, disp_3d);
-          MEM_freeN(nu1.bp);
+          MEM_delete(nu1.bp);
           nu1.bp = new_bp;
           nu1.pntsu++;
         }
@@ -1033,13 +1033,13 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
         cu->actvert = 0;
       }
       else if (last_sel) {
-        BPoint *new_bp = MEM_malloc_arrayN<BPoint>((nu1.pntsu + 1), __func__);
+        BPoint *new_bp = MEM_new_array_uninitialized<BPoint>((nu1.pntsu + 1), __func__);
         ED_curve_bpcpy(editnurb, new_bp, nu1.bp, nu1.pntsu);
         ED_curve_bpcpy(editnurb, new_bp + nu1.pntsu, last_bp, 1);
         last_bp->f1 &= ~SELECT;
         ED_curve_bpcpy(editnurb, new_bp, nu1.bp, nu1.pntsu);
         add_v3_v3((new_bp + nu1.pntsu)->vec, disp_3d);
-        MEM_freeN(nu1.bp);
+        MEM_delete(nu1.bp);
         nu1.bp = new_bp;
         nu1.pntsu++;
         BKE_nurb_knot_calc_u(&nu1);
@@ -1160,7 +1160,7 @@ static bool is_spline_nearby(ViewContext *vc,
     if (cd.nurb && (cd.nurb->type == CU_BEZIER) && RNA_boolean_get(op->ptr, "move_segment")) {
       MoveSegmentData *seg_data;
       CurvePenData *cpd = static_cast<CurvePenData *>(op->customdata);
-      cpd->msd = seg_data = MEM_callocN<MoveSegmentData>(__func__);
+      cpd->msd = seg_data = MEM_new_zeroed<MoveSegmentData>(__func__);
       seg_data->bezt_index = cd.bezt_index;
       seg_data->nu = cd.nurb;
       seg_data->t = cd.parameter;
@@ -1591,7 +1591,7 @@ static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEve
 
   CurvePenData *cpd;
   if (op->customdata == nullptr) {
-    op->customdata = cpd = MEM_callocN<CurvePenData>(__func__);
+    op->customdata = cpd = MEM_new_zeroed<CurvePenData>(__func__);
   }
   else {
     cpd = static_cast<CurvePenData *>(op->customdata);
@@ -1729,9 +1729,9 @@ static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEve
       }
 
       if (cpd->msd != nullptr) {
-        MEM_freeN(cpd->msd);
+        MEM_delete(cpd->msd);
       }
-      MEM_freeN(cpd);
+      MEM_delete(cpd);
       ret = OPERATOR_FINISHED;
     }
   }
@@ -1755,7 +1755,7 @@ static wmOperatorStatus curve_pen_invoke(bContext *C, wmOperator *op, const wmEv
   Nurb *nu = nullptr;
 
   CurvePenData *cpd;
-  op->customdata = cpd = MEM_callocN<CurvePenData>(__func__);
+  op->customdata = cpd = MEM_new_zeroed<CurvePenData>(__func__);
 
   /* Distance threshold for mouse clicks to affect the spline or its points */
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};

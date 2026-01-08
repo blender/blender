@@ -63,7 +63,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeDisplaceData *data = MEM_new_for_free<NodeDisplaceData>(__func__);
+  NodeDisplaceData *data = MEM_new<NodeDisplaceData>(__func__);
   node->storage = data;
 }
 

@@ -77,7 +77,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeAccumulateField *data = MEM_new_for_free<NodeAccumulateField>(__func__);
+  NodeAccumulateField *data = MEM_new<NodeAccumulateField>(__func__);
   data->data_type = CD_PROP_FLOAT;
   data->domain = int16_t(AttrDomain::Point);
   node->storage = data;

@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+#include "DNA_space_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -40,7 +42,7 @@ static SpaceLink *script_create(const ScrArea * /*area*/, const Scene * /*scene*
   ARegion *region;
   SpaceScript *sscript;
 
-  sscript = MEM_new_for_free<SpaceScript>("initscript");
+  sscript = MEM_new<SpaceScript>("initscript");
   sscript->spacetype = SPACE_SCRIPT;
 
   /* header */
@@ -80,7 +82,7 @@ static void script_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *script_duplicate(SpaceLink *sl)
 {
-  SpaceScript *sscriptn = static_cast<SpaceScript *>(MEM_dupallocN(sl));
+  SpaceScript *sscriptn = MEM_dupalloc(reinterpret_cast<SpaceScript *>(sl));
 
   /* clear or remove stuff from old */
 
@@ -190,7 +192,7 @@ void ED_spacetype_script()
   st->blend_write = script_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype script region");
+  art = MEM_new_zeroed<ARegionType>("spacetype script region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = script_main_region_init;
   art->draw = script_main_region_draw;
@@ -201,7 +203,7 @@ void ED_spacetype_script()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype script region");
+  art = MEM_new_zeroed<ARegionType>("spacetype script region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;

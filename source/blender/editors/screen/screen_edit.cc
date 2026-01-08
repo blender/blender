@@ -65,7 +65,7 @@ static ScrArea *screen_addarea_ex(ScrAreaMap *area_map,
                                   ScrVert *bottom_right,
                                   const eSpace_Type space_type)
 {
-  ScrArea *area = MEM_new_for_free<ScrArea>("addscrarea");
+  ScrArea *area = MEM_new<ScrArea>("addscrarea");
 
   area->v1 = bottom_left;
   area->v2 = top_left;
@@ -96,7 +96,7 @@ static void screen_delarea(bContext *C, bScreen *screen, ScrArea *area)
   BKE_screen_area_free(area);
 
   BLI_remlink(&screen->areabase, area);
-  MEM_freeN(area);
+  MEM_delete(area);
 }
 
 ScrArea *area_split(const wmWindow *win,
@@ -907,7 +907,7 @@ void ED_region_exit(bContext *C, ARegion *region)
   /* The region is not in a state that it can be visible in anymore. Reinitializing is needed. */
   region->runtime->visible = false;
 
-  MEM_SAFE_FREE(region->runtime->headerstr);
+  MEM_SAFE_DELETE(region->runtime->headerstr);
 
   if (region->runtime->regiontimer) {
     WM_event_timer_remove(wm, win, region->runtime->regiontimer);
@@ -1249,7 +1249,7 @@ static void screen_global_area_refresh(wmWindow *win,
     screen_area_spacelink_add(WM_window_get_active_scene(win), area, space_type);
 
     /* Data specific to global areas. */
-    area->global = MEM_new_for_free<ScrGlobalAreaData>(__func__);
+    area->global = MEM_new<ScrGlobalAreaData>(__func__);
     area->global->size_max = height_max;
     area->global->size_min = height_min;
     area->global->align = align;
@@ -1925,7 +1925,7 @@ void ED_screen_animation_timer(
   }
 
   if (enable) {
-    ScreenAnimData *sad = MEM_callocN<ScreenAnimData>("ScreenAnimData");
+    ScreenAnimData *sad = MEM_new_zeroed<ScreenAnimData>("ScreenAnimData");
 
     screen->animtimer = WM_event_timer_add(wm, win, TIMER0, (1.0 / scene->frames_per_second()));
 

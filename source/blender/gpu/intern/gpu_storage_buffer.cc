@@ -37,7 +37,7 @@ StorageBuf::StorageBuf(size_t size, const char *name)
 
 StorageBuf::~StorageBuf()
 {
-  MEM_SAFE_FREE(data_);
+  MEM_SAFE_DELETE_VOID(data_);
 }
 
 void StorageBuf::usage_size_set(size_t usage_size)

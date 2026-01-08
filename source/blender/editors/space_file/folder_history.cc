@@ -41,7 +41,7 @@ void folderlist_popdir(ListBaseT<FolderList> *folderlist, char *dir)
 
   if (folder) {
     /* remove the current directory */
-    MEM_freeN(folder->foldername);
+    MEM_delete(folder->foldername);
     BLI_freelinkN(folderlist, folder);
 
     folder = static_cast<FolderList *>(folderlist->last);
@@ -70,7 +70,7 @@ void folderlist_pushdir(ListBaseT<FolderList> *folderlist, const char *dir)
   }
 
   /* create next folder element */
-  folder = MEM_callocN<FolderList>(__func__);
+  folder = MEM_new_zeroed<FolderList>(__func__);
   folder->foldername = BLI_strdup(dir);
 
   /* add it to the end of the list */
@@ -114,7 +114,7 @@ void folderlist_free(ListBaseT<FolderList> *folderlist)
 {
   if (folderlist) {
     for (FolderList &folder : folderlist->items_mutable()) {
-      MEM_freeN(folder.foldername);
+      MEM_delete(folder.foldername);
       MEM_delete(&folder);
     }
     BLI_listbase_clear(folderlist);
@@ -128,7 +128,7 @@ static ListBaseT<FolderList> folderlist_duplicate(ListBaseT<FolderList> *folderl
   BLI_duplicatelist(&folderlistn, folderlist);
 
   for (FolderList &folder : folderlistn) {
-    folder.foldername = static_cast<char *>(MEM_dupallocN(folder.foldername));
+    folder.foldername = MEM_dupalloc(folder.foldername);
   }
   return folderlistn;
 }
@@ -155,7 +155,7 @@ void folder_history_list_ensure_for_active_browse_mode(SpaceFile *sfile)
   FileFolderHistory *history = folder_history_find(sfile, eFileBrowse_Mode(sfile->browse_mode));
 
   if (!history) {
-    history = MEM_new_for_free<FileFolderHistory>(__func__);
+    history = MEM_new<FileFolderHistory>(__func__);
     history->browse_mode = sfile->browse_mode;
     BLI_addtail(&sfile->folder_histories, history);
   }
@@ -189,7 +189,7 @@ ListBaseT<FileFolderHistory> folder_history_list_duplicate(ListBaseT<FileFolderH
   ListBaseT<FileFolderHistory> histories = {nullptr};
 
   for (FileFolderHistory &history : *listbase) {
-    FileFolderHistory *history_new = static_cast<FileFolderHistory *>(MEM_dupallocN(&history));
+    FileFolderHistory *history_new = MEM_dupalloc(&history);
     history_new->folders_prev = folderlist_duplicate(&history.folders_prev);
     history_new->folders_next = folderlist_duplicate(&history.folders_next);
     BLI_addtail(&histories, history_new);

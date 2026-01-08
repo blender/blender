@@ -49,7 +49,7 @@
   { \
     while (list) { \
       void *next = (list)->next; \
-      MEM_freeN(list); \
+      MEM_delete(list); \
       list = next; \
     } \
   } \

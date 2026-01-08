@@ -23,10 +23,10 @@ namespace blender {
  * \{ */
 
 /* Allows to avoid using `malloc` for userdata_chunk in tasks, when small enough. */
-#define MALLOCA(_size) ((_size) <= 8192) ? alloca(_size) : MEM_mallocN((_size), __func__)
+#define MALLOCA(_size) ((_size) <= 8192) ? alloca(_size) : MEM_new_uninitialized((_size), __func__)
 #define MALLOCA_FREE(_mem, _size) \
   if (((_mem) != nullptr) && ((_size) > 8192)) { \
-    MEM_freeN(_mem); \
+    MEM_delete_void(_mem); \
   } \
   ((void)0)
 

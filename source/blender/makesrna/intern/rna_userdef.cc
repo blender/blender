@@ -475,7 +475,7 @@ static void rna_userdef_extension_repo_access_token_set(PointerRNA *ptr, const c
 {
   bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
   if (repo->access_token) {
-    MEM_freeN(repo->access_token);
+    MEM_delete(repo->access_token);
   }
   repo->access_token = value[0] ? BLI_strdup(value) : nullptr;
 }
@@ -598,7 +598,7 @@ static void rna_userdef_script_directory_name_set(PointerRNA *ptr, const char *v
 
 static bUserScriptDirectory *rna_userdef_script_directory_new()
 {
-  bUserScriptDirectory *script_dir = MEM_new_for_free<bUserScriptDirectory>(__func__);
+  bUserScriptDirectory *script_dir = MEM_new<bUserScriptDirectory>(__func__);
   BLI_addtail(&U.script_directories, script_dir);
   USERDEF_TAG_DIRTY;
   return script_dir;
@@ -1037,7 +1037,7 @@ static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *addon_ptr)
 
 static bPathCompare *rna_userdef_pathcompare_new()
 {
-  bPathCompare *path_cmp = MEM_new_for_free<bPathCompare>("bPathCompare");
+  bPathCompare *path_cmp = MEM_new<bPathCompare>("bPathCompare");
   BLI_addtail(&U.autoexec_paths, path_cmp);
   USERDEF_TAG_DIRTY;
   return path_cmp;
@@ -1284,7 +1284,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   }
 
   /* Create a new add-on preference type. */
-  apt = MEM_mallocN<bAddonPrefType>("addonpreftype");
+  apt = MEM_new_uninitialized<bAddonPrefType>("addonpreftype");
   memcpy(apt, &dummy_apt, sizeof(dummy_apt));
   BKE_addon_pref_type_add(apt);
 

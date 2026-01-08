@@ -155,7 +155,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
 
   const int num_fvar_values = topology_refiner->base_level().GetNumFVarValues(layer_index);
   /* Use a temporary buffer so we do not upload UVs one at a time to the GPU. */
-  float (*buffer)[2] = MEM_malloc_arrayN<float[2]>(size_t(num_fvar_values), __func__);
+  float (*buffer)[2] = MEM_new_array_uninitialized<float[2]>(size_t(num_fvar_values), __func__);
 
   FaceVaryingDataFromUVContext ctx;
   ctx.topology_refiner = topology_refiner;
@@ -174,7 +174,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
 
   evaluator->eval_output->setFaceVaryingData(layer_index, &buffer[0][0], 0, num_fvar_values);
 
-  MEM_freeN(buffer);
+  MEM_delete(buffer);
 }
 
 static void set_vert_data_from_orco(Subdiv *subdiv, const Mesh *mesh)

@@ -907,7 +907,7 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object)
     const GVArray src = *attributes.lookup(".selection", domain);
     if (src) {
       const CPPType &type = src.type();
-      void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size, __func__);
+      void *dst = MEM_new_array_uninitialized(attributes.domain_size(domain), type.size, __func__);
       src.materialize(dst);
 
       attributes.remove(".selection");
@@ -916,7 +916,7 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object)
                           bke::cpp_type_to_attribute_type(type),
                           bke::AttributeInitMoveArray(dst)))
       {
-        MEM_freeN(dst);
+        MEM_delete_void(dst);
       }
 
       changed = true;

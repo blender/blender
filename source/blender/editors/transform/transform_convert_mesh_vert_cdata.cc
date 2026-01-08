@@ -134,9 +134,9 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
     int *dists_index = nullptr;
     float *dists = nullptr;
     if (prop_mode & T_PROP_CONNECTED) {
-      dists = MEM_malloc_arrayN<float>(bm->totvert, __func__);
+      dists = MEM_new_array_uninitialized<float>(bm->totvert, __func__);
       if (is_island_center) {
-        dists_index = MEM_malloc_arrayN<int>(bm->totvert, __func__);
+        dists_index = MEM_new_array_uninitialized<int>(bm->totvert, __func__);
       }
       transform_convert_mesh_connectivity_distance(em->bm, mtx, dists, dists_index);
     }
@@ -147,7 +147,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
     /* Create TransData. */
     BLI_assert(data_len >= 1);
     tc->data_len = data_len;
-    tc->data = MEM_calloc_arrayN<TransData>(data_len, "TransObData(Mesh EditMode)");
+    tc->data = MEM_new_array_zeroed<TransData>(data_len, "TransObData(Mesh EditMode)");
 
     TransData *td = tc->data;
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
@@ -202,10 +202,10 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
     transform_convert_mesh_islanddata_free(&island_data);
     transform_convert_mesh_crazyspace_free(&crazyspace_data);
     if (dists) {
-      MEM_freeN(dists);
+      MEM_delete(dists);
     }
     if (dists_index) {
-      MEM_freeN(dists_index);
+      MEM_delete(dists_index);
     }
   }
 }

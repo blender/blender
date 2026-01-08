@@ -1164,7 +1164,7 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_
 
 void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 {
-  BMVert **tv = MEM_malloc_arrayN<BMVert *>(monkeynv * 2, "tv");
+  BMVert **tv = MEM_new_array_uninitialized<BMVert *>(monkeynv * 2, "tv");
   float mat[4][4];
   int i;
 
@@ -1238,7 +1238,7 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  MEM_freeN(tv);
+  MEM_delete(tv);
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }
@@ -1399,7 +1399,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   }
 
   const int side_faces_len = segs - 1;
-  BMFace **side_faces = MEM_malloc_arrayN<BMFace *>(side_faces_len, __func__);
+  BMFace **side_faces = MEM_new_array_uninitialized<BMFace *>(side_faces_len, __func__);
 
   for (int i = 0; i < segs; i++) {
     /* Calculate with higher precision, see: #87779. */
@@ -1503,7 +1503,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   }
 
   if (side_faces != nullptr) {
-    MEM_freeN(side_faces);
+    MEM_delete(side_faces);
   }
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);

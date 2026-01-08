@@ -502,13 +502,13 @@ bool BM_face_split_edgenet(
    * large for single faces with complex edge-nets, see: #65980. */
 
   /* over-alloc (probably 2-4 is only used in most cases), for the biggest-fan */
-  edge_order = MEM_malloc_arrayN<VertOrder>(edge_order_len, __func__);
+  edge_order = MEM_new_array_uninitialized<VertOrder>(edge_order_len, __func__);
 
   /* use later */
-  face_verts = MEM_malloc_arrayN<BMVert *>(edge_net_len + f->len, __func__);
-  face_edges = MEM_malloc_arrayN<BMEdge *>(edge_net_len + f->len, __func__);
+  face_verts = MEM_new_array_uninitialized<BMVert *>(edge_net_len + f->len, __func__);
+  face_edges = MEM_new_array_uninitialized<BMEdge *>(edge_net_len + f->len, __func__);
 
-  vert_queue = MEM_malloc_arrayN<BMVert *>(edge_net_len + f->len, __func__);
+  vert_queue = MEM_new_array_uninitialized<BMVert *>(edge_net_len + f->len, __func__);
   STACK_INIT(vert_queue, f->len + edge_net_len);
 
   BLI_assert(BM_ELEM_API_FLAG_TEST(f, FACE_NET) == 0);
@@ -700,10 +700,10 @@ bool BM_face_split_edgenet(
     *r_face_arr = std::move(face_arr);
   }
 
-  MEM_freeN(edge_order);
-  MEM_freeN(face_verts);
-  MEM_freeN(face_edges);
-  MEM_freeN(vert_queue);
+  MEM_delete(edge_order);
+  MEM_delete(face_verts);
+  MEM_delete(face_edges);
+  MEM_delete(vert_queue);
 
   return true;
 }

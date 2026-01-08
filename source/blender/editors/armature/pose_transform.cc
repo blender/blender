@@ -538,7 +538,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
     struct XFormArray {
       float matrix[4][4];
       bool is_set;
-    } *pchan_xform_array = MEM_malloc_arrayN<XFormArray>(chanbase_len, __func__);
+    } *pchan_xform_array = MEM_new_array_uninitialized<XFormArray>(chanbase_len, __func__);
     bool changed = false;
 
     for (const auto [i, pchan] : ob->pose->chanbase.enumerate()) {
@@ -576,7 +576,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
       WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
     }
 
-    MEM_freeN(pchan_xform_array);
+    MEM_delete(pchan_xform_array);
   }
   FOREACH_OBJECT_IN_MODE_END;
 
@@ -1476,7 +1476,7 @@ static wmOperatorStatus pose_clear_user_transforms_exec(bContext *C, wmOperator 
 
       /* was copied without constraints */
       BLI_freelistN(&dummyPose->chanbase);
-      MEM_freeN(dummyPose);
+      MEM_delete(dummyPose);
     }
     else {
       /* No animation, so just reset to the rest pose. */

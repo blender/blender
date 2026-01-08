@@ -131,7 +131,7 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Poin
     return;
   }
 
-  MEM_freeN(ml);
+  MEM_delete(ml);
   ml_ptr->invalidate();
 
   /* cheating way for importers to avoid slow updates */

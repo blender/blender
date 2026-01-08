@@ -68,24 +68,24 @@ static void gzip_close(FileReader *reader)
   if (inflateEnd(&gzip->strm) != Z_OK) {
     printf("close gzip stream error\n");
   }
-  MEM_freeN(gzip->in_buf);
+  MEM_delete_void(gzip->in_buf);
 
   gzip->base->close(gzip->base);
-  MEM_freeN(gzip);
+  MEM_delete(gzip);
 }
 
 FileReader *BLI_filereader_new_gzip(FileReader *base)
 {
-  GzipReader *gzip = MEM_callocN<GzipReader>(__func__);
+  GzipReader *gzip = MEM_new_zeroed<GzipReader>(__func__);
   gzip->base = base;
 
   if (inflateInit2(&gzip->strm, 16 + MAX_WBITS) != Z_OK) {
-    MEM_freeN(gzip);
+    MEM_delete(gzip);
     return nullptr;
   }
 
   gzip->in_size = 256 * 2014;
-  gzip->in_buf = MEM_mallocN(gzip->in_size, "gzip in buf");
+  gzip->in_buf = MEM_new_uninitialized(gzip->in_size, "gzip in buf");
 
   gzip->reader.read = gzip_read;
   gzip->reader.seek = nullptr;

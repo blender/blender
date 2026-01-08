@@ -103,7 +103,7 @@ void BKE_nlastrip_free(NlaStrip *strip, const bool do_id_user)
 
   /* free the strip runtime and itself */
   MEM_delete(strip->runtime);
-  MEM_freeN(strip);
+  MEM_delete(strip);
 }
 
 void BKE_nlatrack_free(NlaTrack *nlt, const bool do_id_user)
@@ -122,7 +122,7 @@ void BKE_nlatrack_free(NlaTrack *nlt, const bool do_id_user)
   }
 
   /* free NLA track itself now */
-  MEM_freeN(nlt);
+  MEM_delete(nlt);
 }
 
 void BKE_nla_tracks_free(ListBaseT<NlaTrack> *tracks, bool do_id_user)
@@ -162,7 +162,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain,
   }
 
   /* make a copy */
-  strip_d = static_cast<NlaStrip *>(MEM_dupallocN(strip));
+  strip_d = MEM_dupalloc(strip);
   strip_d->next = strip_d->prev = nullptr;
   strip_d->runtime = nullptr;
 
@@ -210,7 +210,7 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain,
   }
 
   /* make a copy */
-  nlt_d = static_cast<NlaTrack *>(MEM_dupallocN(nlt));
+  nlt_d = MEM_dupalloc(nlt);
   nlt_d->next = nlt_d->prev = nullptr;
 
   /* make a copy of all the strips, one at a time */
@@ -358,7 +358,7 @@ void BKE_nla_tracks_copy_from_adt(Main *bmain,
 NlaTrack *BKE_nlatrack_new()
 {
   /* allocate new track */
-  NlaTrack *nlt = MEM_new_for_free<NlaTrack>("NlaTrack");
+  NlaTrack *nlt = MEM_new<NlaTrack>("NlaTrack");
 
   /* set settings requiring the track to not be part of the stack yet */
   nlt->flag = NLATRACK_SELECTED | NLATRACK_OVERRIDELIBRARY_LOCAL;
@@ -503,7 +503,7 @@ static NlaStrip *nlastrip_new(bAction *act, ID &animated_id)
   }
 
   /* allocate new strip */
-  strip = MEM_new_for_free<NlaStrip>("NlaStrip");
+  strip = MEM_new<NlaStrip>("NlaStrip");
 
   /* generic settings
    * - selected flag to highlight this to the user
@@ -626,7 +626,7 @@ NlaStrip *BKE_nlastack_add_strip(const OwnedAnimData owned_adt, const bool is_li
 
 NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
 {
-  NlaStrip *strip = MEM_new_for_free<NlaStrip>("NlaSoundStrip");
+  NlaStrip *strip = MEM_new<NlaStrip>("NlaSoundStrip");
 
 /* if speaker has a sound, set the strip length to the length of the sound,
  * otherwise default to length of 10 frames
@@ -988,7 +988,7 @@ void BKE_nlastrips_make_metas(ListBaseT<NlaStrip> *strips, bool is_temp)
       /* if there is an existing meta-strip, add this strip to it, otherwise, create a new one */
       if (mstrip == nullptr) {
         /* add a new meta-strip, and add it before the current strip that it will replace... */
-        mstrip = MEM_new_for_free<NlaStrip>("Meta-NlaStrip");
+        mstrip = MEM_new<NlaStrip>("Meta-NlaStrip");
         mstrip->type = NLASTRIP_TYPE_META;
         BLI_insertlinkbefore(strips, strip, mstrip);
 
@@ -1848,7 +1848,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
       fcu->rna_path = BLI_strdupn("influence", 9);
 
       /* insert keyframe to ensure current value stays on first refresh */
-      fcu->bezt = MEM_callocN<BezTriple>("nlastrip influence bezt");
+      fcu->bezt = MEM_new_zeroed<BezTriple>("nlastrip influence bezt");
       fcu->totvert = 1;
 
       fcu->bezt->vec[1][0] = strip->start;

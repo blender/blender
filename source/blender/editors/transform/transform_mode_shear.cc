@@ -341,10 +341,10 @@ static void initShear(TransInfo *t, wmOperator *op)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE; /* Don't think we have any unit here? */
 
-  ShearCustomData *custom_data = MEM_callocN<ShearCustomData>(__func__);
+  ShearCustomData *custom_data = MEM_new_zeroed<ShearCustomData>(__func__);
   t->custom.mode.data = custom_data;
   t->custom.mode.free_cb = [](TransInfo *, TransDataContainer *, TransCustomData *custom_data) {
-    MEM_freeN(custom_data->data);
+    MEM_delete_void(custom_data->data);
     custom_data->data = nullptr;
   };
 

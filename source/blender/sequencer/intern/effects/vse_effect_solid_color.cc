@@ -17,8 +17,8 @@ namespace blender::seq {
 
 static void init_solid_color(Strip *strip)
 {
-  MEM_SAFE_FREE(strip->effectdata);
-  SolidColorVars *data = MEM_new_for_free<SolidColorVars>("solidcolor");
+  MEM_SAFE_DELETE_VOID(strip->effectdata);
+  SolidColorVars *data = MEM_new<SolidColorVars>("solidcolor");
   strip->effectdata = data;
   data->col[0] = data->col[1] = data->col[2] = 0.5;
 }

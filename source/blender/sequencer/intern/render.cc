@@ -824,7 +824,8 @@ void convert_multilayer_ibuf(ImBuf *ibuf)
   /* Combined layer might be non-4 channels, however the rest
    * of sequencer assumes RGBA everywhere. Convert to 4 channel if needed. */
   if (ibuf->float_buffer.data != nullptr && ibuf->channels != 4) {
-    float *dst = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
+    float *dst = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
+                                                    __func__);
     IMB_buffer_float_from_float_threaded(dst,
                                          ibuf->float_buffer.data,
                                          ibuf->channels,
@@ -1270,7 +1271,7 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
       depsgraph, mask->sfra + frame_index);
   BKE_animsys_evaluate_animdata(&mask_temp->id, adt, &anim_eval_context, ADT_RECALC_ANIM, false);
 
-  maskbuf = MEM_malloc_arrayN<float>(size_t(width) * size_t(height), __func__);
+  maskbuf = MEM_new_array_uninitialized<float>(size_t(width) * size_t(height), __func__);
 
   mr_handle = BKE_maskrasterize_handle_new();
 
@@ -1319,7 +1320,7 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
     }
   }
 
-  MEM_freeN(maskbuf);
+  MEM_delete(maskbuf);
 
   return ibuf;
 }

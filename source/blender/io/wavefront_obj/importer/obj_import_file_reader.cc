@@ -968,7 +968,7 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
     }
   }
 
-  MEM_freeN(buffer);
+  MEM_delete_void(buffer);
 }
 }  // namespace io::obj
 }  // namespace blender

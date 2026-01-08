@@ -95,7 +95,7 @@ static void fcm_generator_free(FModifier *fcm)
 
   /* free polynomial coefficients array */
   if (data->coefficients) {
-    MEM_freeN(data->coefficients);
+    MEM_delete(data->coefficients);
   }
 }
 
@@ -106,7 +106,7 @@ static void fcm_generator_copy(FModifier *fcm, const FModifier *src)
 
   /* copy coefficients array? */
   if (ogen->coefficients) {
-    gen->coefficients = static_cast<float *>(MEM_dupallocN(ogen->coefficients));
+    gen->coefficients = MEM_dupalloc(ogen->coefficients);
   }
 }
 
@@ -118,7 +118,7 @@ static void fcm_generator_new_data(void *mdata)
   /* set default generator to be linear 0-1 (gradient = 1, y-offset = 0) */
   data->poly_order = 1;
   data->arraysize = 2;
-  cp = data->coefficients = MEM_calloc_arrayN<float>(2, "FMod_Generator_Coefs");
+  cp = data->coefficients = MEM_new_array_zeroed<float>(2, "FMod_Generator_Coefs");
   cp[0] = 0; /* y-offset */
   cp[1] = 1; /* gradient */
 }
@@ -135,7 +135,7 @@ static void fcm_generator_verify(FModifier *fcm)
       /* arraysize needs to be order+1, so resize if not */
       if (data->arraysize != arraysize_new) {
         data->coefficients = static_cast<float *>(
-            MEM_recallocN(data->coefficients, sizeof(float) * arraysize_new));
+            MEM_realloc_zeroed(data->coefficients, sizeof(float) * arraysize_new));
         data->arraysize = arraysize_new;
       }
       break;
@@ -146,7 +146,7 @@ static void fcm_generator_verify(FModifier *fcm)
       /* arraysize needs to be (2 * order), so resize if not */
       if (data->arraysize != arraysize_new) {
         data->coefficients = static_cast<float *>(
-            MEM_recallocN(data->coefficients, sizeof(float) * arraysize_new));
+            MEM_realloc_zeroed(data->coefficients, sizeof(float) * arraysize_new));
         data->arraysize = arraysize_new;
       }
       break;
@@ -169,7 +169,7 @@ static void fcm_generator_evaluate(const FCurve * /*fcu*/,
     case FCM_GENERATOR_POLYNOMIAL: /* expanded polynomial expression */
     {
       /* we overwrite cvalue with the sum of the polynomial */
-      float *powers = MEM_calloc_arrayN<float>(data->arraysize, "Poly Powers");
+      float *powers = MEM_new_array_zeroed<float>(data->arraysize, "Poly Powers");
       float value = 0.0f;
 
       /* for each x^n, precalculate value based on previous one first... this should be
@@ -202,7 +202,7 @@ static void fcm_generator_evaluate(const FCurve * /*fcu*/,
 
       /* cleanup */
       if (powers) {
-        MEM_freeN(powers);
+        MEM_delete(powers);
       }
       break;
     }
@@ -388,7 +388,7 @@ static void fcm_envelope_free(FModifier *fcm)
 
   /* free envelope data array */
   if (env->data) {
-    MEM_freeN(env->data);
+    MEM_delete(env->data);
   }
 }
 
@@ -399,7 +399,7 @@ static void fcm_envelope_copy(FModifier *fcm, const FModifier *src)
 
   /* copy envelope data array */
   if (oenv->data) {
-    env->data = static_cast<FCM_EnvelopeData *>(MEM_dupallocN(oenv->data));
+    env->data = MEM_dupalloc(oenv->data);
   }
 }
 
@@ -1092,7 +1092,7 @@ FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owne
   }
 
   /* add modifier itself */
-  fcm = MEM_new_for_free<FModifier>("F-Curve Modifier");
+  fcm = MEM_new<FModifier>("F-Curve Modifier");
   fcm->type = type;
   fcm->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT; /* Expand the main panel, not the sub-panels. */
   fcm->curve = owner_fcu;
@@ -1108,7 +1108,7 @@ FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owne
   }
 
   /* add modifier's data */
-  fcm->data = MEM_callocN(fmi->size, fmi->struct_name);
+  fcm->data = MEM_new_zeroed(fmi->size, fmi->struct_name);
 
   /* init custom settings if necessary */
   if (fmi->new_data) {
@@ -1135,12 +1135,12 @@ FModifier *copy_fmodifier(const FModifier *src)
   }
 
   /* copy the base data, clearing the links */
-  dst = static_cast<FModifier *>(MEM_dupallocN(src));
+  dst = MEM_dupalloc(src);
   dst->next = dst->prev = nullptr;
   dst->curve = nullptr;
 
   /* make a new copy of the F-Modifier's data */
-  dst->data = MEM_dupallocN(src->data);
+  dst->data = MEM_dupalloc_void(src->data);
 
   /* only do specific constraints if required */
   if (fmi && fmi->copy_data) {
@@ -1169,7 +1169,7 @@ void copy_fmodifiers(ListBaseT<FModifier> *dst, const ListBaseT<FModifier> *src)
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
     /* make a new copy of the F-Modifier's data */
-    fcm->data = MEM_dupallocN(fcm->data);
+    fcm->data = MEM_dupalloc_void(fcm->data);
     fcm->curve = nullptr;
 
     /* only do specific constraints if required */
@@ -1198,7 +1198,7 @@ bool remove_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
     }
 
     /* free modifier's data (fcm->data) */
-    MEM_freeN(fcm->data);
+    MEM_delete_void(fcm->data);
   }
 
   /* remove modifier from stack */
@@ -1215,7 +1215,7 @@ bool remove_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
 
   /* XXX this case can probably be removed some day, as it shouldn't happen... */
   CLOG_STR_ERROR(&LOG, "no modifier stack given");
-  MEM_freeN(fcm);
+  MEM_delete(fcm);
   return false;
 }
 

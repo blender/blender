@@ -35,7 +35,7 @@ RegionAssetShelf *RegionAssetShelf::ensure_from_asset_shelf_region(ARegion &regi
     return nullptr;
   }
   if (!region.regiondata) {
-    region.regiondata = MEM_new_for_free<RegionAssetShelf>("RegionAssetShelf");
+    region.regiondata = MEM_new<RegionAssetShelf>("RegionAssetShelf");
   }
   return static_cast<RegionAssetShelf *>(region.regiondata);
 }
@@ -46,8 +46,8 @@ RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata)
 {
   static_assert(
       std::is_trivially_copyable_v<RegionAssetShelf>,
-      "RegionAssetShelf needs to be trivially copyable to allow freeing with MEM_freeN()");
-  RegionAssetShelf *new_shelf_regiondata = MEM_new_for_free<RegionAssetShelf>(__func__);
+      "RegionAssetShelf needs to be trivially copyable to allow freeing with MEM_delete()");
+  RegionAssetShelf *new_shelf_regiondata = MEM_new<RegionAssetShelf>(__func__);
   *new_shelf_regiondata = *shelf_regiondata;
 
   BLI_listbase_clear(&new_shelf_regiondata->shelves);
@@ -68,7 +68,7 @@ void regiondata_free(RegionAssetShelf *shelf_regiondata)
   for (AssetShelf &shelf : shelf_regiondata->shelves.items_mutable()) {
     MEM_delete(&shelf);
   }
-  MEM_freeN(shelf_regiondata);
+  MEM_delete(shelf_regiondata);
 }
 
 void regiondata_blend_write(BlendWriter *writer, const RegionAssetShelf *shelf_regiondata)

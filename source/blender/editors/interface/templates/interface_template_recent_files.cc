@@ -113,7 +113,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
     BlendThumbnail *data = BLO_thumbnail_from_file(path);
     thumb = BKE_main_thumbnail_to_imbuf(nullptr, data);
     if (data) {
-      MEM_freeN(data);
+      MEM_delete(data);
     }
   }
 
@@ -155,7 +155,7 @@ int template_recent_files(Layout *layout, int rows)
     Block *block = layout->block();
     Button *but = button_last(block);
     button_func_tooltip_custom_set(
-        but, template_recent_files_tooltip_func, BLI_strdup(recent.filepath), MEM_freeN);
+        but, template_recent_files_tooltip_func, BLI_strdup(recent.filepath), MEM_delete_void);
     i++;
   }
 

@@ -181,7 +181,7 @@ static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size, int *r_o
 
   /* Allocate output before with extra space for expanded tabs. */
   const int out_size = strlen(in_buf) + num_tabs * (tab_size - 1) + 1;
-  char *out_buf = MEM_malloc_arrayN<char>(out_size, __func__);
+  char *out_buf = MEM_new_array_uninitialized<char>(out_size, __func__);
 
   /* Fill output buffer. */
   int spaces_until_tab = 0;
@@ -237,7 +237,7 @@ static void text_select_update_primary_clipboard(const Text *text)
     return;
   }
   WM_clipboard_text_set(buf, true);
-  MEM_freeN(buf);
+  MEM_delete(buf);
 }
 
 /** \} */
@@ -328,7 +328,7 @@ void text_update_line_edited(TextLine *line)
   }
 
   /* We just free format here, and let it rebuild during draw. */
-  MEM_SAFE_FREE(line->format);
+  MEM_SAFE_DELETE(line->format);
 }
 
 void text_update_edited(Text *text)
@@ -668,7 +668,7 @@ static wmOperatorStatus text_make_internal_exec(bContext *C, wmOperator * /*op*/
 
   text->flags |= TXT_ISMEM | TXT_ISDIRTY;
 
-  MEM_SAFE_FREE(text->filepath);
+  MEM_SAFE_DELETE(text->filepath);
 
   space_text_update_cursor_moved(C);
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
@@ -812,7 +812,7 @@ static wmOperatorStatus text_save_as_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
 
   if (text->filepath) {
-    MEM_freeN(text->filepath);
+    MEM_delete(text->filepath);
   }
   text->filepath = BLI_strdup(filepath);
   text->flags &= ~TXT_ISMEM;
@@ -985,14 +985,14 @@ static wmOperatorStatus text_paste_exec(bContext *C, wmOperator *op)
   /* Convert clipboard content indentation to spaces if specified. */
   if (text->flags & TXT_TABSTOSPACES) {
     char *new_buf = buf_tabs_to_spaces(buf, TXT_TABSIZE, &buf_len);
-    MEM_freeN(buf);
+    MEM_delete(buf);
     buf = new_buf;
   }
 
   txt_insert_buf(text, buf, buf_len);
   text_update_edited(text);
 
-  MEM_freeN(buf);
+  MEM_delete(buf);
 
   space_text_update_cursor_moved(C);
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
@@ -1086,7 +1086,7 @@ static void txt_copy_clipboard(const Text *text)
 
   if (buf) {
     WM_clipboard_text_set(buf, false);
-    MEM_freeN(buf);
+    MEM_delete(buf);
   }
 }
 
@@ -1445,9 +1445,9 @@ static wmOperatorStatus text_convert_whitespace_exec(bContext *C, wmOperator *op
     new_line = BLI_strdup(fs.buf);
     flatten_string_free(&fs);
 
-    MEM_freeN(tmp.line);
+    MEM_delete(tmp.line);
     if (tmp.format) {
-      MEM_freeN(tmp.format);
+      MEM_delete(tmp.format);
     }
 
     /* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
@@ -1458,7 +1458,7 @@ static wmOperatorStatus text_convert_whitespace_exec(bContext *C, wmOperator *op
   }
 
   if (type == TO_TABS) {
-    char *tmp_line = MEM_malloc_arrayN<char>(max_len + 1, __func__);
+    char *tmp_line = MEM_new_array_uninitialized<char>(max_len + 1, __func__);
 
     for (TextLine &tmp : text->lines) {
       const char *text_check_line = tmp.line;
@@ -1519,9 +1519,9 @@ static wmOperatorStatus text_convert_whitespace_exec(bContext *C, wmOperator *op
         flatten_string_free(&fs);
 #endif
 
-        MEM_freeN(tmp.line);
+        MEM_delete(tmp.line);
         if (tmp.format) {
-          MEM_freeN(tmp.format);
+          MEM_delete(tmp.format);
         }
 
         /* Put new_line in the `tmp->line` spot. */
@@ -1531,7 +1531,7 @@ static wmOperatorStatus text_convert_whitespace_exec(bContext *C, wmOperator *op
       }
     }
 
-    MEM_freeN(tmp_line);
+    MEM_delete(tmp_line);
   }
 
   if (curc_column != -1) {
@@ -2822,7 +2822,7 @@ static void scroll_exit(bContext *C, wmOperator *op)
   st->runtime->scroll_ofs_px[1] = 0;
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  MEM_freeN(tsc);
+  MEM_delete(tsc);
   op->customdata = nullptr;
 }
 
@@ -2877,7 +2877,7 @@ static wmOperatorStatus text_scroll_invoke(bContext *C, wmOperator *op, const wm
     return text_scroll_exec(C, op);
   }
 
-  tsc = MEM_callocN<TextScroll>("TextScroll");
+  tsc = MEM_new_zeroed<TextScroll>("TextScroll");
   tsc->is_first = true;
   tsc->zone = SCROLLHANDLE_BAR;
 
@@ -2992,7 +2992,7 @@ static wmOperatorStatus text_scroll_bar_invoke(bContext *C, wmOperator *op, cons
     return OPERATOR_PASS_THROUGH;
   }
 
-  tsc = MEM_callocN<TextScroll>("TextScroll");
+  tsc = MEM_new_zeroed<TextScroll>("TextScroll");
   tsc->is_first = true;
   tsc->is_scrollbar = true;
   tsc->zone = zone;
@@ -3362,7 +3362,7 @@ static void text_cursor_set_exit(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 
   text_cursor_timer_remove(C, ssel);
-  MEM_freeN(ssel);
+  MEM_delete(ssel);
 }
 
 static wmOperatorStatus text_selection_set_invoke(bContext *C,
@@ -3376,7 +3376,7 @@ static wmOperatorStatus text_selection_set_invoke(bContext *C,
     return OPERATOR_PASS_THROUGH;
   }
 
-  op->customdata = MEM_callocN<SetSelection>("SetCursor");
+  op->customdata = MEM_new_zeroed<SetSelection>("SetCursor");
   ssel = static_cast<SetSelection *>(op->customdata);
 
   ssel->mval_prev[0] = event->mval[0];
@@ -3583,7 +3583,7 @@ static wmOperatorStatus text_insert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  MEM_freeN(str);
+  MEM_delete(str);
 
   if (!done) {
     return OPERATOR_CANCELLED;
@@ -3789,7 +3789,7 @@ static wmOperatorStatus text_find_and_replace(bContext *C, wmOperator *op, short
         ED_text_undo_push_init(C);
         txt_insert_buf(text, st->replacestr, strlen(st->replacestr));
         if (text->curl && text->curl->format) {
-          MEM_freeN(text->curl->format);
+          MEM_delete(text->curl->format);
           text->curl->format = nullptr;
         }
         space_text_update_cursor_moved(C);
@@ -3797,7 +3797,7 @@ static wmOperatorStatus text_find_and_replace(bContext *C, wmOperator *op, short
         space_text_drawcache_tag_update(st, true);
       }
     }
-    MEM_freeN(tmp);
+    MEM_delete(tmp);
     tmp = nullptr;
   }
 
@@ -3873,7 +3873,7 @@ static wmOperatorStatus text_replace_all(bContext *C)
     do {
       txt_insert_buf(text, st->replacestr, strlen(st->replacestr));
       if (text->curl && text->curl->format) {
-        MEM_freeN(text->curl->format);
+        MEM_delete(text->curl->format);
         text->curl->format = nullptr;
       }
       found = txt_find_string(text, st->findstr, 0, flags & ST_MATCH_CASE);
@@ -3934,7 +3934,7 @@ static wmOperatorStatus text_find_set_selected_exec(bContext *C, wmOperator *op)
 
   tmp = txt_sel_to_buf(text, nullptr);
   STRNCPY_UTF8(st->findstr, tmp);
-  MEM_freeN(tmp);
+  MEM_delete(tmp);
 
   if (!st->findstr[0]) {
     return OPERATOR_FINISHED;
@@ -3969,7 +3969,7 @@ static wmOperatorStatus text_replace_set_selected_exec(bContext *C, wmOperator *
 
   tmp = txt_sel_to_buf(text, nullptr);
   STRNCPY_UTF8(st->replacestr, tmp);
-  MEM_freeN(tmp);
+  MEM_delete(tmp);
 
   return OPERATOR_FINISHED;
 }
@@ -4030,7 +4030,7 @@ static bool text_jump_to_file_at_point_external(bContext *C,
     else {
       BKE_report(reports, RPT_ERROR, expr_result);
     }
-    MEM_freeN(expr_result);
+    MEM_delete(expr_result);
   }
 #else
   UNUSED_VARS(C, reports, filepath, line_index, column_index);

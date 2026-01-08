@@ -214,7 +214,7 @@ static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
 static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op*/)
 {
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_callocN<ProjectOperation>(__func__));
+      MEM_new_zeroed<ProjectOperation>(__func__));
 
   ProjectOperation *project_operation = reinterpret_cast<ProjectOperation *>(
       gesture_data.operation);

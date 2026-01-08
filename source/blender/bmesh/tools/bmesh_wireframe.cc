@@ -178,16 +178,17 @@ void BM_mesh_wireframe(BMesh *bm,
   BMIter itersub;
 
   /* filled only with boundary verts */
-  BMVert **verts_src = MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__);
-  BMVert **verts_neg = MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__);
-  BMVert **verts_pos = MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__);
+  BMVert **verts_src = MEM_new_array_uninitialized<BMVert *>(totvert_orig, __func__);
+  BMVert **verts_neg = MEM_new_array_uninitialized<BMVert *>(totvert_orig, __func__);
+  BMVert **verts_pos = MEM_new_array_uninitialized<BMVert *>(totvert_orig, __func__);
 
   /* Will over-allocate, but makes for easy lookups by index to keep aligned. */
-  BMVert **verts_boundary = use_boundary ? MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__) :
-                                           nullptr;
+  BMVert **verts_boundary = use_boundary ?
+                                MEM_new_array_uninitialized<BMVert *>(totvert_orig, __func__) :
+                                nullptr;
 
   float *verts_relfac = (use_relative_offset || (cd_dvert_offset != -1)) ?
-                            MEM_malloc_arrayN<float>(totvert_orig, __func__) :
+                            MEM_new_array_uninitialized<float>(totvert_orig, __func__) :
                             nullptr;
 
   /* May over-allocate if not all faces have wire. */
@@ -304,7 +305,7 @@ void BM_mesh_wireframe(BMesh *bm,
     BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
   }
 
-  verts_loop = MEM_malloc_arrayN<BMVert *>(verts_loop_tot, __func__);
+  verts_loop = MEM_new_array_uninitialized<BMVert *>(verts_loop_tot, __func__);
   verts_loop_tot = 0; /* count up again */
 
   BM_ITER_MESH (f_src, &iter, bm, BM_FACES_OF_MESH) {
@@ -510,11 +511,11 @@ void BM_mesh_wireframe(BMesh *bm,
   }
 
   if (use_boundary) {
-    MEM_freeN(verts_boundary);
+    MEM_delete(verts_boundary);
   }
 
   if (verts_relfac) {
-    MEM_freeN(verts_relfac);
+    MEM_delete(verts_relfac);
   }
 
   if (use_replace) {
@@ -580,10 +581,10 @@ void BM_mesh_wireframe(BMesh *bm,
     }
   }
 
-  MEM_freeN(verts_src);
-  MEM_freeN(verts_neg);
-  MEM_freeN(verts_pos);
-  MEM_freeN(verts_loop);
+  MEM_delete(verts_src);
+  MEM_delete(verts_neg);
+  MEM_delete(verts_pos);
+  MEM_delete(verts_loop);
 }
 
 }  // namespace blender

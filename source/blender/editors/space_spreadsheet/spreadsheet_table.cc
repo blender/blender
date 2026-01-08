@@ -19,7 +19,7 @@ namespace blender::ed::spreadsheet {
 
 SpreadsheetTableIDGeometry *spreadsheet_table_id_new_geometry()
 {
-  auto *table_id = MEM_new_for_free<SpreadsheetTableIDGeometry>(__func__);
+  auto *table_id = MEM_new<SpreadsheetTableIDGeometry>(__func__);
   table_id->base.type = SPREADSHEET_TABLE_ID_TYPE_GEOMETRY;
   return table_id;
 }
@@ -27,8 +27,7 @@ SpreadsheetTableIDGeometry *spreadsheet_table_id_new_geometry()
 static void copy_bundle_path(SpreadsheetBundleTreeViewPath &dst,
                              const SpreadsheetBundleTreeViewPath &src)
 {
-  dst.bundle_path = MEM_new_array_for_free<SpreadsheetBundlePathElem>(src.bundle_path_num,
-                                                                      __func__);
+  dst.bundle_path = MEM_new_array<SpreadsheetBundlePathElem>(src.bundle_path_num, __func__);
   dst.bundle_path_num = src.bundle_path_num;
   for (const int i : IndexRange(src.bundle_path_num)) {
     dst.bundle_path[i].identifier = BLI_strdup_null(src.bundle_path[i].identifier);
@@ -43,7 +42,7 @@ void spreadsheet_table_id_copy_content_geometry(SpreadsheetTableIDGeometry &dst,
   dst.attribute_domain = src.attribute_domain;
   dst.object_eval_state = src.object_eval_state;
   dst.layer_index = src.layer_index;
-  dst.instance_ids = static_cast<SpreadsheetInstanceID *>(MEM_dupallocN(src.instance_ids));
+  dst.instance_ids = MEM_dupalloc(src.instance_ids);
   dst.instance_ids_num = src.instance_ids_num;
   copy_bundle_path(dst.viewer_item_bundle_path, src.viewer_item_bundle_path);
   copy_bundle_path(dst.geometry_bundle_path, src.geometry_bundle_path);
@@ -65,9 +64,9 @@ SpreadsheetTableID *spreadsheet_table_id_copy(const SpreadsheetTableID &src_tabl
 void spreadsheet_bundle_path_clear(SpreadsheetBundleTreeViewPath &bundle_path)
 {
   for (const int i : IndexRange(bundle_path.bundle_path_num)) {
-    MEM_SAFE_FREE(bundle_path.bundle_path[i].identifier);
+    MEM_SAFE_DELETE(bundle_path.bundle_path[i].identifier);
   }
-  MEM_SAFE_FREE(bundle_path.bundle_path);
+  MEM_SAFE_DELETE(bundle_path.bundle_path);
   bundle_path.bundle_path_num = 0;
   bundle_path.closure_input_output = SPREADSHEET_CLOSURE_NONE;
 }
@@ -78,8 +77,7 @@ void spreadsheet_bundle_path_init_from(
     SpreadsheetBundleTreeViewPath &r_bundle_path)
 {
   spreadsheet_bundle_path_clear(r_bundle_path);
-  r_bundle_path.bundle_path = MEM_new_array_for_free<SpreadsheetBundlePathElem>(keys.size(),
-                                                                                __func__);
+  r_bundle_path.bundle_path = MEM_new_array<SpreadsheetBundlePathElem>(keys.size(), __func__);
   r_bundle_path.bundle_path_num = keys.size();
   for (const int i : keys.index_range()) {
     const StringRef key = keys[i];
@@ -99,7 +97,7 @@ void spreadsheet_table_id_free_content(SpreadsheetTableID *table_id)
     case SPREADSHEET_TABLE_ID_TYPE_GEOMETRY: {
       auto *table_id_ = reinterpret_cast<SpreadsheetTableIDGeometry *>(table_id);
       BKE_viewer_path_clear(&table_id_->viewer_path);
-      MEM_SAFE_FREE(table_id_->instance_ids);
+      MEM_SAFE_DELETE(table_id_->instance_ids);
       free_bundle_path(table_id_->viewer_item_bundle_path);
       free_bundle_path(table_id_->geometry_bundle_path);
       break;
@@ -110,7 +108,7 @@ void spreadsheet_table_id_free_content(SpreadsheetTableID *table_id)
 void spreadsheet_table_id_free(SpreadsheetTableID *table_id)
 {
   spreadsheet_table_id_free_content(table_id);
-  MEM_freeN(table_id);
+  MEM_delete(table_id);
 }
 
 static void write_bundle_path(BlendWriter *writer,
@@ -223,7 +221,7 @@ bool spreadsheet_table_id_match(const SpreadsheetTableID &a, const SpreadsheetTa
 
 SpreadsheetTable *spreadsheet_table_new(SpreadsheetTableID *table_id)
 {
-  SpreadsheetTable *spreadsheet_table = MEM_new_for_free<SpreadsheetTable>(__func__);
+  SpreadsheetTable *spreadsheet_table = MEM_new<SpreadsheetTable>(__func__);
   spreadsheet_table->id = table_id;
   return spreadsheet_table;
 }
@@ -232,8 +230,7 @@ SpreadsheetTable *spreadsheet_table_copy(const SpreadsheetTable &src_table)
 {
   SpreadsheetTable *new_table = spreadsheet_table_new(spreadsheet_table_id_copy(*src_table.id));
   new_table->num_columns = src_table.num_columns;
-  new_table->columns = MEM_new_array_for_free<SpreadsheetColumn *>(src_table.num_columns,
-                                                                   __func__);
+  new_table->columns = MEM_new_array<SpreadsheetColumn *>(src_table.num_columns, __func__);
   for (const int i : IndexRange(src_table.num_columns)) {
     new_table->columns[i] = spreadsheet_column_copy(src_table.columns[i]);
   }
@@ -246,8 +243,8 @@ void spreadsheet_table_free(SpreadsheetTable *table)
   for (const int i : IndexRange(table->num_columns)) {
     spreadsheet_column_free(table->columns[i]);
   }
-  MEM_SAFE_FREE(table->columns);
-  MEM_freeN(table);
+  MEM_SAFE_DELETE(table->columns);
+  MEM_delete(table);
 }
 
 void spreadsheet_table_blend_write(BlendWriter *writer, const SpreadsheetTable *table)
@@ -301,11 +298,11 @@ const SpreadsheetTable *spreadsheet_table_find(const SpaceSpreadsheet &sspreadsh
 
 void spreadsheet_table_add(SpaceSpreadsheet &sspreadsheet, SpreadsheetTable *table)
 {
-  SpreadsheetTable **new_tables = MEM_new_array_for_free<SpreadsheetTable *>(
-      sspreadsheet.num_tables + 1, __func__);
+  SpreadsheetTable **new_tables = MEM_new_array<SpreadsheetTable *>(sspreadsheet.num_tables + 1,
+                                                                    __func__);
   std::copy_n(sspreadsheet.tables, sspreadsheet.num_tables, new_tables);
   new_tables[sspreadsheet.num_tables] = table;
-  MEM_SAFE_FREE(sspreadsheet.tables);
+  MEM_SAFE_DELETE(sspreadsheet.tables);
   sspreadsheet.tables = new_tables;
   sspreadsheet.num_tables++;
 }

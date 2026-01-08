@@ -52,7 +52,7 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
   /* FIXME: Old C-style allocation is not trivial to port to C++ here, because actual allocation
    * depends on the 'subtype' of gizmo. The whole gizmo type hierarchy should probably be moved to
    * proper C++ virtual inheritance at some point. */
-  wmGizmo *gz = static_cast<wmGizmo *>(MEM_callocN(gzt->struct_size, __func__));
+  wmGizmo *gz = static_cast<wmGizmo *>(MEM_new_zeroed(gzt->struct_size, __func__));
   new (gz) wmGizmo();
   gz->type = gzt;
 
@@ -159,7 +159,7 @@ void WM_gizmo_free(wmGizmo *gz)
   /* Explicit calling of the destructor is needed here because allocation still happens 'the C
    * way', see FIXME note in #wm_gizmo_create. */
   gz->~wmGizmo();
-  MEM_freeN(static_cast<void *>(gz));
+  MEM_delete_void(static_cast<void *>(gz));
 }
 
 void WM_gizmo_unlink(ListBaseT<wmGizmo> *gizmolist, wmGizmoMap *gzmap, wmGizmo *gz, bContext *C)

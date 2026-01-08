@@ -342,7 +342,7 @@ static bool unsubdivide_tag_disconnected_mesh_element(BMesh *bm, int *elem_id, i
  */
 static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
 {
-  bool *visited_verts = MEM_calloc_arrayN<bool>(bm->totvert, "visited vertices");
+  bool *visited_verts = MEM_new_array_zeroed<bool>(bm->totvert, "visited vertices");
   int current_id = 0;
   for (int i = 0; i < bm->totvert; i++) {
     if (!visited_verts[i]) {
@@ -373,7 +373,7 @@ static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
       BLI_gsqueue_free(queue);
     }
   }
-  MEM_freeN(visited_verts);
+  MEM_delete(visited_verts);
   return current_id;
 }
 
@@ -449,7 +449,7 @@ static bool multires_unsubdivide_single_level(BMesh *bm)
   BM_mesh_elem_table_ensure(bm, BM_VERT);
 
   /* Build disconnected elements IDs. Each disconnected mesh element is evaluated separately. */
-  int *elem_id = MEM_calloc_arrayN<int>(bm->totvert, " ELEM ID");
+  int *elem_id = MEM_new_array_zeroed<int>(bm->totvert, " ELEM ID");
   const int tot_ids = unsubdivide_init_elem_ids(bm, elem_id);
 
   bool valid_tag_found = true;
@@ -475,7 +475,7 @@ static bool multires_unsubdivide_single_level(BMesh *bm)
     unsubdivide_build_base_mesh_from_tags(bm);
   }
 
-  MEM_freeN(elem_id);
+  MEM_delete(elem_id);
   return valid_tag_found;
 }
 
@@ -652,7 +652,7 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
   const int grid_size = CCG_grid_size(context->num_original_levels);
   const int face_grid_size = CCG_grid_size(context->num_original_levels + 1);
   const int face_grid_area = face_grid_size * face_grid_size;
-  float (*face_grid)[3] = MEM_calloc_arrayN<float[3]>(face_grid_area, "face_grid");
+  float (*face_grid)[3] = MEM_new_array_zeroed<float[3]>(face_grid_area, "face_grid");
 
   for (int i = 0; i < face.size(); i++) {
     const int loop_index = face[i];
@@ -671,7 +671,7 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
    * being extracted. */
   write_face_grid_in_unsubdivide_grid(grid, face_grid, face_grid_size, grid_x, grid_y);
 
-  MEM_freeN(face_grid);
+  MEM_delete(face_grid);
 }
 
 /**
@@ -706,7 +706,7 @@ static void multires_unsubdivide_extract_single_grid_from_face_edge(
   const int unsubdiv_grid_size = grid->grid_size = CCG_grid_size(context->num_total_levels);
   BLI_assert(grid->grid_co == nullptr);
   grid->grid_size = unsubdiv_grid_size;
-  grid->grid_co = MEM_calloc_arrayN<float[3]>(
+  grid->grid_co = MEM_new_array_zeroed<float[3]>(
       size_t(unsubdiv_grid_size) * size_t(unsubdiv_grid_size), "grids coordinates");
 
   /* Get the vertex on the corner of the grid. This vertex was tagged previously as it also exist
@@ -964,14 +964,14 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   BMesh *bm_original_mesh = context->bm_original_mesh;
 
   context->num_grids = base_mesh->corners_num;
-  context->base_mesh_grids = MEM_calloc_arrayN<MultiresUnsubdivideGrid>(
+  context->base_mesh_grids = MEM_new_array_zeroed<MultiresUnsubdivideGrid>(
       size_t(base_mesh->corners_num), "grids");
 
   /* Based on the existing indices in the data-layers, generate two vertex indices maps. */
   /* From vertex index in original to vertex index in base and from vertex index in base to vertex
    * index in original. */
-  int *orig_to_base_vmap = MEM_calloc_arrayN<int>(bm_original_mesh->totvert, "orig vmap");
-  int *base_to_orig_vmap = MEM_calloc_arrayN<int>(base_mesh->verts_num, "base vmap");
+  int *orig_to_base_vmap = MEM_new_array_zeroed<int>(bm_original_mesh->totvert, "orig vmap");
+  int *base_to_orig_vmap = MEM_new_array_zeroed<int>(base_mesh->verts_num, "base vmap");
 
   const bke::AttributeAccessor attributes = base_mesh->attributes();
   context->base_to_orig_vmap = *attributes.lookup<int>(vname);
@@ -1074,8 +1074,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
     }
   }
 
-  MEM_freeN(orig_to_base_vmap);
-  MEM_freeN(base_to_orig_vmap);
+  MEM_delete(orig_to_base_vmap);
+  MEM_delete(base_to_orig_vmap);
 
   BM_mesh_free(bm_base_mesh);
   multires_unsubdivide_free_original_datalayers(base_mesh);
@@ -1151,10 +1151,10 @@ void multires_unsubdivide_context_free(MultiresUnsubdivideContext *context)
   multires_unsubdivide_private_extract_data_free(context);
   for (int i = 0; i < context->num_grids; i++) {
     if (context->base_mesh_grids[i].grid_size > 0) {
-      MEM_SAFE_FREE(context->base_mesh_grids[i].grid_co);
+      MEM_SAFE_DELETE(context->base_mesh_grids[i].grid_co);
     }
   }
-  MEM_SAFE_FREE(context->base_mesh_grids);
+  MEM_SAFE_DELETE(context->base_mesh_grids);
 }
 
 /**
@@ -1178,10 +1178,10 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
 
   /* Allocate the MDISPS grids and copy the extracted data from context. */
   for (int i = 0; i < totloop; i++) {
-    float (*disps)[3] = MEM_calloc_arrayN<float[3]>(totdisp, __func__);
+    float (*disps)[3] = MEM_new_array_zeroed<float[3]>(totdisp, __func__);
 
     if (mdisps[i].disps) {
-      MEM_freeN(mdisps[i].disps);
+      MEM_delete(mdisps[i].disps);
     }
 
     for (int j = 0; j < totdisp; j++) {

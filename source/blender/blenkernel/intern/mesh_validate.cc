@@ -417,7 +417,7 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
     if (layer.type == CD_ORIGINDEX) {
       const Span src(static_cast<const int *>(layer.data), mesh.edges_num);
 
-      int *dst_data = MEM_malloc_arrayN<int>(valid_faces_num, __func__);
+      int *dst_data = MEM_new_array_uninitialized<int>(valid_faces_num, __func__);
       MutableSpan dst(dst_data, valid_faces_num);
 
       array_utils::gather(src, valid_faces, dst);
@@ -440,7 +440,7 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
       const size_t elem_size = CustomData_sizeof(cd_type);
       const void *src = layer.data;
 
-      void *dst = MEM_malloc_arrayN(new_faces.total_size(), elem_size, __func__);
+      void *dst = MEM_new_array_uninitialized(new_faces.total_size(), elem_size, __func__);
 
       valid_faces.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
         CustomData_copy_elements(cd_type,
@@ -493,7 +493,7 @@ static void remove_invalid_edges(Mesh &mesh, const IndexMask &valid_edges)
     if (layer.type == CD_ORIGINDEX) {
       const Span src(static_cast<const int *>(layer.data), mesh.edges_num);
 
-      int *dst_data = MEM_malloc_arrayN<int>(valid_edges_num, __func__);
+      int *dst_data = MEM_new_array_uninitialized<int>(valid_edges_num, __func__);
       MutableSpan dst(dst_data, valid_edges_num);
 
       array_utils::gather(src, valid_edges, dst);
@@ -594,7 +594,7 @@ static bool validate_vertex_groups(const Mesh &mesh, const bool verbose, Mesh *m
   if (mesh_mut) {
     MutableSpan<MDeformVert> dverts = mesh_mut->deform_verts_for_write();
     for (auto &[vert, weights] : replacements) {
-      MEM_freeN(dverts[vert].dw);
+      MEM_delete(dverts[vert].dw);
       dverts[vert].totweight = weights.size();
       dverts[vert].dw = weights.release().data;
     }
@@ -687,7 +687,7 @@ static bool validate_selection_history(const Mesh &mesh, const bool verbose, Mes
     });
   }
   if (mesh_mut) {
-    MEM_SAFE_FREE(mesh_mut->mselect);
+    MEM_SAFE_DELETE(mesh_mut->mselect);
   }
 
   return false;

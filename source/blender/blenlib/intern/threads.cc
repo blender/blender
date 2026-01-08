@@ -135,7 +135,7 @@ void BLI_threadpool_init(ListBaseT<ThreadSlot> *threadbase, void *(*do_thread)(v
     }
 
     for (a = 0; a < tot; a++) {
-      ThreadSlot *tslot = MEM_callocN<ThreadSlot>("threadslot");
+      ThreadSlot *tslot = MEM_new_zeroed<ThreadSlot>("threadslot");
       BLI_addtail(threadbase, tslot);
       tslot->do_thread = do_thread;
       tslot->avail = 1;
@@ -366,7 +366,7 @@ void BLI_mutex_end(ThreadMutex *mutex)
 
 ThreadMutex *BLI_mutex_alloc()
 {
-  ThreadMutex *mutex = MEM_callocN<ThreadMutex>("ThreadMutex");
+  ThreadMutex *mutex = MEM_new_zeroed<ThreadMutex>("ThreadMutex");
   BLI_mutex_init(mutex);
   return mutex;
 }
@@ -374,7 +374,7 @@ ThreadMutex *BLI_mutex_alloc()
 void BLI_mutex_free(ThreadMutex *mutex)
 {
   BLI_mutex_end(mutex);
-  MEM_freeN(mutex);
+  MEM_delete(mutex);
 }
 
 /* Spin Locks */
@@ -488,7 +488,7 @@ void BLI_rw_mutex_end(ThreadRWMutex *mutex)
 
 ThreadRWMutex *BLI_rw_mutex_alloc()
 {
-  ThreadRWMutex *mutex = MEM_callocN<ThreadRWMutex>("ThreadRWMutex");
+  ThreadRWMutex *mutex = MEM_new_zeroed<ThreadRWMutex>("ThreadRWMutex");
   BLI_rw_mutex_init(mutex);
   return mutex;
 }
@@ -496,7 +496,7 @@ ThreadRWMutex *BLI_rw_mutex_alloc()
 void BLI_rw_mutex_free(ThreadRWMutex *mutex)
 {
   BLI_rw_mutex_end(mutex);
-  MEM_freeN(mutex);
+  MEM_delete(mutex);
 }
 
 /* Ticket Mutex Lock */
@@ -511,7 +511,7 @@ struct TicketMutex {
 
 TicketMutex *BLI_ticket_mutex_alloc()
 {
-  TicketMutex *ticket = MEM_callocN<TicketMutex>("TicketMutex");
+  TicketMutex *ticket = MEM_new_zeroed<TicketMutex>("TicketMutex");
 
   pthread_cond_init(&ticket->cond, nullptr);
   pthread_mutex_init(&ticket->mutex, nullptr);
@@ -523,7 +523,7 @@ void BLI_ticket_mutex_free(TicketMutex *ticket)
 {
   pthread_mutex_destroy(&ticket->mutex);
   pthread_cond_destroy(&ticket->cond);
-  MEM_freeN(ticket);
+  MEM_delete(ticket);
 }
 
 static bool ticket_mutex_lock(TicketMutex *ticket, const bool check_recursive)

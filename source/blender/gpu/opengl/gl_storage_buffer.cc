@@ -108,7 +108,7 @@ void GLStorageBuf::bind(int slot)
 
   if (data_ != nullptr) {
     this->update(data_);
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 
   slot_ = slot;

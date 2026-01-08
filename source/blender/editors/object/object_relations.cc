@@ -1421,7 +1421,7 @@ static void link_to_scene(Main * /*bmain*/, ushort /*nr*/)
 
   for (base = FIRSTBASE; base; base = base->next) {
     if (BASE_SELECTED(v3d, base)) {
-      nbase = MEM_mallocN<Base>("newbase");
+      nbase = MEM_new_uninitialized<Base>("newbase");
       *nbase = *base;
       BLI_addhead(&(sce->base), nbase);
       id_us_plus((ID *)base->object);
@@ -1837,7 +1837,7 @@ static Collection *single_object_users_collection(Main *bmain,
        * refresh view-layers/collections caching at the end. */
       BKE_collection_child_add_no_sync(bmain, collection, collection_child_new);
       BLI_remlink(&collection->children, child);
-      MEM_freeN(child);
+      MEM_delete(child);
       if (child == orig_child_last) {
         break;
       }

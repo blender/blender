@@ -253,18 +253,18 @@ void BKE_vfont_data_free(VFont *vfont)
         while (che->nurbsbase.first) {
           Nurb *nu = static_cast<Nurb *>(che->nurbsbase.first);
           if (nu->bezt) {
-            MEM_freeN(nu->bezt);
+            MEM_delete(nu->bezt);
           }
           BLI_freelinkN(&che->nurbsbase, nu);
         }
 
-        MEM_freeN(che);
+        MEM_delete(che);
       }
 
       MEM_delete(vfont->data->characters);
     }
 
-    MEM_freeN(vfont->data);
+    MEM_delete(vfont->data);
     vfont->data = nullptr;
   }
 
@@ -293,7 +293,7 @@ static PackedFile *packedfile_new_from_builtin()
     return nullptr;
   }
 
-  void *mem = MEM_mallocN(builtin_font_size, "vfd_builtin");
+  void *mem = MEM_new_uninitialized(builtin_font_size, "vfd_builtin");
 
   memcpy(mem, builtin_font_data, builtin_font_size);
 
@@ -485,8 +485,8 @@ static struct {
 
 void BKE_vfont_clipboard_free()
 {
-  MEM_SAFE_FREE(g_vfont_clipboard.text_buffer);
-  MEM_SAFE_FREE(g_vfont_clipboard.info_buffer);
+  MEM_SAFE_DELETE(g_vfont_clipboard.text_buffer);
+  MEM_SAFE_DELETE(g_vfont_clipboard.info_buffer);
   g_vfont_clipboard.len_utf32 = 0;
   g_vfont_clipboard.len_utf8 = 0;
 }
@@ -499,14 +499,14 @@ void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf,
   /* Clean previous buffers. */
   BKE_vfont_clipboard_free();
 
-  text = MEM_malloc_arrayN<char32_t>((len + 1), __func__);
+  text = MEM_new_array_uninitialized<char32_t>((len + 1), __func__);
   if (text == nullptr) {
     return;
   }
 
-  info = MEM_new_array_for_free<CharInfo>(len, __func__);
+  info = MEM_new_array<CharInfo>(len, __func__);
   if (info == nullptr) {
-    MEM_freeN(text);
+    MEM_delete(text);
     return;
   }
 

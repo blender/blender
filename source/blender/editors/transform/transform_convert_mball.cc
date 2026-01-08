@@ -63,9 +63,9 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
       tc->data_len = countsel;
     }
 
-    td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransObData(MBall EditMode)");
-    tx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len,
-                                                              "MetaElement_TransExtension");
+    td = tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransObData(MBall EditMode)");
+    tx = tc->data_ext = MEM_new_array_zeroed<TransDataExtension>(tc->data_len,
+                                                                 "MetaElement_TransExtension");
 
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);

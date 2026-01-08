@@ -91,7 +91,7 @@ static void render_init_buffers(const DRWContext *draw_ctx,
 
   if (pix_z) {
     /* Depth need to be remapped to [0..1] range. */
-    pix_z = static_cast<float *>(MEM_dupallocN(pix_z));
+    pix_z = MEM_dupalloc(pix_z);
     remap_depth(view, {pix_z, rpass_z_src->rectx * rpass_z_src->recty});
   }
 
@@ -151,7 +151,7 @@ static void render_init_buffers(const DRWContext *draw_ctx,
     }
   }
 
-  MEM_SAFE_FREE(pix_z);
+  MEM_SAFE_DELETE(pix_z);
 }
 
 static void render_result_z(const DRWContext *draw_ctx,

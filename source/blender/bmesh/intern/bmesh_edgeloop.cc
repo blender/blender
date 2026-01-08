@@ -77,7 +77,7 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, 
   }
 
   while (v) {
-    LinkData *node = MEM_callocN<LinkData>(__func__);
+    LinkData *node = MEM_new_zeroed<LinkData>(__func__);
     int count;
     node->data = v;
     add_fn(&el_store->verts, node);
@@ -139,14 +139,14 @@ int BM_mesh_edgeloops_find(BMesh *bm,
   }
 
   const uint edges_len = BLI_stack_count(edge_stack);
-  BMEdge **edges = MEM_malloc_arrayN<BMEdge *>(edges_len, __func__);
+  BMEdge **edges = MEM_new_array_uninitialized<BMEdge *>(edges_len, __func__);
   BLI_stack_pop_n_reverse(edge_stack, edges, BLI_stack_count(edge_stack));
   BLI_stack_free(edge_stack);
 
   for (uint i = 0; i < edges_len; i += 1) {
     e = edges[i];
     if (BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG)) {
-      BMEdgeLoopStore *el_store = MEM_callocN<BMEdgeLoopStore>(__func__);
+      BMEdgeLoopStore *el_store = MEM_new_zeroed<BMEdgeLoopStore>(__func__);
 
       /* add both directions */
       if (bm_loop_build(el_store, e->v1, e->v2, 1) && bm_loop_build(el_store, e->v2, e->v1, -1) &&
@@ -168,7 +168,7 @@ int BM_mesh_edgeloops_find(BMesh *bm,
     BM_elem_flag_disable(e->v2, BM_ELEM_INTERNAL_TAG);
   }
 
-  MEM_freeN(edges);
+  MEM_delete(edges);
   return count;
 }
 
@@ -301,14 +301,14 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
       }
     }
     edges_len = BLI_stack_count(edge_stack);
-    edges = MEM_malloc_arrayN<BMEdge *>(edges_len, __func__);
+    edges = MEM_new_array_uninitialized<BMEdge *>(edges_len, __func__);
     BLI_stack_pop_n_reverse(edge_stack, edges, BLI_stack_count(edge_stack));
     BLI_stack_free(edge_stack);
   }
   else {
     int i = 0;
     edges_len = bm->totedge;
-    edges = MEM_malloc_arrayN<BMEdge *>(edges_len, __func__);
+    edges = MEM_new_array_uninitialized<BMEdge *>(edges_len, __func__);
 
     BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
       BM_elem_flag_enable(e, BM_ELEM_INTERNAL_TAG);
@@ -342,13 +342,13 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
     BLI_mempool_destroy(vs_pool);
 
     if (v_match[0]) {
-      BMEdgeLoopStore *el_store = MEM_callocN<BMEdgeLoopStore>(__func__);
+      BMEdgeLoopStore *el_store = MEM_new_zeroed<BMEdgeLoopStore>(__func__);
       BMVert *v;
 
       /* build loop from edge pointers */
       v = v_match[0];
       while (true) {
-        LinkData *node = MEM_callocN<LinkData>(__func__);
+        LinkData *node = MEM_new_zeroed<LinkData>(__func__);
         node->data = v;
         BLI_addhead(&el_store->verts, node);
         el_store->len++;
@@ -360,7 +360,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
 
       v = v_match[1];
       while (true) {
-        LinkData *node = MEM_callocN<LinkData>(__func__);
+        LinkData *node = MEM_new_zeroed<LinkData>(__func__);
         node->data = v;
         BLI_addtail(&el_store->verts, node);
         el_store->len++;
@@ -382,7 +382,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
     BM_elem_flag_disable(e->v1, BM_ELEM_INTERNAL_TAG);
     BM_elem_flag_disable(e->v2, BM_ELEM_INTERNAL_TAG);
   }
-  MEM_freeN(edges);
+  MEM_delete(edges);
 
   return found;
 }
@@ -496,7 +496,7 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
 
 BMEdgeLoopStore *BM_edgeloop_copy(BMEdgeLoopStore *el_store)
 {
-  BMEdgeLoopStore *el_store_copy = MEM_mallocN<BMEdgeLoopStore>(__func__);
+  BMEdgeLoopStore *el_store_copy = MEM_new_uninitialized<BMEdgeLoopStore>(__func__);
   *el_store_copy = *el_store;
   BLI_duplicatelist(&el_store_copy->verts, &el_store->verts);
   return el_store_copy;
@@ -504,10 +504,10 @@ BMEdgeLoopStore *BM_edgeloop_copy(BMEdgeLoopStore *el_store)
 
 BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, const int v_arr_tot, bool is_closed)
 {
-  BMEdgeLoopStore *el_store = MEM_callocN<BMEdgeLoopStore>(__func__);
+  BMEdgeLoopStore *el_store = MEM_new_zeroed<BMEdgeLoopStore>(__func__);
   int i;
   for (i = 0; i < v_arr_tot; i++) {
-    LinkData *node = MEM_callocN<LinkData>(__func__);
+    LinkData *node = MEM_new_zeroed<LinkData>(__func__);
     node->data = v_arr[i];
     BLI_addtail(&el_store->verts, node);
   }
@@ -521,7 +521,7 @@ BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, const int v_arr_tot, boo
 void BM_edgeloop_free(BMEdgeLoopStore *el_store)
 {
   BLI_freelistN(&el_store->verts);
-  MEM_freeN(el_store);
+  MEM_delete(el_store);
 }
 
 bool BM_edgeloop_is_closed(BMEdgeLoopStore *el_store)
@@ -705,7 +705,7 @@ void BM_edgeloop_expand(
   while ((el_store->len * 2) < el_store_len) {
     LinkData *node_curr = static_cast<LinkData *>(el_store->verts.first);
     while (node_curr) {
-      LinkData *node_curr_copy = static_cast<LinkData *>(MEM_dupallocN(node_curr));
+      LinkData *node_curr_copy = MEM_dupalloc(node_curr);
       if (split == false) {
         BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
         node_curr = node_curr_copy->next;
@@ -740,7 +740,7 @@ void BM_edgeloop_expand(
       }
 
       LinkData *node_curr_copy;
-      node_curr_copy = static_cast<LinkData *>(MEM_dupallocN(node_curr));
+      node_curr_copy = MEM_dupalloc(node_curr);
       if (split == false) {
         BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
         node_curr = node_curr_copy->next;

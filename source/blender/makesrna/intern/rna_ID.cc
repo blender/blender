@@ -1298,8 +1298,8 @@ static void rna_ImagePreview_size_set(PointerRNA *ptr, const int *values, enum e
   BKE_previewimg_clear_single(prv_img, size);
 
   if (values[0] && values[1]) {
-    prv_img->rect[size] = MEM_calloc_arrayN<uint>(size_t(values[0]) * size_t(values[1]),
-                                                  "prv_rect");
+    prv_img->rect[size] = MEM_new_array_zeroed<uint>(size_t(values[0]) * size_t(values[1]),
+                                                     "prv_rect");
 
     prv_img->w[size] = values[0];
     prv_img->h[size] = values[1];

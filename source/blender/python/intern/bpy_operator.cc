@@ -118,7 +118,7 @@ PyObject *pyop_poll(PyObject * /*self*/, PyObject *args)
                    "expected a string enum in (%s)",
                    opname,
                    enum_str);
-      MEM_freeN(enum_str);
+      MEM_delete(enum_str);
       return nullptr;
     }
     /* Copy back to the properly typed enum. */
@@ -199,7 +199,7 @@ PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
                    "expected a string enum in (%s)",
                    opname,
                    enum_str);
-      MEM_freeN(enum_str);
+      MEM_delete(enum_str);
       return nullptr;
     }
     /* Copy back to the properly typed enum. */
@@ -215,7 +215,7 @@ PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
                  msg ? msg : "failed, context is incorrect");
     CTX_wm_operator_poll_msg_clear(C);
     if (msg_free) {
-      MEM_freeN(msg);
+      MEM_delete(msg);
     }
     error_val = -1;
   }
@@ -231,7 +231,7 @@ PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
     if (error_val == 0) {
       ReportList *reports;
 
-      reports = MEM_new_for_free<ReportList>("wmOperatorReportList");
+      reports = MEM_new<ReportList>("wmOperatorReportList");
 
       /* Own so these don't move into global reports. */
       BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD | RPT_PRINT_HANDLED_BY_OWNER);
@@ -267,7 +267,7 @@ PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
       BKE_reports_clear(reports);
       if ((reports->flag & RPT_FREE) == 0) {
         BKE_reports_free(reports);
-        MEM_freeN(reports);
+        MEM_delete(reports);
       }
       else {
         /* The WM is now responsible for running the modal operator,

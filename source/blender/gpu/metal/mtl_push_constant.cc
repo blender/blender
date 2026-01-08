@@ -56,7 +56,7 @@ MTLPushConstantBuf::MTLPushConstantBuf(const shader::ShaderCreateInfo &info)
   /* Pad to max alignment. */
   size_ = ceil_to_multiple_u(size_, max_alignement);
   data_ = reinterpret_cast<uint8_t *>(
-      MEM_calloc_arrayN_aligned(1, size_, 128, "MTLPushConstantData"));
+      MEM_new_array_zeroed_aligned(1, size_, 128, "MTLPushConstantData"));
 
   if (G.debug & G_DEBUG_GPU) {
     /* Poison values to detect unset values. */
@@ -66,7 +66,7 @@ MTLPushConstantBuf::MTLPushConstantBuf(const shader::ShaderCreateInfo &info)
 
 MTLPushConstantBuf::~MTLPushConstantBuf()
 {
-  MEM_freeN(data_);
+  MEM_delete(data_);
 }
 
 int MTLPushConstantBuf::append(shader::ShaderCreateInfo::PushConst push_constant)

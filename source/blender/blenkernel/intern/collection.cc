@@ -850,7 +850,7 @@ static void collection_object_cache_fill(ListBaseT<Base> *lb,
     Base *base = static_cast<Base *>(BLI_findptr(lb, cob.ob, offsetof(Base, object)));
 
     if (base == nullptr) {
-      base = MEM_new_for_free<Base>("Object Base");
+      base = MEM_new<Base>("Object Base");
       base->object = cob.ob;
       BLI_addtail(lb, base);
       if (with_instances && cob.ob->instance_collection) {
@@ -1420,7 +1420,7 @@ static bool collection_object_add(Main *bmain,
   bool newly_added = false;
   CollectionObject *cob = collection->runtime->gobject_hash->lookup_or_add_cb(ob, [&]() {
     newly_added = true;
-    return MEM_new_for_free<CollectionObject>(__func__);
+    return MEM_new<CollectionObject>(__func__);
   });
   if (!newly_added) {
     return false;
@@ -1482,7 +1482,7 @@ CollectionExport *BKE_collection_exporter_add(Collection *collection, char *idna
 {
   /* Add a new #CollectionExport item to our handler list and fill it with #FileHandlerType
    * information. Also load in the operator's properties now as well. */
-  CollectionExport *data = MEM_new_for_free<CollectionExport>("CollectionExport");
+  CollectionExport *data = MEM_new<CollectionExport>("CollectionExport");
   STRNCPY(data->fh_idname, idname);
 
   BKE_collection_exporter_name_set(&collection->exporters, data, label);
@@ -1503,7 +1503,7 @@ void BKE_collection_exporter_remove(Collection *collection, CollectionExport *da
   BLI_remlink(exporters, data);
   BKE_collection_exporter_free_data(data);
 
-  MEM_freeN(data);
+  MEM_delete(data);
 
   const int count = BLI_listbase_count(exporters);
   const int new_index = count == 0 ? 0 : std::min(collection->active_exporter_index, count - 1);
@@ -1521,7 +1521,7 @@ bool BKE_collection_exporter_move(Collection *collection, const int from, const 
 
 static void collection_exporter_copy(Collection *collection, CollectionExport *data)
 {
-  CollectionExport *new_data = MEM_new_for_free<CollectionExport>("CollectionExport");
+  CollectionExport *new_data = MEM_new<CollectionExport>("CollectionExport");
   STRNCPY(new_data->fh_idname, data->fh_idname);
   new_data->export_properties = IDP_CopyProperty(data->export_properties);
   new_data->flag = data->flag;
@@ -1957,7 +1957,7 @@ static bool collection_child_add(Main *bmain,
     return false;
   }
 
-  child = MEM_new_for_free<CollectionChild>("CollectionChild");
+  child = MEM_new<CollectionChild>("CollectionChild");
   child->collection = collection;
   if (light_linking) {
     child->light_linking = *light_linking;
@@ -1966,7 +1966,7 @@ static bool collection_child_add(Main *bmain,
 
   /* Don't add parent links for depsgraph datablocks, these are not kept in sync. */
   if ((id_create_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-    CollectionParent *cparent = MEM_callocN<CollectionParent>("CollectionParent");
+    CollectionParent *cparent = MEM_new_zeroed<CollectionParent>("CollectionParent");
     cparent->collection = parent;
     BLI_addtail(&collection->runtime->parents, cparent);
   }
@@ -2049,7 +2049,7 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
     }
 
     BLI_assert(collection_find_parent(child.collection, collection) == nullptr);
-    CollectionParent *cparent = MEM_callocN<CollectionParent>(__func__);
+    CollectionParent *cparent = MEM_new_zeroed<CollectionParent>(__func__);
     cparent->collection = collection;
     BLI_addtail(&child.collection->runtime->parents, cparent);
   }
@@ -2293,8 +2293,8 @@ static void scene_collections_array(Scene *scene,
 
   BLI_assert(*r_collections_array_len > 0);
 
-  Collection **array = MEM_malloc_arrayN<Collection *>(size_t(*r_collections_array_len),
-                                                       "CollectionArray");
+  Collection **array = MEM_new_array_uninitialized<Collection *>(size_t(*r_collections_array_len),
+                                                                 "CollectionArray");
   *r_collections_array = array;
   scene_collection_callback(collection, scene_collections_build_array, &array);
 }
@@ -2302,7 +2302,7 @@ static void scene_collections_array(Scene *scene,
 void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
   Scene *scene = static_cast<Scene *>(data_in);
-  CollectionsIteratorData *data = MEM_callocN<CollectionsIteratorData>(__func__);
+  CollectionsIteratorData *data = MEM_new_zeroed<CollectionsIteratorData>(__func__);
 
   data->scene = scene;
 
@@ -2334,9 +2334,9 @@ void BKE_scene_collections_iterator_end(BLI_Iterator *iter)
 
   if (data) {
     if (data->array) {
-      MEM_freeN(data->array);
+      MEM_delete(data->array);
     }
-    MEM_freeN(data);
+    MEM_delete(data);
   }
   iter->valid = false;
 }
@@ -2353,7 +2353,7 @@ static void scene_objects_iterator_begin(BLI_Iterator *iter,
                                          Scene *scene,
                                          Set<Object *> *visited_objects)
 {
-  SceneObjectsIteratorData *data = MEM_callocN<SceneObjectsIteratorData>(__func__);
+  SceneObjectsIteratorData *data = MEM_new_zeroed<SceneObjectsIteratorData>(__func__);
 
   BLI_ITERATOR_INIT(iter);
   iter->data = data;
@@ -2497,7 +2497,7 @@ void BKE_scene_objects_iterator_end(BLI_Iterator *iter)
     if (data->visited != nullptr) {
       MEM_delete(data->visited);
     }
-    MEM_freeN(data);
+    MEM_delete(data);
   }
 }
 

@@ -30,7 +30,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryDialGizmo *storage = MEM_new_for_free<NodeGeometryDialGizmo>(__func__);
+  NodeGeometryDialGizmo *storage = MEM_new<NodeGeometryDialGizmo>(__func__);
   node->storage = storage;
 }
 

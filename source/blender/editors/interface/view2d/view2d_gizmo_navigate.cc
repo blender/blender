@@ -155,7 +155,7 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
 
 static void WIDGETGROUP_navigate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  NavigateWidgetGroup *navgroup = MEM_callocN<NavigateWidgetGroup>(__func__);
+  NavigateWidgetGroup *navgroup = MEM_new_zeroed<NavigateWidgetGroup>(__func__);
 
   const NavigateGizmoInfo *navigate_params = navigate_params_from_space_type(
       gzgroup->type->gzmap_params.spaceid);

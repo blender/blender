@@ -78,7 +78,7 @@ void ED_clip_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = MEM_callocN<PanelType>("spacetype clip panel metadata");
+  pt = MEM_new_zeroed<PanelType>("spacetype clip panel metadata");
   STRNCPY_UTF8(pt->idname, "CLIP_PT_metadata");
   STRNCPY_UTF8(pt->label, N_("Metadata"));
   STRNCPY_UTF8(pt->category, "Footage");
@@ -408,7 +408,7 @@ void uiTemplateMarker(ui::Layout *layout,
   int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
   MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_framenr);
 
-  MarkerUpdateCb *cb = MEM_callocN<MarkerUpdateCb>("uiTemplateMarker update_cb");
+  MarkerUpdateCb *cb = MEM_new_zeroed<MarkerUpdateCb>("uiTemplateMarker update_cb");
   cb->compact = compact;
   cb->clip = clip;
   cb->user = user;
@@ -462,7 +462,7 @@ void uiTemplateMarker(ui::Layout *layout,
                0,
                0,
                "");
-      MEM_freeN(cb);
+      MEM_delete(cb);
       return;
     }
 

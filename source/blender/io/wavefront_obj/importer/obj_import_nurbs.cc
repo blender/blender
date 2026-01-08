@@ -57,7 +57,7 @@ Object *CurveFromGeometry::create_curve_object(Main *bmain, const OBJImportParam
   /* Only one NURBS spline will be created in the curve object. */
   curve->actnu = 0;
 
-  Nurb *nurb = MEM_new_for_free<Nurb>(__func__);
+  Nurb *nurb = MEM_new<Nurb>(__func__);
   BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
   this->create_nurbs(curve, import_params);
 

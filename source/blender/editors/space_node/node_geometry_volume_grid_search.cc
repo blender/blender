@@ -44,7 +44,8 @@ struct GridSearchData {
   bool can_create_grid;
 };
 
-/* This class must not have a destructor, since it is used by buttons and freed with #MEM_freeN. */
+/* This class must not have a destructor, since it is used by buttons and freed with
+ * #MEM_delete_void. */
 BLI_STATIC_ASSERT(std::is_trivially_destructible_v<GridSearchData>, "");
 
 static Vector<const VolumeGridInfo *> get_grid_names_from_context(const bContext &C,
@@ -243,7 +244,7 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
   button_placeholder_set(but, placeholder);
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
-  GridSearchData *data = MEM_callocN<GridSearchData>(__func__);
+  GridSearchData *data = MEM_new_zeroed<GridSearchData>(__func__);
   data->node_id = node.identifier;
   data->can_create_grid = node.is_type("GeometryNodeStoreNamedGrid");
   STRNCPY_UTF8(data->socket_identifier, socket.identifier);

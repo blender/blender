@@ -625,7 +625,7 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
   transform_mode_default_modal_orientation_set(
       t, (t->options & CTX_CAMERA) ? V3D_ORIENT_VIEW : V3D_ORIENT_GLOBAL);
 
-  TranslateCustomData *custom_data = MEM_callocN<TranslateCustomData>(__func__);
+  TranslateCustomData *custom_data = MEM_new_zeroed<TranslateCustomData>(__func__);
   custom_data->prev.rotate_mode = TRANSLATE_ROTATE_OFF;
   t->custom.mode.data = custom_data;
   t->custom.mode.use_free = true;

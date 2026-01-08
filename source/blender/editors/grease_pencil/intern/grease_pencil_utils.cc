@@ -215,8 +215,8 @@ DrawingPlacement::DrawingPlacement(const DrawingPlacement &other)
   plane_ = other.plane_;
 
   if (other.depth_cache_ != nullptr) {
-    depth_cache_ = static_cast<ViewDepths *>(MEM_dupallocN(other.depth_cache_));
-    depth_cache_->depths = static_cast<float *>(MEM_dupallocN(other.depth_cache_->depths));
+    depth_cache_ = MEM_dupalloc(other.depth_cache_);
+    depth_cache_->depths = MEM_dupalloc(other.depth_cache_->depths);
   }
   use_project_only_selected_ = other.use_project_only_selected_;
 
@@ -2010,7 +2010,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Add new vertex groups to GreasePencil object. */
   for (StringRef new_vgroup_name : new_vgroup_names) {
-    bDeformGroup *dst = MEM_new_for_free<bDeformGroup>(__func__);
+    bDeformGroup *dst = MEM_new<bDeformGroup>(__func__);
     new_vgroup_name.copy_utf8_truncated(dst->name);
     BLI_addtail(&orig_grease_pencil.vertex_group_names, dst);
   }

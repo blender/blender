@@ -82,7 +82,7 @@ IDNameLib_Map *BKE_main_idmap_create(Main *bmain,
                                      Main *old_bmain,
                                      const int idmap_types)
 {
-  IDNameLib_Map *id_map = MEM_mallocN<IDNameLib_Map>(__func__);
+  IDNameLib_Map *id_map = MEM_new_uninitialized<IDNameLib_Map>(__func__);
   id_map->bmain = bmain;
   id_map->idmap_types = idmap_types;
 
@@ -287,7 +287,7 @@ void BKE_main_idmap_destroy(IDNameLib_Map *id_map)
   BLI_assert(id_map->type_maps_keys_pool == nullptr);
 
   MEM_delete(id_map->valid_id_pointers);
-  MEM_freeN(id_map);
+  MEM_delete(id_map);
 }
 
 /** \} */

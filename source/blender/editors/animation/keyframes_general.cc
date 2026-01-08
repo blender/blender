@@ -72,7 +72,7 @@ bool duplicate_fcurve_keys(FCurve *fcu)
     /* If a key is selected */
     if (fcu->bezt[i].f2 & SELECT) {
       /* Expand the list */
-      BezTriple *newbezt = MEM_calloc_arrayN<BezTriple>((fcu->totvert + 1), "beztriple");
+      BezTriple *newbezt = MEM_new_array_zeroed<BezTriple>((fcu->totvert + 1), "beztriple");
 
       memcpy(newbezt, fcu->bezt, sizeof(BezTriple) * (i + 1));
       memcpy(newbezt + i + 1, fcu->bezt + i, sizeof(BezTriple));
@@ -80,7 +80,7 @@ bool duplicate_fcurve_keys(FCurve *fcu)
       fcu->totvert++;
       changed = true;
       /* reassign pointers... (free old, and add new) */
-      MEM_freeN(fcu->bezt);
+      MEM_delete(fcu->bezt);
       fcu->bezt = newbezt;
 
       /* Unselect the current key */
@@ -209,7 +209,7 @@ void clean_fcurve(bAnimListElem *ale,
 
   /* now free the memory used by the old BezTriples */
   if (old_bezts) {
-    MEM_freeN(old_bezts);
+    MEM_delete(old_bezts);
   }
 
   /* final step, if there is just one key in fcurve, check if it's
@@ -295,7 +295,7 @@ ListBaseT<FCurveSegment> find_fcurve_segments(FCurve *fcu)
 
   while (find_fcurve_segment(fcu, current_index, &segment_start_idx, &segment_len)) {
     FCurveSegment *segment;
-    segment = MEM_callocN<FCurveSegment>("FCurveSegment");
+    segment = MEM_new_zeroed<FCurveSegment>("FCurveSegment");
     segment->start_index = segment_start_idx;
     segment->length = segment_len;
     BLI_addtail(&segments, segment);
@@ -426,21 +426,21 @@ struct ButterworthCoefficients {
 
 ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order)
 {
-  ButterworthCoefficients *bw_coeff = MEM_callocN<ButterworthCoefficients>(
+  ButterworthCoefficients *bw_coeff = MEM_new_zeroed<ButterworthCoefficients>(
       "Butterworth Coefficients");
   bw_coeff->filter_order = filter_order;
-  bw_coeff->d1 = MEM_calloc_arrayN<double>(filter_order, "coeff filtered");
-  bw_coeff->d2 = MEM_calloc_arrayN<double>(filter_order, "coeff samples");
-  bw_coeff->A = MEM_calloc_arrayN<double>(filter_order, "Butterworth A");
+  bw_coeff->d1 = MEM_new_array_zeroed<double>(filter_order, "coeff filtered");
+  bw_coeff->d2 = MEM_new_array_zeroed<double>(filter_order, "coeff samples");
+  bw_coeff->A = MEM_new_array_zeroed<double>(filter_order, "Butterworth A");
   return bw_coeff;
 }
 
 void ED_anim_free_butterworth_coefficients(ButterworthCoefficients *bw_coeff)
 {
-  MEM_freeN(bw_coeff->d1);
-  MEM_freeN(bw_coeff->d2);
-  MEM_freeN(bw_coeff->A);
-  MEM_freeN(bw_coeff);
+  MEM_delete(bw_coeff->d1);
+  MEM_delete(bw_coeff->d2);
+  MEM_delete(bw_coeff->A);
+  MEM_delete(bw_coeff);
 }
 
 void ED_anim_calculate_butterworth_coefficients(const float cutoff_frequency,
@@ -528,12 +528,12 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
 {
   const int filter_order = bw_coeff->filter_order;
 
-  float *filtered_values = MEM_calloc_arrayN<float>(sample_count,
-                                                    "Butterworth Filtered FCurve Values");
+  float *filtered_values = MEM_new_array_zeroed<float>(sample_count,
+                                                       "Butterworth Filtered FCurve Values");
 
-  double *w0 = MEM_calloc_arrayN<double>(filter_order, "w0");
-  double *w1 = MEM_calloc_arrayN<double>(filter_order, "w1");
-  double *w2 = MEM_calloc_arrayN<double>(filter_order, "w2");
+  double *w0 = MEM_new_array_zeroed<double>(filter_order, "w0");
+  double *w1 = MEM_new_array_zeroed<double>(filter_order, "w1");
+  double *w2 = MEM_new_array_zeroed<double>(filter_order, "w2");
 
   /* The values need to be offset so the first sample starts at 0. This avoids oscillations at the
    * start and end of the curve. */
@@ -601,10 +601,10 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 
-  MEM_freeN(filtered_values);
-  MEM_freeN(w0);
-  MEM_freeN(w1);
-  MEM_freeN(w2);
+  MEM_delete(filtered_values);
+  MEM_delete(w0);
+  MEM_delete(w1);
+  MEM_delete(w2);
 }
 
 /* ---------------- */
@@ -646,7 +646,7 @@ void smooth_fcurve_segment(FCurve *fcu,
 {
   const int segment_end_index = segment->start_index + segment->length;
   const float segment_start_x = fcu->bezt[segment->start_index].vec[1][0];
-  float *filtered_samples = static_cast<float *>(MEM_dupallocN(samples));
+  float *filtered_samples = MEM_dupalloc(samples);
   for (int i = kernel_size; i < sample_count - kernel_size; i++) {
     /* Apply the kernel. */
     double filter_result = samples[i] * kernel[0];
@@ -676,7 +676,7 @@ void smooth_fcurve_segment(FCurve *fcu,
         filter_result, original_values[i - segment->start_index], factor);
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
-  MEM_freeN(filtered_samples);
+  MEM_delete(filtered_samples);
 }
 /* ---------------- */
 
@@ -950,7 +950,7 @@ void time_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float
 
   /* If we operate directly on the fcurve there will be a feedback loop
    * so we need to capture the "y" values on an array to then apply them on a second loop. */
-  float *y_values = MEM_calloc_arrayN<float>(segment->length, "Time Offset Samples");
+  float *y_values = MEM_new_array_zeroed<float>(segment->length, "Time Offset Samples");
 
   for (int i = 0; i < segment->length; i++) {
     /* This simulates the fcu curve moving in time. */
@@ -966,7 +966,7 @@ void time_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float
   for (int i = 0; i < segment->length; i++) {
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[segment->start_index + i], y_values[i]);
   }
-  MEM_freeN(y_values);
+  MEM_delete(y_values);
 }
 
 /* ---------------- */
@@ -1126,7 +1126,7 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
   }
   /* now free the memory used by the old BezTriples */
   if (old_bezts) {
-    MEM_freeN(old_bezts);
+    MEM_delete(old_bezts);
   }
 
   return can_decimate_all_selected;
@@ -1165,7 +1165,7 @@ void smooth_fcurve(FCurve *fcu)
     tSmooth_Bezt *tarray, *tsb;
 
     /* allocate memory in one go */
-    tsb = tarray = MEM_calloc_arrayN<tSmooth_Bezt>(totSel, "tSmooth_Bezt Array");
+    tsb = tarray = MEM_new_array_zeroed<tSmooth_Bezt>(totSel, "tSmooth_Bezt Array");
 
     /* populate tarray with data of selected points */
     bezt = fcu->bezt;
@@ -1233,7 +1233,7 @@ void smooth_fcurve(FCurve *fcu)
     }
 
     /* free memory required for tarray */
-    MEM_freeN(tarray);
+    MEM_delete(tarray);
   }
 
   /* recalculate handles */

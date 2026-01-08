@@ -96,20 +96,20 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryBake *data = MEM_new_for_free<NodeGeometryBake>(__func__);
+  NodeGeometryBake *data = MEM_new<NodeGeometryBake>(__func__);
   node->storage = data;
 }
 
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<BakeItemsAccessor>(*node);
-  MEM_freeN(reinterpret_cast<NodeGeometryBake *>(node->storage));
+  MEM_delete(reinterpret_cast<NodeGeometryBake *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryBake &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_new_for_free<NodeGeometryBake>(__func__, dna::shallow_copy(src_storage));
+  auto *dst_storage = MEM_new<NodeGeometryBake>(__func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<BakeItemsAccessor>(*src_node, *dst_node);
@@ -829,7 +829,7 @@ static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
 void draw_data_blocks(const bContext *C, ui::Layout &layout, PointerRNA &bake_rna)
 {
   static const uiListType *data_block_list = []() {
-    uiListType *list = MEM_callocN<uiListType>(__func__);
+    uiListType *list = MEM_new_zeroed<uiListType>(__func__);
     STRNCPY_UTF8(list->idname, "DATA_UL_nodes_modifier_data_blocks");
     list->draw_item = draw_bake_data_block_list_item;
     WM_uilisttype_add(list);

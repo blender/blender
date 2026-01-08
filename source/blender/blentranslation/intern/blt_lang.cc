@@ -56,15 +56,15 @@ static void free_locales()
   if (locales_menu) {
     int idx = num_locales_menu - 1; /* Last item does not need to be freed! */
     while (idx--) {
-      MEM_freeN(locales_menu[idx].identifier); /* Also frees locales's relevant value! */
-      MEM_freeN(locales_menu[idx].name);
-      MEM_freeN(locales_menu[idx].description);
+      MEM_delete(locales_menu[idx].identifier); /* Also frees locales's relevant value! */
+      MEM_delete(locales_menu[idx].name);
+      MEM_delete(locales_menu[idx].description);
     }
   }
-  MEM_SAFE_FREE(locales_menu);
+  MEM_SAFE_DELETE(locales_menu);
   /* Allocated strings in #locales are shared with #locales_menu[idx].identifier, which are already
    * freed above, or are static strings. */
-  MEM_SAFE_FREE(locales);
+  MEM_SAFE_DELETE(locales);
   num_locales = num_locales_menu = 0;
 }
 
@@ -106,12 +106,12 @@ static void fill_locales()
   num_locales_menu++; /* The "closing" void item... */
 
   /* And now, build locales and locale_menu! */
-  locales_menu = MEM_calloc_arrayN<EnumPropertyItem>(num_locales_menu, __func__);
+  locales_menu = MEM_new_array_zeroed<EnumPropertyItem>(num_locales_menu, __func__);
   line = lines;
   /* Do not allocate locales with zero-sized mem,
    * as LOCALE macro uses nullptr locales as invalid marker! */
   if (num_locales > 0) {
-    locales = MEM_calloc_arrayN<const char *>(num_locales, __func__);
+    locales = MEM_new_array_zeroed<const char *>(num_locales, __func__);
     while (line) {
       const char *loc, *desc, *sep1, *sep2, *sep3;
 
@@ -148,7 +148,7 @@ static void fill_locales()
           if (id == 0) {
             /* The DEFAULT/Automatic item... */
             if (loc[0] != '\0') {
-              MEM_freeN(desc); /* Not used here. */
+              MEM_delete(desc); /* Not used here. */
               locales[id] = "";
               /* Keep this tip in sync with the one in rna_userdef
                * (rna_enum_language_default_items). */
@@ -217,7 +217,7 @@ void BLT_lang_init()
       CLOG_WARN(&LOG, "Falling back to standard locale (\"C\")");
     }
     setlocale(LC_ALL, old_locale);
-    MEM_freeN(old_locale);
+    MEM_delete(old_locale);
   }
 #endif
 
@@ -342,7 +342,7 @@ void BLT_lang_locale_explode(const char *locale,
     }
   }
   if (_t && !language) {
-    MEM_freeN(_t);
+    MEM_delete(_t);
   }
 }
 

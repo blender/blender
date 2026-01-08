@@ -97,10 +97,10 @@ static void copy_materials_to_new_geometry_object(const Object &src_ob_eval,
   *BKE_id_material_len_p(&dst_data_orig) = materials_num;
   dst_ob_orig.totcol = materials_num;
 
-  dst_ob_orig.matbits = MEM_calloc_arrayN<char>(materials_num, __func__);
-  dst_ob_orig.mat = MEM_calloc_arrayN<Material *>(materials_num, __func__);
+  dst_ob_orig.matbits = MEM_new_array_zeroed<char>(materials_num, __func__);
+  dst_ob_orig.mat = MEM_new_array_zeroed<Material *>(materials_num, __func__);
   Material ***dst_materials = BKE_id_material_array_p(&dst_data_orig);
-  *dst_materials = MEM_calloc_arrayN<Material *>(materials_num, __func__);
+  *dst_materials = MEM_new_array_zeroed<Material *>(materials_num, __func__);
 
   for (int i = 0; i < materials_num; i++) {
     const Material *material_eval = BKE_object_material_get_eval(

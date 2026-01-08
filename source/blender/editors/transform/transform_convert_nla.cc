@@ -522,10 +522,10 @@ static void createTransNlaData(bContext *C, TransInfo *t)
   /* Allocate memory for data. */
   tc->data_len = count;
 
-  tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransData(NLA Editor)");
+  tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransData(NLA Editor)");
   td = tc->data;
-  tc->custom.type.data = tdn = MEM_calloc_arrayN<TransDataNla>(tc->data_len,
-                                                               "TransDataNla (NLA Editor)");
+  tc->custom.type.data = tdn = MEM_new_array_zeroed<TransDataNla>(tc->data_len,
+                                                                  "TransDataNla (NLA Editor)");
   tc->custom.type.use_free = true;
 
   /* Loop 2: build transdata array. */
@@ -863,7 +863,7 @@ static void nlastrip_shuffle_transformed(TransDataContainer *tc, TransDataNla *f
         }
       }
       if (dst_group == nullptr) {
-        dst_group = MEM_callocN<IDGroupedTransData>(__func__);
+        dst_group = MEM_new_zeroed<IDGroupedTransData>(__func__);
         dst_group->id = tdn->id;
         BLI_addhead(&grouped_trans_datas, dst_group);
       }

@@ -112,7 +112,7 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
 
 static FreestyleModuleConfig *alloc_module()
 {
-  return MEM_new_for_free<FreestyleModuleConfig>("style module configuration");
+  return MEM_new<FreestyleModuleConfig>("style module configuration");
 }
 
 FreestyleModuleConfig *BKE_freestyle_module_add(FreestyleConfig *config)
@@ -159,7 +159,7 @@ void BKE_freestyle_lineset_unique_name(FreestyleConfig *config, FreestyleLineSet
 
 static FreestyleLineSet *alloc_lineset()
 {
-  return MEM_new_for_free<FreestyleLineSet>("Freestyle line set");
+  return MEM_new<FreestyleLineSet>("Freestyle line set");
 }
 
 FreestyleLineSet *BKE_freestyle_lineset_add(Main *bmain, FreestyleConfig *config, const char *name)
@@ -206,7 +206,7 @@ bool BKE_freestyle_lineset_delete(FreestyleConfig *config, FreestyleLineSet *lin
     id_us_min(&lineset->linestyle->id);
   }
   BLI_remlink(&config->linesets, lineset);
-  MEM_freeN(lineset);
+  MEM_delete(lineset);
   BKE_freestyle_lineset_set_active_index(config, 0);
   return true;
 }

@@ -55,7 +55,7 @@ int ensure_vertex_group(const StringRef name, ListBaseT<bDeformGroup> &vertex_gr
 {
   int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
   if (def_nr < 0) {
-    bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>(__func__);
+    bDeformGroup *defgroup = MEM_new<bDeformGroup>(__func__);
     name.copy_utf8_truncated(defgroup->name);
     BLI_addtail(&vertex_group_names, defgroup);
     def_nr = BLI_listbase_count(&vertex_group_names) - 1;
@@ -79,7 +79,7 @@ void assign_to_vertex_group_from_mask(bke::CurvesGeometry &curves,
 
   /* Lazily add the vertex group if any vertex is selected. */
   if (def_nr < 0) {
-    bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>(__func__);
+    bDeformGroup *defgroup = MEM_new<bDeformGroup>(__func__);
     name.copy_utf8_truncated(defgroup->name);
     BLI_addtail(&vertex_group_names, defgroup);
     def_nr = BLI_listbase_count(&vertex_group_names) - 1;
@@ -112,7 +112,7 @@ void assign_to_vertex_group(Drawing &drawing, const StringRef name, const float 
     if (selection[i]) {
       /* Lazily add the vertex group if any vertex is selected. */
       if (def_nr < 0) {
-        bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>(__func__);
+        bDeformGroup *defgroup = MEM_new<bDeformGroup>(__func__);
         name.copy_utf8_truncated(defgroup->name);
 
         BLI_addtail(&vertex_group_names, defgroup);

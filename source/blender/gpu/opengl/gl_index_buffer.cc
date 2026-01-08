@@ -41,7 +41,7 @@ void GLIndexBuf::bind()
       glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, data_);
     }
     /* No need to keep copy of data in system memory. */
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 }
 

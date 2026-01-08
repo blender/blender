@@ -911,9 +911,9 @@ void uiLayoutSetFunc(Layout *layout, MenuHandleFunc handlefunc, void *argv);
  *
  * \param func: The callback function that gets called to get tooltip content
  * \param arg: An optional opaque pointer that gets passed to func
- * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_freeN)
+ * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_delete)
  * \param copy_arg: An optional callback for duplicating arg in case button_func_tooltip_set
- * is being called on multiple buttons (can be set to e.g. MEM_dupallocN). If set to NULL, arg will
+ * is being called on multiple buttons (can be set to e.g. MEM_dupalloc). If set to NULL, arg will
  * be passed as-is to all buttons.
  */
 void uiLayoutSetTooltipFunc(

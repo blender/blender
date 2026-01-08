@@ -19,7 +19,7 @@ void vk_pipeline_data_copy(VKPipelineData &dst, const VKPipelineData &src)
   dst.push_constants_size = src.push_constants_size;
   if (src.push_constants_size) {
     BLI_assert(src.push_constants_data);
-    void *data = MEM_mallocN(src.push_constants_size, __func__);
+    void *data = MEM_new_uninitialized(src.push_constants_size, __func__);
     memcpy(data, src.push_constants_data, src.push_constants_size);
     dst.push_constants_data = data;
   }
@@ -97,7 +97,7 @@ void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
 void vk_pipeline_data_free(VKPipelineData &data)
 {
   if (data.push_constants_data) {
-    MEM_freeN(const_cast<void *>(data.push_constants_data));
+    MEM_delete_void(const_cast<void *>(data.push_constants_data));
     data.push_constants_data = nullptr;
   }
 }

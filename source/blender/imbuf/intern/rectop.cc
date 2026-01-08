@@ -220,7 +220,7 @@ static void rect_crop_4bytes(void **buf_p, const int size_src[2], const rcti *cr
   for (int y = 0; y < size_dst[1]; y++, src += size_dst[0], dst += size_src[0]) {
     memmove(src, dst, sizeof(uint) * size_dst[0]);
   }
-  *buf_p = MEM_reallocN(*buf_p, sizeof(uint) * size_dst[0] * size_dst[1]);
+  *buf_p = MEM_realloc_uninitialized(*buf_p, sizeof(uint) * size_dst[0] * size_dst[1]);
 }
 
 static void rect_crop_16bytes(void **buf_p, const int size_src[2], const rcti *crop)
@@ -237,7 +237,8 @@ static void rect_crop_16bytes(void **buf_p, const int size_src[2], const rcti *c
   for (int y = 0; y < size_dst[1]; y++, src += size_dst[0], dst += size_src[0]) {
     memmove(src, dst, sizeof(uint[4]) * size_dst[0]);
   }
-  *buf_p = static_cast<void *>(MEM_reallocN(*buf_p, sizeof(uint[4]) * size_dst[0] * size_dst[1]));
+  *buf_p = static_cast<void *>(
+      MEM_realloc_uninitialized(*buf_p, sizeof(uint[4]) * size_dst[0] * size_dst[1]));
 }
 
 void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
@@ -274,8 +275,8 @@ static void rect_realloc_4bytes(void **buf_p, const uint size[2])
   if (*buf_p == nullptr) {
     return;
   }
-  MEM_freeN(*buf_p);
-  *buf_p = MEM_malloc_arrayN<uint>(size_t(size[0]) * size_t(size[1]), __func__);
+  MEM_delete_void(*buf_p);
+  *buf_p = MEM_new_array_uninitialized<uint>(size_t(size[0]) * size_t(size[1]), __func__);
 }
 
 static void rect_realloc_16bytes(void **buf_p, const uint size[2])
@@ -283,8 +284,8 @@ static void rect_realloc_16bytes(void **buf_p, const uint size[2])
   if (*buf_p == nullptr) {
     return;
   }
-  MEM_freeN(*buf_p);
-  *buf_p = MEM_malloc_arrayN<uint>(4 * size_t(size[0]) * size_t(size[1]), __func__);
+  MEM_delete_void(*buf_p);
+  *buf_p = MEM_new_array_uninitialized<uint>(4 * size_t(size[0]) * size_t(size[1]), __func__);
 }
 
 void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])

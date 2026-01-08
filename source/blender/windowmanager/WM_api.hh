@@ -1606,7 +1606,7 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
 
 /** Return a borrowed reference to the custom-data. */
 void *WM_event_consecutive_data_get(wmWindow *win, const char *id);
-/** Set the custom-data (and own the pointer), free with #MEM_freeN. */
+/** Set the custom-data (and own the pointer), free with #MEM_delete_void. */
 void WM_event_consecutive_data_set(wmWindow *win, const char *id, void *custom_data);
 /** Clear and free the consecutive custom-data. */
 void WM_event_consecutive_data_free(wmWindow *win);

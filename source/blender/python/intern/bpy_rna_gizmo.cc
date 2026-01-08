@@ -311,7 +311,7 @@ static void py_rna_gizmo_handler_free_cb(const wmGizmo * /*gz*/, wmGizmoProperty
   }
   PyGILState_Release(gilstate);
 
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 PyDoc_STRVAR(
@@ -397,7 +397,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
     }
   }
 
-  data = MEM_callocN<BPyGizmoHandlerUserData>(__func__);
+  data = MEM_new_zeroed<BPyGizmoHandlerUserData>(__func__);
 
   for (int i = 0; i < BPY_GIZMO_FN_SLOT_LEN; i++) {
     data->fn_slots[i] = params.py_fn_slots[i];

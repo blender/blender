@@ -93,7 +93,7 @@ template<typename Accessor> inline void destruct_array(bNode &node)
     ItemT &item = (*ref.items)[i];
     Accessor::destruct_item(&item);
   }
-  MEM_SAFE_FREE(*ref.items);
+  MEM_SAFE_DELETE(*ref.items);
 }
 
 /**
@@ -116,7 +116,7 @@ template<typename Accessor> inline void copy_array(const bNode &src_node, bNode 
   SocketItemsRef src_ref = Accessor::get_items_from_node(const_cast<bNode &>(src_node));
   SocketItemsRef dst_ref = Accessor::get_items_from_node(dst_node);
   const int items_num = *src_ref.items_num;
-  *dst_ref.items = MEM_new_array_for_free<ItemT>(items_num, __func__);
+  *dst_ref.items = MEM_new_array<ItemT>(items_num, __func__);
   for (const int i : IndexRange(items_num)) {
     Accessor::copy_item((*src_ref.items)[i], (*dst_ref.items)[i]);
   }
@@ -179,7 +179,7 @@ inline void set_item_name_and_make_unique(bNode &node,
   BLI_assert(unique_name == get_validated_name<Accessor>(unique_name));
 
   char **item_name = Accessor::get_name(item);
-  MEM_SAFE_FREE(*item_name);
+  MEM_SAFE_DELETE(*item_name);
   *item_name = BLI_strdup(unique_name.c_str());
 }
 
@@ -194,11 +194,11 @@ template<typename Accessor> inline typename Accessor::ItemT &add_item_to_array(b
   const int old_items_num = *array.items_num;
   const int new_items_num = old_items_num + 1;
 
-  ItemT *new_items = MEM_new_array_for_free<ItemT>(new_items_num, __func__);
+  ItemT *new_items = MEM_new_array<ItemT>(new_items_num, __func__);
   std::copy_n(old_items, old_items_num, new_items);
   ItemT &new_item = new_items[old_items_num];
 
-  MEM_SAFE_FREE(old_items);
+  MEM_SAFE_DELETE(old_items);
   *array.items = new_items;
   *array.items_num = new_items_num;
   if (array.active_index) {

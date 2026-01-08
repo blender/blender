@@ -299,7 +299,7 @@ static void initBend(TransInfo *t, wmOperator * /*op*/)
   }
   calculateCenterLocal(t, t->center_global);
 
-  data = MEM_callocN<BendCustomData>(__func__);
+  data = MEM_new_zeroed<BendCustomData>(__func__);
 
   curs = t->scene->cursor.location;
   copy_v3_v3(data->warp_sta, curs);

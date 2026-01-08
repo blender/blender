@@ -381,7 +381,7 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
                                                    nullptr;
 
   /* Cleanup local dummy type. */
-  MEM_SAFE_FREE(dummy_socket.socket_type);
+  MEM_SAFE_DELETE(dummy_socket.socket_type);
 
   /* Update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);

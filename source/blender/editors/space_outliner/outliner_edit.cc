@@ -245,7 +245,7 @@ static wmOperatorStatus outliner_item_openclose_modal(bContext *C,
     }
   }
   else if (event->val == KM_RELEASE) {
-    MEM_freeN(data);
+    MEM_delete(data);
 
     return OPERATOR_FINISHED;
   }
@@ -286,7 +286,7 @@ static wmOperatorStatus outliner_item_openclose_invoke(bContext *C,
     }
 
     /* Store last expanded tselem and x coordinate of disclosure triangle */
-    OpenCloseData *toggle_data = MEM_callocN<OpenCloseData>("open_close_data");
+    OpenCloseData *toggle_data = MEM_new_zeroed<OpenCloseData>("open_close_data");
     toggle_data->prev_tselem = tselem;
     toggle_data->open = open;
     toggle_data->x_location = te->xs;
@@ -1907,7 +1907,7 @@ static void tree_element_to_path(TreeElement *te,
 
   /* step 1: flatten out hierarchy of parents into a flat chain */
   for (TreeElement *tem = te->parent; tem; tem = tem->parent) {
-    LinkData *ld = MEM_callocN<LinkData>("LinkData for tree_element_to_path()");
+    LinkData *ld = MEM_new_zeroed<LinkData>("LinkData for tree_element_to_path()");
     ld->data = tem;
     BLI_addhead(&hierarchy, ld);
   }
@@ -1945,7 +1945,7 @@ static void tree_element_to_path(TreeElement *te,
             newpath = RNA_path_append(*path, nullptr, prop, 0, name);
 
             if (name != buf) {
-              MEM_freeN(name);
+              MEM_delete(name);
             }
           }
           else {
@@ -1967,7 +1967,7 @@ static void tree_element_to_path(TreeElement *te,
 
       if (newpath) {
         if (*path) {
-          MEM_freeN(*path);
+          MEM_delete(*path);
         }
         *path = newpath;
         newpath = nullptr;
@@ -1984,7 +1984,7 @@ static void tree_element_to_path(TreeElement *te,
 
           /* clear path */
           if (*path) {
-            MEM_freeN(*path);
+            MEM_delete(*path);
             path = nullptr;
           }
         }
@@ -2010,7 +2010,7 @@ static void tree_element_to_path(TreeElement *te,
     /* path */
     newpath = RNA_path_append(*path, nullptr, prop, 0, nullptr);
     if (*path) {
-      MEM_freeN(*path);
+      MEM_delete(*path);
     }
     *path = newpath;
   }
@@ -2101,7 +2101,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
       }
 
       /* free path, since it had to be generated */
-      MEM_freeN(path);
+      MEM_delete(path);
     }
   });
 }
@@ -2285,7 +2285,7 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
       }
 
       /* free path, since it had to be generated */
-      MEM_freeN(path);
+      MEM_delete(path);
     }
   });
 }

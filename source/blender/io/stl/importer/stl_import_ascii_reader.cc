@@ -124,7 +124,7 @@ Mesh *read_stl_ascii(const char *filepath, const bool use_custom_normals)
     CLOG_ERROR(&LOG, "STL Importer: cannot read from ASCII STL file: '%s'", filepath);
     return nullptr;
   }
-  BLI_SCOPED_DEFER([&]() { MEM_freeN(buffer); });
+  BLI_SCOPED_DEFER([&]() { MEM_delete_void(buffer); });
 
   constexpr int num_reserved_tris = 1024;
 

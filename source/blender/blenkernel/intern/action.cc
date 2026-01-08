@@ -174,13 +174,14 @@ static void action_copy_data(Main * /*bmain*/,
   action_dst.last_slot_handle = action_src.last_slot_handle;
 
   /* Layers, and (recursively) Strips. */
-  action_dst.layer_array = MEM_calloc_arrayN<ActionLayer *>(action_src.layer_array_num, __func__);
+  action_dst.layer_array = MEM_new_array_zeroed<ActionLayer *>(action_src.layer_array_num,
+                                                               __func__);
   for (int i : action_src.layers().index_range()) {
     action_dst.layer_array[i] = action_src.layer(i)->duplicate_with_shallow_strip_copies(__func__);
   }
 
   /* Strip data. */
-  action_dst.strip_keyframe_data_array = MEM_calloc_arrayN<ActionStripKeyframeData *>(
+  action_dst.strip_keyframe_data_array = MEM_new_array_zeroed<ActionStripKeyframeData *>(
       action_src.strip_keyframe_data_array_num, __func__);
   for (int i : action_src.strip_keyframe_data().index_range()) {
     action_dst.strip_keyframe_data_array[i] = MEM_new<animrig::StripKeyframeData>(
@@ -188,7 +189,7 @@ static void action_copy_data(Main * /*bmain*/,
   }
 
   /* Slots. */
-  action_dst.slot_array = MEM_calloc_arrayN<ActionSlot *>(action_src.slot_array_num, __func__);
+  action_dst.slot_array = MEM_new_array_zeroed<ActionSlot *>(action_src.slot_array_num, __func__);
   for (int i : action_src.slots().index_range()) {
     action_dst.slot_array[i] = MEM_new<animrig::Slot>(__func__, *action_src.slot(i));
   }
@@ -210,21 +211,21 @@ static void action_free_data(ID *id)
   for (animrig::StripKeyframeData *keyframe_data : action.strip_keyframe_data()) {
     MEM_delete(keyframe_data);
   }
-  MEM_SAFE_FREE(action.strip_keyframe_data_array);
+  MEM_SAFE_DELETE(action.strip_keyframe_data_array);
   action.strip_keyframe_data_array_num = 0;
 
   /* Free layers. */
   for (animrig::Layer *layer : action.layers()) {
     MEM_delete(layer);
   }
-  MEM_SAFE_FREE(action.layer_array);
+  MEM_SAFE_DELETE(action.layer_array);
   action.layer_array_num = 0;
 
   /* Free slots. */
   for (animrig::Slot *slot : action.slots()) {
     MEM_delete(slot);
   }
-  MEM_SAFE_FREE(action.slot_array);
+  MEM_SAFE_DELETE(action.slot_array);
   action.slot_array_num = 0;
 
   /* Free legacy F-Curves & groups. */
@@ -877,7 +878,7 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
   }
 
   /* If not, create it and add it */
-  chan = MEM_new_for_free<bPoseChannel>("verifyPoseChannel");
+  chan = MEM_new<bPoseChannel>("verifyPoseChannel");
 
   BKE_pose_channel_session_uid_generate(chan);
 
@@ -1020,7 +1021,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
     return;
   }
 
-  outPose = MEM_new_for_free<bPose>("pose");
+  outPose = MEM_new<bPose>("pose");
 
   BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
 
@@ -1035,7 +1036,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
 
   outPose->iksolver = src->iksolver;
   outPose->ikdata = nullptr;
-  outPose->ikparam = MEM_dupallocN(src->ikparam);
+  outPose->ikparam = MEM_dupalloc_void(src->ikparam);
   outPose->avs = src->avs;
 
   for (bPoseChannel &pchan : outPose->chanbase) {
@@ -1117,7 +1118,7 @@ void BKE_pose_ikparam_init(bPose *pose)
   bItasc *itasc;
   switch (pose->iksolver) {
     case IKSOLVER_ITASC:
-      itasc = MEM_new_for_free<bItasc>("itasc");
+      itasc = MEM_new<bItasc>("itasc");
       BKE_pose_itasc_init(itasc);
       pose->ikparam = itasc;
       break;
@@ -1318,7 +1319,7 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
   }
 
   /* Cached data, for new draw manager rendering code. */
-  MEM_SAFE_FREE(pchan->draw_data);
+  MEM_SAFE_DELETE(pchan->draw_data);
 
   /* Cached B-Bone shape and other data. */
   BKE_pose_channel_runtime_free(&pchan->runtime);
@@ -1344,11 +1345,11 @@ void BKE_pose_channel_runtime_free(bPoseChannel_Runtime *runtime)
 void BKE_pose_channel_free_bbone_cache(bPoseChannel_Runtime *runtime)
 {
   runtime->bbone_segments = 0;
-  MEM_SAFE_FREE(runtime->bbone_rest_mats);
-  MEM_SAFE_FREE(runtime->bbone_pose_mats);
-  MEM_SAFE_FREE(runtime->bbone_deform_mats);
-  MEM_SAFE_FREE(runtime->bbone_dual_quats);
-  MEM_SAFE_FREE(runtime->bbone_segment_boundaries);
+  MEM_SAFE_DELETE(runtime->bbone_rest_mats);
+  MEM_SAFE_DELETE(runtime->bbone_pose_mats);
+  MEM_SAFE_DELETE(runtime->bbone_deform_mats);
+  MEM_SAFE_DELETE(runtime->bbone_dual_quats);
+  MEM_SAFE_DELETE(runtime->bbone_segment_boundaries);
 }
 
 void BKE_pose_channel_free(bPoseChannel *pchan)
@@ -1368,7 +1369,7 @@ void BKE_pose_channels_free_ex(bPose *pose, bool do_id_user)
 
   BKE_pose_channels_hash_free(pose);
 
-  MEM_SAFE_FREE(pose->chan_array);
+  MEM_SAFE_DELETE(pose->chan_array);
 }
 
 void BKE_pose_channels_free(bPose *pose)
@@ -1391,7 +1392,7 @@ void BKE_pose_free_data_ex(bPose *pose, bool do_id_user)
 
   /* free IK solver param */
   if (pose->ikparam) {
-    MEM_freeN(static_cast<bItasc *>(pose->ikparam));
+    MEM_delete(static_cast<bItasc *>(pose->ikparam));
   }
 }
 
@@ -1405,7 +1406,7 @@ void BKE_pose_free_ex(bPose *pose, bool do_id_user)
   if (pose) {
     BKE_pose_free_data_ex(pose, do_id_user);
     /* free pose */
-    MEM_freeN(pose);
+    MEM_delete(pose);
   }
 }
 
@@ -1568,7 +1569,7 @@ bActionGroup *BKE_pose_add_group(bPose *pose, const char *name)
     name = DATA_("Group");
   }
 
-  grp = MEM_new_for_free<bActionGroup>("PoseGroup");
+  grp = MEM_new<bActionGroup>("PoseGroup");
   STRNCPY_UTF8(grp->name, name);
   BLI_addtail(&pose->agroups, grp);
   BLI_uniquename(&pose->agroups, grp, name, '.', offsetof(bActionGroup, name), sizeof(grp->name));

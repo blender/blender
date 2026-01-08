@@ -72,7 +72,7 @@ static void volume_batch_cache_init(Volume *volume)
   VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
 
   if (!cache) {
-    volume->batch_cache = cache = MEM_callocN<VolumeBatchCache>(__func__);
+    volume->batch_cache = cache = MEM_new_zeroed<VolumeBatchCache>(__func__);
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -118,7 +118,7 @@ static void volume_batch_cache_clear(Volume *volume)
   }
 
   for (DRWVolumeGrid &grid : cache->grids) {
-    MEM_SAFE_FREE(grid.name);
+    MEM_SAFE_DELETE(grid.name);
     GPU_TEXTURE_FREE_SAFE(grid.texture);
   }
   BLI_freelistN(&cache->grids);
@@ -131,7 +131,7 @@ static void volume_batch_cache_clear(Volume *volume)
 void DRW_volume_batch_cache_free(Volume *volume)
 {
   volume_batch_cache_clear(volume);
-  MEM_SAFE_FREE(volume->batch_cache);
+  MEM_SAFE_DELETE_VOID(volume->batch_cache);
 }
 struct VolumeWireframeUserData {
   Volume *volume;
@@ -296,7 +296,7 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
   }
 
   /* Allocate new grid. */
-  DRWVolumeGrid *cache_grid = MEM_callocN<DRWVolumeGrid>(__func__);
+  DRWVolumeGrid *cache_grid = MEM_new_zeroed<DRWVolumeGrid>(__func__);
   cache_grid->name = BLI_strdup(name.c_str());
   BLI_addtail(&cache->grids, cache_grid);
 
@@ -332,7 +332,7 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
       BKE_volume_dense_float_grid_clear(&dense_grid);
     }
     else {
-      MEM_freeN(dense_grid.voxels);
+      MEM_delete(dense_grid.voxels);
       printf("Error: Could not allocate 3D texture for volume.\n");
     }
   }

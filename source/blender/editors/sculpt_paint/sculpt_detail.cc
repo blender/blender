@@ -611,7 +611,7 @@ static void dyntopo_detail_size_edit_cancel(bContext *C, wmOperator *op)
       op->customdata);
   ED_region_draw_cb_exit(region->runtime->type, cd->draw_handle);
   ss.draw_faded_cursor = false;
-  MEM_freeN(cd);
+  MEM_delete(cd);
   op->customdata = nullptr;
   ED_workspace_status_text(C, nullptr);
 
@@ -778,7 +778,7 @@ static wmOperatorStatus dyntopo_detail_size_edit_modal(bContext *C,
     }
 
     ss.draw_faded_cursor = false;
-    MEM_freeN(cd);
+    MEM_delete(cd);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
 
@@ -833,7 +833,7 @@ static wmOperatorStatus dyntopo_detail_size_edit_invoke(bContext *C,
   Object &active_object = *CTX_data_active_object(C);
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  DyntopoDetailSizeEditCustomData *cd = MEM_callocN<DyntopoDetailSizeEditCustomData>(__func__);
+  DyntopoDetailSizeEditCustomData *cd = MEM_new_zeroed<DyntopoDetailSizeEditCustomData>(__func__);
 
   /* Initial operator Custom Data setup. */
   cd->draw_handle = ED_region_draw_cb_activate(

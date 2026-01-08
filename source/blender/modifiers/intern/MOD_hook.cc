@@ -62,7 +62,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
   thmd->curfalloff = BKE_curvemapping_copy(hmd->curfalloff);
 
-  thmd->indexar = static_cast<int *>(MEM_dupallocN(hmd->indexar));
+  thmd->indexar = MEM_dupalloc(hmd->indexar);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
@@ -87,7 +87,7 @@ static void free_data(ModifierData *md)
 
   BKE_curvemapping_free(hmd->curfalloff);
 
-  MEM_SAFE_FREE(hmd->indexar);
+  MEM_SAFE_DELETE(hmd->indexar);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
@@ -372,7 +372,7 @@ static void deformVerts_do(HookModifierData *hmd,
           hook_co_apply(&hd, i, dvert ? &dvert[i] : nullptr);
         }
       }
-      MEM_freeN(indexar_used);
+      MEM_delete(indexar_used);
     }
     else { /* missing mesh or ORIGINDEX */
       if ((em != nullptr) && (hd.defgrp_index != -1)) {
@@ -387,7 +387,7 @@ static void deformVerts_do(HookModifierData *hmd,
             hook_co_apply(&hd, i, dv);
           }
         }
-        MEM_freeN(indexar_used);
+        MEM_delete(indexar_used);
       }
       else {
         for (i = 0, index_pt = hmd->indexar; i < hmd->indexar_num; i++, index_pt++) {

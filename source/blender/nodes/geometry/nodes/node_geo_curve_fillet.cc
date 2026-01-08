@@ -60,7 +60,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_new_for_free<NodeGeometryCurveFillet>(__func__);
+  node->storage = MEM_new<NodeGeometryCurveFillet>(__func__);
 }
 
 static bke::CurvesGeometry fillet_curve(const bke::CurvesGeometry &src_curves,

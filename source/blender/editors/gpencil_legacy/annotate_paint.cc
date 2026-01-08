@@ -635,7 +635,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       /* first time point is adding to temporary buffer -- need to allocate new point in stroke */
       if (gpd->runtime.sbuffer_used == 0) {
         gps->points = static_cast<bGPDspoint *>(
-            MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1)));
+            MEM_realloc_uninitialized(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1)));
         gps->totpoints++;
       }
 
@@ -714,7 +714,7 @@ static void annotation_stroke_arrow_allocate(bGPDstroke *gps, const int totpoint
   /* Copy appropriate settings for stroke. */
   gps->totpoints = totpoints;
   /* Allocate enough memory for a continuous array for storage points. */
-  gps->points = MEM_new_array_for_free<bGPDspoint>(gps->totpoints, "annotation_stroke_points");
+  gps->points = MEM_new_array<bGPDspoint>(gps->totpoints, "annotation_stroke_points");
 }
 
 static void annotation_arrow_create_open(tGPsdata *p,
@@ -844,7 +844,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
   }
 
   /* allocate memory for a new stroke */
-  gps = MEM_new_for_free<bGPDstroke>("annotation_stroke");
+  gps = MEM_new<bGPDstroke>("annotation_stroke");
 
   /* copy appropriate settings for stroke */
   gps->totpoints = totelem;
@@ -858,7 +858,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
   gps->tot_triangles = 0;
 
   /* allocate enough memory for a continuous array for storage points */
-  gps->points = MEM_new_array_for_free<bGPDspoint>(gps->totpoints, "annotation_stroke_points");
+  gps->points = MEM_new_array<bGPDspoint>(gps->totpoints, "annotation_stroke_points");
   gps->tot_triangles = 0;
 
   /* set pointer to first non-initialized point */
@@ -966,7 +966,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       int interp_depth = 0;
       int found_depth = 0;
 
-      depth_arr = MEM_malloc_arrayN<float>(gpd->runtime.sbuffer_used, "depth_points");
+      depth_arr = MEM_new_array_uninitialized<float>(gpd->runtime.sbuffer_used, "depth_points");
 
       const ViewDepths *depths = p->depths;
       for (i = 0, ptc = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
@@ -1046,7 +1046,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
     }
 
     if (depth_arr) {
-      MEM_freeN(depth_arr);
+      MEM_delete(depth_arr);
     }
   }
 
@@ -1063,16 +1063,16 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
 static void annotation_free_stroke(bGPDframe *gpf, bGPDstroke *gps)
 {
   if (gps->points) {
-    MEM_freeN(gps->points);
+    MEM_delete(gps->points);
   }
 
   if (gps->dvert) {
     BKE_gpencil_free_stroke_weights(gps);
-    MEM_freeN(static_cast<void *>(gps->dvert));
+    MEM_delete_void(static_cast<void *>(gps->dvert));
   }
 
   if (gps->triangles) {
-    MEM_freeN(gps->triangles);
+    MEM_delete(gps->triangles);
   }
 
   BLI_freelinkN(&gpf->strokes, gps);
@@ -1491,7 +1491,7 @@ static void annotation_session_cleanup(tGPsdata *p)
 
   /* free stroke buffer */
   if (gpd->runtime.sbuffer) {
-    MEM_freeN(gpd->runtime.sbuffer);
+    MEM_delete_void(gpd->runtime.sbuffer);
     gpd->runtime.sbuffer = nullptr;
   }
 

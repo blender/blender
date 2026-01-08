@@ -106,7 +106,7 @@ void IDNode::destroy()
   /* Free memory used by this evaluated ID. */
   if (!ELEM(id_cow, id_orig, nullptr)) {
     deg_free_eval_copy_datablock(id_cow);
-    MEM_freeN(id_cow);
+    MEM_delete(id_cow);
     id_cow = nullptr;
     DEG_COW_PRINT(
         "Destroy evaluated ID for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);

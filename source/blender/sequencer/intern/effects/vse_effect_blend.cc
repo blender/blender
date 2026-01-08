@@ -347,8 +347,8 @@ static ImBuf *do_blend_mode_effect(const RenderData *context,
 
 static void init_colormix_effect(Strip *strip)
 {
-  MEM_SAFE_FREE(strip->effectdata);
-  ColorMixVars *data = MEM_new_for_free<ColorMixVars>("colormixvars");
+  MEM_SAFE_DELETE_VOID(strip->effectdata);
+  ColorMixVars *data = MEM_new<ColorMixVars>("colormixvars");
   strip->effectdata = data;
   data->blend_effect = STRIP_BLEND_OVERLAY;
   data->factor = 1.0f;

@@ -79,7 +79,7 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 static LayerCollection *layer_collection_add(ListBaseT<LayerCollection> *lb_parent,
                                              Collection *collection)
 {
-  LayerCollection *lc = MEM_new_for_free<LayerCollection>("Collection Base");
+  LayerCollection *lc = MEM_new<LayerCollection>("Collection Base");
   lc->collection = collection;
   lc->local_collections_bits = ~0;
   BLI_addtail(lb_parent, lc);
@@ -95,14 +95,14 @@ static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc)
 
   for (LayerCollection &nlc : lc->layer_collections.items_mutable()) {
     layer_collection_free(view_layer, &nlc);
-    MEM_freeN(&nlc);
+    MEM_delete(&nlc);
   }
   BLI_listbase_clear(&lc->layer_collections);
 }
 
 static Base *object_base_new(Object *ob)
 {
-  Base *base = MEM_new_for_free<Base>("Object Base");
+  Base *base = MEM_new<Base>("Object Base");
   base->object = ob;
   base->local_view_bits = ~0;
   if (ob->base_flag & BASE_SELECTED) {
@@ -166,7 +166,7 @@ static ViewLayer *view_layer_add(const char *name)
     name = DATA_("ViewLayer");
   }
 
-  ViewLayer *view_layer = MEM_new_for_free<ViewLayer>("View Layer");
+  ViewLayer *view_layer = MEM_new<ViewLayer>("View Layer");
   STRNCPY_UTF8(view_layer->name, name);
 
   BKE_freestyle_config_init(&view_layer->freestyle_config);
@@ -205,7 +205,7 @@ ViewLayer *BKE_view_layer_add(Scene *scene,
     }
     case VIEWLAYER_ADD_COPY: {
       /* Allocate and copy view layer data */
-      view_layer_new = MEM_new_for_free<ViewLayer>("View Layer");
+      view_layer_new = MEM_new<ViewLayer>("View Layer");
       *view_layer_new = *view_layer_source;
       BKE_view_layer_copy_data(scene, scene, view_layer_new, view_layer_source, 0);
       BLI_addtail(&scene->view_layers, view_layer_new);
@@ -253,10 +253,11 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
   BLI_freelistN(&view_layer->lightgroups);
   view_layer->active_lightgroup = nullptr;
 
-  /* Cannot use MEM_SAFE_FREE, as #SceneStats type is only forward-declared in `DNA_layer_types.h`
+  /* Cannot use MEM_SAFE_DELETE, as #SceneStats type is only forward-declared in
+   * `DNA_layer_types.h`
    */
   if (view_layer->stats) {
-    MEM_freeN(static_cast<void *>(view_layer->stats));
+    MEM_delete_void(static_cast<void *>(view_layer->stats));
     view_layer->stats = nullptr;
   }
 
@@ -269,9 +270,9 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
     IDP_FreeProperty_ex(view_layer->system_properties, do_id_user);
   }
 
-  MEM_SAFE_FREE(view_layer->object_bases_array);
+  MEM_SAFE_DELETE(view_layer->object_bases_array);
 
-  MEM_freeN(view_layer);
+  MEM_delete(view_layer);
 }
 
 void BKE_view_layer_free_object_content(ViewLayer *view_layer)
@@ -284,7 +285,7 @@ void BKE_view_layer_free_object_content(ViewLayer *view_layer)
 
   for (LayerCollection &lc : view_layer->layer_collections.items_mutable()) {
     layer_collection_free(view_layer, &lc);
-    MEM_freeN(&lc);
+    MEM_delete(&lc);
   }
   BLI_listbase_clear(&view_layer->layer_collections);
 }
@@ -518,7 +519,7 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
   BLI_assert_msg((view_layer_src->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
                  "View Layer Object Base out of sync, invoke BKE_view_layer_synced_ensure.");
   for (const Base &base_src : view_layer_src->object_bases) {
-    Base *base_dst = static_cast<Base *>(MEM_dupallocN(&base_src));
+    Base *base_dst = MEM_dupalloc(&base_src);
     BLI_addtail(&view_layer_dst->object_bases, base_dst);
     if (view_layer_src->basact == &base_src) {
       view_layer_dst->basact = base_dst;
@@ -972,7 +973,7 @@ static void layer_collection_resync_unused_layers_free(ViewLayer *view_layer,
 
     /* We do not want to go recursive here, this is handled through the LayerCollectionResync data
      * wrapper. */
-    MEM_freeN(layer_resync->layer);
+    MEM_delete(layer_resync->layer);
     layer_resync->layer = nullptr;
     layer_resync->collection = nullptr;
     layer_resync->is_usable = false;
@@ -1355,7 +1356,7 @@ bool BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 #endif
 
   /* Free cache. */
-  MEM_SAFE_FREE(view_layer->object_bases_array);
+  MEM_SAFE_DELETE(view_layer->object_bases_array);
 
   /* Create object to base hash if it does not exist yet. */
   if (!view_layer->object_bases_hash) {
@@ -1489,7 +1490,7 @@ bool BKE_main_collection_sync_remap(const Main *bmain)
        scene = static_cast<Scene *>(scene->id.next))
   {
     for (ViewLayer &view_layer : scene->view_layers) {
-      MEM_SAFE_FREE(view_layer.object_bases_array);
+      MEM_SAFE_DELETE(view_layer.object_bases_array);
 
       MEM_delete(view_layer.object_bases_hash);
       view_layer.object_bases_hash = nullptr;
@@ -2084,7 +2085,7 @@ static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in_v, con
     return;
   }
 
-  LayerObjectBaseIteratorData *data = MEM_callocN<LayerObjectBaseIteratorData>(__func__);
+  LayerObjectBaseIteratorData *data = MEM_new_zeroed<LayerObjectBaseIteratorData>(__func__);
   iter->data = data;
 
   data->v3d = v3d;
@@ -2117,7 +2118,7 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag)
 
 static void object_bases_iterator_end(BLI_Iterator *iter)
 {
-  MEM_SAFE_FREE(iter->data);
+  MEM_SAFE_DELETE_VOID(iter->data);
 }
 
 static void objects_iterator_begin(BLI_Iterator *iter, void *data_in, const int flag)
@@ -2381,9 +2382,9 @@ static void layer_eval_view_layer(Depsgraph *depsgraph, Scene *scene, ViewLayer 
   /* Create array of bases, for fast index-based lookup. */
   BKE_view_layer_synced_ensure(scene, view_layer);
   const int num_object_bases = BLI_listbase_count(BKE_view_layer_object_bases_get(view_layer));
-  MEM_SAFE_FREE(view_layer->object_bases_array);
-  view_layer->object_bases_array = MEM_malloc_arrayN<Base *>(size_t(num_object_bases),
-                                                             "view_layer->object_bases_array");
+  MEM_SAFE_DELETE(view_layer->object_bases_array);
+  view_layer->object_bases_array = MEM_new_array_uninitialized<Base *>(
+      size_t(num_object_bases), "view_layer->object_bases_array");
   int base_index = 0;
   for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
     view_layer->object_bases_array[base_index++] = &base;
@@ -2550,7 +2551,7 @@ static void viewlayer_aov_active_set(ViewLayer *view_layer, ViewLayerAOV *aov)
 ViewLayerAOV *BKE_view_layer_add_aov(ViewLayer *view_layer)
 {
   ViewLayerAOV *aov;
-  aov = MEM_new_for_free<ViewLayerAOV>(__func__);
+  aov = MEM_new<ViewLayerAOV>(__func__);
   aov->type = AOV_TYPE_COLOR;
   STRNCPY_UTF8(aov->name, DATA_("AOV"));
   BLI_addtail(&view_layer->aovs, aov);
@@ -2669,7 +2670,7 @@ static void viewlayer_lightgroup_active_set(ViewLayer *view_layer, ViewLayerLigh
 ViewLayerLightgroup *BKE_view_layer_add_lightgroup(ViewLayer *view_layer, const char *name)
 {
   ViewLayerLightgroup *lightgroup;
-  lightgroup = MEM_new_for_free<ViewLayerLightgroup>(__func__);
+  lightgroup = MEM_new<ViewLayerLightgroup>(__func__);
   STRNCPY_UTF8(lightgroup->name, (name && name[0]) ? name : DATA_("Lightgroup"));
   BLI_addtail(&view_layer->lightgroups, lightgroup);
   viewlayer_lightgroup_active_set(view_layer, lightgroup);
@@ -2762,13 +2763,13 @@ void BKE_lightgroup_membership_set(LightgroupMembership **lgm, const char *name)
 {
   if (name[0] != '\0') {
     if (*lgm == nullptr) {
-      *lgm = MEM_new_for_free<LightgroupMembership>(__func__);
+      *lgm = MEM_new<LightgroupMembership>(__func__);
     }
     BLI_strncpy_utf8((*lgm)->name, name, sizeof((*lgm)->name));
   }
   else {
     if (*lgm != nullptr) {
-      MEM_freeN(*lgm);
+      MEM_delete(*lgm);
       *lgm = nullptr;
     }
   }

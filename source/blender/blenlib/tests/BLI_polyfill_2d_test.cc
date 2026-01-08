@@ -73,7 +73,7 @@ static void test_polyfill_simple(const float /*poly*/[][2],
                                  const uint tris_num)
 {
   uint i;
-  int *used_num = MEM_calloc_arrayN<int>(poly_num, __func__);
+  int *used_num = MEM_new_array_zeroed<int>(poly_num, __func__);
   for (i = 0; i < tris_num; i++) {
     uint j;
     for (j = 0; j < 3; j++) {
@@ -87,7 +87,7 @@ static void test_polyfill_simple(const float /*poly*/[][2],
   for (i = 0; i < poly_num; i++) {
     EXPECT_NE(0, used_num[i]);
   }
-  MEM_freeN(used_num);
+  MEM_delete(used_num);
 }
 
 static void test_polyfill_topology(const float /*poly*/[][2],
@@ -240,7 +240,7 @@ static void test_polyfill_template_flip_sign(const char *id,
                                              uint tris[][3],
                                              const uint tris_num)
 {
-  float (*poly_copy)[2] = MEM_malloc_arrayN<float[2]>(poly_num, id);
+  float (*poly_copy)[2] = MEM_new_array_uninitialized<float[2]>(poly_num, id);
   for (int flip_x = 0; flip_x < 2; flip_x++) {
     for (int flip_y = 0; flip_y < 2; flip_y++) {
       float sign_x = flip_x ? -1.0f : 1.0f;
@@ -252,7 +252,7 @@ static void test_polyfill_template_flip_sign(const char *id,
       test_polyfill_template(id, test_flag, poly_copy, poly_num, tris, tris_num);
     }
   }
-  MEM_freeN(poly_copy);
+  MEM_delete(poly_copy);
 }
 
 #ifdef USE_COMBINATIONS_ALL
@@ -265,7 +265,7 @@ static void test_polyfill_template_main(const char *id,
 {
   /* overkill? - try at _every_ offset & reverse */
   uint poly_reverse;
-  float (*poly_copy)[2] = MEM_malloc_arrayN<float[2]>(poly_num, id);
+  float (*poly_copy)[2] = MEM_new_array_uninitialized<float[2]>(poly_num, id);
   float tmp[2];
 
   memcpy(poly_copy, poly, sizeof(float[2]) * poly_num);
@@ -288,7 +288,7 @@ static void test_polyfill_template_main(const char *id,
     }
   }
 
-  MEM_freeN(poly_copy);
+  MEM_delete(poly_copy);
 }
 #else  /* USE_COMBINATIONS_ALL */
 static void test_polyfill_template_main(const char *id,

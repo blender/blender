@@ -211,7 +211,7 @@ void ED_gpencil_layer_snap_frames(bGPDlayer *gpl, Scene *scene, short mode);
 void ED_gpencil_layer_mirror_frames(bGPDlayer *gpl, Scene *scene, short mode);
 
 /**
- * This function frees any MEM_calloc'ed copy/paste buffer data.
+ * This function frees any allocated copy/paste buffer data.
  */
 void ED_gpencil_anim_copybuf_free();
 /**

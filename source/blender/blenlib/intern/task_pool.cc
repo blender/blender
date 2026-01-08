@@ -62,7 +62,7 @@ class Task {
         freedata(pool, taskdata);
       }
       else {
-        MEM_freeN(taskdata);
+        MEM_delete_void(taskdata);
       }
     }
   }

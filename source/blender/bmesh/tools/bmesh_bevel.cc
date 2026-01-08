@@ -1146,8 +1146,8 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
 
   /* Use an array as a stack. Stack size can't exceed total faces if keep track of what is in
    * stack. */
-  BMFace **stack = MEM_malloc_arrayN<BMFace *>(totface, __func__);
-  bool *in_stack = MEM_malloc_arrayN<bool>(totface, __func__);
+  BMFace **stack = MEM_new_array_uninitialized<BMFace *>(totface, __func__);
+  bool *in_stack = MEM_new_array_uninitialized<bool>(totface, __func__);
 
   /* Set all component ids by DFS from faces with unassigned components. */
   for (f = 0; f < totface; f++) {
@@ -1198,8 +1198,8 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
       }
     }
   }
-  MEM_freeN(stack);
-  MEM_freeN(in_stack);
+  MEM_delete(stack);
+  MEM_delete(in_stack);
   /* We can usually get more pleasing result if components 0 and 1
    * are the topmost and bottom-most (in z-coordinate) components,
    * so adjust component indices to make that so. */
@@ -3541,8 +3541,8 @@ static void print_adjust_stats(BoundVert *vstart)
  * But keep it here for a while in case performance issues demand that it be used sometimes. */
 static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscycle)
 {
-  float *g = MEM_malloc_arrayN<float>(np, "beveladjust");
-  float *g_prod = MEM_malloc_arrayN<float>(np, "beveladjust");
+  float *g = MEM_new_array_uninitialized<float>(np, "beveladjust");
+  float *g_prod = MEM_new_array_uninitialized<float>(np, "beveladjust");
 
   BoundVert *v = vstart;
   float spec_sum = 0.0f;
@@ -3571,14 +3571,14 @@ static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscyc
     gprod *= g[0];
     if (fabs(gprod - 1.0f) > BEVEL_EPSILON) {
       /* Fast cycle calc only works if total product is 1. */
-      MEM_freeN(g);
-      MEM_freeN(g_prod);
+      MEM_delete(g);
+      MEM_delete(g_prod);
       return false;
     }
   }
   if (gprod_sum == 0.0f) {
-    MEM_freeN(g);
-    MEM_freeN(g_prod);
+    MEM_delete(g);
+    MEM_delete(g_prod);
     return false;
   }
   float p = spec_sum / gprod_sum;
@@ -3604,8 +3604,8 @@ static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscyc
     v = v->adjchain;
   } while (v && v != vstart);
 
-  MEM_freeN(g);
-  MEM_freeN(g_prod);
+  MEM_delete(g);
+  MEM_delete(g_prod);
   return true;
 }
 #endif
@@ -5243,8 +5243,8 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
   float ns2inv = 1.0f / float(ns2);
   VMesh *vm = new_adj_vmesh(bp->mem_arena, n_bndv, ns, bv->vmesh->boundstart);
   int clstride = 3 * (ns2 + 1);
-  float *centerline = MEM_malloc_arrayN<float>(clstride * n_bndv, "bevel");
-  bool *cset = MEM_calloc_arrayN<bool>(n_bndv, "bevel");
+  float *centerline = MEM_new_array_uninitialized<float>(clstride * n_bndv, "bevel");
+  bool *cset = MEM_new_array_zeroed<bool>(n_bndv, "bevel");
 
   /* Find on_edge, place on bndv[i]'s elast where offset line would meet,
    * taking min-distance-to bv->v with position where next sector's offset line would meet. */
@@ -5454,8 +5454,8 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
 
   vmesh_copy_equiv_verts(vm);
 
-  MEM_freeN(centerline);
-  MEM_freeN(cset);
+  MEM_delete(centerline);
+  MEM_delete(cset);
   return vm;
 }
 

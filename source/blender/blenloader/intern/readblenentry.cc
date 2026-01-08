@@ -54,7 +54,7 @@ void BLO_datablock_info_linklist_free(LinkNode *datablock_infos)
   BLI_linklist_free(datablock_infos, [](void *link) {
     BLODataBlockInfo *datablock_info = static_cast<BLODataBlockInfo *>(link);
     BLO_datablock_info_free(datablock_info);
-    MEM_freeN(datablock_info);
+    MEM_delete(datablock_info);
   });
 }
 
@@ -174,7 +174,7 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
       }
 
       const char *name = idname + 2;
-      BLODataBlockInfo *info = MEM_mallocN<BLODataBlockInfo>(__func__);
+      BLODataBlockInfo *info = MEM_new_uninitialized<BLODataBlockInfo>(__func__);
 
       /* Lastly, read asset data from the following blocks. */
       if (asset_meta_data) {
@@ -271,10 +271,10 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
           break;
         }
 
-        PreviewImage *result = static_cast<PreviewImage *>(MEM_dupallocN(preview_from_file));
+        PreviewImage *result = MEM_dupalloc(preview_from_file);
         result->runtime = MEM_new<bke::PreviewImageRuntime>(__func__);
         bhead = blo_blendhandle_read_preview_rects(fd, bhead, result, preview_from_file);
-        MEM_freeN(preview_from_file);
+        MEM_delete(preview_from_file);
         return result;
       }
     }
@@ -437,7 +437,7 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
   }
 
   if (bfd->user) {
-    MEM_freeN(bfd->user);
+    MEM_delete(bfd->user);
   }
 
   MEM_delete(bfd);

@@ -301,7 +301,7 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
     return nullptr;
   }
 
-  nearest = MEM_malloc_arrayN<KDTreeNearest_3d>(n, __func__);
+  nearest = MEM_new_array_uninitialized<KDTreeNearest_3d>(n, __func__);
 
   found = kdtree_3d_find_nearest_n(self->obj, co, nearest, n);
 
@@ -311,7 +311,7 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
     PyList_SET_ITEM(py_list, i, kdtree_nearest_to_py(&nearest[i]));
   }
 
-  MEM_freeN(nearest);
+  MEM_delete(nearest);
 
   return py_list;
 }
@@ -369,7 +369,7 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
   }
 
   if (nearest) {
-    MEM_freeN(nearest);
+    MEM_delete(nearest);
   }
 
   return py_list;

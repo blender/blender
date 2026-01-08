@@ -1219,7 +1219,7 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
                                                 int indices_num)
 {
   if (indices_num <= 0) {
-    MEM_SAFE_FREE(hmd->indexar);
+    MEM_SAFE_DELETE(hmd->indexar);
     hmd->indexar_num = 0;
   }
   else {
@@ -1233,7 +1233,7 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
 
     /* Copy and sort the index array. */
     size_t size = sizeof(int) * indices_num;
-    int *buffer = MEM_malloc_arrayN<int>(size_t(indices_num), "hook indexar");
+    int *buffer = MEM_new_array_uninitialized<int>(size_t(indices_num), "hook indexar");
     memcpy(buffer, indices, size);
 
     qsort(buffer, indices_num, sizeof(int), BLI_sortutil_cmp_int);
@@ -1242,13 +1242,13 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
     for (int i = 1; i < indices_num; i++) {
       if (buffer[i] == buffer[i - 1]) {
         BKE_reportf(reports, RPT_ERROR, "Duplicate index %d in vertex_indices_set", buffer[i]);
-        MEM_freeN(buffer);
+        MEM_delete(buffer);
         return;
       }
     }
 
     /* Success - save the new array. */
-    MEM_SAFE_FREE(hmd->indexar);
+    MEM_SAFE_DELETE(hmd->indexar);
     hmd->indexar = buffer;
     hmd->indexar_num = indices_num;
   }
@@ -1810,7 +1810,7 @@ static void rna_CorrectiveSmoothModifier_update(Main *bmain, Scene *scene, Point
 {
   CorrectiveSmoothModifierData *csmd = static_cast<CorrectiveSmoothModifierData *>(ptr->data);
 
-  MEM_SAFE_FREE(csmd->delta_cache.deltas);
+  MEM_SAFE_DELETE(csmd->delta_cache.deltas);
 
   rna_Modifier_update(bmain, scene, ptr);
 }

@@ -33,7 +33,7 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool 
 
   if (report_str) {
     PyErr_SetString(exception, report_str);
-    MEM_freeN(report_str);
+    MEM_delete(report_str);
   }
 
   return (report_str == nullptr) ? 0 : -1;

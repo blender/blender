@@ -193,7 +193,7 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
 
   /* Duplicate material array. */
   grease_pencil_dst->material_array = static_cast<Material **>(
-      MEM_dupallocN(grease_pencil_src->material_array));
+      MEM_dupalloc(grease_pencil_src->material_array));
 
   BKE_grease_pencil_duplicate_drawing_array(grease_pencil_src, grease_pencil_dst);
 
@@ -231,7 +231,7 @@ static void grease_pencil_free_data(ID *id)
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(id);
   BKE_animdata_free(&grease_pencil->id, false);
 
-  MEM_SAFE_FREE(grease_pencil->material_array);
+  MEM_SAFE_DELETE(grease_pencil->material_array);
 
   grease_pencil->attribute_storage.wrap().~AttributeStorage();
 
@@ -1045,12 +1045,12 @@ TreeNode::TreeNode(const TreeNode &other) : TreeNode(GreasePencilLayerTreeNodeTy
 
 TreeNode::~TreeNode()
 {
-  MEM_SAFE_FREE(this->GreasePencilLayerTreeNode::name);
+  MEM_SAFE_DELETE(this->GreasePencilLayerTreeNode::name);
 }
 
 void TreeNode::set_name(const StringRef name)
 {
-  MEM_SAFE_FREE(this->GreasePencilLayerTreeNode::name);
+  MEM_SAFE_DELETE(this->GreasePencilLayerTreeNode::name);
   this->GreasePencilLayerTreeNode::name = BLI_strdupn(name.data(), name.size());
 }
 
@@ -1121,7 +1121,7 @@ LayerMask::LayerMask(const LayerMask &other) : LayerMask()
 LayerMask::~LayerMask()
 {
   if (this->layer_name) {
-    MEM_freeN(this->layer_name);
+    MEM_delete(this->layer_name);
   }
 }
 
@@ -1203,16 +1203,16 @@ Layer::~Layer()
 {
   this->base.wrap().~TreeNode();
 
-  MEM_SAFE_FREE(this->frames_storage.keys);
-  MEM_SAFE_FREE(this->frames_storage.values);
+  MEM_SAFE_DELETE(this->frames_storage.keys);
+  MEM_SAFE_DELETE(this->frames_storage.values);
 
   for (GreasePencilLayerMask &mask : this->masks.items_mutable()) {
     MEM_delete(reinterpret_cast<LayerMask *>(&mask));
   }
   BLI_listbase_clear(&this->masks);
 
-  MEM_SAFE_FREE(this->parsubstr);
-  MEM_SAFE_FREE(this->viewlayername);
+  MEM_SAFE_DELETE(this->parsubstr);
+  MEM_SAFE_DELETE(this->viewlayername);
 
   MEM_delete(this->runtime);
   this->runtime = nullptr;
@@ -1481,13 +1481,13 @@ void Layer::prepare_for_dna_write()
     return;
   }
 
-  MEM_SAFE_FREE(frames_storage.keys);
-  MEM_SAFE_FREE(frames_storage.values);
+  MEM_SAFE_DELETE(frames_storage.keys);
+  MEM_SAFE_DELETE(frames_storage.values);
 
   const size_t frames_num = size_t(frames().size());
   frames_storage.num = int(frames_num);
-  frames_storage.keys = MEM_new_array_for_free<int>(frames_num, __func__);
-  frames_storage.values = MEM_new_array_for_free<GreasePencilFrame>(frames_num, __func__);
+  frames_storage.keys = MEM_new_array<int>(frames_num, __func__);
+  frames_storage.values = MEM_new_array<GreasePencilFrame>(frames_num, __func__);
   const Span<int> sorted_keys_data = sorted_keys();
   for (const int64_t i : sorted_keys_data.index_range()) {
     frames_storage.keys[i] = sorted_keys_data[i];
@@ -1542,7 +1542,7 @@ StringRefNull Layer::parent_bone_name() const
 void Layer::set_parent_bone_name(const StringRef new_name)
 {
   if (this->parsubstr != nullptr) {
-    MEM_freeN(this->parsubstr);
+    MEM_delete(this->parsubstr);
     this->parsubstr = nullptr;
   }
   if (!new_name.is_empty()) {
@@ -1590,7 +1590,7 @@ StringRefNull Layer::view_layer_name() const
 void Layer::set_view_layer_name(const StringRef new_name)
 {
   if (this->viewlayername != nullptr) {
-    MEM_freeN(this->viewlayername);
+    MEM_delete(this->viewlayername);
     this->viewlayername = nullptr;
   }
   if (!new_name.is_empty()) {
@@ -2036,7 +2036,7 @@ GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_
 void BKE_grease_pencil_copy_parameters(const GreasePencil &src, GreasePencil &dst)
 {
   dst.material_array_num = src.material_array_num;
-  dst.material_array = static_cast<Material **>(MEM_dupallocN(src.material_array));
+  dst.material_array = MEM_dupalloc(src.material_array);
   dst.attributes_active_index = src.attributes_active_index;
   dst.flag = src.flag;
   BLI_duplicatelist(&dst.vertex_group_names, &src.vertex_group_names);
@@ -2358,7 +2358,7 @@ void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil
 {
   grease_pencil_dst->drawing_array_num = grease_pencil_src->drawing_array_num;
   if (grease_pencil_dst->drawing_array_num > 0) {
-    grease_pencil_dst->drawing_array = MEM_new_array_for_free<GreasePencilDrawingBase *>(
+    grease_pencil_dst->drawing_array = MEM_new_array<GreasePencilDrawingBase *>(
         grease_pencil_src->drawing_array_num, __func__);
     bke::greasepencil::copy_drawing_array(grease_pencil_src->drawings(),
                                           grease_pencil_dst->drawings());
@@ -2822,11 +2822,11 @@ template<typename T> static void grow_array(T **array, int *num, const int add_n
 {
   BLI_assert(add_num > 0);
   const int new_array_num = *num + add_num;
-  T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
+  T *new_array = MEM_new_array_zeroed<T>(new_array_num, __func__);
 
   uninitialized_relocate_n(*array, *num, new_array);
   if (*array != nullptr) {
-    MEM_freeN(*array);
+    MEM_delete(*array);
   }
 
   *array = new_array;
@@ -2837,16 +2837,16 @@ template<typename T> static void shrink_array(T **array, int *num, const int shr
   BLI_assert(shrink_num > 0);
   const int new_array_num = *num - shrink_num;
   if (new_array_num == 0) {
-    MEM_freeN(*array);
+    MEM_delete(*array);
     *array = nullptr;
     *num = 0;
     return;
   }
 
-  T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
+  T *new_array = MEM_new_array_zeroed<T>(new_array_num, __func__);
 
   uninitialized_move_n(*array, new_array_num, new_array);
-  MEM_freeN(*array);
+  MEM_delete(*array);
 
   *array = new_array;
   *num = new_array_num;

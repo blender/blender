@@ -179,7 +179,7 @@ EQCurveMappingData *sound_equalizer_add(SoundEqualizerModifierData *semd, float 
     minX = 0.0;
   }
   /* It's the same as #BKE_curvemapping_add, but changing the name. */
-  eqcmd = MEM_new_for_free<EQCurveMappingData>("Equalizer");
+  eqcmd = MEM_new<EQCurveMappingData>("Equalizer");
   BKE_curvemapping_set_defaults(&eqcmd->curve_mapping,
                                 1, /* Total. */
                                 minX,
@@ -243,7 +243,7 @@ void sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
                                           EQCurveMappingData *eqcmd)
 {
   BLI_remlink_safe(&semd->graphics, eqcmd);
-  MEM_freeN(eqcmd);
+  MEM_delete(eqcmd);
 }
 
 void sound_equalizermodifier_init_data(StripModifierData *smd)
@@ -258,7 +258,7 @@ void sound_equalizermodifier_free(StripModifierData *smd)
   SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
   for (EQCurveMappingData &eqcmd : semd->graphics.items_mutable()) {
     BKE_curvemapping_free_data(&eqcmd.curve_mapping);
-    MEM_freeN(&eqcmd);
+    MEM_delete(&eqcmd);
   }
   BLI_listbase_clear(&semd->graphics);
 }
@@ -272,7 +272,7 @@ void sound_equalizermodifier_copy_data(StripModifierData *target, StripModifierD
   BLI_listbase_clear(&semd_target->graphics);
 
   for (EQCurveMappingData &eqcmd : semd->graphics) {
-    eqcmd_n = static_cast<EQCurveMappingData *>(MEM_dupallocN(&eqcmd));
+    eqcmd_n = MEM_dupalloc(&eqcmd);
     BKE_curvemapping_copy_data(&eqcmd_n->curve_mapping, &eqcmd.curve_mapping);
 
     eqcmd_n->next = eqcmd_n->prev = nullptr;
@@ -302,7 +302,7 @@ AUD_Sound sound_equalizermodifier_recreator(Strip *strip,
     return sound_in;
   }
 
-  float *buf = MEM_calloc_arrayN<float>(SOUND_EQUALIZER_SIZE_DEFINITION, "eqrecreator");
+  float *buf = MEM_new_array_zeroed<float>(SOUND_EQUALIZER_SIZE_DEFINITION, "eqrecreator");
 
   CurveMapping *eq_mapping;
   CurveMap *cm;
@@ -342,7 +342,7 @@ AUD_Sound sound_equalizermodifier_recreator(Strip *strip,
   if (!needs_update && smd->runtime->last_sound_in == sound_in &&
       curr_params_hash == smd->runtime->params_hash)
   {
-    MEM_freeN(buf);
+    MEM_delete(buf);
     return smd->runtime->last_sound_out;
   }
 
@@ -359,7 +359,7 @@ AUD_Sound sound_equalizermodifier_recreator(Strip *strip,
   smd->runtime->last_sound_in = sound_in;
   smd->runtime->last_sound_out = sound_out;
   smd->runtime->params_hash = curr_params_hash;
-  MEM_freeN(buf);
+  MEM_delete(buf);
 
   return sound_out;
 #else

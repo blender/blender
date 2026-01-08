@@ -62,7 +62,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeCombSepColor *data = MEM_new_for_free<NodeCombSepColor>(__func__);
+  NodeCombSepColor *data = MEM_new<NodeCombSepColor>(__func__);
   data->mode = NODE_COMBSEP_COLOR_RGB;
   node->storage = data;
 }

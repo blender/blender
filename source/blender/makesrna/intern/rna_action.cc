@@ -680,7 +680,7 @@ static FCurve *rna_Channelbag_fcurve_new_from_fcurve(ID *dna_action_id,
     return nullptr;
   }
   FCurve *copy = BKE_fcurve_copy(source);
-  MEM_SAFE_FREE(copy->rna_path);
+  MEM_SAFE_DELETE(copy->rna_path);
   copy->rna_path = BLI_strdupn(data_path, strlen(data_path));
   self.fcurve_append(*copy);
 
@@ -841,7 +841,7 @@ static void rna_ActionGroup_channels_begin(CollectionPropertyIterator *iter, Poi
 {
   bActionGroup *group = static_cast<bActionGroup *>(ptr->data);
 
-  ActionGroupChannelsIterator *custom_iter = MEM_callocN<ActionGroupChannelsIterator>(__func__);
+  ActionGroupChannelsIterator *custom_iter = MEM_new_zeroed<ActionGroupChannelsIterator>(__func__);
 
   iter->internal.custom = custom_iter;
 
@@ -860,7 +860,7 @@ static void rna_ActionGroup_channels_begin(CollectionPropertyIterator *iter, Poi
 
 static void rna_ActionGroup_channels_end(CollectionPropertyIterator *iter)
 {
-  MEM_freeN(iter->internal.custom);
+  MEM_delete_void(iter->internal.custom);
 }
 
 static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
@@ -920,7 +920,7 @@ static PointerRNA rna_ActionGroup_channels_get(CollectionPropertyIterator *iter)
 
 static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 {
-  TimeMarker *marker = MEM_new_for_free<TimeMarker>("TimeMarker");
+  TimeMarker *marker = MEM_new<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
   marker->frame = 1;
   STRNCPY_UTF8(marker->name, name);
@@ -942,7 +942,7 @@ static void rna_Action_pose_markers_remove(bAction *act,
     return;
   }
 
-  MEM_freeN(marker);
+  MEM_delete(marker);
   marker_ptr->invalidate();
 }
 
@@ -1253,7 +1253,7 @@ static const EnumPropertyItem *rna_ActionSlot_target_id_type_itemf(bContext * /*
   *r_free = false;
   _rna_ActionSlot_target_id_type_items = items;
 
-  BKE_blender_atexit_register(MEM_freeN, items);
+  BKE_blender_atexit_register(MEM_delete_void, items);
 
   return items;
 }

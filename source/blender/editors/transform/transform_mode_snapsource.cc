@@ -66,7 +66,7 @@ static void snapsource_end(TransInfo *t)
   t->mouse.post = customdata->mouse_prev.post;
   t->mouse.use_virtual_mval = customdata->mouse_prev.use_virtual_mval;
 
-  MEM_freeN(customdata);
+  MEM_delete(customdata);
 
   transform_gizmo_3d_model_from_constraint_and_mode_set(t);
   tranform_snap_source_restore_context(t);
@@ -183,7 +183,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
     transform_mode_init(t, nullptr, TFM_TRANSLATION);
   }
 
-  SnapSouceCustomData *customdata = MEM_callocN<SnapSouceCustomData>(__func__);
+  SnapSouceCustomData *customdata = MEM_new_zeroed<SnapSouceCustomData>(__func__);
   customdata->mode_info_prev = t->mode_info;
 
   customdata->target_operation_prev = t->tsnap.target_operation;

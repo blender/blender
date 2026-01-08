@@ -193,7 +193,7 @@ static void paint_curve_copy_data(Main * /*bmain*/,
 
   if (paint_curve_src->tot_points != 0) {
     paint_curve_dst->points = static_cast<PaintCurvePoint *>(
-        MEM_dupallocN(paint_curve_src->points));
+        MEM_dupalloc(paint_curve_src->points));
   }
 }
 
@@ -201,7 +201,7 @@ static void paint_curve_free_data(ID *id)
 {
   PaintCurve *paint_curve = id_cast<PaintCurve *>(id);
 
-  MEM_SAFE_FREE(paint_curve->points);
+  MEM_SAFE_DELETE(paint_curve->points);
   paint_curve->tot_points = 0;
 }
 
@@ -1399,7 +1399,7 @@ void BKE_palette_color_remove(Palette *palette, PaletteColor *color)
     palette->active_color = 0;
   }
 
-  MEM_freeN(color);
+  MEM_delete(color);
 }
 
 void BKE_palette_clear(Palette *palette)
@@ -1427,7 +1427,7 @@ Palette *BKE_palette_add(Main *bmain, const char *name)
 
 PaletteColor *BKE_palette_color_add(Palette *palette)
 {
-  PaletteColor *color = MEM_new_for_free<PaletteColor>(__func__);
+  PaletteColor *color = MEM_new<PaletteColor>(__func__);
   BLI_addtail(&palette->colors, color);
   return color;
 }
@@ -1581,7 +1581,7 @@ bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name)
   const int totpal = BLI_ghash_len(color_table);
 
   if (totpal > 0) {
-    color_array = MEM_new_array_for_free<tPaletteColorHSV>(totpal, __func__);
+    color_array = MEM_new_array<tPaletteColorHSV>(totpal, __func__);
     /* Put all colors in an array. */
     GHashIterator gh_iter;
     int t = 0;
@@ -1626,7 +1626,7 @@ bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name)
   }
 
   if (totpal > 0) {
-    MEM_SAFE_FREE(color_array);
+    MEM_SAFE_DELETE(color_array);
   }
 
   return done;
@@ -1767,38 +1767,38 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
   if ((reinterpret_cast<VPaint **>(r_paint) == &ts->vpaint) ||
       (reinterpret_cast<VPaint **>(r_paint) == &ts->wpaint))
   {
-    VPaint *data = MEM_new_for_free<VPaint>(__func__);
+    VPaint *data = MEM_new<VPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
   else if (reinterpret_cast<Sculpt **>(r_paint) == &ts->sculpt) {
-    Sculpt *data = MEM_new_for_free<Sculpt>(__func__);
+    Sculpt *data = MEM_new<Sculpt>(__func__);
 
     paint = &data->paint;
     paint_init_data(*paint);
   }
   else if (reinterpret_cast<GpPaint **>(r_paint) == &ts->gp_paint) {
-    GpPaint *data = MEM_new_for_free<GpPaint>(__func__);
+    GpPaint *data = MEM_new<GpPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
   else if (reinterpret_cast<GpVertexPaint **>(r_paint) == &ts->gp_vertexpaint) {
-    GpVertexPaint *data = MEM_new_for_free<GpVertexPaint>(__func__);
+    GpVertexPaint *data = MEM_new<GpVertexPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
   else if (reinterpret_cast<GpSculptPaint **>(r_paint) == &ts->gp_sculptpaint) {
-    GpSculptPaint *data = MEM_new_for_free<GpSculptPaint>(__func__);
+    GpSculptPaint *data = MEM_new<GpSculptPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
   else if (reinterpret_cast<GpWeightPaint **>(r_paint) == &ts->gp_weightpaint) {
-    GpWeightPaint *data = MEM_new_for_free<GpWeightPaint>(__func__);
+    GpWeightPaint *data = MEM_new<GpWeightPaint>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
   else if (reinterpret_cast<CurvesSculpt **>(r_paint) == &ts->curves_sculpt) {
-    CurvesSculpt *data = MEM_new_for_free<CurvesSculpt>(__func__);
+    CurvesSculpt *data = MEM_new<CurvesSculpt>(__func__);
     paint = &data->paint;
     paint_init_data(*paint);
   }
@@ -2777,7 +2777,7 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
       GridPaintMask *gpm = &gmask[i];
 
       gpm->level = level;
-      gpm->data = MEM_calloc_arrayN<float>(gridarea, "GridPaintMask.data");
+      gpm->data = MEM_new_array_zeroed<float>(gridarea, "GridPaintMask.data");
     }
 
     /* If vertices already have mask, copy into multires data. */

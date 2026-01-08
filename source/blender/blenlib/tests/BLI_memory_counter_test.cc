@@ -22,8 +22,8 @@ TEST(memory_counter, Simple)
   EXPECT_EQ(memory_count.total_bytes, 20);
 
   const int alloc_size = 100;
-  void *data1 = MEM_mallocN(alloc_size, __func__);
-  void *data2 = MEM_mallocN(alloc_size, __func__);
+  void *data1 = MEM_new_uninitialized(alloc_size, __func__);
+  void *data2 = MEM_new_uninitialized(alloc_size, __func__);
   const ImplicitSharingPtr sharing_info1{implicit_sharing::info_for_mem_free(data1)};
   const ImplicitSharingPtr sharing_info2{implicit_sharing::info_for_mem_free(data2)};
 

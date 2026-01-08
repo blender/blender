@@ -118,13 +118,13 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
     }
 
     /* create a target */
-    target = MEM_callocN<PoseTarget>("posetarget");
+    target = MEM_new_zeroed<PoseTarget>("posetarget");
     target->con = constraint;
     pchan_tip->flag &= ~POSE_CHAIN;
 
     if (tree == nullptr) {
       /* make new tree */
-      tree = MEM_callocN<PoseTree>("posetree");
+      tree = MEM_new_zeroed<PoseTree>("posetree");
 
       tree->type = CONSTRAINT_TYPE_KINEMATIC;
 
@@ -132,8 +132,8 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
       tree->totchannel = segcount;
       tree->stretch = (data->flag & CONSTRAINT_IK_STRETCH);
 
-      tree->pchan = MEM_calloc_arrayN<bPoseChannel *>(segcount, "ik tree pchan");
-      tree->parent = MEM_calloc_arrayN<int>(segcount, "ik tree parent");
+      tree->pchan = MEM_new_array_zeroed<bPoseChannel *>(segcount, "ik tree pchan");
+      tree->parent = MEM_new_array_zeroed<int>(segcount, "ik tree parent");
       for (int a = 0; a < segcount; a++) {
         tree->pchan[a] = chanlist[segcount - a - 1];
         tree->parent[a] = a - 1;
@@ -187,12 +187,12 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
         oldchan = tree->pchan;
         int *oldparent = tree->parent;
 
-        tree->pchan = MEM_calloc_arrayN<bPoseChannel *>(newsize, "ik tree pchan");
-        tree->parent = MEM_calloc_arrayN<int>(newsize, "ik tree parent");
+        tree->pchan = MEM_new_array_zeroed<bPoseChannel *>(newsize, "ik tree pchan");
+        tree->parent = MEM_new_array_zeroed<int>(newsize, "ik tree parent");
         memcpy(tree->pchan, oldchan, sizeof(void *) * tree->totchannel);
         memcpy(tree->parent, oldparent, sizeof(int) * tree->totchannel);
-        MEM_freeN(oldchan);
-        MEM_freeN(oldparent);
+        MEM_delete(oldchan);
+        MEM_delete(oldparent);
 
         /* add new pose channels at the end, in reverse order */
         for (a = 0; a < segcount; a++) {
@@ -307,7 +307,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
     return;
   }
 
-  iktree = MEM_malloc_arrayN<IK_Segment *>(size_t(tree->totchannel), "ik tree");
+  iktree = MEM_new_array_uninitialized<IK_Segment *>(size_t(tree->totchannel), "ik tree");
 
   for (a = 0; a < tree->totchannel; a++) {
     float length;
@@ -526,9 +526,10 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
   IK_FreeSolver(solver);
 
   /* gather basis changes */
-  tree->basis_change = MEM_malloc_arrayN<float[3][3]>(size_t(tree->totchannel), "ik basis change");
+  tree->basis_change = MEM_new_array_uninitialized<float[3][3]>(size_t(tree->totchannel),
+                                                                "ik basis change");
   if (hasstretch) {
-    ikstretch = MEM_malloc_arrayN<float>(size_t(tree->totchannel), "ik stretch");
+    ikstretch = MEM_new_array_uninitialized<float>(size_t(tree->totchannel), "ik stretch");
   }
 
   for (a = 0; a < tree->totchannel; a++) {
@@ -568,9 +569,9 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
     IK_FreeSegment(iktree[a]);
   }
 
-  MEM_freeN(iktree);
+  MEM_delete(iktree);
   if (ikstretch) {
-    MEM_freeN(ikstretch);
+    MEM_delete(ikstretch);
   }
 }
 
@@ -578,15 +579,15 @@ static void free_posetree(PoseTree *tree)
 {
   BLI_freelistN(&tree->targets);
   if (tree->pchan) {
-    MEM_freeN(tree->pchan);
+    MEM_delete(tree->pchan);
   }
   if (tree->parent) {
-    MEM_freeN(tree->parent);
+    MEM_delete(tree->parent);
   }
   if (tree->basis_change) {
-    MEM_freeN(tree->basis_change);
+    MEM_delete(tree->basis_change);
   }
-  MEM_freeN(tree);
+  MEM_delete(tree);
 }
 
 /* ------------------------------

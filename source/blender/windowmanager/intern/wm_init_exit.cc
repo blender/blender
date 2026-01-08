@@ -418,7 +418,7 @@ static void wm_init_scripts_extensions_once(bContext *C)
 static void free_openrecent()
 {
   for (RecentFile &recent : G.recent_files) {
-    MEM_freeN(recent.filepath);
+    MEM_delete(recent.filepath);
   }
 
   BLI_freelistN(&(G.recent_files));

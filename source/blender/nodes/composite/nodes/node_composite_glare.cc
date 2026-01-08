@@ -245,7 +245,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but kept for forward compatibility. */
-  NodeGlare *ndg = MEM_new_for_free<NodeGlare>(__func__);
+  NodeGlare *ndg = MEM_new<NodeGlare>(__func__);
   node->storage = ndg;
 }
 
@@ -2218,7 +2218,7 @@ class GlareOperation : public NodeOperation {
     if (this->context().use_gpu()) {
       GPU_texture_update(fog_glow_result, GPU_DATA_FLOAT, output);
       /* CPU writes to the output directly, so no need to free it. */
-      MEM_freeN(output);
+      MEM_delete(output);
     }
 
     fftwf_destroy_plan(forward_plan);

@@ -171,7 +171,7 @@ static void attribute_legacy_convert_customdata_to_storage(
 
   for (const auto &[domain, custom_data] : domains.items()) {
     Vector layers_vector = layers_to_keep.pop_default(domain, {});
-    MEM_SAFE_FREE(custom_data.data.layers);
+    MEM_SAFE_DELETE(custom_data.data.layers);
     custom_data.data.totlayer = 0;
     custom_data.data.maxlayer = 0;
     if (layers_vector.is_empty()) {

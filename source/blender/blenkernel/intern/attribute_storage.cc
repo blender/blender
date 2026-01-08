@@ -49,7 +49,7 @@ class ArrayDataImplicitSharing : public ImplicitSharingInfo {
   {
     if (data_ != nullptr) {
       type_.destruct_n(data_, size_);
-      MEM_freeN(data_);
+      MEM_delete_void(data_);
     }
     MEM_delete(this);
   }
@@ -57,7 +57,7 @@ class ArrayDataImplicitSharing : public ImplicitSharingInfo {
   void delete_data_only() override
   {
     type_.destruct_n(data_, size_);
-    MEM_freeN(data_);
+    MEM_delete_void(data_);
     data_ = nullptr;
     size_ = 0;
   }
@@ -72,10 +72,11 @@ Attribute::ArrayData Attribute::ArrayData::from_value(const GPointer &value,
 
   /* Prefer `calloc` to zeroing after allocation since it is faster. */
   if (BLI_memory_is_zero(value_ptr, type.size)) {
-    data.data = MEM_calloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
+    data.data = MEM_new_array_zeroed_aligned(domain_size, type.size, type.alignment, __func__);
   }
   else {
-    data.data = MEM_malloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
+    data.data = MEM_new_array_uninitialized_aligned(
+        domain_size, type.size, type.alignment, __func__);
     type.fill_construct_n(value_ptr, data.data, domain_size);
   }
 
@@ -108,7 +109,8 @@ Attribute::ArrayData Attribute::ArrayData::from_uninitialized(const CPPType &typ
                                                               const int64_t domain_size)
 {
   Attribute::ArrayData data{};
-  data.data = MEM_malloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
+  data.data = MEM_new_array_uninitialized_aligned(
+      domain_size, type.size, type.alignment, __func__);
   data.size = domain_size;
   BLI_assert(type.is_trivially_destructible);
   data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.data));
@@ -127,7 +129,7 @@ Attribute::SingleData Attribute::SingleData::from_value(const GPointer &value)
 {
   Attribute::SingleData data{};
   const CPPType &type = *value.type();
-  data.value = MEM_mallocN_aligned(type.size, type.alignment, __func__);
+  data.value = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
   type.copy_construct(value.get(), data.value);
   BLI_assert(type.is_trivially_destructible);
   data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.value));
@@ -479,7 +481,7 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
   for (const int i : IndexRange(this->dna_attributes_num)) {
     blender::Attribute &dna_attr = this->dna_attributes[i];
     BLO_read_string(&reader, &dna_attr.name);
-    BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(dna_attr.name); });
+    BLI_SCOPED_DEFER([&]() { MEM_SAFE_DELETE(dna_attr.name); });
 
     const std::optional<AttrDomain> domain = read_attr_domain(dna_attr.domain);
     if (!domain) {
@@ -488,7 +490,7 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
 
     std::optional<Attribute::DataVariant> data = read_attr_data(
         reader, dna_attr.storage_type, dna_attr.data_type, dna_attr);
-    BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(dna_attr.data); });
+    BLI_SCOPED_DEFER([&]() { MEM_SAFE_DELETE_VOID(dna_attr.data); });
     if (!data) {
       continue;
     }
@@ -505,7 +507,7 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
   }
 
   /* These fields are not used at runtime. */
-  MEM_SAFE_FREE(this->dna_attributes);
+  MEM_SAFE_DELETE(this->dna_attributes);
   this->dna_attributes_num = 0;
 }
 

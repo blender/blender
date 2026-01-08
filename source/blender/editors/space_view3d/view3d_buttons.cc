@@ -1842,7 +1842,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
         }
       }
     }
-    MEM_freeN(vgroup_validmap);
+    MEM_delete(vgroup_validmap);
 
     yco -= 2;
 
@@ -2527,7 +2527,7 @@ void view3d_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = MEM_callocN<PanelType>("spacetype view3d panel object");
+  pt = MEM_new_zeroed<PanelType>("spacetype view3d panel object");
   STRNCPY_UTF8(pt->idname, "VIEW3D_PT_transform");
   STRNCPY_UTF8(pt->label, N_("Transform")); /* XXX C panels unavailable through RNA bpy.types! */
   STRNCPY_UTF8(pt->category, "Item");
@@ -2536,7 +2536,7 @@ void view3d_buttons_register(ARegionType *art)
   pt->poll = view3d_panel_transform_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN<PanelType>("spacetype view3d panel vgroup");
+  pt = MEM_new_zeroed<PanelType>("spacetype view3d panel vgroup");
   STRNCPY_UTF8(pt->idname, "VIEW3D_PT_vgroup");
   STRNCPY_UTF8(pt->label,
                N_("Vertex Weights")); /* XXX C panels unavailable through RNA bpy.types! */
@@ -2546,7 +2546,7 @@ void view3d_buttons_register(ARegionType *art)
   pt->poll = view3d_panel_vgroup_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN<PanelType>("spacetype view3d panel curves");
+  pt = MEM_new_zeroed<PanelType>("spacetype view3d panel curves");
   STRNCPY_UTF8(pt->idname, "VIEW3D_PT_curves");
   STRNCPY_UTF8(pt->label, N_("Curve Data")); /* XXX C panels unavailable through RNA bpy.types! */
   STRNCPY_UTF8(pt->category, "Item");

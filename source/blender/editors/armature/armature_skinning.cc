@@ -334,24 +334,24 @@ static void add_verts_to_dgroups(ReportList *reports,
 
   /* create an array of pointer to bones that are skinnable
    * and fill it with all of the skinnable bones */
-  bonelist = MEM_calloc_arrayN<Bone *>(numbones, "bonelist");
+  bonelist = MEM_new_array_zeroed<Bone *>(numbones, "bonelist");
   looper_data.list = bonelist;
   bone_looper(ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, bone_skinnable_cb);
 
   /* create an array of pointers to the deform groups that
    * correspond to the skinnable bones (creating them
    * as necessary. */
-  dgrouplist = MEM_calloc_arrayN<bDeformGroup *>(numbones, "dgrouplist");
-  dgroupflip = MEM_calloc_arrayN<bDeformGroup *>(numbones, "dgroupflip");
+  dgrouplist = MEM_new_array_zeroed<bDeformGroup *>(numbones, "dgrouplist");
+  dgroupflip = MEM_new_array_zeroed<bDeformGroup *>(numbones, "dgroupflip");
 
   looper_data.list = dgrouplist;
   bone_looper(ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, dgroup_skinnable_cb);
 
   /* create an array of root and tip positions transformed into
    * global coords */
-  root = MEM_calloc_arrayN<float[3]>(numbones, "root");
-  tip = MEM_calloc_arrayN<float[3]>(numbones, "tip");
-  selected = MEM_calloc_arrayN<bool>(numbones, "selected");
+  root = MEM_new_array_zeroed<float[3]>(numbones, "root");
+  tip = MEM_new_array_zeroed<float[3]>(numbones, "tip");
+  selected = MEM_new_array_zeroed<bool>(numbones, "selected");
 
   for (int j = 0; j < numbones; j++) {
     bone = bonelist[j];
@@ -481,12 +481,12 @@ static void add_verts_to_dgroups(ReportList *reports,
   ED_mesh_mirror_spatial_table_end(ob);
 
   /* free the memory allocated */
-  MEM_freeN(bonelist);
-  MEM_freeN(dgrouplist);
-  MEM_freeN(dgroupflip);
-  MEM_freeN(root);
-  MEM_freeN(tip);
-  MEM_freeN(selected);
+  MEM_delete(bonelist);
+  MEM_delete(dgrouplist);
+  MEM_delete(dgroupflip);
+  MEM_delete(root);
+  MEM_delete(tip);
+  MEM_delete(selected);
 }
 
 void ED_object_vgroup_calc_from_armature(ReportList *reports,

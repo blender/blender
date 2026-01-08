@@ -778,7 +778,7 @@ static GeometrySet generate_interpolated_curves(
                           all_neighbor_weights);
 
   if (guide_curves_id.mat != nullptr) {
-    child_curves_id->mat = static_cast<Material **>(MEM_dupallocN(guide_curves_id.mat));
+    child_curves_id->mat = MEM_dupalloc(guide_curves_id.mat);
     child_curves_id->totcol = guide_curves_id.totcol;
   }
 

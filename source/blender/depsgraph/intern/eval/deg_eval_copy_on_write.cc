@@ -418,7 +418,7 @@ void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
       if (&base == view_layer->basact) {
         view_layer->basact = nullptr;
       }
-      MEM_freeN(&base);
+      MEM_delete(&base);
     }
   }
   view_layer->object_bases = enabled_bases;

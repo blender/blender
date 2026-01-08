@@ -128,7 +128,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", seq::channel_is_muted(channel) ? "Unmute" : "Mute", channel_index);
-  button_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_freeN);
+  button_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_delete_void);
 
   return width;
 }
@@ -167,7 +167,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", seq::channel_is_locked(channel) ? "Unlock" : "Lock", channel_index);
-  button_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_freeN);
+  button_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_delete_void);
 
   return width;
 }

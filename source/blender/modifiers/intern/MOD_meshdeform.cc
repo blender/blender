@@ -59,10 +59,10 @@ static void free_data(ModifierData *md)
   implicit_sharing::free_shared_data(&mmd->dyninfluences, &mmd->dyninfluences_sharing_info);
   implicit_sharing::free_shared_data(&mmd->dynverts, &mmd->dynverts_sharing_info);
   if (mmd->bindweights) {
-    MEM_freeN(mmd->bindweights); /* deprecated */
+    MEM_delete(mmd->bindweights); /* deprecated */
   }
   if (mmd->bindcos) {
-    MEM_freeN(mmd->bindcos); /* deprecated */
+    MEM_delete(mmd->bindcos); /* deprecated */
   }
 }
 
@@ -94,10 +94,10 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   implicit_sharing::copy_shared_pointer(
       mmd->dynverts, mmd->dynverts_sharing_info, &tmmd->dynverts, &tmmd->dynverts_sharing_info);
   if (mmd->bindweights) {
-    tmmd->bindweights = static_cast<float *>(MEM_dupallocN(mmd->bindweights)); /* deprecated */
+    tmmd->bindweights = MEM_dupalloc(mmd->bindweights); /* deprecated */
   }
   if (mmd->bindcos) {
-    tmmd->bindcos = static_cast<float *>(MEM_dupallocN(mmd->bindcos)); /* deprecated */
+    tmmd->bindcos = MEM_dupalloc(mmd->bindcos); /* deprecated */
   }
 }
 
@@ -441,7 +441,7 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
   cage_verts_num = mmd->cage_verts_num;
 
   if (verts_num == 0) {
-    MEM_freeN(mmd->bindweights);
+    MEM_delete(mmd->bindweights);
     mmd->bindweights = nullptr;
     return;
   }
@@ -458,9 +458,9 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
   }
 
   /* allocate bind influences */
-  mmd->bindinfluences = MEM_new_array_for_free<MDefInfluence>(mmd->influences_num, __func__);
+  mmd->bindinfluences = MEM_new_array<MDefInfluence>(mmd->influences_num, __func__);
   mmd->bindinfluences_sharing_info = implicit_sharing::info_for_mem_free(mmd->bindinfluences);
-  mmd->bindoffsets = MEM_calloc_arrayN<int>(size_t(verts_num) + 1, __func__);
+  mmd->bindoffsets = MEM_new_array_zeroed<int>(size_t(verts_num) + 1, __func__);
   mmd->bindoffsets_sharing_info = implicit_sharing::info_for_mem_free(mmd->bindoffsets);
 
   /* write influences */
@@ -494,7 +494,7 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
   mmd->bindoffsets[b] = influences_num;
 
   /* free */
-  MEM_freeN(mmd->bindweights);
+  MEM_delete(mmd->bindweights);
   mmd->bindweights = nullptr;
 }
 

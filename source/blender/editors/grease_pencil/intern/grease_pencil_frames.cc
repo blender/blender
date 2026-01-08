@@ -323,7 +323,7 @@ static void append_frame_to_key_edit_data(KeyframeEditData *ked,
                                           const int frame_number,
                                           const GreasePencilFrame &frame)
 {
-  CfraElem *ce = MEM_callocN<CfraElem>(__func__);
+  CfraElem *ce = MEM_new_zeroed<CfraElem>(__func__);
   ce->cfra = float(frame_number);
   ce->sel = frame.is_selected();
   BLI_addtail(&ked->cfra_elem_list, ce);

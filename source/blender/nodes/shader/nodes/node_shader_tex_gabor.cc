@@ -69,7 +69,7 @@ static void node_shader_buts_tex_gabor(ui::Layout &layout, bContext * /*C*/, Poi
 
 static void node_shader_init_tex_gabor(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexGabor *storage = MEM_new_for_free<NodeTexGabor>(__func__);
+  NodeTexGabor *storage = MEM_new<NodeTexGabor>(__func__);
   BKE_texture_mapping_default(&storage->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&storage->base.color_mapping);
 

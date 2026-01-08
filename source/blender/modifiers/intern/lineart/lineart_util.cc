@@ -100,7 +100,7 @@ LineartStaticMemPoolNode *lineart_mem_new_static_pool(LineartStaticMemPool *smp,
   }
   size_t total_size = set_size + sizeof(LineartStaticMemPoolNode);
   LineartStaticMemPoolNode *smpn = static_cast<LineartStaticMemPoolNode *>(
-      MEM_callocN(total_size, "mempool"));
+      MEM_new_zeroed(total_size, "mempool"));
   smpn->size = total_size;
   smpn->used_byte = sizeof(LineartStaticMemPoolNode);
   BLI_addhead(&smp->pools, smpn);
@@ -146,7 +146,7 @@ void lineart_mem_destroy(LineartStaticMemPool *smp)
   while (LineartStaticMemPoolNode *smpn = static_cast<LineartStaticMemPoolNode *>(
              BLI_pophead(&smp->pools)))
   {
-    MEM_freeN(smpn);
+    MEM_delete(smpn);
   }
 }
 

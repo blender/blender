@@ -101,7 +101,7 @@ void template_preview(Layout *layout,
       BLI_findstring(&region->ui_previews, preview_id, offsetof(uiPreview, preview_id)));
 
   if (!ui_preview) {
-    ui_preview = MEM_new_for_free<uiPreview>(__func__);
+    ui_preview = MEM_new<uiPreview>(__func__);
     STRNCPY_UTF8(ui_preview->preview_id, preview_id);
     ui_preview->height = short(UI_UNIT_Y * 7.6f);
     ui_preview->id_session_uid = pid->session_uid;

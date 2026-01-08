@@ -232,7 +232,7 @@ static wmOperatorStatus new_particle_target_exec(bContext *C, wmOperator * /*op*
     pt->flag &= ~PTARGET_CURRENT;
   }
 
-  pt = MEM_new_for_free<ParticleTarget>("keyed particle target");
+  pt = MEM_new<ParticleTarget>("keyed particle target");
 
   pt->flag |= PTARGET_CURRENT;
   pt->psys = 1;
@@ -278,7 +278,7 @@ static wmOperatorStatus remove_particle_target_exec(bContext *C, wmOperator * /*
   for (; pt; pt = pt->next) {
     if (pt->flag & PTARGET_CURRENT) {
       BLI_remlink(&psys->targets, pt);
-      MEM_freeN(pt);
+      MEM_delete(pt);
       break;
     }
   }
@@ -474,7 +474,7 @@ static wmOperatorStatus copy_particle_dupliob_exec(bContext *C, wmOperator * /*o
     if (dw.flag & PART_DUPLIW_CURRENT) {
       dw.flag &= ~PART_DUPLIW_CURRENT;
 
-      ParticleDupliWeight *new_dw = static_cast<ParticleDupliWeight *>(MEM_dupallocN(&dw));
+      ParticleDupliWeight *new_dw = MEM_dupalloc(&dw);
       new_dw->flag |= PART_DUPLIW_CURRENT;
       BLI_addhead(&part->instance_weights, new_dw);
 
@@ -515,7 +515,7 @@ static wmOperatorStatus remove_particle_dupliob_exec(bContext *C, wmOperator * /
   for (ParticleDupliWeight &dw : part->instance_weights) {
     if (dw.flag & PART_DUPLIW_CURRENT) {
       BLI_remlink(&part->instance_weights, &dw);
-      MEM_freeN(&dw);
+      MEM_delete(&dw);
       break;
     }
   }
@@ -1009,7 +1009,7 @@ static void copy_particle_edit(Depsgraph *depsgraph,
     return;
   }
 
-  edit = static_cast<PTCacheEdit *>(MEM_dupallocN(edit_from));
+  edit = MEM_dupalloc(edit_from);
   edit->psys = psys;
   psys->edit = edit;
 
@@ -1020,12 +1020,12 @@ static void copy_particle_edit(Depsgraph *depsgraph,
   edit->emitter_field = nullptr;
   edit->emitter_cosnos = nullptr;
 
-  edit->points = static_cast<PTCacheEditPoint *>(MEM_dupallocN(edit_from->points));
+  edit->points = MEM_dupalloc(edit_from->points);
   pa = psys->particles;
   LOOP_POINTS {
     HairKey *hkey = pa->hair;
 
-    point->keys = static_cast<PTCacheEditKey *>(MEM_dupallocN(point->keys));
+    point->keys = MEM_dupalloc(point->keys);
     LOOP_KEYS {
       key->co = hkey->co;
       key->time = &hkey->time;
@@ -1117,7 +1117,8 @@ static bool copy_particle_systems_to_object(const bContext *C,
 #define PSYS_FROM_NEXT(cur) (single_psys_from ? nullptr : (cur)->next)
   totpsys = single_psys_from ? 1 : BLI_listbase_count(&ob_from->particlesystem);
 
-  tmp_psys = MEM_malloc_arrayN<ParticleSystem *>(totpsys, "temporary particle system array");
+  tmp_psys = MEM_new_array_uninitialized<ParticleSystem *>(totpsys,
+                                                           "temporary particle system array");
 
   for (psys_from = PSYS_FROM_FIRST, i = 0; psys_from; psys_from = PSYS_FROM_NEXT(psys_from), i++) {
     psys = BKE_object_copy_particlesystem(psys_from, 0);
@@ -1166,7 +1167,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
       psys->part = id_cast<ParticleSettings *>(BKE_id_copy(bmain, &psys->part->id));
     }
   }
-  MEM_freeN(tmp_psys);
+  MEM_delete(tmp_psys);
 
   /* NOTE: do this after creating DM copies for all the particle system modifiers,
    * the remapping otherwise makes final_dm invalid!

@@ -180,7 +180,7 @@ static void fcurves_to_pchan_links_get(ListBaseT<tPChanFCurveLink> &pfLinks,
     return;
   }
 
-  tPChanFCurveLink *pfl = MEM_callocN<tPChanFCurveLink>("tPChanFCurveLink");
+  tPChanFCurveLink *pfl = MEM_new_zeroed<tPChanFCurveLink>("tPChanFCurveLink");
 
   pfl->ob = &ob;
   pfl->fcurves = curves;
@@ -319,7 +319,7 @@ void poseAnim_mapping_free(ListBaseT<tPChanFCurveLink> *pfLinks)
     BLI_freelistN(&pfl->fcurves);
 
     /* free pchan RNA Path */
-    MEM_freeN(pfl->pchan_path);
+    MEM_delete(pfl->pchan_path);
 
     /* free link itself */
     BLI_freelinkN(pfLinks, pfl);

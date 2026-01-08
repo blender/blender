@@ -132,7 +132,7 @@ static bool buffer_from_filepath(const char *filepath,
   if (UNLIKELY(size == size_t(-1))) {
     *r_error_message = BLI_sprintfN("failure '%s' to access size", strerror(errno));
   }
-  else if (r_mem && UNLIKELY(!(mem = MEM_malloc_arrayN<uchar>(size, __func__)))) {
+  else if (r_mem && UNLIKELY(!(mem = MEM_new_array_uninitialized<uchar>(size, __func__)))) {
     *r_error_message = BLI_sprintfN("error allocating buffer %" PRIu64 " size", uint64_t(size));
   }
   else if (r_mem && UNLIKELY((size_read = BLI_read(file, mem, size)) != size)) {
@@ -152,7 +152,7 @@ static bool buffer_from_filepath(const char *filepath,
     success = true;
   }
 
-  MEM_SAFE_FREE(mem);
+  MEM_SAFE_DELETE(mem);
   close(file);
   return success;
 }
@@ -992,7 +992,7 @@ static void build_pict_list_from_anim(ListBaseT<PlayAnimPict> &picsbase,
   }
 
   for (int pic = 0; pic < MOV_get_duration_frames(anim, IMB_TC_NONE); pic++) {
-    PlayAnimPict *picture = MEM_callocN<PlayAnimPict>("Pict");
+    PlayAnimPict *picture = MEM_new_zeroed<PlayAnimPict>("Pict");
     picture->anim = anim;
     picture->frame = pic + frame_offset;
     picture->IB_flags = IB_byte_data;
@@ -1060,7 +1060,7 @@ static void build_pict_list_from_image_sequence(ListBaseT<PlayAnimPict> &picsbas
       size = 0;
     }
 
-    PlayAnimPict *picture = MEM_callocN<PlayAnimPict>("picture");
+    PlayAnimPict *picture = MEM_new_zeroed<PlayAnimPict>("picture");
     picture->size = size;
     picture->IB_flags = IB_byte_data;
     picture->mem = static_cast<uchar *>(mem);
@@ -1725,7 +1725,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
       if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
         const GHOST_TStringArray *stra = static_cast<const GHOST_TStringArray *>(ddd->data);
         ps.argc_next = stra->count;
-        ps.argv_next = MEM_malloc_arrayN<char *>(size_t(ps.argc_next), __func__);
+        ps.argv_next = MEM_new_array_uninitialized<char *>(size_t(ps.argc_next), __func__);
         for (int i = 0; i < stra->count; i++) {
           ps.argv_next[i] = BLI_strdup(reinterpret_cast<const char *>(stra->strings[i]));
         }
@@ -2311,13 +2311,13 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
       IMB_freeImBuf(ps.picture->ibuf);
     }
     if (ps.picture->mem) {
-      MEM_freeN(ps.picture->mem);
+      MEM_delete(ps.picture->mem);
     }
     if (ps.picture->error_message) {
-      MEM_freeN(ps.picture->error_message);
+      MEM_delete(ps.picture->error_message);
     }
-    MEM_freeN(ps.picture->filepath);
-    MEM_freeN(ps.picture);
+    MEM_delete(ps.picture->filepath);
+    MEM_delete(ps.picture);
   }
 
 /* Cleanup. */
@@ -2413,9 +2413,9 @@ int WM_main_playanim(int argc, const char **argv)
 
     if (args_free.argv) {
       for (int i = 0; i < args_free.argc; i++) {
-        MEM_freeN(args_free.argv[i]);
+        MEM_delete(args_free.argv[i]);
       }
-      MEM_freeN(args_free.argv);
+      MEM_delete(args_free.argv);
     }
   } while (argv != nullptr);
   /* Set in the loop. */

@@ -95,7 +95,7 @@ static void vcol_to_fcol(Mesh *mesh)
     return;
   }
 
-  mcoln = mcolmain = MEM_malloc_arrayN<uint>(4 * mesh->totface_legacy, "mcoln");
+  mcoln = mcolmain = MEM_new_array_uninitialized<uint>(4 * mesh->totface_legacy, "mcoln");
   mcol = reinterpret_cast<uint *>(mesh->mcol);
   mface = mesh->mface;
   for (a = mesh->totface_legacy; a > 0; a--, mface++) {
@@ -106,7 +106,7 @@ static void vcol_to_fcol(Mesh *mesh)
     mcoln += 4;
   }
 
-  MEM_freeN(mesh->mcol);
+  MEM_delete(mesh->mcol);
   mesh->mcol = reinterpret_cast<MCol *>(mcolmain);
 }
 
@@ -157,7 +157,7 @@ static void ntree_version_241(bNodeTree *ntree)
     for (bNode &node : ntree->nodes) {
       if (node.type_legacy == CMP_NODE_BLUR) {
         if (node.storage == nullptr) {
-          NodeBlurData *nbd = MEM_new_for_free<NodeBlurData>("node blur patch");
+          NodeBlurData *nbd = MEM_new<NodeBlurData>("node blur patch");
           nbd->sizex = node.custom1;
           nbd->sizey = node.custom2;
           nbd->filtertype = CMP_NODE_BLUR_TYPE_QUAD;
@@ -166,7 +166,7 @@ static void ntree_version_241(bNodeTree *ntree)
       }
       else if (node.type_legacy == CMP_NODE_VECBLUR) {
         if (node.storage == nullptr) {
-          NodeBlurData *nbd = MEM_new_for_free<NodeBlurData>("node blur patch");
+          NodeBlurData *nbd = MEM_new<NodeBlurData>("node blur patch");
           nbd->samples = node.custom1;
           nbd->maxspeed = node.custom2;
           nbd->fac = 1.0f;
@@ -204,7 +204,7 @@ static void ntree_version_245(FileData *fd, Library * /*lib*/, bNodeTree *ntree)
     for (bNode &node : ntree->nodes) {
       if (node.type_legacy == CMP_NODE_ALPHAOVER) {
         if (!node.storage) {
-          ntf = MEM_new_for_free<NodeTwoFloats>("NodeTwoFloats");
+          ntf = MEM_new<NodeTwoFloats>("NodeTwoFloats");
           node.storage = ntf;
           if (node.custom1) {
             ntf->x = 1.0f;
@@ -287,7 +287,7 @@ static void customdata_version_242(Mesh *mesh)
 
     if (mesh->tface) {
       if (mesh->mcol) {
-        MEM_freeN(mesh->mcol);
+        MEM_delete(mesh->mcol);
       }
 
       mesh->mcol = static_cast<MCol *>(CustomData_add_layer(
@@ -304,7 +304,7 @@ static void customdata_version_242(Mesh *mesh)
         memcpy(mtf->uv, tf->uv, sizeof(tf->uv));
       }
 
-      MEM_freeN(mesh->tface);
+      MEM_delete(mesh->tface);
       mesh->tface = nullptr;
     }
     else if (mesh->mcol) {
@@ -314,7 +314,7 @@ static void customdata_version_242(Mesh *mesh)
   }
 
   if (mesh->tface) {
-    MEM_freeN(mesh->tface);
+    MEM_delete(mesh->tface);
     mesh->tface = nullptr;
   }
 
@@ -367,7 +367,7 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
         /* only image had storage */
         if (node.storage) {
           NodeImageAnim *nia = static_cast<NodeImageAnim *>(node.storage);
-          ImageUser *iuser = MEM_new_for_free<ImageUser>("ima user node");
+          ImageUser *iuser = MEM_new<ImageUser>("ima user node");
 
           iuser->frames = nia->frames;
           iuser->sfra = nia->sfra;
@@ -375,10 +375,10 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
           iuser->cycl = nia->cyclic;
 
           node.storage = iuser;
-          MEM_freeN(nia);
+          MEM_delete(nia);
         }
         else {
-          ImageUser *iuser = MEM_new_for_free<ImageUser>("node image user");
+          ImageUser *iuser = MEM_new<ImageUser>("node image user");
           iuser->sfra = 1;
           node.storage = iuser;
         }
@@ -394,10 +394,10 @@ static void do_version_free_effect_245(Effect *eff)
   if (eff->type == EFF_PARTICLE) {
     paf = reinterpret_cast<PartEff *>(eff);
     if (paf->keys) {
-      MEM_freeN(paf->keys);
+      MEM_delete(paf->keys);
     }
   }
-  MEM_freeN(eff);
+  MEM_delete(eff);
 }
 
 static void do_version_free_effects_245(ListBaseT<Effect> *lb)
@@ -1343,7 +1343,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     while (sce) {
       if (sce->toolsettings == nullptr) {
-        sce->toolsettings = MEM_new_for_free<ToolSettings>("Tool Settings Struct");
+        sce->toolsettings = MEM_new<ToolSettings>("Tool Settings Struct");
         sce->toolsettings->doublimit = 0.001f;
       }
       sce = static_cast<Scene *>(sce->id.next);
@@ -2165,11 +2165,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         for (k = 0; k < sb->totkey; k++) {
           if (sb->keys[k]) {
-            MEM_freeN(sb->keys[k]);
+            MEM_delete(sb->keys[k]);
           }
         }
 
-        MEM_freeN(sb->keys);
+        MEM_delete(sb->keys);
 
         sb->keys = nullptr;
         sb->totkey = 0;
@@ -2190,11 +2190,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         for (k = 0; k < sb->totkey; k++) {
           if (sb->keys[k]) {
-            MEM_freeN(sb->keys[k]);
+            MEM_delete(sb->keys[k]);
           }
         }
 
-        MEM_freeN(sb->keys);
+        MEM_delete(sb->keys);
 
         sb->keys = nullptr;
         sb->totkey = 0;
@@ -2209,7 +2209,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         ParticleSettings *part;
 
         /* create new particle system */
-        psys = MEM_new_for_free<ParticleSystem>("particle_system");
+        psys = MEM_new<ParticleSystem>("particle_system");
         psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 
         /* Bad, but better not try to change this prehistorical code nowadays. */
@@ -2412,9 +2412,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
             BKE_modifier_new(eModifierType_Fluidsim));
         BLI_addhead(&ob->modifiers, reinterpret_cast<ModifierData *>(fluidmd));
 
-        MEM_freeN(fluidmd->fss);
-        fluidmd->fss = static_cast<FluidsimSettings *>(MEM_dupallocN(ob->fluidsimSettings));
-        MEM_freeN(ob->fluidsimSettings);
+        MEM_delete(fluidmd->fss);
+        fluidmd->fss = MEM_dupalloc(ob->fluidsimSettings);
+        MEM_delete(ob->fluidsimSettings);
 
         fluidmd->fss->lastgoodframe = INT_MAX;
         fluidmd->fss->flag = 0;

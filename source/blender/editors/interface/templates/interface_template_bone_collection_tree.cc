@@ -451,7 +451,7 @@ std::optional<eWM_DragDataType> BoneCollectionDragController::get_drag_type() co
 
 void *BoneCollectionDragController::create_drag_data() const
 {
-  ArmatureBoneCollection *drag_data = MEM_callocN<ArmatureBoneCollection>(__func__);
+  ArmatureBoneCollection *drag_data = MEM_new_zeroed<ArmatureBoneCollection>(__func__);
   *drag_data = drag_arm_bcoll_;
   return drag_data;
 }

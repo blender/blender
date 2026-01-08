@@ -108,7 +108,7 @@ static int textview_wrap_offsets(
 
   *r_lines = 1;
 
-  *r_offsets = MEM_calloc_arrayN<int>(
+  *r_offsets = MEM_new_array_zeroed<int>(
       (str_len * column_width_max / std::max(1, width - (column_width_max - 1)) + 1), __func__);
   (*r_offsets)[0] = 0;
 
@@ -180,7 +180,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
     }
 
     tds->xy[1] = y_next;
-    MEM_freeN(offsets);
+    MEM_delete(offsets);
     return true;
   }
   if (y_next < tds->scroll_ymin) {
@@ -192,7 +192,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
       textview_step_sel(tds, -(str_len + 1));
     }
 
-    MEM_freeN(offsets);
+    MEM_delete(offsets);
     return true;
   }
 
@@ -288,7 +288,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
     /* Check if we're out of view bounds. */
     if (tds->xy[1] > tds->scroll_ymax) {
-      MEM_freeN(offsets);
+      MEM_delete(offsets);
       return false;
     }
   }
@@ -298,7 +298,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
   copy_v2_v2_int(tds->sel, sel_orig);
   textview_step_sel(tds, -(str_len + 1));
 
-  MEM_freeN(offsets);
+  MEM_delete(offsets);
   return true;
 }
 

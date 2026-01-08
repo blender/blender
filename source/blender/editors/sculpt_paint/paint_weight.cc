@@ -135,14 +135,14 @@ struct WPaintData : public PaintModeData {
       BKE_defvert_array_free_elems(dvert_prev.data(), dvert_prev.size());
     }
 
-    MEM_SAFE_FREE(defbase_sel);
-    MEM_SAFE_FREE(vgroup_validmap);
-    MEM_SAFE_FREE(vgroup_locked);
-    MEM_SAFE_FREE(vgroup_unlocked);
-    MEM_SAFE_FREE(lock_flags);
-    MEM_SAFE_FREE(active.lock);
-    MEM_SAFE_FREE(mirror.lock);
-    MEM_SAFE_FREE(precomputed_weight);
+    MEM_SAFE_DELETE(defbase_sel);
+    MEM_SAFE_DELETE(vgroup_validmap);
+    MEM_SAFE_DELETE(vgroup_locked);
+    MEM_SAFE_DELETE(vgroup_unlocked);
+    MEM_SAFE_DELETE(lock_flags);
+    MEM_SAFE_DELETE(active.lock);
+    MEM_SAFE_DELETE(mirror.lock);
+    MEM_SAFE_DELETE(precomputed_weight);
   }
 };
 
@@ -974,7 +974,7 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
         dg = static_cast<bDeformGroup *>(BLI_findlink(&mesh.vertex_group_names, i));
         if (dg->flag & DG_LOCK_WEIGHT) {
           BKE_report(op->reports, RPT_WARNING, "Multipaint group is locked, aborting");
-          MEM_freeN(defbase_sel);
+          MEM_delete(defbase_sel);
           return false;
         }
       }
@@ -1017,10 +1017,10 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   }
 
   if (wpd->do_lock_relative || (ts.auto_normalize && wpd->lock_flags && !wpd->do_multipaint)) {
-    bool *unlocked = static_cast<bool *>(MEM_dupallocN(wpd->vgroup_validmap));
+    bool *unlocked = MEM_dupalloc(wpd->vgroup_validmap);
 
     if (wpd->lock_flags) {
-      bool *locked = MEM_malloc_arrayN<bool>(wpd->defbase_tot, __func__);
+      bool *locked = MEM_new_array_uninitialized<bool>(wpd->defbase_tot, __func__);
       BKE_object_defgroup_split_locked_validmap(
           wpd->defbase_tot, wpd->lock_flags, wpd->vgroup_validmap, locked, unlocked);
       wpd->vgroup_locked = locked;
@@ -1031,7 +1031,7 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
 
   if (wpd->do_multipaint && ts.auto_normalize) {
     bool *tmpflags;
-    tmpflags = MEM_malloc_arrayN<bool>(defbase_tot, __func__);
+    tmpflags = MEM_new_array_uninitialized<bool>(defbase_tot, __func__);
     if (wpd->lock_flags) {
       BLI_array_binary_or(tmpflags, wpd->defbase_sel, wpd->lock_flags, wpd->defbase_tot);
     }
@@ -1043,13 +1043,13 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   else if (ts.auto_normalize) {
     bool *tmpflags;
 
-    tmpflags = wpd->lock_flags ? static_cast<bool *>(MEM_dupallocN(wpd->lock_flags)) :
-                                 MEM_calloc_arrayN<bool>(defbase_tot, __func__);
+    tmpflags = wpd->lock_flags ? MEM_dupalloc(wpd->lock_flags) :
+                                 MEM_new_array_zeroed<bool>(defbase_tot, __func__);
     tmpflags[wpd->active.index] = true;
     wpd->active.lock = tmpflags;
 
-    tmpflags = wpd->lock_flags ? static_cast<bool *>(MEM_dupallocN(wpd->lock_flags)) :
-                                 MEM_calloc_arrayN<bool>(defbase_tot, __func__);
+    tmpflags = wpd->lock_flags ? MEM_dupalloc(wpd->lock_flags) :
+                                 MEM_new_array_zeroed<bool>(defbase_tot, __func__);
     tmpflags[(wpd->mirror.index != -1) ? wpd->mirror.index : wpd->active.index] = true;
     wpd->mirror.lock = tmpflags;
   }
@@ -1062,7 +1062,7 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   /* Brush may have changed after initialization. */
   brush = BKE_paint_brush(&wp.paint);
   if (ELEM(brush->weight_brush_type, WPAINT_BRUSH_TYPE_SMEAR, WPAINT_BRUSH_TYPE_BLUR)) {
-    wpd->precomputed_weight = MEM_malloc_arrayN<float>(mesh.verts_num, __func__);
+    wpd->precomputed_weight = MEM_new_array_uninitialized<float>(mesh.verts_num, __func__);
   }
 
   mode_data_ = std::move(wpd);

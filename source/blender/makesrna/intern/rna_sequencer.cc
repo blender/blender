@@ -317,7 +317,7 @@ static void rna_SequenceEditor_strips_all_begin(CollectionPropertyIterator *iter
   strip_iter->index = 0;
   add_strips_from_seqbase(&ed->seqbase, strip_iter->strips);
 
-  BLI_Iterator *bli_iter = MEM_callocN<BLI_Iterator>(__func__);
+  BLI_Iterator *bli_iter = MEM_new_zeroed<BLI_Iterator>(__func__);
   iter->internal.custom = bli_iter;
   bli_iter->data = strip_iter;
 
@@ -351,7 +351,7 @@ static void rna_SequenceEditor_strips_all_end(CollectionPropertyIterator *iter)
   StripsAllIterator *strip_iter = static_cast<StripsAllIterator *>(bli_iter->data);
 
   MEM_delete(strip_iter);
-  MEM_freeN(bli_iter);
+  MEM_delete(bli_iter);
 }
 
 static bool rna_SequenceEditor_strips_all_lookup_string(PointerRNA *ptr,
@@ -891,7 +891,7 @@ static void rna_Strip_text_set(PointerRNA *ptr, const char *value)
   TextVars *text = static_cast<TextVars *>(strip->effectdata);
 
   if (text->text_ptr) {
-    MEM_freeN(text->text_ptr);
+    MEM_delete(text->text_ptr);
   }
   text->text_ptr = BLI_strdup(value);
   text->text_len_bytes = strlen(text->text_ptr);

@@ -246,7 +246,7 @@ static void wm_stereo3d_set_init(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  Stereo3dData *s3dd = MEM_new_for_free<Stereo3dData>(__func__);
+  Stereo3dData *s3dd = MEM_new<Stereo3dData>(__func__);
   op->customdata = s3dd;
 
   /* Store the original win stereo 3d settings in case of cancel. */
@@ -325,7 +325,7 @@ wmOperatorStatus wm_stereo3d_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  MEM_freeN(s3dd);
+  MEM_delete(s3dd);
   op->customdata = nullptr;
 
   if (ok) {
@@ -401,7 +401,7 @@ bool wm_stereo3d_set_check(bContext * /*C*/, wmOperator * /*op*/)
 void wm_stereo3d_set_cancel(bContext * /*C*/, wmOperator *op)
 {
   Stereo3dData *s3dd = static_cast<Stereo3dData *>(op->customdata);
-  MEM_freeN(s3dd);
+  MEM_delete(s3dd);
   op->customdata = nullptr;
 }
 

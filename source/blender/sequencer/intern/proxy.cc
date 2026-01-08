@@ -413,8 +413,7 @@ bool proxy_build_start(Main *bmain,
 
     strip_free_movie_readers(strip);
 
-    ProxyBuildContext *context = MEM_new_for_free<ProxyBuildContext>(
-        "strip proxy rebuild context");
+    ProxyBuildContext *context = MEM_new<ProxyBuildContext>("strip proxy rebuild context");
 
     Strip *strip_new = strip_duplicate_recursive(
         bmain, scene, scene, nullptr, strip, StripDuplicate::Selected);
@@ -444,7 +443,7 @@ bool proxy_build_start(Main *bmain,
             build_only_on_bad_performance);
       }
       if (!context->movie_proxy_builder) {
-        MEM_freeN(context);
+        MEM_delete(context);
         return false;
       }
     }
@@ -687,7 +686,7 @@ void proxy_build_finish(ProxyBuildContext *context)
   close_movie_proxy_builder(context, false);
   seq_free_strip_recurse(nullptr, context->strip, true);
 
-  MEM_freeN(context);
+  MEM_delete(context);
 }
 
 void proxy_set(Strip *strip, bool value)

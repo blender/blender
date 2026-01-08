@@ -511,11 +511,11 @@ static void particle_calculate_uvs(ParticleSystem *psys,
       *r_uv = r_parent_uvs[parent_index];
     }
     else {
-      *r_uv = MEM_calloc_arrayN<float[2]>(num_uv_layers, "Particle UVs");
+      *r_uv = MEM_new_array_zeroed<float[2]>(num_uv_layers, "Particle UVs");
     }
   }
   else {
-    *r_uv = MEM_calloc_arrayN<float[2]>(num_uv_layers, "Particle UVs");
+    *r_uv = MEM_new_array_zeroed<float[2]>(num_uv_layers, "Particle UVs");
   }
   if (child_index == -1) {
     /* Calculate UVs for parent particles. */
@@ -554,11 +554,11 @@ static void particle_calculate_mcol(ParticleSystem *psys,
       *r_mcol = r_parent_mcol[parent_index];
     }
     else {
-      *r_mcol = MEM_calloc_arrayN<MCol>(num_col_layers, "Particle MCol");
+      *r_mcol = MEM_new_array_zeroed<MCol>(num_col_layers, "Particle MCol");
     }
   }
   else {
-    *r_mcol = MEM_calloc_arrayN<MCol>(num_col_layers, "Particle MCol");
+    *r_mcol = MEM_new_array_zeroed<MCol>(num_col_layers, "Particle MCol");
   }
   if (child_index == -1) {
     /* Calculate MCols for parent particles. */
@@ -607,10 +607,10 @@ static int particle_batch_cache_fill_segments(ParticleSystem *psys,
   const bool is_child = (particle_source == PARTICLE_SOURCE_CHILDREN);
   if (is_simple && *r_parent_uvs == nullptr) {
     /* TODO(sergey): For edit mode it should be edit->totcached. */
-    *r_parent_uvs = MEM_calloc_arrayN<float (*)[2]>(psys->totpart, "Parent particle UVs");
+    *r_parent_uvs = MEM_new_array_zeroed<float (*)[2]>(psys->totpart, "Parent particle UVs");
   }
   if (is_simple && *r_parent_mcol == nullptr) {
-    *r_parent_mcol = MEM_calloc_arrayN<MCol *>(psys->totpart, "Parent particle MCol");
+    *r_parent_mcol = MEM_new_array_zeroed<MCol *>(psys->totpart, "Parent particle MCol");
   }
   int curr_point = start_index;
   for (int i = 0; i < num_path_keys; i++) {
@@ -693,8 +693,8 @@ static int particle_batch_cache_fill_segments(ParticleSystem *psys,
         GPU_vertbuf_attr_set(hair_cache->pos, col_id[k], curr_point, scol);
       }
       if (!is_simple) {
-        MEM_freeN(uv);
-        MEM_freeN(mcol);
+        MEM_delete(uv);
+        MEM_delete(mcol);
       }
     }
     /* Finish the segment and add restart primitive. */
@@ -804,8 +804,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   if (psmd) {
     const StringRef active_uv = psmd->mesh_final->default_uv_map_name();
     const char *active_col = psmd->mesh_final->active_color_attribute;
-    uv_id = MEM_malloc_arrayN<uint>(num_uv_layers, "UV attr format");
-    col_id = MEM_malloc_arrayN<uint>(color_attribute_names.size(), "Col attr format");
+    uv_id = MEM_new_array_uninitialized<uint>(num_uv_layers, "UV attr format");
+    col_id = MEM_new_array_uninitialized<uint>(color_attribute_names.size(), "Col attr format");
 
     for (int i = 0; i < num_uv_layers; i++) {
 
@@ -844,14 +844,14 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   if (num_uv_layers || num_col_layers) {
     BKE_mesh_tessface_ensure(psmd->mesh_final);
     if (num_uv_layers) {
-      mtfaces = MEM_malloc_arrayN<const MTFace *>(num_uv_layers, "Faces UV layers");
+      mtfaces = MEM_new_array_uninitialized<const MTFace *>(num_uv_layers, "Faces UV layers");
       for (int i = 0; i < num_uv_layers; i++) {
         mtfaces[i] = static_cast<const MTFace *>(
             CustomData_get_layer_n(&psmd->mesh_final->fdata_legacy, CD_MTFACE, i));
       }
     }
     if (num_col_layers) {
-      mcols = MEM_malloc_arrayN<const MCol *>(num_col_layers, "Color layers");
+      mcols = MEM_new_array_uninitialized<const MCol *>(num_col_layers, "Color layers");
       for (int i = 0; i < num_col_layers; i++) {
         mcols[i] = static_cast<const MCol *>(
             CustomData_get_layer_n(&psmd->mesh_final->fdata_legacy, CD_MCOL, i));
@@ -928,24 +928,24 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   if (parent_uvs != nullptr) {
     /* TODO(sergey): For edit mode it should be edit->totcached. */
     for (int i = 0; i < psys->totpart; i++) {
-      MEM_SAFE_FREE(parent_uvs[i]);
+      MEM_SAFE_DELETE(parent_uvs[i]);
     }
-    MEM_freeN(parent_uvs);
+    MEM_delete(parent_uvs);
   }
   if (parent_mcol != nullptr) {
     for (int i = 0; i < psys->totpart; i++) {
-      MEM_SAFE_FREE(parent_mcol[i]);
+      MEM_SAFE_DELETE(parent_mcol[i]);
     }
-    MEM_freeN(parent_mcol);
+    MEM_delete(parent_mcol);
   }
   if (num_uv_layers) {
-    MEM_freeN(mtfaces);
+    MEM_delete(mtfaces);
   }
   if (num_col_layers) {
-    MEM_freeN(mcols);
+    MEM_delete(mcols);
   }
   if (psmd != nullptr) {
-    MEM_freeN(uv_id);
+    MEM_delete(uv_id);
   }
   hair_cache->indices = GPU_indexbuf_build(&elb);
 }

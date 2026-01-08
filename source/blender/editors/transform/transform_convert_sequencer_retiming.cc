@@ -102,7 +102,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   if ((custom_data->data != nullptr) && custom_data->use_free) {
     TransSeq *ts = static_cast<TransSeq *>(custom_data->data);
-    MEM_freeN(ts->tdseq);
+    MEM_delete(ts->tdseq);
     MEM_delete(ts);
     custom_data->data = nullptr;
   }
@@ -191,9 +191,9 @@ static void createTransSeqRetimingData(bContext * /*C*/, TransInfo *t)
   tc->custom.type.data = ts;
   tc->custom.type.use_free = true;
 
-  TransData *td = MEM_calloc_arrayN<TransData>(tc->data_len, "TransSeq TransData");
-  TransData2D *td2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransSeq TransData2D");
-  TransDataSeq *tdseq = MEM_calloc_arrayN<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
+  TransData *td = MEM_new_array_zeroed<TransData>(tc->data_len, "TransSeq TransData");
+  TransData2D *td2d = MEM_new_array_zeroed<TransData2D>(tc->data_len, "TransSeq TransData2D");
+  TransDataSeq *tdseq = MEM_new_array_zeroed<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
   tc->data = td;
   tc->data_2d = td2d;
   ts->tdseq = tdseq;

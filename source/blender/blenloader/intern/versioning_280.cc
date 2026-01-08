@@ -548,7 +548,7 @@ static bool replace_bbone_scale_rnapath(char **p_old_path)
   {
     *p_old_path = BLI_strdupcat(old_path, "x");
 
-    MEM_freeN(old_path);
+    MEM_delete(old_path);
     return true;
   }
 
@@ -621,11 +621,11 @@ static void do_versions_seq_alloc_transform_and_crop(ListBaseT<Strip> *seqbase)
   for (Strip &strip : *seqbase) {
     if (ELEM(strip.type, STRIP_TYPE_SOUND, STRIP_TYPE_SOUND_HD) == 0) {
       if (strip.data->transform == nullptr) {
-        strip.data->transform = MEM_new_for_free<StripTransform>("StripTransform");
+        strip.data->transform = MEM_new<StripTransform>("StripTransform");
       }
 
       if (strip.data->crop == nullptr) {
-        strip.data->crop = MEM_new_for_free<StripCrop>("StripCrop");
+        strip.data->crop = MEM_new<StripCrop>("StripCrop");
       }
 
       if (strip.seqbase.first != nullptr) {
@@ -1709,7 +1709,7 @@ static void update_mapping_node_fcurve_rna_path_callback(FCurve *fcurve,
   }
 
   if (fcurve->rna_path != old_fcurve_rna_path) {
-    MEM_freeN(old_fcurve_rna_path);
+    MEM_delete(old_fcurve_rna_path);
   }
 }
 
@@ -1820,7 +1820,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
         need_update = true;
       }
 
-      MEM_freeN(node.storage);
+      MEM_delete_void(node.storage);
       node.storage = nullptr;
 
       char node_name_esc[sizeof(node.name) * 2];
@@ -1830,7 +1830,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       BKE_fcurves_id_cb(&ntree->id, [&](ID * /*id*/, FCurve *fcu) {
         update_mapping_node_fcurve_rna_path_callback(fcu, nodePath, minimumNode, maximumNode);
       });
-      MEM_freeN(nodePath);
+      MEM_delete(nodePath);
     }
   }
 
@@ -2454,7 +2454,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
         }
 
         block.totelem = new_count;
-        block.data = MEM_calloc_arrayN<float[3]>(new_count, __func__);
+        block.data = MEM_new_array_zeroed<float[3]>(new_count, __func__);
 
         float *oldptr = static_cast<float *>(old_data);
         float (*newptr)[3] = static_cast<float (*)[3]>(block.data);
@@ -2498,7 +2498,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
           }
         }
 
-        MEM_freeN(old_data);
+        MEM_delete_void(old_data);
       }
     }
   }
@@ -2908,7 +2908,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
           return;
         }
 
-        MEM_freeN(fcu->rna_path);
+        MEM_delete(fcu->rna_path);
         fcu->rna_path = BLI_strdupn("hide_viewport", 13);
       });
     }
@@ -3294,7 +3294,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             BKE_screen_remove_unused_scredges(&screen);
             BKE_screen_remove_unused_scrverts(&screen);
 
-            MEM_freeN(area);
+            MEM_delete(area);
           }
         }
         /* AREA_TEMP_INFO is deprecated from now on, it should only be set for info areas
@@ -3734,7 +3734,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Image &ima : bmain->images) {
         if (ima.type == IMA_TYPE_R_RESULT) {
           for (int i = 0; i < 8; i++) {
-            RenderSlot *slot = MEM_new_for_free<RenderSlot>("Image Render Slot Init");
+            RenderSlot *slot = MEM_new<RenderSlot>("Image Render Slot Init");
             SNPRINTF_UTF8(slot->name, "Slot %d", i + 1);
             BLI_addtail(&ima.renderslots, slot);
           }
@@ -3826,7 +3826,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
 
         if (rbw->shared == nullptr) {
-          rbw->shared = MEM_new_for_free<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
+          rbw->shared = MEM_new<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
           BKE_rigidbody_world_init_runtime(rbw);
         }
 
@@ -3850,7 +3850,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
           continue;
         }
         if (sb->shared == nullptr) {
-          sb->shared = MEM_new_for_free<SoftBody_Shared>("SoftBody_Shared");
+          sb->shared = MEM_new<SoftBody_Shared>("SoftBody_Shared");
         }
 
         /* Move shared pointers from deprecated location to current location */
@@ -5719,7 +5719,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Add primary tile to images. */
     if (!DNA_struct_member_exists(fd->filesdna, "Image", "ListBase", "tiles")) {
       for (Image &ima : bmain->images) {
-        ImageTile *tile = MEM_new_for_free<ImageTile>("Image Tile");
+        ImageTile *tile = MEM_new<ImageTile>("Image Tile");
         tile->tile_number = 1001;
         BLI_addtail(&ima.tiles, tile);
       }

@@ -68,7 +68,7 @@ void BM_mesh_debug_print(BMesh *bm)
   char *str = BM_mesh_debug_info(bm);
   puts(str);
   fflush(stdout);
-  MEM_freeN(str);
+  MEM_delete(str);
 }
 
 }  // namespace blender

@@ -108,7 +108,7 @@
 #include "BLI_threads.h"
 #include "BLI_time.h"
 
-#include "MEM_guardedalloc.h" /* MEM_freeN */
+#include "MEM_guardedalloc.h"
 
 #include "BKE_asset.hh"
 #include "BKE_blender_version.h"
@@ -273,11 +273,11 @@ struct ZstdWriteWrap::ZstdWriteBlockTask {
 void ZstdWriteWrap::write_task(ZstdWriteBlockTask *task)
 {
   size_t out_buf_len = ZSTD_compressBound(task->size);
-  void *out_buf = MEM_mallocN(out_buf_len, "Zstd out buffer");
+  void *out_buf = MEM_new_uninitialized(out_buf_len, "Zstd out buffer");
   size_t out_size = ZSTD_compress(
       out_buf, out_buf_len, task->data, task->size, ZSTD_COMPRESSION_LEVEL);
 
-  MEM_freeN(task->data);
+  MEM_delete_void(task->data);
 
   BLI_mutex_lock(&mutex);
 
@@ -290,7 +290,7 @@ void ZstdWriteWrap::write_task(ZstdWriteBlockTask *task)
   }
   else {
     if (base_wrap.write(out_buf, out_size)) {
-      ZstdFrame *frameinfo = MEM_mallocN<ZstdFrame>("zstd frameinfo");
+      ZstdFrame *frameinfo = MEM_new_uninitialized<ZstdFrame>("zstd frameinfo");
       frameinfo->uncompressed_size = task->size;
       frameinfo->compressed_size = out_size;
       BLI_addtail(&frames, frameinfo);
@@ -305,7 +305,7 @@ void ZstdWriteWrap::write_task(ZstdWriteBlockTask *task)
   BLI_mutex_unlock(&mutex);
   BLI_condition_notify_all(&condition);
 
-  MEM_freeN(out_buf);
+  MEM_delete_void(out_buf);
 }
 
 bool ZstdWriteWrap::open(const char *filepath)
@@ -384,8 +384,8 @@ bool ZstdWriteWrap::write(const void *buf, const size_t buf_len)
     return false;
   }
 
-  ZstdWriteBlockTask *task = MEM_mallocN<ZstdWriteBlockTask>(__func__);
-  task->data = MEM_mallocN(buf_len, __func__);
+  ZstdWriteBlockTask *task = MEM_new_uninitialized<ZstdWriteBlockTask>(__func__);
+  task->data = MEM_new_uninitialized(buf_len, __func__);
   memcpy(task->data, buf, buf_len);
   task->size = buf_len;
   task->frame_number = num_frames++;
@@ -407,7 +407,7 @@ bool ZstdWriteWrap::write(const void *buf, const size_t buf_len)
      * always be a free thread. */
     BLI_assert(first_task != task);
     BLI_remlink(&tasks, first_task);
-    MEM_freeN(first_task);
+    MEM_delete(first_task);
   }
   BLI_threadpool_insert(&threadpool, task);
 
@@ -440,7 +440,7 @@ static WriteData *writedata_new(WriteWrap *ww)
       wd->buffer.max_size = ZSTD_BUFFER_SIZE;
       wd->buffer.chunk_size = ZSTD_CHUNK_SIZE;
     }
-    wd->buffer.buf = MEM_malloc_arrayN<uchar>(wd->buffer.max_size, "wd->buffer.buf");
+    wd->buffer.buf = MEM_new_array_uninitialized<uchar>(wd->buffer.max_size, "wd->buffer.buf");
   }
 
   return wd;
@@ -475,7 +475,7 @@ static void writedata_do_write(WriteData *wd, const void *mem, const size_t meml
 static void writedata_free(WriteData *wd)
 {
   if (wd->buffer.buf) {
-    MEM_freeN(wd->buffer.buf);
+    MEM_delete(wd->buffer.buf);
   }
   MEM_delete(wd);
 }

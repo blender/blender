@@ -678,7 +678,7 @@ static void node_resize_init(
     bContext *C, wmOperator *op, const float2 &cursor, const bNode *node, NodeResizeDirection dir)
 {
   Scene *scene = CTX_data_scene(C);
-  NodeSizeWidget *nsw = MEM_callocN<NodeSizeWidget>(__func__);
+  NodeSizeWidget *nsw = MEM_new_zeroed<NodeSizeWidget>(__func__);
 
   op->customdata = nsw;
 
@@ -715,7 +715,7 @@ static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
     node->height = nsw->oldheight;
   }
 
-  MEM_freeN(nsw);
+  MEM_delete(nsw);
   op->customdata = nullptr;
 }
 
@@ -1250,7 +1250,7 @@ static wmOperatorStatus node_duplicate_exec(bContext *C, wmOperator *op)
     if (link.tonode && (link.tonode->flag & NODE_SELECT) &&
         (keep_inputs || (link.fromnode && (link.fromnode->flag & NODE_SELECT))))
     {
-      bNodeLink *newlink = MEM_new_for_free<bNodeLink>("bNodeLink");
+      bNodeLink *newlink = MEM_new<bNodeLink>("bNodeLink");
       newlink->flag = link.flag;
       newlink->tonode = node_map.lookup(link.tonode);
       newlink->tosock = socket_map.lookup(link.tosock);

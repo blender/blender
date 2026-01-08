@@ -589,7 +589,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                              nullptr,
                              TIP_("Add node to input"));
 
-      argN = static_cast<NodeLinkArg *>(MEM_dupallocN(arg));
+      argN = MEM_dupalloc(arg);
       argN->item = item;
       button_funcN_set(but, ui_node_link, argN, nullptr);
     }
@@ -646,7 +646,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
                    0.0,
                    0.0,
                    TIP_("Remove nodes connected to the input"));
-    button_funcN_set(but, ui_node_link, MEM_dupallocN(arg), POINTER_FROM_INT(UI_NODE_LINK_REMOVE));
+    button_funcN_set(but, ui_node_link, MEM_dupalloc(arg), POINTER_FROM_INT(UI_NODE_LINK_REMOVE));
 
     but = uiDefBut(block,
                    ui::ButtonType::But,
@@ -660,7 +660,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
                    0.0,
                    TIP_("Disconnect nodes connected to the input"));
     button_funcN_set(
-        but, ui_node_link, MEM_dupallocN(arg), POINTER_FROM_INT(UI_NODE_LINK_DISCONNECT));
+        but, ui_node_link, MEM_dupalloc(arg), POINTER_FROM_INT(UI_NODE_LINK_DISCONNECT));
   }
 
   ui_node_menu_column(arg, NODE_CLASS_GROUP, N_("Group"));
@@ -678,7 +678,7 @@ void uiTemplateNodeLink(
   ui::Button *but;
   float socket_col[4];
 
-  arg = MEM_callocN<NodeLinkArg>("NodeLinkArg");
+  arg = MEM_new_zeroed<NodeLinkArg>("NodeLinkArg");
   arg->ntree = ntree;
   arg->node = node;
   arg->sock = input;
@@ -706,8 +706,8 @@ void uiTemplateNodeLink(
 
   but->poin = reinterpret_cast<char *>(but);
   but->func_argN = arg;
-  but->func_argN_free_fn = MEM_freeN;
-  but->func_argN_copy_fn = MEM_dupallocN;
+  but->func_argN_free_fn = MEM_delete_void;
+  but->func_argN_copy_fn = MEM_dupalloc_void;
 
   if (input->link && input->link->fromnode) {
     if (input->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {

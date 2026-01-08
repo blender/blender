@@ -742,7 +742,7 @@ static Strip *strip_select_from_preview(
     }
 
     if (isect) {
-      SeqSelect_Link *slink = MEM_callocN<SeqSelect_Link>(__func__);
+      SeqSelect_Link *slink = MEM_new_zeroed<SeqSelect_Link>(__func__);
       slink->strip = strip;
       slink->center_dist_sq = center_dist_sq_test;
       BLI_addtail(&strips_ordered, slink);

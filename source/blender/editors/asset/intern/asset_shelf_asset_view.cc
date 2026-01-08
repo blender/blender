@@ -199,7 +199,7 @@ void AssetViewItem::disable_asset_drag()
 
 /**
  * Needs freeing with #WM_operator_properties_free() (will be done by button if passed to that) and
- * #MEM_freeN().
+ * #MEM_delete().
  */
 static std::optional<wmOperatorCallParams> create_asset_operator_params(
     const StringRefNull op_name, const asset_system::AssetRepresentation &asset)

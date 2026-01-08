@@ -590,7 +590,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
 static void free_prefetch_data_fn(void *custom_data)
 {
   DropJobData *job_data = static_cast<DropJobData *>(custom_data);
-  MEM_freeN(job_data);
+  MEM_delete(job_data);
 }
 
 static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
@@ -607,7 +607,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
                               eWM_JobFlag(0),
                               WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
 
-  DropJobData *job_data = MEM_mallocN<DropJobData>("SeqDragDropPreviewData");
+  DropJobData *job_data = MEM_new_uninitialized<DropJobData>("SeqDragDropPreviewData");
   get_drag_path(C, drag, job_data->path);
 
   job_data->only_audio = only_audio;

@@ -41,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* defocus node */
-  NodeDefocus *nbd = MEM_new_for_free<NodeDefocus>(__func__);
+  NodeDefocus *nbd = MEM_new<NodeDefocus>(__func__);
   nbd->bktype = 0;
   nbd->rotation = 0.0f;
   nbd->fstop = 128.0f;

@@ -33,7 +33,7 @@ char *BLI_strdupn(const char *str, const size_t len)
 {
   BLI_assert_msg(BLI_strnlen(str, len) == len, "strlen(str) must be greater or equal to 'len'!");
 
-  char *n = MEM_malloc_arrayN<char>(len + 1, "strdup");
+  char *n = MEM_new_array_uninitialized<char>(len + 1, "strdup");
   memcpy(n, str, len);
   n[len] = '\0';
 
@@ -57,7 +57,7 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
   const size_t str2_len = strlen(str2) + 1;
   char *str, *s;
 
-  str = MEM_calloc_arrayN<char>(str1_len + str2_len, "strdupcat");
+  str = MEM_new_array_zeroed<char>(str1_len + str2_len, "strdupcat");
   s = str;
 
   memcpy(s, str1, str1_len); /* NOLINT: bugprone-not-null-terminated-result */
@@ -236,7 +236,7 @@ char *BLI_sprintfN_with_buffer(
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
     if (UNLIKELY(fixed_buf_size == 0)) {
-      return MEM_calloc_arrayN<char>(1, __func__);
+      return MEM_new_array_zeroed<char>(1, __func__);
     }
     *fixed_buf = '\0';
     return fixed_buf;
@@ -248,7 +248,7 @@ char *BLI_sprintfN_with_buffer(
 
   /* `retval` doesn't include null terminator. */
   const size_t size = size_t(retval) + 1;
-  char *result = MEM_malloc_arrayN<char>(size, __func__);
+  char *result = MEM_new_array_uninitialized<char>(size, __func__);
   va_start(args, format);
   retval = vsnprintf(result, size, format, args);
   va_end(args);
@@ -271,7 +271,7 @@ char *BLI_vsprintfN_with_buffer(char *fixed_buf,
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
     if (UNLIKELY(fixed_buf_size == 0)) {
-      return MEM_calloc_arrayN<char>(1, __func__);
+      return MEM_new_array_zeroed<char>(1, __func__);
     }
     *fixed_buf = '\0';
     return fixed_buf;
@@ -283,7 +283,7 @@ char *BLI_vsprintfN_with_buffer(char *fixed_buf,
 
   /* `retval` doesn't include null terminator. */
   const size_t size = size_t(retval) + 1;
-  char *result = MEM_malloc_arrayN<char>(size, __func__);
+  char *result = MEM_new_array_uninitialized<char>(size, __func__);
   retval = vsnprintf(result, size, format, args);
   BLI_assert(size_t(retval + 1) == size);
   UNUSED_VARS_NDEBUG(retval);
@@ -303,7 +303,7 @@ char *BLI_sprintfN(const char *__restrict format, ...)
     return result;
   }
   size_t size = result_len + 1;
-  result = MEM_malloc_arrayN<char>(size, __func__);
+  result = MEM_new_array_uninitialized<char>(size, __func__);
   memcpy(result, fixed_buf, size);
   return result;
 }
@@ -318,7 +318,7 @@ char *BLI_vsprintfN(const char *__restrict format, va_list args)
     return result;
   }
   size_t size = result_len + 1;
-  result = MEM_calloc_arrayN<char>(size, __func__);
+  result = MEM_new_array_zeroed<char>(size, __func__);
   memcpy(result, fixed_buf, size);
   return result;
 }
@@ -511,10 +511,10 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
     return nullptr;
   }
   const size_t escaped_len = size_t(end_match_ofs - start_match_ofs);
-  char *result = MEM_malloc_arrayN<char>(escaped_len + 1, __func__);
+  char *result = MEM_new_array_uninitialized<char>(escaped_len + 1, __func__);
   const size_t unescaped_len = BLI_str_unescape(result, str + start_match_ofs, escaped_len);
   if (unescaped_len != escaped_len) {
-    result = MEM_reallocN(result, sizeof(char) * (unescaped_len + 1));
+    result = MEM_realloc_uninitialized(result, sizeof(char) * (unescaped_len + 1));
   }
   return result;
 }

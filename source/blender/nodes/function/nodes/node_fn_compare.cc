@@ -99,7 +99,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeFunctionCompare *data = MEM_new_for_free<NodeFunctionCompare>(__func__);
+  NodeFunctionCompare *data = MEM_new<NodeFunctionCompare>(__func__);
   data->operation = NODE_COMPARE_GREATER_THAN;
   data->data_type = SOCK_FLOAT;
   data->mode = NODE_COMPARE_MODE_ELEMENT;

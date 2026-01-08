@@ -323,10 +323,10 @@ static int load_tex(Paint *paint, Brush *br, ViewContext *vc, float zoom, bool c
       target->old_col = col;
     }
     if (col) {
-      buffer = MEM_malloc_arrayN<uchar>(size * size * 4, "load_tex");
+      buffer = MEM_new_array_uninitialized<uchar>(size * size * 4, "load_tex");
     }
     else {
-      buffer = MEM_malloc_arrayN<uchar>(size * size, "load_tex");
+      buffer = MEM_new_array_uninitialized<uchar>(size * size, "load_tex");
     }
 
     pool = BKE_image_pool_new();
@@ -377,7 +377,7 @@ static int load_tex(Paint *paint, Brush *br, ViewContext *vc, float zoom, bool c
     }
 
     if (buffer) {
-      MEM_freeN(buffer);
+      MEM_delete(buffer);
     }
   }
   else {
@@ -462,7 +462,7 @@ static int load_tex_cursor(Paint *paint, Brush *br, float zoom)
 
       cursor_snap.size = size;
     }
-    buffer = MEM_malloc_arrayN<uchar>(size * size, "load_tex");
+    buffer = MEM_new_array_uninitialized<uchar>(size * size, "load_tex");
 
     BKE_curvemapping_init(br->curve_distance_falloff);
 
@@ -489,7 +489,7 @@ static int load_tex_cursor(Paint *paint, Brush *br, float zoom)
     }
 
     if (buffer) {
-      MEM_freeN(buffer);
+      MEM_delete(buffer);
     }
   }
   else {

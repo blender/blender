@@ -508,8 +508,8 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
   const int totface = mesh_eval ? mesh_eval->totface_legacy : mesh->totface_legacy;
   int a;
 
-  mirrorverts = MEM_calloc_arrayN<int>(totvert, "MirrorVerts");
-  mirrorfaces = MEM_calloc_arrayN<int>(2 * totface, "MirrorFaces");
+  mirrorverts = MEM_new_array_zeroed<int>(totvert, "MirrorVerts");
+  mirrorfaces = MEM_new_array_zeroed<int>(2 * totface, "MirrorFaces");
 
   const Span<float3> vert_positions = mesh_eval ? mesh_eval->vert_positions() :
                                                   mesh->vert_positions();
@@ -553,7 +553,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
   }
 
   BLI_ghash_free(fhash, nullptr, nullptr);
-  MEM_freeN(mirrorverts);
+  MEM_delete(mirrorverts);
 
   return mirrorfaces;
 }

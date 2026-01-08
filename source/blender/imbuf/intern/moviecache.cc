@@ -184,7 +184,7 @@ static void moviecache_destructor(void *p)
     item->c_handle = nullptr;
 
     /* force cached segments to be updated */
-    MEM_SAFE_FREE(cache->points);
+    MEM_SAFE_DELETE(cache->points);
   }
 }
 
@@ -274,7 +274,7 @@ MovieCache *IMB_moviecache_create(const char *name,
 
   PRINT("%s: cache '%s' create\n", __func__, name);
 
-  cache = MEM_callocN<MovieCache>("MovieCache");
+  cache = MEM_new_zeroed<MovieCache>("MovieCache");
 
   STRNCPY(cache->name, name);
 
@@ -302,7 +302,7 @@ void IMB_moviecache_set_priority_callback(MovieCache *cache,
                                           MovieCacheGetItemPriorityFP getitempriorityfp,
                                           MovieCachePriorityDeleterFP prioritydeleterfp)
 {
-  cache->last_userkey = MEM_mallocN(cache->keysize, "movie cache last user key");
+  cache->last_userkey = MEM_new_uninitialized(cache->keysize, "movie cache last user key");
 
   cache->getprioritydatafp = getprioritydatafp;
   cache->getitempriorityfp = getitempriorityfp;
@@ -364,7 +364,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
   /* cache limiter can't remove unused keys which points to destroyed values */
   check_unused_keys(cache);
 
-  MEM_SAFE_FREE(cache->points);
+  MEM_SAFE_DELETE(cache->points);
 }
 
 void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
@@ -455,14 +455,14 @@ void IMB_moviecache_free(MovieCache *cache)
   BLI_mempool_destroy(cache->userkeys_pool);
 
   if (cache->points) {
-    MEM_freeN(cache->points);
+    MEM_delete(cache->points);
   }
 
   if (cache->last_userkey) {
-    MEM_freeN(cache->last_userkey);
+    MEM_delete_void(cache->last_userkey);
   }
 
-  MEM_freeN(cache);
+  MEM_delete(cache);
 }
 
 void IMB_moviecache_cleanup(MovieCache *cache,
@@ -500,7 +500,7 @@ void IMB_moviecache_get_cache_segments(
   }
 
   if (cache->proxy != proxy || cache->render_flags != render_flags) {
-    MEM_SAFE_FREE(cache->points);
+    MEM_SAFE_DELETE(cache->points);
   }
 
   if (cache->points) {
@@ -509,7 +509,7 @@ void IMB_moviecache_get_cache_segments(
   }
   else {
     int totframe = BLI_ghash_len(cache->hash);
-    int *frames = MEM_calloc_arrayN<int>(totframe, "movieclip cache frames");
+    int *frames = MEM_new_array_zeroed<int>(totframe, "movieclip cache frames");
     int a, totseg = 0;
     GHashIterator gh_iter;
 
@@ -544,7 +544,7 @@ void IMB_moviecache_get_cache_segments(
     if (totseg) {
       int b, *points;
 
-      points = MEM_calloc_arrayN<int>(2 * size_t(totseg), "movieclip cache segments");
+      points = MEM_new_array_zeroed<int>(2 * size_t(totseg), "movieclip cache segments");
 
       /* fill */
       for (a = 0, b = 0; a < totframe; a++) {
@@ -571,7 +571,7 @@ void IMB_moviecache_get_cache_segments(
       cache->render_flags = render_flags;
     }
 
-    MEM_freeN(frames);
+    MEM_delete(frames);
   }
 }
 

@@ -16,10 +16,10 @@ void *memdbl(void *mem, int *size_pr, int item_size)
 {
   int cur_size = *size_pr;
   int new_size = cur_size ? (cur_size * 2) : 1;
-  void *nmem = MEM_mallocN(new_size * item_size, "memdbl");
+  void *nmem = MEM_new_uninitialized(new_size * item_size, "memdbl");
 
   memcpy(nmem, mem, cur_size * item_size);
-  MEM_freeN(mem);
+  MEM_delete(mem);
 
   *size_pr = new_size;
   return nmem;
@@ -28,7 +28,7 @@ void *memdbl(void *mem, int *size_pr, int item_size)
 char *string_dup(char *str)
 {
   int len = strlen(str);
-  char *nstr = MEM_mallocN(len + 1, "string_dup");
+  char *nstr = MEM_new_array_uninitialized<char>(len + 1, "string_dup");
 
   memcpy(nstr, str, len + 1);
 

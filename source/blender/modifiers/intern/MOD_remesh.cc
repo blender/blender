@@ -84,7 +84,7 @@ struct DualConOutput {
 /* allocate and initialize a DualConOutput */
 static void *dualcon_alloc_output(int totvert, int totquad)
 {
-  DualConOutput *output = MEM_callocN<DualConOutput>(__func__);
+  DualConOutput *output = MEM_new_zeroed<DualConOutput>(__func__);
 
   if (!output) {
     return nullptr;
@@ -192,7 +192,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
                                                     rmd->depth));
     }
     result = output->mesh;
-    MEM_freeN(output);
+    MEM_delete(output);
   }
 
   bke::mesh_smooth_set(*result, rmd->flag & MOD_REMESH_SMOOTH_SHADING);

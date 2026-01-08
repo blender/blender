@@ -1466,7 +1466,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  int *groups_array = MEM_malloc_arrayN<int>(bm->totfacesel, __func__);
+  int *groups_array = MEM_new_array_uninitialized<int>(bm->totfacesel, __func__);
   group_tot = BM_mesh_calc_face_groups(
       bm, groups_array, &group_index, nullptr, nullptr, nullptr, BM_ELEM_SELECT, BM_VERT);
 
@@ -1479,7 +1479,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
     const int fg_sta = group_index[i][0];
     const int fg_len = group_index[i][1];
     int j;
-    BMFace **fg = MEM_malloc_arrayN<BMFace *>(fg_len, __func__);
+    BMFace **fg = MEM_new_array_uninitialized<BMFace *>(fg_len, __func__);
 
     for (j = 0; j < fg_len; j++) {
       fg[j] = BM_face_at_index(bm, groups_array[fg_sta + j]);
@@ -1487,7 +1487,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
 
     tot = BM_mesh_region_match(bm, fg, fg_len, &faces_regions);
 
-    MEM_freeN(fg);
+    MEM_delete(fg);
 
     if (tot) {
       while (LinkData *link = static_cast<LinkData *>(BLI_pophead(&faces_regions))) {
@@ -1495,16 +1495,16 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
         while (BMFace *f = *(faces++)) {
           BM_face_select_set(bm, f, true);
         }
-        MEM_freeN(link->data);
-        MEM_freeN(link);
+        MEM_delete_void(link->data);
+        MEM_delete(link);
 
         changed = true;
       }
     }
   }
 
-  MEM_freeN(groups_array);
-  MEM_freeN(group_index);
+  MEM_delete(groups_array);
+  MEM_delete(group_index);
 
   if (changed) {
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
@@ -1750,7 +1750,7 @@ static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator 
       }
     }
 
-    BMEdge **edarray = MEM_malloc_arrayN<BMEdge *>(totedgesel, "edge array");
+    BMEdge **edarray = MEM_new_array_uninitialized<BMEdge *>(totedgesel, "edge array");
     edindex = 0;
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -1777,7 +1777,7 @@ static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator 
       EDBM_uvselect_clear(em);
     }
 
-    MEM_freeN(edarray);
+    MEM_delete(edarray);
 
     if (changed) {
       DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
@@ -1814,7 +1814,7 @@ static wmOperatorStatus edbm_edge_ring_multiselect_exec(bContext *C, wmOperator 
       }
     }
 
-    BMEdge **edarray = MEM_malloc_arrayN<BMEdge *>(totedgesel, "edge array");
+    BMEdge **edarray = MEM_new_array_uninitialized<BMEdge *>(totedgesel, "edge array");
     edindex = 0;
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -1834,7 +1834,7 @@ static wmOperatorStatus edbm_edge_ring_multiselect_exec(bContext *C, wmOperator 
       EDBM_uvselect_clear(em);
     }
 
-    MEM_freeN(edarray);
+    MEM_delete(edarray);
 
     if (changed) {
       DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
@@ -3442,7 +3442,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   BMIter iter;
   bool changed = false;
 
-  float *edge_lengths = MEM_malloc_arrayN<float>(bm->totedge, __func__);
+  float *edge_lengths = MEM_new_array_uninitialized<float>(bm->totedge, __func__);
 
   {
     bool has_nonmanifold = false;
@@ -3465,7 +3465,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
     bm->elem_index_dirty &= ~BM_EDGE;
 
     if (has_nonmanifold == false) {
-      MEM_freeN(edge_lengths);
+      MEM_delete(edge_lengths);
       return false;
     }
   }
@@ -3474,11 +3474,11 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   int (*fgroup_index)[2];
   int fgroup_len;
 
-  int *fgroup_array = MEM_malloc_arrayN<int>(bm->totface, __func__);
+  int *fgroup_array = MEM_new_array_uninitialized<int>(bm->totface, __func__);
   fgroup_len = BM_mesh_calc_face_groups(
       bm, fgroup_array, &fgroup_index, bm_interior_loop_filter_fn, nullptr, nullptr, 0, BM_EDGE);
 
-  int *fgroup_recalc_stack = MEM_malloc_arrayN<int>(fgroup_len, __func__);
+  int *fgroup_recalc_stack = MEM_new_array_uninitialized<int>(fgroup_len, __func__);
   STACK_DECLARE(fgroup_recalc_stack);
   STACK_INIT(fgroup_recalc_stack, fgroup_len);
 
@@ -3492,9 +3492,9 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   }
   bm->elem_index_dirty |= BM_FACE;
 
-  ListBaseT<BMFaceLink> *fgroup_listbase = MEM_calloc_arrayN<ListBaseT<BMFaceLink>>(fgroup_len,
-                                                                                    __func__);
-  BMFaceLink *f_link_array = MEM_calloc_arrayN<BMFaceLink>(bm->totface, __func__);
+  ListBaseT<BMFaceLink> *fgroup_listbase = MEM_new_array_zeroed<ListBaseT<BMFaceLink>>(fgroup_len,
+                                                                                       __func__);
+  BMFaceLink *f_link_array = MEM_new_array_zeroed<BMFaceLink>(bm->totface, __func__);
 
   for (int i = 0; i < fgroup_len; i++) {
     const int fg_sta = fgroup_index[i][0];
@@ -3511,12 +3511,12 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
     }
   }
 
-  MEM_freeN(fgroup_array);
-  MEM_freeN(fgroup_index);
+  MEM_delete(fgroup_array);
+  MEM_delete(fgroup_index);
 
   Heap *fgroup_heap = BLI_heap_new_ex(fgroup_len);
-  HeapNode **fgroup_table = MEM_malloc_arrayN<HeapNode *>(fgroup_len, __func__);
-  bool *fgroup_dirty = MEM_calloc_arrayN<bool>(fgroup_len, __func__);
+  HeapNode **fgroup_table = MEM_new_array_uninitialized<HeapNode *>(fgroup_len, __func__);
+  bool *fgroup_dirty = MEM_new_array_zeroed<bool>(fgroup_len, __func__);
 
   for (int i = 0; i < fgroup_len; i++) {
     const float cost = bm_interior_face_group_calc_cost(&fgroup_listbase[i], edge_lengths);
@@ -3658,12 +3658,12 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
     STACK_CLEAR(fgroup_recalc_stack);
   }
 
-  MEM_freeN(edge_lengths);
-  MEM_freeN(f_link_array);
-  MEM_freeN(fgroup_listbase);
-  MEM_freeN(fgroup_recalc_stack);
-  MEM_freeN(fgroup_table);
-  MEM_freeN(fgroup_dirty);
+  MEM_delete(edge_lengths);
+  MEM_delete(f_link_array);
+  MEM_delete(fgroup_listbase);
+  MEM_delete(fgroup_recalc_stack);
+  MEM_delete(fgroup_table);
+  MEM_delete(fgroup_dirty);
 
   BLI_heap_free(fgroup_heap, nullptr);
 
@@ -5679,7 +5679,7 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
 
     if (em->selectmode & SCE_SELECT_VERTEX) {
       int elem_map_len = 0;
-      BMVert **elem_map = MEM_malloc_arrayN<BMVert *>(em->bm->totvert, __func__);
+      BMVert **elem_map = MEM_new_array_uninitialized<BMVert *>(em->bm->totvert, __func__);
       BMVert *eve;
       BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
         if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
@@ -5692,11 +5692,11 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
       for (int i = 0; i < count_select; i++) {
         BM_vert_select_set(em->bm, elem_map[i], select);
       }
-      MEM_freeN(elem_map);
+      MEM_delete(elem_map);
     }
     else if (em->selectmode & SCE_SELECT_EDGE) {
       int elem_map_len = 0;
-      BMEdge **elem_map = MEM_malloc_arrayN<BMEdge *>(em->bm->totedge, __func__);
+      BMEdge **elem_map = MEM_new_array_uninitialized<BMEdge *>(em->bm->totedge, __func__);
       BMEdge *eed;
       BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
         if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
@@ -5708,11 +5708,11 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
       for (int i = 0; i < count_select; i++) {
         BM_edge_select_set(em->bm, elem_map[i], select);
       }
-      MEM_freeN(elem_map);
+      MEM_delete(elem_map);
     }
     else {
       int elem_map_len = 0;
-      BMFace **elem_map = MEM_malloc_arrayN<BMFace *>(em->bm->totface, __func__);
+      BMFace **elem_map = MEM_new_array_uninitialized<BMFace *>(em->bm->totface, __func__);
       BMFace *efa;
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
@@ -5724,7 +5724,7 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
       for (int i = 0; i < count_select; i++) {
         BM_face_select_set(em->bm, elem_map[i], select);
       }
-      MEM_freeN(elem_map);
+      MEM_delete(elem_map);
     }
 
     if (select) {
@@ -6132,7 +6132,7 @@ static int loop_find_region(BMLoop *l,
     }
   }
 
-  BMFace **region_alloc = MEM_malloc_arrayN<BMFace *>(region.size(), __func__);
+  BMFace **region_alloc = MEM_new_array_uninitialized<BMFace *>(region.size(), __func__);
   memcpy(region_alloc, region.data(), region.as_span().size_in_bytes());
   *region_out = region_alloc;
   return region.size();
@@ -6169,7 +6169,7 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
   int count = 0, i;
 
   Set<BMFace *> visit_face_set;
-  BMEdge **edges = MEM_malloc_arrayN<BMEdge *>(edges_len, __func__);
+  BMEdge **edges = MEM_new_array_uninitialized<BMEdge *>(edges_len, __func__);
 
   i = 0;
   BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -6209,14 +6209,14 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
         tot = c;
         if (region) {
           /* Free the previous best. */
-          MEM_freeN(region);
+          MEM_delete(region);
         }
         /* Track the current region as the new best. */
         region = region_out;
       }
       else {
         /* This region is not as good as best so far, just free it. */
-        MEM_freeN(region_out);
+        MEM_delete(region_out);
       }
     }
 
@@ -6232,11 +6232,11 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
 
       count += tot;
 
-      MEM_freeN(region);
+      MEM_delete(region);
     }
   }
 
-  MEM_freeN(edges);
+  MEM_delete(edges);
 
   return count;
 }

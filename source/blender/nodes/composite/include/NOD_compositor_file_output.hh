@@ -59,7 +59,7 @@ struct FileOutputItemsAccessor : public socket_items::SocketItemsAccessorDefault
 
   static void destruct_item(NodeCompositorFileOutputItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
     BKE_image_format_free(&item->format);
   }
 

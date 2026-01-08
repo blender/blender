@@ -97,7 +97,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but allocated for forward compatibility. */
-  node->storage = MEM_new_for_free<NodeColorspill>(__func__);
+  node->storage = MEM_new<NodeColorspill>(__func__);
 }
 
 using namespace blender::compositor;

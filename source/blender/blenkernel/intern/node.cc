@@ -183,7 +183,7 @@ static void ntree_copy_data(Main * /*bmain*/,
   /* copy links */
   BLI_listbase_clear(&ntree_dst->links);
   for (const bNodeLink &src_link : ntree_src->links) {
-    bNodeLink *dst_link = static_cast<bNodeLink *>(MEM_dupallocN(&src_link));
+    bNodeLink *dst_link = MEM_dupalloc(&src_link);
     dst_link->fromnode = dst_runtime.nodes_by_id.lookup_key_as(src_link.fromnode->identifier);
     dst_link->fromsock = socket_map.lookup(src_link.fromsock);
     dst_link->tonode = dst_runtime.nodes_by_id.lookup_key_as(src_link.tonode->identifier);
@@ -240,14 +240,14 @@ static void ntree_copy_data(Main * /*bmain*/,
   }
 
   if (ntree_src->geometry_node_asset_traits) {
-    ntree_dst->geometry_node_asset_traits = MEM_new_for_free<GeometryNodeAssetTraits>(
+    ntree_dst->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(
         __func__, *ntree_src->geometry_node_asset_traits);
     ntree_dst->geometry_node_asset_traits->node_tool_idname = BLI_strdup_null(
         ntree_src->geometry_node_asset_traits->node_tool_idname);
   }
 
   if (ntree_src->nested_node_refs) {
-    ntree_dst->nested_node_refs = MEM_new_array_for_free<bNestedNodeRef>(
+    ntree_dst->nested_node_refs = MEM_new_array<bNestedNodeRef>(
         size_t(ntree_src->nested_node_refs_num), __func__);
     uninitialized_copy_n(
         ntree_src->nested_node_refs, ntree_src->nested_node_refs_num, ntree_dst->nested_node_refs);
@@ -301,15 +301,15 @@ static void ntree_free_data(ID *id)
   }
 
   if (ntree->geometry_node_asset_traits) {
-    MEM_SAFE_FREE(ntree->geometry_node_asset_traits->node_tool_idname);
-    MEM_freeN(ntree->geometry_node_asset_traits);
+    MEM_SAFE_DELETE(ntree->geometry_node_asset_traits->node_tool_idname);
+    MEM_delete(ntree->geometry_node_asset_traits);
   }
 
   if (ntree->nested_node_refs) {
-    MEM_freeN(ntree->nested_node_refs);
+    MEM_delete(ntree->nested_node_refs);
   }
 
-  MEM_SAFE_FREE(ntree->description);
+  MEM_SAFE_DELETE(ntree->description);
   BKE_previewimg_free(&ntree->preview);
   MEM_delete(ntree->runtime);
 }
@@ -1006,7 +1006,7 @@ static void initialize_legacy_socket_storage(bNode &node)
 {
   if (ELEM(node.type_legacy, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE)) {
     for (bNodeSocket &output : node.outputs) {
-      NodeImageLayer *storage = MEM_new_for_free<NodeImageLayer>(__func__);
+      NodeImageLayer *storage = MEM_new<NodeImageLayer>(__func__);
       output.storage = storage;
       /* Alpha is derived from the combined pass. */
       if (STREQ(output.identifier, "Alpha")) {
@@ -1024,7 +1024,7 @@ static void free_legacy_socket_storage(bNode &node)
 {
   if (ELEM(node.type_legacy, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE)) {
     for (bNodeSocket &output : node.outputs) {
-      MEM_freeN(output.storage);
+      MEM_delete_void(output.storage);
       output.storage = nullptr;
     }
   }
@@ -1470,12 +1470,12 @@ static void direct_link_node_socket_legacy_data_version_do(
   BLI_assert(MEM_allocN_len(*raw_data) >= sizeof(T_404));
   T_404 *orig_data = static_cast<T_404 *>(*raw_data);
   *raw_data = nullptr;
-  T *final_data = MEM_new_for_free<T>(__func__);
+  T *final_data = MEM_new<T>(__func__);
   /* Could use `memcpy` here, since we also require historic members of these DNA structs to
    * never be moved or re-ordered. But better be verbose and explicit here. */
   copy_fn(*final_data, *orig_data);
   *dest_data = final_data;
-  MEM_freeN(orig_data);
+  MEM_delete(orig_data);
 }
 
 }  // namespace versioning_internal
@@ -1823,14 +1823,14 @@ static void remove_unsupported_sockets(ListBaseT<bNodeSocket> *sockets,
           if (link.tosock) {
             link.tosock->link = nullptr;
           }
-          MEM_freeN(&link);
+          MEM_delete(&link);
         }
       }
     }
 
     BLI_remlink(sockets, &sock);
     MEM_delete(sock.runtime);
-    MEM_freeN(&sock);
+    MEM_delete(&sock);
   }
 }
 
@@ -2146,7 +2146,7 @@ static void node_tree_asset_on_clear_asset(void *asset_ptr, AssetMetaData *asset
   /* Copy asset description to node tree description so that it is not lost when the asset data is
    * removed. */
   if (asset_data->description) {
-    MEM_SAFE_FREE(ntree.description);
+    MEM_SAFE_DELETE(ntree.description);
     ntree.description = BLI_strdup_null(asset_data->description);
   }
 }
@@ -2748,7 +2748,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
       auto_identifier,
       sizeof(auto_identifier));
 
-  bNodeSocket *sock = MEM_new_for_free<bNodeSocket>(__func__);
+  bNodeSocket *sock = MEM_new<bNodeSocket>(__func__);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
   sock->in_out = in_out;
 
@@ -2934,7 +2934,7 @@ void node_modify_socket_type(bNodeTree &ntree,
        * isn't removed. This assumes that the default value is stored in the same format for all
        * socket types with the same #eNodeSocketDatatype. */
       socket_id_user_decrement(&sock);
-      MEM_freeN(sock.default_value);
+      MEM_delete_void(sock.default_value);
       sock.default_value = nullptr;
     }
     else {
@@ -3449,7 +3449,7 @@ static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
 {
   if (sock->prop) {
     IDP_FreePropertyContent_ex(sock->prop, do_id_user);
-    MEM_freeN(sock->prop);
+    MEM_delete(sock->prop);
   }
 
   if (sock->default_value) {
@@ -3463,10 +3463,10 @@ static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
         default_value_menu.enum_items->remove_user_and_delete_if_last();
       }
     }
-    MEM_freeN(sock->default_value);
+    MEM_delete_void(sock->default_value);
   }
   if (sock->default_attribute_name) {
-    MEM_freeN(sock->default_attribute_name);
+    MEM_delete(sock->default_attribute_name);
   }
   MEM_delete(sock->runtime);
 }
@@ -3498,7 +3498,7 @@ void node_remove_socket_ex(bNodeTree &ntree, bNode &node, bNodeSocket &sock, con
   BLI_remlink(&node.outputs, &sock);
 
   node_socket_free(&sock, do_id_user);
-  MEM_freeN(&sock);
+  MEM_delete(&sock);
 
   BKE_ntree_update_tag_socket_removed(&ntree);
 }
@@ -3723,7 +3723,7 @@ bNode *node_add_node(const bContext *C,
                      const StringRef idname,
                      std::optional<int> unique_identifier)
 {
-  bNode *node = MEM_new_for_free<bNode>(__func__);
+  bNode *node = MEM_new<bNode>(__func__);
   node->runtime = MEM_new<bNodeRuntime>(__func__);
   BLI_addtail(&ntree.nodes, node);
   if (unique_identifier) {
@@ -3773,7 +3773,7 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
   }
 
   if (sock_src->default_value) {
-    sock_dst->default_value = MEM_dupallocN(sock_src->default_value);
+    sock_dst->default_value = MEM_dupalloc_void(sock_src->default_value);
 
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       socket_id_user_increment(sock_dst);
@@ -3789,7 +3789,7 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
   }
 
   sock_dst->default_attribute_name = static_cast<char *>(
-      MEM_dupallocN(sock_src->default_attribute_name));
+      MEM_dupalloc(sock_src->default_attribute_name));
 
   sock_dst->stack_index = 0;
 }
@@ -3802,7 +3802,7 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               Map<const bNodeSocket *, bNodeSocket *> &socket_map,
                               const bool allow_duplicate_names)
 {
-  bNode *node_dst = MEM_new_for_free<bNode>(__func__, node_src);
+  bNode *node_dst = MEM_new<bNode>(__func__, node_src);
   node_dst->runtime = MEM_new<bNodeRuntime>(__func__);
   if (dst_unique_name) {
     BLI_assert(dst_unique_name->size() < sizeof(node_dst->name));
@@ -3830,7 +3830,7 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
 
   BLI_listbase_clear(&node_dst->inputs);
   for (const bNodeSocket &src_socket : node_src.inputs) {
-    bNodeSocket *dst_socket = static_cast<bNodeSocket *>(MEM_dupallocN(&src_socket));
+    bNodeSocket *dst_socket = MEM_dupalloc(&src_socket);
     node_socket_copy(dst_socket, &src_socket, flag);
     BLI_addtail(&node_dst->inputs, dst_socket);
     socket_map.add_new(&src_socket, dst_socket);
@@ -3838,7 +3838,7 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
 
   BLI_listbase_clear(&node_dst->outputs);
   for (const bNodeSocket &src_socket : node_src.outputs) {
-    bNodeSocket *dst_socket = static_cast<bNodeSocket *>(MEM_dupallocN(&src_socket));
+    bNodeSocket *dst_socket = MEM_dupalloc(&src_socket);
     node_socket_copy(dst_socket, &src_socket, flag);
     BLI_addtail(&node_dst->outputs, dst_socket);
     socket_map.add_new(&src_socket, dst_socket);
@@ -3852,7 +3852,7 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   }
 
   node_dst->panel_states_array = static_cast<bNodePanelState *>(
-      MEM_dupallocN(node_src.panel_states_array));
+      MEM_dupalloc(node_src.panel_states_array));
 
   node_dst->runtime->internal_links = node_src.runtime->internal_links;
   for (bNodeLink &dst_link : node_dst->runtime->internal_links) {
@@ -4009,7 +4009,7 @@ void node_socket_move_default_value(Main & /*bmain*/,
   {
     auto *src_value = static_cast<bNodeSocketValueString *>(src.default_value);
     auto *dst_storage = static_cast<NodeInputString *>(dst_node.storage);
-    MEM_SAFE_FREE(dst_storage->string);
+    MEM_SAFE_DELETE(dst_storage->string);
     dst_storage->string = BLI_strdup_null(src_value->value);
     return;
   }
@@ -4074,7 +4074,7 @@ bNodeLink &node_add_link(
   bNodeLink *link = nullptr;
   if (eNodeSocketInOut(fromsock.in_out) == SOCK_OUT && eNodeSocketInOut(tosock.in_out) == SOCK_IN)
   {
-    link = MEM_new_for_free<bNodeLink>(__func__);
+    link = MEM_new<bNodeLink>(__func__);
     BLI_addtail(&ntree.links, link);
     link->fromnode = &fromnode;
     link->fromsock = &fromsock;
@@ -4085,7 +4085,7 @@ bNodeLink &node_add_link(
            eNodeSocketInOut(tosock.in_out) == SOCK_OUT)
   {
     /* OK but flip */
-    link = MEM_new_for_free<bNodeLink>(__func__);
+    link = MEM_new<bNodeLink>(__func__);
     BLI_addtail(&ntree.links, link);
     link->fromnode = &tonode;
     link->fromsock = &tosock;
@@ -4112,7 +4112,7 @@ void node_remove_link(bNodeTree *ntree, bNodeLink &link)
   if (link.tosock) {
     link.tosock->link = nullptr;
   }
-  MEM_freeN(&link);
+  MEM_delete(&link);
 
   if (ntree) {
     BKE_ntree_update_tag_link_removed(ntree);
@@ -4551,25 +4551,25 @@ void node_free_node(bNodeTree *ntree, bNode &node)
   for (bNodeSocket &sock : node.inputs.items_mutable()) {
     /* Remember, no ID user refcount management here! */
     node_socket_free(&sock, false);
-    MEM_freeN(&sock);
+    MEM_delete(&sock);
   }
   for (bNodeSocket &sock : node.outputs.items_mutable()) {
     /* Remember, no ID user refcount management here! */
     node_socket_free(&sock, false);
-    MEM_freeN(&sock);
+    MEM_delete(&sock);
   }
 
-  MEM_SAFE_FREE(node.panel_states_array);
+  MEM_SAFE_DELETE(node.panel_states_array);
 
   if (node.prop) {
     /* Remember, no ID user refcount management here! */
     IDP_FreePropertyContent_ex(node.prop, false);
-    MEM_freeN(node.prop);
+    MEM_delete(node.prop);
   }
   if (node.system_properties) {
     /* Remember, no ID user refcount management here! */
     IDP_FreePropertyContent_ex(node.system_properties, false);
-    MEM_freeN(node.system_properties);
+    MEM_delete(node.system_properties);
   }
 
   if (node.runtime->declaration) {
@@ -4581,7 +4581,7 @@ void node_free_node(bNodeTree *ntree, bNode &node)
   }
 
   MEM_delete(node.runtime);
-  MEM_freeN(&node);
+  MEM_delete(&node);
 
   if (ntree) {
     BKE_ntree_update_tag_node_removed(ntree);
@@ -4666,7 +4666,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
     bNodeTree *ngroup = reinterpret_cast<bNodeTree *>(node.id);
     if (node.is_group() && ngroup != nullptr) {
       node_tree_free_tree(*ngroup);
-      MEM_freeN(ngroup);
+      MEM_delete(ngroup);
     }
   }
 }

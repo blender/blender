@@ -454,7 +454,7 @@ static EditBone *make_boneList_recursive(ListBaseT<EditBone> *edbo,
   EditBone *eBoneTest = nullptr;
 
   for (Bone &curBone : *bones) {
-    eBone = MEM_new_for_free<EditBone>("make_editbone");
+    eBone = MEM_new<EditBone>("make_editbone");
     eBone->temp.bone = &curBone;
 
     /* Copy relevant data from bone to eBone
@@ -729,7 +729,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 
   /* Copy the bones from the edit-data into the armature. */
   for (EditBone &eBone : *arm->edbo) {
-    newBone = MEM_new_for_free<Bone>("bone");
+    newBone = MEM_new<Bone>("bone");
     eBone.temp.bone = newBone; /* Associate the real Bones with the EditBones */
 
     STRNCPY_UTF8(newBone->name, eBone.name);
@@ -784,7 +784,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone->color = eBone.color;
 
     for (BoneCollectionReference &ref : eBone.bone_collections) {
-      BoneCollectionReference *newBoneRef = MEM_new_for_free<BoneCollectionReference>(
+      BoneCollectionReference *newBoneRef = MEM_new<BoneCollectionReference>(
           "ED_armature_from_edit", ref);
       BLI_addtail(&newBone->runtime.collections, newBoneRef);
     }
@@ -856,7 +856,7 @@ void ED_armature_edit_free(bArmature *arm)
 
       BLI_freelistN(arm->edbo);
     }
-    MEM_freeN(arm->edbo);
+    MEM_delete(arm->edbo);
     arm->edbo = nullptr;
     arm->act_edbone = nullptr;
   }
@@ -865,7 +865,7 @@ void ED_armature_edit_free(bArmature *arm)
 void ED_armature_to_edit(bArmature *arm)
 {
   ED_armature_edit_free(arm);
-  arm->edbo = MEM_callocN<ListBaseT<EditBone>>("edbo armature");
+  arm->edbo = MEM_new_zeroed<ListBaseT<EditBone>>("edbo armature");
   arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, arm->act_bone);
 }
 
@@ -891,7 +891,7 @@ void ED_armature_ebone_listbase_free(ListBaseT<EditBone> *lb, const bool do_id_u
 
     BLI_freelistN(&ebone->bone_collections);
 
-    MEM_freeN(ebone);
+    MEM_delete(ebone);
   }
 
   BLI_listbase_clear(lb);
@@ -904,7 +904,7 @@ void ED_armature_ebone_listbase_copy(ListBaseT<EditBone> *lb_dst,
   BLI_assert(BLI_listbase_is_empty(lb_dst));
 
   for (EditBone &ebone_src : *lb_src) {
-    EditBone *ebone_dst = static_cast<EditBone *>(MEM_dupallocN(&ebone_src));
+    EditBone *ebone_dst = MEM_dupalloc(&ebone_src);
     if (ebone_dst->prop) {
       ebone_dst->prop = IDP_CopyProperty_ex(ebone_dst->prop,
                                             do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT);

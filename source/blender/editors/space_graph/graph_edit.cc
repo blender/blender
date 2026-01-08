@@ -310,7 +310,7 @@ static wmOperatorStatus graphkeys_click_insert_exec(bContext *C, wmOperator *op)
   ale = get_active_fcurve_channel(&ac);
   if (ELEM(nullptr, ale, ale->data)) {
     if (ale) {
-      MEM_freeN(ale);
+      MEM_delete(ale);
     }
     return OPERATOR_CANCELLED;
   }
@@ -376,7 +376,7 @@ static wmOperatorStatus graphkeys_click_insert_exec(bContext *C, wmOperator *op)
   }
 
   /* Free temp data. */
-  MEM_freeN(ale);
+  MEM_delete(ale);
 
   /* Set notifier that keyframes have changed. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
@@ -1193,7 +1193,7 @@ static wmOperatorStatus graphkeys_sound_to_samples_exec(bContext *C, wmOperator 
   }
 
   /* Free sample data. */
-  MEM_freeN(sbi.samples);
+  MEM_delete(sbi.samples);
 
   /* Validate keyframes after editing. */
   ANIM_animdata_update(&ac, &anim_data);
@@ -1849,7 +1849,7 @@ static ListBaseT<tEulerFilter> euler_filter_group_channels(
     }
 
     /* Just add to a new block. */
-    euf = MEM_callocN<tEulerFilter>("tEulerFilter");
+    euf = MEM_new_zeroed<tEulerFilter>("tEulerFilter");
     BLI_addtail(&euler_groups, euf);
     ++*r_num_groups;
 
@@ -2976,7 +2976,7 @@ static wmOperatorStatus graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
     ok = ANIM_fmodifiers_copy_to_buf(&fcu->modifiers, false);
 
     /* Free temp data now. */
-    MEM_freeN(ale);
+    MEM_delete(ale);
   }
 
   /* Successful or not? */

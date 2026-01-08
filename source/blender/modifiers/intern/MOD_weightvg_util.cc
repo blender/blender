@@ -151,7 +151,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     STRNCPY(t_map.uvlayer_name, tex_uvlayer_name);
     t_map.texmapping = tex_mapping;
 
-    tex_co = MEM_calloc_arrayN<float[3]>(verts_num, __func__);
+    tex_co = MEM_new_array_zeroed<float[3]>(verts_num, __func__);
     MOD_get_texture_coords(&t_map, ctx, ob, mesh, nullptr, tex_co);
 
     MOD_init_texture(&t_map, ctx);
@@ -203,7 +203,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
       }
     }
 
-    MEM_freeN(tex_co);
+    MEM_delete(tex_co);
   }
   else if ((ref_didx = BKE_id_defgroup_name_index(&mesh->id, defgrp_name)) != -1) {
     /* Check whether we want to set vgroup weights from a constant weight factor or a vertex

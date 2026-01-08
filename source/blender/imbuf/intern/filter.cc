@@ -108,7 +108,7 @@ void IMB_mask_filter_extend(char *mask, int width, int height)
   rowlen = width;
 
   /* make a copy, to prevent flooding */
-  temprect = static_cast<char *>(MEM_dupallocN(mask));
+  temprect = MEM_dupalloc(mask);
 
   for (y = 1; y <= height; y++) {
     /* setup rows */
@@ -140,7 +140,7 @@ void IMB_mask_filter_extend(char *mask, int width, int height)
     }
   }
 
-  MEM_freeN(temprect);
+  MEM_delete(temprect);
 }
 
 void IMB_mask_clear(ImBuf *ibuf, const char *mask, int val)
@@ -207,10 +207,10 @@ void IMB_filter_extend(ImBuf *ibuf, char *mask, int filter)
   const int chsize = ibuf->float_buffer.data ? sizeof(float) : sizeof(uchar);
   const size_t bsize = size_t(width) * height * depth * chsize;
   const bool is_float = (ibuf->float_buffer.data != nullptr);
-  void *dstbuf = MEM_dupallocN(ibuf->float_buffer.data ?
-                                   static_cast<void *>(ibuf->float_buffer.data) :
-                                   static_cast<void *>(ibuf->byte_buffer.data));
-  char *dstmask = mask == nullptr ? nullptr : static_cast<char *>(MEM_dupallocN(mask));
+  void *dstbuf = MEM_dupalloc_void(ibuf->float_buffer.data ?
+                                       static_cast<void *>(ibuf->float_buffer.data) :
+                                       static_cast<void *>(ibuf->byte_buffer.data));
+  char *dstmask = mask == nullptr ? nullptr : MEM_dupalloc(mask);
   void *srcbuf = ibuf->float_buffer.data ? static_cast<void *>(ibuf->float_buffer.data) :
                                            static_cast<void *>(ibuf->byte_buffer.data);
   char *srcmask = mask;
@@ -327,9 +327,9 @@ void IMB_filter_extend(ImBuf *ibuf, char *mask, int filter)
   }
 
   /* free memory */
-  MEM_freeN(dstbuf);
+  MEM_delete_void(dstbuf);
   if (dstmask != nullptr) {
-    MEM_freeN(dstmask);
+    MEM_delete(dstmask);
   }
 }
 

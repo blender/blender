@@ -36,7 +36,7 @@ void *util_aligned_malloc(const size_t size, const int alignment)
 {
   void *mem = nullptr;
 #ifdef WITH_BLENDER_GUARDEDALLOC
-  mem = MEM_mallocN_aligned(size, alignment, "Cycles Aligned Alloc");
+  mem = MEM_new_uninitialized_aligned(size, alignment, "Cycles Aligned Alloc");
 #elif defined(_WIN32)
   mem = _aligned_malloc(size, alignment);
 #elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
@@ -61,7 +61,7 @@ void util_aligned_free(void *ptr, const size_t size)
   }
 #if defined(WITH_BLENDER_GUARDEDALLOC)
   if (ptr != nullptr) {
-    MEM_freeN(ptr);
+    MEM_delete_void(ptr);
   }
 #elif defined(_WIN32)
   _aligned_free(ptr);

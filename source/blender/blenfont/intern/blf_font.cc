@@ -1888,7 +1888,7 @@ static bool blf_setup_face(FontBLF *font)
 
   if (FT_HAS_KERNING(font) && !font->kerning_cache) {
     /* Create kerning cache table and fill with value indicating "unset". */
-    font->kerning_cache = MEM_mallocN<KerningCacheBLF>(__func__);
+    font->kerning_cache = MEM_new_uninitialized<KerningCacheBLF>(__func__);
     for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
       for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
         font->kerning_cache->ascii_table[i][j] = KERNING_ENTRY_UNSET;
@@ -1950,7 +1950,7 @@ bool blf_ensure_face(FontBLF *font)
                 font->filepath,
                 int(err));
       }
-      MEM_freeN(mfile);
+      MEM_delete(mfile);
     }
   }
 
@@ -2093,7 +2093,7 @@ void blf_font_free(FontBLF *font)
   blf_glyph_cache_clear(font);
 
   if (font->kerning_cache) {
-    MEM_freeN(font->kerning_cache);
+    MEM_delete(font->kerning_cache);
   }
 
   if (font->variations) {
@@ -2106,10 +2106,10 @@ void blf_font_free(FontBLF *font)
     font->face = nullptr;
   }
   if (font->filepath) {
-    MEM_freeN(font->filepath);
+    MEM_delete(font->filepath);
   }
   if (font->mem_name) {
-    MEM_freeN(font->mem_name);
+    MEM_delete(font->mem_name);
   }
 
   MEM_delete(font);

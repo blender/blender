@@ -227,12 +227,12 @@ static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vert
   /* #subdiv_accumulate_vert_displacement requires zero initialization of positions so the
    * displacements can be accumulated into the array from a per-vertex-per-corner/edge callback. */
   ctx->subdiv_positions.fill(float3(0));
-  ctx->accumulated_counters = MEM_calloc_arrayN<int>(num_vertices, __func__);
+  ctx->accumulated_counters = MEM_new_array_zeroed<int>(num_vertices, __func__);
 }
 
 static void subdiv_mesh_context_free(SubdivMeshContext *ctx)
 {
-  MEM_SAFE_FREE(ctx->accumulated_counters);
+  MEM_SAFE_DELETE(ctx->accumulated_counters);
 }
 
 /** \} */

@@ -405,7 +405,7 @@ static bool text_insert(TextVars *data, const char *buf, const size_t buf_len)
   delete_selected_text(data);
 
   size_t needed_size = data->text_len_bytes + buf_len + 1;
-  char *new_text = MEM_malloc_arrayN<char>(needed_size, "text");
+  char *new_text = MEM_new_array_uninitialized<char>(needed_size, "text");
 
   const seq::CharInfo cur_char = character_at_cursor_offset_get(text, data->cursor_offset);
   BLI_assert(cur_char.offset >= 0 && cur_char.offset <= data->text_len_bytes);
@@ -415,7 +415,7 @@ static bool text_insert(TextVars *data, const char *buf, const size_t buf_len)
               data->text_ptr + cur_char.offset,
               data->text_len_bytes - cur_char.offset + 1);
   data->text_len_bytes += buf_len;
-  MEM_freeN(data->text_ptr);
+  MEM_delete(data->text_ptr);
   data->text_ptr = new_text;
 
   data->cursor_offset += 1;
@@ -808,11 +808,11 @@ static void text_edit_copy(const TextVars *data)
   BLI_assert(offset_start <= offset_end);
 
   const size_t len = offset_end - offset_start;
-  char *buf = MEM_malloc_arrayN<char>(len + 1, "text clipboard");
+  char *buf = MEM_new_array_uninitialized<char>(len + 1, "text clipboard");
   memcpy(buf, data->text_ptr + offset_start, len);
   buf[len] = 0;
   WM_clipboard_text_set(buf, false);
-  MEM_freeN(buf);
+  MEM_delete(buf);
 }
 
 static wmOperatorStatus sequencer_text_edit_copy_exec(bContext *C, wmOperator * /*op*/)
@@ -859,7 +859,7 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
 
   delete_selected_text(data);
   size_t needed_size = data->text_len_bytes + buf_len + 1;
-  char *new_text = MEM_malloc_arrayN<char>(needed_size, "text");
+  char *new_text = MEM_new_array_uninitialized<char>(needed_size, "text");
 
   const seq::CharInfo cur_char = character_at_cursor_offset_get(text, data->cursor_offset);
   BLI_assert(cur_char.offset >= 0 && cur_char.offset <= data->text_len_bytes);
@@ -869,12 +869,12 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
               data->text_ptr + cur_char.offset,
               data->text_len_bytes - cur_char.offset + 1);
   data->text_len_bytes += buf_len;
-  MEM_freeN(data->text_ptr);
+  MEM_delete(data->text_ptr);
   data->text_ptr = new_text;
 
   data->cursor_offset += BLI_strlen_utf8(buf);
 
-  MEM_freeN(buf);
+  MEM_delete(buf);
   text_editing_update(C);
   return OPERATOR_FINISHED;
 }

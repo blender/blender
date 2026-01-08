@@ -3852,7 +3852,8 @@ static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int di
 
   INIT_MINMAX2(ps->screenMin, ps->screenMax);
 
-  ps->screenCoords = MEM_malloc_arrayN<float[4]>(ps->totvert_eval, "ProjectPaint ScreenVerts");
+  ps->screenCoords = MEM_new_array_uninitialized<float[4]>(ps->totvert_eval,
+                                                           "ProjectPaint ScreenVerts");
   projScreenCo = *ps->screenCoords;
 
   if (ps->is_ortho) {
@@ -3928,9 +3929,9 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
   int a;
 
   if (ps->do_mask_cavity) {
-    int *counter = MEM_calloc_arrayN<int>(ps->totvert_eval, "counter");
-    float (*edges)[3] = MEM_calloc_arrayN<float[3]>(ps->totvert_eval, "edges");
-    ps->cavities = MEM_malloc_arrayN<float>(ps->totvert_eval, "ProjectPaint Cavities");
+    int *counter = MEM_new_array_zeroed<int>(ps->totvert_eval, "counter");
+    float (*edges)[3] = MEM_new_array_zeroed<float[3]>(ps->totvert_eval, "edges");
+    ps->cavities = MEM_new_array_uninitialized<float>(ps->totvert_eval, "ProjectPaint Cavities");
     cavities = ps->cavities;
 
     for (const int64_t i : ps->edges_eval.index_range()) {
@@ -3954,8 +3955,8 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
       }
     }
 
-    MEM_freeN(counter);
-    MEM_freeN(edges);
+    MEM_delete(counter);
+    MEM_delete(edges);
   }
 }
 
@@ -3963,11 +3964,12 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
 static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
 {
   if (ps->seam_bleed_px > 0.0f) {
-    ps->vertFaces = MEM_calloc_arrayN<LinkNode *>(ps->totvert_eval, "paint-vertFaces");
-    ps->faceSeamFlags = MEM_calloc_arrayN<ushort>(ps->corner_tris_eval.size(), __func__);
-    ps->faceWindingFlags = MEM_calloc_arrayN<char>(ps->corner_tris_eval.size(), __func__);
-    ps->loopSeamData = MEM_malloc_arrayN<LoopSeamData>(ps->totloop_eval, "paint-loopSeamUVs");
-    ps->vertSeams = MEM_calloc_arrayN<ListBaseT<VertSeam>>(ps->totvert_eval, "paint-vertSeams");
+    ps->vertFaces = MEM_new_array_zeroed<LinkNode *>(ps->totvert_eval, "paint-vertFaces");
+    ps->faceSeamFlags = MEM_new_array_zeroed<ushort>(ps->corner_tris_eval.size(), __func__);
+    ps->faceWindingFlags = MEM_new_array_zeroed<char>(ps->corner_tris_eval.size(), __func__);
+    ps->loopSeamData = MEM_new_array_uninitialized<LoopSeamData>(ps->totloop_eval,
+                                                                 "paint-loopSeamUVs");
+    ps->vertSeams = MEM_new_array_zeroed<ListBaseT<VertSeam>>(ps->totvert_eval, "paint-vertSeams");
   }
 }
 #endif
@@ -3990,7 +3992,7 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
 
   if (ps->is_shared_user == false) {
     if (ps->thread_tot > 1) {
-      ps->tile_lock = MEM_mallocN<SpinLock>("projpaint_tile_lock");
+      ps->tile_lock = MEM_new_uninitialized<SpinLock>("projpaint_tile_lock");
       BLI_spin_init(ps->tile_lock);
     }
 
@@ -4009,7 +4011,7 @@ static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
     float no[3];
     int a;
 
-    ps->vertFlags = MEM_calloc_arrayN<char>(ps->totvert_eval, "paint-vertFlags");
+    ps->vertFlags = MEM_new_array_zeroed<char>(ps->totvert_eval, "paint-vertFlags");
 
     for (a = 0; a < ps->totvert_eval; a++) {
       copy_v3_v3(no, ps->vert_normals[a]);
@@ -4092,7 +4094,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   /* Build final material array, we use this a lot here. */
   /* materials start from 1, default material is 0 */
   const int totmat = ob->totcol + 1;
-  ps->mat_array = MEM_malloc_arrayN<Material *>(totmat, __func__);
+  ps->mat_array = MEM_new_array_uninitialized<Material *>(totmat, __func__);
   /* We leave last material as empty - rationale here is being able to index
    * the materials by using the mf->mat_nr directly and leaving the last
    * material as nullptr in case no materials exist on mesh, so indexing will not fail. */
@@ -4147,8 +4149,8 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->corner_tris_eval = ps->mesh_eval->corner_tris();
   ps->corner_tri_faces_eval = ps->mesh_eval->corner_tri_faces();
 
-  ps->poly_to_loop_uv = MEM_malloc_arrayN<const float2 *>(ps->faces_num_eval,
-                                                          "proj_paint_mtfaces");
+  ps->poly_to_loop_uv = MEM_new_array_uninitialized<const float2 *>(ps->faces_num_eval,
+                                                                    "proj_paint_mtfaces");
 
   return true;
 }
@@ -4167,8 +4169,8 @@ static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone 
 
   /* use clone mtface? */
   if (ps->do_layer_clone) {
-    ps->poly_to_loop_uv_clone = MEM_malloc_arrayN<const float2 *>(ps->faces_num_eval,
-                                                                  "proj_paint_mtfaces");
+    ps->poly_to_loop_uv_clone = MEM_new_array_uninitialized<const float2 *>(ps->faces_num_eval,
+                                                                            "proj_paint_mtfaces");
 
     if (const bke::GAttributeReader attr = attributes.lookup(mesh_orig.clone_uv_map_attribute)) {
       if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
@@ -4562,7 +4564,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
           iuser.tile = tile;
           iuser.framenr = tpage->lastframe;
           if (BKE_image_has_ibuf(tpage, &iuser)) {
-            PrepareImageEntry *e = MEM_new_for_free<PrepareImageEntry>("PrepareImageEntry");
+            PrepareImageEntry *e = MEM_new<PrepareImageEntry>("PrepareImageEntry");
             e->ima = tpage;
             e->iuser = iuser;
             BLI_addtail(&used_images, e);
@@ -4690,12 +4692,13 @@ static void project_paint_begin(const bContext *C,
   CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
   CLAMP(ps->buckets_y, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
 
-  ps->bucketRect = MEM_calloc_arrayN<LinkNode *>(ps->buckets_x * ps->buckets_y,
-                                                 "paint-bucketRect");
-  ps->bucketFaces = MEM_calloc_arrayN<LinkNode *>(ps->buckets_x * ps->buckets_y,
-                                                  "paint-bucketFaces");
+  ps->bucketRect = MEM_new_array_zeroed<LinkNode *>(ps->buckets_x * ps->buckets_y,
+                                                    "paint-bucketRect");
+  ps->bucketFaces = MEM_new_array_zeroed<LinkNode *>(ps->buckets_x * ps->buckets_y,
+                                                     "paint-bucketFaces");
 
-  ps->bucketFlags = MEM_calloc_arrayN<uchar>(ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
+  ps->bucketFlags = MEM_new_array_zeroed<uchar>(ps->buckets_x * ps->buckets_y,
+                                                "paint-bucketFaces");
 #ifndef PROJ_DEBUG_NOSEAMBLEED
   if (ps->is_shared_user == false) {
     proj_paint_state_seam_bleed_init(ps);
@@ -4749,45 +4752,45 @@ static void project_paint_end(ProjPaintState *ps)
   }
   BKE_image_release_ibuf(ps->reproject_image, ps->reproject_ibuf, nullptr);
 
-  MEM_freeN(ps->screenCoords);
-  MEM_freeN(ps->bucketRect);
-  MEM_freeN(ps->bucketFaces);
-  MEM_freeN(ps->bucketFlags);
+  MEM_delete(ps->screenCoords);
+  MEM_delete(ps->bucketRect);
+  MEM_delete(ps->bucketFaces);
+  MEM_delete(ps->bucketFlags);
 
   if (ps->is_shared_user == false) {
     if (ps->mat_array != nullptr) {
-      MEM_freeN(ps->mat_array);
+      MEM_delete(ps->mat_array);
     }
 
     /* must be set for non-shared */
     BLI_assert(ps->poly_to_loop_uv || ps->is_shared_user);
     if (ps->poly_to_loop_uv) {
-      MEM_freeN(ps->poly_to_loop_uv);
+      MEM_delete(ps->poly_to_loop_uv);
     }
 
     if (ps->do_layer_clone) {
-      MEM_freeN(ps->poly_to_loop_uv_clone);
+      MEM_delete(ps->poly_to_loop_uv_clone);
     }
     if (ps->thread_tot > 1) {
       BLI_spin_end(ps->tile_lock);
       /* The void cast is needed when building without TBB. */
-      MEM_freeN((void *)ps->tile_lock);
+      MEM_delete_void((void *)ps->tile_lock);
     }
 
     ED_image_paint_tile_lock_end();
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
     if (ps->seam_bleed_px > 0.0f) {
-      MEM_freeN(ps->vertFaces);
-      MEM_freeN(ps->faceSeamFlags);
-      MEM_freeN(ps->faceWindingFlags);
-      MEM_freeN(ps->loopSeamData);
-      MEM_freeN(ps->vertSeams);
+      MEM_delete(ps->vertFaces);
+      MEM_delete(ps->faceSeamFlags);
+      MEM_delete(ps->faceWindingFlags);
+      MEM_delete(ps->loopSeamData);
+      MEM_delete(ps->vertSeams);
     }
 #endif
 
     if (ps->do_mask_cavity) {
-      MEM_freeN(ps->cavities);
+      MEM_delete(ps->cavities);
     }
 
     ps->mesh_eval = nullptr;
@@ -4799,7 +4802,7 @@ static void project_paint_end(ProjPaintState *ps)
   }
 
   if (ps->vertFlags) {
-    MEM_freeN(ps->vertFlags);
+    MEM_delete(ps->vertFlags);
   }
 
   for (a = 0; a < ps->thread_tot; a++) {
@@ -6827,7 +6830,7 @@ static void default_paint_slot_color_get(int layer_type, Material *ma, float col
       /* Cleanup */
       if (ntree) {
         bke::node_tree_free_tree(*ntree);
-        MEM_freeN(ntree);
+        MEM_delete(ntree);
       }
       return;
     }

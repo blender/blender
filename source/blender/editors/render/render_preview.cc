@@ -1165,7 +1165,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   RenderView *rv = static_cast<RenderView *>(rr->views.first);
   ImBuf *rv_ibuf = RE_RenderViewEnsureImBuf(rr, rv);
   IMB_assign_float_buffer(rv_ibuf,
-                          MEM_calloc_arrayN<float>(4 * width * height, "texture render result"),
+                          MEM_new_array_zeroed<float>(4 * width * height, "texture render result"),
                           IB_TAKE_OWNERSHIP);
   RE_ReleaseResult(re);
 
@@ -1333,7 +1333,7 @@ static void preview_id_copy_free(ID *id)
 {
   BKE_libblock_free_datablock(id, 0);
   BKE_libblock_free_data(id, false);
-  MEM_freeN(id);
+  MEM_delete(id);
 }
 
 static void shader_preview_free(void *customdata)
@@ -1379,7 +1379,7 @@ static void shader_preview_free(void *customdata)
     }
   }
 
-  MEM_freeN(sp);
+  MEM_delete(sp);
 }
 
 /** \} */
@@ -1526,7 +1526,7 @@ static void other_id_types_preview_render(IconPreview *ip,
                                           const ePreviewRenderMethod pr_method,
                                           wmJobWorkerStatus *worker_status)
 {
-  ShaderPreview *sp = MEM_callocN<ShaderPreview>("Icon ShaderPreview");
+  ShaderPreview *sp = MEM_new_zeroed<ShaderPreview>("Icon ShaderPreview");
 
   /* These types don't use the ShaderPreview mess, they have their own types and functions. */
   BLI_assert(!ip->id || !ELEM(GS(ip->id->name), ID_OB));
@@ -1676,7 +1676,7 @@ static void icon_preview_add_size(IconPreview *ip, uint *rect, int sizex, int si
     cur_size = cur_size->next;
   }
 
-  IconPreviewSize *new_size = MEM_callocN<IconPreviewSize>("IconPreviewSize");
+  IconPreviewSize *new_size = MEM_new_zeroed<IconPreviewSize>("IconPreviewSize");
   new_size->sizex = sizex;
   new_size->sizey = sizey;
   new_size->rect = rect;
@@ -1861,8 +1861,8 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
         preview->w[request->icon_size] = thumb->x;
         preview->h[request->icon_size] = thumb->y;
         BLI_assert(preview->rect[request->icon_size] == nullptr);
-        preview->rect[request->icon_size] = static_cast<uint *>(
-            MEM_dupallocN(thumb->byte_buffer.data));
+        preview->rect[request->icon_size] = reinterpret_cast<uint *>(
+            MEM_dupalloc(thumb->byte_buffer.data));
       }
       else {
         icon_copy_rect(thumb,
@@ -1948,7 +1948,7 @@ static void icon_preview_free(void *customdata)
   }
 
   BLI_freelistN(&ip->sizes);
-  MEM_freeN(ip);
+  MEM_delete(ip);
 }
 
 bool ED_preview_use_image_size(const PreviewImage *preview, eIconSizes size)
@@ -2074,7 +2074,7 @@ void ED_preview_icon_job(
                               WM_JOB_EXCL_RENDER,
                               WM_JOB_TYPE_RENDER_PREVIEW);
 
-  ip = MEM_callocN<IconPreview>("icon preview");
+  ip = MEM_new_zeroed<IconPreview>("icon preview");
 
   /* render all resolutions from suspended job too */
   old_ip = static_cast<IconPreview *>(WM_jobs_customdata_get(wm_job));
@@ -2150,7 +2150,7 @@ void ED_preview_shader_job(const bContext *C,
                        "Generating shader preview...",
                        WM_JOB_EXCL_RENDER,
                        WM_JOB_TYPE_RENDER_PREVIEW);
-  sp = MEM_callocN<ShaderPreview>("shader preview");
+  sp = MEM_new_zeroed<ShaderPreview>("shader preview");
 
   /* customdata for preview thread */
   sp->scene = scene;
@@ -2229,7 +2229,7 @@ void ED_preview_restart_queue_free()
 
 void ED_preview_restart_queue_add(ID *id, enum eIconSizes size)
 {
-  PreviewRestartQueueEntry *queue_entry = MEM_callocN<PreviewRestartQueueEntry>(__func__);
+  PreviewRestartQueueEntry *queue_entry = MEM_new_zeroed<PreviewRestartQueueEntry>(__func__);
   queue_entry->size = size;
   queue_entry->id = id;
   BLI_addtail(&G_restart_previews_queue, queue_entry);

@@ -1161,7 +1161,7 @@ Block *block_func_COLOR(bContext *C, PopupBlockHandle *handle, void *arg_but)
 
 ColorPicker *block_colorpicker_create(Block *block)
 {
-  ColorPicker *cpicker = MEM_callocN<ColorPicker>(__func__);
+  ColorPicker *cpicker = MEM_new_zeroed<ColorPicker>(__func__);
   BLI_addhead(&block->color_pickers.list, cpicker);
 
   return cpicker;

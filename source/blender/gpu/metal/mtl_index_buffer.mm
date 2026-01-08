@@ -144,7 +144,7 @@ void MTLIndexBuf::upload_data()
 
     /* No need to keep copy of data_ in system memory. */
     if (data_) {
-      MEM_SAFE_FREE(data_);
+      MEM_SAFE_DELETE_VOID(data_);
     }
   }
 }

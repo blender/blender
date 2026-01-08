@@ -39,15 +39,15 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
   zspan->rectx = rectx;
   zspan->recty = recty;
 
-  zspan->span1 = MEM_malloc_arrayN<float>(recty, "zspan");
-  zspan->span2 = MEM_malloc_arrayN<float>(recty, "zspan");
+  zspan->span1 = MEM_new_array_uninitialized<float>(recty, "zspan");
+  zspan->span2 = MEM_new_array_uninitialized<float>(recty, "zspan");
 }
 
 void zbuf_free_span(ZSpan *zspan)
 {
   if (zspan) {
-    MEM_SAFE_FREE(zspan->span1);
-    MEM_SAFE_FREE(zspan->span2);
+    MEM_SAFE_DELETE(zspan->span1);
+    MEM_SAFE_DELETE(zspan->span2);
   }
 }
 

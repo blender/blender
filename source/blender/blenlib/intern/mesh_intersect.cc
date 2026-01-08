@@ -1942,8 +1942,8 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
   uint(*tris)[3];
   const int totfilltri = flen - 2;
   /* Prepare projected vertices and array to receive triangles in tessellation. */
-  tris = MEM_malloc_arrayN<uint[3]>(size_t(totfilltri), __func__);
-  projverts = MEM_malloc_arrayN<float[2]>(size_t(flen), __func__);
+  tris = MEM_new_array_uninitialized<uint[3]>(size_t(totfilltri), __func__);
+  projverts = MEM_new_array_uninitialized<float[2]>(size_t(flen), __func__);
   axis_dominant_v3_to_m3_negate(axis_mat, no);
   for (int j = 0; j < flen; ++j) {
     const double3 &dco = (*f)[j]->co;
@@ -1973,8 +1973,8 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
     }
   }
 
-  MEM_freeN(tris);
-  MEM_freeN(projverts);
+  MEM_delete(tris);
+  MEM_delete(projverts);
 
   return ans;
 }
@@ -2313,7 +2313,7 @@ class TriOverlaps {
      * in the repeated part, sorting will then bring things with indexB together. */
     if (two_trees_no_self) {
       overlap_ = static_cast<BVHTreeOverlap *>(
-          MEM_reallocN(overlap_, 2 * overlap_num_ * sizeof(overlap_[0])));
+          MEM_realloc_uninitialized(overlap_, 2 * overlap_num_ * sizeof(overlap_[0])));
       for (uint i = 0; i < overlap_num_; ++i) {
         overlap_[overlap_num_ + i].indexA = overlap_[i].indexB;
         overlap_[overlap_num_ + i].indexB = overlap_[i].indexA;
@@ -2346,7 +2346,7 @@ class TriOverlaps {
       BLI_bvhtree_free(tree_b_);
     }
     if (overlap_) {
-      MEM_freeN(overlap_);
+      MEM_delete(overlap_);
     }
   }
 

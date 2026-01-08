@@ -192,7 +192,7 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 
@@ -497,7 +497,7 @@ void do_versions_after_linking_440(FileData *fd, Main *bmain)
             }
             const StringRef tail = rna_path.drop_prefix(old_prefix.size());
             char *new_rna_path = BLI_strdupcat(new_prefix.data(), tail.data());
-            MEM_freeN(fcurve.rna_path);
+            MEM_delete(fcurve.rna_path);
             fcurve.rna_path = new_rna_path;
           };
       if (scene.adt->action) {
@@ -604,7 +604,7 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
     }
 
     bNode &greater_or_equal = version_node_add_empty(*tree, "FunctionNodeCompare");
-    auto *compare_storage = MEM_new_for_free<NodeFunctionCompare>(__func__);
+    auto *compare_storage = MEM_new<NodeFunctionCompare>(__func__);
     compare_storage->operation = NODE_COMPARE_GREATER_EQUAL;
     compare_storage->data_type = SOCK_INT;
     greater_or_equal.storage = compare_storage;

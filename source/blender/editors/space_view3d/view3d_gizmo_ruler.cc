@@ -551,10 +551,10 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     int j;
 
     /* allocate memory for a new stroke */
-    gps = MEM_new_for_free<bGPDstroke>("gp_stroke");
+    gps = MEM_new<bGPDstroke>("gp_stroke");
     if (ruler_item->flag & RULERITEM_USE_ANGLE) {
       gps->totpoints = 3;
-      pt = gps->points = MEM_new_array_for_free<bGPDspoint>(gps->totpoints, "gp_stroke_points");
+      pt = gps->points = MEM_new_array<bGPDspoint>(gps->totpoints, "gp_stroke_points");
       for (j = 0; j < 3; j++) {
         copy_v3_v3(&pt->x, ruler_item->co[j]);
         pt->pressure = 1.0f;
@@ -564,7 +564,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     }
     else {
       gps->totpoints = 2;
-      pt = gps->points = MEM_new_array_for_free<bGPDspoint>(gps->totpoints, "gp_stroke_points");
+      pt = gps->points = MEM_new_array<bGPDspoint>(gps->totpoints, "gp_stroke_points");
       for (j = 0; j < 3; j += 2) {
         copy_v3_v3(&pt->x, ruler_item->co[j]);
         pt->pressure = 1.0f;
@@ -1139,7 +1139,7 @@ static wmOperatorStatus gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEve
   wmGizmoGroup *gzgroup = gz->parent_gzgroup;
   RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
   RulerItem *ruler_item_pick = reinterpret_cast<RulerItem *>(gz);
-  RulerInteraction *inter = MEM_callocN<RulerInteraction>(__func__);
+  RulerInteraction *inter = MEM_new_zeroed<RulerInteraction>(__func__);
   gz->interaction_data = inter;
 
   ARegion *region = ruler_info->region;
@@ -1253,7 +1253,7 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
   }
 
   RulerInteraction *inter = static_cast<RulerInteraction *>(gz->interaction_data);
-  MEM_freeN(inter);
+  MEM_delete(inter);
   gz->interaction_data = nullptr;
 
   ruler_state_set(ruler_info, RULER_STATE_NORMAL);
@@ -1291,7 +1291,7 @@ void VIEW3D_GT_ruler_item(wmGizmoType *gzt)
 
 static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  RulerInfo *ruler_info = MEM_callocN<RulerInfo>(__func__);
+  RulerInfo *ruler_info = MEM_new_zeroed<RulerInfo>(__func__);
 
   wmGizmo *gizmo;
   {

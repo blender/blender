@@ -64,7 +64,7 @@ static PointerRNA rna_workspace_screens_item_get(CollectionPropertyIterator *ite
 
 static wmOwnerID *rna_WorkSpace_owner_ids_new(WorkSpace *workspace, const char *name)
 {
-  wmOwnerID *owner_id = MEM_new_for_free<wmOwnerID>(__func__);
+  wmOwnerID *owner_id = MEM_new<wmOwnerID>(__func__);
   BLI_addtail(&workspace->owner_ids, owner_id);
   STRNCPY(owner_id->name, name);
   WM_main_add_notifier(NC_WINDOW, nullptr);
@@ -85,7 +85,7 @@ static void rna_WorkSpace_owner_ids_remove(WorkSpace *workspace,
     return;
   }
 
-  MEM_freeN(owner_id);
+  MEM_delete(owner_id);
   wstag_ptr->invalidate();
 
   WM_main_add_notifier(NC_WINDOW, nullptr);

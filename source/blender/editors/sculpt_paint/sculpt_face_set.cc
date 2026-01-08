@@ -1797,7 +1797,7 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op
 {
   Object &object = *gesture_data.vc.obact;
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_callocN<FaceSetOperation>(__func__));
+      MEM_new_zeroed<FaceSetOperation>(__func__));
 
   FaceSetOperation *face_set_operation = reinterpret_cast<FaceSetOperation *>(
       gesture_data.operation);

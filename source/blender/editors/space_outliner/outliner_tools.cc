@@ -901,11 +901,11 @@ void merged_element_search_menu_invoke(bContext *C,
                                        TreeElement *parent_te,
                                        TreeElement *activate_te)
 {
-  MergedSearchData *select_data = MEM_callocN<MergedSearchData>("merge_search_data");
+  MergedSearchData *select_data = MEM_new_zeroed<MergedSearchData>("merge_search_data");
   select_data->parent_element = parent_te;
   select_data->select_element = activate_te;
 
-  popup_block_invoke(C, merged_element_search_menu, select_data, MEM_freeN);
+  popup_block_invoke(C, merged_element_search_menu, select_data, MEM_delete_void);
 }
 
 static void object_select_fn(bContext *C,

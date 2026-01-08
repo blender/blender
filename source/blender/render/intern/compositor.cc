@@ -173,7 +173,7 @@ class Context : public compositor::Context {
       render_result->have_combined = true;
 
       if (result.is_single_value()) {
-        float *data = MEM_malloc_arrayN<float>(
+        float *data = MEM_new_array_uninitialized<float>(
             4 * size_t(render_result->rectx) * size_t(render_result->recty), __func__);
         IMB_assign_float_buffer(image_buffer, data, IB_TAKE_OWNERSHIP);
         IMB_rectfill(image_buffer, result.get_single_value<compositor::Color>());
@@ -184,7 +184,7 @@ class Context : public compositor::Context {
         IMB_assign_float_buffer(image_buffer, output_buffer, IB_TAKE_OWNERSHIP);
       }
       else {
-        float *data = MEM_malloc_arrayN<float>(
+        float *data = MEM_new_array_uninitialized<float>(
             4 * size_t(render_result->rectx) * size_t(render_result->recty), __func__);
         IMB_assign_float_buffer(image_buffer, data, IB_TAKE_OWNERSHIP);
         std::memcpy(image_buffer->float_buffer.data,

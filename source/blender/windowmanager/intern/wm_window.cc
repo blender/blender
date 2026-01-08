@@ -286,17 +286,17 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   wm_window_timers_delete_removed(wm);
 
   if (win->runtime->eventstate) {
-    MEM_freeN(win->runtime->eventstate);
+    MEM_delete(win->runtime->eventstate);
   }
   if (win->runtime->event_last_handled) {
-    MEM_freeN(win->runtime->event_last_handled);
+    MEM_delete(win->runtime->event_last_handled);
   }
   if (win->event_queue_consecutive_gesture_data) {
     WM_event_consecutive_data_free(win);
   }
 
   if (win->runtime->cursor_keymap_status) {
-    MEM_freeN(win->runtime->cursor_keymap_status);
+    MEM_delete_void(win->runtime->cursor_keymap_status);
   }
 
   WM_gestures_free_all(win);
@@ -306,10 +306,10 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   wm_ghostwindow_destroy(wm, win);
 
   BKE_workspace_instance_hook_free(G_MAIN, win->workspace_hook);
-  MEM_freeN(win->stereo3d_format);
+  MEM_delete(win->stereo3d_format);
 
   MEM_delete(win->runtime);
-  MEM_freeN(win);
+  MEM_delete(win);
 }
 
 static int find_free_winid(wmWindowManager *wm)
@@ -326,14 +326,14 @@ static int find_free_winid(wmWindowManager *wm)
 
 wmWindow *wm_window_new(const Main *bmain, wmWindowManager *wm, wmWindow *parent, bool dialog)
 {
-  wmWindow *win = MEM_new_for_free<wmWindow>("window");
+  wmWindow *win = MEM_new<wmWindow>("window");
 
   BLI_addtail(&wm->windows, win);
   win->winid = find_free_winid(wm);
 
   /* Dialogs may have a child window as parent. Otherwise, a child must not be a parent too. */
   win->parent = (!dialog && parent && parent->parent) ? parent->parent : parent;
-  win->stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Stereo 3D Format (window)");
+  win->stereo3d_format = MEM_new<Stereo3dFormat>("Stereo 3D Format (window)");
   win->workspace_hook = BKE_workspace_instance_hook_create(bmain, win->winid);
   win->runtime = MEM_new<bke::WindowRuntime>(__func__);
 
@@ -408,7 +408,7 @@ static void wm_save_file_on_quit_dialog_callback(bContext *C, void * /*user_data
  */
 static void wm_confirm_quit(bContext *C)
 {
-  wmGenericCallback *action = MEM_new_for_free<wmGenericCallback>(__func__);
+  wmGenericCallback *action = MEM_new<wmGenericCallback>(__func__);
   action->exec = wm_save_file_on_quit_dialog_callback;
   wm_close_file_dialog(C, action);
 }
@@ -940,7 +940,7 @@ static void wm_window_ensure_eventstate(wmWindow *win)
     return;
   }
 
-  win->runtime->eventstate = MEM_new_for_free<wmEvent>("window event state");
+  win->runtime->eventstate = MEM_new<wmEvent>("window event state");
   wm_window_update_eventstate(win);
 }
 
@@ -2472,7 +2472,7 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm,
 {
   BLI_assert(ISTIMER(event_type));
 
-  wmTimer *wt = MEM_callocN<wmTimer>("window timer");
+  wmTimer *wt = MEM_new_zeroed<wmTimer>("window timer");
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = event_type;
@@ -2492,7 +2492,7 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      const uint type,
                                      const double time_step)
 {
-  wmTimer *wt = MEM_callocN<wmTimer>("window timer");
+  wmTimer *wt = MEM_new_zeroed<wmTimer>("window timer");
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = TIMERNOTIFIER;
@@ -2518,14 +2518,14 @@ void wm_window_timers_delete_removed(wmWindowManager *wm)
 
     /* Actual removal and freeing of the timer. */
     BLI_remlink(&wm->runtime->timers, &wt);
-    MEM_freeN(&wt);
+    MEM_delete(&wt);
   }
 }
 
 void WM_event_timer_free_data(wmTimer *timer)
 {
   if (timer->customdata != nullptr && (timer->flags & WM_TIMER_NO_FREE_CUSTOM_DATA) == 0) {
-    MEM_freeN(timer->customdata);
+    MEM_delete_void(timer->customdata);
     timer->customdata = nullptr;
   }
 }
@@ -2586,10 +2586,10 @@ void wm_clipboard_free()
   for (int i = 0; i < ARRAY_SIZE(g_wm_clipboard_text_simulate->buffers); i++) {
     char *buf = g_wm_clipboard_text_simulate->buffers[i];
     if (buf) {
-      MEM_freeN(buf);
+      MEM_delete(buf);
     }
   }
-  MEM_freeN(g_wm_clipboard_text_simulate);
+  MEM_delete(g_wm_clipboard_text_simulate);
   g_wm_clipboard_text_simulate = nullptr;
 }
 
@@ -2617,10 +2617,10 @@ static void wm_clipboard_text_set_impl(const char *buf, bool selection)
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
     if (g_wm_clipboard_text_simulate == nullptr) {
       g_wm_clipboard_text_simulate =
-          MEM_callocN<std::remove_pointer_t<decltype(g_wm_clipboard_text_simulate)>>(__func__);
+          MEM_new_zeroed<std::remove_pointer_t<decltype(g_wm_clipboard_text_simulate)>>(__func__);
     }
     char **buf_src_p = &(g_wm_clipboard_text_simulate->buffers[int(selection)]);
-    MEM_SAFE_FREE(*buf_src_p);
+    MEM_SAFE_DELETE(*buf_src_p);
     *buf_src_p = BLI_strdup(buf);
     return;
   }
@@ -2661,7 +2661,7 @@ static char *wm_clipboard_text_get_ex(bool selection,
   }
 
   /* Always convert from `\r\n` to `\n`. */
-  char *newbuf = MEM_malloc_arrayN<char>(size_t(buf_len + 1), __func__);
+  char *newbuf = MEM_new_array_uninitialized<char>(size_t(buf_len + 1), __func__);
   char *p2 = newbuf;
 
   if (firstline) {
@@ -2720,7 +2720,7 @@ void WM_clipboard_text_set(const char *buf, bool selection)
       }
     }
 
-    newbuf = MEM_calloc_arrayN<char>(newlen + 1, "WM_clipboard_text_set");
+    newbuf = MEM_new_array_zeroed<char>(newlen + 1, "WM_clipboard_text_set");
 
     for (p = buf, p2 = newbuf; *p; p++, p2++) {
       if (*p == '\n') {
@@ -2734,7 +2734,7 @@ void WM_clipboard_text_set(const char *buf, bool selection)
     *p2 = '\0';
 
     wm_clipboard_text_set_impl(newbuf, selection);
-    MEM_freeN(newbuf);
+    MEM_delete(newbuf);
 #else
     wm_clipboard_text_set_impl(buf, selection);
 #endif

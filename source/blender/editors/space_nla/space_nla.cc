@@ -54,11 +54,11 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   ARegion *region;
   SpaceNla *snla;
 
-  snla = MEM_new_for_free<SpaceNla>("initnla");
+  snla = MEM_new<SpaceNla>("initnla");
   snla->spacetype = SPACE_NLA;
 
   /* allocate DopeSheet data for NLA Editor */
-  snla->ads = MEM_new_for_free<bDopeSheet>("NlaEdit DopeSheet");
+  snla->ads = MEM_new<bDopeSheet>("NlaEdit DopeSheet");
   snla->ads->source = id_cast<ID *>(const_cast<Scene *>((scene)));
 
   /* set auto-snapping settings */
@@ -134,7 +134,7 @@ static void nla_free(SpaceLink *sl)
 
   if (snla->ads) {
     BLI_freelistN(&snla->ads->chanbase);
-    MEM_freeN(snla->ads);
+    MEM_delete(snla->ads);
   }
 }
 
@@ -145,7 +145,7 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 
   /* init dope-sheet data if non-existent (i.e. for old files). */
   if (snla->ads == nullptr) {
-    snla->ads = MEM_new_for_free<bDopeSheet>("NlaEdit DopeSheet");
+    snla->ads = MEM_new<bDopeSheet>("NlaEdit DopeSheet");
     wmWindow *win = WM_window_find_by_area(wm, area);
     snla->ads->source = win ? reinterpret_cast<ID *>(WM_window_get_active_scene(win)) : nullptr;
   }
@@ -155,10 +155,10 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 
 static SpaceLink *nla_duplicate(SpaceLink *sl)
 {
-  SpaceNla *snlan = static_cast<SpaceNla *>(MEM_dupallocN(sl));
+  SpaceNla *snlan = MEM_dupalloc(reinterpret_cast<SpaceNla *>(sl));
 
   /* clear or remove stuff from old */
-  snlan->ads = static_cast<bDopeSheet *>(MEM_dupallocN(snlan->ads));
+  snlan->ads = MEM_dupalloc(snlan->ads);
 
   return reinterpret_cast<SpaceLink *>(snlan);
 }
@@ -675,7 +675,7 @@ void ED_spacetype_nla()
   st->blend_write = nla_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = nla_main_region_init;
   art->draw = nla_main_region_draw;
@@ -687,7 +687,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -698,7 +698,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: footer */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
@@ -710,7 +710,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: tracks */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = 200;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
@@ -723,7 +723,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: UI buttons */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;

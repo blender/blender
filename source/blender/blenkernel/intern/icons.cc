@@ -83,22 +83,22 @@ static void icon_free(void *val)
     Icon_Geom *obj = static_cast<Icon_Geom *>(icon->obj);
     if (obj->mem) {
       /* coords & colors are part of this memory. */
-      MEM_freeN(obj->mem);
+      MEM_delete(obj->mem);
     }
     else {
-      MEM_freeN(obj->coords);
-      MEM_freeN(obj->colors);
+      MEM_delete(obj->coords);
+      MEM_delete(obj->colors);
     }
-    MEM_freeN(icon->obj);
+    MEM_delete_void(icon->obj);
   }
 
   if (icon->drawinfo_free) {
     icon->drawinfo_free(icon->drawinfo);
   }
   else if (icon->drawinfo) {
-    MEM_freeN(icon->drawinfo);
+    MEM_delete_void(icon->drawinfo);
   }
-  MEM_freeN(icon);
+  MEM_delete(icon);
 }
 
 static void icon_free_data(int icon_id, Icon *icon)
@@ -191,7 +191,7 @@ void BKE_icons_free()
   }
   gIcons.clear();
 
-  BLI_linklist_lockfree_free(&g_icon_delete_queue, MEM_freeN);
+  BLI_linklist_lockfree_free(&g_icon_delete_queue, MEM_delete_void);
 }
 
 void BKE_icons_deferred_free()
@@ -208,7 +208,7 @@ void BKE_icons_deferred_free()
       icon_free(icon);
     }
   }
-  BLI_linklist_lockfree_clear(&g_icon_delete_queue, MEM_freeN);
+  BLI_linklist_lockfree_clear(&g_icon_delete_queue, MEM_delete_void);
 }
 
 void BKE_icon_changed(const int icon_id)
@@ -244,7 +244,7 @@ void BKE_icon_changed(const int icon_id)
 
 static Icon *icon_create(int icon_id, int obj_type, void *obj)
 {
-  Icon *new_icon = MEM_mallocN<Icon>(__func__);
+  Icon *new_icon = MEM_new_uninitialized<Icon>(__func__);
 
   new_icon->obj_type = obj_type;
   new_icon->obj = obj;
@@ -435,7 +435,7 @@ void BKE_icon_set(const int icon_id, Icon *icon)
 
 static void icon_add_to_deferred_delete_queue(int icon_id)
 {
-  DeferredIconDeleteNode *node = MEM_mallocN<DeferredIconDeleteNode>(__func__);
+  DeferredIconDeleteNode *node = MEM_new_uninitialized<DeferredIconDeleteNode>(__func__);
   node->icon_id = icon_id;
   /* Doesn't need lock. */
   BLI_linklist_lockfree_insert(&g_icon_delete_queue, reinterpret_cast<LockfreeLinkNode *>(node));
@@ -549,7 +549,7 @@ Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len)
   }
   p += 4;
 
-  Icon_Geom *geom = MEM_mallocN<Icon_Geom>(__func__);
+  Icon_Geom *geom = MEM_new_uninitialized<Icon_Geom>(__func__);
   geom->coords_range[0] = int(*p++);
   geom->coords_range[1] = int(*p++);
   /* x, y ignored for now */

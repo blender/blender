@@ -228,15 +228,14 @@ static void mask_spline_add_point_at_index(MaskSpline *spline, int point_index)
 {
   MaskSplinePoint *new_point_array;
 
-  new_point_array = MEM_new_array_for_free<MaskSplinePoint>(spline->tot_point + 1,
-                                                            "add mask vert points");
+  new_point_array = MEM_new_array<MaskSplinePoint>(spline->tot_point + 1, "add mask vert points");
 
   memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * (point_index + 1));
   memcpy(new_point_array + point_index + 2,
          spline->points + point_index + 1,
          sizeof(MaskSplinePoint) * (spline->tot_point - point_index - 1));
 
-  MEM_freeN(spline->points);
+  MEM_delete(spline->points);
   spline->points = new_point_array;
   spline->tot_point++;
 }
@@ -722,7 +721,7 @@ static BezTriple *points_to_bezier(const float (*points)[2],
                                    const float scale,
                                    const float location[2])
 {
-  BezTriple *bezier_points = MEM_calloc_arrayN<BezTriple>(num_points, __func__);
+  BezTriple *bezier_points = MEM_new_array_zeroed<BezTriple>(num_points, __func__);
   for (int i = 0; i < num_points; i++) {
     copy_v2_v2(bezier_points[i].vec[1], points[i]);
     mul_v2_fl(bezier_points[i].vec[1], scale);
@@ -779,7 +778,7 @@ static int create_primitive_from_points(
   MaskSpline *new_spline = BKE_mask_spline_add(mask_layer);
   new_spline->flag = MASK_SPLINE_CYCLIC | SELECT;
   new_spline->points = static_cast<MaskSplinePoint *>(
-      MEM_recallocN(new_spline->points, sizeof(MaskSplinePoint) * num_points));
+      MEM_realloc_zeroed(new_spline->points, sizeof(MaskSplinePoint) * num_points));
 
   mask_layer->act_spline = new_spline;
   mask_layer->act_point = nullptr;
@@ -803,7 +802,7 @@ static int create_primitive_from_points(
     }
   }
 
-  MEM_freeN(bezier_points);
+  MEM_delete(bezier_points);
 
   if (added_mask) {
     WM_event_add_notifier(C, NC_MASK | NA_ADDED, nullptr);

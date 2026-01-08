@@ -471,7 +471,7 @@ void *BMO_slot_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_
   /* could add support for mapping type */
   BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
 
-  ret = MEM_malloc_arrayN<void *>(slot->len, __func__);
+  ret = MEM_new_array_uninitialized<void *>(slot->len, __func__);
   memcpy(ret, slot->data.buf, sizeof(void *) * slot->len);
   *len = slot->len;
   return ret;
@@ -610,7 +610,7 @@ void BMO_mesh_selected_remap(BMesh *bm,
                    (check_select && (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT) == false))))
       {
         BLI_remlink(&bm->selected, ese);
-        MEM_freeN(ese);
+        MEM_delete(ese);
       }
     }
   }
@@ -673,7 +673,7 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
 
       allocsize = BMO_OPSLOT_TYPEINFO[bmo_opdefines[op->type]->slot_types[slot_code].type] *
                   slot->size;
-      slot->data.buf = MEM_recallocN_id(slot->data.buf, allocsize, "opslot dynamic array");
+      slot->data.buf = MEM_realloc_zeroed_id(slot->data.buf, allocsize, "opslot dynamic array");
     }
 
     slot->len += totadd;
@@ -687,7 +687,7 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
                 slot->len;
 
     tmp = slot->data.buf;
-    slot->data.buf = MEM_callocN(allocsize, "opslot dynamic array");
+    slot->data.buf = MEM_new_zeroed(allocsize, "opslot dynamic array");
     memcpy(slot->data.buf, tmp, allocsize);
   }
 
@@ -1474,7 +1474,7 @@ void BMO_error_clear(BMesh *bm)
 
 void BMO_error_raise(BMesh *bm, BMOperator *owner, eBMOpErrorLevel level, const char *msg)
 {
-  BMOpError *err = MEM_callocN<BMOpError>("bmop_error");
+  BMOpError *err = MEM_new_zeroed<BMOpError>("bmop_error");
 
   err->msg = msg;
   err->op = owner;
@@ -1543,7 +1543,7 @@ bool BMO_error_pop(BMesh *bm, const char **r_msg, BMOperator **r_op, eBMOpErrorL
     BMOpError *err = static_cast<BMOpError *>(bm->errorstack.first);
 
     BLI_remlink(&bm->errorstack, bm->errorstack.first);
-    MEM_freeN(err);
+    MEM_delete(err);
   }
 
   return result;
@@ -1640,7 +1640,7 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
   i = BMO_opcode_from_opname_check(opname);
 
   if (i == -1) {
-    MEM_freeN(ofmt);
+    MEM_delete(ofmt);
     BLI_assert(0);
     return false;
   }
@@ -1836,7 +1836,7 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
     fmt++;
   }
 
-  MEM_freeN(ofmt);
+  MEM_delete(ofmt);
   return true;
 error:
 
@@ -1857,7 +1857,7 @@ error:
 
   fprintf(stderr, "reason: %s\n", err_reason);
 
-  MEM_freeN(ofmt);
+  MEM_delete(ofmt);
 
   BMO_op_finish(bm, op);
   return false;

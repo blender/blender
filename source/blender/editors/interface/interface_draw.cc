@@ -2016,7 +2016,7 @@ void draw_but_CURVEPROFILE(ARegion *region,
   const uint tot_triangles = tot_points - 2;
 
   /* Create array of the positions of the table's points. */
-  float (*table_coords)[2] = MEM_malloc_arrayN<float[2]>(tot_points, __func__);
+  float (*table_coords)[2] = MEM_new_array_uninitialized<float[2]>(tot_points, __func__);
   for (uint i = 0; i < uint(BKE_curveprofile_table_size(profile)); i++) {
     /* Only add the points from the table here. */
     table_coords[i][0] = pts[i].x;
@@ -2056,7 +2056,7 @@ void draw_but_CURVEPROFILE(ARegion *region,
 
   /* Calculate the table point indices of the triangles for the profile's fill. */
   if (tot_triangles > 0) {
-    uint(*tri_indices)[3] = MEM_malloc_arrayN<uint[3]>(tot_triangles, __func__);
+    uint(*tri_indices)[3] = MEM_new_array_uninitialized<uint[3]>(tot_triangles, __func__);
     BLI_polyfill_calc(table_coords, tot_points, -1, tri_indices);
 
     /* Draw the triangles for the profile fill. */
@@ -2073,7 +2073,7 @@ void draw_but_CURVEPROFILE(ARegion *region,
       }
     }
     immEnd();
-    MEM_freeN(tri_indices);
+    MEM_delete(tri_indices);
   }
 
   /* Draw the profile's path so the edge stands out a bit. */
@@ -2092,7 +2092,7 @@ void draw_but_CURVEPROFILE(ARegion *region,
     immEnd();
   }
 
-  MEM_SAFE_FREE(table_coords);
+  MEM_SAFE_DELETE(table_coords);
 
   /* Draw the handles for the selected control points. */
   pts = profile->path;

@@ -221,7 +221,7 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
 {
   BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  BlendFileReadWMSetupData *wm_setup_data = MEM_callocN<BlendFileReadWMSetupData>(__func__);
+  BlendFileReadWMSetupData *wm_setup_data = MEM_new_zeroed<BlendFileReadWMSetupData>(__func__);
   wm_setup_data->is_read_homefile = is_read_homefile;
   /* This info is not always known yet when this function is called. */
   wm_setup_data->is_factory_startup = false;
@@ -426,7 +426,7 @@ static void wm_file_read_setup_wm_use_new(bContext *C,
    * will crash. See: #100703. */
   BKE_libblock_free_data(&old_wm->id, false);
   BKE_libblock_free_data_py(&old_wm->id);
-  MEM_freeN(old_wm);
+  MEM_delete(old_wm);
 }
 
 /**
@@ -1550,7 +1550,7 @@ void wm_homefile_read_ex(bContext *C,
     }
     else {
       params_file_read_post.is_alloc = true;
-      *r_params_file_read_post = MEM_mallocN<wmFileReadPost_Params>(__func__);
+      *r_params_file_read_post = MEM_new_uninitialized<wmFileReadPost_Params>(__func__);
       **r_params_file_read_post = params_file_read_post;
 
       /* Match #wm_file_read_post which leaves the window cleared too. */
@@ -1576,7 +1576,7 @@ void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file
   }
 
   if (params_file_read_post->is_alloc) {
-    MEM_freeN(params_file_read_post);
+    MEM_delete(params_file_read_post);
   }
 }
 
@@ -1608,7 +1608,7 @@ void wm_history_file_read()
     const char *line = static_cast<const char *>(l->link);
     /* Don't check if files exist, causes slow startup for remote/external drives. */
     if (line[0]) {
-      RecentFile *recent = MEM_mallocN<RecentFile>("RecentFile");
+      RecentFile *recent = MEM_new_uninitialized<RecentFile>("RecentFile");
       BLI_addtail(&(G.recent_files), recent);
       recent->filepath = BLI_strdup(line);
       num++;
@@ -1620,7 +1620,7 @@ void wm_history_file_read()
 
 static RecentFile *wm_history_file_new(const char *filepath)
 {
-  RecentFile *recent = MEM_mallocN<RecentFile>("RecentFile");
+  RecentFile *recent = MEM_new_uninitialized<RecentFile>("RecentFile");
   recent->filepath = BLI_strdup(filepath);
   return recent;
 }
@@ -1628,7 +1628,7 @@ static RecentFile *wm_history_file_new(const char *filepath)
 static void wm_history_file_free(RecentFile *recent)
 {
   BLI_assert(BLI_findindex(&G.recent_files, recent) != -1);
-  MEM_freeN(recent->filepath);
+  MEM_delete(recent->filepath);
   BLI_freelinkN(&G.recent_files, recent);
 }
 
@@ -1760,11 +1760,12 @@ static uint8_t *blend_file_thumb_fast_downscale(const uint8_t *src_rect,
    * this isn't a concern. */
 
   BLI_assert(dst_size[0] <= src_size[0] && dst_size[1] <= src_size[1]);
-  uint8_t *dst_rect = MEM_malloc_arrayN<uint8_t>(size_t(4 * dst_size[0] * dst_size[1]), __func__);
+  uint8_t *dst_rect = MEM_new_array_uninitialized<uint8_t>(size_t(4 * dst_size[0] * dst_size[1]),
+                                                           __func__);
 
   /* A row, the width of the destination to accumulate pixel values into
    * before writing into the image. */
-  uint32_t *accum_row = MEM_calloc_arrayN<uint32_t>(size_t(dst_size[0] * 4), __func__);
+  uint32_t *accum_row = MEM_new_array_zeroed<uint32_t>(size_t(dst_size[0] * 4), __func__);
 
 #  ifndef NDEBUG
   /* Assert that samples are calculated correctly. */
@@ -1825,7 +1826,7 @@ static uint8_t *blend_file_thumb_fast_downscale(const uint8_t *src_rect,
   BLI_assert(src_px == src_rect + (sizeof(uint8_t[4]) * src_size[0] * src_size[1]));
   BLI_assert(sample_count_all == size_t(src_size[0]) * size_t(src_size[1]));
 
-  MEM_freeN(accum_row);
+  MEM_delete(accum_row);
   return dst_rect;
 }
 #endif /* USE_THUMBNAIL_FAST_DOWNSCALE */
@@ -1876,11 +1877,11 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
       uint8_t *rect_2x = blend_file_thumb_fast_downscale(buffer, win_size, thumb_size_2x);
       uint8_t *rect = blend_file_thumb_fast_downscale(rect_2x, thumb_size_2x, thumb_size);
 
-      MEM_freeN(buffer);
+      MEM_delete(buffer);
       ibuf = IMB_allocFromBufferOwn(rect_2x, nullptr, thumb_size_2x.x, thumb_size_2x.y, 24);
 
       BlendThumbnail *thumb = BKE_main_thumbnail_from_buffer(nullptr, rect, thumb_size);
-      MEM_freeN(rect);
+      MEM_delete(rect);
       *r_thumb = thumb;
     }
     else
@@ -2250,7 +2251,7 @@ static bool wm_file_write(bContext *C,
     IMB_freeImBuf(ibuf_thumb);
   }
   if (thumb && thumb != main_thumb) {
-    MEM_freeN(thumb);
+    MEM_delete(thumb);
   }
 
   WM_cursor_wait(false);
@@ -4540,7 +4541,7 @@ static ui::Block *block_create_save_file_overwrite_dialog(bContext *C, ARegion *
 void wm_save_file_overwrite_dialog(bContext *C, wmOperator *op)
 {
   if (!ui::popup_block_name_exists(CTX_wm_screen(C), save_file_overwrite_dialog_name)) {
-    wmGenericCallback *callback = MEM_new_for_free<wmGenericCallback>(__func__);
+    wmGenericCallback *callback = MEM_new<wmGenericCallback>(__func__);
     callback->exec = nullptr;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;
@@ -4751,7 +4752,7 @@ static ui::Block *block_create__close_file_dialog(bContext *C, ARegion *region, 
     if (path_info) {
       uiItemL_ex(&row, path_info, ICON_NONE, false, true);
     }
-    MEM_freeN(message);
+    MEM_delete(message);
   }
 
   /* Used to determine if extra separators are needed. */
@@ -4878,7 +4879,7 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
   if (U.uiflag & USER_SAVE_PROMPT &&
       wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)))
   {
-    wmGenericCallback *callback = MEM_new_for_free<wmGenericCallback>(__func__);
+    wmGenericCallback *callback = MEM_new<wmGenericCallback>(__func__);
     callback->exec = post_action_fn;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;

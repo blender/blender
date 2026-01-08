@@ -860,7 +860,8 @@ void transform_custom_normal_attribute(const float4x4 &transform,
   }
   else {
     /* It's a bit faster to combine transforming and copying the attribute if it's shared. */
-    float3 *new_data = MEM_malloc_arrayN<float3>(size_t(normals.varray.size()), __func__);
+    float3 *new_data = MEM_new_array_uninitialized<float3>(size_t(normals.varray.size()),
+                                                           __func__);
     math::transform_normals(VArraySpan(normals.varray.typed<float3>()),
                             float3x3(transform),
                             {new_data, normals.varray.size()});

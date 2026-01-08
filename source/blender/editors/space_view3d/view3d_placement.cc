@@ -512,7 +512,7 @@ static void draw_circle_in_quad(const float v1[3],
       {-1, +1},
   };
 
-  float (*coords)[3] = MEM_malloc_arrayN<float[3]>(resolution + 1, __func__);
+  float (*coords)[3] = MEM_new_array_uninitialized<float[3]>(resolution + 1, __func__);
   for (int i = 0; i <= resolution; i++) {
     float theta = ((2.0f * M_PI) * (float(i) / float(resolution))) + 0.01f;
     float x = cosf(theta);
@@ -529,7 +529,7 @@ static void draw_circle_in_quad(const float v1[3],
     madd_v3_v3fl(co, v4, w[3]);
   }
   draw_line_loop(coords, resolution + 1, color);
-  MEM_freeN(coords);
+  MEM_delete(coords);
 }
 
 /** \} */
@@ -917,7 +917,7 @@ static wmOperatorStatus view3d_interactive_add_invoke(bContext *C,
 {
   const bool wait_for_input = RNA_boolean_get(op->ptr, "wait_for_input");
 
-  InteractivePlaceData *ipd = MEM_callocN<InteractivePlaceData>(__func__);
+  InteractivePlaceData *ipd = MEM_new_zeroed<InteractivePlaceData>(__func__);
   op->customdata = ipd;
 
   ipd->scene = CTX_data_scene(C);
@@ -959,7 +959,7 @@ static void view3d_interactive_add_exit(bContext *C, wmOperator *op)
 
   ED_workspace_status_text(C, "");
 
-  MEM_freeN(ipd);
+  MEM_delete(ipd);
 }
 
 static void view3d_interactive_add_cancel(bContext *C, wmOperator *op)

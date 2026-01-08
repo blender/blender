@@ -153,7 +153,7 @@ static BPyGPUBuffer *pygpu_buffer_make_from_data(PyObject *parent,
   buffer->parent = nullptr;
   buffer->format = format;
   buffer->shape_len = shape_len;
-  buffer->shape = MEM_malloc_arrayN<Py_ssize_t>(size_t(shape_len), "BPyGPUBuffer shape");
+  buffer->shape = MEM_new_array_uninitialized<Py_ssize_t>(size_t(shape_len), "BPyGPUBuffer shape");
   memcpy(buffer->shape, shape, sizeof(*buffer->shape) * size_t(shape_len));
   buffer->buf.as_void = buf;
 
@@ -268,8 +268,8 @@ static int pygpu_buffer_dimensions_set(BPyGPUBuffer *self, PyObject *value, void
   }
 
   if (shape_len != self->shape_len) {
-    MEM_freeN(self->shape);
-    self->shape = MEM_malloc_arrayN<Py_ssize_t>(size_t(shape_len), __func__);
+    MEM_delete(self->shape);
+    self->shape = MEM_new_array_uninitialized<Py_ssize_t>(size_t(shape_len), __func__);
   }
 
   self->shape_len = shape_len;
@@ -299,10 +299,10 @@ static void pygpu_buffer__tp_dealloc(BPyGPUBuffer *self)
     Py_CLEAR(self->parent);
   }
   else if (self->buf.as_void) {
-    MEM_freeN(self->buf.as_void);
+    MEM_delete_void(self->buf.as_void);
   }
 
-  MEM_freeN(self->shape);
+  MEM_delete(self->shape);
 
   PyObject_GC_Del(self);
 }
@@ -651,7 +651,8 @@ static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int f
     view->shape = self->shape;
   }
   if (flags & PyBUF_STRIDES) {
-    view->strides = MEM_malloc_arrayN<Py_ssize_t>(size_t(view->ndim), "BPyGPUBuffer strides");
+    view->strides = MEM_new_array_uninitialized<Py_ssize_t>(size_t(view->ndim),
+                                                            "BPyGPUBuffer strides");
     pygpu_buffer_strides_calc(
         eGPUDataFormat(self->format), view->ndim, view->shape, view->strides);
   }
@@ -664,7 +665,7 @@ static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int f
 
 static void pygpu_buffer__bf_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
 {
-  MEM_SAFE_FREE(view->strides);
+  MEM_SAFE_DELETE(view->strides);
 }
 
 static PyBufferProcs pygpu_buffer__tp_as_buffer = {
@@ -765,7 +766,7 @@ BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(const int format,
 {
   if (buffer == nullptr) {
     size_t size = pygpu_buffer_calc_size(format, shape_len, shape);
-    buffer = MEM_callocN(size, "BPyGPUBuffer buffer");
+    buffer = MEM_new_zeroed(size, "BPyGPUBuffer buffer");
   }
 
   return pygpu_buffer_make_from_data(nullptr, eGPUDataFormat(format), shape_len, shape, buffer);

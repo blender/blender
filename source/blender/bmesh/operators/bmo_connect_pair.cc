@@ -295,7 +295,7 @@ static void state_link_add(PathContext *pc, PathLinkState *state, BMElem *ele, B
 
 static PathLinkState *state_dupe_add(PathLinkState *state, const PathLinkState *state_orig)
 {
-  state = MEM_mallocN<PathLinkState>(__func__);
+  state = MEM_new_uninitialized<PathLinkState>(__func__);
   *state = *state_orig;
   return state;
 }
@@ -635,7 +635,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
   /* add first vertex */
   {
     PathLinkState *state;
-    state = MEM_callocN<PathLinkState>(__func__);
+    state = MEM_new_zeroed<PathLinkState>(__func__);
     state_link_add(&pc, state, reinterpret_cast<BMElem *>(pc.v_pair[0]), nullptr);
     BLI_heapsimple_insert(pc.states, state->dist, state);
   }
@@ -660,7 +660,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
         state_best = *state;
 
         /* we're done, exit all loops */
-        BLI_heapsimple_clear(pc.states, MEM_freeN);
+        BLI_heapsimple_clear(pc.states, MEM_delete_void);
         continue_search = false;
       }
       else if (state_step(&pc, state)) {
@@ -680,7 +680,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
         BLI_heapsimple_insert(pc.states, state->dist, state);
       }
       else {
-        MEM_freeN(state);
+        MEM_delete(state);
       }
     }
   }
@@ -713,7 +713,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
   BLI_mempool_destroy(pc.link_pool);
 
-  BLI_heapsimple_free(pc.states, MEM_freeN);
+  BLI_heapsimple_free(pc.states, MEM_delete_void);
 
 #if 1
   if (state_best.link_last) {

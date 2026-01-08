@@ -84,7 +84,7 @@ static void node_shader_buts_tex_noise(ui::Layout &layout, bContext * /*C*/, Poi
 
 static void node_shader_init_tex_noise(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexNoise *tex = MEM_new_for_free<NodeTexNoise>(__func__);
+  NodeTexNoise *tex = MEM_new<NodeTexNoise>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->dimensions = 3;

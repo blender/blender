@@ -603,7 +603,7 @@ struct DrawCache {
 
 static void space_text_drawcache_init(SpaceText *st)
 {
-  DrawCache *drawcache = MEM_callocN<DrawCache>("text draw cache");
+  DrawCache *drawcache = MEM_new_zeroed<DrawCache>("text draw cache");
 
   drawcache->winx = -1;
   drawcache->nlines = BLI_listbase_count(&st->text->lines);
@@ -661,10 +661,10 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
       nlines = BLI_listbase_count(&txt->lines);
 
       if (fp) {
-        fp = static_cast<int *>(MEM_reallocN(fp, sizeof(int) * nlines));
+        fp = static_cast<int *>(MEM_realloc_uninitialized(fp, sizeof(int) * nlines));
       }
       else {
-        fp = MEM_calloc_arrayN<int>(nlines, "text drawcache line_height");
+        fp = MEM_new_array_zeroed<int>(nlines, "text drawcache line_height");
       }
 
       drawcache->valid_tail = drawcache->valid_head = 0;
@@ -701,7 +701,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
     }
   }
   else {
-    MEM_SAFE_FREE(drawcache->line_height);
+    MEM_SAFE_DELETE(drawcache->line_height);
 
     if (full_update || drawcache->update) {
       nlines = BLI_listbase_count(&txt->lines);
@@ -787,10 +787,10 @@ void space_text_free_caches(SpaceText *st)
 
   if (drawcache) {
     if (drawcache->line_height) {
-      MEM_freeN(drawcache->line_height);
+      MEM_delete(drawcache->line_height);
     }
 
-    MEM_freeN(drawcache);
+    MEM_delete(drawcache);
   }
 }
 

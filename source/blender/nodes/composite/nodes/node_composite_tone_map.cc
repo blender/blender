@@ -108,7 +108,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but still allocated for forward compatibility. */
-  NodeTonemap *ntm = MEM_new_for_free<NodeTonemap>(__func__);
+  NodeTonemap *ntm = MEM_new<NodeTonemap>(__func__);
   node->storage = ntm;
 }
 

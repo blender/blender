@@ -107,7 +107,7 @@ static PyObject *python_compat_wrapper_PyRun_FileExFlags(FILE *fp,
     buf[buf_len] = '\0';
     PyObject *filepath_py = PyC_UnicodeFromBytes(filepath);
     PyObject *compiled = Py_CompileStringObject(buf, filepath_py, Py_file_input, flags, -1);
-    MEM_freeN(buf);
+    MEM_delete(buf);
     Py_DECREF(filepath_py);
 
     if (compiled == nullptr) {
@@ -159,7 +159,7 @@ static bool python_script_exec(
       size_t buf_len_dummy;
       char *buf = txt_to_buf(text, &buf_len_dummy);
       text->compiled = Py_CompileStringObject(buf, filepath_dummy_py, Py_file_input, nullptr, -1);
-      MEM_freeN(buf);
+      MEM_delete(buf);
       Py_DECREF(filepath_dummy_py);
     }
 

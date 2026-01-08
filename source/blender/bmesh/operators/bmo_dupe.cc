@@ -564,7 +564,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 
   BMVert **vtable = nullptr;
   if (use_merge) {
-    vtable = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
+    vtable = MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__);
     int i = 0;
     BMIter iter;
     BMVert *v;
@@ -706,7 +706,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
   }
 
   if (vtable) {
-    MEM_freeN(vtable);
+    MEM_delete(vtable);
   }
 }
 

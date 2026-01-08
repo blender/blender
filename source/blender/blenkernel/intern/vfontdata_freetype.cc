@@ -47,13 +47,13 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
   }
 
   /* allocate blender font */
-  VFontData *vfd = MEM_callocN<VFontData>("FTVFontData");
+  VFontData *vfd = MEM_new_zeroed<VFontData>("FTVFontData");
 
   /* Get the font name. */
   char *name = BLF_display_name_from_id(fontid);
   STRNCPY(vfd->name, name);
   /* BLF_display_name result must be freed. */
-  MEM_freeN(name);
+  MEM_delete(name);
 
   BLI_str_utf8_invalid_strip(vfd->name, ARRAY_SIZE(vfd->name));
 
@@ -73,7 +73,7 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 
 VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int /*flag*/)
 {
-  VFontData *vfont_dst = static_cast<VFontData *>(MEM_dupallocN(vfont_src));
+  VFontData *vfont_dst = MEM_dupalloc(vfont_src);
 
   if (vfont_src->characters != nullptr) {
     vfont_dst->characters = MEM_new<Map<uint, VChar *>>(__func__);
@@ -119,7 +119,7 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, uint character)
     return nullptr;
   }
 
-  VChar *che = MEM_callocN<VChar>("objfnt_char");
+  VChar *che = MEM_new_zeroed<VChar>("objfnt_char");
 
   /* need to set a size for embolden, etc. */
   BLF_size(font_id, 16);
@@ -133,7 +133,7 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, uint character)
   {
     /* Free but add to the character cache to prevent future lookups
      * from attempting to load the font again. */
-    MEM_freeN(che);
+    MEM_delete(che);
     che = nullptr;
   }
 
@@ -144,7 +144,7 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, uint character)
 
 VChar *BKE_vfontdata_char_copy(const VChar *vchar_src)
 {
-  VChar *vchar_dst = static_cast<VChar *>(MEM_dupallocN(vchar_src));
+  VChar *vchar_dst = MEM_dupalloc(vchar_src);
 
   BLI_listbase_clear(&vchar_dst->nurbsbase);
   BKE_nurbList_duplicate(&vchar_dst->nurbsbase, &vchar_src->nurbsbase);

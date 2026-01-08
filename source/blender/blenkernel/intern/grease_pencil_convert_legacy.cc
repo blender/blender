@@ -449,7 +449,7 @@ class AnimDataConvertor {
                                  bAction *owner_action,
                                  FCurve &fcurve,
                                  const std::string &rna_path_dst) {
-      MEM_freeN(fcurve.rna_path);
+      MEM_delete(fcurve.rna_path);
       fcurve.rna_path = BLI_strdupn(rna_path_dst.c_str(), rna_path_dst.size());
       if (fcurve_convertor && fcurve_convertor->convert_cb) {
         fcurve_convertor->convert_cb(fcurve);
@@ -655,7 +655,7 @@ static void find_used_vertex_groups(const bGPDframe &gpf,
     }
     r_indices[old_group_i] = new_group_i++;
 
-    bDeformGroup *def_group_copy = static_cast<bDeformGroup *>(MEM_dupallocN(&def_group));
+    bDeformGroup *def_group_copy = MEM_dupalloc(&def_group);
     BLI_addtail(&r_vertex_group_names, def_group_copy);
   }
 }
@@ -835,7 +835,7 @@ static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(
   /* Copy vertex weights and map the vertex group indices. */
   auto copy_dvert = [&](const MDeformVert &src_dvert, MDeformVert &dst_dvert) {
     dst_dvert = src_dvert;
-    dst_dvert.dw = static_cast<MDeformWeight *>(MEM_dupallocN(src_dvert.dw));
+    dst_dvert.dw = MEM_dupalloc(src_dvert.dw);
     const MutableSpan<MDeformWeight> vertex_weights = {dst_dvert.dw, dst_dvert.totweight};
     for (MDeformWeight &weight : vertex_weights) {
       if (weight.def_nr >= num_vertex_groups) {
@@ -1171,7 +1171,7 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
       &conversion_data.bmain, library, OFFSET_RADIUS_NODETREE_NAME, "GeometryNodeTree");
 
   if (!group->geometry_node_asset_traits) {
-    group->geometry_node_asset_traits = MEM_new_for_free<GeometryNodeAssetTraits>(__func__);
+    group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
   }
   group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
 
@@ -1748,8 +1748,8 @@ static void legacy_object_modifier_dash(ConversionData &conversion_data,
   md_dash.dash_offset = legacy_md_dash.dash_offset;
   md_dash.segment_active_index = legacy_md_dash.segment_active_index;
   md_dash.segments_num = legacy_md_dash.segments_len;
-  MEM_SAFE_FREE(md_dash.segments_array);
-  md_dash.segments_array = MEM_new_array_for_free<GreasePencilDashModifierSegment>(
+  MEM_SAFE_DELETE(md_dash.segments_array);
+  md_dash.segments_array = MEM_new_array<GreasePencilDashModifierSegment>(
       legacy_md_dash.segments_len, __func__);
   for (const int i : IndexRange(md_dash.segments_num)) {
     GreasePencilDashModifierSegment &dst_segment = md_dash.segments_array[i];
@@ -2460,8 +2460,8 @@ static void legacy_object_modifier_time(ConversionData &conversion_data,
   md_time.efra = legacy_md_time.efra;
   md_time.segment_active_index = legacy_md_time.segment_active_index;
   md_time.segments_num = legacy_md_time.segments_len;
-  MEM_SAFE_FREE(md_time.segments_array);
-  md_time.segments_array = MEM_new_array_for_free<GreasePencilTimeModifierSegment>(
+  MEM_SAFE_DELETE(md_time.segments_array);
+  md_time.segments_array = MEM_new_array<GreasePencilTimeModifierSegment>(
       legacy_md_time.segments_len, __func__);
   for (const int i : IndexRange(md_time.segments_num)) {
     GreasePencilTimeModifierSegment &dst_segment = md_time.segments_array[i];
@@ -2536,7 +2536,7 @@ static void legacy_object_modifier_tint(ConversionData &conversion_data,
   copy_v3_v3(md_tint.color, legacy_md_tint.rgb);
   md_tint.object = legacy_md_tint.object;
   legacy_md_tint.object = nullptr;
-  MEM_SAFE_FREE(md_tint.color_ramp);
+  MEM_SAFE_DELETE(md_tint.color_ramp);
   md_tint.color_ramp = legacy_md_tint.colorband;
   legacy_md_tint.colorband = nullptr;
 

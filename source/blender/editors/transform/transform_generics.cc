@@ -170,7 +170,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Many kinds of transform only use a single handle. */
   if (t->data_container == nullptr) {
-    t->data_container = MEM_callocN<TransDataContainer>(__func__);
+    t->data_container = MEM_new_zeroed<TransDataContainer>(__func__);
     t->data_container_len = 1;
   }
 
@@ -733,7 +733,7 @@ static void freeTransCustomData(TransInfo *t, TransDataContainer *tc, TransCusto
     BLI_assert(custom_data->data == nullptr);
   }
   else if ((custom_data->data != nullptr) && custom_data->use_free) {
-    MEM_freeN(custom_data->data);
+    MEM_delete_void(custom_data->data);
     custom_data->data = nullptr;
   }
   /* In case modes are switched in the same transform session. */
@@ -789,20 +789,20 @@ void postTrans(bContext *C, TransInfo *t)
         TransData *td = tc->data;
         for (int a = 0; a < tc->data_len; a++, td++) {
           if (td->flag & TD_BEZTRIPLE) {
-            MEM_freeN(td->hdata);
+            MEM_delete(td->hdata);
           }
         }
       }
-      MEM_freeN(tc->data);
+      MEM_delete(tc->data);
 
-      MEM_SAFE_FREE(tc->data_mirror);
-      MEM_SAFE_FREE(tc->data_ext);
-      MEM_SAFE_FREE(tc->data_2d);
-      MEM_SAFE_FREE(tc->sorted_index_map);
+      MEM_SAFE_DELETE(tc->data_mirror);
+      MEM_SAFE_DELETE(tc->data_ext);
+      MEM_SAFE_DELETE(tc->data_2d);
+      MEM_SAFE_DELETE(tc->sorted_index_map);
     }
   }
 
-  MEM_SAFE_FREE(t->data_container);
+  MEM_SAFE_DELETE(t->data_container);
   t->data_container = nullptr;
 
   BLI_freelistN(&t->tsnap.points);
@@ -820,7 +820,7 @@ void postTrans(bContext *C, TransInfo *t)
   }
 
   if (t->mouse.data) {
-    MEM_freeN(t->mouse.data);
+    MEM_delete_void(t->mouse.data);
   }
 
   if (t->rng != nullptr) {

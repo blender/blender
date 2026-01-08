@@ -271,7 +271,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
      * this connectivity could be used rather than treating
      * them as a bunch of isolated verts. */
 
-    BMVert **vert_arr = MEM_malloc_arrayN<BMVert *>(totv, __func__);
+    BMVert **vert_arr = MEM_new_array_uninitialized<BMVert *>(totv, __func__);
     BMFace *f;
 
     totv = BMO_iter_as_array(
@@ -292,7 +292,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
       BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_OUT);
     }
 
-    MEM_freeN(vert_arr);
+    MEM_delete(vert_arr);
   }
 }
 

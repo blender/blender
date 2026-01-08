@@ -1547,10 +1547,10 @@ static void rna_property_override_diff_propptr_validate_diffing(
       }
     }
     if (UNLIKELY(rna_itemname_a && rna_itemname_a != buff_a)) {
-      MEM_freeN(rna_itemname_a);
+      MEM_delete(rna_itemname_a);
     }
     if (UNLIKELY(rna_itemname_b && rna_itemname_b != buff_b)) {
-      MEM_freeN(rna_itemname_b);
+      MEM_delete(rna_itemname_b);
     }
   }
 
@@ -1752,7 +1752,8 @@ static void rna_property_override_diff_propptr(Main *bmain,
               esc_item_name, rna_itemname_a->c_str(), sizeof(esc_item_name));
           extended_rna_path_len = rna_path_len + 2 + esc_item_name_len + 2;
           if (extended_rna_path_len >= RNA_PATH_BUFFSIZE) {
-            extended_rna_path = MEM_malloc_arrayN<char>(extended_rna_path_len + 1, __func__);
+            extended_rna_path = MEM_new_array_uninitialized<char>(extended_rna_path_len + 1,
+                                                                  __func__);
           }
 
           memcpy(extended_rna_path, rna_path, rna_path_len);
@@ -1786,7 +1787,8 @@ static void rna_property_override_diff_propptr(Main *bmain,
 
           extended_rna_path_len = rna_path_len + item_index_buff_len + 2;
           if (extended_rna_path_len >= RNA_PATH_BUFFSIZE) {
-            extended_rna_path = MEM_malloc_arrayN<char>(extended_rna_path_len + 1, __func__);
+            extended_rna_path = MEM_new_array_uninitialized<char>(extended_rna_path_len + 1,
+                                                                  __func__);
           }
 
           memcpy(extended_rna_path, rna_path, rna_path_len);
@@ -1828,7 +1830,7 @@ static void rna_property_override_diff_propptr(Main *bmain,
       }
 
       if (!ELEM(extended_rna_path, extended_rna_path_buffer, rna_path)) {
-        MEM_freeN(extended_rna_path);
+        MEM_delete(extended_rna_path);
       }
 
 #  undef RNA_PATH_BUFFSIZE
@@ -1898,10 +1900,10 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         bool *array_a, *array_b;
 
         array_a = (len_a > RNA_STACK_ARRAY) ?
-                      MEM_malloc_arrayN<bool>(size_t(len_a), "RNA equals") :
+                      MEM_new_array_uninitialized<bool>(size_t(len_a), "RNA equals") :
                       array_stack_a;
         array_b = (len_b > RNA_STACK_ARRAY) ?
-                      MEM_malloc_arrayN<bool>(size_t(len_b), "RNA equals") :
+                      MEM_new_array_uninitialized<bool>(size_t(len_b), "RNA equals") :
                       array_stack_b;
 
         RNA_property_boolean_get_array(ptr_a, rawprop_a, array_a);
@@ -1933,10 +1935,10 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         }
 
         if (array_a != array_stack_a) {
-          MEM_freeN(array_a);
+          MEM_delete(array_a);
         }
         if (array_b != array_stack_b) {
-          MEM_freeN(array_b);
+          MEM_delete(array_b);
         }
       }
       else {
@@ -1971,10 +1973,12 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         int array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
         int *array_a, *array_b;
 
-        array_a = (len_a > RNA_STACK_ARRAY) ? MEM_malloc_arrayN<int>(size_t(len_a), "RNA equals") :
-                                              array_stack_a;
-        array_b = (len_b > RNA_STACK_ARRAY) ? MEM_malloc_arrayN<int>(size_t(len_b), "RNA equals") :
-                                              array_stack_b;
+        array_a = (len_a > RNA_STACK_ARRAY) ?
+                      MEM_new_array_uninitialized<int>(size_t(len_a), "RNA equals") :
+                      array_stack_a;
+        array_b = (len_b > RNA_STACK_ARRAY) ?
+                      MEM_new_array_uninitialized<int>(size_t(len_b), "RNA equals") :
+                      array_stack_b;
 
         RNA_property_int_get_array(ptr_a, rawprop_a, array_a);
         RNA_property_int_get_array(ptr_b, rawprop_b, array_b);
@@ -2007,10 +2011,10 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         }
 
         if (array_a != array_stack_a) {
-          MEM_freeN(array_a);
+          MEM_delete(array_a);
         }
         if (array_b != array_stack_b) {
-          MEM_freeN(array_b);
+          MEM_delete(array_b);
         }
       }
       else {
@@ -2046,10 +2050,10 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         float *array_a, *array_b;
 
         array_a = (len_a > RNA_STACK_ARRAY) ?
-                      MEM_malloc_arrayN<float>(size_t(len_a), "RNA equals") :
+                      MEM_new_array_uninitialized<float>(size_t(len_a), "RNA equals") :
                       array_stack_a;
         array_b = (len_b > RNA_STACK_ARRAY) ?
-                      MEM_malloc_arrayN<float>(size_t(len_b), "RNA equals") :
+                      MEM_new_array_uninitialized<float>(size_t(len_b), "RNA equals") :
                       array_stack_b;
 
         RNA_property_float_get_array(ptr_a, rawprop_a, array_a);
@@ -2081,10 +2085,10 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         }
 
         if (array_a != array_stack_a) {
-          MEM_freeN(array_a);
+          MEM_delete(array_a);
         }
         if (array_b != array_stack_b) {
-          MEM_freeN(array_b);
+          MEM_delete(array_b);
         }
       }
       else {
@@ -2177,10 +2181,10 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
       }
 
       if (value_a != fixed_a) {
-        MEM_freeN(value_a);
+        MEM_delete(value_a);
       }
       if (value_b != fixed_b) {
-        MEM_freeN(value_b);
+        MEM_delete(value_b);
       }
       break;
     }
@@ -2476,7 +2480,7 @@ bool rna_property_override_store_default(Main * /*bmain*/,
         int *array_a, *array_b;
 
         array_a = (len_local > RNA_STACK_ARRAY) ?
-                      MEM_malloc_arrayN<int>(size_t(len_local), __func__) :
+                      MEM_new_array_uninitialized<int>(size_t(len_local), __func__) :
                       array_stack_a;
         RNA_property_int_get_array(ptr_reference, prop_reference, array_a);
 
@@ -2488,7 +2492,7 @@ bool rna_property_override_store_default(Main * /*bmain*/,
                                                                          LIBOVERRIDE_OP_ADD;
             bool do_set = true;
             array_b = (len_local > RNA_STACK_ARRAY) ?
-                          MEM_malloc_arrayN<int>(size_t(len_local), __func__) :
+                          MEM_new_array_uninitialized<int>(size_t(len_local), __func__) :
                           array_stack_b;
             RNA_property_int_get_array(ptr_local, prop_local, array_b);
             for (int i = len_local; i--;) {
@@ -2513,7 +2517,7 @@ bool rna_property_override_store_default(Main * /*bmain*/,
               RNA_property_int_set_array(ptr_storage, prop_storage, array_b);
             }
             if (array_b != array_stack_b) {
-              MEM_freeN(array_b);
+              MEM_delete(array_b);
             }
             break;
           }
@@ -2523,7 +2527,7 @@ bool rna_property_override_store_default(Main * /*bmain*/,
         }
 
         if (array_a != array_stack_a) {
-          MEM_freeN(array_a);
+          MEM_delete(array_a);
         }
       }
       else {
@@ -2564,7 +2568,7 @@ bool rna_property_override_store_default(Main * /*bmain*/,
         float *array_a, *array_b;
 
         array_a = (len_local > RNA_STACK_ARRAY) ?
-                      MEM_malloc_arrayN<float>(size_t(len_local), __func__) :
+                      MEM_new_array_uninitialized<float>(size_t(len_local), __func__) :
                       array_stack_a;
 
         RNA_property_float_get_array(ptr_reference, prop_reference, array_a);
@@ -2576,7 +2580,7 @@ bool rna_property_override_store_default(Main * /*bmain*/,
                                                                          LIBOVERRIDE_OP_ADD;
             bool do_set = true;
             array_b = (len_local > RNA_STACK_ARRAY) ?
-                          MEM_malloc_arrayN<float>(size_t(len_local), __func__) :
+                          MEM_new_array_uninitialized<float>(size_t(len_local), __func__) :
                           array_stack_b;
             RNA_property_float_get_array(ptr_local, prop_local, array_b);
             for (int i = len_local; i--;) {
@@ -2601,14 +2605,14 @@ bool rna_property_override_store_default(Main * /*bmain*/,
               RNA_property_float_set_array(ptr_storage, prop_storage, array_b);
             }
             if (array_b != array_stack_b) {
-              MEM_freeN(array_b);
+              MEM_delete(array_b);
             }
             break;
           }
           case LIBOVERRIDE_OP_MULTIPLY: {
             bool do_set = true;
             array_b = (len_local > RNA_STACK_ARRAY) ?
-                          MEM_malloc_arrayN<float>(size_t(len_local), __func__) :
+                          MEM_new_array_uninitialized<float>(size_t(len_local), __func__) :
                           array_stack_b;
             RNA_property_float_get_array(ptr_local, prop_local, array_b);
             for (int i = len_local; i--;) {
@@ -2624,7 +2628,7 @@ bool rna_property_override_store_default(Main * /*bmain*/,
               RNA_property_float_set_array(ptr_storage, prop_storage, array_b);
             }
             if (array_b != array_stack_b) {
-              MEM_freeN(array_b);
+              MEM_delete(array_b);
             }
             break;
           }
@@ -2634,7 +2638,7 @@ bool rna_property_override_store_default(Main * /*bmain*/,
         }
 
         if (array_a != array_stack_a) {
-          MEM_freeN(array_a);
+          MEM_delete(array_a);
         }
       }
       else {
@@ -2754,7 +2758,7 @@ bool rna_property_override_apply_default(Main *bmain,
         bool *array_a;
 
         array_a = (len_dst > RNA_STACK_ARRAY) ?
-                      MEM_malloc_arrayN<bool>(size_t(len_dst), __func__) :
+                      MEM_new_array_uninitialized<bool>(size_t(len_dst), __func__) :
                       array_stack_a;
 
         RNA_property_boolean_get_array(ptr_src, prop_src, array_a);
@@ -2769,7 +2773,7 @@ bool rna_property_override_apply_default(Main *bmain,
         }
 
         if (array_a != array_stack_a) {
-          MEM_freeN(array_a);
+          MEM_delete(array_a);
         }
       }
       else {
@@ -2790,8 +2794,9 @@ bool rna_property_override_apply_default(Main *bmain,
         int array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
         int *array_a, *array_b;
 
-        array_a = (len_dst > RNA_STACK_ARRAY) ? MEM_malloc_arrayN<int>(size_t(len_dst), __func__) :
-                                                array_stack_a;
+        array_a = (len_dst > RNA_STACK_ARRAY) ?
+                      MEM_new_array_uninitialized<int>(size_t(len_dst), __func__) :
+                      array_stack_a;
 
         switch (override_op) {
           case LIBOVERRIDE_OP_REPLACE:
@@ -2802,7 +2807,7 @@ bool rna_property_override_apply_default(Main *bmain,
           case LIBOVERRIDE_OP_SUBTRACT:
             RNA_property_int_get_array(ptr_dst, prop_dst, array_a);
             array_b = (len_dst > RNA_STACK_ARRAY) ?
-                          MEM_malloc_arrayN<int>(size_t(len_dst), __func__) :
+                          MEM_new_array_uninitialized<int>(size_t(len_dst), __func__) :
                           array_stack_b;
             RNA_property_int_get_array(ptr_storage, prop_storage, array_b);
             if (override_op == LIBOVERRIDE_OP_ADD) {
@@ -2817,7 +2822,7 @@ bool rna_property_override_apply_default(Main *bmain,
             }
             RNA_property_int_set_array(ptr_dst, prop_dst, array_a);
             if (array_b != array_stack_b) {
-              MEM_freeN(array_b);
+              MEM_delete(array_b);
             }
             break;
           default:
@@ -2826,7 +2831,7 @@ bool rna_property_override_apply_default(Main *bmain,
         }
 
         if (array_a != array_stack_a) {
-          MEM_freeN(array_a);
+          MEM_delete(array_a);
         }
       }
       else {
@@ -2870,7 +2875,7 @@ bool rna_property_override_apply_default(Main *bmain,
         float *array_a, *array_b;
 
         array_a = (len_dst > RNA_STACK_ARRAY) ?
-                      MEM_malloc_arrayN<float>(size_t(len_dst), __func__) :
+                      MEM_new_array_uninitialized<float>(size_t(len_dst), __func__) :
                       array_stack_a;
 
         switch (override_op) {
@@ -2883,7 +2888,7 @@ bool rna_property_override_apply_default(Main *bmain,
           case LIBOVERRIDE_OP_MULTIPLY:
             RNA_property_float_get_array(ptr_dst, prop_dst, array_a);
             array_b = (len_dst > RNA_STACK_ARRAY) ?
-                          MEM_malloc_arrayN<float>(size_t(len_dst), __func__) :
+                          MEM_new_array_uninitialized<float>(size_t(len_dst), __func__) :
                           array_stack_b;
             RNA_property_float_get_array(ptr_storage, prop_storage, array_b);
             if (override_op == LIBOVERRIDE_OP_ADD) {
@@ -2903,7 +2908,7 @@ bool rna_property_override_apply_default(Main *bmain,
             }
             RNA_property_float_set_array(ptr_dst, prop_dst, array_a);
             if (array_b != array_stack_b) {
-              MEM_freeN(array_b);
+              MEM_delete(array_b);
             }
             break;
           default:
@@ -2912,7 +2917,7 @@ bool rna_property_override_apply_default(Main *bmain,
         }
 
         if (array_a != array_stack_a) {
-          MEM_freeN(array_a);
+          MEM_delete(array_a);
         }
       }
       else {
@@ -2999,7 +3004,7 @@ bool rna_property_override_apply_default(Main *bmain,
       }
 
       if (value != buff) {
-        MEM_freeN(value);
+        MEM_delete(value);
       }
       break;
     }

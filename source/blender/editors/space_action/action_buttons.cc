@@ -26,7 +26,7 @@ void action_buttons_register(ARegionType * /*art*/)
 
   /* TODO: AnimData / Actions List */
 
-  pt = MEM_callocN<PanelType>("spacetype action panel properties");
+  pt = MEM_new_zeroed<PanelType>("spacetype action panel properties");
   STRNCPY_UTF8(pt->idname, "ACTION_PT_properties");
   STRNCPY_UTF8(pt->label, N_("Active F-Curve"));
   STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -34,7 +34,7 @@ void action_buttons_register(ARegionType * /*art*/)
   pt->poll = action_anim_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN<PanelType>("spacetype action panel properties");
+  pt = MEM_new_zeroed<PanelType>("spacetype action panel properties");
   STRNCPY_UTF8(pt->idname, "ACTION_PT_key_properties");
   STRNCPY_UTF8(pt->label, N_("Active Keyframe"));
   STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -42,7 +42,7 @@ void action_buttons_register(ARegionType * /*art*/)
   pt->poll = action_anim_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN<PanelType>("spacetype action panel modifiers");
+  pt = MEM_new_zeroed<PanelType>("spacetype action panel modifiers");
   STRNCPY_UTF8(pt->idname, "ACTION_PT_modifiers");
   STRNCPY_UTF8(pt->label, N_("Modifiers"));
   STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

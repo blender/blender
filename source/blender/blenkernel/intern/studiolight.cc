@@ -128,7 +128,7 @@ static void studiolight_free(StudioLight *sl)
   GPU_TEXTURE_SAFE_FREE(sl->equirect_radiance_gputexture);
   GPU_TEXTURE_SAFE_FREE(sl->matcap_diffuse.gputexture);
   GPU_TEXTURE_SAFE_FREE(sl->matcap_specular.gputexture);
-  MEM_SAFE_FREE(sl);
+  MEM_SAFE_DELETE(sl);
 }
 
 /**
@@ -149,7 +149,7 @@ static void studiolight_free_temp_resources(StudioLight *sl)
 
 static StudioLight *studiolight_create(int flag)
 {
-  StudioLight *sl = MEM_new_for_free<StudioLight>(__func__);
+  StudioLight *sl = MEM_new<StudioLight>(__func__);
   sl->filepath[0] = 0x00;
   sl->name[0] = 0x00;
   sl->free_function = nullptr;
@@ -258,7 +258,7 @@ static void studiolight_write_solid_light(StudioLight *sl)
     fwrite(cstr, BLI_dynstr_get_len(str), 1, fp);
     fclose(fp);
 
-    MEM_freeN(cstr);
+    MEM_delete(cstr);
     BLI_dynstr_free(str);
   }
 }
@@ -305,7 +305,7 @@ static float *studiolight_multilayer_convert_pass(const ImBuf *ibuf,
     return rect;
   }
 
-  float *new_rect = MEM_calloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
+  float *new_rect = MEM_new_array_zeroed<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
 
   IMB_buffer_float_from_float(new_rect,
                               rect,
@@ -318,7 +318,7 @@ static float *studiolight_multilayer_convert_pass(const ImBuf *ibuf,
                               ibuf->x,
                               ibuf->x);
 
-  MEM_freeN(rect);
+  MEM_delete(rect);
   return new_rect;
 }
 
@@ -343,7 +343,7 @@ static void studiolight_multilayer_addpass(void *base,
     ctx->num_specular_channels = num_channels;
   }
   else {
-    MEM_freeN(rect);
+    MEM_delete(rect);
   }
 }
 
@@ -455,7 +455,7 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
   BLI_assert(sli->ibuf);
   ImBuf *ibuf = sli->ibuf;
   const size_t ibuf_pixel_count = IMB_get_pixel_count(ibuf);
-  float *gpu_matcap_3components = MEM_calloc_arrayN<float>(3 * ibuf_pixel_count, __func__);
+  float *gpu_matcap_3components = MEM_new_array_zeroed<float>(3 * ibuf_pixel_count, __func__);
 
   const float (*offset4)[4] = reinterpret_cast<const float (*)[4]>(ibuf->float_buffer.data);
   float (*offset3)[3] = reinterpret_cast<float (*)[3]>(gpu_matcap_3components);
@@ -472,7 +472,7 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
                                           nullptr);
   GPU_texture_update(sli->gputexture, GPU_DATA_FLOAT, gpu_matcap_3components);
 
-  MEM_SAFE_FREE(gpu_matcap_3components);
+  MEM_SAFE_DELETE(gpu_matcap_3components);
 }
 
 static void studiolight_create_matcap_diffuse_gputexture(StudioLight *sl)

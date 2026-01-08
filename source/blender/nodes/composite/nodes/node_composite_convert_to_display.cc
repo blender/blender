@@ -41,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeConvertToDisplay *nctd = MEM_new_for_free<NodeConvertToDisplay>(__func__);
+  NodeConvertToDisplay *nctd = MEM_new<NodeConvertToDisplay>(__func__);
   BKE_color_managed_display_settings_init(&nctd->display_settings);
   BKE_color_managed_view_settings_init(&nctd->view_settings, &nctd->display_settings, nullptr);
   nctd->view_settings.flag |= COLORMANAGE_VIEW_ONLY_VIEW_LOOK;
@@ -52,12 +52,12 @@ static void node_free(bNode *node)
 {
   NodeConvertToDisplay *nctd = static_cast<NodeConvertToDisplay *>(node->storage);
   BKE_color_managed_view_settings_free(&nctd->view_settings);
-  MEM_freeN(nctd);
+  MEM_delete(nctd);
 }
 
 static void node_copy(bNodeTree * /*dest_ntree*/, bNode *dest_node, const bNode *src_node)
 {
-  NodeConvertToDisplay *dest = MEM_new_for_free<NodeConvertToDisplay>(__func__);
+  NodeConvertToDisplay *dest = MEM_new<NodeConvertToDisplay>(__func__);
   const NodeConvertToDisplay *src = static_cast<const NodeConvertToDisplay *>(src_node->storage);
   BKE_color_managed_view_settings_copy(&dest->view_settings, &src->view_settings);
   BKE_color_managed_display_settings_copy(&dest->display_settings, &src->display_settings);

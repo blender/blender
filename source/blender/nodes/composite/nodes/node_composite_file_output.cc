@@ -102,7 +102,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(const bContext *C, PointerRNA *node_pointer)
 {
   bNode *node = node_pointer->data_as<bNode>();
-  NodeCompositorFileOutput *data = MEM_new_for_free<NodeCompositorFileOutput>(__func__);
+  NodeCompositorFileOutput *data = MEM_new<NodeCompositorFileOutput>(__func__);
   node->storage = data;
   data->save_as_render = true;
   data->file_name = BLI_strdup("file_name");
@@ -124,8 +124,8 @@ static void node_free_storage(bNode *node)
   socket_items::destruct_array<FileOutputItemsAccessor>(*node);
   NodeCompositorFileOutput &data = node_storage(*node);
   BKE_image_format_free(&data.format);
-  MEM_SAFE_FREE(data.file_name);
-  MEM_freeN(&data);
+  MEM_SAFE_DELETE(data.file_name);
+  MEM_delete(&data);
 }
 
 static void node_copy_storage(bNodeTree * /*destination_node_tree*/,
@@ -133,7 +133,7 @@ static void node_copy_storage(bNodeTree * /*destination_node_tree*/,
                               const bNode *source_node)
 {
   const NodeCompositorFileOutput &source_storage = node_storage(*source_node);
-  NodeCompositorFileOutput *destination_storage = MEM_new_for_free<NodeCompositorFileOutput>(
+  NodeCompositorFileOutput *destination_storage = MEM_new<NodeCompositorFileOutput>(
       __func__, dna::shallow_copy(source_storage));
   destination_storage->file_name = BLI_strdup_null(source_storage.file_name);
   BKE_image_format_copy(&destination_storage->format, &source_storage.format);
@@ -594,7 +594,7 @@ class FileOutputOperation : public NodeOperation {
       }
       else {
         /* Copy the result into a new buffer. */
-        buffer = static_cast<float *>(MEM_dupallocN(result.cpu_data().data()));
+        buffer = MEM_dupalloc(static_cast<const float *>(result.cpu_data().data()));
       }
     }
 
@@ -650,7 +650,8 @@ class FileOutputOperation : public NodeOperation {
 
     const int64_t length = int64_t(size.x) * size.y;
     const int64_t buffer_size = length * result.channels_count();
-    float *buffer = MEM_malloc_arrayN<float>(buffer_size, "File Output Inflated Buffer.");
+    float *buffer = MEM_new_array_uninitialized<float>(buffer_size,
+                                                       "File Output Inflated Buffer.");
 
     switch (result.type()) {
       case ResultType::Float:
@@ -688,7 +689,7 @@ class FileOutputOperation : public NodeOperation {
     }
     else {
       /* Copy the result into a new buffer. */
-      buffer = static_cast<float *>(MEM_dupallocN(result.cpu_data().data()));
+      buffer = MEM_dupalloc(static_cast<const float *>(result.cpu_data().data()));
     }
 
     const int2 size = result.domain().data_size;
@@ -730,8 +731,8 @@ class FileOutputOperation : public NodeOperation {
    * input image is freed. */
   float *float4_to_float3_image(int2 size, float *float4_image)
   {
-    float *float3_image = MEM_malloc_arrayN<float>(3 * size_t(size.x) * size_t(size.y),
-                                                   "File Output Vector Buffer.");
+    float *float3_image = MEM_new_array_uninitialized<float>(3 * size_t(size.x) * size_t(size.y),
+                                                             "File Output Vector Buffer.");
 
     parallel_for(size, [&](const int2 texel) {
       for (int i = 0; i < 3; i++) {
@@ -740,7 +741,7 @@ class FileOutputOperation : public NodeOperation {
       }
     });
 
-    MEM_freeN(float4_image);
+    MEM_delete(float4_image);
     return float3_image;
   }
 

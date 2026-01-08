@@ -66,7 +66,7 @@ bool GPUTextures::initialize_common()
 GPUCurveMappping::~GPUCurveMappping()
 {
   if (lut) {
-    MEM_freeN(lut);
+    MEM_delete(lut);
   }
 
   if (texture) {
@@ -80,7 +80,7 @@ GPUCurveMappping::~GPUCurveMappping()
 void GPUCurveMappping::rasterize(CurveMapping &curve_mapping)
 {
   if (lut) {
-    MEM_freeN(lut);
+    MEM_delete(lut);
   }
 
   BKE_curvemapping_init(&curve_mapping);

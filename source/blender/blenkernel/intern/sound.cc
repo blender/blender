@@ -1762,7 +1762,7 @@ float *bke::sound_read_file_buffer(const char *filename,
     return nullptr;
   }
 
-  float *result = MEM_malloc_arrayN<float>(position, __func__);
+  float *result = MEM_new_array_uninitialized<float>(position, __func__);
   memcpy(result, buffer.getBuffer(), position * sizeof(float));
   *length = position;
   return result;

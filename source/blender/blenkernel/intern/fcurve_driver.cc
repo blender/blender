@@ -870,7 +870,7 @@ void driver_free_variable(ListBaseT<DriverVar> *variables, DriverVar *dvar)
   DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
     /* Free RNA path if applicable. */
     if (dtar->rna_path) {
-      MEM_freeN(dtar->rna_path);
+      MEM_delete(dtar->rna_path);
     }
   }
   DRIVER_TARGETS_LOOPER_END;
@@ -898,7 +898,7 @@ void driver_variables_copy(ListBaseT<DriverVar> *dst_vars, const ListBaseT<Drive
     DRIVER_TARGETS_LOOPER_BEGIN (&dvar) {
       /* Make a copy of target's rna path if available. */
       if (dtar->rna_path) {
-        dtar->rna_path = static_cast<char *>(MEM_dupallocN(dtar->rna_path));
+        dtar->rna_path = MEM_dupalloc(dtar->rna_path);
       }
     }
     DRIVER_TARGETS_LOOPER_END;
@@ -1019,7 +1019,7 @@ DriverVar *driver_add_new_variable(ChannelDriver *driver)
   }
 
   /* Make a new variable. */
-  dvar = MEM_new_for_free<DriverVar>("DriverVar");
+  dvar = MEM_new<DriverVar>("DriverVar");
   BLI_addtail(&driver->variables, dvar);
 
   /* Don't use translations as this is referenced as a literal in #ChannelDriver::expression. */
@@ -1068,7 +1068,7 @@ void fcurve_free_driver(FCurve *fcu)
 
   /* Free driver itself, then set F-Curve's point to this to nullptr
    * (as the curve may still be used). */
-  MEM_freeN(driver);
+  MEM_delete(driver);
   fcu->driver = nullptr;
 }
 
@@ -1082,7 +1082,7 @@ ChannelDriver *fcurve_copy_driver(const ChannelDriver *driver)
   }
 
   /* Copy all data. */
-  ndriver = static_cast<ChannelDriver *>(MEM_dupallocN(driver));
+  ndriver = MEM_dupalloc(driver);
   ndriver->expr_comp = nullptr;
   ndriver->expr_simple = nullptr;
 

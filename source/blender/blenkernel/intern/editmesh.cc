@@ -174,7 +174,7 @@ Array<float3> BKE_editmesh_vert_coords_alloc(Depsgraph *depsgraph,
 
   BKE_mesh_foreach_mapped_vert(cage, cage_mapped_verts_callback, &data, MESH_FOREACH_NOP);
 
-  MEM_freeN(visit_bitmap);
+  MEM_delete(visit_bitmap);
 
   return positions_cage;
 }

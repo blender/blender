@@ -52,7 +52,7 @@ namespace blender {
 
 wmGizmoGroup *wm_gizmogroup_new_from_type(wmGizmoMap *gzmap, wmGizmoGroupType *gzgt)
 {
-  wmGizmoGroup *gzgroup = MEM_callocN<wmGizmoGroup>("gizmo-group");
+  wmGizmoGroup *gzgroup = MEM_new_zeroed<wmGizmoGroup>("gizmo-group");
 
   gzgroup->type = gzgt;
   gzgroup->type->users += 1;
@@ -106,7 +106,7 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
     gzgroup->customdata_free(gzgroup->customdata);
   }
   else {
-    MEM_SAFE_FREE(gzgroup->customdata);
+    MEM_SAFE_DELETE_VOID(gzgroup->customdata);
   }
 
   BLI_remlink(&gzmap->groups, gzgroup);
@@ -115,7 +115,7 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
     gzgroup->type->users -= 1;
   }
 
-  MEM_freeN(gzgroup);
+  MEM_delete(gzgroup);
 }
 
 void WM_gizmo_group_tag_remove(wmGizmoGroup *gzgroup)
@@ -473,7 +473,7 @@ static void gizmo_tweak_finish(bContext *C, wmOperator *op, const bool cancel, b
       ED_undo_push(C, mtweak->gz_modal->parent_gzgroup->type->name);
     }
   }
-  MEM_freeN(mtweak);
+  MEM_delete(mtweak);
 }
 
 static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -602,7 +602,7 @@ static wmOperatorStatus gizmo_tweak_invoke(bContext *C, wmOperator *op, const wm
     return OPERATOR_PASS_THROUGH;
   }
 
-  GizmoTweakData *mtweak = MEM_mallocN<GizmoTweakData>(__func__);
+  GizmoTweakData *mtweak = MEM_new_uninitialized<GizmoTweakData>(__func__);
 
   mtweak->init_event = WM_userdef_event_type_from_keymap_type(event->type);
   mtweak->gz_modal = gzmap->gzmap_context.highlight;
@@ -969,7 +969,7 @@ wmGizmoGroupTypeRef *WM_gizmomaptype_group_link(wmGizmoMapType *gzmap_type, cons
 wmGizmoGroupTypeRef *WM_gizmomaptype_group_link_ptr(wmGizmoMapType *gzmap_type,
                                                     wmGizmoGroupType *gzgt)
 {
-  wmGizmoGroupTypeRef *gzgt_ref = MEM_callocN<wmGizmoGroupTypeRef>("gizmo-group-ref");
+  wmGizmoGroupTypeRef *gzgt_ref = MEM_new_zeroed<wmGizmoGroupTypeRef>("gizmo-group-ref");
   gzgt_ref->type = gzgt;
   BLI_addtail(&gzmap_type->grouptype_refs, gzgt_ref);
   return gzgt_ref;
@@ -1038,7 +1038,7 @@ wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(wmGizmoMapType *gzm
 
 void WM_gizmomaptype_group_free(wmGizmoGroupTypeRef *gzgt_ref)
 {
-  MEM_freeN(gzgt_ref);
+  MEM_delete(gzgt_ref);
 }
 
 void WM_gizmomaptype_group_unlink(bContext *C,

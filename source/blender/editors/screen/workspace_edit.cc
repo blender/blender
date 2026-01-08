@@ -615,7 +615,7 @@ static void workspace_add_menu_draw(ui::Layout &layout)
 
 static void workspace_add_menu_register()
 {
-  MenuType *mt = MEM_callocN<MenuType>("workspace_add_invoke");
+  MenuType *mt = MEM_new_zeroed<MenuType>("workspace_add_invoke");
   STRNCPY_UTF8(mt->idname, "WORKSPACE_MT_add");
   STRNCPY_UTF8(mt->label, N_("Add Workspace"));
   mt->flag = MenuTypeFlag::SearchOnKeyPress;

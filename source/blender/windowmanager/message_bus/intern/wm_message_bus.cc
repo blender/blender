@@ -47,7 +47,7 @@ void WM_msgbus_types_init()
 
 wmMsgBus *WM_msgbus_create()
 {
-  wmMsgBus *mbus = MEM_callocN<wmMsgBus>(__func__);
+  wmMsgBus *mbus = MEM_new_zeroed<wmMsgBus>(__func__);
   const uint gset_reserve = 512;
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];
@@ -63,7 +63,7 @@ void WM_msgbus_destroy(wmMsgBus *mbus)
     wmMsgTypeInfo *info = &wm_msg_types[i];
     BLI_gset_free(mbus->messages_gset[i], info->gset.key_free_fn);
   }
-  MEM_freeN(mbus);
+  MEM_delete(mbus);
 }
 
 void WM_msgbus_clear_by_owner(wmMsgBus *mbus, void *owner)
@@ -89,7 +89,7 @@ void WM_msgbus_clear_by_owner(wmMsgBus *mbus, void *owner)
           msg_lnk->params.free_data(msg_key, &msg_lnk->params);
         }
         BLI_remlink(&msg_key->values, msg_lnk);
-        MEM_freeN(msg_lnk);
+        MEM_delete(msg_lnk);
       }
     }
 
@@ -171,7 +171,7 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(wmMsgBus *mbus,
     }
   }
 
-  wmMsgSubscribeValueLink *msg_lnk = MEM_mallocN<wmMsgSubscribeValueLink>(__func__);
+  wmMsgSubscribeValueLink *msg_lnk = MEM_new_uninitialized<wmMsgSubscribeValueLink>(__func__);
   msg_lnk->params = *msg_val_params;
   BLI_addtail(&key->values, msg_lnk);
   return key;
@@ -231,7 +231,7 @@ void wm_msg_subscribe_value_free(wmMsgSubscribeKey *msg_key, wmMsgSubscribeValue
     msg_lnk->params.free_data(msg_key, &msg_lnk->params);
   }
   BLI_remlink(&msg_key->values, msg_lnk);
-  MEM_freeN(msg_lnk);
+  MEM_delete(msg_lnk);
 }
 
 /** \} */

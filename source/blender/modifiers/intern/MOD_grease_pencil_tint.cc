@@ -76,13 +76,13 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   auto *ttmd = reinterpret_cast<GreasePencilTintModifierData *>(target);
 
   modifier::greasepencil::free_influence_data(&ttmd->influence);
-  MEM_SAFE_FREE(ttmd->color_ramp);
+  MEM_SAFE_DELETE(ttmd->color_ramp);
 
   BKE_modifier_copydata_generic(md, target, flag);
   modifier::greasepencil::copy_influence_data(&tmd->influence, &ttmd->influence, flag);
 
   if (tmd->color_ramp) {
-    ttmd->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(tmd->color_ramp));
+    ttmd->color_ramp = MEM_dupalloc(tmd->color_ramp);
   }
 }
 
@@ -91,7 +91,7 @@ static void free_data(ModifierData *md)
   auto *tmd = reinterpret_cast<GreasePencilTintModifierData *>(md);
   modifier::greasepencil::free_influence_data(&tmd->influence);
 
-  MEM_SAFE_FREE(tmd->color_ramp);
+  MEM_SAFE_DELETE(tmd->color_ramp);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)

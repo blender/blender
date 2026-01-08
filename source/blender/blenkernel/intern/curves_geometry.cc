@@ -82,7 +82,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   this->custom_knot_num = 0;
 
   if (curve_num > 0) {
-    this->curve_offsets = MEM_malloc_arrayN<int>(size_t(this->curve_num) + 1, __func__);
+    this->curve_offsets = MEM_new_array_uninitialized<int>(size_t(this->curve_num) + 1, __func__);
     this->runtime->curve_offsets_sharing_info = implicit_sharing::info_for_mem_free(
         this->curve_offsets);
 #ifndef NDEBUG

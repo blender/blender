@@ -92,7 +92,7 @@ void grease_pencil_layer_parent_clear(bke::greasepencil::Layer &layer, const boo
   }
 
   layer.parent = nullptr;
-  MEM_SAFE_FREE(layer.parsubstr);
+  MEM_SAFE_DELETE(layer.parsubstr);
 
   copy_m4_m4(layer.parentinv, float4x4::identity().ptr());
 }

@@ -63,7 +63,7 @@ int pyrna_enum_value_from_id(const EnumPropertyItem *item,
     const char *enum_str = pyrna_enum_repr(item);
     PyErr_Format(
         PyExc_ValueError, "%s: '%.200s' not found in (%s)", error_prefix, identifier, enum_str);
-    MEM_freeN(enum_str);
+    MEM_delete(enum_str);
     return -1;
   }
 
@@ -131,7 +131,7 @@ BLI_bitmap *pyrna_enum_bitmap_from_set(const EnumPropertyItem *items,
     Py_DECREF(it);
 
     if (key) {
-      MEM_freeN(bitmap);
+      MEM_delete(bitmap);
       bitmap = nullptr;
     }
   }
