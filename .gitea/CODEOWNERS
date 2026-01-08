@@ -8,35 +8,109 @@
 # Developers should consider adding themselves to files and directories they
 # are interested in review (or where they're often asked to do reviews).
 
+# --------------------------------------------------
 # Core module.
-source/blender/depsgraph/.*             @sergey
-source/blender/blenkernel/BKE_lib.*     @mont29
-source/blender/blenkernel/intern/lib.*  @mont29
 
+## Depsgraph.
+source/blender/depsgraph/.*  @sergey
+
+## ID Management.
+source/blender/blenkernel/BKE_lib.*                 @mont29
+source/blender/blenkernel/intern/lib.*              @mont29
+source/blender/blenkernel/BKE_idtype.*              @mont29
+source/blender/blenkernel/intern/idtype.*           @mont29
+source/blender/blenkernel/BKE_main.*                @mont29
+source/blender/blenkernel/intern/main.*             @mont29
+source/blender/editors/include/ED_id_management.*   @mont29
+source/blender/editors/id_management.*              @mont29
+
+## UI/UX related Core components.
+source/blender/blenkernel/BKE_screen.*         @mont29
+source/blender/blenkernel/intern/screen.*      @mont29
+source/blender/blenkernel/BKE_wm.*             @mont29
+source/blender/blenkernel/intern/wm.*          @mont29
+source/blender/blenkernel/BKE_workspace.*      @mont29
+source/blender/blenkernel/intern/workspace.*   @mont29
+
+## Scene/Collections/Objects.
+source/blender/blenkernel/BKE_scene.*          @mont29
+source/blender/blenkernel/intern/scene.*       @mont29
+source/blender/blenkernel/BKE_collection.*     @mont29
+source/blender/blenkernel/intern/collection.*  @mont29
+source/blender/blenkernel/BKE_layer.*          @mont29
+source/blender/blenkernel/intern/layer.*       @mont29
+source/blender/blenkernel/BKE_object.*         @mont29
+source/blender/blenkernel/intern/object.*      @mont29
+
+## Blendfile & Undo.
+source/blender/blenloader/.*[^_][^\d]+\.[^.]+  @mont29  # Exclude versioning files (`..._510.cc`) from this capture.
+source/blender/blenloader_core/.*              @mont29
+source/blender/blenkernel/BKE_blendfile.*      @mont29
+source/blender/blenkernel/intern/blendfile.*   @mont29
+source/blender/blenkernel/BKE_packedfile.*     @mont29
+source/blender/blenkernel/intern/packedFile.*  @mont29
+source/blender/blenkernel/BKE_undo.*           @mont29
+source/blender/blenkernel/intern/undo.*        @mont29
+source/blender/editors/include/ED_undo.*       @mont29
+source/blender/editors/undo.*                  @mont29
+
+## Misc core utils & components.
+source/blender/blenkernel/BKE_blender.*     @mont29
+source/blender/blenkernel/intern/blender.*  @mont29
+source/blender/blenkernel/BKE_bpath.*       @mont29
+source/blender/blenkernel/intern/bpath.*    @mont29
+source/blender/blenkernel/BKE_idprop.*      @mont29
+source/blender/blenkernel/intern/idprop.*   @mont29
+source/blender/blenkernel/BKE_report.*      @mont29
+source/blender/blenkernel/intern/report.*   @mont29
+
+## DNA.
+source/blender/makesdna/intern.*    @mont29
+source/blender/makesdna/tests.*     @mont29
+
+## RNA.
+source/blender/makesrna/makesrna.*        @mont29
+source/blender/makesrna/rna_internal.*    @mont29
+
+## Guarded Allocator.
+intern/guardedalloc.*        @mont29
+
+# --------------------------------------------------
+# BPY.
+source/python/[^/]+        @mont29
+source/python/intern/.*    @mont29
+source/python/eneric/.*    @mont29
+
+# --------------------------------------------------
 # Motion tracking and Libmv.
 intern/libmv/.* @sergey
 source/blender/blenkernel/BKE_tracking.*     @sergey
 source/blender/blenkernel/intern/tracking.*  @sergey
 
+# --------------------------------------------------
 # Render and Cycles module.
 intern/cycles/.*           @sergey @brecht
 source/blender/render/.*   @sergey @brecht
 
+# --------------------------------------------------
 # Color management.
 source/blender/imbuf/IMB_colormanagement.h     @sergey @brecht
 source/blender/imbuf/intern/colormanagement.*  @sergey @brecht
 source/blender/imbuf/opencolorio/.*            @sergey @brecht
 
+# --------------------------------------------------
 # Grease Pencil.
 source/blender/editors/grease_pencil/.*           @filedescriptor
 source/blender/blenkernel/BKE_grease_pencil.*     @filedescriptor
 source/blender/blenkernel/intern/grease_pencil.*  @filedescriptor
 
+# --------------------------------------------------
 # Geometry Nodes.
 source/blender/functions/.*                @JacquesLucke
 source/blender/nodes/NOD_geometry_nodes.*  @JacquesLucke
 source/blender/nodes/geometry/.*           @JacquesLucke
 
+# --------------------------------------------------
 # Blenlib.
 source/blender/blenlib/BLI_allocator.*                     @JacquesLucke
 source/blender/blenlib/BLI_any.*                           @JacquesLucke
@@ -89,7 +163,8 @@ source/blender/blenlib/intern/implicit_sharing.*           @JacquesLucke
 source/blender/blenlib/intern/memory_cache.*               @JacquesLucke
 source/blender/blenlib/intern/memory_counter.*             @JacquesLucke
 
-# Viewport & EEVEE Module
+# --------------------------------------------------
+# Viewport & EEVEE Module.
 extern/renderdoc/.*                                    @Jeroen-Bakker
 extern/vulkan_memory_allocator/.*                      @Jeroen-Bakker
 intern/ghost/intern/GHOST_ContextVK*                   @Jeroen-Bakker
@@ -100,3 +175,7 @@ source/blender/blenkernel/intern/image_gpu*            @Jeroen-Bakker
 source/blender/blenkernel/intern/image_partial_update* @Jeroen-Bakker
 source/blender/gpu/vulkan/.*                           @Jeroen-Bakker
 source/blender/python/gpu/.*                           @Jeroen-Bakker
+
+# --------------------------------------------------
+# I18N.
+source/blender/blentranslation.*      @mont29
