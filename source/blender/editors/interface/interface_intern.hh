@@ -525,6 +525,12 @@ struct ColorPicker {
   /* Hex Color string */
   char hexcol[128];
 
+  /**
+   * Buffer for the main area (Circle/Square) tooltip.
+   * Used for dynamically formatted tooltips (e.g. "Hue/Saturation").
+   */
+  char tooltip_area[128];
+
   /** Cubic saturation for the color wheel. */
   bool use_color_cubic;
   bool use_color_lock;
