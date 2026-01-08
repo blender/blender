@@ -1012,11 +1012,11 @@ static IDProperty *idp_from_DatablockPointer(IDProperty *prop_exist,
   return prop;
 }
 
-static IDProperty *idp_from_PyObject(IDProperty *prop_exist,
-                                     const char *name,
-                                     PyObject *ob,
-                                     const bool do_conversion,
-                                     const bool can_create)
+IDProperty *BPy_IDProperty_FromPyObject(IDProperty *prop_exist,
+                                        const char *name,
+                                        PyObject *ob,
+                                        const bool do_conversion,
+                                        const bool can_create)
 {
   if (name == nullptr) {
     return nullptr;
@@ -1067,7 +1067,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, IDProperty *group, PyOb
 
   /* If the container is an array of IDProperties, always add a new property to it. */
   if (group->type == IDP_IDPARRAY) {
-    IDProperty *new_prop = idp_from_PyObject(nullptr, name, ob, false, true);
+    IDProperty *new_prop = BPy_IDProperty_FromPyObject(nullptr, name, ob, false, true);
     if (new_prop == nullptr) {
       return false;
     }
@@ -1084,7 +1084,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, IDProperty *group, PyOb
   /* If existing property is flagged to be statically typed, do not re-type it. Assign the value if
    * possible (potentially converting it), or fail. See #122743. */
   if (prop_exist && (prop_exist->flag & IDP_FLAG_STATIC_TYPE) != 0) {
-    IDProperty *prop = idp_from_PyObject(prop_exist, name, ob, true, false);
+    IDProperty *prop = BPy_IDProperty_FromPyObject(prop_exist, name, ob, true, false);
     BLI_assert(ELEM(prop, prop_exist, nullptr));
     if (prop != prop_exist) {
       PyErr_Format(PyExc_TypeError,
@@ -1099,7 +1099,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, IDProperty *group, PyOb
 
   /* Attempt to assign new value in existing IDProperty, if types (and potentially subtypes) match
    * exactly. Otherwise, create a new IDProperty. */
-  IDProperty *new_prop = idp_from_PyObject(prop_exist, name, ob, false, true);
+  IDProperty *new_prop = BPy_IDProperty_FromPyObject(prop_exist, name, ob, false, true);
   if (new_prop == nullptr) {
     return false;
   }
