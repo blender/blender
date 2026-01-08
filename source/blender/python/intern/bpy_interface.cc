@@ -128,6 +128,9 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
   if (py_call_level == 1) {
     BPY_context_update(C);
 
+    /* In rare situations, a nullptr context may be set. Such as when executing a XR surface region
+     * draw callback, which doesn't provide a valid context. Prevent calling #pyrna_context_init
+     * which would dereference the context to initialize flags. */
     if (C != nullptr) {
       pyrna_context_init(C);
     }
@@ -163,6 +166,7 @@ void bpy_context_clear(bContext *C, const PyGILState_STATE *gilstate)
     BPY_context_set(nullptr);
 #endif
 
+    /* See previous comment regarding nullptr check in #bpy_context_set. */
     if (C != nullptr) {
       pyrna_context_clear(C);
     }
