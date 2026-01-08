@@ -199,6 +199,10 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
           node_identifier.operation_code = OperationCode::BONE_DONE;
         }
       }
+      /* Bone visibility has its own depsgraph node. */
+      else if (STREQ(prop_name, "hide")) {
+        node_identifier.operation_code = OperationCode::BONE_VISIBILITY;
+      }
       /* And other properties can always go to the entry operation. */
       else {
         node_identifier.operation_code = OperationCode::BONE_LOCAL;
