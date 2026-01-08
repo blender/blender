@@ -833,7 +833,7 @@ void Result::allocate_data(const int2 size,
     const gpu::TextureFormat format = this->get_gpu_texture_format();
     const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
     if (from_pool) {
-      gpu_texture_ = gpu::TexturePool::get().acquire_texture(size.x, size.y, format, usage);
+      gpu_texture_ = gpu::TexturePool::get().acquire_texture(size, format, usage);
     }
     else {
       gpu_texture_ = GPU_texture_create_2d(__func__, size.x, size.y, 1, format, usage, nullptr);
