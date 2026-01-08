@@ -134,6 +134,28 @@ float PointLight::area(const Transform & /*tfm*/) const
   return (area == 0.0f) ? 4.0f : area;
 }
 
+void PointLight::copy_to_kernel(KernelLight *klight,
+                                const Scene *scene,
+                                const Object *object) const
+{
+  const float invarea = normalize ? 1.0f / area(object->get_tfm()) : 1.0f;
+
+  /* Convert radiant flux to radiance or radiant intensity. */
+  const float eval_fac = invarea * M_1_PI_F;
+
+  uint shader_flags = 0;
+  if (use_mis && radius > 0.0f) {
+    shader_flags |= SHADER_USE_MIS;
+  }
+
+  klight->co = transform_get_translation(&object->get_tfm());
+  klight->spot.radius = radius;
+  klight->spot.eval_fac = eval_fac;
+  klight->spot.is_sphere = is_sphere && radius != 0.0f;
+
+  Light::copy_to_kernel(klight, scene, object, shader_flags);
+}
+
 NODE_DEFINE(SpotLight)
 {
   NodeType *type = NodeType::add("spotlight", create, NodeType::NONE, PointLight::get_node_type());
@@ -147,6 +169,31 @@ NODE_DEFINE(SpotLight)
 SpotLight::SpotLight() : PointLight(get_node_type(), Geometry::SPOT_LIGHT)
 {
   light_type = LIGHT_SPOT;
+}
+
+void SpotLight::copy_to_kernel(KernelLight *klight, const Scene *scene, const Object *object) const
+{
+  const float cos_half_spot_angle = cosf(angle * 0.5f);
+  const float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * smooth);
+  const float tan_half_spot_angle = tanf(angle * 0.5f);
+
+  const float3 dir = -transform_get_column(&object->get_tfm(), 2);
+  const float len_w_sq = len_squared(dir);
+  const float len_u_sq = len_squared(transform_get_column(&object->get_tfm(), 0));
+  const float len_v_sq = len_squared(transform_get_column(&object->get_tfm(), 1));
+  const float tan_sq = sqr(tan_half_spot_angle);
+
+  klight->spot.dir = safe_normalize(dir);
+  klight->spot.cos_half_spot_angle = cos_half_spot_angle;
+  klight->spot.half_cot_half_spot_angle = 0.5f / tan_half_spot_angle;
+  klight->spot.spot_smooth = spot_smooth;
+  /* Choose the angle which spans a larger cone. */
+  klight->spot.cos_half_larger_spread = inversesqrtf(1.0f + tan_sq * fmaxf(len_u_sq, len_v_sq) /
+                                                                len_w_sq);
+  /* radius / sin(half_angle_small) */
+  klight->spot.ray_segment_dp = radius *
+                                sqrtf(1.0f + len_w_sq / (tan_sq * fminf(len_u_sq, len_v_sq)));
+  PointLight::copy_to_kernel(klight, scene, object);
 }
 
 NODE_DEFINE(AreaLight)
@@ -177,6 +224,59 @@ float AreaLight::area(const Transform &tfm) const
   return ellipse ? area * M_PI_4_F : area;
 }
 
+void AreaLight::copy_to_kernel(KernelLight *klight, const Scene *scene, const Object *object) const
+{
+  const float3 extentu = transform_get_column(&object->get_tfm(), 0) * sizeu;
+  const float3 extentv = transform_get_column(&object->get_tfm(), 1) * sizev;
+
+  float len_u;
+  float len_v;
+  const float3 axis_u = normalize_len(extentu, &len_u);
+  const float3 axis_v = normalize_len(extentv, &len_v);
+  const float area_ = area(object->get_tfm());
+  float invarea = ((normalize || is_portal) && area_ != 0.0f) ? 1.0f / area_ : 1.0f;
+
+  if (ellipse) {
+    /* Negative inverse area indicates ellipse. */
+    invarea = -invarea;
+  }
+
+  klight->co = transform_get_translation(&object->get_tfm());
+  klight->area.axis_u = axis_u;
+  klight->area.len_u = len_u;
+  klight->area.axis_v = axis_v;
+  klight->area.len_v = len_v;
+  klight->area.invarea = invarea;
+  klight->area.dir = safe_normalize(-transform_get_column(&object->get_tfm(), 2));
+  klight->object_id = object->index;
+
+  if (is_portal) {
+    return;
+  }
+
+  const float half_spread = 0.5f * fmaxf(spread, 0.0f);
+  const float tan_half_spread = spread == M_PI_F ? FLT_MAX : tanf(half_spread);
+  /* Normalization computed using:
+   * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread.
+   * Divided by tan_half_spread to simplify the attenuation computation in `area.h`. */
+  /* Using third-order Taylor expansion at small angles for better accuracy. */
+  const float normalize_spread = (half_spread > 0.0f) ?
+                                     (half_spread > 0.05f ?
+                                          1.0f / (tan_half_spread - half_spread) :
+                                          3.0f / powf(half_spread, 3.0f)) :
+                                     FLT_MAX;
+
+  uint shader_flags = 0;
+  if (use_mis && area_ != 0.0f && spread > 0.0f) {
+    shader_flags |= SHADER_USE_MIS;
+  }
+
+  klight->area.tan_half_spread = tan_half_spread;
+  klight->area.normalize_spread = normalize_spread;
+
+  Light::copy_to_kernel(klight, scene, object, shader_flags);
+}
+
 NODE_DEFINE(SunLight)
 {
   NodeType *type = NodeType::add("sunlight", create, NodeType::NONE, Light::get_node_base_type());
@@ -195,6 +295,28 @@ float SunLight::area(const Transform & /*tfm*/) const
 {
   /* Sun disk area. */
   return (angle > 0.0f) ? M_PI_F * sqr(sinf(angle * 0.5f)) : 1.0f;
+}
+
+void SunLight::copy_to_kernel(KernelLight *klight, const Scene *scene, const Object *object) const
+{
+  uint shader_flags = 0;
+  const float half_angle = angle / 2.0f;
+  if (use_mis && half_angle > 0.0f) {
+    shader_flags |= SHADER_USE_MIS;
+  }
+
+  const float one_minus_cosangle = 2.0f * sqr(sinf(0.5f * half_angle));
+  const float pdf = (half_angle > 0.0f) ? (M_1_2PI_F / one_minus_cosangle) : 1.0f;
+
+  klight->co = safe_normalize(-transform_get_column(&object->get_tfm(), 2));
+  klight->distant.angle = half_angle;
+  klight->distant.one_minus_cosangle = one_minus_cosangle;
+  klight->distant.pdf = pdf;
+  klight->distant.eval_fac = normalize ? 1.0f / area(object->get_tfm()) : 1.0f;
+  klight->distant.half_inv_sin_half_angle = (half_angle == 0.0f) ? 0.0f :
+                                                                   0.5f / sinf(0.5f * half_angle);
+
+  Light::copy_to_kernel(klight, scene, object, shader_flags);
 }
 
 NODE_DEFINE(BackgroundLight)
@@ -216,6 +338,29 @@ BackgroundLight::BackgroundLight() : Light(get_node_type(), Geometry::BACKGROUND
 float BackgroundLight::area(const Transform & /*tfm*/) const
 {
   return 1.0f;
+}
+
+void BackgroundLight::copy_to_kernel(KernelLight *klight,
+                                     const Scene *scene,
+                                     const Object *object) const
+{
+  const uint visibility = scene->background->get_visibility();
+
+  uint shader_flags = SHADER_USE_MIS;
+
+  if (!(visibility & PATH_RAY_DIFFUSE)) {
+    shader_flags |= SHADER_EXCLUDE_DIFFUSE;
+  }
+  if (!(visibility & PATH_RAY_GLOSSY)) {
+    shader_flags |= SHADER_EXCLUDE_GLOSSY;
+  }
+  if (!(visibility & PATH_RAY_TRANSMIT)) {
+    shader_flags |= SHADER_EXCLUDE_TRANSMIT;
+  }
+  if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
+    shader_flags |= SHADER_EXCLUDE_SCATTER;
+  }
+  Light::copy_to_kernel(klight, scene, object, shader_flags);
 }
 
 void Light::tag_update(Scene *scene)
@@ -285,6 +430,56 @@ void Light::get_uv_tiles(ustring /*map*/, unordered_set<int> & /*tiles*/)
 PrimitiveType Light::primitive_type() const
 {
   return PRIMITIVE_LAMP;
+}
+
+static uint light_object_visibility_flags(const Object *object)
+{
+  const uint visibility = object->get_visibility();
+  uint visibility_flag = 0;
+
+  if (!(visibility & PATH_RAY_CAMERA)) {
+    visibility_flag |= SHADER_EXCLUDE_CAMERA;
+  }
+  if (!(visibility & PATH_RAY_DIFFUSE)) {
+    visibility_flag |= SHADER_EXCLUDE_DIFFUSE;
+  }
+  if (!(visibility & PATH_RAY_GLOSSY)) {
+    visibility_flag |= SHADER_EXCLUDE_GLOSSY;
+  }
+  if (!(visibility & PATH_RAY_TRANSMIT)) {
+    visibility_flag |= SHADER_EXCLUDE_TRANSMIT;
+  }
+  if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
+    visibility_flag |= SHADER_EXCLUDE_SCATTER;
+  }
+  if (!(object->get_is_shadow_catcher())) {
+    visibility_flag |= SHADER_EXCLUDE_SHADOW_CATCHER;
+  }
+
+  return visibility_flag;
+}
+
+void Light::copy_to_kernel(KernelLight *klight,
+                           const Scene *scene,
+                           const Object *object,
+                           const uint shader_flags) const
+{
+  klight->type = light_type;
+
+  const Shader *shader = (get_shader()) ? get_shader() : scene->default_light;
+  int shader_id = scene->shader_manager->get_shader_id(shader);
+
+  if (!cast_shadow) {
+    shader_id &= ~SHADER_CAST_SHADOW;
+  }
+
+  shader_id |= light_object_visibility_flags(object);
+
+  klight->shader_id = shader_id | shader_flags;
+  klight->object_id = object->index;
+  klight->max_bounces = max_bounces;
+  copy_v3_v3(klight->strength, strength);
+  klight->use_caustics = use_caustics;
 }
 
 /* Light Manager */
@@ -368,33 +563,6 @@ void LightManager::test_enabled_lights(Scene *scene)
     last_background_resolution = background_resolution;
     need_update_background = true;
   }
-}
-
-static uint light_object_visibility_flags(const Object *object)
-{
-  const uint visibility = object->get_visibility();
-  uint visibility_flag = 0;
-
-  if (!(visibility & PATH_RAY_CAMERA)) {
-    visibility_flag |= SHADER_EXCLUDE_CAMERA;
-  }
-  if (!(visibility & PATH_RAY_DIFFUSE)) {
-    visibility_flag |= SHADER_EXCLUDE_DIFFUSE;
-  }
-  if (!(visibility & PATH_RAY_GLOSSY)) {
-    visibility_flag |= SHADER_EXCLUDE_GLOSSY;
-  }
-  if (!(visibility & PATH_RAY_TRANSMIT)) {
-    visibility_flag |= SHADER_EXCLUDE_TRANSMIT;
-  }
-  if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
-    visibility_flag |= SHADER_EXCLUDE_SCATTER;
-  }
-  if (!(object->get_is_shadow_catcher())) {
-    visibility_flag |= SHADER_EXCLUDE_SHADOW_CATCHER;
-  }
-
-  return visibility_flag;
 }
 
 void LightManager::device_update_distribution(Device * /*unused*/,
@@ -1259,194 +1427,20 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
   int light_index = 0;
   int portal_index = num_lights;
 
-  for (Object *object : scene->objects) {
+  for (const Object *object : scene->objects) {
     if (!object->get_geometry()->is_light()) {
       continue;
     }
 
-    Light *light = static_cast<Light *>(object->get_geometry());
-    const float3 axisu = transform_get_column(&object->get_tfm(), 0);
-    const float3 axisv = transform_get_column(&object->get_tfm(), 1);
-    const float3 dir = -transform_get_column(&object->get_tfm(), 2);
-    const float3 co = transform_get_column(&object->get_tfm(), 3);
-
-    /* Consider moving portals update to their own function
-     * keeping this one more manageable. */
+    const Light *light = static_cast<const Light *>(object->get_geometry());
     if (light->is_portal_light()) {
-      const AreaLight *area_light = static_cast<const AreaLight *>(light);
-      const float3 extentu = axisu * area_light->get_sizeu();
-      const float3 extentv = axisv * area_light->get_sizev();
-
-      float len_u;
-      float len_v;
-      const float3 axis_u = normalize_len(extentu, &len_u);
-      const float3 axis_v = normalize_len(extentv, &len_v);
-      const float area = light->area(object->get_tfm());
-      float invarea = (area != 0.0f) ? 1.0f / area : 1.0f;
-      if (area_light->get_ellipse()) {
-        /* Negative inverse area indicates ellipse. */
-        invarea = -invarea;
-      }
-
-      klights[portal_index].co = co;
-      klights[portal_index].area.axis_u = axis_u;
-      klights[portal_index].area.len_u = len_u;
-      klights[portal_index].area.axis_v = axis_v;
-      klights[portal_index].area.len_v = len_v;
-      klights[portal_index].area.invarea = invarea;
-      klights[portal_index].area.dir = safe_normalize(dir);
-      klights[portal_index].object_id = object->index;
-
+      light->copy_to_kernel(klights + portal_index, scene, object);
       portal_index++;
-      continue;
     }
-
-    if (!light->is_enabled) {
-      continue;
+    else if (light->is_enabled) {
+      light->copy_to_kernel(klights + light_index, scene, object);
+      light_index++;
     }
-
-    Shader *shader = (light->get_shader()) ? light->get_shader() : scene->default_light;
-    int shader_id = scene->shader_manager->get_shader_id(shader);
-
-    if (!light->cast_shadow) {
-      shader_id &= ~SHADER_CAST_SHADOW;
-    }
-
-    shader_id |= light_object_visibility_flags(object);
-
-    klights[light_index].type = light->light_type;
-    klights[light_index].strength[0] = light->strength.x;
-    klights[light_index].strength[1] = light->strength.y;
-    klights[light_index].strength[2] = light->strength.z;
-
-    if (const PointLight *point_light = dynamic_cast<PointLight *>(light)) {
-      const float radius = point_light->get_radius();
-      const float invarea = (light->normalize) ? 1.0f / light->area(object->get_tfm()) : 1.0f;
-
-      /* Convert radiant flux to radiance or radiant intensity. */
-      const float eval_fac = invarea * M_1_PI_F;
-
-      if (light->use_mis && radius > 0.0f) {
-        shader_id |= SHADER_USE_MIS;
-      }
-
-      klights[light_index].co = co;
-      klights[light_index].spot.radius = radius;
-      klights[light_index].spot.eval_fac = eval_fac;
-      klights[light_index].spot.is_sphere = point_light->get_is_sphere() && radius != 0.0f;
-    }
-    else if (light->is_sun_light()) {
-      const float angle = static_cast<const SunLight *>(light)->get_angle() / 2.0f;
-
-      if (light->use_mis && angle > 0.0f) {
-        shader_id |= SHADER_USE_MIS;
-      }
-
-      const float one_minus_cosangle = 2.0f * sqr(sinf(0.5f * angle));
-      const float pdf = (angle > 0.0f) ? (M_1_2PI_F / one_minus_cosangle) : 1.0f;
-
-      klights[light_index].co = safe_normalize(dir);
-      klights[light_index].distant.angle = angle;
-      klights[light_index].distant.one_minus_cosangle = one_minus_cosangle;
-      klights[light_index].distant.pdf = pdf;
-      klights[light_index].distant.eval_fac = (light->normalize) ?
-                                                  1.0f / light->area(object->get_tfm()) :
-                                                  1.0f;
-      klights[light_index].distant.half_inv_sin_half_angle = (angle == 0.0f) ?
-                                                                 0.0f :
-                                                                 0.5f / sinf(0.5f * angle);
-    }
-    else if (light->is_background_light()) {
-      const uint visibility = scene->background->get_visibility();
-
-      shader_id |= SHADER_USE_MIS;
-
-      if (!(visibility & PATH_RAY_DIFFUSE)) {
-        shader_id |= SHADER_EXCLUDE_DIFFUSE;
-      }
-      if (!(visibility & PATH_RAY_GLOSSY)) {
-        shader_id |= SHADER_EXCLUDE_GLOSSY;
-      }
-      if (!(visibility & PATH_RAY_TRANSMIT)) {
-        shader_id |= SHADER_EXCLUDE_TRANSMIT;
-      }
-      if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
-        shader_id |= SHADER_EXCLUDE_SCATTER;
-      }
-    }
-    else if (light->is_area_light()) {
-      const AreaLight *area_light = static_cast<const AreaLight *>(light);
-      const float3 extentu = axisu * area_light->get_sizeu();
-      const float3 extentv = axisv * area_light->get_sizev();
-
-      float len_u;
-      float len_v;
-      const float3 axis_u = normalize_len(extentu, &len_u);
-      const float3 axis_v = normalize_len(extentv, &len_v);
-      const float area = area_light->area(object->get_tfm());
-      float invarea = area_light->get_normalize() ? 1.0f / area : 1.0f;
-      if (area_light->get_ellipse()) {
-        /* Negative inverse area indicates ellipse. */
-        invarea = -invarea;
-      }
-
-      const float half_spread = 0.5f * fmaxf(area_light->get_spread(), 0.0f);
-      const float tan_half_spread = area_light->get_spread() == M_PI_F ? FLT_MAX :
-                                                                         tanf(half_spread);
-      /* Normalization computed using:
-       * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread.
-       * Divided by tan_half_spread to simplify the attenuation computation in `area.h`. */
-      /* Using third-order Taylor expansion at small angles for better accuracy. */
-      const float normalize_spread = (half_spread > 0.0f) ?
-                                         (half_spread > 0.05f ?
-                                              1.0f / (tan_half_spread - half_spread) :
-                                              3.0f / powf(half_spread, 3.0f)) :
-                                         FLT_MAX;
-
-      if (light->use_mis && area != 0.0f && area_light->get_spread() > 0.0f) {
-        shader_id |= SHADER_USE_MIS;
-      }
-
-      klights[light_index].co = co;
-      klights[light_index].area.axis_u = axis_u;
-      klights[light_index].area.len_u = len_u;
-      klights[light_index].area.axis_v = axis_v;
-      klights[light_index].area.len_v = len_v;
-      klights[light_index].area.invarea = invarea;
-      klights[light_index].area.dir = safe_normalize(dir);
-      klights[light_index].area.tan_half_spread = tan_half_spread;
-      klights[light_index].area.normalize_spread = normalize_spread;
-    }
-    if (light->is_spot_light()) {
-      const SpotLight *spot_light = static_cast<const SpotLight *>(light);
-      const float cos_half_spot_angle = cosf(spot_light->get_angle() * 0.5f);
-      const float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * spot_light->get_smooth());
-      const float tan_half_spot_angle = tanf(spot_light->get_angle() * 0.5f);
-
-      const float len_w_sq = len_squared(dir);
-      const float len_u_sq = len_squared(axisu);
-      const float len_v_sq = len_squared(axisv);
-      const float tan_sq = sqr(tan_half_spot_angle);
-
-      klights[light_index].spot.dir = safe_normalize(dir);
-      klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
-      klights[light_index].spot.half_cot_half_spot_angle = 0.5f / tan_half_spot_angle;
-      klights[light_index].spot.spot_smooth = spot_smooth;
-      /* Choose the angle which spans a larger cone. */
-      klights[light_index].spot.cos_half_larger_spread = inversesqrtf(
-          1.0f + tan_sq * fmaxf(len_u_sq, len_v_sq) / len_w_sq);
-      /* radius / sin(half_angle_small) */
-      klights[light_index].spot.ray_segment_dp =
-          spot_light->get_radius() * sqrtf(1.0f + len_w_sq / (tan_sq * fminf(len_u_sq, len_v_sq)));
-    }
-
-    klights[light_index].shader_id = shader_id;
-    klights[light_index].object_id = object->index;
-
-    klights[light_index].max_bounces = light->max_bounces;
-    klights[light_index].use_caustics = light->use_caustics;
-
-    light_index++;
   }
 
   LOG_INFO << "Number of lights sent to the device: " << num_lights;

@@ -61,6 +61,14 @@ class Light : public Geometry {
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
   PrimitiveType primitive_type() const override;
 
+  void copy_to_kernel(KernelLight *klight,
+                      const Scene *scene,
+                      const Object *object,
+                      const uint shader_flags) const;
+  virtual void copy_to_kernel(KernelLight *klight,
+                              const Scene *scene,
+                              const Object *object) const = 0;
+
   bool is_spot_light() const;
   bool is_point_light() const;
   bool is_area_light() const;
@@ -84,6 +92,9 @@ class PointLight : public Light {
   PointLight(const NodeType *node_type, const Geometry::Type type) : Light(node_type, type) {};
 
   float area(const Transform &tfm) const override;
+  void copy_to_kernel(KernelLight *klight,
+                      const Scene *scene,
+                      const Object *object) const override;
 
   NODE_SOCKET_API(float, radius)
   NODE_SOCKET_API(bool, is_sphere)
@@ -94,6 +105,9 @@ class SpotLight : public PointLight {
   NODE_DECLARE;
 
   SpotLight();
+  void copy_to_kernel(KernelLight *klight,
+                      const Scene *scene,
+                      const Object *object) const override;
 
   NODE_SOCKET_API(float, angle)
   NODE_SOCKET_API(float, smooth)
@@ -106,6 +120,9 @@ class AreaLight : public Light {
   AreaLight();
 
   float area(const Transform &tfm) const override;
+  void copy_to_kernel(KernelLight *klight,
+                      const Scene *scene,
+                      const Object *object) const override;
 
   bool is_portal_light() const override
   {
@@ -126,6 +143,9 @@ class SunLight : public Light {
   SunLight();
 
   float area(const Transform &tfm) const override;
+  void copy_to_kernel(KernelLight *klight,
+                      const Scene *scene,
+                      const Object *object) const override;
 
   NODE_SOCKET_API(float, angle)
 };
@@ -137,6 +157,9 @@ class BackgroundLight : public Light {
   BackgroundLight();
 
   float area(const Transform &tfm) const override;
+  void copy_to_kernel(KernelLight *klight,
+                      const Scene *scene,
+                      const Object *object) const override;
 
   NODE_SOCKET_API(int, map_resolution)
   NODE_SOCKET_API(float, average_radiance)

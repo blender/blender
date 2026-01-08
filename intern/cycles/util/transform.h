@@ -370,6 +370,11 @@ ccl_device_inline void transform_set_column(Transform *t, const int column, cons
   t->z[column] = value.z;
 }
 
+ccl_device_inline float3 transform_get_translation(const Transform *t)
+{
+  return transform_get_column(t, 3);
+}
+
 Transform transform_transposed_inverse(const Transform &tfm);
 
 ccl_device_inline bool transform_uniform_scale(const Transform &tfm, float &scale)
