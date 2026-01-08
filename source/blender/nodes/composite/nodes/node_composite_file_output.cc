@@ -779,6 +779,10 @@ class FileOutputOperation : public NodeOperation {
           bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "conversion"),
           result.meta_data.cryptomatte.conversion);
     }
+
+    for (const auto &item : result.meta_data.fields.items()) {
+      file_output.add_meta_data(item.key, item.value);
+    }
   }
 
   Vector<path_templates::Error> get_image_path(const ImageFormatData &format,
