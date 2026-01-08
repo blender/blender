@@ -938,7 +938,10 @@ static void move_child_nodes(bNode &node, const float2 &delta)
 
 static void rna_Node_location_set(PointerRNA *ptr, const float *value)
 {
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode *node = ptr->data_as<bNode>();
+
+  ntree->ensure_topology_cache();
   const float2 new_location = float2(value) + node_parent_offset(*node);
   if (node->is_frame()) {
     move_child_nodes(*node, new_location - float2(node->location[0], node->location[1]));
