@@ -979,8 +979,6 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
           /* Cocoa doesn't define a Hyper modifier key,
            * it's possible another modifier could be optionally used in it's place. */
           GHOST_kCapabilityKeyboardHyperKey |
-          /* No support yet for RGBA mouse cursors. */
-          GHOST_kCapabilityCursorRGBA |
           /* No support yet for dynamic cursor generation. */
           GHOST_kCapabilityCursorGenerator));
 }
