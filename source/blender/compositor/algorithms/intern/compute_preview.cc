@@ -12,6 +12,7 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
+#include "BKE_node_runtime.hh"
 #include "BKE_type_conversions.hh"
 
 #include "GPU_shader.hh"
@@ -131,20 +132,19 @@ static int2 compute_preview_size(int2 size)
   return int2(int(greater_dimension_size * (float(size.x) / size.y)), greater_dimension_size);
 }
 
-void compute_preview(Context &context, const DNode &node, const Result &input_result)
+void compute_preview(Context &context,
+                     Map<bNodeInstanceKey, bke::bNodePreview> *node_previews,
+                     const bNodeInstanceKey &node_instance_key,
+                     const Result &input_result)
 {
   if (input_result.is_single_value()) {
     return;
   }
 
-  /* Initialize node tree previews if not already initialized. */
-  bNodeTree *root_tree = const_cast<bNodeTree *>(
-      &node.context()->derived_tree().root_context().btree());
-
   const int2 preview_size = compute_preview_size(input_result.domain().data_size);
 
   bke::bNodePreview *preview = bke::node_preview_verify(
-      root_tree->runtime->previews, node.instance_key(), preview_size.x, preview_size.y, true);
+      *node_previews, node_instance_key, preview_size.x, preview_size.y, true);
 
   if (context.use_gpu()) {
     compute_preview_gpu(context, input_result, preview);

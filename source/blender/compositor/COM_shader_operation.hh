@@ -7,23 +7,19 @@
 #include <memory>
 
 #include "BLI_map.hh"
+#include "BLI_vector_set.hh"
 
 #include "GPU_material.hh"
 #include "GPU_shader.hh"
 
 #include "gpu_shader_create_info.hh"
 
-#include "NOD_derived_node_tree.hh"
-
 #include "COM_context.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_pixel_operation.hh"
-#include "COM_scheduler.hh"
 #include "COM_shader_node.hh"
 
 namespace blender::compositor {
-
-using namespace nodes::derived_node_tree_types;
 
 /* ------------------------------------------------------------------------------------------------
  * Shader Operation
@@ -60,18 +56,20 @@ class ShaderOperation : public PixelOperation {
    * freed during destruction. */
   GPUMaterial *material_;
   /* A map that associates each node in the compile unit with an instance of its shader node. */
-  Map<DNode, std::unique_ptr<ShaderNode>> shader_nodes_;
+  Map<const bNode *, std::unique_ptr<ShaderNode>> shader_nodes_;
   /* A map that associates the output socket of a node that is not part of the shader operation to
    * the attribute that was created for it. This is used to share the same attribute with all
    * inputs that are linked to the same output socket. */
-  Map<DOutputSocket, GPUNodeLink *> output_to_material_attribute_map_;
+  Map<const bNodeSocket *, GPUNodeLink *> output_to_material_attribute_map_;
   /* A map that associates implicit inputs to the attributes that were created for them. */
   Map<ImplicitInput, GPUNodeLink *> implicit_input_to_material_attribute_map_;
 
  public:
   /* Construct and compile a GPU material from the given shader compile unit and execution schedule
    * by calling GPU_material_from_callbacks with the appropriate callbacks. */
-  ShaderOperation(Context &context, PixelCompileUnit &compile_unit, const Schedule &schedule);
+  ShaderOperation(Context &context,
+                  PixelCompileUnit &compile_unit,
+                  const VectorSet<const bNode *> &schedule);
 
   /* Free the GPU material. */
   ~ShaderOperation() override;
@@ -117,37 +115,34 @@ class ShaderOperation : public PixelOperation {
    * exposed as an input to the shader operation and linked to it. While if the input is linked to
    * a node that is part of the shader operation, then it is linked to that node in the GPU
    * material node graph. */
-  void link_node_inputs(DNode node);
+  void link_node_inputs(const bNode &node);
 
   /* Link the GPU stack of the given unavailable input to a constant zero value setter GPU node.
    * The value is ignored since the socket is unavailable, but the GPU Material compiler expects
    * all inputs to be linked, even unavailable ones. */
-  void link_node_input_unavailable(const DInputSocket input);
+  void link_node_input_unavailable(const bNodeSocket &input);
 
   /* Link the GPU stack of the given unlinked input to a constant value setter GPU node that
-   * supplies the value of the unlinked input. The value is taken from the given origin input,
-   * which will be equal to the input in most cases, but can also be an unlinked input of a group
-   * node. */
-  void link_node_input_constant(const DInputSocket input, const DInputSocket origin);
+   * supplies the value of the unlinked input. */
+  void link_node_input_constant(const bNodeSocket &input);
 
   /* Given an unlinked input with an implicit input. Declare a new input to the operation for that
    * implicit input if not done already and link it to the input link of the GPU node stack of the
-   * input socket. The implicit input and type are taken from the given origin input, which will
-   * be equal to the input in most cases, but can also be an unlinked input of a group node */
-  void link_node_input_implicit(const DInputSocket input, const DInputSocket origin);
+   * input socket. */
+  void link_node_input_implicit(const bNodeSocket &input);
 
   /* Given the input socket of a node that is part of the shader operation which is linked to the
    * given output socket of a node that is also part of the shader operation, just link the output
    * link of the GPU node stack of the output socket to the input link of the GPU node stack of the
    * input socket. This essentially establishes the needed links in the GPU material node graph. */
-  void link_node_input_internal(DInputSocket input_socket, DOutputSocket output_socket);
+  void link_node_input_internal(const bNodeSocket &input_socket, const bNodeSocket &output_socket);
 
   /* Given the input socket of a node that is part of the shader operation which is linked to the
    * given output socket of a node that is not part of the shader operation, declare a new
    * operation input and link it to the input link of the GPU node stack of the input socket. An
    * operation input is only declared if no input was already declared for that same output socket
    * before. */
-  void link_node_input_external(DInputSocket input_socket, DOutputSocket output_socket);
+  void link_node_input_external(const bNodeSocket &input_socket, const bNodeSocket &output_socket);
 
   /* Given the input socket of a node that is part of the shader operation which is linked to the
    * given output socket of a node that is not part of the shader operation, declare a new input to
@@ -156,12 +151,12 @@ class ShaderOperation : public PixelOperation {
    * generate_code_for_inputs method, a texture will be added in the shader for each of the
    * declared inputs, having the same name as the attribute. Additionally, code will be emitted to
    * initialize the attributes by sampling their corresponding textures. */
-  void declare_operation_input(DInputSocket input_socket, DOutputSocket output_socket);
+  void declare_operation_input(const bNodeSocket &input_socket, const bNodeSocket &output_socket);
 
   /* Populate the output results of the shader operation for output sockets of the given node that
    * are linked to nodes outside of the shader operation or are used to compute a preview for the
    * node. */
-  void populate_results_for_node(DNode node);
+  void populate_results_for_node(const bNode &node);
 
   /* Given the output socket of a node that is part of the shader operation which is linked to an
    * input socket of a node that is not part of the shader operation, declare a new output to the
@@ -169,7 +164,7 @@ class ShaderOperation : public PixelOperation {
    * generate_code_for_outputs method, an image will be added in the shader for each of the
    * declared outputs. Additionally, code will be emitted to define the storer functions that store
    * the value in the appropriate image identified by the given index. */
-  void populate_operation_result(DOutputSocket output_socket);
+  void populate_operation_result(const bNodeSocket &output_socket);
 
   /* A static callback method of interface GPUCodegenCallbackFn that is passed to
    * GPU_material_from_callbacks to create the shader create info of the GPU material. The thunk

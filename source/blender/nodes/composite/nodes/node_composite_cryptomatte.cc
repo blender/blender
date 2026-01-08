@@ -40,6 +40,7 @@
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 #include "UI_resources.hh"
 
@@ -921,7 +922,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new CryptoMatteOperation(context, node);
 }
@@ -1045,7 +1046,7 @@ class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new LegacyCryptoMatteOperation(context, node);
 }

@@ -11,6 +11,7 @@
 
 #include "DNA_asset_types.h"
 #include "DNA_node_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_array.hh"
 #include "BLI_disjoint_set.hh"
@@ -18,6 +19,7 @@
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
+#include "BLI_span.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
@@ -25,6 +27,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_context.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
@@ -906,9 +909,56 @@ static void node_group_output_layout(ui::Layout &layout, bContext *C, PointerRNA
 
 }  // namespace nodes
 
-static void node_group_input_extra_info(nodes::NodeExtraInfoParams &params)
+static void node_group_input_extra_info(nodes::NodeExtraInfoParams &parameters)
 {
-  get_compositor_group_input_extra_info(params);
+  if (parameters.tree.type != NTREE_COMPOSIT) {
+    return;
+  }
+
+  SpaceNode *space_node = CTX_wm_space_node(&parameters.C);
+  if (space_node->edittree != space_node->nodetree) {
+    return;
+  }
+
+  if (space_node->node_tree_sub_type != SNODE_COMPOSITOR_SEQUENCER) {
+    return;
+  }
+
+  blender::Span<const bNodeSocket *> group_inputs = parameters.node.output_sockets().drop_back(1);
+  bool added_warning_for_unsupported_inputs = false;
+  for (const bNodeSocket *input : group_inputs) {
+    if (StringRef(input->name) == "Image") {
+      if (input->type != SOCK_RGBA) {
+        blender::nodes::NodeExtraInfoRow row;
+        row.text = IFACE_("Wrong Image Input Type");
+        row.icon = ICON_ERROR;
+        row.tooltip = TIP_("Node group's main Image input should be of type Color");
+        parameters.rows.append(std::move(row));
+      }
+    }
+    else if (StringRef(input->name) == "Mask") {
+      if (input->type != SOCK_RGBA) {
+        blender::nodes::NodeExtraInfoRow row;
+        row.text = IFACE_("Wrong Mask Input Type");
+        row.icon = ICON_ERROR;
+        row.tooltip = TIP_("Node group's Mask input should be of type Color");
+        parameters.rows.append(std::move(row));
+      }
+    }
+    else {
+      if (added_warning_for_unsupported_inputs) {
+        continue;
+      }
+      blender::nodes::NodeExtraInfoRow row;
+      row.text = IFACE_("Unsupported Inputs");
+      row.icon = ICON_WARNING_LARGE;
+      row.tooltip = TIP_(
+          "Only a main Image and Mask inputs are supported, the rest are unsupported and will "
+          "return zero");
+      parameters.rows.append(std::move(row));
+      added_warning_for_unsupported_inputs = true;
+    }
+  }
 }
 
 void register_node_type_group_input()
@@ -927,7 +977,6 @@ void register_node_type_group_input()
   ntype->declare = nodes::group_input_declare;
   ntype->insert_link = nodes::group_input_insert_link;
   ntype->get_extra_info = node_group_input_extra_info;
-  ntype->get_compositor_operation = nodes::get_group_input_compositor_operation;
   ntype->draw_buttons_ex = nodes::node_group_input_layout;
   ntype->no_muting = true;
 
@@ -942,6 +991,46 @@ bNodeSocket *node_group_output_find_socket(bNode *node, const StringRef identifi
     }
   }
   return nullptr;
+}
+
+static void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfoParams &parameters)
+{
+  if (parameters.tree.type != NTREE_COMPOSIT) {
+    return;
+  }
+
+  SpaceNode *space_node = CTX_wm_space_node(&parameters.C);
+  if (space_node->edittree != space_node->nodetree) {
+    return;
+  }
+
+  blender::Span<const bNodeSocket *> group_outputs = parameters.node.input_sockets().drop_back(1);
+  if (group_outputs.is_empty()) {
+    blender::nodes::NodeExtraInfoRow row;
+    row.text = IFACE_("No Output");
+    row.icon = ICON_ERROR;
+    row.tooltip = TIP_("Node group must have a Color output socket");
+    parameters.rows.append(std::move(row));
+    return;
+  }
+
+  if (group_outputs[0]->type != SOCK_RGBA) {
+    blender::nodes::NodeExtraInfoRow row;
+    row.text = IFACE_("Wrong Output Type");
+    row.icon = ICON_ERROR;
+    row.tooltip = TIP_("Node group's first output must be a color output");
+    parameters.rows.append(std::move(row));
+    return;
+  }
+
+  if (group_outputs.size() > 1) {
+    blender::nodes::NodeExtraInfoRow row;
+    row.text = IFACE_("Ignored Outputs");
+    row.icon = ICON_WARNING_LARGE;
+    row.tooltip = TIP_("Only the first output is considered while the rest are ignored");
+    parameters.rows.append(std::move(row));
+    return;
+  }
 }
 
 static void node_group_output_extra_info(nodes::NodeExtraInfoParams &params)
@@ -977,7 +1066,6 @@ void register_node_type_group_output()
   ntype->insert_link = nodes::group_output_insert_link;
   ntype->get_extra_info = node_group_output_extra_info;
   ntype->draw_buttons_ex = nodes::node_group_output_layout;
-  ntype->get_compositor_operation = nodes::get_group_output_compositor_operation;
 
   ntype->no_muting = true;
 

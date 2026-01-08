@@ -5,12 +5,12 @@
 #include "BLI_assert.h"
 #include "BLI_string_ref.hh"
 #include "BLI_timeit.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_node_types.h"
 
-#include "NOD_derived_node_tree.hh"
-
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 #include "GPU_debug.hh"
 
@@ -20,16 +20,13 @@
 #include "COM_node_operation.hh"
 #include "COM_operation.hh"
 #include "COM_result.hh"
-#include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
 namespace blender::compositor {
 
-using namespace nodes::derived_node_tree_types;
-
-NodeOperation::NodeOperation(Context &context, DNode node) : Operation(context), node_(node)
+NodeOperation::NodeOperation(Context &context, const bNode &node) : Operation(context), node_(node)
 {
-  for (const bNodeSocket *output : node->output_sockets()) {
+  for (const bNodeSocket *output : this->node().output_sockets()) {
     if (!is_socket_available(output)) {
       continue;
     }
@@ -38,7 +35,7 @@ NodeOperation::NodeOperation(Context &context, DNode node) : Operation(context),
     populate_result(output->identifier, context.create_result(result_type));
   }
 
-  for (const bNodeSocket *input : node->input_sockets()) {
+  for (const bNodeSocket *input : this->node().input_sockets()) {
     if (!is_socket_available(input)) {
       continue;
     }
@@ -50,58 +47,100 @@ NodeOperation::NodeOperation(Context &context, DNode node) : Operation(context),
 
 void NodeOperation::evaluate()
 {
-  if (context().use_gpu()) {
-    GPU_debug_group_begin(node_.bnode()->typeinfo->idname.c_str());
+  if (this->context().use_gpu()) {
+    GPU_debug_group_begin(this->node().typeinfo->idname.c_str());
   }
   const timeit::TimePoint before_time = timeit::Clock::now();
   Operation::evaluate();
   const timeit::TimePoint after_time = timeit::Clock::now();
-  if (context().profiler()) {
-    context().profiler()->set_node_evaluation_time(node_.instance_key(), after_time - before_time);
+  if (this->context().profiler()) {
+    this->context().profiler()->set_node_evaluation_time(instance_key_, after_time - before_time);
   }
-  if (context().use_gpu()) {
+  if (this->context().use_gpu()) {
     GPU_debug_group_end();
   }
 }
 
+void NodeOperation::compute_results_reference_counts(const VectorSet<const bNode *> &schedule)
+{
+  for (const bNodeSocket *output : this->node().output_sockets()) {
+    if (!is_socket_available(output)) {
+      continue;
+    }
+
+    const int reference_count = number_of_inputs_linked_to_output_conditioned(
+        *output, [&](const bNodeSocket &input) { return schedule.contains(&input.owner_node()); });
+
+    this->get_result(output->identifier).set_reference_count(reference_count);
+  }
+}
+
+void NodeOperation::set_instance_key(const bNodeInstanceKey &instance_key)
+{
+  instance_key_ = instance_key;
+}
+
+const bNodeInstanceKey &NodeOperation::get_instance_key() const
+{
+  return instance_key_;
+}
+
+void NodeOperation::set_node_previews(Map<bNodeInstanceKey, bke::bNodePreview> *node_previews)
+{
+  node_previews_ = node_previews;
+}
+
+Map<bNodeInstanceKey, bke::bNodePreview> *NodeOperation::get_node_previews()
+{
+  return node_previews_;
+}
+
 void NodeOperation::compute_preview()
 {
-  if (flag_is_set(context().needed_outputs(), OutputTypes::Previews) &&
-      is_node_preview_needed(node_))
-  {
+  if (node_previews_ && is_node_preview_needed(this->node())) {
     const Result *result = get_preview_result();
     if (result) {
-      compositor::compute_preview(context(), node_, *result);
+      compositor::compute_preview(context(), node_previews_, this->get_instance_key(), *result);
     }
   }
+}
+
+const bNode &NodeOperation::node() const
+{
+  return node_;
+}
+
+bool NodeOperation::should_compute_output(StringRef identifier)
+{
+  return this->get_result(identifier).should_compute();
 }
 
 Result *NodeOperation::get_preview_result()
 {
   /* Find the first linked output. */
-  for (const bNodeSocket *output : node_->output_sockets()) {
+  for (const bNodeSocket *output : this->node().output_sockets()) {
     if (!is_socket_available(output)) {
       continue;
     }
 
-    Result &output_result = get_result(output->identifier);
+    Result &output_result = this->get_result(output->identifier);
     if (output_result.should_compute()) {
       return &output_result;
     }
   }
 
   /* No linked outputs, but no inputs either, so nothing to preview. */
-  if (node_->input_sockets().is_empty()) {
+  if (this->node().input_sockets().is_empty()) {
     return nullptr;
   }
 
   /* Find the first allocated input. */
-  for (const bNodeSocket *input : node_->input_sockets()) {
+  for (const bNodeSocket *input : this->node().input_sockets()) {
     if (!is_socket_available(input)) {
       continue;
     }
 
-    Result &input_result = get_input(input->identifier);
+    Result &input_result = this->get_input(input->identifier);
     if (input_result.is_allocated()) {
       return &input_result;
     }
@@ -109,32 +148,6 @@ Result *NodeOperation::get_preview_result()
 
   BLI_assert_unreachable();
   return nullptr;
-}
-
-void NodeOperation::compute_results_reference_counts(const Schedule &schedule)
-{
-  for (const bNodeSocket *output : node_->output_sockets()) {
-    if (!is_socket_available(output)) {
-      continue;
-    }
-
-    const DOutputSocket doutput{node_.context(), output};
-
-    const int reference_count = number_of_inputs_linked_to_output_conditioned(
-        doutput, [&](DInputSocket input) { return schedule.contains(input.node()); });
-
-    get_result(doutput->identifier).set_reference_count(reference_count);
-  }
-}
-
-const bNode &NodeOperation::node() const
-{
-  return *node_;
-}
-
-bool NodeOperation::should_compute_output(StringRef identifier)
-{
-  return get_result(identifier).should_compute();
 }
 
 }  // namespace blender::compositor

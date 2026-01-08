@@ -95,6 +95,9 @@ class Operation {
    * 4. Releasing the results mapped to the inputs. */
   virtual void evaluate();
 
+  /* Get a reference to the result connected to the input identified by the given identifier. */
+  Result &get_input(StringRef identifier) const;
+
   /* Get a reference to the output result identified by the given identifier. */
   Result &get_result(StringRef identifier);
 
@@ -137,9 +140,6 @@ class Operation {
   /* Compute and set a preview of the operation if needed. This method defaults to an empty
    * implementation and should be implemented by operations which can have previews. */
   virtual void compute_preview();
-
-  /* Get a reference to the result connected to the input identified by the given identifier. */
-  Result &get_input(StringRef identifier) const;
 
   /* Switch the result mapped to the input identified by the given identifier with the given
    * result. */

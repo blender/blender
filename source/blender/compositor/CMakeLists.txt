@@ -25,12 +25,14 @@ set(SRC
   COM_conversion_operation.hh
   COM_derived_resources.hh
   COM_domain.hh
-  COM_evaluator.hh
+  COM_group_input_node_operation.hh
+  COM_group_node_operation.hh
+  COM_group_output_node_operation.hh
   COM_implicit_input_operation.hh
   COM_input_descriptor.hh
-  COM_input_single_value_operation.hh
   COM_meta_data.hh
   COM_multi_function_procedure_operation.hh
+  COM_node_group_operation.hh
   COM_node_operation.hh
   COM_operation.hh
   COM_pixel_operation.hh
@@ -42,6 +44,7 @@ set(SRC
   COM_shader_node.hh
   COM_shader_operation.hh
   COM_simple_operation.hh
+  COM_single_value_node_input_operation.hh
   COM_static_cache_manager.hh
   COM_undefined_node_operation.hh
   COM_utilities.hh
@@ -51,11 +54,13 @@ set(SRC
   intern/context.cc
   intern/conversion_operation.cc
   intern/domain.cc
-  intern/evaluator.cc
+  intern/group_input_node_operation.cc
+  intern/group_node_operation.cc
+  intern/group_output_node_operation.cc
   intern/implicit_input_operation.cc
-  intern/input_single_value_operation.cc
   intern/meta_data.cc
   intern/multi_function_procedure_operation.cc
+  intern/node_group_operation.cc
   intern/node_operation.cc
   intern/operation.cc
   intern/pixel_operation.cc
@@ -67,6 +72,7 @@ set(SRC
   intern/shader_node.cc
   intern/shader_operation.cc
   intern/simple_operation.cc
+  intern/single_value_node_input_operation.cc
   intern/static_cache_manager.cc
   intern/undefined_node_operation.cc
   intern/utilities.cc

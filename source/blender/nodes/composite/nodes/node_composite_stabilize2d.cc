@@ -178,7 +178,7 @@ class Stabilize2DOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new Stabilize2DOperation(context, node);
 }
