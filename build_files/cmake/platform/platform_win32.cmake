@@ -234,35 +234,23 @@ if(WITH_WINDOWS_SCCACHE AND CMAKE_VS_MSBUILD_COMMAND)
   set(WITH_WINDOWS_SCCACHE OFF)
 endif()
 
-# Debug Symbol format
-# sccache # MSVC_ASAN # format # why
-# ON      # ON        # Z7     # sccache will only play nice with Z7.
-# ON      # OFF       # Z7     # sccache will only play nice with Z7.
-# OFF     # ON        # Zi     # Asan will not play nice with Edit and Continue.
-# OFF     # OFF       # ZI     # Neither ASAN nor sscache is enabled Edit and
-#                                Continue is available.
-
-# Release Symbol format
-# sccache # MSVC_ASAN # format # why
-# ON      # ON        # Z7     # sccache will only play nice with Z7
-# ON      # OFF       # Z7     # sccache will only play nice with Z7
-# OFF     # ON        # Zi     # Asan will not play nice with Edit and Continue
-# OFF     # OFF       # Zi     # Edit and Continue disables some optimizations
-
-
 if(WITH_WINDOWS_SCCACHE)
   set(CMAKE_C_COMPILER_LAUNCHER sccache)
   set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+  # sccache will only play nice with Z7.
   set(SYMBOL_FORMAT /Z7)
   set(SYMBOL_FORMAT_RELEASE /Z7)
 else()
   unset(CMAKE_C_COMPILER_LAUNCHER)
   unset(CMAKE_CXX_COMPILER_LAUNCHER)
-  if(MSVC_ASAN)
+  if(MSVC_ASAN OR MSVC_CLANG)
+    # Neither Asan nor Clang will play nice with Edit and Continue.
     set(SYMBOL_FORMAT /Zi)
     set(SYMBOL_FORMAT_RELEASE /Zi)
   else()
+    # Otherwise enable Edit and Continue.
     set(SYMBOL_FORMAT /ZI)
+    # Except for Release builds, since it disables some optimizations.
     set(SYMBOL_FORMAT_RELEASE /Zi)
   endif()
 endif()
