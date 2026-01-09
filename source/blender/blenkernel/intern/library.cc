@@ -580,10 +580,18 @@ static void pack_linked_id(Main &bmain,
                            VectorSet<ID *> &ids_to_remap,
                            bke::id::IDRemapper &id_remapper)
 {
-  BLI_assert(linked_id->newid == nullptr);
-
   const IDHash linked_id_deep_hash = deep_hashes.hashes.lookup(linked_id);
   ID *packed_id = already_packed_ids.lookup_default(linked_id_deep_hash, nullptr);
+
+  /* It is possible that the `newid` was already set by a previous call to #pack_linked_ids, and
+   * not yet cleared (e.g. when linking & packing several 'root' IDs at the same time, which end up
+   * using the same dependencies).
+   *
+   * Handling it here again ensures consistency in deep hash values etc., and allows to properly
+   * handle its linked-to-packed versions remapping for all of its usages.
+   *
+   * See also #150786. */
+  BLI_assert(ELEM(linked_id->newid, nullptr, packed_id));
 
   if (packed_id) {
     /* Exact same ID (and all of its dependencies) have already been linked and packed before,
@@ -761,9 +769,6 @@ void bke::library::pack_linked_id_hierarchy(Main &bmain, ID &root_id)
                        "Non-packed data-block references packed data-block from the same library, "
                        "which is not allowed");
           }
-          return IDWALK_RET_NOP;
-        }
-        if (referenced_id->newid && ID_IS_PACKED(referenced_id->newid)) {
           return IDWALK_RET_NOP;
         }
         if (GS(referenced_id->name) == ID_KE) {
