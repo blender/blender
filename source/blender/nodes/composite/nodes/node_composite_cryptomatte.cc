@@ -415,7 +415,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
     const float4 zero_color = float4(0.0f);
     GPU_texture_clear(output_matte, GPU_DATA_FLOAT, zero_color);
 
-    Vector<float> identifiers = get_identifiers();
+    const Vector<float> identifiers = this->get_identifiers();
     /* The user haven't selected any entities, return the currently zero matte. */
     if (identifiers.is_empty()) {
       return output_matte;
@@ -426,24 +426,42 @@ class BaseCryptoMatteOperation : public NodeOperation {
 
     const int2 lower_bound = this->get_layers_lower_bound();
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
-    GPU_shader_uniform_1i(shader, "identifiers_count", identifiers.size());
-    GPU_shader_uniform_1f_array(shader, "identifiers", identifiers.size(), identifiers.data());
 
-    for (const Result &layer : layers) {
-      layer.bind_as_texture(shader, "layer_tx");
+    const Vector<Span<float>> identifiers_slices = this->get_identifiers_slices(identifiers);
+    for (const Span<float> &identifier_slice : identifiers_slices) {
+      GPU_shader_uniform_1i(shader, "identifiers_count", identifier_slice.size());
+      GPU_shader_uniform_1f_array(
+          shader, "identifiers", identifier_slice.size(), identifier_slice.data());
 
-      /* Bind the matte with read access, since we will be accumulating in it. */
-      output_matte.bind_as_image(shader, "matte_img", true);
+      for (const Result &layer : layers) {
+        layer.bind_as_texture(shader, "layer_tx");
 
-      compute_dispatch_threads_at_least(shader, domain.data_size);
+        /* Bind the matte with read access, since we will be accumulating in it. */
+        output_matte.bind_as_image(shader, "matte_img", true);
 
-      layer.unbind_as_texture();
-      output_matte.unbind_as_image();
+        compute_dispatch_threads_at_least(shader, domain.data_size);
+
+        layer.unbind_as_texture();
+        output_matte.unbind_as_image();
+      }
     }
 
     GPU_shader_unbind();
 
     return output_matte;
+  }
+
+  /* Divides the given identifiers vector into a number of slices with a maximum of 32 element per
+   * slice. This is needed because the GPU shader can only be passed 32 identifiers at a time. */
+  Vector<Span<float>> get_identifiers_slices(const Vector<float> &identifiers)
+  {
+    Vector<Span<float>> slices;
+    constexpr int slice_size = 32;
+    const int slices_count = ((identifiers.size() - 1) / slice_size) + 1;
+    for (int i = 0; i < slices_count; i++) {
+      slices.append(identifiers.as_span().slice_safe(i * slice_size, slice_size));
+    }
+    return slices;
   }
 
   Result compute_matte_cpu(const Vector<Result> &layers)
