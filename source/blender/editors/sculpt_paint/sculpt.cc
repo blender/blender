@@ -1171,6 +1171,7 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
     case SCULPT_BRUSH_TYPE_MASK:
       restore_mask_from_undo_step(object);
       break;
+    case SCULPT_BRUSH_TYPE_BLUR:
     case SCULPT_BRUSH_TYPE_PAINT:
     case SCULPT_BRUSH_TYPE_SMEAR:
       restore_color_from_undo_step(object);
@@ -2250,6 +2251,7 @@ static float brush_strength(const Sculpt &sd,
       final_pressure = pressure * pressure;
       return final_pressure * overlap * feather;
     case SCULPT_BRUSH_TYPE_SMEAR:
+    case SCULPT_BRUSH_TYPE_BLUR:
     case SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR:
       return alpha * pressure * overlap * feather;
     case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
@@ -3432,6 +3434,9 @@ static void do_brush_action(const Depsgraph &depsgraph,
                               *cursor_sample_result.plane_normal,
                               *cursor_sample_result.plane_center);
       break;
+    case SCULPT_BRUSH_TYPE_BLUR:
+      color::do_blur_brush(depsgraph, sd, ob, node_mask);
+      break;
   }
 
   if (!ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_SMOOTH, SCULPT_BRUSH_TYPE_MASK) &&
@@ -3814,6 +3819,8 @@ static const char *sculpt_brush_type_name(const Brush &brush)
       return "Smear Brush";
     case SCULPT_BRUSH_TYPE_PLANE:
       return "Plane Brush";
+    case SCULPT_BRUSH_TYPE_BLUR:
+      return "Blur Brush";
   }
 
   return "Sculpting";
@@ -3890,18 +3897,18 @@ static void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache
 
   if (ELEM(cur_brush->sculpt_brush_type,
            SCULPT_BRUSH_TYPE_SLIDE_RELAX,
-           SCULPT_BRUSH_TYPE_DRAW_FACE_SETS,
-           SCULPT_BRUSH_TYPE_PAINT,
-           SCULPT_BRUSH_TYPE_SMEAR))
+           SCULPT_BRUSH_TYPE_DRAW_FACE_SETS))
   {
     /* Do nothing, this brush has its own smooth mode. */
     return;
   }
 
   /* Switch to the smooth brush if possible. */
-  if (!BKE_paint_brush_set_essentials(bmain, paint, "Smooth")) {
+  const char *target_asset = brush_type_is_paint(cur_brush->sculpt_brush_type) ? "Blur" : "Smooth";
+  if (!BKE_paint_brush_set_essentials(bmain, paint, target_asset)) {
     BKE_paint_brush_set(paint, cur_brush);
     CLOG_WARN(&LOG, "Unable to switch to the 'Smooth' essentials brush asset");
+    CLOG_WARN(&LOG, "Unable to switch to the '%s' essentials brush asset", target_asset);
     cache->saved_active_brush = nullptr;
     return;
   }
@@ -3927,9 +3934,7 @@ static void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
 
   if (ELEM(brush.sculpt_brush_type,
            SCULPT_BRUSH_TYPE_SLIDE_RELAX,
-           SCULPT_BRUSH_TYPE_DRAW_FACE_SETS,
-           SCULPT_BRUSH_TYPE_PAINT,
-           SCULPT_BRUSH_TYPE_SMEAR))
+           SCULPT_BRUSH_TYPE_DRAW_FACE_SETS))
   {
     /* Do nothing. */
     return;

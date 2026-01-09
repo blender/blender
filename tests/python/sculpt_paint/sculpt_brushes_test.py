@@ -413,6 +413,13 @@ class MeshBrushTests(unittest.TestCase):
         self._activate_brush("Smear")
         self._check_paint_stroke()
 
+    def test_blur_brush_creates_valid_data(self):
+        self._activate_brush("Paint Hard")
+        self._check_paint_stroke()
+
+        self._activate_brush("Blur")
+        self._check_paint_stroke()
+
     @unittest.skip("Brush requires raycast")
     def test_bend_boundary_cloth_brush_creates_valid_data(self):
         self._activate_brush("Bend Boundary Cloth")
