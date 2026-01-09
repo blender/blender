@@ -703,7 +703,7 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayout *col = &layout->column(false);
   uiLayoutSetActive(col, !show_in_front);
 
-  col->prop(ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
+  col->prop(ptr, "stroke_depth_offset", UI_ITEM_NONE, IFACE_("Depth Offset"), ICON_NONE);
   col->prop(ptr,
             "use_offset_towards_custom_camera",
             UI_ITEM_NONE,
