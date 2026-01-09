@@ -676,21 +676,6 @@ set(SPNAV_HOMEPAGE https://github.com/FreeSpacenav/libspnav)
 set(SPNAV_LICENSE SPDX:BSD-3-Clause)
 set(SPNAV_COPYRIGHT "Copyright (C) 2007-2022 John Tsiombikas nuclear@member.fsf.org")
 
-set(JEMALLOC_VERSION 5.2.1)
-set(JEMALLOC_URI https://github.com/jemalloc/jemalloc/releases/download/${JEMALLOC_VERSION}/jemalloc-${JEMALLOC_VERSION}.tar.bz2)
-set(JEMALLOC_HASH 3d41fbf006e6ebffd489bdb304d009ae)
-set(JEMALLOC_HASH_TYPE MD5)
-set(JEMALLOC_FILE jemalloc-${JEMALLOC_VERSION}.tar.bz2)
-set(JEMALLOC_HOMEPAGE https://jemalloc.net/)
-set(JEMALLOC_NAME jemalloc)
-set(JEMALLOC_LICENSE SPDX:BSD-2-Clause)
-set(JEMALLOC_COPYRIGHT [=[
-Copyright (C) 2002-2013 Jason Evans <jasone@canonware.com>. All rights reserved.
-Copyright (C) 2007-2012 Mozilla Foundation.  All rights reserved.
-Copyright (C) 2009-2013 Facebook, Inc.  All rights reserved.
-Copyright (C) 2013 Jason Evans <jasone@canonware.com>.
-]=])
-
 set(XML2_VERSION 2.14.5)
 set(XML2_URI https://download.gnome.org/sources/libxml2/2.14/libxml2-${XML2_VERSION}.tar.xz)
 set(XML2_HASH 59aac4e5d1d350ba2c4bddf1f7bc5098)
