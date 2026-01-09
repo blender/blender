@@ -507,6 +507,19 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
                                    ID_REMAP_DO_LIBRARY_POINTERS);
       BLI_assert(id_iter_src->lib);
     }
+  }
+
+  /* Adding back the IDs into the destination Main needs to be dones in a separate loop. The main
+   * reason is again the namemaps of libraries (for linked IDs).
+   *
+   * Since libraries are also moved from old to new Main, getting their namemap 'randomely' built
+   * when their first linked ID is moved can lead to it missing some ID names, and other validity
+   * issues.
+   *
+   * See also https://projects.blender.org/blender/blender/pulls/150355#issuecomment-1808744 for a
+   * reproducible case. */
+  for (ID *id_iter_src : ids_to_move) {
+    BLI_assert((id_iter_src->tag & ID_TAG_NO_MAIN) != 0);
     BKE_libblock_management_main_add(bmain_dst, id_iter_src);
   }
 
