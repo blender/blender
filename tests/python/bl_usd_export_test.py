@@ -414,6 +414,47 @@ class USDExportTest(AbstractUSDTest):
             filepath=export_file, export_materials=True, convert_world_material=False, export_textures_mode='KEEP')
         check_image_paths(Usd.Stage.Open(export_file))
 
+    def test_export_material_opacity(self):
+        """Validate correct export of opacity/transmission setups for the UsdPreviewSurface"""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_transmission.blend"))
+        export_path = self.tempdir / "usd_materials_transmission.usda"
+        self.export_and_validate(filepath=str(export_path), export_materials=True)
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        # Verify "constant" opacity
+        shader_surface = UsdShade.Shader(stage.GetPrimAtPath("/root/_materials/MAT_transmission01/Principled_BSDF"))
+        self.assertEqual(shader_surface.GetIdAttr().Get(), "UsdPreviewSurface")
+        input_opacity = shader_surface.GetInput('opacity')
+        self.assertEqual(input_opacity.HasConnectedSource(), False, "Opacity input should not be connected")
+        self.assertAlmostEqual(input_opacity.Get(), 0.0, 3)
+
+        shader_surface = UsdShade.Shader(stage.GetPrimAtPath("/root/_materials/MAT_transmission02/Principled_BSDF"))
+        self.assertEqual(shader_surface.GetIdAttr().Get(), "UsdPreviewSurface")
+        input_opacity = shader_surface.GetInput('opacity')
+        self.assertEqual(input_opacity.HasConnectedSource(), False, "Opacity input should not be connected")
+        self.assertAlmostEqual(input_opacity.Get(), 0.158, 3)
+
+        # Validate simple opacity networks
+        def validate_opacity(mat_name, expected_scale, expected_bias):
+            shader_surface = UsdShade.Shader(stage.GetPrimAtPath(f"/root/_materials/{mat_name}/Principled_BSDF"))
+            shader_image = UsdShade.Shader(stage.GetPrimAtPath(f"/root/_materials/{mat_name}/Image_Texture"))
+            self.assertEqual(shader_surface.GetIdAttr().Get(), "UsdPreviewSurface")
+            self.assertEqual(shader_image.GetIdAttr().Get(), "UsdUVTexture")
+            input_opacity = shader_surface.GetInput('opacity')
+            input_scale = shader_image.GetInput('scale')
+            input_bias = shader_image.GetInput('bias')
+            self.assertEqual(input_opacity.HasConnectedSource(), True, "Opacity input should be connected")
+            self.assertEqual(self.round_vector(input_scale.Get()), expected_scale)
+            self.assertEqual(self.round_vector(input_bias.Get()), expected_bias)
+
+        # Validate a few texture usage networks
+        validate_opacity("MAT_transmission03", [-1, 1, 1, 1], [1, 0, 0, 0])
+        validate_opacity("MAT_transmission04", [-1, 0, 0, 1], [1, 0, 0, 0])
+        validate_opacity("MAT_transmission05", [1, -1, 1, 1], [0, 1, 0, 0])
+        validate_opacity("MAT_transmission06", [1, 1, -1, 1], [0, 0, 1, 0])
+
     def test_export_material_displacement(self):
         """Validate correct export of Displacement information for the UsdPreviewSurface"""
 
