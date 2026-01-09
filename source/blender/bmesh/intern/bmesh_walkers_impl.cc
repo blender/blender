@@ -1509,6 +1509,16 @@ static void *bmw_EdgeboundaryWalker_step(BMWalker *walker)
  * tool flag.
  *
  * The flag parameter to BMW_init maps to a loop customdata layer index.
+ *
+ * The algorithm is asymmetric with regard to face winding because of how loops are skipped
+ * based on edge masks:
+ * - Each loop has an edge (`l->e`) from `l->v` to `l->next->v`.
+ * - The walker checks and skips loops based on their edge's mask.
+ * - The previous loop's edge (`l->prev->e`) is not checked.
+ * - For boundary loops, face winding determines which vertex the loop is at.
+ *   When walking from the edge's other vertex, no loop's `l->e` references that edge,
+ *   making it unreachable without explicit handling,
+ *   see #bmw_UVEdgeWalker_step boundary edge handling logic.
  * \{ */
 
 static void bmw_UVEdgeWalker_begin(BMWalker *walker, void *data)
@@ -1592,6 +1602,19 @@ static void *bmw_UVEdgeWalker_step(BMWalker *walker)
         lwalk->l = l_radial;
 
       } while ((l_radial = l_radial->radial_next) != l_radial_first);
+
+      /* Also traverse the previous loop's edge `l_radial_first->prev->e` for masked walks.
+       * This handles boundary edges where face winding places the loop at the opposite
+       * end of the edge from the pivot vertex, see: #152249. */
+      if (walker->mask_edge) {
+        BMLoop *l_boundary = l_radial_first->prev;
+        if (BM_edge_is_boundary(l_boundary->e) && bmw_mask_check_edge(walker, l_boundary->e) &&
+            walker->visit_set->add(l_boundary))
+        {
+          lwalk = static_cast<BMwUVEdgeWalker *>(BMW_state_add(walker));
+          lwalk->l = l_boundary;
+        }
+      }
     }
   }
 
