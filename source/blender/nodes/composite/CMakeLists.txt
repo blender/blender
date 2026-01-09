@@ -94,6 +94,7 @@ set(SRC
   nodes/node_composite_scene_time.cc
   nodes/node_composite_sepcomb_color.cc
   nodes/node_composite_setalpha.cc
+  nodes/node_composite_signed_distance_field.cc
   nodes/node_composite_split.cc
   nodes/node_composite_stabilize2d.cc
   nodes/node_composite_strip_info.cc

@@ -144,6 +144,7 @@ class NODE_MT_compositor_node_filter_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "CompositorNodeDespeckle")
         layout.separator()
         self.node_operator(layout, "CompositorNodeDilateErode")
+        self.node_operator(layout, "CompositorNodeMaskToSDF")
         self.node_operator(layout, "CompositorNodeInpaint")
         layout.separator()
         self.node_operator_with_searchable_enum_socket(

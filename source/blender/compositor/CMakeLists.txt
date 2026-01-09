@@ -206,6 +206,7 @@ set(GLSL_SRC
   shaders/infos/compositor_kuwahara_infos.hh
   shaders/infos/compositor_lens_distortion_infos.hh
   shaders/infos/compositor_map_uv_infos.hh
+  shaders/infos/compositor_mask_to_sdf_infos.hh
   shaders/infos/compositor_morphological_blur_infos.hh
   shaders/infos/compositor_morphological_distance_feather_infos.hh
   shaders/infos/compositor_morphological_distance_infos.hh
@@ -304,6 +305,8 @@ set(GLSL_SRC
   shaders/compositor_kuwahara_classic.glsl
   shaders/compositor_map_uv.glsl
   shaders/compositor_map_uv_anisotropic.glsl
+  shaders/compositor_mask_to_sdf_compute_boundary.glsl
+  shaders/compositor_mask_to_sdf_compute_distance.glsl
   shaders/compositor_morphological_blur.glsl
   shaders/compositor_morphological_distance.glsl
   shaders/compositor_morphological_distance_feather.glsl
