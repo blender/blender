@@ -660,6 +660,11 @@ static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH32F_STENCIL8()
   if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
     GTEST_SKIP() << "Float based texture readback not supported on OpenGL";
   }
+  if (GPU_backend_get_type() == GPU_BACKEND_VULKAN) {
+    GTEST_SKIP()
+        << "Current test uses a range that is outside of [0,1], this is only supported "
+           "when enabling `VK_EXT_depth_range_unrestricted`. We should fix this test case.";
+  }
   texture_create_upload_read_with_bias<TextureFormat::SFLOAT_32_DEPTH_UINT_8, GPU_DATA_FLOAT>(
       0.0f);
 }
