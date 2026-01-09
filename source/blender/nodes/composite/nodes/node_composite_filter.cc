@@ -10,6 +10,8 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "BKE_node_runtime.hh"
+
 #include "RNA_types.hh"
 
 #include "COM_node_operation.hh"
