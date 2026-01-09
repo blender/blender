@@ -4683,7 +4683,8 @@ bool cursor_geometry_info_update(Depsgraph &depsgraph,
  */
 static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
                                        ViewContext &vc,
-                                       const Sculpt &sd,
+                                       const Paint &paint,
+                                       const Sculpt *sd,
                                        float3 &out,
                                        const float2 &mval,
                                        const bool force_original,
@@ -4695,10 +4696,14 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
   SculptSession &ss = *ob.sculpt;
   StrokeCache *cache = ss.cache;
   const bool original = force_original || ((cache) ? !cache->accum : false);
-  const Paint &paint = sd.paint;
   const Brush *brush = BKE_paint_brush_for_read(&paint);
 
-  SCULPT_stroke_modifiers_check(depsgraph, vc.rv3d, sd, ob, brush);
+  if (sd) {
+    /* TODO: This code is shared by Sculpt, Vertex, and Weight paint. Ideally, we wouldn't need
+     * to pass in `Sculpt` and `Paint` separately, but until we have further C++ DNA types, this
+     * is fine */
+    SCULPT_stroke_modifiers_check(depsgraph, vc.rv3d, *sd, ob, brush);
+  }
 
   float3 ray_start;
   float3 ray_end;
@@ -4806,7 +4811,26 @@ bool stroke_get_location_bvh(Depsgraph &depsgraph,
 
   float3 location;
   const bool result = stroke_get_location_bvh_ex(
-      depsgraph, vc, sd, location, mval, force_original, check_closest, true);
+      depsgraph, vc, sd.paint, &sd, location, mval, force_original, check_closest, true);
+  if (result) {
+    copy_v3_v3(out, location);
+  }
+  return result;
+}
+
+bool stroke_get_location_bvh(Depsgraph &depsgraph,
+                             ViewContext &vc,
+                             const Paint &paint,
+                             const Brush *brush,
+                             float out[3],
+                             const float mval[2],
+                             const bool force_original)
+{
+  const bool check_closest = brush && brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
+
+  float3 location;
+  const bool result = stroke_get_location_bvh_ex(
+      depsgraph, vc, paint, nullptr, location, mval, force_original, check_closest, true);
   if (result) {
     copy_v3_v3(out, location);
   }
@@ -5351,7 +5375,7 @@ static bool over_mesh(bContext *C, wmOperator * /*op*/, const float mval[2])
 
   float3 co_dummy;
   return ed::sculpt_paint::stroke_get_location_bvh_ex(
-      *depsgraph, vc, sd, co_dummy, mval, false, check_closest, true);
+      *depsgraph, vc, sd.paint, &sd, co_dummy, mval, false, check_closest, true);
 }
 
 static bool over_mesh(Depsgraph &depsgraph,
@@ -5365,7 +5389,7 @@ static bool over_mesh(Depsgraph &depsgraph,
 
   float3 co_dummy;
   return ed::sculpt_paint::stroke_get_location_bvh_ex(
-      depsgraph, vc, sd, co_dummy, mval, false, check_closest, true);
+      depsgraph, vc, sd.paint, &sd, co_dummy, mval, false, check_closest, true);
 }
 
 static void stroke_undo_begin(const Scene &scene,

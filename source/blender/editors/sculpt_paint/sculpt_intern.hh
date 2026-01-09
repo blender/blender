@@ -493,6 +493,13 @@ bool stroke_get_location_bvh(Depsgraph &depsgraph,
                              float out[3],
                              const float mval[2],
                              bool force_original);
+bool stroke_get_location_bvh(Depsgraph &depsgraph,
+                             ViewContext &vc,
+                             const Paint &paint,
+                             const Brush *brush,
+                             float out[3],
+                             const float mval[2],
+                             bool force_original);
 
 struct ActiveElementInfo {
   ActiveVert vert = {};
