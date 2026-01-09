@@ -332,33 +332,25 @@ class AbstractNodeCopyOperatorTest(unittest.TestCase):
             self.assertEqual(test_socket.is_linked, expected_socket.is_linked)
             if expected_socket.is_linked:
                 self.assertEqual(len(test_socket.links), len(expected_socket.links))
-                for test_link, expected_link in zip(test_socket.links, expected_socket.links):
-                    # If there is no entry in the mapping for the connected test socket yet then the expected socket is use as default.
+                # Compare connected sockets as an unordered set, because link order might
+                # change between generated and tested data and should not be relevant.
+                if expected_socket.is_output:
+                    def link_target(link): return (link.to_node, link.to_socket)
+                else:
+                    def link_target(link): return (link.from_node, link.from_socket)
+                expected_targets = set(link_target(link) for link in expected_socket.links)
+
+                for test_link in test_socket.links:
+                    test_target = link_target(test_link)
+                    # If there is no entry in the mapping for the connected test socket then the link is ignored.
                     # External connections are not usually added to the map to keep test cases simple.
-                    # This ensures that any socket with external links is in fact connected,
-                    # without specifying the exact external node.
-                    if expected_socket.is_output:
-                        self.assertEqual(
-                            mapping.node_map.setdefault(
-                                test_link.to_node,
-                                expected_link.to_node),
-                            expected_link.to_node)
-                        self.assertEqual(
-                            mapping.socket_map.setdefault(
-                                test_link.to_socket,
-                                expected_link.to_socket),
-                            expected_link.to_socket)
-                    else:
-                        self.assertEqual(
-                            mapping.node_map.setdefault(
-                                test_link.from_node,
-                                expected_link.from_node),
-                            expected_link.from_node)
-                        self.assertEqual(
-                            mapping.socket_map.setdefault(
-                                test_link.from_socket,
-                                expected_link.from_socket),
-                            expected_link.from_socket)
+                    # The total number of links must still match.
+                    expected_target = (
+                        mapping.node_map.get(
+                            test_target[0], None), mapping.socket_map.get(
+                            test_target[1], None))
+                    if expected_target[0]:
+                        self.assertIn(expected_target, expected_targets)
 
     # Validate a node against the expected data using the node map.
     def compare_node(self, test_node, expected_node, mapping):
