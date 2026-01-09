@@ -3751,10 +3751,8 @@ bool SCULPT_brush_cursor_poll(bContext *C)
   return SCULPT_mode_poll(C) && (paint_brush_cursor_poll(C) || is_brush_related_tool(C));
 }
 
-static const char *sculpt_brush_type_name(const Sculpt &sd)
+static const char *sculpt_brush_type_name(const Brush &brush)
 {
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-
   switch (eBrushSculptType(brush.sculpt_brush_type)) {
     case SCULPT_BRUSH_TYPE_DRAW:
       return "Draw Brush";
@@ -3880,9 +3878,8 @@ static void sculpt_init_mirror_clipping(const Object &ob, const SculptSession &s
   ss.cache->mirror_modifier_clip.mat_inv = math::invert(ss.cache->mirror_modifier_clip.mat);
 }
 
-static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
+static void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache)
 {
-  Main *bmain = CTX_data_main(C);
   Brush *cur_brush = BKE_paint_brush(paint);
 
   if (cur_brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
@@ -3948,150 +3945,6 @@ static void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
 }
 
 /* Initialize the stroke cache invariants from operator properties. */
-static void sculpt_update_cache_invariants(
-    bContext *C, Sculpt &sd, SculptSession &ss, const wmOperator &op, const float mval[2])
-{
-  PaintStroke *stroke = static_cast<PaintStroke *>(op.customdata);
-  StrokeCache *cache = MEM_new<StrokeCache>(__func__);
-  bke::PaintRuntime *paint_runtime = sd.paint.runtime;
-  ToolSettings *tool_settings = CTX_data_tool_settings(C);
-  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
-  ViewContext *vc = &stroke->vc;
-  Object &ob = *CTX_data_active_object(C);
-
-  ss.cache = cache;
-
-  /* Set scaling adjustment. */
-  float max_scale = 0.0f;
-  for (int i = 0; i < 3; i++) {
-    max_scale = max_ff(max_scale, fabsf(ob.scale[i]));
-  }
-  cache->scale[0] = max_scale / ob.scale[0];
-  cache->scale[1] = max_scale / ob.scale[1];
-  cache->scale[2] = max_scale / ob.scale[2];
-
-  cache->plane_trim_squared = brush->plane_trim * brush->plane_trim;
-
-  cache->mirror_modifier_clip.flag = 0;
-
-  sculpt_init_mirror_clipping(ob, ss);
-
-  /* Initial mouse location. */
-  cache->initial_mouse = mval ? float2(mval) : float2(0.0f);
-
-  cache->initial_location_symm = ss.cursor_location;
-  cache->initial_location = ss.cursor_location;
-
-  cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
-  cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
-
-  const int mode = RNA_enum_get(op.ptr, "mode");
-  cache->pen_flip = RNA_boolean_get(op.ptr, "pen_flip");
-  cache->invert = mode == BRUSH_STROKE_INVERT;
-  cache->alt_smooth = mode == BRUSH_STROKE_SMOOTH;
-
-  cache->normal_weight = brush->normal_weight;
-
-  /* Interpret invert as following normal, for grab brushes. */
-  if (bke::brush::supports_normal_weight(*brush)) {
-    if (cache->invert) {
-      cache->invert = false;
-      cache->normal_weight = (cache->normal_weight == 0.0f);
-    }
-  }
-
-  /* Not very nice, but with current events system implementation
-   * we can't handle brush appearance inversion hotkey separately (sergey). */
-  if (cache->invert) {
-    paint_runtime->draw_inverted = true;
-  }
-  else {
-    paint_runtime->draw_inverted = false;
-  }
-
-  /* Alt-Smooth. */
-  if (cache->alt_smooth) {
-    smooth_brush_toggle_on(C, &sd.paint, cache);
-    /* Refresh the brush pointer in case we switched brush in the toggle function. */
-    brush = BKE_paint_brush(&sd.paint);
-  }
-
-  cache->mouse = cache->initial_mouse;
-  cache->mouse_event = cache->initial_mouse;
-  copy_v2_v2(paint_runtime->tex_mouse, cache->initial_mouse);
-
-  cache->initial_direction_flipped = brush_flip(*brush, *cache) < 0.0f;
-
-  /* Truly temporary data that isn't stored in properties. */
-  cache->vc = vc;
-  cache->brush = brush;
-  cache->paint = &sd.paint;
-
-  /* Cache projection matrix. */
-  cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, &ob);
-
-  const float3 z_axis(0.0f, 0.0f, 1.0f);
-  ob.runtime->world_to_object = math::invert(ob.object_to_world());
-  cache->view_normal = math::normalize(math::transform_direction(
-      ob.world_to_object() * float4x4(cache->vc->rv3d->viewinv), z_axis));
-
-  cache->supports_gravity = bke::brush::supports_gravity(*brush) && sd.gravity_factor > 0.0f;
-  /* Get gravity vector in world space. */
-  if (cache->supports_gravity) {
-    if (sd.gravity_object) {
-      const Object *gravity_object = sd.gravity_object;
-      cache->gravity_direction = gravity_object->object_to_world().z_axis();
-    }
-    else {
-      cache->gravity_direction = {0.0f, 0.0f, 1.0f};
-    }
-
-    /* Transform to sculpted object space. */
-    cache->gravity_direction = math::normalize(
-        math::transform_direction(ob.world_to_object(), cache->gravity_direction));
-  }
-
-  cache->accum = true;
-
-  /* Make copies of the mesh vertex locations and normals for some brushes. */
-  if (brush->flag & BRUSH_ANCHORED) {
-    cache->accum = false;
-  }
-
-  /* Draw sharp does not need the original coordinates to produce the accumulate effect, so it
-   * should work the opposite way. */
-  if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_SHARP) {
-    cache->accum = false;
-  }
-
-  if (bke::brush::supports_accumulate(*brush)) {
-    if (!(brush->flag & BRUSH_ACCUMULATE)) {
-      cache->accum = false;
-      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_SHARP) {
-        cache->accum = true;
-      }
-    }
-  }
-
-  /* Original coordinates require the sculpt undo system, which isn't used
-   * for image brushes. It's also not necessary, just disable it. */
-  if (brush && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
-      SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob))
-  {
-    cache->accum = true;
-  }
-
-  if (BKE_brush_color_jitter_get_settings(&sd.paint, brush)) {
-    cache->initial_hsv_jitter = seed_hsv_jitter();
-  }
-  cache->first_time = true;
-  cache->plane_brush.first_time = true;
-
-  if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) {
-    constexpr int pixel_input_threshold = 5;
-    cache->dial = BLI_dial_init(cache->initial_mouse, pixel_input_threshold);
-  }
-}
 
 static float brush_dynamic_size_get(const Brush &brush,
                                     const StrokeCache &cache,
@@ -4348,106 +4201,6 @@ static void cache_paint_invariants_update(StrokeCache &cache, const Brush &brush
                                     1.0f - cache.pressure :
                                     cache.pressure;
   }
-}
-
-/* Initialize the stroke cache variants from operator properties. */
-static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, PointerRNA *ptr)
-{
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
-  Paint &paint = *BKE_paint_get_active_from_context(C);
-  bke::PaintRuntime &paint_runtime = *paint.runtime;
-  SculptSession &ss = *ob.sculpt;
-  StrokeCache &cache = *ss.cache;
-  Brush &brush = *BKE_paint_brush(&sd.paint);
-
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) ||
-      !((brush.flag & BRUSH_ANCHORED) ||
-        (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK) ||
-        (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) ||
-        cloth::is_cloth_deform_brush(brush)))
-  {
-    RNA_float_get_array(ptr, "location", cache.location);
-  }
-
-  RNA_float_get_array(ptr, "mouse", cache.mouse);
-  RNA_float_get_array(ptr, "mouse_event", cache.mouse_event);
-
-  /* XXX: Use pressure value from first brush step for brushes which don't support strokes (grab,
-   * thumb). They depends on initial state and brush coord/pressure/etc.
-   * It's more an events design issue, which doesn't split coordinate/pressure/angle changing
-   * events. We should avoid this after events system re-design. */
-  if (paint_supports_dynamic_size(brush, PaintMode::Sculpt) || cache.first_time) {
-    cache.pressure = RNA_float_get(ptr, "pressure");
-  }
-
-  cache.tilt = {RNA_float_get(ptr, "x_tilt"), RNA_float_get(ptr, "y_tilt")};
-
-  /* Truly temporary data that isn't stored in properties. */
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-    cache.initial_radius = object_space_radius_get(*cache.vc, paint, brush, cache.location);
-
-    if (!BKE_brush_use_locked_size(&paint, &brush)) {
-      BKE_brush_unprojected_size_set(&paint, &brush, cache.initial_radius * 2.0f);
-    }
-  }
-
-  /* Clay stabilized pressure. */
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_THUMB) {
-    if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-      ss.cache->clay_thumb_brush.pressure_stabilizer.fill(0.0f);
-      ss.cache->clay_thumb_brush.stabilizer_index = 0;
-    }
-    else {
-      cache.clay_thumb_brush.pressure_stabilizer[cache.clay_thumb_brush.stabilizer_index] =
-          cache.pressure;
-      cache.clay_thumb_brush.stabilizer_index += 1;
-      if (cache.clay_thumb_brush.stabilizer_index >=
-          ss.cache->clay_thumb_brush.pressure_stabilizer.size())
-      {
-        cache.clay_thumb_brush.stabilizer_index = 0;
-      }
-    }
-  }
-
-  if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, PaintMode::Sculpt))
-  {
-    cache.radius = brush_dynamic_size_get(brush, cache, cache.initial_radius);
-    cache.dyntopo_pixel_radius = brush_dynamic_size_get(
-        brush, cache, paint_runtime.initial_pixel_radius);
-  }
-  else {
-    cache.radius = cache.initial_radius;
-    cache.dyntopo_pixel_radius = paint_runtime.initial_pixel_radius;
-  }
-
-  cache_paint_invariants_update(cache, brush);
-
-  cache.radius_squared = cache.radius * cache.radius;
-
-  if (brush.flag & BRUSH_ANCHORED) {
-    /* True location has been calculated as part of the stroke system already here. */
-    if (brush.flag & BRUSH_EDGE_TO_EDGE) {
-      RNA_float_get_array(ptr, "location", cache.location);
-    }
-
-    cache.radius = paint_calc_object_space_radius(
-        *cache.vc, cache.location, paint_runtime.pixel_radius);
-    cache.radius_squared = cache.radius * cache.radius;
-  }
-
-  brush_delta_update(depsgraph, paint, ob, brush);
-
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) {
-    cache.vertex_rotation = -BLI_dial_angle(cache.dial, cache.mouse) * cache.bstrength;
-
-    paint_runtime.draw_anchored = true;
-    copy_v2_v2(paint_runtime.anchored_initial_mouse, cache.initial_mouse);
-    paint_runtime.anchored_size = paint_runtime.pixel_radius;
-  }
-
-  cache.special_rotation = paint_runtime.brush_rotation;
-
-  cache.iteration_count++;
 }
 
 /* Returns true if any of the smoothing modes are active (currently
@@ -5074,10 +4827,28 @@ bool stroke_get_location_bvh(bContext *C,
 }
 
 struct SculptPaintStroke final : public PaintStroke {
+  Main *bmain_;
+  Sculpt *sculpt_;
+  Base *base_;
+  PaintModeSettings *paint_mode_settings_;
+
+  /* Needed to tag other viewports */
+  wmWindowManager *wm_;
+
   SculptPaintStroke(bContext *C, wmOperator *op, const int event_type)
       : PaintStroke(C, op, event_type)
   {
+    bmain_ = CTX_data_main(C);
+
+    ToolSettings *tool_settings = CTX_data_tool_settings(C);
+    sculpt_ = tool_settings->sculpt;
+    paint_mode_settings_ = &tool_settings->paint_mode;
+    base_ = CTX_data_active_base(C);
+    wm_ = CTX_wm_manager(C);
   }
+
+  void stroke_cache_init(BrushStrokeMode stroke_mode, bool pen_flip, const float mval[2]);
+  void stroke_cache_update(PointerRNA *ptr);
 
   bool get_location(float out[3], const float mouse[2], bool force_original) override;
   bool test_start(wmOperator *op, const float mouse[2]) override;
@@ -5089,7 +4860,8 @@ struct SculptPaintStroke final : public PaintStroke {
 
 bool SculptPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
 {
-  return stroke_get_location_bvh(this->evil_C, out, mouse, force_original);
+  return stroke_get_location_bvh(
+      *this->depsgraph, this->vc, *sculpt_, this->brush, out, mouse, force_original);
 }
 
 }  // namespace ed::sculpt_paint
@@ -5233,26 +5005,27 @@ static void tag_mesh_positions_changed(Object &object, const bool use_pbvh_draw)
   }
 }
 
-void flush_update_step(const bContext *C, const UpdateType update_type)
+void flush_update_step(bContext *C, const UpdateType update_type)
 {
-  Object &ob = *CTX_data_active_object(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  ViewContext vc = ED_view3d_viewcontext_init(C, CTX_data_depsgraph_pointer(C));
+  flush_update_step(vc, *CTX_data_active_object(C), update_type);
+}
 
-  if (rv3d) {
+void flush_update_step(ViewContext &vc, Object &object, const UpdateType update_type)
+{
+  if (vc.rv3d) {
     /* Mark for faster 3D viewport redraws. */
-    rv3d->rflag |= RV3D_PAINTING;
+    vc.rv3d->rflag |= RV3D_PAINTING;
   }
 
-  const SculptSession &ss = *ob.sculpt;
+  const SculptSession &ss = *object.sculpt;
   const MultiresModifierData *mmd = ss.multires.modifier;
   if (mmd != nullptr) {
-    Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
-    multires_mark_as_modified(&depsgraph, &ob, MULTIRES_COORDS_MODIFIED);
+    multires_mark_as_modified(vc.depsgraph, &object, MULTIRES_COORDS_MODIFIED);
   }
 
-  ARegion &region = *CTX_wm_region(C);
   if (update_type == UpdateType::Image) {
-    ED_region_tag_redraw(&region);
+    ED_region_tag_redraw(vc.region);
     if (update_type == UpdateType::Image) {
       /* Early exit when only need to update the images. We don't want to tag any geometry updates
        * that would rebuild the bke::pbvh::Tree. */
@@ -5260,28 +5033,38 @@ void flush_update_step(const bContext *C, const UpdateType update_type)
     }
   }
 
-  DEG_id_tag_update(&ob.id, ID_RECALC_SHADING);
+  DEG_id_tag_update(&object.id, ID_RECALC_SHADING);
 
-  const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&ob, rv3d);
+  const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&object, vc.rv3d);
   /* Only current viewport matters, slower update for all viewports will
    * be done in sculpt_flush_update_done. */
   if (!use_pbvh_draw) {
     /* Slow update with full dependency graph update and all that comes with it.
      * Needed when there are modifiers or full shading in the 3D viewport. */
-    DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
   }
 
-  ED_region_tag_redraw(&region);
+  ED_region_tag_redraw(vc.region);
 
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (update_type == UpdateType::Position && !ss.shapekey_active) {
     if (pbvh.type() == bke::pbvh::Type::Mesh) {
-      tag_mesh_positions_changed(ob, use_pbvh_draw);
+      tag_mesh_positions_changed(object, use_pbvh_draw);
     }
   }
 }
 
-void flush_update_done(const bContext *C, Object &ob, const UpdateType update_type)
+void flush_update_done(bContext *C, Object &ob, const UpdateType update_type)
+{
+  ViewContext vc = ED_view3d_viewcontext_init(C, CTX_data_depsgraph_pointer(C));
+  const wmWindowManager &wm = *CTX_wm_manager(C);
+  flush_update_done(vc, wm, ob, update_type);
+}
+
+void flush_update_done(ViewContext &vc,
+                       const wmWindowManager &wm,
+                       Object &ob,
+                       const UpdateType update_type)
 {
   /* After we are done drawing the stroke, check if we need to do a more
    * expensive depsgraph tag to update geometry. */
@@ -5290,12 +5073,11 @@ void flush_update_done(const bContext *C, Object &ob, const UpdateType update_ty
   /* Always needed for linked duplicates. */
   bool need_tag = ID_REAL_USERS(&mesh.id) > 1;
 
-  RegionView3D *current_rv3d = CTX_wm_region_view3d(C);
-  if (current_rv3d) {
-    current_rv3d->rflag &= ~RV3D_PAINTING;
+  if (vc.rv3d) {
+    vc.rv3d->rflag &= ~RV3D_PAINTING;
   }
 
-  const wmWindowManager &wm = *CTX_wm_manager(C);
+  /* TODO: this might be better in the `redraw` callback instead of here */
   for (wmWindow &win : wm.windows) {
     const bScreen &screen = *WM_window_get_active_screen(&win);
     for (ScrArea &area : screen.areabase) {
@@ -5310,7 +5092,7 @@ void flush_update_done(const bContext *C, Object &ob, const UpdateType update_ty
       for (ARegion &region : area.regionbase) {
         if (region.regiontype == RGN_TYPE_WINDOW) {
           const RegionView3D *other_rv3d = static_cast<RegionView3D *>(region.regiondata);
-          if (other_rv3d != current_rv3d) {
+          if (other_rv3d != vc.rv3d) {
             need_tag |= !BKE_sculptsession_use_pbvh_draw(&ob, other_rv3d);
           }
 
@@ -5572,40 +5354,50 @@ static bool over_mesh(bContext *C, wmOperator * /*op*/, const float mval[2])
       *depsgraph, vc, sd, co_dummy, mval, false, check_closest, true);
 }
 
-static void stroke_undo_begin(const bContext *C, wmOperator *op)
+static bool over_mesh(Depsgraph &depsgraph,
+                      ViewContext &vc,
+                      const Sculpt &sd,
+                      const Brush *brush,
+                      wmOperator * /*op*/,
+                      const float mval[2])
+{
+  const bool check_closest = brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
+
+  float3 co_dummy;
+  return ed::sculpt_paint::stroke_get_location_bvh_ex(
+      depsgraph, vc, sd, co_dummy, mval, false, check_closest, true);
+}
+
+static void stroke_undo_begin(const Scene &scene,
+                              const Brush *brush,
+                              PaintModeSettings &paint_mode_settings,
+                              Object &object,
+                              wmOperator *op)
 {
   using namespace blender::ed::sculpt_paint;
-  const Scene &scene = *CTX_data_scene(C);
-  Object &ob = *CTX_data_active_object(C);
-  const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
-  ToolSettings *tool_settings = CTX_data_tool_settings(C);
-
   /* Setup the correct undo system. Image painting and sculpting are mutual exclusive.
    * Color attributes are part of the sculpting undo system. */
   if (brush && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
-      SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob))
+      SCULPT_use_image_paint_brush(paint_mode_settings, object))
   {
     ED_image_undo_push_begin(op->type->name, PaintMode::Sculpt);
   }
   else {
-    undo::push_begin_ex(scene, ob, sculpt_brush_type_name(sd));
+    undo::push_begin_ex(scene, object, sculpt_brush_type_name(*brush));
   }
 }
 
-static void stroke_undo_end(const bContext *C, Brush *brush)
+static void stroke_undo_end(PaintModeSettings &paint_mode_settings, Object &object, Brush *brush)
 {
   using namespace blender::ed::sculpt_paint;
-  Object &ob = *CTX_data_active_object(C);
-  ToolSettings *tool_settings = CTX_data_tool_settings(C);
 
   if (brush && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
-      SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob))
+      SCULPT_use_image_paint_brush(paint_mode_settings, object))
   {
     ED_image_undo_push_end();
   }
   else {
-    undo::push_end(ob);
+    undo::push_end(object);
   }
 }
 
@@ -5625,33 +5417,179 @@ bool color_supported_check(const Scene &scene, Object &object, ReportList *repor
   return true;
 }
 
+void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
+                                          const bool pen_flip,
+                                          const float mval[2])
+{
+  StrokeCache *cache = MEM_new<StrokeCache>(__func__);
+  bke::PaintRuntime *paint_runtime = sculpt_->paint.runtime;
+  const Brush *brush = this->brush;
+  ViewContext *vc = &this->vc;
+  Object &ob = *this->object;
+
+  SculptSession &ss = *ob.sculpt;
+
+  ss.cache = cache;
+
+  /* Set scaling adjustment. */
+  float max_scale = 0.0f;
+  for (int i = 0; i < 3; i++) {
+    max_scale = max_ff(max_scale, fabsf(ob.scale[i]));
+  }
+  cache->scale[0] = max_scale / ob.scale[0];
+  cache->scale[1] = max_scale / ob.scale[1];
+  cache->scale[2] = max_scale / ob.scale[2];
+
+  cache->plane_trim_squared = brush->plane_trim * brush->plane_trim;
+
+  cache->mirror_modifier_clip.flag = 0;
+
+  sculpt_init_mirror_clipping(ob, ss);
+
+  /* Initial mouse location. */
+  cache->initial_mouse = mval ? float2(mval) : float2(0.0f);
+
+  cache->initial_location_symm = ss.cursor_location;
+  cache->initial_location = ss.cursor_location;
+
+  cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
+  cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
+
+  cache->pen_flip = pen_flip;
+  cache->invert = stroke_mode == BRUSH_STROKE_INVERT;
+  cache->alt_smooth = stroke_mode == BRUSH_STROKE_SMOOTH;
+
+  cache->normal_weight = brush->normal_weight;
+
+  /* Interpret invert as following normal, for grab brushes. */
+  if (bke::brush::supports_normal_weight(*brush)) {
+    if (cache->invert) {
+      cache->invert = false;
+      cache->normal_weight = (cache->normal_weight == 0.0f);
+    }
+  }
+
+  /* Not very nice, but with current events system implementation
+   * we can't handle brush appearance inversion hotkey separately (sergey). */
+  if (cache->invert) {
+    paint_runtime->draw_inverted = true;
+  }
+  else {
+    paint_runtime->draw_inverted = false;
+  }
+
+  /* Alt-Smooth. */
+  if (cache->alt_smooth) {
+    smooth_brush_toggle_on(bmain_, this->paint, cache);
+    /* Refresh the brush pointer in case we switched brush in the toggle function. */
+    brush = BKE_paint_brush(this->paint);
+  }
+
+  cache->mouse = cache->initial_mouse;
+  cache->mouse_event = cache->initial_mouse;
+  copy_v2_v2(paint_runtime->tex_mouse, cache->initial_mouse);
+
+  cache->initial_direction_flipped = brush_flip(*brush, *cache) < 0.0f;
+
+  /* Truly temporary data that isn't stored in properties. */
+  cache->vc = vc;
+  cache->brush = brush;
+  cache->paint = this->paint;
+
+  /* Cache projection matrix. */
+  cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, &ob);
+
+  const float3 z_axis(0.0f, 0.0f, 1.0f);
+  ob.runtime->world_to_object = math::invert(ob.object_to_world());
+  cache->view_normal = math::normalize(math::transform_direction(
+      ob.world_to_object() * float4x4(cache->vc->rv3d->viewinv), z_axis));
+
+  cache->supports_gravity = bke::brush::supports_gravity(*brush) && sculpt_->gravity_factor > 0.0f;
+  /* Get gravity vector in world space. */
+  if (cache->supports_gravity) {
+    if (sculpt_->gravity_object) {
+      const Object *gravity_object = sculpt_->gravity_object;
+      cache->gravity_direction = gravity_object->object_to_world().z_axis();
+    }
+    else {
+      cache->gravity_direction = {0.0f, 0.0f, 1.0f};
+    }
+
+    /* Transform to sculpted object space. */
+    cache->gravity_direction = math::normalize(
+        math::transform_direction(ob.world_to_object(), cache->gravity_direction));
+  }
+
+  cache->accum = true;
+
+  /* Make copies of the mesh vertex locations and normals for some brushes. */
+  if (brush->flag & BRUSH_ANCHORED) {
+    cache->accum = false;
+  }
+
+  /* Draw sharp does not need the original coordinates to produce the accumulate effect, so it
+   * should work the opposite way. */
+  if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_SHARP) {
+    cache->accum = false;
+  }
+
+  if (bke::brush::supports_accumulate(*brush)) {
+    if (!(brush->flag & BRUSH_ACCUMULATE)) {
+      cache->accum = false;
+      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_SHARP) {
+        cache->accum = true;
+      }
+    }
+  }
+
+  /* Original coordinates require the sculpt undo system, which isn't used
+   * for image brushes. It's also not necessary, just disable it. */
+  if (brush && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
+      SCULPT_use_image_paint_brush(*paint_mode_settings_, ob))
+  {
+    cache->accum = true;
+  }
+
+  if (BKE_brush_color_jitter_get_settings(this->paint, brush)) {
+    cache->initial_hsv_jitter = seed_hsv_jitter();
+  }
+  cache->first_time = true;
+  cache->plane_brush.first_time = true;
+
+  if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) {
+    constexpr int pixel_input_threshold = 5;
+    cache->dial = BLI_dial_init(cache->initial_mouse, pixel_input_threshold);
+  }
+}
+
 bool SculptPaintStroke::test_start(wmOperator *op, const float mval[2])
 {
   /* Don't start the stroke until `mval` goes over the mesh.
    * NOTE: `mval` will only be null when re-executing the saved stroke.
    * We have exception for 'exec' strokes since they may not set `mval`,
    * only 'location', see: #52195. */
-  if (((op->flag & OP_IS_INVOKE) == 0) || (mval == nullptr) || over_mesh(this->evil_C, op, mval)) {
-    Object &ob = *CTX_data_active_object(this->evil_C);
-    SculptSession &ss = *ob.sculpt;
-    Sculpt &sd = *CTX_data_tool_settings(this->evil_C)->sculpt;
-    Brush *brush = BKE_paint_brush(&sd.paint);
-    ToolSettings *tool_settings = CTX_data_tool_settings(this->evil_C);
+  if (((op->flag & OP_IS_INVOKE) == 0) || (mval == nullptr) ||
+      over_mesh(*this->depsgraph, this->vc, *sculpt_, this->brush, op, mval))
+  {
+    Object &ob = *this->object;
+    Brush *brush = this->brush;
 
     /* NOTE: This should be removed when paint mode is available. Paint mode can force based on the
      * canvas it is painting on. (ref. use_sculpt_texture_paint). */
     if (brush && brush_type_is_paint(brush->sculpt_brush_type) &&
-        !SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob))
+        !SCULPT_use_image_paint_brush(*paint_mode_settings_, ob))
     {
-      View3D *v3d = CTX_wm_view3d(this->evil_C);
+      View3D *v3d = this->vc.v3d;
       if (v3d->shading.type == OB_SOLID) {
         v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
       }
     }
 
-    ED_view3d_init_mats_rv3d(&ob, CTX_wm_region_view3d(this->evil_C));
+    ED_view3d_init_mats_rv3d(&ob, this->vc.rv3d);
 
-    sculpt_update_cache_invariants(this->evil_C, sd, ss, *op, mval);
+    stroke_cache_init((BrushStrokeMode)RNA_enum_get(op->ptr, "mode"),
+                      RNA_boolean_get(op->ptr, "pen_flip"),
+                      mval);
     if (brush && brush_type_is_paint(brush->sculpt_brush_type)) {
       BKE_curvemapping_init(brush->curve_rand_hue);
       BKE_curvemapping_init(brush->curve_rand_saturation);
@@ -5659,38 +5597,137 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float mval[2])
     }
 
     CursorGeometryInfo cgi;
-    cursor_geometry_info_update(this->evil_C, &cgi, mval, false);
+    cursor_geometry_info_update(*this->depsgraph, *sculpt_, this->vc, base_, &cgi, mval, false);
 
-    stroke_undo_begin(this->evil_C, op);
+    stroke_undo_begin(*this->scene, this->brush, *this->paint_mode_settings_, *this->object, op);
 
     return true;
   }
   return false;
 }
 
+/* Initialize the stroke cache variants from operator properties. */
+void SculptPaintStroke::stroke_cache_update(PointerRNA *ptr)
+{
+  const Depsgraph &depsgraph = *this->depsgraph;
+  Paint &paint = *this->paint;
+  bke::PaintRuntime &paint_runtime = *paint.runtime;
+  SculptSession &ss = *this->object->sculpt;
+  StrokeCache &cache = *ss.cache;
+  Brush &brush = *BKE_paint_brush(&paint);
+
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) ||
+      !((brush.flag & BRUSH_ANCHORED) ||
+        (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK) ||
+        (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) ||
+        cloth::is_cloth_deform_brush(brush)))
+  {
+    RNA_float_get_array(ptr, "location", cache.location);
+  }
+
+  RNA_float_get_array(ptr, "mouse", cache.mouse);
+  RNA_float_get_array(ptr, "mouse_event", cache.mouse_event);
+
+  /* XXX: Use pressure value from first brush step for brushes which don't support strokes (grab,
+   * thumb). They depends on initial state and brush coord/pressure/etc.
+   * It's more an events design issue, which doesn't split coordinate/pressure/angle changing
+   * events. We should avoid this after events system re-design. */
+  if (paint_supports_dynamic_size(brush, PaintMode::Sculpt) || cache.first_time) {
+    cache.pressure = RNA_float_get(ptr, "pressure");
+  }
+
+  cache.tilt = {RNA_float_get(ptr, "x_tilt"), RNA_float_get(ptr, "y_tilt")};
+
+  /* Truly temporary data that isn't stored in properties. */
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+    cache.initial_radius = object_space_radius_get(*cache.vc, paint, brush, cache.location);
+
+    if (!BKE_brush_use_locked_size(&paint, &brush)) {
+      BKE_brush_unprojected_size_set(&paint, &brush, cache.initial_radius * 2.0f);
+    }
+  }
+
+  /* Clay stabilized pressure. */
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_THUMB) {
+    if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+      ss.cache->clay_thumb_brush.pressure_stabilizer.fill(0.0f);
+      ss.cache->clay_thumb_brush.stabilizer_index = 0;
+    }
+    else {
+      cache.clay_thumb_brush.pressure_stabilizer[cache.clay_thumb_brush.stabilizer_index] =
+          cache.pressure;
+      cache.clay_thumb_brush.stabilizer_index += 1;
+      if (cache.clay_thumb_brush.stabilizer_index >=
+          ss.cache->clay_thumb_brush.pressure_stabilizer.size())
+      {
+        cache.clay_thumb_brush.stabilizer_index = 0;
+      }
+    }
+  }
+
+  if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, PaintMode::Sculpt))
+  {
+    cache.radius = brush_dynamic_size_get(brush, cache, cache.initial_radius);
+    cache.dyntopo_pixel_radius = brush_dynamic_size_get(
+        brush, cache, paint_runtime.initial_pixel_radius);
+  }
+  else {
+    cache.radius = cache.initial_radius;
+    cache.dyntopo_pixel_radius = paint_runtime.initial_pixel_radius;
+  }
+
+  cache_paint_invariants_update(cache, brush);
+
+  cache.radius_squared = cache.radius * cache.radius;
+
+  if (brush.flag & BRUSH_ANCHORED) {
+    /* True location has been calculated as part of the stroke system already here. */
+    if (brush.flag & BRUSH_EDGE_TO_EDGE) {
+      RNA_float_get_array(ptr, "location", cache.location);
+    }
+
+    cache.radius = paint_calc_object_space_radius(
+        *cache.vc, cache.location, paint_runtime.pixel_radius);
+    cache.radius_squared = cache.radius * cache.radius;
+  }
+
+  brush_delta_update(depsgraph, paint, *this->object, brush);
+
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) {
+    cache.vertex_rotation = -BLI_dial_angle(cache.dial, cache.mouse) * cache.bstrength;
+
+    paint_runtime.draw_anchored = true;
+    copy_v2_v2(paint_runtime.anchored_initial_mouse, cache.initial_mouse);
+    paint_runtime.anchored_size = paint_runtime.pixel_radius;
+  }
+
+  cache.special_rotation = paint_runtime.brush_rotation;
+
+  cache.iteration_count++;
+}
+
 void SculptPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 {
-  const Scene &scene = *CTX_data_scene(this->evil_C);
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(this->evil_C);
-  Sculpt &sd = *CTX_data_tool_settings(this->evil_C)->sculpt;
-  Object &ob = *CTX_data_active_object(this->evil_C);
+  const Scene &scene = *this->scene;
+  Depsgraph &depsgraph = *this->depsgraph;
+  Sculpt &sd = *sculpt_;
+  Object &ob = *this->object;
   SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  ToolSettings &tool_settings = *CTX_data_tool_settings(this->evil_C);
   StrokeCache *cache = ss.cache;
   cache->stroke_distance = this->stroke_distance();
 
-  SCULPT_stroke_modifiers_check(this->evil_C, ob, &brush);
-  sculpt_update_cache_variants(this->evil_C, sd, ob, itemptr);
+  SCULPT_stroke_modifiers_check(depsgraph, this->vc.rv3d, sd, ob, &brush);
+  stroke_cache_update(itemptr);
   restore_from_undo_step_if_necessary(depsgraph, sd, ob);
 
   if (dyntopo::stroke_is_dyntopo(ob, brush)) {
     do_symmetrical_brush_actions(
-        depsgraph, scene, sd, ob, dynamic_topology_update, tool_settings.paint_mode);
+        depsgraph, scene, sd, ob, dynamic_topology_update, *this->paint_mode_settings_);
   }
 
   do_symmetrical_brush_actions(
-      depsgraph, scene, sd, ob, do_brush_action, tool_settings.paint_mode);
+      depsgraph, scene, sd, ob, do_brush_action, *this->paint_mode_settings_);
 
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);
@@ -5700,18 +5737,18 @@ void SculptPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   /* Cleanup. */
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
-    flush_update_step(this->evil_C, UpdateType::Mask);
+    flush_update_step(this->vc, *this->object, UpdateType::Mask);
   }
   else if (brush_type_is_paint(brush.sculpt_brush_type)) {
-    if (SCULPT_use_image_paint_brush(tool_settings.paint_mode, ob)) {
-      flush_update_step(this->evil_C, UpdateType::Image);
+    if (SCULPT_use_image_paint_brush(*this->paint_mode_settings_, ob)) {
+      flush_update_step(this->vc, *this->object, UpdateType::Image);
     }
     else {
-      flush_update_step(this->evil_C, UpdateType::Color);
+      flush_update_step(this->vc, *this->object, UpdateType::Color);
     }
   }
   else {
-    flush_update_step(this->evil_C, UpdateType::Position);
+    flush_update_step(this->vc, *this->object, UpdateType::Position);
   }
 }
 
@@ -5727,10 +5764,9 @@ static void brush_exit_tex(Sculpt &sd)
 
 void SculptPaintStroke::done(bool is_cancel)
 {
-  Object &ob = *CTX_data_active_object(this->evil_C);
+  Object &ob = *this->object;
   SculptSession &ss = *ob.sculpt;
-  Sculpt &sd = *CTX_data_tool_settings(this->evil_C)->sculpt;
-  ToolSettings *tool_settings = CTX_data_tool_settings(this->evil_C);
+  Sculpt &sd = *this->sculpt_;
 
   /* Finished. */
   if (!ss.cache) {
@@ -5742,7 +5778,7 @@ void SculptPaintStroke::done(bool is_cancel)
   BLI_assert(brush == ss.cache->brush); /* const, so we shouldn't change. */
   paint_runtime->draw_inverted = false;
 
-  SCULPT_stroke_modifiers_check(this->evil_C, ob, brush);
+  SCULPT_stroke_modifiers_check(*this->depsgraph, this->vc.rv3d, sd, ob, brush);
 
   /* Alt-Smooth. */
   if (ss.cache->alt_smooth) {
@@ -5755,22 +5791,22 @@ void SculptPaintStroke::done(bool is_cancel)
   ss.cache = nullptr;
 
   if (!is_cancel) {
-    stroke_undo_end(this->evil_C, brush);
+    stroke_undo_end(*paint_mode_settings_, *this->object, brush);
   }
 
   if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
-    flush_update_done(this->evil_C, ob, UpdateType::Mask);
+    flush_update_done(this->vc, *wm_, ob, UpdateType::Mask);
   }
   else if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT) {
-    if (SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob)) {
-      flush_update_done(this->evil_C, ob, UpdateType::Image);
+    if (SCULPT_use_image_paint_brush(*this->paint_mode_settings_, ob)) {
+      flush_update_done(this->vc, *wm_, ob, UpdateType::Image);
     }
     else {
-      flush_update_done(this->evil_C, ob, UpdateType::Color);
+      flush_update_done(this->vc, *wm_, ob, UpdateType::Color);
     }
   }
   else {
-    flush_update_done(this->evil_C, ob, UpdateType::Position);
+    flush_update_done(this->vc, *wm_, ob, UpdateType::Position);
   }
 
   WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, &ob);
@@ -5781,13 +5817,11 @@ void SculptPaintStroke::redraw(bool /*final*/) {}
 
 bool SculptPaintStroke::test_cancel()
 {
-  const Object &ob = *CTX_data_active_object(this->evil_C);
-  const Sculpt &sd = *CTX_data_tool_settings(this->evil_C)->sculpt;
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
+  const Brush &brush = *BKE_paint_brush_for_read(this->paint);
 
   /* XXX Canceling strokes that way does not work with dynamic topology,
    *     user will have to do real undo for now. See #46456. */
-  bool ret_val = !dyntopo::stroke_is_dyntopo(ob, brush);
+  bool ret_val = !dyntopo::stroke_is_dyntopo(*this->object, brush);
   return ret_val;
 }
 

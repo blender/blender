@@ -455,11 +455,16 @@ namespace ed::sculpt_paint {
 /**
  * Triggers redraws, updates, and dependency graph tags as necessary after each brush calculation.
  */
-void flush_update_step(const bContext *C, UpdateType update_type);
+void flush_update_step(bContext *C, UpdateType update_type);
+void flush_update_step(ViewContext &vc, Object &object, UpdateType update_type);
 /**
  * Triggers redraws, updates, and dependency graph tags as necessary when a brush stroke finishes.
  */
-void flush_update_done(const bContext *C, Object &ob, UpdateType update_type);
+void flush_update_done(bContext *C, Object &ob, UpdateType update_type);
+void flush_update_done(ViewContext &vc,
+                       const wmWindowManager &wm,
+                       Object &ob,
+                       UpdateType update_type);
 
 }  // namespace ed::sculpt_paint
 

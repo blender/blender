@@ -108,7 +108,9 @@ struct PaintStroke : NonCopyable, NonMovable {
 
   /* Cached values */
   ViewContext vc = {};
+  Depsgraph *depsgraph = nullptr;
   Object *object = nullptr;
+  Scene *scene = nullptr;
   Paint *paint = nullptr;
   Brush *brush = nullptr;
   UnifiedPaintSettings *ups = nullptr;
