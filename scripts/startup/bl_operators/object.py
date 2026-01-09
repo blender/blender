@@ -772,11 +772,15 @@ class TransformsToDeltas(Operator):
 
     @classmethod
     def poll(cls, context):
-        obs = context.selected_editable_objects
-        return (obs is not None)
+        return context.scene.is_editable
 
     def execute(self, context):
-        for obj in context.selected_editable_objects:
+        objects = context.selected_editable_objects
+        if not objects:
+            self.report({'WARNING'}, "No selected editable objects to operate on")
+            return {'CANCELLED'}
+
+        for obj in objects:
             if self.mode in {'ALL', 'LOC'}:
                 self.transfer_location(obj)
 
@@ -830,8 +834,7 @@ class TransformsToDeltasAnim(Operator):
 
     @classmethod
     def poll(cls, context):
-        obs = context.selected_editable_objects
-        return (obs is not None)
+        return context.scene.is_editable
 
     def execute(self, context):
         from bpy_extras import anim_utils
@@ -846,8 +849,13 @@ class TransformsToDeltasAnim(Operator):
         }
         DELTA_PATHS = STANDARD_TO_DELTA_PATHS.values()
 
+        objects = context.selected_editable_objects
+        if not objects:
+            self.report({'WARNING'}, "No selected editable objects to operate on")
+            return {'CANCELLED'}
+
         # try to apply on each selected object
-        for obj in context.selected_editable_objects:
+        for obj in objects:
             adt = obj.animation_data
             if (adt is None) or (adt.action is None):
                 self.report(
