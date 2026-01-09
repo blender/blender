@@ -296,7 +296,12 @@ static float4 color_correction(const float4 &color,
 
   float3 corrected = luma + saturation * (color.xyz() - luma);
   corrected = 0.5f + (corrected - 0.5f) * contrast;
-  corrected = math::fallback_pow(corrected * gain + offset, inverse_gamma, corrected);
+  corrected = corrected * gain + offset;
+
+  /* Don't allow colors to go negative (or more negative than before) to keep them in gamut. */
+  corrected = math::max(math::min(color.xyz(), float3(0.0f)), corrected);
+
+  corrected = math::fallback_pow(corrected, inverse_gamma, corrected);
   corrected = math::interpolate(color.xyz(), corrected, math::min(mask, 1.0f));
 
   return float4(apply_on_red ? corrected.x : color.x,

@@ -87,7 +87,12 @@ void node_composite_color_correction(float4 color,
 
   float3 corrected = luma + saturation * (color.rgb - luma);
   corrected = 0.5f + (corrected - 0.5f) * contrast;
-  corrected = fallback_pow(corrected * gain + offset, inverse_gamma, corrected);
+  corrected = corrected * gain + offset;
+
+  /* Don't allow colors to go negative (or more negative than before) to keep them in gamut. */
+  corrected = max(min(color.xyz(), float3(0.0f)), corrected);
+
+  corrected = fallback_pow(corrected, inverse_gamma, corrected);
   corrected = mix(color.rgb, corrected, min(mask, 1.0f));
 
   float3 enabled_channels = float3(apply_on_red, apply_on_green, apply_on_blue);
