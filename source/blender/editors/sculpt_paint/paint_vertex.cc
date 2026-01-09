@@ -429,13 +429,13 @@ void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
   }
 }
 void update_cache_invariants(
-    bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2])
+    Main *bmain, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2])
 {
   PaintStroke *stroke = static_cast<PaintStroke *>(op->customdata);
   StrokeCache *cache;
   bke::PaintRuntime &paint_runtime = *vp.paint.runtime;
   ViewContext *vc = &stroke->vc;
-  Object &ob = *CTX_data_active_object(C);
+  Object &ob = *stroke->object;
   float mat[3][3];
   float view_dir[3] = {0.0f, 0.0f, 1.0f};
   int mode;
@@ -470,7 +470,7 @@ void update_cache_invariants(
   }
 
   if (cache->alt_smooth) {
-    vwpaint::smooth_brush_toggle_on(C, &vp.paint, cache);
+    vwpaint::smooth_brush_toggle_on(bmain, &vp.paint, cache);
   }
 
   copy_v2_v2(cache->mouse, cache->initial_mouse);
@@ -502,10 +502,9 @@ void update_cache_invariants(
   }
 }
 
-void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr)
+void update_cache_variants(const Depsgraph &depsgraph, VPaint &vp, Object &ob, PointerRNA *ptr)
 {
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
-  const PaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
+  const PaintMode paint_mode = vp.paint.runtime->paint_mode;
   SculptSession &ss = *ob.sculpt;
   StrokeCache *cache = ss.cache;
   Brush &brush = *BKE_paint_brush(&vp.paint);
@@ -578,9 +577,8 @@ void last_stroke_update(const float location[3], Paint &paint)
 
 /* -------------------------------------------------------------------- */
 
-void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
+void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache)
 {
-  Main *bmain = CTX_data_main(C);
   Brush *cur_brush = BKE_paint_brush(paint);
 
   /* Switch to the blur (smooth) brush if possible. */
@@ -981,8 +979,8 @@ struct VPaintData : public PaintModeData {
   }
 };
 
-static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
-                                                      wmOperator *op,
+static std::unique_ptr<VPaintData> vpaint_init_vpaint(wmOperator *op,
+                                                      const ViewContext &vc,
                                                       Scene &scene,
                                                       Depsgraph &depsgraph,
                                                       VPaint &vp,
@@ -997,7 +995,7 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
   vpd->type = type;
   vpd->domain = domain;
 
-  vpd->vc = ED_view3d_viewcontext_init(C, &depsgraph);
+  vpd->vc = vc;
 
   vwpaint::view_angle_limits_init(&vpd->normal_angle_precalc,
                                   brush.falloff_angle,
@@ -1046,9 +1044,15 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
 }
 
 struct VertexPaintStroke final : public PaintStroke {
+  Main *bmain_;
+  VPaint *vertex_paint_;
+
   VertexPaintStroke(bContext *C, wmOperator *op, const int event_type)
       : PaintStroke(C, op, event_type)
   {
+    bmain_ = CTX_data_main(C);
+    ToolSettings *ts = CTX_data_tool_settings(C);
+    vertex_paint_ = ts->vpaint;
   }
 
   bool get_location(float out[3], const float mouse[2], bool force_original) override;
@@ -1061,18 +1065,19 @@ struct VertexPaintStroke final : public PaintStroke {
 
 bool VertexPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
 {
-  return stroke_get_location_bvh(this->evil_C, out, mouse, force_original);
+  return stroke_get_location_bvh(
+      *this->depsgraph, this->vc, *this->paint, this->brush, out, mouse, force_original);
 }
 
 bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
 {
-  Scene &scene = *CTX_data_scene(this->evil_C);
+  Scene &scene = *this->scene;
   ToolSettings &ts = *scene.toolsettings;
   VPaint &vp = *ts.vpaint;
   Brush &brush = *BKE_paint_brush(&vp.paint);
-  Object &ob = *CTX_data_active_object(this->evil_C);
+  Object &ob = *this->object;
   SculptSession &ss = *ob.sculpt;
-  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(this->evil_C);
+  Depsgraph &depsgraph = *this->depsgraph;
 
   /* context checks could be a poll() */
   Mesh *mesh = BKE_mesh_from_object(&ob);
@@ -1088,8 +1093,16 @@ bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
     return false;
   }
 
-  std::unique_ptr<VPaintData> vpd = vpaint_init_vpaint(
-      evil_C, op, scene, depsgraph, vp, ob, *mesh, meta_data->domain, meta_data->data_type, brush);
+  std::unique_ptr<VPaintData> vpd = vpaint_init_vpaint(op,
+                                                       this->vc,
+                                                       scene,
+                                                       depsgraph,
+                                                       vp,
+                                                       ob,
+                                                       *mesh,
+                                                       meta_data->domain,
+                                                       meta_data->data_type,
+                                                       brush);
 
   mode_data_ = std::move(vpd);
 
@@ -1099,7 +1112,7 @@ bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
 
   /* If not previously created, create vertex/weight paint mode session data */
   vertex_paint_init_stroke(depsgraph, ob);
-  vwpaint::update_cache_invariants(this->evil_C, vp, ss, op, mouse);
+  vwpaint::update_cache_invariants(this->bmain_, vp, ss, op, mouse);
   vwpaint::init_session_data(ts, ob);
 
   return true;
@@ -1124,7 +1137,7 @@ static void filter_factors_with_selection(const Span<bool> select_vert,
   }
 }
 
-static void do_vpaint_brush_blur_loops(const bContext *C,
+static void do_vpaint_brush_blur_loops(const Depsgraph &depsgraph,
                                        const VPaint &vp,
                                        VPaintData &vpd,
                                        Object &ob,
@@ -1137,7 +1150,6 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
   const StrokeCache &cache = *ss.cache;
 
   const Brush &brush = *ob.sculpt->cache->brush;
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
@@ -1279,7 +1291,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
   });
 }
 
-static void do_vpaint_brush_blur_verts(const bContext *C,
+static void do_vpaint_brush_blur_verts(const Depsgraph &depsgraph,
                                        const VPaint &vp,
                                        VPaintData &vpd,
                                        Object &ob,
@@ -1292,7 +1304,6 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
   const StrokeCache &cache = *ss.cache;
 
   const Brush &brush = *ss.cache->brush;
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
@@ -1425,7 +1436,7 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
   });
 }
 
-static void do_vpaint_brush_smear(const bContext *C,
+static void do_vpaint_brush_smear(const Depsgraph &depsgraph,
                                   const VPaint &vp,
                                   VPaintData &vpd,
                                   Object &ob,
@@ -1441,7 +1452,6 @@ static void do_vpaint_brush_smear(const bContext *C,
   }
 
   const Brush &brush = *cache.brush;
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   GMutableSpan g_color_curr = vpd.smear.color_curr;
   GMutableSpan g_color_prev_smear = vpd.smear.color_prev;
   GMutableSpan g_color_prev = vpd.prev_colors;
@@ -1767,7 +1777,7 @@ static float3 get_brush_color(const Paint *paint,
   return brush_color;
 }
 
-static void vpaint_do_draw(const bContext *C,
+static void vpaint_do_draw(const Depsgraph &depsgraph,
                            const VPaint &vp,
                            VPaintData &vpd,
                            Object &ob,
@@ -1779,7 +1789,6 @@ static void vpaint_do_draw(const bContext *C,
   SculptSession &ss = *ob.sculpt;
   const StrokeCache &cache = *ss.cache;
   const Brush &brush = *ob.sculpt->cache->brush;
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   vwpaint::get_brush_alpha_data(
@@ -1922,7 +1931,7 @@ static void vpaint_do_draw(const bContext *C,
   });
 }
 
-static void vpaint_do_blur(const bContext *C,
+static void vpaint_do_blur(const Depsgraph &depsgraph,
                            const VPaint &vp,
                            VPaintData &vpd,
                            Object &ob,
@@ -1932,14 +1941,14 @@ static void vpaint_do_blur(const bContext *C,
                            GMutableSpan attribute)
 {
   if (vpd.domain == AttrDomain::Point) {
-    do_vpaint_brush_blur_verts(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
+    do_vpaint_brush_blur_verts(depsgraph, vp, vpd, ob, mesh, nodes, node_mask, attribute);
   }
   else {
-    do_vpaint_brush_blur_loops(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
+    do_vpaint_brush_blur_loops(depsgraph, vp, vpd, ob, mesh, nodes, node_mask, attribute);
   }
 }
 
-static void vpaint_paint_leaves(bContext *C,
+static void vpaint_paint_leaves(const Depsgraph &depsgraph,
                                 const VPaint &vp,
                                 VPaintData &vpd,
                                 Object &ob,
@@ -1953,21 +1962,21 @@ static void vpaint_paint_leaves(bContext *C,
   switch (eBrushVertexPaintType(brush.vertex_brush_type)) {
     case VPAINT_BRUSH_TYPE_AVERAGE:
       calculate_average_color(vpd, ob, mesh, brush, attribute, nodes, node_mask);
-      vpaint_do_draw(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
+      vpaint_do_draw(depsgraph, vp, vpd, ob, mesh, nodes, node_mask, attribute);
       break;
     case VPAINT_BRUSH_TYPE_DRAW:
-      vpaint_do_draw(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
+      vpaint_do_draw(depsgraph, vp, vpd, ob, mesh, nodes, node_mask, attribute);
       break;
     case VPAINT_BRUSH_TYPE_BLUR:
-      vpaint_do_blur(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
+      vpaint_do_blur(depsgraph, vp, vpd, ob, mesh, nodes, node_mask, attribute);
       break;
     case VPAINT_BRUSH_TYPE_SMEAR:
-      do_vpaint_brush_smear(C, vp, vpd, ob, mesh, nodes, node_mask, attribute);
+      do_vpaint_brush_smear(depsgraph, vp, vpd, ob, mesh, nodes, node_mask, attribute);
       break;
   }
 }
 
-static void vpaint_do_paint(bContext *C,
+static void vpaint_do_paint(const Depsgraph &depsgraph,
                             const VPaint &vp,
                             VPaintData &vpd,
                             Object &ob,
@@ -1978,7 +1987,6 @@ static void vpaint_do_paint(bContext *C,
                             const int i,
                             const float angle)
 {
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   SculptSession &ss = *ob.sculpt;
   ss.cache->radial_symmetry_pass = i;
   SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
@@ -1991,7 +1999,7 @@ static void vpaint_do_paint(bContext *C,
   BLI_assert(attribute.domain == vpd.domain);
 
   /* Paint those leaves. */
-  vpaint_paint_leaves(C,
+  vpaint_paint_leaves(depsgraph,
                       vp,
                       vpd,
                       ob,
@@ -2003,7 +2011,7 @@ static void vpaint_do_paint(bContext *C,
   attribute.finish();
 }
 
-static void vpaint_do_radial_symmetry(bContext *C,
+static void vpaint_do_radial_symmetry(const Depsgraph &depsgraph,
                                       const VPaint &vp,
                                       VPaintData &vpd,
                                       Object &ob,
@@ -2014,13 +2022,13 @@ static void vpaint_do_radial_symmetry(bContext *C,
 {
   for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
     const float angle = (2.0 * M_PI) * i / mesh.radial_symmetry[axis - 'X'];
-    vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm, axis, i, angle);
+    vpaint_do_paint(depsgraph, vp, vpd, ob, mesh, brush, symm, axis, i, angle);
   }
 }
 
 /* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'wpaint_do_symmetrical_brush_actions'. */
-static void vpaint_do_symmetrical_brush_actions(bContext *C,
+static void vpaint_do_symmetrical_brush_actions(const Depsgraph &depsgraph,
                                                 const VPaint &vp,
                                                 VPaintData &vpd,
                                                 Object &ob)
@@ -2035,10 +2043,10 @@ static void vpaint_do_symmetrical_brush_actions(bContext *C,
   /* initial stroke */
   const ePaintSymmetryFlags initial_symm = ePaintSymmetryFlags(0);
   cache.mirror_symmetry_pass = ePaintSymmetryFlags(0);
-  vpaint_do_paint(C, vp, vpd, ob, mesh, brush, initial_symm, 'X', 0, 0);
-  vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, initial_symm, 'X');
-  vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, initial_symm, 'Y');
-  vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, initial_symm, 'Z');
+  vpaint_do_paint(depsgraph, vp, vpd, ob, mesh, brush, initial_symm, 'X', 0, 0);
+  vpaint_do_radial_symmetry(depsgraph, vp, vpd, ob, mesh, brush, initial_symm, 'X');
+  vpaint_do_radial_symmetry(depsgraph, vp, vpd, ob, mesh, brush, initial_symm, 'Y');
+  vpaint_do_radial_symmetry(depsgraph, vp, vpd, ob, mesh, brush, initial_symm, 'Z');
 
   cache.symmetry = symm;
 
@@ -2050,16 +2058,16 @@ static void vpaint_do_symmetrical_brush_actions(bContext *C,
       SCULPT_cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
 
       if (i & (1 << 0)) {
-        vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm_pass, 'X', 0, 0);
-        vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'X');
+        vpaint_do_paint(depsgraph, vp, vpd, ob, mesh, brush, symm_pass, 'X', 0, 0);
+        vpaint_do_radial_symmetry(depsgraph, vp, vpd, ob, mesh, brush, symm_pass, 'X');
       }
       if (i & (1 << 1)) {
-        vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm_pass, 'Y', 0, 0);
-        vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'Y');
+        vpaint_do_paint(depsgraph, vp, vpd, ob, mesh, brush, symm_pass, 'Y', 0, 0);
+        vpaint_do_radial_symmetry(depsgraph, vp, vpd, ob, mesh, brush, symm_pass, 'Y');
       }
       if (i & (1 << 2)) {
-        vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm_pass, 'Z', 0, 0);
-        vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'Z');
+        vpaint_do_paint(depsgraph, vp, vpd, ob, mesh, brush, symm_pass, 'Z', 0, 0);
+        vpaint_do_radial_symmetry(depsgraph, vp, vpd, ob, mesh, brush, symm_pass, 'Z');
       }
     }
   }
@@ -2070,16 +2078,14 @@ static void vpaint_do_symmetrical_brush_actions(bContext *C,
 
 void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 {
-  ToolSettings *ts = CTX_data_tool_settings(this->evil_C);
   VPaintData &vpd = *static_cast<VPaintData *>(mode_data_.get());
-  VPaint &vp = *ts->vpaint;
   ViewContext &vc = vpd.vc;
   Object &ob = *vc.obact;
   SculptSession &ss = *ob.sculpt;
 
   ss.cache->stroke_distance = this->stroke_distance();
 
-  vwpaint::update_cache_variants(this->evil_C, vp, ob, itemptr);
+  vwpaint::update_cache_variants(*this->depsgraph, *vertex_paint_, ob, itemptr);
 
   float mat[4][4];
 
@@ -2089,13 +2095,13 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   swap_m4m4(vc.rv3d->persmat, mat);
 
-  vpaint_do_symmetrical_brush_actions(this->evil_C, vp, vpd, ob);
+  vpaint_do_symmetrical_brush_actions(*this->depsgraph, *vertex_paint_, vpd, ob);
 
   swap_m4m4(vc.rv3d->persmat, mat);
 
   BKE_mesh_batch_cache_dirty_tag(id_cast<Mesh *>(ob.data), BKE_MESH_BATCH_DIRTY_ALL);
 
-  Brush &brush = *BKE_paint_brush(&vp.paint);
+  Brush &brush = *BKE_paint_brush(this->paint);
   if (brush.vertex_brush_type == VPAINT_BRUSH_TYPE_SMEAR) {
     vpd.smear.color_prev = vpd.smear.color_curr;
   }
@@ -2104,7 +2110,7 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
   mul_v3_m4v3(loc_world, ob.object_to_world().ptr(), ss.cache->location);
-  vwpaint::last_stroke_update(loc_world, vp.paint);
+  vwpaint::last_stroke_update(loc_world, *this->paint);
 
   ED_region_tag_redraw(vc.region);
 
@@ -2119,9 +2125,7 @@ void VertexPaintStroke::done(bool /*is_cancel*/)
   SculptSession &ss = *ob.sculpt;
 
   if (ss.cache && ss.cache->alt_smooth) {
-    ToolSettings *ts = CTX_data_tool_settings(this->evil_C);
-    VPaint &vp = *ts->vpaint;
-    vwpaint::smooth_brush_toggle_off(&vp.paint, ss.cache);
+    vwpaint::smooth_brush_toggle_off(this->paint, ss.cache);
   }
 
   WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, &ob);
