@@ -19,14 +19,13 @@
 #  include <vulkan/vulkan_win32.h>
 #endif
 
-/** OpenXR/Vulkan specific function pointers. */
-PFN_xrGetVulkanGraphicsRequirements2KHR
-    GHOST_XrGraphicsBindingVulkan::s_xrGetVulkanGraphicsRequirements2KHR_fn = nullptr;
-PFN_xrGetVulkanGraphicsDevice2KHR
-    GHOST_XrGraphicsBindingVulkan::s_xrGetVulkanGraphicsDevice2KHR_fn = nullptr;
-PFN_xrCreateVulkanInstanceKHR GHOST_XrGraphicsBindingVulkan::s_xrCreateVulkanInstanceKHR_fn =
-    nullptr;
-PFN_xrCreateVulkanDeviceKHR GHOST_XrGraphicsBindingVulkan::s_xrCreateVulkanDeviceKHR_fn = nullptr;
+static struct {
+  /* XR_KHR_enable_vulkan2 */
+  PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
+  PFN_xrGetVulkanGraphicsDevice2KHR xrGetVulkanGraphicsDevice2KHR = nullptr;
+  PFN_xrCreateVulkanInstanceKHR xrCreateVulkanInstanceKHR = nullptr;
+  PFN_xrCreateVulkanDeviceKHR xrCreateVulkanDeviceKHR = nullptr;
+} G_functions;
 
 /* -------------------------------------------------------------------- */
 /** \name Constructor
@@ -90,11 +89,6 @@ GHOST_XrGraphicsBindingVulkan::~GHOST_XrGraphicsBindingVulkan()
     vkDestroyInstance(vk_instance_, nullptr);
     vk_instance_ = VK_NULL_HANDLE;
   }
-
-  s_xrGetVulkanGraphicsRequirements2KHR_fn = nullptr;
-  s_xrGetVulkanGraphicsDevice2KHR_fn = nullptr;
-  s_xrCreateVulkanInstanceKHR_fn = nullptr;
-  s_xrCreateVulkanDeviceKHR_fn = nullptr;
 }
 
 /** \} */
@@ -105,25 +99,23 @@ bool GHOST_XrGraphicsBindingVulkan::checkVersionRequirements(GHOST_Context &ghos
                                                              std::string *r_requirement_info) const
 {
 #define LOAD_PFN(var, name) \
-  if (var == nullptr && \
-      XR_FAILED(xrGetInstanceProcAddr(instance, #name, (PFN_xrVoidFunction *)&var))) \
-  { \
+  if (XR_FAILED(xrGetInstanceProcAddr(instance, #name, (PFN_xrVoidFunction *)&var))) { \
     var = nullptr; \
     *r_requirement_info = std::string("Unable to retrieve " #name " instance function"); \
     return false; \
   }
   /* Get the function pointers for OpenXR/Vulkan. If any fails we expect that we cannot use the
    * given context. */
-  LOAD_PFN(s_xrGetVulkanGraphicsRequirements2KHR_fn, xrGetVulkanGraphicsRequirements2KHR);
-  LOAD_PFN(s_xrGetVulkanGraphicsDevice2KHR_fn, xrGetVulkanGraphicsDevice2KHR);
-  LOAD_PFN(s_xrCreateVulkanInstanceKHR_fn, xrCreateVulkanInstanceKHR);
-  LOAD_PFN(s_xrCreateVulkanDeviceKHR_fn, xrCreateVulkanDeviceKHR);
+  LOAD_PFN(G_functions.xrGetVulkanGraphicsRequirements2KHR, xrGetVulkanGraphicsRequirements2KHR);
+  LOAD_PFN(G_functions.xrGetVulkanGraphicsDevice2KHR, xrGetVulkanGraphicsDevice2KHR);
+  LOAD_PFN(G_functions.xrCreateVulkanInstanceKHR, xrCreateVulkanInstanceKHR);
+  LOAD_PFN(G_functions.xrCreateVulkanDeviceKHR, xrCreateVulkanDeviceKHR);
 #undef LOAD_PFN
 
   XrGraphicsRequirementsVulkanKHR xr_graphics_requirements{
       /*type*/ XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR,
   };
-  if (XR_FAILED(s_xrGetVulkanGraphicsRequirements2KHR_fn(
+  if (XR_FAILED(G_functions.xrGetVulkanGraphicsRequirements2KHR(
           instance, system_id, &xr_graphics_requirements)))
   {
     *r_requirement_info = std::string("Unable to retrieve Xr version requirements for Vulkan");
@@ -180,14 +172,15 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context & /*ghost
                                                            &vk_instance_create_info,
                                                            nullptr};
   VkResult vk_result;
-  CHECK_XR(s_xrCreateVulkanInstanceKHR_fn(
+  CHECK_XR(G_functions.xrCreateVulkanInstanceKHR(
                instance, &xr_instance_create_info, &vk_instance_, &vk_result),
            "Unable to create an OpenXR compatible Vulkan instance.");
 
   /* Physical device selection */
   XrVulkanGraphicsDeviceGetInfoKHR xr_device_get_info = {
       XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR, nullptr, system_id, vk_instance_};
-  CHECK_XR(s_xrGetVulkanGraphicsDevice2KHR_fn(instance, &xr_device_get_info, &vk_physical_device_),
+  CHECK_XR(G_functions.xrGetVulkanGraphicsDevice2KHR(
+               instance, &xr_device_get_info, &vk_physical_device_),
            "Unable to create an OpenXR compatible Vulkan physical device.");
 
   /* Queue family */
@@ -231,7 +224,8 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context & /*ghost
                                                        vk_physical_device_,
                                                        &vk_device_create_info,
                                                        nullptr};
-  CHECK_XR(s_xrCreateVulkanDeviceKHR_fn(instance, &xr_device_create_info, &vk_device_, &vk_result),
+  CHECK_XR(G_functions.xrCreateVulkanDeviceKHR(
+               instance, &xr_device_create_info, &vk_device_, &vk_result),
            "Unable to create an OpenXR compatible Vulkan logical device.");
 
   vkGetDeviceQueue(vk_device_, graphics_queue_family_, 0, &vk_queue_);

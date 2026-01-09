@@ -86,9 +86,4 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
    * This can be improved by having a single command buffer per swap-chain image.
    */
   VkCommandBuffer vk_command_buffer_ = VK_NULL_HANDLE;
-
-  static PFN_xrGetVulkanGraphicsRequirements2KHR s_xrGetVulkanGraphicsRequirements2KHR_fn;
-  static PFN_xrGetVulkanGraphicsDevice2KHR s_xrGetVulkanGraphicsDevice2KHR_fn;
-  static PFN_xrCreateVulkanInstanceKHR s_xrCreateVulkanInstanceKHR_fn;
-  static PFN_xrCreateVulkanDeviceKHR s_xrCreateVulkanDeviceKHR_fn;
 };
