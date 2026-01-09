@@ -112,7 +112,7 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm,
   ED_armature_edit_deselect_all(obedit_arm);
 
   /* Create a bone */
-  bone = ED_armature_ebone_add(arm, DATA_("Bone"));
+  bone = ED_armature_ebone_add(arm, DATA_(animrig::bone_default_name));
 
   arm->act_edbone = bone;
 
@@ -294,7 +294,8 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 {
   EditBone *ebo;
 
-  ebo = ED_armature_ebone_add(id_cast<bArmature *>(obedit->data), DATA_("Bone"));
+  ebo = ED_armature_ebone_add(id_cast<bArmature *>(obedit->data),
+                              DATA_(animrig::bone_default_name));
 
   copy_v3_v3(ebo->head, head);
   copy_v3_v3(ebo->tail, tail);
@@ -1850,7 +1851,12 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_string(ot->srna, "name", nullptr, MAXBONENAME, "Name", "Name of the newly created bone");
+  RNA_def_string(ot->srna,
+                 "name",
+                 DATA_(animrig::bone_default_name),
+                 MAXBONENAME,
+                 "Name",
+                 "Name of the newly created bone");
 }
 
 /* ********************** Subdivide *******************************/
