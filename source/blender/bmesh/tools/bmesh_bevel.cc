@@ -366,6 +366,21 @@ struct BevelParams {
   int profile_type;
   /** Bevel vertices only or edges. */
   int affect_type;
+  /**
+   * Vertex bevel with odd segment count requires special UV handling.
+   *
+   * Vertex bevel has no edges with `is_bev == true`, so #frep_for_center_poly would
+   * skip all edges and fail to find a representative face for UV interpolation.
+   * This only matters for odd segments which create a center polygon.
+   *
+   * When true:
+   * - #contig_ldata_around_vert detects seams at vertices (not just edges).
+   * - #frep_for_center_poly considers all adjacent faces.
+   *
+   * \note This is simply a convenience to avoid inline checks for:
+   * `(bp.affect_type == BEVEL_AFFECT_VERTICES) && (bp.seg % 2 == 1)`
+   */
+  bool affect_vertices_odd;
   /** Number of segments in beveled edge profile. */
   int seg;
   /** User profile setting. */
@@ -1028,6 +1043,37 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
       }
     }
   }
+  return true;
+}
+
+/* Are all loop layers that have math (e.g., UVs)
+ * contiguous for all faces around vertex \a v?
+ */
+static bool contig_ldata_around_vert(BMesh *bm, BMVert *v)
+{
+  if (bm->ldata.totlayer == 0) {
+    return true;
+  }
+
+  BMIter iter;
+  BMLoop *l_first = nullptr;
+  BMLoop *l;
+
+  BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+    if (l_first == nullptr) {
+      l_first = l;
+      continue;
+    }
+    /* Check all math layers (UVs, etc). */
+    for (int i = 0; i < bm->ldata.totlayer; i++) {
+      if (CustomData_layer_has_math(&bm->ldata, i)) {
+        if (!contig_ldata_across_loops(bm, l_first, l, i)) {
+          return false;
+        }
+      }
+    }
+  }
+
   return true;
 }
 
@@ -2902,6 +2948,12 @@ static void build_boundary_vertex_only(BevelParams *bp, BevVert *bv, bool constr
 
   if (construct) {
     set_bound_vert_seams(bv, bp->mark_seam, bp->mark_sharp);
+    /* Also check for seams at the vertex itself. */
+    if (bp->affect_vertices_odd) {
+      if (!bv->any_seam && !contig_ldata_around_vert(bp->bm, bv->v)) {
+        bv->any_seam = true;
+      }
+    }
     if (vm->count == 2) {
       vm->mesh_kind = M_NONE;
     }
@@ -5029,12 +5081,15 @@ static bool is_bad_uv_poly(BevVert *bv, BMFace *frep)
  * If there are math-having custom loop layers, like UV, then
  * don't include faces that would result in zero-area UV polygons
  * if chosen as the rep.
+ *
+ * For vertex bevel with odd segments, consider all adjacent faces
+ * (vertex bevel has no beveled edges).
  */
 static BMFace *frep_for_center_poly(BevelParams *bp, BevVert *bv)
 {
   int fcount = 0;
   BMFace *any_bmf = nullptr;
-  bool consider_all_faces = bv->selcount == 1;
+  bool consider_all_faces = bv->selcount == 1 || bp->affect_vertices_odd;
   /* Make an array that can hold maximum possible number of choices. */
   BMFace **fchoices = BLI_array_alloca(fchoices, bv->edgecount);
   /* For each choice, need to remember the unsnapped BoundVerts. */
@@ -7892,6 +7947,7 @@ void BM_mesh_bevel(BMesh *bm,
   bp.profile = profile;
   bp.pro_super_r = -logf(2.0) / logf(sqrtf(profile)); /* Convert to superellipse exponent. */
   bp.affect_type = affect_type;
+  bp.affect_vertices_odd = (affect_type == BEVEL_AFFECT_VERTICES) && (bp.seg % 2 == 1);
   bp.use_weights = use_weights;
   bp.bweight_offset_vert = bweight_offset_vert;
   bp.bweight_offset_edge = bweight_offset_edge;
