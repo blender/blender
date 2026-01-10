@@ -15,6 +15,7 @@ set(SRC
   colorspace.cpp
   debug.cpp
   ies.cpp
+  image_metadata.cpp
   log.cpp
   math_cdf.cpp
   md5.cpp
@@ -61,6 +62,7 @@ set(SRC_HEADERS
   ies.h
   image.h
   image_impl.h
+  image_metadata.h
   list.h
   log.h
   map.h

@@ -7,6 +7,7 @@
 #include "device/memory.h"
 
 #include "util/colorspace.h"
+#include "util/image_metadata.h"
 #include "util/string.h"
 #include "util/thread.h"
 #include "util/transform.h"
@@ -47,41 +48,6 @@ class ImageParams {
   }
 };
 
-/* Image MetaData
- *
- * Information about the image that is available before the image pixels are loaded. */
-class ImageMetaData {
- public:
-  /* Set by ImageLoader.load_metadata(). */
-  int channels;
-  size_t width, height;
-  size_t byte_size;
-  ImageDataType type;
-
-  /* Optional color space, defaults to raw. */
-  ustring colorspace;
-  string colorspace_file_hint;
-  const char *colorspace_file_format;
-
-  /* Optional transform for 3D images. */
-  bool use_transform_3d;
-  Transform transform_3d;
-
-  /* Automatically set. */
-  bool compress_as_srgb;
-
-  ImageMetaData();
-  bool operator==(const ImageMetaData &other) const;
-  bool is_float() const;
-  void detect_colorspace();
-};
-
-/* Information about supported features that Image loaders can use. */
-class ImageDeviceFeatures {
- public:
-  bool has_nanovdb = true;
-};
-
 /* Image loader base class, that can be subclassed to load image data
  * from custom sources (file, memory, procedurally generated, etc). */
 class ImageLoader {
@@ -90,13 +56,10 @@ class ImageLoader {
   virtual ~ImageLoader() = default;
 
   /* Load metadata without actual image yet, should be fast. */
-  virtual bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) = 0;
+  virtual bool load_metadata(ImageMetaData &metadata) = 0;
 
   /* Load actual image contents. */
-  virtual bool load_pixels(const ImageMetaData &metadata,
-                           void *pixels,
-                           const size_t pixels_size,
-                           const bool associate_alpha) = 0;
+  virtual bool load_pixels(const ImageMetaData &metadata, void *pixels) = 0;
 
   /* Name for logs and stats. */
   virtual string name() const = 0;
@@ -207,8 +170,6 @@ class ImageManager {
 
  private:
   bool need_update_;
-
-  ImageDeviceFeatures features;
 
   thread_mutex device_mutex;
   thread_mutex images_mutex;

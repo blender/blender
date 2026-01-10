@@ -380,7 +380,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
 
   /* All tiles have the same metadata. */
   const ImageMetaData metadata = handle.metadata();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -460,7 +460,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata();
   const bool is_float = metadata.is_float();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
@@ -581,7 +581,7 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
   }
 
   const ImageMetaData metadata = handle.metadata();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -612,7 +612,7 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata();
   const bool is_float = metadata.is_float();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
