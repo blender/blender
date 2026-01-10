@@ -10,7 +10,7 @@
 
 #include "util/colorspace.h"
 #include "util/string.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 

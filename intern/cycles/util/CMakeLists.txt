@@ -104,7 +104,6 @@ set(SRC_HEADERS
   system.h
   task.h
   tbb.h
-  texture.h
   thread.h
   time.h
   transform.h
@@ -114,6 +113,7 @@ set(SRC_HEADERS
   types_float3.h
   types_float4.h
   types_float8.h
+  types_image.h
   types_int2.h
   types_int3.h
   types_int4.h

@@ -55,7 +55,7 @@ int OneapiDeviceQueue::num_sort_partitions(int max_num_paths, uint /*max_scene_s
 
 void OneapiDeviceQueue::init_execution()
 {
-  oneapi_device_->load_texture_info();
+  oneapi_device_->load_image_info();
 
   SyclQueue *device_queue = oneapi_device_->sycl_queue();
   void *kg_dptr = oneapi_device_->kernel_globals_device_pointer();
@@ -76,8 +76,8 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
     return false;
   }
 
-  /* Update texture info in case memory moved to host. */
-  if (oneapi_device_->load_texture_info()) {
+  /* Update image info in case memory moved to host. */
+  if (oneapi_device_->load_image_info()) {
     if (!synchronize()) {
       return false;
     }

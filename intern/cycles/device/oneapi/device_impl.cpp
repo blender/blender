@@ -57,7 +57,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
   static_assert(sizeof(arrayMemObject) ==
                 sizeof(sycl::ext::oneapi::experimental::image_mem_handle));
 
-  need_texture_info = false;
+  need_image_info = false;
   use_hardware_raytracing = info.use_hardware_raytracing;
 
   oneapi_set_error_cb(queue_error_cb, &oneapi_error_string_);
@@ -116,7 +116,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
   if (headroom_str != nullptr) {
     const long long override_headroom = (float)atoll(headroom_str);
     device_working_headroom = override_headroom;
-    device_texture_headroom = override_headroom;
+    device_image_headroom = override_headroom;
   }
   LOG_TRACE << "oneAPI memory headroom size: "
             << string_human_readable_size(device_working_headroom);
@@ -130,7 +130,7 @@ OneapiDevice::~OneapiDevice()
   }
 #  endif
 
-  texture_info.free();
+  image_info.free();
   usm_free(device_queue_, kg_memory_);
   usm_free(device_queue_, kg_memory_device_);
 
@@ -421,8 +421,8 @@ void OneapiDevice::host_free(const MemoryType type, void *host_pointer, const si
 
 void OneapiDevice::mem_alloc(device_memory &mem)
 {
-  if (mem.type == MEM_TEXTURE) {
-    assert(!"mem_alloc not supported for textures.");
+  if (mem.type == MEM_IMAGE_TEXTURE) {
+    assert(!"mem_alloc not supported for images.");
   }
   else if (mem.type == MEM_GLOBAL) {
     assert(!"mem_alloc not supported for global memory.");
@@ -454,8 +454,8 @@ void OneapiDevice::mem_copy_to(device_memory &mem)
   if (mem.type == MEM_GLOBAL) {
     global_copy_to(mem);
   }
-  else if (mem.type == MEM_TEXTURE) {
-    tex_copy_to((device_texture &)mem);
+  else if (mem.type == MEM_IMAGE_TEXTURE) {
+    image_copy_to((device_image &)mem);
   }
   else {
     if (!mem.device_pointer) {
@@ -483,9 +483,9 @@ void OneapiDevice::mem_move_to_host(device_memory &mem)
     global_free(mem);
     global_alloc(mem);
   }
-  else if (mem.type == MEM_TEXTURE) {
-    tex_free((device_texture &)mem);
-    tex_alloc((device_texture &)mem);
+  else if (mem.type == MEM_IMAGE_TEXTURE) {
+    image_free((device_image &)mem);
+    image_alloc((device_image &)mem);
   }
   else {
     assert(0);
@@ -495,8 +495,8 @@ void OneapiDevice::mem_move_to_host(device_memory &mem)
 void OneapiDevice::mem_copy_from(
     device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
 {
-  if (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) {
-    assert(!"mem_copy_from not supported for textures.");
+  if (mem.type == MEM_IMAGE_TEXTURE) {
+    assert(!"mem_copy_from not supported for images.");
   }
   else if (mem.host_pointer) {
     const size_t size = (w > 0 || h > 0 || elem > 0) ? (elem * w * h) : mem.memory_size();
@@ -571,8 +571,8 @@ void OneapiDevice::mem_free(device_memory &mem)
   if (mem.type == MEM_GLOBAL) {
     global_free(mem);
   }
-  else if (mem.type == MEM_TEXTURE) {
-    tex_free((device_texture &)mem);
+  else if (mem.type == MEM_IMAGE_TEXTURE) {
+    image_free((device_image &)mem);
   }
   else {
     generic_free(mem);
@@ -670,7 +670,7 @@ void OneapiDevice::global_free(device_memory &mem)
   }
 }
 
-static sycl::ext::oneapi::experimental::image_descriptor image_desc(const device_texture &mem)
+static sycl::ext::oneapi::experimental::image_descriptor image_desc(const device_image &mem)
 {
   /* Image Texture Storage */
   sycl::image_channel_type channel_type;
@@ -703,7 +703,7 @@ static sycl::ext::oneapi::experimental::image_descriptor image_desc(const device
   return param;
 }
 
-void OneapiDevice::tex_alloc(device_texture &mem)
+void OneapiDevice::image_alloc(device_image &mem)
 {
   assert(device_queue_);
 
@@ -765,6 +765,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
     sycl::ext::oneapi::experimental::image_descriptor desc{};
 
     if (mem.data_height > 0) {
+      /* 2D/3D image -- Tile optimized */
       const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
       const size_t max_width = device.get_info<sycl::info::device::image2d_max_width>();
       const size_t max_height = device.get_info<sycl::info::device::image2d_max_height>();
@@ -790,11 +791,11 @@ void OneapiDevice::tex_alloc(device_texture &mem)
       sycl::ext::oneapi::experimental::image_mem_handle memHandle =
           sycl::ext::oneapi::experimental::alloc_image_mem(desc, *queue);
       if (!memHandle.raw_handle) {
-        set_error("GPU texture allocation failed: Raw handle is null");
+        set_error("GPU image allocation failed: Raw handle is null");
         return;
       }
 
-      /* Copy data from host to the texture properly based on the texture description */
+      /* Copy data from host to the image properly based on the image description */
       queue->ext_oneapi_copy(mem.host_pointer, memHandle, desc);
 
       mem.device_pointer = (device_ptr)memHandle.raw_handle;
@@ -807,7 +808,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
       cmem->array = (arrayMemObject)(memHandle.raw_handle);
     }
     else {
-      /* 1D texture -- Linear memory */
+      /* 1D image -- Linear memory */
       desc = sycl::ext::oneapi::experimental::image_descriptor(
           {mem.data_width}, mem.data_elements, channel_type);
       cmem = generic_alloc(mem);
@@ -821,7 +822,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
     queue->wait_and_throw();
 
     /* Set Mapping and tag that we need to (re-)upload to device */
-    TextureInfo tex_info = mem.info;
+    KernelImageInfo tex_info = mem.info;
 
     sycl::ext::oneapi::experimental::bindless_image_sampler samp(
         address_mode, sycl::coordinate_normalization_mode::normalized, filter_mode);
@@ -830,11 +831,11 @@ void OneapiDevice::tex_alloc(device_texture &mem)
       sycl::ext::oneapi::experimental::sampled_image_handle imgHandle;
 
       if (memHandle.raw_handle) {
-        /* Create 2D/3D texture handle */
+        /* Create 2D/3D image handle */
         imgHandle = sycl::ext::oneapi::experimental::create_image(memHandle, samp, desc, *queue);
       }
       else {
-        /* Create 1D texture */
+        /* Create 1D image */
         imgHandle = sycl::ext::oneapi::experimental::create_image(
             (void *)mem.device_pointer, 0, samp, desc, *queue);
       }
@@ -850,36 +851,36 @@ void OneapiDevice::tex_alloc(device_texture &mem)
     }
 
     {
-      /* Update texture info. */
-      thread_scoped_lock lock(texture_info_mutex);
+      /* Update image info. */
+      thread_scoped_lock lock(image_info_mutex);
       const uint slot = mem.slot;
-      if (slot >= texture_info.size()) {
+      if (slot >= image_info.size()) {
         /* Allocate some slots in advance, to reduce amount of re-allocations. */
-        texture_info.resize(slot + 128);
+        image_info.resize(slot + 128);
       }
-      texture_info[slot] = tex_info;
-      need_texture_info = true;
+      image_info[slot] = tex_info;
+      need_image_info = true;
     }
   }
   catch (sycl::exception const &e) {
-    set_error("GPU texture allocation failed: runtime exception \"" + string(e.what()) + "\"");
+    set_error("GPU image allocation failed: runtime exception \"" + string(e.what()) + "\"");
   }
 }
 
-void OneapiDevice::tex_copy_to(device_texture &mem)
+void OneapiDevice::image_copy_to(device_image &mem)
 {
   if (!mem.device_pointer) {
-    tex_alloc(mem);
+    image_alloc(mem);
   }
   else {
     if (mem.data_height > 0) {
-      /* 2D/3D texture -- Tile optimized */
+      /* 2D/3D image -- Tile optimized */
       sycl::ext::oneapi::experimental::image_descriptor desc = image_desc(mem);
 
       sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
 
       try {
-        /* Copy data from host to the texture properly based on the texture description */
+        /* Copy data from host to the image properly based on the image description */
         thread_scoped_lock lock(device_mem_map_mutex);
         const Mem &cmem = device_mem_map[&mem];
         sycl::ext::oneapi::experimental::image_mem_handle image_handle{
@@ -891,7 +892,7 @@ void OneapiDevice::tex_copy_to(device_texture &mem)
 #  endif
       }
       catch (sycl::exception const &e) {
-        set_error("oneAPI texture copy error: got runtime exception \"" + string(e.what()) + "\"");
+        set_error("oneAPI image copy error: got runtime exception \"" + string(e.what()) + "\"");
       }
     }
     else {
@@ -900,7 +901,7 @@ void OneapiDevice::tex_copy_to(device_texture &mem)
   }
 }
 
-void OneapiDevice::tex_free(device_texture &mem)
+void OneapiDevice::image_free(device_image &mem)
 {
   if (mem.device_pointer) {
     thread_scoped_lock lock(device_mem_map_mutex);
@@ -910,24 +911,24 @@ void OneapiDevice::tex_free(device_texture &mem)
     sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
 
     if (cmem.texobject) {
-      /* Free bindless texture itself. */
+      /* Free bindless image itself. */
       sycl::ext::oneapi::experimental::sampled_image_handle image(cmem.texobject);
       sycl::ext::oneapi::experimental::destroy_image_handle(image, *queue);
     }
 
     if (cmem.array) {
-      /* Free texture memory. */
+      /* Free image memory. */
       sycl::ext::oneapi::experimental::image_mem_handle imgHandle{
           (sycl::ext::oneapi::experimental::image_mem_handle::raw_handle_type)cmem.array};
 
       try {
-        /* We have allocated only standard textures, so we also deallocate only them. */
+        /* We have allocated only standard image, so we also deallocate only them. */
         sycl::ext::oneapi::experimental::free_image_mem(
             imgHandle, sycl::ext::oneapi::experimental::image_type::standard, *queue);
       }
       catch (sycl::exception const &e) {
-        set_error("oneAPI texture deallocation error: got runtime exception \"" +
-                  string(e.what()) + "\"");
+        set_error("oneAPI image deallocation error: got runtime exception \"" + string(e.what()) +
+                  "\"");
       }
 
       stats.mem_free(mem.memory_size());

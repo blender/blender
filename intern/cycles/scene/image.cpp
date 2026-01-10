@@ -16,7 +16,7 @@
 #include "util/log.h"
 #include "util/progress.h"
 #include "util/task.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 #ifdef WITH_OSL
 #  include <OSL/oslexec.h>
@@ -180,7 +180,7 @@ vector<int4> ImageHandle::get_svm_slots() const
   return svm_slots;
 }
 
-device_texture *ImageHandle::image_memory() const
+device_image *ImageHandle::image_memory() const
 {
   if (slots.empty()) {
     return nullptr;
@@ -565,7 +565,7 @@ void ImageManager::device_load_image(Device *device,
     img->mem.reset();
   }
 
-  img->mem = make_unique<device_texture>(
+  img->mem = make_unique<device_image>(
       device, img->mem_name.c_str(), slot, type, img->params.interpolation, img->params.extension);
   img->mem->info.use_transform_3d = img->metadata.use_transform_3d;
   img->mem->info.transform_3d = img->metadata.transform_3d;
@@ -577,10 +577,10 @@ void ImageManager::device_load_image(Device *device,
       const thread_scoped_lock device_lock(device_mutex);
       float *pixels = (float *)img->mem->alloc(1, 1);
 
-      pixels[0] = TEX_IMAGE_MISSING_R;
-      pixels[1] = TEX_IMAGE_MISSING_G;
-      pixels[2] = TEX_IMAGE_MISSING_B;
-      pixels[3] = TEX_IMAGE_MISSING_A;
+      pixels[0] = IMAGE_MISSING_RGBA.x;
+      pixels[1] = IMAGE_MISSING_RGBA.y;
+      pixels[2] = IMAGE_MISSING_RGBA.z;
+      pixels[3] = IMAGE_MISSING_RGBA.w;
     }
   }
   else if (type == IMAGE_DATA_TYPE_FLOAT) {
@@ -589,7 +589,7 @@ void ImageManager::device_load_image(Device *device,
       const thread_scoped_lock device_lock(device_mutex);
       float *pixels = (float *)img->mem->alloc(1, 1);
 
-      pixels[0] = TEX_IMAGE_MISSING_R;
+      pixels[0] = IMAGE_MISSING_RGBA.x;
     }
   }
   else if (type == IMAGE_DATA_TYPE_BYTE4) {
@@ -598,10 +598,10 @@ void ImageManager::device_load_image(Device *device,
       const thread_scoped_lock device_lock(device_mutex);
       uchar *pixels = (uchar *)img->mem->alloc(1, 1);
 
-      pixels[0] = (TEX_IMAGE_MISSING_R * 255);
-      pixels[1] = (TEX_IMAGE_MISSING_G * 255);
-      pixels[2] = (TEX_IMAGE_MISSING_B * 255);
-      pixels[3] = (TEX_IMAGE_MISSING_A * 255);
+      pixels[0] = (IMAGE_MISSING_RGBA.x * 255);
+      pixels[1] = (IMAGE_MISSING_RGBA.y * 255);
+      pixels[2] = (IMAGE_MISSING_RGBA.z * 255);
+      pixels[3] = (IMAGE_MISSING_RGBA.w * 255);
     }
   }
   else if (type == IMAGE_DATA_TYPE_BYTE) {
@@ -610,7 +610,7 @@ void ImageManager::device_load_image(Device *device,
       const thread_scoped_lock device_lock(device_mutex);
       uchar *pixels = (uchar *)img->mem->alloc(1, 1);
 
-      pixels[0] = (TEX_IMAGE_MISSING_R * 255);
+      pixels[0] = (IMAGE_MISSING_RGBA.x * 255);
     }
   }
   else if (type == IMAGE_DATA_TYPE_HALF4) {
@@ -619,10 +619,10 @@ void ImageManager::device_load_image(Device *device,
       const thread_scoped_lock device_lock(device_mutex);
       half *pixels = (half *)img->mem->alloc(1, 1);
 
-      pixels[0] = TEX_IMAGE_MISSING_R;
-      pixels[1] = TEX_IMAGE_MISSING_G;
-      pixels[2] = TEX_IMAGE_MISSING_B;
-      pixels[3] = TEX_IMAGE_MISSING_A;
+      pixels[0] = IMAGE_MISSING_RGBA.x;
+      pixels[1] = IMAGE_MISSING_RGBA.y;
+      pixels[2] = IMAGE_MISSING_RGBA.z;
+      pixels[3] = IMAGE_MISSING_RGBA.w;
     }
   }
   else if (type == IMAGE_DATA_TYPE_USHORT) {
@@ -631,7 +631,7 @@ void ImageManager::device_load_image(Device *device,
       const thread_scoped_lock device_lock(device_mutex);
       uint16_t *pixels = (uint16_t *)img->mem->alloc(1, 1);
 
-      pixels[0] = (TEX_IMAGE_MISSING_R * 65535);
+      pixels[0] = (IMAGE_MISSING_RGBA.x * 65535);
     }
   }
   else if (type == IMAGE_DATA_TYPE_USHORT4) {
@@ -640,10 +640,10 @@ void ImageManager::device_load_image(Device *device,
       const thread_scoped_lock device_lock(device_mutex);
       uint16_t *pixels = (uint16_t *)img->mem->alloc(1, 1);
 
-      pixels[0] = (TEX_IMAGE_MISSING_R * 65535);
-      pixels[1] = (TEX_IMAGE_MISSING_G * 65535);
-      pixels[2] = (TEX_IMAGE_MISSING_B * 65535);
-      pixels[3] = (TEX_IMAGE_MISSING_A * 65535);
+      pixels[0] = (IMAGE_MISSING_RGBA.x * 65535);
+      pixels[1] = (IMAGE_MISSING_RGBA.y * 65535);
+      pixels[2] = (IMAGE_MISSING_RGBA.z * 65535);
+      pixels[3] = (IMAGE_MISSING_RGBA.w * 65535);
     }
   }
   else if (type == IMAGE_DATA_TYPE_HALF) {
@@ -652,7 +652,7 @@ void ImageManager::device_load_image(Device *device,
       const thread_scoped_lock device_lock(device_mutex);
       half *pixels = (half *)img->mem->alloc(1, 1);
 
-      pixels[0] = TEX_IMAGE_MISSING_R;
+      pixels[0] = IMAGE_MISSING_RGBA.x;
     }
   }
 #ifdef WITH_NANOVDB

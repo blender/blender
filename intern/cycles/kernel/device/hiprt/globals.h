@@ -11,8 +11,8 @@
 #include "kernel/integrator/state.h"
 #include "kernel/util/profiler.h"  // IWYU pragma: export
 
-#include "util/color.h"    // IWYU pragma: export
-#include "util/texture.h"  // IWYU pragma: export
+#include "util/color.h"        // IWYU pragma: export
+#include "util/types_image.h"  // IWYU pragma: export
 
 /* The size of global stack  available to each thread (memory reserved for each thread in
  * global_stack_buffer). */

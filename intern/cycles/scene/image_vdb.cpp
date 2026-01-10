@@ -7,7 +7,7 @@
 #include "util/log.h"
 #include "util/nanovdb.h"
 #include "util/openvdb.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/tools/Dense.h>

@@ -7,7 +7,7 @@
 #include "kernel/globals.h"
 #include "kernel/sample/lcg.h"
 
-#include "util/texture.h"
+#include "util/types_image.h"
 
 #if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 #  ifdef WITH_NANOVDB
@@ -88,7 +88,7 @@ ccl_device_inline float3 interp_stochastic(const float3 P,
 /** \} */
 
 template<typename OutT, typename Acc>
-ccl_device OutT kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc, const float3 P)
+ccl_device OutT kernel_image_interp_trilinear_nanovdb(ccl_private Acc &acc, const float3 P)
 {
   const float3 floor_P = floor(P);
   const float3 t = P - floor_P;
@@ -116,7 +116,7 @@ ccl_device OutT kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc, 
 }
 
 template<typename OutT, typename Acc>
-ccl_device OutT kernel_tex_image_interp_tricubic_nanovdb(ccl_private Acc &acc, const float3 P)
+ccl_device OutT kernel_image_interp_tricubic_nanovdb(ccl_private Acc &acc, const float3 P)
 {
 #  if defined(__KERNEL_HIP__)
   /* Explicitly unroll for HIP compiler to unroll the loop. Without this the render result is wrong
@@ -180,7 +180,7 @@ __attribute__((noinline))
 #  else
 ccl_device_noinline
 #  endif
-OutT kernel_tex_image_interp_nanovdb(const ccl_global TextureInfo &info,
+OutT kernel_image_interp_nanovdb(const ccl_global KernelImageInfo &info,
                                      float3 P,
                                      const InterpolationType interp)
 {
@@ -193,22 +193,22 @@ OutT kernel_tex_image_interp_nanovdb(const ccl_global TextureInfo &info,
 
   nanovdb::CachedReadAccessor<T> acc(grid->tree().root());
   if (interp == INTERPOLATION_LINEAR) {
-    return kernel_tex_image_interp_trilinear_nanovdb<OutT>(acc, P);
+    return kernel_image_interp_trilinear_nanovdb<OutT>(acc, P);
   }
 
-  return kernel_tex_image_interp_tricubic_nanovdb<OutT>(acc, P);
+  return kernel_image_interp_tricubic_nanovdb<OutT>(acc, P);
 }
 #endif /* WITH_NANOVDB */
 
-ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
-                                             ccl_private ShaderData *sd,
-                                             const int id,
-                                             float3 P,
-                                             InterpolationType interp,
-                                             const bool stochastic)
+ccl_device float4 kernel_image_interp_3d(KernelGlobals kg,
+                                         ccl_private ShaderData *sd,
+                                         const int id,
+                                         float3 P,
+                                         InterpolationType interp,
+                                         const bool stochastic)
 {
 #ifdef WITH_NANOVDB
-  const ccl_global TextureInfo &info = kernel_data_fetch(texture_info, id);
+  const ccl_global KernelImageInfo &info = kernel_data_fetch(image_info, id);
 
   if (info.use_transform_3d) {
     P = transform_point(&info.transform_3d, P);
@@ -225,23 +225,22 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
 
   const ImageDataType data_type = (ImageDataType)info.data_type;
   if (data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT) {
-    const float f = kernel_tex_image_interp_nanovdb<float, float>(info, P, interpolation);
+    const float f = kernel_image_interp_nanovdb<float, float>(info, P, interpolation);
     return make_float4(f, f, f, 1.0f);
   }
   if (data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
-    const float3 f = kernel_tex_image_interp_nanovdb<float3, packed_float3>(
-        info, P, interpolation);
+    const float3 f = kernel_image_interp_nanovdb<float3, packed_float3>(info, P, interpolation);
     return make_float4(f, 1.0f);
   }
   if (data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT4) {
-    return kernel_tex_image_interp_nanovdb<float4, float4>(info, P, interpolation);
+    return kernel_image_interp_nanovdb<float4, float4>(info, P, interpolation);
   }
   if (data_type == IMAGE_DATA_TYPE_NANOVDB_FPN) {
-    const float f = kernel_tex_image_interp_nanovdb<float, nanovdb::FpN>(info, P, interpolation);
+    const float f = kernel_image_interp_nanovdb<float, nanovdb::FpN>(info, P, interpolation);
     return make_float4(f, f, f, 1.0f);
   }
   if (data_type == IMAGE_DATA_TYPE_NANOVDB_FP16) {
-    const float f = kernel_tex_image_interp_nanovdb<float, nanovdb::Fp16>(info, P, interpolation);
+    const float f = kernel_image_interp_nanovdb<float, nanovdb::Fp16>(info, P, interpolation);
     return make_float4(f, f, f, 1.0f);
   }
   if (data_type == IMAGE_DATA_TYPE_NANOVDB_EMPTY) {
@@ -256,8 +255,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
   (void)stochastic;
 #endif
 
-  return make_float4(
-      TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
+  return IMAGE_MISSING_RGBA;
 }
 
 #ifndef __KERNEL_GPU__

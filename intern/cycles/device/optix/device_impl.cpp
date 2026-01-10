@@ -105,7 +105,7 @@ OptiXDevice::~OptiXDevice()
   free_bvh_memory_delayed();
 
   sbt_data.free();
-  texture_info.free();
+  image_info.free();
   launch_params.free();
 
   /* Unload modules. */

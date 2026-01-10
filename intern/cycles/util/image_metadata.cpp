@@ -11,7 +11,7 @@
 #include "util/image_metadata.h"
 #include "util/log.h"
 #include "util/param.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 

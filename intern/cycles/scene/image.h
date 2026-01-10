@@ -104,7 +104,7 @@ class ImageHandle {
   ImageMetaData metadata();
   int svm_slot(const int slot_index = 0) const;
   vector<int4> get_svm_slots() const;
-  device_texture *image_memory() const;
+  device_image *image_memory() const;
 
   VDBImageLoader *vdb_loader() const;
 
@@ -162,7 +162,7 @@ class ImageManager {
     bool builtin;
 
     string mem_name;
-    unique_ptr<device_texture> mem;
+    unique_ptr<device_image> mem;
 
     int users;
     thread_mutex mutex;

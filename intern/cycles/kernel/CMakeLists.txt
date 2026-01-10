@@ -235,9 +235,9 @@ set(SRC_KERNEL_UTIL_HEADERS
   util/colorspace.h
   util/differential.h
   util/ies.h
+  util/image_3d.h
   util/lookup_table.h
   util/nanovdb.h
-  util/texture_3d.h
   util/profiler.h
 )
 
@@ -292,13 +292,13 @@ set(SRC_UTIL_HEADERS
   ../util/rect.h
   ../util/static_assert.h
   ../util/transform.h
-  ../util/texture.h
   ../util/types.h
   ../util/types_base.h
   ../util/types_float2.h
   ../util/types_float3.h
   ../util/types_float4.h
   ../util/types_float8.h
+  ../util/types_image.h
   ../util/types_int2.h
   ../util/types_int3.h
   ../util/types_int4.h

@@ -74,10 +74,10 @@ class HIPDevice : public GPUDevice {
   void global_copy_to(device_memory &mem);
   void global_free(device_memory &mem);
 
-  /* Texture memory. */
-  void tex_alloc(device_texture &mem);
-  void tex_copy_to(device_texture &mem);
-  void tex_free(device_texture &mem);
+  /* Image memory. */
+  void image_alloc(device_image &mem);
+  void image_copy_to(device_image &mem);
+  void image_free(device_image &mem);
 
   /* Device side memory. */
   void get_device_memory_info(size_t &total, size_t &free) override;

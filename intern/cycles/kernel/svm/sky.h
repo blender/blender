@@ -172,7 +172,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
   const float x = fractf((-direction.y - M_PI_2_F + sun_rotation) * M_1_2PI_F);
   /* Undo the non-linear transformation from the sky LUT */
   const float y = copysignf(sqrtf(fabsf(dir_elevation) * M_2_PI_F), dir_elevation) * 0.5f + 0.5f;
-  xyz += make_float3(kernel_tex_image_interp(kg, texture_id, x, y));
+  xyz += make_float3(kernel_image_interp(kg, texture_id, x, y));
 
   /* Convert to RGB */
   return xyz_to_rgb_clamped(kg, xyz);

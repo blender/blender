@@ -66,7 +66,7 @@ void CUDADeviceQueue::init_execution()
 {
   /* Synchronize all textures and memory copies before executing task. */
   CUDAContextScope scope(cuda_device_);
-  cuda_device_->load_texture_info();
+  cuda_device_->load_image_info();
   cuda_device_assert(cuda_device_, cuCtxSynchronize());
 
   debug_init_execution();
@@ -84,8 +84,8 @@ bool CUDADeviceQueue::enqueue(DeviceKernel kernel,
 
   const CUDAContextScope scope(cuda_device_);
 
-  /* Update texture info in case integrator memory alloc caused texture to move to host. */
-  if (cuda_device_->load_texture_info()) {
+  /* Update image info in case integrator memory alloc caused texture to move to host. */
+  if (cuda_device_->load_image_info()) {
     cuda_device_assert(cuda_device_, cuCtxSynchronize());
     if (cuda_device_->have_error()) {
       return false;
@@ -151,7 +151,7 @@ bool CUDADeviceQueue::synchronize()
 
 void CUDADeviceQueue::zero_to_device(device_memory &mem)
 {
-  assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
+  assert(mem.type != MEM_GLOBAL && mem.type != MEM_IMAGE_TEXTURE);
 
   if (mem.memory_size() == 0) {
     return;
@@ -173,7 +173,7 @@ void CUDADeviceQueue::zero_to_device(device_memory &mem)
 
 void CUDADeviceQueue::copy_to_device(device_memory &mem)
 {
-  assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
+  assert(mem.type != MEM_GLOBAL && mem.type != MEM_IMAGE_TEXTURE);
 
   if (mem.memory_size() == 0) {
     return;
@@ -197,7 +197,7 @@ void CUDADeviceQueue::copy_to_device(device_memory &mem)
 
 void CUDADeviceQueue::copy_from_device(device_memory &mem)
 {
-  assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
+  assert(mem.type != MEM_GLOBAL && mem.type != MEM_IMAGE_TEXTURE);
 
   if (mem.memory_size() == 0) {
     return;
