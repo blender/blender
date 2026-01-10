@@ -17,7 +17,7 @@ namespace blender {
 #ifdef WITH_DRAW_DEBUG
 /* `select_debug_engine.cc` */
 
-namespace blender::draw::edit_select_debug {
+namespace draw::edit_select_debug {
 
 struct Engine : public DrawEngine::Pointer {
   DrawEngine *create_instance() final;
@@ -25,7 +25,7 @@ struct Engine : public DrawEngine::Pointer {
   static void free_static();
 };
 
-}  // namespace blender::draw::edit_select_debug
+}  // namespace draw::edit_select_debug
 
 #endif
 

@@ -41,7 +41,7 @@ struct DepthOfFieldBuffer {
    * Note this should be private as its inner working only concerns the Depth Of Field
    * implementation. The view itself should not touch it.
    */
-  Texture stabilize_history_tx_ = {"dof_taa"};
+  TextureFromPool stabilize_history_tx_ = {"dof_taa"};
 };
 
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;

@@ -32,8 +32,8 @@ PyDoc_STRVAR(
     "\n"
     "   :arg veclist: Sequence of 3D positions.\n"
     "   :type veclist: Sequence[Sequence[float]]\n"
-    "   :arg pt: 2D or 3D position."
-    "   :type pt: Sequence[float]"
+    "   :arg pt: 2D or 3D position.\n"
+    "   :type pt: Sequence[float]\n"
     "   :return: list of per-vector weights.\n"
     "   :rtype: list[float]\n");
 static PyObject *M_Interpolate_poly_3d_calc(PyObject * /*self*/, PyObject *args)

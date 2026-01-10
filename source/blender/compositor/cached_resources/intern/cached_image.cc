@@ -8,6 +8,8 @@
 
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
@@ -18,6 +20,7 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "BKE_cryptomatte.hh"
 #include "BKE_image.hh"
@@ -307,16 +310,17 @@ CachedImage::CachedImage(Context &context,
     return;
   }
 
-  this->populate_meta_data(render_result, image_user_for_pass);
+  this->populate_cryptomatte_meta_data(render_result, image_user_for_pass);
 
   BKE_image_release_renderresult(nullptr, image, render_result);
 
   ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_pass, nullptr);
   ImBuf *linear_image_buffer = compute_linear_buffer(image_buffer);
 
+  this->populate_meta_data(image_buffer);
+
   const bool use_half_float = linear_image_buffer->foptions.flag & OPENEXR_HALF;
   this->result.set_precision(use_half_float ? ResultPrecision::Half : ResultPrecision::Full);
-
   this->result.set_type(get_result_type(render_result, image_user_for_pass, linear_image_buffer));
 
   /* For GPU, we wrap the texture returned by IMB module and free it ourselves in destructor. For
@@ -361,12 +365,19 @@ CachedImage::CachedImage(Context &context,
     }
   }
 
+  if (image_buffer->flags & IB_has_display_window) {
+    this->result.domain().display_size = int2(image_buffer->display_size);
+    this->result.domain().data_offset = int2(image_buffer->data_offset);
+    this->result.transform(
+        math::from_location<float3x3>(float2(int2(image_buffer->display_offset))));
+  }
+
   IMB_freeImBuf(linear_image_buffer);
   BKE_image_release_ibuf(image, image_buffer, nullptr);
 }
 
-void CachedImage::populate_meta_data(const RenderResult *render_result,
-                                     const ImageUser &image_user)
+void CachedImage::populate_cryptomatte_meta_data(const RenderResult *render_result,
+                                                 const ImageUser &image_user)
 {
   if (!render_result) {
     return;
@@ -422,6 +433,17 @@ void CachedImage::populate_meta_data(const RenderResult *render_result,
         }
       },
       false);
+}
+
+void CachedImage::populate_meta_data(const ImBuf *image_buffer)
+{
+  IMB_metadata_foreach(
+      image_buffer,
+      [](const char *key, const char *value, void *user_data) {
+        compositor::MetaData *meta_data = static_cast<compositor::MetaData *>(user_data);
+        meta_data->fields.add(key, value);
+      },
+      &this->result.meta_data);
 }
 
 CachedImage::~CachedImage()

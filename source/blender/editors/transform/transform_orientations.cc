@@ -163,7 +163,7 @@ static TransformOrientation *createBoneSpace(bContext *C,
   }
 
   if (name[0] == 0) {
-    name = DATA_("Bone");
+    name = DATA_(animrig::bone_default_name);
   }
 
   return addMatrixSpace(C, mat, name, overwrite);

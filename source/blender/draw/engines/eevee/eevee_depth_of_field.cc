@@ -608,8 +608,8 @@ void DepthOfField::render(View &view,
     }
     {
       stabilize_output_tx_.acquire(half_res, gpu::TextureFormat::SFLOAT_16_16_16_16);
-      stabilize_valid_history_ = !dof_buffer.stabilize_history_tx_.ensure_2d(
-          gpu::TextureFormat::SFLOAT_16_16_16_16, half_res);
+      stabilize_valid_history_ = !dof_buffer.stabilize_history_tx_.acquire(
+          half_res, gpu::TextureFormat::SFLOAT_16_16_16_16);
 
       if (stabilize_valid_history_ == false) {
         /* Avoid uninitialized memory that can contain NaNs. */
@@ -620,9 +620,10 @@ void DepthOfField::render(View &view,
       /* Outputs to reduced_*_tx_ mip 0. */
       drw.submit(stabilize_ps_, view);
 
-      /* WATCH(fclem): Swap Texture an TextureFromPool internal gpu::Texture in order to
-       * reuse the one that we just consumed. */
+      /* Swap history and output buffers, and retain the "new" history buffer until
+       * next cycle so we can reuse it as input. */
       TextureFromPool::swap(stabilize_output_tx_, dof_buffer.stabilize_history_tx_);
+      dof_buffer.stabilize_history_tx_.retain();
 
       /* Used by stabilize pass. */
       stabilize_output_tx_.release();

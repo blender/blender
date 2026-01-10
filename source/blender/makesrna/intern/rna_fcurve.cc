@@ -695,36 +695,6 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value, ReportList *
     return;
   }
 
-  animrig::Action &action = act->wrap();
-
-  /* Legacy action. */
-  if (!action.is_action_layered()) {
-
-    /* make sure F-Curve exists in this action first, otherwise we could still have been tricked */
-    if (BLI_findindex(&act->curves, fcu) == -1) {
-      printf("ERROR: F-Curve (%p) doesn't exist in action '%s'\n", fcu, act->id.name);
-      return;
-    }
-
-    /* try to remove F-Curve from action (including from any existing groups) */
-    action_groups_remove_channel(act, fcu);
-
-    /* Add the F-Curve back to the action now in the right place. */
-    /* TODO: make the API function handle the case where there isn't any group to assign to. */
-    if (value.data) {
-      /* add to its group using API function, which makes sure everything goes ok */
-      action_groups_add_channel(act, static_cast<bActionGroup *>(value.data), fcu);
-    }
-    else {
-      /* Need to add this back, but it can only go at the end of the list
-       * (or else will corrupt groups). */
-      BLI_addtail(&act->curves, fcu);
-    }
-
-    return;
-  }
-
-  /* Layered action. */
   bActionGroup *group = static_cast<bActionGroup *>(value.data);
 
   BLI_assert(group->channelbag != nullptr);

@@ -134,6 +134,10 @@ if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 endif()
 
+if(WITH_TBB_MALLOC_PROXY)
+  add_definitions(-DWITH_TBB_MALLOC)
+endif()
+
 # Setup the EXE sources and `buildinfo`.
 set(SRC
   creator.cc

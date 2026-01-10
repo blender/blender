@@ -5,7 +5,7 @@
 /** \file
  * \ingroup bpygpu
  *
- * This file defines the gpu.state API.
+ * This file defines the gpu.types.Buffer API.
  *
  * - Use `bpygpu_` for local API.
  * - Use `BPyGPU` for public API.

@@ -25,7 +25,7 @@
  */
 
 /**
- * \file generic_alloc_impl.c
+ * \file generic_alloc_impl.h
  *  \ingroup curve_fit
  *
  * Simple Memory Chunking Allocator
@@ -50,7 +50,7 @@
  * - *_pool_elem_free()
  */
 
-/* check we're not building directly */
+/* Check we're not building directly. */
 #if !defined(TPOOL_IMPL_PREFIX) || \
     !defined(TPOOL_ALLOC_TYPE) || \
     !defined(TPOOL_STRUCT)
@@ -61,7 +61,7 @@
 #define _CONCAT(MACRO_ARG1, MACRO_ARG2) _CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
 #define _TPOOL_PREFIX(id) _CONCAT(TPOOL_IMPL_PREFIX, _##id)
 
-/* local identifiers */
+/* Local identifiers. */
 #define pool_create		_TPOOL_PREFIX(pool_create)
 #define pool_destroy	_TPOOL_PREFIX(pool_destroy)
 #define pool_clear		_TPOOL_PREFIX(pool_clear)
@@ -70,7 +70,7 @@
 #define pool_elem_calloc	_TPOOL_PREFIX(pool_elem_calloc)
 #define pool_elem_free		_TPOOL_PREFIX(pool_elem_free)
 
-/* private identifiers (only for this file, undefine after) */
+/* Private identifiers (only for this file, undefine after). */
 #define pool_alloc_chunk	_TPOOL_PREFIX(pool_alloc_chunk)
 #define TPoolChunk			_TPOOL_PREFIX(TPoolChunk)
 #define TPoolChunkElemFree	_TPOOL_PREFIX(TPoolChunkElemFree)
@@ -107,9 +107,9 @@ struct TPoolChunkElemFree {
 };
 
 struct TPOOL_STRUCT {
-	/* Always keep at least one chunk (never NULL) */
+	/* Always keep at least one chunk (never NULL). */
 	struct TPoolChunk *chunk;
-	/* when NULL, allocate a new chunk */
+	/* When NULL, allocate a new chunk. */
 	struct TPoolChunkElemFree *free;
 };
 
@@ -180,7 +180,7 @@ static void pool_create(struct TPOOL_STRUCT *pool, unsigned int tot_reserve)
 MAYBE_UNUSED
 static void pool_clear(struct TPOOL_STRUCT *pool)
 {
-	/* Remove all except the last chunk */
+	/* Remove all except the last chunk. */
 	while (pool->chunk->prev) {
 		struct TPoolChunk *chunk_prev = pool->chunk->prev;
 		free(pool->chunk);

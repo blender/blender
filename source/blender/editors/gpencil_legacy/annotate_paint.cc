@@ -2509,6 +2509,11 @@ static wmOperatorStatus annotation_draw_modal(bContext *C, wmOperator *op, const
    * Also making sure we have a valid event value, to not exit too early. */
 
   if (ISMOUSE_BUTTON(event->type) && ELEM(event->val, KM_PRESS, KM_RELEASE)) {
+    if (event->type == MIDDLEMOUSE) {
+      /* Pass middle mouse event to viewport navigation, see: #151982 */
+      return estate;
+    }
+
     /* if painting, end stroke */
     if (p->status == GP_STATUS_PAINTING) {
       int sketch = 0;

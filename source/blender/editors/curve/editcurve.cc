@@ -1064,6 +1064,7 @@ static void fcurve_path_rename(const char *orig_rna_path,
 
       if (ch && (STRPREFIX(ch, ".bezier_points") || STRPREFIX(ch, ".points"))) {
         fcurves_to_remove.append(fcu);
+        processed_fcurves.add(fcu);
       }
     }
   }
@@ -1094,6 +1095,10 @@ static void fcurve_path_rename(const char *orig_rna_path,
     }
     if (STRPREFIX(fcu->rna_path, "splines")) {
       fcurves_to_remove.append(fcu);
+      /* Not strictly necessary, because `orig_curves` shouldn't contain any duplicates, and this
+       * is the last loop that can add anything to `fcurves_to_remove`. However, the line below
+       * ensures the correctness even when new code would get added to the end of this function. */
+      processed_fcurves.add(fcu);
     }
   }
 
@@ -1125,7 +1130,6 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
       UNUSED_VARS_NDEBUG(remove_ok);
     }
 
-    BKE_action_groups_reconstruct(adt->action);
     DEG_id_tag_update(&adt->action->id, ID_RECALC_SYNC_TO_EVAL);
   }
 

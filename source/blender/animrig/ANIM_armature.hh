@@ -16,6 +16,8 @@
 
 namespace blender::animrig {
 
+constexpr char bone_default_name[] = "Bone";
+
 /**
  * Returns true if the given Bone is visible. This includes bone collection visibility.
  */

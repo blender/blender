@@ -24,7 +24,7 @@ from ..utils.nodes import (
 
 class NODE_OT_add_texture_setup(Operator, NWBase):
     bl_idname = "node.nw_add_texture"
-    bl_label = "Texture Setup"
+    bl_label = "Add Texture Setup"
     bl_description = "Add a texture node setup to selected shaders"
     bl_options = {'REGISTER', 'UNDO'}
 

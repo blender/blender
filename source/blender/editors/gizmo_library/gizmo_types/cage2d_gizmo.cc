@@ -375,21 +375,24 @@ static void cage2d_draw_box_interaction(const float color[4],
   struct {
     uint pos, col;
   } attr_id{};
+
   attr_id.pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   attr_id.col = GPU_vertformat_attr_add(format, "color", gpu::VertAttrType::SFLOAT_32_32_32);
-  immBindBuiltinProgram(is_solid ? GPU_SHADER_3D_FLAT_COLOR : GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
 
   {
     if (is_solid) {
 
       if (margin[0] == 0.0f && margin[1] == 0.0) {
         prim_type = GPU_PRIM_POINTS;
+        immBindBuiltinProgram(GPU_SHADER_3D_POINT_FLAT_COLOR);
       }
       else if (margin[0] == 0.0f || margin[1] == 0.0) {
         prim_type = GPU_PRIM_LINE_STRIP;
+        immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
       }
       else {
         BLI_assert(ELEM(prim_type, GPU_PRIM_TRI_FAN));
+        immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
       }
 
       immBegin(prim_type, verts_len);
@@ -400,6 +403,8 @@ static void cage2d_draw_box_interaction(const float color[4],
       immEnd();
     }
     else {
+      immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
+
       BLI_assert(ELEM(prim_type, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINES));
 
       float viewport[4];

@@ -764,7 +764,7 @@ PyDoc_STRVAR(
     "   :arg layers: Number of layers in texture array or number of cubemaps in cubemap array\n"
     "   :type layers: int\n"
     "   :arg is_cubemap: Indicates the creation of a cubemap texture.\n"
-    "   :type is_cubemap: int\n"
+    "   :type is_cubemap: bool\n"
     "   :arg format: Internal data format inside GPU memory. Possible values are:\n"
     "      ``RGBA8UI``,\n"
     "      ``RGBA8I``,\n"

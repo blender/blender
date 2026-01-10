@@ -47,7 +47,16 @@ bool ED_wpaint_ensure_data(bContext *C,
                            eWPaintFlag flag,
                            WPaintVGroupIndex *vgroup_index)
 {
-  Object *ob = CTX_data_active_object(C);
+  return ED_wpaint_ensure_data(
+      C, CTX_data_main(C), CTX_data_active_object(C), reports, flag, vgroup_index);
+}
+bool ED_wpaint_ensure_data(bContext *C,
+                           Main *bmain,
+                           Object *ob,
+                           ReportList *reports,
+                           eWPaintFlag flag,
+                           WPaintVGroupIndex *vgroup_index)
+{
   Mesh *mesh = BKE_mesh_from_object(ob);
 
   if (vgroup_index) {
@@ -83,7 +92,7 @@ bool ED_wpaint_ensure_data(bContext *C,
           bDeformGroup *dg = BKE_object_defgroup_find_name(ob, pchan->name);
           if (dg == nullptr) {
             dg = BKE_object_defgroup_add_name(ob, pchan->name); /* sets actdef */
-            DEG_relations_tag_update(CTX_data_main(C));
+            DEG_relations_tag_update(bmain);
           }
           else {
 
@@ -97,7 +106,7 @@ bool ED_wpaint_ensure_data(bContext *C,
   }
   if (BLI_listbase_is_empty(defbase)) {
     BKE_object_defgroup_add(ob);
-    DEG_relations_tag_update(CTX_data_main(C));
+    DEG_relations_tag_update(bmain);
   }
 
   /* ensure we don't try paint onto an invalid group */

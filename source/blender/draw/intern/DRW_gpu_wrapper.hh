@@ -1066,50 +1066,58 @@ class Texture : NonCopyable {
 };
 
 class TextureFromPool : public Texture, NonMovable {
+  /* Object may be released on a different `GPUContext`; track the owning pool. */
+  gpu::TexturePool *pool_ = nullptr;
+
  public:
   TextureFromPool(const char *name = "gpu::Texture") : Texture(name) {};
 
-  /* Always use `release()` after rendering. */
-  void acquire(int2 extent,
+  /* On destructor, textures after `::retain()` may need to be released. */
+  ~TextureFromPool()
+  {
+    release();
+  }
+
+  /* Always use `::release()` or `::retain()` after rendering with a texture. */
+  bool acquire(int2 extent,
                gpu::TextureFormat format,
                eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL)
   {
-    BLI_assert(this->tx_ == nullptr);
-
-    this->tx_ = gpu::TexturePool::get().acquire_texture(UNPACK2(extent), format, usage);
-
-    if (G.debug & G_DEBUG_GPU) {
-      debug_clear();
+    if (tx_ == nullptr) {
+      pool_ = &gpu::TexturePool::get();
+      tx_ = pool_->acquire_texture(extent, format, usage);
+      if (G.debug & G_DEBUG_GPU) {
+        debug_clear();
+      }
+      return true;
     }
+
+    pool_->offset_users_count(tx_, 1);
+    return false;
   }
 
+  /* Invalidate the acquired texture for this frame. Multiple releases can be done safely. */
   void release()
   {
-    /* Allows multiple release. */
-    if (this->tx_ == nullptr) {
+    if (tx_ == nullptr) {
       return;
     }
-    gpu::TexturePool::get().release_texture(this->tx_);
-    this->tx_ = nullptr;
+    pool_->release_texture(tx_);
+    tx_ = nullptr;
+    pool_ = nullptr;
   }
 
-  /**
-   * Swap the content of the two textures.
-   * Also change ownership accordingly if needed.
-   */
-  static void swap(TextureFromPool &a, Texture &b)
+  /* Allow for the texture to survive into the next cycle. */
+  void retain()
   {
-    Texture::swap(a, b);
-    gpu::TexturePool::get().give_texture_ownership(a);
-    gpu::TexturePool::get().take_texture_ownership(b);
+    pool_->offset_users_count(tx_, -1);
   }
-  static void swap(Texture &a, TextureFromPool &b)
-  {
-    swap(b, a);
-  }
+
+  /* Swap the contents of the two textures as well as their owning pool. */
   static void swap(TextureFromPool &a, TextureFromPool &b)
   {
     Texture::swap(a, b);
+    std::swap(a.pool_, b.pool_);
   }
 
   /** WORKAROUND: used when needing a ref to the Texture and not the gpu::Texture. */
@@ -1119,7 +1127,7 @@ class TextureFromPool : public Texture, NonMovable {
   }
 
   /** Remove methods that are forbidden with this type of textures. */
-  bool ensure_1d(int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_1d(int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
   bool ensure_1d_array(int, int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) =
       delete;
   bool ensure_2d(int, int, int, gpu::TextureFormat, eGPUTextureUsage, float *) = delete;
@@ -1127,8 +1135,6 @@ class TextureFromPool : public Texture, NonMovable {
       delete;
   bool ensure_3d(int, int, int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
   bool ensure_cube(int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_cube_array(int, int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) =
-      delete;
   void filter_mode(bool) = delete;
   void free() = delete;
   gpu::Texture *mip_view(int) = delete;

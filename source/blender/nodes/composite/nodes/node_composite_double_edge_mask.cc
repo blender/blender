@@ -296,7 +296,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new DoubleEdgeMaskOperation(context, node);
 }

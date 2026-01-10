@@ -835,7 +835,7 @@ static wmOperatorStatus curves_draw_exec(bContext *C, wmOperator *op)
 
     uint *corners_index = nullptr;
     uint corners_index_len = 0;
-    uint calc_flag = CURVE_FIT_CALC_HIGH_QUALIY;
+    uint calc_flag = CURVE_FIT_CALC_HIGH_QUALITY;
 
     if ((stroke_len > 2) && use_cyclic) {
       calc_flag |= CURVE_FIT_CALC_CYCLIC;

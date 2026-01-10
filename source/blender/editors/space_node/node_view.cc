@@ -118,13 +118,13 @@ bool space_node_view_flag(
   else {
     if (old_aspect < new_aspect) {
       const float height_new = width / old_aspect;
-      cur_new.ymin = cur_new.ymin - height_new / 2.0f;
-      cur_new.ymax = cur_new.ymax + height_new / 2.0f;
+      cur_new.ymin = cur_new.ymin - height_new / 4.0f;
+      cur_new.ymax = cur_new.ymax + height_new / 4.0f;
     }
     else {
       const float width_new = height * old_aspect;
-      cur_new.xmin = cur_new.xmin - width_new / 2.0f;
-      cur_new.xmax = cur_new.xmax + width_new / 2.0f;
+      cur_new.xmin = cur_new.xmin - width_new / 4.0f;
+      cur_new.xmax = cur_new.xmax + width_new / 4.0f;
     }
 
     /* add some padding */

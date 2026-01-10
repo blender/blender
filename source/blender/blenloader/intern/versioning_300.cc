@@ -102,6 +102,8 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
+#include "ANIM_versioning.hh"
+
 #include "versioning_common.hh"
 
 namespace blender {
@@ -2333,7 +2335,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
      * reconstruct all the action groups & ensure that the FCurves of a group are continuously
      * stored (i.e. not mixed with other groups) to be sure. See #89435. */
     for (bAction &act : bmain->actions) {
-      BKE_action_groups_reconstruct(&act);
+      animrig::versioning::action_groups_reconstruct(&act);
     }
 
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {

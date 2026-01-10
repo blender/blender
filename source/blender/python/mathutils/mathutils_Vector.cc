@@ -217,7 +217,9 @@ PyDoc_STRVAR(
     "   :arg size: The length of the vector to be created.\n"
     "   :type size: int\n"
     "   :arg fill: The value used to fill the vector.\n"
-    "   :type fill: float\n");
+    "   :type fill: float\n"
+    "   :return: A new vector.\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *C_Vector_Fill(PyObject *cls, PyObject *args)
 {
   float *vec;
@@ -252,7 +254,7 @@ PyDoc_STRVAR(
     C_Vector_Range_doc,
     ".. classmethod:: Range(start, stop, step=1, /)\n"
     "\n"
-    "   Create a filled with a range of values.\n"
+    "   Create a vector filled with a range of values.\n"
     "\n"
     "    This method can also be called with a single argument, "
     "in which case the argument is interpreted as ``stop`` and ``start`` defaults to 0.\n"
@@ -262,7 +264,9 @@ PyDoc_STRVAR(
     "   :arg stop: The end of the range used to fill the vector.\n"
     "   :type stop: int\n"
     "   :arg step: The step between successive values in the vector.\n"
-    "   :type step: int\n");
+    "   :type step: int\n"
+    "   :return: A new vector.\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 {
   float *vec;
@@ -339,11 +343,13 @@ PyDoc_STRVAR(
     "values between start and stop values.\n"
     "\n"
     "   :arg start: The start of the range used to fill the vector.\n"
-    "   :type start: int\n"
+    "   :type start: float\n"
     "   :arg stop: The end of the range used to fill the vector.\n"
-    "   :type stop: int\n"
+    "   :type stop: float\n"
     "   :arg size: The size of the vector to be created.\n"
-    "   :type size: int\n");
+    "   :type size: int\n"
+    "   :return: A new vector.\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
 {
   float *vec;
@@ -385,7 +391,9 @@ PyDoc_STRVAR(
     "   :arg vector: The vector to draw values from.\n"
     "   :type vector: :class:`mathutils.Vector`\n"
     "   :arg size: The size of the vector to be created.\n"
-    "   :type size: int\n");
+    "   :type size: int\n"
+    "   :return: A new vector.\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
 {
   float *vec;
@@ -517,7 +525,10 @@ PyDoc_STRVAR(
     Vector_resize_doc,
     ".. method:: resize(size, /)\n"
     "\n"
-    "   Resize the vector to have size number of elements.\n");
+    "   Resize the vector to have size number of elements.\n"
+    "\n"
+    "   :arg size: The new size of the vector.\n"
+    "   :type size: int\n");
 static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 {
   int vec_num;
@@ -564,7 +575,9 @@ PyDoc_STRVAR(
     "\n"
     "   Return a resized copy of the vector with size number of elements.\n"
     "\n"
-    "   :return: a new vector\n"
+    "   :arg size: The new size of the vector.\n"
+    "   :type size: int\n"
+    "   :return: A new vector.\n"
     "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_resized(VectorObject *self, PyObject *value)
 {
@@ -600,7 +613,7 @@ PyDoc_STRVAR(
     Vector_resize_2d_doc,
     ".. method:: resize_2d()\n"
     "\n"
-    "   Resize the vector to 2D  (x, y).\n");
+    "   Resize the vector to 2D (x, y).\n");
 static PyObject *Vector_resize_2d(VectorObject *self)
 {
   if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Vector.resize_2d()") == -1)) {
@@ -625,7 +638,7 @@ PyDoc_STRVAR(
     Vector_resize_3d_doc,
     ".. method:: resize_3d()\n"
     "\n"
-    "   Resize the vector to 3D  (x, y, z).\n");
+    "   Resize the vector to 3D (x, y, z).\n");
 static PyObject *Vector_resize_3d(VectorObject *self)
 {
   if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Vector.resize_3d()") == -1)) {
@@ -1118,7 +1131,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_angle_doc,
-    ".. function:: angle(other, fallback=None, /)\n"
+    ".. method:: angle(other, fallback=None, /)\n"
     "\n"
     "   Return the angle between two vectors.\n"
     "\n"
@@ -1191,7 +1204,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_angle_signed_doc,
-    ".. function:: angle_signed(other, fallback=None, /)\n"
+    ".. method:: angle_signed(other, fallback=None, /)\n"
     "\n"
     "   Return the signed angle between two 2D vectors (clockwise is positive).\n"
     "\n"
@@ -1253,7 +1266,7 @@ static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_rotation_difference_doc,
-    ".. function:: rotation_difference(other, /)\n"
+    ".. method:: rotation_difference(other, /)\n"
     "\n"
     "   Returns a quaternion representing the rotational difference between this\n"
     "   vector and another.\n"
@@ -1302,7 +1315,7 @@ static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_project_doc,
-    ".. function:: project(other, /)\n"
+    ".. method:: project(other, /)\n"
     "\n"
     "   Return the projection of this vector onto the *other*.\n"
     "\n"
@@ -1349,7 +1362,7 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_lerp_doc,
-    ".. function:: lerp(other, factor, /)\n"
+    ".. method:: lerp(other, factor, /)\n"
     "\n"
     "   Returns the interpolation of two vectors.\n"
     "\n"
@@ -1394,7 +1407,7 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_slerp_doc,
-    ".. function:: slerp(other, factor, fallback=None, /)\n"
+    ".. method:: slerp(other, factor, fallback=None, /)\n"
     "\n"
     "   Returns the interpolation of two non-zero vectors (spherical coordinates).\n"
     "\n"
@@ -1489,7 +1502,7 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_rotate_doc,
-    ".. function:: rotate(other, /)\n"
+    ".. method:: rotate(other, /)\n"
     "\n"
     "   Rotate the vector by a rotation value.\n"
     "\n"
@@ -1561,7 +1574,7 @@ static PyObject *Vector_negate(VectorObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_copy_doc,
-    ".. function:: copy()\n"
+    ".. method:: copy()\n"
     "\n"
     "   Returns a copy of this vector.\n"
     "\n"

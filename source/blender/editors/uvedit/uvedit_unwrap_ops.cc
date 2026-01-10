@@ -2978,6 +2978,10 @@ static void unwrap_draw(bContext * /*C*/, wmOperator *op)
 void UV_OT_unwrap(wmOperatorType *ot)
 {
   const ToolSettings tool_settings_default = {};
+  static char
+      tool_settings_default_uvcalc_weight_group[sizeof(tool_settings_default.uvcalc_weight_group)];
+  STRNCPY_UTF8(tool_settings_default_uvcalc_weight_group,
+               tool_settings_default.uvcalc_weight_group);
 
   static const EnumPropertyItem method_items[] = {
       {UVCALC_UNWRAP_METHOD_ANGLE, "ANGLE_BASED", 0, "Angle Based", ""},
@@ -3057,7 +3061,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
                   "Whether to take into account per-vertex importance weights");
   RNA_def_string(ot->srna,
                  "weight_group",
-                 tool_settings_default.uvcalc_weight_group,
+                 tool_settings_default_uvcalc_weight_group,
                  MAX_ID_NAME,
                  "Weight Group",
                  "Vertex group name for importance weights (modulating the deform)");

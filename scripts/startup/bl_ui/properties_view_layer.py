@@ -9,11 +9,24 @@ from rna_prop_ui import PropertyPanel
 
 
 class VIEWLAYER_UL_aov(UIList):
+    @staticmethod
+    def aov_icon(item):
+        if not item.is_valid:
+            return 'ERROR'
+
+        aov_type = item.type
+
+        if aov_type == 'VALUE':
+            return 'NODE_SOCKET_FLOAT'
+        elif aov_type == 'COLOR':
+            return 'NODE_SOCKET_RGBA'
+        else:
+            raise ValueError("Unrecognized AOV type: " + aov_type)
+
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname):
         row = layout.row()
         split = row.split(factor=0.65)
-        icon = 'NONE' if item.is_valid else 'ERROR'
-        split.row().prop(item, "name", text="", icon=icon, emboss=False)
+        split.row().prop(item, "name", text="", icon=self.aov_icon(item), emboss=False)
         split.row().prop(item, "type", text="", emboss=False)
 
 

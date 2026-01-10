@@ -318,7 +318,6 @@ SECTIONS = (
             ("haru", "PDF generation library."),
             ("hiprt", "Ray-tracing for AMD GPU's. Used by Cycles."),
             ("imath", "Library used by OpenEXR image-format."),
-            ("jemalloc", "An improved memory allocator."),
             ("jpeg", "JPEG image-format support."),
             ("level-zero", "OneAPI loader & validation. Used by Cycles oneAPI."),
             ("llvm", "Low level virtual machine. Used by OSL."),

@@ -159,10 +159,10 @@ add_bundled_libraries(openexr/lib)
 add_bundled_libraries(imath/lib)
 
 string(APPEND PLATFORM_CFLAGS " -pipe -funsigned-char -fno-strict-aliasing -ffp-contract=off")
-set(PLATFORM_LINKFLAGS
-  "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa \
-   -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework Metal \
-   -framework QuartzCore"
+set(PLATFORM_LINKFLAGS "\
+-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa \
+-framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework Metal \
+-framework QuartzCore"
 )
 
 if(WITH_CODEC_FFMPEG)
@@ -502,7 +502,7 @@ if(PLATFORM_BUNDLED_LIBRARIES)
     list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../Resources/lib")
   endif()
 
-  # For binaries that are built but not installed (like makesdan or tests), we add
+  # For binaries that are built but not installed (like makesdna or tests), we add
   # the original directory of all shared libraries to the rpath. This is needed because
   # these can be in different folders, and because the build and install folder may be
   # different.

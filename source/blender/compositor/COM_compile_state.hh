@@ -7,18 +7,14 @@
 #include <optional>
 
 #include "BLI_map.hh"
-
-#include "NOD_derived_node_tree.hh"
+#include "BLI_vector_set.hh"
 
 #include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_node_operation.hh"
 #include "COM_pixel_operation.hh"
-#include "COM_scheduler.hh"
 
 namespace blender::compositor {
-
-using namespace nodes::derived_node_tree_types;
 
 /* ------------------------------------------------------------------------------------------------
  * Compile State
@@ -123,14 +119,14 @@ class CompileState {
   /* A reference to the compositor context. */
   const Context &context_;
   /* A reference to the node execution schedule that is being compiled. */
-  const Schedule &schedule_;
+  const VectorSet<const bNode *> &schedule_;
   /* Those two maps associate each node with the operation it was compiled into. Each node is
    * either compiled into a node operation and added to node_operations, or compiled into a pixel
    * operation and added to pixel_operations. Those maps are used to retrieve the results of
    * outputs linked to the inputs of operations. See the get_result_from_output_socket method for
    * more information. */
-  Map<DNode, NodeOperation *> node_operations_;
-  Map<DNode, PixelOperation *> pixel_operations_;
+  Map<const bNode *, NodeOperation *> node_operations_;
+  Map<const bNode *, PixelOperation *> pixel_operations_;
   /* A contiguous subset of the node execution schedule that contains the group of nodes that will
    * be compiled together into a pixel operation. See the discussion in COM_evaluator.hh for more
    * information. */
@@ -143,28 +139,28 @@ class CompileState {
   std::optional<Domain> pixel_compile_unit_domain_;
 
  public:
-  /* Construct a compile state from the node execution schedule being compiled. */
-  CompileState(const Context &context, const Schedule &schedule);
+  /* Construct a compile state from the node group execution schedule being compiled. */
+  CompileState(const Context &context, const VectorSet<const bNode *> &schedule);
 
   /* Get a reference to the node execution schedule being compiled. */
-  const Schedule &get_schedule();
+  const VectorSet<const bNode *> &get_schedule();
 
   /* Add an association between the given node and the give node operation that the node was
    * compiled into in the node_operations_ map. */
-  void map_node_to_node_operation(DNode node, NodeOperation *operation);
+  void map_node_to_node_operation(const bNode &node, NodeOperation *operation);
 
   /* Add an association between the given node and the give pixel operation that the node was
    * compiled into in the pixel_operations_ map. */
-  void map_node_to_pixel_operation(DNode node, PixelOperation *operation);
+  void map_node_to_pixel_operation(const bNode &node, PixelOperation *operation);
 
   /* Returns a reference to the result of the operation corresponding to the given output that the
    * given output's node was compiled to. */
-  Result &get_result_from_output_socket(DOutputSocket output);
+  Result &get_result_from_output_socket(const bNodeSocket &output);
 
   /* Add the given node to the compile unit. And if the domain of the compile unit is not yet
    * determined or was determined to be an identity domain, update it to the computed domain for
    * the give node. */
-  void add_node_to_pixel_compile_unit(DNode node);
+  void add_node_to_pixel_compile_unit(const bNode &node);
 
   /* Get a reference to the pixel compile unit. */
   PixelCompileUnit &get_pixel_compile_unit();
@@ -178,23 +174,24 @@ class CompileState {
 
   /* Determines if the compile unit should be compiled based on a number of criteria give the node
    * currently being processed. See the class description for a description of the method. */
-  bool should_compile_pixel_compile_unit(DNode node);
+  bool should_compile_pixel_compile_unit(const bNode &node);
 
   /* Computes the number of pixel operation outputs that will be added for this node in the current
    * pixel compile unit. This is essentially the number of outputs that will be added for the node
    * in PixelOperation::populate_results_for_node. */
-  int compute_pixel_node_operation_outputs_count(DNode node);
+  int compute_pixel_node_operation_outputs_count(const bNode &node,
+                                                 const bool is_node_preview_needed);
 
  private:
   /* Determines if the given pixel node operates on single values or not. The node operates on
    * single values if all its inputs are single values, and consequently will also output single
    * values. */
-  bool is_pixel_node_single_value(DNode node);
+  bool is_pixel_node_single_value(const bNode &node);
 
   /* Compute the node domain of the given pixel node. This is analogous to the
    * Operation::compute_domain method, except it is computed from the node itself as opposed to a
    * compiled operation. See the discussion in COM_domain.hh for more information. */
-  Domain compute_pixel_node_domain(DNode node);
+  Domain compute_pixel_node_domain(const bNode &node);
 };
 
 }  // namespace blender::compositor

@@ -32,16 +32,6 @@ class Profiler {
 
   /* Set the evaluation time of the node identified by the given node instance key. */
   void set_node_evaluation_time(bNodeInstanceKey node_instance_key, timeit::Nanoseconds time);
-
-  /* Finalize profiling by computing node group times. This should be called after evaluation. */
-  void finalize(const bNodeTree &node_tree);
-
- private:
-  /* Computes the evaluation time of every group node inside the given tree recursively by
-   * accumulating the evaluation time of its nodes, setting the computed time to the group nodes.
-   * The time is returned since the method is called recursively. */
-  timeit::Nanoseconds accumulate_node_group_times(const bNodeTree &node_tree,
-                                                  bNodeInstanceKey instance_key);
 };
 
 }  // namespace blender::compositor

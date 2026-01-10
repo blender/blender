@@ -232,7 +232,7 @@ PyDoc_STRVAR(
     M_Geometry_intersect_sphere_sphere_2d_doc,
     ".. function:: intersect_sphere_sphere_2d(p_a, radius_a, p_b, radius_b, /)\n"
     "\n"
-    "   Returns 2 points on between intersecting circles.\n"
+    "   Returns 2 points between intersecting circles.\n"
     "\n"
     "   :arg p_a: Center of the first circle\n"
     "   :type p_a: :class:`mathutils.Vector`\n"
@@ -242,7 +242,7 @@ PyDoc_STRVAR(
     "   :type p_b: :class:`mathutils.Vector`\n"
     "   :arg radius_b: Radius of the second circle\n"
     "   :type radius_b: float\n"
-    "   :return: 2 points on between intersecting circles or None when there is no intersection.\n"
+    "   :return: 2 points between intersecting circles or None when there is no intersection.\n"
     "   :rtype: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`] | "
     "tuple[None, None]\n");
 static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject * /*self*/, PyObject *args)
@@ -310,6 +310,19 @@ PyDoc_STRVAR(
     "\n"
     "   Check if two 2D triangles intersect.\n"
     "\n"
+    "   :arg tri_a1: First vertex of the first triangle.\n"
+    "   :type tri_a1: :class:`mathutils.Vector`\n"
+    "   :arg tri_a2: Second vertex of the first triangle.\n"
+    "   :type tri_a2: :class:`mathutils.Vector`\n"
+    "   :arg tri_a3: Third vertex of the first triangle.\n"
+    "   :type tri_a3: :class:`mathutils.Vector`\n"
+    "   :arg tri_b1: First vertex of the second triangle.\n"
+    "   :type tri_b1: :class:`mathutils.Vector`\n"
+    "   :arg tri_b2: Second vertex of the second triangle.\n"
+    "   :type tri_b2: :class:`mathutils.Vector`\n"
+    "   :arg tri_b3: Third vertex of the second triangle.\n"
+    "   :type tri_b3: :class:`mathutils.Vector`\n"
+    "   :return: True if the triangles intersect.\n"
     "   :rtype: bool\n");
 static PyObject *M_Geometry_intersect_tri_tri_2d(PyObject * /*self*/, PyObject *args)
 {
@@ -646,8 +659,7 @@ PyDoc_STRVAR(
     "   :type sphere_co: :class:`mathutils.Vector`\n"
     "   :arg sphere_radius: Radius of the sphere\n"
     "   :type sphere_radius: float\n"
-    "   :arg clip: When False, don't restrict the intersection to the area of the "
-    "sphere.\n"
+    "   :arg clip: When False, don't restrict the intersection to the line segment.\n"
     "   :type clip: bool\n"
     "   :return: The intersection points as a pair of vectors or None when there is no "
     "intersection\n"
@@ -741,8 +753,7 @@ PyDoc_STRVAR(
     "   :type sphere_co: :class:`mathutils.Vector`\n"
     "   :arg sphere_radius: Radius of the sphere\n"
     "   :type sphere_radius: float\n"
-    "   :arg clip: When False, don't restrict the intersection to the area of the "
-    "sphere.\n"
+    "   :arg clip: When False, don't restrict the intersection to the line segment.\n"
     "   :type clip: bool\n"
     "   :return: The intersection points as a pair of vectors or None when there is no "
     "intersection\n"
@@ -937,7 +948,7 @@ PyDoc_STRVAR(
     "   :type tri_p2: :class:`mathutils.Vector`\n"
     "   :arg tri_p3: Third point of the triangle\n"
     "   :type tri_p3: :class:`mathutils.Vector`\n"
-    "   :return: Point on the triangles plane or None if its outside the triangle\n"
+    "   :return: Point on the triangle's plane or None if its outside the triangle\n"
     "   :rtype: :class:`mathutils.Vector` | None\n");
 static PyObject *M_Geometry_intersect_point_tri(PyObject * /*self*/, PyObject *args)
 {
@@ -1221,11 +1232,11 @@ PyDoc_STRVAR(
     "\n"
     "   :arg planes: List of planes (4D vectors).\n"
     "   :type planes: list[:class:`mathutils.Vector`]\n"
-    "   :arg epsilon_coplanar: Epsilon value for interpreting plane pairs as co-plannar.\n"
+    "   :arg epsilon_coplanar: Epsilon value for interpreting plane pairs as co-planar.\n"
     "   :type epsilon_coplanar: float\n"
     "   :arg epsilon_isect: Epsilon value for intersection.\n"
     "   :type epsilon_isect: float\n"
-    "   :return: Two lists, once containing the 3D coordinates inside the planes, "
+    "   :return: Two lists, one containing the 3D coordinates inside the planes, "
     "another containing the plane indices used.\n"
     "   :rtype: tuple[list[:class:`mathutils.Vector`], list[int]]\n");
 static PyObject *M_Geometry_points_in_planes(PyObject * /*self*/, PyObject *args)
@@ -1354,7 +1365,7 @@ PyDoc_STRVAR(
     "geometry (such as zero-length lines due to consecutive identical points).\n"
     "\n"
     "   :arg polylines: Polygons where each polygon is a sequence of 2D or 3D points.\n"
-    "   :type polylines: Sequence[Sequence[Sequence[float]]]"
+    "   :type polylines: Sequence[Sequence[Sequence[float]]]\n"
     "   :return: A list of triangles.\n"
     "   :rtype: list[tuple[int, int, int]]\n");
 /* PolyFill function, uses Blenders scan-fill to fill multiple poly lines. */
@@ -1604,7 +1615,7 @@ static PyObject *M_Geometry_box_fit_2d(PyObject * /*self*/, PyObject *pointlist)
 PyDoc_STRVAR(
     /* Wrap. */
     M_Geometry_convex_hull_2d_doc,
-    ".. function:: convex_hull_2d(points)\n"
+    ".. function:: convex_hull_2d(points, /)\n"
     "\n"
     "   Returns a list of indices into the list given\n"
     "\n"

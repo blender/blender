@@ -77,8 +77,6 @@ class ParamsBuilder {
   void assert_current_param_type(ParamType param_type, StringRef expected_name = "");
   void assert_current_param_name(StringRef expected_name);
 
-  int current_param_index() const;
-
   ResourceScope &resource_scope();
 
   void add_unused_output_for_unsupporting_function(const CPPType &type);
@@ -231,7 +229,7 @@ inline void ParamsBuilder::add_uninitialized_single_output(GMutableSpan ref,
 inline void ParamsBuilder::add_ignored_single_output(StringRef expected_name)
 {
   this->assert_current_param_name(expected_name);
-  const int param_index = this->current_param_index();
+  const int param_index = this->next_param_index();
   const ParamType &param_type = signature_->params[param_index].type;
   BLI_assert(param_type.category() == ParamCategory::SingleOutput);
   const DataType data_type = param_type.data_type();
@@ -293,7 +291,7 @@ inline void ParamsBuilder::assert_current_param_type(ParamType param_type, Strin
 {
   UNUSED_VARS_NDEBUG(param_type, expected_name);
 #ifndef NDEBUG
-  int param_index = this->current_param_index();
+  int param_index = this->next_param_index();
 
   if (expected_name != "") {
     StringRef actual_name = signature_->params[param_index].name;
@@ -312,15 +310,10 @@ inline void ParamsBuilder::assert_current_param_name(StringRef expected_name)
   if (expected_name.is_empty()) {
     return;
   }
-  const int param_index = this->current_param_index();
+  const int param_index = this->next_param_index();
   StringRef actual_name = signature_->params[param_index].name;
   BLI_assert(actual_name == expected_name);
 #endif
-}
-
-inline int ParamsBuilder::current_param_index() const
-{
-  return actual_params_.size();
 }
 
 inline ResourceScope &ParamsBuilder::resource_scope()

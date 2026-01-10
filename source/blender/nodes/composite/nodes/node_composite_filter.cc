@@ -10,6 +10,8 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "BKE_node_runtime.hh"
+
 #include "RNA_types.hh"
 
 #include "COM_node_operation.hh"
@@ -287,7 +289,7 @@ class FilterOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new FilterOperation(context, node);
 }

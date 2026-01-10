@@ -327,6 +327,9 @@ static ImBuf *thumb_create_ex(const char *file_path,
                               ThumbSource source,
                               ImBuf *img)
 {
+  /* Just in case these folders got deleted somehow. */
+  IMB_thumb_makedirs();
+
   char desc[URI_MAX + 22];
   char tpath[FILE_MAX];
   char tdir[FILE_MAX];

@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include <cstdint>
-
 #include "BLI_bounds_types.hh"
-#include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
@@ -24,16 +21,6 @@
 #include "COM_static_cache_manager.hh"
 
 namespace blender::compositor {
-
-/* Enumerates the possible outputs that the compositor can compute. */
-enum class OutputTypes : uint8_t {
-  None = 0,
-  Composite = 1 << 0,
-  Viewer = 1 << 1,
-  FileOutput = 1 << 2,
-  Previews = 1 << 3,
-};
-ENUM_OPERATORS(OutputTypes)
 
 /* ------------------------------------------------------------------------------------------------
  * Context
@@ -55,12 +42,6 @@ class Context {
   /* Get the compositing scene. */
   virtual const Scene &get_scene() const = 0;
 
-  /* Get the node tree used for compositing. */
-  virtual const bNodeTree &get_node_tree() const = 0;
-
-  /* Returns all output types that should be computed. */
-  virtual OutputTypes needed_outputs() const = 0;
-
   /* Returns the domain that the inputs and outputs of the context will be in. Note that the inputs
    * might be larger than this domain, and relevant input operations need to crop the inputs to
    * match this domain by calling the get_input_region method. Also note that the context might
@@ -68,14 +49,8 @@ class Context {
    * false in the use_context_bounds_for_input_output method. */
   virtual Domain get_compositing_domain() const = 0;
 
-  /* Write the result of the compositor. */
-  virtual void write_output(const Result &result) = 0;
-
   /* Write the result of the compositor viewer. */
   virtual void write_viewer(const Result &result) = 0;
-
-  /* Get the result where the given input is stored. */
-  virtual Result get_input(StringRef name) = 0;
 
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
@@ -107,9 +82,9 @@ class Context {
    * appropriate place, which can be directly in the UI or just logged to the output stream. */
   virtual void set_info_message(StringRef message) const;
 
-  /* True if the compositor should treat viewers as composite outputs because it has no concept of
-   * or support for viewers. */
-  virtual bool treat_viewer_as_compositor_output() const;
+  /* True if the compositor should treat viewer nodes as group output nodes because it has no
+   * concept of or support for viewers. */
+  virtual bool treat_viewer_as_group_output() const;
 
   /* True if the compositor inputs/outputs should be in the compositing domain. */
   virtual bool use_compositing_domain_for_input_output() const

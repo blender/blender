@@ -455,11 +455,16 @@ namespace ed::sculpt_paint {
 /**
  * Triggers redraws, updates, and dependency graph tags as necessary after each brush calculation.
  */
-void flush_update_step(const bContext *C, UpdateType update_type);
+void flush_update_step(bContext *C, UpdateType update_type);
+void flush_update_step(ViewContext &vc, Object &object, UpdateType update_type);
 /**
  * Triggers redraws, updates, and dependency graph tags as necessary when a brush stroke finishes.
  */
-void flush_update_done(const bContext *C, Object &ob, UpdateType update_type);
+void flush_update_done(bContext *C, Object &ob, UpdateType update_type);
+void flush_update_done(ViewContext &vc,
+                       const wmWindowManager &wm,
+                       Object &ob,
+                       UpdateType update_type);
 
 }  // namespace ed::sculpt_paint
 
@@ -484,6 +489,13 @@ bool stroke_get_location_bvh(bContext *C, float out[3], const float mval[2], boo
 bool stroke_get_location_bvh(Depsgraph &depsgraph,
                              ViewContext &vc,
                              const Sculpt &sd,
+                             const Brush *brush,
+                             float out[3],
+                             const float mval[2],
+                             bool force_original);
+bool stroke_get_location_bvh(Depsgraph &depsgraph,
+                             ViewContext &vc,
+                             const Paint &paint,
                              const Brush *brush,
                              float out[3],
                              const float mval[2],
@@ -859,7 +871,7 @@ std::optional<Span<float>> orig_mask_data_lookup_grids(const Object &object,
 
 inline bool brush_type_is_paint(const int tool)
 {
-  return ELEM(tool, SCULPT_BRUSH_TYPE_PAINT, SCULPT_BRUSH_TYPE_SMEAR);
+  return ELEM(tool, SCULPT_BRUSH_TYPE_PAINT, SCULPT_BRUSH_TYPE_SMEAR, SCULPT_BRUSH_TYPE_BLUR);
 }
 
 inline bool brush_type_is_mask(const int tool)

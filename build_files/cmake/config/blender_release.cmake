@@ -60,8 +60,6 @@ set(WITH_USD                 ON  CACHE BOOL "" FORCE)
 set(WITH_MATERIALX           ON  CACHE BOOL "" FORCE)
 set(WITH_HYDRA               ON  CACHE BOOL "" FORCE)
 
-set(WITH_MEM_JEMALLOC          ON  CACHE BOOL "" FORCE)
-
 # platform dependent options
 if(APPLE)
   set(WITH_COREAUDIO           ON  CACHE BOOL "" FORCE)
@@ -82,6 +80,7 @@ if(UNIX AND NOT APPLE)
   # TODO don't disable pipewire on release builds once it has gotten more testing
   set(WITH_PIPEWIRE            OFF  CACHE BOOL "" FORCE)
   set(WITH_PIPEWIRE_DYNLOAD    ON  CACHE BOOL "" FORCE)
+  set(WITH_TBB_MALLOC_PROXY    ON  CACHE BOOL "" FORCE)
 endif()
 if(NOT APPLE)
   set(WITH_XR_OPENXR              ON  CACHE BOOL "" FORCE)

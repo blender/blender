@@ -11,11 +11,7 @@
 
 #include "GPU_material.hh"
 
-#include "NOD_derived_node_tree.hh"
-
 namespace blender::compositor {
-
-using namespace nodes::derived_node_tree_types;
 
 /* ------------------------------------------------------------------------------------------------
  * Shader Node
@@ -30,7 +26,7 @@ using namespace nodes::derived_node_tree_types;
 class ShaderNode {
  private:
   /* The node that this operation represents. */
-  DNode node_;
+  const bNode &node_;
   /* The GPU node stacks of the inputs of the node. Those are populated during construction in the
    * populate_inputs method. The links of the inputs are initialized by the GPU material compiler
    * prior to calling the compile method. There is an extra stack at the end to mark the end of the
@@ -43,7 +39,7 @@ class ShaderNode {
 
  public:
   /* Construct the node by populating both its inputs and outputs. */
-  ShaderNode(DNode node);
+  ShaderNode(const bNode &node);
 
   /* Compile the node by adding the appropriate GPU material graph nodes and linking the
    * appropriate resources. */

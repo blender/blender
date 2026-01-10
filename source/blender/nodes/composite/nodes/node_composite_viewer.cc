@@ -39,9 +39,8 @@ class ViewerOperation : public NodeOperation {
 
   Domain compute_domain() override
   {
-    /* Viewers are treated as composite outputs that should be in the domain of the compositing
-     * region. */
-    if (this->context().treat_viewer_as_compositor_output() &&
+    /* Viewers nodes are treated as group outputs that should be the compositing domain. */
+    if (this->context().treat_viewer_as_group_output() &&
         this->context().use_compositing_domain_for_input_output())
     {
       return this->context().get_compositing_domain();
@@ -51,7 +50,7 @@ class ViewerOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new ViewerOperation(context, node);
 }

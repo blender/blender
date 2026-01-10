@@ -20,6 +20,7 @@ set(SRC
   intern/asset_library.cc
   intern/asset_library_service.cc
   intern/asset_representation.cc
+  intern/disk_file_hash_service.cc
   intern/library_types/all_library.cc
   intern/library_types/essentials_library.cc
   intern/library_types/on_disk_library.cc
@@ -32,6 +33,7 @@ set(SRC
   AS_asset_catalog_tree.hh
   AS_asset_library.hh
   AS_asset_representation.hh
+  AS_disk_file_hash_service.hh
   AS_essentials_library.hh
   intern/asset_catalog_collection.hh
   intern/asset_catalog_definition_file.hh
@@ -53,6 +55,12 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
 )
 
+if(WITH_PYTHON)
+  list(APPEND INC
+    ../python
+  )
+  add_definitions(-DWITH_PYTHON)
+endif()
 
 blender_add_lib(bf_asset_system "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::asset_system ALIAS bf_asset_system)

@@ -80,12 +80,6 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act);
 bool BKE_animdata_action_editable(const AnimData *adt);
 
 /**
- * Ensure that the action's idroot is set correctly given the ID type of the owner.
- * Return true if it is, false if it was already set to an incompatible type.
- */
-bool BKE_animdata_action_ensure_idroot(const ID *owner, bAction *action);
-
-/**
  * Free AnimData used by the nominated ID-block, and clear ID-block's AnimData pointer.
  */
 void BKE_animdata_free(ID *id, bool do_id_user);

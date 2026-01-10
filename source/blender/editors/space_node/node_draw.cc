@@ -3731,9 +3731,7 @@ static void node_frame_get_label_color(const float bgcolor[4], uchar r_color[3])
   rgb_float_to_uchar(r_color, text_color_rgb);
 }
 
-static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
-                                  const bNode &node,
-                                  const SpaceNode &snode)
+static void frame_node_draw_label(const bNode &node, const SpaceNode &snode)
 {
   /* XXX font id is crap design */
   const int fontid = ui::style_get()->widget.uifont_id;
@@ -3885,7 +3883,7 @@ static void frame_node_draw_overlay(const bContext &C,
   }
 
   /* Label and text. */
-  frame_node_draw_label(tree_draw_ctx, node, snode);
+  frame_node_draw_label(node, snode);
 
   node_draw_extra_info_panel(C, tree_draw_ctx, snode, node, nullptr, block);
 

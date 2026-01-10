@@ -289,7 +289,7 @@ class Result {
 
   /* Similar to the Result variant of steal_data, but steals from a raw data buffer. The buffer is
    * assumed to be allocated using Blender's guarded allocator. */
-  void steal_data(void *data, int2 size);
+  void steal_data(void *data, const Domain &domain);
 
   /* Set up the result to wrap an external GPU texture that is not allocated nor managed by the
    * result. The is_external_ member will be set to true, the domain will be set to have the same
@@ -364,6 +364,7 @@ class Result {
   int reference_count() const;
 
   /* Returns a reference to the domain of the result. See the Domain class. */
+  Domain &domain();
   const Domain &domain() const;
 
   /* Computes the number of channels of the result based on its type. */
@@ -476,6 +477,11 @@ class Result {
 /* -------------------------------------------------------------------- */
 /* Inline Methods.
  */
+
+BLI_INLINE_METHOD Domain &Result::domain()
+{
+  return domain_;
+}
 
 BLI_INLINE_METHOD const Domain &Result::domain() const
 {

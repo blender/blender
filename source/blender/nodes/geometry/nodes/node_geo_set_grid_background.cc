@@ -4,6 +4,7 @@
 
 #include "node_geometry_util.hh"
 
+#include "BKE_node_runtime.hh"
 #include "BKE_volume_grid_process.hh"
 
 #include "NOD_rna_define.hh"

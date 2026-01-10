@@ -170,7 +170,7 @@ struct GPULoadStore {
  *         {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE}, // Color attachment 0
  *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, // Color attachment 1
  *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE} // Color attachment 2
- * })
+ * }, 4)
  * \endcode
  */
 void GPU_framebuffer_bind_loadstore(gpu::FrameBuffer *fb,

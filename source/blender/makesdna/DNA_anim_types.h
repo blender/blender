@@ -647,10 +647,7 @@ struct AnimData {
   /**
    * Active action - acts as the 'tweaking track' for the NLA.
    *
-   * Legacy Actions: Either use BKE_animdata_set_action() to set this, or call
-   * #BKE_animdata_action_ensure_idroot() after setting.
-   *
-   * Layered Actions: never set this directly, use one of the assignment
+   * Never set this directly, use one of the assignment
    * functions in ANIM_action.hh instead.
    */
   bAction *action = nullptr;

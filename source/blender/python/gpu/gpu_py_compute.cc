@@ -37,9 +37,7 @@ PyDoc_STRVAR(
     "   :arg groups_y_len: Int for group y length:\n"
     "   :type groups_y_len: int\n"
     "   :arg groups_z_len: Int for group z length:\n"
-    "   :type groups_z_len: int\n"
-    "   :return: Shader object.\n"
-    "   :rtype: :class:`gpu.types.GPUShader`\n");
+    "   :type groups_z_len: int\n");
 static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;

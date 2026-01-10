@@ -84,7 +84,7 @@ static wmOperatorStatus sound_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
 
   RNA_string_get(op->ptr, "filepath", filepath);
-  sound = BKE_sound_new_file(bmain, filepath);
+  sound = BKE_sound_new_file_exists(bmain, filepath);
 
   if (!op->customdata) {
     sound_open_init(C, op);

@@ -790,54 +790,6 @@ static void animsys_evaluate_drivers(PointerRNA *ptr,
 /* ***************************************** */
 /* Actions Evaluation */
 
-/* strictly not necessary for actual "evaluation", but it is a useful safety check
- * to reduce the amount of times that users end up having to "revive" wrongly-assigned
- * actions
- */
-static void action_idcode_patch_check(ID *id, bAction *act)
-{
-  int idcode = 0;
-
-  /* just in case */
-  if (ELEM(nullptr, id, act)) {
-    return;
-  }
-
-  if (!animrig::legacy::action_treat_as_legacy(*act)) {
-    /* Layered Actions can always be assigned to any ID. It's actually the Slot that is limited
-     * to an ID type (similar to legacy Actions). Layered Actions are evaluated differently,
-     * though, and their evaluation shouldn't end up here. At the moment of writing it can still
-     * happen through NLA evaluation, though, so there's no assert here to prevent this. */
-    /* TODO: when possible, add a BLI_assert_unreachable() here. */
-    return;
-  }
-
-  idcode = GS(id->name);
-
-  /* the actual checks... hopefully not too much of a performance hit in the long run... */
-  if (act->idroot == 0) {
-    /* use the current root if not set already
-     * (i.e. newly created actions and actions from 2.50-2.57 builds).
-     * - this has problems if there are 2 users, and the first one encountered is the invalid one
-     *   in which case, the user will need to manually fix this (?)
-     */
-    act->idroot = idcode;
-  }
-  else if (act->idroot != idcode) {
-    /* only report this error if debug mode is enabled (to save performance everywhere else) */
-    if (G.debug & G_DEBUG) {
-      printf(
-          "AnimSys Safety Check Failed: Action '%s' is not meant to be used from ID-Blocks of "
-          "type %d such as '%s'\n",
-          act->id.name + 2,
-          idcode,
-          id->name);
-    }
-  }
-}
-
-/* ----------------------------------------- */
-
 void animsys_evaluate_action_group(PointerRNA *ptr,
                                    bAction *act,
                                    bActionGroup *agrp,
@@ -849,8 +801,6 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
   if (ELEM(nullptr, act, agrp)) {
     return;
   }
-
-  action_idcode_patch_check(ptr->owner_id, act);
 
   /* if group is muted, don't evaluated any of the F-Curve */
   if (agrp->flag & AGRP_MUTED) {
@@ -897,14 +847,6 @@ void animsys_evaluate_action(PointerRNA *ptr,
 
   animrig::Action &action = act->wrap();
 
-  if (action.is_action_legacy()) {
-    action_idcode_patch_check(ptr->owner_id, act);
-
-    Vector<FCurve *> fcurves = animrig::legacy::fcurves_all(act);
-    animsys_evaluate_fcurves(ptr, fcurves, anim_eval_context, flush_to_original);
-    return;
-  }
-
   /* TODO: check the slot to see if its IDtype is suitable for the animated ID. */
 
   /* Note that this is _only_ for evaluation of actions linked by NLA strips. As in, legacy code
@@ -920,12 +862,6 @@ void animsys_blend_in_action(PointerRNA *ptr,
                              const AnimationEvalContext *anim_eval_context,
                              const float blend_factor)
 {
-  animrig::Action &action = act->wrap();
-
-  if (action.is_action_legacy()) {
-    action_idcode_patch_check(ptr->owner_id, act);
-  }
-
   Vector<FCurve *> fcurves = animrig::legacy::fcurves_for_action_slot(act, action_slot_handle);
   animsys_blend_in_fcurves(ptr, fcurves, anim_eval_context, blend_factor);
 }
@@ -2623,8 +2559,6 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
                                     const float evaltime,
                                     NlaEvalSnapshot *r_snapshot)
 {
-  action_idcode_patch_check(ptr->owner_id, action);
-
   /* Evaluate modifiers which modify time to evaluate the base curves at. */
   FModifiersStackStorage storage;
   storage.modifier_count = BLI_listbase_count(modifiers);
@@ -3958,14 +3892,8 @@ void BKE_animsys_evaluate_animdata(ID *id,
 
     if (!did_nla_evaluate_anything && adt->action) {
       animrig::Action &action = adt->action->wrap();
-      if (action.is_action_layered()) {
-        animrig::evaluate_and_apply_action(
-            id_ptr, action, adt->slot_handle, *anim_eval_context, flush_to_original);
-      }
-      else {
-        animsys_evaluate_action(
-            &id_ptr, adt->action, animrig::Slot::unassigned, anim_eval_context, flush_to_original);
-      }
+      animrig::evaluate_and_apply_action(
+          id_ptr, action, adt->slot_handle, *anim_eval_context, flush_to_original);
     }
   }
 

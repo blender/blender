@@ -30,6 +30,8 @@
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
+#include "BKE_node_runtime.hh"
+
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
@@ -2794,7 +2796,7 @@ class GlareOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new GlareOperation(context, node);
 }

@@ -391,7 +391,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the exponential map representation of the quaternion.\n"
     "\n"
-    "   This representation consist of the rotation axis multiplied by the rotation angle.\n"
+    "   This representation consists of the rotation axis multiplied by the rotation angle.\n"
     "   Such a representation is useful for interpolation between multiple orientations.\n"
     "\n"
     "   :return: exponential map.\n"
@@ -489,7 +489,7 @@ static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_rotation_difference_doc,
-    ".. function:: rotation_difference(other, /)\n"
+    ".. method:: rotation_difference(other, /)\n"
     "\n"
     "   Returns a quaternion representing the rotational difference.\n"
     "\n"
@@ -528,7 +528,7 @@ static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_slerp_doc,
-    ".. function:: slerp(other, factor, /)\n"
+    ".. method:: slerp(other, factor, /)\n"
     "\n"
     "   Returns the interpolation of two quaternions.\n"
     "\n"
@@ -661,7 +661,7 @@ static PyObject *Quaternion_make_compatible(QuaternionObject *self, PyObject *va
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_normalize_doc,
-    ".. function:: normalize()\n"
+    ".. method:: normalize()\n"
     "\n"
     "   Normalize the quaternion.\n");
 static PyObject *Quaternion_normalize(QuaternionObject *self)
@@ -678,7 +678,7 @@ static PyObject *Quaternion_normalize(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_normalized_doc,
-    ".. function:: normalized()\n"
+    ".. method:: normalized()\n"
     "\n"
     "   Return a new normalized quaternion.\n"
     "\n"
@@ -694,14 +694,13 @@ static PyObject *Quaternion_normalized(QuaternionObject *self)
 /* -------------------------------------------------------------------- */
 /** \name Quaternion Methods: Invert
  *
- * Normalize the quaternion. This may change the angle as well as the
- * rotation axis, as all of (w, x, y, z) are scaled.
+ * Invert the quaternion, representing the inverse rotation.
  * \{ */
 
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_invert_doc,
-    ".. function:: invert()\n"
+    ".. method:: invert()\n"
     "\n"
     "   Set the quaternion to its inverse.\n");
 static PyObject *Quaternion_invert(QuaternionObject *self)
@@ -718,7 +717,7 @@ static PyObject *Quaternion_invert(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_inverted_doc,
-    ".. function:: inverted()\n"
+    ".. method:: inverted()\n"
     "\n"
     "   Return a new, inverted quaternion.\n"
     "\n"
@@ -738,7 +737,7 @@ static PyObject *Quaternion_inverted(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_identity_doc,
-    ".. function:: identity()\n"
+    ".. method:: identity()\n"
     "\n"
     "   Set the quaternion to an identity quaternion.\n");
 static PyObject *Quaternion_identity(QuaternionObject *self)
@@ -762,7 +761,7 @@ static PyObject *Quaternion_identity(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_negate_doc,
-    ".. function:: negate()\n"
+    ".. method:: negate()\n"
     "\n"
     "   Set the quaternion to its negative.\n");
 static PyObject *Quaternion_negate(QuaternionObject *self)
@@ -786,7 +785,7 @@ static PyObject *Quaternion_negate(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_conjugate_doc,
-    ".. function:: conjugate()\n"
+    ".. method:: conjugate()\n"
     "\n"
     "   Set the quaternion to its conjugate (negate x, y, z).\n");
 static PyObject *Quaternion_conjugate(QuaternionObject *self)
@@ -803,7 +802,7 @@ static PyObject *Quaternion_conjugate(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_conjugated_doc,
-    ".. function:: conjugated()\n"
+    ".. method:: conjugated()\n"
     "\n"
     "   Return a new conjugated quaternion.\n"
     "\n"
@@ -823,7 +822,7 @@ static PyObject *Quaternion_conjugated(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_copy_doc,
-    ".. function:: copy()\n"
+    ".. method:: copy()\n"
     "\n"
     "   Returns a copy of this quaternion.\n"
     "\n"

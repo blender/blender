@@ -335,7 +335,7 @@ inline constexpr int64_t power_of_2_max(const int64_t x)
  * \{ */
 
 #define POINTER_OFFSET(v, ofs) \
-  (reinterpret_cast<typename std::remove_reference<decltype(v)>::type>((char *)(v) + (ofs)))
+  (reinterpret_cast<std::remove_reference_t<decltype(v)>>((char *)(v) + (ofs)))
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */

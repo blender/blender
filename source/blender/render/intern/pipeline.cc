@@ -61,6 +61,7 @@
 
 #include "COM_compositor.hh"
 #include "COM_context.hh"
+#include "COM_node_group_operation.hh"
 #include "COM_render_context.hh"
 
 #include "DEG_depsgraph.hh"
@@ -1274,10 +1275,12 @@ static void do_render_compositor(Render *re)
           /* If we have consistent depsgraph now would be a time to update them. */
         }
 
-        compositor::OutputTypes needed_outputs = compositor::OutputTypes::Composite |
-                                                 compositor::OutputTypes::FileOutput;
+        compositor::NodeGroupOutputTypes needed_outputs =
+            compositor::NodeGroupOutputTypes::GroupOutputNode |
+            compositor::NodeGroupOutputTypes::FileOutputNode;
         if (!G.background) {
-          needed_outputs |= compositor::OutputTypes::Viewer | compositor::OutputTypes::Previews;
+          needed_outputs |= compositor::NodeGroupOutputTypes::ViewerNode |
+                            compositor::NodeGroupOutputTypes::NodePreviews;
         }
 
         CLOG_STR_INFO(&LOG, "Executing compositor");

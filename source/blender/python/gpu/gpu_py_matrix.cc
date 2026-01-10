@@ -426,7 +426,7 @@ PyDoc_STRVAR(
     pygpu_matrix_translate_doc,
     ".. function:: translate(offset)\n"
     "\n"
-    "   Scale the current stack matrix.\n"
+    "   Translate the current stack matrix.\n"
     "\n"
     "   :arg offset: Translate the current stack matrix with 2 or 3 floats.\n"
     "   :type offset: Sequence[float]\n");

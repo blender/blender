@@ -252,7 +252,7 @@ PyDoc_STRVAR(
     "   :arg vert: The vert to be separated.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n"
     "   :arg edges: The edges to separated.\n"
-    "   :type edges: :class:`bmesh.types.BMEdge`\n"
+    "   :type edges: Sequence[:class:`bmesh.types.BMEdge`]\n"
     "   :return: The newly separated verts (including the vertex passed).\n"
     "   :rtype: tuple[:class:`bmesh.types.BMVert`, ...]\n");
 static PyObject *bpy_bm_utils_vert_separate(PyObject * /*self*/, PyObject *args)
@@ -537,8 +537,6 @@ PyDoc_STRVAR(
     "\n"
     "   :arg face: The face to split.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n"
-    "   :arg face: The face to split.\n"
-    "   :type face: :class:`bmesh.types.BMFace`\n"
     "   :arg edgenet: Sequence of edges.\n"
     "   :type edgenet: Sequence[:class:`bmesh.types.BMEdge`]\n"
     "   :return: The newly created faces.\n"
@@ -607,7 +605,7 @@ PyDoc_STRVAR(
     "   Joins a sequence of faces.\n"
     "\n"
     "   :arg faces: Sequence of faces.\n"
-    "   :type faces: :class:`bmesh.types.BMFace`\n"
+    "   :type faces: Sequence[:class:`bmesh.types.BMFace`]\n"
     "   :arg remove: Remove the edges and vertices between the faces.\n"
     "   :type remove: bool\n"
     "   :return: The newly created face or None on failure.\n"
@@ -772,7 +770,7 @@ PyDoc_STRVAR(
     bpy_bm_utils_uv_select_check_doc,
     ".. method:: uv_select_check(bm, /, *, sync=True, flush=False, contiguous=False)\n"
     "\n"
-    "   Split an edge, return the newly created data.\n"
+    "   Check UV selection state for consistency issues.\n"
     "\n"
     "   :arg sync: Check the data is properly synchronized between UV's and the underlying mesh. "
     "Failure to synchronize with the mesh selection may cause tools not to behave properly.\n"

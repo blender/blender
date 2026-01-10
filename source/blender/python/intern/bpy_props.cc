@@ -2724,7 +2724,7 @@ static int bpy_prop_callback_check(PyObject *py_func, const char *keyword, int a
       return -1;
     }
 
-    PyCodeObject *f_code = reinterpret_cast<PyCodeObject *> PyFunction_GET_CODE(py_func);
+    PyCodeObject *f_code = reinterpret_cast<PyCodeObject *>(PyFunction_GET_CODE(py_func));
     if (f_code->co_argcount != argcount) {
       PyErr_Format(PyExc_TypeError,
                    "%s keyword: expected a function taking %d arguments, not %d",
@@ -3401,7 +3401,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
 #define BPY_PROPDEF_FLOAT_STEP_DOC \
   "   :arg step: Step of increment/decrement in UI, in [1, 100], defaults to 3 (WARNING: actual " \
   "value is /100).\n" \
-  "   :type step: int\n"
+  "   :type step: float\n"
 
 #define BPY_PROPDEF_FLOAT_PREC_DOC \
   "   :arg precision: Maximum number of decimal digits to display, in [0, 6]. Fraction is " \
@@ -3493,7 +3493,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "   :type search_options: set[str]\n"
 
 #define BPY_PROPDEF_POINTER_TYPE_DOC \
-  "   :arg type: A subclass of a property group or ID types.\n" \
+  "   :arg type: A subclass of PropertyGroup or ID.\n" \
   "   :type type: type[:class:`bpy.types.PropertyGroup` | :class:`bpy.types.ID`]\n"
 
 #define BPY_PROPDEF_COLLECTION_TYPE_DOC \
@@ -5147,7 +5147,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
   /* Items can be a list or a callable.
    * NOTE: Don't use #PyCallable_Check because we need the function code for errors. */
   if (PyFunction_Check(items)) {
-    PyCodeObject *f_code = reinterpret_cast<PyCodeObject *> PyFunction_GET_CODE(items);
+    PyCodeObject *f_code = reinterpret_cast<PyCodeObject *>(PyFunction_GET_CODE(items));
     if (f_code->co_argcount != 2) {
       PyErr_Format(PyExc_ValueError,
                    "EnumProperty(...): expected 'items' function to take 2 arguments, not %d",
@@ -5559,8 +5559,10 @@ PyDoc_STRVAR(
     "   :arg attr: Property name (must be passed as a keyword).\n"
     "   :type attr: str\n"
     "\n"
-    ".. note:: Typically this function doesn't need to be accessed directly.\n"
-    "   Instead use ``del cls.attr``\n");
+    "   .. note::\n"
+    "\n"
+    "      Typically this function doesn't need to be accessed directly.\n"
+    "      Instead use ``del cls.attr``\n");
 static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;

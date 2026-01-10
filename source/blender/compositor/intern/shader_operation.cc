@@ -3,16 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <memory>
+#include <sstream>
 #include <string>
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_vector_set.hh"
 
-#include "DNA_customdata_types.h"
-
-#include "GPU_context.hh"
 #include "GPU_debug.hh"
 #include "GPU_material.hh"
 #include "GPU_shader.hh"
@@ -21,25 +20,24 @@
 
 #include "gpu_shader_create_info.hh"
 
-#include "NOD_derived_node_tree.hh"
+#include "DNA_customdata_types.h"
+#include "DNA_node_types.h"
+
+#include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 #include "COM_context.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_result.hh"
-#include "COM_scheduler.hh"
 #include "COM_shader_node.hh"
 #include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
 
-#include <sstream>
-
 namespace blender::compositor {
-
-using namespace nodes::derived_node_tree_types;
 
 ShaderOperation::ShaderOperation(Context &context,
                                  PixelCompileUnit &compile_unit,
-                                 const Schedule &schedule)
+                                 const VectorSet<const bNode *> &schedule)
     : PixelOperation(context, compile_unit, schedule)
 {
   material_ = GPU_material_from_callbacks(
@@ -116,66 +114,58 @@ void ShaderOperation::construct_material(void *thunk, GPUMaterial *material)
 {
   ShaderOperation *operation = static_cast<ShaderOperation *>(thunk);
   operation->material_ = material;
-  for (DNode node : operation->compile_unit_) {
-    operation->shader_nodes_.add_new(node, std::make_unique<ShaderNode>(node));
+  for (const bNode *node : operation->compile_unit_) {
+    operation->shader_nodes_.add_new(node, std::make_unique<ShaderNode>(*node));
 
-    operation->link_node_inputs(node);
+    operation->link_node_inputs(*node);
 
     operation->shader_nodes_.lookup(node)->compile(material);
 
-    operation->populate_results_for_node(node);
+    operation->populate_results_for_node(*node);
   }
 }
 
-void ShaderOperation::link_node_inputs(DNode node)
+void ShaderOperation::link_node_inputs(const bNode &node)
 {
-  for (int i = 0; i < node->input_sockets().size(); i++) {
-    const DInputSocket input{node.context(), node->input_sockets()[i]};
-
+  for (const bNodeSocket *input : node.input_sockets()) {
     /* The input is unavailable and unused, but it still needs to be linked as this is what the GPU
      * material compiler expects. */
-    if (!is_socket_available(input.bsocket())) {
-      this->link_node_input_unavailable(input);
+    if (!is_socket_available(input)) {
+      this->link_node_input_unavailable(*input);
       continue;
     }
 
-    /* The origin socket is an input, that means the input is unlinked and . */
-    const DSocket origin = get_input_origin_socket(input);
-    if (origin->is_input()) {
-      const InputDescriptor origin_descriptor = input_descriptor_from_input_socket(
-          origin.bsocket());
-
-      if (origin_descriptor.implicit_input == ImplicitInput::None) {
+    const bNodeSocket *output = get_output_linked_to_input(*input);
+    if (!output) {
+      const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
+      if (input_descriptor.implicit_input == ImplicitInput::None) {
         /* No implicit input, so link a constant setter node for it that holds the input value. */
-        this->link_node_input_constant(input, DInputSocket(origin));
+        this->link_node_input_constant(*input);
       }
       else {
-        this->link_node_input_implicit(input, DInputSocket(origin));
+        this->link_node_input_implicit(*input);
       }
       continue;
     }
 
-    /* Otherwise, the origin socket is an output, which means it is linked. */
-    const DOutputSocket output = DOutputSocket(origin);
-
-    /* If the origin node is part of the shader operation, then the link is internal to the GPU
+    /* If the source node is part of the shader operation, then the link is internal to the GPU
      * material graph and is linked appropriately. */
-    if (compile_unit_.contains(output.node())) {
-      this->link_node_input_internal(input, output);
+    if (compile_unit_.contains(&output->owner_node())) {
+      this->link_node_input_internal(*input, *output);
       continue;
     }
 
-    /* Otherwise, the origin node is not part of the shader operation, then the link is external to
+    /* Otherwise, the source node is not part of the shader operation, then the link is external to
      * the GPU material graph and an input to the shader operation must be declared and linked to
      * the node input. */
-    this->link_node_input_external(input, output);
+    this->link_node_input_external(*input, *output);
   }
 }
 
-void ShaderOperation::link_node_input_unavailable(const DInputSocket input)
+void ShaderOperation::link_node_input_unavailable(const bNodeSocket &input)
 {
-  ShaderNode &node = *shader_nodes_.lookup(input.node());
-  GPUNodeStack &stack = node.get_input(input->identifier);
+  ShaderNode &node = *shader_nodes_.lookup(&input.owner_node());
+  GPUNodeStack &stack = node.get_input(input.identifier);
 
   /* Create a constant link with some zero value. The value is arbitrary and ignored. See the
    * method description. */
@@ -187,45 +177,45 @@ void ShaderOperation::link_node_input_unavailable(const DInputSocket input)
 
 /* Initializes the vector value of the given GPU node stack from the default value of the given
  * input socket. */
-static void initialize_input_stack_value(const DInputSocket input, GPUNodeStack &stack)
+static void initialize_input_stack_value(const bNodeSocket &input, GPUNodeStack &stack)
 {
-  switch (input->type) {
+  switch (input.type) {
     case SOCK_FLOAT: {
-      const float value = input->default_value_typed<bNodeSocketValueFloat>()->value;
+      const float value = input.default_value_typed<bNodeSocketValueFloat>()->value;
       stack.vec[0] = value;
       break;
     }
     case SOCK_INT: {
       /* GPUMaterial doesn't support int, so it is stored as a float. */
-      const int value = input->default_value_typed<bNodeSocketValueInt>()->value;
+      const int value = input.default_value_typed<bNodeSocketValueInt>()->value;
       stack.vec[0] = int(value);
       break;
     }
     case SOCK_BOOLEAN: {
       /* GPUMaterial doesn't support bool, so it is stored as a float. */
-      const bool value = input->default_value_typed<bNodeSocketValueBoolean>()->value;
+      const bool value = input.default_value_typed<bNodeSocketValueBoolean>()->value;
       stack.vec[0] = float(value);
       break;
     }
     case SOCK_VECTOR: {
-      const float4 value = float4(input->default_value_typed<bNodeSocketValueVector>()->value);
+      const float4 value = float4(input.default_value_typed<bNodeSocketValueVector>()->value);
       copy_v4_v4(stack.vec, value);
       break;
     }
     case SOCK_RGBA: {
-      const Color value = Color(input->default_value_typed<bNodeSocketValueRGBA>()->value);
+      const Color value = Color(input.default_value_typed<bNodeSocketValueRGBA>()->value);
       copy_v4_v4(stack.vec, value);
       break;
     }
     case SOCK_MENU: {
       /* GPUMaterial doesn't support int, so it is stored as a float. */
-      const int32_t value = input->default_value_typed<bNodeSocketValueMenu>()->value;
+      const int32_t value = input.default_value_typed<bNodeSocketValueMenu>()->value;
       stack.vec[0] = int(value);
       break;
     }
     case SOCK_STRING:
       /* Single only types do not support GPU code path. */
-      BLI_assert(Result::is_single_value_only_type(get_node_socket_result_type(input.bsocket())));
+      BLI_assert(Result::is_single_value_only_type(get_node_socket_result_type(&input)));
       BLI_assert_unreachable();
       break;
     default:
@@ -270,36 +260,30 @@ static const char *get_set_function_name(const ResultType type)
   return nullptr;
 }
 
-void ShaderOperation::link_node_input_constant(const DInputSocket input, const DInputSocket origin)
+void ShaderOperation::link_node_input_constant(const bNodeSocket &input)
 {
-  ShaderNode &node = *shader_nodes_.lookup(input.node());
-  GPUNodeStack &stack = node.get_input(input->identifier);
+  ShaderNode &node = *shader_nodes_.lookup(&input.owner_node());
+  GPUNodeStack &stack = node.get_input(input.identifier);
 
-  /* Create a constant or a uniform link that carry the value of the origin. Use a constant for
+  /* Create a constant or a uniform link that carry the value of the input. Use a constant for
    * socket types that rarely change like booleans and menus, while use a uniform for socket type
    * that might change a lot to avoid excessive shader recompilation. */
-  initialize_input_stack_value(origin, stack);
-  const bool use_as_constant = ELEM(origin->type, SOCK_BOOLEAN, SOCK_MENU);
+  initialize_input_stack_value(input, stack);
+  const bool use_as_constant = ELEM(input.type, SOCK_BOOLEAN, SOCK_MENU);
   GPUNodeLink *link = use_as_constant ? GPU_constant(stack.vec) : GPU_uniform(stack.vec);
 
-  const ResultType type = get_node_socket_result_type(origin.bsocket());
+  const ResultType type = get_node_socket_result_type(&input);
   const char *function_name = get_set_function_name(type);
   GPU_link(material_, function_name, link, &stack.link);
 }
 
-void ShaderOperation::link_node_input_implicit(const DInputSocket input, const DInputSocket origin)
+void ShaderOperation::link_node_input_implicit(const bNodeSocket &input)
 {
-  ShaderNode &node = *shader_nodes_.lookup(input.node());
-  GPUNodeStack &stack = node.get_input(input->identifier);
+  ShaderNode &node = *shader_nodes_.lookup(&input.owner_node());
+  GPUNodeStack &stack = node.get_input(input.identifier);
 
-  const InputDescriptor origin_descriptor = input_descriptor_from_input_socket(origin.bsocket());
-  const ImplicitInput implicit_input = origin_descriptor.implicit_input;
-
-  /* Inherit the type and implicit input of the origin input since doing implicit conversion inside
-   * the shader operation is much cheaper. */
-  InputDescriptor input_descriptor = input_descriptor_from_input_socket(input.bsocket());
-  input_descriptor.type = origin_descriptor.type;
-  input_descriptor.implicit_input = implicit_input;
+  const InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input);
+  const ImplicitInput implicit_input = input_descriptor.implicit_input;
 
   /* An input was already declared for that implicit input, so no need to declare it again and we
    * just link it. */
@@ -344,26 +328,26 @@ void ShaderOperation::link_node_input_implicit(const DInputSocket input, const D
   stack.link = attribute_link;
 }
 
-void ShaderOperation::link_node_input_internal(DInputSocket input_socket,
-                                               DOutputSocket output_socket)
+void ShaderOperation::link_node_input_internal(const bNodeSocket &input_socket,
+                                               const bNodeSocket &output_socket)
 {
-  ShaderNode &output_node = *shader_nodes_.lookup(output_socket.node());
-  GPUNodeStack &output_stack = output_node.get_output(output_socket->identifier);
+  ShaderNode &output_node = *shader_nodes_.lookup(&output_socket.owner_node());
+  GPUNodeStack &output_stack = output_node.get_output(output_socket.identifier);
 
-  ShaderNode &input_node = *shader_nodes_.lookup(input_socket.node());
-  GPUNodeStack &input_stack = input_node.get_input(input_socket->identifier);
+  ShaderNode &input_node = *shader_nodes_.lookup(&input_socket.owner_node());
+  GPUNodeStack &input_stack = input_node.get_input(input_socket.identifier);
 
   input_stack.link = output_stack.link;
 }
 
-void ShaderOperation::link_node_input_external(DInputSocket input_socket,
-                                               DOutputSocket output_socket)
+void ShaderOperation::link_node_input_external(const bNodeSocket &input_socket,
+                                               const bNodeSocket &output_socket)
 {
 
-  ShaderNode &node = *shader_nodes_.lookup(input_socket.node());
-  GPUNodeStack &stack = node.get_input(input_socket->identifier);
+  ShaderNode &node = *shader_nodes_.lookup(&input_socket.owner_node());
+  GPUNodeStack &stack = node.get_input(input_socket.identifier);
 
-  if (!output_to_material_attribute_map_.contains(output_socket)) {
+  if (!output_to_material_attribute_map_.contains(&output_socket)) {
     /* No input was declared for that output yet, so declare it. */
     declare_operation_input(input_socket, output_socket);
   }
@@ -373,11 +357,11 @@ void ShaderOperation::link_node_input_external(DInputSocket input_socket,
      * existing descriptor and the descriptor of the new input socket. That's because the same
      * output might be connected to multiple inputs inside the shader operation which have
      * different priorities. */
-    const std::string input_identifier = outputs_to_declared_inputs_map_.lookup(output_socket);
+    const std::string input_identifier = outputs_to_declared_inputs_map_.lookup(&output_socket);
     InputDescriptor &input_descriptor = this->get_input_descriptor(input_identifier);
     input_descriptor.domain_priority = math::min(
         input_descriptor.domain_priority,
-        input_descriptor_from_input_socket(input_socket.bsocket()).domain_priority);
+        input_descriptor_from_input_socket(&input_socket).domain_priority);
 
     /* Increment the input's reference count. */
     inputs_to_reference_counts_map_.lookup(input_identifier)++;
@@ -385,19 +369,19 @@ void ShaderOperation::link_node_input_external(DInputSocket input_socket,
 
   /* Link the attribute representing the shader operation input corresponding to the given output
    * socket. */
-  stack.link = output_to_material_attribute_map_.lookup(output_socket);
+  stack.link = output_to_material_attribute_map_.lookup(&output_socket);
 }
 
-void ShaderOperation::declare_operation_input(DInputSocket input_socket,
-                                              DOutputSocket output_socket)
+void ShaderOperation::declare_operation_input(const bNodeSocket &input_socket,
+                                              const bNodeSocket &output_socket)
 {
   const int input_index = output_to_material_attribute_map_.size();
   std::string input_identifier = "input" + std::to_string(input_index);
 
   /* Declare the input descriptor for this input and prefer to declare its type to be the same as
    * the type of the output socket because doing type conversion in the shader is much cheaper. */
-  InputDescriptor input_descriptor = input_descriptor_from_input_socket(input_socket.bsocket());
-  input_descriptor.type = get_node_socket_result_type(output_socket.bsocket());
+  InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input_socket);
+  input_descriptor.type = get_node_socket_result_type(&output_socket);
   declare_input_descriptor(input_identifier, input_descriptor);
 
   /* Add a new GPU attribute representing an input to the GPU material. Instead of using the
@@ -411,26 +395,26 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
            &attribute_link);
 
   /* Map the output socket to the attribute that was created for it. */
-  output_to_material_attribute_map_.add(output_socket, attribute_link);
+  output_to_material_attribute_map_.add(&output_socket, attribute_link);
 
   /* Map the identifier of the operation input to the output socket it is linked to. */
-  inputs_to_linked_outputs_map_.add_new(input_identifier, output_socket);
+  inputs_to_linked_outputs_map_.add_new(input_identifier, &output_socket);
 
   /* Map the output socket to the identifier of the operation input that was declared for it. */
-  outputs_to_declared_inputs_map_.add_new(output_socket, input_identifier);
+  outputs_to_declared_inputs_map_.add_new(&output_socket, input_identifier);
 
   /* Map the identifier of the operation input to a reference count of 1, this will later be
    * incremented if that same output was referenced again. */
   inputs_to_reference_counts_map_.add_new(input_identifier, 1);
 }
 
-void ShaderOperation::populate_results_for_node(DNode node)
+void ShaderOperation::populate_results_for_node(const bNode &node)
 {
-  const DOutputSocket preview_output = find_preview_output_socket(node);
+  const bool is_node_preview_needed = this->get_node_previews() != nullptr;
+  const bNodeSocket *preview_output = is_node_preview_needed ? find_preview_output_socket(node) :
+                                                               nullptr;
 
-  for (const bNodeSocket *output : node->output_sockets()) {
-    const DOutputSocket doutput{node.context(), output};
-
+  for (const bNodeSocket *output : node.output_sockets()) {
     if (!is_socket_available(output)) {
       continue;
     }
@@ -438,18 +422,19 @@ void ShaderOperation::populate_results_for_node(DNode node)
     /* If any of the nodes linked to the output are not part of the shader operation but are part
      * of the execution schedule, then an output result needs to be populated for it. */
     const bool is_operation_output = is_output_linked_to_node_conditioned(
-        doutput,
-        [&](DNode node) { return schedule_.contains(node) && !compile_unit_.contains(node); });
+        *output, [&](const bNode &node) {
+          return schedule_.contains(&node) && !compile_unit_.contains(&node);
+        });
 
     /* If the output is used as the node preview, then an output result needs to be populated for
      * it, and we additionally keep track of that output to later compute the previews from. */
-    const bool is_preview_output = doutput == preview_output;
+    const bool is_preview_output = output == preview_output;
     if (is_preview_output) {
-      preview_outputs_.add(doutput);
+      preview_outputs_.add(output);
     }
 
     if (is_operation_output || is_preview_output) {
-      populate_operation_result(doutput);
+      populate_operation_result(*output);
     }
   }
 }
@@ -486,20 +471,20 @@ static const char *get_store_function_name(ResultType type)
   return nullptr;
 }
 
-void ShaderOperation::populate_operation_result(DOutputSocket output_socket)
+void ShaderOperation::populate_operation_result(const bNodeSocket &output_socket)
 {
   const uint output_id = output_sockets_to_output_identifiers_map_.size();
   std::string output_identifier = "output" + std::to_string(output_id);
 
-  const ResultType result_type = get_node_socket_result_type(output_socket.bsocket());
+  const ResultType result_type = get_node_socket_result_type(&output_socket);
   const Result result = context().create_result(result_type);
   populate_result(output_identifier, result);
 
   /* Map the output socket to the identifier of the newly populated result. */
-  output_sockets_to_output_identifiers_map_.add_new(output_socket, output_identifier);
+  output_sockets_to_output_identifiers_map_.add_new(&output_socket, output_identifier);
 
-  ShaderNode &node = *shader_nodes_.lookup(output_socket.node());
-  GPUNodeLink *output_link = node.get_output(output_socket->identifier).link;
+  ShaderNode &node = *shader_nodes_.lookup(&output_socket.owner_node());
+  GPUNodeLink *output_link = node.get_output(output_socket.identifier).link;
 
   /* Link the output node stack to an output storer storing in the appropriate result. The result
    * is identified by its index in the operation and the index is encoded as a float to be passed

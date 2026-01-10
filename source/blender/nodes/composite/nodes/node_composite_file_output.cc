@@ -779,6 +779,10 @@ class FileOutputOperation : public NodeOperation {
           bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "conversion"),
           result.meta_data.cryptomatte.conversion);
     }
+
+    for (const auto &item : result.meta_data.fields.items()) {
+      file_output.add_meta_data(item.key, item.value);
+    }
   }
 
   Vector<path_templates::Error> get_image_path(const ImageFormatData &format,
@@ -859,7 +863,7 @@ class FileOutputOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new FileOutputOperation(context, node);
 }
@@ -912,7 +916,7 @@ std::string FileOutputItemsAccessor::validate_name(const StringRef name)
 {
   char file_name[FILE_MAX] = "";
   STRNCPY(file_name, name.data());
-  BLI_path_make_safe_filename(file_name);
+  BLI_path_make_safe(file_name);
   return file_name;
 }
 

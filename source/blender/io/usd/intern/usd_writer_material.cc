@@ -145,20 +145,19 @@ static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_ex
 static const InputSpecMap &preview_surface_input_map();
 static bNodeLink *traverse_channel(bNodeSocket *input, short target_type);
 
+void set_transmission_opacity_range(pxr::UsdShadeShader &usd_shader,
+                                    const InputSpec &input_spec,
+                                    const pxr::TfToken &source_name);
 void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &input_spec);
 
 /* Create an input on the given shader with name and type
  * provided by the InputSpec and assign the given value to the
  * input.  Parameters T1 and T2 indicate the Blender and USD
  * value types, respectively. */
-template<typename T1, typename T2>
-void create_input(pxr::UsdShadeShader &shader,
-                  const InputSpec &spec,
-                  const void *value,
-                  float scale)
+template<typename T>
+void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const T &value, float scale)
 {
-  const T1 *cast_value = static_cast<const T1 *>(value);
-  shader.CreateInput(spec.input_name, spec.input_type).Set(scale * T2(cast_value->value));
+  shader.CreateInput(spec.input_name, spec.input_type).Set(scale * value);
 }
 
 static void set_scale_bias(pxr::UsdShadeShader &usd_shader,
@@ -257,6 +256,10 @@ static void process_inputs(const USDExporterContext &usd_export_context,
           usd_shader.ConnectableAPI(), source_name, pxr::UsdShadeAttributeType::Output);
       shader.CreateInput(input_spec.input_name, input_spec.input_type)
           .ConnectToSource(source_info);
+
+      if (STREQ(sock.name, "Transmission Weight")) {
+        set_transmission_opacity_range(usd_shader, input_spec, source_name);
+      }
 
       set_normal_texture_range(usd_shader, input_spec);
 
@@ -417,16 +420,17 @@ static void process_inputs(const USDExporterContext &usd_export_context,
     if (input_spec.set_default_value) {
       switch (sock.type) {
         case SOCK_FLOAT: {
-          create_input<bNodeSocketValueFloat, float>(
-              shader, input_spec, sock.default_value, input_scale);
+          const bool is_inverted = input_spec.input_name == usdtokens::opacity;
+          const float val = sock.default_value_typed<bNodeSocketValueFloat>()->value;
+          create_input(shader, input_spec, is_inverted ? (1.0f - val) : val, input_scale);
         } break;
         case SOCK_VECTOR: {
-          create_input<bNodeSocketValueVector, pxr::GfVec3f>(
-              shader, input_spec, sock.default_value, input_scale);
+          const float *val = sock.default_value_typed<bNodeSocketValueVector>()->value;
+          create_input(shader, input_spec, pxr::GfVec3f(val), input_scale);
         } break;
         case SOCK_RGBA: {
-          create_input<bNodeSocketValueRGBA, pxr::GfVec3f>(
-              shader, input_spec, sock.default_value, input_scale);
+          const float *val = sock.default_value_typed<bNodeSocketValueRGBA>()->value;
+          create_input(shader, input_spec, pxr::GfVec3f(val), input_scale);
         } break;
         default:
           break;
@@ -502,6 +506,52 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
   }
 }
 
+void set_transmission_opacity_range(pxr::UsdShadeShader &usd_shader,
+                                    const InputSpec &input_spec,
+                                    const pxr::TfToken &source_name)
+{
+  /* Only run if this input_spec is for a opacity. */
+  if (input_spec.input_name != usdtokens::opacity) {
+    return;
+  }
+
+  /* Make sure this is a texture shader prim. */
+  pxr::TfToken shader_id;
+  if (!usd_shader.GetIdAttr().Get(&shader_id) || shader_id != usdtokens::uv_texture) {
+    return;
+  }
+
+  /* Get or Create the scale attribute. */
+  auto scale_attr = usd_shader.GetInput(usdtokens::scale);
+  if (!scale_attr) {
+    scale_attr = usd_shader.CreateInput(usdtokens::scale, pxr::SdfValueTypeNames->Float4);
+  }
+
+  /* Get or Create the bias attribute. */
+  auto bias_attr = usd_shader.GetInput(usdtokens::bias);
+  if (!bias_attr) {
+    bias_attr = usd_shader.CreateInput(usdtokens::bias, pxr::SdfValueTypeNames->Float4);
+  }
+
+  /* Minimally set the sclae-bias adjustment based only on the channel used. */
+  if (source_name == usdtokens::r) {
+    scale_attr.Set(pxr::GfVec4f(-1.0f, 1.0f, 1.0f, 1.0f));
+    bias_attr.Set(pxr::GfVec4f(1.0f, 0.0f, 0.0f, 0.0f));
+  }
+  else if (source_name == usdtokens::g) {
+    scale_attr.Set(pxr::GfVec4f(1.0f, -1.0f, 1.0f, 1.0f));
+    bias_attr.Set(pxr::GfVec4f(0.0f, 1.0f, 0.0f, 0.0f));
+  }
+  else if (source_name == usdtokens::b) {
+    scale_attr.Set(pxr::GfVec4f(1.0f, 1.0f, -1.0f, 1.0f));
+    bias_attr.Set(pxr::GfVec4f(0.0f, 0.0f, 1.0f, 0.0f));
+  }
+  else {
+    scale_attr.Set(pxr::GfVec4f(-1.0f, -1.0f, -1.0f, 1.0f));
+    bias_attr.Set(pxr::GfVec4f(1.0f, 1.0f, 1.0f, 0.0f));
+  }
+}
+
 void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &input_spec)
 {
   /* Set the scale and bias for normal map textures
@@ -572,6 +622,7 @@ static const InputSpecMap &preview_surface_input_map()
     map.add_new("Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, true});
     map.add_new("Specular IOR Level", {usdtokens::specular, pxr::SdfValueTypeNames->Float, true});
     map.add_new("Alpha", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, true});
+    map.add_new("Transmission Weight", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, true});
     map.add_new("IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, true});
 
     /* Note that for the Normal input set_default_value is false. */

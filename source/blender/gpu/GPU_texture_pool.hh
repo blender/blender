@@ -11,29 +11,42 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
-
 #include "GPU_texture.hh"
 
 namespace blender::gpu {
 
 class TexturePool {
- private:
   /* Defer deallocation enough cycles to avoid interleaved calls to different viewport render
    * functions (selection / display) causing constant allocation / deallocation (See #113024). */
   static constexpr int max_unused_cycles_ = 8;
 
+  /* Internal packet for texture, which supports set insertion. */
   struct TextureHandle {
-    gpu::Texture *texture;
-    /* Counts the number of `reset()` call since the last use.
-     * The texture memory is deallocated after a certain number of cycles. */
-    int unused_cycles;
+    Texture *texture;
+    /* Counter to track texture acquire/retain mismatches in `acquire_`.  */
+    int users_count = 1;
+    /* Counter to track the number of unused cycles before deallocation in `pool_`. */
+    int unused_cycles_count = 0;
+
+    /* We use the pointer as hash/comparator, as a texture cannot be acquired twice. */
+    inline uint64_t hash() const
+    {
+      return get_default_hash(texture);
+    }
+
+    inline bool operator==(const TextureHandle &o) const
+    {
+      return texture == o.texture;
+    }
   };
 
-  /* Pool of texture ready to be reused. */
+  /* Pool of textures ready to be reused. */
   Vector<TextureHandle> pool_;
-  /* List of textures that are currently being used. Tracked to check memory leak. */
-  Vector<gpu::Texture *> acquired_;
+  /* Set of textures currently in use. */
+  Set<TextureHandle> acquired_;
 
  public:
   ~TexturePool();
@@ -42,23 +55,21 @@ class TexturePool {
    * Only valid if a context is active. */
   static TexturePool &get();
 
-  /* Acquire a texture from the pool with the given characteristics. */
-  gpu::Texture *acquire_texture(int width,
-                                int height,
-                                gpu::TextureFormat format,
-                                eGPUTextureUsage usage);
-  /* Release the texture so that its memory can be reused at some other point. */
-  void release_texture(gpu::Texture *tmp_tex);
+  /* Acquire a 2D texture from the pool with the given characteristics. */
+  Texture *acquire_texture(int2 extent,
+                           TextureFormat format,
+                           eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL);
 
-  /* Transfer ownership of a texture from the pool to the caller. */
-  void take_texture_ownership(gpu::Texture *tex);
-  /* Transfer back ownership to the pool. The texture will become part of the pool. */
-  void give_texture_ownership(gpu::Texture *tex);
+  /* Release the texture back into the pool so it can be reused. */
+  void release_texture(Texture *tex);
 
-  /* Ensure no texture is still acquired and release unused textures.
-   * If `force_free` is true, free all the texture memory inside the pool.
-   * Otherwise, only unused textures will be freed. */
+  /* Validate acquired texture counters and release unused textures.
+   * If `force_free` is true, free unused texture memory inside the pool. */
   void reset(bool force_free = false);
+
+  /* Modify the internal counter of an acquired texture.
+   * Used by `TextureFromPool::retain()` in `DRW_gpu_wrapper.hh`. */
+  void offset_users_count(Texture *tex, int offset);
 };
 
 }  // namespace blender::gpu

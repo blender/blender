@@ -13,7 +13,7 @@ namespace blender {
 namespace compositor {
 class RenderContext;
 class Profiler;
-enum class OutputTypes : uint8_t;
+enum class NodeGroupOutputTypes : uint8_t;
 }  // namespace compositor
 
 struct Render;
@@ -58,7 +58,7 @@ void COM_execute(Render *render,
                  const char *view_name,
                  compositor::RenderContext *render_context,
                  compositor::Profiler *profiler,
-                 compositor::OutputTypes needed_outputs);
+                 compositor::NodeGroupOutputTypes needed_outputs);
 
 /**
  * \brief Deinitialize the compositor caches and allocated memory.

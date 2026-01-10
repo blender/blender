@@ -431,10 +431,10 @@ PyDoc_STRVAR(
     "   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :arg x: Vertical shadow offset value in pixels.\n"
-    "   :type x: float\n"
-    "   :arg y: Horizontal shadow offset value in pixels.\n"
-    "   :type y: float\n");
+    "   :arg x: Horizontal shadow offset value in pixels.\n"
+    "   :type x: int\n"
+    "   :arg y: Vertical shadow offset value in pixels.\n"
+    "   :type y: int\n");
 static PyObject *py_blf_shadow_offset(PyObject * /*self*/, PyObject *args)
 {
   int x, y, fontid;
@@ -654,7 +654,7 @@ static PyTypeObject BPyBLFImBufContext_Type = {
 PyDoc_STRVAR(
     /* Wrap. */
     py_blf_bind_imbuf_doc,
-    ".. method:: bind_imbuf(fontid, image)\n"
+    ".. method:: bind_imbuf(fontid, imbuf)\n"
     "\n"
     "   Context manager to draw text into an image buffer instead of the GPU's context.\n"
     "\n"

@@ -173,9 +173,6 @@
  * access SRT members that are more that 1 level deep.
  * This should only be used in SRT struct member declaration for wrapping other SRT types.
  */
-
-namespace blender {
-
 template<typename T> struct srt_t {
   operator const T &() const
   {
@@ -258,5 +255,3 @@ struct PipelineCompute {
 };
 
 #include "GPU_shader_shared_utils.hh"
-
-}  // namespace blender

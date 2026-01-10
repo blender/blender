@@ -37,9 +37,9 @@ endif()
 # -----------------------------------------------------------------------------
 # Library Compatibility.
 
-# JEMALLOC does not work with `dlopen()` of Python modules:
-# https://github.com/jemalloc/jemalloc/issues/1237
-set(WITH_MEM_JEMALLOC        OFF CACHE BOOL "" FORCE)
+# NOTE: JEMALLOC caused problems with `dlopen()`,
+# disabling for WITH_TBB_MALLOC_PROXY too, although we could investigate enabling it.
+set(WITH_TBB_MALLOC_PROXY        OFF CACHE BOOL "" FORCE)
 
 
 # -----------------------------------------------------------------------------

@@ -1586,8 +1586,8 @@ string SourceProcessor::argument_decorator_macro_injection(const string &str)
   parser().foreach_match("www", [&](const Tokens &t) {
     string_view qualifier = t[0].str_view();
     if (qualifier == "out" || qualifier == "inout" || qualifier == "in" || qualifier == "shared") {
-      parser.insert_after(t[1], " _" + string(qualifier) + "_sta");
-      parser.insert_after(t[2], " _" + string(qualifier) + "_end");
+      parser.insert_after(t[1], " _" + string(qualifier) + "_sta ");
+      parser.insert_after(t[2], " _" + string(qualifier) + "_end ");
     }
   });
   return parser.result_get();

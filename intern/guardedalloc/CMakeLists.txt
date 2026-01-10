@@ -53,10 +53,6 @@ if(WIN32 AND NOT UNIX)
   endif()
 endif()
 
-if(WITH_MEM_JEMALLOC)
-  add_definitions(-DWITH_MEM_JEMALLOC)
-endif()
-
 blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::intern::guardedalloc ALIAS bf_intern_guardedalloc)
 

@@ -490,8 +490,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   /* Create legacy data for Layered Actions: the F-Curves from the first Slot,
    * bottom layer, first Keyframe strip. */
-  const bool do_write_forward_compat = !BLO_write_is_undo(writer) && action.slot_array_num > 0 &&
-                                       action.is_action_layered();
+  const bool do_write_forward_compat = !BLO_write_is_undo(writer) && action.slot_array_num > 0;
   if (do_write_forward_compat) {
     animrig::assert_baklava_phase_1_invariants(action);
     BLI_assert_msg(BLI_listbase_is_empty(&action.curves),
@@ -869,208 +868,6 @@ void action_group_colors_set(bActionGroup *grp, const BoneColor *color)
      * grp->cs in case the theme changes. */
     memcpy(&grp->cs, effective_color, sizeof(grp->cs));
   }
-}
-
-bActionGroup *action_groups_add_new(bAction *act, const char name[])
-{
-  bActionGroup *agrp;
-
-  /* sanity check: must have action and name */
-  if (ELEM(nullptr, act, name)) {
-    return nullptr;
-  }
-
-  BLI_assert(act->wrap().is_action_legacy());
-
-  /* allocate a new one */
-  agrp = MEM_new_for_free<bActionGroup>("bActionGroup");
-
-  /* make it selected, with default name */
-  agrp->flag = AGRP_SELECTED;
-  STRNCPY_UTF8(agrp->name, name[0] ? name : DATA_("Group"));
-
-  /* add to action, and validate */
-  BLI_addtail(&act->groups, agrp);
-  BLI_uniquename(
-      &act->groups, agrp, DATA_("Group"), '.', offsetof(bActionGroup, name), sizeof(agrp->name));
-
-  /* return the new group */
-  return agrp;
-}
-
-void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
-{
-  /* sanity checks */
-  if (ELEM(nullptr, act, agrp, fcurve)) {
-    return;
-  }
-
-  BLI_assert(act->wrap().is_action_legacy());
-
-  /* if no channels anywhere, just add to two lists at the same time */
-  if (BLI_listbase_is_empty(&act->curves)) {
-    fcurve->next = fcurve->prev = nullptr;
-
-    agrp->channels.first = agrp->channels.last = fcurve;
-    act->curves.first = act->curves.last = fcurve;
-  }
-
-  /* if the group already has channels, the F-Curve can simply be added to the list
-   * (i.e. as the last channel in the group)
-   */
-  else if (agrp->channels.first) {
-    /* if the group's last F-Curve is the action's last F-Curve too,
-     * then set the F-Curve as the last for the action first so that
-     * the lists will be in sync after linking
-     */
-    if (agrp->channels.last == act->curves.last) {
-      act->curves.last = fcurve;
-    }
-
-    /* link in the given F-Curve after the last F-Curve in the group,
-     * which means that it should be able to fit in with the rest of the
-     * list seamlessly
-     */
-    BLI_insertlinkafter(&agrp->channels, agrp->channels.last, fcurve);
-  }
-
-  /* otherwise, need to find the nearest F-Curve in group before/after current to link with */
-  else {
-    bActionGroup *grp;
-
-    /* firstly, link this F-Curve to the group */
-    agrp->channels.first = agrp->channels.last = fcurve;
-
-    /* Step through the groups preceding this one,
-     * finding the F-Curve there to attach this one after. */
-    for (grp = agrp->prev; grp; grp = grp->prev) {
-      /* if this group has F-Curves, we want weave the given one in right after the last channel
-       * there, but via the Action's list not this group's list
-       * - this is so that the F-Curve is in the right place in the Action,
-       *   but won't be included in the previous group.
-       */
-      if (grp->channels.last) {
-        /* once we've added, break here since we don't need to search any further... */
-        BLI_insertlinkafter(&act->curves, grp->channels.last, fcurve);
-        break;
-      }
-    }
-
-    /* If grp is nullptr, that means we fell through, and this F-Curve should be added as the new
-     * first since group is (effectively) the first group. Thus, the existing first F-Curve becomes
-     * the second in the chain, etc. */
-    if (grp == nullptr) {
-      BLI_insertlinkbefore(&act->curves, act->curves.first, fcurve);
-    }
-  }
-
-  /* set the F-Curve's new group */
-  fcurve->grp = agrp;
-}
-
-void BKE_action_groups_reconstruct(bAction *act)
-{
-  /* Sanity check. */
-  if (!act) {
-    return;
-  }
-
-  if (BLI_listbase_is_empty(&act->groups)) {
-    /* NOTE: this also includes layered Actions, as act->groups is the legacy storage for groups.
-     * Layered Actions should never have to deal with 'reconstructing' groups, as arbitrarily
-     * shuffling of the underlying data isn't allowed, and the available methods for modifying
-     * F-Curves/Groups already ensure that the data is valid when they return. */
-    return;
-  }
-
-  BLI_assert(act->wrap().is_action_legacy());
-
-  /* Clear out all group channels. Channels that are actually in use are
-   * reconstructed below; this step is necessary to clear out unused groups. */
-  for (bActionGroup &group : act->groups) {
-    BLI_listbase_clear(&group.channels);
-  }
-
-  /* Sort the channels into the group lists, destroying the act->curves list. */
-  ListBaseT<FCurve> ungrouped = {nullptr, nullptr};
-
-  for (FCurve &fcurve : act->curves.items_mutable()) {
-    if (fcurve.grp) {
-      BLI_assert(BLI_findindex(&act->groups, fcurve.grp) >= 0);
-
-      BLI_addtail(&fcurve.grp->channels, &fcurve);
-    }
-    else {
-      BLI_addtail(&ungrouped, &fcurve);
-    }
-  }
-
-  /* Recombine into the main list. */
-  BLI_listbase_clear(&act->curves);
-
-  for (bActionGroup &group : act->groups) {
-    /* Copy the list header to preserve the pointers in the group. */
-    ListBaseT<FCurve> tmp = group.channels;
-    BLI_movelisttolist(&act->curves, &tmp);
-  }
-
-  BLI_movelisttolist(&act->curves, &ungrouped);
-}
-
-void action_groups_remove_channel(bAction *act, FCurve *fcu)
-{
-  /* sanity checks */
-  if (ELEM(nullptr, act, fcu)) {
-    return;
-  }
-
-  BLI_assert(act->wrap().is_action_legacy());
-
-  /* check if any group used this directly */
-  if (fcu->grp) {
-    bActionGroup *agrp = fcu->grp;
-
-    if (agrp->channels.first == agrp->channels.last) {
-      if (agrp->channels.first == fcu) {
-        BLI_listbase_clear(&agrp->channels);
-      }
-    }
-    else if (agrp->channels.first == fcu) {
-      if ((fcu->next) && (fcu->next->grp == agrp)) {
-        agrp->channels.first = fcu->next;
-      }
-      else {
-        agrp->channels.first = nullptr;
-      }
-    }
-    else if (agrp->channels.last == fcu) {
-      if ((fcu->prev) && (fcu->prev->grp == agrp)) {
-        agrp->channels.last = fcu->prev;
-      }
-      else {
-        agrp->channels.last = nullptr;
-      }
-    }
-
-    fcu->grp = nullptr;
-  }
-
-  /* now just remove from list */
-  BLI_remlink(&act->curves, fcu);
-}
-
-bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
-{
-  /* sanity checks */
-  if (ELEM(nullptr, act, act->groups.first, name) || (name[0] == 0)) {
-    return nullptr;
-  }
-
-  BLI_assert(act->wrap().is_action_legacy());
-
-  /* do string comparisons */
-  return static_cast<bActionGroup *>(
-      BLI_findstring(&act->groups, name, offsetof(bActionGroup, name)));
 }
 
 void action_groups_clear_tempflags(bAction *act)
@@ -1976,13 +1773,8 @@ void what_does_obaction(Object *ob,
   if (groupname && groupname[0]) {
     /* Find the named channel group. */
     Action &action = act->wrap();
-    if (action.is_action_layered()) {
-      Channelbag *cbag = channelbag_for_action_slot(action, action_slot_handle);
-      agrp = cbag ? cbag->channel_group_find(groupname) : nullptr;
-    }
-    else {
-      agrp = BKE_action_group_find_name(act, groupname);
-    }
+    Channelbag *cbag = channelbag_for_action_slot(action, action_slot_handle);
+    agrp = cbag ? cbag->channel_group_find(groupname) : nullptr;
   }
 
   /* clear workob */
@@ -2048,7 +1840,6 @@ void what_does_obaction(Object *ob,
 
     adt.action = act;
     adt.slot_handle = action_slot_handle;
-    BKE_animdata_action_ensure_idroot(&workob->id, act);
 
     /* execute effects of Action on to workob (or its PoseChannels) */
     BKE_animsys_evaluate_animdata(&workob->id, &adt, anim_eval_context, ADT_RECALC_ANIM, false);
@@ -2218,22 +2009,6 @@ void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose
         bmain, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
     BKE_pose_tag_recalc(bmain, pose);
   }
-}
-
-void BKE_action_fcurves_clear(bAction *act)
-{
-  if (!act) {
-    return;
-  }
-
-  BLI_assert(act->wrap().is_action_legacy());
-
-  while (act->curves.first) {
-    FCurve *fcu = static_cast<FCurve *>(act->curves.first);
-    action_groups_remove_channel(act, fcu);
-    BKE_fcurve_free(fcu);
-  }
-  DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
 }
 
 }  // namespace blender

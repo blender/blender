@@ -859,9 +859,16 @@ static void do_weight_paint_vertex(const VPaint &wp,
 }
 
 struct WeightPaintStroke final : public PaintStroke {
+  Main *bmain_;
+  ToolSettings *tool_settings_;
+  VPaint *weight_paint_;
+
   WeightPaintStroke(bContext *C, wmOperator *op, const int event_type)
       : PaintStroke(C, op, event_type)
   {
+    bmain_ = CTX_data_main(C);
+    tool_settings_ = CTX_data_tool_settings(C);
+    weight_paint_ = tool_settings_->wpaint;
   }
 
   bool get_location(float out[3], const float mouse[2], bool force_original) override;
@@ -874,22 +881,24 @@ struct WeightPaintStroke final : public PaintStroke {
 
 bool WeightPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
 {
-  return stroke_get_location_bvh(this->evil_C, out, mouse, force_original);
+  return stroke_get_location_bvh(
+      *this->depsgraph, this->vc, *this->paint, this->brush, out, mouse, force_original);
 }
 bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
 {
-  Scene &scene = *CTX_data_scene(this->evil_C);
+  Scene &scene = *this->scene;
   ToolSettings &ts = *scene.toolsettings;
-  Object &ob = *CTX_data_active_object(this->evil_C);
+  Object &ob = *this->object;
   Mesh &mesh = *BKE_mesh_from_object(&ob);
   WPaintVGroupIndex vgroup_index;
   int defbase_tot, defbase_tot_sel;
   bool *defbase_sel;
   SculptSession &ss = *ob.sculpt;
-  VPaint &vp = *CTX_data_tool_settings(this->evil_C)->wpaint;
-  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(this->evil_C);
+  VPaint &wp = *weight_paint_;
+  Depsgraph &depsgraph = *this->depsgraph;
 
-  if (ED_wpaint_ensure_data(this->evil_C, op->reports, WPAINT_ENSURE_MIRROR, &vgroup_index) ==
+  if (ED_wpaint_ensure_data(
+          this->evil_C, bmain_, this->object, op->reports, WPAINT_ENSURE_MIRROR, &vgroup_index) ==
       false)
   {
     return false;
@@ -940,9 +949,9 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   }
 
   std::unique_ptr<WPaintData> wpd = std::make_unique<WPaintData>();
-  wpd->vc = ED_view3d_viewcontext_init(this->evil_C, &depsgraph);
+  wpd->vc = this->vc;
 
-  const Brush *brush = BKE_paint_brush_for_read(&vp.paint);
+  const Brush *brush = BKE_paint_brush_for_read(&wp.paint);
   vwpaint::view_angle_limits_init(&wpd->normal_angle_precalc,
                                   brush->falloff_angle,
                                   (brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
@@ -1014,11 +1023,11 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
 
   /* If not previously created, create vertex/weight paint mode session data */
   vwpaint::init_stroke(depsgraph, ob);
-  vwpaint::update_cache_invariants(this->evil_C, vp, ss, op, mouse);
+  vwpaint::update_cache_invariants(bmain_, wp, ss, op, mouse);
   vwpaint::init_session_data(ts, ob);
 
   /* Brush may have changed after initialization. */
-  brush = BKE_paint_brush(&vp.paint);
+  brush = BKE_paint_brush(&wp.paint);
   if (ELEM(brush->weight_brush_type, WPAINT_BRUSH_TYPE_SMEAR, WPAINT_BRUSH_TYPE_BLUR)) {
     wpd->precomputed_weight = MEM_malloc_arrayN<float>(mesh.verts_num, __func__);
   }
@@ -1516,7 +1525,7 @@ static float calculate_average_weight(const Depsgraph &depsgraph,
   return math::safe_divide(value.value, double(value.len));
 }
 
-static void wpaint_paint_leaves(bContext *C,
+static void wpaint_paint_leaves(const Depsgraph &depsgraph,
                                 Object &ob,
                                 VPaint &vp,
                                 WPaintData &wpd,
@@ -1525,7 +1534,6 @@ static void wpaint_paint_leaves(bContext *C,
                                 const IndexMask &node_mask)
 {
   const Brush &brush = *ob.sculpt->cache->brush;
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
   switch (eBrushWeightPaintType(brush.weight_brush_type)) {
     case WPAINT_BRUSH_TYPE_AVERAGE: {
@@ -1707,7 +1715,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 /** \name Weight Paint Operator
  * \{ */
 
-static void wpaint_do_paint(bContext *C,
+static void wpaint_do_paint(const Depsgraph &depsgraph,
                             Object &ob,
                             VPaint &wp,
                             WPaintData &wpd,
@@ -1719,7 +1727,6 @@ static void wpaint_do_paint(bContext *C,
                             const int i,
                             const float angle)
 {
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   SculptSession &ss = *ob.sculpt;
   ss.cache->radial_symmetry_pass = i;
   SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
@@ -1727,10 +1734,10 @@ static void wpaint_do_paint(bContext *C,
   IndexMaskMemory memory;
   const IndexMask node_mask = vwpaint::pbvh_gather_generic(depsgraph, ob, wp, brush, memory);
 
-  wpaint_paint_leaves(C, ob, wp, wpd, wpi, mesh, node_mask);
+  wpaint_paint_leaves(depsgraph, ob, wp, wpd, wpi, mesh, node_mask);
 }
 
-static void wpaint_do_radial_symmetry(bContext *C,
+static void wpaint_do_radial_symmetry(Depsgraph &depsgraph,
                                       Object &ob,
                                       VPaint &wp,
                                       WPaintData &wpd,
@@ -1742,14 +1749,14 @@ static void wpaint_do_radial_symmetry(bContext *C,
 {
   for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
     const float angle = (2.0 * M_PI) * i / mesh.radial_symmetry[axis - 'X'];
-    wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, axis, i, angle);
+    wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, axis, i, angle);
   }
 }
 
 /* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
 static void wpaint_do_symmetrical_brush_actions(
-    bContext *C, Object &ob, VPaint &wp, WPaintData &wpd, WeightPaintInfo &wpi)
+    Depsgraph &depsgraph, Object &ob, VPaint &wp, WPaintData &wpd, WeightPaintInfo &wpi)
 {
   Brush &brush = *BKE_paint_brush(&wp.paint);
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
@@ -1760,10 +1767,10 @@ static void wpaint_do_symmetrical_brush_actions(
 
   /* initial stroke */
   cache.mirror_symmetry_pass = ePaintSymmetryFlags(0);
-  wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
-  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X');
-  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Y');
-  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Z');
+  wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
+  wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X');
+  wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Y');
+  wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Z');
 
   cache.symmetry = symm;
 
@@ -1782,16 +1789,16 @@ static void wpaint_do_symmetrical_brush_actions(
       SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
 
       if (i & (1 << 0)) {
-        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'X', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'X');
+        wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'X', 0, 0);
+        wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'X');
       }
       if (i & (1 << 1)) {
-        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Y', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Y');
+        wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'Y', 0, 0);
+        wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'Y');
       }
       if (i & (1 << 2)) {
-        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Z', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Z');
+        wpaint_do_paint(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'Z', 0, 0);
+        wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, symm, 'Z');
       }
     }
   }
@@ -1801,16 +1808,16 @@ static void wpaint_do_symmetrical_brush_actions(
 
 void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
 {
-  ToolSettings &ts = *CTX_data_tool_settings(this->evil_C);
-  VPaint &wp = *ts.wpaint;
+  VPaint &wp = *weight_paint_;
+  const ToolSettings &ts = *tool_settings_;
   const Brush &brush = *BKE_paint_brush(&wp.paint);
   WPaintData *wpd = static_cast<WPaintData *>(mode_data_.get());
   ViewContext *vc;
-  Object *ob = CTX_data_active_object(this->evil_C);
+  Object *ob = this->object;
 
   SculptSession &ss = *ob->sculpt;
 
-  vwpaint::update_cache_variants(this->evil_C, wp, *ob, itemptr);
+  vwpaint::update_cache_variants(*this->depsgraph, wp, *ob, itemptr);
 
   float mat[4][4];
 
@@ -1822,7 +1829,7 @@ void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
   if (wpd == nullptr) {
     /* XXX: force a redraw here, since even though we can't paint,
      * at least view won't freeze until stroke ends */
-    ED_region_tag_redraw(CTX_wm_region(this->evil_C));
+    ED_region_tag_redraw(this->vc.region);
     return;
   }
 
@@ -1861,7 +1868,7 @@ void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
     precompute_weight_values(*ob, brush, *wpd, wpi, mesh);
   }
 
-  wpaint_do_symmetrical_brush_actions(this->evil_C, *ob, wp, *wpd, wpi);
+  wpaint_do_symmetrical_brush_actions(*this->depsgraph, *ob, wp, *wpd, wpi);
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
@@ -1882,14 +1889,12 @@ void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
 
 void WeightPaintStroke::done(bool /*is_cancel*/)
 {
-  Object &ob = *CTX_data_active_object(this->evil_C);
+  Object &ob = *this->object;
 
   SculptSession &ss = *ob.sculpt;
 
   if (ss.cache->alt_smooth) {
-    ToolSettings &ts = *CTX_data_tool_settings(this->evil_C);
-    VPaint &vp = *ts.wpaint;
-    vwpaint::smooth_brush_toggle_off(&vp.paint, ss.cache);
+    vwpaint::smooth_brush_toggle_off(this->paint, ss.cache);
   }
 
   if (ob.particlesystem.first) {
