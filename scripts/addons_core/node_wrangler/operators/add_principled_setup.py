@@ -31,7 +31,7 @@ from ..utils.paths import (
 
 class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
     bl_idname = "node.nw_add_textures_for_principled"
-    bl_label = "Principled Texture Setup"
+    bl_label = "Add Principled Texture Setup"
     bl_description = "Add a texture node setup for Principled BSDF"
     bl_options = {'REGISTER', 'UNDO'}
 
