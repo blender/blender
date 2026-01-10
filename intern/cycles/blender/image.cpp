@@ -47,12 +47,14 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
                                        ImageMetaData &metadata)
 {
   bool is_float = false;
+  bool is_data = false;
 
   {
     void *lock;
     blender::ImBuf *ibuf = BKE_image_acquire_ibuf(b_image, &b_iuser, &lock);
     if (ibuf) {
       is_float = ibuf->float_buffer.data != nullptr;
+      is_data = ibuf->colormanage_flag & blender::IMB_COLORMANAGE_IS_DATA;
       metadata.width = ibuf->x;
       metadata.height = ibuf->y;
       metadata.channels = (is_float) ? ibuf->channels : 4;
@@ -76,12 +78,13 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
 
     /* Float images are already converted on the Blender side,
      * no need to do anything in Cycles. */
-    metadata.colorspace = u_colorspace_raw;
+    metadata.colorspace = (is_data) ? u_colorspace_data : u_colorspace_scene_linear;
   }
   else {
     /* In some cases (e.g. #94135), the colorspace setting in Blender gets updated as part of the
      * metadata queries in this function, so update the colorspace setting here. */
-    metadata.colorspace = b_image->colorspace_settings.name;
+    metadata.colorspace = (is_data) ? u_colorspace_data :
+                                      ustring(b_image->colorspace_settings.name);
     metadata.type = IMAGE_DATA_TYPE_BYTE4;
   }
 

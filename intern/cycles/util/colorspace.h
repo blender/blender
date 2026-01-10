@@ -1,18 +1,27 @@
-/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2026 Blender Foundation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
 #include "util/param.h"
+#include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
 
+/* Automatically determine colorspace. */
 extern ustring u_colorspace_auto;
-extern ustring u_colorspace_raw;
+/* Non-color data. */
+extern ustring u_colorspace_data;
+/* Scene linear colorspace used for rendering. */
+extern ustring u_colorspace_scene_linear;
+/* Scene linear + sRGB transfer function . */
+extern ustring u_colorspace_scene_linear_srgb;
+/* sRGB. */
 extern ustring u_colorspace_srgb;
 
 class ColorSpaceProcessor;
+struct Transform;
 
 class ColorSpaceManager {
  public:
@@ -26,13 +35,17 @@ class ColorSpaceManager {
 
   /* Test if colorspace is for non-color data. */
   static bool colorspace_is_data(ustring colorspace);
+  /* Return color interop forum interop ID. */
+  static const char *colorspace_interop_id(ustring colorspace);
 
   /* Convert pixels in the specified colorspace to scene linear color for
    * rendering. Must be a colorspace returned from detect_known_colorspace. */
   template<typename T>
   static void to_scene_linear(ustring colorspace,
                               T *pixels,
-                              const size_t num_pixels,
+                              const int64_t width,
+                              const int64_t height,
+                              const int64_t y_stride,
                               bool is_rgba,
                               bool compress_as_srgb,
                               bool ignore_alpha);
@@ -52,8 +65,20 @@ class ColorSpaceManager {
    * valid without knowing the actual configuration used by the final application. */
   static void init_fallback_config();
 
+  /* Compute matrix to convert from XYZ to scene linear RGB, based on the config. */
+  static Transform get_xyz_to_scene_linear_rgb();
+  static Transform get_xyz_to_rec709();
+  static Transform get_xyz_to_rec2020();
+  static Transform get_xyz_to_acescg();
+  /* Compute unique string for texture cache hashing and metadata. */
+  static const string &get_xyz_to_scene_linear_rgb_string();
+  /* Determine if scene linear is a common known space. */
+  static const char *get_scene_linear_interop_id(const bool srgb_encoded = false);
+
  private:
-  static void is_builtin_colorspace(ustring colorspace, bool &is_scene_linear, bool &is_srgb);
+  static void is_builtin_colorspace(ustring colorspace,
+                                    bool &is_scene_linear,
+                                    bool &is_scene_linear_srgb);
 };
 
 CCL_NAMESPACE_END

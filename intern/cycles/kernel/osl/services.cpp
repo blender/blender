@@ -13,9 +13,9 @@
 
 #include <cstring>
 
-#include "scene/colorspace.h"
 #include "scene/object.h"
 
+#include "util/colorspace.h"
 #include "util/log.h"
 #include "util/string.h"
 

@@ -79,7 +79,7 @@ class OSLManager {
   const char *shader_load_filepath(string filepath);
   OSLShaderInfo *shader_loaded_info(const string &hash);
 
-  void shading_system_init(ShaderManager::SceneLinearSpace colorspace);
+  void shading_system_init(const string &colorspace_interop_id);
 
   OSL::ShadingSystem *get_shading_system(Device *sub_device);
   OSL::TextureSystem *get_texture_system();

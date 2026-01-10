@@ -5,7 +5,6 @@
 #include "scene/shader_nodes.h"
 #include "kernel/svm/types.h"
 #include "kernel/types.h"
-#include "scene/colorspace.h"
 #include "scene/constant_fold.h"
 #include "scene/film.h"
 #include "scene/image.h"
@@ -21,7 +20,7 @@
 #include "sky_nishita.h"
 
 #include "util/color.h"
-
+#include "util/colorspace.h"
 #include "util/log.h"
 #include "util/math_base.h"
 #include "util/string.h"
@@ -266,7 +265,7 @@ NODE_DEFINE(ImageTextureNode)
 
 ImageTextureNode::ImageTextureNode() : ImageSlotTextureNode(get_node_type())
 {
-  colorspace = u_colorspace_raw;
+  colorspace = u_colorspace_scene_linear;
   animated = false;
 }
 
@@ -466,7 +465,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
 
   if (handle.svm_slot() == -1) {
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", filename, compress_as_srgb ? u_colorspace_scene_linear : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle);
@@ -535,7 +534,7 @@ NODE_DEFINE(EnvironmentTextureNode)
 
 EnvironmentTextureNode::EnvironmentTextureNode() : ImageSlotTextureNode(get_node_type())
 {
-  colorspace = u_colorspace_raw;
+  colorspace = u_colorspace_scene_linear;
   animated = false;
 }
 
@@ -618,7 +617,7 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
   if (handle.svm_slot() == -1) {
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", filename, compress_as_srgb ? u_colorspace_scene_linear : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle);

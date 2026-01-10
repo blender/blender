@@ -2,14 +2,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "scene/image.h"
 #include "device/device.h"
-#include "scene/colorspace.h"
+
+#include "scene/image.h"
 #include "scene/image_oiio.h"
 #include "scene/image_vdb.h"
 #include "scene/scene.h"
 #include "scene/stats.h"
 
+#include "util/colorspace.h"
 #include "util/image.h"
 #include "util/image_impl.h"
 #include "util/log.h"
@@ -232,7 +233,7 @@ ImageMetaData::ImageMetaData()
       height(0),
       byte_size(0),
       type(IMAGE_DATA_NUM_TYPES),
-      colorspace(u_colorspace_raw),
+      colorspace(u_colorspace_scene_linear),
       colorspace_file_format(""),
       use_transform_3d(false),
       compress_as_srgb(false)
@@ -259,10 +260,10 @@ void ImageMetaData::detect_colorspace()
   colorspace = ColorSpaceManager::detect_known_colorspace(
       colorspace, colorspace_file_hint.c_str(), colorspace_file_format, is_float());
 
-  if (colorspace == u_colorspace_raw) {
+  if (colorspace == u_colorspace_scene_linear || colorspace == u_colorspace_data) {
     /* Nothing to do. */
   }
-  else if (colorspace == u_colorspace_srgb) {
+  else if (colorspace == u_colorspace_scene_linear_srgb) {
     /* Keep sRGB colorspace stored as sRGB, to save memory and/or loading time
      * for the common case of 8bit sRGB images like PNG. */
     compress_as_srgb = true;
@@ -620,15 +621,18 @@ bool ImageManager::file_load_image(Image *img, const int texture_limit)
     }
   }
 
-  if (img->metadata.colorspace != u_colorspace_raw &&
-      img->metadata.colorspace != u_colorspace_srgb)
+  if (img->metadata.colorspace != u_colorspace_scene_linear &&
+      img->metadata.colorspace != u_colorspace_scene_linear_srgb &&
+      img->metadata.colorspace != u_colorspace_data)
   {
     /* Convert to scene linear. */
     const bool ignore_alpha = img->params.alpha_type == IMAGE_ALPHA_IGNORE ||
                               img->params.alpha_type == IMAGE_ALPHA_CHANNEL_PACKED;
     ColorSpaceManager::to_scene_linear(img->metadata.colorspace,
                                        pixels,
-                                       num_pixels,
+                                       width,
+                                       height,
+                                       width * (is_rgba ? 4 : 1),
                                        is_rgba,
                                        img->metadata.compress_as_srgb,
                                        ignore_alpha);

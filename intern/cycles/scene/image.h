@@ -6,8 +6,7 @@
 
 #include "device/memory.h"
 
-#include "scene/colorspace.h"
-
+#include "util/colorspace.h"
 #include "util/string.h"
 #include "util/thread.h"
 #include "util/transform.h"
@@ -38,7 +37,7 @@ class ImageParams {
   ustring colorspace;
   float frame = 0.0f;
 
-  ImageParams() : colorspace(u_colorspace_raw) {}
+  ImageParams() : colorspace(u_colorspace_scene_linear) {}
 
   bool operator==(const ImageParams &other) const
   {
