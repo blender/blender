@@ -899,7 +899,7 @@ static wmOperatorStatus node_add_nodes_modal(bContext *C, wmOperator *op, const 
   for (bNode *node : data->nodes) {
     node->location[1] -= stack_offset;
     stack_offset += (node->runtime->draw_bounds.ymax - node->runtime->draw_bounds.ymin) *
-                    delta_factor;
+                    delta_factor / UI_SCALE_FAC;
     redraw = true;
   }
 
