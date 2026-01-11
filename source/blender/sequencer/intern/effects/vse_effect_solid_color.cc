@@ -17,10 +17,18 @@ namespace blender::seq {
 
 static void init_solid_color(Strip *strip)
 {
-  MEM_SAFE_DELETE_VOID(strip->effectdata);
   SolidColorVars *data = MEM_new<SolidColorVars>("solidcolor");
   strip->effectdata = data;
   data->col[0] = data->col[1] = data->col[2] = 0.5;
+}
+
+static void free_solid_color(Strip *strip, const bool /*do_id_user*/)
+{
+  if (strip->effectdata) {
+    SolidColorVars *data = static_cast<SolidColorVars *>(strip->effectdata);
+    MEM_delete(data);
+    strip->effectdata = nullptr;
+  }
 }
 
 static int num_inputs_color()
@@ -85,6 +93,7 @@ void solid_color_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_solid_color;
   rval.num_inputs = num_inputs_color;
+  rval.free = free_solid_color;
   rval.early_out = early_out_color;
   rval.execute = do_solid_color;
 }

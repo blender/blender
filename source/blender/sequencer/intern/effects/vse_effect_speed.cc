@@ -25,7 +25,6 @@ namespace blender::seq {
 
 static void init_speed_effect(Strip *strip)
 {
-  MEM_SAFE_DELETE_VOID(strip->effectdata);
   SpeedControlVars *data = MEM_new<SpeedControlVars>("speedcontrolvars");
   strip->effectdata = data;
   data->speed_control_type = SEQ_SPEED_STRETCH;
@@ -34,18 +33,21 @@ static void init_speed_effect(Strip *strip)
   data->speed_fader_frame_number = 0.0f;
 }
 
+static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
+{
+  if (strip->effectdata) {
+    SpeedControlVars *v = static_cast<SpeedControlVars *>(strip->effectdata);
+    if (v->frameMap) {
+      MEM_delete(v->frameMap);
+    }
+    MEM_delete(v);
+    strip->effectdata = nullptr;
+  }
+}
+
 static int num_inputs_speed()
 {
   return 1;
-}
-
-static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
-{
-  SpeedControlVars *v = static_cast<SpeedControlVars *>(strip->effectdata);
-  if (v->frameMap) {
-    MEM_delete(v->frameMap);
-  }
-  MEM_SAFE_DELETE_VOID(strip->effectdata);
 }
 
 static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)

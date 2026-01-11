@@ -177,7 +177,6 @@ bool effects_can_render_text(const Strip *strip)
 
 static void init_text_effect(Strip *strip)
 {
-  MEM_SAFE_DELETE_VOID(strip->effectdata);
   TextVars *data = MEM_new<TextVars>("textvars");
   strip->effectdata = data;
 
