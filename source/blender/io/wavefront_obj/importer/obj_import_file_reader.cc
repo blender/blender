@@ -887,7 +887,7 @@ MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
 void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_materials)
 {
   size_t buffer_len;
-  void *buffer = BLI_file_read_text_as_mem(mtl_file_path_, 0, &buffer_len);
+  char *buffer = BLI_file_read_text_as_mem(mtl_file_path_, 0, &buffer_len);
   if (buffer == nullptr) {
     CLOG_ERROR(&LOG, "OBJ import: cannot read from MTL file: '%s'", mtl_file_path_);
     return;
@@ -895,7 +895,7 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
 
   MTLMaterial *material = nullptr;
 
-  StringRef buffer_str{static_cast<const char *>(buffer), int64_t(buffer_len)};
+  StringRef buffer_str{buffer, int64_t(buffer_len)};
   while (!buffer_str.is_empty()) {
     const StringRef line = read_next_line(buffer_str);
     const char *p = line.begin(), *end = line.end();
@@ -968,7 +968,7 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
     }
   }
 
-  MEM_delete_void(buffer);
+  MEM_delete(buffer);
 }
 }  // namespace io::obj
 }  // namespace blender

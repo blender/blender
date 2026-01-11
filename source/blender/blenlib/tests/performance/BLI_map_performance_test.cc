@@ -64,7 +64,7 @@ static char *read_text_corpus()
 
 #ifdef TEXT_CORPUS_PATH
   size_t data_size;
-  data = static_cast<char *>(BLI_file_read_text_as_mem(TEXT_CORPUS_PATH, 1, &data_size));
+  data = BLI_file_read_text_as_mem(TEXT_CORPUS_PATH, 1, &data_size);
   if (data != nullptr) {
     data[data_size] = 0;
   }

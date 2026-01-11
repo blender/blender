@@ -510,12 +510,12 @@ void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
   return mem;
 }
 
-void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size)
+char *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size)
 {
   FILE *fp = BLI_fopen(filepath, "r");
-  void *mem = nullptr;
+  char *mem = nullptr;
   if (fp) {
-    mem = BLI_file_read_data_as_mem_from_handle(fp, false, pad_bytes, r_size);
+    mem = static_cast<char *>(BLI_file_read_data_as_mem_from_handle(fp, false, pad_bytes, r_size));
     fclose(fp);
   }
   return mem;
@@ -532,12 +532,12 @@ void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t
   return mem;
 }
 
-void *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
+char *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
                                                     bool trim_trailing_space,
                                                     size_t pad_bytes,
                                                     size_t *r_size)
 {
-  char *mem = static_cast<char *>(BLI_file_read_text_as_mem(filepath, pad_bytes, r_size));
+  char *mem = BLI_file_read_text_as_mem(filepath, pad_bytes, r_size);
   if (mem != nullptr) {
     char *mem_end = mem + *r_size;
     if (pad_bytes != 0) {

@@ -589,7 +589,7 @@ static wmOperatorStatus paste_from_file(bContext *C, ReportList *reports, const 
   size_t filelen;
   wmOperatorStatus retval;
 
-  strp = static_cast<char *>(BLI_file_read_text_as_mem(filepath, 1, &filelen));
+  strp = BLI_file_read_text_as_mem(filepath, 1, &filelen);
   if (strp == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Failed to open file '%s'", filepath);
     return OPERATOR_CANCELLED;
