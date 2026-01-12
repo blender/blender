@@ -10,8 +10,9 @@ from mathutils import Vector
 
 import bpy
 
-# This test is based around the "Tests" node group in the test file.
-# Test cases are added by frame nodes in the node group. Each frame represents one sub-test.
+# Test cases listed below must have a test data in the "Tests" node group in the main test file.
+# Each test case should have a frame node whose content is used as input for operators.
+#
 # A single test case can be tested using the '--subtest <NAME>' argument:
 #
 # ./bin/blender --factory-startup --python <SOURCEPATH>/tests/python/bl_node_copy_operators.py
@@ -35,6 +36,30 @@ import bpy
 
 args = None
 testfile = "node_copy_operators.blend"
+
+# List of test cases expected in the test file.
+# A set of options can be associated with each test case:
+# - NODE_GROUP: Test starts as a node group instead of internal nodes. Only ungrouping and separating is tested.
+all_test_cases = [
+    ('test_empty', {}),
+    ('test_socket_types', {}),
+    ('test_structure_types', {}),
+    ('test_panels', {}),
+    ('test_panel_state', {}),
+    ('test_external_links', {}),
+    ('test_internal_links', {}),
+    ('test_single_node_links', {}),
+    ('test_skip_invisible_sockets', {}),
+    ('test_multi_input_socket', {}),
+    ('test_frame_nodes', {}),
+    ('test_subtypes', {}),
+    ('test_ui_settings', {}),
+    ('test_vector_dimension', {}),
+    ('test_default_input', {}),
+    ('test_anim_data', {}),
+    ('test_extension_sockets', {}),
+    ('test_pass_through', {'NODE_GROUP'}),
+]
 
 
 # Utility for mapping nodes and sockets to ground truth data.
@@ -122,16 +147,20 @@ def top_level_frames(tree):
 
 
 # Names of test cases found in a node tree.
-def test_cases(tree):
-    return [frame.label for frame in top_level_frames(tree)]
+def test_cases():
+    return list(name for name, _ in all_test_cases)
 
 
 # Filter test cases based on script arguments.
-def filtered_test_cases(tree):
+def filtered_test_cases():
     if args.subtest:
-        return filter(lambda test_case: test_case == args.subtest, test_cases(tree))
+        return filter(lambda test_case: test_case == args.subtest, test_cases())
     else:
-        return test_cases(tree)
+        return test_cases()
+
+
+def test_options(test_name):
+    return next(options for name, options in all_test_cases if name == test_name)
 
 
 # Returns the frame node for a test case.
@@ -156,8 +185,30 @@ def find_expected_nodes(tree, test_name):
     return test_nodes
 
 
+# NOOP case when the test starts out with a node group.
+def execute_node_group_noop(test_case, test_tree, expected_tree=None):
+    test_nodes = find_expected_nodes(test_tree, test_case)
+    assert len(test_nodes) == 1
+    group_node = test_nodes[0]
+
+    if expected_tree:
+        # Map resulting nodes to expected nodes.
+        expected_nodes = find_expected_nodes(expected_tree, test_case)
+        assert len(expected_nodes) == 1
+        expected_node = expected_nodes[0]
+        mapping = NodeMapping()
+        mapping.add_tree(group_node.node_tree, expected_node.node_tree)
+        mapping.add_node(group_node, expected_node)
+        mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
+        return mapping
+
+
 # Run the 'node.make_group' operator on test nodes.
 def execute_make_group(test_case, test_tree, expected_tree=None):
+    # Special case: skip if the test starts as a node group.
+    if 'NODE_GROUP' in test_options(test_case):
+        return execute_node_group_noop(test_case, test_tree, expected_tree)
+
     test_nodes = find_expected_nodes(test_tree, test_case)
 
     with node_editor_context_override(bpy.context, test_tree, selected_nodes=test_nodes):
@@ -180,6 +231,10 @@ def execute_make_group(test_case, test_tree, expected_tree=None):
 
 # Run the 'node.group_insert' operator on test nodes.
 def execute_group_insert(test_case, test_tree, expected_tree=None):
+    # Special case: skip if the test starts as a node group.
+    if 'NODE_GROUP' in test_options(test_case):
+        return execute_node_group_noop(test_case, test_tree, expected_tree)
+
     test_nodes = find_expected_nodes(test_tree, test_case)
     centroid = node_centroid(test_nodes)
 
@@ -434,7 +489,7 @@ class NodeMakeGroupTest(AbstractNodeCopyOperatorTest):
     def test_make_group(self):
         test_tree = bpy.data.node_groups["Tests"]
         expected_tree = bpy.data.node_groups["ExpectedMakeGroup"]
-        for test_case in filtered_test_cases(test_tree):
+        for test_case in filtered_test_cases():
             with self.subTest(case=test_case):
                 mapping = execute_make_group(test_case, test_tree, expected_tree)
                 self.compare(mapping)
@@ -442,7 +497,7 @@ class NodeMakeGroupTest(AbstractNodeCopyOperatorTest):
     def test_group_insert(self):
         test_tree = bpy.data.node_groups["Tests"]
         expected_tree = bpy.data.node_groups["ExpectedGroupInsert"]
-        for test_case in filtered_test_cases(test_tree):
+        for test_case in filtered_test_cases():
             with self.subTest(case=test_case):
                 mapping = execute_group_insert(test_case, test_tree, expected_tree)
                 self.compare(mapping)
@@ -451,7 +506,7 @@ class NodeMakeGroupTest(AbstractNodeCopyOperatorTest):
         # Start with grouped nodes.
         test_tree = bpy.data.node_groups["ExpectedMakeGroup"]
         expected_tree = bpy.data.node_groups["ExpectedUngroup"]
-        for test_case in filtered_test_cases(test_tree):
+        for test_case in filtered_test_cases():
             with self.subTest(case=test_case):
                 mapping = execute_ungroup(test_case, test_tree, expected_tree)
                 self.compare(mapping)
@@ -460,7 +515,7 @@ class NodeMakeGroupTest(AbstractNodeCopyOperatorTest):
         # Start with grouped nodes.
         test_tree = bpy.data.node_groups["ExpectedMakeGroup"]
         expected_tree = bpy.data.node_groups["ExpectedGroupSeparateCopy"]
-        for test_case in filtered_test_cases(test_tree):
+        for test_case in filtered_test_cases():
             with self.subTest(case=test_case):
                 mapping = execute_group_separate('COPY', test_case, test_tree, expected_tree)
                 self.compare(mapping)
@@ -469,7 +524,7 @@ class NodeMakeGroupTest(AbstractNodeCopyOperatorTest):
         # Start with grouped nodes.
         test_tree = bpy.data.node_groups["ExpectedMakeGroup"]
         expected_tree = bpy.data.node_groups["ExpectedGroupSeparateMove"]
-        for test_case in filtered_test_cases(test_tree):
+        for test_case in filtered_test_cases():
             with self.subTest(case=test_case):
                 mapping = execute_group_separate('MOVE', test_case, test_tree, expected_tree)
                 self.compare(mapping)
@@ -506,14 +561,14 @@ def generate_test_data():
 
     expected_tree__make_group = copy_tree(test_tree, ob.modifiers["ExpectedMakeGroup"])
     # Use result of grouping as starting point for ungrouping and separating.
-    for test_case in test_cases(test_tree):
+    for test_case in test_cases():
         execute_make_group(test_case, expected_tree__make_group)
 
     expected_tree__group_insert = copy_tree(test_tree, ob.modifiers["ExpectedGroupInsert"])
     expected_tree__ungroup = copy_tree(expected_tree__make_group, ob.modifiers["ExpectedUngroup"])
     expected_tree__group_separate_copy = copy_tree(expected_tree__make_group, ob.modifiers["ExpectedGroupSeparateCopy"])
     expected_tree__group_separate_move = copy_tree(expected_tree__make_group, ob.modifiers["ExpectedGroupSeparateMove"])
-    for test_case in test_cases(test_tree):
+    for test_case in test_cases():
         execute_group_insert(test_case, expected_tree__group_insert)
         execute_ungroup(test_case, expected_tree__ungroup)
         execute_group_separate('COPY', test_case, expected_tree__group_separate_copy)
