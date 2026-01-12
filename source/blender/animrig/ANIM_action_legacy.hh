@@ -126,15 +126,6 @@ Vector<bActionGroup *> channel_groups_all(bAction *action);
 Vector<bActionGroup *> channel_groups_for_assigned_slot(AnimData *adt);
 
 /**
- * Determine whether to treat this Action as a legacy Action or not.
- *
- * - empty Action: returns the value of the 'Slotted Actions' experimental feature.
- * - layered Action: always returns false.
- * - legacy Action: always returns true.
- */
-bool action_treat_as_legacy(const bAction &action);
-
-/**
  * Remove all F-Curves whose RNA path starts with the given prefix from an Action Slot.
  *
  * This function works for both legacy and layered Actions. For the former, the

@@ -54,7 +54,6 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
 {
   Slot &cube_slot = action->slot_add();
   Slot &monkey_slot = action->slot_add();
-  EXPECT_TRUE(action->is_action_layered());
 
   /* Try iterating an empty action. */
   Vector<FCurve *> no_fcurves;
