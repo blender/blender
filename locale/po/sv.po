@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9343,28 +9343,28 @@ msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Special Characters"
+msgstr "Specialtecken"
 
 
 msgid "Math"
 msgstr "Matematik"
 
 
+msgid "Metaball"
+msgstr "Metaboll"
+
+
 msgid "Utilities"
 msgstr "Verktyg"
 
 
+msgid "Names"
+msgstr "Namn"
+
+
 msgid "Clean Up"
 msgstr "Städa upp"
-
-
-msgid "Pivot Point"
-msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
 
 
 msgid "Read"
@@ -9375,8 +9375,16 @@ msgid "Write"
 msgstr "Skriv"
 
 
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
 msgid "Primitives"
 msgstr "Primitiver"
+
+
+msgid "Snap"
+msgstr "Snäpp"
 
 
 msgid "Instances"
@@ -9385,6 +9393,10 @@ msgstr "Instanser"
 
 msgid "Import"
 msgstr "Importera"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
 
 
 msgid "Mirror"
@@ -9403,8 +9415,8 @@ msgid "Navigation"
 msgstr "Navigering"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align View"
@@ -9419,16 +9431,8 @@ msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Assign Material"
 msgstr "Tilldela material"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
 
 
 msgid "Light"
@@ -9479,20 +9483,16 @@ msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Propagate"
-msgstr "Propagera"
-
-
 msgid "Adjust"
 msgstr "Justera"
 
 
+msgid "Propagate"
+msgstr "Propagera"
+
+
 msgid "Merge"
 msgstr "Sammanfoga"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
 
 
 msgid "Animals"
@@ -13238,8 +13238,8 @@ msgstr "Importera bildsekvens"
 
 
 msgctxt "Operator"
-msgid "Texture Setup"
-msgstr "Texturkonfiguration"
+msgid "Add Texture Setup"
+msgstr "Lägg till texturinställning"
 
 
 msgctxt "Operator"
@@ -26209,11 +26209,6 @@ msgstr "Variant"
 msgctxt "Operator"
 msgid "Image Sequence"
 msgstr "Bildsekvens"
-
-
-msgctxt "Operator"
-msgid "Add Texture Setup"
-msgstr "Lägg till texturinställning"
 
 
 msgctxt "Operator"

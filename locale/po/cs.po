@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13842,20 +13842,28 @@ msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
+msgid "Special Characters"
+msgstr "Speciální Znaky"
 
 
 msgid "Math"
 msgstr "Matematika"
 
 
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
 msgid "Utilities"
 msgstr "Nástroje"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
 
 
 msgid "Clean Up"
@@ -13908,10 +13916,6 @@ msgstr "Vybrat Propojené"
 
 msgid "Assign Material"
 msgstr "Přiřadit Materiál"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
 
 
 msgid "Light"
@@ -13976,10 +13980,6 @@ msgstr "Data Ploch"
 
 msgid "Merge"
 msgstr "Sloučit"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
 
 
 msgid "Basic"
@@ -32428,10 +32428,6 @@ msgstr "Automatická hloubka"
 
 msgid "Orbit Around Selection"
 msgstr "Orbitovat Okolo Výběru"
-
-
-msgid "Use selection as the pivot point"
-msgstr "Použít výběr jako pivot"
 
 
 msgid "Zoom to Mouse Position"

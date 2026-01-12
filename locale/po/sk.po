@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
-"PO-Revision-Date: 2025-12-17 15:12+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"PO-Revision-Date: 2026-01-07 09:13+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -18566,16 +18566,8 @@ msgid "Is Layered Action"
 msgstr "Je akcia vrstvená"
 
 
-msgid "Return whether this is a layered Action. An empty Action is considered as both a 'legacy' and a 'layered' Action."
-msgstr "Vráti, či ide o vrstvenú akciu. Prázdna akcia sa považuje za „staršiu“ aj „vrstvenú“ akciu."
-
-
 msgid "Is Legacy Action"
 msgstr "Je akcia zdedená"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action is considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 actions are automatically updated to layered actions, and thus this will only return True when the action is empty"
-msgstr "Vráti, či ide o staršiu akciu. Staršie akcie nemajú žiadne vrstvy ani zásuvky. Prázdna Akcia sa považuje za „staršiu“ aj „vrstvenú“ Akciu. Od verzie Blender 4.4 sa akcie automaticky aktualizujú na vrstvené akcie, a preto táto funkcia vráti hodnotu PRAVDA len vtedy, keď je akcia prázdna"
 
 
 msgid "Is Empty"
@@ -20379,18 +20371,6 @@ msgstr "Rozostup medzi ťahmi štetca ako percento priemeru štetca"
 
 msgid "Stabilize Normal"
 msgstr "Stabilizovať normálu"
-
-
-msgid "Stabilize the orientation of the brush plane."
-msgstr "Stabilizuje orientáciu roviny štetca."
-
-
-msgid "Stabilize Plane"
-msgstr "Stabilizovať rovinu"
-
-
-msgid "Stabilize the center of the brush plane."
-msgstr "Stabilizuje stred roviny štetca."
 
 
 msgid "Stencil Dimensions"
@@ -34954,6 +34934,26 @@ msgid "Show/Hide"
 msgstr "Ukázať/skryť"
 
 
+msgid "Special Characters"
+msgstr "Špeciálne znaky"
+
+
+msgid "Kerning"
+msgstr "Zhustenie znakov"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Metaball"
+msgstr "Meta guľa"
+
+
+msgid "Utilities"
+msgstr "Obslužné programy"
+
+
 msgid "Names"
 msgstr "Názvy"
 
@@ -34962,20 +34962,28 @@ msgid "Bone Roll"
 msgstr "Kývanie kosti"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Utilities"
-msgstr "Obslužné programy"
-
-
 msgid "Clean Up"
 msgstr "Prečistiť"
 
 
+msgid "Read"
+msgstr "Čítanie"
+
+
+msgid "Sample"
+msgstr "Snímka"
+
+
+msgid "Write"
+msgstr "Zápis"
+
+
 msgid "Pivot Point"
 msgstr "Otočný bod"
+
+
+msgid "Primitives"
+msgstr "Prvotné tvary"
 
 
 msgid "Snap"
@@ -34994,28 +35002,12 @@ msgid "Automasking"
 msgstr "Automatické maskovanie"
 
 
-msgid "Read"
-msgstr "Čítanie"
-
-
-msgid "Sample"
-msgstr "Snímka"
-
-
 msgid "Face Sets Edit"
 msgstr "Úprava nastavenia plôšok"
 
 
-msgid "Write"
-msgstr "Zápis"
-
-
 msgid "Vertex Group Locks"
 msgstr "Zámky skupiny vrcholov"
-
-
-msgid "Primitives"
-msgstr "Prvotné tvary"
 
 
 msgid "Gizmo"
@@ -35030,6 +35022,10 @@ msgid "Import"
 msgstr "Import"
 
 
+msgid "Deprecated"
+msgstr "Zastarané"
+
+
 msgid "Mirror"
 msgstr "Zrkadlo"
 
@@ -35042,6 +35038,10 @@ msgid "Local View"
 msgstr "Lokálny pohľad"
 
 
+msgid "List"
+msgstr "Zoznam"
+
+
 msgid "Viewpoint"
 msgstr "Smer záberu"
 
@@ -35050,8 +35050,8 @@ msgid "Navigation"
 msgstr "Navigácia"
 
 
-msgid "Deprecated"
-msgstr "Zastarané"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align View"
@@ -35068,14 +35068,6 @@ msgstr "Oblasti pohľadu"
 
 msgid "Select More/Less"
 msgstr "Vybrať viac/menej"
-
-
-msgid "List"
-msgstr "Zoznam"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Similar"
@@ -35096,10 +35088,6 @@ msgstr "Vybrať slučky"
 
 msgid "Assign Material"
 msgstr "Priradiť materiál"
-
-
-msgid "Metaball"
-msgstr "Meta guľa"
 
 
 msgid "Light"
@@ -35154,6 +35142,10 @@ msgid "Hooks"
 msgstr "Háky"
 
 
+msgid "Layout"
+msgstr "Rozloženie"
+
+
 msgid "Trim/Add"
 msgstr "Orezať/Pridať"
 
@@ -35166,16 +35158,16 @@ msgid "Face Sets Init"
 msgstr "Počiatočná sústava plôšok"
 
 
-msgid "Layout"
-msgstr "Rozloženie"
-
-
 msgid "Random Mask"
 msgstr "Náhodná maska"
 
 
 msgid "Clear Transform"
 msgstr "Zmazať transformáciu"
+
+
+msgid "Adjust"
+msgstr "Prispôsobenie"
 
 
 msgid "In-Betweens"
@@ -35190,28 +35182,28 @@ msgid "Bone Collections"
 msgstr "Kolekcie kostí"
 
 
-msgid "Adjust"
-msgstr "Prispôsobenie"
+msgid "Keying"
+msgstr "Kľúčovanie"
+
+
+msgid "Tracking"
+msgstr "Snímanie"
 
 
 msgid "Toggle Bone Options"
 msgstr "Prepínač možnosti kostí"
 
 
+msgid "Creative"
+msgstr "Kreatívne"
+
+
 msgid "Enable Bone Options"
 msgstr "Povoliť možnosti kostí"
 
 
-msgid "Keying"
-msgstr "Kľúčovanie"
-
-
 msgid "Disable Bone Options"
 msgstr "Zakázať možnosti kostí"
-
-
-msgid "Tracking"
-msgstr "Snímanie"
 
 
 msgid "Mesh Select Mode"
@@ -35222,10 +35214,6 @@ msgid "Face Data"
 msgstr "Údaje plôšky"
 
 
-msgid "Creative"
-msgstr "Kreatívne"
-
-
 msgid "Select by Face Strength"
 msgstr "Vybrať podľa vplyvu plôšky"
 
@@ -35234,20 +35222,12 @@ msgid "Set Face Strength"
 msgstr "Nastaviť vplyv plôšky"
 
 
-msgid "Merge"
-msgstr "Zlúčiť"
-
-
 msgid "Render Preview"
 msgstr "Náhľad prekreslenia"
 
 
-msgid "Special Characters"
-msgstr "Špeciálne znaky"
-
-
-msgid "Kerning"
-msgstr "Zhustenie znakov"
+msgid "Merge"
+msgstr "Zlúčiť"
 
 
 msgid "Keyframe Insert Pie"
@@ -54164,13 +54144,8 @@ msgstr "Importuje sekvenciu obrázkov"
 
 
 msgctxt "Operator"
-msgid "Texture Setup"
-msgstr "Nastavenie textúr"
-
-
-msgctxt "Operator"
-msgid "Principled Texture Setup"
-msgstr "Nastavenie Principiálnych textúr"
+msgid "Add Texture Setup"
+msgstr "Pridať nastavenia textúr"
 
 
 msgid "Align selected nodes in a grid pattern"
@@ -61469,6 +61444,14 @@ msgstr "Euler (ZYX)"
 
 msgid "Convert rotations to euler ZYX"
 msgstr "Konvertuje rotáciu podľa Eulera ZYX"
+
+
+msgid "Sort Children By Name"
+msgstr "Zoradiť potomkov podľa mena"
+
+
+msgid "Sort the children of each bone alphabetically"
+msgstr "Zoradiť potomkov každej kosti abecedne"
 
 
 msgid "Add Leaf Bones"
@@ -96223,10 +96206,6 @@ msgid "Orbit Around Selection"
 msgstr "Obiehanie okolo výberu"
 
 
-msgid "Use selection as the pivot point"
-msgstr "Použije výber ako otočný bod"
-
-
 msgid "Zoom to Mouse Position"
 msgstr "Priblížiť na pozíciu myši"
 
@@ -97131,10 +97110,6 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Čínsky (tradičná) - 繁體中文"
 
 
-msgid "Locale code: zh_HANT. Translation progress: 51%"
-msgstr "Kód lokalizácie: zh_HANT. Pokrok prekladu: 51 %"
-
-
 msgid "Czech - Čeština"
 msgstr "Česky - Čeština"
 
@@ -97251,8 +97226,16 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonézsky - Bahasa indonesia"
 
 
+msgid "Locale code: id_ID. Translation progress: 22%"
+msgstr "Kód lokalizácie: id_ID. Pokrok prekladu: 22 %"
+
+
 msgid "Italian - Italiano"
 msgstr "Taliansky - Italiano"
+
+
+msgid "Locale code: it_IT. Translation progress: 44%"
+msgstr "Kód lokalizácie: it_IT. Pokrok prekladu: 44 %"
 
 
 msgid "Japanese - 日本語"
@@ -97299,6 +97282,10 @@ msgid "Norwegian (Bokmål) - Norsk bokmål"
 msgstr "Nórčina (Bokmål) - Nórčina Bokmål"
 
 
+msgid "Locale code: nb. Translation progress: 3%"
+msgstr "Kód lokalizácie: nb. Pokrok prekladu: 3%"
+
+
 msgid "Persian - ﯽﺳﺭﺎﻓ"
 msgstr "Perzsky - ﯽﺳﺭﺎﻓ"
 
@@ -97311,10 +97298,6 @@ msgid "Polish - Polski"
 msgstr "Poľsky - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 18%"
-msgstr "Kód lokalizácie: pl_PL. Pokrok prekladu: 18 %"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugalsky (Brazília) - Português brasileiro"
 
@@ -97325,6 +97308,10 @@ msgstr "Kód lokalizácie: pt_BR. Pokrok prekladu: 43%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugalsky (Portugal) - Português europeu"
+
+
+msgid "Locale code: pt_PT. Translation progress: 74%"
+msgstr "Kód lokalizácie: pt_PT. Pokrok prekladu: 74 %"
 
 
 msgid "Romanian - Român"
@@ -97395,6 +97382,10 @@ msgid "Swedish - Svenska"
 msgstr "Švédsky - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 21%"
+msgstr "Kód lokalizácie: sv_SE. Pokrok prekladu: 21 %"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "Tamilsky - தமிழ்"
 
@@ -97437,6 +97428,10 @@ msgstr "Kód lokalizácie: ur. Pokrok prekladu: 87%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamsky - Tiếng Việt"
+
+
+msgid "Locale code: vi_VN. Translation progress: 94%"
+msgstr "Kód lokalizácie: vi_VN. Pokrok prekladu: 94 %"
 
 
 msgid "Reference Sphere Size"
@@ -98499,6 +98494,10 @@ msgstr "ID skupiny vlastností"
 
 msgid "Group of ID properties"
 msgstr "Skupina ID vlastností"
+
+
+msgid "Unique name used in the code and scripting, can be re-defined in Python sub-classes if needed"
+msgstr "Jedinečný názov používaný v kóde a skriptoch, v prípade potreby ho možno predefiniovať v podtriedach Pythonu"
 
 
 msgid "Action to apply to the rig via constraints"
@@ -108419,6 +108418,14 @@ msgstr "Počiatočná snímka zobrazená v editore sekvencií aplikovaná po pos
 
 msgid "End Offset"
 msgstr "Posuv konca"
+
+
+msgid "Offset from the end of the strip in frames"
+msgstr "Posuv od konca pásu v snímkach"
+
+
+msgid "Offset from the start of the strip in frames"
+msgstr "Posuv od začiatku pásu v snímkach"
 
 
 msgid "X position where the strip begins"
@@ -120135,16 +120142,6 @@ msgid "Image Sequence"
 msgstr "Sekvencia obrázkov"
 
 
-msgctxt "Operator"
-msgid "Add Texture Setup"
-msgstr "Pridať nastavenia textúr"
-
-
-msgctxt "Operator"
-msgid "Add Principled Setup"
-msgstr "Pridať nastavenie Principiálne"
-
-
 msgid "(Quick Access: Shift+W)"
 msgstr "(Rýchly prístup: Shift+W)"
 
@@ -121628,10 +121625,6 @@ msgstr "Používajú sa všetky kolekcie kostí"
 
 msgid "An action slot can only be created when an action is assigned"
 msgstr "Zásuvka akcie môže byť vytvorená len vtedy, keď je priradená akcia"
-
-
-msgid "Action slots are only supported by layered Actions. Upgrade this Action first"
-msgstr "Zásuvky akcií sú podporované len vrstvenými akciami. Najprv aktualizujte túto akciu"
 
 
 msgid "Creating a new Slot is not possible on a linked Action"
@@ -129204,11 +129197,6 @@ msgstr "Zarovnať na orientáciu transformácie"
 msgctxt "Operator"
 msgid "Project from View (Bounds)"
 msgstr "Premietnuť z pohľadu (okraje)"
-
-
-msgctxt "Operator"
-msgid "Frame Last Stroke"
-msgstr "Snímka posledného ťahu"
 
 
 msgctxt "Operator"
@@ -141201,12 +141189,12 @@ msgid "Select movie or image strips"
 msgstr "Vyberie filmové alebo obrazové pásy"
 
 
-msgid "Cannot create key inside of speed transition"
-msgstr "Nemožno vytvoriť kľúč vnútri prechodu rýchlosti"
-
-
 msgid "Cannot create freeze frame"
 msgstr "Nemožno vytvoriť snímku zmrazenia"
+
+
+msgid "Cannot create key inside of speed transition"
+msgstr "Nemožno vytvoriť kľúč vnútri prechodu rýchlosti"
 
 
 msgid "Cannot create transition from first or last key"
@@ -143425,16 +143413,8 @@ msgid "Cannot return channelbag when slot is None"
 msgstr "Nemožno vrátiť balík kanálov, keď zásuvka je Nie"
 
 
-msgid "Cannot add slots to a legacy Action '%s'. Convert it to a layered Action first."
-msgstr "Nemožno pridať zásuvky do zdedenej akcie '%s'. Najprv ju prekonvertujte na vrstvenú akciu."
-
-
 msgid "Invalid slot name '%s': name must not be empty."
 msgstr "Nesprávny názov zásuvky '%s': názov nesmie byť prázdny."
-
-
-msgid "Cannot add layers to a legacy Action '%s'. Convert it to a layered Action first."
-msgstr "Nemožno pridať vrstvy do staršej akcie '%s'. Najprv ju prekonvertujte na vrstvenú akciu."
 
 
 msgid "F-Curve '%s[%d]' already exists in this channelbag"
@@ -143587,6 +143567,10 @@ msgstr "Nesprávny index palety farieb: %d"
 
 msgid "%s is not supported, pass a Bone, PoseBone, or EditBone"
 msgstr "%s nie je podporované, prechod Kosť, PózaKosť alebo UpraviťKosť"
+
+
+msgid "Asset metadata from external libraries cannot be edited. Only assets stored in the current file can be edited."
+msgstr "Metadáta aktív z externých knižníc nie je možné upravovať. Upravovať je možné iba aktíva uložené v aktuálnom súbore."
 
 
 msgid "Tag '%s' already present for given asset"
@@ -146931,54 +146915,6 @@ msgid "The amount of jitter to introduce while computing rays, higher jitter can
 msgstr "Miera chvenia, ktorá sa má zaviesť pri výpočte lúčov. Vyššie chvenie môže byť rýchlejšie, ale môže spôsobiť zrnité alebo zašumené výsledky"
 
 
-msgid "Wrong Image Input Type"
-msgstr "Nesprávny typ vstupného obrázku"
-
-
-msgid "Wrong Mask Input Type"
-msgstr "Nesprávny typ masky"
-
-
-msgid "Unsupported Inputs"
-msgstr "Nepodporované vstupy"
-
-
-msgid "Node group's main Image input should be of type Color"
-msgstr "Hlavný vstup obrazu skupiny uzlov by mal byť typu Farba"
-
-
-msgid "Node group's Mask input should be of type Color"
-msgstr "Vstup Maska skupiny uzlov by mal byť typu Farba"
-
-
-msgid "Only a main Image and Mask inputs are supported, the rest are unsupported and will return zero"
-msgstr "Podporované sú iba hlavné vstupy Obrázok a Maska, ostatné nie sú podporované a vrátia hodnotu nula"
-
-
-msgid "No Output"
-msgstr "Žiadny výstup"
-
-
-msgid "Wrong Output Type"
-msgstr "Nesprávny typ výstupu"
-
-
-msgid "Ignored Outputs"
-msgstr "Ignorované výstupy"
-
-
-msgid "Node group must have a Color output socket"
-msgstr "Skupina uzlov musí mať výstupnú zásuvku Farba"
-
-
-msgid "Node group's first output must be a color output"
-msgstr "Prvý výstup skupiny uzlov musí byť farebný výstup"
-
-
-msgid "Only the first output is considered while the rest are ignored"
-msgstr "Do úvahy sa berie len prvý výstup, ostatné sa ignorujú"
-
-
 msgid "Fac"
 msgstr "Faktor"
 
@@ -147340,6 +147276,10 @@ msgstr "Nahradiť alfa"
 
 msgid "Replace the input image's alpha channel by the alpha input value"
 msgstr "Nahradí alfa kanály vstupného obrázka vstupnou hodnotou alfa"
+
+
+msgid "SDF"
+msgstr "SDF"
 
 
 msgid "Line position where the image should be split"
@@ -148977,10 +148917,6 @@ msgstr "Zmena neaktívnych voxelov a dlaždíc na neaktívne dlaždice pozadia"
 
 msgid "Turn regions where all voxels have the same value and active state (within a tolerance threshold) into inactive background tiles"
 msgstr "Premeniť oblasti, v ktorých majú všetky voxely rovnakú hodnotu a aktívny stav (v rámci prahu tolerancie), na neaktívne dlaždice pozadia"
-
-
-msgid "SDF"
-msgstr "SDF"
 
 
 msgid "Replace inactive tiles with inactive nodes. Faster than tolerance-based pruning, useful for cases like narrow-band SDF grids with only inside or outside background values."
@@ -150836,8 +150772,56 @@ msgid "Inspection index is out of range"
 msgstr "Kontrolný index je mimo rozsah"
 
 
+msgid "Wrong Image Input Type"
+msgstr "Nesprávny typ vstupného obrázku"
+
+
+msgid "Wrong Mask Input Type"
+msgstr "Nesprávny typ masky"
+
+
+msgid "Unsupported Inputs"
+msgstr "Nepodporované vstupy"
+
+
+msgid "No Output"
+msgstr "Žiadny výstup"
+
+
+msgid "Wrong Output Type"
+msgstr "Nesprávny typ výstupu"
+
+
+msgid "Ignored Outputs"
+msgstr "Ignorované výstupy"
+
+
 msgid "Unused Output"
 msgstr "Nepoužívaný výstup"
+
+
+msgid "Node group's main Image input should be of type Color"
+msgstr "Hlavný vstup obrazu skupiny uzlov by mal byť typu Farba"
+
+
+msgid "Node group's Mask input should be of type Color"
+msgstr "Vstup Maska skupiny uzlov by mal byť typu Farba"
+
+
+msgid "Only a main Image and Mask inputs are supported, the rest are unsupported and will return zero"
+msgstr "Podporované sú iba hlavné vstupy Obrázok a Maska, ostatné nie sú podporované a vrátia hodnotu nula"
+
+
+msgid "Node group must have a Color output socket"
+msgstr "Skupina uzlov musí mať výstupnú zásuvku Farba"
+
+
+msgid "Node group's first output must be a color output"
+msgstr "Prvý výstup skupiny uzlov musí byť farebný výstup"
+
+
+msgid "Only the first output is considered while the rest are ignored"
+msgstr "Do úvahy sa berie len prvý výstup, ostatné sa ignorujú"
 
 
 msgid "There are multiple group output nodes and this one is not active"

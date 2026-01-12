@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23640,6 +23640,22 @@ msgid "Show/Hide"
 msgstr "표시/숨기기"
 
 
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Math"
+msgstr "수학"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
 msgid "Names"
 msgstr "이름"
 
@@ -23648,16 +23664,20 @@ msgid "Bone Roll"
 msgstr "본 롤"
 
 
-msgid "Math"
-msgstr "수학"
-
-
 msgid "Clean Up"
 msgstr "정리"
 
 
+msgid "Sample"
+msgstr "샘플"
+
+
 msgid "Pivot Point"
 msgstr "피벗 포인트"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Snap"
@@ -23670,14 +23690,6 @@ msgstr "비례 편집 감소"
 
 msgid "Mask Edit"
 msgstr "마스크 편집"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
 
 
 msgid "Import"
@@ -23704,6 +23716,10 @@ msgid "Navigation"
 msgstr "네비게이션"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "뷰를 정렬"
 
@@ -23718,10 +23734,6 @@ msgstr "뷰 지역"
 
 msgid "Select More/Less"
 msgstr "선택 증가/감소"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Similar"
@@ -23742,10 +23754,6 @@ msgstr "루프를 선택"
 
 msgid "Assign Material"
 msgstr "매테리얼을 할당"
-
-
-msgid "Metaball"
-msgstr "메타볼"
 
 
 msgid "Light"
@@ -23792,12 +23800,12 @@ msgid "Hooks"
 msgstr "후크"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
-
-
 msgid "Layout"
 msgstr "레이아웃"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
 
 
 msgid "Clear Transform"
@@ -23812,6 +23820,14 @@ msgid "Propagate"
 msgstr "전파"
 
 
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Tracking"
+msgstr "트래킹"
+
+
 msgid "Toggle Bone Options"
 msgstr "본 옵션을 토글"
 
@@ -23820,16 +23836,8 @@ msgid "Enable Bone Options"
 msgstr "본 옵션을 사용"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
 msgid "Disable Bone Options"
 msgstr "본 옵션을 사용 중지"
-
-
-msgid "Tracking"
-msgstr "트래킹"
 
 
 msgid "Mesh Select Mode"
@@ -23850,14 +23858,6 @@ msgstr "페이스 강도를 설정"
 
 msgid "Merge"
 msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
 
 
 msgid "Basic"
@@ -56212,10 +56212,6 @@ msgstr "변형하는 동안 숫자를 입력 할 때, 전체 수학 표현식 �
 
 msgid "Orbit Around Selection"
 msgstr "선택 주위에 오비트"
-
-
-msgid "Use selection as the pivot point"
-msgstr "피벗 포인트로 선택을 사용"
 
 
 msgid "Zoom to Mouse Position"
