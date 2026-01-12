@@ -25,15 +25,11 @@ Operation::~Operation() = default;
 
 void Operation::evaluate()
 {
-  evaluate_input_processors();
-
-  execute();
-
-  compute_preview();
-
-  release_inputs();
-
-  context().evaluate_operation_post();
+  this->evaluate_input_processors();
+  this->execute();
+  this->compute_preview();
+  this->release_inputs();
+  this->context().evaluate_operation_post();
 }
 
 Result &Operation::get_input(StringRef identifier) const
@@ -92,7 +88,7 @@ Domain Operation::compute_domain()
   return operation_domain;
 }
 
-void Operation::add_and_evaluate_input_processors()
+void Operation::evaluate_input_processors()
 {
   /* Each input processor type is added to all inputs entirely before the next type. This is done
    * because the construction of the input processors may depend on the result of previous input
@@ -102,48 +98,21 @@ void Operation::add_and_evaluate_input_processors()
 
   for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
     SimpleOperation *conversion = ConversionOperation::construct_if_needed(
-        context(), get_input(identifier), get_input_descriptor(identifier));
-    add_and_evaluate_input_processor(identifier, conversion);
+        this->context(), this->get_input(identifier), this->get_input_descriptor(identifier));
+    this->add_and_evaluate_input_processor(identifier, conversion);
   }
 
   for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
     SimpleOperation *realize_on_domain = RealizeOnDomainOperation::construct_if_needed(
-        context(), get_input(identifier), get_input_descriptor(identifier), compute_domain());
-    add_and_evaluate_input_processor(identifier, realize_on_domain);
+        this->context(),
+        this->get_input(identifier),
+        this->get_input_descriptor(identifier),
+        this->compute_domain());
+    this->add_and_evaluate_input_processor(identifier, realize_on_domain);
   }
-}
-
-void Operation::add_and_evaluate_input_processor(StringRef identifier, SimpleOperation *processor)
-{
-  /* Allow null inputs to facilitate construct_if_needed pattern of addition. For instance, see the
-   * implementation of the add_and_evaluate_input_processors method. */
-  if (!processor) {
-    return;
-  }
-
-  ProcessorsVector &processors = input_processors_.lookup_or_add_default(identifier);
-
-  /* Get the result that should serve as the input for the processor. This is either the result
-   * mapped to the input or the result of the last processor depending on whether this is the first
-   * processor or not. */
-  Result &result = processors.is_empty() ? get_input(identifier) : processors.last()->get_result();
-
-  /* Map the input result of the processor and add it to the processors vector. */
-  processor->map_input_to_result(&result);
-  processors.append(std::unique_ptr<SimpleOperation>(processor));
-
-  /* Switch the result mapped to the input to be the output result of the processor. */
-  switch_result_mapped_to_input(identifier, &processor->get_result());
-
-  processor->evaluate();
 }
 
 void Operation::compute_preview() {};
-
-void Operation::switch_result_mapped_to_input(StringRef identifier, Result *result)
-{
-  results_mapped_to_inputs_.lookup(identifier) = result;
-}
 
 void Operation::populate_result(StringRef identifier, Result result)
 {
@@ -165,19 +134,30 @@ Context &Operation::context() const
   return context_;
 }
 
-void Operation::evaluate_input_processors()
+void Operation::add_and_evaluate_input_processor(StringRef identifier, SimpleOperation *processor)
 {
-  if (!input_processors_added_) {
-    add_and_evaluate_input_processors();
-    input_processors_added_ = true;
+  /* Allow null inputs to facilitate construct_if_needed pattern of addition. For instance, see the
+   * implementation of the evaluate_input_processors method. */
+  if (!processor) {
     return;
   }
 
-  for (const ProcessorsVector &processors : input_processors_.values()) {
-    for (const std::unique_ptr<SimpleOperation> &processor : processors) {
-      processor->evaluate();
-    }
-  }
+  ProcessorsVector &processors = input_processors_.lookup_or_add_default(identifier);
+
+  /* Get the result that should serve as the input for the processor. This is either the result
+   * mapped to the input or the result of the last processor depending on whether this is the first
+   * processor or not. */
+  Result &result = processors.is_empty() ? this->get_input(identifier) :
+                                           processors.last()->get_result();
+
+  /* Map the input result of the processor and add it to the processors vector. */
+  processor->map_input_to_result(&result);
+  processors.append(std::unique_ptr<SimpleOperation>(processor));
+
+  /* Switch the result mapped to the input to be the output result of the processor. */
+  results_mapped_to_inputs_.lookup(identifier) = &processor->get_result();
+
+  processor->evaluate();
 }
 
 void Operation::release_inputs()
