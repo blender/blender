@@ -360,6 +360,8 @@ StripModifierData *modifier_new(Strip *strip, const char *name, int type)
   smd->type = type;
   smd->flag |= STRIP_MODIFIER_FLAG_EXPANDED;
   smd->ui_expand_flag |= UI_PANEL_DATA_EXPAND_ROOT;
+  smd->runtime = static_cast<StripModifierDataRuntime *>(
+      MEM_callocN(sizeof(StripModifierDataRuntime), "sequence modifier runtime"));
 
   if (!name || !name[0]) {
     STRNCPY_UTF8(smd->name, CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, smti->name));
@@ -369,6 +371,10 @@ StripModifierData *modifier_new(Strip *strip, const char *name, int type)
   }
 
   BLI_addtail(&strip->modifiers, smd);
+
+  if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SOUND_HD)) {
+    strip->runtime->sound_modifiers_count++;
+  }
 
   modifier_unique_name(strip, smd);
 
@@ -411,6 +417,10 @@ void modifier_free(StripModifierData *smd)
 
   if (smti && smti->free_data) {
     smti->free_data(smd);
+  }
+
+  if (smd->runtime) {
+    MEM_freeN(smd->runtime);
   }
 
   MEM_freeN(smd);
@@ -505,6 +515,8 @@ StripModifierData *modifier_copy(Strip &strip_dst, StripModifierData *mod_src)
 {
   const StripModifierTypeInfo *smti = modifier_type_info_get(mod_src->type);
   StripModifierData *mod_new = static_cast<StripModifierData *>(MEM_dupallocN(mod_src));
+  mod_new->runtime = static_cast<StripModifierDataRuntime *>(
+      MEM_callocN(sizeof(StripModifierDataRuntime), "sequence modifier runtime"));
 
   if (smti && smti->copy_data) {
     smti->copy_data(mod_new, mod_src);
