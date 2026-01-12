@@ -2232,7 +2232,7 @@ const char *RNA_property_ui_description(const PropertyRNA *prop, const PointerRN
       return description;
     }
   }
-  return CTX_IFACE_(RNA_property_translation_context(prop), rna_ensure_property_description(prop));
+  return CTX_TIP_(RNA_property_translation_context(prop), rna_ensure_property_description(prop));
 }
 
 const char *RNA_property_ui_description_raw(const PropertyRNA *prop, const PointerRNA *ptr)
