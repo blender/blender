@@ -47,6 +47,9 @@ bool Bundle::is_valid_path(const StringRef path)
 
 std::optional<Vector<StringRef>> Bundle::split_path(const StringRef path)
 {
+  if (path.is_empty()) {
+    return std::nullopt;
+  }
   Vector<StringRef> path_elems;
   StringRef remaining = path;
   while (!remaining.is_empty()) {
