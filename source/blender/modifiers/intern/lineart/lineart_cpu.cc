@@ -5416,7 +5416,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   const bool weight_transfer_match_output = modifier_calculation_flags &
                                             MOD_LINEART_MATCH_OUTPUT_VGROUP;
 
-  auto ensure_target_defgroup = [&](StringRef group_name) {
+  auto find_target_defgroup = [&](StringRef group_name) {
     if (group_name.is_empty()) {
       return -1;
     }
@@ -5428,11 +5428,11 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
       }
       group_index++;
     }
-    bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>(__func__);
-    group_name.copy_utf8_truncated(defgroup->name);
-    BLI_addtail(&new_curves.vertex_group_names, defgroup);
-    return group_index;
+    /* Do not create vertex group if the group of the same name doesn't exist in the target. */
+    return -1;
   };
+
+  const bool skip_weight_transfer = BLI_listbase_is_empty(&drawing.geometry.vertex_group_names);
 
   int up_to_point = 0;
   for (int chain_i : writer.index_range()) {
@@ -5443,7 +5443,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     Span<MDeformVert> src_dvert;
     Mesh *src_mesh = nullptr;
     MutableSpan<MDeformVert> dv = new_curves.deform_verts_for_write();
-    int target_defgroup = ensure_target_defgroup(vgname);
+    int target_defgroup = find_target_defgroup(vgname);
     if (source_vgname) {
       Object *eval_ob = DEG_get_evaluated(depsgraph, cwi.chain->object_ref);
       if (eval_ob && eval_ob->type == OB_MESH) {
@@ -5452,13 +5452,13 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
       }
     }
 
-    if (!src_dvert.is_empty()) {
+    if ((!skip_weight_transfer) && (!src_dvert.is_empty())) {
       const ListBaseT<bDeformGroup> *deflist = &src_mesh->vertex_group_names;
 
       for (const auto [group_index, defgroup] : (deflist)->enumerate()) {
         if (StringRef(defgroup.name).startswith(source_vgname)) {
           const int target_group_index = weight_transfer_match_output ?
-                                             ensure_target_defgroup(defgroup.name) :
+                                             find_target_defgroup(defgroup.name) :
                                              target_defgroup;
           src_to_dst_defgroup.append(target_group_index);
         }
