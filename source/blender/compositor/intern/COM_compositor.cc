@@ -77,6 +77,4 @@ void COM_execute(Render *render,
                         needed_outputs);
 }
 
-void COM_deinitialize() {}
-
 }  // namespace blender
