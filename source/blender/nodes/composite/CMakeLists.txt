@@ -62,8 +62,6 @@ set(SRC
   nodes/node_composite_filter.cc
   nodes/node_composite_flip.cc
   nodes/node_composite_glare.cc
-  nodes/node_composite_group_input.cc
-  nodes/node_composite_group_output.cc
   nodes/node_composite_hue_sat_val.cc
   nodes/node_composite_huecorrect.cc
   nodes/node_composite_id_mask.cc
@@ -96,6 +94,7 @@ set(SRC
   nodes/node_composite_scene_time.cc
   nodes/node_composite_sepcomb_color.cc
   nodes/node_composite_setalpha.cc
+  nodes/node_composite_signed_distance_field.cc
   nodes/node_composite_split.cc
   nodes/node_composite_stabilize2d.cc
   nodes/node_composite_strip_info.cc

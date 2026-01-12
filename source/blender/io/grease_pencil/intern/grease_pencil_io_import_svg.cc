@@ -353,6 +353,11 @@ bool SVGImporter::read(StringRefNull filepath)
   }
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object_->data);
 
+  /* The three possible materials that might be created. */
+  std::optional<int> mat_index_stroke;
+  std::optional<int> mat_index_fill;
+  std::optional<int> mat_index_both;
+
   const float scene_unit_scale = (context_.scene->unit.system != USER_UNIT_NONE &&
                                   params_.use_scene_unit) ?
                                      context_.scene->unit.scale_length :
@@ -398,11 +403,31 @@ bool SVGImporter::read(StringRefNull filepath)
       }
     }
 
-    /* Create materials. */
+    /* Find or create materials. */
     const bool is_fill = bool(shape->fill.type);
     const bool is_stroke = bool(shape->stroke.type) || !is_fill;
-    const StringRefNull mat_name = (is_stroke ? (is_fill ? "Both" : "Stroke") : "Fill");
-    const int material_index = create_material(mat_name, is_stroke, is_fill);
+    int material_index;
+    if (is_stroke && is_fill) {
+      if (!mat_index_both) {
+        mat_index_both = create_material("Both", is_stroke, is_fill);
+      }
+
+      material_index = *mat_index_both;
+    }
+    else if (is_stroke) {
+      if (!mat_index_stroke) {
+        mat_index_stroke = create_material("Stroke", is_stroke, is_fill);
+      }
+
+      material_index = *mat_index_stroke;
+    }
+    else if (is_fill) {
+      if (!mat_index_fill) {
+        mat_index_fill = create_material("Fill", is_stroke, is_fill);
+      }
+
+      material_index = *mat_index_fill;
+    }
 
     if (ELEM(shape->fill.type, NSVG_PAINT_LINEAR_GRADIENT, NSVG_PAINT_RADIAL_GRADIENT)) {
       has_color_gradient = true;

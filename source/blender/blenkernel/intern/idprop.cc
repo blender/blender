@@ -1119,6 +1119,13 @@ IDProperty *IDP_New(const char type,
   return prop;
 }
 
+IDProperty *IDP_NewInt(const int value, const blender::StringRef name, const eIDPropertyFlag flags)
+{
+  IDPropertyTemplate prop_template{0};
+  prop_template.i = value;
+  return IDP_New(IDP_INT, &prop_template, name, flags);
+}
+
 void IDP_ui_data_free_unique_contents(IDPropertyUIData *ui_data,
                                       const eIDPropertyUIDataType type,
                                       const IDPropertyUIData *other)

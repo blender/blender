@@ -160,7 +160,7 @@ class UI_AP_i18n_settings(AddonPreferences):
         description="The name of a json file storing those settings (unfortunately, Blender's system "
                     "does not work here)",
         subtype='FILE_PATH',
-        default=os.path.join("ui_translate_settings.json"),
+        default=os.path.join(""),
     )
     _is_init = False
 

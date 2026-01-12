@@ -242,16 +242,6 @@ Vector<bActionGroup *> channel_groups_for_assigned_slot(AnimData *adt)
   return slot_groups;
 }
 
-bool action_treat_as_legacy(const bAction &action)
-{
-  /* At runtime, legacy Actions should have been versioned to layered/slotted Actions. However,
-   * unit tests can still create legacy Actions, and so this function still has to distinguish
-   * between them.
-   *
-   * Note that empty Actions also count as 'layered'. */
-  return !action.wrap().is_action_layered();
-}
-
 bool action_fcurves_remove(bAction &action,
                            const slot_handle_t slot_handle,
                            const StringRefNull rna_path_prefix)

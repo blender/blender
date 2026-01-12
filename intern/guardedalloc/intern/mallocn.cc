@@ -21,16 +21,6 @@
 
 using namespace mem_guarded::internal;
 
-#ifdef WITH_MEM_JEMALLOC
-/**
- * If JEMALLOC is used, it reads this global variable and enables background
- * threads to purge dirty pages. Otherwise we release memory too slowly or not
- * at all if the thread that did the allocation stays inactive.
- */
-const char *malloc_conf =
-    "background_thread:true,dirty_decay_ms:4000,thp:always,metadata_thp:always";
-#endif
-
 /* NOTE: Keep in sync with MEM_use_lockfree_allocator(). */
 
 size_t (*MEM_allocN_len)(const void *vmemh) = MEM_lockfree_allocN_len;

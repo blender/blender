@@ -372,10 +372,6 @@ wmOperatorStatus sequencer_retiming_key_select_exec(bContext *C,
                                                     SeqRetimingKey *key,
                                                     const Strip *key_owner);
 /* Select a key and all following keys. */
-wmOperatorStatus sequencer_retiming_select_linked_time(bContext *C,
-                                                       wmOperator *op,
-                                                       SeqRetimingKey *key,
-                                                       const Strip *key_owner);
 wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op);
 wmOperatorStatus sequencer_retiming_select_all_exec(bContext *C, wmOperator *op);
 wmOperatorStatus sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
@@ -389,8 +385,6 @@ void sequencer_retiming_speed_draw(const TimelineDrawContext &ctx,
 void realize_fake_keys(const Scene *scene, Strip *strip);
 SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Strip *strip, const int mval[2]);
 SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2], Strip **r_strip);
-int left_fake_key_frame_get(const bContext *C, const Strip *strip);
-int right_fake_key_frame_get(const bContext *C, const Strip *strip);
 bool retiming_keys_can_be_displayed(const SpaceSeq *sseq);
 rctf strip_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Strip *strip);
 

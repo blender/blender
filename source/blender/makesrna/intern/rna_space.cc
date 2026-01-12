@@ -985,7 +985,7 @@ static void rna_Space_show_region_ui_set(PointerRNA *ptr, bool value)
                              (BLI_rctf_size_x(&region->v2d.cur) /
                               (BLI_rcti_size_x(&region->v2d.mask) + 1)) :
                              1.0f;
-    if (BKE_regiontype_uses_category_tabs(region->runtime->type) &&
+    if (region->runtime->type && BKE_regiontype_uses_category_tabs(region->runtime->type) &&
         (float(region->sizex) <= (UI_PANEL_CATEGORY_MIN_WIDTH / aspect)))
     {
       /* If the region is showing only tabs, increase to full width. */

@@ -5207,8 +5207,7 @@ bool block_apply_search_filter(Block *block, const char *search_filter)
 
 static void ui_item_scale(Layout *litem, const float scale[2])
 {
-  for (auto riter = litem->items().rbegin(); riter != litem->items().rend(); riter++) {
-    Item *item = *riter;
+  for (Item *item : litem->items()) {
     if (item->type() != ItemType::Button) {
       Layout *subitem = static_cast<Layout *>(item);
       ui_item_scale(subitem, scale);
@@ -5233,40 +5232,36 @@ static void ui_item_scale(Layout *litem, const float scale[2])
 
 void Layout::estimate()
 {
-  if (this->type() != ItemType::Button) {
+  if (this->items().is_empty()) {
+    w_ = 0;
+    h_ = 0;
+    return;
+  }
 
-    if (this->items().is_empty()) {
-      w_ = 0;
-      h_ = 0;
-      return;
+  for (Item *subitem : this->items()) {
+    if (subitem->type() == ItemType::Button) {
+      continue;
     }
+    static_cast<Layout *>(subitem)->estimate();
+  }
 
-    for (Item *subitem : this->items()) {
-      if (subitem->type() == ItemType::Button) {
-        continue;
-      }
-      static_cast<Layout *>(subitem)->estimate();
-    }
+  if (this->scale_x() != 0.0f || this->scale_y() != 0.0f) {
+    ui_item_scale(this, float2{this->scale_x(), this->scale_y()});
+  }
+  this->estimate_impl();
 
-    if (this->scale_x() != 0.0f || this->scale_y() != 0.0f) {
-      ui_item_scale(this, float2{this->scale_x(), this->scale_y()});
-    }
-    this->estimate_impl();
-
-    /* Force fixed size. */
-    if (this->ui_units_x() > 0) {
-      w_ = UI_UNIT_X * this->ui_units_x();
-    }
-    if (this->ui_units_y() > 0) {
-      h_ = UI_UNIT_Y * this->ui_units_y();
-    }
+  /* Force fixed size. */
+  if (this->ui_units_x() > 0) {
+    w_ = UI_UNIT_X * this->ui_units_x();
+  }
+  if (this->ui_units_y() > 0) {
+    h_ = UI_UNIT_Y * this->ui_units_y();
   }
 }
 
 static void ui_item_align(Layout *litem, short nr)
 {
-  for (auto riter = litem->items().rbegin(); riter != litem->items().rend(); riter++) {
-    Item *item = *riter;
+  for (Item *item : litem->items()) {
     if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
       if (!bitem->but->alignnr) {
@@ -5296,8 +5291,7 @@ static void ui_item_align(Layout *litem, short nr)
 
 static void ui_item_flag(Layout *litem, int flag)
 {
-  for (auto riter = litem->items().rbegin(); riter != litem->items().rend(); riter++) {
-    Item *item = *riter;
+  for (Item *item : litem->items()) {
     if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
       bitem->but->flag |= flag;

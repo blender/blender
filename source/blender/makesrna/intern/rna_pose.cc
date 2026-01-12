@@ -283,8 +283,8 @@ static void rna_PoseChannel_name_update(Main * /*bmain*/, Scene * /*scene*/, Poi
 {
   ID *id = ptr->owner_id;
 
-  /* redraw view */
-  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+  /* Redraw Outliner / Dope-sheet. */
+  WM_main_add_notifier(NC_GEOM | ND_DATA | NA_RENAME, id);
 
   /* update animation channels */
   WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, id);

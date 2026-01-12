@@ -1232,6 +1232,64 @@ UvNearestHit uv_nearest_hit_init_max_default()
   return hit;
 }
 
+void uv_nearest_hit_elem_set_from_face(const float co[2],
+                                       UvNearestHit *hit,
+                                       const short uv_selectmode)
+{
+  /* When not selecting faces, find the nearest vertex or edge within the hit face.
+   * This is needed in some cases where "face" selection is used as a fallback
+   * but the callers expect `hit.l` to be set (during island selection).
+   *
+   * For vertex and edge selection it is important that `hit.l` is set when `found == true`,
+   * since in that case the caller expects `found` to mean a found element that matches
+   * the current selection mode, see: #152045.
+   *
+   * If this isn't needed, passing in a `uv_selectmode` of #UV_SELECT_FACE is a harmless NOP. */
+  BMesh *bm = BKE_editmesh_from_object(hit->ob)->bm;
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+
+  if (uv_selectmode & UV_SELECT_VERT) {
+    /* Find the loop with the nearest UV vertex. */
+    BMLoop *l_iter, *l_first, *l_best;
+    float dist_best_sq = FLT_MAX;
+    /* Initialize to first loop, as null `hit.l` can crash, see: #152045. */
+    l_iter = l_first = l_best = BM_FACE_FIRST_LOOP(hit->efa);
+    do {
+      const float *luv = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_loop_uv_offset);
+      float delta_uv[2];
+      sub_v2_v2v2(delta_uv, co, luv);
+      mul_v2_v2(delta_uv, hit->scale);
+      const float dist_test_sq = len_squared_v2(delta_uv);
+      if (dist_test_sq < dist_best_sq) {
+        dist_best_sq = dist_test_sq;
+        l_best = l_iter;
+      }
+    } while ((l_iter = l_iter->next) != l_first);
+    hit->l = l_best;
+  }
+  else if (uv_selectmode & UV_SELECT_EDGE) {
+    /* Find the loop with the nearest UV edge. */
+    BMLoop *l_iter, *l_first, *l_best;
+    float dist_best_sq = FLT_MAX;
+    /* Initialize to first loop, as null `hit.l` can crash, see: #152045. */
+    l_iter = l_first = l_best = BM_FACE_FIRST_LOOP(hit->efa);
+    do {
+      const float *luv = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_loop_uv_offset);
+      const float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l_iter->next, cd_loop_uv_offset);
+      float delta[2];
+      closest_to_line_segment_v2(delta, co, luv, luv_next);
+      sub_v2_v2(delta, co);
+      mul_v2_v2(delta, hit->scale);
+      const float dist_test_sq = len_squared_v2(delta);
+      if (dist_test_sq < dist_best_sq) {
+        dist_best_sq = dist_test_sq;
+        l_best = l_iter;
+      }
+    } while ((l_iter = l_iter->next) != l_first);
+    hit->l = l_best;
+  }
+}
+
 bool uv_find_nearest_edge(
     Scene *scene, Object *obedit, const float co[2], const float penalty, UvNearestHit *hit)
 {
@@ -3370,19 +3428,21 @@ static bool uv_mouse_select_multi(bContext *C,
   }
 
   /* find nearest element */
-  if (use_select_linked) {
-    found_item = uv_find_nearest_edge_multi(scene, objects, co, 0.0f, &hit);
 
-    if (!found_item) {
+  if (selectmode == UV_SELECT_VERT) {
+    /* Find vertex. */
+    found_item = uv_find_nearest_vert_multi(scene, objects, co, penalty_dist, &hit);
+
+    if (use_select_linked && !found_item) {
       /* Without this, we can be within the face of an island but too far from an edge,
        * see face selection comment for details. */
       hit.dist_sq = FLT_MAX;
       found_item = uv_find_nearest_face_multi_ex(scene, objects, co, &hit, true);
+      if (found_item) {
+        uv_nearest_hit_elem_set_from_face(co, &hit, selectmode);
+      }
     }
-  }
-  else if (selectmode == UV_SELECT_VERT) {
-    /* find vertex */
-    found_item = uv_find_nearest_vert_multi(scene, objects, co, penalty_dist, &hit);
+
     if (found_item) {
       if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) == 0) {
         BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
@@ -3393,6 +3453,17 @@ static bool uv_mouse_select_multi(bContext *C,
   else if (selectmode == UV_SELECT_EDGE) {
     /* find edge */
     found_item = uv_find_nearest_edge_multi(scene, objects, co, penalty_dist, &hit);
+
+    if (use_select_linked && !found_item) {
+      /* Without this, we can be within the face of an island but too far from an edge,
+       * see face selection comment for details. */
+      hit.dist_sq = FLT_MAX;
+      found_item = uv_find_nearest_face_multi_ex(scene, objects, co, &hit, true);
+      if (found_item) {
+        uv_nearest_hit_elem_set_from_face(co, &hit, selectmode);
+      }
+    }
+
     if (found_item) {
       if ((ts->uv_flag & UV_FLAG_SELECT_SYNC) == 0) {
         BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
@@ -3440,14 +3511,7 @@ static bool uv_mouse_select_multi(bContext *C,
       is_selected = uvedit_edge_select_test(scene, bm, hit.l, offsets);
     }
     else {
-      /* Vertex or island. For island (if we were using #uv_find_nearest_face_multi_ex, see above),
-       * `hit.l` is null, use `hit.efa` instead. */
-      if (hit.l != nullptr) {
-        is_selected = uvedit_uv_select_test(scene, bm, hit.l, offsets);
-      }
-      else {
-        is_selected = uvedit_face_select_test(scene, bm, hit.efa);
-      }
+      is_selected = uvedit_uv_select_test(scene, bm, hit.l, offsets);
     }
   }
 

@@ -715,9 +715,9 @@ struct GreasePencil {
   bke::MutableAttributeAccessor attributes_for_write();
 
   /**
-   * Get the largest material index used by the evaluated layers or `nullopt` if they are empty.
+   * Get the largest material index used by all the drawings or `nullopt` if there are no drawings.
    */
-  std::optional<int> material_index_max_eval() const;
+  std::optional<int> material_index_max() const;
 
   void count_memory(MemoryCounter &memory) const;
 

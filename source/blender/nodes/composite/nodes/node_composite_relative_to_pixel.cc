@@ -160,7 +160,7 @@ using namespace blender::compositor;
 
 class RelativeToPixelOperation : public NodeOperation {
  public:
-  RelativeToPixelOperation(Context &context, DNode node) : NodeOperation(context, node)
+  RelativeToPixelOperation(Context &context, const bNode &node) : NodeOperation(context, node)
   {
     InputDescriptor &image_descriptor = this->get_input_descriptor("Image");
     image_descriptor.skip_type_conversion = true;
@@ -408,7 +408,7 @@ class RelativeToPixelOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new RelativeToPixelOperation(context, node);
 }

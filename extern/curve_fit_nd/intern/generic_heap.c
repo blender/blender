@@ -79,7 +79,13 @@ struct Heap {
 #define HEAP_PARENT(i) (((i) - 1) >> 1)
 #define HEAP_LEFT(i)   (((i) << 1) + 1)
 #define HEAP_RIGHT(i)  (((i) << 1) + 2)
-#define HEAP_COMPARE(a, b) ((a)->value < (b)->value)
+/* Compare by value, using index as tie-breaker for deterministic ordering.
+ * Otherwise equal values would have arbitrary ordering based on the heap's internal state.
+ * While technically deterministic, this is less stable as minor changes to the heap contents
+ * can yield different results elsewhere in the heap. */
+#define HEAP_COMPARE(a, b) \
+	(((a)->value < (b)->value) || \
+	 (((a)->value == (b)->value) && ((a)->index < (b)->index)))
 
 #if 0  /* UNUSED */
 #define HEAP_EQUALS(a, b) ((a)->value == (b)->value)

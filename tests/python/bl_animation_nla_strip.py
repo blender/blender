@@ -122,7 +122,6 @@ class NLAStripActionSlotSelectionTest(AbstractNlaStripTest):
     def test_two_strips_for_same_action(self):
         action = bpy.data.actions.new("StripAction")
         action.slots.new('OBJECT', "Slot")
-        self.assertTrue(action.is_action_layered)
         self.assertEqual(1, len(action.slots))
 
         track = self.nla_tracks.new()
@@ -137,12 +136,10 @@ class NLAStripActionSlotSelectionTest(AbstractNlaStripTest):
     def test_switch_action_via_assignment(self):
         action1 = bpy.data.actions.new("StripAction 1")
         action1.slots.new('OBJECT', "Slot")
-        self.assertTrue(action1.is_action_layered)
         self.assertEqual(1, len(action1.slots))
 
         action2 = bpy.data.actions.new("StripAction 2")
         action2.slots.new('OBJECT', "Slot")
-        self.assertTrue(action2.is_action_layered)
         self.assertEqual(1, len(action2.slots))
 
         track = self.nla_tracks.new()

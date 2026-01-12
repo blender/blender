@@ -118,14 +118,17 @@ static void file_panel_execution_cancel_button(ui::Layout &layout)
   row.op("FILE_OT_cancel", IFACE_("Cancel"), ICON_NONE);
 }
 
-static void file_panel_execution_execute_button(ui::Layout &layout, const char *title)
+static void file_panel_execution_execute_button(ui::Layout &layout,
+                                                const char *title,
+                                                const bool overwrite)
 {
   ui::Layout &row = layout.row(false);
   row.scale_x_set(0.8f);
   row.fixed_size_set(true);
   /* Just a display hint. */
   row.active_default_set(true);
-  row.op("FILE_OT_execute", title, ICON_NONE);
+  row.red_alert_set(overwrite);
+  row.op("FILE_OT_execute", overwrite ? IFACE_("Overwrite") : title, ICON_NONE);
 }
 
 static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
@@ -174,9 +177,8 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   BLI_assert(!but_is_utf8(but));
 
   button_func_complete_set(but, autocomplete_file, nullptr);
-  /* silly workaround calling NFunc to ensure this does not get called
-   * immediate ui_apply_but_func but only after button deactivates */
-  button_funcN_set(but, file_filename_enter_handle, nullptr, but);
+  button_func_set(but, file_filename_enter_handle, nullptr, but);
+  button_flag_enable(but, blender::ui::BUT_TEXTEDIT_UPDATE);
 
   if (params->flag & FILE_CHECK_EXISTING) {
     but_extra_rna_ptr = button_extra_operator_icon_add(
@@ -198,12 +200,12 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
     sub.operator_context_set(wm::OpCallContext::ExecRegionWin);
 
     if (windows_layout) {
-      file_panel_execution_execute_button(sub, params->title);
+      file_panel_execution_execute_button(sub, params->title, overwrite_alert);
       file_panel_execution_cancel_button(sub);
     }
     else {
       file_panel_execution_cancel_button(sub);
-      file_panel_execution_execute_button(sub, params->title);
+      file_panel_execution_execute_button(sub, params->title, overwrite_alert);
     }
   }
 }

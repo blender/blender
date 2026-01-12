@@ -54,7 +54,7 @@ void COM_execute(Render *render,
                  const char *view_name,
                  compositor::RenderContext *render_context,
                  compositor::Profiler *profiler,
-                 compositor::OutputTypes needed_outputs)
+                 compositor::NodeGroupOutputTypes needed_outputs)
 {
   std::scoped_lock lock(g_compositor_mutex);
 
@@ -76,7 +76,5 @@ void COM_execute(Render *render,
                         profiler,
                         needed_outputs);
 }
-
-void COM_deinitialize() {}
 
 }  // namespace blender

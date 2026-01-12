@@ -108,7 +108,9 @@ struct PaintStroke : NonCopyable, NonMovable {
 
   /* Cached values */
   ViewContext vc = {};
+  Depsgraph *depsgraph = nullptr;
   Object *object = nullptr;
+  Scene *scene = nullptr;
   Paint *paint = nullptr;
   Brush *brush = nullptr;
   UnifiedPaintSettings *ups = nullptr;
@@ -399,6 +401,12 @@ struct WPaintVGroupIndex {
  * Ensure we have data on wpaint start, add if needed.
  */
 bool ED_wpaint_ensure_data(bContext *C,
+                           ReportList *reports,
+                           eWPaintFlag flag,
+                           WPaintVGroupIndex *vgroup_index);
+bool ED_wpaint_ensure_data(bContext *C,
+                           Main *bmain,
+                           Object *object,
                            ReportList *reports,
                            eWPaintFlag flag,
                            WPaintVGroupIndex *vgroup_index);
@@ -735,13 +743,13 @@ void mode_exit_generic(Object &ob, eObjectMode mode_flag);
 bool mode_toggle_poll_test(bContext *C);
 
 void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache);
-void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache);
+void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache);
 
 /** Initialize the stroke cache variants from operator properties. */
-void update_cache_variants(bContext *C, VPaint &vp, Object &ob, PointerRNA *ptr);
+void update_cache_variants(const Depsgraph &depsgraph, VPaint &vp, Object &ob, PointerRNA *ptr);
 /** Initialize the stroke cache invariants from operator properties. */
 void update_cache_invariants(
-    bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2]);
+    Main *bmain, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2]);
 void last_stroke_update(const float location[3], Paint &paint);
 }  // namespace ed::sculpt_paint::vwpaint
 

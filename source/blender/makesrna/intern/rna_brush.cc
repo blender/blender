@@ -164,6 +164,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_brush_type_items[] = {
      ""},
     {SCULPT_BRUSH_TYPE_PAINT, "PAINT", 0, "Paint", ""},
     {SCULPT_BRUSH_TYPE_SMEAR, "SMEAR", 0, "Smear", ""},
+    {SCULPT_BRUSH_TYPE_BLUR, "BLUR", 0, "Blur", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

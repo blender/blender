@@ -48,7 +48,7 @@ static float *parallel_reduction_dispatch(gpu::Texture *texture,
   while (size_to_reduce != int2(1)) {
     const int2 reduced_size = math::divide_ceil(size_to_reduce, int2(16));
     gpu::Texture *reduced_texture = gpu::TexturePool::get().acquire_texture(
-        reduced_size.x, reduced_size.y, format, GPU_TEXTURE_USAGE_GENERAL);
+        reduced_size, format, GPU_TEXTURE_USAGE_GENERAL);
 
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
     const int texture_image_unit = GPU_shader_get_sampler_binding(shader, "input_tx");

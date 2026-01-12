@@ -617,8 +617,29 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
 
   if (pxr::UsdShadeInput opacity_input = usd_shader.GetInput(usdtokens::opacity)) {
     ExtraLinkInfo extra;
-    extra.opacity_threshold = get_opacity_threshold(usd_shader, 0.0f);
-    set_node_input(opacity_input, principled, "Alpha", ntree, column, context, extra);
+
+    bool is_alpha_exception = false;
+    if (opacity_input.HasConnectedSource()) {
+      for (const pxr::UsdShadeConnectionSourceInfo &source_info :
+           opacity_input.GetConnectedSources())
+      {
+        if (source_info.sourceName == usdtokens::a) {
+          is_alpha_exception = true;
+          break;
+        }
+      }
+    }
+
+    const float opacity_threshold = get_opacity_threshold(usd_shader, 0.0f);
+    if (opacity_threshold == 0.0f && !is_alpha_exception) {
+      extra.is_inverted = true;
+      set_node_input(
+          opacity_input, principled, "Transmission Weight", ntree, column, context, extra);
+    }
+    else {
+      extra.opacity_threshold = opacity_threshold;
+      set_node_input(opacity_input, principled, "Alpha", ntree, column, context, extra);
+    }
   }
 
   if (pxr::UsdShadeInput ior_input = usd_shader.GetInput(usdtokens::ior)) {
@@ -709,7 +730,11 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
   switch (sock->type) {
     case SOCK_FLOAT:
       if (val.IsHolding<float>()) {
-        sock->default_value_typed<bNodeSocketValueFloat>()->value = val.UncheckedGet<float>();
+        bNodeSocketValueFloat *sock_val = sock->default_value_typed<bNodeSocketValueFloat>();
+        sock_val->value = val.UncheckedGet<float>();
+        if (extra.is_inverted) {
+          sock_val->value = 1.0f - sock_val->value;
+        }
         return true;
       }
       else if (val.IsHolding<pxr::GfVec3f>()) {
@@ -1053,6 +1078,15 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
      * final "target" destination for the Image link. */
     bNode *target_node = dest_node;
     StringRefNull target_sock_name = dest_socket_name;
+
+    /* Handle opacity inversion if necessary. */
+    if (extra.is_inverted) {
+      IntermediateNode invert = add_oneminus(ntree, column + 1, ctx);
+      link_nodes(ntree, invert.node, invert.sock_output_name, target_node, target_sock_name);
+      target_node = invert.node;
+      target_sock_name = invert.sock_input_name;
+    }
+
     if (normal_map.node) {
       /* If a scale-bias node is required, we need to re-adjust the output
        * so it can be passed into the NormalMap node properly. */
@@ -1085,8 +1119,8 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
         link_nodes(ntree,
                    separate_color.node,
                    separate_color.sock_output_name,
-                   dest_node,
-                   dest_socket_name);
+                   target_node,
+                   target_sock_name);
         link_nodes(ntree,
                    scale_bias.node,
                    scale_bias.sock_output_name,
@@ -1106,8 +1140,8 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
         link_nodes(ntree,
                    separate_color.node,
                    separate_color.sock_output_name,
-                   dest_node,
-                   dest_socket_name);
+                   target_node,
+                   target_sock_name);
       }
       target_node = separate_color.node;
       target_sock_name = separate_color.sock_input_name;

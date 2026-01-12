@@ -314,6 +314,8 @@ enum {
 
 /* Minimum width for a panel showing only category tabs. */
 #define UI_PANEL_CATEGORY_MIN_WIDTH 26.0f
+/* Minimum width for a panel showing content and category tabs. */
+#define UI_PANEL_CATEGORY_MIN_SNAP_WIDTH 90.0f
 
 /* Both these margins should be ignored if the panel doesn't show a background (check
  * #panel_should_show_background()). */

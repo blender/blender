@@ -23,6 +23,10 @@ bool check_valid_eval_params(const int points_num,
     return false;
   }
 
+  if (order < 2) {
+    return false;
+  }
+
   if (resolution < 1) {
     return false;
   }
@@ -42,6 +46,7 @@ static int calc_nonzero_knot_spans(const int points_num,
                                    const int8_t order,
                                    const bool cyclic)
 {
+  BLI_assert(order >= 2);
   const bool is_bezier = ELEM(mode, NURBS_KNOT_MODE_BEZIER, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
   const bool is_end_point = ELEM(mode, NURBS_KNOT_MODE_ENDPOINT, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
   /* Inner knots are always repeated once except on Bezier case. */

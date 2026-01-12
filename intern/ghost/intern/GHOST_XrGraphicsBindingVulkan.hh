@@ -22,9 +22,19 @@
 #include "GHOST_Types.h"
 
 class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
+  struct {
+    /* XR_KHR_vulkan_enable2 */
+    PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
+    PFN_xrGetVulkanGraphicsDevice2KHR xrGetVulkanGraphicsDevice2KHR = nullptr;
+    PFN_xrCreateVulkanInstanceKHR xrCreateVulkanInstanceKHR = nullptr;
+    PFN_xrCreateVulkanDeviceKHR xrCreateVulkanDeviceKHR = nullptr;
+  } functions_;
+
  public:
   GHOST_XrGraphicsBindingVulkan(GHOST_Context &ghost_ctx);
   ~GHOST_XrGraphicsBindingVulkan() override;
+
+  bool loadExtensionFunctions(XrInstance instance) override;
 
   /**
    * Check the version requirements to use OpenXR with the Vulkan backend.
@@ -86,9 +96,4 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
    * This can be improved by having a single command buffer per swap-chain image.
    */
   VkCommandBuffer vk_command_buffer_ = VK_NULL_HANDLE;
-
-  static PFN_xrGetVulkanGraphicsRequirements2KHR s_xrGetVulkanGraphicsRequirements2KHR_fn;
-  static PFN_xrGetVulkanGraphicsDevice2KHR s_xrGetVulkanGraphicsDevice2KHR_fn;
-  static PFN_xrCreateVulkanInstanceKHR s_xrCreateVulkanInstanceKHR_fn;
-  static PFN_xrCreateVulkanDeviceKHR s_xrCreateVulkanDeviceKHR_fn;
 };

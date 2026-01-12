@@ -289,7 +289,7 @@ class Result {
 
   /* Similar to the Result variant of steal_data, but steals from a raw data buffer. The buffer is
    * assumed to be allocated using Blender's guarded allocator. */
-  void steal_data(void *data, int2 size);
+  void steal_data(void *data, const Domain &domain);
 
   /* Set up the result to wrap an external GPU texture that is not allocated nor managed by the
    * result. The is_external_ member will be set to true, the domain will be set to have the same

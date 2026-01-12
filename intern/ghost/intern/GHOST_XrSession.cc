@@ -233,6 +233,11 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
   std::string requirement_str;
   gpu_binding_ = GHOST_XrGraphicsBindingCreateFromType(context_->getGraphicsBindingType(),
                                                        *gpu_ctx_);
+  if (!gpu_binding_->loadExtensionFunctions(context_->getInstance())) {
+    throw GHOST_XrException(
+        "Unable to load graphics bindings (could not load the needed extension functions from the "
+        "XrInstance)");
+  }
   if (!gpu_binding_->checkVersionRequirements(
           *gpu_ctx_, context_->getInstance(), oxr_->system_id, &requirement_str))
   {

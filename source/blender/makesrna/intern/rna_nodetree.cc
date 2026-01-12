@@ -938,7 +938,10 @@ static void move_child_nodes(bNode &node, const float2 &delta)
 
 static void rna_Node_location_set(PointerRNA *ptr, const float *value)
 {
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode *node = ptr->data_as<bNode>();
+
+  ntree->ensure_topology_cache();
   const float2 new_location = float2(value) + node_parent_offset(*node);
   if (node->is_frame()) {
     move_child_nodes(*node, new_location - float2(node->location[0], node->location[1]));
@@ -6424,7 +6427,7 @@ static void def_cmp_file_output(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_path_template_type(prop, PROP_VARIABLES_RENDER_OUTPUT);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "file_name", PROP_STRING, PROP_FILENAME);
+  prop = RNA_def_property(srna, "file_name", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "file_name");
   RNA_def_property_ui_text(prop,
                            "File Name",
@@ -10007,6 +10010,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeSceneTime");
   define("CompositorNode", "CompositorNodeSeparateColor", def_cmp_combsep_color);
   define("CompositorNode", "CompositorNodeSetAlpha");
+  define("CompositorNode", "CompositorNodeMaskToSDF");
   define("CompositorNode", "CompositorNodeSplit");
   define("CompositorNode", "CompositorNodeStabilize", def_cmp_stabilize2d);
   define("CompositorNode", "CompositorNodeSequencerStripInfo");

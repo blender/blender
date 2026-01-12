@@ -445,7 +445,7 @@ Result Result::upload_to_gpu(const bool from_pool) const
   BLI_assert(this->is_allocated());
 
   Result result = Result(*context_, this->type(), this->precision());
-  result.allocate_texture(this->domain().data_size, from_pool, ResultStorageType::GPU);
+  result.allocate_texture(this->domain(), from_pool, ResultStorageType::GPU);
 
   GPU_texture_update(result, this->get_gpu_data_format(), this->cpu_data().data());
   return result;
@@ -459,7 +459,7 @@ Result Result::download_to_cpu() const
   Result result = Result(*context_, this->type(), this->precision());
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
   void *data = GPU_texture_read(*this, this->get_gpu_data_format(), 0);
-  result.steal_data(data, this->domain().data_size);
+  result.steal_data(data, this->domain());
 
   return result;
 }
@@ -531,14 +531,14 @@ void Result::steal_data(Result &source)
   source = Result(*context_, type_, precision_);
 }
 
-void Result::steal_data(void *data, int2 size)
+void Result::steal_data(void *data, const Domain &domain)
 {
   BLI_assert(!this->is_allocated());
 
-  const int64_t array_size = int64_t(size.x) * int64_t(size.y);
+  const int64_t array_size = int64_t(domain.data_size.x) * int64_t(domain.data_size.y);
   cpu_data_ = GMutableSpan(this->get_cpp_type(), data, array_size);
   storage_type_ = ResultStorageType::CPU;
-  domain_ = Domain(size);
+  domain_ = domain;
   data_reference_count_ = new int(1);
 }
 
@@ -833,7 +833,7 @@ void Result::allocate_data(const int2 size,
     const gpu::TextureFormat format = this->get_gpu_texture_format();
     const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
     if (from_pool) {
-      gpu_texture_ = gpu::TexturePool::get().acquire_texture(size.x, size.y, format, usage);
+      gpu_texture_ = gpu::TexturePool::get().acquire_texture(size, format, usage);
     }
     else {
       gpu_texture_ = GPU_texture_create_2d(__func__, size.x, size.y, 1, format, usage, nullptr);

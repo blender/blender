@@ -25,6 +25,7 @@ set(SRC
   intern/asset_library.cc
   intern/asset_library_service.cc
   intern/asset_representation.cc
+  intern/disk_file_hash_service.cc
   intern/library_types/all_library.cc
   intern/library_types/essentials_library.cc
   intern/library_types/on_disk_library.cc
@@ -38,6 +39,7 @@ set(SRC
   AS_asset_catalog_tree.hh
   AS_asset_library.hh
   AS_asset_representation.hh
+  AS_disk_file_hash_service.hh
   AS_essentials_library.hh
   AS_remote_library.hh
   intern/asset_catalog_collection.hh

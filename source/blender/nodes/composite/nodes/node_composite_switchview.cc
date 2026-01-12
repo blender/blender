@@ -8,8 +8,12 @@
 
 #include "BLI_listbase.h"
 
+#include "DNA_node_types.h"
+
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 #include "COM_node_operation.hh"
 
@@ -77,7 +81,7 @@ class SwitchViewOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new SwitchViewOperation(context, node);
 }

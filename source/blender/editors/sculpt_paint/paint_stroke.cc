@@ -857,7 +857,7 @@ static bool print_pressure_status_enabled()
 
 PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_type_(event_type)
 {
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  this->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   this->paint = BKE_paint_get_active_from_context(C);
   this->ups = &paint->unified_paint_settings;
   bke::PaintRuntime *paint_runtime = this->paint->runtime;
@@ -865,8 +865,9 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
   this->evil_C = C;
-  this->vc = ED_view3d_viewcontext_init(C, depsgraph);
+  this->vc = ED_view3d_viewcontext_init(C, this->depsgraph);
   this->object = CTX_data_active_object(C);
+  this->scene = CTX_data_scene(C);
 
   stroke_mode_ = RNA_enum_get(op->ptr, "mode");
 
@@ -918,7 +919,7 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
   }
 
   /* initialize here to avoid initialization conflict with threaded strokes */
-  BKE_curvemapping_init(this->brush->curve_distance_falloff);
+  bke::brush::common_pressure_curves_init(*this->brush);
   if (this->paint->flags & PAINT_USE_CAVITY_MASK) {
     BKE_curvemapping_init(this->paint->cavity_curve);
   }
@@ -1499,10 +1500,6 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
         stroke_cursor_ = WM_paint_cursor_activate(
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_line_cursor, this);
       }
-
-      BKE_curvemapping_init(br->curve_size);
-      BKE_curvemapping_init(br->curve_strength);
-      BKE_curvemapping_init(br->curve_jitter);
 
       first_dab = true;
     }

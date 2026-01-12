@@ -102,24 +102,6 @@ rctf strip_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const St
   return rect;
 }
 
-int left_fake_key_frame_get(const bContext *C, const Strip *strip)
-{
-  const Scene *scene = CTX_data_sequencer_scene(C);
-  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const int sound_offset = strip->rounded_sound_offset(scene_fps);
-  const int content_start = strip->content_start() + sound_offset;
-  return max_ii(content_start, strip->left_handle());
-}
-
-int right_fake_key_frame_get(const bContext *C, const Strip *strip)
-{
-  const Scene *scene = CTX_data_sequencer_scene(C);
-  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const int sound_offset = strip->rounded_sound_offset(scene_fps);
-  const int content_end = strip->content_end(scene) + sound_offset;
-  return min_ii(content_end, strip->right_handle(scene));
-}
-
 static bool retiming_fake_key_frame_clicked(const bContext *C,
                                             const Strip *strip,
                                             const int mval[2],
@@ -133,10 +115,10 @@ static bool retiming_fake_key_frame_clicked(const bContext *C,
     return false;
   }
 
-  const int left_frame = left_fake_key_frame_get(C, strip);
+  const int left_frame = seq::left_fake_key_frame_get(scene, strip);
   const float left_distance = fabs(ui::view2d_view_to_region_x(v2d, left_frame) - mval[0]);
 
-  const int right_frame = right_fake_key_frame_get(C, strip);
+  const int right_frame = seq::right_fake_key_frame_get(scene, strip);
   const int right_x = right_frame;
   const float right_distance = fabs(ui::view2d_view_to_region_x(v2d, right_x) - mval[0]);
 
@@ -354,7 +336,7 @@ void sequencer_retiming_draw_continuity(const TimelineDrawContext &ctx,
 
 static SeqRetimingKey fake_retiming_key_init(const Scene *scene, const Strip *strip, int key_x)
 {
-  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+  const float scene_fps = float(scene->frames_per_second());
   const int sound_offset = strip->rounded_sound_offset(scene_fps);
   SeqRetimingKey fake_key = {0};
   fake_key.strip_frame_index = (key_x - strip->content_start() - sound_offset) *
@@ -376,13 +358,13 @@ static bool fake_keys_draw(const TimelineDrawContext &ctx,
     return false;
   }
 
-  const int left_key_frame = left_fake_key_frame_get(ctx.C, strip);
+  const int left_key_frame = seq::left_fake_key_frame_get(scene, strip);
   if (seq::retiming_key_get_by_timeline_frame(scene, strip, left_key_frame) == nullptr) {
     SeqRetimingKey fake_key = fake_retiming_key_init(scene, strip, left_key_frame);
     retime_key_draw(ctx, strip_ctx, &fake_key, sh_bindings);
   }
 
-  int right_key_frame = right_fake_key_frame_get(ctx.C, strip);
+  int right_key_frame = seq::right_fake_key_frame_get(scene, strip);
   if (seq::retiming_key_get_by_timeline_frame(scene, strip, right_key_frame) == nullptr) {
     SeqRetimingKey fake_key = fake_retiming_key_init(scene, strip, right_key_frame);
     retime_key_draw(ctx, strip_ctx, &fake_key, sh_bindings);

@@ -1011,27 +1011,6 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
  * Cursor handling.
  */
 
-static NSCursor *getImageCursor(GHOST_TStandardCursor shape, NSString *name, NSPoint hotspot)
-{
-  static NSCursor *cursors[GHOST_kStandardCursorNumCursors] = {nullptr};
-  static bool loaded[GHOST_kStandardCursorNumCursors] = {false};
-
-  const int index = int(shape);
-  if (!loaded[index]) {
-    /* Load image from file in application Resources folder. */
-    @autoreleasepool {
-      NSImage *image = [NSImage imageNamed:name];
-      if (image != nullptr) {
-        cursors[index] = [[NSCursor alloc] initWithImage:image hotSpot:hotspot];
-      }
-    }
-
-    loaded[index] = true;
-  }
-
-  return cursors[index];
-}
-
 /* busyButClickableCursor is an undocumented NSCursor API, but
  * has been in use since at least OS X 10.4 and through 10.9. */
 @interface NSCursor (Undocumented)
@@ -1086,48 +1065,6 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
           return [NSCursor busyButClickableCursor];
         }
         return nullptr;
-      case GHOST_kStandardCursorKnife:
-        return getImageCursor(shape, @"knife.pdf", NSMakePoint(6, 24));
-      case GHOST_kStandardCursorEraser:
-        return getImageCursor(shape, @"eraser.pdf", NSMakePoint(6, 24));
-      case GHOST_kStandardCursorPencil:
-        return getImageCursor(shape, @"pen.pdf", NSMakePoint(6, 24));
-      case GHOST_kStandardCursorEyedropper:
-        return getImageCursor(shape, @"eyedropper.pdf", NSMakePoint(6, 24));
-      case GHOST_kStandardCursorZoomIn:
-        return getImageCursor(shape, @"zoomin.pdf", NSMakePoint(8, 7));
-      case GHOST_kStandardCursorZoomOut:
-        return getImageCursor(shape, @"zoomout.pdf", NSMakePoint(8, 7));
-      case GHOST_kStandardCursorNSEWScroll:
-        return getImageCursor(shape, @"scrollnsew.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorNSScroll:
-        return getImageCursor(shape, @"scrollns.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorEWScroll:
-        return getImageCursor(shape, @"scrollew.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorUpArrow:
-        return getImageCursor(shape, @"arrowup.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorDownArrow:
-        return getImageCursor(shape, @"arrowdown.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorLeftArrow:
-        return getImageCursor(shape, @"arrowleft.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorRightArrow:
-        return getImageCursor(shape, @"arrowright.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorVerticalSplit:
-        return getImageCursor(shape, @"splitv.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorHorizontalSplit:
-        return getImageCursor(shape, @"splith.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorCrosshairA:
-        return getImageCursor(shape, @"paint_cursor_cross.pdf", NSMakePoint(16, 15));
-      case GHOST_kStandardCursorCrosshairB:
-        return getImageCursor(shape, @"paint_cursor_dot.pdf", NSMakePoint(16, 15));
-      case GHOST_kStandardCursorCrosshairC:
-        return getImageCursor(shape, @"crossc.pdf", NSMakePoint(16, 16));
-      case GHOST_kStandardCursorLeftHandle:
-        return getImageCursor(shape, @"handle_left.pdf", NSMakePoint(12, 14));
-      case GHOST_kStandardCursorRightHandle:
-        return getImageCursor(shape, @"handle_right.pdf", NSMakePoint(10, 14));
-      case GHOST_kStandardCursorBothHandles:
-        return getImageCursor(shape, @"handle_both.pdf", NSMakePoint(11, 14));
       default:
         return nullptr;
     }
@@ -1226,29 +1163,20 @@ GHOST_TSuccess GHOST_WindowCocoa::hasCursorShape(GHOST_TStandardCursor shape)
   }
 }
 
-/* Reverse the bits in a uint8_t */
-#if 0
-static uint8_t uns8ReverseBits(uint8_t ch)
+/**
+ * Invert the colors of an RGBA byte buffer in-place.
+ */
+static void cursor_bitmap_rgba_invert(uint32_t *buffer, const int size[2])
 {
-  ch= ((ch >> 1) & 0x55) | ((ch << 1) & 0xAA);
-  ch= ((ch >> 2) & 0x33) | ((ch << 2) & 0xCC);
-  ch= ((ch >> 4) & 0x0F) | ((ch << 4) & 0xF0);
-  return ch;
-}
-#endif
-
-/** Reverse the bits in a uint16_t */
-static uint16_t uns16ReverseBits(uint16_t shrt)
-{
-  shrt = ((shrt >> 1) & 0x5555) | ((shrt << 1) & 0xAAAA);
-  shrt = ((shrt >> 2) & 0x3333) | ((shrt << 2) & 0xCCCC);
-  shrt = ((shrt >> 4) & 0x0F0F) | ((shrt << 4) & 0xF0F0);
-  shrt = ((shrt >> 8) & 0x00FF) | ((shrt << 8) & 0xFF00);
-  return shrt;
+  for (int i = 0; i < size[1]; ++i) {
+    for (int j = 0; j < size[0]; ++j) {
+      buffer[(i * size[0]) + j] = buffer[(i * size[0]) + j] ^ 0x00FFFFFF;
+    }
+  }
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(const uint8_t *bitmap,
-                                                             const uint8_t *mask,
+                                                             const uint8_t * /*mask*/,
                                                              const int size[2],
                                                              const int hot_spot[2],
                                                              const bool can_invert_color)
@@ -1259,36 +1187,23 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(const uint8_t *bitm
       custom_cursor_ = nil;
     }
 
+    if (can_invert_color) {
+      /* Flip white cursor with black outline to black cursor with
+       * white outline to match macOS platform conventions. */
+      cursor_bitmap_rgba_invert((uint32_t *)bitmap, size);
+    }
+
     NSBitmapImageRep *cursorImageRep = [[NSBitmapImageRep alloc]
-        initWithBitmapDataPlanes:nil
+        initWithBitmapDataPlanes:(unsigned char **)&bitmap
                       pixelsWide:size[0]
                       pixelsHigh:size[1]
-                   bitsPerSample:1
-                 samplesPerPixel:2
+                   bitsPerSample:8
+                 samplesPerPixel:4
                         hasAlpha:YES
-                        isPlanar:YES
-                  colorSpaceName:NSDeviceWhiteColorSpace
-                     bytesPerRow:(size[0] / 8 + (size[0] % 8 > 0 ? 1 : 0))
-                    bitsPerPixel:1];
-
-    uint16_t *cursorBitmap = (uint16_t *)cursorImageRep.bitmapData;
-    int nbUns16 = cursorImageRep.bytesPerPlane / 2;
-
-    for (int y = 0; y < nbUns16; y++) {
-#if !defined(__LITTLE_ENDIAN__)
-      cursorBitmap[y] = uns16ReverseBits((bitmap[2 * y] << 0) | (bitmap[2 * y + 1] << 8));
-      cursorBitmap[nbUns16 + y] = uns16ReverseBits((mask[2 * y] << 0) | (mask[2 * y + 1] << 8));
-#else
-      cursorBitmap[y] = uns16ReverseBits((bitmap[2 * y + 1] << 0) | (bitmap[2 * y] << 8));
-      cursorBitmap[nbUns16 + y] = uns16ReverseBits((mask[2 * y + 1] << 0) | (mask[2 * y] << 8));
-#endif
-
-      /* Flip white cursor with black outline to black cursor with white outline
-       * to match macOS platform conventions. */
-      if (can_invert_color) {
-        cursorBitmap[y] = ~cursorBitmap[y];
-      }
-    }
+                        isPlanar:NO
+                  colorSpaceName:NSDeviceRGBColorSpace
+                     bytesPerRow:(size[0] * 4)
+                    bitsPerPixel:32];
 
     const NSSize imSize = {(CGFloat)size[0], (CGFloat)size[1]};
     NSImage *cursorImage = [[NSImage alloc] initWithSize:imSize];

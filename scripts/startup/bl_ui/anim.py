@@ -21,15 +21,13 @@ def draw_action_and_slot_selector_for_id(layout, animated_id):
     if not adt or not adt.action:
         return
 
-    # Only show the slot selector when a layered Action is assigned.
-    if adt.action.is_action_layered:
-        layout.context_pointer_set("animated_id", animated_id)
-        layout.template_search(
-            adt, "action_slot",
-            adt, "action_suitable_slots",
-            new="anim.slot_new_for_id",
-            unlink="anim.slot_unassign_from_id",
-        )
+    layout.context_pointer_set("animated_id", animated_id)
+    layout.template_search(
+        adt, "action_slot",
+        adt, "action_suitable_slots",
+        new="anim.slot_new_for_id",
+        unlink="anim.slot_unassign_from_id",
+    )
 
 
 class ANIM_MT_keyframe_insert_pie(Menu):

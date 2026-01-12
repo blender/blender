@@ -21,9 +21,12 @@ class GHOST_ContextMTL;
 #include "GHOST_Types.h"
 
 class GHOST_XrGraphicsBindingMetal : public GHOST_IXrGraphicsBinding {
+  PFN_xrGetMetalGraphicsRequirementsKHR xrGetMetalGraphicsRequirementsKHR_ = nullptr;
+
  public:
   GHOST_XrGraphicsBindingMetal(GHOST_Context &ghost_ctx);
 
+  bool loadExtensionFunctions(XrInstance instance) override;
   bool checkVersionRequirements(GHOST_Context &ghost_ctx,
                                 XrInstance instance,
                                 XrSystemId system_id,

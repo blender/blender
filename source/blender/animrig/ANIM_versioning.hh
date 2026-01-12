@@ -29,13 +29,6 @@ namespace animrig::versioning {
  * This will return false for both Animato and pre-Animato actions. It is used
  * during file read and versioning to determine how forward-compatible and
  * legacy data should be handled.
- *
- * NOTE: this is semi-duplicated from `Action::is_action_layered()`, but with
- * tweaks to also recognize ultra-legacy (pre-Animato) data. Because this needs access to
- * deprecated DNA fields, which is ok here in the versioning code, the other "is this legacy or
- * layered?" functions do not check for pre-Animato data.
- *
- * \see Action::is_action_layered()
  */
 bool action_is_layered(const bAction &dna_action);
 

@@ -145,6 +145,8 @@ enum class OperationCode {
   BONE_DONE,
   /* B-Bone segment shape computation (after DONE) */
   BONE_SEGMENTS,
+  /* Getting the visibility doesn't need evaluation of the pose. */
+  BONE_VISIBILITY,
 
   /* Particle System. ----------------------------------------------------- */
   PARTICLE_SYSTEM_INIT,

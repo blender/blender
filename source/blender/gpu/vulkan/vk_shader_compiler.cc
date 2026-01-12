@@ -24,7 +24,11 @@
 #include <iostream>
 #include <string>
 
+#include "CLG_log.h"
+
 namespace blender::gpu {
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
 
 static std::optional<std::string> cache_dir_get()
 {
@@ -92,6 +96,8 @@ static bool read_spirv_from_disk(VKShaderModule &shader_module)
   spirv_file.seekg(0, std::ios::beg);
   shader_module.spirv_binary.resize(size / 4);
   spirv_file.read(reinterpret_cast<char *>(shader_module.spirv_binary.data()), size);
+
+  CLOG_TRACE(&LOG, "reading SpirV from disk %s", spirv_path.c_str());
   return true;
 }
 
@@ -106,6 +112,7 @@ static void write_spirv_to_disk(VKShaderModule &shader_module)
 
   /* Write the spirv binary */
   std::string spirv_path = (*cache_dir_get()) + SEP_STR + shader_module.sources_hash + ".spv";
+  CLOG_TRACE(&LOG, "write SpirV to disk %s", spirv_path.c_str());
   size_t size = (shader_module.compilation_result.end() -
                  shader_module.compilation_result.begin()) *
                 sizeof(uint32_t);

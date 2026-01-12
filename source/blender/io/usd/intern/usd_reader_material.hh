@@ -78,6 +78,10 @@ struct NodePlacementContext {
 struct ExtraLinkInfo {
   bool is_color_corrected = false;
 
+  /* Is the value inverted with respect to Blender.
+   * For example: Opacity 0.85 <-> Transmission Weight 0.15 */
+  bool is_inverted = false;
+
   float opacity_threshold = 0.0f;
 };
 

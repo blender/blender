@@ -62,7 +62,6 @@ typedef unsigned int uint;
 #endif
 
 /* -------------------------------------------------------------------- */
-
 /** \name Simple Vector Math Lib
  * \{ */
 

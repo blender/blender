@@ -83,7 +83,7 @@ void ED_armature_ebone_unique_name(ListBaseT<EditBone> *ebones, char *name, Edit
       [&](const StringRefNull check_name) {
         return editbone_unique_check(ebones, check_name, bone);
       },
-      DATA_("Bone"),
+      DATA_(animrig::bone_default_name),
       '.',
       name,
       sizeof(bone->name));
@@ -101,7 +101,7 @@ static void ed_armature_bone_unique_name(bArmature *arm, char *name)
       [&](const StringRefNull check_name) {
         return BKE_armature_find_bone_name(arm, check_name.c_str()) != nullptr;
       },
-      DATA_("Bone"),
+      DATA_(animrig::bone_default_name),
       '.',
       name,
       sizeof(Bone::name));

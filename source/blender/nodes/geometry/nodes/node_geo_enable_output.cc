@@ -124,7 +124,7 @@ class EnableOutputOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *node_get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new EnableOutputOperation(context, node);
 }
@@ -196,7 +196,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
-  ntype.get_compositor_operation = node_get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
   ntype.get_extra_info = node_extra_info;
   ntype.internally_linked_input = node_internally_linked_input;
   bke::node_register_type(ntype);

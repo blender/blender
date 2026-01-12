@@ -326,7 +326,8 @@ class CommitInfo:
         # E.g. Fix `blender/blender-manual#NUMBER`, will be picked out for processing.
         match = re.findall(r'\s#+(\d+)', command_output)
         if match:
-            return match
+            # Remove duplicates reports.
+            return list(dict.fromkeys(match))
         return []
 
     def get_backports(self, dict_of_backports: dict[str, list[str]]) -> None:

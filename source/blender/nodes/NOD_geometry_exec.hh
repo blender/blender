@@ -15,6 +15,7 @@
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_nodes_reference_set.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_volume_grid_fwd.hh"
 #include "NOD_geometry_nodes_bundle_fwd.hh"
@@ -23,7 +24,6 @@
 
 #include "DNA_node_types.h"
 
-#include "NOD_derived_node_tree.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_geometry_nodes_values.hh"
 #include "NOD_menu_value.hh"

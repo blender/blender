@@ -170,10 +170,6 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                                             ComponentKey &adt_key,
                                             OperationNode *operation_from,
                                             FCurve *fcu);
-  virtual void build_animdata_curves_targets(ID *id,
-                                             ComponentKey &adt_key,
-                                             OperationNode *operation_from,
-                                             ListBaseT<FCurve> *curves);
   virtual void build_animdata_action_targets(ID *id,
                                              int32_t slot_handle,
                                              ComponentKey &adt_key,

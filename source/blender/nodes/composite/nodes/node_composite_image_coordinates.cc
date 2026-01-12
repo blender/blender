@@ -34,7 +34,7 @@ using namespace blender::compositor;
 
 class ImageCoordinatesOperation : public NodeOperation {
  public:
-  ImageCoordinatesOperation(Context &context, DNode node) : NodeOperation(context, node)
+  ImageCoordinatesOperation(Context &context, const bNode &node) : NodeOperation(context, node)
   {
     InputDescriptor &image_descriptor = this->get_input_descriptor("Image");
     image_descriptor.skip_type_conversion = true;
@@ -84,7 +84,7 @@ class ImageCoordinatesOperation : public NodeOperation {
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new ImageCoordinatesOperation(context, node);
 }

@@ -108,6 +108,10 @@
 char **environ = nullptr;
 #endif
 
+#if defined(WITH_TBB_MALLOC) && defined(__linux__)
+#  include <tbb/scalable_allocator.h>
+#endif
+
 #include "creator_intern.h" /* Own include. */
 
 BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
@@ -378,6 +382,11 @@ int main(int argc,
     GPU_compilation_subprocess_run(argv[1]);
     return 0;
   }
+#endif
+
+#if defined(WITH_TBB_MALLOC) && defined(__linux__)
+  /* Enable huge pages for performance .*/
+  scalable_allocation_mode(TBBMALLOC_USE_HUGE_PAGES, 1);
 #endif
 
   /* NOTE: Special exception for guarded allocator type switch:

@@ -20,7 +20,7 @@ buildbot:
     optix:
         version: '8.0.0'
     ocloc:
-        version: '101.8132'
+        version: '101.8331'
     msvc:
         version: '2022'
         use_clang_cl: true
