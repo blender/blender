@@ -39,6 +39,11 @@ extern struct SoftBody *sbNew(void);
  */
 extern void sbFree(struct Object *ob);
 
+/*
+ * Copy soft-body data.
+ */
+extern SoftBody *sbCopy(struct SoftBody *sb, int flag);
+
 /**
  * Frees simulation data to reset simulation.
  */

@@ -2182,50 +2182,7 @@ void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src, const int fl
     return;
   }
 
-  SoftBody *sbn = static_cast<SoftBody *>(MEM_dupallocN(sb));
-
-  if ((flag & LIB_ID_COPY_CACHES) == 0) {
-    sbn->totspring = sbn->totpoint = 0;
-    sbn->bpoint = nullptr;
-    sbn->bspring = nullptr;
-  }
-  else {
-    sbn->totspring = sb->totspring;
-    sbn->totpoint = sb->totpoint;
-
-    if (sbn->bpoint) {
-      int i;
-
-      sbn->bpoint = static_cast<BodyPoint *>(MEM_dupallocN(sbn->bpoint));
-
-      for (i = 0; i < sbn->totpoint; i++) {
-        if (sbn->bpoint[i].springs) {
-          sbn->bpoint[i].springs = static_cast<int *>(MEM_dupallocN(sbn->bpoint[i].springs));
-        }
-      }
-    }
-
-    if (sb->bspring) {
-      sbn->bspring = static_cast<BodySpring *>(MEM_dupallocN(sb->bspring));
-    }
-  }
-
-  sbn->keys = nullptr;
-  sbn->totkey = sbn->totpointkey = 0;
-
-  sbn->scratch = nullptr;
-
-  if (is_orig) {
-    sbn->shared = static_cast<SoftBody_Shared *>(MEM_dupallocN(sb->shared));
-    sbn->shared->pointcache = BKE_ptcache_copy_list(
-        &sbn->shared->ptcaches, &sb->shared->ptcaches, flag);
-  }
-
-  if (sb->effector_weights) {
-    sbn->effector_weights = static_cast<EffectorWeights *>(MEM_dupallocN(sb->effector_weights));
-  }
-
-  ob_dst->soft = sbn;
+  ob_dst->soft = sbCopy(sb, flag);
 }
 
 ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int flag)
