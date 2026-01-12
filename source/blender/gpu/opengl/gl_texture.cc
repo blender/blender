@@ -6,6 +6,7 @@
  * \ingroup gpu
  */
 
+#include <cstdint>
 #include <string>
 
 #include "BLI_assert.h"
@@ -208,7 +209,7 @@ void GLTexture::update_sub(int mip,
   const bool do_texture_unpack = !ELEM(unpack_row_length, 0, extent[0]);
 
   /* Unpack `data` if `unpack_row_length` is set. */
-  std::unique_ptr<uint8_t, MEM_smart_ptr_deleter_void> unpack_buffer = nullptr;
+  std::unique_ptr<uint8_t, MEM_smart_ptr_deleter<uint8_t>> unpack_buffer = nullptr;
   if (do_texture_unpack) {
     BLI_assert_msg(!(format_flag_ & GPU_FORMAT_COMPRESSED),
                    "Compressed data with unpack_row_length != 0 is not supported.");
@@ -238,7 +239,7 @@ void GLTexture::update_sub(int mip,
   }
 
   /* If `data` is float and target storage is half, convert to half */
-  std::unique_ptr<uint16_t, MEM_smart_ptr_deleter_void> clamped_half_buffer = nullptr;
+  std::unique_ptr<uint16_t, MEM_smart_ptr_deleter<uint16_t>> clamped_half_buffer = nullptr;
   if (type == GPU_DATA_FLOAT && is_half_float(format_)) {
     size_t dst_pixel_count = max_ii(extent[0], 1) * max_ii(extent[1], 1) * max_ii(extent[2], 1);
     size_t dst_total_count = to_component_len(format_) * dst_pixel_count;

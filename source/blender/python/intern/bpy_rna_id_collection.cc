@@ -688,7 +688,7 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
   PyObject *visit_path_fn = nullptr;
   PyObject *subset = nullptr;
   PyObject *visit_types = nullptr;
-  std::unique_ptr<BLI_bitmap, MEM_smart_ptr_deleter_void> visit_types_bitmap;
+  std::unique_ptr<BLI_bitmap, MEM_smart_ptr_deleter<BLI_bitmap>> visit_types_bitmap;
   PyObject *py_flags = nullptr;
 
   IDFilePathForeachData filepathforeach_data{};

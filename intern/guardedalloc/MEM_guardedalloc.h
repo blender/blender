@@ -453,11 +453,11 @@ template<typename T> inline void MEM_delete(const T *ptr)
       } \
     } while (0)
 
-/** Wrapper for MEM_SAFE_DELETE_VOID<() as deallocator for std::unique_ptr. */
-struct MEM_smart_ptr_deleter_void {
-  void operator()(void *pointer) const noexcept
+/** Wrapper for MEM_SAFE_DELETE<() as deallocator for std::unique_ptr. */
+template<typename T> struct MEM_smart_ptr_deleter {
+  void operator()(T *pointer) const noexcept
   {
-    MEM_SAFE_DELETE_VOID(pointer);
+    MEM_SAFE_DELETE(pointer);
   }
 };
 

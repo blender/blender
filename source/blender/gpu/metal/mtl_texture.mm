@@ -512,7 +512,7 @@ void gpu::MTLTexture::update_sub(int mip,
   const bool do_texture_unpack = !ELEM(unpack_row_length, 0, extent[0]);
 
   /* Unpack `data` if `unpack_row_length` is set. */
-  std::unique_ptr<uint8_t, MEM_smart_ptr_deleter_void> unpack_buffer = nullptr;
+  std::unique_ptr<uint8_t, MEM_smart_ptr_deleter<uint8_t>> unpack_buffer = nullptr;
   if (do_texture_unpack) {
     BLI_assert_msg(!(format_flag_ & GPU_FORMAT_COMPRESSED),
                    "Compressed data with unpack_row_length != 0 is not supported.");
@@ -540,14 +540,14 @@ void gpu::MTLTexture::update_sub(int mip,
     data = unpack_buffer.get();
   }
 
-  std::unique_ptr<uint16_t, MEM_smart_ptr_deleter_void> clamped_half_buffer = nullptr;
+  std::unique_ptr<uint16_t, MEM_smart_ptr_deleter<uint16_t>> clamped_half_buffer = nullptr;
 
   if (data != nullptr && type == GPU_DATA_FLOAT && is_half_float(format_)) {
     size_t pixel_count = max_ii(extent[0], 1) * max_ii(extent[1], 1) * max_ii(extent[2], 1);
     size_t total_component_count = to_component_len(format_) * pixel_count;
 
-    clamped_half_buffer.reset((uint16_t *)MEM_new_uninitialized_aligned(
-        sizeof(uint16_t) * total_component_count, 128, __func__));
+    clamped_half_buffer.reset(static_cast<uint16_t *>(
+        MEM_new_uninitialized_aligned(sizeof(uint16_t) * total_component_count, 128, __func__)));
 
     Span<float> src(static_cast<const float *>(data), total_component_count);
     MutableSpan<uint16_t> dst(static_cast<uint16_t *>(clamped_half_buffer.get()),
