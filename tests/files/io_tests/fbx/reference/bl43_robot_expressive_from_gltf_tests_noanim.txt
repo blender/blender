@@ -2,6 +2,16 @@
 - Mesh 'Cube.001' vtx:497 face:529 loop:1928 edge:1002
     - 0 39 71 21 0 ... 494 496 491 490 496 
     - 0/39 39/71 21/71 0/21 21/64 ... 493/496 492/496 491/496 494/496 490/496 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.513, 0.000, 0.105)
     - (0.257, 0.513, 0.105)
@@ -12,8 +22,12 @@
     - (0.624, -0.002, -0.860)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder' vtx:511 face:466 loop:1742 edge:943
+    - 0 1 3 2 2 ... 509 510 508 504 506 
+    - 0/1 1/3 2/3 0/2 3/5 ... 507/509 507/508 508/510 503/507 504/508 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -22,12 +36,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder' vtx:511 face:466 loop:1742 edge:943
-    - 0 1 3 2 2 ... 509 510 508 504 506 
-    - 0/1 1/3 2/3 0/2 3/5 ... 507/509 507/508 508/510 503/507 504/508 
+  - attr 'material_index' INT FACE
+    - 1 1 1 1 1 ... 2 2 2 2 2 
   - attr 'position' FLOAT_VECTOR POINT
     - (1.294, 0.038, -0.677)
     - (1.294, 0.038, -0.512)
@@ -38,16 +48,6 @@
     - (-1.029, -0.710, 0.549)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 1 1 1 1 1 ... 2 2 2 2 2 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - 3 materials
     - 'Main' 'Grey' 'Black' 
   - shape key 'Basis' w:0.000 vgrp:'' 0:(1.294, 0.038, -0.677) 1:(1.294, 0.038, -0.512) 2:(1.047, -0.713, -0.677)
@@ -58,6 +58,16 @@
 - Mesh 'Cylinder.008' vtx:64 face:59 loop:240 edge:122
     - 4 5 11 10 10 ... 33 37 32 0 5 
     - 4/5 5/11 10/11 4/10 11/17 ... 54/60 55/61 53/59 50/56 62/63 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.000, -0.050, -0.108)
     - (0.094, -0.050, -0.054)
@@ -68,8 +78,12 @@
     - (0.093, 0.035, 0.039)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 0 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.009' vtx:64 face:59 loop:240 edge:122
+    - 4 10 11 5 10 ... 63 37 5 0 32 
+    - 4/10 10/11 5/11 4/5 10/16 ... 55/61 54/60 53/59 50/56 62/63 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -78,12 +92,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.009' vtx:64 face:59 loop:240 edge:122
-    - 4 10 11 5 10 ... 63 37 5 0 32 
-    - 4/10 10/11 5/11 4/5 10/16 ... 55/61 54/60 53/59 50/56 62/63 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.000, -0.050, -0.108)
     - (-0.094, -0.050, -0.054)
@@ -94,8 +104,12 @@
     - (-0.093, 0.035, 0.039)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 0 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.010' vtx:58 face:94 loop:296 edge:148
+    - 4 6 2 0 3 ... 55 52 50 54 56 
+    - 4/6 2/6 0/2 0/4 3/7 ... 55/57 54/56 54/55 51/55 50/54 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -104,12 +118,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.010' vtx:58 face:94 loop:296 edge:148
-    - 4 6 2 0 3 ... 55 52 50 54 56 
-    - 4/6 2/6 0/2 0/4 3/7 ... 55/57 54/56 54/55 51/55 50/54 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.665, -0.035, 0.031)
     - (0.665, -0.035, 0.108)
@@ -120,8 +130,12 @@
     - (0.638, 0.007, 0.078)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.011' vtx:51 face:86 loop:270 edge:135
+    - 0 11 13 0 13 ... 15 50 17 14 50 
+    - 0/11 11/13 0/13 13/20 0/20 ... 17/50 15/50 10/50 11/50 14/50 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -130,12 +144,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.011' vtx:51 face:86 loop:270 edge:135
-    - 0 11 13 0 13 ... 15 50 17 14 50 
-    - 0/11 11/13 0/13 13/20 0/20 ... 17/50 15/50 10/50 11/50 14/50 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.060, -0.081, -0.347)
     - (-0.096, 0.032, -0.347)
@@ -146,8 +156,12 @@
     - (0.000, 0.000, -0.408)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.012' vtx:77 face:112 loop:370 edge:185
+    - 4 2 9 7 0 ... 76 22 25 76 75 
+    - 2/4 2/9 7/9 4/7 0/3 ... 23/73 24/72 22/75 21/74 25/76 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -156,12 +170,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.012' vtx:77 face:112 loop:370 edge:185
-    - 4 2 9 7 0 ... 76 22 25 76 75 
-    - 2/4 2/9 7/9 4/7 0/3 ... 23/73 24/72 22/75 21/74 25/76 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.057, 0.226, 0.418)
     - (-0.035, 0.160, 0.418)
@@ -172,8 +182,12 @@
     - (-0.246, 0.269, -0.091)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.013' vtx:58 face:93 loop:292 edge:148
+    - 4 0 2 6 3 ... 57 50 52 56 54 
+    - 0/4 0/2 2/6 4/6 1/3 ... 50/54 54/55 51/55 55/57 54/56 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -182,12 +196,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.013' vtx:58 face:93 loop:292 edge:148
-    - 4 0 2 6 3 ... 57 50 52 56 54 
-    - 0/4 0/2 2/6 4/6 1/3 ... 50/54 54/55 51/55 55/57 54/56 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (1.511, 0.000, -0.136)
     - (1.511, 0.000, 0.204)
@@ -198,8 +208,12 @@
     - (1.634, 0.308, 0.122)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 0 1 0 0 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.014' vtx:19 face:16 loop:66 edge:33
+    - 9 6 5 12 6 ... 0 1 2 3 4 
+    - 6/9 5/6 5/12 9/12 6/7 ... 1/2 1/16 16/17 11/16 15/18 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -208,12 +222,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.014' vtx:19 face:16 loop:66 edge:33
-    - 9 6 5 12 6 ... 0 1 2 3 4 
-    - 6/9 5/6 5/12 9/12 6/7 ... 1/2 1/16 16/17 11/16 15/18 
+  - attr 'material_index' INT FACE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.151, -0.017, -0.168)
     - (0.248, 0.265, -0.268)
@@ -224,8 +234,12 @@
     - (-0.248, 0.267, -0.418)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.015' vtx:138 face:141 loop:554 edge:277
+    - 4 10 8 2 5 ... 0 5 3 4 2 
+    - 4/10 8/10 2/8 2/4 5/11 ... 131/136 128/136 130/135 125/135 114/130 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -234,12 +248,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.015' vtx:138 face:141 loop:554 edge:277
-    - 4 10 8 2 5 ... 0 5 3 4 2 
-    - 4/10 8/10 2/8 2/4 5/11 ... 131/136 128/136 130/135 125/135 114/130 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 1 1 1 1 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-1.405, -0.054, 0.119)
     - (-1.405, 0.054, 0.119)
@@ -250,16 +260,6 @@
     - (-1.935, 0.005, -0.308)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 1 1 1 1 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - vertex groups:
     - 0=1.000
     - 0=1.000
@@ -272,6 +272,16 @@
 - Mesh 'Cylinder.017' vtx:19 face:16 loop:66 edge:33
     - 9 12 5 6 6 ... 0 4 3 2 1 
     - 9/12 5/12 5/6 6/9 5/10 ... 16/17 1/16 1/2 11/16 15/18 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.151, -0.017, -0.168)
     - (-0.248, 0.265, -0.268)
@@ -282,8 +292,12 @@
     - (0.248, 0.267, -0.418)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.018' vtx:77 face:112 loop:370 edge:185
+    - 4 7 9 2 0 ... 24 22 75 76 25 
+    - 4/7 7/9 2/9 2/4 0/5 ... 24/72 23/73 21/74 22/75 25/76 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -292,12 +306,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.018' vtx:77 face:112 loop:370 edge:185
-    - 4 7 9 2 0 ... 24 22 75 76 25 
-    - 4/7 7/9 2/9 2/4 0/5 ... 24/72 23/73 21/74 22/75 25/76 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.057, 0.226, 0.418)
     - (0.035, 0.160, 0.418)
@@ -308,8 +318,12 @@
     - (0.246, 0.269, -0.091)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.019' vtx:51 face:86 loop:270 edge:135
+    - 0 13 11 0 20 ... 50 15 17 50 14 
+    - 0/13 11/13 0/11 0/20 13/20 ... 15/50 17/50 11/50 10/50 14/50 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -318,12 +332,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.019' vtx:51 face:86 loop:270 edge:135
-    - 0 13 11 0 20 ... 50 15 17 50 14 
-    - 0/13 11/13 0/11 0/20 13/20 ... 15/50 17/50 11/50 10/50 14/50 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.060, -0.081, -0.347)
     - (0.096, 0.032, -0.347)
@@ -334,8 +344,12 @@
     - (0.000, 0.000, -0.408)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.022' vtx:138 face:141 loop:554 edge:277
+    - 4 2 8 10 5 ... 2 4 3 5 0 
+    - 2/4 2/8 8/10 4/10 3/5 ... 131/136 129/131 125/135 130/135 114/130 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -344,12 +358,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - 2 materials
-    - 'Main' 'Grey' 
-
-- Mesh 'Cylinder.022' vtx:138 face:141 loop:554 edge:277
-    - 4 2 8 10 5 ... 2 4 3 5 0 
-    - 2/4 2/8 8/10 4/10 3/5 ... 131/136 129/131 125/135 130/135 114/130 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 1 1 1 1 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (1.405, -0.054, 0.119)
     - (1.405, 0.054, 0.119)
@@ -360,16 +370,6 @@
     - (1.935, 0.005, -0.308)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 1 1 1 1 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - vertex groups:
     - 0=1.000
     - 0=1.000

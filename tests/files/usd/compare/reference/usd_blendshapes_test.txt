@@ -2,10 +2,13 @@
 - Mesh 'Plane' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/2 0/1 1/3 2/3 
-  - attr 'skel:jointWeights' FLOAT POINT
-    - 1.000 1.000 1.000 1.000 
-  - attr 'skel:jointIndices' INT POINT
-    - 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-1.000, -1.000, 0.000)
     - (1.000, -1.000, 0.000)
@@ -13,13 +16,10 @@
     - (1.000, 1.000, 0.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
+  - attr 'skel:jointIndices' INT POINT
+    - 0 0 0 0 
+  - attr 'skel:jointWeights' FLOAT POINT
+    - 1.000 1.000 1.000 1.000 
   - vertex groups:
     - 0=1.000
     - 0=1.000
