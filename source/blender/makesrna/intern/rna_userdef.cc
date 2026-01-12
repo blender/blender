@@ -6491,7 +6491,10 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_rotate_around_active", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "uiflag", USER_ORBIT_SELECTION);
-  RNA_def_property_ui_text(prop, "Orbit Around Selection", "Use selection as the pivot point");
+  RNA_def_property_ui_text(prop,
+                           "Orbit Around Selection",
+                           "Use the selection (or the last stroke center in Paint modes) as the "
+                           "pivot point for orbiting");
 
   prop = RNA_def_property(srna, "view_rotate_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
