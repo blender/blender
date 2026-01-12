@@ -39,6 +39,8 @@
 #include "BLI_timecode.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h" /* <------ should this be here?, needed for sequencer update */
 #include "BKE_callbacks.hh"
@@ -1200,17 +1202,6 @@ static void do_render_compositor_scenes(Render *re)
   }
 }
 
-/* bad call... need to think over proper method still */
-static void render_compositor_stats(void *arg, const char *str)
-{
-  Render *re = static_cast<Render *>(arg);
-
-  RenderStats i;
-  memcpy(&i, &re->i, sizeof(i));
-  i.infostr = str;
-  re->display->stats_draw(&i);
-}
-
 /* Render compositor nodes, along with any scenes required for them.
  * The result will be output into a compositing render layer in the render result. */
 static void do_render_compositor(Render *re)
@@ -1264,12 +1255,8 @@ static void do_render_compositor(Render *re)
       }
 
       if (!re->display->test_break()) {
-        ntree->runtime->stats_draw = render_compositor_stats;
         ntree->runtime->test_break = re->display->test_break_cb;
-        ntree->runtime->progress = re->display->progress_cb;
-        ntree->runtime->sdh = re;
         ntree->runtime->tbh = re->display->tbh;
-        ntree->runtime->prh = re->display->prh;
 
         if (update_newframe) {
           /* If we have consistent depsgraph now would be a time to update them. */
@@ -1284,6 +1271,11 @@ static void do_render_compositor(Render *re)
         }
 
         CLOG_STR_INFO(&LOG, "Executing compositor");
+
+        re->display->progress(0.0f);
+        re->i.infostr = IFACE_("Compositing");
+        re->display->stats_draw(&re->i);
+
         compositor::RenderContext compositor_render_context;
         compositor_render_context.is_animation_render = re->flag & R_ANIMATION;
         for (RenderView &rv : re->result->views) {
@@ -1298,10 +1290,8 @@ static void do_render_compositor(Render *re)
         }
         compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
 
-        ntree->runtime->stats_draw = nullptr;
         ntree->runtime->test_break = nullptr;
-        ntree->runtime->progress = nullptr;
-        ntree->runtime->tbh = ntree->runtime->sdh = ntree->runtime->prh = nullptr;
+        ntree->runtime->tbh = nullptr;
       }
     }
   }

@@ -108,7 +108,6 @@ struct CompoJob {
   /* Job system integration. */
   const bool *stop;
   bool *do_update;
-  float *progress;
   bool cancelled;
 
   compositor::Profiler profiler;
@@ -145,14 +144,6 @@ static bool compo_breakjob(void *cjv)
           || G.is_break
 #endif
   );
-}
-
-/* Called by compositor, #wmJob sends notifier. */
-static void compo_statsdrawjob(void *cjv, const char * /*str*/)
-{
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-
-  *(cj->do_update) = true;
 }
 
 /* Called by compositor, wmJob sends notifier. */
@@ -226,13 +217,6 @@ static void compo_updatejob(void * /*cjv*/)
   WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
 }
 
-static void compo_progressjob(void *cjv, float progress)
-{
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-
-  *(cj->progress) = progress;
-}
-
 /* Only this runs inside thread. */
 static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
 {
@@ -242,18 +226,16 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
 
   cj->stop = &worker_status->stop;
   cj->do_update = &worker_status->do_update;
-  cj->progress = &worker_status->progress;
 
   ntree->runtime->test_break = compo_breakjob;
   ntree->runtime->tbh = cj;
-  ntree->runtime->stats_draw = compo_statsdrawjob;
-  ntree->runtime->sdh = cj;
-  ntree->runtime->progress = compo_progressjob;
-  ntree->runtime->prh = cj;
   ntree->runtime->update_draw = compo_redrawjob;
   ntree->runtime->udh = cj;
 
   BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
+
+  worker_status->progress = 0.0f;
+  worker_status->do_update = true;
 
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
     COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler, cj->needed_outputs);
@@ -269,8 +251,6 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   }
 
   ntree->runtime->test_break = nullptr;
-  ntree->runtime->stats_draw = nullptr;
-  ntree->runtime->progress = nullptr;
 }
 
 static void compo_canceljob(void *cjv)

@@ -17,12 +17,6 @@ namespace blender {
 
 static Mutex g_compositor_mutex;
 
-static void compositor_reset_node_tree_status(bNodeTree *node_tree)
-{
-  node_tree->runtime->progress(node_tree->runtime->prh, 0.0);
-  node_tree->runtime->stats_draw(node_tree->runtime->sdh, IFACE_("Compositing"));
-}
-
 void COM_execute(Render *render,
                  RenderData *render_data,
                  Scene *scene,
@@ -39,8 +33,6 @@ void COM_execute(Render *render,
      * Make sure this is the most recent one. */
     return;
   }
-
-  compositor_reset_node_tree_status(node_tree);
 
   RE_compositor_execute(*render,
                         *scene,
