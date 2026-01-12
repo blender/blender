@@ -143,8 +143,8 @@ void compute_preview(Context &context,
 
   const int2 preview_size = compute_preview_size(input_result.domain().data_size);
 
-  bke::bNodePreview *preview = bke::node_preview_verify(
-      *node_previews, node_instance_key, preview_size.x, preview_size.y, true);
+  bke::bNodePreview *preview = bke::node_ensure_preview(
+      *node_previews, node_instance_key, preview_size.x, preview_size.y);
 
   if (context.use_gpu()) {
     compute_preview_gpu(context, input_result, preview);

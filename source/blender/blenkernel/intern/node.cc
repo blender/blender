@@ -4381,37 +4381,22 @@ bool node_preview_used(const bNode &node)
   return (node.typeinfo->flag & NODE_PREVIEW) != 0;
 }
 
-bNodePreview *node_preview_verify(Map<bNodeInstanceKey, bNodePreview> &previews,
+bNodePreview *node_ensure_preview(Map<bNodeInstanceKey, bNodePreview> &previews,
                                   bNodeInstanceKey key,
                                   const int xsize,
-                                  const int ysize,
-                                  const bool create)
+                                  const int ysize)
 {
-  bNodePreview *preview = create ?
-                              &previews.lookup_or_add_cb(key,
-                                                         [&]() {
-                                                           bNodePreview preview;
-                                                           preview.ibuf = IMB_allocImBuf(
-                                                               xsize, ysize, 32, IB_byte_data);
-                                                           return preview;
-                                                         }) :
-                              previews.lookup_ptr(key);
-  if (!preview) {
-    return nullptr;
-  }
-
-  /* node previews can get added with variable size this way */
-  if (xsize == 0 || ysize == 0) {
+  bNodePreview *preview = &previews.lookup_or_add_cb(key, [&]() {
+    bNodePreview preview;
+    preview.ibuf = IMB_allocImBuf(xsize, ysize, 32, IB_byte_data);
     return preview;
-  }
+  });
 
-  /* sanity checks & initialize */
   const uint size[2] = {uint(xsize), uint(ysize)};
   IMB_rect_size_set(preview->ibuf, size);
   if (preview->ibuf->byte_buffer.data == nullptr) {
     IMB_alloc_byte_pixels(preview->ibuf);
   }
-  /* no clear, makes nicer previews */
 
   return preview;
 }
@@ -4432,32 +4417,6 @@ bNodePreview::~bNodePreview()
   if (this->ibuf) {
     IMB_freeImBuf(this->ibuf);
   }
-}
-
-static void node_preview_init_tree_recursive(Map<bNodeInstanceKey, bNodePreview> &previews,
-                                             bNodeTree *ntree,
-                                             bNodeInstanceKey parent_key,
-                                             const int xsize,
-                                             const int ysize)
-{
-  for (bNode *node : ntree->all_nodes()) {
-    bNodeInstanceKey key = node_instance_key(parent_key, ntree, node);
-
-    if (node_preview_used(*node)) {
-      node_preview_verify(previews, key, xsize, ysize, false);
-    }
-
-    bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
-    if (node->is_group() && group != nullptr) {
-      node_preview_init_tree_recursive(previews, group, key, xsize, ysize);
-    }
-  }
-}
-
-void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize)
-{
-  node_preview_init_tree_recursive(
-      ntree->runtime->previews, ntree, NODE_INSTANCE_KEY_BASE, xsize, ysize);
 }
 
 static void collect_used_previews(Map<bNodeInstanceKey, bNodePreview> &previews,

@@ -1112,13 +1112,12 @@ struct bNodePreview {
   ~bNodePreview();
 };
 
-bNodePreview *node_preview_verify(Map<bNodeInstanceKey, bNodePreview> &previews,
+/* Ensure that a node preview of the given size exists in the given previews map for the node with
+ * the given instance key. */
+bNodePreview *node_ensure_preview(Map<bNodeInstanceKey, bNodePreview> &previews,
                                   bNodeInstanceKey key,
                                   int xsize,
-                                  int ysize,
-                                  bool create);
-
-void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize);
+                                  int ysize);
 
 void node_preview_remove_unused(bNodeTree *ntree);
 
