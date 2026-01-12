@@ -805,10 +805,10 @@ static bool select_connected_keys(const Scene *scene,
   return changed;
 }
 
-void sequencer_retiming_select_linked_time(const Scene *scene,
-                                           const bool extend,
-                                           SeqRetimingKey *key,
-                                           const Strip *key_owner)
+static void sequencer_retiming_select_linked_time(const Scene *scene,
+                                                  const bool extend,
+                                                  SeqRetimingKey *key,
+                                                  const Strip *key_owner)
 {
   Editing *ed = seq::editing_get(scene);
 
