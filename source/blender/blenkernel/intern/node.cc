@@ -441,24 +441,6 @@ static void node_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static void node_foreach_cache(ID *id,
-                               IDTypeForeachCacheFunctionCallback function_callback,
-                               void *user_data)
-{
-  bNodeTree *nodetree = reinterpret_cast<bNodeTree *>(id);
-  IDCacheKey key = {0};
-  key.id_session_uid = id->session_uid;
-
-  if (nodetree->type == NTREE_COMPOSIT) {
-    for (bNode *node : nodetree->all_nodes()) {
-      if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
-        key.identifier = size_t(BLI_ghashutil_strhash_p(node->name));
-        function_callback(id, &key, (&node->storage), 0, user_data);
-      }
-    }
-  }
-}
-
 static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -1211,9 +1193,6 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
       BLO_write_string(writer, nss->bytecode);
     }
   }
-  else if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
-    /* pass */
-  }
   else if (ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY)) {
     NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
     BLO_write_string(writer, nc->matte_id);
@@ -1838,11 +1817,6 @@ static void node_blend_read_data_storage(BlendDataReader *reader, bNodeTree *ntr
   if (!node->storage) {
     return;
   }
-  if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
-    /* Do nothing, this is a runtime cache and hence handled by generic code using
-     * `IDTypeInfo.foreach_cache` callback. */
-    return;
-  }
 
   /* This may not always find the type for legacy nodes when the idname did not exist yet or it was
    * changed. Versioning code will update the nodes with unknown types. */
@@ -2181,7 +2155,7 @@ IDTypeInfo IDType_ID_NT = {
     /*free_data*/ bke::ntree_free_data,
     /*make_local*/ nullptr,
     /*foreach_id*/ bke::node_foreach_id,
-    /*foreach_cache*/ bke::node_foreach_cache,
+    /*foreach_cache*/ nullptr,
     /*foreach_path*/ bke::node_foreach_path,
     /*foreach_working_space_color*/ bke::node_foreach_working_space_color,
     /*owner_pointer_get*/ bke::node_owner_pointer_get,

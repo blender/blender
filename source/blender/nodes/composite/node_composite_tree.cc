@@ -122,23 +122,6 @@ static void local_merge(Main * /*bmain*/, bNodeTree *localtree, bNodeTree *ntree
 {
   /* move over the compbufs and previews */
   bke::node_preview_merge_tree(ntree, localtree, true);
-
-  for (bNode &lnode : localtree->nodes) {
-    if (bNode *orig_node = bke::node_find_node_by_name(*ntree, lnode.name)) {
-      if (lnode.type_legacy == CMP_NODE_MOVIEDISTORTION) {
-        /* special case for distortion node: distortion context is allocating in exec function
-         * and to achieve much better performance on further calls this context should be
-         * copied back to original node */
-        if (lnode.storage) {
-          if (orig_node->storage) {
-            BKE_tracking_distortion_free((MovieDistortion *)orig_node->storage);
-          }
-
-          orig_node->storage = BKE_tracking_distortion_copy((MovieDistortion *)lnode.storage);
-        }
-      }
-    }
-  }
 }
 
 static void update(bNodeTree *ntree)
