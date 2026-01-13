@@ -303,6 +303,9 @@ class FieldConstant : public FieldNode {
   const CPPType &output_cpp_type(int output_index) const override;
   const CPPType &type() const;
   GPointer value() const;
+
+  uint64_t hash() const override;
+  bool is_equal_to(const FieldNode &other) const override;
 };
 
 /**
