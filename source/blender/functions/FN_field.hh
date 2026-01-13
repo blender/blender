@@ -467,6 +467,11 @@ class FieldEvaluator : NonMovable, NonCopyable {
    * some cases, so it must live at least as long as the returned mask.
    */
   IndexMask get_evaluated_as_mask(int field_index);
+
+  const IndexMask &evaluation_mask() const
+  {
+    return mask_;
+  }
 };
 
 /**
