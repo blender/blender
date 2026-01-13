@@ -132,7 +132,6 @@ static int groupname_to_code(const char *group);
 static void remote_asset_library_refresh_online_assets_status(const FileList *filelist)
 {
   for (FileListInternEntry &entry : filelist->filelist_intern.entries) {
-    // LISTBASE_FOREACH (FileListInternEntry *, entry, &filelist->filelist_intern.entries) {
     if ((entry.typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
       continue;
     }
