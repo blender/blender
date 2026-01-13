@@ -274,6 +274,13 @@ NodeSocketInterfaceStructureType get_structure_type_for_bundle_signature(
   return NodeSocketInterfaceStructureType(socket.runtime->inferred_structure_type);
 }
 
+void BundleSignature::add(std::string key, const eNodeSocketDatatype socket_type)
+{
+  const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(socket_type);
+  BLI_assert(stype);
+  items.add({std::move(key), stype});
+}
+
 BundleSignature BundleSignature::from_combine_bundle_node(const bNode &node,
                                                           const bool allow_auto_structure_type)
 {
