@@ -243,16 +243,39 @@ components:
 
     AssetIDTypeV1:
       type: string
-      description: Type of the Blender data-block.
+      description: >
+        Type of the Blender data-block.
+
+        Note that this list is just a list of data-block types in Blender. This
+        type being in this list does not mean that Blender supports making this
+        data-block an asset. It's just here to ensure that if that changes, and
+        more data-block types can become assets, this schema doesn't need
+        updating.
       enum:
-        - "brush"
         - "action"
+        - "brush"
+        - "cachefile"
         - "collection"
-        - "object"
-        - "nodetree"
+        - "curves"
+        - "font"
+        - "freestylelinestyle"
+        - "greasepencil"
+        - "image"
+        - "mask"
         - "material"
+        - "movieclip"
+        - "nodetree"
+        - "object"
+        - "paintcurve"
+        - "palette"
+        - "particlesettings"
+        - "pointcloud"
+        - "scene"
+        - "sound"
+        - "texture"
+        - "volume"
+        - "workspace"
         - "world"
-        # TODO: add more.
 
     AssetMetadataV1:
       type: object

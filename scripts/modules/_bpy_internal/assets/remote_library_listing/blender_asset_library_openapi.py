@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Blender Authors
+# SPDX-FileCopyrightText: 2026 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
@@ -26,12 +26,29 @@ class URLWithHash:
 
 
 class AssetIDTypeV1(Enum):
-    brush = "brush"
     action = "action"
+    brush = "brush"
+    cachefile = "cachefile"
     collection = "collection"
-    object = "object"
-    nodetree = "nodetree"
+    curves = "curves"
+    font = "font"
+    freestylelinestyle = "freestylelinestyle"
+    greasepencil = "greasepencil"
+    image = "image"
+    mask = "mask"
     material = "material"
+    movieclip = "movieclip"
+    nodetree = "nodetree"
+    object = "object"
+    paintcurve = "paintcurve"
+    palette = "palette"
+    particlesettings = "particlesettings"
+    pointcloud = "pointcloud"
+    scene = "scene"
+    sound = "sound"
+    texture = "texture"
+    volume = "volume"
+    workspace = "workspace"
     world = "world"
 
 
