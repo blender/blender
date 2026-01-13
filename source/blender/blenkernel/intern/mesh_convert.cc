@@ -512,7 +512,7 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
   if (!ob_eval) {
     return;
   }
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_eval);
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   if (!mesh_eval) {
     return;
   }
