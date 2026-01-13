@@ -248,6 +248,36 @@
       return +(value.toFixed(4));
     }
 
+    /* Isolate a single dataset when its legend item is clicked, or show all if already isolated. */
+    function chart_legend_click_callback(e, legendItem, legend) {
+      const index = legendItem.datasetIndex;
+      const ci = legend.chart;
+      const is_visible = ci.isDatasetVisible(index);
+
+      /* Check if any other dataset is currently visible. */
+      let other_visible = false;
+      for (let i = 0; i < ci.data.datasets.length; i++) {
+        if (i !== index && ci.isDatasetVisible(i)) {
+          other_visible = true;
+          break;
+        }
+      }
+
+      if (!other_visible && is_visible) {
+        /* If this was the only one visible and we clicked it, show all. */
+        for (let i = 0; i < ci.data.datasets.length; i++) {
+          ci.setDatasetVisibility(i, true);
+        }
+      } else {
+        /* Otherwise, isolate this one. */
+        for (let i = 0; i < ci.data.datasets.length; i++) {
+          ci.setDatasetVisibility(i, i === index);
+        }
+      }
+      update_chart_bounds(ci);
+      ci.update();
+    }
+
     /* Format tooltip labels to include dataset names and formatted values. */
     function chart_tooltip_label_callback(context, is_memory) {
       let label = context.dataset.label || '';
@@ -327,7 +357,7 @@
 
       chart_instances = [];
 
-      /* Prepare UI and charts for each device. */
+      /* Prepare UI and charts queue for each device. */
       for (let i = 0; i < json_data.length; i++) {
         const benchmark = json_data[i];
 
@@ -365,12 +395,12 @@
           }
         }
 
-        /* Wrap everything in a section. */
+        /* Wrap everything in a section for easy hiding. */
         const section = document.createElement('section');
         section.className = "benchmark-section mb-5";
         tab_div.appendChild(section);
 
-        /* Create title. */
+        /* Create titles. */
         const subtitle_h3 = document.createElement('h3');
         subtitle_h3.textContent = benchmark['name'];
         section.appendChild(subtitle_h3);
@@ -416,6 +446,9 @@
           ds.pointRadius = 0;
           ds.pointHoverRadius = 5;
           ds.pointHitRadius = 10;
+          ds.hoverBackgroundColor = color;
+          ds.hoverBorderColor = '#fff';
+          ds.hoverBorderWidth = 2;
         }
 
         const is_memory = benchmark['name'].toLowerCase().indexOf("memory") !== -1;
@@ -444,6 +477,7 @@
             plugins: {
               legend: {
                 position: 'right',
+                onClick: chart_legend_click_callback
               },
               tooltip: {
                 enabled: true,
