@@ -34,6 +34,7 @@ class VKTexture : public Texture {
   friend class VKDescriptorSetTracker;
   friend class VKDescriptorSetUpdator;
   friend class VKContext;
+  friend class VKTexturePool;
 
   /**
    * Texture format how the texture is stored on the device.

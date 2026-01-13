@@ -108,5 +108,4 @@ void TexturePoolImpl::reset(bool force_free)
     }
   }
 }
-
 }  // namespace blender::gpu

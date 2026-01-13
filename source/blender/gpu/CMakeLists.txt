@@ -283,6 +283,7 @@ set(VULKAN_SRC
   vulkan/vk_storage_buffer.cc
   vulkan/vk_streaming_buffer.cc
   vulkan/vk_texture.cc
+  vulkan/vk_texture_pool.cc
   vulkan/vk_to_string.cc
   vulkan/vk_uniform_buffer.cc
   vulkan/vk_vertex_attribute_object.cc
