@@ -16,10 +16,12 @@
 
     /* Fixed width for header buttons to ensure groups match in size. */
     .btn-time-range            { width: 100px; }
+    .btn-scale-mode            { width: 133.33px; /* (100 * 4) / 3 */ }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
   <script>
     let chart_instances = [];
+    let current_scale_mode = 'linear-clipped';
     let current_time_range = '4m';
     let latest_timestamp = 0;
 
@@ -105,7 +107,134 @@
         section.style.display = valid_indices.length === 0 ? 'none' : 'block';
       }
 
+      update_chart_bounds(chart);
       chart.update('none');
+    }
+
+    /* Change the Y-axis scale (linear, log, etc.) for all visible charts. */
+    function set_scale_mode(mode, button) {
+      current_scale_mode = mode;
+      const scale_type = mode === 'logarithmic' ? 'logarithmic' : 'linear';
+      const clip_outliers = mode === 'linear-clipped';
+
+      /* Update button states. */
+      document.querySelectorAll('.btn-scale-mode').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.replace('btn-secondary', 'btn-outline-secondary');
+      });
+      if (button) {
+        button.classList.add('active');
+        button.classList.replace('btn-outline-secondary', 'btn-secondary');
+      } else {
+        const target_btn = document.querySelector(`.btn-scale-mode[data-mode='${mode}']`);
+        if (target_btn) {
+          target_btn.classList.add('active');
+          target_btn.classList.replace('btn-outline-secondary', 'btn-secondary');
+        }
+      }
+
+      /* Only update visible charts immediately for performance. */
+      for (const chart of chart_instances) {
+        const canvas = chart.canvas;
+        const is_visible = canvas.offsetParent !== null;
+
+        if (is_visible) {
+          apply_scale_to_chart(chart, scale_type, clip_outliers, true);
+        } else {
+          /* Mark for deferred update. */
+          chart._needs_scale_update = true;
+        }
+      }
+    }
+
+    /* Configure a specific chart instance with the selected scale settings. */
+    function apply_scale_to_chart(chart, scale_type, clip_outliers, animate) {
+      chart.options.scales.y.type = scale_type;
+      update_chart_bounds(chart);
+      chart.update(animate ? {
+        duration: scale_type === 'logarithmic' ? 800 : 0,
+        easing: 'easeOutQuart'
+      } : 'none');
+      chart._needs_scale_update = false;
+    }
+
+    /* Calculate robust and absolute maximums for a set of values.
+     * The robust maximum is used to clip outliers, calculated as the 75th percentile
+     * plus 5 times the Interquartile Range (IQR). */
+    function calculate_robust_max(values) {
+      if (values.length === 0) {
+        return { absolute_max: 0, robust_max: 0 };
+      }
+
+      const absolute_max = Math.max(...values);
+      let robust_max = absolute_max;
+
+      if (values.length > 4) {
+        /* Create a copy to sort. */
+        const sorted = Float64Array.from(values).sort();
+        const q1 = sorted[Math.floor(sorted.length * 0.25)];
+        const q3 = sorted[Math.floor(sorted.length * 0.75)];
+        const iqr = q3 - q1;
+        robust_max = q3 + 5 * iqr;
+      }
+
+      return { absolute_max, robust_max };
+    }
+
+    /* Recalculate robust and absolute maximums based on currently visible datasets. */
+    function update_chart_bounds(chart) {
+      let absolute_max = 0;
+      let robust_max = 0;
+
+      chart.data.datasets.forEach((ds, i) => {
+        if (!chart.isDatasetVisible(i)) {
+          return;
+        }
+        /* Filter out null/undefined values. */
+        const ds_values = ds.data.filter(v => v !== null && v !== undefined);
+        const ds_stats = calculate_robust_max(ds_values);
+
+        absolute_max = Math.max(absolute_max, ds_stats.absolute_max);
+        robust_max = Math.max(robust_max, ds_stats.robust_max);
+      });
+
+      chart.config._absolute_max = absolute_max;
+      chart.config._robust_max = robust_max;
+
+      const is_clipped = current_scale_mode === 'linear-clipped';
+      update_chart_max(chart, is_clipped);
+    }
+
+    /* Set a fixed maximum for the Y-axis if outlier clipping is active. */
+    function update_chart_max(chart, clip) {
+      const robust_max = chart.config._robust_max;
+      const absolute_max = chart.config._absolute_max;
+      if (clip && chart.options.scales.y.type === 'linear' && robust_max < absolute_max) {
+        chart.options.scales.y.max = robust_max;
+      } else {
+        chart.options.scales.y.max = undefined;
+      }
+    }
+
+    /* Show/hide UI controls like time ranges or scale modes based on the active tab's content. */
+    function update_ui_for_active_tab() {
+      let has_time_series = false;
+      for (const chart of chart_instances) {
+        if (chart.canvas.offsetParent !== null && chart.config._is_time_series) {
+          has_time_series = true;
+          break;
+        }
+      }
+
+      const clipped_btn = document.getElementById('linear-clipped');
+      if (has_time_series) {
+        clipped_btn.classList.remove('d-none');
+      } else {
+        clipped_btn.classList.add('d-none');
+        if (current_scale_mode === 'linear-clipped') {
+          set_scale_mode('linear');
+        }
+      }
     }
 
     /* Format Y-axis tick labels for memory or large numeric values. */
@@ -336,21 +465,32 @@
 
         if (is_time_series) {
           apply_time_range_to_chart(chart, get_min_timestamp(current_time_range));
+        } else {
+          update_chart_bounds(chart);
         }
 
         chart_instances.push(chart);
       }
 
-      /* Add event listeners to resize charts when tabs are shown. */
+      /* Add event listeners to resize and update charts when tabs are shown. */
       document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab_el => {
         tab_el.addEventListener('shown.bs.tab', (event) => {
+          const scale_type = current_scale_mode === 'logarithmic' ? 'logarithmic' : 'linear';
+          const clip_outliers = current_scale_mode === 'linear-clipped';
+
           for (const chart of chart_instances) {
             if (chart.canvas.offsetParent !== null) {
+              if (chart._needs_scale_update) {
+                apply_scale_to_chart(chart, scale_type, clip_outliers, false);
+              }
               chart.resize('none');
             }
           }
+          update_ui_for_active_tab();
         });
       });
+
+      update_ui_for_active_tab();
     }
 
     /* Initialize when DOM is ready. */
@@ -358,6 +498,10 @@
       /* Attach UI event listeners. */
       document.querySelectorAll('.btn-time-range').forEach(btn => {
         btn.addEventListener('click', (e) => set_time_range(e.target.dataset.range, e.target));
+      });
+
+      document.querySelectorAll('.btn-scale-mode').forEach(btn => {
+        btn.addEventListener('click', (e) => set_scale_mode(e.target.dataset.mode, e.target));
       });
 
       draw_charts();
@@ -373,6 +517,11 @@
         <button type="button" class="btn btn-secondary btn-sm shadow-sm btn-time-range active" data-range="4m">4 Months</button>
         <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-time-range" data-range="1y">12 Months</button>
         <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-time-range" data-range="all">All Time</button>
+      </div>
+      <div class="btn-group" role="group" aria-label="Scale Type">
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-scale-mode" data-mode="linear">Linear</button>
+        <button type="button" class="btn btn-secondary btn-sm shadow-sm btn-scale-mode active" id="linear-clipped" data-mode="linear-clipped">Linear (Clipped)</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-scale-mode" data-mode="logarithmic">Logarithmic</button>
       </div>
     </div>
   </div>
