@@ -1980,7 +1980,7 @@ static void sculpt_pose_do_translate_deform(SculptSession &ss, const Brush &brus
 {
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
   BKE_curvemapping_init(brush.curve_distance_falloff);
-  solve_translate_chain(ik_chain, ss.cache->grab_delta);
+  solve_translate_chain(ik_chain, ss.cache->grab_delta * ss.cache->bstrength);
 }
 
 /* Calculate a scale factor based on the grab delta. */
@@ -1999,7 +1999,7 @@ static void calc_scale_deform(SculptSession &ss, const Brush &brush)
 {
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
-  float3 ik_target = ss.cache->location + ss.cache->grab_delta;
+  float3 ik_target = ss.cache->location + (ss.cache->grab_delta * ss.cache->bstrength);
 
   /* Solve the IK for the first segment to include rotation as part of scale if enabled. */
   if (!(brush.flag2 & BRUSH_POSE_USE_LOCK_ROTATION)) {
@@ -2027,7 +2027,8 @@ static void calc_rotate_deform(SculptSession &ss, const Brush &brush)
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
   /* Calculate the IK target. */
-  float3 ik_target = ss.cache->location + ss.cache->grab_delta + ik_chain.grab_delta_offset;
+  float3 ik_target = ss.cache->location + (ss.cache->grab_delta * ss.cache->bstrength) +
+                     ik_chain.grab_delta_offset;
 
   /* Solve the IK positions. */
   solve_ik_chain(ik_chain, ik_target, brush.flag2 & BRUSH_POSE_IK_ANCHORED);
@@ -2057,7 +2058,7 @@ static void calc_squash_stretch_deform(SculptSession &ss, const Brush & /*brush*
 {
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
-  float3 ik_target = ss.cache->location + ss.cache->grab_delta;
+  float3 ik_target = ss.cache->location + (ss.cache->grab_delta * ss.cache->bstrength);
 
   float3 scale;
   scale.z = calc_scale_from_grab_delta(ss, ik_target);
