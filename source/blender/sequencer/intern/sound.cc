@@ -276,10 +276,12 @@ void sound_equalizermodifier_copy_data(StripModifierData *target, StripModifierD
   }
 }
 
+#ifdef WITH_AUDASPACE
 static uint64_t sound_equalizermodifier_get_params_hash(float *buf)
 {
   return XXH3_64bits(buf, sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION);
 }
+#endif
 
 void *sound_equalizermodifier_recreator(Strip *strip,
                                         StripModifierData *smd,
@@ -447,6 +449,7 @@ void *pitchmodifier_recreator(Strip * /*strip*/,
 #endif
 }
 
+#ifdef WITH_AUDASPACE
 static uint64_t echomodifier_get_params_hash(EchoModifierData *emd)
 {
   XXH3_state_t *state = XXH3_createState();
@@ -460,6 +463,7 @@ static uint64_t echomodifier_get_params_hash(EchoModifierData *emd)
   XXH3_freeState(state);
   return hash;
 }
+#endif
 
 void *echomodifier_recreator(Strip * /*strip*/,
                              StripModifierData *smd,
