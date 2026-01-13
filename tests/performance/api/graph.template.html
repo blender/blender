@@ -13,10 +13,100 @@
     .nav-tabs .nav-link        { color: #999; }
     .nav-tabs .nav-link.active { color: #555; font-weight: 500; }
     .tab-content               { margin: 20px 20px; }
+
+    /* Fixed width for header buttons to ensure groups match in size. */
+    .btn-time-range            { width: 100px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
   <script>
     let chart_instances = [];
+    let current_time_range = '4m';
+    let latest_timestamp = 0;
+
+    /* Constants for time calculations. */
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    /* Find the latest timestamp across all time-series data to use as "now". */
+    function calculate_latest_timestamp(json_data) {
+      let max_ts = 0;
+      for (const benchmark of json_data) {
+        if (benchmark.chart_type === 'line' && benchmark.data.labels) {
+          for (const ts of benchmark.data.labels) {
+            if (ts && ts > max_ts) {
+              max_ts = ts;
+            }
+          }
+        }
+      }
+      return max_ts;
+    }
+
+    /* Update the global time filter and refresh all time-series charts. */
+    function set_time_range(range, button) {
+      current_time_range = range;
+
+      /* Update button states. */
+      document.querySelectorAll('.btn-time-range').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.replace('btn-secondary', 'btn-outline-secondary');
+      });
+      if (button) {
+        button.classList.add('active');
+        button.classList.replace('btn-outline-secondary', 'btn-secondary');
+      } else {
+        const target_btn = document.querySelector(`.btn-time-range[data-range='${range}']`);
+        if (target_btn) {
+          target_btn.classList.add('active');
+          target_btn.classList.replace('btn-outline-secondary', 'btn-secondary');
+        }
+      }
+
+      const min_timestamp = get_min_timestamp(range);
+
+      for (const chart of chart_instances) {
+        if (chart.config._is_time_series) {
+          apply_time_range_to_chart(chart, min_timestamp);
+        }
+      }
+    }
+
+    /* Calculate the start timestamp for a given time range string. */
+    function get_min_timestamp(range) {
+      if (range === 'all') return 0;
+      if (range === '1m') return latest_timestamp - 30 * DAY_MS;
+      if (range === '4m') return latest_timestamp - 120 * DAY_MS;
+      if (range === '1y') return latest_timestamp - 365 * DAY_MS;
+      return 0;
+    }
+
+    /* Filter a chart's data points based on the selected time range. */
+    function apply_time_range_to_chart(chart, min_timestamp) {
+      const full_data = chart.config._full_data;
+
+      /* Find indices that match the time range. */
+      const valid_indices = [];
+      for (let i = 0; i < full_data.labels_raw.length; i++) {
+        const timestamp = full_data.labels_raw[i];
+        if (min_timestamp === 0 || timestamp >= min_timestamp) {
+          valid_indices.push(i);
+        }
+      }
+
+      /* Reconstruct labels and datasets based on valid indices. */
+      chart.data.labels = valid_indices.map(i => full_data.labels[i]);
+      chart.data.datasets.forEach((ds, ds_index) => {
+        const full_ds_data = full_data.datasets[ds_index].data;
+        ds.data = valid_indices.map(i => full_ds_data[i]);
+      });
+
+      /* Hide the entire section if there's no data in this range. */
+      const section = chart.canvas.closest('section');
+      if (section) {
+        section.style.display = valid_indices.length === 0 ? 'none' : 'block';
+      }
+
+      chart.update('none');
+    }
 
     /* Format Y-axis tick labels for memory or large numeric values. */
     function chart_y_axis_tick_callback(value, index, values, is_memory) {
@@ -94,6 +184,11 @@
       /* This placeholder is replaced by the actual JSON data during generation. */
       const json_data = %JSON_DATA%;
 
+      const max_ts = calculate_latest_timestamp(json_data);
+      if (max_ts > 0) {
+        latest_timestamp = max_ts;
+      }
+
       const charts_nav_elem = document.getElementById("charts-nav");
       const charts_content_elem = document.getElementById("charts-content");
 
@@ -170,12 +265,14 @@
         /* Prepare Data. */
         const chart_data = benchmark['data'];
         const is_time_series = benchmark['chart_type'] === 'line';
+        const labels_raw = is_time_series ? [...chart_data.labels] : [];
 
         if (is_time_series) {
           chart_data.labels = chart_data.labels.map(ts => {
             if (ts === null) return "";
             return new Date(ts).toISOString().split('T')[0];
           });
+          document.getElementById("timeRangeGroup").classList.remove("d-none");
         }
 
         /* Assign Colors Manually. */
@@ -229,6 +326,18 @@
           }
         });
 
+        chart.config._is_time_series = is_time_series;
+        /* Deep copy data for filtering. */
+        chart.config._full_data = {
+          labels: [...chart_data.labels],
+          labels_raw: labels_raw,
+          datasets: chart_data.datasets.map(ds => ({ ...ds, data: [...ds.data] }))
+        };
+
+        if (is_time_series) {
+          apply_time_range_to_chart(chart, get_min_timestamp(current_time_range));
+        }
+
         chart_instances.push(chart);
       }
 
@@ -244,11 +353,29 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", draw_charts);
+    /* Initialize when DOM is ready. */
+    document.addEventListener("DOMContentLoaded", () => {
+      /* Attach UI event listeners. */
+      document.querySelectorAll('.btn-time-range').forEach(btn => {
+        btn.addEventListener('click', (e) => set_time_range(e.target.dataset.range, e.target));
+      });
+
+      draw_charts();
+    });
   </script>
 </head>
 <body>
-  <h1>Benchmarks</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Benchmarks</h1>
+    <div class="d-flex flex-column align-items-end">
+      <div class="btn-group mb-2 d-none" id="timeRangeGroup" role="group" aria-label="Time Range">
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-time-range" data-range="1m">1 Month</button>
+        <button type="button" class="btn btn-secondary btn-sm shadow-sm btn-time-range active" data-range="4m">4 Months</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-time-range" data-range="1y">12 Months</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-time-range" data-range="all">All Time</button>
+      </div>
+    </div>
+  </div>
 
   <ul class="nav nav-tabs" id="charts-nav" role="tablist">
   </ul>
