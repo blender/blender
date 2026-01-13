@@ -72,7 +72,6 @@ struct ComputeContextHash {
 
   friend std::ostream &operator<<(std::ostream &stream, const ComputeContextHash &hash);
 
- private:
   /**
    * Compute a context hash by packing all the arguments into a contiguous buffer and hashing
    * that.
