@@ -36,6 +36,7 @@ set(SRC
   bpy_capi_utils.cc
   bpy_cli_command.cc
   bpy_driver.cc
+  bpy_driver_bytecode.cc
   bpy_geometry_set.cc
   bpy_gizmo_wrap.cc
   bpy_inline_shader_nodes.cc
@@ -87,6 +88,7 @@ set(SRC
   bpy_capi_utils.hh
   bpy_cli_command.hh
   bpy_driver.hh
+  bpy_driver_bytecode.hh
   bpy_geometry_set.hh
   bpy_gizmo_wrap.hh
   bpy_inline_shader_nodes.hh
