@@ -183,6 +183,7 @@ set(SRC
   intern/gpu_state_private.hh
   intern/gpu_storage_buffer_private.hh
   intern/gpu_texture_private.hh
+  intern/gpu_texture_pool_private.hh
   intern/gpu_uniform_buffer_private.hh
   intern/gpu_vertex_format_private.hh
 
@@ -231,6 +232,7 @@ set(OPENGL_SRC
   opengl/gl_state.hh
   opengl/gl_storage_buffer.hh
   opengl/gl_texture.hh
+  opengl/gl_texture_pool.hh
   opengl/gl_uniform_buffer.hh
   opengl/gl_vertex_array.hh
   opengl/gl_vertex_buffer.hh
@@ -357,6 +359,7 @@ set(VULKAN_SRC
   vulkan/vk_storage_buffer.hh
   vulkan/vk_streaming_buffer.hh
   vulkan/vk_texture.hh
+  vulkan/vk_texture_pool.hh
   vulkan/vk_to_string.hh
   vulkan/vk_uniform_buffer.hh
   vulkan/vk_vertex_attribute_object.hh
@@ -411,6 +414,7 @@ set(METAL_SRC
   metal/mtl_state.hh
   metal/mtl_storage_buffer.hh
   metal/mtl_texture.hh
+  metal/mtl_texture_pool.hh
   metal/mtl_uniform_buffer.hh
   metal/mtl_vertex_buffer.hh
 )

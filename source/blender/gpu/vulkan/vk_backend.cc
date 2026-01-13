@@ -31,6 +31,7 @@
 #include "vk_state_manager.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
+#include "vk_texture_pool.hh"
 #include "vk_uniform_buffer.hh"
 #include "vk_vertex_buffer.hh"
 
@@ -651,6 +652,11 @@ Shader *VKBackend::shader_alloc(const char *name)
 Texture *VKBackend::texture_alloc(const char *name)
 {
   return new VKTexture(name);
+}
+
+TexturePool *VKBackend::texturepool_alloc()
+{
+  return new VKTexturePool();
 }
 
 UniformBuf *VKBackend::uniformbuf_alloc(size_t size, const char *name)

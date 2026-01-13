@@ -32,6 +32,7 @@
 #include "gl_shader.hh"
 #include "gl_storage_buffer.hh"
 #include "gl_texture.hh"
+#include "gl_texture_pool.hh"
 #include "gl_uniform_buffer.hh"
 #include "gl_vertex_buffer.hh"
 
@@ -131,6 +132,11 @@ class GLBackend : public GPUBackend {
   {
     return new GLTexture(name);
   };
+
+  TexturePool *texturepool_alloc() override
+  {
+    return new GLTexturePool();
+  }
 
   UniformBuf *uniformbuf_alloc(size_t size, const char *name) override
   {

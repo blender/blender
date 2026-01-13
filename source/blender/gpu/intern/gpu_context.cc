@@ -74,7 +74,7 @@ Context::Context()
   thread_ = pthread_self();
   is_active_ = false;
   matrix_state = GPU_matrix_state_create();
-  texture_pool = new TexturePool();
+  texture_pool = GPUBackend::get()->texturepool_alloc();
 
   context_id = Context::context_counter;
   Context::context_counter++;
