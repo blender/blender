@@ -515,7 +515,6 @@ struct bNodeTreeType {
 
   /* calls allowing threaded composite */
   void (*localize)(bNodeTree *localtree, bNodeTree *ntree) = nullptr;
-  void (*local_merge)(Main *bmain, bNodeTree *localtree, bNodeTree *ntree) = nullptr;
 
   /* Tree update. Overrides `nodetype->updatetreefunc`. */
   void (*update)(bNodeTree *ntree) = nullptr;
@@ -923,13 +922,6 @@ void node_tree_update_all_new(Main &main);
 void node_update_asset_metadata(bNodeTree &node_tree);
 
 void node_tree_node_flag_set(bNodeTree &ntree, int flag, bool enable);
-
-/**
- * Merge local tree results back, and free local tree.
- *
- * We have to assume the editor already changed completely.
- */
-void node_tree_local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
 
 /**
  * \note `ntree` itself has been read!

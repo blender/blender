@@ -161,7 +161,7 @@ static void compo_freejob(void *cjv)
   if (cj->localtree) {
     /* Merge back node previews, only for completed jobs. */
     if (!cj->cancelled) {
-      bke::node_tree_local_merge(cj->bmain, cj->localtree, cj->ntree);
+      bke::node_preview_merge_tree(cj->ntree, cj->localtree, true);
     }
 
     bke::node_tree_free_tree(*cj->localtree);

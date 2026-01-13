@@ -118,12 +118,6 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
   }
 }
 
-static void local_merge(Main * /*bmain*/, bNodeTree *localtree, bNodeTree *ntree)
-{
-  /* move over the compbufs and previews */
-  bke::node_preview_merge_tree(ntree, localtree, true);
-}
-
 static void update(bNodeTree *ntree)
 {
   bke::node_tree_set_output(*ntree);
@@ -185,7 +179,6 @@ void register_node_tree_type_cmp()
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;
-  tt->local_merge = local_merge;
   tt->update = update;
   tt->get_from_context = composite_get_from_context;
   tt->node_add_init = composite_node_add_init;

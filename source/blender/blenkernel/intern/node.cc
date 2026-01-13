@@ -4811,15 +4811,6 @@ bNodeTree *node_tree_localize(bNodeTree *ntree, std::optional<ID *> new_owner_id
   return ltree;
 }
 
-void node_tree_local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
-{
-  if (ntree && localtree) {
-    if (ntree->typeinfo->local_merge) {
-      ntree->typeinfo->local_merge(bmain, localtree, ntree);
-    }
-  }
-}
-
 static bool ntree_contains_tree_exec(const bNodeTree &tree_to_search_in,
                                      const bNodeTree &tree_to_search_for,
                                      Set<const bNodeTree *> &already_passed)
