@@ -37,6 +37,11 @@ bool Bundle::is_valid_key(const StringRef key)
   if (key.is_empty()) {
     return false;
   }
+  if (key != key.trim()) {
+    /* Keys must not have leading or trailing whitespace. This simplifies potentially using these
+     * keys in expressions later on (or even just have a comma separated list of keys). */
+    return false;
+  }
   return key.find_first_of(Bundle::forbidden_key_chars) == StringRef::not_found;
 }
 
