@@ -25,31 +25,7 @@ class URLWithHash:
     hash: str
 
 
-class AssetIDTypeV1(Enum):
-    action = "action"
-    brush = "brush"
-    cachefile = "cachefile"
-    collection = "collection"
-    curves = "curves"
-    font = "font"
-    freestylelinestyle = "freestylelinestyle"
-    greasepencil = "greasepencil"
-    image = "image"
-    mask = "mask"
-    material = "material"
-    movieclip = "movieclip"
-    nodetree = "nodetree"
-    object = "object"
-    paintcurve = "paintcurve"
-    palette = "palette"
-    particlesettings = "particlesettings"
-    pointcloud = "pointcloud"
-    scene = "scene"
-    sound = "sound"
-    texture = "texture"
-    volume = "volume"
-    workspace = "workspace"
-    world = "world"
+AssetIDTypeV1 = str
 
 
 class CustomPropertyTypeV1(Enum):
