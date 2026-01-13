@@ -30,7 +30,9 @@ class TestGraph:
                         devices[device_name] = [entry]
 
         data = []
-        for device_name, device_entries in devices.items():
+        # Sort devices alphabetically.
+        sorted_devices = sorted(devices.items(), key=lambda item: item[0])
+        for device_name, device_entries in sorted_devices:
 
             # Gather used categories.
             categories = {}
@@ -41,8 +43,10 @@ class TestGraph:
                 else:
                     categories[category] = [entry]
 
+            # Sort categories alphabetically.
+            sorted_categories = sorted(categories.items(), key=lambda item: item[0])
             # Generate one graph for every device x category x result key combination.
-            for category, category_entries in categories.items():
+            for category, category_entries in sorted_categories:
                 entries = sorted(category_entries, key=lambda entry: (entry.date, entry.revision, entry.test))
 
                 outputs = set()
@@ -54,7 +58,7 @@ class TestGraph:
                 if chart_type == 'comparison':
                     entries = sorted(entries, key=lambda entry: (entry.revision, entry.test))
 
-                for output in outputs:
+                for output in sorted(outputs, reverse=True):
                     chart_name = f"{category} ({output})"
                     data.append(self.chart(device_name, chart_name, entries, chart_type, output))
 
@@ -77,43 +81,53 @@ class TestGraph:
                 revisions[revision] = len(revisions)
                 revision_dates[revision] = int(entry.date)
 
-        # Google Charts JSON data layout is like a spreadsheet table, with
-        # columns, rows, and cells. We create one column for revision labels,
-        # and one column for each test.
-        cols = []
-        if chart_type == 'line':
-            cols.append({'id': '', 'label': 'Date', 'type': 'date'})
+        # Convert to chart.js data layout.
+        if chart_type == 'comparison':
+            # For comparison, tests on the X axis and revisions as datasets.
+
+            # Sort tests by index to ensure stable order for labels.
+            sorted_tests = sorted(tests.items(), key=lambda item: item[1])
+            labels = [test for test, _ in sorted_tests]
+
+            datasets = []
+            # Sort revisions by index.
+            sorted_revisions = sorted(revisions.items(), key=lambda item: item[1])
+            for revision, index in sorted_revisions:
+                datasets.append({
+                    'label': revision,
+                    'data': [None] * len(tests),
+                })
+
+            for entry in entries:
+                test_index = tests[entry.test]
+                revision_index = revisions[entry.revision]
+                output_value = entry.output[output] if output in entry.output else None
+                datasets[revision_index]['data'][test_index] = output_value
+
         else:
-            cols.append({'id': '', 'label': ' ', 'type': 'string'})
-        for test, test_index in tests.items():
-            cols.append({'id': '', 'label': test, 'type': 'number'})
+            # For time series, dates on the X axis and tests as datasets.
+            labels = [None] * len(revisions)
+            for revision, index in revisions.items():
+                labels[index] = revision_dates[revision] * 1000
 
-        rows = []
-        for revision, revision_index in revisions.items():
-            if chart_type == 'line':
-                date = revision_dates[revision]
-                row = [{'f': None, 'v': 'Date({0})'.format(date * 1000)}]
-            else:
-                row = [{'f': None, 'v': revision}]
-            row += [{}] * len(tests)
-            rows.append({'c': row})
+            datasets = []
+            # Sort tests by index to ensure stable order.
+            sorted_tests = sorted(tests.items(), key=lambda item: item[1])
+            for test, index in sorted_tests:
+                datasets.append({
+                    'label': test,
+                    'data': [None] * len(revisions),
+                    'tension': 0.1,
+                })
 
-        for entry in entries:
-            test_index = tests[entry.test]
-            revision_index = revisions[entry.revision]
-            output_value = entry.output[output] if output in entry.output else -1.0
+            for entry in entries:
+                test_index = tests[entry.test]
+                revision_index = revisions[entry.revision]
+                output_value = entry.output[output] if output in entry.output else None
 
-            if output.find("memory") != -1:
-                formatted_value = '%.2f MB' % (output_value / (1024 * 1024))
-            elif output == "time":
-                formatted_value = "%.4f s" % output_value
-            else:
-                formatted_value = "%.4f" % output_value
+                datasets[test_index]['data'][revision_index] = output_value
 
-            cell = {'f': formatted_value, 'v': output_value}
-            rows[revision_index]['c'][test_index + 1] = cell
-
-        data = {'cols': cols, 'rows': rows}
+        data = {'labels': labels, 'datasets': datasets}
         return {'device': device_name, 'name': chart_name, 'data': data, 'chart_type': chart_type}
 
     def write(self, filepath: pathlib.Path) -> None:

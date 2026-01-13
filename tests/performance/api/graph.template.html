@@ -4,101 +4,120 @@
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <style type="text/css">
-    body                    { margin: 20px; font-size: 16px; color: #333; }
-    a                       { text-decoration: none; color: #06b; }
-    h2                      { color: #222; font-size: 1.4em; }
-    h3                      { color: #555; font-size: 1.2em; }
-    h4                      { color: #888; font-size: 1.0em; }
-    .nav-tabs               { font-size: 1.2em; }
-    .tab-content            { margin: 20px 20px; }
-    /* Tricks to make chart load with proper width while hidden. */
-    .tab-content>.tab-pane  { height: 1px; overflow: hidden; display: block; visibility: hidden; }
-    .tab-content>.active    { height: auto; overflow: auto; visibility: visible; }
+    body                       { margin: 20px; font-size: 16px; color: #333; }
+    a                          { text-decoration: none; color: #06b; }
+    h2                         { color: #222; font-size: 1.4em; }
+    h3                         { color: #555; font-size: 1.2em; }
+    h4                         { color: #888; font-size: 1.0em; }
+    .nav-tabs                  { font-size: 1.2em; }
+    .nav-tabs .nav-link        { color: #999; }
+    .nav-tabs .nav-link.active { color: #555; font-weight: 500; }
+    .tab-content               { margin: 20px 20px; }
   </style>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
   <script>
-    google.charts.load('current', {'packages':['line', 'bar']});
-    google.charts.setOnLoadCallback(draw_charts);
+    let chart_instances = [];
 
-    function transposeDataTable(dt)
-    {
-      /* Swap rows and columns. Bar and line charts expect different layouts,
-       * with this function we can use the same data source for both. */
-      var ndt = new google.visualization.DataTable;
-      ndt.addColumn('string',dt.getColumnLabel(0));
-      for(var x=1; x<dt.getNumberOfColumns(); x++) {
-          ndt.addRow([dt.getColumnLabel(x)]);
+    /* Format Y-axis tick labels for memory or large numeric values. */
+    function chart_y_axis_tick_callback(value, index, values, is_memory) {
+      if (is_memory) {
+        return format_memory(value);
       }
-      for(var x=0; x<dt.getNumberOfRows(); x++) {
-          ndt.addColumn('number', dt.getValue(x,0));
-          for(var y=1; y<dt.getNumberOfColumns(); y++) {
-              ndt.setValue(y-1, x+1, dt.getValue(x,y));
-              ndt.setFormattedValue(y-1, x+1, dt.getFormattedValue(x,y));
-          }
+      if (Math.abs(value) >= 10000) {
+        return value.toExponential(2);
       }
-      return ndt;
+      return +(value.toFixed(4));
     }
 
-    function drawChart(chartsQueue, index) {
-      index = index || 0;
-      if (index === chartsQueue.length)
-        return;
-
-      var chartData = chartsQueue[index];
-      var chart;
-
-      if (chartData.chart_type == 'line') {
-        chart = new google.charts.Line(document.getElementById(chartData.id));
-      } else {
-        chart = new google.charts.Bar(document.getElementById(chartData.id));
+    /* Format tooltip labels to include dataset names and formatted values. */
+    function chart_tooltip_label_callback(context, is_memory) {
+      let label = context.dataset.label || '';
+      if (label) {
+        label += ': ';
       }
-
-      google.visualization.events.addOneTimeListener(chart, 'ready', function() {
-        /* Auto scale chart elements to display full SVG. */
-        var allSvg = document.getElementsByTagName("svg");
-        for (var svgIndex = 0; svgIndex < allSvg.length; svgIndex++) {
-          allSvg[svgIndex].setAttribute('height', allSvg[svgIndex].getBBox().height);
+      if (context.parsed.y !== null) {
+        if (is_memory) {
+          label += format_memory(context.parsed.y);
+        } else {
+          label += context.parsed.y.toFixed(4);
         }
-
-        drawChart(chartsQueue, index + 1);
-      });
-
-      chart.draw(chartData.data, chartData.options);
+      }
+      return label;
     }
 
-    function draw_charts()
-    {
-      /* Load JSON data. */
-      var json_data = %JSON_DATA%;
+    /* Convert byte values into human-readable strings (MB, GB, etc.). */
+    function format_memory(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    /* Main entry point to initialize all benchmarks, create tabs, and render Chart.js instances. */
+    function draw_charts() {
+      /* Global Chart Configuration. */
+      Chart.defaults.plugins.colors.enabled = false;
+      Chart.defaults.animation.duration = 0;
+      Chart.defaults.transitions.active.animation.duration = 400;
+
+      /* Material Design Base Colors (HSL). */
+      const base_colors = [
+        [217, 89, 61],  /* Blue */
+        [5, 69, 54],    /* Red */
+        [44, 100, 48],  /* Yellow */
+        [151, 83, 34],  /* Green */
+        [291, 47, 51],  /* Purple */
+        [187, 100, 38], /* Cyan */
+        [14, 100, 63],  /* Deep Orange */
+        [60, 61, 38],   /* Lime */
+        [231, 48, 56],  /* Indigo */
+        [340, 82, 66],  /* Pink */
+        [174, 42, 51],  /* Teal */
+        [336, 78, 43]   /* Dark Pink */
+      ];
+
+      /* Generate a distinct color for each dataset using a Material Design base palette. */
+      function get_chart_color(index) {
+        const base = base_colors[index % base_colors.length];
+        const iteration = Math.floor(index / base_colors.length);
+        let l = base[2];
+
+        if (iteration > 0) {
+          /* Vary lightness for more datasets: alternates between darkening and lightening. */
+          const offset = (iteration % 2 === 1 ? -15 : 15) * Math.ceil(iteration / 2);
+          l = Math.max(10, Math.min(90, l + offset));
+        }
+        return `hsl(${base[0]}, ${base[1]}%, ${l}%)`;
+      }
+
+      /* This placeholder is replaced by the actual JSON data during generation. */
+      const json_data = %JSON_DATA%;
+
+      const charts_nav_elem = document.getElementById("charts-nav");
+      const charts_content_elem = document.getElementById("charts-content");
 
       /* Clear contents. */
-      charts_nav_elem = document.getElementById("charts-nav");
-      charts_content_elem = document.getElementById("charts-content");
-      while(charts_nav_elem.firstChild) {
-        charts_nav_elem.removeChild(charts_nav_elem.firstChild);
-      }
-      while(charts_content_elem.firstChild) {
-        charts_content_elem.removeChild(charts_content_elem.firstChild);
-      }
+      charts_nav_elem.replaceChildren();
+      charts_content_elem.replaceChildren();
 
-      var chartsQueue = [];
+      chart_instances = [];
 
-      /* Prepare UI and charts queue for each device. */
-      for (var i = 0; i < json_data.length; i++)
-      {
-        benchmark = json_data[i];
+      /* Prepare UI and charts for each device. */
+      for (let i = 0; i < json_data.length; i++) {
+        const benchmark = json_data[i];
 
-        tab_name = benchmark['name'].split(" ")[0];
-        tab_id = "benchmark-" + tab_name;
-        tab_div = document.getElementById(tab_id);
+        const tab_name = benchmark['name'].split(" ")[0];
+        const tab_id = "benchmark-" + tab_name;
+        let tab_div = document.getElementById(tab_id);
 
         if (!tab_div) {
           /* Create tab button. */
-          li_nav = document.createElement('li');
-          li_nav.class = "nav-item";
+          const li_nav = document.createElement('li');
+          li_nav.className = "nav-item";
           charts_nav_elem.appendChild(li_nav);
 
-          button_nav = document.createElement('button');
+          const button_nav = document.createElement('button');
           button_nav.id = tab_id + "-tab";
           button_nav.classList.add("nav-link");
           button_nav.setAttribute("data-bs-toggle", "tab");
@@ -106,7 +125,7 @@
           button_nav.setAttribute("type", "button");
           button_nav.setAttribute("role", "tab");
           button_nav.setAttribute("aria-controls", tab_id);
-          button_nav.appendChild(document.createTextNode(tab_name))
+          button_nav.textContent = tab_name;
           li_nav.appendChild(button_nav);
 
           /* Create chart container div. */
@@ -114,50 +133,118 @@
           tab_div.id = tab_id;
           tab_div.classList.add("tab-pane");
           tab_div.setAttribute("aria-labelledby", button_nav.id);
-          charts_content_elem.appendChild(tab_div)
+          charts_content_elem.appendChild(tab_div);
 
-          if (i == 0) {
+          if (i === 0) {
             button_nav.classList.add("active");
-            tab_div.classList.add('show');
-            tab_div.classList.add('active');
+            tab_div.classList.add('show', 'active');
           }
         }
 
+        /* Wrap everything in a section. */
+        const section = document.createElement('section');
+        section.className = "benchmark-section mb-5";
+        tab_div.appendChild(section);
+
         /* Create title. */
-        subtitle_h3 = document.createElement('h3');
-        subtitle_h3.appendChild(document.createTextNode(benchmark['name']));
-        tab_div.appendChild(subtitle_h3);
-        subtitle_h4 = document.createElement('h4');
-        subtitle_h4.appendChild(document.createTextNode(benchmark['device']));
-        tab_div.appendChild(subtitle_h4);
+        const subtitle_h3 = document.createElement('h3');
+        subtitle_h3.textContent = benchmark['name'];
+        section.appendChild(subtitle_h3);
 
-        /* Create chart div. */
-        chart_div = document.createElement('div');
-        chart_div.id = "chart-" + i;
-        tab_div.appendChild(chart_div)
+        const subtitle_h4 = document.createElement('h4');
+        subtitle_h4.textContent = benchmark['device'];
+        section.appendChild(subtitle_h4);
 
-        /* Chart drawing options. */
-        var options = {
-          pointsVisible: true,
-          pointSize: 2.5,
-          height: 500,
-        };
+        /* Create chart container. */
+        const chart_container = document.createElement('div');
+        chart_container.style.position = 'relative';
+        chart_container.style.height = '500px';
+        chart_container.style.width = '100%';
+        section.appendChild(chart_container);
 
-        /* Prepare chart data for queue. */
-        var data = new google.visualization.DataTable(benchmark["data"]);
-        var chartData = {
-          id: chart_div.id,
-          data: benchmark['chart_type'] == 'line' ? data : transposeDataTable(data),
-          options: options,
-          chart_type: benchmark['chart_type']
-        };
+        /* Create chart canvas. */
+        const canvas = document.createElement('canvas');
+        canvas.id = "chart-" + i;
+        chart_container.appendChild(canvas);
 
-        chartsQueue.push(chartData);
+        /* Prepare Data. */
+        const chart_data = benchmark['data'];
+        const is_time_series = benchmark['chart_type'] === 'line';
+
+        if (is_time_series) {
+          chart_data.labels = chart_data.labels.map(ts => {
+            if (ts === null) return "";
+            return new Date(ts).toISOString().split('T')[0];
+          });
+        }
+
+        /* Assign Colors Manually. */
+        for (let j = 0; j < chart_data.datasets.length; j++) {
+          const color = get_chart_color(j);
+          const ds = chart_data.datasets[j];
+          ds.backgroundColor = color;
+          ds.borderColor = color;
+          ds.borderWidth = 2;
+          ds.pointBackgroundColor = color;
+          ds.pointBorderColor = '#fff';
+          ds.pointRadius = 0;
+          ds.pointHoverRadius = 5;
+          ds.pointHitRadius = 10;
+        }
+
+        const is_memory = benchmark['name'].toLowerCase().indexOf("memory") !== -1;
+
+        /* Draw Chart. */
+        const chart = new Chart(canvas, {
+          type: benchmark['chart_type'] === 'line' ? 'line' : 'bar',
+          data: chart_data,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  autoSkip: true,
+                  autoSkipPadding: 20,
+                  callback: (value, index, values) => chart_y_axis_tick_callback(value, index, values, is_memory)
+                }
+              }
+            },
+            interaction: {
+              mode: benchmark['chart_type'] === 'line' ? 'nearest' : 'index',
+              intersect: benchmark['chart_type'] === 'line',
+            },
+            plugins: {
+              legend: {
+                position: 'right',
+              },
+              tooltip: {
+                enabled: true,
+                callbacks: {
+                  label: (context) => chart_tooltip_label_callback(context, is_memory)
+                }
+              }
+            }
+          }
+        });
+
+        chart_instances.push(chart);
       }
 
-      /* Start drawing charts sequentially. */
-      drawChart(chartsQueue, 0);
+      /* Add event listeners to resize charts when tabs are shown. */
+      document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab_el => {
+        tab_el.addEventListener('shown.bs.tab', (event) => {
+          for (const chart of chart_instances) {
+            if (chart.canvas.offsetParent !== null) {
+              chart.resize('none');
+            }
+          }
+        });
+      });
     }
+
+    document.addEventListener("DOMContentLoaded", draw_charts);
   </script>
 </head>
 <body>
