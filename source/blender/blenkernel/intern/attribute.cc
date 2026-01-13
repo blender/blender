@@ -923,6 +923,7 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
     return storage.index_of(name);
   }
   int index = 0;
+  bool found = false;
   storage.foreach_with_stop([&](const bke::Attribute &attr) {
     if (!(ATTR_DOMAIN_AS_MASK(attr.domain()) & domain_mask)) {
       return true;
@@ -934,12 +935,13 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
       return true;
     }
     if (attr.name() == name) {
+      found = true;
       return false;
     }
     index++;
     return true;
   });
-  return index;
+  return found ? index : -1;
 }
 
 std::optional<StringRef> BKE_id_attributes_active_color_name(const ID *id)
