@@ -3143,11 +3143,6 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
   return nt->rna_ext.srna;
 }
 
-static void rna_CompositorNode_tag_need_exec(bNode *node)
-{
-  ntreeCompositTagNeedExec(node);
-}
-
 static void rna_Node_tex_image_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
@@ -8639,17 +8634,12 @@ static void rna_def_shader_node(BlenderRNA *brna)
 static void rna_def_compositor_node(BlenderRNA *brna)
 {
   StructRNA *srna;
-  FunctionRNA *func;
 
   srna = RNA_def_struct(brna, "CompositorNode", "NodeInternal");
   RNA_def_struct_ui_text(srna, "Compositor Node", "");
   RNA_def_struct_sdna(srna, "bNode");
   RNA_def_struct_register_funcs(
       srna, "rna_CompositorNode_register", "rna_Node_unregister", nullptr);
-
-  /* compositor node need_exec flag */
-  func = RNA_def_function(srna, "tag_need_exec", "rna_CompositorNode_tag_need_exec");
-  RNA_def_function_ui_description(func, "Tag the node for compositor update");
 
   def_cmp_cryptomatte_entry(brna);
 }

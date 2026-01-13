@@ -28,10 +28,6 @@ void node_cmp_rlayers_outputs(bNodeTree *ntree, bNode *node);
  */
 void ntreeCompositTagRender(Scene *scene);
 
-void ntreeCompositTagNeedExec(bNode *node);
-
-void ntreeCompositClearTags(bNodeTree *ntree);
-
 void ntreeCompositCryptomatteSyncFromAdd(bNode *node);
 void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
 void ntreeCompositCryptomatteAddSocket(bNode *node);

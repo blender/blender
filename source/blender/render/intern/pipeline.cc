@@ -1193,7 +1193,9 @@ static void do_render_compositor_scenes(Render *re)
 
     scenes_rendered.add_new(node_scene);
     do_render_compositor_scene(re, node_scene, re->scene->r.cfra);
-    node->typeinfo->updatefunc(re->scene->compositing_node_group, node);
+    if (node->typeinfo->updatefunc) {
+      node->typeinfo->updatefunc(re->scene->compositing_node_group, node);
+    }
   }
 
   /* If another scene was rendered, switch back to the current scene. */

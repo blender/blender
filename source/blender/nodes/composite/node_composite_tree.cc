@@ -213,25 +213,4 @@ void ntreeCompositTagRender(Scene *scene)
   BKE_ntree_update(*G_MAIN);
 }
 
-void ntreeCompositClearTags(bNodeTree *ntree)
-{
-  /* XXX: after render animation system gets a refresh, this call allows composite to end clean. */
-
-  if (ntree == nullptr) {
-    return;
-  }
-
-  for (bNode *node : ntree->all_nodes()) {
-    node->runtime->need_exec = 0;
-    if (node->is_group()) {
-      ntreeCompositClearTags(id_cast<bNodeTree *>(node->id));
-    }
-  }
-}
-
-void ntreeCompositTagNeedExec(bNode *node)
-{
-  node->runtime->need_exec = true;
-}
-
 }  // namespace blender
