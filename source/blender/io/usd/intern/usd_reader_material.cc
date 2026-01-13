@@ -482,8 +482,7 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 
   /* Create the material. */
   Material *mtl = BKE_material_add(&bmain_, mtl_name.c_str());
-  mtl->nodetree = bke::node_tree_add_tree_embedded(
-      &bmain_, &mtl->id, "USD Material Node Tree", "ShaderNodeTree");
+  mtl->nodetree = mtl->nodetree;
   id_us_min(&mtl->id);
 
   if (read_usd_preview) {
@@ -523,13 +522,8 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
 
   /* Create the Material's node tree containing the principled BSDF
    * and output shaders. */
-
-  /* Add the node tree. */
   bNodeTree *ntree = mtl->nodetree;
-  if (mtl->nodetree == nullptr) {
-    ntree = bke::node_tree_add_tree_embedded(
-        nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
-  }
+  BLI_assert(ntree != nullptr);
 
   /* Create the Principled BSDF shader node. */
   bNode *principled = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, {0.0f, 300.0f});

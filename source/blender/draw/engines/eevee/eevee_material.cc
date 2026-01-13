@@ -30,8 +30,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 {
   {
     diffuse_mat = BKE_id_new_nomain<blender::Material>("EEVEE default diffuse");
-    bNodeTree *ntree = bke::node_tree_add_tree_embedded(
-        nullptr, &diffuse_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
+    bNodeTree *ntree = diffuse_mat->nodetree;
     diffuse_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
     /* Use 0.18 as it is close to middle gray. Middle gray is typically defined as 18% reflectance
@@ -52,8 +51,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
   }
   {
     metallic_mat = BKE_id_new_nomain<blender::Material>("EEVEE default metal");
-    bNodeTree *ntree = bke::node_tree_add_tree_embedded(
-        nullptr, &metallic_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
+    bNodeTree *ntree = metallic_mat->nodetree;
     metallic_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_GLOSSY);
@@ -80,8 +78,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
   }
   {
     error_mat_ = BKE_id_new_nomain<blender::Material>("EEVEE default error");
-    bNodeTree *ntree = bke::node_tree_add_tree_embedded(
-        nullptr, &error_mat_->id, "Shader Nodetree", ntreeType_Shader->idname);
+    bNodeTree *ntree = error_mat_->nodetree;
 
     /* Use emission and output material to be compatible with both World and Material. */
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_EMISSION);

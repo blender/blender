@@ -42,6 +42,11 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
       ma_default = BKE_material_default_surface();
     }
 
+    if (ma->nodetree) {
+      bke::node_tree_free_embedded_tree(ma->nodetree);
+      MEM_freeN(ma->nodetree);
+      ma->nodetree = nullptr;
+    }
     ma->nodetree = bke::node_tree_copy_tree(bmain, *ma_default->nodetree);
     ma->nodetree->owner_id = &ma->id;
     for (bNode *node_iter : ma->nodetree->all_nodes()) {
