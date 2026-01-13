@@ -454,7 +454,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
     return evaluated_varrays_[field_index];
   }
 
-  template<typename T> VArray<T> get_evaluated(const int field_index)
+  template<typename T> VArray<T> get_evaluated(const int field_index) const
   {
     return this->get_evaluated(field_index).typed<T>();
   }
