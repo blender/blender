@@ -291,6 +291,9 @@ class AssetDownloader:
             options=http_dl.DownloaderOptions(
                 metadata_provider=self._http_metadata_provider,
                 timeout=300,
+                http_headers={
+                    'X-Blender': "{:d}.{:d}".format(*bpy.app.version),
+                },
             ),
             on_callback_error=self._on_callback_error,
         )

@@ -240,7 +240,10 @@ class RemoteAssetListingDownloader:
         self._bg_downloader = http_dl.BackgroundDownloader(
             options=http_dl.DownloaderOptions(
                 metadata_provider=self._http_metadata_provider,
-                http_headers={'Accept': 'application/json'},
+                http_headers={
+                    'Accept': 'application/json',
+                    'X-Blender': "{:d}.{:d}".format(*bpy.app.version),
+                },
                 timeout=300,
             ),
             on_callback_error=self._on_callback_error,
