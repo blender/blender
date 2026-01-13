@@ -10,6 +10,7 @@
 
 #include <variant>
 
+#include "BLI_enum_flags.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -72,6 +73,17 @@ struct wmMsgBus;
 struct wmWindow;
 struct wmWindowManager;
 struct WorkSpace;
+
+/**
+ * Context logging control flags.
+ */
+enum class CTX_LogFlag : uint8_t {
+  /** Enable logging of context member access. */
+  Access = (1 << 0),
+  /** Hide missing/None values from logging. */
+  HideMissing = (1 << 1),
+};
+ENUM_OPERATORS(CTX_LogFlag);
 
 /* Structs */
 
@@ -479,12 +491,17 @@ Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C, bool rna_write
 Depsgraph *CTX_data_depsgraph_on_load(const bContext *C);
 
 /**
- * Enable or disable logging of context members.
+ * Set context member logging flags.
  */
-void CTX_member_logging_set(bContext *C, bool enable);
+void CTX_member_logging_flag_set(bContext *C, CTX_LogFlag flag);
 
 /**
- * Check if logging is enabled of context members.
+ * Get context member logging flag.
+ */
+CTX_LogFlag CTX_member_logging_flag_get(const bContext *C);
+
+/**
+ * \return true when context access should be logged.
  */
 bool CTX_member_logging_get(const bContext *C);
 
