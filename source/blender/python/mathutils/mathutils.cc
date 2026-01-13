@@ -696,7 +696,7 @@ PyObject *BaseMathObject_is_valid_get(BaseMathObject *self, void * /*closure*/)
 }
 
 char BaseMathObject_freeze_doc[] =
-    ".. function:: freeze()\n"
+    ".. method:: freeze()\n"
     "\n"
     "   Make this object immutable.\n"
     "\n"

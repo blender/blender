@@ -222,7 +222,7 @@ static PyTypeObject PyGPUOffscreenStackContext_Type = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_offscreen_bind_doc,
-    ".. function:: bind()\n"
+    ".. method:: bind()\n"
     "\n"
     "   Context manager to ensure balanced bind calls, even in the case of an error.\n");
 static PyObject *pygpu_offscreen_bind(BPyGPUOffScreen *self)

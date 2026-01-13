@@ -519,7 +519,7 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_rna_context_temp_override_logging_set_doc,
-    ".. function:: logging_set(enable, *, hide_missing=False)\n"
+    ".. method:: logging_set(enable, *, hide_missing=False)\n"
     "\n"
     "   Set context member logging options for this temporary override.\n"
     "\n"
