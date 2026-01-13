@@ -4,6 +4,7 @@
 
 #include "CLG_log.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_assert.h"
 #include "BLI_color_types.hh"
 #include "BLI_implicit_sharing.hh"
@@ -180,7 +181,8 @@ Attribute::DataVariant &Attribute::data_for_write()
     }
     const CPPType &type = attribute_type_to_cpp_type(type_);
     ArrayData new_data = ArrayData::from_uninitialized(type, data->size);
-    type.copy_construct_n(data->data, new_data.data, data->size);
+    array_utils::copy(GVArray::from_span({type, data->data, data->size}),
+                      GMutableSpan(type, new_data.data, data->size));
     *data = std::move(new_data);
   }
   else if (auto *data = std::get_if<Attribute::SingleData>(&data_)) {
