@@ -618,6 +618,13 @@ class VExportTree:
             else:
                 # Remove from root
                 self.roots.remove(uuid)
+
+            # If the node is a bone, we need to remove it from armature bones list
+            if self.nodes[uuid].blender_type == VExportNode.BONE:
+                armature_uuid = self.nodes[uuid].armature
+                bone_name = self.nodes[uuid].blender_bone.name
+                if bone_name in self.nodes[armature_uuid].bones:
+                    del self.nodes[armature_uuid].bones[bone_name]
         else:
             new_parent_kept_uuid = uuid
 
@@ -780,16 +787,15 @@ class VExportTree:
                 bpy.context.view_layer.objects.active = armature
                 bpy.ops.object.mode_set(mode="EDIT")
 
-                for bone in armature.data.edit_bones:
-                    if len(bone.children) == 0:
+                for (bone_name, bone_uuid) in self.nodes[obj_uuid].bones.items():
+                    bone = armature.data.edit_bones[bone_name]
 
-                        # If we are exporting only deform bones, we need to check if this bone is a def bone
-                        if self.export_settings['gltf_def_bones'] is True \
-                            and bone.use_deform is False:
-                                continue
+                    # Leaf bones only
+                    if len([c for c in self.nodes[bone_uuid].children if self.nodes[c].blender_type == VExportNode.BONE]) != 0:
+                        continue  # Not a leaf bone
 
-                        self.nodes[self.nodes[obj_uuid].bones[bone.name]
-                                   ].matrix_world_tail = armature.matrix_world @ Matrix.Translation(bone.tail) @ self.axis_basis_change
+                    self.nodes[bone_uuid
+                                ].matrix_world_tail = armature.matrix_world @ Matrix.Translation(bone.tail) @ self.axis_basis_change
 
                 bpy.ops.object.mode_set(mode="OBJECT")
 
