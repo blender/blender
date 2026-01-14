@@ -88,6 +88,14 @@ Attribute::ArrayData Attribute::ArrayData::from_value(const GPointer &value,
 Attribute::ArrayData Attribute::ArrayData::from_default_value(const CPPType &type,
                                                               const int64_t domain_size)
 {
+  if (type.is<ColorGeometry4f>()) {
+    constexpr ColorGeometry4f default_color(1.0f, 1.0f, 1.0f, 1.0f);
+    return from_value(GPointer(type, &default_color), domain_size);
+  }
+  if (type.is<ColorGeometry4b>()) {
+    constexpr ColorGeometry4b default_color(255, 255, 255, 255);
+    return from_value(GPointer(type, &default_color), domain_size);
+  }
   return from_value(GPointer(type, type.default_value()), domain_size);
 }
 
