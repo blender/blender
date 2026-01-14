@@ -233,6 +233,7 @@ class USERPREF_PT_interface_display(InterfacePanel, CenterAlignMixIn, Panel):
 
         col = layout.column(heading="Search", align=True)
         col.prop(prefs, "use_recent_searches", text="Sort by Most Recent")
+        col.prop(prefs, "show_hidden_ids", text="Show Hidden")
 
 
 class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):

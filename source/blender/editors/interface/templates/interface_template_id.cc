@@ -91,7 +91,7 @@ static bool id_search_allows_id(TemplateID *template_ui, const int flag, ID *id,
   }
 
   /* Hide dot prefixed data-blocks, but only if filter does not force them visible. */
-  if (U.uiflag & USER_HIDE_DOT) {
+  if (U.flag & USER_HIDE_DOT_DATABLOCK) {
     if ((id->name[2] == '.') && (query[0] != '.')) {
       return false;
     }
