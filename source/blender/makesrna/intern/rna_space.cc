@@ -16,6 +16,7 @@
 #include "BKE_context.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_movieclip.hh"
+#include "BKE_object_types.hh"
 
 #include "ED_asset.hh"
 #include "ED_buttons.hh"
@@ -1390,7 +1391,7 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
     /* When switching from workbench to render or material mode the geometry of any
      * active sculpt session needs to be recalculated. */
     for (Object &ob : bmain->objects) {
-      if (ob.sculpt) {
+      if (ob.runtime->sculpt_session) {
         DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
       }
     }

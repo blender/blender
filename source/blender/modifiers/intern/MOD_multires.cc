@@ -213,8 +213,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
      * stroke: i.e. when exiting blender right after stroke is done.
      * Annoying and not so much black-boxed as far as sculpting goes, and
      * surely there is a better way of solving this. */
-    if (ctx->object->sculpt != nullptr) {
-      SculptSession *sculpt_session = ctx->object->sculpt;
+    if (ctx->object->runtime->sculpt_session != nullptr) {
+      SculptSession *sculpt_session = ctx->object->runtime->sculpt_session;
       sculpt_session->subdiv_ccg = result->runtime->subdiv_ccg.get();
       sculpt_session->multires.active = true;
       sculpt_session->multires.modifier = mmd;

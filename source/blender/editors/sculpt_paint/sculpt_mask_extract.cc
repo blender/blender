@@ -17,6 +17,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_shrinkwrap.hh"
 
@@ -51,7 +52,7 @@ static bool geometry_extract_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob != nullptr && ob->mode == OB_MODE_SCULPT) {
-    if (ob->sculpt->bm) {
+    if (ob->runtime->sculpt_session->bm) {
       CTX_wm_operator_poll_msg_set(C, "The geometry cannot be extracted with dyntopo activated");
       return false;
     }

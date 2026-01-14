@@ -85,9 +85,11 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
   ID *data_orig = object->runtime->data_orig;
   ID *data_eval = runtime.data_eval;
   std::optional<Bounds<float3>> bounds = object->runtime->bounds_eval;
+  SculptSession *sculpt_session = object->runtime->sculpt_session;
   *object->runtime = runtime;
   object->runtime->data_orig = data_orig;
   object->runtime->bounds_eval = bounds;
+  object->runtime->sculpt_session = sculpt_session;
   if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_CURVES_LEGACY, OB_FONT) && data_eval != nullptr) {
     if (object->id.recalc & ID_RECALC_GEOMETRY) {
       /* If geometry is tagged for update it means, that part of

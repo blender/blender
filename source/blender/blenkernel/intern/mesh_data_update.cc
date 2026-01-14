@@ -319,8 +319,8 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
   /* Sculpt can skip certain modifiers. */
   const bool has_multires = BKE_sculpt_multires_active(&scene, &ob) != nullptr;
   bool multires_applied = false;
-  const bool sculpt_mode = ob.mode & OB_MODE_SCULPT && ob.sculpt && !use_render;
-  const bool sculpt_dyntopo = (sculpt_mode && ob.sculpt->bm) && !use_render;
+  const bool sculpt_mode = ob.mode & OB_MODE_SCULPT && ob.runtime->sculpt_session && !use_render;
+  const bool sculpt_dyntopo = (sculpt_mode && ob.runtime->sculpt_session->bm) && !use_render;
 
   /* Modifier evaluation contexts for different types of modifiers. */
   ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : ModifierApplyFlag(0);
@@ -1018,7 +1018,7 @@ static void mesh_build_data(Depsgraph &depsgraph,
   BLI_assert(mesh->key == nullptr || DEG_is_evaluated(mesh->key));
   mesh_eval->key = mesh->key;
 
-  if ((ob.mode & OB_MODE_ALL_SCULPT) && ob.sculpt) {
+  if ((ob.mode & OB_MODE_ALL_SCULPT) && ob.runtime->sculpt_session) {
     if (DEG_is_active(&depsgraph)) {
       BKE_sculpt_update_object_after_eval(&depsgraph, &ob);
     }

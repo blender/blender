@@ -6,6 +6,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -164,7 +165,7 @@ void FillDataGrids::execute(
 
 void FillDataBMesh::execute(Object &object, FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func)
 {
-  BMesh *bm = object.sculpt->bm;
+  BMesh *bm = object.runtime->sculpt_session->bm;
   BMeshNeighborVerts neighbors;
   while (!this->queue.empty()) {
     BMVert *from_v = this->queue.front();

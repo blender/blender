@@ -31,6 +31,7 @@
 #include "BKE_mesh_mirror.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_types.hh"
@@ -84,7 +85,7 @@ static wmOperatorStatus set_persistent_base_exec(bContext *C, wmOperator * /*op*
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
-  SculptSession *ss = ob.sculpt;
+  SculptSession *ss = ob.runtime->sculpt_session;
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -205,7 +206,7 @@ static bool no_multires_poll(bContext *C)
     return false;
   }
   const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob);
-  if (SCULPT_mode_poll(C) && ob->sculpt && pbvh) {
+  if (SCULPT_mode_poll(C) && ob->runtime->sculpt_session && pbvh) {
     return pbvh->type() != bke::pbvh::Type::Grids;
   }
   return false;
@@ -218,7 +219,7 @@ static wmOperatorStatus symmetrize_exec(bContext *C, wmOperator *op)
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob);
   const float dist = RNA_float_get(op->ptr, "merge_tolerance");
 
@@ -323,11 +324,11 @@ static void init_sculpt_mode_session(Main &bmain, Depsgraph &depsgraph, Scene &s
   BKE_sculpt_toolsettings_data_ensure(&bmain, &scene);
 
   /* Create sculpt mode session data. */
-  if (ob.sculpt != nullptr) {
+  if (ob.runtime->sculpt_session != nullptr) {
     BKE_sculptsession_free(&ob);
   }
-  ob.sculpt = MEM_new<SculptSession>(__func__);
-  ob.sculpt->mode_type = OB_MODE_SCULPT;
+  ob.runtime->sculpt_session = MEM_new<SculptSession>(__func__);
+  ob.runtime->sculpt_session->mode_type = OB_MODE_SCULPT;
 
   /* Trigger evaluation of modifier stack to ensure
    * multires modifier sets .runtime.ccg in
@@ -495,7 +496,8 @@ void object_sculpt_mode_exit(Main &bmain, Depsgraph &depsgraph, Scene &scene, Ob
 
   /* Always for now, so leaving sculpt mode always ensures scene is in
    * a consistent state. */
-  if (true || /* flush_recalc || */ (ob.sculpt && ob.sculpt->bm)) {
+  if (true || /* flush_recalc || */ (ob.runtime->sculpt_session && ob.runtime->sculpt_session->bm))
+  {
     DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
   }
 
@@ -733,7 +735,7 @@ static wmOperatorStatus mask_by_color(bContext *C, wmOperator *op, const float2 
   const Scene &scene = *CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   View3D *v3d = CTX_wm_view3d(C);
 
   {
@@ -963,7 +965,7 @@ static void apply_mask_grids(const Depsgraph &depsgraph,
                              const bke::pbvh::GridsNode &node,
                              LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -1003,7 +1005,7 @@ static void apply_mask_bmesh(const Depsgraph &depsgraph,
                              bke::pbvh::BMeshNode &node,
                              LocalData &tls)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
   tls.factors.resize(verts.size());
@@ -1066,7 +1068,7 @@ static void apply_mask_from_settings(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       MutableSpan<float> masks = subdiv_ccg.masks;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -1080,7 +1082,7 @@ static void apply_mask_from_settings(const Depsgraph &depsgraph,
     }
     case bke::pbvh::Type::BMesh: {
       const int mask_offset = CustomData_get_offset_named(
-          &object.sculpt->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+          &object.runtime->sculpt_session->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         LocalData &tls = all_tls.local();

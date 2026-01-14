@@ -38,6 +38,7 @@
 #include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object_deform.h"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 
@@ -620,7 +621,7 @@ static void do_weight_paint_vertex_single(const VPaint &wp,
   }
 
   if (!vwpaint::brush_use_accumulate(wp)) {
-    MDeformVert *dvert_prev = ob.sculpt->mode.wpaint.dvert_prev.data();
+    MDeformVert *dvert_prev = ob.runtime->sculpt_session->mode.wpaint.dvert_prev.data();
     MDeformVert *dv_prev = defweight_prev_init(dvert_prev, wpi.dvert.data(), index);
     if (index_mirr != -1) {
       defweight_prev_init(dvert_prev, wpi.dvert.data(), index_mirr);
@@ -768,7 +769,7 @@ static void do_weight_paint_vertex_multi(const VPaint &wp,
   }
 
   if (!vwpaint::brush_use_accumulate(wp)) {
-    MDeformVert *dvert_prev = ob.sculpt->mode.wpaint.dvert_prev.data();
+    MDeformVert *dvert_prev = ob.runtime->sculpt_session->mode.wpaint.dvert_prev.data();
     MDeformVert *dv_prev = defweight_prev_init(dvert_prev, wpi.dvert.data(), index);
     if (index_mirr != -1) {
       defweight_prev_init(dvert_prev, wpi.dvert.data(), index_mirr);
@@ -893,7 +894,7 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   WPaintVGroupIndex vgroup_index;
   int defbase_tot, defbase_tot_sel;
   bool *defbase_sel;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   VPaint &wp = *weight_paint_;
   Depsgraph &depsgraph = *this->depsgraph;
 
@@ -1032,8 +1033,8 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
     wpd->precomputed_weight = MEM_malloc_arrayN<float>(mesh.verts_num, __func__);
   }
 
-  if (!ob.sculpt->mode.wpaint.dvert_prev.is_empty()) {
-    MDeformVert *dv = ob.sculpt->mode.wpaint.dvert_prev.data();
+  if (!ob.runtime->sculpt_session->mode.wpaint.dvert_prev.is_empty()) {
+    MDeformVert *dv = ob.runtime->sculpt_session->mode.wpaint.dvert_prev.data();
     for (int i = 0; i < mesh.verts_num; i++, dv++) {
       /* Use to show this isn't initialized, never apply to the mesh data. */
       dv->flag = 1;
@@ -1131,7 +1132,7 @@ static void do_wpaint_brush_blur(const Depsgraph &depsgraph,
                                  Mesh &mesh,
                                  const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
   const StrokeCache &cache = *ss.cache;
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
@@ -1238,7 +1239,7 @@ static void do_wpaint_brush_smear(const Depsgraph &depsgraph,
                                   Mesh &mesh,
                                   const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
   const GroupedSpan<int> vert_to_face = mesh.vert_to_face_map();
   const StrokeCache &cache = *ss.cache;
@@ -1364,7 +1365,7 @@ static void do_wpaint_brush_draw(const Depsgraph &depsgraph,
                                  const float strength,
                                  const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
 
   const StrokeCache &cache = *ss.cache;
@@ -1453,7 +1454,7 @@ static float calculate_average_weight(const Depsgraph &depsgraph,
                                       WeightPaintInfo &wpi,
                                       const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   MutableSpan<bke::pbvh::MeshNode> nodes = bke::object::pbvh_get(ob)->nodes<bke::pbvh::MeshNode>();
   const StrokeCache &cache = *ss.cache;
 
@@ -1533,7 +1534,7 @@ static void wpaint_paint_leaves(const Depsgraph &depsgraph,
                                 Mesh &mesh,
                                 const IndexMask &node_mask)
 {
-  const Brush &brush = *ob.sculpt->cache->brush;
+  const Brush &brush = *ob.runtime->sculpt_session->cache->brush;
 
   switch (eBrushWeightPaintType(brush.weight_brush_type)) {
     case WPAINT_BRUSH_TYPE_AVERAGE: {
@@ -1727,7 +1728,7 @@ static void wpaint_do_paint(const Depsgraph &depsgraph,
                             const int i,
                             const float angle)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   ss.cache->radial_symmetry_pass = i;
   SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
 
@@ -1760,7 +1761,7 @@ static void wpaint_do_symmetrical_brush_actions(
 {
   Brush &brush = *BKE_paint_brush(&wp.paint);
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   int i = 0;
@@ -1815,7 +1816,7 @@ void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
   ViewContext *vc;
   Object *ob = this->object;
 
-  SculptSession &ss = *ob->sculpt;
+  SculptSession &ss = *ob->runtime->sculpt_session;
 
   vwpaint::update_cache_variants(*this->depsgraph, wp, *ob, itemptr);
 
@@ -1891,7 +1892,7 @@ void WeightPaintStroke::done(bool /*is_cancel*/)
 {
   Object &ob = *this->object;
 
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   if (ss.cache->alt_smooth) {
     vwpaint::smooth_brush_toggle_off(this->paint, ss.cache);
@@ -1912,8 +1913,8 @@ void WeightPaintStroke::done(bool /*is_cancel*/)
 
   WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, &ob);
 
-  MEM_delete(ob.sculpt->cache);
-  ob.sculpt->cache = nullptr;
+  MEM_delete(ob.runtime->sculpt_session->cache);
+  ob.runtime->sculpt_session->cache = nullptr;
 }
 
 static wmOperatorStatus wpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)

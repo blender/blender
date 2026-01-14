@@ -135,7 +135,7 @@ void cache_init(bContext *C,
                 float area_normal_radius,
                 float start_strength)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
@@ -344,7 +344,7 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
     Vector<float3> new_positions;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -513,7 +513,7 @@ static void calc_inflate_filter(const Depsgraph &depsgraph,
     Vector<float3> positions;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -619,7 +619,7 @@ static void calc_scale_filter(const Depsgraph &depsgraph,
     Vector<float3> positions;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -733,7 +733,7 @@ static void calc_sphere_filter(const Depsgraph &depsgraph,
     Vector<float3> positions;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -843,7 +843,7 @@ static void calc_random_filter(const Depsgraph &depsgraph,
     Vector<float3> positions;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -947,7 +947,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                               Object &object,
                               const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   bke::pbvh::update_normals(depsgraph, object, pbvh);
   switch (pbvh.type()) {
@@ -1094,7 +1094,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                         Object &object,
                                         const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   bke::pbvh::update_normals(depsgraph, object, pbvh);
 
@@ -1272,7 +1272,7 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
     Vector<float3> laplacian_disp;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const float alpha = ss.filter_cache->surface_smooth_shape_preservation;
   const float beta = ss.filter_cache->surface_smooth_current_vertex;
@@ -1557,7 +1557,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
     Vector<float3> detail_directions;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -1809,7 +1809,7 @@ static void calc_enhance_details_filter(const Depsgraph &depsgraph,
     Vector<float3> positions;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -1907,7 +1907,7 @@ static void calc_erase_displacement_filter(const Depsgraph &depsgraph,
     Vector<float3> new_positions;
     Vector<float3> translations;
   };
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   threading::EnumerableThreadSpecific<LocalData> all_tls;
@@ -1942,7 +1942,7 @@ static void mesh_filter_surface_smooth_init(Object &object,
                                             const float shape_preservation,
                                             const float current_vertex_displacement)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const int totvert = SCULPT_vertex_count_get(object);
   filter::Cache *filter_cache = ss.filter_cache;
 
@@ -1954,7 +1954,7 @@ static void mesh_filter_surface_smooth_init(Object &object,
 
 static void calc_limit_surface_positions(const Object &object, MutableSpan<float3> limit_positions)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -1973,7 +1973,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
                                      const int curvature_smooth_iterations,
                                      filter::Cache &filter_cache)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const IndexMask &node_mask = filter_cache.node_mask;
   const int totvert = SCULPT_vertex_count_get(object);
@@ -2131,7 +2131,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op, bool is_replay
 {
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   const MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
   const float strength = RNA_float_get(op->ptr, "strength");
@@ -2213,7 +2213,7 @@ static void sculpt_mesh_filter_apply_with_history(bContext *C, wmOperator *op)
   }
 
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   float2 start_mouse;
   bool first = true;
   float initial_strength = ss.filter_cache->start_filter_strength;
@@ -2239,7 +2239,7 @@ static void sculpt_mesh_filter_apply_with_history(bContext *C, wmOperator *op)
 static void sculpt_mesh_filter_end(bContext *C)
 {
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   MEM_delete(ss.filter_cache);
   ss.filter_cache = nullptr;
@@ -2263,7 +2263,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
 {
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
-  SculptSession *ss = ob.sculpt;
+  SculptSession *ss = ob.runtime->sculpt_session;
   bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob);
 
   if (!ss || !pbvh) {
@@ -2279,7 +2279,7 @@ static wmOperatorStatus sculpt_mesh_filter_modal(bContext *C, wmOperator *op, co
 {
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
 
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EW_SCROLL);
@@ -2353,7 +2353,7 @@ static void sculpt_filter_specific_init(const Depsgraph &depsgraph,
                                         wmOperator *op,
                                         Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   switch (filter_type) {
     case MeshFilterType::SurfaceSmooth: {
       mesh_filter_surface_smooth_init(object,
@@ -2413,7 +2413,7 @@ static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   if (filter_type == MeshFilterType::EraseDisplacement && pbvh.type() != bke::pbvh::Type::Grids) {

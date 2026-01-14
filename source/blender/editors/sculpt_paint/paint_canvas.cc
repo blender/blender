@@ -12,6 +12,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_material.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 
 #include "WM_toolsystem.hh"
@@ -70,7 +71,7 @@ static bool paint_brush_type_shading_color_follows_last_used(StringRef idname)
 
 void ED_paint_brush_type_update_sticky_shading_color(bContext *C, Object *ob)
 {
-  if (ob == nullptr || ob->sculpt == nullptr) {
+  if (ob == nullptr || ob->runtime->sculpt_session == nullptr) {
     return;
   }
 
@@ -83,13 +84,13 @@ void ED_paint_brush_type_update_sticky_shading_color(bContext *C, Object *ob)
     return;
   }
 
-  ob->sculpt->sticky_shading_color = paint_tool_uses_canvas(tref->idname) ||
-                                     paint_brush_uses_canvas(C);
+  ob->runtime->sculpt_session->sticky_shading_color = paint_tool_uses_canvas(tref->idname) ||
+                                                      paint_brush_uses_canvas(C);
 }
 
 static bool paint_brush_type_shading_color_follows_last_used_tool(bContext *C, Object *ob)
 {
-  if (ob == nullptr || ob->sculpt == nullptr) {
+  if (ob == nullptr || ob->runtime->sculpt_session == nullptr) {
     return false;
   }
 
@@ -127,7 +128,7 @@ eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
    */
   if (!ED_paint_brush_type_use_canvas(C, nullptr) &&
       !(paint_brush_type_shading_color_follows_last_used_tool(C, &ob) &&
-        ob.sculpt->sticky_shading_color))
+        ob.runtime->sculpt_session->sticky_shading_color))
   {
     return orig_color_type;
   }

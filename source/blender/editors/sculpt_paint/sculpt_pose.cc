@@ -21,6 +21,7 @@
 #include "BKE_ccg.hh"
 #include "BKE_colortools.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 
@@ -161,7 +162,7 @@ static void calc_mesh(const Depsgraph &depsgraph,
                       BrushLocalData &tls,
                       const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -211,7 +212,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        Object &object,
                        BrushLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -264,7 +265,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        Object &object,
                        BrushLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -1574,7 +1575,7 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       const Span<float3> positions = subdiv_ccg.positions;
 
       const Mesh &mesh = *id_cast<Mesh *>(object.data);
@@ -1598,7 +1599,7 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
     }
     case bke::pbvh::Type::BMesh: {
       vert_random_access_ensure(object);
-      BMesh &bm = *object.sculpt->bm;
+      BMesh &bm = *object.runtime->sculpt_session->bm;
       const int face_set_offset = CustomData_get_offset_named(
           &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
       for (const int vert : IndexRange(BM_mesh_elem_count(&bm, BM_VERT))) {
@@ -2100,7 +2101,7 @@ void do_pose_brush(const Depsgraph &depsgraph,
                    Object &ob,
                    const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -2199,7 +2200,7 @@ void do_pose_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *ob.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {

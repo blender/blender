@@ -23,6 +23,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 
@@ -272,7 +273,7 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
                                  ColorPaintLocalData &tls,
                                  bke::GSpanAttributeWriter &color_attribute)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -359,7 +360,7 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
                                 const MutableSpan<float4> mix_colors,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const float bstrength = fabsf(ss.cache->bstrength);
@@ -523,7 +524,7 @@ static void do_sample_wet_paint_task(const Depsgraph &depsgraph,
                                      ColorPaintLocalData &tls,
                                      SampleWetPaintData &swptd)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const float radius = cache.radius * brush.wet_paint_radius_factor;
 
@@ -567,7 +568,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
   }
 
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
@@ -695,7 +696,7 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
                                 ColorPaintLocalData &tls,
                                 bke::GSpanAttributeWriter &color_attribute)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const float strength = ss.cache->bstrength;
 
@@ -849,7 +850,7 @@ void do_smear_brush(const Depsgraph &depsgraph,
                     const IndexMask &node_mask)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
@@ -922,7 +923,7 @@ void do_blur_brush(const Depsgraph &depsgraph,
                    const IndexMask &node_mask)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
