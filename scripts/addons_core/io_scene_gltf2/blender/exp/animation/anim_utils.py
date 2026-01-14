@@ -260,6 +260,7 @@ def bake_animation(obj_uuid: str, animation_key: str, export_settings, mode=None
         # We need to bake all bones. Because some bone can have some constraints linking to
         # some other armature bones, for example
 
+        animation = None
         channels, _ = gather_action_armature_sampled(obj_uuid, None, None, animation_key, export_settings)
         if channels:
             animation = gltf2_io.Animation(
