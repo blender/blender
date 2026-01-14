@@ -7892,15 +7892,15 @@ void MESH_OT_symmetrize(wmOperatorType *ot)
                           BMO_SYMMETRIZE_NEGATIVE_X,
                           "Direction",
                           "Which sides to copy from and to");
-  RNA_def_float(ot->srna,
-                "threshold",
-                1e-4f,
-                0.0f,
-                10.0f,
-                "Threshold",
-                "Limit for snap middle vertices to the axis center",
-                1e-5f,
-                0.1f);
+  RNA_def_float_distance(ot->srna,
+                         "threshold",
+                         1e-4f,
+                         0.0f,
+                         10.0f,
+                         "Threshold",
+                         "Limit for snap middle vertices to the axis center",
+                         1e-5f,
+                         0.1f);
 }
 
 /** \} */
