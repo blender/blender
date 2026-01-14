@@ -15,7 +15,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -147,6 +146,10 @@ set(LIB
   PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager
+  PRIVATE bf::dependencies::zlib
+  PRIVATE bf::dependencies::optional::gmp
+  PRIVATE bf::dependencies::optional::bullet
+  PRIVATE bf::dependencies::optional::opensubdiv
 )
 
 if(WITH_ALEMBIC)
@@ -187,32 +190,9 @@ if(WITH_MOD_OCEANSIM)
   add_definitions(-DWITH_OCEANSIM)
 endif()
 
-if(WITH_OPENSUBDIV)
-  add_definitions(-DWITH_OPENSUBDIV)
-endif()
-
-if(WITH_BULLET)
-  list(APPEND LIB
-    ${BULLET_LIBRARIES}
-  )
-  add_definitions(-DWITH_BULLET)
-endif()
-
 # To disable adaptive subdivision test in subdivision-surface UI without cycles.
 if(WITH_CYCLES)
   add_definitions(-DWITH_CYCLES)
-endif()
-
-if(WITH_GMP)
-  add_definitions(-DWITH_GMP)
-
-  list(APPEND INC_SYS
-    ${GMP_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${GMP_LIBRARIES}
-  )
 endif()
 
 if(WITH_TBB)

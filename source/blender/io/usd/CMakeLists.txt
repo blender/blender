@@ -53,11 +53,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${USD_INCLUDE_DIRS}
-  ${BOOST_INCLUDE_DIR}
-  ${TBB_INCLUDE_DIRS}
-  ${PYTHON_INCLUDE_DIR}
-
 )
 
 set(SRC
@@ -213,13 +208,9 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::nodes
   PRIVATE bf::windowmanager
-)
-
-list(APPEND LIB
-  ${BOOST_PYTHON_LIBRARIES}
-  ${PYTHON_LIBRARIES}
-  ${USD_LIBRARIES}
-  ${TBB_LIBRARIES}
+  PRIVATE bf::dependencies::optional::python
+  PRIVATE bf::dependencies::optional::usd
+  PRIVATE bf::dependencies::optional::tbb
 )
 
 if(WITH_MATERIALX)

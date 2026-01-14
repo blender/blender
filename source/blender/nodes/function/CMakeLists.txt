@@ -14,7 +14,6 @@ set(INC
 )
 
 set(INC_SYS
-  ../../../../extern/fast_float
 )
 
 set(SRC
@@ -85,6 +84,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::extern::fast_float
 )
 
 add_node_discovery(

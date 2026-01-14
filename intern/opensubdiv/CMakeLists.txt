@@ -32,11 +32,6 @@ if(WITH_OPENSUBDIV)
     endif()
   endmacro()
 
-  list(APPEND INC_SYS
-    ${OPENSUBDIV_INCLUDE_DIRS}
-    ${Epoxy_INCLUDE_DIRS}
-  )
-
   list(APPEND SRC
     # Base.
     internal/base/memory.h
@@ -76,8 +71,8 @@ if(WITH_OPENSUBDIV)
   )
 
   list(APPEND LIB
-    ${OPENSUBDIV_LIBRARIES}
-    ${Epoxy_LIBRARIES}
+    bf::dependencies::optional::opensubdiv
+    bf::dependencies::epoxy
   )
 
   if(WIN32)
@@ -144,9 +139,6 @@ blender_add_lib(bf_intern_opensubdiv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 # Tests.
 
 if(WITH_GTESTS AND WITH_OPENSUBDIV)
-  add_definitions(${GFLAGS_DEFINES})
-  add_definitions(${GLOG_DEFINES})
-
   set(TEST_SRC
     internal/topology/mesh_topology_test.cc
   )

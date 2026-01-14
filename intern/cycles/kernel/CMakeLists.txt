@@ -321,12 +321,9 @@ set(LIB
 
 # `Zstd` compressor for kernels.
 add_executable(zstd_compress ../cmake/zstd_compress.cpp)
-target_include_directories(zstd_compress SYSTEM PRIVATE ${ZSTD_INCLUDE_DIRS})
 
-target_link_libraries(zstd_compress ${ZSTD_LIBRARIES})
-if(DEFINED PTHREADS_LIBRARIES)
-  target_link_libraries(zstd_compress ${PTHREADS_LIBRARIES})
-endif()
+target_link_libraries(zstd_compress PRIVATE bf::dependencies::zstd)
+target_link_libraries(zstd_compress PRIVATE bf::dependencies::pthreads)
 
 if(NOT WITH_BLENDER)
   # For the Cycles standalone put libraries next to the Cycles application.

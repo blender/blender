@@ -13,9 +13,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${JPEG_INCLUDE_DIR}
-  ${ZLIB_INCLUDE_DIRS}
-  ${OPENIMAGEIO_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -84,8 +81,10 @@ set(LIB
   PRIVATE bf::imbuf::opencolorio
   PRIVATE bf::extern::nanosvg
 
-  ${JPEG_LIBRARIES}
   PRIVATE bf::sequencer
+  PRIVATE bf::dependencies::zlib
+  PRIVATE bf::dependencies::openimageio
+  PRIVATE bf::dependencies::jpeg
 )
 
 if(WITH_IMAGE_OPENEXR)
@@ -99,27 +98,13 @@ else()
   )
 endif()
 
-# OpenImageIO headers include `Imath` headers when there is no SSE support for
-# matrix operations. This depends on the specific architecture and compiler
-# flags, most reliable is to always include the `Imath` headers if we have them.
-if(DEFINED IMATH_INCLUDE_DIRS)
-  list(APPEND INC_SYS
-    ${IMATH_INCLUDE_DIRS}
-  )
-endif()
-
 if(WITH_IMAGE_OPENJPEG)
-  list(APPEND INC_SYS
-    ${OPENJPEG_INCLUDE_DIRS}
-  )
   list(APPEND SRC
     intern/format_jp2.cc
   )
   list(APPEND LIB
-    ${OPENJPEG_LIBRARIES}
+    PRIVATE bf::dependencies::optional::openjpeg
   )
-
-  add_definitions(-DWITH_IMAGE_OPENJPEG ${OPENJPEG_DEFINES})
 endif()
 
 if(WITH_IMAGE_CINEON)
@@ -136,13 +121,9 @@ if(WITH_IMAGE_WEBP)
   list(APPEND SRC
     intern/format_webp.cc
   )
-  list(APPEND INC_SYS
-    ${WEBP_INCLUDE_DIRS}
-  )
   list(APPEND LIB
-    ${WEBP_LIBRARIES}
+    PRIVATE bf::dependencies::optional::webp
   )
-  add_definitions(-DWITH_IMAGE_WEBP)
 endif()
 
 if(WIN32)

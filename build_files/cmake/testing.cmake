@@ -65,8 +65,6 @@ macro(blender_src_gtest_ex)
       ${CMAKE_SOURCE_DIR}/tests/gtests
     )
     set(TEST_INC_SYS
-      ${GLOG_INCLUDE_DIRS}
-      ${GFLAGS_INCLUDE_DIRS}
       ${CMAKE_SOURCE_DIR}/extern/gtest/include
       ${CMAKE_SOURCE_DIR}/extern/gmock/include
     )
@@ -79,8 +77,6 @@ macro(blender_src_gtest_ex)
 
     add_executable(${TARGET_NAME} ${ARG_SRC} ${MANIFEST})
     setup_platform_linker_flags(${TARGET_NAME})
-    target_compile_definitions(${TARGET_NAME} PRIVATE ${GFLAGS_DEFINES})
-    target_compile_definitions(${TARGET_NAME} PRIVATE ${GLOG_DEFINES})
     target_include_directories(${TARGET_NAME} PUBLIC "${TEST_INC}")
     target_include_directories(${TARGET_NAME} SYSTEM PUBLIC "${TEST_INC_SYS}")
     blender_link_libraries(${TARGET_NAME} "${ARG_EXTRA_LIBS};${PLATFORM_LINKLIBS}")
@@ -100,20 +96,14 @@ macro(blender_src_gtest_ex)
                           extern_gtest
                           extern_gmock
                           # Needed for GLOG.
-                          ${GLOG_LIBRARIES}
-                          ${GFLAGS_LIBRARIES})
+                          bf::dependencies::glog
+                          bf::dependencies::gflags
+                          bf::dependencies::pthreads
+                          bf::dependencies::optional::tbb
+                          bf::dependencies::optional::gmp)
 
-    if(DEFINED PTHREADS_LIBRARIES) # Needed for GLOG.
-      target_link_libraries(${TARGET_NAME} PRIVATE ${PTHREADS_LIBRARIES})
-    endif()
     if(UNIX AND NOT APPLE)
       target_link_libraries(${TARGET_NAME} PRIVATE bf_intern_libc_compat)
-    endif()
-    if(WITH_TBB)
-      target_link_libraries(${TARGET_NAME} PRIVATE ${TBB_LIBRARIES})
-    endif()
-    if(WITH_GMP)
-      target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARIES})
     endif()
 
     get_blender_test_install_dir(TEST_INSTALL_DIR)
@@ -223,10 +213,12 @@ function(blender_add_test_suite_lib
       ${CMAKE_SOURCE_DIR}/tests/gtests
     )
     list(APPEND includes_sys
-      ${GLOG_INCLUDE_DIRS}
-      ${GFLAGS_INCLUDE_DIRS}
       ${CMAKE_SOURCE_DIR}/extern/gtest/include
       ${CMAKE_SOURCE_DIR}/extern/gmock/include
+    )
+    list(APPEND library_deps
+      bf::dependencies::gflags
+      bf::dependencies::glog
     )
 
     blender_add_lib__impl(${name}_tests

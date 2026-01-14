@@ -112,11 +112,8 @@ endif()
 
 if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
-  list(APPEND INC_SYS
-    ${OPENCOLORIO_INCLUDE_DIRS}
-  )
   list(APPEND LIB
-    ${OPENCOLORIO_LIBRARIES}
+    bf::dependencies::optional::opencolorio
   )
   if(WIN32 AND NOT USD_OVERRIDE_OPENCOLORIO)
     add_definitions(-DOpenColorIO_SKIP_IMPORTS)
@@ -125,7 +122,7 @@ endif()
 
 if(WITH_OPENVDB)
   list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
+    bf::dependencies::optional::openvdb
   )
 endif()
 

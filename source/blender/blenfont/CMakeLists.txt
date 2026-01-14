@@ -8,7 +8,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${FREETYPE_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -33,7 +32,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
-  ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
+  PRIVATE bf::dependencies::freetype
 )
 
 if(WIN32)

@@ -12,11 +12,6 @@ set(INC
 )
 
 set(INC_SYS
-  ../../../extern/wcwidth
-  ../../../extern/json/include
-
-  ${ZLIB_INCLUDE_DIRS}
-  ${ZSTD_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -423,16 +418,19 @@ set(SRC
 set(LIB
   PUBLIC bf::dna
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::extern::json
   PRIVATE bf::extern::xxhash
   bf_intern_eigen
   PRIVATE bf::intern::guardedalloc
-  extern_wcwidth
+  PRIVATE bf::extern::wcwidth
   PRIVATE bf::intern::atomic
-  PRIVATE extern_fmtlib
-  PUBLIC bf::dependencies::optional::tbb
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::dependencies::eigen
-  ${ZLIB_LIBRARIES}
-  ${ZSTD_LIBRARIES}
+  PUBLIC bf::dependencies::optional::tbb
+  PRIVATE bf::dependencies::zlib
+  PRIVATE bf::dependencies::zstd
+  PRIVATE bf::dependencies::optional::gmp
+  PRIVATE bf::dependencies::optional::fftw3
 )
 
 if(NOT WITH_PYTHON_MODULE)
@@ -445,28 +443,6 @@ endif()
 
 if(WITH_MEM_VALGRIND)
   add_definitions(-DWITH_MEM_VALGRIND)
-endif()
-
-if(WITH_GMP)
-  add_definitions(-DWITH_GMP)
-
-  list(APPEND INC_SYS
-    ${GMP_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${GMP_LIBRARIES}
-  )
-endif()
-
-if(WITH_FFTW3)
-  list(APPEND INC_SYS
-    ${FFTW3_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${FFTW3_LIBRARIES}
-  )
-  add_definitions(-DWITH_FFTW3)
 endif()
 
 if(WIN32)

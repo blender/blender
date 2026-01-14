@@ -80,11 +80,8 @@ if(WITH_INPUT_IME)
 endif()
 
 if(WITH_OPENGL_BACKEND)
-  list(APPEND INC_SYS
-    ${Epoxy_INCLUDE_DIRS}
-  )
   list(APPEND LIB
-    ${Epoxy_LIBRARIES}
+    PRIVATE bf::dependencies::epoxy
   )
   add_definitions(-DWITH_OPENGL_BACKEND)
 endif()
@@ -95,15 +92,9 @@ if(WITH_VULKAN_BACKEND)
 
     intern/GHOST_ContextVK.hh
   )
-  list(APPEND INC
-    ../../extern/vulkan_memory_allocator/
-  )
-  list(APPEND INC_SYS
-    PUBLIC ${VULKAN_INCLUDE_DIRS}
-  )
-
   list(APPEND LIB
-    ${VULKAN_LIBRARIES}
+    PUBLIC bf::dependencies::optional::vulkan
+    PRIVATE bf::extern::vulkan_memory_allocator
   )
 
   add_definitions(-DWITH_VULKAN_BACKEND)
@@ -160,11 +151,8 @@ elseif(WITH_GHOST_SDL)
   )
   add_definitions(-DWITH_GHOST_SDL)
 
-  list(APPEND INC_SYS
-    ${SDL_INCLUDE_DIR}
-  )
   list(APPEND LIB
-    ${SDL_LIBRARY}
+    bf::dependencies::optional::sdl
   )
 elseif(APPLE AND NOT WITH_GHOST_X11)
   list(APPEND SRC

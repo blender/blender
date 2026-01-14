@@ -13,7 +13,6 @@ set(INC
 )
 
 set(INC_SYS
-  ../../../../extern/fmtlib/include
 )
 
 set(SRC
@@ -54,6 +53,7 @@ set(LIB
   PRIVATE bf::nodes
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
+  PRIVATE bf::extern::fmtlib
 )
 
 if(WITH_PYTHON)

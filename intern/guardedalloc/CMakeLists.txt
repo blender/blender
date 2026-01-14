@@ -40,18 +40,8 @@ set(SRC
 
 set(LIB
   PRIVATE bf::intern::atomic
+  PRIVATE bf::dependencies::pthreads
 )
-
-if(WIN32 AND NOT UNIX)
-  list(APPEND INC_SYS
-    ${PTHREADS_INC}
-  )
-  if(DEFINED PTHREADS_LIBRARIES)
-    list(APPEND LIB
-      ${PTHREADS_LIBRARIES}
-    )
-  endif()
-endif()
 
 blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::intern::guardedalloc ALIAS bf_intern_guardedalloc)
