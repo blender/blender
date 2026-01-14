@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_mutex.hh"
-
-#include "BLT_translation.hh"
-
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
@@ -14,8 +10,6 @@
 #include "RE_compositor.hh"
 
 namespace blender {
-
-static Mutex g_compositor_mutex;
 
 void COM_execute(Render *render,
                  RenderData *render_data,
@@ -26,8 +20,6 @@ void COM_execute(Render *render,
                  compositor::Profiler *profiler,
                  compositor::NodeGroupOutputTypes needed_outputs)
 {
-  std::scoped_lock lock(g_compositor_mutex);
-
   RE_compositor_execute(*render,
                         *scene,
                         *render_data,
