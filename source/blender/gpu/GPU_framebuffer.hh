@@ -260,62 +260,54 @@ void GPU_framebuffer_config_array(gpu::FrameBuffer *fb,
 
 /** Empty bind point. */
 #define GPU_ATTACHMENT_NONE \
+  GPUAttachment \
   { \
-      nullptr, \
-      -1, \
-      0, \
+    nullptr, -1, 0, \
   }
 /** Leave currently bound texture in this slot. DEPRECATED: Specify all textures for clarity. */
 #define GPU_ATTACHMENT_LEAVE \
+  GPUAttachment \
   { \
-      nullptr, \
-      -1, \
-      -1, \
+    nullptr, -1, -1, \
   }
 /** Bind the first mip level of a texture (all layers). */
 #define GPU_ATTACHMENT_TEXTURE(_texture) \
+  GPUAttachment \
   { \
-      _texture, \
-      -1, \
-      0, \
+    _texture, -1, 0, \
   }
 /** Bind the \a _mip level of a texture (all layers). */
 #define GPU_ATTACHMENT_TEXTURE_MIP(_texture, _mip) \
+  GPUAttachment \
   { \
-      _texture, \
-      -1, \
-      _mip, \
+    _texture, -1, _mip, \
   }
 /** Bind the \a _layer layer of the first mip level of a texture. */
 #define GPU_ATTACHMENT_TEXTURE_LAYER(_texture, _layer) \
+  GPUAttachment \
   { \
-      _texture, \
-      _layer, \
-      0, \
+    _texture, _layer, 0, \
   }
 /** Bind the \a _layer layer of the \a _mip level of a texture. */
 #define GPU_ATTACHMENT_TEXTURE_LAYER_MIP(_texture, _layer, _mip) \
+  GPUAttachment \
   { \
-      _texture, \
-      _layer, \
-      _mip, \
+    _texture, _layer, _mip, \
   }
 
 /** NOTE: The cube-face variants are equivalent to the layer ones but give better semantic. */
 
 /** Bind the first mip level of a cube-map \a _face texture. */
 #define GPU_ATTACHMENT_TEXTURE_CUBEFACE(_texture, _face) \
+  GPUAttachment \
   { \
-      _texture, \
-      _face, \
-      0, \
+    _texture, _face, 0, \
   }
 /** Bind the \a _mip level of a cube-map \a _face texture. */
 #define GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(_texture, _face, _mip) \
+  GPUAttachment \
   { \
-      _texture, \
-      _face, \
-      _mip, \
+    _texture, _face, _mip, \
   }
 
 /**
