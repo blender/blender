@@ -153,9 +153,9 @@ class TrackPositionOperation : public NodeOperation {
 
   void execute_position(MovieTrackingTrack *track, float2 current_marker_position, int2 size)
   {
-    const bool should_compute_x = should_compute_output("X");
-    const bool should_compute_y = should_compute_output("Y");
-    if (!should_compute_x && !should_compute_y) {
+    Result &x_result = this->get_result("X");
+    Result &y_result = this->get_result("Y");
+    if (!x_result.should_compute() && !y_result.should_compute()) {
       return;
     }
 
@@ -164,22 +164,21 @@ class TrackPositionOperation : public NodeOperation {
     const float2 reference_marker_position = compute_reference_marker_position(track);
     const float2 position = (current_marker_position - reference_marker_position) * float2(size);
 
-    if (should_compute_x) {
-      Result &result = get_result("X");
-      result.allocate_single_value();
-      result.set_single_value(position.x);
+    if (x_result.should_compute()) {
+      x_result.allocate_single_value();
+      x_result.set_single_value(position.x);
     }
 
-    if (should_compute_y) {
-      Result &result = get_result("Y");
-      result.allocate_single_value();
-      result.set_single_value(position.y);
+    if (y_result.should_compute()) {
+      y_result.allocate_single_value();
+      y_result.set_single_value(position.y);
     }
   }
 
   void execute_speed(MovieTrackingTrack *track, float2 current_marker_position, int2 size)
   {
-    if (!should_compute_output("Speed")) {
+    Result &result = this->get_result("Speed");
+    if (!result.should_compute()) {
       return;
     }
 
@@ -200,27 +199,26 @@ class TrackPositionOperation : public NodeOperation {
     const float4 speed = float4(speed_toward_previous * float2(size),
                                 speed_toward_next * float2(size));
 
-    Result &result = get_result("Speed");
     result.allocate_single_value();
     result.set_single_value(speed);
   }
 
   void execute_invalid()
   {
-    if (should_compute_output("X")) {
-      Result &result = get_result("X");
-      result.allocate_single_value();
-      result.set_single_value(0.0f);
+    Result &x_result = this->get_result("X");
+    if (x_result.should_compute()) {
+      x_result.allocate_single_value();
+      x_result.set_single_value(0.0f);
     }
-    if (should_compute_output("Y")) {
-      Result &result = get_result("Y");
-      result.allocate_single_value();
-      result.set_single_value(0.0f);
+    Result &y_result = this->get_result("Y");
+    if (y_result.should_compute()) {
+      y_result.allocate_single_value();
+      y_result.set_single_value(0.0f);
     }
-    if (should_compute_output("Speed")) {
-      Result &result = get_result("Speed");
-      result.allocate_single_value();
-      result.set_single_value(float4(0.0f));
+    Result &speed_result = this->get_result("Speed");
+    if (speed_result.should_compute()) {
+      speed_result.allocate_single_value();
+      speed_result.set_single_value(float4(0.0f));
     }
   }
 
