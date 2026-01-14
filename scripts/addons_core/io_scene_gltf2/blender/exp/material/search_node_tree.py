@@ -831,7 +831,11 @@ def previous_socket(socket: NodeSocket):
         # If we are entering a node group (from outputs)
         if from_socket.node.type == "GROUP":
             socket_name = from_socket.name
-            sockets = [n for n in from_socket.node.node_tree.nodes if n.type == "GROUP_OUTPUT"][0].inputs
+            # Some groups can be undefined (because of linked librairies)
+            next_socket = next(iter([n for n in from_socket.node.node_tree.nodes if n.type == "GROUP_OUTPUT"]), None)
+            if next_socket is None:
+                return NodeSocket(None, None)
+            sockets = next_socket.inputs
             socket = [s for s in sockets if s.name == socket_name][0]
             group_path.append(from_socket.node)
             soc = socket
