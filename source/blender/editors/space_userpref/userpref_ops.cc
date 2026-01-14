@@ -718,7 +718,7 @@ static wmOperatorStatus preferences_extension_repo_remove_exec(bContext *C, wmOp
        * If it's not empty there will be a warning that the directory couldn't be removed.
        * The user will have to do this manually which is good since unknown files
        * could be user data. */
-      BKE_callback_exec_string(bmain, BKE_CB_EVT_EXTENSION_REPOS_FILES_CLEAR, dirpath);
+      BKE_callback_exec_string(bmain, dirpath, BKE_CB_EVT_EXTENSION_REPOS_FILES_CLEAR);
 
       if (BLI_delete(dirpath, true, recursive) != 0) {
         BKE_reportf(op->reports,
