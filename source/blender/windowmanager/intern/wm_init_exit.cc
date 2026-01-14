@@ -108,8 +108,6 @@
 #include "GPU_init_exit.hh"
 #include "GPU_shader.hh"
 
-#include "COM_compositor.hh"
-
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 

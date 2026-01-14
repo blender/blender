@@ -49,6 +49,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "NOD_shader_nodes_inline.hh"
+#include "RE_compositor.hh"
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
@@ -79,8 +80,6 @@
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
-#include "COM_compositor.hh"
-#include "COM_context.hh"
 #include "COM_node_group_operation.hh"
 #include "COM_profiler.hh"
 
@@ -195,15 +194,16 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
-    COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler, cj->needed_outputs);
+    RE_compositor_execute(
+        *cj->re, *scene, scene->r, *ntree, "", nullptr, &cj->profiler, cj->needed_outputs);
   }
   else {
     for (SceneRenderView &srv : scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, &srv) == false) {
         continue;
       }
-      COM_execute(
-          cj->re, &scene->r, scene, ntree, srv.name, nullptr, &cj->profiler, cj->needed_outputs);
+      RE_compositor_execute(
+          *cj->re, *scene, scene->r, *ntree, srv.name, nullptr, &cj->profiler, cj->needed_outputs);
     }
   }
 

@@ -20,7 +20,6 @@ set(INC_SYS
 
 set(SRC
   COM_compile_state.hh
-  COM_compositor.hh
   COM_context.hh
   COM_conversion_operation.hh
   COM_derived_resources.hh
@@ -49,7 +48,6 @@ set(SRC
   COM_undefined_node_operation.hh
   COM_utilities.hh
 
-  intern/COM_compositor.cc
   intern/compile_state.cc
   intern/context.cc
   intern/conversion_operation.cc
