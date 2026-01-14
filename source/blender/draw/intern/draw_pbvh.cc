@@ -1062,9 +1062,18 @@ BLI_NOINLINE static void update_generic_attribute_bmesh(const Object &object,
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   const BMesh &bm = *object.sculpt->bm;
   const BMDataLayerLookup attr = BM_data_layer_lookup(bm, name);
-  if (!attr || attr.domain == bke::AttrDomain::Edge) {
+  if (attr.domain == bke::AttrDomain::Edge) {
     return;
   }
+
+  if (!attr) {
+    ensure_vbos_allocated_bmesh(
+        object, attribute_format(orig_mesh_data, name, bke::AttrType::Float3), node_mask, vbos);
+    node_mask.foreach_index(GrainSize(1),
+                            [&](const int i) { vbos[i]->data<float3>().fill(float3(0.0f)); });
+    return;
+  }
+
   ensure_vbos_allocated_bmesh(
       object, attribute_format(orig_mesh_data, name, attr.type), node_mask, vbos);
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
