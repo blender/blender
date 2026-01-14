@@ -22,30 +22,6 @@ constexpr const char *DEFAULT_LEGACY_SLOT_NAME = "Legacy Slot";
 constexpr const char *DEFAULT_LEGACY_LAYER_NAME = "Legacy Layer";
 
 /**
- * Ensure that a Slot exists, for legacy Python API shims that need one.
- *
- * \return The first Slot if one already exists, or a newly created "Legacy
- * Slot" otherwise.
- */
-Slot &slot_ensure(Action &action);
-
-/**
- * Return the Channelbag for compatibility with the legacy Python API.
- *
- * \return the Channelbag for the first slot, of the first keyframe Strip on the
- * bottom layer, or nullptr if that doesn't exist.
- */
-Channelbag *channelbag_get(Action &action);
-
-/**
- * Ensure a Channelbag exists, for compatibility with the legacy Python API.
- *
- * This basically is channelbag_get(action), additionally creating the necessary
- * slot, layer, and keyframe strip if necessary.
- */
-Channelbag &channelbag_ensure(Action &action);
-
-/**
  * Return all F-Curves in the Action.
  *
  * This works for both legacy and layered Actions. For the latter, it will
@@ -59,14 +35,6 @@ Channelbag &channelbag_ensure(Action &action);
  */
 Vector<const FCurve *> fcurves_all(const bAction *action);
 Vector<FCurve *> fcurves_all(bAction *action);
-
-/**
- * Return the F-Curves for the first slot of this Action.
- *
- * This works for both legacy and layered Actions. For the former, it will
- * return all F-Curves in the Action.
- */
-Vector<FCurve *> fcurves_first_slot(bAction *action);
 
 /**
  * Return the F-Curves for this specific slot handle.
