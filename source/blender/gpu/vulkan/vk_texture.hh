@@ -81,7 +81,7 @@ class VKTexture : public Texture {
    * \brief Has this texture data.
    *
    * Is used to decide if host image copy can be performed to overwrite the data outside the
-   * rendergraph.
+   * render-graph.
    */
   bool has_data_ = false;
   bool allow_host_image_copy_ = false;

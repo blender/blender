@@ -91,7 +91,7 @@ Scope Token::attribute_after() const
 struct TokenData {
   std::vector<TokenType> types;
   OffsetIndices offsets;
-  /* Word size without whitespaces. */
+  /* Word size without white-spaces. */
   std::vector<uint32_t> sizes;
 };
 

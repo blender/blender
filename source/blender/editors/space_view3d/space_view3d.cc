@@ -955,7 +955,7 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
   }
 }
 
-/* concept is to retrieve cursor type context-less */
+/** Concept is to retrieve cursor type contextless. */
 static void view3d_main_region_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
   if (WM_cursor_set_from_tool(win, area, region)) {

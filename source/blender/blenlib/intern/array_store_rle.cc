@@ -165,7 +165,7 @@ static inline bool all_bytes_homogeneous(const uintptr_t x)
 /**
  * Scan forward from a position where a span was too short to RLE encode,
  * searching for the start of the next RLE-encodable span.
- *
+ *{
  * \return The end position of the literal section (start of next RLE span, or `size` if none).
  *
  * \note The template is only to allow this to be forwarded as a `constexpr`.

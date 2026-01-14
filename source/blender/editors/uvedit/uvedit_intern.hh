@@ -50,7 +50,7 @@ UvNearestHit uv_nearest_hit_init_max_default();
 /**
  * A utility to set the vertex or edge in #UvNearestHit, useful when face-select
  * is used as a fallback, but the caller expects to be able to access an element
- * that would be "picked" based on the current seleciton mode.
+ * that would be "picked" based on the current selection mode.
  *
  * - Does nothing when `uv_selectmode` is #UV_SELECT_FACE.
  * - Only call this when #UvNearestHit::efa has been set.

@@ -533,7 +533,7 @@ void set_transmission_opacity_range(pxr::UsdShadeShader &usd_shader,
     bias_attr = usd_shader.CreateInput(usdtokens::bias, pxr::SdfValueTypeNames->Float4);
   }
 
-  /* Minimally set the sclae-bias adjustment based only on the channel used. */
+  /* Minimally set the scale-bias adjustment based only on the channel used. */
   if (source_name == usdtokens::r) {
     scale_attr.Set(pxr::GfVec4f(-1.0f, 1.0f, 1.0f, 1.0f));
     bias_attr.Set(pxr::GfVec4f(1.0f, 0.0f, 0.0f, 0.0f));

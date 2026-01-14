@@ -164,7 +164,7 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   # Disable FMA auto-vectorization across different statements,
   # which creates havoc in "intern/cycles/blender/camera.cpp"
   # with GCC-15.2.1, for something like:
-  #   const float2 dv = 2.0f * (aspectratio * bcam->shift + bcam->offset * aspect * 2.0f);
+  #   `const float2 dv = 2.0f * (aspectratio * bcam->shift + bcam->offset * aspect * 2.0f);`
   # (probably due to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106902).
   list(APPEND CYCLES_MATH_FLAGS "-ffp-contract=on")
   # Let the compiler replace x/y with x*(1/y)

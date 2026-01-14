@@ -678,11 +678,11 @@ void BKE_animdata_copy_by_basepath(Main &bmain,
     return;
   }
 
-  /* Copy data from tyhe source action. */
+  /* Copy data from the source action. */
   if (src_adt->action) {
     BLI_assert(dst_adt->action);
 
-    /* Copy fcurves for each base path. */
+    /* Copy F-curves for each base path. */
     for (const AnimationBasePathChange &basepath_change : basepaths) {
       if (action_copy_fcurves_by_basepath(src_adt->action->wrap(),
                                           src_adt->slot_handle,
