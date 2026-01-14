@@ -1969,12 +1969,8 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_ensure(scene);
 
-  seq::LoadData load_data;
-  if (!sequencer_add_generic_exec(C, op, &load_data, scene, 1)) {
-    return OPERATOR_CANCELLED;
-  }
-  load_data.effect.type = StripType(RNA_enum_get(op->ptr, "type"));
-  const int num_inputs = seq::effect_get_num_inputs(load_data.effect.type);
+  StripType effect_type = StripType(RNA_enum_get(op->ptr, "type"));
+  const int num_inputs = seq::effect_get_num_inputs(effect_type);
 
   VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, num_inputs);
   StringRef error_msg = effect_inputs_validate(inputs, num_inputs);
@@ -1984,9 +1980,14 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
+  seq::LoadData load_data;
+  if (!sequencer_add_generic_exec(C, op, &load_data, scene, 1)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  load_data.effect.type = effect_type;
   Strip *input1 = inputs.size() > 0 ? inputs[0] : nullptr;
   Strip *input2 = inputs.size() == 2 ? inputs[1] : nullptr;
-
   load_data.effect.input1 = input1;
   load_data.effect.input2 = input2;
 
