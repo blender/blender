@@ -4,7 +4,6 @@
 
 import bpy
 from ..com.material_helpers import get_gltf_node_name, create_settings_group
-from .gltf2_blender_utils import find_unused_name
 
 ################ glTF Material Output node ###########################################
 
@@ -53,17 +52,9 @@ def add_gltf_settings_to_menu(self, context):
 # Global UI panel
 
 
-def on_variant_name_update(self, context):
-    already_used_names = [v.name for v in bpy.data.scenes[0].gltf2_KHR_materials_variants_variants
-                          if v != self]
-    self.name = find_unused_name(already_used_names, self.name)
-
-
 class gltf2_KHR_materials_variants_variant(bpy.types.PropertyGroup):
     variant_idx: bpy.props.IntProperty()
-    name: bpy.props.StringProperty(
-        name="Variant Name",
-        update=on_variant_name_update)
+    name: bpy.props.StringProperty(name="Variant Name")
 
 
 class SCENE_UL_gltf2_variants(bpy.types.UIList):

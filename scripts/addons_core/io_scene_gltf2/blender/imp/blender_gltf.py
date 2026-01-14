@@ -5,7 +5,6 @@
 import bpy
 from mathutils import Vector, Quaternion, Matrix
 from ...io.imp.user_extensions import import_user_extensions
-from ..com.gltf2_blender_utils import find_unused_name
 from .scene import BlenderScene
 from .material import BlenderMaterial
 from .image import BlenderImage
@@ -240,7 +239,7 @@ class BlenderGlTF():
                 # for its NLA tracks.
                 desired_name = anim.name or "Anim_%d" % anim_idx
                 # TRS animations & Pointer will be created as separate tracks
-                anim.track_name = find_unused_name(track_names, desired_name)
+                anim.track_name = BlenderGlTF.find_unused_name(track_names, desired_name)
                 track_names.add(anim.track_name)
 
                 for channel_idx, channel in enumerate(anim.channels):
@@ -308,7 +307,7 @@ class BlenderGlTF():
                     if shapekey_name is None:
                         shapekey_name = "target_" + str(sk)
 
-                    shapekey_name = find_unused_name(used_names, shapekey_name)
+                    shapekey_name = BlenderGlTF.find_unused_name(used_names, shapekey_name)
                     used_names.add(shapekey_name)
 
                     mesh.shapekey_names.append(shapekey_name)
@@ -599,6 +598,28 @@ class BlenderGlTF():
                                     ].extensions["KHR_materials_anisotropy"]["animations"][anim_idx] = []
             gltf.data.materials[int(pointer_tab[2])
                                 ].extensions["KHR_materials_anisotropy"]["animations"][anim_idx].append(channel_idx)
+
+    @staticmethod
+    def find_unused_name(haystack, desired_name):
+        """Finds a name not in haystack and <= 63 UTF-8 bytes.
+        (the limit on the size of a Blender name.)
+        If a is taken, tries a.001, then a.002, etc.
+        """
+        stem = desired_name[:63]
+        suffix = ''
+        cntr = 1
+        while True:
+            name = stem + suffix
+
+            if len(name.encode('utf-8')) > 63:
+                stem = stem[:-1]
+                continue
+
+            if name not in haystack:
+                return name
+
+            suffix = '.%03d' % cntr
+            cntr += 1
 
     @staticmethod
     def manage_material_variants(gltf):
