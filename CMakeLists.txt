@@ -1038,9 +1038,9 @@ Can cause linking issues due to too large binary size."
   OFF
 )
 mark_as_advanced(WITH_COMPILER_ASAN_EXTERN)
-set_and_warn_incompatible(WITH_COMPILER_ASAN WITH_TBB_MALLOC_PROXY OFF) # TODO: seems to cause issues.
+# Note: Using tbbmalloc allocator seems to be fully compatible with current sanitizers
+# (both clang/llvm and gcc ones).
 set_and_warn_incompatible(WITH_COMPILER_ASAN WITH_MEM_VALGRIND OFF)
-set_and_warn_incompatible(WITH_COMPILER_ASAN_EXTERN WITH_TBB_MALLOC_PROXY OFF)
 set_and_warn_incompatible(WITH_COMPILER_ASAN_EXTERN WITH_MEM_VALGRIND OFF)
 
 option(WITH_COMPILER_CODE_COVERAGE "\
