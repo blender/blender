@@ -104,7 +104,6 @@ struct CompoJob {
   /* Render instance. */
   Render *re;
   /* Job system integration. */
-  bool *do_update;
   bool cancelled;
 
   compositor::Profiler profiler;
@@ -128,14 +127,6 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
   const float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) *
                        0.5f;
   return {socket_position.x, socket_position.y - offset + index * NODE_MULTI_INPUT_LINK_GAP};
-}
-
-/* Called by compositor, wmJob sends notifier. */
-static void compo_redrawjob(void *cjv)
-{
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-
-  *(cj->do_update) = true;
 }
 
 static void compo_freejob(void *cjv)
@@ -195,12 +186,6 @@ static void compo_initjob(void *cjv)
   }
 }
 
-/* Called before redraw notifiers, it moves finished previews over. */
-static void compo_updatejob(void * /*cjv*/)
-{
-  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
-}
-
 /* Only this runs inside thread. */
 static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
 {
@@ -211,15 +196,8 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   RE_test_break_cb(cj->re, &worker_status->stop, [](void *should_stop) -> bool {
     return *static_cast<bool *>(should_stop) || G.is_break;
   });
-  cj->do_update = &worker_status->do_update;
-
-  ntree->runtime->update_draw = compo_redrawjob;
-  ntree->runtime->udh = cj;
 
   BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
-
-  worker_status->progress = 0.0f;
-  worker_status->do_update = true;
 
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
     COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler, cj->needed_outputs);
@@ -233,6 +211,8 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
           cj->re, &scene->r, scene, ntree, srv.name, nullptr, &cj->profiler, cj->needed_outputs);
     }
   }
+
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
 }
 
 static void compo_canceljob(void *cjv)
@@ -396,13 +376,8 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   /* Set up job. */
   WM_jobs_customdata_set(wm_job, cj, compo_freejob);
   WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_COMPO_RESULT, NC_SCENE | ND_COMPO_RESULT);
-  WM_jobs_callbacks_ex(wm_job,
-                       compo_startjob,
-                       compo_initjob,
-                       compo_updatejob,
-                       nullptr,
-                       compo_completejob,
-                       compo_canceljob);
+  WM_jobs_callbacks_ex(
+      wm_job, compo_startjob, compo_initjob, nullptr, nullptr, compo_completejob, compo_canceljob);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 }

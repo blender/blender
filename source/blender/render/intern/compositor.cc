@@ -254,10 +254,6 @@ class Context : public compositor::Context {
     }
 
     BKE_image_partial_update_mark_full_update(image);
-    if (input_data_.node_tree->runtime->update_draw) {
-      input_data_.node_tree->runtime->update_draw(input_data_.node_tree->runtime->udh);
-    }
-
     BKE_image_release_ibuf(image, image_buffer, lock);
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
