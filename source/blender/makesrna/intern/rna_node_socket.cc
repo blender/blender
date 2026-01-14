@@ -677,8 +677,7 @@ const EnumPropertyItem *RNA_node_enum_definition_itemf(const bke::RuntimeNodeEnu
      * The integer value is persistent and unique and should be used
      * when storing the enum value. */
     tmp.identifier = item.name.c_str();
-    /* TODO support icons in enum definition. */
-    tmp.icon = ICON_NONE;
+    tmp.icon = item.icon;
     tmp.name = item.name.c_str();
     tmp.description = item.description.c_str();
 
