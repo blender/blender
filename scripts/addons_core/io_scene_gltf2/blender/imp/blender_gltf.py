@@ -11,7 +11,6 @@ from .material import BlenderMaterial
 from .image import BlenderImage
 
 
-
 class BlenderGlTF():
     """Main glTF import class."""
     def __new__(cls, *args, **kwargs):
@@ -50,7 +49,8 @@ class BlenderGlTF():
 
         # If needed, create not used materials
         if gltf.import_settings['import_unused_materials']:
-            for mat_idx in [i for i in range(len(gltf.data.materials)) if len(gltf.data.materials[i].blender_material) == 0]:
+            for mat_idx in [i for i in range(len(gltf.data.materials)) if len(
+                    gltf.data.materials[i].blender_material) == 0]:
                 BlenderMaterial.create(gltf, mat_idx, None)
                 # Force material users (fake user)
                 bpy.data.materials[gltf.data.materials[mat_idx].blender_material[None]].use_fake_user = True
@@ -60,7 +60,6 @@ class BlenderGlTF():
                 BlenderImage.create(gltf, img_idx)
                 # Force image users (fake user)
                 bpy.data.images[gltf.data.images[img_idx].blender_image_name].use_fake_user = True
-
 
     @staticmethod
     def set_convert_functions(gltf):
@@ -197,16 +196,26 @@ class BlenderGlTF():
                         tex.extensions["KHR_texture_transform"]["animations"] = {}
 
                 texs_ext = [
-                    mat.extensions["KHR_materials_volume"].get("thicknessTexture") if mat.extensions and "KHR_materials_volume" in mat.extensions else None,
-                    mat.extensions["KHR_materials_transmission"].get("transmissionTexture") if mat.extensions and "KHR_materials_transmission" in mat.extensions else None,
-                    mat.extensions["KHR_materials_specular"].get("specularTexture") if mat.extensions and "KHR_materials_specular" in mat.extensions else None,
-                    mat.extensions["KHR_materials_specular"].get("specularColorTexture") if mat.extensions and "KHR_materials_specular" in mat.extensions else None,
-                    mat.extensions["KHR_materials_sheen"].get("sheenColorTexture") if mat.extensions and "KHR_materials_sheen" in mat.extensions else None,
-                    mat.extensions["KHR_materials_sheen"].get("sheenRoughnessTexture") if mat.extensions and "KHR_materials_sheen" in mat.extensions else None,
-                    mat.extensions["KHR_materials_clearcoat"].get("clearcoatTexture") if mat.extensions and "KHR_materials_clearcoat" in mat.extensions else None,
-                    mat.extensions["KHR_materials_clearcoat"].get("clearcoatRoughnessTexture") if mat.extensions and "KHR_materials_clearcoat" in mat.extensions else None,
-                    mat.extensions["KHR_materials_clearcoat"].get("clearcoatNormalTexture") if mat.extensions and "KHR_materials_clearcoat" in mat.extensions else None,
-                    mat.extensions["KHR_materials_anisotropy"].get("anisotropyTexture") if mat.extensions and "KHR_materials_anisotropy" in mat.extensions else None,
+                    mat.extensions["KHR_materials_volume"].get(
+                        "thicknessTexture") if mat.extensions and "KHR_materials_volume" in mat.extensions else None,
+                    mat.extensions["KHR_materials_transmission"].get(
+                        "transmissionTexture") if mat.extensions and "KHR_materials_transmission" in mat.extensions else None,
+                    mat.extensions["KHR_materials_specular"].get(
+                        "specularTexture") if mat.extensions and "KHR_materials_specular" in mat.extensions else None,
+                    mat.extensions["KHR_materials_specular"].get(
+                        "specularColorTexture") if mat.extensions and "KHR_materials_specular" in mat.extensions else None,
+                    mat.extensions["KHR_materials_sheen"].get(
+                        "sheenColorTexture") if mat.extensions and "KHR_materials_sheen" in mat.extensions else None,
+                    mat.extensions["KHR_materials_sheen"].get(
+                        "sheenRoughnessTexture") if mat.extensions and "KHR_materials_sheen" in mat.extensions else None,
+                    mat.extensions["KHR_materials_clearcoat"].get(
+                        "clearcoatTexture") if mat.extensions and "KHR_materials_clearcoat" in mat.extensions else None,
+                    mat.extensions["KHR_materials_clearcoat"].get(
+                        "clearcoatRoughnessTexture") if mat.extensions and "KHR_materials_clearcoat" in mat.extensions else None,
+                    mat.extensions["KHR_materials_clearcoat"].get(
+                        "clearcoatNormalTexture") if mat.extensions and "KHR_materials_clearcoat" in mat.extensions else None,
+                    mat.extensions["KHR_materials_anisotropy"].get(
+                        "anisotropyTexture") if mat.extensions and "KHR_materials_anisotropy" in mat.extensions else None,
                 ]
 
                 for tex in [t for t in texs_ext if t is not None]:
@@ -590,7 +599,6 @@ class BlenderGlTF():
                                     ].extensions["KHR_materials_anisotropy"]["animations"][anim_idx] = []
             gltf.data.materials[int(pointer_tab[2])
                                 ].extensions["KHR_materials_anisotropy"]["animations"][anim_idx].append(channel_idx)
-
 
     @staticmethod
     def manage_material_variants(gltf):

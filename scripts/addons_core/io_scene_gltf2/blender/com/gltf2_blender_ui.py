@@ -52,9 +52,10 @@ def add_gltf_settings_to_menu(self, context):
 
 # Global UI panel
 
+
 def on_variant_name_update(self, context):
     already_used_names = [v.name for v in bpy.data.scenes[0].gltf2_KHR_materials_variants_variants
-                            if v != self]
+                          if v != self]
     self.name = find_unused_name(already_used_names, self.name)
 
 

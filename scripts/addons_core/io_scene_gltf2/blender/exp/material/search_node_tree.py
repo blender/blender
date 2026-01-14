@@ -94,7 +94,8 @@ def from_socket(start_socket: NodeTreeSearchResult,
 
             if linked_node.type == "GROUP_INPUT":
                 socket = [sock for sock in group_path[-1].inputs if sock.name == link.from_socket.name][0]
-                linked_results = __search_from_socket(socket, shader_node_filter, search_path + [link], group_path[:-1].copy())
+                linked_results = __search_from_socket(socket, shader_node_filter,
+                                                      search_path + [link], group_path[:-1].copy())
                 if linked_results:
                     # add the link to the current path
                     search_path.append(link)
@@ -355,7 +356,7 @@ class NodeNav:
                 # Ambient Occlusion node, not linked
                 elif nav.node.type == 'AMBIENT_OCCLUSION' and not nav.node.inputs['Color'].is_linked:
                     color = list(nav.node.inputs['Color'].default_value)
-                    color = color[:3] # drop unused alpha component (assumes shader tree)
+                    color = color[:3]  # drop unused alpha component (assumes shader tree)
                     return color, "node_tree." + nav.node.inputs['Color'].path_from_id() + ".default_value"
                 # Ambient Occlusion node, linked, so check the next node
                 elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
@@ -378,7 +379,7 @@ class NodeNav:
                 # Ambient Occlusion node, not linked
                 elif nav.node.type == 'AMBIENT_OCCLUSION' and not nav.node.inputs['Color'].is_linked:
                     color = list(nav.node.inputs['Color'].default_value)
-                    color = color[:3] # drop unused alpha component (assumes shader tree)
+                    color = color[:3]  # drop unused alpha component (assumes shader tree)
                     return color, "node_tree." + nav.node.inputs['Color'].path_from_id() + ".default_value"
                 # Ambient Occlusion node, linked, so check the next node
                 elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
@@ -513,7 +514,7 @@ def gather_alpha_info(alpha_nav):
     c, alpha_path = alpha_nav.get_constant()
     if c == 1:
         info['alphaMode'] = 'OPAQUE'
-        info['alphaPath'] = alpha_path # Maybe the alpha is animated, this will be managed later
+        info['alphaPath'] = alpha_path  # Maybe the alpha is animated, this will be managed later
         return info
 
     # Check for alpha clipping
@@ -592,7 +593,7 @@ def detect_alpha_clip(alpha_nav):
     if nav.node.type == 'MATH' and nav.node.operation == 'ROUND':
         nav.select_input_socket(0)
         alpha_nav.assign(nav)
-        return 0.5, None # Round => can't be animated, so no path
+        return 0.5, None  # Round => can't be animated, so no path
 
     # Detect 1 - (X < cutoff)
     # (There is no >= node)
@@ -988,6 +989,7 @@ def check_if_is_linked_to_active_output(shader_socket, group_path):
                 return True
 
     return False
+
 
 def get_attribute_name(socket, export_settings):
     node = previous_node(socket)

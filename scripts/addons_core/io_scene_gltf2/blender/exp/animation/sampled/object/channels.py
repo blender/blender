@@ -34,7 +34,8 @@ def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, s
 
             for _, _, chan_prop, _ in [chan for chan in to_be_sampled if chan[1] == "OBJECT"]:
                 list_of_animated_channels[chan_prop] = get_gltf_interpolation(
-                    export_settings['gltf_sampling_interpolation_fallback'], export_settings)  # if forced to be sampled, keep the interpolation chosen by the user
+                    export_settings['gltf_sampling_interpolation_fallback'],
+                    export_settings)  # if forced to be sampled, keep the interpolation chosen by the user
     else:
         pass
         # There is no animated channels (because if it was, we would have a slot_identifier)
@@ -45,9 +46,10 @@ def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, s
             object_uuid,
             p,
             blender_action_name,
-            slot_identifier, #TODOSLOT
+            slot_identifier,  # TODOSLOT
             p in list_of_animated_channels.keys(),
-            list_of_animated_channels[p] if p in list_of_animated_channels.keys() else get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings),
+            list_of_animated_channels[p] if p in list_of_animated_channels.keys() else get_gltf_interpolation(
+                export_settings['gltf_sampling_interpolation_fallback'], export_settings),
             export_settings
         )
         if channel is not None:

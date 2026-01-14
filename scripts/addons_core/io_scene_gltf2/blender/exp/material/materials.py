@@ -59,10 +59,9 @@ def gather_material(blender_material, export_settings):
         return None, {"uv_info": {}, "vc_info": {'color': None, 'alpha': None,
                                                  'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
 
-
     if export_settings['gltf_materials'] == "VIEWPORT":
-        return export_viewport_material(blender_material, export_settings), {"uv_info": {}, "vc_info": {'color': None, 'alpha': None,
-                                                 'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
+        return export_viewport_material(blender_material, export_settings), {"uv_info": {}, "vc_info": {
+            'color': None, 'alpha': None, 'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
 
     nodes_used = export_settings['nodes_used'] = {}
 

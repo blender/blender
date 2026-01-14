@@ -63,7 +63,7 @@ def __gather_color(blender_lamp, export_settings) -> Optional[List[float]]:
     path_['path'] = "/extensions/KHR_lights_punctual/lights/XXX/color"
     export_settings['current_paths']['color'] = path_
 
-    color = list(blender_lamp.color) # Convert to list to allow modification
+    color = list(blender_lamp.color)  # Convert to list to allow modification
 
     if blender_lamp.use_temperature:
         temperature_color = list(blender_lamp.temperature_color)

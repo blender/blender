@@ -304,7 +304,8 @@ def bake_data_animation(blender_type_data, blender_id, animation_key, slot_ident
             if len(export_settings['KHR_animation_pointer'][blender_type_data][i]['paths']) == 0:
                 continue
 
-            channels = gather_data_sampled_channels(blender_type_data, i, animation_key, slot_identifier, on_type, export_settings)
+            channels = gather_data_sampled_channels(
+                blender_type_data, i, animation_key, slot_identifier, on_type, export_settings)
             if channels is not None:
                 total_channels.extend(channels)
 

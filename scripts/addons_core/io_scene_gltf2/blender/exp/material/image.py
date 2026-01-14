@@ -213,7 +213,7 @@ def __gather_uri(image_data, mime_type, name, export_settings):
         if len(data) == 0:
             export_settings['log'].warning("Image data is empty, not exporting image")
             return None, None
-        image =  gltf2_io_image_data.ImageData(
+        image = gltf2_io_image_data.ImageData(
             data=data,
             mime_type=mime_type,
             name=name
@@ -225,6 +225,7 @@ def __gather_uri(image_data, mime_type, name, export_settings):
         return image, factor
 
     return None, None
+
 
 def set_real_uri(image, export_settings):
     # We need to set the "final" uri here, to be able to modify it in a hook if necessary

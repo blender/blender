@@ -156,7 +156,6 @@ def init_vnodes(gltf):
         else:
             gltf.blender_scenes[idx_scene] = bpy.context.scene
 
-
     # If we have only 1 scene, we can use the active collection
     # If we have multiple scenes, we create a collection for each scene (as child of active collection)
     # And if some nodes are orphan, we create a collection for them too
@@ -178,7 +177,6 @@ def init_vnodes(gltf):
                 # No collection creation, so no linking
                 # Link between glTF scene and blender scene is already done
 
-
     # Check if we have orphan nodes
     orphan_nodes = [node for node in gltf.vnodes if len(gltf.vnodes[node].scenes) == 0]
     if len(orphan_nodes) > 0:
@@ -188,7 +186,6 @@ def init_vnodes(gltf):
         gltf.active_collection.children.link(orphan_collection)
         # Add the collection to the map
         gltf.blender_collections[None] = orphan_collection
-
 
     # Inserting a root node will simplify things.
     roots = [id for id in gltf.vnodes if gltf.vnodes[id].parent is None]

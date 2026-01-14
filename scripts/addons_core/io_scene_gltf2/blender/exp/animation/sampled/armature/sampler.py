@@ -190,7 +190,6 @@ def __convert_keyframes(armature_uuid, bone_name, channel, keyframes, action_nam
     component_type = gltf2_io_constants.ComponentType.Float
     data_type = gltf2_io_constants.DataType.vec_type_from_num(len(keyframes[0].value))
 
-
     output = gather_accessor(
         gltf2_io_binary_data.BinaryData.from_list(values, component_type),
         component_type,
@@ -214,7 +213,8 @@ def __gather_interpolation(node_channel_is_animated, node_channel_interpolation,
         if node_channel_is_animated is False:
             return "STEP"
         elif node_channel_interpolation == "CUBICSPLINE":
-            return export_settings['gltf_sampling_interpolation_fallback']  # We can't have a single keyframe with CUBICSPLINE
+            # We can't have a single keyframe with CUBICSPLINE
+            return export_settings['gltf_sampling_interpolation_fallback']
         else:
             return node_channel_interpolation
     else:

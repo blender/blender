@@ -34,19 +34,15 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_id
             # Not bake situation
             channels_animated, to_be_sampled, extra_channels = get_channel_groups(
                 armature_uuid, bpy.data.actions[blender_action_name],
-                    bpy.data.actions[blender_action_name].slots[slot_identifier], export_settings)
+                bpy.data.actions[blender_action_name].slots[slot_identifier], export_settings)
             for chan in [chan for chan in channels_animated.values() if chan['bone'] is not None]:
                 for prop in chan['properties'].keys():
                     list_of_animated_bone_channels[(chan['bone'], get_channel_from_target(get_target(prop)))] = get_gltf_interpolation(
                         chan['properties'][prop][0].keyframe_points[0].interpolation, export_settings)  # Could be exported without sampling : keep interpolation
 
             for _, _, chan_prop, chan_bone in [chan for chan in to_be_sampled if chan[1] == "BONE"]:
-                list_of_animated_bone_channels[
-                    (
-                        chan_bone,
-                        chan_prop,
-                    )
-                ] = get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings)  # if forced to be sampled, keep the interpolation chosen by the user
+                list_of_animated_bone_channels[(chan_bone, chan_prop, )] = get_gltf_interpolation(
+                    export_settings['gltf_sampling_interpolation_fallback'], export_settings)  # if forced to be sampled, keep the interpolation chosen by the user
     else:
         pass
         # There is no animated channels (because if it was, we would have a slot_identifier)
@@ -61,12 +57,14 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_id
                 blender_action_name,
                 slot_identifier,
                 (bone, p) in list_of_animated_bone_channels.keys(),
-                list_of_animated_bone_channels[(bone, p)] if (bone, p) in list_of_animated_bone_channels.keys() else get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings),
+                list_of_animated_bone_channels[(bone, p)] if (bone, p) in list_of_animated_bone_channels.keys(
+                ) else get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings),
                 export_settings)
             if channel is not None:
                 channels.append(channel)
 
-    bake_interpolation = get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings)
+    bake_interpolation = get_gltf_interpolation(
+        export_settings['gltf_sampling_interpolation_fallback'], export_settings)
     # Retrieve animation on armature object itself, if any
     if blender_action_name == armature_uuid or export_settings['gltf_animation_mode'] in ["SCENE", "NLA_TRACKS"]:
         # If armature is baked (no animation of armature), need to use all channels
@@ -84,14 +82,10 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_id
 
     for (p, i) in armature_channels:
         armature_channel = gather_sampled_object_channel(
-            armature_uuid,
-            p,
-            blender_action_name,
-            slot_identifier,
-            p in [a[0] for a in animated_channels],
-            [c[1] for c in animated_channels if c[0] == p][0] if p in [a[0] for a in animated_channels] else bake_interpolation,
-            export_settings
-        )
+            armature_uuid, p, blender_action_name, slot_identifier, p in [
+                a[0] for a in animated_channels], [
+                c[1] for c in animated_channels if c[0] == p][0] if p in [
+                a[0] for a in animated_channels] else bake_interpolation, export_settings)
 
         if armature_channel is not None:
             channels.append(armature_channel)
@@ -99,7 +93,8 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_id
     # Retrieve channels for drivers, if needed
     drivers_to_manage = get_sk_drivers(armature_uuid, export_settings)
     for obj_driver_uuid in drivers_to_manage:
-        channel = gather_sampled_sk_channel(obj_driver_uuid, armature_uuid + "_" + blender_action_name, slot_identifier, export_settings)
+        channel = gather_sampled_sk_channel(obj_driver_uuid, armature_uuid + "_" +
+                                            blender_action_name, slot_identifier, export_settings)
         if channel is not None:
             channels.append(channel)
 
@@ -169,7 +164,7 @@ def __gather_sampler(
         bone,
         channel,
         action_name,
-        slot_identifier, #TODOSLOT
+        slot_identifier,  # TODOSLOT
         node_channel_is_animated,
         node_channel_interpolation,
         export_settings):
@@ -178,7 +173,7 @@ def __gather_sampler(
         bone,
         channel,
         action_name,
-        slot_identifier, #TODOSLOT
+        slot_identifier,  # TODOSLOT
         node_channel_is_animated,
         node_channel_interpolation,
         export_settings
@@ -188,7 +183,8 @@ def __gather_sampler(
 def __gather_armature_object_channel(obj_uuid: str, blender_action, slot_identifier, export_settings):
     channels = []
 
-    channels_animated, to_be_sampled, extra_channels = get_channel_groups(obj_uuid, blender_action, blender_action.slots[slot_identifier], export_settings)
+    channels_animated, to_be_sampled, extra_channels = get_channel_groups(
+        obj_uuid, blender_action, blender_action.slots[slot_identifier], export_settings)
     # Remove all channel linked to bones, keep only directly object channels
     channels_animated = [c for c in channels_animated.values() if c['type'] == "OBJECT"]
     to_be_sampled = [c for c in to_be_sampled if c[1] == "OBJECT"]
@@ -228,7 +224,8 @@ def __gather_armature_object_channel(obj_uuid: str, blender_action, slot_identif
                     "delta_rotation_euler": "rotation_quaternion",
                     "delta_rotation_quaternion": "rotation_quaternion"
                 }.get(c[2]),
-                get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings)  # Forced to be sampled, so use the interpolation chosen by the user
+                # Forced to be sampled, so use the interpolation chosen by the user
+                get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings)
             )
         )
 
