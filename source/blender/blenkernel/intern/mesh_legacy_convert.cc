@@ -968,7 +968,6 @@ static int mesh_tessface_calc(Mesh &mesh,
                               CustomData *ldata,
                               CustomData *pdata,
                               float (*positions)[3],
-                              int totface,
                               int totloop,
                               int faces_num)
 {
@@ -1156,7 +1155,7 @@ static int mesh_tessface_calc(Mesh &mesh,
   }
 
   CustomData_free(fdata_legacy);
-  totface = mface_index;
+  const int totface = mface_index;
 
   BLI_assert(totface <= corner_tris_num);
 
@@ -1216,7 +1215,6 @@ void BKE_mesh_tessface_calc(Mesh *mesh)
       &mesh->corner_data,
       &mesh->face_data,
       reinterpret_cast<float (*)[3]>(mesh->vert_positions_for_write().data()),
-      mesh->totface_legacy,
       mesh->corners_num,
       mesh->faces_num);
 
