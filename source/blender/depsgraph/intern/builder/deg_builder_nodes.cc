@@ -653,10 +653,12 @@ void DepsgraphNodeBuilder::build_id(ID *id, const bool force_be_visible)
     case ID_PA:
       build_particle_settings(id_cast<ParticleSettings *>(id));
       break;
+    case ID_VF:
+      build_vfont((VFont *)id);
+      break;
 
     case ID_LI:
     case ID_SCR:
-    case ID_VF:
     case ID_BR:
     case ID_WM:
     case ID_PAL:
@@ -2332,8 +2334,6 @@ void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
   build_parameters(&vfont->id);
   build_idproperties(vfont->id.properties);
   build_idproperties(vfont->id.system_properties);
-  add_operation_node(
-      &vfont->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
 }
 
 static bool strip_node_build_cb(Strip *strip, void *user_data)
