@@ -272,9 +272,10 @@ class NodeNav:
             self.node, self.out_socket = self.stack.pop()
             self.in_socket = self.node.inputs[i]
 
-    def move_back(self, in_soc=None):
+    def move_back(self, in_soc=None, no_moved_reinit=False):
         """Move backwards through an input socket to the next node."""
-        self.moved = False
+        if not no_moved_reinit:
+            self.moved = False
 
         self.select_input_socket(in_soc)
 
@@ -297,7 +298,10 @@ class NodeNav:
             self.move_back()
         elif self.node.type == 'GROUP_INPUT':
             self.ascend()
-            self.move_back()
+            # Manage special case where we ascend from a group input node
+            # But the node group socket is not linked
+            # We need to avoid reinitializing moved to False in this case
+            self.move_back(no_moved_reinit=True)
 
     def peek_back(self, in_soc=None):
         """Peeks backwards through an input socket without modifying self."""
@@ -357,6 +361,11 @@ class NodeNav:
                 elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
                     nav.move_back('Color')
                     continue
+                elif nav.node.type == "GROUP":
+                    # Special case: unlinked group input node
+                    color = list(nav.in_socket.default_value)
+                    color = color[:3]  # drop unused alpha component (assumes shader tree)
+                    return color, "node_tree." + nav.in_socket.path_from_id() + ".default_value"
                 else:
                     break
 
@@ -381,6 +390,9 @@ class NodeNav:
             elif self.in_socket.type == 'VALUE':
                 if nav.node.type == 'VALUE':
                     return nav.out_socket.default_value, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+                elif nav.node.type == "GROUP":
+                    # Special case: unlinked group input node
+                    return nav.in_socket.default_value, "node_tree." + nav.in_socket.path_from_id() + ".default_value"
                 else:
                     break
             else:
