@@ -963,14 +963,15 @@ int BKE_mesh_mface_index_validate(MFace *mface, CustomData *fdata_legacy, int mf
   return nr;
 }
 
-static int mesh_tessface_calc(Mesh &mesh,
-                              CustomData *fdata_legacy,
-                              CustomData *ldata,
-                              CustomData *pdata,
-                              float (*positions)[3],
-                              int totloop,
-                              int faces_num)
+static void mesh_tessface_calc(Mesh &mesh)
 {
+  CustomData *fdata_legacy = &mesh.fdata_legacy;
+  CustomData *ldata = &mesh.corner_data;
+  CustomData *pdata = &mesh.face_data;
+  float (*positions)[3] = reinterpret_cast<float (*)[3]>(mesh.vert_positions_for_write().data());
+  const int totloop = mesh.corners_num;
+  const int faces_num = mesh.faces_num;
+
 #define USE_TESSFACE_SPEEDUP
 #define USE_TESSFACE_QUADS
 
@@ -1198,7 +1199,7 @@ static int mesh_tessface_calc(Mesh &mesh,
 
   MEM_freeN(lindices);
 
-  return totface;
+  mesh.totface_legacy = totface;
 
 #undef USE_TESSFACE_SPEEDUP
 #undef USE_TESSFACE_QUADS
@@ -1209,14 +1210,7 @@ static int mesh_tessface_calc(Mesh &mesh,
 
 void BKE_mesh_tessface_calc(Mesh *mesh)
 {
-  mesh->totface_legacy = mesh_tessface_calc(
-      *mesh,
-      &mesh->fdata_legacy,
-      &mesh->corner_data,
-      &mesh->face_data,
-      reinterpret_cast<float (*)[3]>(mesh->vert_positions_for_write().data()),
-      mesh->corners_num,
-      mesh->faces_num);
+  mesh_tessface_calc(*mesh);
 
   mesh_ensure_tessellation_customdata(mesh);
 }
