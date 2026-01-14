@@ -28,12 +28,6 @@ void COM_execute(Render *render,
 {
   std::scoped_lock lock(g_compositor_mutex);
 
-  if (node_tree->runtime->test_break(node_tree->runtime->tbh)) {
-    /* During editing multiple compositor executions can be triggered.
-     * Make sure this is the most recent one. */
-    return;
-  }
-
   RE_compositor_execute(*render,
                         *scene,
                         *render_data,

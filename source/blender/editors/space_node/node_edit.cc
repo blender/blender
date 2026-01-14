@@ -88,8 +88,6 @@ namespace blender {
 
 namespace ed::space_node {
 
-#define USE_ESC_COMPO
-
 /* -------------------------------------------------------------------- */
 /** \name Composite Job Manager
  * \{ */
@@ -106,7 +104,6 @@ struct CompoJob {
   /* Render instance. */
   Render *re;
   /* Job system integration. */
-  const bool *stop;
   bool *do_update;
   bool cancelled;
 
@@ -131,19 +128,6 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
   const float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) *
                        0.5f;
   return {socket_position.x, socket_position.y - offset + index * NODE_MULTI_INPUT_LINK_GAP};
-}
-
-/* Called by compositor, only to check job 'stop' value. */
-static bool compo_breakjob(void *cjv)
-{
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-
-  /* Without G.is_break 'ESC' won't quit - which annoys users. */
-  return (*(cj->stop)
-#ifdef USE_ESC_COMPO
-          || G.is_break
-#endif
-  );
 }
 
 /* Called by compositor, wmJob sends notifier. */
@@ -224,11 +208,11 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   bNodeTree *ntree = cj->localtree;
   Scene *scene = DEG_get_evaluated_scene(cj->compositor_depsgraph);
 
-  cj->stop = &worker_status->stop;
+  RE_test_break_cb(cj->re, &worker_status->stop, [](void *should_stop) -> bool {
+    return *static_cast<bool *>(should_stop) || G.is_break;
+  });
   cj->do_update = &worker_status->do_update;
 
-  ntree->runtime->test_break = compo_breakjob;
-  ntree->runtime->tbh = cj;
   ntree->runtime->update_draw = compo_redrawjob;
   ntree->runtime->udh = cj;
 
@@ -249,8 +233,6 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
           cj->re, &scene->r, scene, ntree, srv.name, nullptr, &cj->profiler, cj->needed_outputs);
     }
   }
-
-  ntree->runtime->test_break = nullptr;
 }
 
 static void compo_canceljob(void *cjv)
@@ -391,9 +373,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
     return;
   }
 
-#ifdef USE_ESC_COMPO
   G.is_break = false;
-#endif
 
   BKE_image_backup_render(
       scene, BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result"), false);
