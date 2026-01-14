@@ -3525,6 +3525,18 @@ const bNodeTreeInterfaceSocket *node_find_interface_input_by_identifier(const bN
   return nullptr;
 }
 
+const bNodeTreeInterfaceSocket *node_find_interface_output_by_identifier(
+    const bNodeTree &ntree, const StringRef identifier)
+{
+  ntree.ensure_interface_cache();
+  for (const bNodeTreeInterfaceSocket *input : ntree.interface_outputs()) {
+    if (input->identifier == identifier) {
+      return input;
+    }
+  }
+  return nullptr;
+}
+
 bNode *node_find_root_parent(bNode &node)
 {
   bNode *parent_iter = &node;
