@@ -681,7 +681,10 @@ static void key_evaluate_relative_float3(Key *key,
   /* Creates the basis values of the reference key in target_data. */
   copy_key_float3(vertex_count, key, active_keyblock, key->refkey, target_data);
 
-  for (const auto [keyblock_index, kb] : key->block.enumerate()) {
+  /* Cannot use auto [keyblock_index, kb] here because that would throw a warning at the
+   * parallel_for. */
+  for (std::pair<int, KeyBlock> enumerator : key->block.enumerate()) {
+    KeyBlock &kb = enumerator.second;
     if (&kb == key->refkey) {
       continue;
     }
@@ -699,7 +702,7 @@ static void key_evaluate_relative_float3(Key *key,
       continue;
     }
 
-    const float *weights = per_keyblock_weights ? per_keyblock_weights[keyblock_index] : nullptr;
+    const float *weights = per_keyblock_weights ? per_keyblock_weights[enumerator.first] : nullptr;
 
     char *freefrom = nullptr;
     const float *from = reinterpret_cast<float *>(
