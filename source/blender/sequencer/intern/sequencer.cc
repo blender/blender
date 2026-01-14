@@ -1106,9 +1106,19 @@ static void strip_update_sound_modifiers(Strip *strip)
 {
   void *sound_handle = BKE_sound_playback_handle_get(strip->sound);
   bool needs_update = false;
+  int sound_modifiers_count = 0;
 
   for (StripModifierData &smd : strip->modifiers) {
     sound_handle = sound_modifier_recreator(strip, &smd, sound_handle, needs_update);
+    sound_modifiers_count++;
+  }
+
+  /* Check if a modifier was removed. It is particularly needed when the last modifier is removed
+   * and the `scene_sound` handle has to be updated but all the previous modifiers detect no change
+   * and `needs_update` remains false. */
+  if (strip->runtime->sound_modifiers_count != sound_modifiers_count) {
+    needs_update = true;
+    strip->runtime->sound_modifiers_count = sound_modifiers_count;
   }
 
   if (needs_update) {

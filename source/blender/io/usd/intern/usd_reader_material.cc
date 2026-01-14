@@ -343,34 +343,37 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
   }
 
   if (pxr::UsdShadeInput diffuse_color_input = usd_preview.GetInput(usdtokens::diffuseColor)) {
-    pxr::VtValue val;
-    if (diffuse_color_input.GetAttr().HasAuthoredValue() &&
-        diffuse_color_input.GetAttr().Get(&val) && val.IsHolding<pxr::GfVec3f>())
-    {
-      pxr::GfVec3f color = val.UncheckedGet<pxr::GfVec3f>();
-      /* Note: The material is expected to be rendered by the Workbench render engine (Viewport
-       * Display), so no need to define a material node tree. */
-      mtl->r = color[0];
-      mtl->g = color[1];
-      mtl->b = color[2];
+    const pxr::UsdShadeAttributeVector attrs = diffuse_color_input.GetValueProducingAttributes();
+    if (!attrs.empty()) {
+      pxr::VtValue val;
+      if (attrs[0].Get(&val) && val.IsHolding<pxr::GfVec3f>()) {
+        pxr::GfVec3f color = val.UncheckedGet<pxr::GfVec3f>();
+        /* Note: The material is expected to be rendered by the Workbench render engine (Viewport
+         * Display), so no need to define a material node tree. */
+        mtl->r = color[0];
+        mtl->g = color[1];
+        mtl->b = color[2];
+      }
     }
   }
 
   if (pxr::UsdShadeInput metallic_input = usd_preview.GetInput(usdtokens::metallic)) {
-    pxr::VtValue val;
-    if (metallic_input.GetAttr().HasAuthoredValue() && metallic_input.GetAttr().Get(&val) &&
-        val.IsHolding<float>())
-    {
-      mtl->metallic = val.UncheckedGet<float>();
+    const pxr::UsdShadeAttributeVector attrs = metallic_input.GetValueProducingAttributes();
+    if (!attrs.empty()) {
+      pxr::VtValue val;
+      if (attrs[0].Get(&val) && val.IsHolding<float>()) {
+        mtl->metallic = val.UncheckedGet<float>();
+      }
     }
   }
 
   if (pxr::UsdShadeInput roughness_input = usd_preview.GetInput(usdtokens::roughness)) {
-    pxr::VtValue val;
-    if (roughness_input.GetAttr().HasAuthoredValue() && roughness_input.GetAttr().Get(&val) &&
-        val.IsHolding<float>())
-    {
-      mtl->roughness = val.UncheckedGet<float>();
+    const pxr::UsdShadeAttributeVector attrs = roughness_input.GetValueProducingAttributes();
+    if (!attrs.empty()) {
+      pxr::VtValue val;
+      if (attrs[0].Get(&val) && val.IsHolding<float>()) {
+        mtl->roughness = val.UncheckedGet<float>();
+      }
     }
   }
 }
@@ -479,8 +482,7 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 
   /* Create the material. */
   Material *mtl = BKE_material_add(&bmain_, mtl_name.c_str());
-  mtl->nodetree = bke::node_tree_add_tree_embedded(
-      &bmain_, &mtl->id, "USD Material Node Tree", "ShaderNodeTree");
+  mtl->nodetree = mtl->nodetree;
   id_us_min(&mtl->id);
 
   if (read_usd_preview) {
@@ -520,13 +522,8 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
 
   /* Create the Material's node tree containing the principled BSDF
    * and output shaders. */
-
-  /* Add the node tree. */
   bNodeTree *ntree = mtl->nodetree;
-  if (mtl->nodetree == nullptr) {
-    ntree = bke::node_tree_add_tree_embedded(
-        nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
-  }
+  BLI_assert(ntree != nullptr);
 
   /* Create the Principled BSDF shader node. */
   bNode *principled = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, {0.0f, 300.0f});
@@ -705,14 +702,17 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
     return false;
   }
 
-  if (usd_input.HasConnectedSource()) {
+  const pxr::UsdShadeSourceInfoVector sources = usd_input.GetConnectedSources();
+  const bool needs_follow = !sources.empty() &&
+                            sources[0].sourceType == pxr::UsdShadeAttributeType::Output;
+
+  if (needs_follow) {
     /* The USD shader input has a connected source shader. Follow the connection
      * and attempt to convert the connected USD shader to a Blender node. */
     return follow_connection(usd_input, dest_node, dest_socket_name, ntree, column, ctx, extra);
   }
 
   /* Set the destination node socket value from the USD shader input value. */
-
   bNodeSocket *sock = bke::node_find_socket(*dest_node, SOCK_IN, dest_socket_name);
   if (!sock) {
     CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name.c_str());
@@ -720,7 +720,8 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
   }
 
   pxr::VtValue val;
-  if (!usd_input.Get(&val)) {
+  const pxr::UsdShadeAttributeVector attrs = usd_input.GetValueProducingAttributes();
+  if (attrs.empty() || !attrs[0].Get(&val)) {
     CLOG_ERROR(&LOG,
                "Couldn't get value for usd shader input %s",
                usd_input.GetPrim().GetPath().GetAsString().c_str());

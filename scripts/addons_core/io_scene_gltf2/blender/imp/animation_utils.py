@@ -127,7 +127,8 @@ def get_or_create_action_and_slot(gltf, vnode_idx, anim_idx, path):
         elif use_id == "KEY":
             slot = action.slots.new(obj.data.shape_keys.id_type, obj.name)
             # Do not change the display name of the shape key slot
-            # It helps to automatically assign the right slot, and it will get range correctly without setting it by hand
+            # It helps to automatically assign the right slot, and it will get range
+            # correctly without setting it by hand
             gltf.needs_stash.append((obj.data.shape_keys, action, slot))
         else:
             pass  # This should not happen, as we only support TRS and weights animations here
@@ -148,7 +149,8 @@ def get_or_create_action_and_slot(gltf, vnode_idx, anim_idx, path):
             elif use_id == "KEY":
                 slot = action.slots.new(obj.data.shape_keys.id_type, obj.name)
                 # Do not change the display name of the shape key slot
-                # It helps to automatically assign the right slot, and it will get range correctly without setting it by hand
+                # It helps to automatically assign the right slot, and it will get range
+                # correctly without setting it by hand
                 gltf.needs_stash.append((obj.data.shape_keys, action, slot))
             else:
                 pass  # This should not happen, as we only support TRS and weights animations here

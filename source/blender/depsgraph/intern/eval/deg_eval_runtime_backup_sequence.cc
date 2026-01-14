@@ -10,6 +10,7 @@
 
 #include "DNA_sequence_types.h"
 
+#include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
 
 #include "BLI_listbase.h"
@@ -25,35 +26,49 @@ void StripModifierDataBackup::reset()
 {
   sound_in = nullptr;
   sound_out = nullptr;
-  last_buf = nullptr;
+  flag = STRIP_MODIFIER_FLAG_NONE;
+  params_hash = 0;
 }
 
 void StripModifierDataBackup::init_from_modifier(StripModifierData *smd)
 {
-  if (smd->type == eSeqModifierType_SoundEqualizer) {
-    sound_in = smd->runtime.last_sound_in;
-    sound_out = smd->runtime.last_sound_out;
-    last_buf = smd->runtime.last_buf;
+  blender::seq::StripModifierDataRuntime *runtime = smd->runtime;
 
-    smd->runtime.last_sound_in = nullptr;
-    smd->runtime.last_sound_out = nullptr;
-    smd->runtime.last_buf = nullptr;
+  if (ELEM(smd->type,
+           eSeqModifierType_SoundEqualizer,
+           eSeqModifierType_Pitch,
+           eSeqModifierType_Echo))
+  {
+    flag = runtime->flag;
+    sound_in = runtime->last_sound_in;
+    sound_out = runtime->last_sound_out;
+    params_hash = runtime->params_hash;
+
+    runtime->last_sound_in = nullptr;
+    runtime->last_sound_out = nullptr;
   }
 }
 
 void StripModifierDataBackup::restore_to_modifier(StripModifierData *smd)
 {
-  if (smd->type == eSeqModifierType_SoundEqualizer) {
-    smd->runtime.last_sound_in = sound_in;
-    smd->runtime.last_sound_out = sound_out;
-    smd->runtime.last_buf = last_buf;
+  blender::seq::StripModifierDataRuntime *runtime = smd->runtime;
+
+  if (ELEM(smd->type,
+           eSeqModifierType_SoundEqualizer,
+           eSeqModifierType_Pitch,
+           eSeqModifierType_Echo))
+  {
+    runtime->flag = flag;
+    runtime->last_sound_in = sound_in;
+    runtime->last_sound_out = sound_out;
+    runtime->params_hash = params_hash;
   }
   reset();
 }
 
 bool StripModifierDataBackup::isEmpty() const
 {
-  return sound_in == nullptr && sound_out == nullptr && last_buf == nullptr;
+  return sound_in == nullptr && sound_out == nullptr;
 }
 
 StripBackup::StripBackup(const Depsgraph * /*depsgraph*/)
@@ -92,7 +107,7 @@ void StripBackup::restore_to_strip(Strip *strip)
 
   for (StripModifierData &smd : strip->modifiers) {
     std::optional<StripModifierDataBackup> backup = modifiers.pop_try(smd.persistent_uid);
-    if (backup.has_value()) {
+    if (backup) {
       backup->restore_to_modifier(&smd);
     }
   }

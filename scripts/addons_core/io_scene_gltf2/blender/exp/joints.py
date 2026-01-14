@@ -89,7 +89,8 @@ def gather_joint_vnode(vnode, export_settings):
         extras=__gather_extras(blender_bone, export_settings),
         matrix=None,
         mesh=None,
-        name=blender_bone.name if vtree.nodes[vnode].leaf_reference is None else vtree.nodes[vtree.nodes[vnode].leaf_reference].blender_bone.name + '_leaf',
+        name=blender_bone.name if vtree.nodes[vnode].leaf_reference is None else vtree.nodes[vtree.nodes[vnode]
+                                                                                             .leaf_reference].blender_bone.name + '_leaf',
         rotation=rotation,
         scale=scale,
         skin=None,

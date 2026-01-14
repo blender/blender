@@ -2,6 +2,8 @@
 - Mesh 'cube4m_clamp_05' vtx:8 face:6 loop:24 edge:12
     - 3 2 1 0 0 ... 0 4 5 6 7 
     - 0/3 2/3 1/2 0/1 0/4 ... 2/6 5/6 3/7 6/7 4/7 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (1.000, 1.000, 5.000)
     - (1.000, 5.000, 5.000)
@@ -10,8 +12,6 @@
     - (1.000, 5.000, 1.000)
     - (5.000, 5.000, 1.000)
     - (5.000, 1.000, 1.000)
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 1 1 1 1 1 1 
 

@@ -2,6 +2,24 @@
 - Mesh 'Mesh' vtx:8 face:6 loop:24 edge:12
     - 0 2 3 1 4 ... 7 2 0 4 6 
     - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.500, -0.500, 0.000)
     - (0.500, -0.500, 0.000)
@@ -12,30 +30,30 @@
     - (0.500, 0.500, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-  - attr 'UVChannel_1' FLOAT2 CORNER
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
-      ...
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
   - 1 materials
     - 'PhysMat_rough0.25_mtl0.7_a0.2' 
 
 - Mesh 'Mesh.001' vtx:8 face:6 loop:24 edge:12
     - 0 2 3 1 4 ... 7 2 0 4 6 
     - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.500, -0.500, 0.000)
     - (0.500, -0.500, 0.000)
@@ -46,30 +64,30 @@
     - (0.500, 0.500, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-  - attr 'UVChannel_1' FLOAT2 CORNER
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
-      ...
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
   - 1 materials
     - 'glTF2Mat_rough0.25_mtl0.7_ao0.4_sheen0.3' 
 
 - Mesh 'Mesh.002' vtx:8 face:6 loop:24 edge:12
     - 0 2 3 1 4 ... 7 2 0 4 6 
     - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.500, -0.500, 0.000)
     - (0.500, -0.500, 0.000)
@@ -80,30 +98,30 @@
     - (0.500, 0.500, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-  - attr 'UVChannel_1' FLOAT2 CORNER
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
-      ...
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
   - 1 materials
     - 'OpenPBRMat_mtl0.2_rough0.7_ior1.2' 
 
 - Mesh 'Mesh.003' vtx:8 face:6 loop:24 edge:12
     - 0 2 3 1 4 ... 7 2 0 4 6 
     - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.500, -0.500, 0.000)
     - (0.500, -0.500, 0.000)
@@ -114,30 +132,30 @@
     - (0.500, 0.500, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-  - attr 'UVChannel_1' FLOAT2 CORNER
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
-      ...
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
   - 1 materials
     - 'PBRMtlRoughMat_mtl0.6_rough0.35' 
 
 - Mesh 'Mesh.004' vtx:8 face:6 loop:24 edge:12
     - 0 2 3 1 4 ... 7 2 0 4 6 
     - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.500, -0.500, 0.000)
     - (0.500, -0.500, 0.000)
@@ -148,24 +166,6 @@
     - (0.500, 0.500, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-  - attr 'UVChannel_1' FLOAT2 CORNER
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
-      ...
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
   - 1 materials
     - 'PBRMatSpecGloss_gloss0.8' 
 

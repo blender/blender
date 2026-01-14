@@ -1669,7 +1669,7 @@ int paste_property_drivers(Span<FCurve *> src_drivers,
     if (!src_drivers[i]) {
       continue;
     }
-    const int dst_index = is_array_prop ? i : -1;
+    const int dst_index = is_array_prop ? i : 0;
 
     /* If it's already animated by something other than a driver, skip. This is
      * because Blender's UI assumes that properties are either animated *or*

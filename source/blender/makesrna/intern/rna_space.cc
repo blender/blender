@@ -524,8 +524,10 @@ const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* Actually populated dynamically through a function,
- * but helps for context-less access (e.g. doc, i18n...). */
+/**
+ * Actually populated dynamically through a function,
+ * but helps for contextless access (e.g. doc, i18n...).
+ */
 const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_TOOL, "TOOL", ICON_TOOL_SETTINGS, "Tool", "Active Tool and Workspace settings"},
     {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene Properties"},

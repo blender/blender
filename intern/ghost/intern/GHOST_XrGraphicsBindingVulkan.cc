@@ -92,7 +92,7 @@ bool GHOST_XrGraphicsBindingVulkan::loadExtensionFunctions(XrInstance instance)
     return false; \
   }
 
-  /* XR_EXT_enable_vulkan2 */
+  /* XR_KHR_vulkan_enable2 */
   LOAD_FUNCTION(functions_.xrGetVulkanGraphicsRequirements2KHR,
                 xrGetVulkanGraphicsRequirements2KHR);
   LOAD_FUNCTION(functions_.xrGetVulkanGraphicsDevice2KHR, xrGetVulkanGraphicsDevice2KHR);

@@ -255,7 +255,7 @@ static bool are_ids_from_different_mains_matching(Main *bmain_1, ID *id_1, Main 
     return true;
   }
 
-  /* Linked packed IDs only match with other packed IDs, and only if their deephashes are
+  /* Linked packed IDs only match with other packed IDs, and only if their deep-hashes are
    * identical. */
   if (ID_IS_PACKED(id_1) && ID_IS_PACKED(id_2)) {
     BLI_assert_msg(false, "No packed ID should be passed to this function currently.");
@@ -509,10 +509,10 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
     }
   }
 
-  /* Adding back the IDs into the destination Main needs to be dones in a separate loop. The main
-   * reason is again the namemaps of libraries (for linked IDs).
+  /* Adding back the IDs into the destination Main needs to be done in a separate loop. The main
+   * reason is again the name-maps of libraries (for linked IDs).
    *
-   * Since libraries are also moved from old to new Main, getting their namemap 'randomely' built
+   * Since libraries are also moved from old to new Main, getting their name-map 'randomly' built
    * when their first linked ID is moved can lead to it missing some ID names, and other validity
    * issues.
    *

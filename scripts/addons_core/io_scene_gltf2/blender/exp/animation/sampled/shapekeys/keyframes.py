@@ -17,7 +17,7 @@ from ..sampling_cache import get_cache_data
 @cached
 def gather_sk_sampled_keyframes(obj_uuid,
                                 action_name,
-                                slot_identifier, #TODOSLOT
+                                slot_identifier,  # TODOSLOT
                                 export_settings):
 
     start_frame = export_settings['ranges'][obj_uuid][action_name]['start']
@@ -43,8 +43,8 @@ def gather_sk_sampled_keyframes(obj_uuid,
                     channel_group, _, _ = get_channel_groups(
                         obj_uuid, bpy.data.actions[action_name], bpy.data.actions[action_name].slots[slot_identifier], export_settings, no_sample_option=True)
                 elif blender_obj.data.shape_keys.animation_data and blender_obj.data.shape_keys.animation_data.action:
-                    channel_group, _, _ = get_channel_groups(
-                        obj_uuid, blender_obj.data.shape_keys.animation_data.action, blender_obj.data.shape_keys.animation_data.action.slots[slot_identifier], export_settings, no_sample_option=True)
+                    channel_group, _, _ = get_channel_groups(obj_uuid, blender_obj.data.shape_keys.animation_data.action,
+                                                             blender_obj.data.shape_keys.animation_data.action.slots[slot_identifier], export_settings, no_sample_option=True)
                 else:
                     channel_group = {}
                     channels = [None] * len(get_sk_exported(blender_obj.data.shape_keys.key_blocks))

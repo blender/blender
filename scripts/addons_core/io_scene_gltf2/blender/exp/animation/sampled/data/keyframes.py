@@ -158,6 +158,7 @@ def fcurve_is_constant(keyframes):
         return all([j < 0.0001 for j in np.ptp([[k.value[i]
                    for i in range(len(keyframes[0].value))] for k in keyframes], axis=0)])
 
+
 def fcurve_channel_is_constant(keyframes, channel=3):
     # Same than fcurve, but for a specific channel
     # Will return True if all values are the same for this channel

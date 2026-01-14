@@ -102,8 +102,8 @@ struct bContext {
      * (keep this to check if the copy needs freeing).
      */
     void *py_context_orig;
-    /** True if logging is enabled for context members (can be set programmatically). */
-    bool log_access;
+    /** Logging control flags (access, hide_missing). */
+    CTX_LogFlag log_flag;
     /** Optional flag to disallow writing via RNA. */
     const bool *rna_disallow_writes;
   } data;
@@ -114,7 +114,6 @@ struct bContext {
 bContext *CTX_create()
 {
   bContext *C = MEM_callocN<bContext>(__func__);
-
   return C;
 }
 
@@ -382,13 +381,21 @@ static std::string ctx_result_brief_repr(const bContextDataResult &result)
 /** Simple logging for context data results. */
 static void ctx_member_log_access(const bContext *C,
                                   const char *member,
-                                  const bContextDataResult &result)
+                                  const bContextDataResult &result,
+                                  const eContextResult lookup_result)
 {
   const bool use_logging = CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE) ||
                            (C && CTX_member_logging_get(C));
 
   if (!use_logging) {
     return;
+  }
+
+  /* If hiding missing is enabled and the member was not found, skip logging. */
+  if (C && bool(C->data.log_flag & CTX_LogFlag::HideMissing)) {
+    if (lookup_result == CTX_RESULT_MEMBER_NOT_FOUND) {
+      return;
+    }
   }
 
   std::string value_repr = ctx_result_brief_repr(result);
@@ -444,7 +451,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
       }
 
       /* Log context member access directly without storing a copy. */
-      ctx_member_log_access(C, member, result);
+      ctx_member_log_access(C, member, result, CTX_RESULT_OK);
     }
   }
 #else
@@ -461,7 +468,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
     return_data = fall_through;
 
     /* Log fallback context member access. */
-    ctx_member_log_access(C, member, fallback_result);
+    ctx_member_log_access(C, member, fallback_result, CTX_RESULT_MEMBER_NOT_FOUND);
   }
 
   /* Don't allow UI context access from non-main threads. */
@@ -488,7 +495,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
   if (CTX_py_dict_get(C)) {
     if (BPY_context_member_get(C, member, result)) {
       /* Log the Python context result if we're in a temp_override. */
-      ctx_member_log_access(C, member, *result);
+      ctx_member_log_access(C, member, *result, CTX_RESULT_OK);
       return CTX_RESULT_OK;
     }
   }
@@ -562,7 +569,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
 
   /* Log context result if we're in a temp_override and we got a successful or no-data result. */
   if (ELEM(final_result, CTX_RESULT_OK, CTX_RESULT_NO_DATA)) {
-    ctx_member_log_access(C, member, *result);
+    ctx_member_log_access(C, member, *result, final_result);
   }
 
   return final_result;
@@ -1758,14 +1765,21 @@ Depsgraph *CTX_data_depsgraph_on_load(const bContext *C)
   return BKE_scene_get_depsgraph(scene, view_layer);
 }
 
-void CTX_member_logging_set(bContext *C, bool enable)
+void CTX_member_logging_flag_set(bContext *C, CTX_LogFlag flag)
 {
-  C->data.log_access = enable;
+  C->data.log_flag = flag;
+}
+
+CTX_LogFlag CTX_member_logging_flag_get(const bContext *C)
+{
+  /* Needed by Python bindings to get the full flags value, since bContext is only forward
+   * declared in the header file and cannot be accessed directly from Python code. */
+  return C->data.log_flag;
 }
 
 bool CTX_member_logging_get(const bContext *C)
 {
-  return C->data.log_access;
+  return (C->data.log_flag & CTX_LogFlag::Access) != CTX_LogFlag(0);
 }
 
 bool CTX_member_rna_write_check(const bContext *C)

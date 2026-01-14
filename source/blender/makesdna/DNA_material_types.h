@@ -373,6 +373,9 @@ struct Material {
   /** Index for render passes. */
   short index = 0;
 
+  /* #Material::use_nodes is deprecated so it's not possible to create an embedded node tree from
+   * the UI or Python API by setting `use_nodes = True`. Therefore, #nodetree is required to never
+   * be nullptr. */
   struct bNodeTree *nodetree = nullptr;
   struct PreviewImage *preview = nullptr;
 

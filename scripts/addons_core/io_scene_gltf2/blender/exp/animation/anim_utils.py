@@ -260,6 +260,7 @@ def bake_animation(obj_uuid: str, animation_key: str, export_settings, mode=None
         # We need to bake all bones. Because some bone can have some constraints linking to
         # some other armature bones, for example
 
+        animation = None
         channels, _ = gather_action_armature_sampled(obj_uuid, None, None, animation_key, export_settings)
         if channels:
             animation = gltf2_io.Animation(
@@ -303,7 +304,8 @@ def bake_data_animation(blender_type_data, blender_id, animation_key, slot_ident
             if len(export_settings['KHR_animation_pointer'][blender_type_data][i]['paths']) == 0:
                 continue
 
-            channels = gather_data_sampled_channels(blender_type_data, i, animation_key, slot_identifier, on_type, export_settings)
+            channels = gather_data_sampled_channels(
+                blender_type_data, i, animation_key, slot_identifier, on_type, export_settings)
             if channels is not None:
                 total_channels.extend(channels)
 

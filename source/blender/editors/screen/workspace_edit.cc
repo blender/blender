@@ -244,7 +244,7 @@ WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindo
   WorkSpace *workspace_new = id_cast<WorkSpace *>(BKE_id_copy(bmain, &workspace_old->id));
 
   /* Try to keep active the layout from the new workspace matching the current active one from
-   * the old worksapce. */
+   * the{ old workspace. */
   WorkSpaceLayout *layout_old = static_cast<WorkSpaceLayout *>(workspace_old->layouts.first);
   WorkSpaceLayout *layout_new = static_cast<WorkSpaceLayout *>(workspace_new->layouts.first);
   for (; layout_old && layout_new; layout_old = layout_old->next, layout_new = layout_new->next) {

@@ -107,7 +107,8 @@ def __gather_extras(blender_mesh: bpy.types.Mesh,
         extras = generate_extras(blender_mesh) or {}
 
     # Not for GN Instances
-    if export_settings['gltf_morph'] and blender_mesh.shape_keys and ((blender_mesh.is_evaluated is True and blender_mesh.get('gltf2_mesh_applied') is not None) or blender_mesh.is_evaluated is False):
+    if export_settings['gltf_morph'] and blender_mesh.shape_keys and ((blender_mesh.is_evaluated is True and blender_mesh.get(
+            'gltf2_mesh_applied') is not None) or blender_mesh.is_evaluated is False):
         morph_max = len(blender_mesh.shape_keys.key_blocks) - 1
         if morph_max > 0:
             extras['targetNames'] = [k.name for k in get_sk_exported(blender_mesh.shape_keys.key_blocks)]

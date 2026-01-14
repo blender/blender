@@ -724,7 +724,7 @@ class GVArrayImpl_For_GArray : public GVArrayImpl_For_GSpan {
 
 GVArray GVArray::from_garray(GArray<> array)
 {
-  return GVArray::from<GVArrayImpl_For_GArray>(array);
+  return GVArray::from<GVArrayImpl_For_GArray>(std::move(array));
 }
 
 GVArray GVArray::from_empty(const CPPType &type)

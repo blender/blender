@@ -56,6 +56,7 @@ namespace render {
  */
 class ContextInputData {
  public:
+  const Render *render;
   const Scene *scene;
   const RenderData *render_data;
   const bNodeTree *node_tree;
@@ -64,14 +65,16 @@ class ContextInputData {
   compositor::Profiler *profiler;
   compositor::NodeGroupOutputTypes needed_outputs;
 
-  ContextInputData(const Scene &scene,
+  ContextInputData(const Render *render,
+                   const Scene &scene,
                    const RenderData &render_data,
                    const bNodeTree &node_tree,
                    const char *view_name,
                    compositor::RenderContext *render_context,
                    compositor::Profiler *profiler,
                    compositor::NodeGroupOutputTypes needed_outputs)
-      : scene(&scene),
+      : render(render),
+        scene(&scene),
         render_data(&render_data),
         node_tree(&node_tree),
         view_name(view_name),
@@ -251,10 +254,6 @@ class Context : public compositor::Context {
     }
 
     BKE_image_partial_update_mark_full_update(image);
-    if (input_data_.node_tree->runtime->update_draw) {
-      input_data_.node_tree->runtime->update_draw(input_data_.node_tree->runtime->udh);
-    }
-
     BKE_image_release_ibuf(image, image_buffer, lock);
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
@@ -469,10 +468,7 @@ class Context : public compositor::Context {
 
   bool is_canceled() const override
   {
-    if (!input_data_.node_tree->runtime->test_break) {
-      return false;
-    }
-    return input_data_.node_tree->runtime->test_break(input_data_.node_tree->runtime->tbh);
+    return input_data_.render->display->test_break();
   }
 
   void evaluate()
@@ -685,7 +681,7 @@ void Render::compositor_execute(const Scene &scene,
   std::unique_lock lock(this->compositor_mutex);
 
   render::ContextInputData input_data(
-      scene, render_data, node_tree, view_name, render_context, profiler, needed_outputs);
+      this, scene, render_data, node_tree, view_name, render_context, profiler, needed_outputs);
 
   if (this->compositor && this->compositor->needs_to_be_recreated(input_data)) {
     /* Free it here and it will be recreated in the check below. */

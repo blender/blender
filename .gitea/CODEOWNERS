@@ -188,3 +188,8 @@ source/blender/python/gpu/.*                           @Jeroen-Bakker
 # --------------------------------------------------
 # I18N.
 source/blender/blentranslation.*      @mont29
+
+# --------------------------------------------------
+# Platforms & Builds
+build_files/.*              @ThomasDinges
+release/.*                  @ThomasDinges

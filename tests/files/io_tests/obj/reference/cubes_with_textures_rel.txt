@@ -2,6 +2,24 @@
 - Mesh 'Cube4Tex' vtx:8 face:6 loop:24 edge:12
     - 0 4 6 2 3 ... 3 5 4 0 1 
     - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.993, 0.002)
+    - (1.984, 0.002)
+    - (1.984, 0.993)
+      ...
+    - (0.993, -0.989)
+    - (0.993, 0.002)
+    - (0.003, 0.002)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (1.000, 1.000, -1.000)
     - (1.000, -1.000, -1.000)
@@ -12,18 +30,14 @@
     - (-1.000, -1.000, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
+  - 1 materials
+    - 'Mat_BaseRoughEmissNormal10' 
+
+- Mesh 'CubeTexMul' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
   - attr 'UVMap' FLOAT2 CORNER
     - (0.993, 0.002)
     - (1.984, 0.002)
@@ -32,12 +46,16 @@
     - (0.993, -0.989)
     - (0.993, 0.002)
     - (0.003, 0.002)
-  - 1 materials
-    - 'Mat_BaseRoughEmissNormal10' 
-
-- Mesh 'CubeTexMul' vtx:8 face:6 loop:24 edge:12
-    - 0 4 6 2 3 ... 3 5 4 0 1 
-    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (4.000, -2.000, -1.000)
     - (4.000, -4.000, -1.000)
@@ -48,18 +66,14 @@
     - (2.000, -4.000, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
+  - 1 materials
+    - 'Mat_BaseMul' 
+
+- Mesh 'CubeTiledTex' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
   - attr 'UVMap' FLOAT2 CORNER
     - (0.993, 0.002)
     - (1.984, 0.002)
@@ -68,12 +82,16 @@
     - (0.993, -0.989)
     - (0.993, 0.002)
     - (0.003, 0.002)
-  - 1 materials
-    - 'Mat_BaseMul' 
-
-- Mesh 'CubeTiledTex' vtx:8 face:6 loop:24 edge:12
-    - 0 4 6 2 3 ... 3 5 4 0 1 
-    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (4.000, 1.000, -1.000)
     - (4.000, -1.000, -1.000)
@@ -84,18 +102,14 @@
     - (2.000, -1.000, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
+  - 1 materials
+    - 'Mat_BaseTiled' 
+
+- Mesh 'CubeTiledTexFromAnotherFolder' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
   - attr 'UVMap' FLOAT2 CORNER
     - (0.993, 0.002)
     - (1.984, 0.002)
@@ -104,12 +118,16 @@
     - (0.993, -0.989)
     - (0.993, 0.002)
     - (0.003, 0.002)
-  - 1 materials
-    - 'Mat_BaseTiled' 
-
-- Mesh 'CubeTiledTexFromAnotherFolder' vtx:8 face:6 loop:24 edge:12
-    - 0 4 6 2 3 ... 3 5 4 0 1 
-    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (7.000, 1.000, -1.000)
     - (7.000, -1.000, -1.000)
@@ -120,26 +138,8 @@
     - (5.000, -1.000, 1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-  - attr 'UVMap' FLOAT2 CORNER
-    - (0.993, 0.002)
-    - (1.984, 0.002)
-    - (1.984, 0.993)
-      ...
-    - (0.993, -0.989)
-    - (0.993, 0.002)
-    - (0.003, 0.002)
   - 1 materials
     - 'Mat_EmissTiledAnotherFolder' 
 

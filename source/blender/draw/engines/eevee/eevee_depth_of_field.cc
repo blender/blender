@@ -624,7 +624,6 @@ void DepthOfField::render(View &view,
        * next cycle so we can reuse it as input. */
       TextureFromPool::swap(stabilize_output_tx_, dof_buffer.stabilize_history_tx_);
       dof_buffer.stabilize_history_tx_.retain();
-
       /* Used by stabilize pass. */
       stabilize_output_tx_.release();
       setup_color_tx_.release();

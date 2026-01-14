@@ -315,6 +315,7 @@ static void copy_masked_verts_to_new_mesh(const Mesh &src_mesh,
                                           Mesh &dst_mesh,
                                           Span<int> vertex_map)
 {
+  bke::LegacyMeshInterpolator vert_interp(src_mesh, dst_mesh, bke::AttrDomain::Point);
   BLI_assert(src_mesh.verts_num == vertex_map.size());
   for (const int i_src : vertex_map.index_range()) {
     const int i_dst = vertex_map[i_src];
@@ -322,7 +323,7 @@ static void copy_masked_verts_to_new_mesh(const Mesh &src_mesh,
       continue;
     }
 
-    CustomData_copy_data(&src_mesh.vert_data, &dst_mesh.vert_data, i_src, i_dst, 1);
+    vert_interp.copy(i_src, i_dst, 1);
   }
 }
 

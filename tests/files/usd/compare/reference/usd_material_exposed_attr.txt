@@ -1,0 +1,56 @@
+==== Meshes: 1
+- Mesh 'Plane' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.000)
+    - (0.500, -0.500, 0.000)
+    - (-0.500, 0.500, 0.000)
+    - (0.500, 0.500, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'st' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'Material' 
+
+==== Objects: 3
+- Obj '_materials' EMPTY par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Plane' MESH data:'Plane' par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'root' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 1
+- Mat 'Material'
+  - base color (0.000, 1.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.222
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.000, 1.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.222
+  - backface False probe True shadow False
+
+==== Images: 1
+- Image 'test_single.png' 128x128 24bpp
+

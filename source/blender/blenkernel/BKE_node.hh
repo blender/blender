@@ -515,7 +515,6 @@ struct bNodeTreeType {
 
   /* calls allowing threaded composite */
   void (*localize)(bNodeTree *localtree, bNodeTree *ntree) = nullptr;
-  void (*local_merge)(Main *bmain, bNodeTree *localtree, bNodeTree *ntree) = nullptr;
 
   /* Tree update. Overrides `nodetype->updatetreefunc`. */
   void (*update)(bNodeTree *ntree) = nullptr;
@@ -925,13 +924,6 @@ void node_update_asset_metadata(bNodeTree &node_tree);
 void node_tree_node_flag_set(bNodeTree &ntree, int flag, bool enable);
 
 /**
- * Merge local tree results back, and free local tree.
- *
- * We have to assume the editor already changed completely.
- */
-void node_tree_local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
-
-/**
  * \note `ntree` itself has been read!
  */
 void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
@@ -1112,13 +1104,12 @@ struct bNodePreview {
   ~bNodePreview();
 };
 
-bNodePreview *node_preview_verify(Map<bNodeInstanceKey, bNodePreview> &previews,
+/* Ensure that a node preview of the given size exists in the given previews map for the node with
+ * the given instance key. */
+bNodePreview *node_ensure_preview(Map<bNodeInstanceKey, bNodePreview> &previews,
                                   bNodeInstanceKey key,
                                   int xsize,
-                                  int ysize,
-                                  bool create);
-
-void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize);
+                                  int ysize);
 
 void node_preview_remove_unused(bNodeTree *ntree);
 

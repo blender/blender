@@ -109,14 +109,6 @@ static bool wm_check_region_exists(const bScreen *screen,
   return false;
 }
 
-/**
- * Helper function to configure context logging with extensible options.
- */
-static void bpy_rna_context_logging_set(bContext *C, bool enable)
-{
-  CTX_member_logging_set(C, enable);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -132,9 +124,6 @@ struct ContextStore {
   bool area_is_set;
   ARegion *region;
   bool region_is_set;
-
-  /** User's desired logging state for this temp_override instance (can be changed at runtime). */
-  bool use_logging;
 };
 
 struct BPyContextTempOverride {
@@ -150,6 +139,8 @@ struct BPyContextTempOverride {
      * won't be `ctx_init.screen` (when switching the window as well as the screen), see #115937.
      */
     bScreen *screen;
+    /** Original logging flags to restore on exit. */
+    CTX_LogFlag log_flag;
   } ctx_temp_orig;
 
   /** Bypass Python overrides set when calling an operator from Python. */
@@ -302,11 +293,6 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
 {
   bContext *C = self->context;
   Main *bmain = CTX_data_main(C);
-
-  /* Enable logging for this temporary override context if the user has requested it. */
-  if (self->ctx_temp.use_logging) {
-    bpy_rna_context_logging_set(C, true);
-  }
 
   /* It's crucial to call #CTX_py_state_pop if this function fails with an error. */
   CTX_py_state_push(C, &self->py_state, self->py_state_context_dict);
@@ -522,30 +508,61 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
     Py_DECREF(context_dict_test);
   }
 
-  /* Restore logging state based on the user's preference stored in ctx_init.use_logging. */
-  bpy_rna_context_logging_set(C, self->ctx_init.use_logging);
+  /* Restore the original logging flags. */
+  CTX_member_logging_flag_set(C, self->ctx_temp_orig.log_flag);
 
   CTX_py_state_pop(C, &self->py_state);
 
   Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_rna_context_temp_override_logging_set_doc,
+    ".. method:: logging_set(enable, *, hide_missing=False)\n"
+    "\n"
+    "   Set context member logging options for this temporary override.\n"
+    "\n"
+    "   :arg enable: Enable logging of context member access.\n"
+    "   :type enable: bool\n"
+    "   :arg hide_missing: When true, suppress logging access to members that\n"
+    "      are not available in the current context.\n"
+    "   :type hide_missing: bool\n");
 static PyObject *bpy_rna_context_temp_override_logging_set(BPyContextTempOverride *self,
                                                            PyObject *args,
                                                            PyObject *kwds)
 {
   bool enable = true;
+  bool hide_missing = false;
 
-  static const char *kwlist[] = {"", nullptr};
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O&", const_cast<char **>(kwlist), PyC_ParseBool, &enable))
+  static const char *_keywords[] = {
+      "enable",
+      "hide_missing",
+      nullptr,
+  };
+  static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
+      "O&"  /* `enable` */
+      "|$"  /* Optional keyword only arguments. */
+      "O&"  /* `hide_missing` */
+      ":logging_set",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kwds, &_parser, PyC_ParseBool, &enable, PyC_ParseBool, &hide_missing))
   {
     return nullptr;
   }
 
-  self->ctx_temp.use_logging = enable;
-
-  bpy_rna_context_logging_set(self->context, enable);
+  CTX_LogFlag flag = CTX_LogFlag(0);
+  if (enable) {
+    flag |= CTX_LogFlag::Access;
+  }
+  if (hide_missing) {
+    flag |= CTX_LogFlag::HideMissing;
+  }
+  CTX_member_logging_flag_set(self->context, flag);
 
   Py_RETURN_NONE;
 }
@@ -565,7 +582,8 @@ static PyMethodDef bpy_rna_context_temp_override_methods[] = {
     {"__exit__", reinterpret_cast<PyCFunction>(bpy_rna_context_temp_override_exit), METH_VARARGS},
     {"logging_set",
      reinterpret_cast<PyCFunction>(bpy_rna_context_temp_override_logging_set),
-     METH_VARARGS | METH_KEYWORDS},
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_rna_context_temp_override_logging_set_doc},
     {nullptr},
 };
 
@@ -812,6 +830,8 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
   memset(&ret->ctx_init, 0, sizeof(ret->ctx_init));
 
   ret->ctx_temp_orig.screen = nullptr;
+  /* Store original logging flags now, before any logging_set() calls can modify them. */
+  ret->ctx_temp_orig.log_flag = CTX_member_logging_flag_get(C);
 
   ret->py_state_context_dict = kwds;
 

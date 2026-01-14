@@ -853,9 +853,6 @@ static void render_endjob(void *rjv)
     }
   }
 
-  /* XXX above function sets all tags in nodes */
-  ntreeCompositClearTags(rj->scene->compositing_node_group);
-
   /* potentially set by caller */
   rj->scene->r.scemode &= ~R_NO_FRAME_UPDATE;
 

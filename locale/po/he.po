@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
-"PO-Revision-Date: 2026-01-05 05:12+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"PO-Revision-Date: 2026-01-12 02:12+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -183,6 +183,10 @@ msgid "Collection of timeline markers"
 msgstr "ןמז-ריצ ינומיס לש ףסוא"
 
 
+msgid "Active"
+msgstr "ליעפ"
+
+
 msgctxt "ID"
 msgid "Collection"
 msgstr "ףסוא"
@@ -241,6 +245,11 @@ msgstr "םיעבצ תטלפ"
 msgctxt "ID"
 msgid "Particle"
 msgstr "קיקלח"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "תודוקנ ןנע"
 
 
 msgctxt "ID"
@@ -635,7 +644,7 @@ msgstr "םיקיקלח ינותנ-יקולב גצה"
 
 
 msgid "Point Clouds"
-msgstr "ודוקנ יננע"
+msgstr "תודוקנ יננע"
 
 
 msgid "Show/hide Point Cloud data-blocks"
@@ -743,6 +752,10 @@ msgstr "דיחי"
 
 msgid "Active Color"
 msgstr "ליעפ עבצ"
+
+
+msgid "Bake data for a Scene data-block"
+msgstr "הנצס ינותנ-יקולב רובע םינותנ הפא"
 
 
 msgid "Object"
@@ -861,6 +874,50 @@ msgid "Texture data-blocks"
 msgstr "םקרמ ינותנ-יקולב"
 
 
+msgid "Version"
+msgstr "הסרג"
+
+
+msgid "File format version the .blend file was saved with"
+msgstr "הב רמשנ blend. -ה ץבוקש ץבוקה תסרג"
+
+
+msgid "Volume data-blocks"
+msgstr "חפנ ינותנ-יקולב"
+
+
+msgid "Window Managers"
+msgstr "תונולח-ילהנמ"
+
+
+msgid "Window manager data-blocks"
+msgstr "תונולח-ילהנמ ינותנ-יקולב"
+
+
+msgid "Workspace data-blocks"
+msgstr "הדובע-יבחרמ ינותנ-יקולב"
+
+
+msgid "World data-blocks"
+msgstr "םלוע ינותנ-יקולב"
+
+
+msgid "Main Actions"
+msgstr "תוירקיע תולועפ"
+
+
+msgid "Collection of actions"
+msgstr "תולועפ ףסוא"
+
+
+msgid "Main Brushes"
+msgstr "תוירקיע תושרבמ"
+
+
+msgid "Collection of brushes"
+msgstr "תושרבמ ףסוא"
+
+
 msgid "Main Cameras"
 msgstr "תוירקיע תומלצמ"
 
@@ -869,24 +926,68 @@ msgid "Collection of cameras"
 msgstr "תומלצמ ףסוא"
 
 
+msgid "Main Collections"
+msgstr "םיירקיע םיפסוא"
+
+
 msgid "Collection of collections"
 msgstr "םיפסוא ףסוא"
+
+
+msgid "Main Curves"
+msgstr "תוירקיע תומוקע"
 
 
 msgid "Collection of curves"
 msgstr "םילוקיע ףסוא"
 
 
+msgid "Main Fonts"
+msgstr "םיירקיע םינפוג"
+
+
+msgid "Collection of fonts"
+msgstr "םינפוג ףסוא"
+
+
+msgid "Main Hair Curves"
+msgstr "תוירקיע רעיש תומוקע"
+
+
 msgid "Collection of hair curves"
 msgstr "רעיש ילוקיע ףסוא"
+
+
+msgid "Main Images"
+msgstr "תוירקיע תונומת"
 
 
 msgid "Collection of images"
 msgstr "תונומת ףסוא"
 
 
+msgid "Main Libraries"
+msgstr "תוירקיע תוירפס"
+
+
+msgid "Collection of libraries"
+msgstr "תוירפס ףסוא"
+
+
+msgid "Main Lights"
+msgstr "םיירקיע תורוא"
+
+
 msgid "Collection of lights"
 msgstr "תורוא ףסוא"
+
+
+msgid "Main Line Styles"
+msgstr "םיירקיע וק-תונונגס"
+
+
+msgid "Collection of line styles"
+msgstr "וק-תונונגס ףסוא"
 
 
 msgid "Main Meshes"
@@ -903,6 +1004,14 @@ msgstr "תוירקיע םיקיקלח תורדגה"
 
 msgid "Collection of particle settings"
 msgstr "םיקיקלח תורדגה לש ףסוא"
+
+
+msgid "Main Scenes"
+msgstr "תוירקיע תונצס"
+
+
+msgid "Collection of scenes"
+msgstr "תונצס ףסוא"
 
 
 msgid "Collection of sounds"
@@ -1039,6 +1148,10 @@ msgstr "לדוג"
 
 msgid "Scale the background image"
 msgstr "עקרה תנומתל לדוג עבק"
+
+
+msgid "Use movie clip from active scene camera"
+msgstr "הליעפה הנצסה תמלצממ ואידיו פילקב שמתשה"
 
 
 msgid "Left"
@@ -1746,8 +1859,47 @@ msgid "Texture Paint"
 msgstr "םקרמ תעיבצ"
 
 
+msgid "Soft Body Settings"
+msgstr "ךר-ףוג תורדגה"
+
+
+msgid "Settings for soft body simulation"
+msgstr "ךר-ףוג תייצלומיס תורדגה"
+
+
+msgid "Type of object"
+msgstr "טקייבוא גוס"
+
+
+msgctxt "ID"
+msgid "Surface"
+msgstr "חטש-ינפ"
+
+
+msgctxt "ID"
+msgid "Hair Curves"
+msgstr "רעיש-תומוקע"
+
+
+msgctxt "ID"
+msgid "Empty"
+msgstr "קיר"
+
+
+msgid "Shape Key Edit Mode"
+msgstr "הרוצ-תוחתפמ תכירע בצמ"
+
+
+msgid "Display shape keys in edit mode (for meshes only)"
+msgstr "(דבלב תורוצל) הכירע בצמב הרוצ-תוחתפמ גצה"
+
+
 msgid "Vertex Groups"
-msgstr "דוקדוק תוצובק"
+msgstr "םידוקדוק תוצובק"
+
+
+msgid "Vertex groups of the object"
+msgstr "טקייבואה לש םידוקדוק תוצובק"
 
 
 msgctxt "ParticleSettings"
@@ -1893,6 +2045,84 @@ msgstr "ינוציח סונוק חפנ"
 
 msgid "Volume outside the outer cone"
 msgstr "ינוציחה סונוקל ץוחמ חפנ"
+
+
+msgctxt "Text"
+msgid "Modified"
+msgstr "הנתשה"
+
+
+msgid "Text file on disk is different than the one in memory"
+msgstr "ןורכיזבש הזמ הנוש קסידה לעש טסקטה ץבוק"
+
+
+msgctxt "Text"
+msgid "Lines"
+msgstr "תורוש"
+
+
+msgid "Lines of text"
+msgstr "טסקט לש תורוש"
+
+
+msgid "Selection End Character"
+msgstr "הריחב םויס ות"
+
+
+msgid "Index of character after end of selection in the selection end line"
+msgstr ".הריחבה םויס תרושב הריחבה םויס ירחא ות לש סקדניא"
+
+
+msgid "Selection End Line"
+msgstr "הריחב םויס תרוש"
+
+
+msgid "End line of selection"
+msgstr "הריחב םויס תרוש"
+
+
+msgid "Select End Line Index"
+msgstr "םויס תרוש סקדניא רחב"
+
+
+msgid "Index of last TextLine in selection"
+msgstr "הריחבב הנורחא טסקט תרוש לש סקדניא"
+
+
+msgid "Register"
+msgstr "לודומכ םושר"
+
+
+msgid "Run this text as a Python script on loading"
+msgstr "הניעטב Python טפירקסכ הז טסקט ץרה"
+
+
+msgid "Texture data-block used by materials, lights, worlds and brushes"
+msgstr "תושרבמו תומלוע ,הרואת ,םירמוח ידי לע שמושמה הרוטסקט ינותנ-קולב"
+
+
+msgid "Node tree for node-based textures"
+msgstr "םיקולב-יססובמ םימקרמל םיקולב ץע"
+
+
+msgid "Blend"
+msgstr "בוברע"
+
+
+msgid "Clouds"
+msgstr "םיננע"
+
+
+msgid "Image or Movie"
+msgstr "ןוטרס וא הנומת"
+
+
+msgid "Allow for images or movies to be used as textures"
+msgstr "םימקרמכ םינוטרס וא תונומת שמתשהל רשפאמ"
+
+
+msgid "Magic"
+msgstr "םסק"
 
 
 msgid "Quadratic"
@@ -2717,6 +2947,10 @@ msgid "Lift"
 msgstr "יוליע"
 
 
+msgid "Echo"
+msgstr "דה"
+
+
 msgid "Force Field"
 msgstr "חוכ הדש"
 
@@ -3122,6 +3356,11 @@ msgstr "1 םינבל"
 
 msgid "Bricks 2"
 msgstr "2 םינבל"
+
+
+msgctxt "Sequence"
+msgid "Echo"
+msgstr "דה"
 
 
 msgid "The file is not a valid Blender file."

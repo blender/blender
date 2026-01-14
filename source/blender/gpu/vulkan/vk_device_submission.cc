@@ -14,6 +14,7 @@
 #include "BLI_task.h"
 
 #include "vk_device.hh"
+#include "vk_to_string.hh"
 
 #include "CLG_log.h"
 
@@ -105,7 +106,11 @@ void VKDevice::wait_for_timeline(TimelineValue timeline)
   }
   VkSemaphoreWaitInfo vk_semaphore_wait_info = {
       VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO, nullptr, 0, 1, &vk_timeline_semaphore_, &timeline};
-  vkWaitSemaphores(vk_device_, &vk_semaphore_wait_info, UINT64_MAX);
+  VkResult wait_result = vkWaitSemaphores(vk_device_, &vk_semaphore_wait_info, UINT64_MAX);
+  if (wait_result != VK_SUCCESS) {
+    CLOG_ERROR(
+        &LOG, "Vulkan: failed to wait for synchronization timeline [%s]", to_string(wait_result));
+  }
 }
 
 void VKDevice::wait_queue_idle()

@@ -173,7 +173,7 @@ struct Scope {
     return parent == *this;
   }
 
-  /* Returns true if scope contains the substring. */
+  /* Returns true if scope contains the sub-string. */
   bool contains(const std::string &str) const
   {
     return this->str().find(str) != std::string::npos;

@@ -700,6 +700,20 @@ void funcTfloatT1(float a) {
   }
   {
     string input = R"(
+template<enum E e, char i> E func() { return E(e + i); }
+template E func<v, 2>();
+)";
+    string expect = R"(
+E funcTvT2() { return E(v + 2); }
+#line 4
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
 template<> void func<T, Q>(T a) {a}
 )";
     string expect = R"(

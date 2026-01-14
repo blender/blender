@@ -219,6 +219,11 @@ Material *BlenderStrokeRenderer::GetStrokeShader(blender::Main *bmain,
 
   if (iNodeTree) {
     // make a copy of linestyle->nodetree
+    if (ma->nodetree) {
+      bke::node_tree_free_embedded_tree(ma->nodetree);
+      MEM_freeN(ma->nodetree);
+      ma->nodetree = nullptr;
+    }
     ntree = blender::bke::node_tree_copy_tree_ex(*iNodeTree, bmain, do_id_user);
 
     // find the active Output Line Style node
@@ -231,8 +236,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(blender::Main *bmain,
     ma->nodetree = ntree;
   }
   else {
-    ntree = blender::bke::node_tree_add_tree_embedded(
-        nullptr, &ma->id, "stroke_shader", "ShaderNodeTree");
+    ntree = ma->nodetree;
   }
   ma->blend_method = MA_BM_HASHED;
 

@@ -2,15 +2,6 @@
 - Mesh 'Mesh' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -21,21 +12,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'FBX_DiffuseFactorMaterial' 
 
 - Mesh 'Mesh.001' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -46,21 +37,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'FBX_EmissiveColorMaterial' 
 
 - Mesh 'Mesh.002' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -71,21 +62,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'Standard_BaseColorMaterial' 
 
 - Mesh 'Mesh.003' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -96,21 +87,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'Standard_BaseFactorMaterial' 
 
 - Mesh 'Mesh.004' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -121,21 +112,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'Standard_EmissiveColorMaterial' 
 
 - Mesh 'Mesh.005' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -146,21 +137,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'FBX_DiffuseTextureMaterial' 
 
 - Mesh 'Mesh.006' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -171,21 +162,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'FBX_DiffuseTextureFactorMaterial' 
 
 - Mesh 'Mesh.007' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -196,21 +187,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'FBX_EmissiveTextureMaterial' 
 
 - Mesh 'Mesh.008' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -221,21 +212,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'Standard_BaseTextureMaterial' 
 
 - Mesh 'Mesh.009' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -246,21 +237,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'Standard_BaseTextureFactorMaterial' 
 
 - Mesh 'Mesh.010' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -271,21 +262,21 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'Standard_EmissiveTextureMaterial' 
 
 - Mesh 'Mesh.011' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/1 0/2 1/3 2/3 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-5.000, 0.000, 5.000)
-    - (5.000, 0.000, 5.000)
-    - (-5.000, 0.000, -5.000)
-    - (5.000, 0.000, -5.000)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -296,6 +287,15 @@
     - (1.000, 0.000)
     - (1.000, 1.000)
     - (0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
   - 1 materials
     - 'FBX_DIffuseColorMaterial' 
 

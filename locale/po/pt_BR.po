@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21235,16 +21235,24 @@ msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
 msgid "Names"
 msgstr "Nomes"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Clean Up"
@@ -21291,6 +21299,10 @@ msgid "Navigation"
 msgstr "Navegação"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "Alinhar visualização"
 
@@ -21307,10 +21319,6 @@ msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
@@ -21325,10 +21333,6 @@ msgstr "Selecionar vinculados(as)"
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
 
 
 msgid "Light"
@@ -21395,6 +21399,14 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -21403,16 +21415,8 @@ msgid "Enable Bone Options"
 msgstr "Habilitar opções de ossos"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
 
 
 msgid "Mesh Select Mode"
@@ -21425,10 +21429,6 @@ msgstr "Dados das faces"
 
 msgid "Merge"
 msgstr "Fundir"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
 
 
 msgid "Basic"
@@ -50781,10 +50781,6 @@ msgstr "Usa a profundidade abaixo do mouse para melhorar as funcionalidades de p
 
 msgid "Emulate 3 Button Mouse"
 msgstr "Emular mouse de 3 botões "
-
-
-msgid "Use selection as the pivot point"
-msgstr "Usa a seleção como o ponto de pivô."
 
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center"

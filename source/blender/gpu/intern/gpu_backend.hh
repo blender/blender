@@ -27,6 +27,7 @@ class QueryPool;
 class Shader;
 class ShaderCompiler;
 class Texture;
+class TexturePool;
 class UniformBuf;
 class StorageBuf;
 class VertBuf;
@@ -64,6 +65,7 @@ class GPUBackend {
   virtual QueryPool *querypool_alloc() = 0;
   virtual Shader *shader_alloc(const char *name) = 0;
   virtual Texture *texture_alloc(const char *name) = 0;
+  virtual TexturePool *texturepool_alloc() = 0;
   virtual UniformBuf *uniformbuf_alloc(size_t size, const char *name) = 0;
   virtual StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) = 0;
   virtual VertBuf *vertbuf_alloc() = 0;

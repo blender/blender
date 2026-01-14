@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8501,16 +8501,24 @@ msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
 msgid "Names"
 msgstr "Имена"
 
 
 msgid "Bone Roll"
 msgstr "Ролна костију"
-
-
-msgid "Math"
-msgstr "Математика"
 
 
 msgid "Snap"
@@ -8537,20 +8545,16 @@ msgid "Navigation"
 msgstr "Навигација"
 
 
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
 msgid "Select Linked"
 msgstr "Изабери повезано"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
 
 
 msgid "Light"
@@ -8593,6 +8597,14 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
+msgid "Keying"
+msgstr "Збирка тастера"
+
+
+msgid "Tracking"
+msgstr "Праћење"
+
+
 msgid "Toggle Bone Options"
 msgstr "Мање/више информација"
 
@@ -8601,16 +8613,8 @@ msgid "Enable Bone Options"
 msgstr "Омогући опције костију"
 
 
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
 msgid "Disable Bone Options"
 msgstr "Онемогући опције костију"
-
-
-msgid "Tracking"
-msgstr "Праћење"
 
 
 msgid "Mesh Select Mode"
@@ -8619,10 +8623,6 @@ msgstr "Мод избора мреже"
 
 msgid "Merge"
 msgstr "Сједини"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
 
 
 msgid "Basic"
@@ -20080,10 +20080,6 @@ msgstr "Континуално померање"
 
 msgid "Emulate 3 Button Mouse"
 msgstr "Имитирај 3. дугме"
-
-
-msgid "Use selection as the pivot point"
-msgstr "Користи векторе одсјаја као координате текстуре"
 
 
 msgid "Turntable"

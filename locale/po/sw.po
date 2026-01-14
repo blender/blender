@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28425,20 +28425,16 @@ msgid "Math"
 msgstr "Hisabati"
 
 
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
 msgid "Utilities"
 msgstr "Huduma"
 
 
 msgid "Clean Up"
 msgstr "Safisha"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
 
 
 msgid "Read"
@@ -28453,8 +28449,16 @@ msgid "Write"
 msgstr "Andika"
 
 
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
 msgid "Primitives"
 msgstr "Watu wa kwanza"
+
+
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Instances"
@@ -28465,6 +28469,10 @@ msgid "Import"
 msgstr "Ingiza"
 
 
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
+
+
 msgid "Mirror"
 msgstr "Kioo"
 
@@ -28473,16 +28481,8 @@ msgid "Navigation"
 msgstr "Urambazaji"
 
 
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
-
-
 msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
 
 
 msgid "Light"
@@ -28505,12 +28505,12 @@ msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
 msgid "Adjust"
 msgstr "Rekebisha"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Keying"
@@ -75830,10 +75830,6 @@ msgid "Orbit Around Selection"
 msgstr "Obiti Kuzunguka Uchaguzi"
 
 
-msgid "Use selection as the pivot point"
-msgstr "Tumia uteuzi kama sehemu mhimili"
-
-
 msgid "Zoom to Mouse Position"
 msgstr "Kuza hadi Nafasi ya Kipanya"
 
@@ -106206,12 +106202,12 @@ msgid "Select movie or image strips"
 msgstr "Chagua filamu au vipande vya picha"
 
 
-msgid "Cannot create key inside of speed transition"
-msgstr "Haiwezi kuunda ufunguo ndani ya mpito wa kasi"
-
-
 msgid "Cannot create freeze frame"
 msgstr "Haiwezi kuunda fremu ya kugandisha"
+
+
+msgid "Cannot create key inside of speed transition"
+msgstr "Haiwezi kuunda ufunguo ndani ya mpito wa kasi"
 
 
 msgid "Cannot create transition from first or last key"

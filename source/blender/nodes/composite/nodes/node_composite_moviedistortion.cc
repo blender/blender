@@ -57,23 +57,6 @@ static void init(const bContext *C, PointerRNA *ptr)
   id_us_plus(node->id);
 }
 
-static void storage_free(bNode *node)
-{
-  if (node->storage) {
-    BKE_tracking_distortion_free(static_cast<MovieDistortion *>(node->storage));
-  }
-
-  node->storage = nullptr;
-}
-
-static void storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
-{
-  if (src_node->storage) {
-    dest_node->storage = BKE_tracking_distortion_copy(
-        static_cast<MovieDistortion *>(src_node->storage));
-  }
-}
-
 static void node_composit_buts_moviedistortion(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   template_id(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
@@ -180,7 +163,6 @@ static void register_node_type_cmp_moviedistortion()
   ntype.declare = file_ns::cmp_node_moviedistortion_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_moviedistortion;
   ntype.initfunc_api = file_ns::init;
-  bke::node_type_storage(ntype, std::nullopt, file_ns::storage_free, file_ns::storage_copy);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   bke::node_register_type(ntype);

@@ -11,11 +11,19 @@
 
 #include "GPU_texture_pool.hh"
 
+#include "gpu_backend.hh"
 #include "gpu_context_private.hh"
+#include "gpu_texture_pool_private.hh"
 
 namespace blender::gpu {
 
-TexturePool::~TexturePool()
+TexturePool &TexturePool::get()
+{
+  BLI_assert(GPU_context_active_get() != nullptr);
+  return *unwrap(GPU_context_active_get())->texture_pool;
+}
+
+TexturePoolImpl::~TexturePoolImpl()
 {
   for (TextureHandle tex : acquired_) {
     GPU_texture_free(tex.texture);
@@ -25,7 +33,9 @@ TexturePool::~TexturePool()
   }
 }
 
-Texture *TexturePool::acquire_texture(int2 extent, TextureFormat format, eGPUTextureUsage usage)
+Texture *TexturePoolImpl::acquire_texture(int2 extent,
+                                          TextureFormat format,
+                                          eGPUTextureUsage usage)
 {
   /* Search pool for compatible available texture first. */
   int64_t match_index = -1;
@@ -58,7 +68,7 @@ Texture *TexturePool::acquire_texture(int2 extent, TextureFormat format, eGPUTex
   return handle.texture;
 }
 
-void TexturePool::release_texture(Texture *tex)
+void TexturePoolImpl::release_texture(Texture *tex)
 {
   BLI_assert_msg(acquired_.contains({tex}),
                  "Unacquired texture passed to TexturePool::release_texture()");
@@ -66,7 +76,7 @@ void TexturePool::release_texture(Texture *tex)
   pool_.append({tex});
 }
 
-void TexturePool::offset_users_count(Texture *tex, int offset)
+void TexturePoolImpl::offset_users_count(Texture *tex, int offset)
 {
   BLI_assert_msg(acquired_.contains({tex}),
                  "Unacquired texture passed to TexturePool::offset_users_count()");
@@ -74,7 +84,7 @@ void TexturePool::offset_users_count(Texture *tex, int offset)
   acquired_.add_overwrite({tex, users_count + offset, 0});
 }
 
-void TexturePool::reset(bool force_free)
+void TexturePoolImpl::reset(bool force_free)
 {
 #ifndef NDEBUG
   /* Iterate acquired textures, and ensure the internal counter equals 0; otherwise
@@ -98,11 +108,4 @@ void TexturePool::reset(bool force_free)
     }
   }
 }
-
-TexturePool &TexturePool::get()
-{
-  BLI_assert(GPU_context_active_get() != nullptr);
-  return *unwrap(GPU_context_active_get())->texture_pool;
-}
-
 }  // namespace blender::gpu

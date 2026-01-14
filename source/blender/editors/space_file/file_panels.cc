@@ -177,7 +177,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   BLI_assert(!but_is_utf8(but));
 
   button_func_complete_set(but, autocomplete_file, nullptr);
-  button_func_set(but, file_filename_enter_handle, nullptr, but);
+  button_funcN_set(but, file_filename_enter_handle, nullptr, but);
   button_flag_enable(but, blender::ui::BUT_TEXTEDIT_UPDATE);
 
   if (params->flag & FILE_CHECK_EXISTING) {

@@ -565,6 +565,18 @@ static uint curve_incremental_simplify(
 			struct KnotRemoveState *r = HEAP_popmin(heap);
 			k = &knots[r->index];
 			k->heap_node = NULL;
+
+			/* Skip if curve is too small to simplify further.
+			 * Check BEFORE updating handles to avoid partial updates. */
+			if (UNLIKELY(knots_len_remaining <= 2)) {
+#ifdef USE_TPOOL
+				rstate_pool_elem_free(&epool, r);
+#else
+				free(r);
+#endif
+				continue;
+			}
+
 			k->prev->handles[1] = r->handles[0];
 			k->next->handles[0] = r->handles[1];
 
@@ -575,10 +587,6 @@ static uint curve_incremental_simplify(
 #else
 			free(r);
 #endif
-		}
-
-		if (UNLIKELY(knots_len_remaining <= 2)) {
-			continue;
 		}
 
 		struct Knot *k_prev = k->prev;
@@ -991,6 +999,17 @@ static uint curve_incremental_simplify_refit(
 			k_old = &knots[r->index];
 			k_old->heap_node = NULL;
 
+			/* Skip if curve is too small to simplify further.
+			 * Check BEFORE updating handles to avoid partial updates. */
+			if (UNLIKELY(knots_len_remaining <= 2)) {
+#ifdef USE_TPOOL
+				refit_pool_elem_free(&epool, r);
+#else
+				free(r);
+#endif
+				continue;
+			}
+
 			k_old->prev->handles[1] = r->fit_params.handles_prev[0];
 			k_old->next->handles[0] = r->fit_params.handles_next[1];
 
@@ -1023,10 +1042,6 @@ static uint curve_incremental_simplify_refit(
 #else
 			free(r);
 #endif
-		}
-
-		if (UNLIKELY(knots_len_remaining <= 2)) {
-			continue;
 		}
 
 		struct Knot *k_prev = k_old->prev;

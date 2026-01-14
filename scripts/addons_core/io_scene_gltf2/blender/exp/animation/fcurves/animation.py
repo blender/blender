@@ -14,7 +14,8 @@ def gather_animation_fcurves(
         export_settings
 ):
 
-    channels, to_be_sampled, extra_samplers = __gather_channels_fcurves(obj_uuid, blender_action, slot_identifier, export_settings)
+    channels, to_be_sampled, extra_samplers = __gather_channels_fcurves(
+        obj_uuid, blender_action, slot_identifier, export_settings)
 
     if not channels:
         return None, to_be_sampled, extra_samplers

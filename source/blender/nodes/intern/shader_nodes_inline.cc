@@ -129,7 +129,7 @@ struct SocketValue {
           return PrimitiveSocketValue{socket.default_value_typed<bNodeSocketValueInt>()->value};
         case SOCK_BOOLEAN:
           return PrimitiveSocketValue{
-              socket.default_value_typed<bNodeSocketValueBoolean>()->value};
+              bool(socket.default_value_typed<bNodeSocketValueBoolean>()->value)};
         case SOCK_VECTOR:
           return PrimitiveSocketValue{
               float3(socket.default_value_typed<bNodeSocketValueVector>()->value)};

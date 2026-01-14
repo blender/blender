@@ -2602,7 +2602,10 @@ static int arg_handle_python_text_run(int argc, const char **argv, void *data)
 
 static const char arg_handle_python_expr_run_doc[] =
     "<expression>\n"
-    "\tRun the given expression as a Python script.";
+    "\tRun the given expression as a Python script.\n"
+    "\n"
+    "\tThe expression may be a complete multi-line script;\n"
+    "\tyou are limited only by the platforms maximum argument length.";
 static int arg_handle_python_expr_run(int argc, const char **argv, void *data)
 {
   bContext *C = static_cast<bContext *>(data);

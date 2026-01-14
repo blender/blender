@@ -2,12 +2,12 @@
 - Mesh 'NoColor' vtx:3 face:1 loop:3 edge:3
     - 0 1 2 
     - 0/2 0/1 1/2 
+  - attr 'material_index' INT FACE
+    - 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.000, 0.000, 1.000)
     - (0.000, 1.000, 1.000)
     - (1.000, 0.000, 1.000)
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 1 
 
@@ -18,12 +18,12 @@
     - (1.000, 0.000, 0.000, 1.000)
     - (1.000, 0.000, 0.000, 1.000)
     - (1.000, 0.000, 0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.000, 0.000, 0.000)
     - (0.000, 1.000, 0.000)
     - (1.000, 0.000, 0.000)
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 1 
 

@@ -583,7 +583,6 @@ def base_color(
                 if force_alpha_clip:
                     break
 
-
     # Opaque materials don't use the alpha socket
     if alpha_socket and alpha_mode == 'OPAQUE':
         alpha_socket.default_value = 1

@@ -610,9 +610,21 @@ class VExportTree:
             # Need to modify tree
             if self.nodes[uuid].parent_uuid is not None:
                 self.nodes[self.nodes[uuid].parent_uuid].children.remove(uuid)
+
+                # If this object is an armature that will be deleted, we need to delete the parent
+                # As the node will not be really deleted, even if not exported
+                if self.nodes[uuid].blender_type == VExportNode.ARMATURE and self.export_settings['gltf_armature_object_remove'] is True:
+                    self.nodes[uuid].parent_uuid = None
             else:
                 # Remove from root
                 self.roots.remove(uuid)
+
+            # If the node is a bone, we need to remove it from armature bones list
+            if self.nodes[uuid].blender_type == VExportNode.BONE:
+                armature_uuid = self.nodes[uuid].armature
+                bone_name = self.nodes[uuid].blender_bone.name
+                if bone_name in self.nodes[armature_uuid].bones:
+                    del self.nodes[armature_uuid].bones[bone_name]
         else:
             new_parent_kept_uuid = uuid
 
@@ -775,16 +787,15 @@ class VExportTree:
                 bpy.context.view_layer.objects.active = armature
                 bpy.ops.object.mode_set(mode="EDIT")
 
-                for bone in armature.data.edit_bones:
-                    if len(bone.children) == 0:
+                for (bone_name, bone_uuid) in self.nodes[obj_uuid].bones.items():
+                    bone = armature.data.edit_bones[bone_name]
 
-                        # If we are exporting only deform bones, we need to check if this bone is a def bone
-                        if self.export_settings['gltf_def_bones'] is True \
-                            and bone.use_deform is False:
-                                continue
+                    # Leaf bones only
+                    if len([c for c in self.nodes[bone_uuid].children if self.nodes[c].blender_type == VExportNode.BONE]) != 0:
+                        continue  # Not a leaf bone
 
-                        self.nodes[self.nodes[obj_uuid].bones[bone.name]
-                                   ].matrix_world_tail = armature.matrix_world @ Matrix.Translation(bone.tail) @ self.axis_basis_change
+                    self.nodes[bone_uuid].matrix_world_tail = armature.matrix_world @ Matrix.Translation(
+                        bone.tail) @ self.axis_basis_change
 
                 bpy.ops.object.mode_set(mode="OBJECT")
 
@@ -793,8 +804,8 @@ class VExportTree:
 
             # If we are exporting only deform bones, we need to check if this bone is a def bone
             if self.export_settings['gltf_def_bones'] is True \
-                and self.nodes[bone_uuid].use_deform is False:
-                    continue
+                    and self.nodes[bone_uuid].use_deform is False:
+                continue
 
             bone_node = self.nodes[bone_uuid]
 
@@ -943,7 +954,7 @@ class VExportTree:
 
     def check_if_we_can_remove_armature(self):
         # If user requested to remove armature, we need to check if it is possible
-        # If is impossible to remove it if armature has multiple root bones. (glTF validator error)
+        # It is impossible to remove it if armature has multiple root bones. (glTF validator error)
         # Currently, we manage it at export level, not at each armature level
         for arma_uuid in [n for n in self.nodes.keys() if self.nodes[n].blender_type == VExportNode.ARMATURE]:
             # Do not cache bones here, as we will filter them later, so the cache will be wrong

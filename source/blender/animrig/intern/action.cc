@@ -981,7 +981,7 @@ int64_t Layer::find_strip_index(const Strip &strip) const
 
 Slot::Slot()
 {
-  /* Zero-initialize the DNA struct. 'this' is a C++ class, and shouldn't be memset like this. */
+  /* Zero-initialize the DNA struct. 'this' is a C++ class, and shouldn't be `memset` like this. */
   _DNA_internal_memzero(this, sizeof(ActionSlot));
   this->runtime = MEM_new<SlotRuntime>(__func__);
 }

@@ -25,7 +25,7 @@
 
 namespace blender::nodes::node_composite_image_cc {
 
-/* Default declaration for contextless static declarations and when the image is not assigned. */
+/** Default declaration for contextless static declarations and when the image is not assigned. */
 static void declare_default(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);

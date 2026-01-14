@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
-"PO-Revision-Date: 2026-01-04 12:14+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"PO-Revision-Date: 2026-01-12 10:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -4040,7 +4040,7 @@ msgstr "项目的 ID 名称"
 
 
 msgid "Reusable Local ID"
-msgstr "可重复使用的本地ID"
+msgstr "可复用的本地 ID"
 
 
 msgid "The already existing local ID that may be reused in append & reuse case. None until it has been found"
@@ -11391,7 +11391,7 @@ msgstr "折叠概要"
 
 
 msgid "Collapse summary when shown, so all other channels get hidden (Dope Sheet editors only)"
-msgstr "当显示时收起总览, 以隐藏其他所有通道 (仅用于动画摄影表)"
+msgstr "当显示时收起总览, 以隐藏其他所有通道 (仅用于摄影表编辑器)"
 
 
 msgid "Display Grease Pencil"
@@ -11575,7 +11575,7 @@ msgstr "显示概要"
 
 
 msgid "Display an additional 'summary' line (Dope Sheet editors only)"
-msgstr "显示额外的 '汇总' 信息行 (仅对动画摄影表有效)"
+msgstr "显示额外的 '汇总' 信息行 (仅对摄影表编辑器有效)"
 
 
 msgid "Display Texture"
@@ -12153,7 +12153,7 @@ msgstr "波纹类型"
 
 msgctxt "Simulation"
 msgid "Depth Change"
-msgstr "改变深度"
+msgstr "深度变化"
 
 
 msgctxt "Simulation"
@@ -14392,7 +14392,7 @@ msgstr "每一个点均受多重弹力的作用"
 
 
 msgid "Use Coordinates"
-msgstr "使用坐标轴"
+msgstr "使用坐标系"
 
 
 msgid "Use object/global coordinates for texture"
@@ -18568,16 +18568,8 @@ msgid "Is Layered Action"
 msgstr "是分层动作"
 
 
-msgid "Return whether this is a layered Action. An empty Action is considered as both a 'legacy' and a 'layered' Action."
-msgstr "返回此是否为分层动作。空动作会被视为 '旧版' 且 '分层' 的动作。"
-
-
 msgid "Is Legacy Action"
 msgstr "是旧式动作"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action is considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 actions are automatically updated to layered actions, and thus this will only return True when the action is empty"
-msgstr "返回此动作是否为旧版, 旧版动作没有层或槽. 空动作既被视为旧版动作, 也被视为分层动作. 自 Blender 4.4 版起, 动作会自动更新为分层动作, 因此只有当动作为空时, 才会返回 True"
 
 
 msgid "Is Empty"
@@ -20381,18 +20373,6 @@ msgstr "将笔刷涂料间距作为笔刷直径的百分比率"
 
 msgid "Stabilize Normal"
 msgstr "稳定法向"
-
-
-msgid "Stabilize the orientation of the brush plane."
-msgstr "稳定笔刷平面的方向。"
-
-
-msgid "Stabilize Plane"
-msgstr "稳定平面"
-
-
-msgid "Stabilize the center of the brush plane."
-msgstr "稳定笔刷平面的中心。"
 
 
 msgid "Stencil Dimensions"
@@ -29744,7 +29724,7 @@ msgstr "对动画帧的数量进行偏移"
 
 
 msgid "Global starting frame of the sequence, assuming first has a #1"
-msgstr "影片/序列的全局起始帧，假设第一帧图像名称包含#1"
+msgstr "序列的全局起始帧，假设第一帧名称包含#1"
 
 
 msgid "Grids"
@@ -30281,11 +30261,11 @@ msgstr "被重写属性列表"
 
 
 msgid "Reference ID"
-msgstr "引用ID"
+msgstr "引用 ID"
 
 
 msgid "Linked ID used as reference by this override"
-msgstr "关联ID用作此重写的引用"
+msgstr "此重写引用的关联 ID"
 
 
 msgid "Override Properties"
@@ -34956,6 +34936,26 @@ msgid "Show/Hide"
 msgstr "显示 / 隐藏"
 
 
+msgid "Special Characters"
+msgstr "特殊字符"
+
+
+msgid "Kerning"
+msgstr "字距"
+
+
+msgid "Math"
+msgstr "运算"
+
+
+msgid "Metaball"
+msgstr "融球"
+
+
+msgid "Utilities"
+msgstr "实用工具"
+
+
 msgid "Names"
 msgstr "名称"
 
@@ -34964,20 +34964,28 @@ msgid "Bone Roll"
 msgstr "骨骼扭转"
 
 
-msgid "Math"
-msgstr "运算"
-
-
-msgid "Utilities"
-msgstr "实用工具"
-
-
 msgid "Clean Up"
 msgstr "清理"
 
 
+msgid "Read"
+msgstr "读取"
+
+
+msgid "Sample"
+msgstr "采样"
+
+
+msgid "Write"
+msgstr "写入"
+
+
 msgid "Pivot Point"
 msgstr "轴心点"
+
+
+msgid "Primitives"
+msgstr "基本体"
 
 
 msgid "Snap"
@@ -34996,28 +35004,12 @@ msgid "Automasking"
 msgstr "自动遮罩"
 
 
-msgid "Read"
-msgstr "读取"
-
-
-msgid "Sample"
-msgstr "采样"
-
-
 msgid "Face Sets Edit"
 msgstr "面组编辑"
 
 
-msgid "Write"
-msgstr "写入"
-
-
 msgid "Vertex Group Locks"
 msgstr "顶点组锁"
-
-
-msgid "Primitives"
-msgstr "基本体"
 
 
 msgid "Gizmo"
@@ -35032,6 +35024,10 @@ msgid "Import"
 msgstr "导入"
 
 
+msgid "Deprecated"
+msgstr "已弃用"
+
+
 msgid "Mirror"
 msgstr "镜像"
 
@@ -35044,6 +35040,10 @@ msgid "Local View"
 msgstr "局部视图"
 
 
+msgid "List"
+msgstr "列表"
+
+
 msgid "Viewpoint"
 msgstr "视图"
 
@@ -35052,8 +35052,8 @@ msgid "Navigation"
 msgstr "视图导航"
 
 
-msgid "Deprecated"
-msgstr "已弃用"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align View"
@@ -35070,14 +35070,6 @@ msgstr "视图框"
 
 msgid "Select More/Less"
 msgstr "扩展/缩减选择"
-
-
-msgid "List"
-msgstr "列表"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Similar"
@@ -35098,10 +35090,6 @@ msgstr "选择循环"
 
 msgid "Assign Material"
 msgstr "指定材质"
-
-
-msgid "Metaball"
-msgstr "融球"
 
 
 msgid "Light"
@@ -35156,6 +35144,10 @@ msgid "Hooks"
 msgstr "钩挂"
 
 
+msgid "Layout"
+msgstr "布局"
+
+
 msgid "Trim/Add"
 msgstr "修剪 / 添加"
 
@@ -35168,16 +35160,16 @@ msgid "Face Sets Init"
 msgstr "面组初始化"
 
 
-msgid "Layout"
-msgstr "布局"
-
-
 msgid "Random Mask"
 msgstr "随机遮罩"
 
 
 msgid "Clear Transform"
 msgstr "清空变换"
+
+
+msgid "Adjust"
+msgstr "校正"
 
 
 msgid "In-Betweens"
@@ -35192,28 +35184,28 @@ msgid "Bone Collections"
 msgstr "骨骼集合"
 
 
-msgid "Adjust"
-msgstr "校正"
+msgid "Keying"
+msgstr "抠像"
+
+
+msgid "Tracking"
+msgstr "追踪"
 
 
 msgid "Toggle Bone Options"
 msgstr "切换骨骼设置"
 
 
+msgid "Creative"
+msgstr "创意"
+
+
 msgid "Enable Bone Options"
 msgstr "启用骨骼设置"
 
 
-msgid "Keying"
-msgstr "抠像"
-
-
 msgid "Disable Bone Options"
 msgstr "禁用骨骼设置"
-
-
-msgid "Tracking"
-msgstr "追踪"
 
 
 msgid "Mesh Select Mode"
@@ -35224,10 +35216,6 @@ msgid "Face Data"
 msgstr "面数据"
 
 
-msgid "Creative"
-msgstr "创意"
-
-
 msgid "Select by Face Strength"
 msgstr "按面强度选择"
 
@@ -35236,20 +35224,12 @@ msgid "Set Face Strength"
 msgstr "设置面强度"
 
 
-msgid "Merge"
-msgstr "合并"
-
-
 msgid "Render Preview"
 msgstr "渲染预览"
 
 
-msgid "Special Characters"
-msgstr "特殊字符"
-
-
-msgid "Kerning"
-msgstr "字距"
+msgid "Merge"
+msgstr "合并"
 
 
 msgid "Keyframe Insert Pie"
@@ -43652,11 +43632,11 @@ msgstr "使用毫米作为焦距的单位"
 
 
 msgid "Movie Tracking Dopesheet"
-msgstr "影片追踪的动画体"
+msgstr "影片追踪摄影表"
 
 
 msgid "Match-moving dopesheet data"
-msgstr "运动匹配的动画序列数据"
+msgstr "运动匹配的动画摄影表数据"
 
 
 msgid "Display Hidden"
@@ -43664,11 +43644,11 @@ msgstr "显示隐藏"
 
 
 msgid "Dopesheet Sort Field"
-msgstr "动画编辑器排序部分"
+msgstr "动画摄影表排序部分"
 
 
 msgid "Method to be used to sort channels in dopesheet view"
-msgstr "在动画编辑器视图中排序通道的方法"
+msgstr "在动画摄影表视图中排序通道的方法"
 
 
 msgid "Sort channels by their names"
@@ -43704,11 +43684,11 @@ msgstr "按末帧编号对通道排序"
 
 
 msgid "Invert Dopesheet Sort"
-msgstr "反向动画编辑器的排序"
+msgstr "反向动画摄影表的排序"
 
 
 msgid "Invert sort order of dopesheet channels"
-msgstr "反转动画编辑器中通道的排序"
+msgstr "反转动画摄影表中通道的排序"
 
 
 msgid "Movie tracking marker data"
@@ -49758,7 +49738,7 @@ msgstr "随机游走 (皮肤)"
 
 
 msgid "Volumetric approximation to physically based volume scattering, with scattering radius automatically adjusted to match color textures. Designed for skin shading."
-msgstr "基于体积散射的近似体积算法，使用散射半径自动校正匹配颜色纹理，设计用于皮肤着色。"
+msgstr "基于物理体积散射的体积近似方法，其散射半径可自动调整以匹配色彩纹理。专为皮肤着色设计。"
 
 
 msgid "Ray Portal BSDF"
@@ -54166,13 +54146,8 @@ msgstr "导入图像序列"
 
 
 msgctxt "Operator"
-msgid "Texture Setup"
-msgstr "纹理配置"
-
-
-msgctxt "Operator"
-msgid "Principled Texture Setup"
-msgstr "原理化纹理配置"
+msgid "Add Texture Setup"
+msgstr "添加纹理配置"
 
 
 msgid "Align selected nodes in a grid pattern"
@@ -63485,7 +63460,7 @@ msgstr "移除包"
 
 msgctxt "Operator"
 msgid "Unpack Item"
-msgstr "解包项"
+msgstr "解包项目"
 
 
 msgid "Unpack this file to an external file"
@@ -72066,7 +72041,7 @@ msgstr "背景图像移动"
 
 
 msgid "Move node backdrop"
-msgstr "移动节点背景图像"
+msgstr "移动节点背景图"
 
 
 msgctxt "Operator"
@@ -91438,7 +91413,7 @@ msgstr "抖动量"
 
 
 msgid "Amount of dithering when painting on byte images"
-msgstr "在字节图像上绘制时的拉动程度"
+msgstr "在字节图像上绘制时的抖动程度"
 
 
 msgid "Texture filtering type"
@@ -96233,10 +96208,6 @@ msgid "Orbit Around Selection"
 msgstr "围绕选择物体旋转"
 
 
-msgid "Use selection as the pivot point"
-msgstr "使用所选物体作为轴心点"
-
-
 msgid "Zoom to Mouse Position"
 msgstr "缩放至鼠标位置"
 
@@ -97141,10 +97112,6 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "繁体中文 - 繁體中文"
 
 
-msgid "Locale code: zh_HANT. Translation progress: 51%"
-msgstr "区域代码: zh_HANT. 翻译进度: 51%"
-
-
 msgid "Czech - Čeština"
 msgstr "捷克语 - Čeština"
 
@@ -97261,6 +97228,10 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "印度尼西亚语 - Bahasa indonesia"
 
 
+msgid "Locale code: id_ID. Translation progress: 22%"
+msgstr "区域代码: id_ID. 翻译进度: 22%"
+
+
 msgid "Italian - Italiano"
 msgstr "意大利语 - Italiano"
 
@@ -97327,10 +97298,6 @@ msgstr "区域代码: fa_IR. 翻译进度: 3%"
 
 msgid "Polish - Polski"
 msgstr "波兰语 - Polski"
-
-
-msgid "Locale code: pl_PL. Translation progress: 18%"
-msgstr "区域代码: pl_PL. 翻译进度: 18%"
 
 
 msgid "Portuguese (Brazil) - Português brasileiro"
@@ -105570,7 +105537,7 @@ msgstr "命令输出"
 
 
 msgid "Space Dope Sheet Editor"
-msgstr "动画摄影表空间"
+msgstr "摄影表编辑器空间"
 
 
 msgid "Dope Sheet space data"
@@ -108453,6 +108420,14 @@ msgstr "在应用偏移之后, 序列编辑器中所显示的起始帧 (设置�
 
 msgid "End Offset"
 msgstr "末端偏移量"
+
+
+msgid "Offset from the end of the strip in frames"
+msgstr "从片段末端偏移的帧数"
+
+
+msgid "Offset from the start of the strip in frames"
+msgstr "从片段开头偏移的帧数"
 
 
 msgid "X position where the strip begins"
@@ -112336,7 +112311,7 @@ msgstr "局部 UV 视图"
 
 
 msgid "Display only faces with the currently displayed image assigned"
-msgstr "仅显示指定了当前所显示图像的网格面"
+msgstr "仅显示指定了当前所显示图像的面"
 
 
 msgid "Rotation Increment"
@@ -120169,16 +120144,6 @@ msgid "Image Sequence"
 msgstr "图像序列"
 
 
-msgctxt "Operator"
-msgid "Add Texture Setup"
-msgstr "添加纹理配置"
-
-
-msgctxt "Operator"
-msgid "Add Principled Setup"
-msgstr "添加原理化配置"
-
-
 msgid "(Quick Access: Shift+W)"
 msgstr "(快速访问: Shift+W)"
 
@@ -121662,10 +121627,6 @@ msgstr "所有骨骼集合都在使用中"
 
 msgid "An action slot can only be created when an action is assigned"
 msgstr "仅当分配了动作时，才能创建动作槽"
-
-
-msgid "Action slots are only supported by layered Actions. Upgrade this Action first"
-msgstr "动作槽仅支持分层的动作. 请先升级此动作"
 
 
 msgid "Creating a new Slot is not possible on a linked Action"
@@ -123284,7 +123245,7 @@ msgstr "复制图层到选中项"
 
 msgctxt "Operator"
 msgid "Copy All Layers to Selected"
-msgstr "全部复制到选中项"
+msgstr "复制所有层到选中项"
 
 
 msgctxt "Operator"
@@ -129241,11 +129202,6 @@ msgstr "从视角投影 (限界)"
 
 
 msgctxt "Operator"
-msgid "Frame Last Stroke"
-msgstr "框显最后的笔画"
-
-
-msgctxt "Operator"
 msgid "Render Playblast"
 msgstr "渲染播放预览"
 
@@ -132078,10 +132034,6 @@ msgstr "循环边未相连"
 
 msgid "color_index is invalid"
 msgstr "color_index 无效"
-
-
-msgid "Compositor node tree has cyclic links."
-msgstr "合成器节点树存在循环关联。"
 
 
 msgid "Error: Too many AOVs"
@@ -141239,12 +141191,12 @@ msgid "Select movie or image strips"
 msgstr "选择影片或图像片段"
 
 
-msgid "Cannot create key inside of speed transition"
-msgstr "无法在速度过渡内部创建关键帧"
-
-
 msgid "Cannot create freeze frame"
 msgstr "无法创建冻结帧"
+
+
+msgid "Cannot create key inside of speed transition"
+msgstr "无法在速度过渡内部创建关键帧"
 
 
 msgid "Cannot create transition from first or last key"
@@ -142261,7 +142213,7 @@ msgstr "变换设置为仅影响位置"
 
 
 msgid "Rotation is not supported in the Dope Sheet Editor"
-msgstr "在动画摄影表中不支持旋转"
+msgstr "在摄影表编辑器中不支持旋转"
 
 
 msgid "Shear: %s %s"
@@ -143463,16 +143415,8 @@ msgid "Cannot return channelbag when slot is None"
 msgstr "当槽位为 None(无) 时无法返回通道包"
 
 
-msgid "Cannot add slots to a legacy Action '%s'. Convert it to a layered Action first."
-msgstr "无法在旧版动作 '%s' 中添加槽. 请先将它转换成分层的动作."
-
-
 msgid "Invalid slot name '%s': name must not be empty."
 msgstr "无效的槽名称 '%s': 名称不能为空。"
-
-
-msgid "Cannot add layers to a legacy Action '%s'. Convert it to a layered Action first."
-msgstr "无法在旧版动作 '%s' 中添加分层. 请先将它转换成分层的动作."
 
 
 msgid "F-Curve '%s[%d]' already exists in this channelbag"
@@ -146973,54 +146917,6 @@ msgid "The amount of jitter to introduce while computing rays, higher jitter can
 msgstr "在计算光线时引入的抖动量，抖动越大速度越快，但会产生颗粒感或噪点"
 
 
-msgid "Wrong Image Input Type"
-msgstr "错误的图像输入类型"
-
-
-msgid "Wrong Mask Input Type"
-msgstr "错误的遮罩输入类型"
-
-
-msgid "Unsupported Inputs"
-msgstr "不支持的输入"
-
-
-msgid "Node group's main Image input should be of type Color"
-msgstr "节点组的主图像输入应为颜色类型"
-
-
-msgid "Node group's Mask input should be of type Color"
-msgstr "节点组的遮罩输入应为颜色类型"
-
-
-msgid "Only a main Image and Mask inputs are supported, the rest are unsupported and will return zero"
-msgstr "仅支持主图像和遮罩输入，其余输入均不支持且将返回零值"
-
-
-msgid "No Output"
-msgstr "无输出"
-
-
-msgid "Wrong Output Type"
-msgstr "错误的输出类型"
-
-
-msgid "Ignored Outputs"
-msgstr "忽略的输出"
-
-
-msgid "Node group must have a Color output socket"
-msgstr "节点组必须具有颜色输出接口"
-
-
-msgid "Node group's first output must be a color output"
-msgstr "节点组的第一个输出必须是颜色输出"
-
-
-msgid "Only the first output is considered while the rest are ignored"
-msgstr "只考虑第一个输出，其余的被忽略"
-
-
 msgid "Fac"
 msgstr "系数"
 
@@ -147382,6 +147278,10 @@ msgstr "替换 Alpha"
 
 msgid "Replace the input image's alpha channel by the alpha input value"
 msgstr "用 Alpha 输入值替换输入图像的 Alpha 通道"
+
+
+msgid "SDF"
+msgstr "SDF"
 
 
 msgid "Line position where the image should be split"
@@ -149019,10 +148919,6 @@ msgstr "将非活动体素和分块转换为非活动的背景分块"
 
 msgid "Turn regions where all voxels have the same value and active state (within a tolerance threshold) into inactive background tiles"
 msgstr "将所有体素具有相同数值和活动状态（在容差阈值内）的区域转换为非活动的背景分块"
-
-
-msgid "SDF"
-msgstr "SDF"
 
 
 msgid "Replace inactive tiles with inactive nodes. Faster than tolerance-based pruning, useful for cases like narrow-band SDF grids with only inside or outside background values."
@@ -150878,8 +150774,56 @@ msgid "Inspection index is out of range"
 msgstr "检查编号超出范围"
 
 
+msgid "Wrong Image Input Type"
+msgstr "错误的图像输入类型"
+
+
+msgid "Wrong Mask Input Type"
+msgstr "错误的遮罩输入类型"
+
+
+msgid "Unsupported Inputs"
+msgstr "不支持的输入"
+
+
+msgid "No Output"
+msgstr "无输出"
+
+
+msgid "Wrong Output Type"
+msgstr "错误的输出类型"
+
+
+msgid "Ignored Outputs"
+msgstr "忽略的输出"
+
+
 msgid "Unused Output"
 msgstr "未使用的输出"
+
+
+msgid "Node group's main Image input should be of type Color"
+msgstr "节点组的主图像输入应为颜色类型"
+
+
+msgid "Node group's Mask input should be of type Color"
+msgstr "节点组的遮罩输入应为颜色类型"
+
+
+msgid "Only a main Image and Mask inputs are supported, the rest are unsupported and will return zero"
+msgstr "仅支持主图像和遮罩输入，其余输入均不支持且将返回零值"
+
+
+msgid "Node group must have a Color output socket"
+msgstr "节点组必须具有颜色输出接口"
+
+
+msgid "Node group's first output must be a color output"
+msgstr "节点组的第一个输出必须是颜色输出"
+
+
+msgid "Only the first output is considered while the rest are ignored"
+msgstr "只考虑第一个输出，其余的被忽略"
 
 
 msgid "There are multiple group output nodes and this one is not active"

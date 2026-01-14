@@ -36,7 +36,6 @@ class BlenderMaterial():
                 mat.node_tree.links.new(vertex_color_node.outputs[0], shader_node.inputs[0])
             return mat.name
 
-
         pymaterial = gltf.data.materials[material_idx]
 
         import_user_extensions('gather_import_material_before_hook', gltf, pymaterial, vertex_color)

@@ -2,9 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "node_geometry_util.hh"
-
 #include "NOD_geo_bundle.hh"
+#include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
@@ -15,9 +14,9 @@
 
 #include "BLO_read_write.hh"
 
-#include "NOD_geometry_nodes_bundle.hh"
-
 #include "UI_interface_layout.hh"
+
+#include "node_geometry_util.hh"
 #include "shader/node_shader_util.hh"
 
 namespace blender {
@@ -254,6 +253,7 @@ std::string CombineBundleItemsAccessor::validate_name(const StringRef name)
       result[last_index] = '_';
     }
   }
+  BLI_assert(Bundle::is_valid_key(result));
   return result;
 }
 
