@@ -557,6 +557,10 @@ static void activate_interface_socket(bNodeTree &tree, bNodeTreeInterfaceSocket 
   else {
     item_to_activate = &io_socket.item;
   }
+  tree.tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+    item.set_selected(false);
+    return true;
+  });
   tree.tree_interface.active_item_set(item_to_activate);
 }
 

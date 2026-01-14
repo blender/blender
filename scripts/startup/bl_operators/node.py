@@ -1055,18 +1055,21 @@ class NODE_OT_interface_item_duplicate(NodeInterfaceOperator, Operator):
 
 
 class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
-    """Remove active item from the interface"""
+    """Remove selected items from the interface"""
     bl_idname = "node.interface_item_remove"
-    bl_label = "Remove Item"
+    bl_label = "Remove Selected Items"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         snode = context.space_data
         tree = snode.edit_tree
         interface = tree.interface
-        item = interface.active
+        active_item = interface.active
+        selected_items = [item for item in interface.items_tree if item.select or item == active_item]
+        if len(selected_items) == 0:
+            return {'CANCELLED'}
 
-        if item:
+        for item in reversed(selected_items):
             if item.item_type == 'PANEL':
                 children = item.interface_items
                 if len(children) > 0:
@@ -1074,12 +1077,12 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
                     if isinstance(first_child, bpy.types.NodeTreeInterfaceSocket) and first_child.is_panel_toggle:
                         interface.remove(first_child)
             interface.remove(item)
-            interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
+        interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 
-            # If the active selection lands on internal toggle socket, move selection to parent instead.
-            new_active = interface.active
-            if isinstance(new_active, bpy.types.NodeTreeInterfaceSocket) and new_active.is_panel_toggle:
-                interface.active_index = new_active.parent.index
+        # If the active selection lands on internal toggle socket, move selection to parent instead.
+        new_active = interface.active
+        if isinstance(new_active, bpy.types.NodeTreeInterfaceSocket) and new_active.is_panel_toggle:
+            interface.active_index = new_active.parent.index
 
         return {'FINISHED'}
 
