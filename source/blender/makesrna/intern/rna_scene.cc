@@ -2552,7 +2552,7 @@ static void rna_SceneCamera_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
   Object *camera = scene->camera;
 
-  seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
+  seq::cache_cleanup(scene, seq::CacheCleanup::SourceImage | seq::CacheCleanup::FinalAndIntra);
 
   if (camera && (camera->type == OB_CAMERA)) {
     DEG_id_tag_update(&camera->id, ID_RECALC_GEOMETRY);
