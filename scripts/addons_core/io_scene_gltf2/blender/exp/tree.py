@@ -610,6 +610,11 @@ class VExportTree:
             # Need to modify tree
             if self.nodes[uuid].parent_uuid is not None:
                 self.nodes[self.nodes[uuid].parent_uuid].children.remove(uuid)
+
+                # If this object is an armature that will be deleted, we need to delete the parent
+                # As the node will not be really deleted, even if not exported
+                if self.nodes[uuid].blender_type == VExportNode.ARMATURE and self.export_settings['gltf_armature_object_remove'] is True:
+                    self.nodes[uuid].parent_uuid = None
             else:
                 # Remove from root
                 self.roots.remove(uuid)
@@ -943,7 +948,7 @@ class VExportTree:
 
     def check_if_we_can_remove_armature(self):
         # If user requested to remove armature, we need to check if it is possible
-        # If is impossible to remove it if armature has multiple root bones. (glTF validator error)
+        # It is impossible to remove it if armature has multiple root bones. (glTF validator error)
         # Currently, we manage it at export level, not at each armature level
         for arma_uuid in [n for n in self.nodes.keys() if self.nodes[n].blender_type == VExportNode.ARMATURE]:
             # Do not cache bones here, as we will filter them later, so the cache will be wrong
