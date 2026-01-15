@@ -1432,7 +1432,7 @@ static ui::Block *wm_block_create_redo(bContext *C, ARegion *region, void *arg_o
   BLI_assert(op->type->flag & OPTYPE_REGISTER);
 
   block_func_handle_set(block, wm_block_redo_cb, arg_op);
-  popup_dummy_panel_set(region, block);
+  popup_dummy_panel_set(region, block, op->idname);
   ui::Layout &layout = ui::block_layout(block,
                                         ui::LayoutDirection::Vertical,
                                         ui::LayoutType::Panel,
@@ -1528,7 +1528,7 @@ static ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, void *use
   ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   block_flag_disable(block, ui::BLOCK_LOOP);
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
-  popup_dummy_panel_set(region, block);
+  popup_dummy_panel_set(region, block, op->idname);
 
   if (data->mouse_move_quit) {
     block_flag_enable(block, ui::BLOCK_MOVEMOUSE_QUIT);
@@ -1692,7 +1692,7 @@ static ui::Block *wm_operator_ui_create(bContext *C, ARegion *region, void *user
   block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT);
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_REGULAR);
 
-  popup_dummy_panel_set(region, block);
+  popup_dummy_panel_set(region, block, op->idname);
 
   ui::Layout &layout = ui::block_layout(
       block, ui::LayoutDirection::Vertical, ui::LayoutType::Panel, 0, 0, data->width, 0, 0, style);

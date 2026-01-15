@@ -177,6 +177,9 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
     panel->layout->enabled_set(false);
   }
   Layout &col = panel->layout->column(false);
+  /* Redo HUD is a kind of popup, use persistent layout panel states for the redo operator. */
+  panel->runtime->popup_layout_panel_states = &popup_persistent_layout_panel_states(
+      op->type->idname);
   template_operator_redo_properties(&col, C);
 }
 

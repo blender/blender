@@ -5896,7 +5896,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, Layout *layout, b
    * in popovers that are not supposed to support refreshing, see #ui_popover_create_block. */
   if (block->handle && block->handle->region) {
     /* Allow popovers to contain collapsible sections, see #Layout::popover. */
-    popup_dummy_panel_set(block->handle->region, block);
+    popup_dummy_panel_set(block->handle->region, block, pt->idname);
   }
 
   Item *item_last = layout->items().is_empty() ? nullptr : layout->items().last();
