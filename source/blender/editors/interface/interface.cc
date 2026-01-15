@@ -966,6 +966,8 @@ static void ui_but_update_old_active_from_new(Button *oldbut, Button *but)
     std::swap(oldbut->func_argN, but->func_argN);
   }
 
+  std::swap(oldbut->apply_func, but->apply_func);
+
   std::swap(oldbut->rename_full_func, but->rename_full_func);
   std::swap(oldbut->pushed_state_func, but->pushed_state_func);
 
