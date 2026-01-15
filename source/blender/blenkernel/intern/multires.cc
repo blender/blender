@@ -281,9 +281,7 @@ void multires_flush_sculpt_updates(Object *object)
   }
 
   SculptSession *sculpt_session = object->runtime->sculpt_session;
-  if (pbvh->type() != bke::pbvh::Type::Grids || !sculpt_session->multires.active ||
-      sculpt_session->multires.modifier == nullptr)
-  {
+  if (pbvh->type() != bke::pbvh::Type::Grids || sculpt_session->multires_modifier == nullptr) {
     return;
   }
 
@@ -321,7 +319,7 @@ void multires_flush_sculpt_updates(Object *object)
   }
 
   multiresModifier_reshapeFromCCG(
-      sculpt_session->multires.modifier->totlvl, mesh, sculpt_session->subdiv_ccg);
+      sculpt_session->multires_modifier->totlvl, mesh, sculpt_session->subdiv_ccg);
 
   subdiv_ccg->dirty.coords = false;
   subdiv_ccg->dirty.hidden = false;

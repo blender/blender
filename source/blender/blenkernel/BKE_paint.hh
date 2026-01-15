@@ -374,13 +374,6 @@ struct PersistentMultiresData {
 };
 
 struct SculptSession : NonCopyable, NonMovable {
-  /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
-  struct { /* Special handling for multires meshes */
-    bool active = false;
-    MultiresModifierData *modifier = nullptr;
-    int level = 0;
-  } multires = {};
-
   KeyBlock *shapekey_active = nullptr;
 
   /* Edges to adjacent faces. */
@@ -398,6 +391,7 @@ struct SculptSession : NonCopyable, NonMovable {
   /* Undo/redo log for dynamic topology sculpting */
   BMLog *bm_log = nullptr;
 
+  MultiresModifierData *multires_modifier = nullptr;
   /* Limit surface/grids. */
   SubdivCCG *subdiv_ccg = nullptr;
 

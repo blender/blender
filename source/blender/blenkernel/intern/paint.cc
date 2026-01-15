@@ -2592,18 +2592,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   ss.shapekey_active = (mmd == nullptr) ? BKE_keyblock_from_object(ob) : nullptr;
 
-  /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
-   * so no extra checks is needed here. */
-  if (mmd) {
-    ss.multires.active = true;
-    ss.multires.modifier = mmd;
-    ss.multires.level = mmd->sculptlvl;
-  }
-  else {
-    ss.multires.active = false;
-    ss.multires.modifier = nullptr;
-    ss.multires.level = 0;
-  }
+  ss.multires_modifier = mmd;
 
   ss.subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
 

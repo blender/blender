@@ -1046,7 +1046,7 @@ static void refine_subdiv(Depsgraph *depsgraph,
                           bke::subdiv::Subdiv *subdiv)
 {
   Array<float3> deformed_verts = BKE_multires_create_deformed_base_mesh_vert_coords(
-      depsgraph, &object, ss.multires.modifier);
+      depsgraph, &object, ss.multires_modifier);
 
   bke::subdiv::eval_refine_from_mesh(subdiv, id_cast<const Mesh *>(object.data), deformed_verts);
 }
@@ -2410,7 +2410,7 @@ static bool use_multires_mesh(bContext *C)
   const Object *object = CTX_data_active_object(C);
   const SculptSession *sculpt_session = object->runtime->sculpt_session;
 
-  return sculpt_session->multires.active;
+  return sculpt_session->multires_modifier;
 }
 
 void push_multires_mesh_begin(bContext *C, const char *str)

@@ -3646,7 +3646,7 @@ static void sculpt_fix_noise_tear(const Sculpt &sd, Object &ob)
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const MTex *mtex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
 
-  if (ss.multires.active && mtex->tex && mtex->tex->type == TEX_NOISE) {
+  if (ss.multires_modifier && mtex->tex && mtex->tex->type == TEX_NOISE) {
     multires_stitch_grids(&ob);
   }
 }
@@ -5048,7 +5048,7 @@ void flush_update_step(ViewContext &vc, Object &object, const UpdateType update_
   }
 
   const SculptSession &ss = *object.runtime->sculpt_session;
-  const MultiresModifierData *mmd = ss.multires.modifier;
+  const MultiresModifierData *mmd = ss.multires_modifier;
   if (mmd != nullptr) {
     multires_mark_as_modified(vc.depsgraph, &object, MULTIRES_COORDS_MODIFIED);
   }
