@@ -1013,7 +1013,7 @@ static void init_session_data(Object &ob)
 {
   BLI_assert(ob.mode == OB_MODE_VERTEX_PAINT &&
              ob.runtime->sculpt_session->mode_type == OB_MODE_VERTEX_PAINT);
-  UNUSED_VARS_NDEBUG(ob)
+  UNUSED_VARS_NDEBUG(ob);
 }
 
 bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
