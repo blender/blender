@@ -666,7 +666,7 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 17)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 18)) {
     FOREACH_NODETREE_BEGIN (bmain, tree, id) {
       if (tree->type == NTREE_GEOMETRY) {
         for (bNode &node : tree->nodes) {
