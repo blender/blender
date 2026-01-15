@@ -924,7 +924,6 @@ static std::unique_ptr<IKChain> ik_chain_init_topology(const Depsgraph &depsgrap
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   int nearest_vertex_index = -1;
-  /* TODO: How should this function handle not being able to find the nearest vert? */
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *id_cast<const Mesh *>(object.data);
@@ -937,7 +936,9 @@ static std::unique_ptr<IKChain> ik_chain_init_topology(const Depsgraph &depsgrap
                                                           initial_location,
                                                           std::numeric_limits<float>::max(),
                                                           true);
-      nearest_vertex_index = *nearest;
+      if (nearest) {
+        nearest_vertex_index = *nearest;
+      }
       break;
     }
     case bke::pbvh::Type::Grids: {
@@ -945,15 +946,23 @@ static std::unique_ptr<IKChain> ik_chain_init_topology(const Depsgraph &depsgrap
       const std::optional<SubdivCCGCoord> nearest = nearest_vert_calc_grids(
           pbvh, subdiv_ccg, initial_location, std::numeric_limits<float>::max(), true);
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      nearest_vertex_index = nearest->to_index(key);
+      if (nearest) {
+        nearest_vertex_index = nearest->to_index(key);
+      }
       break;
     }
     case bke::pbvh::Type::BMesh: {
       const std::optional<BMVert *> nearest = nearest_vert_calc_bmesh(
           pbvh, initial_location, std::numeric_limits<float>::max(), false);
-      nearest_vertex_index = BM_elem_index_get(*nearest);
+      if (nearest) {
+        nearest_vertex_index = BM_elem_index_get(*nearest);
+      }
       break;
     }
+  }
+
+  if (nearest_vertex_index == -1) {
+    return nullptr;
   }
 
   /* Init the buffers used to keep track of the changes in the pose factors as more segments are
@@ -1942,7 +1951,7 @@ static std::unique_ptr<IKChain> ik_chain_init(const Depsgraph &depsgraph,
   return ik_chain;
 }
 
-static void pose_brush_init(const Depsgraph &depsgraph,
+static bool pose_brush_init(const Depsgraph &depsgraph,
                             Object &ob,
                             SculptSession &ss,
                             const Brush &brush)
@@ -1951,10 +1960,16 @@ static void pose_brush_init(const Depsgraph &depsgraph,
   ss.cache->pose_ik_chain = ik_chain_init(
       depsgraph, ob, ss, brush, ss.cache->location, ss.cache->radius);
 
+  if (!ss.cache->pose_ik_chain) {
+    return false;
+  }
+
   /* Smooth the weights of each segment for cleaner deformation. */
   for (IKChainSegment &segment : ss.cache->pose_ik_chain->segments) {
     smooth::blur_geometry_data_array(ob, brush.pose_smooth_iterations, segment.weights);
   }
+
+  return true;
 }
 
 std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(const Depsgraph &depsgraph,
@@ -2107,7 +2122,9 @@ void do_pose_brush(const Depsgraph &depsgraph,
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   if (!ss.cache->pose_ik_chain) {
-    pose_brush_init(depsgraph, ob, ss, brush);
+    if (!pose_brush_init(depsgraph, ob, ss, brush)) {
+      return;
+    }
   }
 
   /* The pose brush applies all enabled symmetry axis in a single iteration, so the rest can be
