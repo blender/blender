@@ -34,7 +34,8 @@ enum RenderGraphFlushFlags {
   NONE = 0,
   RENEW_RENDER_GRAPH = 1 << 0,
   SUBMIT = 1 << 1,
-  WAIT_FOR_COMPLETION = 1 << 2,
+  WAIT_FOR_SUBMISSION = 1 << 2,
+  WAIT_FOR_COMPLETION = 1 << 3,
 };
 ENUM_OPERATORS(RenderGraphFlushFlags);
 

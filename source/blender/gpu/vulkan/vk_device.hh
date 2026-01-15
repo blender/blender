@@ -408,6 +408,7 @@ class VKDevice : public NonCopyable {
   TimelineValue render_graph_submit(render_graph::VKRenderGraph *render_graph,
                                     VKDiscardPool &context_discard_pool,
                                     bool submit_to_device,
+                                    bool wait_for_submission,
                                     bool wait_for_completion,
                                     VkPipelineStageFlags wait_dst_stage_mask,
                                     VkSemaphore wait_semaphore,
