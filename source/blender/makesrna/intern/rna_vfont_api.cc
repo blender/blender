@@ -26,6 +26,9 @@ namespace blender {
 
 static void rna_VectorFont_pack(VFont *vfont, Main *bmain, ReportList *reports)
 {
+  if (vfont->packedfile) {
+    BKE_packedfile_free(vfont->packedfile);
+  }
   vfont->packedfile = BKE_packedfile_new(
       reports, vfont->filepath, ID_BLEND_PATH(bmain, &vfont->id));
 }

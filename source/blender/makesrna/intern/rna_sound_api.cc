@@ -25,6 +25,9 @@ namespace blender {
 
 static void rna_Sound_pack(bSound *sound, Main *bmain, ReportList *reports)
 {
+  if (sound->packedfile) {
+    BKE_packedfile_free(sound->packedfile);
+  }
   sound->packedfile = BKE_packedfile_new(
       reports, sound->filepath, ID_BLEND_PATH(bmain, &sound->id));
 }
