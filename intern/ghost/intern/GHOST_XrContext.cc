@@ -106,7 +106,14 @@ void GHOST_XrContext::createOpenXRInstance(
   XrInstanceCreateInfo create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
 
   blender::STRNCPY(create_info.applicationInfo.applicationName, "Blender");
+
+  /* Explicitly target OpenXR API version 1.0. Note that the API_VERSION_1_0 macro is only
+   * available in 1.1+ SDKs. For 1.0 SDKs, target the current SDK version. */
+#ifdef XR_API_VERSION_1_0
+  create_info.applicationInfo.apiVersion = XR_API_VERSION_1_0;
+#else
   create_info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
+#endif
 
   getAPILayersToEnable(enabled_layers_);
   getExtensionsToEnable(graphics_binding_types, enabled_extensions_);
