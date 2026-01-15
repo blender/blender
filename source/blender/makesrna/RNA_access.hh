@@ -922,6 +922,16 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)
 #endif
 
+/** A formattable RNA warning, without the default `__func__` trace. */
+#if defined __GNUC__
+#  define RNA_warning_bare(format, args...) _RNA_warning(format "\n", ##args)
+#elif defined(_MSVC_TRADITIONAL) && \
+    !_MSVC_TRADITIONAL /* The "new preprocessor" is enabled via `/Zc:preprocessor`. */
+#  define RNA_warning_bare(format, ...) _RNA_warning(format "\n", ##__VA_ARGS__)
+#else
+#  define RNA_warning_bare(format, ...) _RNA_warning(format "\n", __VA_ARGS__)
+#endif
+
 /** Use to implement the #RNA_warning macro which includes `__func__` suffix. */
 void _RNA_warning(const char *format, ...) ATTR_PRINTF_FORMAT(1, 2);
 
