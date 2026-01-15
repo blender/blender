@@ -104,6 +104,8 @@ static bool paint_brush_type_shading_color_follows_last_used_tool(bContext *C, O
 
 bool ED_paint_brush_type_use_canvas(bContext *C, bToolRef *tref)
 {
+  BLI_assert(C || tref);
+
   if (tref == nullptr) {
     tref = WM_toolsystem_ref_from_context(C);
   }
@@ -111,7 +113,7 @@ bool ED_paint_brush_type_use_canvas(bContext *C, bToolRef *tref)
     return false;
   }
 
-  return paint_tool_uses_canvas(tref->idname) || paint_brush_uses_canvas(C);
+  return paint_tool_uses_canvas(tref->idname) || (C && paint_brush_uses_canvas(C));
 }
 
 eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
