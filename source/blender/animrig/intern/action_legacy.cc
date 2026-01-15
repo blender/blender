@@ -76,48 +76,6 @@ static Vector<FCurveType *> fcurves_for_action_slot_templated(ActionType &action
   return as_vector;
 }
 
-Vector<FCurve *> fcurves_for_action_slot(bAction *action, const slot_handle_t slot_handle)
-{
-  if (!action) {
-    return {};
-  }
-  return fcurves_for_action_slot_templated<Action,
-                                           FCurve,
-                                           Layer,
-                                           Strip,
-                                           StripKeyframeData,
-                                           Channelbag>(action->wrap(), slot_handle);
-}
-Vector<const FCurve *> fcurves_for_action_slot(const bAction *action,
-                                               const slot_handle_t slot_handle)
-{
-  if (!action) {
-    return {};
-  }
-  return fcurves_for_action_slot_templated<const Action,
-                                           const FCurve,
-                                           const Layer,
-                                           const Strip,
-                                           const StripKeyframeData,
-                                           const Channelbag>(action->wrap(), slot_handle);
-}
-
-Vector<FCurve *> fcurves_for_assigned_action(AnimData *adt)
-{
-  if (!adt || !adt->action) {
-    return {};
-  }
-  return legacy::fcurves_for_action_slot(adt->action, adt->slot_handle);
-}
-Vector<const FCurve *> fcurves_for_assigned_action(const AnimData *adt)
-{
-  if (!adt || !adt->action) {
-    return {};
-  }
-  return legacy::fcurves_for_action_slot(const_cast<const bAction *>(adt->action),
-                                         adt->slot_handle);
-}
-
 bool assigned_action_has_keyframes(AnimData *adt)
 {
   if (adt == nullptr || adt->action == nullptr) {

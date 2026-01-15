@@ -53,7 +53,7 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
-#include "ANIM_action_legacy.hh"
+#include "ANIM_animdata.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -146,7 +146,7 @@ bool has_playback_animation(const Scene *scene)
     return false;
   }
 
-  for (FCurve *fcurve : animrig::legacy::fcurves_for_assigned_action(scene->adt)) {
+  for (FCurve *fcurve : animrig::fcurves_for_assigned_action(scene->adt)) {
     if (sequencer_fcurves_targets_color_strip(fcurve)) {
       return true;
     }

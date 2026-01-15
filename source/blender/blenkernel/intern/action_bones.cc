@@ -33,7 +33,7 @@ void BKE_action_find_fcurves_with_bones(const bAction *action,
                                         const animrig::slot_handle_t slot_handle,
                                         FoundFCurveCallbackConst callback)
 {
-  for (const FCurve *fcu : animrig::legacy::fcurves_for_action_slot(action, slot_handle)) {
+  for (const FCurve *fcu : animrig::fcurves_for_action_slot(action->wrap(), slot_handle)) {
     char bone_name[MAXBONENAME];
     if (!BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
       continue;

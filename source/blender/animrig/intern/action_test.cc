@@ -1218,6 +1218,24 @@ TEST_F(ActionLayersTest, action_duplicate_slot_without_channelbag)
   EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
 }
 
+TEST_F(ActionLayersTest, fcurves_for_action_slot)
+{
+  Slot &slot1 = action->slot_add();
+  Slot &slot2 = action->slot_add();
+
+  action->layer_keystrip_ensure();
+  StripKeyframeData &key_data = action->layer(0)->strip(0)->data<StripKeyframeData>(*action);
+
+  FCurve &fcurve1 = key_data.channelbag_for_slot_ensure(slot1).fcurve_ensure(bmain,
+                                                                             {"location", 1});
+  FCurve &fcurve2 = key_data.channelbag_for_slot_ensure(slot2).fcurve_ensure(bmain, {"scale", 2});
+
+  Vector<FCurve *> fcurve1_expect = {&fcurve1};
+  Vector<FCurve *> fcurve2_expect = {&fcurve2};
+  EXPECT_EQ(fcurve1_expect.as_span(), fcurves_for_action_slot(*action, slot1.handle));
+  EXPECT_EQ(fcurve2_expect.as_span(), fcurves_for_action_slot(*action, slot2.handle));
+}
+
 /*-----------------------------------------------------------*/
 
 /* Allocate fcu->bezt, and also return a unique_ptr to it for easily freeing the memory. */

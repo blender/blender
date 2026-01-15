@@ -13,7 +13,6 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
-#include "ANIM_action_legacy.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
@@ -272,7 +271,7 @@ static bool assigned_action_has_keyframe_at(AnimData &adt, const float frame)
     return false;
   }
 
-  for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(&adt)) {
+  for (FCurve *fcu : animrig::fcurves_for_assigned_action(&adt)) {
     if (fcurve_frame_has_keyframe(fcu, frame)) {
       return true;
     }

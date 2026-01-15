@@ -8,7 +8,7 @@
 
 #include <fmt/format.h>
 
-#include "ANIM_action_legacy.hh"
+#include "ANIM_animdata.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
@@ -125,7 +125,7 @@ static Set<int> get_selected_object_keyframes(Span<Object *> bake_targets)
   Set<int> keyframes;
   for (Object *bake_target : bake_targets) {
     AnimData *adt = BKE_animdata_from_id(&bake_target->id);
-    for (FCurve *fcurve : animrig::legacy::fcurves_for_assigned_action(adt)) {
+    for (FCurve *fcurve : animrig::fcurves_for_assigned_action(adt)) {
       for (const int i : IndexRange(fcurve->totvert)) {
         BezTriple bezt = fcurve->bezt[i];
         if (bezt.f2 & SELECT) {

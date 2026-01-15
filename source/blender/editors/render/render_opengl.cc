@@ -71,7 +71,7 @@
 
 #include "SEQ_render.hh"
 
-#include "ANIM_action_legacy.hh"
+#include "ANIM_animdata.hh"
 
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
@@ -533,7 +533,7 @@ static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const An
   int frame_start = PSFRA;
   int frame_end = PEFRA;
 
-  for (const FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(adt)) {
+  for (const FCurve *fcu : animrig::fcurves_for_assigned_action(adt)) {
     if (fcu->driver != nullptr || fcu->fpt != nullptr) {
       /* Drivers have values for any point in time, so to get "the keyed frames" they are
        * useless. Same for baked FCurves, they also have keys for every frame, which is not

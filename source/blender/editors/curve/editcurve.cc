@@ -45,7 +45,7 @@
 #include "BKE_report.hh"
 
 #include "ANIM_action.hh"
-#include "ANIM_action_legacy.hh"
+#include "ANIM_animdata.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -1121,7 +1121,7 @@ int ED_curve_updateAnimPaths(Main *bmain, Curve *cu)
   if (adt->action != nullptr) {
     animrig::Action &action = adt->action->wrap();
 
-    Vector<FCurve *> fcurves_to_process = animrig::legacy::fcurves_for_assigned_action(adt);
+    Vector<FCurve *> fcurves_to_process = animrig::fcurves_for_assigned_action(adt);
 
     Vector<FCurve *> fcurves_to_remove = curve_rename_fcurves(cu, fcurves_to_process);
     for (FCurve *fcurve : fcurves_to_remove) {
