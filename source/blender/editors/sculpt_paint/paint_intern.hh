@@ -429,20 +429,6 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot);
 void PAINT_OT_weight_sample(wmOperatorType *ot);
 void PAINT_OT_weight_sample_group(wmOperatorType *ot);
 
-/* `paint_vertex_proj.cc` */
-
-VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph &depsgraph,
-                                             Scene &scene,
-                                             Object &ob,
-                                             Span<float3> &r_vert_positions,
-                                             Span<float3> &r_vert_normals);
-void ED_vpaint_proj_handle_update(Depsgraph *depsgraph,
-                                  VertProjHandle *vp_handle,
-                                  /* runtime vars */
-                                  ARegion *region,
-                                  const float mval_fl[2]);
-void ED_vpaint_proj_handle_free(VertProjHandle *vp_handle);
-
 /* `paint_image.cc` */
 
 struct ImagePaintPartialRedraw {

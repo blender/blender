@@ -951,7 +951,6 @@ struct VPaintData : public PaintModeData {
 
   ColorPaint4f paintcol;
 
-  VertProjHandle *vp_handle;
   /**
    * Owned by #vp_handle.
    * \todo Look into replacing this with just using the evaluated/deform positions.
@@ -970,13 +969,6 @@ struct VPaintData : public PaintModeData {
   /* For brushes that don't use accumulation, a temporary holding array */
   GArray<> prev_colors;
   GArray<> stroke_buffer;
-
-  ~VPaintData() override
-  {
-    if (vp_handle) {
-      ED_vpaint_proj_handle_free(vp_handle);
-    }
-  }
 };
 
 static std::unique_ptr<VPaintData> vpaint_init_vpaint(wmOperator *op,
@@ -1012,14 +1004,6 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(wmOperator *op,
     attribute.materialize(vpd->smear.color_prev.data());
 
     vpd->smear.color_curr = vpd->smear.color_prev;
-  }
-
-  /* Create projection handle */
-  if (vpd->is_texbrush) {
-    ob.runtime->sculpt_session->building_vp_handle = true;
-    vpd->vp_handle = ED_vpaint_proj_handle_create(
-        depsgraph, scene, ob, vpd->vert_positions, vpd->vert_normals);
-    ob.runtime->sculpt_session->building_vp_handle = false;
   }
 
   if (!vwpaint::brush_use_accumulate(vp)) {

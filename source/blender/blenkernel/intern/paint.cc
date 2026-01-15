@@ -2590,8 +2590,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   ss.deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
 
-  ss.building_vp_handle = false;
-
   ss.shapekey_active = (mmd == nullptr) ? BKE_keyblock_from_object(ob) : nullptr;
 
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
@@ -2712,9 +2710,6 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
   Object *ob_orig = DEG_get_original(ob_eval);
   SculptSession *ss = ob_orig->runtime->sculpt_session;
   if (!ss) {
-    return;
-  }
-  if (ss->building_vp_handle) {
     return;
   }
 

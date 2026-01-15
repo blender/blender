@@ -79,7 +79,6 @@ set(SRC
   paint_utils.cc
   paint_vertex.cc
   paint_vertex_color_ops.cc
-  paint_vertex_proj.cc
   paint_vertex_weight_ops.cc
   paint_vertex_weight_utils.cc
   paint_weight.cc

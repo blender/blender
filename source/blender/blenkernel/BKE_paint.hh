@@ -501,10 +501,6 @@ struct SculptSession : NonCopyable, NonMovable {
   } mode = {};
   eObjectMode mode_type;
 
-  /* This flag prevents bke::pbvh::Tree from being freed when creating the vp_handle for
-   * texture paint. */
-  bool building_vp_handle = false;
-
   /**
    * ID data is older than sculpt-mode data.
    * Set #Main.is_memfile_undo_flush_needed when enabling.
