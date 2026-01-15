@@ -2,32 +2,44 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""AI backend for Blender assistant - communicates with Claude API."""
+"""AI backend - Claude API integration with Blender tools."""
 
 import bpy
 import json
 import threading
 from urllib import request, error
-from queue import Queue
+from queue import Queue, Empty
 
-# Response queue for thread-safe communication
 _response_queue = Queue()
 
-# Tool definitions for Claude
+SYSTEM_PROMPT = """You are an AI assistant built into Blender. You help users create 3D content by executing Python code.
+
+When users ask you to create or modify things in Blender, use the execute_python tool to run bpy commands.
+
+Key Blender Python patterns:
+- Create cube: bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
+- Create sphere: bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0,0,0))
+- Create light: bpy.ops.object.light_add(type='SUN', location=(0,0,5))
+- Create camera: bpy.ops.object.camera_add(location=(0,-5,2))
+- Select object: bpy.data.objects['name'].select_set(True)
+- Delete selected: bpy.ops.object.delete()
+- Set material color: Create material with nodes, set Base Color
+- Move object: bpy.context.active_object.location = (x, y, z)
+- Rotate object: bpy.context.active_object.rotation_euler = (x, y, z)
+- Scale object: bpy.context.active_object.scale = (x, y, z)
+
+Always be concise in responses. Execute code to accomplish tasks rather than just explaining."""
+
 TOOLS = [
     {
         "name": "execute_python",
-        "description": "Execute Python code in Blender. Use this to create objects, modify the scene, animate, etc. The code runs in Blender's Python environment with 'bpy' available.",
+        "description": "Execute Python code in Blender to create/modify 3D content. The code runs with 'bpy' already imported.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "string",
-                    "description": "Python code to execute. Must be valid Blender Python."
-                },
-                "description": {
-                    "type": "string",
-                    "description": "Brief description of what this code does"
+                    "description": "Python code to execute"
                 }
             },
             "required": ["code"]
@@ -35,7 +47,7 @@ TOOLS = [
     },
     {
         "name": "get_scene_info",
-        "description": "Get information about the current Blender scene including objects, materials, and settings.",
+        "description": "Get list of objects in the current scene",
         "input_schema": {
             "type": "object",
             "properties": {},
@@ -43,8 +55,8 @@ TOOLS = [
         }
     },
     {
-        "name": "get_selected_objects",
-        "description": "Get detailed information about currently selected objects.",
+        "name": "get_selected",
+        "description": "Get info about selected objects",
         "input_schema": {
             "type": "object",
             "properties": {},
@@ -55,193 +67,170 @@ TOOLS = [
 
 
 def get_scene_info():
-    """Get current scene information."""
+    """Get scene objects."""
     scene = bpy.context.scene
     objects = []
-    for obj in scene.objects:
-        objects.append({
-            "name": obj.name,
-            "type": obj.type,
-            "location": [round(v, 3) for v in obj.location],
-            "selected": obj.select_get()
-        })
-
-    return {
-        "scene_name": scene.name,
-        "object_count": len(scene.objects),
-        "objects": objects[:20],  # Limit to 20
-        "frame_current": scene.frame_current,
-        "active_object": bpy.context.active_object.name if bpy.context.active_object else None
-    }
+    for obj in scene.objects[:30]:
+        objects.append(f"{obj.name} ({obj.type})")
+    return {"objects": objects, "count": len(scene.objects)}
 
 
-def get_selected_objects():
-    """Get info about selected objects."""
+def get_selected():
+    """Get selected objects."""
     selected = []
     for obj in bpy.context.selected_objects:
-        info = {
+        selected.append({
             "name": obj.name,
             "type": obj.type,
-            "location": [round(v, 3) for v in obj.location],
-            "rotation": [round(v, 3) for v in obj.rotation_euler],
-            "scale": [round(v, 3) for v in obj.scale],
-        }
-        if obj.type == 'MESH' and obj.data:
-            info["vertices"] = len(obj.data.vertices)
-            info["faces"] = len(obj.data.polygons)
-        selected.append(info)
-
-    return {"selected_objects": selected, "count": len(selected)}
+            "location": [round(v, 2) for v in obj.location]
+        })
+    return {"selected": selected}
 
 
 def execute_python(code):
-    """Execute Python code in Blender."""
-    exec_globals = {"bpy": bpy, "__builtins__": __builtins__}
-    exec_locals = {}
-
+    """Execute Python in Blender."""
     try:
-        exec(code, exec_globals, exec_locals)
-        return {"success": True, "result": exec_locals.get("result")}
+        exec(code, {"bpy": bpy, "__builtins__": __builtins__})
+        return {"success": True}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {"error": str(e)}
 
 
-def handle_tool_call(tool_name, tool_input):
-    """Execute a tool and return the result."""
-    if tool_name == "execute_python":
-        return execute_python(tool_input.get("code", ""))
-    elif tool_name == "get_scene_info":
+def run_tool(name, params):
+    """Run a tool by name."""
+    if name == "execute_python":
+        return execute_python(params.get("code", ""))
+    elif name == "get_scene_info":
         return get_scene_info()
-    elif tool_name == "get_selected_objects":
-        return get_selected_objects()
-    else:
-        return {"error": f"Unknown tool: {tool_name}"}
+    elif name == "get_selected":
+        return get_selected()
+    return {"error": f"Unknown tool: {name}"}
 
 
-def call_claude_api(api_key, model, messages, system_prompt):
-    """Call Claude API with tools."""
+def call_api(api_key, model, messages):
+    """Call Claude API."""
     url = "https://api.anthropic.com/v1/messages"
 
     payload = {
         "model": model,
         "max_tokens": 4096,
-        "system": system_prompt,
+        "system": SYSTEM_PROMPT,
         "tools": TOOLS,
         "messages": messages
     }
 
     data = json.dumps(payload).encode('utf-8')
-
     req = request.Request(url, data=data, method='POST')
     req.add_header("Content-Type", "application/json")
     req.add_header("x-api-key", api_key)
     req.add_header("anthropic-version", "2023-06-01")
 
     try:
-        with request.urlopen(req, timeout=120) as response:
-            return json.loads(response.read().decode('utf-8'))
+        with request.urlopen(req, timeout=120) as resp:
+            return json.loads(resp.read().decode('utf-8'))
     except error.HTTPError as e:
-        error_body = e.read().decode('utf-8')
-        return {"error": f"API error {e.code}: {error_body}"}
+        body = e.read().decode('utf-8')
+        return {"error": f"API error: {body}"}
     except Exception as e:
         return {"error": str(e)}
 
 
-def process_ai_response(api_key, model, messages, system_prompt, scene_name):
-    """Process AI response, handling tool calls in a loop."""
-    current_messages = messages.copy()
+def process_response(api_key, model, messages, tool_executor):
+    """Process API response, handling tool calls."""
+    msgs = messages.copy()
 
     while True:
-        response = call_claude_api(api_key, model, current_messages, system_prompt)
+        resp = call_api(api_key, model, msgs)
 
-        if "error" in response:
-            return {"role": "assistant", "content": f"Error: {response['error']}"}
+        if "error" in resp:
+            return resp["error"]
 
-        # Check stop reason
-        stop_reason = response.get("stop_reason")
-        content_blocks = response.get("content", [])
+        content = resp.get("content", [])
+        stop = resp.get("stop_reason")
 
-        # Collect text and tool uses
+        # Extract text and tool uses
         text_parts = []
         tool_uses = []
 
-        for block in content_blocks:
+        for block in content:
             if block.get("type") == "text":
                 text_parts.append(block.get("text", ""))
             elif block.get("type") == "tool_use":
                 tool_uses.append(block)
 
-        # If there are tool calls, execute them
+        # If tools were called, execute them
         if tool_uses:
-            # Add assistant message with tool uses
-            current_messages.append({"role": "assistant", "content": content_blocks})
+            msgs.append({"role": "assistant", "content": content})
 
-            # Execute tools and collect results
             tool_results = []
-            for tool_use in tool_uses:
-                tool_name = tool_use.get("name")
-                tool_input = tool_use.get("input", {})
-                tool_id = tool_use.get("id")
-
-                # Queue tool execution for main thread
-                result = None
-
-                def execute_tool():
-                    nonlocal result
-                    result = handle_tool_call(tool_name, tool_input)
-
-                # Execute in main thread via timer
-                bpy.app.timers.register(execute_tool, first_interval=0)
-
-                # Wait a bit for execution
-                import time
-                time.sleep(0.1)
-
+            for tool in tool_uses:
+                # Execute tool in main thread
+                result = tool_executor(tool["name"], tool.get("input", {}))
                 tool_results.append({
                     "type": "tool_result",
-                    "tool_use_id": tool_id,
-                    "content": json.dumps(result) if result else '{"error": "execution pending"}'
+                    "tool_use_id": tool["id"],
+                    "content": json.dumps(result)
                 })
 
-            # Add tool results
-            current_messages.append({"role": "user", "content": tool_results})
-
-            # Continue loop to get final response
+            msgs.append({"role": "user", "content": tool_results})
             continue
 
-        # No more tool calls, return the text response
-        final_text = "\n".join(text_parts) if text_parts else "Done."
-        return {"role": "assistant", "content": final_text}
+        # Return final text
+        return "\n".join(text_parts) if text_parts else "Done."
 
 
-def send_message_async(api_key, model, messages, system_prompt, scene_name, callback):
-    """Send message to AI in background thread."""
+def send_message(api_key, model, messages, callback):
+    """Send message async."""
+
+    # Tool results need to be collected from main thread
+    tool_results = {}
+    tool_event = threading.Event()
+
+    def tool_executor(name, params):
+        """Queue tool for main thread execution."""
+        tool_id = id(params)
+        tool_results[tool_id] = None
+
+        def run_in_main():
+            tool_results[tool_id] = run_tool(name, params)
+            return None
+
+        bpy.app.timers.register(run_in_main, first_interval=0)
+
+        # Wait for result
+        import time
+        for _ in range(100):  # 10 second timeout
+            time.sleep(0.1)
+            if tool_results[tool_id] is not None:
+                return tool_results[tool_id]
+
+        return {"error": "Tool timeout"}
 
     def worker():
-        result = process_ai_response(api_key, model, messages, system_prompt, scene_name)
+        result = process_response(api_key, model, messages, tool_executor)
         _response_queue.put((callback, result))
 
     thread = threading.Thread(target=worker, daemon=True)
     thread.start()
 
 
-def check_responses():
-    """Check for AI responses (called from timer)."""
+def check_queue():
+    """Process response queue."""
     try:
-        while not _response_queue.empty():
+        while True:
             callback, result = _response_queue.get_nowait()
             callback(result)
-    except Exception:
+    except Empty:
         pass
-    return 0.1  # Check every 100ms
+    return 0.1
 
 
 def register():
-    bpy.app.timers.register(check_responses, persistent=True)
+    bpy.app.timers.register(check_queue, persistent=True)
 
 
 def unregister():
     try:
-        bpy.app.timers.unregister(check_responses)
-    except Exception:
+        bpy.app.timers.unregister(check_queue)
+    except:
         pass

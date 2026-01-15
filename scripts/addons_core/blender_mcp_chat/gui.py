@@ -9,79 +9,90 @@ from bpy.types import Panel, UIList
 import textwrap
 
 
-class AI_UL_messages(UIList):
-    """Chat message list."""
+def draw_message(layout, role, content):
+    """Draw a single chat message."""
+    box = layout.box()
 
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            col = layout.column(align=True)
+    # Header with role
+    row = box.row()
+    if role == "user":
+        row.label(text="You", icon='USER')
+    else:
+        row.label(text="Claude", icon='LIGHT')
 
-            # Role indicator
-            if item.role == "user":
-                col.label(text="You:", icon='USER')
-            else:
-                col.label(text="AI:", icon='LIGHT')
+    # Content
+    col = box.column(align=True)
+    col.scale_y = 0.85
 
-            # Wrap long messages
-            wrapped = textwrap.wrap(item.content, width=40)
-            for line in wrapped[:8]:  # Max 8 lines preview
-                col.label(text=line)
-            if len(wrapped) > 8:
-                col.label(text="...")
+    # Word wrap
+    for line in content.split('\n'):
+        wrapped = textwrap.wrap(line, width=45) or ['']
+        for wrap_line in wrapped:
+            col.label(text=wrap_line)
 
 
-class VIEW3D_PT_ai_assistant(Panel):
-    """Main AI Assistant panel."""
+class VIEW3D_PT_ai_chat(Panel):
+    """AI Chat panel."""
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "AI"
-    bl_label = "Assistant"
+    bl_label = "Chat"
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         settings = scene.ai_assistant
 
-        # Check for API key
+        # API key setup
         if not settings.api_key:
             box = layout.box()
             col = box.column(align=True)
-            col.label(text="API Key Required", icon='ERROR')
+            col.label(text="Enter API Key to start", icon='KEY_HLT')
             col.prop(settings, "api_key", text="")
-            col.label(text="Get key from console.anthropic.com")
+            col.separator()
+            col.scale_y = 0.8
+            col.label(text="Get yours at:")
+            col.label(text="console.anthropic.com")
             return
 
-        # Messages
-        if len(scene.ai_messages) > 0:
-            layout.template_list(
-                "AI_UL_messages", "",
-                scene, "ai_messages",
-                settings, "chat_message_index",
-                rows=8
-            )
-        else:
-            box = layout.box()
-            col = box.column(align=True)
-            col.scale_y = 0.9
-            col.label(text="Ask me anything about Blender!")
-            col.label(text="I can create objects, modify scenes,")
-            col.label(text="write scripts, and more.")
+        # Chat messages
+        col = layout.column(align=True)
 
-        # Processing indicator
+        if len(scene.ai_messages) == 0:
+            box = col.box()
+            box_col = box.column(align=True)
+            box_col.scale_y = 0.9
+            box_col.label(text="Hi! I'm your Blender assistant.")
+            box_col.label(text="")
+            box_col.label(text="Try asking me to:")
+            box_col.label(text="  Create a red cube")
+            box_col.label(text="  Add a sun light")
+            box_col.label(text="  Make a simple scene")
+        else:
+            # Show last few messages
+            messages = list(scene.ai_messages)[-6:]
+            for msg in messages:
+                draw_message(col, msg.role, msg.content)
+
+        # Thinking indicator
         if settings.is_processing:
-            row = layout.row()
+            box = col.box()
+            row = box.row()
             row.alignment = 'CENTER'
             row.label(text="Thinking...", icon='SORTTIME')
 
-        # Input
+        # Input area
         layout.separator()
+
         col = layout.column(align=True)
         col.prop(settings, "chat_input", text="")
 
         row = col.row(align=True)
-        row.scale_y = 1.3
-        row.operator("ai.send_message", text="Send", icon='EXPORT')
-        row.operator("ai.clear_chat", text="", icon='X')
+        row.scale_y = 1.4
+        sub = row.row(align=True)
+        sub.enabled = not settings.is_processing
+        sub.operator("ai.send_message", text="Send", icon='PLAY')
+        row.operator("ai.clear_chat", text="", icon='TRASH')
 
 
 class VIEW3D_PT_ai_settings(Panel):
@@ -96,14 +107,12 @@ class VIEW3D_PT_ai_settings(Panel):
         layout = self.layout
         settings = context.scene.ai_assistant
 
-        col = layout.column()
-        col.prop(settings, "api_key", text="API Key")
-        col.prop(settings, "model", text="Model")
+        layout.prop(settings, "api_key", text="API Key")
+        layout.prop(settings, "model", text="Model")
 
 
 classes = (
-    AI_UL_messages,
-    VIEW3D_PT_ai_assistant,
+    VIEW3D_PT_ai_chat,
     VIEW3D_PT_ai_settings,
 )
 
