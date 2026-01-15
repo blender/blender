@@ -8,7 +8,7 @@ bl_info = {
     "version": (1, 0, 0),
     "blender": (4, 0, 0),
     "location": "3D View > Sidebar > AI",
-    "description": "AI-powered assistant for Blender with chat interface",
+    "description": "Chat with an AI that can control Blender",
     "support": "OFFICIAL",
     "category": "3D View",
 }
@@ -16,32 +16,26 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     importlib.reload(properties)
-    importlib.reload(server)
-    importlib.reload(handlers)
-    importlib.reload(integrations)
-    importlib.reload(gui)
+    importlib.reload(ai_backend)
     importlib.reload(operators)
+    importlib.reload(gui)
 else:
-    from . import properties, server, handlers, integrations, gui, operators
+    from . import properties, ai_backend, operators, gui
 
 import bpy
 
 
 def register():
     properties.register()
-    handlers.register()
-    integrations.register()
+    ai_backend.register()
     operators.register()
     gui.register()
-    server.register()
 
 
 def unregister():
-    server.unregister()
     gui.unregister()
     operators.unregister()
-    integrations.unregister()
-    handlers.unregister()
+    ai_backend.unregister()
     properties.unregister()
 
 
