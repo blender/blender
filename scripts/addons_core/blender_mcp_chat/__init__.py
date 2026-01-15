@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 bl_info = {
-    "name": "Blender MCP Chat",
+    "name": "AI Assistant",
     "author": "Blender Foundation",
     "version": (1, 0, 0),
     "blender": (4, 0, 0),
-    "location": "3D View > Sidebar > Chat",
-    "description": "Connect Blender to AI assistants via MCP protocol with chat sidebar",
+    "location": "3D View > Sidebar > AI",
+    "description": "AI-powered assistant for Blender with chat interface",
     "support": "OFFICIAL",
     "category": "3D View",
 }

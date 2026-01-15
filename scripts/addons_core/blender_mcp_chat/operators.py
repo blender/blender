@@ -89,7 +89,37 @@ class MCP_OT_clear_chat(Operator):
         scene = context.scene
         scene.mcp_chat_messages.clear()
         scene.mcp_chat.chat_message_index = 0
-        self.report({'INFO'}, "Chat history cleared")
+        return {'FINISHED'}
+
+
+class MCP_OT_send_message(Operator):
+    """Send a message to the AI assistant"""
+    bl_idname = "mcp.send_message"
+    bl_label = "Send Message"
+    bl_description = "Send the current message to the AI assistant"
+
+    def execute(self, context):
+        import time
+        scene = context.scene
+        settings = scene.mcp_chat
+
+        message = settings.chat_input.strip()
+        if not message:
+            return {'CANCELLED'}
+
+        # Add user message to chat
+        msg = scene.mcp_chat_messages.add()
+        msg.role = "user"
+        msg.content = message
+        msg.timestamp = time.time()
+
+        # Clear input
+        settings.chat_input = ""
+
+        # Update index to show latest message
+        settings.chat_message_index = len(scene.mcp_chat_messages) - 1
+
+        # The actual AI response comes via MCP protocol from connected client
         return {'FINISHED'}
 
 
@@ -346,6 +376,7 @@ classes = (
     MCP_OT_stop_server,
     MCP_OT_refresh_status,
     MCP_OT_clear_chat,
+    MCP_OT_send_message,
     MCP_OT_add_message,
     MCP_OT_test_connection,
     MCP_OT_execute_code,

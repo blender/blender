@@ -318,6 +318,45 @@ def get_available_commands(params):
     }
 
 
+def add_chat_message(params):
+    """Add a message to the chat history."""
+    import time
+
+    role = params.get("role", "assistant")
+    content = params.get("content", "")
+
+    if not content:
+        return {"error": "content parameter required"}
+
+    try:
+        scene = bpy.context.scene
+        msg = scene.mcp_chat_messages.add()
+        msg.role = role
+        msg.content = content
+        msg.timestamp = time.time()
+        scene.mcp_chat.chat_message_index = len(scene.mcp_chat_messages) - 1
+
+        return {"success": True, "message_count": len(scene.mcp_chat_messages)}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def get_chat_history(params):
+    """Get the chat message history."""
+    try:
+        scene = bpy.context.scene
+        messages = []
+        for msg in scene.mcp_chat_messages:
+            messages.append({
+                "role": msg.role,
+                "content": msg.content,
+                "timestamp": msg.timestamp
+            })
+        return {"messages": messages}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 # Handler registry - maps command types to handler functions
 HANDLERS = {
     "get_scene_info": get_scene_info,
@@ -326,6 +365,8 @@ HANDLERS = {
     "execute_code": execute_code,
     "get_telemetry_consent": get_telemetry_consent,
     "get_available_commands": get_available_commands,
+    "add_chat_message": add_chat_message,
+    "get_chat_history": get_chat_history,
 }
 
 
