@@ -130,6 +130,10 @@ struct UndoType {
   void (*step_encode_init)(bContext *C, UndoStep *us);
 
   bool (*step_encode)(bContext *C, Main *bmain, UndoStep *us);
+
+  /**
+   * \param is_final: whether the step being decoded is the target undo step being restored.
+   */
   void (*step_decode)(bContext *C, Main *bmain, UndoStep *us, eUndoStepDir dir, bool is_final);
 
   /**
@@ -139,6 +143,18 @@ struct UndoType {
    */
   void (*step_free)(UndoStep *us);
 
+  /**
+   * This callback ensures data-block (ID) references are valid before use.
+   *
+   * Some undo systems need to reference data-blocks, however these pointers are not stable and
+   * may have changed when restoring the undo-step (when the data-block creation was undone, then
+   * redone, for example)
+   *
+   * To support this use case, this callback supports a generic method of ensuring data-block
+   * pointers are valid before use.
+   *
+   * \see #UndoRefID for implementation details.
+   */
   void (*step_foreach_ID_ref)(UndoStep *us,
                               UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                               void *user_data);
