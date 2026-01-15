@@ -5693,8 +5693,7 @@ static wmOperatorStatus add_vertex_invoke(bContext *C, wmOperator *op, const wmE
     if (use_proj) {
       const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
 
-      ed::transform::SnapObjectContext *snap_context = ed::transform::snap_object_context_create(
-          vc.scene, 0);
+      ed::transform::SnapObjectContext *snap_context = ed::transform::snap_object_context_create();
 
       ed::transform::SnapObjectParams params{};
       params.snap_target_select = (vc.obedit != nullptr) ? SCE_SNAP_TARGET_NOT_ACTIVE :

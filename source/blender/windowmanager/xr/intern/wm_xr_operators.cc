@@ -1348,8 +1348,7 @@ static void wm_xr_navigation_teleport_data_update(wmOperator *op,
   data->teleportation_scale = nav_scale;
 }
 
-static void wm_xr_navigation_teleport_raycast(Scene *scene,
-                                              Depsgraph *depsgraph,
+static void wm_xr_navigation_teleport_raycast(Depsgraph *depsgraph,
                                               const float origin[3],
                                               const float direction[3],
                                               float *ray_dist,
@@ -1361,7 +1360,7 @@ static void wm_xr_navigation_teleport_raycast(Scene *scene,
                                               float r_obmat[4][4])
 {
   /* Uses same raycast method as Scene.ray_cast(). */
-  ed::transform::SnapObjectContext *sctx = ed::transform::snap_object_context_create(scene, 0);
+  ed::transform::SnapObjectContext *sctx = ed::transform::snap_object_context_create();
 
   ed::transform::SnapObjectParams params{};
   params.snap_target_select = (selectable_only ? SCE_SNAP_TARGET_ONLY_SELECTABLE :
@@ -1468,8 +1467,7 @@ static XrTeleportRayResult wm_xr_navigation_teleport_arc_scene_intersect(bContex
     float3 hit_location;
     float3 hit_normal;
     const Object *ob = nullptr;
-    wm_xr_navigation_teleport_raycast(CTX_data_scene(C),
-                                      CTX_data_ensure_evaluated_depsgraph(C),
+    wm_xr_navigation_teleport_raycast(CTX_data_ensure_evaluated_depsgraph(C),
                                       segment_origin,
                                       segment_direction,
                                       &segment_ray_length,

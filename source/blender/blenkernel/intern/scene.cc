@@ -2250,7 +2250,7 @@ int BKE_scene_base_iter_next(
              * this enters eternal loop because of
              * makeDispListMBall getting called inside of collection_duplilist */
             if ((*base)->object->instance_collection == nullptr) {
-              object_duplilist(depsgraph, (*scene), (*base)->object, nullptr, iter->duplilist);
+              object_duplilist(depsgraph, (*base)->object, nullptr, iter->duplilist);
 
               iter->dupob = iter->duplilist.is_empty() ? nullptr : &iter->duplilist.first();
               iter->dupob_index = 0;

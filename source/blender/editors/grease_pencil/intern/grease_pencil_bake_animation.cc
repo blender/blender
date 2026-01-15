@@ -74,7 +74,7 @@ static wmOperatorStatus bake_grease_pencil_animation_invoke(bContext *C,
       C, op, 250, IFACE_("Bake Object Transform to Grease Pencil"), IFACE_("Bake"));
 }
 
-static Vector<Object *> get_bake_targets(bContext &C, Depsgraph &depsgraph, Scene &scene)
+static Vector<Object *> get_bake_targets(bContext &C, Depsgraph &depsgraph)
 {
   Vector<Object *> bake_targets;
   Object *active_object = CTX_data_active_object(&C);
@@ -85,7 +85,7 @@ static Vector<Object *> get_bake_targets(bContext &C, Depsgraph &depsgraph, Scen
     bake_targets.append(active_object);
   }
   else if (active_object->type == OB_EMPTY) {
-    object_duplilist(&depsgraph, &scene, active_object, nullptr, duplilist);
+    object_duplilist(&depsgraph, active_object, nullptr, duplilist);
     for (DupliObject &duplicate_object : duplilist) {
       if (duplicate_object.ob->type != OB_GREASE_PENCIL) {
         continue;
@@ -105,7 +105,7 @@ static Vector<Object *> get_bake_targets(bContext &C, Depsgraph &depsgraph, Scen
       bake_targets.append(object);
     }
     else if (object->type == OB_EMPTY) {
-      object_duplilist(&depsgraph, &scene, active_object, nullptr, duplilist);
+      object_duplilist(&depsgraph, active_object, nullptr, duplilist);
       for (DupliObject &duplicate_object : duplilist) {
         if (duplicate_object.ob->type != OB_GREASE_PENCIL) {
           continue;
@@ -163,7 +163,7 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
   View3D *v3d = CTX_wm_view3d(C);
   ARegion *region = CTX_wm_region(C);
 
-  Vector<Object *> bake_targets = get_bake_targets(*C, depsgraph, scene);
+  Vector<Object *> bake_targets = get_bake_targets(*C, depsgraph);
 
   uint8_t local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
   Object *target_object = object::add_type(

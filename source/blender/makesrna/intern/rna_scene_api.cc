@@ -154,7 +154,7 @@ static void rna_SceneRender_get_frame_path(ID *id,
   }
 }
 
-static void rna_Scene_ray_cast(Scene *scene,
+static void rna_Scene_ray_cast(Scene * /*scene*/,
                                Depsgraph *depsgraph,
                                const float origin[3],
                                const float direction[3],
@@ -168,7 +168,7 @@ static void rna_Scene_ray_cast(Scene *scene,
 {
   float direction_unit[3];
   normalize_v3_v3(direction_unit, direction);
-  ed::transform::SnapObjectContext *sctx = ed::transform::snap_object_context_create(scene, 0);
+  ed::transform::SnapObjectContext *sctx = ed::transform::snap_object_context_create();
 
   ed::transform::SnapObjectParams snap_object_params{};
   snap_object_params.snap_target_select = SCE_SNAP_TARGET_ALL;

@@ -67,15 +67,11 @@ static bool view3d_object_skip_minmax(const View3D *v3d,
   return false;
 }
 
-static void view3d_object_calc_minmax(Depsgraph *depsgraph,
-                                      Scene *scene,
-                                      Object *ob_eval,
-                                      const bool only_center,
-                                      float3 &min,
-                                      float3 &max)
+static void view3d_object_calc_minmax(
+    Depsgraph *depsgraph, Object *ob_eval, const bool only_center, float3 &min, float3 &max)
 {
   /* Account for duplis. */
-  if (BKE_object_minmax_dupli(depsgraph, scene, ob_eval, min, max, false) == 0) {
+  if (BKE_object_minmax_dupli(depsgraph, ob_eval, min, max, false) == 0) {
     /* Use if duplis aren't found. */
     if (only_center) {
       minmax_v3v3_v3(min, max, ob_eval->object_to_world().location());
@@ -202,7 +198,6 @@ std::optional<Bounds<float3>> view3d_calc_minmax_visible(Depsgraph *depsgraph,
 
   const View3D *v3d = static_cast<View3D *>(area->spacedata.first);
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  Scene *scene = DEG_get_input_scene(depsgraph);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 
@@ -223,7 +218,7 @@ std::optional<Bounds<float3>> view3d_calc_minmax_visible(Depsgraph *depsgraph,
       if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
         continue;
       }
-      view3d_object_calc_minmax(depsgraph, scene, base_eval.object, only_center, min, max);
+      view3d_object_calc_minmax(depsgraph, base_eval.object, only_center, min, max);
       changed = true;
     }
   }
@@ -372,7 +367,7 @@ std::optional<Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *depsgraph,
         if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
           continue;
         }
-        view3d_object_calc_minmax(depsgraph, scene, base_eval.object, only_center, min, max);
+        view3d_object_calc_minmax(depsgraph, base_eval.object, only_center, min, max);
         changed = true;
       }
     }
@@ -397,8 +392,6 @@ bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
                                           const float3 &point,
                                           const float scale_margin)
 {
-  Scene *scene = DEG_get_input_scene(depsgraph);
-
   for (const Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
     if (!BASE_SELECTED(v3d, &base)) {
       continue;
@@ -407,7 +400,7 @@ bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
     BLI_assert(!DEG_is_original(ob));
 
     float3 min, max;
-    view3d_object_calc_minmax(depsgraph, scene, ob, false, min, max);
+    view3d_object_calc_minmax(depsgraph, ob, false, min, max);
 
     Bounds<float3> bounds{min, max};
 

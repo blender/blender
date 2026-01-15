@@ -73,7 +73,6 @@ using DupliList = VectorList<DupliObject>;
  * Fill a Vector of #DupliObject.
  */
 void object_duplilist(Depsgraph *depsgraph,
-                      Scene *sce,
                       Object *ob,
                       Set<const Object *> *include_objects,
                       DupliList &r_duplilist);
@@ -81,7 +80,6 @@ void object_duplilist(Depsgraph *depsgraph,
  * Fill a Vector of #DupliObject for the preview geometry referenced by the #ViewerPath.
  */
 void object_duplilist_preview(Depsgraph *depsgraph,
-                              Scene *scene,
                               Object *ob,
                               const ViewerPath *viewer_path,
                               DupliList &r_duplilist);
@@ -98,7 +96,7 @@ void object_duplilist_preview(Depsgraph *depsgraph,
  *
  * Also see #get_dupli_generator for the different existing dupli generators.
  */
-bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph, Scene &scene, Object &ob);
+bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph, Object &ob);
 
 /**
  * Look up the RGBA value of a uniform shader attribute.

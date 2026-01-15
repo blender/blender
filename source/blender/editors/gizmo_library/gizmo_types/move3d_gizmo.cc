@@ -377,8 +377,7 @@ static wmOperatorStatus gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEven
     if (area) {
       switch (area->spacetype) {
         case SPACE_VIEW3D: {
-          inter->snap_context_v3d = ed::transform::snap_object_context_create(CTX_data_scene(C),
-                                                                              0);
+          inter->snap_context_v3d = ed::transform::snap_object_context_create();
           break;
         }
         default:

@@ -253,8 +253,6 @@ struct DEGObjectIterData {
   Depsgraph *graph;
   int flag;
 
-  Scene *scene;
-
   eEvaluationMode eval_mode;
 
   /** Object whose preview instead of evaluated geometry should be part of the iterator. */

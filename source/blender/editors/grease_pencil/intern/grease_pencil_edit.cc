@@ -3237,7 +3237,7 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
   threading::EnumerableThreadSpecific<transform::SnapObjectContext *> thread_snap_contexts(
       [&]() -> transform::SnapObjectContext * {
         if (mode == ReprojectMode::Surface) {
-          return transform::snap_object_context_create(&scene, 0);
+          return transform::snap_object_context_create();
         }
         return nullptr;
       });

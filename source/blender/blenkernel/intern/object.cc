@@ -3779,12 +3779,8 @@ bool BKE_object_minmax_empty_drawtype(const Object *ob, float r_min[3], float r_
   return ok;
 }
 
-bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
-                             Scene *scene,
-                             Object *ob,
-                             float3 &r_min,
-                             float3 &r_max,
-                             const bool use_hidden)
+bool BKE_object_minmax_dupli(
+    Depsgraph *depsgraph, Object *ob, float3 &r_min, float3 &r_max, const bool use_hidden)
 {
   bool ok = false;
   if ((ob->transflag & OB_DUPLI) == 0 && ob->runtime->geometry_set_eval == nullptr) {
@@ -3792,7 +3788,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
   }
 
   DupliList duplilist;
-  object_duplilist(depsgraph, scene, ob, nullptr, duplilist);
+  object_duplilist(depsgraph, ob, nullptr, duplilist);
   for (DupliObject &dob : duplilist) {
     if (((use_hidden == false) && (dob.no_draw != 0)) || dob.ob_data == nullptr) {
       /* pass */

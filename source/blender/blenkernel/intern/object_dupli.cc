@@ -89,7 +89,6 @@ struct DupliContext {
   /** Only to check if the object is in edit-mode. */
   Object *obedit;
 
-  Scene *scene;
   /** Root parent object at the scene level. */
   Object *root_object;
   /** Immediate parent object in the context. */
@@ -149,7 +148,6 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx);
  */
 static void init_context(DupliContext *r_ctx,
                          Depsgraph *depsgraph,
-                         Scene *scene,
                          Object *ob,
                          const float space_mat[4][4],
                          Set<const Object *> *include_objects,
@@ -158,7 +156,6 @@ static void init_context(DupliContext *r_ctx,
                          DupliList &duplilist)
 {
   r_ctx->depsgraph = depsgraph;
-  r_ctx->scene = scene;
   r_ctx->collection = nullptr;
 
   r_ctx->root_object = ob;
@@ -1385,7 +1382,7 @@ static const DupliGenerator gen_dupli_faces = {
 
 static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem *psys)
 {
-  Scene *scene = ctx->scene;
+  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Object *par = ctx->object;
   eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
   bool for_render = mode == DAG_EVAL_RENDER;
@@ -1800,7 +1797,6 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
  * \{ */
 
 void object_duplilist(Depsgraph *depsgraph,
-                      Scene *sce,
                       Object *ob,
                       Set<const Object *> *include_objects,
                       DupliList &r_duplilist)
@@ -1811,7 +1807,6 @@ void object_duplilist(Depsgraph *depsgraph,
   instance_stack.append(ob);
   init_context(&ctx,
                depsgraph,
-               sce,
                ob,
                nullptr,
                include_objects,
@@ -1824,7 +1819,6 @@ void object_duplilist(Depsgraph *depsgraph,
 }
 
 void object_duplilist_preview(Depsgraph *depsgraph,
-                              Scene *sce,
                               Object *ob_eval,
                               const ViewerPath *viewer_path,
                               DupliList &r_duplilist)
@@ -1835,7 +1829,6 @@ void object_duplilist_preview(Depsgraph *depsgraph,
   instance_stack.append(ob_eval);
   init_context(&ctx,
                depsgraph,
-               sce,
                ob_eval,
                nullptr,
                nullptr,
@@ -1868,22 +1861,15 @@ void object_duplilist_preview(Depsgraph *depsgraph,
   }
 }
 
-bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph, Scene &scene, Object &ob)
+bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph, Object &ob)
 {
   DupliContext ctx;
   DupliList duplilist;
   Vector<Object *> instance_stack({&ob});
   Vector<short> dupli_gen_type_stack({0});
 
-  init_context(&ctx,
-               &depsgraph,
-               &scene,
-               &ob,
-               nullptr,
-               nullptr,
-               instance_stack,
-               dupli_gen_type_stack,
-               duplilist);
+  init_context(
+      &ctx, &depsgraph, &ob, nullptr, nullptr, instance_stack, dupli_gen_type_stack, duplilist);
   if (ctx.gen == &gen_dupli_geometry_set) {
     /* These are not legacy instances. */
     return {};

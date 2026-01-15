@@ -1430,7 +1430,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
             float3 min, max;
             /* only bounds support */
             INIT_MINMAX(min, max);
-            BKE_object_minmax_dupli(depsgraph, scene, ob, min, max, true);
+            BKE_object_minmax_dupli(depsgraph, ob, min, max, true);
             mid_v3_v3v3(cent, min, max);
             invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
             mul_m4_v3(ob->world_to_object().ptr(), cent);

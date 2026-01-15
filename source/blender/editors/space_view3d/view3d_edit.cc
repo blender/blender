@@ -889,7 +889,6 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
                                           float r_cursor_co[3],
                                           float r_cursor_quat[4])
 {
-  Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
   ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
@@ -921,8 +920,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     float ray_no[3];
     float ray_co[3];
 
-    ed::transform::SnapObjectContext *snap_context = ed::transform::snap_object_context_create(
-        scene, 0);
+    ed::transform::SnapObjectContext *snap_context = ed::transform::snap_object_context_create();
 
     float obmat[4][4];
     const Object *ob_dummy = nullptr;
