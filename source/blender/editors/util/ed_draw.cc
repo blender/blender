@@ -20,6 +20,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 
 #include "BLF_api.hh"
@@ -252,6 +253,7 @@ static void draw_backdrop(const int fontid,
   backdrop_rect.xmax = main_line_rect->xmax + percent_string_pixel_size[0] + pad[0];
   backdrop_rect.ymin = pad[1];
   backdrop_rect.ymax = region_y_size - pad[1];
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_3ub_alpha(&backdrop_rect, true, 4.0f, color_bg, color_bg[3]);
 }
 
@@ -450,16 +452,24 @@ tSlider *ED_slider_create(bContext *C)
   /* Add draw callback. Always in header. */
   if (slider->area) {
     LISTBASE_FOREACH (ARegion *, region, &slider->area->regionbase) {
-      if (region->regiontype == RGN_TYPE_HEADER) {
+      /* Keep logic in sync with ED_area_status_text. */
+      if (region->regiontype == RGN_TYPE_HEADER && region->visible) {
         slider->region_header = region;
-        slider->draw_handle = ED_region_draw_cb_activate(
-            region->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
+        /* Hide the area menu bar contents, as the slider will be drawn on top. Only for the header
+         * since the tool header is already empty in the center.*/
+        ED_area_status_text(slider->area, "");
+      }
+      else if (region->regiontype == RGN_TYPE_TOOL_HEADER && region->visible) {
+        slider->region_header = region;
+        break;
       }
     }
-  }
 
-  /* Hide the area menu bar contents, as the slider will be drawn on top. */
-  ED_area_status_text(slider->area, "");
+    if (slider->region_header && !G.background) {
+      slider->draw_handle = ED_region_draw_cb_activate(
+          slider->region_header->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
+    }
+  }
 
   return slider;
 }
