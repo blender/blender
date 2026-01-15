@@ -5,353 +5,198 @@
 """GUI panels for MCP Chat addon."""
 
 import bpy
-from bpy.types import Panel, UIList, Menu
+from bpy.types import Panel, UIList
 
-
-# ============================================================================
-# Chat Message List
-# ============================================================================
 
 class MCP_UL_chat_messages(UIList):
     """UIList for displaying chat messages."""
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-
-            # Role icon
-            if item.role == "user":
-                row.label(text="", icon='USER')
-            elif item.role == "assistant":
-                row.label(text="", icon='PLUGIN')
-            else:
-                row.label(text="", icon='INFO')
-
-            # Message content (truncated for display)
-            content = item.content
-            if len(content) > 50:
-                content = content[:47] + "..."
-            row.label(text=content)
-
+            icon = 'USER' if item.role == "user" else 'SCRIPTPLUGINS'
+            content = item.content[:60] + "..." if len(item.content) > 60 else item.content
+            layout.label(text=content, icon=icon)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon='CHAT')
 
 
-# ============================================================================
-# Main Chat Panel
-# ============================================================================
-
 class VIEW3D_PT_mcp_chat(Panel):
-    """Main MCP Chat panel in the 3D View sidebar."""
+    """Main MCP Chat panel."""
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Chat"
-    bl_label = "MCP Chat"
+    bl_label = "MCP Server"
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
-        settings = scene.mcp_chat
+        settings = context.scene.mcp_chat
 
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        # Server Status
-        box = layout.box()
-        row = box.row()
-        row.label(text="Server Status:", icon='WORLD_DATA')
-
+        # Status row
+        row = layout.row()
+        row.scale_y = 1.2
         if settings.server_running:
-            row.label(text="Running", icon='CHECKMARK')
-        else:
-            row.label(text="Stopped", icon='X')
-
-        # Server controls
-        row = box.row(align=True)
-        if settings.server_running:
-            row.operator("mcp.stop_server", text="Stop Server", icon='PAUSE')
-            row.operator("mcp.refresh_status", text="", icon='FILE_REFRESH')
+            row.operator("mcp.stop_server", text="Stop", icon='PAUSE', depress=True)
+            sub = row.row(align=True)
+            sub.alignment = 'RIGHT'
+            sub.label(text=f"{settings.server_host}:{settings.server_port}")
         else:
             row.operator("mcp.start_server", text="Start Server", icon='PLAY')
 
-        # Connection info
         if settings.server_running:
+            # Connection status
+            box = layout.box()
             col = box.column(align=True)
-            col.label(text=f"Host: {settings.server_host}:{settings.server_port}")
-            col.label(text=f"Clients: {settings.connected_clients}")
 
-            row = col.row(align=True)
-            row.operator("mcp.test_connection", text="Test", icon='DRIVER')
-            row.operator("mcp.copy_connection_info", text="Copy Info", icon='COPYDOWN')
+            row = col.row()
+            row.label(text="Status")
+            sub = row.row()
+            sub.alignment = 'RIGHT'
+            sub.label(text="Connected", icon='CHECKMARK')
+
+            row = col.row()
+            row.label(text="Clients")
+            sub = row.row()
+            sub.alignment = 'RIGHT'
+            sub.label(text=str(settings.connected_clients))
+
+            # Actions
+            row = layout.row(align=True)
+            row.operator("mcp.test_connection", text="Test")
+            row.operator("mcp.copy_connection_info", text="Copy")
+            row.operator("mcp.refresh_status", text="", icon='FILE_REFRESH')
 
 
-class VIEW3D_PT_mcp_chat_settings(Panel):
-    """Server settings sub-panel."""
+class VIEW3D_PT_mcp_settings(Panel):
+    """Server settings panel."""
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Chat"
-    bl_label = "Server Settings"
+    bl_label = "Settings"
     bl_parent_id = "VIEW3D_PT_mcp_chat"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
-        settings = scene.mcp_chat
+        settings = context.scene.mcp_chat
 
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        col = layout.column(align=True)
+        col = layout.column()
         col.prop(settings, "server_host", text="Host")
         col.prop(settings, "server_port", text="Port")
 
-        layout.separator()
-        layout.prop(settings, "telemetry_consent", text="Allow Telemetry")
 
-
-class VIEW3D_PT_mcp_chat_tools(Panel):
-    """Quick tools sub-panel."""
+class VIEW3D_PT_mcp_integrations(Panel):
+    """Integrations panel."""
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Chat"
-    bl_label = "Quick Tools"
-    bl_parent_id = "VIEW3D_PT_mcp_chat"
+    bl_label = "Integrations"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
+        mcp = context.scene.mcp_chat
 
-        col = layout.column(align=True)
-        col.operator("mcp.get_scene_info", text="Get Scene Info", icon='SCENE_DATA')
-        col.operator("mcp.take_screenshot", text="Take Screenshot", icon='RENDER_STILL')
-
-
-# ============================================================================
-# PolyHaven Integration Panel
-# ============================================================================
-
-class VIEW3D_PT_mcp_polyhaven(Panel):
-    """PolyHaven integration panel."""
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "Chat"
-    bl_label = "PolyHaven"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        settings = context.scene.mcp_chat.polyhaven
-        self.layout.prop(settings, "enabled", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        settings = context.scene.mcp_chat.polyhaven
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        if not settings.enabled:
-            layout.label(text="Enable to use PolyHaven assets", icon='INFO')
-            return
-
-        col = layout.column(align=True)
-        col.prop(settings, "default_resolution", text="Resolution")
-
-        layout.separator()
-        layout.label(text="Asset Types:", icon='ASSET_MANAGER')
-
-        row = layout.row(align=True)
-        op = row.operator("mcp.search_polyhaven", text="HDRIs")
-        op.asset_type = "hdris"
-        op = row.operator("mcp.search_polyhaven", text="Textures")
-        op.asset_type = "textures"
-        op = row.operator("mcp.search_polyhaven", text="Models")
-        op.asset_type = "models"
-
-
-# ============================================================================
-# Sketchfab Integration Panel
-# ============================================================================
-
-class VIEW3D_PT_mcp_sketchfab(Panel):
-    """Sketchfab integration panel."""
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "Chat"
-    bl_label = "Sketchfab"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        settings = context.scene.mcp_chat.sketchfab
-        self.layout.prop(settings, "enabled", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        settings = context.scene.mcp_chat.sketchfab
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        if not settings.enabled:
-            layout.label(text="Enable to use Sketchfab models", icon='INFO')
-            return
-
-        col = layout.column(align=True)
-        col.prop(settings, "api_token", text="API Token")
-
-        if not settings.api_token:
-            layout.label(text="API token required for downloads", icon='ERROR')
-        else:
-            layout.label(text="Token configured", icon='CHECKMARK')
-
-
-# ============================================================================
-# Hyper3D Integration Panel
-# ============================================================================
-
-class VIEW3D_PT_mcp_hyper3d(Panel):
-    """Hyper3D Rodin integration panel."""
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "Chat"
-    bl_label = "Hyper3D Rodin"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        settings = context.scene.mcp_chat.hyper3d
-        self.layout.prop(settings, "enabled", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        settings = context.scene.mcp_chat.hyper3d
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        if not settings.enabled:
-            layout.label(text="Enable for AI 3D generation", icon='INFO')
-            return
-
-        col = layout.column(align=True)
-        col.prop(settings, "mode", text="Mode")
-        col.prop(settings, "api_key", text="API Key")
-
-        if not settings.api_key:
-            layout.label(text="API key required", icon='ERROR')
-        else:
-            layout.label(text="API key configured", icon='CHECKMARK')
-
-        layout.separator()
-        layout.label(text="Generate 3D models from text or images", icon='MESH_MONKEY')
-
-
-# ============================================================================
-# Hunyuan3D Integration Panel
-# ============================================================================
-
-class VIEW3D_PT_mcp_hunyuan3d(Panel):
-    """Hunyuan3D integration panel."""
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "Chat"
-    bl_label = "Hunyuan3D"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        settings = context.scene.mcp_chat.hunyuan3d
-        self.layout.prop(settings, "enabled", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        settings = context.scene.mcp_chat.hunyuan3d
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        if not settings.enabled:
-            layout.label(text="Enable for Hunyuan3D generation", icon='INFO')
-            return
-
-        col = layout.column(align=True)
-        col.prop(settings, "mode", text="Mode")
-
-        if settings.mode == 'TENCENT':
-            col.prop(settings, "secret_id", text="Secret ID")
-            col.prop(settings, "secret_key", text="Secret Key")
-
-            if not settings.secret_id or not settings.secret_key:
-                layout.label(text="Tencent Cloud credentials required", icon='ERROR')
-            else:
-                layout.label(text="Credentials configured", icon='CHECKMARK')
-        else:
-            col.prop(settings, "local_url", text="API URL")
-
-        layout.separator()
-
-        # Generation parameters
+        # PolyHaven
         box = layout.box()
-        box.label(text="Generation Settings:", icon='SETTINGS')
-        col = box.column(align=True)
+        row = box.row()
+        row.prop(mcp.polyhaven, "enabled", text="")
+        row.label(text="PolyHaven")
+        if mcp.polyhaven.enabled:
+            row.label(text="", icon='CHECKMARK')
+            box.prop(mcp.polyhaven, "default_resolution", text="Resolution")
+
+        # Sketchfab
+        box = layout.box()
+        row = box.row()
+        row.prop(mcp.sketchfab, "enabled", text="")
+        row.label(text="Sketchfab")
+        if mcp.sketchfab.enabled:
+            if mcp.sketchfab.api_token:
+                row.label(text="", icon='CHECKMARK')
+            else:
+                row.label(text="", icon='ERROR')
+            box.prop(mcp.sketchfab, "api_token", text="Token")
+
+        # Hyper3D
+        box = layout.box()
+        row = box.row()
+        row.prop(mcp.hyper3d, "enabled", text="")
+        row.label(text="Hyper3D Rodin")
+        if mcp.hyper3d.enabled:
+            if mcp.hyper3d.api_key:
+                row.label(text="", icon='CHECKMARK')
+            else:
+                row.label(text="", icon='ERROR')
+            col = box.column()
+            col.prop(mcp.hyper3d, "mode", text="Mode")
+            col.prop(mcp.hyper3d, "api_key", text="Key")
+
+        # Hunyuan3D
+        box = layout.box()
+        row = box.row()
+        row.prop(mcp.hunyuan3d, "enabled", text="")
+        row.label(text="Hunyuan3D")
+        if mcp.hunyuan3d.enabled:
+            has_creds = (mcp.hunyuan3d.mode == 'LOCAL' or
+                         (mcp.hunyuan3d.secret_id and mcp.hunyuan3d.secret_key))
+            row.label(text="", icon='CHECKMARK' if has_creds else 'ERROR')
+            col = box.column()
+            col.prop(mcp.hunyuan3d, "mode", text="Mode")
+            if mcp.hunyuan3d.mode == 'TENCENT':
+                col.prop(mcp.hunyuan3d, "secret_id", text="ID")
+                col.prop(mcp.hunyuan3d, "secret_key", text="Key")
+            else:
+                col.prop(mcp.hunyuan3d, "local_url", text="URL")
+
+
+class VIEW3D_PT_mcp_hunyuan_settings(Panel):
+    """Hunyuan3D generation settings."""
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Chat"
+    bl_label = "Generation"
+    bl_parent_id = "VIEW3D_PT_mcp_integrations"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mcp_chat.hunyuan3d.enabled
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.scene.mcp_chat.hunyuan3d
+
+        col = layout.column()
         col.prop(settings, "octree_resolution", text="Resolution")
         col.prop(settings, "num_inference_steps", text="Steps")
         col.prop(settings, "guidance_scale", text="Guidance")
 
 
-# ============================================================================
-# About/Help Panel
-# ============================================================================
-
-class VIEW3D_PT_mcp_about(Panel):
-    """About and help panel."""
+class VIEW3D_PT_mcp_tools(Panel):
+    """Quick tools panel."""
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Chat"
-    bl_label = "About"
+    bl_label = "Tools"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
 
-        layout.label(text="Blender MCP Chat v1.0.0")
-        layout.label(text="Connect Blender to AI assistants")
-
-        layout.separator()
-
-        box = layout.box()
-        box.label(text="Available Commands:", icon='INFO')
-        col = box.column(align=True)
-        col.scale_y = 0.8
-        col.label(text="get_scene_info")
-        col.label(text="get_object_info")
-        col.label(text="get_viewport_screenshot")
-        col.label(text="execute_code")
-
-        layout.separator()
-
-        layout.label(text="Integrations:", icon='PLUGIN')
         col = layout.column(align=True)
-        col.scale_y = 0.8
-        col.label(text="PolyHaven - Free PBR assets")
-        col.label(text="Sketchfab - 3D model library")
-        col.label(text="Hyper3D - Text/image to 3D")
-        col.label(text="Hunyuan3D - Tencent 3D gen")
+        col.scale_y = 1.1
+        col.operator("mcp.get_scene_info", text="Scene Info", icon='SCENE_DATA')
+        col.operator("mcp.take_screenshot", text="Screenshot", icon='IMAGE_DATA')
 
-
-# ============================================================================
-# Registration
-# ============================================================================
 
 classes = (
     MCP_UL_chat_messages,
     VIEW3D_PT_mcp_chat,
-    VIEW3D_PT_mcp_chat_settings,
-    VIEW3D_PT_mcp_chat_tools,
-    VIEW3D_PT_mcp_polyhaven,
-    VIEW3D_PT_mcp_sketchfab,
-    VIEW3D_PT_mcp_hyper3d,
-    VIEW3D_PT_mcp_hunyuan3d,
-    VIEW3D_PT_mcp_about,
+    VIEW3D_PT_mcp_settings,
+    VIEW3D_PT_mcp_integrations,
+    VIEW3D_PT_mcp_hunyuan_settings,
+    VIEW3D_PT_mcp_tools,
 )
 
 
