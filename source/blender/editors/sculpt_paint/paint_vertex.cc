@@ -973,10 +973,7 @@ struct VPaintData : public PaintModeData {
 
 static std::unique_ptr<VPaintData> vpaint_init_vpaint(wmOperator *op,
                                                       const ViewContext &vc,
-                                                      Scene &scene,
-                                                      Depsgraph &depsgraph,
                                                       VPaint &vp,
-                                                      Object &ob,
                                                       Mesh &mesh,
                                                       const AttrDomain domain,
                                                       const bke::AttrType type,
@@ -1077,16 +1074,8 @@ bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
     return false;
   }
 
-  std::unique_ptr<VPaintData> vpd = vpaint_init_vpaint(op,
-                                                       this->vc,
-                                                       scene,
-                                                       depsgraph,
-                                                       vp,
-                                                       ob,
-                                                       *mesh,
-                                                       meta_data->domain,
-                                                       meta_data->data_type,
-                                                       brush);
+  std::unique_ptr<VPaintData> vpd = vpaint_init_vpaint(
+      op, this->vc, vp, *mesh, meta_data->domain, meta_data->data_type, brush);
 
   mode_data_ = std::move(vpd);
 
