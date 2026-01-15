@@ -212,66 +212,6 @@ void init_stroke(Depsgraph &depsgraph, Object &ob)
   }
 }
 
-void init_session(Main &bmain,
-                  Depsgraph &depsgraph,
-                  Scene &scene,
-                  Paint &paint,
-                  Object &ob,
-                  eObjectMode object_mode)
-{
-  /* Create persistent sculpt mode data */
-  BKE_sculpt_toolsettings_data_ensure(&bmain, &scene);
-
-  BLI_assert(ob.runtime->sculpt_session == nullptr);
-  ob.runtime->sculpt_session = MEM_new<SculptSession>(__func__);
-  ob.runtime->sculpt_session->mode_type = object_mode;
-  BKE_sculpt_update_object_for_edit(&depsgraph, &ob, true);
-
-  ensure_valid_pivot(ob, paint);
-}
-
-void init_session_data(const ToolSettings &ts, Object &ob)
-{
-  /* Create maps */
-  if (ob.mode == OB_MODE_VERTEX_PAINT) {
-    BLI_assert(ob.runtime->sculpt_session->mode_type == OB_MODE_VERTEX_PAINT);
-  }
-  else if (ob.mode == OB_MODE_WEIGHT_PAINT) {
-    BLI_assert(ob.runtime->sculpt_session->mode_type == OB_MODE_WEIGHT_PAINT);
-  }
-  else {
-    ob.runtime->sculpt_session->mode_type = eObjectMode(0);
-    BLI_assert(0);
-    return;
-  }
-
-  Mesh *mesh = id_cast<Mesh *>(ob.data);
-
-  /* Create average brush arrays */
-  if (ob.mode == OB_MODE_WEIGHT_PAINT) {
-    SculptSession &ss = *ob.runtime->sculpt_session;
-    if (!vwpaint::brush_use_accumulate(*ts.wpaint)) {
-      if (ss.mode.wpaint.alpha_weight == nullptr) {
-        ss.mode.wpaint.alpha_weight = MEM_calloc_arrayN<float>(mesh->verts_num, __func__);
-      }
-      if (ss.mode.wpaint.dvert_prev.is_empty()) {
-        MDeformVert initial_value{};
-        /* Use to show this isn't initialized, never apply to the mesh data. */
-        initial_value.flag = 1;
-        ss.mode.wpaint.dvert_prev = Array<MDeformVert>(mesh->verts_num, initial_value);
-      }
-    }
-    else {
-      MEM_SAFE_FREE(ss.mode.wpaint.alpha_weight);
-      if (!ss.mode.wpaint.dvert_prev.is_empty()) {
-        BKE_defvert_array_free_elems(ss.mode.wpaint.dvert_prev.data(),
-                                     ss.mode.wpaint.dvert_prev.size());
-        ss.mode.wpaint.dvert_prev = {};
-      }
-    }
-  }
-}
-
 IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
                               const Object &ob,
                               const VPaint &wp,
@@ -302,6 +242,25 @@ IndexMask pbvh_gather_generic(const Depsgraph &depsgraph,
     ss.cache->sculpt_normal_symm = use_normal ? ss.cache->view_normal_symm : float3(0);
   }
   return nodes;
+}
+
+/** Toggle operator for turning vertex paint mode on or off (copied from `sculpt.cc`) */
+static void init_session(Main &bmain,
+                         Depsgraph &depsgraph,
+                         Scene &scene,
+                         Paint &paint,
+                         Object &ob,
+                         eObjectMode object_mode)
+{
+  /* Create persistent sculpt mode data */
+  BKE_sculpt_toolsettings_data_ensure(&bmain, &scene);
+
+  BLI_assert(ob.runtime->sculpt_session == nullptr);
+  ob.runtime->sculpt_session = MEM_new<SculptSession>(__func__);
+  ob.runtime->sculpt_session->mode_type = object_mode;
+  BKE_sculpt_update_object_for_edit(&depsgraph, &ob, true);
+
+  ensure_valid_pivot(ob, paint);
 }
 
 void mode_enter_generic(
@@ -349,7 +308,7 @@ void mode_enter_generic(
   }
 
   BLI_assert(paint != nullptr);
-  vwpaint::init_session(bmain, depsgraph, scene, *paint, ob, mode_flag);
+  init_session(bmain, depsgraph, scene, *paint, ob, mode_flag);
 
   /* Flush object mode. */
   DEG_id_tag_update(&ob.id, ID_RECALC_SYNC_TO_EVAL);
@@ -1050,6 +1009,13 @@ bool VertexPaintStroke::get_location(float out[3], const float mouse[2], bool fo
       *this->depsgraph, this->vc, *this->paint, this->brush, out, mouse, force_original);
 }
 
+static void init_session_data(Object &ob)
+{
+  BLI_assert(ob.mode == OB_MODE_VERTEX_PAINT &&
+             ob.runtime->sculpt_session->mode_type == OB_MODE_VERTEX_PAINT);
+  UNUSED_VARS_NDEBUG(ob)
+}
+
 bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
 {
   Scene &scene = *this->scene;
@@ -1086,7 +1052,7 @@ bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
   /* If not previously created, create vertex/weight paint mode session data */
   vertex_paint_init_stroke(depsgraph, ob);
   vwpaint::update_cache_invariants(this->bmain_, vp, ss, op, mouse);
-  vwpaint::init_session_data(ts, ob);
+  init_session_data(ob);
 
   return true;
 }
