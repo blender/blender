@@ -153,7 +153,9 @@ void VKContext::end_frame()
 
 void VKContext::flush()
 {
-  flush_render_graph(RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+  /* Submit when flushing to avoid out-of-memory errors and TDRs when more and more commands are
+   * added in background mode without ever submitting work to the GPU. */
+  flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
 }
 
 TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
