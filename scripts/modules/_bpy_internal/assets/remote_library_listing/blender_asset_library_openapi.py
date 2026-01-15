@@ -83,7 +83,7 @@ class AssetLibraryIndexPageV1:
 class AssetV1:
     name: str
     id_type: AssetIDTypeV1
-    file: str
+    files: list[str]
     thumbnail: Optional[URLWithHash] = None
     meta: Optional[AssetMetadataV1] = None
 

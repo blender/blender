@@ -182,22 +182,12 @@ std::string AssetRepresentation::full_library_path() const
   return blend_path;
 }
 
-/* This makes a copy of the URLWithHash, but since it's only used when
- * downloading the asset, it's not performance-sensitive. */
-std::optional<URLWithHash> AssetRepresentation::online_asset_url() const
+Span<OnlineAssetFile> AssetRepresentation::online_asset_files() const
 {
   if (!this->is_online()) {
     return {};
   }
-  return std::get<ExternalAsset>(asset_).online_info_->asset_url;
-}
-
-std::optional<StringRefNull> AssetRepresentation::download_dst_filepath() const
-{
-  if (!this->is_online()) {
-    return {};
-  }
-  return std::get<ExternalAsset>(asset_).online_info_->download_dst_filepath;
+  return std::get<ExternalAsset>(asset_).online_info_->files;
 }
 
 std::optional<StringRefNull> AssetRepresentation::online_asset_preview_url() const

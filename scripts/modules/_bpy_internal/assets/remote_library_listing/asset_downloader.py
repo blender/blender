@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 __all__ = [
-    "download_asset",
+    "download_asset_file",
     "downloader_status",
     "DownloadStatus",
 ]
@@ -32,13 +32,13 @@ _asset_downloaders: dict[str, AssetDownloader] = {}
 _preview_downloaders: dict[str, AssetDownloader] = {}
 
 
-def download_asset(
+def download_asset_file(
         asset_library_url: str,
         asset_library_local_path: Path,
         asset_url: str,
         asset_hash: str,
         save_to: Path) -> None:
-    """Download an asset to a file on disk.
+    """Download an asset file to a file on disk.
 
     :param asset_library_url: Root URL of the remote asset library. Used as an
         identifier of this library (to create a downloader per library), as well
@@ -81,7 +81,7 @@ def download_asset(
 
     # Include the hash in the URL, and download the asset.
     download_url = hashing.url((asset_url, asset_hash))
-    downloader.download_asset(download_url, save_to)
+    downloader.download_asset_file(download_url, save_to)
 
 
 def download_preview(
@@ -139,7 +139,7 @@ def download_preview(
 
     # Include the hash in the URL, and download the preview.
     download_url = hashing.url((preview_url, preview_hash))
-    downloader.download_asset(download_url, dst_filepath)
+    downloader.download_asset_file(download_url, dst_filepath)
 
 
 def _asset_download_done(
@@ -324,8 +324,8 @@ class AssetDownloader:
             # Double-check the registration worked, see #139720 for details.
             assert bpy.app.timers.is_registered(self.on_timer_event)
 
-    def download_asset(self, asset_url: str, save_to: Path) -> None:
-        """Download an asset or preview to a local file."""
+    def download_asset_file(self, asset_url: str, save_to: Path) -> None:
+        """Download an asset or preview file to a local file."""
 
         # If the downloader was shut down, start it up again.
         if not self._bg_downloader:

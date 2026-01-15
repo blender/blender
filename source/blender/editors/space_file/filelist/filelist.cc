@@ -3339,14 +3339,15 @@ static void filelist_readjob_remote_asset_library_index_read(
     const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
 
     /* Skip assets that are already listed with the downloaded assets. */
+    const StringRefNull asset_file = entry.online_info.asset_file();
     {
-      BLI_assert(StringRef(entry.online_info.download_dst_filepath).endswith(".blend"));
+      BLI_assert(asset_file.endswith(".blend"));
 
       /* Matches #asset_system::AssetRepresentation.library_relative_identifier(). */
       char asset_identifier[FILE_MAX_LIBEXTRA];
       BLI_string_join(asset_identifier,
                       sizeof(asset_identifier),
-                      entry.online_info.download_dst_filepath.c_str(),
+                      asset_file.c_str(),
                       SEP_STR,
                       group_name,
                       SEP_STR,
@@ -3358,9 +3359,7 @@ static void filelist_readjob_remote_asset_library_index_read(
 
     ListBaseT<FileListInternEntry> entries = {nullptr};
 
-    BLI_strncpy(job_params->cur_relbase,
-                entry.online_info.download_dst_filepath.c_str(),
-                sizeof(job_params->cur_relbase));
+    BLI_strncpy(job_params->cur_relbase, asset_file.c_str(), sizeof(job_params->cur_relbase));
     filelist_readjob_list_lib_add_datablock(job_params,
                                             &entries,
                                             &entry.datablock_info,

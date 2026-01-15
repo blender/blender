@@ -13,6 +13,7 @@
 #include <optional>
 
 #include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 namespace blender {
 struct bContext;
@@ -31,6 +32,17 @@ struct URLWithHash {
   std::string hash;
 };
 
+/** Information of a single file of an online asset. */
+struct OnlineAssetFile {
+  /**
+   * The path within the asset library this file should be downloaded to.
+   * Relative to the library root.
+   */
+  std::string path;
+  /** The URL the asset should be downloaded from. */
+  URLWithHash url;
+};
+
 /**
  * Information specific to online assets.
  *
@@ -38,11 +50,27 @@ struct URLWithHash {
  * verify related fragments. #AssetRepresentation stores this for online assets.
  */
 struct OnlineAssetInfo {
-  /** The path this file should be downloaded to. Relative to the library root. */
-  std::string download_dst_filepath;
-  /** The URL the asset should be downloaded from. */
-  URLWithHash asset_url;
+  /**
+   * The files for this asset.
+   * The first one contains the asset data-blocks, and subsequent files are dependencies.
+   */
+  Vector<OnlineAssetFile> files;
   std::optional<URLWithHash> preview_url;
+
+  /**
+   * Return the asset's main file, i.e. the file containing the asset data-block.
+   *
+   * This can only return an empty string in error cases, i.e. when the `files` vector (see above)
+   * is empty. This should never happen; file-less assets should be rejected when loading the
+   * listing.
+   *
+   * NOTE: Blender currently only has preliminary support for multi-file assets (it downloads them
+   * correctly, but there's little in place to check for conflicting versions, or to handle things
+   * like copying non-blend files to the project directory). Even though the 'files' list will
+   * likely only have one element (at least that is the case at the time of writing), this function
+   * should not be used as a shortcut when trying to obtain "the asset's files".
+   */
+  StringRefNull asset_file() const;
 };
 
 class AssetRepresentation;

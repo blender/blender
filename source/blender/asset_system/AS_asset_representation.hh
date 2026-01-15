@@ -36,6 +36,7 @@ namespace asset_system {
 
 class AssetLibrary;
 struct OnlineAssetInfo;
+struct OnlineAssetFile;
 struct URLWithHash;
 
 class AssetRepresentation : NonCopyable, NonMovable {
@@ -144,21 +145,11 @@ class AssetRepresentation : NonCopyable, NonMovable {
   std::string full_library_path() const;
 
   /**
-   * For online assets (see #is_online()), the URL this file should be downloaded from when
-   * requested.
+   * For online assets (see #is_online()), the files that make up this asset.
    *
-   * Will return an empty value if this is not an online asset.
+   * Will return an empty span if this is not an online asset.
    */
-  std::optional<URLWithHash> online_asset_url() const;
-
-  /**
-   * For online assets (see #is_online()), the path this file should be downloaded to when
-   * requested. Usually relative, but isn't required to. The downloader accepts both cases, see
-   * #download_asset() in Python.
-   *
-   * Will return an empty value if this is not an online asset.
-   */
-  std::optional<StringRefNull> download_dst_filepath() const;
+  Span<OnlineAssetFile> online_asset_files() const;
   /**
    * For online assets (see #is_online()), the URL the asset's preview should be requested from.
    *

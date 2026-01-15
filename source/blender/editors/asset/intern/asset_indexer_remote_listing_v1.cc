@@ -67,24 +67,44 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
     return {};
   }
 
-  /* 'file': required string. */
-  if (const std::optional<StringRef> file_path = dictionary.lookup_str("file")) {
-    listing_entry.online_info.download_dst_filepath = *file_path;
-  }
-  else {
-    *r_failure_reason = "could not read asset location, 'file' field not set";
-    return {};
-  }
+  /* 'files': required list of strings. */
+  if (const ArrayValue *file_paths = dictionary.lookup_array("files")) {
+    if (file_paths->elements().is_empty()) {
+      /* TODO: include the asset ID. */
+      *r_failure_reason = "asset has no files";
+      return {};
+    }
+    for (const std::shared_ptr<Value> &file_path_element : file_paths->elements()) {
+      asset_system::OnlineAssetFile file = {};
 
-  /* Look up the file URL and hash from the <files> section of the JSON. */
-  if (const RemoteListingFileEntry *file_entry = file_path_to_entry_map.lookup_ptr(
-          listing_entry.online_info.download_dst_filepath))
-  {
-    listing_entry.online_info.asset_url = file_entry->download_url;
+      const io::serialize::StringValue *file_path_string = file_path_element->as_string_value();
+      if (!file_path_string) {
+        /* TODO: include the asset ID. */
+        *r_failure_reason = "asset has a non-string entry in its 'files' list";
+        return {};
+      }
+      file.path = file_path_string->value();
+      if (file.path.empty()) {
+        /* TODO: use CLOG to have _some_ logging of this dubious empty file entry. */
+        continue;
+      }
+
+      /* Look up the file URL and hash from the <files> section of the JSON. */
+      if (const RemoteListingFileEntry *file_entry = file_path_to_entry_map.lookup_ptr(file.path))
+      {
+        file.url = file_entry->download_url;
+      }
+      else {
+        /* TODO: include the path that's not found. */
+        *r_failure_reason = "asset references unknown file";
+        return {};
+      }
+
+      listing_entry.online_info.files.append(file);
+    }
   }
   else {
-    /* TODO: include the path that's not found. */
-    *r_failure_reason = "asset references unknown file";
+    *r_failure_reason = "could not read asset location, 'files' field not set";
     return {};
   }
 

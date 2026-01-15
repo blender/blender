@@ -318,6 +318,53 @@ void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_def
   BKE_callback_exec(&bmain, lib_ptr_arr, 1, BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
 }
 
+#ifdef WITH_PYTHON
+/**
+ * Download a single asset file.
+ * \returns an 'ok' flag. If not ok, a report will be added to the report list.
+ */
+static bool remote_library_request_asset_download_file(bContext &C,
+                                                       ReportList *reports,
+                                                       const StringRefNull asset_name,
+                                                       const asset_system::AssetLibrary &library,
+                                                       const StringRefNull dst_filepath,
+                                                       const URLWithHash &asset_url)
+{
+  BLI_assert(library.remote_url());
+
+  if (dst_filepath.is_empty()) {
+    BKE_reportf(
+        reports,
+        RPT_WARNING,
+        "Asset listing does not indicate where the file should be downloaded to, for asset '%s'",
+        asset_name.c_str());
+    return false;
+  }
+
+  /* No need to check the URL. If it's empty, the Python code uses
+   * `dst_filepath` as URL, relative to the asset library URL. */
+
+  std::string script =
+      "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"
+      "from pathlib import Path\n"
+      "\n"
+      "asset_dl.download_asset_file(\n"
+      "    library_url, Path(library_path),\n"
+      "    asset_url, asset_hash, Path(dst_filepath),\n"
+      ")\n";
+
+  std::unique_ptr locals = bke::idprop::create_group("locals");
+  IDP_AddToGroup(locals.get(), IDP_NewString(*library.remote_url(), "library_url"));
+  IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
+  IDP_AddToGroup(locals.get(), IDP_NewString(dst_filepath, "dst_filepath"));
+  IDP_AddToGroup(locals.get(), IDP_NewString(asset_url.url, "asset_url"));
+  IDP_AddToGroup(locals.get(), IDP_NewString(asset_url.hash, "asset_hash"));
+
+  return BPY_run_string_with_locals(&C, script, *locals);
+}
+
+#endif
+
 void remote_library_request_asset_download(bContext &C,
                                            const AssetRepresentation &asset,
                                            ReportList *reports)
@@ -328,48 +375,43 @@ void remote_library_request_asset_download(bContext &C,
     return;
   }
 
-#ifdef WITH_PYTHON
-  const std::optional<StringRef> dst_filepath = asset.download_dst_filepath();
-  if (!dst_filepath) {
+  if (!asset.is_online()) {
+    BKE_report(reports, RPT_ERROR, "This is not an online asset and thus cannot be downloaded");
     return;
   }
+
+#ifdef WITH_PYTHON
   const asset_system::AssetLibrary &library = asset.owner_asset_library();
   const std::optional<StringRefNull> library_url = library.remote_url();
-  if (!library_url) {
+  if (!library_url || library_url->is_empty()) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Could not find asset library URL for asset '%s'",
                 asset.get_name().c_str());
     return;
   }
-  const std::optional<URLWithHash> asset_url = asset.online_asset_url();
-  if (!asset_url) {
-    BKE_reportf(reports,
-                RPT_WARNING,
-                "Could not find URL to download asset '%s'",
-                asset.get_name().c_str());
-    return;
-  }
 
-  {
-    std::string script =
-        "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"
-        "from pathlib import Path\n"
-        "\n"
-        "asset_dl.download_asset(\n"
-        "    library_url, Path(library_path),\n"
-        "    asset_url, asset_hash, Path(dst_filepath),\n"
-        ")\n";
-
-    std::unique_ptr locals = bke::idprop::create_group("locals");
-    IDP_AddToGroup(locals.get(), IDP_NewString(*library_url, "library_url"));
-    IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
-    IDP_AddToGroup(locals.get(), IDP_NewString(*dst_filepath, "dst_filepath"));
-    IDP_AddToGroup(locals.get(), IDP_NewString(asset_url->url, "asset_url"));
-    IDP_AddToGroup(locals.get(), IDP_NewString(asset_url->hash, "asset_hash"));
-
-    /* TODO: report errors in the UI somehow. */
-    BPY_run_string_with_locals(&C, script, *locals);
+  /* The main file is listed first, and has to be downloaded last. By reversing the list of files,
+   * first the dependencies are downloaded, followed by the asset itself. That way, when the main
+   * asset file appears on disk, it is ready for use.
+   *
+   * NOTE: if in the future the downloader supports parallel downloads, this will break. In that
+   * case, we'll have to move to something more "atomic", where all files that make up this asset
+   * retain their temporary-because-I'm-being-downloaded name until all downloads are complete. */
+  const Span<OnlineAssetFile> asset_files = asset.online_asset_files();
+  const StringRefNull asset_name = asset.get_name();
+  for (int i = asset_files.size() - 1; i >= 0; i--) {
+    const OnlineAssetFile &asset_file = asset_files[i];
+    const bool ok = remote_library_request_asset_download_file(
+        C, reports, asset_name, library, asset_file.path, asset_file.url);
+    if (!ok) {
+      /* remote_library_request_asset_download_file() will have reported the error.
+       *
+       * Better to stop here, because if a dependency download couldn't be triggered, the main file
+       * should not be downloaded either. Because, if that would work, we have a half-downloaded
+       * asset that Blender's asset browser doesn't know is broken). */
+      break;
+    }
   }
 #else
   UNUSED_VARS(C, asset);
@@ -443,6 +485,14 @@ void remote_library_request_preview_download(bContext &C,
 
 /** \} */
 
+StringRefNull OnlineAssetInfo::asset_file() const
+{
+  if (this->files.is_empty()) {
+    return {};
+  }
+  return this->files[0].path;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Preview Images
  * \{ */
@@ -470,8 +520,9 @@ std::string remote_library_asset_preview_path(const AssetRepresentation &asset)
     BLI_hash_md5_buffer(asset_path.data(), asset_path.size(), digest);
     BLI_hash_md5_to_hexdigest(digest, hexdigest);
 
-    /* If the download URL has an extension, preserve that for the downloaded file (will be either
-     * the period before the last extension, or the null character at the end of the file name). */
+    /* If the download URL has an extension, preserve that for the downloaded file (will be
+     * either the period before the last extension, or the null character at the end of the file
+     * name). */
     const char *ext = BLI_path_extension_or_end(preview_url->c_str());
     BLI_snprintf(thumb_name, sizeof(thumb_name), "%s%s", hexdigest, ext);
   }

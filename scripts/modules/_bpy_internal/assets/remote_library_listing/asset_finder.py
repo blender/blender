@@ -114,8 +114,8 @@ def _find_assets(
 
         asset = api_models.AssetV1(
             name=datablock.name,
-            id_type=api_models.AssetIDTypeV1(datablock.id_type.lower()),
-            file=file.path,
+            id_type=api_models.AssetIDTypeV1(datablock.id_type),
+            files=[file.path],
             thumbnail=thumbnail,
             meta=_get_asset_meta(asset_data),
         )
