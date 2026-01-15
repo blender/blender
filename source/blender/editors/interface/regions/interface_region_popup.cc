@@ -527,12 +527,16 @@ void popup_block_scrolltest(Block *block)
 
   /* mark buttons that are outside boundary */
   for (const std::unique_ptr<Button> &bt : block->buttons) {
-    if (bt->rect.ymin < block->rect.ymin) {
+    if (bt->rect.ymax < block->rect.ymin) {
       bt->flag |= UI_SCROLLED;
+    }
+    if (bt->rect.ymin > block->rect.ymax) {
+      bt->flag |= UI_SCROLLED;
+    }
+    if (bt->rect.ymin < block->rect.ymin) {
       block->flag |= BLOCK_CLIPBOTTOM;
     }
     if (bt->rect.ymax > block->rect.ymax) {
-      bt->flag |= UI_SCROLLED;
       block->flag |= BLOCK_CLIPTOP;
     }
   }
@@ -540,12 +544,12 @@ void popup_block_scrolltest(Block *block)
   /* mark buttons overlapping arrows, if we have them */
   for (const std::unique_ptr<Button> &bt : block->buttons) {
     if (block->flag & BLOCK_CLIPBOTTOM) {
-      if (bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW) {
+      if (bt->rect.ymax < block->rect.ymin + UI_MENU_SCROLL_MOUSE) {
         bt->flag |= UI_SCROLLED;
       }
     }
     if (block->flag & BLOCK_CLIPTOP) {
-      if (bt->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW) {
+      if (bt->rect.ymin > block->rect.ymax - UI_MENU_SCROLL_MOUSE) {
         bt->flag |= UI_SCROLLED;
       }
     }

@@ -2255,6 +2255,9 @@ void block_draw(const bContext *C, Block *block)
 
   wmOrtho2_region_pixelspace(region);
 
+  int scissor[4];
+  GPU_scissor_get(scissor);
+
   /* back */
   if (block->flag & BLOCK_PIE_MENU) {
     draw_pie_center(block);
@@ -2287,6 +2290,12 @@ void block_draw(const bContext *C, Block *block)
   BLF_batch_draw_begin();
   widgetbase_draw_cache_begin();
 
+  if (block_is_popup_any(block) && block->flag & (BLOCK_CLIPTOP | BLOCK_CLIPBOTTOM)) {
+    const int arrow_size = UI_MENU_SCROLL_MOUSE / block->aspect;
+    const int ymax = rect.ymax - ((block->flag & BLOCK_CLIPTOP) ? arrow_size : 0.0f);
+    const int ymin = rect.ymin + ((block->flag & BLOCK_CLIPBOTTOM) ? arrow_size : 0.0f);
+    GPU_scissor(rect.xmin, ymin, BLI_rcti_size_x(&rect), ymax - ymin);
+  }
   /* widgets */
   for (const std::unique_ptr<Button> &but : block->buttons) {
     if (but->flag & (UI_HIDDEN | UI_SCROLLED)) {
@@ -2319,7 +2328,7 @@ void block_draw(const bContext *C, Block *block)
 
   widgetbase_draw_cache_end();
   BLF_batch_draw_end();
-
+  GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
   block_views_draw_overlays(region, block);
 
   /* restore matrix */

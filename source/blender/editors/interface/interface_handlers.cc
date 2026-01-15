@@ -10561,13 +10561,13 @@ static bool ui_menu_scroll_to_but(ARegion *region, Block *block, Button *but_tar
 {
   float dy = 0.0;
   if (block->flag & BLOCK_CLIPTOP) {
-    if (but_target->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW) {
-      dy = block->rect.ymax - but_target->rect.ymax - UI_MENU_SCROLL_ARROW;
+    if (but_target->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_MOUSE) {
+      dy = block->rect.ymax - but_target->rect.ymax - UI_MENU_SCROLL_MOUSE;
     }
   }
   if (block->flag & BLOCK_CLIPBOTTOM) {
-    if (but_target->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW) {
-      dy = block->rect.ymin - but_target->rect.ymin + UI_MENU_SCROLL_ARROW;
+    if (but_target->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_MOUSE) {
+      dy = block->rect.ymin - but_target->rect.ymin + UI_MENU_SCROLL_MOUSE;
     }
   }
   if (dy != 0.0f) {
