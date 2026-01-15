@@ -839,6 +839,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocketFloat_subtype_itemf(
 {
   return rna_subtype_filter_itemf({PROP_PERCENTAGE,
                                    PROP_FACTOR,
+                                   PROP_MASS,
                                    PROP_ANGLE,
                                    PROP_TIME,
                                    PROP_TIME_ABSOLUTE,

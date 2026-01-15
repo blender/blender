@@ -2789,6 +2789,8 @@ static const char *rna_property_subtypename(PropertySubType type)
       return "PROP_PERCENTAGE";
     case PROP_FACTOR:
       return "PROP_FACTOR";
+    case PROP_MASS:
+      return "PROP_MASS";
     case PROP_ANGLE:
       return "PROP_ANGLE";
     case PROP_TIME:

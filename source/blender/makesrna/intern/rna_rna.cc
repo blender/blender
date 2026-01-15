@@ -70,6 +70,7 @@ const EnumPropertyItem rna_enum_property_type_items[] = {
   {PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""}, \
   {PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", "A percentage between 0 and 100"}, \
   {PROP_FACTOR, "FACTOR", 0, "Factor", "A factor between 0.0 and 1.0"}, \
+  {PROP_MASS, "MASS", 0, "Mass", "A mass, based on scene unit settings"}, \
   {PROP_ANGLE, "ANGLE", 0, "Angle", "A rotational value specified in radians"}, \
   {PROP_TIME, "TIME", 0, "Time (Scene Relative)", \
    "Time specified in frames, converted to seconds based on scene frame rate"}, \

@@ -1096,7 +1096,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
 
   /* Physics Parameters */
-  prop = RNA_def_property(srna, "mass", PROP_FLOAT, PROP_UNIT_MASS);
+  prop = RNA_def_property(srna, "mass", PROP_FLOAT, PROP_MASS);
   RNA_def_property_float_sdna(prop, nullptr, "mass");
   RNA_def_property_range(prop, 0.001f, FLT_MAX); /* range must always be positive (and non-zero) */
   RNA_def_property_float_default(prop, 1.0f);
