@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""AI backend - Claude API integration with Blender tools."""
+"""AI backend - Claude API with Blender tools."""
 
 import bpy
 import json
@@ -12,83 +12,136 @@ from queue import Queue, Empty
 
 _response_queue = Queue()
 
-SYSTEM_PROMPT = """You are an AI assistant built into Blender. You help users create 3D content by executing Python code.
+SYSTEM_PROMPT = """You are an AI assistant integrated into Blender 4.0. Help users create 3D content by writing and executing Python code.
 
-When users ask you to create or modify things in Blender, use the execute_python tool to run bpy commands.
+IMPORTANT: When users ask you to create or modify anything, use the execute_python tool immediately. Don't just explain - DO IT.
 
-Key Blender Python patterns:
-- Create cube: bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
-- Create sphere: bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0,0,0))
-- Create light: bpy.ops.object.light_add(type='SUN', location=(0,0,5))
-- Create camera: bpy.ops.object.camera_add(location=(0,-5,2))
-- Select object: bpy.data.objects['name'].select_set(True)
-- Delete selected: bpy.ops.object.delete()
-- Set material color: Create material with nodes, set Base Color
-- Move object: bpy.context.active_object.location = (x, y, z)
-- Rotate object: bpy.context.active_object.rotation_euler = (x, y, z)
-- Scale object: bpy.context.active_object.scale = (x, y, z)
+Common Blender Python:
+```
+# Objects
+bpy.ops.mesh.primitive_cube_add(size=2, location=(0,0,0))
+bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0,0,0))
+bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=2)
+bpy.ops.mesh.primitive_cone_add(radius1=1, depth=2)
+bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=0.25)
+bpy.ops.mesh.primitive_plane_add(size=2)
 
-Always be concise in responses. Execute code to accomplish tasks rather than just explaining."""
+# Lights
+bpy.ops.object.light_add(type='SUN', location=(0,0,5))
+bpy.ops.object.light_add(type='POINT', location=(0,0,3))
+bpy.ops.object.light_add(type='AREA', location=(0,0,3))
+
+# Camera
+bpy.ops.object.camera_add(location=(7,-7,5))
+cam = bpy.context.active_object
+cam.rotation_euler = (1.1, 0, 0.8)
+
+# Select/Active
+obj = bpy.data.objects['Cube']
+bpy.context.view_layer.objects.active = obj
+obj.select_set(True)
+
+# Transform
+obj.location = (1, 2, 3)
+obj.rotation_euler = (0, 0, 1.57)  # radians
+obj.scale = (2, 2, 2)
+
+# Delete
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete()
+
+# Materials (colored)
+mat = bpy.data.materials.new(name="Red")
+mat.use_nodes = True
+mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (1, 0, 0, 1)
+obj.data.materials.append(mat)
+
+# Modifiers
+bpy.ops.object.modifier_add(type='SUBSURF')
+bpy.context.object.modifiers["Subdivision"].levels = 2
+
+# Animation
+obj.location = (0, 0, 0)
+obj.keyframe_insert(data_path="location", frame=1)
+obj.location = (5, 0, 0)
+obj.keyframe_insert(data_path="location", frame=50)
+```
+
+Be concise. Execute code to accomplish tasks. If something fails, try a different approach."""
 
 TOOLS = [
     {
         "name": "execute_python",
-        "description": "Execute Python code in Blender to create/modify 3D content. The code runs with 'bpy' already imported.",
+        "description": "Execute Python code in Blender. Use this to create objects, modify the scene, add materials, animate, etc. bpy is already imported.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "string",
-                    "description": "Python code to execute"
-                }
+                "code": {"type": "string", "description": "Python code to run"},
+                "description": {"type": "string", "description": "What this code does"}
             },
             "required": ["code"]
         }
     },
     {
         "name": "get_scene_info",
-        "description": "Get list of objects in the current scene",
-        "input_schema": {
-            "type": "object",
-            "properties": {},
-            "required": []
-        }
+        "description": "Get list of all objects in the scene with their types and locations.",
+        "input_schema": {"type": "object", "properties": {}, "required": []}
     },
     {
         "name": "get_selected",
-        "description": "Get info about selected objects",
-        "input_schema": {
-            "type": "object",
-            "properties": {},
-            "required": []
-        }
+        "description": "Get details about currently selected objects.",
+        "input_schema": {"type": "object", "properties": {}, "required": []}
+    },
+    {
+        "name": "get_active_object",
+        "description": "Get detailed info about the active object including modifiers and materials.",
+        "input_schema": {"type": "object", "properties": {}, "required": []}
     }
 ]
 
 
 def get_scene_info():
-    """Get scene objects."""
     scene = bpy.context.scene
-    objects = []
-    for obj in scene.objects[:30]:
-        objects.append(f"{obj.name} ({obj.type})")
-    return {"objects": objects, "count": len(scene.objects)}
+    objs = []
+    for o in scene.objects[:50]:
+        objs.append({
+            "name": o.name,
+            "type": o.type,
+            "location": [round(v, 2) for v in o.location]
+        })
+    return {"objects": objs, "total": len(scene.objects)}
 
 
 def get_selected():
-    """Get selected objects."""
-    selected = []
-    for obj in bpy.context.selected_objects:
-        selected.append({
-            "name": obj.name,
-            "type": obj.type,
-            "location": [round(v, 2) for v in obj.location]
+    sel = []
+    for o in bpy.context.selected_objects:
+        sel.append({
+            "name": o.name,
+            "type": o.type,
+            "location": [round(v, 2) for v in o.location],
+            "scale": [round(v, 2) for v in o.scale]
         })
-    return {"selected": selected}
+    return {"selected": sel, "count": len(sel)}
+
+
+def get_active_object():
+    obj = bpy.context.active_object
+    if not obj:
+        return {"error": "No active object"}
+
+    info = {
+        "name": obj.name,
+        "type": obj.type,
+        "location": [round(v, 2) for v in obj.location],
+        "rotation": [round(v, 2) for v in obj.rotation_euler],
+        "scale": [round(v, 2) for v in obj.scale],
+        "modifiers": [m.type for m in obj.modifiers],
+        "materials": [m.name for m in obj.data.materials] if hasattr(obj.data, 'materials') else []
+    }
+    return info
 
 
 def execute_python(code):
-    """Execute Python in Blender."""
     try:
         exec(code, {"bpy": bpy, "__builtins__": __builtins__})
         return {"success": True}
@@ -97,20 +150,19 @@ def execute_python(code):
 
 
 def run_tool(name, params):
-    """Run a tool by name."""
     if name == "execute_python":
         return execute_python(params.get("code", ""))
     elif name == "get_scene_info":
         return get_scene_info()
     elif name == "get_selected":
         return get_selected()
-    return {"error": f"Unknown tool: {name}"}
+    elif name == "get_active_object":
+        return get_active_object()
+    return {"error": f"Unknown: {name}"}
 
 
 def call_api(api_key, model, messages):
-    """Call Claude API."""
     url = "https://api.anthropic.com/v1/messages"
-
     payload = {
         "model": model,
         "max_tokens": 4096,
@@ -119,107 +171,88 @@ def call_api(api_key, model, messages):
         "messages": messages
     }
 
-    data = json.dumps(payload).encode('utf-8')
+    data = json.dumps(payload).encode()
     req = request.Request(url, data=data, method='POST')
     req.add_header("Content-Type", "application/json")
     req.add_header("x-api-key", api_key)
     req.add_header("anthropic-version", "2023-06-01")
 
     try:
-        with request.urlopen(req, timeout=120) as resp:
-            return json.loads(resp.read().decode('utf-8'))
+        with request.urlopen(req, timeout=120) as r:
+            return json.loads(r.read())
     except error.HTTPError as e:
-        body = e.read().decode('utf-8')
-        return {"error": f"API error: {body}"}
+        return {"error": e.read().decode()}
     except Exception as e:
         return {"error": str(e)}
 
 
-def process_response(api_key, model, messages, tool_executor):
-    """Process API response, handling tool calls."""
+def process_response(api_key, model, messages, exec_tool):
     msgs = messages.copy()
 
-    while True:
+    for _ in range(10):  # Max 10 tool iterations
         resp = call_api(api_key, model, msgs)
-
         if "error" in resp:
             return resp["error"]
 
         content = resp.get("content", [])
-        stop = resp.get("stop_reason")
+        texts = []
+        tools = []
 
-        # Extract text and tool uses
-        text_parts = []
-        tool_uses = []
+        for b in content:
+            if b.get("type") == "text":
+                texts.append(b["text"])
+            elif b.get("type") == "tool_use":
+                tools.append(b)
 
-        for block in content:
-            if block.get("type") == "text":
-                text_parts.append(block.get("text", ""))
-            elif block.get("type") == "tool_use":
-                tool_uses.append(block)
-
-        # If tools were called, execute them
-        if tool_uses:
+        if tools:
             msgs.append({"role": "assistant", "content": content})
-
-            tool_results = []
-            for tool in tool_uses:
-                # Execute tool in main thread
-                result = tool_executor(tool["name"], tool.get("input", {}))
-                tool_results.append({
+            results = []
+            for t in tools:
+                r = exec_tool(t["name"], t.get("input", {}))
+                results.append({
                     "type": "tool_result",
-                    "tool_use_id": tool["id"],
-                    "content": json.dumps(result)
+                    "tool_use_id": t["id"],
+                    "content": json.dumps(r)
                 })
-
-            msgs.append({"role": "user", "content": tool_results})
+            msgs.append({"role": "user", "content": results})
             continue
 
-        # Return final text
-        return "\n".join(text_parts) if text_parts else "Done."
+        return "\n".join(texts) if texts else "Done."
+
+    return "Reached tool limit."
 
 
 def send_message(api_key, model, messages, callback):
-    """Send message async."""
-
-    # Tool results need to be collected from main thread
     tool_results = {}
-    tool_event = threading.Event()
 
-    def tool_executor(name, params):
-        """Queue tool for main thread execution."""
-        tool_id = id(params)
-        tool_results[tool_id] = None
+    def exec_tool(name, params):
+        tid = id(params)
+        tool_results[tid] = None
 
-        def run_in_main():
-            tool_results[tool_id] = run_tool(name, params)
-            return None
+        def run():
+            tool_results[tid] = run_tool(name, params)
 
-        bpy.app.timers.register(run_in_main, first_interval=0)
+        bpy.app.timers.register(run, first_interval=0)
 
-        # Wait for result
         import time
-        for _ in range(100):  # 10 second timeout
+        for _ in range(100):
             time.sleep(0.1)
-            if tool_results[tool_id] is not None:
-                return tool_results[tool_id]
+            if tool_results[tid] is not None:
+                return tool_results[tid]
+        return {"error": "Timeout"}
 
-        return {"error": "Tool timeout"}
+    def work():
+        r = process_response(api_key, model, messages, exec_tool)
+        _response_queue.put((callback, r))
 
-    def worker():
-        result = process_response(api_key, model, messages, tool_executor)
-        _response_queue.put((callback, result))
-
-    thread = threading.Thread(target=worker, daemon=True)
-    thread.start()
+    threading.Thread(target=work, daemon=True).start()
 
 
 def check_queue():
-    """Process response queue."""
     try:
         while True:
-            callback, result = _response_queue.get_nowait()
-            callback(result)
+            cb, r = _response_queue.get_nowait()
+            cb(r)
     except Empty:
         pass
     return 0.1
