@@ -45,6 +45,8 @@ static void cmp_node_movieclip_declare(NodeDeclarationBuilder &b)
 static void init(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = static_cast<bNode *>(ptr->data);
+  node->flag |= NODE_PREVIEW;
+
   Scene *scene = CTX_data_scene(C);
   MovieClipUser *user = MEM_new_for_free<MovieClipUser>(__func__);
 

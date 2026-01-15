@@ -105,16 +105,6 @@ static void update(bNodeTree *ntree)
   ntree_update_reroute_nodes(ntree);
 }
 
-static void composite_node_add_init(bNodeTree * /*bnodetree*/, bNode *bnode)
-{
-  /* Composite node will only show previews for input classes
-   * by default, other will be hidden
-   * but can be made visible with the show_preview option */
-  if (bnode->typeinfo->nclass != NODE_CLASS_INPUT) {
-    bnode->flag &= ~NODE_PREVIEW;
-  }
-}
-
 static bool composite_node_tree_socket_type_valid(bke::bNodeTreeType * /*ntreetype*/,
                                                   bke::bNodeSocketType *socket_type)
 {
@@ -160,7 +150,6 @@ void register_node_tree_type_cmp()
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->update = update;
   tt->get_from_context = composite_get_from_context;
-  tt->node_add_init = composite_node_add_init;
   tt->validate_link = composite_validate_link;
   tt->valid_socket_type = composite_node_tree_socket_type_valid;
 

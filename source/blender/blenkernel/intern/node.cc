@@ -2236,7 +2236,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
     return;
   }
 
-  node->flag = NODE_SELECT | NODE_OPTIONS | ntype->flag;
+  node->flag = NODE_SELECT | NODE_OPTIONS | (ntype->flag & ~NODE_PREVIEW);
   node->width = ntype->width;
   node->height = ntype->height;
   node->color[0] = node->color[1] = node->color[2] = 0.608; /* default theme color */
@@ -2269,10 +2269,6 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
      * Delayed init is not supported for nodes with context-based `initfunc_api` at the moment. */
     BLI_assert(C != nullptr);
     ntype->initfunc_api(C, &ptr);
-  }
-
-  if (ntree->typeinfo && ntree->typeinfo->node_add_init) {
-    ntree->typeinfo->node_add_init(ntree, node);
   }
 
   if (!add_sockets_before_init) {

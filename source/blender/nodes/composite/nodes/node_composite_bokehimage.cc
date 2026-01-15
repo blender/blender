@@ -55,6 +55,11 @@ static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
+static void node_init(bNodeTree * /*node_tree*/, bNode *node)
+{
+  node->flag |= NODE_PREVIEW;
+}
+
 using namespace blender::compositor;
 
 class BokehImageOperation : public NodeOperation {
@@ -130,6 +135,7 @@ static void register_node_type_cmp_bokehimage()
   ntype.enum_name_legacy = "BOKEHIMAGE";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_bokehimage_declare;
+  ntype.initfunc = file_ns::node_init;
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
