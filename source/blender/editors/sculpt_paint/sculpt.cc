@@ -2893,7 +2893,7 @@ float3 SCULPT_flip_v3_by_symm_area(const float3 &vector,
     if (!(symm & symm_it)) {
       continue;
     }
-    if (symmarea & symm_it) {
+    if (symmarea & ePaintSymmetryAreas(symm_it)) {
       result = ed::sculpt_paint::symmetry_flip(result, symm_it);
     }
     if (pivot[i] < 0.0f) {
@@ -2913,7 +2913,7 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
     if (!(symm & symm_it)) {
       continue;
     }
-    if (symmarea & symm_it) {
+    if (symmarea & ePaintSymmetryAreas(symm_it)) {
       flip_qt(quat, symm_it);
     }
     if (pivot[i] < 0.0f) {
