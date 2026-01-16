@@ -7,6 +7,7 @@
 #include <cassert>
 
 #include "util/algorithm.h"
+#include "util/random_access_iterator_mixin.h"
 #include "util/set.h"
 #include "util/unique_ptr.h"
 #include "util/vector.h"
@@ -103,46 +104,27 @@ template<typename T> class unique_ptr_vector {
   }
 
   /* Basic iterators for range based for loop. */
-  struct ConstIterator {
-    using iterator_category = std::random_access_iterator_tag;
+  struct ConstIterator : public random_access_iterator_mixin<ConstIterator> {
+   private:
+    using It = typename vector<unique_ptr<T>>::const_iterator;
+    It it_;
 
-    using value_type = typename vector<unique_ptr<T>>::value_type;
-    using difference_type = typename vector<unique_ptr<T>>::difference_type;
-    using pointer = typename vector<unique_ptr<T>>::const_pointer;
-    using reference = typename vector<unique_ptr<T>>::reference;
+   public:
+    using value_type = const T *;
+    using pointer = const T **;
+    /** For such derived iterators, this does not have to be an actual reference. */
+    using reference = value_type;
 
-    typename vector<unique_ptr<T>>::const_iterator it;
+    ConstIterator(It it) : it_(it) {}
 
     const T *operator*() const
     {
-      return it->get();
+      return it_->get();
     }
-    bool operator==(const ConstIterator &other) const
+
+    const It &iter_prop() const
     {
-      return it == other.it;
-    }
-    bool operator!=(const ConstIterator &other) const
-    {
-      return it != other.it;
-    }
-    void operator++()
-    {
-      ++it;
-    }
-    difference_type operator-(const ConstIterator &other) const noexcept
-    {
-      return static_cast<difference_type>(it - other.it);
-    }
-    ConstIterator operator+(const difference_type offset) const noexcept
-    {
-      ConstIterator temp = *this;
-      temp += offset;
-      return temp;
-    }
-    ConstIterator &operator+=(const difference_type offset) noexcept
-    {
-      it += offset;
-      return *this;
+      return it_;
     }
   };
 
@@ -155,46 +137,27 @@ template<typename T> class unique_ptr_vector {
     return ConstIterator{data.end()};
   }
 
-  struct Iterator {
-    using iterator_category = std::random_access_iterator_tag;
+  struct Iterator : public random_access_iterator_mixin<Iterator> {
+   private:
+    using It = typename vector<unique_ptr<T>>::iterator;
+    It it_;
 
-    using value_type = typename vector<unique_ptr<T>>::value_type;
-    using difference_type = typename vector<unique_ptr<T>>::difference_type;
-    using pointer = typename vector<unique_ptr<T>>::const_pointer;
-    using reference = typename vector<unique_ptr<T>>::reference;
+   public:
+    using value_type = T *;
+    using pointer = T **;
+    /** For such derived iterators, this does not have to be an actual reference. */
+    using reference = value_type;
 
-    typename vector<unique_ptr<T>>::const_iterator it;
+    Iterator(It it) : it_(it) {}
 
     T *operator*() const
     {
-      return it->get();
+      return it_->get();
     }
-    bool operator==(const Iterator &other) const
+
+    const It &iter_prop() const
     {
-      return it == other.it;
-    }
-    bool operator!=(const Iterator &other) const
-    {
-      return it != other.it;
-    }
-    void operator++()
-    {
-      ++it;
-    }
-    difference_type operator-(const Iterator &other) const noexcept
-    {
-      return static_cast<difference_type>(it - other.it);
-    }
-    Iterator operator+(const difference_type offset) const noexcept
-    {
-      Iterator temp = *this;
-      temp += offset;
-      return temp;
-    }
-    Iterator &operator+=(const difference_type offset) noexcept
-    {
-      it += offset;
-      return *this;
+      return it_;
     }
   };
   Iterator begin()
