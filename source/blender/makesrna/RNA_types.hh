@@ -298,6 +298,17 @@ enum PropertySubType {
   PROP_MASS = 49 | PROP_UNIT_MASS,
 };
 
+/** These two enum types can be combined. */
+inline PropertySubType operator|(const PropertySubType subtype, const PropertyUnit unit)
+{
+  return PropertySubType(int(subtype) | int(unit));
+}
+
+inline int operator&(const PropertySubType subtype, const PropertyUnit unit)
+{
+  return int(subtype) & int(unit);
+}
+
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1u << 31
  * FREE FLAGS: 13. */
