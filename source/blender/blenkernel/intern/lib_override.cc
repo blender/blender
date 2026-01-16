@@ -14,6 +14,8 @@
 #include <map>
 #include <optional>
 
+#include <fmt/format.h>
+
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -1959,40 +1961,70 @@ static void lib_override_root_hierarchy_set(
   }
 }
 
-static void lib_override_library_main_hierarchy_id_root_ensure(Main *bmain,
-                                                               ID *id,
-                                                               Set<ID *> &processed_ids)
+static void lib_override_library_main_hierarchy_id_root_ensure(
+    Main *bmain,
+    ID *id,
+    Set<ID *> &processed_ids,
+    LibOverride_HierarchyRoot_ValidateOptions options,
+    ReportList *reports)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
+
+  if (id->override_library->flag & LIBOVERRIDE_FLAG_NO_HIERARCHY) {
+    if (id->override_library->hierarchy_root != id) {
+      std::string error_msg = fmt::format(
+          "Existing isolated override '{}' has a non-null hierarchy root ('{}'), will be "
+          "cleared",
+          id->name,
+          id->override_library->hierarchy_root->name);
+      if (reports) {
+        BKE_report(reports, RPT_ERROR, error_msg.c_str());
+      }
+      else {
+        CLOG_ERROR(&LOG, "%s", error_msg.c_str());
+      }
+      id->override_library->hierarchy_root = nullptr;
+    }
+    return;
+  }
+
+  bool null_hierarchy_root_is_expected = false;
 
   if (id->override_library->hierarchy_root != nullptr) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id->override_library->hierarchy_root) ||
         id->override_library->hierarchy_root->lib != id->lib)
     {
-      CLOG_ERROR(
-          &LOG,
-          "Existing override hierarchy root ('%s') for ID '%s' is invalid, will try to find a "
-          "new valid one",
+      std::string error_msg = fmt::format(
+          "Existing override hierarchy root ('{}') for ID '{}' is invalid, will try to find a new "
+          "valid one",
           id->override_library->hierarchy_root != nullptr ?
               id->override_library->hierarchy_root->name :
               "<NONE>",
           id->name);
+      if (reports) {
+        BKE_report(reports, RPT_ERROR, error_msg.c_str());
+      }
+      else {
+        CLOG_ERROR(&LOG, "%s", error_msg.c_str());
+      }
       id->override_library->hierarchy_root = nullptr;
+      null_hierarchy_root_is_expected = true;
     }
     else if (!lib_override_root_is_valid(bmain, id)) {
       /* Serious invalid cases (likely resulting from bugs or invalid operations) should have
        * been caught by the first check above. Invalid hierarchy roots detected here can happen
        * in normal situations, e.g. when breaking a hierarchy by making one of its components
        * local. See also #137412. */
-      CLOG_DEBUG(
-          &LOG,
-          "Existing override hierarchy root ('%s') for ID '%s' is invalid, will try to find a "
-          "new valid one",
+      std::string error_msg = fmt::format(
+          "Existing override hierarchy root ('{}') for ID '{}' is invalid, will try to find a new "
+          "valid one",
           id->override_library->hierarchy_root != nullptr ?
               id->override_library->hierarchy_root->name :
               "<NONE>",
           id->name);
+      CLOG_DEBUG(&LOG, "%s", error_msg.c_str());
       id->override_library->hierarchy_root = nullptr;
+      null_hierarchy_root_is_expected = true;
     }
     else {
       /* This ID is considered as having a valid hierarchy root. */
@@ -2010,19 +2042,41 @@ static void lib_override_library_main_hierarchy_id_root_ensure(Main *bmain,
   if (!ELEM(id->override_library->hierarchy_root, id_root, nullptr)) {
     /* In case the detected hierarchy root does not match with the currently defined one, this is
      * likely an issue and is worth a warning. */
-    CLOG_WARN(&LOG,
-              "Potential inconsistency in library override hierarchy of ID '%s' (current root "
-              "%s), detected as part of the hierarchy of '%s' (current root '%s')",
-              id->name,
-              id->override_library->hierarchy_root != nullptr ?
-                  id->override_library->hierarchy_root->name :
-                  "<NONE>",
-              id_root->name,
-              id_root->override_library->hierarchy_root != nullptr ?
-                  id_root->override_library->hierarchy_root->name :
-                  "<NONE>");
+    std::string error_msg = fmt::format(
+        "Potential inconsistency in library override hierarchy of ID '{}' (current root "
+        "{}), detected as part of the hierarchy of '{}' (current root '{}')",
+        id->name,
+        id->override_library->hierarchy_root != nullptr ?
+            id->override_library->hierarchy_root->name :
+            "<NONE>",
+        id_root->name,
+        id_root->override_library->hierarchy_root != nullptr ?
+            id_root->override_library->hierarchy_root->name :
+            "<NONE>");
+    if (reports) {
+      BKE_report(reports, RPT_WARNING, error_msg.c_str());
+    }
+    else {
+      CLOG_WARN(&LOG, "%s", error_msg.c_str());
+    }
     processed_ids.add(id);
     return;
+  }
+
+  if (!id->override_library->hierarchy_root && !null_hierarchy_root_is_expected &&
+      (options & REPORT_NULL_ROOT_POINTERS) != 0)
+  {
+    std::string error_msg = fmt::format(
+        "Missing library override hierarchy root data for ID '{}', will be changed to use '{}' as "
+        "root.",
+        id->name,
+        id_root->name);
+    if (reports) {
+      BKE_report(reports, RPT_ERROR, error_msg.c_str());
+    }
+    else {
+      CLOG_ERROR(&LOG, "%s", error_msg.c_str());
+    }
   }
 
   lib_override_root_hierarchy_set(bmain, id_root, id, nullptr, processed_ids);
@@ -2030,7 +2084,8 @@ static void lib_override_library_main_hierarchy_id_root_ensure(Main *bmain,
   BLI_assert(id->override_library->hierarchy_root != nullptr);
 }
 
-void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
+void BKE_lib_override_library_main_hierarchy_root_ensure(
+    Main *bmain, LibOverride_HierarchyRoot_ValidateOptions options, ReportList *reports)
 {
   ID *id;
 
@@ -2043,7 +2098,12 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
       continue;
     }
 
-    lib_override_library_main_hierarchy_id_root_ensure(bmain, id, processed_ids);
+    if ((options & ONLY_PROCESS_NULL_ROOT_POINTERS) != 0 && id->override_library->hierarchy_root) {
+      processed_ids.add(id);
+      continue;
+    }
+
+    lib_override_library_main_hierarchy_id_root_ensure(bmain, id, processed_ids, options, reports);
   }
   FOREACH_MAIN_ID_END;
 
@@ -3705,7 +3765,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
         continue;
       }
 
-      lib_override_library_main_hierarchy_id_root_ensure(bmain, id, processed_ids);
+      lib_override_library_main_hierarchy_id_root_ensure(bmain, id, processed_ids, {}, nullptr);
     }
     FOREACH_MAIN_ID_END;
 
