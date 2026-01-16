@@ -95,7 +95,7 @@ DeviceInfo blender_device_info(blender::UserDef &b_preferences,
   for (blender::bAddon &b_addon : b_preferences.addons) {
     if (STREQ(b_addon.module, "cycles")) {
       blender::PointerRNA addon_rna_ptr = RNA_pointer_create_discrete(
-          nullptr, &blender::RNA_Addon, &b_addon);
+          nullptr, blender::RNA_Addon, &b_addon);
       cpreferences = RNA_pointer_get(&addon_rna_ptr, "preferences");
       break;
     }

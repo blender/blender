@@ -618,5 +618,6 @@ class BlenderGlTF():
 
         for idx_variant, variant in enumerate(gltf.data.extensions['KHR_materials_variants']['variants']):
             var = bpy.data.scenes[0].gltf2_KHR_materials_variants_variants.add()
-            var.name = variant['name']
+            # Make sure variant idx is set before name, as name setter uses variant_idx
             var.variant_idx = idx_variant
+            var.name = variant['name']

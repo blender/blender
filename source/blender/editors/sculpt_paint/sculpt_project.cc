@@ -11,6 +11,7 @@
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "WM_api.hh"
@@ -53,7 +54,7 @@ static void apply_projection_mesh(const Sculpt &sd,
                                   LocalData &tls,
                                   const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   const Span<int> verts = node.verts();
   const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
@@ -80,7 +81,7 @@ static void apply_projection_grids(const Sculpt &sd,
                                    Object &object,
                                    LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -112,7 +113,7 @@ static void apply_projection_bmesh(const Sculpt &sd,
                                    Object &object,
                                    LocalData &tls)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
@@ -170,7 +171,7 @@ static void gesture_apply_for_symmetry_pass(bContext &C, gesture::GestureData &g
           break;
         }
         case bke::pbvh::Type::Grids: {
-          SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+          SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
           MutableSpan<float3> positions = subdiv_ccg.positions;
           MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
           undo::push_nodes(depsgraph, object, node_mask, undo::Type::Position);

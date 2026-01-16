@@ -1199,8 +1199,7 @@ struct ProxyJob {
 static void proxy_freejob(void *pjv)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
-
-  MEM_freeN(pj);
+  MEM_delete(pj);
 }
 
 static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undistort)
@@ -1544,7 +1543,7 @@ static wmOperatorStatus clip_rebuild_proxy_exec(bContext *C, wmOperator * /*op*/
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_CLIP_BUILD_PROXY);
 
-  pj = MEM_callocN<ProxyJob>("proxy rebuild job");
+  pj = MEM_new<ProxyJob>("proxy rebuild job");
   pj->scene = scene;
   pj->main = CTX_data_main(C);
   pj->clip = clip;

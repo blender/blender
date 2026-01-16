@@ -54,9 +54,11 @@ def add_gltf_settings_to_menu(self, context):
 
 
 def on_variant_name_update(self, context):
-    already_used_names = [v.name for v in bpy.data.scenes[0].gltf2_KHR_materials_variants_variants
-                          if v != self]
-    self.name = find_unused_name(already_used_names, self.name)
+    already_used_names = [v.name for v in bpy.data.scenes[0].gltf2_KHR_materials_variants_variants]
+    already_used_names = [n for idx, n in enumerate(already_used_names) if idx != self.variant_idx]
+    proposed_name = find_unused_name(already_used_names, self.name)
+    if proposed_name != self.name:
+        self.name = find_unused_name(already_used_names, self.name)
 
 
 class gltf2_KHR_materials_variants_variant(bpy.types.PropertyGroup):

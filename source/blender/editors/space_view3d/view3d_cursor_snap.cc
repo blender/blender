@@ -587,7 +587,7 @@ static void v3d_cursor_snap_context_ensure(Scene *scene)
     data_intern->snap_context_v3d = nullptr;
   }
   if (data_intern->snap_context_v3d == nullptr) {
-    data_intern->snap_context_v3d = ed::transform::snap_object_context_create(scene, 0);
+    data_intern->snap_context_v3d = ed::transform::snap_object_context_create();
     data_intern->scene = scene;
   }
 }

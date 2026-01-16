@@ -122,7 +122,7 @@ float object_space_radius_get(const ViewContext &vc,
 
 bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   if (ss.shapekey_active && (ss.shapekey_active->flag & KEYBLOCK_LOCKED_SHAPE) != 0) {
     if (reports) {
@@ -136,7 +136,7 @@ bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
 
 void vert_random_access_ensure(Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   if (bke::object::pbvh_get(object)->type() == bke::pbvh::Type::BMesh) {
     BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
     BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
@@ -146,7 +146,7 @@ void vert_random_access_ensure(Object &object)
 
 int SCULPT_vertex_count_get(const Object &object)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
       BLI_assert(object.type == OB_MESH);
@@ -164,7 +164,7 @@ namespace ed::sculpt_paint {
 
 Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, const Object &object)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   BLI_assert(bke::object::pbvh_get(object)->type() == bke::pbvh::Type::Mesh);
   if (ss.shapekey_active) {
     /* Always grab active shape key if the sculpt happens on shapekey. */
@@ -191,7 +191,7 @@ namespace face_set {
 
 int active_face_set_get(const Object &object)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *id_cast<const Mesh *>(object.data);
@@ -480,7 +480,7 @@ namespace boundary {
 
 void ensure_boundary_info(Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   if (ss.boundary_info_cache) {
     return;
   }
@@ -867,7 +867,7 @@ namespace dyntopo {
 
 bool stroke_is_dyntopo(const Object &object, const Brush &brush)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   return ((pbvh.type() == bke::pbvh::Type::BMesh) && (!ss.cache || (!ss.cache->alt_smooth)) &&
           /* Requires mesh restore, which doesn't work with
@@ -888,7 +888,7 @@ namespace undo {
 
 static void restore_mask_from_undo_step(Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
@@ -996,7 +996,7 @@ static void restore_color_from_undo_step(Object &object)
 
 static void restore_face_set_from_undo_step(Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
@@ -1048,7 +1048,7 @@ static void restore_face_set_from_undo_step(Object &object)
 
 void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   IndexMaskMemory memory;
 
@@ -1164,7 +1164,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
 
 static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd, Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   switch (brush->sculpt_brush_type) {
@@ -1391,7 +1391,7 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
                                                   SampleLocalData &tls,
                                                   AreaNormalCenterData &anctd)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
   const float position_radius = area_normal_and_center_get_position_radius(ss, brush);
@@ -1479,7 +1479,7 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
                                                    SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
   const float position_radius = area_normal_and_center_get_position_radius(ss, brush);
@@ -1589,7 +1589,7 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
                                                    SampleLocalData &tls,
                                                    AreaNormalCenterData &anctd)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const float3 &location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float3 &view_normal = ss.cache ? ss.cache->view_normal_symm : ss.cursor_view_normal;
   const float position_radius = area_normal_and_center_get_position_radius(ss, brush);
@@ -1754,7 +1754,7 @@ void calc_area_center(const Depsgraph &depsgraph,
                       float r_area_co[3])
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  const SculptSession &ss = *ob.sculpt;
+  const SculptSession &ss = *ob.runtime->sculpt_session;
   int n;
 
   AreaNormalCenterData anctd;
@@ -1854,7 +1854,7 @@ std::optional<float3> calc_area_normal(const Depsgraph &depsgraph,
                                        const Object &ob,
                                        const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
   AreaNormalCenterData anctd;
@@ -2051,7 +2051,7 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
                                  float r_area_no[3],
                                  float r_area_co[3])
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   int n;
 
@@ -2471,7 +2471,7 @@ bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
 
 static IndexMask pbvh_gather_cursor_update(Object &ob, bool use_original, IndexMaskMemory &memory)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const float3 center = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
@@ -2486,7 +2486,7 @@ static IndexMask pbvh_gather_generic(Object &ob,
                                      const float radius_scale,
                                      IndexMaskMemory &memory)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
   const float3 center = ss.cache->location_symm;
@@ -2567,7 +2567,7 @@ static float3 calc_sculpt_normal(const Depsgraph &depsgraph,
                                  const IndexMask &node_mask)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  const SculptSession &ss = *ob.sculpt;
+  const SculptSession &ss = *ob.runtime->sculpt_session;
   switch (brush.sculpt_plane) {
     case SCULPT_DISP_DIR_AREA:
       return calc_area_normal(depsgraph, brush, ob, node_mask).value_or(float3(0));
@@ -2590,7 +2590,7 @@ static void update_sculpt_normal(const Depsgraph &depsgraph,
                                  const brushes::CursorSampleResult &cursor_sample_result)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  StrokeCache &cache = *ob.sculpt->cache;
+  StrokeCache &cache = *ob.runtime->sculpt_session->cache;
   /* Grab brush does not update the sculpt normal during a stroke. */
   const bool update_normal = !(brush.flag & BRUSH_ORIGINAL_NORMAL) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB) &&
@@ -2644,7 +2644,7 @@ static void calc_brush_local_mat(const float rotation,
                                  float local_mat[4][4],
                                  float local_mat_inv[4][4])
 {
-  const StrokeCache *cache = ob.sculpt->cache;
+  const StrokeCache *cache = ob.runtime->sculpt_session->cache;
   float tmat[4][4];
   float mat[4][4];
   float scale[4][4];
@@ -2743,7 +2743,7 @@ float3 tilt_effective_normal_get(const SculptSession &ss, const Brush &brush)
 static void update_brush_local_mat(const Sculpt &sd, Object &ob)
 {
   using namespace blender::ed::sculpt_paint;
-  StrokeCache *cache = ob.sculpt->cache;
+  StrokeCache *cache = ob.runtime->sculpt_session->cache;
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
     const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -2931,7 +2931,7 @@ void calc_brush_plane(const Depsgraph &depsgraph,
                       float3 &r_area_no,
                       float3 &r_area_co)
 {
-  const SculptSession &ss = *ob.sculpt;
+  const SculptSession &ss = *ob.runtime->sculpt_session;
 
   r_area_no = float3(0.0f);
   r_area_co = float3(0.0f);
@@ -3030,7 +3030,7 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
                                     const Brush &brush,
                                     PaintModeSettings & /*paint_mode_settings*/)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
@@ -3142,7 +3142,7 @@ static brushes::CursorSampleResult calc_brush_node_mask(const Depsgraph &depsgra
                                                         const Brush &brush,
                                                         IndexMaskMemory &memory)
 {
-  const SculptSession &ss = *ob.sculpt;
+  const SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
   const bool use_original = brush_type_needs_original(brush.sculpt_brush_type) ? true :
@@ -3184,7 +3184,7 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
                             const Brush &brush,
                             const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bool need_coords = ss.cache->supports_gravity;
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {
@@ -3218,7 +3218,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
                             const Brush &brush,
                             PaintModeSettings &paint_mode_settings)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   IndexMaskMemory memory;
   IndexMask texnode_mask;
 
@@ -3556,7 +3556,7 @@ static void do_tiled(const Depsgraph &depsgraph,
                      PaintModeSettings &paint_mode_settings,
                      const BrushActionFunc action)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
   const float radius = cache->radius;
   const Bounds<float3> bb = *BKE_object_boundbox_get(&ob);
@@ -3625,7 +3625,7 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
                                const int axis,
                                const float /*feather*/)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const Mesh &mesh = *id_cast<Mesh *>(ob.data);
 
   for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
@@ -3642,11 +3642,11 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
  */
 static void sculpt_fix_noise_tear(const Sculpt &sd, Object &ob)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const MTex *mtex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
 
-  if (ss.multires.active && mtex->tex && mtex->tex->type == TEX_NOISE) {
+  if (ss.multires_modifier && mtex->tex && mtex->tex->type == TEX_NOISE) {
     multires_stitch_grids(&ob);
   }
 }
@@ -3660,7 +3660,7 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const Mesh &mesh = *id_cast<Mesh *>(ob.data);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
@@ -4018,7 +4018,7 @@ static void brush_delta_update(const Depsgraph &depsgraph,
                                const Brush &brush)
 {
   bke::PaintRuntime &paint_runtime = *paint.runtime;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   StrokeCache *cache = ss.cache;
   const float mval[2] = {
@@ -4216,7 +4216,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt &sd,
                                            const Object &object,
                                            int stroke_mode)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(object);
   if (pbvh && auto_mask::is_enabled(sd, object, &brush)) {
     return true;
@@ -4242,7 +4242,7 @@ void SCULPT_stroke_modifiers_check(
     Depsgraph &depsgraph, RegionView3D *rv3d, const Sculpt &sd, Object &ob, const Brush *brush)
 {
   using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   bool need_pmap = brush && sculpt_needs_connectivity_info(sd, *brush, ob, 0);
   if (ss.shapekey_active || ss.deform_modifiers_active ||
@@ -4465,7 +4465,7 @@ float raycast_init(ViewContext *vc,
 std::optional<ActiveElementInfo> active_element_info_get(ViewContext &vc, const float2 &mval)
 {
   Object &ob = *vc.obact;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
 
@@ -4560,7 +4560,7 @@ bool cursor_geometry_info_update(Depsgraph &depsgraph,
   bool original = false;
 
   Object &ob = *vc.obact;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob);
 
@@ -4581,7 +4581,7 @@ bool cursor_geometry_info_update(Depsgraph &depsgraph,
   RaycastData srd{};
   srd.use_original = original;
   srd.object = &ob;
-  srd.is_mid_stroke = ob.sculpt->cache != nullptr;
+  srd.is_mid_stroke = ob.runtime->sculpt_session->cache != nullptr;
   srd.hit = false;
   if (pbvh->type() == bke::pbvh::Type::Mesh) {
     const Mesh &mesh = *id_cast<const Mesh *>(ob.data);
@@ -4698,7 +4698,7 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
 {
   Object &ob = *vc.obact;
 
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache *cache = ss.cache;
   const bool original = force_original || ((cache) ? !cache->accum : false);
   const Brush *brush = BKE_paint_brush_for_read(&paint);
@@ -4721,7 +4721,7 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
   {
     RaycastData rd;
     rd.object = &ob;
-    rd.is_mid_stroke = ob.sculpt->cache != nullptr;
+    rd.is_mid_stroke = ob.runtime->sculpt_session->cache != nullptr;
     rd.ray_start = ray_start;
     rd.ray_normal = ray_normal;
     rd.hit = false;
@@ -4916,7 +4916,7 @@ static void brush_stroke_init(bContext *C)
   Object &ob = *CTX_data_active_object(C);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
   const Sculpt &sd = *tool_settings->sculpt;
-  SculptSession &ss = *CTX_data_active_object(C)->sculpt;
+  SculptSession &ss = *CTX_data_active_object(C)->runtime->sculpt_session;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   if (!G.background) {
@@ -4945,7 +4945,7 @@ static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
                                                 Object &ob)
 {
   using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   /* Brushes that use original coordinates and need a "restore" step. This has to happen separately
@@ -5047,8 +5047,8 @@ void flush_update_step(ViewContext &vc, Object &object, const UpdateType update_
     vc.rv3d->rflag |= RV3D_PAINTING;
   }
 
-  const SculptSession &ss = *object.sculpt;
-  const MultiresModifierData *mmd = ss.multires.modifier;
+  const SculptSession &ss = *object.runtime->sculpt_session;
+  const MultiresModifierData *mmd = ss.multires_modifier;
   if (mmd != nullptr) {
     multires_mark_as_modified(vc.depsgraph, &object, MULTIRES_COORDS_MODIFIED);
   }
@@ -5152,7 +5152,7 @@ void flush_update_done(ViewContext &vc,
 
   if (update_type == UpdateType::Position) {
     if (pbvh.type() == bke::pbvh::Type::BMesh) {
-      SculptSession &ss = *ob.sculpt;
+      SculptSession &ss = *ob.runtime->sculpt_session;
       BKE_pbvh_bmesh_after_stroke(*ss.bm, pbvh);
     }
   }
@@ -5434,7 +5434,7 @@ namespace ed::sculpt_paint {
 
 bool color_supported_check(const Scene &scene, Object &object, ReportList *reports)
 {
-  if (const SculptSession &ss = *object.sculpt; ss.bm) {
+  if (const SculptSession &ss = *object.runtime->sculpt_session; ss.bm) {
     BKE_report(reports, RPT_ERROR, "Not supported in dynamic topology mode");
     return false;
   }
@@ -5456,7 +5456,7 @@ void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
   ViewContext *vc = &this->vc;
   Object &ob = *this->object;
 
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   ss.cache = cache;
 
@@ -5641,7 +5641,7 @@ void SculptPaintStroke::stroke_cache_update(PointerRNA *ptr)
   const Depsgraph &depsgraph = *this->depsgraph;
   Paint &paint = *this->paint;
   bke::PaintRuntime &paint_runtime = *paint.runtime;
-  SculptSession &ss = *this->object->sculpt;
+  SculptSession &ss = *this->object->runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
   Brush &brush = *BKE_paint_brush(&paint);
 
@@ -5741,7 +5741,7 @@ void SculptPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   Depsgraph &depsgraph = *this->depsgraph;
   Sculpt &sd = *sculpt_;
   Object &ob = *this->object;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   StrokeCache *cache = ss.cache;
   cache->stroke_distance = this->stroke_distance();
@@ -5794,7 +5794,7 @@ static void brush_exit_tex(Sculpt &sd)
 void SculptPaintStroke::done(bool is_cancel)
 {
   Object &ob = *this->object;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   Sculpt &sd = *this->sculpt_;
 
   /* Finished. */
@@ -6018,7 +6018,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 static void fake_neighbor_init(Object &object, const float max_dist)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const int totvert = SCULPT_vertex_count_get(object);
   ss.fake_neighbors.fake_neighbor_index = Array<int>(totvert, FAKE_NEIGHBOR_NONE);
   ss.fake_neighbors.current_max_distance = max_dist;
@@ -6139,7 +6139,7 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
 {
   /* NOTE: This algorithm is extremely slow, it has O(n^2) runtime for the entire mesh. This looks
    * like the "closest pair of points" problem which should have far better solutions. */
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
   switch (pbvh.type()) {
@@ -6285,7 +6285,7 @@ Span<int> SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph,
                                        const float max_dist)
 {
   using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   /* Fake neighbors were already initialized with the same distance, so no need to be
    * recalculated. */
@@ -6305,7 +6305,7 @@ Span<int> SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph,
 void SCULPT_fake_neighbors_free(Object &ob)
 {
   using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   pose_fake_neighbors_free(ss);
 }
 
@@ -6315,7 +6315,7 @@ bool vertex_is_occluded(const Depsgraph &depsgraph,
                         const float3 &position,
                         bool original)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   ViewContext *vc = ss.cache ? ss.cache->vc : &ss.filter_cache->vc;
 
@@ -6434,7 +6434,7 @@ static SculptTopologyIslandCache calc_topology_islands_mesh(const Mesh &mesh)
  */
 static SculptTopologyIslandCache calc_topology_islands_grids(const Object &object)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   AtomicDisjointSet disjoint_set(subdiv_ccg.positions.size());
@@ -6459,7 +6459,7 @@ static SculptTopologyIslandCache calc_topology_islands_grids(const Object &objec
 
 static SculptTopologyIslandCache calc_topology_islands_bmesh(const Object &object)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   BMesh &bm = *ss.bm;
@@ -6501,7 +6501,7 @@ static SculptTopologyIslandCache calculate_cache(const Object &object)
 
 void ensure_cache(Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   if (ss.topology_island_cache) {
     return;
   }
@@ -6516,7 +6516,7 @@ void SCULPT_cube_tip_init(const Sculpt & /*sd*/,
                           float mat[4][4])
 {
   using namespace blender::ed::sculpt_paint;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   float scale[4][4];
   float tmat[4][4];
   float unused[4][4];
@@ -6728,7 +6728,7 @@ void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
                                       const MutableSpan<float> factors,
                                       const MutableSpan<float> distances)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -6760,7 +6760,7 @@ void calc_factors_common_mesh(const Depsgraph &depsgraph,
                               Vector<float> &r_factors,
                               Vector<float> &r_distances)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -6793,7 +6793,7 @@ void calc_factors_common_grids(const Depsgraph &depsgraph,
                                Vector<float> &r_factors,
                                Vector<float> &r_distances)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -6827,7 +6827,7 @@ void calc_factors_common_bmesh(const Depsgraph &depsgraph,
                                Vector<float> &r_factors,
                                Vector<float> &r_distances)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -6862,7 +6862,7 @@ void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
                                              Vector<float> &r_factors,
                                              Vector<float> &r_distances)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -6897,7 +6897,7 @@ void calc_factors_common_from_orig_data_grids(const Depsgraph &depsgraph,
                                               Vector<float> &r_factors,
                                               Vector<float> &r_distances)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -6932,7 +6932,7 @@ void calc_factors_common_from_orig_data_bmesh(const Depsgraph &depsgraph,
                                               Vector<float> &r_factors,
                                               Vector<float> &r_distances)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -7631,8 +7631,8 @@ PositionDeformData::PositionDeformData(const Depsgraph &depsgraph, Object &objec
   Mesh &mesh = *id_cast<Mesh *>(object_orig.data);
   this->eval = bke::pbvh::vert_positions_eval(depsgraph, object_orig);
 
-  if (!object_orig.sculpt->deform_imats.is_empty()) {
-    deform_imats_ = object_orig.sculpt->deform_imats;
+  if (!object_orig.runtime->sculpt_session->deform_imats.is_empty()) {
+    deform_imats_ = object_orig.runtime->sculpt_session->deform_imats;
   }
   orig_ = mesh.vert_positions_for_write();
 

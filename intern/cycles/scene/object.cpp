@@ -340,7 +340,7 @@ float Object::compute_volume_step_size() const
       if (attr.element == ATTR_ELEMENT_VOXEL) {
         ImageHandle &handle = attr.data_voxel();
         const ImageMetaData &metadata = handle.metadata();
-        if (metadata.byte_size == 0) {
+        if (metadata.nanovdb_byte_size == 0) {
           continue;
         }
 

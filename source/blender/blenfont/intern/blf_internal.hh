@@ -207,6 +207,20 @@ GlyphBLF *blf_glyph_ensure_icon(GlyphCacheBLF *gc,
                                 bool color = false,
                                 FunctionRef<void(std::string &)> edit_source_cb = nullptr);
 
+/* blf_glyph.cc */
+void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int x, int y);
+
+#ifdef FT_FREETYPE_H
+FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode);
+FT_GlyphSlot blf_glyph_render_outline(FontBLF *settings_font,
+                                      FontBLF *glyph_font,
+                                      FT_UInt glyph_index,
+                                      uint charcode,
+                                      int fixed_width);
+#endif
+
+/* blf_glyph_curves.cc */
+
 /**
  * Convert a character's outlines into curves.
  * \return success if the character was found and converted.
@@ -217,8 +231,6 @@ bool blf_character_to_curves(FontBLF *font,
                              const float scale,
                              bool use_fallback,
                              float *r_advance);
-
-void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int x, int y);
 
 }  // namespace blender
 

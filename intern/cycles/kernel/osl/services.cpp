@@ -6,6 +6,7 @@
  * here, so for now we just put here. In the future it might be better
  * to have dedicated file for such tweaks.
  */
+#include "util/types_image.h"
 #if (defined(__GNUC__) && !defined(__clang__)) && defined(NDEBUG)
 #  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #  pragma GCC diagnostic ignored "-Wuninitialized"
@@ -13,9 +14,9 @@
 
 #include <cstring>
 
-#include "scene/colorspace.h"
 #include "scene/object.h"
 
+#include "util/colorspace.h"
 #include "util/log.h"
 #include "util/string.h"
 
@@ -40,7 +41,7 @@
 #include "kernel/svm/bevel.h"
 
 #include "kernel/util/ies.h"
-#include "kernel/util/texture_3d.h"
+#include "kernel/util/image_3d.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -1168,11 +1169,10 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
 
       float4 rgba;
       if (id == -1) {
-        rgba = make_float4(
-            TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
+        rgba = IMAGE_MISSING_RGBA;
       }
       else {
-        rgba = kernel_tex_image_interp(kernel_globals, id, s, 1.0f - t);
+        rgba = kernel_image_interp(kernel_globals, id, s, 1.0f - t);
       }
 
       result[0] = rgba[0];
@@ -1286,7 +1286,7 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
       /* Packed texture. */
       const int slot = handle->svm_slots[0].y;
       const float3 P_float3 = make_float3(P.x, P.y, P.z);
-      float4 rgba = kernel_tex_image_interp_3d(
+      float4 rgba = kernel_image_interp_3d(
           kernel_globals, globals->sd, slot, P_float3, INTERPOLATION_NONE, false);
 
       result[0] = rgba[0];

@@ -233,6 +233,11 @@ endif()
 # ------------------------------------------------------------------------------
 
 add_blender_test(
+  script_pyapi_bpy_app
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_app.py
+)
+
+add_blender_test(
   script_pyapi_bpy_app_tempdir
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_app_tempdir.py
 )
@@ -1492,6 +1497,7 @@ if(WITH_UI_TESTS)
   # list explicitly so changes bisecting/updated are sure to re-run CMake.
   set(_ui_tests
     test_sculpt.asset_shelf_brush_selection
+    test_sculpt.mask_expand_and_invert
     test_tools.sculpt_mode_toolbar
     test_undo.compositor_make_group
     test_undo.text_editor_edit_mode_mix

@@ -986,7 +986,7 @@ static PointerRNA rnapointer_pchan_to_bone(const PointerRNA &pchan_ptr)
   BLI_assert(GS(static_cast<ID *>(object->data)->name) == ID_AR);
   bArmature *armature = id_cast<bArmature *>(object->data);
 
-  return RNA_pointer_create_discrete(&armature->id, &RNA_Bone, pchan->bone);
+  return RNA_pointer_create_discrete(&armature->id, RNA_Bone, pchan->bone);
 }
 
 static void ui_context_selected_bones_via_pose(bContext *C, Vector<PointerRNA> *r_lb)
@@ -1014,7 +1014,7 @@ static void ui_context_fcurve_modifiers_via_fcurve(bContext *C,
     const FCurve *fcu = static_cast<const FCurve *>(ptr.data);
     for (FModifier &mod : fcu->modifiers) {
       if (STREQ(mod.name, source->name) && mod.type == source->type) {
-        r_lb->append(RNA_pointer_create_discrete(ptr.owner_id, &RNA_FModifier, &mod));
+        r_lb->append(RNA_pointer_create_discrete(ptr.owner_id, RNA_FModifier, &mod));
         /* Since names are unique it is safe to break here. */
         break;
       }
@@ -1033,7 +1033,7 @@ static void ui_context_selected_key_blocks(ID *owner_id_key, Vector<PointerRNA> 
     /* This does not use the function `shape_key_is_selected` since that would include the active
      * shapekey which is not required for this function to work. */
     if (key_block.flag & KEYBLOCK_SEL) {
-      r_lb->append(RNA_pointer_create_discrete(owner_id_key, &RNA_ShapeKey, &key_block));
+      r_lb->append(RNA_pointer_create_discrete(owner_id_key, RNA_ShapeKey, &key_block));
     }
   }
 }
@@ -1060,13 +1060,12 @@ bool context_copy_to_selected_list(bContext *C,
    *
    * Properties owned by the ID are handled by the 'if (ptr->owner_id)' case below.
    */
-  if (is_rna && RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
+  if (is_rna && RNA_struct_is_a(ptr->type, RNA_PropertyGroup)) {
     PointerRNA owner_ptr;
     std::optional<std::string> idpath;
 
     /* First, check the active PoseBone and PoseBone->Bone. */
-    if (NOT_RNA_NULL(owner_ptr = CTX_data_pointer_get_type(C, "active_pose_bone", &RNA_PoseBone)))
-    {
+    if (NOT_RNA_NULL(owner_ptr = CTX_data_pointer_get_type(C, "active_pose_bone", RNA_PoseBone))) {
       idpath = RNA_path_from_struct_to_idproperty(&owner_ptr,
                                                   static_cast<const IDProperty *>(ptr->data));
       if (idpath) {
@@ -1085,7 +1084,7 @@ bool context_copy_to_selected_list(bContext *C,
     if (!idpath) {
       /* Check the active EditBone if in edit mode. */
       if (NOT_RNA_NULL(
-              owner_ptr = CTX_data_pointer_get_type_silent(C, "active_bone", &RNA_EditBone)))
+              owner_ptr = CTX_data_pointer_get_type_silent(C, "active_bone", RNA_EditBone)))
       {
         idpath = RNA_path_from_struct_to_idproperty(&owner_ptr,
                                                     static_cast<const IDProperty *>(ptr->data));
@@ -1103,7 +1102,7 @@ bool context_copy_to_selected_list(bContext *C,
     }
   }
 
-  if (RNA_struct_is_a(ptr->type, &RNA_EditBone)) {
+  if (RNA_struct_is_a(ptr->type, RNA_EditBone)) {
     /* Special case when we do this for #edit_bone.lock.
      * (if the edit_bone is locked, it is not included in "selected_editable_bones"). */
     const char *prop_id = RNA_property_identifier(prop);
@@ -1114,16 +1113,16 @@ bool context_copy_to_selected_list(bContext *C,
       *r_lb = CTX_data_collection_get(C, "selected_editable_bones");
     }
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_PoseBone)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_PoseBone)) {
     *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Bone)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_Bone)) {
     /* "selected_bones" or "selected_editable_bones" will only yield anything in Armature Edit
      * mode. In other modes, it'll be empty, and the only way to get the selected bones is via
      * "selected_pose_bones". */
     ui_context_selected_bones_via_pose(C, r_lb);
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_BoneColor)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_BoneColor)) {
     /* Get the things that own the bone color (bones, pose bones, or edit bones). */
     /* First this will be bones, then gets remapped to colors. */
     Vector<PointerRNA> list_of_things = {};
@@ -1164,7 +1163,7 @@ bool context_copy_to_selected_list(bContext *C,
 
     *r_lb = list_of_things;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Strip)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_Strip)) {
     /* Special case when we do this for 'Strip.lock'.
      * (if the strip is locked, it won't be in "selected_editable_strips"). */
     const char *prop_id = RNA_property_identifier(prop);
@@ -1180,46 +1179,46 @@ bool context_copy_to_selected_list(bContext *C,
       ensure_list_items_contain_prop = true;
     }
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_FCurve)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_FCurve)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_fcurves");
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_FModifier)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_FModifier)) {
     FModifier *mod = static_cast<FModifier *>(ptr->data);
     ui_context_fcurve_modifiers_via_fcurve(C, r_lb, mod);
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Keyframe)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_Keyframe)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_keyframes");
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Action)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_Action)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_actions");
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_NlaStrip)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_NlaStrip)) {
     *r_lb = CTX_data_collection_get(C, "selected_nla_strips");
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_MovieTrackingTrack)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_MovieTrackingTrack)) {
     *r_lb = CTX_data_collection_get(C, "selected_movieclip_tracks");
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_ShapeKey)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_ShapeKey)) {
     ui_context_selected_key_blocks(ptr->owner_id, r_lb);
   }
   else if (const std::optional<std::string> path_from_bone =
-               RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_PoseBone);
-           RNA_struct_is_a(ptr->type, &RNA_Constraint) && path_from_bone)
+               RNA_path_resolve_from_type_to_property(ptr, prop, RNA_PoseBone);
+           RNA_struct_is_a(ptr->type, RNA_Constraint) && path_from_bone)
   {
     *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
     *r_path = path_from_bone;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Node) || RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_Node) || RNA_struct_is_a(ptr->type, RNA_NodeSocket)) {
     Vector<PointerRNA> lb;
     std::optional<std::string> path;
     bNode *node = nullptr;
 
     /* Get the node we're editing */
-    if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
+    if (RNA_struct_is_a(ptr->type, RNA_NodeSocket)) {
       bNodeTree *ntree = id_cast<bNodeTree *>(ptr->owner_id);
       bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
       node = &bke::node_find_node(*ntree, *sock);
-      path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node);
+      path = RNA_path_resolve_from_type_to_property(ptr, prop, RNA_Node);
       if (path) {
         /* we're good! */
       }
@@ -1247,7 +1246,7 @@ bool context_copy_to_selected_list(bContext *C,
     *r_lb = lb;
     *r_path = path;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_AssetMetaData)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_AssetMetaData)) {
     /* Remap from #AssetRepresentation to #AssetMetaData. */
     Vector<PointerRNA> list_of_things = CTX_data_collection_get(C, "selected_assets");
     CTX_data_collection_remap_property(list_of_things, "metadata");
@@ -1316,7 +1315,7 @@ bool context_copy_to_selected_list(bContext *C,
       /* Sequencer's ID is scene :/ */
       /* Try to recursively find an RNA_Strip ancestor,
        * to handle situations like #41062... */
-      *r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Strip);
+      *r_path = RNA_path_resolve_from_type_to_property(ptr, prop, RNA_Strip);
       if (r_path->has_value()) {
         /* Special case when we do this for 'Strip.lock'.
          * (if the strip is locked, it won't be in "selected_editable_strips"). */
@@ -1456,8 +1455,8 @@ bool context_copy_to_selected_check(PointerRNA *ptr,
    *      then])
    */
   bool ignore_prop_eq = RNA_property_is_idprop(lprop) && RNA_property_is_idprop(prop);
-  if (RNA_struct_is_a(lptr.type, &RNA_NodesModifier) &&
-      RNA_struct_is_a(ptr->type, &RNA_NodesModifier))
+  if (RNA_struct_is_a(lptr.type, RNA_NodesModifier) &&
+      RNA_struct_is_a(ptr->type, RNA_NodesModifier))
   {
     ignore_prop_eq = false;
 
@@ -1868,14 +1867,14 @@ static bool jump_to_target_ptr(bContext *C, PointerRNA ptr, const bool poll)
   char bone_name[MAXBONENAME];
   const StructRNA *target_type = nullptr;
 
-  if (ELEM(ptr.type, &RNA_EditBone, &RNA_PoseBone, &RNA_Bone)) {
+  if (ELEM(ptr.type, RNA_EditBone, RNA_PoseBone, RNA_Bone)) {
     RNA_string_get(&ptr, "name", bone_name);
     if (bone_name[0] != '\0') {
-      target_type = &RNA_Bone;
+      target_type = RNA_Bone;
     }
   }
-  else if (RNA_struct_is_a(ptr.type, &RNA_Object)) {
-    target_type = &RNA_Object;
+  else if (RNA_struct_is_a(ptr.type, RNA_Object)) {
+    target_type = RNA_Object;
   }
 
   if (target_type == nullptr) {
@@ -1896,7 +1895,7 @@ static bool jump_to_target_ptr(bContext *C, PointerRNA ptr, const bool poll)
   }
 
   bool ok = false;
-  if ((base == nullptr) || ((target_type == &RNA_Bone) && (base->object->type != OB_ARMATURE))) {
+  if ((base == nullptr) || ((target_type == RNA_Bone) && (base->object->type != OB_ARMATURE))) {
     /* pass */
   }
   else if (poll) {
@@ -1906,10 +1905,10 @@ static bool jump_to_target_ptr(bContext *C, PointerRNA ptr, const bool poll)
     /* Make optional. */
     const bool reveal_hidden = true;
     /* Select and activate the target. */
-    if (target_type == &RNA_Bone) {
+    if (target_type == RNA_Bone) {
       ok = ed::object::jump_to_bone(C, base->object, bone_name, reveal_hidden);
     }
-    else if (target_type == &RNA_Object) {
+    else if (target_type == RNA_Object) {
       ok = ed::object::jump_to_object(C, base->object, reveal_hidden);
     }
     else {
@@ -2917,13 +2916,13 @@ static void UI_OT_view_item_delete(wmOperatorType *ot)
 
 static bool ui_drop_material_poll(bContext *C)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "object", &RNA_Object);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "object", RNA_Object);
   const Object *ob = static_cast<const Object *>(ptr.data);
   if (ob == nullptr) {
     return false;
   }
 
-  PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", &RNA_MaterialSlot);
+  PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", RNA_MaterialSlot);
   if (RNA_pointer_is_null(&mat_slot)) {
     return false;
   }
@@ -2941,11 +2940,11 @@ static wmOperatorStatus ui_drop_material_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "object", &RNA_Object);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "object", RNA_Object);
   Object *ob = static_cast<Object *>(ptr.data);
   BLI_assert(ob);
 
-  PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", &RNA_MaterialSlot);
+  PointerRNA mat_slot = CTX_data_pointer_get_type(C, "material_slot", RNA_MaterialSlot);
   BLI_assert(mat_slot.data);
   const int target_slot = RNA_int_get(&mat_slot, "slot_index") + 1;
 

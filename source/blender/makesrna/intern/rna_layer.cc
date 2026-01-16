@@ -58,7 +58,7 @@ static PointerRNA rna_ViewLayer_active_layer_collection_get(PointerRNA *ptr)
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
   BKE_view_layer_synced_ensure(scene, view_layer);
   LayerCollection *lc = BKE_view_layer_active_collection_get(view_layer);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_LayerCollection, lc);
+  return RNA_pointer_create_with_parent(*ptr, RNA_LayerCollection, lc);
 }
 
 static void rna_ViewLayer_active_layer_collection_set(PointerRNA *ptr,
@@ -202,7 +202,7 @@ static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
     Scene *scene = id_cast<Scene *>(id);
     ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
-    return RNA_pointer_create_with_parent(*ptr, &RNA_Depsgraph, depsgraph);
+    return RNA_pointer_create_with_parent(*ptr, RNA_Depsgraph, depsgraph);
   }
   return PointerRNA_NULL;
 }
@@ -405,7 +405,7 @@ static bool rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, Poi
   if (!child) {
     return false;
   }
-  rna_pointer_create_with_ancestors(*ptr, &RNA_LayerCollection, child, *r_ptr);
+  rna_pointer_create_with_ancestors(*ptr, RNA_LayerCollection, child, *r_ptr);
   return true;
 }
 
@@ -421,7 +421,7 @@ static bool rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
 
   for (LayerCollection &child : lc->layer_collections) {
     if (STREQ(child.collection->id.name + 2, key)) {
-      rna_pointer_create_with_ancestors(*ptr, &RNA_LayerCollection, &child, *r_ptr);
+      rna_pointer_create_with_ancestors(*ptr, RNA_LayerCollection, &child, *r_ptr);
       return true;
     }
   }

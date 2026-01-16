@@ -18,6 +18,8 @@
 
 #include "WM_api.hh"
 
+#include "CLG_log.h"
+
 namespace blender {
 
 const EnumPropertyItem rna_enum_node_socket_type_items[] = {
@@ -75,6 +77,8 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 #  include "ED_node.hh"
 
 namespace blender {
+
+static CLG_LogRef LOG = {"rna.node"};
 
 extern FunctionRNA rna_NodeSocket_draw_func;
 extern FunctionRNA rna_NodeSocket_draw_color_func;
@@ -183,7 +187,7 @@ static StructRNA *rna_NodeSocket_register(Main *bmain,
   dummy_st.type = SOCK_CUSTOM;
 
   dummy_sock.typeinfo = &dummy_st;
-  PointerRNA dummy_sock_ptr = RNA_pointer_create_discrete(nullptr, &RNA_NodeSocket, &dummy_sock);
+  PointerRNA dummy_sock_ptr = RNA_pointer_create_discrete(nullptr, RNA_NodeSocket, &dummy_sock);
 
   /* validate the python class */
   if (validate(&dummy_sock_ptr, data, have_function) != 0) {
@@ -216,7 +220,7 @@ static StructRNA *rna_NodeSocket_register(Main *bmain,
     RNA_struct_free(&RNA_blender_rna_get(), srna);
   }
   st->ext_socket.srna = RNA_def_struct_ptr(
-      &RNA_blender_rna_get(), st->idname.c_str(), &RNA_NodeSocket);
+      &RNA_blender_rna_get(), st->idname.c_str(), RNA_NodeSocket);
   st->ext_socket.data = data;
   st->ext_socket.call = call;
   st->ext_socket.free = free;
@@ -243,7 +247,7 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
     return sock->typeinfo->ext_socket.srna;
   }
   else {
-    return &RNA_NodeSocket;
+    return RNA_NodeSocket;
   }
 }
 
@@ -276,7 +280,7 @@ static PointerRNA rna_NodeSocket_node_get(PointerRNA *ptr)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
   bNode &node = bke::node_find_node(*ntree, *sock);
-  return RNA_pointer_create_discrete(&ntree->id, &RNA_Node, &node);
+  return RNA_pointer_create_discrete(&ntree->id, RNA_Node, &node);
 }
 
 static void rna_NodeSocket_type_set(PointerRNA *ptr, int value)
@@ -313,8 +317,15 @@ static int rna_NodeSocket_bl_idname_length(PointerRNA *ptr)
 
 static void rna_NodeSocket_bl_idname_set(PointerRNA *ptr, const char *value)
 {
-  bNodeSocket *node = static_cast<bNodeSocket *>(ptr->data);
-  bke::bNodeSocketType *ntype = node->typeinfo;
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  bke::bNodeSocketType *ntype = sock->typeinfo;
+
+  if (ntype->type != SOCK_CUSTOM) {
+    CLOG_ERROR(
+        &LOG, "Cannot modify 'bl_idname' of built-in socket type '%s'", ntype->idname.c_str());
+    return;
+  }
+
   ntype->idname = value;
 }
 
@@ -473,14 +484,14 @@ static void rna_NodeSocketStandard_draw(ID *id,
                                         PointerRNA *nodeptr,
                                         const char *text)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_NodeSocket, sock);
   sock->typeinfo->draw(C, layout, &ptr, nodeptr, text);
 }
 
 static void rna_NodeSocketStandard_draw_color(
     ID *id, bNodeSocket *sock, bContext *C, PointerRNA *nodeptr, float r_color[4])
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_NodeSocket, sock);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_NodeSocket, sock);
   sock->typeinfo->draw_color(C, &ptr, nodeptr, r_color);
 }
 
@@ -677,8 +688,7 @@ const EnumPropertyItem *RNA_node_enum_definition_itemf(const bke::RuntimeNodeEnu
      * The integer value is persistent and unique and should be used
      * when storing the enum value. */
     tmp.identifier = item.name.c_str();
-    /* TODO support icons in enum definition. */
-    tmp.icon = ICON_NONE;
+    tmp.icon = item.icon;
     tmp.name = item.name.c_str();
     tmp.description = item.description.c_str();
 
@@ -2168,6 +2178,7 @@ static const bNodeSocketStaticTypeInfo node_socket_subtypes[] = {
      SOCK_FLOAT,
      PROP_PERCENTAGE},
     {"NodeSocketFloatFactor", "NodeTreeInterfaceSocketFloatFactor", SOCK_FLOAT, PROP_FACTOR},
+    {"NodeSocketFloatMass", "NodeTreeInterfaceSocketFloatMass", SOCK_FLOAT, PROP_MASS},
     {"NodeSocketFloatAngle", "NodeTreeInterfaceSocketFloatAngle", SOCK_FLOAT, PROP_ANGLE},
     {"NodeSocketFloatTime", "NodeTreeInterfaceSocketFloatTime", SOCK_FLOAT, PROP_TIME},
     {"NodeSocketFloatTimeAbsolute",

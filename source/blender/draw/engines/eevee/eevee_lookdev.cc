@@ -37,10 +37,9 @@ LookdevWorld::LookdevWorld()
 
   using namespace bke;
 
-  world->nodetree = node_tree_add_tree_embedded(
-      nullptr, &world->id, "Lookdev World Nodetree", ntreeType_Shader->idname);
-
   bNodeTree &ntree = *world->nodetree;
+  /* Note: We can rename directly safely because #world is not part of any bmain. */
+  BLI_strncpy(ntree.id.name + 2, "Lookdev World Nodetree", MAX_NAME - 2);
 
   bNode &coordinate = *node_add_static_node(nullptr, ntree, SH_NODE_TEX_COORD);
   bNodeSocket &generated_sock = *node_find_socket(coordinate, SOCK_OUT, "Generated");

@@ -73,7 +73,7 @@ static PointerRNA rna_CacheFile_active_layer_get(PointerRNA *ptr)
 {
   CacheFile *cache_file = id_cast<CacheFile *>(ptr->owner_id);
   return RNA_pointer_create_with_parent(
-      *ptr, &RNA_CacheFileLayer, BKE_cachefile_get_active_layer(cache_file));
+      *ptr, RNA_CacheFileLayer, BKE_cachefile_get_active_layer(cache_file));
 }
 
 static void rna_CacheFile_active_layer_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)

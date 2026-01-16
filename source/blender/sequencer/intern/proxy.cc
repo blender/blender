@@ -14,7 +14,6 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -53,7 +52,7 @@
 namespace blender::seq {
 
 struct IndexBuildContext {
-  MovieProxyBuilder *proxy_builder = nullptr;
+  MovieProxyBuilder *movie_proxy_builder = nullptr;
 
   int tc_flags = 0;
   int size_flags = 0;
@@ -62,10 +61,8 @@ struct IndexBuildContext {
   int view_id = 0;
 
   Main *bmain = nullptr;
-  Depsgraph *depsgraph = nullptr;
   Scene *scene = nullptr;
-  Strip *strip = nullptr, *orig_seq = nullptr;
-  SessionUID orig_seq_uid;
+  Strip *strip = nullptr;
 };
 
 IMB_Proxy_Size rendersize_to_proxysize(eSpaceSeq_Proxy_RenderSize render_size)
@@ -98,7 +95,7 @@ float rendersize_to_scale_factor(eSpaceSeq_Proxy_RenderSize render_size)
   }
 }
 
-bool seq_proxy_get_custom_file_filepath(Strip *strip, char *filepath, const int view_id)
+bool seq_proxy_get_custom_file_filepath(const Strip *strip, char *filepath, const int view_id)
 {
   /* Ideally this would be #PROXY_MAXFILE however BLI_path_abs clamps to #FILE_MAX. */
   char filepath_temp[FILE_MAX];
@@ -114,9 +111,8 @@ bool seq_proxy_get_custom_file_filepath(Strip *strip, char *filepath, const int 
 
   if (view_id > 0) {
     SNPRINTF(suffix, "_%d", view_id);
-    /* TODO(sergey): This will actually append suffix after extension
-     * which is weird but how was originally coded in multi-view branch.
-     */
+    /* This will actually append suffix after extension
+     * which is weird but how was originally coded in multi-view branch. */
     BLI_snprintf(filepath, PROXY_MAXFILE, "%s_%s", filepath_temp, suffix);
   }
   else {
@@ -126,17 +122,17 @@ bool seq_proxy_get_custom_file_filepath(Strip *strip, char *filepath, const int 
   return true;
 }
 
-static bool seq_proxy_get_filepath(Scene *scene,
-                                   Strip *strip,
-                                   int timeline_frame,
-                                   eSpaceSeq_Proxy_RenderSize render_size,
-                                   char *filepath,
-                                   const int view_id)
+static bool seq_proxy_get_filepath_for_elem(const Scene *scene,
+                                            const Strip &strip,
+                                            const StripElem &strip_elem,
+                                            eSpaceSeq_Proxy_RenderSize render_size,
+                                            char *filepath,
+                                            const int view_id)
 {
   char dirpath[PROXY_MAXFILE];
   char suffix[24] = {'\0'};
   Editing *ed = editing_get(scene);
-  StripProxy *proxy = strip->data->proxy;
+  StripProxy *proxy = strip.data->proxy;
 
   if (proxy == nullptr) {
     return false;
@@ -151,7 +147,7 @@ static bool seq_proxy_get_filepath(Scene *scene,
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE &&
       ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE)
   {
-    if (seq_proxy_get_custom_file_filepath(strip, filepath, view_id)) {
+    if (seq_proxy_get_custom_file_filepath(&strip, filepath, view_id)) {
       return true;
     }
   }
@@ -169,10 +165,10 @@ static bool seq_proxy_get_filepath(Scene *scene,
   else {
     /* Pre strip with custom dir. */
     if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) {
-      STRNCPY(dirpath, strip->data->proxy->dirpath);
+      STRNCPY(dirpath, strip.data->proxy->dirpath);
     }
     else { /* Per strip default. */
-      SNPRINTF(dirpath, "%s" SEP_STR "BL_proxy", strip->data->dirpath);
+      SNPRINTF(dirpath, "%s" SEP_STR "BL_proxy", strip.data->dirpath);
     }
   }
 
@@ -184,10 +180,28 @@ static bool seq_proxy_get_filepath(Scene *scene,
                "%s" SEP_STR "images" SEP_STR "%d" SEP_STR "%s_proxy%s.jpg",
                dirpath,
                proxy_size_number,
-               render_give_stripelem(scene, strip, timeline_frame)->filename,
+               strip_elem.filename,
                suffix);
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
   return true;
+}
+
+static bool seq_proxy_get_filepath(Scene *scene,
+                                   Strip *strip,
+                                   int timeline_frame,
+                                   eSpaceSeq_Proxy_RenderSize render_size,
+                                   char *filepath,
+                                   const int view_id)
+{
+  if (strip->data->proxy == nullptr) {
+    return false;
+  }
+  return seq_proxy_get_filepath_for_elem(scene,
+                                         *strip,
+                                         *render_give_stripelem(scene, strip, timeline_frame),
+                                         render_size,
+                                         filepath,
+                                         view_id);
 }
 
 bool can_use_proxy(const RenderData *context, const Strip *strip, IMB_Proxy_Size psize)
@@ -259,75 +273,12 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
   return nullptr;
 }
 
-static void seq_proxy_build_frame(const RenderData *context,
-                                  SeqRenderState *state,
-                                  Strip *strip,
-                                  int timeline_frame,
-                                  int proxy_render_size,
-                                  const bool overwrite)
-{
-  char filepath[PROXY_MAXFILE];
-  ImBuf *ibuf;
-  Scene *scene = context->scene;
-
-  if (!seq_proxy_get_filepath(scene,
-                              strip,
-                              timeline_frame,
-                              eSpaceSeq_Proxy_RenderSize(proxy_render_size),
-                              filepath,
-                              context->view_id))
-  {
-    return;
-  }
-
-  if (!overwrite && BLI_exists(filepath)) {
-    return;
-  }
-
-  ImBuf *ibuf_tmp = seq_render_strip(context, state, strip, timeline_frame);
-
-  int rectx = (proxy_render_size * ibuf_tmp->x) / 100;
-  int recty = (proxy_render_size * ibuf_tmp->y) / 100;
-
-  if (ibuf_tmp->x != rectx || ibuf_tmp->y != recty) {
-    ibuf = IMB_scale_into_new(ibuf_tmp, rectx, recty, IMBScaleFilter::Nearest, true);
-    IMB_freeImBuf(ibuf_tmp);
-  }
-  else {
-    ibuf = ibuf_tmp;
-  }
-
-  const int quality = strip->data->proxy->quality;
-  const bool save_float = ibuf->float_buffer.data != nullptr;
-  ibuf->foptions.quality = quality;
-  if (save_float) {
-    /* Float image: save as EXR with FP16 data and DWAA compression. */
-    ibuf->ftype = IMB_FTYPE_OPENEXR;
-    ibuf->foptions.flag = OPENEXR_HALF | R_IMF_EXR_CODEC_DWAA;
-  }
-  else {
-    /* Byte image: save as JPG. */
-    ibuf->ftype = IMB_FTYPE_JPG;
-    if (ibuf->planes == 32) {
-      ibuf->planes = 24; /* JPGs do not support alpha. */
-    }
-  }
-  BLI_file_ensure_parent_dir_exists(filepath);
-
-  const bool ok = IMB_save_image(ibuf, filepath, save_float ? IB_float_data : IB_byte_data);
-  if (ok == false) {
-    perror(filepath);
-  }
-
-  IMB_freeImBuf(ibuf);
-}
-
 /**
  * Cache the result of #BKE_scene_multiview_view_prefix_get.
  */
 struct MultiViewPrefixVars {
   char prefix[FILE_MAX];
-  const char *ext;
+  char ext[FILE_MAXFILE];
 };
 
 /**
@@ -353,13 +304,17 @@ static bool seq_proxy_multiview_context_invalid(Strip *strip,
     if (view_id == 0) {
       /* Clear on first use. */
       prefix_vars->prefix[0] = '\0';
-      prefix_vars->ext = nullptr;
+      prefix_vars->ext[0] = '\0';
 
       char filepath[FILE_MAX];
       BLI_path_join(
           filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
       BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
-      BKE_scene_multiview_view_prefix_get(scene, filepath, prefix_vars->prefix, &prefix_vars->ext);
+      const char *ext_ptr = nullptr;
+      BKE_scene_multiview_view_prefix_get(scene, filepath, prefix_vars->prefix, &ext_ptr);
+      if (ext_ptr != nullptr) {
+        STRNCPY(prefix_vars->ext, ext_ptr);
+      }
     }
 
     if (prefix_vars->prefix[0] == '\0') {
@@ -426,12 +381,11 @@ static bool seq_proxy_need_rebuild(Strip *strip, MovieReader *anim)
 }
 
 bool proxy_rebuild_context(Main *bmain,
-                           Depsgraph *depsgraph,
                            Scene *scene,
                            Strip *strip,
                            Set<std::string> *processed_paths,
-                           ListBaseT<LinkData> *queue,
-                           bool build_only_on_bad_performance)
+                           bool build_only_on_bad_performance,
+                           Vector<IndexBuildContext *> &r_queue)
 {
   if (!strip->data || !strip->data->proxy) {
     return true;
@@ -471,10 +425,7 @@ bool proxy_rebuild_context(Main *bmain,
     context->overwrite = (strip_new->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0;
 
     context->bmain = bmain;
-    context->depsgraph = depsgraph;
     context->scene = scene;
-    context->orig_seq = strip;
-    context->orig_seq_uid = strip->runtime->session_uid;
     context->strip = strip_new;
 
     context->view_id = i; /* only for images */
@@ -483,115 +434,250 @@ bool proxy_rebuild_context(Main *bmain,
       strip_open_anim_file(scene, strip_new, true);
       anim = strip_new->runtime->movie_reader_get(i);
       if (anim) {
-        context->proxy_builder = MOV_proxy_builder_start(anim,
-                                                         IMB_Timecode_Type(context->tc_flags),
-                                                         context->size_flags,
-                                                         context->quality,
-                                                         context->overwrite,
-                                                         processed_paths,
-                                                         build_only_on_bad_performance);
+        context->movie_proxy_builder = MOV_proxy_builder_start(
+            anim,
+            IMB_Timecode_Type(context->tc_flags),
+            context->size_flags,
+            context->quality,
+            context->overwrite,
+            processed_paths,
+            build_only_on_bad_performance);
       }
-      if (!context->proxy_builder) {
+      if (!context->movie_proxy_builder) {
         MEM_freeN(context);
         return false;
       }
     }
 
-    LinkData *link = BLI_genericNodeN(context);
-    BLI_addtail(queue, link);
+    r_queue.append(context);
   }
 
   return true;
+}
+
+static void seq_proxy_build_frame(const Scene *scene,
+                                  const int view_id,
+                                  ImBuf *ibuf_full,
+                                  const Strip &strip,
+                                  const StripElem &strip_elem,
+                                  int proxy_render_size,
+                                  const bool overwrite)
+{
+  char filepath[PROXY_MAXFILE];
+
+  if (!seq_proxy_get_filepath_for_elem(scene,
+                                       strip,
+                                       strip_elem,
+                                       eSpaceSeq_Proxy_RenderSize(proxy_render_size),
+                                       filepath,
+                                       view_id))
+  {
+    return;
+  }
+
+  if (!overwrite && BLI_exists(filepath)) {
+    return;
+  }
+
+  const int rectx = (proxy_render_size * ibuf_full->x) / 100;
+  const int recty = (proxy_render_size * ibuf_full->y) / 100;
+
+  ImBuf *ibuf = ibuf_full;
+  if (ibuf_full->x != rectx || ibuf_full->y != recty) {
+    ibuf = IMB_scale_into_new(ibuf_full, rectx, recty, IMBScaleFilter::Nearest, true);
+  }
+
+  const int quality = strip.data->proxy->quality;
+  const bool save_float = ibuf->float_buffer.data != nullptr;
+  ibuf->foptions.quality = quality;
+  if (save_float) {
+    /* Float image: save as EXR with FP16 data and DWAA compression. */
+    ibuf->ftype = IMB_FTYPE_OPENEXR;
+    ibuf->foptions.flag = OPENEXR_HALF | R_IMF_EXR_CODEC_DWAA;
+  }
+  else {
+    /* Byte image: save as JPG. */
+    ibuf->ftype = IMB_FTYPE_JPG;
+    if (ibuf->planes == 32) {
+      ibuf->planes = 24; /* JPGs do not support alpha. */
+    }
+  }
+  BLI_file_ensure_parent_dir_exists(filepath);
+
+  const bool ok = IMB_save_image(ibuf, filepath, save_float ? IB_float_data : IB_byte_data);
+  if (ok == false) {
+    perror(filepath);
+  }
+
+  if (ibuf != ibuf_full) {
+    IMB_freeImBuf(ibuf);
+  }
+}
+
+static ImBuf *render_image_strip_frame(const IndexBuildContext &context,
+                                       const Strip &strip,
+                                       char *filepath,
+                                       char *prefix,
+                                       const char *ext,
+                                       int view_id)
+{
+  ImBuf *ibuf = nullptr;
+
+  int flag = IB_byte_data | IB_metadata | IB_multilayer;
+  if (strip.alpha_mode == SEQ_ALPHA_PREMUL) {
+    flag |= IB_alphamode_premul;
+  }
+
+  if (prefix[0] == '\0') {
+    ibuf = IMB_load_image_from_filepath(filepath, flag, strip.data->colorspace_settings.name);
+  }
+  else {
+    char filepath_view[FILE_MAX];
+    BKE_scene_multiview_view_prefix_get(context.scene, filepath, prefix, &ext);
+    seq_multiview_name(context.scene, view_id, prefix, ext, filepath_view, FILE_MAX);
+    ibuf = IMB_load_image_from_filepath(filepath_view, flag, strip.data->colorspace_settings.name);
+  }
+  if (ibuf == nullptr) {
+    return nullptr;
+  }
+
+  convert_multilayer_ibuf(ibuf);
+  if (ibuf->float_buffer.data != nullptr && ibuf->byte_buffer.data != nullptr) {
+    IMB_free_byte_pixels(ibuf); /* If both float & byte exist, free byte buffer. */
+  }
+  seq_imbuf_to_sequencer_space(context.scene, ibuf, false);
+  return ibuf;
+}
+
+static void image_proxy_builder_process(IndexBuildContext &context,
+                                        const bool *job_stop,
+                                        bool *job_update_ui,
+                                        const FunctionRef<void(float progress)> set_progress_fn)
+{
+  if (!context.strip || !context.strip->data) {
+    return;
+  }
+  const Strip &strip = *context.strip;
+  if (!(strip.flag & SEQ_USE_PROXY)) {
+    return;
+  }
+
+  /* If proxy is set to user-specified custom file, no need to rebuild anything. */
+  /* that's why it is called custom... */
+  if (strip.data->proxy && (strip.data->proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
+    return;
+  }
+
+  const char *base_path = ID_BLEND_PATH_FROM_GLOBAL(&context.scene->id);
+  const int tot_views = BKE_scene_multiview_num_views_get(&context.scene->r);
+
+  for (int elem_index = 0; elem_index < strip.len; elem_index++) {
+    const StripElem &s_elem = strip.data->stripdata[elem_index];
+
+    char filepath[FILE_MAX];
+    const char *ext = nullptr;
+    char prefix[FILE_MAX];
+
+    ImBuf *ibuf = nullptr;
+
+    BLI_path_join(filepath, sizeof(filepath), strip.data->dirpath, s_elem.filename);
+    BLI_path_abs(filepath, base_path);
+
+    const int totfiles = seq_num_files(context.scene, strip.views_format, true);
+    bool is_multiview_render = seq_image_strip_is_multiview_render(
+        context.scene, &strip, totfiles, filepath, prefix, ext);
+
+    if (is_multiview_render) {
+      Array<ImBuf *> ibufs_arr(tot_views, nullptr);
+
+      for (int view_id = 0; view_id < totfiles; view_id++) {
+        ibufs_arr[view_id] = render_image_strip_frame(
+            context, strip, filepath, prefix, ext, view_id);
+      }
+
+      if (ibufs_arr[0] != nullptr) {
+        if (strip.views_format == R_IMF_VIEWS_STEREO_3D) {
+          IMB_ImBufFromStereo3d(strip.stereo3d_format, ibufs_arr[0], &ibufs_arr[0], &ibufs_arr[1]);
+        }
+
+        /* Return the requested image; release the others. */
+        ibuf = ibufs_arr[context.view_id];
+        for (ImBuf *ib : ibufs_arr) {
+          if (ib != ibuf) {
+            IMB_freeImBuf(ib);
+          }
+        }
+        if (ibuf) {
+          seq_imbuf_assign_spaces(context.scene, ibuf);
+        }
+      }
+    }
+    else {
+      ibuf = render_image_strip_frame(context, strip, filepath, prefix, ext, context.view_id);
+    }
+
+    if (ibuf != nullptr) {
+      if (context.size_flags & IMB_PROXY_25) {
+        seq_proxy_build_frame(
+            context.scene, context.view_id, ibuf, strip, s_elem, 25, context.overwrite);
+      }
+      if (context.size_flags & IMB_PROXY_50) {
+        seq_proxy_build_frame(
+            context.scene, context.view_id, ibuf, strip, s_elem, 50, context.overwrite);
+      }
+      if (context.size_flags & IMB_PROXY_75) {
+        seq_proxy_build_frame(
+            context.scene, context.view_id, ibuf, strip, s_elem, 75, context.overwrite);
+      }
+      if (context.size_flags & IMB_PROXY_100) {
+        seq_proxy_build_frame(
+            context.scene, context.view_id, ibuf, strip, s_elem, 100, context.overwrite);
+      }
+
+      if (set_progress_fn) {
+        float progress = float(elem_index) / float(strip.len);
+        set_progress_fn(progress);
+      }
+
+      *job_update_ui = true;
+
+      IMB_freeImBuf(ibuf);
+    }
+
+    if (*job_stop || G.is_break) {
+      break;
+    }
+  }
 }
 
 void proxy_rebuild(IndexBuildContext *context,
                    wmJobWorkerStatus *worker_status,
                    const FunctionRef<void(float progress)> set_progress_fn)
 {
-  const bool overwrite = context->overwrite;
-  RenderData render_context;
-  Strip *strip = context->strip;
-  Scene *scene = context->scene;
-  Main *bmain = context->bmain;
-
-  if (strip->type == STRIP_TYPE_MOVIE) {
-    if (context->proxy_builder) {
-      MOV_proxy_builder_process(context->proxy_builder,
+  if (context->strip->type == STRIP_TYPE_MOVIE) {
+    if (context->movie_proxy_builder) {
+      MOV_proxy_builder_process(context->movie_proxy_builder,
                                 &worker_status->stop,
                                 &worker_status->do_update,
                                 set_progress_fn);
     }
-
     return;
   }
 
-  if (!(strip->flag & SEQ_USE_PROXY)) {
+  if (context->strip->type == STRIP_TYPE_IMAGE) {
+    image_proxy_builder_process(
+        *context, &worker_status->stop, &worker_status->do_update, set_progress_fn);
     return;
-  }
-
-  /* that's why it is called custom... */
-  if (strip->data->proxy && strip->data->proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
-    return;
-  }
-
-  /* fail safe code */
-  int width, height;
-  BKE_render_resolution(&scene->r, false, &width, &height);
-
-  render_new_render_data(bmain,
-                         context->depsgraph,
-                         context->scene,
-                         width,
-                         height,
-                         SEQ_RENDER_SIZE_PROXY_100,
-                         nullptr,
-                         &render_context);
-
-  render_context.skip_cache = true;
-  render_context.is_proxy_render = true;
-  render_context.view_id = context->view_id;
-
-  SeqRenderState state;
-
-  for (int timeline_frame = strip->left_handle(); timeline_frame < strip->right_handle(scene);
-       timeline_frame++)
-  {
-    intra_frame_cache_set_cur_frame(render_context.scene,
-                                    timeline_frame,
-                                    render_context.view_id,
-                                    render_context.rectx,
-                                    render_context.recty);
-
-    if (context->size_flags & IMB_PROXY_25) {
-      seq_proxy_build_frame(&render_context, &state, strip, timeline_frame, 25, overwrite);
-    }
-    if (context->size_flags & IMB_PROXY_50) {
-      seq_proxy_build_frame(&render_context, &state, strip, timeline_frame, 50, overwrite);
-    }
-    if (context->size_flags & IMB_PROXY_75) {
-      seq_proxy_build_frame(&render_context, &state, strip, timeline_frame, 75, overwrite);
-    }
-    if (context->size_flags & IMB_PROXY_100) {
-      seq_proxy_build_frame(&render_context, &state, strip, timeline_frame, 100, overwrite);
-    }
-
-    worker_status->progress = float(timeline_frame - strip->left_handle()) /
-                              (strip->right_handle(scene) - strip->left_handle());
-    worker_status->do_update = true;
-
-    if (worker_status->stop || G.is_break) {
-      break;
-    }
   }
 }
 
 void proxy_rebuild_finish(IndexBuildContext *context, bool stop)
 {
-  if (context->proxy_builder) {
+  if (context->movie_proxy_builder) {
     for (MovieReader *anim : context->strip->runtime->movie_readers) {
       MOV_close_proxies(anim);
     }
-    MOV_proxy_builder_finish(context->proxy_builder, stop);
+    MOV_proxy_builder_finish(context->movie_proxy_builder, stop);
   }
 
   seq_free_strip_recurse(nullptr, context->strip, true);

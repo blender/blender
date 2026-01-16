@@ -215,6 +215,10 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
         DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
         break;
       }
+      case ID_VF: {
+        DEG_add_vfont_relation(ctx->node, reinterpret_cast<VFont *>(id), "Nodes Modifier");
+        break;
+      }
       case ID_MA: {
         /* Purposefully don't add relations for materials. While there are material sockets,
          * the pointers are only passed around as handles rather than dereferenced. */
@@ -278,7 +282,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Modifier, md);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
   walk(user_data, ob, md, &ptr, prop);
 }

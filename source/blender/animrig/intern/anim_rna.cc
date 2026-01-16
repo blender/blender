@@ -127,11 +127,11 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
 {
   IDProperty *properties;
 
-  if (ptr.type == &RNA_PoseBone) {
+  if (ptr.type == RNA_PoseBone) {
     const bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr.data);
     properties = pchan->prop;
   }
-  else if (ptr.type == &RNA_Object) {
+  else if (ptr.type == RNA_Object) {
     const Object *ob = static_cast<Object *>(ptr.data);
     properties = ob->id.properties;
   }

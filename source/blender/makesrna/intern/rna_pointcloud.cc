@@ -83,7 +83,7 @@ bool rna_PointCloud_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_
     return false;
   }
   rna_pointer_create_with_ancestors(
-      *ptr, &RNA_Point, &get_pointcloud_positions(pointcloud)[index], *r_ptr);
+      *ptr, RNA_Point, &get_pointcloud_positions(pointcloud)[index], *r_ptr);
   return true;
 }
 

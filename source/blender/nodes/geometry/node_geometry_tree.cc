@@ -138,7 +138,7 @@ static bool geometry_node_tree_socket_type_valid(bke::bNodeTreeType * /*treetype
                SOCK_IMAGE,
                SOCK_MATERIAL,
                SOCK_MENU) ||
-          ELEM(socket_type->type, SOCK_BUNDLE, SOCK_CLOSURE));
+          ELEM(socket_type->type, SOCK_BUNDLE, SOCK_CLOSURE, SOCK_FONT));
 }
 
 void register_node_tree_type_geo()
@@ -150,7 +150,7 @@ void register_node_tree_type_geo()
   tt->ui_name = N_("Geometry Node Editor");
   tt->ui_icon = ICON_GEOMETRY_NODES;
   tt->ui_description = N_("Advanced geometry editing and tools creation using nodes");
-  tt->rna_ext.srna = &RNA_GeometryNodeTree;
+  tt->rna_ext.srna = RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;
   tt->foreach_nodeclass = foreach_nodeclass;

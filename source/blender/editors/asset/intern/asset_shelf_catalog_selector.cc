@@ -187,7 +187,7 @@ void library_selector_draw(const bContext *C, ui::Layout &layout, AssetShelf &sh
   layout.operator_context_set(wm::OpCallContext::InvokeDefault);
 
   PointerRNA shelf_ptr = RNA_pointer_create_discrete(
-      &CTX_wm_screen(C)->id, &RNA_AssetShelf, &shelf);
+      &CTX_wm_screen(C)->id, RNA_AssetShelf, &shelf);
 
   ui::Layout &row = layout.row(true);
   row.prop(&shelf_ptr, "asset_library_reference", UI_ITEM_NONE, "", ICON_NONE);

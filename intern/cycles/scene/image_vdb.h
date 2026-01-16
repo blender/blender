@@ -33,12 +33,9 @@ class VDBImageLoader : public ImageLoader {
   VDBImageLoader(const string &grid_name, const float clipping = 0.001f);
   ~VDBImageLoader() override;
 
-  bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) final;
+  bool load_metadata(ImageMetaData &metadata) override;
 
-  bool load_pixels(const ImageMetaData &metadata,
-                   void *pixels,
-                   const size_t pixels_size,
-                   const bool associate_alpha) final;
+  bool load_pixels(const ImageMetaData &metadata, void *pixels) override;
 
   string name() const override;
 

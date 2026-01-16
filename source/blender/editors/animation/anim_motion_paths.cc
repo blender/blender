@@ -37,6 +37,7 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_action_legacy.hh"
+#include "ANIM_animdata.hh"
 #include "ANIM_bone_collections.hh"
 
 #include "CLG_log.h"
@@ -377,7 +378,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
   }
 
   AnimKeylist *keylist = ED_keylist_create();
-  for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(ob->adt)) {
+  for (FCurve *fcu : animrig::fcurves_for_assigned_action(ob->adt)) {
     fcurve_to_keylist(ob->adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, true);
   }
 

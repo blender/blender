@@ -509,7 +509,7 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
     const bool is_object_active = (&base == base_act);
     Object *obj_eval = DEG_get_evaluated(sctx->runtime.depsgraph, base.object);
     if (obj_eval->transflag & OB_DUPLI || bke::object_has_geometry_set_instances(*obj_eval)) {
-      object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval, nullptr, duplilist);
+      object_duplilist(sctx->runtime.depsgraph, obj_eval, nullptr, duplilist);
       for (DupliObject &dupli_ob : duplilist) {
         BLI_assert(DEG_is_evaluated(dupli_ob.ob));
         const ID *ob_data = dupli_ob.ob_data ? data_for_snap_dupli(dupli_ob.ob_data) : nullptr;
@@ -1066,13 +1066,9 @@ static bool snap_grid(SnapObjectContext *sctx)
 /** \name Public Object Snapping API
  * \{ */
 
-SnapObjectContext *snap_object_context_create(Scene *scene, int /*flag*/)
+SnapObjectContext *snap_object_context_create()
 {
-  SnapObjectContext *sctx = MEM_new<SnapObjectContext>(__func__);
-
-  sctx->scene = scene;
-
-  return sctx;
+  return MEM_new<SnapObjectContext>(__func__);
 }
 
 void snap_object_context_destroy(SnapObjectContext *sctx)
@@ -1194,8 +1190,8 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
       if (!compare_m4m4(sctx->grid.persmat.ptr(), rv3d->persmat, FLT_EPSILON)) {
         sctx->grid.persmat = float4x4(rv3d->persmat);
         if (params->grid_size == 0.0f) {
-          sctx->grid.size = ED_view3d_grid_view_scale(
-              sctx->scene, sctx->runtime.v3d, region, nullptr);
+          const Scene *scene = DEG_get_evaluated_scene(sctx->runtime.depsgraph);
+          sctx->grid.size = ED_view3d_grid_view_scale(scene, sctx->runtime.v3d, region, nullptr);
         }
 
         if (!sctx->grid.use_init_co) {

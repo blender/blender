@@ -131,7 +131,9 @@ struct World {
   /* previews */
   struct PreviewImage *preview = nullptr;
 
-  /* nodes */
+  /* #World::use_nodes is deprecated so it's not possible to create an embedded node tree from
+   * the UI or Python API by setting `use_nodes = True`. Therefore, #nodetree is required to never
+   * be nullptr. */
   struct bNodeTree *nodetree = nullptr;
 
   /** Light-group membership information. */

@@ -71,7 +71,7 @@
 
 #include "SEQ_render.hh"
 
-#include "ANIM_action_legacy.hh"
+#include "ANIM_animdata.hh"
 
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
@@ -397,10 +397,12 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
     IMB_freeImBuf(ibuf_result);
   }
 
-  /* Perform render step between renders to allow
-   * flushing of freed GPUBackend resources. */
   DRW_gpu_context_enable();
-  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+  /* Metal: Perform render step between samples to allow flushing of freed GPUBackend resources.
+   * Vulkan: Perform render step between samples to avoid allocation of a high amount of command
+   * buffer memory that can eventually result in out-of-memory errors or a TDR when submitted as
+   * one large command buffer. */
+  if (ELEM(GPU_backend_get_type(), GPU_BACKEND_METAL, GPU_BACKEND_VULKAN)) {
     GPU_flush();
   }
   GPU_render_step(true);
@@ -533,7 +535,7 @@ static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const An
   int frame_start = PSFRA;
   int frame_end = PEFRA;
 
-  for (const FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(adt)) {
+  for (const FCurve *fcu : animrig::fcurves_for_assigned_action(adt)) {
     if (fcu->driver != nullptr || fcu->fpt != nullptr) {
       /* Drivers have values for any point in time, so to get "the keyed frames" they are
        * useless. Same for baked FCurves, they also have keys for every frame, which is not

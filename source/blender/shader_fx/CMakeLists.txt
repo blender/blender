@@ -13,7 +13,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -46,6 +45,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render
   PRIVATE bf::windowmanager
+  PRIVATE bf::dependencies::zlib
 )
 
 

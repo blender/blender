@@ -36,13 +36,13 @@ static StructRNA *rna_LightProbe_refine(PointerRNA *ptr)
   LightProbe *probe = static_cast<LightProbe *>(ptr->data);
   switch (probe->type) {
     case LIGHTPROBE_TYPE_PLANE:
-      return &RNA_LightProbePlane;
+      return RNA_LightProbePlane;
     case LIGHTPROBE_TYPE_SPHERE:
-      return &RNA_LightProbeSphere;
+      return RNA_LightProbeSphere;
     case LIGHTPROBE_TYPE_VOLUME:
-      return &RNA_LightProbeVolume;
+      return RNA_LightProbeVolume;
     default:
-      return &RNA_LightProbe;
+      return RNA_LightProbe;
   }
 }
 

@@ -1022,10 +1022,10 @@ TEST(string, StrCursorStepNextUtf32Invalid)
 
 TEST(string, StrCursorStepPrevUtf32Empty)
 {
-  const char32_t emtpy[] = U"";
+  const char32_t empty[] = U"";
   const size_t len = 0;
   int pos = 0;
-  EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(emtpy, len, &pos));
+  EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(empty, len, &pos));
 }
 
 /** \} */

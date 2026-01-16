@@ -1983,16 +1983,16 @@ int icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool
   if (RNA_struct_is_ID(ptr->type)) {
     id = ptr->owner_id;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_MaterialSlot)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_MaterialSlot)) {
     id = static_cast<ID *>(RNA_pointer_get(ptr, "material").data);
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_TextureSlot)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_TextureSlot)) {
     id = static_cast<ID *>(RNA_pointer_get(ptr, "texture").data);
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_FileBrowserFSMenuEntry)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_FileBrowserFSMenuEntry)) {
     return RNA_int_get(ptr, "icon");
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_DynamicPaintSurface)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_DynamicPaintSurface)) {
     const DynamicPaintSurface *surface = static_cast<const DynamicPaintSurface *>(ptr->data);
 
     if (surface->format == MOD_DPAINT_SURFACE_F_PTEX) {
@@ -2005,7 +2005,7 @@ int icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool
       return ICON_FILE_IMAGE;
     }
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_StudioLight)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_StudioLight)) {
     StudioLight *sl = static_cast<StudioLight *>(ptr->data);
     switch (sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS) {
       case STUDIOLIGHT_TYPE_STUDIO:

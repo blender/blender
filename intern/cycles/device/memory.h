@@ -11,8 +11,8 @@
 #include "util/array.h"
 #include "util/half.h"
 #include "util/string.h"
-#include "util/texture.h"
 #include "util/types.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -30,7 +30,7 @@ enum MemoryType {
   MEM_READ_WRITE,
   MEM_DEVICE_ONLY,
   MEM_GLOBAL,
-  MEM_TEXTURE,
+  MEM_IMAGE_TEXTURE,
 };
 
 /* Supported Data Types */
@@ -581,25 +581,31 @@ class device_sub_ptr {
   device_ptr ptr;
 };
 
-/* Device Texture
+/* Device Image
  *
  * 2D or 3D image texture memory. */
 
-class device_texture : public device_memory {
+class device_image : public device_memory {
  public:
-  device_texture(Device *device,
-                 const char *name,
-                 const uint slot,
-                 ImageDataType image_data_type,
-                 InterpolationType interpolation,
-                 ExtensionType extension);
-  ~device_texture() override;
+  device_image(Device *device,
+               const char *name,
+               const uint slot,
+               ImageDataType image_data_type,
+               InterpolationType interpolation,
+               ExtensionType extension);
+  ~device_image() override;
 
   void *alloc(const size_t width, const size_t height);
+
+  template<typename T = void> T *data()
+  {
+    return reinterpret_cast<T *>(host_pointer);
+  }
+
   void copy_to_device();
 
   uint slot = 0;
-  TextureInfo info;
+  KernelImageInfo info;
 
  protected:
   size_t size(const size_t width, const size_t height)

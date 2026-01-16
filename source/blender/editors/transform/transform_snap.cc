@@ -1018,7 +1018,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->tsnap.object_context == nullptr) {
       SET_FLAG_FROM_TEST(t->tsnap.flag, snap_use_backface_culling(t), SCE_SNAP_BACKFACE_CULLING);
-      t->tsnap.object_context = snap_object_context_create(t->scene, 0);
+      t->tsnap.object_context = snap_object_context_create();
       snap_object_context_init(t);
     }
   }

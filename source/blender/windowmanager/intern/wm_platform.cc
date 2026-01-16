@@ -63,11 +63,15 @@ bool WM_platform_associate_set(bool do_register, bool all_users, char **r_error_
     err_info.use_single_line_error = true;
     err_info.r_string = r_error_msg;
 
-    const char *imports[] = {"_bpy_internal", "_bpy_internal.freedesktop", nullptr};
+    const char *imports[] = {
+        "_bpy_internal",
+        "_bpy_internal.platform.freedesktop",
+        nullptr,
+    };
     char expr_buf[128];
 
     SNPRINTF(expr_buf,
-             "_bpy_internal.freedesktop.%s(all_users=%d)",
+             "_bpy_internal.platform.freedesktop.%s(all_users=%d)",
              do_register ? "register" : "unregister",
              int(all_users));
 

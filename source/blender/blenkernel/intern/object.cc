@@ -119,6 +119,7 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_pose_backup.h"
 #include "BKE_preview_image.hh"
+#include "BKE_report.hh"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.hh"
 #include "BKE_shader_fx.hh"
@@ -139,6 +140,7 @@
 #include "SEQ_sequencer.hh"
 
 #include "ANIM_action_legacy.hh"
+#include "ANIM_animdata.hh"
 
 #include "RNA_prototypes.hh"
 
@@ -236,7 +238,7 @@ static void object_copy_data(Main *bmain,
   BKE_constraints_copy_ex(&ob_dst->constraints, &ob_src->constraints, flag_subdata, true);
 
   ob_dst->mode = OB_MODE_OBJECT;
-  ob_dst->sculpt = nullptr;
+  ob_dst->runtime->sculpt_session = nullptr;
 
   if (ob_src->pd) {
     ob_dst->pd = static_cast<PartDeflect *>(MEM_dupallocN(ob_src->pd));
@@ -618,8 +620,6 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
   ob->runtime = nullptr;
-  /* #Object::sculpt is also a runtime struct that should be stored in #Object::runtime. */
-  ob->sculpt = nullptr;
 
   if (is_undo) {
     /* For undo we stay in object mode during undo presses, so keep edit-mode disabled on save as
@@ -880,7 +880,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
   /* Some files were incorrectly written with a dangling pointer to this runtime data. */
-  ob->sculpt = nullptr;
+  ob->runtime->sculpt_session = nullptr;
 
   /* When loading undo steps, for objects in modes that use `sculpt`, recreate the mode runtime
    * data. For regular non-undo reading, this is currently handled by mode switching after the
@@ -1845,17 +1845,22 @@ bool BKE_object_has_mode_data(const Object *ob, eObjectMode object_mode)
     }
   }
   else if (object_mode & OB_MODE_VERTEX_PAINT) {
-    if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_VERTEX_PAINT)) {
+    if (ob->runtime->sculpt_session &&
+        (ob->runtime->sculpt_session->mode_type == OB_MODE_VERTEX_PAINT))
+    {
       return true;
     }
   }
   else if (object_mode & OB_MODE_WEIGHT_PAINT) {
-    if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_WEIGHT_PAINT)) {
+    if (ob->runtime->sculpt_session &&
+        (ob->runtime->sculpt_session->mode_type == OB_MODE_WEIGHT_PAINT))
+    {
       return true;
     }
   }
   else if (object_mode & OB_MODE_SCULPT) {
-    if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_SCULPT)) {
+    if (ob->runtime->sculpt_session && (ob->runtime->sculpt_session->mode_type == OB_MODE_SCULPT))
+    {
       return true;
     }
   }
@@ -3774,12 +3779,8 @@ bool BKE_object_minmax_empty_drawtype(const Object *ob, float r_min[3], float r_
   return ok;
 }
 
-bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
-                             Scene *scene,
-                             Object *ob,
-                             float3 &r_min,
-                             float3 &r_max,
-                             const bool use_hidden)
+bool BKE_object_minmax_dupli(
+    Depsgraph *depsgraph, Object *ob, float3 &r_min, float3 &r_max, const bool use_hidden)
 {
   bool ok = false;
   if ((ob->transflag & OB_DUPLI) == 0 && ob->runtime->geometry_set_eval == nullptr) {
@@ -3787,7 +3788,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
   }
 
   DupliList duplilist;
-  object_duplilist(depsgraph, scene, ob, nullptr, duplilist);
+  object_duplilist(depsgraph, ob, nullptr, duplilist);
   for (DupliObject &dob : duplilist) {
     if (((use_hidden == false) && (dob.no_draw != 0)) || dob.ob_data == nullptr) {
       /* pass */
@@ -4084,9 +4085,9 @@ void BKE_object_handle_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
 void BKE_object_sculpt_data_create(Object *ob)
 {
-  BLI_assert((ob->sculpt == nullptr) && (ob->mode & OB_MODE_ALL_SCULPT));
-  ob->sculpt = MEM_new<SculptSession>(__func__);
-  ob->sculpt->mode_type = eObjectMode(ob->mode);
+  BLI_assert((ob->runtime->sculpt_session == nullptr) && (ob->mode & OB_MODE_ALL_SCULPT));
+  ob->runtime->sculpt_session = MEM_new<SculptSession>(__func__);
+  ob->runtime->sculpt_session->mode_type = eObjectMode(ob->mode);
 }
 
 bool BKE_object_obdata_texspace_get(Object *ob,
@@ -4536,7 +4537,7 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
     return false;
   }
 
-  BKE_animdata_drivers_remove_for_rna_struct(key->id, RNA_ShapeKey, kb);
+  BKE_animdata_drivers_remove_for_rna_struct(key->id, *RNA_ShapeKey, kb);
 
   kb_index = BLI_findindex(&key->block, kb);
   BLI_assert(kb_index != -1);
@@ -4754,7 +4755,7 @@ static bool modifiers_has_animation_check(const Object *ob)
   if (ob->adt != nullptr) {
     AnimData *adt = ob->adt;
     if (adt->action != nullptr) {
-      for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(adt)) {
+      for (FCurve *fcu : animrig::fcurves_for_assigned_action(adt)) {
         if (fcu->rna_path && strstr(fcu->rna_path, "modifiers[")) {
           return true;
         }
@@ -4896,6 +4897,7 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int /*flag*/)
   runtime->object_as_temp_curve = nullptr;
   runtime->geometry_set_eval = nullptr;
   runtime->contained_geometry_types = 0;
+  runtime->sculpt_session = nullptr;
 
   runtime->crazyspace_deform_imats = {};
   runtime->crazyspace_deform_cos = {};
@@ -4903,8 +4905,8 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int /*flag*/)
 
 void BKE_object_runtime_free_data(Object *object)
 {
-  /* Currently this is all that's needed. */
   BKE_object_free_derived_caches(object);
+  BKE_sculptsession_free(object);
 
   BKE_object_runtime_reset(object);
 }

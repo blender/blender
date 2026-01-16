@@ -48,7 +48,7 @@ static bool node_tree_interface_panel_poll(const bContext *C, PanelType * /*pt*/
 
 void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree)
 {
-  PointerRNA tree_ptr = RNA_pointer_create_discrete(&tree.id, &RNA_NodeTree, &tree);
+  PointerRNA tree_ptr = RNA_pointer_create_discrete(&tree.id, RNA_NodeTree, &tree);
   PointerRNA interface_ptr = RNA_pointer_get(&tree_ptr, "interface");
 
   {
@@ -99,7 +99,7 @@ void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree)
     if (bNodeTreeInterfaceSocket *panel_toggle_socket = panel_item->header_toggle_socket()) {
       if (ui::Layout *panel = layout.panel(&C, "panel_toggle", false, IFACE_("Panel Toggle"))) {
         PointerRNA panel_toggle_socket_ptr = RNA_pointer_create_discrete(
-            &tree.id, &RNA_NodeTreeInterfaceSocket, panel_toggle_socket);
+            &tree.id, RNA_NodeTreeInterfaceSocket, panel_toggle_socket);
         panel->prop(
             &panel_toggle_socket_ptr, "default_value", UI_ITEM_NONE, IFACE_("Default"), ICON_NONE);
         ui::Layout &col = panel->column(false);

@@ -8,6 +8,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
@@ -66,7 +67,7 @@ static void apply_masks_faces(const Depsgraph &depsgraph,
                               const Span<float> mask_averages,
                               MutableSpan<float> mask)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -179,7 +180,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        const bke::pbvh::GridsNode &node,
                        LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -232,7 +233,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        bke::pbvh::BMeshNode &node,
                        LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -284,7 +285,7 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
                           const IndexMask &node_mask,
                           float brush_strength)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   boundary::ensure_boundary_info(object);

@@ -6,8 +6,8 @@
 
 #include "device/memory.h"
 
-#include "scene/colorspace.h"
-
+#include "util/colorspace.h"
+#include "util/image_metadata.h"
 #include "util/string.h"
 #include "util/thread.h"
 #include "util/transform.h"
@@ -38,7 +38,7 @@ class ImageParams {
   ustring colorspace;
   float frame = 0.0f;
 
-  ImageParams() : colorspace(u_colorspace_raw) {}
+  ImageParams() : colorspace(u_colorspace_scene_linear) {}
 
   bool operator==(const ImageParams &other) const
   {
@@ -46,41 +46,6 @@ class ImageParams {
             extension == other.extension && alpha_type == other.alpha_type &&
             colorspace == other.colorspace && frame == other.frame);
   }
-};
-
-/* Image MetaData
- *
- * Information about the image that is available before the image pixels are loaded. */
-class ImageMetaData {
- public:
-  /* Set by ImageLoader.load_metadata(). */
-  int channels;
-  size_t width, height;
-  size_t byte_size;
-  ImageDataType type;
-
-  /* Optional color space, defaults to raw. */
-  ustring colorspace;
-  string colorspace_file_hint;
-  const char *colorspace_file_format;
-
-  /* Optional transform for 3D images. */
-  bool use_transform_3d;
-  Transform transform_3d;
-
-  /* Automatically set. */
-  bool compress_as_srgb;
-
-  ImageMetaData();
-  bool operator==(const ImageMetaData &other) const;
-  bool is_float() const;
-  void detect_colorspace();
-};
-
-/* Information about supported features that Image loaders can use. */
-class ImageDeviceFeatures {
- public:
-  bool has_nanovdb = true;
 };
 
 /* Image loader base class, that can be subclassed to load image data
@@ -91,13 +56,10 @@ class ImageLoader {
   virtual ~ImageLoader() = default;
 
   /* Load metadata without actual image yet, should be fast. */
-  virtual bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) = 0;
+  virtual bool load_metadata(ImageMetaData &metadata) = 0;
 
   /* Load actual image contents. */
-  virtual bool load_pixels(const ImageMetaData &metadata,
-                           void *pixels,
-                           const size_t pixels_size,
-                           const bool associate_alpha) = 0;
+  virtual bool load_pixels(const ImageMetaData &metadata, void *pixels) = 0;
 
   /* Name for logs and stats. */
   virtual string name() const = 0;
@@ -142,7 +104,7 @@ class ImageHandle {
   ImageMetaData metadata();
   int svm_slot(const int slot_index = 0) const;
   vector<int4> get_svm_slots() const;
-  device_texture *image_memory() const;
+  device_image *image_memory() const;
 
   VDBImageLoader *vdb_loader() const;
 
@@ -200,7 +162,7 @@ class ImageManager {
     bool builtin;
 
     string mem_name;
-    unique_ptr<device_texture> mem;
+    unique_ptr<device_image> mem;
 
     int users;
     thread_mutex mutex;
@@ -208,8 +170,6 @@ class ImageManager {
 
  private:
   bool need_update_;
-
-  ImageDeviceFeatures features;
 
   thread_mutex device_mutex;
   thread_mutex images_mutex;

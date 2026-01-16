@@ -242,7 +242,7 @@ void template_palette(Layout *layout,
   }
 
   const PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Palette)) {
+  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_Palette)) {
     return;
   }
 
@@ -314,7 +314,7 @@ void template_palette(Layout *layout,
       row_cols = 0;
     }
 
-    PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, &RNA_PaletteColor, &color);
+    PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, RNA_PaletteColor, &color);
     ButtonColor *color_but = static_cast<ButtonColor *>(uiDefButR(block,
                                                                   ButtonType::Color,
                                                                   "",

@@ -6,6 +6,8 @@
 
 using namespace metal;
 
+#pragma blender dead_code_elimination off
+
 /* Matrix compare operators. */
 #define EQ_OP(type, ...) \
   inline bool operator==(type a, type b) \
@@ -33,6 +35,8 @@ template<int N, int M> inline matrix<float, N, M> operator-(matrix<float, N, M> 
 {
   return a * -1.0f;
 }
+
+#pragma blender dead_code_elimination on
 
 /* Matrix Inverse. */
 float4x4 inverse(float4x4 a)

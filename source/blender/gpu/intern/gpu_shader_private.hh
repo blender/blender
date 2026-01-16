@@ -144,6 +144,8 @@ class Shader {
                                   StringRef extension,
                                   StringRef source);
 
+  static std::string run_preprocessor(StringRef source);
+
  protected:
   void print_log(Span<StringRefNull> sources,
                  const char *log,

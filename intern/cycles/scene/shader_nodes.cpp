@@ -5,7 +5,6 @@
 #include "scene/shader_nodes.h"
 #include "kernel/svm/types.h"
 #include "kernel/types.h"
-#include "scene/colorspace.h"
 #include "scene/constant_fold.h"
 #include "scene/film.h"
 #include "scene/image.h"
@@ -21,7 +20,7 @@
 #include "sky_nishita.h"
 
 #include "util/color.h"
-
+#include "util/colorspace.h"
 #include "util/log.h"
 #include "util/math_base.h"
 #include "util/string.h"
@@ -266,7 +265,7 @@ NODE_DEFINE(ImageTextureNode)
 
 ImageTextureNode::ImageTextureNode() : ImageSlotTextureNode(get_node_type())
 {
-  colorspace = u_colorspace_raw;
+  colorspace = u_colorspace_scene_linear;
   animated = false;
 }
 
@@ -381,7 +380,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
 
   /* All tiles have the same metadata. */
   const ImageMetaData metadata = handle.metadata();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -461,12 +460,12 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata();
   const bool is_float = metadata.is_float();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", filename, compress_as_srgb ? u_colorspace_scene_linear : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle);
@@ -535,7 +534,7 @@ NODE_DEFINE(EnvironmentTextureNode)
 
 EnvironmentTextureNode::EnvironmentTextureNode() : ImageSlotTextureNode(get_node_type())
 {
-  colorspace = u_colorspace_raw;
+  colorspace = u_colorspace_scene_linear;
   animated = false;
 }
 
@@ -582,7 +581,7 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
   }
 
   const ImageMetaData metadata = handle.metadata();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -613,12 +612,12 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata();
   const bool is_float = metadata.is_float();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", filename, compress_as_srgb ? u_colorspace_scene_linear : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle);

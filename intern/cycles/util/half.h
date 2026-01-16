@@ -42,7 +42,7 @@ class half {
  public:
   half() = default;
   half(const unsigned short &i) : v(i) {}
-  operator unsigned short()
+  operator unsigned short() const
   {
     return v;
   }
@@ -174,5 +174,13 @@ ccl_device_inline half4 float4_to_half4_display(const float4 f)
   return h;
 #endif
 }
+
+#ifndef __KERNEL_GPU__
+ccl_device_inline float half_is_finite(const half h)
+{
+  const int exponent = (h >> 10) & 0x001f;
+  return exponent < 31;
+}
+#endif
 
 CCL_NAMESPACE_END

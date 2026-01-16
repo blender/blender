@@ -55,11 +55,11 @@ ccl_device float cubic_h1(const float a)
 
 /* Fast bicubic texture lookup using 4 bilinear lookups, adapted from CUDA samples. */
 template<typename T>
-ccl_device_noinline T kernel_tex_image_interp_bicubic(const ccl_global TextureInfo &info,
-                                                      float x,
-                                                      float y)
+ccl_device_noinline T kernel_image_interp_bicubic(const ccl_global KernelImageInfo &info,
+                                                  float x,
+                                                  float y)
 {
-  ccl_gpu_tex_object_2D tex = (ccl_gpu_tex_object_2D)info.data;
+  ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info.data;
 
   x = (x * info.width) - 0.5f;
   y = (y * info.height) - 0.5f;
@@ -77,27 +77,27 @@ ccl_device_noinline T kernel_tex_image_interp_bicubic(const ccl_global TextureIn
   float y0 = (py + cubic_h0(fy) + 0.5f) / info.height;
   float y1 = (py + cubic_h1(fy) + 0.5f) / info.height;
 
-  return cubic_g0(fy) * (g0x * ccl_gpu_tex_object_read_2D<T>(tex, x0, y0) +
-                         g1x * ccl_gpu_tex_object_read_2D<T>(tex, x1, y0)) +
-         cubic_g1(fy) * (g0x * ccl_gpu_tex_object_read_2D<T>(tex, x0, y1) +
-                         g1x * ccl_gpu_tex_object_read_2D<T>(tex, x1, y1));
+  return cubic_g0(fy) * (g0x * ccl_gpu_image_object_read_2D<T>(tex, x0, y0) +
+                         g1x * ccl_gpu_image_object_read_2D<T>(tex, x1, y0)) +
+         cubic_g1(fy) * (g0x * ccl_gpu_image_object_read_2D<T>(tex, x0, y1) +
+                         g1x * ccl_gpu_image_object_read_2D<T>(tex, x1, y1));
 }
 
-ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, const int id, const float x, float y)
+ccl_device float4 kernel_image_interp(KernelGlobals kg, const int id, const float x, float y)
 {
-  const ccl_global TextureInfo &info = kernel_data_fetch(texture_info, id);
+  const ccl_global KernelImageInfo &info = kernel_data_fetch(image_info, id);
 
   /* float4, byte4, ushort4 and half4 */
-  const int texture_type = info.data_type;
-  if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||
-      texture_type == IMAGE_DATA_TYPE_HALF4 || texture_type == IMAGE_DATA_TYPE_USHORT4)
+  const int image_type = info.data_type;
+  if (image_type == IMAGE_DATA_TYPE_FLOAT4 || image_type == IMAGE_DATA_TYPE_BYTE4 ||
+      image_type == IMAGE_DATA_TYPE_HALF4 || image_type == IMAGE_DATA_TYPE_USHORT4)
   {
     if (info.interpolation == INTERPOLATION_CUBIC || info.interpolation == INTERPOLATION_SMART) {
-      return kernel_tex_image_interp_bicubic<float4>(info, x, y);
+      return kernel_image_interp_bicubic<float4>(info, x, y);
     }
     else {
-      ccl_gpu_tex_object_2D tex = (ccl_gpu_tex_object_2D)info.data;
-      return ccl_gpu_tex_object_read_2D<float4>(tex, x, y);
+      ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info.data;
+      return ccl_gpu_image_object_read_2D<float4>(tex, x, y);
     }
   }
   /* float, byte and half */
@@ -105,11 +105,11 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, const int id, const 
     float f;
 
     if (info.interpolation == INTERPOLATION_CUBIC || info.interpolation == INTERPOLATION_SMART) {
-      f = kernel_tex_image_interp_bicubic<float>(info, x, y);
+      f = kernel_image_interp_bicubic<float>(info, x, y);
     }
     else {
-      ccl_gpu_tex_object_2D tex = (ccl_gpu_tex_object_2D)info.data;
-      f = ccl_gpu_tex_object_read_2D<float>(tex, x, y);
+      ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info.data;
+      f = ccl_gpu_image_object_read_2D<float>(tex, x, y);
     }
 
     return make_float4(f, f, f, 1.0f);

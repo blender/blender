@@ -65,7 +65,7 @@ wmGizmoGroupType *WM_gizmogrouptype_find(const StringRef idname, bool quiet)
 static wmGizmoGroupType *wm_gizmogrouptype_append__begin()
 {
   wmGizmoGroupType *gzgt = MEM_callocN<wmGizmoGroupType>("gizmogrouptype");
-  gzgt->srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), "", &RNA_GizmoGroupProperties);
+  gzgt->srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), "", RNA_GizmoGroupProperties);
 #if 0
   /* Set the default i18n context now, so that opfunc can redefine it if needed! */
   RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);

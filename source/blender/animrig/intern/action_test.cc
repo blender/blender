@@ -16,6 +16,7 @@
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
 #include "BLI_listbase.h"
@@ -57,11 +58,14 @@ class ActionLayersTest : public testing::Test {
 
     /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
     BKE_idtype_init();
+
+    RNA_init();
   }
 
   static void TearDownTestSuite()
   {
     CLG_exit();
+    RNA_exit();
   }
 
   void SetUp() override
@@ -1216,6 +1220,24 @@ TEST_F(ActionLayersTest, action_duplicate_slot_without_channelbag)
   /* The slot should NOT have been reassigned. */
   EXPECT_EQ(action, cube->adt->action);
   EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
+}
+
+TEST_F(ActionLayersTest, fcurves_for_action_slot)
+{
+  Slot &slot1 = action->slot_add();
+  Slot &slot2 = action->slot_add();
+
+  action->layer_keystrip_ensure();
+  StripKeyframeData &key_data = action->layer(0)->strip(0)->data<StripKeyframeData>(*action);
+
+  FCurve &fcurve1 = key_data.channelbag_for_slot_ensure(slot1).fcurve_ensure(bmain,
+                                                                             {"location", 1});
+  FCurve &fcurve2 = key_data.channelbag_for_slot_ensure(slot2).fcurve_ensure(bmain, {"scale", 2});
+
+  Vector<FCurve *> fcurve1_expect = {&fcurve1};
+  Vector<FCurve *> fcurve2_expect = {&fcurve2};
+  EXPECT_EQ(fcurve1_expect.as_span(), fcurves_for_action_slot(*action, slot1.handle));
+  EXPECT_EQ(fcurve2_expect.as_span(), fcurves_for_action_slot(*action, slot2.handle));
 }
 
 /*-----------------------------------------------------------*/

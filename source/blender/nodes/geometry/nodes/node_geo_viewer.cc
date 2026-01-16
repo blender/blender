@@ -225,7 +225,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const std::string identifier = GeoViewerItemsAccessor::socket_identifier_for_item(item);
     auto &input_decl = b.add_input(socket_type, name, identifier)
                            .socket_name_ptr(
-                               &tree->id, GeoViewerItemsAccessor::item_srna, &item, "name");
+                               &tree->id, *GeoViewerItemsAccessor::item_srna, &item, "name");
     if (socket_type_supports_fields(socket_type)) {
       input_decl.field_on_all();
     }
@@ -505,7 +505,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace nodes {
 
-StructRNA *GeoViewerItemsAccessor::item_srna = &RNA_NodeGeometryViewerItem;
+StructRNA **GeoViewerItemsAccessor::item_srna = &RNA_NodeGeometryViewerItem;
 
 void GeoViewerItemsAccessor::blend_write_item(BlendWriter *writer,
                                               const NodeGeometryViewerItem &item)

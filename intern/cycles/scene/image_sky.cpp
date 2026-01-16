@@ -25,20 +25,17 @@ SkyLoader::SkyLoader(const bool multiple_scattering,
 
 SkyLoader::~SkyLoader() = default;
 
-bool SkyLoader::load_metadata(const ImageDeviceFeatures & /*features*/, ImageMetaData &metadata)
+bool SkyLoader::load_metadata(ImageMetaData &metadata)
 {
   metadata.width = 512;
   metadata.height = 256;
   metadata.channels = 3;
   metadata.type = IMAGE_DATA_TYPE_FLOAT4;
-  metadata.compress_as_srgb = false;
+  metadata.is_compressible_as_srgb = false;
   return true;
 }
 
-bool SkyLoader::load_pixels(const ImageMetaData &metadata,
-                            void *pixels,
-                            const size_t /*pixels_size*/,
-                            const bool /*associate_alpha*/)
+bool SkyLoader::load_pixels(const ImageMetaData &metadata, void *pixels)
 {
   /* Precompute Sky LUT */
   int width = metadata.width;
@@ -67,6 +64,7 @@ bool SkyLoader::load_pixels(const ImageMetaData &metadata,
                                              ozone_density);
   }
 
+  metadata.conform_pixels(pixels);
   return true;
 }
 

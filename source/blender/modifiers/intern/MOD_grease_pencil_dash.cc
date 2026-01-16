@@ -434,7 +434,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   if (dmd->segment_active_index >= 0 && dmd->segment_active_index < dmd->segments_num) {
     PointerRNA ds_ptr = RNA_pointer_create_discrete(ptr->owner_id,
-                                                    &RNA_GreasePencilDashModifierSegment,
+                                                    RNA_GreasePencilDashModifierSegment,
                                                     &dmd->segments()[dmd->segment_active_index]);
 
     sub = &layout.column(true);

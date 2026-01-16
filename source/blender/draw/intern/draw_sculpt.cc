@@ -19,6 +19,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_material.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 
 #include "BLI_math_matrix.hh"
@@ -52,8 +53,9 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
                                                  const Span<pbvh::AttributeRequest> attrs)
 {
   /* pbvh::Tree should always exist for non-empty meshes, created by depsgraph eval. */
-  bke::pbvh::Tree *pbvh = ob->sculpt ? const_cast<bke::pbvh::Tree *>(bke::object::pbvh_get(*ob)) :
-                                       nullptr;
+  bke::pbvh::Tree *pbvh = ob->runtime->sculpt_session ?
+                              const_cast<bke::pbvh::Tree *>(bke::object::pbvh_get(*ob)) :
+                              nullptr;
   if (!pbvh) {
     return {};
   }

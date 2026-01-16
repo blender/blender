@@ -650,21 +650,32 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata_legacy,
 }
 #endif /* !NDEBUG */
 
+static VectorSet<StringRefNull> get_mloopcol_names(const Mesh &mesh)
+{
+  VectorSet<StringRefNull> names;
+  mesh.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.data_type == bke::AttrType::ColorByte && iter.domain == bke::AttrDomain::Corner) {
+      names.add_new(iter.name);
+    }
+  });
+  return names;
+}
+
 static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *ldata, int total)
 {
   /* avoid accumulating extra layers */
   BLI_assert(!check_matching_legacy_layer_counts(fdata_legacy, ldata, false));
 
+  for (const StringRef name : mesh.uv_map_names()) {
+    CustomData_add_layer_named(fdata_legacy, CD_MTFACE, CD_SET_DEFAULT, total, name);
+  }
+
+  for (const StringRef name : get_mloopcol_names(mesh)) {
+    CustomData_add_layer_named(fdata_legacy, CD_MCOL, CD_SET_DEFAULT, total, name);
+  }
+
   for (int i = 0; i < ldata->totlayer; i++) {
-    if (ldata->layers[i].type == CD_PROP_FLOAT2) {
-      CustomData_add_layer_named(
-          fdata_legacy, CD_MTFACE, CD_SET_DEFAULT, total, ldata->layers[i].name);
-    }
-    if (ldata->layers[i].type == CD_PROP_BYTE_COLOR) {
-      CustomData_add_layer_named(
-          fdata_legacy, CD_MCOL, CD_SET_DEFAULT, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
+    if (ldata->layers[i].type == CD_ORIGSPACE_MLOOP) {
       CustomData_add_layer_named(
           fdata_legacy, CD_ORIGSPACE, CD_SET_DEFAULT, total, ldata->layers[i].name);
     }
@@ -686,9 +697,8 @@ static void mesh_ensure_tessellation_customdata(Mesh *mesh)
      * Callers could also check but safer to do here - campbell */
   }
   else {
-    const int tottex_original = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
-    const int totcol_original = CustomData_number_of_layers(&mesh->corner_data,
-                                                            CD_PROP_BYTE_COLOR);
+    const int tottex_original = mesh->uv_map_names().size();
+    const int totcol_original = get_mloopcol_names(*mesh).size();
 
     const int tottex_tessface = CustomData_number_of_layers(&mesh->fdata_legacy, CD_MTFACE);
     const int totcol_tessface = CustomData_number_of_layers(&mesh->fdata_legacy, CD_MCOL);
@@ -819,30 +829,34 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
  * \note when mface is not null, mface[face_index].v4
  * is used to test quads, else, loopindices[face_index][3] is used.
  */
-static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
+static void mesh_loops_to_tessdata(Mesh &mesh,
+                                   CustomData *fdata_legacy,
                                    CustomData *corner_data,
                                    MFace *mface,
                                    const int *polyindices,
                                    uint (*loopindices)[4],
                                    const int num_faces)
 {
+  const VectorSet<StringRefNull> uv_names = mesh.uv_map_names();
+  const VectorSet<StringRefNull> mloopcol_names = get_mloopcol_names(mesh);
   /* NOTE(mont29): performances are sub-optimal when we get a null #MFace,
    * we could be ~25% quicker with dedicated code.
    * The issue is, unless having two different functions with nearly the same code,
    * there's not much ways to solve this. Better IMHO to live with it for now (sigh). */
-  const int numUV = CustomData_number_of_layers(corner_data, CD_PROP_FLOAT2);
-  const int numCol = CustomData_number_of_layers(corner_data, CD_PROP_BYTE_COLOR);
+  const int numUV = uv_names.size();
+  const int numCol = mloopcol_names.size();
   const bool hasOrigSpace = CustomData_has_layer(corner_data, CD_ORIGSPACE_MLOOP);
   const bool hasLoopNormal = CustomData_has_layer(corner_data, CD_NORMAL);
   int findex, i, j;
   const int *pidx;
   uint(*lidx)[4];
 
+  const bke::AttributeAccessor attributes = mesh.attributes();
+
   for (i = 0; i < numUV; i++) {
     MTFace *texface = static_cast<MTFace *>(
         CustomData_get_layer_n_for_write(fdata_legacy, CD_MTFACE, i, num_faces));
-    const float2 *uv = static_cast<const float2 *>(
-        CustomData_get_layer_n(corner_data, CD_PROP_FLOAT2, i));
+    const VArraySpan uv = *attributes.lookup<float2>(uv_names[i], bke::AttrDomain::Corner);
 
     for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
          pidx++, lidx++, findex++, texface++)
@@ -856,8 +870,9 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
   for (i = 0; i < numCol; i++) {
     MCol(*mcol)[4] = static_cast<MCol(*)[4]>(
         CustomData_get_layer_n_for_write(fdata_legacy, CD_MCOL, i, num_faces));
-    const MLoopCol *mloopcol = static_cast<const MLoopCol *>(
-        CustomData_get_layer_n(corner_data, CD_PROP_BYTE_COLOR, i));
+    VArraySpan<ColorGeometry4b> attr = *attributes.lookup<ColorGeometry4b>(
+        mloopcol_names[i], bke::AttrDomain::Corner);
+    const Span mloopcol = attr.cast<MLoopCol>();
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
@@ -963,15 +978,13 @@ int BKE_mesh_mface_index_validate(MFace *mface, CustomData *fdata_legacy, int mf
   return nr;
 }
 
-static int mesh_tessface_calc(Mesh &mesh,
-                              CustomData *fdata_legacy,
-                              CustomData *ldata,
-                              CustomData *pdata,
-                              float (*positions)[3],
-                              int totface,
-                              int totloop,
-                              int faces_num)
+static void mesh_tessface_calc(Mesh &mesh)
 {
+  CustomData *fdata_legacy = &mesh.fdata_legacy;
+  const Span<float3> positions = mesh.vert_positions();
+  const int totloop = mesh.corners_num;
+  const int faces_num = mesh.faces_num;
+
 #define USE_TESSFACE_SPEEDUP
 #define USE_TESSFACE_QUADS
 
@@ -989,10 +1002,11 @@ static int mesh_tessface_calc(Mesh &mesh,
 
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const int *material_indices = static_cast<const int *>(
-      CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(pdata, CD_PROP_BOOL, "sharp_face"));
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArray material_indices = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Face, 0);
+  const VArray sharp_faces = *attributes.lookup_or_default<bool>(
+      "sharp_face", bke::AttrDomain::Face, false);
 
   /* Allocate the length of `totfaces`, avoid many small reallocation's,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
@@ -1029,8 +1043,8 @@ static int mesh_tessface_calc(Mesh &mesh,
     lidx[1] = l2; \
     lidx[2] = l3; \
     lidx[3] = 0; \
-    mf->mat_nr = material_indices ? material_indices[poly_index] : 0; \
-    mf->flag = (sharp_faces && sharp_faces[poly_index]) ? 0 : ME_SMOOTH; \
+    mf->mat_nr = material_indices[poly_index]; \
+    mf->flag = sharp_faces[poly_index] ? 0 : ME_SMOOTH; \
     mf->edcode = 0; \
     (void)0
 
@@ -1052,8 +1066,8 @@ static int mesh_tessface_calc(Mesh &mesh,
     lidx[1] = l2; \
     lidx[2] = l3; \
     lidx[3] = l4; \
-    mf->mat_nr = material_indices ? material_indices[poly_index] : 0; \
-    mf->flag = (sharp_faces && sharp_faces[poly_index]) ? 0 : ME_SMOOTH; \
+    mf->mat_nr = material_indices[poly_index]; \
+    mf->flag = sharp_faces[poly_index] ? 0 : ME_SMOOTH; \
     mf->edcode = TESSFACE_IS_QUAD; \
     (void)0
 
@@ -1156,7 +1170,7 @@ static int mesh_tessface_calc(Mesh &mesh,
   }
 
   CustomData_free(fdata_legacy);
-  totface = mface_index;
+  const int totface = mface_index;
 
   BLI_assert(totface <= corner_tris_num);
 
@@ -1172,7 +1186,7 @@ static int mesh_tessface_calc(Mesh &mesh,
   /* #CD_ORIGINDEX will contain an array of indices from tessellation-faces to the polygons
    * they are directly tessellated from. */
   CustomData_add_layer_with_data(fdata_legacy, CD_ORIGINDEX, mface_to_poly_map, totface, nullptr);
-  add_mface_layers(mesh, fdata_legacy, ldata, totface);
+  add_mface_layers(mesh, fdata_legacy, &mesh.corner_data, totface);
 
   /* NOTE: quad detection issue - fourth vertex-index vs fourth loop-index:
    * Polygons take care of their loops ordering, hence not of their vertices ordering.
@@ -1181,7 +1195,8 @@ static int mesh_tessface_calc(Mesh &mesh,
    * (because they are sorted for polygons, and our quads are still mere copies of their polygons).
    * So we pass nullptr as #MFace pointer, and #mesh_loops_to_tessdata
    * will use the fourth loop index as quad test. */
-  mesh_loops_to_tessdata(fdata_legacy, ldata, nullptr, mface_to_poly_map, lindices, totface);
+  mesh_loops_to_tessdata(
+      mesh, fdata_legacy, &mesh.corner_data, nullptr, mface_to_poly_map, lindices, totface);
 
   /* NOTE: quad detection issue - fourth vert-index vs fourth loop-index:
    * ...However, most #TFace code uses `MFace->v4 == 0` test to check whether it is a tri or quad.
@@ -1199,7 +1214,7 @@ static int mesh_tessface_calc(Mesh &mesh,
 
   MEM_freeN(lindices);
 
-  return totface;
+  mesh.totface_legacy = totface;
 
 #undef USE_TESSFACE_SPEEDUP
 #undef USE_TESSFACE_QUADS
@@ -1210,15 +1225,7 @@ static int mesh_tessface_calc(Mesh &mesh,
 
 void BKE_mesh_tessface_calc(Mesh *mesh)
 {
-  mesh->totface_legacy = mesh_tessface_calc(
-      *mesh,
-      &mesh->fdata_legacy,
-      &mesh->corner_data,
-      &mesh->face_data,
-      reinterpret_cast<float (*)[3]>(mesh->vert_positions_for_write().data()),
-      mesh->totface_legacy,
-      mesh->corners_num,
-      mesh->faces_num);
+  mesh_tessface_calc(*mesh);
 
   mesh_ensure_tessellation_customdata(mesh);
 }

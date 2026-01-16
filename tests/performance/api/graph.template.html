@@ -4,101 +4,374 @@
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <style type="text/css">
-    body                    { margin: 20px; font-size: 16px; color: #333; }
-    a                       { text-decoration: none; color: #06b; }
-    h2                      { color: #222; font-size: 1.4em; }
-    h3                      { color: #555; font-size: 1.2em; }
-    h4                      { color: #888; font-size: 1.0em; }
-    .nav-tabs               { font-size: 1.2em; }
-    .tab-content            { margin: 20px 20px; }
-    /* Tricks to make chart load with proper width while hidden. */
-    .tab-content>.tab-pane  { height: 1px; overflow: hidden; display: block; visibility: hidden; }
-    .tab-content>.active    { height: auto; overflow: auto; visibility: visible; }
-  </style>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <script>
-    google.charts.load('current', {'packages':['line', 'bar']});
-    google.charts.setOnLoadCallback(draw_charts);
+    body                       { margin: 20px; font-size: 16px; color: #333; }
+    a                          { text-decoration: none; color: #06b; }
+    h2                         { color: #222; font-size: 1.4em; }
+    h3                         { color: #555; font-size: 1.2em; }
+    h4                         { color: #888; font-size: 1.0em; }
+    .nav-tabs                  { font-size: 1.2em; }
+    .nav-tabs .nav-link        { color: #999; }
+    .nav-tabs .nav-link.active { color: #555; font-weight: 500; }
+    .tab-content               { margin: 20px 20px; }
 
-    function transposeDataTable(dt)
-    {
-      /* Swap rows and columns. Bar and line charts expect different layouts,
-       * with this function we can use the same data source for both. */
-      var ndt = new google.visualization.DataTable;
-      ndt.addColumn('string',dt.getColumnLabel(0));
-      for(var x=1; x<dt.getNumberOfColumns(); x++) {
-          ndt.addRow([dt.getColumnLabel(x)]);
-      }
-      for(var x=0; x<dt.getNumberOfRows(); x++) {
-          ndt.addColumn('number', dt.getValue(x,0));
-          for(var y=1; y<dt.getNumberOfColumns(); y++) {
-              ndt.setValue(y-1, x+1, dt.getValue(x,y));
-              ndt.setFormattedValue(y-1, x+1, dt.getFormattedValue(x,y));
+    /* Fixed width for header buttons to ensure groups match in size. */
+    .btn-time-range            { width: 100px; }
+    .btn-scale-mode            { width: 133.33px; /* (100 * 4) / 3 */ }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+  <script>
+    let chart_instances = [];
+    let current_scale_mode = 'linear-clipped';
+    let current_time_range = '4m';
+    let latest_timestamp = 0;
+
+    /* Constants for time calculations. */
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    /* Find the latest timestamp across all time-series data to use as "now". */
+    function calculate_latest_timestamp(json_data) {
+      let max_ts = 0;
+      for (const benchmark of json_data) {
+        if (benchmark.chart_type === 'line' && benchmark.data.labels) {
+          for (const ts of benchmark.data.labels) {
+            if (ts && ts > max_ts) {
+              max_ts = ts;
+            }
           }
+        }
       }
-      return ndt;
+      return max_ts;
     }
 
-    function drawChart(chartsQueue, index) {
-      index = index || 0;
-      if (index === chartsQueue.length)
-        return;
+    /* Update the global time filter and refresh all time-series charts. */
+    function set_time_range(range, button) {
+      current_time_range = range;
 
-      var chartData = chartsQueue[index];
-      var chart;
-
-      if (chartData.chart_type == 'line') {
-        chart = new google.charts.Line(document.getElementById(chartData.id));
+      /* Update button states. */
+      document.querySelectorAll('.btn-time-range').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.replace('btn-secondary', 'btn-outline-secondary');
+      });
+      if (button) {
+        button.classList.add('active');
+        button.classList.replace('btn-outline-secondary', 'btn-secondary');
       } else {
-        chart = new google.charts.Bar(document.getElementById(chartData.id));
+        const target_btn = document.querySelector(`.btn-time-range[data-range='${range}']`);
+        if (target_btn) {
+          target_btn.classList.add('active');
+          target_btn.classList.replace('btn-outline-secondary', 'btn-secondary');
+        }
       }
 
-      google.visualization.events.addOneTimeListener(chart, 'ready', function() {
-        /* Auto scale chart elements to display full SVG. */
-        var allSvg = document.getElementsByTagName("svg");
-        for (var svgIndex = 0; svgIndex < allSvg.length; svgIndex++) {
-          allSvg[svgIndex].setAttribute('height', allSvg[svgIndex].getBBox().height);
-        }
+      const min_timestamp = get_min_timestamp(range);
 
-        drawChart(chartsQueue, index + 1);
+      for (const chart of chart_instances) {
+        if (chart.config._is_time_series) {
+          apply_time_range_to_chart(chart, min_timestamp);
+        }
+      }
+    }
+
+    /* Calculate the start timestamp for a given time range string. */
+    function get_min_timestamp(range) {
+      if (range === 'all') return 0;
+      if (range === '1m') return latest_timestamp - 30 * DAY_MS;
+      if (range === '4m') return latest_timestamp - 120 * DAY_MS;
+      if (range === '1y') return latest_timestamp - 365 * DAY_MS;
+      return 0;
+    }
+
+    /* Filter a chart's data points based on the selected time range. */
+    function apply_time_range_to_chart(chart, min_timestamp) {
+      const full_data = chart.config._full_data;
+
+      /* Find indices that match the time range. */
+      const valid_indices = [];
+      for (let i = 0; i < full_data.labels_raw.length; i++) {
+        const timestamp = full_data.labels_raw[i];
+        if (min_timestamp === 0 || timestamp >= min_timestamp) {
+          valid_indices.push(i);
+        }
+      }
+
+      /* Reconstruct labels and datasets based on valid indices. */
+      chart.data.labels = valid_indices.map(i => full_data.labels[i]);
+      chart.data.datasets.forEach((ds, ds_index) => {
+        const full_ds_data = full_data.datasets[ds_index].data;
+        ds.data = valid_indices.map(i => full_ds_data[i]);
       });
 
-      chart.draw(chartData.data, chartData.options);
+      /* Hide the entire section if there's no data in this range. */
+      const section = chart.canvas.closest('section');
+      if (section) {
+        section.style.display = valid_indices.length === 0 ? 'none' : 'block';
+      }
+
+      update_chart_bounds(chart);
+      chart.update('none');
     }
 
-    function draw_charts()
-    {
-      /* Load JSON data. */
-      var json_data = %JSON_DATA%;
+    /* Change the Y-axis scale (linear, log, etc.) for all visible charts. */
+    function set_scale_mode(mode, button) {
+      current_scale_mode = mode;
+      const scale_type = mode === 'logarithmic' ? 'logarithmic' : 'linear';
+      const clip_outliers = mode === 'linear-clipped';
+
+      /* Update button states. */
+      document.querySelectorAll('.btn-scale-mode').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.replace('btn-secondary', 'btn-outline-secondary');
+      });
+      if (button) {
+        button.classList.add('active');
+        button.classList.replace('btn-outline-secondary', 'btn-secondary');
+      } else {
+        const target_btn = document.querySelector(`.btn-scale-mode[data-mode='${mode}']`);
+        if (target_btn) {
+          target_btn.classList.add('active');
+          target_btn.classList.replace('btn-outline-secondary', 'btn-secondary');
+        }
+      }
+
+      /* Only update visible charts immediately for performance. */
+      for (const chart of chart_instances) {
+        const canvas = chart.canvas;
+        const is_visible = canvas.offsetParent !== null;
+
+        if (is_visible) {
+          apply_scale_to_chart(chart, scale_type, clip_outliers, true);
+        } else {
+          /* Mark for deferred update. */
+          chart._needs_scale_update = true;
+        }
+      }
+    }
+
+    /* Configure a specific chart instance with the selected scale settings. */
+    function apply_scale_to_chart(chart, scale_type, clip_outliers, animate) {
+      chart.options.scales.y.type = scale_type;
+      update_chart_bounds(chart);
+      chart.update(animate ? {
+        duration: scale_type === 'logarithmic' ? 800 : 0,
+        easing: 'easeOutQuart'
+      } : 'none');
+      chart._needs_scale_update = false;
+    }
+
+    /* Calculate robust and absolute maximums for a set of values.
+     * The robust maximum is used to clip outliers, calculated as the 75th percentile
+     * plus 5 times the Interquartile Range (IQR). */
+    function calculate_robust_max(values) {
+      if (values.length === 0) {
+        return { absolute_max: 0, robust_max: 0 };
+      }
+
+      const absolute_max = Math.max(...values);
+      let robust_max = absolute_max;
+
+      if (values.length > 4) {
+        /* Create a copy to sort. */
+        const sorted = Float64Array.from(values).sort();
+        const q1 = sorted[Math.floor(sorted.length * 0.25)];
+        const q3 = sorted[Math.floor(sorted.length * 0.75)];
+        const iqr = q3 - q1;
+        robust_max = q3 + 5 * iqr;
+      }
+
+      return { absolute_max, robust_max };
+    }
+
+    /* Recalculate robust and absolute maximums based on currently visible datasets. */
+    function update_chart_bounds(chart) {
+      let absolute_max = 0;
+      let robust_max = 0;
+
+      chart.data.datasets.forEach((ds, i) => {
+        if (!chart.isDatasetVisible(i)) {
+          return;
+        }
+        /* Filter out null/undefined values. */
+        const ds_values = ds.data.filter(v => v !== null && v !== undefined);
+        const ds_stats = calculate_robust_max(ds_values);
+
+        absolute_max = Math.max(absolute_max, ds_stats.absolute_max);
+        robust_max = Math.max(robust_max, ds_stats.robust_max);
+      });
+
+      chart.config._absolute_max = absolute_max;
+      chart.config._robust_max = robust_max;
+
+      const is_clipped = current_scale_mode === 'linear-clipped';
+      update_chart_max(chart, is_clipped);
+    }
+
+    /* Set a fixed maximum for the Y-axis if outlier clipping is active. */
+    function update_chart_max(chart, clip) {
+      const robust_max = chart.config._robust_max;
+      const absolute_max = chart.config._absolute_max;
+      if (clip && chart.options.scales.y.type === 'linear' && robust_max < absolute_max) {
+        chart.options.scales.y.max = robust_max;
+      } else {
+        chart.options.scales.y.max = undefined;
+      }
+    }
+
+    /* Show/hide UI controls like time ranges or scale modes based on the active tab's content. */
+    function update_ui_for_active_tab() {
+      let has_time_series = false;
+      for (const chart of chart_instances) {
+        if (chart.canvas.offsetParent !== null && chart.config._is_time_series) {
+          has_time_series = true;
+          break;
+        }
+      }
+
+      const clipped_btn = document.getElementById('linear-clipped');
+      if (has_time_series) {
+        clipped_btn.classList.remove('d-none');
+      } else {
+        clipped_btn.classList.add('d-none');
+        if (current_scale_mode === 'linear-clipped') {
+          set_scale_mode('linear');
+        }
+      }
+    }
+
+    /* Format Y-axis tick labels for memory or large numeric values. */
+    function chart_y_axis_tick_callback(value, index, values, is_memory) {
+      if (is_memory) {
+        return format_memory(value);
+      }
+      if (Math.abs(value) >= 10000) {
+        return value.toExponential(2);
+      }
+      return +(value.toFixed(4));
+    }
+
+    /* Isolate a single dataset when its legend item is clicked, or show all if already isolated. */
+    function chart_legend_click_callback(e, legendItem, legend) {
+      const index = legendItem.datasetIndex;
+      const ci = legend.chart;
+      const is_visible = ci.isDatasetVisible(index);
+
+      /* Check if any other dataset is currently visible. */
+      let other_visible = false;
+      for (let i = 0; i < ci.data.datasets.length; i++) {
+        if (i !== index && ci.isDatasetVisible(i)) {
+          other_visible = true;
+          break;
+        }
+      }
+
+      if (!other_visible && is_visible) {
+        /* If this was the only one visible and we clicked it, show all. */
+        for (let i = 0; i < ci.data.datasets.length; i++) {
+          ci.setDatasetVisibility(i, true);
+        }
+      } else {
+        /* Otherwise, isolate this one. */
+        for (let i = 0; i < ci.data.datasets.length; i++) {
+          ci.setDatasetVisibility(i, i === index);
+        }
+      }
+      update_chart_bounds(ci);
+      ci.update();
+    }
+
+    /* Format tooltip labels to include dataset names and formatted values. */
+    function chart_tooltip_label_callback(context, is_memory) {
+      let label = context.dataset.label || '';
+      if (label) {
+        label += ': ';
+      }
+      if (context.parsed.y !== null) {
+        if (is_memory) {
+          label += format_memory(context.parsed.y);
+        } else {
+          label += context.parsed.y.toFixed(4);
+        }
+      }
+      return label;
+    }
+
+    /* Convert byte values into human-readable strings (MB, GB, etc.). */
+    function format_memory(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    /* Main entry point to initialize all benchmarks, create tabs, and render Chart.js instances. */
+    function draw_charts() {
+      /* Global Chart Configuration. */
+      Chart.defaults.plugins.colors.enabled = false;
+      Chart.defaults.animation.duration = 0;
+      Chart.defaults.transitions.active.animation.duration = 400;
+
+      /* Material Design Base Colors (HSL). */
+      const base_colors = [
+        [217, 89, 61],  /* Blue */
+        [5, 69, 54],    /* Red */
+        [44, 100, 48],  /* Yellow */
+        [151, 83, 34],  /* Green */
+        [291, 47, 51],  /* Purple */
+        [187, 100, 38], /* Cyan */
+        [14, 100, 63],  /* Deep Orange */
+        [60, 61, 38],   /* Lime */
+        [231, 48, 56],  /* Indigo */
+        [340, 82, 66],  /* Pink */
+        [174, 42, 51],  /* Teal */
+        [336, 78, 43]   /* Dark Pink */
+      ];
+
+      /* Generate a distinct color for each dataset using a Material Design base palette. */
+      function get_chart_color(index) {
+        const base = base_colors[index % base_colors.length];
+        const iteration = Math.floor(index / base_colors.length);
+        let l = base[2];
+
+        if (iteration > 0) {
+          /* Vary lightness for more datasets: alternates between darkening and lightening. */
+          const offset = (iteration % 2 === 1 ? -15 : 15) * Math.ceil(iteration / 2);
+          l = Math.max(10, Math.min(90, l + offset));
+        }
+        return `hsl(${base[0]}, ${base[1]}%, ${l}%)`;
+      }
+
+      /* This placeholder is replaced by the actual JSON data during generation. */
+      const json_data = %JSON_DATA%;
+
+      const max_ts = calculate_latest_timestamp(json_data);
+      if (max_ts > 0) {
+        latest_timestamp = max_ts;
+      }
+
+      const charts_nav_elem = document.getElementById("charts-nav");
+      const charts_content_elem = document.getElementById("charts-content");
 
       /* Clear contents. */
-      charts_nav_elem = document.getElementById("charts-nav");
-      charts_content_elem = document.getElementById("charts-content");
-      while(charts_nav_elem.firstChild) {
-        charts_nav_elem.removeChild(charts_nav_elem.firstChild);
-      }
-      while(charts_content_elem.firstChild) {
-        charts_content_elem.removeChild(charts_content_elem.firstChild);
-      }
+      charts_nav_elem.replaceChildren();
+      charts_content_elem.replaceChildren();
 
-      var chartsQueue = [];
+      chart_instances = [];
 
       /* Prepare UI and charts queue for each device. */
-      for (var i = 0; i < json_data.length; i++)
-      {
-        benchmark = json_data[i];
+      for (let i = 0; i < json_data.length; i++) {
+        const benchmark = json_data[i];
 
-        tab_name = benchmark['name'].split(" ")[0];
-        tab_id = "benchmark-" + tab_name;
-        tab_div = document.getElementById(tab_id);
+        const tab_name = benchmark['name'].split(" ")[0];
+        const tab_id = "benchmark-" + tab_name;
+        let tab_div = document.getElementById(tab_id);
 
         if (!tab_div) {
           /* Create tab button. */
-          li_nav = document.createElement('li');
-          li_nav.class = "nav-item";
+          const li_nav = document.createElement('li');
+          li_nav.className = "nav-item";
           charts_nav_elem.appendChild(li_nav);
 
-          button_nav = document.createElement('button');
+          const button_nav = document.createElement('button');
           button_nav.id = tab_id + "-tab";
           button_nav.classList.add("nav-link");
           button_nav.setAttribute("data-bs-toggle", "tab");
@@ -106,7 +379,7 @@
           button_nav.setAttribute("type", "button");
           button_nav.setAttribute("role", "tab");
           button_nav.setAttribute("aria-controls", tab_id);
-          button_nav.appendChild(document.createTextNode(tab_name))
+          button_nav.textContent = tab_name;
           li_nav.appendChild(button_nav);
 
           /* Create chart container div. */
@@ -114,54 +387,178 @@
           tab_div.id = tab_id;
           tab_div.classList.add("tab-pane");
           tab_div.setAttribute("aria-labelledby", button_nav.id);
-          charts_content_elem.appendChild(tab_div)
+          charts_content_elem.appendChild(tab_div);
 
-          if (i == 0) {
+          if (i === 0) {
             button_nav.classList.add("active");
-            tab_div.classList.add('show');
-            tab_div.classList.add('active');
+            tab_div.classList.add('show', 'active');
           }
         }
 
-        /* Create title. */
-        subtitle_h3 = document.createElement('h3');
-        subtitle_h3.appendChild(document.createTextNode(benchmark['name']));
-        tab_div.appendChild(subtitle_h3);
-        subtitle_h4 = document.createElement('h4');
-        subtitle_h4.appendChild(document.createTextNode(benchmark['device']));
-        tab_div.appendChild(subtitle_h4);
+        /* Wrap everything in a section for easy hiding. */
+        const section = document.createElement('section');
+        section.className = "benchmark-section mb-5";
+        tab_div.appendChild(section);
 
-        /* Create chart div. */
-        chart_div = document.createElement('div');
-        chart_div.id = "chart-" + i;
-        tab_div.appendChild(chart_div)
+        /* Create titles. */
+        const subtitle_h3 = document.createElement('h3');
+        subtitle_h3.textContent = benchmark['name'];
+        section.appendChild(subtitle_h3);
 
-        /* Chart drawing options. */
-        var options = {
-          pointsVisible: true,
-          pointSize: 2.5,
-          height: 500,
+        const subtitle_h4 = document.createElement('h4');
+        subtitle_h4.textContent = benchmark['device'];
+        section.appendChild(subtitle_h4);
+
+        /* Create chart container. */
+        const chart_container = document.createElement('div');
+        chart_container.style.position = 'relative';
+        chart_container.style.height = '500px';
+        chart_container.style.width = '100%';
+        section.appendChild(chart_container);
+
+        /* Create chart canvas. */
+        const canvas = document.createElement('canvas');
+        canvas.id = "chart-" + i;
+        chart_container.appendChild(canvas);
+
+        /* Prepare Data. */
+        const chart_data = benchmark['data'];
+        const is_time_series = benchmark['chart_type'] === 'line';
+        const labels_raw = is_time_series ? [...chart_data.labels] : [];
+
+        if (is_time_series) {
+          chart_data.labels = chart_data.labels.map(ts => {
+            if (ts === null) return "";
+            return new Date(ts).toISOString().split('T')[0];
+          });
+          document.getElementById("timeRangeGroup").classList.remove("d-none");
+        }
+
+        /* Assign Colors Manually. */
+        for (let j = 0; j < chart_data.datasets.length; j++) {
+          const color = get_chart_color(j);
+          const ds = chart_data.datasets[j];
+          ds.backgroundColor = color;
+          ds.borderColor = color;
+          ds.borderWidth = 2;
+          ds.pointBackgroundColor = color;
+          ds.pointBorderColor = '#fff';
+          ds.pointRadius = 0;
+          ds.pointHoverRadius = 5;
+          ds.pointHitRadius = 10;
+          ds.hoverBackgroundColor = color;
+          ds.hoverBorderColor = '#fff';
+          ds.hoverBorderWidth = 2;
+        }
+
+        const is_memory = benchmark['name'].toLowerCase().indexOf("memory") !== -1;
+
+        /* Draw Chart. */
+        const chart = new Chart(canvas, {
+          type: benchmark['chart_type'] === 'line' ? 'line' : 'bar',
+          data: chart_data,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  autoSkip: true,
+                  autoSkipPadding: 20,
+                  callback: (value, index, values) => chart_y_axis_tick_callback(value, index, values, is_memory)
+                }
+              }
+            },
+            interaction: {
+              mode: benchmark['chart_type'] === 'line' ? 'nearest' : 'index',
+              intersect: benchmark['chart_type'] === 'line',
+            },
+            plugins: {
+              legend: {
+                position: 'right',
+                onClick: chart_legend_click_callback
+              },
+              tooltip: {
+                enabled: true,
+                callbacks: {
+                  label: (context) => chart_tooltip_label_callback(context, is_memory)
+                }
+              }
+            }
+          }
+        });
+
+        chart.config._is_time_series = is_time_series;
+        /* Deep copy data for filtering. */
+        chart.config._full_data = {
+          labels: [...chart_data.labels],
+          labels_raw: labels_raw,
+          datasets: chart_data.datasets.map(ds => ({ ...ds, data: [...ds.data] }))
         };
 
-        /* Prepare chart data for queue. */
-        var data = new google.visualization.DataTable(benchmark["data"]);
-        var chartData = {
-          id: chart_div.id,
-          data: benchmark['chart_type'] == 'line' ? data : transposeDataTable(data),
-          options: options,
-          chart_type: benchmark['chart_type']
-        };
+        if (is_time_series) {
+          apply_time_range_to_chart(chart, get_min_timestamp(current_time_range));
+        } else {
+          update_chart_bounds(chart);
+        }
 
-        chartsQueue.push(chartData);
+        chart_instances.push(chart);
       }
 
-      /* Start drawing charts sequentially. */
-      drawChart(chartsQueue, 0);
+      /* Add event listeners to resize and update charts when tabs are shown. */
+      document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab_el => {
+        tab_el.addEventListener('shown.bs.tab', (event) => {
+          const scale_type = current_scale_mode === 'logarithmic' ? 'logarithmic' : 'linear';
+          const clip_outliers = current_scale_mode === 'linear-clipped';
+
+          for (const chart of chart_instances) {
+            if (chart.canvas.offsetParent !== null) {
+              if (chart._needs_scale_update) {
+                apply_scale_to_chart(chart, scale_type, clip_outliers, false);
+              }
+              chart.resize('none');
+            }
+          }
+          update_ui_for_active_tab();
+        });
+      });
+
+      update_ui_for_active_tab();
     }
+
+    /* Initialize when DOM is ready. */
+    document.addEventListener("DOMContentLoaded", () => {
+      /* Attach UI event listeners. */
+      document.querySelectorAll('.btn-time-range').forEach(btn => {
+        btn.addEventListener('click', (e) => set_time_range(e.target.dataset.range, e.target));
+      });
+
+      document.querySelectorAll('.btn-scale-mode').forEach(btn => {
+        btn.addEventListener('click', (e) => set_scale_mode(e.target.dataset.mode, e.target));
+      });
+
+      draw_charts();
+    });
   </script>
 </head>
 <body>
-  <h1>Benchmarks</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Benchmarks</h1>
+    <div class="d-flex flex-column align-items-end">
+      <div class="btn-group mb-2 d-none" id="timeRangeGroup" role="group" aria-label="Time Range">
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-time-range" data-range="1m">1 Month</button>
+        <button type="button" class="btn btn-secondary btn-sm shadow-sm btn-time-range active" data-range="4m">4 Months</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-time-range" data-range="1y">12 Months</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-time-range" data-range="all">All Time</button>
+      </div>
+      <div class="btn-group" role="group" aria-label="Scale Type">
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-scale-mode" data-mode="linear">Linear</button>
+        <button type="button" class="btn btn-secondary btn-sm shadow-sm btn-scale-mode active" id="linear-clipped" data-mode="linear-clipped">Linear (Clipped)</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm btn-scale-mode" data-mode="logarithmic">Logarithmic</button>
+      </div>
+    </div>
+  </div>
 
   <ul class="nav nav-tabs" id="charts-nav" role="tablist">
   </ul>

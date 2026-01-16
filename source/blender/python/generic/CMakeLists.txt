@@ -8,7 +8,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -36,26 +35,15 @@ set(SRC
 )
 
 set(LIB
-  ${PYTHON_LINKFLAGS}
-  ${PYTHON_LIBRARIES}
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::dependencies::optional::python
+  PRIVATE bf::dependencies::epoxy
 )
-
-# NOTE: use irrespective of `WITH_OPENGL_BACKEND` as the `bgl` module uses this for constants.
-list(APPEND INC_SYS
-  ${Epoxy_INCLUDE_DIRS}
-)
-
-if(WITH_OPENGL_BACKEND)
-  list(APPEND LIB
-    ${Epoxy_LIBRARIES}
-  )
-endif()
 
 if(WITH_PYTHON_MODULE)
   add_definitions(-DWITH_PYTHON_MODULE)

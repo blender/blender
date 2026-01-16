@@ -213,21 +213,21 @@ static StructRNA *rna_FModifierType_refine(PointerRNA *ptr)
 
   switch (fcm->type) {
     case FMODIFIER_TYPE_GENERATOR:
-      return &RNA_FModifierGenerator;
+      return RNA_FModifierGenerator;
     case FMODIFIER_TYPE_FN_GENERATOR:
-      return &RNA_FModifierFunctionGenerator;
+      return RNA_FModifierFunctionGenerator;
     case FMODIFIER_TYPE_ENVELOPE:
-      return &RNA_FModifierEnvelope;
+      return RNA_FModifierEnvelope;
     case FMODIFIER_TYPE_CYCLES:
-      return &RNA_FModifierCycles;
+      return RNA_FModifierCycles;
     case FMODIFIER_TYPE_NOISE:
-      return &RNA_FModifierNoise;
+      return RNA_FModifierNoise;
     case FMODIFIER_TYPE_LIMITS:
-      return &RNA_FModifierLimits;
+      return RNA_FModifierLimits;
     case FMODIFIER_TYPE_STEPPED:
-      return &RNA_FModifierStepped;
+      return RNA_FModifierStepped;
     default:
-      return &RNA_UnknownType;
+      return RNA_UnknownType;
   }
 }
 
@@ -598,7 +598,7 @@ static std::optional<std::string> rna_FCurve_path(const PointerRNA *ptr)
         const int fcurve_index = channelbag->fcurves().first_index_try(fcurve);
         if (fcurve_index != -1) {
           PointerRNA channelbag_ptr = RNA_pointer_create_discrete(
-              &action.id, &RNA_ActionChannelbag, channelbag);
+              &action.id, RNA_ActionChannelbag, channelbag);
           const std::optional<std::string> channelbag_path = rna_Channelbag_path(&channelbag_ptr);
           return fmt::format("{}.fcurves[{}]", *channelbag_path, fcurve_index);
         }
@@ -748,7 +748,7 @@ static void rna_FCurve_update_data_ex(ID *id, FCurve *fcu, Main *bmain)
 /* RNA update callback for F-Curves after curve shape changes */
 static void rna_FCurve_update_data(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  BLI_assert(ptr->type == &RNA_FCurve);
+  BLI_assert(ptr->type == RNA_FCurve);
   rna_FCurve_update_data_ex(ptr->owner_id, static_cast<FCurve *>(ptr->data), bmain);
 }
 
@@ -769,7 +769,7 @@ static PointerRNA rna_FCurve_active_modifier_get(PointerRNA *ptr)
 {
   FCurve *fcu = static_cast<FCurve *>(ptr->data);
   FModifier *fcm = find_active_fmodifier(&fcu->modifiers);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_FModifier, fcm);
+  return RNA_pointer_create_with_parent(*ptr, RNA_FModifier, fcm);
 }
 
 static void rna_FCurve_active_modifier_set(PointerRNA *ptr,

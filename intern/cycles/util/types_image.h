@@ -9,16 +9,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Color to use when textures are not found. */
-enum {
-  TEX_IMAGE_MISSING_R = 1,
-  TEX_IMAGE_MISSING_G = 0,
-  TEX_IMAGE_MISSING_B = 1,
-  TEX_IMAGE_MISSING_A = 1
-};
+/* Color to use when images are not found. */
+#define IMAGE_MISSING_RGBA make_float4(1, 0, 1, 1)
 
-/* Interpolation types for textures
- * CUDA also use texture space to store other objects. */
+/* Interpolation types for images. */
 enum InterpolationType {
   INTERPOLATION_NONE = ~0,
   INTERPOLATION_LINEAR = 0,
@@ -29,6 +23,7 @@ enum InterpolationType {
   INTERPOLATION_NUM_TYPES,
 };
 
+/* Image data types supported by the kernel. */
 enum ImageDataType {
   IMAGE_DATA_TYPE_FLOAT4 = 0,
   IMAGE_DATA_TYPE_BYTE4 = 1,
@@ -65,7 +60,7 @@ enum ImageAlphaType {
   IMAGE_ALPHA_NUM_TYPES,
 };
 
-/* Extension types for textures.
+/* Extension types for image.
  *
  * Defines how the image is extrapolated past its original bounds. */
 enum ExtensionType {
@@ -81,8 +76,9 @@ enum ExtensionType {
   EXTENSION_NUM_TYPES,
 };
 
-struct TextureInfo {
-  /* Pointer, offset or texture depending on device. */
+/* Kernel data structure to describe image. */
+struct KernelImageInfo {
+  /* Pointer, offset or image/texture object depending on device. */
   uint64_t data = 0;
   /* Data Type */
   uint data_type = IMAGE_DATA_NUM_TYPES;

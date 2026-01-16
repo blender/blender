@@ -492,7 +492,7 @@ void rna_collection_search_update_fn(
         name = RNA_property_string_get_alloc(
             &itemptr, data->item_search_prop, name_buf, sizeof(name_buf), nullptr);
       }
-      else if (itemptr.type == &RNA_ActionSlot) {
+      else if (itemptr.type == RNA_ActionSlot) {
         /* FIXME: This special case is fairly annoying.
          *
          * `item_search_prop` now allows to specify another string property than the default RNA
@@ -531,6 +531,17 @@ void rna_collection_search_update_fn(
       }
     }
     RNA_PROP_END;
+
+    /* Sort alphabetically (matches other search layouts). */
+    std::sort(
+        items_list.begin(),
+        items_list.end(),
+        [](const std::unique_ptr<CollItemSearch> &a, const std::unique_ptr<CollItemSearch> &b) {
+          return BLI_strcasecmp_natural(a->name.c_str(), b->name.c_str()) < 0;
+        });
+    for (const int i : items_list.index_range()) {
+      items_list[i]->index = i;
+    }
   }
   else {
     BLI_assert(RNA_property_type(data->target_prop) == PROP_STRING);

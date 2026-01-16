@@ -524,7 +524,7 @@ static wmOperatorStatus curves_convert_from_particle_system_exec(bContext *C, wm
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object *ob_from_orig = object::context_active_object(C);
   ParticleSystem *psys_orig = static_cast<ParticleSystem *>(
-      CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data);
+      CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem).data);
   if (psys_orig == nullptr) {
     psys_orig = psys_get_current(ob_from_orig);
   }

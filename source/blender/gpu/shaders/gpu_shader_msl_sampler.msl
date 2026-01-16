@@ -6,6 +6,8 @@
 
 #include "gpu_shader_msl_defines.msl"
 
+#pragma blender dead_code_elimination off
+
 using namespace metal;
 
 /* Generate wrapper structs for combined texture and sampler type. */
@@ -656,3 +658,5 @@ template<typename T, access A> int3 textureSize(thread _sampler3DAtomic<T, A> im
 #  define isampler2DAtomic isampler2D
 #  define isampler3DAtomic isampler3D
 #endif
+
+#pragma blender dead_code_elimination on

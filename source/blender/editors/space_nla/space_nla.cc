@@ -560,7 +560,7 @@ static void nla_track_region_message_subscribe(const wmRegionMessageSubscribePar
   {
     wmMsgParams_RNA msg_key_params = {{}};
     StructRNA *type_array[] = {
-        &RNA_DopeSheet,
+        RNA_DopeSheet,
     };
 
     for (int i = 0; i < ARRAY_SIZE(type_array); i++) {

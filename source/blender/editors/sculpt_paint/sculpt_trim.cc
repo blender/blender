@@ -22,6 +22,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
@@ -508,7 +509,7 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
 {
   const Scene &scene = *CTX_data_scene(&C);
   Object *object = gesture_data.vc.obact;
-  SculptSession &ss = *object->sculpt;
+  SculptSession &ss = *object->runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*object);
 
   switch (pbvh.type()) {

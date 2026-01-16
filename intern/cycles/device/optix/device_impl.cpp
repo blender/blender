@@ -105,7 +105,7 @@ OptiXDevice::~OptiXDevice()
   free_bvh_memory_delayed();
 
   sbt_data.free();
-  texture_info.free();
+  image_info.free();
   launch_params.free();
 
   /* Unload modules. */
@@ -367,7 +367,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     string ptx_data;
     if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
       string cflags = compile_kernel_get_common_cflags(kernel_features);
-      ptx_filename = compile_kernel(cflags, ("kernel" + suffix).c_str(), "optix", true);
+      ptx_filename = compile_kernel(cflags, ("kernel" + suffix).c_str(), true);
     }
     if (ptx_filename.empty() || !path_read_compressed_text(ptx_filename, ptx_data)) {
       set_error(string_printf("Failed to load OptiX kernel from '%s'", ptx_filename.c_str()));

@@ -20,7 +20,7 @@ endif()
 set(LIB
   PRIVATE PRIVATE bf::blenlib
   PRIVATE bf::intern::guardedalloc
-  ${ZLIB_LIBRARIES}
+  PRIVATE bf::dependencies::zlib
   ${PLATFORM_LINKLIBS})
 
 add_cc_flags_custom_test(msgfmt)

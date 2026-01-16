@@ -7,7 +7,7 @@
 #include "util/log.h"
 #include "util/nanovdb.h"
 #include "util/openvdb.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/tools/Dense.h>
@@ -31,12 +31,8 @@ VDBImageLoader::VDBImageLoader(const string &grid_name, const float clipping)
 
 VDBImageLoader::~VDBImageLoader() = default;
 
-bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata)
+bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
 {
-  if (!features.has_nanovdb) {
-    return false;
-  }
-
 #ifdef WITH_NANOVDB
   load_grid();
 
@@ -64,7 +60,7 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
   bbox = grid->evalActiveVoxelBoundingBox();
   if (bbox.empty()) {
     metadata.type = IMAGE_DATA_TYPE_NANOVDB_EMPTY;
-    metadata.byte_size = 1;
+    metadata.nanovdb_byte_size = 1;
     grid.reset();
     return true;
   }
@@ -91,7 +87,7 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
     return false;
   }
 
-  metadata.byte_size = nanogrid.size();
+  metadata.nanovdb_byte_size = nanogrid.size();
 
   /* Set transform from object space to voxel index. */
   openvdb::math::Mat4f grid_matrix = grid->transform().baseMap()->getAffineMap()->getMat4();
@@ -115,14 +111,11 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
 #endif
 }
 
-bool VDBImageLoader::load_pixels(const ImageMetaData &metadata,
-                                 void *pixels,
-                                 const size_t /*pixels_size*/,
-                                 const bool /*associate_alpha*/)
+bool VDBImageLoader::load_pixels(const ImageMetaData &metadata, void *pixels)
 {
 #ifdef WITH_NANOVDB
   if (metadata.type == IMAGE_DATA_TYPE_NANOVDB_EMPTY) {
-    memset(pixels, 0, metadata.byte_size);
+    memset(pixels, 0, metadata.nanovdb_byte_size);
     return true;
   }
   if (nanogrid) {

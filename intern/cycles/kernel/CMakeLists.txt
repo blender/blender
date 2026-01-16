@@ -235,9 +235,9 @@ set(SRC_KERNEL_UTIL_HEADERS
   util/colorspace.h
   util/differential.h
   util/ies.h
+  util/image_3d.h
   util/lookup_table.h
   util/nanovdb.h
-  util/texture_3d.h
   util/profiler.h
 )
 
@@ -292,13 +292,13 @@ set(SRC_UTIL_HEADERS
   ../util/rect.h
   ../util/static_assert.h
   ../util/transform.h
-  ../util/texture.h
   ../util/types.h
   ../util/types_base.h
   ../util/types_float2.h
   ../util/types_float3.h
   ../util/types_float4.h
   ../util/types_float8.h
+  ../util/types_image.h
   ../util/types_int2.h
   ../util/types_int3.h
   ../util/types_int4.h
@@ -321,12 +321,9 @@ set(LIB
 
 # `Zstd` compressor for kernels.
 add_executable(zstd_compress ../cmake/zstd_compress.cpp)
-target_include_directories(zstd_compress SYSTEM PRIVATE ${ZSTD_INCLUDE_DIRS})
 
-target_link_libraries(zstd_compress ${ZSTD_LIBRARIES})
-if(DEFINED PTHREADS_LIBRARIES)
-  target_link_libraries(zstd_compress ${PTHREADS_LIBRARIES})
-endif()
+target_link_libraries(zstd_compress PRIVATE bf::dependencies::zstd)
+target_link_libraries(zstd_compress PRIVATE bf::dependencies::pthreads)
 
 if(NOT WITH_BLENDER)
   # For the Cycles standalone put libraries next to the Cycles application.

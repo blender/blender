@@ -112,6 +112,8 @@ set(LIB
   PRIVATE bf::sequencer
   bf_intern_ghost
   bf_compositor
+  PRIVATE bf::dependencies::optional::ffmpeg
+  PRIVATE bf::dependencies::optional::audaspace
 )
 
 if(WIN32)
@@ -136,19 +138,6 @@ if(WITH_GHOST_CSD)
   add_definitions(-DWITH_GHOST_CSD)
 endif()
 
-if(WITH_AUDASPACE)
-  list(APPEND INC_SYS
-    ${AUDASPACE_C_INCLUDE_DIRS}
-  )
-  if(WITH_SYSTEM_AUDASPACE)
-    list(APPEND LIB
-      ${AUDASPACE_C_LIBRARIES}
-      ${AUDASPACE_PY_LIBRARIES}
-    )
-  endif()
-  add_definitions(-DWITH_AUDASPACE)
-endif()
-
 if(WITH_CYCLES)
   add_definitions(-DWITH_CYCLES)
 endif()
@@ -159,16 +148,6 @@ endif()
 
 if(WITH_VULKAN_BACKEND)
   add_definitions(-DWITH_VULKAN_BACKEND)
-endif()
-
-if(WITH_CODEC_FFMPEG)
-  list(APPEND INC_SYS
-    ${FFMPEG_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${FFMPEG_LIBRARIES}
-  )
-  add_definitions(-DWITH_FFMPEG)
 endif()
 
 if(WITH_HEADLESS)

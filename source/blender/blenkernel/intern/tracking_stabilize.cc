@@ -127,7 +127,7 @@ static FCurve *retrieve_stab_animation(MovieClip *clip, const char *data_path, i
 {
   return id_data_find_fcurve(&clip->id,
                              &clip->tracking.stabilization,
-                             &RNA_MovieTrackingStabilization,
+                             RNA_MovieTrackingStabilization,
                              data_path,
                              idx,
                              nullptr);
@@ -135,7 +135,7 @@ static FCurve *retrieve_stab_animation(MovieClip *clip, const char *data_path, i
 
 static FCurve *retrieve_track_weight_animation(MovieClip *clip, MovieTrackingTrack *track)
 {
-  return id_data_find_fcurve(&clip->id, track, &RNA_MovieTrackingTrack, "weight_stab", 0, nullptr);
+  return id_data_find_fcurve(&clip->id, track, RNA_MovieTrackingTrack, "weight_stab", 0, nullptr);
 }
 
 static float fetch_from_fcurve(const FCurve *animationCurve,

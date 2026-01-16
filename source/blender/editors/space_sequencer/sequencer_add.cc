@@ -194,7 +194,7 @@ static void sequencer_add_ui(bContext * /*C*/, wmOperator *op)
   layout.separator();
 
   /* Image template. */
-  PointerRNA imf_ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImageFormatSettings, imf);
+  PointerRNA imf_ptr = RNA_pointer_create_discrete(nullptr, RNA_ImageFormatSettings, imf);
 
   /* Multiview template. */
   if (RNA_boolean_get(op->ptr, "show_multiview")) {
@@ -1177,8 +1177,7 @@ static void seq_build_proxy(bContext *C, Span<Strip *> movie_strips)
     seq::proxy_set(strip, true);
     strip->data->proxy->build_size_flags = seq_get_proxy_size_flags(C);
     strip->data->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
-    seq::proxy_rebuild_context(
-        pj->main, pj->depsgraph, pj->scene, strip, nullptr, &pj->queue, true);
+    seq::proxy_rebuild_context(pj->main, pj->scene, strip, nullptr, true, pj->queue);
   }
 
   if (!WM_jobs_is_running(wm_job)) {
@@ -1969,12 +1968,8 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_ensure(scene);
 
-  seq::LoadData load_data;
-  if (!sequencer_add_generic_exec(C, op, &load_data, scene, 1)) {
-    return OPERATOR_CANCELLED;
-  }
-  load_data.effect.type = StripType(RNA_enum_get(op->ptr, "type"));
-  const int num_inputs = seq::effect_get_num_inputs(load_data.effect.type);
+  StripType effect_type = StripType(RNA_enum_get(op->ptr, "type"));
+  const int num_inputs = seq::effect_get_num_inputs(effect_type);
 
   VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, num_inputs);
   StringRef error_msg = effect_inputs_validate(inputs, num_inputs);
@@ -1984,9 +1979,14 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
+  seq::LoadData load_data;
+  if (!sequencer_add_generic_exec(C, op, &load_data, scene, 1)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  load_data.effect.type = effect_type;
   Strip *input1 = inputs.size() > 0 ? inputs[0] : nullptr;
   Strip *input2 = inputs.size() == 2 ? inputs[1] : nullptr;
-
   load_data.effect.input1 = input1;
   load_data.effect.input2 = input2;
 

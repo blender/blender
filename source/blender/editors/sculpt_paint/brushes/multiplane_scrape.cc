@@ -17,6 +17,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -141,7 +142,7 @@ static void sample_node_surface_mesh(const Depsgraph &depsgraph,
                                      ScrapeSampleData &sample,
                                      LocalData &tls)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -186,7 +187,7 @@ static void sample_node_surface_grids(const Depsgraph &depsgraph,
                                       ScrapeSampleData &sample,
                                       LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -234,7 +235,7 @@ static void sample_node_surface_bmesh(const Depsgraph &depsgraph,
                                       ScrapeSampleData &sample,
                                       LocalData &tls)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
@@ -371,7 +372,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        LocalData &tls,
                        const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -432,7 +433,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        Object &object,
                        LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -494,7 +495,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        Object &object,
                        LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -549,7 +550,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
                                 Object &object,
                                 const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
@@ -703,7 +704,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {

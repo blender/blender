@@ -569,9 +569,11 @@ class Instance : public DrawEngine {
         anti_aliasing_ps_.sync(scene_state_, resources_);
       }
       this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
-      /* Perform render step between samples to allow
-       * flushing of freed GPUBackend resources. */
-      if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      /* Metal: Perform render step between samples to allow flushing of freed GPUBackend
+       * resources. Vulkan: Perform render step between samples to avoid allocation of a high
+       * amount of command buffer memory that can eventually result in out-of-memory errors or a
+       * TDR when submitted as one large command buffer. */
+      if (ELEM(GPU_backend_get_type(), GPU_BACKEND_METAL, GPU_BACKEND_VULKAN)) {
         GPU_flush();
       }
       GPU_render_step();

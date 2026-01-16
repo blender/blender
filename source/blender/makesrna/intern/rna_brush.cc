@@ -630,31 +630,31 @@ static bool rna_BrushCapabilitiesWeightPaint_has_weight_get(PointerRNA *ptr)
 static PointerRNA rna_Sculpt_brush_capabilities_get(PointerRNA *ptr)
 {
   BLI_assert(ptr->owner_id == ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_BrushCapabilitiesSculpt, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_BrushCapabilitiesSculpt, ptr->data);
 }
 
 static PointerRNA rna_Imapaint_brush_capabilities_get(PointerRNA *ptr)
 {
   BLI_assert(ptr->owner_id == ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_BrushCapabilitiesImagePaint, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_BrushCapabilitiesImagePaint, ptr->data);
 }
 
 static PointerRNA rna_Vertexpaint_brush_capabilities_get(PointerRNA *ptr)
 {
   BLI_assert(ptr->owner_id == ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_BrushCapabilitiesVertexPaint, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_BrushCapabilitiesVertexPaint, ptr->data);
 }
 
 static PointerRNA rna_Weightpaint_brush_capabilities_get(PointerRNA *ptr)
 {
   BLI_assert(ptr->owner_id == ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_BrushCapabilitiesWeightPaint, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_BrushCapabilitiesWeightPaint, ptr->data);
 }
 
 static PointerRNA rna_Brush_capabilities_get(PointerRNA *ptr)
 {
   BLI_assert(ptr->owner_id == ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_BrushCapabilities, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_BrushCapabilities, ptr->data);
 }
 
 static void rna_Brush_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -933,7 +933,7 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
                                                       PropertyRNA * /*prop*/,
                                                       bool * /*r_free*/)
 {
-  PaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = (C) ? BKE_paintmode_get_active_from_context(C) : PaintMode::Invalid;
 
   static const EnumPropertyItem brush_stroke_method_items[] = {
       {0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},

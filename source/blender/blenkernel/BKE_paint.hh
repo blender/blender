@@ -374,13 +374,6 @@ struct PersistentMultiresData {
 };
 
 struct SculptSession : NonCopyable, NonMovable {
-  /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
-  struct { /* Special handling for multires meshes */
-    bool active = false;
-    MultiresModifierData *modifier = nullptr;
-    int level = 0;
-  } multires = {};
-
   KeyBlock *shapekey_active = nullptr;
 
   /* Edges to adjacent faces. */
@@ -398,6 +391,7 @@ struct SculptSession : NonCopyable, NonMovable {
   /* Undo/redo log for dynamic topology sculpting */
   BMLog *bm_log = nullptr;
 
+  MultiresModifierData *multires_modifier = nullptr;
   /* Limit surface/grids. */
   SubdivCCG *subdiv_ccg = nullptr;
 
@@ -486,24 +480,7 @@ struct SculptSession : NonCopyable, NonMovable {
   float4 prev_pivot_rot = {};
   float3 prev_pivot_scale = {};
 
-  struct {
-    struct {
-      /* Keep track of how much each vertex has been painted (non-airbrush only). */
-      float *alpha_weight;
-
-      /* Needed to continuously re-apply over the same weights (#BRUSH_ACCUMULATE disabled).
-       * Lazy initialize as needed (flag is set to 1 to tag it as uninitialized). */
-      Array<MDeformVert> dvert_prev;
-    } wpaint;
-
-    /* TODO: identify sculpt-only fields */
-    // struct { ... } sculpt;
-  } mode = {};
   eObjectMode mode_type;
-
-  /* This flag prevents bke::pbvh::Tree from being freed when creating the vp_handle for
-   * texture paint. */
-  bool building_vp_handle = false;
 
   /**
    * ID data is older than sculpt-mode data.

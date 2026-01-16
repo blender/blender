@@ -45,6 +45,8 @@ static void cmp_node_movieclip_declare(NodeDeclarationBuilder &b)
 static void init(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = static_cast<bNode *>(ptr->data);
+  node->flag |= NODE_PREVIEW;
+
   Scene *scene = CTX_data_scene(C);
   MovieClipUser *user = MEM_new_for_free<MovieClipUser>(__func__);
 
@@ -85,11 +87,11 @@ class MovieClipOperation : public NodeOperation {
 
   void compute_image(ImBuf *movie_clip_buffer)
   {
-    if (!should_compute_output("Image")) {
+    Result &result = this->get_result("Image");
+    if (!result.should_compute()) {
       return;
     }
 
-    Result &result = get_result("Image");
     if (!movie_clip_buffer) {
       result.allocate_invalid();
       return;
@@ -111,11 +113,11 @@ class MovieClipOperation : public NodeOperation {
 
   void compute_alpha(ImBuf *movie_clip_buffer)
   {
-    if (!should_compute_output("Alpha")) {
+    Result &result = get_result("Alpha");
+    if (!result.should_compute()) {
       return;
     }
 
-    Result &result = get_result("Alpha");
     if (!movie_clip_buffer) {
       result.allocate_single_value();
       result.set_single_value(1.0f);
@@ -146,25 +148,25 @@ class MovieClipOperation : public NodeOperation {
   {
     /* The movie clip buffer is invalid or missing, set appropriate fallback values. */
     if (!movie_clip_buffer) {
-      if (should_compute_output("Offset X")) {
-        Result &result = get_result("Offset X");
-        result.allocate_single_value();
-        result.set_single_value(0.0f);
+      Result &x_offset_result = this->get_result("Offset X");
+      if (x_offset_result.should_compute()) {
+        x_offset_result.allocate_single_value();
+        x_offset_result.set_single_value(0.0f);
       }
-      if (should_compute_output("Offset Y")) {
-        Result &result = get_result("Offset Y");
-        result.allocate_single_value();
-        result.set_single_value(0.0f);
+      Result &y_offset_result = this->get_result("Offset Y");
+      if (y_offset_result.should_compute()) {
+        y_offset_result.allocate_single_value();
+        y_offset_result.set_single_value(0.0f);
       }
-      if (should_compute_output("Scale")) {
-        Result &result = get_result("Scale");
-        result.allocate_single_value();
-        result.set_single_value(1.0f);
+      Result &scale_result = this->get_result("Scale");
+      if (scale_result.should_compute()) {
+        scale_result.allocate_single_value();
+        scale_result.set_single_value(1.0f);
       }
-      if (should_compute_output("Angle")) {
-        Result &result = get_result("Angle");
-        result.allocate_single_value();
-        result.set_single_value(0.0f);
+      Result &angle_result = this->get_result("Angle");
+      if (angle_result.should_compute()) {
+        angle_result.allocate_single_value();
+        angle_result.set_single_value(0.0f);
       }
       return;
     }
@@ -182,25 +184,25 @@ class MovieClipOperation : public NodeOperation {
     BKE_tracking_stabilization_data_get(
         movie_clip, frame_number, width, height, offset, &scale, &angle);
 
-    if (should_compute_output("Offset X")) {
-      Result &result = get_result("Offset X");
-      result.allocate_single_value();
-      result.set_single_value(offset.x);
+    Result &x_offset_result = this->get_result("Offset X");
+    if (x_offset_result.should_compute()) {
+      x_offset_result.allocate_single_value();
+      x_offset_result.set_single_value(offset.x);
     }
-    if (should_compute_output("Offset Y")) {
-      Result &result = get_result("Offset Y");
-      result.allocate_single_value();
-      result.set_single_value(offset.y);
+    Result &y_offset_result = this->get_result("Offset Y");
+    if (y_offset_result.should_compute()) {
+      y_offset_result.allocate_single_value();
+      y_offset_result.set_single_value(offset.y);
     }
-    if (should_compute_output("Scale")) {
-      Result &result = get_result("Scale");
-      result.allocate_single_value();
-      result.set_single_value(scale);
+    Result &scale_result = this->get_result("Scale");
+    if (scale_result.should_compute()) {
+      scale_result.allocate_single_value();
+      scale_result.set_single_value(scale);
     }
-    if (should_compute_output("Angle")) {
-      Result &result = get_result("Angle");
-      result.allocate_single_value();
-      result.set_single_value(angle);
+    Result &angle_result = this->get_result("Angle");
+    if (angle_result.should_compute()) {
+      angle_result.allocate_single_value();
+      angle_result.set_single_value(angle);
     }
   }
 

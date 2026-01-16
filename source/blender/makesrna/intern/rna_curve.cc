@@ -223,13 +223,13 @@ static StructRNA *rna_Curve_refine(PointerRNA *ptr)
   const Curve *cu = static_cast<Curve *>(ptr->data);
   switch (cu->ob_type) {
     case OB_FONT: {
-      return &RNA_TextCurve;
+      return RNA_TextCurve;
     }
     case OB_SURF: {
-      return &RNA_SurfaceCurve;
+      return RNA_SurfaceCurve;
     }
     default: {
-      return &RNA_Curve;
+      return RNA_Curve;
     }
   }
 }
@@ -757,7 +757,7 @@ static PointerRNA rna_Curve_active_spline_get(PointerRNA *ptr)
   nu = static_cast<Nurb *>(BLI_findlink(nurbs, cu->actnu));
 
   if (nu) {
-    return RNA_pointer_create_with_parent(*ptr, &RNA_Spline, nu);
+    return RNA_pointer_create_with_parent(*ptr, RNA_Spline, nu);
   }
 
   return PointerRNA_NULL;

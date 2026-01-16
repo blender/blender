@@ -403,7 +403,7 @@ static void rna_Gizmo_state_select_set(PointerRNA *ptr, bool value)
 static PointerRNA rna_Gizmo_group_get(PointerRNA *ptr)
 {
   wmGizmo *gz = static_cast<wmGizmo *>(ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_GizmoGroup, gz->parent_gzgroup);
+  return RNA_pointer_create_with_parent(*ptr, RNA_GizmoGroup, gz->parent_gzgroup);
 }
 
 #  ifdef WITH_PYTHON
@@ -433,7 +433,7 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
   /* setup dummy gizmo & gizmo type to store static properties in */
   dummy_gizmo.type = &dummy_gt;
   dummy_gt.idname = temp_buffers.idname;
-  PointerRNA dummy_gizmo_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Gizmo, &dummy_gizmo);
+  PointerRNA dummy_gizmo_ptr = RNA_pointer_create_discrete(nullptr, RNA_Gizmo, &dummy_gizmo);
 
   /* Clear so we can detect if it's left unset. */
   temp_buffers.idname[0] = '\0';
@@ -487,7 +487,7 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
   }
 
   /* create a new gizmo type */
-  dummy_gt.rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), dummy_gt.idname, &RNA_Gizmo);
+  dummy_gt.rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), dummy_gt.idname, RNA_Gizmo);
   /* gizmo properties are registered separately */
   RNA_def_struct_flag(dummy_gt.rna_ext.srna, STRUCT_NO_IDPROPERTIES);
   dummy_gt.rna_ext.data = data;
@@ -550,7 +550,7 @@ static void **rna_Gizmo_instance(PointerRNA *ptr)
 static StructRNA *rna_Gizmo_refine(PointerRNA *gz_ptr)
 {
   wmGizmo *gz = static_cast<wmGizmo *>(gz_ptr->data);
-  return (gz->type && gz->type->rna_ext.srna) ? gz->type->rna_ext.srna : &RNA_Gizmo;
+  return (gz->type && gz->type->rna_ext.srna) ? gz->type->rna_ext.srna : RNA_Gizmo;
 }
 
 /** \} */
@@ -817,7 +817,7 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
   dummy_wgt.name = temp_buffers.name;
   dummy_wgt.idname = temp_buffers.idname;
 
-  PointerRNA wgptr = RNA_pointer_create_discrete(nullptr, &RNA_GizmoGroup, &dummy_gizmo_group);
+  PointerRNA wgptr = RNA_pointer_create_discrete(nullptr, RNA_GizmoGroup, &dummy_gizmo_group);
 
   /* Clear so we can detect if it's left unset. */
   temp_buffers.idname[0] = temp_buffers.name[0] = '\0';
@@ -885,7 +885,7 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
 
   /* create a new gizmogroup type */
   dummy_wgt.rna_ext.srna = RNA_def_struct_ptr(
-      &RNA_blender_rna_get(), dummy_wgt.idname, &RNA_GizmoGroup);
+      &RNA_blender_rna_get(), dummy_wgt.idname, RNA_GizmoGroup);
 
   /* Gizmo group properties are registered separately. */
   RNA_def_struct_flag(dummy_wgt.rna_ext.srna, STRUCT_NO_IDPROPERTIES);
@@ -956,7 +956,7 @@ static StructRNA *rna_GizmoGroup_refine(PointerRNA *gzgroup_ptr)
 {
   wmGizmoGroup *gzgroup = static_cast<wmGizmoGroup *>(gzgroup_ptr->data);
   return (gzgroup->type && gzgroup->type->rna_ext.srna) ? gzgroup->type->rna_ext.srna :
-                                                          &RNA_GizmoGroup;
+                                                          RNA_GizmoGroup;
 }
 
 static void rna_GizmoGroup_gizmos_begin(CollectionPropertyIterator *iter, PointerRNA *gzgroup_ptr)

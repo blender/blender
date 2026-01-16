@@ -911,42 +911,42 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
 
 static PointerRNA rna_UserDef_view_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_PreferencesView, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_PreferencesView, ptr->data);
 }
 
 static PointerRNA rna_UserDef_edit_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_PreferencesEdit, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_PreferencesEdit, ptr->data);
 }
 
 static PointerRNA rna_UserDef_input_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_PreferencesInput, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_PreferencesInput, ptr->data);
 }
 
 static PointerRNA rna_UserDef_keymap_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_PreferencesKeymap, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_PreferencesKeymap, ptr->data);
 }
 
 static PointerRNA rna_UserDef_filepaths_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_PreferencesFilePaths, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_PreferencesFilePaths, ptr->data);
 }
 
 static PointerRNA rna_UserDef_extensions_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_PreferencesExtensions, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_PreferencesExtensions, ptr->data);
 }
 
 static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_PreferencesSystem, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_PreferencesSystem, ptr->data);
 }
 
 static PointerRNA rna_UserDef_apps_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_PreferencesApps, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_PreferencesApps, ptr->data);
 }
 
 /* Reevaluate objects with a subsurf modifier as the last in their modifiers stacks. */
@@ -1094,17 +1094,17 @@ static void rna_userdef_text_update(Main * /*bmain*/, Scene * /*scene*/, Pointer
 
 static PointerRNA rna_Theme_space_generic_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_ThemeSpaceGeneric, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_ThemeSpaceGeneric, ptr->data);
 }
 
 static PointerRNA rna_Theme_gradient_colors_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_ThemeGradientColors, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_ThemeGradientColors, ptr->data);
 }
 
 static PointerRNA rna_Theme_space_gradient_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_ThemeSpaceGradient, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_ThemeSpaceGradient, ptr->data);
 }
 
 static const EnumPropertyItem *rna_userdef_audio_device_itemf(bContext * /*C*/,
@@ -1263,7 +1263,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
 
   /* Setup dummy add-on preference and it's type to store static properties in. */
   PointerRNA dummy_addon_ptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_AddonPreferences, &dummy_addon);
+      nullptr, RNA_AddonPreferences, &dummy_addon);
 
   /* validate the python class */
   if (validate(&dummy_addon_ptr, data, nullptr /*have_function*/) != 0) {
@@ -1310,8 +1310,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   memcpy(apt, &dummy_apt, sizeof(dummy_apt));
   BKE_addon_pref_type_add(apt);
 
-  apt->rna_ext.srna = RNA_def_struct_ptr(
-      &RNA_blender_rna_get(), identifier, &RNA_AddonPreferences);
+  apt->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), identifier, RNA_AddonPreferences);
   apt->rna_ext.data = data;
   apt->rna_ext.call = call;
   apt->rna_ext.free = free;
@@ -1328,7 +1327,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
 /* placeholder, doesn't do anything useful yet */
 static StructRNA *rna_AddonPref_refine(PointerRNA *ptr)
 {
-  return (ptr->type) ? ptr->type : &RNA_AddonPreferences;
+  return (ptr->type) ? ptr->type : RNA_AddonPreferences;
 }
 
 static float rna_ThemeUI_roundness_get(PointerRNA *ptr)
@@ -7667,6 +7666,11 @@ void RNA_def_userdef(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_recent_searches", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", USER_FLAG_RECENT_SEARCHES_DISABLE);
   RNA_def_property_ui_text(prop, "Recent Searches", "Sort the recently searched items at the top");
+
+  prop = RNA_def_property(srna, "show_hidden_ids", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", USER_HIDE_DOT_DATABLOCK);
+  RNA_def_property_ui_text(
+      prop, "Show Hidden", "Show data-blocks with dot-prefixed names in search menus");
 
   /* nested structs */
   prop = RNA_def_property(srna, "view", PROP_POINTER, PROP_NONE);

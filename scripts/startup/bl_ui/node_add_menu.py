@@ -312,7 +312,7 @@ class NodeMenu(Menu):
             from nodeitems_builtins import node_tree_group_type
 
             prefs = bpy.context.preferences
-            show_hidden = prefs.filepaths.show_hidden_files_datablocks
+            show_hidden = prefs.show_hidden_ids
 
             groups = [
                 group for group in context.blend_data.node_groups

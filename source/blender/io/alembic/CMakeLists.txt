@@ -11,8 +11,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${ALEMBIC_INCLUDE_DIRS}
-  ${OPENEXR_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -83,10 +81,10 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common
-
-  ${ALEMBIC_LIBRARIES}
-  ${OPENEXR_LIBRARIES}
   PRIVATE bf::windowmanager
+
+  PRIVATE bf::dependencies::optional::alembic
+  PRIVATE bf::dependencies::optional::openexr
 )
 
 blender_add_lib(bf_io_alembic "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

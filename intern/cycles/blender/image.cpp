@@ -14,7 +14,6 @@
 #include "blender/session.h"
 
 #include "util/half.h"
-#include "util/transform.h"
 #include "util/types_float4.h"
 
 CCL_NAMESPACE_BEGIN
@@ -43,19 +42,21 @@ BlenderImageLoader::BlenderImageLoader(blender::Image *b_image,
   }
 }
 
-bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
-                                       ImageMetaData &metadata)
+bool BlenderImageLoader::load_metadata(ImageMetaData &metadata)
 {
   bool is_float = false;
+  bool is_data = false;
 
   {
     void *lock;
     blender::ImBuf *ibuf = BKE_image_acquire_ibuf(b_image, &b_iuser, &lock);
     if (ibuf) {
       is_float = ibuf->float_buffer.data != nullptr;
+      is_data = ibuf->colormanage_flag & blender::IMB_COLORMANAGE_IS_DATA;
       metadata.width = ibuf->x;
       metadata.height = ibuf->y;
       metadata.channels = (is_float) ? ibuf->channels : 4;
+      metadata.is_unassociated_alpha = !is_float;
     }
     else {
       metadata.width = 0;
@@ -76,12 +77,13 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
 
     /* Float images are already converted on the Blender side,
      * no need to do anything in Cycles. */
-    metadata.colorspace = u_colorspace_raw;
+    metadata.colorspace = (is_data) ? u_colorspace_data : u_colorspace_scene_linear;
   }
   else {
     /* In some cases (e.g. #94135), the colorspace setting in Blender gets updated as part of the
      * metadata queries in this function, so update the colorspace setting here. */
-    metadata.colorspace = b_image->colorspace_settings.name;
+    metadata.colorspace = (is_data) ? u_colorspace_data :
+                                      ustring(b_image->colorspace_settings.name);
     metadata.type = IMAGE_DATA_TYPE_BYTE4;
   }
 
@@ -129,35 +131,22 @@ static void load_float_pixels(const blender::ImBuf *ibuf,
 
 static void load_half_pixels(const blender::ImBuf *ibuf,
                              const ImageMetaData &metadata,
-                             half *out_pixels,
-                             const bool associate_alpha)
+                             half *out_pixels)
 {
   /* Half float. Blender does not have a half type, but in some cases
    * we up-sample byte to half to avoid precision loss for colorspace
    * conversion. */
   const size_t num_pixels = ((size_t)metadata.width) * metadata.height;
   const int out_channels = metadata.channels;
-  const int in_channels = 4;
   const uchar *in_pixels = ibuf->byte_buffer.data;
 
   if (in_pixels) {
     /* Convert uchar to half. */
     const uchar *in_pixel = in_pixels;
     half *out_pixel = out_pixels;
-    if (associate_alpha && out_channels == in_channels) {
-      for (size_t i = 0; i < num_pixels; i++, in_pixel += in_channels, out_pixel += out_channels) {
-        const float alpha = util_image_cast_to_float(in_pixel[3]);
-        out_pixel[0] = float_to_half_image(util_image_cast_to_float(in_pixel[0]) * alpha);
-        out_pixel[1] = float_to_half_image(util_image_cast_to_float(in_pixel[1]) * alpha);
-        out_pixel[2] = float_to_half_image(util_image_cast_to_float(in_pixel[2]) * alpha);
-        out_pixel[3] = float_to_half_image(alpha);
-      }
-    }
-    else {
-      for (size_t i = 0; i < num_pixels; i++) {
-        for (int c = 0; c < out_channels; c++, in_pixel++, out_pixel++) {
-          *out_pixel = float_to_half_image(util_image_cast_to_float(*in_pixel));
-        }
+    for (size_t i = 0; i < num_pixels; i++) {
+      for (int c = 0; c < out_channels; c++, in_pixel++, out_pixel++) {
+        *out_pixel = float_to_half_image(util_image_cast_to_float(*in_pixel));
       }
     }
   }
@@ -176,8 +165,7 @@ static void load_half_pixels(const blender::ImBuf *ibuf,
 
 static void load_byte_pixels(const blender::ImBuf *ibuf,
                              const ImageMetaData &metadata,
-                             uchar *out_pixels,
-                             const bool associate_alpha)
+                             uchar *out_pixels)
 {
   const size_t num_pixels = ((size_t)metadata.width) * metadata.height;
   const int out_channels = metadata.channels;
@@ -187,16 +175,6 @@ static void load_byte_pixels(const blender::ImBuf *ibuf,
   if (in_pixels) {
     /* Straight copy pixel data. */
     memcpy(out_pixels, in_pixels, num_pixels * in_channels * sizeof(unsigned char));
-
-    if (associate_alpha && out_channels == in_channels) {
-      /* Premultiply, byte images are always straight for Blender. */
-      unsigned char *out_pixel = (unsigned char *)out_pixels;
-      for (size_t i = 0; i < num_pixels; i++, out_pixel += 4) {
-        out_pixel[0] = (out_pixel[0] * out_pixel[3]) / 255;
-        out_pixel[1] = (out_pixel[1] * out_pixel[3]) / 255;
-        out_pixel[2] = (out_pixel[2] * out_pixel[3]) / 255;
-      }
-    }
   }
   else {
     /* Missing or invalid pixel data. */
@@ -210,10 +188,7 @@ static void load_byte_pixels(const blender::ImBuf *ibuf,
   }
 }
 
-bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
-                                     void *out_pixels,
-                                     const size_t /*out_pixels_size*/,
-                                     const bool associate_alpha)
+bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata, void *out_pixels)
 {
   void *lock;
   blender::ImBuf *ibuf = BKE_image_acquire_ibuf(b_image, &b_iuser, &lock);
@@ -227,10 +202,10 @@ bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
       load_float_pixels(ibuf, metadata, (float *)out_pixels);
     }
     else if (metadata.type == IMAGE_DATA_TYPE_HALF || metadata.type == IMAGE_DATA_TYPE_HALF4) {
-      load_half_pixels(ibuf, metadata, (half *)out_pixels, associate_alpha);
+      load_half_pixels(ibuf, metadata, (half *)out_pixels);
     }
     else {
-      load_byte_pixels(ibuf, metadata, (uchar *)out_pixels, associate_alpha);
+      load_byte_pixels(ibuf, metadata, (uchar *)out_pixels);
     }
   }
 
@@ -239,6 +214,10 @@ bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
   /* Free image buffers to save memory during render. */
   if (free_cache) {
     BKE_image_free_buffers_ex(b_image, true);
+  }
+
+  if (!mismatch) {
+    metadata.conform_pixels(out_pixels);
   }
 
   return !mismatch;

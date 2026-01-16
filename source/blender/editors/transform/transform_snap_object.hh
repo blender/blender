@@ -40,8 +40,6 @@ struct View3D;
 namespace ed::transform {
 
 struct SnapObjectContext {
-  Scene *scene;
-
   struct SnapCache {
     virtual ~SnapCache() = default;
   };

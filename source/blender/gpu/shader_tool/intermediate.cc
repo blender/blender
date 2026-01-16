@@ -25,35 +25,35 @@
 
 namespace blender::gpu::shader::parser {
 
-size_t line_number(const std::string &str, size_t pos)
+size_t line_number(const std::string_view &str, size_t pos)
 {
-  std::string directive = "#line ";
+  std::string_view directive = "#line ";
   /* String to count the number of line. */
-  std::string sub_str = str.substr(0, pos);
+  std::string_view sub_str = str.substr(0, pos);
   size_t nearest_line_directive = sub_str.rfind(directive);
   size_t line_count = 1;
   if (nearest_line_directive != std::string::npos) {
     sub_str = sub_str.substr(nearest_line_directive + directive.size());
-    line_count = std::stoll(sub_str) - 1;
+    line_count = std::stoll(std::string(sub_str)) - 1;
   }
   return line_count + std::count(sub_str.begin(), sub_str.end(), '\n');
 }
 
-size_t char_number(const std::string &str, size_t pos)
+size_t char_number(const std::string_view &str, size_t pos)
 {
-  std::string sub_str = str.substr(0, pos);
+  std::string_view sub_str = str.substr(0, pos);
   size_t nearest_line_directive = sub_str.rfind('\n');
   return (nearest_line_directive == std::string::npos) ?
              (sub_str.size()) :
              (sub_str.size() - nearest_line_directive - 1);
 }
 
-std::string line_str(const std::string &str, size_t pos)
+std::string line_str(const std::string_view &str, size_t pos)
 {
   size_t start = str.rfind('\n', pos);
   size_t end = str.find('\n', pos);
   start = (start != std::string::npos) ? start + 1 : 0;
-  return str.substr(start, end - start);
+  return std::string(str.substr(start, end - start));
 }
 
 Scope Token::scope() const
@@ -61,7 +61,7 @@ Scope Token::scope() const
   if (this->is_invalid()) {
     return Scope::invalid();
   }
-  return Scope::from_position(data, data->token_scope[index]);
+  return Scope::from_position(*data, data->token_scope[index]);
 }
 
 Scope Token::attribute_before() const
@@ -95,32 +95,40 @@ struct TokenData {
   std::vector<uint32_t> sizes;
 };
 
-void TokenStream::lexical_analysis(ParserStage stop_after)
+void LexerBase::ensure_memory()
 {
+  size_t input_size = str.size();
   if (str.empty()) {
-    *this = {};
-    return;
+    /* Avoid no allocation. */
+    input_size = 1;
+  }
+  /* Add one for offsets. */
+  input_size += 1;
+  /* Round to 128 for easy alignment of types and allocations. */
+  input_size += (input_size + 127) & ~127;
+
+  size_t needed_size = 0;
+  needed_size += sizeof(*token_types.data_) * input_size;
+  needed_size += sizeof(*token_sizes.data_) * input_size;
+  needed_size += sizeof(*token_offsets.data()) * input_size;
+
+  /* Make sure there is enough reserved space inside the data structures.
+   * We need at least as many token as there is character.
+   * Note: Never shrinks. */
+  if (alloc_size < needed_size) {
+    std::free(memory);
+    memory = static_cast<char *>(std::malloc(needed_size));
+    alloc_size = needed_size;
   }
 
-  TokenData data;
+  char *ptr = memory;
+  token_types = {reinterpret_cast<TokenType *>(ptr), input_size};
+  ptr += sizeof(*token_types.data_) * input_size;
+  token_sizes = {reinterpret_cast<uint32_t *>(ptr), input_size};
+  ptr += sizeof(*token_sizes.data_) * input_size;
+  token_offsets = {reinterpret_cast<uint32_t *>(ptr), input_size};
 
-  tokenize(data);
-  if (stop_after == Tokenize) {
-    goto end;
-  }
-
-  merge_tokens(data);
-  if (stop_after == MergeTokens) {
-    goto end;
-  }
-
-  identify_keywords(data);
-
-end:
-  /* TODO(fclem): Get rid of this.*/
-  /* Convert vector of char to string for faster lookups. */
-  this->token_types = std::string(reinterpret_cast<char *>(data.types.data()), data.types.size());
-  this->token_offsets = std::move(data.offsets);
+  update_string_view();
 }
 
 static always_inline TokenType to_type(const char c)
@@ -200,20 +208,23 @@ static always_inline TokenType to_type(const char c)
   }
 }
 
-static always_inline bool always_split_token(const TokenType c)
+static always_inline bool always_split_token(const TokenType c, bool is_preprocessor = false)
 {
   switch (c) {
+    case TokenType::Dot: /* For variadic macros. */
     case TokenType::Number:
     case TokenType::Word:
-    case TokenType::NewLine:
     case TokenType::Space:
       return false;
+    case TokenType::NewLine:
+      /* Split new lines for the preprocessor so that we know when to end a directive. */
+      return is_preprocessor;
     default:
       return true;
   }
 }
 
-static const std::array<std::pair<TokenType, bool>, 256> token_table = [] {
+static const std::array<std::pair<TokenType, bool>, 256> token_table_full = [] {
   std::array<std::pair<TokenType, bool>, 256> t;
   for (int i = 0; i < 256; ++i) {
     TokenType type = to_type(i);
@@ -222,28 +233,34 @@ static const std::array<std::pair<TokenType, bool>, 256> token_table = [] {
   return t;
 }();
 
-/* Table lookup variant. Much faster than switch statement.  */
-static always_inline std::pair<TokenType, bool> to_type_table(const unsigned char c)
-{
-  return token_table[c];
-}
+/* Same thing but consider numbers as words to avoid second merging pass. */
+static const std::array<std::pair<TokenType, bool>, 256> token_table_preprocessor = [] {
+  std::array<std::pair<TokenType, bool>, 256> t;
+  for (int i = 0; i < 256; ++i) {
+    TokenType type = to_type(i);
+    if (type == Number) {
+      type = Word;
+    }
+    t[i] = {type, always_split_token(type, true)};
+  }
+  return t;
+}();
 
-void TokenStream::tokenize(TokenData &tokens)
+void LexerBase::tokenize(bool only_preprocessor_tokens)
 {
-  /* Reserve space inside the data structures. Allocate 1 token per char as we do not want to
-   * resize or check for size inside the hot loop. */
-  tokens.types.resize(str.size());
-  tokens.offsets.offsets.resize(str.size() + 1);
-
   TokenType type = TokenType::Invalid;
 
-  TokenType *types_raw = tokens.types.data();
-  uint32_t *offsets_raw = tokens.offsets.offsets.data();
+  const std::array<std::pair<TokenType, bool>, 256> &token_table = only_preprocessor_tokens ?
+                                                                       token_table_preprocessor :
+                                                                       token_table_full;
+
+  TokenType *types_raw = token_types.data();
+  uint32_t *offsets_raw = token_offsets.data();
 
   int offset = 0, cursor = 0;
   for (const char c : str) {
     const TokenType prev = type;
-    auto [tok_type, always_split] = to_type_table(c);
+    auto [tok_type, always_split] = token_table[c];
     type = tok_type;
     /* Its faster to overwrite the previous value with the same value
      * than having a condition. */
@@ -255,8 +272,11 @@ void TokenStream::tokenize(TokenData &tokens)
   /* Set end of last token. */
   offsets_raw[cursor] = offset++;
   /* Resize to the actual usage. */
-  tokens.types.resize(cursor);
-  tokens.offsets.offsets.resize(cursor + 1);
+  token_types.shrink(cursor);
+  token_sizes.shrink(cursor);
+  token_offsets.offsets.shrink(cursor + 1);
+
+  update_string_view();
 }
 
 static const std::array<bool, 256> num_literal_table = [] {
@@ -311,18 +331,16 @@ static always_inline bool is_whitespace(TokenType t)
   return (t == ' ') || (t == '\n');
 }
 
-void TokenStream::merge_tokens(TokenData &tokens)
+void LexerBase::merge_tokens()
 {
-  tokens.sizes.resize(tokens.types.size());
-
   const char *str_raw = str.data();
-  TokenType *types_raw = tokens.types.data();
-  uint32_t *offsets_raw = tokens.offsets.offsets.data();
-  uint32_t *sizes_raw = tokens.sizes.data();
+  TokenType *types_raw = token_types.data();
+  uint32_t *offsets_raw = token_offsets.data();
+  uint32_t *sizes_raw = token_sizes.data();
 
   /* Never merge the first token. We don't want to loose it. */
   TokenType prev = types_raw[0];
-  sizes_raw[0] = tokens.offsets[0].size;
+  sizes_raw[0] = token_offsets[0].size;
 
   /* State. */
   bool after_whitespace = is_whitespace(prev);
@@ -332,7 +350,7 @@ void TokenStream::merge_tokens(TokenData &tokens)
   bool inside_number = false;
 
   uint32_t cursor = 1;
-  for (uint32_t i = 1; i < tokens.types.size(); i++) {
+  for (uint32_t i = 1; i < token_types.size(); i++) {
     bool emit = true;
 #define merge_if(a) emit &= !(a)
 
@@ -440,6 +458,22 @@ void TokenStream::merge_tokens(TokenData &tokens)
         }
         break;
 
+      case '&':
+        /* Detect logical and. */
+        if (prev == '&') {
+          types_raw[cursor - 1] = LogicalAnd;
+          continue;
+        }
+        break;
+
+      case '|':
+        /* Detect logical or. */
+        if (prev == '|') {
+          types_raw[cursor - 1] = LogicalOr;
+          continue;
+        }
+        break;
+
       case '+':
         /* Detect increment. */
         if (prev == '+') {
@@ -468,11 +502,13 @@ void TokenStream::merge_tokens(TokenData &tokens)
       cursor += 1;
     }
   }
+  /* Make sure the last token extend to the end of the string. */
+  token_offsets.offsets[cursor] = token_offsets.offsets.back();
+  /* Shrink spans to new number of tokens. */
+  token_types.shrink(cursor);
+  token_offsets.offsets.shrink(cursor + 1);
 
-  tokens.types.resize(cursor);
-
-  tokens.offsets.offsets[cursor] = tokens.offsets.offsets.back();
-  tokens.offsets.offsets.resize(cursor + 1);
+  update_string_view();
 }
 
 static always_inline TokenType type_lookup(std::string_view s)
@@ -626,28 +662,16 @@ static always_inline TokenType type_lookup(std::string_view s)
   return Word;
 }
 
-void TokenStream::identify_keywords(TokenData &tokens)
+void LexerBase::identify_keywords()
 {
   int tok_id = -1;
-  for (TokenType &type : tokens.types) {
+  for (TokenType &type : token_types) {
     tok_id++;
     if (type == Word) {
-      IndexRange range = tokens.offsets[tok_id];
-      type = type_lookup({str.data() + range.start, size_t(tokens.sizes[tok_id])});
+      IndexRange range = token_offsets[tok_id];
+      type = type_lookup({str.data() + range.start, size_t(token_sizes[tok_id])});
     }
   }
-}
-
-void TokenStream::semantic_analysis(ParserStage stop_after, report_callback &report_error)
-{
-  if (stop_after == BuildScopeTree) {
-    build_scope_tree(report_error);
-  }
-  else {
-    this->scope_types = "G";
-    this->scope_ranges = {IndexRange(0, token_types.size())};
-  }
-  build_token_to_scope_map();
 }
 
 struct ScopeStack {
@@ -700,12 +724,12 @@ struct ScopeStack {
   }
 };
 
-void TokenStream::build_scope_tree(report_callback &report_error)
+void ParserBase::build_scope_tree(report_callback &report_error)
 {
   Token error_token = Token::invalid();
   const char *error_msg = nullptr;
 
-  size_t predicted_scope_count = token_types.size() / 2;
+  size_t predicted_scope_count = lex.token_types.size() / 2;
 
   ScopeStack stack(predicted_scope_count);
 
@@ -714,13 +738,13 @@ void TokenStream::build_scope_tree(report_callback &report_error)
   int in_template = 0;
 
   int tok_id = -1;
-  for (const char &c : token_types) {
+  for (const TokenType &type : lex.token_types) {
     tok_id++;
 
     const ScopeType current_scope = stack.back().type;
 
     if (stack.back().type == ScopeType::Preprocessor) {  // Here
-      if (TokenType(c) == NewLine) {
+      if (type == NewLine) {
         stack.exit_scope(tok_id);
       }
       else {
@@ -729,7 +753,7 @@ void TokenStream::build_scope_tree(report_callback &report_error)
       }
     }
 
-    switch (TokenType(c)) {
+    switch (type) {
       case Hash:
         stack.enter_scope(ScopeType::Preprocessor, tok_id);
         break;
@@ -745,16 +769,19 @@ void TokenStream::build_scope_tree(report_callback &report_error)
         TokenType keyword;
         int pos = 2;
         do {
-          keyword = (tok_id >= pos) ? TokenType(token_types[tok_id - pos]) : TokenType::Invalid;
+          keyword = (tok_id >= pos) ? TokenType(lex.token_types[tok_id - pos]) :
+                                      TokenType::Invalid;
           pos += 3;
         } while (keyword != Invalid && keyword == Colon);
 
         /* Skip host_shared attribute for structures if any. */
         if (keyword == ']') {
-          keyword = (tok_id >= pos) ? TokenType(token_types[tok_id - pos]) : TokenType::Invalid;
+          keyword = (tok_id >= pos) ? TokenType(lex.token_types[tok_id - pos]) :
+                                      TokenType::Invalid;
           if (keyword == '[') {
             pos += 2;
-            keyword = (tok_id >= pos) ? TokenType(token_types[tok_id - pos]) : TokenType::Invalid;
+            keyword = (tok_id >= pos) ? TokenType(lex.token_types[tok_id - pos]) :
+                                        TokenType::Invalid;
           }
         }
 
@@ -782,12 +809,12 @@ void TokenStream::build_scope_tree(report_callback &report_error)
         break;
       }
       case ParOpen:
-        if ((tok_id >= 1 && token_types[tok_id - 1] == For) ||
-            (tok_id >= 1 && token_types[tok_id - 1] == While))
+        if ((tok_id >= 1 && lex.token_types[tok_id - 1] == For) ||
+            (tok_id >= 1 && lex.token_types[tok_id - 1] == While))
         {
           stack.enter_scope(ScopeType::LoopArgs, tok_id);
         }
-        else if (tok_id >= 1 && token_types[tok_id - 1] == Switch) {
+        else if (tok_id >= 1 && lex.token_types[tok_id - 1] == Switch) {
           stack.enter_scope(ScopeType::SwitchArg, tok_id);
         }
         else if (current_scope == ScopeType::Global) {
@@ -801,7 +828,7 @@ void TokenStream::build_scope_tree(report_callback &report_error)
                   current_scope == ScopeType::FunctionParam ||
                   current_scope == ScopeType::Subscript ||
                   current_scope == ScopeType::Attribute) &&
-                 (tok_id >= 1 && token_types[tok_id - 1] == Word))
+                 (tok_id >= 1 && lex.token_types[tok_id - 1] == Word))
         {
           stack.enter_scope(ScopeType::FunctionCall, tok_id);
         }
@@ -810,7 +837,7 @@ void TokenStream::build_scope_tree(report_callback &report_error)
         }
         break;
       case SquareOpen:
-        if (tok_id >= 1 && token_types[tok_id - 1] == SquareOpen) {
+        if (tok_id >= 1 && lex.token_types[tok_id - 1] == SquareOpen) {
           stack.enter_scope(ScopeType::Attributes, tok_id);
         }
         else {
@@ -819,10 +846,10 @@ void TokenStream::build_scope_tree(report_callback &report_error)
         break;
       case AngleOpen:
         if (tok_id >= 1) {
-          char prev_char = str[token_offsets[tok_id - 1].last()];
+          char prev_char = lex.str[lex.token_offsets[tok_id - 1].last()];
           /* Rely on the fact that template are formatted without spaces but comparison isn't. */
           if ((prev_char != ' ' && prev_char != '\n' && prev_char != '<') ||
-              token_types[tok_id - 1] == Template)
+              lex.token_types[tok_id - 1] == Template)
           {
             stack.enter_scope(ScopeType::Template, tok_id);
             in_template++;
@@ -854,7 +881,7 @@ void TokenStream::build_scope_tree(report_callback &report_error)
           stack.exit_scope(tok_id);
         }
         else {
-          error_token = Token::from_position(this, tok_id);
+          error_token = (*this)[tok_id];
           error_msg = "Unexpected '}' token";
           goto error;
         }
@@ -880,7 +907,7 @@ void TokenStream::build_scope_tree(report_callback &report_error)
           stack.exit_scope(tok_id);
         }
         else {
-          error_token = Token::from_position(this, tok_id);
+          error_token = (*this)[tok_id];
           error_msg = "Unexpected ')' token";
           goto error;
         }
@@ -945,7 +972,7 @@ void TokenStream::build_scope_tree(report_callback &report_error)
   }
 
   if (stack.empty()) {
-    error_token = Token::from_position(this, tok_id);
+    error_token = (*this)[tok_id];
     error_msg = "Extraneous end of scope somewhere in that file";
     goto error;
   }
@@ -956,27 +983,27 @@ void TokenStream::build_scope_tree(report_callback &report_error)
 
   if (stack.back().type != ScopeType::Global) {
     ScopeStack::Item scope_item = stack.back();
-    error_token = Token::from_position(this, scope_ranges[scope_item.index].start);
+    error_token = (*this)[scope_ranges[scope_item.index].start];
     error_msg = "Unterminated scope";
     goto error;
   }
 
   stack.exit_scope(tok_id);
 
-  /* Convert vector of char to string for faster lookups. */
-  this->scope_types = std::string(reinterpret_cast<char *>(stack.types.data()),
-                                  stack.types.size());
-  this->scope_ranges = std::move(stack.ranges);
+  scope_types = std::move(stack.types);
+  scope_ranges = std::move(stack.ranges);
+  update_string_view();
   return;
 
 error:
   report_error(
       error_token.line_number(), error_token.char_number(), error_token.line_str(), error_msg);
   /* Avoid out of bound access for the rest of the processing. Empty everything. */
-  *this = {};
+  scope_types = {ScopeType::Global};
+  scope_ranges = {IndexRange(0, 0)};
 }
 
-void TokenStream::build_token_to_scope_map()
+void ParserBase::build_token_to_scope_map()
 {
   token_scope.clear();
   token_scope.resize(scope_ranges[0].size);
@@ -990,63 +1017,75 @@ void TokenStream::build_token_to_scope_map()
               scope_id);
     scope_id++;
   }
+
+  update_string_view();
 }
 
-/* Return true if any mutation was applied. */
-bool IntermediateForm::only_apply_mutations()
+Token ParserBase::operator[](int i) const
+{
+  return Token::from_position(this, i);
+}
+
+void LexerBase::update_string_view()
+{
+  this->token_types_str = std::string_view(reinterpret_cast<char *>(this->token_types.data()),
+                                           this->token_types.size());
+}
+
+void ParserBase::update_string_view()
+{
+  this->scope_types_str = std::string_view(reinterpret_cast<char *>(this->scope_types.data()),
+                                           this->scope_types.size());
+}
+
+bool MutableString::apply_mutations(LexerBase &lexer, const bool all_mutation_ordered)
 {
   if (mutations_.empty()) {
     return false;
   }
 
-  /* Order mutations so that they can be applied in one pass. */
-  std::stable_sort(mutations_.begin(), mutations_.end());
+  if (!all_mutation_ordered) {
+    /* Order mutations so that they can be applied in one pass. */
+    std::stable_sort(mutations_.begin(), mutations_.end());
+  }
+#ifndef NDEBUG
+  else {
+    assert(std::is_sorted(mutations_.begin(), mutations_.end()));
+  }
+#endif
 
   /* Make sure to pad the input string in case of insertion after the last char. */
   bool added_trailing_new_line = false;
-  if (data_.str.back() != '\n') {
-    data_.str += '\n';
+  if (str_.back() != '\n') {
+    str_ += '\n';
     added_trailing_new_line = true;
   }
 
   std::string result;
-  result.reserve(data_.str.size());
+  result.reserve(str_.size());
 
   int64_t offset = 0;
   for (const Mutation &mut : mutations_) {
     size_t start = mut.src_range.start;
     size_t end = start + mut.src_range.size;
     /* Copy unchanged text. */
-    result.append(data_.str.data() + offset, start - offset);
+    result.append(str_.data() + offset, start - offset);
     /* Append replacement. */
     result.append(mut.replacement);
     offset = end;
   }
-  result.append(data_.str.data() + offset, data_.str.size() - offset);
+  result.append(str_.data() + offset, str_.size() - offset);
 
-  data_.str = std::move(result);
+  str_ = std::move(result);
 
   mutations_.clear();
 
   if (added_trailing_new_line) {
-    data_.str.pop_back();
+    str_.pop_back();
   }
+  /* String have changed. Update string view. */
+  lexer.str = str_;
   return true;
-}
-
-void IntermediateForm::parse(ParserStage stop_after, report_callback &report_error)
-{
-  TimeIt::Duration lex_time, sem_time;
-  {
-    TimeIt time_it(lex_time);
-    data_.lexical_analysis(stop_after);
-  }
-  {
-    TimeIt time_it(sem_time);
-    data_.semantic_analysis(stop_after, report_error);
-  }
-  lexical_time = lex_time.count();
-  semantic_time = sem_time.count();
 }
 
 }  // namespace blender::gpu::shader::parser

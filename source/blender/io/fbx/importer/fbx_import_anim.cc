@@ -38,8 +38,7 @@ static FCurve *create_fcurve(animrig::Channelbag &channelbag,
                              const animrig::FCurveDescriptor &descriptor,
                              int64_t key_count)
 {
-  FCurve *cu = channelbag.fcurve_create_unique(nullptr, descriptor);
-  BLI_assert_msg(cu, "The same F-Curve is being created twice, this is unexpected.");
+  FCurve *cu = &channelbag.fcurve_ensure(nullptr, descriptor);
   BKE_fcurve_bezt_resize(cu, key_count);
   return cu;
 }

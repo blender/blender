@@ -25,6 +25,17 @@ namespace blender {
 
 static void rna_Sound_pack(bSound *sound, Main *bmain, ReportList *reports)
 {
+  const bool is_packed = sound->packedfile != nullptr;
+
+  if (is_packed) {
+    /* Sound is already packed and considered unmodified, do not attempt to repack it, since its
+     * original file may not be available anymore on the current FS.
+     *
+     * See #152638.
+     */
+    return;
+  }
+
   sound->packedfile = BKE_packedfile_new(
       reports, sound->filepath, ID_BLEND_PATH(bmain, &sound->id));
 }

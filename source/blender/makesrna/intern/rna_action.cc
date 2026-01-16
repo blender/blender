@@ -124,7 +124,7 @@ static animrig::Action &rna_action(const PointerRNA *ptr)
 
 static animrig::Slot &rna_data_slot(const PointerRNA *ptr)
 {
-  BLI_assert(ptr->type == &RNA_ActionSlot);
+  BLI_assert(ptr->type == RNA_ActionSlot);
   return reinterpret_cast<ActionSlot *>(ptr->data)->wrap();
 }
 
@@ -176,7 +176,7 @@ static PointerRNA rna_ActionSlots_active_get(PointerRNA *ptr)
   if (!active_slot) {
     return PointerRNA_NULL;
   }
-  return RNA_pointer_create_discrete(&action.id, &RNA_ActionSlot, active_slot);
+  return RNA_pointer_create_discrete(&action.id, RNA_ActionSlot, active_slot);
 }
 
 static void rna_ActionSlots_active_set(PointerRNA *ptr,
@@ -419,9 +419,9 @@ static StructRNA *rna_ActionStrip_refine(PointerRNA *ptr)
 
   switch (strip.type()) {
     case animrig::Strip::Type::Keyframe:
-      return &RNA_ActionKeyframeStrip;
+      return RNA_ActionKeyframeStrip;
   }
-  return &RNA_UnknownType;
+  return RNA_UnknownType;
 }
 
 ActionStrip *rna_ActionStrips_new(
@@ -473,7 +473,7 @@ static std::optional<std::string> rna_ActionStrip_path(const PointerRNA *ptr)
       continue;
     }
 
-    PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, &RNA_ActionLayer, layer);
+    PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionLayer, layer);
     const std::optional<std::string> layer_path = rna_ActionLayer_path(&layer_ptr);
     BLI_assert_msg(layer_path, "Every animation layer should have a valid RNA path.");
     const std::string strip_path = fmt::format("{}.strips[{}]", *layer_path, index);
@@ -595,7 +595,7 @@ std::optional<std::string> rna_Channelbag_path(const PointerRNA *ptr)
         continue;
       }
 
-      PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, &RNA_ActionLayer, layer);
+      PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionLayer, layer);
       const std::optional<std::string> layer_path = rna_ActionLayer_path(&layer_ptr);
       BLI_assert_msg(layer_path, "Every animation layer should have a valid RNA path.");
       return fmt::format("{}.strips[{}].channelbags[{}]", *layer_path, strip_index, index);
@@ -612,7 +612,7 @@ static PointerRNA rna_Channelbag_slot_get(PointerRNA *ptr)
   animrig::Slot *slot = action.slot_for_handle(channelbag.slot_handle);
   BLI_assert(slot);
 
-  return RNA_pointer_create_with_parent(*ptr, &RNA_ActionSlot, slot);
+  return RNA_pointer_create_with_parent(*ptr, RNA_ActionSlot, slot);
 }
 
 static void rna_iterator_Channelbag_fcurves_begin(CollectionPropertyIterator *iter,
@@ -915,7 +915,7 @@ static PointerRNA rna_ActionGroup_channels_get(CollectionPropertyIterator *iter)
       break;
   }
 
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_FCurve, fcurve);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_FCurve, fcurve);
 }
 
 static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
@@ -950,7 +950,7 @@ static PointerRNA rna_Action_active_pose_marker_get(PointerRNA *ptr)
 {
   bAction *act = static_cast<bAction *>(ptr->data);
   return RNA_pointer_create_with_parent(
-      *ptr, &RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker - 1));
+      *ptr, RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker - 1));
 }
 
 static void rna_Action_active_pose_marker_set(PointerRNA *ptr,

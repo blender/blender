@@ -16,7 +16,7 @@ namespace blender::nodes {
  */
 struct RepeatItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeRepeatItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeRepeatOutput";
   static constexpr bool has_type = true;

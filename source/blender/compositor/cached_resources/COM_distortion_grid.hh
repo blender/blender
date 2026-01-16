@@ -20,8 +20,8 @@ namespace blender::compositor {
 class Context;
 
 enum class DistortionType : uint8_t {
-  Distort = 0,
-  Undistort = 1,
+  Undistort = 0,
+  Distort = 1,
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ class DistortionGrid : public CachedResource {
    * is the size of the movie clip in most cases. */
   DistortionGrid(Context &context,
                  MovieClip *movie_clip,
-                 int2 size,
+                 Domain domain,
                  DistortionType type,
                  int2 calibration_size);
 
@@ -79,8 +79,11 @@ class DistortionGridContainer : CachedResourceContainer {
    * container, if one exists, return it, otherwise, return a newly created one and add it to the
    * container. In both cases, tag the cached resource as needed to keep it cached for the next
    * evaluation. */
-  Result &get(
-      Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int frame_number);
+  Result &get(Context &context,
+              MovieClip *movie_clip,
+              Domain domain,
+              DistortionType type,
+              int frame_number);
 };
 
 }  // namespace blender::compositor

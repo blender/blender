@@ -232,7 +232,7 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
     }
 
     PointerRNA slot_to_assign_ptr = RNA_pointer_create_discrete(
-        &action.id, &RNA_ActionSlot, slot_to_assign);
+        &action.id, RNA_ActionSlot, slot_to_assign);
     RNA_property_pointer_set(
         &action_slot_owner_ptr, &action_slot_prop, slot_to_assign_ptr, reports);
     RNA_property_update_main(&bmain, nullptr, &action_slot_owner_ptr, &action_slot_prop);

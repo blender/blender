@@ -41,21 +41,8 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
   PRIVATE bf::windowmanager
+  PRIVATE bf::dependencies::optional::audaspace
 )
-
-if(WITH_AUDASPACE)
-  list(APPEND INC_SYS
-    ${AUDASPACE_C_INCLUDE_DIRS}
-  )
-  if(WITH_SYSTEM_AUDASPACE)
-    list(APPEND LIB
-      ${AUDASPACE_C_LIBRARIES}
-      ${AUDASPACE_PY_LIBRARIES}
-    )
-  endif()
-  add_definitions(-DWITH_AUDASPACE)
-endif()
-
 
 blender_add_lib(bf_editor_space_graph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

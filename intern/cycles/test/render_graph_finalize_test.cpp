@@ -6,7 +6,6 @@
 
 #include "device/device.h"
 
-#include "scene/colorspace.h"
 #include "scene/scene.h"
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"

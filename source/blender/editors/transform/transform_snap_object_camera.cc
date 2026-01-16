@@ -14,6 +14,8 @@
 
 #include "DNA_movieclip_types.h"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "transform_snap_object.hh"
 
 namespace blender::ed::transform {
@@ -29,7 +31,7 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
     return retval;
   }
 
-  Scene *scene = sctx->scene;
+  Scene *scene = DEG_get_evaluated_scene(sctx->runtime.depsgraph);
 
   MovieClip *clip = BKE_object_movieclip_get(scene, object, false);
   if (clip == nullptr) {

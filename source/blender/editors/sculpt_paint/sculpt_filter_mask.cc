@@ -14,6 +14,7 @@
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -347,7 +348,7 @@ static void apply_new_mask_grids(const Depsgraph &depsgraph,
                                  const OffsetIndices<int> node_verts,
                                  const Span<float> new_mask)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
@@ -488,7 +489,7 @@ static bool increase_contrast_mask_grids(const Depsgraph &depsgraph,
                                          bke::pbvh::GridsNode &node,
                                          FilterLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -520,7 +521,7 @@ static bool decrease_contrast_mask_grids(const Depsgraph &depsgraph,
                                          bke::pbvh::GridsNode &node,
                                          FilterLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -567,7 +568,7 @@ static void apply_new_mask_bmesh(const Depsgraph &depsgraph,
                                  const OffsetIndices<int> node_verts,
                                  const Span<float> new_mask)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   BMesh &bm = *ss.bm;
@@ -672,7 +673,7 @@ static bool increase_contrast_mask_bmesh(const Depsgraph &depsgraph,
                                          bke::pbvh::BMeshNode &node,
                                          FilterLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   BMesh &bm = *ss.bm;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -703,7 +704,7 @@ static bool decrease_contrast_mask_bmesh(const Depsgraph &depsgraph,
                                          bke::pbvh::BMeshNode &node,
                                          FilterLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   BMesh &bm = *ss.bm;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -746,7 +747,7 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
 
   IndexMaskMemory memory;

@@ -378,6 +378,7 @@ function(blender_link_libraries
   #
   # Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
   # NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
+  set(dependency_libraries)
   if(NOT "${library_deps}" STREQUAL "")
     set(next_library_mode "")
     set(next_interface_mode "PRIVATE")
@@ -392,16 +393,25 @@ function(blender_link_libraries
         set(next_interface_mode "${library}")
       else()
         if("${next_library_mode}" STREQUAL "optimized")
-          target_link_libraries(${target} ${next_interface_mode} optimized ${library})
+          set(link_library ${next_interface_mode} optimized ${library})
         elseif("${next_library_mode}" STREQUAL "debug")
-          target_link_libraries(${target} ${next_interface_mode} debug ${library})
+          set(link_library ${next_interface_mode} debug ${library})
         else()
-          target_link_libraries(${target} ${next_interface_mode} ${library})
+          set(link_library ${next_interface_mode} ${library})
         endif()
         set(next_library_mode "")
+        if(library MATCHES "^bf::dependencies")
+          list(APPEND dependency_libraries ${link_library})
+        else()
+          target_link_libraries(${target} ${link_library})
+        endif()
       endif()
     endforeach()
   endif()
+
+  # Ensure external dependencies are last in the list of libraries, so that bf::extern include
+  # directories have priority over system library include directories that might conflict.
+  target_link_libraries(${target} ${dependency_libraries})
 endfunction()
 
 function(blender_add_lib__impl

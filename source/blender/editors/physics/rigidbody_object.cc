@@ -302,7 +302,7 @@ static wmOperatorStatus rigidbody_objects_shape_change_exec(bContext *C, wmOpera
     if (ob->rigidbody_object) {
       /* use RNA-system to change the property and perform all necessary changes */
       PointerRNA ptr = RNA_pointer_create_discrete(
-          &ob->id, &RNA_RigidBodyObject, ob->rigidbody_object);
+          &ob->id, RNA_RigidBodyObject, ob->rigidbody_object);
       RNA_enum_set(&ptr, "collision_shape", shape);
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
@@ -489,7 +489,7 @@ static wmOperatorStatus rigidbody_objects_calc_mass_exec(bContext *C, wmOperator
 
       /* use RNA-system to change the property and perform all necessary changes */
       PointerRNA ptr = RNA_pointer_create_discrete(
-          &ob->id, &RNA_RigidBodyObject, ob->rigidbody_object);
+          &ob->id, RNA_RigidBodyObject, ob->rigidbody_object);
       RNA_float_set(&ptr, "mass", mass);
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);

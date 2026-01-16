@@ -116,7 +116,7 @@ PointerRNA rna_BlendImportContextItem_libraries_get(CollectionPropertyIterator *
 
   BlendfileLinkAppendContextLibrary &ctx_lib =
       libs_iter->ctx_item->lapp_context->libraries[libs_iter->iter_index];
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_BlendImportContextLibrary, &ctx_lib);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_BlendImportContextLibrary, &ctx_lib);
 }
 
 int rna_BlendImportContextItem_libraries_len(PointerRNA *ptr)
@@ -215,7 +215,7 @@ PointerRNA rna_BlendImportContext_import_items_get(CollectionPropertyIterator *i
       static_cast<RNABlendImportContextItemsIterator *>(iter->internal.custom);
 
   BlendfileLinkAppendContextItem &ctx_item = *items_iter->iter;
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_BlendImportContextItem, &ctx_item);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_BlendImportContextItem, &ctx_item);
 }
 
 int rna_BlendImportContext_import_items_len(PointerRNA *ptr)

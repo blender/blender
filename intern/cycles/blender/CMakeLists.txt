@@ -10,8 +10,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${Epoxy_INCLUDE_DIRS}
-  ${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -73,9 +71,10 @@ set(LIB
   cycles_subd
   cycles_util
 
-  ${Epoxy_LIBRARIES}
-  ${PYTHON_LINKFLAGS}
-  ${PYTHON_LIBRARIES}
+  bf::dependencies::epoxy
+  bf::dependencies::optional::python
+  bf::dependencies::optional::openimagedenoise
+  bf::dependencies::optional::openvdb
 )
 
 set(ADDON_FILES
@@ -104,22 +103,6 @@ endif()
 
 if(WITH_TBB)
   add_definitions(-DWITH_TBB)
-endif()
-
-if(WITH_OPENVDB)
-  list(APPEND INC
-    ../../openvdb
-  )
-  list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
-  )
-endif()
-
-if(WITH_OPENIMAGEDENOISE)
-  add_definitions(-DWITH_OPENIMAGEDENOISE)
-  list(APPEND INC_SYS
-    ${OPENIMAGEDENOISE_INCLUDE_DIRS}
-  )
 endif()
 
 if(WITH_CYCLES_OSL)

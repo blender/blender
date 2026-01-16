@@ -1456,6 +1456,7 @@ void register_standard_node_socket_types()
   bke::node_register_socket_type(*make_socket_type_float(PROP_UNSIGNED));
   bke::node_register_socket_type(*make_socket_type_float(PROP_PERCENTAGE));
   bke::node_register_socket_type(*make_socket_type_float(PROP_FACTOR));
+  bke::node_register_socket_type(*make_socket_type_float(PROP_MASS));
   bke::node_register_socket_type(*make_socket_type_float(PROP_ANGLE));
   bke::node_register_socket_type(*make_socket_type_float(PROP_TIME));
   bke::node_register_socket_type(*make_socket_type_float(PROP_TIME_ABSOLUTE));

@@ -25,6 +25,7 @@
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.hh"
+#include "gpu_shader_private.hh"
 #include "gpu_testing.hh"
 
 /* GTest expects operator<< and Print to be defined in the same namespace as the type itself. */
@@ -612,6 +613,264 @@ static void test_eevee_lib()
 #endif
 }
 GPU_TEST(eevee_lib)
+
+static void test_shader_preprocessor()
+{
+  {
+    std::string input = R"(
+# if 1
+#  define drw_view_id 0
+# else
+uint drw_view_id = 0;
+# endif
+    )";
+    std::string expect = R"(
+
+
+
+
+
+    )";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define SMAATexturePass2D(tex) tex
+#define mad(a, b, c) (a * b + c)
+mad(-(255.0f / 127.0f), SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.0f), 3.25f);
+)";
+    std::string expect = R"(
+
+
+(-(255.0f / 127.0f) * SMAASearchLength(searchTex, e, 0.0f) + 3.25f);
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define A() B
+A)";
+    std::string expect = R"(
+
+A)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define A(a, b)  C(a[b])[(b)]
+#define B(a, b) (A(a, b) != 0u)
+B(foo, bar);
+)";
+    std::string expect = R"(
+
+
+(C(foo[bar])[(bar)] != 0u);
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define B2 5
+#define A(a,b) a##b
+#define B(a,b) a ## b
+#define C 3
+#define D(a,b) B(a,b)
+A( , )
+A(,2)
+A(1, )
+A(1,2)
+A(B,2)
+B(B,2)
+B(C,2)
+D(C,2)
+)";
+    std::string expect = R"(
+
+
+
+
+
+  
+2
+1 
+12
+5
+5
+C2
+32
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define A
+#if defined(A) && !defined ( B ) && defined A && !defined  B 
+High there!
+#endif
+)";
+    std::string expect = R"(
+
+
+High there!
+
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* Undefined identifier should evaluated to 0. */
+    std::string input = R"(
+#if !A
+A
+#endif
+)";
+    std::string expect = R"(
+
+A
+
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* Infinite recursion. */
+    std::string input = R"(
+#define X (X + 1)
+X
+)";
+    std::string expect = R"(
+
+(X + 1)
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* Arguments must be expanded before substitution. */
+    std::string input = R"(
+#define ESCAPE(x) x
+#define STR(x) x
+#define NAME shader_func
+STR(ESCAPE(NAME))
+)";
+    /* STR(ESCAPE(NAME)) -> STR(shader_func) -> "shader_func" */
+    std::string expect = R"(
+
+
+
+shader_func
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* Commas inside parentheses should not split macro arguments. */
+    std::string input = R"(
+#define GLSL_FUNC(a, b) a = b;
+GLSL_FUNC(vec3(0.0, 1.0, 0.0), color)
+)";
+    std::string expect = R"(
+
+vec3(0.0, 1.0, 0.0) = color;
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* PITFALL: Pasting an empty argument. */
+    std::string input = R"(
+#define CONCAT(a, b) a##b
+CONCAT(prefix_, )
+CONCAT(, _suffix)
+)";
+    std::string expect = R"(
+
+prefix_ 
+_suffix
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* PITFALL: Evaluation of complex logical expressions and nested #if. */
+    std::string input = R"(
+#define VERSION 2
+#if (VERSION == 1 + 1) && (UNDEFINED_VAR == 0)
+  #if 0
+    Inside nested false
+  #else
+    Success
+  #endif
+#else
+Success
+#endif
+)";
+    std::string expect = R"(
+
+
+
+
+
+    Success
+
+
+
+
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define saturate(a) clamp(a, 0.0f, 1.0f)
+float s = saturate(pow5f(1.0f - saturate(HV)));
+)";
+    std::string expect = R"(
+
+float s = clamp(pow5f(1.0f - clamp(HV, 0.0f, 1.0f)), 0.0f, 1.0f);
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define POINTS
+H
+#if defined(POINTS)
+I
+#else
+J
+#  if !defined(SELECT_ENABLE)
+K
+#  endif
+P
+#endif
+Q
+)";
+    std::string expect = R"(
+
+H
+
+I
+
+
+
+
+
+
+
+Q
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+}
+GPU_TEST(shader_preprocessor)
 
 }  // namespace gpu::tests
 }  // namespace blender

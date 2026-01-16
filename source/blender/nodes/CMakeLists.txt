@@ -189,18 +189,9 @@ set(LIB
   PRIVATE bf::render
   PRIVATE bf::windowmanager
   PRIVATE bf::intern::clog
+  PRIVATE bf::dependencies::optional::gmp
+  PRIVATE bf::dependencies::optional::bullet
 )
-
-if(WITH_BULLET)
-  list(APPEND INC_SYS
-    ${BULLET_INCLUDE_DIRS}
-    ../../../intern/rigidbody
-  )
-  list(APPEND LIB
-    ${BULLET_LIBRARIES}
-  )
-  add_definitions(-DWITH_BULLET)
-endif()
 
 if(WITH_TBB)
   if(WIN32)
@@ -220,18 +211,6 @@ endif()
 
 if(WITH_OPENSUBDIV)
   add_definitions(-DWITH_OPENSUBDIV)
-endif()
-
-if(WITH_GMP)
-  add_definitions(-DWITH_GMP)
-
-  list(APPEND INC_SYS
-    ${GMP_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${GMP_LIBRARIES}
-  )
 endif()
 
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -16,6 +16,7 @@
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
 #include "BLI_math_base.h"
@@ -49,11 +50,14 @@ class AnimationEvaluationTest : public testing::Test {
 
     /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
     BKE_idtype_init();
+
+    RNA_init();
   }
 
   static void TearDownTestSuite()
   {
     CLG_exit();
+    RNA_exit();
   }
 
   void SetUp() override
@@ -71,7 +75,7 @@ class AnimationEvaluationTest : public testing::Test {
     /* Make it easier to predict test values. */
     settings.interpolation = BEZT_IPO_LIN;
 
-    cube_rna_ptr = RNA_pointer_create_discrete(&cube->id, &RNA_Object, &cube->id);
+    cube_rna_ptr = RNA_pointer_create_discrete(&cube->id, RNA_Object, &cube->id);
   }
 
   void TearDown() override

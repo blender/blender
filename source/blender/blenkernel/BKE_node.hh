@@ -521,8 +521,6 @@ struct bNodeTreeType {
 
   bool (*validate_link)(eNodeSocketDatatype from, eNodeSocketDatatype to) = nullptr;
 
-  void (*node_add_init)(bNodeTree *ntree, bNode *bnode) = nullptr;
-
   /* Check if the socket type is valid for this tree type. */
   bool (*valid_socket_type)(bNodeTreeType *ntreetype, bNodeSocketType *socket_type) = nullptr;
 
@@ -739,6 +737,9 @@ bNode *node_find_node_by_name(bNodeTree &ntree, StringRefNull name);
 /** Try to find an input item with the given identifier in the entire node interface tree. */
 const bNodeTreeInterfaceSocket *node_find_interface_input_by_identifier(const bNodeTree &ntree,
                                                                         StringRef identifier);
+/** Try to find an output item with the given identifier in the entire node interface tree. */
+const bNodeTreeInterfaceSocket *node_find_interface_output_by_identifier(const bNodeTree &ntree,
+                                                                         StringRef identifier);
 
 bool node_is_parent_and_child(const bNode &parent, const bNode &child);
 

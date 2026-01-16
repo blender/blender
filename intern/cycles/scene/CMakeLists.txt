@@ -13,7 +13,6 @@ set(SRC
   background.cpp
   bake.cpp
   camera.cpp
-  colorspace.cpp
   constant_fold.cpp
   devicescene.cpp
   film.cpp
@@ -56,7 +55,6 @@ set(SRC_HEADERS
   bake.h
   background.h
   camera.h
-  colorspace.h
   constant_fold.h
   devicescene.h
   film.h
@@ -110,22 +108,9 @@ if(WITH_CYCLES_OSL)
   )
 endif()
 
-if(WITH_OPENCOLORIO)
-  add_definitions(-DWITH_OCIO)
-  list(APPEND INC_SYS
-    ${OPENCOLORIO_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${OPENCOLORIO_LIBRARIES}
-  )
-  if(WIN32 AND NOT USD_OVERRIDE_OPENCOLORIO)
-    add_definitions(-DOpenColorIO_SKIP_IMPORTS)
-  endif()
-endif()
-
 if(WITH_OPENVDB)
   list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
+    bf::dependencies::optional::openvdb
   )
 endif()
 

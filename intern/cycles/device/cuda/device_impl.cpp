@@ -17,9 +17,9 @@
 #  include "util/path.h"
 #  include "util/string.h"
 #  include "util/system.h"
-#  include "util/texture.h"
 #  include "util/time.h"
 #  include "util/types.h"
+#  include "util/types_image.h"
 
 #  ifdef _WIN32
 #    include "util/windows.h"
@@ -70,7 +70,7 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler,
 
   cuModule = nullptr;
 
-  need_texture_info = false;
+  need_image_info = false;
 
   pitch_alignment = 0;
 
@@ -133,7 +133,7 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler,
 
 CUDADevice::~CUDADevice()
 {
-  texture_info.free();
+  image_info.free();
   if (cuModule) {
     cuda_assert(cuModuleUnload(cuModule));
   }
@@ -173,7 +173,7 @@ bool CUDADevice::check_peer_access(Device *peer_device)
     return false;
   }
 
-  // Ensure array access over the link is possible as well (for 3D textures)
+  // Ensure array access over the link is possible as well (for 3D images)
   cuda_assert(cuDeviceGetP2PAttribute(&can_access,
                                       CU_DEVICE_P2P_ATTRIBUTE_CUDA_ARRAY_ACCESS_SUPPORTED,
                                       cuDevice,
@@ -245,25 +245,28 @@ string CUDADevice::compile_kernel_get_common_cflags(const uint kernel_features)
   return cflags;
 }
 
-string CUDADevice::compile_kernel(const string &common_cflags,
-                                  const char *name,
-                                  const char *base,
-                                  bool force_ptx)
+string CUDADevice::compile_kernel(const string &common_cflags, const char *name, bool optix)
 {
   /* Compute kernel name. */
   int major, minor;
   cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
   cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
 
+  if (optix) {
+    /* CUDA 13 introduced PTX verification for compute_90+, which is not compatible with OptiX
+     * device intrinsics, so avoid triggering it by targeting a lower version. */
+    if (major >= 9) {
+      major = 8;
+      minor = 9;
+    }
+  }
   /* Attempt to use kernel provided with Blender. */
-  if (!use_adaptive_compilation()) {
-    if (!force_ptx) {
-      const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
-      LOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
-      if (path_exists(cubin)) {
-        LOG_INFO << "Using precompiled kernel.";
-        return cubin;
-      }
+  else if (!use_adaptive_compilation()) {
+    const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
+    LOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
+    if (path_exists(cubin)) {
+      LOG_INFO << "Using precompiled kernel.";
+      return cubin;
     }
 
     /* The driver can JIT-compile PTX generated for older generations, so find the closest one. */
@@ -296,8 +299,8 @@ string CUDADevice::compile_kernel(const string &common_cflags,
    */
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
-  const char *const kernel_ext = force_ptx ? "ptx" : "cubin";
-  const char *const kernel_arch = force_ptx ? "compute" : "sm";
+  const char *const kernel_ext = optix ? "ptx" : "cubin";
+  const char *const kernel_arch = optix ? "compute" : "sm";
   const string cubin_file = string_printf(
       "cycles_%s_%s_%d%d_%s.%s", name, kernel_arch, major, minor, kernel_md5.c_str(), kernel_ext);
   const string cubin = path_cache_get(path_join("kernels", cubin_file));
@@ -345,15 +348,16 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   }
   if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
     LOG_ERROR << "CUDA version " << nvcc_cuda_version / 10 << "." << nvcc_cuda_version % 10
-              << "CUDA 10.1 to 12 are officially supported.";
+              << " detected, build may succeed but only CUDA 10.1 to 12 are officially supported.";
   }
 
   double starttime = time_dt();
 
   path_create_directories(cubin);
 
-  source_path = path_join(path_join(source_path, "kernel"),
-                          path_join("device", path_join(base, string_printf("%s.cu", name))));
+  source_path = path_join(
+      path_join(source_path, "kernel"),
+      path_join("device", path_join(optix ? "optix" : "cuda", string_printf("%s.cu", name))));
 
   string command = string_printf(
       "\"%s\" "
@@ -567,8 +571,8 @@ void CUDADevice::copy_host_to_device(void *device_pointer, void *host_pointer, c
 
 void CUDADevice::mem_alloc(device_memory &mem)
 {
-  if (mem.type == MEM_TEXTURE) {
-    assert(!"mem_alloc not supported for textures.");
+  if (mem.type == MEM_IMAGE_TEXTURE) {
+    assert(!"mem_alloc not supported for images.");
   }
   else if (mem.type == MEM_GLOBAL) {
     assert(!"mem_alloc not supported for global memory.");
@@ -583,8 +587,8 @@ void CUDADevice::mem_copy_to(device_memory &mem)
   if (mem.type == MEM_GLOBAL) {
     global_copy_to(mem);
   }
-  else if (mem.type == MEM_TEXTURE) {
-    tex_copy_to((device_texture &)mem);
+  else if (mem.type == MEM_IMAGE_TEXTURE) {
+    image_copy_to((device_image &)mem);
   }
   else {
     if (!mem.device_pointer) {
@@ -603,20 +607,20 @@ void CUDADevice::mem_move_to_host(device_memory &mem)
     global_free(mem);
     global_alloc(mem);
   }
-  else if (mem.type == MEM_TEXTURE) {
-    tex_free((device_texture &)mem);
-    tex_alloc((device_texture &)mem);
+  else if (mem.type == MEM_IMAGE_TEXTURE) {
+    image_free((device_image &)mem);
+    image_alloc((device_image &)mem);
   }
   else {
-    assert(!"mem_move_to_host only supported for texture and global memory");
+    assert(!"mem_move_to_host only supported for image and global memory");
   }
 }
 
 void CUDADevice::mem_copy_from(
     device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
 {
-  if (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) {
-    assert(!"mem_copy_from not supported for textures.");
+  if (mem.type == MEM_IMAGE_TEXTURE) {
+    assert(!"mem_copy_from not supported for images.");
   }
   else if (mem.host_pointer) {
     const size_t size = elem * w * h;
@@ -656,8 +660,8 @@ void CUDADevice::mem_free(device_memory &mem)
   if (mem.type == MEM_GLOBAL) {
     global_free(mem);
   }
-  else if (mem.type == MEM_TEXTURE) {
-    tex_free((device_texture &)mem);
+  else if (mem.type == MEM_IMAGE_TEXTURE) {
+    image_free((device_image &)mem);
   }
   else {
     generic_free(mem);
@@ -720,14 +724,14 @@ void CUDADevice::global_free(device_memory &mem)
   }
 }
 
-static size_t tex_src_pitch(const device_texture &mem)
+static size_t tex_src_pitch(const device_image &mem)
 {
   return mem.data_width * datatype_size(mem.data_type) * mem.data_elements;
 }
 
-static CUDA_MEMCPY2D tex_2d_copy_param(const device_texture &mem, const int pitch_alignment)
+static CUDA_MEMCPY2D tex_2d_copy_param(const device_image &mem, const int pitch_alignment)
 {
-  /* 2D texture using pitch aligned linear memory. */
+  /* 2D image using pitch aligned linear memory. */
   const size_t src_pitch = tex_src_pitch(mem);
   const size_t dst_pitch = align_up(src_pitch, pitch_alignment);
 
@@ -745,7 +749,7 @@ static CUDA_MEMCPY2D tex_2d_copy_param(const device_texture &mem, const int pitc
   return param;
 }
 
-void CUDADevice::tex_alloc(device_texture &mem)
+void CUDADevice::image_alloc(device_image &mem)
 {
   CUDAContextScope scope(this);
 
@@ -776,13 +780,15 @@ void CUDADevice::tex_alloc(device_texture &mem)
     filter_mode = CU_TR_FILTER_MODE_LINEAR;
   }
 
-  /* Image Texture Storage */
-  /* Cycles expects to read all texture data as normalized float values in
+  /* Image Texture Storage
+   *
+   * Cycles expects to read all image data as normalized float values in
    * kernel/device/gpu/image.h. But storing all data as floats would be very inefficient due to the
-   * huge size of float textures. So in the code below, we define different texture types including
+   * huge size of float image. So in the code below, we define different texture types including
    * integer types, with the aim of using CUDA's default promotion behavior of integer data to
    * floating point data in the range [0, 1], as noted in the CUDA documentation on
    * cuTexObjectCreate API Call.
+   *
    * Note that 32-bit integers are not supported by this promotion behavior and cannot be used
    * with Cycles's current implementation in kernel/device/gpu/image.h.
    */
@@ -813,7 +819,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
     cmem->texobject = 0;
   }
   else if (mem.data_height > 0) {
-    /* 2D texture, using pitch aligned linear memory. */
+    /* 2D image, using pitch aligned linear memory. */
     const size_t dst_pitch = align_up(tex_src_pitch(mem), pitch_alignment);
     const size_t dst_size = dst_pitch * mem.data_height;
 
@@ -826,7 +832,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
     cuda_assert(cuMemcpy2DUnaligned(&param));
   }
   else {
-    /* 1D texture, using linear memory. */
+    /* 1D image, using linear memory. */
     cmem = generic_alloc(mem);
     if (!cmem) {
       return;
@@ -836,7 +842,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
   }
 
   /* Set Mapping and tag that we need to (re-)upload to device */
-  TextureInfo tex_info = mem.info;
+  KernelImageInfo tex_info = mem.info;
 
   if (!is_nanovdb_type(mem.info.data_type)) {
     CUDA_RESOURCE_DESC resDesc;
@@ -868,7 +874,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
     texDesc.addressMode[2] = address_mode;
     texDesc.filterMode = filter_mode;
     /* CUDA's flag CU_TRSF_READ_AS_INTEGER is intentionally not used and it is
-     * significant, see above an explanation about how Blender treat textures. */
+     * significant, see above an explanation about how Blender treat images. */
     texDesc.flags = CU_TRSF_NORMALIZED_COORDINATES;
 
     thread_scoped_lock lock(device_mem_map_mutex);
@@ -883,33 +889,33 @@ void CUDADevice::tex_alloc(device_texture &mem)
   }
 
   {
-    /* Update texture info. */
-    thread_scoped_lock lock(texture_info_mutex);
+    /* Update image info. */
+    thread_scoped_lock lock(image_info_mutex);
     const uint slot = mem.slot;
-    if (slot >= texture_info.size()) {
+    if (slot >= image_info.size()) {
       /* Allocate some slots in advance, to reduce amount of re-allocations. */
-      texture_info.resize(slot + 128);
+      image_info.resize(slot + 128);
     }
-    texture_info[slot] = tex_info;
-    need_texture_info = true;
+    image_info[slot] = tex_info;
+    need_image_info = true;
   }
 }
 
-void CUDADevice::tex_copy_to(device_texture &mem)
+void CUDADevice::image_copy_to(device_image &mem)
 {
   if (!mem.device_pointer) {
     /* Not yet allocated on device. */
-    tex_alloc(mem);
+    image_alloc(mem);
   }
   else if (!mem.is_resident(this)) {
-    /* Peering with another device, may still need to create texture info and object. */
-    bool texture_allocated = false;
+    /* Peering with another device, may still need to create image info and object. */
+    bool image_allocated = false;
     {
-      thread_scoped_lock lock(texture_info_mutex);
-      texture_allocated = mem.slot < texture_info.size() && texture_info[mem.slot].data != 0;
+      thread_scoped_lock lock(image_info_mutex);
+      image_allocated = mem.slot < image_info.size() && image_info[mem.slot].data != 0;
     }
-    if (!texture_allocated) {
-      tex_alloc(mem);
+    if (!image_allocated) {
+      image_alloc(mem);
     }
   }
   else {
@@ -925,7 +931,7 @@ void CUDADevice::tex_copy_to(device_texture &mem)
   }
 }
 
-void CUDADevice::tex_free(device_texture &mem)
+void CUDADevice::image_free(device_image &mem)
 {
   CUDAContextScope scope(this);
   thread_scoped_lock lock(device_mem_map_mutex);
@@ -938,10 +944,10 @@ void CUDADevice::tex_free(device_texture &mem)
 
   const Mem &cmem = it->second;
 
-  /* Always clear texture info and texture object, regardless of residency. */
+  /* Always clear image info and image object, regardless of residency. */
   {
-    thread_scoped_lock lock(texture_info_mutex);
-    texture_info[mem.slot] = TextureInfo();
+    thread_scoped_lock lock(image_info_mutex);
+    image_info[mem.slot] = KernelImageInfo();
   }
 
   if (cmem.texobject) {

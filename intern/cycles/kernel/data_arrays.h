@@ -79,7 +79,7 @@ KERNEL_DATA_ARRAY(float, lookup_table)
 KERNEL_DATA_ARRAY(float, sample_pattern_lut)
 
 /* image textures */
-KERNEL_DATA_ARRAY(TextureInfo, texture_info)
+KERNEL_DATA_ARRAY(KernelImageInfo, image_info)
 
 /* ies lights */
 KERNEL_DATA_ARRAY(float, ies)
