@@ -165,7 +165,7 @@ static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
 
   for (; surface; surface = surface->next) {
     if (id == canvas->active_sur) {
-      return RNA_pointer_create_with_parent(*ptr, &RNA_DynamicPaintSurface, surface);
+      return RNA_pointer_create_with_parent(*ptr, RNA_DynamicPaintSurface, surface);
     }
     id++;
   }

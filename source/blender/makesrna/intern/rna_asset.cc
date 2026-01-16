@@ -403,10 +403,10 @@ static PointerRNA rna_AssetRepresentation_metadata_get(PointerRNA *ptr)
 
   if (asset->is_local_id()) {
     PointerRNA id_ptr = RNA_id_pointer_create(asset->local_id());
-    return RNA_pointer_create_with_parent(id_ptr, &RNA_AssetMetaData, &asset_data);
+    return RNA_pointer_create_with_parent(id_ptr, RNA_AssetMetaData, &asset_data);
   }
 
-  return RNA_pointer_create_with_parent(*ptr, &RNA_AssetMetaData, &asset_data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_AssetMetaData, &asset_data);
 }
 
 static int rna_AssetRepresentation_id_type_get(PointerRNA *ptr)

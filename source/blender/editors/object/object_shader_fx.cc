@@ -287,7 +287,7 @@ static bool edit_shaderfx_poll_generic(bContext *C,
 
 static bool edit_shaderfx_poll(bContext *C)
 {
-  return edit_shaderfx_poll_generic(C, &RNA_ShaderFx, 0, false);
+  return edit_shaderfx_poll_generic(C, RNA_ShaderFx, 0, false);
 }
 
 /** \} */
@@ -416,7 +416,7 @@ static bool edit_shaderfx_invoke_properties(bContext *C,
     return true;
   }
 
-  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "shaderfx", &RNA_ShaderFx);
+  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "shaderfx", RNA_ShaderFx);
   if (ctx_ptr.data != nullptr) {
     ShaderFxData *fx = static_cast<ShaderFxData *>(ctx_ptr.data);
     RNA_string_set(op->ptr, "shaderfx", fx->name);
@@ -428,7 +428,7 @@ static bool edit_shaderfx_invoke_properties(bContext *C,
     PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
 
     if (!(panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr))) {
-      if (RNA_struct_is_a(panel_ptr->type, &RNA_ShaderFx)) {
+      if (RNA_struct_is_a(panel_ptr->type, RNA_ShaderFx)) {
         ShaderFxData *fx = static_cast<ShaderFxData *>(panel_ptr->data);
         RNA_string_set(op->ptr, "shaderfx", fx->name);
         return true;

@@ -638,7 +638,7 @@ static bool ctx_data_base_collection_get(const bContext *C,
     Object *ob = static_cast<Object *>(ctx_object.data);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base != nullptr) {
-      CTX_data_list_add(&result, &scene->id, &RNA_ObjectBase, base);
+      CTX_data_list_add(&result, &scene->id, RNA_ObjectBase, base);
       ok = true;
     }
   }
@@ -799,7 +799,7 @@ ListBaseT<LinkData> CTX_data_dir_get_ex(const bContext *C,
 
     PropertyRNA *iterprop;
     PointerRNA ctx_ptr = RNA_pointer_create_discrete(
-        nullptr, &RNA_Context, const_cast<bContext *>(C));
+        nullptr, RNA_Context, const_cast<bContext *>(C));
 
     iterprop = RNA_struct_iterator_property(ctx_ptr.type);
 
@@ -938,24 +938,23 @@ bool CTX_wm_interface_locked(const bContext *C)
 
 wmWindow *CTX_wm_window(const bContext *C)
 {
-  return static_cast<wmWindow *>(
-      ctx_wm_python_context_get(C, "window", &RNA_Window, C->wm.window));
+  return static_cast<wmWindow *>(ctx_wm_python_context_get(C, "window", RNA_Window, C->wm.window));
 }
 
 WorkSpace *CTX_wm_workspace(const bContext *C)
 {
   return static_cast<WorkSpace *>(
-      ctx_wm_python_context_get(C, "workspace", &RNA_WorkSpace, C->wm.workspace));
+      ctx_wm_python_context_get(C, "workspace", RNA_WorkSpace, C->wm.workspace));
 }
 
 bScreen *CTX_wm_screen(const bContext *C)
 {
-  return static_cast<bScreen *>(ctx_wm_python_context_get(C, "screen", &RNA_Screen, C->wm.screen));
+  return static_cast<bScreen *>(ctx_wm_python_context_get(C, "screen", RNA_Screen, C->wm.screen));
 }
 
 ScrArea *CTX_wm_area(const bContext *C)
 {
-  return static_cast<ScrArea *>(ctx_wm_python_context_get(C, "area", &RNA_Area, C->wm.area));
+  return static_cast<ScrArea *>(ctx_wm_python_context_get(C, "area", RNA_Area, C->wm.area));
 }
 
 SpaceLink *CTX_wm_space_data(const bContext *C)
@@ -966,7 +965,7 @@ SpaceLink *CTX_wm_space_data(const bContext *C)
 
 ARegion *CTX_wm_region(const bContext *C)
 {
-  return static_cast<ARegion *>(ctx_wm_python_context_get(C, "region", &RNA_Region, C->wm.region));
+  return static_cast<ARegion *>(ctx_wm_python_context_get(C, "region", RNA_Region, C->wm.region));
 }
 
 void *CTX_wm_region_data(const bContext *C)

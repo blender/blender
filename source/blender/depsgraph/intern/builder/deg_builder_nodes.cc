@@ -1447,7 +1447,7 @@ void DepsgraphNodeBuilder::build_driver_id_property(const PointerRNA &target_pro
   }
   const char *prop_identifier = RNA_property_identifier(prop);
   /* Custom properties of bones are placed in their components to improve granularity. */
-  if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
+  if (RNA_struct_is_a(ptr.type, RNA_PoseBone)) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
     ensure_operation_node(ptr.owner_id,
                           NodeType::BONE,

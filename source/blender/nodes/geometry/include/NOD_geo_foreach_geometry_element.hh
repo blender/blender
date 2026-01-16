@@ -13,7 +13,7 @@ namespace blender::nodes {
 struct ForeachGeometryElementInputItemsAccessor
     : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeForeachGeometryElementInputItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;
@@ -99,7 +99,7 @@ struct ForeachGeometryElementInputItemsAccessor
 
 struct ForeachGeometryElementMainItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeForeachGeometryElementMainItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;
@@ -185,7 +185,7 @@ struct ForeachGeometryElementMainItemsAccessor : public socket_items::SocketItem
 struct ForeachGeometryElementGenerationItemsAccessor
     : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeForeachGeometryElementGenerationItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;

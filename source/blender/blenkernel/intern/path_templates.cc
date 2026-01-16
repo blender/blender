@@ -263,7 +263,7 @@ std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext 
 
   /* Nodes. */
   if (std::optional<AncestorPointerRNA> node_rna_ptr = RNA_struct_search_closest_ancestor_by_type(
-          ptr, &RNA_Node))
+          ptr, RNA_Node))
   {
     const bNode *bnode = reinterpret_cast<const bNode *>(node_rna_ptr->data);
     BKE_add_template_variables_for_node(variables, *bnode);

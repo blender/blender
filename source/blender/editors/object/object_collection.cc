@@ -999,7 +999,7 @@ static wmOperatorStatus collection_remove_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = context_object(C);
   Collection *collection = static_cast<Collection *>(
-      CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data);
+      CTX_data_pointer_get_type(C, "collection", RNA_Collection).data);
 
   if (!ob || !collection) {
     return OPERATOR_CANCELLED;
@@ -1107,7 +1107,7 @@ static wmOperatorStatus select_grouped_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Collection *collection = static_cast<Collection *>(
-      CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data);
+      CTX_data_pointer_get_type(C, "collection", RNA_Collection).data);
 
   if (!collection) {
     return OPERATOR_CANCELLED;

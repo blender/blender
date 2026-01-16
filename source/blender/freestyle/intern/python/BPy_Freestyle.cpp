@@ -67,7 +67,7 @@ static PyObject *Freestyle_getCurrentScene(PyObject * /*self*/)
     return nullptr;
   }
   blender::PointerRNA ptr_scene = RNA_pointer_create_discrete(
-      &scene->id, &blender::RNA_Scene, scene);
+      &scene->id, blender::RNA_Scene, scene);
   return pyrna_struct_CreatePyObject(&ptr_scene);
 }
 
@@ -211,7 +211,7 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
   if (!PyArg_ParseTuple(args, "O!f", &blender::pyrna_struct_Type, &py_srna, &in)) {
     return nullptr;
   }
-  if (!RNA_struct_is_a(py_srna->ptr->type, &blender::RNA_ColorRamp)) {
+  if (!RNA_struct_is_a(py_srna->ptr->type, blender::RNA_ColorRamp)) {
     PyErr_SetString(PyExc_TypeError, "1st argument is not a ColorRamp object");
     return nullptr;
   }
@@ -250,7 +250,7 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
   if (!PyArg_ParseTuple(args, "O!if", &blender::pyrna_struct_Type, &py_srna, &cur, &value)) {
     return nullptr;
   }
-  if (!RNA_struct_is_a(py_srna->ptr->type, &blender::RNA_CurveMapping)) {
+  if (!RNA_struct_is_a(py_srna->ptr->type, blender::RNA_CurveMapping)) {
     PyErr_SetString(PyExc_TypeError, "1st argument is not a CurveMapping object");
     return nullptr;
   }

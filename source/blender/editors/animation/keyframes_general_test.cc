@@ -20,6 +20,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 
+#include "RNA_define.hh"
+
 #include "ED_keyframes_edit.hh"
 
 namespace blender {
@@ -94,11 +96,13 @@ struct keyframes_paste : public testing::Test {
   static void SetUpTestSuite()
   {
     ANIM_fcurves_copybuf_reset();
+    RNA_init();
   }
 
   static void TearDownTestSuite()
   {
     ANIM_fcurves_copybuf_free();
+    RNA_exit();
   }
 };
 

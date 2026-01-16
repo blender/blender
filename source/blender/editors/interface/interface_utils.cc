@@ -492,7 +492,7 @@ void rna_collection_search_update_fn(
         name = RNA_property_string_get_alloc(
             &itemptr, data->item_search_prop, name_buf, sizeof(name_buf), nullptr);
       }
-      else if (itemptr.type == &RNA_ActionSlot) {
+      else if (itemptr.type == RNA_ActionSlot) {
         /* FIXME: This special case is fairly annoying.
          *
          * `item_search_prop` now allows to specify another string property than the default RNA

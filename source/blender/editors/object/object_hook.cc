@@ -778,7 +778,7 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 
 static wmOperatorStatus object_hook_reset_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_HookModifier);
   int num = RNA_enum_get(op->ptr, "modifier");
   Object *ob = nullptr;
   HookModifierData *hmd = nullptr;
@@ -826,7 +826,7 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 
 static wmOperatorStatus object_hook_recenter_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_HookModifier);
   int num = RNA_enum_get(op->ptr, "modifier");
   Object *ob = nullptr;
   HookModifierData *hmd = nullptr;
@@ -883,7 +883,7 @@ static wmOperatorStatus object_hook_assign_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_HookModifier);
   int num = RNA_enum_get(op->ptr, "modifier");
   Object *ob = nullptr;
   HookModifierData *hmd = nullptr;
@@ -948,7 +948,7 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 
 static wmOperatorStatus object_hook_select_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_HookModifier);
   int num = RNA_enum_get(op->ptr, "modifier");
   Object *ob = nullptr;
   HookModifierData *hmd = nullptr;

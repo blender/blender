@@ -581,22 +581,22 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
   {
     wmMsgParams_RNA msg_key_params = {{}};
     StructRNA *type_array[] = {
-        &RNA_DopeSheet, /* dope-sheet filters */
+        RNA_DopeSheet, /* dope-sheet filters */
 
-        &RNA_ActionGroup, /* channel groups */
-        &RNA_FCurve,      /* F-Curve */
-        &RNA_Keyframe,
-        &RNA_FCurveSample,
+        RNA_ActionGroup, /* channel groups */
+        RNA_FCurve,      /* F-Curve */
+        RNA_Keyframe,
+        RNA_FCurveSample,
 
-        &RNA_FModifier, /* F-Modifiers (XXX: Why can't we just do all subclasses too?) */
-        &RNA_FModifierCycles,
-        &RNA_FModifierEnvelope,
-        &RNA_FModifierEnvelopeControlPoint,
-        &RNA_FModifierFunctionGenerator,
-        &RNA_FModifierGenerator,
-        &RNA_FModifierLimits,
-        &RNA_FModifierNoise,
-        &RNA_FModifierStepped,
+        RNA_FModifier, /* F-Modifiers (XXX: Why can't we just do all subclasses too?) */
+        RNA_FModifierCycles,
+        RNA_FModifierEnvelope,
+        RNA_FModifierEnvelopeControlPoint,
+        RNA_FModifierFunctionGenerator,
+        RNA_FModifierGenerator,
+        RNA_FModifierLimits,
+        RNA_FModifierNoise,
+        RNA_FModifierStepped,
     };
 
     for (int i = 0; i < ARRAY_SIZE(type_array); i++) {

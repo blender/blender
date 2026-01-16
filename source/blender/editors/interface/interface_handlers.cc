@@ -739,10 +739,10 @@ static bool ui_rna_is_userdef(PointerRNA *ptr, PropertyRNA *prop)
 
   bool is_userdef = false;
   if (ELEM(base,
-           &RNA_AddonPreferences,
-           &RNA_KeyConfigPreferences,
-           &RNA_KeyMapItem,
-           &RNA_UserAssetLibrary))
+           RNA_AddonPreferences,
+           RNA_KeyConfigPreferences,
+           RNA_KeyMapItem,
+           RNA_UserAssetLibrary))
   {
     is_userdef = true;
   }
@@ -750,7 +750,7 @@ static bool ui_rna_is_userdef(PointerRNA *ptr, PropertyRNA *prop)
     switch (GS(ptr->owner_id->name)) {
       case ID_WM: {
         for (const AncestorPointerRNA &ancestor : ptr->ancestors) {
-          if (RNA_struct_is_a(ancestor.type, &RNA_KeyConfigPreferences)) {
+          if (RNA_struct_is_a(ancestor.type, RNA_KeyConfigPreferences)) {
             is_userdef = true;
             break;
           }
@@ -764,7 +764,7 @@ static bool ui_rna_is_userdef(PointerRNA *ptr, PropertyRNA *prop)
   }
   else if (ptr->owner_id == nullptr) {
     for (const AncestorPointerRNA &ancestor : ptr->ancestors) {
-      if (RNA_struct_is_a(ancestor.type, &RNA_AddonPreferences)) {
+      if (RNA_struct_is_a(ancestor.type, RNA_AddonPreferences)) {
         is_userdef = true;
         break;
       }

@@ -141,7 +141,7 @@ static void buttons_texture_user_mtex_add(ListBaseT<ButsTextureUser> *users,
                                           MTex *mtex,
                                           const char *category)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_TextureSlot, mtex);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_TextureSlot, mtex);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
 
   buttons_texture_user_property_add(
@@ -156,7 +156,7 @@ static void buttons_texture_users_find_nodetree(ListBaseT<ButsTextureUser> *user
   if (ntree) {
     for (bNode *node : ntree->all_nodes()) {
       if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
-        PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, node);
+        PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, RNA_Node, node);
         buttons_texture_user_node_add(users,
                                       id,
                                       ntree,
@@ -197,12 +197,12 @@ static void buttons_texture_modifier_geonodes_users_add(Object *ob,
       if (socket.type != SOCK_TEXTURE) {
         continue;
       }
-      PointerRNA ptr = RNA_pointer_create_discrete(&node_tree->id, &RNA_NodeSocket, &socket);
+      PointerRNA ptr = RNA_pointer_create_discrete(&node_tree->id, RNA_NodeSocket, &socket);
       prop = RNA_struct_find_property(&ptr, "default_value");
 
       PointerRNA texptr = RNA_property_pointer_get(&ptr, prop);
-      Tex *tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? static_cast<Tex *>(texptr.data) :
-                                                              nullptr;
+      Tex *tex = RNA_struct_is_a(texptr.type, RNA_Texture) ? static_cast<Tex *>(texptr.data) :
+                                                             nullptr;
       if (tex != nullptr) {
         buttons_texture_user_socket_property_add(users,
                                                  &ob->id,
@@ -320,7 +320,7 @@ static void buttons_texture_users_from_context(ListBaseT<ButsTextureUser> *users
           PropertyRNA *prop;
 
           PointerRNA ptr = RNA_pointer_create_discrete(
-              &psys->part->id, &RNA_ParticleSettingsTextureSlot, mtex);
+              &psys->part->id, RNA_ParticleSettingsTextureSlot, mtex);
           prop = RNA_struct_find_property(&ptr, "texture");
 
           buttons_texture_user_property_add(users,
@@ -328,7 +328,7 @@ static void buttons_texture_users_from_context(ListBaseT<ButsTextureUser> *users
                                             ptr,
                                             prop,
                                             N_("Particles"),
-                                            RNA_struct_ui_icon(&RNA_ParticleSettings),
+                                            RNA_struct_ui_icon(RNA_ParticleSettings),
                                             psys->name);
         }
       }
@@ -338,7 +338,7 @@ static void buttons_texture_users_from_context(ListBaseT<ButsTextureUser> *users
     if (ob->pd && ob->pd->forcefield == PFIELD_TEXTURE) {
       PropertyRNA *prop;
 
-      PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_FieldSettings, ob->pd);
+      PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_FieldSettings, ob->pd);
       prop = RNA_struct_find_property(&ptr, "texture");
 
       buttons_texture_user_property_add(
@@ -351,14 +351,14 @@ static void buttons_texture_users_from_context(ListBaseT<ButsTextureUser> *users
     PropertyRNA *prop;
 
     /* texture */
-    PointerRNA ptr = RNA_pointer_create_discrete(&brush->id, &RNA_BrushTextureSlot, &brush->mtex);
+    PointerRNA ptr = RNA_pointer_create_discrete(&brush->id, RNA_BrushTextureSlot, &brush->mtex);
     prop = RNA_struct_find_property(&ptr, "texture");
 
     buttons_texture_user_property_add(
         users, &brush->id, ptr, prop, N_("Brush"), ICON_BRUSH_DATA, IFACE_("Brush"));
 
     /* mask texture */
-    ptr = RNA_pointer_create_discrete(&brush->id, &RNA_BrushTextureSlot, &brush->mask_mtex);
+    ptr = RNA_pointer_create_discrete(&brush->id, RNA_BrushTextureSlot, &brush->mask_mtex);
     prop = RNA_struct_find_property(&ptr, "texture");
 
     buttons_texture_user_property_add(
@@ -421,8 +421,8 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
 
         /* Get texture datablock pointer if it's a property. */
         texptr = RNA_property_pointer_get(&ct->user->ptr, ct->user->prop);
-        tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? static_cast<Tex *>(texptr.data) :
-                                                           nullptr;
+        tex = RNA_struct_is_a(texptr.type, RNA_Texture) ? static_cast<Tex *>(texptr.data) :
+                                                          nullptr;
 
         ct->texture = tex;
       }
@@ -457,11 +457,11 @@ static void template_texture_select(bContext *C, void *user_p, void * /*arg*/)
   }
   if (user->ptr.data) {
     texptr = RNA_property_pointer_get(&user->ptr, user->prop);
-    tex = RNA_struct_is_a(texptr.type, &RNA_Texture) ? static_cast<Tex *>(texptr.data) : nullptr;
+    tex = RNA_struct_is_a(texptr.type, RNA_Texture) ? static_cast<Tex *>(texptr.data) : nullptr;
 
     ct->texture = tex;
 
-    if (user->ptr.type == &RNA_ParticleSettingsTextureSlot) {
+    if (user->ptr.type == RNA_ParticleSettingsTextureSlot) {
       /* stupid exception for particle systems which still uses influence
        * from the old texture system, set the active texture slots as well */
       ParticleSettings *part = id_cast<ParticleSettings *>(user->ptr.owner_id);

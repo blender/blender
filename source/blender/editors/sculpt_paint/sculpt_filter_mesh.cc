@@ -2532,7 +2532,7 @@ void register_operator_props(wmOperatorType *ot)
               100);
 
   /* Smooth filter requires entire event history. */
-  prop = RNA_def_collection_runtime(ot->srna, "event_history", &RNA_OperatorStrokeElement, "", "");
+  prop = RNA_def_collection_runtime(ot->srna, "event_history", RNA_OperatorStrokeElement, "", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

@@ -574,7 +574,7 @@ static PointerRNA rna_GreasePencil_layer_group_new(GreasePencil *grease_pencil,
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, grease_pencil);
 
   PointerRNA ptr = RNA_pointer_create_discrete(
-      &grease_pencil->id, &RNA_GreasePencilLayerGroup, new_layer_group);
+      &grease_pencil->id, RNA_GreasePencilLayerGroup, new_layer_group);
   return ptr;
 }
 

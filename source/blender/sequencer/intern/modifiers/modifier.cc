@@ -154,7 +154,7 @@ void draw_mask_input_type_settings(const bContext *C, ui::Layout &layout, Pointe
 
   if (input_mask_type == STRIP_MASK_INPUT_STRIP) {
     PointerRNA sequences_object = RNA_pointer_create_discrete(
-        &sequencer_scene->id, &RNA_SequenceEditor, ed);
+        &sequencer_scene->id, RNA_SequenceEditor, ed);
     col.prop_search(
         ptr, "input_mask_strip", &sequences_object, "strips_all", IFACE_("Mask"), ICON_NONE);
   }

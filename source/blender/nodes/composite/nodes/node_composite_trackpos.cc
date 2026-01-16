@@ -111,7 +111,7 @@ static void node_composit_buts_trackpos(ui::Layout &layout, bContext *C, Pointer
     MovieTracking *tracking = &clip->tracking;
     MovieTrackingObject *tracking_object;
     NodeTrackPosData *data = (NodeTrackPosData *)node->storage;
-    PointerRNA tracking_ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTracking, tracking);
+    PointerRNA tracking_ptr = RNA_pointer_create_discrete(&clip->id, RNA_MovieTracking, tracking);
 
     ui::Layout &col = layout.column(false);
     col.prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
@@ -119,7 +119,7 @@ static void node_composit_buts_trackpos(ui::Layout &layout, bContext *C, Pointer
     tracking_object = BKE_tracking_object_get_named(tracking, data->tracking_object);
     if (tracking_object) {
       PointerRNA object_ptr = RNA_pointer_create_discrete(
-          &clip->id, &RNA_MovieTrackingObject, tracking_object);
+          &clip->id, RNA_MovieTrackingObject, tracking_object);
 
       col.prop_search(ptr, "track_name", &object_ptr, "tracks", "", ICON_ANIM_DATA);
     }

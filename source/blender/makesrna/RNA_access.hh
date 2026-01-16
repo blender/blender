@@ -79,7 +79,7 @@ PointerRNA RNA_pointer_create_with_parent(const PointerRNA &parent, StructRNA *t
  * and is a shortcut for:
  *
  *    PointerRNA id_ptr = RNA_id_pointer_create(id);
- *    PointerRNA ptr = RNA_pointer_create_with_parent(id_ptr, &RNA_Type, data);
+ *    PointerRNA ptr = RNA_pointer_create_with_parent(id_ptr, RNA_Type, data);
  */
 PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
 
@@ -122,7 +122,7 @@ StructRNA *RNA_struct_base(StructRNA *type);
 /**
  * Use to find the sub-type directly below a base-type.
  *
- * So if type were `RNA_SpotLight`, `RNA_struct_base_of(type, &RNA_ID)` would return `&RNA_Light`.
+ * So if type were `RNA_SpotLight`, `RNA_struct_base_of(type, RNA_ID)` would return `RNA_Light`.
  */
 const StructRNA *RNA_struct_base_child_of(const StructRNA *type, const StructRNA *parent_type);
 

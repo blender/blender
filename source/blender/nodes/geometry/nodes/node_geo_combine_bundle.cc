@@ -38,7 +38,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const std::string identifier = CombineBundleItemsAccessor::socket_identifier_for_item(item);
       auto &decl = b.add_input(socket_type, name, identifier)
                        .socket_name_ptr(
-                           &tree->id, CombineBundleItemsAccessor::item_srna, &item, "name")
+                           &tree->id, *CombineBundleItemsAccessor::item_srna, &item, "name")
                        .supports_field();
       if (item.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
         decl.structure_type(StructureType(item.structure_type));
@@ -215,7 +215,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace nodes {
 
-StructRNA *CombineBundleItemsAccessor::item_srna = &RNA_NodeCombineBundleItem;
+StructRNA **CombineBundleItemsAccessor::item_srna = &RNA_NodeCombineBundleItem;
 
 void CombineBundleItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

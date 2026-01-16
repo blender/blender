@@ -144,29 +144,29 @@ static StructRNA *rna_Texture_refine(PointerRNA *ptr)
 
   switch (tex->type) {
     case TEX_BLEND:
-      return &RNA_BlendTexture;
+      return RNA_BlendTexture;
     case TEX_CLOUDS:
-      return &RNA_CloudsTexture;
+      return RNA_CloudsTexture;
     case TEX_DISTNOISE:
-      return &RNA_DistortedNoiseTexture;
+      return RNA_DistortedNoiseTexture;
     case TEX_IMAGE:
-      return &RNA_ImageTexture;
+      return RNA_ImageTexture;
     case TEX_MAGIC:
-      return &RNA_MagicTexture;
+      return RNA_MagicTexture;
     case TEX_MARBLE:
-      return &RNA_MarbleTexture;
+      return RNA_MarbleTexture;
     case TEX_MUSGRAVE:
-      return &RNA_MusgraveTexture;
+      return RNA_MusgraveTexture;
     case TEX_NOISE:
-      return &RNA_NoiseTexture;
+      return RNA_NoiseTexture;
     case TEX_STUCCI:
-      return &RNA_StucciTexture;
+      return RNA_StucciTexture;
     case TEX_VORONOI:
-      return &RNA_VoronoiTexture;
+      return RNA_VoronoiTexture;
     case TEX_WOOD:
-      return &RNA_WoodTexture;
+      return RNA_WoodTexture;
     default:
-      return &RNA_Texture;
+      return RNA_Texture;
   }
 }
 

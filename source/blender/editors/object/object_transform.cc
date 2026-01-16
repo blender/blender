@@ -2362,7 +2362,7 @@ static wmOperatorStatus object_transform_axis_target_modal(bContext *C,
     Scene *scene = CTX_data_scene(C);
     /* Perform auto-keying for rotational changes for all objects. */
     for (XFormAxisItem &item : xfd->object_data) {
-      PointerRNA ptr = RNA_pointer_create_discrete(&item.ob->id, &RNA_Object, &item.ob->id);
+      PointerRNA ptr = RNA_pointer_create_discrete(&item.ob->id, RNA_Object, &item.ob->id);
       const char *rotation_property = "rotation_euler";
       switch (item.ob->rotmode) {
         case ROT_MODE_QUAT:

@@ -438,7 +438,7 @@ void sync_active_scene_and_time_with_scene_strip(bContext &C)
         if (view3d->camera == camera) {
           continue;
         }
-        PointerRNA view3d_ptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceView3D, view3d);
+        PointerRNA view3d_ptr = RNA_pointer_create_discrete(&screen->id, RNA_SpaceView3D, view3d);
         RNA_pointer_set(&view3d_ptr, "camera", camera_ptr);
       }
     }
@@ -3475,7 +3475,7 @@ static wmOperatorStatus sequencer_change_path_exec(bContext *C, wmOperator *op)
     PropertyRNA *prop;
     char filepath[FILE_MAX];
 
-    PointerRNA strip_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_Strip, strip);
+    PointerRNA strip_ptr = RNA_pointer_create_discrete(&scene->id, RNA_Strip, strip);
 
     RNA_string_get(op->ptr, "filepath", filepath);
     prop = RNA_struct_find_property(&strip_ptr, "filepath");
@@ -3910,7 +3910,7 @@ static wmOperatorStatus sequencer_strip_transform_clear_exec(bContext *C, wmOper
     if (strip.flag & SEQ_SELECT && strip.type != STRIP_TYPE_SOUND) {
       StripTransform *transform = strip.data->transform;
       PropertyRNA *prop;
-      PointerRNA ptr = RNA_pointer_create_discrete(&scene->id, &RNA_StripTransform, transform);
+      PointerRNA ptr = RNA_pointer_create_discrete(&scene->id, RNA_StripTransform, transform);
       switch (property) {
         case STRIP_TRANSFORM_POSITION:
           transform->xofs = 0;

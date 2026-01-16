@@ -758,7 +758,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
     case UI_ID_ALONE:
       if (id) {
         const bool do_scene_obj = ((GS(id->name) == ID_OB) &&
-                                   (template_ui->ptr.type == &RNA_LayerObjects));
+                                   (template_ui->ptr.type == RNA_LayerObjects));
 
         /* make copy */
         if (do_scene_obj) {
@@ -882,7 +882,7 @@ static StringRef template_id_browse_tip(const StructRNA *type)
  */
 static void template_id_workspace_pin_extra_icon(const TemplateID &template_ui, Button *but)
 {
-  if ((template_ui.idcode != ID_SCE) || (template_ui.ptr.type != &RNA_Window)) {
+  if ((template_ui.idcode != ID_SCE) || (template_ui.ptr.type != RNA_Window)) {
     return;
   }
 
@@ -1073,7 +1073,7 @@ static void template_ID(const bContext *C,
 
     int width = template_search_textbut_width(&idptr, RNA_struct_find_property(&idptr, "name"));
 
-    if ((template_ui.idcode == ID_SCE) && (template_ui.ptr.type == &RNA_Window)) {
+    if ((template_ui.idcode == ID_SCE) && (template_ui.ptr.type == RNA_Window)) {
       /* More room needed for "pin" icon. */
       width += UI_UNIT_X;
     }
@@ -1624,7 +1624,7 @@ void template_action(Layout *layout,
     return;
   }
 
-  PropertyRNA *adt_action_prop = RNA_struct_type_find_property(&RNA_AnimData, "action");
+  PropertyRNA *adt_action_prop = RNA_struct_type_find_property(RNA_AnimData, "action");
   BLI_assert(adt_action_prop);
   BLI_assert(RNA_property_type(adt_action_prop) == PROP_POINTER);
 
@@ -1636,7 +1636,7 @@ void template_action(Layout *layout,
    * PointerRNA.
    */
   AnimData *adt = BKE_animdata_from_id(id);
-  PointerRNA adt_ptr = PointerRNA{id, &RNA_AnimData, adt, RNA_id_pointer_create(id)};
+  PointerRNA adt_ptr = PointerRNA{id, RNA_AnimData, adt, RNA_id_pointer_create(id)};
 
   TemplateID template_ui = {};
   template_ui.ptr = adt_ptr;
@@ -1656,8 +1656,7 @@ void template_action(Layout *layout,
   BLI_assert(template_ui.idlb);
 
   Layout &row = layout->row(true);
-  template_ID(
-      C, row, template_ui, &RNA_Action, flag, newop, nullptr, unlinkop, text, false, false);
+  template_ID(C, row, template_ui, RNA_Action, flag, newop, nullptr, unlinkop, text, false, false);
 }
 
 void template_id_browse(Layout *layout,

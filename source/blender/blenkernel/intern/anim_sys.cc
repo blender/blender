@@ -536,7 +536,7 @@ static bool animsys_construct_orig_pointer_rna(const PointerRNA *ptr, PointerRNA
    * such pointers.
    * We do special trickery here as well, to quickly go from evaluated to original NlaStrip. */
   if (ptr->owner_id == nullptr) {
-    if (ptr->type != &RNA_NlaStrip) {
+    if (ptr->type != RNA_NlaStrip) {
       return false;
     }
     NlaStrip *strip = (static_cast<NlaStrip *>(ptr_orig->data));
@@ -887,7 +887,7 @@ static void nlastrip_evaluate_controls(NlaStrip *strip,
   if (strip->fcurves.first) {
 
     /* create RNA-pointer needed to set values */
-    PointerRNA strip_ptr = RNA_pointer_create_discrete(nullptr, &RNA_NlaStrip, strip);
+    PointerRNA strip_ptr = RNA_pointer_create_discrete(nullptr, RNA_NlaStrip, strip);
 
     /* execute these settings as per normal */
     Vector<FCurve *> strip_fcurves = listbase_to_vector<FCurve>(strip->fcurves);

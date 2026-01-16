@@ -382,7 +382,7 @@ static wmOperatorStatus preferences_extension_repo_add_exec(bContext *C, wmOpera
 
   {
     PointerRNA new_repo_ptr = RNA_pointer_create_discrete(
-        nullptr, &RNA_UserExtensionRepo, new_repo);
+        nullptr, RNA_UserExtensionRepo, new_repo);
     PointerRNA *pointers[] = {&new_repo_ptr};
 
     BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
@@ -506,7 +506,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
    * setting the repositories URL (optionally the custom-directory). */
 
   /* Copy the RNA values are copied into the operator to avoid repetition. */
-  StructRNA *type_ref = &RNA_UserExtensionRepo;
+  StructRNA *type_ref = RNA_UserExtensionRepo;
 
   { /* Name. */
     const char *prop_id = "name";

@@ -163,7 +163,7 @@ static void node_buts_normal(ui::Layout &layout, bContext * /*C*/, PointerRNA *p
   bNode *node = static_cast<bNode *>(ptr->data);
   /* first output stores normal */
   bNodeSocket *output = static_cast<bNodeSocket *>(node->outputs.first);
-  PointerRNA sockptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_NodeSocket, output);
+  PointerRNA sockptr = RNA_pointer_create_discrete(ptr->owner_id, RNA_NodeSocket, output);
 
   layout.prop(&sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
 }
@@ -502,7 +502,7 @@ static void node_composit_buts_image(ui::Layout &layout, bContext *C, PointerRNA
 {
   bNode *node = static_cast<bNode *>(ptr->data);
 
-  PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
+  PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, RNA_ImageUser, node->storage);
   layout.context_ptr_set("image_user", &iuserptr);
   template_id(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
   if (!node->id) {
@@ -520,7 +520,7 @@ static void node_composit_buts_image_ex(ui::Layout &layout, bContext *C, Pointer
 {
   bNode *node = static_cast<bNode *>(ptr->data);
 
-  PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
+  PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, RNA_ImageUser, node->storage);
   layout.context_ptr_set("image_user", &iuserptr);
   uiTemplateImage(&layout, C, ptr, "image", &iuserptr, false, true);
 }
@@ -592,7 +592,7 @@ static void node_composit_buts_cryptomatte(ui::Layout &layout, bContext *C, Poin
     NodeCryptomatte *crypto = static_cast<NodeCryptomatte *>(node->storage);
     PointerRNA imaptr = RNA_pointer_get(ptr, "image");
     PointerRNA iuserptr = RNA_pointer_create_discrete(
-        ptr->owner_id, &RNA_ImageUser, &crypto->iuser);
+        ptr->owner_id, RNA_ImageUser, &crypto->iuser);
     layout.context_ptr_set("image_user", &iuserptr);
 
     node_buts_image_user(col, C, ptr, &imaptr, &iuserptr, false, false);
@@ -665,7 +665,7 @@ static void node_texture_buts_proc(ui::Layout &layout, bContext * /*C*/, Pointer
   ID *id = ptr->owner_id;
   Tex *tex = static_cast<Tex *>(node->storage);
 
-  PointerRNA tex_ptr = RNA_pointer_create_discrete(id, &RNA_Texture, tex);
+  PointerRNA tex_ptr = RNA_pointer_create_discrete(id, RNA_Texture, tex);
 
   ui::Layout &col = layout.column(false);
 
@@ -781,7 +781,7 @@ static void node_texture_buts_image(ui::Layout &layout, bContext *C, PointerRNA 
 static void node_texture_buts_image_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = static_cast<bNode *>(ptr->data);
-  PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
+  PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, RNA_ImageUser, node->storage);
   uiTemplateImage(&layout, C, ptr, "image", &iuserptr, false, false);
 }
 
@@ -1421,7 +1421,7 @@ static void std_node_socket_interface_draw(ID *id,
                                            bContext * /*C*/,
                                            ui::Layout *layout)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_NodeTreeInterfaceSocket, interface_socket);
 
   const bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
   BLI_assert(typeinfo != nullptr);
@@ -2247,9 +2247,9 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
   {
     const bNodeTree &node_tree = *snode.edittree;
     PointerRNA from_node_ptr = RNA_pointer_create_discrete(
-        &const_cast<ID &>(node_tree.id), &RNA_Node, link.fromnode);
+        &const_cast<ID &>(node_tree.id), RNA_Node, link.fromnode);
     PointerRNA to_node_ptr = RNA_pointer_create_discrete(
-        &const_cast<ID &>(node_tree.id), &RNA_Node, link.tonode);
+        &const_cast<ID &>(node_tree.id), RNA_Node, link.tonode);
 
     if (link.fromsock) {
       node_socket_color_get(C, node_tree, from_node_ptr, *link.fromsock, draw_config.start_color);

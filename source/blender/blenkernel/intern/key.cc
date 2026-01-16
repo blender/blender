@@ -1435,7 +1435,7 @@ std::optional<std::string> BKE_keyblock_curval_rnapath_get(const Key *key, const
     return std::nullopt;
   }
   PointerRNA ptr = RNA_pointer_create_discrete(
-      const_cast<ID *>(&key->id), &RNA_ShapeKey, (KeyBlock *)kb);
+      const_cast<ID *>(&key->id), RNA_ShapeKey, (KeyBlock *)kb);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "value");
   return RNA_path_from_ID_to_property(&ptr, prop);
 }

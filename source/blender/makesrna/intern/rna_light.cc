@@ -49,15 +49,15 @@ static StructRNA *rna_Light_refine(PointerRNA *ptr)
 
   switch (la->type) {
     case LA_LOCAL:
-      return &RNA_PointLight;
+      return RNA_PointLight;
     case LA_SUN:
-      return &RNA_SunLight;
+      return RNA_SunLight;
     case LA_SPOT:
-      return &RNA_SpotLight;
+      return RNA_SpotLight;
     case LA_AREA:
-      return &RNA_AreaLight;
+      return RNA_AreaLight;
     default:
-      return &RNA_Light;
+      return RNA_Light;
   }
 }
 

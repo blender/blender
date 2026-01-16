@@ -1039,7 +1039,7 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
     /* Get an RNA pointer to ToolSettings to give to the curve profile template code. */
     Scene *scene = CTX_data_scene(C);
     PointerRNA toolsettings_ptr = RNA_pointer_create_discrete(
-        &scene->id, &RNA_ToolSettings, scene->toolsettings);
+        &scene->id, RNA_ToolSettings, scene->toolsettings);
     template_curve_profile(&layout, &toolsettings_ptr, "custom_bevel_profile_preset");
   }
 }

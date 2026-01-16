@@ -224,7 +224,7 @@ static bNodeTreeInterfaceSocket *add_interface_from_socket(const bNodeTree &orig
 static std::string node_basepath(const bNodeTree &tree, const bNode &node)
 {
   const PointerRNA ptr = RNA_pointer_create_discrete(
-      &const_cast<bNodeTree &>(tree).id, &RNA_Node, &const_cast<bNode &>(node));
+      &const_cast<bNodeTree &>(tree).id, RNA_Node, &const_cast<bNode &>(node));
   return *RNA_path_from_ID_to_struct(&ptr);
 }
 

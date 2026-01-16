@@ -211,7 +211,7 @@ const EnumPropertyItem *rna_WorkSpaceTool_brush_type_itemf(bContext *C,
 {
 
   PaintMode paint_mode = [&]() {
-    if (ptr->type == &RNA_WorkSpaceTool) {
+    if (ptr->type == RNA_WorkSpaceTool) {
       const bToolRef *tref = static_cast<bToolRef *>(ptr->data);
       return BKE_paintmode_get_from_tool(tref);
     }

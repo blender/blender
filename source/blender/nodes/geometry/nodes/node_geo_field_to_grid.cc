@@ -57,7 +57,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
     b.add_input(data_type, item.name, input_identifier)
         .supports_field()
-        .socket_name_ptr(&tree->id, FieldToGridItemsAccessor::item_srna, &item, "name");
+        .socket_name_ptr(&tree->id, *FieldToGridItemsAccessor::item_srna, &item, "name");
     b.add_output(data_type, item.name, output_identifier)
         .structure_type(StructureType::Grid)
         .align_with_previous()
@@ -430,7 +430,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace nodes {
 
-StructRNA *FieldToGridItemsAccessor::item_srna = &RNA_GeometryNodeFieldToGridItem;
+StructRNA **FieldToGridItemsAccessor::item_srna = &RNA_GeometryNodeFieldToGridItem;
 
 void FieldToGridItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

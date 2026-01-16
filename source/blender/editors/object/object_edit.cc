@@ -146,7 +146,7 @@ static bool object_mode_set_ok_or_report(ReportList *reports)
 
 Object *context_object(const bContext *C)
 {
-  return static_cast<Object *>(CTX_data_pointer_get_type(C, "object", &RNA_Object).data);
+  return static_cast<Object *>(CTX_data_pointer_get_type(C, "object", RNA_Object).data);
 }
 
 Object *context_active_object(const bContext *C)
@@ -2449,7 +2449,7 @@ static void move_to_collection_menu_draw(Menu *menu, Collection *collection, int
 static void move_to_collection_recursive_menu_draw(const bContext * /*C*/, Menu *menu)
 {
   ui::Layout &layout = *menu->layout;
-  const PointerRNA *ptr = layout.context_ptr_get("collection", &RNA_Collection);
+  const PointerRNA *ptr = layout.context_ptr_get("collection", RNA_Collection);
   Collection *collection = ptr ? ptr->data_as<Collection>() : nullptr;
   if (!collection) {
     return;

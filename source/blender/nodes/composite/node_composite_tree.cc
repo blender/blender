@@ -153,7 +153,7 @@ void register_node_tree_type_cmp()
   tt->validate_link = composite_validate_link;
   tt->valid_socket_type = composite_node_tree_socket_type_valid;
 
-  tt->rna_ext.srna = &RNA_CompositorNodeTree;
+  tt->rna_ext.srna = RNA_CompositorNodeTree;
 
   bke::node_tree_type_add(*tt);
 }

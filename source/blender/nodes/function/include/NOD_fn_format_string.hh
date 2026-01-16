@@ -16,7 +16,7 @@ namespace blender::nodes {
  */
 struct FormatStringItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeFunctionFormatStringItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static constexpr StringRefNull node_idname = "FunctionNodeFormatString";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;

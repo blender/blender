@@ -40,7 +40,7 @@ namespace blender::ed::object {
 
 static bool multires_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_MultiresModifier, (1 << OB_MESH), true, false);
+  return edit_modifier_poll_generic(C, RNA_MultiresModifier, (1 << OB_MESH), true, false);
 }
 
 static wmOperatorStatus multires_higher_levels_delete_exec(bContext *C, wmOperator *op)

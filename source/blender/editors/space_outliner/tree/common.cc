@@ -31,7 +31,7 @@ namespace blender::ed::outliner {
 const char *outliner_idcode_to_plural(short idcode)
 {
   const char *propname = BKE_idtype_idcode_to_name_plural(idcode);
-  PropertyRNA *prop = RNA_struct_type_find_property(&RNA_BlendData, propname);
+  PropertyRNA *prop = RNA_struct_type_find_property(RNA_BlendData, propname);
   return (prop) ? RNA_property_ui_name(prop) : "UNKNOWN";
 }
 

@@ -82,7 +82,7 @@ static void gizmo_spot_blend_foreach_rna_prop(
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Light *la = id_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
-  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, &RNA_Light, la);
+  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, RNA_Light, la);
   PropertyRNA *spot_blend_prop = RNA_struct_find_property(&light_ptr, "spot_blend");
 
   callback(light_ptr, spot_blend_prop, 0);
@@ -107,7 +107,7 @@ static void gizmo_spot_blend_prop_matrix_set(const wmGizmo * /*gz*/,
 
   float spot_blend = safe_divide(clamp_f(c - a, 0.0f, 1.0f - a), 1.0f - a);
 
-  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, &RNA_Light, la);
+  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, RNA_Light, la);
   PropertyRNA *spot_blend_prop = RNA_struct_find_property(&light_ptr, "spot_blend");
   RNA_property_float_set(&light_ptr, spot_blend_prop, spot_blend);
 
@@ -124,7 +124,7 @@ static void gizmo_light_radius_foreach_rna_prop(
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Light *la = id_cast<Light *>(BKE_view_layer_active_object_get(view_layer)->data);
-  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, &RNA_Light, la);
+  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, RNA_Light, la);
   PropertyRNA *radius_prop = RNA_struct_find_property(&light_ptr, "shadow_soft_size");
 
   callback(light_ptr, radius_prop, 0);
@@ -162,7 +162,7 @@ static void gizmo_light_radius_prop_matrix_set(const wmGizmo * /*gz*/,
 
   const float radius = 0.5f * len_v3(matrix[0]);
 
-  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, &RNA_Light, la);
+  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, RNA_Light, la);
   PropertyRNA *radius_prop = RNA_struct_find_property(&light_ptr, "shadow_soft_size");
   RNA_property_float_set(&light_ptr, radius_prop, radius);
 
@@ -271,7 +271,7 @@ static void WIDGETGROUP_light_spot_refresh(const bContext *C, wmGizmoGroup *gzgr
 
   /* Spot angle gizmo. */
   {
-    PointerRNA lamp_ptr = RNA_pointer_create_discrete(&la->id, &RNA_Light, la);
+    PointerRNA lamp_ptr = RNA_pointer_create_discrete(&la->id, RNA_Light, la);
 
     wmGizmo *gz = ls_gzgroup->spot_angle;
     float dir[3];
@@ -435,7 +435,7 @@ static void gizmo_area_light_foreach_rna_prop(
     const FunctionRef<void(PointerRNA &ptr, PropertyRNA *prop, int index)> callback)
 {
   Light *la = static_cast<Light *>(gz_prop->custom_func.user_data);
-  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, &RNA_Light, la);
+  PointerRNA light_ptr = RNA_pointer_create_discrete(&la->id, RNA_Light, la);
 
   PropertyRNA *area_size_prop = RNA_struct_find_property(&light_ptr, "size");
   callback(light_ptr, area_size_prop, 0);

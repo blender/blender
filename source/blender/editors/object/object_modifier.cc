@@ -367,7 +367,7 @@ static bool object_modifier_remove(
     ob->mode &= ~OB_MODE_PARTICLE_EDIT;
   }
 
-  BKE_animdata_drivers_remove_for_rna_struct(ob->id, RNA_Modifier, md);
+  BKE_animdata_drivers_remove_for_rna_struct(ob->id, *RNA_Modifier, md);
 
   BKE_modifier_remove_from_list(ob, md);
   BKE_modifier_free(md);
@@ -1550,14 +1550,14 @@ bool edit_modifier_poll_generic(bContext *C,
 
 static bool edit_modifier_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_Modifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_Modifier, 0, true, false);
 }
 
 /* Used by operators performing actions allowed also on modifiers from the overridden linked object
  * (not only from added 'local' ones). */
 static bool edit_modifier_liboverride_allowed_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_Modifier, 0, true, true);
+  return edit_modifier_poll_generic(C, RNA_Modifier, 0, true, true);
 }
 
 void edit_modifier_properties(wmOperatorType *ot)
@@ -1588,7 +1588,7 @@ bool edit_modifier_invoke_properties(bContext *C, wmOperator *op)
     return true;
   }
 
-  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
   if (ctx_ptr.data != nullptr) {
     ModifierData *md = static_cast<ModifierData *>(ctx_ptr.data);
     RNA_string_set(op->ptr, "modifier", md->name);
@@ -1619,7 +1619,7 @@ static bool edit_modifier_invoke_properties_with_hover(bContext *C,
   }
 
   /* Note that the context pointer is *not* the active modifier, it is set in UI layouts. */
-  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
   if (ctx_ptr.data != nullptr) {
     ModifierData *md = static_cast<ModifierData *>(ctx_ptr.data);
     RNA_string_set(op->ptr, "modifier", md->name);
@@ -1635,7 +1635,7 @@ static bool edit_modifier_invoke_properties_with_hover(bContext *C,
     return false;
   }
 
-  if (!RNA_struct_is_a(panel_ptr->type, &RNA_Modifier)) {
+  if (!RNA_struct_is_a(panel_ptr->type, RNA_Modifier)) {
     /* Work around multiple operators using the same shortcut. The operators for the other
      * stacks in the property editor use the same key, and will not run after these return
      * OPERATOR_CANCELLED. */
@@ -1944,12 +1944,12 @@ void OBJECT_OT_modifier_move_to_index(wmOperatorType *ot)
 
 static bool modifier_apply_poll(bContext *C)
 {
-  if (!edit_modifier_poll_generic(C, &RNA_Modifier, 0, false, false)) {
+  if (!edit_modifier_poll_generic(C, RNA_Modifier, 0, false, false)) {
     return false;
   }
 
   Scene *scene = CTX_data_scene(C);
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
   Object *ob = (ptr.owner_id != nullptr) ? id_cast<Object *>(ptr.owner_id) :
                                            context_active_object(C);
   ModifierData *md = static_cast<ModifierData *>(ptr.data); /* May be nullptr. */
@@ -2062,7 +2062,7 @@ static wmOperatorStatus modifier_apply_invoke(bContext *C, wmOperator *op, const
 {
   wmOperatorStatus retval;
   if (edit_modifier_invoke_properties_with_hover(C, op, event, &retval)) {
-    PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+    PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
     Object *ob = (ptr.owner_id != nullptr) ? id_cast<Object *>(ptr.owner_id) :
                                              context_active_object(C);
 
@@ -2402,7 +2402,7 @@ static wmOperatorStatus modifier_copy_to_selected_invoke(bContext *C,
 
 static bool modifier_copy_to_selected_poll(bContext *C)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
   Object *obact = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   ModifierData *md = static_cast<ModifierData *>(ptr.data);
 
@@ -2544,14 +2544,14 @@ static void modifier_skin_customdata_delete(Object *ob)
 
 static bool skin_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), false, false);
+  return edit_modifier_poll_generic(C, RNA_SkinModifier, (1 << OB_MESH), false, false);
 }
 
 static bool skin_edit_poll(bContext *C)
 {
   Object *ob = CTX_data_edit_object(C);
   return (ob != nullptr &&
-          edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), true, false) &&
+          edit_modifier_poll_generic(C, RNA_SkinModifier, (1 << OB_MESH), true, false) &&
           !ID_IS_OVERRIDE_LIBRARY(ob) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
@@ -2904,7 +2904,7 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
 
 static bool correctivesmooth_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_CorrectiveSmoothModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_CorrectiveSmoothModifier, 0, true, false);
 }
 
 static wmOperatorStatus correctivesmooth_bind_exec(bContext *C, wmOperator *op)
@@ -2985,7 +2985,7 @@ void OBJECT_OT_correctivesmooth_bind(wmOperatorType *ot)
 
 static bool meshdeform_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_MeshDeformModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_MeshDeformModifier, 0, true, false);
 }
 
 static wmOperatorStatus meshdeform_bind_exec(bContext *C, wmOperator *op)
@@ -3062,7 +3062,7 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 
 static bool explode_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_ExplodeModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_ExplodeModifier, 0, true, false);
 }
 
 static wmOperatorStatus explode_refresh_exec(bContext *C, wmOperator *op)
@@ -3116,7 +3116,7 @@ void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 
 static bool ocean_bake_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_OceanModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_OceanModifier, 0, true, false);
 }
 
 struct OceanBakeJob {
@@ -3320,7 +3320,7 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 
 static bool laplaciandeform_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_LaplacianDeformModifier, 0, false, false);
+  return edit_modifier_poll_generic(C, RNA_LaplacianDeformModifier, 0, false, false);
 }
 
 static wmOperatorStatus laplaciandeform_bind_exec(bContext *C, wmOperator *op)
@@ -3402,7 +3402,7 @@ void OBJECT_OT_laplaciandeform_bind(wmOperatorType *ot)
 
 static bool surfacedeform_bind_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_SurfaceDeformModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_SurfaceDeformModifier, 0, true, false);
 }
 
 static wmOperatorStatus surfacedeform_bind_exec(bContext *C, wmOperator *op)
@@ -3586,7 +3586,7 @@ void OBJECT_OT_geometry_node_tree_copy_assign(wmOperatorType *ot)
 
 static bool dash_modifier_segment_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_GreasePencilDashModifierData, 0, false, false);
+  return edit_modifier_poll_generic(C, RNA_GreasePencilDashModifierData, 0, false, false);
 }
 
 static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *op)
@@ -3820,7 +3820,7 @@ void OBJECT_OT_grease_pencil_dash_modifier_segment_move(wmOperatorType *ot)
 
 static bool time_modifier_segment_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_GreasePencilTimeModifier, 0, false, false);
+  return edit_modifier_poll_generic(C, RNA_GreasePencilTimeModifier, 0, false, false);
 }
 
 static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *op)

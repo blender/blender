@@ -457,7 +457,7 @@ static PointerRNA rna_KeyMap_item_find_match(
 {
   wmKeyMapItem *kmi_base = WM_keymap_item_find_match(km_base, km_match, kmi_match, reports);
   if (kmi_base) {
-    return RNA_pointer_create_discrete(id, &RNA_KeyMapItem, kmi_base);
+    return RNA_pointer_create_discrete(id, RNA_KeyMapItem, kmi_base);
   }
   return PointerRNA_NULL;
 }
@@ -474,14 +474,14 @@ static PointerRNA rna_KeyMap_item_find_from_operator(ID *id,
 
   wmKeyMapItem *kmi = WM_key_event_operator_from_keymap(
       km, idname_bl, static_cast<IDProperty *>(properties->data), include_mask, exclude_mask);
-  PointerRNA kmi_ptr = RNA_pointer_create_discrete(id, &RNA_KeyMapItem, kmi);
+  PointerRNA kmi_ptr = RNA_pointer_create_discrete(id, RNA_KeyMapItem, kmi);
   return kmi_ptr;
 }
 
 static PointerRNA rna_KeyMap_item_match_event(ID *id, wmKeyMap *km, bContext *C, wmEvent *event)
 {
   wmKeyMapItem *kmi = WM_event_match_keymap_item(C, km, event);
-  PointerRNA kmi_ptr = RNA_pointer_create_discrete(id, &RNA_KeyMapItem, kmi);
+  PointerRNA kmi_ptr = RNA_pointer_create_discrete(id, RNA_KeyMapItem, kmi);
   return kmi_ptr;
 }
 
@@ -604,8 +604,8 @@ static PointerRNA rna_KeyConfig_find_item_from_operator(wmWindowManager *wm,
                                             include_mask,
                                             exclude_mask,
                                             &km);
-  *km_ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMap, km);
-  PointerRNA kmi_ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
+  *km_ptr = RNA_pointer_create_discrete(&wm->id, RNA_KeyMap, km);
+  PointerRNA kmi_ptr = RNA_pointer_create_discrete(&wm->id, RNA_KeyMapItem, kmi);
   return kmi_ptr;
 }
 
@@ -635,7 +635,7 @@ static PointerRNA rna_PopMenuBegin(bContext *C,
   }
 
   void *data = static_cast<void *>(ui::popup_menu_begin(C, title, icon));
-  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, &RNA_UIPopupMenu, data);
+  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, RNA_UIPopupMenu, data);
   return ptr_result;
 }
 
@@ -656,7 +656,7 @@ static PointerRNA rna_PopoverBegin(bContext *C,
 
   void *data = static_cast<void *>(
       ui::popover_begin(C, U.widget_unit * ui_units_x, from_active_button));
-  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, &RNA_UIPopover, data);
+  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, RNA_UIPopover, data);
   return ptr_result;
 }
 
@@ -676,7 +676,7 @@ static PointerRNA rna_PieMenuBegin(
   void *data = (void *)ui::pie_menu_begin(
       C, title, icon, static_cast<const wmEvent *>(event->data));
 
-  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, &RNA_UIPieMenu, data);
+  PointerRNA ptr_result = RNA_pointer_create_discrete(nullptr, RNA_UIPieMenu, data);
   return ptr_result;
 }
 

@@ -579,7 +579,7 @@ static Camera *background_image_camera_from_context(bContext *C)
     return nullptr;
   }
 
-  return static_cast<Camera *>(CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data);
+  return static_cast<Camera *>(CTX_data_pointer_get_type(C, "camera", RNA_Camera).data);
 }
 
 static wmOperatorStatus camera_background_image_add_exec(bContext *C, wmOperator *op)
@@ -644,7 +644,7 @@ void VIEW3D_OT_camera_background_image_add(wmOperatorType *ot)
 
 static wmOperatorStatus camera_background_image_remove_exec(bContext *C, wmOperator *op)
 {
-  Camera *cam = static_cast<Camera *>(CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data);
+  Camera *cam = static_cast<Camera *>(CTX_data_pointer_get_type(C, "camera", RNA_Camera).data);
   const int index = RNA_int_get(op->ptr, "index");
   CameraBGImage *bgpic_rem = static_cast<CameraBGImage *>(BLI_findlink(&cam->bg_images, index));
 
@@ -1068,8 +1068,7 @@ void ED_view3d_cursor3d_update(bContext *C,
   {
     wmMsgBus *mbus = CTX_wm_message_bus(C);
     wmMsgParams_RNA msg_key_params = {{}};
-    msg_key_params.ptr = RNA_pointer_create_discrete(
-        &scene->id, &RNA_View3DCursor, &scene->cursor);
+    msg_key_params.ptr = RNA_pointer_create_discrete(&scene->id, RNA_View3DCursor, &scene->cursor);
     WM_msg_publish_rna_params(mbus, &msg_key_params);
   }
 

@@ -483,7 +483,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
 #  define TEST_PTR_DATA_TYPE(member, rna_type, rna_ptr, dataptr_cmp) \
     { \
       const char *ctx_member = member; \
-      if (RNA_struct_is_a((rna_ptr)->type, &(rna_type)) && (rna_ptr)->data == (dataptr_cmp)) { \
+      if (RNA_struct_is_a((rna_ptr)->type, (rna_type)) && (rna_ptr)->data == (dataptr_cmp)) { \
         member_id = ctx_member; \
         break; \
       } \
@@ -494,8 +494,8 @@ static const char *wm_context_member_from_ptr(const bContext *C,
 #  define TEST_PTR_DATA_TYPE_FROM_CONTEXT(member, rna_type, rna_ptr) \
     { \
       const char *ctx_member = member; \
-      if (RNA_struct_is_a((rna_ptr)->type, &(rna_type)) && \
-          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) \
+      if (RNA_struct_is_a((rna_ptr)->type, (rna_type)) && \
+          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, (rna_type)).data)) \
       { \
         member_id = ctx_member; \
         break; \
@@ -756,7 +756,7 @@ PointerRNA WM_operator_properties_create(const char *opstring)
   }
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
   return RNA_pointer_create_discrete(
-      static_cast<ID *>(G_MAIN->wm.first), &RNA_OperatorProperties, nullptr);
+      static_cast<ID *>(G_MAIN->wm.first), RNA_OperatorProperties, nullptr);
 }
 
 void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
@@ -794,7 +794,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
         StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
 
         /* Recurse into operator properties. */
-        if (RNA_struct_is_a(ptype, &RNA_OperatorProperties)) {
+        if (RNA_struct_is_a(ptype, RNA_OperatorProperties)) {
           PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
           WM_operator_properties_sanitize(&opptr, no_context);
         }
@@ -814,7 +814,7 @@ bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
     switch (RNA_property_type(prop)) {
       case PROP_POINTER: {
         StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
-        if (ptype != &RNA_Struct) {
+        if (ptype != RNA_Struct) {
           PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
           changed |= WM_operator_properties_default(&opptr, do_update);
         }
@@ -1960,7 +1960,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 
 static wmOperatorStatus wm_operator_defaults_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_operator", &RNA_Operator);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_operator", RNA_Operator);
 
   if (!ptr.data) {
     BKE_report(op->reports, RPT_ERROR, "No operator in context");
@@ -3022,7 +3022,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 {
   RadialControl *rc = static_cast<RadialControl *>(op->customdata);
 
-  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
+  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, RNA_Context, C);
 
   /* Check if we use primary or secondary path. */
   PointerRNA use_secondary_ptr;

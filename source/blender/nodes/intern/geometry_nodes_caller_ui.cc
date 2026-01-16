@@ -1029,7 +1029,7 @@ void draw_geometry_nodes_modifier_ui(const bContext &C,
   ctx.panel_open_property_fn = [&](const bNodeTreeInterfacePanel &io_panel) -> PanelOpenProperty {
     NodesModifierPanel *panel = find_panel_by_id(nmd, io_panel.identifier);
     PointerRNA panel_ptr = RNA_pointer_create_discrete(
-        modifier_ptr->owner_id, &RNA_NodesModifierPanel, panel);
+        modifier_ptr->owner_id, RNA_NodesModifierPanel, panel);
     return {panel_ptr, "is_open"};
   };
   ctx.socket_search_data_fn = [&](const bNodeTreeInterfaceSocket &io_socket) -> SocketSearchData {
@@ -1107,7 +1107,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
         root_panel,
         "node_operator_panel_" + std::to_string(io_panel.identifier),
         io_panel.flag & NODE_INTERFACE_PANEL_DEFAULT_CLOSED);
-    PointerRNA state_ptr = RNA_pointer_create_discrete(nullptr, &RNA_LayoutPanelState, state);
+    PointerRNA state_ptr = RNA_pointer_create_discrete(nullptr, RNA_LayoutPanelState, state);
     return {state_ptr, "is_open"};
   };
   ctx.socket_search_data_fn = [&](const bNodeTreeInterfaceSocket &io_socket) -> SocketSearchData {

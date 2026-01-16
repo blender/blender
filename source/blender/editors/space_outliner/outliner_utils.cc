@@ -524,17 +524,17 @@ bool ED_outliner_give_rna_under_cursor(bContext *C, const int mval[2], PointerRN
   switch (tselem->type) {
     case TSE_BONE: {
       Bone *bone = static_cast<Bone *>(te->directdata);
-      *r_ptr = RNA_pointer_create_discrete(tselem->id, &RNA_Bone, bone);
+      *r_ptr = RNA_pointer_create_discrete(tselem->id, RNA_Bone, bone);
       break;
     }
     case TSE_POSE_CHANNEL: {
       bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
-      *r_ptr = RNA_pointer_create_discrete(tselem->id, &RNA_PoseBone, pchan);
+      *r_ptr = RNA_pointer_create_discrete(tselem->id, RNA_PoseBone, pchan);
       break;
     }
     case TSE_EBONE: {
       EditBone *bone = static_cast<EditBone *>(te->directdata);
-      *r_ptr = RNA_pointer_create_discrete(tselem->id, &RNA_EditBone, bone);
+      *r_ptr = RNA_pointer_create_discrete(tselem->id, RNA_EditBone, bone);
       break;
     }
 

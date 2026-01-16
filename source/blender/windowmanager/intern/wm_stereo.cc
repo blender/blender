@@ -359,7 +359,7 @@ void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
   ui::Layout &layout = *op->layout;
 
   PointerRNA stereo3d_format_ptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_Stereo3dDisplay, &s3dd->stereo3d_format);
+      nullptr, RNA_Stereo3dDisplay, &s3dd->stereo3d_format);
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);

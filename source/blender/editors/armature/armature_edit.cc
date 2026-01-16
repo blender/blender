@@ -60,7 +60,7 @@ namespace blender {
 bArmature *ED_armature_context(const bContext *C)
 {
   bArmature *armature = static_cast<bArmature *>(
-      CTX_data_pointer_get_type(C, "armature", &RNA_Armature).data);
+      CTX_data_pointer_get_type(C, "armature", RNA_Armature).data);
 
   if (armature == nullptr) {
     Object *object = ed::object::context_active_object(C);

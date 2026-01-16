@@ -31,7 +31,7 @@ namespace nodes {
  */
 struct BakeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryBakeItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeBake";
   static constexpr bool has_type = true;

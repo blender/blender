@@ -715,37 +715,37 @@ static StructRNA *rna_Space_refine(PointerRNA *ptr)
 
   switch (eSpace_Type(space->spacetype)) {
     case SPACE_VIEW3D:
-      return &RNA_SpaceView3D;
+      return RNA_SpaceView3D;
     case SPACE_GRAPH:
-      return &RNA_SpaceGraphEditor;
+      return RNA_SpaceGraphEditor;
     case SPACE_OUTLINER:
-      return &RNA_SpaceOutliner;
+      return RNA_SpaceOutliner;
     case SPACE_PROPERTIES:
-      return &RNA_SpaceProperties;
+      return RNA_SpaceProperties;
     case SPACE_FILE:
-      return &RNA_SpaceFileBrowser;
+      return RNA_SpaceFileBrowser;
     case SPACE_IMAGE:
-      return &RNA_SpaceImageEditor;
+      return RNA_SpaceImageEditor;
     case SPACE_INFO:
-      return &RNA_SpaceInfo;
+      return RNA_SpaceInfo;
     case SPACE_SEQ:
-      return &RNA_SpaceSequenceEditor;
+      return RNA_SpaceSequenceEditor;
     case SPACE_TEXT:
-      return &RNA_SpaceTextEditor;
+      return RNA_SpaceTextEditor;
     case SPACE_ACTION:
-      return &RNA_SpaceDopeSheetEditor;
+      return RNA_SpaceDopeSheetEditor;
     case SPACE_NLA:
-      return &RNA_SpaceNLA;
+      return RNA_SpaceNLA;
     case SPACE_NODE:
-      return &RNA_SpaceNodeEditor;
+      return RNA_SpaceNodeEditor;
     case SPACE_CONSOLE:
-      return &RNA_SpaceConsole;
+      return RNA_SpaceConsole;
     case SPACE_USERPREF:
-      return &RNA_SpacePreferences;
+      return RNA_SpacePreferences;
     case SPACE_CLIP:
-      return &RNA_SpaceClipEditor;
+      return RNA_SpaceClipEditor;
     case SPACE_SPREADSHEET:
-      return &RNA_SpaceSpreadsheet;
+      return RNA_SpaceSpreadsheet;
 
       /* Currently no type info. */
     case SPACE_SCRIPT:
@@ -755,12 +755,12 @@ static StructRNA *rna_Space_refine(PointerRNA *ptr)
       break;
   }
 
-  return &RNA_Space;
+  return RNA_Space;
 }
 
 static ScrArea *rna_area_from_space(const PointerRNA *ptr)
 {
-  BLI_assert(RNA_struct_is_a(ptr->type, &RNA_Space));
+  BLI_assert(RNA_struct_is_a(ptr->type, RNA_Space));
   bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
   SpaceLink *link = static_cast<SpaceLink *>(ptr->data);
   return BKE_screen_find_area_from_space(screen, link);
@@ -1195,7 +1195,7 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
     regiondata = region->regiondata;
   }
 
-  return RNA_pointer_create_with_parent(*ptr, &RNA_RegionView3D, regiondata);
+  return RNA_pointer_create_with_parent(*ptr, RNA_RegionView3D, regiondata);
 }
 
 static void rna_SpaceView3D_object_type_visibility_update(Main * /*bmain*/,
@@ -1259,7 +1259,7 @@ static PointerRNA rna_SpaceView3D_region_quadviews_get(CollectionPropertyIterato
 {
   void *regiondata = (static_cast<ARegion *>(rna_iterator_listbase_get(iter)))->regiondata;
 
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_RegionView3D, regiondata);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_RegionView3D, regiondata);
 }
 
 static void rna_RegionView3D_quadview_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -1528,7 +1528,7 @@ static PointerRNA rna_View3DShading_selected_studio_light_get(PointerRNA *ptr)
     /* OB_MATERIAL and OB_RENDER */
     sl = BKE_studiolight_find(shading->lookdev_light, STUDIOLIGHT_TYPE_WORLD);
   }
-  return RNA_pointer_create_with_parent(*ptr, &RNA_StudioLight, sl);
+  return RNA_pointer_create_with_parent(*ptr, RNA_StudioLight, sl);
 }
 
 /* shading.light */
@@ -1823,7 +1823,7 @@ static std::optional<std::string> rna_View3DShading_path(const PointerRNA *ptr)
 
 static PointerRNA rna_SpaceView3D_overlay_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_View3DOverlay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_View3DOverlay, ptr->data);
 }
 
 static std::optional<std::string> rna_View3DOverlay_path(const PointerRNA *ptr)
@@ -1836,7 +1836,7 @@ static std::optional<std::string> rna_View3DOverlay_path(const PointerRNA *ptr)
 
 static PointerRNA rna_SpaceImage_overlay_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_SpaceImageOverlay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SpaceImageOverlay, ptr->data);
 }
 
 static std::optional<std::string> rna_SpaceImageOverlay_path(const PointerRNA *ptr)
@@ -1853,7 +1853,7 @@ static std::optional<std::string> rna_SpaceUVEditor_path(const PointerRNA *ptr)
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_SpaceUVEditor, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SpaceUVEditor, ptr->data);
 }
 
 static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -2232,7 +2232,7 @@ static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
     return ID_code_to_RNA_type(GS(sbuts->pinid->name));
   }
 
-  return &RNA_ID;
+  return RNA_ID;
 }
 
 static void rna_SpaceProperties_pin_id_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -2572,7 +2572,7 @@ static void rna_Sequencer_view_type_update(Main * /*bmain*/, Scene * /*scene*/, 
 
 static PointerRNA rna_SpaceSequenceEditor_preview_overlay_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_SequencerPreviewOverlay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SequencerPreviewOverlay, ptr->data);
 }
 
 static std::optional<std::string> rna_SpaceSequencerPreviewOverlay_path(const PointerRNA *ptr)
@@ -2584,7 +2584,7 @@ static std::optional<std::string> rna_SpaceSequencerPreviewOverlay_path(const Po
 
 static PointerRNA rna_SpaceSequenceEditor_timeline_overlay_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_SequencerTimelineOverlay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SequencerTimelineOverlay, ptr->data);
 }
 
 static std::optional<std::string> rna_SpaceSequencerTimelineOverlay_path(const PointerRNA *ptr)
@@ -2596,7 +2596,7 @@ static std::optional<std::string> rna_SpaceSequencerTimelineOverlay_path(const P
 
 static PointerRNA rna_SpaceSequenceEditor_cache_overlay_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_SequencerCacheOverlay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SequencerCacheOverlay, ptr->data);
 }
 
 static std::optional<std::string> rna_SpaceSequencerCacheOverlay_path(const PointerRNA *ptr)
@@ -2642,7 +2642,7 @@ static void rna_SpaceSequenceEditor_zoom_percentage_set(PointerRNA *ptr, const f
 
 static PointerRNA rna_SpaceDopeSheet_overlay_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_SpaceDopeSheetOverlay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SpaceDopeSheetOverlay, ptr->data);
 }
 
 static std::optional<std::string> rna_SpaceDopeSheetOverlay_path(const PointerRNA *ptr)
@@ -2657,7 +2657,7 @@ static std::optional<std::string> rna_SpaceDopeSheetOverlay_path(const PointerRN
 /* Space Node Editor */
 static PointerRNA rna_SpaceNode_overlay_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_SpaceNodeOverlay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SpaceNodeOverlay, ptr->data);
 }
 
 static bool rna_SpaceNode_supports_previews(PointerRNA *ptr)
@@ -3005,7 +3005,7 @@ static void rna_SpaceClipEditor_zoom_percentage_set(PointerRNA *ptr, const float
 
 static PointerRNA rna_SpaceClip_overlay_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_SpaceClipOverlay, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_SpaceClipOverlay, ptr->data);
 }
 
 static std::optional<std::string> rna_SpaceClipOverlay_path(const PointerRNA *ptr)
@@ -3045,7 +3045,7 @@ static const EnumPropertyItem *rna_FileSelectParams_display_type_itemf(bContext 
                                                                        PropertyRNA * /*prop*/,
                                                                        bool *r_free)
 {
-  if (RNA_struct_is_a(ptr->type, &RNA_FileAssetSelectParams)) {
+  if (RNA_struct_is_a(ptr->type, RNA_FileAssetSelectParams)) {
     EnumPropertyItem *items = nullptr;
     int totitem = 0;
 
@@ -3067,7 +3067,7 @@ static const EnumPropertyItem *rna_FileSelectParams_display_type_itemf(bContext 
 
 static int rna_FileSelectParams_display_type_default(PointerRNA *ptr, PropertyRNA *prop)
 {
-  if (RNA_struct_is_a(ptr->type, &RNA_FileAssetSelectParams)) {
+  if (RNA_struct_is_a(ptr->type, RNA_FileAssetSelectParams)) {
     return FILE_IMGDISPLAY;
   }
 
@@ -3109,7 +3109,7 @@ static const EnumPropertyItem *rna_FileSelectParams_sort_method_itemf(bContext *
   EnumPropertyItem *items = nullptr;
   int totitem = 0;
 
-  if (RNA_struct_is_a(ptr->type, &RNA_FileAssetSelectParams)) {
+  if (RNA_struct_is_a(ptr->type, RNA_FileAssetSelectParams)) {
     /* Only expose sorting by name and asset catalog for asset browsing. */
 
     RNA_enum_items_add_value(
@@ -3150,14 +3150,14 @@ static void rna_FileSelectPrams_filter_glob_set(PointerRNA *ptr, const char *val
 
 static PointerRNA rna_FileSelectParams_filter_id_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_FileSelectIDFilter, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_FileSelectIDFilter, ptr->data);
 }
 
 static int rna_FileAssetSelectParams_asset_library_get(PointerRNA *ptr)
 {
   FileAssetSelectParams *params = static_cast<FileAssetSelectParams *>(ptr->data);
   /* Just an extra sanity check to ensure this isn't somehow called for RNA_FileSelectParams. */
-  BLI_assert(ptr->type == &RNA_FileAssetSelectParams);
+  BLI_assert(ptr->type == RNA_FileAssetSelectParams);
 
   return ed::asset::library_reference_to_enum_value(&params->asset_library_ref);
 }
@@ -3170,7 +3170,7 @@ static void rna_FileAssetSelectParams_asset_library_set(PointerRNA *ptr, int val
 
 static PointerRNA rna_FileAssetSelectParams_filter_id_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_FileAssetSelectIDFilter, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_FileAssetSelectIDFilter, ptr->data);
 }
 
 static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get_impl(const PointerRNA *ptr)
@@ -3190,10 +3190,10 @@ static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get_impl(const Poin
 
   if (entry->asset->is_local_id()) {
     PointerRNA id_ptr = RNA_id_pointer_create(entry->id);
-    return RNA_pointer_create_with_parent(id_ptr, &RNA_AssetMetaData, asset_data);
+    return RNA_pointer_create_with_parent(id_ptr, RNA_AssetMetaData, asset_data);
   }
 
-  return RNA_pointer_create_with_parent(*ptr, &RNA_AssetMetaData, asset_data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_AssetMetaData, asset_data);
 }
 
 static int rna_FileBrowser_FileSelectEntry_name_editable(const PointerRNA *ptr,
@@ -3254,10 +3254,10 @@ static StructRNA *rna_FileBrowser_params_typef(PointerRNA *ptr)
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
   if (params == ED_fileselect_get_file_params(sfile)) {
-    return &RNA_FileSelectParams;
+    return RNA_FileSelectParams;
   }
   if (params == static_cast<void *>(ED_fileselect_get_asset_params(sfile))) {
-    return &RNA_FileAssetSelectParams;
+    return RNA_FileAssetSelectParams;
   }
 
   BLI_assert_msg(0, "Could not identify file select parameters");
@@ -3380,7 +3380,7 @@ static PointerRNA rna_FileBrowser_FSMenu_get(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
   PointerRNA ptr_result = RNA_pointer_create_with_parent(
-      iter->parent, &RNA_FileBrowserFSMenuEntry, internal->link);
+      iter->parent, RNA_FileBrowserFSMenuEntry, internal->link);
   return ptr_result;
 }
 
@@ -3698,9 +3698,9 @@ static StructRNA *rna_SpreadsheetTableID_refine(PointerRNA *ptr)
   SpreadsheetTableID *table_id = ptr->data_as<SpreadsheetTableID>();
   switch (eSpreadsheetTableIDType(table_id->type)) {
     case SPREADSHEET_TABLE_ID_TYPE_GEOMETRY:
-      return &RNA_SpreadsheetTableIDGeometry;
+      return RNA_SpreadsheetTableIDGeometry;
   }
-  return &RNA_SpreadsheetTableID;
+  return RNA_SpreadsheetTableID;
 }
 
 static void rna_iterator_SpreadsheetTable_columns_begin(CollectionPropertyIterator *iter,
@@ -3740,7 +3740,7 @@ static PointerRNA rna_SpreadsheetTables_active_get(PointerRNA *ptr)
 {
   SpaceSpreadsheet *sspreadsheet = ptr->data_as<SpaceSpreadsheet>();
   SpreadsheetTable *table = ed::spreadsheet::get_active_table(*sspreadsheet);
-  return RNA_pointer_create_discrete(ptr->owner_id, &RNA_SpreadsheetTable, table);
+  return RNA_pointer_create_discrete(ptr->owner_id, RNA_SpreadsheetTable, table);
 }
 
 static StructRNA *rna_viewer_path_elem_refine(PointerRNA *ptr)
@@ -3748,21 +3748,21 @@ static StructRNA *rna_viewer_path_elem_refine(PointerRNA *ptr)
   ViewerPathElem *elem = static_cast<ViewerPathElem *>(ptr->data);
   switch (ViewerPathElemType(elem->type)) {
     case VIEWER_PATH_ELEM_TYPE_ID:
-      return &RNA_IDViewerPathElem;
+      return RNA_IDViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_MODIFIER:
-      return &RNA_ModifierViewerPathElem;
+      return RNA_ModifierViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE:
-      return &RNA_GroupNodeViewerPathElem;
+      return RNA_GroupNodeViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
-      return &RNA_SimulationZoneViewerPathElem;
+      return RNA_SimulationZoneViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
-      return &RNA_ViewerNodeViewerPathElem;
+      return RNA_ViewerNodeViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE:
-      return &RNA_RepeatZoneViewerPathElem;
+      return RNA_RepeatZoneViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE:
-      return &RNA_ForeachGeometryElementZoneViewerPathElem;
+      return RNA_ForeachGeometryElementZoneViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE:
-      return &RNA_EvaluateClosureNodeViewerPathElem;
+      return RNA_EvaluateClosureNodeViewerPathElem;
   }
   BLI_assert_unreachable();
   return nullptr;

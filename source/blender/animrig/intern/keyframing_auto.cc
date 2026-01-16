@@ -184,7 +184,7 @@ bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pch
    * 3) Free the extra info.
    */
   Vector<PointerRNA> sources;
-  relative_keyingset_add_source(sources, &ob->id, &RNA_PoseBone, pchan);
+  relative_keyingset_add_source(sources, &ob->id, RNA_PoseBone, pchan);
   apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, BKE_scene_frame_get(scene));
 
   return true;
@@ -229,7 +229,7 @@ void autokeyframe_pose_channel(bContext *C,
 
   Vector<PointerRNA> sources;
   /* Add data-source override for the camera object. */
-  relative_keyingset_add_source(sources, id, &RNA_PoseBone, pose_channel);
+  relative_keyingset_add_source(sources, id, RNA_PoseBone, pose_channel);
 
   /* only insert into active keyingset? */
   if (is_keying_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {

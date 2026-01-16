@@ -87,7 +87,7 @@ void ED_file_path_button(bScreen *screen,
                  "File select parameters not set. The caller is expected to check this.");
 
   PointerRNA params_rna_ptr = RNA_pointer_create_discrete(
-      &screen->id, &RNA_FileSelectParams, params);
+      &screen->id, RNA_FileSelectParams, params);
 
   /* callbacks for operator check functions */
   block_func_set(block, file_draw_check_cb, nullptr, nullptr);

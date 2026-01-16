@@ -1178,7 +1178,7 @@ float BKE_tracking_track_get_weight_for_marker(MovieClip *clip,
   float weight = track->weight;
 
   weight_fcurve = id_data_find_fcurve(
-      &clip->id, track, &RNA_MovieTrackingTrack, "weight", 0, nullptr);
+      &clip->id, track, RNA_MovieTrackingTrack, "weight", 0, nullptr);
 
   if (weight_fcurve) {
     int scene_framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, marker->framenr);

@@ -20,7 +20,7 @@ inline bool socket_type_supported_in_closure(const eNodeSocketDatatype socket_ty
 
 struct ClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeClosureInputItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "NodeClosureOutput";
   static constexpr bool has_type = true;
@@ -94,7 +94,7 @@ struct ClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefau
 
 struct ClosureOutputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeClosureOutputItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "NodeClosureOutput";
   static constexpr bool has_type = true;
@@ -168,7 +168,7 @@ struct ClosureOutputItemsAccessor : public socket_items::SocketItemsAccessorDefa
 
 struct EvaluateClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeEvaluateClosureInputItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "NodeEvaluateClosure";
   static constexpr bool has_type = true;
@@ -243,7 +243,7 @@ struct EvaluateClosureInputItemsAccessor : public socket_items::SocketItemsAcces
 
 struct EvaluateClosureOutputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeEvaluateClosureOutputItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "NodeEvaluateClosure";
   static constexpr bool has_type = true;

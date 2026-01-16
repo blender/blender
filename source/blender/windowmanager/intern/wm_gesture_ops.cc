@@ -710,7 +710,7 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
   ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
 
   prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_struct_runtime(ot->srna, prop, &RNA_OperatorMousePath);
+  RNA_def_property_struct_runtime(ot->srna, prop, RNA_OperatorMousePath);
 }
 #endif
 

@@ -71,7 +71,7 @@ namespace blender {
 
 static PointerRNA rna_AnimViz_motion_paths_get(PointerRNA *ptr)
 {
-  return RNA_pointer_create_with_parent(*ptr, &RNA_AnimVizMotionPaths, ptr->data);
+  return RNA_pointer_create_with_parent(*ptr, RNA_AnimVizMotionPaths, ptr->data);
 }
 
 static void rna_AnimViz_path_start_frame_set(PointerRNA *ptr, int value)

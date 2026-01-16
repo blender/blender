@@ -135,7 +135,7 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
     return nullptr;
   }
 
-  if (RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
+  if (RNA_struct_is_a(self->ptr.type, RNA_Region)) {
     if (cb_event_str) {
       if (pyrna_enum_value_from_id(
               region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") == -1)
@@ -177,7 +177,7 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
     return nullptr;
   }
 
-  if (RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
+  if (RNA_struct_is_a(self->ptr.type, RNA_Region)) {
     customdata = ED_region_draw_cb_customdata(handle);
     Py_DECREF((PyObject *)customdata);
 
@@ -198,52 +198,52 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
 /* reverse of rna_Space_refine() */
 static eSpace_Type rna_Space_refine_reverse(StructRNA *srna)
 {
-  if (srna == &RNA_SpaceView3D) {
+  if (srna == RNA_SpaceView3D) {
     return SPACE_VIEW3D;
   }
-  if (srna == &RNA_SpaceGraphEditor) {
+  if (srna == RNA_SpaceGraphEditor) {
     return SPACE_GRAPH;
   }
-  if (srna == &RNA_SpaceOutliner) {
+  if (srna == RNA_SpaceOutliner) {
     return SPACE_OUTLINER;
   }
-  if (srna == &RNA_SpaceProperties) {
+  if (srna == RNA_SpaceProperties) {
     return SPACE_PROPERTIES;
   }
-  if (srna == &RNA_SpaceFileBrowser) {
+  if (srna == RNA_SpaceFileBrowser) {
     return SPACE_FILE;
   }
-  if (srna == &RNA_SpaceImageEditor) {
+  if (srna == RNA_SpaceImageEditor) {
     return SPACE_IMAGE;
   }
-  if (srna == &RNA_SpaceInfo) {
+  if (srna == RNA_SpaceInfo) {
     return SPACE_INFO;
   }
-  if (srna == &RNA_SpaceSequenceEditor) {
+  if (srna == RNA_SpaceSequenceEditor) {
     return SPACE_SEQ;
   }
-  if (srna == &RNA_SpaceTextEditor) {
+  if (srna == RNA_SpaceTextEditor) {
     return SPACE_TEXT;
   }
-  if (srna == &RNA_SpaceDopeSheetEditor) {
+  if (srna == RNA_SpaceDopeSheetEditor) {
     return SPACE_ACTION;
   }
-  if (srna == &RNA_SpaceNLA) {
+  if (srna == RNA_SpaceNLA) {
     return SPACE_NLA;
   }
-  if (srna == &RNA_SpaceNodeEditor) {
+  if (srna == RNA_SpaceNodeEditor) {
     return SPACE_NODE;
   }
-  if (srna == &RNA_SpaceConsole) {
+  if (srna == RNA_SpaceConsole) {
     return SPACE_CONSOLE;
   }
-  if (srna == &RNA_SpacePreferences) {
+  if (srna == RNA_SpacePreferences) {
     return SPACE_USERPREF;
   }
-  if (srna == &RNA_SpaceClipEditor) {
+  if (srna == RNA_SpaceClipEditor) {
     return SPACE_CLIP;
   }
-  if (srna == &RNA_SpaceSpreadsheet) {
+  if (srna == RNA_SpaceSpreadsheet) {
     return SPACE_SPREADSHEET;
   }
   return SPACE_EMPTY;
@@ -279,7 +279,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
 
   /* class specific callbacks */
 
-  if (srna == &RNA_WindowManager) {
+  if (srna == RNA_WindowManager) {
     struct {
       BPy_EnumProperty_Parse space_type_enum;
       BPy_EnumProperty_Parse region_type_enum;
@@ -309,7 +309,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
                                       cb_wm_cursor_draw,
                                       static_cast<void *>(args));
   }
-  else if (RNA_struct_is_a(srna, &RNA_Space)) {
+  else if (RNA_struct_is_a(srna, RNA_Space)) {
     struct {
       BPy_EnumProperty_Parse region_type_enum;
       BPy_EnumProperty_Parse event_enum;
@@ -392,7 +392,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  if (srna == &RNA_WindowManager) {
+  if (srna == RNA_WindowManager) {
     if (!PyArg_ParseTuple(
             args, "OO!:WindowManager.draw_cursor_remove", &cls, &PyCapsule_Type, &py_handle))
     {
@@ -401,7 +401,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject * /*self*/, PyObject *args)
     handle_removed = WM_paint_cursor_end(static_cast<wmPaintCursor *>(handle));
     capsule_clear = true;
   }
-  else if (RNA_struct_is_a(srna, &RNA_Space)) {
+  else if (RNA_struct_is_a(srna, RNA_Space)) {
     const char *error_prefix = "Space.draw_handler_remove";
     struct {
       BPy_EnumProperty_Parse region_type_enum;

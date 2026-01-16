@@ -724,7 +724,7 @@ PyDoc_STRVAR(
     "   :rtype: ContextTempOverride\n");
 static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  const PointerRNA *context_ptr = pyrna_struct_as_ptr(self, &RNA_Context);
+  const PointerRNA *context_ptr = pyrna_struct_as_ptr(self, RNA_Context);
   if (context_ptr == nullptr) {
     return nullptr;
   }
@@ -747,10 +747,10 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
     BPy_StructRNA_Parse area;
     BPy_StructRNA_Parse region;
   } params{};
-  params.window.type = &RNA_Window;
-  params.screen.type = &RNA_Screen;
-  params.area.type = &RNA_Area;
-  params.region.type = &RNA_Region;
+  params.window.type = RNA_Window;
+  params.screen.type = RNA_Screen;
+  params.area.type = RNA_Area;
+  params.region.type = RNA_Region;
 
   static const char *const _keywords[] = {
       "window",

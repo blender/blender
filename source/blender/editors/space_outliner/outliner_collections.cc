@@ -1123,9 +1123,9 @@ static wmOperatorStatus collection_isolate_exec(bContext *C, wmOperator *op)
       BKE_layer_collection_isolate_global(scene, view_layer, layer_collection, true);
     }
     else {
-      PropertyRNA *prop = RNA_struct_type_find_property(&RNA_LayerCollection, "hide_viewport");
+      PropertyRNA *prop = RNA_struct_type_find_property(RNA_LayerCollection, "hide_viewport");
       PointerRNA ptr = RNA_pointer_create_discrete(
-          &scene->id, &RNA_LayerCollection, layer_collection);
+          &scene->id, RNA_LayerCollection, layer_collection);
 
       /* We need to flip the value because the isolate flag routine was designed to work from the
        * outliner as a callback. That means the collection visibility was set before the callback

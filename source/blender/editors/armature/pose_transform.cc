@@ -1275,7 +1275,7 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
       /* do auto-keyframing as appropriate */
       if (animrig::autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
         /* tag for autokeying later */
-        animrig::relative_keyingset_add_source(sources, &ob_iter->id, &RNA_PoseBone, pchan);
+        animrig::relative_keyingset_add_source(sources, &ob_iter->id, RNA_PoseBone, pchan);
 
 #if 1 /* XXX: Ugly Hack - Run clearing function on evaluated copy of pchan */
         bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);

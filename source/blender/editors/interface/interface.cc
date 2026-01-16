@@ -1532,7 +1532,7 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
     ID *id = ptr->owner_id;
 
     if (GS(id->name) == ID_SCR) {
-      if (RNA_struct_is_a(ptr->type, &RNA_Area)) {
+      if (RNA_struct_is_a(ptr->type, RNA_Area)) {
         /* data should be directly on here... */
         const char *prop_id = RNA_property_identifier(prop);
         /* Hack since keys access 'type', UI shows 'ui_type'. */
@@ -1863,7 +1863,7 @@ static bool ui_but_icon_extra_is_visible_bone_eyedropper(Button *but)
   }
   const StructRNA *type = RNA_property_pointer_type(&search_but->rnasearchpoin,
                                                     search_but->rnasearchprop);
-  return type == &RNA_Bone || type == &RNA_EditBone || type == &RNA_PoseBone;
+  return type == RNA_Bone || type == RNA_EditBone || type == RNA_PoseBone;
 }
 
 static PredefinedExtraOpIconType ui_but_icon_extra_get(Button *but)

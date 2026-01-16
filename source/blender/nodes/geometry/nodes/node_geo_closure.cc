@@ -44,7 +44,7 @@ static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *current_
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  PointerRNA output_node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &output_node);
+  PointerRNA output_node_ptr = RNA_pointer_create_discrete(&ntree.id, RNA_Node, &output_node);
 
   layout.op("node.sockets_sync", IFACE_("Sync"), ICON_FILE_REFRESH);
   layout.prop(&output_node_ptr, "define_signature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -298,7 +298,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace nodes {
 
-StructRNA *ClosureInputItemsAccessor::item_srna = &RNA_NodeClosureInputItem;
+StructRNA **ClosureInputItemsAccessor::item_srna = &RNA_NodeClosureInputItem;
 
 void ClosureInputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -310,7 +310,7 @@ void ClosureInputItemsAccessor::blend_read_data_item(BlendDataReader *reader, It
   BLO_read_string(reader, &item.name);
 }
 
-StructRNA *ClosureOutputItemsAccessor::item_srna = &RNA_NodeClosureOutputItem;
+StructRNA **ClosureOutputItemsAccessor::item_srna = &RNA_NodeClosureOutputItem;
 
 void ClosureOutputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

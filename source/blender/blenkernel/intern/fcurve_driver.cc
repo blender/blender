@@ -113,7 +113,7 @@ static bool driver_get_target_context_property(const DriverTargetContext *driver
 
     case DTAR_CONTEXT_PROPERTY_ACTIVE_VIEW_LAYER: {
       *r_property_ptr = RNA_pointer_create_discrete(
-          &driver_target_context->scene->id, &RNA_ViewLayer, driver_target_context->view_layer);
+          &driver_target_context->scene->id, RNA_ViewLayer, driver_target_context->view_layer);
       return true;
     }
   }

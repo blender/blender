@@ -881,23 +881,23 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
 
   /* Only subscribe to types. */
   StructRNA *type_array[] = {
-      &RNA_Window,
+      RNA_Window,
 
       /* These object have properties that impact drawing. */
-      &RNA_AreaLight,
-      &RNA_Camera,
-      &RNA_Light,
-      &RNA_Speaker,
-      &RNA_SunLight,
+      RNA_AreaLight,
+      RNA_Camera,
+      RNA_Light,
+      RNA_Speaker,
+      RNA_SunLight,
 
       /* General types the 3D view depends on. */
-      &RNA_Object,
-      &RNA_UnitSettings, /* grid-floor */
+      RNA_Object,
+      RNA_UnitSettings, /* grid-floor */
 
-      &RNA_View3DCursor,
-      &RNA_View3DOverlay,
-      &RNA_View3DShading,
-      &RNA_World,
+      RNA_View3DCursor,
+      RNA_View3DOverlay,
+      RNA_View3DShading,
+      RNA_World,
   };
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
@@ -1108,7 +1108,7 @@ static void view3d_header_region_message_subscribe(const wmRegionMessageSubscrib
 
   /* Only subscribe to types. */
   StructRNA *type_array[] = {
-      &RNA_View3DShading,
+      RNA_View3DShading,
   };
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};

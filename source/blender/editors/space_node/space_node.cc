@@ -1422,7 +1422,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
     if (snode->edittree) {
       for (bNode *node : snode->edittree->all_nodes()) {
         if (node->flag & NODE_SELECT) {
-          CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
+          CTX_data_list_add(result, &snode->edittree->id, RNA_Node, node);
         }
       }
     }
@@ -1432,7 +1432,7 @@ static int /*eContextResult*/ node_context(const bContext *C,
   if (CTX_data_equals(member, "active_node")) {
     if (snode->edittree) {
       bNode *node = bke::node_get_active(*snode->edittree);
-      CTX_data_pointer_set(result, &snode->edittree->id, &RNA_Node, node);
+      CTX_data_pointer_set(result, &snode->edittree->id, RNA_Node, node);
     }
 
     CTX_data_type_set(result, ContextDataType::Pointer);
@@ -1440,10 +1440,8 @@ static int /*eContextResult*/ node_context(const bContext *C,
   }
   if (CTX_data_equals(member, "node_previews")) {
     if (snode->nodetree) {
-      CTX_data_pointer_set(result,
-                           &snode->nodetree->id,
-                           &RNA_NodeInstanceHash,
-                           &snode->nodetree->runtime->previews);
+      CTX_data_pointer_set(
+          result, &snode->nodetree->id, RNA_NodeInstanceHash, &snode->nodetree->runtime->previews);
     }
 
     CTX_data_type_set(result, ContextDataType::Pointer);

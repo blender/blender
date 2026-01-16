@@ -45,16 +45,16 @@ static void context_path_add_object_data(Vector<ui::ContextPathItem> &path, Obje
     return;
   }
   if (object.type == OB_MESH) {
-    ui::context_path_add_generic(path, RNA_Mesh, object.data);
+    ui::context_path_add_generic(path, *RNA_Mesh, object.data);
   }
   else if (object.type == OB_CURVES) {
-    ui::context_path_add_generic(path, RNA_Curves, object.data);
+    ui::context_path_add_generic(path, *RNA_Curves, object.data);
   }
   else if (object.type == OB_LAMP) {
-    ui::context_path_add_generic(path, RNA_Light, object.data);
+    ui::context_path_add_generic(path, *RNA_Light, object.data);
   }
   else if (ELEM(object.type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
-    ui::context_path_add_generic(path, RNA_Curve, object.data);
+    ui::context_path_add_generic(path, *RNA_Curve, object.data);
   }
 }
 
@@ -109,10 +109,10 @@ static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
     if (&path_item != snode.treepath.last) {
       /* We don't need to add handle function to last node-tree. */
       ui::context_path_add_generic(
-          path, RNA_NodeTree, path_item.nodetree, icon, tree_path_handle_func(i));
+          path, *RNA_NodeTree, path_item.nodetree, icon, tree_path_handle_func(i));
     }
     else {
-      ui::context_path_add_generic(path, RNA_NodeTree, path_item.nodetree, icon);
+      ui::context_path_add_generic(path, *RNA_NodeTree, path_item.nodetree, icon);
     }
   }
 }
@@ -124,9 +124,9 @@ static void get_context_path_node_shader(const bContext &C,
   if (snode.flag & SNODE_PIN) {
     if (snode.shaderfrom == SNODE_SHADER_WORLD) {
       Scene *scene = CTX_data_scene(&C);
-      ui::context_path_add_generic(path, RNA_Scene, scene);
+      ui::context_path_add_generic(path, *RNA_Scene, scene);
       if (scene != nullptr) {
-        context_path_add_top_level_shader_node_tree(snode, path, RNA_World, scene->world);
+        context_path_add_top_level_shader_node_tree(snode, path, *RNA_World, scene->world);
       }
       /* Skip the base node tree here, because the world contains a node tree already. */
       context_path_add_node_tree_and_node_groups(snode, path, true);
@@ -138,27 +138,27 @@ static void get_context_path_node_shader(const bContext &C,
   else {
     Object *object = CTX_data_active_object(&C);
     if (snode.shaderfrom == SNODE_SHADER_OBJECT && object != nullptr) {
-      ui::context_path_add_generic(path, RNA_Object, object);
+      ui::context_path_add_generic(path, *RNA_Object, object);
       if (!(object->matbits && object->matbits[object->actcol - 1])) {
         context_path_add_object_data(path, *object);
       }
       Material *material = BKE_object_material_get(object, object->actcol);
-      context_path_add_top_level_shader_node_tree(snode, path, RNA_Material, material);
+      context_path_add_top_level_shader_node_tree(snode, path, *RNA_Material, material);
     }
     else if (snode.shaderfrom == SNODE_SHADER_WORLD) {
       Scene *scene = CTX_data_scene(&C);
-      ui::context_path_add_generic(path, RNA_Scene, scene);
+      ui::context_path_add_generic(path, *RNA_Scene, scene);
       if (scene != nullptr) {
-        context_path_add_top_level_shader_node_tree(snode, path, RNA_World, scene->world);
+        context_path_add_top_level_shader_node_tree(snode, path, *RNA_World, scene->world);
       }
     }
 #ifdef WITH_FREESTYLE
     else if (snode.shaderfrom == SNODE_SHADER_LINESTYLE) {
       ViewLayer *viewlayer = CTX_data_view_layer(&C);
       FreestyleLineStyle *linestyle = BKE_linestyle_active_from_view_layer(viewlayer);
-      ui::context_path_add_generic(path, RNA_ViewLayer, viewlayer);
+      ui::context_path_add_generic(path, *RNA_ViewLayer, viewlayer);
       Material *mat = BKE_object_material_get(object, object->actcol);
-      ui::context_path_add_generic(path, RNA_Material, mat);
+      ui::context_path_add_generic(path, *RNA_Material, mat);
     }
 #endif
     context_path_add_node_tree_and_node_groups(snode, path, true);
@@ -179,7 +179,7 @@ static void get_context_path_node_compositor(const bContext &C,
         context_path_add_node_tree_and_node_groups(snode, path);
         return;
       }
-      ui::context_path_add_generic(path, RNA_Scene, sequencer_scene, ICON_SCENE);
+      ui::context_path_add_generic(path, *RNA_Scene, sequencer_scene, ICON_SCENE);
       Editing *ed = seq::editing_get(sequencer_scene);
       if (!ed) {
         context_path_add_node_tree_and_node_groups(snode, path);
@@ -190,7 +190,7 @@ static void get_context_path_node_compositor(const bContext &C,
         context_path_add_node_tree_and_node_groups(snode, path);
         return;
       }
-      ui::context_path_add_generic(path, RNA_Strip, strip, ICON_SEQ_STRIP_DUPLICATE);
+      ui::context_path_add_generic(path, *RNA_Strip, strip, ICON_SEQ_STRIP_DUPLICATE);
       StripModifierData *smd = seq::modifier_get_active(strip);
       if (!smd) {
         context_path_add_node_tree_and_node_groups(snode, path);
@@ -206,12 +206,12 @@ static void get_context_path_node_compositor(const bContext &C,
         context_path_add_node_tree_and_node_groups(snode, path);
         return;
       }
-      ui::context_path_add_generic(path, RNA_NodeTree, scmd->node_group);
+      ui::context_path_add_generic(path, *RNA_NodeTree, scmd->node_group);
       context_path_add_node_tree_and_node_groups(snode, path, true);
     }
     else {
       Scene *scene = CTX_data_scene(&C);
-      ui::context_path_add_generic(path, RNA_Scene, scene);
+      ui::context_path_add_generic(path, *RNA_Scene, scene);
       context_path_add_node_tree_and_node_groups(snode, path);
     }
   }
@@ -230,13 +230,13 @@ static void get_context_path_node_geometry(const bContext &C,
       context_path_add_node_tree_and_node_groups(snode, path);
       return;
     }
-    ui::context_path_add_generic(path, RNA_Object, object);
+    ui::context_path_add_generic(path, *RNA_Object, object);
     ModifierData *modifier = BKE_object_active_modifier(object);
     if (!modifier) {
       context_path_add_node_tree_and_node_groups(snode, path);
       return;
     }
-    ui::context_path_add_generic(path, RNA_Modifier, modifier, ICON_GEOMETRY_NODES);
+    ui::context_path_add_generic(path, *RNA_Modifier, modifier, ICON_GEOMETRY_NODES);
     context_path_add_node_tree_and_node_groups(snode, path);
   }
 }

@@ -332,7 +332,7 @@ float effect_fader_calc(Scene *scene, Strip *strip, float timeline_frame)
   }
 
   const FCurve *fcu = id_data_find_fcurve(
-      &scene->id, strip, &RNA_Strip, "effect_fader", 0, nullptr);
+      &scene->id, strip, RNA_Strip, "effect_fader", 0, nullptr);
   if (fcu) {
     return evaluate_fcurve(fcu, timeline_frame);
   }

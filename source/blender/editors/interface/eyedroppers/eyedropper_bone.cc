@@ -200,10 +200,10 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
       }
       Object *ob = base->object;
       bArmature *armature = id_cast<bArmature *>(ob->data);
-      if (bdr.search_ptr.type == &RNA_Pose && &ob->id != bdr.search_ptr.owner_id) {
+      if (bdr.search_ptr.type == RNA_Pose && &ob->id != bdr.search_ptr.owner_id) {
         return {SampleResult::WRONG_ARMATURE};
       }
-      if (bdr.search_ptr.type == &RNA_Armature &&
+      if (bdr.search_ptr.type == RNA_Armature &&
           (!armature || &armature->id != bdr.search_ptr.owner_id))
       {
         return {SampleResult::WRONG_ARMATURE};
@@ -212,7 +212,7 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
       BoneSampleData sample_data;
       sample_data.name = bone->name;
       /* Not using the search pointer owner ID because pose bones are part of the object. */
-      sample_data.bone_rna = RNA_pointer_create_discrete(&base->object->id, &RNA_PoseBone, bone);
+      sample_data.bone_rna = RNA_pointer_create_discrete(&base->object->id, RNA_PoseBone, bone);
       sample_data.sample_result = SampleResult::SUCCESS;
       return sample_data;
     }
@@ -230,7 +230,7 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
 
       BoneSampleData sample_data;
       sample_data.name = ebone->name;
-      sample_data.bone_rna = RNA_pointer_create_discrete(&armature->id, &RNA_EditBone, ebone);
+      sample_data.bone_rna = RNA_pointer_create_discrete(&armature->id, RNA_EditBone, ebone);
       sample_data.sample_result = SampleResult::SUCCESS;
       return sample_data;
     }
@@ -256,7 +256,7 @@ static BoneSampleData sample_data_from_outliner(bContext *C,
 
   /* By comparing the ID of the RNA returned by the outliner with the ID we are searching in, we
    * can determine if the Bone is for the correct armature. */
-  if (sample_data.bone_rna.type == &RNA_Bone) {
+  if (sample_data.bone_rna.type == RNA_Bone) {
     if (bone_id != search_id) {
       sample_data.sample_result = SampleResult::WRONG_ARMATURE;
       return sample_data;
@@ -267,7 +267,7 @@ static BoneSampleData sample_data_from_outliner(bContext *C,
     return sample_data;
   }
 
-  if (sample_data.bone_rna.type == &RNA_EditBone) {
+  if (sample_data.bone_rna.type == RNA_EditBone) {
     if (bone_id != search_id) {
       sample_data.sample_result = SampleResult::WRONG_ARMATURE;
       return sample_data;
@@ -278,19 +278,19 @@ static BoneSampleData sample_data_from_outliner(bContext *C,
     return sample_data;
   }
 
-  if (sample_data.bone_rna.type == &RNA_PoseBone) {
+  if (sample_data.bone_rna.type == RNA_PoseBone) {
     bPoseChannel *pose_bone = static_cast<bPoseChannel *>(sample_data.bone_rna.data);
     /* Special case for pose bones. Because they are not stored in the Armature, the IDs of the
      * search property and the picked result might not match since the comparison would be between
      * armature and object. */
-    if (bdr.search_ptr.type == &RNA_Object) {
+    if (bdr.search_ptr.type == RNA_Object) {
       if (bone_id != search_id) {
         sample_data.sample_result = SampleResult::WRONG_ARMATURE;
         return sample_data;
       }
     }
     /* If looking for an armature, get the Armature object and follow the data pointer. */
-    if (bdr.search_ptr.type == &RNA_Armature) {
+    if (bdr.search_ptr.type == RNA_Armature) {
       /* Expecting Pose Bones to be stored on the object. */
       BLI_assert(GS(sample_data.bone_rna.owner_id->name) == ID_OB);
       Object *armature_object = id_cast<Object *>(sample_data.bone_rna.owner_id);
@@ -383,8 +383,8 @@ static SampleResult bonedropper_sample(bContext *C, BoneDropper &bdr, const int 
 
   StructRNA *search_type = RNA_property_pointer_type(&bdr.search_ptr, bdr.search_prop);
   /* In case we are searching for a bone, convert the pointer from bPoseChannel. */
-  if (search_type == &RNA_Bone && sample_data.bone_rna.type == &RNA_PoseBone &&
-      bdr.search_ptr.type == &RNA_Armature)
+  if (search_type == RNA_Bone && sample_data.bone_rna.type == RNA_PoseBone &&
+      bdr.search_ptr.type == RNA_Armature)
   {
     /* We are searching for something in the armature but got a pose bone on the object, so we
      * need to do a conversion. We will just assume the ID under the cursor is the one we are
@@ -392,7 +392,7 @@ static SampleResult bonedropper_sample(bContext *C, BoneDropper &bdr, const int 
      * have. */
     bPoseChannel *pose_bone = static_cast<bPoseChannel *>(sample_data.bone_rna.data);
     sample_data.bone_rna = RNA_pointer_create_discrete(
-        bdr.search_ptr.owner_id, &RNA_Bone, pose_bone->bone);
+        bdr.search_ptr.owner_id, RNA_Bone, pose_bone->bone);
   }
 
   PropertyType type = RNA_property_type(bdr.prop);
@@ -553,7 +553,7 @@ static bool bonedropper_poll(bContext *C)
   const StructRNA *type = RNA_property_pointer_type(&search_but->rnasearchpoin,
                                                     search_but->rnasearchprop);
 
-  return type == &RNA_Bone || type == &RNA_EditBone || type == &RNA_PoseBone;
+  return type == RNA_Bone || type == RNA_EditBone || type == RNA_PoseBone;
 }
 
 void UI_OT_eyedropper_bone(wmOperatorType *ot)

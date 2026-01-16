@@ -1899,7 +1899,7 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
    * Bone objects, because the armature data doesn't have per-bone components,
    * and generic add_relation can only add one link. */
   ID *id_ptr = property_entry_key.ptr.owner_id;
-  bool is_bone = id_ptr && property_entry_key.ptr.type == &RNA_Bone;
+  bool is_bone = id_ptr && property_entry_key.ptr.type == RNA_Bone;
   /* If the Bone property is referenced via obj.pose.bones[].bone,
    * the RNA pointer refers to the Object ID, so skip to data. */
   if (is_bone && GS(id_ptr->name) == ID_OB) {
@@ -2200,7 +2200,7 @@ void DepsgraphRelationBuilder::build_driver_id_property(const PointerRNA &target
   const char *prop_identifier = RNA_property_identifier(prop);
   /* Custom properties of bones are placed in their components to improve granularity. */
   OperationKey id_property_key;
-  if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
+  if (RNA_struct_is_a(ptr.type, RNA_PoseBone)) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
     id_property_key = OperationKey(
         ptr.owner_id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, prop_identifier);

@@ -137,7 +137,7 @@ static PointerRNA rna_DepsgraphObjectInstance_particle_system_get(PointerRNA *pt
   if (deg_iter->dupli_object_current != nullptr) {
     particle_system = deg_iter->dupli_object_current->particle_system;
   }
-  return RNA_pointer_create_with_parent(*ptr, &RNA_ParticleSystem, particle_system);
+  return RNA_pointer_create_with_parent(*ptr, RNA_ParticleSystem, particle_system);
 }
 
 static void rna_DepsgraphObjectInstance_persistent_id_get(PointerRNA *ptr, int *persistent_id)
@@ -451,7 +451,7 @@ static PointerRNA rna_Depsgraph_object_instances_get(CollectionPropertyIterator 
   RNA_Depsgraph_Instances_Iterator *di_it = static_cast<RNA_Depsgraph_Instances_Iterator *>(
       iter->internal.custom);
   RNA_DepsgraphIterator *di = &di_it->iterators[di_it->counter % 2];
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_DepsgraphObjectInstance, di);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_DepsgraphObjectInstance, di);
 }
 
 /* Iteration over evaluated IDs */
@@ -503,7 +503,7 @@ static void rna_Depsgraph_updates_begin(CollectionPropertyIterator *iter, Pointe
 static PointerRNA rna_Depsgraph_updates_get(CollectionPropertyIterator *iter)
 {
   ID *id = static_cast<ID *>((static_cast<BLI_Iterator *>(iter->internal.custom))->current);
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_DepsgraphUpdate, id);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_DepsgraphUpdate, id);
 }
 
 static ID *rna_Depsgraph_id_eval_get(Depsgraph *depsgraph, ID *id_orig)
@@ -529,7 +529,7 @@ static PointerRNA rna_Depsgraph_view_layer_get(PointerRNA *ptr)
   Depsgraph *depsgraph = static_cast<Depsgraph *>(ptr->data);
   Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
-  PointerRNA newptr = RNA_pointer_create_id_subdata(scene->id, &RNA_ViewLayer, view_layer);
+  PointerRNA newptr = RNA_pointer_create_id_subdata(scene->id, RNA_ViewLayer, view_layer);
   return newptr;
 }
 
@@ -547,7 +547,7 @@ static PointerRNA rna_Depsgraph_view_layer_eval_get(PointerRNA *ptr)
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   PointerRNA newptr = RNA_pointer_create_id_subdata(
-      scene_eval->id, &RNA_ViewLayer, view_layer_eval);
+      scene_eval->id, RNA_ViewLayer, view_layer_eval);
   return newptr;
 }
 

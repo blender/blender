@@ -149,7 +149,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       }
     }
 
-    if (RNA_struct_is_a(ptr.type, &RNA_NodeSocket)) {
+    if (RNA_struct_is_a(ptr.type, RNA_NodeSocket)) {
       /* Display the name/label of a node socket's node to allow distinguishing multiple nodes. */
       BLI_assert(GS(ptr.owner_id->name) == ID_NT);
       const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr.owner_id);
@@ -161,7 +161,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       structname = node.label_or_name().c_str();
       free_structname = false;
     }
-    else if (RNA_struct_is_a(ptr.type, &RNA_Node)) {
+    else if (RNA_struct_is_a(ptr.type, RNA_Node)) {
       /* Display the label of the node if available to distinguish nodes like "Value". */
       BLI_assert(GS(ptr.owner_id->name) == ID_NT);
       const bNode *node = static_cast<const bNode *>(ptr.data);
@@ -175,7 +175,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
   propname = RNA_property_ui_name(prop);
 
-  if (RNA_struct_is_a(ptr.type, &RNA_NodesModifier)) {
+  if (RNA_struct_is_a(ptr.type, RNA_NodesModifier)) {
     /* Display geometry node properties with node-tree socket labels. */
     const NodesModifierData *nmd = static_cast<const NodesModifierData *>(ptr.data);
     if (const bNodeTree *node_group = nmd->node_group) {
@@ -186,7 +186,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       }
     }
   }
-  else if (RNA_struct_is_a(ptr.type, &RNA_NodeSocket)) {
+  else if (RNA_struct_is_a(ptr.type, RNA_NodeSocket)) {
     /* Use the socket's name rather than the "Default Value" name of the socket's RNA property. */
     const bNodeSocket *socket = static_cast<const bNodeSocket *>(ptr.data);
     propname = socket->name;

@@ -1012,7 +1012,7 @@ KeyBlock *ED_mesh_get_edit_shape_key(const Mesh *me)
 
 Mesh *ED_mesh_context(bContext *C)
 {
-  Mesh *mesh = static_cast<Mesh *>(CTX_data_pointer_get_type(C, "mesh", &RNA_Mesh).data);
+  Mesh *mesh = static_cast<Mesh *>(CTX_data_pointer_get_type(C, "mesh", RNA_Mesh).data);
   if (mesh != nullptr) {
     return mesh;
   }
