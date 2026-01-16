@@ -379,8 +379,6 @@ World *ED_preview_prepare_world_simple(Main *pr_main)
 
   World *world = BKE_world_add(pr_main, "SimpleWorld");
   bNodeTree *ntree = world->nodetree;
-  ntree = bke::node_tree_add_tree_embedded(
-      nullptr, &world->id, "World Nodetree", "ShaderNodeTree");
 
   bNode *background = node_add_node(nullptr, *ntree, "ShaderNodeBackground");
   bNode *output = node_add_node(nullptr, *ntree, "ShaderNodeOutputWorld");
