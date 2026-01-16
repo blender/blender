@@ -285,7 +285,7 @@ static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
   };
 
   /* Copy the RNA values are copied into the operator to avoid repetition. */
-  StructRNA *type_ref = &RNA_UserAssetLibrary;
+  StructRNA *type_ref = RNA_UserAssetLibrary;
 
   { /* Name. */
     const char *prop_id = "name";

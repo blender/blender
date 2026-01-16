@@ -313,7 +313,7 @@ void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_def
   }
 
   PointerRNA lib_ptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_UserAssetLibrary, &library_definition);
+      nullptr, RNA_UserAssetLibrary, &library_definition);
   PointerRNA *lib_ptr_arr[] = {&lib_ptr};
   BKE_callback_exec(&bmain, lib_ptr_arr, 1, BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
 }
