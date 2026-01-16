@@ -46,7 +46,10 @@ SourceProcessor::Result SourceProcessor::convert(vector<Symbol> symbols_set)
     str = disabled_code_mutation(str);
   }
   else {
-    str = cleanup_whitespace(str);
+    IntermediateForm<SimpleLexer, DummyParser> parser(str, report_error_);
+    /* Remove trailing white space as they make the subsequent regex much slower. */
+    cleanup_whitespace(parser);
+    str = parser.result_get();
   }
   str = threadgroup_variables_parse_and_remove(str);
   if (language_ == Language::BLENDER_GLSL || language_ == Language::CPP) {
@@ -70,6 +73,7 @@ SourceProcessor::Result SourceProcessor::convert(vector<Symbol> symbols_set)
 
       /* Early out for certain files. */
       if (parser.str().find("\n#pragma no_processing") != string::npos) {
+        cleanup_whitespace(parser);
         return {line_directive_prefix(filename) + parser.result_get(), metadata_};
       }
 
@@ -248,7 +252,7 @@ string SourceProcessor::remove_comments(const string &str)
 }
 
 /* Remove trailing white spaces. */
-void SourceProcessor::cleanup_whitespace(Parser &parser)
+template<typename ParserT> void SourceProcessor::cleanup_whitespace(ParserT &parser)
 {
   const string &str = parser.str();
 
@@ -261,14 +265,6 @@ void SourceProcessor::cleanup_whitespace(Parser &parser)
     parser.replace(first_not_whitespace + 1, last_whitespace, "");
   }
   parser.apply_mutations();
-}
-
-string SourceProcessor::cleanup_whitespace(const string &str)
-{
-  /* Remove trailing white space as they make the subsequent regex much slower. */
-  Parser parser(str, report_error_, ParserStage::MergeTokens);
-  cleanup_whitespace(parser);
-  return parser.result_get();
 }
 
 /* Parse defines in order to output them with the create infos.
@@ -1403,7 +1399,7 @@ string SourceProcessor::matrix_constructor_mutation(const string &str)
     return str;
   }
 
-  Parser parser(str, report_error_, ParserStage::MergeTokens);
+  IntermediateForm<ExpressionLexer, DummyParser> parser(str, report_error_);
   parser().foreach_token(ParOpen, [&](const Token t) {
     if (t.prev() == Word) {
       Token fn_name = t.prev();
@@ -1581,7 +1577,7 @@ void SourceProcessor::lower_argument_qualifiers(Parser &parser)
 
 string SourceProcessor::argument_decorator_macro_injection(const string &str)
 {
-  Parser parser(str, report_error_, ParserStage::MergeTokens);
+  IntermediateForm<ExpressionLexer, DummyParser> parser(str, report_error_);
   /* Example: `out float foo` > `out float _out_sta foo _out_end` */
   parser().foreach_match("www", [&](const Tokens &t) {
     string_view qualifier = t[0].str_view();
@@ -1595,7 +1591,7 @@ string SourceProcessor::argument_decorator_macro_injection(const string &str)
 
 string SourceProcessor::array_constructor_macro_injection(const string &str)
 {
-  Parser parser(str, report_error_, ParserStage::MergeTokens);
+  IntermediateForm<ExpressionLexer, DummyParser> parser(str, report_error_);
   parser().foreach_match("=w[", [&](const Tokens toks) {
     Token array_len_start = toks.back();
     Token array_len_end = array_len_start.find_next(SquareClose);

@@ -749,7 +749,7 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
 
   ss << "\n#line " << __LINE__ << " \"" << __FILE__ << "\"\n";
 
-  ss << "\n/* Specialization Constants (pass-through). */\n";
+  /* Specialization Constants (pass-through). */
   uint constant_id = 0;
   for (const SpecializationConstant &sc : info.specialization_constants_) {
     ss << "layout (constant_id=" << constant_id++ << ") const ";
@@ -775,7 +775,7 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
     }
   }
 
-  ss << "\n/* Compilation Constants (pass-through). */\n";
+  /* Compilation Constants (pass-through). */
   for (const CompilationConstant &sc : info.compilation_constants_) {
     ss << "const ";
     switch (sc.type) {
@@ -831,7 +831,7 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
   const VKPushConstants::StorageType push_constants_storage =
       push_constants_layout.storage_type_get();
   if (push_constants_storage != VKPushConstants::StorageType::NONE) {
-    ss << "\n/* Push Constants. */\n";
+    /* Push Constants. */
     if (push_constants_storage == VKPushConstants::StorageType::PUSH_CONSTANTS) {
       ss << "layout(push_constant, std430) uniform constants\n";
     }
@@ -859,12 +859,12 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
   std::stringstream ss;
   std::string post_main;
 
-  ss << "\n/* Inputs. */\n";
+  /* Inputs. */
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
     ss << "layout(location = " << attr.index << ") ";
     ss << "in " << to_string(attr.type) << " " << attr.name << ";\n";
   }
-  ss << "\n/* Interfaces. */\n";
+  /* Interfaces. */
   int location = 0;
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     print_interface(ss, "out", *iface, location);
@@ -959,7 +959,7 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   std::string pre_main;
   const VKExtensions &extensions = VKBackend::get().device.extensions_get();
 
-  ss << "\n/* Interfaces. */\n";
+  /* Interfaces. */
   const Span<StageInterfaceInfo *> in_interfaces = info.geometry_source_.is_empty() ?
                                                        info.vertex_out_interfaces_ :
                                                        info.geometry_out_interfaces_;
@@ -990,7 +990,7 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
     ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
   }
 
-  ss << "\n/* Sub-pass Inputs. */\n";
+  /* Sub-pass Inputs. */
   const VKShaderInterface &interface = interface_get();
   const bool use_local_read = extensions.dynamic_rendering_local_read;
 
@@ -1073,7 +1073,7 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
     }
   }
 
-  ss << "\n/* Outputs. */\n";
+  /* Outputs. */
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
     const int location = output.index;
     ss << "layout(location = " << location;
@@ -1105,7 +1105,7 @@ std::string VKShader::geometry_interface_declare(const shader::ShaderCreateInfo 
   int invocations = info.geometry_layout_.invocations;
 
   std::stringstream ss;
-  ss << "\n/* Geometry Layout. */\n";
+  /* Geometry Layout. */
   ss << "layout(" << to_string(info.geometry_layout_.primitive_in);
   if (invocations != -1) {
     ss << ", invocations = " << invocations;
@@ -1141,7 +1141,7 @@ std::string VKShader::geometry_layout_declare(const shader::ShaderCreateInfo &in
 {
   std::stringstream ss;
 
-  ss << "\n/* Interfaces. */\n";
+  /* Interfaces. */
   int location = 0;
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     bool has_matching_output_iface = find_interface_by_name(info.geometry_out_interfaces_,
@@ -1168,7 +1168,7 @@ std::string VKShader::geometry_layout_declare(const shader::ShaderCreateInfo &in
 std::string VKShader::compute_layout_declare(const shader::ShaderCreateInfo &info) const
 {
   std::stringstream ss;
-  ss << "\n/* Compute Layout. */\n";
+  /* Compute Layout. */
   ss << "layout(";
   ss << "  local_size_x = " << info.compute_layout_.local_size_x;
   ss << ", local_size_y = " << info.compute_layout_.local_size_y;

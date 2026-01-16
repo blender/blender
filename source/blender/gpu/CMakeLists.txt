@@ -95,6 +95,7 @@ set(SRC
   intern/gpu_shader_dependency.cc
   intern/gpu_shader_interface.cc
   intern/gpu_shader_log.cc
+  intern/gpu_shader_preprocessor.cc
   intern/gpu_state.cc
   intern/gpu_storage_buffer.cc
   intern/gpu_texture.cc

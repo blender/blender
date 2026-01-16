@@ -254,6 +254,11 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
 
   dump_source_to_disk(this->name_get(), this->entry_point_name_get(stage), ".msl", concat_source);
 
+  concat_source = run_preprocessor(concat_source);
+
+  dump_source_to_disk(
+      this->name_get(), this->entry_point_name_get(stage) + ".expanded", ".msl", concat_source);
+
   {
     ::MTLCompileOptions *options = get_compile_options(
         !info.subpass_inputs_.is_empty(), bool(info.builtins_ & BuiltinBits::TEXTURE_ATOMIC));

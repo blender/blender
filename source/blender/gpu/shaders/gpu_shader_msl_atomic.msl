@@ -4,6 +4,8 @@
 
 #pragma once
 
+#pragma blender dead_code_elimination off
+
 using namespace metal;
 
 /** Shader atomics:
@@ -33,3 +35,5 @@ ATOMIC_OP(Xor, fetch_xor)
 ATOMIC_OP(Exchange, exchange)
 
 #undef ATOMIC_OP
+
+#pragma blender dead_code_elimination on
