@@ -85,60 +85,27 @@
 
 namespace blender {
 
-namespace ed::space_node {
-
 /* -------------------------------------------------------------------- */
-/** \name Composite Job Manager
+/** \name Compositor Job
  * \{ */
 
-struct CompoJob {
-  /* Input parameters. */
+struct CompositorJob {
   Main *bmain;
   Scene *scene;
   ViewLayer *view_layer;
-  bNodeTree *ntree;
-  /* Evaluated state/ */
-  Depsgraph *compositor_depsgraph;
   bNodeTree *evaluated_node_tree;
-  /* Render instance. */
-  Render *re;
-
+  Render *render;
   compositor::Profiler profiler;
   compositor::NodeGroupOutputTypes needed_outputs;
 };
 
-float node_socket_calculate_height(const bNodeSocket &socket)
+static void compositor_job_init(void *compositor_job_data)
 {
-  float sock_height = NODE_SOCKSIZE;
-  if (socket.flag & SOCK_MULTI_INPUT) {
-    sock_height += max_ii(NODE_MULTI_INPUT_LINK_GAP * 0.5f * socket.runtime->total_inputs,
-                          NODE_SOCKSIZE);
-  }
-  return sock_height;
-}
+  CompositorJob *compositor_job = static_cast<CompositorJob *>(compositor_job_data);
 
-float2 node_link_calculate_multi_input_position(const float2 &socket_position,
-                                                const int index,
-                                                const int total_inputs)
-{
-  const float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) *
-                       0.5f;
-  return {socket_position.x, socket_position.y - offset + index * NODE_MULTI_INPUT_LINK_GAP};
-}
-
-static void compo_freejob(void *cjv)
-{
-  MEM_delete(static_cast<CompoJob *>(cjv));
-}
-
-/* Only now we copy the nodetree, so adding many jobs while
- * sliding buttons doesn't frustrate. */
-static void compo_initjob(void *cjv)
-{
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-  Main *bmain = cj->bmain;
-  Scene *scene = cj->scene;
-  ViewLayer *view_layer = cj->view_layer;
+  Main *bmain = compositor_job->bmain;
+  Scene *scene = compositor_job->scene;
+  ViewLayer *view_layer = compositor_job->view_layer;
 
   bke::CompositorRuntime &compositor_runtime = scene->runtime->compositor;
 
@@ -148,95 +115,113 @@ static void compo_initjob(void *cjv)
     DEG_debug_name_set(compositor_runtime.preview_depsgraph, "COMPOSITOR");
   }
 
-  /* Update the viewer layer of the compositor since it changed since the depsgraph was created. */
+  /* Update the viewer layer of the compositor if it changed since the depsgraph was created. */
   if (DEG_get_input_view_layer(compositor_runtime.preview_depsgraph) != view_layer) {
     DEG_graph_replace_owners(compositor_runtime.preview_depsgraph, bmain, scene, view_layer);
     DEG_graph_tag_relations_update(compositor_runtime.preview_depsgraph);
   }
 
-  cj->compositor_depsgraph = compositor_runtime.preview_depsgraph;
-  DEG_graph_build_for_compositor_preview(cj->compositor_depsgraph, cj->ntree);
+  DEG_graph_build_for_compositor_preview(compositor_runtime.preview_depsgraph,
+                                         scene->compositing_node_group);
 
   /* NOTE: Don't update animation to preserve unkeyed changes, this means can not use
    * evaluate_on_framechange. */
-  DEG_evaluate_on_refresh(cj->compositor_depsgraph);
+  DEG_evaluate_on_refresh(compositor_runtime.preview_depsgraph);
 
-  cj->evaluated_node_tree = DEG_get_evaluated(cj->compositor_depsgraph, cj->ntree);
+  compositor_job->evaluated_node_tree = DEG_get_evaluated(compositor_runtime.preview_depsgraph,
+                                                          scene->compositing_node_group);
 
-  cj->re = RE_NewInteractiveCompositorRender(scene);
+  compositor_job->render = RE_NewInteractiveCompositorRender(scene);
   if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
-    RE_display_ensure_gpu_context(cj->re);
+    RE_display_ensure_gpu_context(compositor_job->render);
   }
 }
 
-/* Only this runs inside thread. */
-static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
+static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *worker_status)
 {
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-  bNodeTree *ntree = cj->evaluated_node_tree;
-  Scene *scene = DEG_get_evaluated_scene(cj->compositor_depsgraph);
+  CompositorJob *compositor_job = static_cast<CompositorJob *>(compositor_job_data);
 
-  RE_test_break_cb(cj->re, &worker_status->stop, [](void *should_stop) -> bool {
+  RE_test_break_cb(compositor_job->render, &worker_status->stop, [](void *should_stop) -> bool {
     return *static_cast<bool *>(should_stop) || G.is_break;
   });
 
-  BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
+  BKE_callback_exec_id(
+      compositor_job->bmain, &compositor_job->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
-  if ((scene->r.scemode & R_MULTIVIEW) == 0) {
-    RE_compositor_execute(
-        *cj->re, *scene, scene->r, *ntree, "", nullptr, &cj->profiler, cj->needed_outputs);
+  bke::CompositorRuntime &compositor_runtime = compositor_job->scene->runtime->compositor;
+  Scene *evaluated_scene = DEG_get_evaluated_scene(compositor_runtime.preview_depsgraph);
+  if (!(evaluated_scene->r.scemode & R_MULTIVIEW)) {
+    RE_compositor_execute(*compositor_job->render,
+                          *evaluated_scene,
+                          evaluated_scene->r,
+                          *compositor_job->evaluated_node_tree,
+                          "",
+                          nullptr,
+                          &compositor_job->profiler,
+                          compositor_job->needed_outputs);
   }
   else {
-    for (SceneRenderView &srv : scene->r.views) {
-      if (BKE_scene_multiview_is_render_view_active(&scene->r, &srv) == false) {
+    for (SceneRenderView &scene_render_view : evaluated_scene->r.views) {
+      if (!BKE_scene_multiview_is_render_view_active(&evaluated_scene->r, &scene_render_view)) {
         continue;
       }
-      RE_compositor_execute(
-          *cj->re, *scene, scene->r, *ntree, srv.name, nullptr, &cj->profiler, cj->needed_outputs);
+      RE_compositor_execute(*compositor_job->render,
+                            *evaluated_scene,
+                            evaluated_scene->r,
+                            *compositor_job->evaluated_node_tree,
+                            scene_render_view.name,
+                            nullptr,
+                            &compositor_job->profiler,
+                            compositor_job->needed_outputs);
     }
   }
 
   WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
 }
 
-static void compo_canceljob(void *cjv)
+static void compositor_job_cancel(void *compositor_job_data)
 {
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-  Main *bmain = cj->bmain;
-  Scene *scene = cj->scene;
-  BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
+  CompositorJob *compositor_job = static_cast<CompositorJob *>(compositor_job_data);
 
-  scene->runtime->compositor.per_node_execution_time = cj->profiler.get_nodes_evaluation_times();
+  Scene *scene = compositor_job->scene;
+  BKE_callback_exec_id(compositor_job->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
 }
 
-static void compo_completejob(void *cjv)
+static void compositor_job_complete(void *compositor_job_data)
 {
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-  BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_POST);
+  CompositorJob *compositor_job = static_cast<CompositorJob *>(compositor_job_data);
 
-  bke::node_preview_merge_tree(cj->ntree, cj->evaluated_node_tree, true);
-  cj->scene->runtime->compositor.per_node_execution_time =
-      cj->profiler.get_nodes_evaluation_times();
+  Scene *scene = compositor_job->scene;
+  BKE_callback_exec_id(compositor_job->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_POST);
+
+  bke::node_preview_merge_tree(
+      scene->compositing_node_group, compositor_job->evaluated_node_tree, true);
+  scene->runtime->compositor.per_node_execution_time =
+      compositor_job->profiler.get_nodes_evaluation_times();
 }
 
-/** \} */
+static void compositor_job_free(void *compositor_job_data)
+{
+  MEM_delete(static_cast<CompositorJob *>(compositor_job_data));
+}
 
-}  // namespace ed::space_node
-
-/* -------------------------------------------------------------------- */
-/** \name Composite Job C API
- * \{ */
-
-/* Identify if the compositor can run. Currently, this only checks if the compositor is set to GPU
- * and the render size exceeds what can be allocated as a texture in it. */
 static bool is_compositing_possible(const bContext *C)
 {
+  if (G.is_rendering) {
+    return false;
+  }
+
   Scene *scene = CTX_data_scene(C);
+  if (!scene->compositing_node_group) {
+    return false;
+  }
+
   /* CPU compositor can always run. */
   if (scene->r.compositor_device != SCE_COMPOSITOR_DEVICE_GPU) {
     return true;
   }
 
+  /* The render size exceeds what can be allocated as a GPU texture. */
   int width, height;
   BKE_render_resolution(&scene->r, false, &width, &height);
   if (!GPU_is_safe_texture_size(width, height)) {
@@ -249,11 +234,11 @@ static bool is_compositing_possible(const bContext *C)
 
 /* Returns the compositor outputs that need to be computed because their result is visible to the
  * user or required by the render pipeline. */
-static compositor::NodeGroupOutputTypes get_compositor_needed_outputs(const bContext *C,
-                                                                      Scene *scene_owner)
+static compositor::NodeGroupOutputTypes get_compositor_needed_outputs(const bContext *C)
 {
   compositor::NodeGroupOutputTypes needed_outputs = compositor::NodeGroupOutputTypes::None;
 
+  Scene *scene = CTX_data_scene(C);
   wmWindowManager *window_manager = CTX_wm_manager(C);
   for (wmWindow &window : window_manager->windows) {
     bScreen *screen = WM_window_get_active_screen(&window);
@@ -279,8 +264,8 @@ static compositor::NodeGroupOutputTypes get_compositor_needed_outputs(const bCon
         }
         /* Do not override the Render Result if compositing is disabled in the render pipeline or
          * if the sequencer is enabled. */
-        if (image->type == IMA_TYPE_R_RESULT && scene_owner->r.scemode & R_DOCOMP &&
-            !RE_seq_render_active(scene_owner, &scene_owner->r))
+        if (image->type == IMA_TYPE_R_RESULT && scene->r.scemode & R_DOCOMP &&
+            !RE_seq_render_active(scene, &scene->r))
         {
           needed_outputs |= compositor::NodeGroupOutputTypes::GroupOutputNode;
         }
@@ -305,64 +290,56 @@ static compositor::NodeGroupOutputTypes get_compositor_needed_outputs(const bCon
     }
   }
 
+  /* None of the outputs are needed except node previews but they are a secondary output that needs
+   * another output to be computed with, so this is practically none. */
+  if (needed_outputs == compositor::NodeGroupOutputTypes::NodePreviews) {
+    return compositor::NodeGroupOutputTypes::None;
+  }
+
   return needed_outputs;
 }
 
-void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner)
+void ED_node_compositor_job(const bContext *C)
 {
-  /* None of the outputs are needed except maybe previews, so no need to execute the compositor.
-   * Previews are not considered because they are a secondary output that needs another output to
-   * be computed with. */
-  compositor::NodeGroupOutputTypes needed_outputs = get_compositor_needed_outputs(C, scene_owner);
-  if (ELEM(needed_outputs,
-           compositor::NodeGroupOutputTypes::None,
-           compositor::NodeGroupOutputTypes::NodePreviews))
-  {
-    return;
-  }
-
-  using namespace blender::ed::space_node;
-
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-
   if (!is_compositing_possible(C)) {
     return;
   }
 
-  /* See #32272. */
-  if (G.is_rendering) {
+  compositor::NodeGroupOutputTypes needed_outputs = get_compositor_needed_outputs(C);
+  if (needed_outputs == compositor::NodeGroupOutputTypes::None) {
     return;
   }
 
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  Image *render_result_image = BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
+  BKE_image_backup_render(scene, render_result_image, false);
+
+  wmJob *job = WM_jobs_get(CTX_wm_manager(C),
+                           CTX_wm_window(C),
+                           scene,
+                           "Compositing...",
+                           WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS,
+                           WM_JOB_TYPE_COMPOSITE);
+
+  CompositorJob *compositor_job = MEM_new<CompositorJob>("Compositor Job");
+  compositor_job->bmain = bmain;
+  compositor_job->scene = scene;
+  compositor_job->view_layer = CTX_data_view_layer(C);
+  compositor_job->needed_outputs = needed_outputs;
+
+  WM_jobs_customdata_set(job, compositor_job, compositor_job_free);
+  WM_jobs_timer(job, 0.1, NC_SCENE | ND_COMPO_RESULT, NC_SCENE | ND_COMPO_RESULT);
+  WM_jobs_callbacks_ex(job,
+                       compositor_job_start,
+                       compositor_job_init,
+                       nullptr,
+                       nullptr,
+                       compositor_job_complete,
+                       compositor_job_cancel);
+
   G.is_break = false;
-
-  BKE_image_backup_render(
-      scene, BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result"), false);
-
-  wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
-                              CTX_wm_window(C),
-                              scene_owner,
-                              "Compositing...",
-                              WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS,
-                              WM_JOB_TYPE_COMPOSITE);
-  CompoJob *cj = MEM_new<CompoJob>("compo job");
-
-  /* Custom data for preview thread. */
-  cj->bmain = bmain;
-  cj->scene = scene;
-  cj->view_layer = view_layer;
-  cj->ntree = nodetree;
-  cj->needed_outputs = needed_outputs;
-
-  /* Set up job. */
-  WM_jobs_customdata_set(wm_job, cj, compo_freejob);
-  WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_COMPO_RESULT, NC_SCENE | ND_COMPO_RESULT);
-  WM_jobs_callbacks_ex(
-      wm_job, compo_startjob, compo_initjob, nullptr, nullptr, compo_completejob, compo_canceljob);
-
-  WM_jobs_start(CTX_wm_manager(C), wm_job);
+  WM_jobs_start(CTX_wm_manager(C), job);
 }
 
 /** \} */
@@ -1004,6 +981,25 @@ bool node_is_previewable(const SpaceNode &snode, const bNodeTree &ntree, const b
            snode.shaderfrom == SNODE_SHADER_OBJECT;
   }
   return node.typeinfo->flag & NODE_PREVIEW;
+}
+
+float node_socket_calculate_height(const bNodeSocket &socket)
+{
+  float sock_height = NODE_SOCKSIZE;
+  if (socket.flag & SOCK_MULTI_INPUT) {
+    sock_height += max_ii(NODE_MULTI_INPUT_LINK_GAP * 0.5f * socket.runtime->total_inputs,
+                          NODE_SOCKSIZE);
+  }
+  return sock_height;
+}
+
+float2 node_link_calculate_multi_input_position(const float2 &socket_position,
+                                                const int index,
+                                                const int total_inputs)
+{
+  const float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) *
+                       0.5f;
+  return {socket_position.x, socket_position.y - offset + index * NODE_MULTI_INPUT_LINK_GAP};
 }
 
 static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSocket &socket)

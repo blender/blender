@@ -845,7 +845,7 @@ static void node_area_refresh(const bContext *C, ScrArea *area)
   if (snode->nodetree && snode->nodetree == scene->compositing_node_group) {
     if (snode->runtime->recalc_regular_compositing) {
       snode->runtime->recalc_regular_compositing = false;
-      ED_node_composite_job(C, scene->compositing_node_group, scene);
+      ED_node_compositor_job(C);
     }
   }
 }
