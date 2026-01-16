@@ -193,6 +193,8 @@ class AssetLibrary {
    */
   void refresh_catalog_simplename(AssetMetaData *asset_data);
 
+  void load_or_reload_catalogs();
+
   void on_blend_save_handler_register();
   void on_blend_save_handler_unregister();
 
@@ -207,8 +209,6 @@ class AssetLibrary {
  protected:
   /** Load catalogs that have changed on disk. */
   virtual void refresh_catalogs();
-
-  void load_or_reload_catalogs();
 };
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs();

@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <optional>
 
+#include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -22,6 +23,12 @@ struct Main;
 struct ReportList;
 
 namespace asset_system {
+
+/**
+ * Iterates all libraries registers in the Preferences and calls the given function with the URL
+ * of the library.
+ */
+void foreach_registered_remote_library(FunctionRef<void(bUserAssetLibrary &)> fn);
 
 /**
  * Combination of a URL of a remote resource, and its hash.

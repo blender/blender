@@ -560,11 +560,12 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
   using namespace blender;
 
   /* Online asset library downloader status updates. */
+  const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
   const asset_system::AssetLibrary *asset_library = filelist_asset_library(sfile->files);
-  const std::optional<StringRefNull> remote_url = asset_library ? asset_library->remote_url() :
-                                                                  std::nullopt;
 
-  if (asset_library && remote_url) {
+  if (asset_params && asset_library &&
+      asset_system::is_or_contains_remote_libraries(asset_params->asset_library_ref))
+  {
     wmMsgSubscribeValue msg_sub_value_assets_downloaded{};
     msg_sub_value_assets_downloaded.owner = region;
     msg_sub_value_assets_downloaded.user_data = sfile;
@@ -577,7 +578,22 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
           ED_region_tag_redraw(static_cast<ARegion *>(msg_val->owner));
         };
 
-    WM_msg_subscribe_remote_io(mbus, *remote_url, &msg_sub_value_assets_downloaded, __func__);
+    const char *debug_subscr_name = __func__;
+    if (asset_library->library_type() == ASSET_LIBRARY_ALL) {
+      asset_library->foreach_loaded(
+          [mbus, &msg_sub_value_assets_downloaded, debug_subscr_name](
+              const asset_system::AssetLibrary &sub_library) {
+            if (std::optional<StringRefNull> remote_url = sub_library.remote_url()) {
+              WM_msg_subscribe_remote_io(
+                  mbus, *remote_url, &msg_sub_value_assets_downloaded, debug_subscr_name);
+            }
+          },
+          false);
+    }
+    else if (std::optional<StringRefNull> remote_url = asset_library->remote_url()) {
+      WM_msg_subscribe_remote_io(
+          mbus, *remote_url, &msg_sub_value_assets_downloaded, debug_subscr_name);
+    }
   }
 }
 

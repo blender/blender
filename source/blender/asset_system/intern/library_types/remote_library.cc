@@ -13,6 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 
 #include "BLT_translation.hh"
 
@@ -295,6 +296,7 @@ bool RemoteLibraryLoadingStatus::handle_timeout(const StringRef url)
 void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_definition)
 {
   BLI_assert(library_definition.flag & ASSET_LIBRARY_USE_REMOTE_URL);
+  BLI_assert_msg(BLI_thread_is_main(), "Calling into Python from a thread is not safe");
   /* Ensure we don't attempt to download anything when online access is disabled. */
   if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
     return;
@@ -538,6 +540,21 @@ std::string remote_library_asset_preview_path(const AssetRepresentation &asset)
   BLI_path_join(thumb_path, sizeof(thumb_path), thumbs_dir_path, thumb_prefix, thumb_name + 2);
 
   return thumb_path;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Other Free Functions
+ * \{ */
+
+void foreach_registered_remote_library(FunctionRef<void(bUserAssetLibrary &)> fn)
+{
+  for (bUserAssetLibrary &library : U.asset_libraries) {
+    if ((library.flag & ASSET_LIBRARY_USE_REMOTE_URL) && library.remote_url[0]) {
+      fn(library);
+    }
+  }
 }
 
 /** \} */
