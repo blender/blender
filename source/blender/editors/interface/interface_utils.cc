@@ -531,6 +531,17 @@ void rna_collection_search_update_fn(
       }
     }
     RNA_PROP_END;
+
+    /* Sort alphabetically (matches other search layouts). */
+    std::sort(
+        items_list.begin(),
+        items_list.end(),
+        [](const std::unique_ptr<CollItemSearch> &a, const std::unique_ptr<CollItemSearch> &b) {
+          return BLI_strcasecmp_natural(a->name.c_str(), b->name.c_str()) < 0;
+        });
+    for (const int i : items_list.index_range()) {
+      items_list[i]->index = i;
+    }
   }
   else {
     BLI_assert(RNA_property_type(data->target_prop) == PROP_STRING);
