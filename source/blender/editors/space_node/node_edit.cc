@@ -102,8 +102,6 @@ struct CompoJob {
   bNodeTree *evaluated_node_tree;
   /* Render instance. */
   Render *re;
-  /* Job system integration. */
-  bool cancelled;
 
   compositor::Profiler profiler;
   compositor::NodeGroupOutputTypes needed_outputs;
@@ -130,16 +128,7 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
 
 static void compo_freejob(void *cjv)
 {
-  CompoJob *cj = static_cast<CompoJob *>(cjv);
-
-  if (cj->evaluated_node_tree) {
-    /* Merge back node previews, only for completed jobs. */
-    if (!cj->cancelled) {
-      bke::node_preview_merge_tree(cj->ntree, cj->evaluated_node_tree, true);
-    }
-  }
-
-  MEM_delete(cj);
+  MEM_delete(static_cast<CompoJob *>(cjv));
 }
 
 /* Only now we copy the nodetree, so adding many jobs while
@@ -216,7 +205,6 @@ static void compo_canceljob(void *cjv)
   Main *bmain = cj->bmain;
   Scene *scene = cj->scene;
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
-  cj->cancelled = true;
 
   scene->runtime->compositor.per_node_execution_time = cj->profiler.get_nodes_evaluation_times();
 }
@@ -224,11 +212,11 @@ static void compo_canceljob(void *cjv)
 static void compo_completejob(void *cjv)
 {
   CompoJob *cj = static_cast<CompoJob *>(cjv);
-  Main *bmain = cj->bmain;
-  Scene *scene = cj->scene;
-  BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_POST);
+  BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_POST);
 
-  scene->runtime->compositor.per_node_execution_time = cj->profiler.get_nodes_evaluation_times();
+  bke::node_preview_merge_tree(cj->ntree, cj->evaluated_node_tree, true);
+  cj->scene->runtime->compositor.per_node_execution_time =
+      cj->profiler.get_nodes_evaluation_times();
 }
 
 /** \} */
