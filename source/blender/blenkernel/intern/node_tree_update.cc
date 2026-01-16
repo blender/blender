@@ -1062,6 +1062,19 @@ class NodeTreeMainUpdater {
           for (bNodeSocket *socket : node->output_sockets()) {
             socket->display_shape = get_socket_shape(*socket);
           }
+
+          if (node->is_type("NodeGetBundleItem")) {
+            bNodeSocket &socket = *node->output_by_identifier("Item");
+            const auto &storage = *static_cast<const NodeGetBundleItem *>(node->storage);
+            socket.display_shape = get_socket_shape(
+                socket, storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+          }
+          else if (node->is_type("NodeStoreBundleItem")) {
+            bNodeSocket &socket = *node->input_by_identifier("Item");
+            const auto &storage = *static_cast<const NodeStoreBundleItem *>(node->storage);
+            socket.display_shape = get_socket_shape(
+                socket, storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+          }
           break;
         }
       }
