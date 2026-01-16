@@ -111,7 +111,6 @@ class ExpressionParser : ParserBase {
         }
         return left % right;
       }
-        return left % expr(left_binding_power(Modulo));
       case Plus:
         return left + expr(left_binding_power(Plus));
       case Minus:
