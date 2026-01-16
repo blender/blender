@@ -53,10 +53,7 @@ class CUDADevice : public GPUDevice {
 
   string compile_kernel_get_common_cflags(const uint kernel_features);
 
-  string compile_kernel(const string &cflags,
-                        const char *name,
-                        const char *base = "cuda",
-                        bool force_ptx = false);
+  string compile_kernel(const string &cflags, const char *name, bool optix = false);
 
   bool load_kernels(const uint kernel_features) override;
   void reserve_local_memory(const uint kernel_features);

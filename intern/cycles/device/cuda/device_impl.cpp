@@ -245,25 +245,28 @@ string CUDADevice::compile_kernel_get_common_cflags(const uint kernel_features)
   return cflags;
 }
 
-string CUDADevice::compile_kernel(const string &common_cflags,
-                                  const char *name,
-                                  const char *base,
-                                  bool force_ptx)
+string CUDADevice::compile_kernel(const string &common_cflags, const char *name, bool optix)
 {
   /* Compute kernel name. */
   int major, minor;
   cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
   cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
 
+  if (optix) {
+    /* CUDA 13 introduced PTX verification for compute_90+, which is not compatible with OptiX
+     * device intrinsics, so avoid triggering it by targeting a lower version. */
+    if (major >= 9) {
+      major = 8;
+      minor = 9;
+    }
+  }
   /* Attempt to use kernel provided with Blender. */
-  if (!use_adaptive_compilation()) {
-    if (!force_ptx) {
-      const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
-      LOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
-      if (path_exists(cubin)) {
-        LOG_INFO << "Using precompiled kernel.";
-        return cubin;
-      }
+  else if (!use_adaptive_compilation()) {
+    const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
+    LOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
+    if (path_exists(cubin)) {
+      LOG_INFO << "Using precompiled kernel.";
+      return cubin;
     }
 
     /* The driver can JIT-compile PTX generated for older generations, so find the closest one. */
@@ -296,8 +299,8 @@ string CUDADevice::compile_kernel(const string &common_cflags,
    */
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
-  const char *const kernel_ext = force_ptx ? "ptx" : "cubin";
-  const char *const kernel_arch = force_ptx ? "compute" : "sm";
+  const char *const kernel_ext = optix ? "ptx" : "cubin";
+  const char *const kernel_arch = optix ? "compute" : "sm";
   const string cubin_file = string_printf(
       "cycles_%s_%s_%d%d_%s.%s", name, kernel_arch, major, minor, kernel_md5.c_str(), kernel_ext);
   const string cubin = path_cache_get(path_join("kernels", cubin_file));
@@ -345,15 +348,16 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   }
   if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
     LOG_ERROR << "CUDA version " << nvcc_cuda_version / 10 << "." << nvcc_cuda_version % 10
-              << "CUDA 10.1 to 12 are officially supported.";
+              << " detected, build may succeed but only CUDA 10.1 to 12 are officially supported.";
   }
 
   double starttime = time_dt();
 
   path_create_directories(cubin);
 
-  source_path = path_join(path_join(source_path, "kernel"),
-                          path_join("device", path_join(base, string_printf("%s.cu", name))));
+  source_path = path_join(
+      path_join(source_path, "kernel"),
+      path_join("device", path_join(optix ? "optix" : "cuda", string_printf("%s.cu", name))));
 
   string command = string_printf(
       "\"%s\" "
