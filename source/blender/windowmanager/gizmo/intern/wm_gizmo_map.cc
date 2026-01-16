@@ -1383,7 +1383,7 @@ void WM_gizmoconfig_update(Main *bmain)
 
   if (wm_gzmap_type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE) {
     for (wmGizmoMapType &gzmap_type : gizmomaptypes) {
-      if (gzmap_type.type_update_flag & WM_GIZMOMAPTYPE_GLOBAL_UPDATE_REMOVE) {
+      if (gzmap_type.type_update_flag & WM_GIZMOMAPTYPE_UPDATE_REMOVE) {
         gzmap_type.type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_REMOVE;
         for (wmGizmoGroupTypeRef *
                  gzgt_ref = static_cast<wmGizmoGroupTypeRef *>(gzmap_type.grouptype_refs.first),
