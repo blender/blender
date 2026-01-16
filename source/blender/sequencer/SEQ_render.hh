@@ -26,11 +26,6 @@ struct StripElem;
 
 namespace seq {
 
-enum eTaskId {
-  SEQ_TASK_MAIN_RENDER,
-  SEQ_TASK_PREFETCH_RENDER,
-};
-
 struct RenderData {
   Main *bmain = nullptr;
   Depsgraph *depsgraph = nullptr;
@@ -43,13 +38,10 @@ struct RenderData {
   int motion_blur_samples = 0;
   float motion_blur_shutter = 0.0f;
   bool skip_cache = false;
-  bool is_proxy_render = false;
   bool is_prefetch_render = false;
   bool is_playing = false;
   bool is_scrubbing = false;
   int view_id = 0;
-  /* ID of task for assigning temp cache entries to particular task(thread, etc.) */
-  eTaskId task_id = SEQ_TASK_MAIN_RENDER;
 
   /* Set when executing as part of a frame or animation render. */
   Render *render = nullptr;

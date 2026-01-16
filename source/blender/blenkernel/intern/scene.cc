@@ -3266,7 +3266,7 @@ const char *BKE_scene_multiview_view_id_suffix_get(const RenderData *rd, const i
   return BKE_scene_multiview_view_suffix_get(rd, viewname);
 }
 
-void BKE_scene_multiview_view_prefix_get(Scene *scene,
+void BKE_scene_multiview_view_prefix_get(const Scene *scene,
                                          const char *filepath,
                                          char *r_prefix,
                                          const char **r_ext)
