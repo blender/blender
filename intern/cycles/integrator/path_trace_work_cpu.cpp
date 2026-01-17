@@ -56,8 +56,14 @@ PathTraceWorkCPU::PathTraceWorkCPU(Device *device,
 
 void PathTraceWorkCPU::init_execution()
 {
-  /* Cache per-thread kernel globals. */
-  device_->get_cpu_kernel_thread_globals(kernel_thread_globals_);
+  /* Acquire thread globals, updating all data pointers. */
+  kernel_thread_globals_ = device_->acquire_cpu_kernel_thread_globals();
+}
+
+void PathTraceWorkCPU::deinit_execution()
+{
+  device_->release_cpu_kernel_thread_globals();
+  kernel_thread_globals_ = nullptr;
 }
 
 void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
@@ -70,7 +76,7 @@ void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
   const int64_t total_pixels_num = image_width * image_height;
 
   if (device_->profiler.active()) {
-    for (ThreadKernelGlobalsCPU &kernel_globals : kernel_thread_globals_) {
+    for (ThreadKernelGlobalsCPU &kernel_globals : *kernel_thread_globals_) {
       kernel_globals.start_profiling();
     }
   }
@@ -96,13 +102,13 @@ void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
       work_tile.offset = effective_buffer_params_.offset;
       work_tile.stride = effective_buffer_params_.stride;
 
-      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_get(kernel_thread_globals_);
+      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_get(*kernel_thread_globals_);
 
       render_samples_full_pipeline(kernel_globals, work_tile, samples_num);
     });
   });
   if (device_->profiler.active()) {
-    for (ThreadKernelGlobalsCPU &kernel_globals : kernel_thread_globals_) {
+    for (ThreadKernelGlobalsCPU &kernel_globals : *kernel_thread_globals_) {
       kernel_globals.stop_profiling();
     }
   }
@@ -258,7 +264,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(const float
   /* Check convergency and do x-filter in a single `parallel_for`, to reduce threading overhead. */
   local_arena.execute([&]() {
     parallel_for(full_y, full_y + height, [&](int y) {
-      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_.data();
+      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_->data();
 
       bool row_converged = true;
       uint num_row_pixels_active = 0;
@@ -283,7 +289,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(const float
   if (num_active_pixels) {
     local_arena.execute([&]() {
       parallel_for(full_x, full_x + width, [&](int x) {
-        ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_.data();
+        ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_->data();
         kernels_.adaptive_sampling_filter_y(
             kernel_globals, render_buffer, x, full_y, height, offset, stride);
       });
@@ -305,7 +311,7 @@ void PathTraceWorkCPU::cryptomatte_postproces()
   /* Check convergency and do x-filter in a single `parallel_for`, to reduce threading overhead. */
   local_arena.execute([&]() {
     parallel_for(0, height, [&](int y) {
-      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_.data();
+      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_->data();
       int pixel_index = y * width;
 
       for (int x = 0; x < width; ++x, ++pixel_index) {
@@ -333,7 +339,7 @@ void PathTraceWorkCPU::denoise_volume_guiding_buffers()
   /* Filter in x direction. */
   local_arena.execute([&]() {
     parallel_for(range, [&](const blocked_range2d<int> r) {
-      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_.data();
+      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_->data();
       for (int y = r.cols().begin(); y < r.cols().end(); ++y) {
         for (int x = r.rows().begin(); x < r.rows().end(); ++x) {
           kernels_.volume_guiding_filter_x(
@@ -347,7 +353,7 @@ void PathTraceWorkCPU::denoise_volume_guiding_buffers()
    * the kernel, to avoid the need of intermediate buffers. */
   local_arena.execute([&]() {
     parallel_for(min_x, max_x, [&](int x) {
-      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_.data();
+      ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_->data();
       kernels_.volume_guiding_filter_y(
           kernel_globals, render_buffer, x, min_y, max_y, offset, stride);
     });
@@ -363,8 +369,8 @@ void PathTraceWorkCPU::guiding_init_kernel_globals(void *guiding_field,
 {
   /* Linking the global guiding structures (e.g., Field and SampleStorage) to the per-thread
    * kernel globals. */
-  for (int thread_index = 0; thread_index < kernel_thread_globals_.size(); thread_index++) {
-    ThreadKernelGlobalsCPU &kg = kernel_thread_globals_[thread_index];
+  for (int thread_index = 0; thread_index < kernel_thread_globals_->size(); thread_index++) {
+    ThreadKernelGlobalsCPU &kg = (*kernel_thread_globals_)[thread_index];
     openpgl::cpp::Field *field = (openpgl::cpp::Field *)guiding_field;
 
     /* Allocate sampling distributions. */

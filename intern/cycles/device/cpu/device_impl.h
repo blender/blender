@@ -37,6 +37,7 @@ CCL_NAMESPACE_BEGIN
 class CPUDevice : public Device {
  public:
   KernelGlobalsCPU kernel_globals;
+  vector<ThreadKernelGlobalsCPU> kernel_thread_globals_;
 
   device_vector<KernelImageInfo> image_info;
   bool need_image_info;
@@ -86,8 +87,8 @@ class CPUDevice : public Device {
 
   void *get_guiding_device() const override;
 
-  void get_cpu_kernel_thread_globals(
-      vector<ThreadKernelGlobalsCPU> &kernel_thread_globals) override;
+  vector<ThreadKernelGlobalsCPU> *acquire_cpu_kernel_thread_globals() override;
+  void release_cpu_kernel_thread_globals() override;
   OSLGlobals *get_cpu_osl_memory() override;
   void set_image_cache_func(KernelImageCacheLoadTileFunc image_cache_load_tile,
                             KernelImageCacheUpdateFunc image_cache_update) override;

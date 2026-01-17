@@ -195,6 +195,9 @@ class PathTrace {
   /* Initialize kernel execution on all integrator queues. */
   void render_init_kernel_execution();
 
+  /* Release kernel execution resources on all integrator queues. */
+  void render_deinit_kernel_execution();
+
   /* Make sure both allocated and effective buffer parameters of path tracer works are up to date
    * with the current big tile parameters, performance-dependent slicing, and resolution divider.
    */

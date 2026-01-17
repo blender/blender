@@ -199,7 +199,13 @@ void CPUDevice::const_copy_to(const char *name, void *host, const size_t size)
     data->device_bvh = embree_traversable;
   }
 #endif
+
+  /* Update both the main one, and the per-thread globals in case of updates during
+   * render from .e.g. the texture cache. */
   kernel_const_copy(&kernel_globals, name, host, size);
+  for (ThreadKernelGlobalsCPU &kg : kernel_thread_globals_) {
+    kernel_const_copy(&kg, name, host, size);
+  }
 }
 
 void CPUDevice::global_alloc(device_memory &mem)
@@ -208,7 +214,12 @@ void CPUDevice::global_alloc(device_memory &mem)
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 
+  /* Update both the main one, and the per-thread globals in case of updates during
+   * render from .e.g. the texture cache. */
   kernel_global_memory_copy(&kernel_globals, mem.name, mem.host_pointer, mem.data_size);
+  for (ThreadKernelGlobalsCPU &kg : kernel_thread_globals_) {
+    kernel_global_memory_copy(&kg, mem.name, mem.host_pointer, mem.data_size);
+  }
 
   mem.device_pointer = (device_ptr)mem.host_pointer;
   mem.device_size = mem.memory_size();
@@ -304,17 +315,25 @@ void *CPUDevice::get_guiding_device() const
 #endif
 }
 
-void CPUDevice::get_cpu_kernel_thread_globals(
-    vector<ThreadKernelGlobalsCPU> &kernel_thread_globals)
+vector<ThreadKernelGlobalsCPU> *CPUDevice::acquire_cpu_kernel_thread_globals()
 {
-  /* Ensure latest image info is loaded into kernel globals before returning. */
+  /* Ensure latest image info is loaded into kernel globals. */
   load_image_info();
 
-  kernel_thread_globals.clear();
+  assert(kernel_thread_globals_.empty());
+
+  kernel_thread_globals_.clear();
   OSLGlobals *osl_globals = get_cpu_osl_memory();
   for (int i = 0; i < info.cpu_threads; i++) {
-    kernel_thread_globals.emplace_back(kernel_globals, osl_globals, profiler, i);
+    kernel_thread_globals_.emplace_back(kernel_globals, osl_globals, profiler, i);
   }
+
+  return &kernel_thread_globals_;
+}
+
+void CPUDevice::release_cpu_kernel_thread_globals()
+{
+  kernel_thread_globals_.clear();
 }
 
 OSLGlobals *CPUDevice::get_cpu_osl_memory()
