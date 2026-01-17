@@ -2628,20 +2628,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   if (ss.shapekey_active != nullptr && ss.deform_cos.is_empty()) {
     ss.deform_cos = Span(static_cast<const float3 *>(ss.shapekey_active->data),
                          mesh_orig->verts_num);
-  }
-
-  /* if pbvh is deformed, key block is already applied to it */
-  if (ss.shapekey_active) {
-    if (ss.deform_cos.is_empty()) {
-      const Span key_data(static_cast<const float3 *>(ss.shapekey_active->data),
-                          mesh_orig->verts_num);
-
-      if (key_data.data() != nullptr) {
-        BKE_pbvh_vert_coords_apply(pbvh, key_data);
-        if (ss.deform_cos.is_empty()) {
-          ss.deform_cos = key_data;
-        }
-      }
+    if (!ss.deform_cos.is_empty()) {
+      BKE_pbvh_vert_coords_apply(pbvh, ss.deform_cos);
     }
   }
 
