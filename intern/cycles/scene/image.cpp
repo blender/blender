@@ -1062,17 +1062,74 @@ void ImageManager::device_free(Scene *scene)
   scene->dscene.image_texture_udims.free();
 }
 
-void ImageManager::collect_statistics(RenderStats *stats)
+void ImageManager::collect_statistics(RenderStats *stats, Scene *scene)
 {
+  DeviceScene &dscene = scene->dscene;
+
   for (const unique_ptr<ImageSingle> &image : images) {
     if (!image) {
       /* Image may have been freed due to lack of users. */
       continue;
     }
 
-    // TODO: collection from image cache
-    stats->image.textures.add_entry(NamedSizeEntry(image->loader->name(), 0));
+    if (image->tile_descriptor_offset != KERNEL_IMAGE_NONE && image->tile_descriptor_num > 0) {
+      /* Tiled image. */
+      ImageTileStats tile_stats;
+      tile_stats.name = image->loader->name();
+      tile_stats.size = 0;
+
+      const KernelTileDescriptor *tile_descriptors = dscene.image_texture_tile_descriptors.data() +
+                                                     image->tile_descriptor_offset +
+                                                     image->tile_descriptor_levels;
+      const KernelTileDescriptor *levels = dscene.image_texture_tile_descriptors.data() +
+                                           image->tile_descriptor_offset;
+
+      /* Compute per-mip-level statistics. */
+      const int tile_size = image->metadata.tile_size;
+      const size_t pixel_bytes = image->metadata.pixel_memory_size();
+      const size_t tile_bytes = tile_size * tile_size * pixel_bytes;
+
+      for (int miplevel = 0; miplevel < (int)image->tile_descriptor_levels; miplevel++) {
+        const int width = image->metadata.width >> miplevel;
+        const int height = image->metadata.height >> miplevel;
+        const int tiles_x = divide_up(width, tile_size);
+        const int tiles_y = divide_up(height, tile_size);
+        const int tiles_total = tiles_x * tiles_y;
+
+        /* Count loaded tiles for this mip level. */
+        const size_t level_start = levels[miplevel] - image->tile_descriptor_levels;
+        int tiles_loaded = 0;
+        for (int i = 0; i < tiles_total; i++) {
+          if (kernel_tile_descriptor_loaded(tile_descriptors[level_start + i])) {
+            tiles_loaded++;
+          }
+        }
+
+        ImageMipLevelStats mip_stats;
+        mip_stats.width = width;
+        mip_stats.height = height;
+        mip_stats.tiles_total = tiles_total;
+        mip_stats.tiles_loaded = tiles_loaded;
+        tile_stats.mip_levels.push_back(mip_stats);
+
+        tile_stats.size += tiles_loaded * tile_bytes;
+      }
+
+      stats->image.tiled_images.push_back(tile_stats);
+      stats->image.tiled_images_size += tile_stats.size;
+    }
+    else {
+      /* Non-tiled image. */
+      stats->image.full_images.add_entry(
+          NamedSizeEntry(image->loader->name(), image->metadata.memory_size()));
+    }
   }
+
+  /* Add global overhead from device vectors. */
+  stats->image.overhead_size = dscene.image_textures.memory_size() +
+                               dscene.image_texture_tile_request_bits.memory_size() +
+                               dscene.image_texture_tile_descriptors.memory_size() +
+                               dscene.image_texture_udims.memory_size();
 }
 
 void ImageManager::tag_update()

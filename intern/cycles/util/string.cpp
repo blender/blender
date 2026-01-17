@@ -288,7 +288,7 @@ string string_human_readable_size(size_t size)
   if (*suffix != 'B') {
     return string_printf("%.2f%c", double(size * 1024 + r) / 1024.0, *suffix);
   }
-  return string_printf("%zu", size);
+  return string_printf("%zuB", size);
 }
 
 string string_human_readable_number(size_t num)

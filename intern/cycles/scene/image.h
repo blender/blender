@@ -236,7 +236,7 @@ class ImageManager {
 
   bool set_animation_frame_update(const int frame);
 
-  void collect_statistics(RenderStats *stats);
+  void collect_statistics(RenderStats *stats, Scene *scene);
 
   void tag_update();
 
