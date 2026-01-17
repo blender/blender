@@ -8,6 +8,7 @@
 #include "kernel/globals.h"
 #include "kernel/sample/lcg.h"
 
+#include "util/atomic.h"
 #include "util/defines.h"
 #include "util/math_fast.h"
 #include "util/types_image.h"
@@ -145,9 +146,15 @@ kernel_image_tile_map(KernelGlobals kg,
     /* For GPU, mark load requested and cancel shader execution. */
     if (tile_descriptor == KERNEL_TILE_LOAD_NONE) {
       tile_descriptor = KERNEL_TILE_LOAD_REQUEST;
+      /* Write load request for quick rejection of subsequent reads. */
       kernel_data_write(image_texture_tile_descriptors,
                         tex.tile_descriptor_offset + tile_offset,
                         tile_descriptor);
+      /* Set bit in request bitmap that will be read back to host. */
+      const uint bit_index = tex.tile_descriptor_offset + tile_offset;
+      atomic_fetch_and_or_uint32(
+          &kernel_data_array(image_texture_tile_request_bits)[bit_index >> 5],
+          1u << (bit_index & 31));
     }
     if (tile_descriptor == KERNEL_TILE_LOAD_REQUEST) {
       sd->flag |= SD_CACHE_MISS;

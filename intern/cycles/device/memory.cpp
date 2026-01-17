@@ -97,6 +97,12 @@ void device_memory::device_copy_from(const size_t y, const size_t w, size_t h, c
   device->mem_copy_from(*this, y, w, h, elem);
 }
 
+void device_memory::device_copy_merged_bitmap_from(const size_t y, const size_t w, size_t h)
+{
+  assert(type != MEM_IMAGE_TEXTURE && type != MEM_READ_ONLY);
+  device->mem_copy_merged_bitmap_from(*this, y, w, h);
+}
+
 void device_memory::device_zero()
 {
   if (data_size) {

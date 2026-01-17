@@ -521,6 +521,15 @@ void Device::host_free(const MemoryType /*type*/, void *host_pointer, const size
   util_aligned_free(host_pointer, size);
 }
 
+void Device::mem_copy_merged_bitmap_from(device_memory &mem,
+                                         const size_t y,
+                                         const size_t w,
+                                         const size_t h)
+{
+  /* Default implementation just does a regular copy, multi device will merge it. */
+  mem_copy_from(mem, y, w, h, mem.data_elements * datatype_size(mem.data_type));
+}
+
 GPUDevice::~GPUDevice() noexcept(false) = default;
 
 bool GPUDevice::load_image_info()

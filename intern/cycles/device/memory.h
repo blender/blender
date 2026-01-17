@@ -289,6 +289,7 @@ class device_memory {
   void device_copy_to();
   void device_move_to_host();
   void device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem);
+  void device_copy_merged_bitmap_from(const size_t y, const size_t w, size_t h);
   void device_zero();
 
   /* Memory can only be freed on host and device together. */
@@ -542,6 +543,12 @@ template<typename T> class device_vector : public device_memory {
   void copy_from_device(const size_t y, const size_t w, size_t h)
   {
     device_copy_from(y, w, h, sizeof(T));
+  }
+
+  /* Copy from all devices and OR into host memory. */
+  void copy_merged_bitmap_from_device()
+  {
+    device_copy_merged_bitmap_from(0, data_size, 1);
   }
 
   void zero_to_device()

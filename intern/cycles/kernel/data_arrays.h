@@ -93,6 +93,7 @@ KERNEL_DATA_ARRAY(float, volume_step_size)
 /* image textures */
 KERNEL_DATA_ARRAY(KernelImageTexture, image_textures)
 KERNEL_DATA_ARRAY_WRITABLE(KernelTileDescriptor, image_texture_tile_descriptors)
+KERNEL_DATA_ARRAY_WRITABLE(uint, image_texture_tile_request_bits)
 KERNEL_DATA_ARRAY(KernelImageUDIM, image_texture_udims)
 KERNEL_DATA_ARRAY(KernelImageInfo, image_info)
 

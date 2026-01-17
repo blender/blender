@@ -532,6 +532,7 @@ void ImageManager::device_copy_image_textures(Device *device, Scene *scene)
 
   dscene.image_textures.copy_to_device_if_modified();
   dscene.image_texture_tile_descriptors.copy_to_device_if_modified();
+  dscene.image_texture_tile_request_bits.copy_to_device_if_modified();
   dscene.image_texture_udims.copy_to_device_if_modified();
 
   device->set_image_cache_func(
@@ -632,6 +633,17 @@ void ImageManager::device_load_image_tiled(Scene *scene, const size_t slot)
     scene->dscene.image_texture_tile_descriptors.resize(tile_descriptor_offset + levels.size() +
                                                         num_tiles);
 
+    /* Resize request bitmap to match tile descriptors (1 bit per tile, stored in uint32 words). */
+    const size_t num_bits = scene->dscene.image_texture_tile_descriptors.size();
+    const size_t num_words = divide_up(num_bits, 32u);
+    const size_t old_num_words = scene->dscene.image_texture_tile_request_bits.size();
+    if (num_words > old_num_words) {
+      scene->dscene.image_texture_tile_request_bits.resize(num_words);
+      std::fill_n(scene->dscene.image_texture_tile_request_bits.data() + old_num_words,
+                  num_words - old_num_words,
+                  0u);
+    }
+
     KernelTileDescriptor *descr_data = scene->dscene.image_texture_tile_descriptors.data() +
                                        tile_descriptor_offset;
 
@@ -706,26 +718,69 @@ KernelTileDescriptor ImageManager::device_update_tile_requested(Device *device,
 void ImageManager::device_update_image_requested(Device *device, Scene *scene, ImageSingle *img)
 {
   const size_t tile_size = img->metadata.tile_size;
+  const size_t base_offset = img->tile_descriptor_offset + img->tile_descriptor_levels;
 
+  const uint *bits = scene->dscene.image_texture_tile_request_bits.data();
   KernelTileDescriptor *tile_descriptors = scene->dscene.image_texture_tile_descriptors.data() +
-                                           img->tile_descriptor_offset +
-                                           img->tile_descriptor_levels;
+                                           base_offset;
+  const KernelTileDescriptor *levels = scene->dscene.image_texture_tile_descriptors.data() +
+                                       img->tile_descriptor_offset;
 
-  size_t i = 0;
-  for (int miplevel = 0; miplevel < img->tile_descriptor_levels; miplevel++) {
-    const int width = img->metadata.width >> miplevel;
-    const int height = img->metadata.height >> miplevel;
+  /* Scan bitmap for this image's tiles. */
+  const size_t start_bit = base_offset;
+  const size_t end_bit = base_offset + img->tile_descriptor_num;
+  const size_t start_word = start_bit >> 5;
+  const size_t end_word = (end_bit + 31) >> 5;
 
-    for (size_t y = 0; y < height; y += tile_size) {
-      for (size_t x = 0; x < width; x += tile_size, i++) {
-        assert(i < img->tile_descriptor_num);
+  for (size_t w = start_word; w < end_word; w++) {
+    uint word = bits[w];
+    if (word == 0) {
+      continue;
+    }
 
-        if (tile_descriptors[i] != KERNEL_TILE_LOAD_REQUEST) {
-          continue;
-        }
+    while (word) {
+      const uint bit_in_word = bitscan(word);
+      const size_t global_bit = (w << 5) + bit_in_word;
+      word &= word - 1; /* Clear lowest set bit. */
 
-        tile_descriptors[i] = device_update_tile_requested(device, scene, img, miplevel, x, y);
+      /* Check if bit is within this image's range. */
+      if (global_bit < start_bit || global_bit >= end_bit) {
+        continue;
       }
+
+      const size_t tile_idx = global_bit - base_offset;
+
+      /* Skip if tile is already loaded or failed, possibly by a CPU device. */
+      if (kernel_tile_descriptor_loaded(tile_descriptors[tile_idx]) ||
+          tile_descriptors[tile_idx] == KERNEL_TILE_LOAD_FAILED)
+      {
+        continue;
+      }
+
+      /* Find miplevel for this tile index. The stored level values are offsets from
+       * tile_descriptor_offset, so subtract tile_descriptor_levels to get the tile index. */
+      int miplevel = 0;
+      size_t level_start = 0;
+      for (int m = 0; m < img->tile_descriptor_levels; m++) {
+        const size_t level_offset = levels[m] - img->tile_descriptor_levels;
+        if (tile_idx < level_offset) {
+          break;
+        }
+        level_start = level_offset;
+        miplevel = m;
+      }
+
+      /* Compute tile pixel coordinates within miplevel. */
+      const size_t idx_in_level = tile_idx - level_start;
+      const int width = img->metadata.width >> miplevel;
+      const size_t tiles_x = divide_up(width, (int)tile_size);
+      const size_t tile_y = idx_in_level / tiles_x;
+      const size_t tile_x = idx_in_level % tiles_x;
+      const size_t x = tile_x * tile_size;
+      const size_t y = tile_y * tile_size;
+
+      tile_descriptors[tile_idx] = device_update_tile_requested(
+          device, scene, img, miplevel, x, y);
     }
   }
 }
@@ -840,8 +895,8 @@ void ImageManager::device_cpu_load_requested(Device *device,
 
 void ImageManager::device_gpu_load_requested(Device *device, Scene *scene)
 {
-  // TODO: Make this work with multi-device rendering
-  scene->dscene.image_texture_tile_descriptors.copy_from_device();
+  /* Copy and merge request bitmaps from all devices (OR operation). */
+  scene->dscene.image_texture_tile_request_bits.copy_merged_bitmap_from_device();
 
   parallel_for(blocked_range<size_t>(0, images.size(), 1), [&](const blocked_range<size_t> &r) {
     for (size_t i = r.begin(); i != r.end(); i++) {
@@ -851,6 +906,9 @@ void ImageManager::device_gpu_load_requested(Device *device, Scene *scene)
       }
     }
   });
+
+  /* Clear bitmap on all devices for next iteration. */
+  scene->dscene.image_texture_tile_request_bits.zero_to_device();
 
   device_copy_image_textures(device, scene);
 }

@@ -326,7 +326,12 @@ class Device {
   virtual void mem_copy_to(device_memory &mem) = 0;
   virtual void mem_move_to_host(device_memory &mem) = 0;
   virtual void mem_copy_from(
-      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) = 0;
+      device_memory &mem, const size_t y, const size_t w, const size_t h, size_t elem) = 0;
+  /* Copy from all devices and OR into host memory. */
+  virtual void mem_copy_merged_bitmap_from(device_memory &mem,
+                                           const size_t y,
+                                           const size_t w,
+                                           const size_t h);
   virtual void mem_zero(device_memory &mem) = 0;
   virtual void mem_free(device_memory &mem) = 0;
 

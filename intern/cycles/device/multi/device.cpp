@@ -477,7 +477,7 @@ class MultiDevice : public Device {
   }
 
   void mem_copy_from(
-      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override
+      device_memory &mem, const size_t y, const size_t w, const size_t h, size_t elem) override
   {
     device_ptr key = mem.device_pointer;
     const size_t sub_h = h / devices.size();
@@ -493,6 +493,50 @@ class MultiDevice : public Device {
 
       owner_sub->device->mem_copy_from(mem, sy, w, sh, elem);
       i++;
+    }
+
+    mem.device = this;
+    mem.device_pointer = key;
+  }
+
+  void mem_copy_merged_bitmap_from(device_memory &mem,
+                                   const size_t y,
+                                   const size_t w,
+                                   const size_t h) override
+  {
+    /* Copy from all devices and OR together into host memory. */
+    device_ptr key = mem.device_pointer;
+    const size_t elem = mem.data_elements * datatype_size(mem.data_type);
+    const size_t num_elements = w * h;
+    bool first = true;
+
+    /* Temporary buffer for reading from subsequent devices. */
+    vector<uint> tmp_buffer(num_elements);
+
+    for (SubDevice &sub : devices) {
+      SubDevice *owner_sub = find_matching_mem_device(key, sub);
+      mem.device = owner_sub->device.get();
+      mem.device_pointer = owner_sub->ptr_map[key];
+
+      if (first) {
+        /* First device: copy directly to host memory. */
+        owner_sub->device->mem_copy_from(mem, y, w, h, elem);
+        first = false;
+      }
+      else {
+        /* Subsequent devices: copy to temp buffer and OR into host memory. */
+        void *original_host_pointer = mem.host_pointer;
+        mem.host_pointer = tmp_buffer.data();
+        owner_sub->device->mem_copy_from(mem, y, w, h, elem);
+        mem.host_pointer = original_host_pointer;
+
+        /* OR the data into host memory. */
+        uint *dst = static_cast<uint *>(mem.host_pointer);
+        const uint *src = tmp_buffer.data();
+        for (size_t i = 0; i < num_elements; i++) {
+          dst[i] |= src[i];
+        }
+      }
     }
 
     mem.device = this;
