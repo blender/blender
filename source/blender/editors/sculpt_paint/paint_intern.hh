@@ -79,6 +79,7 @@ enum BrushStrokeMode {
   BRUSH_STROKE_INVERT,
   BRUSH_STROKE_SMOOTH,
   BRUSH_STROKE_ERASE,
+  BRUSH_STROKE_MASK,
 };
 
 namespace ed::sculpt_paint {
