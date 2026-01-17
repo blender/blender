@@ -191,7 +191,7 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
  * Will rebuild all used indices and proxies at once.
  */
 void MOV_proxy_builder_process(MovieProxyBuilder *context,
-                               bool *stop,
+                               const bool *stop,
                                bool *do_update,
                                blender::FunctionRef<void(float progress)> set_progress_fn);
 

@@ -2517,7 +2517,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
         eSpaceSeq_Proxy_RenderSize(sseq->render_size));
 
     /* Build proxy. */
-    seq::proxy_rebuild_context(pj->main, pj->scene, &strip, &processed_paths, true, pj->queue);
+    seq::proxy_build_start(pj->main, pj->scene, &strip, &processed_paths, true, pj->queue);
   }
 
   if (!WM_jobs_is_running(wm_job)) {

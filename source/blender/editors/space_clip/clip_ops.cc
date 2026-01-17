@@ -1238,7 +1238,7 @@ static void do_movie_proxy(void *pjv,
                            int /*build_count*/,
                            const int *build_undistort_sizes,
                            int build_undistort_count,
-                           bool *stop,
+                           const bool *stop,
                            bool *do_update,
                            float *progress)
 {
@@ -1509,6 +1509,7 @@ static void proxy_endjob(void *pjv)
 
   if (pj->proxy_builder) {
     MOV_proxy_builder_finish(pj->proxy_builder, pj->stop);
+    pj->proxy_builder = nullptr;
   }
 
   if (pj->clip->source == MCLIP_SRC_MOVIE) {
