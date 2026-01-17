@@ -9,6 +9,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
@@ -55,7 +56,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        bke::pbvh::BMeshNode &node,
                        LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
@@ -81,7 +82,7 @@ void do_bmesh_topology_rake_brush(const Depsgraph &depsgraph,
                                   const IndexMask &node_mask,
                                   const float input_strength)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float strength = std::clamp(input_strength, 0.0f, 1.0f);

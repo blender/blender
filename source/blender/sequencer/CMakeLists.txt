@@ -17,7 +17,6 @@ set(INC
 )
 
 set(INC_SYS
-
 )
 
 set(SRC
@@ -119,6 +118,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::extern::xxhash
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::imbuf::movie
@@ -129,25 +129,12 @@ set(LIB
   PRIVATE bf::render
   PRIVATE bf::windowmanager
   bf_compositor
+  PRIVATE bf::dependencies::optional::audaspace
 )
 
 if(WITH_AUDASPACE)
-  list(APPEND INC_SYS
-    ${AUDASPACE_C_INCLUDE_DIRS}
-  )
-  if(WITH_SYSTEM_AUDASPACE)
-    list(APPEND LIB
-      ${AUDASPACE_C_LIBRARIES}
-      ${AUDASPACE_PY_LIBRARIES}
-    )
-  endif()
-  add_definitions(-DWITH_AUDASPACE)
-
   if(WITH_FFTW3)
     add_definitions(-DWITH_CONVOLUTION)
-  endif()
-  if(WITH_RUBBERBAND)
-    add_definitions(-DWITH_RUBBERBAND)
   endif()
 endif()
 

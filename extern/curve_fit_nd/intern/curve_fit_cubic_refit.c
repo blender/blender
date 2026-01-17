@@ -42,7 +42,6 @@
  *   when their re-fit position has a lower 'error'.
  *   While re-fitting, remove knots that fall below the error threshold.
  */
-
 #ifdef _MSC_VER
 #  define _USE_MATH_DEFINES
 #endif
@@ -58,6 +57,7 @@
 typedef unsigned int uint;
 
 #include "curve_fit_inline.h"
+#include "curve_fit_intern.h"
 #include "../curve_fit_nd.h"
 
 #include "generic_heap.h"
@@ -93,8 +93,6 @@ typedef unsigned int uint;
 /** Use pool allocator. */
 #define USE_TPOOL
 
-
-#define SPLIT_POINT_INVALID ((uint)-1)
 
 #define MIN2(x, y) ((x) < (y) ? (x) : (y))
 #define MAX2(x, y) ((x) > (y) ? (x) : (y))
@@ -244,94 +242,110 @@ static uint knot_span_length(const uint index_l, const uint index_r, const uint 
 static uint knot_find_split_point(
         const struct PointData *pd,
         const struct Knot *knot_l, const struct Knot *knot_r,
-        const uint knots_len,
         const uint dims)
 {
-	uint split_point = SPLIT_POINT_INVALID;
-	double split_point_dist_best = -DBL_MAX;
-
-	const double *offset = &pd->points[knot_l->index * dims];
-
-#ifdef USE_VLA
-	double v_plane[dims];
-	double v_proj[dims];
-	double v_offset[dims];
-#else
-	double *v_plane =   alloca(sizeof(double) * dims);
-	double *v_proj =    alloca(sizeof(double) * dims);
-	double *v_offset =  alloca(sizeof(double) * dims);
-#endif
-
-	sub_vn_vnvn(
-	        v_plane,
-	        &pd->points[knot_l->index * dims],
-	        &pd->points[knot_r->index * dims],
+	return split_point_find_max_distance(
+	        pd->points, pd->points_len,
+	        knot_l->index, knot_r->index,
 	        dims);
-
-	normalize_vn(v_plane, dims);
-
-	const uint knots_end = knots_len - 1;
-	const struct Knot *k_step = knot_l;
-	do {
-		KNOT_STEP_NEXT_WRAP(k_step, knots_end);
-
-		if (k_step != knot_r) {
-			sub_vn_vnvn(v_offset, &pd->points[k_step->index * dims], offset, dims);
-			project_plane_vn_vnvn_normalized(v_proj, v_offset, v_plane, dims);
-
-			double split_point_dist_test = len_squared_vn(v_proj, dims);
-			if (split_point_dist_test > split_point_dist_best) {
-				split_point_dist_best = split_point_dist_test;
-				split_point = k_step->index;
-			}
-		}
-		else {
-			break;
-		}
-
-	} while (true);
-
-	return split_point;
 }
 #endif  /* USE_KNOT_REFIT && !USE_KNOT_REFIT_REMOVE */
 
 
 #ifdef USE_CORNER_DETECT
 /**
- * Find the knot furthest from the line between \a knot_l & \a knot_r.
- * This is to be used as a split point.
+ * Wrapper for split_point_find_max_on_axis that uses Knot structures.
  */
 static uint knot_find_split_point_on_axis(
         const struct PointData *pd,
         const struct Knot *knot_l, const struct Knot *knot_r,
-        const uint knots_len,
-        const double *plane_no,
+        const double *axis,
         const uint dims)
 {
-	uint split_point = SPLIT_POINT_INVALID;
-	double split_point_dist_best = -DBL_MAX;
-
-	const uint knots_end = knots_len - 1;
-	const struct Knot *k_step = knot_l;
-	do {
-		KNOT_STEP_NEXT_WRAP(k_step, knots_end);
-
-		if (k_step != knot_r) {
-			double split_point_dist_test = dot_vnvn(plane_no, &pd->points[k_step->index * dims], dims);
-			if (split_point_dist_test > split_point_dist_best) {
-				split_point_dist_best = split_point_dist_test;
-				split_point = k_step->index;
-			}
-		}
-		else {
-			break;
-		}
-
-	} while (true);
-
-	return split_point;
+	return split_point_find_max_on_axis(
+	        pd->points, pd->points_len,
+	        knot_l->index, knot_r->index,
+	        axis, dims);
 }
 #endif  /* USE_CORNER_DETECT */
+
+
+#ifdef USE_KNOT_REFIT
+
+/** Methods for calculating split points during refit. */
+enum {
+	/**
+	 * Find the point with maximum error from the fitted curve.
+   * 
+	 * First to try: zero cost (reuses already-calculated refit_index).
+	 */
+	SPLIT_CALC_MAX_ERROR = 0,
+	/**
+	 * Find the point with maximum perpendicular distance from line-segment.
+   * 
+	 * Good early candidate: always returns a valid result, good general-purpose fallback.
+	 */
+	SPLIT_CALC_MAX_DISTANCE = 1,
+	/**
+	 * Find inflection point where the curve changes from bending one way to the other.
+	 * Useful for S-curves: detects where bending direction changes.
+	 *
+	 * Try later: may return INVALID.
+	 */
+	SPLIT_CALC_INFLECTION = 2,
+	/**
+	 * Find the point where the curve crosses the line between endpoints (sign change).
+	 * Useful for S-curves: detects where the curve crosses the line-segment.
+	 *
+	 * Try last: may return INVALID.
+	 */
+	SPLIT_CALC_SIGN_CHANGE = 3,
+};
+
+#define SPLIT_CALC_METHODS_NUM (SPLIT_CALC_SIGN_CHANGE + 1)
+
+/**
+ * Wrapper for split_point_find_sign_change that uses Knot structures.
+ */
+static uint knot_find_split_point_sign_change(
+        const struct PointData *pd,
+        const struct Knot *knot_l, const struct Knot *knot_r,
+        const uint dims)
+{
+	return split_point_find_sign_change(
+	        pd->points, pd->points_len,
+	        knot_l->index, knot_r->index,
+	        dims);
+}
+
+/**
+ * Wrapper for split_point_find_max_distance that uses Knot structures.
+ */
+static uint knot_find_split_point_max_distance(
+        const struct PointData *pd,
+        const struct Knot *knot_l, const struct Knot *knot_r,
+        const uint dims)
+{
+	return split_point_find_max_distance(
+	        pd->points, pd->points_len,
+	        knot_l->index, knot_r->index,
+	        dims);
+}
+
+/**
+ * Wrapper for split_point_find_inflection that uses Knot structures.
+ */
+static uint knot_find_split_point_inflection(
+        const struct PointData *pd,
+        const struct Knot *knot_l, const struct Knot *knot_r,
+        const uint dims)
+{
+	return split_point_find_inflection(
+	        pd->points, pd->points_len,
+	        knot_l->index, knot_r->index,
+	        dims);
+}
+#endif  /* USE_KNOT_REFIT */
 
 
 static double knot_remove_error_value(
@@ -551,6 +565,18 @@ static uint curve_incremental_simplify(
 			struct KnotRemoveState *r = HEAP_popmin(heap);
 			k = &knots[r->index];
 			k->heap_node = NULL;
+
+			/* Skip if curve is too small to simplify further.
+			 * Check BEFORE updating handles to avoid partial updates. */
+			if (UNLIKELY(knots_len_remaining <= 2)) {
+#ifdef USE_TPOOL
+				rstate_pool_elem_free(&epool, r);
+#else
+				free(r);
+#endif
+				continue;
+			}
+
 			k->prev->handles[1] = r->handles[0];
 			k->next->handles[0] = r->handles[1];
 
@@ -561,10 +587,6 @@ static uint curve_incremental_simplify(
 #else
 			free(r);
 #endif
-		}
-
-		if (UNLIKELY(knots_len_remaining <= 2)) {
-			continue;
 		}
 
 		struct Knot *k_prev = k->prev;
@@ -720,133 +742,215 @@ static void knot_refit_error_recalculate(
 #else
 	(void)error_sq_max;
 
-	const uint refit_index = knot_find_split_point(
-	         p->pd, k->prev, k->next,
-	         knots_len,
-	         dims);
+	uint refit_index = knot_find_split_point(
+	        p->pd, k->prev, k->next, dims);
 
 #endif  /* USE_KNOT_REFIT_REMOVE */
-
-	if ((refit_index == SPLIT_POINT_INVALID) ||
-	    (refit_index == k->index))
-	{
-		goto remove;
-	}
-
-	struct Knot *k_refit = &knots[refit_index];
 
 	const double cost_sq_src_max = MAX2(k->prev->error_sq_next, k->error_sq_next);
 	assert(cost_sq_src_max <= error_sq_max);
 
-	struct KnotAdjacentParams params_test;
+	/* Try multiple split calculation methods and pick the best one. */
+	uint best_refit_index = SPLIT_POINT_INVALID;
+	struct KnotAdjacentParams best_params;
+	double best_cost_sq_max = DBL_MAX;
 
-	if ((((params_test.error_sq_prev = knot_calc_curve_error_value(
-	           p->pd, k->prev, k_refit,
-	           k->prev->tan[1], k_refit->tan[0],
-	           dims,
-	           params_test.handles_prev)) < cost_sq_src_max) &&
-	     ((params_test.error_sq_next = knot_calc_curve_error_value(
-	           p->pd, k_refit, k->next,
-	           k_refit->tan[1], k->next->tan[0],
-	           dims,
-	           params_test.handles_next)) < cost_sq_src_max)))
-	{
-#ifdef USE_KNOT_REFIT_REFINE
-		/* Local refinement: search neighbors for a better refit index.
-		 * Search both directions independently to avoid bias.
-		 * Skip when error is zero (e.g. exactly straight lines). */
-		const double cost_sq_dst_max_init = MAX2(params_test.error_sq_prev, params_test.error_sq_next);
-		if (cost_sq_dst_max_init > 0.0) {
-			struct {
-				struct KnotAdjacentParams params;
-				uint index_refit;
-				bool is_refined;
-			} scan[2];
+	/* Track all indices tried to avoid redundant error calculations. */
+	uint tried_indices[SPLIT_CALC_METHODS_NUM];
+	uint tried_indices_num = 0;
 
-			/* `scan[0]`: toward `k_prev`, `scan[1]`: toward `k_next`. */
-			for (int i = 0; i < 2; i++) {
-				scan[i].index_refit = knot_refit_index_refine(
-				        p->pd, knots, k->prev, k->next, refit_index, (i == 0) ? -1 : 1,
-				        cost_sq_dst_max_init, dims, &scan[i].params);
-				scan[i].is_refined = (scan[i].index_refit != refit_index);
+	for (uint method_i = 0; method_i < SPLIT_CALC_METHODS_NUM; method_i++) {
+		uint test_refit_index = SPLIT_POINT_INVALID;
+
+		switch (method_i) {
+			case SPLIT_CALC_MAX_ERROR: {
+				/* Already calculated above as refit_index. */
+				test_refit_index = refit_index;
+				break;
 			}
-
-			/* Pick the best result from both directions. */
-			if (scan[0].is_refined || scan[1].is_refined) {
-				int side = 0;
-				if (scan[0].is_refined && scan[1].is_refined) {
-					/* Both directions found improvements, pick the best.
-					 * In the unlikely event of a tie, minimum error breaks it. */
-					const double cost_sq_max_0 = MAX2(scan[0].params.error_sq_prev,
-					                                  scan[0].params.error_sq_next);
-					const double cost_sq_max_1 = MAX2(scan[1].params.error_sq_prev,
-					                                  scan[1].params.error_sq_next);
-					if (cost_sq_max_0 < cost_sq_max_1) {
-						side = 0;
-					}
-					else if (cost_sq_max_1 < cost_sq_max_0) {
-						side = 1;
-					}
-					else {
-						const double cost_sq_min_0 = MIN2(scan[0].params.error_sq_prev,
-						                                  scan[0].params.error_sq_next);
-						const double cost_sq_min_1 = MIN2(scan[1].params.error_sq_prev,
-						                                  scan[1].params.error_sq_next);
-						side = (cost_sq_min_0 <= cost_sq_min_1) ? 0 : 1;
-					}
-				}
-				else {
-					side = scan[0].is_refined ? 0 : 1;
-				}
-
-				/* Use results from the winning direction. */
-				refit_index = scan[side].index_refit;
-				k_refit = &knots[refit_index];
-				params_test = scan[side].params;
+			case SPLIT_CALC_MAX_DISTANCE: {
+				test_refit_index = knot_find_split_point_max_distance(
+				        p->pd, k->prev, k->next, dims);
+				break;
+			}
+			case SPLIT_CALC_INFLECTION: {
+				test_refit_index = knot_find_split_point_inflection(
+				        p->pd, k->prev, k->next, dims);
+				break;
+			}
+			case SPLIT_CALC_SIGN_CHANGE: {
+				test_refit_index = knot_find_split_point_sign_change(
+				        p->pd, k->prev, k->next, dims);
+				break;
+			}
+			default: {
+				assert(!"Unknown split calculation method");
+				break;
 			}
 		}
-#endif  /* USE_KNOT_REFIT_REFINE */
 
+		if ((test_refit_index == SPLIT_POINT_INVALID) ||
+		    (test_refit_index == k->index))
 		{
-			struct KnotRefitState *r;
-			if (k->heap_node) {
-				r = HEAP_node_ptr(k->heap_node);
+			continue;
+		}
+
+		/* Skip if this index was already evaluated by a previous method. */
+		bool already_tried = false;
+		for (uint i = 0; i < tried_indices_num; i++) {
+			if (tried_indices[i] == test_refit_index) {
+				already_tried = true;
+				break;
 			}
-			else {
-#ifdef USE_TPOOL
-				r = refit_pool_elem_alloc(p->epool);
-#else
-				r = malloc(sizeof(*r));
-#endif
-				r->index = k->index;
+		}
+		if (already_tried) {
+			continue;
+		}
+		tried_indices[tried_indices_num++] = test_refit_index;
+
+		struct Knot *k_test_refit = &knots[test_refit_index];
+		struct KnotAdjacentParams test_params;
+
+		/* Calculate error for this split point. */
+		test_params.error_sq_prev = knot_calc_curve_error_value(
+		        p->pd, k->prev, k_test_refit,
+		        k->prev->tan[1], k_test_refit->tan[0],
+		        dims,
+		        test_params.handles_prev);
+
+		if (test_params.error_sq_prev >= cost_sq_src_max) {
+			continue;
+		}
+
+		test_params.error_sq_next = knot_calc_curve_error_value(
+		        p->pd, k_test_refit, k->next,
+		        k_test_refit->tan[1], k->next->tan[0],
+		        dims,
+		        test_params.handles_next);
+
+		if (test_params.error_sq_next >= cost_sq_src_max) {
+			continue;
+		}
+
+		/* This method produced a valid result, check if it's the best. */
+		const double test_cost_sq_max = MAX2(test_params.error_sq_prev, test_params.error_sq_next);
+		if (test_cost_sq_max < best_cost_sq_max) {
+			best_cost_sq_max = test_cost_sq_max;
+			best_refit_index = test_refit_index;
+			best_params = test_params;
+
+			/* Perfect fit, no point trying other methods. */
+			if (best_cost_sq_max == 0.0) {
+				break;
 			}
-
-			r->index_refit = refit_index;
-			r->fit_params = params_test;
-
-			const double cost_sq_dst_max = MAX2(params_test.error_sq_prev, params_test.error_sq_next);
-
-			assert(cost_sq_dst_max < cost_sq_src_max);
-
-			/* Weight for the greatest improvement. */
-			HEAP_insert_or_update(p->heap, &k->heap_node, cost_sq_src_max - cost_sq_dst_max, r);
 		}
 	}
-	else {
-remove:
+
+	/* No valid split point found from any method. */
+	if (best_refit_index == SPLIT_POINT_INVALID) {
+		goto remove;
+	}
+
+	refit_index = best_refit_index;
+	struct KnotAdjacentParams params_test = best_params;
+
+	/* Now do local refinement on the best result. */
+#ifdef USE_KNOT_REFIT_REFINE
+	/* Local refinement: search neighbors for a better refit index.
+	 * Search both directions independently to avoid bias.
+	 * Skip when error is zero (e.g. exactly straight lines). */
+	const double cost_sq_dst_max_init = MAX2(params_test.error_sq_prev, params_test.error_sq_next);
+	if (cost_sq_dst_max_init > 0.0) {
+		struct {
+			struct KnotAdjacentParams params;
+			uint index_refit;
+			bool is_refined;
+		} scan[2];
+
+		/* `scan[0]`: toward `k_prev`, `scan[1]`: toward `k_next`. */
+		for (int i = 0; i < 2; i++) {
+			scan[i].index_refit = knot_refit_index_refine(
+			        p->pd, knots, k->prev, k->next, refit_index, (i == 0) ? -1 : 1,
+			        cost_sq_dst_max_init, dims, &scan[i].params);
+			scan[i].is_refined = (scan[i].index_refit != refit_index);
+		}
+
+		/* Pick the best result from both directions. */
+		if (scan[0].is_refined || scan[1].is_refined) {
+			int side = 0;
+			if (scan[0].is_refined && scan[1].is_refined) {
+				/* Both directions found improvements, pick the best.
+				 * In the unlikely event of a tie, minimum error breaks it. */
+				const double cost_sq_max_0 = MAX2(scan[0].params.error_sq_prev,
+				                                  scan[0].params.error_sq_next);
+				const double cost_sq_max_1 = MAX2(scan[1].params.error_sq_prev,
+				                                  scan[1].params.error_sq_next);
+
+				if (cost_sq_max_0 < cost_sq_max_1) {
+					side = 0;
+				}
+				else if (cost_sq_max_1 < cost_sq_max_0) {
+					side = 1;
+				}
+				else {
+					const double cost_sq_min_0 = MIN2(scan[0].params.error_sq_prev,
+					                                  scan[0].params.error_sq_next);
+					const double cost_sq_min_1 = MIN2(scan[1].params.error_sq_prev,
+					                                  scan[1].params.error_sq_next);
+
+					side = (cost_sq_min_0 <= cost_sq_min_1) ? 0 : 1;
+				}
+			}
+			else {
+				side = scan[0].is_refined ? 0 : 1;
+			}
+
+			/* Use results from the winning direction. */
+			refit_index = scan[side].index_refit;
+			params_test = scan[side].params;
+		}
+	}
+#endif  /* USE_KNOT_REFIT_REFINE */
+
+	{
+		struct KnotRefitState *r;
 		if (k->heap_node) {
-			struct KnotRefitState *r;
 			r = HEAP_node_ptr(k->heap_node);
-			HEAP_remove(p->heap, k->heap_node);
+		}
+		else {
+#ifdef USE_TPOOL
+			r = refit_pool_elem_alloc(p->epool);
+#else
+			r = malloc(sizeof(*r));
+#endif
+			r->index = k->index;
+		}
+
+		r->index_refit = refit_index;
+		r->fit_params = params_test;
+
+		const double cost_sq_dst_max = MAX2(params_test.error_sq_prev, params_test.error_sq_next);
+
+		assert(cost_sq_dst_max < cost_sq_src_max);
+
+		/* Weight for the greatest improvement. */
+		HEAP_insert_or_update(p->heap, &k->heap_node, cost_sq_src_max - cost_sq_dst_max, r);
+	}
+	return;
+
+remove:
+	if (k->heap_node) {
+		struct KnotRefitState *r;
+		r = HEAP_node_ptr(k->heap_node);
+		HEAP_remove(p->heap, k->heap_node);
 
 #ifdef USE_TPOOL
-			refit_pool_elem_free(p->epool, r);
+		refit_pool_elem_free(p->epool, r);
 #else
-			free(r);
+		free(r);
 #endif
 
-			k->heap_node = NULL;
-		}
+		k->heap_node = NULL;
 	}
 }
 
@@ -895,6 +999,31 @@ static uint curve_incremental_simplify_refit(
 			k_old = &knots[r->index];
 			k_old->heap_node = NULL;
 
+			/* Skip if curve is too small to simplify further.
+			 * Check BEFORE updating handles to avoid partial updates. */
+			if (UNLIKELY(knots_len_remaining <= 2)) {
+#ifdef USE_TPOOL
+				refit_pool_elem_free(&epool, r);
+#else
+				free(r);
+#endif
+				continue;
+			}
+
+			k_old->prev->handles[1] = r->fit_params.handles_prev[0];
+			k_old->next->handles[0] = r->fit_params.handles_next[1];
+
+			/* Update error values for changed segments.
+			 *
+			 * Before:
+			 * - `k_prev - (error_sq_prev) -> k_refit - (error_sq_next) -> k_next`.
+			 * After:
+			 * - `k_prev->error_sq_next := error_sq_prev`.
+			 * - `k_refit->error_sq_next := error_sq_next`.
+			 * - `k_next->error_sq_next`: unchanged (segment beyond k_next unaffected).
+			 */
+			k_old->prev->error_sq_next = r->fit_params.error_sq_prev;
+
 #ifdef USE_KNOT_REFIT_REMOVE
 			if (r->index_refit == SPLIT_POINT_INVALID) {
 				k_refit = NULL;
@@ -905,20 +1034,14 @@ static uint curve_incremental_simplify_refit(
 				k_refit = &knots[r->index_refit];
 				k_refit->handles[0] = r->fit_params.handles_prev[1];
 				k_refit->handles[1] = r->fit_params.handles_next[0];
+				k_refit->error_sq_next = r->fit_params.error_sq_next;
 			}
-
-			k_old->prev->handles[1] = r->fit_params.handles_prev[0];
-			k_old->next->handles[0] = r->fit_params.handles_next[1];
 
 #ifdef USE_TPOOL
 			refit_pool_elem_free(&epool, r);
 #else
 			free(r);
 #endif
-		}
-
-		if (UNLIKELY(knots_len_remaining <= 2)) {
-			continue;
 		}
 
 		struct Knot *k_prev = k_old->prev;
@@ -1098,10 +1221,7 @@ static uint curve_incremental_simplify_corners(
 
 				/* Compare 2x so as to allow both to be changed by maximum of error_sq_max. */
 				const uint split_index = knot_find_split_point_on_axis(
-				        pd, k_prev, k_next,
-				        knots_len,
-				        plane_no,
-				        dims);
+				        pd, k_prev, k_next, plane_no, dims);
 
 				if (split_index != SPLIT_POINT_INVALID) {
 					const double *co_prev  = &params.pd->points[k_prev->index * dims];

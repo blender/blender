@@ -26,7 +26,7 @@ class SkyLoader : public ImageLoader {
 
   bool load_metadata(ImageMetaData &metadata) override;
 
-  bool load_pixels_full(const ImageMetaData &metadata, uint8_t *pixels) override;
+  bool load_pixels(const ImageMetaData &metadata, void *pixels) override;
 
   string name() const override;
 

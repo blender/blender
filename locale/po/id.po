@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15695,24 +15695,28 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
 msgid "Math"
 msgstr "Matematika"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Utilities"
 msgstr "Utilitas"
 
 
-msgid "Snap"
-msgstr "Jepret"
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Sample"
 msgstr "Sampel"
+
+
+msgid "Snap"
+msgstr "Jepret"
 
 
 msgid "Gizmo"
@@ -15745,10 +15749,6 @@ msgstr "Seleksi yang Terhubung"
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
 
 
 msgid "Light"

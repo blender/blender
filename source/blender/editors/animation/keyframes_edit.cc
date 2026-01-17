@@ -156,18 +156,6 @@ static short agrp_keyframes_loop(KeyframeEditData *ked,
     return 0;
   }
 
-  /* Legacy actions. */
-  if (agrp->wrap().is_legacy()) {
-    for (FCurve &fcu : agrp->channels) {
-      if (fcu.grp == agrp) {
-        if (ANIM_fcurve_keyframes_loop(ked, &fcu, key_ok, key_cb, fcu_cb)) {
-          return 1;
-        }
-      }
-    }
-    return 0;
-  }
-
   /* Layered actions. */
   animrig::Channelbag &channelbag = agrp->channelbag->wrap();
   Span<FCurve *> fcurves = channelbag.fcurves().slice(agrp->fcurve_range_start,

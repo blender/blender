@@ -2,6 +2,8 @@
 - Mesh 'Box' vtx:8 face:6 loop:24 edge:12
     - 0 4 6 2 3 ... 3 5 4 0 1 
     - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (1.000, 1.000, -1.000)
     - (1.000, -1.000, -1.000)
@@ -10,22 +12,20 @@
     - (-1.000, -1.000, -1.000)
     - (-1.000, 1.000, 1.000)
     - (-1.000, -1.000, 1.000)
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 1 1 1 1 1 1 
 
 - Mesh 'Pyramid' vtx:5 face:5 loop:16 edge:8
     - 0 1 2 3 0 ... 3 4 3 0 4 
     - 0/3 0/1 1/2 2/3 0/4 1/4 2/4 3/4 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (3.000, 1.000, -1.000)
     - (5.000, 1.000, -1.000)
     - (5.000, -1.000, -1.000)
     - (3.000, -1.000, -1.000)
     - (4.000, 0.000, 2.000)
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 1 1 1 1 1 
 

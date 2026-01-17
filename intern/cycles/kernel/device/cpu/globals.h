@@ -13,8 +13,8 @@
 #  include "kernel/osl/globals.h"
 #endif
 
-#include "util/guiding.h"  // IWYU pragma: keep
-#include "util/texture.h"  // IWYU pragma: keep
+#include "util/guiding.h"      // IWYU pragma: keep
+#include "util/types_image.h"  // IWYU pragma: keep
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN

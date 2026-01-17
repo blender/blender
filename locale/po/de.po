@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18718,32 +18718,28 @@ msgid "Show/Hide"
 msgstr "Zeigen/Verbergen"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Math"
 msgstr "Mathematisch"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
 msgid "Clean Up"
 msgstr "Aufräumen"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
 
 
 msgid "Read"
@@ -18758,12 +18754,28 @@ msgid "Write"
 msgstr "Schreiben"
 
 
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
+msgid "Pivot Point"
+msgstr "Drehpunkt"
 
 
 msgid "Primitives"
 msgstr "Grundkörper"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
 
 
 msgid "Instances"
@@ -18790,6 +18802,10 @@ msgid "Navigation"
 msgstr "Navigation"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "Ansicht ausrichten"
 
@@ -18804,10 +18820,6 @@ msgstr "Vierfenster Ansicht"
 
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Similar"
@@ -18828,10 +18840,6 @@ msgstr "Schleifen auswählen"
 
 msgid "Assign Material"
 msgstr "Material zuweisen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Light"
@@ -18898,6 +18906,14 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
 msgid "Toggle Bone Options"
 msgstr "Knochen-Optionen umschalten"
 
@@ -18906,16 +18922,8 @@ msgid "Enable Bone Options"
 msgstr "Knochen-Optionen einschalten"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
 msgid "Disable Bone Options"
 msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
 
 
 msgid "Mesh Select Mode"
@@ -18928,14 +18936,6 @@ msgstr "Flächendaten"
 
 msgid "Merge"
 msgstr "Zusammenführen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
 
 
 msgid "Assets"
@@ -41242,10 +41242,6 @@ msgstr "Wenn Sie Zahlen während der Transformation eingeben, verwenden Sie stan
 
 msgid "Orbit Around Selection"
 msgstr "Umlaufbahn um die Auswahl"
-
-
-msgid "Use selection as the pivot point"
-msgstr "Auswahl als Drehpunkt verwenden"
 
 
 msgid "Zoom to Mouse Position"

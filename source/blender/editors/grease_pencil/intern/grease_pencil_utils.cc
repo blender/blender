@@ -1745,7 +1745,7 @@ float4x2 calculate_texture_space(const Scene *scene,
 GreasePencil *from_context(bContext &C)
 {
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(
-      CTX_data_pointer_get_type(&C, "grease_pencil", &RNA_GreasePencil).data);
+      CTX_data_pointer_get_type(&C, "grease_pencil", RNA_GreasePencil).data);
 
   if (grease_pencil == nullptr) {
     Object *object = CTX_data_active_object(&C);

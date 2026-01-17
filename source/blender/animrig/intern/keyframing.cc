@@ -13,7 +13,6 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
-#include "ANIM_action_legacy.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
@@ -198,12 +197,12 @@ void CombinedKeyingResult::generate_reports(ReportList *reports, const eReportTy
 std::optional<StringRefNull> default_channel_group_for_path(const PointerRNA *animated_struct,
                                                             const StringRef prop_rna_path)
 {
-  if (animated_struct->type == &RNA_PoseBone) {
+  if (animated_struct->type == RNA_PoseBone) {
     bPoseChannel *pose_channel = static_cast<bPoseChannel *>(animated_struct->data);
     return pose_channel->name;
   }
 
-  if (animated_struct->type == &RNA_Object) {
+  if (animated_struct->type == RNA_Object) {
     if (prop_rna_path.find("location") != StringRef::not_found ||
         prop_rna_path.find("rotation") != StringRef::not_found ||
         prop_rna_path.find("scale") != StringRef::not_found)
@@ -272,7 +271,7 @@ static bool assigned_action_has_keyframe_at(AnimData &adt, const float frame)
     return false;
   }
 
-  for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(&adt)) {
+  for (FCurve *fcu : animrig::fcurves_for_assigned_action(&adt)) {
     if (fcurve_frame_has_keyframe(fcu, frame)) {
       return true;
     }

@@ -230,8 +230,7 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
 
     const bool use_preview = object_orig == data->object_orig_with_preview;
     if (use_preview) {
-      object_duplilist_preview(
-          data->graph, data->scene, object, data->settings->viewer_path, data->dupli_list);
+      object_duplilist_preview(data->graph, object, data->settings->viewer_path, data->dupli_list);
       deg_iterator_duplis_init(data, object);
       data->id_node_index++;
       return true;
@@ -251,8 +250,7 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
           ((object->transflag & OB_DUPLI) || object->runtime->geometry_set_eval != nullptr))
       {
         BLI_assert(deg::deg_validate_eval_copy_datablock(&object->id));
-        object_duplilist(
-            data->graph, data->scene, object, data->settings->included_objects, data->dupli_list);
+        object_duplilist(data->graph, object, data->settings->included_objects, data->dupli_list);
         deg_iterator_duplis_init(data, object);
       }
     }
@@ -276,7 +274,6 @@ void DEGObjectIterData::transfer_from(DEGObjectIterData &other)
   this->settings = other.settings;
   this->graph = other.graph;
   this->flag = other.flag;
-  this->scene = other.scene;
   this->eval_mode = other.eval_mode;
   this->object_orig_with_preview = other.object_orig_with_preview;
   this->next_object = other.next_object;
@@ -343,7 +340,6 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
   data->dupli_object_next = nullptr;
   data->dupli_object_next_index = -1;
   data->dupli_object_current = nullptr;
-  data->scene = DEG_get_evaluated_scene(depsgraph);
   data->id_node_index = 0;
   data->num_id_nodes = num_id_nodes;
   data->eval_mode = DEG_get_mode(depsgraph);

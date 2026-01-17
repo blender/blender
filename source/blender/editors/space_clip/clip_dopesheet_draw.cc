@@ -372,7 +372,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   y = (CHANNEL_FIRST);
 
   /* get RNA properties (once) */
-  PropertyRNA *chan_prop_lock = RNA_struct_type_find_property(&RNA_MovieTrackingTrack, "lock");
+  PropertyRNA *chan_prop_lock = RNA_struct_type_find_property(RNA_MovieTrackingTrack, "lock");
   BLI_assert(chan_prop_lock);
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -386,7 +386,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
     {
       MovieTrackingTrack *track = channel.track;
       const int icon = (track->flag & TRACK_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
-      PointerRNA ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTrackingTrack, track);
+      PointerRNA ptr = RNA_pointer_create_discrete(&clip->id, RNA_MovieTrackingTrack, track);
 
       block_emboss_set(block, ui::EmbossType::None);
       ui::Button *but = uiDefIconButR_prop(block,

@@ -41,6 +41,10 @@ if(WIN32)
   endif()
 endif()
 
+if(WITH_OPENGL_BACKEND)
+  add_definitions(-DWITH_OPENGL_BACKEND)
+endif()
+
 set(INC
   ../../../../intern/guardedalloc
   ../../blenlib
@@ -55,19 +59,9 @@ set(INC
 )
 
 set(INC_SYS
-  ${PYTHON_INCLUDE_DIRS}
-  ${Epoxy_INCLUDE_DIRS}
-  ${USD_INCLUDE_DIRS}
-  ${BOOST_INCLUDE_DIR}
-  ${TBB_INCLUDE_DIRS}
-  ${GFLAGS_INCLUDE_DIRS}
 )
 
 set(LIB
-  ${Epoxy_LIBRARIES}
-  ${PYTHON_LIBRARIES}
-  ${USD_LIBRARIES}
-  ${TBB_LIBRARIES}
   PRIVATE bf::blenkernel
   PRIVATE bf::depsgraph
   PRIVATE bf::gpu
@@ -75,6 +69,11 @@ set(LIB
   PRIVATE bf::intern::clog
   bf_io_usd
   PRIVATE bf::nodes
+  PRIVATE bf::dependencies::optional::python
+  PRIVATE bf::dependencies::optional::usd
+  PRIVATE bf::dependencies::optional::tbb
+  PRIVATE bf::dependencies::epoxy
+  PRIVATE bf::dependencies::gflags
   PRIVATE bf::dependencies::eigen
 )
 

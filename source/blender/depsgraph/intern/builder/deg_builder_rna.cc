@@ -163,7 +163,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   /* Handling of commonly known scenarios. */
   if (rna_prop_affects_parameters_node(ptr, prop)) {
     /* Custom properties of bones are placed in their components to improve granularity. */
-    if (RNA_struct_is_a(ptr->type, &RNA_PoseBone)) {
+    if (RNA_struct_is_a(ptr->type, RNA_PoseBone)) {
       const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
       node_identifier.type = NodeType::BONE;
       node_identifier.component_name = pchan->name;
@@ -175,7 +175,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     node_identifier.operation_name = RNA_property_identifier(prop);
     return node_identifier;
   }
-  if (ptr->type == &RNA_PoseBone) {
+  if (ptr->type == RNA_PoseBone) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
     /* Bone - generally, we just want the bone component. */
     node_identifier.type = NodeType::BONE;
@@ -210,7 +210,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     }
     return node_identifier;
   }
-  if (ptr->type == &RNA_Bone) {
+  if (ptr->type == RNA_Bone) {
     /* Armature-level bone mapped to Armature Eval, and thus Pose Init.
      * Drivers have special code elsewhere that links them to the pose
      * bone components, instead of using this generic code. */
@@ -229,7 +229,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
                                     RNA_property_identifier(const_cast<PropertyRNA *>(prop)) :
                                     "";
 
-  if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
+  if (RNA_struct_is_a(ptr->type, RNA_Constraint)) {
     const Object *object = reinterpret_cast<const Object *>(ptr->owner_id);
     const bConstraint *constraint = static_cast<const bConstraint *>(ptr->data);
     RNANodeQueryIDData *id_data = ensure_id_data(&object->id);
@@ -249,7 +249,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     }
     return node_identifier;
   }
-  if (ELEM(ptr->type, &RNA_ConstraintTarget, &RNA_ConstraintTargetBone)) {
+  if (ELEM(ptr->type, RNA_ConstraintTarget, RNA_ConstraintTargetBone)) {
     Object *object = reinterpret_cast<Object *>(ptr->owner_id);
     bConstraintTarget *tgt = static_cast<bConstraintTarget *>(ptr->data);
     /* Check whether is object or bone constraint. */
@@ -268,7 +268,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
       return node_identifier;
     }
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Modifier) &&
+  else if (RNA_struct_is_a(ptr->type, RNA_Modifier) &&
            (contains(prop_identifier, "show_viewport") ||
             contains(prop_identifier, "show_render")))
   {
@@ -276,14 +276,14 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     node_identifier.operation_code = OperationCode::VISIBILITY;
     return node_identifier;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Mesh) || RNA_struct_is_a(ptr->type, &RNA_Modifier) ||
-           RNA_struct_is_a(ptr->type, &RNA_Spline) || RNA_struct_is_a(ptr->type, &RNA_TextBox) ||
-           RNA_struct_is_a(ptr->type, &RNA_AnnotationLayer) ||
-           RNA_struct_is_a(ptr->type, &RNA_LatticePoint) ||
-           RNA_struct_is_a(ptr->type, &RNA_MeshUVLoop) ||
-           RNA_struct_is_a(ptr->type, &RNA_MeshLoopColor) ||
-           RNA_struct_is_a(ptr->type, &RNA_VertexGroupElement) ||
-           RNA_struct_is_a(ptr->type, &RNA_ShaderFx))
+  else if (RNA_struct_is_a(ptr->type, RNA_Mesh) || RNA_struct_is_a(ptr->type, RNA_Modifier) ||
+           RNA_struct_is_a(ptr->type, RNA_Spline) || RNA_struct_is_a(ptr->type, RNA_TextBox) ||
+           RNA_struct_is_a(ptr->type, RNA_AnnotationLayer) ||
+           RNA_struct_is_a(ptr->type, RNA_LatticePoint) ||
+           RNA_struct_is_a(ptr->type, RNA_MeshUVLoop) ||
+           RNA_struct_is_a(ptr->type, RNA_MeshLoopColor) ||
+           RNA_struct_is_a(ptr->type, RNA_VertexGroupElement) ||
+           RNA_struct_is_a(ptr->type, RNA_ShaderFx))
   {
     /* When modifier is used as FROM operation this is likely referencing to
      * the property (for example, modifier's influence).
@@ -299,7 +299,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     }
     return node_identifier;
   }
-  else if (ptr->type == &RNA_Object) {
+  else if (ptr->type == RNA_Object) {
     /* Transforms props? */
     if (prop != nullptr) {
       /* TODO(sergey): How to optimize this? */
@@ -338,7 +338,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
       }
     }
   }
-  else if (ptr->type == &RNA_ShapeKey) {
+  else if (ptr->type == RNA_ShapeKey) {
     KeyBlock *key_block = static_cast<KeyBlock *>(ptr->data);
     node_identifier.id = ptr->owner_id;
     node_identifier.type = NodeType::PARAMETERS;
@@ -346,42 +346,42 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     node_identifier.operation_name = key_block->name;
     return node_identifier;
   }
-  else if (ptr->type == &RNA_Key) {
+  else if (ptr->type == RNA_Key) {
     node_identifier.id = ptr->owner_id;
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Strip)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_Strip)) {
     /* Sequencer strip */
     node_identifier.type = NodeType::SEQUENCER;
     return node_identifier;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_NodeSocket)) {
     node_identifier.type = NodeType::NTREE_OUTPUT;
     return node_identifier;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_ShaderNode)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_ShaderNode)) {
     node_identifier.type = NodeType::SHADING;
     return node_identifier;
   }
-  else if (ELEM(ptr->type, &RNA_Curve, &RNA_TextCurve)) {
+  else if (ELEM(ptr->type, RNA_Curve, RNA_TextCurve)) {
     node_identifier.id = ptr->owner_id;
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
-  else if (ELEM(ptr->type, &RNA_BezierSplinePoint, &RNA_SplinePoint)) {
+  else if (ELEM(ptr->type, RNA_BezierSplinePoint, RNA_SplinePoint)) {
     node_identifier.id = ptr->owner_id;
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_ImageUser)) {
+  else if (RNA_struct_is_a(ptr->type, RNA_ImageUser)) {
     if (GS(node_identifier.id->name) == ID_NT) {
       node_identifier.type = NodeType::IMAGE_ANIMATION;
       node_identifier.operation_code = OperationCode::IMAGE_ANIMATION;
       return node_identifier;
     }
   }
-  else if (ELEM(ptr->type, &RNA_MeshVertex, &RNA_MeshEdge, &RNA_MeshLoop, &RNA_MeshPolygon)) {
+  else if (ELEM(ptr->type, RNA_MeshVertex, RNA_MeshEdge, RNA_MeshLoop, RNA_MeshPolygon)) {
     node_identifier.type = NodeType::GEOMETRY;
     return node_identifier;
   }
@@ -408,7 +408,7 @@ bool rna_prop_affects_parameters_node(const PointerRNA *ptr, const PropertyRNA *
   return prop != nullptr && RNA_property_is_idprop(prop) &&
          /* ID properties in the geometry nodes modifier don't affect that parameters node.
           * Instead they affect the modifier and therefore the geometry node directly. */
-         !RNA_struct_is_a(ptr->type, &RNA_NodesModifier);
+         !RNA_struct_is_a(ptr->type, RNA_NodesModifier);
 }
 
 }  // namespace blender::deg

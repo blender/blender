@@ -12,8 +12,8 @@
 #include "util/image_metadata.h"
 #include "util/set.h"
 #include "util/string.h"
-#include "util/texture.h"
 #include "util/thread.h"
+#include "util/types_image.h"
 #include "util/unique_ptr.h"
 #include "util/vector.h"
 
@@ -77,7 +77,7 @@ class ImageLoader {
 
   /* Load full image pixels.
    * This is expected to call metadata.conform_pixels(). */
-  virtual bool load_pixels_full(const ImageMetaData &metadata, uint8_t *pixels) = 0;
+  virtual bool load_pixels(const ImageMetaData &metadata, void *pixels) = 0;
 
   /* Load pixels for a single tile, if ImageMetaData.tile_size is set.
    * This is expected to call metadata.conform_pixels(). */

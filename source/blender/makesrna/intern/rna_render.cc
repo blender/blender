@@ -234,7 +234,7 @@ static void engine_update_script_node(RenderEngine *engine, bNodeTree *ntree, bN
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  PointerRNA nodeptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), &RNA_Node, node);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), RNA_Node, node);
   func = &rna_RenderEngine_update_script_node_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -314,7 +314,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
   dummy_engine.type = &dummy_et;
   dummy_et.flag |= RE_USE_SHADING_NODES_CUSTOM;
   PointerRNA dummy_engine_ptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_RenderEngine, &dummy_engine);
+      nullptr, RNA_RenderEngine, &dummy_engine);
 
   /* validate the python class */
   if (validate(&dummy_engine_ptr, data, have_function) != 0) {
@@ -359,7 +359,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
   et = MEM_mallocN<RenderEngineType>("Python render engine");
   memcpy(et, &dummy_et, sizeof(dummy_et));
 
-  et->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), et->idname, &RNA_RenderEngine);
+  et->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), et->idname, RNA_RenderEngine);
   et->rna_ext.data = data;
   et->rna_ext.call = call;
   et->rna_ext.free = free;
@@ -391,7 +391,7 @@ static StructRNA *rna_RenderEngine_refine(PointerRNA *ptr)
 {
   RenderEngine *engine = static_cast<RenderEngine *>(ptr->data);
   return (engine->type && engine->type->rna_ext.srna) ? engine->type->rna_ext.srna :
-                                                        &RNA_RenderEngine;
+                                                        RNA_RenderEngine;
 }
 
 static void rna_RenderEngine_tempdir_get(PointerRNA * /*ptr*/, char *value)
@@ -411,7 +411,7 @@ static PointerRNA rna_RenderEngine_render_get(PointerRNA *ptr)
   if (engine->re) {
     RenderData *r = RE_engine_get_render_data(engine->re);
 
-    return RNA_pointer_create_with_parent(*ptr, &RNA_RenderSettings, r);
+    return RNA_pointer_create_with_parent(*ptr, RNA_RenderSettings, r);
   }
   return PointerRNA_NULL;
 }

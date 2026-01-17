@@ -480,7 +480,7 @@ static PointerRNA rna_Object_shape_key_add(
     CLAMP(kb->curval, kb->slidermin, kb->slidermax);
 
     PointerRNA keyptr = RNA_pointer_create_discrete(
-        id_cast<ID *>(BKE_key_from_object(ob)), &RNA_ShapeKey, kb);
+        id_cast<ID *>(BKE_key_from_object(ob)), RNA_ShapeKey, kb);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

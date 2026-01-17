@@ -374,13 +374,6 @@ struct PersistentMultiresData {
 };
 
 struct SculptSession : NonCopyable, NonMovable {
-  /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
-  struct { /* Special handling for multires meshes */
-    bool active = false;
-    MultiresModifierData *modifier = nullptr;
-    int level = 0;
-  } multires = {};
-
   KeyBlock *shapekey_active = nullptr;
 
   /* Edges to adjacent faces. */
@@ -398,6 +391,7 @@ struct SculptSession : NonCopyable, NonMovable {
   /* Undo/redo log for dynamic topology sculpting */
   BMLog *bm_log = nullptr;
 
+  MultiresModifierData *multires_modifier = nullptr;
   /* Limit surface/grids. */
   SubdivCCG *subdiv_ccg = nullptr;
 
@@ -486,24 +480,7 @@ struct SculptSession : NonCopyable, NonMovable {
   float4 prev_pivot_rot = {};
   float3 prev_pivot_scale = {};
 
-  struct {
-    struct {
-      /* Keep track of how much each vertex has been painted (non-airbrush only). */
-      float *alpha_weight;
-
-      /* Needed to continuously re-apply over the same weights (#BRUSH_ACCUMULATE disabled).
-       * Lazy initialize as needed (flag is set to 1 to tag it as uninitialized). */
-      Array<MDeformVert> dvert_prev;
-    } wpaint;
-
-    /* TODO: identify sculpt-only fields */
-    // struct { ... } sculpt;
-  } mode = {};
   eObjectMode mode_type;
-
-  /* This flag prevents bke::pbvh::Tree from being freed when creating the vp_handle for
-   * texture paint. */
-  bool building_vp_handle = false;
 
   /**
    * ID data is older than sculpt-mode data.
@@ -522,7 +499,7 @@ struct SculptSession : NonCopyable, NonMovable {
   /**
    * Last used painting canvas key.
    */
-  char *last_paint_canvas_key = nullptr;
+  std::optional<std::string> last_paint_canvas_key = {};
   float3 last_normal;
 
   std::unique_ptr<SculptTopologyIslandCache> topology_island_cache;
@@ -585,7 +562,6 @@ struct SculptSession : NonCopyable, NonMovable {
 
 void BKE_sculptsession_free(Object *ob);
 void BKE_sculptsession_free_deformMats(SculptSession *ss);
-void BKE_sculptsession_free_vwpaint_data(SculptSession *ss);
 void BKE_sculptsession_free_pbvh(Object &object);
 void BKE_sculptsession_bm_to_me(Object *ob);
 void BKE_sculptsession_bm_to_me_for_render(Object *object);
@@ -655,7 +631,7 @@ bool BKE_object_sculpt_use_dyntopo(const Object *object);
  * Create a key that can be used to compare with previous ones to identify changes.
  * The resulting 'string' is owned by the caller.
  */
-char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob);
+std::string BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob);
 
 bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
                                 Object *ob,

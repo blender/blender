@@ -81,7 +81,7 @@ static void node_composit_buts_keyingscreen(ui::Layout &layout, bContext *C, Poi
   if (node->id) {
     MovieClip *clip = id_cast<MovieClip *>(node->id);
     PointerRNA tracking_ptr = RNA_pointer_create_discrete(
-        &clip->id, &RNA_MovieTracking, &clip->tracking);
+        &clip->id, RNA_MovieTracking, &clip->tracking);
 
     ui::Layout &col = layout.column(true);
     col.prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);

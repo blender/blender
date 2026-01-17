@@ -96,7 +96,7 @@ static void node_declare(nodes::NodeDeclarationBuilder &b)
     const std::string identifier = MenuSwitchItemsAccessor::socket_identifier_for_item(enum_item);
     auto &input = b.add_input(data_type, enum_item.name, identifier)
                       .socket_name_ptr(
-                          &ntree->id, MenuSwitchItemsAccessor::item_srna, &enum_item, "name")
+                          &ntree->id, *MenuSwitchItemsAccessor::item_srna, &enum_item, "name")
                       .compositor_realization_mode(CompositorInputRealizationMode::None)
                       .description("Becomes the output value if it is chosen by the menu input");
     if (supports_fields) {
@@ -614,7 +614,7 @@ std::unique_ptr<LazyFunction> get_menu_switch_node_socket_usage_lazy_function(co
   return std::make_unique<LazyFunctionForMenuSwitchSocketUsage>(node);
 }
 
-StructRNA *MenuSwitchItemsAccessor::item_srna = &RNA_NodeEnumItem;
+StructRNA **MenuSwitchItemsAccessor::item_srna = &RNA_NodeEnumItem;
 
 void MenuSwitchItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

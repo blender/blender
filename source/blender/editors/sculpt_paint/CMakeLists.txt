@@ -17,7 +17,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${ZSTD_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -80,7 +79,6 @@ set(SRC
   paint_utils.cc
   paint_vertex.cc
   paint_vertex_color_ops.cc
-  paint_vertex_proj.cc
   paint_vertex_weight_ops.cc
   paint_vertex_weight_utils.cc
   paint_weight.cc
@@ -192,17 +190,9 @@ set(LIB
   PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager
+  PRIVATE bf::dependencies::zstd
+  PRIVATE bf::dependencies::optional::potrace
 )
-
-if(WITH_POTRACE)
-  list(APPEND INC
-    ${POTRACE_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${POTRACE_LIBRARIES}
-  )
-  add_definitions(-DWITH_POTRACE)
-endif()
 
 if(WIN32)
   add_definitions(-DNOMINMAX)

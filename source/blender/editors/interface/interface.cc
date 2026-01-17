@@ -966,6 +966,8 @@ static void ui_but_update_old_active_from_new(Button *oldbut, Button *but)
     std::swap(oldbut->func_argN, but->func_argN);
   }
 
+  std::swap(oldbut->apply_func, but->apply_func);
+
   std::swap(oldbut->rename_full_func, but->rename_full_func);
   std::swap(oldbut->pushed_state_func, but->pushed_state_func);
 
@@ -1530,7 +1532,7 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
     ID *id = ptr->owner_id;
 
     if (GS(id->name) == ID_SCR) {
-      if (RNA_struct_is_a(ptr->type, &RNA_Area)) {
+      if (RNA_struct_is_a(ptr->type, RNA_Area)) {
         /* data should be directly on here... */
         const char *prop_id = RNA_property_identifier(prop);
         /* Hack since keys access 'type', UI shows 'ui_type'. */
@@ -1861,7 +1863,7 @@ static bool ui_but_icon_extra_is_visible_bone_eyedropper(Button *but)
   }
   const StructRNA *type = RNA_property_pointer_type(&search_but->rnasearchpoin,
                                                     search_but->rnasearchprop);
-  return type == &RNA_Bone || type == &RNA_EditBone || type == &RNA_PoseBone;
+  return type == RNA_Bone || type == RNA_EditBone || type == RNA_PoseBone;
 }
 
 static PredefinedExtraOpIconType ui_but_icon_extra_get(Button *but)
@@ -2253,6 +2255,9 @@ void block_draw(const bContext *C, Block *block)
 
   wmOrtho2_region_pixelspace(region);
 
+  int scissor[4];
+  GPU_scissor_get(scissor);
+
   /* back */
   if (block->flag & BLOCK_PIE_MENU) {
     draw_pie_center(block);
@@ -2285,6 +2290,12 @@ void block_draw(const bContext *C, Block *block)
   BLF_batch_draw_begin();
   widgetbase_draw_cache_begin();
 
+  if (block_is_popup_any(block) && block->flag & (BLOCK_CLIPTOP | BLOCK_CLIPBOTTOM)) {
+    const int arrow_size = UI_MENU_SCROLL_MOUSE / block->aspect;
+    const int ymax = rect.ymax - ((block->flag & BLOCK_CLIPTOP) ? arrow_size : 0.0f);
+    const int ymin = rect.ymin + ((block->flag & BLOCK_CLIPBOTTOM) ? arrow_size : 0.0f);
+    GPU_scissor(rect.xmin, ymin, BLI_rcti_size_x(&rect), ymax - ymin);
+  }
   /* widgets */
   for (const std::unique_ptr<Button> &but : block->buttons) {
     if (but->flag & (UI_HIDDEN | UI_SCROLLED)) {
@@ -2317,7 +2328,7 @@ void block_draw(const bContext *C, Block *block)
 
   widgetbase_draw_cache_end();
   BLF_batch_draw_end();
-
+  GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
   block_views_draw_overlays(region, block);
 
   /* restore matrix */

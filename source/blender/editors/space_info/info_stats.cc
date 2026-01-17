@@ -375,14 +375,14 @@ static void stats_object_pose(const Object *ob, SceneStats *stats)
 static bool stats_is_object_dynamic_topology_sculpt(const Object *ob)
 {
   BLI_assert(ob->mode & OB_MODE_SCULPT);
-  return (ob->sculpt && ob->sculpt->bm);
+  return (ob->runtime->sculpt_session && ob->runtime->sculpt_session->bm);
 }
 
 static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 {
   switch (ob->type) {
     case OB_MESH: {
-      const SculptSession *ss = ob->sculpt;
+      const SculptSession *ss = ob->runtime->sculpt_session;
       const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*ob);
       if (ss == nullptr || pbvh == nullptr) {
         return;
@@ -396,8 +396,8 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
           break;
         }
         case bke::pbvh::Type::BMesh:
-          stats->totvertsculpt = ob->sculpt->bm->totvert;
-          stats->tottri = ob->sculpt->bm->totface;
+          stats->totvertsculpt = ob->runtime->sculpt_session->bm->totvert;
+          stats->tottri = ob->runtime->sculpt_session->bm->totface;
           break;
         case bke::pbvh::Type::Grids:
           stats->totvertsculpt = BKE_sculpt_get_grid_num_verts(*ob);

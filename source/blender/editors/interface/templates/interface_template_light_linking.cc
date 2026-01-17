@@ -292,7 +292,7 @@ class CollectionViewItem : public BasicTreeViewItem {
     const int icon = get_state_icon();
 
     PointerRNA collection_light_linking_ptr = RNA_pointer_create_discrete(
-        &collection_.id, &RNA_CollectionLightLinking, &collection_light_linking_);
+        &collection_.id, RNA_CollectionLightLinking, &collection_light_linking_);
 
     Button *button = uiDefIconButR(block,
                                    ButtonType::But,
@@ -385,7 +385,7 @@ void template_light_linking_collection(Layout *layout,
   if (!collection_ptr.data) {
     return;
   }
-  if (collection_ptr.type != &RNA_Collection) {
+  if (collection_ptr.type != RNA_Collection) {
     printf("%s: expected collection pointer property for %s.%s\n",
            __func__,
            RNA_struct_identifier(ptr->type),

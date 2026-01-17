@@ -117,7 +117,7 @@ static void uilist_draw_item_default(uiList *ui_list,
 
 static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, Layout &layout)
 {
-  PointerRNA listptr = RNA_pointer_create_discrete(nullptr, &RNA_UIList, ui_list);
+  PointerRNA listptr = RNA_pointer_create_discrete(nullptr, RNA_UIList, ui_list);
 
   Layout &row = layout.row(false);
 

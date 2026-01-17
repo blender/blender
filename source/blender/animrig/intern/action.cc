@@ -224,18 +224,6 @@ bool Action::is_empty() const
   return this->layer_array_num == 0 && this->slot_array_num == 0 &&
          BLI_listbase_is_empty(&this->curves) && BLI_listbase_is_empty(&this->groups);
 }
-bool Action::is_action_legacy() const
-{
-  /* This is a valid legacy Action only if there is no layered info. */
-  return this->layer_array_num == 0 && this->slot_array_num == 0;
-}
-bool Action::is_action_layered() const
-{
-  /* This is a valid layered Action if there is ANY layered info (because that
-   * takes precedence) or when there is no legacy info. */
-  return this->layer_array_num > 0 || this->slot_array_num > 0 ||
-         (BLI_listbase_is_empty(&this->curves) && BLI_listbase_is_empty(&this->groups));
-}
 
 Span<const Layer *> Action::layers() const
 {
@@ -993,7 +981,7 @@ int64_t Layer::find_strip_index(const Strip &strip) const
 
 Slot::Slot()
 {
-  /* Zero-initialize the DNA struct. 'this' is a C++ class, and shouldn't be memset like this. */
+  /* Zero-initialize the DNA struct. 'this' is a C++ class, and shouldn't be `memset` like this. */
   _DNA_internal_memzero(this, sizeof(ActionSlot));
   this->runtime = MEM_new<SlotRuntime>(__func__);
 }
@@ -2443,15 +2431,8 @@ void Channelbag::restore_channel_group_invariants()
   }
 }
 
-bool ChannelGroup::is_legacy() const
-{
-  return this->channelbag == nullptr;
-}
-
 Span<FCurve *> ChannelGroup::fcurves()
 {
-  BLI_assert(!this->is_legacy());
-
   if (this->fcurve_range_length == 0) {
     return {};
   }
@@ -2462,8 +2443,6 @@ Span<FCurve *> ChannelGroup::fcurves()
 
 Span<const FCurve *> ChannelGroup::fcurves() const
 {
-  BLI_assert(!this->is_legacy());
-
   if (this->fcurve_range_length == 0) {
     return {};
   }
@@ -2950,57 +2929,6 @@ void assert_baklava_phase_1_invariants(const Strip &strip)
   BLI_assert(strip.type() == Strip::Type::Keyframe);
   BLI_assert(strip.is_infinite());
   BLI_assert(strip.frame_offset == 0.0);
-}
-
-Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
-{
-  if (!legacy_action.is_action_legacy()) {
-    return nullptr;
-  }
-
-  std::string suffix = "_layered";
-  /* In case the legacy action has a long name it is shortened to make space for the suffix. */
-  char legacy_name[MAX_ID_NAME - 10];
-  /* Offsetting the id.name to remove the ID prefix (AC) which gets added back later. */
-  STRNCPY_UTF8(legacy_name, legacy_action.id.name + 2);
-
-  const std::string layered_action_name = std::string(legacy_name) + suffix;
-  bAction *dna_action = BKE_action_add(&bmain, layered_action_name.c_str());
-
-  Action &converted_action = dna_action->wrap();
-  Slot &slot = converted_action.slot_add();
-  Layer &layer = converted_action.layer_add(legacy_action.id.name);
-  Strip &strip = layer.strip_add(converted_action, Strip::Type::Keyframe);
-  BLI_assert(strip.data<StripKeyframeData>(converted_action).channelbag_array_num == 0);
-  Channelbag *bag = &strip.data<StripKeyframeData>(converted_action).channelbag_for_slot_add(slot);
-
-  const int fcu_count = BLI_listbase_count(&legacy_action.curves);
-  bag->fcurve_array = MEM_calloc_arrayN<FCurve *>(fcu_count, "Convert to layered action");
-  bag->fcurve_array_num = fcu_count;
-
-  Map<const FCurve *, FCurve *> old_new_fcurve_map;
-  for (auto [i, fcu] : legacy_action.curves.enumerate()) {
-    bag->fcurve_array[i] = BKE_fcurve_copy(&fcu);
-    bag->fcurve_array[i]->grp = nullptr;
-    old_new_fcurve_map.add(&fcu, bag->fcurve_array[i]);
-  }
-
-  for (bActionGroup &group : legacy_action.groups) {
-    /* The resulting group might not have the same name, because the legacy system allowed
-     * duplicate names while the new system ensures uniqueness. */
-    bActionGroup &converted_group = bag->channel_group_create(group.name);
-    for (FCurve &fcu : group.channels) {
-      if (fcu.grp != &group) {
-        /* Since the group listbase points to the action listbase, it won't stop iterating when
-         * reaching the end of the group but iterate to the end of the action FCurves. */
-        break;
-      }
-      FCurve *new_fcurve = old_new_fcurve_map.lookup(&fcu);
-      bag->fcurve_assign_to_channel_group(*new_fcurve, converted_group);
-    }
-  }
-
-  return &converted_action;
 }
 
 /**

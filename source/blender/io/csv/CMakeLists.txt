@@ -10,7 +10,6 @@ set(INC
 )
 
 set(INC_SYS
-  ../../../../extern/fast_float
 )
 
 set(SRC
@@ -27,6 +26,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_io_common
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::extern::fast_float
 )
 
 blender_add_lib(bf_io_csv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

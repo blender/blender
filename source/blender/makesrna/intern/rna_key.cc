@@ -301,7 +301,7 @@ PointerRNA rna_object_shapekey_index_get(ID *id, int value)
     kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, value));
   }
 
-  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_ShapeKey, kb);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_ShapeKey, kb);
   return ptr;
 }
 
@@ -472,9 +472,9 @@ struct NurbInfo {
 StructRNA *rna_ShapeKey_curve_point_type(Nurb *nu)
 {
   if (nu->bezt) {
-    return &RNA_ShapeKeyBezierPoint;
+    return RNA_ShapeKeyBezierPoint;
   }
-  return &RNA_ShapeKeyCurvePoint;
+  return RNA_ShapeKeyCurvePoint;
 }
 
 static void rna_ShapeKey_NurbInfo_init(NurbInfo *r_info, Nurb *nu)
@@ -619,7 +619,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 {
   Key *key = rna_ShapeKey_find_key(iter->parent.owner_id);
   void *ptr = rna_iterator_array_get(iter);
-  StructRNA *type = &RNA_ShapeKeyPoint;
+  StructRNA *type = RNA_ShapeKeyPoint;
 
   /* If data_begin allocated a mapping array, access it. */
   if (iter->internal.array.free_ptr) {
@@ -664,7 +664,7 @@ bool rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   else {
     if (index < kb->totelem) {
       rna_pointer_create_with_ancestors(
-          *ptr, &RNA_ShapeKeyPoint, databuf + elemsize * index, *r_ptr);
+          *ptr, RNA_ShapeKeyPoint, databuf + elemsize * index, *r_ptr);
       return true;
     }
   }
@@ -719,7 +719,7 @@ bool rna_ShapeKey_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_pt
   else {
     if (index < kb->totelem) {
       rna_pointer_create_with_ancestors(
-          *ptr, &RNA_ShapeKeyPoint, databuf + elemsize * index, *r_ptr);
+          *ptr, RNA_ShapeKeyPoint, databuf + elemsize * index, *r_ptr);
       return true;
     }
   }
@@ -838,7 +838,7 @@ static std::optional<std::string> rna_ShapeKeyPoint_path(const PointerRNA *ptr)
 
     index = rna_ShapeKeyPoint_get_index(key, kb, point);
 
-    if (ELEM(ptr->type, &RNA_ShapeKeyBezierPoint, &RNA_ShapeKeyCurvePoint)) {
+    if (ELEM(ptr->type, RNA_ShapeKeyBezierPoint, RNA_ShapeKeyCurvePoint)) {
       index = rna_ShapeKey_curve_find_index(key, index);
     }
 
@@ -861,7 +861,7 @@ static bool rna_KeyBlock_lookup_string(PointerRNA *ptr, const char *name, Pointe
     if (!STREQ(kb.name, name)) {
       continue;
     }
-    *r_ptr = RNA_pointer_create_with_parent(*ptr, &RNA_ShapeKey, &kb);
+    *r_ptr = RNA_pointer_create_with_parent(*ptr, RNA_ShapeKey, &kb);
     return true;
   }
   return false;

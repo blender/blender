@@ -454,7 +454,10 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
                 if len(mesh.edges) > 0:
                     Report._write_collection_single(mesh.edges, desc)
                 # attributes
-                for attr in mesh.attributes:
+                attr_names = [attr.name for attr in mesh.attributes]
+                attr_names.sort()
+                for name in attr_names:
+                    attr = mesh.attributes[name]
                     if not attr.is_internal:
                         Report._write_attr(attr, desc)
                 # skinning / vertex groups

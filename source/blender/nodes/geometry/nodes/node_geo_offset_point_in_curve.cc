@@ -63,7 +63,7 @@ class ControlPointNeighborFieldInput final : public bke::GeometryFieldInput {
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
     Array<int> output(mask.min_array_size());
-    mask.foreach_index([&](const int i_selection) {
+    mask.foreach_index(GrainSize(512), [&](const int i_selection) {
       const int point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
       const int curve = parent_curves[point];
       const IndexRange curve_points = points_by_curve[curve];
@@ -123,7 +123,7 @@ class OffsetValidFieldInput final : public bke::GeometryFieldInput {
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
     Array<bool> output(mask.min_array_size());
-    mask.foreach_index([&](const int i_selection) {
+    mask.foreach_index(GrainSize(512), [&](const int i_selection) {
       const int i_point = indices[i_selection];
       if (!curves.points_range().contains(i_point)) {
         output[i_selection] = false;

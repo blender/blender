@@ -219,7 +219,7 @@ static const EnumPropertyItem *rna_Area_ui_type_itemf(bContext *C,
 
     SpaceType *st = item_from->identifier[0] ? BKE_spacetype_from_id(item_from->value) : nullptr;
     int totitem_prev = totitem;
-    if (st && st->space_subtype_item_extend != nullptr) {
+    if (C && st && st->space_subtype_item_extend != nullptr) {
       st->space_subtype_item_extend(C, &item, &totitem);
       while (totitem_prev < totitem) {
         item[totitem_prev++].value |= item_from->value << 16;
@@ -304,7 +304,7 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
       SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
       if (region->runtime->type == BKE_regiontype_from_id(st, region->regiontype)) {
         PointerRNA newptr = RNA_pointer_create_discrete(
-            &screen->id, &RNA_RegionView3D, region->regiondata);
+            &screen->id, RNA_RegionView3D, region->regiondata);
         return newptr;
       }
     }

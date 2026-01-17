@@ -289,7 +289,7 @@ void SourceProcessor::lower_method_definitions(Parser &parser)
     int method_len = 0;
     struct_scope.foreach_function([&](bool, Token, Token, Scope, bool, Scope) { method_len++; });
     if (method_len == 0) {
-      /* Avoid uneeded preprocessor directives. */
+      /* Avoid unnecessary preprocessor directives. */
       return;
     }
 

@@ -29,28 +29,21 @@ namespace blender::seq {
 static void proxy_freejob(void *pjv)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
-
-  BLI_freelistN(&pj->queue);
-
-  MEM_freeN(pj);
+  MEM_delete(pj);
 }
 
 /* Only this runs inside thread. */
 static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
-  Vector<IndexBuildContext *> contexts;
-  for (LinkData &link : pj->queue) {
-    contexts.append(static_cast<IndexBuildContext *>(link.data));
-  }
-
-  for (const int i : contexts.index_range()) {
-    IndexBuildContext *context = contexts[i];
-    proxy_rebuild(context, worker_status, [&](const float new_progress) {
-      /* Remap the progress of the current proxy to the total progress. */
-      const float total_progress = (i + new_progress) / contexts.size();
-      worker_status->progress = total_progress;
-    });
+  for (const int i : pj->queue.index_range()) {
+    ProxyBuildContext *context = pj->queue[i];
+    proxy_build_process(
+        context, &worker_status->stop, &worker_status->do_update, [&](const float new_progress) {
+          /* Remap the progress of the current proxy to the total progress. */
+          const float total_progress = (i + new_progress) / pj->queue.size();
+          worker_status->progress = total_progress;
+        });
 
     if (worker_status->stop) {
       pj->stop = true;
@@ -65,9 +58,10 @@ static void proxy_endjob(void *pjv)
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
   Editing *ed = editing_get(pj->scene);
 
-  for (LinkData &link : pj->queue) {
-    proxy_rebuild_finish(static_cast<IndexBuildContext *>(link.data), pj->stop);
+  for (ProxyBuildContext *context : pj->queue) {
+    proxy_build_finish(context);
   }
+  pj->queue.clear();
 
   relations_free_imbuf(pj->scene, &ed->seqbase, false);
 
@@ -77,11 +71,9 @@ static void proxy_endjob(void *pjv)
 ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ProxyJob *pj = static_cast<ProxyJob *>(WM_jobs_customdata_get(wm_job));
   if (!pj) {
-    pj = MEM_callocN<ProxyJob>("proxy rebuild job");
-    pj->depsgraph = depsgraph;
+    pj = MEM_new<ProxyJob>("proxy rebuild job");
     pj->scene = scene;
     pj->main = CTX_data_main(C);
     WM_jobs_customdata_set(wm_job, pj, proxy_freejob);

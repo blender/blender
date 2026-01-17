@@ -43,7 +43,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const std::string identifier = SeparateBundleItemsAccessor::socket_identifier_for_item(item);
       auto &decl = b.add_output(socket_type, name, identifier)
                        .socket_name_ptr(
-                           &tree->id, SeparateBundleItemsAccessor::item_srna, &item, "name")
+                           &tree->id, *SeparateBundleItemsAccessor::item_srna, &item, "name")
                        .propagate_all()
                        .reference_pass_all();
       if (item.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
@@ -263,7 +263,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace nodes {
 
-StructRNA *SeparateBundleItemsAccessor::item_srna = &RNA_NodeSeparateBundleItem;
+StructRNA **SeparateBundleItemsAccessor::item_srna = &RNA_NodeSeparateBundleItem;
 
 void SeparateBundleItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

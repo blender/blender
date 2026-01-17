@@ -14,6 +14,7 @@
 #include "BLI_task.h"
 
 #include "vk_device.hh"
+#include "vk_to_string.hh"
 
 #include "CLG_log.h"
 
@@ -47,6 +48,7 @@ struct VKRenderGraphSubmitTask {
 TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_graph,
                                             VKDiscardPool &context_discard_pool,
                                             bool submit_to_device,
+                                            bool wait_for_submission,
                                             bool wait_for_completion,
                                             VkPipelineStageFlags wait_dst_stage_mask,
                                             VkSemaphore wait_semaphore,
@@ -60,6 +62,16 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
     return timeline_value_;
   }
 
+  /* Syncing input flags. */
+  /* When we wait for completion/submission we must submit to device. */
+  submit_to_device |= wait_for_completion;
+  submit_to_device |= wait_for_submission;
+  /* We need to wait for submission when a signal semaphore is present, otherwise the semaphore
+   * could be in an invalid state it is being waited for, but not have been submitted. */
+  wait_for_submission |= signal_semaphore != VK_NULL_HANDLE;
+  /* We don't need to wait for submission when waiting for completion. */
+  wait_for_submission &= !wait_for_completion;
+
   VKRenderGraphSubmitTask *submit_task = MEM_new<VKRenderGraphSubmitTask>(__func__);
   submit_task->render_graph = render_graph;
   submit_task->submit_to_device = submit_to_device;
@@ -69,9 +81,6 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
   submit_task->signal_fence = signal_fence;
   submit_task->wait_for_submission = nullptr;
 
-  /* We need to wait for submission as otherwise the signal semaphore can still not be in an
-   * initial state. */
-  const bool wait_for_submission = signal_semaphore != VK_NULL_HANDLE && !wait_for_completion;
   VKRenderGraphWait wait_condition{};
   if (wait_for_submission) {
     submit_task->wait_for_submission = &wait_condition;
@@ -105,7 +114,11 @@ void VKDevice::wait_for_timeline(TimelineValue timeline)
   }
   VkSemaphoreWaitInfo vk_semaphore_wait_info = {
       VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO, nullptr, 0, 1, &vk_timeline_semaphore_, &timeline};
-  vkWaitSemaphores(vk_device_, &vk_semaphore_wait_info, UINT64_MAX);
+  VkResult wait_result = vkWaitSemaphores(vk_device_, &vk_semaphore_wait_info, UINT64_MAX);
+  if (wait_result != VK_SUCCESS) {
+    CLOG_ERROR(
+        &LOG, "Vulkan: failed to wait for synchronization timeline [%s]", to_string(wait_result));
+  }
 }
 
 void VKDevice::wait_queue_idle()

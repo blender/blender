@@ -162,14 +162,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    * tree execution instructions and its evaluation.
    */
   bNodeTreeExec *execdata = nullptr;
-  void (*progress)(void *, float progress) = nullptr;
-  /** \warning may be called by different threads */
-  void (*stats_draw)(void *, const char *str) = nullptr;
-  bool (*test_break)(void *) = nullptr;
-  void (*update_draw)(void *) = nullptr;
-  void *tbh = nullptr, *prh = nullptr, *sdh = nullptr, *udh = nullptr;
-
-  /* End legacy execution data. */
 
   /** Information about how inputs and outputs of the node group interact with fields. */
   std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;

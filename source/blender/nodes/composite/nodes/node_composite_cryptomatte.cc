@@ -646,9 +646,8 @@ static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
   dest_node->storage = dest_nc;
 }
 
-static void node_update_cryptomatte(bNodeTree *ntree, bNode *node)
+static void node_update_cryptomatte(bNodeTree * /*ntree*/, bNode *node)
 {
-  cmp_node_update_default(ntree, node);
   ntreeCompositCryptomatteUpdateLayerNames(node);
 }
 

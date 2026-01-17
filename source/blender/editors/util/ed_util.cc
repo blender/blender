@@ -25,6 +25,7 @@
 #include "BKE_material.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
@@ -276,11 +277,11 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
     /* Don't allow flushing while in the middle of a stroke (frees data in use).
      * Auto-save prevents this from happening but scripts
      * may cause a flush on saving: #53986. */
-    if (ob->sculpt != nullptr && ob->sculpt->cache == nullptr) {
-      if (check_needs_flush && !ob->sculpt->needs_flush_to_id) {
+    if (ob->runtime->sculpt_session != nullptr && ob->runtime->sculpt_session->cache == nullptr) {
+      if (check_needs_flush && !ob->runtime->sculpt_session->needs_flush_to_id) {
         return false;
       }
-      ob->sculpt->needs_flush_to_id = false;
+      ob->runtime->sculpt_session->needs_flush_to_id = false;
 
       /* flush multires changes (for sculpt) */
       multires_flush_sculpt_updates(ob);

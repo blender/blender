@@ -1376,7 +1376,7 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
     Scene *scene = CTX_data_scene(C);
     ToolSettings *ts = scene->toolsettings;
     PointerRNA gpsettings_ptr = RNA_pointer_create_discrete(
-        &scene->id, &RNA_GPencilInterpolateSettings, &ts->gp_interpolate);
+        &scene->id, RNA_GPencilInterpolateSettings, &ts->gp_interpolate);
     template_curve_mapping(
         &layout, &gpsettings_ptr, "interpolation_curve", 0, false, true, true, false, false);
   }

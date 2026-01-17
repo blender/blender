@@ -163,7 +163,7 @@ class Sculpts : Overlay {
       return;
     }
 
-    const SculptSession *sculpt_session = ob_ref.object->sculpt;
+    const SculptSession *sculpt_session = ob_ref.object->runtime->sculpt_session;
     if (sculpt_session == nullptr) {
       return;
     }

@@ -30,7 +30,7 @@ static void parse_template_definition(const Scope arg,
                                       report_callback report_error)
 {
   const Token type = arg.front();
-  const Token name = type.next();
+  const Token name = type.str() == "enum" ? type.next().next() : type.next();
   const string name_str = name.str();
   const string type_str = type.str();
 
@@ -56,7 +56,9 @@ static void parse_template_definition(const Scope arg,
     /* Values cannot be resolved using type deduction. */
     all_template_args_in_function_signature = false;
   }
-  else if (type_str == "int" || type_str == "uint") {
+  else if (type_str == "int" || type_str == "uint" || type_str == "char" || type_str == "uchar" ||
+           type_str == "short" || type_str == "ushort")
+  {
     /* Values cannot be resolved using type deduction. */
     all_template_args_in_function_signature = false;
   }

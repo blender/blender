@@ -23,5 +23,8 @@ from bpy import context
 my_objects = [context.scene.camera]
 
 with context.temp_override(selected_objects=my_objects) as override:
-    override.logging_set(True)  # Enable logging.
+    override.logging_set(
+        True,  # Enable logging.
+        hide_missing=True,  # Don't show failed attempts.
+    )
     bpy.ops.object.delete()

@@ -37,7 +37,7 @@ static PyObject *engine_create_func(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  RenderEngine *bl_engine = pyrna_to_pointer<RenderEngine>(pyengine, &RNA_RenderEngine);
+  RenderEngine *bl_engine = pyrna_to_pointer<RenderEngine>(pyengine, RNA_RenderEngine);
 
   CLOG_DEBUG(LOG_HYDRA_RENDER, "Engine %s", engine_type);
   Engine *engine = nullptr;
@@ -82,8 +82,8 @@ static PyObject *engine_update_func(PyObject * /*self*/, PyObject *args)
   }
 
   Engine *engine = static_cast<Engine *>(PyLong_AsVoidPtr(pyengine));
-  Depsgraph *depsgraph = pyrna_to_pointer<Depsgraph>(pydepsgraph, &RNA_Depsgraph);
-  bContext *context = pyrna_to_pointer<bContext>(pycontext, &RNA_Context);
+  Depsgraph *depsgraph = pyrna_to_pointer<Depsgraph>(pydepsgraph, RNA_Depsgraph);
+  bContext *context = pyrna_to_pointer<bContext>(pycontext, RNA_Context);
 
   CLOG_DEBUG(LOG_HYDRA_RENDER, "Engine %p", engine);
   engine->sync(depsgraph, context);
@@ -118,7 +118,7 @@ static PyObject *engine_view_draw_func(PyObject * /*self*/, PyObject *args)
   }
 
   ViewportEngine *engine = static_cast<ViewportEngine *>(PyLong_AsVoidPtr(pyengine));
-  bContext *context = pyrna_to_pointer<bContext>(pycontext, &RNA_Context);
+  bContext *context = pyrna_to_pointer<bContext>(pycontext, RNA_Context);
 
   CLOG_DEBUG(LOG_HYDRA_RENDER, "Engine %p", engine);
 

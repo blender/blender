@@ -692,7 +692,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       Object *object_cow = id_cast<Object *>(id_cow);
       const Object *object_orig = id_cast<const Object *>(id_orig);
       object_cow->mode = object_orig->mode;
-      object_cow->sculpt = object_orig->sculpt;
+      object_cow->runtime->sculpt_session = object_orig->runtime->sculpt_session;
       object_cow->runtime->data_orig = object_cow->data;
       if (object_cow->type == OB_ARMATURE) {
         const bArmature *armature_orig = id_cast<bArmature *>(object_orig->data);
@@ -983,7 +983,7 @@ void deg_free_eval_copy_datablock(ID *id_cow)
        * due to mesh/curve data-block bound-box tagging dirty. */
       Object *ob_cow = id_cast<Object *>(id_cow);
       ob_cow->data = nullptr;
-      ob_cow->sculpt = nullptr;
+      ob_cow->runtime->sculpt_session = nullptr;
       break;
     }
     default:

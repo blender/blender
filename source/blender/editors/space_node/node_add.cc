@@ -299,7 +299,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop;
-  prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+  prop = RNA_def_collection_runtime(ot->srna, "path", RNA_OperatorMousePath, "Path", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   /* internal */
   RNA_def_int(ot->srna, "cursor", WM_CURSOR_CROSS, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
@@ -899,7 +899,7 @@ static wmOperatorStatus node_add_nodes_modal(bContext *C, wmOperator *op, const 
   for (bNode *node : data->nodes) {
     node->location[1] -= stack_offset;
     stack_offset += (node->runtime->draw_bounds.ymax - node->runtime->draw_bounds.ymin) *
-                    delta_factor;
+                    delta_factor / UI_SCALE_FAC;
     redraw = true;
   }
 
@@ -1327,7 +1327,7 @@ void NODE_OT_add_import_node(wmOperatorType *ot)
       ot->srna, "directory", nullptr, FILE_MAX, "Directory", "Directory of the file");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-  prop = RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+  prop = RNA_def_collection_runtime(ot->srna, "files", RNA_OperatorFileListElement, "Files", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

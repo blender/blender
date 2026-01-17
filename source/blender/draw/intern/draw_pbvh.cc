@@ -537,7 +537,7 @@ BLI_NOINLINE static void ensure_vbos_allocated_grids(const Object &object,
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-  const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
   node_mask.foreach_index(GrainSize(64), [&](const int i) {
     if (!vbos[i]) {
       vbos[i] = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
@@ -737,7 +737,7 @@ BLI_NOINLINE static void fill_positions_grids(const Object &object,
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-  const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
   const Span<float3> positions = subdiv_ccg.positions;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   ensure_vbos_allocated_grids(object, position_format(), use_flat_layout, node_mask, vbos);
@@ -779,7 +779,7 @@ BLI_NOINLINE static void fill_normals_grids(const Object &object,
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-  const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
   const Span<float3> positions = subdiv_ccg.positions;
   const Span<float3> normals = subdiv_ccg.normals;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
@@ -841,7 +841,7 @@ BLI_NOINLINE static void fill_masks_grids(const Object &object,
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-  const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<float> masks = subdiv_ccg.masks;
   ensure_vbos_allocated_grids(object, mask_format(), use_flat_layout, node_mask, vbos);
@@ -889,7 +889,7 @@ BLI_NOINLINE static void fill_face_sets_grids(const Object &object,
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-  const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const int color_default = orig_mesh_data.face_set_default;
   const int color_seed = orig_mesh_data.face_set_seed;
@@ -987,7 +987,7 @@ BLI_NOINLINE static void update_masks_bmesh(const Object &object,
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-  const BMesh &bm = *object.sculpt->bm;
+  const BMesh &bm = *object.runtime->sculpt_session->bm;
   const int cd_offset = CustomData_get_offset_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask");
   ensure_vbos_allocated_bmesh(object, mask_format(), node_mask, vbos);
   if (cd_offset != -1) {
@@ -1022,7 +1022,7 @@ BLI_NOINLINE static void update_face_sets_bmesh(const Object &object,
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-  const BMesh &bm = *object.sculpt->bm;
+  const BMesh &bm = *object.runtime->sculpt_session->bm;
   const int color_default = orig_mesh_data.face_set_default;
   const int color_seed = orig_mesh_data.face_set_seed;
   const int offset = CustomData_get_offset_named(&bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
@@ -1060,11 +1060,20 @@ BLI_NOINLINE static void update_generic_attribute_bmesh(const Object &object,
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-  const BMesh &bm = *object.sculpt->bm;
+  const BMesh &bm = *object.runtime->sculpt_session->bm;
   const BMDataLayerLookup attr = BM_data_layer_lookup(bm, name);
-  if (!attr || attr.domain == bke::AttrDomain::Edge) {
+  if (attr.domain == bke::AttrDomain::Edge) {
     return;
   }
+
+  if (!attr) {
+    ensure_vbos_allocated_bmesh(
+        object, attribute_format(orig_mesh_data, name, bke::AttrType::Float3), node_mask, vbos);
+    node_mask.foreach_index(GrainSize(1),
+                            [&](const int i) { vbos[i]->data<float3>().fill(float3(0.0f)); });
+    return;
+  }
+
   ensure_vbos_allocated_bmesh(
       object, attribute_format(orig_mesh_data, name, attr.type), node_mask, vbos);
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -1362,7 +1371,7 @@ static void create_lines_index_grids_flat_layout(const Span<int> grid_indices,
 
 static Array<int> calc_material_indices(const Object &object, const OrigMeshData &orig_mesh_data)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -1432,7 +1441,7 @@ static BitVector<> calc_use_flat_layout(const Object &object, const OrigMeshData
         return BitVector<>(nodes.size(), false);
       }
 
-      const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       const Span<int> grid_to_face_map = subdiv_ccg.grid_to_face_map;
 
       /* Use boolean array instead of #BitVector for parallelized writing. */
@@ -1615,7 +1624,7 @@ Span<gpu::IndexBufPtr> DrawCacheImpl::ensure_lines_indices(const Object &object,
     case bke::pbvh::Type::Grids: {
       const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       nodes_to_calculate.foreach_index(GrainSize(1), [&](const int i) {
-        const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+        const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
         const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
         ibos[i] = create_lines_index_grids(
             key, subdiv_ccg.grid_hidden, coarse, nodes[i].grids(), use_flat_layout_[i]);
@@ -1813,7 +1822,7 @@ Span<gpu::IndexBufPtr> DrawCacheImpl::ensure_tri_indices(const Object &object,
       const IndexMask nodes_to_calculate = IndexMask::from_predicate(
           node_mask, GrainSize(8196), memory, [&](const int i) { return !ibos[i]; });
 
-      const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
       nodes_to_calculate.foreach_index(GrainSize(1), [&](const int i) {

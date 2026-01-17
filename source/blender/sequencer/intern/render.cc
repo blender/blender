@@ -222,11 +222,9 @@ void render_new_render_data(Main *bmain,
   r_context->motion_blur_samples = 0;
   r_context->motion_blur_shutter = 0;
   r_context->skip_cache = false;
-  r_context->is_proxy_render = false;
   r_context->view_id = 0;
   r_context->gpu_offscreen = nullptr;
   r_context->gpu_viewport = nullptr;
-  r_context->task_id = SEQ_TASK_MAIN_RENDER;
   r_context->is_prefetch_render = false;
 }
 
@@ -361,15 +359,9 @@ static bool sequencer_use_crop(const Strip *strip)
   return false;
 }
 
-static bool seq_input_have_to_preprocess(const RenderData *context,
-                                         Strip *strip,
-                                         float /*timeline_frame*/)
+static bool seq_input_have_to_preprocess(const Strip *strip)
 {
   float mul;
-
-  if (context && context->is_proxy_render) {
-    return false;
-  }
 
   if ((strip->flag & (SEQ_DEINTERLACE | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_FLOAT)) ||
       sequencer_use_crop(strip) || sequencer_use_transform(strip))
@@ -714,9 +706,7 @@ static ImBuf *seq_render_preprocess_ibuf(const RenderData *context,
                                          bool use_preprocess,
                                          const bool is_proxy_image)
 {
-  if (context->is_proxy_render == false &&
-      (ibuf->x != context->rectx || ibuf->y != context->recty))
-  {
+  if (ibuf->x != context->rectx || ibuf->y != context->recty) {
     use_preprocess = true;
   }
 
@@ -826,7 +816,7 @@ static ImBuf *seq_render_effect_strip_impl(const RenderData *context,
 /** \name Individual strip rendering functions
  * \{ */
 
-static void convert_multilayer_ibuf(ImBuf *ibuf)
+void convert_multilayer_ibuf(ImBuf *ibuf)
 {
   /* Load the combined/RGB layer, if this is a multi-layer image. */
   BKE_movieclip_convert_multilayer_ibuf(ibuf);
@@ -894,12 +884,12 @@ static ImBuf *seq_render_image_strip_view(const RenderData *context,
   return ibuf;
 }
 
-static bool seq_image_strip_is_multiview_render(Scene *scene,
-                                                Strip *strip,
-                                                int totfiles,
-                                                const char *filepath,
-                                                char *r_prefix,
-                                                const char *r_ext)
+bool seq_image_strip_is_multiview_render(const Scene *scene,
+                                         const Strip *strip,
+                                         int totfiles,
+                                         const char *filepath,
+                                         char *r_prefix,
+                                         const char *r_ext)
 {
   if (totfiles > 1) {
     BKE_scene_multiview_view_prefix_get(scene, filepath, r_prefix, &r_ext);
@@ -1762,7 +1752,7 @@ ImBuf *seq_render_strip(const RenderData *context,
   }
 
   if (ibuf) {
-    use_preprocess = seq_input_have_to_preprocess(context, strip, timeline_frame);
+    use_preprocess = seq_input_have_to_preprocess(strip);
     ibuf = seq_render_preprocess_ibuf(
         context, state, strip, ibuf, timeline_frame, use_preprocess, is_proxy_image);
     intra_frame_cache_put_preprocessed(context->scene, strip, ibuf);
@@ -2005,7 +1995,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
 
   Scene *orig_scene = prefetch_get_original_scene(context);
   ImBuf *out = nullptr;
-  if (!context->skip_cache && !context->is_proxy_render) {
+  if (!context->skip_cache) {
     out = final_image_cache_get(
         orig_scene, timeline_frame, context->view_id, chanshown, {context->rectx, context->recty});
   }
@@ -2026,9 +2016,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
 
     out = seq_render_strip_stack(context, &state, channels, seqbasep, timeline_frame, chanshown);
 
-    if (out && (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) && !context->skip_cache &&
-        !context->is_proxy_render)
-    {
+    if (out && (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) && !context->skip_cache) {
       final_image_cache_put(orig_scene,
                             timeline_frame,
                             context->view_id,

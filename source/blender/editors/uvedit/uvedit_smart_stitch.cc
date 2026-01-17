@@ -2744,8 +2744,7 @@ void UV_OT_stitch(wmOperatorType *ot)
                       "Stored Operation Mode",
                       "Use vertex or edge stitching");
   RNA_def_property_flag(prop, PROP_HIDDEN);
-  prop = RNA_def_collection_runtime(
-      ot->srna, "selection", &RNA_SelectedUvElement, "Selection", "");
+  prop = RNA_def_collection_runtime(ot->srna, "selection", RNA_SelectedUvElement, "Selection", "");
   /* Selection should not be editable or viewed in toolbar */
   RNA_def_property_flag(prop, PROP_HIDDEN);
 

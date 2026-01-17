@@ -27,4 +27,6 @@ namespace blender::gpu {
  */
 bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device);
 
+const char *to_string(VkResult result);
+
 }  // namespace blender::gpu

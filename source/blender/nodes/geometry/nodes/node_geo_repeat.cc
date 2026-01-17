@@ -49,7 +49,7 @@ static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *current_
   }
   bNode &output_node = const_cast<bNode &>(*zone->output_node());
   PointerRNA output_node_ptr = RNA_pointer_create_discrete(
-      current_node_ptr->owner_id, &RNA_Node, &output_node);
+      current_node_ptr->owner_id, RNA_Node, &output_node);
 
   if (ui::Layout *panel = layout.panel(C, "repeat_items", false, IFACE_("Repeat Items"))) {
     socket_items::ui::draw_items_list_with_operators<RepeatItemsAccessor>(
@@ -91,7 +91,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
         auto &input_decl = b.add_input(socket_type, name, identifier)
                                .socket_name_ptr(
-                                   &tree->id, RepeatItemsAccessor::item_srna, &item, "name");
+                                   &tree->id, *RepeatItemsAccessor::item_srna, &item, "name");
         auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
         if (socket_type_supports_fields(socket_type)) {
           input_decl.supports_field();
@@ -186,7 +186,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
       auto &input_decl = b.add_input(socket_type, name, identifier)
                              .socket_name_ptr(
-                                 &tree->id, RepeatItemsAccessor::item_srna, &item, "name");
+                                 &tree->id, *RepeatItemsAccessor::item_srna, &item, "name");
       auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
       if (socket_type_supports_fields(socket_type)) {
         input_decl.supports_field();
@@ -334,7 +334,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace nodes {
 
-StructRNA *RepeatItemsAccessor::item_srna = &RNA_RepeatItem;
+StructRNA **RepeatItemsAccessor::item_srna = &RNA_RepeatItem;
 
 void RepeatItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

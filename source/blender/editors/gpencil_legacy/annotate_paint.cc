@@ -2814,7 +2814,7 @@ void GPENCIL_OT_annotate(wmOperatorType *ot)
                      100);
   RNA_def_property_subtype(prop, PROP_PIXEL);
 
-  prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+  prop = RNA_def_collection_runtime(ot->srna, "stroke", RNA_OperatorStrokeElement, "Stroke", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   /* NOTE: wait for input is enabled by default,

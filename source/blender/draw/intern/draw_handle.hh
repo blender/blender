@@ -366,7 +366,9 @@ class ObjectRef {
       return false;
     }
 
-    if (dupli_parent_->sculpt && (dupli_parent_->sculpt->mode_type == OB_MODE_SCULPT)) {
+    if (dupli_parent_->runtime->sculpt_session &&
+        (dupli_parent_->runtime->sculpt_session->mode_type == OB_MODE_SCULPT))
+    {
       return true;
     }
 

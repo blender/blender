@@ -94,7 +94,8 @@ def from_socket(start_socket: NodeTreeSearchResult,
 
             if linked_node.type == "GROUP_INPUT":
                 socket = [sock for sock in group_path[-1].inputs if sock.name == link.from_socket.name][0]
-                linked_results = __search_from_socket(socket, shader_node_filter, search_path + [link], group_path[:-1].copy())
+                linked_results = __search_from_socket(socket, shader_node_filter,
+                                                      search_path + [link], group_path[:-1].copy())
                 if linked_results:
                     # add the link to the current path
                     search_path.append(link)
@@ -272,9 +273,10 @@ class NodeNav:
             self.node, self.out_socket = self.stack.pop()
             self.in_socket = self.node.inputs[i]
 
-    def move_back(self, in_soc=None):
+    def move_back(self, in_soc=None, no_moved_reinit=False):
         """Move backwards through an input socket to the next node."""
-        self.moved = False
+        if not no_moved_reinit:
+            self.moved = False
 
         self.select_input_socket(in_soc)
 
@@ -297,7 +299,10 @@ class NodeNav:
             self.move_back()
         elif self.node.type == 'GROUP_INPUT':
             self.ascend()
-            self.move_back()
+            # Manage special case where we ascend from a group input node
+            # But the node group socket is not linked
+            # We need to avoid reinitializing moved to False in this case
+            self.move_back(no_moved_reinit=True)
 
     def peek_back(self, in_soc=None):
         """Peeks backwards through an input socket without modifying self."""
@@ -351,12 +356,17 @@ class NodeNav:
                 # Ambient Occlusion node, not linked
                 elif nav.node.type == 'AMBIENT_OCCLUSION' and not nav.node.inputs['Color'].is_linked:
                     color = list(nav.node.inputs['Color'].default_value)
-                    color = color[:3] # drop unused alpha component (assumes shader tree)
+                    color = color[:3]  # drop unused alpha component (assumes shader tree)
                     return color, "node_tree." + nav.node.inputs['Color'].path_from_id() + ".default_value"
                 # Ambient Occlusion node, linked, so check the next node
                 elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
                     nav.move_back('Color')
                     continue
+                elif nav.node.type == "GROUP":
+                    # Special case: unlinked group input node
+                    color = list(nav.in_socket.default_value)
+                    color = color[:3]  # drop unused alpha component (assumes shader tree)
+                    return color, "node_tree." + nav.in_socket.path_from_id() + ".default_value"
                 else:
                     break
 
@@ -369,7 +379,7 @@ class NodeNav:
                 # Ambient Occlusion node, not linked
                 elif nav.node.type == 'AMBIENT_OCCLUSION' and not nav.node.inputs['Color'].is_linked:
                     color = list(nav.node.inputs['Color'].default_value)
-                    color = color[:3] # drop unused alpha component (assumes shader tree)
+                    color = color[:3]  # drop unused alpha component (assumes shader tree)
                     return color, "node_tree." + nav.node.inputs['Color'].path_from_id() + ".default_value"
                 # Ambient Occlusion node, linked, so check the next node
                 elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
@@ -381,6 +391,9 @@ class NodeNav:
             elif self.in_socket.type == 'VALUE':
                 if nav.node.type == 'VALUE':
                     return nav.out_socket.default_value, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+                elif nav.node.type == "GROUP":
+                    # Special case: unlinked group input node
+                    return nav.in_socket.default_value, "node_tree." + nav.in_socket.path_from_id() + ".default_value"
                 else:
                     break
             else:
@@ -501,7 +514,7 @@ def gather_alpha_info(alpha_nav):
     c, alpha_path = alpha_nav.get_constant()
     if c == 1:
         info['alphaMode'] = 'OPAQUE'
-        info['alphaPath'] = alpha_path # Maybe the alpha is animated, this will be managed later
+        info['alphaPath'] = alpha_path  # Maybe the alpha is animated, this will be managed later
         return info
 
     # Check for alpha clipping
@@ -580,7 +593,7 @@ def detect_alpha_clip(alpha_nav):
     if nav.node.type == 'MATH' and nav.node.operation == 'ROUND':
         nav.select_input_socket(0)
         alpha_nav.assign(nav)
-        return 0.5, None # Round => can't be animated, so no path
+        return 0.5, None  # Round => can't be animated, so no path
 
     # Detect 1 - (X < cutoff)
     # (There is no >= node)
@@ -819,7 +832,11 @@ def previous_socket(socket: NodeSocket):
         # If we are entering a node group (from outputs)
         if from_socket.node.type == "GROUP":
             socket_name = from_socket.name
-            sockets = [n for n in from_socket.node.node_tree.nodes if n.type == "GROUP_OUTPUT"][0].inputs
+            # Some groups can be undefined (because of linked librairies)
+            next_socket = next(iter([n for n in from_socket.node.node_tree.nodes if n.type == "GROUP_OUTPUT"]), None)
+            if next_socket is None:
+                return NodeSocket(None, None)
+            sockets = next_socket.inputs
             socket = [s for s in sockets if s.name == socket_name][0]
             group_path.append(from_socket.node)
             soc = socket
@@ -972,6 +989,7 @@ def check_if_is_linked_to_active_output(shader_socket, group_path):
                 return True
 
     return False
+
 
 def get_attribute_name(socket, export_settings):
     node = previous_node(socket)

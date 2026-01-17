@@ -31,7 +31,7 @@ void template_histogram(Layout *layout, PointerRNA *ptr, const StringRefNull pro
   }
 
   const PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Histogram)) {
+  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_Histogram)) {
     return;
   }
   Histogram *hist = static_cast<Histogram *>(cptr.data);
@@ -77,7 +77,7 @@ void template_waveform(Layout *layout, PointerRNA *ptr, const StringRefNull prop
   }
 
   const PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Scopes)) {
+  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_Scopes)) {
     return;
   }
   Scopes *scopes = static_cast<Scopes *>(cptr.data);
@@ -133,7 +133,7 @@ void template_vectorscope(Layout *layout, PointerRNA *ptr, const StringRefNull p
   }
 
   const PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Scopes)) {
+  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_Scopes)) {
     return;
   }
   Scopes *scopes = static_cast<Scopes *>(cptr.data);

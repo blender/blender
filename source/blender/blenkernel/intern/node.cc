@@ -441,24 +441,6 @@ static void node_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static void node_foreach_cache(ID *id,
-                               IDTypeForeachCacheFunctionCallback function_callback,
-                               void *user_data)
-{
-  bNodeTree *nodetree = reinterpret_cast<bNodeTree *>(id);
-  IDCacheKey key = {0};
-  key.id_session_uid = id->session_uid;
-
-  if (nodetree->type == NTREE_COMPOSIT) {
-    for (bNode *node : nodetree->all_nodes()) {
-      if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
-        key.identifier = size_t(BLI_ghashutil_strhash_p(node->name));
-        function_callback(id, &key, (&node->storage), 0, user_data);
-      }
-    }
-  }
-}
-
 static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -610,7 +592,7 @@ static void update_node_location_legacy(bNodeTree &ntree)
   }
 }
 
-static void write_legacy_properties(bNodeTree &ntree)
+static void write_legacy_properties(bNodeTree &ntree, Map<ID **, ID *> &r_ids_to_restore)
 {
   switch (ntree.type) {
     case NTREE_GEOMETRY: {
@@ -707,6 +689,25 @@ static void write_legacy_properties(bNodeTree &ntree)
         else if (node->is_type("FunctionNodeMatchString")) {
           const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Operation");
           node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_STRING_TO_CURVES) {
+          auto &storage = *static_cast<NodeGeometryStringToCurves *>(node->storage);
+          storage.overflow = node_find_socket(*node, SOCK_IN, "Overflow")
+                                 ->default_value_typed<bNodeSocketValueMenu>()
+                                 ->value;
+          storage.align_x = node_find_socket(*node, SOCK_IN, "Align X")
+                                ->default_value_typed<bNodeSocketValueMenu>()
+                                ->value;
+          storage.align_y = node_find_socket(*node, SOCK_IN, "Align Y")
+                                ->default_value_typed<bNodeSocketValueMenu>()
+                                ->value;
+          storage.pivot_mode = node_find_socket(*node, SOCK_IN, "Pivot Point")
+                                   ->default_value_typed<bNodeSocketValueMenu>()
+                                   ->value;
+          r_ids_to_restore.add(&node->id, node->id);
+          node->id = id_cast<ID *>(node_find_socket(*node, SOCK_IN, "Font")
+                                       ->default_value_typed<bNodeSocketValueFont>()
+                                       ->value);
         }
       }
       break;
@@ -1211,9 +1212,6 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
       BLO_write_string(writer, nss->bytecode);
     }
   }
-  else if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
-    /* pass */
-  }
   else if (ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY)) {
     NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
     BLO_write_string(writer, nc->matte_id);
@@ -1228,9 +1226,11 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
   BKE_id_blend_write(writer, &ntree->id);
   BLO_write_string(writer, ntree->description);
 
+  /* Restore IDs overridden for forward compatibility. Otherwise their user count becomes wrong. */
+  Map<ID **, ID *> ids_to_restore;
   if (!BLO_write_is_undo(writer)) {
     forward_compat::update_node_location_legacy(*ntree);
-    forward_compat::write_legacy_properties(*ntree);
+    forward_compat::write_legacy_properties(*ntree, ids_to_restore);
   }
 
   for (bNode *node : ntree->all_nodes()) {
@@ -1299,6 +1299,9 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
   if (!BLO_write_is_undo(writer)) {
     for (bNode *node : ntree->all_nodes()) {
       forward_compat::free_legacy_socket_storage(*node);
+    }
+    for (const auto &item : ids_to_restore.items()) {
+      *item.key = item.value;
     }
   }
 }
@@ -1838,11 +1841,6 @@ static void node_blend_read_data_storage(BlendDataReader *reader, bNodeTree *ntr
   if (!node->storage) {
     return;
   }
-  if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
-    /* Do nothing, this is a runtime cache and hence handled by generic code using
-     * `IDTypeInfo.foreach_cache` callback. */
-    return;
-  }
 
   /* This may not always find the type for legacy nodes when the idname did not exist yet or it was
    * changed. Versioning code will update the nodes with unknown types. */
@@ -2181,7 +2179,7 @@ IDTypeInfo IDType_ID_NT = {
     /*free_data*/ bke::ntree_free_data,
     /*make_local*/ nullptr,
     /*foreach_id*/ bke::node_foreach_id,
-    /*foreach_cache*/ bke::node_foreach_cache,
+    /*foreach_cache*/ nullptr,
     /*foreach_path*/ bke::node_foreach_path,
     /*foreach_working_space_color*/ bke::node_foreach_working_space_color,
     /*owner_pointer_get*/ bke::node_owner_pointer_get,
@@ -2238,7 +2236,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
     return;
   }
 
-  node->flag = NODE_SELECT | NODE_OPTIONS | ntype->flag;
+  node->flag = NODE_SELECT | NODE_OPTIONS | (ntype->flag & ~NODE_PREVIEW);
   node->width = ntype->width;
   node->height = ntype->height;
   node->color[0] = node->color[1] = node->color[2] = 0.608; /* default theme color */
@@ -2265,16 +2263,12 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
   }
 
   if (ntype->initfunc_api) {
-    PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, node);
+    PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, RNA_Node, node);
 
     /* XXX WARNING: context can be nullptr in case nodes are added in do_versions.
      * Delayed init is not supported for nodes with context-based `initfunc_api` at the moment. */
     BLI_assert(C != nullptr);
     ntype->initfunc_api(C, &ptr);
-  }
-
-  if (ntree->typeinfo && ntree->typeinfo->node_add_init) {
-    ntree->typeinfo->node_add_init(ntree, node);
   }
 
   if (!add_sockets_before_init) {
@@ -3034,7 +3028,7 @@ bool node_is_static_socket_type(const bNodeSocketType &stype)
    * Cannot rely on type==SOCK_CUSTOM here, because type is 0 by default
    * and can be changed on custom sockets.
    */
-  return RNA_struct_is_a(stype.ext_socket.srna, &RNA_NodeSocketStandard);
+  return RNA_struct_is_a(stype.ext_socket.srna, RNA_NodeSocketStandard);
 }
 
 std::optional<StringRefNull> node_static_socket_type(const int type,
@@ -3052,6 +3046,8 @@ std::optional<StringRefNull> node_static_socket_type(const int type,
           return "NodeSocketFloatPercentage";
         case PROP_FACTOR:
           return "NodeSocketFloatFactor";
+        case PROP_MASS:
+          return "NodeSocketFloatMass";
         case PROP_ANGLE:
           return "NodeSocketFloatAngle";
         case PROP_TIME:
@@ -3219,6 +3215,8 @@ std::optional<StringRefNull> node_static_socket_interface_type_new(
           return "NodeTreeInterfaceSocketFloatPercentage";
         case PROP_FACTOR:
           return "NodeTreeInterfaceSocketFloatFactor";
+        case PROP_MASS:
+          return "NodeTreeInterfaceSocketFloatMass";
         case PROP_ANGLE:
           return "NodeTreeInterfaceSocketFloatAngle";
         case PROP_TIME:
@@ -3551,6 +3549,18 @@ const bNodeTreeInterfaceSocket *node_find_interface_input_by_identifier(const bN
   return nullptr;
 }
 
+const bNodeTreeInterfaceSocket *node_find_interface_output_by_identifier(
+    const bNodeTree &ntree, const StringRef identifier)
+{
+  ntree.ensure_interface_cache();
+  for (const bNodeTreeInterfaceSocket *input : ntree.interface_outputs()) {
+    if (input->identifier == identifier) {
+      return input;
+    }
+  }
+  return nullptr;
+}
+
 bNode *node_find_root_parent(bNode &node)
 {
   bNode *parent_iter = &node;
@@ -3870,7 +3880,7 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
    * for cases like the dependency graph and localization. */
   if (node_dst->typeinfo->copyfunc_api && !(flag & LIB_ID_CREATE_NO_MAIN)) {
     PointerRNA ptr = RNA_pointer_create_discrete(
-        reinterpret_cast<ID *>(dst_tree), &RNA_Node, node_dst);
+        reinterpret_cast<ID *>(dst_tree), RNA_Node, node_dst);
 
     node_dst->typeinfo->copyfunc_api(&ptr, &node_src);
   }
@@ -4381,37 +4391,22 @@ bool node_preview_used(const bNode &node)
   return (node.typeinfo->flag & NODE_PREVIEW) != 0;
 }
 
-bNodePreview *node_preview_verify(Map<bNodeInstanceKey, bNodePreview> &previews,
+bNodePreview *node_ensure_preview(Map<bNodeInstanceKey, bNodePreview> &previews,
                                   bNodeInstanceKey key,
                                   const int xsize,
-                                  const int ysize,
-                                  const bool create)
+                                  const int ysize)
 {
-  bNodePreview *preview = create ?
-                              &previews.lookup_or_add_cb(key,
-                                                         [&]() {
-                                                           bNodePreview preview;
-                                                           preview.ibuf = IMB_allocImBuf(
-                                                               xsize, ysize, 32, IB_byte_data);
-                                                           return preview;
-                                                         }) :
-                              previews.lookup_ptr(key);
-  if (!preview) {
-    return nullptr;
-  }
-
-  /* node previews can get added with variable size this way */
-  if (xsize == 0 || ysize == 0) {
+  bNodePreview *preview = &previews.lookup_or_add_cb(key, [&]() {
+    bNodePreview preview;
+    preview.ibuf = IMB_allocImBuf(xsize, ysize, 32, IB_byte_data);
     return preview;
-  }
+  });
 
-  /* sanity checks & initialize */
   const uint size[2] = {uint(xsize), uint(ysize)};
   IMB_rect_size_set(preview->ibuf, size);
   if (preview->ibuf->byte_buffer.data == nullptr) {
     IMB_alloc_byte_pixels(preview->ibuf);
   }
-  /* no clear, makes nicer previews */
 
   return preview;
 }
@@ -4432,32 +4427,6 @@ bNodePreview::~bNodePreview()
   if (this->ibuf) {
     IMB_freeImBuf(this->ibuf);
   }
-}
-
-static void node_preview_init_tree_recursive(Map<bNodeInstanceKey, bNodePreview> &previews,
-                                             bNodeTree *ntree,
-                                             bNodeInstanceKey parent_key,
-                                             const int xsize,
-                                             const int ysize)
-{
-  for (bNode *node : ntree->all_nodes()) {
-    bNodeInstanceKey key = node_instance_key(parent_key, ntree, node);
-
-    if (node_preview_used(*node)) {
-      node_preview_verify(previews, key, xsize, ysize, false);
-    }
-
-    bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
-    if (node->is_group() && group != nullptr) {
-      node_preview_init_tree_recursive(previews, group, key, xsize, ysize);
-    }
-  }
-}
-
-void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize)
-{
-  node_preview_init_tree_recursive(
-      ntree->runtime->previews, ntree, NODE_INSTANCE_KEY_BASE, xsize, ysize);
 }
 
 static void collect_used_previews(Map<bNodeInstanceKey, bNodePreview> &previews,
@@ -4645,7 +4614,7 @@ void node_remove_node(
   if (do_id_user) {
     /* Free callback for NodeCustomGroup. */
     if (node.typeinfo->freefunc_api) {
-      PointerRNA ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
+      PointerRNA ptr = RNA_pointer_create_discrete(&ntree.id, RNA_Node, &node);
 
       node.typeinfo->freefunc_api(&ptr);
     }
@@ -4876,15 +4845,6 @@ bNodeTree *node_tree_localize(bNodeTree *ntree, std::optional<ID *> new_owner_id
   }
 
   return ltree;
-}
-
-void node_tree_local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
-{
-  if (ntree && localtree) {
-    if (ntree->typeinfo->local_merge) {
-      ntree->typeinfo->local_merge(bmain, localtree, ntree);
-    }
-  }
 }
 
 static bool ntree_contains_tree_exec(const bNodeTree &tree_to_search_in,

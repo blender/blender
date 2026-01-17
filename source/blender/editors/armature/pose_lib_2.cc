@@ -162,7 +162,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
       }
       /* This mimics the Whole Character Keying Set that was used here previously. In the future we
        * could only key rna paths of FCurves that are actually in the applied pose. */
-      PointerRNA pose_bone_pointer = RNA_pointer_create_discrete(&ob->id, &RNA_PoseBone, pchan);
+      PointerRNA pose_bone_pointer = RNA_pointer_create_discrete(&ob->id, RNA_PoseBone, pchan);
       Vector<RNAPath> rna_paths = animrig::get_keyable_id_property_paths(pose_bone_pointer);
       rna_paths.append({"location"});
       const StringRef rotation_mode_path = animrig::get_rotation_mode_path(

@@ -10,6 +10,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -63,7 +64,7 @@ static void calc_faces(const Depsgraph &depsgraph,
                        LocalData &tls,
                        const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
@@ -101,7 +102,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        bke::pbvh::GridsNode &node,
                        LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
@@ -141,7 +142,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        bke::pbvh::BMeshNode &node,
                        LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -171,7 +172,7 @@ void do_rotate_brush(const Depsgraph &depsgraph,
                      Object &object,
                      const IndexMask &node_mask)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
@@ -194,7 +195,7 @@ void do_rotate_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {

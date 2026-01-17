@@ -13,6 +13,8 @@
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
+#include "SEQ_modifier.hh"
+
 namespace blender {
 
 struct MovieReader;
@@ -34,9 +36,11 @@ class StripModifierDataBackup {
 
   bool isEmpty() const;
 
+  /* For Sound Modifiers. */
   void *sound_in;
   void *sound_out;
-  float *last_buf;
+  eStripModifierFlag flag;
+  uint64_t params_hash;
 };
 
 /* Backup of a single strip. */

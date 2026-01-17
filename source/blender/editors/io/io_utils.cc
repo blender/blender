@@ -89,7 +89,7 @@ Vector<std::string> paths_from_operator_properties(PointerRNA *ptr)
     }
 
     PropertyRNA *files_prop = RNA_struct_find_collection_property_check(
-        *ptr, "files", &RNA_OperatorFileListElement);
+        *ptr, "files", RNA_OperatorFileListElement);
 
     BLI_assert(files_prop);
 

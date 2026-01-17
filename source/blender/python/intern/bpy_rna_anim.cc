@@ -370,7 +370,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     cfra);
 
-  if (self->ptr->type == &RNA_NlaStrip) {
+  if (self->ptr->type == RNA_NlaStrip) {
     /* Handle special properties for NLA Strips, whose F-Curves are stored on the
      * strips themselves. These are stored separately or else the properties will
      * not have any effect.
@@ -497,7 +497,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
 
   BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
 
-  if (self->ptr->type == &RNA_NlaStrip) {
+  if (self->ptr->type == RNA_NlaStrip) {
     /* Handle special properties for NLA Strips, whose F-Curves are stored on the
      * strips themselves. These are stored separately or else the properties will
      * not have any effect.
@@ -626,13 +626,13 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
       int i = 0;
       ret = PyList_New(0);
       while ((fcu = BKE_fcurve_find(&adt->drivers, path_full, i++))) {
-        tptr = RNA_pointer_create_discrete(id, &RNA_FCurve, fcu);
+        tptr = RNA_pointer_create_discrete(id, RNA_FCurve, fcu);
         PyList_APPEND(ret, pyrna_struct_CreatePyObject(&tptr));
       }
     }
     else {
       fcu = BKE_fcurve_find(&adt->drivers, path_full, index);
-      tptr = RNA_pointer_create_discrete(id, &RNA_FCurve, fcu);
+      tptr = RNA_pointer_create_discrete(id, RNA_FCurve, fcu);
       ret = pyrna_struct_CreatePyObject(&tptr);
     }
 

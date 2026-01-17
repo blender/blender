@@ -33,6 +33,19 @@ GHOST_XrGraphicsBindingMetal::GHOST_XrGraphicsBindingMetal(GHOST_Context &ghost_
   ghost_metal_ctx_ = dynamic_cast<GHOST_ContextMTL *>(&ghost_ctx);
 }
 
+bool GHOST_XrGraphicsBindingMetal::loadExtensionFunctions(XrInstance instance)
+{
+#define LOAD_FUNCTION(fn_ptr, name) \
+  if (XR_FAILED(xrGetInstanceProcAddr(instance, #name, (PFN_xrVoidFunction *)&fn_ptr))) { \
+    return false; \
+  }
+
+  LOAD_FUNCTION(xrGetMetalGraphicsRequirementsKHR_, xrGetMetalGraphicsRequirementsKHR);
+
+#undef LOAD_FUNCTION
+  return true;
+}
+
 bool GHOST_XrGraphicsBindingMetal::checkVersionRequirements(GHOST_Context &ghost_ctx,
                                                             XrInstance instance,
                                                             XrSystemId system_id,
@@ -43,16 +56,7 @@ bool GHOST_XrGraphicsBindingMetal::checkVersionRequirements(GHOST_Context &ghost
   gpu_requirements.next = nullptr;
   gpu_requirements.metalDevice = nullptr;
 
-  PFN_xrGetMetalGraphicsRequirementsKHR xrGetMetalGraphicsRequirementsKHR_fn = nullptr;
-  if (XR_FAILED(
-          xrGetInstanceProcAddr(instance,
-                                "xrGetMetalGraphicsRequirementsKHR",
-                                (PFN_xrVoidFunction *)&xrGetMetalGraphicsRequirementsKHR_fn)))
-  {
-    return false;
-  }
-
-  xrGetMetalGraphicsRequirementsKHR_fn(instance, system_id, &gpu_requirements);
+  xrGetMetalGraphicsRequirementsKHR_(instance, system_id, &gpu_requirements);
 
   GHOST_ContextMTL &ghost_metal_ctx = dynamic_cast<GHOST_ContextMTL &>(ghost_ctx);
 

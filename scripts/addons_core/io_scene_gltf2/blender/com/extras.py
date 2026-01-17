@@ -8,9 +8,16 @@ from .json_util import is_json_convertible
 
 
 # Custom properties, which are in most cases present and should not be imported/exported.
-BLACK_LIST = ['cycles', 'cycles_visibility', 'cycles_curves', 'glTF2ExportSettings', 'gltf2_mesh_applied',
-    'gltf2_KHR_materials_variants_variants', 'gltf2_active_variant', 'gltf2_variant_default_materials', 'gltf2_variant_mesh_data'
-]
+BLACK_LIST = [
+    'cycles',
+    'cycles_visibility',
+    'cycles_curves',
+    'glTF2ExportSettings',
+    'gltf2_mesh_applied',
+    'gltf2_KHR_materials_variants_variants',
+    'gltf2_active_variant',
+    'gltf2_variant_default_materials',
+    'gltf2_variant_mesh_data']
 
 
 def generate_extras(blender_element):
@@ -20,11 +27,23 @@ def generate_extras(blender_element):
 
     extras = {}
 
+    # Custom properties
     for custom_property in blender_element.keys():
         if custom_property in BLACK_LIST:
             continue
 
         value = __to_json_compatible(blender_element[custom_property])
+
+        if value is not None:
+            extras[custom_property] = value
+
+    # System Custom Properties (ID properties)
+    properties = blender_element.bl_system_properties_get() or {}
+    for custom_property in properties.keys():
+        if custom_property in BLACK_LIST:
+            continue
+
+        value = __to_json_compatible(properties[custom_property])
 
         if value is not None:
             extras[custom_property] = value

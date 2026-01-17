@@ -343,65 +343,65 @@ static StructRNA *rna_ConstraintType_refine(PointerRNA *ptr)
 
   switch (con->type) {
     case CONSTRAINT_TYPE_CHILDOF:
-      return &RNA_ChildOfConstraint;
+      return RNA_ChildOfConstraint;
     case CONSTRAINT_TYPE_TRACKTO:
-      return &RNA_TrackToConstraint;
+      return RNA_TrackToConstraint;
     case CONSTRAINT_TYPE_KINEMATIC:
-      return &RNA_KinematicConstraint;
+      return RNA_KinematicConstraint;
     case CONSTRAINT_TYPE_FOLLOWPATH:
-      return &RNA_FollowPathConstraint;
+      return RNA_FollowPathConstraint;
     case CONSTRAINT_TYPE_ROTLIKE:
-      return &RNA_CopyRotationConstraint;
+      return RNA_CopyRotationConstraint;
     case CONSTRAINT_TYPE_LOCLIKE:
-      return &RNA_CopyLocationConstraint;
+      return RNA_CopyLocationConstraint;
     case CONSTRAINT_TYPE_SIZELIKE:
-      return &RNA_CopyScaleConstraint;
+      return RNA_CopyScaleConstraint;
     case CONSTRAINT_TYPE_SAMEVOL:
-      return &RNA_MaintainVolumeConstraint;
+      return RNA_MaintainVolumeConstraint;
     case CONSTRAINT_TYPE_ARMATURE:
-      return &RNA_ArmatureConstraint;
+      return RNA_ArmatureConstraint;
     case CONSTRAINT_TYPE_ACTION:
-      return &RNA_ActionConstraint;
+      return RNA_ActionConstraint;
     case CONSTRAINT_TYPE_LOCKTRACK:
-      return &RNA_LockedTrackConstraint;
+      return RNA_LockedTrackConstraint;
     case CONSTRAINT_TYPE_STRETCHTO:
-      return &RNA_StretchToConstraint;
+      return RNA_StretchToConstraint;
     case CONSTRAINT_TYPE_MINMAX:
-      return &RNA_FloorConstraint;
+      return RNA_FloorConstraint;
     case CONSTRAINT_TYPE_CLAMPTO:
-      return &RNA_ClampToConstraint;
+      return RNA_ClampToConstraint;
     case CONSTRAINT_TYPE_TRANSFORM:
-      return &RNA_TransformConstraint;
+      return RNA_TransformConstraint;
     case CONSTRAINT_TYPE_ROTLIMIT:
-      return &RNA_LimitRotationConstraint;
+      return RNA_LimitRotationConstraint;
     case CONSTRAINT_TYPE_LOCLIMIT:
-      return &RNA_LimitLocationConstraint;
+      return RNA_LimitLocationConstraint;
     case CONSTRAINT_TYPE_SIZELIMIT:
-      return &RNA_LimitScaleConstraint;
+      return RNA_LimitScaleConstraint;
     case CONSTRAINT_TYPE_DISTLIMIT:
-      return &RNA_LimitDistanceConstraint;
+      return RNA_LimitDistanceConstraint;
     case CONSTRAINT_TYPE_SHRINKWRAP:
-      return &RNA_ShrinkwrapConstraint;
+      return RNA_ShrinkwrapConstraint;
     case CONSTRAINT_TYPE_DAMPTRACK:
-      return &RNA_DampedTrackConstraint;
+      return RNA_DampedTrackConstraint;
     case CONSTRAINT_TYPE_SPLINEIK:
-      return &RNA_SplineIKConstraint;
+      return RNA_SplineIKConstraint;
     case CONSTRAINT_TYPE_TRANSLIKE:
-      return &RNA_CopyTransformsConstraint;
+      return RNA_CopyTransformsConstraint;
     case CONSTRAINT_TYPE_PIVOT:
-      return &RNA_PivotConstraint;
+      return RNA_PivotConstraint;
     case CONSTRAINT_TYPE_FOLLOWTRACK:
-      return &RNA_FollowTrackConstraint;
+      return RNA_FollowTrackConstraint;
     case CONSTRAINT_TYPE_CAMERASOLVER:
-      return &RNA_CameraSolverConstraint;
+      return RNA_CameraSolverConstraint;
     case CONSTRAINT_TYPE_OBJECTSOLVER:
-      return &RNA_ObjectSolverConstraint;
+      return RNA_ObjectSolverConstraint;
     case CONSTRAINT_TYPE_TRANSFORM_CACHE:
-      return &RNA_TransformCacheConstraint;
+      return RNA_TransformCacheConstraint;
     case CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE:
-      return &RNA_GeometryAttributeConstraint;
+      return RNA_GeometryAttributeConstraint;
     default:
-      return &RNA_UnknownType;
+      return RNA_UnknownType;
   }
 }
 

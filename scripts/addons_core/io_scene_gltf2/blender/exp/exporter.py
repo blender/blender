@@ -277,8 +277,8 @@ class GlTF2Exporter:
             self.nodes_idx_to_remove.extend(insts)
 
         for child_idx in node.children:
-                child = self.__gltf.nodes[child_idx]
-                self.manage_gpu_instancing(child, also_mesh=child.mesh is not None)
+            child = self.__gltf.nodes[child_idx]
+            self.manage_gpu_instancing(child, also_mesh=child.mesh is not None)
 
     def manage_gpu_instancing_nodes(self, export_settings):
         if export_settings['gltf_gpu_instances'] is True:
@@ -465,8 +465,8 @@ class GlTF2Exporter:
             if node.path not in ["translation", "rotation", "scale", "weights"] and node.path != "pointer":
                 if node.extensions is None:
                     node.extensions = {}
-                original_node = node.node # Used only for alpha pointer
-                original_path = node.path # Used only for alpha pointer
+                original_node = node.node  # Used only for alpha pointer
+                original_path = node.path  # Used only for alpha pointer
                 node.extensions["KHR_animation_pointer"] = {"pointer": node.path.replace("XXX", str(node.node))}
                 node.node = None
                 node.path = "pointer"
@@ -474,8 +474,8 @@ class GlTF2Exporter:
                 # In case the animation is on alpha, we need to change the alpha mode of the material
                 tab = original_path.split("/")
                 if len(tab) == 5 and tab[1] == "materials" and \
-                    tab[3] == "pbrMetallicRoughness" and tab[4] == "baseColorFactor" and \
-                    node.tmp_alpha_cst is False:
+                        tab[3] == "pbrMetallicRoughness" and tab[4] == "baseColorFactor" and \
+                        node.tmp_alpha_cst is False:
 
                     self.__gltf.materials[original_node].alpha_mode = "BLEND"
 

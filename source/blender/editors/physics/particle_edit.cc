@@ -5083,7 +5083,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop;
-  prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+  prop = RNA_def_collection_runtime(ot->srna, "stroke", RNA_OperatorStrokeElement, "Stroke", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "pen_flip", false, "Pen Flip", "Whether a tablet's eraser mode is being used");

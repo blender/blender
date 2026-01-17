@@ -68,7 +68,8 @@ def get_cache_data(path: str,
         bpy.context.scene.frame_set(int(frame))
         current_instance = {}  # For GN instances, we are going to track instances by their order in instance iterator
 
-        object_caching(data, obj_uuids, current_instance, action_name, slot_identifier, frame, depsgraph, export_settings)
+        object_caching(data, obj_uuids, current_instance, action_name,
+                       slot_identifier, frame, depsgraph, export_settings)
 
         # KHR_animation_pointer caching for materials, lights, cameras
         if export_settings['gltf_export_anim_pointer'] is True:
@@ -567,7 +568,8 @@ def object_caching(data, obj_uuids, current_instance, action_name, slot_identifi
                 if blender_obj.animation_data and blender_obj.animation_data.action \
                         and blender_obj.animation_data.action_slot \
                         and export_settings['gltf_animation_mode'] in ["ACTIVE_ACTIONS", "ACTIONS", "BROADCAST"]:
-                    key1, key2, key3, key4, key5 = dr_obj, obj_uuid + "_" + blender_obj.animation_data.action.name, blender_obj.animation_data.action_slot.identifier, "sk", None
+                    key1, key2, key3, key4, key5 = dr_obj, obj_uuid + "_" + \
+                        blender_obj.animation_data.action.name, blender_obj.animation_data.action_slot.identifier, "sk", None
                     cache_sk = True
                 elif blender_obj.animation_data \
                         and export_settings['gltf_animation_mode'] in ["NLA_TRACKS"]:

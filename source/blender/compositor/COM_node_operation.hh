@@ -66,10 +66,6 @@ class NodeOperation : public Operation {
   /* Returns a reference to the node that this operation represents. */
   const bNode &node() const;
 
-  /* Returns true if the output identified by the given identifier is needed and should be
-   * computed, otherwise returns false. */
-  bool should_compute_output(StringRef identifier);
-
  private:
   /* Get the result which will be previewed in the node, this is chosen as the first linked output
    * of the node, if no outputs exist, then the first allocated input will be chosen. Returns

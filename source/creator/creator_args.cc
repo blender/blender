@@ -767,6 +767,8 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-gpu-shader-debug-info");
   BLI_args_print_arg_doc(ba, "--debug-gpu-scope-capture");
   BLI_args_print_arg_doc(ba, "--debug-gpu-shader-source");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-shader-no-preprocessor");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-shader-no-dce");
   if (defs.with_renderdoc) {
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
   }
@@ -1555,6 +1557,29 @@ static int arg_handle_debug_gpu_shader_source(int argc, const char **argv, void 
     return 1;
   }
   fprintf(stderr, "\nError: you must specify a shader name to capture.\n");
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_shader_no_preprocessor_doc[] =
+    "\n"
+    "\tSkip preprocessor pass and rely on driver or shader compiler preprocessor instead.\n"
+    "\tAlso disable dead code elimination.";
+static int arg_handle_debug_gpu_shader_no_preprocessor(int /*argc*/,
+                                                       const char ** /*argv*/,
+                                                       void * /*data*/)
+{
+  G.debug |= G_DEBUG_GPU_SHADER_NO_PREPROCESSOR;
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_shader_no_dce_doc[] =
+    "\n"
+    "\tSkip dead code elimination pass.";
+static int arg_handle_debug_gpu_shader_no_dce(int /*argc*/,
+                                              const char ** /*argv*/,
+                                              void * /*data*/)
+{
+  G.debug |= G_DEBUG_GPU_SHADER_NO_DCE;
   return 0;
 }
 
@@ -2602,7 +2627,10 @@ static int arg_handle_python_text_run(int argc, const char **argv, void *data)
 
 static const char arg_handle_python_expr_run_doc[] =
     "<expression>\n"
-    "\tRun the given expression as a Python script.";
+    "\tRun the given expression as a Python script.\n"
+    "\n"
+    "\tThe expression may be a complete multi-line script;\n"
+    "\tyou are limited only by the platforms maximum argument length.";
 static int arg_handle_python_expr_run(int argc, const char **argv, void *data)
 {
   bContext *C = static_cast<bContext *>(data);
@@ -3052,6 +3080,13 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                nullptr);
   BLI_args_add(
       ba, nullptr, "--debug-gpu-shader-source", CB(arg_handle_debug_gpu_shader_source), nullptr);
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-gpu-shader-no-preprocessor",
+               CB(arg_handle_debug_gpu_shader_no_preprocessor),
+               nullptr);
+  BLI_args_add(
+      ba, nullptr, "--debug-gpu-shader-no-dce", CB(arg_handle_debug_gpu_shader_no_dce), nullptr);
   if (defs.with_renderdoc) {
     BLI_args_add(
         ba, nullptr, "--debug-gpu-renderdoc", CB(arg_handle_debug_gpu_renderdoc_set), nullptr);

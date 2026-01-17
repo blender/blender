@@ -6,12 +6,20 @@
 
 using namespace metal;
 
+#pragma blender dead_code_elimination off
+
+/* This block of code is causing a massive slowdown in compilation.
+ * It seems that the compiler is instantiating a massive matrix template for each
+ * matrix type if the type is only ever used inside a declaration (whether the declaration will be
+ * used or not). Only enable this when it matters: tests and python shader GLSL compatibility. */
+#ifdef WITH_MATRIX_EQ_OPERATORS
+
 /* Matrix compare operators. */
-#define EQ_OP(type, ...) \
-  inline bool operator==(type a, type b) \
-  { \
-    return __VA_ARGS__; \
-  }
+#  define EQ_OP(type, ...) \
+    inline bool operator==(type a, type b) \
+    { \
+      return __VA_ARGS__; \
+    }
 EQ_OP(float2x2, all(a[0] == b[0]) && all(a[1] == b[1]))
 EQ_OP(float2x3, all(a[0] == b[0]) && all(a[1] == b[1]))
 EQ_OP(float2x4, all(a[0] == b[0]) && all(a[1] == b[1]))
@@ -21,18 +29,22 @@ EQ_OP(float3x4, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]))
 EQ_OP(float4x2, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]) && all(a[3] == b[3]))
 EQ_OP(float4x3, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]) && all(a[3] == b[3]))
 EQ_OP(float4x4, all(a[0] == b[0]) && all(a[1] == b[1]) && all(a[2] == b[2]) && all(a[3] == b[3]))
-#undef EQ_OP
+#  undef EQ_OP
 
 template<int N, int M> inline bool operator!=(matrix<float, N, M> a, matrix<float, N, M> b)
 {
   return !(a == b);
 }
 
+#endif /* WITH_MATRIX_EQ_OPERATORS */
+
 /* Matrix unary minus operator. */
 template<int N, int M> inline matrix<float, N, M> operator-(matrix<float, N, M> a)
 {
   return a * -1.0f;
 }
+
+#pragma blender dead_code_elimination on
 
 /* Matrix Inverse. */
 float4x4 inverse(float4x4 a)

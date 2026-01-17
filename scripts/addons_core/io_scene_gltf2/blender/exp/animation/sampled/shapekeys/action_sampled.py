@@ -19,7 +19,8 @@ def gather_action_sk_sampled(object_uuid: str,
     if len(bpy.data.actions) == 0:
         return None
 
-    channels = __gather_channels(object_uuid, blender_action.name if blender_action else cache_key, slot_identifier if blender_action else None, export_settings)
+    channels = __gather_channels(object_uuid, blender_action.name if blender_action else cache_key,
+                                 slot_identifier if blender_action else None, export_settings)
 
     if not channels:
         return None

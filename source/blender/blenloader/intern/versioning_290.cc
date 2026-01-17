@@ -1553,8 +1553,10 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_SEQ) {
             SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
-            sseq->flag |= (SEQ_SHOW_OVERLAY | SEQ_TIMELINE_SHOW_STRIP_NAME |
-                           SEQ_TIMELINE_SHOW_STRIP_SOURCE | SEQ_TIMELINE_SHOW_STRIP_DURATION);
+            sseq->flag |= SEQ_SHOW_OVERLAY;
+            sseq->timeline_overlay.flag |= SEQ_TIMELINE_SHOW_STRIP_NAME |
+                                           SEQ_TIMELINE_SHOW_STRIP_SOURCE |
+                                           SEQ_TIMELINE_SHOW_STRIP_DURATION;
           }
         }
       }

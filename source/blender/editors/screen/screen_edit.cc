@@ -521,16 +521,20 @@ static bool screen_area_join_ex(bContext *C,
     float inner[4] = {0.0f, 0.0f, 0.0f, 0.7f};
     if (side1) {
       rcti rect = {side1->v1->vec.x, side1->v3->vec.x, side1->v1->vec.y, side1->v3->vec.y};
-      screen_animate_area_highlight(
-          CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+      /* Close side1 but not by joining with the area that we just split. */
+      if (screen_area_close(C, reports, screen, side1, (offset1 > 0) ? sa2 : sa1)) {
+        screen_animate_area_highlight(
+            CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+      }
     }
-    screen_area_close(C, reports, screen, side1);
     if (side2) {
       rcti rect = {side2->v1->vec.x, side2->v3->vec.x, side2->v1->vec.y, side2->v3->vec.y};
-      screen_animate_area_highlight(
-          CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+      /* Close side2 but not by joining with the area that we just split. */
+      if (screen_area_close(C, reports, screen, side2, (offset2 > 0) ? sa1 : sa2)) {
+        screen_animate_area_highlight(
+            CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+      }
     }
-    screen_area_close(C, reports, screen, side2);
   }
   else {
     /* Force full rebuild. #130732 */
@@ -553,7 +557,8 @@ int screen_area_join(bContext *C, ReportList *reports, bScreen *screen, ScrArea 
   return screen_area_join_ex(C, reports, screen, sa1, sa2, false);
 }
 
-bool screen_area_close(bContext *C, ReportList *reports, bScreen *screen, ScrArea *area)
+bool screen_area_close(
+    bContext *C, ReportList *reports, bScreen *screen, ScrArea *area, ScrArea *not_area)
 {
   if (area == nullptr) {
     return false;
@@ -563,6 +568,9 @@ bool screen_area_close(bContext *C, ReportList *reports, bScreen *screen, ScrAre
   float best_alignment = 0.0f;
 
   for (ScrArea &neighbor : screen->areabase) {
+    if (&neighbor == area || &neighbor == not_area) {
+      continue;
+    }
     const eScreenDir dir = area_getorientation(area, &neighbor);
     /* Must at least partially share an edge and not be a global area. */
     if ((dir != SCREEN_DIR_NONE) && (neighbor.global == nullptr)) {
@@ -582,7 +590,7 @@ bool screen_area_close(bContext *C, ReportList *reports, bScreen *screen, ScrAre
   }
 
   /* Join from neighbor into this area to close it. */
-  return screen_area_join_ex(C, reports, screen, sa2, area, true);
+  return sa2 && screen_area_join_ex(C, reports, screen, sa2, area, true);
 }
 
 void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type space_type)

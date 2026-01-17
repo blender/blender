@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2026 Blender Foundation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -71,7 +71,6 @@ class ColorSpaceManager {
 
  private:
   static ColorSpaceProcessor *get_processor(ustring colorspace);
-
   static void is_builtin_colorspace(ustring colorspace,
                                     bool &is_scene_linear,
                                     bool &is_scene_linear_srgb);

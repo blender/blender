@@ -67,5 +67,13 @@ void seq_imbuf_assign_spaces(const Scene *scene, ImBuf *ibuf);
 
 StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *strip);
 
+void convert_multilayer_ibuf(ImBuf *ibuf);
+bool seq_image_strip_is_multiview_render(const Scene *scene,
+                                         const Strip *strip,
+                                         int totfiles,
+                                         const char *filepath,
+                                         char *r_prefix,
+                                         const char *r_ext);
+
 }  // namespace seq
 }  // namespace blender

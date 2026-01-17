@@ -322,7 +322,7 @@ class DOPESHEET_HT_editor_buttons:
         row.template_action(animated_id, new="action.new", unlink="action.unlink")
 
         adt = animated_id and animated_id.animation_data
-        if not adt or not adt.action or not adt.action.is_action_layered:
+        if not adt or not adt.action:
             return
 
         # Store the animated ID in the context, so that the new/unlink operators

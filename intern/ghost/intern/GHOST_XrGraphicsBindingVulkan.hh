@@ -22,9 +22,19 @@
 #include "GHOST_Types.h"
 
 class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
+  struct {
+    /* XR_KHR_vulkan_enable2 */
+    PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR = nullptr;
+    PFN_xrGetVulkanGraphicsDevice2KHR xrGetVulkanGraphicsDevice2KHR = nullptr;
+    PFN_xrCreateVulkanInstanceKHR xrCreateVulkanInstanceKHR = nullptr;
+    PFN_xrCreateVulkanDeviceKHR xrCreateVulkanDeviceKHR = nullptr;
+  } functions_;
+
  public:
   GHOST_XrGraphicsBindingVulkan(GHOST_Context &ghost_ctx);
   ~GHOST_XrGraphicsBindingVulkan() override;
+
+  bool loadExtensionFunctions(XrInstance instance) override;
 
   /**
    * Check the version requirements to use OpenXR with the Vulkan backend.

@@ -151,7 +151,10 @@ ExternalProject_Add(external_usd
     ${CMAKE_COMMAND} -E remove ${BUILD_DIR}/usd/src/external_usd/pxr/imaging/hgiVulkan/vk_mem_alloc.h &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_storm_vulkan.diff
+      ${PATCH_DIR}/usd_storm_vulkan.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_vulkan_headless_3931.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
     -Wno-dev

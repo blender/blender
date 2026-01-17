@@ -79,7 +79,7 @@ PointerRNA RNA_pointer_create_with_parent(const PointerRNA &parent, StructRNA *t
  * and is a shortcut for:
  *
  *    PointerRNA id_ptr = RNA_id_pointer_create(id);
- *    PointerRNA ptr = RNA_pointer_create_with_parent(id_ptr, &RNA_Type, data);
+ *    PointerRNA ptr = RNA_pointer_create_with_parent(id_ptr, RNA_Type, data);
  */
 PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
 
@@ -122,7 +122,7 @@ StructRNA *RNA_struct_base(StructRNA *type);
 /**
  * Use to find the sub-type directly below a base-type.
  *
- * So if type were `RNA_SpotLight`, `RNA_struct_base_of(type, &RNA_ID)` would return `&RNA_Light`.
+ * So if type were `RNA_SpotLight`, `RNA_struct_base_of(type, RNA_ID)` would return `RNA_Light`.
  */
 const StructRNA *RNA_struct_base_child_of(const StructRNA *type, const StructRNA *parent_type);
 
@@ -920,6 +920,16 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, ##__VA_ARGS__)
 #else
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)
+#endif
+
+/** A formattable RNA warning, without the default `__func__` trace. */
+#if defined __GNUC__
+#  define RNA_warning_bare(format, args...) _RNA_warning(format "\n", ##args)
+#elif defined(_MSVC_TRADITIONAL) && \
+    !_MSVC_TRADITIONAL /* The "new preprocessor" is enabled via `/Zc:preprocessor`. */
+#  define RNA_warning_bare(format, ...) _RNA_warning(format "\n", ##__VA_ARGS__)
+#else
+#  define RNA_warning_bare(format, ...) _RNA_warning(format "\n", __VA_ARGS__)
 #endif
 
 /** Use to implement the #RNA_warning macro which includes `__func__` suffix. */

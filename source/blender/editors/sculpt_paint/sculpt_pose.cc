@@ -21,6 +21,7 @@
 #include "BKE_ccg.hh"
 #include "BKE_colortools.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 
@@ -161,7 +162,7 @@ static void calc_mesh(const Depsgraph &depsgraph,
                       BrushLocalData &tls,
                       const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -211,7 +212,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        Object &object,
                        BrushLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
@@ -264,7 +265,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
                        Object &object,
                        BrushLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -923,7 +924,6 @@ static std::unique_ptr<IKChain> ik_chain_init_topology(const Depsgraph &depsgrap
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   int nearest_vertex_index = -1;
-  /* TODO: How should this function handle not being able to find the nearest vert? */
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *id_cast<const Mesh *>(object.data);
@@ -936,7 +936,9 @@ static std::unique_ptr<IKChain> ik_chain_init_topology(const Depsgraph &depsgrap
                                                           initial_location,
                                                           std::numeric_limits<float>::max(),
                                                           true);
-      nearest_vertex_index = *nearest;
+      if (nearest) {
+        nearest_vertex_index = *nearest;
+      }
       break;
     }
     case bke::pbvh::Type::Grids: {
@@ -944,15 +946,23 @@ static std::unique_ptr<IKChain> ik_chain_init_topology(const Depsgraph &depsgrap
       const std::optional<SubdivCCGCoord> nearest = nearest_vert_calc_grids(
           pbvh, subdiv_ccg, initial_location, std::numeric_limits<float>::max(), true);
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      nearest_vertex_index = nearest->to_index(key);
+      if (nearest) {
+        nearest_vertex_index = nearest->to_index(key);
+      }
       break;
     }
     case bke::pbvh::Type::BMesh: {
       const std::optional<BMVert *> nearest = nearest_vert_calc_bmesh(
           pbvh, initial_location, std::numeric_limits<float>::max(), false);
-      nearest_vertex_index = BM_elem_index_get(*nearest);
+      if (nearest) {
+        nearest_vertex_index = BM_elem_index_get(*nearest);
+      }
       break;
     }
+  }
+
+  if (nearest_vertex_index == -1) {
+    return nullptr;
   }
 
   /* Init the buffers used to keep track of the changes in the pose factors as more segments are
@@ -1174,7 +1184,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
 
     if (!next_segment_data) {
       /* It is possible that when traversing neighbors that we no longer have any vertices that
-       * have not been assigned to a face set when trying to find the next segement's starting
+       * have not been assigned to a face set when trying to find the next segments starting
        * point. All further segments are invalid in this case. */
       break;
     }
@@ -1574,7 +1584,7 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
       break;
     }
     case bke::pbvh::Type::Grids: {
-      const SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      const SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       const Span<float3> positions = subdiv_ccg.positions;
 
       const Mesh &mesh = *id_cast<Mesh *>(object.data);
@@ -1598,7 +1608,7 @@ static std::optional<float3> calc_average_face_set_center(const Depsgraph &depsg
     }
     case bke::pbvh::Type::BMesh: {
       vert_random_access_ensure(object);
-      BMesh &bm = *object.sculpt->bm;
+      BMesh &bm = *object.runtime->sculpt_session->bm;
       const int face_set_offset = CustomData_get_offset_named(
           &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
       for (const int vert : IndexRange(BM_mesh_elem_count(&bm, BM_VERT))) {
@@ -1941,7 +1951,7 @@ static std::unique_ptr<IKChain> ik_chain_init(const Depsgraph &depsgraph,
   return ik_chain;
 }
 
-static void pose_brush_init(const Depsgraph &depsgraph,
+static bool pose_brush_init(const Depsgraph &depsgraph,
                             Object &ob,
                             SculptSession &ss,
                             const Brush &brush)
@@ -1950,10 +1960,16 @@ static void pose_brush_init(const Depsgraph &depsgraph,
   ss.cache->pose_ik_chain = ik_chain_init(
       depsgraph, ob, ss, brush, ss.cache->location, ss.cache->radius);
 
+  if (!ss.cache->pose_ik_chain) {
+    return false;
+  }
+
   /* Smooth the weights of each segment for cleaner deformation. */
   for (IKChainSegment &segment : ss.cache->pose_ik_chain->segments) {
     smooth::blur_geometry_data_array(ob, brush.pose_smooth_iterations, segment.weights);
   }
+
+  return true;
 }
 
 std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(const Depsgraph &depsgraph,
@@ -1980,7 +1996,7 @@ static void sculpt_pose_do_translate_deform(SculptSession &ss, const Brush &brus
 {
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
   BKE_curvemapping_init(brush.curve_distance_falloff);
-  solve_translate_chain(ik_chain, ss.cache->grab_delta);
+  solve_translate_chain(ik_chain, ss.cache->grab_delta * ss.cache->bstrength);
 }
 
 /* Calculate a scale factor based on the grab delta. */
@@ -1999,7 +2015,7 @@ static void calc_scale_deform(SculptSession &ss, const Brush &brush)
 {
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
-  float3 ik_target = ss.cache->location + ss.cache->grab_delta;
+  float3 ik_target = ss.cache->location + (ss.cache->grab_delta * ss.cache->bstrength);
 
   /* Solve the IK for the first segment to include rotation as part of scale if enabled. */
   if (!(brush.flag2 & BRUSH_POSE_USE_LOCK_ROTATION)) {
@@ -2027,7 +2043,8 @@ static void calc_rotate_deform(SculptSession &ss, const Brush &brush)
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
   /* Calculate the IK target. */
-  float3 ik_target = ss.cache->location + ss.cache->grab_delta + ik_chain.grab_delta_offset;
+  float3 ik_target = ss.cache->location + (ss.cache->grab_delta * ss.cache->bstrength) +
+                     ik_chain.grab_delta_offset;
 
   /* Solve the IK positions. */
   solve_ik_chain(ik_chain, ik_target, brush.flag2 & BRUSH_POSE_IK_ANCHORED);
@@ -2057,7 +2074,7 @@ static void calc_squash_stretch_deform(SculptSession &ss, const Brush & /*brush*
 {
   IKChain &ik_chain = *ss.cache->pose_ik_chain;
 
-  float3 ik_target = ss.cache->location + ss.cache->grab_delta;
+  float3 ik_target = ss.cache->location + (ss.cache->grab_delta * ss.cache->bstrength);
 
   float3 scale;
   scale.z = calc_scale_from_grab_delta(ss, ik_target);
@@ -2099,13 +2116,15 @@ void do_pose_brush(const Depsgraph &depsgraph,
                    Object &ob,
                    const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   if (!ss.cache->pose_ik_chain) {
-    pose_brush_init(depsgraph, ob, ss, brush);
+    if (!pose_brush_init(depsgraph, ob, ss, brush)) {
+      return;
+    }
   }
 
   /* The pose brush applies all enabled symmetry axis in a single iteration, so the rest can be
@@ -2198,7 +2217,7 @@ void do_pose_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *ob.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {

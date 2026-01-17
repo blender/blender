@@ -2250,7 +2250,7 @@ int BKE_scene_base_iter_next(
              * this enters eternal loop because of
              * makeDispListMBall getting called inside of collection_duplilist */
             if ((*base)->object->instance_collection == nullptr) {
-              object_duplilist(depsgraph, (*scene), (*base)->object, nullptr, iter->duplilist);
+              object_duplilist(depsgraph, (*base)->object, nullptr, iter->duplilist);
 
               iter->dupob = iter->duplilist.is_empty() ? nullptr : &iter->duplilist.first();
               iter->dupob_index = 0;
@@ -3266,7 +3266,7 @@ const char *BKE_scene_multiview_view_id_suffix_get(const RenderData *rd, const i
   return BKE_scene_multiview_view_suffix_get(rd, viewname);
 }
 
-void BKE_scene_multiview_view_prefix_get(Scene *scene,
+void BKE_scene_multiview_view_prefix_get(const Scene *scene,
                                          const char *filepath,
                                          char *r_prefix,
                                          const char **r_ext)

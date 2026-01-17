@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-12-17 15:12+0000\n"
 "Last-Translator: Martin Hansen <mh306602@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -4707,10 +4707,6 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Kinesisk (tradisjonell) – 繁體中文"
 
 
-msgid "Locale code: zh_HANT. Translation progress: 51%"
-msgstr "Lokalkode: zh_HANT. Status på oversettelse: 51 %"
-
-
 msgid "Czech - Čeština"
 msgstr "Tsjekkisk – Čeština"
 
@@ -4885,10 +4881,6 @@ msgstr "Lokalkode: fa_IR. Status på oversettelse: 3 %"
 
 msgid "Polish - Polski"
 msgstr "Polsk – Polski"
-
-
-msgid "Locale code: pl_PL. Translation progress: 18%"
-msgstr "Lokalkode: pl_PL. Status på oversettelse: 18 %"
 
 
 msgid "Portuguese (Brazil) - Português brasileiro"

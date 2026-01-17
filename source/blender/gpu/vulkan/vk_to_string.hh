@@ -11,6 +11,9 @@
 #include "vk_common.hh"
 
 namespace blender::gpu {
+
+const char *to_string(VkResult result);
+
 std::string to_string(VkImage vk_handle);
 std::string to_string(VkImageView vk_handle);
 std::string to_string(VkBuffer vk_handle);

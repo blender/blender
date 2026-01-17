@@ -74,7 +74,9 @@ void convert_legacy_animato_actions(Main &bmain)
 void convert_legacy_animato_action(bAction &dna_action)
 {
   Action &action = dna_action.wrap();
-  BLI_assert(action.is_action_legacy());
+  /* Check that this is a legacy action.
+   * Cannot use `!action_is_layered` because that would be false on empty actions. */
+  BLI_assert(action.layer_array_num == 0 && action.slot_array_num == 0);
 
   /* Store this ahead of time, because adding the slot sets the action's idroot
    * to 0. We also set the action's idroot to 0 manually, just to be defensive
@@ -230,7 +232,7 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
     }
 
     PointerRNA slot_to_assign_ptr = RNA_pointer_create_discrete(
-        &action.id, &RNA_ActionSlot, slot_to_assign);
+        &action.id, RNA_ActionSlot, slot_to_assign);
     RNA_property_pointer_set(
         &action_slot_owner_ptr, &action_slot_prop, slot_to_assign_ptr, reports);
     RNA_property_update_main(&bmain, nullptr, &action_slot_owner_ptr, &action_slot_prop);
@@ -268,7 +270,9 @@ void action_groups_reconstruct(bAction *act)
   if (!act) {
     return;
   }
-  BLI_assert(act->wrap().is_action_legacy());
+  /* Check that this is a legacy action.
+   * Cannot use `!action_is_layered` because that would be false on empty actions. */
+  BLI_assert(act->layer_array_num == 0 && act->slot_array_num == 0);
   /* Clear out all group channels. Channels that are actually in use are
    * reconstructed below; this step is necessary to clear out unused groups. */
   for (bActionGroup &group : act->groups) {

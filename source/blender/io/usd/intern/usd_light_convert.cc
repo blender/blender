@@ -231,12 +231,8 @@ void dome_light_to_world_material(const USDImportParams &params,
     return;
   }
 
-  if (!scene->world->nodetree) {
-    scene->world->nodetree = bke::node_tree_add_tree_embedded(
-        nullptr, &scene->world->id, "Shader Nodetree", "ShaderNodeTree");
-  }
-
   bNodeTree *ntree = scene->world->nodetree;
+  BLI_assert(ntree != nullptr);
   bNode *output = nullptr;
   bNode *bgshader = nullptr;
 

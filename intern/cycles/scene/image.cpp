@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "device/device.h"
+
 #include "scene/image.h"
 #include "scene/image_oiio.h"
 #include "scene/image_vdb.h"
@@ -15,8 +17,8 @@
 #include "util/log.h"
 #include "util/progress.h"
 #include "util/task.h"
-#include "util/texture.h"
 #include "util/types_base.h"
+#include "util/types_image.h"
 
 #include <OpenImageIO/thread.h>
 
@@ -471,7 +473,7 @@ bool ImageManager::file_load_image(Device *device, ImageSingle *img, const int t
     return false;
   }
 
-  if (!img->loader->load_pixels_full(img->metadata, (uint8_t *)pixels)) {
+  if (!img->loader->load_pixels(img->metadata, pixels)) {
     return false;
   }
 
@@ -584,13 +586,13 @@ void ImageManager::device_load_image_full(Device *device, Scene *scene, const si
                                                 type,
                                                 img->params.interpolation,
                                                 img->params.extension,
-                                                img->metadata.byte_size,
+                                                img->metadata.nanovdb_byte_size,
                                                 0,
                                                 img->texture_slot);
 
       uint8_t *pixels = img->vdb_memory->data<uint8_t>();
       if (pixels) {
-        img->loader->load_pixels_full(img->metadata, pixels);
+        img->loader->load_pixels(img->metadata, pixels);
       }
 #endif
       break;

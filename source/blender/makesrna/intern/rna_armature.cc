@@ -275,7 +275,7 @@ static PointerRNA rna_BoneCollection_parent_get(PointerRNA *ptr)
   }
 
   BoneCollection *parent = arm->collection_array[parent_index];
-  return RNA_pointer_create_discrete(&arm->id, &RNA_BoneCollection, parent);
+  return RNA_pointer_create_discrete(&arm->id, RNA_BoneCollection, parent);
 }
 
 static void rna_BoneCollection_parent_set(PointerRNA *ptr,
@@ -488,7 +488,7 @@ static PointerRNA rna_BoneCollection_bones_get(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *lb_iter = &iter->internal.listbase;
   BoneCollectionMember *member = reinterpret_cast<BoneCollectionMember *>(lb_iter->link);
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_Bone, member->bone);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_Bone, member->bone);
 }
 
 /* Bone.collections iterator functions. */
@@ -504,7 +504,7 @@ static PointerRNA rna_Bone_collections_get(CollectionPropertyIterator *iter)
 {
   ListBaseIterator *lb_iter = &iter->internal.listbase;
   BoneCollectionReference *bcoll_ref = reinterpret_cast<BoneCollectionReference *>(lb_iter->link);
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_BoneCollection, bcoll_ref->bcoll);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_BoneCollection, bcoll_ref->bcoll);
 }
 
 /* EditBone.collections iterator functions. */
@@ -862,7 +862,7 @@ static void rna_EditBone_connected_set(PointerRNA *ptr, bool value)
 static PointerRNA rna_EditBone_parent_get(PointerRNA *ptr)
 {
   EditBone *data = static_cast<EditBone *>(ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_EditBone, data->parent);
+  return RNA_pointer_create_with_parent(*ptr, RNA_EditBone, data->parent);
 }
 
 static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -958,7 +958,7 @@ static void rna_Bone_bbone_handle_update(Main *bmain, Scene *scene, PointerRNA *
 static PointerRNA rna_EditBone_bbone_prev_get(PointerRNA *ptr)
 {
   EditBone *data = static_cast<EditBone *>(ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_EditBone, data->bbone_prev);
+  return RNA_pointer_create_with_parent(*ptr, RNA_EditBone, data->bbone_prev);
 }
 
 static void rna_EditBone_bbone_prev_set(PointerRNA *ptr,
@@ -988,7 +988,7 @@ static void rna_Bone_bbone_prev_set(PointerRNA *ptr, PointerRNA value, ReportLis
 static PointerRNA rna_EditBone_bbone_next_get(PointerRNA *ptr)
 {
   EditBone *data = static_cast<EditBone *>(ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_EditBone, data->bbone_next);
+  return RNA_pointer_create_with_parent(*ptr, RNA_EditBone, data->bbone_next);
 }
 
 static void rna_EditBone_bbone_next_set(PointerRNA *ptr,
@@ -1018,7 +1018,7 @@ static void rna_Bone_bbone_next_set(PointerRNA *ptr, PointerRNA value, ReportLis
 static PointerRNA rna_EditBone_color_get(PointerRNA *ptr)
 {
   EditBone *data = static_cast<EditBone *>(ptr->data);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_BoneColor, &data->color);
+  return RNA_pointer_create_with_parent(*ptr, RNA_BoneColor, &data->color);
 }
 
 static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1080,7 +1080,7 @@ static bool rna_Armature_bones_lookup_string(PointerRNA *ptr, const char *key, P
   bArmature *arm = static_cast<bArmature *>(ptr->data);
   Bone *bone = BKE_armature_find_bone_name(arm, key);
   if (bone) {
-    rna_pointer_create_with_ancestors(*ptr, &RNA_Bone, bone, *r_ptr);
+    rna_pointer_create_with_ancestors(*ptr, RNA_Bone, bone, *r_ptr);
     return true;
   }
   else {

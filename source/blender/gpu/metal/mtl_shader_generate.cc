@@ -1005,7 +1005,6 @@ static void generate_vertex_out(GeneratedStreams &generated,
     out << "  struct " << out_class_local << " {\n";
     out << builtins_decl;
     for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
-      out << "    /* " << iface->name << " */\n";
       for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
         generate_inout(out, iface->instance_name, inout);
       }
@@ -1362,6 +1361,7 @@ std::pair<std::string, std::string> generate_entry_point(const ShaderCreateInfo 
    * case they are used inside resources declaration. */
   out << "#undef color\n";
   out << "#undef user\n";
+  out << "#pragma blender dead_code_elimination off\n";
 
   out << generated.wrapper_class_members.str();
   out << "\n";

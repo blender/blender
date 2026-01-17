@@ -11,6 +11,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "GHOST_C-api.h"
@@ -284,11 +285,15 @@ void WM_window_csd_draw_titlebar(const wmWindow *win)
   char *title = GHOST_GetTitle(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
   const bool is_active = (win->active != 0);
 
-  uchar border_color[3];
-  ui::theme::get_color_3ubv(TH_HEADER, border_color);
+  uchar border_color[3], text_color[3];
 
-  uchar text_color[3];
-  ui::theme::get_color_3ubv(TH_TEXT_HI, text_color);
+  /* NOTE(@ideasman42): avoid theme functions as #blender::ui::theme::theme_set
+   * won't have run after loading factory settings, see: #152138.
+   * Access the theme directly as this will probably be replaced by something else,
+   * it's better other parts of Blender don't unintentionally rely on the theme being set here. */
+  const bTheme &theme = *static_cast<const bTheme *>(U.themes.first);
+  copy_v3_v3_uchar(border_color, theme.space_view3d.header);
+  copy_v3_v3_uchar(text_color, theme.space_view3d.text_hi);
 
   const uiStyle *style = ui::style_get_dpi();
   const uiFontStyle &fstyle = style->paneltitle;

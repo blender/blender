@@ -173,11 +173,12 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const CustomData &
   per_type_index.fill(0);
   for (const int i : IndexRange(bm_data.totlayer)) {
     const CustomDataLayer &bm_layer = bm_data.layers[i];
+    const StringRef layer_name = bm_layer.name;
     const eCustomDataType type = eCustomDataType(bm_layer.type);
     const int mesh_layer_index =
         bm_layer.name[0] == '\0' ?
             CustomData_get_layer_index_n(&mesh_data, type, per_type_index[type]) :
-            CustomData_get_named_layer_index(&mesh_data, type, bm_layer.name);
+            CustomData_get_named_layer_index(&mesh_data, type, layer_name);
 
     MeshToBMeshLayerInfo info{};
     info.type = type;
@@ -1773,8 +1774,8 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
   bke::SpanAttributeWriter<bool> uv_select_face;
   bke::SpanAttributeWriter<int> material_index;
 
+  bke::MutableAttributeAccessor attrs = mesh.attributes_for_write();
   if (add_mesh_attributes) {
-    bke::MutableAttributeAccessor attrs = mesh.attributes_for_write();
     if (need_select_vert) {
       select_vert = attrs.lookup_or_add_for_write_only_span<bool>(".select_vert",
                                                                   AttrDomain::Point);

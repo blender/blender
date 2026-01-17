@@ -124,7 +124,7 @@ static animrig::Action &rna_action(const PointerRNA *ptr)
 
 static animrig::Slot &rna_data_slot(const PointerRNA *ptr)
 {
-  BLI_assert(ptr->type == &RNA_ActionSlot);
+  BLI_assert(ptr->type == RNA_ActionSlot);
   return reinterpret_cast<ActionSlot *>(ptr->data)->wrap();
 }
 
@@ -176,7 +176,7 @@ static PointerRNA rna_ActionSlots_active_get(PointerRNA *ptr)
   if (!active_slot) {
     return PointerRNA_NULL;
   }
-  return RNA_pointer_create_discrete(&action.id, &RNA_ActionSlot, active_slot);
+  return RNA_pointer_create_discrete(&action.id, RNA_ActionSlot, active_slot);
 }
 
 static void rna_ActionSlots_active_set(PointerRNA *ptr,
@@ -198,14 +198,6 @@ static ActionSlot *rna_Action_slots_new(
     bAction *dna_action, Main *bmain, bContext *C, ReportList *reports, int type, const char *name)
 {
   animrig::Action &action = dna_action->wrap();
-
-  if (!action.is_action_layered()) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Cannot add slots to a legacy Action '%s'. Convert it to a layered Action first.",
-                action.id.name + 2);
-    return nullptr;
-  }
 
   if (name[0] == 0) {
     BKE_reportf(reports, RPT_ERROR, "Invalid slot name '%s': name must not be empty.", name);
@@ -254,14 +246,6 @@ static ActionLayer *rna_Action_layers_new(bAction *dna_action,
                                           const char *name)
 {
   animrig::Action &action = dna_action->wrap();
-
-  if (!action.is_action_layered()) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Cannot add layers to a legacy Action '%s'. Convert it to a layered Action first.",
-                action.id.name + 2);
-    return nullptr;
-  }
 
   if (action.layers().size() >= 1) {
     /* Not allowed to have more than one layer, for now. This limitation is in
@@ -435,9 +419,9 @@ static StructRNA *rna_ActionStrip_refine(PointerRNA *ptr)
 
   switch (strip.type()) {
     case animrig::Strip::Type::Keyframe:
-      return &RNA_ActionKeyframeStrip;
+      return RNA_ActionKeyframeStrip;
   }
-  return &RNA_UnknownType;
+  return RNA_UnknownType;
 }
 
 ActionStrip *rna_ActionStrips_new(
@@ -489,7 +473,7 @@ static std::optional<std::string> rna_ActionStrip_path(const PointerRNA *ptr)
       continue;
     }
 
-    PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, &RNA_ActionLayer, layer);
+    PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionLayer, layer);
     const std::optional<std::string> layer_path = rna_ActionLayer_path(&layer_ptr);
     BLI_assert_msg(layer_path, "Every animation layer should have a valid RNA path.");
     const std::string strip_path = fmt::format("{}.strips[{}]", *layer_path, index);
@@ -611,7 +595,7 @@ std::optional<std::string> rna_Channelbag_path(const PointerRNA *ptr)
         continue;
       }
 
-      PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, &RNA_ActionLayer, layer);
+      PointerRNA layer_ptr = RNA_pointer_create_discrete(&action.id, RNA_ActionLayer, layer);
       const std::optional<std::string> layer_path = rna_ActionLayer_path(&layer_ptr);
       BLI_assert_msg(layer_path, "Every animation layer should have a valid RNA path.");
       return fmt::format("{}.strips[{}].channelbags[{}]", *layer_path, strip_index, index);
@@ -628,7 +612,7 @@ static PointerRNA rna_Channelbag_slot_get(PointerRNA *ptr)
   animrig::Slot *slot = action.slot_for_handle(channelbag.slot_handle);
   BLI_assert(slot);
 
-  return RNA_pointer_create_with_parent(*ptr, &RNA_ActionSlot, slot);
+  return RNA_pointer_create_with_parent(*ptr, RNA_ActionSlot, slot);
 }
 
 static void rna_iterator_Channelbag_fcurves_begin(CollectionPropertyIterator *iter,
@@ -861,20 +845,6 @@ static void rna_ActionGroup_channels_begin(CollectionPropertyIterator *iter, Poi
 
   iter->internal.custom = custom_iter;
 
-  /* We handle both the listbase (legacy action) and array (layered action)
-   * cases below. The code for each is based on the code in
-   * `rna_iterator_listbase_begin()` and `rna_iterator_array_begin()`,
-   * respectively. */
-
-  /* Group from a legacy action. */
-  if (group->wrap().is_legacy()) {
-    custom_iter->tag = ActionGroupChannelsIterator::LISTBASE;
-    custom_iter->listbase.link = static_cast<Link *>(group->channels.first);
-
-    iter->valid = custom_iter->listbase.link != nullptr;
-    return;
-  }
-
   /* Group from a layered action. */
   animrig::Channelbag &cbag = group->channelbag->wrap();
 
@@ -945,7 +915,7 @@ static PointerRNA rna_ActionGroup_channels_get(CollectionPropertyIterator *iter)
       break;
   }
 
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_FCurve, fcurve);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_FCurve, fcurve);
 }
 
 static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
@@ -980,7 +950,7 @@ static PointerRNA rna_Action_active_pose_marker_get(PointerRNA *ptr)
 {
   bAction *act = static_cast<bAction *>(ptr->data);
   return RNA_pointer_create_with_parent(
-      *ptr, &RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker - 1));
+      *ptr, RNA_TimelineMarker, BLI_findlink(&act->markers, act->active_marker - 1));
 }
 
 static void rna_Action_active_pose_marker_set(PointerRNA *ptr,
@@ -1019,11 +989,14 @@ static bool rna_Action_is_empty_get(PointerRNA *ptr)
 }
 static bool rna_Action_is_action_legacy_get(PointerRNA *ptr)
 {
-  return rna_action(ptr).is_action_legacy();
+  /* All actions are versioned so legacy actions no longer exist. This RNA function should be
+   * removed at the next opportunity. */
+  return rna_action(ptr).is_empty();
 }
-static bool rna_Action_is_action_layered_get(PointerRNA *ptr)
+static bool rna_Action_is_action_layered_get(PointerRNA * /* ptr */)
 {
-  return rna_action(ptr).is_action_layered();
+  /*All actions are layered through versioning. */
+  return true;
 }
 
 static void rna_Action_frame_range_get(PointerRNA *ptr, float *r_values)
@@ -1133,31 +1106,16 @@ static FCurve *rna_Action_fcurve_ensure_for_datablock(bAction *_self,
  * Used to check if an action (value pointer)
  * is suitable to be assigned to the ID-block that is ptr.
  */
-bool rna_Action_id_poll(PointerRNA *ptr, PointerRNA value)
+bool rna_Action_id_poll(PointerRNA * /* ptr */, PointerRNA value)
 {
-  ID *srcId = ptr->owner_id;
   bAction *dna_action = id_cast<bAction *>(value.owner_id);
 
   if (!dna_action) {
     return false;
   }
 
-  animrig::Action &action = dna_action->wrap();
-  if (animrig::legacy::action_treat_as_legacy(action)) {
-    /* there can still be actions that will have undefined id-root
-     * (i.e. floating "action-library" members) which we will not
-     * be able to resolve an idroot for automatically, so let these through
-     */
-    if (action.idroot == 0) {
-      return true;
-    }
-    if (srcId) {
-      return GS(srcId->name) == action.idroot;
-    }
-  }
-
   /* Layered Actions can always be assigned. */
-  BLI_assert(action.idroot == 0);
+  BLI_assert(dna_action->idroot == 0);
   return true;
 }
 
@@ -2444,13 +2402,11 @@ static void rna_def_action(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "is_action_legacy", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop,
-      "Is Legacy Action",
-      "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An "
-      "empty Action is considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 "
-      "actions are automatically updated to layered actions, and thus this will only return True "
-      "when the action is empty");
+  RNA_def_property_ui_text(prop,
+                           "Is Legacy Action",
+                           "Return whether this is a legacy Action. Legacy Actions have no layers "
+                           "or slots. Since Blender 4.4 actions are automatically updated to "
+                           "layered actions. This will only return true on empty actions");
   RNA_def_property_boolean_funcs(prop, "rna_Action_is_action_legacy_get", nullptr);
 
   prop = RNA_def_property(srna, "is_action_layered", PROP_BOOLEAN, PROP_NONE);
@@ -2458,8 +2414,8 @@ static void rna_def_action(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Is Layered Action",
-      "Return whether this is a layered Action. An empty Action is considered "
-      "as both a 'legacy' and a 'layered' Action.");
+      "Return whether this is a layered Action. At this point all actions "
+      "are layered through versioning and this function will always return true");
   RNA_def_property_boolean_funcs(prop, "rna_Action_is_action_layered_get", nullptr);
 
   /* Collection properties. */

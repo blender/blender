@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26362,6 +26362,26 @@ msgid "Show/Hide"
 msgstr "Показати/приховати"
 
 
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
 msgid "Names"
 msgstr "Назви"
 
@@ -26370,20 +26390,20 @@ msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
 msgid "Clean Up"
 msgstr "Вичищення"
 
 
+msgid "Sample"
+msgstr "Вибірка"
+
+
 msgid "Pivot Point"
 msgstr "Точка Опертя"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Snap"
@@ -26402,20 +26422,12 @@ msgid "Automasking"
 msgstr "Автомаскування"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
 
 msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
 
 
 msgid "Import"
@@ -26442,6 +26454,10 @@ msgid "Navigation"
 msgstr "Навігація"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "Вирівняти Огляд"
 
@@ -26456,10 +26472,6 @@ msgstr "Регіони Огляду"
 
 msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Similar"
@@ -26480,10 +26492,6 @@ msgstr "Виділити петлі"
 
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
 
 
 msgid "Light"
@@ -26538,16 +26546,16 @@ msgid "Hooks"
 msgstr "Гачки"
 
 
+msgid "Layout"
+msgstr "Розстановка"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Ліплення Задати Опертя"
 
 
 msgid "Face Sets Init"
 msgstr "Ініціація Наборів Граней"
-
-
-msgid "Layout"
-msgstr "Розстановка"
 
 
 msgid "Clear Transform"
@@ -26562,6 +26570,14 @@ msgid "Propagate"
 msgstr "Поширити"
 
 
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
+
+
 msgid "Toggle Bone Options"
 msgstr "Перемкнути параметри кісток"
 
@@ -26570,16 +26586,8 @@ msgid "Enable Bone Options"
 msgstr "Увімкнути параметри кісток"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
 msgid "Disable Bone Options"
 msgstr "Відключити параметри кісток"
-
-
-msgid "Tracking"
-msgstr "Стеження"
 
 
 msgid "Mesh Select Mode"
@@ -26600,14 +26608,6 @@ msgstr "Задати Силу Грані"
 
 msgid "Merge"
 msgstr "Об'єднання"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
 
 
 msgid "Basic"
@@ -64160,10 +64160,6 @@ msgstr "При уведенні чисел у ході трансформува�
 
 msgid "Orbit Around Selection"
 msgstr "Обліт Навколо Вибрання"
-
-
-msgid "Use selection as the pivot point"
-msgstr "Використати вибране, як опорну точку"
 
 
 msgid "Zoom to Mouse Position"

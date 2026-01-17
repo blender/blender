@@ -23,6 +23,7 @@
  *    of IDs in a given Main data-base.
  */
 
+#include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 
 #include <optional>
@@ -235,13 +236,36 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
  */
 void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadReport *reports);
 
+enum LibOverride_HierarchyRoot_ValidateOptions {
+  /** Only fix cases where a non-isolated liboverride has a null hierarchy root pointer. Ignore
+   * cases where the root pointer is valid, but is not a suitable root.
+   *
+   * Typically used during readfile process, before resyncing liboverrides, as in that case keeping
+   * existing hierarchy root info, even if no more fully valid, is necessary for an optimal resync
+   * reconstruction when linked reference data hierarchy has been modified.
+   */
+  ONLY_PROCESS_NULL_ROOT_POINTERS = 1 << 0,
+  /** Do report nullptr hierarchy roots as errors.
+   *
+   * This is typically only done at readfile time, where this is a fairly bad error.
+   *
+   * When called after some operations like ID deletion etc., getting a nullptr here is typically
+   * expected, and so does not need to be reported.
+   */
+  REPORT_NULL_ROOT_POINTERS = 1 << 16,
+};
+ENUM_OPERATORS(LibOverride_HierarchyRoot_ValidateOptions);
+
 /**
  * Find and set the 'hierarchy root' ID pointer of all library overrides in given `bmain`.
  *
  * NOTE: Cannot be called from `do_versions_after_linking` as this code needs a single complete
  * Main database, not a split-by-libraries one.
  */
-void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain);
+void BKE_lib_override_library_main_hierarchy_root_ensure(
+    Main *bmain,
+    LibOverride_HierarchyRoot_ValidateOptions options = {},
+    ReportList *reports = nullptr);
 
 /**
  * Advanced 'smart' function to resync, re-create fully functional overrides up-to-date with linked

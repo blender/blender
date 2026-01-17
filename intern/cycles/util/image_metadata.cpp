@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011-2025 Blender Authors
+/* SPDX-FileCopyrightText: 2011-2026 Blender Authors
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include <cstdio>
@@ -13,7 +13,7 @@
 #include "util/image_metadata.h"
 #include "util/log.h"
 #include "util/param.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -24,7 +24,8 @@ bool ImageMetaData::operator==(const ImageMetaData &other) const
   return channels == other.channels && width == other.width && height == other.height &&
          use_transform_3d == other.use_transform_3d &&
          (!use_transform_3d || transform_3d == other.transform_3d) && type == other.type &&
-         colorspace == other.colorspace && compress_as_srgb == other.compress_as_srgb;
+         colorspace == other.colorspace &&
+         is_compressible_as_srgb == other.is_compressible_as_srgb;
 }
 
 bool ImageMetaData::is_float() const
@@ -83,7 +84,7 @@ void ImageMetaData::finalize(const ImageAlphaType alpha_type)
   else if (colorspace == u_colorspace_scene_linear_srgb) {
     /* Keep sRGB colorspace stored as sRGB, to save memory and/or loading time
      * for the common case of 8bit sRGB images like PNG. */
-    compress_as_srgb = true;
+    is_compressible_as_srgb = true;
   }
   else {
     /* If colorspace conversion needed, use half instead of short so we can
@@ -97,13 +98,14 @@ void ImageMetaData::finalize(const ImageAlphaType alpha_type)
   }
 
   ignore_alpha = alpha_type == IMAGE_ALPHA_IGNORE;
-  channel_packed = alpha_type == IMAGE_ALPHA_CHANNEL_PACKED;
+  is_channel_packed = alpha_type == IMAGE_ALPHA_CHANNEL_PACKED;
 
   /* For typical RGBA images we let OIIO convert to associated alpha,
    * but some types we want to leave the RGB channels untouched. */
-  associate_alpha = associate_alpha && !(ColorSpaceManager::colorspace_is_data(colorspace) ||
-                                         alpha_type == IMAGE_ALPHA_IGNORE ||
-                                         alpha_type == IMAGE_ALPHA_CHANNEL_PACKED);
+  is_unassociated_alpha = is_unassociated_alpha &&
+                          !(ColorSpaceManager::colorspace_is_data(colorspace) ||
+                            alpha_type == IMAGE_ALPHA_IGNORE ||
+                            alpha_type == IMAGE_ALPHA_CHANNEL_PACKED);
 
   /* Convert average color to scene linear colorspace. */
   if (!is_zero(average_color) && colorspace != u_colorspace_data &&
@@ -114,7 +116,7 @@ void ImageMetaData::finalize(const ImageAlphaType alpha_type)
     }
     else {
       ColorSpaceManager::to_scene_linear(
-          colorspace, &average_color.x, 1, 1, 0, true, false, ignore_alpha || channel_packed);
+          colorspace, &average_color.x, 1, 1, 0, true, false, ignore_alpha || is_channel_packed);
     }
   }
 }
@@ -245,7 +247,7 @@ void ImageMetaData::detect_tiles(const ImageSpec &spec, OIIO::string_view filepa
   }
 }
 
-bool ImageMetaData::load_metadata(OIIO::string_view filepath, OIIO::ImageSpec *r_spec)
+bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSpec *r_spec)
 {
   /* Perform preliminary checks, with meaningful logging. */
   if (!OIIO::Filesystem::exists(filepath)) {
@@ -276,7 +278,7 @@ bool ImageMetaData::load_metadata(OIIO::string_view filepath, OIIO::ImageSpec *r
 
   width = spec.width;
   height = spec.height;
-  compress_as_srgb = false;
+  is_compressible_as_srgb = false;
 
   /* Check the main format, and channel formats. */
   size_t channel_size = spec.format.basesize();
@@ -319,22 +321,22 @@ bool ImageMetaData::load_metadata(OIIO::string_view filepath, OIIO::ImageSpec *r
   colorspace_file_format = in->format_name();
   colorspace_file_hint = spec.get_string_attribute("oiio:ColorSpace");
 
-  associate_alpha = spec.get_int_attribute("oiio:UnassociatedAlpha", 0);
+  is_unassociated_alpha = spec.get_int_attribute("oiio:UnassociatedAlpha", 0);
 
-  if (!associate_alpha && spec.alpha_channel != -1) {
+  if (!is_unassociated_alpha && spec.alpha_channel != -1) {
     /* Workaround OIIO not detecting TGA file alpha the same as Blender (since #3019).
      * We want anything not marked as premultiplied alpha to get associated. */
     if (strcmp(in->format_name(), "targa") == 0) {
-      associate_alpha = spec.get_int_attribute("targa:alpha_type", -1) != 4;
+      is_unassociated_alpha = spec.get_int_attribute("targa:alpha_type", -1) != 4;
     }
     /* OIIO DDS reader never sets UnassociatedAlpha attribute. */
     if (strcmp(in->format_name(), "dds") == 0) {
-      associate_alpha = true;
+      is_unassociated_alpha = true;
     }
     /* Workaround OIIO bug that sets oiio:UnassociatedAlpha on the last layer
      * but not composite image that we read. */
     if (strcmp(in->format_name(), "psd") == 0) {
-      associate_alpha = true;
+      is_unassociated_alpha = true;
     }
   }
 
@@ -396,7 +398,7 @@ static void conform_pixels_to_metadata_type(const ImageMetaData &metadata,
   }
 
   /* Associate alpha. */
-  if (channels == 4 && metadata.associate_alpha) {
+  if (channels == 4 && metadata.is_unassociated_alpha) {
     for (int64_t j = 0; j < height; j++) {
       StorageType *pixel = pixels + j * in_y_stride;
       for (int64_t i = 0; i < width; i++, pixel += 4) {
@@ -473,8 +475,8 @@ static void conform_pixels_to_metadata_type(const ImageMetaData &metadata,
                                        height,
                                        out_y_stride,
                                        is_rgba,
-                                       metadata.compress_as_srgb,
-                                       metadata.ignore_alpha || metadata.channel_packed);
+                                       metadata.is_compressible_as_srgb,
+                                       metadata.ignore_alpha || metadata.is_channel_packed);
   }
 
   /* Make sure we don't have buggy values. */
@@ -563,7 +565,7 @@ template<TypeDesc::BASETYPE FileFormat, typename StorageType>
 static bool load_pixels_oiio(const ImageMetaData &metadata,
                              const std::unique_ptr<ImageInput> &in,
                              StorageType *pixels,
-                             const bool flip_Y)
+                             const bool flip_y)
 {
   const int64_t width = metadata.width;
   const int64_t height = metadata.height;
@@ -584,10 +586,10 @@ static bool load_pixels_oiio(const ImageMetaData &metadata,
                       0,
                       channels,
                       FileFormat,
-                      (flip_Y) ? (uchar *)readpixels + (height - 1) * read_y_stride :
+                      (flip_y) ? (uchar *)readpixels + (height - 1) * read_y_stride :
                                  (uchar *)readpixels,
                       AutoStride,
-                      (flip_Y) ? -read_y_stride : read_y_stride,
+                      (flip_y) ? -read_y_stride : read_y_stride,
                       AutoStride))
   {
     return false;
@@ -610,7 +612,9 @@ static bool load_pixels_oiio(const ImageMetaData &metadata,
   return true;
 }
 
-bool ImageMetaData::load_pixels(OIIO::string_view filepath, void *pixels, const bool flip_Y) const
+bool ImageMetaData::oiio_load_pixels(OIIO::string_view filepath,
+                                     void *pixels,
+                                     const bool flip_y) const
 {
   /* load image from file through OIIO */
   std::unique_ptr<ImageInput> in = ImageInput::create(filepath);
@@ -633,16 +637,16 @@ bool ImageMetaData::load_pixels(OIIO::string_view filepath, void *pixels, const 
   switch (type) {
     case IMAGE_DATA_TYPE_BYTE:
     case IMAGE_DATA_TYPE_BYTE4:
-      return load_pixels_oiio<TypeDesc::UINT8, uchar>(*this, in, (uchar *)pixels, flip_Y);
+      return load_pixels_oiio<TypeDesc::UINT8, uchar>(*this, in, (uchar *)pixels, flip_y);
     case IMAGE_DATA_TYPE_USHORT:
     case IMAGE_DATA_TYPE_USHORT4:
-      return load_pixels_oiio<TypeDesc::USHORT, uint16_t>(*this, in, (uint16_t *)pixels, flip_Y);
+      return load_pixels_oiio<TypeDesc::USHORT, uint16_t>(*this, in, (uint16_t *)pixels, flip_y);
     case IMAGE_DATA_TYPE_HALF:
     case IMAGE_DATA_TYPE_HALF4:
-      return load_pixels_oiio<TypeDesc::HALF, half>(*this, in, (half *)pixels, flip_Y);
+      return load_pixels_oiio<TypeDesc::HALF, half>(*this, in, (half *)pixels, flip_y);
     case IMAGE_DATA_TYPE_FLOAT:
     case IMAGE_DATA_TYPE_FLOAT4:
-      return load_pixels_oiio<TypeDesc::FLOAT, float>(*this, in, (float *)pixels, flip_Y);
+      return load_pixels_oiio<TypeDesc::FLOAT, float>(*this, in, (float *)pixels, flip_y);
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:

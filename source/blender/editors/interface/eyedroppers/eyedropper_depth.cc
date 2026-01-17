@@ -158,7 +158,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
       MEM_delete(ddr);
       return false;
     }
-    PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
+    PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, RNA_Context, C);
     if (!depthdropper_get_path(&ctx_ptr, op, prop_data_path.c_str(), &ddr->ptr, &ddr->prop)) {
       MEM_delete(ddr);
       return false;
@@ -176,8 +176,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
             BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
         {
           Camera *camera = id_cast<Camera *>(v3d->camera->data);
-          ddr->ptr = RNA_pointer_create_discrete(
-              &camera->id, &RNA_CameraDOFSettings, &camera->dof);
+          ddr->ptr = RNA_pointer_create_discrete(&camera->id, RNA_CameraDOFSettings, &camera->dof);
           ddr->prop = RNA_struct_find_property(&ddr->ptr, "focus_distance");
           ddr->is_undo = true;
         }

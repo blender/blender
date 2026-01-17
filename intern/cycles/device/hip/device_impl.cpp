@@ -735,7 +735,7 @@ void HIPDevice::image_alloc(device_image &mem)
     filter_mode = hipFilterModeLinear;
   }
 
-  /* Image image Storage */
+  /* Image Storage. */
   hipArray_Format format;
   switch (mem.data_type) {
     case TYPE_UCHAR:

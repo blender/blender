@@ -30,6 +30,7 @@ struct Main;
 struct Object;
 struct Scene;
 struct bNodeTree;
+struct VFont;
 
 /* Graph Building -------------------------------- */
 
@@ -152,6 +153,7 @@ void DEG_add_object_cache_relation(DepsNodeHandle *handle,
                                    CacheFile *cache_file,
                                    eDepsObjectComponentType component,
                                    const char *description);
+void DEG_add_vfont_relation(DepsNodeHandle *handle, VFont *vfont, const char *description);
 /**
  * Adds relation from #DEG_OPCODE_GENERIC_DATABLOCK_UPDATE of a given ID.
  * Is used for such entities as textures and images.

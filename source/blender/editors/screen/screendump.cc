@@ -219,7 +219,7 @@ static void screenshot_draw(bContext *C, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   /* image template */
-  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImageFormatSettings, &scd->im_format);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_ImageFormatSettings, &scd->im_format);
   uiTemplateImageSettings(&layout, C, &ptr, false);
 
   /* main draw call */

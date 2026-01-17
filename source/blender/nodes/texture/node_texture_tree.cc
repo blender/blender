@@ -148,7 +148,7 @@ void register_node_tree_type_tex()
   tt->get_from_context = texture_get_from_context;
   tt->valid_socket_type = texture_node_tree_socket_type_valid;
 
-  tt->rna_ext.srna = &RNA_TextureNodeTree;
+  tt->rna_ext.srna = RNA_TextureNodeTree;
 
   bke::node_tree_type_add(*tt);
 }

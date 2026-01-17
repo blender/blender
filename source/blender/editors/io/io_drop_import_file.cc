@@ -68,7 +68,7 @@ static void file_handler_import_operator_write_ptr(const bke::FileHandlerType *f
   }
 
   PropertyRNA *files_prop = RNA_struct_find_collection_property_check(
-      props, "files", &RNA_OperatorFileListElement);
+      props, "files", RNA_OperatorFileListElement);
   if (files_prop) {
     RNA_property_collection_clear(&props, files_prop);
     for (const auto &index : supported_paths) {
@@ -178,7 +178,7 @@ void WM_OT_drop_import_file(wmOperatorType *ot)
       ot->srna, "directory", nullptr, FILE_MAX, "Directory", "Directory of the file");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-  prop = RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
+  prop = RNA_def_collection_runtime(ot->srna, "files", RNA_OperatorFileListElement, "Files", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

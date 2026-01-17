@@ -16,8 +16,10 @@
 
 #include "scene/object.h"
 
+#include "util/colorspace.h"
 #include "util/log.h"
 #include "util/string.h"
+#include "util/types_image.h"
 
 #include "kernel/device/cpu/image.h"
 
@@ -40,7 +42,7 @@
 #include "kernel/svm/bevel.h"
 
 #include "kernel/util/ies.h"
-#include "kernel/util/texture_3d.h"
+#include "kernel/util/image_3d.h"
 
 CCL_NAMESPACE_BEGIN
 

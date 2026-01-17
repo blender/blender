@@ -440,8 +440,8 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
                                 Material *mat,
                                 bool relative_paths)
 {
-  bNodeTree *ntree = bke::node_tree_add_tree_embedded(
-      nullptr, &mat->id, "Shader Nodetree", ntreeType_Shader->idname);
+  bNodeTree *ntree = mat->nodetree;
+  BLI_assert(mat->nodetree);
 
   bNode *bsdf = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, node_locx_bsdf, node_locy_top);
   bNode *output = add_node(ntree, SH_NODE_OUTPUT_MATERIAL, node_locx_output, node_locy_top);

@@ -812,8 +812,7 @@ static void foreach_obref_in_scene(DRWContext &draw_ctx,
     }
 
     duplilist.clear();
-    object_duplilist(
-        draw_ctx.depsgraph, draw_ctx.scene, ob, deg_iter_settings.included_objects, duplilist);
+    object_duplilist(draw_ctx.depsgraph, ob, deg_iter_settings.included_objects, duplilist);
 
     if (duplilist.is_empty()) {
       continue;

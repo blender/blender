@@ -21,7 +21,6 @@
 #include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
-#include "WM_types.hh"
 
 #include "RNA_define.hh"
 
@@ -66,8 +65,8 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
       continue;
     }
 
-    bool success = seq::proxy_rebuild_context(
-        pj->main, pj->depsgraph, pj->scene, &strip, &processed_paths, &pj->queue, false);
+    bool success = seq::proxy_build_start(
+        pj->main, pj->scene, &strip, &processed_paths, false, pj->queue);
 
     if (!success && (strip.data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
       BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping", strip.name);
@@ -99,7 +98,6 @@ static wmOperatorStatus sequencer_rebuild_proxy_invoke(bContext *C,
 static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
 
@@ -111,15 +109,14 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
 
   for (Strip &strip : *seq::active_seqbase_get(ed)) {
     if (strip.flag & SEQ_SELECT) {
-      ListBaseT<LinkData> queue = {nullptr, nullptr};
+      Vector<seq::ProxyBuildContext *> queue;
 
-      seq::proxy_rebuild_context(bmain, depsgraph, scene, &strip, &processed_paths, &queue, false);
+      seq::proxy_build_start(bmain, scene, &strip, &processed_paths, false, queue);
 
-      wmJobWorkerStatus worker_status = {};
-      for (LinkData &link : queue) {
-        seq::IndexBuildContext *context = static_cast<seq::IndexBuildContext *>(link.data);
-        seq::proxy_rebuild(context, &worker_status, nullptr);
-        seq::proxy_rebuild_finish(context, false);
+      bool should_stop = false, has_updated = false;
+      for (seq::ProxyBuildContext *context : queue) {
+        seq::proxy_build_process(context, &should_stop, &has_updated, nullptr);
+        seq::proxy_build_finish(context);
       }
       seq::relations_free_imbuf(scene, &ed->seqbase, false);
     }

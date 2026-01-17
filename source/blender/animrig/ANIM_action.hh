@@ -78,16 +78,7 @@ class Slot;
  *
  * \note This wrapper class for the `bAction` DNA struct only has functionality
  * for the layered animation data. The legacy F-Curves (in `bAction::curves`)
- * and their groups (in `bAction::groups`) are not managed here.
- *
- * To continue supporting legacy actions at runtime, there are
- * `Action::is_action_legacy()` and `Action::is_action_layered()` that report
- * whether an Action uses that legacy F-Curve data or is instead a layered
- * Action. These methods will eventually be removed when runtime support for
- * legacy actions is fully removed. For code in blend file loading and
- * versioning, which will stick around for the long-term, use
- * `animrig::versioning::action_is_layered()` instead. (Note that an empty
- * Action is considered both a valid legacy *and* layered action.)
+ * and their groups (in `bAction::groups`) are not managed here. See animrig::versioning.
  *
  * \see #AnimData::action
  * \see #AnimData::slot_handle
@@ -103,50 +94,12 @@ class Action : public bAction {
    */
   Action(const Action &other) = delete;
 
-  /* Discriminators for 'legacy' and 'layered' Actions.
-   *
-   * Note: `is_action_legacy()` and `is_action_layered()` are transitional APIs,
-   * and should eventually be removed. See their documentation below for
-   * details.
-   */
   /**
    * Return whether this Action has any data at all.
    *
    * \return true when `bAction::layer_array` and `bAction::slot_array` are empty.
    */
   bool is_empty() const;
-  /**
-   * Return whether this is a legacy Action.
-   *
-   * - Animation data is stored in `bAction::curves`.
-   * - Evaluated equally for all data-blocks that reference this Action.
-   * - Slot handle is ignored.
-   *
-   * \note An empty Action is valid as both a legacy and layered Action. Code that only supports
-   * layered Actions should assert on `is_action_layered()`.
-   *
-   * \note This method will be removed when runtime support for legacy Actions
-   * is removed, so only use it in such runtime code. See
-   * `animrig::versioning::action_is_layered()` for uses that should stick
-   * around for the long term, such as blend file loading and versioning.
-   *
-   * \see #animrig::versioning::action_is_layered()
-   */
-  bool is_action_legacy() const;
-  /**
-   * Return whether this is a layered Action.
-   *
-   * - Animation data is stored in `bAction::layer_array`.
-   * - Evaluated for data-blocks based on their slot handle.
-   *
-   * \note This method will be removed when runtime support for legacy Actions
-   * is removed, so only use it in such runtime code. See
-   * `animrig::versioning::action_is_layered()` for uses that should stick
-   * around for the long term, such as blend file loading and versioning.
-   *
-   * \see #animrig::versioning::action_is_layered()
-   */
-  bool is_action_layered() const;
 
   /* Action Layers access. */
   Span<const Layer *> layers() const;
@@ -1913,12 +1866,6 @@ void assert_baklava_phase_1_invariants(const Action &action);
 void assert_baklava_phase_1_invariants(const Layer &layer);
 /** \copydoc assert_baklava_phase_1_invariants(const Action &) */
 void assert_baklava_phase_1_invariants(const Strip &strip);
-
-/**
- * Creates a new `Action` that matches the old action but is converted to have layers.
- * Returns a nullptr if the action is empty or already layered.
- */
-Action *convert_to_layered_action(Main &bmain, const Action &legacy_action);
 
 /**
  * Move the given slot from `from_action` to `to_action`.

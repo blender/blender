@@ -17,7 +17,7 @@
 
 #include "kernel/util/differential.h"
 #include "kernel/util/ies.h"
-#include "kernel/util/texture_3d.h"
+#include "kernel/util/image_3d.h"
 
 #include "util/hash.h"
 #include "util/transform.h"

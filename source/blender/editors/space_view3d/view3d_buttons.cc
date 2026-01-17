@@ -691,7 +691,7 @@ static void v3d_editvertex_buts(
             median->tilt += bezt->tilt;
             if (!totcurvedata) { /* I.e. first time... */
               selp = bezt;
-              seltype = &RNA_BezierSplinePoint;
+              seltype = RNA_BezierSplinePoint;
             }
             totcurvedata++;
           }
@@ -722,7 +722,7 @@ static void v3d_editvertex_buts(
             median->tilt += bp->tilt;
             if (!totcurvedata) { /* I.e. first time... */
               selp = bp;
-              seltype = &RNA_SplinePoint;
+              seltype = RNA_SplinePoint;
             }
             totcurvedata++;
           }
@@ -752,7 +752,7 @@ static void v3d_editvertex_buts(
         median->weight += bp->weight;
         if (!totlattdata) { /* I.e. first time... */
           selp = bp;
-          seltype = &RNA_LatticePoint;
+          seltype = RNA_LatticePoint;
         }
         totlattdata++;
       }
@@ -1750,7 +1750,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     bcol = &panel->layout->column(true);
     row = &bcol->row(true); /* The filter button row */
 
-    PointerRNA tools_ptr = RNA_pointer_create_discrete(nullptr, &RNA_ToolSettings, ts);
+    PointerRNA tools_ptr = RNA_pointer_create_discrete(nullptr, RNA_ToolSettings, ts);
     row->prop(&tools_ptr, "vertex_group_subset", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
     col = &bcol->column(true);
@@ -1884,7 +1884,7 @@ static void v3d_transform_butsR(ui::Layout &layout, PointerRNA *ptr)
 {
   ui::Layout *split = &layout.split(0.8f, false);
 
-  if (ptr->type == &RNA_PoseBone) {
+  if (ptr->type == RNA_PoseBone) {
     PointerRNA boneptr;
     Bone *bone;
 
@@ -1981,7 +1981,7 @@ static void v3d_posearmature_buts(ui::Layout &layout, Object *ob)
     return;
   }
 
-  PointerRNA pchanptr = RNA_pointer_create_discrete(&ob->id, &RNA_PoseBone, pchan);
+  PointerRNA pchanptr = RNA_pointer_create_discrete(&ob->id, RNA_PoseBone, pchan);
 
   ui::Layout &col = layout.column(false);
 
@@ -2001,7 +2001,7 @@ static void v3d_editarmature_buts(ui::Layout &layout, Object *ob)
     return;
   }
 
-  PointerRNA eboneptr = RNA_pointer_create_discrete(&arm->id, &RNA_EditBone, ebone);
+  PointerRNA eboneptr = RNA_pointer_create_discrete(&arm->id, RNA_EditBone, ebone);
 
   ui::Layout &col = layout.column(false);
   col.prop(&eboneptr, "head", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -2030,7 +2030,7 @@ static void v3d_editmetaball_buts(ui::Layout &layout, Object *ob)
     return;
   }
 
-  PointerRNA ptr = RNA_pointer_create_discrete(&mball->id, &RNA_MetaElement, mball->lastelem);
+  PointerRNA ptr = RNA_pointer_create_discrete(&mball->id, RNA_MetaElement, mball->lastelem);
 
   ui::Layout *col = &layout.column(false);
   col->prop(&ptr, "co", UI_ITEM_NONE, std::nullopt, ICON_NONE);

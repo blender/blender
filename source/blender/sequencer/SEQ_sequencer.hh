@@ -73,6 +73,8 @@ struct StripRuntime {
   StripRuntimeFlag flag = StripRuntimeFlag::None;
   void *scene_sound = nullptr; /* AUD_SequenceEntry */
   Vector<MovieReader *, 1> movie_readers;
+  /* To detect the removal of a sound modifier. */
+  int sound_modifiers_count = 0;
 
   [[nodiscard]] MovieReader *movie_reader_get(int64_t index = 0) const
   {

@@ -2,9 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "node_geometry_util.hh"
-
 #include "NOD_geo_bundle.hh"
+#include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
@@ -15,9 +14,9 @@
 
 #include "BLO_read_write.hh"
 
-#include "NOD_geometry_nodes_bundle.hh"
-
 #include "UI_interface_layout.hh"
+
+#include "node_geometry_util.hh"
 #include "shader/node_shader_util.hh"
 
 namespace blender {
@@ -39,7 +38,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const std::string identifier = CombineBundleItemsAccessor::socket_identifier_for_item(item);
       auto &decl = b.add_input(socket_type, name, identifier)
                        .socket_name_ptr(
-                           &tree->id, CombineBundleItemsAccessor::item_srna, &item, "name")
+                           &tree->id, *CombineBundleItemsAccessor::item_srna, &item, "name")
                        .supports_field();
       if (item.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
         decl.structure_type(StructureType(item.structure_type));
@@ -216,7 +215,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace nodes {
 
-StructRNA *CombineBundleItemsAccessor::item_srna = &RNA_NodeCombineBundleItem;
+StructRNA **CombineBundleItemsAccessor::item_srna = &RNA_NodeCombineBundleItem;
 
 void CombineBundleItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -254,6 +253,7 @@ std::string CombineBundleItemsAccessor::validate_name(const StringRef name)
       result[last_index] = '_';
     }
   }
+  BLI_assert(Bundle::is_valid_key(result));
   return result;
 }
 

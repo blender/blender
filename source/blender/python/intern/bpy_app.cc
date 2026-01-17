@@ -451,6 +451,28 @@ static PyObject *bpy_app_tempdir_get(PyObject * /*self*/, void * /*closure*/)
 
 PyDoc_STRVAR(
     /* Wrap. */
+    bpy_app_cachedir_doc,
+    "String, the cache directory used by blender (read-only).\n"
+    "\n"
+    "If the parent of the cache folder (i.e. the part of the path that is not Blender-specific) "
+    "does not exist, returns None.\n"
+    "\n"
+    ":type: str | None\n");
+static PyObject *bpy_app_cachedir_get(PyObject * /*self*/, void * /*closure*/)
+{
+  char cache_path[FILE_MAX];
+  if (!BKE_appdir_folder_caches(cache_path, sizeof(cache_path))) {
+    /* Avoid returning an empty path, as it could cause cache data to be stored in the user's home
+     * directory, or in the current working directory. Or worse, the caller could decide to erase
+     * the cache, which might have less subtle effects. */
+    Py_RETURN_NONE;
+  }
+  BLI_assert_msg(cache_path[0], "if BKE_appdir_folder_caches returns true, it should set a path");
+  return PyC_UnicodeFromBytes(cache_path);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
     bpy_app_driver_dict_doc,
     "Dictionary for drivers namespace, editable in-place, reset on file load (read-only).\n"
     "\n"
@@ -631,6 +653,7 @@ static PyGetSetDef bpy_app_getsets[] = {
      bpy_app_debug_value_doc,
      nullptr},
     {"tempdir", bpy_app_tempdir_get, nullptr, bpy_app_tempdir_doc, nullptr},
+    {"cachedir", bpy_app_cachedir_get, nullptr, bpy_app_cachedir_doc, nullptr},
     {"driver_namespace", bpy_app_driver_dict_get, nullptr, bpy_app_driver_dict_doc, nullptr},
 
     {"render_icon_size",

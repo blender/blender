@@ -102,21 +102,6 @@ static const std::array<float3, 6> bone_octahedral_verts{
     {0.0f, 1.0f, 0.0f},
 };
 
-/**
- * NOTE: This is not the correct normals.
- * The correct smooth normals for the equator vertices should be
- * {+-0.943608f * M_SQRT1_2, -0.331048f, +-0.943608f * M_SQRT1_2}
- * but it creates problems for outlines when bones are scaled.
- */
-static const std::array<float3, 6> bone_octahedral_smooth_normals{
-    float3{0.0f, -1.0f, 0.0f},
-    {float(M_SQRT1_2), 0.0f, float(M_SQRT1_2)},
-    {float(M_SQRT1_2), 0.0f, -float(M_SQRT1_2)},
-    {-float(M_SQRT1_2), 0.0f, -float(M_SQRT1_2)},
-    {-float(M_SQRT1_2), 0.0f, float(M_SQRT1_2)},
-    {0.0f, 1.0f, 0.0f},
-};
-
 static const std::array<uint2, 12> bone_octahedral_wire_lines = {
     uint2{0, 1},
     {1, 5},

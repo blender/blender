@@ -185,7 +185,7 @@ IndexMask brush_affected_nodes_gather(const Object &object,
                                       const Brush &brush,
                                       IndexMaskMemory &memory)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   BLI_assert(ss.cache);
   BLI_assert(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
@@ -381,7 +381,7 @@ static void add_constraints_for_verts(const Object &object,
                                       SimulationData &cloth_sim,
                                       Set<OrderedEdge> &created_length_constraints)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
 
   const bool is_brush_has_stroke_cache = ss.cache != nullptr && brush != nullptr;
   const bool pin_simulation_boundary = is_brush_has_stroke_cache &&
@@ -491,7 +491,7 @@ void ensure_nodes_constraints(const Sculpt &sd,
                               const float3 &initial_location,
                               const float radius)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
@@ -763,7 +763,7 @@ static void calc_forces_mesh(const Depsgraph &depsgraph,
                              const bke::pbvh::MeshNode &node,
                              LocalData &tls)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   SimulationData &cloth_sim = *ss.cache->cloth_sim;
   const StrokeCache &cache = *ss.cache;
 
@@ -870,7 +870,7 @@ static void calc_forces_grids(const Depsgraph &depsgraph,
                               const bke::pbvh::GridsNode &node,
                               LocalData &tls)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   SimulationData &cloth_sim = *ss.cache->cloth_sim;
   const StrokeCache &cache = *ss.cache;
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
@@ -981,7 +981,7 @@ static void calc_forces_bmesh(const Depsgraph &depsgraph,
                               bke::pbvh::BMeshNode &node,
                               LocalData &tls)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   SimulationData &cloth_sim = *ss.cache->cloth_sim;
   const StrokeCache &cache = *ss.cache;
 
@@ -1207,7 +1207,7 @@ BLI_NOINLINE static void solve_verts_simulation(const Object &object,
                                                 LocalData &tls,
                                                 SimulationData &cloth_sim)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
 
   tls.diffs.resize(verts.size());
   const MutableSpan<float3> pos_diff = tls.diffs;
@@ -1255,7 +1255,7 @@ static void calc_constraint_factors(const Depsgraph &depsgraph,
                                     const Span<float3> init_positions,
                                     const MutableSpan<float> cloth_factors)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
@@ -1339,7 +1339,7 @@ static void cloth_brush_satisfy_constraints(const Depsgraph &depsgraph,
                                             const Brush *brush,
                                             SimulationData &cloth_sim)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
 
   const float3 sim_location = cloth_brush_simulation_location_get(ss, brush);
 
@@ -1411,7 +1411,7 @@ void do_simulation_step(const Depsgraph &depsgraph,
                         SimulationData &cloth_sim,
                         const IndexMask &node_mask)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
@@ -1538,7 +1538,7 @@ static void cloth_brush_apply_brush_forces(const Depsgraph &depsgraph,
                                            Object &ob,
                                            const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
@@ -1694,7 +1694,7 @@ static void copy_positions_to_array(const Depsgraph &depsgraph,
                                     const Object &object,
                                     MutableSpan<float3> positions)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
@@ -1715,7 +1715,7 @@ static void copy_normals_to_array(const Depsgraph &depsgraph,
                                   const Object &object,
                                   MutableSpan<float3> normals)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
@@ -1824,7 +1824,7 @@ static void sculpt_cloth_ensure_constraints_in_simulation_area(const Sculpt &sd,
                                                                Object &ob,
                                                                const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
   const float radius = ss.cache->initial_radius;
   const float limit = radius + (radius * brush->cloth_sim_limit);
@@ -1837,7 +1837,7 @@ void do_cloth_brush(const Depsgraph &depsgraph,
                     Object &ob,
                     const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   if (!ss.cache->cloth_sim) {
@@ -2069,7 +2069,7 @@ static void apply_filter_forces_mesh(const Depsgraph &depsgraph,
                                      Object &object,
                                      FilterLocalData &tls)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   SimulationData &cloth_sim = *ss.filter_cache->cloth_sim;
 
   const Span<int> verts = node.verts();
@@ -2137,7 +2137,7 @@ static void apply_filter_forces_grids(const Depsgraph &depsgraph,
                                       Object &object,
                                       FilterLocalData &tls)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   SimulationData &cloth_sim = *ss.filter_cache->cloth_sim;
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
@@ -2208,7 +2208,7 @@ static void apply_filter_forces_bmesh(const Depsgraph &depsgraph,
                                       Object &object,
                                       FilterLocalData &tls)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   SimulationData &cloth_sim = *ss.filter_cache->cloth_sim;
   const BMesh &bm = *ss.bm;
 
@@ -2277,7 +2277,7 @@ static wmOperatorStatus sculpt_cloth_filter_modal(bContext *C,
 {
   Object &object = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   const ClothFilterType filter_type = ClothFilterType(RNA_enum_get(op->ptr, "type"));
   float filter_strength = RNA_float_get(op->ptr, "strength");
@@ -2353,7 +2353,7 @@ static wmOperatorStatus sculpt_cloth_filter_modal(bContext *C,
       const bke::AttributeAccessor attributes = base_mesh.attributes();
       const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set",
                                                            bke::AttrDomain::Face);
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -2396,7 +2396,7 @@ static wmOperatorStatus sculpt_cloth_filter_invoke(bContext *C,
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);

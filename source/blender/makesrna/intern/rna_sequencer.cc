@@ -342,7 +342,7 @@ static PointerRNA rna_SequenceEditor_strips_all_get(CollectionPropertyIterator *
 {
   Strip *strip = static_cast<Strip *>(
       (static_cast<BLI_Iterator *>(iter->internal.custom))->current);
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_Strip, strip);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_Strip, strip);
 }
 
 static void rna_SequenceEditor_strips_all_end(CollectionPropertyIterator *iter)
@@ -363,7 +363,7 @@ static bool rna_SequenceEditor_strips_all_lookup_string(PointerRNA *ptr,
 
   Strip *strip = seq::lookup_strip_by_name(scene->ed, key);
   if (strip) {
-    rna_pointer_create_with_ancestors(*ptr, &RNA_Strip, strip, *r_ptr);
+    rna_pointer_create_with_ancestors(*ptr, RNA_Strip, strip, *r_ptr);
     return true;
   }
   return false;
@@ -700,7 +700,7 @@ static PointerRNA rna_Strip_active_modifier_get(PointerRNA *ptr)
 {
   const Strip *strip = ptr->data_as<Strip>();
   StripModifierData *smd = seq::modifier_get_active(strip);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_StripModifier, smd);
+  return RNA_pointer_create_with_parent(*ptr, RNA_StripModifier, smd);
 }
 
 static void rna_Strip_active_modifier_set(PointerRNA *ptr, PointerRNA value, ReportList *reports)
@@ -903,53 +903,53 @@ static StructRNA *rna_Strip_refine(PointerRNA *ptr)
 
   switch (strip->type) {
     case STRIP_TYPE_IMAGE:
-      return &RNA_ImageStrip;
+      return RNA_ImageStrip;
     case STRIP_TYPE_META:
-      return &RNA_MetaStrip;
+      return RNA_MetaStrip;
     case STRIP_TYPE_SCENE:
-      return &RNA_SceneStrip;
+      return RNA_SceneStrip;
     case STRIP_TYPE_MOVIE:
-      return &RNA_MovieStrip;
+      return RNA_MovieStrip;
     case STRIP_TYPE_MOVIECLIP:
-      return &RNA_MovieClipStrip;
+      return RNA_MovieClipStrip;
     case STRIP_TYPE_MASK:
-      return &RNA_MaskStrip;
+      return RNA_MaskStrip;
     case STRIP_TYPE_SOUND:
-      return &RNA_SoundStrip;
+      return RNA_SoundStrip;
     case STRIP_TYPE_CROSS:
-      return &RNA_CrossStrip;
+      return RNA_CrossStrip;
     case STRIP_TYPE_ADD:
-      return &RNA_AddStrip;
+      return RNA_AddStrip;
     case STRIP_TYPE_SUB:
-      return &RNA_SubtractStrip;
+      return RNA_SubtractStrip;
     case STRIP_TYPE_ALPHAOVER:
-      return &RNA_AlphaOverStrip;
+      return RNA_AlphaOverStrip;
     case STRIP_TYPE_ALPHAUNDER:
-      return &RNA_AlphaUnderStrip;
+      return RNA_AlphaUnderStrip;
     case STRIP_TYPE_GAMCROSS:
-      return &RNA_GammaCrossStrip;
+      return RNA_GammaCrossStrip;
     case STRIP_TYPE_MUL:
-      return &RNA_MultiplyStrip;
+      return RNA_MultiplyStrip;
     case STRIP_TYPE_MULTICAM:
-      return &RNA_MulticamStrip;
+      return RNA_MulticamStrip;
     case STRIP_TYPE_ADJUSTMENT:
-      return &RNA_AdjustmentStrip;
+      return RNA_AdjustmentStrip;
     case STRIP_TYPE_WIPE:
-      return &RNA_WipeStrip;
+      return RNA_WipeStrip;
     case STRIP_TYPE_GLOW:
-      return &RNA_GlowStrip;
+      return RNA_GlowStrip;
     case STRIP_TYPE_COLOR:
-      return &RNA_ColorStrip;
+      return RNA_ColorStrip;
     case STRIP_TYPE_SPEED:
-      return &RNA_SpeedControlStrip;
+      return RNA_SpeedControlStrip;
     case STRIP_TYPE_GAUSSIAN_BLUR:
-      return &RNA_GaussianBlurStrip;
+      return RNA_GaussianBlurStrip;
     case STRIP_TYPE_TEXT:
-      return &RNA_TextStrip;
+      return RNA_TextStrip;
     case STRIP_TYPE_COLORMIX:
-      return &RNA_ColorMixStrip;
+      return RNA_ColorMixStrip;
     default:
-      return &RNA_Strip;
+      return RNA_Strip;
   }
 }
 
@@ -1013,7 +1013,7 @@ static PointerRNA rna_MovieStrip_metadata_get(ID *scene_id, Strip *strip)
     return PointerRNA_NULL;
   }
 
-  PointerRNA ptr = RNA_pointer_create_discrete(scene_id, &RNA_IDPropertyWrapPtr, metadata);
+  PointerRNA ptr = RNA_pointer_create_discrete(scene_id, RNA_IDPropertyWrapPtr, metadata);
   return ptr;
 }
 
@@ -1022,7 +1022,7 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
   ListBaseIterator *internal = &iter->internal.listbase;
   MetaStack *ms = reinterpret_cast<MetaStack *>(internal->link);
 
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_Strip, ms->parent_strip);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_Strip, ms->parent_strip);
 }
 
 /* TODO: expose strip path setting as a higher level sequencer BKE function. */
@@ -1167,7 +1167,7 @@ static void rna_Strip_reopen_files_update(Main *bmain, Scene * /*scene*/, Pointe
   seq::relations_free_imbuf(scene, &ed->seqbase, false);
   rna_Strip_invalidate_raw_update(bmain, scene, ptr);
 
-  if (RNA_struct_is_a(ptr->type, &RNA_SoundStrip)) {
+  if (RNA_struct_is_a(ptr->type, RNA_SoundStrip)) {
     seq::sound_update_bounds(scene, static_cast<Strip *>(ptr->data));
   }
 }
@@ -1453,29 +1453,29 @@ static StructRNA *rna_StripModifier_refine(PointerRNA *ptr)
 
   switch (smd->type) {
     case eSeqModifierType_ColorBalance:
-      return &RNA_ColorBalanceModifier;
+      return RNA_ColorBalanceModifier;
     case eSeqModifierType_Curves:
-      return &RNA_CurvesModifier;
+      return RNA_CurvesModifier;
     case eSeqModifierType_HueCorrect:
-      return &RNA_HueCorrectModifier;
+      return RNA_HueCorrectModifier;
     case eSeqModifierType_Mask:
-      return &RNA_MaskStripModifier;
+      return RNA_MaskStripModifier;
     case eSeqModifierType_BrightContrast:
-      return &RNA_BrightContrastModifier;
+      return RNA_BrightContrastModifier;
     case eSeqModifierType_WhiteBalance:
-      return &RNA_WhiteBalanceModifier;
+      return RNA_WhiteBalanceModifier;
     case eSeqModifierType_Tonemap:
-      return &RNA_SequencerTonemapModifierData;
+      return RNA_SequencerTonemapModifierData;
     case eSeqModifierType_SoundEqualizer:
-      return &RNA_SoundEqualizerModifier;
+      return RNA_SoundEqualizerModifier;
     case eSeqModifierType_Compositor:
-      return &RNA_SequencerCompositorModifierData;
+      return RNA_SequencerCompositorModifierData;
     case eSeqModifierType_Pitch:
-      return &RNA_PitchModifier;
+      return RNA_PitchModifier;
     case eSeqModifierType_Echo:
-      return &RNA_EchoModifier;
+      return RNA_EchoModifier;
     default:
-      return &RNA_StripModifier;
+      return RNA_StripModifier;
   }
 }
 

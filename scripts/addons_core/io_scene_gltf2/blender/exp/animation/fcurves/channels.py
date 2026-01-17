@@ -51,7 +51,8 @@ def gather_animation_fcurves_channels(
     return channels, to_be_sampled, extra_samplers
 
 
-def get_channel_groups(obj_uuid: str, blender_action: bpy.types.Action, slot: bpy.types.ActionSlot, export_settings, no_sample_option=False):
+def get_channel_groups(obj_uuid: str, blender_action: bpy.types.Action,
+                       slot: bpy.types.ActionSlot, export_settings, no_sample_option=False):
     # no_sample_option is used when we want to retrieve all SK channels, to be evaluate.
     targets = {}
     targets_extra = {}

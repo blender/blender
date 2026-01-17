@@ -1,0 +1,32 @@
+commit aedfa981065793673eaade6645490aedb043df59
+Author: Jeroen Bakker <jeroen@blender.org>
+Date:   Mon Dec 22 13:39:27 2025 +0100
+
+    HgiVulkan: Incorrect Surface Check
+    
+    The current code only checks if the base surface extension is available,
+    but doesn't check if the platform specific surface extension is
+    available. Resulting in the `_hasPresentation` to be set in cases where it
+    shouldn't.
+    
+    Detected when trying to render via SSH using Vulkan.
+    See https://projects.blender.org/blender/blender/issues/149631 for
+    information.
+    
+    Revert instance changes
+
+diff --git a/pxr/imaging/hgiVulkan/device.cpp b/pxr/imaging/hgiVulkan/device.cpp
+index 4d6c3ec05..6900849a7 100644
+--- a/pxr/imaging/hgiVulkan/device.cpp
++++ b/pxr/imaging/hgiVulkan/device.cpp
+@@ -62,6 +62,10 @@ _SupportsPresentation(
+                     physicalDevice, familyIndex);
+ #elif defined(VK_USE_PLATFORM_XLIB_KHR)
+         Display* dsp = XOpenDisplay(nullptr);
++        // Allow headless rendering
++        if (dsp == nullptr) {
++            return true;
++        }
+         VisualID visualID = XVisualIDFromVisual(
+             DefaultVisual(dsp, DefaultScreen(dsp)));
+         return vkGetPhysicalDeviceXlibPresentationSupportKHR(

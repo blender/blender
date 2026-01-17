@@ -34,7 +34,7 @@
 #include "util/md5.h"
 #include "util/path.h"
 #include "util/tbb.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -747,7 +747,7 @@ static bool make_tx(const string &filepath,
 
   /* Always convert to scene linear or data colorspace with associated alpha. */
   const bool is_data = ColorSpaceManager::colorspace_is_data(metadata.colorspace);
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring colorspace = is_data          ? u_colorspace_data :
                              compress_as_srgb ? u_colorspace_scene_linear_srgb :
                                                 u_colorspace_scene_linear;
@@ -802,7 +802,7 @@ static bool make_tx(const string &filepath,
   OIIO::ImageBuf buf(spec, OIIO::InitializePixels::No);
   std::time_t in_time = OIIO::Filesystem::last_write_time(filepath);
 
-  if (!metadata.load_pixels(filepath, buf.localpixels(), false)) {
+  if (!metadata.oiio_load_pixels(filepath, buf.localpixels(), false)) {
     LOG_WARNING << "Failed to load pixels for " << filepath;
     return false;
   }
@@ -835,7 +835,7 @@ static bool make_tx(const string &filepath,
 
   std::unique_ptr<ImageOutput> out = ImageOutput::create(tmp_filepath);
   bool ok = write_mipmap_tx(
-      out, tmp_filepath, out_format, format_type, metadata.compress_as_srgb, buf);
+      out, tmp_filepath, out_format, format_type, metadata.is_compressible_as_srgb, buf);
   out.reset();
 
   /* Stamp with same time as input image file to detect updates. */
@@ -874,7 +874,7 @@ bool make_tx(const string &filepath,
   ImageMetaData metadata;
   ImageSpec spec;
   metadata.colorspace = colorspace;
-  if (!metadata.load_metadata(filepath, &spec)) {
+  if (!metadata.oiio_load_metadata(filepath, &spec)) {
     LOG_WARNING << "Failed to load metadata for " << filepath;
     return false;
   }

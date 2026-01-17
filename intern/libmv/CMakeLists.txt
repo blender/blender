@@ -31,8 +31,6 @@ if(WITH_LIBMV)
   if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES)
   endif()
-  add_definitions(${GFLAGS_DEFINES})
-  add_definitions(${GLOG_DEFINES})
   add_definitions(-DLIBMV_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 
   if(WITH_TBB)
@@ -44,10 +42,6 @@ if(WITH_LIBMV)
   )
 
   list(APPEND INC_SYS
-    ${GFLAGS_INCLUDE_DIRS}
-    ${GLOG_INCLUDE_DIRS}
-    ${PNG_INCLUDE_DIRS}
-    ${ZLIB_INCLUDE_DIRS}
     ../../extern/ceres/include
     ../../extern/ceres/config
   )
@@ -55,12 +49,12 @@ if(WITH_LIBMV)
   list(APPEND LIB
     extern_ceres
     PUBLIC bf::dependencies::optional::tbb
-
-    ${GLOG_LIBRARIES}
-    ${GFLAGS_LIBRARIES}
-    ${PNG_LIBRARIES}
+    PRIVATE bf::dependencies::zlib
 
     PRIVATE bf::dependencies::eigen
+    PRIVATE bf::dependencies::gflags
+    PRIVATE bf::dependencies::glog
+    PRIVATE bf::dependencies::png
   )
 
   add_definitions(

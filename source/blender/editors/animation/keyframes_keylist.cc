@@ -1355,17 +1355,6 @@ void action_group_to_keylist(
     return;
   }
 
-  /* Legacy actions. */
-  if (agrp->wrap().is_legacy()) {
-    for (FCurve &fcu : agrp->channels) {
-      if (fcu.grp != agrp) {
-        break;
-      }
-      fcurve_to_keylist(adt, &fcu, keylist, saction_flag, range, true);
-    }
-    return;
-  }
-
   /* Layered actions. */
   animrig::Channelbag &channelbag = agrp->channelbag->wrap();
   Span<FCurve *> fcurves = channelbag.fcurves().slice(agrp->fcurve_range_start,

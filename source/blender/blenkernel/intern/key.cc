@@ -20,6 +20,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -680,7 +681,10 @@ static void key_evaluate_relative_float3(Key *key,
   /* Creates the basis values of the reference key in target_data. */
   copy_key_float3(vertex_count, key, active_keyblock, key->refkey, target_data);
 
-  for (const auto [keyblock_index, kb] : key->block.enumerate()) {
+  /* Cannot use auto [keyblock_index, kb] here because that would throw a warning at the
+   * parallel_for. */
+  for (std::pair<int, KeyBlock> enumerator : key->block.enumerate()) {
+    KeyBlock &kb = enumerator.second;
     if (&kb == key->refkey) {
       continue;
     }
@@ -698,7 +702,7 @@ static void key_evaluate_relative_float3(Key *key,
       continue;
     }
 
-    const float *weights = per_keyblock_weights ? per_keyblock_weights[keyblock_index] : nullptr;
+    const float *weights = per_keyblock_weights ? per_keyblock_weights[enumerator.first] : nullptr;
 
     char *freefrom = nullptr;
     const float *from = reinterpret_cast<float *>(
@@ -707,13 +711,14 @@ static void key_evaluate_relative_float3(Key *key,
     /* For meshes, use the original values instead of the bmesh values to
      * maintain a constant offset. */
     const float *reffrom = static_cast<float *>(reference_kb->data);
-
-    for (int i = 0; i < vertex_count; i++) {
-      const float weight = weights ? (weights[i] * kb.curval) : kb.curval;
-      /* Each vertex has 3 floats. */
-      const int vector_index = i * 3;
-      add_weighted_vector(vector_index, weight, reffrom, from, target_data);
-    }
+    threading::parallel_for(IndexRange(vertex_count), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        const float weight = weights ? (weights[i] * kb.curval) : kb.curval;
+        /* Each vertex has 3 floats. */
+        const int vector_index = i * 3;
+        add_weighted_vector(vector_index, weight, reffrom, from, target_data);
+      }
+    });
 
     if (freefrom) {
       MEM_freeN(freefrom);
@@ -748,14 +753,16 @@ static void key_evaluate_absolute(const int vertex_count,
   const float step_k3 = shapekeys[2]->totelem / float(vertex_count);
   const float step_k4 = shapekeys[3]->totelem / float(vertex_count);
 
-  for (int i = 0; i < vertex_count; i++) {
-    flerp(&k1[int(i * step_k1) * 3],
-          &k2[int(i * step_k2) * 3],
-          &k3[int(i * step_k3) * 3],
-          &k4[int(i * step_k4) * 3],
-          weights,
-          &r_target[i * 3]);
-  }
+  threading::parallel_for(IndexRange(vertex_count), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      flerp(&k1[int(i * step_k1) * 3],
+            &k2[int(i * step_k2) * 3],
+            &k3[int(i * step_k3) * 3],
+            &k4[int(i * step_k4) * 3],
+            weights,
+            &r_target[i * 3]);
+    }
+  });
 
   if (freek1) {
     MEM_freeN(freek1);
@@ -1428,7 +1435,7 @@ std::optional<std::string> BKE_keyblock_curval_rnapath_get(const Key *key, const
     return std::nullopt;
   }
   PointerRNA ptr = RNA_pointer_create_discrete(
-      const_cast<ID *>(&key->id), &RNA_ShapeKey, (KeyBlock *)kb);
+      const_cast<ID *>(&key->id), RNA_ShapeKey, (KeyBlock *)kb);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "value");
   return RNA_path_from_ID_to_property(&ptr, prop);
 }

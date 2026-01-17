@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28957,6 +28957,26 @@ msgid "Show/Hide"
 msgstr "Göster/Gizle"
 
 
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
 msgid "Names"
 msgstr "Adlar"
 
@@ -28965,20 +28985,28 @@ msgid "Bone Roll"
 msgstr "Kemik Rulosu"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
-
-
 msgid "Clean Up"
 msgstr "Temizle"
 
 
+msgid "Read"
+msgstr "Okumak"
+
+
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Write"
+msgstr "Yazmak"
+
+
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Snap"
@@ -28997,28 +29025,12 @@ msgid "Automasking"
 msgstr "Otomatik maskeleme"
 
 
-msgid "Read"
-msgstr "Okumak"
-
-
-msgid "Sample"
-msgstr "Örnek"
-
-
 msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
 
 
-msgid "Write"
-msgstr "Yazmak"
-
-
 msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
-
-
-msgid "Primitives"
-msgstr "İlkel"
 
 
 msgid "Instances"
@@ -29027,6 +29039,10 @@ msgstr "Örnekler"
 
 msgid "Import"
 msgstr "İçe Aktar"
+
+
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "Mirror"
@@ -29049,8 +29065,8 @@ msgid "Navigation"
 msgstr "Navigasyon"
 
 
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align View"
@@ -29067,10 +29083,6 @@ msgstr "Bölgeleri Görüntüle"
 
 msgid "Select More/Less"
 msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Similar"
@@ -29091,10 +29103,6 @@ msgstr "Döngüleri Seç"
 
 msgid "Assign Material"
 msgstr "Malzeme Atamak"
-
-
-msgid "Metaball"
-msgstr "Metabol"
 
 
 msgid "Light"
@@ -29149,6 +29157,10 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
+msgid "Layout"
+msgstr "Yerleşim"
+
+
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
 
@@ -29161,16 +29173,16 @@ msgid "Face Sets Init"
 msgstr "Yüz Setleri Başlatma"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
-
-
 msgid "Random Mask"
 msgstr "Rastgele Maske"
 
 
 msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
+
+
+msgid "Adjust"
+msgstr "Ayarlamak"
 
 
 msgid "In-Betweens"
@@ -29185,8 +29197,12 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Tracking"
+msgstr "Takip"
 
 
 msgid "Toggle Bone Options"
@@ -29197,16 +29213,8 @@ msgid "Enable Bone Options"
 msgstr "Kemik Seçeneklerini Etkinleştir"
 
 
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
 msgid "Disable Bone Options"
 msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Tracking"
-msgstr "Takip"
 
 
 msgid "Mesh Select Mode"
@@ -29227,14 +29235,6 @@ msgstr "Yüz Gücünü Ayarla"
 
 msgid "Merge"
 msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
 
 
 msgid "Keyframe Insert Pie"
@@ -44360,13 +44360,8 @@ msgstr "Resim Dizisini İçe Aktar"
 
 
 msgctxt "Operator"
-msgid "Texture Setup"
-msgstr "Doku Kurulumu"
-
-
-msgctxt "Operator"
-msgid "Principled Texture Setup"
-msgstr "İlkeli Doku Kurulumu"
+msgid "Add Texture Setup"
+msgstr "Doku Kurulumu Ekle"
 
 
 msgctxt "Operator"
@@ -79939,10 +79934,6 @@ msgid "Orbit Around Selection"
 msgstr "Yörünge Etrafında Seçim"
 
 
-msgid "Use selection as the pivot point"
-msgstr "Seçimi pivot noktası olarak kullan"
-
-
 msgid "Zoom to Mouse Position"
 msgstr "Fare Konumuna Yakınlaştır"
 
@@ -99128,16 +99119,6 @@ msgstr "Çoklu Görüntüler"
 
 
 msgctxt "Operator"
-msgid "Add Texture Setup"
-msgstr "Doku Kurulumu Ekle"
-
-
-msgctxt "Operator"
-msgid "Add Principled Setup"
-msgstr "İlkeli Kurulum Ekle"
-
-
-msgctxt "Operator"
 msgid "Settings from Active"
 msgstr "Ayarlar Aktif'ten"
 
@@ -114760,12 +114741,12 @@ msgid "Select movie or image strips"
 msgstr "Film veya görüntü şeritlerini seçin"
 
 
-msgid "Cannot create key inside of speed transition"
-msgstr "Hız geçişi içinde anahtar oluşturulamıyor"
-
-
 msgid "Cannot create freeze frame"
 msgstr "Dondurulmuş kare oluşturulamıyor"
+
+
+msgid "Cannot create key inside of speed transition"
+msgstr "Hız geçişi içinde anahtar oluşturulamıyor"
 
 
 msgid "Cannot create transition from first or last key"

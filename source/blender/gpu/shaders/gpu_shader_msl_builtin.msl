@@ -8,6 +8,8 @@
 
 #include "gpu_shader_msl_defines.msl"
 
+#pragma blender dead_code_elimination off
+
 using namespace metal;
 
 #define unpackUnorm4x8 unpack_unorm4x8_to_float
@@ -153,3 +155,5 @@ struct mtl_WorkGroupSize {
 };
 #  define gl_WorkGroupSize mtl_WorkGroupSize()
 #endif
+
+#pragma blender dead_code_elimination on

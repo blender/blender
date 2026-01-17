@@ -235,6 +235,7 @@ void main()
     EXPECT_NEAR(eul.as_float3(), expect_eul.as_float3(), 0.0002f);
   }
 
+#ifndef GPU_METAL /* Disabled because no operator==(matrix,matrix) on metal. */
   TEST(math_matrix, MatrixTranspose)
   {
     float4x4 m = float4x4(
@@ -243,6 +244,7 @@ void main()
         float4(1, 5, 9, 2), float4(2, 6, 1, 5), float4(3, 7, 2, 6), float4(4, 8, 3, 7));
     EXPECT_EQ(transpose(m), expect);
   }
+#endif
 
   TEST(math_matrix, MatrixInterpolationRegular)
   {

@@ -124,7 +124,6 @@ def gather_base_color_factor(info, export_settings):
     path, path_alpha = None, None
     vc_info = {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}
 
-
     if 'rgb_socket' in info:
         rgb_vc_info = gather_color_info(info['rgb_socket'].to_node_nav())
         vc_info['color'] = rgb_vc_info['colorAttrib']

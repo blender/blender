@@ -20,7 +20,7 @@ namespace gpu {
 class Texture;
 }  // namespace gpu
 
-/* Bump the version number for lightcache data structure changes. */
+/** Bump the version number for light-cache data structure changes. */
 #define LIGHTCACHE_STATIC_VERSION 2
 
 /* Probe->type */

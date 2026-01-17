@@ -75,6 +75,10 @@ class DummyBackend : public GPUBackend {
   {
     return nullptr;
   }
+  TexturePool *texturepool_alloc() override
+  {
+    return nullptr;
+  }
   UniformBuf *uniformbuf_alloc(size_t /*size*/, const char * /*name*/) override
   {
     return nullptr;

@@ -19,6 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 
@@ -107,7 +108,7 @@ static void color_filter_task(const Depsgraph &depsgraph,
                               LocalData &tls,
                               bke::GSpanAttributeWriter &color_attribute)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   const Span<float4> orig_colors = orig_color_data_get_mesh(ob, node);
 
@@ -314,7 +315,7 @@ static void color_filter_task(const Depsgraph &depsgraph,
 
 static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
   const IndexMask &node_mask = ss.filter_cache->node_mask;
@@ -371,7 +372,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
 {
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
@@ -422,7 +423,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
 
 static void sculpt_color_filter_end(bContext *C, Object &ob)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   undo::push_end(ob);
   MEM_delete(ss.filter_cache);
@@ -435,7 +436,7 @@ static wmOperatorStatus sculpt_color_filter_modal(bContext *C,
                                                   const wmEvent *event)
 {
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     sculpt_color_filter_end(C, ob);
@@ -504,7 +505,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
                      mval_fl,
                      RNA_float_get(op->ptr, "area_normal_radius"),
                      RNA_float_get(op->ptr, "strength"));
-  const SculptSession &ss = *ob.sculpt;
+  const SculptSession &ss = *ob.runtime->sculpt_session;
   filter::Cache *filter_cache = ss.filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   if (auto_mask::is_enabled(sd, ob, nullptr)) {

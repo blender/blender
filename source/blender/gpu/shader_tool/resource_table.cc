@@ -197,18 +197,18 @@ void SourceProcessor::lower_resource_access_functions(Parser &parser)
 /**
  * Needs to run before namespace mutation so that `using` have more precedence.
  * Otherwise the following would fail.
- *  ```cpp
- *  namespace B {
- *  int test(int a) {}
- *  }
+ * \code{.cc}
+ * namespace B {
+ * int test(int a) {}
+ * }
  *
- *  namespace A {
- *  int test(int a) {}
- *  int func(int a) {
- *    using B::test;
- *    return test(a); // Should reference B::test and not A::test
- *  }
- *  ```
+ * namespace A {
+ * int test(int a) {}
+ * int func(int a) {
+ *   using B::test;
+ *   return test(a); // Should reference B::test and not A::test
+ * }
+ * \endcode
  */
 void SourceProcessor::lower_using(Parser &parser)
 {

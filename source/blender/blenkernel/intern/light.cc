@@ -141,7 +141,7 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     la->energy_deprecated /= M_PI_4;
   }
 
-  /* Forward compatibiilty for Use Nodes. */
+  /* Forward compatibility for Use Nodes. */
   la->use_nodes = true;
 
   /* write LibData */

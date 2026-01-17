@@ -37,6 +37,7 @@ struct PrefetchJob;
 struct SourceImageCache;
 struct StripLookup;
 struct StripRuntime;
+struct StripModifierDataRuntime;
 }  // namespace seq
 
 /** #Strip.flag */
@@ -871,6 +872,7 @@ enum eStripModifierType {
 
 /** #StripModifierData.flag */
 enum eStripModifierFlag {
+  STRIP_MODIFIER_FLAG_NONE = 0,
   STRIP_MODIFIER_FLAG_MUTE = (1 << 0),
   STRIP_MODIFIER_FLAG_EXPANDED = (1 << 1),
   STRIP_MODIFIER_FLAG_ACTIVE = (1 << 2),
@@ -886,18 +888,6 @@ enum eModMaskTime {
   STRIP_MASK_TIME_RELATIVE = 0,
   /* Global (scene) frame number will be used to access the mask. */
   STRIP_MASK_TIME_ABSOLUTE = 1,
-};
-
-struct StripModifierDataRuntime {
-  /* Reference parameters for optimizing updates. Sound modifiers can store parameters, sound
-   * inputs and outputs. When all existing parameters do match new ones, the update can be skipped
-   * and old sound handle may be returned. This is to prevent audio glitches, see #141595 */
-
-  float *last_buf = nullptr; /* Equalizer frequency/volume curve buffer */
-
-  /* Reference sound handles (may be used by any sound modifier). */
-  void *last_sound_in = nullptr;
-  void *last_sound_out = nullptr;
 };
 
 struct StripModifierData {
@@ -920,7 +910,7 @@ struct StripModifierData {
   uint16_t layout_panel_open_flag = 0;
   uint16_t ui_expand_flag = 0;
 
-  StripModifierDataRuntime runtime;
+  blender::seq::StripModifierDataRuntime *runtime = nullptr;
 };
 
 struct ColorBalanceModifierData {

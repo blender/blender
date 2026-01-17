@@ -756,7 +756,7 @@ struct StructRNA {
  * Root RNA data structure that lists all struct types.
  */
 struct BlenderRNA {
-  Vector<StructRNA *> structs;
+  Vector<std::unique_ptr<StructRNA>> structs;
   /**
    * A map of structs: `{StructRNA.identifier -> StructRNA}`
    * These are ensured to have unique names (with #STRUCT_PUBLIC_NAMESPACE enabled).

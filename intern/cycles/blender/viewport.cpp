@@ -36,7 +36,7 @@ BlenderViewportParameters::BlenderViewportParameters(blender::bScreen *b_screen,
 
   blender::View3DShading shading = b_v3d->shading;
   blender::PointerRNA v3d_rna_ptr = RNA_pointer_create_discrete(
-      &b_screen->id, &blender::RNA_SpaceView3D, b_v3d);
+      &b_screen->id, blender::RNA_SpaceView3D, b_v3d);
   blender::PointerRNA shading_rna_ptr = RNA_pointer_get(&v3d_rna_ptr, "shading");
 
   /* We only copy the shading parameters if we are in look-dev mode.

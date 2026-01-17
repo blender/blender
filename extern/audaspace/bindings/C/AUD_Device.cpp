@@ -51,7 +51,7 @@ AUD_API AUD_Device* AUD_Device_open(const char* type, AUD_DeviceSpecs specs, int
 		dspecs.channels = CHANNELS_STEREO;
 	if(dspecs.format == FORMAT_INVALID)
 		dspecs.format = FORMAT_FLOAT32;
-	if(dspecs.rate == RATE_INVALID)
+	if(dspecs.rate == double(RATE_INVALID))
 		dspecs.rate = RATE_48000;
 	if(buffersize < 128)
 		buffersize = AUD_DEFAULT_BUFFER_SIZE;

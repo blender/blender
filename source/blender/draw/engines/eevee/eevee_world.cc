@@ -32,8 +32,6 @@ blender::World *World::default_world_get()
 {
   if (default_world_ == nullptr) {
     default_world_ = BKE_id_new_nomain<blender::World>("EEVEE default world");
-    default_world_->nodetree = bke::node_tree_add_tree_embedded(
-        nullptr, &default_world_->id, "World Nodetree", ntreeType_Shader->idname);
 
     BLI_listbase_clear(&default_world_->gpumaterial);
   }

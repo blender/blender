@@ -5,7 +5,7 @@
 #pragma once
 
 #include "kernel/globals.h"
-#include "kernel/util/image.h"
+#include "kernel/util/image_2d.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -91,7 +91,7 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
                                       const differential2 duv)
 {
   if (tex_id == KERNEL_IMAGE_NONE) {
-    return IMAGE_TEXTURE_MISSING_RGBA;
+    return IMAGE_MISSING_RGBA;
   }
 
   const ccl_global KernelImageTexture &tex = kernel_data_fetch(image_textures, tex_id);
@@ -108,8 +108,7 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
     const KernelTileDescriptor tile_descriptor = kernel_image_tile_map(kg, sd, tex, uv, duv, xy);
 
     if (!kernel_tile_descriptor_loaded(tile_descriptor)) {
-      return (tile_descriptor == KERNEL_TILE_LOAD_FAILED) ? IMAGE_TEXTURE_MISSING_RGBA :
-                                                            tex.average_color;
+      return (tile_descriptor == KERNEL_TILE_LOAD_FAILED) ? IMAGE_MISSING_RGBA : tex.average_color;
     }
 
     info = &kernel_data_fetch(image_info, kernel_tile_descriptor_slot(tile_descriptor));
@@ -121,7 +120,7 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
   else {
     /* Full image sampling. */
     if (tex.slot == KERNEL_IMAGE_NONE) {
-      return IMAGE_TEXTURE_MISSING_RGBA;
+      return IMAGE_MISSING_RGBA;
     }
 
     info = &kernel_data_fetch(image_info, tex.slot);
@@ -164,7 +163,7 @@ ccl_device_forceinline float4 kernel_image_interp_with_udim(KernelGlobals kg,
 {
   const int tex_id = kernel_image_udim_map(kg, image_id, uv);
   if (tex_id == KERNEL_IMAGE_NONE) {
-    return IMAGE_TEXTURE_MISSING_RGBA;
+    return IMAGE_MISSING_RGBA;
   }
 
   return kernel_image_interp(kg, sd, tex_id, uv, duv);

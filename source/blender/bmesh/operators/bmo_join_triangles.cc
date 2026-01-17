@@ -374,6 +374,14 @@ static DelimitData bm_edge_delmimit_data_from_op(BMesh *bm, BMOperator *op)
   {
     delimit_data.cdata_len += 1;
   }
+  delimit_data.cdata[delimit_data.cdata_len].cd_offset = -1;
+  if (BMO_slot_bool_get(op->slots_in, "cmp_vcols") &&
+      bm_edge_delimit_cdata(
+          &bm->ldata, CD_PROP_COLOR, &delimit_data.cdata[delimit_data.cdata_len]))
+  {
+    delimit_data.cdata_len += 1;
+  }
+
   return delimit_data;
 }
 

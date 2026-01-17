@@ -1188,7 +1188,7 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
 
 void MOV_proxy_builder_process(MovieProxyBuilder *context,
                                /* NOLINTNEXTLINE: readability-non-const-parameter. */
-                               bool *stop,
+                               const bool *stop,
                                /* NOLINTNEXTLINE: readability-non-const-parameter. */
                                bool *do_update,
                                const blender::FunctionRef<void(float progress)> set_progress_fn)

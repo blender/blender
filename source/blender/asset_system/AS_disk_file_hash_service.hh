@@ -24,7 +24,7 @@ namespace blender::asset_system {
  *
  * Run the following to see which hash algorithms are supported:
  *
- * blender -b --python-expr "import hashlib; print(hashlib.algorithms_available)"
+ * `blender -b --python-expr "import hashlib; print(hashlib.algorithms_available)"`
  */
 class DiskFileHashService {
  private:

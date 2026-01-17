@@ -3114,7 +3114,7 @@ static wmOperatorStatus graph_driver_vars_copy_exec(bContext *C, wmOperator *op)
 {
   bool ok = false;
 
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", RNA_FCurve);
 
   /* If this exists, call the copy driver vars API function. */
   FCurve *fcu = static_cast<FCurve *>(ptr.data);
@@ -3156,7 +3156,7 @@ static wmOperatorStatus graph_driver_vars_paste_exec(bContext *C, wmOperator *op
   const bool replace = RNA_boolean_get(op->ptr, "replace");
   bool ok = false;
 
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", RNA_FCurve);
 
   /* If this exists, call the paste driver vars API function. */
   FCurve *fcu = static_cast<FCurve *>(ptr.data);

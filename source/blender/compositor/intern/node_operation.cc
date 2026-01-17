@@ -110,11 +110,6 @@ const bNode &NodeOperation::node() const
   return node_;
 }
 
-bool NodeOperation::should_compute_output(StringRef identifier)
-{
-  return this->get_result(identifier).should_compute();
-}
-
 Result *NodeOperation::get_preview_result()
 {
   /* Find the first linked output. */

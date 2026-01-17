@@ -2,6 +2,16 @@
 - Mesh 'Mesh' vtx:290 face:288 loop:1152 edge:576
     - 0 4 5 1 1 ... 161 161 212 282 266 
     - 0/1 0/4 4/5 1/5 1/166 ... 160/269 156/161 157/161 161/266 161/212 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.938, 0.000, 5.250)
     - (-0.875, -0.375, 5.250)
@@ -12,16 +22,6 @@
     - (0.688, -0.688, 1.500)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 0 1 0 1 0 ... 1 1 0 1 0 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - vertex groups:
     - 2=0.959 1=0.041
     - 2=0.959 1=0.041

@@ -18,6 +18,7 @@
 #include "CLG_log.h"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
 namespace blender::bke::tests {
@@ -26,6 +27,7 @@ TEST(view_layer, aov_unique_names)
 {
   /* Set Up */
   CLG_init();
+  RNA_init();
   BKE_idtype_init();
   BKE_appdir_init();
   IMB_init();
@@ -81,6 +83,7 @@ TEST(view_layer, aov_unique_names)
   RE_engines_exit();
   IMB_exit();
   BKE_appdir_exit();
+  RNA_exit();
   CLG_exit();
 }
 
@@ -91,7 +94,7 @@ static void test_render_pass_conflict(Scene *scene,
                                       const char *render_pass_name,
                                       const char *rna_prop_name)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(&scene->id, &RNA_ViewLayer, view_layer);
+  PointerRNA ptr = RNA_pointer_create_discrete(&scene->id, RNA_ViewLayer, view_layer);
   RNA_boolean_set(&ptr, rna_prop_name, false);
 
   /* Rename to Conflicting name */
@@ -120,6 +123,7 @@ TEST(view_layer, aov_conflict)
 {
   /* Set Up */
   CLG_init();
+  RNA_init();
   BKE_appdir_init();
   IMB_init();
   RE_engines_init();
@@ -165,6 +169,7 @@ TEST(view_layer, aov_conflict)
   RE_engines_exit();
   IMB_exit();
   BKE_appdir_exit();
+  RNA_exit();
   CLG_exit();
 }
 

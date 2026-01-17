@@ -145,7 +145,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   Camera *ca = id_cast<Camera *>(ob->data);
   float dir[3];
 
-  PointerRNA camera_ptr = RNA_pointer_create_discrete(&ca->id, &RNA_Camera, ca);
+  PointerRNA camera_ptr = RNA_pointer_create_discrete(&ca->id, RNA_Camera, ca);
 
   const bool is_modal = WM_gizmo_group_is_modal(gzgroup);
 
@@ -160,7 +160,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
     /* Need to set property here for undo. TODO: would prefer to do this in _init. */
     PointerRNA camera_dof_ptr = RNA_pointer_create_discrete(
-        &ca->id, &RNA_CameraDOFSettings, &ca->dof);
+        &ca->id, RNA_CameraDOFSettings, &ca->dof);
     WM_gizmo_target_property_def_rna(
         cagzgroup->dop_dist, "offset", &camera_dof_ptr, "focus_distance", -1);
   }

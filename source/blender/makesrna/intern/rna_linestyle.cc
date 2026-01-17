@@ -141,23 +141,23 @@ static StructRNA *rna_LineStyle_color_modifier_refine(PointerRNA *ptr)
 
   switch (m->type) {
     case LS_MODIFIER_ALONG_STROKE:
-      return &RNA_LineStyleColorModifier_AlongStroke;
+      return RNA_LineStyleColorModifier_AlongStroke;
     case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-      return &RNA_LineStyleColorModifier_DistanceFromCamera;
+      return RNA_LineStyleColorModifier_DistanceFromCamera;
     case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-      return &RNA_LineStyleColorModifier_DistanceFromObject;
+      return RNA_LineStyleColorModifier_DistanceFromObject;
     case LS_MODIFIER_MATERIAL:
-      return &RNA_LineStyleColorModifier_Material;
+      return RNA_LineStyleColorModifier_Material;
     case LS_MODIFIER_TANGENT:
-      return &RNA_LineStyleColorModifier_Tangent;
+      return RNA_LineStyleColorModifier_Tangent;
     case LS_MODIFIER_NOISE:
-      return &RNA_LineStyleColorModifier_Noise;
+      return RNA_LineStyleColorModifier_Noise;
     case LS_MODIFIER_CREASE_ANGLE:
-      return &RNA_LineStyleColorModifier_CreaseAngle;
+      return RNA_LineStyleColorModifier_CreaseAngle;
     case LS_MODIFIER_CURVATURE_3D:
-      return &RNA_LineStyleColorModifier_Curvature_3D;
+      return RNA_LineStyleColorModifier_Curvature_3D;
     default:
-      return &RNA_LineStyleColorModifier;
+      return RNA_LineStyleColorModifier;
   }
 }
 
@@ -167,23 +167,23 @@ static StructRNA *rna_LineStyle_alpha_modifier_refine(PointerRNA *ptr)
 
   switch (m->type) {
     case LS_MODIFIER_ALONG_STROKE:
-      return &RNA_LineStyleAlphaModifier_AlongStroke;
+      return RNA_LineStyleAlphaModifier_AlongStroke;
     case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-      return &RNA_LineStyleAlphaModifier_DistanceFromCamera;
+      return RNA_LineStyleAlphaModifier_DistanceFromCamera;
     case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-      return &RNA_LineStyleAlphaModifier_DistanceFromObject;
+      return RNA_LineStyleAlphaModifier_DistanceFromObject;
     case LS_MODIFIER_MATERIAL:
-      return &RNA_LineStyleAlphaModifier_Material;
+      return RNA_LineStyleAlphaModifier_Material;
     case LS_MODIFIER_TANGENT:
-      return &RNA_LineStyleAlphaModifier_Tangent;
+      return RNA_LineStyleAlphaModifier_Tangent;
     case LS_MODIFIER_NOISE:
-      return &RNA_LineStyleAlphaModifier_Noise;
+      return RNA_LineStyleAlphaModifier_Noise;
     case LS_MODIFIER_CREASE_ANGLE:
-      return &RNA_LineStyleAlphaModifier_CreaseAngle;
+      return RNA_LineStyleAlphaModifier_CreaseAngle;
     case LS_MODIFIER_CURVATURE_3D:
-      return &RNA_LineStyleAlphaModifier_Curvature_3D;
+      return RNA_LineStyleAlphaModifier_Curvature_3D;
     default:
-      return &RNA_LineStyleAlphaModifier;
+      return RNA_LineStyleAlphaModifier;
   }
 }
 
@@ -193,25 +193,25 @@ static StructRNA *rna_LineStyle_thickness_modifier_refine(PointerRNA *ptr)
 
   switch (m->type) {
     case LS_MODIFIER_ALONG_STROKE:
-      return &RNA_LineStyleThicknessModifier_AlongStroke;
+      return RNA_LineStyleThicknessModifier_AlongStroke;
     case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-      return &RNA_LineStyleThicknessModifier_DistanceFromCamera;
+      return RNA_LineStyleThicknessModifier_DistanceFromCamera;
     case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-      return &RNA_LineStyleThicknessModifier_DistanceFromObject;
+      return RNA_LineStyleThicknessModifier_DistanceFromObject;
     case LS_MODIFIER_MATERIAL:
-      return &RNA_LineStyleThicknessModifier_Material;
+      return RNA_LineStyleThicknessModifier_Material;
     case LS_MODIFIER_CALLIGRAPHY:
-      return &RNA_LineStyleThicknessModifier_Calligraphy;
+      return RNA_LineStyleThicknessModifier_Calligraphy;
     case LS_MODIFIER_TANGENT:
-      return &RNA_LineStyleThicknessModifier_Tangent;
+      return RNA_LineStyleThicknessModifier_Tangent;
     case LS_MODIFIER_NOISE:
-      return &RNA_LineStyleThicknessModifier_Noise;
+      return RNA_LineStyleThicknessModifier_Noise;
     case LS_MODIFIER_CREASE_ANGLE:
-      return &RNA_LineStyleThicknessModifier_CreaseAngle;
+      return RNA_LineStyleThicknessModifier_CreaseAngle;
     case LS_MODIFIER_CURVATURE_3D:
-      return &RNA_LineStyleThicknessModifier_Curvature_3D;
+      return RNA_LineStyleThicknessModifier_Curvature_3D;
     default:
-      return &RNA_LineStyleThicknessModifier;
+      return RNA_LineStyleThicknessModifier;
   }
 }
 
@@ -221,35 +221,35 @@ static StructRNA *rna_LineStyle_geometry_modifier_refine(PointerRNA *ptr)
 
   switch (m->type) {
     case LS_MODIFIER_SAMPLING:
-      return &RNA_LineStyleGeometryModifier_Sampling;
+      return RNA_LineStyleGeometryModifier_Sampling;
     case LS_MODIFIER_BEZIER_CURVE:
-      return &RNA_LineStyleGeometryModifier_BezierCurve;
+      return RNA_LineStyleGeometryModifier_BezierCurve;
     case LS_MODIFIER_SINUS_DISPLACEMENT:
-      return &RNA_LineStyleGeometryModifier_SinusDisplacement;
+      return RNA_LineStyleGeometryModifier_SinusDisplacement;
     case LS_MODIFIER_SPATIAL_NOISE:
-      return &RNA_LineStyleGeometryModifier_SpatialNoise;
+      return RNA_LineStyleGeometryModifier_SpatialNoise;
     case LS_MODIFIER_PERLIN_NOISE_1D:
-      return &RNA_LineStyleGeometryModifier_PerlinNoise1D;
+      return RNA_LineStyleGeometryModifier_PerlinNoise1D;
     case LS_MODIFIER_PERLIN_NOISE_2D:
-      return &RNA_LineStyleGeometryModifier_PerlinNoise2D;
+      return RNA_LineStyleGeometryModifier_PerlinNoise2D;
     case LS_MODIFIER_BACKBONE_STRETCHER:
-      return &RNA_LineStyleGeometryModifier_BackboneStretcher;
+      return RNA_LineStyleGeometryModifier_BackboneStretcher;
     case LS_MODIFIER_TIP_REMOVER:
-      return &RNA_LineStyleGeometryModifier_TipRemover;
+      return RNA_LineStyleGeometryModifier_TipRemover;
     case LS_MODIFIER_POLYGONIZATION:
-      return &RNA_LineStyleGeometryModifier_Polygonalization;
+      return RNA_LineStyleGeometryModifier_Polygonalization;
     case LS_MODIFIER_GUIDING_LINES:
-      return &RNA_LineStyleGeometryModifier_GuidingLines;
+      return RNA_LineStyleGeometryModifier_GuidingLines;
     case LS_MODIFIER_BLUEPRINT:
-      return &RNA_LineStyleGeometryModifier_Blueprint;
+      return RNA_LineStyleGeometryModifier_Blueprint;
     case LS_MODIFIER_2D_OFFSET:
-      return &RNA_LineStyleGeometryModifier_2DOffset;
+      return RNA_LineStyleGeometryModifier_2DOffset;
     case LS_MODIFIER_2D_TRANSFORM:
-      return &RNA_LineStyleGeometryModifier_2DTransform;
+      return RNA_LineStyleGeometryModifier_2DTransform;
     case LS_MODIFIER_SIMPLIFICATION:
-      return &RNA_LineStyleGeometryModifier_Simplification;
+      return RNA_LineStyleGeometryModifier_Simplification;
     default:
-      return &RNA_LineStyleGeometryModifier;
+      return RNA_LineStyleGeometryModifier;
   }
 }
 

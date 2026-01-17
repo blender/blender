@@ -128,7 +128,7 @@ static bool rna_Curves_curve_offset_data_lookup_int(PointerRNA *ptr, int index, 
     return false;
   }
   rna_pointer_create_with_ancestors(
-      *ptr, &RNA_IntAttributeValue, &curves->geometry.wrap().offsets_for_write()[index], *r_ptr);
+      *ptr, RNA_IntAttributeValue, &curves->geometry.wrap().offsets_for_write()[index], *r_ptr);
   return true;
 }
 
@@ -175,7 +175,7 @@ static bool rna_Curves_curves_lookup_int(PointerRNA *ptr, int index, PointerRNA 
     return false;
   }
   rna_pointer_create_with_ancestors(
-      *ptr, &RNA_CurveSlice, &curves->geometry.wrap().offsets_for_write()[index], *r_ptr);
+      *ptr, RNA_CurveSlice, &curves->geometry.wrap().offsets_for_write()[index], *r_ptr);
   return true;
 }
 
@@ -192,7 +192,7 @@ bool rna_Curves_position_data_lookup_int(PointerRNA *ptr, int index, PointerRNA 
     return false;
   }
   rna_pointer_create_with_ancestors(*ptr,
-                                    &RNA_FloatVectorAttributeValue,
+                                    RNA_FloatVectorAttributeValue,
                                     &get_curves_positions_for_write(*curves)[index],
                                     *r_ptr);
   return true;
@@ -258,7 +258,7 @@ bool rna_Curves_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
     return false;
   }
   rna_pointer_create_with_ancestors(
-      *ptr, &RNA_CurvePoint, &get_curves_positions_for_write(*curves)[index], *r_ptr);
+      *ptr, RNA_CurvePoint, &get_curves_positions_for_write(*curves)[index], *r_ptr);
   return true;
 }
 

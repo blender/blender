@@ -187,7 +187,7 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmGizmoGroup *
   /* Need to set property here for undo. TODO: would prefer to do this in _init. */
   SpaceNode *snode = CTX_wm_space_node(C);
 #if 0
-  PointerRNA nodeptr = RNA_pointer_create_discrete(snode->id, &RNA_SpaceNodeEditor, snode);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(snode->id, RNA_SpaceNodeEditor, snode);
   WM_gizmo_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
   WM_gizmo_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
 #endif
@@ -250,22 +250,22 @@ static void node_input_to_rect(const bNode *node,
 
   const bNodeSocket *x_input = bke::node_find_socket(*node, SOCK_IN, "X");
   PointerRNA x_input_rna_pointer = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(x_input));
+      nullptr, RNA_NodeSocket, const_cast<bNodeSocket *>(x_input));
   const float xmin = float(RNA_int_get(&x_input_rna_pointer, "default_value"));
 
   const bNodeSocket *y_input = bke::node_find_socket(*node, SOCK_IN, "Y");
   PointerRNA y_input_rna_pointer = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(y_input));
+      nullptr, RNA_NodeSocket, const_cast<bNodeSocket *>(y_input));
   const float ymin = float(RNA_int_get(&y_input_rna_pointer, "default_value"));
 
   const bNodeSocket *width_input = bke::node_find_socket(*node, SOCK_IN, "Width");
   PointerRNA width_input_rna_pointer = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(width_input));
+      nullptr, RNA_NodeSocket, const_cast<bNodeSocket *>(width_input));
   const float width = float(RNA_int_get(&width_input_rna_pointer, "default_value"));
 
   const bNodeSocket *height_input = bke::node_find_socket(*node, SOCK_IN, "Height");
   PointerRNA height_input_rna_pointer = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(height_input));
+      nullptr, RNA_NodeSocket, const_cast<bNodeSocket *>(height_input));
   const float height = float(RNA_int_get(&height_input_rna_pointer, "default_value"));
 
   r_rect->xmin = (xmin + offset.x) / dims.x;
@@ -281,19 +281,19 @@ static void node_input_from_rect(bNode *node,
 {
   bNodeSocket *x_input = bke::node_find_socket(*node, SOCK_IN, "X");
   PointerRNA x_input_rna_pointer = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(x_input));
+      nullptr, RNA_NodeSocket, const_cast<bNodeSocket *>(x_input));
 
   bNodeSocket *y_input = bke::node_find_socket(*node, SOCK_IN, "Y");
   PointerRNA y_input_rna_pointer = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(y_input));
+      nullptr, RNA_NodeSocket, const_cast<bNodeSocket *>(y_input));
 
   bNodeSocket *width_input = bke::node_find_socket(*node, SOCK_IN, "Width");
   PointerRNA width_input_rna_pointer = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(width_input));
+      nullptr, RNA_NodeSocket, const_cast<bNodeSocket *>(width_input));
 
   bNodeSocket *height_input = bke::node_find_socket(*node, SOCK_IN, "Height");
   PointerRNA height_input_rna_pointer = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(height_input));
+      nullptr, RNA_NodeSocket, const_cast<bNodeSocket *>(height_input));
 
   const float xmin = rect->xmin * dims.x - offset.x;
   const float width = rect->xmax * dims.x - offset.x - xmin;
@@ -375,7 +375,7 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*g
       return false;
     }
     else if (STREQ(input.name, "Alpha Crop") && !input.is_directly_linked()) {
-      PointerRNA input_rna_pointer = RNA_pointer_create_discrete(nullptr, &RNA_NodeSocket, &input);
+      PointerRNA input_rna_pointer = RNA_pointer_create_discrete(nullptr, RNA_NodeSocket, &input);
       if (RNA_boolean_get(&input_rna_pointer, "default_value")) {
         /* If Alpha Crop is not set, the image size changes depending on the input parameters,
          * so we can't usefully edit the crop in this case. */
@@ -441,7 +441,7 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
   crop_group->update_data.context = const_cast<bContext *>(C);
   bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Alpha Crop");
   crop_group->update_data.ptr = RNA_pointer_create_discrete(
-      reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+      reinterpret_cast<ID *>(snode->edittree), RNA_NodeSocket, source_input);
   crop_group->update_data.prop = RNA_struct_find_property(&crop_group->update_data.ptr, "enabled");
   BLI_assert(crop_group->update_data.prop != nullptr);
 
@@ -644,7 +644,7 @@ static void WIDGETGROUP_node_mask_refresh(const bContext *C, wmGizmoGroup *gzgro
   mask_group->update_data.context = const_cast<bContext *>(C);
   bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Mask");
   mask_group->update_data.ptr = RNA_pointer_create_discrete(
-      reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+      reinterpret_cast<ID *>(snode->edittree), RNA_NodeSocket, source_input);
   mask_group->update_data.prop = RNA_struct_find_property(&mask_group->update_data.ptr, "enabled");
   BLI_assert(mask_group->update_data.prop != nullptr);
 
@@ -832,7 +832,7 @@ static void WIDGETGROUP_node_glare_refresh(const bContext *C, wmGizmoGroup *gzgr
   /* Need to set property here for undo. TODO: would prefer to do this in _init. */
   bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Sun Position");
   PointerRNA socket_pointer = RNA_pointer_create_discrete(
-      reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+      reinterpret_cast<ID *>(snode->edittree), RNA_NodeSocket, source_input);
   WM_gizmo_target_property_def_rna(gz, "offset", &socket_pointer, "default_value", -1);
 
   WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
@@ -954,7 +954,7 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
       wmGizmo *gz = cpin_group->gizmos[i++];
 
       PointerRNA sockptr = RNA_pointer_create_discrete(
-          id_cast<ID *>(snode->edittree), &RNA_NodeSocket, sock);
+          id_cast<ID *>(snode->edittree), RNA_NodeSocket, sock);
       WM_gizmo_target_property_def_rna(gz, "offset", &sockptr, "default_value", -1);
 
       WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
@@ -1114,7 +1114,7 @@ static void WIDGETGROUP_node_split_refresh(const bContext *C, wmGizmoGroup *gzgr
   split_group->update_data.context = const_cast<bContext *>(C);
   bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Position");
   split_group->update_data.ptr = RNA_pointer_create_discrete(
-      reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+      reinterpret_cast<ID *>(snode->edittree), RNA_NodeSocket, source_input);
   split_group->update_data.prop = RNA_struct_find_property(&split_group->update_data.ptr,
                                                            "enabled");
 

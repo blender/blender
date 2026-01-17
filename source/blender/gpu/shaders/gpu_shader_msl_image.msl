@@ -8,6 +8,8 @@
 
 /** Image functions */
 
+#pragma blender dead_code_elimination off
+
 #define IMAGE_FN \
   template<typename SamplerT, \
            typename IntCoord = typename SamplerT::IntCoord, \
@@ -106,3 +108,5 @@ IMAGE_FN AtomicT imageAtomicExchange(SamplerT texture, IntCoord coord, AtomicT d
 }
 
 #undef IMAGE_FN
+
+#pragma blender dead_code_elimination on

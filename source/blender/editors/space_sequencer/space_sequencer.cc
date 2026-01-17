@@ -319,7 +319,7 @@ static int /*eContextResult*/ sequencer_context(const bContext *C,
   }
   if (CTX_data_equals(member, "tool_settings")) {
     if (scene) {
-      CTX_data_pointer_set(result, &scene->id, &RNA_ToolSettings, scene->toolsettings);
+      CTX_data_pointer_set(result, &scene->id, RNA_ToolSettings, scene->toolsettings);
       return CTX_RESULT_OK;
     }
   }
@@ -615,14 +615,14 @@ static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscri
 
   {
     StructRNA *type_array[] = {
-        &RNA_SequenceEditor,
+        RNA_SequenceEditor,
 
-        &RNA_Strip,
+        RNA_Strip,
         /* Members of 'Strip'. */
-        &RNA_StripCrop,
-        &RNA_StripTransform,
-        &RNA_StripModifier,
-        &RNA_StripColorBalanceData,
+        RNA_StripCrop,
+        RNA_StripTransform,
+        RNA_StripModifier,
+        RNA_StripColorBalanceData,
     };
     wmMsgParams_RNA msg_key_params = {{}};
     for (int i = 0; i < ARRAY_SIZE(type_array); i++) {

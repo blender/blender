@@ -1199,8 +1199,7 @@ struct ProxyJob {
 static void proxy_freejob(void *pjv)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
-
-  MEM_freeN(pj);
+  MEM_delete(pj);
 }
 
 static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undistort)
@@ -1239,7 +1238,7 @@ static void do_movie_proxy(void *pjv,
                            int /*build_count*/,
                            const int *build_undistort_sizes,
                            int build_undistort_count,
-                           bool *stop,
+                           const bool *stop,
                            bool *do_update,
                            float *progress)
 {
@@ -1510,6 +1509,7 @@ static void proxy_endjob(void *pjv)
 
   if (pj->proxy_builder) {
     MOV_proxy_builder_finish(pj->proxy_builder, pj->stop);
+    pj->proxy_builder = nullptr;
   }
 
   if (pj->clip->source == MCLIP_SRC_MOVIE) {
@@ -1544,7 +1544,7 @@ static wmOperatorStatus clip_rebuild_proxy_exec(bContext *C, wmOperator * /*op*/
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_CLIP_BUILD_PROXY);
 
-  pj = MEM_callocN<ProxyJob>("proxy rebuild job");
+  pj = MEM_new<ProxyJob>("proxy rebuild job");
   pj->scene = scene;
   pj->main = CTX_data_main(C);
   pj->clip = clip;

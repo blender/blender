@@ -43,16 +43,25 @@ source/blender/blenkernel/BKE_object.*         @mont29
 source/blender/blenkernel/intern/object.*      @mont29
 
 ## Blendfile & Undo.
-source/blender/blenloader/.*[^_][^\d]+\.[^.]+  @mont29  # Exclude versioning files (`..._510.cc`) from this capture.
-source/blender/blenloader_core/.*              @mont29
-source/blender/blenkernel/BKE_blendfile.*      @mont29
-source/blender/blenkernel/intern/blendfile.*   @mont29
-source/blender/blenkernel/BKE_packedfile.*     @mont29
-source/blender/blenkernel/intern/packedFile.*  @mont29
-source/blender/blenkernel/BKE_undo.*           @mont29
-source/blender/blenkernel/intern/undo.*        @mont29
-source/blender/editors/include/ED_undo.*       @mont29
-source/blender/editors/undo.*                  @mont29
+# No proper way with go regex to exclude some `versioning` files,
+# so we need to include everything else explicitely (lack of negative lookahead...).
+source/blender/blenloader/intern/blend.*               @mont29
+source/blender/blenloader/intern/read.*                @mont29
+source/blender/blenloader/intern/undo.*                @mont29
+source/blender/blenloader/intern/write.*               @mont29
+source/blender/blenloader/intern/versioning_common.cc  @mont29
+source/blender/blenloader/intern/versioning_dna.cc     @mont29
+source/blender/blenloader/[^/]*                        @mont29
+source/blender/blenloader/tests/.*                     @mont29
+source/blender/blenloader_core/.*                      @mont29
+source/blender/blenkernel/BKE_blendfile.*              @mont29
+source/blender/blenkernel/intern/blendfile.*           @mont29
+source/blender/blenkernel/BKE_packedfile.*             @mont29
+source/blender/blenkernel/intern/packedFile.*          @mont29
+source/blender/blenkernel/BKE_undo.*                   @mont29
+source/blender/blenkernel/intern/undo.*                @mont29
+source/blender/editors/include/ED_undo.*               @mont29
+source/blender/editors/undo.*                          @mont29
 
 ## Misc core utils & components.
 source/blender/blenkernel/BKE_blender.*     @mont29
@@ -179,3 +188,8 @@ source/blender/python/gpu/.*                           @Jeroen-Bakker
 # --------------------------------------------------
 # I18N.
 source/blender/blentranslation.*      @mont29
+
+# --------------------------------------------------
+# Platforms & Builds
+build_files/.*              @ThomasDinges
+release/.*                  @ThomasDinges

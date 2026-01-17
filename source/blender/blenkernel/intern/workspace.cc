@@ -454,7 +454,7 @@ WorkSpaceLayout *BKE_workspace_layout_add_from_layout(Main *bmain,
   bScreen *screen_src = BKE_workspace_layout_screen_get(&layout_src);
   const char *name = BKE_workspace_layout_name_get(&layout_src);
 
-  /* In case the current layout's screen is a 'full screen' one, find the 'full' area, and its its
+  /* In case the current layout's screen is a 'full screen' one, find the 'full' area, and its
    * 'restore screen' as source, instead of the temporary full-screen one. */
   if (BKE_screen_is_fullscreen_area(screen_src)) {
     for (ScrArea &area_old : screen_src->areabase) {

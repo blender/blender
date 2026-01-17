@@ -1050,6 +1050,33 @@ class USDExportTest(AbstractUSDTest):
         weights = self.round_vector([1, math.sqrt(2) / 2] * 5)
         check_nurbs_curve(curve, True, [3], [10], weights, 13, [[-2, -2, -1], [2, 2, 1]])
 
+    def test_export_curves_empty(self):
+        """Test exporting Curves that are empty"""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_curves_empty.blend"))
+        # Ensure the simulation zone data is baked for all relevant frames...
+        for frame in range(1, 5):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(1)
+
+        export_path = self.tempdir / "usd_curves_empty.usda"
+        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        def check_attribute_lengths(curve, frame, vert_counts, point_counts, width_counts):
+            self.assertEqual(len(curve.GetCurveVertexCountsAttr().Get(frame)), vert_counts)
+            self.assertEqual(len(curve.GetPointsAttr().Get(frame)), point_counts)
+            self.assertEqual(len(curve.GetWidthsAttr().Get(frame)), width_counts)
+
+        curve = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/BézierCurve/BézierCurve"))
+        check_attribute_lengths(curve, 1, 0, 0, 0)
+
+        curve = UsdGeom.BasisCurves(stage.GetPrimAtPath("/root/Curves/Curves"))
+        check_attribute_lengths(curve, 1, 42, 336, 336)
+        check_attribute_lengths(curve, 2, 2, 16, 16)
+        check_attribute_lengths(curve, 3, 0, 0, 0)
+        check_attribute_lengths(curve, 4, 1, 2, 2)
+
     def test_export_animation(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
         export_path = self.tempdir / "usd_anim_test.usda"

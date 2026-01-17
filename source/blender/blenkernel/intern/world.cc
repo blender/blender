@@ -40,6 +40,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "NOD_shader.h"
+
 namespace blender {
 
 /** Free (or release) any data used by this world (does not free the world itself). */
@@ -66,6 +68,9 @@ static void world_init_data(ID *id)
 {
   World *wrld = id_cast<World *>(id);
   INIT_DEFAULT_STRUCT_AFTER(wrld, id);
+
+  wrld->nodetree = bke::node_tree_add_tree_embedded(
+      nullptr, &wrld->id, "World Nodetree", ntreeType_Shader->idname);
 }
 
 /**

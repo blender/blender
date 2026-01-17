@@ -415,7 +415,7 @@ static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *
 
   /* Use RNA to write the values to ensure that constraints on these are obeyed
    * (e.g. for transition strips, the values are taken from the neighbors). */
-  PointerRNA strip_ptr = RNA_pointer_create_discrete(nullptr, &RNA_NlaStrip, strip);
+  PointerRNA strip_ptr = RNA_pointer_create_discrete(nullptr, RNA_NlaStrip, strip);
 
   switch (t->mode) {
     case TFM_TIME_EXTEND:

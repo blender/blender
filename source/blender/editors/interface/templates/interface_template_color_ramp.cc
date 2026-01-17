@@ -222,7 +222,7 @@ static void colorband_buttons_layout(Layout &layout,
   const float xs = butr->xmin;
   const float ys = butr->ymin;
 
-  PointerRNA ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRamp, coba);
+  PointerRNA ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, RNA_ColorRamp, coba);
 
   Layout *split = &layout.split(0.4f, false);
 
@@ -306,7 +306,7 @@ static void colorband_buttons_layout(Layout &layout,
   if (coba->tot) {
     CBData *cbd = coba->data + coba->cur;
 
-    ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRampElement, cbd);
+    ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, RNA_ColorRampElement, cbd);
 
     if (!expand) {
       split = &layout.split(0.3f, false);
@@ -390,7 +390,7 @@ void template_color_ramp(Layout *layout,
   }
 
   const PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_ColorRamp)) {
+  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_ColorRamp)) {
     return;
   }
 

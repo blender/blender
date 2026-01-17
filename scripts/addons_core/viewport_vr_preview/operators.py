@@ -290,6 +290,7 @@ class VIEW3D_GT_vr_camera_cone(Gizmo):
                 (aspect[0], -aspect[1], -1.0),
                 (aspect[0], aspect[1], -1.0),
                 (-aspect[0], aspect[1], -1.0),
+                (-aspect[0], -aspect[1], -1.0),
             )
             lines_shape_verts = (
                 (0.0, 0.0, 0.0),
@@ -303,7 +304,7 @@ class VIEW3D_GT_vr_camera_cone(Gizmo):
             )
 
             self.frame_shape = self.new_custom_shape(
-                'LINE_LOOP', frame_shape_verts)
+                'LINE_STRIP', frame_shape_verts)
             self.lines_shape = self.new_custom_shape(
                 'LINES', lines_shape_verts)
 

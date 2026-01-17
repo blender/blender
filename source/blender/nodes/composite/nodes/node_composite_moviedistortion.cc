@@ -30,8 +30,8 @@ namespace blender {
 namespace nodes::node_composite_moviedistortion_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {int(compositor::DistortionType::Distort), "UNDISTORT", 0, N_("Undistort"), ""},
-    {int(compositor::DistortionType::Undistort), "DISTORT", 0, N_("Distort"), ""},
+    {int(compositor::DistortionType::Undistort), "UNDISTORT", 0, N_("Undistort"), ""},
+    {int(compositor::DistortionType::Distort), "DISTORT", 0, N_("Distort"), ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -41,7 +41,7 @@ static void cmp_node_moviedistortion_declare(NodeDeclarationBuilder &b)
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type")
-      .default_value(compositor::DistortionType::Distort)
+      .default_value(compositor::DistortionType::Undistort)
       .static_items(type_items)
       .optional_label();
 
@@ -55,23 +55,6 @@ static void init(const bContext *C, PointerRNA *ptr)
 
   node->id = id_cast<ID *>(scene->clip);
   id_us_plus(node->id);
-}
-
-static void storage_free(bNode *node)
-{
-  if (node->storage) {
-    BKE_tracking_distortion_free(static_cast<MovieDistortion *>(node->storage));
-  }
-
-  node->storage = nullptr;
-}
-
-static void storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
-{
-  if (src_node->storage) {
-    dest_node->storage = BKE_tracking_distortion_copy(
-        static_cast<MovieDistortion *>(src_node->storage));
-  }
 }
 
 static void node_composit_buts_moviedistortion(ui::Layout &layout, bContext *C, PointerRNA *ptr)
@@ -94,11 +77,10 @@ class MovieDistortionOperation : public NodeOperation {
       return;
     }
 
-    const Domain domain = compute_domain();
     const Result &distortion_grid = context().cache_manager().distortion_grids.get(
         context(),
         get_movie_clip(),
-        domain.data_size,
+        input_image.domain(),
         get_distortion_type(),
         context().get_frame_number());
 
@@ -180,7 +162,6 @@ static void register_node_type_cmp_moviedistortion()
   ntype.declare = file_ns::cmp_node_moviedistortion_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_moviedistortion;
   ntype.initfunc_api = file_ns::init;
-  bke::node_type_storage(ntype, std::nullopt, file_ns::storage_free, file_ns::storage_copy);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   bke::node_register_type(ntype);

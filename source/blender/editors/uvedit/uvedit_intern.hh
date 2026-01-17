@@ -47,6 +47,16 @@ UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, float dist_px);
 UvNearestHit uv_nearest_hit_init_max(const View2D *v2d);
 UvNearestHit uv_nearest_hit_init_max_default();
 
+/**
+ * A utility to set the vertex or edge in #UvNearestHit, useful when face-select
+ * is used as a fallback, but the caller expects to be able to access an element
+ * that would be "picked" based on the current selection mode.
+ *
+ * - Does nothing when `uv_selectmode` is #UV_SELECT_FACE.
+ * - Only call this when #UvNearestHit::efa has been set.
+ */
+void uv_nearest_hit_elem_set_from_face(const float co[2], UvNearestHit *hit, short uv_selectmode);
+
 bool uv_find_nearest_vert(
     Scene *scene, Object *obedit, const float co[2], float penalty_dist, UvNearestHit *hit);
 bool uv_find_nearest_vert_multi(Scene *scene,

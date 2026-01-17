@@ -31,11 +31,11 @@ bool SkyLoader::load_metadata(ImageMetaData &metadata)
   metadata.height = 256;
   metadata.channels = 3;
   metadata.type = IMAGE_DATA_TYPE_FLOAT4;
-  metadata.compress_as_srgb = false;
+  metadata.is_compressible_as_srgb = false;
   return true;
 }
 
-bool SkyLoader::load_pixels_full(const ImageMetaData &metadata, uint8_t *pixels)
+bool SkyLoader::load_pixels(const ImageMetaData &metadata, void *pixels)
 {
   /* Precompute Sky LUT */
   int width = metadata.width;

@@ -1732,6 +1732,10 @@ void blo_do_versions_userdef(UserDef *userdef)
         userdef, "NODE_AST_compositor", "Utilities");
   }
 
+  if (!USER_VERSION_ATLEAST(510, 17)) {
+    userdef->flag |= USER_HIDE_DOT_DATABLOCK;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

@@ -95,11 +95,8 @@ void animation_backup_original(Scene *scene, AnimationBackup *backup)
 
     assert_baklava_phase_1_invariants(action);
 
-    if (action.is_action_legacy()) {
-      BLI_movelisttolist(&backup->curves, &scene->adt->action->curves);
-    }
-    else if (animrig::Channelbag *channelbag = animrig::channelbag_for_action_slot(
-                 action, scene->adt->slot_handle))
+    if (animrig::Channelbag *channelbag = animrig::channelbag_for_action_slot(
+            action, scene->adt->slot_handle))
     {
       animrig::channelbag_fcurves_move(backup->channelbag, *channelbag);
     }
@@ -119,18 +116,13 @@ void animation_restore_original(Scene *scene, AnimationBackup *backup)
 
     assert_baklava_phase_1_invariants(action);
 
-    if (action.is_action_legacy()) {
-      BLI_movelisttolist(&scene->adt->action->curves, &backup->curves);
-    }
-    else {
-      animrig::Channelbag *channelbag = animrig::channelbag_for_action_slot(
-          action, scene->adt->slot_handle);
-      /* The channel bag should exist if we got here, because otherwise the
-       * backup channel bag would have been empty. */
-      BLI_assert(channelbag != nullptr);
+    animrig::Channelbag *channelbag = animrig::channelbag_for_action_slot(action,
+                                                                          scene->adt->slot_handle);
+    /* The channel bag should exist if we got here, because otherwise the
+     * backup channel bag would have been empty. */
+    BLI_assert(channelbag != nullptr);
 
-      animrig::channelbag_fcurves_move(*channelbag, backup->channelbag);
-    }
+    animrig::channelbag_fcurves_move(*channelbag, backup->channelbag);
   }
 
   if (!BLI_listbase_is_empty(&backup->drivers)) {

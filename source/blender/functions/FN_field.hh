@@ -303,6 +303,9 @@ class FieldConstant : public FieldNode {
   const CPPType &output_cpp_type(int output_index) const override;
   const CPPType &type() const;
   GPointer value() const;
+
+  uint64_t hash() const override;
+  bool is_equal_to(const FieldNode &other) const override;
 };
 
 /**
@@ -451,7 +454,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
     return evaluated_varrays_[field_index];
   }
 
-  template<typename T> VArray<T> get_evaluated(const int field_index)
+  template<typename T> VArray<T> get_evaluated(const int field_index) const
   {
     return this->get_evaluated(field_index).typed<T>();
   }
@@ -464,6 +467,11 @@ class FieldEvaluator : NonMovable, NonCopyable {
    * some cases, so it must live at least as long as the returned mask.
    */
   IndexMask get_evaluated_as_mask(int field_index);
+
+  const IndexMask &evaluation_mask() const
+  {
+    return mask_;
+  }
 };
 
 /**

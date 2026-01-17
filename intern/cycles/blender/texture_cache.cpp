@@ -7,7 +7,7 @@
 #include "blender/CCL_api.h"
 
 #include "util/image_maketx.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 namespace blender {
 

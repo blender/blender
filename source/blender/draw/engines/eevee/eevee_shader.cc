@@ -1098,10 +1098,14 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       domain_type_vert = "MeshVertex";
       break;
     case MAT_GEOM_POINTCLOUD:
-      domain_type_frag = domain_type_vert = "PointCloudPoint";
+      domain_type_frag = (pipeline_type == MAT_PIPE_VOLUME_MATERIAL) ? "VolumePoint" :
+                                                                       "PointCloudPoint";
+      domain_type_vert = "PointCloudPoint";
       break;
     case MAT_GEOM_CURVES:
-      domain_type_frag = domain_type_vert = "CurvesPoint";
+      domain_type_frag = (pipeline_type == MAT_PIPE_VOLUME_MATERIAL) ? "VolumePoint" :
+                                                                       "CurvesPoint";
+      domain_type_vert = "CurvesPoint";
       break;
     case MAT_GEOM_WORLD:
       domain_type_frag = (pipeline_type == MAT_PIPE_VOLUME_MATERIAL) ? "VolumePoint" :

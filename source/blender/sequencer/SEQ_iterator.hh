@@ -138,7 +138,7 @@ void query_strip_connected_and_effect_chain(const Scene *scene,
 
 /**
  * Query strips that will be rendered at \a timeline_frame on all channels less than
- * or equal to \a displayed_channel. This does not recurse into metastrips or sequencer-type scene
+ * or equal to \a displayed_channel. This does not recurse into meta-strips or sequencer-type scene
  * strips.
  *
  * \note This only returns strips that are directly rendered in the strip stack. Other strips'

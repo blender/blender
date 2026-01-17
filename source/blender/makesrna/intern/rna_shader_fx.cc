@@ -103,31 +103,31 @@ static StructRNA *rna_ShaderFx_refine(PointerRNA *ptr)
 
   switch (ShaderFxType(md->type)) {
     case eShaderFxType_Blur:
-      return &RNA_ShaderFxBlur;
+      return RNA_ShaderFxBlur;
     case eShaderFxType_Colorize:
-      return &RNA_ShaderFxColorize;
+      return RNA_ShaderFxColorize;
     case eShaderFxType_Wave:
-      return &RNA_ShaderFxWave;
+      return RNA_ShaderFxWave;
     case eShaderFxType_Pixel:
-      return &RNA_ShaderFxPixel;
+      return RNA_ShaderFxPixel;
     case eShaderFxType_Rim:
-      return &RNA_ShaderFxRim;
+      return RNA_ShaderFxRim;
     case eShaderFxType_Shadow:
-      return &RNA_ShaderFxShadow;
+      return RNA_ShaderFxShadow;
     case eShaderFxType_Swirl:
-      return &RNA_ShaderFxSwirl;
+      return RNA_ShaderFxSwirl;
     case eShaderFxType_Flip:
-      return &RNA_ShaderFxFlip;
+      return RNA_ShaderFxFlip;
     case eShaderFxType_Glow:
-      return &RNA_ShaderFxGlow;
+      return RNA_ShaderFxGlow;
       /* Default */
     case eShaderFxType_None:
     case NUM_SHADER_FX_TYPES:
     default:
-      return &RNA_ShaderFx;
+      return RNA_ShaderFx;
   }
 
-  return &RNA_ShaderFx;
+  return RNA_ShaderFx;
 }
 
 static void rna_ShaderFx_name_set(PointerRNA *ptr, const char *value)

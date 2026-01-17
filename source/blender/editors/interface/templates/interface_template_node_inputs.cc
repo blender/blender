@@ -68,8 +68,7 @@ static void draw_node_input(bContext *C, Layout &layout, PointerRNA *node_ptr, b
     return;
   }
 
-  PointerRNA socket_ptr = RNA_pointer_create_discrete(
-      node_ptr->owner_id, &RNA_NodeSocket, &socket);
+  PointerRNA socket_ptr = RNA_pointer_create_discrete(node_ptr->owner_id, RNA_NodeSocket, &socket);
   const StringRef text = CTX_IFACE_(bke::node_socket_translation_context(socket),
                                     bke::node_socket_label(socket));
   Layout &row = layout.row(true);
@@ -169,7 +168,7 @@ void template_node_inputs(Layout *layout, bContext *C, PointerRNA *ptr)
               node,
               socket,
               *ptr,
-              RNA_pointer_create_discrete(ptr->owner_id, &RNA_NodeSocket, &socket)};
+              RNA_pointer_create_discrete(ptr->owner_id, RNA_NodeSocket, &socket)};
           (*socket_decl->custom_draw_fn)(params);
         }
         else if (socket_decl->in_out == SOCK_IN) {

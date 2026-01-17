@@ -131,7 +131,7 @@ static SourceImageCache::Key get_key(const RenderData *context,
 
 ImBuf *source_image_cache_get(const RenderData *context, const Strip *strip, float timeline_frame)
 {
-  if (context->skip_cache || context->is_proxy_render || strip == nullptr) {
+  if (context->skip_cache || strip == nullptr) {
     return nullptr;
   }
 
@@ -179,7 +179,7 @@ void source_image_cache_put(const RenderData *context,
                             float timeline_frame,
                             ImBuf *image)
 {
-  if (context->skip_cache || context->is_proxy_render || strip == nullptr || image == nullptr) {
+  if (context->skip_cache || strip == nullptr || image == nullptr) {
     return;
   }
 

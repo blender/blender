@@ -407,7 +407,7 @@ PyObject *pyop_getrna_type(PyObject * /*self*/, PyObject *value)
     return nullptr;
   }
 
-  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, ot->srna);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_Struct, ot->srna);
   BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(pyrna_struct_CreatePyObject(&ptr));
   return reinterpret_cast<PyObject *>(pyrna);
 }

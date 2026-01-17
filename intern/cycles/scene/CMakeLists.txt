@@ -112,7 +112,7 @@ endif()
 
 if(WITH_OPENVDB)
   list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
+    bf::dependencies::optional::openvdb
   )
 endif()
 

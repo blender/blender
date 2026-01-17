@@ -6,6 +6,7 @@
 
 #include <optional>
 
+#include "BLI_bounds.hh"
 #include "BLI_compute_context.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
@@ -13,9 +14,7 @@
 
 #include "BKE_compute_context_cache_fwd.hh"
 
-#include "NOD_geometry_nodes_bundle_signature.hh"
 #include "NOD_geometry_nodes_closure_location.hh"
-#include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_nested_node_id.hh"
 
 #include "ED_node_c.hh"
@@ -30,6 +29,8 @@ struct Main;
 struct bContext;
 struct bNodeSocket;
 struct bNodeTree;
+struct bNodeTreeInterfacePanel;
+struct bNodeTreeInterfaceSocket;
 struct Object;
 struct rcti;
 struct rctf;
@@ -42,6 +43,10 @@ class bNodeTreeZone;
 namespace ui {
 struct Layout;
 }  // namespace ui
+
+namespace nodes {
+class ItemDeclaration;
+}
 
 namespace ed::space_node {
 
@@ -153,6 +158,9 @@ void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree);
 const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label = nullptr);
 
 const char *node_socket_get_description(const bNodeSocket *socket);
+
+std::optional<Bounds<float2>> node_bounds(Span<const bNode *> nodes);
+std::optional<Bounds<float2>> node_location_bounds(Span<const bNode *> nodes);
 
 }  // namespace ed::space_node
 

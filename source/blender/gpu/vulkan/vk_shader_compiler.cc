@@ -195,6 +195,11 @@ static bool compile_ex(shaderc::Compiler &compiler,
   Shader::dump_source_to_disk(
       shader.name_get(), full_name, ".glsl", shader_module.combined_sources);
 
+  shader_module.combined_sources = Shader::run_preprocessor(shader_module.combined_sources);
+
+  Shader::dump_source_to_disk(
+      shader.name_get(), full_name + ".expanded", ".glsl", shader_module.combined_sources);
+
   if (read_spirv_from_disk(shader_module)) {
     return true;
   }

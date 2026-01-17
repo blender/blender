@@ -42,16 +42,13 @@ using ProcessorsVector = Vector<std::unique_ptr<SimpleOperation>>;
  * inputs before the operation is executed, see the discussion in COM_simple_operation.hh for more
  * information. And thus the effective input of the operation is the result of the last input
  * processor if one exists. Input processors are added and evaluated by calling the
- * add_and_evaluate_input_processors method, which provides a default implementation that does
- * things like implicit conversion, domain realization, and more. This default implementation can,
- * however, be overridden, extended, or removed. Once the input processors are added and evaluated
- * for the first time, they are stored in the operation and future evaluations can evaluate them
- * directly without having to add them again.
+ * evaluate_input_processors method, which provides a default implementation that does things like
+ * implicit conversion, domain realization, and more. This default implementation can, however, be
+ * overridden, extended, or removed.
  *
- * The operation is evaluated by calling the evaluate method, which first adds the input processors
- * if they weren't added already and evaluates them, then it resets the results of the operation,
- * then it calls the execute method of the operation, and finally it releases the results mapped to
- * the inputs to declare that they are no longer needed. */
+ * The operation is evaluated by calling the evaluate method, which first evaluates the input
+ * processors, then it calls the execute method of the operation, and finally it releases the
+ * results mapped to the inputs to declare that they are no longer needed. */
 class Operation {
  private:
   /* A reference to the compositor context. This member references the same object in all
@@ -73,26 +70,14 @@ class Operation {
    * linked results before evaluating the operation by calling the map_input_to_result method. */
   Map<StringRef, Result *> results_mapped_to_inputs_;
   /* A mapping between each input of the operation identified by its identifier and an ordered list
-   * of simple operations to process that input. This is initialized the first time the input
-   * processors are evaluated by calling the add_and_evaluate_input_processors method. Further
-   * evaluations will evaluate the processors directly without the need to add them again. The
-   * input_processors_added_ member indicates whether the processors were already added and can be
-   * evaluated directly or need to be added and evaluated. */
+   * of simple operations to process that input. */
   Map<StringRef, ProcessorsVector> input_processors_;
-  /* True if the input processors were already added and can be evaluated directly. False if the
-   * input processors are not yet added and needs to be added. */
-  bool input_processors_added_ = false;
 
  public:
   Operation(Context &context);
 
   virtual ~Operation();
 
-  /* Evaluate the operation by:
-   * 1. Evaluating the input processors.
-   * 2. Resetting the results of the operation.
-   * 3. Calling the execute method of the operation.
-   * 4. Releasing the results mapped to the inputs. */
   virtual void evaluate();
 
   /* Get a reference to the result connected to the input identified by the given identifier. */
@@ -123,15 +108,7 @@ class Operation {
    * executing the operation to prepare its inputs. The class defines a default implementation
    * which adds typically needed processors, but derived classes can override the method to have
    * a different implementation, extend the implementation, or remove it entirely. */
-  virtual void add_and_evaluate_input_processors();
-
-  /* Given the identifier of an input of the operation and a processor operation:
-   * - Add the given processor to the list of input processors for the input.
-   * - Map the input of the processor to be the result of the last input processor or the result
-   *   mapped to the input if no previous processors exists.
-   * - Switch the result mapped to the input to be the output result of the processor.
-   * - Evaluate the processor. */
-  void add_and_evaluate_input_processor(StringRef identifier, SimpleOperation *processor);
+  virtual void evaluate_input_processors();
 
   /* This method should allocate the operation results, execute the operation, and compute the
    * output results. */
@@ -140,10 +117,6 @@ class Operation {
   /* Compute and set a preview of the operation if needed. This method defaults to an empty
    * implementation and should be implemented by operations which can have previews. */
   virtual void compute_preview();
-
-  /* Switch the result mapped to the input identified by the given identifier with the given
-   * result. */
-  void switch_result_mapped_to_input(StringRef identifier, Result *result);
 
   /* Add the given result to the results_ map identified by the given output identifier. This
    * should be called during operation construction for all outputs. The provided result shouldn't
@@ -162,9 +135,13 @@ class Operation {
   Context &context() const;
 
  private:
-  /* Evaluate the input processors. If the input processors were already added they will be
-   * evaluated directly. Otherwise, the input processors will be added and evaluated. */
-  void evaluate_input_processors();
+  /* Given the identifier of an input of the operation and a processor operation:
+   * - Add the given processor to the list of input processors for the input.
+   * - Map the input of the processor to be the result of the last input processor or the result
+   *   mapped to the input if no previous processors exists.
+   * - Switch the result mapped to the input to be the output result of the processor.
+   * - Evaluate the processor. */
+  void add_and_evaluate_input_processor(StringRef identifier, SimpleOperation *processor);
 
   /* Release the results that are mapped to the inputs of the operation. This is called after the
    * evaluation of the operation to declare that the results are no longer needed by this

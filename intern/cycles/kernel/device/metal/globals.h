@@ -10,7 +10,7 @@
 #include "kernel/util/profiler.h"
 
 #include "util/color.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 

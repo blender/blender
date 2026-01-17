@@ -102,8 +102,8 @@ struct bContext {
      * (keep this to check if the copy needs freeing).
      */
     void *py_context_orig;
-    /** True if logging is enabled for context members (can be set programmatically). */
-    bool log_access;
+    /** Logging control flags (access, hide_missing). */
+    CTX_LogFlag log_flag;
     /** Optional flag to disallow writing via RNA. */
     const bool *rna_disallow_writes;
   } data;
@@ -114,7 +114,6 @@ struct bContext {
 bContext *CTX_create()
 {
   bContext *C = MEM_callocN<bContext>(__func__);
-
   return C;
 }
 
@@ -382,13 +381,21 @@ static std::string ctx_result_brief_repr(const bContextDataResult &result)
 /** Simple logging for context data results. */
 static void ctx_member_log_access(const bContext *C,
                                   const char *member,
-                                  const bContextDataResult &result)
+                                  const bContextDataResult &result,
+                                  const eContextResult lookup_result)
 {
   const bool use_logging = CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE) ||
-                           (C && CTX_member_logging_get(C));
+                           CTX_member_logging_get(C);
 
   if (!use_logging) {
     return;
+  }
+
+  /* If hiding missing is enabled and the member was not found, skip logging. */
+  if (C && bool(C->data.log_flag & CTX_LogFlag::HideMissing)) {
+    if (lookup_result == CTX_RESULT_MEMBER_NOT_FOUND) {
+      return;
+    }
   }
 
   std::string value_repr = ctx_result_brief_repr(result);
@@ -397,7 +404,7 @@ static void ctx_member_log_access(const bContext *C,
 #ifdef WITH_PYTHON
   /* Get current Python location if available and Python is properly initialized. */
   std::optional<std::string> python_location;
-  if (C && CTX_py_init_get(C)) {
+  if (CTX_py_init_get(C)) {
     python_location = BPY_python_current_file_and_line();
   }
   const char *location = python_location ? python_location->c_str() : "unknown:0";
@@ -410,7 +417,7 @@ static void ctx_member_log_access(const bContext *C,
   if (CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE)) {
     CLOG_TRACE(BKE_LOG_CONTEXT, format, location, member, value_desc);
   }
-  else if (C && CTX_member_logging_get(C)) {
+  else if (CTX_member_logging_get(C)) {
     /* Force output at TRACE level even if not enabled via command line. */
     CLOG_AT_LEVEL_NOCHECK(BKE_LOG_CONTEXT, CLG_LEVEL_TRACE, format, location, member, value_desc);
   }
@@ -425,7 +432,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
   bool found_member = false;
 
 #ifdef WITH_PYTHON
-  if (UNLIKELY(C && CTX_py_dict_get(C))) {
+  if (UNLIKELY(CTX_py_dict_get(C))) {
     bContextDataResult result{};
     if (BPY_context_member_get(const_cast<bContext *>(C), member, &result)) {
       found_member = true;
@@ -444,7 +451,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
       }
 
       /* Log context member access directly without storing a copy. */
-      ctx_member_log_access(C, member, result);
+      ctx_member_log_access(C, member, result, CTX_RESULT_OK);
     }
   }
 #else
@@ -461,7 +468,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
     return_data = fall_through;
 
     /* Log fallback context member access. */
-    ctx_member_log_access(C, member, fallback_result);
+    ctx_member_log_access(C, member, fallback_result, CTX_RESULT_MEMBER_NOT_FOUND);
   }
 
   /* Don't allow UI context access from non-main threads. */
@@ -488,7 +495,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
   if (CTX_py_dict_get(C)) {
     if (BPY_context_member_get(C, member, result)) {
       /* Log the Python context result if we're in a temp_override. */
-      ctx_member_log_access(C, member, *result);
+      ctx_member_log_access(C, member, *result, CTX_RESULT_OK);
       return CTX_RESULT_OK;
     }
   }
@@ -562,7 +569,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
 
   /* Log context result if we're in a temp_override and we got a successful or no-data result. */
   if (ELEM(final_result, CTX_RESULT_OK, CTX_RESULT_NO_DATA)) {
-    ctx_member_log_access(C, member, *result);
+    ctx_member_log_access(C, member, *result, final_result);
   }
 
   return final_result;
@@ -571,7 +578,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
 static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
-  if (C && ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
+  if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Pointer);
     return result.ptr.data;
   }
@@ -581,12 +588,6 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
 
 static bool ctx_data_pointer_verify(const bContext *C, const char *member, void **pointer)
 {
-  /* if context is nullptr, pointer must be nullptr too and that is a valid return */
-  if (C == nullptr) {
-    *pointer = nullptr;
-    return true;
-  }
-
   bContextDataResult result;
   if (ctx_data_get(const_cast<bContext *>(C), member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == ContextDataType::Pointer);
@@ -637,7 +638,7 @@ static bool ctx_data_base_collection_get(const bContext *C,
     Object *ob = static_cast<Object *>(ctx_object.data);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base != nullptr) {
-      CTX_data_list_add(&result, &scene->id, &RNA_ObjectBase, base);
+      CTX_data_list_add(&result, &scene->id, RNA_ObjectBase, base);
       ok = true;
     }
   }
@@ -798,7 +799,7 @@ ListBaseT<LinkData> CTX_data_dir_get_ex(const bContext *C,
 
     PropertyRNA *iterprop;
     PointerRNA ctx_ptr = RNA_pointer_create_discrete(
-        nullptr, &RNA_Context, const_cast<bContext *>(C));
+        nullptr, RNA_Context, const_cast<bContext *>(C));
 
     iterprop = RNA_struct_iterator_property(ctx_ptr.type);
 
@@ -937,24 +938,23 @@ bool CTX_wm_interface_locked(const bContext *C)
 
 wmWindow *CTX_wm_window(const bContext *C)
 {
-  return static_cast<wmWindow *>(
-      ctx_wm_python_context_get(C, "window", &RNA_Window, C->wm.window));
+  return static_cast<wmWindow *>(ctx_wm_python_context_get(C, "window", RNA_Window, C->wm.window));
 }
 
 WorkSpace *CTX_wm_workspace(const bContext *C)
 {
   return static_cast<WorkSpace *>(
-      ctx_wm_python_context_get(C, "workspace", &RNA_WorkSpace, C->wm.workspace));
+      ctx_wm_python_context_get(C, "workspace", RNA_WorkSpace, C->wm.workspace));
 }
 
 bScreen *CTX_wm_screen(const bContext *C)
 {
-  return static_cast<bScreen *>(ctx_wm_python_context_get(C, "screen", &RNA_Screen, C->wm.screen));
+  return static_cast<bScreen *>(ctx_wm_python_context_get(C, "screen", RNA_Screen, C->wm.screen));
 }
 
 ScrArea *CTX_wm_area(const bContext *C)
 {
-  return static_cast<ScrArea *>(ctx_wm_python_context_get(C, "area", &RNA_Area, C->wm.area));
+  return static_cast<ScrArea *>(ctx_wm_python_context_get(C, "area", RNA_Area, C->wm.area));
 }
 
 SpaceLink *CTX_wm_space_data(const bContext *C)
@@ -965,7 +965,7 @@ SpaceLink *CTX_wm_space_data(const bContext *C)
 
 ARegion *CTX_wm_region(const bContext *C)
 {
-  return static_cast<ARegion *>(ctx_wm_python_context_get(C, "region", &RNA_Region, C->wm.region));
+  return static_cast<ARegion *>(ctx_wm_python_context_get(C, "region", RNA_Region, C->wm.region));
 }
 
 void *CTX_wm_region_data(const bContext *C)
@@ -1758,14 +1758,21 @@ Depsgraph *CTX_data_depsgraph_on_load(const bContext *C)
   return BKE_scene_get_depsgraph(scene, view_layer);
 }
 
-void CTX_member_logging_set(bContext *C, bool enable)
+void CTX_member_logging_flag_set(bContext *C, CTX_LogFlag flag)
 {
-  C->data.log_access = enable;
+  C->data.log_flag = flag;
+}
+
+CTX_LogFlag CTX_member_logging_flag_get(const bContext *C)
+{
+  /* Needed by Python bindings to get the full flags value, since bContext is only forward
+   * declared in the header file and cannot be accessed directly from Python code. */
+  return C->data.log_flag;
 }
 
 bool CTX_member_logging_get(const bContext *C)
 {
-  return C->data.log_access;
+  return (C->data.log_flag & CTX_LogFlag::Access) != CTX_LogFlag(0);
 }
 
 bool CTX_member_rna_write_check(const bContext *C)

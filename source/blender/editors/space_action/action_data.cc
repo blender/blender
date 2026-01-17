@@ -60,7 +60,7 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
     ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
     /* template_action() sets a RNA_AnimData pointer, whereas other code may set
      * other pointer types. This code here only deals with the former. */
-    if (prop && ptr.type == &RNA_AnimData) {
+    if (prop && ptr.type == RNA_AnimData) {
       if (!RNA_property_editable(&ptr, prop)) {
         return nullptr;
       }
@@ -216,11 +216,11 @@ static wmOperatorStatus action_new_exec(bContext *C, wmOperator * /*op*/)
     oldact = id_cast<bAction *>(oldptr.owner_id);
 
     /* stash the old action to prevent it from being lost */
-    if (ptr.type == &RNA_AnimData) {
+    if (ptr.type == RNA_AnimData) {
       adt = static_cast<AnimData *>(ptr.data);
       adt_id_owner = ptr.owner_id;
     }
-    else if (ptr.type == &RNA_SpaceDopeSheetEditor) {
+    else if (ptr.type == RNA_SpaceDopeSheetEditor) {
       adt = ED_actedit_animdata_from_context(C, &adt_id_owner);
     }
   }
@@ -574,7 +574,7 @@ void ED_animedit_unlink_action(
   }
   else {
     /* Clear AnimData -> action via RNA, so that it triggers message bus updates. */
-    PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_AnimData, adt);
+    PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_AnimData, adt);
     PropertyRNA *prop = RNA_struct_find_property(&ptr, "action");
 
     RNA_property_pointer_set(&ptr, prop, PointerRNA_NULL, nullptr);

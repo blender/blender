@@ -578,8 +578,8 @@ enum class HandleSide {
 /**
  * For the given keyframe, update the handle mode of one side to be in a valid state based on the
  * opposite side. For example if one side is set to "Aligned" the other has to copy that, otherwise
- * it wouldn't be actually aligned. This is useful in cases where the user explcitly sets on handle
- * type.
+ * it wouldn't be actually aligned. This is useful in cases where the user explicitly sets on
+ * handle type.
  *
  * \param side: The source side from which to update the handle flags. This side will not be
  * affected.

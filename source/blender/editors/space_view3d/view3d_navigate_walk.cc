@@ -640,7 +640,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
 
   walk->rv3d->rflag |= RV3D_NAVIGATING;
 
-  walk->snap_context = ed::transform::snap_object_context_create(walk->scene, 0);
+  walk->snap_context = ed::transform::snap_object_context_create();
 
   walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(
       walk->depsgraph, walk->scene, walk->v3d, walk->rv3d);

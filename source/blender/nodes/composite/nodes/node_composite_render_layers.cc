@@ -46,6 +46,7 @@ static void node_init(const bContext *context, PointerRNA *node_pointer)
 {
   Scene *scene = CTX_data_scene(context);
   bNode *node = node_pointer->data_as<bNode>();
+  node->flag |= NODE_PREVIEW;
 
   node->id = &scene->id;
   id_us_plus(node->id);

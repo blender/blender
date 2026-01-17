@@ -1074,7 +1074,7 @@ static wmOperatorStatus outliner_id_relocate_invoke(bContext *C,
                                                     wmOperator *op,
                                                     const wmEvent * /*event*/)
 {
-  PointerRNA id_linked_ptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  PointerRNA id_linked_ptr = CTX_data_pointer_get_type(C, "id", RNA_ID);
   ID *id_linked = static_cast<ID *>(id_linked_ptr.data);
 
   if (!id_linked) {

@@ -836,7 +836,7 @@ void template_curve_mapping(Layout *layout,
   }
 
   PointerRNA cptr = RNA_property_pointer_get(ptr, prop);
-  if (!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_CurveMapping)) {
+  if (!cptr.data || !RNA_struct_is_a(cptr.type, RNA_CurveMapping)) {
     return;
   }
 

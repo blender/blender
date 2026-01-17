@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-12-13 05:12+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -18550,16 +18550,8 @@ msgid "Is Layered Action"
 msgstr "Est action par calques"
 
 
-msgid "Return whether this is a layered Action. An empty Action is considered as both a 'legacy' and a 'layered' Action."
-msgstr "Retourne s’il s’agit d’une action par calques. Une action vide est considérée à la fois « héritée » et « par calques »."
-
-
 msgid "Is Legacy Action"
 msgstr "Est action héritée"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action is considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 actions are automatically updated to layered actions, and thus this will only return True when the action is empty"
-msgstr "Retourne s’il s’agit d’une action héritée. Les actions héritées n’ont pas de calques ni d’emplacements. Une action vide est considérée à la fois « héritée » et « par calques ». Depuis Blender 4.4, les actions sont automatiquement mises à jour vers des actions par calques, et ceci ne retournera donc Vrai que si l’action est vide"
 
 
 msgid "Is Empty"
@@ -20363,18 +20355,6 @@ msgstr "Espacement entre les applications de la brosse, en pourcentage du diamè
 
 msgid "Stabilize Normal"
 msgstr "Stabiliser la normale"
-
-
-msgid "Stabilize the orientation of the brush plane."
-msgstr "Stabiliser l’orientation du plan de brosse."
-
-
-msgid "Stabilize Plane"
-msgstr "Stabiliser le plan"
-
-
-msgid "Stabilize the center of the brush plane."
-msgstr "Stabiliser le centre du plan de brosse."
 
 
 msgid "Stencil Dimensions"
@@ -34909,6 +34889,26 @@ msgid "Show/Hide"
 msgstr "Afficher/cacher"
 
 
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Utilities"
+msgstr "Utilitaires"
+
+
 msgid "Names"
 msgstr "Noms"
 
@@ -34917,20 +34917,28 @@ msgid "Bone Roll"
 msgstr "Roulis de l’os"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Utilities"
-msgstr "Utilitaires"
-
-
 msgid "Clean Up"
 msgstr "Nettoyer"
 
 
+msgid "Read"
+msgstr "Lecture"
+
+
+msgid "Sample"
+msgstr "Échantillonner"
+
+
+msgid "Write"
+msgstr "Écriture"
+
+
 msgid "Pivot Point"
 msgstr "Point de pivot"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Snap"
@@ -34949,28 +34957,12 @@ msgid "Automasking"
 msgstr "Masquage auto"
 
 
-msgid "Read"
-msgstr "Lecture"
-
-
-msgid "Sample"
-msgstr "Échantillonner"
-
-
 msgid "Face Sets Edit"
 msgstr "Édition des ensembles de faces"
 
 
-msgid "Write"
-msgstr "Écriture"
-
-
 msgid "Vertex Group Locks"
 msgstr "Verrouillages des groupes de sommets"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "Gizmo"
@@ -34985,6 +34977,10 @@ msgid "Import"
 msgstr "Importer"
 
 
+msgid "Deprecated"
+msgstr "Obsolète"
+
+
 msgid "Mirror"
 msgstr "Miroir"
 
@@ -34997,6 +34993,10 @@ msgid "Local View"
 msgstr "Vue locale"
 
 
+msgid "List"
+msgstr "Liste"
+
+
 msgid "Viewpoint"
 msgstr "Point de vue"
 
@@ -35005,8 +35005,8 @@ msgid "Navigation"
 msgstr "Navigation"
 
 
-msgid "Deprecated"
-msgstr "Obsolète"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align View"
@@ -35023,14 +35023,6 @@ msgstr "Régions dans la vue"
 
 msgid "Select More/Less"
 msgstr "Sélectionner plus ou moins"
-
-
-msgid "List"
-msgstr "Liste"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Similar"
@@ -35051,10 +35043,6 @@ msgstr "Sélectionner les boucles"
 
 msgid "Assign Material"
 msgstr "Assigner un matériau"
-
-
-msgid "Metaball"
-msgstr "Métaballe"
 
 
 msgid "Light"
@@ -35109,6 +35097,10 @@ msgid "Hooks"
 msgstr "Crochets"
 
 
+msgid "Layout"
+msgstr "Disposition"
+
+
 msgid "Trim/Add"
 msgstr "Découper/Ajouter"
 
@@ -35121,16 +35113,16 @@ msgid "Face Sets Init"
 msgstr "Initialiser les ensembles de faces"
 
 
-msgid "Layout"
-msgstr "Disposition"
-
-
 msgid "Random Mask"
 msgstr "Masque aléatoire"
 
 
 msgid "Clear Transform"
 msgstr "Réinitialiser la transformation"
+
+
+msgid "Adjust"
+msgstr "Ajuster"
 
 
 msgid "In-Betweens"
@@ -35145,28 +35137,28 @@ msgid "Bone Collections"
 msgstr "Collections d’os"
 
 
-msgid "Adjust"
-msgstr "Ajuster"
+msgid "Keying"
+msgstr "Incrustation"
+
+
+msgid "Tracking"
+msgstr "Suivi"
 
 
 msgid "Toggle Bone Options"
 msgstr "(Dés)activer des options d’os"
 
 
+msgid "Creative"
+msgstr "Créatif"
+
+
 msgid "Enable Bone Options"
 msgstr "Activer des options d’os"
 
 
-msgid "Keying"
-msgstr "Incrustation"
-
-
 msgid "Disable Bone Options"
 msgstr "Désactiver des options d’os"
-
-
-msgid "Tracking"
-msgstr "Suivi"
 
 
 msgid "Mesh Select Mode"
@@ -35177,10 +35169,6 @@ msgid "Face Data"
 msgstr "Données de face"
 
 
-msgid "Creative"
-msgstr "Créatif"
-
-
 msgid "Select by Face Strength"
 msgstr "Sélectionner par force de face"
 
@@ -35189,20 +35177,12 @@ msgid "Set Face Strength"
 msgstr "Définir la force de face"
 
 
-msgid "Merge"
-msgstr "Fusionner"
-
-
 msgid "Render Preview"
 msgstr "Rendu de prévisualisation"
 
 
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
+msgid "Merge"
+msgstr "Fusionner"
 
 
 msgid "Keyframe Insert Pie"
@@ -54046,13 +54026,8 @@ msgstr "Importer une séquence d’images"
 
 
 msgctxt "Operator"
-msgid "Texture Setup"
-msgstr "Config de textures"
-
-
-msgctxt "Operator"
-msgid "Principled Texture Setup"
-msgstr "Mise en place texture PBR"
+msgid "Add Texture Setup"
+msgstr "Ajouter une config de textures"
 
 
 msgid "Align selected nodes in a grid pattern"
@@ -96002,10 +95977,6 @@ msgid "Orbit Around Selection"
 msgstr "Orbiter autour de la sélection"
 
 
-msgid "Use selection as the pivot point"
-msgstr "Utiliser la sélection en tant que point de pivot"
-
-
 msgid "Zoom to Mouse Position"
 msgstr "Zoomer sur la position de la souris"
 
@@ -97052,10 +97023,6 @@ msgstr "Identificateur de culture : fa_IR. Progrès de la traduction : 3%"
 
 msgid "Polish - Polski"
 msgstr "Polonais - Polski"
-
-
-msgid "Locale code: pl_PL. Translation progress: 18%"
-msgstr "Identificateur de culture : pl_PL. Progrès de la traduction : 18%"
 
 
 msgid "Portuguese (Brazil) - Português brasileiro"
@@ -119630,16 +119597,6 @@ msgstr "Séquence d’images"
 
 
 msgctxt "Operator"
-msgid "Add Texture Setup"
-msgstr "Ajouter une config de textures"
-
-
-msgctxt "Operator"
-msgid "Add Principled Setup"
-msgstr "Ajouter une config PBR"
-
-
-msgctxt "Operator"
 msgid "Settings from Active"
 msgstr "Réglages depuis l’actif"
 
@@ -120972,10 +120929,6 @@ msgstr "Toutes les collections d’os sont utilisées"
 
 msgid "An action slot can only be created when an action is assigned"
 msgstr "Un emplacement d’action ne peut être créé que quand une action est assignée"
-
-
-msgid "Action slots are only supported by layered Actions. Upgrade this Action first"
-msgstr "Les emplacements d’actions ne sont pris en charge que par les actions par calques. Commencer par mettre à niveau l’action"
 
 
 msgid "Creating a new Slot is not possible on a linked Action"
@@ -128453,11 +128406,6 @@ msgstr "Aligner sur l’orientation de transformation"
 msgctxt "Operator"
 msgid "Project from View (Bounds)"
 msgstr "Projeter depuis la vue (limites)"
-
-
-msgctxt "Operator"
-msgid "Frame Last Stroke"
-msgstr "Voir le dernier trait"
 
 
 msgctxt "Operator"
@@ -140300,12 +140248,12 @@ msgid "Select movie or image strips"
 msgstr "Sélectionner des bandes vidéo ou images"
 
 
-msgid "Cannot create key inside of speed transition"
-msgstr "Impossible de créer une clé à l’intérieur d’une transition de vitesse"
-
-
 msgid "Cannot create freeze frame"
 msgstr "Impossible de créer l’arrêt sur image"
+
+
+msgid "Cannot create key inside of speed transition"
+msgstr "Impossible de créer une clé à l’intérieur d’une transition de vitesse"
 
 
 msgid "Cannot create transition from first or last key"
@@ -142468,16 +142416,8 @@ msgid "Cannot return channelbag when slot is None"
 msgstr "Impossible de retourner l’ensemble de canaux quand l’emplacement est None"
 
 
-msgid "Cannot add slots to a legacy Action '%s'. Convert it to a layered Action first."
-msgstr "Impossible d’ajouter d’emplacements à l’action héritée « %s ». La convertir d’abord en action par calques."
-
-
 msgid "Invalid slot name '%s': name must not be empty."
 msgstr "Nom d’emplacement « %s » invalide : le nom ne doit pas être vide."
-
-
-msgid "Cannot add layers to a legacy Action '%s'. Convert it to a layered Action first."
-msgstr "Impossible d’ajouter de calques à l’action héritée « %s ». La convertir d’abord en action par calques."
 
 
 msgid "F-Curve '%s[%d]' already exists in this channelbag"
@@ -145966,54 +145906,6 @@ msgid "The amount of jitter to introduce while computing rays, higher jitter can
 msgstr "Quantité d’agitation à introduire lors du calcul des rayons ; une agitation plus forte peut être plus rapide mais produire des résultats grainés ou bruités"
 
 
-msgid "Wrong Image Input Type"
-msgstr "Mauvais type en entrée d’image"
-
-
-msgid "Wrong Mask Input Type"
-msgstr "Mauvais type en entrée de masque"
-
-
-msgid "Unsupported Inputs"
-msgstr "Entrées non prises en charge"
-
-
-msgid "Node group's main Image input should be of type Color"
-msgstr "L’entrée principale du groupe de nœuds doit être de type Couleur"
-
-
-msgid "Node group's Mask input should be of type Color"
-msgstr "L’entrée Masque du groupe de nœuds doit être de type Couleur"
-
-
-msgid "Only a main Image and Mask inputs are supported, the rest are unsupported and will return zero"
-msgstr "Seules l’entrée principale Image et le masque sont pris en charge, le reste retournera zéro"
-
-
-msgid "No Output"
-msgstr "Aucune sortie"
-
-
-msgid "Wrong Output Type"
-msgstr "Mauvais type de sortie"
-
-
-msgid "Ignored Outputs"
-msgstr "Sorties ignorées"
-
-
-msgid "Node group must have a Color output socket"
-msgstr "Le groupe de nœuds doit avoir une prise de sortie couleur"
-
-
-msgid "Node group's first output must be a color output"
-msgstr "La première sortie du groupe de nœuds doit être une couleur"
-
-
-msgid "Only the first output is considered while the rest are ignored"
-msgstr "Seule la première sortie est prise en compte, le reste est ignoré"
-
-
 msgid "Fac"
 msgstr "Fac"
 
@@ -146375,6 +146267,10 @@ msgstr "Remplacer l’alpha"
 
 msgid "Replace the input image's alpha channel by the alpha input value"
 msgstr "Remplacer le canal alpha de l’image d’entrée par la valeur alpha d’entrée"
+
+
+msgid "SDF"
+msgstr "SDF"
 
 
 msgid "Line position where the image should be split"
@@ -147952,10 +147848,6 @@ msgstr "Changer les voxels et tuiles inactives en tuiles d’arrière-plan inact
 
 msgid "Turn regions where all voxels have the same value and active state (within a tolerance threshold) into inactive background tiles"
 msgstr "Changer les régions dans lesquelles tous les voxels ont la même valeur et le même état d’activation (à une certaine tolérance près) en tuiles d’arrière-plan inactives"
-
-
-msgid "SDF"
-msgstr "SDF"
 
 
 msgid "Replace inactive tiles with inactive nodes. Faster than tolerance-based pruning, useful for cases like narrow-band SDF grids with only inside or outside background values."
@@ -149783,8 +149675,56 @@ msgid "Inspection index is out of range"
 msgstr "L’indice d’inspection est hors de l’intervalle"
 
 
+msgid "Wrong Image Input Type"
+msgstr "Mauvais type en entrée d’image"
+
+
+msgid "Wrong Mask Input Type"
+msgstr "Mauvais type en entrée de masque"
+
+
+msgid "Unsupported Inputs"
+msgstr "Entrées non prises en charge"
+
+
+msgid "No Output"
+msgstr "Aucune sortie"
+
+
+msgid "Wrong Output Type"
+msgstr "Mauvais type de sortie"
+
+
+msgid "Ignored Outputs"
+msgstr "Sorties ignorées"
+
+
 msgid "Unused Output"
 msgstr "Sortie inutilisée"
+
+
+msgid "Node group's main Image input should be of type Color"
+msgstr "L’entrée principale du groupe de nœuds doit être de type Couleur"
+
+
+msgid "Node group's Mask input should be of type Color"
+msgstr "L’entrée Masque du groupe de nœuds doit être de type Couleur"
+
+
+msgid "Only a main Image and Mask inputs are supported, the rest are unsupported and will return zero"
+msgstr "Seules l’entrée principale Image et le masque sont pris en charge, le reste retournera zéro"
+
+
+msgid "Node group must have a Color output socket"
+msgstr "Le groupe de nœuds doit avoir une prise de sortie couleur"
+
+
+msgid "Node group's first output must be a color output"
+msgstr "La première sortie du groupe de nœuds doit être une couleur"
+
+
+msgid "Only the first output is considered while the rest are ignored"
+msgstr "Seule la première sortie est prise en compte, le reste est ignoré"
 
 
 msgid "There are multiple group output nodes and this one is not active"

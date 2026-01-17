@@ -2031,8 +2031,8 @@ void EDBM_project_snap_verts(
 
   ED_view3d_init_mats_rv3d(obedit, static_cast<RegionView3D *>(region->regiondata));
 
-  Scene *scene = CTX_data_scene(C);
-  transform::SnapObjectContext *snap_context = transform::snap_object_context_create(scene, 0);
+  const Scene *scene = CTX_data_scene(C);
+  transform::SnapObjectContext *snap_context = transform::snap_object_context_create();
 
   eSnapTargetOP target_op = SCE_SNAP_TARGET_NOT_ACTIVE;
   const int snap_flag = scene->toolsettings->snap_flag;

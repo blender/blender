@@ -1341,7 +1341,8 @@ static const char *check_memlist(const MemHead *memh)
         membase->first = &backok->next;
       }
       else {
-        membase->first = membase->last = nullptr;
+        membase->first = nullptr;
+        membase->last = nullptr;
       }
     }
   }

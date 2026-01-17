@@ -8,6 +8,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -36,7 +37,7 @@ static void calc_node(const Depsgraph &depsgraph,
                       const bke::pbvh::GridsNode &node,
                       LocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   MutableSpan<float3> ccg_positions = subdiv_ccg.positions;
@@ -148,7 +149,7 @@ void do_displacement_smear_brush(const Depsgraph &depsgraph,
                                  const IndexMask &node_mask)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
 

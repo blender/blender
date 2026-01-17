@@ -83,7 +83,7 @@ struct SnapObjectParams {
 };
 
 struct SnapObjectContext;
-SnapObjectContext *snap_object_context_create(Scene *scene, int flag);
+SnapObjectContext *snap_object_context_create();
 void snap_object_context_destroy(SnapObjectContext *sctx);
 
 /** Callbacks to filter how snap works. */

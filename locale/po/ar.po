@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15671,16 +15671,24 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+
+
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
+
+
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
+
+
 msgid "Names"
 msgstr "ءﺎﻤﺳﺃ"
 
 
 msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
-
-
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
 
 
 msgid "Snap"
@@ -15707,6 +15715,10 @@ msgid "Navigation"
 msgstr "ﺢﻔّﺼﺗ"
 
 
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
+
+
 msgid "Align View"
 msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
 
@@ -15719,10 +15731,6 @@ msgid "Select More/Less"
 msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
 
 
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
-
-
 msgid "Select Similar"
 msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
 
@@ -15733,10 +15741,6 @@ msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
 
 msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
 msgid "Light"
@@ -15797,10 +15801,6 @@ msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
 
 msgid "Merge"
 msgstr "ﺞﻣﺩﺇ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
 
 
 msgctxt "MovieClip"
@@ -29533,10 +29533,6 @@ msgstr " ﺮﻈﻨﻤﻠﻟ ﺐﻳﺮﻘﺘﻟﺍ/ﺮﻳﻭﺪﺘﻟﺍ/ﻚﻳ�
 
 msgid "Emulate 3 Button Mouse"
 msgstr "ﺭﺍﺭﺯﺃ 3 ـﺑ ﺓﺭﺄﻓ ﻲﻛﺎﺣ"
-
-
-msgid "Use selection as the pivot point"
-msgstr " ﺭﻮﺤﻣ ﺔﻄﻘﻨﻛ ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻡﺪﺨﺘﺳﺇ"
 
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center"

@@ -91,7 +91,7 @@ static void rna_Main_filepath_set(PointerRNA *ptr, const char *value)
 static PointerRNA rna_Main_colorspace_get(PointerRNA *ptr)
 {
   Main *bmain = static_cast<Main *>(ptr->data);
-  return PointerRNA(nullptr, &RNA_BlendFileColorspace, &bmain->colorspace);
+  return PointerRNA(nullptr, RNA_BlendFileColorspace, &bmain->colorspace);
 }
 
 static int rna_MainColorspace_working_space_get(PointerRNA *ptr)
@@ -202,7 +202,7 @@ static void rna_Main_version_get(PointerRNA *ptr, int *value)
 static PointerRNA rna_Test_test_get(PointerRNA *ptr)
 {
   PointerRNA ret = *ptr;
-  ret.type = &RNA_Test;
+  ret.type = RNA_Test;
 
   return ret;
 }

@@ -6,7 +6,7 @@
 
 #include "kernel/types.h"
 
-#include "util/texture.h"
+#include "util/types_image.h"
 
 #include "device/device.h"
 #include "device/memory.h"

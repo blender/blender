@@ -111,7 +111,7 @@ class USDSceneExportContext {
   USDSceneExportContext(const USDHierarchyIterator *iter, Depsgraph *depsgraph)
       : stage_(iter->get_stage()), hierarchy_iterator_(iter)
   {
-    depsgraph_ptr_ = RNA_pointer_create_discrete(nullptr, &RNA_Depsgraph, depsgraph);
+    depsgraph_ptr_ = RNA_pointer_create_discrete(nullptr, RNA_Depsgraph, depsgraph);
   }
 
   pxr::UsdStageRefPtr get_stage() const
@@ -470,7 +470,7 @@ class OnMaterialExportInvoker final : public USDHookInvoker {
         hook_context_(stage, export_params, reports),
         usd_material_(usd_material)
   {
-    material_ptr_ = RNA_pointer_create_discrete(nullptr, &RNA_Material, material);
+    material_ptr_ = RNA_pointer_create_discrete(nullptr, RNA_Material, material);
   }
 
  private:
@@ -569,7 +569,7 @@ class OnMaterialImportInvoker final : public USDHookInvoker {
         hook_context_(stage, import_params, reports),
         usd_material_(usd_material)
   {
-    material_ptr_ = RNA_pointer_create_discrete(nullptr, &RNA_Material, material);
+    material_ptr_ = RNA_pointer_create_discrete(nullptr, RNA_Material, material);
   }
 
   bool result() const

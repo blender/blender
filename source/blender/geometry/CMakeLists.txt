@@ -116,6 +116,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::curve_fit_nd
   PRIVATE bf::dependencies::optional::manifold
+  PRIVATE bf::dependencies::optional::gmp
 )
 
 if(WITH_UV_SLIM)
@@ -123,18 +124,6 @@ if(WITH_UV_SLIM)
     ../../../intern/slim
   )
   add_definitions(-DWITH_UV_SLIM)
-endif()
-
-if(WITH_GMP)
-  add_definitions(-DWITH_GMP)
-
-  list(APPEND INC_SYS
-    ${GMP_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${GMP_LIBRARIES}
-  )
 endif()
 
 if(WITH_MANIFOLD)

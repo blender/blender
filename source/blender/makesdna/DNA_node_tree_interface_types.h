@@ -43,6 +43,10 @@ struct bNodeTreeInterfaceItem {
   /* eNodeTreeInterfaceItemType */
   char item_type = 0;
   char _pad[7] = {};
+
+#ifdef __cplusplus
+  void set_selected(bool select);
+#endif
 };
 
 /* Socket interface flags */
@@ -66,6 +70,8 @@ enum NodeTreeInterfaceSocketFlag {
    * cleaner UI.
    */
   NODE_INTERFACE_SOCKET_OPTIONAL_LABEL = 1 << 10,
+  /* Whether the socket is selected in the node group interface tree view. */
+  NODE_INTERFACE_SOCKET_SELECT = 1 << 11,
 };
 ENUM_OPERATORS(NodeTreeInterfaceSocketFlag);
 
@@ -101,6 +107,8 @@ enum NodeTreeInterfacePanelFlag {
   NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS = 1 << 2,
   /* Whether the panel is collapsed in the node group interface tree view. */
   NODE_INTERFACE_PANEL_IS_COLLAPSED = 1 << 3,
+  /* Whether the panel is selected in the node group interface tree view. */
+  NODE_INTERFACE_PANEL_SELECT = 1 << 4,
 };
 ENUM_OPERATORS(NodeTreeInterfacePanelFlag);
 

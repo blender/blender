@@ -43,7 +43,7 @@ static void template_keymap_item_properties(Layout &layout, const char *title, P
     if (RNA_property_type(prop) == PROP_POINTER) {
       PointerRNA propptr = RNA_property_pointer_get(ptr, prop);
 
-      if (propptr.data && RNA_struct_is_a(propptr.type, &RNA_OperatorProperties)) {
+      if (propptr.data && RNA_struct_is_a(propptr.type, RNA_OperatorProperties)) {
         const char *name = RNA_property_ui_name(prop);
         template_keymap_item_properties(layout, name, &propptr);
         continue;

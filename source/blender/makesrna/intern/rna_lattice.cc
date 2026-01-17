@@ -184,6 +184,12 @@ static int rna_Lattice_size_editable(const PointerRNA *ptr, const char ** /*r_in
   return (lt->key == nullptr) ? int(PROP_EDITABLE) : 0;
 }
 
+static int rna_Lattice_points_u_get(PointerRNA *ptr)
+{
+  Lattice *lt = static_cast<Lattice *>(ptr->data);
+  return (lt->opntsu > 0) ? lt->opntsu : lt->pntsu;
+}
+
 static void rna_Lattice_points_u_set(PointerRNA *ptr, int value)
 {
   Lattice *lt = static_cast<Lattice *>(ptr->data);
@@ -191,11 +197,23 @@ static void rna_Lattice_points_u_set(PointerRNA *ptr, int value)
   lt->opntsu = std::clamp(value, 1, 64);
 }
 
+static int rna_Lattice_points_v_get(PointerRNA *ptr)
+{
+  Lattice *lt = static_cast<Lattice *>(ptr->data);
+  return (lt->opntsv > 0) ? lt->opntsv : lt->pntsv;
+}
+
 static void rna_Lattice_points_v_set(PointerRNA *ptr, int value)
 {
   Lattice *lt = static_cast<Lattice *>(ptr->data);
 
   lt->opntsv = std::clamp(value, 1, 64);
+}
+
+static int rna_Lattice_points_w_get(PointerRNA *ptr)
+{
+  Lattice *lt = static_cast<Lattice *>(ptr->data);
+  return (lt->opntsw > 0) ? lt->opntsw : lt->pntsw;
 }
 
 static void rna_Lattice_points_w_set(PointerRNA *ptr, int value)
@@ -318,7 +336,8 @@ static void rna_def_lattice(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "points_u", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "pntsu");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_Lattice_points_u_set", nullptr);
+  RNA_def_property_int_funcs(
+      prop, "rna_Lattice_points_u_get", "rna_Lattice_points_u_set", nullptr);
   RNA_def_property_range(prop, 1, 64);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
@@ -328,7 +347,8 @@ static void rna_def_lattice(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "points_v", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "pntsv");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_Lattice_points_v_set", nullptr);
+  RNA_def_property_int_funcs(
+      prop, "rna_Lattice_points_v_get", "rna_Lattice_points_v_set", nullptr);
   RNA_def_property_range(prop, 1, 64);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
@@ -338,7 +358,8 @@ static void rna_def_lattice(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "points_w", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "pntsw");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_Lattice_points_w_set", nullptr);
+  RNA_def_property_int_funcs(
+      prop, "rna_Lattice_points_w_get", "rna_Lattice_points_w_set", nullptr);
   RNA_def_property_range(prop, 1, 64);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(

@@ -29,6 +29,7 @@ set(SRC
   link_drag_search.cc
   node_add.cc
   node_context_path.cc
+  node_copy_util.cc
   node_draw.cc
   node_edit.cc
   node_geometry_attribute_search.cc

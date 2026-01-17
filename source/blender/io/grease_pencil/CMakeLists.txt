@@ -13,7 +13,6 @@ set(INC
 )
 
 set(INC_SYS
-  ../../../../extern/fmtlib/include
 )
 
 set(SRC
@@ -37,7 +36,9 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
-  PRIVATE extern_fmtlib
+  PRIVATE bf::extern::fmtlib
+  PRIVATE bf::dependencies::optional::pugixml
+  PRIVATE bf::dependencies::optional::haru
   bf_io_common
 )
 
@@ -45,26 +46,12 @@ if(WITH_PUGIXML)
   list(APPEND SRC
     intern/grease_pencil_io_export_svg.cc
   )
-  list(APPEND INC_SYS
-    ${PUGIXML_INCLUDE_DIR}
-  )
-  list(APPEND LIB
-    ${PUGIXML_LIBRARIES}
-  )
-  add_definitions(-DWITH_PUGIXML)
 endif()
 
 if(WITH_HARU)
   list(APPEND SRC
     intern/grease_pencil_io_export_pdf.cc
   )
-  list(APPEND INC_SYS
-    ${HARU_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    PRIVATE ${HARU_LIBRARIES}
-  )
-  add_definitions(-DWITH_HARU)
 endif()
 
 blender_add_lib(bf_io_grease_pencil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

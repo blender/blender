@@ -10,9 +10,9 @@
 #include "util/path.h"
 #include "util/progress.h"
 #include "util/string.h"
-#include "util/texture.h"
 #include "util/thread.h"
 #include "util/types_base.h"
+#include "util/types_image.h"
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
@@ -61,12 +61,12 @@ bool OIIOImageLoader::resolve_texture_cache(const bool auto_generate,
 
 bool OIIOImageLoader::load_metadata(ImageMetaData &metadata)
 {
-  return metadata.load_metadata(get_filepath());
+  return metadata.oiio_load_metadata(get_filepath());
 }
 
-bool OIIOImageLoader::load_pixels_full(const ImageMetaData &metadata, uint8_t *pixels)
+bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata, void *pixels)
 {
-  if (!metadata.load_pixels(get_filepath(), pixels)) {
+  if (!metadata.oiio_load_pixels(get_filepath(), pixels)) {
     return false;
   }
 

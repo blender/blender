@@ -33,6 +33,7 @@ struct RuntimeNodeEnumItem {
   std::string description;
   /* Immutable unique identifier. */
   int identifier;
+  int icon = 0;
 };
 
 /**

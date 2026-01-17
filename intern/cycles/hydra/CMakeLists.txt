@@ -10,16 +10,13 @@ set(INC
   ..
 )
 set(INC_SYS
-  ${USD_INCLUDE_DIRS}
-  ${Epoxy_INCLUDE_DIRS}
-  ${PYTHON_INCLUDE_DIRS}
 )
 
 set(LIB
   cycles_scene
   cycles_session
   cycles_graph
-  ${Epoxy_LIBRARIES}
+  bf::dependencies::epoxy
   ${BOOST_PYTHON_LIBRARIES}
 )
 cycles_external_libraries_append(LIB)
@@ -105,7 +102,8 @@ target_compile_definitions(cycles_hydra
 
 target_link_libraries(cycles_hydra
   PUBLIC
-  ${USD_LIBRARIES}
+  bf::dependencies::optional::usd
+  bf::dependencies::optional::python
   PRIVATE
   ${LIB}
 )

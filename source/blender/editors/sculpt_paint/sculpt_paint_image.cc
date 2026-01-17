@@ -25,6 +25,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_image_wrappers.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
@@ -256,7 +257,7 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
                             ImageData image_data,
                             bke::pbvh::Node &node)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);

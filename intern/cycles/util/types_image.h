@@ -14,9 +14,8 @@
 CCL_NAMESPACE_BEGIN
 
 /* Color to use when images are not found. */
-#define IMAGE_TEXTURE_MISSING_RGBA make_float4(1, 0, 1, 1)
+#define IMAGE_MISSING_RGBA make_float4(1, 0, 1, 1)
 
-/* Image slot when there is none. */
 #define KERNEL_IMAGE_NONE INT_MAX
 
 /* Interpolation types for images. */
@@ -30,6 +29,7 @@ enum InterpolationType {
   INTERPOLATION_NUM_TYPES,
 };
 
+/* Image data types supported by the kernel. */
 enum ImageDataType {
   IMAGE_DATA_TYPE_FLOAT4 = 0,
   IMAGE_DATA_TYPE_BYTE4 = 1,
@@ -88,6 +88,7 @@ enum ExtensionType {
   EXTENSION_NUM_TYPES,
 };
 
+/* Kernel data structure to describe image. */
 struct KernelImageInfo {
   /* Pointer, offset or image/texture object depending on device. */
   uint64_t data = 0;

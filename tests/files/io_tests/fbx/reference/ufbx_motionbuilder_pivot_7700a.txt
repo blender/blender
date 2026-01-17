@@ -2,18 +2,6 @@
 - Mesh 'Mesh' vtx:8 face:6 loop:24 edge:12
     - 0 1 3 2 2 ... 3 6 0 2 4 
     - 0/2 0/1 1/3 2/3 2/4 ... 4/6 5/7 6/7 0/6 1/7 
-  - attr 'position' FLOAT_VECTOR POINT
-    - (-4.183, 1.500, 3.683)
-    - (-3.317, 1.500, 3.183)
-    - (-4.183, 2.500, 3.683)
-      ...
-    - (-3.817, 2.500, 2.317)
-    - (-4.683, 1.500, 2.817)
-    - (-3.817, 1.500, 2.317)
-  - attr 'sharp_edge' BOOLEAN EDGE
-    - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -30,6 +18,18 @@
     - (0.375, 0.000)
     - (0.375, 0.250)
     - (0.125, 0.250)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-4.183, 1.500, 3.683)
+    - (-3.317, 1.500, 3.183)
+    - (-4.183, 2.500, 3.683)
+      ...
+    - (-3.817, 2.500, 2.317)
+    - (-4.683, 1.500, 2.817)
+    - (-3.817, 1.500, 2.317)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
   - 1 materials
     - 'lambert1' 
 

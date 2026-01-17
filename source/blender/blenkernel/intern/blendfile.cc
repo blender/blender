@@ -1257,6 +1257,11 @@ static void setup_app_data(bContext *C,
   if (mode != LOAD_UNDO && liboverride::is_auto_resync_enabled()) {
     reports->duration.lib_overrides_resync = BLI_time_now_seconds();
 
+    /* Null hierarchy roots are never expected here for regular liboverrides. Attempt to fix them
+     * so that resync can perform as best as possible, and report them as errors. */
+    BKE_lib_override_library_main_hierarchy_root_ensure(
+        bmain, ONLY_PROCESS_NULL_ROOT_POINTERS | REPORT_NULL_ROOT_POINTERS, reports->reports);
+
     BKE_lib_override_library_main_resync(
         bmain,
         nullptr,

@@ -1214,8 +1214,8 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
         const int key_frame = seq::retiming_key_timeline_frame_get(scene, strip_key_owner, key);
         VectorSet<Strip *> connections = seq::connected_strips_get(strip_key_owner);
         for (Strip *connection : connections) {
-          if (key_frame == left_fake_key_frame_get(scene, connection) ||
-              key_frame == right_fake_key_frame_get(scene, connection))
+          if (key_frame == seq::left_fake_key_frame_get(scene, connection) ||
+              key_frame == seq::right_fake_key_frame_get(scene, connection))
           {
             realize_fake_keys(scene, connection);
           }

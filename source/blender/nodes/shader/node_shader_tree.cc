@@ -202,7 +202,7 @@ void register_node_tree_type_sh()
   tt->validate_link = shader_validate_link;
   tt->valid_socket_type = shader_node_tree_socket_type_valid;
 
-  tt->rna_ext.srna = &RNA_ShaderNodeTree;
+  tt->rna_ext.srna = RNA_ShaderNodeTree;
 
   bke::node_tree_type_add(*tt);
 }

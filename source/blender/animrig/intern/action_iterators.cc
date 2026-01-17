@@ -176,7 +176,7 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
   if (adt) {
     if (adt->action) {
       /* Direct assignment. */
-      PointerRNA ptr = RNA_pointer_create_discrete(&animated_id, &RNA_AnimData, adt);
+      PointerRNA ptr = RNA_pointer_create_discrete(&animated_id, RNA_AnimData, adt);
       PropertyRNA *prop = RNA_struct_find_property(&ptr, "action_slot");
       if (!callback(animated_id, adt->action, ptr, *prop, adt->last_slot_identifier)) {
         return false;
@@ -186,7 +186,7 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
     /* NLA strips. */
     const bool looped_until_last_strip = bke::nla::foreach_strip_adt(*adt, [&](NlaStrip *strip) {
       if (strip->act) {
-        PointerRNA ptr = RNA_pointer_create_discrete(&animated_id, &RNA_NlaStrip, strip);
+        PointerRNA ptr = RNA_pointer_create_discrete(&animated_id, RNA_NlaStrip, strip);
         PropertyRNA *prop = RNA_struct_find_property(&ptr, "action_slot");
 
         if (!callback(animated_id, strip->act, ptr, *prop, strip->last_slot_identifier)) {
@@ -222,7 +222,7 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
       return true;
     }
 
-    PointerRNA ptr = RNA_pointer_create_discrete(&animated_id, &RNA_ActionConstraint, &constraint);
+    PointerRNA ptr = RNA_pointer_create_discrete(&animated_id, RNA_ActionConstraint, &constraint);
     PropertyRNA *prop = RNA_struct_find_property(&ptr, "action_slot");
 
     return callback(

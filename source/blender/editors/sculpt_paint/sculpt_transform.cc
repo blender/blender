@@ -23,6 +23,7 @@
 #include "BKE_kelvinlet.h"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_types.hh"
@@ -56,7 +57,7 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
 {
   const Scene &scene = *CTX_data_scene(C);
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   ss.init_pivot_pos = ss.pivot_pos;
@@ -199,7 +200,7 @@ static void transform_node_mesh(const Sculpt &sd,
                                 TransformLocalData &tls,
                                 const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   const Span<int> verts = node.verts();
   const OrigPositionData orig_data = orig_position_data_get_mesh(object, node);
@@ -226,7 +227,7 @@ static void transform_node_grids(const Sculpt &sd,
                                  Object &object,
                                  TransformLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -258,7 +259,7 @@ static void transform_node_bmesh(const Sculpt &sd,
                                  Object &object,
                                  TransformLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
@@ -287,7 +288,7 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
 {
   undo::restore_position_from_undo_step(depsgraph, ob);
 
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   std::array<float4x4, 8> transform_mats = transform_matrices_init(
@@ -313,7 +314,7 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *ob.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -368,7 +369,7 @@ static void elastic_transform_node_mesh(const Sculpt &sd,
                                         TransformLocalData &tls,
                                         const PositionDeformData &position_data)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
 
   const Span<int> verts = node.verts();
   const MutableSpan positions = gather_data_mesh(position_data.eval, verts, tls.positions);
@@ -398,7 +399,7 @@ static void elastic_transform_node_grids(const Sculpt &sd,
                                          Object &object,
                                          TransformLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
 
   const Span<int> grids = node.grids();
@@ -429,7 +430,7 @@ static void elastic_transform_node_bmesh(const Sculpt &sd,
                                          Object &object,
                                          TransformLocalData &tls)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
   const MutableSpan positions = gather_bmesh_positions(verts, tls.positions);
@@ -455,7 +456,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
                                      Object &ob,
                                      const float transform_radius)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   BLI_assert(ss.filter_cache->transform_displacement_mode ==
              TransformDisplacementMode::Incremental);
 
@@ -508,7 +509,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
         break;
       }
       case bke::pbvh::Type::Grids: {
-        SubdivCCG &subdiv_ccg = *ob.sculpt->subdiv_ccg;
+        SubdivCCG &subdiv_ccg = *ob.runtime->sculpt_session->subdiv_ccg;
         MutableSpan<float3> positions = subdiv_ccg.positions;
         MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
         node_mask.foreach_index(GrainSize(1), [&](const int i) {
@@ -538,7 +539,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
 void update_modal_transform(bContext *C, Object &ob)
 {
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   vert_random_access_ensure(ob);
@@ -590,7 +591,7 @@ void cancel_modal_transform(bContext *C, Object &ob)
 
 void end_transform(bContext *C, Object &ob)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   MEM_delete(ss.filter_cache);
   ss.filter_cache = nullptr;
   undo::push_end(ob);
@@ -671,7 +672,7 @@ static float3 average_unmasked_position(const Depsgraph &depsgraph,
                                         const float3 &pivot,
                                         const ePaintSymmetryFlags symm)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   IndexMaskMemory memory;
@@ -793,7 +794,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
                                            const float3 &pivot,
                                            const ePaintSymmetryFlags symm)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   IndexMaskMemory memory;
@@ -912,7 +913,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
 static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
 {
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);

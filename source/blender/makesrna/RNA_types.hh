@@ -294,7 +294,20 @@ enum PropertySubType {
   PROP_FREQUENCY = 46 | PROP_UNIT_FREQUENCY,
   PROP_PIXEL_DIAMETER = 47,
   PROP_DISTANCE_DIAMETER = 48 | PROP_UNIT_LENGTH,
+  /** Mass based on scene defined units. */
+  PROP_MASS = 49 | PROP_UNIT_MASS,
 };
+
+/** These two enum types can be combined. */
+inline PropertySubType operator|(const PropertySubType subtype, const PropertyUnit unit)
+{
+  return PropertySubType(int(subtype) | int(unit));
+}
+
+inline int operator&(const PropertySubType subtype, const PropertyUnit unit)
+{
+  return int(subtype) & int(unit);
+}
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1u << 31

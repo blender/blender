@@ -15,9 +15,9 @@
 #include "util/profiling.h"
 #include "util/stats.h"
 #include "util/string.h"
-#include "util/texture.h"
 #include "util/thread.h"
 #include "util/types.h"
+#include "util/types_image.h"
 #include "util/unique_ptr.h"
 #include "util/vector.h"
 

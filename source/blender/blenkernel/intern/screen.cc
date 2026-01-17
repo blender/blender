@@ -611,15 +611,18 @@ LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
                                                       const StringRef idname,
                                                       const bool default_closed)
 {
+  ListBaseT<LayoutPanelState> &layout_panel_states =
+      panel->runtime->popup_layout_panel_states ? *panel->runtime->popup_layout_panel_states :
+                                                  panel->layout_panel_states;
   const uint32_t logical_time = ++panel->layout_panel_states_clock;
   /* Overflow happened, reset all last used times. Not sure if this will ever happen in practice,
    * but better handle the overflow explicitly. */
   if (logical_time == 0) {
-    for (LayoutPanelState &state : panel->layout_panel_states) {
+    for (LayoutPanelState &state : layout_panel_states) {
       state.last_used = 0;
     }
   }
-  for (LayoutPanelState &state : panel->layout_panel_states) {
+  for (LayoutPanelState &state : layout_panel_states) {
     if (state.idname == idname) {
       state.last_used = logical_time;
       return &state;
@@ -629,7 +632,7 @@ LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
   state->idname = BLI_strdupn(idname.data(), idname.size());
   SET_FLAG_FROM_TEST(state->flag, !default_closed, LAYOUT_PANEL_STATE_FLAG_OPEN);
   state->last_used = logical_time;
-  BLI_addtail(&panel->layout_panel_states, state);
+  BLI_addtail(&layout_panel_states, state);
   return state;
 }
 

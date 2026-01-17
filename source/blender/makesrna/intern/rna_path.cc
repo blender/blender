@@ -1045,7 +1045,7 @@ std::optional<std::string> RNA_path_from_ID_to_struct(const PointerRNA *ptr)
         return std::nullopt;
       }
     }
-    else if (RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
+    else if (RNA_struct_is_a(ptr->type, RNA_PropertyGroup)) {
       /* special case, easier to deal with here than in ptr->type->path() */
       return rna_path_from_ID_to_idpgroup(ptr);
     }

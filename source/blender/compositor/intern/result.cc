@@ -17,6 +17,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
+#include "GPU_capabilities.hh"
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
@@ -366,6 +367,18 @@ eGPUDataFormat Result::get_gpu_data_format() const
   return Result::gpu_data_format(type_);
 }
 
+static Domain sanitize_domain_size(const Domain domain,
+                                   const Context &context,
+                                   const std::optional<ResultStorageType> storage_type)
+{
+  Domain sanitized_domain = domain;
+  const bool use_gpu = storage_type.has_value() ? storage_type.value() == ResultStorageType::GPU :
+                                                  context.use_gpu();
+  const int max_size = use_gpu ? GPU_max_texture_size() : 65536;
+  sanitized_domain.data_size = math::clamp(domain.data_size, int2(1), int2(max_size));
+  return sanitized_domain;
+}
+
 void Result::allocate_texture(const Domain domain,
                               const bool from_pool,
                               const std::optional<ResultStorageType> storage_type)
@@ -375,8 +388,8 @@ void Result::allocate_texture(const Domain domain,
   BLI_assert(!Result::is_single_value_only_type(this->type()));
 
   is_single_value_ = false;
-  this->allocate_data(domain.data_size, from_pool, storage_type);
-  domain_ = domain;
+  domain_ = sanitize_domain_size(domain, *context_, storage_type);
+  this->allocate_data(domain_.data_size, from_pool, storage_type);
 }
 
 void Result::allocate_single_value()

@@ -84,10 +84,10 @@ bool DepsgraphBuilder::is_object_visibility_animated(const Object *object)
 {
   AnimatedPropertyID property_id;
   if (graph_->mode == DAG_EVAL_VIEWPORT) {
-    property_id = AnimatedPropertyID(&object->id, &RNA_Object, "hide_viewport");
+    property_id = AnimatedPropertyID(&object->id, RNA_Object, "hide_viewport");
   }
   else if (graph_->mode == DAG_EVAL_RENDER) {
-    property_id = AnimatedPropertyID(&object->id, &RNA_Object, "hide_render");
+    property_id = AnimatedPropertyID(&object->id, RNA_Object, "hide_render");
   }
   else {
     BLI_assert_msg(0, "Unknown evaluation mode.");
@@ -101,11 +101,10 @@ bool DepsgraphBuilder::is_modifier_visibility_animated(const Object *object,
 {
   AnimatedPropertyID property_id;
   if (graph_->mode == DAG_EVAL_VIEWPORT) {
-    property_id = AnimatedPropertyID(
-        &object->id, &RNA_Modifier, (void *)modifier, "show_viewport");
+    property_id = AnimatedPropertyID(&object->id, RNA_Modifier, (void *)modifier, "show_viewport");
   }
   else if (graph_->mode == DAG_EVAL_RENDER) {
-    property_id = AnimatedPropertyID(&object->id, &RNA_Modifier, (void *)modifier, "show_render");
+    property_id = AnimatedPropertyID(&object->id, RNA_Modifier, (void *)modifier, "show_render");
   }
   else {
     BLI_assert_msg(0, "Unknown evaluation mode.");
@@ -127,7 +126,7 @@ bool DepsgraphBuilder::check_pchan_has_bbone(const Object *object, const bPoseCh
     return true;
   }
   bArmature *armature = id_cast<bArmature *>(object->data);
-  AnimatedPropertyID property_id(&armature->id, &RNA_Bone, pchan->bone, "bbone_segments");
+  AnimatedPropertyID property_id(&armature->id, RNA_Bone, pchan->bone, "bbone_segments");
   /* Check both Object and Armature animation data, because drivers modifying Armature
    * state could easily be created in the Object AnimData. */
   return cache_->isPropertyAnimated(&object->id, property_id) ||
@@ -150,7 +149,7 @@ const char *DepsgraphBuilder::get_rna_path_relative_to_scene_camera(const Scene 
                                                                     const PointerRNA &target_prop,
                                                                     const char *rna_path)
 {
-  if (rna_path == nullptr || target_prop.data != scene || target_prop.type != &RNA_Scene ||
+  if (rna_path == nullptr || target_prop.data != scene || target_prop.type != RNA_Scene ||
       !BLI_str_startswith(rna_path, "camera"))
   {
     return nullptr;

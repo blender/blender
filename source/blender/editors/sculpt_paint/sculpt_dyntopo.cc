@@ -18,6 +18,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
@@ -59,7 +60,7 @@ void triangulate(BMesh *bm)
 
 void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   Mesh *mesh = id_cast<Mesh *>(ob.data);
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
@@ -109,7 +110,7 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
 static void disable(
     Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob, undo::StepData *undo_step)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   Mesh *mesh = id_cast<Mesh *>(ob.data);
 
   if (BMesh *bm = ss.bm) {
@@ -161,7 +162,7 @@ void disable_with_undo(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &
 {
   /* This is an unlikely situation to happen in normal usage, though with application handlers
    * it is possible that a user is attempting to exit the current object mode. See #146398 */
-  if (ob.sculpt && ob.sculpt->bm) {
+  if (ob.runtime->sculpt_session && ob.runtime->sculpt_session->bm) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
     if (use_undo) {
@@ -177,7 +178,7 @@ void disable_with_undo(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &
 
 static void enable_with_undo(Main &bmain, Depsgraph &depsgraph, const Scene &scene, Object &ob)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   if (ss.bm == nullptr) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != nullptr) : true;
@@ -198,7 +199,7 @@ static wmOperatorStatus sculpt_dynamic_topology_toggle_exec(bContext *C, wmOpera
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
   Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   WM_cursor_wait(true);
 
@@ -226,7 +227,7 @@ static bool dyntopo_supports_layer(const bke::AttributeIter &iter)
 WarnFlag check_attribute_warning(Scene &scene, Object &ob)
 {
   Mesh *mesh = id_cast<Mesh *>(ob.data);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   WarnFlag flag = WarnFlag::OKAY;
 
@@ -266,7 +267,7 @@ static wmOperatorStatus sculpt_dynamic_topology_toggle_invoke(bContext *C,
                                                               const wmEvent * /*event*/)
 {
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
 
   if (!ss.bm) {
     Scene &scene = *CTX_data_scene(C);

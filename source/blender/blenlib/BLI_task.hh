@@ -243,13 +243,13 @@ inline void parallel_invoke(const bool use_threading, Functions &&...functions)
 }
 
 /** See #BLI_task_isolate for a description of what isolating a task means. */
-template<typename Function> inline void isolate_task(const Function &function)
+template<typename Function> inline auto isolate_task(const Function &function)
 {
 #ifdef WITH_TBB
   lazy_threading::ReceiverIsolation isolation;
-  tbb::this_task_arena::isolate(function);
+  return tbb::this_task_arena::isolate(function);
 #else
-  function();
+  return function();
 #endif
 }
 

@@ -693,7 +693,7 @@ static GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
   return {};
 }
 
-static void tag_component_positions_changed(void *owner)
+static void tag_positions_changed(void *owner)
 {
   Mesh *mesh = static_cast<Mesh *>(owner);
   if (mesh != nullptr) {
@@ -701,7 +701,7 @@ static void tag_component_positions_changed(void *owner)
   }
 }
 
-static void tag_component_sharpness_changed(void *owner)
+static void tag_sharpness_changed(void *owner)
 {
   if (Mesh *mesh = static_cast<Mesh *>(owner)) {
     mesh->tag_sharpness_changed();
@@ -752,7 +752,6 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
     if (mesh == nullptr) {
       return {};
     }
-
     const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names,
                                                            attribute_id);
     if (vertex_group_index < 0) {
@@ -875,7 +874,7 @@ static GeometryAttributeProviders create_attribute_providers_for_mesh()
                                                  CD_PROP_FLOAT3,
                                                  BuiltinAttributeProvider::NonDeletable,
                                                  point_access,
-                                                 tag_component_positions_changed);
+                                                 tag_positions_changed);
 
   static const auto material_index_clamp = mf::build::SI1_SO<int, int>(
       "Material Index Validate",
@@ -930,14 +929,14 @@ static GeometryAttributeProviders create_attribute_providers_for_mesh()
                                                    CD_PROP_BOOL,
                                                    BuiltinAttributeProvider::Deletable,
                                                    face_access,
-                                                   tag_component_sharpness_changed);
+                                                   tag_sharpness_changed);
 
   static BuiltinCustomDataLayerProvider sharp_edge("sharp_edge",
                                                    AttrDomain::Edge,
                                                    CD_PROP_BOOL,
                                                    BuiltinAttributeProvider::Deletable,
                                                    edge_access,
-                                                   tag_component_sharpness_changed);
+                                                   tag_sharpness_changed);
 
   static MeshVertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(AttrDomain::Corner, corner_access);

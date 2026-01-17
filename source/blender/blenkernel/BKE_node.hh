@@ -515,14 +515,11 @@ struct bNodeTreeType {
 
   /* calls allowing threaded composite */
   void (*localize)(bNodeTree *localtree, bNodeTree *ntree) = nullptr;
-  void (*local_merge)(Main *bmain, bNodeTree *localtree, bNodeTree *ntree) = nullptr;
 
   /* Tree update. Overrides `nodetype->updatetreefunc`. */
   void (*update)(bNodeTree *ntree) = nullptr;
 
   bool (*validate_link)(eNodeSocketDatatype from, eNodeSocketDatatype to) = nullptr;
-
-  void (*node_add_init)(bNodeTree *ntree, bNode *bnode) = nullptr;
 
   /* Check if the socket type is valid for this tree type. */
   bool (*valid_socket_type)(bNodeTreeType *ntreetype, bNodeSocketType *socket_type) = nullptr;
@@ -740,6 +737,9 @@ bNode *node_find_node_by_name(bNodeTree &ntree, StringRefNull name);
 /** Try to find an input item with the given identifier in the entire node interface tree. */
 const bNodeTreeInterfaceSocket *node_find_interface_input_by_identifier(const bNodeTree &ntree,
                                                                         StringRef identifier);
+/** Try to find an output item with the given identifier in the entire node interface tree. */
+const bNodeTreeInterfaceSocket *node_find_interface_output_by_identifier(const bNodeTree &ntree,
+                                                                         StringRef identifier);
 
 bool node_is_parent_and_child(const bNode &parent, const bNode &child);
 
@@ -925,13 +925,6 @@ void node_update_asset_metadata(bNodeTree &node_tree);
 void node_tree_node_flag_set(bNodeTree &ntree, int flag, bool enable);
 
 /**
- * Merge local tree results back, and free local tree.
- *
- * We have to assume the editor already changed completely.
- */
-void node_tree_local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
-
-/**
  * \note `ntree` itself has been read!
  */
 void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
@@ -1112,13 +1105,12 @@ struct bNodePreview {
   ~bNodePreview();
 };
 
-bNodePreview *node_preview_verify(Map<bNodeInstanceKey, bNodePreview> &previews,
+/* Ensure that a node preview of the given size exists in the given previews map for the node with
+ * the given instance key. */
+bNodePreview *node_ensure_preview(Map<bNodeInstanceKey, bNodePreview> &previews,
                                   bNodeInstanceKey key,
                                   int xsize,
-                                  int ysize,
-                                  bool create);
-
-void node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize);
+                                  int ysize);
 
 void node_preview_remove_unused(bNodeTree *ntree);
 

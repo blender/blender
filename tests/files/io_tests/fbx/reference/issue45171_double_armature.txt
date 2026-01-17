@@ -2,6 +2,14 @@
 - Mesh 'Cubes' vtx:16 face:12 loop:48 edge:24
     - 1 3 2 0 3 ... 12 13 15 11 9 
     - 1/3 2/3 0/2 0/1 3/7 ... 13/15 12/13 12/14 9/13 8/12 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.484, -0.484, -0.484)
     - (-0.484, -0.484, 0.484)
@@ -12,14 +20,6 @@
     - (-0.446, -0.307, 1.551)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - vertex groups:
     - 1=1.000
     - 1=1.000

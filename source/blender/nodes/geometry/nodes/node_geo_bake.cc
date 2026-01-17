@@ -70,7 +70,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const std::string identifier = BakeItemsAccessor::socket_identifier_for_item(item);
     auto &input_decl = b.add_input(socket_type, name, identifier)
                            .socket_name_ptr(
-                               &ntree->id, BakeItemsAccessor::item_srna, &item, "name");
+                               &ntree->id, *BakeItemsAccessor::item_srna, &item, "name");
     auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
     if (socket_type_supports_fields(socket_type)) {
       input_decl.supports_field();
@@ -607,7 +607,7 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
   }
 
   r_ctx.bake_rna = RNA_pointer_create_discrete(
-      const_cast<ID *>(&r_ctx.object->id), &RNA_NodesModifierBake, (void *)r_ctx.bake);
+      const_cast<ID *>(&r_ctx.object->id), RNA_NodesModifierBake, (void *)r_ctx.bake);
   if (r_ctx.nmd->runtime->cache) {
     const bke::bake::ModifierCache &cache = *r_ctx.nmd->runtime->cache;
     std::lock_guard lock{cache.mutex};
@@ -837,7 +837,7 @@ void draw_data_blocks(const bContext *C, ui::Layout &layout, PointerRNA &bake_rn
   }();
 
   PointerRNA data_blocks_ptr = RNA_pointer_create_discrete(
-      bake_rna.owner_id, &RNA_NodesModifierBakeDataBlocks, bake_rna.data);
+      bake_rna.owner_id, RNA_NodesModifierBakeDataBlocks, bake_rna.data);
 
   if (ui::Layout *panel = layout.panel(
           C, "data_block_references", true, IFACE_("Data-Block References")))
@@ -866,7 +866,7 @@ std::unique_ptr<LazyFunction> get_bake_lazy_function(
   return std::make_unique<file_ns::LazyFunctionForBakeNode>(node, lf_graph_info);
 }
 
-StructRNA *BakeItemsAccessor::item_srna = &RNA_NodeGeometryBakeItem;
+StructRNA **BakeItemsAccessor::item_srna = &RNA_NodeGeometryBakeItem;
 
 void BakeItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

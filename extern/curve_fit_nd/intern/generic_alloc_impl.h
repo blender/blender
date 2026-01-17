@@ -123,6 +123,7 @@ struct TPOOL_STRUCT {
 	(((1 << 16) - sizeof(struct TPoolChunk)) / sizeof(TPOOL_ALLOC_TYPE))
 
 
+/* -------------------------------------------------------------------- */
 /** \name Internal Memory Management
  * \{ */
 

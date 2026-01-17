@@ -56,7 +56,7 @@ bool BlenderImageLoader::load_metadata(ImageMetaData &metadata)
       metadata.width = ibuf->x;
       metadata.height = ibuf->y;
       metadata.channels = (is_float) ? ibuf->channels : 4;
-      metadata.associate_alpha = !is_float;
+      metadata.is_unassociated_alpha = !is_float;
     }
     else {
       metadata.width = 0;
@@ -188,7 +188,7 @@ static void load_byte_pixels(const blender::ImBuf *ibuf,
   }
 }
 
-bool BlenderImageLoader::load_pixels_full(const ImageMetaData &metadata, uint8_t *out_pixels)
+bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata, void *out_pixels)
 {
   void *lock;
   blender::ImBuf *ibuf = BKE_image_acquire_ibuf(b_image, &b_iuser, &lock);

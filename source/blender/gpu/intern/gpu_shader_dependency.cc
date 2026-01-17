@@ -33,6 +33,7 @@
 #endif
 
 #include "../shader_tool/metadata.hh"
+#include "../shader_tool/processor.hh"
 
 namespace blender {
 
@@ -194,6 +195,9 @@ struct GPUSource {
       std::function<void(GPUSource &, GPUFunctionDictionary *, GPUPrintFormatMap *)> metadata_fn)
       : fullpath(path), filename(file), source(datatoc)
   {
+    BLI_assert_msg(source.find("//") == std::string::npos &&
+                       source.find("/*") == std::string::npos,
+                   "Input source should have no comments.");
     metadata_fn(*this, g_functions, g_formats);
   };
 
@@ -497,6 +501,11 @@ static GPUSourceDictionary *g_sources = nullptr;
 static GPUFunctionDictionary *g_functions = nullptr;
 static bool force_printf_injection = false;
 
+#ifdef WITH_OPENSUBDIV
+/* Using a global string to avoid dealing with memory allocation/ownership. */
+static std::string osd_patch_basis;
+#endif
+
 void gpu_shader_dependency_init()
 {
   g_formats = new GPUPrintFormatMap();
@@ -521,7 +530,10 @@ void gpu_shader_dependency_init()
 #endif
 #undef SHADER_SOURCE
 #ifdef WITH_OPENSUBDIV
-  const StringRefNull patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
+  osd_patch_basis = openSubdiv_getGLSLPatchBasisSource();
+  osd_patch_basis = shader::SourceProcessor(
+                        osd_patch_basis, "osd_patch_basis.glsl", gpu::shader::Language::GLSL)
+                        .remove_comments();
   auto source_ptr_opt = g_sources->pop_try("osd_patch_basis.glsl");
   if (source_ptr_opt) {
     delete source_ptr_opt.value();
@@ -530,7 +542,7 @@ void gpu_shader_dependency_init()
       "osd_patch_basis.glsl",
       new GPUSource("osd_patch_basis.glsl",
                     "osd_patch_basis.glsl",
-                    patch_basis_source.c_str(),
+                    (osd_patch_basis).c_str(),
                     g_functions,
                     g_formats,
                     [](GPUSource &, GPUFunctionDictionary *, GPUPrintFormatMap *) {}));

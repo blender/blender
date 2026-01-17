@@ -554,13 +554,13 @@ static PointerRNA rna_CollectionExport_export_properties_get(PointerRNA *ptr)
   bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
   if (!fh) {
     return RNA_pointer_create_discrete(
-        ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
+        ptr->owner_id, RNA_IDPropertyWrapPtr, data->export_properties);
   }
 
   wmOperatorType *ot = WM_operatortype_find(fh->export_operator, false);
   if (!ot) {
     return RNA_pointer_create_discrete(
-        ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
+        ptr->owner_id, RNA_IDPropertyWrapPtr, data->export_properties);
   }
 
   return RNA_pointer_create_discrete(ptr->owner_id, ot->srna, data->export_properties);

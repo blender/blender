@@ -1984,7 +1984,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_lerp_doc,
-    ".. function:: lerp(other, factor, /)\n"
+    ".. method:: lerp(other, factor, /)\n"
     "\n"
     "   Returns the interpolation of two matrices. Uses polar decomposition, see"
     "   \"Matrix Animation and Polar Decomposition\", Shoemake and Duff, 1992.\n"

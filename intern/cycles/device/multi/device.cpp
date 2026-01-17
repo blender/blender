@@ -15,7 +15,7 @@
 
 #include "util/list.h"
 #include "util/map.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 

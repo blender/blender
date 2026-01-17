@@ -272,7 +272,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         PointerRNA ptr = CTX_data_pointer_get(C, umi_pr->context_data_path);
         if (ptr.type == nullptr) {
-          PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, (void *)C);
+          PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, RNA_Context, (void *)C);
           if (!RNA_path_resolve_full(&ctx_ptr, umi_pr->context_data_path, &ptr, nullptr, nullptr))
           {
             ptr.type = nullptr;

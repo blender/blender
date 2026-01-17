@@ -2142,13 +2142,8 @@ static wmOperatorStatus edbm_select_all_exec(bContext *C, wmOperator *op)
         EDBM_flag_disable_all(em, BM_ELEM_SELECT);
         break;
       case SEL_INVERT:
-        if (em->bm->uv_select_sync_valid) {
-          ED_uvedit_deselect_all(scene, obedit, SEL_INVERT);
-        }
-        else {
-          EDBM_select_swap(em);
-          EDBM_selectmode_flush(em);
-        }
+        EDBM_select_swap(em);
+        EDBM_selectmode_flush(em);
         break;
     }
 
@@ -3010,6 +3005,11 @@ void EDBM_select_swap(BMEditMesh *em) /* Exported for UV. */
       BM_face_select_set(em->bm, efa, !BM_elem_flag_test(efa, BM_ELEM_SELECT));
     }
   }
+
+  /* Don't attempt to handle UV selection while inverting from the 3D viewport.
+   * The inverted selection of a partially selected UV causes the connected vertex to remain
+   * selected, which you won't want unless inverting from the UV editor, see #152801. */
+  BM_mesh_uvselect_clear(em->bm);
 }
 
 bool EDBM_mesh_deselect_all_multi_ex(const Span<Base *> bases)

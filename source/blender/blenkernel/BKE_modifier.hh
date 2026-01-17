@@ -203,8 +203,12 @@ struct ModifierTypeInfo {
   /** The size of the modifier data type, used by allocation. */
   int struct_size;
 
-  /** StructRNA of this modifier. This is typically something like `RNA_*Modifier`. */
-  StructRNA *srna;
+  /**
+   * StructRNA of this modifier. This is typically something like `RNA_*Modifier`.
+   * Use a pointer to the struct pointer because #ModifierTypeInfo is statically initialized, when
+   * the corresponding `StructRNA` pointers aren't set yet.
+   */
+  StructRNA **srna;
 
   ModifierTypeType type;
   ModifierTypeFlag flags;

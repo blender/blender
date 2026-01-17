@@ -1252,10 +1252,6 @@ static bNode *version_add_group_in_out_node(bNodeTree *ntree, const int type)
    * node->typeinfo is only set after versioning. */
   node->type_legacy = type;
   {
-    if (ntree->typeinfo && ntree->typeinfo->node_add_init) {
-      ntree->typeinfo->node_add_init(ntree, node);
-    }
-
     /* Add sockets without relying on declarations or typeinfo.
      * These are stubs for links, full typeinfo is defined later. */
     for (bNodeSocket &tree_socket : *ntree_socket_list) {

@@ -713,9 +713,6 @@ class ANIM_OT_slot_new_for_id(Operator):
         if not animated_id.animation_data or not animated_id.animation_data.action:
             cls.poll_message_set("An action slot can only be created when an action is assigned")
             return False
-        if not animated_id.animation_data.action.is_action_layered:
-            cls.poll_message_set("Action slots are only supported by layered Actions. Upgrade this Action first")
-            return False
         if not animated_id.animation_data.action.is_editable:
             cls.poll_message_set("Creating a new Slot is not possible on a linked Action")
             return False

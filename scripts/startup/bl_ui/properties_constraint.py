@@ -1175,7 +1175,7 @@ class ConstraintButtonsSubPanel:
 
         col = layout.column(align=True)
         col.prop(con, "action")
-        if con.action and con.action.is_action_layered:
+        if con.action:
             col.context_pointer_set("animated_id", con.id_data)
             col.template_search(
                 con, "action_slot",

@@ -13,7 +13,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -36,6 +35,7 @@ set(SRC
   bpy_capi_utils.cc
   bpy_cli_command.cc
   bpy_driver.cc
+  bpy_driver_bytecode.cc
   bpy_geometry_set.cc
   bpy_gizmo_wrap.cc
   bpy_inline_shader_nodes.cc
@@ -87,6 +87,7 @@ set(SRC
   bpy_capi_utils.hh
   bpy_cli_command.hh
   bpy_driver.hh
+  bpy_driver_bytecode.hh
   bpy_geometry_set.hh
   bpy_gizmo_wrap.hh
   bpy_inline_shader_nodes.hh
@@ -136,10 +137,11 @@ set(LIB
   bf_python_gpu
   PRIVATE bf::imbuf::opencolorio
   PRIVATE bf::nodes
-
-  ${PYTHON_LINKFLAGS}
-  ${PYTHON_LIBRARIES}
   PRIVATE bf::windowmanager
+
+  PRIVATE bf::dependencies::optional::python
+  PRIVATE bf::dependencies::optional::ffmpeg
+  PRIVATE bf::dependencies::optional::sdl
 )
 
 # Only to check if `buildinfo` is available.
@@ -186,30 +188,12 @@ if(WITH_AUDASPACE)
   add_definitions(-DWITH_AUDASPACE)
   if(WITH_PYTHON_NUMPY)
     add_definitions(-DWITH_AUDASPACE_PY)
-    list(APPEND INC_SYS
-      ${AUDASPACE_C_INCLUDE_DIRS}
-      ${AUDASPACE_PY_INCLUDE_DIRS}
-    )
-    if(NOT WITH_SYSTEM_AUDASPACE)
-      list(APPEND LIB audaspace audaspace-py)
-    else()
-      list(APPEND LIB ${AUDASPACE_C_LIBRARIES} ${AUDASPACE_PY_LIBRARIES})
-    endif()
+    list(APPEND LIB bf::dependencies::optional::audaspace)
   endif()
 endif()
 
 if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
-endif()
-
-if(WITH_CODEC_FFMPEG)
-  list(APPEND INC_SYS
-    ${FFMPEG_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${FFMPEG_LIBRARIES}
-  )
-  add_definitions(-DWITH_FFMPEG)
 endif()
 
 if(WITH_CODEC_SNDFILE)
@@ -271,16 +255,6 @@ endif()
 
 if(WITH_OPENSUBDIV)
   add_definitions(-DWITH_OPENSUBDIV)
-endif()
-
-if(WITH_SDL)
-  list(APPEND INC_SYS
-    ${SDL_INCLUDE_DIR}
-  )
-  list(APPEND LIB
-    ${SDL_LIBRARY}
-  )
-  add_definitions(-DWITH_SDL)
 endif()
 
 if(WITH_JACK)

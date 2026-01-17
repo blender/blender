@@ -64,7 +64,7 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
       MovieTracking *tracking = &clip->tracking;
       MovieTrackingObject *tracking_object;
       PointerRNA tracking_ptr = RNA_pointer_create_discrete(
-          &clip->id, &RNA_MovieTracking, tracking);
+          &clip->id, RNA_MovieTracking, tracking);
 
       ui::Layout &col = layout.column(false);
       col.prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
@@ -73,7 +73,7 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
                                                       node_storage(*node).tracking_object);
       if (tracking_object) {
         PointerRNA object_ptr = RNA_pointer_create_discrete(
-            &clip->id, &RNA_MovieTrackingObject, tracking_object);
+            &clip->id, RNA_MovieTrackingObject, tracking_object);
 
         col.prop_search(ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
       }

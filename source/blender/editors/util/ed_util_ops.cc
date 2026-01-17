@@ -46,7 +46,7 @@ namespace blender {
 Vector<PointerRNA> ED_operator_single_id_from_context_as_vec(const bContext *C)
 {
   Vector<PointerRNA> ids;
-  PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  PointerRNA idptr = CTX_data_pointer_get_type(C, "id", RNA_ID);
   if (idptr.data) {
     ids.append(idptr);
   }
@@ -497,7 +497,7 @@ static void ED_OT_lib_id_unlink(wmOperatorType *ot)
 
 static bool lib_id_override_editable_toggle_poll(bContext *C)
 {
-  const PointerRNA id_ptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  const PointerRNA id_ptr = CTX_data_pointer_get_type(C, "id", RNA_ID);
   const ID *id = static_cast<ID *>(id_ptr.data);
 
   return id && ID_IS_OVERRIDE_LIBRARY_REAL(id) && !ID_IS_LINKED(id);
@@ -506,7 +506,7 @@ static bool lib_id_override_editable_toggle_poll(bContext *C)
 static wmOperatorStatus lib_id_override_editable_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  const PointerRNA id_ptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  const PointerRNA id_ptr = CTX_data_pointer_get_type(C, "id", RNA_ID);
   ID *id = static_cast<ID *>(id_ptr.data);
 
   const bool is_system_override = BKE_lib_override_library_is_system_defined(bmain, id);

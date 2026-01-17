@@ -134,7 +134,7 @@ static wmOperatorStatus view3d_pastebuffer_exec(bContext *C, wmOperator *op)
   int flag = 0;
 
   if (RNA_boolean_get(op->ptr, "autoselect")) {
-    flag |= FILE_AUTOSELECT | BLO_LIBLINK_APPEND_SET_OB_ACTIVE_CLIPBOARD;
+    flag |= FILE_AUTOSELECT | int(BLO_LIBLINK_APPEND_SET_OB_ACTIVE_CLIPBOARD);
   }
   if (RNA_boolean_get(op->ptr, "active_collection")) {
     flag |= FILE_ACTIVE_COLLECTION;

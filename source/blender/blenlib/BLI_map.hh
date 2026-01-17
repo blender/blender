@@ -1204,7 +1204,7 @@ class Map {
       /* This intentionally does not check if the slot is in removed state because that would cause
        * additional overhead in the common case when nothing is ever removed from the map. These
        * slots will be cleaned up when the map is rebuilt. There could be alternative methods or
-       * template arguments in the future to enable overridding removed slots here. */
+       * template arguments in the future to enable overriding removed slots here. */
     }
     MAP_SLOT_PROBING_END();
   }

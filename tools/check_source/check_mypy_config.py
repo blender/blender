@@ -25,7 +25,7 @@ PATHS: tuple[tuple[str, tuple[Any, ...], dict[str, str]], ...] = (
     ("release/release_notes/", (), {}),
     ("scripts/modules/_bpy_internal/extensions/junction_module.py", (), {}),
     ("scripts/modules/_bpy_internal/extensions/wheel_manager.py", (), {}),
-    ("scripts/modules/_bpy_internal/freedesktop.py", (), {}),
+    ("scripts/modules/_bpy_internal/platform/freedesktop.py", (), {}),
     ("source/blender/nodes/intern/discover_nodes.py", (), {}),
     ("tests/python/bl_keymap_validate.py", (), {}),
     ("tests/python/bl_pyapi_bpy_app_tempdir.py", (), {}),

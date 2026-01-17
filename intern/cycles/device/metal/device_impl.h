@@ -4,10 +4,12 @@
 
 #pragma once
 
-#include "util/texture.h"
 #ifdef WITH_METAL
 
 #  include "bvh/bvh.h"
+
+#  include "util/types_image.h"
+
 #  include "device/device.h"
 #  include "device/metal/bvh.h"
 #  include "device/metal/device.h"

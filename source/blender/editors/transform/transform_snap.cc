@@ -145,11 +145,6 @@ void transform_snap_flag_from_modifiers_set(TransInfo *t)
                      (((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
                       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT)),
                      SCE_SNAP);
-
-  /* Clear stale snap flags when snapping is disabled. */
-  if (!(t->tsnap.flag & SCE_SNAP)) {
-    t->tsnap.status &= ~(SNAP_TARGET_FOUND | SNAP_SOURCE_FOUND);
-  }
 }
 
 bool transform_snap_is_active(const TransInfo *t)
@@ -1011,6 +1006,7 @@ void transform_snap_reset_from_mode(TransInfo *t, wmOperator *op)
 
   t->tsnap.source_operation = snap_source;
   transform_snap_flag_from_modifiers_set(t);
+  setSnappingCallback(t);
 }
 
 void initSnapping(TransInfo *t, wmOperator *op)
@@ -1022,7 +1018,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->tsnap.object_context == nullptr) {
       SET_FLAG_FROM_TEST(t->tsnap.flag, snap_use_backface_culling(t), SCE_SNAP_BACKFACE_CULLING);
-      t->tsnap.object_context = snap_object_context_create(t->scene, 0);
+      t->tsnap.object_context = snap_object_context_create();
       snap_object_context_init(t);
     }
   }

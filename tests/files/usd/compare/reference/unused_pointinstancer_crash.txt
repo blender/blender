@@ -2,6 +2,13 @@
 - Mesh 'A' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/2 0/1 1/3 2/3 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.500, -0.500, 0.000)
     - (0.500, -0.500, 0.000)
@@ -9,13 +16,6 @@
     - (0.500, 0.500, 0.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - attr 'st' FLOAT2 CORNER
     - (0.000, 0.000)
     - (1.000, 0.000)
@@ -25,6 +25,13 @@
 - Mesh 'A.001' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/2 0/1 1/3 2/3 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.500, -0.500, 0.000)
     - (0.500, -0.500, 0.000)
@@ -32,13 +39,6 @@
     - (0.500, 0.500, 0.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - attr 'st' FLOAT2 CORNER
     - (0.000, 0.000)
     - (1.000, 0.000)
@@ -48,6 +48,13 @@
 - Mesh 'A.002' vtx:4 face:1 loop:4 edge:4
     - 0 1 3 2 
     - 0/2 0/1 1/3 2/3 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-0.500, -0.500, 0.000)
     - (0.500, -0.500, 0.000)
@@ -55,13 +62,6 @@
     - (0.500, 0.500, 0.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - attr 'st' FLOAT2 CORNER
     - (0.000, 0.000)
     - (1.000, 0.000)

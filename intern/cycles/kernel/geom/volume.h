@@ -18,9 +18,7 @@
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/object.h"
 
-#include "kernel/sample/lcg.h"
-
-#include "kernel/util/texture_3d.h"
+#include "kernel/util/image_3d.h"
 
 CCL_NAMESPACE_BEGIN
 

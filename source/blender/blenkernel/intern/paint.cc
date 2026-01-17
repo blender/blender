@@ -2234,24 +2234,12 @@ void BKE_sculptsession_free_deformMats(SculptSession *ss)
   ss->face_normals_deform = {};
 }
 
-void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
-{
-  if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
-    MEM_SAFE_FREE(ss->mode.wpaint.alpha_weight);
-    if (!ss->mode.wpaint.dvert_prev.is_empty()) {
-      BKE_defvert_array_free_elems(ss->mode.wpaint.dvert_prev.data(),
-                                   ss->mode.wpaint.dvert_prev.size());
-      ss->mode.wpaint.dvert_prev = {};
-    }
-  }
-}
-
 /**
  * Write out the sculpt dynamic-topology #BMesh to the #Mesh.
  */
 static void sculptsession_bm_to_me_update_data_only(Object *ob)
 {
-  SculptSession &ss = *ob->sculpt;
+  SculptSession &ss = *ob->runtime->sculpt_session;
 
   if (ss.bm) {
     if (ob->data) {
@@ -2264,7 +2252,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob)
 
 void BKE_sculptsession_bm_to_me(Object *ob)
 {
-  if (ob && ob->sculpt) {
+  if (ob && ob->runtime->sculpt_session) {
     sculptsession_bm_to_me_update_data_only(ob);
 
     /* Ensure the objects evaluated mesh doesn't hold onto arrays
@@ -2275,7 +2263,7 @@ void BKE_sculptsession_bm_to_me(Object *ob)
 
 void BKE_sculptsession_free_pbvh(Object &object)
 {
-  SculptSession *ss = object.sculpt;
+  SculptSession *ss = object.runtime->sculpt_session;
   if (!ss) {
     return;
   }
@@ -2299,8 +2287,8 @@ void BKE_sculptsession_free_pbvh(Object &object)
 
 void BKE_sculptsession_bm_to_me_for_render(Object *object)
 {
-  if (object && object->sculpt) {
-    if (object->sculpt->bm) {
+  if (object && object->runtime->sculpt_session) {
+    if (object->runtime->sculpt_session->bm) {
       /* Ensure no points to old arrays are stored in DM
        *
        * Apparently, we could not use DEG_id_tag_update
@@ -2321,8 +2309,8 @@ void BKE_sculptsession_bm_to_me_for_render(Object *object)
 
 void BKE_sculptsession_free(Object *ob)
 {
-  if (ob && ob->sculpt) {
-    SculptSession *ss = ob->sculpt;
+  if (ob && ob->runtime->sculpt_session) {
+    SculptSession *ss = ob->runtime->sculpt_session;
 
     if (ss->bm) {
       BKE_sculptsession_bm_to_me(ob);
@@ -2333,7 +2321,7 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_delete(ss);
 
-    ob->sculpt = nullptr;
+    ob->runtime->sculpt_session = nullptr;
   }
 }
 
@@ -2348,10 +2336,6 @@ SculptSession::~SculptSession()
   if (this->tex_pool) {
     BKE_image_pool_free(this->tex_pool);
   }
-
-  BKE_sculptsession_free_vwpaint_data(this);
-
-  MEM_SAFE_FREE(this->last_paint_canvas_key);
 }
 
 ActiveVert SculptSession::active_vert() const
@@ -2452,7 +2436,7 @@ static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 {
   Mesh &mesh = *id_cast<Mesh *>(ob->data);
 
-  if (ob->sculpt && ob->sculpt->bm) {
+  if (ob->runtime->sculpt_session && ob->runtime->sculpt_session->bm) {
     /* Can't combine multires and dynamic topology. */
     return nullptr;
   }
@@ -2506,7 +2490,7 @@ MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
 
 int BKE_sculpt_get_grid_num_verts(const Object &object)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   BLI_assert(bke::object::pbvh_get(object)->type() == bke::pbvh::Type::Grids);
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
   return ss.subdiv_ccg->grids_num * key.grid_area;
@@ -2514,7 +2498,7 @@ int BKE_sculpt_get_grid_num_verts(const Object &object)
 
 int BKE_sculpt_get_grid_num_faces(const Object &object)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   BLI_assert(bke::object::pbvh_get(object)->type() == bke::pbvh::Type::Grids);
   const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
   return ss.subdiv_ccg->grids_num * square_i(key.grid_size - 1);
@@ -2525,7 +2509,7 @@ static bool sculpt_modifiers_active(const Scene *scene, const Sculpt *sd, Object
 {
   const Mesh &mesh = *id_cast<Mesh *>(ob->data);
 
-  if (ob->sculpt->bm || BKE_sculpt_multires_active(scene, ob)) {
+  if (ob->runtime->sculpt_session->bm || BKE_sculpt_multires_active(scene, ob)) {
     return false;
   }
 
@@ -2572,7 +2556,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   using namespace blender::bke;
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
-  SculptSession &ss = *ob->sculpt;
+  SculptSession &ss = *ob->runtime->sculpt_session;
   Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
   /* Use the "unchecked" function, because this code also runs as part of the depsgraph node that
    * evaluates the object's geometry. So from perspective of the depsgraph, the mesh is not fully
@@ -2590,22 +2574,9 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   ss.deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
 
-  ss.building_vp_handle = false;
-
   ss.shapekey_active = (mmd == nullptr) ? BKE_keyblock_from_object(ob) : nullptr;
 
-  /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
-   * so no extra checks is needed here. */
-  if (mmd) {
-    ss.multires.active = true;
-    ss.multires.modifier = mmd;
-    ss.multires.level = mmd->sculptlvl;
-  }
-  else {
-    ss.multires.active = false;
-    ss.multires.modifier = nullptr;
-    ss.multires.level = 0;
-  }
+  ss.multires_modifier = mmd;
 
   ss.subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
 
@@ -2657,20 +2628,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   if (ss.shapekey_active != nullptr && ss.deform_cos.is_empty()) {
     ss.deform_cos = Span(static_cast<const float3 *>(ss.shapekey_active->data),
                          mesh_orig->verts_num);
-  }
-
-  /* if pbvh is deformed, key block is already applied to it */
-  if (ss.shapekey_active) {
-    if (ss.deform_cos.is_empty()) {
-      const Span key_data(static_cast<const float3 *>(ss.shapekey_active->data),
-                          mesh_orig->verts_num);
-
-      if (key_data.data() != nullptr) {
-        BKE_pbvh_vert_coords_apply(pbvh, key_data);
-        if (ss.deform_cos.is_empty()) {
-          ss.deform_cos = key_data;
-        }
-      }
+    if (!ss.deform_cos.is_empty()) {
+      BKE_pbvh_vert_coords_apply(pbvh, ss.deform_cos);
     }
   }
 
@@ -2680,16 +2639,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
      * The relevant changes are stored/encoded in the paint canvas key.
      * These include the active uv map, and resolutions. */
     if (USER_EXPERIMENTAL_TEST(&U, use_sculpt_texture_paint)) {
-      char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
-      if (ss.last_paint_canvas_key == nullptr ||
-          !STREQ(paint_canvas_key, ss.last_paint_canvas_key))
-      {
-        MEM_SAFE_FREE(ss.last_paint_canvas_key);
+      std::string paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode,
+                                                              ob);
+      if (!ss.last_paint_canvas_key || paint_canvas_key != ss.last_paint_canvas_key) {
         ss.last_paint_canvas_key = paint_canvas_key;
         BKE_pbvh_mark_rebuild_pixels(pbvh);
-      }
-      else {
-        MEM_freeN(paint_canvas_key);
       }
     }
 
@@ -2710,11 +2664,8 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
 {
   /* Update before mesh evaluation in the dependency graph. */
   Object *ob_orig = DEG_get_original(ob_eval);
-  SculptSession *ss = ob_orig->sculpt;
+  SculptSession *ss = ob_orig->runtime->sculpt_session;
   if (!ss) {
-    return;
-  }
-  if (ss->building_vp_handle) {
     return;
   }
 
@@ -2736,9 +2687,6 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
     BKE_sculptsession_free_pbvh(*ob_orig);
 
     BKE_sculptsession_free_deformMats(ss);
-
-    /* In vertex/weight paint, force maps to be rebuilt. */
-    BKE_sculptsession_free_vwpaint_data(ss);
   }
   else if (pbvh) {
     IndexMaskMemory memory;
@@ -2936,16 +2884,17 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
   /* Active modifiers means extra deformation, which can't be handled correct
    * on birth of pbvh::Tree and sculpt "layer" levels, so use pbvh::Tree only for internal brush
    * stuff and show final evaluated mesh so user would see actual object shape. */
-  deformed |= object->sculpt->deform_modifiers_active;
+  deformed |= object->runtime->sculpt_session->deform_modifiers_active;
 
   if (for_construction) {
-    deformed |= object->sculpt->shapekey_active != nullptr;
+    deformed |= object->runtime->sculpt_session->shapekey_active != nullptr;
   }
   else {
     /* As in case with modifiers, we can't synchronize deformation made against
      * pbvh::Tree and non-locked keyblock, so also use pbvh::Tree only for brushes and
      * final DM to give final result to user. */
-    deformed |= object->sculpt->shapekey_active && (object->shapeflag & OB_SHAPE_LOCK) == 0;
+    deformed |= object->runtime->sculpt_session->shapekey_active &&
+                (object->shapeflag & OB_SHAPE_LOCK) == 0;
   }
 
   return deformed;
@@ -2981,7 +2930,7 @@ namespace bke {
 
 static std::unique_ptr<pbvh::Tree> build_pbvh_for_dynamic_topology(Object *ob)
 {
-  BMesh &bm = *ob->sculpt->bm;
+  BMesh &bm = *ob->runtime->sculpt_session->bm;
   BM_data_layer_ensure_named(&bm, &bm.vdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_vertex");
   BM_data_layer_ensure_named(&bm, &bm.pdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_face");
 
@@ -3019,8 +2968,8 @@ pbvh::Tree &pbvh_ensure(Depsgraph &depsgraph, Object &object)
   if (pbvh::Tree *pbvh = pbvh_get(object)) {
     return *pbvh;
   }
-  BLI_assert(object.sculpt != nullptr);
-  SculptSession &ss = *object.sculpt;
+  BLI_assert(object.runtime->sculpt_session != nullptr);
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   if (ss.bm != nullptr) {
     /* Sculpting on a BMesh (dynamic-topology) gets a special pbvh::Tree. */
@@ -3043,31 +2992,31 @@ pbvh::Tree &pbvh_ensure(Depsgraph &depsgraph, Object &object)
 
 const pbvh::Tree *pbvh_get(const Object &object)
 {
-  if (!object.sculpt) {
+  if (!object.runtime->sculpt_session) {
     return nullptr;
   }
-  return object.sculpt->pbvh.get();
+  return object.runtime->sculpt_session->pbvh.get();
 }
 
 pbvh::Tree *pbvh_get(Object &object)
 {
   BLI_assert(object.type == OB_MESH);
-  if (!object.sculpt) {
+  if (!object.runtime->sculpt_session) {
     return nullptr;
   }
-  return object.sculpt->pbvh.get();
+  return object.runtime->sculpt_session->pbvh.get();
 }
 
 }  // namespace bke::object
 
 bool BKE_object_sculpt_use_dyntopo(const Object *object)
 {
-  return object->sculpt && object->sculpt->bm;
+  return object->runtime->sculpt_session && object->runtime->sculpt_session->bm;
 }
 
 bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
 {
-  SculptSession *ss = ob->sculpt;
+  SculptSession *ss = ob->runtime->sculpt_session;
   if (ss == nullptr || ss->mode_type != OB_MODE_SCULPT) {
     return false;
   }

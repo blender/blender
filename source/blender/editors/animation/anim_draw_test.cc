@@ -13,6 +13,8 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
+#include "RNA_define.hh"
+
 #include "CLG_log.h"
 #include "testing/testing.h"
 
@@ -25,6 +27,7 @@ class AnimDrawTest : public testing::Test {
 
   static void SetUpTestSuite()
   {
+    RNA_init();
     CLG_init();
     BKE_idtype_init();
   }
@@ -43,6 +46,7 @@ class AnimDrawTest : public testing::Test {
   void TearDown() override
   {
     BKE_main_free(this->bmain);
+    RNA_exit();
   }
 };
 

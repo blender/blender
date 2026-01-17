@@ -17,7 +17,7 @@ namespace blender::nodes {
 
 struct MenuSwitchItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeEnumItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeMenuSwitch";
   static constexpr bool has_type = false;

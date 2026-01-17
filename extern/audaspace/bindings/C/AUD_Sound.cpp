@@ -174,7 +174,7 @@ AUD_API const char* AUD_Sound_write(AUD_Sound* sound, const char* filename, AUD_
 		DeviceSpecs specs;
 		specs.specs = reader->getSpecs();
 
-		if((rate != RATE_INVALID) && (specs.rate != rate))
+		if((rate != double(RATE_INVALID)) && (specs.rate != rate))
 		{
 			specs.rate = rate;
 			reader = std::make_shared<JOSResampleReader>(reader, rate);

@@ -36,7 +36,7 @@
 #include "util/log.h"
 #include "util/progress.h"
 #include "util/task.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 

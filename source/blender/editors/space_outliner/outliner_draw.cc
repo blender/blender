@@ -286,7 +286,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
 
   /* Create PointerRNA and PropertyRNA for either Object or Base. */
   ID *id = ob ? &ob->id : &scene->id;
-  StructRNA *struct_rna = ob ? &RNA_Object : &RNA_ObjectBase;
+  StructRNA *struct_rna = ob ? RNA_Object : RNA_ObjectBase;
   void *data = ob ? static_cast<void *>(ob) : static_cast<void *>(base);
 
   PointerRNA ptr = RNA_pointer_create_discrete(id, struct_rna, data);
@@ -310,7 +310,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
         if (base_iter == nullptr) {
           continue;
         }
-        ptr = RNA_pointer_create_discrete(&scene->id, &RNA_ObjectBase, base_iter);
+        ptr = RNA_pointer_create_discrete(&scene->id, RNA_ObjectBase, base_iter);
       }
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
       animrig::autokeyframe_property(
@@ -359,7 +359,7 @@ static void outliner_layer_or_collection_pointer_create(Scene *scene,
     *ptr = RNA_id_pointer_create(&collection->id);
   }
   else {
-    *ptr = RNA_pointer_create_discrete(&scene->id, &RNA_LayerCollection, layer_collection);
+    *ptr = RNA_pointer_create_discrete(&scene->id, RNA_LayerCollection, layer_collection);
   }
 }
 
@@ -373,7 +373,7 @@ static void outliner_base_or_object_pointer_create(
   else {
     BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
-    *ptr = RNA_pointer_create_discrete(&scene->id, &RNA_ObjectBase, base);
+    *ptr = RNA_pointer_create_discrete(&scene->id, RNA_ObjectBase, base);
   }
 }
 
@@ -652,7 +652,7 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
 
   /* Create PointerRNA and PropertyRNA for either Collection or LayerCollection. */
   ID *id = collection ? &collection->id : &scene->id;
-  StructRNA *struct_rna = collection ? &RNA_Collection : &RNA_LayerCollection;
+  StructRNA *struct_rna = collection ? RNA_Collection : RNA_LayerCollection;
   void *data = collection ? static_cast<void *>(collection) :
                             static_cast<void *>(layer_collection);
 
@@ -665,7 +665,7 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   if (layer_collection != nullptr) {
     /* If we are toggling Layer collections we still want to change the properties of the base
      * or the objects. If we have a matching property, toggle it as well, it can be nullptr. */
-    struct_rna = collection ? &RNA_Object : &RNA_ObjectBase;
+    struct_rna = collection ? RNA_Object : RNA_ObjectBase;
     base_or_object_prop = RNA_struct_type_find_property(struct_rna, propname);
   }
 
@@ -1123,7 +1123,7 @@ static bool outliner_restrict_properties_collection_set(Scene *scene,
   *collection_ptr = RNA_id_pointer_create(&collection->id);
   if (layer_collection != nullptr) {
     *layer_collection_ptr = RNA_pointer_create_discrete(
-        &scene->id, &RNA_LayerCollection, layer_collection);
+        &scene->id, RNA_LayerCollection, layer_collection);
   }
 
   /* Update the restriction column values for the collection children. */
@@ -1148,28 +1148,26 @@ static void outliner_draw_restrictbuts(ui::Block *block,
   /* Get RNA properties (once for speed). */
   static RestrictProperties props = {false};
   if (!props.initialized) {
-    props.object_hide_viewport = RNA_struct_type_find_property(&RNA_Object, "hide_viewport");
-    props.object_hide_select = RNA_struct_type_find_property(&RNA_Object, "hide_select");
-    props.object_hide_render = RNA_struct_type_find_property(&RNA_Object, "hide_render");
-    props.base_hide_viewport = RNA_struct_type_find_property(&RNA_ObjectBase, "hide_viewport");
-    props.collection_hide_viewport = RNA_struct_type_find_property(&RNA_Collection,
+    props.object_hide_viewport = RNA_struct_type_find_property(RNA_Object, "hide_viewport");
+    props.object_hide_select = RNA_struct_type_find_property(RNA_Object, "hide_select");
+    props.object_hide_render = RNA_struct_type_find_property(RNA_Object, "hide_render");
+    props.base_hide_viewport = RNA_struct_type_find_property(RNA_ObjectBase, "hide_viewport");
+    props.collection_hide_viewport = RNA_struct_type_find_property(RNA_Collection,
                                                                    "hide_viewport");
-    props.collection_hide_select = RNA_struct_type_find_property(&RNA_Collection, "hide_select");
-    props.collection_hide_render = RNA_struct_type_find_property(&RNA_Collection, "hide_render");
-    props.layer_collection_exclude = RNA_struct_type_find_property(&RNA_LayerCollection,
-                                                                   "exclude");
-    props.layer_collection_holdout = RNA_struct_type_find_property(&RNA_LayerCollection,
-                                                                   "holdout");
-    props.layer_collection_indirect_only = RNA_struct_type_find_property(&RNA_LayerCollection,
+    props.collection_hide_select = RNA_struct_type_find_property(RNA_Collection, "hide_select");
+    props.collection_hide_render = RNA_struct_type_find_property(RNA_Collection, "hide_render");
+    props.layer_collection_exclude = RNA_struct_type_find_property(RNA_LayerCollection, "exclude");
+    props.layer_collection_holdout = RNA_struct_type_find_property(RNA_LayerCollection, "holdout");
+    props.layer_collection_indirect_only = RNA_struct_type_find_property(RNA_LayerCollection,
                                                                          "indirect_only");
-    props.layer_collection_hide_viewport = RNA_struct_type_find_property(&RNA_LayerCollection,
+    props.layer_collection_hide_viewport = RNA_struct_type_find_property(RNA_LayerCollection,
                                                                          "hide_viewport");
-    props.modifier_show_viewport = RNA_struct_type_find_property(&RNA_Modifier, "show_viewport");
-    props.modifier_show_render = RNA_struct_type_find_property(&RNA_Modifier, "show_render");
+    props.modifier_show_viewport = RNA_struct_type_find_property(RNA_Modifier, "show_viewport");
+    props.modifier_show_render = RNA_struct_type_find_property(RNA_Modifier, "show_render");
 
-    props.constraint_enable = RNA_struct_type_find_property(&RNA_Constraint, "enabled");
+    props.constraint_enable = RNA_struct_type_find_property(RNA_Constraint, "enabled");
 
-    props.bone_hide_viewport = RNA_struct_type_find_property(&RNA_PoseBone, "hide");
+    props.bone_hide_viewport = RNA_struct_type_find_property(RNA_PoseBone, "hide");
 
     props.initialized = true;
   }
@@ -1261,7 +1259,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
           Base *base = (te.directdata) ? static_cast<Base *>(te.directdata) :
                                          BKE_view_layer_base_find(view_layer, ob);
           if (base) {
-            PointerRNA base_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_ObjectBase, base);
+            PointerRNA base_ptr = RNA_pointer_create_discrete(&scene->id, RNA_ObjectBase, base);
             bt = uiDefIconButR_prop(block,
                                     ui::ButtonType::IconToggle,
                                     ICON_NONE,
@@ -1356,7 +1354,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
       else if (tselem->type == TSE_CONSTRAINT) {
         bConstraint *con = static_cast<bConstraint *>(te.directdata);
 
-        PointerRNA ptr = RNA_pointer_create_discrete(tselem->id, &RNA_Constraint, con);
+        PointerRNA ptr = RNA_pointer_create_discrete(tselem->id, RNA_Constraint, con);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
           bt = uiDefIconButR_prop(block,
@@ -1381,7 +1379,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
       else if (tselem->type == TSE_MODIFIER) {
         ModifierData *md = static_cast<ModifierData *>(te.directdata);
 
-        PointerRNA ptr = RNA_pointer_create_discrete(tselem->id, &RNA_Modifier, md);
+        PointerRNA ptr = RNA_pointer_create_discrete(tselem->id, RNA_Modifier, md);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButR_prop(block,
@@ -1429,7 +1427,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
         Object *ob = id_cast<Object *>(tselem->id);
         bArmature *arm = id_cast<bArmature *>(ob->data);
 
-        PointerRNA ptr = RNA_pointer_create_discrete(&arm->id, &RNA_PoseBone, pchan);
+        PointerRNA ptr = RNA_pointer_create_discrete(&arm->id, RNA_PoseBone, pchan);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButR_prop(block,
@@ -1557,12 +1555,12 @@ static void outliner_draw_restrictbuts(ui::Block *block,
         PointerRNA ptr;
         PropertyRNA *hide_prop;
         if (node.is_layer()) {
-          ptr = RNA_pointer_create_discrete(tselem->id, &RNA_GreasePencilLayer, &node);
-          hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayer, "hide");
+          ptr = RNA_pointer_create_discrete(tselem->id, RNA_GreasePencilLayer, &node);
+          hide_prop = RNA_struct_type_find_property(RNA_GreasePencilLayer, "hide");
         }
         else if (node.is_group()) {
-          ptr = RNA_pointer_create_discrete(tselem->id, &RNA_GreasePencilLayerGroup, &node);
-          hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayerGroup, "hide");
+          ptr = RNA_pointer_create_discrete(tselem->id, RNA_GreasePencilLayerGroup, &node);
+          hide_prop = RNA_struct_type_find_property(RNA_GreasePencilLayerGroup, "hide");
         }
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {

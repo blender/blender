@@ -10,7 +10,7 @@
 
 #include "util/defines.h"
 #include "util/math_fast.h"
-#include "util/texture.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 

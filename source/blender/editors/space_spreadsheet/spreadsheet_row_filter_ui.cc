@@ -304,7 +304,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 
       PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create_discrete(
-          &screen->id, &RNA_SpreadsheetRowFilter, &row_filter);
+          &screen->id, RNA_SpreadsheetRowFilter, &row_filter);
 
       ui::panel_add_instanced(C, region, &region->panels, panel_idname, filter_ptr);
     }
@@ -322,7 +322,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 
       PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create_discrete(
-          &screen->id, &RNA_SpreadsheetRowFilter, &row_filter);
+          &screen->id, RNA_SpreadsheetRowFilter, &row_filter);
       ui::panel_custom_data_set(panel_iter, filter_ptr);
 
       panel_iter = panel_iter->next;

@@ -15,6 +15,7 @@
 #include "kernel/svm/util.h"
 
 #include "util/color.h"
+#include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
 

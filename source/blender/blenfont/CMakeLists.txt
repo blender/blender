@@ -8,7 +8,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${FREETYPE_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -18,6 +17,7 @@ set(SRC
   intern/blf_font.cc
   intern/blf_font_default.cc
   intern/blf_glyph.cc
+  intern/blf_glyph_curves.cc
   intern/blf_thumbs.cc
   BLF_api.hh
   BLF_enums.hh
@@ -33,7 +33,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
-  ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
+  PRIVATE bf::dependencies::freetype
 )
 
 if(WIN32)

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'9b232e97f2e1')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:52+0000\n"
+"POT-Creation-Date: 2026-01-12 15:09+0000\n"
 "PO-Revision-Date: 2025-10-14 21:59+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -18386,16 +18386,8 @@ msgid "Is Layered Action"
 msgstr "Là Hành Động đã Phân Tầng Lớp"
 
 
-msgid "Return whether this is a layered Action. An empty Action is considered as both a 'legacy' and a 'layered' Action."
-msgstr "Trả về liệu đây có phải là Hành Động phân tầng lớp hay không. Một Hành Động trống rỗng sẽ được coi là cả hai, một Hành Động 'cũ' và một Hành Động 'phân tầng lớp'."
-
-
 msgid "Is Legacy Action"
 msgstr "Là Hành Động Cũ"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action is considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 actions are automatically updated to layered actions, and thus this will only return True when the action is empty"
-msgstr "Trả về (thông báo) liệu đây có phải là Hành Động cũ hay không. Các Hành Động cũ sẽ không có tầng lớp hoặc khe. Một Hành Động trống rỗng được coi là cả hai, là Hành Động 'cũ' và 'phân tầng lớp'. Vì các hành động Blender 4.4 được tự động cập nhật thành các hành động phân tầng lớp, và do đó, cái này sẽ chỉ trả về Đúng (True) khi hành động là trống rỗng mà thôi"
 
 
 msgid "Is Empty"
@@ -20101,18 +20093,6 @@ msgstr "Dùng khoảng cách trống giữa các chấm làm phần trăm của 
 
 msgid "Stabilize Normal"
 msgstr "Ổn Định Pháp Tuyến"
-
-
-msgid "Stabilize the orientation of the brush plane."
-msgstr "Ổn định chiều hướng bình diện của đầu bút."
-
-
-msgid "Stabilize Plane"
-msgstr "Ổn Định Bình Diện"
-
-
-msgid "Stabilize the center of the brush plane."
-msgstr "Ổn định tâm bình diện của đầu bút."
 
 
 msgid "Stencil Dimensions"
@@ -34301,6 +34281,26 @@ msgid "Show/Hide"
 msgstr "Hiện/Ẩn Giấu"
 
 
+msgid "Special Characters"
+msgstr "Các Ký Tự Đặc Biệt"
+
+
+msgid "Kerning"
+msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+
+
+msgid "Math"
+msgstr "Toán"
+
+
+msgid "Metaball"
+msgstr "Siêu Cầu"
+
+
+msgid "Utilities"
+msgstr "Thường Trình"
+
+
 msgid "Names"
 msgstr "Tên"
 
@@ -34309,20 +34309,28 @@ msgid "Bone Roll"
 msgstr "Lăn Xương"
 
 
-msgid "Math"
-msgstr "Toán"
-
-
-msgid "Utilities"
-msgstr "Thường Trình"
-
-
 msgid "Clean Up"
 msgstr "Dọn Dẹp"
 
 
+msgid "Read"
+msgstr "Đọc"
+
+
+msgid "Sample"
+msgstr "Lấy Mẫu Vật"
+
+
+msgid "Write"
+msgstr "Viết"
+
+
 msgid "Pivot Point"
 msgstr "Điểm Tựa"
+
+
+msgid "Primitives"
+msgstr "Hình Cơ Bản"
 
 
 msgid "Snap"
@@ -34341,28 +34349,12 @@ msgid "Automasking"
 msgstr "Tự Động Chắn Lọc"
 
 
-msgid "Read"
-msgstr "Đọc"
-
-
-msgid "Sample"
-msgstr "Lấy Mẫu Vật"
-
-
 msgid "Face Sets Edit"
 msgstr "Biên Soạn các Mặt Ấn Định"
 
 
-msgid "Write"
-msgstr "Viết"
-
-
 msgid "Vertex Group Locks"
 msgstr "Khóa của Nhóm Điểm Đỉnh"
-
-
-msgid "Primitives"
-msgstr "Hình Cơ Bản"
 
 
 msgid "Gizmo"
@@ -34377,6 +34369,10 @@ msgid "Import"
 msgstr "Nhập Khẩu"
 
 
+msgid "Deprecated"
+msgstr "Lỗi Thời"
+
+
 msgid "Mirror"
 msgstr "Phản Chiếu Đối Xứng"
 
@@ -34389,6 +34385,10 @@ msgid "Local View"
 msgstr "Góc Nhìn Cục Bộ"
 
 
+msgid "List"
+msgstr "Nâng"
+
+
 msgid "Viewpoint"
 msgstr "Điểm Nhìn"
 
@@ -34397,8 +34397,8 @@ msgid "Navigation"
 msgstr "Điều Hướng"
 
 
-msgid "Deprecated"
-msgstr "Lỗi Thời"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Align View"
@@ -34415,14 +34415,6 @@ msgstr "Vùng Góc Nhìn"
 
 msgid "Select More/Less"
 msgstr "Tăng/Giảm Lựa Chọn"
-
-
-msgid "List"
-msgstr "Nâng"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Similar"
@@ -34443,10 +34435,6 @@ msgstr "Chọn Vòng Mạch"
 
 msgid "Assign Material"
 msgstr "Ấn Định Nguyên Vật Liệu"
-
-
-msgid "Metaball"
-msgstr "Siêu Cầu"
 
 
 msgid "Light"
@@ -34501,6 +34489,10 @@ msgid "Hooks"
 msgstr "Móc"
 
 
+msgid "Layout"
+msgstr "Bố Trí"
+
+
 msgid "Trim/Add"
 msgstr "Cắt Xén/Thêm"
 
@@ -34513,16 +34505,16 @@ msgid "Face Sets Init"
 msgstr "Khởi Thủy các Mặt Ấn Định"
 
 
-msgid "Layout"
-msgstr "Bố Trí"
-
-
 msgid "Random Mask"
 msgstr "Màn Chắn Lọc Ngẫu Nhiên"
 
 
 msgid "Clear Transform"
 msgstr "Xóa Biến Hóa"
+
+
+msgid "Adjust"
+msgstr "Điều Chỉnh"
 
 
 msgid "In-Betweens"
@@ -34537,28 +34529,28 @@ msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
 
 
-msgid "Adjust"
-msgstr "Điều Chỉnh"
+msgid "Keying"
+msgstr "Khóa Hóa"
+
+
+msgid "Tracking"
+msgstr "Giám Sát"
 
 
 msgid "Toggle Bone Options"
 msgstr "Bật/Tắt Tùy Chọn về Xương"
 
 
+msgid "Creative"
+msgstr "Kiến Tạo"
+
+
 msgid "Enable Bone Options"
 msgstr "Bật các Tùy Chọn về Xương"
 
 
-msgid "Keying"
-msgstr "Khóa Hóa"
-
-
 msgid "Disable Bone Options"
 msgstr "Tắt các Tùy Chọn về Xương"
-
-
-msgid "Tracking"
-msgstr "Giám Sát"
 
 
 msgid "Mesh Select Mode"
@@ -34569,10 +34561,6 @@ msgid "Face Data"
 msgstr "Dữ Liệu Mặt"
 
 
-msgid "Creative"
-msgstr "Kiến Tạo"
-
-
 msgid "Select by Face Strength"
 msgstr "Chọn theo Cường Độ Mặt"
 
@@ -34581,20 +34569,12 @@ msgid "Set Face Strength"
 msgstr "Đặt Cường Độ Mặt"
 
 
-msgid "Merge"
-msgstr "Hợp Nhất"
-
-
 msgid "Render Preview"
 msgstr "Góc Nhìn Kết Xuất"
 
 
-msgid "Special Characters"
-msgstr "Các Ký Tự Đặc Biệt"
-
-
-msgid "Kerning"
-msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+msgid "Merge"
+msgstr "Hợp Nhất"
 
 
 msgid "Keyframe Insert Pie"
@@ -52692,13 +52672,8 @@ msgstr "Nhập Khẩu Trình Tự Hình Ảnh"
 
 
 msgctxt "Operator"
-msgid "Texture Setup"
-msgstr "Thiết Lập Chất Liệu"
-
-
-msgctxt "Operator"
-msgid "Principled Texture Setup"
-msgstr "Thiết Lập Chất Liệu Nguyên Tắc"
+msgid "Add Texture Setup"
+msgstr "Thêm Sắp Đặt Chất Liệu"
 
 
 msgctxt "Operator"
@@ -93491,10 +93466,6 @@ msgid "Orbit Around Selection"
 msgstr "Quỹ Đạo Quanh Lựa Chọn"
 
 
-msgid "Use selection as the pivot point"
-msgstr "Dùng cái lựa chọn làm điểm tựa"
-
-
 msgid "Zoom to Mouse Position"
 msgstr "Thu-Phóng vào Vị Trí của Chuột"
 
@@ -116255,16 +116226,6 @@ msgstr "Trình Tự Hình Ảnh"
 
 
 msgctxt "Operator"
-msgid "Add Texture Setup"
-msgstr "Thêm Sắp Đặt Chất Liệu"
-
-
-msgctxt "Operator"
-msgid "Add Principled Setup"
-msgstr "Thêm Sắp Đặt Nguyên Tắc"
-
-
-msgctxt "Operator"
 msgid "Settings from Active"
 msgstr "Sắp Đặt từ cái Đang Hoạt Động"
 
@@ -117460,10 +117421,6 @@ msgstr "Toàn bộ các bộ sưu tập xương hiện đều đang được s�
 
 msgid "An action slot can only be created when an action is assigned"
 msgstr "Một khe hành động chỉ có thể được tạo ra khi một hành động đã được ấn định mà thôi"
-
-
-msgid "Action slots are only supported by layered Actions. Upgrade this Action first"
-msgstr "Các khe hành động chỉ được hỗ trợ bởi các Hành Động phân tầng. Nâng cấp Hành Động này trước đi đã"
 
 
 msgid "Creating a new Slot is not possible on a linked Action"
@@ -124716,11 +124673,6 @@ msgstr "Căn Chỉnh theo Định Hướng Biến Hóa"
 msgctxt "Operator"
 msgid "Project from View (Bounds)"
 msgstr "Phóng Chiếu từ Góc Nhìn (Ranh Giới)"
-
-
-msgctxt "Operator"
-msgid "Frame Last Stroke"
-msgstr "Đóng Khung Nét Cuối Cùng"
 
 
 msgctxt "Operator"
@@ -135668,12 +135620,12 @@ msgid "Select movie or image strips"
 msgstr "Chọn các dải phim hoặc hình ảnh"
 
 
-msgid "Cannot create key inside of speed transition"
-msgstr "Không thể kiến tạo khóa bên trong quá trình chuyển đổi tốc độ được"
-
-
 msgid "Cannot create freeze frame"
 msgstr "Không thể kiến tạo khung hình đóng băng được"
+
+
+msgid "Cannot create key inside of speed transition"
+msgstr "Không thể kiến tạo khóa bên trong quá trình chuyển đổi tốc độ được"
 
 
 msgid "Cannot create transition from first or last key"
@@ -137737,16 +137689,8 @@ msgid "Cannot return channelbag when slot is None"
 msgstr "Không thể trả về (cung cấp) channelbag (túi kênh) khi khe là None (không có)"
 
 
-msgid "Cannot add slots to a legacy Action '%s'. Convert it to a layered Action first."
-msgstr "Không thể cho thêm khe vào một Hành Động cũ '%s' được. Trước tiên hãy chuyển đổi nó thành Hành Động có tầng lớp đi đã."
-
-
 msgid "Invalid slot name '%s': name must not be empty."
 msgstr "Tên khe cắm '%s' là tên không hợp lệ: tên không được để trống."
-
-
-msgid "Cannot add layers to a legacy Action '%s'. Convert it to a layered Action first."
-msgstr "Không thể cho thêm tầng lớp vào một Hành Động cũ '%s' được. Trước tiên hãy chuyển đổi nó thành Hành Động có tầng lớp trước đi đã."
 
 
 msgid "F-Curve '%s[%d]' already exists in this channelbag"
@@ -140874,22 +140818,6 @@ msgid "The position of the source of the rays in normalized coordinates. 0 means
 msgstr "Vị trí nguồn phát tia sáng theo tọa độ chuẩn hóa. 0 là góc dưới bên trái và 1 là góc trên bên phải."
 
 
-msgid "Unsupported Inputs"
-msgstr "Ngữ cảnh chưa được hỗ trợ"
-
-
-msgid "No Output"
-msgstr "Đầu Ra của Nút"
-
-
-msgid "Node group must have a Color output socket"
-msgstr "Nhóm nút phải có ổ cắm đầu ra"
-
-
-msgid "Node group's first output must be a color output"
-msgstr "Đầu ra đầu tiên của nhóm nút phải là một hình học"
-
-
 msgid "Fac"
 msgstr "Hệ Số"
 
@@ -141174,6 +141102,10 @@ msgstr "Áp Dụng Cơ Sở"
 
 msgid "Replace Alpha"
 msgstr "Thay Thế Toàn Bộ"
+
+
+msgid "SDF"
+msgstr "Bidirectional Scattering Distribution Function: Hàm Phân Bổ Tán Xạ Hai Chiều"
 
 
 msgid "Invert stabilization to reintroduce motion to the image"
@@ -142383,10 +142315,6 @@ msgstr "Biến hóa từ không gian chỉ mục khung lưới đồ thị sang 
 
 msgid "Default value outside of grid voxels"
 msgstr "Giá trị mặc định bên ngoài các thể tích tử của khung lưới đồ thị"
-
-
-msgid "SDF"
-msgstr "Bidirectional Scattering Distribution Function: Hàm Phân Bổ Tán Xạ Hai Chiều"
 
 
 msgid "Values larger than the threshold are inside the generated mesh"
@@ -143791,8 +143719,24 @@ msgid "Inspection index is out of range"
 msgstr "Chỉ số điều tra nằm ngoài phạm vi"
 
 
+msgid "Unsupported Inputs"
+msgstr "Ngữ cảnh chưa được hỗ trợ"
+
+
+msgid "No Output"
+msgstr "Đầu Ra của Nút"
+
+
 msgid "Unused Output"
 msgstr "Đầu Ra Chưa Sử Dụng"
+
+
+msgid "Node group must have a Color output socket"
+msgstr "Nhóm nút phải có ổ cắm đầu ra"
+
+
+msgid "Node group's first output must be a color output"
+msgstr "Đầu ra đầu tiên của nhóm nút phải là một hình học"
 
 
 msgid "There are multiple group output nodes and this one is not active"

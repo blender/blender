@@ -460,17 +460,17 @@ static void saction_channel_region_message_subscribe(const wmRegionMessageSubscr
   {
     wmMsgParams_RNA msg_key_params = {{}};
     StructRNA *type_array[] = {
-        &RNA_DopeSheet, /* Dope-sheet filters. */
+        RNA_DopeSheet, /* Dope-sheet filters. */
 
-        &RNA_ActionGroup, /* channel groups */
+        RNA_ActionGroup, /* channel groups */
 
-        &RNA_FCurve, /* F-Curve */
-        &RNA_Keyframe,
-        &RNA_FCurveSample,
+        RNA_FCurve, /* F-Curve */
+        RNA_Keyframe,
+        RNA_FCurveSample,
 
-        &RNA_Annotation, /* Grease Pencil */
-        &RNA_AnnotationLayer,
-        &RNA_AnnotationFrame,
+        RNA_Annotation, /* Grease Pencil */
+        RNA_AnnotationLayer,
+        RNA_AnnotationFrame,
     };
 
     for (int i = 0; i < ARRAY_SIZE(type_array); i++) {

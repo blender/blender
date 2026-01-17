@@ -8,7 +8,6 @@ set(INC
 )
 
 set(INC_SYS
-
 )
 
 # Part of the `blender` binary (sources for data-files are appended).

@@ -426,7 +426,6 @@ RayTraceResult RayTraceModule::render(RayTraceBuffer &rt_buffer,
   const int2 extent = inst_.film.render_extent_get();
   const int2 tracing_res = math::divide_ceil(extent, int2(resolution_scale));
   const int2 tracing_res_horizon = math::divide_ceil(extent, int2(horizon_resolution_scale));
-  const int2 dummy_extent(1, 1);
   const int2 group_size(RAYTRACE_GROUP_SIZE);
 
   const int2 denoise_tiles = divide_ceil(extent, group_size);

@@ -373,125 +373,125 @@ static PointerRNA rna_ID_original_get(PointerRNA *ptr)
 
 short RNA_type_to_ID_code(const StructRNA *type)
 {
-  const StructRNA *base_type = RNA_struct_base_child_of(type, &RNA_ID);
+  const StructRNA *base_type = RNA_struct_base_child_of(type, RNA_ID);
   if (UNLIKELY(base_type == nullptr)) {
     return 0;
   }
-  if (base_type == &RNA_Action) {
+  if (base_type == RNA_Action) {
     return ID_AC;
   }
-  if (base_type == &RNA_Armature) {
+  if (base_type == RNA_Armature) {
     return ID_AR;
   }
-  if (base_type == &RNA_Brush) {
+  if (base_type == RNA_Brush) {
     return ID_BR;
   }
-  if (base_type == &RNA_CacheFile) {
+  if (base_type == RNA_CacheFile) {
     return ID_CF;
   }
-  if (base_type == &RNA_Camera) {
+  if (base_type == RNA_Camera) {
     return ID_CA;
   }
-  if (base_type == &RNA_Curve) {
+  if (base_type == RNA_Curve) {
     return ID_CU_LEGACY;
   }
-  if (base_type == &RNA_Annotation) {
+  if (base_type == RNA_Annotation) {
     return ID_GD_LEGACY;
   }
-  if (base_type == &RNA_GreasePencil) {
+  if (base_type == RNA_GreasePencil) {
     return ID_GP;
   }
-  if (base_type == &RNA_Collection) {
+  if (base_type == RNA_Collection) {
     return ID_GR;
   }
-  if (base_type == &RNA_Image) {
+  if (base_type == RNA_Image) {
     return ID_IM;
   }
-  if (base_type == &RNA_Key) {
+  if (base_type == RNA_Key) {
     return ID_KE;
   }
-  if (base_type == &RNA_Light) {
+  if (base_type == RNA_Light) {
     return ID_LA;
   }
-  if (base_type == &RNA_Library) {
+  if (base_type == RNA_Library) {
     return ID_LI;
   }
-  if (base_type == &RNA_FreestyleLineStyle) {
+  if (base_type == RNA_FreestyleLineStyle) {
     return ID_LS;
   }
-  if (base_type == &RNA_Curves) {
+  if (base_type == RNA_Curves) {
     return ID_CV;
   }
-  if (base_type == &RNA_Lattice) {
+  if (base_type == RNA_Lattice) {
     return ID_LT;
   }
-  if (base_type == &RNA_Material) {
+  if (base_type == RNA_Material) {
     return ID_MA;
   }
-  if (base_type == &RNA_MetaBall) {
+  if (base_type == RNA_MetaBall) {
     return ID_MB;
   }
-  if (base_type == &RNA_MovieClip) {
+  if (base_type == RNA_MovieClip) {
     return ID_MC;
   }
-  if (base_type == &RNA_Mesh) {
+  if (base_type == RNA_Mesh) {
     return ID_ME;
   }
-  if (base_type == &RNA_Mask) {
+  if (base_type == RNA_Mask) {
     return ID_MSK;
   }
-  if (base_type == &RNA_NodeTree) {
+  if (base_type == RNA_NodeTree) {
     return ID_NT;
   }
-  if (base_type == &RNA_Object) {
+  if (base_type == RNA_Object) {
     return ID_OB;
   }
-  if (base_type == &RNA_ParticleSettings) {
+  if (base_type == RNA_ParticleSettings) {
     return ID_PA;
   }
-  if (base_type == &RNA_Palette) {
+  if (base_type == RNA_Palette) {
     return ID_PAL;
   }
-  if (base_type == &RNA_PaintCurve) {
+  if (base_type == RNA_PaintCurve) {
     return ID_PC;
   }
-  if (base_type == &RNA_PointCloud) {
+  if (base_type == RNA_PointCloud) {
     return ID_PT;
   }
-  if (base_type == &RNA_LightProbe) {
+  if (base_type == RNA_LightProbe) {
     return ID_LP;
   }
-  if (base_type == &RNA_Scene) {
+  if (base_type == RNA_Scene) {
     return ID_SCE;
   }
-  if (base_type == &RNA_Screen) {
+  if (base_type == RNA_Screen) {
     return ID_SCR;
   }
-  if (base_type == &RNA_Sound) {
+  if (base_type == RNA_Sound) {
     return ID_SO;
   }
-  if (base_type == &RNA_Speaker) {
+  if (base_type == RNA_Speaker) {
     return ID_SPK;
   }
-  if (base_type == &RNA_Texture) {
+  if (base_type == RNA_Texture) {
     return ID_TE;
   }
-  if (base_type == &RNA_Text) {
+  if (base_type == RNA_Text) {
     return ID_TXT;
   }
-  if (base_type == &RNA_VectorFont) {
+  if (base_type == RNA_VectorFont) {
     return ID_VF;
   }
-  if (base_type == &RNA_Volume) {
+  if (base_type == RNA_Volume) {
     return ID_VO;
   }
-  if (base_type == &RNA_WorkSpace) {
+  if (base_type == RNA_WorkSpace) {
     return ID_WS;
   }
-  if (base_type == &RNA_World) {
+  if (base_type == RNA_World) {
     return ID_WO;
   }
-  if (base_type == &RNA_WindowManager) {
+  if (base_type == RNA_WindowManager) {
     return ID_WM;
   }
 
@@ -504,86 +504,86 @@ StructRNA *ID_code_to_RNA_type(short idcode)
    * so adding new ID's causes a warning. */
   switch (ID_Type(idcode)) {
     case ID_AC:
-      return &RNA_Action;
+      return RNA_Action;
     case ID_AR:
-      return &RNA_Armature;
+      return RNA_Armature;
     case ID_BR:
-      return &RNA_Brush;
+      return RNA_Brush;
     case ID_CA:
-      return &RNA_Camera;
+      return RNA_Camera;
     case ID_CF:
-      return &RNA_CacheFile;
+      return RNA_CacheFile;
     case ID_CU_LEGACY:
-      return &RNA_Curve;
+      return RNA_Curve;
     case ID_GD_LEGACY:
-      return &RNA_Annotation;
+      return RNA_Annotation;
     case ID_GP:
-      return &RNA_GreasePencil;
+      return RNA_GreasePencil;
     case ID_GR:
-      return &RNA_Collection;
+      return RNA_Collection;
     case ID_CV:
-      return &RNA_Curves;
+      return RNA_Curves;
     case ID_IM:
-      return &RNA_Image;
+      return RNA_Image;
     case ID_KE:
-      return &RNA_Key;
+      return RNA_Key;
     case ID_LA:
-      return &RNA_Light;
+      return RNA_Light;
     case ID_LI:
-      return &RNA_Library;
+      return RNA_Library;
     case ID_LS:
-      return &RNA_FreestyleLineStyle;
+      return RNA_FreestyleLineStyle;
     case ID_LT:
-      return &RNA_Lattice;
+      return RNA_Lattice;
     case ID_MA:
-      return &RNA_Material;
+      return RNA_Material;
     case ID_MB:
-      return &RNA_MetaBall;
+      return RNA_MetaBall;
     case ID_MC:
-      return &RNA_MovieClip;
+      return RNA_MovieClip;
     case ID_ME:
-      return &RNA_Mesh;
+      return RNA_Mesh;
     case ID_MSK:
-      return &RNA_Mask;
+      return RNA_Mask;
     case ID_NT:
-      return &RNA_NodeTree;
+      return RNA_NodeTree;
     case ID_OB:
-      return &RNA_Object;
+      return RNA_Object;
     case ID_PA:
-      return &RNA_ParticleSettings;
+      return RNA_ParticleSettings;
     case ID_PAL:
-      return &RNA_Palette;
+      return RNA_Palette;
     case ID_PC:
-      return &RNA_PaintCurve;
+      return RNA_PaintCurve;
     case ID_PT:
-      return &RNA_PointCloud;
+      return RNA_PointCloud;
     case ID_LP:
-      return &RNA_LightProbe;
+      return RNA_LightProbe;
     case ID_SCE:
-      return &RNA_Scene;
+      return RNA_Scene;
     case ID_SCR:
-      return &RNA_Screen;
+      return RNA_Screen;
     case ID_SO:
-      return &RNA_Sound;
+      return RNA_Sound;
     case ID_SPK:
-      return &RNA_Speaker;
+      return RNA_Speaker;
     case ID_TE:
-      return &RNA_Texture;
+      return RNA_Texture;
     case ID_TXT:
-      return &RNA_Text;
+      return RNA_Text;
     case ID_VF:
-      return &RNA_VectorFont;
+      return RNA_VectorFont;
     case ID_VO:
-      return &RNA_Volume;
+      return RNA_Volume;
     case ID_WM:
-      return &RNA_WindowManager;
+      return RNA_WindowManager;
     case ID_WO:
-      return &RNA_World;
+      return RNA_World;
     case ID_WS:
-      return &RNA_WorkSpace;
+      return RNA_WorkSpace;
   }
 
-  return &RNA_ID;
+  return RNA_ID;
 }
 
 StructRNA *rna_ID_refine(PointerRNA *ptr)
@@ -689,7 +689,7 @@ StructRNA *rna_PropertyGroup_register(Main * /*bmain*/,
                                       StructFreeFunc /*free*/)
 {
   /* create dummy pointer */
-  PointerRNA dummy_ptr = RNA_pointer_create_discrete(nullptr, &RNA_PropertyGroup, nullptr);
+  PointerRNA dummy_ptr = RNA_pointer_create_discrete(nullptr, RNA_PropertyGroup, nullptr);
 
   /* validate the python class */
   if (validate(&dummy_ptr, data, nullptr) != 0) {
@@ -709,7 +709,7 @@ StructRNA *rna_PropertyGroup_register(Main * /*bmain*/,
     return nullptr;
   }
 
-  return RNA_def_struct_ptr(&RNA_blender_rna_get(), identifier, &RNA_PropertyGroup); /* XXX */
+  return RNA_def_struct_ptr(&RNA_blender_rna_get(), identifier, RNA_PropertyGroup); /* XXX */
 }
 
 StructRNA *rna_PropertyGroup_refine(PointerRNA *ptr)
@@ -1533,7 +1533,7 @@ static PointerRNA rna_IDPreview_get(PointerRNA *ptr)
   ID *id = static_cast<ID *>(ptr->data);
   PreviewImage *prv_img = BKE_previewimg_id_get(id);
 
-  return RNA_pointer_create_with_parent(*ptr, &RNA_ImagePreview, prv_img);
+  return RNA_pointer_create_with_parent(*ptr, RNA_ImagePreview, prv_img);
 }
 
 static IDProperty **rna_IDPropertyWrapPtr_idprops(PointerRNA *ptr)
@@ -1577,7 +1577,7 @@ static void rna_Library_archive_libraries_next(CollectionPropertyIterator *iter)
 static PointerRNA rna_Library_archive_libraries_get(CollectionPropertyIterator *iter)
 {
   Library **archive_libraries_iter = static_cast<Library **>(iter->internal.custom);
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_Library, *archive_libraries_iter);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_Library, *archive_libraries_iter);
 }
 
 static int rna_Library_archive_libraries_length(PointerRNA *ptr)
@@ -1594,7 +1594,7 @@ static bool rna_Library_archive_libraries_lookupint(PointerRNA *ptr, int key, Po
   }
 
   Library *archive_library = lib->runtime->archived_libraries[key];
-  rna_pointer_create_with_ancestors(*ptr, &RNA_Library, archive_library, *r_ptr);
+  rna_pointer_create_with_ancestors(*ptr, RNA_Library, archive_library, *r_ptr);
   return true;
 }
 

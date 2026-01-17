@@ -95,6 +95,7 @@ set(SRC
   intern/gpu_shader_dependency.cc
   intern/gpu_shader_interface.cc
   intern/gpu_shader_log.cc
+  intern/gpu_shader_preprocessor.cc
   intern/gpu_state.cc
   intern/gpu_storage_buffer.cc
   intern/gpu_texture.cc
@@ -183,6 +184,7 @@ set(SRC
   intern/gpu_state_private.hh
   intern/gpu_storage_buffer_private.hh
   intern/gpu_texture_private.hh
+  intern/gpu_texture_pool_private.hh
   intern/gpu_uniform_buffer_private.hh
   intern/gpu_vertex_format_private.hh
 
@@ -231,6 +233,7 @@ set(OPENGL_SRC
   opengl/gl_state.hh
   opengl/gl_storage_buffer.hh
   opengl/gl_texture.hh
+  opengl/gl_texture_pool.hh
   opengl/gl_uniform_buffer.hh
   opengl/gl_vertex_array.hh
   opengl/gl_vertex_buffer.hh
@@ -281,6 +284,7 @@ set(VULKAN_SRC
   vulkan/vk_storage_buffer.cc
   vulkan/vk_streaming_buffer.cc
   vulkan/vk_texture.cc
+  vulkan/vk_texture_pool.cc
   vulkan/vk_to_string.cc
   vulkan/vk_uniform_buffer.cc
   vulkan/vk_vertex_attribute_object.cc
@@ -357,6 +361,7 @@ set(VULKAN_SRC
   vulkan/vk_storage_buffer.hh
   vulkan/vk_streaming_buffer.hh
   vulkan/vk_texture.hh
+  vulkan/vk_texture_pool.hh
   vulkan/vk_to_string.hh
   vulkan/vk_uniform_buffer.hh
   vulkan/vk_vertex_attribute_object.hh
@@ -411,6 +416,7 @@ set(METAL_SRC
   metal/mtl_state.hh
   metal/mtl_storage_buffer.hh
   metal/mtl_texture.hh
+  metal/mtl_texture_pool.hh
   metal/mtl_uniform_buffer.hh
   metal/mtl_vertex_buffer.hh
 )
@@ -432,14 +438,11 @@ set(LIB
 
 # Select Backend source based on availability
 if(WITH_OPENGL_BACKEND)
-  list(APPEND INC_SYS
-    ${Epoxy_INCLUDE_DIRS}
-  )
   list(APPEND SRC
     ${OPENGL_SRC}
   )
   list(APPEND LIB
-    ${Epoxy_LIBRARIES}
+    PRIVATE bf::dependencies::epoxy
   )
   add_definitions(-DWITH_OPENGL_BACKEND)
 endif()
@@ -450,25 +453,14 @@ endif()
 
 
 if(WITH_VULKAN_BACKEND)
-  list(APPEND INC
-    ../../../extern/vulkan_memory_allocator
-  )
-  list(APPEND INC_SYS
-    ${VULKAN_INCLUDE_DIRS}
-  )
-
-  list(APPEND INC_SYS
-    ${SHADERC_INCLUDE_DIRS}
-  )
   list(APPEND SRC
     ${VULKAN_SRC}
   )
-
   list(APPEND LIB
-    ${VULKAN_LIBRARIES}
-    ${SHADERC_LIBRARIES}
-    extern_vulkan_memory_allocator
+    PRIVATE bf::extern::vulkan_memory_allocator
     PRIVATE bf::extern::xxhash
+    PRIVATE bf::dependencies::optional::vulkan
+    PRIVATE bf::dependencies::optional::shaderc
   )
 
   add_definitions(-DWITH_VULKAN_BACKEND)

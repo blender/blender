@@ -31,7 +31,7 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
 {
   if (GS(id->name) == ID_MA) {
     /* Materials */
-    Object *ob = CTX_data_active_object(C);
+    Object *ob = (C) ? CTX_data_active_object(C) : nullptr;
     Material *ma = reinterpret_cast<Material *>(id);
     Material *ma_default;
 
@@ -42,6 +42,11 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
       ma_default = BKE_material_default_surface();
     }
 
+    if (ma->nodetree) {
+      bke::node_tree_free_embedded_tree(ma->nodetree);
+      MEM_freeN(ma->nodetree);
+      ma->nodetree = nullptr;
+    }
     ma->nodetree = bke::node_tree_copy_tree(bmain, *ma_default->nodetree);
     ma->nodetree->owner_id = &ma->id;
     for (bNode *node_iter : ma->nodetree->all_nodes()) {
@@ -54,8 +59,7 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
   else if (ELEM(GS(id->name), ID_WO, ID_LA)) {
     /* Emission */
     bNode *shader, *output;
-    bNodeTree *ntree = bke::node_tree_add_tree_embedded(
-        nullptr, id, "Shader Nodetree", ntreeType_Shader->idname);
+    bNodeTree *ntree = nullptr;
 
     if (GS(id->name) == ID_WO) {
       World *world = reinterpret_cast<World *>(id);
@@ -74,6 +78,8 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
                  &world->horr);
     }
     else {
+      ntree = bke::node_tree_add_tree_embedded(
+          nullptr, id, "Shader Nodetree", ntreeType_Shader->idname);
       shader = bke::node_add_static_node(nullptr, *ntree, SH_NODE_EMISSION);
       output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_LIGHT);
       bke::node_add_link(*ntree,

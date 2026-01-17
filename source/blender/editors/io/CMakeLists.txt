@@ -17,7 +17,6 @@ set(INC
 )
 
 set(INC_SYS
-
 )
 
 set(SRC
@@ -102,11 +101,9 @@ if(WITH_ALEMBIC)
 endif()
 
 if(WITH_USD)
-  list(APPEND INC_SYS
-    ${USD_INCLUDE_DIRS}
-  )
   list(APPEND LIB
     bf_io_usd
+    PRIVATE bf::dependencies::optional::usd
   )
   add_definitions(-DWITH_USD)
 endif()

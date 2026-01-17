@@ -96,6 +96,7 @@ set(SRC_HEADERS
   projection.h
   projection_inverse.h
   queue.h
+  random_access_iterator_mixin.h
   rect.h
   set.h
   simd.h
@@ -107,7 +108,6 @@ set(SRC_HEADERS
   system.h
   task.h
   tbb.h
-  texture.h
   thread.h
   time.h
   transform.h
@@ -117,6 +117,7 @@ set(SRC_HEADERS
   types_float3.h
   types_float4.h
   types_float8.h
+  types_image.h
   types_int2.h
   types_int3.h
   types_int4.h
@@ -159,11 +160,8 @@ endif()
 
 if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
-  list(APPEND INC_SYS
-    ${OPENCOLORIO_INCLUDE_DIRS}
-  )
   list(APPEND LIB
-    ${OPENCOLORIO_LIBRARIES}
+    bf::dependencies::optional::opencolorio
   )
   if(WIN32 AND NOT USD_OVERRIDE_OPENCOLORIO)
     add_definitions(-DOpenColorIO_SKIP_IMPORTS)

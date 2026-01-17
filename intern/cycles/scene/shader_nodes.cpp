@@ -20,6 +20,7 @@
 #include "sky_hosek.h"
 #include "sky_nishita.h"
 
+#include "util/color.h"
 #include "util/colorspace.h"
 #include "util/log.h"
 #include "util/math_base.h"
@@ -381,7 +382,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
 
   /* All tiles have the same metadata. */
   const ImageMetaData metadata = handle.metadata(compiler.progress);
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -434,7 +435,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata(compiler.progress);
   const bool is_float = metadata.is_float();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   compiler.parameter_texture("filename", handle);
 
@@ -544,7 +545,7 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
   }
 
   const ImageMetaData metadata = handle.metadata(compiler.progress);
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -575,7 +576,7 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata(compiler.progress);
   const bool is_float = metadata.is_float();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   compiler.parameter_texture("filename", handle);
 

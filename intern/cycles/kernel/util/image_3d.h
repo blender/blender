@@ -7,7 +7,7 @@
 #include "kernel/globals.h"
 #include "kernel/sample/lcg.h"
 
-#include "util/texture.h"
+#include "util/types_image.h"
 
 #if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 #  ifdef WITH_NANOVDB
@@ -256,7 +256,7 @@ ccl_device float4 kernel_image_interp_3d(KernelGlobals kg,
   (void)stochastic;
 #endif
 
-  return IMAGE_TEXTURE_MISSING_RGBA;
+  return IMAGE_MISSING_RGBA;
 }
 
 #ifndef __KERNEL_GPU__

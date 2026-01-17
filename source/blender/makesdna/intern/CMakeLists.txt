@@ -11,14 +11,13 @@ set(INC
 )
 
 set(INC_SYS
-
 )
 
 set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::dependencies::optional::tbb
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::dependencies::optional::tbb
 )
 
 add_definitions(-DWITH_DNA_GHASH)
@@ -90,12 +89,7 @@ setup_platform_linker_libs(makesdna)
 blender_target_include_dirs(makesdna ${INC})
 blender_target_include_dirs_sys(makesdna ${INC_SYS})
 target_link_libraries(makesdna ${LIB})
-
-if(WIN32 AND NOT UNIX)
-  if(DEFINED PTHREADS_LIBRARIES)
-    target_link_libraries(makesdna PRIVATE ${PTHREADS_LIBRARIES})
-  endif()
-endif()
+target_link_libraries(makesdna PRIVATE bf::dependencies::pthreads)
 
 # Output dna.cc
 add_custom_command(
@@ -170,7 +164,6 @@ set(INC
 )
 
 set(INC_SYS
-
 )
 
 set(SRC

@@ -622,6 +622,7 @@ MenuBuilder &MenuBuilder::static_items(const EnumPropertyItem *items)
       runtime_item.name = item->name;
       runtime_item.description = item->description;
       runtime_item.identifier = item->value;
+      runtime_item.icon = item->icon;
       runtime_items->items.append(std::move(runtime_item));
     }
     return ImplicitSharingPtr<bke::RuntimeNodeEnumItems>(runtime_items);

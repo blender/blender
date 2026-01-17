@@ -145,7 +145,6 @@ static BPy_GeometrySet *BPy_GeometrySet_static_from_evaluated_object(PyObject * 
     PyErr_SetString(PyExc_TypeError, "Object is not owned by a depsgraph");
     return nullptr;
   }
-  Scene *scene = DEG_get_input_scene(depsgraph);
 
   GeometrySet geometry;
   if (is_instance_collection) {
@@ -155,8 +154,7 @@ static BPy_GeometrySet *BPy_GeometrySet_static_from_evaluated_object(PyObject * 
     geometry.replace_instances(instances);
   }
   else {
-    bke::Instances instances = object_duplilist_legacy_instances(
-        *depsgraph, *scene, *evaluated_object);
+    bke::Instances instances = object_duplilist_legacy_instances(*depsgraph, *evaluated_object);
     geometry = bke::object_get_evaluated_geometry_set(*evaluated_object, false);
     if (instances.instances_num() > 0) {
       geometry.replace_instances(new bke::Instances(std::move(instances)));

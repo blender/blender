@@ -130,7 +130,7 @@ Array<float3> BKE_multires_create_deformed_base_mesh_vert_coords(Depsgraph *deps
   object_for_eval.runtime = &runtime;
 
   object_for_eval.data = object->data;
-  object_for_eval.sculpt = nullptr;
+  object_for_eval.runtime->sculpt_session = nullptr;
 
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   ModifierEvalContext mesh_eval_context = {depsgraph, &object_for_eval, ModifierApplyFlag(0)};
@@ -272,7 +272,7 @@ void multires_mark_as_modified(Depsgraph *depsgraph,
 
 void multires_flush_sculpt_updates(Object *object)
 {
-  if (object == nullptr || object->sculpt == nullptr) {
+  if (object == nullptr || object->runtime->sculpt_session == nullptr) {
     return;
   }
   const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(*object);
@@ -280,10 +280,8 @@ void multires_flush_sculpt_updates(Object *object)
     return;
   }
 
-  SculptSession *sculpt_session = object->sculpt;
-  if (pbvh->type() != bke::pbvh::Type::Grids || !sculpt_session->multires.active ||
-      sculpt_session->multires.modifier == nullptr)
-  {
+  SculptSession *sculpt_session = object->runtime->sculpt_session;
+  if (pbvh->type() != bke::pbvh::Type::Grids || sculpt_session->multires_modifier == nullptr) {
     return;
   }
 
@@ -321,7 +319,7 @@ void multires_flush_sculpt_updates(Object *object)
   }
 
   multiresModifier_reshapeFromCCG(
-      sculpt_session->multires.modifier->totlvl, mesh, sculpt_session->subdiv_ccg);
+      sculpt_session->multires_modifier->totlvl, mesh, sculpt_session->subdiv_ccg);
 
   subdiv_ccg->dirty.coords = false;
   subdiv_ccg->dirty.hidden = false;
@@ -331,7 +329,7 @@ void multires_force_sculpt_rebuild(Object *object)
 {
   multires_flush_sculpt_updates(object);
 
-  if (object == nullptr || object->sculpt == nullptr) {
+  if (object == nullptr || object->runtime->sculpt_session == nullptr) {
     return;
   }
 
@@ -553,7 +551,7 @@ void multires_stitch_grids(Object *ob)
   if (ob == nullptr) {
     return;
   }
-  SculptSession *sculpt_session = ob->sculpt;
+  SculptSession *sculpt_session = ob->runtime->sculpt_session;
   if (sculpt_session == nullptr) {
     return;
   }

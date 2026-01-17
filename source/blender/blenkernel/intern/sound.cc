@@ -615,7 +615,7 @@ void BKE_sound_init(Main *bmain)
 
   g_state.buffer_size = U.mixbufsize < 128 ? 1024 : U.mixbufsize;
 
-  if (requested_specs.rate < AUD_RATE_8000) {
+  if (requested_specs.rate < double(AUD_RATE_8000)) {
     requested_specs.rate = AUD_RATE_48000;
   }
 

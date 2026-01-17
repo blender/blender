@@ -21,6 +21,7 @@
 #include "BKE_brush.hh"
 #include "BKE_ccg.hh"
 #include "BKE_colortools.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 
@@ -1119,7 +1120,7 @@ static void calc_bend_mesh(const Depsgraph &depsgraph,
                            const eBrushDeformTarget deform_target,
                            const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -1177,7 +1178,7 @@ static void calc_bend_grids(const Depsgraph &depsgraph,
                             const float strength,
                             const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -1243,7 +1244,7 @@ static void calc_bend_bmesh(const Depsgraph &depsgraph,
                             const eBrushDeformTarget deform_target)
 
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -1326,7 +1327,7 @@ static void do_bend_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -1408,7 +1409,7 @@ static void calc_slide_mesh(const Depsgraph &depsgraph,
                             const eBrushDeformTarget deform_target,
                             const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -1465,7 +1466,7 @@ static void calc_slide_grids(const Depsgraph &depsgraph,
                              const float strength,
                              const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -1529,7 +1530,7 @@ static void calc_slide_bmesh(const Depsgraph &depsgraph,
                              const eBrushDeformTarget deform_target)
 
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -1610,7 +1611,7 @@ static void do_slide_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -1689,7 +1690,7 @@ static void calc_inflate_mesh(const Depsgraph &depsgraph,
                               const eBrushDeformTarget deform_target,
                               const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -1741,7 +1742,7 @@ static void calc_inflate_grids(const Depsgraph &depsgraph,
                                const float strength,
                                const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -1800,7 +1801,7 @@ static void calc_inflate_bmesh(const Depsgraph &depsgraph,
                                const eBrushDeformTarget deform_target)
 
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -1877,7 +1878,7 @@ static void do_inflate_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -1954,7 +1955,7 @@ static void calc_grab_mesh(const Depsgraph &depsgraph,
                            const eBrushDeformTarget deform_target,
                            const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -2007,7 +2008,7 @@ static void calc_grab_grids(const Depsgraph &depsgraph,
                             const float strength,
                             const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -2067,7 +2068,7 @@ static void calc_grab_bmesh(const Depsgraph &depsgraph,
                             const eBrushDeformTarget deform_target)
 
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -2119,7 +2120,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
                           const float strength,
                           const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -2146,7 +2147,7 @@ static void do_grab_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -2227,7 +2228,7 @@ static void calc_twist_mesh(const Depsgraph &depsgraph,
                             const eBrushDeformTarget deform_target,
                             const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -2282,7 +2283,7 @@ static void calc_twist_grids(const Depsgraph &depsgraph,
                              const float strength,
                              const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -2344,7 +2345,7 @@ static void calc_twist_bmesh(const Depsgraph &depsgraph,
                              const eBrushDeformTarget deform_target)
 
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -2423,7 +2424,7 @@ static void do_twist_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -2563,7 +2564,7 @@ static void calc_smooth_mesh(const Sculpt &sd,
                              const eBrushDeformTarget deform_target,
                              const PositionDeformData &position_data)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
@@ -2630,7 +2631,7 @@ static void calc_smooth_grids(const Sculpt &sd,
                               const float strength,
                               const eBrushDeformTarget deform_target)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
@@ -2699,7 +2700,7 @@ static void calc_smooth_bmesh(const Sculpt &sd,
                               const eBrushDeformTarget deform_target)
 
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
 
   const Set<BMVert *, 0> verts = BKE_pbvh_bmesh_node_unique_verts(&node);
@@ -2791,7 +2792,7 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+      SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
       MutableSpan<float3> positions = subdiv_ccg.positions;
       threading::EnumerableThreadSpecific<LocalDataGrids> all_tls;
       MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
@@ -3041,7 +3042,7 @@ static void init_boundary_mesh(const Depsgraph &depsgraph,
                                const Brush &brush,
                                const ePaintSymmetryFlags symm_area)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   const Mesh &mesh = *id_cast<const Mesh *>(object.data);
@@ -3100,7 +3101,7 @@ static void init_boundary_grids(Object &object,
                                 const Brush &brush,
                                 const ePaintSymmetryFlags symm_area)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
@@ -3157,7 +3158,7 @@ static void init_boundary_bmesh(Object &object,
                                 const Brush &brush,
                                 const ePaintSymmetryFlags symm_area)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   BMesh *bm = ss.bm;
@@ -3253,7 +3254,7 @@ void do_boundary_brush(const Depsgraph &depsgraph,
                        Object &ob,
                        const IndexMask &node_mask)
 {
-  SculptSession &ss = *ob.sculpt;
+  SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
@@ -3351,7 +3352,7 @@ std::unique_ptr<SculptBoundary> data_init(const Depsgraph &depsgraph,
 {
   /* TODO: Temporary bridge method to help in refactoring, this method should be deprecated
    * entirely. */
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   switch (pbvh.type()) {
@@ -3379,7 +3380,7 @@ std::unique_ptr<SculptBoundary> data_init_mesh(const Depsgraph &depsgraph,
                                                const int initial_vert,
                                                const float radius)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   boundary::ensure_boundary_info(object);
 
@@ -3460,7 +3461,7 @@ std::unique_ptr<SculptBoundary> data_init_grids(Object &object,
                                                 const SubdivCCGCoord initial_vert,
                                                 const float radius)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   boundary::ensure_boundary_info(object);
 
@@ -3525,7 +3526,7 @@ std::unique_ptr<SculptBoundary> data_init_bmesh(Object &object,
                                                 BMVert *initial_vert,
                                                 const float radius)
 {
-  SculptSession &ss = *object.sculpt;
+  SculptSession &ss = *object.runtime->sculpt_session;
 
   vert_random_access_ensure(object);
   boundary::ensure_boundary_info(object);
@@ -3571,7 +3572,7 @@ std::unique_ptr<SculptBoundaryPreview> preview_data_init(const Depsgraph &depsgr
                                                          const Brush *brush,
                                                          const float radius)
 {
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   ActiveVert initial_vert = ss.active_vert();
 
   if (std::holds_alternative<std::monostate>(initial_vert)) {

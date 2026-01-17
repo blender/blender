@@ -13,7 +13,6 @@ set(INC
 )
 
 set(INC_SYS
-  ../../../../extern/fmtlib/include
 )
 
 set(SRC

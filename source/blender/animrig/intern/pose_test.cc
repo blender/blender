@@ -22,6 +22,9 @@
 #include "ANIM_pose.hh"
 
 #include "CLG_log.h"
+
+#include "RNA_define.hh"
+
 #include "testing/testing.h"
 
 namespace blender {
@@ -48,11 +51,14 @@ class PoseTest : public testing::Test {
 
     /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
     BKE_idtype_init();
+
+    RNA_init();
   }
 
   static void TearDownTestSuite()
   {
     CLG_exit();
+    RNA_exit();
   }
 
   void SetUp() override

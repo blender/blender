@@ -57,8 +57,8 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
   PRIVATE bf::windowmanager
-  extern_curve_fit_nd
-  extern_fmtlib
+  PRIVATE bf::extern::curve_fit_nd
+  PRIVATE bf::extern::fmtlib
 )
 
 blender_add_lib(bf_editor_grease_pencil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -2,6 +2,16 @@
 - Mesh 'SphereMirror' vtx:20 face:24 loop:84 edge:42
     - 12 2 5 1 0 ... 1 19 18 1 2 
     - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.000, -0.566, -2.566)
     - (0.000, 0.000, -2.800)
@@ -12,10 +22,12 @@
     - (0.490, 0.566, -2.283)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
+
+- Mesh 'SphereNonUni' vtx:20 face:24 loop:84 edge:42
+    - 12 2 5 1 0 ... 1 19 18 1 2 
+    - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -24,10 +36,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-
-- Mesh 'SphereNonUni' vtx:20 face:24 loop:84 edge:42
-    - 12 2 5 1 0 ... 1 19 18 1 2 
-    - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.000, 0.212, -0.707)
     - (0.000, 0.000, -1.000)
@@ -38,10 +48,12 @@
     - (-0.612, -0.212, -0.354)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
+
+- Mesh 'SphereNonUniLargeRot' vtx:20 face:24 loop:84 edge:42
+    - 12 2 5 1 0 ... 1 19 18 1 2 
+    - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -50,10 +62,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-
-- Mesh 'SphereNonUniLargeRot' vtx:20 face:24 loop:84 edge:42
-    - 12 2 5 1 0 ... 1 19 18 1 2 
-    - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-2.707, 0.354, 0.000)
     - (-3.000, 0.000, 0.000)
@@ -64,10 +74,12 @@
     - (-2.354, -0.354, 2.449)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
+
+- Mesh 'SphereNonUniMirror' vtx:20 face:24 loop:84 edge:42
+    - 12 5 2 1 4 ... 17 19 2 1 18 
+    - 2/12 5/12 2/5 0/1 1/4 ... 18/19 13/17 0/17 2/19 1/18 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -76,10 +88,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-
-- Mesh 'SphereNonUniMirror' vtx:20 face:24 loop:84 edge:42
-    - 12 5 2 1 4 ... 17 19 2 1 18 
-    - 2/12 5/12 2/5 0/1 1/4 ... 18/19 13/17 0/17 2/19 1/18 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (2.000, -0.212, -0.707)
     - (2.000, 0.000, -1.000)
@@ -90,10 +100,12 @@
     - (1.388, 0.212, -0.354)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
+
+- Mesh 'SphereNonUniMirrorRotated' vtx:20 face:24 loop:84 edge:42
+    - 12 5 2 1 4 ... 17 19 2 1 18 
+    - 2/12 5/12 2/5 0/1 1/4 ... 18/19 13/17 0/17 2/19 1/18 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -102,10 +114,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-
-- Mesh 'SphereNonUniMirrorRotated' vtx:20 face:24 loop:84 edge:42
-    - 12 5 2 1 4 ... 17 19 2 1 18 
-    - 2/12 5/12 2/5 0/1 1/4 ... 18/19 13/17 0/17 2/19 1/18 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (3.525, 0.303, -0.477)
     - (3.564, 0.612, -0.660)
@@ -116,10 +126,20 @@
     - (3.748, 0.653, 0.236)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
+
+- Mesh 'SphereNonUniMirrorUVs' vtx:20 face:24 loop:84 edge:42
+    - 12 2 5 1 0 ... 1 19 18 1 2 
+    - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -128,10 +148,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-
-- Mesh 'SphereNonUniMirrorUVs' vtx:20 face:24 loop:84 edge:42
-    - 12 2 5 1 0 ... 1 19 18 1 2 
-    - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (0.000, 0.212, 1.293)
     - (0.000, 0.000, 1.000)
@@ -142,10 +160,12 @@
     - (-0.612, -0.212, 1.646)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
+
+- Mesh 'SphereScale' vtx:20 face:24 loop:84 edge:42
+    - 12 2 5 1 0 ... 1 19 18 1 2 
+    - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -154,18 +174,8 @@
     - (0, 0)
     - (0, 0)
     - (0, 0)
-  - attr 'UVMap' FLOAT2 CORNER
-    - (0.000, 0.000)
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-      ...
-    - (1.000, 0.000)
-    - (1.000, 1.000)
-    - (0.000, 1.000)
-
-- Mesh 'SphereScale' vtx:20 face:24 loop:84 edge:42
-    - 12 2 5 1 0 ... 1 19 18 1 2 
-    - 5/12 2/12 2/5 1/4 0/1 ... 18/19 13/17 0/17 2/19 1/18 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (2.000, 0.566, -2.566)
     - (2.000, 0.000, -2.800)
@@ -176,18 +186,8 @@
     - (1.510, -0.566, -2.283)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
 
 ==== Objects: 7
 - Obj 'SphereMirror' MESH data:'SphereMirror'

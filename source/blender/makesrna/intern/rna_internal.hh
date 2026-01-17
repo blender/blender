@@ -665,6 +665,8 @@ std::optional<StringRefNull> rna_translate_ui_text(
 /* Internal functions that cycles uses so we need to declare (not ideal!). */
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
 
+BlenderRNA rna_blender_rna_create();
+
 #ifdef RNA_RUNTIME
 #  ifdef __GNUC__
 #    pragma GCC diagnostic ignored "-Wredundant-decls"

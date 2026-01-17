@@ -918,7 +918,7 @@ struct PositionSourceResult {
 
 static PositionSourceResult cache_source_get(const Object &object_orig, const Object &object_eval)
 {
-  const SculptSession &ss = *object_orig.sculpt;
+  const SculptSession &ss = *object_orig.runtime->sculpt_session;
   const Mesh &mesh_orig = *id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   if (object_orig.mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
@@ -947,7 +947,7 @@ static PositionSourceResult cache_source_get(const Object &object_orig, const Ob
 static const SharedCache<Vector<float3>> &vert_normals_cache_eval(const Object &object_orig,
                                                                   const Object &object_eval)
 {
-  const SculptSession &ss = *object_orig.sculpt;
+  const SculptSession &ss = *object_orig.runtime->sculpt_session;
   const Mesh &mesh_orig = *id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
 
@@ -975,7 +975,7 @@ static SharedCache<Vector<float3>> &vert_normals_cache_eval_for_write(Object &ob
 static const SharedCache<Vector<float3>> &face_normals_cache_eval(const Object &object_orig,
                                                                   const Object &object_eval)
 {
-  const SculptSession &ss = *object_orig.sculpt;
+  const SculptSession &ss = *object_orig.runtime->sculpt_session;
   const Mesh &mesh_orig = *id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
@@ -1001,7 +1001,7 @@ static SharedCache<Vector<float3>> &face_normals_cache_eval_for_write(Object &ob
 
 static Span<float3> vert_positions_eval(const Object &object_orig, const Object &object_eval)
 {
-  const SculptSession &ss = *object_orig.sculpt;
+  const SculptSession &ss = *object_orig.runtime->sculpt_session;
   const Mesh &mesh_orig = *id_cast<const Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
@@ -1021,7 +1021,7 @@ static Span<float3> vert_positions_eval(const Object &object_orig, const Object 
 
 static MutableSpan<float3> vert_positions_eval_for_write(Object &object_orig, Object &object_eval)
 {
-  SculptSession &ss = *object_orig.sculpt;
+  SculptSession &ss = *object_orig.runtime->sculpt_session;
   Mesh &mesh_orig = *id_cast<Mesh *>(object_orig.data);
   BLI_assert(bke::object::pbvh_get(object_orig)->type() == Type::Mesh);
   const PositionSourceResult result = cache_source_get(object_orig, object_eval);
@@ -1239,7 +1239,7 @@ void Tree::update_normals(Object &object_orig, Object &object_eval)
       break;
     }
     case Type::Grids: {
-      SculptSession &ss = *object_orig.sculpt;
+      SculptSession &ss = *object_orig.runtime->sculpt_session;
       SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       MutableSpan<GridsNode> nodes = this->nodes<GridsNode>();
       IndexMaskMemory memory;
@@ -1394,13 +1394,13 @@ void Tree::update_bounds(const Depsgraph &depsgraph, const Object &object)
       break;
     }
     case Type::Grids: {
-      const SculptSession &ss = *object.sculpt;
+      const SculptSession &ss = *object.runtime->sculpt_session;
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       this->update_bounds_grids(subdiv_ccg.positions, subdiv_ccg.grid_area);
       break;
     }
     case Type::BMesh: {
-      const SculptSession &ss = *object.sculpt;
+      const SculptSession &ss = *object.runtime->sculpt_session;
       this->update_bounds_bmesh(*ss.bm);
       break;
     }
@@ -1593,7 +1593,7 @@ void Tree::update_visibility(const Object &object)
       break;
     }
     case Type::Grids: {
-      const SculptSession &ss = *object.sculpt;
+      const SculptSession &ss = *object.runtime->sculpt_session;
       update_visibility_grids(*ss.subdiv_ccg, this->nodes<GridsNode>(), node_mask);
       break;
     }
@@ -2528,7 +2528,7 @@ int BKE_pbvh_debug_draw_gen_get(bke::pbvh::Node &node)
 void BKE_pbvh_sync_visibility_from_verts(Object &object)
 {
   using namespace blender::bke;
-  const SculptSession &ss = *object.sculpt;
+  const SculptSession &ss = *object.runtime->sculpt_session;
   switch (object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
       Mesh &mesh = *id_cast<Mesh *>(object.data);

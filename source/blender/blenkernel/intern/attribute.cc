@@ -363,15 +363,16 @@ static bool attribute_name_exists(const AttributeOwner &owner, const StringRef n
 
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const StringRef name)
 {
+  const StringRef name_final = name.is_empty() ? DATA_("Attribute") : name;
   if (owner.type() == AttributeOwnerType::Mesh) {
     return BLI_uniquename_cb(
         [&](const StringRef new_name) { return attribute_name_exists(owner, new_name); },
         '.',
-        name.is_empty() ? DATA_("Attribute") : name);
+        name_final);
   }
 
   bke::AttributeStorage &storage = *owner.get_storage();
-  return storage.unique_name_calc(name);
+  return storage.unique_name_calc(name_final);
 }
 
 CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
@@ -922,6 +923,7 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
     return storage.index_of(name);
   }
   int index = 0;
+  bool found = false;
   storage.foreach_with_stop([&](const bke::Attribute &attr) {
     if (!(ATTR_DOMAIN_AS_MASK(attr.domain()) & domain_mask)) {
       return true;
@@ -933,12 +935,13 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
       return true;
     }
     if (attr.name() == name) {
+      found = true;
       return false;
     }
     index++;
     return true;
   });
-  return index;
+  return found ? index : -1;
 }
 
 std::optional<StringRef> BKE_id_attributes_active_color_name(const ID *id)

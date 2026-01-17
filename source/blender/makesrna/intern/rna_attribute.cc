@@ -290,7 +290,7 @@ static AttributeOwner owner_from_pointer_rna(const PointerRNA *ptr)
 {
   /* For non-ID attribute owners, check the `ptr->type` to derive the `AttributeOwnerType`
    * and construct an `AttributeOwner` from that type and `ptr->data`. */
-  if (ptr->type == &RNA_GreasePencilDrawing) {
+  if (ptr->type == RNA_GreasePencilDrawing) {
     return AttributeOwner(AttributeOwnerType::GreasePencilDrawing, ptr->data);
   }
   return AttributeOwner::from_id(ptr->owner_id);
@@ -305,31 +305,31 @@ static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_FLOAT:
-      return &RNA_FloatAttribute;
+      return RNA_FloatAttribute;
     case CD_PROP_INT32:
-      return &RNA_IntAttribute;
+      return RNA_IntAttribute;
     case CD_PROP_FLOAT3:
-      return &RNA_FloatVectorAttribute;
+      return RNA_FloatVectorAttribute;
     case CD_PROP_COLOR:
-      return &RNA_FloatColorAttribute;
+      return RNA_FloatColorAttribute;
     case CD_PROP_BYTE_COLOR:
-      return &RNA_ByteColorAttribute;
+      return RNA_ByteColorAttribute;
     case CD_PROP_STRING:
-      return &RNA_StringAttribute;
+      return RNA_StringAttribute;
     case CD_PROP_BOOL:
-      return &RNA_BoolAttribute;
+      return RNA_BoolAttribute;
     case CD_PROP_FLOAT2:
-      return &RNA_Float2Attribute;
+      return RNA_Float2Attribute;
     case CD_PROP_INT8:
-      return &RNA_ByteIntAttribute;
+      return RNA_ByteIntAttribute;
     case CD_PROP_INT16_2D:
-      return &RNA_Short2Attribute;
+      return RNA_Short2Attribute;
     case CD_PROP_INT32_2D:
-      return &RNA_Int2Attribute;
+      return RNA_Int2Attribute;
     case CD_PROP_QUATERNION:
-      return &RNA_QuaternionAttribute;
+      return RNA_QuaternionAttribute;
     case CD_PROP_FLOAT4X4:
-      return &RNA_Float4x4Attribute;
+      return RNA_Float4x4Attribute;
     default:
       return nullptr;
   }
@@ -725,7 +725,7 @@ static PointerRNA rna_AttributeGroupID_new(
     DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
-    PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_Attribute, layer);
+    PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_Attribute, layer);
     return ptr;
   }
 
@@ -747,7 +747,7 @@ static PointerRNA rna_AttributeGroupID_new(
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
-  return RNA_pointer_create_discrete(id, &RNA_Attribute, &attr);
+  return RNA_pointer_create_discrete(id, RNA_Attribute, &attr);
 }
 
 static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA *attribute_ptr)
@@ -913,14 +913,14 @@ PointerRNA rna_AttributeGroup_lookup_string(const PointerRNA &ptr,
       }
       PointerRNA result;
       rna_pointer_create_with_ancestors(
-          ptr, &RNA_Attribute, const_cast<CustomDataLayer *>(attr.layer), result);
+          ptr, RNA_Attribute, const_cast<CustomDataLayer *>(attr.layer), result);
       return result;
     }
     else if (CustomDataLayer *layer = BKE_attribute_search_for_write(
                  owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
     {
       PointerRNA result;
-      rna_pointer_create_with_ancestors(ptr, &RNA_Attribute, layer, result);
+      rna_pointer_create_with_ancestors(ptr, RNA_Attribute, layer, result);
       return result;
     }
     return PointerRNA_NULL;
@@ -938,7 +938,7 @@ PointerRNA rna_AttributeGroup_lookup_string(const PointerRNA &ptr,
     return PointerRNA_NULL;
   }
   PointerRNA result;
-  rna_pointer_create_with_ancestors(ptr, &RNA_Attribute, attr, result);
+  rna_pointer_create_with_ancestors(ptr, RNA_Attribute, attr, result);
   return result;
 }
 
@@ -1191,7 +1191,7 @@ static PointerRNA rna_AttributeGroupGreasePencilDrawing_new(ID *grease_pencil_id
   DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);
 
-  return RNA_pointer_create_discrete(grease_pencil_id, &RNA_Attribute, &attr);
+  return RNA_pointer_create_discrete(grease_pencil_id, RNA_Attribute, &attr);
 }
 
 static void rna_AttributeGroupGreasePencilDrawing_remove(ID *grease_pencil_id,
@@ -1224,7 +1224,7 @@ static PointerRNA rna_AttributeGroupGreasePencilDrawing_active_get(PointerRNA *p
   }
   bke::AttributeStorage &storage = *owner.get_storage();
   bke::Attribute *attr = storage.lookup(*name);
-  return RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, attr);
+  return RNA_pointer_create_discrete(ptr->owner_id, RNA_Attribute, attr);
 }
 
 static void rna_AttributeGroupGreasePencilDrawing_active_set(PointerRNA *ptr,

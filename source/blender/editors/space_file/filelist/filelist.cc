@@ -1818,6 +1818,7 @@ int ED_path_extension_type(const char *path)
                                  ".mcr",
                                  ".inc",
                                  ".fountain",
+                                 ".toml",
                                  nullptr))
   {
     return FILE_TYPE_TEXT;

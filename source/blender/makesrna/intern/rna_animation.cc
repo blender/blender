@@ -192,7 +192,7 @@ static void rna_AnimData_slot_handle_override_diff(Main *bmain,
 
 static int rna_AnimData_action_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
-  BLI_assert(ptr->type == &RNA_AnimData);
+  BLI_assert(ptr->type == RNA_AnimData);
   AnimData *adt = static_cast<AnimData *>(ptr->data);
   if (!adt) {
     return PROP_EDITABLE;
@@ -338,7 +338,7 @@ PointerRNA rna_generic_action_slot_get(bAction *dna_action,
   if (!slot) {
     return PointerRNA_NULL;
   }
-  return RNA_pointer_create_discrete(&action.id, &RNA_ActionSlot, slot);
+  return RNA_pointer_create_discrete(&action.id, RNA_ActionSlot, slot);
 }
 
 static PointerRNA rna_AnimData_action_slot_get(PointerRNA *ptr)
@@ -546,7 +546,7 @@ static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks,
 static StructRNA *rna_KeyingSetInfo_refine(PointerRNA *ptr)
 {
   KeyingSetInfo *ksi = static_cast<KeyingSetInfo *>(ptr->data);
-  return (ksi->rna_ext.srna) ? ksi->rna_ext.srna : &RNA_KeyingSetInfo;
+  return (ksi->rna_ext.srna) ? ksi->rna_ext.srna : RNA_KeyingSetInfo;
 }
 
 static bool rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
@@ -584,7 +584,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   /* setup dummy type info to store static properties in */
   /* TODO: perhaps we want to get users to register
    * as if they're using 'KeyingSet' directly instead? */
-  PointerRNA dummy_ksi_ptr = RNA_pointer_create_discrete(nullptr, &RNA_KeyingSetInfo, &dummy_ksi);
+  PointerRNA dummy_ksi_ptr = RNA_pointer_create_discrete(nullptr, RNA_KeyingSetInfo, &dummy_ksi);
 
   /* validate the python class */
   if (validate(&dummy_ksi_ptr, data, have_function) != 0) {
@@ -629,7 +629,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   memcpy(ksi, &dummy_ksi, sizeof(KeyingSetInfo));
 
   /* set RNA-extensions info */
-  ksi->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), ksi->idname, &RNA_KeyingSetInfo);
+  ksi->rna_ext.srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), ksi->idname, RNA_KeyingSetInfo);
   ksi->rna_ext.data = data;
   ksi->rna_ext.call = call;
   ksi->rna_ext.free = free;
@@ -761,7 +761,7 @@ static PointerRNA rna_KeyingSet_active_ksPath_get(PointerRNA *ptr)
 {
   KeyingSet *ks = static_cast<KeyingSet *>(ptr->data);
   return RNA_pointer_create_with_parent(
-      *ptr, &RNA_KeyingSetPath, BLI_findlink(&ks->paths, ks->active_path - 1));
+      *ptr, RNA_KeyingSetPath, BLI_findlink(&ks->paths, ks->active_path - 1));
 }
 
 static void rna_KeyingSet_active_ksPath_set(PointerRNA *ptr,
@@ -803,7 +803,7 @@ static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
   if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
     ksi = animrig::keyingset_info_find_name(ks->typeinfo);
   }
-  return RNA_pointer_create_with_parent(*ptr, &RNA_KeyingSetInfo, ksi);
+  return RNA_pointer_create_with_parent(*ptr, RNA_KeyingSetInfo, ksi);
 }
 
 static KS_Path *rna_KeyingSet_paths_add(KeyingSet *keyingset,
@@ -924,7 +924,7 @@ static PointerRNA rna_NlaTrack_active_get(PointerRNA *ptr)
 {
   AnimData *adt = static_cast<AnimData *>(ptr->data);
   NlaTrack *track = BKE_nlatrack_find_active(&adt->nla_tracks);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_NlaTrack, track);
+  return RNA_pointer_create_with_parent(*ptr, RNA_NlaTrack, track);
 }
 
 static void rna_NlaTrack_active_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)

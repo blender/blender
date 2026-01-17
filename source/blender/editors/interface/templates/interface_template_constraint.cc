@@ -46,7 +46,7 @@ static void constraint_ops_extra_draw(bContext *C, Layout *layout, void *con_v)
 
   Object *ob = ed::object::context_active_object(C);
 
-  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Constraint, con);
   layout->context_ptr_set("constraint", &ptr);
   layout->operator_context_set(wm::OpCallContext::InvokeDefault);
 
@@ -105,7 +105,7 @@ static void draw_constraint_header(Layout &layout, Object *ob, bConstraint *con)
   Block *block = layout.block();
   block_func_set(block, constraint_active_func, ob, con);
 
-  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Constraint, con);
 
   if (block->panel) {
     panel_context_pointer_set(block->panel, "constraint", &ptr);
@@ -148,7 +148,7 @@ static void draw_constraint_header(Layout &layout, Object *ob, bConstraint *con)
 void template_constraint_header(Layout *layout, PointerRNA *ptr)
 {
   /* verify we have valid data */
-  if (!RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
+  if (!RNA_struct_is_a(ptr->type, RNA_Constraint)) {
     RNA_warning("Expected constraint on object");
     return;
   }
@@ -301,7 +301,7 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
 
       /* Create custom data RNA pointer. */
       PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
-      *con_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
+      *con_ptr = RNA_pointer_create_discrete(&ob->id, RNA_Constraint, con);
 
       Panel *new_panel = panel_add_instanced(C, region, &region->panels, panel_idname, con_ptr);
 
@@ -336,7 +336,7 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
       }
 
       PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
-      *con_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, &con);
+      *con_ptr = RNA_pointer_create_discrete(&ob->id, RNA_Constraint, &con);
       panel_custom_data_set(panel, con_ptr);
 
       panel = panel->next;
