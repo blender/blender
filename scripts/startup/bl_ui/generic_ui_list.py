@@ -126,9 +126,9 @@ def _draw_add_remove_buttons(
     props.list_path = list_path
     props.active_index_path = active_index_path
 
-    row = layout.row()
-    row.enabled = list_length > 0
-    props = row.operator(UILIST_OT_entry_remove.bl_idname, text="", icon='REMOVE')
+    col = layout.column()
+    col.enabled = list_length > 0
+    props = col.operator(UILIST_OT_entry_remove.bl_idname, text="", icon='REMOVE')
     props.list_path = list_path
     props.active_index_path = active_index_path
 
