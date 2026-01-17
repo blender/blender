@@ -122,7 +122,7 @@ std::optional<StringRef> BKE_paint_canvas_uvmap_name_get(const PaintModeSettings
   return std::nullopt;
 }
 
-char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob)
+std::string BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob)
 {
   std::stringstream ss;
   ss << "UV_MAP:" << BKE_paint_canvas_uvmap_name_get(settings, ob).value_or("");
@@ -144,7 +144,7 @@ char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob)
     }
   }
 
-  return BLI_strdup(ss.str().c_str());
+  return ss.str();
 }
 
 }  // namespace blender
