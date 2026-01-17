@@ -633,27 +633,12 @@ static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscri
   }
 }
 
-static bool is_mouse_over_retiming_key(const Scene *scene,
-                                       const Strip *strip,
-                                       const View2D *v2d,
-                                       const ScrArea *area,
-                                       float mouse_co_region[2])
-{
-  const SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
-
-  if (!seq::retiming_data_is_editable(strip) || !retiming_keys_can_be_displayed(sseq)) {
-    return false;
-  }
-
-  rctf retiming_keys_box = strip_retiming_keys_box_get(scene, v2d, strip);
-  return BLI_rctf_isect_pt_v(&retiming_keys_box, mouse_co_region);
-}
-
 static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
   const WorkSpace *workspace = WM_window_get_active_workspace(win);
   const Scene *scene = workspace->sequencer_scene;
   const Editing *ed = seq::editing_get(scene);
+  const SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
   const bToolRef *tref = area->runtime.tool;
 
   int wmcursor = WM_CURSOR_DEFAULT;
@@ -676,15 +661,14 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     return;
   }
 
-  float mouse_co_region[2] = {float(win->runtime->eventstate->xy[0] - region->winrct.xmin),
-                              float(win->runtime->eventstate->xy[1] - region->winrct.ymin)};
+  int mouse_co_region[2] = {win->runtime->eventstate->xy[0] - region->winrct.xmin,
+                            win->runtime->eventstate->xy[1] - region->winrct.ymin};
   float mouse_co_view[2];
   ui::view2d_region_to_view(
       &region->v2d, mouse_co_region[0], mouse_co_region[1], &mouse_co_view[0], &mouse_co_view[1]);
 
   if (STREQ(tref->idname, "builtin.blade") || STREQ(tref->idname, "builtin.slip")) {
-    int mval[2] = {int(mouse_co_region[0]), int(mouse_co_region[1])};
-    Strip *strip = strip_under_mouse_get(scene, v2d, mval);
+    Strip *strip = strip_under_mouse_get(scene, v2d, mouse_co_region);
     if (strip != nullptr) {
       const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
       const bool locked = seq::transform_is_locked(channels, strip);
@@ -718,7 +702,9 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     return;
   }
 
-  if (is_mouse_over_retiming_key(scene, selection.strip1, &region->v2d, area, mouse_co_region)) {
+  if (is_mouse_over_retiming_keys_box(
+          scene, selection.strip1, &region->v2d, sseq, mouse_co_region))
+  {
     WM_cursor_set(win, wmcursor);
     return;
   }
