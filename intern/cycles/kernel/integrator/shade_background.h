@@ -20,6 +20,20 @@
 
 CCL_NAMESPACE_BEGIN
 
+ccl_device void integrator_shade_background_cache_miss_set_resume_offset(IntegratorState state,
+                                                                         const int resume_offset)
+{
+  /* Abuse prim field that is not used by shade_background. */
+  INTEGRATOR_STATE_WRITE(state, isect, prim) = resume_offset;
+}
+
+ccl_device int integrator_shade_background_cache_miss_get_resume_offset(IntegratorState state)
+{
+  /* Abuse prim field that is not used by shade_background. */
+  const int resume_offset = INTEGRATOR_STATE_WRITE(state, isect, prim);
+  return (resume_offset == PRIM_NONE) ? 0 : resume_offset;
+}
+
 ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
                                                       IntegratorState state,
                                                       ccl_global float *ccl_restrict render_buffer,
@@ -109,6 +123,8 @@ ccl_device_inline ShaderEvalResult integrate_background(
     ShaderEvalResult result = SHADER_EVAL_EMPTY;
     L = integrator_eval_background_shader(kg, state, render_buffer, result);
     if (result == SHADER_EVAL_CACHE_MISS) {
+      integrator_shade_background_cache_miss_set_resume_offset(state,
+                                                               kernel_data.integrator.num_lights);
       return SHADER_EVAL_CACHE_MISS;
     }
 
@@ -137,8 +153,9 @@ ccl_device_inline ShaderEvalResult integrate_distant_lights(
 {
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
   const float ray_time = INTEGRATOR_STATE(state, ray, time);
+  const int lamp_offset = integrator_shade_background_cache_miss_get_resume_offset(state);
   LightSample ls ccl_optional_struct_init;
-  for (int lamp = 0; lamp < kernel_data.integrator.num_lights; lamp++) {
+  for (int lamp = lamp_offset; lamp < kernel_data.integrator.num_lights; lamp++) {
     if (distant_light_sample_from_intersection(kg, ray_D, lamp, &ls)) {
       /* Use visibility flag to skip lights. */
 #ifdef __PASSES__
@@ -180,9 +197,7 @@ ccl_device_inline ShaderEvalResult integrate_distant_lights(
       ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
       const Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
       if (emission_sd->flag & SD_CACHE_MISS) {
-        /* TODO: this will not properly restart, contribution from other lights
-         * will have already been written. Find some way to skip already does
-         * lights the next time? */
+        integrator_shade_background_cache_miss_set_resume_offset(state, lamp);
         return SHADER_EVAL_CACHE_MISS;
       }
       if (is_zero(light_eval)) {
@@ -215,7 +230,6 @@ ccl_device void integrator_shade_background(KernelGlobals kg,
   }
   result = integrate_background(kg, state, render_buffer);
   if (result == SHADER_EVAL_CACHE_MISS) {
-    /* TODO: this will not properly restart, as distant lights will be done a second time. */
     integrator_path_cache_miss(state, DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
     return;
   }
