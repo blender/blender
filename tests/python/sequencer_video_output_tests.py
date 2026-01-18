@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import platform
 import sys
 import subprocess
 
@@ -109,9 +110,14 @@ def main():
 
     report = VideoOutputReport("Sequencer", args.outdir, args.oiiotool)
     report.set_pixelated(True)
-    # Default error tolerances are quite large, lower them.
-    report.set_fail_threshold(2.0 / 255.0)
-    report.set_fail_percent(0.01)
+    if platform.system() == "Linux" and platform.machine().lower() == "aarch64":
+        # On Linux arm64 compression looks different, raise tolerances.
+        report.set_fail_threshold(10.0 / 255.0)
+        report.set_fail_percent(1.0)
+    else:
+        # Default error tolerances are quite large, lower them.
+        report.set_fail_threshold(2.0 / 255.0)
+        report.set_fail_percent(0.01)
     report.set_reference_dir("reference")
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
