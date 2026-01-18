@@ -1372,17 +1372,21 @@ endif()
 
 if(TEST_SRC_DIR_EXISTS)
   set(render_tests
-    effects
     filter
     transform
     blend_modes_byte
     blend_modes_float
-    ffmpeg
   )
+  set(video_output_tests)
 
-  set(video_output_tests
-    video_output
-  )
+  if(WITH_LIBMV)
+    list(APPEND render_tests effects)
+  endif()
+
+  if(WITH_CODEC_FFMPEG)
+    list(APPEND render_tests ffmpeg)
+    list(APPEND video_output_tests video_output)
+  endif()
 
   foreach(render_test ${render_tests})
     add_render_test(
