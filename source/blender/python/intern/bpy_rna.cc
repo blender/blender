@@ -8070,6 +8070,12 @@ static PyObject *pyrna_prop_collection_iter_next(PyObject *self)
   BPy_PropertyCollectionIterRNA *self_property = reinterpret_cast<BPy_PropertyCollectionIterRNA *>(
       self);
   if (self_property->iter->valid == false) {
+    /* Free collection iterator immediately before tp_dealloc, to break cycles the GC can not
+     * solve, between e.g. USE_PYRNA_STRUCT_REFERENCE and RNA_DepsgraphIterator.py_instance. */
+    if (self_property->iter.has_value()) {
+      RNA_property_collection_end(&self_property->iter.value());
+      self_property->iter.reset();
+    }
     PyErr_SetNone(PyExc_StopIteration);
     return nullptr;
   }
