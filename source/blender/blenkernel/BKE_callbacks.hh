@@ -114,6 +114,7 @@ enum eCbEvent {
   BKE_CB_EVT_EXTENSION_REPOS_FILES_CLEAR,
   BKE_CB_EVT_BLENDIMPORT_PRE,
   BKE_CB_EVT_BLENDIMPORT_POST,
+  BKE_CB_EVT_EXIT_PRE,
   BKE_CB_EVT_TOT,
 };
 
@@ -128,6 +129,7 @@ void BKE_callback_exec(Main *bmain, PointerRNA **pointers, int pointers_num, eCb
 void BKE_callback_exec_null(Main *bmain, eCbEvent evt);
 void BKE_callback_exec_id(Main *bmain, ID *id, eCbEvent evt);
 void BKE_callback_exec_id_depsgraph(Main *bmain, ID *id, Depsgraph *depsgraph, eCbEvent evt);
+void BKE_callback_exec_boolean(Main *bmain, bool value, eCbEvent evt);
 void BKE_callback_exec_string(Main *bmain, const char *str, eCbEvent evt);
 void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt);
