@@ -223,6 +223,18 @@ static wmOperatorStatus armature_click_extrude_exec(bContext *C, wmOperator * /*
     newbone->length = len_v3v3(newbone->head, newbone->tail);
     newbone->rad_tail = newbone->length * 0.05f;
     newbone->dist = newbone->length * 0.25f;
+
+    /* Calculate the new bone roll:
+     * Ensure the Z-axis of the newly-created bone matches the Z-axis of the parent bone.
+     * The roll_to_vector operator can then take care of the bone roll angle. */
+    float parent_y[3];
+    sub_v3_v3v3(parent_y, ebone->tail, ebone->head);
+    normalize_v3(parent_y);
+    float parent_mat[3][3];
+    vec_roll_to_mat3_normalized(parent_y, ebone->roll, parent_mat);
+    float align_axis[3];
+    copy_v3_v3(align_axis, parent_mat[2]);
+    newbone->roll = ED_armature_ebone_roll_to_vector(newbone, align_axis, false);
   }
 
   ED_armature_edit_sync_selection(arm->edbo);
