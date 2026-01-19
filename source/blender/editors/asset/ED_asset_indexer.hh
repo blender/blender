@@ -90,8 +90,10 @@ using Timestamp = std::filesystem::file_time_type;
  *   pages might be available. If this returns false the whole reading process will be cancelled.
  */
 bool read_remote_listing(StringRefNull root_dirpath,
+                         StringRefNull asset_library_name,
+                         ReportList &reports,
                          RemoteListingEntryProcessFn process_fn,
                          RemoteListingWaitForPagesFn wait_fn = nullptr,
-                         const std::optional<Timestamp> ignore_before_timestamp = std::nullopt);
+                         std::optional<Timestamp> ignore_before_timestamp = std::nullopt);
 
 }  // namespace blender::ed::asset::index

@@ -8,6 +8,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fmt/format.h>
 #include <fstream>
 #include <optional>
 #include <string>
@@ -15,6 +16,10 @@
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
 #include "BLI_serialize.hh"
+
+#include "BKE_report.hh"
+
+#include "BLT_translation.hh"
 
 #include "CLG_log.h"
 
@@ -126,7 +131,7 @@ struct AssetLibraryMeta {
   /** Map of API version string ("v1", "v2", ...) to path relative to root directory. */
   Map<std::string, asset_system::URLWithHash> api_versions;
 
-  static std::optional<AssetLibraryMeta> read(const StringRefNull root_dirpath,
+  static ReadingResult<AssetLibraryMeta> read(const StringRefNull root_dirpath,
                                               std::optional<Timestamp> ignore_before_timestamp);
 };
 
@@ -150,45 +155,46 @@ std::optional<bool> file_older_than_timestamp(const char *filepath, Timestamp ti
 /**
  * \return the supported API versions read from the `_asset-library-meta.json` file.
  */
-std::optional<AssetLibraryMeta> AssetLibraryMeta::read(
+ReadingResult<AssetLibraryMeta> AssetLibraryMeta::read(
     const StringRefNull root_dirpath, const std::optional<Timestamp> ignore_before_timestamp)
 {
   char filepath[FILE_MAX];
   BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), "_asset-library-meta.json");
 
   if (!BLI_exists(filepath)) {
-    /** TODO report error message? */
-    return {};
+    return ReadingResult<AssetLibraryMeta>::Failure(
+        fmt::format(N_("file does not exist: {:s}"), filepath));
   }
 
   if (ignore_before_timestamp) {
     std::optional<bool> is_older = file_older_than_timestamp(filepath, *ignore_before_timestamp);
     if (!is_older) {
-      CLOG_ERROR(&LOG, "Couldn't find meta file %s\n", filepath);
-      return {};
+      return ReadingResult<AssetLibraryMeta>::Failure(
+          fmt::format(N_("file does not exist: {:s}"), filepath));
     }
     if (*is_older) {
-      CLOG_ERROR(&LOG, "Meta file too old %s\n", filepath);
-      return {};
+      return ReadingResult<AssetLibraryMeta>::Failure(
+          fmt::format(N_("file is too old: {:s}"), filepath));
     }
   }
 
   const std::unique_ptr<Value> contents = read_contents(filepath);
   if (!contents) {
-    /** TODO report error message? */
-    return {};
+    return ReadingResult<AssetLibraryMeta>::Failure(
+        fmt::format(N_("file does not contain JSON: {:s}"), filepath));
   }
 
   const DictionaryValue *root = contents->as_dictionary_value();
   if (!root) {
-    /** TODO report error message? */
-    return {};
+    return ReadingResult<AssetLibraryMeta>::Failure(
+        fmt::format(N_("file is not a JSON dictionary: {:s}"), filepath));
   }
 
   const DictionaryValue *entries = root->lookup_dict("api_versions");
   BLI_assert(entries != nullptr);
   if (entries == nullptr) {
-    return {};
+    return ReadingResult<AssetLibraryMeta>::Failure(
+        fmt::format(N_("no API versions defined: {:s}"), filepath));
   }
 
   AssetLibraryMeta library_meta;
@@ -197,23 +203,26 @@ std::optional<AssetLibraryMeta> AssetLibraryMeta::read(
     /* Relative path to the listing meta-file (e.g. `_v1/asset-index.json`). */
     const DictionaryValue *index_path_info = version.second->as_dictionary_value();
     if (!index_path_info) {
-      printf("Error reading asset listing API version '%s' in %s - ignoring\n",
-             version.first.c_str(),
-             filepath);
+      CLOG_WARN(&LOG,
+                "Error reading asset listing API version '%s' in %s - ignoring",
+                version.first.c_str(),
+                filepath);
       continue;
     }
 
     std::optional<asset_system::URLWithHash> url_with_hash = parse_url_with_hash_dict(
         index_path_info);
     if (!url_with_hash) {
-      printf("Error reading asset listing API version '%s' in %s, no URL found - ignoring\n",
-             version.first.c_str(),
-             filepath);
+      CLOG_WARN(&LOG,
+                "Error reading asset listing API version '%s' in %s, no URL+hash found - ignoring",
+                version.first.c_str(),
+                filepath);
+      continue;
     }
     library_meta.api_versions.add(version.first, std::move(*url_with_hash));
   }
 
-  return library_meta;
+  return ReadingResult<AssetLibraryMeta>::Success(std::move(library_meta));
 }
 
 /** \} */
@@ -226,7 +235,7 @@ struct ApiVersionInfo {
   std::string listing_hash;
 };
 
-static std::optional<ApiVersionInfo> choose_api_version(const AssetLibraryMeta &library_meta)
+static ReadingResult<ApiVersionInfo> choose_api_version(const AssetLibraryMeta &library_meta)
 {
   /* API versions this version of Blender can handle, in descending order (most preferred to least
    * preferred order). */
@@ -238,51 +247,80 @@ static std::optional<ApiVersionInfo> choose_api_version(const AssetLibraryMeta &
     if (const asset_system::URLWithHash *url_with_hash = library_meta.api_versions.lookup_ptr(
             version_str))
     {
-      return ApiVersionInfo{version_nr, url_with_hash->url, url_with_hash->hash};
+      ApiVersionInfo version_info{version_nr, url_with_hash->url, url_with_hash->hash};
+      return ReadingResult<ApiVersionInfo>::Success(std::move(version_info));
     }
   }
 
-  return {};
+  return ReadingResult<ApiVersionInfo>::Failure(
+      N_("remote does not offer an API version supported by this version of Blender"));
 }
 
 bool read_remote_listing(const StringRefNull root_dirpath,
+                         const StringRefNull asset_library_name,
+                         ReportList &reports,
                          const RemoteListingEntryProcessFn process_fn,
                          const RemoteListingWaitForPagesFn wait_fn,
                          const std::optional<Timestamp> ignore_before_timestamp)
 {
-  /* TODO: Error reporting for all false return branches. */
-
-  const std::optional<AssetLibraryMeta> meta = AssetLibraryMeta::read(root_dirpath,
-                                                                      ignore_before_timestamp);
-  if (!meta) {
-    printf("Couldn't read meta\n");
-    return false;
-  }
-
-  const std::optional<ApiVersionInfo> api_version_info = choose_api_version(*meta);
-  if (!api_version_info) {
-    printf("Couldn't choose API version\n");
-    return false;
-  }
-
-  /* Path to the listing meta-file is version-dependent. */
-  switch (api_version_info->version_nr) {
-    case 1: {
-      const ReadingResult result = read_remote_listing_v1(
-          root_dirpath, process_fn, wait_fn, ignore_before_timestamp);
-      if (result == ReadingResult::Failure) {
-        return false;
-      }
-      if (result == ReadingResult::Cancelled) {
-        return false;
-      }
-      break;
+  /* This actually does the work, and returns a ReadingResult. It's implemented as a lambda
+   * function, to be able to use early returns on error. */
+  auto get_result = [&]() {
+    const ReadingResult<AssetLibraryMeta> meta = AssetLibraryMeta::read(root_dirpath,
+                                                                        ignore_before_timestamp);
+    if (!meta.is_success()) {
+      return meta.without_success_value();
     }
-    default:
-      BLI_assert_unreachable();
-      return false;
-  }
 
+    const ReadingResult<ApiVersionInfo> api_version_info = choose_api_version(*meta);
+    if (!api_version_info.is_success()) {
+      return api_version_info.without_success_value();
+    }
+
+    /* Path to the listing meta-file is version-dependent. */
+    switch (api_version_info->version_nr) {
+      case 1: {
+        return read_remote_listing_v1(root_dirpath, process_fn, wait_fn, ignore_before_timestamp);
+      }
+      default:
+        /* choose_api_version() should not have chosen this version. */
+        BLI_assert_unreachable();
+        return ReadingResult<>::Failure(N_("internal error, please report a bug"));
+    }
+  };
+
+  const ReadingResult<> result = get_result();
+
+  /* Get these messages up-stream. The last call to BKE_report(f) will be the one shown in the
+   * status bar. The rest are just printed to the terminal and gathered at the Info editor. */
+  if (result.is_failure()) {
+    BKE_reportf(&reports,
+                RPT_ERROR,
+                "Asset Library '%s': %s",
+                asset_library_name.c_str(),
+                RPT_(result.failure_reason.c_str()));
+    BKE_reportf(&reports,
+                RPT_ERROR,
+                "Could not read asset listing '%s', see Info Editor for details",
+                asset_library_name.c_str());
+    return false;
+  }
+  if (result.is_cancelled()) {
+    return false;
+  }
+  if (result.has_warnings()) {
+    for (const std::string &warning : result.warnings) {
+      BKE_reportf(&reports,
+                  RPT_WARNING,
+                  "Asset Library '%s': %s",
+                  asset_library_name.c_str(),
+                  RPT_(warning.c_str()));
+    }
+    BKE_reportf(&reports,
+                RPT_WARNING,
+                "Could not read asset listing for '%s', see Info Editor for details",
+                asset_library_name.c_str());
+  }
   return true;
 }
 

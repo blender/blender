@@ -2243,12 +2243,14 @@ struct FileListReadJob {
   Mutex lock;
   char main_filepath[FILE_MAX] = "";
   Main *current_main = nullptr;
-  const wmWindowManager *wm = nullptr;
+  wmWindowManager *wm = nullptr;
   FileList *filelist = nullptr;
 
   /** Code requested to cancel the read job. */
   /* TODO only remote asset library loading respects this so far. */
   std::atomic<bool> cancel;
+
+  ReportList reports;
 
   /**
    * The path currently being read, relative to the filelist root directory.
@@ -3427,8 +3429,12 @@ static void filelist_readjob_remote_asset_library_index_read(
     }
   };
 
-  if (!index::read_remote_listing(
-          dirpath, process_asset_fn, wait_for_pages_fn, request.request_time))
+  if (!index::read_remote_listing(dirpath,
+                                  job_params->load_asset_library->name(),
+                                  job_params->reports,
+                                  process_asset_fn,
+                                  wait_for_pages_fn,
+                                  request.request_time))
   {
     return;
   }
@@ -3824,6 +3830,9 @@ static void filelist_readjob_endjob(void *flrjv)
 
   flrj->filelist->flags &= ~FL_IS_PENDING;
   flrj->filelist->flags |= FL_IS_READY;
+
+  WM_reports_from_reports_move(flrj->wm, &flrj->reports);
+  BKE_reports_free(&flrj->reports);
 }
 
 static void filelist_readjob_free(void *flrjv)
@@ -3886,6 +3895,8 @@ static void filelist_readjob_start_ex(FileList *filelist,
   if (filelist->flags & FL_RELOAD_ASSET_LIBRARY) {
     flrj->reload_asset_library = true;
   }
+  BKE_reports_init(&flrj->reports, RPT_STORE | RPT_PRINT);
+  BKE_report_print_level_set(&flrj->reports, RPT_WARNING);
 
   filelist->flags &= ~(FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES | FL_RELOAD_ASSET_LIBRARY |
                        FL_IS_READY);
