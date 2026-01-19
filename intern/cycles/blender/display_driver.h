@@ -8,6 +8,7 @@
 
 #include "session/display_driver.h"
 
+#include "util/thread.h"
 #include "util/unique_ptr.h"
 
 namespace blender {
@@ -99,6 +100,7 @@ class BlenderDisplayDriver : public DisplayDriver {
  public:
   BlenderDisplayDriver(blender::RenderEngine &b_engine,
                        blender::Scene &b_scene,
+                       blender::RegionView3D *b_rv3d,
                        const bool background);
   ~BlenderDisplayDriver() override;
 
@@ -142,6 +144,7 @@ class BlenderDisplayDriver : public DisplayDriver {
   void gpu_resources_destroy();
 
   blender::RenderEngine &b_engine_;
+  blender::RegionView3D *b_rv3d_;
   bool background_;
 
   /* Content of the display is to be filled with zeroes. */
@@ -157,6 +160,9 @@ class BlenderDisplayDriver : public DisplayDriver {
   blender::GPUFence *gpu_upload_sync_ = nullptr;
 
   float2 zoom_ = make_float2(1.0f, 1.0f);
+
+  thread_condition_variable has_update_cond_;
+  thread_mutex has_update_mutex_;
 };
 
 CCL_NAMESPACE_END
