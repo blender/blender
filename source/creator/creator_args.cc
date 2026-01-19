@@ -769,6 +769,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-gpu-shader-source");
   BLI_args_print_arg_doc(ba, "--debug-gpu-shader-no-preprocessor");
   BLI_args_print_arg_doc(ba, "--debug-gpu-shader-no-dce");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-no-texture-pool");
   if (defs.with_renderdoc) {
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
   }
@@ -1580,6 +1581,17 @@ static int arg_handle_debug_gpu_shader_no_dce(int /*argc*/,
                                               void * /*data*/)
 {
   G.debug |= G_DEBUG_GPU_SHADER_NO_DCE;
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_no_texture_pool_set_doc[] =
+    "\n"
+    "\tDisable memory aliasing optimizations in the GPU texture pool.";
+static int arg_handle_debug_gpu_no_texture_pool_set(int /* argc */,
+                                                    const char ** /* argv */,
+                                                    void * /*data*/)
+{
+  G.debug |= G_DEBUG_GPU_NO_TEXTURE_POOL;
   return 0;
 }
 
@@ -3072,6 +3084,11 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                nullptr,
                "--debug-gpu-compile-shaders",
                CB(arg_handle_debug_gpu_compile_shaders_set),
+               nullptr);
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-gpu-no-texture-pool",
+               CB(arg_handle_debug_gpu_no_texture_pool_set),
                nullptr);
   BLI_args_add(ba,
                nullptr,

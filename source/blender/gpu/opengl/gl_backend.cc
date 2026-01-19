@@ -365,6 +365,16 @@ void GLBackend::platform_exit()
   GPG.clear();
 }
 
+TexturePool *GLBackend::texturepool_alloc()
+{
+  if (G.debug & G_DEBUG_GPU_NO_TEXTURE_POOL) {
+    CLOG_INFO(&LOG, "Using texture pool \"TexturePoolImpl\".");
+    return new TexturePoolImpl();
+  }
+  CLOG_INFO(&LOG, "Using texture pool \"GLTexturePool\".");
+  return new GLTexturePool();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

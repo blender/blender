@@ -105,6 +105,9 @@ Texture *MTLBackend::texture_alloc(const char *name)
 
 TexturePool *MTLBackend::texturepool_alloc()
 {
+  if (G.debug & G_DEBUG_GPU_NO_TEXTURE_POOL) {
+    return new TexturePoolImpl();
+  }
   return new MTLTexturePool();
 }
 
