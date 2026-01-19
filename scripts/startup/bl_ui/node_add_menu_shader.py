@@ -422,6 +422,7 @@ class NODE_MT_shader_node_utilities_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "NodeEvaluateClosure")
         self.node_operator(layout, "NodeCombineBundle")
         self.node_operator(layout, "NodeSeparateBundle")
+        self.node_operator(layout, "NodeJoinBundle")
         layout.separator()
         self.node_operator(layout, "GeometryNodeMenuSwitch")
         if cycles_shader_nodes_poll(context):

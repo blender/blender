@@ -24,6 +24,7 @@
 namespace blender::nodes {
 namespace {
 
+struct SocketValue;
 struct BundleSocketValue;
 using BundleSocketValuePtr = std::shared_ptr<BundleSocketValue>;
 
@@ -92,6 +93,10 @@ struct ClosureZoneValue {
   const ComputeContext *closure_creation_context = nullptr;
 };
 
+struct MultiInputValue {
+  Vector<SocketValue, 0> values;
+};
+
 struct SocketValue {
   /**
    * The value of an arbitrary socket value can have one of many different types. At a high level
@@ -104,7 +109,8 @@ struct SocketValue {
                InputSocketValue,
                PrimitiveSocketValue,
                ClosureZoneValue,
-               BundleSocketValuePtr>
+               BundleSocketValuePtr,
+               MultiInputValue>
       value;
 
   /** Try to get the value as a primitive value. */
@@ -388,8 +394,10 @@ class ShaderNodesInliner {
 
   void handle_input_socket(const SocketInContext &socket)
   {
-    /* Multi-inputs are not supported in shader nodes currently. */
-    BLI_assert(!socket->is_multi_input());
+    if (socket->is_multi_input()) {
+      this->handle_multi_input_socket(socket);
+      return;
+    }
 
     const bNodeLink *used_link = nullptr;
     for (const bNodeLink *link : socket->directly_linked_links()) {
@@ -432,6 +440,30 @@ class ShaderNodesInliner {
     }
     /* If the origin socket does not have a value yet, only schedule it for evaluation for now.*/
     this->schedule_socket(origin_socket);
+  }
+
+  void handle_multi_input_socket(const SocketInContext &socket)
+  {
+    bool all_links_ready = true;
+    Vector<SocketValue, 0> values;
+    for (const bNodeLink *link : socket->directly_linked_links()) {
+      if (!link->is_used()) {
+        continue;
+      }
+      const ComputeContext *from_context = this->get_link_source_context(*link, socket);
+      const SocketInContext origin_socket = {from_context, link->fromsock};
+      const SocketValue *value = value_by_socket_.lookup_ptr(origin_socket);
+      if (!value) {
+        this->schedule_socket(origin_socket);
+        all_links_ready = false;
+        continue;
+      }
+      values.append(*value);
+    }
+    if (!all_links_ready) {
+      return;
+    }
+    this->store_socket_value(socket, {MultiInputValue{std::move(values)}});
   }
 
   /**
@@ -532,6 +564,10 @@ class ShaderNodesInliner {
       this->handle_output_socket__menu_switch(socket);
       return;
     }
+    if (node->is_type("NodeJoinBundle")) {
+      this->handle_output_socket__join_bundle(socket);
+      return;
+    }
     this->handle_output_socket__eval(socket);
   }
 
@@ -549,6 +585,23 @@ class ShaderNodesInliner {
     for (const bNodeLink &internal_link : node->internal_links()) {
       if (internal_link.tosock == socket.socket) {
         const SocketInContext src_socket = {socket.context, internal_link.fromsock};
+        if (src_socket->is_multi_input()) {
+          const bNodeLink *src_link = nullptr;
+          for (const bNodeLink *link : src_socket->directly_linked_links()) {
+            if (link->is_used()) {
+              src_link = link;
+              break;
+            }
+          }
+          if (!src_link) {
+            return false;
+          }
+          const ComputeContext *from_context = this->get_link_source_context(*src_link,
+                                                                             src_socket);
+          const SocketInContext origin_socket = {from_context, src_link->fromsock};
+          this->forward_value_or_schedule(socket, origin_socket);
+          return true;
+        }
         if (const SocketValue *value = value_by_socket_.lookup_ptr(src_socket)) {
           /* Pass the value of the internally linked input socket, with an implicit conversion if
            * necessary. */
@@ -947,6 +1000,40 @@ class ShaderNodesInliner {
     this->store_socket_value_fallback(socket);
   }
 
+  void handle_output_socket__join_bundle(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const SocketInContext input_socket = node.input_socket(0);
+    const SocketValue *socket_value = value_by_socket_.lookup_ptr(input_socket);
+    if (!socket_value) {
+      /* The input bundles are not known yet, so schedule them for now. */
+      this->schedule_socket(input_socket);
+      return;
+    }
+    const auto &multi_input_value = *std::get_if<MultiInputValue>(&socket_value->value);
+    if (multi_input_value.values.is_empty()) {
+      /* The input is empty, so use the fallback value. */
+      this->store_socket_value_fallback(socket);
+      return;
+    }
+
+    Set<StringRef> existing_keys;
+    auto joined_bundle = std::make_shared<BundleSocketValue>();
+    for (const SocketValue &value : multi_input_value.values) {
+      const auto *bundle_value = std::get_if<BundleSocketValuePtr>(&value.value);
+      if (!bundle_value || !*bundle_value) {
+        /* Ignore invalid values. */
+        continue;
+      }
+      for (const BundleSocketValue::Item &item : (*bundle_value)->items) {
+        if (existing_keys.add(item.key)) {
+          joined_bundle->items.append(item);
+        }
+      }
+    }
+    this->store_socket_value(socket, {BundleSocketValuePtr{joined_bundle}});
+  }
+
   void handle_output_socket__menu_switch(const SocketInContext &socket)
   {
     const NodeInContext node = socket.owner_node();
@@ -1244,6 +1331,11 @@ class ShaderNodesInliner {
     }
     if (std::get_if<ClosureZoneValue>(&value.value)) {
       /* This type can't be assigned to a socket. One has to evaluate a closure. */
+      BLI_assert_unreachable();
+      return;
+    }
+    if (std::get_if<MultiInputValue>(&value.value)) {
+      /* This type can't be assigned to a socket. */
       BLI_assert_unreachable();
       return;
     }
