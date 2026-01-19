@@ -334,33 +334,31 @@ struct PropertyRNAIdentifierGetter {
 
 /** Container - generic abstracted container of RNA properties */
 struct ContainerRNA {
-  void *next, *prev;
-
   CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter> *prop_lookup_set;
   ListBaseT<PropertyRNA> properties;
 };
 
 struct FunctionRNA {
   /** Structs are containers of properties. */
-  ContainerRNA cont;
+  ContainerRNA cont = {};
   /** Unique identifier, keep after `cont`. */
-  const char *identifier;
+  const char *identifier = nullptr;
 
   /** Various options */
-  int flag;
+  int flag = 0;
 
   /** Single line description, displayed in the tool-tip for example. */
-  const char *description;
+  const char *description = nullptr;
 
   /** Callback to execute the function. */
-  CallFunc call;
+  CallFunc call = {};
 
   /**
    * Parameter for the return value.
    *
    * \note this is only the C return value, rna functions can have multiple return values.
    */
-  PropertyRNA *c_ret;
+  PropertyRNA *c_ret = nullptr;
 };
 
 struct PropertyRNA {
@@ -733,7 +731,7 @@ struct StructRNA {
   IDPropertiesFunc system_idproperties = nullptr;
 
   /** Functions of this struct. */
-  ListBaseT<FunctionRNA> functions = {nullptr, nullptr};
+  Vector<std::unique_ptr<FunctionRNA>> functions;
 };
 
 /**

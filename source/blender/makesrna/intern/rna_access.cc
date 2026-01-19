@@ -1025,12 +1025,13 @@ PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifi
 FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)
 {
 #if 1
-  FunctionRNA *func;
   for (; srna; srna = srna->base) {
-    func = static_cast<FunctionRNA *>(
-        BLI_findstring_ptr(&srna->functions, identifier, offsetof(FunctionRNA, identifier)));
-    if (func) {
-      return func;
+    std::unique_ptr<FunctionRNA> *func = std::find_if(
+        srna->functions.begin(), srna->functions.end(), [&](const auto &func) {
+          return STREQ(func->identifier, identifier);
+        });
+    if (func != srna->functions.end()) {
+      return func->get();
     }
   }
   return nullptr;
@@ -1057,9 +1058,9 @@ FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)
 #endif
 }
 
-const ListBaseT<FunctionRNA> *RNA_struct_type_functions(StructRNA *srna)
+Span<std::unique_ptr<FunctionRNA>> RNA_struct_type_functions(StructRNA *srna)
 {
-  return &srna->functions;
+  return srna->functions;
 }
 
 StructRegisterFunc RNA_struct_register(StructRNA *type)

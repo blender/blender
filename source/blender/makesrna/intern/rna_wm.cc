@@ -1547,7 +1547,7 @@ static PointerRNA rna_WindowManager_xr_session_state_get(PointerRNA *ptr)
 
 static bool rna_operator_poll_cb(bContext *C, wmOperatorType *ot)
 {
-  extern FunctionRNA rna_Operator_poll_func;
+  extern FunctionRNA *rna_Operator_poll_func;
 
   ParameterList list;
   FunctionRNA *func;
@@ -1555,7 +1555,7 @@ static bool rna_operator_poll_cb(bContext *C, wmOperatorType *ot)
   bool visible;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ot->rna_ext.srna, nullptr); /* dummy */
-  func = &rna_Operator_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
+  func = rna_Operator_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -1571,7 +1571,7 @@ static bool rna_operator_poll_cb(bContext *C, wmOperatorType *ot)
 
 static wmOperatorStatus rna_operator_exec_cb(bContext *C, wmOperator *op)
 {
-  extern FunctionRNA rna_Operator_execute_func;
+  extern FunctionRNA *rna_Operator_execute_func;
 
   ParameterList list;
   FunctionRNA *func;
@@ -1579,7 +1579,7 @@ static wmOperatorStatus rna_operator_exec_cb(bContext *C, wmOperator *op)
 
   ID *owner_id = (op->ptr) ? op->ptr->owner_id : nullptr;
   PointerRNA opr = RNA_pointer_create_discrete(owner_id, op->type->rna_ext.srna, op);
-  func = &rna_Operator_execute_func; /* RNA_struct_find_function(&opr, "execute"); */
+  func = rna_Operator_execute_func; /* RNA_struct_find_function(&opr, "execute"); */
 
   RNA_parameter_list_create(&list, &opr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -1602,7 +1602,7 @@ static wmOperatorStatus rna_operator_exec_cb(bContext *C, wmOperator *op)
 /* same as execute() but no return value */
 static bool rna_operator_check_cb(bContext *C, wmOperator *op)
 {
-  extern FunctionRNA rna_Operator_check_func;
+  extern FunctionRNA *rna_Operator_check_func;
 
   ParameterList list;
   FunctionRNA *func;
@@ -1611,7 +1611,7 @@ static bool rna_operator_check_cb(bContext *C, wmOperator *op)
 
   ID *owner_id = (op->ptr) ? op->ptr->owner_id : nullptr;
   PointerRNA opr = RNA_pointer_create_discrete(owner_id, op->type->rna_ext.srna, op);
-  func = &rna_Operator_check_func; /* RNA_struct_find_function(&opr, "check"); */
+  func = rna_Operator_check_func; /* RNA_struct_find_function(&opr, "check"); */
 
   RNA_parameter_list_create(&list, &opr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -1627,7 +1627,7 @@ static bool rna_operator_check_cb(bContext *C, wmOperator *op)
 
 static wmOperatorStatus rna_operator_invoke_cb(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  extern FunctionRNA rna_Operator_invoke_func;
+  extern FunctionRNA *rna_Operator_invoke_func;
 
   ParameterList list;
   FunctionRNA *func;
@@ -1635,7 +1635,7 @@ static wmOperatorStatus rna_operator_invoke_cb(bContext *C, wmOperator *op, cons
 
   ID *owner_id = (op->ptr) ? op->ptr->owner_id : nullptr;
   PointerRNA opr = RNA_pointer_create_discrete(owner_id, op->type->rna_ext.srna, op);
-  func = &rna_Operator_invoke_func; /* RNA_struct_find_function(&opr, "invoke"); */
+  func = rna_Operator_invoke_func; /* RNA_struct_find_function(&opr, "invoke"); */
 
   RNA_parameter_list_create(&list, &opr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -1659,7 +1659,7 @@ static wmOperatorStatus rna_operator_invoke_cb(bContext *C, wmOperator *op, cons
 /* same as invoke */
 static wmOperatorStatus rna_operator_modal_cb(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  extern FunctionRNA rna_Operator_modal_func;
+  extern FunctionRNA *rna_Operator_modal_func;
 
   ParameterList list;
   FunctionRNA *func;
@@ -1667,7 +1667,7 @@ static wmOperatorStatus rna_operator_modal_cb(bContext *C, wmOperator *op, const
 
   ID *owner_id = (op->ptr) ? op->ptr->owner_id : nullptr;
   PointerRNA opr = RNA_pointer_create_discrete(owner_id, op->type->rna_ext.srna, op);
-  func = &rna_Operator_modal_func; /* RNA_struct_find_function(&opr, "modal"); */
+  func = rna_Operator_modal_func; /* RNA_struct_find_function(&opr, "modal"); */
 
   RNA_parameter_list_create(&list, &opr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -1685,7 +1685,7 @@ static wmOperatorStatus rna_operator_modal_cb(bContext *C, wmOperator *op, const
 
 static void rna_operator_draw_cb(bContext *C, wmOperator *op)
 {
-  extern FunctionRNA rna_Operator_draw_func;
+  extern FunctionRNA *rna_Operator_draw_func;
 
   ParameterList list;
   FunctionRNA *func;
@@ -1694,7 +1694,7 @@ static void rna_operator_draw_cb(bContext *C, wmOperator *op)
    * case we need a proper owner. */
   ID *owner_id = (op->ptr) ? op->ptr->owner_id : nullptr;
   PointerRNA opr = RNA_pointer_create_discrete(owner_id, op->type->rna_ext.srna, op);
-  func = &rna_Operator_draw_func; /* RNA_struct_find_function(&opr, "draw"); */
+  func = rna_Operator_draw_func; /* RNA_struct_find_function(&opr, "draw"); */
 
   RNA_parameter_list_create(&list, &opr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -1706,14 +1706,14 @@ static void rna_operator_draw_cb(bContext *C, wmOperator *op)
 /* same as exec(), but call cancel */
 static void rna_operator_cancel_cb(bContext *C, wmOperator *op)
 {
-  extern FunctionRNA rna_Operator_cancel_func;
+  extern FunctionRNA *rna_Operator_cancel_func;
 
   ParameterList list;
   FunctionRNA *func;
 
   ID *owner_id = (op->ptr) ? op->ptr->owner_id : nullptr;
   PointerRNA opr = RNA_pointer_create_discrete(owner_id, op->type->rna_ext.srna, op);
-  func = &rna_Operator_cancel_func; /* RNA_struct_find_function(&opr, "cancel"); */
+  func = rna_Operator_cancel_func; /* RNA_struct_find_function(&opr, "cancel"); */
 
   RNA_parameter_list_create(&list, &opr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -1726,14 +1726,14 @@ static std::string rna_operator_description_cb(bContext *C,
                                                wmOperatorType *ot,
                                                PointerRNA *prop_ptr)
 {
-  extern FunctionRNA rna_Operator_description_func;
+  extern FunctionRNA *rna_Operator_description_func;
 
   ParameterList list;
   FunctionRNA *func;
   void *ret;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ot->rna_ext.srna, nullptr); /* dummy */
-  func = &rna_Operator_description_func; /* RNA_struct_find_function(&ptr, "description"); */
+  func = rna_Operator_description_func; /* RNA_struct_find_function(&ptr, "description"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);

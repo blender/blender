@@ -462,7 +462,7 @@ static void rna_iterator_animdata_action_suitable_slots_begin(CollectionProperty
 /* wrapper for poll callback */
 static bool RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 {
-  extern FunctionRNA rna_KeyingSetInfo_poll_func;
+  extern FunctionRNA *rna_KeyingSetInfo_poll_func;
 
   ParameterList list;
   FunctionRNA *func;
@@ -470,7 +470,7 @@ static bool RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
   int ok;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ksi->rna_ext.srna, ksi);
-  func = &rna_KeyingSetInfo_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
+  func = rna_KeyingSetInfo_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
   {
@@ -493,13 +493,13 @@ static bool RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
 /* wrapper for iterator callback */
 static void RKS_ITER_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks)
 {
-  extern FunctionRNA rna_KeyingSetInfo_iterator_func;
+  extern FunctionRNA *rna_KeyingSetInfo_iterator_func;
 
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ksi->rna_ext.srna, ksi);
-  func = &rna_KeyingSetInfo_iterator_func; /* RNA_struct_find_function(&ptr, "poll"); */
+  func = rna_KeyingSetInfo_iterator_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
   {
@@ -517,13 +517,13 @@ static void RKS_ITER_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks
 /* wrapper for generator callback */
 static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks, PointerRNA *data)
 {
-  extern FunctionRNA rna_KeyingSetInfo_generate_func;
+  extern FunctionRNA *rna_KeyingSetInfo_generate_func;
 
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ksi->rna_ext.srna, ksi);
-  func = &rna_KeyingSetInfo_generate_func; /* RNA_struct_find_generate(&ptr, "poll"); */
+  func = rna_KeyingSetInfo_generate_func; /* RNA_struct_find_generate(&ptr, "poll"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
   {
