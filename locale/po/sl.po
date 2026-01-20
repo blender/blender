@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2026-01-07 23:12+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -25612,6 +25612,34 @@ msgid "Use Material Mask"
 msgstr "Uporabi masko materiala"
 
 
+msgid "Face Data"
+msgstr "Podatki lic"
+
+
+msgid "Select by Face Strength"
+msgstr "Izberi glede na krepkost lica"
+
+
+msgid "Set Face Strength"
+msgstr "Nastavi krepkost lica"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
+
+
+msgid "Utilities"
+msgstr "Pripomočki"
+
+
+msgid "Merge"
+msgstr "Združi"
+
+
 msgid "Show/Hide"
 msgstr "Pokaži / skrij"
 
@@ -25624,32 +25652,16 @@ msgid "Kerning"
 msgstr "Spodsekavanje"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Metaball"
 msgstr "Metažoga"
 
 
-msgid "Utilities"
-msgstr "Pripomočki"
+msgid "Read"
+msgstr "Branje"
 
 
 msgid "Names"
 msgstr "Imena"
-
-
-msgid "Bone Roll"
-msgstr "Zasukaj kost"
-
-
-msgid "Clean Up"
-msgstr "Počisti"
-
-
-msgid "Read"
-msgstr "Branje"
 
 
 msgid "Sample"
@@ -25660,12 +25672,24 @@ msgid "Write"
 msgstr "Zapiši"
 
 
-msgid "Pivot Point"
-msgstr "Osišče"
+msgid "Bone Roll"
+msgstr "Zasukaj kost"
 
 
 msgid "Primitives"
 msgstr "Primitivi"
+
+
+msgid "Gizmo"
+msgstr "Manipulator"
+
+
+msgid "Instances"
+msgstr "Primerki"
+
+
+msgid "Pivot Point"
+msgstr "Osišče"
 
 
 msgid "Snap"
@@ -25684,20 +25708,20 @@ msgid "Automasking"
 msgstr "Samodejno maskiranje"
 
 
-msgid "Gizmo"
-msgstr "Manipulator"
-
-
-msgid "Instances"
-msgstr "Primerki"
-
-
 msgid "Import"
 msgstr "Uvozi"
 
 
 msgid "Deprecated"
 msgstr "Zastarelo"
+
+
+msgid "List"
+msgstr "Seznam"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -25712,20 +25736,12 @@ msgid "Local View"
 msgstr "Krajevni pogled"
 
 
-msgid "List"
-msgstr "Seznam"
-
-
 msgid "Viewpoint"
 msgstr "Gledišče"
 
 
 msgid "Navigation"
 msgstr "Navigacija"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -25784,6 +25800,10 @@ msgid "Rigid Body"
 msgstr "Togo telo"
 
 
+msgid "Layout"
+msgstr "Ureditev"
+
+
 msgid "Apply"
 msgstr "Uveljavi"
 
@@ -25816,12 +25836,24 @@ msgid "Hooks"
 msgstr "Kavlji"
 
 
-msgid "Layout"
-msgstr "Ureditev"
+msgid "Adjust"
+msgstr "Prilagoditev"
+
+
+msgid "Keying"
+msgstr "Ključenje"
+
+
+msgid "Tracking"
+msgstr "Sledenje"
 
 
 msgid "Trim/Add"
 msgstr "Poreži / dodaj"
+
+
+msgid "Creative"
+msgstr "Ustvarjanje"
 
 
 msgid "Random Mask"
@@ -25830,10 +25862,6 @@ msgstr "Naključna maska"
 
 msgid "Clear Transform"
 msgstr "Počisti transformacijo"
-
-
-msgid "Adjust"
-msgstr "Prilagoditev"
 
 
 msgid "In-Betweens"
@@ -25848,36 +25876,8 @@ msgid "Bone Collections"
 msgstr "Zbirke kosti"
 
 
-msgid "Keying"
-msgstr "Ključenje"
-
-
-msgid "Tracking"
-msgstr "Sledenje"
-
-
-msgid "Creative"
-msgstr "Ustvarjanje"
-
-
-msgid "Face Data"
-msgstr "Podatki lic"
-
-
-msgid "Select by Face Strength"
-msgstr "Izberi glede na krepkost lica"
-
-
-msgid "Set Face Strength"
-msgstr "Nastavi krepkost lica"
-
-
 msgid "Render Preview"
 msgstr "Predogled upodobitve"
-
-
-msgid "Merge"
-msgstr "Združi"
 
 
 msgid "Animals"
@@ -31936,30 +31936,6 @@ msgid "String to Curves"
 msgstr "Niz v krivulje"
 
 
-msgid "Top Left"
-msgstr "Zgoraj levo"
-
-
-msgid "Top Center"
-msgstr "Zgoraj na sredi"
-
-
-msgid "Top Right"
-msgstr "Zgoraj desni"
-
-
-msgid "Bottom Left"
-msgstr "Spodaj levo"
-
-
-msgid "Bottom Center"
-msgstr "Spodaj na sredi"
-
-
-msgid "Bottom Right"
-msgstr "Spodaj na desni"
-
-
 msgid "Subdivide Curve"
 msgstr "Deli krivuljo"
 
@@ -32063,6 +32039,14 @@ msgstr "Ovrednoti zaprtje"
 msgctxt "NodeTree"
 msgid "Frame"
 msgstr "Okvir"
+
+
+msgid "Structure Type"
+msgstr "Tip strukture"
+
+
+msgid "Single"
+msgstr "Ena sama"
 
 
 msgid "Group Input"
@@ -33165,14 +33149,6 @@ msgid "Value to Normal"
 msgstr "Vrednost v normale"
 
 
-msgid "Structure Type"
-msgstr "Tip strukture"
-
-
-msgid "Single"
-msgstr "Ena sama"
-
-
 msgid "Collection of combine bundle items"
 msgstr "Zbirka elementov združenih svežnjev"
 
@@ -34103,11 +34079,6 @@ msgstr "Nov element"
 msgctxt "Operator"
 msgid "New Panel Toggle"
 msgstr "Novo stikalo plošče"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Odstrani element"
 
 
 msgctxt "Operator"
@@ -38699,6 +38670,11 @@ msgid "Erase"
 msgstr "Brisanje"
 
 
+msgctxt "Operator"
+msgid "Mask"
+msgstr "Maskiranje"
+
+
 msgid "Rounded"
 msgstr "Okroglo"
 
@@ -41453,6 +41429,11 @@ msgstr "Premakne aktivni element"
 
 msgid "Move direction"
 msgstr "Smer premikanja"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Odstrani element"
 
 
 msgid "Remove active item"
@@ -49428,14 +49409,6 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacije glTF"
-
-
 msgid "Active Tool"
 msgstr "Aktivno orodje"
 
@@ -49502,6 +49475,14 @@ msgstr "Krivuljni urejevalni način"
 
 msgid "Curves Edit Mode"
 msgstr "Urejevalni način za krivulje"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacije glTF"
 
 
 msgid "Transform Orientations"
@@ -50043,11 +50024,6 @@ msgstr "Razmaz"
 msgctxt "Operator"
 msgid "Clone"
 msgstr "Kloniranje"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Maskiranje"
 
 
 msgid "Tiling"
@@ -52706,6 +52682,11 @@ msgstr "Faktor"
 
 
 msgctxt "Unit"
+msgid "Mass"
+msgstr "Masa"
+
+
+msgctxt "Unit"
 msgid "Angle"
 msgstr "Kot"
 
@@ -52854,11 +52835,6 @@ msgstr "Volumen"
 msgctxt "Unit"
 msgid "Rotation"
 msgstr "Rotacija"
-
-
-msgctxt "Unit"
-msgid "Mass"
-msgstr "Masa"
 
 
 msgctxt "Unit"
@@ -55955,6 +55931,14 @@ msgid "Filter based on key bindings"
 msgstr "Filtrira glede na vezave tipk"
 
 
+msgid "Tab Search Results"
+msgstr "Rezultati iskanja zavihka"
+
+
+msgid "Whether or not each visible tab has a search result"
+msgstr "Ali ima vsak vidni zavihek svoj rezultat iskanja"
+
+
 msgid "Properties Space"
 msgstr "Prostor lastnosti"
 
@@ -56127,14 +56111,6 @@ msgstr "Zavihke preklopi le tedaj, ko ta urejevalnik meji na pregled vsebine"
 
 msgid "Strip Modifiers"
 msgstr "Modifikatorji trakov"
-
-
-msgid "Tab Search Results"
-msgstr "Rezultati iskanja zavihka"
-
-
-msgid "Whether or not each visible tab has a search result"
-msgstr "Ali ima vsak vidni zavihek svoj rezultat iskanja"
 
 
 msgid "Pin ID"
@@ -57921,12 +57897,12 @@ msgid "Theme Preferences"
 msgstr "Nastavitve teme"
 
 
-msgid "Theme Properties"
-msgstr "Lastnosti teme"
-
-
 msgid "Search Match"
 msgstr "Ujemanje iskanja"
+
+
+msgid "Theme Properties"
+msgstr "Lastnosti teme"
 
 
 msgid "Header Background"
@@ -77637,6 +77613,14 @@ msgstr "Lega scenskega 3D kazalca v krajevnem prostoru modificiranega objekta"
 
 msgid "The rotation of the scene's 3D cursor, in the local space of the modified object"
 msgstr "Rotacija scenskega 3D kazalca v krajevnem prostoru modificiranega objekta"
+
+
+msgid "Bottom Left"
+msgstr "Spodaj levo"
+
+
+msgid "Top Right"
+msgstr "Zgoraj desni"
 
 
 msgid "Warnings"

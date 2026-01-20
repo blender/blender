@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-10-14 21:59+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34277,6 +34277,38 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
+msgid "Mesh Select Mode"
+msgstr "Chế Độ Chọn Khung Lưới"
+
+
+msgid "Face Data"
+msgstr "Dữ Liệu Mặt"
+
+
+msgid "Select by Face Strength"
+msgstr "Chọn theo Cường Độ Mặt"
+
+
+msgid "Set Face Strength"
+msgstr "Đặt Cường Độ Mặt"
+
+
+msgid "Math"
+msgstr "Toán"
+
+
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
+
+
+msgid "Utilities"
+msgstr "Thường Trình"
+
+
+msgid "Merge"
+msgstr "Hợp Nhất"
+
+
 msgid "Show/Hide"
 msgstr "Hiện/Ẩn Giấu"
 
@@ -34289,32 +34321,16 @@ msgid "Kerning"
 msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
 
 
-msgid "Math"
-msgstr "Toán"
-
-
 msgid "Metaball"
 msgstr "Siêu Cầu"
 
 
-msgid "Utilities"
-msgstr "Thường Trình"
+msgid "Read"
+msgstr "Đọc"
 
 
 msgid "Names"
 msgstr "Tên"
-
-
-msgid "Bone Roll"
-msgstr "Lăn Xương"
-
-
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
-
-
-msgid "Read"
-msgstr "Đọc"
 
 
 msgid "Sample"
@@ -34325,12 +34341,24 @@ msgid "Write"
 msgstr "Viết"
 
 
-msgid "Pivot Point"
-msgstr "Điểm Tựa"
+msgid "Bone Roll"
+msgstr "Lăn Xương"
 
 
 msgid "Primitives"
 msgstr "Hình Cơ Bản"
+
+
+msgid "Gizmo"
+msgstr "Dụng Cụ"
+
+
+msgid "Instances"
+msgstr "Thực Thể"
+
+
+msgid "Pivot Point"
+msgstr "Điểm Tựa"
 
 
 msgid "Snap"
@@ -34349,6 +34377,10 @@ msgid "Automasking"
 msgstr "Tự Động Chắn Lọc"
 
 
+msgid "Import"
+msgstr "Nhập Khẩu"
+
+
 msgid "Face Sets Edit"
 msgstr "Biên Soạn các Mặt Ấn Định"
 
@@ -34357,20 +34389,16 @@ msgid "Vertex Group Locks"
 msgstr "Khóa của Nhóm Điểm Đỉnh"
 
 
-msgid "Gizmo"
-msgstr "Dụng Cụ"
-
-
-msgid "Instances"
-msgstr "Thực Thể"
-
-
-msgid "Import"
-msgstr "Nhập Khẩu"
-
-
 msgid "Deprecated"
 msgstr "Lỗi Thời"
+
+
+msgid "List"
+msgstr "Nâng"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -34385,20 +34413,12 @@ msgid "Local View"
 msgstr "Góc Nhìn Cục Bộ"
 
 
-msgid "List"
-msgstr "Nâng"
-
-
 msgid "Viewpoint"
 msgstr "Điểm Nhìn"
 
 
 msgid "Navigation"
 msgstr "Điều Hướng"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -34457,6 +34477,10 @@ msgid "Rigid Body"
 msgstr "Thân Cứng"
 
 
+msgid "Layout"
+msgstr "Bố Trí"
+
+
 msgid "Apply"
 msgstr "Áp Dụng"
 
@@ -34489,8 +34513,16 @@ msgid "Hooks"
 msgstr "Móc"
 
 
-msgid "Layout"
-msgstr "Bố Trí"
+msgid "Adjust"
+msgstr "Điều Chỉnh"
+
+
+msgid "Keying"
+msgstr "Khóa Hóa"
+
+
+msgid "Tracking"
+msgstr "Giám Sát"
 
 
 msgid "Trim/Add"
@@ -34499,6 +34531,10 @@ msgstr "Cắt Xén/Thêm"
 
 msgid "Sculpt Set Pivot"
 msgstr "Điêu Khắc: Đặt Điểm Tựa"
+
+
+msgid "Creative"
+msgstr "Kiến Tạo"
 
 
 msgid "Face Sets Init"
@@ -34513,10 +34549,6 @@ msgid "Clear Transform"
 msgstr "Xóa Biến Hóa"
 
 
-msgid "Adjust"
-msgstr "Điều Chỉnh"
-
-
 msgid "In-Betweens"
 msgstr "Bước Trung Gian"
 
@@ -34529,20 +34561,12 @@ msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
 
 
-msgid "Keying"
-msgstr "Khóa Hóa"
-
-
-msgid "Tracking"
-msgstr "Giám Sát"
+msgid "Render Preview"
+msgstr "Góc Nhìn Kết Xuất"
 
 
 msgid "Toggle Bone Options"
 msgstr "Bật/Tắt Tùy Chọn về Xương"
-
-
-msgid "Creative"
-msgstr "Kiến Tạo"
 
 
 msgid "Enable Bone Options"
@@ -34551,30 +34575,6 @@ msgstr "Bật các Tùy Chọn về Xương"
 
 msgid "Disable Bone Options"
 msgstr "Tắt các Tùy Chọn về Xương"
-
-
-msgid "Mesh Select Mode"
-msgstr "Chế Độ Chọn Khung Lưới"
-
-
-msgid "Face Data"
-msgstr "Dữ Liệu Mặt"
-
-
-msgid "Select by Face Strength"
-msgstr "Chọn theo Cường Độ Mặt"
-
-
-msgid "Set Face Strength"
-msgstr "Đặt Cường Độ Mặt"
-
-
-msgid "Render Preview"
-msgstr "Góc Nhìn Kết Xuất"
-
-
-msgid "Merge"
-msgstr "Hợp Nhất"
 
 
 msgid "Keyframe Insert Pie"
@@ -47918,66 +47918,6 @@ msgid "Generate a paragraph of text with a specific font, using a curve instance
 msgstr "Tạo một đoạn văn bản với một phông chữ cụ thể, sử dụng một thực thể đường cong để lưu trữ từng ký tự một"
 
 
-msgid "Align text to the center"
-msgstr "Căn chỉnh văn bản về trung tâm"
-
-
-msgid "Align text to the left and the right"
-msgstr "Căn chỉnh văn bản về bên trái và phải"
-
-
-msgid "Align text to the left and the right, with equal character spacing"
-msgstr "Căn chỉnh văn bản sang trái và phải, với khoảng cách ký tự bằng nhau"
-
-
-msgid "Font of the text. Falls back to the UI font by default."
-msgstr "Phông chữ của văn bản. Sử dụng phông chữ dùng trong giao diện người dùng theo mặc định dự phòng."
-
-
-msgid "Let the text use more space than the specified height"
-msgstr "Cho phép văn bản sử dụng nhiều không gian hơn là chiều cao xác định"
-
-
-msgid "Scale To Fit"
-msgstr "Đổi Tỷ Lệ để Khít Vừa"
-
-
-msgid "Scale the text size to fit inside the width and height"
-msgstr "Đổi tỷ lệ kích thước văn bản để phù hợp với chiều rộng và chiều cao"
-
-
-msgid "Only output curves that fit within the width and height. Output the remainder to the \"Remainder\" output."
-msgstr "Duy xuất ra các đường cong khít vừa với chiều rộng và chiều cao mà thôi. Xuất phần còn lại vào đầu ra \"Phần Còn Lại\"."
-
-
-msgid "Pivot point position relative to character"
-msgstr "Vị trí điểm tựa tương đối với nhân vật"
-
-
-msgid "Top Left"
-msgstr "Đỉnh Trái"
-
-
-msgid "Top Center"
-msgstr "Trung Tâm Đỉnh"
-
-
-msgid "Top Right"
-msgstr "Đỉnh Bên Phải"
-
-
-msgid "Bottom Left"
-msgstr "Đáy Bên Trái"
-
-
-msgid "Bottom Center"
-msgstr "Trung Tâm Đáy"
-
-
-msgid "Bottom Right"
-msgstr "Đáy Bên Phải"
-
-
 msgid "Subdivide Curve"
 msgstr "Phân Chia Đường Cong"
 
@@ -48225,6 +48165,14 @@ msgstr "Kích thước phông sử dụng để hiển thị nhãn hiệu"
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "Thu nhỏ khung hình lại về khung hộp viền tối thiểu"
+
+
+msgid "Structure Type"
+msgstr "Cấu Trúc"
+
+
+msgid "Single"
+msgstr "Đơn/Một"
 
 
 msgid "Group Input"
@@ -50450,14 +50398,6 @@ msgid "Closure Input Item"
 msgstr "Mục Đầu Vào Đóng Kín"
 
 
-msgid "Structure Type"
-msgstr "Cấu Trúc"
-
-
-msgid "Single"
-msgstr "Đơn/Một"
-
-
 msgid "Closure Input Items"
 msgstr "Các Mục Đầu Vào Đóng Kín"
 
@@ -52579,15 +52519,6 @@ msgstr "Thêm mục mới vào giao diện"
 msgctxt "Operator"
 msgid "New Item"
 msgstr "Mục Mới"
-
-
-msgid "Remove active item from the interface"
-msgstr "Xóa mục đang hoạt động khỏi giao diện"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Xóa Mục"
 
 
 msgid "Make the panel toggle a stand-alone socket"
@@ -63490,6 +63421,11 @@ msgid "Switch brush to erase mode for duration of stroke"
 msgstr "Chuyển đầu bút sang chế độ tẩy xóa trong khoảng thời gian của nét vẽ"
 
 
+msgctxt "Operator"
+msgid "Mask"
+msgstr "Màn Chắn Lọc"
+
+
 msgid "Pen Flip"
 msgstr "Đảo Chiều Bút"
 
@@ -70365,6 +70301,11 @@ msgstr "Di chuyển mục đang hoạt động"
 
 msgid "Move direction"
 msgstr "Di chuyển chiều hướng"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Xóa Mục"
 
 
 msgid "Remove active item"
@@ -89134,18 +89075,6 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
-msgid "glTF Variants"
-msgstr "Biến Thể glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Biến Thể Nguyên Vật Liệu glTF"
-
-
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
-
-
 msgid "Active Tool"
 msgstr "Công Cụ đang Hoạt Động"
 
@@ -89182,6 +89111,14 @@ msgid "Compositor"
 msgstr "Trình Tổng Hợp"
 
 
+msgid "glTF Variants"
+msgstr "Biến Thể glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Biến Thể Nguyên Vật Liệu glTF"
+
+
 msgid "Overlays"
 msgstr "Lớp Vẽ Lồng"
 
@@ -89212,6 +89149,10 @@ msgstr "Chế Độ Biên Soạn Đường Cong"
 
 msgid "Curves Edit Mode"
 msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
 
 
 msgid "Transform Orientations"
@@ -89777,11 +89718,6 @@ msgstr "Bôi Nhọ"
 msgctxt "Operator"
 msgid "Clone"
 msgstr "Rập Khuôn"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Màn Chắn Lọc"
 
 
 msgid "Tiling"
@@ -95173,6 +95109,11 @@ msgstr "Một hệ số giữa 0.0 và 1.0"
 
 
 msgctxt "Unit"
+msgid "Mass"
+msgstr "Khối Lượng"
+
+
+msgctxt "Unit"
 msgid "Angle"
 msgstr "Góc Độ"
 
@@ -95375,11 +95316,6 @@ msgstr "Thể Tích"
 msgctxt "Unit"
 msgid "Rotation"
 msgstr "Xoay Chiều"
-
-
-msgctxt "Unit"
-msgid "Mass"
-msgstr "Khối Lượng"
 
 
 msgctxt "Unit"
@@ -103204,6 +103140,14 @@ msgid "Filter based on key bindings"
 msgstr "Thanh lọc dựa trên những bố trí phím bấm"
 
 
+msgid "Tab Search Results"
+msgstr "Kết Quả Thẻ Tìm Kiếm"
+
+
+msgid "Whether or not each visible tab has a search result"
+msgstr "Mỗi thẻ nhìn thấy được có kết quả tìm kiếm hay không"
+
+
 msgid "Properties Space"
 msgstr "Không Gian Tính Chất"
 
@@ -103380,14 +103324,6 @@ msgstr "Chỉ đổi thẻ khi trình biên soạn này có cùng cạnh với m
 
 msgid "Strip Modifiers"
 msgstr "Các Bộ Điều Chỉnh Dải"
-
-
-msgid "Tab Search Results"
-msgstr "Kết Quả Thẻ Tìm Kiếm"
-
-
-msgid "Whether or not each visible tab has a search result"
-msgstr "Mỗi thẻ nhìn thấy được có kết quả tìm kiếm hay không"
 
 
 msgid "Pin ID"
@@ -105387,6 +105323,10 @@ msgstr "Bán kính góc hình hộp là một hệ số của chiều cao hình 
 
 msgid "Text color"
 msgstr "Màu của văn bản"
+
+
+msgid "Font of the text. Falls back to the UI font by default."
+msgstr "Phông chữ của văn bản. Sử dụng phông chữ dùng trong giao diện người dùng theo mặc định dự phòng."
 
 
 msgid "Size of the text"
@@ -107635,16 +107575,16 @@ msgid "Theme settings for the Blender Preferences"
 msgstr "Những sắp đặt về phong cách cho các Cài Đặt Sở Thích của Blender"
 
 
+msgid "Search Match"
+msgstr "Kết Quả Tìm Thấy"
+
+
 msgid "Theme Properties"
 msgstr "Kiểu Mẫu của Tính Chất"
 
 
 msgid "Theme settings for the Properties"
 msgstr "Sắp đặt kiểu mẫu cho các Tính Chất"
-
-
-msgid "Search Match"
-msgstr "Kết Quả Tìm Thấy"
 
 
 msgid "Theme settings for asset shelves"
@@ -130036,11 +129976,6 @@ msgid "Insert after panel"
 msgstr "Chèn vào sau bảng"
 
 
-msgctxt "Operator"
-msgid "Delete Node Interface Socket"
-msgstr "Ổ Cắm Giao Diện Cây Nút"
-
-
 msgid "No Properties"
 msgstr "Không Có Tính Chất"
 
@@ -134377,12 +134312,8 @@ msgstr ""
 "Danh mục có thể được ấn định trong Trình Duyệt Tài Sản"
 
 
-msgid "The internal clipboard is empty"
-msgstr "Bộ nhớ tạm nội bộ trống rỗng"
-
-
-msgid "Some nodes references to other IDs could not be restored, will be left empty"
-msgstr "Một số tham chiếu nút đến các ID khác không thể khôi phục được, sẽ để trống"
+msgid "No data to paste"
+msgstr "Không có dữ liệu để dán"
 
 
 msgid "Cannot add node %s into node tree %s: %s"
@@ -135127,10 +135058,6 @@ msgstr "Không có phần tử nào đang hoạt động để có thể đổi 
 
 msgid "No selected data-blocks to copy"
 msgstr "Không có khối dữ liệu nào đã được chọn để sao chép cả"
-
-
-msgid "No data to paste"
-msgstr "Không có dữ liệu để dán"
 
 
 msgid "There is no active data-block"
@@ -143577,6 +143504,14 @@ msgstr "Phương pháp chỉ định biến hóa"
 
 msgid "Mesh to triangulate"
 msgstr "Tam Giác của Mạch Lưới"
+
+
+msgid "Bottom Left"
+msgstr "Đáy Bên Trái"
+
+
+msgid "Top Right"
+msgstr "Đỉnh Bên Phải"
 
 
 msgid "Faces to consider when packing islands"

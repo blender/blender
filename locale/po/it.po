@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-11-12 16:04+0000\n"
 "Last-Translator: blend-it <blend-it@users.noreply.translate.blender.org>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24578,6 +24578,38 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleziona per Intensità delle Facce"
+
+
+msgid "Set Face Strength"
+msgstr "Imposta Intensità Faccia"
+
+
+msgid "Math"
+msgstr "Matematica"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Merge"
+msgstr "Unisci"
+
+
 msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
 
@@ -24590,32 +24622,16 @@ msgid "Kerning"
 msgstr "Crenatura"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
 msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Utilities"
-msgstr "Utilità"
+msgid "Read"
+msgstr "Lettura"
 
 
 msgid "Names"
 msgstr "Nomi"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Read"
-msgstr "Lettura"
 
 
 msgid "Sample"
@@ -24626,12 +24642,20 @@ msgid "Write"
 msgstr "Scrittura"
 
 
-msgid "Pivot Point"
-msgstr "Punto di Perno"
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Primitives"
 msgstr "Primitive"
+
+
+msgid "Instances"
+msgstr "Istanze"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
 
 
 msgid "Snap"
@@ -24650,6 +24674,10 @@ msgid "Automasking"
 msgstr "Automascheramento"
 
 
+msgid "Import"
+msgstr "Importa"
+
+
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
 
@@ -24658,12 +24686,8 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
-msgid "Instances"
-msgstr "Istanze"
-
-
-msgid "Import"
-msgstr "Importa"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -24684,10 +24708,6 @@ msgstr "Punto di vista"
 
 msgid "Navigation"
 msgstr "Navigazione"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -24746,6 +24766,10 @@ msgid "Rigid Body"
 msgstr "Corpo Rigido"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Apply"
 msgstr "Applica"
 
@@ -24778,8 +24802,16 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
 
 
 msgid "Face Sets Init"
@@ -24794,10 +24826,6 @@ msgid "Clear Transform"
 msgstr "Cancella Trasformazione"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "In-Betweens"
 msgstr "Intermedio"
 
@@ -24810,14 +24838,6 @@ msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
 msgid "Toggle Bone Options"
 msgstr "Attiva/disattiva Opzioni Osso"
 
@@ -24828,26 +24848,6 @@ msgstr "Abilita Opzioni Osso"
 
 msgid "Disable Bone Options"
 msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Face Data"
-msgstr "Dati Faccia"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleziona per Intensità delle Facce"
-
-
-msgid "Set Face Strength"
-msgstr "Imposta Intensità Faccia"
-
-
-msgid "Merge"
-msgstr "Unisci"
 
 
 msgid "Keyframe Insert Pie"
@@ -31937,6 +31937,10 @@ msgid "Font size to use for displaying the label"
 msgstr "Dimensione del font da utilizzare per mostrare l'etichetta"
 
 
+msgid "Single"
+msgstr "Singolo"
+
+
 msgid "Group Input"
 msgstr "Ingresso Gruppo"
 
@@ -32755,10 +32759,6 @@ msgstr "Uscita Nodo"
 
 msgid "Value to Normal"
 msgstr "Valore a Normale"
-
-
-msgid "Single"
-msgstr "Singolo"
 
 
 msgid "Bake Item"
@@ -38357,6 +38357,11 @@ msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
 msgctxt "Operator"
 msgid "Erase"
 msgstr "Cancella"
+
+
+msgctxt "Operator"
+msgid "Mask"
+msgstr "Maschera"
 
 
 msgctxt "Operator"
@@ -50660,11 +50665,6 @@ msgstr "Strappa Regione"
 msgctxt "Operator"
 msgid "Grab"
 msgstr "Prendi"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Maschera"
 
 
 msgid "Tiling"

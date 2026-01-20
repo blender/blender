@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
-"PO-Revision-Date: 2025-12-17 15:12+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"PO-Revision-Date: 2026-01-17 22:37+0000\n"
 "Last-Translator: Martin Hansen <mh306602@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
 "Language: nb\n"
@@ -92,7 +92,7 @@ msgstr "Plassen som kanalposens animasjonsdata er for"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
-msgstr "Samling av F-kurver for en spesifikk handlings-plass, på en spesifikk stripe"
+msgstr "Samling av F-kurver for en angitt handlings-plass, på en angitt stripe"
 
 
 msgid "Collection of f-curve groups"
@@ -324,7 +324,7 @@ msgstr "Handlings-plass"
 
 
 msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
-msgstr "Identifikator for et sett kanaler i denne handlinga, som kan brukes av en datablokk til å spesifisere hva den animeres av"
+msgstr "Identifikator for et sett kanaler i denne handlinga, som kan brukes av en datablokk til å angi hva den animeres av"
 
 
 msgid "Active"
@@ -343,7 +343,7 @@ msgid ""
 "Number specific to this Slot, unique within the Action.\n"
 "This is used, for example, on a ActionKeyframeStrip to look up the ActionChannelbag for this Slot"
 msgstr ""
-"Tall, spesifikt for denne plassen, unikt i handlinga.\n"
+"Tall, angitt for denne plassen, unikt i handlinga.\n"
 "Dette brukes f.eks. på ei handlings-nøkkelbildestripe for å søke etter handlings-kanalposen for denne plassen"
 
 
@@ -360,7 +360,7 @@ msgstr "Handlings-plass visningsnavn"
 
 
 msgid "Name of the slot, for display in the user interface. This name combined with the slot's data-block type is unique within its Action"
-msgstr "Navnet på handlings-plassen, for visning i brukergrensesnittet. Dette navnet kombinert med plassens type datablokk er unik i dens handling"
+msgstr "Navnet på handlings-plassen, for visning i brukergrensesnittet. Dette navnet kombinert med plassens datablokk-type er unik i dens handling"
 
 
 msgid "Selection state of the slot"
@@ -381,7 +381,7 @@ msgstr "Mål ID-type"
 
 
 msgid "Type of data-block that this slot is intended to animate; can be set when 'UNSPECIFIED' but is otherwise read-only"
-msgstr "Type datablokk, som denne handlings-plassen er ment å animere; kan velges når «IKKE-SPESIFISERT», men ellers er skrivebeskyttet"
+msgstr "Type datablokk, som denne handlings-plassen er ment å animere; kan velges når «IKKE-ANGITT», men ellers er skrivebeskyttet"
 
 
 msgctxt "ID"
@@ -581,11 +581,11 @@ msgstr "Verden"
 
 msgctxt "ID"
 msgid "Unspecified"
-msgstr "Ikke-spesifisert"
+msgstr "Ikke-angitt"
 
 
 msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
-msgstr "Ikke enda spesifisert. Når denne handlings-plassen er tildelt en datablokk, vil denne bli valgt til typen for den datablokken"
+msgstr "Ikke enda angitt. Når denne handlings-plassen er tildelt en datablokk, vil denne bli valgt til typen for den datablokken"
 
 
 msgid "Action Slots"
@@ -1269,7 +1269,7 @@ msgstr "Vis bildetall av nøkkelbildene på bevegelses stiene"
 
 
 msgid "Paths Type"
-msgstr "Type sti"
+msgstr "Sti-type"
 
 
 msgid "Type of range to show for Motion Paths"
@@ -1289,7 +1289,7 @@ msgstr "I rekkevidde"
 
 
 msgid "Display Paths of poses within specified range"
-msgstr "Vis stier av poseringer innen en spesifikk rekkevidde"
+msgstr "Vis stier av poseringer innen en angitt rekkevidde"
 
 
 msgid "Bake to active Camera"
@@ -1305,7 +1305,7 @@ msgstr "Merknadsbilde"
 
 
 msgid "Collection of related sketches on a particular frame"
-msgstr "Samling av relaterte skisser på et spesifikt bilde"
+msgstr "Samling av relaterte skisser på et angitt bilde"
 
 
 msgid "Frame Number"
@@ -1926,7 +1926,7 @@ msgstr "Absolutt sti til .blend-fila som inneholder denne eiendelen, utvidet med
 
 msgctxt "ID"
 msgid "Data-block Type"
-msgstr "Type datablokk"
+msgstr "Datablokk-type"
 
 
 msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
@@ -2030,7 +2030,7 @@ msgstr "Innstillinger"
 
 
 msgid "Options for this asset shelf type"
-msgstr "Innstillingene for denne type eiendelshylle"
+msgstr "Innstillingene for denne eiendelshylle-typen"
 
 
 msgid "No Asset Dragging"
@@ -2062,7 +2062,7 @@ msgstr "Når du legger til en meny for en eiendel, ta eiendelen i bruk og kall �
 
 
 msgid "Space Type"
-msgstr "Type plass"
+msgstr "Plasstype"
 
 
 msgid "The space where the asset shelf will show up in. Ignored for popup asset shelves which can be displayed in any space."
@@ -2861,7 +2861,7 @@ msgstr "Utvider bakeresultatet som en etterbehandlings-filter"
 
 
 msgid "Margin Type"
-msgstr "Type marg"
+msgstr "Margtype"
 
 
 msgid "Algorithm to extend the baked result"
@@ -3197,11 +3197,11 @@ msgstr "Koordinatene til det første håndtaket"
 
 
 msgid "Handle 1 Type"
-msgstr "Type for håndtak 1"
+msgstr "Håndtaktype 1"
 
 
 msgid "Handle types"
-msgstr "Håndtaktype"
+msgstr "Håndtaktyper"
 
 
 msgid "Free"
@@ -3221,7 +3221,7 @@ msgstr "Koordinatene til det andre håndtaket"
 
 
 msgid "Handle 2 Type"
-msgstr "Type for håndtak 2"
+msgstr "Håndtaktype 2"
 
 
 msgid "Visibility status"
@@ -3337,11 +3337,11 @@ msgstr "Sti til .blend-fila"
 
 
 msgid "Vector Fonts"
-msgstr "Vektor skrifttyper"
+msgstr "Vektor-skrifttyper"
 
 
 msgid "Vector font data-blocks"
-msgstr "Vektor skrifttyper datablokker"
+msgstr "Vektor-skrifttyper datablokker"
 
 
 msgid "Grease Pencil data-blocks"
@@ -4214,7 +4214,7 @@ msgstr "Fryktfaktor"
 
 
 msgid "Avoid object if danger from it is above this threshold"
-msgstr "Unngå objektet hvis faren fra det er over denne terskelen"
+msgstr "Unngå objektet hvis faren fra det er over denne grensa"
 
 
 msgid "Object to avoid"
@@ -4465,6 +4465,428 @@ msgid "Maximum distance from which a boid can attack"
 msgstr "Maksimal rekkevidde som en boid kan angripe fra"
 
 
+msgid "Boid States"
+msgstr "Boid-tilstander"
+
+
+msgid "Strength"
+msgstr "Styrke"
+
+
+msgid "Maximum caused damage on attack per second"
+msgstr "Maksimal forårsaket skade per angrep per sekund"
+
+
+msgid "Allow Climbing"
+msgstr "Tillat klatring"
+
+
+msgid "Allow boids to climb goal objects"
+msgstr "Tillat boid-er å klatre mål-objekter"
+
+
+msgid "Allow Flight"
+msgstr "Tillat flyging"
+
+
+msgid "Allow boids to move in air"
+msgstr "Tillat boid-er å bevege i lufta"
+
+
+msgid "Allow Land"
+msgstr "Tillat landing"
+
+
+msgid "Allow boids to move on land"
+msgstr "Tillat boid-er å bevege på land"
+
+
+msgid "Boid State"
+msgstr "Boid-tilstand"
+
+
+msgid "Boid state for boid physics"
+msgstr "Boid-tilstand for boid-fysikk"
+
+
+msgid "Active Boid Rule Index"
+msgstr "Boid-regelindeks i bruk"
+
+
+msgid "Falloff"
+msgstr "Fall"
+
+
+msgid "Boid state name"
+msgstr "Navn på boid-tilstand"
+
+
+msgid "Rule Fuzziness"
+msgstr "Regeluklarhet"
+
+
+msgid "Boid Rules"
+msgstr "Boid-regler"
+
+
+msgid "Rule Evaluation"
+msgstr "Evaluering av regler"
+
+
+msgid "How the rules in the list are evaluated"
+msgstr "Hvordan reglene i lista evalueres"
+
+
+msgid "Fuzzy"
+msgstr "Uklar"
+
+
+msgid "Rules are gone through top to bottom (only the first rule which effect is above fuzziness threshold is evaluated)"
+msgstr "Reglene gås gjennom topp til bunn (kun den første reglen hvis effekten overstiger uklarhetgrensa evalueres)"
+
+
+msgid "Random"
+msgstr "Tilfeldig"
+
+
+msgid "A random rule is selected for each boid"
+msgstr "En tilfeldig regel velges for hver boid"
+
+
+msgid "Average"
+msgstr "Gjennomsnittlig"
+
+
+msgid "All rules are averaged"
+msgstr "Alle regler er gjennomsnittberegnet"
+
+
+msgid "Volume"
+msgstr "Volum"
+
+
+msgid "Bone in an Armature data-block"
+msgstr "Bein i en armatur-datablokk"
+
+
+msgid "In X"
+msgstr "Inn X"
+
+
+msgid "X-axis handle offset for start of the B-Bone's curve, adjusts curvature"
+msgstr "Forskyvning av håndtaket til X-aksen for starten av B-bein kurva, justerer krumning"
+
+
+msgid "In Z"
+msgstr "Inn Z"
+
+
+msgid "Z-axis handle offset for start of the B-Bone's curve, adjusts curvature"
+msgstr "Forskyvning av håndtaket til Z-aksen for starten av B-bein kurva, justerer krumning"
+
+
+msgid "Out X"
+msgstr "Ut X"
+
+
+msgid "X-axis handle offset for end of the B-Bone's curve, adjusts curvature"
+msgstr "Forskyvning av håndtaket til X-aksen for slutten av B-bein kurva, justerer krumning"
+
+
+msgid "Out Z"
+msgstr "Ut Z"
+
+
+msgid "Z-axis handle offset for end of the B-Bone's curve, adjusts curvature"
+msgstr "Forskyvning av håndtaket til Z-aksen for slutten av B-bein kurva, justerer krumning"
+
+
+msgid "B-Bone End Handle"
+msgstr "B-bein slutthåndtak"
+
+
+msgid "Bone that serves as the end handle for the B-Bone curve"
+msgstr "Bein som fungerer som slutthåndtaket for B-bein krumningen"
+
+
+msgid "B-Bone Start Handle"
+msgstr "B-bein starthåndtak"
+
+
+msgid "Bone that serves as the start handle for the B-Bone curve"
+msgstr "Bein som fungerer som starthåndtaket for B-bein krumningen"
+
+
+msgctxt "Armature"
+msgid "Ease In"
+msgstr "Lett inn"
+
+
+msgid "Length of first Bézier Handle (for B-Bones only)"
+msgstr "Lengden av det første bézier-håndtaket (kun for B-bein)"
+
+
+msgctxt "Armature"
+msgid "Ease Out"
+msgstr "Lett ut"
+
+
+msgid "Length of second Bézier Handle (for B-Bones only)"
+msgstr "Lengden av det andre bézier-håndtaket (kun for B-bein)"
+
+
+msgid "B-Bone End Handle Type"
+msgstr "B-bein slutthåndtaktype"
+
+
+msgid "Selects how the end handle of the B-Bone is computed"
+msgstr "Velger hvordan slutthåndtaket til B-beinet beregnes"
+
+
+msgid "Automatic"
+msgstr "Automatisk"
+
+
+msgid "Use connected parent and children to compute the handle"
+msgstr "Bruk tilkoblede overordnede og underordnede for beregning av håndtak"
+
+
+msgid "Absolute"
+msgstr "Absolutt"
+
+
+msgid "Use the position of the specified bone to compute the handle"
+msgstr "Bruk posisjonen til det valgte beinet for beregning av håndtak"
+
+
+msgid "Relative"
+msgstr "Relativ"
+
+
+msgid "Use the offset of the specified bone from rest pose to compute the handle"
+msgstr "Bruk forskyvningen til det valgte beinet fra hvileplassen for beregning av håndtak"
+
+
+msgid "Use the orientation of the specified bone to compute the handle, ignoring the location"
+msgstr "Bruk retninga av det valgte beinet for beregning av håndtaket, ignorerer plasseringen"
+
+
+msgid "B-Bone Start Handle Type"
+msgstr "B-bein starthåndtaktype"
+
+
+msgid "Selects how the start handle of the B-Bone is computed"
+msgstr "Velger hvordan starthåndtaket til B-beinet beregnes"
+
+
+msgid "End Handle Ease"
+msgstr "Slutthåndtak letthet"
+
+
+msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Multipliser B-beinets utlettelse-kanal av den lokale Y-skalaverdien av slutthåndtaket. Dette gjøres etter innstillingen for lettelse av skala og påvirkes ikke av den."
+
+
+msgid "Start Handle Ease"
+msgstr "Starthåndtak letthet"
+
+
+msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Multipliser B-beinets innlettelse-kanal av den lokale Y-skalaverdien av starthåndtaket. Dette gjøres etter innstillingen for lettelse av skala og påvirkes ikke av den."
+
+
+msgid "End Handle Scale"
+msgstr "Slutthåndtakskala"
+
+
+msgid "Multiply B-Bone Scale Out channels by the local scale values of the end handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Multipliser B-beinets utskaleringskanal av de lokale skalaverdiene av slutthåndtaket. Dette gjøres etter innstillingen for lettelse av skala og påvirkes ikke av den."
+
+
+msgid "Start Handle Scale"
+msgstr "Starthåndtakskala"
+
+
+msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it."
+msgstr "Multipliser B-beinets innskaleringskanal av de lokale skalaverdiene av starthåndtaket. Dette gjøres etter innstillingen for lettelse av skala og påvirkes ikke av den."
+
+
+msgid "B-Bone Vertex Mapping Mode"
+msgstr "B-bein hjørnekartleggings-modus"
+
+
+msgid "Selects how the vertices are mapped to B-Bone segments based on their position"
+msgstr "Velger hvordan hjørnene kartlegges til B-bein segmenter basert på deres posisjon"
+
+
+msgid "Straight"
+msgstr "Rett"
+
+
+msgid "Fast mapping that is good for most situations, but ignores the rest pose curvature of the B-Bone"
+msgstr "Rask kartlegging, fungerer for de fleste situasjoner, men ignorerer hvileplass-krumningen av B-beinet"
+
+
+msgid "Curved"
+msgstr "Kurvet"
+
+
+msgid "Slower mapping that gives better deformation for B-Bones that are sharply curved in rest pose"
+msgstr "Saktere kartlegging, gir bedre deformasjon for B-bein som er skarpt krummet i hvileplassen"
+
+
+msgid "Roll In"
+msgstr "Rull inn"
+
+
+msgid "Roll offset for the start of the B-Bone, adjusts twist"
+msgstr "Rulleforskyvning for starten av B-beinet, justerer vridning"
+
+
+msgid "Roll Out"
+msgstr "Rull ut"
+
+
+msgid "Roll offset for the end of the B-Bone, adjusts twist"
+msgstr "Rulleforskyvning for slutten av B-beinet, justerer vridning"
+
+
+msgid "Scale In"
+msgstr "Skaler inn"
+
+
+msgid "Scale factors for the start of the B-Bone, adjusts thickness (for tapering effects)"
+msgstr "Skalafaktorer for starten av B-beinet, justerer tykkelse (for innsnevring-effekt)"
+
+
+msgid "Scale Out"
+msgstr "Skaler ut"
+
+
+msgid "Scale factors for the end of the B-Bone, adjusts thickness (for tapering effects)"
+msgstr "Skalafaktorer for slutten av B-beinet, justerer tykkelse (for innsnevring-effekt)"
+
+
+msgid "B-Bone Segments"
+msgstr "B-bein segmenter"
+
+
+msgid "Number of subdivisions of bone (for B-Bones only)"
+msgstr "Antall underinndelelse av bein (kun for B-bein)"
+
+
+msgid "B-Bone Display X Width"
+msgstr "X-aksens bredde på B-beinet"
+
+
+msgid "B-Bone X size"
+msgstr "X-aksens størrelse på B-beinet"
+
+
+msgid "B-Bone Display Z Width"
+msgstr "Z-aksens bredde på B-beinet"
+
+
+msgid "B-Bone Z size"
+msgstr "Z-aksens størrelse på B-beinet"
+
+
+msgid "Children"
+msgstr "Underordnet"
+
+
+msgid "Bones which are children of this bone"
+msgstr "Bein som er underordnet dette beinet"
+
+
+msgid "Bone Collections that contain this bone"
+msgstr "Beinsamlinger som inneholder dette beinet"
+
+
+msgid "Display Type"
+msgstr "Visningstype"
+
+
+msgid "Armature Defined"
+msgstr "Armatur tilpasset"
+
+
+msgid "Use display mode from armature (default)"
+msgstr "Bruk visningsmodus fra armatur (standard)"
+
+
+msgid "Octahedral"
+msgstr "Oktaedrisk"
+
+
+msgid "Display bones as octahedral shape"
+msgstr "Vis bein som oktaedrisk form"
+
+
+msgid "Stick"
+msgstr "Pinne"
+
+
+msgid "Display bones as simple 2D lines with dots"
+msgstr "Vis bein som enkle 2D-linjer med punkter"
+
+
+msgid "B-Bone"
+msgstr "B-bein"
+
+
+msgid "Display bones as boxes, showing subdivision and B-Splines"
+msgstr "Vis bein som bokser, viser underinndelelse og B-spliner"
+
+
+msgid "Envelope"
+msgstr "Omhylling"
+
+
+msgid "Display bones as extruded spheres, showing deformation influence volume"
+msgstr "Vis bein som utvidede sfærer, viser hvordan deformasjon påvirker volum"
+
+
+msgid "Wire"
+msgstr "Netting"
+
+
+msgid "Display bones as thin wires, showing subdivision and B-Splines"
+msgstr "Viser bein som tynn netting, viser underinndelelse og B-spliner"
+
+
+msgid "Envelope Deform Distance"
+msgstr "Omhylling-deformasjonavstand"
+
+
+msgid "Bone deformation distance (for Envelope deform only)"
+msgstr "Bein deformasjonavstand (kun for omhylling-deformasjon)"
+
+
+msgid "Envelope Deform Weight"
+msgstr "Omhylling-deformasjonvekt"
+
+
+msgid "Bone deformation weight (for Envelope deform only)"
+msgstr "Bein deformasjonvekt (kun for omhylling-deformasjon)"
+
+
+msgid "Head"
+msgstr "Hode"
+
+
+msgid "Location of head end of the bone relative to its parent"
+msgstr "Plasseringa av slutthodet til beinet relativt til dens overordnede"
+
+
+msgid "Parent"
+msgstr "Overordnet"
+
+
+msgid "Connected"
+msgstr "Tilkoblet"
+
+
 msgid "Left"
 msgstr "Venstre"
 
@@ -4479,6 +4901,10 @@ msgstr "Lineær"
 
 msgid "Camera"
 msgstr "Kamera"
+
+
+msgid "Handle Type"
+msgstr "Håndtaktype"
 
 
 msgid "Render"
@@ -4520,6 +4946,14 @@ msgstr "Rediger"
 msgctxt "ParticleSettings"
 msgid "Rendered"
 msgstr "Gjengitt"
+
+
+msgid "Vector Font"
+msgstr "Vektor-skrifttype"
+
+
+msgid "Vector font for Text objects"
+msgstr "Vektor-skrifttype for tekstobjekter"
 
 
 msgid "Windows"
@@ -5056,8 +5490,99 @@ msgstr "Lisensiert under GNU General Public License"
 
 
 msgctxt "Operator"
+msgid "Save New Preferences"
+msgstr "Lagre nye innstillinger"
+
+
+msgctxt "Operator"
+msgid "Continue"
+msgstr "Fortsett"
+
+
+msgctxt "Operator"
+msgid "More..."
+msgstr "Mer …"
+
+
+msgid "Getting Started"
+msgstr "Kom i gang"
+
+
+msgctxt "Operator"
+msgid "What's New"
+msgstr "Dette er nytt"
+
+
+msgctxt "Operator"
+msgid "Donate to Blender"
+msgstr "Gi pengegave til Blender"
+
+
+msgid "Running in Offline Mode"
+msgstr "Kjører i frakoblet modus"
+
+
+msgctxt "Operator"
+msgid "Donate"
+msgstr "Gi pengegave"
+
+
+msgctxt "Operator"
+msgid "Credits"
+msgstr "Medvirkende"
+
+
+msgctxt "Operator"
 msgid "License"
 msgstr "Lisens"
+
+
+msgctxt "Operator"
+msgid "Blender Store"
+msgstr "Blender-butikk"
+
+
+msgctxt "Operator"
+msgid "Blender Website"
+msgstr "Blender-nettside"
+
+
+msgctxt "Operator"
+msgid "Link..."
+msgstr "Lenk …"
+
+
+msgctxt "Operator"
+msgid "Append..."
+msgstr "Tilføy …"
+
+
+msgid "Bug"
+msgstr "Feil"
+
+
+msgid "Credits"
+msgstr "Medvirkende"
+
+
+msgctxt "Operator"
+msgid "Manual"
+msgstr "Bruksanvisning"
+
+
+msgctxt "Operator"
+msgid "Support"
+msgstr "Støtte"
+
+
+msgctxt "Operator"
+msgid "User Communities"
+msgstr "Brukersamfunn"
+
+
+msgctxt "Operator"
+msgid "Get Involved"
+msgstr "Bli med"
 
 
 msgid "Version: {:s}"
@@ -5117,6 +5642,11 @@ msgstr "Oversett"
 
 msgid "Blender Version"
 msgstr "Blender-versjon"
+
+
+msgctxt "Operator"
+msgid "Child"
+msgstr "Underordnet"
 
 
 msgctxt "WindowManager"

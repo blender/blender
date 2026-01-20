@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-12-15 18:48+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -35406,6 +35406,38 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
+msgid "Mesh Select Mode"
+msgstr "メッシュ選択モード"
+
+
+msgid "Face Data"
+msgstr "面データ"
+
+
+msgid "Select by Face Strength"
+msgstr "面の強さで選択"
+
+
+msgid "Set Face Strength"
+msgstr "面の強さを設定"
+
+
+msgid "Math"
+msgstr "数式"
+
+
+msgid "Clean Up"
+msgstr "クリーンアップ"
+
+
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
+msgid "Merge"
+msgstr "マージ"
+
+
 msgid "Show/Hide"
 msgstr "表示/隠す"
 
@@ -35418,32 +35450,16 @@ msgid "Kerning"
 msgstr "カーニング"
 
 
-msgid "Math"
-msgstr "数式"
-
-
 msgid "Metaball"
 msgstr "メタボール"
 
 
-msgid "Utilities"
-msgstr "ユーティリティ"
+msgid "Read"
+msgstr "読込"
 
 
 msgid "Names"
 msgstr "名前"
-
-
-msgid "Bone Roll"
-msgstr "ボーンロール"
-
-
-msgid "Clean Up"
-msgstr "クリーンアップ"
-
-
-msgid "Read"
-msgstr "読込"
 
 
 msgid "Sample"
@@ -35454,12 +35470,24 @@ msgid "Write"
 msgstr "書込"
 
 
-msgid "Pivot Point"
-msgstr "ピボットポイント"
+msgid "Bone Roll"
+msgstr "ボーンロール"
 
 
 msgid "Primitives"
 msgstr "プリミティブ"
+
+
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
+msgid "Pivot Point"
+msgstr "ピボットポイント"
 
 
 msgid "Snap"
@@ -35478,6 +35506,10 @@ msgid "Automasking"
 msgstr "自動マスク"
 
 
+msgid "Import"
+msgstr "インポート"
+
+
 msgid "Face Sets Edit"
 msgstr "面セット編集"
 
@@ -35486,20 +35518,16 @@ msgid "Vertex Group Locks"
 msgstr "頂点グループのロック"
 
 
-msgid "Gizmo"
-msgstr "ギズモ"
-
-
-msgid "Instances"
-msgstr "インスタンス"
-
-
-msgid "Import"
-msgstr "インポート"
-
-
 msgid "Deprecated"
 msgstr "廃止予定"
+
+
+msgid "List"
+msgstr "リスト"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -35514,20 +35542,12 @@ msgid "Local View"
 msgstr "ローカルビュー"
 
 
-msgid "List"
-msgstr "リスト"
-
-
 msgid "Viewpoint"
 msgstr "視点"
 
 
 msgid "Navigation"
 msgstr "視点の操作"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -35586,6 +35606,10 @@ msgid "Rigid Body"
 msgstr "リジッドボディ"
 
 
+msgid "Layout"
+msgstr "レイアウト"
+
+
 msgid "Apply"
 msgstr "適用"
 
@@ -35618,8 +35642,16 @@ msgid "Hooks"
 msgstr "フック"
 
 
-msgid "Layout"
-msgstr "レイアウト"
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Keying"
+msgstr "キーイング"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
 
 
 msgid "Trim/Add"
@@ -35628,6 +35660,10 @@ msgstr "トリム/追加"
 
 msgid "Sculpt Set Pivot"
 msgstr "スカルプトピボット設定"
+
+
+msgid "Creative"
+msgstr "クリエイティブ"
 
 
 msgid "Face Sets Init"
@@ -35642,10 +35678,6 @@ msgid "Clear Transform"
 msgstr "トランスフォームをクリア"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "In-Betweens"
 msgstr "中間ポーズ"
 
@@ -35658,20 +35690,12 @@ msgid "Bone Collections"
 msgstr "ボーンコレクション"
 
 
-msgid "Keying"
-msgstr "キーイング"
-
-
-msgid "Tracking"
-msgstr "トラッキング"
+msgid "Render Preview"
+msgstr "レンダープレビュー"
 
 
 msgid "Toggle Bone Options"
 msgstr "ボーンオプションを切り替え"
-
-
-msgid "Creative"
-msgstr "クリエイティブ"
 
 
 msgid "Enable Bone Options"
@@ -35680,30 +35704,6 @@ msgstr "ボーンオプションを有効化"
 
 msgid "Disable Bone Options"
 msgstr "ボーンオプションを無効化"
-
-
-msgid "Mesh Select Mode"
-msgstr "メッシュ選択モード"
-
-
-msgid "Face Data"
-msgstr "面データ"
-
-
-msgid "Select by Face Strength"
-msgstr "面の強さで選択"
-
-
-msgid "Set Face Strength"
-msgstr "面の強さを設定"
-
-
-msgid "Render Preview"
-msgstr "レンダープレビュー"
-
-
-msgid "Merge"
-msgstr "マージ"
 
 
 msgid "Keyframe Insert Pie"
@@ -49620,66 +49620,6 @@ msgid "Generate a paragraph of text with a specific font, using a curve instance
 msgstr "文字毎にカーブインスタンスを使用し，指定のフォントで文章を生成します"
 
 
-msgid "Align text to the center"
-msgstr "テキストを左揃えします"
-
-
-msgid "Align text to the left and the right"
-msgstr "テキストを左右に揃えます"
-
-
-msgid "Align text to the left and the right, with equal character spacing"
-msgstr "テキストを左右に等間隔で揃えます"
-
-
-msgid "Font of the text. Falls back to the UI font by default."
-msgstr "テキストのフォント．デフォルトでは UI フォントが代替となります."
-
-
-msgid "Let the text use more space than the specified height"
-msgstr "テキストに指定の高さより大きな空間を使用します"
-
-
-msgid "Scale To Fit"
-msgstr "拡大縮小で収める"
-
-
-msgid "Scale the text size to fit inside the width and height"
-msgstr "テキストを拡大縮小して幅と高さ内に収めます"
-
-
-msgid "Only output curves that fit within the width and height. Output the remainder to the \"Remainder\" output."
-msgstr "幅と高さ内に収まるカーブのみ出力します．残りは「余り」出力に出力します."
-
-
-msgid "Pivot point position relative to character"
-msgstr "文字に対するピボットポイントの位置"
-
-
-msgid "Top Left"
-msgstr "左上"
-
-
-msgid "Top Center"
-msgstr "中心上"
-
-
-msgid "Top Right"
-msgstr "右上"
-
-
-msgid "Bottom Left"
-msgstr "左下"
-
-
-msgid "Bottom Center"
-msgstr "中心下"
-
-
-msgid "Bottom Right"
-msgstr "右下"
-
-
 msgid "Subdivide Curve"
 msgstr "カーブ細分化"
 
@@ -49957,6 +49897,42 @@ msgstr "ラベル表示のフォントサイズ"
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "最小のバウンディングボックスにフレームを縮小"
+
+
+msgid "Structure Type"
+msgstr "構造タイプ"
+
+
+msgid "What kind of higher order types are expected to flow through this socket"
+msgstr "このソケットを流れることが予測される高次のタイプ"
+
+
+msgid "Automatically detect a good structure type based on how the socket is used"
+msgstr "ソケットの使用方法を元に自動でいい構造タイプを探知します"
+
+
+msgid "Socket can work with different kinds of structures"
+msgstr "違う構造でも動作可能なソケット"
+
+
+msgid "Socket expects a field"
+msgstr "フィールドを要求するソケット"
+
+
+msgid "Socket expects a grid"
+msgstr "グリッドを要求するソケット"
+
+
+msgid "Socket expects a list"
+msgstr "リストを要求するソケット"
+
+
+msgid "Single"
+msgstr "シングル"
+
+
+msgid "Socket expects a single value"
+msgstr "単一値を要求するソケット"
 
 
 msgid "Group Input"
@@ -52393,42 +52369,6 @@ msgid "Closure Input Item"
 msgstr "クロージャ入力アイテム"
 
 
-msgid "Structure Type"
-msgstr "構造タイプ"
-
-
-msgid "What kind of higher order types are expected to flow through this socket"
-msgstr "このソケットを流れることが予測される高次のタイプ"
-
-
-msgid "Automatically detect a good structure type based on how the socket is used"
-msgstr "ソケットの使用方法を元に自動でいい構造タイプを探知します"
-
-
-msgid "Socket can work with different kinds of structures"
-msgstr "違う構造でも動作可能なソケット"
-
-
-msgid "Socket expects a field"
-msgstr "フィールドを要求するソケット"
-
-
-msgid "Socket expects a grid"
-msgstr "グリッドを要求するソケット"
-
-
-msgid "Socket expects a list"
-msgstr "リストを要求するソケット"
-
-
-msgid "Single"
-msgstr "シングル"
-
-
-msgid "Socket expects a single value"
-msgstr "単一値を要求するソケット"
-
-
 msgid "Closure Input Items"
 msgstr "クロージャ入力アイテム"
 
@@ -54639,15 +54579,6 @@ msgstr "チェックボックスを現在選択中のパネルに追加します
 msgctxt "Operator"
 msgid "New Panel Toggle"
 msgstr "新規パネルトグル"
-
-
-msgid "Remove active item from the interface"
-msgstr "インターフェイスからアクティブアイテムを削除します"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "アイテムを削除"
 
 
 msgid "Make the panel toggle a stand-alone socket"
@@ -65800,6 +65731,11 @@ msgid "Switch brush to erase mode for duration of stroke"
 msgstr "ストローク中にブラシを消しゴムモードに切り替えます"
 
 
+msgctxt "Operator"
+msgid "Mask"
+msgstr "マスク"
+
+
 msgid "Pen Flip"
 msgstr "ペン反転"
 
@@ -72817,6 +72753,11 @@ msgstr "アクティブアイテムを移動します"
 
 msgid "Move direction"
 msgstr "移動方向"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "アイテムを削除"
 
 
 msgid "Remove active item"
@@ -92359,22 +92300,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "glTF Variants"
-msgstr "glTFバリアント"
-
-
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTFアニメーション"
-
-
 msgid "Active Tool"
 msgstr "アクティブツール"
 
@@ -92411,6 +92336,14 @@ msgid "Compositor"
 msgstr "コンポジター"
 
 
+msgid "glTF Variants"
+msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
+
+
 msgid "Overlays"
 msgstr "オーバーレイ"
 
@@ -92441,6 +92374,14 @@ msgstr "カーブ編集モード"
 
 msgid "Curves Edit Mode"
 msgstr "ヘアーカーブ編集モード"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTFアニメーション"
 
 
 msgid "Transform Orientations"
@@ -93010,11 +92951,6 @@ msgstr "スミア"
 msgctxt "Operator"
 msgid "Clone"
 msgstr "クローン"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "マスク"
 
 
 msgid "Tiling"
@@ -98874,6 +98810,11 @@ msgstr "0.0から1.0の間の係数"
 
 
 msgctxt "Unit"
+msgid "Mass"
+msgstr "重さ"
+
+
+msgctxt "Unit"
 msgid "Angle"
 msgstr "角度"
 
@@ -99089,11 +99030,6 @@ msgstr "体積"
 msgctxt "Unit"
 msgid "Rotation"
 msgstr "回転"
-
-
-msgctxt "Unit"
-msgid "Mass"
-msgstr "重さ"
 
 
 msgctxt "Unit"
@@ -107408,6 +107344,14 @@ msgid "Filter based on key bindings"
 msgstr "キーバインドによる絞り込み"
 
 
+msgid "Tab Search Results"
+msgstr "タブ検索結果"
+
+
+msgid "Whether or not each visible tab has a search result"
+msgstr "各表示タブに検索結果があるかどうか"
+
+
 msgid "Properties Space"
 msgstr "プロパティスペース"
 
@@ -107584,14 +107528,6 @@ msgstr "このエディターがアウトライナーと境界を共有する時
 
 msgid "Strip Modifiers"
 msgstr "ストリップモディファイアー"
-
-
-msgid "Tab Search Results"
-msgstr "タブ検索結果"
-
-
-msgid "Whether or not each visible tab has a search result"
-msgstr "各表示タブに検索結果があるかどうか"
 
 
 msgid "Pin ID"
@@ -109654,6 +109590,10 @@ msgstr "ボックスの高さに対するボックスの角の半径"
 
 msgid "Text color"
 msgstr "テキストカラー"
+
+
+msgid "Font of the text. Falls back to the UI font by default."
+msgstr "テキストのフォント．デフォルトでは UI フォントが代替となります."
 
 
 msgid "Size of the text"
@@ -111944,16 +111884,16 @@ msgid "Theme settings for the Blender Preferences"
 msgstr "プリファレンス用のテーマ設定"
 
 
+msgid "Search Match"
+msgstr "検索がマッチ"
+
+
 msgid "Theme Properties"
 msgstr "プロパティのテーマ"
 
 
 msgid "Theme settings for the Properties"
 msgstr "プロパティのためテーマ設定"
-
-
-msgid "Search Match"
-msgstr "検索がマッチ"
 
 
 msgid "Shared Region Properties"
@@ -135371,16 +135311,6 @@ msgstr "パネルの後に挿入"
 
 
 msgctxt "Operator"
-msgid "Delete Node Interface Socket"
-msgstr "ノードインターフェイスソケットを削除"
-
-
-msgctxt "Operator"
-msgid "Delete Node Interface Panel"
-msgstr "ノードインターフェイスパネルを削除"
-
-
-msgctxt "Operator"
 msgid "Insert node group item"
 msgstr "ノードグループアイテムを挿入"
 
@@ -140008,12 +139938,8 @@ msgstr ""
 "カタログはアセットブラウザー内で割り当て可能です"
 
 
-msgid "The internal clipboard is empty"
-msgstr "内部クリップボードは空です"
-
-
-msgid "Some nodes references to other IDs could not be restored, will be left empty"
-msgstr "一部ノードの，他の ID への参照が復元できず，空のままになりました"
+msgid "No data to paste"
+msgstr "貼り付けるデータがありません"
 
 
 msgid "Cannot add node %s into node tree %s: %s"
@@ -140877,10 +140803,6 @@ msgstr "リネームするアクティブアイテムがありません"
 
 msgid "No selected data-blocks to copy"
 msgstr "コピーするデータブロックが未選択です"
-
-
-msgid "No data to paste"
-msgstr "貼り付けるデータがありません"
 
 
 msgid "There is no active data-block"
@@ -149080,6 +149002,10 @@ msgid "Each input geometry is turned into a separate instance"
 msgstr "入力ジオメトリ毎に別々のインスタンスにします"
 
 
+msgid "Cannot get internal value from bundle"
+msgstr "バンドル内部の値を取得できません"
+
+
 msgid "Volume to take a named grid out of"
 msgstr "名前付きグリッドを取り出すボリューム"
 
@@ -150532,10 +150458,6 @@ msgid "Value not found in bundle: \"{}\""
 msgstr "バンドル「{}」に値が見つかりません"
 
 
-msgid "Cannot get internal value from bundle"
-msgstr "バンドル内部の値を取得できません"
-
-
 msgid "Implicit type conversion when separating bundle"
 msgstr "バンドル分離時に暗黙的にタイプを変換します"
 
@@ -150871,6 +150793,14 @@ msgstr "正確な形状"
 
 msgid "Use exact geometry for most efficient packing (slowest)"
 msgstr "正確な形状を使用し，梱包の効率を最優先にします（低速）"
+
+
+msgid "Bottom Left"
+msgstr "左下"
+
+
+msgid "Top Right"
+msgstr "右上"
 
 
 msgid "Faces to consider when packing islands"

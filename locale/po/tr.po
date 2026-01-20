@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28953,6 +28953,38 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Select by Face Strength"
+msgstr "Yüz Gücüne Göre Seç"
+
+
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
+msgid "Merge"
+msgstr "Birleştir"
+
+
 msgid "Show/Hide"
 msgstr "Göster/Gizle"
 
@@ -28965,32 +28997,16 @@ msgid "Kerning"
 msgstr "Harf aralığı"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
 msgid "Metaball"
 msgstr "Metabol"
 
 
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
+msgid "Read"
+msgstr "Okumak"
 
 
 msgid "Names"
 msgstr "Adlar"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
-msgid "Read"
-msgstr "Okumak"
 
 
 msgid "Sample"
@@ -29001,12 +29017,20 @@ msgid "Write"
 msgstr "Yazmak"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
 
 
 msgid "Primitives"
 msgstr "İlkel"
+
+
+msgid "Instances"
+msgstr "Örnekler"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
 
 
 msgid "Snap"
@@ -29025,6 +29049,10 @@ msgid "Automasking"
 msgstr "Otomatik maskeleme"
 
 
+msgid "Import"
+msgstr "İçe Aktar"
+
+
 msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
 
@@ -29033,16 +29061,12 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
-msgid "Instances"
-msgstr "Örnekler"
-
-
-msgid "Import"
-msgstr "İçe Aktar"
-
-
 msgid "Deprecated"
 msgstr "Kullanım dışı bırakıldı"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -29063,10 +29087,6 @@ msgstr "Bakış açısı"
 
 msgid "Navigation"
 msgstr "Navigasyon"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -29125,6 +29145,10 @@ msgid "Rigid Body"
 msgstr "Sert Gövde"
 
 
+msgid "Layout"
+msgstr "Yerleşim"
+
+
 msgid "Apply"
 msgstr "Uygula"
 
@@ -29157,8 +29181,16 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Tracking"
+msgstr "Takip"
 
 
 msgid "Trim/Add"
@@ -29181,10 +29213,6 @@ msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "In-Betweens"
 msgstr "Arada Kalanlar"
 
@@ -29197,14 +29225,6 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
-msgid "Tracking"
-msgstr "Takip"
-
-
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
 
@@ -29215,26 +29235,6 @@ msgstr "Kemik Seçeneklerini Etkinleştir"
 
 msgid "Disable Bone Options"
 msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
-
-
-msgid "Select by Face Strength"
-msgstr "Yüz Gücüne Göre Seç"
-
-
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Merge"
-msgstr "Birleştir"
 
 
 msgid "Keyframe Insert Pie"
@@ -40494,58 +40494,6 @@ msgid "String to Curves"
 msgstr "Dizeden Eğrilere"
 
 
-msgid "Align text to the center"
-msgstr "Metni ortaya hizala"
-
-
-msgid "Align text to the left and the right"
-msgstr "Metni sola ve sağa hizala"
-
-
-msgid "Align text to the left and the right, with equal character spacing"
-msgstr "Metni sola ve sağa eşit karakter aralığıyla hizalayın"
-
-
-msgid "Let the text use more space than the specified height"
-msgstr "Metnin belirtilen yükseklikten daha fazla alan kullanmasına izin verin"
-
-
-msgid "Scale To Fit"
-msgstr "Uygun Ölçek"
-
-
-msgid "Scale the text size to fit inside the width and height"
-msgstr "Metin boyutunu genişliğe ve yüksekliğe uyacak şekilde ölçeklendirin"
-
-
-msgid "Pivot point position relative to character"
-msgstr "Karaktere göre pivot noktası konumu"
-
-
-msgid "Top Left"
-msgstr "Sol Üst"
-
-
-msgid "Top Center"
-msgstr "Üst Merkez"
-
-
-msgid "Top Right"
-msgstr "Sağ Üst"
-
-
-msgid "Bottom Left"
-msgstr "Sol Alt"
-
-
-msgid "Bottom Center"
-msgstr "Alt Orta"
-
-
-msgid "Bottom Right"
-msgstr "Sağ Alt"
-
-
 msgid "Subdivide Curve"
 msgstr "Eğriyi Alt Böl"
 
@@ -40713,6 +40661,10 @@ msgstr "Etiketin görüntülenmesinde kullanılacak yazı tipi boyutu"
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "Çerçeveyi en küçük sınırlayıcı kutuya küçült"
+
+
+msgid "Single"
+msgstr "Bekar"
 
 
 msgid "Group Input"
@@ -42598,10 +42550,6 @@ msgid "Value to Normal"
 msgstr "Değer Normal"
 
 
-msgid "Single"
-msgstr "Bekar"
-
-
 msgid "Enum Item"
 msgstr "Enum Öğesi"
 
@@ -44280,15 +44228,6 @@ msgstr "Arayüze yeni bir öğe ekle"
 msgctxt "Operator"
 msgid "New Item"
 msgstr "Yeni Ürün"
-
-
-msgid "Remove active item from the interface"
-msgstr "Etkin öğeyi arayüzden kaldır"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Öğeyi Kaldır"
 
 
 msgid "Link from this output"
@@ -53834,6 +53773,11 @@ msgstr "Fırçayı vuruş süresince silme moduna geçirin"
 
 
 msgctxt "Operator"
+msgid "Mask"
+msgstr "Maske"
+
+
+msgctxt "Operator"
 msgid "Set Curve Caps"
 msgstr "Eğri Sınırlarını Ayarla"
 
@@ -59934,6 +59878,11 @@ msgstr "Öğe Ekle"
 
 msgid "Move direction"
 msgstr "Hareket yönü"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Öğeyi Kaldır"
 
 
 msgctxt "Operator"
@@ -76122,14 +76071,6 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
 msgid "Active Tool"
 msgstr "Etkin Araç"
 
@@ -76160,6 +76101,14 @@ msgstr "Render Geçişi"
 
 msgid "Compositor"
 msgstr "Dizgici"
+
+
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
 
 
 msgid "Overlays"
@@ -76674,11 +76623,6 @@ msgstr "Rip Bölgesi"
 msgctxt "Operator"
 msgid "Grab"
 msgstr "Yakalamak"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Maske"
 
 
 msgid "Tiling"
@@ -88026,6 +87970,14 @@ msgid "Filter based on key bindings"
 msgstr "Anahtar bağlamalarına göre filtrele"
 
 
+msgid "Tab Search Results"
+msgstr "Sekme Arama Sonuçları"
+
+
+msgid "Whether or not each visible tab has a search result"
+msgstr "Görünür her sekmenin bir arama sonucu olup olmadığı"
+
+
 msgid "Properties Space"
 msgstr "Özellikler Uzay"
 
@@ -88180,14 +88132,6 @@ msgstr "Bir taslaktaki bir simgeye tıkladığınızda asla sekmeleri değiştir
 
 msgid "Strip Modifiers"
 msgstr "Şerit değiştiriciler"
-
-
-msgid "Tab Search Results"
-msgstr "Sekme Arama Sonuçları"
-
-
-msgid "Whether or not each visible tab has a search result"
-msgstr "Görünür her sekmenin bir arama sonucu olup olmadığı"
 
 
 msgid "Pin ID"
@@ -91838,16 +91782,16 @@ msgid "Theme settings for the Blender Preferences"
 msgstr "Blender Tercihleri için tema ayarları"
 
 
+msgid "Search Match"
+msgstr "Arama Eşleşmesi"
+
+
 msgid "Theme Properties"
 msgstr "Tema Özellikleri"
 
 
 msgid "Theme settings for the Properties"
 msgstr "Özellikler için tema ayarları"
-
-
-msgid "Search Match"
-msgstr "Arama Eşleşmesi"
 
 
 msgid "Theme settings for asset shelves"
@@ -114169,8 +114113,8 @@ msgid "No animation track found at index %d"
 msgstr "%d dizininde animasyon parçası bulunamadı"
 
 
-msgid "The internal clipboard is empty"
-msgstr "Dahili pano boş"
+msgid "No data to paste"
+msgstr "Yapıştırılacak veri yok"
 
 
 msgid "Cannot add node %s into node tree %s: %s"
@@ -114535,10 +114479,6 @@ msgstr "Yeniden adlandırılacak etkin öğe yok"
 
 msgid "No selected data-blocks to copy"
 msgstr "Kopyalanacak seçili veri bloğu yok"
-
-
-msgid "No data to paste"
-msgstr "Yapıştırılacak veri yok"
 
 
 msgid "Operation requires an active keying set"
@@ -120273,6 +120213,14 @@ msgstr "Hacim ölçeği OpenVDB tarafından izin verilenden daha düşük"
 
 msgid "How the transformation is specified"
 msgstr "Dönüşüm nasıl belirtilir"
+
+
+msgid "Bottom Left"
+msgstr "Sol Alt"
+
+
+msgid "Top Right"
+msgstr "Sağ Üst"
 
 
 msgid "Faces to consider when packing islands"

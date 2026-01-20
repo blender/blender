@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28417,24 +28417,28 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
 msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Clean Up"
+msgstr "Safisha"
 
 
 msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
+msgid "Merge"
+msgstr "Unganisha"
+
+
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Read"
@@ -28449,20 +28453,20 @@ msgid "Write"
 msgstr "Andika"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
 msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Snap"
-msgstr "Picha"
-
-
 msgid "Instances"
 msgstr "Matukio"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Import"
@@ -28493,6 +28497,10 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
+msgid "Layout"
+msgstr "Mpangilio"
+
+
 msgid "Apply"
 msgstr "Tumia"
 
@@ -28501,16 +28509,8 @@ msgid "Asset"
 msgstr "Mali"
 
 
-msgid "Layout"
-msgstr "Mpangilio"
-
-
 msgid "Adjust"
 msgstr "Rekebisha"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Keying"
@@ -28521,8 +28521,8 @@ msgid "Tracking"
 msgstr "Kufuatilia"
 
 
-msgid "Merge"
-msgstr "Unganisha"
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Keyframe Insert Pie"
@@ -39438,58 +39438,6 @@ msgid "Generate a paragraph of text with a specific font, using a curve instance
 msgstr "Tengeneza aya ya maandishi kwa fonti maalum, kwa kutumia kielelezo cha curve kuhifadhi kila herufi."
 
 
-msgid "Align text to the center"
-msgstr "Pangilia maandishi katikati"
-
-
-msgid "Align text to the left and the right"
-msgstr "Pangilia maandishi kushoto na kulia"
-
-
-msgid "Align text to the left and the right, with equal character spacing"
-msgstr "Pangilia maandishi kushoto na kulia, kwa nafasi sawa za herufi"
-
-
-msgid "Let the text use more space than the specified height"
-msgstr "Acha maandishi yatumie nafasi zaidi ya urefu uliobainishwa"
-
-
-msgid "Scale To Fit"
-msgstr "Kipimo Ili Kutoshea"
-
-
-msgid "Scale the text size to fit inside the width and height"
-msgstr "Piga ukubwa wa maandishi ili kutoshea ndani ya upana na urefu"
-
-
-msgid "Pivot point position relative to character"
-msgstr "Nafasi ya egemeo inayohusiana na mhusika"
-
-
-msgid "Top Left"
-msgstr "Juu Kushoto"
-
-
-msgid "Top Center"
-msgstr "Kituo cha Juu"
-
-
-msgid "Top Right"
-msgstr "Juu Kulia"
-
-
-msgid "Bottom Left"
-msgstr "Chini Kushoto"
-
-
-msgid "Bottom Center"
-msgstr "Kituo cha Chini"
-
-
-msgid "Bottom Right"
-msgstr "Chini Kulia"
-
-
 msgid "Subdivide Curve"
 msgstr "Toa Mviringo"
 
@@ -39657,6 +39605,10 @@ msgstr "Ukubwa wa herufi ya kutumia kuonyesha lebo"
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "Nyunyiza fremu iwe kisanduku kidogo cha kufunga"
+
+
+msgid "Single"
+msgstr "Sijaoa"
 
 
 msgid "Group Input"
@@ -41531,10 +41483,6 @@ msgid "Value to Normal"
 msgstr "Thamani kwa Kawaida"
 
 
-msgid "Single"
-msgstr "Sijaoa"
-
-
 msgid "Enum Item"
 msgstr "Kipengee cha Enum"
 
@@ -42944,15 +42892,6 @@ msgstr "Ongeza kipengee kipya kwenye kiolesura"
 msgctxt "Operator"
 msgid "New Item"
 msgstr "Kipengee Kipya"
-
-
-msgid "Remove active item from the interface"
-msgstr "Ondoa kipengee amilifu kwenye kiolesura"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Ondoa Kipengee"
 
 
 msgid "Create a new geometry node group and assign it to the active modifier"
@@ -58031,6 +57970,11 @@ msgstr "Kuza ndani/nje picha ya usuli"
 msgctxt "Operator"
 msgid "Add Item"
 msgstr "Ongeza Kipengee"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Ondoa Kipengee"
 
 
 msgctxt "Operator"
@@ -83045,6 +82989,14 @@ msgid "Filter based on key bindings"
 msgstr "Chuja kulingana na vifungo muhimu"
 
 
+msgid "Tab Search Results"
+msgstr "Matokeo ya Utafutaji wa Kichupo"
+
+
+msgid "Whether or not each visible tab has a search result"
+msgstr "Iwapo kila kichupo kinachoonekana kina tokeo la utafutaji au la"
+
+
 msgid "Properties Space"
 msgstr "Nafasi ya Mali"
 
@@ -83203,14 +83155,6 @@ msgstr "Badilisha vichupo tu wakati mhariri huyu anashiriki mpaka na kiolezo"
 
 msgid "Strip Modifiers"
 msgstr "Marekebisho ya Mikanda"
-
-
-msgid "Tab Search Results"
-msgstr "Matokeo ya Utafutaji wa Kichupo"
-
-
-msgid "Whether or not each visible tab has a search result"
-msgstr "Iwapo kila kichupo kinachoonekana kina tokeo la utafutaji au la"
 
 
 msgid "Pin ID"
@@ -86742,16 +86686,16 @@ msgid "Theme settings for the Blender Preferences"
 msgstr "Mipangilio ya mandhari ya Mapendeleo ya Blender"
 
 
+msgid "Search Match"
+msgstr "Tafuta Mechi"
+
+
 msgid "Theme Properties"
 msgstr "Sifa za Mandhari"
 
 
 msgid "Theme settings for the Properties"
 msgstr "Mipangilio ya mandhari ya Sifa"
-
-
-msgid "Search Match"
-msgstr "Tafuta Mechi"
 
 
 msgid "Theme settings for asset shelves"
@@ -105594,8 +105538,8 @@ msgstr ""
 "Orodha zinaweza kugawiwa katika Kivinjari cha Mali."
 
 
-msgid "The internal clipboard is empty"
-msgstr "Ubao wa kunakili wa ndani hauna kitu"
+msgid "No data to paste"
+msgstr "Hakuna data ya kubandika"
 
 
 msgid "Cannot add node %s into node tree %s: %s"
@@ -105940,10 +105884,6 @@ msgstr "Hakuna kipengee kinachotumika cha kubadilisha jina"
 
 msgid "No selected data-blocks to copy"
 msgstr "Hakuna vizuizi vya data vilivyochaguliwa vya kunakili"
-
-
-msgid "No data to paste"
-msgstr "Hakuna data ya kubandika"
 
 
 msgid "Operation requires an active keying set"
@@ -111195,6 +111135,14 @@ msgstr "Mzunguko wa mshale wa 3D wa eneo la tukio, katika nafasi ya ndani ya kit
 
 msgid "Volume scale is lower than permitted by OpenVDB"
 msgstr "Kiwango cha sauti ni cha chini kuliko inavyoruhusiwa na OpenVDB"
+
+
+msgid "Bottom Left"
+msgstr "Chini Kushoto"
+
+
+msgid "Top Right"
+msgstr "Juu Kulia"
 
 
 msgid "Faces to consider when packing islands"

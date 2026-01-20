@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-12-11 18:12+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34898,6 +34898,38 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
 msgid "Show/Hide"
 msgstr "Show/Hide"
 
@@ -34910,32 +34942,16 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Utilities"
-msgstr "Utilities"
+msgid "Read"
+msgstr "Read"
 
 
 msgid "Names"
 msgstr "Names"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
-msgid "Read"
-msgstr "Read"
 
 
 msgid "Sample"
@@ -34946,12 +34962,24 @@ msgid "Write"
 msgstr "Write"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Point"
+msgid "Bone Roll"
+msgstr "Bone Roll"
 
 
 msgid "Primitives"
 msgstr "Primitives"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
 
 
 msgid "Snap"
@@ -34970,6 +34998,10 @@ msgid "Automasking"
 msgstr "Automasking"
 
 
+msgid "Import"
+msgstr "Import"
+
+
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
 
@@ -34978,20 +35010,16 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Import"
-msgstr "Import"
-
-
 msgid "Deprecated"
 msgstr "Deprecated"
+
+
+msgid "List"
+msgstr "List"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -35006,20 +35034,12 @@ msgid "Local View"
 msgstr "Local View"
 
 
-msgid "List"
-msgstr "List"
-
-
 msgid "Viewpoint"
 msgstr "Viewpoint"
 
 
 msgid "Navigation"
 msgstr "Navigation"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -35078,6 +35098,10 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Apply"
 msgstr "Apply"
 
@@ -35110,8 +35134,16 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracking"
 
 
 msgid "Trim/Add"
@@ -35120,6 +35152,10 @@ msgstr "Trim/Add"
 
 msgid "Sculpt Set Pivot"
 msgstr "Sculpt Set Pivot"
+
+
+msgid "Creative"
+msgstr "Creative"
 
 
 msgid "Face Sets Init"
@@ -35134,10 +35170,6 @@ msgid "Clear Transform"
 msgstr "Clear Transform"
 
 
-msgid "Adjust"
-msgstr "Adjust"
-
-
 msgid "In-Betweens"
 msgstr "In-Betweens"
 
@@ -35150,20 +35182,12 @@ msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracking"
+msgid "Render Preview"
+msgstr "Render Preview"
 
 
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
-
-
-msgid "Creative"
-msgstr "Creative"
 
 
 msgid "Enable Bone Options"
@@ -35172,30 +35196,6 @@ msgstr "Enable Bone Options"
 
 msgid "Disable Bone Options"
 msgstr "Disable Bone Options"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
-msgid "Merge"
-msgstr "Merge"
 
 
 msgid "Keyframe Insert Pie"
@@ -48986,66 +48986,6 @@ msgid "Generate a paragraph of text with a specific font, using a curve instance
 msgstr "Generate a paragraph of text with a specific font, using a curve instance to store each character"
 
 
-msgid "Align text to the center"
-msgstr "Align text to the centre"
-
-
-msgid "Align text to the left and the right"
-msgstr "Align text to the left and the right"
-
-
-msgid "Align text to the left and the right, with equal character spacing"
-msgstr "Align text to the left and the right, with equal character spacing"
-
-
-msgid "Font of the text. Falls back to the UI font by default."
-msgstr "Font of the text. Falls back to the UI font by default."
-
-
-msgid "Let the text use more space than the specified height"
-msgstr "Let the text use more space than the specified height"
-
-
-msgid "Scale To Fit"
-msgstr "Scale To Fit"
-
-
-msgid "Scale the text size to fit inside the width and height"
-msgstr "Scale the text size to fit inside the width and height"
-
-
-msgid "Only output curves that fit within the width and height. Output the remainder to the \"Remainder\" output."
-msgstr "Only output curves that fit within the width and height. Output the remainder to the \"Remainder\" output."
-
-
-msgid "Pivot point position relative to character"
-msgstr "Pivot point position relative to character"
-
-
-msgid "Top Left"
-msgstr "Top Left"
-
-
-msgid "Top Center"
-msgstr "Top Centre"
-
-
-msgid "Top Right"
-msgstr "Top Right"
-
-
-msgid "Bottom Left"
-msgstr "Bottom Left"
-
-
-msgid "Bottom Center"
-msgstr "Bottom Centre"
-
-
-msgid "Bottom Right"
-msgstr "Bottom Right"
-
-
 msgid "Subdivide Curve"
 msgstr "Subdivide Curve"
 
@@ -49321,6 +49261,42 @@ msgstr "Font size to use for displaying the label"
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "Shrink the frame to minimal bounding box"
+
+
+msgid "Structure Type"
+msgstr "Structure Type"
+
+
+msgid "What kind of higher order types are expected to flow through this socket"
+msgstr "What kind of higher order types are expected to flow through this socket"
+
+
+msgid "Automatically detect a good structure type based on how the socket is used"
+msgstr "Automatically detect a good structure type based on how the socket is used"
+
+
+msgid "Socket can work with different kinds of structures"
+msgstr "Socket can work with different kinds of structures"
+
+
+msgid "Socket expects a field"
+msgstr "Socket expects a field"
+
+
+msgid "Socket expects a grid"
+msgstr "Socket expects a grid"
+
+
+msgid "Socket expects a list"
+msgstr "Socket expects a list"
+
+
+msgid "Single"
+msgstr "Single"
+
+
+msgid "Socket expects a single value"
+msgstr "Socket expects a single value"
 
 
 msgid "Group Input"
@@ -51711,42 +51687,6 @@ msgid "Closure Input Item"
 msgstr "Closure Input Item"
 
 
-msgid "Structure Type"
-msgstr "Structure Type"
-
-
-msgid "What kind of higher order types are expected to flow through this socket"
-msgstr "What kind of higher order types are expected to flow through this socket"
-
-
-msgid "Automatically detect a good structure type based on how the socket is used"
-msgstr "Automatically detect a good structure type based on how the socket is used"
-
-
-msgid "Socket can work with different kinds of structures"
-msgstr "Socket can work with different kinds of structures"
-
-
-msgid "Socket expects a field"
-msgstr "Socket expects a field"
-
-
-msgid "Socket expects a grid"
-msgstr "Socket expects a grid"
-
-
-msgid "Socket expects a list"
-msgstr "Socket expects a list"
-
-
-msgid "Single"
-msgstr "Single"
-
-
-msgid "Socket expects a single value"
-msgstr "Socket expects a single value"
-
-
 msgid "Closure Input Items"
 msgstr "Closure Input Items"
 
@@ -53939,15 +53879,6 @@ msgstr "Add a checkbox to the currently selected panel"
 msgctxt "Operator"
 msgid "New Panel Toggle"
 msgstr "New Panel Toggle"
-
-
-msgid "Remove active item from the interface"
-msgstr "Remove active item from the interface"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Remove Item"
 
 
 msgid "Make the panel toggle a stand-alone socket"
@@ -64988,6 +64919,11 @@ msgid "Switch brush to erase mode for duration of stroke"
 msgstr "Switch brush to erase mode for duration of stroke"
 
 
+msgctxt "Operator"
+msgid "Mask"
+msgstr "Mask"
+
+
 msgid "Pen Flip"
 msgstr "Pen Flip"
 
@@ -71972,6 +71908,11 @@ msgstr "Move active item"
 
 msgid "Move direction"
 msgstr "Move direction"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Remove Item"
 
 
 msgid "Remove active item"
@@ -91536,22 +91477,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
-
-
 msgid "Active Tool"
 msgstr "Active Tool"
 
@@ -91588,6 +91513,14 @@ msgid "Compositor"
 msgstr "Compositor"
 
 
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
 msgid "Overlays"
 msgstr "Overlays"
 
@@ -91618,6 +91551,14 @@ msgstr "Curve Edit Mode"
 
 msgid "Curves Edit Mode"
 msgstr "Curves Edit Mode"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
 
 
 msgid "Transform Orientations"
@@ -92187,11 +92128,6 @@ msgstr "Smear"
 msgctxt "Operator"
 msgid "Clone"
 msgstr "Clone"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Mask"
 
 
 msgid "Tiling"
@@ -98023,6 +97959,11 @@ msgstr "A factor between 0.0 and 1.0"
 
 
 msgctxt "Unit"
+msgid "Mass"
+msgstr "Mass"
+
+
+msgctxt "Unit"
 msgid "Angle"
 msgstr "Angle"
 
@@ -98238,11 +98179,6 @@ msgstr "Volume"
 msgctxt "Unit"
 msgid "Rotation"
 msgstr "Rotation"
-
-
-msgctxt "Unit"
-msgid "Mass"
-msgstr "Mass"
 
 
 msgctxt "Unit"
@@ -106359,6 +106295,14 @@ msgid "Filter based on key bindings"
 msgstr "Filter based on key bindings"
 
 
+msgid "Tab Search Results"
+msgstr "Tab Search Results"
+
+
+msgid "Whether or not each visible tab has a search result"
+msgstr "Whether or not each visible tab has a search result"
+
+
 msgid "Properties Space"
 msgstr "Properties Space"
 
@@ -106535,14 +106479,6 @@ msgstr "Change tabs only when this editor shares a border with an outliner"
 
 msgid "Strip Modifiers"
 msgstr "Strip Modifiers"
-
-
-msgid "Tab Search Results"
-msgstr "Tab Search Results"
-
-
-msgid "Whether or not each visible tab has a search result"
-msgstr "Whether or not each visible tab has a search result"
 
 
 msgid "Pin ID"
@@ -108591,6 +108527,10 @@ msgstr "Box corner radius as a factor of box height"
 
 msgid "Text color"
 msgstr "Text colour"
+
+
+msgid "Font of the text. Falls back to the UI font by default."
+msgstr "Font of the text. Falls back to the UI font by default."
 
 
 msgid "Size of the text"
@@ -110983,16 +110923,16 @@ msgid "Theme settings for the Blender Preferences"
 msgstr "Theme settings for the Blender Preferences"
 
 
+msgid "Search Match"
+msgstr "Search Match"
+
+
 msgid "Theme Properties"
 msgstr "Theme Properties"
 
 
 msgid "Theme settings for the Properties"
 msgstr "Theme settings for the Properties"
-
-
-msgid "Search Match"
-msgstr "Search Match"
 
 
 msgid "Shared Region Properties"
@@ -134607,16 +134547,6 @@ msgstr "Insert after panel"
 
 
 msgctxt "Operator"
-msgid "Delete Node Interface Socket"
-msgstr "Delete Node Interface Socket"
-
-
-msgctxt "Operator"
-msgid "Delete Node Interface Panel"
-msgstr "Delete Node Interface Panel"
-
-
-msgctxt "Operator"
 msgid "Insert node group item"
 msgstr "Insert node group item"
 
@@ -139286,12 +139216,8 @@ msgstr ""
 "Catalogs can be assigned in the Asset Browser"
 
 
-msgid "The internal clipboard is empty"
-msgstr "The internal clipboard is empty"
-
-
-msgid "Some nodes references to other IDs could not be restored, will be left empty"
-msgstr "Some nodes references to other IDs could not be restored, will be left empty"
+msgid "No data to paste"
+msgstr "No data to paste"
 
 
 msgid "Cannot add node %s into node tree %s: %s"
@@ -140155,10 +140081,6 @@ msgstr "No active item to rename"
 
 msgid "No selected data-blocks to copy"
 msgstr "No selected data-blocks to copy"
-
-
-msgid "No data to paste"
-msgstr "No data to paste"
 
 
 msgid "There is no active data-block"
@@ -148294,6 +148216,10 @@ msgid "Each input geometry is turned into a separate instance"
 msgstr "Each input geometry is turned into a separate instance"
 
 
+msgid "Cannot get internal value from bundle"
+msgstr "Cannot get internal value from bundle"
+
+
 msgid "Volume to take a named grid out of"
 msgstr "Volume to take a named grid out of"
 
@@ -149729,10 +149655,6 @@ msgid "Value not found in bundle: \"{}\""
 msgstr "Value not found in bundle: \"{}\""
 
 
-msgid "Cannot get internal value from bundle"
-msgstr "Cannot get internal value from bundle"
-
-
 msgid "Implicit type conversion when separating bundle"
 msgstr "Implicit type conversion when separating bundle"
 
@@ -150068,6 +149990,14 @@ msgstr "Exact Shape"
 
 msgid "Use exact geometry for most efficient packing (slowest)"
 msgstr "Use exact geometry for most efficient packing (slowest)"
+
+
+msgid "Bottom Left"
+msgstr "Bottom Left"
+
+
+msgid "Top Right"
+msgstr "Top Right"
 
 
 msgid "Faces to consider when packing islands"

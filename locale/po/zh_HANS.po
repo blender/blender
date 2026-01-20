@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
-"PO-Revision-Date: 2026-01-12 10:12+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"PO-Revision-Date: 2026-01-16 07:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -18568,8 +18568,16 @@ msgid "Is Layered Action"
 msgstr "是分层动作"
 
 
+msgid "Return whether this is a layered Action. At this point all actions are layered through versioning and this function will always return true"
+msgstr "返回此动作是否为分层动作. 此时所有动作均通过版本控制进行分层, 该函数将始终返回真值"
+
+
 msgid "Is Legacy Action"
 msgstr "是旧式动作"
+
+
+msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. Since Blender 4.4 actions are automatically updated to layered actions. This will only return true on empty actions"
+msgstr "返回此动作是否为旧版, 旧版动作没有层或槽. 自 Blender 4.4 版起, 动作会自动更新为分层动作. 只在动作为空时才会返回真值"
 
 
 msgid "Is Empty"
@@ -20275,6 +20283,11 @@ msgid "Paint"
 msgstr "喷绘"
 
 
+msgctxt "Brush"
+msgid "Blur"
+msgstr "模糊"
+
+
 msgid "Sculpt Plane"
 msgstr "雕刻面"
 
@@ -20373,6 +20386,18 @@ msgstr "将笔刷涂料间距作为笔刷直径的百分比率"
 
 msgid "Stabilize Normal"
 msgstr "稳定法向"
+
+
+msgid "How stable the plane normal is over the course of the stroke. A value of 0 corresponds to using the current normal, and a value of 1 corresponds to using the initial normal."
+msgstr "在运笔过程中，平面法线的稳定程度。取值为 0 表示使用当前法线，取值为 1 表示使用初始法线。"
+
+
+msgid "Stabilize Center"
+msgstr "稳定中心"
+
+
+msgid "How stable the plane center is over the course of the stroke. A value of 0 corresponds to using the current center, and a value of 1 corresponds to using the initial center."
+msgstr "在运笔过程中，平面中心的稳定程度。取值为 0 表示使用当前中心，取值为 1 表示使用初始中心。"
 
 
 msgid "Stencil Dimensions"
@@ -34932,6 +34957,38 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
+msgid "Mesh Select Mode"
+msgstr "网格选择模式"
+
+
+msgid "Face Data"
+msgstr "面数据"
+
+
+msgid "Select by Face Strength"
+msgstr "按面强度选择"
+
+
+msgid "Set Face Strength"
+msgstr "设置面强度"
+
+
+msgid "Math"
+msgstr "运算"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Utilities"
+msgstr "实用工具"
+
+
+msgid "Merge"
+msgstr "合并"
+
+
 msgid "Show/Hide"
 msgstr "显示 / 隐藏"
 
@@ -34944,32 +35001,16 @@ msgid "Kerning"
 msgstr "字距"
 
 
-msgid "Math"
-msgstr "运算"
-
-
 msgid "Metaball"
 msgstr "融球"
 
 
-msgid "Utilities"
-msgstr "实用工具"
+msgid "Read"
+msgstr "读取"
 
 
 msgid "Names"
 msgstr "名称"
-
-
-msgid "Bone Roll"
-msgstr "骨骼扭转"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Read"
-msgstr "读取"
 
 
 msgid "Sample"
@@ -34980,12 +35021,24 @@ msgid "Write"
 msgstr "写入"
 
 
-msgid "Pivot Point"
-msgstr "轴心点"
+msgid "Bone Roll"
+msgstr "骨骼扭转"
 
 
 msgid "Primitives"
 msgstr "基本体"
+
+
+msgid "Gizmo"
+msgstr "操控器"
+
+
+msgid "Instances"
+msgstr "实例"
+
+
+msgid "Pivot Point"
+msgstr "轴心点"
 
 
 msgid "Snap"
@@ -35004,6 +35057,10 @@ msgid "Automasking"
 msgstr "自动遮罩"
 
 
+msgid "Import"
+msgstr "导入"
+
+
 msgid "Face Sets Edit"
 msgstr "面组编辑"
 
@@ -35012,20 +35069,16 @@ msgid "Vertex Group Locks"
 msgstr "顶点组锁"
 
 
-msgid "Gizmo"
-msgstr "操控器"
-
-
-msgid "Instances"
-msgstr "实例"
-
-
-msgid "Import"
-msgstr "导入"
-
-
 msgid "Deprecated"
 msgstr "已弃用"
+
+
+msgid "List"
+msgstr "列表"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -35040,20 +35093,12 @@ msgid "Local View"
 msgstr "局部视图"
 
 
-msgid "List"
-msgstr "列表"
-
-
 msgid "Viewpoint"
 msgstr "视图"
 
 
 msgid "Navigation"
 msgstr "视图导航"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -35112,6 +35157,10 @@ msgid "Rigid Body"
 msgstr "刚体"
 
 
+msgid "Layout"
+msgstr "布局"
+
+
 msgid "Apply"
 msgstr "应用"
 
@@ -35144,8 +35193,16 @@ msgid "Hooks"
 msgstr "钩挂"
 
 
-msgid "Layout"
-msgstr "布局"
+msgid "Adjust"
+msgstr "校正"
+
+
+msgid "Keying"
+msgstr "抠像"
+
+
+msgid "Tracking"
+msgstr "追踪"
 
 
 msgid "Trim/Add"
@@ -35154,6 +35211,10 @@ msgstr "修剪 / 添加"
 
 msgid "Sculpt Set Pivot"
 msgstr "雕刻集轴心点"
+
+
+msgid "Creative"
+msgstr "创意"
 
 
 msgid "Face Sets Init"
@@ -35168,10 +35229,6 @@ msgid "Clear Transform"
 msgstr "清空变换"
 
 
-msgid "Adjust"
-msgstr "校正"
-
-
 msgid "In-Betweens"
 msgstr "间帧调整"
 
@@ -35184,20 +35241,12 @@ msgid "Bone Collections"
 msgstr "骨骼集合"
 
 
-msgid "Keying"
-msgstr "抠像"
-
-
-msgid "Tracking"
-msgstr "追踪"
+msgid "Render Preview"
+msgstr "渲染预览"
 
 
 msgid "Toggle Bone Options"
 msgstr "切换骨骼设置"
-
-
-msgid "Creative"
-msgstr "创意"
 
 
 msgid "Enable Bone Options"
@@ -35206,30 +35255,6 @@ msgstr "启用骨骼设置"
 
 msgid "Disable Bone Options"
 msgstr "禁用骨骼设置"
-
-
-msgid "Mesh Select Mode"
-msgstr "网格选择模式"
-
-
-msgid "Face Data"
-msgstr "面数据"
-
-
-msgid "Select by Face Strength"
-msgstr "按面强度选择"
-
-
-msgid "Set Face Strength"
-msgstr "设置面强度"
-
-
-msgid "Render Preview"
-msgstr "渲染预览"
-
-
-msgid "Merge"
-msgstr "合并"
 
 
 msgid "Keyframe Insert Pie"
@@ -45599,6 +45624,14 @@ msgid "Input mask from a mask data-block, created in the image editor"
 msgstr "从一个遮罩数据块输入遮罩，创建于图像编辑器中"
 
 
+msgid "Mask To SDF"
+msgstr "遮罩 转换为 SDF"
+
+
+msgid "Computes a signed distance field from the given mask"
+msgstr "根据给定的遮罩计算有符号距离场"
+
+
 msgid "Input image or movie from a movie clip data-block, typically used for motion tracking"
 msgstr "从影片剪辑数据块输入图像或电影，通常用于运动追踪"
 
@@ -49036,66 +49069,6 @@ msgid "Generate a paragraph of text with a specific font, using a curve instance
 msgstr "使用曲线实例存储每个字符，生成具有特定字体的文本段落"
 
 
-msgid "Align text to the center"
-msgstr "文本居中对齐"
-
-
-msgid "Align text to the left and the right"
-msgstr "文本左右对齐"
-
-
-msgid "Align text to the left and the right, with equal character spacing"
-msgstr "按照均等的字符间隔, 向左右两侧对齐"
-
-
-msgid "Font of the text. Falls back to the UI font by default."
-msgstr "文本字体。默认会退回界面字体。"
-
-
-msgid "Let the text use more space than the specified height"
-msgstr "让文本使用比指定高度更多的空间"
-
-
-msgid "Scale To Fit"
-msgstr "缩放至适配"
-
-
-msgid "Scale the text size to fit inside the width and height"
-msgstr "缩放文本大小，以在宽度和高度上匹配"
-
-
-msgid "Only output curves that fit within the width and height. Output the remainder to the \"Remainder\" output."
-msgstr "仅输出匹配宽度和高度的曲线。将其余部分输出至 \"其余\"。"
-
-
-msgid "Pivot point position relative to character"
-msgstr "轴心点相对于字符的位置"
-
-
-msgid "Top Left"
-msgstr "左上"
-
-
-msgid "Top Center"
-msgstr "中上"
-
-
-msgid "Top Right"
-msgstr "右上"
-
-
-msgid "Bottom Left"
-msgstr "左下"
-
-
-msgid "Bottom Center"
-msgstr "中下"
-
-
-msgid "Bottom Right"
-msgstr "右下"
-
-
 msgid "Subdivide Curve"
 msgstr "细分曲线"
 
@@ -49371,6 +49344,42 @@ msgstr "用于显示标签的字体大小"
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "将框收缩至最小边界"
+
+
+msgid "Structure Type"
+msgstr "结构类型"
+
+
+msgid "What kind of higher order types are expected to flow through this socket"
+msgstr "预计会有哪些高阶类型流经此接口"
+
+
+msgid "Automatically detect a good structure type based on how the socket is used"
+msgstr "根据接口的使用方式自动检测合适的结构类型"
+
+
+msgid "Socket can work with different kinds of structures"
+msgstr "接口对各类型结构均有效"
+
+
+msgid "Socket expects a field"
+msgstr "接口要求为场"
+
+
+msgid "Socket expects a grid"
+msgstr "接口要求为栅格"
+
+
+msgid "Socket expects a list"
+msgstr "接口要求为列表"
+
+
+msgid "Single"
+msgstr "单一"
+
+
+msgid "Socket expects a single value"
+msgstr "接口要求为单一值"
 
 
 msgid "Group Input"
@@ -51761,42 +51770,6 @@ msgid "Closure Input Item"
 msgstr "闭包输入项目"
 
 
-msgid "Structure Type"
-msgstr "结构类型"
-
-
-msgid "What kind of higher order types are expected to flow through this socket"
-msgstr "预计会有哪些高阶类型流经此接口"
-
-
-msgid "Automatically detect a good structure type based on how the socket is used"
-msgstr "根据接口的使用方式自动检测合适的结构类型"
-
-
-msgid "Socket can work with different kinds of structures"
-msgstr "接口对各类型结构均有效"
-
-
-msgid "Socket expects a field"
-msgstr "接口要求为场"
-
-
-msgid "Socket expects a grid"
-msgstr "接口要求为栅格"
-
-
-msgid "Socket expects a list"
-msgstr "接口要求为列表"
-
-
-msgid "Single"
-msgstr "单一"
-
-
-msgid "Socket expects a single value"
-msgstr "接口要求为单一值"
-
-
 msgid "Closure Input Items"
 msgstr "闭包输入项目"
 
@@ -54051,15 +54024,6 @@ msgid "New Panel Toggle"
 msgstr "新建面板开关"
 
 
-msgid "Remove active item from the interface"
-msgstr "从界面上移除活动的条目"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "移除条目"
-
-
 msgid "Make the panel toggle a stand-alone socket"
 msgstr "使面板开关成为独立的接口"
 
@@ -54148,6 +54112,11 @@ msgstr "导入图像序列"
 msgctxt "Operator"
 msgid "Add Texture Setup"
 msgstr "添加纹理配置"
+
+
+msgctxt "Operator"
+msgid "Add Principled Texture Setup"
+msgstr "添加原理化纹理配置"
 
 
 msgid "Align selected nodes in a grid pattern"
@@ -65106,6 +65075,11 @@ msgid "Switch brush to erase mode for duration of stroke"
 msgstr "在画笔绘制时将笔刷切换到擦除模式"
 
 
+msgctxt "Operator"
+msgid "Mask"
+msgstr "遮罩"
+
+
 msgid "Pen Flip"
 msgstr "笔翻转"
 
@@ -68342,7 +68316,7 @@ msgstr "新建圆环的尺寸"
 
 msgctxt "Operator"
 msgid "Add Square"
-msgstr "添加方形遮罩"
+msgstr "添加方形"
 
 
 msgid "Add new square-shaped spline"
@@ -68826,7 +68800,7 @@ msgstr "仅选择未合并的剩余三角形"
 
 
 msgid "Max Face Angle"
-msgstr "面夹角最大值"
+msgstr "最大面夹角"
 
 
 msgid "Face angle limit"
@@ -68858,7 +68832,7 @@ msgstr "比较缝合边"
 
 
 msgid "Max Shape Angle"
-msgstr "最大形状角度"
+msgstr "最大形状夹角"
 
 
 msgid "Shape angle limit"
@@ -72090,6 +72064,11 @@ msgstr "移动活动项目"
 
 msgid "Move direction"
 msgstr "移动方向"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "移除条目"
 
 
 msgid "Remove active item"
@@ -91736,22 +91715,6 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
-msgid "glTF Variants"
-msgstr "glTF 变体"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材质变体"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 动画"
-
-
 msgid "Active Tool"
 msgstr "活动工具"
 
@@ -91788,6 +91751,14 @@ msgid "Compositor"
 msgstr "合成器"
 
 
+msgid "glTF Variants"
+msgstr "glTF 变体"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材质变体"
+
+
 msgid "Overlays"
 msgstr "叠加"
 
@@ -91818,6 +91789,14 @@ msgstr "曲线编辑模式"
 
 msgid "Curves Edit Mode"
 msgstr "曲线编辑模式"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 动画"
 
 
 msgid "Transform Orientations"
@@ -92387,11 +92366,6 @@ msgstr "涂抹"
 msgctxt "Operator"
 msgid "Clone"
 msgstr "克隆"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "遮罩"
 
 
 msgid "Tiling"
@@ -96208,6 +96182,10 @@ msgid "Orbit Around Selection"
 msgstr "围绕选择物体旋转"
 
 
+msgid "Use the selection (or the last stroke center in Paint modes) as the pivot point for orbiting"
+msgstr "使用选中项（或绘制模式下的最后笔画中心）作为环绕旋转的轴心点"
+
+
 msgid "Zoom to Mouse Position"
 msgstr "缩放至鼠标位置"
 
@@ -98263,6 +98241,11 @@ msgstr "介于 0 和 1.0 之间的系数"
 
 
 msgctxt "Unit"
+msgid "Mass"
+msgstr "质量"
+
+
+msgctxt "Unit"
 msgid "Angle"
 msgstr "角度"
 
@@ -98478,11 +98461,6 @@ msgstr "体积"
 msgctxt "Unit"
 msgid "Rotation"
 msgstr "旋转"
-
-
-msgctxt "Unit"
-msgid "Mass"
-msgstr "质量"
 
 
 msgctxt "Unit"
@@ -106603,6 +106581,14 @@ msgid "Filter based on key bindings"
 msgstr "基于按键绑定过滤"
 
 
+msgid "Tab Search Results"
+msgstr "选项卡查找结果"
+
+
+msgid "Whether or not each visible tab has a search result"
+msgstr "每个可见选项卡是否都有一个查找结果"
+
+
 msgid "Properties Space"
 msgstr "属性空间"
 
@@ -106779,14 +106765,6 @@ msgstr "仅当此编辑器与大纲视图共享边界时切换选项卡"
 
 msgid "Strip Modifiers"
 msgstr "片段修改器"
-
-
-msgid "Tab Search Results"
-msgstr "选项卡查找结果"
-
-
-msgid "Whether or not each visible tab has a search result"
-msgstr "每个可见选项卡是否都有一个查找结果"
 
 
 msgid "Pin ID"
@@ -108851,6 +108829,10 @@ msgstr "框拐角半径, 是框高度的系数"
 
 msgid "Text color"
 msgstr "文本颜色"
+
+
+msgid "Font of the text. Falls back to the UI font by default."
+msgstr "文本字体。默认会退回界面字体。"
 
 
 msgid "Size of the text"
@@ -111243,16 +111225,16 @@ msgid "Theme settings for the Blender Preferences"
 msgstr "Blender偏好设置的主题设置"
 
 
+msgid "Search Match"
+msgstr "搜索匹配"
+
+
 msgid "Theme Properties"
 msgstr "属性主题"
 
 
 msgid "Theme settings for the Properties"
 msgstr "属性的主题设置"
-
-
-msgid "Search Match"
-msgstr "搜索匹配"
 
 
 msgid "Shared Region Properties"
@@ -119400,6 +119382,10 @@ msgid "Visit Website"
 msgstr "访问网站"
 
 
+msgid "{:s} → {:s}"
+msgstr "{:s} → {:s}"
+
+
 msgctxt "Operator"
 msgid "Update"
 msgstr "更新"
@@ -119422,6 +119408,10 @@ msgstr "清除主题"
 msgctxt "Operator"
 msgid "Set Theme"
 msgstr "设置主题"
+
+
+msgid "Update All"
+msgstr "全部更新"
 
 
 msgid "{:s} ({:s} available)"
@@ -129202,6 +129192,11 @@ msgstr "从视角投影 (限界)"
 
 
 msgctxt "Operator"
+msgid "Center Last Stroke"
+msgstr "居中至最末笔画"
+
+
+msgctxt "Operator"
 msgid "Render Playblast"
 msgstr "渲染播放预览"
 
@@ -132036,6 +132031,10 @@ msgid "color_index is invalid"
 msgstr "color_index 无效"
 
 
+msgid "Compositor node group has cyclic links."
+msgstr "合成器节点组存在循环关联。"
+
+
 msgid "Error: Too many AOVs"
 msgstr "错误：AOV过多"
 
@@ -132988,6 +132987,22 @@ msgstr "内部剪贴板没有姿态数据"
 
 msgid "Programming error: missing clear transform function or keying set name"
 msgstr "程序错误：缺失清除变换的功能或插帧集名称"
+
+
+msgid "Pasted %d bones, and skipped %d unselected bones"
+msgstr "已粘贴 %d 根骨骼，并跳过了 %d 根未选中的骨骼"
+
+
+msgid "Pasted all %d bones"
+msgstr "已粘贴全部 %d 根骨骼"
+
+
+msgid "Pasted only %d of the %d copied bones, and skipped %d unselected bones"
+msgstr "只粘贴了 %d 根已复制的骨骼（共 %d 根），并跳过了 %d 根未选中的骨骼"
+
+
+msgid "Pasted only %d of the %d copied bones"
+msgstr "只粘贴了 %d 根已复制的骨骼（共 %d 根）"
 
 
 msgid "Asset loading is unfinished"
@@ -134132,6 +134147,11 @@ msgid "Lightness"
 msgstr "亮度"
 
 
+msgctxt "Color"
+msgid "Lightness"
+msgstr "亮度"
+
+
 msgid "Redo"
 msgstr "重做"
 
@@ -134987,16 +135007,6 @@ msgstr "面板前插入"
 
 msgid "Insert after panel"
 msgstr "面板后插入"
-
-
-msgctxt "Operator"
-msgid "Delete Node Interface Socket"
-msgstr "删除节点界面接口"
-
-
-msgctxt "Operator"
-msgid "Delete Node Interface Panel"
-msgstr "删除节点界面面板"
 
 
 msgctxt "Operator"
@@ -139693,12 +139703,8 @@ msgstr ""
 "分类可以在资产浏览器中分配"
 
 
-msgid "The internal clipboard is empty"
-msgstr "内部剪贴板是空的"
-
-
-msgid "Some nodes references to other IDs could not be restored, will be left empty"
-msgstr "某些节点对其他ID的引用无法恢复，将保留为空"
+msgid "No data to paste"
+msgstr "没有可供粘贴的数据"
 
 
 msgid "Cannot add node %s into node tree %s: %s"
@@ -140562,10 +140568,6 @@ msgstr "无活动项可供重命名"
 
 msgid "No selected data-blocks to copy"
 msgstr "无可供复制的已选数据块"
-
-
-msgid "No data to paste"
-msgstr "没有可供粘贴的数据"
 
 
 msgid "There is no active data-block"
@@ -146996,11 +146998,11 @@ msgstr "主通道用来比较的两个非主色通道之间的平衡。0 表示�
 
 
 msgid "The matte gets remapped such matte values lower than the black level become black. Pixels at the identified edges are excluded from the remapping to preserve details"
-msgstr "蒙版将重新映射，例如低于黑色级别的遮罩值将变为黑色。从重新映射中排除已识别边缘处的像素以保留细节"
+msgstr "蒙版将重新映射，例如低于黑色级别的蒙版值将变为黑色。从重新映射中排除已识别边缘处的像素以保留细节"
 
 
 msgid "The matte gets remapped such matte values higher than the white level become white. Pixels at the identified edges are excluded from the remapping to preserve details"
-msgstr "蒙版将重新映射，例如高于白色级别的遮罩值变为白色。从重新映射中排除已识别边缘处的像素以保留细节"
+msgstr "蒙版将重新映射，例如高于白色级别的蒙版值将变为白色。从重新映射中排除已识别边缘处的像素以保留细节"
 
 
 msgid "Size of the search window used to identify edges. Higher search size corresponds to less noisy and higher quality edges, not necessarily bigger edges. Edge tolerance can be used to expend the size of the edges"
@@ -147282,6 +147284,18 @@ msgstr "用 Alpha 输入值替换输入图像的 Alpha 通道"
 
 msgid "SDF"
 msgstr "SDF"
+
+
+msgid "Nearest Pixel"
+msgstr "最近的像素"
+
+
+msgid "The distance in pixel to the nearest pixel at the boundary of the mask. The distance is negative inside the mask"
+msgstr "距离遮罩边界最近像素的像素距离。该距离在遮罩内部为负值"
+
+
+msgid "The integer coordinates of the nearest pixel at the boundary of the mask"
+msgstr "遮罩边界处最近像素的整数坐标"
 
 
 msgid "Line position where the image should be split"
@@ -148785,6 +148799,10 @@ msgid "Each input geometry is turned into a separate instance"
 msgstr "每个输入几何体都将转换为单独的实例"
 
 
+msgid "Cannot get internal value from bundle"
+msgstr "无法从捆包中获取内部值"
+
+
 msgid "Volume to take a named grid out of"
 msgstr "要从中获取命名栅格的体积"
 
@@ -150220,10 +150238,6 @@ msgid "Value not found in bundle: \"{}\""
 msgstr "在捆包中未找到值： \"{}\""
 
 
-msgid "Cannot get internal value from bundle"
-msgstr "无法从捆包中获取内部值"
-
-
 msgid "Implicit type conversion when separating bundle"
 msgstr "分离捆包时隐式类型转换"
 
@@ -150559,6 +150573,14 @@ msgstr "精确外形"
 
 msgid "Use exact geometry for most efficient packing (slowest)"
 msgstr "使用精确几何以实现最高效的排布（最慢）"
+
+
+msgid "Bottom Left"
+msgstr "左下"
+
+
+msgid "Top Right"
+msgstr "右上"
 
 
 msgid "Faces to consider when packing islands"

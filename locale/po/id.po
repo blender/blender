@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15699,12 +15699,16 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Utilities"
 msgstr "Utilitas"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Names"
@@ -15715,10 +15719,6 @@ msgid "Sample"
 msgstr "Sampel"
 
 
-msgid "Snap"
-msgstr "Jepret"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
@@ -15727,8 +15727,16 @@ msgid "Instances"
 msgstr "Contoh-contoh"
 
 
+msgid "Snap"
+msgstr "Jepret"
+
+
 msgid "Import"
 msgstr "Impor"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -15737,10 +15745,6 @@ msgstr "Cermin"
 
 msgid "Navigation"
 msgstr "Navigasi"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Linked"
@@ -15763,6 +15767,10 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
+msgid "Layout"
+msgstr "Tata Letak"
+
+
 msgid "Apply"
 msgstr "Tetapkan"
 
@@ -15779,16 +15787,8 @@ msgid "Hooks"
 msgstr "Kait"
 
 
-msgid "Layout"
-msgstr "Tata Letak"
-
-
 msgid "Tracking"
 msgstr "Pelacakan"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
 
 
 msgid "Animals"
@@ -18638,6 +18638,10 @@ msgid "Label Font Size"
 msgstr "Label Ukuran Font"
 
 
+msgid "Single"
+msgstr "Tunggal"
+
+
 msgid "Active Output"
 msgstr "Keluaran Aktif"
 
@@ -18901,10 +18905,6 @@ msgstr "Tekstur"
 
 msgid "Node Output"
 msgstr "Keluaran Node"
-
-
-msgid "Single"
-msgstr "Tunggal"
 
 
 msgid "Node Instance Hash"
@@ -20749,6 +20749,11 @@ msgstr "Gantikan kuas ke mode halus untuk durasi garis luar"
 msgctxt "Operator"
 msgid "Erase"
 msgstr "Hapus"
+
+
+msgctxt "Operator"
+msgid "Mask"
+msgstr "Masker"
 
 
 msgid "Flat"
@@ -25874,11 +25879,6 @@ msgstr "Ambil"
 msgctxt "Operator"
 msgid "Brush"
 msgstr "Kuas"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Masker"
 
 
 msgid "Type 1"

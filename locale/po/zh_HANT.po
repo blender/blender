@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
-"PO-Revision-Date: 2026-01-11 15:12+0000\n"
-"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"PO-Revision-Date: 2026-01-12 18:06+0000\n"
+"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -25517,6 +25517,34 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
 msgid "Show/Hide"
 msgstr "顯示/隱藏"
 
@@ -25529,32 +25557,16 @@ msgid "Kerning"
 msgstr "字間微調"
 
 
-msgid "Math"
-msgstr "數學公式"
-
-
 msgid "Metaball"
 msgstr "變幻球"
 
 
-msgid "Utilities"
-msgstr "效用"
+msgid "Read"
+msgstr "讀取"
 
 
 msgid "Names"
 msgstr "名稱"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Read"
-msgstr "讀取"
 
 
 msgid "Sample"
@@ -25565,12 +25577,24 @@ msgid "Write"
 msgstr "寫入"
 
 
-msgid "Pivot Point"
-msgstr "樞紐點"
+msgid "Bone Roll"
+msgstr "骨骼滾動"
 
 
 msgid "Primitives"
 msgstr "原形"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
 
 
 msgid "Snap"
@@ -25589,24 +25613,24 @@ msgid "Automasking"
 msgstr "自動遮罩"
 
 
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
 msgid "Import"
 msgstr "匯入"
 
 
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
 msgid "Deprecated"
 msgstr "已棄用"
+
+
+msgid "List"
+msgstr "列表"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -25621,20 +25645,12 @@ msgid "Local View"
 msgstr "區域檢視"
 
 
-msgid "List"
-msgstr "列表"
-
-
 msgid "Viewpoint"
 msgstr "視點"
 
 
 msgid "Navigation"
 msgstr "導覽"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -25689,6 +25705,10 @@ msgid "Rigid Body"
 msgstr "剛體"
 
 
+msgid "Layout"
+msgstr "配置"
+
+
 msgid "Apply"
 msgstr "套用"
 
@@ -25721,8 +25741,16 @@ msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Layout"
-msgstr "配置"
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Trim/Add"
@@ -25731,6 +25759,10 @@ msgstr "修剪/增加"
 
 msgid "Sculpt Set Pivot"
 msgstr "雕刻設定樞紐"
+
+
+msgid "Creative"
+msgstr "創意"
 
 
 msgid "Face Sets Init"
@@ -25745,10 +25777,6 @@ msgid "Clear Transform"
 msgstr "清除變換"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "In-Betweens"
 msgstr "內部之間"
 
@@ -25761,20 +25789,12 @@ msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
-
-
-msgid "Creative"
-msgstr "創意"
 
 
 msgid "Enable Bone Options"
@@ -25783,26 +25803,6 @@ msgstr "啟用骨骼設定"
 
 msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Merge"
-msgstr "合併"
 
 
 msgid "Animals"
@@ -33700,34 +33700,6 @@ msgid "String to Curves"
 msgstr "字串轉曲線"
 
 
-msgid "Scale To Fit"
-msgstr "縮放至適應"
-
-
-msgid "Top Left"
-msgstr "左上"
-
-
-msgid "Top Center"
-msgstr "頂部中心"
-
-
-msgid "Top Right"
-msgstr "右上"
-
-
-msgid "Bottom Left"
-msgstr "左下"
-
-
-msgid "Bottom Center"
-msgstr "底部中心"
-
-
-msgid "Bottom Right"
-msgstr "右下"
-
-
 msgid "Subdivide Curve"
 msgstr "細分曲線"
 
@@ -33847,6 +33819,14 @@ msgstr "顯示標籤用的字型大小"
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "將影格收縮至最小邊界方塊"
+
+
+msgid "Structure Type"
+msgstr "結構類型"
+
+
+msgid "Single"
+msgstr "單一"
 
 
 msgid "Group Input"
@@ -35095,14 +35075,6 @@ msgstr "供基於節點的紋理使用，要使用的輸出節點"
 
 msgid "Value to Normal"
 msgstr "值至法線"
-
-
-msgid "Structure Type"
-msgstr "結構類型"
-
-
-msgid "Single"
-msgstr "單一"
 
 
 msgid "File Output Item"
@@ -36356,11 +36328,6 @@ msgstr "新增項目"
 msgctxt "Operator"
 msgid "New Panel Toggle"
 msgstr "新面板切換"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "移除項目"
 
 
 msgctxt "Operator"
@@ -43253,6 +43220,11 @@ msgid "Erase"
 msgstr "擦除"
 
 
+msgctxt "Operator"
+msgid "Mask"
+msgstr "遮罩"
+
+
 msgid "Pen Flip"
 msgstr "筆翻轉"
 
@@ -47649,6 +47621,11 @@ msgstr "移動作用中項目"
 
 msgid "Move direction"
 msgstr "移動方向"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "移除項目"
 
 
 msgid "Clear the boundaries for viewer operations"
@@ -59324,22 +59301,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 動畫"
-
-
 msgid "Active Tool"
 msgstr "作用中工具"
 
@@ -59372,6 +59333,14 @@ msgid "Compositor"
 msgstr "合成器"
 
 
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
+
+
 msgid "Overlays"
 msgstr "疊層"
 
@@ -59402,6 +59371,14 @@ msgstr "曲線編輯模式"
 
 msgid "Curves Edit Mode"
 msgstr "曲線編輯模式"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 動畫"
 
 
 msgid "Transform Orientations"
@@ -59914,11 +59891,6 @@ msgstr "擦抹"
 msgctxt "Operator"
 msgid "Clone"
 msgstr "拓製"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "遮罩"
 
 
 msgid "Tiling"
@@ -64075,6 +64047,11 @@ msgstr "係數"
 
 
 msgctxt "Unit"
+msgid "Mass"
+msgstr "質量"
+
+
+msgctxt "Unit"
 msgid "Angle"
 msgstr "角度"
 
@@ -64220,11 +64197,6 @@ msgstr "體積"
 msgctxt "Unit"
 msgid "Rotation"
 msgstr "旋轉"
-
-
-msgctxt "Unit"
-msgid "Mass"
-msgstr "質量"
 
 
 msgctxt "Unit"
@@ -68875,6 +68847,10 @@ msgid "Filter based on key bindings"
 msgstr "基於按鍵綁定的過濾器"
 
 
+msgid "Tab Search Results"
+msgstr "分頁搜尋結果"
+
+
 msgid "Properties Space"
 msgstr "屬性空間"
 
@@ -69031,10 +69007,6 @@ msgstr "大綱管理器同步"
 
 msgid "Strip Modifiers"
 msgstr "片段修改器"
-
-
-msgid "Tab Search Results"
-msgstr "分頁搜尋結果"
 
 
 msgid "Pin ID"
@@ -71964,16 +71936,16 @@ msgid "Theme settings for the Blender Preferences"
 msgstr "Blender 偏好設定中的主題設定"
 
 
+msgid "Search Match"
+msgstr "搜尋符合"
+
+
 msgid "Theme Properties"
 msgstr "主題屬性"
 
 
 msgid "Theme settings for the Properties"
 msgstr "主題設定中的屬性選項"
-
-
-msgid "Search Match"
-msgstr "搜尋符合"
 
 
 msgid "Shared Region Properties"
@@ -83026,12 +82998,20 @@ msgstr "調整對焦焦距"
 
 
 msgid "Focus Distance: %.3f"
-msgstr "對焦焦距: %.3f"
+msgstr "對焦焦距：%.3f"
 
 
 msgctxt "Operator"
 msgid "Adjust Empty Display Size"
 msgstr "調整空體顯示大小"
+
+
+msgid "Empty Display Size: %.3f"
+msgstr "空體顯示大小：%.3f"
+
+
+msgid "No object selected, using cursor"
+msgstr "未選取物體，使用游標"
 
 
 msgid "Beam Angle: %.2f"
@@ -85657,11 +85637,6 @@ msgid "Insert after panel"
 msgstr "插入於面板後"
 
 
-msgctxt "Operator"
-msgid "Delete Node Interface Socket"
-msgstr "刪除節點介面接口"
-
-
 msgid "No Properties"
 msgstr "無屬性"
 
@@ -87842,6 +87817,10 @@ msgid "Internal Error - AnimData block is not valid"
 msgstr "內部錯誤 - AnimData 塊無效"
 
 
+msgid "No data to paste"
+msgstr "沒有資料可供貼上"
+
+
 msgid "Cannot add node %s into node tree %s"
 msgstr "無法將 %s 節點加入 %s 節點樹"
 
@@ -88242,10 +88221,6 @@ msgstr "沒有作用中項目可重新命名"
 
 msgid "No selected data-blocks to copy"
 msgstr "沒有已選資料組塊可複製"
-
-
-msgid "No data to paste"
-msgstr "沒有資料可供貼上"
 
 
 msgid "Operation requires an active keying set"
@@ -92176,6 +92151,14 @@ msgstr "使用一個變換矩陣"
 
 msgid "Exact Shape"
 msgstr "精確形狀"
+
+
+msgid "Bottom Left"
+msgstr "左下"
+
+
+msgid "Top Right"
+msgstr "右上"
 
 
 msgid "Rotate islands for best fit"

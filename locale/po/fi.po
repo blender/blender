@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7244,28 +7244,32 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Math"
 msgstr "Matematiikka"
 
 
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Utilities"
 msgstr "Työkalut"
 
 
-msgid "Names"
-msgstr "Nimet"
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "Read"
 msgstr "Lue"
+
+
+msgid "Names"
+msgstr "Nimet"
 
 
 msgid "Write"
@@ -7280,12 +7284,12 @@ msgid "Import"
 msgstr "Tuo"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Select More/Less"
@@ -7326,10 +7330,6 @@ msgstr "Koukut"
 
 msgid "Random Mask"
 msgstr "Satunnainen maski"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
 
 
 msgid "Basic"
@@ -14757,6 +14757,10 @@ msgid "No packed file"
 msgstr "Ei pakattua tiedostoa"
 
 
+msgid "No data to paste"
+msgstr "Ei dataa liitettäväksi"
+
+
 msgid "No Items"
 msgstr "Ei esineitä"
 
@@ -14871,10 +14875,6 @@ msgstr "Käyttäjien määrä"
 
 msgid "No active item to rename"
 msgstr "Ei aktiivista esinettä uudelleen nimettäväksi"
-
-
-msgid "No data to paste"
-msgstr "Ei dataa liitettäväksi"
 
 
 msgid "Missing library"

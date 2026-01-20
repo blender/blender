@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26358,6 +26358,38 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
 msgid "Show/Hide"
 msgstr "Показати/приховати"
 
@@ -26370,40 +26402,28 @@ msgid "Kerning"
 msgstr "Кернінг"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Metaball"
 msgstr "Метакуля"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
 
 
 msgid "Names"
 msgstr "Назви"
 
 
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
 msgid "Sample"
 msgstr "Вибірка"
 
 
-msgid "Pivot Point"
-msgstr "Точка Опертя"
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
 
 
 msgid "Primitives"
 msgstr "Примітиви"
+
+
+msgid "Pivot Point"
+msgstr "Точка Опертя"
 
 
 msgid "Snap"
@@ -26422,6 +26442,10 @@ msgid "Automasking"
 msgstr "Автомаскування"
 
 
+msgid "Import"
+msgstr "Імпортувати"
+
+
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
@@ -26430,8 +26454,8 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
-msgid "Import"
-msgstr "Імпортувати"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -26452,10 +26476,6 @@ msgstr "Точка зору"
 
 msgid "Navigation"
 msgstr "Навігація"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -26514,6 +26534,10 @@ msgid "Rigid Body"
 msgstr "Тверде тіло"
 
 
+msgid "Layout"
+msgstr "Розстановка"
+
+
 msgid "Apply"
 msgstr "Застосувати"
 
@@ -26546,8 +26570,12 @@ msgid "Hooks"
 msgstr "Гачки"
 
 
-msgid "Layout"
-msgstr "Розстановка"
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
 
 
 msgid "Sculpt Set Pivot"
@@ -26570,14 +26598,6 @@ msgid "Propagate"
 msgstr "Поширити"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
 msgid "Toggle Bone Options"
 msgstr "Перемкнути параметри кісток"
 
@@ -26588,26 +26608,6 @@ msgstr "Увімкнути параметри кісток"
 
 msgid "Disable Bone Options"
 msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
-msgid "Merge"
-msgstr "Об'єднання"
 
 
 msgid "Basic"
@@ -34589,6 +34589,10 @@ msgid "Shrink the frame to minimal bounding box"
 msgstr "Звузити рамку до мінімальної габаритної коробки"
 
 
+msgid "Single"
+msgstr "Один"
+
+
 msgid "Group Input"
 msgstr "Ввід групи"
 
@@ -35787,10 +35791,6 @@ msgstr "Для текстур на основі вузлів: який вузо�
 
 msgid "Value to Normal"
 msgstr "Значення в нормаль"
-
-
-msgid "Single"
-msgstr "Один"
 
 
 msgid "Node Inputs"
@@ -43748,6 +43748,11 @@ msgstr "Перемкнути пензель у режим згладжуванн
 msgctxt "Operator"
 msgid "Erase"
 msgstr "Витерти"
+
+
+msgctxt "Operator"
+msgid "Mask"
+msgstr "Маска"
 
 
 msgid "Set as default rounded"
@@ -61383,11 +61388,6 @@ msgid "Grab"
 msgstr "Захоп"
 
 
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Маска"
-
-
 msgid "Tiling"
 msgstr "Плиткування"
 
@@ -70294,6 +70294,14 @@ msgid "Filter based on key bindings"
 msgstr "Фільтрувати на основі прив'язки до ключів"
 
 
+msgid "Tab Search Results"
+msgstr "Результати Пошуку по Вкладках"
+
+
+msgid "Whether or not each visible tab has a search result"
+msgstr "Чи має кожна видима вкладка результат пошуку"
+
+
 msgid "Properties Space"
 msgstr "Простір властивостей"
 
@@ -70388,14 +70396,6 @@ msgstr "Змінити вкладки лише тоді, коли цей ред�
 
 msgid "Strip Modifiers"
 msgstr "Модифікатори смужок"
-
-
-msgid "Tab Search Results"
-msgstr "Результати Пошуку по Вкладках"
-
-
-msgid "Whether or not each visible tab has a search result"
-msgstr "Чи має кожна видима вкладка результат пошуку"
 
 
 msgid "Pin ID"
@@ -73282,16 +73282,16 @@ msgid "Theme settings for the Blender Preferences"
 msgstr "Устави теми для Уподобань Blender'а"
 
 
+msgid "Search Match"
+msgstr "Пошук Відповідностей"
+
+
 msgid "Theme Properties"
 msgstr "Тема властивостей"
 
 
 msgid "Theme settings for the Properties"
 msgstr "Параметри теми для властивостей"
-
-
-msgid "Search Match"
-msgstr "Пошук Відповідностей"
 
 
 msgid "Selected Text"
@@ -86262,6 +86262,10 @@ msgid "Select an existing NLA Track or an empty action line first"
 msgstr "Спочатку виберіть наявну доріжку НЛА або порожній рядок дії"
 
 
+msgid "No data to paste"
+msgstr "Нема даних для вставлення"
+
+
 msgid "Subtype"
 msgstr "Підтип"
 
@@ -86352,10 +86356,6 @@ msgstr "Немає активного елемента для переймену
 
 msgid "No selected data-blocks to copy"
 msgstr "Нема вибраних блоків даних для копіювання"
-
-
-msgid "No data to paste"
-msgstr "Нема даних для вставлення"
 
 
 msgid "Operation requires an active keying set"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15671,12 +15671,20 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
 
 
 msgid "Math"
 msgstr "ﺏﺎﺴﺣ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
 
 
 msgid "Metaball"
@@ -15703,6 +15711,10 @@ msgid "Import"
 msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
+
+
 msgid "Mirror"
 msgstr "ﻞﺛﺎﻣ"
 
@@ -15713,10 +15725,6 @@ msgstr "UV ءﺎﺴﻛﺇ"
 
 msgid "Navigation"
 msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
 
 
 msgid "Align View"
@@ -15755,6 +15763,10 @@ msgid "Rigid Body"
 msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
 
 
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
+
+
 msgid "Apply"
 msgstr "ﻖﺒﻃ"
 
@@ -15775,18 +15787,6 @@ msgid "Hooks"
 msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
-
-
-msgid "In-Betweens"
-msgstr "ﻦﻴﺑ ﺎﻣ"
-
-
-msgid "Propagate"
-msgstr "ﻢﻤﻋ"
-
-
 msgid "Keying"
 msgstr "ﺺﺤﻔﻟﺍ"
 
@@ -15795,12 +15795,12 @@ msgid "Tracking"
 msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+msgid "In-Betweens"
+msgstr "ﻦﻴﺑ ﺎﻣ"
 
 
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
+msgid "Propagate"
+msgstr "ﻢﻤﻋ"
 
 
 msgctxt "MovieClip"
@@ -18899,6 +18899,10 @@ msgid "Font size to use for displaying the label"
 msgstr "ﻖﺼﻠﻤﻟﺍ ﺽﺮﻌﻟ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻂﺨﻟﺍ ﻢﺠﺣ"
 
 
+msgid "Single"
+msgstr "ﻱﺩﺮﻓ"
+
+
 msgid "Active Output"
 msgstr "ﻝﺎﻌّﻔﻟﺍ ﺝﺮﺨﻟﺍ"
 
@@ -19229,10 +19233,6 @@ msgstr "ﺓﺪﻘﻌﻟﺍ ﺝﺮﺧ"
 
 msgid "Value to Normal"
 msgstr "ﻢﻇﺎﻨﻠﻟ ﺔﻤﻴﻘﻟﺍ"
-
-
-msgid "Single"
-msgstr "ﻱﺩﺮﻓ"
 
 
 msgid "Socket Template"
