@@ -1525,6 +1525,9 @@ if(WITH_UI_TESTS)
     test_fullscreen.wm_toggle_fullscreen
     test_fullscreen.wm_toggle_stacked_fullscreen_file_browser
     test_fullscreen.wm_toggle_stacked_fullscreens
+    test_render.interactive_rendering_cycles
+    test_render.interactive_rendering_eevee
+    test_render.animation_rendering_and_player
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(
