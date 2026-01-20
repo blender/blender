@@ -138,6 +138,10 @@ float strip_speed_effect_target_frame_get(Scene *scene,
       }
       else {
         target_frame = frame_index * s->speed_fader;
+        if (s->speed_fader < 0) {
+          /* Treat `target_frame` as a negative offset from the last frame of the strip. */
+          target_frame += source->length(scene);
+        }
       }
       break;
     }
