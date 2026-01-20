@@ -576,6 +576,11 @@ class Context : public compositor::Context {
         continue;
       }
 
+      if (this->is_canceled()) {
+        output_result.release();
+        continue;
+      }
+
       /* Realize the output on the compositing domain if needed. */
       const Domain compositing_domain = this->get_compositing_domain();
       const InputDescriptor input_descriptor = {ResultType::Color,
