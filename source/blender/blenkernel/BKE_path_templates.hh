@@ -392,6 +392,23 @@ Vector<bke::path_templates::Error> BKE_path_validate_template(
  */
 Vector<bke::path_templates::Error> BKE_path_apply_template(
     char *path, int path_maxncpy, const bke::path_templates::VariableMap &template_variables);
+
+/**
+ * Like `BKE_path_apply_template()`, but takes a heap-allocated path and may
+ * reallocate it to make room to expand the template expressions.
+ *
+ * NOTE: this function takes ownership of the path string, which MUST be heap
+ * allocated. Specifically, this function may free that string's memory in the
+ * process of resizing the string buffer.
+ *
+ * \param path: pointer to the path's `char *` pointer. Both this pointer and
+ * the pointer it points to MUST be non-null.
+ *
+ * \see `BKE_path_apply_template()`
+ */
+Vector<bke::path_templates::Error> BKE_path_apply_template_alloc(
+    char **path, int path_maxncpy, const bke::path_templates::VariableMap &template_variables);
+
 /**
  * Produces a human-readable error message for the given template error.
  */
