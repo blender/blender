@@ -5,45 +5,20 @@
 """
 This file does not run anything, its methods are accessed for tests by ``run_blender_setup.py``.
 """
-
-
-def _test_window(windows_exclude=None):
-    import bpy
-    wm = bpy.data.window_managers[0]
-    if windows_exclude is None:
-        return wm.windows[0]
-    for window in wm.windows:
-        if window not in windows_exclude:
-            return window
-    return None
-
-
-def _test_vars(window):
-    import unittest
-    from modules.easy_keys import EventGenerate
-    return (
-        EventGenerate(window),
-        unittest.TestCase(),
-    )
-
-
-def _call_by_name(e, text: str):
-    yield e.f3()
-    yield e.text(text)
-    yield e.ret()
+import modules.ui_test_utils as ui
 
 
 def wm_toggle_fullscreen():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
 
     # Pre-condition so tests make sense.
     t.assertNotEqual(len(window.screen.areas), 1, "Expected a window with more than one area")
 
-    yield from _call_by_name(e, "Toggle Maximize Area")
+    yield from ui.call_operator(e, "Toggle Maximize Area")
     yield e.ret()
     t.assertEqual(len(window.screen.areas), 1)
 
-    yield from _call_by_name(e, "Toggle Maximize Area")
+    yield from ui.call_operator(e, "Toggle Maximize Area")
     yield e.ret()
     t.assertNotEqual(len(window.screen.areas), 1)
 
@@ -54,7 +29,7 @@ def wm_toggle_fullscreen():
 def wm_toggle_stacked_fullscreen_file_browser():
     import bpy
 
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
 
     # Pre-condition so tests make sense.
     t.assertNotEqual(len(window.screen.areas), 1, "Expected a window with more than one area")
@@ -73,7 +48,7 @@ def wm_toggle_stacked_fullscreen_file_browser():
     t.assertNotEqual(window.screen.areas[0].type, 'FILE_BROWSER')
 
     # Maximize a normal area.
-    yield from _call_by_name(e, "Toggle Maximize Area")
+    yield from ui.call_operator(e, "Toggle Maximize Area")
     yield e.ret()
     t.assertEqual(len(window.screen.areas), 1)
     t.assertNotEqual(window.screen.areas[0].type, 'FILE_BROWSER')
@@ -96,7 +71,7 @@ def wm_toggle_stacked_fullscreen_file_browser():
     t.assertEqual(restored_area, window.screen.areas[0])
 
     # Restore to non-maximized area.
-    yield from _call_by_name(e, "Toggle Maximize Area")
+    yield from ui.call_operator(e, "Toggle Maximize Area")
     yield e.ret()
     t.assertNotEqual(len(window.screen.areas), 1)
 
@@ -106,7 +81,7 @@ def wm_toggle_stacked_fullscreen_file_browser():
 def wm_toggle_stacked_fullscreens():
     import bpy
 
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
 
     # Pre-condition so tests make sense.
     t.assertNotEqual(len(window.screen.areas), 1, "Expected a window with more than one area")
@@ -169,7 +144,7 @@ def wm_toggle_stacked_fullscreens():
 def wm_toggle_temporary_fullscreen_stacked_on_same_type():
     import bpy
 
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
 
     # Pre-condition so tests make sense.
     t.assertNotEqual(len(window.screen.areas), 1, "Expected a window with more than one area")
