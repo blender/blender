@@ -34,10 +34,6 @@ struct bNodeSocketType;
 #define NODE_EDGE_PAN_DELAY 0.5f
 #define NODE_EDGE_PAN_ZOOM_INFLUENCE 0.5f
 
-/* `clipboard.cc` */
-
-void ED_node_clipboard_free();
-
 /* `space_node.cc` */
 
 void ED_node_cursor_location_get(const SpaceNode *snode, float value[2]);

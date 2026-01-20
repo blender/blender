@@ -1259,6 +1259,41 @@ def km_property_editor(_params):
 
 
 # ------------------------------------------------------------------------------
+# Editor (Preferences)
+
+def km_preferences(_params):
+    items = []
+    keymap = (
+        "Preferences",
+        {"space_type": 'PREFERENCES', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("preferences.start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("preferences.clear_filter", {"type": 'F', "value": 'PRESS', "alt": True}, None),
+    ])
+
+    return keymap
+
+
+def km_preferences_nav(_params):
+    items = []
+    keymap = (
+        "Preferences_nav",
+        {"space_type": 'PREFERENCES', "region_type": 'UI'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("preferences.start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("preferences.clear_filter", {"type": 'F', "value": 'PRESS', "alt": True}, None),
+    ])
+
+    return keymap
+
+
+# ------------------------------------------------------------------------------
 # Editor (Outliner)
 
 def km_outliner(params):
@@ -5182,6 +5217,8 @@ def km_sculpt(params):
          {"properties": [("mode", 'INVERT')]}),
         ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'SMOOTH')]}),
+        ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
+         {"properties": [("mode", 'MASK')]}),
         # Expand
         ("sculpt.expand", {"type": 'A', "value": 'PRESS', "shift": True},
          {"properties": [
@@ -8821,6 +8858,8 @@ def generate_keymaps(params=None):
 
         # Editors.
         km_outliner(params),
+        km_preferences(params),
+        km_preferences_nav(params),
         km_uv_editor(params),
         km_view3d_generic(params),
         km_view3d(params),

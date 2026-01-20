@@ -230,7 +230,7 @@ void EDBM_project_snap_verts(
 /* `editmesh_automerge.cc` */
 
 /** \return true if a change is made. */
-bool EDBM_automerge(Object *obedit, bool update, char hflag, float dist);
+bool EDBM_automerge(Object *obedit, bool update, char hflag, float dist, bool use_centroid);
 /** \return true if a change is made. */
 bool EDBM_automerge_connected(Object *obedit, bool update, char hflag, float dist);
 

@@ -21,6 +21,10 @@ thread_mutex OIDNDenoiser::mutex_;
 
 OIDNDenoiser::OIDNDenoiser(Device *denoiser_device, const DenoiseParams &params)
     : Denoiser(denoiser_device, params)
+#ifdef WITH_OPENIMAGEDENOISE
+      ,
+      base_(this)
+#endif
 {
   DCHECK_EQ(params.type, DENOISER_OPENIMAGEDENOISE);
 
@@ -95,6 +99,8 @@ class OIDNPass {
 };
 
 class OIDNDenoiseContext {
+  friend class OIDNDenoiser;
+
  public:
   OIDNDenoiseContext(OIDNDenoiser *denoiser,
                      const DenoiseParams &denoise_params,
@@ -117,13 +123,6 @@ class OIDNDenoiseContext {
     if (denoise_params_.use_pass_normal) {
       oidn_normal_pass_ = OIDNPass(buffer_params_, "normal", PASS_DENOISING_NORMAL);
     }
-
-    const char *custom_weight_path = getenv("CYCLES_OIDN_CUSTOM_WEIGHTS");
-    if (custom_weight_path) {
-      if (!path_read_binary(custom_weight_path, custom_weights)) {
-        LOG_ERROR << "Failed to load custom OpenImageDenoise weights";
-      }
-    }
   }
 
   bool need_denoising() const
@@ -142,86 +141,82 @@ class OIDNDenoiseContext {
     read_guiding_pass(oidn_normal_pass_);
   }
 
-  void denoise_pass(const PassType pass_type)
+  bool denoise_pass(const PassType pass_type)
   {
     OIDNPass oidn_color_pass(buffer_params_, "color", pass_type);
     if (oidn_color_pass.offset == PASS_UNUSED) {
-      return;
+      return true;
     }
 
     if (oidn_color_pass.use_denoising_albedo) {
       if (albedo_replaced_with_fake_) {
         LOG_ERROR << "Pass which requires albedo is denoised after fake albedo has been set.";
-        return;
+        return false;
       }
     }
 
     OIDNPass oidn_output_pass(buffer_params_, "output", pass_type, PassMode::DENOISED);
     if (oidn_output_pass.offset == PASS_UNUSED) {
       LOG_DFATAL << "Missing denoised pass " << pass_type_as_string(pass_type);
-      return;
+      return false;
     }
 
     OIDNPass oidn_color_access_pass = read_input_pass(oidn_color_pass, oidn_output_pass);
 
-    oidn::DeviceRef oidn_device = oidn::newDevice(oidn::DeviceType::CPU);
-    oidn_device.set("setAffinity", false);
-    oidn_device.commit();
-
-    /* Create a filter for denoising a beauty (color) image using prefiltered auxiliary images too.
-     */
-    oidn::FilterRef oidn_filter = oidn_device.newFilter("RT");
-    set_input_pass(oidn_filter, oidn_color_access_pass);
-    set_guiding_passes(oidn_filter, oidn_color_pass);
-    set_output_pass(oidn_filter, oidn_output_pass);
-    oidn_filter.setProgressMonitorFunction(oidn_progress_monitor_function, denoiser_);
-    oidn_filter.set("hdr", true);
-    oidn_filter.set("srgb", false);
-    if (!custom_weights.empty()) {
-      oidn_filter.setData("weights", custom_weights.data(), custom_weights.size());
+    if (!denoiser_->base_.oidn_filter_) {
+      denoiser_->set_error("OpenImageDenoise filter is not initialized");
+      return false;
     }
-    set_quality(oidn_filter);
 
-    if (denoise_params_.prefilter == DENOISER_PREFILTER_NONE ||
-        denoise_params_.prefilter == DENOISER_PREFILTER_ACCURATE)
-    {
-      oidn_filter.set("cleanAux", true);
+    if (!filter_guiding_pass_if_needed(oidn_albedo_pass_)) {
+      return false;
     }
-    oidn_filter.commit();
+    if (!filter_guiding_pass_if_needed(oidn_normal_pass_)) {
+      return false;
+    }
 
-    filter_guiding_pass_if_needed(oidn_device, oidn_albedo_pass_);
-    filter_guiding_pass_if_needed(oidn_device, oidn_normal_pass_);
+    set_input_pass(denoiser_->base_.oidn_filter_, oidn_color_access_pass);
+    set_guiding_passes(denoiser_->base_.oidn_filter_, oidn_color_pass);
+    set_output_pass(denoiser_->base_.oidn_filter_, oidn_output_pass);
 
-    /* Filter the beauty image. */
-    oidn_filter.execute();
+    const bool clean_aux = denoise_params_.prefilter != DENOISER_PREFILTER_FAST;
+    oidnSetFilterInt(denoiser_->base_.oidn_filter_, "cleanAux", clean_aux);
 
-    /* Check for errors. */
-    const char *error_message;
-    const oidn::Error error = oidn_device.getError(error_message);
-    if (error != oidn::Error::None && error != oidn::Error::Cancelled) {
-      denoiser_->set_error("OpenImageDenoise error: " + string(error_message));
+    if (!denoiser_->commit_and_execute_filter(denoiser_->base_.oidn_filter_)) {
+      return false;
     }
 
     postprocess_output(oidn_color_pass, oidn_output_pass);
+    return true;
   }
 
  protected:
-  void filter_guiding_pass_if_needed(oidn::DeviceRef &oidn_device, OIDNPass &oidn_pass)
+  bool filter_guiding_pass_if_needed(OIDNPass &oidn_pass)
   {
     if (denoise_params_.prefilter != DENOISER_PREFILTER_ACCURATE || !oidn_pass ||
         oidn_pass.is_filtered)
     {
-      return;
+      return true;
     }
 
-    oidn::FilterRef oidn_filter = oidn_device.newFilter("RT");
-    set_pass(oidn_filter, oidn_pass);
-    set_output_pass(oidn_filter, oidn_pass);
-    set_quality(oidn_filter);
-    oidn_filter.commit();
-    oidn_filter.execute();
+    OIDNFilter filter = (oidn_pass.type == PASS_DENOISING_ALBEDO) ?
+                            denoiser_->base_.albedo_filter_ :
+                            denoiser_->base_.normal_filter_;
+
+    if (!filter) {
+      denoiser_->set_error("OpenImageDenoise guiding filter is not initialized");
+      return false;
+    }
+
+    set_pass(filter, oidn_pass);
+    set_output_pass(filter, oidn_pass);
+
+    if (!denoiser_->commit_and_execute_filter(filter)) {
+      return false;
+    }
 
     oidn_pass.is_filtered = true;
+    return true;
   }
 
   /* Make pixels of a guiding pass available by the denoiser. */
@@ -323,9 +318,7 @@ class OIDNDenoiseContext {
 
   /* Set OIDN image to reference pixels from the given render buffer pass.
    * No transform to the pixels is done, no additional memory is used. */
-  void set_pass_referenced(oidn::FilterRef &oidn_filter,
-                           const char *name,
-                           const OIDNPass &oidn_pass)
+  void set_pass_referenced(OIDNFilter oidn_filter, const char *name, const OIDNPass &oidn_pass)
   {
     const int64_t x = buffer_params_.full_x;
     const int64_t y = buffer_params_.full_y;
@@ -340,30 +333,38 @@ class OIDNDenoiseContext {
 
     float *buffer_data = render_buffers_->buffer.data();
 
-    oidn_filter.setImage(name,
-                         buffer_data + buffer_offset + oidn_pass.offset,
-                         oidn::Format::Float3,
-                         width,
-                         height,
-                         0,
-                         pass_stride * sizeof(float),
-                         stride * pass_stride * sizeof(float));
+    oidnSetSharedFilterImage(oidn_filter,
+                             name,
+                             buffer_data + buffer_offset + oidn_pass.offset,
+                             OIDN_FORMAT_FLOAT3,
+                             width,
+                             height,
+                             0,
+                             pass_stride * sizeof(float),
+                             stride * pass_stride * sizeof(float));
   }
 
-  void set_pass_from_buffer(oidn::FilterRef &oidn_filter, const char *name, OIDNPass &oidn_pass)
+  void set_pass_from_buffer(OIDNFilter oidn_filter, const char *name, OIDNPass &oidn_pass)
   {
     const int64_t width = buffer_params_.width;
     const int64_t height = buffer_params_.height;
 
-    oidn_filter.setImage(
-        name, oidn_pass.scaled_buffer.data(), oidn::Format::Float3, width, height, 0, 0, 0);
+    oidnSetSharedFilterImage(oidn_filter,
+                             name,
+                             oidn_pass.scaled_buffer.data(),
+                             OIDN_FORMAT_FLOAT3,
+                             width,
+                             height,
+                             0,
+                             0,
+                             0);
   }
 
-  void set_pass(oidn::FilterRef &oidn_filter, OIDNPass &oidn_pass)
+  void set_pass(OIDNFilter oidn_filter, OIDNPass &oidn_pass)
   {
     set_pass(oidn_filter, oidn_pass.name, oidn_pass);
   }
-  void set_pass(oidn::FilterRef &oidn_filter, const char *name, OIDNPass &oidn_pass)
+  void set_pass(OIDNFilter oidn_filter, const char *name, OIDNPass &oidn_pass)
   {
     if (oidn_pass.scaled_buffer.empty()) {
       set_pass_referenced(oidn_filter, name, oidn_pass);
@@ -373,12 +374,12 @@ class OIDNDenoiseContext {
     }
   }
 
-  void set_input_pass(oidn::FilterRef &oidn_filter, OIDNPass &oidn_pass)
+  void set_input_pass(OIDNFilter oidn_filter, OIDNPass &oidn_pass)
   {
     set_pass_referenced(oidn_filter, oidn_pass.name, oidn_pass);
   }
 
-  void set_guiding_passes(oidn::FilterRef &oidn_filter, OIDNPass &oidn_pass)
+  void set_guiding_passes(OIDNFilter oidn_filter, OIDNPass &oidn_pass)
   {
     if (oidn_albedo_pass_) {
       if (oidn_pass.use_denoising_albedo) {
@@ -396,7 +397,7 @@ class OIDNDenoiseContext {
     }
   }
 
-  void set_fake_albedo_pass(oidn::FilterRef &oidn_filter)
+  void set_fake_albedo_pass(OIDNFilter oidn_filter)
   {
     const int64_t width = buffer_params_.width;
     const int64_t height = buffer_params_.height;
@@ -415,28 +416,9 @@ class OIDNDenoiseContext {
     set_pass(oidn_filter, oidn_albedo_pass_);
   }
 
-  void set_output_pass(oidn::FilterRef &oidn_filter, OIDNPass &oidn_pass)
+  void set_output_pass(OIDNFilter oidn_filter, OIDNPass &oidn_pass)
   {
     set_pass(oidn_filter, "output", oidn_pass);
-  }
-
-  void set_quality(oidn::FilterRef &oidn_filter)
-  {
-#  if OIDN_VERSION_MAJOR >= 2
-    switch (denoise_params_.quality) {
-      case DENOISER_QUALITY_FAST:
-#    if OIDN_VERSION >= 20300
-        oidn_filter.set("quality", OIDN_QUALITY_FAST);
-        break;
-#    endif
-      case DENOISER_QUALITY_BALANCED:
-        oidn_filter.set("quality", OIDN_QUALITY_BALANCED);
-        break;
-      case DENOISER_QUALITY_HIGH:
-      default:
-        oidn_filter.set("quality", OIDN_QUALITY_HIGH);
-    }
-#  endif
   }
 
   /* Scale output pass to match adaptive sampling per-pixel scale, as well as bring alpha channel
@@ -562,8 +544,6 @@ class OIDNDenoiseContext {
   bool allow_inplace_modification_ = false;
   int pass_sample_count_ = PASS_UNUSED;
 
-  vector<uint8_t> custom_weights;
-
   /* Optional albedo and normal passes, reused by denoising of different pass types. */
   OIDNPass oidn_albedo_pass_;
   OIDNPass oidn_normal_pass_;
@@ -573,6 +553,95 @@ class OIDNDenoiseContext {
    * the fake values and denoising of passes which do need albedo can no longer happen. */
   bool albedo_replaced_with_fake_ = false;
 };
+
+bool OIDNDenoiser::commit_and_execute_filter(OIDNFilter filter)
+{
+  const char *error_message = nullptr;
+
+  oidnCommitFilter(filter);
+  oidnExecuteFilter(filter);
+
+  const OIDNError err = oidnGetDeviceError(base_.oidn_device_, &error_message);
+  if (err == OIDN_ERROR_NONE || err == OIDN_ERROR_CANCELLED) {
+    return true;
+  }
+
+  if (error_message == nullptr) {
+    error_message = "Unspecified OIDN error";
+  }
+
+  LOG_ERROR << "OIDN error: " << error_message;
+  set_error(error_message);
+  return false;
+}
+
+bool OIDNDenoiser::denoise_create_if_needed(const OIDNDenoiseContext &context)
+{
+  /* Create device on first call if it doesn't exist yet. */
+  if (!base_.oidn_device_) {
+    base_.oidn_device_ = oidnNewDevice(OIDN_DEVICE_TYPE_CPU);
+    if (!base_.oidn_device_) {
+      set_error("Failed to create OIDN CPU device");
+      return false;
+    }
+    oidnSetDeviceBool(base_.oidn_device_, "setAffinity", false);
+    oidnCommitDevice(base_.oidn_device_);
+    base_.load_custom_weights();
+  }
+
+  const bool recreate_filter = (base_.oidn_filter_ == nullptr) ||
+                               (base_.use_pass_albedo_ !=
+                                (params_.prefilter == DENOISER_PREFILTER_ACCURATE &&
+                                 context.denoise_params_.use_pass_albedo)) ||
+                               (base_.use_pass_normal_ !=
+                                (params_.prefilter == DENOISER_PREFILTER_ACCURATE &&
+                                 context.denoise_params_.use_pass_normal)) ||
+                               (base_.quality_ != params_.quality);
+
+  if (!recreate_filter) {
+    return true;
+  }
+
+  if (base_.albedo_filter_) {
+    oidnReleaseFilter(base_.albedo_filter_);
+    base_.albedo_filter_ = nullptr;
+  }
+
+  if (base_.normal_filter_) {
+    oidnReleaseFilter(base_.normal_filter_);
+    base_.normal_filter_ = nullptr;
+  }
+
+  if (base_.oidn_filter_) {
+    oidnReleaseFilter(base_.oidn_filter_);
+    base_.oidn_filter_ = nullptr;
+  }
+
+  if (!base_.create_filters(params_.quality,
+                            params_.prefilter == DENOISER_PREFILTER_ACCURATE &&
+                                context.denoise_params_.use_pass_albedo,
+                            params_.prefilter == DENOISER_PREFILTER_ACCURATE &&
+                                context.denoise_params_.use_pass_normal))
+  {
+    return false;
+  }
+
+  oidnSetFilterProgressMonitorFunction(base_.oidn_filter_, oidn_progress_monitor_function, this);
+  if (base_.albedo_filter_) {
+    oidnSetFilterProgressMonitorFunction(
+        base_.albedo_filter_, oidn_progress_monitor_function, this);
+  }
+  if (!base_.normal_filter_) {
+    oidnSetFilterProgressMonitorFunction(
+        base_.normal_filter_, oidn_progress_monitor_function, this);
+  }
+  return true;
+}
+
+bool OIDNDenoiser::denoise_run(OIDNDenoiseContext &context, const PassType pass_type)
+{
+  return context.denoise_pass(pass_type);
+}
 
 static unique_ptr<DeviceQueue> create_device_queue(const RenderBuffers *render_buffers)
 {
@@ -630,6 +699,16 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
   if (context.need_denoising()) {
     context.read_guiding_passes();
 
+    if (!denoise_create_if_needed(context)) {
+      return false;
+    }
+
+    if (!base_.denoise_configure_if_needed(context.buffer_params_.width,
+                                           context.buffer_params_.height))
+    {
+      return false;
+    }
+
     const std::array<PassType, 3> passes = {
         {/* Passes which will use real albedo when it is available. */
          PASS_COMBINED,
@@ -640,7 +719,9 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
          PASS_SHADOW_CATCHER}};
 
     for (const PassType pass_type : passes) {
-      context.denoise_pass(pass_type);
+      if (!denoise_run(context, pass_type)) {
+        return false;
+      }
       if (is_cancelled()) {
         return false;
       }

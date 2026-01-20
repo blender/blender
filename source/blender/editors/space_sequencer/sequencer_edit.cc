@@ -1997,8 +1997,7 @@ static wmOperatorStatus sequencer_box_blade_exec(bContext *C, wmOperator *op)
    * note that this means strips.size() can increase during the loops.  */
   for (int i = 0; i < strips.size(); i++) {
     Strip *strip = strips[i];
-    rctf strip_rect;
-    strip_rectf(scene, strip, &strip_rect);
+    rctf strip_rect = strip_bounds_get(scene, strip);
     if (BLI_rctf_isect(&strip_rect, &box_rect, nullptr)) {
       gap_removal_boundary[0] = math::min(gap_removal_boundary[0], strip->left_handle());
       gap_removal_boundary[1] = math::max(gap_removal_boundary[1], strip->right_handle(scene));

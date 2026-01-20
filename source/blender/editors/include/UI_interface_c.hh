@@ -209,7 +209,7 @@ enum {
 };
 
 /** #Button.flag general state flags. */
-enum {
+enum ButtonFlag {
   /* WARNING: the first 8 flags are internal (see #UI_SELECT definition). */
 
   BUT_ICON_SUBMENU = 1 << 8,

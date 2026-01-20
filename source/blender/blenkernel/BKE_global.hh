@@ -267,14 +267,15 @@ enum {
   G_DEBUG_GPU_COMPILE_SHADERS = (1 << 20),         /* Compile all statically defined shaders. . */
   G_DEBUG_GPU_RENDERDOC = (1 << 21),               /* Enable RenderDoc integration. */
   G_DEBUG_GPU_SHADER_DEBUG_INFO = (1 << 22), /* Enable the generation of shader debug info. */
-  G_DEBUG_XR = (1 << 23),                    /* XR/OpenXR messages */
-  G_DEBUG_XR_TIME = (1 << 24),               /* XR/OpenXR timing messages */
+  G_DEBUG_GPU_NO_TEXTURE_POOL = (1 << 23),   /* Disable memory aliasing in the texture pool. */
+  G_DEBUG_XR = (1 << 24),                    /* XR/OpenXR messages */
+  G_DEBUG_XR_TIME = (1 << 25),               /* XR/OpenXR timing messages */
 
-  G_DEBUG_GHOST = (1 << 25),  /* Debug GHOST module. */
-  G_DEBUG_WINTAB = (1 << 26), /* Debug Wintab. */
+  G_DEBUG_GHOST = (1 << 26),  /* Debug GHOST module. */
+  G_DEBUG_WINTAB = (1 << 27), /* Debug Wintab. */
 
-  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1 << 27), /* Disable the preprocessor (implies NO_DCE). */
-  G_DEBUG_GPU_SHADER_NO_DCE = (1 << 28),          /* Disable Dead Code Elimination. */
+  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1 << 28), /* Disable the preprocessor (implies NO_DCE). */
+  G_DEBUG_GPU_SHADER_NO_DCE = (1 << 29),          /* Disable Dead Code Elimination. */
 };
 
 #define G_DEBUG_ALL \

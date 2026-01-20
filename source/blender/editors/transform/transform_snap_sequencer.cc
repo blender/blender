@@ -125,7 +125,7 @@ static void points_build_sources_timeline_retiming(
     const Map<SeqRetimingKey *, Strip *> &retiming_selection)
 {
   for (auto item : retiming_selection.items()) {
-    const int key_frame = seq::retiming_key_timeline_frame_get(scene, item.value, item.key);
+    const int key_frame = seq::retiming_key_frame_get(scene, item.value, item.key);
     snap_data->source_snap_points.append(float2(key_frame));
   }
 
@@ -272,7 +272,7 @@ static Map<SeqRetimingKey *, Strip *> visible_retiming_keys_get(const Scene *sce
 
   for (Strip *strip : snap_strip_targets) {
     for (SeqRetimingKey &key : seq::retiming_keys_get(strip)) {
-      const int key_frame = seq::retiming_key_timeline_frame_get(scene, strip, &key);
+      const int key_frame = seq::retiming_key_frame_get(scene, strip, &key);
       if (strip->intersects_frame(scene, key_frame)) {
         visible_keys.add(&key, strip);
       }
@@ -333,7 +333,7 @@ static void points_build_targets_timeline(const Scene *scene,
   Map retiming_key_targets = visible_retiming_keys_get(scene, strip_targets);
   if (snap_mode & SEQ_SNAP_TO_RETIMING) {
     for (auto item : retiming_key_targets.items()) {
-      const int key_frame = seq::retiming_key_timeline_frame_get(scene, item.value, item.key);
+      const int key_frame = seq::retiming_key_frame_get(scene, item.value, item.key);
       snap_data->target_snap_points.append(float2(key_frame));
     }
   }

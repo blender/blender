@@ -2336,8 +2336,6 @@ SculptSession::~SculptSession()
   if (this->tex_pool) {
     BKE_image_pool_free(this->tex_pool);
   }
-
-  MEM_SAFE_FREE(this->last_paint_canvas_key);
 }
 
 ActiveVert SculptSession::active_vert() const
@@ -2630,20 +2628,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   if (ss.shapekey_active != nullptr && ss.deform_cos.is_empty()) {
     ss.deform_cos = Span(static_cast<const float3 *>(ss.shapekey_active->data),
                          mesh_orig->verts_num);
-  }
-
-  /* if pbvh is deformed, key block is already applied to it */
-  if (ss.shapekey_active) {
-    if (ss.deform_cos.is_empty()) {
-      const Span key_data(static_cast<const float3 *>(ss.shapekey_active->data),
-                          mesh_orig->verts_num);
-
-      if (key_data.data() != nullptr) {
-        BKE_pbvh_vert_coords_apply(pbvh, key_data);
-        if (ss.deform_cos.is_empty()) {
-          ss.deform_cos = key_data;
-        }
-      }
+    if (!ss.deform_cos.is_empty()) {
+      BKE_pbvh_vert_coords_apply(pbvh, ss.deform_cos);
     }
   }
 
@@ -2653,16 +2639,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
      * The relevant changes are stored/encoded in the paint canvas key.
      * These include the active uv map, and resolutions. */
     if (USER_EXPERIMENTAL_TEST(&U, use_sculpt_texture_paint)) {
-      char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
-      if (ss.last_paint_canvas_key == nullptr ||
-          !STREQ(paint_canvas_key, ss.last_paint_canvas_key))
-      {
-        MEM_SAFE_FREE(ss.last_paint_canvas_key);
+      std::string paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode,
+                                                              ob);
+      if (!ss.last_paint_canvas_key || paint_canvas_key != ss.last_paint_canvas_key) {
         ss.last_paint_canvas_key = paint_canvas_key;
         BKE_pbvh_mark_rebuild_pixels(pbvh);
-      }
-      else {
-        MEM_freeN(paint_canvas_key);
       }
     }
 

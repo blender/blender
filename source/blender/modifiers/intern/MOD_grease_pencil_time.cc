@@ -568,9 +568,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     col->separator();
     sub = &col->column(true);
     PointerRNA op_ptr = layout.op(
-        "OBJECT_OT_grease_pencil_dash_modifier_segment_move", "", ICON_TRIA_UP);
+        "OBJECT_OT_grease_pencil_time_modifier_segment_move", "", ICON_TRIA_UP);
     RNA_enum_set(&op_ptr, "type", /* ed::object::DashSegmentMoveDirection::Up */ -1);
-    op_ptr = layout.op("OBJECT_OT_grease_pencil_dash_modifier_segment_move", "", ICON_TRIA_DOWN);
+    op_ptr = layout.op("OBJECT_OT_grease_pencil_time_modifier_segment_move", "", ICON_TRIA_DOWN);
     RNA_enum_set(&op_ptr, "type", /* ed::object::DashSegmentMoveDirection::Down */ 1);
 
     if (tmd->segments().index_range().contains(tmd->segment_active_index)) {

@@ -8,4 +8,27 @@
 
 #pragma once
 
+#include "BLI_bit_vector.hh"
+
+namespace blender {
+
+struct wmOperatorType;
+
 /* internal exports only */
+
+/* `userpref_ops.cc` */
+
+void PREFERENCES_OT_start_filter(wmOperatorType *ot);
+void PREFERENCES_OT_clear_filter(wmOperatorType *ot);
+
+struct SpaceUserPref_Runtime {
+  /** For filtering properties displayed in the space. */
+  char search_string[128] = {};
+  /**
+   * Bit-field (in the same order as the tabs) for whether each tab has properties
+   * that match the search filter. Only valid when #search_string is set.
+   */
+  BitVector<> tab_search_results;
+};
+
+}  // namespace blender

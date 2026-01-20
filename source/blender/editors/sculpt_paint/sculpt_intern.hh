@@ -10,6 +10,7 @@
 
 #include <optional>
 
+#include "BKE_brush.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -397,6 +398,14 @@ struct StrokeCache {
    * \see BrushStrokeMode::BRUSH_STROKE_SMOOTH.
    */
   bool alt_smooth = false;
+
+  /**
+   * Whether the modifier key that controls masking is active currently.
+   * Switches the active brush to the mask brush during the stroke.
+   *
+   * \see BrushStrokeMode::BRUSH_STROKE_MASK.
+   */
+  bool alt_mask = false;
 
   float plane_trim_squared = 0.0f;
 

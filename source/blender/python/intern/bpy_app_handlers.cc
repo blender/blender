@@ -125,6 +125,12 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"_remote_asset_libraries_sync", "on creating or synchronizing the given asset library"},
     {"blend_import_pre", "on linking or appending data (before). " BLENDIMPORT_ARG},
     {"blend_import_post", "on linking or appending data (after). " BLENDIMPORT_ARG},
+    {"exit_pre",
+     "just before Blender shuts down, while all data is still valid. "
+     "Accepts one boolean argument. True indicates either that a user has been using Blender and "
+     "exited, or that Blender is exiting in a circumstance that should be treated as if that were "
+     "the case. False indicates that Blender is running in background mode, or is exiting due to "
+     "failed command line arguments, etc."},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1

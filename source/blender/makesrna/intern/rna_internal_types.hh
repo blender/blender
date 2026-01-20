@@ -334,33 +334,31 @@ struct PropertyRNAIdentifierGetter {
 
 /** Container - generic abstracted container of RNA properties */
 struct ContainerRNA {
-  void *next, *prev;
-
   CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter> *prop_lookup_set;
   ListBaseT<PropertyRNA> properties;
 };
 
 struct FunctionRNA {
   /** Structs are containers of properties. */
-  ContainerRNA cont;
+  ContainerRNA cont = {};
   /** Unique identifier, keep after `cont`. */
-  const char *identifier;
+  const char *identifier = nullptr;
 
   /** Various options */
-  int flag;
+  int flag = 0;
 
   /** Single line description, displayed in the tool-tip for example. */
-  const char *description;
+  const char *description = nullptr;
 
   /** Callback to execute the function. */
-  CallFunc call;
+  CallFunc call = {};
 
   /**
    * Parameter for the return value.
    *
    * \note this is only the C return value, rna functions can have multiple return values.
    */
-  PropertyRNA *c_ret;
+  PropertyRNA *c_ret = nullptr;
 };
 
 struct PropertyRNA {
@@ -488,9 +486,7 @@ enum PropertyFlagIntern {
 
 /* Property Types. */
 
-struct BoolPropertyRNA {
-  PropertyRNA property;
-
+struct BoolPropertyRNA : public PropertyRNA {
   PropBooleanGetFunc get;
   PropBooleanSetFunc set;
   PropBooleanArrayGetFunc getarray;
@@ -512,9 +508,7 @@ struct BoolPropertyRNA {
   const bool *defaultarray;
 };
 
-struct IntPropertyRNA {
-  PropertyRNA property;
-
+struct IntPropertyRNA : public PropertyRNA {
   PropIntGetFunc get;
   PropIntSetFunc set;
   PropIntArrayGetFunc getarray;
@@ -543,9 +537,7 @@ struct IntPropertyRNA {
   const int *defaultarray;
 };
 
-struct FloatPropertyRNA {
-  PropertyRNA property;
-
+struct FloatPropertyRNA : public PropertyRNA {
   PropFloatGetFunc get;
   PropFloatSetFunc set;
   PropFloatArrayGetFunc getarray;
@@ -576,9 +568,7 @@ struct FloatPropertyRNA {
   const float *defaultarray;
 };
 
-struct StringPropertyRNA {
-  PropertyRNA property;
-
+struct StringPropertyRNA : public PropertyRNA {
   PropStringGetFunc get;
   PropStringLengthFunc length;
   PropStringSetFunc set;
@@ -615,9 +605,7 @@ struct StringPropertyRNA {
   const char *defaultvalue;
 };
 
-struct EnumPropertyRNA {
-  PropertyRNA property;
-
+struct EnumPropertyRNA : public PropertyRNA {
   PropEnumGetFunc get;
   PropEnumSetFunc set;
   PropEnumItemFunc item_fn;
@@ -637,9 +625,7 @@ struct EnumPropertyRNA {
   const char *native_enum_type;
 };
 
-struct PointerPropertyRNA {
-  PropertyRNA property;
-
+struct PointerPropertyRNA : public PropertyRNA {
   PropPointerGetFunc get;
   PropPointerSetFunc set;
   PropPointerTypeFunc type_fn;
@@ -649,9 +635,7 @@ struct PointerPropertyRNA {
   StructRNA *type;
 };
 
-struct CollectionPropertyRNA {
-  PropertyRNA property;
-
+struct CollectionPropertyRNA : public PropertyRNA {
   PropCollectionBeginFunc begin;
   PropCollectionNextFunc next;
   PropCollectionEndFunc end; /* optional */
@@ -747,7 +731,7 @@ struct StructRNA {
   IDPropertiesFunc system_idproperties = nullptr;
 
   /** Functions of this struct. */
-  ListBaseT<FunctionRNA> functions = {nullptr, nullptr};
+  Vector<std::unique_ptr<FunctionRNA>> functions;
 };
 
 /**

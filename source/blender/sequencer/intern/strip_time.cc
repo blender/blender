@@ -510,7 +510,7 @@ int Strip::length(const Scene *scene) const
 {
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   if (seq::retiming_is_active(this)) {
-    const int last_key_frame = seq::retiming_key_timeline_frame_get(
+    const int last_key_frame = seq::retiming_key_frame_get(
         scene, this, seq::retiming_last_key_get(this));
     /* Last key is mapped to last frame index. Numbering starts from 0. */
     const int sound_offset = this->rounded_sound_offset(scene_fps);

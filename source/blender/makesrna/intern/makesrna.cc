@@ -2722,12 +2722,10 @@ static void rna_auto_types()
 
           /* Only automatically define `PROP_ID_REFCOUNT` if it was not already explicitly set or
            * cleared by calls to `RNA_def_property_flag` or `RNA_def_property_clear_flag`. */
-          if ((pprop->property.flag_internal & PROP_INTERN_PTR_ID_REFCOUNT_FORCED) == 0 &&
-              pprop->type)
-          {
+          if ((pprop->flag_internal & PROP_INTERN_PTR_ID_REFCOUNT_FORCED) == 0 && pprop->type) {
             type = rna_find_struct(reinterpret_cast<const char *>(pprop->type));
             if (type && (type->flag & STRUCT_ID_REFCOUNT)) {
-              pprop->property.flag |= PROP_ID_REFCOUNT;
+              pprop->flag |= PROP_ID_REFCOUNT;
             }
           }
         }
@@ -3005,33 +3003,28 @@ static void rna_generate_parameter_prototypes(BlenderRNA * /*brna*/,
 
 static void rna_generate_function_prototypes(BlenderRNA *brna, StructRNA *srna, FILE *f)
 {
-  FunctionRNA *func;
   StructRNA *base;
 
   base = srna->base;
   while (base) {
-    for (func = static_cast<FunctionRNA *>(base->functions.first); func;
-         func = static_cast<FunctionRNA *>(func->cont.next))
-    {
-      fprintf(f, "extern FunctionRNA rna_%s_%s_func;\n", base->identifier, func->identifier);
-      rna_generate_parameter_prototypes(brna, base, func, f);
+    for (const std::unique_ptr<FunctionRNA> &func : base->functions) {
+      fprintf(f, "extern FunctionRNA *rna_%s_%s_func;\n", base->identifier, func->identifier);
+      rna_generate_parameter_prototypes(brna, base, func.get(), f);
     }
 
-    if (base->functions.first) {
+    if (!base->functions.is_empty()) {
       fprintf(f, "\n");
     }
 
     base = base->base;
   }
 
-  for (func = static_cast<FunctionRNA *>(srna->functions.first); func;
-       func = static_cast<FunctionRNA *>(func->cont.next))
-  {
-    fprintf(f, "extern FunctionRNA rna_%s_%s_func;\n", srna->identifier, func->identifier);
-    rna_generate_parameter_prototypes(brna, srna, func, f);
+  for (const std::unique_ptr<FunctionRNA> &func : srna->functions) {
+    fprintf(f, "extern FunctionRNA *rna_%s_%s_func;\n", srna->identifier, func->identifier);
+    rna_generate_parameter_prototypes(brna, srna, func.get(), f);
   }
 
-  if (srna->functions.first) {
+  if (!srna->functions.is_empty()) {
     fprintf(f, "\n");
   }
 }
@@ -3212,14 +3205,11 @@ static void rna_generate_static_function_prototypes(BlenderRNA * /*brna*/,
                                                     StructRNA *srna,
                                                     FILE *f)
 {
-  FunctionRNA *func;
   FunctionDefRNA *dfunc;
   int first = 1;
 
-  for (func = static_cast<FunctionRNA *>(srna->functions.first); func;
-       func = static_cast<FunctionRNA *>(func->cont.next))
-  {
-    dfunc = rna_find_function_def(func);
+  for (const std::unique_ptr<FunctionRNA> &func : srna->functions) {
+    dfunc = rna_find_function_def(func.get());
 
     if (dfunc->call) {
       if (strstr(dfunc->call, "<")) {
@@ -3834,9 +3824,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 
 static void rna_generate_struct_register_func(BlenderRNA * /*brna*/, StructRNA *srna, FILE *f)
 {
-  FunctionRNA *func;
-  FunctionDefRNA *dfunc;
-  PropertyRNA *prop, *parm;
+  PropertyRNA *prop;
   StructRNA *base;
 
   fprintf(f, "/* %s */\n", srna->name);
@@ -3845,13 +3833,11 @@ static void rna_generate_struct_register_func(BlenderRNA * /*brna*/, StructRNA *
   for (PropertyRNA &prop : srna->cont.properties) {
     rna_generate_property_decl(f, srna, nullptr, &prop);
   }
-  for (func = static_cast<FunctionRNA *>(srna->functions.first); func;
-       func = static_cast<FunctionRNA *>(func->cont.next))
-  {
+  for (const std::unique_ptr<FunctionRNA> &func : srna->functions) {
     for (PropertyRNA &parm : func->cont.properties) {
       rna_generate_property_decl(f, srna, func->identifier, &parm);
     }
-    fprintf(f, "FunctionRNA rna_%s_%s_func;\n", srna->identifier, func->identifier);
+    fprintf(f, "FunctionRNA *rna_%s_%s_func;\n", srna->identifier, func->identifier);
   }
 
   /* Struct and property creation runs on startup, on the first call to #RNA_blender_rna_get. */
@@ -3867,78 +3853,6 @@ static void rna_generate_struct_register_func(BlenderRNA * /*brna*/, StructRNA *
       fprintf(f, "\n");
     }
     rna_generate_property(f, srna, nullptr, &prop);
-  }
-
-  for (func = static_cast<FunctionRNA *>(srna->functions.first); func;
-       func = static_cast<FunctionRNA *>(func->cont.next))
-  {
-    for (PropertyRNA &parm : func->cont.properties) {
-      rna_generate_property(f, srna, func->identifier, &parm);
-    }
-
-    fprintf(f, "\trna_%s_%s_func = {\n", srna->identifier, func->identifier);
-
-    if (func->cont.next) {
-      fprintf(f,
-              "\t\t{(FunctionRNA *)&rna_%s_%s_func, ",
-              srna->identifier,
-              (static_cast<FunctionRNA *>(func->cont.next))->identifier);
-    }
-    else {
-      fprintf(f, "\t\t{nullptr, ");
-    }
-    if (func->cont.prev) {
-      fprintf(f,
-              "(FunctionRNA *)&rna_%s_%s_func,\n",
-              srna->identifier,
-              (static_cast<FunctionRNA *>(func->cont.prev))->identifier);
-    }
-    else {
-      fprintf(f, "nullptr,\n");
-    }
-
-    fprintf(f, "\t\tnullptr,\n");
-
-    parm = static_cast<PropertyRNA *>(func->cont.properties.first);
-    if (parm) {
-      fprintf(f, "\t\t{&rna_%s_%s_%s, ", srna->identifier, func->identifier, parm->identifier);
-    }
-    else {
-      fprintf(f, "\t\t{nullptr, ");
-    }
-
-    parm = static_cast<PropertyRNA *>(func->cont.properties.last);
-    if (parm) {
-      fprintf(f, "&rna_%s_%s_%s}},\n", srna->identifier, func->identifier, parm->identifier);
-    }
-    else {
-      fprintf(f, "nullptr}},\n");
-    }
-
-    fprintf(f, "\t\t");
-    rna_print_c_string(f, func->identifier);
-    fprintf(f, ", %d, ", func->flag);
-    rna_print_c_string(f, func->description);
-    fprintf(f, ",\n");
-
-    dfunc = rna_find_function_def(func);
-    if (dfunc->gencall) {
-      fprintf(f, "\t\t%s,\n", dfunc->gencall);
-    }
-    else {
-      fprintf(f, "\t\tnullptr,\n");
-    }
-
-    if (func->c_ret) {
-      fprintf(
-          f, "\t\t&rna_%s_%s_%s\n", srna->identifier, func->identifier, func->c_ret->identifier);
-    }
-    else {
-      fprintf(f, "\t\tnullptr\n");
-    }
-
-    fprintf(f, "\t};\n");
-    fprintf(f, "\n");
   }
 
   fprintf(f,
@@ -4036,14 +3950,46 @@ static void rna_generate_struct_register_func(BlenderRNA * /*brna*/, StructRNA *
     DefRNA.error = true;
   }
 
-  if (!BLI_listbase_is_empty(&srna->functions)) {
-    func = static_cast<FunctionRNA *>(srna->functions.first);
+  for (const std::unique_ptr<FunctionRNA> &func : srna->functions) {
+    fprintf(f, "\t{\n");
+    for (PropertyRNA &parm : func->cont.properties) {
+      rna_generate_property(f, srna, func->identifier, &parm);
+    }
+    fprintf(f, "\t\tauto func = std::make_unique<FunctionRNA>();\n");
+    if (!BLI_listbase_is_empty(&func->cont.properties)) {
+      fprintf(f,
+              "\t\tfunc->cont.properties = {&rna_%s_%s_%s, &rna_%s_%s_%s};\n",
+              srna->identifier,
+              func->identifier,
+              static_cast<PropertyRNA *>(func->cont.properties.first)->identifier,
+              srna->identifier,
+              func->identifier,
+              static_cast<PropertyRNA *>(func->cont.properties.last)->identifier);
+    }
+    fprintf(f, "\t\tfunc->identifier = ");
+    rna_print_c_string(f, func->identifier);
+    fprintf(f, ";\n");
+    if (func->flag != 0) {
+      fprintf(f, "\t\tfunc->flag = %d;\n", func->flag);
+    }
+    fprintf(f, "\t\tfunc->description = ");
+    rna_print_c_string(f, func->description);
+    fprintf(f, ";\n");
+    FunctionDefRNA *dfunc = rna_find_function_def(func.get());
+    if (dfunc->gencall) {
+      fprintf(f, "\t\tfunc->call = %s;\n", dfunc->gencall);
+    }
+    if (func->c_ret) {
+      fprintf(f,
+              "\t\tfunc->c_ret = &rna_%s_%s_%s;\n",
+              srna->identifier,
+              func->identifier,
+              func->c_ret->identifier);
+    }
+    fprintf(f, "\t\trna_%s_%s_func = func.get();\n", srna->identifier, func->identifier);
     fprintf(f,
-            "\tsrna->functions = {(FunctionRNA *)&rna_%s_%s_func, ",
-            srna->identifier,
-            func->identifier);
-    func = static_cast<FunctionRNA *>(srna->functions.last);
-    fprintf(f, "(FunctionRNA *)&rna_%s_%s_func};\n", srna->identifier, func->identifier);
+            "\t\tsrna->functions.append(std::move(func));\n"
+            "\t}\n");
   }
 
   fprintf(f, "};\n\n");

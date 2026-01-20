@@ -499,7 +499,7 @@ struct SculptSession : NonCopyable, NonMovable {
   /**
    * Last used painting canvas key.
    */
-  char *last_paint_canvas_key = nullptr;
+  std::optional<std::string> last_paint_canvas_key = {};
   float3 last_normal;
 
   std::unique_ptr<SculptTopologyIslandCache> topology_island_cache;
@@ -562,7 +562,6 @@ struct SculptSession : NonCopyable, NonMovable {
 
 void BKE_sculptsession_free(Object *ob);
 void BKE_sculptsession_free_deformMats(SculptSession *ss);
-void BKE_sculptsession_free_vwpaint_data(SculptSession *ss);
 void BKE_sculptsession_free_pbvh(Object &object);
 void BKE_sculptsession_bm_to_me(Object *ob);
 void BKE_sculptsession_bm_to_me_for_render(Object *object);
@@ -632,7 +631,7 @@ bool BKE_object_sculpt_use_dyntopo(const Object *object);
  * Create a key that can be used to compare with previous ones to identify changes.
  * The resulting 'string' is owned by the caller.
  */
-char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob);
+std::string BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob);
 
 bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
                                 Object *ob,

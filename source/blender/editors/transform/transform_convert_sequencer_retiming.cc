@@ -50,7 +50,7 @@ static TransData *SeqToTransData(const Scene *scene,
                                  TransDataSeq *tdseq)
 {
 
-  td2d->loc[0] = seq::retiming_key_timeline_frame_get(scene, strip, key);
+  td2d->loc[0] = seq::retiming_key_frame_get(scene, strip, key);
   td2d->loc[1] = key->retiming_factor;
   td2d->loc2d = nullptr;
   td->loc = td2d->loc;
@@ -62,7 +62,7 @@ static TransData *SeqToTransData(const Scene *scene,
   unit_m3(td->smtx);
 
   tdseq->strip = strip;
-  tdseq->orig_timeline_frame = seq::retiming_key_timeline_frame_get(scene, strip, key);
+  tdseq->orig_timeline_frame = seq::retiming_key_frame_get(scene, strip, key);
   tdseq->key_index = seq::retiming_key_index_get(strip, key);
 
   td->extra = static_cast<void *>(tdseq);
@@ -243,7 +243,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
       seq::retiming_transition_key_frame_set(t->scene, strip, key, round_fl_to_int(new_frame));
     }
     else {
-      seq::retiming_key_timeline_frame_set(t->scene, strip, key, new_frame, true);
+      seq::retiming_key_frame_set(t->scene, strip, key, new_frame, true);
     }
 
     seq::relations_invalidate_cache(t->scene, strip);

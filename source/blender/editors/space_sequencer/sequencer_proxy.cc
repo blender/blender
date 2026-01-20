@@ -21,7 +21,6 @@
 #include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
-#include "WM_types.hh"
 
 #include "RNA_define.hh"
 
@@ -66,7 +65,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
       continue;
     }
 
-    bool success = seq::proxy_rebuild_context(
+    bool success = seq::proxy_build_start(
         pj->main, pj->scene, &strip, &processed_paths, false, pj->queue);
 
     if (!success && (strip.data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
@@ -110,14 +109,14 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
 
   for (Strip &strip : *seq::active_seqbase_get(ed)) {
     if (strip.flag & SEQ_SELECT) {
-      Vector<seq::IndexBuildContext *> queue;
+      Vector<seq::ProxyBuildContext *> queue;
 
-      seq::proxy_rebuild_context(bmain, scene, &strip, &processed_paths, false, queue);
+      seq::proxy_build_start(bmain, scene, &strip, &processed_paths, false, queue);
 
-      wmJobWorkerStatus worker_status = {};
-      for (seq::IndexBuildContext *context : queue) {
-        seq::proxy_rebuild(context, &worker_status, nullptr);
-        seq::proxy_rebuild_finish(context, false);
+      bool should_stop = false, has_updated = false;
+      for (seq::ProxyBuildContext *context : queue) {
+        seq::proxy_build_process(context, &should_stop, &has_updated, nullptr);
+        seq::proxy_build_finish(context);
       }
       seq::relations_free_imbuf(scene, &ed->seqbase, false);
     }

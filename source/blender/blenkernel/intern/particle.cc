@@ -5165,7 +5165,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim,
   sub_v3_v3v3(vec, (cache + cache->segments)->co, cache->co);
   len = normalize_v3(vec);
 
-  if (pa == nullptr && psys->part->childflat != PART_CHILD_FACES) {
+  if (pa == nullptr && psys->part->childtype != PART_CHILD_FACES) {
     pa = psys->particles + cpa->pa[0];
   }
 

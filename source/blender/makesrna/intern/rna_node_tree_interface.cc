@@ -113,9 +113,9 @@ static const EnumPropertyItem node_default_input_items[] = {
 namespace blender {
 
 /* Internal RNA function declarations, used to invoke registered callbacks. */
-extern FunctionRNA rna_NodeTreeInterfaceSocket_draw_func;
-extern FunctionRNA rna_NodeTreeInterfaceSocket_init_socket_func;
-extern FunctionRNA rna_NodeTreeInterfaceSocket_from_socket_func;
+extern FunctionRNA *rna_NodeTreeInterfaceSocket_draw_func;
+extern FunctionRNA *rna_NodeTreeInterfaceSocket_init_socket_func;
+extern FunctionRNA *rna_NodeTreeInterfaceSocket_from_socket_func;
 
 namespace node_interface = bke::node_interface;
 
@@ -241,7 +241,7 @@ static void rna_NodeTreeInterfaceSocket_draw_custom(ID *id,
 
   PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_NodeTreeInterfaceSocket, interface_socket);
 
-  FunctionRNA *func = &rna_NodeTreeInterfaceSocket_draw_func;
+  FunctionRNA *func = rna_NodeTreeInterfaceSocket_draw_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
@@ -280,7 +280,7 @@ static void rna_NodeTreeInterfaceSocket_init_socket_custom(
   PointerRNA ptr = RNA_pointer_create_discrete(
       id, RNA_NodeTreeInterfaceSocket, const_cast<bNodeTreeInterfaceSocket *>(interface_socket));
 
-  FunctionRNA *func = &rna_NodeTreeInterfaceSocket_init_socket_func;
+  FunctionRNA *func = rna_NodeTreeInterfaceSocket_init_socket_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
@@ -314,7 +314,7 @@ static void rna_NodeTreeInterfaceSocket_from_socket_custom(
 
   PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_NodeTreeInterfaceSocket, interface_socket);
 
-  FunctionRNA *func = &rna_NodeTreeInterfaceSocket_from_socket_func;
+  FunctionRNA *func = rna_NodeTreeInterfaceSocket_from_socket_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);

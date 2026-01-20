@@ -191,5 +191,13 @@ source/blender/blentranslation.*      @mont29
 
 # --------------------------------------------------
 # Platforms & Builds
-build_files/.*              @ThomasDinges
-release/.*                  @ThomasDinges
+build_files/.*                  @ThomasDinges
+release/bin/.*                  @ThomasDinges
+release/darwin/.*               @ThomasDinges
+release/freedesktop/.*          @ThomasDinges
+release/license/.*              @ThomasDinges
+release/lts/.*                  @ThomasDinges
+release/pypi/.*                 @ThomasDinges
+release/release_notes/.*        @ThomasDinges
+release/text/.*                 @ThomasDinges
+release/windows/.*              @ThomasDinges

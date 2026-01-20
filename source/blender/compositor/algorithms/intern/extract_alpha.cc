@@ -39,6 +39,12 @@ static void extract_alpha_cpu(Result &input, Result &output)
 
 void extract_alpha(Context &context, Result &input, Result &output)
 {
+  if (input.is_single_value()) {
+    output.allocate_single_value();
+    output.set_single_value(input.get_single_value<Color>().a);
+    return;
+  }
+
   if (context.use_gpu()) {
     extract_alpha_gpu(context, input, output);
   }

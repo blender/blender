@@ -267,6 +267,11 @@ gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info
     info.generated_sources.append({"gpu_shader_python_typedef_lib.glsl", {}, "\n"});
   }
 
+#ifdef __APPLE__
+  /* See usage for more info. */
+  info.define("WITH_MATRIX_EQ_OPERATORS");
+#endif
+
   info.builtins_ |= BuiltinBits::NO_BUFFER_TYPE_LINTING;
 
   auto preprocess_source = [&](const std::string &input_src) {

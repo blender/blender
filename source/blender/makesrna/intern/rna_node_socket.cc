@@ -80,9 +80,9 @@ namespace blender {
 
 static CLG_LogRef LOG = {"rna.node"};
 
-extern FunctionRNA rna_NodeSocket_draw_func;
-extern FunctionRNA rna_NodeSocket_draw_color_func;
-extern FunctionRNA rna_NodeSocket_draw_color_simple_func;
+extern FunctionRNA *rna_NodeSocket_draw_func;
+extern FunctionRNA *rna_NodeSocket_draw_color_func;
+extern FunctionRNA *rna_NodeSocket_draw_color_simple_func;
 
 /* ******** Node Socket ******** */
 
@@ -93,7 +93,7 @@ static void rna_NodeSocket_draw(
   ParameterList list;
   FunctionRNA *func;
 
-  func = &rna_NodeSocket_draw_func; /* RNA_struct_find_function(&ptr, "draw"); */
+  func = rna_NodeSocket_draw_func; /* RNA_struct_find_function(&ptr, "draw"); */
 
   RNA_parameter_list_create(&list, ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -117,7 +117,7 @@ static void rna_NodeSocket_draw_color(bContext *C,
   FunctionRNA *func;
   void *ret;
 
-  func = &rna_NodeSocket_draw_color_func; /* RNA_struct_find_function(&ptr, "draw_color"); */
+  func = rna_NodeSocket_draw_color_func; /* RNA_struct_find_function(&ptr, "draw_color"); */
 
   RNA_parameter_list_create(&list, ptr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
@@ -137,8 +137,8 @@ static void rna_NodeSocket_draw_color_simple(const bke::bNodeSocketType *socket_
   FunctionRNA *func;
   void *ret;
 
-  func = &rna_NodeSocket_draw_color_simple_func; /* RNA_struct_find_function(&ptr,
-                                                  * "draw_color_simple"); */
+  func = rna_NodeSocket_draw_color_simple_func; /* RNA_struct_find_function(&ptr,
+                                                 * "draw_color_simple"); */
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, socket_type->ext_socket.srna, nullptr);
   RNA_parameter_list_create(&list, &ptr, func);

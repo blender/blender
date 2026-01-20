@@ -15,14 +15,11 @@ namespace blender::compositor {
 
 Context::Context(StaticCacheManager &cache_manager) : cache_manager_(cache_manager) {};
 
-Bounds<int2> Context::get_input_region() const
-{
-  return Bounds<int2>(int2(0), this->get_compositing_domain().display_size);
-}
-
 Result Context::get_pass(const Scene * /*scene*/, int /*view_layer*/, const char * /*name*/)
 {
-  return this->create_result(compositor::ResultType::Color);
+  compositor::Result invalid_pass = this->create_result(compositor::ResultType::Color);
+  invalid_pass.allocate_invalid();
+  return invalid_pass;
 }
 
 const RenderData &Context::get_render_data() const

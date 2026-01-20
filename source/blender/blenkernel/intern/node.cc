@@ -5779,7 +5779,7 @@ bool node_tree_type_supports_socket_type_static(const int ntree_type,
 {
   if (bke::bNodeTreeType *ttype = bke::node_tree_type_find_builtin(ntree_type)) {
     bke::bNodeSocketType *stype = bke::node_socket_type_find_static(socket_type);
-    if (ttype->valid_socket_type) {
+    if (stype && ttype->valid_socket_type) {
       return ttype->valid_socket_type(ttype, stype);
     }
   }

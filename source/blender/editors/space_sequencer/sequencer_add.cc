@@ -1177,7 +1177,7 @@ static void seq_build_proxy(bContext *C, Span<Strip *> movie_strips)
     seq::proxy_set(strip, true);
     strip->data->proxy->build_size_flags = seq_get_proxy_size_flags(C);
     strip->data->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
-    seq::proxy_rebuild_context(pj->main, pj->scene, strip, nullptr, true, pj->queue);
+    seq::proxy_build_start(pj->main, pj->scene, strip, nullptr, true, pj->queue);
   }
 
   if (!WM_jobs_is_running(wm_job)) {

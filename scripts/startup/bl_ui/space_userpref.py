@@ -66,14 +66,26 @@ class USERPREF_PT_navigation_bar(Panel):
 
     def draw(self, context):
         layout = self.layout
+        view = context.space_data
 
         prefs = context.preferences
+
+        layout.prop(view, "search_filter", icon='VIEWZOOM', text="")
+        layout.separator(factor=0.1)
 
         col = layout.column()
 
         col.scale_x = 1.3
         col.scale_y = 1.3
-        col.prop(prefs, "active_section", expand=True)
+        if view.search_filter:
+            col.prop_tabs_enum(
+                prefs,
+                "active_section",
+                data_highlight=view,
+                property_highlight="tab_search_results",
+                expand_as='ROW')
+        else:
+            col.prop(prefs, "active_section", expand=True)
 
 
 class USERPREF_MT_editor_menus(Menu):

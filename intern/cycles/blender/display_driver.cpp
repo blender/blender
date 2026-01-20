@@ -452,8 +452,10 @@ struct BlenderDisplayDriver::Tiles {
 
 BlenderDisplayDriver::BlenderDisplayDriver(blender::RenderEngine &b_engine,
                                            blender::Scene &b_scene,
+                                           blender::RegionView3D *b_rv3d,
                                            const bool background)
     : b_engine_(b_engine),
+      b_rv3d_(b_rv3d),
       background_(background),
       display_shader_(BlenderDisplayShader::create(b_engine, b_scene)),
       tiles_(make_unique<Tiles>())
@@ -605,6 +607,8 @@ void BlenderDisplayDriver::update_end()
   blender::GPU_flush();
 
   gpu_context_disable();
+
+  has_update_cond_.notify_all();
 }
 
 /* --------------------------------------------------------------------
@@ -827,6 +831,15 @@ void BlenderDisplayDriver::flush()
 
 void BlenderDisplayDriver::draw(const Params &params)
 {
+  if (b_rv3d_ && (b_rv3d_->rflag & (blender::RV3D_NAVIGATING | blender::RV3D_PAINTING))) {
+    /* Before drawing, wait that an update to the texture has actually occured, to synchronize
+     * rendering of Cycles with Blender. Use a timeout to prevent user interface in the main thread
+     * from becoming unresponsive when rendering is too heavy. */
+    thread_scoped_lock lock(has_update_mutex_);
+    has_update_cond_.wait_for(lock, std::chrono::milliseconds(33));
+    lock.unlock();
+  }
+
   gpu_context_lock();
 
   if (need_zero_) {

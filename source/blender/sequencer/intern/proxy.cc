@@ -51,7 +51,7 @@
 
 namespace blender::seq {
 
-struct IndexBuildContext {
+struct ProxyBuildContext {
   MovieProxyBuilder *movie_proxy_builder = nullptr;
 
   int tc_flags = 0;
@@ -380,12 +380,12 @@ static bool seq_proxy_need_rebuild(Strip *strip, MovieReader *anim)
   return (required_proxies & built_proxies) != required_proxies;
 }
 
-bool proxy_rebuild_context(Main *bmain,
-                           Scene *scene,
-                           Strip *strip,
-                           Set<std::string> *processed_paths,
-                           bool build_only_on_bad_performance,
-                           Vector<IndexBuildContext *> &r_queue)
+bool proxy_build_start(Main *bmain,
+                       Scene *scene,
+                       Strip *strip,
+                       Set<std::string> *processed_paths,
+                       bool build_only_on_bad_performance,
+                       Vector<ProxyBuildContext *> &r_queue)
 {
   if (!strip->data || !strip->data->proxy) {
     return true;
@@ -413,7 +413,7 @@ bool proxy_rebuild_context(Main *bmain,
 
     strip_free_movie_readers(strip);
 
-    IndexBuildContext *context = MEM_new_for_free<IndexBuildContext>(
+    ProxyBuildContext *context = MEM_new_for_free<ProxyBuildContext>(
         "strip proxy rebuild context");
 
     Strip *strip_new = strip_duplicate_recursive(
@@ -514,7 +514,7 @@ static void seq_proxy_build_frame(const Scene *scene,
   }
 }
 
-static ImBuf *render_image_strip_frame(const IndexBuildContext &context,
+static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
                                        const Strip &strip,
                                        char *filepath,
                                        char *prefix,
@@ -549,7 +549,7 @@ static ImBuf *render_image_strip_frame(const IndexBuildContext &context,
   return ibuf;
 }
 
-static void image_proxy_builder_process(IndexBuildContext &context,
+static void image_proxy_builder_process(ProxyBuildContext &context,
                                         const bool *job_stop,
                                         bool *job_update_ui,
                                         const FunctionRef<void(float progress)> set_progress_fn)
@@ -650,36 +650,41 @@ static void image_proxy_builder_process(IndexBuildContext &context,
   }
 }
 
-void proxy_rebuild(IndexBuildContext *context,
-                   wmJobWorkerStatus *worker_status,
-                   const FunctionRef<void(float progress)> set_progress_fn)
+static void close_movie_proxy_builder(ProxyBuildContext *context, bool stop)
+{
+  if (context->movie_proxy_builder == nullptr) {
+    return;
+  }
+  for (MovieReader *movie : context->strip->runtime->movie_readers) {
+    MOV_close_proxies(movie);
+  }
+  MOV_proxy_builder_finish(context->movie_proxy_builder, stop);
+  context->movie_proxy_builder = nullptr;
+}
+
+void proxy_build_process(ProxyBuildContext *context,
+                         const bool *should_stop,
+                         bool *has_updated,
+                         const FunctionRef<void(float progress)> set_progress_fn)
 {
   if (context->strip->type == STRIP_TYPE_MOVIE) {
     if (context->movie_proxy_builder) {
-      MOV_proxy_builder_process(context->movie_proxy_builder,
-                                &worker_status->stop,
-                                &worker_status->do_update,
-                                set_progress_fn);
+      MOV_proxy_builder_process(
+          context->movie_proxy_builder, should_stop, has_updated, set_progress_fn);
+      close_movie_proxy_builder(context, *should_stop);
     }
     return;
   }
 
   if (context->strip->type == STRIP_TYPE_IMAGE) {
-    image_proxy_builder_process(
-        *context, &worker_status->stop, &worker_status->do_update, set_progress_fn);
+    image_proxy_builder_process(*context, should_stop, has_updated, set_progress_fn);
     return;
   }
 }
 
-void proxy_rebuild_finish(IndexBuildContext *context, bool stop)
+void proxy_build_finish(ProxyBuildContext *context)
 {
-  if (context->movie_proxy_builder) {
-    for (MovieReader *anim : context->strip->runtime->movie_readers) {
-      MOV_close_proxies(anim);
-    }
-    MOV_proxy_builder_finish(context->movie_proxy_builder, stop);
-  }
-
+  close_movie_proxy_builder(context, false);
   seq_free_strip_recurse(nullptr, context->strip, true);
 
   MEM_freeN(context);

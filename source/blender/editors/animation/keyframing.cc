@@ -321,8 +321,10 @@ static bool get_selection(bContext *C, Vector<PointerRNA> *r_selection)
   if (area && area->spacetype == SPACE_SEQ) {
     VectorSet<Strip *> strips = ed::vse::selected_strips_from_context(C);
     for (Strip *strip : strips) {
+      const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+      Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
       PointerRNA ptr;
-      ptr = RNA_pointer_create_discrete(&CTX_data_scene(C)->id, RNA_Strip, strip);
+      ptr = RNA_pointer_create_discrete(&scene->id, RNA_Strip, strip);
       r_selection->append(ptr);
     }
     return true;
@@ -359,7 +361,8 @@ static wmOperatorStatus insert_key(bContext *C, wmOperator *op)
   }
 
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  Scene *scene = is_sequencer ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   const float scene_frame = BKE_scene_frame_get(scene);
 
   const eInsertKeyFlags insert_key_flags = animrig::get_keyframing_flags(scene);

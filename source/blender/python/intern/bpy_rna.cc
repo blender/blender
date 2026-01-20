@@ -8070,6 +8070,12 @@ static PyObject *pyrna_prop_collection_iter_next(PyObject *self)
   BPy_PropertyCollectionIterRNA *self_property = reinterpret_cast<BPy_PropertyCollectionIterRNA *>(
       self);
   if (self_property->iter->valid == false) {
+    /* Free collection iterator immediately before tp_dealloc, to break cycles the GC can not
+     * solve, between e.g. USE_PYRNA_STRUCT_REFERENCE and RNA_DepsgraphIterator.py_instance. */
+    if (self_property->iter.has_value()) {
+      RNA_property_collection_end(&self_property->iter.value());
+      self_property->iter.reset();
+    }
     PyErr_SetNone(PyExc_StopIteration);
     return nullptr;
   }
@@ -8245,9 +8251,9 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
   /* Add `staticmethod` and `classmethod` functions. */
   {
     const PointerRNA func_ptr = {nullptr, srna, nullptr};
-    const ListBaseT<FunctionRNA> *lb = RNA_struct_type_functions(srna);
-    for (const Link &link : lb->cast<Link>()) {
-      FunctionRNA *func = reinterpret_cast<FunctionRNA *>(const_cast<Link *>(&link));
+    Span<std::unique_ptr<FunctionRNA>> lb = RNA_struct_type_functions(srna);
+    for (const std::unique_ptr<FunctionRNA> &link : lb) {
+      FunctionRNA *func = link.get();
       const int flag = RNA_function_flag(func);
       if ((flag & FUNC_NO_SELF) &&         /* Is `staticmethod` or `classmethod`. */
           (flag & FUNC_REGISTER) == false) /* Is not for registration. */
@@ -9428,10 +9434,10 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
   }
 
   /* Verify callback functions. */
-  const ListBaseT<FunctionRNA> *lb_func = RNA_struct_type_functions(srna);
+  Span<std::unique_ptr<FunctionRNA>> lb_func = RNA_struct_type_functions(srna);
   i = 0;
-  for (const Link &link : lb_func->cast<Link>()) {
-    FunctionRNA *func = reinterpret_cast<FunctionRNA *>(const_cast<Link *>(&link));
+  for (const std::unique_ptr<FunctionRNA> &link : lb_func) {
+    FunctionRNA *func = link.get();
     const int flag = RNA_function_flag(func);
     if (!(flag & FUNC_REGISTER)) {
       continue;

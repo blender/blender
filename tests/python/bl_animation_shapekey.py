@@ -91,8 +91,8 @@ class CurveShapekeyTest(unittest.TestCase):
         key_2.value = 0.0
 
         depsgraph = bpy.context.evaluated_depsgraph_get()
-        eval_curve = self.curve_ob.evaluated_get(depsgraph)
         bpy.ops.object.mode_set(mode='EDIT')
+        eval_curve = self.curve_ob.evaluated_get(depsgraph)
         self.assertEqual(eval_curve.data.splines[0].bezier_points[0].co[0], 1)
         self.assertEqual(eval_curve.data.splines[0].bezier_points[0].co[1], 1)
         self.assertEqual(eval_curve.data.splines[0].bezier_points[0].co[2], 1)

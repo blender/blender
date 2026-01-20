@@ -157,12 +157,17 @@ void Camera::sync()
     else {
       /* Can happen for the case of XR or if `rv3d->dist == 0`.
        * In this case the produced winmat is degenerate. So just revert to the input matrix. */
-      float2 film_center = float2(film_offset) + float2(film_extent) / 2.0f;
-      float2 uv_offset = float2(0.5f) - (film_center / float2(display_extent));
       data.winmat = inst_.drw_view->winmat();
-      data.winmat = math::projection::translate(data.winmat, uv_offset * 2.0f);
-      data.winmat = math::from_scale<float4x4>(float4(1.0f / data.uv_scale, 1.0f, 1.0f)) *
-                    data.winmat;
+      if (!camera_eval) {
+        /* Apply the render region, but only for non-camera views. See #153033. */
+        /* FIXME(@pragma37): This is still broken with Camera View + Render Region + Fly/Walk
+         * Navigation. Untangle this whole walk/fly navigation projection matrix mess. */
+        float2 film_center = float2(film_offset) + float2(film_extent) / 2.0f;
+        float2 uv_offset = float2(0.5f) - (film_center / float2(display_extent));
+        data.winmat = math::projection::translate(data.winmat, uv_offset * 2.0f);
+        data.winmat = math::from_scale<float4x4>(float4(1.0f / data.uv_scale, 1.0f, 1.0f)) *
+                      data.winmat;
+      }
     }
   }
   else if (inst_.render) {

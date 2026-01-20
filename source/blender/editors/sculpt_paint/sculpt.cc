@@ -2893,7 +2893,7 @@ float3 SCULPT_flip_v3_by_symm_area(const float3 &vector,
     if (!(symm & symm_it)) {
       continue;
     }
-    if (symmarea & symm_it) {
+    if (symmarea & ePaintSymmetryAreas(symm_it)) {
       result = ed::sculpt_paint::symmetry_flip(result, symm_it);
     }
     if (pivot[i] < 0.0f) {
@@ -2913,7 +2913,7 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
     if (!(symm & symm_it)) {
       continue;
     }
-    if (symmarea & symm_it) {
+    if (symmarea & ePaintSymmetryAreas(symm_it)) {
       flip_qt(quat, symm_it);
     }
     if (pivot[i] < 0.0f) {
@@ -3947,6 +3947,62 @@ static void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
     BKE_paint_brush_set(paint, cache->saved_active_brush);
     cache->saved_active_brush = nullptr;
   }
+}
+
+static void mask_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache)
+{
+  Brush *cur_brush = BKE_paint_brush(paint);
+
+  /* User is already using Mask brush */
+  if (cur_brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
+    cache->saved_mask_brush_tool = cur_brush->mask_tool;
+    cache->saved_active_brush = nullptr;
+    return;
+  }
+
+  /* Save current brush */
+  cache->saved_active_brush = cur_brush;
+
+  /* Switch to Mask essentials brush */
+  if (!BKE_paint_brush_set_essentials(bmain, paint, "Mask")) {
+    BKE_paint_brush_set(paint, cur_brush);
+    cache->saved_active_brush = nullptr;
+    CLOG_WARN(&LOG, "Unable to switch to the 'Mask' essentials brush asset");
+    return;
+  }
+
+  Brush *mask_brush = BKE_paint_brush(paint);
+
+  /* Match brush size */
+  const int cur_brush_size = BKE_brush_size_get(paint, cur_brush);
+  cache->saved_smooth_size = BKE_brush_size_get(paint, mask_brush);
+  BKE_brush_size_set(paint, mask_brush, cur_brush_size);
+
+  if (mask_brush->curve_distance_falloff) {
+    BKE_curvemapping_init(mask_brush->curve_distance_falloff);
+  }
+
+  if (mask_brush->curve_strength) {
+    BKE_curvemapping_init(mask_brush->curve_strength);
+  }
+}
+
+static void mask_brush_toggle_off(Paint *paint, StrokeCache *cache)
+{
+  Brush &brush = *BKE_paint_brush(paint);
+
+  /* User was already using mask brush */
+  if (cache->saved_active_brush == nullptr) {
+    if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
+      brush.mask_tool = cache->saved_mask_brush_tool;
+    }
+    return;
+  }
+
+  /* Restore previous brush */
+  BKE_brush_size_set(paint, &brush, cache->saved_smooth_size);
+  BKE_paint_brush_set(paint, cache->saved_active_brush);
+  cache->saved_active_brush = nullptr;
 }
 
 /* Initialize the stroke cache invariants from operator properties. */
@@ -5487,7 +5543,7 @@ void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
   cache->pen_flip = pen_flip;
   cache->invert = stroke_mode == BRUSH_STROKE_INVERT;
   cache->alt_smooth = stroke_mode == BRUSH_STROKE_SMOOTH;
-
+  cache->alt_mask = stroke_mode == BRUSH_STROKE_MASK;
   cache->normal_weight = brush->normal_weight;
 
   /* Interpret invert as following normal, for grab brushes. */
@@ -5511,6 +5567,12 @@ void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
   if (cache->alt_smooth) {
     smooth_brush_toggle_on(bmain_, this->paint, cache);
     /* Refresh the brush pointer in case we switched brush in the toggle function. */
+    brush = BKE_paint_brush(this->paint);
+  }
+  /* Alt-Mask. */
+  if (cache->alt_mask) {
+    mask_brush_toggle_on(bmain_, this->paint, cache);
+    /* Refresh brush pointer after switching. */
     brush = BKE_paint_brush(this->paint);
   }
 
@@ -5812,6 +5874,12 @@ void SculptPaintStroke::done(bool is_cancel)
   /* Alt-Smooth. */
   if (ss.cache->alt_smooth) {
     smooth_brush_toggle_off(&sd.paint, ss.cache);
+    /* Refresh the brush pointer in case we switched brush in the toggle function. */
+    brush = BKE_paint_brush(&sd.paint);
+  }
+  /* Toggle Mask */
+  if (ss.cache->alt_mask) {
+    mask_brush_toggle_off(&sd.paint, ss.cache);
     /* Refresh the brush pointer in case we switched brush in the toggle function. */
     brush = BKE_paint_brush(&sd.paint);
   }

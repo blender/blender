@@ -72,8 +72,10 @@ if(WITH_CODEC_FFMPEG)
   add_definitions(-DWITH_FFMPEG)
 endif()
 
-if(WITH_TBB)
+if(WITH_TBB OR WITH_TBB_MALLOC_PROXY)
   list(APPEND INC ${TBB_INCLUDE_DIRS})
+endif()
+if(WITH_TBB)
   if(WIN32)
     # For `pragma` that links `tbbmalloc_proxy.lib`.
     link_directories(${LIBDIR}/tbb/lib)

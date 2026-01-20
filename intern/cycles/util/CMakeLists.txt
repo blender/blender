@@ -93,6 +93,7 @@ set(SRC_HEADERS
   projection.h
   projection_inverse.h
   queue.h
+  random_access_iterator_mixin.h
   rect.h
   set.h
   simd.h

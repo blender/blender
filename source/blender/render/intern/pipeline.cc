@@ -1270,9 +1270,9 @@ static void do_render_compositor(Render *re)
 
         CLOG_STR_INFO(&LOG, "Executing compositor");
 
-        re->display->progress(0.0f);
         re->i.infostr = IFACE_("Compositing");
         re->display->stats_draw(&re->i);
+        re->i.infostr = nullptr;
 
         compositor::RenderContext compositor_render_context;
         compositor_render_context.is_animation_render = re->flag & R_ANIMATION;

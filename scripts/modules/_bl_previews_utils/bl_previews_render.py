@@ -70,7 +70,8 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
         if engine == '__SCENE':
             backup_scene, backup_world, backup_camera, backup_light, backup_camera_data, backup_light_data = [()] * 6
             scene = bpy.context.window.scene
-            exclude_props = {("world",), ("camera",), ("tool_settings",), ("preview",)}
+            exclude_props = {("world",), ("camera",), ("tool_settings",), ("preview",), ("asset_data",),
+                             ("collection", "asset_data",), ("render", "bake", "image_settings", "linear_colorspace_settings",)}
             backup_scene = tuple(rna_backup_gen(scene, exclude_props=exclude_props))
             world = scene.world
             camera = scene.camera

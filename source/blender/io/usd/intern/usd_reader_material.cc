@@ -482,7 +482,6 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 
   /* Create the material. */
   Material *mtl = BKE_material_add(&bmain_, mtl_name.c_str());
-  mtl->nodetree = mtl->nodetree;
   id_us_min(&mtl->id);
 
   if (read_usd_preview) {

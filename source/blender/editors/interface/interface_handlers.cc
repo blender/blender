@@ -1010,7 +1010,7 @@ static void ui_apply_but_undo(Button *but)
 
   /* Skip undo push for buttons in redo panel, see: #134505. */
   const ARegion *region = CTX_wm_region(static_cast<bContext *>(but->block->evil_C));
-  if (region->regiontype == RGN_TYPE_HUD) {
+  if (region && region->regiontype == RGN_TYPE_HUD) {
     return;
   }
 

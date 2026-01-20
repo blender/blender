@@ -103,12 +103,12 @@ static void engine_unbind_display_space_shader(RenderEngine * /*engine*/)
 
 static void engine_update(RenderEngine *engine, Main *bmain, Depsgraph *depsgraph)
 {
-  extern FunctionRNA rna_RenderEngine_update_func;
+  extern FunctionRNA *rna_RenderEngine_update_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_update_func;
+  func = rna_RenderEngine_update_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "data", &bmain);
@@ -120,12 +120,12 @@ static void engine_update(RenderEngine *engine, Main *bmain, Depsgraph *depsgrap
 
 static void engine_render(RenderEngine *engine, Depsgraph *depsgraph)
 {
-  extern FunctionRNA rna_RenderEngine_render_func;
+  extern FunctionRNA *rna_RenderEngine_render_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_render_func;
+  func = rna_RenderEngine_render_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "depsgraph", &depsgraph);
@@ -136,12 +136,12 @@ static void engine_render(RenderEngine *engine, Depsgraph *depsgraph)
 
 static void engine_render_frame_finish(RenderEngine *engine)
 {
-  extern FunctionRNA rna_RenderEngine_render_frame_finish_func;
+  extern FunctionRNA *rna_RenderEngine_render_frame_finish_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_render_frame_finish_func;
+  func = rna_RenderEngine_render_frame_finish_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   engine->type->rna_ext.call(nullptr, &ptr, func, &list);
@@ -151,12 +151,12 @@ static void engine_render_frame_finish(RenderEngine *engine)
 
 static void engine_draw(RenderEngine *engine, const bContext *context, Depsgraph *depsgraph)
 {
-  extern FunctionRNA rna_RenderEngine_draw_func;
+  extern FunctionRNA *rna_RenderEngine_draw_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_draw_func;
+  func = rna_RenderEngine_draw_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &context);
@@ -174,12 +174,12 @@ static void engine_bake(RenderEngine *engine,
                         const int width,
                         const int height)
 {
-  extern FunctionRNA rna_RenderEngine_bake_func;
+  extern FunctionRNA *rna_RenderEngine_bake_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_bake_func;
+  func = rna_RenderEngine_bake_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "depsgraph", &depsgraph);
@@ -195,12 +195,12 @@ static void engine_bake(RenderEngine *engine,
 
 static void engine_view_update(RenderEngine *engine, const bContext *context, Depsgraph *depsgraph)
 {
-  extern FunctionRNA rna_RenderEngine_view_update_func;
+  extern FunctionRNA *rna_RenderEngine_view_update_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_view_update_func;
+  func = rna_RenderEngine_view_update_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &context);
@@ -212,12 +212,12 @@ static void engine_view_update(RenderEngine *engine, const bContext *context, De
 
 static void engine_view_draw(RenderEngine *engine, const bContext *context, Depsgraph *depsgraph)
 {
-  extern FunctionRNA rna_RenderEngine_view_draw_func;
+  extern FunctionRNA *rna_RenderEngine_view_draw_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_view_draw_func;
+  func = rna_RenderEngine_view_draw_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "context", &context);
@@ -229,13 +229,13 @@ static void engine_view_draw(RenderEngine *engine, const bContext *context, Deps
 
 static void engine_update_script_node(RenderEngine *engine, bNodeTree *ntree, bNode *node)
 {
-  extern FunctionRNA rna_RenderEngine_update_script_node_func;
+  extern FunctionRNA *rna_RenderEngine_update_script_node_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
   PointerRNA nodeptr = RNA_pointer_create_discrete(id_cast<ID *>(ntree), RNA_Node, node);
-  func = &rna_RenderEngine_update_script_node_func;
+  func = rna_RenderEngine_update_script_node_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "node", &nodeptr);
@@ -246,12 +246,12 @@ static void engine_update_script_node(RenderEngine *engine, bNodeTree *ntree, bN
 
 static void engine_update_render_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
-  extern FunctionRNA rna_RenderEngine_update_render_passes_func;
+  extern FunctionRNA *rna_RenderEngine_update_render_passes_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_update_render_passes_func;
+  func = rna_RenderEngine_update_render_passes_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "scene", &scene);
@@ -263,12 +263,12 @@ static void engine_update_render_passes(RenderEngine *engine, Scene *scene, View
 
 static void engine_update_custom_camera(RenderEngine *engine, Camera *cam)
 {
-  extern FunctionRNA rna_RenderEngine_update_custom_camera_func;
+  extern FunctionRNA *rna_RenderEngine_update_custom_camera_func;
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
-  func = &rna_RenderEngine_update_custom_camera_func;
+  func = rna_RenderEngine_update_custom_camera_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "cam", &cam);

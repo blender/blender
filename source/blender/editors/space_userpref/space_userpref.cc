@@ -19,15 +19,19 @@
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
+#include "ED_userpref.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
 
 #include "BLO_read_write.hh"
+
+#include "userpref_intern.hh"
 
 namespace blender {
 
@@ -80,17 +84,33 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
 }
 
 /* Doesn't free the space-link itself. */
-static void userpref_free(SpaceLink * /*sl*/)
+static void userpref_free(SpaceLink *sl)
 {
-  //  SpaceUserPref *spref = (SpaceUserPref *)sl;
+  SpaceUserPref *spref = (SpaceUserPref *)sl;
+  MEM_delete(spref->runtime);
 }
 
 /* spacetype; init callback */
-static void userpref_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
+static void userpref_init(wmWindowManager * /*wm*/, ScrArea *area)
+{
+  SpaceUserPref *spref = (SpaceUserPref *)area->spacedata.first;
+  if (spref->runtime == nullptr) {
+    spref->runtime = MEM_new<SpaceUserPref_Runtime>(__func__);
+    spref->runtime->search_string[0] = '\0';
+    spref->runtime->tab_search_results.resize(USER_SECTION_DEVELOPER_TOOLS * 2, false);
+  }
+}
 
 static SpaceLink *userpref_duplicate(SpaceLink *sl)
 {
+  SpaceUserPref *sprefn_old = (SpaceUserPref *)sl;
   SpaceUserPref *sprefn = static_cast<SpaceUserPref *>(MEM_dupallocN(sl));
+
+  if (sprefn_old->runtime != nullptr) {
+    sprefn->runtime = static_cast<SpaceUserPref_Runtime *>(MEM_dupallocN(sprefn_old->runtime));
+    sprefn->runtime->search_string[0] = '\0';
+    sprefn->runtime->tab_search_results.resize(USER_SECTION_DEVELOPER_TOOLS * 2, false);
+  }
 
   /* clear or remove stuff from old */
 
@@ -106,13 +126,186 @@ static void userpref_main_region_init(wmWindowManager *wm, ARegion *region)
 
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
 
+  wmKeyMap *keymap = WM_keymap_ensure(
+      wm->runtime->defaultconf, "Preferences", SPACE_USERPREF, RGN_TYPE_WINDOW);
+  WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
+
   ED_region_panels_init(wm, region);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Userpref Search Access API
+ * \{ */
+
+const char *ED_userpref_search_string_get(SpaceUserPref *spref)
+{
+  return spref->runtime->search_string;
+}
+
+int ED_userpref_search_string_length(SpaceUserPref *spref)
+{
+  return BLI_strnlen(spref->runtime->search_string, sizeof(spref->runtime->search_string));
+}
+
+void ED_userpref_search_string_set(SpaceUserPref *spref, const char *value)
+{
+  STRNCPY(spref->runtime->search_string, value);
+}
+
+bool ED_userpref_tab_has_search_result(SpaceUserPref *spref, const int index)
+{
+  return spref->runtime->tab_search_results[index];
+}
+
+/** \} */
+
+Vector<int> ED_userpref_tabs_list(SpaceUserPref * /*prefs*/)
+{
+  Vector<int> result;
+  for (const EnumPropertyItem *it = rna_enum_preference_section_items; it->identifier != nullptr;
+       it++)
+  {
+    if (it->name) {
+      result.append(eUserPref_Section(it->value));
+    }
+    else {
+      result.append(-1);
+    }
+  }
+  return result;
+}
+
+/* -------------------------------------------------------------------- */
+/** \name "Off Screen" Layout Generation for Userpref Search
+ * \{ */
+
+static bool property_search_for_context(const bContext *C, ARegion *region, short section)
+{
+  char lower[64] = {0};
+  const char *name = nullptr;
+  RNA_enum_id_from_value(rna_enum_preference_section_items, section, &name);
+  STRNCPY(lower, name);
+  BLI_str_tolower_ascii(lower, sizeof(lower));
+  const char *contexts[2] = {lower, nullptr};
+  return ED_region_property_search(
+      C, region, &region->runtime->type->paneltypes, contexts, nullptr);
+}
+
+static void userpref_search_move_to_next_tab_with_results(SpaceUserPref *sbuts,
+                                                          const Span<int> context_tabs_array)
+{
+  int current_tab_index = 0;
+  for (const int i : context_tabs_array.index_range()) {
+    if (U.space_data.section_active == context_tabs_array[i]) {
+      current_tab_index = i;
+      break;
+    }
+  }
+  /* Try the tabs after the current tab. */
+  for (int i = current_tab_index + 1; i < context_tabs_array.size(); i++) {
+    if (sbuts->runtime->tab_search_results[i]) {
+      U.space_data.section_active = context_tabs_array[i];
+      return;
+    }
+  }
+  /* Try the tabs before the current tab. */
+  for (int i = 0; i < current_tab_index; i++) {
+    if (sbuts->runtime->tab_search_results[i]) {
+      U.space_data.section_active = context_tabs_array[i];
+      return;
+    }
+  }
+}
+
+static void userpref_search_all_tabs(const bContext *C,
+                                     SpaceUserPref *sprefs,
+                                     ARegion *region_original,
+                                     const Span<int> context_tabs_array)
+{
+  /* Use local copies of the area and duplicate the region as a mainly-paranoid protection
+   * against changing any of the space / region data while running the search. */
+  ScrArea *area_original = CTX_wm_area(C);
+  ScrArea area_copy = dna::shallow_copy(*area_original);
+  ARegion *region_copy = BKE_area_region_copy(area_copy.type, region_original);
+  /* Set the region visible field. Otherwise some layout code thinks we're drawing in a popup.
+   * This likely isn't necessary, but it's nice to emulate a "real" region where possible. */
+  region_copy->runtime->visible = true;
+  CTX_wm_area_set(const_cast<bContext *>(C), &area_copy);
+  CTX_wm_region_set(const_cast<bContext *>(C), region_copy);
+  SpaceUserPref sprefs_copy = blender::dna::shallow_copy(*sprefs);
+  sprefs_copy.runtime = MEM_new<SpaceUserPref_Runtime>(__func__, *sprefs->runtime);
+  sprefs_copy.runtime->tab_search_results.fill(false);
+  BLI_listbase_clear(&area_copy.spacedata);
+  BLI_addtail(&area_copy.spacedata, &sprefs_copy);
+  /* Loop through the tabs. */
+  for (const int i : context_tabs_array.index_range()) {
+    /* -1 corresponds to a spacer. */
+    if (context_tabs_array[i] == -1) {
+      continue;
+    }
+    if (ELEM(context_tabs_array[i], USER_SECTION_EXTENSIONS, USER_SECTION_ADDONS)) {
+      continue;
+    }
+    /* Handle search for the current tab in the normal layout pass. */
+    if (context_tabs_array[i] == U.space_data.section_active) {
+      continue;
+    }
+    /* Actually do the search and store the result in the bitmap. */
+    const bool found = property_search_for_context(C, region_copy, context_tabs_array[i]);
+    sprefs->runtime->tab_search_results[i].set(found);
+    ui::blocklist_free(C, region_copy);
+  }
+  BKE_area_region_free(area_copy.type, region_copy);
+  MEM_freeN(region_copy);
+  userpref_free(reinterpret_cast<SpaceLink *>(&sprefs_copy));
+  CTX_wm_area_set(const_cast<bContext *>(C), area_original);
+  CTX_wm_region_set(const_cast<bContext *>(C), region_original);
+}
+
+/**
+ * Handle userpref search for the layout pass, including finding which tabs have
+ * search results and switching if the current tab doesn't have a result.
+ */
+static void userpref_main_region_property_search(const bContext *C,
+                                                 SpaceUserPref *sprefs,
+                                                 ARegion *region)
+{
+  Vector<int> tabs = ED_userpref_tabs_list(sprefs);
+  userpref_search_all_tabs(C, sprefs, region, tabs);
+  /* Check whether the current tab has a search match. */
+  bool current_tab_has_search_match = false;
+  for (Panel &panel : region->panels) {
+    if (ui::panel_is_active(&panel) && ui::panel_matches_search_filter(&panel)) {
+      current_tab_has_search_match = true;
+    }
+  }
+  /* Find which index in the list the current tab corresponds to. */
+  int current_tab_index = -1;
+  for (const int i : tabs.index_range()) {
+    if (tabs[i] == U.space_data.section_active) {
+      current_tab_index = i;
+    }
+  }
+  BLI_assert(current_tab_index != -1);
+  /* Update the tab search match flag for the current tab. */
+  sprefs->runtime->tab_search_results[current_tab_index].set(current_tab_has_search_match);
+  /* Move to the next tab with a result */
+  if (!current_tab_has_search_match) {
+    if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
+      userpref_search_move_to_next_tab_with_results(sprefs, tabs);
+    }
+  }
+}
+
+/** \} */
 
 static void userpref_main_region_layout(const bContext *C, ARegion *region)
 {
   char id_lower[64];
   const char *contexts[2] = {id_lower, nullptr};
+  SpaceUserPref *spref = CTX_wm_space_userpref(C);
 
   region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
 
@@ -136,11 +329,18 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
                              wm::OpCallContext::InvokeRegionWin,
                              contexts,
                              nullptr);
+
+  if (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE) {
+    userpref_main_region_property_search(C, spref, region);
+  }
 }
 
 static void userpref_operatortypes() {}
 
-static void userpref_keymap(wmKeyConfig * /*keyconf*/) {}
+static void userpref_keymap(wmKeyConfig *keyconf)
+{
+  WM_keymap_ensure(keyconf, "Preferences", SPACE_USERPREF, RGN_TYPE_WINDOW);
+}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void userpref_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
@@ -158,6 +358,10 @@ static void userpref_navigation_region_init(wmWindowManager *wm, ARegion *region
 {
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
+
+  wmKeyMap *keymap = WM_keymap_ensure(
+      wm->runtime->defaultconf, "Preferences_nav", SPACE_USERPREF, RGN_TYPE_UI);
+  WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 
   ED_region_panels_init(wm, region);
 }

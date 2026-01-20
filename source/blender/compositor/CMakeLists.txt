@@ -222,7 +222,6 @@ set(GLSL_SRC
   shaders/infos/compositor_pixelate_infos.hh
   shaders/infos/compositor_plane_deform_infos.hh
   shaders/infos/compositor_premultiply_alpha_infos.hh
-  shaders/infos/compositor_read_input_infos.hh
   shaders/infos/compositor_realize_on_domain_infos.hh
   shaders/infos/compositor_relative_to_pixel_infos.hh
   shaders/infos/compositor_sample_pixel_infos.hh
@@ -326,7 +325,6 @@ set(GLSL_SRC
   shaders/compositor_plane_deform.glsl
   shaders/compositor_premultiply_alpha.glsl
   shaders/compositor_radial_lens_distortion.glsl
-  shaders/compositor_read_input.glsl
   shaders/compositor_realize_on_domain.glsl
   shaders/compositor_relative_to_pixel_float.glsl
   shaders/compositor_relative_to_pixel_float_per_dimension.glsl

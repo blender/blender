@@ -15,7 +15,8 @@ GPUWorker::GPUWorker(uint32_t threads_count, ContextType context_type, WorkCallb
     UNUSED_VARS(i);
     std::shared_ptr<GPUSecondaryContext> thread_context =
         context_type == ContextType::PerThread ? std::make_shared<GPUSecondaryContext>() : nullptr;
-    threads_.append(std::make_unique<std::thread>([=]() { this->run(thread_context); }));
+    threads_.append(
+        std::make_unique<std::thread>([this, thread_context]() { this->run(thread_context); }));
   }
 }
 

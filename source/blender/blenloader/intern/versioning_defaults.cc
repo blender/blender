@@ -274,7 +274,7 @@ static void blo_update_defaults_screen(bScreen *screen,
   }
 
   /* Show tool-header by default (for most cases at least, hide for others). */
-  const bool hide_image_tool_header = STREQ(workspace_name, "Rendering");
+  const bool hide_image_tool_header = STR_ELEM(workspace_name, "Rendering", "Compositing");
   for (ScrArea &area : screen->areabase) {
     for (SpaceLink &sl : area.spacedata) {
       ListBaseT<ARegion> *regionbase = (&sl == static_cast<SpaceLink *>(area.spacedata.first)) ?

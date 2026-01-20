@@ -104,8 +104,7 @@ Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mv
     if (strip->channel != mouse_channel) {
       continue;
     }
-    rctf body;
-    strip_rectf(scene, strip, &body);
+    rctf body = strip_bounds_get(scene, strip);
     if (BLI_rctf_isect_pt_v(&body, mouse_co)) {
       return strip;
     }
@@ -293,12 +292,14 @@ void select_strip_single(Scene *scene, Strip *strip, bool deselect_all)
   recurs_sel_strip(strip);
 }
 
-void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect)
+rctf strip_bounds_get(const Scene *scene, const Strip *strip)
 {
-  r_rect->xmin = strip->left_handle();
-  r_rect->xmax = strip->right_handle(scene);
-  r_rect->ymin = strip->channel + STRIP_OFSBOTTOM;
-  r_rect->ymax = strip->channel + STRIP_OFSTOP;
+  rctf bounds;
+  bounds.xmin = strip->left_handle();
+  bounds.xmax = strip->right_handle(scene);
+  bounds.ymin = strip->channel + STRIP_OFSBOTTOM;
+  bounds.ymax = strip->channel + STRIP_OFSTOP;
+  return bounds;
 }
 
 Strip *find_neighboring_strip(const Scene *scene, const Strip *test, const int lr, int sel)
@@ -424,9 +425,7 @@ static wmOperatorStatus sequencer_de_select_all_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(scene) &&
-      retiming_keys_can_be_displayed(CTX_wm_space_seq(C)))
-  {
+  if (sequencer_retiming_mode_is_active(scene) && retiming_overlay_enabled(CTX_wm_space_seq(C))) {
     return sequencer_retiming_select_all_exec(C, op);
   }
 
@@ -1005,7 +1004,7 @@ static void strip_clickable_areas_get(const Scene *scene,
                                       rctf *r_left_handle,
                                       rctf *r_right_handle)
 {
-  strip_rectf(scene, strip, r_body);
+  *r_body = strip_bounds_get(scene, strip);
   *r_left_handle = *r_body;
   *r_right_handle = *r_body;
 
@@ -1189,19 +1188,19 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   /* Check to see if the mouse cursor intersects with the retiming box; if so, `strip_key_owner` is
    * set. If the cursor intersects with a retiming key, `key` will be set too. */
   Strip *strip_key_owner = nullptr;
-  SeqRetimingKey *key = retiming_mouseover_key_get(C, mouse_co.region, &strip_key_owner);
+  SeqRetimingKey *key = retiming_mouseover_key_get(scene, v2d, mouse_co.region, &strip_key_owner);
 
-  if (strip_key_owner != nullptr && retiming_keys_can_be_displayed(CTX_wm_space_seq(C)) &&
+  if (strip_key_owner != nullptr && retiming_overlay_enabled(CTX_wm_space_seq(C)) &&
       seq::retiming_data_is_editable(strip_key_owner))
   {
     /* If no key was found, the mouse cursor may still intersect with a "fake key" that has not
      * been realized yet. */
     if (key == nullptr) {
-      key = try_to_realize_fake_keys(C, strip_key_owner, mouse_co.region);
+      key = try_to_realize_fake_keys(scene, v2d, strip_key_owner, mouse_co.region);
     }
     else {
       /* There may be fake key on either side of strip. It must be realized. */
-      realize_fake_keys(scene, strip_key_owner);
+      seq::realize_fake_keys(scene, strip_key_owner);
     }
 
     if (key != nullptr) {
@@ -1211,13 +1210,13 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
       }
       /* Attempt to realize any other connected strips' fake keys. */
       if (seq::is_strip_connected(strip_key_owner)) {
-        const int key_frame = seq::retiming_key_timeline_frame_get(scene, strip_key_owner, key);
+        const int key_frame = seq::retiming_key_frame_get(scene, strip_key_owner, key);
         VectorSet<Strip *> connections = seq::connected_strips_get(strip_key_owner);
         for (Strip *connection : connections) {
           if (key_frame == seq::left_fake_key_frame_get(scene, connection) ||
               key_frame == seq::right_fake_key_frame_get(scene, connection))
           {
-            realize_fake_keys(scene, connection);
+            seq::realize_fake_keys(scene, connection);
           }
         }
       }
@@ -1471,7 +1470,7 @@ static wmOperatorStatus sequencer_select_handle_exec(bContext *C, wmOperator *op
 
   /* Ignore clicks on retiming keys. */
   Strip *strip_key_test = nullptr;
-  SeqRetimingKey *key = retiming_mouseover_key_get(C, mouse_co.region, &strip_key_test);
+  SeqRetimingKey *key = retiming_mouseover_key_get(scene, v2d, mouse_co.region, &strip_key_test);
   if (key != nullptr) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
@@ -2124,9 +2123,7 @@ static wmOperatorStatus sequencer_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(scene) &&
-      retiming_keys_can_be_displayed(CTX_wm_space_seq(C)))
-  {
+  if (sequencer_retiming_mode_is_active(scene) && retiming_overlay_enabled(CTX_wm_space_seq(C))) {
     return sequencer_retiming_box_select_exec(C, op);
   }
 
@@ -2155,8 +2152,7 @@ static wmOperatorStatus sequencer_box_select_exec(bContext *C, wmOperator *op)
   }
 
   for (Strip &strip : *ed->current_strips()) {
-    rctf rq;
-    strip_rectf(scene, &strip, &rq);
+    rctf rq = strip_bounds_get(scene, &strip);
     if (BLI_rctf_isect(&rq, &rectf, nullptr)) {
       if (handles) {
         /* Get the clickable handle size, ignoring padding. */
@@ -2350,9 +2346,8 @@ static bool do_lasso_select_timeline(bContext *C,
   const bool select = (sel_op != SEL_OP_SUB);
 
   for (Strip &strip : ed->seqbase) {
-    rctf strip_rct;
+    rctf strip_rct = strip_bounds_get(scene, &strip);
     rcti region_rct;
-    strip_rectf(scene, &strip, &strip_rct);
     ui::view2d_view_to_region_clip(
         &region->v2d, strip_rct.xmin, strip_rct.ymin, &region_rct.xmin, &region_rct.ymin);
     ui::view2d_view_to_region_clip(
@@ -2565,8 +2560,7 @@ static wmOperatorStatus vse_circle_select_exec(bContext *C, wmOperator *op)
   float y_radius = radius / ui::view2d_scale_get_y(v2d);
   bool changed = false;
   for (Strip &strip : *ed->current_strips()) {
-    rctf rq;
-    strip_rectf(scene, &strip, &rq);
+    rctf rq = strip_bounds_get(scene, &strip);
     /* Use custom function to check the distance because in timeline the circle is a ellipse. */
     if (check_circle_intersection_in_timeline(&rq, view_mval, x_radius, y_radius)) {
       if (ELEM(sel_op, SEL_OP_ADD, SEL_OP_SET)) {

@@ -2150,6 +2150,7 @@ static wmOperatorStatus object_constraint_copy_exec(bContext *C, wmOperator * /*
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     /* if we're not handling the object we're copying from, copy all constraints over */
     if (obact != ob) {
+      BKE_constraints_free(&ob->constraints);
       BKE_constraints_copy(&ob->constraints, &obact->constraints, true);
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
     }
