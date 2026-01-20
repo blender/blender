@@ -54,6 +54,9 @@ void tree_update(const bContext *C);
 
 float grid_size_get();
 
+/* Compute the nearest 1D coordinate corresponding to the nearest grid in node editors. */
+float nearest_node_grid_coord(float co);
+
 /** Update the active node tree based on the context. */
 void snode_set_context(const bContext &C);
 
