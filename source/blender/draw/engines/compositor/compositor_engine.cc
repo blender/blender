@@ -138,11 +138,6 @@ class Context : public compositor::Context {
     return bounds::intersect(render_region, camera_region).value_or(Bounds<int2>(int2(0)));
   }
 
-  Bounds<int2> get_input_region() const override
-  {
-    return this->get_camera_region();
-  }
-
   void write_output(const compositor::Result &result)
   {
     /* Do not write the output if the viewer output was already written. */
@@ -183,23 +178,17 @@ class Context : public compositor::Context {
     viewer_was_written_ = true;
   }
 
-  compositor::Result get_pass(const Scene *scene, int view_layer_index, const char *name) override
+  compositor::Result get_invalid_pass()
   {
-    /* Blender aliases the Image pass name to be the Combined pass, so we return the combined pass
-     * in that case. */
-    const char *pass_name = StringRef(name) == "Image" ? "Combined" : name;
+    compositor::Result invalid_pass = this->create_result(compositor::ResultType::Color);
+    invalid_pass.allocate_invalid();
+    return invalid_pass;
+  }
 
-    const Scene *original_scene = DEG_get_original(scene_);
-    if (DEG_get_original(scene) != original_scene) {
-      return this->create_result(compositor::ResultType::Color);
-    }
-
-    ViewLayer *view_layer = static_cast<ViewLayer *>(
-        BLI_findlink(&original_scene->view_layers, view_layer_index));
-    if (StringRef(view_layer->name) != DRW_context_get()->view_layer->name) {
-      return this->create_result(compositor::ResultType::Color);
-    }
-
+  /* Get the pass that corresponds to the given pass name. If no pass with the given name exists,
+   * returns an unallocated result instead. */
+  compositor::Result get_pass_result(const char *pass_name)
+  {
     /* The combined pass is a special case where we return the viewport color texture, because it
      * includes Grease Pencil objects since GP is drawn using their own engine. */
     if (STREQ(pass_name, RE_PASSNAME_COMBINED)) {
@@ -218,6 +207,67 @@ class Context : public compositor::Context {
     }
 
     return this->create_result(compositor::ResultType::Color);
+  }
+
+  compositor::Result crop_pass(const compositor::Result &pass)
+  {
+    const char *shader_name = pass.type() == compositor::ResultType::Float ?
+                                  "compositor_image_crop_float" :
+                                  "compositor_image_crop_float4";
+    gpu::Shader *shader = this->get_shader(shader_name, pass.precision());
+    GPU_shader_bind(shader);
+
+    /* The compositing space is limited to a subset of the pass texture, so only read that
+     * compositing region into an appropriately sized result. */
+    const int2 lower_bound = this->get_camera_region().min;
+    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+
+    pass.bind_as_texture(shader, "input_tx");
+
+    compositor::Result cropped_pass = this->create_result(pass.type(), pass.precision());
+    cropped_pass.allocate_texture(this->get_compositing_domain());
+    cropped_pass.bind_as_image(shader, "output_img");
+
+    compositor::compute_dispatch_threads_at_least(shader, cropped_pass.domain().data_size);
+
+    GPU_shader_unbind();
+    pass.unbind_as_texture();
+    cropped_pass.unbind_as_image();
+
+    return cropped_pass;
+  }
+
+  compositor::Result get_pass(const Scene *scene, int view_layer_index, const char *name) override
+  {
+    /* Blender aliases the Image pass name to be the Combined pass, so we return the combined pass
+     * in that case. */
+    const char *pass_name = StringRef(name) == "Image" ? "Combined" : name;
+
+    const Scene *original_scene = DEG_get_original(scene_);
+    if (DEG_get_original(scene) != original_scene) {
+      return this->get_invalid_pass();
+    }
+
+    ViewLayer *view_layer = static_cast<ViewLayer *>(
+        BLI_findlink(&original_scene->view_layers, view_layer_index));
+    if (StringRef(view_layer->name) != DRW_context_get()->view_layer->name) {
+      return this->get_invalid_pass();
+    }
+
+    const compositor::Result pass = this->get_pass_result(pass_name);
+    if (!pass.is_allocated()) {
+      return this->get_invalid_pass();
+    }
+
+    /* The pass matches the compositing domain, return it as is. */
+    const compositor::Domain compositing_domain = this->get_compositing_domain();
+    if (this->get_camera_region().min == int2(0) &&
+        compositing_domain.data_size == pass.domain().data_size)
+    {
+      return pass;
+    }
+
+    return this->crop_pass(pass);
   }
 
   StringRef get_view_name() const override

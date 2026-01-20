@@ -21,7 +21,7 @@ COMPUTE_SHADER_CREATE_INFO(compositor_cryptomatte_matte)
 void main()
 {
   int2 texel = int2(gl_GlobalInvocationID.xy);
-  float4 layer = texture_load(layer_tx, texel + lower_bound);
+  float4 layer = texture_load(layer_tx, texel);
 
   /* Each Cryptomatte layer stores two ranks. */
   float2 first_rank = layer.xy;

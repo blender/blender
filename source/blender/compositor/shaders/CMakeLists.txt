@@ -99,7 +99,6 @@ set(SRC_GLSL_COMP
   compositor_plane_deform.glsl
   compositor_premultiply_alpha.glsl
   compositor_radial_lens_distortion.glsl
-  compositor_read_input.glsl
   compositor_realize_on_domain.glsl
   compositor_relative_to_pixel_float.glsl
   compositor_relative_to_pixel_float_per_dimension.glsl

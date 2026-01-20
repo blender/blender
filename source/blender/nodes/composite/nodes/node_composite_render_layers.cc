@@ -31,10 +31,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-#include "GPU_shader.hh"
-
 #include "NOD_node_extra_info.hh"
 
+#include "COM_algorithm_extract_alpha.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -286,29 +285,11 @@ class RenderLayerOperation : public NodeOperation {
 
   void execute() override
   {
-    const Scene *scene = reinterpret_cast<const Scene *>(this->node().id);
-    const int view_layer = this->node().custom1;
-
-    Result &image_result = this->get_result("Image");
-    Result &alpha_result = this->get_result("Alpha");
-
-    if (image_result.should_compute() || alpha_result.should_compute()) {
-      const Result combined_pass = this->context().get_pass(
-          scene, view_layer, RE_PASSNAME_COMBINED);
-      if (image_result.should_compute()) {
-        this->execute_pass(combined_pass, image_result);
-      }
-      if (alpha_result.should_compute()) {
-        this->execute_pass(combined_pass, alpha_result);
-      }
-    }
+    const Scene *scene = this->get_scene();
+    const int view_layer = this->get_viewer_layer_index();
 
     for (const bNodeSocket *output : this->node().output_sockets()) {
       if (!is_socket_available(output)) {
-        continue;
-      }
-
-      if (STR_ELEM(output->identifier, "Image", "Alpha")) {
         continue;
       }
 
@@ -317,123 +298,28 @@ class RenderLayerOperation : public NodeOperation {
         continue;
       }
 
-      const bool is_generated_alpha = StringRef(output->identifier) == "Alpha";
-      const char *pass_name = is_generated_alpha ? RE_PASSNAME_COMBINED : output->identifier;
-      this->context().populate_meta_data_for_pass(scene, view_layer, pass_name, result.meta_data);
+      if (StringRef(output->identifier) == "Alpha") {
+        Result combined_pass = this->context().get_pass(scene, view_layer, RE_PASSNAME_COMBINED);
+        extract_alpha(this->context(), combined_pass, result);
+        combined_pass.release();
+        continue;
+      }
 
-      const Result pass = this->context().get_pass(scene, view_layer, pass_name);
-      this->execute_pass(pass, result);
+      Result pass = this->context().get_pass(scene, view_layer, output->identifier);
+      result.set_precision(pass.precision());
+      result.steal_data(pass);
+      pass.release();
     }
   }
 
-  void execute_pass(const Result &pass, Result &result)
+  int get_viewer_layer_index()
   {
-    if (!pass.is_allocated()) {
-      /* Pass not rendered yet, or not supported by viewport. */
-      result.allocate_invalid();
-      return;
-    }
-
-    result.set_precision(pass.precision());
-
-    if (this->context().use_gpu()) {
-      this->execute_pass_gpu(pass, result);
-    }
-    else {
-      this->execute_pass_cpu(pass, result);
-    }
+    return this->node().custom1;
   }
 
-  void execute_pass_gpu(const Result &pass, Result &result)
+  const Scene *get_scene()
   {
-    gpu::Shader *shader = this->context().get_shader(this->get_shader_name(pass, result),
-                                                     result.precision());
-    GPU_shader_bind(shader);
-
-    /* The compositing space might be limited to a subset of the pass texture, so only read that
-     * compositing region into an appropriately sized result. */
-    const int2 lower_bound = this->context().get_input_region().min;
-    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
-
-    pass.bind_as_texture(shader, "input_tx");
-
-    result.allocate_texture(this->context().get_compositing_domain());
-    result.bind_as_image(shader, "output_img");
-
-    compute_dispatch_threads_at_least(shader, result.domain().data_size);
-
-    GPU_shader_unbind();
-    pass.unbind_as_texture();
-    result.unbind_as_image();
-  }
-
-  const char *get_shader_name(const Result &pass, const Result &result)
-  {
-    /* Special case for alpha output. */
-    if (pass.type() == ResultType::Color && result.type() == ResultType::Float) {
-      return "compositor_read_input_alpha";
-    }
-
-    switch (pass.type()) {
-      case ResultType::Float:
-        return "compositor_read_input_float";
-      case ResultType::Float3:
-      case ResultType::Color:
-      case ResultType::Float4:
-        return "compositor_read_input_float4";
-      case ResultType::Int:
-      case ResultType::Int2:
-      case ResultType::Float2:
-      case ResultType::Bool:
-      case ResultType::Menu:
-        /* Not supported. */
-        break;
-      case ResultType::String:
-        /* Single only types do not support GPU code path. */
-        BLI_assert(Result::is_single_value_only_type(pass.type()));
-        BLI_assert_unreachable();
-        break;
-    }
-
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-
-  void execute_pass_cpu(const Result &pass, Result &result)
-  {
-    /* The compositing space might be limited to a subset of the pass texture, so only read that
-     * compositing region into an appropriately sized result. */
-    const int2 lower_bound = this->context().get_input_region().min;
-
-    result.allocate_texture(this->context().get_compositing_domain());
-
-    if (pass.type() == ResultType::Color && result.type() == ResultType::Float) {
-      /* Special case for alpha output. */
-      parallel_for(result.domain().data_size, [&](const int2 texel) {
-        result.store_pixel(texel, pass.load_pixel<Color>(texel + lower_bound).a);
-      });
-    }
-    else if (pass.type() == ResultType::Float3 && result.type() == ResultType::Color) {
-      /* Color passes with no alpha could be stored in a Float3 type. */
-      parallel_for(result.domain().data_size, [&](const int2 texel) {
-        result.store_pixel(texel,
-                           Color(float4(pass.load_pixel<float3>(texel + lower_bound), 1.0f)));
-      });
-    }
-    else {
-      pass.get_cpp_type().to_static_type_tag<float, float3, float4, Color>([&](auto type_tag) {
-        using T = typename decltype(type_tag)::type;
-        if constexpr (std::is_same_v<T, void>) {
-          /* Unsupported type. */
-          BLI_assert_unreachable();
-        }
-        else {
-          parallel_for(result.domain().data_size, [&](const int2 texel) {
-            result.store_pixel(texel, pass.load_pixel<T>(texel + lower_bound));
-          });
-        }
-      });
-    }
+    return reinterpret_cast<const Scene *>(this->node().id);
   }
 };
 

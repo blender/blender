@@ -4,7 +4,7 @@
 
 #include "infos/compositor_image_crop_infos.hh"
 
-COMPUTE_SHADER_CREATE_INFO(compositor_image_crop)
+COMPUTE_SHADER_CREATE_INFO(compositor_image_crop_float4)
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
 

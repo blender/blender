@@ -7,6 +7,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
 
@@ -27,6 +28,7 @@
 #include "IMB_imbuf.hh"
 
 #include "COM_context.hh"
+#include "COM_conversion_operation.hh"
 #include "COM_domain.hh"
 #include "COM_node_group_operation.hh"
 #include "COM_realize_on_domain_operation.hh"
@@ -258,74 +260,7 @@ class Context : public compositor::Context {
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
 
-  compositor::Result get_pass(const Scene *scene, int view_layer_id, const char *name) override
-  {
-    /* Blender aliases the Image pass name to be the Combined pass, so we return the combined pass
-     * in that case. */
-    const char *pass_name = StringRef(name) == "Image" ? "Combined" : name;
-
-    if (!scene) {
-      return this->create_result(compositor::ResultType::Color);
-    }
-
-    ViewLayer *view_layer = static_cast<ViewLayer *>(
-        BLI_findlink(&scene->view_layers, view_layer_id));
-    if (!view_layer) {
-      return this->create_result(compositor::ResultType::Color);
-    }
-
-    Render *render = RE_GetSceneRender(scene);
-    if (!render) {
-      return this->create_result(compositor::ResultType::Color);
-    }
-
-    RenderResult *render_result = RE_AcquireResultRead(render);
-    if (!render_result) {
-      RE_ReleaseResult(render);
-      return this->create_result(compositor::ResultType::Color);
-    }
-
-    RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
-    if (!render_layer) {
-      RE_ReleaseResult(render);
-      return this->create_result(compositor::ResultType::Color);
-    }
-
-    RenderPass *render_pass = RE_pass_find_by_name(
-        render_layer, pass_name, this->get_view_name().data());
-    if (!render_pass) {
-      RE_ReleaseResult(render);
-      return this->create_result(compositor::ResultType::Color);
-    }
-
-    if (!render_pass || !render_pass->ibuf || !render_pass->ibuf->float_buffer.data) {
-      RE_ReleaseResult(render);
-      return this->create_result(compositor::ResultType::Color);
-    }
-
-    compositor::Result pass = compositor::Result(
-        *this, this->result_type_from_pass(render_pass), compositor::ResultPrecision::Full);
-
-    if (this->use_gpu()) {
-      gpu::Texture *pass_texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
-      /* Don't assume render will keep pass data stored, add our own reference. */
-      GPU_texture_ref(pass_texture);
-      pass.wrap_external(pass_texture);
-      cached_gpu_passes_.append(pass_texture);
-    }
-    else {
-      /* Don't assume render will keep pass data stored, add our own reference. */
-      IMB_refImBuf(render_pass->ibuf);
-      pass.wrap_external(render_pass->ibuf->float_buffer.data,
-                         int2(render_pass->ibuf->x, render_pass->ibuf->y));
-      cached_cpu_passes_.append(render_pass->ibuf);
-    }
-
-    RE_ReleaseResult(render);
-    return pass;
-  }
-
-  compositor::ResultType result_type_from_pass(const RenderPass *pass)
+  compositor::ResultType get_pass_data_type(const RenderPass *pass)
   {
     switch (pass->channels) {
       case 1:
@@ -349,54 +284,113 @@ class Context : public compositor::Context {
     return compositor::ResultType::Float;
   }
 
-  StringRef get_view_name() const override
+  compositor::ResultType get_pass_type(const RenderPass *pass)
   {
-    return input_data_.view_name;
-  }
-
-  compositor::ResultPrecision get_precision() const override
-  {
-    switch (input_data_.scene->r.compositor_precision) {
-      case SCE_COMPOSITOR_PRECISION_AUTO:
-        /* Auto uses full precision for final renders and half procession otherwise. */
-        if (this->render_context()) {
-          return compositor::ResultPrecision::Full;
+    switch (pass->channels) {
+      case 1:
+        return compositor::ResultType::Float;
+      case 2:
+        return compositor::ResultType::Float2;
+      case 3:
+        if (StringRef(pass->chan_id) == "RGB") {
+          return compositor::ResultType::Color;
         }
         else {
-          return compositor::ResultPrecision::Half;
+          return compositor::ResultType::Float3;
         }
-      case SCE_COMPOSITOR_PRECISION_FULL:
-        return compositor::ResultPrecision::Full;
+      case 4:
+        if (StringRef(pass->chan_id) == "XYZW") {
+          return compositor::ResultType::Float4;
+        }
+        else {
+          return compositor::ResultType::Color;
+        }
+      default:
+        break;
     }
 
     BLI_assert_unreachable();
-    return compositor::ResultPrecision::Full;
+    return compositor::ResultType::Float;
   }
 
-  void populate_meta_data_for_pass(const Scene *scene,
-                                   int view_layer_id,
-                                   const char *pass_name,
-                                   compositor::MetaData &meta_data) const override
+  compositor::Result get_invalid_pass()
   {
+    compositor::Result invalid_pass = this->create_result(compositor::ResultType::Color);
+    invalid_pass.allocate_invalid();
+    return invalid_pass;
+  }
+
+  compositor::Result get_pass(const Scene *scene, int view_layer_id, const char *name) override
+  {
+    /* Blender aliases the Image pass name to be the Combined pass, so we return the combined pass
+     * in that case. */
+    const char *pass_name = StringRef(name) == "Image" ? "Combined" : name;
+
     if (!scene) {
-      return;
+      return this->get_invalid_pass();
     }
 
     ViewLayer *view_layer = static_cast<ViewLayer *>(
         BLI_findlink(&scene->view_layers, view_layer_id));
     if (!view_layer) {
-      return;
+      return this->get_invalid_pass();
     }
 
     Render *render = RE_GetSceneRender(scene);
     if (!render) {
-      return;
+      return this->get_invalid_pass();
     }
 
+    BLI_SCOPED_DEFER([&]() { RE_ReleaseResult(render); });
+
     RenderResult *render_result = RE_AcquireResultRead(render);
-    if (!render_result || !render_result->stamp_data) {
-      RE_ReleaseResult(render);
-      return;
+    if (!render_result) {
+      return this->get_invalid_pass();
+    }
+
+    RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
+    if (!render_layer) {
+      return this->get_invalid_pass();
+    }
+
+    RenderPass *render_pass = RE_pass_find_by_name(
+        render_layer, pass_name, this->get_view_name().data());
+    if (!render_pass) {
+      return this->get_invalid_pass();
+    }
+
+    if (!render_pass || !render_pass->ibuf || !render_pass->ibuf->float_buffer.data) {
+      return this->get_invalid_pass();
+    }
+
+    compositor::Result pass_data = compositor::Result(
+        *this, this->get_pass_data_type(render_pass), compositor::ResultPrecision::Full);
+
+    if (this->use_gpu()) {
+      gpu::Texture *pass_texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
+      /* Don't assume render will keep pass data stored, add our own reference. */
+      GPU_texture_ref(pass_texture);
+      pass_data.wrap_external(pass_texture);
+      cached_gpu_passes_.append(pass_texture);
+    }
+    else {
+      /* Don't assume render will keep pass data stored, add our own reference. */
+      IMB_refImBuf(render_pass->ibuf);
+      pass_data.wrap_external(render_pass->ibuf->float_buffer.data,
+                              int2(render_pass->ibuf->x, render_pass->ibuf->y));
+      cached_cpu_passes_.append(render_pass->ibuf);
+    }
+
+    compositor::Result pass = compositor::Result(
+        *this, this->get_pass_type(render_pass), compositor::ResultPrecision::Full);
+    if (pass.type() != pass_data.type()) {
+      compositor::ConversionOperation conversion_operation(*this, pass_data.type(), pass.type());
+      conversion_operation.map_input_to_result(&pass_data);
+      conversion_operation.evaluate();
+      pass.steal_data(conversion_operation.get_result());
+    }
+    else {
+      pass.steal_data(pass_data);
     }
 
     /* We assume the given pass is a Cryptomatte pass and retrieve its layer name. If it wasn't a
@@ -411,7 +405,7 @@ class Context : public compositor::Context {
     };
 
     /* Go over the stamp data and add any Cryptomatte related meta data. */
-    StampCallbackData callback_data = {cryptomatte_layer_name, &meta_data};
+    StampCallbackData callback_data = {cryptomatte_layer_name, &pass.meta_data};
     BKE_stamp_info_callback(
         &callback_data,
         render_result->stamp_data,
@@ -438,7 +432,31 @@ class Context : public compositor::Context {
         },
         false);
 
-    RE_ReleaseResult(render);
+    return pass;
+  }
+
+  StringRef get_view_name() const override
+  {
+    return input_data_.view_name;
+  }
+
+  compositor::ResultPrecision get_precision() const override
+  {
+    switch (input_data_.scene->r.compositor_precision) {
+      case SCE_COMPOSITOR_PRECISION_AUTO:
+        /* Auto uses full precision for final renders and half procession otherwise. */
+        if (this->render_context()) {
+          return compositor::ResultPrecision::Full;
+        }
+        else {
+          return compositor::ResultPrecision::Half;
+        }
+      case SCE_COMPOSITOR_PRECISION_FULL:
+        return compositor::ResultPrecision::Full;
+    }
+
+    BLI_assert_unreachable();
+    return compositor::ResultPrecision::Full;
   }
 
   compositor::RenderContext *render_context() const override
@@ -506,11 +524,12 @@ class Context : public compositor::Context {
         /* First socket is the combined pass. */
         Result combined_pass = this->get_pass(&this->get_scene(), 0, "Image");
         if (combined_pass.is_allocated()) {
-          input_result->wrap_external(combined_pass);
+          input_result->share_data(combined_pass);
         }
         else {
           input_result->allocate_invalid();
         }
+        combined_pass.release();
       }
       else {
         /* The rest of the sockets are not supported. */
