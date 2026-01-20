@@ -545,39 +545,6 @@ bool socket_type_supports_grids(const eNodeSocketDatatype socket_type)
   return ELEM(socket_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_INT, SOCK_BOOLEAN);
 }
 
-bool socket_type_always_single(const eNodeSocketDatatype socket_type)
-{
-  switch (socket_type) {
-    case SOCK_OBJECT:
-    case SOCK_IMAGE:
-    case SOCK_GEOMETRY:
-    case SOCK_COLLECTION:
-    case SOCK_TEXTURE:
-    case SOCK_MATERIAL:
-    case SOCK_CLOSURE:
-    case SOCK_BUNDLE:
-    case SOCK_STRING:
-    case SOCK_FONT:
-    case SOCK_SCENE:
-    case SOCK_TEXT_ID:
-    case SOCK_MASK:
-    case SOCK_SOUND:
-      return true;
-    case SOCK_CUSTOM:
-    case SOCK_FLOAT:
-    case SOCK_VECTOR:
-    case SOCK_RGBA:
-    case SOCK_SHADER:
-    case SOCK_BOOLEAN:
-    case SOCK_INT:
-    case SOCK_ROTATION:
-    case SOCK_MENU:
-    case SOCK_MATRIX:
-      return false;
-  }
-  return false;
-}
-
 }  // namespace nodes
 
 void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)

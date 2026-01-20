@@ -270,10 +270,21 @@ template<typename T> void SocketValueVariant::store_impl(T value)
   }
   else if constexpr (std::is_same_v<T, nodes::ListPtr>) {
     kind_ = Kind::List;
-    const std::optional<eNodeSocketDatatype> new_socket_type =
-        geo_nodes_base_cpp_type_to_socket_type(value->cpp_type());
-    BLI_assert(new_socket_type);
-    socket_type_ = *new_socket_type;
+    const CPPType &list_cpp_type = value->cpp_type();
+    if (list_cpp_type.is<bke::SocketValueVariant>()) {
+      /* For lists of #SocketValueVariant, use the socket type of the first element. */
+      const GVArray gvarray = value->varray();
+      const VArray varray = gvarray.typed<bke::SocketValueVariant>();
+      if (!varray.is_empty()) {
+        socket_type_ = varray[0].socket_type_;
+      }
+    }
+    else {
+      const std::optional<eNodeSocketDatatype> new_socket_type =
+          geo_nodes_base_cpp_type_to_socket_type(list_cpp_type);
+      BLI_assert(new_socket_type);
+      socket_type_ = *new_socket_type;
+    }
     value_.emplace<nodes::ListPtr>(std::move(value));
   }
 #ifdef WITH_OPENVDB

@@ -81,11 +81,14 @@ static void node_rna(StructRNA *srna)
       rna_enum_node_socket_data_type_items,
       NOD_inline_enum_accessors(custom1),
       SOCK_GEOMETRY,
-      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
+      [](bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free) {
         *r_free = true;
+        const bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
+        bke::bNodeTreeType *ntree_type = ntree.typeinfo;
         return enum_items_filter(
-            rna_enum_node_socket_data_type_items, [](const EnumPropertyItem &item) -> bool {
-              return socket_type_supports_fields(eNodeSocketDatatype(item.value));
+            rna_enum_node_socket_data_type_items, [&](const EnumPropertyItem &item) -> bool {
+              bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(item.value);
+              return ntree_type->valid_socket_type(ntree_type, socket_type);
             });
       });
 }

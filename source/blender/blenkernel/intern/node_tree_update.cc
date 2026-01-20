@@ -939,9 +939,6 @@ class NodeTreeMainUpdater {
   static int get_socket_shape(const bNodeSocket &socket,
                               const bool use_inferred_structure_type = false)
   {
-    if (nodes::socket_type_always_single(socket.typeinfo->type)) {
-      return SOCK_DISPLAY_SHAPE_LINE;
-    }
     const SocketDeclaration *decl = socket.runtime->declaration;
     if (!decl) {
       return SOCK_DISPLAY_SHAPE_CIRCLE;
