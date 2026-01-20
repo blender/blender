@@ -598,6 +598,7 @@ void PAINT_OT_vert_select_linked(wmOperatorType *ot);
 void PAINT_OT_vert_select_linked_pick(wmOperatorType *ot);
 void PAINT_OT_vert_select_more(wmOperatorType *ot);
 void PAINT_OT_vert_select_less(wmOperatorType *ot);
+void PAINT_OT_vert_select_loop(wmOperatorType *ot);
 
 bool vert_paint_poll(bContext *C);
 bool mask_paint_poll(bContext *C);

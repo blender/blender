@@ -343,6 +343,36 @@ void PAINT_OT_face_select_loop(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
+static wmOperatorStatus paintvert_select_loop_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
+{
+  const bool select = RNA_boolean_get(op->ptr, "select");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  if (!extend) {
+    paintvert_deselect_all_visible(CTX_data_active_object(C), SEL_DESELECT, false);
+  }
+  view3d_operator_needs_gpu(C);
+  paintvert_select_loop(C, CTX_data_active_object(C), event->mval, select);
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_loop(wmOperatorType *ot)
+{
+  ot->name = "Select Loop";
+  ot->description = "Select vertex loop under the cursor";
+  ot->idname = "PAINT_OT_vert_select_loop";
+
+  ot->invoke = paintvert_select_loop_invoke;
+  ot->poll = vert_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna, "select", true, "Select", "If false, vertices will be deselected");
+  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+}
+
 static wmOperatorStatus vert_select_all_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);

@@ -1036,6 +1036,7 @@ void ED_operatortypes_paint()
   WM_operatortype_append(PAINT_OT_vert_select_linked_pick);
   WM_operatortype_append(PAINT_OT_vert_select_more);
   WM_operatortype_append(PAINT_OT_vert_select_less);
+  WM_operatortype_append(PAINT_OT_vert_select_loop);
 
   /* vertex */
   WM_operatortype_append(PAINT_OT_vertex_paint_toggle);

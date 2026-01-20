@@ -4841,6 +4841,15 @@ def _template_view3d_paint_mask_select_loop(params):
         ("paint.face_select_loop",
          {"type": params.select_mouse, "value": 'PRESS', "alt": True, "shift": True, "ctrl": True},
          {"properties": [("extend", True), ("select", False)]}),
+        ("paint.vert_select_loop",
+         {"type": params.select_mouse, "value": 'PRESS', "alt": True},
+         {"properties": [("extend", False), ("select", True)]}),
+        ("paint.vert_select_loop",
+         {"type": params.select_mouse, "value": 'PRESS', "alt": True, "shift": True},
+         {"properties": [("extend", True), ("select", True)]}),
+        ("paint.vert_select_loop",
+         {"type": params.select_mouse, "value": 'PRESS', "alt": True, "shift": True, "ctrl": True},
+         {"properties": [("extend", True), ("select", False)]}),
     ]
 
 
