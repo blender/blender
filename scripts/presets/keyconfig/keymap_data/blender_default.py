@@ -8580,7 +8580,9 @@ def km_sequencer_tool_generic_select_rcs(params):
         ("sequencer.select_handle", {"type": 'LEFTMOUSE', "value": 'PRESS',
          "alt": True}, {"properties": [("ignore_connections", True)]}),
         ("anim.change_frame", {"type": params.action_mouse, "value": 'PRESS'},
-         {"properties": [("seq_solo_preview", True), ("pass_through_on_strip_handles", True)]}),
+         {"properties": [("pass_through_on_strip_handles", True)]}),
+        ("anim.change_frame", {"type": params.action_mouse, "value": 'PRESS', "shift": True},
+         {"properties": [("seq_solo_preview", True)]}),
         # Change frame takes precedence over the sequence slide operator. If a
         # mouse press happens on a strip handle, it is canceled, and the sequence
         # slide below activates instead.
