@@ -1658,10 +1658,10 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
     BLO_write_shared(
         writer, smd.verts, sizeof(SDefVert) * smd.bind_verts_num, smd.verts_sharing_info, [&]() {
           SDefVert *bind_verts = smd.verts;
-          BLO_write_struct_array(writer, SDefVert, smd.bind_verts_num, bind_verts);
+          writer->write_struct_array(smd.bind_verts_num, bind_verts);
 
           for (int i = 0; i < smd.bind_verts_num; i++) {
-            BLO_write_struct_array(writer, SDefBind, bind_verts[i].binds_num, bind_verts[i].binds);
+            writer->write_struct_array(bind_verts[i].binds_num, bind_verts[i].binds);
 
             if (bind_verts[i].binds) {
               for (int j = 0; j < bind_verts[i].binds_num; j++) {
@@ -1685,7 +1685,7 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
         });
   }
 
-  BLO_write_struct_at_address(writer, SurfaceDeformModifierData, md, &smd);
+  writer->write_struct_at_address(md, &smd);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)

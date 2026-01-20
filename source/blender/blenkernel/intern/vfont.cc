@@ -149,7 +149,7 @@ static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 
   /* write LibData */
-  BLO_write_id_struct(writer, VFont, id_address, &vf->id);
+  writer->write_id_struct(id_address, vf);
   BKE_id_blend_write(writer, &vf->id);
 
   /* direct data */

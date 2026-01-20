@@ -147,7 +147,7 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
   Tex *tex = id_cast<Tex *>(id);
 
   /* write LibData */
-  BLO_write_id_struct(writer, Tex, id_address, &tex->id);
+  writer->write_id_struct(id_address, tex);
   BKE_id_blend_write(writer, &tex->id);
 
   /* direct data */
@@ -158,7 +158,7 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
   /* nodetree is integral part of texture, no libdata */
   if (tex->nodetree) {
     BLO_Write_IDBuffer temp_embedded_id_buffer{tex->nodetree->id, writer};
-    BLO_write_struct_at_address(writer, bNodeTree, tex->nodetree, temp_embedded_id_buffer.get());
+    writer->write_struct_at_address_cast<bNodeTree>(tex->nodetree, temp_embedded_id_buffer.get());
     bke::node_tree_blend_write(writer,
                                reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
   }

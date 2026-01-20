@@ -621,15 +621,15 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
       ts_flat.totelem = elems;
       ts_flat.data = static_cast<TreeStoreElem *>(data_addr);
 
-      BLO_write_struct_at_address(writer, TreeStore, ts, &ts_flat);
-      BLO_write_struct_array_at_address(writer, TreeStoreElem, elems, data_addr, data);
+      writer->write_struct_at_address(ts, &ts_flat);
+      writer->write_struct_array_at_address(elems, data_addr, data);
 
       MEM_freeN(data);
     }
     else {
       SpaceOutliner space_outliner_flat = *space_outliner;
       space_outliner_flat.treestore = nullptr;
-      BLO_write_struct_at_address(writer, SpaceOutliner, space_outliner, &space_outliner_flat);
+      writer->write_struct_at_address(space_outliner, &space_outliner_flat);
     }
   }
   else {

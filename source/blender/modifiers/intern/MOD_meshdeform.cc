@@ -561,10 +561,7 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
                    mmd.bindinfluences,
                    sizeof(MDefInfluence) * mmd.influences_num,
                    mmd.bindinfluences_sharing_info,
-                   [&]() {
-                     BLO_write_struct_array(
-                         writer, MDefInfluence, mmd.influences_num, mmd.bindinfluences);
-                   });
+                   [&]() { writer->write_struct_array(mmd.influences_num, mmd.bindinfluences); });
 
   /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
    * case `verts_num == 0`, since `bindoffset` is then nullptr, not a size 1 allocated array. */
@@ -586,23 +583,20 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
                    [&]() { BLO_write_float3_array(writer, mmd.cage_verts_num, mmd.bindcagecos); });
   BLO_write_shared(
       writer, mmd.dyngrid, sizeof(MDefCell) * size * size * size, mmd.dyngrid_sharing_info, [&]() {
-        BLO_write_struct_array(writer, MDefCell, size * size * size, mmd.dyngrid);
+        writer->write_struct_array(size * size * size, mmd.dyngrid);
       });
   BLO_write_shared(writer,
                    mmd.dyninfluences,
                    sizeof(MDefInfluence) * mmd.influences_num,
                    mmd.dyninfluences_sharing_info,
-                   [&]() {
-                     BLO_write_struct_array(
-                         writer, MDefInfluence, mmd.influences_num, mmd.dyninfluences);
-                   });
+                   [&]() { writer->write_struct_array(mmd.influences_num, mmd.dyninfluences); });
   BLO_write_shared(writer,
                    mmd.dynverts,
                    sizeof(MDefInfluence) * mmd.verts_num,
                    mmd.dynverts_sharing_info,
                    [&]() { BLO_write_int32_array(writer, mmd.verts_num, mmd.dynverts); });
 
-  BLO_write_struct_at_address(writer, MeshDeformModifierData, md, &mmd);
+  writer->write_struct_at_address(md, &mmd);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)

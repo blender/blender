@@ -100,7 +100,7 @@ static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_a
   memset(cache_file->handle_filepath, 0, sizeof(cache_file->handle_filepath));
   cache_file->handle_readers = nullptr;
 
-  BLO_write_id_struct(writer, CacheFile, id_address, &cache_file->id);
+  writer->write_id_struct(id_address, cache_file);
   BKE_id_blend_write(writer, &cache_file->id);
 
   /* write layers */

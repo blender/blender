@@ -242,7 +242,7 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   Brush *brush = reinterpret_cast<Brush *>(id);
 
-  BLO_write_id_struct(writer, Brush, id_address, &brush->id);
+  writer->write_id_struct(id_address, brush);
   BKE_id_blend_write(writer, &brush->id);
 
   if (brush->curve_distance_falloff) {

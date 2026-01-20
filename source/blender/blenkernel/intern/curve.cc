@@ -160,7 +160,7 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   cu->batch_cache = nullptr;
 
   /* write LibData */
-  BLO_write_id_struct(writer, Curve, id_address, &cu->id);
+  writer->write_id_struct(id_address, cu);
   BKE_id_blend_write(writer, &cu->id);
 
   /* direct data */
@@ -168,8 +168,8 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   if (cu->ob_type == OB_FONT) {
     BLO_write_string(writer, cu->str);
-    BLO_write_struct_array(writer, CharInfo, cu->len_char32 + 1, cu->strinfo);
-    BLO_write_struct_array(writer, TextBox, cu->totbox, cu->tb);
+    writer->write_struct_array(cu->len_char32 + 1, cu->strinfo);
+    writer->write_struct_array(cu->totbox, cu->tb);
   }
   else {
     /* is also the order of reading */
@@ -178,10 +178,10 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     }
     for (Nurb &nu : cu->nurb) {
       if (nu.type == CU_BEZIER) {
-        BLO_write_struct_array(writer, BezTriple, nu.pntsu, nu.bezt);
+        writer->write_struct_array(nu.pntsu, nu.bezt);
       }
       else {
-        BLO_write_struct_array(writer, BPoint, nu.pntsu * nu.pntsv, nu.bp);
+        writer->write_struct_array(nu.pntsu * nu.pntsv, nu.bp);
         if (nu.knotsu) {
           BLO_write_float_array(writer, KNOTSU(&nu), nu.knotsu);
         }

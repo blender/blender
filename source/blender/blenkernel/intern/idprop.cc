@@ -1345,8 +1345,7 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
                               uint(ui_data_int->default_array_len),
                               static_cast<int32_t *>(ui_data_int->default_array));
       }
-      BLO_write_struct_array(
-          writer, IDPropertyUIDataEnumItem, ui_data_int->enum_items_num, ui_data_int->enum_items);
+      writer->write_struct_array(ui_data_int->enum_items_num, ui_data_int->enum_items);
       for (const int64_t i : IndexRange(ui_data_int->enum_items_num)) {
         IDPropertyUIDataEnumItem &item = ui_data_int->enum_items[i];
         BLO_write_string(writer, item.identifier);
@@ -1429,7 +1428,7 @@ static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
   if (prop->data.pointer) {
     const IDProperty *array = static_cast<const IDProperty *>(prop->data.pointer);
 
-    BLO_write_struct_array(writer, IDProperty, prop->len, array);
+    writer->write_struct_array(prop->len, array);
 
     for (int a = 0; a < prop->len; a++) {
       IDP_WriteProperty_OnlyData(&array[a], writer);

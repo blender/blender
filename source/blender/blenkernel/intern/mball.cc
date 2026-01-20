@@ -108,7 +108,7 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
   mb->lastelem = nullptr;
 
   /* write LibData */
-  BLO_write_id_struct(writer, MetaBall, id_address, &mb->id);
+  writer->write_id_struct(id_address, mb);
   BKE_id_blend_write(writer, &mb->id);
 
   /* direct data */

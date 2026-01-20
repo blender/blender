@@ -306,7 +306,7 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
   BKE_collection_blend_write_prepare_nolib(writer, collection);
 
   /* write LibData */
-  BLO_write_id_struct(writer, Collection, id_address, &collection->id);
+  writer->write_id_struct(id_address, collection);
 
   BKE_collection_blend_write_nolib(writer, collection);
 }

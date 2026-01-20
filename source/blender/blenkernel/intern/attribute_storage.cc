@@ -577,8 +577,7 @@ static void write_array_data(BlendWriter &writer,
       BLO_write_float_array(&writer, size * 4, static_cast<const float *>(data));
       break;
     case AttrType::String:
-      BLO_write_struct_array(
-          &writer, MStringProperty, size, static_cast<const MStringProperty *>(data));
+      writer.write_struct_array_cast<MStringProperty>(size, data);
       break;
   }
 }

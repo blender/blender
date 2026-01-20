@@ -1423,7 +1423,7 @@ void BKE_curvemapping_blend_write(BlendWriter *writer, const CurveMapping *cumap
 void BKE_curvemapping_curves_blend_write(BlendWriter *writer, const CurveMapping *cumap)
 {
   for (int a = 0; a < CM_TOT; a++) {
-    BLO_write_struct_array(writer, CurveMapPoint, cumap->cm[a].totpoint, cumap->cm[a].curve);
+    writer->write_struct_array(cumap->cm[a].totpoint, cumap->cm[a].curve);
   }
 }
 

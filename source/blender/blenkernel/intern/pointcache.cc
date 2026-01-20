@@ -3736,7 +3736,7 @@ void BKE_ptcache_blend_write(BlendWriter *writer, ListBaseT<PointCache> *ptcache
         for (int i = 0; i < BPHYS_TOT_DATA; i++) {
           if (pm.data[i] && pm.data_types & (1 << i)) {
             if (i == BPHYS_DATA_BOIDS) {
-              BLO_write_struct_array(writer, BoidData, pm.totpoint, pm.data[i]);
+              writer->write_struct_array_cast<BoidData>(pm.totpoint, pm.data[i]);
             }
             else if (i == BPHYS_DATA_INDEX) { /* Only 'cache type' to use uint values. */
               BLO_write_uint32_array(
@@ -3753,10 +3753,10 @@ void BKE_ptcache_blend_write(BlendWriter *writer, ListBaseT<PointCache> *ptcache
         for (PTCacheExtra &extra : pm.extradata) {
           writer->write_struct(&extra);
           if (extra.type == BPHYS_EXTRA_FLUID_SPRINGS) {
-            BLO_write_struct_array(writer, ParticleSpring, extra.totdata, extra.data);
+            writer->write_struct_array_cast<ParticleSpring>(extra.totdata, extra.data);
           }
           else if (extra.type == BPHYS_EXTRA_CLOTH_ACCELERATION) {
-            BLO_write_struct_array(writer, vec3f, extra.totdata, extra.data);
+            writer->write_struct_array_cast<vec3f>(extra.totdata, extra.data);
           }
           else if (extra.data) {
             BLI_assert_unreachable();

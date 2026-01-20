@@ -211,13 +211,13 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
   ma->use_nodes = true;
 
   /* write LibData */
-  BLO_write_id_struct(writer, Material, id_address, &ma->id);
+  writer->write_id_struct(id_address, ma);
   BKE_id_blend_write(writer, &ma->id);
 
   /* nodetree is integral part of material, no libdata */
   if (ma->nodetree) {
     BLO_Write_IDBuffer temp_embedded_id_buffer{ma->nodetree->id, writer};
-    BLO_write_struct_at_address(writer, bNodeTree, ma->nodetree, temp_embedded_id_buffer.get());
+    writer->write_struct_at_address_cast<bNodeTree>(ma->nodetree, temp_embedded_id_buffer.get());
     bke::node_tree_blend_write(writer,
                                reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
   }

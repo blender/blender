@@ -178,7 +178,7 @@ static void library_blend_write_data(BlendWriter *writer, ID *id, const void *id
   /* Clear runtime data. */
   library->runtime = nullptr;
 
-  BLO_write_id_struct(writer, Library, id_address, id);
+  writer->write_id_struct(id_address, library);
   BKE_id_blend_write(writer, id);
 
   /* Write packed file if necessary. */

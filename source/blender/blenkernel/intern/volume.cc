@@ -238,7 +238,7 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   }
 
   /* write LibData */
-  BLO_write_id_struct(writer, Volume, id_address, &volume->id);
+  writer->write_id_struct(id_address, volume);
   BKE_id_blend_write(writer, &volume->id);
 
   /* direct data */

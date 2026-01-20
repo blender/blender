@@ -324,7 +324,7 @@ static void write_bone_collection(BlendWriter *writer, BoneCollection *bcoll)
     IDP_BlendWrite(writer, bcoll->system_properties);
   }
 
-  BLO_write_struct_list(writer, BoneCollectionMember, &bcoll->bones);
+  writer->write_struct_list(&bcoll->bones);
 }
 
 static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -353,7 +353,7 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
     arm->collection_array = nullptr;
   }
 
-  BLO_write_id_struct(writer, bArmature, id_address, &arm->id);
+  writer->write_id_struct(id_address, arm);
   BKE_id_blend_write(writer, &arm->id);
 
   /* Direct data */

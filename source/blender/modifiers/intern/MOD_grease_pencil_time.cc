@@ -644,8 +644,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
   writer->write_struct(tmd);
   modifier::greasepencil::write_influence_data(writer, &tmd->influence);
 
-  BLO_write_struct_array(
-      writer, GreasePencilTimeModifierSegment, tmd->segments_num, tmd->segments_array);
+  writer->write_struct_array(tmd->segments_num, tmd->segments_array);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)

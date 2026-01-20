@@ -186,7 +186,7 @@ static void sound_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 
   /* write LibData */
-  BLO_write_id_struct(writer, bSound, id_address, &sound->id);
+  writer->write_id_struct(id_address, sound);
   BKE_id_blend_write(writer, &sound->id);
 
   BKE_packedfile_blend_write(writer, sound->packedfile);
