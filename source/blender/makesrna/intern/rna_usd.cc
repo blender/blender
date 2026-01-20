@@ -18,7 +18,7 @@
 #  include "DNA_object_types.h"
 #  include "WM_api.hh"
 
-#  include "usd.hh"
+#  include "usd_api_hook.hh"
 
 namespace blender {
 

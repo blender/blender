@@ -4,31 +4,19 @@
 
 #pragma once
 
-#include <memory>
-
 #include "../common/IO_orientation.hh"
 
 #include "DEG_depsgraph.hh"
 
-#include "DNA_listBase.h"
 #include "DNA_modifier_types.h"
-
-#include "RNA_types.hh"
 
 namespace blender {
 
 struct bContext;
-struct CacheArchiveHandle;
-struct CacheObjectPath;
-struct CacheReader;
 struct Mesh;
 struct Object;
 struct ReportList;
 struct wmJobWorkerStatus;
-
-namespace bke {
-struct GeometrySet;
-}
 
 namespace io::usd {
 
@@ -253,17 +241,6 @@ struct USDImportParams {
 };
 
 /**
- * This struct is in place to store the mesh sequence parameters needed when reading a data from a
- * USD file for the mesh sequence cache.
- */
-struct USDMeshReadParams {
-  double motion_sample_time; /* USD TimeCode in frames. */
-  int read_flags; /* MOD_MESHSEQ_xxx value that is set from MeshSeqCacheModifierData.read_flag. */
-};
-
-USDMeshReadParams create_mesh_read_params(double motion_sample_time, int read_flags);
-
-/**
  * The USD_export takes a `as_background_job` parameter, and returns a boolean.
  *
  * When `as_background_job=true`, returns false immediately after scheduling
@@ -286,63 +263,11 @@ bool USD_import(const bContext *C,
 
 int USD_get_version();
 
-/* USD Import and Mesh Cache interface. */
-
 /* Similar to BLI_path_abs(), but also invokes the USD asset resolver
  * to determine the absolute path. This is necessary for resolving
  * paths with URIs that BLI_path_abs() would otherwise alter when
  * attempting to normalize the path. */
 void USD_path_abs(char *path, const char *basepath, bool for_import);
-
-CacheArchiveHandle *USD_create_handle(Main *bmain,
-                                      const char *filepath,
-                                      ListBaseT<CacheObjectPath> *object_paths);
-
-void USD_free_handle(CacheArchiveHandle *handle);
-
-void USD_get_transform(CacheReader *reader, float r_mat[4][4], float time, float scale);
-
-/** Either modifies current_mesh in-place or constructs a new mesh. */
-void USD_read_geometry(CacheReader *reader,
-                       const Object *ob,
-                       bke::GeometrySet &geometry_set,
-                       USDMeshReadParams params,
-                       const char **r_err_str);
-
-bool USD_mesh_topology_changed(CacheReader *reader,
-                               const Object *ob,
-                               const Mesh *existing_mesh,
-                               double time,
-                               const char **r_err_str);
-
-CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,
-                                         CacheReader *reader,
-                                         Object *object,
-                                         const char *object_path);
-
-void USD_CacheReader_free(CacheReader *reader);
-
-/** Data for registering USD IO hooks. */
-struct USDHook {
-
-  /* Identifier used for class name. */
-  char idname[64];
-  /* Identifier used as label. */
-  char name[64];
-  /* Short help/description. */
-  char description[/*RNA_DYN_DESCR_MAX*/ 1024];
-
-  /* rna_ext.data points to the USDHook class PyObject. */
-  ExtensionRNA rna_ext;
-};
-
-void USD_register_hook(std::unique_ptr<USDHook> hook);
-/**
- * Remove the given entry from the list of registered hooks and
- * free the allocated memory for the hook instance.
- */
-void USD_unregister_hook(const USDHook *hook);
-USDHook *USD_find_hook_name(const char idname[]);
 
 double get_meters_per_unit(const USDExportParams &params);
 

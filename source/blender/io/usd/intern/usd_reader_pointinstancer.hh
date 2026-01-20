@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "usd_api_modifier.hh"
 #include "usd_reader_geom.hh"
 
 #include <pxr/usd/usdGeom/pointInstancer.h>
