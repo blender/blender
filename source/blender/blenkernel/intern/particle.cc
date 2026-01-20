@@ -5165,36 +5165,21 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim,
   sub_v3_v3v3(vec, (cache + cache->segments)->co, cache->co);
   len = normalize_v3(vec);
 
-  if (pa == nullptr && psys->part->childtype != PART_CHILD_FACES) {
+  if (pa == nullptr) {
     pa = psys->particles + cpa->pa[0];
   }
 
-  if (pa) {
-    psys_particle_on_emitter(psmd,
-                             sim->psys->part->from,
-                             pa->num,
-                             pa->num_dmcache,
-                             pa->fuv,
-                             pa->foffset,
-                             loc,
-                             nor,
-                             nullptr,
-                             nullptr,
-                             nullptr);
-  }
-  else {
-    psys_particle_on_emitter(psmd,
-                             PART_FROM_FACE,
-                             cpa->num,
-                             DMCACHE_ISCHILD,
-                             cpa->fuv,
-                             cpa->foffset,
-                             loc,
-                             nor,
-                             nullptr,
-                             nullptr,
-                             nullptr);
-  }
+  psys_particle_on_emitter(psmd,
+                           sim->psys->part->from,
+                           pa->num,
+                           pa->num_dmcache,
+                           pa->fuv,
+                           pa->foffset,
+                           loc,
+                           nor,
+                           nullptr,
+                           nullptr,
+                           nullptr);
 
   if (psys->part->rotmode == PART_ROT_VEL) {
     transpose_m3_m4(nmat, ob->world_to_object().ptr());
