@@ -394,6 +394,11 @@ bool ED_operator_buttons_active(bContext *C)
   return ed_spacetype_test(C, SPACE_PROPERTIES);
 }
 
+bool ED_operator_preferences_active(bContext *C)
+{
+  return ed_spacetype_test(C, SPACE_USERPREF);
+}
+
 bool ED_operator_node_active(bContext *C)
 {
   SpaceNode *snode = CTX_wm_space_node(C);

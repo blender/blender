@@ -45,6 +45,7 @@ struct bGPdata;
 struct bNodeTree;
 struct wmOperator;
 struct wmTimer;
+struct SpaceUserPref_Runtime;
 
 namespace asset_system {
 class AssetRepresentation;
@@ -953,6 +954,7 @@ struct SpaceConsole {
  * \{ */
 
 struct SpaceUserPref {
+  DNA_DEFINE_CXX_METHODS(SpaceUserPref)
   SpaceLink *next = nullptr, *prev = nullptr;
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
@@ -965,6 +967,7 @@ struct SpaceUserPref {
   char filter_type = 0;
   /** Search term for filtering in the UI. */
   char filter[64] = "";
+  SpaceUserPref_Runtime *runtime = nullptr;
 };
 
 /** \} */

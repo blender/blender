@@ -41,6 +41,7 @@
 #include "ED_screen_types.hh"
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
+#include "ED_userpref.hh"
 
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
@@ -825,11 +826,16 @@ int ED_area_max_regionsize(const ScrArea *area, const ARegion *scale_region, con
 
 const char *ED_area_region_search_filter_get(const ScrArea *area, const ARegion *region)
 {
-  /* Only the properties editor has a search string for now. */
   if (area->spacetype == SPACE_PROPERTIES) {
     SpaceProperties *sbuts = static_cast<SpaceProperties *>(area->spacedata.first);
     if (region->regiontype == RGN_TYPE_WINDOW) {
       return ED_buttons_search_string_get(sbuts);
+    }
+  }
+  else if (area->spacetype == SPACE_USERPREF) {
+    SpaceUserPref *sprefs = static_cast<SpaceUserPref *>(area->spacedata.first);
+    if (region->regiontype == RGN_TYPE_WINDOW) {
+      return ED_userpref_search_string_get(sprefs);
     }
   }
 

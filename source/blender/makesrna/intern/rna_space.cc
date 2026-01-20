@@ -21,6 +21,7 @@
 #include "ED_asset.hh"
 #include "ED_buttons.hh"
 #include "ED_spreadsheet.hh"
+#include "ED_userpref.hh"
 
 #include "BLI_string.h"
 #include "BLI_sys_types.h"
@@ -2375,6 +2376,64 @@ static void rna_SpaceProperties_search_filter_update(Main * /*bmain*/,
   ARegion *main_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   BLI_assert(main_region != nullptr);
   ED_region_search_filter_update(area, main_region);
+}
+
+/* Space Userpref */
+static int rna_SpaceUserPref_tab_search_results_getlength(const PointerRNA *ptr,
+                                                          int length[RNA_MAX_ARRAY_DIMENSION])
+{
+  SpaceUserPref *sprefs = static_cast<SpaceUserPref *>(ptr->data);
+  Vector<int> tabs = ED_userpref_tabs_list(sprefs);
+  length[0] = tabs.size();
+  return tabs.size();
+}
+static void rna_SpaceUserPref_tab_search_results_get(PointerRNA *ptr, bool *values)
+{
+  SpaceUserPref *sprefs = static_cast<SpaceUserPref *>(ptr->data);
+  Vector<int> tabs = ED_userpref_tabs_list(sprefs);
+  for (const int i : tabs.index_range()) {
+    values[i] = ED_userpref_tab_has_search_result(sprefs, i);
+  }
+}
+static void rna_SpaceUserPref_search_filter_get(PointerRNA *ptr, char *value)
+{
+  SpaceUserPref *sprefs = static_cast<SpaceUserPref *>(ptr->data);
+  const char *search_filter = ED_userpref_search_string_get(sprefs);
+  strcpy(value, search_filter);
+}
+static int rna_SpaceUserPref_search_filter_length(PointerRNA *ptr)
+{
+  SpaceUserPref *sprefs = static_cast<SpaceUserPref *>(ptr->data);
+  return ED_userpref_search_string_length(sprefs);
+}
+static void rna_SpaceUserPref_search_filter_set(PointerRNA *ptr, const char *value)
+{
+  SpaceUserPref *sprefs = static_cast<SpaceUserPref *>(ptr->data);
+  ED_userpref_search_string_set(sprefs, value);
+}
+static void rna_SpaceUserPref_search_filter_update(Main * /*bmain*/,
+                                                   Scene * /*scene*/,
+                                                   PointerRNA *ptr)
+{
+  ScrArea *area = rna_area_from_space(ptr);
+  /* Update the search filter flag for the main region with the panels. */
+  ARegion *main_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  BLI_assert(main_region != nullptr);
+  ED_region_search_filter_update(area, main_region);
+}
+
+static int rna_SpaceUserPref_search_filter_editable(const PointerRNA * /*ptr*/,
+                                                    const char **r_info)
+{
+  if (U.space_data.section_active == USER_SECTION_EXTENSIONS) {
+    *r_info = N_("Use the search in Extensions.");
+    return 0;
+  }
+  if (U.space_data.section_active == USER_SECTION_ADDONS) {
+    *r_info = N_("Use the search in Add-ons.");
+    return 0;
+  }
+  return PROP_EDITABLE;
 }
 
 /* Space Console */
@@ -7992,6 +8051,27 @@ static void rna_def_space_userpref(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, nullptr, "filter");
   RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
   RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");
+
+  prop = RNA_def_property(srna, "tab_search_results", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_array(prop, 0); /* Dynamic length, see next line. */
+  RNA_def_property_flag(prop, PROP_DYNAMIC);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_SpaceUserPref_tab_search_results_get", nullptr);
+  RNA_def_property_dynamic_array_funcs(prop, "rna_SpaceUserPref_tab_search_results_getlength");
+  RNA_def_property_ui_text(
+      prop, "Tab Search Results", "Whether or not each visible tab has a search result");
+  prop = RNA_def_property(srna, "search_filter", PROP_STRING, PROP_NONE);
+  /* The search filter is stored in the property editor's runtime which
+   * is only defined in an internal header, so use the getter / setter here. */
+  RNA_def_property_string_funcs(prop,
+                                "rna_SpaceUserPref_search_filter_get",
+                                "rna_SpaceUserPref_search_filter_length",
+                                "rna_SpaceUserPref_search_filter_set");
+  RNA_def_property_editable_func(prop, "rna_SpaceUserPref_search_filter_editable");
+  RNA_def_property_ui_text(prop, "Display Filter", "Live search filtering string");
+  RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceUserPref_search_filter_update");
 }
 
 static void rna_def_node_tree_path(BlenderRNA *brna)

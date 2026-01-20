@@ -26,6 +26,7 @@
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
+#include "BKE_screen.hh"
 
 #include "BKE_report.hh"
 
@@ -43,9 +44,12 @@
 #include "WM_types.hh"
 
 #include "ED_asset.hh"
+#include "ED_screen.hh"
 #include "ED_userpref.hh"
 
 #include "MEM_guardedalloc.h"
+
+#include "userpref_intern.hh"
 
 namespace blender {
 
@@ -1086,6 +1090,52 @@ static void ED_dropbox_drop_extension()
                  nullptr);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Start / Clear Search Filter Operators
+ *
+ * \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
+ * \{ */
+
+static wmOperatorStatus preferences_start_filter_exec(bContext *C, wmOperator * /*op*/)
+{
+  SpaceUserPref *space = CTX_wm_space_userpref(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_UI);
+  ui::textbutton_activate_rna(C, region, space, "search_filter");
+  return OPERATOR_FINISHED;
+}
+
+void PREFERENCES_OT_start_filter(wmOperatorType *ot)
+{
+  ot->name = "Filter";
+  ot->description = "Start entering filter text";
+  ot->idname = "PREFERENCES_OT_start_filter";
+  ot->exec = preferences_start_filter_exec;
+  ot->poll = ED_operator_preferences_active;
+}
+
+static wmOperatorStatus preferences_clear_filter_exec(bContext *C, wmOperator * /*op*/)
+{
+  SpaceUserPref *space = CTX_wm_space_userpref(C);
+  space->runtime->search_string[0] = '\0';
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *main_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  ED_region_search_filter_update(area, main_region);
+  ED_area_tag_redraw(area);
+  return OPERATOR_FINISHED;
+}
+
+void PREFERENCES_OT_clear_filter(wmOperatorType *ot)
+{
+  ot->name = "Clear Filter";
+  ot->description = "Clear the search filter";
+  ot->idname = "PREFERENCES_OT_clear_filter";
+  ot->exec = preferences_clear_filter_exec;
+  ot->poll = ED_operator_preferences_active;
+}
+
+/** \} */
+
 void ED_operatortypes_userpref()
 {
   WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
@@ -1102,6 +1152,9 @@ void ED_operatortypes_userpref()
 
   WM_operatortype_append(PREFERENCES_OT_associate_blend);
   WM_operatortype_append(PREFERENCES_OT_unassociate_blend);
+
+  WM_operatortype_append(PREFERENCES_OT_start_filter);
+  WM_operatortype_append(PREFERENCES_OT_clear_filter);
 
   ED_dropbox_drop_extension();
 }
