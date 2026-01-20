@@ -1736,7 +1736,7 @@ void blo_do_versions_userdef(UserDef *userdef)
         userdef, "NODE_AST_compositor", "Utilities");
   }
 
-  if (!USER_VERSION_ATLEAST(510, 17)) {
+  if (!USER_VERSION_ATLEAST(501, 17)) {
     userdef->flag |= USER_HIDE_DOT_DATABLOCK;
   }
 
