@@ -234,11 +234,12 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
 gpu::VertBufPtr extract_vert_index_subdiv(const DRWSubdivCache &subdiv_cache,
                                           const MeshRenderData &mr)
 {
+  const int loose_len = subdiv_loose_edges_num(mr, subdiv_cache) * 2 + mr.loose_verts.size();
   /* Each element points to an element in the `ibo.points`. */
   gpu::VertBufPtr vbo = draw_subdiv_init_origindex_buffer(
       subdiv_cache.verts_orig_index->data<int32_t>().data(),
       subdiv_cache.num_subdiv_loops,
-      subdiv_full_vbo_size(mr, subdiv_cache));
+      loose_len);
   if (!mr.orig_index_vert) {
     return vbo;
   }
