@@ -6504,17 +6504,19 @@ static wmOperatorStatus screen_animation_cancel_exec(bContext *C, wmOperator *op
   if (screen) {
     bool restore_start_frame = RNA_boolean_get(op->ptr, "restore_frame") && screen->animtimer;
     int frame;
+    Scene *scene;
     if (restore_start_frame) {
       ScreenAnimData *sad = static_cast<ScreenAnimData *>(screen->animtimer->customdata);
       frame = sad->sfra;
+      scene = sad->scene;
     }
 
     /* Stop playback */
     ED_screen_animation_play(C, 0, 0);
     if (restore_start_frame) {
-      Scene *scene = CTX_data_scene(C);
       /* reset current frame and just send a notifier to deal with the rest */
       scene->r.cfra = frame;
+      ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
       WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
     }
   }
