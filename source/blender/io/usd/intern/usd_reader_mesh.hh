@@ -6,6 +6,7 @@
 #pragma once
 
 #include "BLI_map.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
 #include "usd.hh"
@@ -15,22 +16,45 @@
 
 namespace blender::io::usd {
 
+struct USDMeshReadData {
+ private:
+  pxr::VtVec3fArray positions_;
+  pxr::VtVec3fArray normals_;
+  pxr::VtIntArray face_indices_;
+  pxr::VtIntArray face_counts_;
+
+ public:
+  USDMeshReadData(const pxr::UsdGeomMesh &mesh_prim, pxr::UsdTimeCode time);
+
+  Span<int> face_indices() const
+  {
+    return Span(face_indices_.cdata(), face_indices_.size());
+  }
+  Span<int> face_counts() const
+  {
+    return Span(face_counts_.cdata(), face_counts_.size());
+  }
+  Span<float3> positions() const
+  {
+    return Span(positions_.cdata(), positions_.size()).cast<float3>();
+  }
+  Span<float3> normals() const
+  {
+    return Span(normals_.cdata(), normals_.size()).cast<float3>();
+  }
+  MutableSpan<float3> normals_for_write()
+  {
+    return MutableSpan(normals_.data(), normals_.size()).cast<float3>();
+  }
+
+  pxr::TfToken normal_interpolation;
+  pxr::TfToken orientation;
+};
+
 class USDMeshReader : public USDGeomReader {
  private:
   pxr::UsdGeomMesh mesh_prim_;
 
-  Map<const pxr::TfToken, bool> primvar_varying_map_;
-
-  /* TODO(makowalski): Is it the best strategy to cache the
-   * mesh geometry in the following members? It appears these
-   * arrays are never cleared, so this might bloat memory. */
-  pxr::VtIntArray face_indices_;
-  pxr::VtIntArray face_counts_;
-  pxr::VtVec3fArray positions_;
-  pxr::VtVec3fArray normals_;
-
-  pxr::TfToken normal_interpolation_;
-  pxr::TfToken orientation_;
   bool is_left_handed_ = false;
   bool is_time_varying_ = false;
 
@@ -38,6 +62,8 @@ class USDMeshReader : public USDGeomReader {
    * in the mesh seq modifier, and in initial load. Ideally, a better fix would be
    * implemented.  Note this will break if faces or positions vary. */
   bool is_initial_load_ = false;
+
+  Map<const pxr::TfToken, bool> primvar_varying_map_;
 
  public:
   USDMeshReader(const pxr::UsdPrim &prim,
@@ -72,16 +98,16 @@ class USDMeshReader : public USDGeomReader {
   pxr::SdfPath get_skeleton_path() const;
 
  private:
-  void process_normals_vertex_varying(Mesh *mesh);
-  void process_normals_face_varying(Mesh *mesh) const;
+  void process_normals_vertex_varying(Mesh *mesh, MutableSpan<float3> usd_normals) const;
+  void process_normals_face_varying(Mesh *mesh, Span<float3> usd_normals) const;
   /** Set USD uniform (per-face) normals as Blender loop normals. */
-  void process_normals_uniform(Mesh *mesh) const;
+  void process_normals_uniform(Mesh *mesh, Span<float3> usd_normals) const;
   void readFaceSetsSample(Main *bmain, Mesh *mesh, pxr::UsdTimeCode time);
   void assign_facesets_to_material_indices(pxr::UsdTimeCode time,
                                            MutableSpan<int> material_indices,
                                            Map<pxr::SdfPath, int> *r_mat_map);
 
-  bool read_faces(Mesh *mesh) const;
+  bool read_faces(Mesh *mesh, const USDMeshReadData &usd_data) const;
   void read_subdiv();
   void read_vertex_creases(Mesh *mesh, pxr::UsdTimeCode time);
   void read_edge_creases(Mesh *mesh, pxr::UsdTimeCode time);
@@ -89,6 +115,7 @@ class USDMeshReader : public USDGeomReader {
 
   void read_mesh_sample(ImportSettings *settings,
                         Mesh *mesh,
+                        USDMeshReadData &usd_data,
                         pxr::UsdTimeCode time,
                         bool new_mesh);
 
@@ -104,6 +131,8 @@ class USDMeshReader : public USDGeomReader {
   void read_uv_data_primvar(Mesh *mesh,
                             const pxr::UsdGeomPrimvar &primvar,
                             const pxr::UsdTimeCode time);
+
+  bool topology_changed(const Mesh *existing_mesh, const USDMeshReadData &usd_data) const;
 
   /**
    * Override transform computation to account for the binding
