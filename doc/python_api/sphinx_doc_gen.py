@@ -1131,14 +1131,16 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
 
 
 def pyclass2sphinx(fw, module_name, type_name, value, write_class_examples):
+    # NOTE: for `.. class::` identifiers, the type name alone is enough
+    # because the module has already been set via `.. module::`.
     if value.__doc__:
         if value.__doc__.startswith(".. class::"):
             fw(value.__doc__)
         else:
-            fw(".. class:: {:s}.{:s}\n\n".format(module_name, type_name))
+            fw(".. class:: {:s}\n\n".format(type_name))
             write_indented_lines("   ", fw, value.__doc__, True)
     else:
-        fw(".. class:: {:s}.{:s}\n\n".format(module_name, type_name))
+        fw(".. class:: {:s}\n\n".format(type_name))
     fw("\n")
 
     if write_class_examples:
