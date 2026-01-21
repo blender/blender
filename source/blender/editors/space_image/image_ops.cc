@@ -4229,8 +4229,11 @@ static wmOperatorStatus clear_render_border_exec(bContext *C, wmOperator * /*op*
 {
   Scene *scene = CTX_data_scene(C);
   scene->r.mode &= ~R_BORDER;
-  WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
   BLI_rctf_init(&scene->r.border, 0.0f, 1.0f, 0.0f, 1.0f);
+
+  WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+
   return OPERATOR_FINISHED;
 }
 
